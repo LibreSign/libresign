@@ -7,7 +7,7 @@ import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { ensureUserExists } from '../support/nc-provisioning'
-import { ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
+import { bootstrapLibreSignAdmin, ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
 import { clearPolicyWorkbenchRules } from '../support/policy-workbench-rules'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
@@ -315,11 +315,7 @@ async function clearExistingRules(dialog: Locator) {
 }
 
 test('system default persists across edit cycles and can be reset to the system baseline', async ({ page }) => {
-	await login(
-		page.request,
-		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
-		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
-	)
+	await bootstrapLibreSignAdmin(page)
 
 	await page.goto('./settings/admin/libresign')
 
@@ -356,11 +352,7 @@ test('admin can manage instance, group, and user rules when system default is fi
 
 	await ensureUserExists(page.request, userTarget)
 
-	await login(
-		page.request,
-		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
-		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
-	)
+	await bootstrapLibreSignAdmin(page)
 
 	await page.goto('./settings/admin/libresign')
 	await openSigningOrderDialog(page)
