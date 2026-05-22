@@ -7,6 +7,7 @@ import { expect, test } from '@playwright/test'
 
 import { login } from '../support/nc-login'
 import { setUserLanguage } from '../support/nc-provisioning'
+import { openPolicyWorkbenchSystemRuleEditor } from '../support/policy-workbench-rules'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
@@ -32,12 +33,7 @@ test('admin can open reminder settings from policy workbench', async ({ page }) 
 
 	const reminderDialog = page.locator('div[role="dialog"]').filter({ hasText: 'Automatic reminders' }).first()
 	await expect(reminderDialog).toBeVisible({ timeout: 10000 })
-
-	const changeButton = reminderDialog.getByRole('button', { name: /^Change$/i }).first()
-	await expect(changeButton).toBeVisible({ timeout: 10000 })
-	await changeButton.click()
-
-	const createRuleDialog = page.getByRole('dialog', { name: /Create rule/i }).last()
+	const createRuleDialog = await openPolicyWorkbenchSystemRuleEditor(reminderDialog)
 	await expect(createRuleDialog).toBeVisible({ timeout: 10000 })
 	await expect(createRuleDialog.getByText('Enable automatic reminders', { exact: true })).toBeVisible({ timeout: 10000 })
 })
