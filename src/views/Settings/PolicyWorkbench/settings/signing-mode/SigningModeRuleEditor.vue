@@ -7,6 +7,7 @@
 	<div class="signing-mode-rule-editor">
 		<fieldset class="signing-mode-rule-editor__mode">
 			<legend class="signing-mode-rule-editor__section-label">
+				<!-- TRANSLATORS Section title describing how signature jobs are executed. -->
 				{{ t('libresign', 'How signatures are processed') }}
 			</legend>
 			<NcCheckboxRadioSwitch
@@ -15,7 +16,9 @@
 				:model-value="settings.signingMode === 'sync'"
 				@update:modelValue="onModeChange('sync', $event)">
 				<div class="signing-mode-rule-editor__copy">
+					<!-- TRANSLATORS Option label for synchronous signing execution. -->
 					<strong>{{ t('libresign', 'Process immediately') }}</strong>
+					<!-- TRANSLATORS Option description: signing occurs during request lifecycle. -->
 					<p>{{ t('libresign', 'Documents are signed during the request lifecycle.') }}</p>
 				</div>
 			</NcCheckboxRadioSwitch>
@@ -26,7 +29,9 @@
 				:model-value="settings.signingMode === 'async'"
 				@update:modelValue="onModeChange('async', $event)">
 				<div class="signing-mode-rule-editor__copy">
+					<!-- TRANSLATORS Option label for asynchronous/background signing execution. -->
 					<strong>{{ t('libresign', 'Process in background') }}</strong>
+					<!-- TRANSLATORS Option description: signing jobs are queued and processed asynchronously. -->
 					<p>{{ t('libresign', 'Documents are queued and signed asynchronously.') }}</p>
 				</div>
 			</NcCheckboxRadioSwitch>
@@ -37,6 +42,7 @@
 			class="signing-mode-rule-editor__infrastructure">
 			<fieldset class="signing-mode-rule-editor__worker-type">
 				<legend class="signing-mode-rule-editor__worker-label">
+					<!-- TRANSLATORS Section label for selecting worker service implementation. -->
 					{{ t('libresign', 'Worker service') }}
 				</legend>
 
@@ -46,7 +52,9 @@
 					:model-value="settings.workerType === 'local'"
 					@update:modelValue="onWorkerTypeChange('local', $event)">
 					<div class="signing-mode-rule-editor__copy">
+						<!-- TRANSLATORS Option label for built-in/local worker service. -->
 						<strong>{{ t('libresign', 'Local worker') }}</strong>
+						<!-- TRANSLATORS Option description for local worker processing on Nextcloud instance. -->
 						<p>{{ t('libresign', 'Nextcloud processes signing jobs locally.') }}</p>
 					</div>
 				</NcCheckboxRadioSwitch>
@@ -54,6 +62,7 @@
 				<div v-if="settings.workerType === 'local'" class="signing-mode-rule-editor__local-config">
 					<div class="signing-mode-rule-editor__parallel">
 						<label for="signing-mode-parallel-input" class="signing-mode-rule-editor__parallel-label">
+							<!-- TRANSLATORS Label for maximum number of parallel signing jobs. -->
 							{{ t('libresign', 'Concurrent jobs') }}
 						</label>
 						<div class="signing-mode-rule-editor__parallel-input-row">
@@ -69,6 +78,7 @@
 								@blur="emitNormalizedParallel" />
 						</div>
 						<p id="signing-mode-parallel-helper" class="signing-mode-rule-editor__parallel-helper">
+							<!-- TRANSLATORS Helper text explaining the concurrent jobs limit. -->
 							{{ t('libresign', 'Maximum concurrent signing jobs.') }}
 						</p>
 					</div>
@@ -80,7 +90,9 @@
 					:model-value="settings.workerType === 'external'"
 					@update:modelValue="onWorkerTypeChange('external', $event)">
 					<div class="signing-mode-rule-editor__copy">
+						<!-- TRANSLATORS Option label for external worker service integration. -->
 						<strong>{{ t('libresign', 'External worker') }}</strong>
+						<!-- TRANSLATORS Option description for processing signing jobs outside Nextcloud. -->
 						<p>{{ t('libresign', 'Signing jobs are processed by an external service.') }}</p>
 					</div>
 				</NcCheckboxRadioSwitch>

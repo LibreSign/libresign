@@ -15,10 +15,33 @@ import {
 	serializeSignatureTextPolicyConfig,
 } from './model'
 
+// TRANSLATORS Policy setting title for signature stamp text configuration.
+const signatureStampTextTitle = t('libresign', 'Signature stamp text')
+// TRANSLATORS Policy setting description for signature stamp template and rendering options.
+const signatureStampTextDescription = t('libresign', 'Configure signature stamp template, dimensions, render mode, and background.')
+// TRANSLATORS Summary option for render mode combining signature image and descriptive text.
+const summaryRenderModeDefault = t('libresign', 'Signature + description')
+// TRANSLATORS Summary option for render mode using signer name and description only.
+const summaryRenderModeText = t('libresign', 'Signer name + description')
+// TRANSLATORS Summary option for render mode using signature image only.
+const summaryRenderModeGraphic = t('libresign', 'Signature only')
+// TRANSLATORS Summary option for render mode using description text only.
+const summaryRenderModeDescriptionOnly = t('libresign', 'Description only')
+// TRANSLATORS Summary option indicating system default background for signature stamp.
+const summaryBackgroundDefault = t('libresign', 'Default background')
+// TRANSLATORS Summary option indicating custom background image is configured.
+const summaryBackgroundCustom = t('libresign', 'Custom background')
+// TRANSLATORS Summary option indicating no background is used.
+const summaryBackgroundDeleted = t('libresign', 'No background')
+// TRANSLATORS Inheritance summary when lower scopes may define their own rules.
+const allowChildOverrideSummary = t('libresign', 'Groups and accounts can set their own rule')
+// TRANSLATORS Inheritance summary when lower scopes must follow parent rule.
+const denyChildOverrideSummary = t('libresign', 'Groups and accounts must follow this value')
+
 export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 	key: 'signature_stamp',
-	title: t('libresign', 'Signature stamp text'),
-	description: t('libresign', 'Configure signature stamp template, dimensions, render mode, and background.'),
+	title: signatureStampTextTitle,
+	description: signatureStampTextDescription,
 	editor: SignatureTextRuleEditor,
 	editorProps: {},
 	resolveEditorProps: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => {
@@ -59,22 +82,22 @@ export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 		const normalizedDraftValue = normalizeSignatureStampDraftValue(value)
 		const normalized = normalizeSignatureTextPolicyConfig(normalizedDraftValue.signatureStampValue)
 		const modeLabel = {
-			default: t('libresign', 'Signature + description'),
-			text: t('libresign', 'Signer name + description'),
-			graphic: t('libresign', 'Signature only'),
-			description_only: t('libresign', 'Description only'),
-		}[normalized.renderMode] ?? t('libresign', 'Signature + description')
+			default: summaryRenderModeDefault,
+			text: summaryRenderModeText,
+			graphic: summaryRenderModeGraphic,
+			description_only: summaryRenderModeDescriptionOnly,
+		}[normalized.renderMode] ?? summaryRenderModeDefault
 
 		const backgroundLabel = {
-			default: t('libresign', 'Default background'),
-			custom: t('libresign', 'Custom background'),
-			deleted: t('libresign', 'No background'),
-		}[normalized.backgroundType] ?? t('libresign', 'Default background')
+			default: summaryBackgroundDefault,
+			custom: summaryBackgroundCustom,
+			deleted: summaryBackgroundDeleted,
+		}[normalized.backgroundType] ?? summaryBackgroundDefault
 
 		return `${modeLabel} • ${backgroundLabel}`
 	},
 	formatAllowOverride: (allowChildOverride: boolean) =>
 		allowChildOverride
-			? t('libresign', 'Groups and accounts can set their own rule')
-			: t('libresign', 'Groups and accounts must follow this value'),
+			? allowChildOverrideSummary
+			: denyChildOverrideSummary,
 }

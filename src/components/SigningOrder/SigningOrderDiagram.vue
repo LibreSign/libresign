@@ -7,7 +7,7 @@
 		<div class="diagram-content">
 		<div class="stage">
 			<div class="stage-number-placeholder"></div>
-			<div class="stage-label">{{ t('libresign', 'SENDER') }}</div>
+			<div class="stage-label">{{ senderStageLabel }}</div>
 				<div class="stage-items">
 					<div class="signer-node sender">
 						<div class="signer-content">
@@ -44,10 +44,12 @@
 							</template>
 							<div class="popover-content" tabindex="0">
 								<div class="popover-row">
+									<!-- TRANSLATORS Label preceding signer full name in details popover. -->
 									<strong>{{ t('libresign', 'Name') }}:</strong>
 									<span>{{ getSignerDisplayName(signer) }}</span>
 								</div>
 								<div class="popover-row">
+									<!-- TRANSLATORS Label preceding signer identification method chips in details popover. -->
 									<strong>{{ t('libresign', 'Method') }}:</strong>
 									<div class="method-chips">
 										<NcChip v-for="method in getIdentifyMethods(signer)"
@@ -57,10 +59,12 @@
 									</div>
 								</div>
 								<div class="popover-row">
+									<!-- TRANSLATORS Label preceding signer contact value in details popover. -->
 									<strong>{{ t('libresign', 'Contact') }}:</strong>
 									<span>{{ getSignerIdentify(signer) }}</span>
 								</div>
 								<div class="popover-row">
+									<!-- TRANSLATORS Label preceding signer status chip in details popover. -->
 									<strong>{{ t('libresign', 'Status') }}:</strong>
 									<NcChip :text="getStatusLabel(signer)"
 										:variant="getChipType(signer)"
@@ -68,10 +72,12 @@
 										:no-close="true" />
 								</div>
 								<div class="popover-row">
+									<!-- TRANSLATORS Label preceding signing sequence order number in details popover. -->
 									<strong>{{ t('libresign', 'Order') }}:</strong>
 									<span>{{ signer.signingOrder || 1 }}</span>
 								</div>
 								<div v-if="signer.signed && signer.signDate" class="popover-row">
+									<!-- TRANSLATORS Label preceding timestamp when signer completed signing. -->
 									<strong>{{ t('libresign', 'Signed at') }}:</strong>
 									<span>{{ formatDate(signer.signDate) }}</span>
 								</div>
@@ -82,7 +88,7 @@
 			</div>
 		<div class="stage">
 			<div class="stage-number-placeholder"></div>
-			<div class="stage-label">{{ t('libresign', 'COMPLETED') }}</div>
+			<div class="stage-label">{{ completedStageLabel }}</div>
 				<div class="stage-items">
 					<div class="signer-node completed">
 						<div class="signer-icon">
@@ -132,6 +138,19 @@ const props = withDefaults(defineProps<{
 	senderName: '',
 })
 
+// TRANSLATORS Stage title for sender/source of signature request flow.
+const senderStageLabel = t('libresign', 'SENDER')
+// TRANSLATORS Final stage title indicating signing workflow completion.
+const completedStageLabel = t('libresign', 'COMPLETED')
+// TRANSLATORS Fallback display name for signer when no name/identifier is available.
+const fallbackSignerLabel = t('libresign', 'Signer')
+// TRANSLATORS Status chip label indicating signer has completed signing.
+const statusSignedLabel = t('libresign', 'Signed')
+// TRANSLATORS Status chip label indicating signer entry is still in draft state.
+const statusDraftLabel = t('libresign', 'Draft')
+// TRANSLATORS Status chip label indicating signer is waiting to sign.
+const statusPendingLabel = t('libresign', 'Pending')
+
 const uniqueOrders = computed(() => {
 	const orders: number[] = props.signers.map((signer) => Number(signer.signingOrder || 1))
 	return [...new Set(orders)].sort((a, b) => a - b)
@@ -142,7 +161,7 @@ function getSignersByOrder(order: number) {
 }
 
 function getSignerDisplayName(signer: Signer) {
-	return signer.displayName || signer.identifyMethods?.[0]?.value || t('libresign', 'Signer')
+	return signer.displayName || signer.identifyMethods?.[0]?.value || fallbackSignerLabel
 }
 
 function getSignerIdentify(signer: Signer) {
@@ -162,9 +181,9 @@ function getIdentifyMethods(signer: Signer) {
 }
 
 function getStatusLabel(signer: Signer) {
-	if (signer.signed) return t('libresign', 'Signed')
-	if (signer.me?.status === 0) return t('libresign', 'Draft')
-	return t('libresign', 'Pending')
+	if (signer.signed) return statusSignedLabel
+	if (signer.me?.status === 0) return statusDraftLabel
+	return statusPendingLabel
 }
 
 function getStatusIconPath(signer: Signer) {

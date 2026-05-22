@@ -18,10 +18,31 @@ import {
 const effectivePolicies = loadState<EffectivePoliciesResponse>('libresign', 'effective_policies', { policies: {} })
 const inheritedFooterPolicyConfig = normalizeSignatureFooterPolicyConfig(effectivePolicies.policies?.add_footer?.effectiveValue ?? null)
 
+// TRANSLATORS Policy setting title for signature footer behavior.
+const signatureFooterTitle = t('libresign', 'Signature footer')
+// TRANSLATORS Policy setting description covering footer visibility, QR code, URL, and template options.
+const signatureFooterDescription = t('libresign', 'Manage footer visibility, QR code behavior, validation URL, and footer template customization.')
+// TRANSLATORS Summary label when signature footer feature is disabled.
+const summaryDisabledLabel = t('libresign', 'Disabled')
+// TRANSLATORS Summary label when signature footer feature is enabled.
+const summaryEnabledLabel = t('libresign', 'Enabled')
+// TRANSLATORS Summary label indicating QR code in footer is enabled.
+const summaryQrCodeOnLabel = t('libresign', 'QR code on')
+// TRANSLATORS Summary label indicating QR code in footer is disabled.
+const summaryQrCodeOffLabel = t('libresign', 'QR code off')
+// TRANSLATORS Summary label indicating custom validation URL is configured.
+const summaryCustomUrlLabel = t('libresign', 'Custom URL')
+// TRANSLATORS Summary label indicating custom footer template is configured.
+const summaryCustomTemplateLabel = t('libresign', 'Custom template')
+// TRANSLATORS Inheritance summary when lower scopes may define their own footer rules.
+const allowChildOverrideSummary = t('libresign', 'Groups and accounts can set their own rule')
+// TRANSLATORS Inheritance summary when lower scopes must follow parent footer rule.
+const denyChildOverrideSummary = t('libresign', 'Groups and accounts must follow this value')
+
 export const signatureFooterRealDefinition: RealPolicySettingDefinition = {
 	key: 'add_footer',
-	title: t('libresign', 'Signature footer'),
-	description: t('libresign', 'Manage footer visibility, QR code behavior, validation URL, and footer template customization.'),
+	title: signatureFooterTitle,
+	description: signatureFooterDescription,
 	editor: SignatureFooterRuleEditor,
 	editorProps: {
 		inheritedTemplate: inheritedFooterPolicyConfig.footerTemplate,
@@ -65,22 +86,22 @@ export const signatureFooterRealDefinition: RealPolicySettingDefinition = {
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const normalized = normalizeSignatureFooterPolicyConfig(value)
 		if (!normalized.enabled) {
-			return t('libresign', 'Disabled')
+			return summaryDisabledLabel
 		}
 
-		const summary: string[] = [t('libresign', 'Enabled')]
-		summary.push(normalized.writeQrcodeOnFooter ? t('libresign', 'QR code on') : t('libresign', 'QR code off'))
+		const summary: string[] = [summaryEnabledLabel]
+		summary.push(normalized.writeQrcodeOnFooter ? summaryQrCodeOnLabel : summaryQrCodeOffLabel)
 		if (normalized.validationSite) {
-			summary.push(t('libresign', 'Custom URL'))
+			summary.push(summaryCustomUrlLabel)
 		}
 		if (normalized.customizeFooterTemplate) {
-			summary.push(t('libresign', 'Custom template'))
+			summary.push(summaryCustomTemplateLabel)
 		}
 
 		return summary.join(' • ')
 	},
 	formatAllowOverride: (allowChildOverride: boolean) =>
 		allowChildOverride
-			? t('libresign', 'Groups and accounts can set their own rule')
-			: t('libresign', 'Groups and accounts must follow this value'),
+			? allowChildOverrideSummary
+			: denyChildOverrideSummary,
 }
