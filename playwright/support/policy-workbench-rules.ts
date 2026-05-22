@@ -106,9 +106,27 @@ export async function openPolicyWorkbenchSystemRuleEditor(
 		await expect(createButton).toBeVisible({ timeout: 10000 })
 		await createButton.click()
 
-		const everyoneOption = dialog.page().locator('[role="option"]').filter({ hasText: /Everyone/i }).first()
-		if (await everyoneOption.isVisible({ timeout: 3000 }).catch(() => false)) {
-			await everyoneOption.click()
+		const page = dialog.page()
+		const createScopeDialog = page.getByRole('dialog').filter({ hasText: /What do you want to create\?/i }).last()
+		if (await createScopeDialog.isVisible({ timeout: 3000 }).catch(() => false)) {
+			const everyoneOption = createScopeDialog.getByRole('option', { name: /^Everyone\b/i }).first()
+			const everyoneRadio = createScopeDialog.getByRole('radio', { name: /^Everyone\b/i }).first()
+			const everyoneButton = createScopeDialog.getByRole('button', { name: /^Everyone\b/i }).first()
+
+			if (await everyoneOption.isVisible().catch(() => false)) {
+				await everyoneOption.click()
+			} else if (await everyoneRadio.isVisible().catch(() => false)) {
+				await everyoneRadio.click({ force: true })
+			} else if (await everyoneButton.isVisible().catch(() => false)) {
+				await everyoneButton.click()
+			} else {
+				await createScopeDialog.getByText(/^Everyone\b/i).first().click({ force: true })
+			}
+
+			const confirmScopeButton = createScopeDialog.getByRole('button', { name: /Create rule|Continue|Next/i }).first()
+			if (await confirmScopeButton.isVisible().catch(() => false)) {
+				await confirmScopeButton.click()
+			}
 		}
 	}
 
