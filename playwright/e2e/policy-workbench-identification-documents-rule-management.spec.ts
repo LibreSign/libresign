@@ -32,17 +32,17 @@ test('identification_documents allows creating and persisting a system rule from
 
 	const createDialog = page.getByRole('dialog', { name: /Create rule/i }).last()
 	await expect(createDialog).toBeVisible({ timeout: 10000 })
-
-	const saveResponse = page.waitForResponse((response) => {
-		return ['POST', 'PUT', 'PATCH'].includes(response.request().method())
-			&& response.url().includes('/apps/libresign/api/v1/policies/system/identification_documents')
-	})
+	await createDialog.getByText('Enable identification documents flow', { exact: true }).first().click()
 
 	const submitButton = createDialog.getByRole('button', { name: /Create rule|Save changes/i }).first()
 	await expect(submitButton).toBeEnabled({ timeout: 10000 })
-	await submitButton.click()
-
-	const response = await saveResponse
+	const [response] = await Promise.all([
+		page.waitForResponse((response) => {
+			return ['POST', 'PUT', 'PATCH'].includes(response.request().method())
+				&& response.url().includes('/apps/libresign/api/v1/policies/system/identification_documents')
+		}),
+		submitButton.click(),
+	])
 	expect(response.status()).toBe(200)
 
 	await waitForPolicyWorkbenchIdle(page)
