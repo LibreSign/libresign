@@ -10,6 +10,7 @@
 				:model-value="collectMetadataEnabled"
 				@update:modelValue="onCollectMetadataToggle">
 				<div>
+					<!-- TRANSLATORS Toggle label that enables storing signer technical metadata (IP and user agent) in signature text. -->
 					<strong>{{ t('libresign', 'Collect signer metadata') }}</strong>
 				</div>
 			</NcCheckboxRadioSwitch>
@@ -127,17 +128,23 @@ ensurePdfWorker()
 const backgroundOptions: Array<{ value: BackgroundType; label: string; description: string }> = [
 	{
 		value: 'default',
+		// TRANSLATORS Option label selecting built-in default signature background image.
 		label: t('libresign', 'Default'),
+		// TRANSLATORS Option description for built-in LibreSign signature background.
 		description: t('libresign', 'Use the default LibreSign background image.'),
 	},
 	{
 		value: 'custom',
+		// TRANSLATORS Option label selecting administrator-uploaded background image.
 		label: t('libresign', 'Custom'),
+		// TRANSLATORS Option description for custom background configured by administrators.
 		description: t('libresign', 'Use a custom image uploaded by an administrator.'),
 	},
 	{
 		value: 'deleted',
+		// TRANSLATORS Option label meaning signatures should not include any background image.
 		label: t('libresign', 'None'),
+		// TRANSLATORS Option description for using no signature background.
 		description: t('libresign', 'Do not apply any background image to signatures.'),
 	},
 ]
@@ -145,37 +152,56 @@ const backgroundOptions: Array<{ value: BackgroundType; label: string; descripti
 const displayModeOptions: Array<{ value: DisplayMode; label: string; description: string }> = [
 	{
 		value: 'description_only',
+		// TRANSLATORS Render mode label where only textual stamp description is shown.
 		label: t('libresign', 'Description only'),
+		// TRANSLATORS Render mode description: no signature graphic or signer name block is shown.
 		description: t('libresign', 'Shows only the stamp description text at full width. No signature graphic or signer name.'),
 	},
 	{
 		value: 'default',
+		// TRANSLATORS Render mode label showing signature area and description together.
 		label: t('libresign', 'Signature and description'),
+		// TRANSLATORS Render mode description for split layout with visual signature and text description.
 		description: t('libresign', 'Displays the visual signature area on the left together with stamp text on the right.'),
 	},
 	{
 		value: 'text',
+		// TRANSLATORS Render mode label showing signer name text plus description.
 		label: t('libresign', 'Signer name and description'),
+		// TRANSLATORS Render mode description where signer name appears prominently instead of a graphic signature.
 		description: t('libresign', 'Shows the signer name as large text on the left half and description on the right.'),
 	},
 	{
 		value: 'graphic',
+		// TRANSLATORS Render mode label showing only the visual signature element.
 		label: t('libresign', 'Signature only'),
+		// TRANSLATORS Render mode description with signature graphic only and no additional text block.
 		description: t('libresign', 'Displays only the visual signature without any description text.'),
 	},
 ]
 
 const availableVariables = [
+	// TRANSLATORS Template variable description for document UUID value.
 	{ value: '{{DocumentUUID}}', description: t('libresign', 'Unique identifier of the signed document') },
+	// TRANSLATORS Template variable description for issuer Common Name used in signer certificate.
 	{ value: '{{IssuerCommonName}}', description: t('libresign', 'Name of the certificate issuer used for the signature.') },
+	// TRANSLATORS Template variable description for local signer signature date (without time).
 	{ value: '{{LocalSignerSignatureDateOnly}}', description: t('libresign', 'Date when the signer sent the request to sign (without time, in their local time zone).') },
+	// TRANSLATORS Template variable description for local signer signature date and time.
 	{ value: '{{LocalSignerSignatureDateTime}}', description: t('libresign', 'Date and time when the signer sent the request to sign (in their local time zone).') },
+	// TRANSLATORS Template variable description for signer's local time zone value.
 	{ value: '{{LocalSignerTimezone}}', description: t('libresign', 'Time zone of signer when sent the request to sign (in their local time zone).') },
+	// TRANSLATORS Template variable description for server-side signature timestamp in ISO 8601 format.
 	{ value: '{{ServerSignatureDate}}', description: t('libresign', 'Date and time when the signature was applied on the server (ISO 8601 format). Can be formatted using the Twig date filter.') },
+	// TRANSLATORS Template variable description for signer certificate Common Name (CN).
 	{ value: '{{SignerCommonName}}', description: t('libresign', 'Common Name (CN) used to identify the document signer.') },
+	// TRANSLATORS Template variable description for optional signer email.
 	{ value: '{{SignerEmail}}', description: t('libresign', 'The signer\'s email is optional and can be left blank.') },
+	// TRANSLATORS Template variable description for signer identifier (email/phone/username depending on method).
 	{ value: '{{SignerIdentifier}}', description: t('libresign', 'Unique information used to identify the signer (such as email, phone number, or username).') },
+	// TRANSLATORS Template variable description for signer IP address metadata.
 	{ value: '{{SignerIP}}', description: t('libresign', 'IP address of the person who signed the document.') },
+	// TRANSLATORS Template variable description for signer browser/device user-agent metadata.
 	{ value: '{{SignerUserAgent}}', description: t('libresign', 'Browser and device information of the person who signed the document.') },
 ]
 
@@ -214,7 +240,9 @@ const config = reactive({
 })
 
 const collectMetadataEnabled = ref(initialDraftValue.collectMetadataEnabled)
+// TRANSLATORS Template line inserted when metadata collection is enabled; keeps literal {{SignerIP}} variable placeholder.
 const signerIpTemplateLine = t('libresign', 'IP: {{SignerIP}}')
+// TRANSLATORS Template line inserted when metadata collection is enabled; keeps literal {{SignerUserAgent}} variable placeholder.
 const signerUserAgentTemplateLine = t('libresign', 'User agent: {{SignerUserAgent}}')
 
 function syncTemplateWithCollectMetadata(template: string, enabled: boolean): string {
@@ -352,6 +380,7 @@ async function fetchPreview(): Promise<void> {
 			return
 		}
 		pdfPreviewFile.value = null
+		// TRANSLATORS Error shown when live signature stamp preview PDF cannot be generated.
 		previewError.value = t('libresign', 'Unable to load preview. Please check the template and try again.')
 	} finally {
 		if (previewAbortController === controller) {
