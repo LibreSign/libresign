@@ -356,6 +356,7 @@ async function loadFiles(page = 1) {
 			}
 		})
 		.catch(() => {
+			// TRANSLATORS Error shown when the list of files in a signing envelope cannot be retrieved from the server.
 			showError(t('libresign', 'Failed to load files'))
 		})
 		.finally(() => {
@@ -406,6 +407,7 @@ function getMaxFileUploads() {
 function validateMaxFileUploads(filesCount: number) {
 	const maxFileUploads = getMaxFileUploads()
 	if (filesCount > maxFileUploads) {
+		// TRANSLATORS {max} is the maximum number of PDF files allowed in one upload action.
 		showError(t('libresign', 'You can upload at most {max} files at once.', { max: maxFileUploads }))
 		return false
 	}
@@ -462,7 +464,9 @@ function toggleSelectAll() {
 
 async function handleDeleteSelected() {
 	deleteDialogConfig.value = {
+		// TRANSLATORS Title of confirmation dialog before removing one or more files from an envelope.
 		title: t('libresign', 'Delete'),
+		// TRANSLATORS Confirmation message. %n is the number of files that will be removed from the envelope.
 		message: n('libresign', 'Are you sure you want to remove %n file from the envelope?', 'Are you sure you want to remove %n files from the envelope?', selectedCount.value),
 		action: async () => {
 			await confirmDeleteSelected()
@@ -535,6 +539,7 @@ function addFileToEnvelope() {
 			showSuccess(result.message)
 			files.value.push(...result.files)
 			totalFiles.value = result.filesCount
+			// TRANSLATORS Message shown when the current upload operation is intentionally canceled by the user.
 		} else if (result.message !== t('libresign', 'Upload cancelled')) {
 			showError(result.message)
 		}
@@ -563,6 +568,7 @@ function onEnvelopeNameChange(newName: string | number) {
 	const trimmedName = normalizedName.trim()
 	if (trimmedName.length < ENVELOPE_NAME_MIN_LENGTH) {
 		nameUpdateError.value = true
+		// TRANSLATORS {min} is the minimum allowed number of characters for the envelope name.
 		nameHelperText.value = t('libresign', 'Name must be at least {min} characters', { min: ENVELOPE_NAME_MIN_LENGTH })
 		return
 	}
@@ -587,6 +593,7 @@ async function saveEnvelopeNameDebounced(newName: string) {
 
 		if (success) {
 			nameUpdateSuccess.value = true
+			// TRANSLATORS Short success helper text shown after saving the envelope name.
 			nameHelperText.value = t('libresign', 'Saved')
 			setTimeout(() => {
 				nameUpdateSuccess.value = false
@@ -594,10 +601,12 @@ async function saveEnvelopeNameDebounced(newName: string) {
 			}, 3000)
 		} else {
 			nameUpdateError.value = true
+			// TRANSLATORS Error helper text shown when updating envelope name fails.
 			nameHelperText.value = t('libresign', 'Failed to update')
 		}
 	} catch (error) {
 		nameUpdateError.value = true
+		// TRANSLATORS Fallback error helper text shown when the server does not provide a specific rename failure message.
 		nameHelperText.value = (error as RenameError).response?.data?.ocs?.data?.message || t('libresign', 'Failed to update')
 	} finally {
 		isSavingName.value = false
@@ -606,7 +615,9 @@ async function saveEnvelopeNameDebounced(newName: string) {
 
 function handleDelete(file: EnvelopeFile) {
 	deleteDialogConfig.value = {
+		// TRANSLATORS Title of confirmation dialog before removing one file from an envelope.
 		title: t('libresign', 'Delete'),
+		// TRANSLATORS Confirmation message before removing the currently selected file from an envelope.
 		message: t('libresign', 'Are you sure you want to remove this file from the envelope?'),
 		action: async () => {
 			await confirmDelete(file)
