@@ -8,6 +8,7 @@ import type { Locator, Page } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { ensureUserExists } from '../support/nc-provisioning'
 import { ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
+import { clearPolicyWorkbenchRules } from '../support/policy-workbench-rules'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
@@ -160,6 +161,10 @@ async function getCreateScopeDialog(page: Page): Promise<Locator> {
 
 async function getCreateScopeOption(page: Page, scopeLabel: 'User' | 'Group' | 'Instance') {
 	const dialog = await getCreateScopeDialog(page)
+	if (scopeLabel === 'User') {
+		return dialog.getByRole('option', { name: /^Account\b/i }).first()
+	}
+
 	return dialog.getByRole('option', { name: new RegExp(`^${scopeLabel}\\b`, 'i') }).first()
 }
 
@@ -300,49 +305,7 @@ async function resetSystemRuleToBaseline(dialog: Locator) {
 }
 
 async function clearExistingRules(dialog: Locator) {
-	const page = dialog.page()
-
-	for (let round = 0; round < 6; round += 1) {
-		let removedInRound = false
-		const actions = dialog.getByRole('button', { name: 'Rule actions' })
-
-		while ((await actions.count()) > 0) {
-			const firstAction = actions.first()
-			if (!(await firstAction.isVisible().catch(() => false))) {
-				break
-			}
-
-			const clickedAction = await firstAction.click({ timeout: 1500 }).then(() => true).catch(() => false)
-			if (!clickedAction) {
-				await page.waitForTimeout(150)
-				continue
-			}
-			const hasRemoveAction = await clickRuleMenuAction(dialog, 'Remove')
-			if (!hasRemoveAction) {
-				break
-			}
-
-			const removeExceptionButton = page.getByRole('button', { name: removeExceptionButtonName }).first()
-			if (await removeExceptionButton.isVisible().catch(() => false)) {
-				await removeExceptionButton.click()
-			} else {
-				const removeExceptionText = page.getByText(/^Remove exception$/i).first()
-				if (await removeExceptionText.isVisible().catch(() => false)) {
-					await removeExceptionText.click()
-				}
-			}
-			await waitForEditorIdle(dialog)
-			await page.waitForTimeout(150)
-			removedInRound = true
-		}
-
-		if (!removedInRound) {
-			await page.waitForTimeout(700)
-			if ((await actions.count()) === 0) {
-				break
-			}
-		}
-	}
+	await clearPolicyWorkbenchRules(dialog, { maxRounds: 6 })
 
 	if (await dialog.getByText(/\(custom\)/i).first().isVisible().catch(() => false)) {
 		await resetSystemRuleToBaseline(dialog)
