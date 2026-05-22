@@ -36,17 +36,21 @@ const getPolicy = vi.fn((key: string) => {
 const fetchSystemPolicy = vi.fn().mockResolvedValue(null)
 const fetchGroupPolicy = vi.fn().mockResolvedValue(null)
 const fetchUserPolicyForUser = vi.fn().mockResolvedValue(null)
+const fetchEffectivePolicies = vi.fn().mockResolvedValue(undefined)
+const saveSystemPolicy = vi.fn().mockResolvedValue(undefined)
+const saveGroupPolicy = vi.fn().mockResolvedValue(undefined)
+const saveUserPreference = vi.fn().mockResolvedValue(undefined)
 
 vi.mock('../../../store/policies', () => ({
 	usePoliciesStore: () => ({
 		getPolicy,
-		fetchEffectivePolicies: vi.fn().mockResolvedValue(undefined),
+		fetchEffectivePolicies,
 		fetchSystemPolicy,
 		fetchGroupPolicy,
 		fetchUserPolicyForUser,
-		saveSystemPolicy: vi.fn().mockResolvedValue(undefined),
-		saveGroupPolicy: vi.fn().mockResolvedValue(undefined),
-		saveUserPreference: vi.fn().mockResolvedValue(undefined),
+		saveSystemPolicy,
+		saveGroupPolicy,
+		saveUserPreference,
 	}),
 }))
 
@@ -139,6 +143,10 @@ describe('RealPolicyWorkbench.vue', () => {
 		fetchSystemPolicy.mockReset().mockResolvedValue(null)
 		fetchGroupPolicy.mockReset().mockResolvedValue(null)
 		fetchUserPolicyForUser.mockReset().mockResolvedValue(null)
+		fetchEffectivePolicies.mockReset().mockResolvedValue(undefined)
+		saveSystemPolicy.mockReset().mockResolvedValue(undefined)
+		saveGroupPolicy.mockReset().mockResolvedValue(undefined)
+		saveUserPreference.mockReset().mockResolvedValue(undefined)
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'signature_flow') {
 				return { effectiveValue: 'ordered_numeric' }
@@ -245,6 +253,52 @@ describe('RealPolicyWorkbench.vue', () => {
 
 		const removeButton = wrapper.findAll('.nc-actions-stub__menu button').find((button) => button.text() === 'Remove')
 		expect(removeButton).toBeTruthy()
+	})
+
+	it('does not crash when removal dialog closes while remove request is pending', async () => {
+		let resolveSaveSystemPolicy: (() => void) | null = null
+		saveSystemPolicy
+			.mockImplementationOnce(() => new Promise<void>((resolve) => {
+				resolveSaveSystemPolicy = resolve
+			}))
+			.mockResolvedValue(undefined)
+
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		await vi.waitFor(() => {
+			expect(wrapper.find('button[aria-label="Rule actions"]').exists()).toBe(true)
+		})
+		await wrapper.find('button[aria-label="Rule actions"]').trigger('click')
+
+		const removeButton = wrapper.findAll('.nc-actions-stub__menu button').find((button) => button.text() === 'Remove')
+		expect(removeButton).toBeTruthy()
+		await removeButton?.trigger('click')
+
+		const confirmDialog = wrapper
+			.findAll('.dialog')
+			.find((dialog) => dialog.find('.dialog-title').text() === 'Confirm rule removal')
+		expect(confirmDialog).toBeTruthy()
+
+		const confirmButton = confirmDialog?.findAll('.dialog-footer button').find((button) => button.text() === 'Remove exception')
+		expect(confirmButton).toBeTruthy()
+		await confirmButton?.trigger('click')
+
+		await vi.waitFor(() => {
+			expect(saveSystemPolicy).toHaveBeenCalled()
+		})
+
+		await confirmDialog?.find('.dialog-close-stub').trigger('click')
+
+		expect(resolveSaveSystemPolicy).toBeTypeOf('function')
+		resolveSaveSystemPolicy?.()
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(wrapper.exists()).toBe(true)
 	})
 
 	it('allows reopening create flow after canceling a draft', async () => {
