@@ -47,6 +47,7 @@ const selected = computed(() => normalizeHashAlgorithm(props.modelValue))
 const options = HASH_ALGORITHMS.map((algorithm) => ({
 	value: algorithm,
 	label: algorithm,
+	// TRANSLATORS {algorithm} is the hash algorithm name (for example SHA256) used to compute the digital signature digest.
 	description: t('libresign', 'Use {algorithm} as the signature digest algorithm.', {
 		algorithm,
 	}),
