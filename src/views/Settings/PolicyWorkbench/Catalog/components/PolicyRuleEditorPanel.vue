@@ -8,18 +8,19 @@
 		<div class="policy-workbench__editor-panel-content" :class="{ 'policy-workbench__editor-panel-content--saving': saveStatus === 'saving' }">
 			<div class="policy-workbench__editor-header">
 				<p v-if="editorHelp">{{ editorHelp }}</p>
+				<!-- TRANSLATORS Precedence hint for policy scopes from most specific to least specific. -->
 				<p class="policy-workbench__precedence-hint">{{ t('libresign', 'Priority: Account > Group > Default') }}</p>
 			</div>
 
 			<div v-if="editorDraft.scope !== 'system'" class="policy-workbench__field">
 				<label class="policy-workbench__label">
-					{{ editorDraft.scope === 'group' ? t('libresign', 'Target groups') : t('libresign', 'Target accounts') }}
+					{{ targetScopeLabel }}
 				</label>
 				<NcSelectUsers
 					:model-value="selectedTargetOptions"
 					:options="availableTargets"
-					:aria-label="editorDraft.scope === 'group' ? t('libresign', 'Target groups') : t('libresign', 'Target accounts')"
-					:placeholder="editorDraft.scope === 'group' ? t('libresign', 'Search groups') : t('libresign', 'Search accounts')"
+					:aria-label="targetScopeLabel"
+					:placeholder="targetScopeSearchPlaceholder"
 					:loading="loadingTargets"
 					:multiple="true"
 					:keep-open="true"
@@ -58,13 +59,13 @@
 			</NcNoteCard>
 
 			<div v-if="showInlineActions" class="policy-workbench__editor-actions" :class="{ 'policy-workbench__editor-actions--sticky-mobile': stickyActions }">
-				<NcButton v-if="showBackButton" variant="tertiary" :aria-label="t('libresign', 'Go back to rule type selection')" :disabled="saveStatus === 'saving'" @click="$emit('back')">
+				<NcButton v-if="showBackButton" variant="tertiary" :aria-label="goBackToRuleTypeSelectionLabel" :disabled="saveStatus === 'saving'" @click="$emit('back')">
 					{{ t('libresign', '← Back') }}
 				</NcButton>
-				<NcButton variant="primary" :aria-label="editorMode === 'edit' ? t('libresign', 'Save policy rule changes') : t('libresign', 'Create policy rule')" :loading="saveStatus === 'saving'" :disabled="!canSaveDraft" @click="$emit('save')">
+				<NcButton variant="primary" :aria-label="savePolicyRuleActionLabel" :loading="saveStatus === 'saving'" :disabled="!canSaveDraft" @click="$emit('save')">
 					{{ editorMode === 'edit' ? t('libresign', 'Save changes') : t('libresign', 'Create rule') }}
 				</NcButton>
-				<NcButton variant="secondary" :aria-label="t('libresign', 'Cancel editing')" :disabled="saveStatus === 'saving'" @click="$emit('cancel')">
+				<NcButton variant="secondary" :aria-label="cancelEditingLabel" :disabled="saveStatus === 'saving'" @click="$emit('cancel')">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 			</div>
@@ -138,23 +139,62 @@ defineEmits<{
 	(e: 'cancel'): void
 }>()
 
+// TRANSLATORS Label for selecting target groups when creating/editing a group-scope policy rule.
+const targetGroupsLabel = t('libresign', 'Target groups')
+// TRANSLATORS Label for selecting target accounts when creating/editing an account-scope policy rule.
+const targetAccountsLabel = t('libresign', 'Target accounts')
+const targetScopeLabel = computed(() => props.editorDraft.scope === 'group'
+	? targetGroupsLabel
+	: targetAccountsLabel)
+
+// TRANSLATORS Placeholder text for searching groups in policy target picker.
+const searchGroupsPlaceholder = t('libresign', 'Search groups')
+// TRANSLATORS Placeholder text for searching accounts in policy target picker.
+const searchAccountsPlaceholder = t('libresign', 'Search accounts')
+const targetScopeSearchPlaceholder = computed(() => props.editorDraft.scope === 'group'
+	? searchGroupsPlaceholder
+	: searchAccountsPlaceholder)
+
+// TRANSLATORS Button label to return to policy rule type selection step.
+const goBackToRuleTypeSelectionLabel = t('libresign', 'Go back to rule type selection')
+// TRANSLATORS Button label to cancel rule editing without saving.
+const cancelEditingLabel = t('libresign', 'Cancel editing')
+// TRANSLATORS Primary action aria-label in edit mode to persist changes to an existing policy rule.
+const savePolicyRuleChangesAriaLabel = t('libresign', 'Save policy rule changes')
+// TRANSLATORS Primary action aria-label in create mode to create a new policy rule.
+const createPolicyRuleAriaLabel = t('libresign', 'Create policy rule')
+const savePolicyRuleActionLabel = computed(() => props.editorMode === 'edit'
+	? savePolicyRuleChangesAriaLabel
+	: createPolicyRuleAriaLabel)
+
+// TRANSLATORS User-scope description when account-level customization is allowed.
+const accountCustomizationAllowedDescription = t('libresign', 'This account can customize personal defaults and request-specific values.')
+// TRANSLATORS User-scope description when value is mandatory and cannot be customized.
+const accountCustomizationLockedDescription = t('libresign', 'This value is mandatory for this account.')
+// TRANSLATORS Parent-scope description when groups/accounts may define more specific values.
+const childScopesCanOverrideDescription = t('libresign', 'Groups and accounts can define a more specific value.')
+// TRANSLATORS Parent-scope description when groups/accounts must inherit parent value.
+const childScopesMustInheritDescription = t('libresign', 'Groups and accounts must inherit this value.')
+
 const allowOverrideDescription = computed(() => {
 	if (props.editorDraft.scope === 'user') {
 		return props.editorDraft.allowChildOverride
-			? t('libresign', 'This account can customize personal defaults and request-specific values.')
-			: t('libresign', 'This value is mandatory for this account.')
+			? accountCustomizationAllowedDescription
+			: accountCustomizationLockedDescription
 	}
 
 	return props.editorDraft.allowChildOverride
-		? t('libresign', 'Groups and accounts can define a more specific value.')
-		: t('libresign', 'Groups and accounts must inherit this value.')
+		? childScopesCanOverrideDescription
+		: childScopesMustInheritDescription
 })
 
 const allowOverrideTitle = computed(() => {
 	if (props.editorDraft.scope === 'user') {
+		// TRANSLATORS Switch title that allows account-level personal customization.
 		return t('libresign', 'Allow this account to customize')
 	}
 
+	// TRANSLATORS Switch title that allows child scopes to override parent policy values.
 	return t('libresign', 'Allow lower-level customization')
 })
 </script>
