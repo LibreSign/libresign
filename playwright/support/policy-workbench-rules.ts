@@ -56,7 +56,11 @@ export async function clearPolicyWorkbenchRules(
 
 			const removed = await clickRemoveAction(page)
 			if (!removed) {
-				await page.keyboard.press('Escape').catch(() => {})
+				// Close the action popup only — avoid pressing Escape which would close the parent dialog
+				const openMenus = page.locator('[role="menu"]:visible, .action-item__menutoggle--open')
+				if (await openMenus.count() > 0) {
+					await page.keyboard.press('Escape').catch(() => {})
+				}
 				break
 			}
 
