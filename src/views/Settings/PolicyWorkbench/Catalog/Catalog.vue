@@ -1333,19 +1333,21 @@ function confirmDiscardDialog() {
 }
 
 async function confirmRuleRemoval() {
-	if (!pendingRemoval.value) {
+	if (!pendingRemoval.value || isRemovingRule.value) {
 		return
 	}
 
+	const removalRequest = pendingRemoval.value
+
 	isRemovingRule.value = true
 	try {
-		const ruleIds = pendingRemoval.value.ruleIds ?? (pendingRemoval.value.ruleId ? [pendingRemoval.value.ruleId] : [])
+		const ruleIds = removalRequest.ruleIds ?? (removalRequest.ruleId ? [removalRequest.ruleId] : [])
 		await state.removeRules(ruleIds)
-		removalFeedback.value = pendingRemoval.value.ruleIds
+		removalFeedback.value = removalRequest.ruleIds
 			? t('libresign', '{count} rules removed. Inherited behavior is now active.', { count: String(ruleIds.length) })
-			: pendingRemoval.value.scope === 'system'
+			: removalRequest.scope === 'system'
 				? t('libresign', 'Custom default removed. The default behavior for everyone is active again.')
-				: pendingRemoval.value.scope === 'group'
+				: removalRequest.scope === 'group'
 					? t('libresign', 'Group custom rule removed. Inherited behavior is now active.')
 					: t('libresign', 'Account custom rule removed. Inherited behavior is now active.')
 		clearCrudSelection()
