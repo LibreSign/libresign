@@ -14,7 +14,9 @@ export { resolveSignatureFlowMode } from './model'
 
 export const signatureFlowRealDefinition: RealPolicySettingDefinition = {
 	key: 'signature_flow',
+	// TRANSLATORS Policy title in admin settings that controls whether signers must follow an order or may sign in parallel.
 	title: t('libresign', 'Signing order'),
+	// TRANSLATORS Policy description shown under "Signing order". It explains that the rule decides between sequential signing and concurrent signing.
 	description: t('libresign', 'Choose whether documents are signed in order or all at once.'),
 	editor: SignatureFlowScalarRuleEditor,
 	resolutionMode: 'precedence',
@@ -36,17 +38,23 @@ export const signatureFlowRealDefinition: RealPolicySettingDefinition = {
 		const flowValue = resolveSignatureFlowMode(value)
 		switch (flowValue) {
 		case 'parallel':
+			// TRANSLATORS Policy value label meaning all signers can sign the same document at the same time.
 			return t('libresign', 'Parallel')
 		case 'ordered_numeric':
+			// TRANSLATORS Policy value label meaning signers must sign one after another in a configured order.
 			return t('libresign', 'Sequential')
 		case 'none':
+			// TRANSLATORS Policy summary meaning no explicit rule is set at this level, so the instance-level default is used.
 			return t('libresign', 'Using instance default')
 		default:
+			// TRANSLATORS Fallback policy summary shown when no valid value could be resolved.
 			return t('libresign', 'Not configured')
 		}
 	},
 	formatAllowOverride: (allowChildOverride: boolean) =>
 		allowChildOverride
+			// TRANSLATORS Policy inheritance message indicating group and user scopes may define a different value.
 			? t('libresign', 'Groups and accounts can set their own rule')
+			// TRANSLATORS Policy inheritance message indicating child scopes must use the value defined at the current scope.
 			: t('libresign', 'Groups and accounts must follow this value'),
 }
