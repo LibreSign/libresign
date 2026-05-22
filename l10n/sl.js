@@ -285,6 +285,7 @@ OC.L10N.register(
     "Modified" : "Spremenjeno",
     "Switch to list view" : "Preklopi na seznamski pogled",
     "Switch to grid view" : "Preklopi na mrežni pogled",
+    "Reload content" : "Osveži vsebino",
     "There are no documents" : "Ni razpoložljivih dokumentov",
     "Choose the file to request signatures." : "Izbor datoteke za podpisovanje.",
     "1 file" : "1 datoteka",
