@@ -8,6 +8,7 @@ import type { Locator, Page } from '@playwright/test'
 
 import { ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
 import { login } from '../support/nc-login'
+import { openPolicyWorkbenchSystemRuleEditor } from '../support/policy-workbench-rules'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
@@ -22,21 +23,8 @@ async function openLegalInformationDialog(page: Page): Promise<Locator> {
 	return dialog
 }
 
-async function openScopeRuleEditor(page: Page, dialog: Locator): Promise<Locator> {
-	const changeButton = dialog.getByRole('button', { name: /^Change$/i }).first()
-	if (await changeButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-		await changeButton.click()
-	} else {
-		await dialog.getByRole('button', { name: /Create rule/i }).first().click()
-		const everyoneOption = page.locator('[role="option"]').filter({ hasText: /Everyone/i }).first()
-		if (await everyoneOption.isVisible({ timeout: 3000 }).catch(() => false)) {
-			await everyoneOption.click()
-		}
-	}
-
-	const ruleDialog = page.getByRole('dialog', { name: /Edit rule|Create rule/i }).last()
-	await expect(ruleDialog).toBeVisible({ timeout: 10000 })
-	return ruleDialog
+async function openScopeRuleEditor(_page: Page, dialog: Locator): Promise<Locator> {
+	return openPolicyWorkbenchSystemRuleEditor(dialog)
 }
 
 test('legal information heading menu shows visible H1-H6 labels with text', async ({ page }) => {
