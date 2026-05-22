@@ -43,12 +43,16 @@ const emit = defineEmits<{
 const options = [
 	{
 		value: true,
+		// TRANSLATORS Option label for turning on external CRL checks. CRL means Certificate Revocation List.
 		label: t('libresign', 'Enabled'),
+		// TRANSLATORS Option description: validate certificate revocation status using external CRL distribution point URLs.
 		description: t('libresign', 'Validate external CRL distribution points when available.'),
 	},
 	{
 		value: false,
+		// TRANSLATORS Option label for turning off external CRL checks.
 		label: t('libresign', 'Disabled'),
+		// TRANSLATORS Option description: rely only on locally available CRL data and skip external CRL URLs.
 		description: t('libresign', 'Skip external CRL distribution points and only rely on local CRL checks.'),
 	},
 ]
