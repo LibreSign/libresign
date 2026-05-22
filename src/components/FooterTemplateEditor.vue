@@ -7,16 +7,16 @@
 		<p v-linkify="{ linkify: true, text: footerDescription }" class="footer-template-description" />
 		<div class="footer-template-header">
 			<NcButton variant="tertiary"
-				:aria-label="t('libresign', 'Show available variables')"
+				:aria-label="showAvailableVariablesLabel"
 				@click="showVariablesDialog = true">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiHelpCircleOutline" :size="20" />
 				</template>
-				{{ t('libresign', 'Available variables') }}
+				{{ availableVariablesLabel }}
 			</NcButton>
 				<NcButton v-if="!isDefaultTemplate"
 				variant="tertiary"
-					:aria-label="t('libresign', 'Reset template to default')"
+					:aria-label="resetTemplateToDefaultLabel"
 					@click="resetTemplateToDefault">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
@@ -25,20 +25,21 @@
 		</div>
 		<CodeEditor
 			v-model="footerTemplate"
-			:label="t('libresign', 'Footer template')"
-			:placeholder="t('libresign', 'A twig template to be used at footer of PDF. Will be rendered by mPDF.')"
+			:label="footerTemplateLabel"
+			:placeholder="footerTemplatePlaceholder"
 			@update:modelValue="onTemplateChange" />
 		<div v-if="pdfPreviewFile" class="footer-preview">
+			<!-- TRANSLATORS Section title for live PDF preview of footer template output. -->
 			<h4>{{ t('libresign', 'Preview') }}</h4>
 			<div class="footer-preview__controls">
 				<div class="footer-preview__zoom-controls">
-					<NcButton :aria-label="t('libresign', 'Decrease zoom level')"
+					<NcButton :aria-label="decreaseZoomLevelLabel"
 						@click="changeZoomLevel(-10)">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiMagnifyMinusOutline" :size="20" />
 						</template>
 					</NcButton>
-					<NcButton :aria-label="t('libresign', 'Increase zoom level')"
+					<NcButton :aria-label="increaseZoomLevelLabel"
 						@click="changeZoomLevel(+10)">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiMagnifyPlusOutline" :size="20" />
@@ -47,7 +48,7 @@
 					<NcTextField
 						v-model="zoomLevel"
 						class="footer-preview__zoom-level"
-						:label="t('libresign', 'Zoom level')"
+						:label="zoomLevelLabel"
 						type="number"
 						:min="10"
 						:step="10"
@@ -57,7 +58,7 @@
 				<div class="footer-preview__dimension-controls">
 					<NcTextField
 						v-model="previewWidth"
-						:label="t('libresign', 'Width')"
+						:label="widthLabel"
 						type="number"
 						:min="100"
 						:max="2000"
@@ -65,14 +66,14 @@
 						@input="debouncedSaveDimensions" />
 					<NcTextField
 						v-model="previewHeight"
-						:label="t('libresign', 'Height')"
+						:label="heightLabel"
 						type="number"
 						:min="10"
 						:max="500"
 						:spellcheck="false"
 						@input="debouncedSaveDimensions" />
 					<NcButton v-if="hasDimensionsChanged"
-						:aria-label="t('libresign', 'Reset dimensions')"
+						:aria-label="resetDimensionsLabel"
 						variant="tertiary"
 						@click="resetDimensionsToOriginal">
 						<template #icon>
@@ -95,11 +96,12 @@
 			</div>
 		</div>
 
-		<NcDialog :name="t('libresign', 'Available template variables')"
+		<NcDialog :name="availableTemplateVariablesDialogTitle"
 			v-model:open="showVariablesDialog"
 			size="normal">
 			<div class="variables-dialog">
 				<p class="variables-dialog__description">
+					<!-- TRANSLATORS Instruction text in template-variable picker dialog. -->
 					{{ t('libresign', 'Click on a variable to copy it to clipboard') }}
 				</p>
 				<div class="variables-list">
@@ -109,6 +111,7 @@
 						@click="copyToClipboard(getVariableText(name))">
 						<template #default>
 							<span class="hidden-visually">
+								<!-- TRANSLATORS Accessible text for button that copies selected variable token. -->
 								{{ t('libresign', 'Copy to clipboard') }}
 							</span>
 							{{ getVariableText(name) }}
@@ -122,6 +125,7 @@
 							<div class="variable-meta">
 								<span class="meta-badge">{{ meta.type }}</span>
 								<code v-if="meta.example" class="meta-example">{{ meta.example }}</code>
+								<!-- TRANSLATORS Prefix shown before default value of a template variable in dialog. -->
 								<span v-if="meta.default" class="meta-default">{{ t('libresign', 'Default:') }} {{ meta.default }}</span>
 							</div>
 						</template>
@@ -189,6 +193,31 @@ type PdfPreviewRef = {
 const DEFAULT_PREVIEW_WIDTH = 595
 const DEFAULT_PREVIEW_HEIGHT = 100
 
+// TRANSLATORS Button label opening dialog with Twig variables available for PDF footer template.
+const showAvailableVariablesLabel = t('libresign', 'Show available variables')
+// TRANSLATORS Button caption for dialog listing variables available in footer template.
+const availableVariablesLabel = t('libresign', 'Available variables')
+// TRANSLATORS Icon-only button that restores default footer template content.
+const resetTemplateToDefaultLabel = t('libresign', 'Reset template to default')
+// TRANSLATORS Label for the code editor containing the PDF footer template source.
+const footerTemplateLabel = t('libresign', 'Footer template')
+// TRANSLATORS Placeholder for footer template field; "Twig" and "mPDF" are technical names.
+const footerTemplatePlaceholder = t('libresign', 'A twig template to be used at footer of PDF. Will be rendered by mPDF.')
+// TRANSLATORS Button label to reduce PDF preview zoom percentage.
+const decreaseZoomLevelLabel = t('libresign', 'Decrease zoom level')
+// TRANSLATORS Button label to increase PDF preview zoom percentage.
+const increaseZoomLevelLabel = t('libresign', 'Increase zoom level')
+// TRANSLATORS Numeric input label for PDF preview zoom percentage.
+const zoomLevelLabel = t('libresign', 'Zoom level')
+// TRANSLATORS Numeric input label for footer preview width in PDF units.
+const widthLabel = t('libresign', 'Width')
+// TRANSLATORS Numeric input label for footer preview height in PDF units.
+const heightLabel = t('libresign', 'Height')
+// TRANSLATORS Icon-only button that restores original preview width/height values.
+const resetDimensionsLabel = t('libresign', 'Reset dimensions')
+// TRANSLATORS Dialog title listing all available template variables.
+const availableTemplateVariablesDialogTitle = t('libresign', 'Available template variables')
+// TRANSLATORS Description of PDF footer template editor; "Twig" and URL are technical references and should remain recognizable.
 const footerDescription = t('libresign', 'Configure the content displayed at the footer of the PDF. The text template uses Twig syntax: https://twig.symfony.com/')
 const footerTemplate = ref('')
 const originalTemplate = ref('')
