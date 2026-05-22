@@ -12,8 +12,11 @@ import { DEFAULT_TSA_SETTINGS, normalizeTsaSettings, serializeTsaSettings } from
 
 export const tsaRealDefinition: RealPolicySettingDefinition = {
 	key: 'tsa_settings',
+	// TRANSLATORS Policy title for configuring trusted timestamps applied to digital signatures.
 	title: t('libresign', 'Timestamp Authority'),
+	// TRANSLATORS Short technical context label. TSA means Time-Stamp Authority.
 	context: t('libresign', 'TSA'),
+	// TRANSLATORS Policy description for TSA settings used during digital signing and long-term signature validation.
 	description: t('libresign', 'Timestamp Authority (TSA) settings for digitally signing documents.'),
 	supportedScopes: ['system'],
 	editor: TsaRuleEditor,
@@ -32,14 +35,18 @@ export const tsaRealDefinition: RealPolicySettingDefinition = {
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const config = normalizeTsaSettings(value)
 		if (!config.url) {
+			// TRANSLATORS Policy summary meaning timestamp server usage is turned off.
 			return t('libresign', 'Disabled')
 		}
 
 		if (config.auth_type === 'basic') {
+			// TRANSLATORS Policy summary meaning TSA is enabled and uses HTTP Basic authentication.
 			return t('libresign', 'Enabled • basic authentication')
 		}
 
+		// TRANSLATORS Policy summary meaning TSA is enabled without authentication details in this summary.
 		return t('libresign', 'Enabled')
 	},
+	// TRANSLATORS Message indicating this policy can only be configured at the system level.
 	formatAllowOverride: () => t('libresign', 'Lower-level customization is disabled for this setting'),
 }
