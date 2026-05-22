@@ -294,7 +294,8 @@ describe('RealPolicyWorkbench.vue', () => {
 		await confirmDialog?.find('.dialog-close-stub').trigger('click')
 
 		expect(resolveSaveSystemPolicy).toBeTypeOf('function')
-		resolveSaveSystemPolicy?.()
+		const resolvePendingSave = resolveSaveSystemPolicy as (() => void) | null
+		resolvePendingSave?.()
 		await Promise.resolve()
 		await Promise.resolve()
 
