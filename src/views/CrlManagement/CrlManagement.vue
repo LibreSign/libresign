@@ -74,8 +74,8 @@
 			</div>
 
 			<div v-else-if="entries.length === 0" class="crl-management__empty">
-				<NcEmptyContent :name="t('libresign', 'No CRL entries found')"
-					:description="t('libresign', 'There are no certificate revocation list entries to display.')">
+				<NcEmptyContent :name="noCrlEntriesFoundTitle"
+					:description="noCrlEntriesFoundDescription">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiShieldLock" :size="64" />
 					</template>
@@ -215,6 +215,7 @@
 			@update:open="closeCaWarningDialog">
 			<div class="ca-warning-dialog">
 				<NcNoteCard type="error">
+					<!-- TRANSLATORS High-risk warning shown before revoking a CA certificate. {type} is ROOT or INTERMEDIATE. -->
 					{{ t('libresign', 'You are about to revoke a {type} CERTIFICATE AUTHORITY. This is a critical operation that may invalidate certificates issued by this CA.', { type: caWarningDialog.typeLabel }) }}
 				</NcNoteCard>
 
@@ -245,6 +246,7 @@
 			@update:open="closeRevokeDialog">
 			<div class="revoke-dialog">
 				<NcNoteCard type="warning">
+					<!-- TRANSLATORS Irreversible-action warning shown before confirming certificate revocation. -->
 					{{ t('libresign', 'This action cannot be undone. The certificate will be permanently revoked.') }}
 				</NcNoteCard>
 
@@ -260,14 +262,14 @@
 
 				<div class="revoke-dialog__form">
 					<NcSelect v-model="revokeDialog.reasonCode"
-						:input-label="t('libresign', 'Revocation Reason')"
+						:input-label="revocationReasonInputLabel"
 						:options="reasonCodeOptions"
 						:disabled="revokeDialog.loading"
 						label="label"
 						track-by="value" />
 
 					<NcTextArea v-model="revokeDialog.reasonText"
-						:label="t('libresign', 'Reason Description (optional)')"
+						:label="reasonDescriptionOptionalLabel"
 						:disabled="revokeDialog.loading"
 						:maxlength="255"
 						:rows="3" />
@@ -380,16 +382,34 @@ const revokeDialog = reactive({
 	reasonText: '',
 	loading: false,
 })
+// TRANSLATORS Empty-state title shown when no Certificate Revocation List (CRL) records match current filters.
+const noCrlEntriesFoundTitle = t('libresign', 'No CRL entries found')
+// TRANSLATORS Empty-state description explaining there are no CRL records to present.
+const noCrlEntriesFoundDescription = t('libresign', 'There are no certificate revocation list entries to display.')
+// TRANSLATORS Field label for selecting standardized X.509 revocation reason code.
+const revocationReasonInputLabel = t('libresign', 'Revocation Reason')
+// TRANSLATORS Optional free-text explanation supplementing the selected revocation reason code.
+const reasonDescriptionOptionalLabel = t('libresign', 'Reason Description (optional)')
 const reasonCodes: Record<number, string> = {
+	// TRANSLATORS CRL reason code: revocation reason not specified by issuer.
 	0: t('libresign', 'Unspecified'),
+	// TRANSLATORS CRL reason code: private key is believed to be compromised.
 	1: t('libresign', 'Key Compromise'),
+	// TRANSLATORS CRL reason code: issuing Certificate Authority is compromised.
 	2: t('libresign', 'CA Compromise'),
+	// TRANSLATORS CRL reason code: subject affiliation changed (for example organization/team change).
 	3: t('libresign', 'Affiliation Changed'),
+	// TRANSLATORS CRL reason code: certificate replaced by a newer certificate.
 	4: t('libresign', 'Superseded'),
+	// TRANSLATORS CRL reason code: subject ceased operation and certificate should no longer be used.
 	5: t('libresign', 'Cessation of Operation'),
+	// TRANSLATORS CRL reason code: temporary hold/suspension of certificate trust.
 	6: t('libresign', 'Certificate Hold'),
+	// TRANSLATORS CRL reason code: removes a previously held certificate from CRL hold state.
 	8: t('libresign', 'Remove from CRL'),
+	// TRANSLATORS CRL reason code: privilege linked to certificate was withdrawn.
 	9: t('libresign', 'Privilege Withdrawn'),
+	// TRANSLATORS CRL reason code: Attribute Authority (AA) certificate compromise.
 	10: t('libresign', 'AA Compromise'),
 }
 const reasonCodeOptions: ReasonOption[] = [
@@ -463,6 +483,7 @@ async function loadEntries(append = false) {
 	} catch (error: any) {
 		console.error('Failed to load CRL entries:', error)
 		console.error('Error response:', error.response)
+		// TRANSLATORS Error shown when CRL records cannot be fetched from server.
 		showError(t('libresign', 'Failed to load CRL entries'))
 	} finally {
 		loading.value = false
@@ -623,14 +644,17 @@ async function confirmRevoke() {
 		)
 
 		if (response.data.ocs.data.success) {
+			// TRANSLATORS Success message shown after a certificate is successfully revoked.
 			showSuccess(t('libresign', 'Certificate revoked successfully'))
 			closeRevokeDialog()
 			loadEntries()
 		} else {
+			// TRANSLATORS Error fallback shown when server does not provide a specific revoke failure reason.
 			showError(response.data.ocs.data.message || t('libresign', 'Failed to revoke certificate'))
 		}
 	} catch (error: any) {
 		console.error('Failed to revoke certificate:', error)
+		// TRANSLATORS Error fallback shown when revocation request fails unexpectedly.
 		const message = error.response?.data?.ocs?.data?.message || t('libresign', 'An error occurred while revoking the certificate')
 		showError(message)
 	} finally {
