@@ -15,6 +15,7 @@ import {
 	setSystemPolicy,
 	setUserLanguage,
 } from '../support/nc-provisioning'
+import { clearPolicyWorkbenchRules } from '../support/policy-workbench-rules'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
@@ -32,23 +33,35 @@ async function openIdentificationFactorsDialog(page: Page): Promise<Locator> {
 	return dialog
 }
 
-async function openScopeRuleEditor(page: Page, dialog: Locator, scope: 'everyone' | 'group' | 'user'): Promise<Locator> {
+async function openScopeRuleEditor(page: Page, _dialog: Locator, scope: 'everyone' | 'group' | 'user'): Promise<Locator> {
+	const activeDialog = await openIdentificationFactorsDialog(page)
+
 	if (scope === 'everyone') {
-		const changeButton = dialog.getByRole('button', { name: /^Change$/i }).first()
+		const changeButton = activeDialog.getByRole('button', { name: /^Change$/i }).first()
 		if (await changeButton.isVisible({ timeout: 3000 }).catch(() => false)) {
 			await changeButton.click()
 		} else {
-			await dialog.getByRole('button', { name: /Create rule/i }).first().click()
+			await activeDialog.getByRole('button', { name: /Create rule|Create policy rule/i }).first().click()
 			const everyoneOption = page.locator('[role="option"]').filter({ hasText: /Everyone/i }).first()
 			if (await everyoneOption.isVisible({ timeout: 3000 }).catch(() => false)) {
 				await everyoneOption.click()
 			}
 		}
 	} else {
-		await dialog.getByRole('button', { name: /Create rule/i }).first().click()
-		const targetOption = page.locator('[role="option"]').filter({ hasText: scope === 'group' ? /Group/i : /User/i }).first()
-		await expect(targetOption).toBeVisible({ timeout: 5000 })
-		await targetOption.click()
+		const createRuleButton = activeDialog.getByRole('button', { name: /Create rule|Create policy rule/i }).first()
+		const canOpenCreateScope = await createRuleButton.isVisible({ timeout: 2000 }).catch(() => false)
+			&& await createRuleButton.isEnabled().catch(() => false)
+
+		if (canOpenCreateScope) {
+			await createRuleButton.click()
+			const targetOption = page.locator('[role="option"]').filter({ hasText: scope === 'group' ? /Group/i : /Account/i }).first()
+			await expect(targetOption).toBeVisible({ timeout: 5000 })
+			await targetOption.click()
+		} else {
+			const scopeRow = activeDialog.locator('tbody tr').filter({ hasText: scope === 'group' ? /Group/i : /Account/i }).first()
+			await expect(scopeRow).toBeVisible({ timeout: 10000 })
+			await scopeRow.getByRole('button', { name: /^Change$/i }).first().click()
+		}
 	}
 
 	const ruleDialog = page.getByRole('dialog', { name: /Edit rule|Create rule/i }).last()
@@ -77,8 +90,13 @@ test('identification factors rule editor shows available methods for everyone, g
 	await ensureUserExists(page.request, USER_ID, '123456')
 	await ensureGroupExists(page.request, GROUP_ID)
 	await ensureUserInGroup(page.request, USER_ID, GROUP_ID)
+	await setSystemPolicy(page.request, 'identify_methods', JSON.stringify([
+		{ name: 'account', enabled: true, requirement: 'required' },
+		{ name: 'email', enabled: true, requirement: 'optional' },
+	]))
 
 	const dialog = await openIdentificationFactorsDialog(page)
+	await clearPolicyWorkbenchRules(dialog)
 
 	const everyoneRuleDialog = await openScopeRuleEditor(page, dialog, 'everyone')
 	await assertIdentifyMethodsAreAvailable(everyoneRuleDialog)
