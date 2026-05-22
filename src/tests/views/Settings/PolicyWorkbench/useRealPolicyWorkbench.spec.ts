@@ -1450,6 +1450,78 @@ describe('useRealPolicyWorkbench', () => {
 		})
 	})
 
+	it('keeps collect metadata toggle from the edited signature stamp target rule', async () => {
+		const signatureStampValue = JSON.stringify({
+			template: 'Signed by {{SignerCommonName}}',
+			template_font_size: 9.8,
+			signature_font_size: 9.8,
+			signature_width: 350,
+			signature_height: 100,
+			background_type: 'default',
+			render_mode: 'default',
+		})
+
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'collect_metadata') {
+				return { effectiveValue: false, sourceScope: 'system' }
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
+		fetchGroupPolicy.mockImplementation(async (groupId: string, policyKey: string) => {
+			if (groupId !== 'finance') {
+				return null
+			}
+
+			if (policyKey === 'signature_stamp') {
+				return {
+					policyKey,
+					scope: 'group',
+					targetId: groupId,
+					value: signatureStampValue,
+					allowChildOverride: true,
+					visibleToChild: true,
+					allowedValues: [],
+				}
+			}
+
+			if (policyKey === 'collect_metadata') {
+				return {
+					policyKey,
+					scope: 'group',
+					targetId: groupId,
+					value: true,
+					allowChildOverride: true,
+					visibleToChild: true,
+					allowedValues: [],
+				}
+			}
+
+			return null
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_stamp')
+
+		await vi.waitFor(() => {
+			expect(state.visibleGroupRules).toHaveLength(1)
+		})
+
+		const ruleId = state.visibleGroupRules[0]?.id
+		expect(ruleId).toBeTruthy()
+		if (!ruleId) {
+			throw new Error('Expected a hydrated group rule')
+		}
+
+		state.startEditor({ scope: 'group', ruleId })
+
+		expect(state.editorDraft?.value).toEqual({
+			signatureStampValue,
+			collectMetadataEnabled: true,
+		})
+	})
+
 	it('saves signature stamp group rule and auto-saves collect metadata companion rule', async () => {
 		const signatureStampValue = JSON.stringify({
 			template: 'Signed by {{SignerCommonName}}',
