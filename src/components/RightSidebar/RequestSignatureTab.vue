@@ -5,18 +5,22 @@
 <template>
 	<div id="request-signature-tab">
 		<NcNoteCard v-if="showDocMdpWarning" type="warning">
+			<!-- TRANSLATORS Warning shown when DocMDP certification forbids further edits/signers. -->
 			{{ t('libresign', 'This document has been certified with no changes allowed. You cannot add more signers to this document.') }}
 		</NcNoteCard>
 		<NcNoteCard v-if="isOriginalFileDeleted" type="warning">
+			<!-- TRANSLATORS Warning shown when the source file no longer exists, disabling signer and open-file actions. -->
 			{{ t('libresign', 'The original file was deleted. You can no longer add signers or open it.') }}
 		</NcNoteCard>
 		<NcNoteCard v-if="hasSignersWithDisabledMethods" type="warning">
+			<!-- TRANSLATORS Warning shown when at least one signer uses an identification method currently disabled by policy. -->
 			{{ t('libresign', 'Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures.') }}
 		</NcNoteCard>
 		<NcNoteCard v-if="shouldLoadDetail && isLoadingFileDetail" type="info">
 			{{ t('libresign', 'Loading signer details\u00A0…') }}
 		</NcNoteCard>
 		<NcNoteCard v-if="showSignatureFlowPreferenceClearedNotice" type="info">
+			<!-- TRANSLATORS Informational message shown when saved user preference was reset because policy hierarchy changed. -->
 			{{ t('libresign', 'A previous signing order preference was removed because it is no longer compatible with higher-level policy.') }}
 		</NcNoteCard>
 		<NcButton v-if="filesStore.canAddSigner() && !isOriginalFileDeleted"
@@ -125,6 +129,7 @@
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
 					<NcIconSvgWrapper v-else :path="mdiFileMultiple" :size="20" />
 				</template>
+				<!-- TRANSLATORS Button label in envelope mode. {count} is the number of files currently inside the envelope. -->
 				{{ t('libresign', 'Manage files ({count})', { count: envelopeFilesCount }) }}
 			</NcButton>
 		</NcFormBox>
@@ -138,6 +143,7 @@
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
 					<NcIconSvgWrapper v-else-if="isSignElementsAvailable()" :path="mdiPencil" :size="20" />
 				</template>
+				<!-- TRANSLATORS Button label used to enter visual signature position editor before sending requests. -->
 				{{ isSignElementsAvailable() ? t('libresign', 'Setup signature positions') : t('libresign', 'Save') }}
 			</NcButton>
 			<NcButton v-if="showRequestButton"
@@ -226,7 +232,7 @@
 		</NcDialog>
 		<NcDialog v-if="showConfirmRequest"
 			:name="t('libresign', 'Confirm')"
-			:message="t('libresign', 'Send signature request?')"
+			:message="confirmSendSignatureRequestMessage"
 			@closing="showConfirmRequest = false">
 			<template #actions>
 				<NcButton @click="showConfirmRequest = false">
@@ -245,7 +251,7 @@
 		</NcDialog>
 		<NcDialog v-if="showConfirmRequestSigner"
 			:name="t('libresign', 'Confirm')"
-			:message="t('libresign', 'Send signature request?')"
+			:message="confirmSendSignatureRequestMessage"
 			@closing="showConfirmRequestSigner = false; selectedSigner = null">
 			<template #actions>
 				<NcButton @click="showConfirmRequestSigner = false; selectedSigner = null">
@@ -490,8 +496,11 @@ const showPreserveOrder = computed(() => !isOriginalFileDeleted.value && isCurre
 const showRememberSignatureFlow = computed(() => showPreserveOrder.value && canSaveSignatureFlowPreference.value)
 const footerTemplateSourceOptions = computed<FooterTemplateSourceOption[]>(() => {
 	return buildFooterTemplateSourceOptions(footerPolicy.value, {
+		// TRANSLATORS Option label selecting the footer template saved by the current user.
 		mySavedTemplate: t('libresign', 'My saved footer template'),
+		// TRANSLATORS Option label selecting footer template configured by administrators/policy.
 		configuredTemplate: t('libresign', 'Configured footer template'),
+		// TRANSLATORS Option label selecting system default footer template when no custom template applies.
 		defaultTemplate: t('libresign', 'Default footer template'),
 	})
 })
@@ -512,7 +521,13 @@ const fileName = computed(() => filesStore.getSelectedFileView()?.name ?? '')
 const isEnvelope = computed(() => filesStore.getFile()?.nodeType === 'envelope')
 const envelopeFilesCount = computed(() => filesStore.getFile()?.filesCount || 0)
 const size = computed(() => window.matchMedia('(max-width: 512px)').matches ? 'full' : 'normal')
-const modalTitle = computed(() => Object.keys(signerToEdit.value).length > 0 ? t('libresign', 'Edit signer') : t('libresign', 'Add new signer'))
+// TRANSLATORS Confirmation question shown before dispatching signature requests to signers.
+const confirmSendSignatureRequestMessage = t('libresign', 'Send signature request?')
+const modalTitle = computed(() => Object.keys(signerToEdit.value).length > 0
+	// TRANSLATORS Dialog title when editing an existing signer entry in the request.
+	? t('libresign', 'Edit signer')
+	// TRANSLATORS Dialog title when adding a new signer entry to the request.
+	: t('libresign', 'Add new signer'))
 const showSigningProgress = computed(() => signingProgressStatus.value === FILE_STATUS.SIGNING_IN_PROGRESS)
 const signingOrderDiagramSigners = computed<SigningOrderDiagramSigner[]>(() => {
 	const signers = filesStore.getFile()?.signers || []
