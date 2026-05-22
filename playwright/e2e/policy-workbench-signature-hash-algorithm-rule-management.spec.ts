@@ -32,26 +32,17 @@ test('signature_hash_algorithm allows creating and persisting a system rule from
 
 	const createDialog = page.getByRole('dialog', { name: /Create rule/i }).last()
 	await expect(createDialog).toBeVisible({ timeout: 10000 })
-
-	const algorithmCombobox = createDialog.getByRole('combobox').first()
-	if (await algorithmCombobox.isVisible().catch(() => false)) {
-		await algorithmCombobox.click()
-		const sha512Option = page.locator('[role="option"]').filter({ hasText: /^SHA512$/i }).first()
-		if (await sha512Option.isVisible().catch(() => false)) {
-			await sha512Option.click()
-		}
-	}
-
-	const saveResponse = page.waitForResponse((response) => {
-		return ['POST', 'PUT', 'PATCH'].includes(response.request().method())
-			&& response.url().includes('/apps/libresign/api/v1/policies/system/signature_hash_algorithm')
-	})
+	await createDialog.getByText('SHA512', { exact: true }).first().click()
 
 	const submitButton = createDialog.getByRole('button', { name: /Create rule|Save changes/i }).first()
 	await expect(submitButton).toBeEnabled({ timeout: 10000 })
-	await submitButton.click()
-
-	const response = await saveResponse
+	const [response] = await Promise.all([
+		page.waitForResponse((response) => {
+			return ['POST', 'PUT', 'PATCH'].includes(response.request().method())
+				&& response.url().includes('/apps/libresign/api/v1/policies/system/signature_hash_algorithm')
+		}),
+		submitButton.click(),
+	])
 	expect(response.status()).toBe(200)
 
 	await waitForPolicyWorkbenchIdle(page)
