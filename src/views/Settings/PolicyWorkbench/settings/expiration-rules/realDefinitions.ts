@@ -23,7 +23,9 @@ import {
 
 export const maximumValidityRealDefinition: RealPolicySettingDefinition = {
 	key: 'maximum_validity',
+	// TRANSLATORS Policy title for signature request expiration configuration.
 	title: t('libresign', 'Request expiration'),
+	// TRANSLATORS Policy description explaining expiration and renewal timing of signing requests.
 	description: t('libresign', 'Configure expiration and renewal timing for signing requests.'),
 	editor: RequestExpirationRuleEditor,
 	resolutionMode: 'precedence',
@@ -41,13 +43,17 @@ export const maximumValidityRealDefinition: RealPolicySettingDefinition = {
 	summarizeValue: (value: EffectivePolicyValue) => summarizeRequestExpirationDraftValue(value, t),
 	formatAllowOverride: (allowChildOverride: boolean) =>
 		allowChildOverride
+			// TRANSLATORS Policy inheritance message indicating group and account levels may define their own expiration rules.
 			? t('libresign', 'Groups and accounts can set their own rule')
+			// TRANSLATORS Policy inheritance message indicating child scopes must use this expiration value.
 			: t('libresign', 'Groups and accounts must follow this value'),
 }
 
 export const renewalIntervalRealDefinition: RealPolicySettingDefinition = {
 	key: 'renewal_interval',
+	// TRANSLATORS Policy title for link/session renewal interval related to request subscriptions.
 	title: t('libresign', 'Renewal interval'),
+	// TRANSLATORS Policy description. Interval is in seconds and determines when signer must renew access link/session.
 	description: t('libresign', 'Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link.'),
 	editor: RenewalIntervalRuleEditor,
 	resolutionMode: 'precedence',
@@ -65,20 +71,26 @@ export const renewalIntervalRealDefinition: RealPolicySettingDefinition = {
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const normalized = normalizeNonNegativeInt(value, DEFAULT_RENEWAL_INTERVAL)
 		if (normalized <= 0) {
+			// TRANSLATORS Summary meaning automatic renewal interval enforcement is disabled.
 			return t('libresign', 'Disabled')
 		}
 
+		// TRANSLATORS Summary value. {value} is renewal interval in seconds.
 		return t('libresign', '{value} seconds', { value: String(normalized) })
 	},
 	formatAllowOverride: (allowChildOverride: boolean) =>
 		allowChildOverride
+			// TRANSLATORS Policy inheritance message indicating group and account levels may set their own renewal interval.
 			? t('libresign', 'Groups and accounts can set their own rule')
+			// TRANSLATORS Policy inheritance message indicating child scopes must keep this renewal interval.
 			: t('libresign', 'Groups and accounts must follow this value'),
 }
 
 export const expiryInDaysRealDefinition: RealPolicySettingDefinition = {
 	key: 'expiry_in_days',
+	// TRANSLATORS Policy title for certificate validity duration measured in days.
 	title: t('libresign', 'Expiration in days'),
+	// TRANSLATORS Policy description for generated certificate lifetime in days.
 	description: t('libresign', 'The length of time for which the generated certificate will be valid, in days.'),
 	editor: ExpiryInDaysRuleEditor,
 	resolutionMode: 'precedence',
@@ -95,10 +107,13 @@ export const expiryInDaysRealDefinition: RealPolicySettingDefinition = {
 	},
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const normalized = normalizePositiveInt(value, DEFAULT_EXPIRY_IN_DAYS)
+		// TRANSLATORS Summary value. {value} is number of days before generated certificate expiration.
 		return t('libresign', '{value} days', { value: String(normalized) })
 	},
 	formatAllowOverride: (allowChildOverride: boolean) =>
 		allowChildOverride
+			// TRANSLATORS Policy inheritance message indicating child scopes may define their own certificate validity duration.
 			? t('libresign', 'Groups and accounts can set their own rule')
+			// TRANSLATORS Policy inheritance message indicating child scopes must use this certificate validity duration.
 			: t('libresign', 'Groups and accounts must follow this value'),
 }
