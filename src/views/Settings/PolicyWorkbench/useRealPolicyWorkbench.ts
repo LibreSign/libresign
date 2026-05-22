@@ -331,6 +331,7 @@ export function createRealPolicyWorkbenchState() {
 						? (typeof definition.summarizeValue === 'function'
 							? definition.summarizeValue(summaryValue)
 							: String(summaryValue))
+						// TRANSLATORS Fallback shown when policy has no configured value in current scope chain.
 						: t('libresign', 'Not configured'),
 					groupCount: isActiveSetting ? groupRules.value.length : groupCount,
 					userCount: isActiveSetting ? userRules.value.length : userCount,
@@ -518,12 +519,15 @@ export function createRealPolicyWorkbenchState() {
 		].reduce((sum, count) => sum + count, 0)
 
 		const baseSource = hasGlobalDefault.value
+			// TRANSLATORS Label for base value source when inherited from platform-wide default policy.
 			? t('libresign', 'Global default')
+			// TRANSLATORS Label for base value source when coming from LibreSign system-level default.
 			: t('libresign', 'System default')
 
 		return {
 			currentBaseValue,
 			baseSource,
+			// TRANSLATORS Scope precedence order for policy inheritance.
 			configurableLayers: t('libresign', 'Default > Group > Account'),
 			platformFallback: fallbackLabel,
 			resolutionMode: policyResolutionMode.value,
