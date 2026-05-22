@@ -22,6 +22,23 @@ type SettingSummary = {
 	userCount?: number,
 }
 
+// TRANSLATORS Category heading grouping rules about who is allowed to sign documents.
+const categoryWhoCanSignLabel = t('libresign', 'Who can sign documents')
+// TRANSLATORS Category heading grouping rules about signing process behavior.
+const categoryHowSigningWorksLabel = t('libresign', 'How signing works')
+// TRANSLATORS Category heading grouping rules affecting signer-facing experience.
+const categorySignerExperienceLabel = t('libresign', 'What the signer sees')
+// TRANSLATORS Category heading grouping rules about metadata and evidence recorded during signing.
+const categoryWhatGetsRecordedLabel = t('libresign', 'What gets recorded')
+// TRANSLATORS Category heading grouping rules about durations, deadlines, and limits.
+const categoryTimeAndLimitsLabel = t('libresign', 'Time and limits')
+// TRANSLATORS Category heading grouping trust, certificate, and validation behavior.
+const categoryTrustAndVerificationLabel = t('libresign', 'Trust and verification')
+// TRANSLATORS Category heading grouping infrastructure and system-level behavior.
+const categorySystemBehaviorLabel = t('libresign', 'System behavior')
+// TRANSLATORS Fallback category heading for settings without a specific mapped category.
+const categoryOtherLabel = t('libresign', 'Other')
+
 const CATEGORY_ORDER: RealPolicySettingCategory[] = [
 	'who-can-sign',
 	'how-signing-works',
@@ -35,21 +52,21 @@ const CATEGORY_ORDER: RealPolicySettingCategory[] = [
 function categoryLabel(category: RealPolicySettingCategory): string {
 	switch (category) {
 	case 'who-can-sign':
-		return t('libresign', 'Who can sign documents')
+		return categoryWhoCanSignLabel
 	case 'how-signing-works':
-		return t('libresign', 'How signing works')
+		return categoryHowSigningWorksLabel
 	case 'signer-experience':
-		return t('libresign', 'What the signer sees')
+		return categorySignerExperienceLabel
 	case 'what-gets-recorded':
-		return t('libresign', 'What gets recorded')
+		return categoryWhatGetsRecordedLabel
 	case 'time-and-limits':
-		return t('libresign', 'Time and limits')
+		return categoryTimeAndLimitsLabel
 	case 'trust-and-verification':
-		return t('libresign', 'Trust and verification')
+		return categoryTrustAndVerificationLabel
 	case 'system-behavior':
-		return t('libresign', 'System behavior')
+		return categorySystemBehaviorLabel
 	default:
-		return t('libresign', 'Other')
+		return categoryOtherLabel
 	}
 }
 
@@ -111,15 +128,23 @@ export function useCatalogPresentation(options: {
 	const hasActiveFilter = computed(() => options.settingsFilter.value.trim().length > 0)
 	const hasVisibleCategorySections = computed(() => visibleCategorySections.value.length > 0)
 	const showCategoryNavigation = computed(() => hasVisibleCategorySections.value)
+	// TRANSLATORS Button label that switches catalog from cards to compact list layout.
+	const switchToCompactViewLabel = t('libresign', 'Switch to compact view')
+	// TRANSLATORS Button label that switches catalog from compact list to card layout.
+	const switchToCardViewLabel = t('libresign', 'Switch to card view')
 	const catalogViewButtonLabel = computed(() => {
 		return effectiveCatalogLayout.value === 'cards'
-			? t('libresign', 'Switch to compact view')
-			: t('libresign', 'Switch to card view')
+			? switchToCompactViewLabel
+			: switchToCardViewLabel
 	})
+	// TRANSLATORS Button label to expand collapsed settings category navigation.
+	const expandSettingsCategoriesLabel = t('libresign', 'Expand settings categories')
+	// TRANSLATORS Button label to collapse settings category navigation.
+	const collapseSettingsCategoriesLabel = t('libresign', 'Collapse settings categories')
 	const catalogCollapseButtonLabel = computed(() => {
 		return options.isCatalogCollapsed.value
-			? t('libresign', 'Expand settings categories')
-			: t('libresign', 'Collapse settings categories')
+			? expandSettingsCategoriesLabel
+			: collapseSettingsCategoriesLabel
 	})
 
 	return {

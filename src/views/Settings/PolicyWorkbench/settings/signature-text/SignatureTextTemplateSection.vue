@@ -5,19 +5,21 @@
 <template>
 	<div class="ste__group">
 		<div class="ste__label-row">
+			<!-- TRANSLATORS Label for choosing how signature stamp content is rendered. -->
 			<label class="ste__label">{{ t('libresign', 'Render mode') }}</label>
 			<NcButton
 				v-if="showResetRenderModeButton ?? true"
 				variant="tertiary"
-				:aria-label="t('libresign', 'Reset render mode to default')"
+				:aria-label="resetRenderModeToDefaultLabel"
 				@click="$emit('resetRenderMode')">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 				</template>
+				<!-- TRANSLATORS Button caption that reverts a setting to inherited/default value. -->
 				{{ t('libresign', 'Undo') }}
 			</NcButton>
 		</div>
-		<div class="ste__seg ste__seg--modes" role="radiogroup" :aria-label="t('libresign', 'Render mode')">
+		<div class="ste__seg ste__seg--modes" role="radiogroup" :aria-label="renderModeLabel">
 			<button
 				v-for="opt in displayModeOptions"
 				:key="opt.value"
@@ -35,23 +37,23 @@
 	<div v-if="renderMode !== 'graphic'" class="ste__group">
 		<CodeEditor
 			:model-value="template"
-			:label="t('libresign', 'Signature text template')"
-			:placeholder="t('libresign', 'Enter signature text template…')"
+			:label="signatureTextTemplateLabel"
+			:placeholder="signatureTextTemplatePlaceholder"
 			@update:modelValue="(value) => emit('update:template', value)">
 			<template #label-actions>
 				<NcButton
 					variant="tertiary"
-					:aria-label="t('libresign', 'Show available variables')"
+					:aria-label="showAvailableVariablesLabel"
 					@click="showVariablesDialog = true">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiHelpCircleOutline" :size="20" />
 					</template>
-					{{ t('libresign', 'Available variables') }}
+					{{ availableVariablesLabel }}
 				</NcButton>
 				<NcButton
 					v-if="showResetTemplateButton ?? true"
 					variant="tertiary"
-					:aria-label="t('libresign', 'Reset to default')"
+					:aria-label="resetToDefaultLabel"
 					@click="$emit('resetTemplate')">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
@@ -63,11 +65,12 @@
 	</div>
 
 	<NcDialog
-		:name="t('libresign', 'Available template variables')"
+		:name="availableTemplateVariablesDialogTitle"
 		v-model:open="showVariablesDialog"
 		size="normal">
 		<div class="ste__vars-dialog">
 			<p class="ste__vars-description">
+				<!-- TRANSLATORS Instruction in variable picker dialog. -->
 				{{ t('libresign', 'Click on a variable to copy it to clipboard') }}
 			</p>
 			<div class="ste__vars-list">
@@ -77,7 +80,7 @@
 					inverted-accent
 					@click="copyVariableToClipboard(variable.value)">
 					<template #default>
-						<span class="hidden-visually">{{ t('libresign', 'Copy to clipboard') }}</span>
+						<span class="hidden-visually">{{ copyToClipboardLabel }}</span>
 						{{ variable.value }}
 					</template>
 					<template #icon>
@@ -126,6 +129,25 @@ const emit = defineEmits<{
 
 const showVariablesDialog = ref(false)
 const copiedVariable = ref<string | null>(null)
+
+// TRANSLATORS Accessible label for button that restores render mode to default value.
+const resetRenderModeToDefaultLabel = t('libresign', 'Reset render mode to default')
+// TRANSLATORS Accessible label for render mode radio group.
+const renderModeLabel = t('libresign', 'Render mode')
+// TRANSLATORS Label for code editor containing signature text template.
+const signatureTextTemplateLabel = t('libresign', 'Signature text template')
+// TRANSLATORS Placeholder in signature text template editor input.
+const signatureTextTemplatePlaceholder = t('libresign', 'Enter signature text template…')
+// TRANSLATORS Accessible label for button opening template variables dialog.
+const showAvailableVariablesLabel = t('libresign', 'Show available variables')
+// TRANSLATORS Button caption for opening list of available template variables.
+const availableVariablesLabel = t('libresign', 'Available variables')
+// TRANSLATORS Accessible label for button that resets template to default value.
+const resetToDefaultLabel = t('libresign', 'Reset to default')
+// TRANSLATORS Dialog title listing variables available in signature text template.
+const availableTemplateVariablesDialogTitle = t('libresign', 'Available template variables')
+// TRANSLATORS Accessible text for action that copies variable token to clipboard.
+const copyToClipboardLabel = t('libresign', 'Copy to clipboard')
 
 function copyVariableToClipboard(value: string): void {
 	if (copiedVariable.value === value) {

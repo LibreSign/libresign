@@ -4,7 +4,7 @@
 -->
 <template>
 	<div>
-		<NcLoadingIcon v-if="loading" :size="64" :name="t('libresign', 'Loading …')" />
+		<NcLoadingIcon v-if="loading" :size="64" :name="loadingLabel" />
 		<div v-show="isLoaded" class="wrapper">
 			<img v-show="isLoaded"
 				:src="imageData"
@@ -46,13 +46,18 @@ defineOptions({
 	name: 'PreviewSignature',
 })
 
+// TRANSLATORS Accessible loading label shown while signature preview image is being fetched.
+const loadingLabel = t('libresign', 'Loading …')
+// TRANSLATORS Default alternative text for signature preview image.
+const signaturePreviewAltLabel = t('libresign', 'Signature preview')
+
 const props = withDefaults(defineProps<{
 	src: string
 	signRequestUuid?: string
 	alt?: string
 }>(), {
 	signRequestUuid: '',
-	alt: () => t('libresign', 'Signature preview'),
+	alt: () => signaturePreviewAltLabel,
 })
 
 const emit = defineEmits<{

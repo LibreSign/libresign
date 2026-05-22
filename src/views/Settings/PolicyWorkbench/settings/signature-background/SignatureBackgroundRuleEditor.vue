@@ -22,18 +22,18 @@
 		<div class="signature-background-editor__actions">
 			<NcButton
 				variant="secondary"
-				:aria-label="t('libresign', 'Upload new background image')"
+				:aria-label="uploadNewBackgroundImageLabel"
 				@click="activateLocalFilePicker">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiUpload" :size="20" />
 				</template>
-				{{ t('libresign', 'Upload') }}
+				{{ uploadLabel }}
 			</NcButton>
 
 			<NcButton
 				v-if="normalizedValue !== 'default'"
 				variant="tertiary"
-				:aria-label="t('libresign', 'Reset to default')"
+				:aria-label="resetToDefaultLabel"
 				@click="() => setValue('default')">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
@@ -43,7 +43,7 @@
 			<NcButton
 				v-if="normalizedValue !== 'deleted'"
 				variant="tertiary"
-				:aria-label="t('libresign', 'Remove background')"
+				:aria-label="removeBackgroundLabel"
 				@click="() => setValue('deleted')">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiDelete" :size="20" />
@@ -92,21 +92,44 @@ const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
 
+// TRANSLATORS Option label for using default LibreSign signature background image.
+const defaultBackgroundLabel = t('libresign', 'Default background')
+// TRANSLATORS Option description for default signature background behavior.
+const defaultBackgroundDescription = t('libresign', 'Use the default LibreSign background image.')
+// TRANSLATORS Option label for using administrator-uploaded custom background image.
+const customBackgroundLabel = t('libresign', 'Custom background')
+// TRANSLATORS Option description for custom signature background behavior.
+const customBackgroundDescription = t('libresign', 'Use a custom image uploaded by an administrator.')
+// TRANSLATORS Option label for disabling signature background image.
+const noBackgroundLabel = t('libresign', 'No background')
+// TRANSLATORS Option description for disabling signature background image.
+const noBackgroundDescription = t('libresign', 'Do not apply any background image to signatures.')
+// TRANSLATORS Accessible label for button that uploads a new signature background image.
+const uploadNewBackgroundImageLabel = t('libresign', 'Upload new background image')
+// TRANSLATORS Button label for uploading a signature background image.
+const uploadLabel = t('libresign', 'Upload')
+// TRANSLATORS Accessible label for button that restores default background option.
+const resetToDefaultLabel = t('libresign', 'Reset to default')
+// TRANSLATORS Accessible label for button that removes current background image.
+const removeBackgroundLabel = t('libresign', 'Remove background')
+// TRANSLATORS Fallback error shown when background upload fails and server provides no message.
+const uploadFailedFallback = t('libresign', 'Upload failed')
+
 const options: Array<{ value: 'default' | 'custom' | 'deleted'; label: string; description: string }> = [
 	{
 		value: 'default',
-		label: t('libresign', 'Default background'),
-		description: t('libresign', 'Use the default LibreSign background image.'),
+		label: defaultBackgroundLabel,
+		description: defaultBackgroundDescription,
 	},
 	{
 		value: 'custom',
-		label: t('libresign', 'Custom background'),
-		description: t('libresign', 'Use a custom image uploaded by an administrator.'),
+		label: customBackgroundLabel,
+		description: customBackgroundDescription,
 	},
 	{
 		value: 'deleted',
-		label: t('libresign', 'No background'),
-		description: t('libresign', 'Do not apply any background image to signatures.'),
+		label: noBackgroundLabel,
+		description: noBackgroundDescription,
 	},
 ]
 
@@ -150,8 +173,9 @@ async function onChangeBackground(event: Event) {
 	try {
 		await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), formData)
 		setValue('custom')
-	} catch ({ response }: any) {
-		errorMessage.value = response?.data?.ocs?.data?.message || 'Upload failed'
+	} catch (caughtError: any) {
+		const response = caughtError?.response
+		errorMessage.value = response?.data?.ocs?.data?.message || uploadFailedFallback
 	} finally {
 		showLoading.value = false
 	}

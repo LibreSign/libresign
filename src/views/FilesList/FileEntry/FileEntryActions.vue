@@ -31,14 +31,14 @@
 			</NcActionButton>
 		</NcActions>
 		<NcDialog v-if="confirmDelete"
-			:name="t('libresign', 'Confirm')"
+			:name="confirmDialogTitle"
 			:no-close="deleting"
 			v-model:open="confirmDelete">
-			{{ t('libresign', 'The signature request will be deleted. Do you confirm this action?') }}
+			{{ deleteConfirmationMessage }}
 			<NcCheckboxRadioSwitch type="switch"
 				v-model="deleteFile"
 				:disabled="deleting">
-				{{ t('libresign', 'Also delete the file.') }}
+				{{ alsoDeleteFileLabel }}
 			</NcCheckboxRadioSwitch>
 			<template #actions>
 				<NcButton variant="primary"
@@ -47,11 +47,11 @@
 					<template #icon>
 						<NcLoadingIcon v-if="deleting" :size="20" />
 					</template>
-					{{ t('libresign', 'Ok') }}
+					{{ okLabel }}
 				</NcButton>
 				<NcButton :disabled="deleting"
 					@click="confirmDelete = false">
-					{{ t('libresign', 'Cancel') }}
+					{{ cancelLabel }}
 				</NcButton>
 			</template>
 		</NcDialog>
@@ -135,6 +135,31 @@ const deleteFile = ref(true)
 const deleting = ref(false)
 const documentData = ref(loadState('libresign', 'file_info', {}))
 const hasInfo = ref(false)
+
+// TRANSLATORS Generic confirm dialog title.
+const confirmDialogTitle = t('libresign', 'Confirm')
+// TRANSLATORS Warning message shown before deleting a signature request.
+const deleteConfirmationMessage = t('libresign', 'The signature request will be deleted. Do you confirm this action?')
+// TRANSLATORS Switch label enabling deletion of the underlying file in addition to request metadata.
+const alsoDeleteFileLabel = t('libresign', 'Also delete the file.')
+// TRANSLATORS Confirmation button label.
+const okLabel = t('libresign', 'Ok')
+// TRANSLATORS Cancel button label.
+const cancelLabel = t('libresign', 'Cancel')
+// TRANSLATORS Context-menu action label for creating a new signature request from file.
+const actionRequestSignatureLabel = t('libresign', 'Request signature')
+// TRANSLATORS Context-menu action label opening request details.
+const actionDetailsLabel = t('libresign', 'Details')
+// TRANSLATORS Context-menu action label to rename entry.
+const actionRenameLabel = t('libresign', 'Rename')
+// TRANSLATORS Context-menu action label to open validation view.
+const actionValidateLabel = t('libresign', 'Validate')
+// TRANSLATORS Context-menu action label to begin signing flow.
+const actionSignLabel = t('libresign', 'Sign')
+// TRANSLATORS Context-menu action label to delete entry.
+const actionDeleteLabel = t('libresign', 'Delete')
+// TRANSLATORS Context-menu action label to open file in viewer.
+const actionOpenFileLabel = t('libresign', 'Open file')
 
 const openedMenu = computed({
 	get: () => actionsMenuStore.opened === props.source.id,
@@ -255,37 +280,37 @@ function onMenuClosed() {
 onMounted(() => {
 	registerAction({
 		id: 'request-signature',
-		title: t('libresign', 'Request signature'),
+		title: actionRequestSignatureLabel,
 		iconSvgInline: svgSignature,
 	})
 	registerAction({
 		id: 'details',
-		title: t('libresign', 'Details'),
+		title: actionDetailsLabel,
 		iconSvgInline: svgInformation,
 	})
 	registerAction({
 		id: 'rename',
-		title: t('libresign', 'Rename'),
+		title: actionRenameLabel,
 		iconSvgInline: svgPencil,
 	})
 	registerAction({
 		id: 'validate',
-		title: t('libresign', 'Validate'),
+		title: actionValidateLabel,
 		iconSvgInline: svgTextBoxCheck,
 	})
 	registerAction({
 		id: 'sign',
-		title: t('libresign', 'Sign'),
+		title: actionSignLabel,
 		iconSvgInline: svgSignature,
 	})
 	registerAction({
 		id: 'delete',
-		title: t('libresign', 'Delete'),
+		title: actionDeleteLabel,
 		iconSvgInline: svgDelete,
 	})
 	registerAction({
 		id: 'open',
-		title: t('libresign', 'Open file'),
+		title: actionOpenFileLabel,
 		iconSvgInline: svgFileDocument,
 	})
 	hasInfo.value = Object.keys(documentData.value as Record<string, unknown>).length > 0
