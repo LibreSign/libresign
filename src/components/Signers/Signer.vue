@@ -21,12 +21,12 @@
 				<NcChip v-for="method in identifyMethodsNames"
 					:key="method"
 					:text="method"
-					:aria-label="t('libresign', 'Identification method: {method}', { method })"
+					:aria-label="getIdentificationMethodAriaLabel(method)"
 					:no-close="true" />
 				<NcChip :text="signerStatusText"
 					:variant="chipType"
 					:icon-path="statusIconPath"
-					:aria-label="t('libresign', 'Signer status: {status}', { status: signerStatusText })"
+					:aria-label="signerStatusAriaLabel"
 					:no-close="true"
 					class="signer-status-chip" />
 				<span v-if="disabledTooltip" class="sr-only">{{ disabledTooltip }}</span>
@@ -37,7 +37,7 @@
 				<div class="drag-handle-wrapper">
 					<NcIconSvgWrapper :path="mdiDragVertical" :size="20"
 						class="drag-handle"
-						:title="t('libresign', 'Drag to reorder')" />
+						:title="dragToReorderLabel" />
 				</div>
 			</div>
 		</template>
@@ -156,6 +156,7 @@ const disabledMethodLabel = computed(() => {
 
 const disabledTooltip = computed(() => {
 	if (isMethodDisabled.value) {
+		// TRANSLATORS Tooltip explaining signer is disabled because its identification method is disabled by admin.
 		return t('libresign', 'This signer cannot be used because the identification method "{method}" has been disabled by the administrator.', { method: disabledMethodLabel.value })
 	}
 	return ''
@@ -191,6 +192,19 @@ const identifyMethodsNames = computed(() => {
 	return signer.value.identifyMethods.map(method => method.method)
 })
 
+function getIdentificationMethodAriaLabel(method: string) {
+	// TRANSLATORS Accessible label announcing signer identification method chip.
+	return t('libresign', 'Identification method: {method}', { method })
+}
+
+const signerStatusAriaLabel = computed(() => {
+	// TRANSLATORS Accessible label announcing current signer status chip.
+	return t('libresign', 'Signer status: {status}', { status: signerStatusText.value })
+})
+
+// TRANSLATORS Tooltip for drag handle used to reorder signers.
+const dragToReorderLabel = t('libresign', 'Drag to reorder')
+
 const chipType = computed(() => {
 	switch (signer.value.status) {
 	case SIGN_REQUEST_STATUS.SIGNED:
@@ -205,8 +219,10 @@ const chipType = computed(() => {
 
 const signerLinkAriaLabel = computed(() => {
 	if (Boolean(signer.value.signed)) {
+		// TRANSLATORS Accessible label for signed signer list item.
 		return t('libresign', 'Signer {name} (already signed)', { name: signerName.value })
 	}
+	// TRANSLATORS Accessible label for editable signer list item.
 	return t('libresign', 'Edit signer {name}', { name: signerName.value })
 })
 

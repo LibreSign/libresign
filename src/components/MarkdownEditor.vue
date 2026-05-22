@@ -14,7 +14,7 @@
 				</p>
 			</div>
 		</div>
-		<div class="markdown-editor__toolbar" :aria-label="t('libresign', 'Markdown formatting shortcuts')">
+		<div class="markdown-editor__toolbar" :aria-label="markdownFormattingShortcutsLabel">
 			<!-- Group 1: headings -->
 			<HeadingMenu
 				class="markdown-editor__headings-menu"
@@ -23,14 +23,14 @@
 			<span class="markdown-editor__toolbar-separator" aria-hidden="true" />
 			<!-- Group 2: inline emphasis -->
 			<NcButton variant="tertiary"
-				:aria-label="t('libresign', 'Bold')"
+				:aria-label="boldLabel"
 				@click="applyBold">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiFormatBold" :size="18" />
 				</template>
 			</NcButton>
 			<NcButton variant="tertiary"
-				:aria-label="t('libresign', 'Italic')"
+				:aria-label="italicLabel"
 				@click="applyItalic">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiFormatItalic" :size="18" />
@@ -39,21 +39,21 @@
 			<span class="markdown-editor__toolbar-separator" aria-hidden="true" />
 			<!-- Group 3: block elements -->
 			<NcButton variant="tertiary"
-				:aria-label="t('libresign', 'Unordered list')"
+				:aria-label="unorderedListLabel"
 				@click="applyUnorderedList">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiFormatListBulleted" :size="18" />
 				</template>
 			</NcButton>
 			<NcButton variant="tertiary"
-				:aria-label="t('libresign', 'Ordered list')"
+				:aria-label="orderedListLabel"
 				@click="applyOrderedList">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiFormatListNumbered" :size="18" />
 				</template>
 			</NcButton>
 			<NcButton variant="tertiary"
-				:aria-label="t('libresign', 'Blockquote')"
+				:aria-label="blockquoteLabel"
 				@click="applyBlockquote">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiFormatQuoteClose" :size="18" />
@@ -62,21 +62,21 @@
 			<span class="markdown-editor__toolbar-separator" aria-hidden="true" />
 			<!-- Group 4: code and link -->
 			<NcButton variant="tertiary"
-				:aria-label="t('libresign', 'Inline code')"
+				:aria-label="inlineCodeLabel"
 				@click="applyCode">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiCodeTags" :size="18" />
 				</template>
 			</NcButton>
 			<NcButton variant="tertiary"
-				:aria-label="t('libresign', 'Code block')"
+				:aria-label="codeBlockLabel"
 				@click="applyCodeBlock">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiCodeBraces" :size="18" />
 				</template>
 			</NcButton>
 			<NcButton variant="tertiary"
-				:aria-label="t('libresign', 'Link')"
+				:aria-label="linkLabel"
 				@click="applyLink">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiLink" :size="18" />
@@ -85,7 +85,7 @@
 			<span class="markdown-editor__toolbar-separator" aria-hidden="true" />
 			<!-- Group 5: separators -->
 			<NcButton variant="tertiary"
-				:aria-label="t('libresign', 'Horizontal rule')"
+				:aria-label="horizontalRuleLabel"
 				@click="applyHorizontalRule">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiMinus" :size="18" />
@@ -94,7 +94,7 @@
 			<span class="markdown-editor__toolbar-separator" aria-hidden="true" />
 			<!-- Group 6: history -->
 			<NcButton variant="tertiary"
-				:aria-label="t('libresign', 'Undo')"
+				:aria-label="undoLabel"
 				:disabled="!canUndo"
 				@click="undoAction">
 				<template #icon>
@@ -102,7 +102,7 @@
 				</template>
 			</NcButton>
 			<NcButton variant="tertiary"
-				:aria-label="t('libresign', 'Redo')"
+				:aria-label="redoLabel"
 				:disabled="!canRedo"
 				@click="redoAction">
 				<template #icon>
@@ -154,6 +154,31 @@ import {
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import HeadingMenu from './markdown-editor/HeadingMenu.vue'
+
+// TRANSLATORS Accessible label for markdown toolbar containing formatting shortcut actions.
+const markdownFormattingShortcutsLabel = t('libresign', 'Markdown formatting shortcuts')
+// TRANSLATORS Toolbar button label applying bold markdown formatting.
+const boldLabel = t('libresign', 'Bold')
+// TRANSLATORS Toolbar button label applying italic markdown formatting.
+const italicLabel = t('libresign', 'Italic')
+// TRANSLATORS Toolbar button label toggling unordered (bulleted) markdown list.
+const unorderedListLabel = t('libresign', 'Unordered list')
+// TRANSLATORS Toolbar button label toggling ordered (numbered) markdown list.
+const orderedListLabel = t('libresign', 'Ordered list')
+// TRANSLATORS Toolbar button label toggling markdown blockquote formatting.
+const blockquoteLabel = t('libresign', 'Blockquote')
+// TRANSLATORS Toolbar button label toggling inline code markdown formatting.
+const inlineCodeLabel = t('libresign', 'Inline code')
+// TRANSLATORS Toolbar button label inserting markdown fenced code block.
+const codeBlockLabel = t('libresign', 'Code block')
+// TRANSLATORS Toolbar button label inserting markdown hyperlink.
+const linkLabel = t('libresign', 'Link')
+// TRANSLATORS Toolbar button label inserting markdown horizontal rule separator.
+const horizontalRuleLabel = t('libresign', 'Horizontal rule')
+// TRANSLATORS Toolbar button label for undo action in markdown editor.
+const undoLabel = t('libresign', 'Undo')
+// TRANSLATORS Toolbar button label for redo action in markdown editor.
+const redoLabel = t('libresign', 'Redo')
 
 const toggleSurroundSelection = (view: EditorView, prefix: string, suffix: string = prefix) => {
 	const mainSelection = view.state.selection.main

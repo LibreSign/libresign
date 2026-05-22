@@ -4,20 +4,20 @@
 -->
 <template>
 	<NcModal v-if="modal"
-		:name="t('libresign', 'Signature positions')"
+		:name="signaturePositionsModalTitle"
 		:close-button-contained="false"
 		:close-button-outside="true"
 		size="full"
 		@close="closeModal">
 		<div v-if="filesStore.loading">
-			<NcLoadingIcon :size="64" :name="t('libresign', 'Loading …')" />
+			<NcLoadingIcon :size="64" :name="loadingLabel" />
 		</div>
 		<div v-else class="visible-elements-container">
 			<div class="sign-details">
 				<div class="modal_name">
 					<NcChip :text="statusLabel"
 						:variant="isDraft ? 'warning' : 'primary'"
-						:aria-label="t('libresign', 'Document status: {status}', { status: statusLabel })"
+						:aria-label="documentStatusAriaLabel"
 						no-close />
 					<h2 class="name">{{ document.name }}</h2>
 				</div>
@@ -25,19 +25,19 @@
 					aria-live="polite"
 					aria-atomic="true"
 					class="sr-only">
-					<template v-if="!signerSelected">{{ t('libresign', 'Select a signer to set their signature position') }}</template>
+					<template v-if="!signerSelected">{{ selectSignerPositionHint }}</template>
 				</span>
 				<p v-if="!signerSelected">
 					<NcNoteCard type="info"
-						:text="t('libresign', 'Select a signer to set their signature position')" />
+						:text="selectSignerPositionHint" />
 				</p>
 				<ul class="view-sign-detail__sidebar">
 					<li v-if="signerSelected"
 						:class="{ tip: signerSelected }">
-						<span>{{ t('libresign', 'Click on the place you want to add.') }}</span>
+						<span>{{ clickPlacementHint }}</span>
 						<NcButton variant="primary"
 							@click="stopAddSigner">
-							{{ t('libresign', 'Cancel') }}
+							{{ cancelLabel }}
 						</NcButton>
 					</li>
 					<Signer v-for="({ signer, index }) in sidebarSigners"
@@ -57,14 +57,14 @@
 						:wide="true"
 						:class="{ disabled: signerSelected }"
 						@click="save()">
-						{{ t('libresign', 'Save') }}
+						{{ saveLabel }}
 					</NcButton>
 
 					<NcButton v-if="canSign && !signerSelected"
 						:variant="variantOfSignButton"
 						:wide="true"
 						@click="goToSign">
-						{{ t('libresign', 'Sign') }}
+						{{ signLabel }}
 					</NcButton>
 				</div>
 			</div>
@@ -559,6 +559,22 @@ const canSign = computed(() => status.value === FILE_STATUS.ABLE_TO_SIGN && !!ge
 const variantOfSaveButton = computed(() => canSave.value ? 'primary' : 'secondary')
 const variantOfSignButton = computed(() => canSave.value ? 'secondary' : 'primary')
 const statusLabel = computed(() => document.value.statusText || '')
+// TRANSLATORS Modal title for configuring signature positions in document pages.
+const signaturePositionsModalTitle = t('libresign', 'Signature positions')
+// TRANSLATORS Loading label while signature position editor data is being prepared.
+const loadingLabel = t('libresign', 'Loading …')
+// TRANSLATORS Accessibility label for document status chip; {status} is current localized status text.
+const documentStatusAriaLabel = computed(() => t('libresign', 'Document status: {status}', { status: statusLabel.value }))
+// TRANSLATORS Instruction prompting user to choose signer before setting signature position.
+const selectSignerPositionHint = t('libresign', 'Select a signer to set their signature position')
+// TRANSLATORS Instruction shown during add-position mode telling user to click desired placement.
+const clickPlacementHint = t('libresign', 'Click on the place you want to add.')
+// TRANSLATORS Generic button label to cancel current action.
+const cancelLabel = t('libresign', 'Cancel')
+// TRANSLATORS Button label to save current signature position changes.
+const saveLabel = t('libresign', 'Save')
+// TRANSLATORS Button label to proceed to signing flow.
+const signLabel = t('libresign', 'Sign')
 const pdfFiles = computed<PdfInput[]>(() => visibleElementsFiles.value.flatMap((file) => {
 	const fileUrl = getFileUrl(file)
 	return fileUrl ? [fileUrl] : []
