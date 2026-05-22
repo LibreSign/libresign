@@ -11,8 +11,17 @@ Feature: admin/footer_template_preview
     And the response body should match the regular expression "^%PDF"
 
   Scenario: Non-admin footer template access follows allow and deny policy states
-    Given user "signer1" exists
+    Given as user "admin"
+    And user "signer1" exists
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/add_footer"
+      | value              | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/signer1/add_footer"
+    And the response should have a status code 200
     And as user "signer1"
+    And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/add_footer"
+    And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/footer-template"
       | template | <p>Signer allowed flow</p> |
       | width    | 595 |
@@ -134,6 +143,10 @@ Feature: admin/footer_template_preview
     # Cleanup any previous overrides to keep this scenario deterministic
     When sending "delete" to ocs "/apps/libresign/api/v1/policies/user/signer1/add_footer"
     Then the response should have a status code 200
+    Given as user "signer1"
+    When sending "delete" to ocs "/apps/libresign/api/v1/policies/user/add_footer"
+    Then the response should have a status code 200
+    Given as user "admin"
     When sending "delete" to ocs "/apps/libresign/api/v1/policies/group/libresign_footer_reset_flow_group/add_footer"
     Then the response should have a status code 200
 
