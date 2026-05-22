@@ -26,6 +26,7 @@
 						:disabled="!hasActiveFilter"
 						:tabindex="hasActiveFilter ? undefined : -1"
 						@click="catalogState.clearSettingsFilter">
+						<!-- TRANSLATORS Button label to clear current search/filter text in settings catalog. -->
 						{{ t('libresign', 'Clear filter') }}
 					</NcButton>
 				</div>
@@ -135,15 +136,18 @@
 								</div>
 
 								<p v-if="hasActiveOverrides(summary.groupCount, summary.userCount)" class="policy-workbench__origin-badge">
+									<!-- TRANSLATORS Badge text meaning this setting has one or more non-default policy overrides. -->
 									{{ t('libresign', 'Custom rules active') }}
 								</p>
 
 								<ul class="policy-workbench__setting-stats">
 									<li>
+										<!-- TRANSLATORS Label for the effective default value of a policy setting. -->
 										<strong>{{ t('libresign', 'Default') }}:</strong>
 										<span :title="summary.defaultSummary" v-html="highlightText(summary.defaultSummary)"></span>
 									</li>
 									<li>
+										<!-- TRANSLATORS Label showing number of explicit group/account policy rules for this setting. -->
 										<strong>{{ t('libresign', 'Custom rules') }}:</strong>
 										<span>{{ formatOverrideSummary(summary.groupCount, summary.userCount) }}</span>
 									</li>
@@ -152,6 +156,7 @@
 
 							<div class="policy-workbench__setting-footer">
 								<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Configure setting')" @click.stop="openSettingFromAction(summary.key, $event)">
+									<!-- TRANSLATORS Action button opening rule editor for one specific setting. -->
 									{{ t('libresign', 'Configure') }}
 								</NcButton>
 							</div>
@@ -207,12 +212,14 @@
 								</h3>
 								<p v-html="highlightText(summary.description)"></p>
 								<p v-if="hasActiveOverrides(summary.groupCount, summary.userCount)" class="policy-workbench__origin-badge policy-workbench__origin-badge--inline">
+									<!-- TRANSLATORS Inline badge meaning this setting has custom policy rules overriding defaults. -->
 									{{ t('libresign', 'Custom rules active') }}
 								</p>
 							</div>
 
 							<div class="policy-workbench__settings-row-stats">
 								<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--default" :title="summary.defaultSummary">
+									<!-- TRANSLATORS Label for currently effective default value in list-layout row. -->
 									<strong>{{ t('libresign', 'Default') }}:</strong>
 									<span v-html="highlightText(summary.defaultSummary)"></span>
 								</span>
@@ -220,6 +227,7 @@
 							</div>
 
 							<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Configure setting')" @click.stop="openSettingFromAction(summary.key, $event)">
+								<!-- TRANSLATORS Action button opening selected policy setting editor in list layout. -->
 								{{ t('libresign', 'Configure') }}
 							</NcButton>
 						</article>
@@ -231,12 +239,15 @@
 
 		<NcNoteCard v-if="filteredSettingSummaries.length === 0" type="info">
 			<div class="policy-workbench__empty-state">
+				<!-- TRANSLATORS Empty-state message shown when no policy settings match current search keywords. -->
 				<p>{{ t('libresign', 'No settings match this search. Try fewer keywords or clear the filter.') }}</p>
 				<div class="policy-workbench__empty-state-actions">
 					<NcButton variant="secondary" :aria-label="t('libresign', 'Clear settings filter')" :disabled="!hasActiveFilter" @click="catalogState.clearSettingsFilter">
+						<!-- TRANSLATORS Button label to clear search and restore normal catalog results. -->
 						{{ t('libresign', 'Clear filter') }}
 					</NcButton>
 					<NcButton variant="tertiary" :aria-label="t('libresign', 'Show all settings')" @click="catalogState.clearSettingsFilter">
+						<!-- TRANSLATORS Button label to show full policy catalog after filtered-empty state. -->
 						{{ t('libresign', 'Show all settings') }}
 					</NcButton>
 				</div>
@@ -254,6 +265,7 @@
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiArrowUp" :size="18" />
 					</template>
+					<!-- TRANSLATORS Floating button label that scrolls policy catalog back to page top. -->
 					{{ t('libresign', 'Back to top') }}
 				</NcButton>
 			</Transition>
@@ -271,6 +283,7 @@
 						<p class="policy-workbench__dialog-description">{{ dialogDescription }}</p>
 						<div class="policy-workbench__table-priority-note" role="note" aria-live="polite">
 							<NcIconSvgWrapper :path="mdiInformationOutline" :size="16" />
+							<!-- TRANSLATORS Policy precedence hint: account rules override group rules, which override default/system rule. -->
 							<span>{{ t('libresign', 'Priority: Account > Group > Default') }}</span>
 						</div>
 					</header>
@@ -284,6 +297,7 @@
 					</NcNoteCard>
 
 					<div v-if="state.summary" class="policy-workbench__default-inline">
+						<!-- TRANSLATORS Label introducing the currently effective base/default value for selected setting. -->
 						<span class="policy-workbench__default-inline-label">{{ t('libresign', 'Default:') }}</span>
 						<strong class="policy-workbench__default-inline-value">{{ state.summary.currentBaseValue }}</strong>
 						<span class="policy-workbench__default-inline-source">({{ defaultSourceLabel }})</span>
@@ -294,6 +308,7 @@
 							size="small"
 							class="policy-workbench__default-inline-action"
 							@click="openRuleEditor('system')">
+							<!-- TRANSLATORS Small action button opening editor to change default/system value. -->
 							{{ t('libresign', 'Change') }}
 						</NcButton>
 					</div>
