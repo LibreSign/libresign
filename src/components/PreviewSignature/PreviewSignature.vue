@@ -47,8 +47,6 @@ defineOptions({
 
 // TRANSLATORS Accessible loading label shown while signature preview image is being fetched.
 const loadingLabel = t('libresign', 'Loading …')
-// TRANSLATORS Default alternative text for signature preview image.
-const signaturePreviewAltLabel = t('libresign', 'Signature preview')
 
 const props = withDefaults(defineProps<{
 	src: string
@@ -56,7 +54,8 @@ const props = withDefaults(defineProps<{
 	alt?: string
 }>(), {
 	signRequestUuid: '',
-	alt: () => signaturePreviewAltLabel,
+	// TRANSLATORS Default alternative text for signature preview image.
+	alt: () => t('libresign', 'Signature preview'),
 })
 
 const emit = defineEmits<{
