@@ -43,12 +43,16 @@ const emit = defineEmits<{
 const options = [
 	{
 		value: false,
+		// TRANSLATORS Option label: users do not need to sign in to open the validation result page when they have the URL.
 		label: t('libresign', 'Public validation page'),
+		// TRANSLATORS Option description clarifying that possession of the URL is enough to access validation results.
 		description: t('libresign', 'Anyone with the validation URL can access the validation page.'),
 	},
 	{
 		value: true,
+		// TRANSLATORS Option label: only authenticated accounts may access the validation page.
 		label: t('libresign', 'Authenticated-only validation page'),
+		// TRANSLATORS Option description stating authentication is mandatory before opening the validation URL.
 		description: t('libresign', 'Accounts must be authenticated to access the validation page URL.'),
 	},
 ]
