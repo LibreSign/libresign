@@ -7,6 +7,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 import { login } from '../support/nc-login'
 import { setUserLanguage } from '../support/nc-provisioning'
+import { openPolicyWorkbenchSystemRuleEditor } from '../support/policy-workbench-rules'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
@@ -33,16 +34,7 @@ async function openSignatureProcessingEditor(page: Page) {
 	const policyDialog = page.locator('div[role="dialog"]').filter({ hasText: /Signature processing/i }).first()
 	await expect(policyDialog).toBeVisible({ timeout: 10000 })
 
-	const startRuleButton = policyDialog.getByRole('button', { name: /^(Change|Create rule)$/i }).first()
-	await expect(startRuleButton).toBeVisible({ timeout: 10000 })
-	await startRuleButton.click()
-
-	const createScopeOption = page.locator('.policy-workbench__create-scope-option').filter({ hasText: /^Everyone$/i }).first()
-	if (await createScopeOption.count() > 0) {
-		await createScopeOption.click()
-	}
-
-	return page.getByRole('dialog').filter({ hasText: /How signatures are processed/i }).last()
+	return openPolicyWorkbenchSystemRuleEditor(policyDialog)
 }
 
 test('signature processing policy progressively reveals background infrastructure', async ({ page }) => {
