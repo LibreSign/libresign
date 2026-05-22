@@ -9,6 +9,7 @@
 			type="switch"
 			:model-value="value.enabled"
 			@update:modelValue="onEnabledChange">
+			<!-- TRANSLATORS Toggle label to enable a visible signature footer in signed documents. -->
 			<span>{{ t('libresign', 'Add visible footer with signature details') }}</span>
 		</NcCheckboxRadioSwitch>
 
@@ -17,17 +18,19 @@
 				type="switch"
 				:model-value="value.writeQrcodeOnFooter"
 				@update:modelValue="onWriteQrcodeChange">
+				<!-- TRANSLATORS Toggle label to include QR code in footer pointing to signature validation URL. -->
 				<span>{{ t('libresign', 'Write QR code on footer with validation URL') }}</span>
 			</NcCheckboxRadioSwitch>
 
 			<div v-if="value.writeQrcodeOnFooter && canEditValidationSite" class="signature-footer-rule-editor__field">
 				<p class="signature-footer-rule-editor__hint">
+					<!-- TRANSLATORS Guidance text for optional custom validation URL used by footer QR code. -->
 					{{ t('libresign', 'To validate the signature of the documents. Only change this value if you want to replace the default validation URL with a different one.') }}
 				</p>
 				<NcTextField
 					:model-value="value.validationSite"
-					:label="t('libresign', 'Validation URL')"
-					:placeholder="t('libresign', 'Use instance default validation URL')"
+					:label="validationUrlLabel"
+					:placeholder="validationUrlPlaceholder"
 					@update:modelValue="onValidationSiteChange" />
 			</div>
 
@@ -35,20 +38,21 @@
 				type="switch"
 				:model-value="value.customizeFooterTemplate"
 				@update:modelValue="onCustomizeFooterTemplateChange">
+				<!-- TRANSLATORS Toggle label to allow custom Twig template for PDF footer content. -->
 				<span>{{ t('libresign', 'Customize footer template') }}</span>
 			</NcCheckboxRadioSwitch>
 
 			<div v-if="value.customizeFooterTemplate" class="signature-footer-rule-editor__field">
 				<CodeEditor
 					:model-value="value.footerTemplate"
-					:label="t('libresign', 'Footer template')"
-					:placeholder="t('libresign', 'A twig template to be used at footer of PDF. Will be rendered by mPDF.')"
+					:label="footerTemplateLabel"
+					:placeholder="footerTemplatePlaceholder"
 					@update:modelValue="onFooterTemplateChange">
 					<template #label-actions>
 						<NcButton
 							v-if="props.showTemplateResetButton !== false && showResetTemplateButton"
 							variant="tertiary"
-							:aria-label="t('libresign', 'Reset template to inherited default')"
+							:aria-label="resetTemplateToInheritedDefaultLabel"
 							@click="onTemplateReset">
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
@@ -58,11 +62,12 @@
 				</CodeEditor>
 
 				<div v-if="props.showPreview !== false" class="signature-footer-rule-editor__preview">
+					<!-- TRANSLATORS Heading for live PDF preview of footer template output. -->
 					<p class="signature-footer-rule-editor__preview-title">{{ t('libresign', 'Preview') }}</p>
 					<div class="signature-footer-rule-editor__preview-controls">
 						<NcButton
 							variant="tertiary"
-							:aria-label="t('libresign', 'Decrease zoom level')"
+							:aria-label="decreaseZoomLevelLabel"
 							@click="changeZoom(-10)">
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiMagnifyMinusOutline" :size="20" />
@@ -70,7 +75,7 @@
 						</NcButton>
 						<NcButton
 							variant="tertiary"
-							:aria-label="t('libresign', 'Increase zoom level')"
+							:aria-label="increaseZoomLevelLabel"
 							@click="changeZoom(10)">
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiMagnifyPlusOutline" :size="20" />
@@ -79,7 +84,7 @@
 						<div class="signature-footer-rule-editor__zoom-field">
 							<NcTextField
 								:model-value="String(previewZoom)"
-								:label="t('libresign', 'Zoom level')"
+								:label="zoomLevelLabel"
 								type="number"
 								:min="10"
 								:step="10"
@@ -88,7 +93,7 @@
 						<div class="signature-footer-rule-editor__size-field">
 							<NcTextField
 								:model-value="String(previewWidth)"
-								:label="t('libresign', 'Width')"
+								:label="widthLabel"
 								type="number"
 								:min="100"
 								:max="2000"
@@ -97,7 +102,7 @@
 						<div class="signature-footer-rule-editor__size-field">
 							<NcTextField
 								:model-value="String(previewHeight)"
-								:label="t('libresign', 'Height')"
+								:label="heightLabel"
 								type="number"
 								:min="10"
 								:max="500"
@@ -106,7 +111,7 @@
 						<NcButton
 							v-if="hasCustomPreviewSize"
 							variant="tertiary"
-							:aria-label="t('libresign', 'Reset dimensions')"
+							:aria-label="resetDimensionsLabel"
 							@click="resetPreviewSize">
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
@@ -183,6 +188,29 @@ const DEFAULT_PREVIEW_WIDTH = 595
 const DEFAULT_PREVIEW_HEIGHT = 100
 const DEFAULT_PREVIEW_ZOOM = 100
 const FOOTER_TEMPLATE_PREVIEW_PATH = '/apps/libresign/api/v1/footer-template/preview-pdf'
+
+// TRANSLATORS Label for field that overrides validation URL encoded into footer QR code.
+const validationUrlLabel = t('libresign', 'Validation URL')
+// TRANSLATORS Placeholder indicating that instance default validation URL will be used.
+const validationUrlPlaceholder = t('libresign', 'Use instance default validation URL')
+// TRANSLATORS Label for code editor containing PDF footer template source.
+const footerTemplateLabel = t('libresign', 'Footer template')
+// TRANSLATORS Placeholder for footer template field; "Twig" and "mPDF" are technical names.
+const footerTemplatePlaceholder = t('libresign', 'A twig template to be used at footer of PDF. Will be rendered by mPDF.')
+// TRANSLATORS Icon-only button label to restore inherited footer template value.
+const resetTemplateToInheritedDefaultLabel = t('libresign', 'Reset template to inherited default')
+// TRANSLATORS Button label to reduce PDF preview zoom percentage.
+const decreaseZoomLevelLabel = t('libresign', 'Decrease zoom level')
+// TRANSLATORS Button label to increase PDF preview zoom percentage.
+const increaseZoomLevelLabel = t('libresign', 'Increase zoom level')
+// TRANSLATORS Numeric input label for PDF preview zoom percentage.
+const zoomLevelLabel = t('libresign', 'Zoom level')
+// TRANSLATORS Numeric input label for preview width in PDF units.
+const widthLabel = t('libresign', 'Width')
+// TRANSLATORS Numeric input label for preview height in PDF units.
+const heightLabel = t('libresign', 'Height')
+// TRANSLATORS Icon-only button label to reset preview dimensions to default values.
+const resetDimensionsLabel = t('libresign', 'Reset dimensions')
 
 const value = computed<SignatureFooterPolicyConfig>(() => {
 	const normalized = normalizeSignatureFooterPolicyConfig(props.modelValue)
