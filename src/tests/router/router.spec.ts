@@ -303,8 +303,8 @@ describe('router business rules', () => {
 
 		describe.each(rootPaths)('$description', ({ path }) => {
 			it.each([
-				{ canRequestSign: true, expectedRoute: 'requestFiles', description: 'when user can request sign' },
-				{ canRequestSign: false, expectedRoute: 'fileslist', description: 'when user cannot request sign' },
+				{ canRequestSign: true, expectedRoute: 'requestFiles', description: 'when user can create signature requests' },
+				{ canRequestSign: false, expectedRoute: 'fileslist', description: 'when user cannot create signature requests' },
 				{ canRequestSign: undefined, expectedRoute: 'fileslist', description: 'by default when can_request_sign is undefined' },
 			])('redirects to $expectedRoute $description', ({ canRequestSign, expectedRoute }) => {
 				loadState.mockImplementation((app, key, defaultValue) => {
