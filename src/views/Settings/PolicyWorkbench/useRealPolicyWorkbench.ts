@@ -27,6 +27,7 @@ import {
 	normalizeSignatureStampDraftValue,
 	resolveCollectMetadataValue,
 } from './settings/signature-text/model'
+import { resolveRequestSignGroups, serializeRequestSignGroups } from './settings/request-sign-groups/model'
 import { usePoliciesStore } from '../../../store/policies'
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../types/index'
 import logger from '../../../logger.js'
@@ -175,6 +176,7 @@ const SIGNING_EXECUTION_POLICY_KEY = 'signing_mode'
 const SIGNING_EXECUTION_WORKER_KEY = 'worker_config'
 const SIGNATURE_STAMP_POLICY_KEY = 'signature_stamp'
 const COLLECT_METADATA_POLICY_KEY = 'collect_metadata'
+const REQUEST_SIGN_GROUPS_POLICY_KEY = 'groups_request_sign'
 
 function isRequestExpirationPolicyKey(policyKey: string): boolean {
 	return policyKey === REQUEST_EXPIRATION_POLICY_KEY
@@ -238,6 +240,7 @@ export function createRealPolicyWorkbenchState() {
 			? config.manageable_policy_group_ids.filter((groupId): groupId is string => typeof groupId === 'string' && groupId.trim().length > 0)
 			: [],
 	)
+	const canGroupAdminManageRequesterGroupsAcrossMultipleGroups = isInstanceAdmin || manageablePolicyGroupIds.size > 1
 	const initialViewMode: 'system-admin' | 'group-admin' = currentUser?.isAdmin
 		? 'system-admin'
 		: config.can_manage_group_policies
@@ -279,6 +282,14 @@ export function createRealPolicyWorkbenchState() {
 		return Object.values(realDefinitions)
 			.filter((definition) => {
 				if (viewMode.value === 'group-admin' && definition.visibleInGroupAdmin === false) {
+					return false
+				}
+
+				if (
+					viewMode.value === 'group-admin'
+					&& definition.key === REQUEST_SIGN_GROUPS_POLICY_KEY
+					&& !canGroupAdminManageRequesterGroupsAcrossMultipleGroups
+				) {
 					return false
 				}
 
@@ -1500,7 +1511,19 @@ export function createRealPolicyWorkbenchState() {
 			return
 		}
 
-		editorDraft.value.targetIds = Array.from(new Set(targetIds.filter(Boolean)))
+		const normalizedTargetIds = Array.from(new Set(targetIds.filter(Boolean)))
+		editorDraft.value.targetIds = normalizedTargetIds
+
+		if (
+			activeDefinition.value?.key === REQUEST_SIGN_GROUPS_POLICY_KEY
+			&& editorMode.value === 'create'
+			&& editorDraft.value.scope === 'group'
+		) {
+			const currentAuthorizedGroups = resolveRequestSignGroups(editorDraft.value.value)
+			if (currentAuthorizedGroups.length === 0) {
+				editorDraft.value.value = serializeRequestSignGroups(normalizedTargetIds)
+			}
+		}
 	}
 
 	function updateDraftTarget(targetId: string | null) {
