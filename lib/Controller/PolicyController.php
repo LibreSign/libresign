@@ -538,12 +538,11 @@ final class PolicyController extends AEnvironmentAwareController {
 			return true;
 		}
 
-		$group = $this->groupManager->get($groupId);
-		if ($group === null) {
+		if (!$this->subAdmin->isSubAdmin($user)) {
 			return false;
 		}
 
-		return $this->subAdmin->isSubAdminOfGroup($user, $group);
+		return in_array($groupId, $this->groupManager->getUserGroupIds($user), true);
 	}
 
 	private function canManageUserPolicy(string $userId): bool {
@@ -599,10 +598,10 @@ final class PolicyController extends AEnvironmentAwareController {
 		}
 
 		if ($this->subAdmin->isSubAdmin($user)) {
-			$groupIds = array_map(
-				static fn ($group) => $group->getGID(),
-				$this->subAdmin->getSubAdminsGroups($user),
-			);
+			$groupIds = array_values(array_filter(
+				$this->groupManager->getUserGroupIds($user),
+				static fn (mixed $groupId): bool => is_string($groupId) && trim($groupId) !== '',
+			));
 			return $this->policyService->getRuleCounts($groupIds, []);
 		}
 
