@@ -11,7 +11,6 @@ namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\RequestSignGroups;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyGuard;
 use OCP\Group\ISubAdmin;
-use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
@@ -48,16 +47,13 @@ final class RequestSignGroupsPolicyGuardTest extends TestCase {
 		$this->assertNull($guard->normalizeManagedValue(RequestSignGroupsPolicy::KEY, null, true));
 	}
 
-	public function testNormalizeManagedValueRejectsGroupsOutsideSubAdminScope(): void {
+	public function testNormalizeManagedValueRejectsGroupsOutsideMembershipScope(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('subadmin');
 		$this->userSession->method('getUser')->willReturn($user);
 		$this->groupManager->method('isAdmin')->with('subadmin')->willReturn(false);
 		$this->subAdmin->method('isSubAdmin')->with($user)->willReturn(true);
-
-		$group = $this->createMock(IGroup::class);
-		$group->method('getGID')->willReturn('finance');
-		$this->subAdmin->method('getSubAdminsGroups')->with($user)->willReturn([$group]);
+		$this->groupManager->method('getUserGroupIds')->with($user)->willReturn(['finance']);
 
 		$guard = $this->createGuard();
 
