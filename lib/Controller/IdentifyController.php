@@ -52,7 +52,7 @@ class IdentifyController extends AEnvironmentAwareController {
 	/**
 	 * List possible signers
 	 *
-	 * Used to identify who can sign the document. The return of this endpoint is related with Administration Settiongs > LibreSign > Identify method.
+	 * Used to identify who can be invited to sign a document. The response follows Administration Settings > LibreSign > Identify method.
 	 *
 	 * @param string $search search params
 	 * @param string $method filter by method (email, account, sms, signal, telegram, whatsapp, whatsappbusiness, xmpp)
