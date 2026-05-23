@@ -63,7 +63,7 @@ describe('Request.vue', () => {
 		sidebarStoreMock.isVisible = true
 		const wrapper = createWrapper()
 
-		expect(wrapper.text()).not.toContain('Choose the file to request signatures.')
+		expect(wrapper.text()).not.toContain('Choose a file to create a signature request.')
 		expect(wrapper.find('.request-picker-stub').exists()).toBe(false)
 	})
 
