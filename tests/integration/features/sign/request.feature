@@ -1,5 +1,5 @@
 Feature: request-signature
-  Scenario: Get error when try to request to sign isn't manager
+  Scenario: Get error when trying to create a signature request as non-manager
     Given user "signer1" exists
     And as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -13,9 +13,9 @@ Feature: request-signature
     And the response should be a JSON array with the following mandatory values
       | key                             | value                                  |
       | (jq).ocs.data.action            | 2000                                   |
-      | (jq).ocs.data.errors[0].message | You are not allowed to request signing |
+      | (jq).ocs.data.errors[0].message | You are not allowed to create signature requests |
 
-  Scenario: Get error when try to request to sign without file name
+  Scenario: Get error when trying to create a signature request without file name
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
@@ -28,7 +28,7 @@ Feature: request-signature
       | key                   | value                 |
       | (jq).ocs.data.message | File name is required |
 
-  Scenario: Request to sign with error using different authenticated account
+  Scenario: Create signature request with error using different authenticated account
     Given as user "admin"
     And user "signer1" exists
     And user "signer2" exists
@@ -64,7 +64,7 @@ Feature: request-signature
       | action | 2000             |
       | errors | [{"message":"Invalid user"}] |
 
-  Scenario: Request to sign with two accounts with same email
+  Scenario: Create signature request with two accounts with same email
     Given as user "admin"
     And user "signer1" exists
     And user "signer2" exists
@@ -101,7 +101,7 @@ Feature: request-signature
       | action | 2000             |
       | errors | [{"message":"Invalid user"}] |
 
-  Scenario: Request to sign with error when the user is not authenticated
+  Scenario: Create signature request with error when the user is not authenticated
     Given as user "admin"
     And user "signer1" exists
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -123,7 +123,7 @@ Feature: request-signature
       | action | 1000                                      |
       | errors | ["You are not logged in. Please log in."] |
 
-  Scenario: Request to sign with error when the authenticated user have an email different of signer
+  Scenario: Create signature request with error when the authenticated user have an email different of signer
     Given as user "admin"
     And user "signer1" exists
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -149,7 +149,7 @@ Feature: request-signature
       | action | 1000                                                           |
       | errors | ["User already exists. Please login.","This is not your file"] |
 
-  Scenario: Request to sign with error when the link was expired
+  Scenario: Create signature request with error when the link was expired
     Given as user "admin"
     And my inbox is empty
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -172,7 +172,7 @@ Feature: request-signature
       | action | 2000              |
       | errors | [{"message":"Link expired."}] |
 
-  Scenario: Request to sign with success when is necessary to renew the link
+  Scenario: Create signature request with success when is necessary to renew the link
     Given as user "admin"
     And my inbox is empty
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -227,7 +227,7 @@ Feature: request-signature
       2500
       """
 
-  Scenario: Request to sign with error using account as identifier when the user don't exists
+  Scenario: Create signature request with error using account as identifier when the user don't exists
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string)[{"name":"account","enabled":true}] |
@@ -239,7 +239,7 @@ Feature: request-signature
       | key                   | value        |
       | (jq).ocs.data.message | Invalid user |
 
-  Scenario: Request to sign with success using account as identifier
+  Scenario: Create signature request with success using account as identifier
     Given as user "admin"
     And user "signer1" exists
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -279,7 +279,7 @@ Feature: request-signature
       | key                      | value                          |
       | (jq).ocs.data[0].subject | admin made changes on document |
 
-  Scenario: Request to sign with error using account as identifier with invalid email
+  Scenario: Create signature request with error using account as identifier with invalid email
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
@@ -292,7 +292,7 @@ Feature: request-signature
       | key                   | value        |
       | (jq).ocs.data.message | Invalid user |
 
-  Scenario: Request to sign with error using email as account identifier
+  Scenario: Create signature request with error using email as account identifier
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
@@ -305,7 +305,7 @@ Feature: request-signature
       | key                   | value        |
       | (jq).ocs.data.message | Invalid user |
 
-  Scenario: Request to sign with success using email as identifier and URL as file
+  Scenario: Create signature request with success using email as identifier and URL as file
     Given as user "admin"
     And as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -319,7 +319,7 @@ Feature: request-signature
     And there should be 1 emails in my inbox
     And I open the latest email to "signer2@domain.test" with subject "LibreSign: There is a file for you to sign"
 
-  Scenario: Request to sign with success using account as identifier and URL as file
+  Scenario: Create signature request with success using account as identifier and URL as file
     Given as user "admin"
     And user "signer1" exists
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -339,7 +339,7 @@ Feature: request-signature
       | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
     And there should be 0 emails in my inbox
 
-  Scenario: Request to sign with success using email as identifier
+  Scenario: Create signature request with success using email as identifier
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
@@ -353,7 +353,7 @@ Feature: request-signature
     And there should be 1 emails in my inbox
     And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
 
-  Scenario: Request to sign using email as identifier and when is necessary to use visible elements
+  Scenario: Create signature request using email as identifier and when is necessary to use visible elements
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
@@ -382,7 +382,7 @@ Feature: request-signature
       | type | signature |
     Then the response should have a status code 200
 
-  Scenario: Request to sign with success using multiple users
+  Scenario: Create signature request with success using multiple users
     Given as user "admin"
     And user "signer1" exists
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -402,7 +402,7 @@ Feature: request-signature
     And there should be 1 emails in my inbox
     And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
 
-  Scenario: Request to sign with success using multiple emails
+  Scenario: Create signature request with success using multiple emails
     Given run the command "libresign:configure:openssl --cn test" with result code 0
     And as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
