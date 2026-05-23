@@ -51,7 +51,7 @@ const sidebarStore = useSidebarStore() as SidebarStore
 // TRANSLATORS Page title for the signature request creation screen.
 const requestSignaturesTitle = t('libresign', 'Request Signatures')
 // TRANSLATORS Helper text instructing the user to choose a file before requesting signatures.
-const chooseFileToRequestSignaturesHint = t('libresign', 'Choose the file to request signatures.')
+const chooseFileToRequestSignaturesHint = t('libresign', 'Choose a file to create a signature request.')
 
 onMounted(() => {
 	filesStore.disableIdentifySigner()
