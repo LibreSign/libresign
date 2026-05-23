@@ -435,7 +435,7 @@ describe('Settings', () => {
 			expect(preferencesItem.props('to')).toEqual({ name: 'Preferences' })
 		})
 
-		it('hides Preferences when user cannot request signatures', () => {
+		it('hides Preferences when user cannot create signature requests', () => {
 			wrapper = createWrapper(false, false, false, {
 				signature_flow: {
 					canSaveAsUserDefault: true,
@@ -765,6 +765,65 @@ describe('Settings', () => {
 
 			expect(hasPolicies).toBe(true)
 			expect(hasAdmin).toBe(false)
+		})
+	})
+
+	describe('RULE: Policies menu visibility for editable policies', () => {
+		it('shows Policies menu for instance admin', () => {
+			wrapper = createWrapper(true, false, false, {})
+			const items = getItems()
+
+			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
+			expect(hasPolicies).toBe(true)
+		})
+
+		it('shows Policies menu for user with editable policies at any scope', () => {
+			wrapper = createWrapper(false, false, true, {
+				signature_flow: {
+					canSaveAsUserDefault: true,
+					editableByCurrentActor: true,
+				},
+			})
+
+			expect(getWrapper().vm.canManagePolicies).toBe(true)
+		})
+
+		it('hides Policies menu for regular user without editable policies', () => {
+			wrapper = createWrapper(false, false, true, {
+				add_footer: {
+					editableByCurrentActor: false,
+				},
+			})
+
+			expect(getWrapper().vm.canManagePolicies).toBe(false)
+		})
+
+		it('canManagePolicies respects instance admin status', () => {
+			wrapper = createWrapper(true)
+
+			expect(getWrapper().vm.isAdmin).toBe(true)
+			expect(getWrapper().vm.canManagePolicies).toBe(true)
+		})
+
+		it('canManagePolicies true when has editable policies', () => {
+			wrapper = createWrapper(false, false, true, {
+				groups_request_sign: {
+					editableByCurrentActor: true,
+					groupCount: 1,
+				},
+			})
+
+			expect(getWrapper().vm.canManagePolicies).toBe(true)
+		})
+
+		it('canManagePolicies false when not admin and no editable policies', () => {
+			wrapper = createWrapper(false, false, true, {
+				groups_request_sign: {
+					editableByCurrentActor: false,
+				},
+			})
+
+			expect(getWrapper().vm.canManagePolicies).toBe(false)
 		})
 	})
 
