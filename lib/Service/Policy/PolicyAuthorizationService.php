@@ -36,10 +36,10 @@ final class PolicyAuthorizationService implements IPolicyAuthorizationService {
 	}
 
 	/**
-	 * Get list of group IDs manageable by the given user through subadmin scope.
+	 * Get list of group IDs manageable by the given user.
 	 *
 	 * For instance admins: returns empty (they manage all groups at policy level).
-	 * For subadmins: returns groups they are subadmin of.
+	 * For subadmins: returns groups they belong to.
 	 * For regular users: returns empty.
 	 *
 	 * @return list<string>
@@ -56,10 +56,15 @@ final class PolicyAuthorizationService implements IPolicyAuthorizationService {
 			return [];
 		}
 
-		// Only subadmins have a restricted manageable group scope
-		return array_values(array_map(
-			static fn ($group): string => $group->getGID(),
-			$this->subAdmin->getSubAdminsGroups($user),
-		));
+		if (!$this->subAdmin->isSubAdmin($user)) {
+			return [];
+		}
+
+		$groupIds = array_filter(
+			$this->groupManager->getUserGroupIds($user),
+			static fn (mixed $groupId): bool => is_string($groupId) && trim($groupId) !== '',
+		);
+
+		return array_values(array_unique($groupIds));
 	}
 }
