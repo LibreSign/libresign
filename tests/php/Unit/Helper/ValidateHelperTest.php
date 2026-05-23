@@ -457,7 +457,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testCanRequestSignWithoutUserManager():void {
-		$this->expectExceptionMessage('You are not allowed to request signing');
+		$this->expectExceptionMessage('You are not allowed to create signature requests');
 
 		$user = $this->createMock(\OCP\IUser::class);
 		$this->requestSignAuthorizationService
@@ -470,7 +470,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testCanRequestSignWithoutPermission():void {
-		$this->expectExceptionMessage('You are not allowed to request signing');
+		$this->expectExceptionMessage('You are not allowed to create signature requests');
 
 		$user = $this->createMock(\OCP\IUser::class);
 		$this->requestSignAuthorizationService
