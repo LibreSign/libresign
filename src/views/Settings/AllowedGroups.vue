@@ -5,14 +5,14 @@
 
 <template>
 	<NcSettingsSection
-		:name="t('libresign', 'Allow request to sign')"
-		:description="t('libresign', 'Select authorized groups that can request to sign documents. Admin group is the default group and don\'t need to be defined.')"
+		:name="t('libresign', 'Signature request access')"
+		:description="t('libresign', 'Choose which groups are authorized to create signature requests. Administrators may authorize only groups they belong to. The default admin group always has this permission.')"
 	>
 		<NcSelect :key="idKey"
 			v-model="groupsSelected"
 			label="displayname"
 			:no-wrap="false"
-			:aria-label-combobox="t('libresign', 'Select authorized groups that can request to sign documents. Admin group is the default group and don\'t need to be defined.')"
+			:aria-label-combobox="t('libresign', 'Choose groups authorized to create signature requests. Administrators may authorize only groups they belong to.')"
 			:close-on-select="false"
 			:disabled="loadingGroups"
 			:loading="loadingGroups"
