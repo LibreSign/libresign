@@ -54,6 +54,19 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		$currentBlockedBy = null;
 		$canOverrideBelow = false;
 		$visible = true;
+		$actorCapabilities = $context->getActorCapabilities();
+		$currentActorCanManageSystemPolicies = ($actorCapabilities['canManageSystemPolicies'] ?? false) === true;
+		// A group admin may only manage a policy when the system admin has explicitly
+		// configured it with allowChildOverride=true (scope 'global'). The implicit
+		// default (scope 'system', no stored config) is intentionally closed so that
+		// group admins start with no delegation access until the system admin opts in.
+		$isSystemExplicitlyGrantedForGroupAdmin = $systemLayer !== null
+			&& $systemLayer->getScope() === 'global'
+			&& $systemLayer->isAllowChildOverride();
+		// Personal preferences are also closed by default unless system delegation is explicit.
+		$isSystemExplicitlyGrantedForUserPreference = $systemLayer !== null
+			&& $systemLayer->getScope() === 'global'
+			&& $systemLayer->isAllowChildOverride();
 
 		if ($systemLayer !== null) {
 			[$currentValue, $currentSourceScope, $canOverrideBelow, $visible] = $this->applyLayer(
@@ -95,6 +108,8 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		}
 
 		if ($userPolicy !== null) {
+			$canOverrideAtGroupScope = $canOverrideBelow;
+			$hasConfiguredGroupLayer = $groupLayers !== [];
 			[$currentValue, $currentSourceScope, $canOverrideBelow, $visible] = $this->applyLayer(
 				$definition,
 				$resolved,
@@ -105,6 +120,9 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 				$canOverrideBelow,
 				$visible,
 			);
+		} else {
+			$canOverrideAtGroupScope = $canOverrideBelow;
+			$hasConfiguredGroupLayer = $groupLayers !== [];
 		}
 
 		$inheritedValue = $currentValue;
@@ -132,14 +150,19 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			}
 		}
 
+		$canPersistUserPreference = $visible
+			&& $canOverrideBelow
+			&& $definition->supportsUserPreference()
+			&& ($currentActorCanManageSystemPolicies || $isSystemExplicitlyGrantedForUserPreference);
+
 		$resolved
 			->setEffectiveValue($currentValue)
 			->setInheritedValue($inheritedValue)
 			->setSourceScope($currentSourceScope)
 			->setVisible($visible)
-			->setEditableByCurrentActor($visible && $this->canManagePolicyAtCurrentScope($context))
-			->setCanSaveAsUserDefault($visible && $canOverrideBelow && $definition->supportsUserPreference())
-			->setCanUseAsRequestOverride($visible && $canOverrideBelow && $definition->supportsUserPreference())
+			->setEditableByCurrentActor($visible && $this->canManagePolicyAtCurrentScope($definition, $context, $isSystemExplicitlyGrantedForGroupAdmin, $hasConfiguredGroupLayer, $canOverrideAtGroupScope))
+			->setCanSaveAsUserDefault($canPersistUserPreference)
+			->setCanUseAsRequestOverride($canPersistUserPreference)
 			->setBlockedBy($currentBlockedBy);
 
 		return $resolved;
@@ -278,11 +301,29 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		return true;
 	}
 
-	private function canManagePolicyAtCurrentScope(PolicyContext $context): bool {
+	private function canManagePolicyAtCurrentScope(
+		IPolicyDefinition $definition,
+		PolicyContext $context,
+		bool $isSystemExplicitlyGrantedForGroupAdmin,
+		bool $hasConfiguredGroupLayer,
+		bool $canOverrideAtGroupScope,
+	): bool {
 		$actorCapabilities = $context->getActorCapabilities();
 
-		return ($actorCapabilities['canManageSystemPolicies'] ?? false) === true
-			|| ($actorCapabilities['canManageGroupPolicies'] ?? false) === true;
+		if (($actorCapabilities['canManageSystemPolicies'] ?? false) === true) {
+			return true;
+		}
+
+		if (($actorCapabilities['canManageGroupPolicies'] ?? false) === true) {
+			// Group admins can manage when policy supports group-level configuration and:
+			// 1) system explicitly granted delegation, or
+			// 2) there is a configured managed group layer and hierarchy at group scope allows overrides.
+			return $definition->supportsGroupAdminConfiguration()
+				&& ($isSystemExplicitlyGrantedForGroupAdmin
+					|| ($hasConfiguredGroupLayer && $canOverrideAtGroupScope));
+		}
+
+		return false;
 	}
 
 	/** @param list<mixed> $currentAllowedValues
