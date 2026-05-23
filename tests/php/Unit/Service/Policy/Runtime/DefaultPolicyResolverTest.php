@@ -15,6 +15,7 @@ use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class DefaultPolicyResolverTest extends TestCase {
@@ -51,8 +52,8 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
 		$this->assertSame('group', $resolved->getSourceScope());
 		$this->assertFalse($resolved->isEditableByCurrentActor());
-		$this->assertTrue($resolved->canSaveAsUserDefault());
-		$this->assertTrue($resolved->canUseAsRequestOverride());
+		$this->assertFalse($resolved->canSaveAsUserDefault());
+		$this->assertFalse($resolved->canUseAsRequestOverride());
 	}
 
 	public function testResolveClearsInvalidUserPreferenceWhenGroupBlocksOverride(): void {
@@ -89,7 +90,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 	public function testResolveAppliesRequestOverrideWhenAllowed(): void {
 		$source = new InMemoryPolicySource();
 		$source->systemLayer = (new PolicyLayer())
-			->setScope('system')
+			->setScope('global')
 			->setValue('none')
 			->setAllowChildOverride(true)
 			->setVisibleToChild(true);
@@ -143,8 +144,8 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertSame('group', $resolved->getSourceScope());
 		$this->assertSame(['parallel', 'ordered_numeric'], $resolved->getAllowedValues());
 		$this->assertFalse($resolved->isEditableByCurrentActor());
-		$this->assertTrue($resolved->canSaveAsUserDefault());
-		$this->assertTrue($resolved->canUseAsRequestOverride());
+		$this->assertFalse($resolved->canSaveAsUserDefault());
+		$this->assertFalse($resolved->canUseAsRequestOverride());
 	}
 
 	public function testResolveValueChoiceLetsCustomizableGroupBroadenFixedGroupChoice(): void {
@@ -174,7 +175,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 
 		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
 		$this->assertSame(['parallel', 'ordered_numeric'], $resolved->getAllowedValues());
-		$this->assertTrue($resolved->canUseAsRequestOverride());
+		$this->assertFalse($resolved->canUseAsRequestOverride());
 	}
 
 	public function testResolveDoesNotApplyGroupValueWhenSystemBlocksOverride(): void {
@@ -204,50 +205,154 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertFalse($resolved->canUseAsRequestOverride());
 	}
 
-	public function testResolveMarksPolicyEditableForSystemAdminEvenWhenChildrenCannotOverride(): void {
+	public function testResolveKeepsPolicyEditableForGroupAdminEvenWhenUserLayerBlocksFurtherOverrides(): void {
 		$source = new InMemoryPolicySource();
 		$source->systemLayer = (new PolicyLayer())
-			->setScope('system')
+			->setScope('global')
+			->setValue('none')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue('parallel')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues(['parallel', 'ordered_numeric']),
+		];
+		$source->userPolicy = (new PolicyLayer())
+			->setScope('user_policy')
 			->setValue('ordered_numeric')
 			->setAllowChildOverride(false)
 			->setVisibleToChild(true)
 			->setAllowedValues(['ordered_numeric']);
 
-		$context = PolicyContext::fromUserId('admin')
-			->setActorCapabilities([
-				'canManageSystemPolicies' => true,
-				'canManageGroupPolicies' => true,
-			]);
-
 		$resolver = new DefaultPolicyResolver($source);
-		$resolved = $resolver->resolve($this->getDefinition(), $context);
+		$resolved = $resolver->resolve(
+			$this->getDefinition(),
+			PolicyContext::fromUserId('ceo')->setActorCapabilities([
+				'canManageSystemPolicies' => false,
+				'canManageGroupPolicies' => true,
+			]),
+		);
 
 		$this->assertTrue($resolved->isEditableByCurrentActor());
-		$this->assertFalse($resolved->canSaveAsUserDefault());
-		$this->assertFalse($resolved->canUseAsRequestOverride());
 	}
 
-	public function testResolveMarksPolicyEditableForGroupAdminEvenWhenChildrenCannotOverride(): void {
+	#[DataProvider('provideEditableByActorCases')]
+	public function testResolveActorPermissionFlagsRespectCapabilitiesDefinitionSupportAndHierarchy(
+		array $actorCapabilities,
+		bool $supportsGroupAdminConfiguration,
+		string $systemLayerScope,
+		bool $allowChildOverride,
+		bool $visibleToChild,
+		bool $expectedEditable,
+		bool $expectedCanSave,
+		bool $expectedCanOverride,
+	): void {
 		$source = new InMemoryPolicySource();
 		$source->systemLayer = (new PolicyLayer())
-			->setScope('system')
+			->setScope($systemLayerScope)
 			->setValue('ordered_numeric')
-			->setAllowChildOverride(false)
-			->setVisibleToChild(true)
+			->setAllowChildOverride($allowChildOverride)
+			->setVisibleToChild($visibleToChild)
 			->setAllowedValues(['ordered_numeric']);
 
 		$context = PolicyContext::fromUserId('manager')
-			->setActorCapabilities([
-				'canManageSystemPolicies' => false,
-				'canManageGroupPolicies' => true,
-			]);
+			->setActorCapabilities($actorCapabilities);
+
+		$definition = new PolicySpec(
+			key: 'signature_flow',
+			defaultSystemValue: 'none',
+			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			supportsGroupAdminConfiguration: $supportsGroupAdminConfiguration,
+		);
 
 		$resolver = new DefaultPolicyResolver($source);
-		$resolved = $resolver->resolve($this->getDefinition(), $context);
+		$resolved = $resolver->resolve($definition, $context);
 
-		$this->assertTrue($resolved->isEditableByCurrentActor());
-		$this->assertFalse($resolved->canSaveAsUserDefault());
-		$this->assertFalse($resolved->canUseAsRequestOverride());
+		$this->assertSame($expectedEditable, $resolved->isEditableByCurrentActor());
+		$this->assertSame($expectedCanSave, $resolved->canSaveAsUserDefault());
+		$this->assertSame($expectedCanOverride, $resolved->canUseAsRequestOverride());
+	}
+
+	/** @return array<string, array{0: array<string, bool>, 1: bool, 2: string, 3: bool, 4: bool, 5: bool, 6: bool, 7: bool}> */
+	public static function provideEditableByActorCases(): array {
+		//                                            capabilities                                           supportsGroupAdmin  systemScope  allowChildOverride  visibleToChild  editable  canSave  canOverride
+		return [
+			// --- system admin scenarios ---
+			'system admin can edit and users can also override when hierarchy permits' => [
+				['canManageSystemPolicies' => true, 'canManageGroupPolicies' => false],
+				false, 'system', true, true,
+				true, true, true,
+			],
+			'system admin can edit but hierarchy prevents user overrides' => [
+				['canManageSystemPolicies' => true, 'canManageGroupPolicies' => true],
+				false, 'global', false, true,
+				true, false, false,
+			],
+			'system admin cannot edit when policy not visible to children' => [
+				['canManageSystemPolicies' => true, 'canManageGroupPolicies' => true],
+				true, 'system', true, false,
+				false, false, false,
+			],
+
+			// --- group admin scenarios ---
+			// scope='global' means the system admin explicitly configured allowChildOverride=true
+			'group admin can edit when system admin explicitly grants delegation' => [
+				['canManageSystemPolicies' => false, 'canManageGroupPolicies' => true],
+				true, 'global', true, true,
+				true, true, true,
+			],
+			// scope='system' means no explicit system config — group admin is closed by default
+			'group admin cannot edit or self-override without explicit system grant' => [
+				['canManageSystemPolicies' => false, 'canManageGroupPolicies' => true],
+				true, 'system', true, true,
+				false, false, false,
+			],
+			'group admin cannot edit when system blocks child overrides' => [
+				['canManageSystemPolicies' => false, 'canManageGroupPolicies' => true],
+				true, 'global', false, true,
+				false, false, false,
+			],
+			'group admin cannot edit system-only policy but users can still override when hierarchy allows' => [
+				['canManageSystemPolicies' => false, 'canManageGroupPolicies' => true],
+				false, 'global', true, true,
+				false, true, true,
+			],
+			'group admin cannot edit system-only policy and hierarchy also blocks user overrides' => [
+				['canManageSystemPolicies' => false, 'canManageGroupPolicies' => true],
+				false, 'global', false, true,
+				false, false, false,
+			],
+			'group admin cannot edit when policy not visible to children' => [
+				['canManageSystemPolicies' => false, 'canManageGroupPolicies' => true],
+				true, 'global', true, false,
+				false, false, false,
+			],
+
+			// --- regular user scenarios ---
+			'regular user cannot save without explicit system grant' => [
+				[],
+				true, 'system', true, true,
+				false, false, false,
+			],
+			'regular user can save when system explicitly grants delegation' => [
+				[],
+				true, 'global', true, true,
+				false, true, true,
+			],
+			'regular user cannot save when hierarchy blocks child overrides' => [
+				[],
+				true, 'global', false, true,
+				false, false, false,
+			],
+			'regular user cannot save when policy not visible' => [
+				[],
+				true, 'system', true, false,
+				false, false, false,
+			],
+		];
 	}
 
 	public function testResolveIgnoresCircleLayersInCurrentPhase(): void {
@@ -340,6 +445,90 @@ final class DefaultPolicyResolverTest extends TestCase {
 
 		$this->assertFalse($resolved->canSaveAsUserDefault(), 'canSaveAsUserDefault must be false when supportsUserPreference() returns false');
 		$this->assertFalse($resolved->canUseAsRequestOverride());
+	}
+
+	#[DataProvider('provideUserPreferenceSupportCases')]
+	public function testResolveUserPreferenceFlagsFollowVisibilityOverrideAndDefinitionSupport(
+		bool $supportsUserPreference,
+		string $systemLayerScope,
+		bool $allowChildOverride,
+		bool $visibleToChild,
+		bool $expected,
+	): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope($systemLayerScope)
+			->setValue('none')
+			->setAllowChildOverride($allowChildOverride)
+			->setVisibleToChild($visibleToChild);
+
+		$definition = new PolicySpec(
+			key: 'signature_flow',
+			defaultSystemValue: 'none',
+			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			supportsUserPreference: $supportsUserPreference,
+		);
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve($definition, PolicyContext::fromUserId('john'));
+
+		$this->assertSame($expected, $resolved->canSaveAsUserDefault());
+		$this->assertSame($expected, $resolved->canUseAsRequestOverride());
+	}
+
+	/** @return array<string, array{0: bool, 1: string, 2: bool, 3: bool, 4: bool}> */
+	public static function provideUserPreferenceSupportCases(): array {
+		return [
+			'definition supports preferences and explicit grant allows override' => [
+				true,
+				'global',
+				true,
+				true,
+				true,
+			],
+			'definition supports preferences but implicit default does not grant override' => [
+				true,
+				'system',
+				true,
+				true,
+				false,
+			],
+			'definition supports preferences but system blocks override' => [
+				true,
+				'global',
+				false,
+				true,
+				false,
+			],
+			'definition supports preferences but policy is not visible' => [
+				true,
+				'global',
+				true,
+				false,
+				false,
+			],
+			'definition disables preferences even when override is allowed' => [
+				false,
+				'global',
+				true,
+				true,
+				false,
+			],
+			'definition disables preferences and system blocks override' => [
+				false,
+				'global',
+				false,
+				true,
+				false,
+			],
+			'definition disables preferences and policy is not visible' => [
+				false,
+				'global',
+				true,
+				false,
+				false,
+			],
+		];
 	}
 
 	private function getValueChoiceDefinition(): PolicySpec {
