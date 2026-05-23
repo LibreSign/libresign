@@ -9,10 +9,11 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\ApprovalGroups;
 
 use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicyValue;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class ApprovalGroupsPolicyValueTest extends TestCase {
-	/** @dataProvider provideDecodeScenarios */
+	#[DataProvider('provideDecodeScenarios')]
 	public function testDecode(mixed $rawValue, array $expected): void {
 		$this->assertSame($expected, ApprovalGroupsPolicyValue::decode($rawValue));
 	}
