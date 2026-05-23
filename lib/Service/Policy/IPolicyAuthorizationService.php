@@ -20,10 +20,10 @@ interface IPolicyAuthorizationService {
 	public function canUserManageGroupPolicies(?IUser $user): bool;
 
 	/**
-	 * Get list of group IDs manageable by the given user through subadmin scope.
+	 * Get list of group IDs manageable by the given user.
 	 *
 	 * For instance admins: returns empty (they manage all groups at policy level).
-	 * For subadmins: returns groups they are subadmin of.
+	 * For subadmins: returns groups they belong to.
 	 * For regular users: returns empty.
 	 *
 	 * @return list<string>
