@@ -499,7 +499,7 @@ class FileController extends AEnvironmentAwareController {
 	/**
 	 * Send a file
 	 *
-	 * Send a new file to Nextcloud and return the fileId to request signature.
+	 * Send a new file to Nextcloud and return the fileId used to create a signature request.
 	 * Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.
 	 *
 	 * **Note on multiple file uploads:**
