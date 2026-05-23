@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Model;
 
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class ResolvedPolicyTest extends TestCase {
@@ -81,9 +82,7 @@ final class ResolvedPolicyTest extends TestCase {
 		], $policy->toArray());
 	}
 
-	/**
-	 * @dataProvider providerGetEffectiveValueAsBool
-	 */
+	#[DataProvider('providerGetEffectiveValueAsBool')]
 	public function testGetEffectiveValueAsBool(mixed $effectiveValue, bool $expected, bool $default = false): void {
 		$policy = (new ResolvedPolicy())
 			->setEffectiveValue($effectiveValue);
