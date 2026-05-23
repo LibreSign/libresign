@@ -1161,7 +1161,7 @@ describe('useRealPolicyWorkbench', () => {
 
 		await state.saveDraft()
 
-		expect(saveSystemPolicy).toHaveBeenCalledWith('groups_request_sign', 'admin,policy-e2e-group', false)
+		expect(saveSystemPolicy).toHaveBeenCalledWith('groups_request_sign', 'admin,policy-e2e-group', true)
 		expect(clearUserPreference).not.toHaveBeenCalled()
 		expect(state.editorDraft).toBeNull()
 	})
@@ -1203,6 +1203,7 @@ describe('useRealPolicyWorkbench', () => {
 
 	it('shows editable policies in group-admin viewMode even without group rules', () => {
 		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['finance', 'legal']
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'add_footer' || key === 'docmdp') {
 				return { effectiveValue: null, groupCount: 1, userCount: 0, editableByCurrentActor: true }
@@ -1218,6 +1219,18 @@ describe('useRealPolicyWorkbench', () => {
 		expect(keys).toContain('identification_documents')
 		expect(keys).toContain('docmdp')
 		expect(keys).toContain('groups_request_sign')
+		expect(keys).toContain('signature_flow')
+	})
+
+	it('hides request-access policy from group-admin catalog when only one group is manageable', () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['finance']
+		getPolicy.mockReturnValue({ effectiveValue: 'parallel', groupCount: 0, userCount: 0, editableByCurrentActor: true })
+
+		const state = createRealPolicyWorkbenchState()
+		const keys = state.visibleSettingSummaries.map((summary) => summary.key)
+
+		expect(keys).not.toContain('groups_request_sign')
 		expect(keys).toContain('signature_flow')
 	})
 
@@ -1270,12 +1283,29 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.canSaveDraft).toBe(false)
 	})
 
-	it('allows system create save when policy has immutable override and valid default value', () => {
+	it('requires changing request-access system draft before enabling save', () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('groups_request_sign')
 		state.startEditor({ scope: 'system' })
 
 		expect(state.editorDraft?.scope).toBe('system')
+		expect(state.canSaveDraft).toBe(false)
+
+		state.updateDraftAllowOverride(false)
+		expect(state.canSaveDraft).toBe(true)
+	})
+
+	it('seeds request access groups from selected scope groups when creating a group rule', () => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+		state.startEditor({ scope: 'group' })
+
+		expect(state.editorDraft?.scope).toBe('group')
+		expect(state.editorDraft?.value).toBe('[]')
+
+		state.updateDraftTargets(['policy-e2e-group'])
+
+		expect(state.editorDraft?.value).toBe('["policy-e2e-group"]')
 		expect(state.canSaveDraft).toBe(true)
 	})
 
