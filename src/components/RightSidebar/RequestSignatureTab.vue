@@ -1282,7 +1282,7 @@ async function confirmRequestSigner() {
 		showConfirmRequestSigner.value = false
 		selectedSigner.value = null
 	} catch (error: unknown) {
-		showRequestError(error, t('libresign', 'Failed to request signature'))
+		showRequestError(error, t('libresign', 'Failed to create signature request'))
 	}
 	hasLoading.value = false
 }
@@ -1341,7 +1341,7 @@ async function confirmRequest() {
 		showSuccess(t('libresign', response.message || 'Signature requested'))
 		showConfirmRequest.value = false
 	} catch (error: unknown) {
-		showRequestError(error, t('libresign', 'Failed to request signatures'))
+		showRequestError(error, t('libresign', 'Failed to create signature requests'))
 	}
 	hasLoading.value = false
 }
