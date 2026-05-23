@@ -211,7 +211,7 @@ class InjectionMiddleware extends Middleware {
 	private function getLoggedIn(): void {
 		$user = $this->userSession->getUser();
 		if (!$user instanceof IUser) {
-			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
+			throw new \Exception($this->l10n->t('You are not allowed to create signature requests'), Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
 		$this->validateHelper->canRequestSign($user);
 	}
