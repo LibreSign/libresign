@@ -142,14 +142,12 @@
 
 								<ul class="policy-workbench__setting-stats">
 									<li>
-										<!-- TRANSLATORS Label for the effective default value of a policy setting. -->
-										<strong>{{ t('libresign', 'Default') }}:</strong>
+										<strong>{{ resolveDefaultStatLabel(summary.key) }}:</strong>
 										<span :title="summary.defaultSummary" v-html="highlightText(summary.defaultSummary)"></span>
 									</li>
 									<li>
-										<!-- TRANSLATORS Label showing number of explicit group/account policy rules for this setting. -->
-										<strong>{{ t('libresign', 'Custom rules') }}:</strong>
-										<span>{{ formatOverrideSummary(summary.groupCount, summary.userCount) }}</span>
+										<strong>{{ resolveOverridesStatLabel(summary.key) }}:</strong>
+										<span>{{ formatOverrideSummary(summary.groupCount, summary.userCount, summary.key) }}</span>
 									</li>
 								</ul>
 							</div>
@@ -219,11 +217,10 @@
 
 							<div class="policy-workbench__settings-row-stats">
 								<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--default" :title="summary.defaultSummary">
-									<!-- TRANSLATORS Label for currently effective default value in list-layout row. -->
-									<strong>{{ t('libresign', 'Default') }}:</strong>
+									<strong>{{ resolveDefaultStatLabel(summary.key) }}:</strong>
 									<span v-html="highlightText(summary.defaultSummary)"></span>
 								</span>
-								<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--count"><strong>{{ t('libresign', 'Custom rules') }}:</strong> {{ formatOverrideSummary(summary.groupCount, summary.userCount) }}</span>
+								<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--count"><strong>{{ resolveOverridesStatLabel(summary.key) }}:</strong> {{ formatOverrideSummary(summary.groupCount, summary.userCount, summary.key) }}</span>
 							</div>
 
 							<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Configure setting')" @click.stop="openSettingFromAction(summary.key, $event)">
@@ -298,7 +295,7 @@
 
 					<div v-if="state.summary" class="policy-workbench__default-inline">
 						<!-- TRANSLATORS Label introducing the currently effective base/default value for selected setting. -->
-						<span class="policy-workbench__default-inline-label">{{ t('libresign', 'Default:') }}</span>
+						<span class="policy-workbench__default-inline-label">{{ defaultInlineLabel }}</span>
 						<strong class="policy-workbench__default-inline-value">{{ state.summary.currentBaseValue }}</strong>
 						<span class="policy-workbench__default-inline-source">({{ defaultSourceLabel }})</span>
 						<span v-if="state.viewMode === 'system-admin'" class="policy-workbench__default-inline-separator" aria-hidden="true">&middot;</span>
@@ -899,6 +896,15 @@ const defaultSourceLabel = computed(() => {
 		: t('libresign', 'default')
 })
 
+const defaultInlineLabel = computed(() => {
+	if (state.activeDefinition?.key === 'groups_request_sign') {
+		// TRANSLATORS Inline label for effective default in signature-request access policy dialog.
+		return t('libresign', 'Default access:')
+	}
+
+	return t('libresign', 'Default:')
+})
+
 const hasActiveCrudFilters = computed(() => {
 	return crudSearch.value.trim().length > 0 || crudScopeFilter.value !== 'all'
 })
@@ -911,8 +917,10 @@ const crudEmptyStateName = computed(() => {
 
 const crudEmptyStateDescription = computed(() => {
 	return hasActiveCrudFilters.value
+		// TRANSLATORS Empty-state suggestion shown when scope/search filters hide all policy rules.
 		? t('libresign', 'Try adjusting or clearing the current filters.')
-		: t('libresign', 'Create a rule to override the default behavior for specific accounts or groups.')
+		// TRANSLATORS Empty-state guidance encouraging admins to delegate signature-request access with scoped rules.
+		: t('libresign', 'Create a rule to delegate signature request access for specific accounts or groups.')
 })
 
 const crudEmptyStateIconPath = computed(() => {
@@ -1024,11 +1032,18 @@ function resolveTargetId(option: unknown): string | null {
 		return trimmed.length > 0 ? trimmed : null
 	}
 
-	if (option && typeof option === 'object' && 'id' in option) {
-		const candidate = (option as { id?: unknown }).id
-		if (typeof candidate === 'string') {
-			const trimmed = candidate.trim()
-			return trimmed.length > 0 ? trimmed : null
+	if (typeof option === 'number' && Number.isFinite(option)) {
+		return String(option)
+	}
+
+	if (option && typeof option === 'object') {
+		const record = option as Record<string, unknown>
+		for (const key of ['id', 'user', 'uid', 'value', 'group', 'groupId', 'identifier']) {
+			const candidate = record[key]
+			const resolvedCandidate = resolveTargetId(candidate)
+			if (resolvedCandidate !== null) {
+				return resolvedCandidate
+			}
 		}
 	}
 
@@ -1148,8 +1163,13 @@ function hasActiveOverrides(groupCount?: number, userCount?: number) {
 	return (groupCount ?? 0) > 0 || (userCount ?? 0) > 0
 }
 
-function formatOverrideSummary(groupCount?: number, userCount?: number) {
+function formatOverrideSummary(groupCount?: number, userCount?: number, policyKey?: string) {
 	if ((groupCount ?? 0) === 0 && (userCount ?? 0) === 0) {
+		if (policyKey === 'groups_request_sign') {
+			// TRANSLATORS Summary for signature-request access policy when no explicit overrides are configured.
+			return t('libresign', 'none configured')
+		}
+
 		return t('libresign', 'none')
 	}
 
@@ -1157,6 +1177,26 @@ function formatOverrideSummary(groupCount?: number, userCount?: number) {
 		groupCount: String(groupCount),
 		userCount: String(userCount),
 	})
+}
+
+function resolveDefaultStatLabel(policyKey: string) {
+	if (policyKey === 'groups_request_sign') {
+		// TRANSLATORS Statistics label for effective baseline access in signature-request access policy cards.
+		return t('libresign', 'Default access')
+	}
+
+	// TRANSLATORS Generic statistics label for effective baseline value shown in policy cards.
+	return t('libresign', 'Default')
+}
+
+function resolveOverridesStatLabel(policyKey: string) {
+	if (policyKey === 'groups_request_sign') {
+		// TRANSLATORS Statistics label counting scoped exceptions in signature-request access policy cards.
+		return t('libresign', 'Custom overrides')
+	}
+
+	// TRANSLATORS Generic statistics label counting non-default policy rules in cards.
+	return t('libresign', 'Custom rules')
 }
 
 function toggleCatalogLayout() {
@@ -1343,13 +1383,19 @@ async function confirmRuleRemoval() {
 	try {
 		const ruleIds = removalRequest.ruleIds ?? (removalRequest.ruleId ? [removalRequest.ruleId] : [])
 		await state.removeRules(ruleIds)
-		removalFeedback.value = removalRequest.ruleIds
-			? t('libresign', '{count} rules removed. Inherited behavior is now active.', { count: String(ruleIds.length) })
-			: removalRequest.scope === 'system'
-				? t('libresign', 'Custom default removed. The default behavior for everyone is active again.')
-				: removalRequest.scope === 'group'
-					? t('libresign', 'Group custom rule removed. Inherited behavior is now active.')
-					: t('libresign', 'Account custom rule removed. Inherited behavior is now active.')
+		if (removalRequest.ruleIds) {
+			// TRANSLATORS {count} is the number of policy rules removed in bulk; after removal, inherited policy values apply.
+			removalFeedback.value = t('libresign', '{count} rules removed. Inherited behavior is now active.', { count: String(ruleIds.length) })
+		} else if (removalRequest.scope === 'system') {
+			// TRANSLATORS Feedback shown after deleting a system-level custom default policy rule.
+			removalFeedback.value = t('libresign', 'Custom default removed. The default behavior for everyone is active again.')
+		} else if (removalRequest.scope === 'group') {
+			// TRANSLATORS Feedback shown after deleting a group-level custom policy rule.
+			removalFeedback.value = t('libresign', 'Group custom rule removed. Inherited behavior is now active.')
+		} else {
+			// TRANSLATORS Feedback shown after deleting an account-level custom policy rule.
+			removalFeedback.value = t('libresign', 'Account custom rule removed. Inherited behavior is now active.')
+		}
 		clearCrudSelection()
 
 		if (removalFeedbackTimeout.value !== null) {
