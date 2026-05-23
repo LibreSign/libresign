@@ -45,7 +45,7 @@ class MessagesLoader {
 			if (empty($fileData->signers)) {
 				$messages[] = [
 					'type' => 'info',
-					'message' => $this->l10n->t('You cannot request signature for this document, please contact your administrator')
+					'message' => $this->l10n->t('You cannot create a signature request for this document. Please contact your administrator.')
 				];
 			}
 		}
