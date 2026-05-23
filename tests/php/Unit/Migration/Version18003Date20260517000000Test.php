@@ -15,6 +15,7 @@ use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
 use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\IAppConfig;
 use OCP\Migration\IOutput;
@@ -926,5 +927,174 @@ final class Version18003Date20260517000000Test extends TestCase {
 
 		self::assertArrayNotHasKey('identify_methods', $savedArrays);
 		self::assertNotContains([Application::APP_ID, 'identify_methods'], $deleted);
+	}
+
+	/**
+	 * Regression test for production data: dimensions (signature_width=351, signature_height=101,
+	 * template_font_size=9.9, signature_font_size=20) stored as typed float (type 16) by a
+	 * previous migration must not be silently replaced by defaults.
+	 */
+	public function testPreservesSignatureTextFloatDimensionsAlreadyTypedAsFloat(): void {
+		$floatValues = [
+			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => 9.9,
+			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => 351.0,
+			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => 101.0,
+			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => 20.0,
+		];
+
+		$this->appConfig
+			->method('getValueString')
+			->willReturnCallback(static function (string $app, string $key, string $default) use ($floatValues): string {
+				if ($app !== Application::APP_ID) {
+					return $default;
+				}
+
+				if (array_key_exists($key, $floatValues)) {
+					throw new AppConfigTypeConflictException('stored as float');
+				}
+
+				$map = [
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE => 'Assinado com LibreSign',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => 'SIGNAME_AND_DESCRIPTION',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_BACKGROUND_TYPE => '',
+					'add_footer' => '',
+					'write_qrcode_on_footer' => '',
+					'validation_site' => '',
+					'footer_template_is_default' => '',
+					'collect_metadata' => '',
+					'identification_documents' => '',
+					'docmdp_level' => '',
+					'groups_request_sign' => '',
+					'policy.signature_flow.system' => '',
+					'signature_flow' => '',
+					'identify_methods' => '',
+					'policy.worker_config.system' => '',
+					'worker_config' => '',
+				];
+
+				return $map[$key] ?? $default;
+			});
+
+		$this->appConfig
+			->method('getValueFloat')
+			->willReturnCallback(static function (string $app, string $key, float $default) use ($floatValues): float {
+				return $floatValues[$key] ?? $default;
+			});
+
+		$savedStrings = [];
+		$this->appConfig
+			->method('setValueString')
+			->willReturnCallback(static function (string $app, string $key, string $value) use (&$savedStrings): bool {
+				$savedStrings[$key] = $value;
+				return true;
+			});
+
+		$this->appConfig->method('deleteKey')->willReturnCallback(static fn () => null);
+
+		$migration = new Version18003Date20260517000000($this->appConfig);
+		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
+
+		self::assertArrayHasKey(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY, $savedStrings);
+		$decoded = json_decode($savedStrings[SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY], true);
+		self::assertIsArray($decoded);
+
+		// Values from the production dump must be preserved, not replaced with defaults
+		self::assertSame(9.9, $decoded['template_font_size']);
+		self::assertSame(351.0, (float)$decoded['signature_width']);
+		self::assertSame(101.0, (float)$decoded['signature_height']);
+		self::assertSame(20.0, (float)$decoded['signature_font_size']);
+
+		// Non-canonical render_mode must be normalised to 'default'
+		self::assertSame('default', $decoded['render_mode']);
+	}
+
+	public function testMigratesLegacyWorkerSettingsToCanonicalWorkerConfigKey(): void {
+		$this->appConfig
+			->method('getValueString')
+			->willReturnCallback(static function (string $app, string $key, string $default): string {
+				if ($app !== Application::APP_ID) {
+					return $default;
+				}
+
+				$map = [
+					'worker_config' => '',
+					'policy.worker_config.system' => '',
+					'worker_type' => 'external',
+					'parallel_workers' => '18',
+				];
+
+				return $map[$key] ?? '';
+			});
+
+		$savedStrings = [];
+		$this->appConfig
+			->method('setValueString')
+			->willReturnCallback(static function (string $app, string $key, string $value) use (&$savedStrings): bool {
+				$savedStrings[$key] = $value;
+				return true;
+			});
+
+		$deleted = [];
+		$this->appConfig
+			->method('deleteKey')
+			->willReturnCallback(static function (string $app, string $key) use (&$deleted): void {
+				$deleted[] = [$app, $key];
+			});
+
+		$migration = new Version18003Date20260517000000($this->appConfig);
+		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
+
+		self::assertArrayHasKey(WorkerConfigPolicy::SYSTEM_APP_CONFIG_KEY, $savedStrings);
+		self::assertSame(
+			'{"worker_type":"external","parallel_workers":18}',
+			$savedStrings[WorkerConfigPolicy::SYSTEM_APP_CONFIG_KEY],
+		);
+		self::assertContains([Application::APP_ID, 'worker_type'], $deleted);
+		self::assertContains([Application::APP_ID, 'parallel_workers'], $deleted);
+		self::assertContains([Application::APP_ID, 'policy.worker_config.system'], $deleted);
+	}
+
+	public function testMigratesLegacyConsolidatedWorkerKeyToCanonicalKey(): void {
+		$this->appConfig
+			->method('getValueString')
+			->willReturnCallback(static function (string $app, string $key, string $default): string {
+				if ($app !== Application::APP_ID) {
+					return $default;
+				}
+
+				$map = [
+					'worker_config' => '',
+					'policy.worker_config.system' => '{"worker_type":"local","parallel_workers":7}',
+					'worker_type' => '',
+					'parallel_workers' => '',
+				];
+
+				return $map[$key] ?? '';
+			});
+
+		$savedStrings = [];
+		$this->appConfig
+			->method('setValueString')
+			->willReturnCallback(static function (string $app, string $key, string $value) use (&$savedStrings): bool {
+				$savedStrings[$key] = $value;
+				return true;
+			});
+
+		$deleted = [];
+		$this->appConfig
+			->method('deleteKey')
+			->willReturnCallback(static function (string $app, string $key) use (&$deleted): void {
+				$deleted[] = [$app, $key];
+			});
+
+		$migration = new Version18003Date20260517000000($this->appConfig);
+		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
+
+		self::assertSame(
+			'{"worker_type":"local","parallel_workers":7}',
+			$savedStrings[WorkerConfigPolicy::SYSTEM_APP_CONFIG_KEY],
+		);
+		self::assertContains([Application::APP_ID, 'policy.worker_config.system'], $deleted);
 	}
 }
