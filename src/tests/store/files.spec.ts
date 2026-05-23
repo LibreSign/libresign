@@ -578,7 +578,7 @@ describe('files store - critical business rules', () => {
 			expect(store.canSave()).toBe(false)
 		})
 
-		it('blocks saving when user cannot request signatures', () => {
+		it('blocks saving when user cannot create signature requests', () => {
 			const store = useFilesStore()
 			store.selectedFileId = 1
 			store.canRequestSign = false
@@ -657,7 +657,7 @@ describe('files store - critical business rules', () => {
 			expect(store.canDelete()).toBe(true)
 		})
 
-		it('blocks deletion when user cannot request sign', () => {
+		it('blocks deletion when user cannot create signature requests', () => {
 			const store = useFilesStore()
 			store.selectedFileId = 1
 			store.canRequestSign = false
