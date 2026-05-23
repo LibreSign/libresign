@@ -10,7 +10,6 @@ namespace OCA\Libresign\Tests\Unit\Service\Policy;
 
 use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCP\Group\ISubAdmin;
-use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\IUser;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -106,23 +105,20 @@ final class PolicyAuthorizationServiceTest extends TestCase {
 		$this->assertSame([], $result);
 	}
 
-	public function testGetManageablePolicyGroupIdsReturnsSubAdminGroupsForNonAdmin(): void {
+	public function testGetManageablePolicyGroupIdsReturnsMembershipGroupsForSubAdmin(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('subadmin-user');
-
-		$group1 = $this->createMock(IGroup::class);
-		$group1->method('getGID')->willReturn('finance');
-
-		$group2 = $this->createMock(IGroup::class);
-		$group2->method('getGID')->willReturn('legal');
 
 		$this->groupManager->method('isAdmin')
 			->with('subadmin-user')
 			->willReturn(false);
-
-		$this->subAdmin->method('getSubAdminsGroups')
+		$this->subAdmin->method('isSubAdmin')
 			->with($user)
-			->willReturn([$group1, $group2]);
+			->willReturn(true);
+
+		$this->groupManager->method('getUserGroupIds')
+			->with($user)
+			->willReturn(['finance', 'legal']);
 
 		$result = $this->service->getManageablePolicyGroupIds($user);
 
@@ -137,9 +133,9 @@ final class PolicyAuthorizationServiceTest extends TestCase {
 			->with('regular-user')
 			->willReturn(false);
 
-		$this->subAdmin->method('getSubAdminsGroups')
+		$this->subAdmin->method('isSubAdmin')
 			->with($user)
-			->willReturn([]);
+			->willReturn(false);
 
 		$result = $this->service->getManageablePolicyGroupIds($user);
 
