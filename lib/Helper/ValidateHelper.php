@@ -505,7 +505,7 @@ class ValidateHelper {
 			throw new LibresignException(
 				json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [['message' => $this->l10n->t('You are not allowed to request signing')]],
+					'errors' => [['message' => $this->l10n->t('You are not allowed to create signature requests')]],
 				]),
 				Http::STATUS_UNPROCESSABLE_ENTITY,
 			);
