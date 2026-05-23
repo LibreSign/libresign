@@ -114,10 +114,14 @@ final class PolicyContextFactory {
 
 		$userId = $currentActor->getUID();
 		$canManageSystemPolicies = $this->groupManager->isAdmin($userId) === true;
+		$hasGroupMembership = array_values(array_filter(
+			$this->groupManager->getUserGroupIds($currentActor),
+			static fn (mixed $groupId): bool => is_string($groupId) && trim($groupId) !== '',
+		)) !== [];
 
 		return [
 			'canManageSystemPolicies' => $canManageSystemPolicies,
-			'canManageGroupPolicies' => $canManageSystemPolicies || $this->subAdmin->isSubAdmin($currentActor) === true,
+			'canManageGroupPolicies' => $canManageSystemPolicies || $hasGroupMembership,
 		];
 	}
 }
