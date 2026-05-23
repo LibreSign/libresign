@@ -18,7 +18,7 @@
 			type="number"
 			:min="1"
 			:step="1"
-			:label="t('libresign', 'Maximum validity in seconds of a request to sign.')"
+			:label="t('libresign', 'Maximum validity in seconds of a signature request.')"
 			@update:modelValue="onValueChange" />
 	</div>
 </template>
