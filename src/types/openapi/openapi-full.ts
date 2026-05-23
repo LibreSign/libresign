@@ -304,7 +304,7 @@ export type paths = {
         put?: never;
         /**
          * Send a file
-         * @description Send a new file to Nextcloud and return the fileId to request signature. Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.
+         * @description Send a new file to Nextcloud and return the fileId used to create a signature request. Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.
          *     **Note on multiple file uploads:** PHP has a limit on the number of files that can be uploaded in a single request (max_file_uploads directive, default 20). When uploading many files (more than 20), consider uploading them sequentially in multiple requests or use individual file uploads like the Files app does.
          */
         post: operations["file-save"];
@@ -520,7 +520,7 @@ export type paths = {
         };
         /**
          * List possible signers
-         * @description Used to identify who can sign the document. The return of this endpoint is related with Administration Settiongs > LibreSign > Identify method.
+         * @description Used to identify who can be invited to sign a document. The response follows Administration Settings > LibreSign > Identify method.
          */
         get: operations["identify-search"];
         put?: never;
