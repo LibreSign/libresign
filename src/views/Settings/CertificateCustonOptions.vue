@@ -225,6 +225,7 @@ async function removeOptionalAttribute(id: string) {
 	const custonOption = selectCustonOption(id)
 	if (custonOption.isSome()) {
 		certificateList.value = certificateList.value.filter(item => item.id !== custonOption.unwrap().id)
+		emitCertificateList()
 	}
 }
 
@@ -236,6 +237,7 @@ async function onOptionalAttributeSelect(selected: { id: string }) {
 			...option,
 			value: option.id === 'OU' ? [''] : option.value,
 		}, ...certificateList.value]
+		emitCertificateList()
 	}
 }
 
