@@ -65,6 +65,25 @@ function mountEditor(modelValue = '["finance"]') {
 	})
 }
 
+function mountEditorWithScopeState(modelValue = '[]', hasSelectedTargets = false) {
+	return mount(RequestSignGroupsRuleEditor, {
+		props: {
+			modelValue,
+			editorScope: 'group',
+			editorMode: 'create',
+			hasSelectedTargets,
+		},
+		global: {
+			stubs: {
+				NcSelect: {
+					props: ['options'],
+					template: '<div class="nc-select-stub">{{ JSON.stringify(options) }}</div>',
+				},
+			},
+		},
+	})
+}
+
 describe('RequestSignGroupsRuleEditor.vue', () => {
 	it('loads groups from cloud/groups/details for instance admin', async () => {
 		currentUserState.isAdmin = true
@@ -173,5 +192,86 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 
 		expect(wrapper.text()).toContain('Finance')
 		expect(wrapper.text()).toContain('Legal')
+	})
+
+	it('renders delegated authorization copy', async () => {
+		currentUserState.isAdmin = true
+		initialConfigState.manageable_policy_group_ids = []
+		axiosGet.mockReset()
+		axiosGet.mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						groups: [
+							{ id: 'admin', displayname: 'Admin' },
+						],
+					},
+				},
+			},
+		})
+
+		const wrapper = mountEditor('["finance"]')
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(wrapper.text()).toContain('Authorized requester groups')
+		expect(wrapper.text()).toContain('Choose which groups may create signature requests within this scope.')
+		expect(wrapper.text()).toContain('Only groups you belong to may be authorized.')
+	})
+
+	it('keeps long group labels visible for overflow-sensitive cases', async () => {
+		currentUserState.isAdmin = true
+		initialConfigState.manageable_policy_group_ids = []
+		axiosGet.mockReset()
+		axiosGet.mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						groups: [
+							{
+								id: 'regional-operations-and-compliance-supervision',
+								displayname: 'Regional Operations and Compliance Supervision Team',
+							},
+						],
+					},
+				},
+			},
+		})
+
+		const wrapper = mountEditor('[]')
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(wrapper.text()).toContain('Regional Operations and Compliance Supervision Team')
+	})
+
+	it('shows setup hint instead of requester selector until scope groups are selected in group create flow', async () => {
+		currentUserState.isAdmin = true
+		initialConfigState.manageable_policy_group_ids = []
+		axiosGet.mockReset()
+		axiosGet.mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						groups: [
+							{ id: 'board', displayname: 'Board' },
+						],
+					},
+				},
+			},
+		})
+
+		const wrapperWithoutTargets = mountEditorWithScopeState('[]', false)
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(wrapperWithoutTargets.text()).toContain('Select scope groups first to define authorized requester groups.')
+		expect(wrapperWithoutTargets.text()).not.toContain('Authorized requester groups')
+
+		const wrapperWithTargets = mountEditorWithScopeState('["board"]', true)
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(wrapperWithTargets.text()).toContain('Authorized requester groups')
 	})
 })
