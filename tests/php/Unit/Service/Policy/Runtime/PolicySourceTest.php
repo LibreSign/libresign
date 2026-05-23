@@ -35,6 +35,7 @@ use OCP\IAppConfig as CoreIAppConfig;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\IL10N;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
 
@@ -198,9 +199,7 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame(['ordered_numeric'], $layer->getAllowedValues());
 	}
 
-	/**
-	 * @dataProvider providerStoredUserPolicyPayloadCases
-	 */
+	#[DataProvider('providerStoredUserPolicyPayloadCases')]
 	public function testLoadUserPolicyConfigInterpretsStoredPayloads(
 		string $storedPayload,
 		?string $expectedValue,
@@ -416,9 +415,7 @@ final class PolicySourceTest extends TestCase {
 		$this->assertStoredAppConfigString('policy.signature_flow.system.allow_child_override', '1');
 	}
 
-	/**
-	 * @dataProvider providerSaveSystemPolicyBusinessRules
-	 */
+	#[DataProvider('providerSaveSystemPolicyBusinessRules')]
 	public function testSaveSystemPolicyBusinessRulesWithDataProvider(
 		string $policyKey,
 		string $inputValue,
@@ -839,9 +836,7 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame([], $this->getSource()->loadAllUserPolicies(['signature_flow'], new PolicyContext()));
 	}
 
-	/**
-	 * @dataProvider providerStoredUserPolicyPayloadCases
-	 */
+	#[DataProvider('providerStoredUserPolicyPayloadCases')]
 	public function testLoadAllUserPoliciesInterpretsStoredPayloads(
 		string $storedPayload,
 		?string $expectedValue,
