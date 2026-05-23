@@ -30,6 +30,7 @@ use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
 use OCP\DB\ISchemaWrapper;
 use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\IAppConfig;
@@ -303,18 +304,20 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 
 	private function migrateSignatureTextSettingsType(): void {
 		$legacyTemplate = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE);
-		$legacyTemplateFontSize = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE);
-		$legacySignatureFontSize = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE);
-		$legacySignatureWidth = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH);
-		$legacySignatureHeight = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT);
+		// These keys may be stored as float (type 16) by a previous migration (Version17003);
+		// readLegacyFloat falls back to getValueFloat when getValueString throws AppConfigTypeConflictException.
+		$legacyTemplateFontSize = $this->readLegacyFloat(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE);
+		$legacySignatureFontSize = $this->readLegacyFloat(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE);
+		$legacySignatureWidth = $this->readLegacyFloat(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH);
+		$legacySignatureHeight = $this->readLegacyFloat(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT);
 		$legacyBackgroundType = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_BACKGROUND_TYPE);
 		$legacyRenderMode = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE);
 
 		$hasLegacyValues = ($legacyTemplate !== null && trim($legacyTemplate) !== '')
-			|| ($legacyTemplateFontSize !== null && trim($legacyTemplateFontSize) !== '')
-			|| ($legacySignatureFontSize !== null && trim($legacySignatureFontSize) !== '')
-			|| ($legacySignatureWidth !== null && trim($legacySignatureWidth) !== '')
-			|| ($legacySignatureHeight !== null && trim($legacySignatureHeight) !== '')
+			|| $legacyTemplateFontSize !== null
+			|| $legacySignatureFontSize !== null
+			|| $legacySignatureWidth !== null
+			|| $legacySignatureHeight !== null
 			|| ($legacyBackgroundType !== null && trim($legacyBackgroundType) !== '')
 			|| ($legacyRenderMode !== null && trim($legacyRenderMode) !== '');
 
@@ -325,10 +328,10 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 		// First, consolidate individual keys into a JSON payload
 		$consolidatedValue = [
 			'template' => $legacyTemplate ?? '',
-			'template_font_size' => (float)($legacyTemplateFontSize ?? SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE),
-			'signature_font_size' => (float)($legacySignatureFontSize ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE),
-			'signature_width' => (float)($legacySignatureWidth ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH),
-			'signature_height' => (float)($legacySignatureHeight ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT),
+			'template_font_size' => $legacyTemplateFontSize ?? SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+			'signature_font_size' => $legacySignatureFontSize ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+			'signature_width' => $legacySignatureWidth ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+			'signature_height' => $legacySignatureHeight ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
 			'background_type' => $legacyBackgroundType ?? 'default',
 			'render_mode' => $legacyRenderMode ?? 'default',
 		];
@@ -552,6 +555,26 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 		}
 	}
 
+	private function readLegacyFloat(string $key): ?float {
+		try {
+			$rawValue = $this->appConfig->getValueString(Application::APP_ID, $key, '');
+			if ($rawValue === '') {
+				return null;
+			}
+
+			return is_numeric($rawValue) ? (float)$rawValue : null;
+		} catch (AppConfigTypeConflictException) {
+			// Already stored as typed float (e.g. after Version17003 sanitised the value)
+			try {
+				return $this->appConfig->getValueFloat(Application::APP_ID, $key, -1.0) >= 0.0
+					? $this->appConfig->getValueFloat(Application::APP_ID, $key, -1.0)
+					: null;
+			} catch (AppConfigTypeConflictException) {
+				return null;
+			}
+		}
+	}
+
 	private function readLegacyValue(string $key): mixed {
 		try {
 			return $this->appConfig->getValueString(Application::APP_ID, $key, '');
@@ -611,11 +634,32 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 	}
 
 	private function migrateWorkerConfig(): void {
-		// If unified key already exists, just clean up legacy keys
-		$existingConsolidated = $this->readLegacyString('policy.worker_config.system');
-		if ($existingConsolidated !== null && trim($existingConsolidated) !== '') {
+		$legacyConsolidatedKey = 'policy.worker_config.system';
+
+		// If canonical key already exists, just clean up stale legacy keys.
+		$existingCanonical = $this->readLegacyString(WorkerConfigPolicy::SYSTEM_APP_CONFIG_KEY);
+		if ($existingCanonical !== null && trim($existingCanonical) !== '') {
 			$this->deleteLegacyWorkerKeys();
+			$this->appConfig->deleteKey(Application::APP_ID, $legacyConsolidatedKey);
 			return;
+		}
+
+		// Backward compatibility for environments where a previous migration wrote
+		// to a non-canonical key.
+		$existingLegacyConsolidated = $this->readLegacyString($legacyConsolidatedKey);
+		if ($existingLegacyConsolidated !== null && trim($existingLegacyConsolidated) !== '') {
+			$this->deleteLegacyWorkerKeys();
+			$this->appConfig->setValueString(
+				Application::APP_ID,
+				WorkerConfigPolicy::SYSTEM_APP_CONFIG_KEY,
+				$existingLegacyConsolidated,
+			);
+			$this->appConfig->deleteKey(Application::APP_ID, $legacyConsolidatedKey);
+			return;
+		}
+
+		if ($existingLegacyConsolidated !== null) {
+			$this->appConfig->deleteKey(Application::APP_ID, $legacyConsolidatedKey);
 		}
 
 		$workerType = $this->readLegacyString('worker_type');
@@ -638,7 +682,7 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 		$encoded = json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
 
 		$this->deleteLegacyWorkerKeys();
-		$this->appConfig->setValueString(Application::APP_ID, 'policy.worker_config.system', $encoded);
+		$this->appConfig->setValueString(Application::APP_ID, WorkerConfigPolicy::SYSTEM_APP_CONFIG_KEY, $encoded);
 	}
 
 	private function normalizeWorkerType(?string $value): string {
