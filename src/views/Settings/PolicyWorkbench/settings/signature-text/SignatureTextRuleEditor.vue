@@ -186,11 +186,11 @@ const availableVariables = [
 	// TRANSLATORS Template variable description for issuer Common Name used in signer certificate.
 	{ value: '{{IssuerCommonName}}', description: t('libresign', 'Name of the certificate issuer used for the signature.') },
 	// TRANSLATORS Template variable description for local signer signature date (without time).
-	{ value: '{{LocalSignerSignatureDateOnly}}', description: t('libresign', 'Date when the signer sent the request to sign (without time, in their local time zone).') },
+	{ value: '{{LocalSignerSignatureDateOnly}}', description: t('libresign', 'Date when the signer created the signature request (without time, in their local time zone).') },
 	// TRANSLATORS Template variable description for local signer signature date and time.
-	{ value: '{{LocalSignerSignatureDateTime}}', description: t('libresign', 'Date and time when the signer sent the request to sign (in their local time zone).') },
+	{ value: '{{LocalSignerSignatureDateTime}}', description: t('libresign', 'Date and time when the signer created the signature request (in their local time zone).') },
 	// TRANSLATORS Template variable description for signer's local time zone value.
-	{ value: '{{LocalSignerTimezone}}', description: t('libresign', 'Time zone of signer when sent the request to sign (in their local time zone).') },
+	{ value: '{{LocalSignerTimezone}}', description: t('libresign', 'Time zone of signer when the signature request was created (in their local time zone).') },
 	// TRANSLATORS Template variable description for server-side signature timestamp in ISO 8601 format.
 	{ value: '{{ServerSignatureDate}}', description: t('libresign', 'Date and time when the signature was applied on the server (ISO 8601 format). Can be formatted using the Twig date filter.') },
 	// TRANSLATORS Template variable description for signer certificate Common Name (CN).
