@@ -5,24 +5,44 @@
 
 <template>
 	<div class="request-sign-groups-editor">
-		<p class="request-sign-groups-editor__hint">
-			{{ t('libresign', 'Only members of the selected groups can request signatures. Accounts outside these groups will not see signing configuration options.') }}
-		</p>
+		<template v-if="shouldShowRequesterGroupsEditor">
+			<header class="request-sign-groups-editor__header">
+				<h4 class="request-sign-groups-editor__title">
+					<!-- TRANSLATORS Section title for the policy that delegates who may create signature requests. -->
+					{{ t('libresign', 'Authorized requester groups') }}
+				</h4>
+				<p class="request-sign-groups-editor__description">
+					<!-- TRANSLATORS Description explaining this scope controls which groups may create signature requests. -->
+					{{ t('libresign', 'Choose which groups may create signature requests within this scope.') }}
+				</p>
+			</header>
 
-		<NcSelect
-			:model-value="selectedGroups"
-			label="displayname"
-			:no-wrap="false"
-			:aria-label-combobox="t('libresign', 'Select groups allowed to request signatures')"
-			:close-on-select="false"
-			:disabled="loadingGroups"
-			:loading="loadingGroups"
-			:multiple="true"
-			:options="availableGroups"
-			:searchable="true"
-			:show-no-options="false"
-			@search-change="searchGroup"
-			@update:modelValue="onGroupsChange" />
+			<NcSelect
+				:model-value="selectedGroups"
+				label="displayname"
+				:no-wrap="false"
+				:aria-label-combobox="authorizedRequesterGroupsAriaLabel"
+				:close-on-select="false"
+				:disabled="loadingGroups"
+				:loading="loadingGroups"
+				:multiple="true"
+				:options="availableGroups"
+				:placeholder="searchGroupsPlaceholder"
+				:searchable="true"
+				:show-no-options="false"
+				@search-change="searchGroup"
+				@update:modelValue="onGroupsChange" />
+
+			<p class="request-sign-groups-editor__helper">
+				<!-- TRANSLATORS Helper note: administrators can only authorize groups they are members of. -->
+				{{ t('libresign', 'Only groups you belong to may be authorized.') }}
+			</p>
+		</template>
+
+		<p v-else class="request-sign-groups-editor__setup-hint">
+			<!-- TRANSLATORS Hint shown in group rule creation: choose scope groups first, then authorized requester groups. -->
+			{{ t('libresign', 'Select scope groups first to define authorized requester groups.') }}
+		</p>
 	</div>
 </template>
 
@@ -70,6 +90,9 @@ defineOptions({
 
 const props = defineProps<{
 	modelValue: EffectivePolicyValue
+	editorScope?: 'system' | 'group' | 'user'
+	editorMode?: 'create' | 'edit' | null
+	hasSelectedTargets?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -103,6 +126,20 @@ const selectedGroups = computed<Array<GroupRow | string>>(() => {
 		return availableGroups.value.find((group) => group.id === groupId) ?? groupId
 	})
 })
+
+const shouldShowRequesterGroupsEditor = computed(() => {
+	return !(
+		props.editorScope === 'group'
+		&& props.editorMode === 'create'
+		&& props.hasSelectedTargets === false
+	)
+})
+
+// TRANSLATORS Accessible label for the group multi-select that defines who can create signature requests.
+const authorizedRequesterGroupsAriaLabel = t('libresign', 'Authorized requester groups')
+
+// TRANSLATORS Placeholder text shown while searching available groups in the requester authorization selector.
+const searchGroupsPlaceholder = t('libresign', 'Search groups')
 
 watch(() => props.modelValue, (nextValue) => {
 	selectedGroupIds.value = clampToManageableScope(resolveRequestSignGroups(nextValue))
@@ -176,10 +213,39 @@ onMounted(async () => {
 	flex-direction: column;
 	gap: 0.75rem;
 
-	&__hint {
+	&__header {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	&__title {
+		margin: 0;
+		font-size: 0.95rem;
+		font-weight: 700;
+		line-height: 1.35;
+	}
+
+	&__description {
 		margin: 0;
 		font-size: 0.84rem;
 		color: var(--color-text-maxcontrast);
+		overflow-wrap: anywhere;
 	}
+
+	&__helper {
+		margin: 0;
+		font-size: 0.78rem;
+		color: var(--color-text-maxcontrast);
+		overflow-wrap: anywhere;
+	}
+
+	&__setup-hint {
+		margin: 0;
+		font-size: 0.82rem;
+		color: var(--color-text-maxcontrast);
+		overflow-wrap: anywhere;
+	}
+
 }
 </style>
