@@ -5,7 +5,7 @@
 
 import { test, expect } from '@playwright/test';
 import { login } from '../support/nc-login'
-import { configureOpenSsl, deleteAppConfig, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
+import { configureOpenSsl, setAppConfig, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromEmail } from '../support/mailpit'
 import { useFooterPolicyGuard } from '../support/system-policies'
 
@@ -30,24 +30,29 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 		page.request,
 		'identify_methods',
 		JSON.stringify([
-			{ name: 'account', enabled: true, mandatory: false },
+			{ name: 'account', enabled: false, mandatory: false },
 			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { emailToken: { enabled: true } }, can_create_account: false },
 		]),
 	)
+	await setSystemPolicy(
+		page.request,
+		'identification_documents',
+		JSON.stringify({ enabled: false, approvers: ['admin'] }),
+	)
 	await setCertificateEngine(page.request, 'openssl')
+	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
 	await page.goto('./apps/libresign')
 	await page.getByRole('button', { name: 'Upload from URL' }).click()
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).click();
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('http://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf');
 	await page.getByRole('button', { name: 'Send' }).click();
 	await page.getByRole('button', { name: 'Add signer' }).click();
-	await page.getByRole('tab', { name: 'Email' }).click();
 	await page.getByPlaceholder('Email').click();
 	await page.getByPlaceholder('Email').fill('signer01@libresign.coop');
-	await page.getByRole('option', { name: 'signer01@libresign.coop' }).click();
-	await page.getByRole('textbox', { name: 'Signer name' }).click();
-	await page.getByRole('textbox', { name: 'Signer name' }).press('ControlOrMeta+a');
-	await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 01');
+	await page.getByRole('option', { name: 'signer01@libresign.coop' }).first().click();
+	await page.getByRole('textbox', { name: 'Signer name' }).first().click();
+	await page.getByRole('textbox', { name: 'Signer name' }).first().press('ControlOrMeta+a');
+	await page.getByRole('textbox', { name: 'Signer name' }).first().fill('Signer 01');
 	await page.getByRole('button', { name: 'Save' }).click();
 
 	const mailpit = createMailpitClient()
@@ -66,15 +71,18 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	if (!signLink) throw new Error('Sign link not found in email')
 	await page.goto(signLink);
 	const openSignButton = page.getByRole('button', { name: 'Sign the document.' }).first()
+	const emailTextbox = page.getByRole('textbox', { name: 'Email' }).first()
+	await Promise.any([
+		openSignButton.waitFor({ state: 'visible', timeout: 10_000 }),
+		emailTextbox.waitFor({ state: 'visible', timeout: 10_000 }),
+	])
 	if (await openSignButton.isVisible().catch(() => false)) {
 		await openSignButton.click();
 	}
-	const emailTextbox = page.getByRole('textbox', { name: 'Email' }).first()
-	if (await emailTextbox.isVisible().catch(() => false)) {
-		await emailTextbox.click();
-		await emailTextbox.fill('signer01@libresign.coop');
-		await page.getByRole('button', { name: 'Send verification code' }).click();
-	}
+	await expect(emailTextbox).toBeVisible()
+	await emailTextbox.click();
+	await emailTextbox.fill('signer01@libresign.coop');
+	await page.getByRole('button', { name: 'Send verification code' }).click();
 
 	const tokenEmail = await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: Code to sign file', { timeout: 60_000 })
 	const token = extractTokenFromEmail(tokenEmail.Text)
