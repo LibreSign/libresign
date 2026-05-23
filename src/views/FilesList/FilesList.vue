@@ -66,7 +66,7 @@
 				<NcEmptyContent
 					v-else-if="!loading && isEmptyDir && filtersStore.activeChips.length === 0"
 					:name="t('libresign', 'There are no documents')"
-					:description="canRequestSign ? t('libresign', 'Choose the file to request signatures.') : ''">
+					:description="canRequestSign ? t('libresign', 'Choose a file to create a signature request.') : ''">
 					<template v-if="canRequestSign" #action>
 						<RequestPicker variant="primary" />
 					</template>
