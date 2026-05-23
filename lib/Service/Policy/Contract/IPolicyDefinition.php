@@ -34,4 +34,11 @@ interface IPolicyDefinition {
 	 * that must never appear in the user preferences screen.
 	 */
 	public function supportsUserPreference(): bool;
+
+	/**
+	 * Whether group admins (subAdmins) are allowed to configure this policy
+	 * at the group level. Returns false for system-only policies that must
+	 * not be visible or editable by group admins.
+	 */
+	public function supportsGroupAdminConfiguration(): bool;
 }
