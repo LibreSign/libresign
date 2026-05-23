@@ -36,6 +36,7 @@
 					v-bind="editorProps"
 					:editor-scope="editorDraft.scope"
 					:editor-mode="editorMode"
+					:has-selected-targets="editorDraft.targetIds.length > 0"
 					@template-changed="$emit('template-changed')"
 					@update:modelValue="$emit('update-value', $event)" />
 			</div>
@@ -143,18 +144,18 @@ defineEmits<{
 	(e: 'cancel'): void
 }>()
 
-// TRANSLATORS Label for selecting target groups when creating/editing a group-scope policy rule.
-const targetGroupsLabel = t('libresign', 'Target groups')
-// TRANSLATORS Label for selecting target accounts when creating/editing an account-scope policy rule.
-const targetAccountsLabel = t('libresign', 'Target accounts')
+// TRANSLATORS Label for selecting groups in the current policy scope.
+const targetGroupsLabel = t('libresign', 'Scope groups')
+// TRANSLATORS Label for selecting accounts in the current policy scope.
+const targetAccountsLabel = t('libresign', 'Scope accounts')
 const targetScopeLabel = computed(() => props.editorDraft.scope === 'group'
 	? targetGroupsLabel
 	: targetAccountsLabel)
 
-// TRANSLATORS Placeholder text for searching groups in policy target picker.
-const searchGroupsPlaceholder = t('libresign', 'Search groups')
-// TRANSLATORS Placeholder text for searching accounts in policy target picker.
-const searchAccountsPlaceholder = t('libresign', 'Search accounts')
+// TRANSLATORS Placeholder text for searching scope groups in policy picker.
+const searchGroupsPlaceholder = t('libresign', 'Search scope groups')
+// TRANSLATORS Placeholder text for searching scope accounts in policy picker.
+const searchAccountsPlaceholder = t('libresign', 'Search scope accounts')
 const targetScopeSearchPlaceholder = computed(() => props.editorDraft.scope === 'group'
 	? searchGroupsPlaceholder
 	: searchAccountsPlaceholder)
