@@ -78,4 +78,65 @@ describe('LeftSidebar', () => {
 			expect(icon.attributes('data-path')).toBeTruthy()
 		}
 	})
+
+	describe('RULE: LeftSidebar config loading', () => {
+		it('loads config with optional properties', async () => {
+			loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
+				if (key === 'can_request_sign') return true
+				if (key === 'config') {
+					return {
+						identificationDocumentsFlow: false,
+						isApprover: false,
+					}
+				}
+				return fallback
+			})
+			getCurrentUserMock.mockReturnValue({ isAdmin: false })
+
+			const wrapper = mount(LeftSidebar, {
+				global: {
+					stubs: {
+						NcAppNavigation: true,
+						NcAppNavigationItem: true,
+						NcAppNavigationSettings: true,
+						NcIconSvgWrapper: true,
+						Settings: true,
+					},
+				},
+			})
+
+			// Component should mount successfully with the config
+			expect(wrapper.exists()).toBe(true)
+		})
+
+		it('renders without requiring can_manage_group_policies in config', async () => {
+			loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
+				if (key === 'can_request_sign') return true
+				if (key === 'config') {
+					return {
+						identificationDocumentsFlow: false,
+						isApprover: false,
+						// Deliberately omit can_manage_group_policies
+					}
+				}
+				return fallback
+			})
+			getCurrentUserMock.mockReturnValue({ isAdmin: false })
+
+			const wrapper = mount(LeftSidebar, {
+				global: {
+					stubs: {
+						NcAppNavigation: true,
+						NcAppNavigationItem: true,
+						NcAppNavigationSettings: true,
+						NcIconSvgWrapper: true,
+						Settings: true,
+					},
+				},
+			})
+
+			// Component should still render fine even without these fields
+			expect(wrapper.exists()).toBe(true)
+		})
+	})
 })
