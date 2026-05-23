@@ -95,7 +95,7 @@ function mountWorkbench() {
 				},
 				NcSelectUsers: {
 					props: ['placeholder', 'ariaLabel'],
-					template: '<div class="nc-select-users-stub"><label>{{ ariaLabel }}</label><span>{{ placeholder }}</span><button type="button" class="nc-select-users-stub__select" @click="$emit(\'update:modelValue\', [{ id: \'user-1\' }])">Select target</button></div>',
+					template: '<div class="nc-select-users-stub"><label>{{ ariaLabel }}</label><span>{{ placeholder }}</span><button type="button" class="nc-select-users-stub__select" @click="$emit(\'update:modelValue\', [{ id: { uid: \'user-1\' } }])">Select target</button></div>',
 				},
 				NcActions: {
 					props: ['open', 'ariaLabel'],
@@ -188,8 +188,8 @@ describe('RealPolicyWorkbench.vue', () => {
 		const editorText = editorModal.text()
 		expect(editorText).toContain('Priority: Account > Group > Default')
 		expect(editorText).not.toContain('This rule overrides group and default settings for selected users.')
-		expect(editorText).toContain('Target accounts')
-		expect(editorText).toContain('Search accounts')
+		expect(editorText).toContain('Scope accounts')
+		expect(editorText).toContain('Search scope accounts')
 		expect(editorText).toContain('Parallel')
 		expect(editorText).toContain('Sequential')
 		expect(editorText).toContain('Using instance default')
@@ -460,7 +460,7 @@ describe('RealPolicyWorkbench.vue', () => {
 	it('hides allow-lower-level-customization toggle for request access by group', async () => {
 		const wrapper = mountWorkbench()
 
-		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Request access by group')
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signature request access')
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
@@ -534,6 +534,8 @@ describe('RealPolicyWorkbench.vue', () => {
 
 		// Validate counts shown
 		expect(text).toContain('Custom rules:none')
+		expect(text).toContain('Default access:Not configured')
+		expect(text).toContain('Custom overrides:none configured')
 		expect(text).not.toContain('Custom rules active')
 
 		// Validate migrated settings are present in the workbench catalog
