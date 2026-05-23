@@ -38,7 +38,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 		$body = json_decode($response->getBody()->getContents(), true);
 		$this->assertCount(1, $body['ocs']['data']['errors']);
 		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
-		$this->assertEquals('You are not allowed to request signing', $body['ocs']['data']['errors'][0]['message']);
+		$this->assertEquals('You are not allowed to create signature requests', $body['ocs']['data']['errors'][0]['message']);
 	}
 
 	/**
@@ -101,7 +101,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 		$body = json_decode($response->getBody()->getContents(), true);
 		$this->assertCount(1, $body['ocs']['data']['errors']);
 		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
-		$this->assertEquals('You are not allowed to request signing', $body['ocs']['data']['errors'][0]['message']);
+		$this->assertEquals('You are not allowed to create signature requests', $body['ocs']['data']['errors'][0]['message']);
 	}
 
 	/**
