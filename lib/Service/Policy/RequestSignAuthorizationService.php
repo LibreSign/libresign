@@ -20,6 +20,16 @@ class RequestSignAuthorizationService {
 	) {
 	}
 
+	/**
+	 * Check if a user is authorized to create signature requests.
+	 *
+	 * This evaluates the delegated RBAC policy 'groups_request_sign' which controls
+	 * which groups are authorized to create signature requests within the current scope.
+	 * Administrators can only authorize groups they themselves belong to.
+	 *
+	 * @param IUser|null $user The user to check (typically current user)
+	 * @return bool True if user belongs to at least one authorized requester group
+	 */
 	public function canRequestSign(?IUser $user = null): bool {
 		if (!$user instanceof IUser) {
 			return false;
