@@ -10,12 +10,11 @@ namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\IdentifyMethods;
 
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class IdentifyMethodsPolicyValueTest extends TestCase {
-	/**
-	 * @dataProvider provideNormalizeCases
-	 */
+	#[DataProvider('provideNormalizeCases')]
 	public function testNormalizeWithDataProvider(mixed $rawValue, array $expected): void {
 		self::assertSame($expected, IdentifyMethodsPolicyValue::normalize($rawValue));
 	}
