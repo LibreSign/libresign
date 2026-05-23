@@ -332,22 +332,24 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$result = $instance->toArray();
 
 		$ouFound = null;
+		$ouPresent = false;
 		foreach ($result['rootCert']['names'] as $name) {
 			if ($name['id'] === 'OU') {
+				$ouPresent = true;
 				$ouFound = $name['value'];
 				break;
 			}
 		}
 
 		if (!empty($expectedOuValues)) {
-			$this->assertNotNull($ouFound, "OU should be present in names array: $description");
+			$this->assertTrue($ouPresent, "OU should be present in names array: $description");
 			$this->assertEquals(
 				$expectedOuValues,
 				$ouFound,
 				"OrganizationalUnit filtering: $description"
 			);
 		} else {
-			$this->assertNull($ouFound, "OU should not be present when filtered to empty: $description");
+			$this->assertFalse($ouPresent, "OU should not be present when filtered to empty: $description");
 		}
 	}
 
