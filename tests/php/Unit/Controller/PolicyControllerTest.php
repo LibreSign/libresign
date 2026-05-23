@@ -173,12 +173,9 @@ final class PolicyControllerTest extends TestCase {
 	}
 
 	public function testEffectiveEmbedsSubAdminRuleCountsForManagedGroupsOnly(): void {
-		$group = $this->createMock(IGroup::class);
-		$group->method('getGID')->willReturn('finance');
-
 		$this->groupManager->method('isAdmin')->with('admin')->willReturn(false);
 		$this->subAdmin->method('isSubAdmin')->with($this->currentUser)->willReturn(true);
-		$this->subAdmin->method('getSubAdminsGroups')->with($this->currentUser)->willReturn([$group]);
+		$this->groupManager->method('getUserGroupIds')->with($this->currentUser)->willReturn(['finance']);
 
 		$this->policyService
 			->expects($this->once())
@@ -206,6 +203,59 @@ final class PolicyControllerTest extends TestCase {
 
 		$this->assertSame(1, $response->getData()['policies']['signature_flow']['groupCount']);
 		$this->assertSame(0, $response->getData()['policies']['signature_flow']['userCount']);
+	}
+
+	public function testEffectiveKeepsNonEditablePoliciesVisibleForSubAdmin(): void {
+		$this->groupManager->method('isAdmin')->with('admin')->willReturn(false);
+		$this->subAdmin->method('isSubAdmin')->with($this->currentUser)->willReturn(true);
+		$this->groupManager->method('getUserGroupIds')->with($this->currentUser)->willReturn(['finance']);
+
+		$this->policyService
+			->expects($this->once())
+			->method('getRuleCounts')
+			->with(['finance'], [])
+			->willReturn([
+				'signature_flow' => ['groupCount' => 1, 'userCount' => 0],
+				'signature_text' => ['groupCount' => 2, 'userCount' => 0],
+			]);
+
+		$editablePolicy = (new ResolvedPolicy())
+			->setPolicyKey('signature_flow')
+			->setEffectiveValue('ordered_numeric')
+			->setSourceScope('group')
+			->setVisible(true)
+			->setEditableByCurrentActor(true)
+			->setAllowedValues(['ordered_numeric'])
+			->setCanSaveAsUserDefault(false)
+			->setCanUseAsRequestOverride(false)
+			->setPreferenceWasCleared(false)
+			->setBlockedBy(null);
+
+		$nonEditablePolicy = (new ResolvedPolicy())
+			->setPolicyKey('signature_text')
+			->setEffectiveValue('Hello')
+			->setSourceScope('system')
+			->setVisible(true)
+			->setEditableByCurrentActor(false)
+			->setAllowedValues([])
+			->setCanSaveAsUserDefault(false)
+			->setCanUseAsRequestOverride(false)
+			->setPreferenceWasCleared(false)
+			->setBlockedBy('system');
+
+		$this->policyService
+			->method('resolveKnownPolicies')
+			->willReturn([
+				'signature_flow' => $editablePolicy,
+				'signature_text' => $nonEditablePolicy,
+			]);
+
+		$response = $this->controller->effective();
+		$policies = $response->getData()['policies'];
+
+		$this->assertArrayHasKey('signature_flow', $policies);
+		$this->assertArrayHasKey('signature_text', $policies);
+		$this->assertFalse($policies['signature_text']['editableByCurrentActor']);
 	}
 
 	public function testEffectiveEmbedsZeroCountsForRegularUser(): void {
@@ -589,19 +639,18 @@ final class PolicyControllerTest extends TestCase {
 	}
 
 	public function testSetGroupAllowsSubAdminOfTargetGroup(): void {
-		$group = $this->createMock(IGroup::class);
 		$this->groupManager
 			->method('isAdmin')
 			->with('admin')
 			->willReturn(false);
-		$this->groupManager
-			->method('get')
-			->with('finance')
-			->willReturn($group);
 		$this->subAdmin
-			->method('isSubAdminOfGroup')
-			->with($this->currentUser, $group)
+			->method('isSubAdmin')
+			->with($this->currentUser)
 			->willReturn(true);
+		$this->groupManager
+			->method('getUserGroupIds')
+			->with($this->currentUser)
+			->willReturn(['finance', 'board']);
 
 		$this->l10n
 			->expects($this->once())
@@ -980,32 +1029,20 @@ final class PolicyControllerTest extends TestCase {
 		], $response->getData());
 	}
 
-	public function testSetGroupRejectsRequestSignGroupsOutsideSubAdminScope(): void {
-		$managedGroup = $this->createMock(IGroup::class);
-		$managedGroup->method('getGID')->willReturn('finance');
-
-		$targetGroup = $this->createMock(IGroup::class);
+	public function testSetGroupRejectsRequestSignGroupsOutsideMembershipScope(): void {
 
 		$this->groupManager
 			->method('isAdmin')
 			->willReturn(false);
 		$this->groupManager
-			->method('get')
-			->with('finance')
-			->willReturn($targetGroup);
+			->method('getUserGroupIds')
+			->with($this->currentUser)
+			->willReturn(['finance']);
 
-		$this->subAdmin
-			->method('isSubAdminOfGroup')
-			->with($this->currentUser, $targetGroup)
-			->willReturn(true);
 		$this->subAdmin
 			->method('isSubAdmin')
 			->with($this->currentUser)
 			->willReturn(true);
-		$this->subAdmin
-			->method('getSubAdminsGroups')
-			->with($this->currentUser)
-			->willReturn([$managedGroup]);
 
 		$this->l10n
 			->expects($this->once())
