@@ -133,7 +133,7 @@ describe('Preferences view', () => {
 		expect(fetchEffectivePoliciesMock).toHaveBeenCalledTimes(1)
 	}, 10000)
 
-	it('hides all preferences when user cannot request signatures', async () => {
+	it('hides all preferences when user cannot create signature requests', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
 			if (key === 'can_request_sign') {
 				return false
