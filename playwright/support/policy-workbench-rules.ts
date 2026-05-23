@@ -23,8 +23,23 @@ async function clickRemoveAction(page: Page): Promise<boolean> {
 		return false
 	}
 
-	await actionItem.click({ timeout: 1500 })
-	return true
+	await actionItem.scrollIntoViewIfNeeded().catch(() => {})
+
+	const clickedNormally = await actionItem
+		.click({ timeout: 1500 })
+		.then(() => true)
+		.catch(() => false)
+
+	if (clickedNormally) {
+		return true
+	}
+
+	const clickedForced = await actionItem
+		.click({ timeout: 1500, force: true })
+		.then(() => true)
+		.catch(() => false)
+
+	return clickedForced
 }
 
 export async function clearPolicyWorkbenchRules(
