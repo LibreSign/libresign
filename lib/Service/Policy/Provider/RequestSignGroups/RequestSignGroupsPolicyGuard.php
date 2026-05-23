@@ -75,9 +75,11 @@ final class RequestSignGroupsPolicyGuard {
 			return [];
 		}
 
-		return array_values(array_map(
-			static fn (IGroup $group): string => $group->getGID(),
-			$this->subAdmin->getSubAdminsGroups($user),
-		));
+		$groupIds = array_filter(
+			$this->groupManager->getUserGroupIds($user),
+			static fn (mixed $groupId): bool => is_string($groupId) && trim($groupId) !== '',
+		);
+
+		return array_values(array_unique($groupIds));
 	}
 }
