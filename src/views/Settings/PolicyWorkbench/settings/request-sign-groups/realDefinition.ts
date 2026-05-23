@@ -12,15 +12,23 @@ import { DEFAULT_REQUEST_SIGN_GROUPS, resolveRequestSignGroups, serializeRequest
 
 export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 	key: 'groups_request_sign',
-	title: t('libresign', 'Request access by group'),
-	description: t('libresign', 'Control which groups can request signatures.'),
+	// TRANSLATORS Catalog title for policy controlling which groups can create signature requests.
+	title: t('libresign', 'Signature request access'),
+	// TRANSLATORS Catalog description: this policy delegates signature-request creation rights by scope.
+	description: t('libresign', 'Define which groups may create signature requests within this scope. Administrators may authorize only groups they belong to.'),
 	supportedScopes: ['system', 'group'],
 	editor: RequestSignGroupsRuleEditor,
 	resolutionMode: 'precedence',
-	createEmptyValue: () => serializeRequestSignGroups(DEFAULT_REQUEST_SIGN_GROUPS),
+	createEmptyValue: () => serializeRequestSignGroups([]),
 	normalizeDraftValue: (value: EffectivePolicyValue) => serializeRequestSignGroups(value),
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => resolveRequestSignGroups(value).length > 0,
-	normalizeAllowChildOverride: () => false,
+	normalizeAllowChildOverride: (scope, allowChildOverride) => {
+		if (scope === 'user') {
+			return false
+		}
+
+		return allowChildOverride
+	},
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
 		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
 			return policyValue
@@ -31,14 +39,20 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const groupIds = resolveRequestSignGroups(value)
 		if (groupIds.length === 0) {
-			return t('libresign', 'No groups allowed')
+			// TRANSLATORS Summary text when no requester groups are configured in this rule.
+			return t('libresign', 'none configured')
 		}
 
 		if (groupIds.length <= 2) {
 			return groupIds.join(', ')
 		}
 
-		return t('libresign', '{count} groups allowed', { count: String(groupIds.length) })
+		// TRANSLATORS {count} is the number of groups authorized to create signature requests.
+		return t('libresign', '{count} authorized requester groups', { count: String(groupIds.length) })
 	},
-	formatAllowOverride: () => t('libresign', 'Lower-level customization is disabled for this setting'),
+	formatAllowOverride: (allowChildOverride: boolean) => allowChildOverride
+		// TRANSLATORS Summary when system policy allows group admins to define requester-group rules.
+		? t('libresign', 'Group admins can define scope-specific requester groups')
+		// TRANSLATORS Summary when system policy blocks group-admin requester-group customization.
+		: t('libresign', 'Group admins must inherit the system requester groups'),
 }
