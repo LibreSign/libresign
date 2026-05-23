@@ -37,9 +37,9 @@ final class PolicyContextFactoryTest extends TestCase {
 		$user->method('getUID')->willReturn('john');
 
 		$this->userSession->expects($this->once())->method('getUser')->willReturn($user);
-		$this->groupManager->expects($this->exactly(2))->method('getUserGroupIds')->with($user)->willReturn(['finance']);
+		$this->groupManager->expects($this->exactly(3))->method('getUserGroupIds')->with($user)->willReturn(['finance']);
 		$this->groupManager->expects($this->once())->method('isAdmin')->with('john')->willReturn(false);
-		$this->subAdmin->expects($this->once())->method('isSubAdmin')->with($user)->willReturn(false);
+		$this->subAdmin->expects($this->never())->method('isSubAdmin');
 
 		$factory = $this->getFactory();
 		$context = $factory->forCurrentUser(['signature_flow' => 'parallel'], ['type' => 'group', 'id' => 'finance']);
@@ -48,6 +48,28 @@ final class PolicyContextFactoryTest extends TestCase {
 		$this->assertSame(['finance'], $context->getGroups());
 		$this->assertSame(['signature_flow' => 'parallel'], $context->getRequestOverrides());
 		$this->assertSame(['type' => 'group', 'id' => 'finance'], $context->getActiveContext());
+		$this->assertSame([
+			'canManageSystemPolicies' => false,
+			'canManageGroupPolicies' => true,
+		], $context->getActorCapabilities());
+	}
+
+	public function testForCurrentUserHasNoGroupPolicyCapabilityWhenActorHasNoGroups(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('solo');
+
+		$this->userSession->expects($this->once())->method('getUser')->willReturn($user);
+		$this->groupManager->expects($this->once())->method('isAdmin')->with('solo')->willReturn(false);
+		$this->groupManager->expects($this->exactly(2))->method('getUserGroupIds')->with($user)->willReturn([]);
+		$this->subAdmin->expects($this->never())->method('isSubAdmin');
+
+		$factory = $this->getFactory();
+		$context = $factory->forCurrentUser();
+
+		$this->assertSame([
+			'canManageSystemPolicies' => false,
+			'canManageGroupPolicies' => false,
+		], $context->getActorCapabilities());
 	}
 
 	public function testForUserIdLoadsUserWhenAvailable(): void {
