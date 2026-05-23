@@ -769,9 +769,13 @@ abstract class AEngineHandler implements IEngineHandler {
 		);
 		$names = $this->getNames();
 		foreach ($names as $name => $value) {
+			$filteredValue = $this->filterNameValue($name, $value, $generated);
+			if ($filteredValue === null) {
+				continue;
+			}
 			$return['rootCert']['names'][] = [
 				'id' => $name,
-				'value' => $this->filterNameValue($name, $value, $generated),
+				'value' => $filteredValue,
 			];
 		}
 		return $return;
