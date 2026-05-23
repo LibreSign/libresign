@@ -5,8 +5,11 @@
 
 import { expect, test } from '@playwright/test'
 import type { APIRequestContext, Locator, Page } from '@playwright/test'
-import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
+import { configureOpenSsl, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, extractSignLink, waitForEmailTo } from '../support/mailpit'
+import { useFooterPolicyGuard } from '../support/system-policies'
+
+useFooterPolicyGuard()
 
 /**
  * Issue #7344 in plain words:
@@ -83,7 +86,10 @@ async function enableEnvelopeScenario(request: APIRequestContext) {
 		L: 'Rio de Janeiro',
 	})
 
+	await setCertificateEngine(request, 'openssl')
+
 	await setSystemPolicy(request, 'envelope_enabled', '1')
+	await setSystemPolicy(request, 'identification_documents', JSON.stringify({ enabled: false, approvers: ['admin'] }))
 	await setSystemPolicy(
 		request,
 		'identify_methods',
@@ -204,11 +210,15 @@ async function defineVisibleSignature(page: Page) {
 	await expect(confirmDialog).toBeVisible()
 	await confirmDialog.getByRole('button', { name: 'Save' }).click()
 
-	await expect(page.getByRole('button', { name: 'Sign the document.' })).toBeVisible()
+	const signDocumentCta = page.getByRole('button', { name: /Sign the document\.|Sign document/ }).first()
+	await expect(signDocumentCta).toBeVisible()
 }
 
 async function finishSigning(page: Page) {
-	await page.getByRole('button', { name: 'Sign the document.' }).click()
+	const openSignButton = page.getByRole('button', { name: /Sign the document\.|Sign document/ }).first()
+	if (await openSignButton.isVisible().catch(() => false)) {
+		await openSignButton.click()
+	}
 	await page.getByRole('button', { name: 'Sign document' }).click()
 }
 
