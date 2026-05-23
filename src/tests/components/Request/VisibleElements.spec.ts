@@ -714,7 +714,7 @@ describe('VisibleElements Component - Business Rules', () => {
 	})
 
 	describe('RULE: modal open constraints', () => {
-		it('does not open modal when user cannot request signatures', async () => {
+		it('does not open modal when user cannot create signature requests', async () => {
 			wrapper.vm.canRequestSign = false
 
 			await wrapper.vm.showModal()
