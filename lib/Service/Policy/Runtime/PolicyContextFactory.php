@@ -61,17 +61,25 @@ final class PolicyContextFactory {
 
 	/** @param array<string, mixed> $requestOverrides */
 	private function build(?string $userId, ?IUser $user, array $requestOverrides = [], ?array $activeContext = null, ?IUser $currentActor = null): PolicyContext {
-		$validatedActiveContext = $this->validateActiveContext($activeContext, $currentActor);
+		$isCurrentActorContext = $user instanceof IUser && $currentActor instanceof IUser && $user === $currentActor;
+		$sharedGroupIds = [];
+		if ($isCurrentActorContext) {
+			$sharedGroupIds = $this->getUserGroupIds($user);
+		}
+
+		$actorGroupIds = $isCurrentActorContext ? $sharedGroupIds : null;
+
+		$validatedActiveContext = $this->validateActiveContext($activeContext, $currentActor, $actorGroupIds);
 
 		$context = (new PolicyContext())
 			->setRequestOverrides($requestOverrides)
 			->setActiveContext($validatedActiveContext)
-			->setActorCapabilities($this->resolveActorCapabilities($currentActor));
+			->setActorCapabilities($this->resolveActorCapabilities($currentActor, $actorGroupIds));
 
 		if ($userId !== null && $userId !== '') {
 			$context->setUserId($userId);
 			if ($user instanceof IUser) {
-				$context->setGroups($this->groupManager->getUserGroupIds($user));
+				$context->setGroups($isCurrentActorContext ? $sharedGroupIds : $this->getUserGroupIds($user));
 			}
 		}
 
@@ -81,7 +89,7 @@ final class PolicyContextFactory {
 	/** @param array<string, mixed>|null $activeContext
 	 * @return array<string, mixed>|null
 	 */
-	private function validateActiveContext(?array $activeContext, ?IUser $currentActor): ?array {
+	private function validateActiveContext(?array $activeContext, ?IUser $currentActor, ?array $currentActorGroupIds = null): ?array {
 		if ($activeContext === null) {
 			return null;
 		}
@@ -93,7 +101,12 @@ final class PolicyContextFactory {
 		}
 
 		$groupId = trim($id);
-		if (!$currentActor instanceof IUser || !in_array($groupId, $this->groupManager->getUserGroupIds($currentActor), true)) {
+		if (!$currentActor instanceof IUser) {
+			throw new LibresignException('You are not allowed to use this policy context.', Http::STATUS_UNPROCESSABLE_ENTITY);
+		}
+
+		$actorGroupIds = $currentActorGroupIds ?? $this->getUserGroupIds($currentActor);
+		if (!in_array($groupId, $actorGroupIds, true)) {
 			throw new LibresignException('You are not allowed to use this policy context.', Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
 
@@ -103,25 +116,50 @@ final class PolicyContextFactory {
 		];
 	}
 
-	/** @return array<string, bool> */
-	private function resolveActorCapabilities(?IUser $currentActor): array {
+	/** @return array<string, bool|int> */
+	private function resolveActorCapabilities(?IUser $currentActor, ?array $currentActorGroupIds = null): array {
 		if (!$currentActor instanceof IUser) {
 			return [
 				'canManageSystemPolicies' => false,
 				'canManageGroupPolicies' => false,
+				'manageableGroupCount' => 0,
 			];
 		}
 
 		$userId = $currentActor->getUID();
 		$canManageSystemPolicies = $this->groupManager->isAdmin($userId) === true;
-		$hasGroupMembership = array_values(array_filter(
-			$this->groupManager->getUserGroupIds($currentActor),
+		if ($canManageSystemPolicies) {
+			return [
+				'canManageSystemPolicies' => true,
+				'canManageGroupPolicies' => true,
+				'manageableGroupCount' => PHP_INT_MAX,
+			];
+		}
+
+		$actorGroupIds = $currentActorGroupIds ?? $this->getUserGroupIds($currentActor);
+		$manageableGroupIds = array_values(array_filter(
+			$actorGroupIds,
 			static fn (mixed $groupId): bool => is_string($groupId) && trim($groupId) !== '',
-		)) !== [];
+		));
+		$hasGroupMembership = $manageableGroupIds !== [];
 
 		return [
 			'canManageSystemPolicies' => $canManageSystemPolicies,
 			'canManageGroupPolicies' => $canManageSystemPolicies || $hasGroupMembership,
+			'manageableGroupCount' => count($manageableGroupIds),
 		];
+	}
+
+	/** @return list<string> */
+	private function getUserGroupIds(?IUser $user): array {
+		if (!$user instanceof IUser) {
+			return [];
+		}
+
+		$groupIds = $this->groupManager->getUserGroupIds($user);
+		return array_values(array_filter(
+			$groupIds,
+			static fn (mixed $groupId): bool => is_string($groupId) && trim($groupId) !== '',
+		));
 	}
 }
