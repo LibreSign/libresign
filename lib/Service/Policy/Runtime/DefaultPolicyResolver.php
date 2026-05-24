@@ -14,6 +14,7 @@ use OCA\Libresign\Service\Policy\Contract\IPolicySource;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 
 final class DefaultPolicyResolver implements IPolicyResolver {
 	public function __construct(
@@ -63,7 +64,9 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		$isSystemExplicitlyGrantedForGroupAdmin = $systemLayer !== null
 			&& $systemLayer->getScope() === 'global'
 			&& $systemLayer->isAllowChildOverride();
-		// Personal preferences are also closed by default unless system delegation is explicit.
+		// Personal preferences are closed by default for implicit system defaults,
+		// but should remain available when a managed group layer is configured and
+		// the hierarchy still allows the user-level override.
 		$isSystemExplicitlyGrantedForUserPreference = $systemLayer !== null
 			&& $systemLayer->getScope() === 'global'
 			&& $systemLayer->isAllowChildOverride();
@@ -153,7 +156,11 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		$canPersistUserPreference = $visible
 			&& $canOverrideBelow
 			&& $definition->supportsUserPreference()
-			&& ($currentActorCanManageSystemPolicies || $isSystemExplicitlyGrantedForUserPreference);
+			&& (
+				$currentActorCanManageSystemPolicies
+				|| $isSystemExplicitlyGrantedForUserPreference
+				|| $hasConfiguredGroupLayer
+			);
 
 		$resolved
 			->setEffectiveValue($currentValue)
@@ -315,6 +322,10 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		}
 
 		if (($actorCapabilities['canManageGroupPolicies'] ?? false) === true) {
+			if (!$this->supportsGroupAdminConfigurationForActor($definition, $actorCapabilities)) {
+				return false;
+			}
+
 			// Group admins can manage when policy supports group-level configuration and:
 			// 1) system explicitly granted delegation, or
 			// 2) there is a configured managed group layer and hierarchy at group scope allows overrides.
@@ -324,6 +335,19 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		}
 
 		return false;
+	}
+
+	/** @param array<string, mixed> $actorCapabilities */
+	private function supportsGroupAdminConfigurationForActor(IPolicyDefinition $definition, array $actorCapabilities): bool {
+		if (!$definition->supportsGroupAdminConfiguration()) {
+			return false;
+		}
+
+		if ($definition->key() !== RequestSignGroupsPolicy::KEY) {
+			return true;
+		}
+
+		return (int)($actorCapabilities['manageableGroupCount'] ?? 0) > 1;
 	}
 
 	/** @param list<mixed> $currentAllowedValues
