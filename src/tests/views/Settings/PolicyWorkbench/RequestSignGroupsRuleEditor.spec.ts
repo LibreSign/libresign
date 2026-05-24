@@ -49,17 +49,23 @@ vi.mock('@nextcloud/router', () => ({
 
 import RequestSignGroupsRuleEditor from '../../../../views/Settings/PolicyWorkbench/settings/request-sign-groups/RequestSignGroupsRuleEditor.vue'
 
+const NcSelectStub = {
+	name: 'NcSelect',
+	props: ['options'],
+	template: '<div class="nc-select-stub">{{ JSON.stringify(options) }}</div>',
+}
+
 function mountEditor(modelValue = '["finance"]') {
 	return mount(RequestSignGroupsRuleEditor, {
 		props: {
 			modelValue,
+			editorScope: 'system',
+			editorMode: 'edit',
+			editorTargetIds: [],
 		},
 		global: {
 			stubs: {
-				NcSelect: {
-					props: ['options'],
-					template: '<div class="nc-select-stub">{{ JSON.stringify(options) }}</div>',
-				},
+				NcSelect: NcSelectStub,
 			},
 		},
 	})
@@ -72,6 +78,20 @@ function mountEditorWithScopeState(modelValue = '[]', hasSelectedTargets = false
 			editorScope: 'group',
 			editorMode: 'create',
 			hasSelectedTargets,
+		},
+		global: {
+			stubs: {
+				NcSelect: NcSelectStub,
+			},
+		},
+	})
+}
+
+function mountEditorWithProps(modelValue: string, props: Record<string, unknown>) {
+	return mount(RequestSignGroupsRuleEditor, {
+		props: {
+			modelValue,
+			...props,
 		},
 		global: {
 			stubs: {
@@ -273,5 +293,70 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 		await Promise.resolve()
 
 		expect(wrapperWithTargets.text()).toContain('Authorized requester groups')
+	})
+
+	it('re-adds managed target group when group admin tries to remove it in edit mode', async () => {
+		currentUserState.isAdmin = false
+		initialConfigState.manageable_policy_group_ids = ['board', 'company']
+		axiosGet.mockReset()
+		axiosGet.mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						groups: ['board', 'company'],
+					},
+				},
+			},
+		})
+
+		const wrapper = mountEditorWithProps('["board","company"]', {
+			editorScope: 'group',
+			editorMode: 'edit',
+			editorTargetIds: ['board'],
+		})
+		await Promise.resolve()
+		await Promise.resolve()
+
+		const select = wrapper.findComponent(NcSelectStub)
+		select.vm.$emit('update:modelValue', ['company'])
+
+		const updateEvents = wrapper.emitted('update:modelValue')
+		expect(updateEvents).toBeTruthy()
+		expect(updateEvents?.at(-1)?.[0]).toBe('["board","company"]')
+		expect(wrapper.text()).toContain('Your managed group must remain authorized in this rule.')
+	})
+
+	it('does not force target group for instance admin in edit mode', async () => {
+		currentUserState.isAdmin = true
+		initialConfigState.manageable_policy_group_ids = ['board']
+		axiosGet.mockReset()
+		axiosGet.mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						groups: [
+							{ id: 'board', displayname: 'Board' },
+							{ id: 'company', displayname: 'Company' },
+						],
+					},
+				},
+			},
+		})
+
+		const wrapper = mountEditorWithProps('["board","company"]', {
+			editorScope: 'group',
+			editorMode: 'edit',
+			editorTargetIds: ['board'],
+		})
+		await Promise.resolve()
+		await Promise.resolve()
+
+		const select = wrapper.findComponent(NcSelectStub)
+		select.vm.$emit('update:modelValue', ['company'])
+
+		const updateEvents = wrapper.emitted('update:modelValue')
+		expect(updateEvents).toBeTruthy()
+		expect(updateEvents?.at(-1)?.[0]).toBe('["company"]')
+		expect(wrapper.text()).not.toContain('Your managed group must remain authorized in this rule.')
 	})
 })
