@@ -14,10 +14,10 @@ vi.mock('@nextcloud/l10n', () => ({
 import { requestSignGroupsRealDefinition } from '../../../../../../views/Settings/PolicyWorkbench/settings/request-sign-groups/realDefinition'
 
 describe('requestSignGroupsRealDefinition', () => {
-	it('allows overriding child customization at system and group scopes', () => {
+	it('allows overriding child customization only at system scope', () => {
 		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('system', true)).toBe(true)
 		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('system', false)).toBe(false)
-		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('group', true)).toBe(true)
+		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('group', true)).toBe(false)
 		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('group', false)).toBe(false)
 		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('user', true)).toBe(false)
 		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('user', false)).toBe(false)
