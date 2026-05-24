@@ -147,6 +147,8 @@ class PolicyService {
 	public function saveUserPreference(string|\BackedEnum $policyKey, mixed $value): ResolvedPolicy {
 		$context = $this->contextFactory->forCurrentUser();
 		$definition = $this->registry->get($policyKey);
+		$normalizedValue = $definition->normalizeValue($value);
+		$definition->validateValue($normalizedValue, $context);
 		$resolved = $this->resolver->resolve($definition, $context);
 		if (!$resolved->canSaveAsUserDefault()) {
 			throw new \InvalidArgumentException($this->l10n->t('Saving a user preference is not allowed for {policyKey}', [
@@ -154,8 +156,6 @@ class PolicyService {
 			]));
 		}
 
-		$normalizedValue = $definition->normalizeValue($value);
-		$definition->validateValue($normalizedValue, $context);
 		$this->source->saveUserPreference($definition->key(), $context, $normalizedValue);
 
 		return $this->resolver->resolve($definition, $context);
