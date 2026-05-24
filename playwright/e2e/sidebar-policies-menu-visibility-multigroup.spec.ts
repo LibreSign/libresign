@@ -64,97 +64,75 @@ const MULTI_GROUP_ADMIN_PASSWORD = '123456'
 const REGULAR_USER_NAME = `regular-user-${TEST_NAMESPACE}`
 const REGULAR_USER_PASSWORD = '123456'
 
-test.beforeAll(async ({ browser }) => {
-	// Use browser context directly for provisioning
-	const ctx = browser.contexts()[0]
-	const page = ctx.pages()[0] ?? (await ctx.newPage())
-
-	const adminCtx = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
-
-	try {
-		// Create groups
-		await ensureGroupExists(page.request, GROUP_1)
-		await ensureGroupExists(page.request, GROUP_2)
+test.describe('Policies menu sidebar visibility', () => {
+	test('instance admin sees Policies menu in sidebar', async ({ page, adminRequestContext }) => {
+		// Provision groups and users using the admin request context
+		await ensureGroupExists(adminRequestContext, GROUP_1)
+		await ensureGroupExists(adminRequestContext, GROUP_2)
 
 		// Create single-group admin
-		await ensureUserExists(page.request, SINGLE_GROUP_ADMIN_NAME, SINGLE_GROUP_ADMIN_PASSWORD)
-		await ensureUserInGroup(page.request, SINGLE_GROUP_ADMIN_NAME, GROUP_1)
-		await ensureSubadminOfGroup(page.request, SINGLE_GROUP_ADMIN_NAME, GROUP_1)
-		await setUserLanguage(page.request, SINGLE_GROUP_ADMIN_NAME, 'en')
+		await ensureUserExists(adminRequestContext, SINGLE_GROUP_ADMIN_NAME, SINGLE_GROUP_ADMIN_PASSWORD)
+		await ensureUserInGroup(adminRequestContext, SINGLE_GROUP_ADMIN_NAME, GROUP_1)
+		await ensureSubadminOfGroup(adminRequestContext, SINGLE_GROUP_ADMIN_NAME, GROUP_1)
+		await setUserLanguage(adminRequestContext, SINGLE_GROUP_ADMIN_NAME, 'en')
 
 		// Create multi-group admin
-		await ensureUserExists(page.request, MULTI_GROUP_ADMIN_NAME, MULTI_GROUP_ADMIN_PASSWORD)
-		await ensureUserInGroup(page.request, MULTI_GROUP_ADMIN_NAME, GROUP_1)
-		await ensureUserInGroup(page.request, MULTI_GROUP_ADMIN_NAME, GROUP_2)
-		await ensureSubadminOfGroup(page.request, MULTI_GROUP_ADMIN_NAME, GROUP_1)
-		await ensureSubadminOfGroup(page.request, MULTI_GROUP_ADMIN_NAME, GROUP_2)
-		await setUserLanguage(page.request, MULTI_GROUP_ADMIN_NAME, 'en')
+		await ensureUserExists(adminRequestContext, MULTI_GROUP_ADMIN_NAME, MULTI_GROUP_ADMIN_PASSWORD)
+		await ensureUserInGroup(adminRequestContext, MULTI_GROUP_ADMIN_NAME, GROUP_1)
+		await ensureUserInGroup(adminRequestContext, MULTI_GROUP_ADMIN_NAME, GROUP_2)
+		await ensureSubadminOfGroup(adminRequestContext, MULTI_GROUP_ADMIN_NAME, GROUP_1)
+		await ensureSubadminOfGroup(adminRequestContext, MULTI_GROUP_ADMIN_NAME, GROUP_2)
+		await setUserLanguage(adminRequestContext, MULTI_GROUP_ADMIN_NAME, 'en')
 
 		// Create regular user
-		await ensureUserExists(page.request, REGULAR_USER_NAME, REGULAR_USER_PASSWORD)
-		await setUserLanguage(page.request, REGULAR_USER_NAME, 'en')
+		await ensureUserExists(adminRequestContext, REGULAR_USER_NAME, REGULAR_USER_PASSWORD)
+		await setUserLanguage(adminRequestContext, REGULAR_USER_NAME, 'en')
 
-		await adminCtx.dispose()
-	} finally {
-		if (page.context() !== ctx) {
-			await page.close()
-		}
-	}
-})
+		// Test instance admin
+		await login(page.request, ADMIN_USER, ADMIN_PASSWORD)
 
-test('instance admin sees Policies menu in sidebar', async ({ page }) => {
-	await login(page, ADMIN_USER, ADMIN_PASSWORD)
+		// Navigate to settings to ensure sidebar is visible
+		await expandSettingsMenu(page)
 
-	// Navigate to settings to ensure sidebar is visible
-	await expandSettingsMenu(page)
+		// Admin should see Policies menu item in the sidebar
+		const policiesLink = page.locator('#app-navigation-vue').getByRole('link', { name: 'Policies' })
+		await expect(policiesLink).toBeVisible()
+	})
 
-	// Look for Policies menu item
-	const policiesMenuItem = page.locator('[data-nav-id="policies"], [data-test-id="policies-menu"], a[href*="policies"]')
+	test('group admin with 1 group does NOT see Policies menu in sidebar', async ({ page }) => {
+		await login(page.request, SINGLE_GROUP_ADMIN_NAME, SINGLE_GROUP_ADMIN_PASSWORD)
 
-	// Admin should see it somewhere in the interface (Settings.vue component)
-	await expect(policiesMenuItem.or(page.locator('text="Policies"'))).toBeVisible()
-})
+		// Navigate to settings
+		await expandSettingsMenu(page)
 
-test('group admin with 1 group does NOT see Policies menu in sidebar', async ({ page }) => {
-	await login(page, SINGLE_GROUP_ADMIN_NAME, SINGLE_GROUP_ADMIN_PASSWORD)
+		// Policies menu should not be visible
+		const policiesLink = page.locator('#app-navigation-vue').getByRole('link', { name: 'Policies' })
 
-	// Navigate to settings
-	await expandSettingsMenu(page)
+		// Should not see Policies menu in sidebar navigation
+		await expect(policiesLink).not.toBeVisible()
+	})
 
-	// Policies menu should not be visible
-	const policiesMenuItems = page.locator('text="Policies"')
+	test('group admin with 2+ groups sees Policies menu in sidebar', async ({ page }) => {
+		await login(page.request, MULTI_GROUP_ADMIN_NAME, MULTI_GROUP_ADMIN_PASSWORD)
 
-	// Check that Policies menu item is not visible in the left sidebar
-	// (it might exist in HTML but should be hidden/v-if=false)
-	const visiblePoliciesItems = policiesMenuItems.filter({ hasText: 'Policies' })
-	const count = await visiblePoliciesItems.count()
+		// Navigate to settings
+		await expandSettingsMenu(page)
 
-	// Should not see Policies menu in sidebar navigation
-	expect(count).toBe(0)
-})
+		// Policies menu should be visible now that admin manages 2 groups
+		const policiesLink = page.locator('#app-navigation-vue').getByRole('link', { name: 'Policies' })
 
-test('group admin with 2+ groups sees Policies menu in sidebar', async ({ page }) => {
-	await login(page, MULTI_GROUP_ADMIN_NAME, MULTI_GROUP_ADMIN_PASSWORD)
+		await expect(policiesLink).toBeVisible()
+	})
 
-	// Navigate to settings
-	await expandSettingsMenu(page)
+	test('regular user without group management does NOT see Policies menu', async ({ page }) => {
+		await login(page.request, REGULAR_USER_NAME, REGULAR_USER_PASSWORD)
 
-	// Policies menu should be visible now that admin manages 2 groups
-	const policiesMenuItem = page.locator('[data-nav-id="policies"], text=Policies')
+		// Navigate to settings
+		await expandSettingsMenu(page)
 
-	await expect(policiesMenuItem).toBeVisible()
-})
+		// Regular user should not see Policies menu
+		const policiesLink = page.locator('#app-navigation-vue').getByRole('link', { name: 'Policies' })
 
-test('regular user without group management does NOT see Policies menu', async ({ page }) => {
-	await login(page, REGULAR_USER_NAME, REGULAR_USER_PASSWORD)
-
-	// Navigate to settings
-	await expandSettingsMenu(page)
-
-	// Regular user should not see Policies menu
-	const policiesMenuItems = page.locator('text="Policies"')
-	const visiblePoliciesItems = policiesMenuItems.filter({ hasText: 'Policies' })
-	const count = await visiblePoliciesItems.count()
-
-	expect(count).toBe(0)
+		await expect(policiesLink).not.toBeVisible()
+	})
 })
