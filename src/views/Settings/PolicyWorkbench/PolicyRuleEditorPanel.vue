@@ -36,6 +36,7 @@
 					v-bind="editorProps"
 					:editor-scope="editorDraft.scope"
 					:editor-mode="editorMode"
+					:editor-target-ids="editorDraft.targetIds"
 					:has-selected-targets="editorDraft.targetIds.length > 0"
 					@template-changed="$emit('template-changed')"
 					@update:modelValue="$emit('update-value', $event)" />
@@ -96,6 +97,7 @@ interface EditorDraft {
 	scope: 'system' | 'group' | 'user'
 	value: EffectivePolicyValue
 	allowChildOverride: boolean
+	targetIds: string[]
 }
 
 interface TargetOption {
