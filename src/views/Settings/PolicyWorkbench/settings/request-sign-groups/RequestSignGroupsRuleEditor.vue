@@ -37,6 +37,11 @@
 				<!-- TRANSLATORS Helper note: administrators can only authorize groups they are members of. -->
 				{{ t('libresign', 'Only groups you belong to may be authorized.') }}
 			</p>
+
+			<p v-if="requiredManagedGroupId" class="request-sign-groups-editor__helper request-sign-groups-editor__helper--warning">
+				<!-- TRANSLATORS Warning shown to delegated group admins while editing requester groups. -->
+				{{ t('libresign', 'Your managed group must remain authorized in this rule.') }}
+			</p>
 		</template>
 
 		<p v-else class="request-sign-groups-editor__setup-hint">
@@ -92,6 +97,7 @@ const props = defineProps<{
 	modelValue: EffectivePolicyValue
 	editorScope?: 'system' | 'group' | 'user'
 	editorMode?: 'create' | 'edit' | null
+	editorTargetIds?: string[]
 	hasSelectedTargets?: boolean
 }>()
 
@@ -133,6 +139,31 @@ const shouldShowRequesterGroupsEditor = computed(() => {
 		&& props.editorMode === 'create'
 		&& props.hasSelectedTargets === false
 	)
+})
+
+const requiredManagedGroupId = computed(() => {
+	if (isInstanceAdmin) {
+		return null
+	}
+
+	if (props.editorScope !== 'group' || props.editorMode !== 'edit') {
+		return null
+	}
+
+	const targetIds = Array.isArray(props.editorTargetIds)
+		? props.editorTargetIds.filter((targetId): targetId is string => typeof targetId === 'string' && targetId.trim().length > 0)
+		: []
+
+	if (targetIds.length !== 1) {
+		return null
+	}
+
+	const targetGroupId = targetIds[0] as string
+	if (!manageableGroupIds.has(targetGroupId)) {
+		return null
+	}
+
+	return targetGroupId
 })
 
 // TRANSLATORS Accessible label for the group multi-select that defines who can create signature requests.
@@ -192,10 +223,14 @@ function filterGroupsByManageableScope(groups: GroupRow[]): GroupRow[] {
 }
 
 function onGroupsChange(value: Array<GroupRow | string>) {
-	const nextSelectedGroupIds = value
+	let nextSelectedGroupIds = value
 		.map((group): string => typeof group === 'string' ? group : group.id)
 		.map((groupId) => groupId.trim())
 		.filter((groupId) => groupId.length > 0)
+
+	if (requiredManagedGroupId.value && !nextSelectedGroupIds.includes(requiredManagedGroupId.value)) {
+		nextSelectedGroupIds = [...nextSelectedGroupIds, requiredManagedGroupId.value]
+	}
 
 	selectedGroupIds.value = clampToManageableScope(nextSelectedGroupIds)
 
@@ -238,6 +273,11 @@ onMounted(async () => {
 		font-size: 0.78rem;
 		color: var(--color-text-maxcontrast);
 		overflow-wrap: anywhere;
+
+		&--warning {
+			color: var(--color-warning-text);
+			font-weight: 600;
+		}
 	}
 
 	&__setup-hint {
