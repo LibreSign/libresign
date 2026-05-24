@@ -34,7 +34,7 @@ final class RequestSignGroupsPolicyGuard {
 		throw new \InvalidArgumentException($this->l10n->t(self::USER_SCOPE_NOT_SUPPORTED_MESSAGE));
 	}
 
-	public function normalizeManagedValue(string $policyKey, mixed $value, bool $allowNullReset = false): mixed {
+	public function normalizeManagedValue(string $policyKey, mixed $value, bool $allowNullReset = false, ?string $requiredGroupId = null): mixed {
 		if ($policyKey !== RequestSignGroupsPolicy::KEY) {
 			return $value;
 		}
@@ -51,6 +51,14 @@ final class RequestSignGroupsPolicyGuard {
 		$groupIds = RequestSignGroupsPolicyValue::decode($value);
 		if ($groupIds === []) {
 			throw new \InvalidArgumentException($this->l10n->t('At least one authorized group is required'));
+		}
+
+		$isSystemAdmin = $this->groupManager->isAdmin($user->getUID());
+		if (!$isSystemAdmin
+			&& is_string($requiredGroupId)
+			&& trim($requiredGroupId) !== ''
+			&& !in_array($requiredGroupId, $groupIds, true)) {
+			throw new \InvalidArgumentException($this->l10n->t('You cannot remove your managed group from this rule'));
 		}
 
 		$allowedGroupIds = $this->resolveAllowedGroupIdsForActor($user);
