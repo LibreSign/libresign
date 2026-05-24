@@ -37,7 +37,7 @@ final class PolicyContextFactoryTest extends TestCase {
 		$user->method('getUID')->willReturn('john');
 
 		$this->userSession->expects($this->once())->method('getUser')->willReturn($user);
-		$this->groupManager->expects($this->exactly(3))->method('getUserGroupIds')->with($user)->willReturn(['finance']);
+		$this->groupManager->expects($this->once())->method('getUserGroupIds')->with($user)->willReturn(['finance']);
 		$this->groupManager->expects($this->once())->method('isAdmin')->with('john')->willReturn(false);
 		$this->subAdmin->expects($this->never())->method('isSubAdmin');
 
@@ -51,6 +51,7 @@ final class PolicyContextFactoryTest extends TestCase {
 		$this->assertSame([
 			'canManageSystemPolicies' => false,
 			'canManageGroupPolicies' => true,
+			'manageableGroupCount' => 1,
 		], $context->getActorCapabilities());
 	}
 
@@ -60,7 +61,7 @@ final class PolicyContextFactoryTest extends TestCase {
 
 		$this->userSession->expects($this->once())->method('getUser')->willReturn($user);
 		$this->groupManager->expects($this->once())->method('isAdmin')->with('solo')->willReturn(false);
-		$this->groupManager->expects($this->exactly(2))->method('getUserGroupIds')->with($user)->willReturn([]);
+		$this->groupManager->expects($this->once())->method('getUserGroupIds')->with($user)->willReturn([]);
 		$this->subAdmin->expects($this->never())->method('isSubAdmin');
 
 		$factory = $this->getFactory();
@@ -69,6 +70,7 @@ final class PolicyContextFactoryTest extends TestCase {
 		$this->assertSame([
 			'canManageSystemPolicies' => false,
 			'canManageGroupPolicies' => false,
+			'manageableGroupCount' => 0,
 		], $context->getActorCapabilities());
 	}
 
