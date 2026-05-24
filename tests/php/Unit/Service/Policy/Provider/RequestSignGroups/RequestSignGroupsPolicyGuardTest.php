@@ -63,6 +63,36 @@ final class RequestSignGroupsPolicyGuardTest extends TestCase {
 		$guard->normalizeManagedValue(RequestSignGroupsPolicy::KEY, '["finance","legal"]');
 	}
 
+	public function testNormalizeManagedValueRejectsRemovingManagedGroupFromGroupScopedRuleForNonSystemAdmin(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('ceo');
+		$this->userSession->method('getUser')->willReturn($user);
+		$this->groupManager->method('isAdmin')->with('ceo')->willReturn(false);
+		$this->subAdmin->method('isSubAdmin')->with($user)->willReturn(true);
+		$this->groupManager->method('getUserGroupIds')->with($user)->willReturn(['board', 'company']);
+
+		$guard = $this->createGuard();
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('You cannot remove your managed group from this rule');
+
+		$guard->normalizeManagedValue(RequestSignGroupsPolicy::KEY, '["company"]', false, 'board');
+	}
+
+	public function testNormalizeManagedValueAllowsKeepingManagedGroupInGroupScopedRule(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('ceo');
+		$this->userSession->method('getUser')->willReturn($user);
+		$this->groupManager->method('isAdmin')->with('ceo')->willReturn(false);
+		$this->subAdmin->method('isSubAdmin')->with($user)->willReturn(true);
+		$this->groupManager->method('getUserGroupIds')->with($user)->willReturn(['board', 'company']);
+
+		$guard = $this->createGuard();
+
+		$normalized = $guard->normalizeManagedValue(RequestSignGroupsPolicy::KEY, '["board","company"]', false, 'board');
+		$this->assertSame('["board","company"]', $normalized);
+	}
+
 	public function testAssertUserScopeSupportedRejectsRequestSignGroupsPolicy(): void {
 		$guard = $this->createGuard();
 
