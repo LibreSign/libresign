@@ -1012,9 +1012,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user->method('getUID')->willReturn('manageable-user');
 
 		$this->groupManager->method('isAdmin')->with('manageable-user')->willReturn(false);
-		$group = $this->createMock(\OCP\IGroup::class);
-		$group->method('getGID')->willReturn('finance');
-		$this->subAdmin->method('getSubAdminsGroups')->with($user)->willReturn([$group]);
+		$this->groupManager->method('getUserGroupIds')->with($user)->willReturn(['finance']);
 
 		$config = $this->getService()->getConfig($user);
 
