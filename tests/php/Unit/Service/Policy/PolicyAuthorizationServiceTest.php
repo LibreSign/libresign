@@ -97,48 +97,44 @@ final class PolicyAuthorizationServiceTest extends TestCase {
 			->with('instance-admin')
 			->willReturn(true);
 
-		$this->subAdmin->expects($this->never())
-			->method('getSubAdminsGroups');
+		// Instance admins don't need a restricted group list, so getUserGroupIds should never be called
+		$this->groupManager->expects($this->never())
+			->method('getUserGroupIds');
 
 		$result = $this->service->getManageablePolicyGroupIds($user);
 
 		$this->assertSame([], $result);
 	}
 
-	public function testGetManageablePolicyGroupIdsReturnsMembershipGroupsForSubAdmin(): void {
+	public function testGetManageablePolicyGroupIdsReturnsManagedGroupsForSubAdmin(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('subadmin-user');
 
 		$this->groupManager->method('isAdmin')
 			->with('subadmin-user')
 			->willReturn(false);
-		$this->subAdmin->method('isSubAdmin')
-			->with($user)
-			->willReturn(true);
-
 		$this->groupManager->method('getUserGroupIds')
 			->with($user)
-			->willReturn(['finance', 'legal']);
+			->willReturn(['finance', 'legal', 'board']);
 
 		$result = $this->service->getManageablePolicyGroupIds($user);
 
-		$this->assertSame(['finance', 'legal'], $result);
+		$this->assertSame(['finance', 'legal', 'board'], $result);
 	}
 
-	public function testGetManageablePolicyGroupIdsReturnsEmptyForRegularUser(): void {
+	public function testGetManageablePolicyGroupIdsReturnsGroupMembershipsForRegularUser(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('regular-user');
 
 		$this->groupManager->method('isAdmin')
 			->with('regular-user')
 			->willReturn(false);
-
-		$this->subAdmin->method('isSubAdmin')
+		$this->groupManager->method('getUserGroupIds')
 			->with($user)
-			->willReturn(false);
+			->willReturn(['users', 'staff']);
 
 		$result = $this->service->getManageablePolicyGroupIds($user);
 
-		$this->assertSame([], $result);
+		$this->assertSame(['users', 'staff'], $result);
 	}
 }
