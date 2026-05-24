@@ -39,8 +39,7 @@ final class PolicyAuthorizationService implements IPolicyAuthorizationService {
 	 * Get list of group IDs manageable by the given user.
 	 *
 	 * For instance admins: returns empty (they manage all groups at policy level).
-	 * For subadmins: returns groups they belong to.
-	 * For regular users: returns empty.
+	 * For other users: returns groups they belong to (admin, subadmin, or member).
 	 *
 	 * @return list<string>
 	 */
@@ -56,13 +55,13 @@ final class PolicyAuthorizationService implements IPolicyAuthorizationService {
 			return [];
 		}
 
-		if (!$this->subAdmin->isSubAdmin($user)) {
-			return [];
-		}
+		// For group admins and regular members: return all groups they belong to
+		// This allows them to authorize any group they're part of for policy rules
+		$groupIds = $this->groupManager->getUserGroupIds($user);
 
 		$groupIds = array_filter(
-			$this->groupManager->getUserGroupIds($user),
-			static fn (mixed $groupId): bool => is_string($groupId) && trim($groupId) !== '',
+			$groupIds,
+			static fn (string $groupId): bool => trim($groupId) !== '',
 		);
 
 		return array_values(array_unique($groupIds));
