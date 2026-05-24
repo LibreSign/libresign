@@ -14,6 +14,8 @@ use OCA\Libresign\Service\Policy\Contract\IPolicySource;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -52,8 +54,8 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
 		$this->assertSame('group', $resolved->getSourceScope());
 		$this->assertFalse($resolved->isEditableByCurrentActor());
-		$this->assertFalse($resolved->canSaveAsUserDefault());
-		$this->assertFalse($resolved->canUseAsRequestOverride());
+		$this->assertTrue($resolved->canSaveAsUserDefault());
+		$this->assertTrue($resolved->canUseAsRequestOverride());
 	}
 
 	public function testResolveClearsInvalidUserPreferenceWhenGroupBlocksOverride(): void {
@@ -144,8 +146,8 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertSame('group', $resolved->getSourceScope());
 		$this->assertSame(['parallel', 'ordered_numeric'], $resolved->getAllowedValues());
 		$this->assertFalse($resolved->isEditableByCurrentActor());
-		$this->assertFalse($resolved->canSaveAsUserDefault());
-		$this->assertFalse($resolved->canUseAsRequestOverride());
+		$this->assertTrue($resolved->canSaveAsUserDefault());
+		$this->assertTrue($resolved->canUseAsRequestOverride());
 	}
 
 	public function testResolveValueChoiceLetsCustomizableGroupBroadenFixedGroupChoice(): void {
@@ -175,7 +177,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 
 		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
 		$this->assertSame(['parallel', 'ordered_numeric'], $resolved->getAllowedValues());
-		$this->assertFalse($resolved->canUseAsRequestOverride());
+		$this->assertTrue($resolved->canUseAsRequestOverride());
 	}
 
 	public function testResolveDoesNotApplyGroupValueWhenSystemBlocksOverride(): void {
@@ -237,6 +239,50 @@ final class DefaultPolicyResolverTest extends TestCase {
 		);
 
 		$this->assertTrue($resolved->isEditableByCurrentActor());
+	}
+
+	#[DataProvider('provideRequestSignGroupsEditableByManageableGroupCountCases')]
+	public function testResolveRequestSignGroupsEditableFlagFollowsManageableGroupThreshold(
+		int $manageableGroupCount,
+		bool $expectedEditable,
+	): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('global')
+			->setValue(RequestSignGroupsPolicyValue::encode(['board', 'company']))
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		// Group layer restricts the allowed set to only ["board"]; end users cannot override further.
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue(RequestSignGroupsPolicyValue::encode(['board']))
+				->setAllowChildOverride(false)
+				->setVisibleToChild(true)
+				->setAllowedValues([RequestSignGroupsPolicyValue::encode(['board'])]),
+		];
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve(
+			$this->getRequestSignGroupsDefinition(),
+			PolicyContext::fromUserId('ceo')->setActorCapabilities([
+				'canManageSystemPolicies' => false,
+				'canManageGroupPolicies' => true,
+				'manageableGroupCount' => $manageableGroupCount,
+			]),
+		);
+
+		$this->assertSame($expectedEditable, $resolved->isEditableByCurrentActor());
+	}
+
+	/** @return array<string, array{0: int, 1: bool}> */
+	public static function provideRequestSignGroupsEditableByManageableGroupCountCases(): array {
+		return [
+			'cannot edit with zero manageable groups' => [0, false],
+			'cannot edit with exactly one manageable group (below threshold)' => [1, false],
+			'can edit with exactly two manageable groups (meets threshold)' => [2, true],
+			'can edit with more than two manageable groups' => [3, true],
+		];
 	}
 
 	#[DataProvider('provideEditableByActorCases')]
@@ -425,6 +471,15 @@ final class DefaultPolicyResolverTest extends TestCase {
 		);
 	}
 
+	private function getRequestSignGroupsDefinition(): PolicySpec {
+		return new PolicySpec(
+			key: RequestSignGroupsPolicy::KEY,
+			defaultSystemValue: '["admin"]',
+			allowedValues: [],
+			supportsUserPreference: false,
+		);
+	}
+
 	public function testResolveCanSaveAsUserDefaultFalseWhenDefinitionDoesNotSupportUserPreference(): void {
 		$source = new InMemoryPolicySource();
 		$source->systemLayer = (new PolicyLayer())
@@ -529,6 +584,36 @@ final class DefaultPolicyResolverTest extends TestCase {
 				false,
 			],
 		];
+	}
+
+	public function testResolveAllowsUserPreferenceWhenManagedGroupLayerPermitsOverrideWithoutExplicitSystemGrant(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue('none')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue('parallel')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true),
+		];
+
+		$definition = new PolicySpec(
+			key: 'signature_flow',
+			defaultSystemValue: 'none',
+			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			supportsUserPreference: true,
+		);
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve($definition, PolicyContext::fromUserId('john'));
+
+		$this->assertSame('group', $resolved->getSourceScope());
+		$this->assertTrue($resolved->canSaveAsUserDefault());
+		$this->assertTrue($resolved->canUseAsRequestOverride());
 	}
 
 	private function getValueChoiceDefinition(): PolicySpec {
