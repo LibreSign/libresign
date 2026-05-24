@@ -296,7 +296,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		$allowChildOverride = $this->readBoolParam('allowChildOverride', $allowChildOverride);
 
 		try {
-			$value = $this->requestSignGroupsPolicyGuard->normalizeManagedValue($policyKey, $value);
+			$value = $this->requestSignGroupsPolicyGuard->normalizeManagedValue($policyKey, $value, false, $groupId);
 			$policy = $this->policyService->saveGroupPolicy($policyKey, $groupId, $value, $allowChildOverride);
 			/** @var LibresignGroupPolicyWriteResponse $data */
 			$data = [
