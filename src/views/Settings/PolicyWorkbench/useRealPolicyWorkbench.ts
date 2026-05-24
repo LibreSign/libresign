@@ -240,7 +240,6 @@ export function createRealPolicyWorkbenchState() {
 			? config.manageable_policy_group_ids.filter((groupId): groupId is string => typeof groupId === 'string' && groupId.trim().length > 0)
 			: [],
 	)
-	const canGroupAdminManageRequesterGroupsAcrossMultipleGroups = isInstanceAdmin || manageablePolicyGroupIds.size > 1
 	const initialViewMode: 'system-admin' | 'group-admin' = currentUser?.isAdmin
 		? 'system-admin'
 		: config.can_manage_group_policies
@@ -282,14 +281,6 @@ export function createRealPolicyWorkbenchState() {
 		return Object.values(realDefinitions)
 			.filter((definition) => {
 				if (viewMode.value === 'group-admin' && definition.visibleInGroupAdmin === false) {
-					return false
-				}
-
-				if (
-					viewMode.value === 'group-admin'
-					&& definition.key === REQUEST_SIGN_GROUPS_POLICY_KEY
-					&& !canGroupAdminManageRequesterGroupsAcrossMultipleGroups
-				) {
 					return false
 				}
 
