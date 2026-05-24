@@ -65,8 +65,10 @@ defineOptions({
 })
 
 const isAdmin = getCurrentUser()?.isAdmin ?? false
-const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', 'config', {})
 const canRequestSign = loadState<boolean>('libresign', 'can_request_sign', false)
+const initialEffectivePolicies = loadState('libresign', 'effective_policies', { policies: {} }) as {
+	policies?: Record<string, { editableByCurrentActor?: boolean }>
+}
 const policiesStore = usePoliciesStore()
 
 const canManagePreferences = computed(() => {
@@ -87,21 +89,21 @@ const canManagePreferences = computed(() => {
 	})
 })
 
-const hasEditablePolicies = computed(() => Object.values(policiesStore.policies).some((policy) => {
-	if (!policy || typeof policy !== 'object') {
-		return false
+const canManagePolicies = computed(() => {
+	if (isAdmin) {
+		return true
 	}
 
-	const policyState = policy as {
-		groupCount?: number
-		userCount?: number
-		editableByCurrentActor?: boolean
+	const groupsRequestSignPolicy = policiesStore.policies.groups_request_sign
+	if (groupsRequestSignPolicy && typeof groupsRequestSignPolicy === 'object') {
+		const policyState = groupsRequestSignPolicy as { editableByCurrentActor?: boolean }
+		if (typeof policyState.editableByCurrentActor === 'boolean') {
+			return policyState.editableByCurrentActor
+		}
 	}
 
-	return policyState.editableByCurrentActor === true
-}))
-
-const canManagePolicies = computed(() => isAdmin || hasEditablePolicies.value)
+	return initialEffectivePolicies.policies?.groups_request_sign?.editableByCurrentActor === true
+})
 
 onMounted(() => {
 	void policiesStore.fetchEffectivePolicies()
