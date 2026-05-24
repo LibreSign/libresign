@@ -1222,7 +1222,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(keys).toContain('signature_flow')
 	})
 
-	it('hides request-access policy from group-admin catalog when only one group is manageable', () => {
+	it('shows request-access policy from group-admin catalog when editable, even with one manageable group', () => {
 		currentUserState.isAdmin = false
 		configState.manageable_policy_group_ids = ['finance']
 		getPolicy.mockReturnValue({ effectiveValue: 'parallel', groupCount: 0, userCount: 0, editableByCurrentActor: true })
@@ -1230,7 +1230,7 @@ describe('useRealPolicyWorkbench', () => {
 		const state = createRealPolicyWorkbenchState()
 		const keys = state.visibleSettingSummaries.map((summary) => summary.key)
 
-		expect(keys).not.toContain('groups_request_sign')
+		expect(keys).toContain('groups_request_sign')
 		expect(keys).toContain('signature_flow')
 	})
 
