@@ -92,6 +92,7 @@ interface EditorDraft {
 	scope: 'system' | 'group' | 'user'
 	value: EffectivePolicyValue
 	allowChildOverride: boolean
+	targetIds: string[]
 }
 
 interface TargetOption {
