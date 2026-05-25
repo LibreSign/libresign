@@ -12,6 +12,7 @@ import { useFooterPolicyGuard } from '../support/system-policies'
 useFooterPolicyGuard()
 
 test('sign document with email token as unauthenticated signer', async ({ page }) => {
+	const signerEmail = `signer-email-token-${Date.now()}@libresign.coop`
 	await login(
 		page.request,
 		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
@@ -48,8 +49,8 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	await page.getByRole('button', { name: 'Send' }).click();
 	await page.getByRole('button', { name: 'Add signer' }).click();
 	await page.getByPlaceholder('Email').click();
-	await page.getByPlaceholder('Email').fill('signer01@libresign.coop');
-	await page.getByRole('option', { name: 'signer01@libresign.coop' }).first().click();
+	await page.getByPlaceholder('Email').fill(signerEmail);
+	await page.getByRole('option', { name: signerEmail }).first().click();
 	await page.getByRole('textbox', { name: 'Signer name' }).first().click();
 	await page.getByRole('textbox', { name: 'Signer name' }).first().press('ControlOrMeta+a');
 	await page.getByRole('textbox', { name: 'Signer name' }).first().fill('Signer 01');
@@ -66,11 +67,11 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	await page.context().clearCookies();
 	await page.goto('about:blank');
 
-	const email = await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: There is a file for you to sign')
+	const email = await waitForEmailTo(mailpit, signerEmail, 'LibreSign: There is a file for you to sign')
 	const signLink = extractSignLink(email.Text)
 	if (!signLink) throw new Error('Sign link not found in email')
 	await page.goto(signLink);
-	const openSignButton = page.getByRole('button', { name: 'Sign the document.' }).first()
+	const openSignButton = page.getByRole('button', { name: 'Sign document' }).first()
 	const emailTextbox = page.getByRole('textbox', { name: 'Email' }).first()
 	await Promise.any([
 		openSignButton.waitFor({ state: 'visible', timeout: 10_000 }),
@@ -81,10 +82,10 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	}
 	await expect(emailTextbox).toBeVisible()
 	await emailTextbox.click();
-	await emailTextbox.fill('signer01@libresign.coop');
+	await emailTextbox.fill(signerEmail);
 	await page.getByRole('button', { name: 'Send verification code' }).click();
 
-	const tokenEmail = await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: Code to sign file', { timeout: 60_000 })
+	const tokenEmail = await waitForEmailTo(mailpit, signerEmail, 'LibreSign: Code to sign file', { timeout: 60_000 })
 	const token = extractTokenFromEmail(tokenEmail.Text)
 	if (!token) throw new Error('Token not found in email')
 	await page.getByRole('textbox', { name: 'Enter your code' }).click();
@@ -99,7 +100,7 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 		response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'),
 	)
-	await page.getByRole('button', { name: 'Sign document' }).click();
+	await page.getByRole('dialog', { name: 'Signature confirmation' }).getByRole('button', { name: 'Sign document' }).click();
 	const signResponse = await signResponsePromise
 	const signResponseBody = await signResponse.text()
 	expect(
@@ -108,5 +109,5 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	).toBeTruthy()
 	await expect(page.getByText('This document is valid')).toBeVisible();
 	await expect(page.getByText('Congratulations you have')).toBeVisible();
-	await expect(page.getByRole('button', { name: 'Sign the document.' })).not.toBeVisible();
+	await expect(page.getByRole('button', { name: 'Sign document' })).not.toBeVisible();
 });
