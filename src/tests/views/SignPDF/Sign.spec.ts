@@ -873,7 +873,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await flushPromises()
 
 			expect(wrapper.text()).toContain('Try signing again')
-			expect(wrapper.text()).not.toContain('Sign the document.')
+			expect(wrapper.text()).not.toContain('Sign document')
 			expect(wrapper.findAll('.nc-note-card-stub')).toHaveLength(1)
 		})
 	})
