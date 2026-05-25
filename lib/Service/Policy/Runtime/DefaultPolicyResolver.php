@@ -326,12 +326,10 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 				return false;
 			}
 
-			// Group admins can manage when policy supports group-level configuration and:
-			// 1) system explicitly granted delegation, or
-			// 2) there is a configured managed group layer and hierarchy at group scope allows overrides.
+			// Group admins can manage only when the system admin explicitly granted
+			// delegation for the policy at the system layer.
 			return $definition->supportsGroupAdminConfiguration()
-				&& ($isSystemExplicitlyGrantedForGroupAdmin
-					|| ($hasConfiguredGroupLayer && $canOverrideAtGroupScope));
+				&& $isSystemExplicitlyGrantedForGroupAdmin;
 		}
 
 		return false;
