@@ -136,7 +136,7 @@ async function createEnvelopeWithVisibleSignatureRequirement(
 		throw new Error('Failed to create envelope payload for issue #7344 e2e test')
 	}
 
-	const updateResponse = await requestLibreSignApiAsAdmin(request, 'PATCH', '/request-signature', {
+	await requestLibreSignApiAsAdmin(request, 'PATCH', '/request-signature', {
 		uuid: envelope.uuid,
 		status: 1,
 		visibleElements: [{
@@ -152,8 +152,6 @@ async function createEnvelopeWithVisibleSignatureRequirement(
 			},
 		}],
 	})
-
-	return findSigner(updateResponse.ocs.data.files, scenario)?.sign_request_uuid ?? null
 }
 
 async function waitForSignerInvitationLink(signerEmail: string) {
@@ -172,7 +170,13 @@ async function waitForSignerInvitationLink(signerEmail: string) {
 
 async function openInvitationAsExternalSigner(page: Page, signLink: string) {
 	await page.context().clearCookies()
+	await page.goto('about:blank')
 	await page.goto(signLink, { waitUntil: 'domcontentloaded' })
+
+	const loginHeading = page.getByRole('heading', { name: 'Log in to Nextcloud' })
+	if (await loginHeading.isVisible({ timeout: 1_500 }).catch(() => false)) {
+		throw new Error(`Invitation link redirected to login instead of public sign page: ${page.url()}`)
+	}
 }
 
 async function drawSignatureOnCanvas(signatureDialog: Locator, page: Page) {
@@ -243,18 +247,17 @@ async function expectEnvelopeSigned(page: Page, envelopeName: string) {
 
 test('unauthenticated signer can define a visible signature for an envelope with multiple PDFs', async ({ page }) => {
 	const scenario = buildSigningScenario()
-	let signLink: string | null = null
 
 	await test.step('Given the system is configured to allow envelope signing via e-mail', async () => {
 		await enableEnvelopeScenario(page.request)
 	})
 
 	await test.step('And an envelope with two PDFs is created requiring a visible signature on the first document', async () => {
-		signLink = await createEnvelopeWithVisibleSignatureRequirement(page.request, scenario)
+		await createEnvelopeWithVisibleSignatureRequirement(page.request, scenario)
 	})
 
 	await test.step('When the external signer opens the invitation link received by e-mail', async () => {
-		const publicSignLink = signLink ?? await waitForSignerInvitationLink(scenario.signerEmail)
+		const publicSignLink = await waitForSignerInvitationLink(scenario.signerEmail)
 		await openInvitationAsExternalSigner(page, publicSignLink)
 	})
 
