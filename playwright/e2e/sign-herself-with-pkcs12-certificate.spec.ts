@@ -45,11 +45,11 @@ test('sign herself with pkcs12 certificate', async ({ page }) => {
 	await page.getByRole('button', { name: 'Save' }).click()
 	await page.getByRole('button', { name: 'Request signatures' }).click()
 	await page.getByRole('button', { name: 'Send' }).click()
-	await page.getByRole('button', { name: 'Sign document' }).click()
+	await page.getByRole('button', { name: 'Sign document' }).first().click()
 	await page.getByRole('button', { name: 'Define a password and sign the document.' }).click()
 	await page.getByLabel('Enter a password').fill('Password1234')
 	await page.getByRole('button', { name: 'Confirm' }).click()
-	await page.getByRole('button', { name: 'Sign the document.' }).click()
+	await page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' }).click()
 	await page.getByLabel('Signature password').fill('Password1234')
 	await page.getByText('Forgot password?').click()
 	await expect(page.getByRole('button', { name: 'Read certificate' })).toBeVisible()
@@ -58,7 +58,7 @@ test('sign herself with pkcs12 certificate', async ({ page }) => {
 		response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'),
 	)
-	await page.getByRole('button', { name: 'Sign document' }).click()
+	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
 	const signResponse = await signResponsePromise
 	const signResponseBody = await signResponse.text()
 	expect(
