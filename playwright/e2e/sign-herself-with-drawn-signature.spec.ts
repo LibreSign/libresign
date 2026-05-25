@@ -107,7 +107,7 @@ test('sign herself with drawn signature', async ({ page }) => {
 	await expect(signaturePositionsDialog).toBeHidden()
 	await page.getByRole('button', { name: 'Request signatures' }).click();
 	await page.getByRole('button', { name: 'Send' }).click();
-	await page.getByRole('button', { name: 'Sign document' }).click();
+	await page.getByRole('button', { name: 'Sign document' }).first().click();
 	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15000 })
 
 	await expect(
@@ -122,14 +122,14 @@ test('sign herself with drawn signature', async ({ page }) => {
 	await page.getByRole('button', { name: 'Save' }).click();
 	await expect(page.getByRole('heading', { name: 'Confirm your signature' })).toBeVisible();
 	await page.getByLabel('Confirm your signature').getByRole('button', { name: 'Save' }).click();
-	await expect(page.getByRole('button', { name: 'Sign the document.' })).toBeVisible();
+	await expect(page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })).toBeVisible();
 
-	await page.getByRole('button', { name: 'Sign the document.' }).click();
+	await page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' }).click();
 	const signResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'),
 	)
-	await page.getByRole('button', { name: 'Sign document' }).click();
+	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click();
 	const signResponse = await signResponsePromise
 	const signResponseBody = await signResponse.text()
 	expect(
