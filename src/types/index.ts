@@ -61,7 +61,10 @@ export type EffectivePolicyObjectValue = object
 export type EffectivePolicyValue = OpenApiEffectivePolicyPrimitiveValue | EffectivePolicyObjectValue | null
 export type PolicyWriteValue = Exclude<ApiRequestJsonBody<AdminOperations['policy-set-system']>['value'], undefined>
 export type GroupPolicyResponse = ApiOcsResponseData<ApiOperations['policy-get-group'], 200>
-export type GroupPolicyState = GroupPolicyResponse['policy']
+type OpenApiGroupPolicyState = GroupPolicyResponse['policy']
+export type GroupPolicyState = OpenApiGroupPolicyState & {
+	deletableByCurrentActor: boolean
+}
 export type GroupPolicyListResponse = {
 	policies: GroupPolicyState[]
 }
