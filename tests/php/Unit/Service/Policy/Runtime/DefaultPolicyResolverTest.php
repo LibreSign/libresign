@@ -241,6 +241,34 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertTrue($resolved->isEditableByCurrentActor());
 	}
 
+	public function testResolveDoesNotKeepPolicyEditableForGroupAdminOnlyBecauseGroupRuleExists(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue('none')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue('parallel')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues(['parallel', 'ordered_numeric']),
+		];
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve(
+			$this->getDefinition(),
+			PolicyContext::fromUserId('ceo')->setActorCapabilities([
+				'canManageSystemPolicies' => false,
+				'canManageGroupPolicies' => true,
+			]),
+		);
+
+		$this->assertFalse($resolved->isEditableByCurrentActor());
+	}
+
 	#[DataProvider('provideRequestSignGroupsEditableByManageableGroupCountCases')]
 	public function testResolveRequestSignGroupsEditableFlagFollowsManageableGroupThreshold(
 		int $manageableGroupCount,
@@ -702,7 +730,7 @@ final class InMemoryPolicySource implements IPolicySource {
 	public function saveSystemPolicy(string $policyKey, mixed $value, bool $allowChildOverride = false): void {
 	}
 
-	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride): void {
+	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride, bool $createdBySystemAdmin = false): void {
 	}
 
 	public function loadUserPolicyConfig(string $policyKey, string $userId): ?PolicyLayer {
