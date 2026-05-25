@@ -111,11 +111,17 @@ class PolicyService {
 
 	public function saveGroupPolicy(string|\BackedEnum $policyKey, string $groupId, mixed $value, bool $allowChildOverride): PolicyLayer {
 		$definition = $this->registry->get($policyKey);
-		$this->assertCurrentActorCanManageGroupOverride($definition->key());
+		$this->assertCurrentActorCanManageGroupPolicy($definition->key());
 		$context = $this->contextFactory->forCurrentUser();
 		$normalizedValue = $definition->normalizeValue($value);
 		$definition->validateValue($normalizedValue, $context);
-		$this->source->saveGroupPolicy($definition->key(), $groupId, $normalizedValue, $allowChildOverride);
+		$this->source->saveGroupPolicy(
+			$definition->key(),
+			$groupId,
+			$normalizedValue,
+			$allowChildOverride,
+			$this->contextFactory->isCurrentActorSystemAdmin(),
+		);
 
 		return $this->source->loadGroupPolicyConfig($definition->key(), $groupId)
 			?? (new PolicyLayer())
@@ -127,20 +133,48 @@ class PolicyService {
 
 	public function clearGroupPolicy(string|\BackedEnum $policyKey, string $groupId): ?PolicyLayer {
 		$definition = $this->registry->get($policyKey);
-		$this->assertCurrentActorCanManageGroupOverride($definition->key());
+		$this->assertCurrentActorCanDeleteGroupPolicy($definition->key(), $groupId);
 		$this->source->clearGroupPolicy($definition->key(), $groupId);
 
 		return $this->source->loadGroupPolicyConfig($definition->key(), $groupId);
 	}
 
-	private function assertCurrentActorCanManageGroupOverride(string $policyKey): void {
+	public function canDeleteGroupPolicy(string|\BackedEnum $policyKey, string $groupId, ?PolicyLayer $policy = null): bool {
+		if ($this->contextFactory->isCurrentActorSystemAdmin()) {
+			return true;
+		}
+
+		$definition = $this->registry->get($policyKey);
+		$groupPolicy = $policy ?? $this->source->loadGroupPolicyConfig($definition->key(), $groupId);
+		if (!$groupPolicy instanceof PolicyLayer) {
+			return false;
+		}
+
+		$notes = $groupPolicy->getNotes();
+		$createdBySystemAdmin = $notes['createdBySystemAdmin'] ?? null;
+		if (is_bool($createdBySystemAdmin)) {
+			return !$createdBySystemAdmin;
+		}
+
+		return ($notes['createdByActorScope'] ?? 'system') === 'group';
+	}
+
+	private function assertCurrentActorCanDeleteGroupPolicy(string $policyKey, string $groupId): void {
+		if ($this->canDeleteGroupPolicy($policyKey, $groupId)) {
+			return;
+		}
+
+		throw new \DomainException($this->l10n->t('Only system administrators can delete group rules created by a system administrator'));
+	}
+
+	private function assertCurrentActorCanManageGroupPolicy(string $policyKey): void {
 		if ($this->contextFactory->isCurrentActorSystemAdmin()) {
 			return;
 		}
 
 		$systemPolicy = $this->source->loadSystemPolicy($policyKey);
-		if ($systemPolicy !== null && !$systemPolicy->isAllowChildOverride()) {
-			throw new \DomainException($this->l10n->t('Lower-level overrides are not allowed for this policy'));
+		if ($systemPolicy === null || $systemPolicy->getScope() !== 'global' || !$systemPolicy->isAllowChildOverride()) {
+			throw new \DomainException($this->l10n->t('Group policy management requires explicit delegation from the system administrator'));
 		}
 	}
 
