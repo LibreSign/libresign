@@ -73,7 +73,7 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 	// throwIfIsAuthenticatedWithDifferentAccount allows this because
 	// admin@email.tld === the signer's email address.
 	await page.goto(signLink)
-	const openSignButton = page.getByRole('button', { name: 'Sign the document.' }).first()
+	const openSignButton = page.getByRole('button', { name: 'Sign document' }).first()
 	const emailTextbox = page.getByRole('textbox', { name: 'Email' }).first()
 	await Promise.any([
 		openSignButton.waitFor({ state: 'visible', timeout: 10_000 }),
@@ -100,7 +100,7 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 		response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'),
 	)
-	await page.getByRole('button', { name: 'Sign document' }).click()
+	await page.getByRole('dialog', { name: 'Signature confirmation' }).getByRole('button', { name: 'Sign document' }).click()
 	const signResponse = await signResponsePromise
 	const signResponseBody = await signResponse.text()
 	expect(
