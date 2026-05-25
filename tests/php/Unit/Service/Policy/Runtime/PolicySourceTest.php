@@ -583,6 +583,45 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame('group', $layer->getScope());
 		$this->assertSame('parallel', $layer->getValue());
 		$this->assertTrue($layer->isAllowChildOverride());
+		$this->assertSame([], $layer->getNotes());
+	}
+
+	public function testLoadGroupPolicyConfigMapsLegacyCreatorScopeToBooleanOriginNote(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(77);
+		$binding->setTargetType('group');
+		$binding->setTargetId('finance');
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(77);
+		$permissionSet->setPolicyJson([
+			'signature_flow' => [
+				'defaultValue' => 'parallel',
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'createdByActorScope' => 'system',
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('getByTarget')
+			->with('group', 'finance')
+			->willReturn($binding);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('getById')
+			->with(77)
+			->willReturn($permissionSet);
+
+		$source = $this->getSource();
+		$layer = $source->loadGroupPolicyConfig('signature_flow', 'finance');
+
+		$this->assertNotNull($layer);
+		$this->assertSame('system', $layer->getNotes()['createdByActorScope'] ?? null);
+		$this->assertTrue($layer->getNotes()['createdBySystemAdmin'] ?? false);
 	}
 
 	public function testSaveGroupPolicyCreatesPermissionSetAndBinding(): void {
@@ -604,6 +643,8 @@ final class PolicySourceTest extends TestCase {
 						'allowChildOverride' => false,
 						'visibleToChild' => true,
 						'allowedValues' => ['ordered_numeric'],
+						'createdBySystemAdmin' => false,
+						'createdByActorScope' => 'group',
 					],
 				], $permissionSet->getDecodedPolicyJson());
 				return true;
@@ -646,6 +687,8 @@ final class PolicySourceTest extends TestCase {
 						'allowChildOverride' => false,
 						'visibleToChild' => true,
 						'allowedValues' => [3],
+						'createdBySystemAdmin' => false,
+						'createdByActorScope' => 'group',
 					],
 				], $permissionSet->getDecodedPolicyJson());
 				return true;
@@ -667,6 +710,40 @@ final class PolicySourceTest extends TestCase {
 
 		$source = $this->getSource();
 		$source->saveGroupPolicy(DocMdpPolicy::KEY, 'finance', 3, false);
+	}
+
+	public function testSaveGroupPolicyMarksSystemAdminAsCreator(): void {
+		$this->bindingMapper
+			->expects($this->once())
+			->method('getByTarget')
+			->with('group', 'finance')
+			->willThrowException(new DoesNotExistException('missing'));
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('insert')
+			->with($this->callback(function (PermissionSet $permissionSet): bool {
+				$this->assertSame(true, $permissionSet->getDecodedPolicyJson()['signature_flow']['createdBySystemAdmin'] ?? null);
+				$this->assertSame('system', $permissionSet->getDecodedPolicyJson()['signature_flow']['createdByActorScope'] ?? null);
+				return true;
+			}))
+			->willReturnCallback(static function (PermissionSet $permissionSet): PermissionSet {
+				$permissionSet->setId(101);
+				return $permissionSet;
+			});
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('insert')
+			->with($this->callback(function (PermissionSetBinding $binding): bool {
+				$this->assertSame(101, $binding->getPermissionSetId());
+				$this->assertSame('group', $binding->getTargetType());
+				$this->assertSame('finance', $binding->getTargetId());
+				return true;
+			}));
+
+		$source = $this->getSource();
+		$source->saveGroupPolicy('signature_flow', 'finance', 'ordered_numeric', false, true);
 	}
 
 	public function testClearGroupPolicyDeletesBindingAndPermissionSetWhenItIsTheLastPolicy(): void {
