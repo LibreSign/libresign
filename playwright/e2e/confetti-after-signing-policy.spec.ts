@@ -56,7 +56,7 @@ async function runSelfSigningFlow(page: Page): Promise<void> {
 	await page.getByRole('menuitem', { name: 'Sign' }).click()
 
 	await page.waitForURL('**/f/sign/**/pdf')
-	const signButton = page.getByRole('button', { name: 'Sign the document.' })
+	const signButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
 	await expect(signButton).toBeVisible()
 	await signButton.click()
 
@@ -64,7 +64,7 @@ async function runSelfSigningFlow(page: Page): Promise<void> {
 		response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'),
 	)
-	await page.getByRole('button', { name: 'Sign document' }).click()
+	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
 	const signResponse = await signResponsePromise
 	const signResponseBody = await signResponse.text()
 	if (!signResponse.ok()) {
