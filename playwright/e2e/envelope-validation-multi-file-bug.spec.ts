@@ -7,8 +7,9 @@
 
 import { expect, test } from '@playwright/test'
 import type { APIRequestContext, Page } from '@playwright/test'
-import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, extractSignLink, waitForEmailTo } from '../support/mailpit'
+import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
+import { getSmallValidPdfBase64 } from '../support/pdf-fixtures'
 
 type EnvelopeSigningScenario = {
 	envelopeName: string
@@ -34,9 +35,10 @@ type OcsEnvelopeResponse = {
 }
 
 function buildSigningScenario(): EnvelopeSigningScenario {
+	const runId = Date.now()
 	return {
-		envelopeName: `Envelope Validation Bug - ${Date.now()}`,
-		signerEmail: 'signer-validation@libresign.coop',
+		envelopeName: `Envelope Validation Bug - ${runId}`,
+		signerEmail: `signer-validation-${runId}@libresign.coop`,
 		signerName: 'Validation Tester',
 	}
 }
@@ -93,10 +95,7 @@ async function createEnvelopeWithMultipleFiles(
 	request: APIRequestContext,
 	scenario: EnvelopeSigningScenario,
 ) {
-	const pdfResponse = await request.get('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf', {
-		failOnStatusCode: true,
-	})
-	const pdfBase64 = Buffer.from(await pdfResponse.body()).toString('base64')
+	const pdfBase64 = await getSmallValidPdfBase64()
 
 	const createResponse = await requestLibreSignApiAsAdmin(request, 'POST', '/request-signature', {
 		name: scenario.envelopeName,
@@ -150,26 +149,24 @@ async function openInvitationAsExternalSigner(page: Page, signLink: string) {
 
 async function defineClickToSignature(page: Page) {
 	// Wait for click-to-sign button
-	await expect(page.getByRole('button', { name: 'Sign the document.' })).toBeVisible({ timeout: 5_000 })
+	await expect(page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })).toBeVisible({ timeout: 5_000 })
 }
 
 async function finishSigning(page: Page) {
-	const signButton = page.getByRole('button', { name: 'Sign the document.' })
+	const signButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
 	await signButton.scrollIntoViewIfNeeded()
 	await signButton.click()
-	await page.getByRole('button', { name: 'Sign document' }).click()
+	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
 }
 
 test('validation screen should display all data correctly for envelope with 2 files', async ({ page }) => {
 	const scenario = buildSigningScenario()
-	const mailpit = createMailpitClient()
 
 	await test.step('Given the system is configured to allow envelope signing via e-mail', async () => {
 		await enableEnvelopeScenario(page.request)
 	})
 
 	await test.step('And an envelope with two files is created', async () => {
-		await mailpit.deleteMessages()
 		await createEnvelopeWithMultipleFiles(page.request, scenario)
 	})
 
