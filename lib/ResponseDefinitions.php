@@ -402,6 +402,7 @@ namespace OCA\Libresign;
  *     allowChildOverride: bool,
  *     visibleToChild: bool,
  *     allowedValues: list<LibresignEffectivePolicyValue>,
+ *     deletableByCurrentActor: bool,
  * }
  * @psalm-type LibresignGroupPolicyResponse = array{
  *     policy: LibresignGroupPolicyState,
