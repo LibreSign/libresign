@@ -551,7 +551,7 @@ final class PolicyServiceTest extends TestCase {
 		);
 
 		$this->expectException(\DomainException::class);
-		$this->expectExceptionMessage('Lower-level overrides are not allowed for this policy');
+		$this->expectExceptionMessage('Group policy management requires explicit delegation from the system administrator');
 
 		$service->saveGroupPolicy(FooterPolicy::KEY, 'finance', '{"enabled":false}', false);
 	}
@@ -571,13 +571,9 @@ final class PolicyServiceTest extends TestCase {
 
 		$this->source
 			->expects($this->once())
-			->method('loadSystemPolicy')
-			->with(FooterPolicy::KEY)
-			->willReturn((new PolicyLayer())
-				->setScope('system')
-				->setValue('{"enabled":true}')
-				->setAllowChildOverride(false)
-				->setVisibleToChild(true));
+			->method('loadGroupPolicyConfig')
+			->with(FooterPolicy::KEY, 'finance')
+			->willReturn((new PolicyLayer())->setNotes(['createdBySystemAdmin' => true]));
 
 		$this->source
 			->expects($this->never())
@@ -591,9 +587,122 @@ final class PolicyServiceTest extends TestCase {
 		);
 
 		$this->expectException(\DomainException::class);
-		$this->expectExceptionMessage('Lower-level overrides are not allowed for this policy');
+		$this->expectExceptionMessage('Only system administrators can delete group rules created by a system administrator');
 
 		$service->clearGroupPolicy(FooterPolicy::KEY, 'finance');
+	}
+
+	public function testSaveGroupPolicyBlocksSubAdminWithoutExplicitSystemDelegation(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('group-admin');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('group-admin')
+			->willReturn(false);
+
+		$this->source
+			->expects($this->once())
+			->method('loadSystemPolicy')
+			->with(FooterPolicy::KEY)
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue('{"enabled":true}')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true));
+
+		$this->source
+			->expects($this->never())
+			->method('saveGroupPolicy');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->expectException(\DomainException::class);
+		$this->expectExceptionMessage('Group policy management requires explicit delegation from the system administrator');
+
+		$service->saveGroupPolicy(FooterPolicy::KEY, 'finance', '{"enabled":false}', false);
+	}
+
+	public function testClearGroupPolicyBlocksSubAdminWithoutExplicitSystemDelegation(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('group-admin');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('group-admin')
+			->willReturn(false);
+
+		$this->source
+			->expects($this->once())
+			->method('loadGroupPolicyConfig')
+			->with(FooterPolicy::KEY, 'finance')
+			->willReturn((new PolicyLayer())->setNotes(['createdBySystemAdmin' => true]));
+
+		$this->source
+			->expects($this->never())
+			->method('clearGroupPolicy');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->expectException(\DomainException::class);
+		$this->expectExceptionMessage('Only system administrators can delete group rules created by a system administrator');
+
+		$service->clearGroupPolicy(FooterPolicy::KEY, 'finance');
+	}
+
+	public function testClearGroupPolicyAllowsSubAdminToDeleteRuleCreatedByGroupAdmin(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('group-admin');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('group-admin')
+			->willReturn(false);
+
+		$this->source
+			->expects($this->exactly(2))
+			->method('loadGroupPolicyConfig')
+			->with(FooterPolicy::KEY, 'finance')
+			->willReturnOnConsecutiveCalls(
+				(new PolicyLayer())->setNotes(['createdBySystemAdmin' => false]),
+				null,
+			);
+
+		$this->source
+			->expects($this->once())
+			->method('clearGroupPolicy')
+			->with(FooterPolicy::KEY, 'finance');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		self::assertNull($service->clearGroupPolicy(FooterPolicy::KEY, 'finance'));
 	}
 
 	public function testSaveUserPreferenceRejectsValidationSiteOverrideForRegularUser(): void {
@@ -673,4 +782,5 @@ final class PolicyServiceTest extends TestCase {
 
 		$this->assertSame($expected, $result);
 	}
+
 }
