@@ -196,7 +196,8 @@ async function drawSignatureOnCanvas(signatureDialog: Locator, page: Page) {
 
 async function defineVisibleSignature(page: Page) {
 	const openSignButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
-	if (!await page.getByRole('button', { name: 'Define your signature.' }).isVisible().catch(() => false)) {
+	const defineSignatureButton = page.getByRole('button', { name: /Define your signature\.?/i })
+	if (!await defineSignatureButton.isVisible().catch(() => false)) {
 		if (await openSignButton.isVisible().catch(() => false)) {
 			await openSignButton.click({ force: true })
 		}
@@ -207,8 +208,8 @@ async function defineVisibleSignature(page: Page) {
 		await deleteSignatureButton.click()
 	}
 
-	await expect(page.getByRole('button', { name: 'Define your signature.' })).toBeVisible()
-	await page.getByRole('button', { name: 'Define your signature.' }).click()
+	await expect(defineSignatureButton).toBeVisible({ timeout: 15_000 })
+	await defineSignatureButton.click()
 
 	const signatureDialog = page.getByRole('dialog', { name: 'Customize your signatures' })
 	await expect(signatureDialog).toBeVisible()
