@@ -59,6 +59,7 @@ interface PolicyRuleRecord {
 	targetId: string | null
 	allowChildOverride: boolean
 	value: EffectivePolicyValue
+	canRemove?: boolean
 }
 
 interface PersistedSystemPolicyRecord {
@@ -753,6 +754,7 @@ export function createRealPolicyWorkbenchState() {
 				targetId: rule.targetId,
 				allowChildOverride: rule.allowChildOverride,
 				value: buildRequestExpirationValue(rule.value, null),
+				canRemove: rule.canRemove,
 			})
 		}
 
@@ -768,6 +770,7 @@ export function createRealPolicyWorkbenchState() {
 				targetId: rule.targetId,
 				allowChildOverride: existing?.allowChildOverride ?? rule.allowChildOverride,
 				value: buildRequestExpirationValue(existing?.value, rule.value),
+				canRemove: existing?.canRemove ?? rule.canRemove,
 			})
 		}
 
@@ -839,6 +842,7 @@ export function createRealPolicyWorkbenchState() {
 				targetId: rule.targetId,
 				allowChildOverride: rule.allowChildOverride,
 				value: buildSigningExecutionValue(rule.value, null),
+				canRemove: rule.canRemove,
 			})
 		}
 
@@ -854,6 +858,7 @@ export function createRealPolicyWorkbenchState() {
 				targetId: rule.targetId,
 				allowChildOverride: existing?.allowChildOverride ?? rule.allowChildOverride,
 				value: buildSigningExecutionValue(existing?.value, rule.value),
+				canRemove: existing?.canRemove ?? rule.canRemove,
 			})
 		}
 
@@ -925,6 +930,7 @@ export function createRealPolicyWorkbenchState() {
 				targetId: rule.targetId,
 				allowChildOverride: rule.allowChildOverride,
 				value: buildSignatureStampDraftValue(rule.value, collectMetadataRule?.value),
+				canRemove: rule.canRemove,
 			})
 		}
 
@@ -1015,6 +1021,7 @@ export function createRealPolicyWorkbenchState() {
 							targetId: policy.targetId,
 							allowChildOverride: policy.allowChildOverride,
 							value: policy.value,
+							canRemove: policy.deletableByCurrentActor,
 						}))
 				}).catch((error) => {
 					logger.debug('Could not bulk load persisted group policies for workbench', {
@@ -1038,6 +1045,7 @@ export function createRealPolicyWorkbenchState() {
 						targetId: group.id,
 						allowChildOverride: persistedPolicy.allowChildOverride,
 						value: persistedPolicy.value,
+						canRemove: persistedPolicy.deletableByCurrentActor,
 					}
 				} catch (error) {
 					logger.debug('Could not load persisted group policy for target', {
