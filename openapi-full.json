@@ -1663,7 +1663,8 @@
                     "value",
                     "allowChildOverride",
                     "visibleToChild",
-                    "allowedValues"
+                    "allowedValues",
+                    "deletableByCurrentActor"
                 ],
                 "properties": {
                     "policyKey": {
@@ -1693,6 +1694,9 @@
                         "items": {
                             "$ref": "#/components/schemas/EffectivePolicyValue"
                         }
+                    },
+                    "deletableByCurrentActor": {
+                        "type": "boolean"
                     }
                 }
             },

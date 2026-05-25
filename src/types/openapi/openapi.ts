@@ -1207,6 +1207,7 @@ export type components = {
             allowChildOverride: boolean;
             visibleToChild: boolean;
             allowedValues: components["schemas"]["EffectivePolicyValue"][];
+            deletableByCurrentActor: boolean;
         };
         GroupPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["GroupPolicyResponse"];
         IdDocs: {

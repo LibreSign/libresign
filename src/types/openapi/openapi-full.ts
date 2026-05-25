@@ -1645,6 +1645,7 @@ export type components = {
             allowChildOverride: boolean;
             visibleToChild: boolean;
             allowedValues: components["schemas"]["EffectivePolicyValue"][];
+            deletableByCurrentActor: boolean;
         };
         GroupPolicyWriteRequest: {
             value: components["schemas"]["EffectivePolicyValue"];
