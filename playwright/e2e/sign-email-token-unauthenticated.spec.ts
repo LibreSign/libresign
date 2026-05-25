@@ -7,6 +7,7 @@ import { test, expect } from '@playwright/test';
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setAppConfig, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromEmail } from '../support/mailpit'
+import { getSmallValidPdfBase64 } from '../support/pdf-fixtures'
 import { useFooterPolicyGuard } from '../support/system-policies'
 
 useFooterPolicyGuard()
@@ -42,25 +43,37 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	)
 	await setCertificateEngine(page.request, 'openssl')
 	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
-	await page.goto('./apps/libresign')
-	await page.getByRole('button', { name: 'Upload from URL' }).click()
-	await page.getByRole('textbox', { name: 'URL of a PDF file' }).click();
-	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('http://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf');
-	await page.getByRole('button', { name: 'Send' }).click();
-	await page.getByRole('button', { name: 'Add signer' }).click();
-	await page.getByPlaceholder('Email').click();
-	await page.getByPlaceholder('Email').fill(signerEmail);
-	await page.getByRole('option', { name: signerEmail }).first().click();
-	await page.getByRole('textbox', { name: 'Signer name' }).first().click();
-	await page.getByRole('textbox', { name: 'Signer name' }).first().press('ControlOrMeta+a');
-	await page.getByRole('textbox', { name: 'Signer name' }).first().fill('Signer 01');
-	await page.getByRole('button', { name: 'Save' }).click();
 
 	const mailpit = createMailpitClient()
 	await mailpit.deleteMessages()
 
-	await page.getByRole('button', { name: 'Request signatures' }).click();
-	await page.getByRole('button', { name: 'Send' }).click();
+	const pdfBase64 = await getSmallValidPdfBase64()
+	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+	const auth = 'Basic ' + Buffer.from(`${adminUser}:${adminPassword}`).toString('base64')
+	const createResponse = await page.request.fetch('./ocs/v2.php/apps/libresign/api/v1/request-signature', {
+		method: 'POST',
+		headers: {
+			'OCS-ApiRequest': 'true',
+			Accept: 'application/json',
+			Authorization: auth,
+			'Content-Type': 'application/json',
+		},
+		data: JSON.stringify({
+			name: `email-token-unauth-${Date.now()}.pdf`,
+			status: 1,
+			file: { name: 'email-token-unauth.pdf', base64: pdfBase64 },
+			signers: [{
+				displayName: 'Signer 01',
+				identifyMethods: [{ method: 'email', value: signerEmail, mandatory: 1 }],
+			}],
+		}),
+		failOnStatusCode: false,
+	})
+	expect(
+		createResponse.ok(),
+		`Create request-signature failed with status ${createResponse.status()}: ${await createResponse.text()}`,
+	).toBeTruthy()
 
 	// Keep the browser unauthenticated before opening a public sign link.
 	// This avoids logout redirects to absolute hosts that may differ per environment.
@@ -83,13 +96,20 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	await expect(emailTextbox).toBeVisible()
 	await emailTextbox.click();
 	await emailTextbox.fill(signerEmail);
-	await page.getByRole('button', { name: 'Send verification code' }).click();
+	const sendVerificationCodeButton = page.getByRole('button', { name: 'Send verification code' })
+	const codeTextbox = page.getByRole('textbox', { name: 'Enter your code' }).first()
+	if (!await codeTextbox.isVisible({ timeout: 1000 }).catch(() => false)) {
+		await expect(sendVerificationCodeButton).toBeVisible({ timeout: 15_000 })
+		await expect(sendVerificationCodeButton).toBeEnabled({ timeout: 15_000 })
+		await sendVerificationCodeButton.click();
+	}
+	await expect(codeTextbox).toBeVisible({ timeout: 15_000 })
 
 	const tokenEmail = await waitForEmailTo(mailpit, signerEmail, 'LibreSign: Code to sign file', { timeout: 60_000 })
 	const token = extractTokenFromEmail(tokenEmail.Text)
 	if (!token) throw new Error('Token not found in email')
-	await page.getByRole('textbox', { name: 'Enter your code' }).click();
-	await page.getByRole('textbox', { name: 'Enter your code' }).fill(token);
+	await codeTextbox.click();
+	await codeTextbox.fill(token);
 	await page.getByRole('button', { name: 'Validate code' }).click();
 
 	await expect(page.getByRole('heading', { name: 'Signature confirmation' })).toBeVisible();
