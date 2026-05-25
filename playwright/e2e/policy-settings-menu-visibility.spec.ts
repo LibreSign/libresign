@@ -12,7 +12,7 @@
  * 4. (Browser) Navigate to Policies → editable policy card must be visible.
  * 5. (Browser) Click "Configure" → setting dialog opens.
  * 6. (Browser) Click "Create rule" inside dialog → scope-selector dialog opens.
- * 7. (Browser) Group admin can open "Create rule" and start creating a delegated rule.
+ * 7. (Browser) Group admin can start creating a delegated rule.
  *
  * All admin-side operations are performed via the OCS API so no admin browser
  * session is needed, keeping the test as fast as possible.
@@ -86,7 +86,7 @@ test.afterEach(async ({ adminRequestContext }) => {
 	await setSystemPolicy(adminRequestContext, 'groups_request_sign', DEFAULT_REQUEST_SIGN_GROUPS)
 })
 
-test('group admin can access policies and sees create-rule guard when higher-level rules block exceptions', async ({ page, adminRequestContext, groupAdminRequestContext }) => {
+test('group admin can access policies and start creating a delegated rule', async ({ page, adminRequestContext, groupAdminRequestContext }) => {
 	// ── 0. Provision users/groups (idempotent; safe to call on every run) ──
 	await ensureUserExists(page.request, GROUP_ADMIN, GROUP_ADMIN_PASSWORD)
 	await ensureGroupExists(page.request, GROUP_ID)
@@ -134,9 +134,11 @@ test('group admin can access policies and sees create-rule guard when higher-lev
 	})
 	await expect(settingDialog, 'Policy dialog with "Create rule" button should be visible').toBeVisible({ timeout: 10000 })
 
-	// ── 6. "Create rule" button visibility and guard message ───────────────
+	// ── 6. "Create rule" button must be enabled for delegated configuration ─
 	const createRuleButton = settingDialog.getByRole('button', { name: /^Create rule$/i })
 	await expect(createRuleButton, '"Create rule" button should be visible in the policy dialog').toBeVisible({ timeout: 10000 })
-	await expect(createRuleButton).toBeDisabled()
-	await expect(createRuleButton).toHaveAttribute('title', /higher-level rule is blocking new exceptions in all scopes/i)
+	await expect(createRuleButton).toBeEnabled()
+	await createRuleButton.click()
+	const createRuleDialog = page.getByRole('dialog', { name: /Create rule|What do you want to create\?/i }).last()
+	await expect(createRuleDialog).toBeVisible({ timeout: 10000 })
 })
