@@ -55,8 +55,19 @@ function isGroupPolicyState(value: unknown): value is GroupPolicyState {
 		&& typeof candidate.targetId === 'string'
 		&& typeof candidate.allowChildOverride === 'boolean'
 		&& typeof candidate.visibleToChild === 'boolean'
-		&& typeof candidate.deletableByCurrentActor === 'boolean'
+		&& (typeof candidate.deletableByCurrentActor === 'boolean' || typeof candidate.deletableByCurrentActor === 'undefined')
 		&& Array.isArray(candidate.allowedValues)
+}
+
+function normalizeGroupPolicyState(value: unknown): GroupPolicyState | null {
+	if (!isGroupPolicyState(value)) {
+		return null
+	}
+
+	return {
+		...value,
+		deletableByCurrentActor: value.deletableByCurrentActor ?? false,
+	}
 }
 
 function isSystemPolicyState(value: unknown): value is SystemPolicyState {
@@ -157,12 +168,7 @@ const _policiesStore = defineStore('policies', () => {
 			generateOcsUrl(`/apps/libresign/api/v1/policies/group/${groupId}/${policyKey}`),
 		)
 
-		const policy = response.data?.ocs?.data?.policy
-		if (!isGroupPolicyState(policy)) {
-			return null
-		}
-
-		return policy
+		return normalizeGroupPolicyState(response.data?.ocs?.data?.policy)
 	}
 
 	const fetchSystemPolicy = async (policyKey: string): Promise<SystemPolicyState | null> => {
@@ -184,7 +190,9 @@ const _policiesStore = defineStore('policies', () => {
 		)
 
 		const policies = response.data?.ocs?.data?.policies ?? []
-		return policies.filter(isGroupPolicyState)
+		return policies
+			.map(normalizeGroupPolicyState)
+			.filter((policy): policy is GroupPolicyState => policy !== null)
 	}
 
 	const fetchUserPoliciesByPolicyKey = async (policyKey: string): Promise<UserPolicyState[]> => {
@@ -221,12 +229,7 @@ const _policiesStore = defineStore('policies', () => {
 			payload,
 		)
 
-		const policy = response.data?.ocs?.data?.policy
-		if (!isGroupPolicyState(policy)) {
-			return null
-		}
-
-		return policy
+		return normalizeGroupPolicyState(response.data?.ocs?.data?.policy)
 	}
 
 	const clearGroupPolicy = async (groupId: string, policyKey: string): Promise<GroupPolicyState | null> => {
@@ -234,12 +237,7 @@ const _policiesStore = defineStore('policies', () => {
 			generateOcsUrl(`/apps/libresign/api/v1/policies/group/${groupId}/${policyKey}`),
 		)
 
-		const policy = response.data?.ocs?.data?.policy
-		if (!isGroupPolicyState(policy)) {
-			return null
-		}
-
-		return policy
+		return normalizeGroupPolicyState(response.data?.ocs?.data?.policy)
 	}
 
 	const saveUserPreference = async (policyKey: string, value: EffectivePolicyValue): Promise<EffectivePolicyState | null> => {
