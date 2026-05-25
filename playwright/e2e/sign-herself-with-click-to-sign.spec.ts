@@ -41,13 +41,13 @@ test('sign herself with click to sign', async ({ page }) => {
 	await page.getByRole('button', { name: 'Save' }).click();
 	await page.getByRole('button', { name: 'Request signatures' }).click();
 	await page.getByRole('button', { name: 'Send' }).click();
-	await page.getByRole('button', { name: 'Sign document' }).click();
-	await page.getByRole('button', { name: 'Sign the document.' }).click();
+	await page.getByRole('button', { name: 'Sign document' }).first().click();
+	await page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' }).click();
 	const signResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'),
 	);
-	await page.getByRole('button', { name: 'Sign document' }).click();
+	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click();
 	const signResponse = await signResponsePromise;
 	const signResponseBody = await signResponse.text();
 	expect(
