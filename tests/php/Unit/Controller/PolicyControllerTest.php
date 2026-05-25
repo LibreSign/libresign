@@ -462,16 +462,24 @@ final class PolicyControllerTest extends TestCase {
 			->with('admin')
 			->willReturn(true);
 
+		$policyLayer = (new PolicyLayer())
+			->setScope('group')
+			->setValue('parallel')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true)
+			->setAllowedValues([]);
+
 		$this->policyService
 			->expects($this->once())
 			->method('getGroupPolicy')
 			->with('signature_flow', 'finance')
-			->willReturn((new PolicyLayer())
-				->setScope('group')
-				->setValue('parallel')
-				->setAllowChildOverride(true)
-				->setVisibleToChild(true)
-				->setAllowedValues([]));
+			->willReturn($policyLayer);
+
+		$this->policyService
+			->expects($this->once())
+			->method('canDeleteGroupPolicy')
+			->with('signature_flow', 'finance', $policyLayer)
+			->willReturn(false);
 
 		$response = $this->controller->getGroup('finance', 'signature_flow');
 
@@ -485,6 +493,7 @@ final class PolicyControllerTest extends TestCase {
 				'allowChildOverride' => true,
 				'visibleToChild' => true,
 				'allowedValues' => [],
+				'deletableByCurrentActor' => false,
 			],
 		], $response->getData());
 	}
@@ -747,6 +756,64 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame([
 			'error' => 'Lower-level overrides are not allowed for this policy',
 		], $response->getData());
+	}
+
+	public function testClearGroupReturnsForbiddenForSubAdminEvenOnManagedGroup(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(false);
+		$this->subAdmin
+			->method('isSubAdmin')
+			->with($this->currentUser)
+			->willReturn(true);
+		$this->groupManager
+			->method('getUserGroupIds')
+			->with($this->currentUser)
+			->willReturn(['finance', 'board']);
+
+		$this->policyService
+			->expects($this->once())
+			->method('clearGroupPolicy')
+			->with('signature_flow', 'finance')
+			->willThrowException(new \DomainException('Only system administrators can delete group rules created by a system administrator'));
+
+		$response = $this->controller->clearGroup('finance', 'signature_flow');
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Only system administrators can delete group rules created by a system administrator',
+		], $response->getData());
+	}
+
+	public function testGetGroupExposesDeleteCapabilityForCurrentActor(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$policyLayer = (new PolicyLayer())
+			->setScope('group')
+			->setValue('parallel')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true)
+			->setAllowedValues(['parallel', 'ordered_numeric']);
+
+		$this->policyService
+			->expects($this->once())
+			->method('getGroupPolicy')
+			->with('signature_flow', 'finance')
+			->willReturn($policyLayer);
+
+		$this->policyService
+			->expects($this->once())
+			->method('canDeleteGroupPolicy')
+			->with('signature_flow', 'finance', $policyLayer)
+			->willReturn(true);
+
+		$response = $this->controller->getGroup('finance', 'signature_flow');
+
+		$this->assertTrue($response->getData()['policy']['deletableByCurrentActor']);
 	}
 
 	public function testSetUserPolicyForTargetUserReturnsSavedExplicitPolicy(): void {
