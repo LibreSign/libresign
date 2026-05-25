@@ -414,6 +414,7 @@
 										<th class="policy-workbench__table-select-col">
 											<NcCheckboxRadioSwitch
 												:aria-label="t('libresign', 'Select all visible rules')"
+												:disabled="!hasSelectableVisibleCrudRows"
 												:model-value="crudAllVisibleRowsSelected"
 												@update:modelValue="onVisibleCrudRowsSelectionChange" />
 										</th>
@@ -426,10 +427,13 @@
 								<tbody>
 									<tr v-for="row in displayedCrudRows" :key="row.key" :class="{ 'policy-workbench__table-row--selected': isCrudRowSelected(row.ruleId ?? row.key) }">
 										<td class="policy-workbench__table-select-col">
-											<NcCheckboxRadioSwitch
-												:aria-label="t('libresign', 'Select rule for bulk delete')"
-												:model-value="isCrudRowSelected(row.ruleId ?? row.key)"
-												@update:modelValue="onCrudRowSelectionChange(row.ruleId ?? row.key, $event)" />
+											<template v-if="row.canRemove">
+												<NcCheckboxRadioSwitch
+													:aria-label="t('libresign', 'Select rule for bulk delete')"
+													:model-value="isCrudRowSelected(row.ruleId ?? row.key)"
+													@update:modelValue="onCrudRowSelectionChange(row.ruleId ?? row.key, $event)" />
+											</template>
+											<span v-else class="policy-workbench__table-select-placeholder" aria-hidden="true">-</span>
 										</td>
 										<td>{{ crudScopeLabel(row.scope) }}</td>
 										<td>{{ row.targetLabel }}</td>
@@ -685,6 +689,7 @@ const {
 	loadingMoreCrudRows,
 	selectedCrudRowsCount: crudSelectedRowsCount,
 	allVisibleCrudRowsSelected: crudAllVisibleRowsSelected,
+	hasSelectableVisibleCrudRows,
 	selectedCrudRuleIds,
 	isCrudRowSelected,
 	toggleCrudRowSelection,
@@ -2826,6 +2831,15 @@ watch(
 		:deep(.action-item) {
 			font-size: 0.84rem;
 		}
+	}
+
+	&__table-select-placeholder {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 1.2rem;
+		color: var(--color-text-maxcontrast);
+		opacity: 0.7;
 	}
 
 	&__status {
