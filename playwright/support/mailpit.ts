@@ -75,23 +75,18 @@ export async function waitForEmailTo(
 
 /** Extracts a LibreSign sign link from an email body matching /p/sign/{uuid}. */
 export function extractSignLink(body: string): string | null {
-	const absoluteUrlMatches = body.match(/https?:\/\/[^\s"'<>)]*\/p\/sign\/[\w-]+[^\s"'<>)]*/g) ?? []
-	for (const rawMatch of absoluteUrlMatches) {
-		const normalizedMatch = rawMatch.replace(/[).,;]+$/, '')
-		try {
-			const parsedUrl = new URL(normalizedMatch)
-			return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`.replace(/^\/index\.php/, '')
-		} catch {
-			// Ignore malformed URL candidates and continue.
-		}
-	}
-
-	const pathMatch = body.match(/(?:\/index\.php)?(?:\/[^\s"'<>)]*)*\/p\/sign\/[\w-]+(?:\?[^\s"'<>)]*)?(?:#[^\s"'<>)]*)?/)
-	if (!pathMatch) {
+	const match = body.match(/(?:https?:\/\/[^\s"'<>)]*)?\/(?:index\.php\/)?(?:[^\s"'<>)]*\/)?p\/sign\/[\w-]+(?:\?[^\s"'<>)]*)?(?:#[^\s"'<>)]*)?/)
+	if (!match?.[0]) {
 		return null
 	}
 
-	return pathMatch[0].replace(/^\/index\.php/, '')
+	const normalizedMatch = match[0].replace(/[).,;]+$/, '')
+	if (normalizedMatch.startsWith('http://') || normalizedMatch.startsWith('https://')) {
+		const parsedUrl = new URL(normalizedMatch)
+		return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`.replace(/^\/index\.php/, '')
+	}
+
+	return normalizedMatch.replace(/^\/index\.php/, '')
 }
 
 /** Extracts a numeric token from an email body. Default pattern: 4-8 digit sequence. */
