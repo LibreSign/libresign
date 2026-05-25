@@ -21,6 +21,7 @@ type PolicyRuleLike = {
 	id: string,
 	targetId?: string | null,
 	value: unknown,
+	canRemove?: boolean,
 }
 
 type CatalogStateLike = {
@@ -78,7 +79,7 @@ export function useCatalogCrudTable(options: {
 				scope: 'group',
 				targetLabel: options.state.resolveTargetLabel('group', rule.targetId || ''),
 				valueLabel: options.summarizeRuleValue(rule.value),
-				canRemove: true,
+				canRemove: rule.canRemove ?? true,
 			})
 		}
 
@@ -89,7 +90,7 @@ export function useCatalogCrudTable(options: {
 				scope: 'user',
 				targetLabel: options.state.resolveTargetLabel('user', rule.targetId || ''),
 				valueLabel: options.summarizeRuleValue(rule.value),
-				canRemove: true,
+				canRemove: rule.canRemove ?? true,
 			})
 		}
 
@@ -126,10 +127,12 @@ export function useCatalogCrudTable(options: {
 	})
 
 	const displayedCrudRows = computed(() => filteredCrudRows.value.slice(0, visibleCrudCount.value))
+	const selectableDisplayedCrudRows = computed(() => displayedCrudRows.value.filter((row) => row.canRemove && row.ruleId))
 	const hasMoreCrudRows = computed(() => visibleCrudCount.value < filteredCrudRows.value.length)
-	const selectedCrudRowsCount = computed(() => selectedCrudRuleIds.value.size)
-	const selectedVisibleCrudRowsCount = computed(() => displayedCrudRows.value.filter((row) => selectedCrudRuleIds.value.has(row.ruleId ?? row.key)).length)
-	const allVisibleCrudRowsSelected = computed(() => displayedCrudRows.value.length > 0 && selectedVisibleCrudRowsCount.value === displayedCrudRows.value.length)
+	const selectedCrudRowsCount = computed(() => filteredCrudRows.value.filter((row) => row.canRemove && selectedCrudRuleIds.value.has(row.ruleId ?? row.key)).length)
+	const selectedVisibleCrudRowsCount = computed(() => displayedCrudRows.value.filter((row) => row.canRemove && selectedCrudRuleIds.value.has(row.ruleId ?? row.key)).length)
+	const allVisibleCrudRowsSelected = computed(() => selectableDisplayedCrudRows.value.length > 0 && selectedVisibleCrudRowsCount.value === selectableDisplayedCrudRows.value.length)
+	const hasSelectableVisibleCrudRows = computed(() => selectableDisplayedCrudRows.value.length > 0)
 
 	const activeScopeFilterChip = computed(() => {
 		if (crudScopeFilter.value === 'all') {
@@ -167,6 +170,11 @@ export function useCatalogCrudTable(options: {
 	}
 
 	function toggleCrudRowSelection(ruleId: string, selected: boolean) {
+		const row = filteredCrudRows.value.find((candidate) => (candidate.ruleId ?? candidate.key) === ruleId)
+		if (!row?.canRemove) {
+			return
+		}
+
 		const nextSelection = new Set(selectedCrudRuleIds.value)
 		if (selected) {
 			nextSelection.add(ruleId)
@@ -179,6 +187,10 @@ export function useCatalogCrudTable(options: {
 	function toggleVisibleCrudRowsSelection(selected: boolean) {
 		const nextSelection = new Set(selectedCrudRuleIds.value)
 		for (const row of displayedCrudRows.value) {
+			if (!row.canRemove) {
+				continue
+			}
+
 			const rowId = row.ruleId ?? row.key
 			if (selected) {
 				nextSelection.add(rowId)
@@ -214,7 +226,7 @@ export function useCatalogCrudTable(options: {
 		const nextSelection = new Set<string>()
 		for (const row of nextRows) {
 			const rowId = row.ruleId ?? row.key
-			if (selectedCrudRuleIds.value.has(rowId)) {
+			if (row.canRemove && selectedCrudRuleIds.value.has(rowId)) {
 				nextSelection.add(rowId)
 			}
 		}
@@ -231,6 +243,7 @@ export function useCatalogCrudTable(options: {
 		loadingMoreCrudRows,
 		selectedCrudRowsCount,
 		allVisibleCrudRowsSelected,
+		hasSelectableVisibleCrudRows,
 		selectedCrudRuleIds,
 		isCrudRowSelected,
 		toggleCrudRowSelection,
