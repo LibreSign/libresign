@@ -122,6 +122,9 @@ test('request signatures from two signers in sequential order', async ({ page, a
 
 	const mailpit = createMailpitClient()
 	await mailpit.deleteMessages()
+	const timestamp = Date.now()
+	const signer01Email = `sequential-signer01-${timestamp}@libresign.coop`
+	const signer02Email = `sequential-signer02-${timestamp}@libresign.coop`
 
 	await page.goto('./apps/libresign')
 	await page.getByRole('button', { name: 'Upload from URL' }).click()
@@ -129,10 +132,10 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	await page.getByRole('button', { name: 'Send' }).click()
 
 	// Add first signer — only email method is active, so the field appears directly (no tabs)
-	await addEmailSigner(page, 'signer01@libresign.coop', 'Signer 01')
+	await addEmailSigner(page, signer01Email, 'Signer 01')
 
 	// Add second signer
-	await addEmailSigner(page, 'signer02@libresign.coop', 'Signer 02')
+	await addEmailSigner(page, signer02Email, 'Signer 02')
 
 	// Enable sequential signing.
 	// The hidden checkbox can be covered by the styled label in CI, so force the state change.
@@ -147,7 +150,7 @@ test('request signatures from two signers in sequential order', async ({ page, a
 
 	// In sequential mode only signer01 (order 1) gets the email immediately.
 	// Proof: signer01's email arrives, but signer02's does NOT at this point.
-	const email01 = await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: There is a file for you to sign')
+	const email01 = await waitForEmailTo(mailpit, signer01Email, 'LibreSign: There is a file for you to sign')
 
 	const afterFirst = await mailpit.searchMessages({ query: 'subject:"LibreSign: There is a file for you to sign"' })
 	expect(afterFirst.messages).toHaveLength(1)
@@ -161,12 +164,12 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	const signLink = extractSignLink(email01.Text)
 	if (!signLink) throw new Error('Sign link not found in email')
 	await page.goto(signLink)
-	await page.getByRole('button', { name: 'Sign the document.' }).click()
+	await page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' }).click()
 	const firstSignResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'),
 	)
-	await page.getByRole('button', { name: 'Sign document' }).click()
+	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
 	const firstSignResponse = await firstSignResponsePromise
 	const firstSignResponseBody = await firstSignResponse.text()
 	expect(
@@ -185,7 +188,7 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	await expect(page.getByText('Not signed yet')).toBeVisible()
 
 	// Now that signer01 has signed, signer02 must receive their notification.
-	const email02 = await waitForEmailTo(mailpit, 'signer02@libresign.coop', 'LibreSign: There is a file for you to sign')
+	const email02 = await waitForEmailTo(mailpit, signer02Email, 'LibreSign: There is a file for you to sign')
 
 	const afterSecond = await mailpit.searchMessages({ query: 'subject:"LibreSign: There is a file for you to sign"' })
 	expect(afterSecond.messages).toHaveLength(2)
@@ -195,12 +198,12 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	const signLink02 = extractSignLink(email02.Text)
 	if (!signLink02) throw new Error('Sign link for signer02 not found in email')
 	await page.goto(signLink02)
-	await page.getByRole('button', { name: 'Sign the document.' }).click()
+	await page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' }).click()
 	const secondSignResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'),
 	)
-	await page.getByRole('button', { name: 'Sign document' }).click()
+	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
 	const secondSignResponse = await secondSignResponsePromise
 	const secondSignResponseBody = await secondSignResponse.text()
 	expect(
