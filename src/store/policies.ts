@@ -55,6 +55,7 @@ function isGroupPolicyState(value: unknown): value is GroupPolicyState {
 		&& typeof candidate.targetId === 'string'
 		&& typeof candidate.allowChildOverride === 'boolean'
 		&& typeof candidate.visibleToChild === 'boolean'
+		&& typeof candidate.deletableByCurrentActor === 'boolean'
 		&& Array.isArray(candidate.allowedValues)
 }
 
