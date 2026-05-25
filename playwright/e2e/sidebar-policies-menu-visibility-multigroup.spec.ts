@@ -8,7 +8,6 @@
  *
  * The Policies menu should only appear for:
  * - Instance admins (always)
- * - Group admins who manage 2+ groups (can delegate policies across groups)
  *
  * The Policies menu should NOT appear for:
  * - Group admins who manage only 1 group
@@ -17,8 +16,8 @@
  * Test Cases:
  * 1. Instance admin → Policies menu visible
  * 2. Group admin with 1 group → Policies menu NOT visible
- * 3. Group admin with 2 groups (admin of 1) → Policies menu visible
- * 4. Group admin with 2 groups (admin of both) → Policies menu visible
+ * 3. Group admin with 2+ groups → Policies menu NOT visible without editable policy
+ * 4. Regular user without group management → Policies menu NOT visible
  */
 
 import { expect, test as base, type APIRequestContext } from '@playwright/test'
@@ -90,6 +89,7 @@ test.describe('Policies menu sidebar visibility', () => {
 
 		// Test instance admin
 		await login(page.request, ADMIN_USER, ADMIN_PASSWORD)
+		await page.goto('./apps/libresign/f/preferences')
 
 		// Navigate to settings to ensure sidebar is visible
 		await expandSettingsMenu(page)
@@ -101,6 +101,7 @@ test.describe('Policies menu sidebar visibility', () => {
 
 	test('group admin with 1 group does NOT see Policies menu in sidebar', async ({ page }) => {
 		await login(page.request, SINGLE_GROUP_ADMIN_NAME, SINGLE_GROUP_ADMIN_PASSWORD)
+		await page.goto('./apps/libresign/f/preferences')
 
 		// Navigate to settings
 		await expandSettingsMenu(page)
@@ -112,20 +113,22 @@ test.describe('Policies menu sidebar visibility', () => {
 		await expect(policiesLink).not.toBeVisible()
 	})
 
-	test('group admin with 2+ groups sees Policies menu in sidebar', async ({ page }) => {
+	test('group admin with 2+ groups does NOT see Policies menu in sidebar without editable policy', async ({ page }) => {
 		await login(page.request, MULTI_GROUP_ADMIN_NAME, MULTI_GROUP_ADMIN_PASSWORD)
+		await page.goto('./apps/libresign/f/preferences')
 
 		// Navigate to settings
 		await expandSettingsMenu(page)
 
-		// Policies menu should be visible now that admin manages 2 groups
+		// Without an editable groups_request_sign policy, the sidebar keeps Policies hidden.
 		const policiesLink = page.locator('#app-navigation-vue').getByRole('link', { name: 'Policies' })
 
-		await expect(policiesLink).toBeVisible()
+		await expect(policiesLink).not.toBeVisible()
 	})
 
 	test('regular user without group management does NOT see Policies menu', async ({ page }) => {
 		await login(page.request, REGULAR_USER_NAME, REGULAR_USER_PASSWORD)
+		await page.goto('./apps/libresign/f/preferences')
 
 		// Navigate to settings
 		await expandSettingsMenu(page)
