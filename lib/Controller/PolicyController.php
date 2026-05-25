@@ -514,6 +514,7 @@ final class PolicyController extends AEnvironmentAwareController {
 			'allowChildOverride' => $policy?->isAllowChildOverride() ?? true,
 			'visibleToChild' => $policy?->isVisibleToChild() ?? true,
 			'allowedValues' => $policy?->getAllowedValues() ?? [],
+			'deletableByCurrentActor' => $this->policyService->canDeleteGroupPolicy($policyKey, $groupId, $policy),
 		];
 	}
 
