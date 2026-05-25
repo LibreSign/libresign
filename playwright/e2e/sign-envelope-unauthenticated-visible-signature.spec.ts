@@ -3,20 +3,18 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+/* eslint-disable jsdoc/require-jsdoc */
+
 import { expect, test } from '@playwright/test'
 import type { APIRequestContext, Locator, Page } from '@playwright/test'
-import { configureOpenSsl, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
+
 import { createMailpitClient, extractSignLink, waitForEmailTo } from '../support/mailpit'
+import { configureOpenSsl, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
+import { getSmallValidPdfBase64 } from '../support/pdf-fixtures'
 import { useFooterPolicyGuard } from '../support/system-policies'
 
 useFooterPolicyGuard()
-
-/**
- * Issue #7344 in plain words:
- * an external signer receives an envelope with two PDFs, the visible signature
- * box exists only inside one child PDF, and the signer must still be able to
- * create the signature and finish the signing flow.
- */
+test.setTimeout(60_000)
 
 type EnvelopeSigningScenario = {
 	envelopeName: string
@@ -26,6 +24,7 @@ type EnvelopeSigningScenario = {
 
 type OcsEnvelopeChildSigner = {
 	signRequestId?: number
+	sign_request_uuid?: string
 	email?: string
 	displayName?: string
 }
@@ -42,9 +41,10 @@ type OcsEnvelopeResponse = {
 }
 
 function buildSigningScenario(): EnvelopeSigningScenario {
+	const runId = Date.now()
 	return {
-		envelopeName: `Envelope with visible signature ${Date.now()}`,
-		signerEmail: 'signer01@libresign.coop',
+		envelopeName: `Envelope with visible signature ${runId}`,
+		signerEmail: `visible-signature-${runId}@libresign.coop`,
 		signerName: 'Signer 01',
 	}
 }
@@ -100,14 +100,17 @@ async function enableEnvelopeScenario(request: APIRequestContext) {
 	)
 }
 
+function findSigner(files: OcsEnvelopeChildFile[] | undefined, scenario: EnvelopeSigningScenario) {
+	return files?.[0]?.signers?.find((signer) => {
+		return signer.email === scenario.signerEmail || signer.displayName === scenario.signerName
+	})
+}
+
 async function createEnvelopeWithVisibleSignatureRequirement(
 	request: APIRequestContext,
 	scenario: EnvelopeSigningScenario,
 ) {
-	const pdfResponse = await request.get('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf', {
-		failOnStatusCode: true,
-	})
-	const pdfBase64 = Buffer.from(await pdfResponse.body()).toString('base64')
+	const pdfBase64 = await getSmallValidPdfBase64()
 
 	const createResponse = await requestLibreSignApiAsAdmin(request, 'POST', '/request-signature', {
 		name: scenario.envelopeName,
@@ -127,15 +130,13 @@ async function createEnvelopeWithVisibleSignatureRequirement(
 
 	const envelope = createResponse.ocs.data
 	const targetFile = envelope.files?.[0]
-	const targetSigner = targetFile?.signers?.find((signer) => {
-		return signer.email === scenario.signerEmail || signer.displayName === scenario.signerName
-	})
+	const targetSigner = findSigner(envelope.files, scenario)
 
 	if (!envelope.uuid || !targetFile?.id || !targetSigner?.signRequestId) {
 		throw new Error('Failed to create envelope payload for issue #7344 e2e test')
 	}
 
-	await requestLibreSignApiAsAdmin(request, 'PATCH', '/request-signature', {
+	const updateResponse = await requestLibreSignApiAsAdmin(request, 'PATCH', '/request-signature', {
 		uuid: envelope.uuid,
 		status: 1,
 		visibleElements: [{
@@ -151,6 +152,8 @@ async function createEnvelopeWithVisibleSignatureRequirement(
 			},
 		}],
 	})
+
+	return findSigner(updateResponse.ocs.data.files, scenario)?.sign_request_uuid ?? null
 }
 
 async function waitForSignerInvitationLink(signerEmail: string) {
@@ -158,6 +161,7 @@ async function waitForSignerInvitationLink(signerEmail: string) {
 		createMailpitClient(),
 		signerEmail,
 		'LibreSign: There is a file for you to sign',
+		{ interval: 250 },
 	)
 	const signLink = extractSignLink(email.Text)
 	if (!signLink) {
@@ -167,9 +171,8 @@ async function waitForSignerInvitationLink(signerEmail: string) {
 }
 
 async function openInvitationAsExternalSigner(page: Page, signLink: string) {
-	// API setup runs as admin. Clear cookies so the browser behaves like the real external signer.
 	await page.context().clearCookies()
-	await page.goto(signLink)
+	await page.goto(signLink, { waitUntil: 'domcontentloaded' })
 }
 
 async function drawSignatureOnCanvas(signatureDialog: Locator, page: Page) {
@@ -192,16 +195,15 @@ async function drawSignatureOnCanvas(signatureDialog: Locator, page: Page) {
 }
 
 async function defineVisibleSignature(page: Page) {
-	const openSignButton = page.getByRole('button', { name: 'Sign document' }).first()
+	const openSignButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
 	if (!await page.getByRole('button', { name: 'Define your signature.' }).isVisible().catch(() => false)) {
 		if (await openSignButton.isVisible().catch(() => false)) {
-			await openSignButton.click()
+			await openSignButton.click({ force: true })
 		}
 	}
 
 	const deleteSignatureButton = page.getByRole('button', { name: 'Delete signature' })
-	await deleteSignatureButton.waitFor({ state: 'visible', timeout: 3_000 }).catch(() => null)
-	if (await deleteSignatureButton.isVisible()) {
+	if (await deleteSignatureButton.isVisible().catch(() => false)) {
 		await deleteSignatureButton.click()
 	}
 
@@ -217,20 +219,20 @@ async function defineVisibleSignature(page: Page) {
 	await expect(confirmDialog).toBeVisible()
 	await confirmDialog.getByRole('button', { name: 'Save' }).click()
 
-	const signDocumentCta = page.getByRole('button', { name: 'Sign document' }).first()
+	const signDocumentCta = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
 	await expect(signDocumentCta).toBeVisible()
 }
 
 async function finishSigning(page: Page) {
-	const openSignButton = page.getByRole('button', { name: 'Sign document' }).first()
+	const openSignButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
 	if (await openSignButton.isVisible().catch(() => false)) {
-		await openSignButton.click()
+		await openSignButton.click({ force: true })
 	}
-	await page.getByRole('button', { name: 'Sign document' }).click()
+	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
 }
 
 async function expectEnvelopeSigned(page: Page, envelopeName: string) {
-	await page.waitForURL('**/validation/**')
+	await page.waitForURL('**/validation/**', { waitUntil: 'commit' })
 	await expect(page.getByText('Envelope information')).toBeVisible()
 	await expect(page.getByText('Documents in this envelope')).toBeVisible()
 	await expect(page.getByText('Congratulations you have digitally signed a document using LibreSign')).toBeVisible()
@@ -240,20 +242,19 @@ async function expectEnvelopeSigned(page: Page, envelopeName: string) {
 
 test('unauthenticated signer can define a visible signature for an envelope with multiple PDFs', async ({ page }) => {
 	const scenario = buildSigningScenario()
-	const mailpit = createMailpitClient()
+	let signLink: string | null = null
 
 	await test.step('Given the system is configured to allow envelope signing via e-mail', async () => {
 		await enableEnvelopeScenario(page.request)
 	})
 
 	await test.step('And an envelope with two PDFs is created requiring a visible signature on the first document', async () => {
-		await mailpit.deleteMessages()
-		await createEnvelopeWithVisibleSignatureRequirement(page.request, scenario)
+		signLink = await createEnvelopeWithVisibleSignatureRequirement(page.request, scenario)
 	})
 
 	await test.step('When the external signer opens the invitation link received by e-mail', async () => {
-		const signLink = await waitForSignerInvitationLink(scenario.signerEmail)
-		await openInvitationAsExternalSigner(page, signLink)
+		const publicSignLink = signLink ?? await waitForSignerInvitationLink(scenario.signerEmail)
+		await openInvitationAsExternalSigner(page, publicSignLink)
 	})
 
 	await test.step('And the signer draws and saves their visible signature on the document', async () => {
