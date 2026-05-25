@@ -784,7 +784,7 @@ class PolicySource implements IPolicySource {
 	}
 
 	#[\Override]
-	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride): void {
+	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride, bool $createdBySystemAdmin = false): void {
 		$definition = $this->registry->get($policyKey);
 		$normalizedValue = $definition->normalizeValue($value);
 		$permissionSet = $this->findPermissionSetByGroupId($groupId);
@@ -803,6 +803,8 @@ class PolicySource implements IPolicySource {
 			'allowChildOverride' => $allowChildOverride,
 			'visibleToChild' => true,
 			'allowedValues' => $allowChildOverride ? [] : [$normalizedValue],
+			'createdBySystemAdmin' => $createdBySystemAdmin,
+			'createdByActorScope' => $createdBySystemAdmin ? 'system' : 'group',
 		];
 
 		$permissionSet->setPolicyJson($policyJson);
@@ -918,7 +920,28 @@ class PolicySource implements IPolicySource {
 			->setValue($policyConfig['defaultValue'] ?? null)
 			->setAllowChildOverride((bool)($policyConfig['allowChildOverride'] ?? false))
 			->setVisibleToChild((bool)($policyConfig['visibleToChild'] ?? true))
-			->setAllowedValues(is_array($policyConfig['allowedValues'] ?? null) ? $policyConfig['allowedValues'] : []);
+			->setAllowedValues(is_array($policyConfig['allowedValues'] ?? null) ? $policyConfig['allowedValues'] : [])
+			->setNotes($this->extractGroupPolicyNotes($policyConfig));
+	}
+
+	/** @param array<string, mixed> $policyConfig */
+	private function extractGroupPolicyNotes(array $policyConfig): array {
+		$notes = [];
+
+		$createdBySystemAdmin = $policyConfig['createdBySystemAdmin'] ?? null;
+		if (is_bool($createdBySystemAdmin)) {
+			$notes['createdBySystemAdmin'] = $createdBySystemAdmin;
+		}
+
+		$createdByActorScope = $policyConfig['createdByActorScope'] ?? null;
+		if (is_string($createdByActorScope) && $createdByActorScope !== '') {
+			$notes['createdByActorScope'] = $createdByActorScope;
+			if (!isset($notes['createdBySystemAdmin'])) {
+				$notes['createdBySystemAdmin'] = $createdByActorScope === 'system';
+			}
+		}
+
+		return $notes;
 	}
 
 	private function findBindingByGroupId(string $groupId): ?PermissionSetBinding {
