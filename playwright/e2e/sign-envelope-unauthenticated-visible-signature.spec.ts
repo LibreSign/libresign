@@ -192,6 +192,13 @@ async function drawSignatureOnCanvas(signatureDialog: Locator, page: Page) {
 }
 
 async function defineVisibleSignature(page: Page) {
+	const openSignButton = page.getByRole('button', { name: 'Sign document' }).first()
+	if (!await page.getByRole('button', { name: 'Define your signature.' }).isVisible().catch(() => false)) {
+		if (await openSignButton.isVisible().catch(() => false)) {
+			await openSignButton.click()
+		}
+	}
+
 	const deleteSignatureButton = page.getByRole('button', { name: 'Delete signature' })
 	await deleteSignatureButton.waitFor({ state: 'visible', timeout: 3_000 }).catch(() => null)
 	if (await deleteSignatureButton.isVisible()) {
@@ -210,12 +217,12 @@ async function defineVisibleSignature(page: Page) {
 	await expect(confirmDialog).toBeVisible()
 	await confirmDialog.getByRole('button', { name: 'Save' }).click()
 
-	const signDocumentCta = page.getByRole('button', { name: /Sign the document\.|Sign document/ }).first()
+	const signDocumentCta = page.getByRole('button', { name: 'Sign document' }).first()
 	await expect(signDocumentCta).toBeVisible()
 }
 
 async function finishSigning(page: Page) {
-	const openSignButton = page.getByRole('button', { name: /Sign the document\.|Sign document/ }).first()
+	const openSignButton = page.getByRole('button', { name: 'Sign document' }).first()
 	if (await openSignButton.isVisible().catch(() => false)) {
 		await openSignButton.click()
 	}
