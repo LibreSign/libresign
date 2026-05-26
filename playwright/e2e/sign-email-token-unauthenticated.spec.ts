@@ -83,7 +83,23 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	const email = await waitForEmailTo(mailpit, signerEmail, 'LibreSign: There is a file for you to sign')
 	const signLink = extractSignLink(email.Text)
 	if (!signLink) throw new Error('Sign link not found in email')
-	await page.goto(signLink);
+	const signLinkCandidates = signLink.startsWith('/index.php/')
+		? [signLink, signLink.replace(/^\/index\.php/, '')]
+		: [signLink, `/index.php${signLink.startsWith('/') ? '' : '/'}${signLink}`]
+
+	let invitationOpened = false
+	for (const candidate of signLinkCandidates) {
+		await page.goto(candidate)
+		const loginHeading = page.getByRole('heading', { name: 'Log in to Nextcloud' })
+		if (await loginHeading.isVisible({ timeout: 1_500 }).catch(() => false)) {
+			continue
+		}
+		invitationOpened = true
+		break
+	}
+	if (!invitationOpened) {
+		throw new Error(`Invitation link redirected to login instead of public sign page: ${page.url()}`)
+	}
 	const openSignButton = page.getByRole('button', { name: 'Sign document' }).first()
 	const emailTextbox = page.getByRole('textbox', { name: 'Email' }).first()
 	await Promise.any([
@@ -98,7 +114,11 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	await emailTextbox.fill(signerEmail);
 	const sendVerificationCodeButton = page.getByRole('button', { name: 'Send verification code' })
 	const codeTextbox = page.getByRole('textbox', { name: 'Enter your code' }).first()
-	if (!await codeTextbox.isVisible({ timeout: 1000 }).catch(() => false)) {
+	await Promise.any([
+		sendVerificationCodeButton.waitFor({ state: 'visible', timeout: 15_000 }),
+		codeTextbox.waitFor({ state: 'visible', timeout: 15_000 }),
+	])
+	if (!await codeTextbox.isVisible({ timeout: 200 }).catch(() => false)) {
 		await expect(sendVerificationCodeButton).toBeVisible({ timeout: 15_000 })
 		await expect(sendVerificationCodeButton).toBeEnabled({ timeout: 15_000 })
 		await sendVerificationCodeButton.click();
