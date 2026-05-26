@@ -25,6 +25,8 @@ import { randomBytes } from 'node:crypto'
 import { login } from '../support/nc-login'
 import { expandSettingsMenu } from '../support/nc-navigation'
 import {
+	deleteGroup,
+	deleteUser,
 	ensureGroupExists,
 	ensureSubadminOfGroup,
 	ensureUserExists,
@@ -48,45 +50,61 @@ const test = base.extend<{
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
 const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
-const ADMIN_PASSWORD = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.NEXTCLOUD_ADMIN_PASSWORD || 'admin'
 
 const TEST_NAMESPACE = randomBytes(6).toString('hex')
-const GROUP_1 = `group1-${TEST_NAMESPACE}`
-const GROUP_2 = `group2-${TEST_NAMESPACE}`
+const GROUP_1 = `policy-sidebar-group-1-${TEST_NAMESPACE}`
+const GROUP_2 = `policy-sidebar-group-2-${TEST_NAMESPACE}`
 
-const SINGLE_GROUP_ADMIN_NAME = `single-admin-${TEST_NAMESPACE}`
+const SINGLE_GROUP_ADMIN_NAME = `policy-sidebar-single-admin-${TEST_NAMESPACE}`
 const SINGLE_GROUP_ADMIN_PASSWORD = '123456'
 
-const MULTI_GROUP_ADMIN_NAME = `multi-admin-${TEST_NAMESPACE}`
+const MULTI_GROUP_ADMIN_NAME = `policy-sidebar-multi-admin-${TEST_NAMESPACE}`
 const MULTI_GROUP_ADMIN_PASSWORD = '123456'
 
-const REGULAR_USER_NAME = `regular-user-${TEST_NAMESPACE}`
+const REGULAR_USER_NAME = `policy-sidebar-regular-user-${TEST_NAMESPACE}`
 const REGULAR_USER_PASSWORD = '123456'
+
+let adminLifecycleContext: APIRequestContext | null = null
+
+test.beforeAll(async () => {
+	adminLifecycleContext = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
+
+	await ensureGroupExists(adminLifecycleContext, GROUP_1)
+	await ensureGroupExists(adminLifecycleContext, GROUP_2)
+
+	await ensureUserExists(adminLifecycleContext, SINGLE_GROUP_ADMIN_NAME, SINGLE_GROUP_ADMIN_PASSWORD)
+	await ensureUserInGroup(adminLifecycleContext, SINGLE_GROUP_ADMIN_NAME, GROUP_1)
+	await ensureSubadminOfGroup(adminLifecycleContext, SINGLE_GROUP_ADMIN_NAME, GROUP_1)
+	await setUserLanguage(adminLifecycleContext, SINGLE_GROUP_ADMIN_NAME, 'en')
+
+	await ensureUserExists(adminLifecycleContext, MULTI_GROUP_ADMIN_NAME, MULTI_GROUP_ADMIN_PASSWORD)
+	await ensureUserInGroup(adminLifecycleContext, MULTI_GROUP_ADMIN_NAME, GROUP_1)
+	await ensureUserInGroup(adminLifecycleContext, MULTI_GROUP_ADMIN_NAME, GROUP_2)
+	await ensureSubadminOfGroup(adminLifecycleContext, MULTI_GROUP_ADMIN_NAME, GROUP_1)
+	await ensureSubadminOfGroup(adminLifecycleContext, MULTI_GROUP_ADMIN_NAME, GROUP_2)
+	await setUserLanguage(adminLifecycleContext, MULTI_GROUP_ADMIN_NAME, 'en')
+
+	await ensureUserExists(adminLifecycleContext, REGULAR_USER_NAME, REGULAR_USER_PASSWORD)
+	await setUserLanguage(adminLifecycleContext, REGULAR_USER_NAME, 'en')
+})
+
+test.afterAll(async () => {
+	if (!adminLifecycleContext) {
+		return
+	}
+
+	await deleteUser(adminLifecycleContext, SINGLE_GROUP_ADMIN_NAME, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+	await deleteUser(adminLifecycleContext, MULTI_GROUP_ADMIN_NAME, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+	await deleteUser(adminLifecycleContext, REGULAR_USER_NAME, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+	await deleteGroup(adminLifecycleContext, GROUP_1, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+	await deleteGroup(adminLifecycleContext, GROUP_2, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+	await adminLifecycleContext.dispose()
+	adminLifecycleContext = null
+})
 
 test.describe('Policies menu sidebar visibility', () => {
 	test('instance admin sees Policies menu in sidebar', async ({ page, adminRequestContext }) => {
-		// Provision groups and users using the admin request context
-		await ensureGroupExists(adminRequestContext, GROUP_1)
-		await ensureGroupExists(adminRequestContext, GROUP_2)
-
-		// Create single-group admin
-		await ensureUserExists(adminRequestContext, SINGLE_GROUP_ADMIN_NAME, SINGLE_GROUP_ADMIN_PASSWORD)
-		await ensureUserInGroup(adminRequestContext, SINGLE_GROUP_ADMIN_NAME, GROUP_1)
-		await ensureSubadminOfGroup(adminRequestContext, SINGLE_GROUP_ADMIN_NAME, GROUP_1)
-		await setUserLanguage(adminRequestContext, SINGLE_GROUP_ADMIN_NAME, 'en')
-
-		// Create multi-group admin
-		await ensureUserExists(adminRequestContext, MULTI_GROUP_ADMIN_NAME, MULTI_GROUP_ADMIN_PASSWORD)
-		await ensureUserInGroup(adminRequestContext, MULTI_GROUP_ADMIN_NAME, GROUP_1)
-		await ensureUserInGroup(adminRequestContext, MULTI_GROUP_ADMIN_NAME, GROUP_2)
-		await ensureSubadminOfGroup(adminRequestContext, MULTI_GROUP_ADMIN_NAME, GROUP_1)
-		await ensureSubadminOfGroup(adminRequestContext, MULTI_GROUP_ADMIN_NAME, GROUP_2)
-		await setUserLanguage(adminRequestContext, MULTI_GROUP_ADMIN_NAME, 'en')
-
-		// Create regular user
-		await ensureUserExists(adminRequestContext, REGULAR_USER_NAME, REGULAR_USER_PASSWORD)
-		await setUserLanguage(adminRequestContext, REGULAR_USER_NAME, 'en')
-
 		// Test instance admin
 		await login(page.request, ADMIN_USER, ADMIN_PASSWORD)
 		await page.goto('./apps/libresign/f/preferences')
