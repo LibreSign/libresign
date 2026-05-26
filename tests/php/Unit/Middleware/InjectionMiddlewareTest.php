@@ -9,17 +9,23 @@ use OC\AppFramework\Bootstrap\Coordinator;
 use OC\AppFramework\Services\InitialState;
 use OC\InitialStateService;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\PageException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\InjectionMiddleware;
+use OCA\Libresign\Middleware\Attribute\PrivateValidation;
+use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\FileAccessService;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\UuidResolverService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
@@ -37,6 +43,26 @@ use Psr\Log\LoggerInterface;
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
+
+final class PrivateValidationBypassController extends Controller {
+	#[PrivateValidation(allowValidSignRequestUuid: true)]
+	#[RequireSignRequestUuid]
+	public function sign(): void {
+	}
+}
+
+final class PrivateValidationProtectedController extends Controller {
+	#[PrivateValidation]
+	#[RequireSignRequestUuid]
+	public function validation(): void {
+	}
+}
+
+final class PrivateValidationFallbackProtectedController extends Controller {
+	#[PrivateValidation]
+	public function show(): void {
+	}
+}
 
 final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IRequest&MockObject $request;
@@ -235,5 +261,137 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				},
 			],
 		];
+	}
+
+	public function testBeforeControllerAllowsUnauthenticatedAccessWithValidUuidWhenAttributeEnablesBypass(): void {
+		$controller = new PrivateValidationBypassController('libresign', $this->request);
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setEffectiveValue(true);
+
+		$this->userSession
+			->expects($this->once())
+			->method('isLoggedIn')
+			->willReturn(false);
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolve')
+			->with(ValidationAccessPolicy::KEY)
+			->willReturn($resolvedPolicy);
+
+		$this->request
+			->expects($this->once())
+			->method('getParam')
+			->willReturnCallback(function (string $key, $default = null) {
+				return match ($key) {
+					'uuid' => 'valid-uuid',
+					default => $default,
+				};
+			});
+
+		$this->request
+			->expects($this->once())
+			->method('getHeader')
+			->with('libresign-sign-request-uuid')
+			->willReturn('');
+
+		$this->signRequestMapper
+			->expects($this->once())
+			->method('getByUuid')
+			->with('valid-uuid')
+			->willReturn($this->createStub(SignRequest::class));
+
+		$injectionMiddleware = $this->getInjectionMiddleware();
+		$injectionMiddleware->beforeController($controller, 'sign');
+
+		$this->addToAssertionCount(1);
+	}
+
+	public function testBeforeControllerRedirectsUnauthenticatedAccessWhenAttributeDoesNotEnableBypass(): void {
+		$controller = new PrivateValidationProtectedController('libresign', $this->request);
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setEffectiveValue(true);
+
+		$this->userSession
+			->expects($this->once())
+			->method('isLoggedIn')
+			->willReturn(false);
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolve')
+			->with(ValidationAccessPolicy::KEY)
+			->willReturn($resolvedPolicy);
+
+		$this->request
+			->expects($this->once())
+			->method('getRawPathInfo')
+			->willReturn('/apps/libresign/validation/valid-uuid');
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('You are not logged in. Please log in.')
+			->willReturn('You are not logged in. Please log in.');
+
+		$this->urlGenerator
+			->expects($this->once())
+			->method('linkToRoute')
+			->with('core.login.showLoginForm', [
+				'redirect_url' => '/apps/libresign/validation/valid-uuid',
+			])
+			->willReturn('/index.php/login?redirect_url=/apps/libresign/validation/valid-uuid');
+
+		$this->signRequestMapper
+			->expects($this->never())
+			->method('getByUuid');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(Http::STATUS_UNAUTHORIZED);
+
+		$injectionMiddleware = $this->getInjectionMiddleware();
+		$injectionMiddleware->beforeController($controller, 'validation');
+	}
+
+	public function testBeforeControllerRedirectsProtectedValidationPathWithoutResolvedRouteName(): void {
+		$controller = new PrivateValidationFallbackProtectedController('libresign', $this->request);
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setEffectiveValue(true);
+
+		$this->userSession
+			->expects($this->once())
+			->method('isLoggedIn')
+			->willReturn(false);
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolve')
+			->with(ValidationAccessPolicy::KEY)
+			->willReturn($resolvedPolicy);
+
+		$this->request
+			->expects($this->once())
+			->method('getRawPathInfo')
+			->willReturn('/apps/libresign/validation/fakeuuid-6037-47be-9d9e-3d90b9d0a3ea');
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('You are not logged in. Please log in.')
+			->willReturn('You are not logged in. Please log in.');
+
+		$this->urlGenerator
+			->expects($this->once())
+			->method('linkToRoute')
+			->with('core.login.showLoginForm', [
+				'redirect_url' => '/apps/libresign/validation/fakeuuid-6037-47be-9d9e-3d90b9d0a3ea',
+			])
+			->willReturn('/index.php/login?redirect_url=/apps/libresign/validation/fakeuuid-6037-47be-9d9e-3d90b9d0a3ea');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(Http::STATUS_UNAUTHORIZED);
+
+		$injectionMiddleware = $this->getInjectionMiddleware();
+		$injectionMiddleware->beforeController($controller, 'show');
 	}
 }
