@@ -100,14 +100,15 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	if (!invitationOpened) {
 		throw new Error(`Invitation link redirected to login instead of public sign page: ${page.url()}`)
 	}
-	const openSignButton = page.getByRole('button', { name: 'Sign document' }).first()
+	const openSignButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' }).first()
 	const emailTextbox = page.getByRole('textbox', { name: 'Email' }).first()
 	await Promise.any([
 		openSignButton.waitFor({ state: 'visible', timeout: 10_000 }),
 		emailTextbox.waitFor({ state: 'visible', timeout: 10_000 }),
 	])
-	if (await openSignButton.isVisible().catch(() => false)) {
-		await openSignButton.click();
+	if (!await emailTextbox.isVisible()) {
+		await expect(openSignButton).toBeVisible({ timeout: 15_000 })
+		await openSignButton.click({ force: true })
 	}
 	await expect(emailTextbox).toBeVisible()
 	await emailTextbox.click();
