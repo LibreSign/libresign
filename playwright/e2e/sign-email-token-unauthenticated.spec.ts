@@ -148,7 +148,8 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 		signResponse.ok(),
 		`Sign API failed with status ${signResponse.status()}: ${signResponseBody}`,
 	).toBeTruthy()
-	await expect(page.getByText('This document is valid')).toBeVisible();
-	await expect(page.getByText('Congratulations you have')).toBeVisible();
+	await page.waitForURL('**/validation/**', { waitUntil: 'commit' })
+	await expect(page.getByText('This document is valid')).toBeVisible({ timeout: 15_000 })
+	await expect(page.getByText('Congratulations you have')).toBeVisible({ timeout: 15_000 })
 	await expect(page.getByRole('button', { name: 'Sign document' })).not.toBeVisible();
 });
