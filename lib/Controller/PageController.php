@@ -338,7 +338,6 @@ class PageController extends AEnvironmentPageAwareController {
 	 *
 	 * 200: OK
 	 */
-	#[PrivateValidation]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
