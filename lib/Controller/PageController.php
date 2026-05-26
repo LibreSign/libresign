@@ -277,6 +277,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 *
 	 * 200: OK
 	 */
+	#[PrivateValidation(allowValidSignRequestUuid: false)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
@@ -323,6 +324,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
+	#[PrivateValidation(allowValidSignRequestUuid: true)]
 	#[RequireSignRequestUuid(redirectIfSignedToValidation: true, allowIdDocs: true)]
 	#[FrontpageRoute(verb: 'GET', url: '/p/sign/{uuid}/{path}', requirements: ['path' => '.+'])]
 	public function signPPath(string $uuid): TemplateResponse {
@@ -343,6 +345,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
+	#[PrivateValidation(allowValidSignRequestUuid: true)]
 	#[RequireSignRequestUuid(redirectIfSignedToValidation: true, allowIdDocs: true)]
 	#[FrontpageRoute(verb: 'GET', url: '/p/sign/{uuid}')]
 	public function sign(string $uuid): TemplateResponse {
@@ -460,7 +463,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * 401: Validation page not accessible if unauthenticated
 	 * 404: File not found
 	 */
-	#[PrivateValidation]
+	#[PrivateValidation(allowValidSignRequestUuid: false)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
@@ -486,7 +489,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * 200: OK
 	 * 401: Validation page not accessible if unauthenticated
 	 */
-	#[PrivateValidation]
+	#[PrivateValidation(allowValidSignRequestUuid: false)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(allowIdDocs: true)]
@@ -514,7 +517,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * 200: OK
 	 * 401: Validation page not accessible if unauthenticated
 	 */
-	#[PrivateValidation]
+	#[PrivateValidation(allowValidSignRequestUuid: false)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'validation')]
@@ -559,7 +562,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * 303: Redirected to validation page
 	 * 401: Validation page not accessible if unauthenticated
 	 */
-	#[PrivateValidation]
+	#[PrivateValidation(allowValidSignRequestUuid: false)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
@@ -605,7 +608,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * 200: OK
 	 * 401: Validation page not accessible if unauthenticated
 	 */
-	#[PrivateValidation]
+	#[PrivateValidation(allowValidSignRequestUuid: false)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'validation')]
