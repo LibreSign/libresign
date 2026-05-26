@@ -3,19 +3,28 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { randomBytes } from 'node:crypto'
+
 import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
-import { login } from '../support/nc-login'
-import { ensureUserExists } from '../support/nc-provisioning'
+
 import { bootstrapLibreSignAdmin, ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
+import { deleteUser, ensureUserExists } from '../support/nc-provisioning'
 import { clearPolicyWorkbenchRules } from '../support/policy-workbench-rules'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
 const changeDefaultButtonName = /^Change$/i
 const removeExceptionButtonName = /Remove exception|Remove rule/i
-const instanceWideTargetLabel = 'Default (instance-wide)'
 const ruleDialogName = /Create rule|Edit rule|What do you want to create\?/i
+const TEST_RUN_SUFFIX = randomBytes(4).toString('hex')
+const TEST_USER_TARGET = `pw-policy-system-default-user-${TEST_RUN_SUFFIX}`
+const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.NEXTCLOUD_ADMIN_PASSWORD || 'admin'
+
+test.afterEach(async ({ request }) => {
+	await deleteUser(request, TEST_USER_TARGET, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+})
 
 async function getActiveRuleDialog(page: Page): Promise<Locator> {
 	const roleDialog = page.getByRole('dialog', { name: ruleDialogName }).last()
@@ -348,7 +357,7 @@ test('system default persists across edit cycles and can be reset to the system 
 })
 
 test('admin can manage instance, group, and user rules when system default is fixed', async ({ page }) => {
-	const userTarget = `policy-system-default-user-${Date.now()}`
+	const userTarget = TEST_USER_TARGET
 
 	await ensureUserExists(page.request, userTarget)
 
@@ -395,7 +404,7 @@ test('admin can manage instance, group, and user rules when system default is fi
 	const targetUsersCombobox = stableDialog.page().getByRole('combobox', { name: 'Target users' }).first()
 	const targetUsersLabel = stableDialog.page().getByLabel('Target users').first()
 	const hasTargetUsersSelector = await targetUsersCombobox.isVisible({ timeout: 2000 }).catch(() => false)
-		|| await targetUsersLabel.isVisible({ timeout: 2000 }).catch(() => false)
+			|| await targetUsersLabel.isVisible({ timeout: 2000 }).catch(() => false)
 	if (!hasTargetUsersSelector) {
 		await resetSystemRuleToBaseline(stableDialog)
 		expect([null, 'none']).toContain(await getSystemSignatureFlowValue(page))
