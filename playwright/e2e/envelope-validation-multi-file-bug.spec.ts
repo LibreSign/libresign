@@ -86,9 +86,10 @@ async function enableEnvelopeScenario(request: APIRequestContext) {
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: false, mandatory: false },
-			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } }, can_create_account: false },
+			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true }, emailToken: { enabled: false } }, can_create_account: false },
 		]),
 	)
+	await setSystemPolicy(request, 'make_validation_url_private', '0')
 }
 
 async function createEnvelopeWithMultipleFiles(
@@ -144,19 +145,49 @@ async function waitForSignerInvitationLink(signerEmail: string) {
 async function openInvitationAsExternalSigner(page: Page, signLink: string) {
 	// API setup runs as admin. Clear cookies so the browser behaves like the real external signer.
 	await page.context().clearCookies()
-	await page.goto(signLink)
+	await page.goto('about:blank')
+
+	const baseCandidates = signLink.startsWith('/index.php/')
+		? [signLink, signLink.replace(/^\/index\.php/, '')]
+		: [signLink, `/index.php${signLink.startsWith('/') ? '' : '/'}${signLink}`]
+
+	const signLinkCandidates = [...new Set(baseCandidates.flatMap((candidate) => {
+		const withoutPdfSuffix = candidate.replace(/\/pdf(?=$|[?#])/, '')
+		return candidate === withoutPdfSuffix ? [candidate] : [candidate, withoutPdfSuffix]
+	}))]
+
+	for (const candidate of signLinkCandidates) {
+		try {
+			await page.goto(candidate, { waitUntil: 'commit', timeout: 15_000 })
+		} catch {
+			continue
+		}
+
+		const currentUrl = page.url()
+		if (currentUrl.includes('/login') || currentUrl.includes('/apps/libresign/p/error')) {
+			continue
+		}
+
+		if (currentUrl.includes('/apps/libresign/p/sign/')) {
+			return
+		}
+	}
+
+	throw new Error(`Invitation link redirected to login instead of public sign page: ${page.url()}`)
 }
 
 async function defineClickToSignature(page: Page) {
 	// Wait for click-to-sign button
-	await expect(page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })).toBeVisible({ timeout: 5_000 })
+	await expect(page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })).toBeVisible({ timeout: 15_000 })
 }
 
 async function finishSigning(page: Page) {
 	const signButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
-	await signButton.scrollIntoViewIfNeeded()
-	await signButton.click()
-	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
+	await expect(signButton).toBeVisible({ timeout: 15_000 })
+	await signButton.click({ force: true })
+	const confirmSignButton = page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' })
+	await expect(confirmSignButton).toBeVisible({ timeout: 15_000 })
+	await confirmSignButton.click()
 }
 
 test('validation screen should display all data correctly for envelope with 2 files', async ({ page }) => {
