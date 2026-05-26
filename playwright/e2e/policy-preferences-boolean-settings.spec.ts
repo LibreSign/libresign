@@ -8,6 +8,8 @@ import { login } from '../support/nc-login'
 import { expandSettingsMenu } from '../support/nc-navigation'
 import {
 	configureOpenSsl,
+	deleteGroup,
+	deleteUser,
 	ensureGroupExists,
 	ensureUserExists,
 	ensureUserInGroup,
@@ -29,20 +31,63 @@ type SystemPolicySnapshot = {
 
 const adminUser = 'admin'
 const adminPass = process.env.ADMIN_PASSWORD || 'admin'
+const TEST_GROUP_ID = 'pw-pref-boolean-group'
+const TEST_END_USER = 'pw_prefboolean_user'
+
+let activeAdminCtx: APIRequestContext | null = null
+let endUserCtx: APIRequestContext | null = null
+let originalGroupsRequestSign: SystemPolicySnapshot | null = null
+let originalCollectMetadata: SystemPolicySnapshot | null = null
+let originalDocmdp: SystemPolicySnapshot | null = null
+let originalSignatureText: SystemPolicySnapshot | null = null
 
 test.describe('Policy preferences: boolean settings', () => {
+	test.afterEach(async () => {
+		if (endUserCtx) {
+			await clearUserPolicyPreference(endUserCtx, 'collect_metadata', [200, 401, 500])
+			await clearUserPolicyPreference(endUserCtx, 'docmdp', [200, 401, 500])
+			await clearUserPolicyPreference(endUserCtx, 'signature_stamp', [200, 401, 405, 500])
+			await endUserCtx.dispose()
+			endUserCtx = null
+		}
+
+		const adminCtx = activeAdminCtx ?? await createAuthenticatedRequestContext(adminUser, adminPass)
+		if (originalGroupsRequestSign) {
+			await restoreSystemPolicySnapshot(adminCtx, 'groups_request_sign', originalGroupsRequestSign)
+		}
+		if (originalCollectMetadata) {
+			await restoreSystemPolicySnapshot(adminCtx, 'collect_metadata', originalCollectMetadata)
+		}
+		if (originalDocmdp) {
+			await restoreSystemPolicySnapshot(adminCtx, 'docmdp', originalDocmdp)
+		}
+		if (originalSignatureText) {
+			await restoreSystemPolicySnapshot(adminCtx, 'signature_stamp', originalSignatureText)
+		}
+
+		await deleteUser(adminCtx, TEST_END_USER, adminUser, adminPass)
+		await deleteGroup(adminCtx, TEST_GROUP_ID, adminUser, adminPass).catch(() => {})
+		await adminCtx.dispose()
+
+		activeAdminCtx = null
+		originalGroupsRequestSign = null
+		originalCollectMetadata = null
+		originalDocmdp = null
+		originalSignatureText = null
+	})
+
 	test('user can save and clear collect_metadata/docmdp while signature_text follows group policy', async ({ page }) => {
 		test.setTimeout(180000)
-		const groupId = `pref-boolean-${Date.now()}`
-		const endUser = `prefboolean_${Date.now()}`
+		const groupId = TEST_GROUP_ID
+		const endUser = TEST_END_USER
 		const endPass = 'user1234'
 
-		const adminCtx = await createAuthenticatedRequestContext(adminUser, adminPass)
-		let endUserCtx: APIRequestContext | null = null
-		const originalGroupsRequestSign = await getSystemPolicySnapshot(adminCtx, 'groups_request_sign')
-		const originalCollectMetadata = await getSystemPolicySnapshot(adminCtx, 'collect_metadata')
-		const originalDocmdp = await getSystemPolicySnapshot(adminCtx, 'docmdp')
-		const originalSignatureText = await getSystemPolicySnapshot(adminCtx, 'signature_stamp')
+		activeAdminCtx = await createAuthenticatedRequestContext(adminUser, adminPass)
+		const adminCtx = activeAdminCtx
+		originalGroupsRequestSign = await getSystemPolicySnapshot(adminCtx, 'groups_request_sign')
+		originalCollectMetadata = await getSystemPolicySnapshot(adminCtx, 'collect_metadata')
+		originalDocmdp = await getSystemPolicySnapshot(adminCtx, 'docmdp')
+		originalSignatureText = await getSystemPolicySnapshot(adminCtx, 'signature_stamp')
 		const signatureTextSystemValue = JSON.stringify({
 			template: 'System template',
 			template_font_size: 9,
@@ -60,80 +105,62 @@ test.describe('Policy preferences: boolean settings', () => {
 			render_mode: 'text',
 		})
 
-		try {
-			await login(page.request, adminUser, adminPass)
-			await configureOpenSsl(page.request, 'LibreSign Test', {
-				C: 'BR',
-				OU: ['Organization Unit'],
-				ST: 'Rio de Janeiro',
-				O: 'LibreSign',
-				L: 'Rio de Janeiro',
-			})
+		await login(page.request, adminUser, adminPass)
+		await configureOpenSsl(page.request, 'LibreSign Test', {
+			C: 'BR',
+			OU: ['Organization Unit'],
+			ST: 'Rio de Janeiro',
+			O: 'LibreSign',
+			L: 'Rio de Janeiro',
+		})
 
-			await ensureGroupExists(page.request, groupId)
-			await ensureUserExists(page.request, endUser, endPass)
-			await ensureUserInGroup(page.request, endUser, groupId)
+		await ensureGroupExists(page.request, groupId)
+		await ensureUserExists(page.request, endUser, endPass)
+		await ensureUserInGroup(page.request, endUser, groupId)
 
-			await setSystemPolicyEntry(adminCtx, 'groups_request_sign', JSON.stringify([groupId]), true)
-			await setSystemPolicyEntry(adminCtx, 'collect_metadata', JSON.stringify(false), true)
-			await setGroupPolicyEntry(adminCtx, groupId, 'collect_metadata', JSON.stringify(true), true)
-			await setSystemNumericPolicyEntry(adminCtx, 'docmdp', 0, true)
-			await setGroupNumericPolicyEntry(adminCtx, groupId, 'docmdp', 2, true)
-			await setSystemPolicyEntry(adminCtx, 'signature_stamp', signatureTextSystemValue, true)
-			await setGroupPolicyEntry(adminCtx, groupId, 'signature_stamp', signatureTextGroupValue, true)
+		await setSystemPolicyEntry(adminCtx, 'groups_request_sign', JSON.stringify([groupId]), true)
+		await setSystemPolicyEntry(adminCtx, 'collect_metadata', JSON.stringify(false), true)
+		await setGroupPolicyEntry(adminCtx, groupId, 'collect_metadata', JSON.stringify(true), true)
+		await setSystemNumericPolicyEntry(adminCtx, 'docmdp', 0, true)
+		await setGroupNumericPolicyEntry(adminCtx, groupId, 'docmdp', 2, true)
+		await setSystemPolicyEntry(adminCtx, 'signature_stamp', signatureTextSystemValue, true)
+		await setGroupPolicyEntry(adminCtx, groupId, 'signature_stamp', signatureTextGroupValue, true)
 
-			endUserCtx = await createAuthenticatedRequestContext(endUser, endPass)
+		endUserCtx = await createAuthenticatedRequestContext(endUser, endPass)
 
-			await login(page.request, endUser, endPass)
-			await page.goto('/index.php/apps/libresign/f/preferences')
-			await page.locator('#app-navigation-vue').waitFor({ state: 'visible' })
-			await expandSettingsMenu(page)
+		await login(page.request, endUser, endPass)
+		await page.goto('/index.php/apps/libresign/f/preferences')
+		await page.locator('#app-navigation-vue').waitFor({ state: 'visible' })
+		await expandSettingsMenu(page)
 
-			const collectMetadataSection = await sectionByTitle(page, 'Collect signer metadata')
-			const docMdpSection = await sectionByTitle(page, 'PDF certification')
-			const signatureTextSection = await sectionByTitle(page, /Signature stamp text|Signature text|Signature stamp/i)
+		const collectMetadataSection = await sectionByTitle(page, 'Collect signer metadata')
+		const docMdpSection = await sectionByTitle(page, 'PDF certification')
+		const signatureTextSection = await sectionByTitle(page, /Signature stamp text|Signature text|Signature stamp/i)
 
-			expect(await collectMetadataSection.isVisible()).toBe(true)
-			expect(await docMdpSection.isVisible()).toBe(true)
-			expect(await signatureTextSection.isVisible()).toBe(true)
+		expect(await collectMetadataSection.isVisible()).toBe(true)
+		expect(await docMdpSection.isVisible()).toBe(true)
+		expect(await signatureTextSection.isVisible()).toBe(true)
 
-			await savePreferenceAsDisabled(collectMetadataSection)
-			await saveDocMdpPreference(docMdpSection, 3)
-			await saveSignatureTextCollectMetadataPreference(signatureTextSection, false)
+		await savePreferenceAsDisabled(collectMetadataSection)
+		await saveDocMdpPreference(docMdpSection, 3)
+		await saveSignatureTextCollectMetadataPreference(signatureTextSection, false)
 
-			await expectPolicyEffectiveValue(endUserCtx, 'collect_metadata', false, 'user')
-			await expectDocMdpEffectiveValue(endUserCtx, 3, 'user')
-			await expectSignatureTextEffectiveState(endUserCtx, 'group', {
-				templateContains: 'Group template',
-				renderMode: 'text',
-			})
+		await expectPolicyEffectiveValue(endUserCtx, 'collect_metadata', false, 'user')
+		await expectDocMdpEffectiveValue(endUserCtx, 3, 'user')
+		await expectSignatureTextEffectiveState(endUserCtx, 'group', {
+			templateContains: 'Group template',
+			renderMode: 'text',
+		})
 
-			await clearPreference(collectMetadataSection)
-			await clearPreference(docMdpSection)
+		await clearPreference(collectMetadataSection)
+		await clearPreference(docMdpSection)
 
-			await expectPolicyEffectiveValue(endUserCtx, 'collect_metadata', true, 'group')
-			await expectDocMdpEffectiveValue(endUserCtx, 2, 'group')
-			await expectSignatureTextEffectiveState(endUserCtx, 'group', {
-				templateContains: 'Group template',
-				renderMode: 'text',
-			})
-		} finally {
-			if (endUserCtx) {
-				await clearUserPolicyPreference(endUserCtx, 'collect_metadata', [200, 401, 500])
-				await clearUserPolicyPreference(endUserCtx, 'docmdp', [200, 401, 500])
-				await clearUserPolicyPreference(endUserCtx, 'signature_stamp', [200, 401, 405, 500])
-				await endUserCtx.dispose()
-			}
-
-			await restoreSystemPolicySnapshot(adminCtx, 'groups_request_sign', originalGroupsRequestSign)
-			await restoreSystemPolicySnapshot(adminCtx, 'collect_metadata', originalCollectMetadata)
-			await restoreSystemPolicySnapshot(adminCtx, 'docmdp', originalDocmdp)
-			await restoreSystemPolicySnapshot(adminCtx, 'signature_stamp', originalSignatureText)
-
-			await policyRequest(adminCtx, 'DELETE', `/cloud/users/${endUser}`)
-			await policyRequest(adminCtx, 'DELETE', `/cloud/groups/${groupId}`)
-			await adminCtx.dispose()
-		}
+		await expectPolicyEffectiveValue(endUserCtx, 'collect_metadata', true, 'group')
+		await expectDocMdpEffectiveValue(endUserCtx, 2, 'group')
+		await expectSignatureTextEffectiveState(endUserCtx, 'group', {
+			templateContains: 'Group template',
+			renderMode: 'text',
+		})
 	})
 })
 
