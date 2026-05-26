@@ -27,45 +27,53 @@ const booleanSettings: BooleanWorkbenchSetting[] = [
 	{ policyKey: 'show_confetti_after_signing', title: 'Confetti animation' },
 ]
 
+let adminContext: Awaited<ReturnType<typeof createAuthenticatedRequestContext>> | null = null
+
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
+test.afterEach(async () => {
+	if (!adminContext) {
+		return
+	}
+
+	for (const setting of booleanSettings) {
+		await clearAdminOverrides(adminContext, setting.policyKey)
+		await setSystemPolicyEntry(adminContext, setting.policyKey, null, true)
+	}
+	await adminContext.dispose()
+	adminContext = null
+})
+
 test('boolean settings stay consistent between effective policy and admin initial state', async ({ page }) => {
-	const adminContext = await createAuthenticatedRequestContext(adminUser, adminPassword)
+	adminContext = await createAuthenticatedRequestContext(adminUser, adminPassword)
+	const ctx = adminContext
 
-	try {
-		await login(page.request, adminUser, adminPassword)
-		await page.goto('./settings/admin/libresign')
+	await login(page.request, adminUser, adminPassword)
+	await page.goto('./settings/admin/libresign')
 
-		for (const setting of booleanSettings) {
-			await clearAdminOverrides(adminContext, setting.policyKey)
-			await setSystemPolicyEntry(adminContext, setting.policyKey, JSON.stringify(false), true)
-			await page.reload()
+	for (const setting of booleanSettings) {
+		await clearAdminOverrides(ctx, setting.policyKey)
+		await setSystemPolicyEntry(ctx, setting.policyKey, JSON.stringify(false), true)
+		await page.reload()
 
-			const effectiveDisabled = await getEffectivePolicy(adminContext, setting.policyKey)
-			expect(effectiveDisabled).not.toBeNull()
-			expect(effectiveDisabled?.effectiveValue).toBe(false)
-			const initialStateDisabled = await getAdminInitialStateValue(page, setting.policyKey)
-			if (initialStateDisabled !== null) {
-				expect(initialStateDisabled).toBe(false)
-			}
-
-			await setSystemPolicyEntry(adminContext, setting.policyKey, JSON.stringify(true), true)
-			await page.reload()
-
-			const effectiveEnabled = await getEffectivePolicy(adminContext, setting.policyKey)
-			expect(effectiveEnabled).not.toBeNull()
-			expect(effectiveEnabled?.effectiveValue).toBe(true)
-			const initialStateEnabled = await getAdminInitialStateValue(page, setting.policyKey)
-			if (initialStateEnabled !== null) {
-				expect(initialStateEnabled).toBe(true)
-			}
+		const effectiveDisabled = await getEffectivePolicy(ctx, setting.policyKey)
+		expect(effectiveDisabled).not.toBeNull()
+		expect(effectiveDisabled?.effectiveValue).toBe(false)
+		const initialStateDisabled = await getAdminInitialStateValue(page, setting.policyKey)
+		if (initialStateDisabled !== null) {
+			expect(initialStateDisabled).toBe(false)
 		}
-	} finally {
-		for (const setting of booleanSettings) {
-			await clearAdminOverrides(adminContext, setting.policyKey)
-			await setSystemPolicyEntry(adminContext, setting.policyKey, null, true)
+
+		await setSystemPolicyEntry(ctx, setting.policyKey, JSON.stringify(true), true)
+		await page.reload()
+
+		const effectiveEnabled = await getEffectivePolicy(ctx, setting.policyKey)
+		expect(effectiveEnabled).not.toBeNull()
+		expect(effectiveEnabled?.effectiveValue).toBe(true)
+		const initialStateEnabled = await getAdminInitialStateValue(page, setting.policyKey)
+		if (initialStateEnabled !== null) {
+			expect(initialStateEnabled).toBe(true)
 		}
-		await adminContext.dispose()
 	}
 })
 
