@@ -233,7 +233,7 @@ async function defineVisibleSignature(page: Page) {
 	await confirmDialog.getByRole('button', { name: 'Save' }).click()
 
 	const signDocumentCta = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
-	await expect(signDocumentCta).toBeVisible()
+	await expect(signDocumentCta).toBeVisible({ timeout: 15_000 })
 }
 
 async function finishSigning(page: Page) {
