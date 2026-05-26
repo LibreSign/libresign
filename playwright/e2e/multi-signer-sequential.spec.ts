@@ -111,7 +111,7 @@ async function openInvitationAsExternalSigner(page: Page, signLink: string) {
 		}
 
 		const currentUrl = page.url()
-		if (currentUrl.includes('/login') || currentUrl.includes('/apps/libresign/p/error')) {
+		if (currentUrl.includes('/login') || /\/p\/error(?:$|[/?#])/.test(currentUrl)) {
 			continue
 		}
 
