@@ -215,8 +215,10 @@ export async function ensureUserExists(
 export async function deleteUser(
 	request: APIRequestContext,
 	userId: string,
+	adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+	adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
 ): Promise<void> {
-	await ocsRequest(request, 'DELETE', `/cloud/users/${userId}`)
+	await ocsRequest(request, 'DELETE', `/cloud/users/${userId}`, adminUser, adminPassword)
 }
 
 /**
@@ -264,6 +266,18 @@ export async function ensureGroupExists(
 	if (create.ocs.meta.statuscode !== 200 && create.ocs.meta.statuscode !== 102) {
 		throw new Error(`Failed to create group "${groupId}": ${create.ocs.meta.message}`)
 	}
+}
+
+/**
+ * Deletes a group. Silently succeeds if the group doesn't exist.
+ */
+export async function deleteGroup(
+	request: APIRequestContext,
+	groupId: string,
+	adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+	adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+): Promise<void> {
+	await ocsRequest(request, 'DELETE', `/cloud/groups/${groupId}`, adminUser, adminPassword)
 }
 
 /**
