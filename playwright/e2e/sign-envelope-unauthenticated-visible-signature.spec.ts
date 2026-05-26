@@ -171,12 +171,20 @@ async function waitForSignerInvitationLink(signerEmail: string) {
 async function openInvitationAsExternalSigner(page: Page, signLink: string) {
 	await page.context().clearCookies()
 	await page.goto('about:blank')
-	await page.goto(signLink, { waitUntil: 'domcontentloaded' })
 
-	const loginHeading = page.getByRole('heading', { name: 'Log in to Nextcloud' })
-	if (await loginHeading.isVisible({ timeout: 1_500 }).catch(() => false)) {
-		throw new Error(`Invitation link redirected to login instead of public sign page: ${page.url()}`)
+	const signLinkCandidates = signLink.startsWith('/index.php/')
+		? [signLink, signLink.replace(/^\/index\.php/, '')]
+		: [signLink, `/index.php${signLink.startsWith('/') ? '' : '/'}${signLink}`]
+
+	for (const candidate of signLinkCandidates) {
+		await page.goto(candidate, { waitUntil: 'domcontentloaded' })
+		const loginHeading = page.getByRole('heading', { name: 'Log in to Nextcloud' })
+		if (!await loginHeading.isVisible({ timeout: 1_500 }).catch(() => false)) {
+			return
+		}
 	}
+
+	throw new Error(`Invitation link redirected to login instead of public sign page: ${page.url()}`)
 }
 
 async function drawSignatureOnCanvas(signatureDialog: Locator, page: Page) {
