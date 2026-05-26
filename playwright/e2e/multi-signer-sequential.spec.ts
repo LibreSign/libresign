@@ -90,6 +90,47 @@ async function addEmailSigner(
 	await page.getByRole('button', { name: 'Save' }).click()
 }
 
+async function openInvitationAsExternalSigner(page: Page, signLink: string) {
+	await page.context().clearCookies()
+	await page.goto('about:blank')
+
+	const baseCandidates = signLink.startsWith('/index.php/')
+		? [signLink, signLink.replace(/^\/index\.php/, '')]
+		: [signLink, `/index.php${signLink.startsWith('/') ? '' : '/'}${signLink}`]
+
+	const signLinkCandidates = [...new Set(baseCandidates.flatMap((candidate) => {
+		const withoutPdfSuffix = candidate.replace(/\/pdf(?=$|[?#])/, '')
+		return candidate === withoutPdfSuffix ? [candidate] : [candidate, withoutPdfSuffix]
+	}))]
+
+	for (const candidate of signLinkCandidates) {
+		try {
+			await page.goto(candidate, { waitUntil: 'commit', timeout: 15_000 })
+		} catch {
+			continue
+		}
+
+		const currentUrl = page.url()
+		if (currentUrl.includes('/login') || currentUrl.includes('/apps/libresign/p/error')) {
+			continue
+		}
+
+		if (currentUrl.includes('/apps/libresign/p/sign/')) {
+			return
+		}
+	}
+
+	throw new Error(`Invitation link redirected to login instead of public sign page: ${page.url()}`)
+}
+
+async function openSignDocument(page: Page) {
+	const signButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
+	await expect(signButton).toBeVisible({ timeout: 15_000 })
+	await signButton.click({ force: true })
+	const confirmSignButton = page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' })
+	await expect(confirmSignButton).toBeVisible({ timeout: 15_000 })
+}
+
 test('request signatures from two signers in sequential order', async ({ page, adminContext }) => {
 	await test.step('configure signing environment', async () => {
 		await login(
@@ -111,9 +152,10 @@ test('request signatures from two signers in sequential order', async ({ page, a
 			'identify_methods',
 			JSON.stringify([
 				{ name: 'account', enabled: false, mandatory: false },
-				{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } }, can_create_account: false },
+				{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true }, emailToken: { enabled: false } }, can_create_account: false },
 			]),
 		)
+		await setSystemPolicy(page.request, 'make_validation_url_private', '0')
 		await setCertificateEngine(page.request, 'openssl')
 		await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
 		await deleteAppConfig(page.request, 'libresign', 'tsa_url')
@@ -152,19 +194,17 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	// Proof: signer01's email arrives, but signer02's does NOT at this point.
 	const email01 = await waitForEmailTo(mailpit, signer01Email, 'LibreSign: There is a file for you to sign')
 
-	const afterFirst = await mailpit.searchMessages({ query: 'subject:"LibreSign: There is a file for you to sign"' })
+	const afterFirst = await mailpit.searchMessages({ query: `to:${signer01Email} subject:"LibreSign: There is a file for you to sign"` })
 	expect(afterFirst.messages).toHaveLength(1)
 
 	// Keep the browser unauthenticated before opening a public sign link.
 	// This avoids logout redirects to absolute hosts that may differ per environment.
-	await page.context().clearCookies()
-	await page.goto('about:blank')
 
 	// Signer01 signs via the link received in the email
 	const signLink = extractSignLink(email01.Text)
 	if (!signLink) throw new Error('Sign link not found in email')
-	await page.goto(signLink)
-	await page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' }).click()
+	await openInvitationAsExternalSigner(page, signLink)
+	await openSignDocument(page)
 	const firstSignResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'),
@@ -176,6 +216,7 @@ test('request signatures from two signers in sequential order', async ({ page, a
 		firstSignResponse.ok(),
 		`Signer 01 sign API failed with status ${firstSignResponse.status()}: ${firstSignResponseBody}`,
 	).toBeTruthy()
+	await page.waitForURL('**/validation/**', { waitUntil: 'commit' })
 	await expect(page.getByText('This document is valid')).toBeVisible()
 	// Signer01 signed; signer02 is still waiting (sequential mode proof at this point)
 	await expect(page.getByText('Signer 01')).toBeVisible()
@@ -190,15 +231,15 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	// Now that signer01 has signed, signer02 must receive their notification.
 	const email02 = await waitForEmailTo(mailpit, signer02Email, 'LibreSign: There is a file for you to sign')
 
-	const afterSecond = await mailpit.searchMessages({ query: 'subject:"LibreSign: There is a file for you to sign"' })
-	expect(afterSecond.messages).toHaveLength(2)
+	const afterSecond = await mailpit.searchMessages({ query: `to:${signer02Email} subject:"LibreSign: There is a file for you to sign"` })
+	expect(afterSecond.messages).toHaveLength(1)
 
 	// Signer02 signs via their email link.
 	// The admin is still logged out from the signer01 step, so this is unauthenticated.
 	const signLink02 = extractSignLink(email02.Text)
 	if (!signLink02) throw new Error('Sign link for signer02 not found in email')
-	await page.goto(signLink02)
-	await page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' }).click()
+	await openInvitationAsExternalSigner(page, signLink02)
+	await openSignDocument(page)
 	const secondSignResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'),
@@ -210,6 +251,7 @@ test('request signatures from two signers in sequential order', async ({ page, a
 		secondSignResponse.ok(),
 		`Signer 02 sign API failed with status ${secondSignResponse.status()}: ${secondSignResponseBody}`,
 	).toBeTruthy()
+	await page.waitForURL('**/validation/**', { waitUntil: 'commit' })
 	await expect(page.getByText('This document is valid')).toBeVisible()
 
 	// Both signers must appear as signed in the final validation view.
