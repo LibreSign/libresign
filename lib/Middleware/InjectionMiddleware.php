@@ -53,6 +53,9 @@ use OCP\Util;
 use Psr\Log\LoggerInterface;
 
 class InjectionMiddleware extends Middleware {
+	private ?bool $isLoggedIn = null;
+	private ?bool $isValidationUrlPrivate = null;
+
 	public function __construct(
 		private IRequest $request,
 		private ISession $session,
@@ -81,6 +84,9 @@ class InjectionMiddleware extends Middleware {
 	 */
 	#[\Override]
 	public function beforeController(Controller $controller, string $methodName) {
+		$this->isLoggedIn = null;
+		$this->isValidationUrlPrivate = null;
+
 		if ($controller instanceof AEnvironmentAwareController) {
 			$apiVersion = $this->request->getParam('apiVersion');
 			/** @var AEnvironmentAwareController $controller */
@@ -104,27 +110,61 @@ class InjectionMiddleware extends Middleware {
 		}
 
 		$this->requireSetupOk($reflectionMethod);
-
 		$this->privateValidation($reflectionMethod);
 
 		$this->handleUuid($controller, $reflectionMethod);
 	}
 
 	private function privateValidation(\ReflectionMethod $reflectionMethod): void {
-		if (empty($reflectionMethod->getAttributes(PrivateValidation::class))) {
+		$attributes = $reflectionMethod->getAttributes(PrivateValidation::class);
+		if (empty($attributes)) {
 			return;
 		}
-		if ($this->userSession->isLoggedIn()) {
-			return;
-		}
-		$isValidationUrlPrivate = $this->policyService
-			->resolve(ValidationAccessPolicy::KEY)
-			->getEffectiveValueAsBool();
-		if (!$isValidationUrlPrivate) {
-			return;
-		}
-		$redirectUrl = $this->request->getRawPathInfo();
 
+		if ($this->shouldForcePrivateValidationRedirect($reflectionMethod)) {
+			$this->throwPrivateValidationRedirect($this->request->getRawPathInfo());
+		}
+
+		/** @var PrivateValidation $privateValidation */
+		$privateValidation = current($attributes)->newInstance();
+		if ($this->isLoggedIn() || !$this->isValidationUrlPrivate()) {
+			return;
+		}
+
+		if (!$privateValidation->allowValidSignRequestUuid()) {
+			$this->throwPrivateValidationRedirect($this->request->getRawPathInfo());
+		}
+
+		$uuid = $this->getUuidFromRequest();
+		if ($uuid) {
+			try {
+				$this->signRequestMapper->getByUuid($uuid);
+				return; // UUID is valid, allow access
+			} catch (\Throwable) {
+				$this->throwPrivateValidationRedirect($this->request->getRawPathInfo());
+			}
+		}
+		$this->throwPrivateValidationRedirect($this->request->getRawPathInfo());
+	}
+
+	private function isLoggedIn(): bool {
+		if ($this->isLoggedIn === null) {
+			$this->isLoggedIn = $this->userSession->isLoggedIn();
+		}
+		return $this->isLoggedIn;
+	}
+
+	private function isValidationUrlPrivate(): bool {
+		if ($this->isValidationUrlPrivate === null) {
+			$this->isValidationUrlPrivate = $this->policyService
+				->resolve(ValidationAccessPolicy::KEY)
+				->getEffectiveValueAsBool();
+		}
+
+		return $this->isValidationUrlPrivate;
+	}
+
+	private function throwPrivateValidationRedirect(?string $redirectUrl): void {
 		throw new LibresignException(json_encode([
 			'action' => JSActions::ACTION_REDIRECT,
 			'errors' => [$this->l10n->t('You are not logged in. Please log in.')],
@@ -154,6 +194,10 @@ class InjectionMiddleware extends Middleware {
 		}
 
 		if (!empty($attribute = $reflectionMethod->getAttributes(RequireSignRequestUuid::class))) {
+			if ($this->shouldForcePrivateValidationRedirect($reflectionMethod)) {
+				$this->throwPrivateValidationRedirect($this->request->getRawPathInfo());
+			}
+
 			$attribute = $reflectionMethod->getAttributes(RequireSignRequestUuid::class);
 			$attribute = current($attribute);
 			/** @var RequireSignRequestUuid $intance */
@@ -184,6 +228,21 @@ class InjectionMiddleware extends Middleware {
 				}
 			}
 		}
+	}
+
+	private function shouldForcePrivateValidationRedirect(\ReflectionMethod $reflectionMethod): bool {
+		$attributes = $reflectionMethod->getAttributes(PrivateValidation::class);
+		if (empty($attributes)) {
+			return false;
+		}
+
+		if ($this->isLoggedIn() || !$this->isValidationUrlPrivate()) {
+			return false;
+		}
+
+		/** @var PrivateValidation $privateValidation */
+		$privateValidation = current($attributes)->newInstance();
+		return !$privateValidation->allowValidSignRequestUuid();
 	}
 
 	private function getUuidFromRequest(): ?string {
