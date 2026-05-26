@@ -5,10 +5,13 @@
 
 import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
+import { randomBytes } from 'node:crypto'
 
 import { ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
 import { login } from '../support/nc-login'
 import {
+	deleteGroup,
+	deleteUser,
 	ensureGroupExists,
 	ensureUserExists,
 	ensureUserInGroup,
@@ -19,8 +22,16 @@ import { clearPolicyWorkbenchRules } from '../support/policy-workbench-rules'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
-const GROUP_ID = 'libresign-identify-rule-group'
-const USER_ID = 'identifyruleuser'
+const TEST_NAMESPACE = randomBytes(4).toString('hex')
+const GROUP_ID = `libresign-identify-rule-group-${TEST_NAMESPACE}`
+const USER_ID = `identifyruleuser-${TEST_NAMESPACE}`
+const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.NEXTCLOUD_ADMIN_PASSWORD || 'admin'
+
+test.afterEach(async ({ request }) => {
+	await deleteUser(request, USER_ID, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+	await deleteGroup(request, GROUP_ID, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+})
 
 async function openIdentificationFactorsDialog(page: Page): Promise<Locator> {
 	await page.goto('./settings/admin/libresign')
@@ -81,8 +92,8 @@ async function assertIdentifyMethodsAreAvailable(ruleDialog: Locator): Promise<v
 }
 
 test('identification factors rule editor shows available methods for everyone, group and user scopes', async ({ page }) => {
-	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
-	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+	const adminUser = ADMIN_USER
+	const adminPassword = ADMIN_PASSWORD
 
 	await login(page.request, adminUser, adminPassword)
 	await setUserLanguage(page.request, adminUser, 'en')
@@ -100,7 +111,7 @@ test('identification factors rule editor shows available methods for everyone, g
 
 	const everyoneRuleDialog = await openScopeRuleEditor(page, dialog, 'everyone')
 	await assertIdentifyMethodsAreAvailable(everyoneRuleDialog)
-	await everyoneRuleDialog.getByRole('button', { name: /Cancel/i }).click()
+	everyoneRuleDialog.getByRole('button', { name: /Cancel/i }).click()
 
 	const groupRuleDialog = await openScopeRuleEditor(page, dialog, 'group')
 	await assertIdentifyMethodsAreAvailable(groupRuleDialog)
