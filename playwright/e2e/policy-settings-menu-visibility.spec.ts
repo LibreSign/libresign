@@ -19,10 +19,11 @@
  */
 
 import { expect, test as base, type APIRequestContext } from '@playwright/test'
-import { randomBytes } from 'node:crypto'
 import { login } from '../support/nc-login'
 import { expandSettingsMenu } from '../support/nc-navigation'
 import {
+	deleteGroup,
+	deleteUser,
 	ensureGroupExists,
 	ensureSubadminOfGroup,
 	ensureUserExists,
@@ -57,12 +58,11 @@ const test = base.extend<{
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
 const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
-const ADMIN_PASSWORD = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.NEXTCLOUD_ADMIN_PASSWORD || 'admin'
 const GROUP_ADMIN_PASSWORD = '123456'
 
-const TEST_NAMESPACE = randomBytes(6).toString('hex')
-const GROUP_ID = `policy-menu-visibility-group-${TEST_NAMESPACE}`
-const GROUP_ADMIN = `policy-menu-visibility-admin-${TEST_NAMESPACE}`
+const GROUP_ID = 'policy-menu-visibility-group'
+const GROUP_ADMIN = 'policy-menu-visibility-admin'
 
 const POLICY_KEY = 'add_footer'
 const REQUEST_SIGN_GROUPS = JSON.stringify(['admin', GROUP_ID])
@@ -76,7 +76,14 @@ const FOOTER_ENABLED_VALUE = JSON.stringify({
 
 
 test.beforeEach(async ({ adminRequestContext }) => {
+	await deleteUser(adminRequestContext, GROUP_ADMIN, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+	await deleteGroup(adminRequestContext, GROUP_ID, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+
+	await ensureUserExists(adminRequestContext, GROUP_ADMIN, GROUP_ADMIN_PASSWORD)
 	await ensureGroupExists(adminRequestContext, GROUP_ID)
+	await ensureUserInGroup(adminRequestContext, GROUP_ADMIN, GROUP_ID)
+	await ensureSubadminOfGroup(adminRequestContext, GROUP_ADMIN, GROUP_ID)
+	await setUserLanguage(adminRequestContext, GROUP_ADMIN, 'en')
 	await setSystemPolicy(adminRequestContext, 'groups_request_sign', REQUEST_SIGN_GROUPS)
 })
 
@@ -84,16 +91,11 @@ test.beforeEach(async ({ adminRequestContext }) => {
 test.afterEach(async ({ adminRequestContext }) => {
 	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, null, true)
 	await setSystemPolicy(adminRequestContext, 'groups_request_sign', DEFAULT_REQUEST_SIGN_GROUPS)
+	await deleteUser(adminRequestContext, GROUP_ADMIN, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+	await deleteGroup(adminRequestContext, GROUP_ID, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
 })
 
 test('group admin can access policies and start creating a delegated rule', async ({ page, adminRequestContext, groupAdminRequestContext }) => {
-	// ── 0. Provision users/groups (idempotent; safe to call on every run) ──
-	await ensureUserExists(page.request, GROUP_ADMIN, GROUP_ADMIN_PASSWORD)
-	await ensureGroupExists(page.request, GROUP_ID)
-	await ensureUserInGroup(page.request, GROUP_ADMIN, GROUP_ID)
-	await ensureSubadminOfGroup(page.request, GROUP_ADMIN, GROUP_ID)
-	await setUserLanguage(page.request, GROUP_ADMIN, 'en')
-
 	// ── 1. Admin: enable delegated customization at system layer ───────────
 	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, FOOTER_ENABLED_VALUE, true)
 
