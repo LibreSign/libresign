@@ -137,9 +137,14 @@ class InjectionMiddleware extends Middleware {
 		if ($uuid) {
 			try {
 				$this->signRequestMapper->getByUuid($uuid);
-				return; // UUID is valid, allow access
+				return; // sign-request UUID is valid, allow access
 			} catch (\Throwable) {
-				$this->throwPrivateValidationRedirect($this->request->getRawPathInfo());
+			}
+
+			try {
+				$this->fileMapper->getByUuid($uuid);
+				return; // file UUID is valid, allow access
+			} catch (\Throwable) {
 			}
 		}
 		$this->throwPrivateValidationRedirect($this->request->getRawPathInfo());
