@@ -487,9 +487,9 @@ class PageController extends AEnvironmentPageAwareController {
 	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>
 	 *
 	 * 200: OK
-	 * 401: Validation page not accessible if unauthenticated
+	 * 401: Validation page not accessible if unauthenticated without a valid sign request UUID
 	 */
-	#[PrivateValidation(allowValidSignRequestUuid: false)]
+	#[PrivateValidation(allowValidSignRequestUuid: true)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(allowIdDocs: true)]
