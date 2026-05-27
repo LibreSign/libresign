@@ -102,7 +102,7 @@ class FileController extends AEnvironmentAwareController {
 	 * 404: Request failed
 	 * 422: Request failed
 	 */
-	#[PrivateValidation]
+	#[PrivateValidation(allowValidSignRequestUuid: true)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
