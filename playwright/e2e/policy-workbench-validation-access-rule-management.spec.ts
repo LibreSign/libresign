@@ -7,8 +7,20 @@ import { expect, test } from '@playwright/test'
 
 import { bootstrapLibreSignAdmin, ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
 import { waitForPolicyWorkbenchIdle } from '../support/policy-workbench-rules'
+import { makeAdminContext } from '../support/system-policies'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 120000 })
+
+test.beforeAll(async () => {
+	const ctx = await makeAdminContext()
+	// Reset make_validation_url_private to its default value so the "Everyone"
+	// scope option is available in the workbench UI even when the test is re-run.
+	await ctx.post('./ocs/v2.php/apps/libresign/api/v1/policies/system/make_validation_url_private', {
+		data: { value: false, allowChildOverride: false },
+		failOnStatusCode: false,
+	})
+	await ctx.dispose()
+})
 
 test('make_validation_url_private allows creating and persisting a system rule from workbench UI', async ({ page }) => {
 	await bootstrapLibreSignAdmin(page)
