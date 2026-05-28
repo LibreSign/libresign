@@ -59,7 +59,11 @@
 					:init-files="[pdfPreviewFile]"
 					:init-file-names="['stamp-preview.pdf']"
 					:initial-scale="previewScale"
-					:show-page-footer="false" />
+					:show-page-footer="false"
+					@pdf-elements:end-init="$emit('preview-ready')" />
+				<div v-if="pdfPreviewFile && previewLoading" class="ste__preview-loading-overlay">
+					<NcLoadingIcon :size="32" />
+				</div>
 				<div v-else-if="previewLoading" class="ste__preview-placeholder">
 					<NcLoadingIcon :size="32" />
 				</div>
@@ -135,7 +139,7 @@ defineProps({
 	},
 })
 
-defineEmits(['reset-defaults', 'change-zoom', 'zoom-input', 'commit-zoom-input'])
+defineEmits(['reset-defaults', 'change-zoom', 'zoom-input', 'commit-zoom-input', 'preview-ready'])
 </script>
 
 <style scoped>
@@ -223,6 +227,7 @@ defineEmits(['reset-defaults', 'change-zoom', 'zoom-input', 'commit-zoom-input']
 }
 
 .ste__preview-frame {
+	position: relative;
 	overflow: hidden;
 	border: none;
 	background: transparent;
@@ -260,6 +265,17 @@ defineEmits(['reset-defaults', 'change-zoom', 'zoom-input', 'commit-zoom-input']
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+.ste__preview-loading-overlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: color-mix(in srgb, var(--color-main-background) 18%, transparent);
+	pointer-events: none;
+	z-index: 1;
 }
 
 .ste__preview-placeholder--empty {
