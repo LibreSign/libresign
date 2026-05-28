@@ -17,7 +17,6 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
@@ -97,18 +96,7 @@ final class PageControllerTest extends TestCase {
 
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->policyService = $this->createMock(PolicyService::class);
-		$this->policyService->method('resolveKnownPolicies')->willReturn([]);
-		$this->policyService->method('resolve')->willReturn(
-			(new ResolvedPolicy())
-				->setPolicyKey('legal_information')
-				->setEffectiveValue('')
-				->setSourceScope('system')
-				->setVisible(true)
-				->setEditableByCurrentActor(true)
-				->setAllowedValues([])
-				->setCanSaveAsUserDefault(false)
-				->setCanUseAsRequestOverride(false)
-		);
+		$this->policyService->method('resolveKnownPolicyStates')->willReturn([]);
 
 		$this->controller = new PageController(
 			request: $this->request,
