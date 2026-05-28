@@ -7,6 +7,14 @@ import { resolve } from 'node:path'
 
 import { createAppConfig } from '@nextcloud/vite-config'
 
+import { isBuildWatchArgv } from './src/helpers/isBuildWatchArgv.js'
+
+const isBuildWatch = isBuildWatchArgv()
+const buildWatchInclude = [
+	resolve(import.meta.dirname, 'src/**'),
+	resolve(import.meta.dirname, 'node_modules/@libresign/pdf-elements/src/**'),
+]
+
 export default createAppConfig({
 	main: resolve('src/main.ts'),
 	init: resolve('src/init.ts'),
@@ -20,12 +28,13 @@ export default createAppConfig({
 	},
 	config: {
 		build: {
-			watch: {
-				include: [
-					resolve(import.meta.dirname, 'src/**'),
-					resolve(import.meta.dirname, 'node_modules/@libresign/pdf-elements/src/**'),
-				],
-			},
+			...(isBuildWatch
+				? {
+					watch: {
+						include: buildWatchInclude,
+					},
+				}
+				: {}),
 		},
 		server: {
 			port: 3000,
