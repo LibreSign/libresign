@@ -74,7 +74,8 @@
 			@reset-defaults="resetToDefaults"
 			@change-zoom="changeZoom"
 			@zoom-input="onZoomInput"
-			@commit-zoom-input="commitZoomInput" />
+			@commit-zoom-input="commitZoomInput"
+			@preview-ready="onPreviewReady" />
 	</div>
 </template>
 
@@ -228,6 +229,7 @@ const previewError = ref('')
 const previewRenderKey = ref(0)
 let previewTimer: ReturnType<typeof setTimeout> | null = null
 let previewAbortController: AbortController | null = null
+let previewLoadingTimeout: ReturnType<typeof setTimeout> | null = null
 
 const config = reactive({
 	template: normalized.template,
@@ -348,11 +350,33 @@ watch(() => props.collectMetadataEnabled, (nextValue) => {
 
 watch(collectMetadataEnabled, emitUpdate)
 
+function clearPreviewLoadingTimeout(): void {
+	if (previewLoadingTimeout) {
+		clearTimeout(previewLoadingTimeout)
+		previewLoadingTimeout = null
+	}
+}
+
+function schedulePreviewLoadingFallback(): void {
+	clearPreviewLoadingTimeout()
+	previewLoadingTimeout = setTimeout(() => {
+		previewLoading.value = false
+		previewLoadingTimeout = null
+	}, 5000)
+}
+
+function onPreviewReady(): void {
+	clearPreviewLoadingTimeout()
+	previewLoading.value = false
+	void forcePreviewRelayout()
+}
+
 async function fetchPreview(): Promise<void> {
 	if (previewAbortController) {
 		previewAbortController.abort()
 		previewAbortController = null
 	}
+	clearPreviewLoadingTimeout()
 	previewLoading.value = true
 	previewError.value = ''
 	const controller = new AbortController()
@@ -373,18 +397,21 @@ async function fetchPreview(): Promise<void> {
 		)
 		pdfPreviewFile.value = new File([response.data as Blob], 'stamp-preview.pdf', { type: 'application/pdf' })
 		previewRenderKey.value += 1
+		schedulePreviewLoadingFallback()
 		await forcePreviewRelayout()
 	} catch (e: unknown) {
 		const name = e && typeof e === 'object' && 'name' in e ? (e as { name: string }).name : ''
 		if (name === 'CanceledError' || name === 'AbortError') {
 			return
 		}
+		clearPreviewLoadingTimeout()
 		pdfPreviewFile.value = null
 		// TRANSLATORS Error shown when live signature stamp preview PDF cannot be generated.
 		previewError.value = t('libresign', 'Unable to load preview. Please check the template and try again.')
+		previewLoading.value = false
 	} finally {
 		if (previewAbortController === controller) {
-			previewLoading.value = false
+			previewAbortController = null
 		}
 	}
 }
@@ -426,6 +453,7 @@ onUnmounted(() => {
 	if (previewTimer) {
 		clearTimeout(previewTimer)
 	}
+	clearPreviewLoadingTimeout()
 	if (previewAbortController) {
 		previewAbortController.abort()
 	}
