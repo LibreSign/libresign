@@ -84,6 +84,7 @@ interface PolicySettingSummary {
 	defaultSummary: string
 	groupCount: number
 	userCount: number
+	everyoneCount: number
 }
 
 interface PolicyTargetOption {
@@ -257,6 +258,7 @@ export function createRealPolicyWorkbenchState() {
 	const groupRules = ref<PolicyRuleRecord[]>([])
 	const userRules = ref<PolicyRuleRecord[]>([])
 	const explicitSystemRule = ref<PolicyRuleRecord | null>(null)
+	const hydratedRuleCounts = ref<Record<string, { groupCount: number, userCount: number, everyoneCount: number }>>({})
 
 	const groups = ref<PolicyTargetOption[]>([])
 	const users = ref<PolicyTargetOption[]>([])
@@ -324,6 +326,7 @@ export function createRealPolicyWorkbenchState() {
 					: isUnifiedSigningExecution
 						? Math.max(policy?.userCount ?? 0, workerPolicy?.userCount ?? 0)
 						: (policy?.userCount ?? 0)
+				const cachedCounts = hydratedRuleCounts.value[definition.key]
 
 				return {
 					key: definition.key,
@@ -336,8 +339,15 @@ export function createRealPolicyWorkbenchState() {
 							: String(summaryValue))
 						// TRANSLATORS Fallback shown when policy has no configured value in current scope chain.
 						: t('libresign', 'Not configured'),
-					groupCount: isActiveSetting ? groupRules.value.length : groupCount,
-					userCount: isActiveSetting ? userRules.value.length : userCount,
+					groupCount: isActiveSetting
+						? groupRules.value.length
+						: Math.max(groupCount, cachedCounts?.groupCount ?? 0),
+					userCount: isActiveSetting
+						? userRules.value.length
+						: Math.max(userCount, cachedCounts?.userCount ?? 0),
+					everyoneCount: isActiveSetting
+						? (explicitSystemRule.value ? 1 : 0)
+						: Math.max(policy?.everyoneCount ?? 0, cachedCounts?.everyoneCount ?? 0),
 				}
 			})
 			.filter((summary) => {
@@ -703,10 +713,31 @@ export function createRealPolicyWorkbenchState() {
 		return isDraftDirty.value
 	})
 
-	function commitHydratedRules(nextGroupRules: PolicyRuleRecord[], nextUserRules: PolicyRuleRecord[]) {
+	function cacheRuleCounts(policyKey: string, groupCount: number, userCount: number) {
+		hydratedRuleCounts.value = {
+			...hydratedRuleCounts.value,
+			[policyKey]: {
+				groupCount,
+				userCount,
+			},
+		}
+	}
+	function cacheRuleCountsWithEveryone(policyKey: string, groupCount: number, userCount: number, everyoneCount: number) {
+		hydratedRuleCounts.value = {
+			...hydratedRuleCounts.value,
+			[policyKey]: {
+				groupCount,
+				userCount,
+				everyoneCount,
+			},
+		}
+	}
+
+	function commitHydratedRules(policyKey: string, nextGroupRules: PolicyRuleRecord[], nextUserRules: PolicyRuleRecord[]) {
 		groupRules.value = nextGroupRules
 		userRules.value = nextUserRules
 		nextRuleNumber.value = groupRules.value.length + userRules.value.length + 1
+		cacheRuleCountsWithEveryone(policyKey, groupRules.value.length, userRules.value.length, explicitSystemRule.value ? 1 : 0)
 	}
 
 	function isHydrationStale(requestId: number, policyKey: string): boolean {
@@ -720,6 +751,7 @@ export function createRealPolicyWorkbenchState() {
 	}
 
 	function applyRequestExpirationHydration(
+		policyKey: string,
 		persistedSystemPolicy: PersistedSystemPolicyRecord | null,
 		renewalSystemPolicy: PersistedSystemPolicyRecord | null,
 		persistedGroupPolicies: PolicyRuleRecord[],
@@ -804,10 +836,11 @@ export function createRealPolicyWorkbenchState() {
 			})
 		}
 
-		commitHydratedRules(Array.from(mergedGroupRules.values()), Array.from(mergedUserRules.values()))
+		commitHydratedRules(policyKey, Array.from(mergedGroupRules.values()), Array.from(mergedUserRules.values()))
 	}
 
 	function applySigningExecutionHydration(
+		policyKey: string,
 		persistedSystemPolicy: PersistedSystemPolicyRecord | null,
 		workerSystemPolicy: PersistedSystemPolicyRecord | null,
 		persistedGroupPolicies: PolicyRuleRecord[],
@@ -892,10 +925,11 @@ export function createRealPolicyWorkbenchState() {
 			})
 		}
 
-		commitHydratedRules(Array.from(mergedGroupRules.values()), Array.from(mergedUserRules.values()))
+		commitHydratedRules(policyKey, Array.from(mergedGroupRules.values()), Array.from(mergedUserRules.values()))
 	}
 
 	function applySignatureStampHydration(
+		policyKey: string,
 		persistedSystemPolicy: PersistedSystemPolicyRecord | null,
 		collectMetadataSystemPolicy: PersistedSystemPolicyRecord | null,
 		persistedGroupPolicies: PolicyRuleRecord[],
@@ -950,10 +984,11 @@ export function createRealPolicyWorkbenchState() {
 			})
 		}
 
-		commitHydratedRules(Array.from(mergedGroupRules.values()), Array.from(mergedUserRules.values()))
+		commitHydratedRules(policyKey, Array.from(mergedGroupRules.values()), Array.from(mergedUserRules.values()))
 	}
 
 	function applyDefaultHydration(
+		policyKey: string,
 		persistedSystemPolicy: PersistedSystemPolicyRecord | null,
 		persistedGroupPolicies: PolicyRuleRecord[],
 		persistedUserPolicies: PolicyRuleRecord[],
@@ -968,7 +1003,7 @@ export function createRealPolicyWorkbenchState() {
 			}
 			: null
 
-		commitHydratedRules(persistedGroupPolicies, persistedUserPolicies)
+		commitHydratedRules(policyKey, persistedGroupPolicies, persistedUserPolicies)
 	}
 
 	async function hydratePersistedRules(policyKey: string) {
@@ -1143,6 +1178,7 @@ export function createRealPolicyWorkbenchState() {
 
 		if (shouldMergeRequestExpiration) {
 			applyRequestExpirationHydration(
+				policyKey,
 				persistedSystemPolicy,
 				renewalSystemPolicy,
 				persistedGroupPolicies,
@@ -1156,6 +1192,7 @@ export function createRealPolicyWorkbenchState() {
 
 		if (shouldMergeSigningExecution) {
 			applySigningExecutionHydration(
+				policyKey,
 				persistedSystemPolicy,
 				workerSystemPolicy,
 				persistedGroupPolicies,
@@ -1169,6 +1206,7 @@ export function createRealPolicyWorkbenchState() {
 
 		if (shouldMergeSignatureStamp) {
 			applySignatureStampHydration(
+				policyKey,
 				persistedSystemPolicy,
 				collectMetadataSystemPolicy,
 				persistedGroupPolicies,
@@ -1181,6 +1219,7 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		applyDefaultHydration(
+			policyKey,
 			persistedSystemPolicy,
 			persistedGroupPolicies,
 			persistedUserPolicies,
@@ -1695,6 +1734,7 @@ export function createRealPolicyWorkbenchState() {
 						allowChildOverride,
 					)
 				}
+				cacheRuleCountsWithEveryone(policyKey, groupRules.value.length, userRules.value.length, explicitSystemRule.value ? 1 : 0)
 
 				await policiesStore.fetchEffectivePolicies()
 				cancelEditor()
@@ -1745,6 +1785,7 @@ export function createRealPolicyWorkbenchState() {
 					allowChildOverride,
 				)
 			}
+			cacheRuleCountsWithEveryone(policyKey, groupRules.value.length, userRules.value.length, explicitSystemRule.value ? 1 : 0)
 
 			await policiesStore.fetchEffectivePolicies()
 			cancelEditor()
@@ -1774,25 +1815,32 @@ export function createRealPolicyWorkbenchState() {
 		let shouldRefreshPolicies = false
 		let shouldCloseEditor = false
 
+		const getSystemClearValue = (policyKey: string): EffectivePolicyValue => {
+			const definition = realDefinitions[policyKey as keyof typeof realDefinitions]
+			const policy = policiesStore.getPolicy(policyKey)
+
+			return definition?.getFallbackSystemDefault(policy?.effectiveValue, policy?.sourceScope) ?? policy?.effectiveValue ?? null
+		}
+
 		for (const ruleId of uniqueRuleIds) {
 			if (ruleId === 'system-default' || (inheritedSystemRuleId !== null && ruleId === inheritedSystemRuleId)) {
 				if (isRequestExpiration) {
 					await Promise.all([
-						policiesStore.saveSystemPolicy(policyKey, null, false),
-						policiesStore.saveSystemPolicy(REQUEST_EXPIRATION_RENEWAL_KEY, null, false),
+						policiesStore.clearSystemPolicy(policyKey, getSystemClearValue(policyKey)),
+						policiesStore.clearSystemPolicy(REQUEST_EXPIRATION_RENEWAL_KEY, getSystemClearValue(REQUEST_EXPIRATION_RENEWAL_KEY)),
 					])
 				} else if (isUnifiedSigningExecution) {
 					await Promise.all([
-						policiesStore.saveSystemPolicy(policyKey, null, false),
-						policiesStore.saveSystemPolicy(SIGNING_EXECUTION_WORKER_KEY, null, false),
+						policiesStore.clearSystemPolicy(policyKey, getSystemClearValue(policyKey)),
+						policiesStore.clearSystemPolicy(SIGNING_EXECUTION_WORKER_KEY, getSystemClearValue(SIGNING_EXECUTION_WORKER_KEY)),
 					])
 				} else if (isSignatureStamp) {
 					await Promise.all([
-						policiesStore.saveSystemPolicy(policyKey, null, false),
-						policiesStore.saveSystemPolicy(COLLECT_METADATA_POLICY_KEY, null, false),
+						policiesStore.clearSystemPolicy(policyKey, getSystemClearValue(policyKey)),
+						policiesStore.clearSystemPolicy(COLLECT_METADATA_POLICY_KEY, getSystemClearValue(COLLECT_METADATA_POLICY_KEY)),
 					])
 				} else {
-					await policiesStore.saveSystemPolicy(policyKey, null, false)
+					await policiesStore.clearSystemPolicy(policyKey, getSystemClearValue(policyKey))
 				}
 				explicitSystemRule.value = null
 				highlightedRuleId.value = null
@@ -1862,6 +1910,7 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		if (shouldRefreshPolicies) {
+			cacheRuleCountsWithEveryone(policyKey, groupRules.value.length, userRules.value.length, 0)
 			await policiesStore.fetchEffectivePolicies()
 		}
 
