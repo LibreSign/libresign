@@ -89,7 +89,6 @@ class Application extends App implements IBootstrap {
 
 		// TwofactorGateway listener
 		$context->registerEventListener(SendSignNotificationEvent::class, TwofactorGatewayListener::class);
-		$context->registerEventListener(SignedEvent::class, TwofactorGatewayListener::class);
 
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
 
