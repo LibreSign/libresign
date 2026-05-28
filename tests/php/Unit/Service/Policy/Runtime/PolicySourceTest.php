@@ -19,6 +19,7 @@ use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
@@ -47,6 +48,7 @@ final class PolicySourceTest extends TestCase {
 	private PermissionSetBindingMapper&MockObject $bindingMapper;
 	private IDBConnection&MockObject $db;
 	private IL10N&MockObject $l10n;
+	private IdentifyMethodService&MockObject $identifyMethodService;
 	private PolicyRegistry $registry;
 
 	public function setUp(): void {
@@ -65,9 +67,34 @@ final class PolicySourceTest extends TestCase {
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n->method('t')->willReturnArgument(0);
 		$container = $this->createMock(ContainerInterface::class);
-		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->identifyMethodService->method('getFriendlyNamesMap')->willReturn([
+			'account' => 'Account',
+			'email' => 'Email',
+		]);
+		$this->identifyMethodService->method('getDefaultIdentifyMethodsPolicy')->willReturn([
+			[
+				'name' => 'account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'password' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'password',
+			],
+			[
+				'name' => 'email',
+				'enabled' => false,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'emailToken',
+			],
+		]);
 		$coreAppConfig = $this->coreAppConfig;
 		$l10n = $this->l10n;
+		$identifyMethodService = $this->identifyMethodService;
 		$container
 			->method('get')
 			->willReturnCallback(static function (string $class) use ($identifyMethodService, $coreAppConfig, $l10n): object {
@@ -399,6 +426,17 @@ final class PolicySourceTest extends TestCase {
 		$this->assertAppConfigMissing('policy.signature_flow.system.allow_child_override');
 	}
 
+	public function testClearSystemPolicyDeletesStoredSystemConfig(): void {
+		$this->setStoredAppConfigString('policy.signature_flow.system', 'ordered_numeric');
+		$this->setStoredAppConfigString('policy.signature_flow.system.allow_child_override', '1');
+
+		$source = $this->getSource();
+		$source->clearSystemPolicy('signature_flow');
+
+		$this->assertAppConfigMissing('policy.signature_flow.system');
+		$this->assertAppConfigMissing('policy.signature_flow.system.allow_child_override');
+	}
+
 	public function testSaveSystemPolicyPersistsExplicitDefaultWhenAllowChildOverrideIsTrue(): void {
 		$source = $this->getSource();
 		$source->saveSystemPolicy('signature_flow', 'none', true);
@@ -413,6 +451,37 @@ final class PolicySourceTest extends TestCase {
 
 		$this->assertStoredAppConfigString('policy.signature_flow.system', 'ordered_numeric');
 		$this->assertStoredAppConfigString('policy.signature_flow.system.allow_child_override', '1');
+	}
+
+	public function testSaveSystemPolicyDeletesIdentifyMethodsWhenValueMatchesServiceDefault(): void {
+		$this->setStoredAppConfigArray(IdentifyMethodsPolicy::SYSTEM_APP_CONFIG_KEY, [
+			[
+				'name' => 'account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'clickToSign' => ['enabled' => true],
+				],
+			],
+			[
+				'name' => 'email',
+				'enabled' => false,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+			],
+		]);
+
+		$source = $this->getSource();
+		$source->saveSystemPolicy(
+			IdentifyMethodsPolicy::KEY,
+			IdentifyMethodsPolicyValue::normalize([], $this->identifyMethodService),
+			false,
+		);
+
+		$this->assertAppConfigMissing(IdentifyMethodsPolicy::SYSTEM_APP_CONFIG_KEY);
+		$this->assertAppConfigMissing(IdentifyMethodsPolicy::SYSTEM_APP_CONFIG_KEY . '.allow_child_override');
 	}
 
 	#[DataProvider('providerSaveSystemPolicyBusinessRules')]
@@ -973,23 +1042,37 @@ final class PolicySourceTest extends TestCase {
 		$expr->method('in')->willReturn('1=1');
 		$expr->method('neq')->willReturn('1=1');
 
-		$qb = $this->createMock(IQueryBuilder::class);
-		$qb->method('select')->willReturnSelf();
-		$qb->method('selectAlias')->willReturnSelf();
-		$qb->method('from')->willReturnSelf();
-		$qb->method('where')->willReturnSelf();
-		$qb->method('andWhere')->willReturnSelf();
-		$qb->method('groupBy')->willReturnSelf();
-		$qb->method('expr')->willReturn($expr);
-		$qb->method('func')->willReturn($this->createMock(\OCP\DB\QueryBuilder\IFunctionBuilder::class));
-		$qb->method('createNamedParameter')->willReturn(':p');
+		$userCountsQuery = $this->createMock(IQueryBuilder::class);
+		$userCountsQuery->method('select')->willReturnSelf();
+		$userCountsQuery->method('selectAlias')->willReturnSelf();
+		$userCountsQuery->method('from')->willReturnSelf();
+		$userCountsQuery->method('where')->willReturnSelf();
+		$userCountsQuery->method('andWhere')->willReturnSelf();
+		$userCountsQuery->method('groupBy')->willReturnSelf();
+		$userCountsQuery->method('expr')->willReturn($expr);
+		$userCountsQuery->method('func')->willReturn($this->createMock(\OCP\DB\QueryBuilder\IFunctionBuilder::class));
+		$userCountsQuery->method('createNamedParameter')->willReturn(':p');
 
-		$dbResult = $this->createMock(IResult::class);
-		$dbResult->method('fetchAssociative')->willReturn(false);
-		$dbResult->expects($this->once())->method('closeCursor');
-		$qb->method('executeQuery')->willReturn($dbResult);
+		$userCountsResult = $this->createMock(IResult::class);
+		$userCountsResult->method('fetchAssociative')->willReturn(false);
+		$userCountsResult->expects($this->once())->method('closeCursor');
+		$userCountsQuery->method('executeQuery')->willReturn($userCountsResult);
 
-		$this->db->expects($this->once())->method('getQueryBuilder')->willReturn($qb);
+		$systemConfigQuery = $this->createMock(IQueryBuilder::class);
+		$systemConfigQuery->method('select')->willReturnSelf();
+		$systemConfigQuery->method('from')->willReturnSelf();
+		$systemConfigQuery->method('where')->willReturnSelf();
+		$systemConfigQuery->method('expr')->willReturn($expr);
+		$systemConfigQuery->method('createNamedParameter')->willReturn(':p');
+
+		$systemConfigResult = $this->createMock(IResult::class);
+		$systemConfigResult->method('fetchAssociative')->willReturn(false);
+		$systemConfigResult->expects($this->once())->method('closeCursor');
+		$systemConfigQuery->method('executeQuery')->willReturn($systemConfigResult);
+
+		$this->db->expects($this->exactly(2))
+			->method('getQueryBuilder')
+			->willReturnOnConsecutiveCalls($userCountsQuery, $systemConfigQuery);
 
 		$result = $this->getSource()->loadAllRuleCounts();
 
@@ -1099,26 +1182,40 @@ final class PolicySourceTest extends TestCase {
 		$expr->method('in')->willReturn('1=1');
 		$expr->method('neq')->willReturn('1=1');
 
-		$qb = $this->createMock(IQueryBuilder::class);
-		$qb->method('select')->willReturnSelf();
-		$qb->method('selectAlias')->willReturnSelf();
-		$qb->method('from')->willReturnSelf();
-		$qb->method('where')->willReturnSelf();
-		$qb->method('andWhere')->willReturnSelf();
-		$qb->method('groupBy')->willReturnSelf();
-		$qb->method('expr')->willReturn($expr);
-		$qb->method('func')->willReturn($this->createMock(\OCP\DB\QueryBuilder\IFunctionBuilder::class));
-		$qb->method('createNamedParameter')->willReturn(':p');
+		$userCountsQuery = $this->createMock(IQueryBuilder::class);
+		$userCountsQuery->method('select')->willReturnSelf();
+		$userCountsQuery->method('selectAlias')->willReturnSelf();
+		$userCountsQuery->method('from')->willReturnSelf();
+		$userCountsQuery->method('where')->willReturnSelf();
+		$userCountsQuery->method('andWhere')->willReturnSelf();
+		$userCountsQuery->method('groupBy')->willReturnSelf();
+		$userCountsQuery->method('expr')->willReturn($expr);
+		$userCountsQuery->method('func')->willReturn($this->createMock(\OCP\DB\QueryBuilder\IFunctionBuilder::class));
+		$userCountsQuery->method('createNamedParameter')->willReturn(':p');
 
-		$dbResult = $this->createMock(IResult::class);
-		$dbResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
+		$userCountsResult = $this->createMock(IResult::class);
+		$userCountsResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
 			['configkey' => 'policy.signature_flow.assigned', 'user_count' => '3'],
 			false,
 		);
-		$dbResult->expects($this->once())->method('closeCursor');
-		$qb->method('executeQuery')->willReturn($dbResult);
+		$userCountsResult->expects($this->once())->method('closeCursor');
+		$userCountsQuery->method('executeQuery')->willReturn($userCountsResult);
 
-		$this->db->expects($this->once())->method('getQueryBuilder')->willReturn($qb);
+		$systemConfigQuery = $this->createMock(IQueryBuilder::class);
+		$systemConfigQuery->method('select')->willReturnSelf();
+		$systemConfigQuery->method('from')->willReturnSelf();
+		$systemConfigQuery->method('where')->willReturnSelf();
+		$systemConfigQuery->method('expr')->willReturn($expr);
+		$systemConfigQuery->method('createNamedParameter')->willReturn(':p');
+
+		$systemConfigResult = $this->createMock(IResult::class);
+		$systemConfigResult->method('fetchAssociative')->willReturn(false);
+		$systemConfigResult->expects($this->once())->method('closeCursor');
+		$systemConfigQuery->method('executeQuery')->willReturn($systemConfigResult);
+
+		$this->db->expects($this->exactly(2))
+			->method('getQueryBuilder')
+			->willReturnOnConsecutiveCalls($userCountsQuery, $systemConfigQuery);
 
 		$result = $this->getSource()->loadAllRuleCounts();
 
