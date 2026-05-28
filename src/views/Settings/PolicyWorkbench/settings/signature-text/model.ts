@@ -3,6 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { loadState } from '@nextcloud/initial-state'
+
+import type { EffectivePoliciesResponse } from '../../../../../types/index'
+
 export interface SignatureTextPolicyConfig {
 	template: string
 	templateFontSize: number
@@ -18,10 +22,35 @@ export interface SignatureStampDraftValue {
 	collectMetadataEnabled: boolean
 }
 
-// Default values must mirror SignatureTextPolicyValue::DEFAULT_* constants (PHP backend).
-// If you change a value here, update the corresponding constant in that class too.
+const initialEffectivePolicies = loadState<EffectivePoliciesResponse>('libresign', 'effective_policies', { policies: {} })
+
+const extractBackendDefaultSignatureTextTemplate = (rawValue: unknown): string => {
+	let obj: Record<string, unknown> | null = null
+
+	if (typeof rawValue === 'string') {
+		try {
+			const decoded = JSON.parse(rawValue) as unknown
+			if (decoded && typeof decoded === 'object' && !Array.isArray(decoded)) {
+				obj = decoded as Record<string, unknown>
+			}
+		} catch {
+			return ''
+		}
+	} else if (rawValue && typeof rawValue === 'object' && !Array.isArray(rawValue)) {
+		obj = rawValue as Record<string, unknown>
+	}
+
+	return typeof obj?.template === 'string' ? obj.template.trim() : ''
+}
+
+// Layout defaults must mirror SignatureTextPolicyValue::DEFAULT_* constants (PHP backend).
+// The template default itself must come from the backend effective policies initial state,
+// never from a frontend hardcoded translation copy.
+const BACKEND_DEFAULT_SIGNATURE_TEXT_TEMPLATE = extractBackendDefaultSignatureTextTemplate(
+	initialEffectivePolicies.policies?.signature_stamp?.effectiveValue ?? null,
+)
+
 export const SIGNATURE_TEXT_DEFAULTS = Object.freeze({
-	template: '',
 	templateFontSize: 9.8,
 	signatureFontSize: 20,
 	signatureWidth: 350.0,
@@ -44,7 +73,7 @@ const UI_TO_RUNTIME_RENDER_MODE: Record<string, string> = {
 	description_only: 'DESCRIPTION_ONLY',
 }
 
-function normalizeRenderMode(value: unknown): string {
+const normalizeRenderMode = (value: unknown): string => {
 	const raw = String(value ?? 'default').trim()
 	if (raw in RUNTIME_TO_UI_RENDER_MODE) {
 		return RUNTIME_TO_UI_RENDER_MODE[raw]
@@ -55,15 +84,12 @@ function normalizeRenderMode(value: unknown): string {
 	return 'default'
 }
 
-/**
- * Convert UI render mode to runtime format (for backend API calls)
- */
-export function toRuntimeRenderMode(uiMode: unknown): string {
+export const toRuntimeRenderMode = (uiMode: unknown): string => {
 	const normalized = normalizeRenderMode(uiMode)
 	return UI_TO_RUNTIME_RENDER_MODE[normalized] ?? 'GRAPHIC_AND_DESCRIPTION'
 }
 
-function normalizeBackgroundType(value: unknown): string {
+const normalizeBackgroundType = (value: unknown): string => {
 	const raw = String(value ?? 'default').trim().toLowerCase()
 	if (['default', 'custom', 'deleted'].includes(raw)) {
 		return raw
@@ -71,13 +97,16 @@ function normalizeBackgroundType(value: unknown): string {
 	return 'default'
 }
 
-export function getDefaultSignatureTextPolicyConfig(): SignatureTextPolicyConfig {
-	return { ...SIGNATURE_TEXT_DEFAULTS }
+export const getDefaultSignatureTextPolicyConfig = (): SignatureTextPolicyConfig => {
+	return {
+		template: BACKEND_DEFAULT_SIGNATURE_TEXT_TEMPLATE,
+		...SIGNATURE_TEXT_DEFAULTS,
+	}
 }
 
-export function serializeSignatureTextPolicyConfig(config: Partial<SignatureTextPolicyConfig>): string {
+export const serializeSignatureTextPolicyConfig = (config: Partial<SignatureTextPolicyConfig>): string => {
 	return JSON.stringify({
-		template: config.template ?? SIGNATURE_TEXT_DEFAULTS.template,
+		template: config.template ?? BACKEND_DEFAULT_SIGNATURE_TEXT_TEMPLATE,
 		template_font_size: config.templateFontSize ?? SIGNATURE_TEXT_DEFAULTS.templateFontSize,
 		signature_font_size: config.signatureFontSize ?? SIGNATURE_TEXT_DEFAULTS.signatureFontSize,
 		signature_width: config.signatureWidth ?? SIGNATURE_TEXT_DEFAULTS.signatureWidth,
@@ -87,7 +116,7 @@ export function serializeSignatureTextPolicyConfig(config: Partial<SignatureText
 	})
 }
 
-export function normalizeSignatureTextPolicyConfig(rawValue: unknown): SignatureTextPolicyConfig {
+export const normalizeSignatureTextPolicyConfig = (rawValue: unknown): SignatureTextPolicyConfig => {
 	let obj: Record<string, unknown> | null = null
 
 	// Parse JSON string if needed
@@ -103,7 +132,7 @@ export function normalizeSignatureTextPolicyConfig(rawValue: unknown): Signature
 
 	if (obj) {
 		return {
-			template: String(obj.template ?? SIGNATURE_TEXT_DEFAULTS.template).trim(),
+			template: String(obj.template ?? BACKEND_DEFAULT_SIGNATURE_TEXT_TEMPLATE).trim(),
 			templateFontSize: Number(obj.template_font_size ?? SIGNATURE_TEXT_DEFAULTS.templateFontSize),
 			signatureFontSize: Number(obj.signature_font_size ?? SIGNATURE_TEXT_DEFAULTS.signatureFontSize),
 			signatureWidth: Number(obj.signature_width ?? SIGNATURE_TEXT_DEFAULTS.signatureWidth),
@@ -116,7 +145,7 @@ export function normalizeSignatureTextPolicyConfig(rawValue: unknown): Signature
 	return getDefaultSignatureTextPolicyConfig()
 }
 
-export function resolveCollectMetadataValue(rawValue: unknown, fallback = false): boolean {
+export const resolveCollectMetadataValue = (rawValue: unknown, fallback = false): boolean => {
 	if (typeof rawValue === 'boolean') {
 		return rawValue
 	}
@@ -147,10 +176,10 @@ export function resolveCollectMetadataValue(rawValue: unknown, fallback = false)
 	return fallback
 }
 
-export function normalizeSignatureStampDraftValue(
+export const normalizeSignatureStampDraftValue = (
 	rawValue: unknown,
 	fallbackCollectMetadata = false,
-): SignatureStampDraftValue {
+): SignatureStampDraftValue => {
 	if (rawValue && typeof rawValue === 'object') {
 		const candidate = rawValue as {
 			signatureStampValue?: unknown
