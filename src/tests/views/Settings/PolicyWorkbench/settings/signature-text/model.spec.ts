@@ -3,8 +3,15 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
 import { toRuntimeRenderMode } from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-text/model'
+
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+
+vi.mock('@nextcloud/initial-state', () => ({
+	loadState: vi.fn((_app: string, _key: string, defaultValue: unknown) => defaultValue),
+}))
 
 describe('model.ts', () => {
 	describe('toRuntimeRenderMode', () => {
