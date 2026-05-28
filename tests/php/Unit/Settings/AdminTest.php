@@ -13,7 +13,6 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\CertificatePolicyService;
-use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Settings\Admin;
 use OCP\AppFramework\Http\TemplateResponse;
@@ -62,10 +61,8 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private function stubGetFormDependencies(): void {
 		$this->accountService->method('getConfig')->willReturn([]);
 		$this->userSession->method('getUser')->willReturn($this->createMock(IUser::class));
-		$this->policyService->method('resolveKnownPolicies')->willReturn([]);
-		$this->policyService->method('resolve')->willReturn(
-			(new ResolvedPolicy())->setEffectiveValue(''),
-		);
+		$this->policyService->method('getAllRuleCounts')->willReturn([]);
+		$this->policyService->method('resolveKnownPolicyStatesWithRuleCounts')->willReturn([]);
 
 		$engine = $this->createMock(OpenSslHandler::class);
 		$engine->method('getName')->willReturn('openssl');
