@@ -67,14 +67,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		$ruleCounts = $this->resolveRuleCountsForActor($user);
 
 		/** @var array<string, LibresignEffectivePolicyState> $policies */
-		$policies = [];
-		foreach ($this->policyService->resolveKnownPolicies() as $policyKey => $resolvedPolicy) {
-			/** @var LibresignEffectivePolicyState $policyState */
-			$policyState = $resolvedPolicy->toArray();
-			$policyState['groupCount'] = $ruleCounts[$policyKey]['groupCount'] ?? 0;
-			$policyState['userCount'] = $ruleCounts[$policyKey]['userCount'] ?? 0;
-			$policies[$policyKey] = $policyState;
-		}
+		$policies = $this->policyService->resolveKnownPolicyStatesWithRuleCounts($ruleCounts);
 
 		/** @var LibresignEffectivePoliciesResponse $data */
 		$data = [
@@ -578,7 +571,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * @return array<string, array{groupCount: int, userCount: int}>
+	 * @return array<string, array{groupCount: int, userCount: int, everyoneCount: int}>
 	 */
 	private function resolveRuleCountsForActor(?IUser $user): array {
 		if ($user === null) {
@@ -586,16 +579,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		}
 
 		if ($this->groupManager->isAdmin($user->getUID())) {
-			$groupIds = array_values(array_map(
-				static fn ($group): string => $group->getGID(),
-				$this->groupManager->search(''),
-			));
-			$userIds = array_values(array_map(
-				static fn ($candidate): string => $candidate->getUID(),
-				$this->userManager->searchDisplayName(''),
-			));
-
-			return $this->policyService->getRuleCounts($groupIds, $userIds);
+			return $this->policyService->getAllRuleCounts();
 		}
 
 		if ($this->subAdmin->isSubAdmin($user)) {
