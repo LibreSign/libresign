@@ -67,6 +67,30 @@ Feature: admin/initial_state
       | value | (string)[] |
     And the response should have a status code 200
 
+  Scenario: Deleting custom identify methods clears the custom rule badge data
+    Given as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string)[] |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}},{"name":"email","enabled":false,"requirement":"optional"}] |
+    And the response should have a status code 200
+    When sending "get" to "/settings/admin/libresign"
+    Then the response should contain the initial state "libresign-effective_policies" json that match with:
+      | key                                       | value  |
+      | (jq).policies.identify_methods.policyKey  | identify_methods |
+      | (jq).policies.identify_methods.sourceScope | global |
+      | (jq).policies.identify_methods.everyoneCount | 1 |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string)[] |
+    And the response should have a status code 200
+    When sending "get" to "/settings/admin/libresign"
+    Then the response should contain the initial state "libresign-effective_policies" json that match with:
+      | key                                       | value  |
+      | (jq).policies.identify_methods.policyKey  | identify_methods |
+      | (jq).policies.identify_methods.sourceScope | system |
+      | (jq).policies.identify_methods.everyoneCount | 0 |
+
   Scenario: Stable default admin initial states are exposed
     Given as user "admin"
     And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/signature_flow"
