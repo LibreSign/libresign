@@ -44,12 +44,10 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('certificate_policies_cps', $this->certificatePolicyService->getCps());
 		$this->initialState->provideInitialState('config_path', $this->appConfig->getValueString(Application::APP_ID, 'config_path'));
 		$this->initialState->provideInitialState('signature_engine', $this->getSignatureEngineInitialState());
-		$resolvedPolicies = [];
-		foreach ($this->policyService->resolveKnownPolicies() as $policyKey => $resolvedPolicy) {
-			$resolvedPolicies[$policyKey] = $resolvedPolicy->toArray();
-		}
 		$this->initialState->provideInitialState('effective_policies', [
-			'policies' => $resolvedPolicies,
+			'policies' => $this->policyService->resolveKnownPolicyStatesWithRuleCounts(
+				$this->policyService->getAllRuleCounts(),
+			),
 		]);
 		$this->initialState->provideInitialState('ldap_extension_available', function_exists('ldap_connect'));
 
