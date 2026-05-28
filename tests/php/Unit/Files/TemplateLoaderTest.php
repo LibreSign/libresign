@@ -16,7 +16,6 @@ use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\App\IAppManager;
@@ -70,18 +69,21 @@ final class TemplateLoaderTest extends TestCase {
 			->willReturn($user);
 
 		$this->policyService
-			->method('resolveKnownPolicies')
+			->method('resolveKnownPolicyStates')
 			->willReturn([
-				'signature_flow'
-				=> (new ResolvedPolicy())
-					->setPolicyKey('signature_flow')
-					->setEffectiveValue('parallel')
-					->setSourceScope('group')
-					->setVisible(true)
-					->setEditableByCurrentActor(true)
-					->setAllowedValues(['parallel', 'ordered_numeric'])
-					->setCanSaveAsUserDefault(true)
-					->setCanUseAsRequestOverride(true)
+				'signature_flow' => [
+					'policyKey' => 'signature_flow',
+					'effectiveValue' => 'parallel',
+					'inheritedValue' => null,
+					'sourceScope' => 'group',
+					'visible' => true,
+					'editableByCurrentActor' => true,
+					'allowedValues' => ['parallel', 'ordered_numeric'],
+					'canSaveAsUserDefault' => true,
+					'canUseAsRequestOverride' => true,
+					'preferenceWasCleared' => false,
+					'blockedBy' => null,
+				],
 			]);
 
 		$loader = $this->getLoader();
@@ -131,18 +133,21 @@ final class TemplateLoaderTest extends TestCase {
 			->willReturn($user);
 
 		$this->policyService
-			->method('resolveKnownPolicies')
+			->method('resolveKnownPolicyStates')
 			->willReturn([
-				'signature_flow'
-				=> (new ResolvedPolicy())
-					->setPolicyKey('signature_flow')
-					->setEffectiveValue('none')
-					->setSourceScope('system')
-					->setVisible(true)
-					->setEditableByCurrentActor(true)
-					->setAllowedValues(['none', 'parallel', 'ordered_numeric'])
-					->setCanSaveAsUserDefault(true)
-					->setCanUseAsRequestOverride(true)
+				'signature_flow' => [
+					'policyKey' => 'signature_flow',
+					'effectiveValue' => 'none',
+					'inheritedValue' => null,
+					'sourceScope' => 'system',
+					'visible' => true,
+					'editableByCurrentActor' => true,
+					'allowedValues' => ['none', 'parallel', 'ordered_numeric'],
+					'canSaveAsUserDefault' => true,
+					'canUseAsRequestOverride' => true,
+					'preferenceWasCleared' => false,
+					'blockedBy' => null,
+				],
 			]);
 
 		$loader = $this->getLoader();
@@ -190,7 +195,7 @@ final class TemplateLoaderTest extends TestCase {
 			->method('getIdentifyMethodsSettings')
 			->willReturn([]);
 		$this->policyService
-			->method('resolveKnownPolicies')
+			->method('resolveKnownPolicyStates')
 			->willReturn([]);
 		$user = $this->createMock(IUser::class);
 		$this->userSession
