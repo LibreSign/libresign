@@ -163,6 +163,10 @@ const _policiesStore = defineStore('policies', () => {
 		return savedPolicy
 	}
 
+	const clearSystemPolicy = async (policyKey: string, value: EffectivePolicyValue): Promise<EffectivePolicyState | null> => {
+		return saveSystemPolicy(policyKey, value, false)
+	}
+
 	const fetchGroupPolicy = async (groupId: string, policyKey: string): Promise<GroupPolicyState | null> => {
 		const response = await axios.get<{ ocs?: { data?: GroupPolicyResponse } }>(
 			generateOcsUrl(`/apps/libresign/api/v1/policies/group/${groupId}/${policyKey}`),
@@ -341,6 +345,7 @@ const _policiesStore = defineStore('policies', () => {
 		fetchUserPolicyForUser,
 		fetchUserPoliciesByPolicyKey,
 		saveSystemPolicy,
+		clearSystemPolicy,
 		saveGroupPolicy,
 		clearGroupPolicy,
 		saveUserPreference,
