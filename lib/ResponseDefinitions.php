@@ -383,6 +383,7 @@ namespace OCA\Libresign;
  *     blockedBy: ?string,
  *     groupCount: non-negative-int,
  *     userCount: non-negative-int,
+ *     everyoneCount: non-negative-int,
  * }
  * @psalm-type LibresignEffectivePolicyResponse = array{
  *     policy: LibresignEffectivePolicyState,
