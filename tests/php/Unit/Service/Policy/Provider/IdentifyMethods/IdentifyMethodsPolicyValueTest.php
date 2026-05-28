@@ -246,6 +246,44 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 		self::assertCount(2, $normalized['factors']);
 		self::assertSame('account', $normalized['factors'][0]['name']);
 		self::assertSame('email', $normalized['factors'][1]['name']);
+		self::assertSame('Account', $normalized['factors'][0]['friendly_name']);
+		self::assertSame('Email', $normalized['factors'][1]['friendly_name']);
+	}
+
+	public function testEmptyPayloadMatchesNormalizationOfServiceDefaults(): void {
+		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$identifyMethodService->method('getFriendlyNamesMap')->willReturn([
+			'account' => 'Account',
+			'email' => 'Email',
+		]);
+		$identifyMethodService->method('getDefaultIdentifyMethodsPolicy')->willReturn([
+			[
+				'name' => 'account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'password' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'password',
+			],
+			[
+				'name' => 'email',
+				'enabled' => false,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'emailToken',
+			],
+		]);
+
+		$normalizedDefault = IdentifyMethodsPolicyValue::normalize([], $identifyMethodService);
+		$normalizedServiceDefaults = IdentifyMethodsPolicyValue::normalize(
+			$identifyMethodService->getDefaultIdentifyMethodsPolicy(),
+			$identifyMethodService,
+		);
+
+		self::assertSame($normalizedServiceDefaults, $normalizedDefault);
 	}
 
 	public function testReturnsEmptyFactorsWhenPayloadIsEmptyWithoutService(): void {
