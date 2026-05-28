@@ -59,6 +59,8 @@ interface IPolicySource {
 
 	public function saveSystemPolicy(string $policyKey, mixed $value, bool $allowChildOverride = false): void;
 
+	public function clearSystemPolicy(string $policyKey): void;
+
 	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride, bool $createdBySystemAdmin = false): void;
 
 	public function clearGroupPolicy(string $policyKey, string $groupId): void;
