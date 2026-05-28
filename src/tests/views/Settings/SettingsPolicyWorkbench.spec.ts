@@ -38,6 +38,7 @@ const fetchGroupPolicy = vi.fn().mockResolvedValue(null)
 const fetchUserPolicyForUser = vi.fn().mockResolvedValue(null)
 const fetchEffectivePolicies = vi.fn().mockResolvedValue(undefined)
 const saveSystemPolicy = vi.fn().mockResolvedValue(undefined)
+const clearSystemPolicy = vi.fn().mockResolvedValue(undefined)
 const saveGroupPolicy = vi.fn().mockResolvedValue(undefined)
 const saveUserPreference = vi.fn().mockResolvedValue(undefined)
 
@@ -49,6 +50,7 @@ vi.mock('../../../store/policies', () => ({
 		fetchGroupPolicy,
 		fetchUserPolicyForUser,
 		saveSystemPolicy,
+		clearSystemPolicy,
 		saveGroupPolicy,
 		saveUserPreference,
 	}),
@@ -145,6 +147,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		fetchUserPolicyForUser.mockReset().mockResolvedValue(null)
 		fetchEffectivePolicies.mockReset().mockResolvedValue(undefined)
 		saveSystemPolicy.mockReset().mockResolvedValue(undefined)
+		clearSystemPolicy.mockReset().mockResolvedValue(undefined)
 		saveGroupPolicy.mockReset().mockResolvedValue(undefined)
 		saveUserPreference.mockReset().mockResolvedValue(undefined)
 		getPolicy.mockImplementation((key: string) => {
@@ -256,10 +259,10 @@ describe('RealPolicyWorkbench.vue', () => {
 	})
 
 	it('does not crash when removal dialog closes while remove request is pending', async () => {
-		let resolveSaveSystemPolicy: (() => void) | null = null
-		saveSystemPolicy
+		let resolveClearSystemPolicy: (() => void) | null = null
+		clearSystemPolicy
 			.mockImplementationOnce(() => new Promise<void>((resolve) => {
-				resolveSaveSystemPolicy = resolve
+				resolveClearSystemPolicy = resolve
 			}))
 			.mockResolvedValue(undefined)
 
@@ -288,13 +291,13 @@ describe('RealPolicyWorkbench.vue', () => {
 		await confirmButton?.trigger('click')
 
 		await vi.waitFor(() => {
-			expect(saveSystemPolicy).toHaveBeenCalled()
+			expect(clearSystemPolicy).toHaveBeenCalled()
 		})
 
 		await confirmDialog?.find('.dialog-close-stub').trigger('click')
 
-		expect(resolveSaveSystemPolicy).toBeTypeOf('function')
-		const resolvePendingSave = resolveSaveSystemPolicy as (() => void) | null
+		expect(resolveClearSystemPolicy).toBeTypeOf('function')
+		const resolvePendingSave = resolveClearSystemPolicy as (() => void) | null
 		resolvePendingSave?.()
 		await Promise.resolve()
 		await Promise.resolve()
@@ -457,7 +460,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(wrapper.text()).toContain('Inherited template:')
 	})
 
-	it('hides allow-lower-level-customization toggle for request access by group', async () => {
+	it('shows allow-lower-level-customization toggle for request access by group', async () => {
 		const wrapper = mountWorkbench()
 
 		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signature request access')
@@ -483,7 +486,7 @@ describe('RealPolicyWorkbench.vue', () => {
 
 		const editorModal = wrapper.find('.policy-workbench__editor-modal-body')
 		expect(editorModal.exists()).toBe(true)
-		expect(editorModal.text()).not.toContain('Allow lower-level customization')
+		expect(editorModal.text()).toContain('Allow lower-level customization')
 	})
 
 	it('shows signing order with sophisticated visual interface: filter, toggle, counts, and scopes', async () => {
@@ -536,7 +539,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(text).toContain('Custom rules:none')
 		expect(text).toContain('Default access:Not configured')
 		expect(text).toContain('Custom overrides:none configured')
-		expect(text).not.toContain('Custom rules active')
+		expect(text).toContain('Custom rules active')
 
 		// Validate migrated settings are present in the workbench catalog
 		expect(text).toContain('Confetti animation')
