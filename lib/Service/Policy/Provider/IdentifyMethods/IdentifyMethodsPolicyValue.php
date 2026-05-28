@@ -35,8 +35,16 @@ final class IdentifyMethodsPolicyValue {
 					}
 				}
 			}
+			$normalization = self::normalizeFactors($defaultFactors, null, null);
+			$normalized = $normalization['factors'];
+
+			if ($identifyMethodService !== null) {
+				$normalized = self::enrichFriendlyNames($normalized, $identifyMethodService->getFriendlyNamesMap());
+			}
+			$normalized = self::canonicalizeFactorEntries($normalized);
+
 			return [
-				'factors' => $defaultFactors,
+				'factors' => $normalized,
 			];
 		}
 		$normalization = self::normalizeFactors(
@@ -50,6 +58,7 @@ final class IdentifyMethodsPolicyValue {
 		if ($identifyMethodService !== null) {
 			$normalized = self::enrichFriendlyNames($normalized, $identifyMethodService->getFriendlyNamesMap());
 		}
+		$normalized = self::canonicalizeFactorEntries($normalized);
 
 		$payload = [
 			'factors' => $normalized,
@@ -318,6 +327,31 @@ final class IdentifyMethodsPolicyValue {
 		unset($entry);
 
 		return $normalized;
+	}
+
+	/**
+	 * @param list<array<string, mixed>> $normalized
+	 * @return list<array<string, mixed>>
+	 */
+	private static function canonicalizeFactorEntries(array $normalized): array {
+		$canonicalized = [];
+		foreach ($normalized as $entry) {
+			$canonicalEntry = [];
+			foreach (['name', 'enabled', 'signatureMethods', 'friendly_name', 'minimumTotalVerifiedFactors', 'requirement', 'signatureMethodEnabled'] as $key) {
+				if (array_key_exists($key, $entry)) {
+					$canonicalEntry[$key] = $entry[$key];
+					unset($entry[$key]);
+				}
+			}
+
+			foreach ($entry as $key => $value) {
+				$canonicalEntry[$key] = $value;
+			}
+
+			$canonicalized[] = $canonicalEntry;
+		}
+
+		return $canonicalized;
 	}
 
 	/**
