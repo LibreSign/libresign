@@ -458,16 +458,17 @@ class PolicySource implements IPolicySource {
 	/**
 	 * @param list<string> $groupIds
 	 * @param list<string> $userIds
-	 * @return array<string, array{groupCount: int, userCount: int}>
+	 * @return array<string, array{groupCount: int, userCount: int, everyoneCount: int}>
 	 */
 	public function loadRuleCounts(array $groupIds, array $userIds): array {
 		$policyKeys = array_keys(PolicyProviders::BY_KEY);
-		/** @var array<string, array{groupCount: int, userCount: int}> $counts */
+		/** @var array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $counts */
 		$counts = [];
 		foreach ($policyKeys as $policyKey) {
 			$counts[$policyKey] = [
 				'groupCount' => 0,
 				'userCount' => 0,
+				'everyoneCount' => 0,
 			];
 		}
 
@@ -539,16 +540,16 @@ class PolicySource implements IPolicySource {
 	}
 
 	/**
-	 * Count group/user rules for ALL known targets (no ID filter). Suitable for system admins.
+	 * Count group/user/system rules for ALL known targets (no ID filter). Suitable for system admins.
 	 *
-	 * @return array<string, array{groupCount: int, userCount: int}>
+	 * @return array<string, array{groupCount: int, userCount: int, everyoneCount: int}>
 	 */
 	public function loadAllRuleCounts(): array {
 		$policyKeys = array_keys(PolicyProviders::BY_KEY);
-		/** @var array<string, array{groupCount: int, userCount: int}> $counts */
+		/** @var array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $counts */
 		$counts = [];
 		foreach ($policyKeys as $policyKey) {
-			$counts[$policyKey] = ['groupCount' => 0, 'userCount' => 0];
+			$counts[$policyKey] = ['groupCount' => 0, 'userCount' => 0, 'everyoneCount' => 0];
 		}
 
 		$groupBindings = $this->bindingMapper->findByTargetType('group');
@@ -608,6 +609,45 @@ class PolicySource implements IPolicySource {
 			$result->closeCursor();
 		}
 
+		$systemConfigQuery = $this->db->getQueryBuilder();
+		$systemConfigQuery->select('configkey', 'configvalue')
+			->from('appconfig')
+			->where($systemConfigQuery->expr()->eq('appid', $systemConfigQuery->createNamedParameter(Application::APP_ID)));
+
+		$systemConfigResult = $systemConfigQuery->executeQuery();
+		$systemConfigValues = [];
+		try {
+			while ($row = $systemConfigResult->fetchAssociative()) {
+				$systemConfigValues[$row['configkey']] = $row['configvalue'];
+			}
+		} finally {
+			$systemConfigResult->closeCursor();
+		}
+
+		foreach ($policyKeys as $policyKey) {
+			$definition = $this->registry->get($policyKey);
+			$configKey = $definition->getAppConfigKey();
+			if (!isset($systemConfigValues[$configKey])) {
+				continue;
+			}
+
+			$defaultValue = $definition->normalizeValue($definition->defaultSystemValue());
+			$storedValueRaw = $systemConfigValues[$configKey];
+			$storedValue = $definition->normalizeValue($this->deserializeStoredValueWithType($storedValueRaw, $defaultValue));
+			$valuesAreEqual = $storedValue === $defaultValue;
+			if (!$valuesAreEqual && is_string($storedValue) && is_string($defaultValue)) {
+				$d1 = json_decode($storedValue, true);
+				$d2 = json_decode($defaultValue, true);
+				if (is_array($d1) && is_array($d2)) {
+					$valuesAreEqual = $d1 === $d2;
+				}
+			}
+
+			if (!$valuesAreEqual) {
+				$counts[$policyKey]['everyoneCount'] = 1;
+			}
+		}
+
 		return $counts;
 	}
 
@@ -633,17 +673,27 @@ class PolicySource implements IPolicySource {
 				return;
 			}
 
-			if ($this->appConfig->hasAppKey($definition->getAppConfigKey())) {
-				$this->appConfig->deleteAppValue($definition->getAppConfigKey());
-			}
-			if ($this->appConfig->hasAppKey($allowOverrideConfigKey)) {
-				$this->appConfig->deleteAppValue($allowOverrideConfigKey);
-			}
+			$this->clearSystemPolicy($policyKey);
 			return;
 		}
 
 		$this->writeSystemValue($definition->getAppConfigKey(), $normalizedValue);
 		$this->appConfig->setAppValueString($allowOverrideConfigKey, $allowChildOverride ? '1' : '0');
+	}
+
+	#[\Override]
+	public function clearSystemPolicy(string $policyKey): void {
+		$definition = $this->registry->get($policyKey);
+		$configKey = $definition->getAppConfigKey();
+		$allowOverrideConfigKey = $this->getSystemAllowOverrideConfigKey($configKey);
+
+		if ($this->appConfig->hasAppKey($configKey)) {
+			$this->appConfig->deleteAppValue($configKey);
+		}
+
+		if ($this->appConfig->hasAppKey($allowOverrideConfigKey)) {
+			$this->appConfig->deleteAppValue($allowOverrideConfigKey);
+		}
 	}
 
 	private function readSystemValue(string $key, mixed $defaultValue): mixed {
@@ -729,6 +779,35 @@ class PolicySource implements IPolicySource {
 		}
 
 		$this->appConfig->setAppValueString($key, (string)$value);
+	}
+
+	/**
+	 * Deserialize a raw appconfig value string based on the expected type.
+	 * Does not perform any database queries - pure local deserialization.
+	 */
+	private function deserializeStoredValueWithType(string $storedValueRaw, mixed $defaultValue): mixed {
+		if (is_int($defaultValue)) {
+			return (int)$storedValueRaw;
+		}
+
+		if (is_bool($defaultValue)) {
+			return in_array(strtolower(trim($storedValueRaw)), ['1', 'true', 'yes', 'on'], true);
+		}
+
+		if (is_float($defaultValue)) {
+			return (float)$storedValueRaw;
+		}
+
+		if (is_array($defaultValue)) {
+			try {
+				$decoded = json_decode($storedValueRaw, true, flags: JSON_THROW_ON_ERROR);
+				return is_array($decoded) ? $decoded : [];
+			} catch (\JsonException) {
+				return [];
+			}
+		}
+
+		return $storedValueRaw;
 	}
 
 	private function getSystemAllowOverrideConfigKey(string $policyConfigKey): string {
