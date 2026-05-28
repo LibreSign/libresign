@@ -713,15 +713,6 @@ export function createRealPolicyWorkbenchState() {
 		return isDraftDirty.value
 	})
 
-	function cacheRuleCounts(policyKey: string, groupCount: number, userCount: number) {
-		hydratedRuleCounts.value = {
-			...hydratedRuleCounts.value,
-			[policyKey]: {
-				groupCount,
-				userCount,
-			},
-		}
-	}
 	function cacheRuleCountsWithEveryone(policyKey: string, groupCount: number, userCount: number, everyoneCount: number) {
 		hydratedRuleCounts.value = {
 			...hydratedRuleCounts.value,
