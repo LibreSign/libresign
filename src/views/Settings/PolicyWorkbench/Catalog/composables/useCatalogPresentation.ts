@@ -20,6 +20,7 @@ type SettingSummary = {
 	defaultSummary: string,
 	groupCount?: number,
 	userCount?: number,
+	everyoneCount?: number,
 }
 
 // TRANSLATORS Category heading grouping rules about who is allowed to sign documents.
