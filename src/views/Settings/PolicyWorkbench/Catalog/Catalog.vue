@@ -135,7 +135,7 @@
 									</div>
 								</div>
 
-								<p v-if="hasActiveOverrides(summary.groupCount, summary.userCount)" class="policy-workbench__origin-badge">
+								<p v-if="hasActiveOverrides(summary.groupCount, summary.userCount, summary.everyoneCount)" class="policy-workbench__origin-badge">
 									<!-- TRANSLATORS Badge text meaning this setting has one or more non-default policy overrides. -->
 									{{ t('libresign', 'Custom rules active') }}
 								</p>
@@ -147,7 +147,7 @@
 									</li>
 									<li>
 										<strong>{{ resolveOverridesStatLabel(summary.key) }}:</strong>
-										<span>{{ formatOverrideSummary(summary.groupCount, summary.userCount, summary.key) }}</span>
+										<span>{{ formatOverrideSummary(summary.groupCount, summary.userCount, summary.key, summary.everyoneCount) }}</span>
 									</li>
 								</ul>
 							</div>
@@ -209,18 +209,18 @@
 									<span v-if="summary.context" class="policy-workbench__setting-context">(<span v-html="highlightText(summary.context)"></span>)</span>
 								</h3>
 								<p v-html="highlightText(summary.description)"></p>
-								<p v-if="hasActiveOverrides(summary.groupCount, summary.userCount)" class="policy-workbench__origin-badge policy-workbench__origin-badge--inline">
-									<!-- TRANSLATORS Inline badge meaning this setting has custom policy rules overriding defaults. -->
-									{{ t('libresign', 'Custom rules active') }}
-								</p>
-							</div>
+<p v-if="hasActiveOverrides(summary.groupCount, summary.userCount, summary.everyoneCount)" class="policy-workbench__origin-badge policy-workbench__origin-badge--inline">
+								<!-- TRANSLATORS Inline badge meaning this setting has custom policy rules overriding defaults. -->
+								{{ t('libresign', 'Custom rules active') }}
+							</p>
+						</div>
 
-							<div class="policy-workbench__settings-row-stats">
-								<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--default" :title="summary.defaultSummary">
-									<strong>{{ resolveDefaultStatLabel(summary.key) }}:</strong>
-									<span v-html="highlightText(summary.defaultSummary)"></span>
-								</span>
-								<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--count"><strong>{{ resolveOverridesStatLabel(summary.key) }}:</strong> {{ formatOverrideSummary(summary.groupCount, summary.userCount, summary.key) }}</span>
+						<div class="policy-workbench__settings-row-stats">
+							<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--default" :title="summary.defaultSummary">
+								<strong>{{ resolveDefaultStatLabel(summary.key) }}:</strong>
+								<span v-html="highlightText(summary.defaultSummary)"></span>
+							</span>
+							<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--count"><strong>{{ resolveOverridesStatLabel(summary.key) }}:</strong> {{ formatOverrideSummary(summary.groupCount, summary.userCount, summary.key, summary.everyoneCount) }}</span>
 							</div>
 
 							<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Configure setting')" @click.stop="openSettingFromAction(summary.key, $event)">
@@ -1164,18 +1164,23 @@ function requestBackToCreateScope() {
 	selectedCreateScope.value = null
 }
 
-function hasActiveOverrides(groupCount?: number, userCount?: number) {
-	return (groupCount ?? 0) > 0 || (userCount ?? 0) > 0
+function hasActiveOverrides(groupCount?: number, userCount?: number, everyoneCount?: number) {
+	return (groupCount ?? 0) > 0 || (userCount ?? 0) > 0 || (everyoneCount ?? 0) > 0
 }
 
-function formatOverrideSummary(groupCount?: number, userCount?: number, policyKey?: string) {
-	if ((groupCount ?? 0) === 0 && (userCount ?? 0) === 0) {
+function formatOverrideSummary(groupCount?: number, userCount?: number, policyKey?: string, everyoneCount?: number) {
+	if ((groupCount ?? 0) === 0 && (userCount ?? 0) === 0 && (everyoneCount ?? 0) === 0) {
 		if (policyKey === 'groups_request_sign') {
 			// TRANSLATORS Summary for signature-request access policy when no explicit overrides are configured.
 			return t('libresign', 'none configured')
 		}
 
 		return t('libresign', 'none')
+	}
+
+	if ((groupCount ?? 0) === 0 && (userCount ?? 0) === 0 && (everyoneCount ?? 0) > 0) {
+		// TRANSLATORS Summary shown when only a system-level (everyone) rule is active with no group/user overrides.
+		return t('libresign', 'everyone')
 	}
 
 	return t('libresign', '{groupCount} groups · {userCount} accounts', {
