@@ -106,6 +106,7 @@ describe('Preferences view', () => {
 			preferenceWasCleared: false,
 			groupCount: 0,
 			userCount: 0,
+			everyoneCount: 0,
 		})
 	})
 
@@ -178,6 +179,7 @@ describe('Preferences view', () => {
 			preferenceWasCleared: false,
 			groupCount: 0,
 			userCount: 0,
+			everyoneCount: 0,
 		})
 		const wrapper = await createWrapper()
 
@@ -200,6 +202,7 @@ describe('Preferences view', () => {
 			preferenceWasCleared: false,
 			groupCount: 0,
 			userCount: 0,
+			everyoneCount: 0,
 		}
 		let shouldApplyCanonicalAfterFetch = false
 
@@ -250,6 +253,7 @@ describe('Preferences view', () => {
 			preferenceWasCleared: false,
 			groupCount: 0,
 			userCount: 0,
+			everyoneCount: 0,
 		})
 		const wrapper = await createWrapper()
 		await nextTick()
@@ -273,6 +277,7 @@ describe('Preferences view', () => {
 					preferenceWasCleared: false,
 					groupCount: 0,
 					userCount: 0,
+					everyoneCount: 0,
 				}
 			}
 
@@ -289,6 +294,7 @@ describe('Preferences view', () => {
 				preferenceWasCleared: false,
 				groupCount: 0,
 				userCount: 0,
+				everyoneCount: 0,
 			}
 		})
 
@@ -314,6 +320,7 @@ describe('Preferences view', () => {
 					preferenceWasCleared: false,
 					groupCount: 0,
 					userCount: 0,
+					everyoneCount: 0,
 				}
 			}
 
@@ -334,6 +341,7 @@ describe('Preferences view', () => {
 				preferenceWasCleared: false,
 				groupCount: 0,
 				userCount: 0,
+				everyoneCount: 0,
 			}
 		})
 
@@ -361,6 +369,7 @@ describe('Preferences view', () => {
 					preferenceWasCleared: false,
 					groupCount: 0,
 					userCount: 0,
+					everyoneCount: 0,
 				}
 			}
 
@@ -446,6 +455,7 @@ describe('Preferences view', () => {
 					preferenceWasCleared: false,
 					groupCount: 0,
 					userCount: 0,
+					everyoneCount: 0,
 				}
 			}
 
@@ -478,6 +488,7 @@ describe('Preferences view', () => {
 					preferenceWasCleared: false,
 					groupCount: 0,
 					userCount: 0,
+					everyoneCount: 0,
 				}
 			}
 
@@ -520,6 +531,7 @@ describe('Preferences view', () => {
 					preferenceWasCleared: false,
 					groupCount: 0,
 					userCount: 0,
+					everyoneCount: 0,
 				}
 			}
 
@@ -540,6 +552,7 @@ describe('Preferences view', () => {
 				preferenceWasCleared: false,
 				groupCount: 0,
 				userCount: 0,
+				everyoneCount: 0,
 			}
 		})
 
@@ -567,6 +580,7 @@ describe('Preferences view', () => {
 					preferenceWasCleared: false,
 					groupCount: 0,
 					userCount: 0,
+					everyoneCount: 0,
 				}
 			}
 			return null
@@ -609,6 +623,7 @@ describe('Preferences view', () => {
 					preferenceWasCleared: false,
 					groupCount: 0,
 					userCount: 0,
+					everyoneCount: 0,
 				}
 			}
 			return null
