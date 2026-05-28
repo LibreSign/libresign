@@ -403,7 +403,8 @@
                     "preferenceWasCleared",
                     "blockedBy",
                     "groupCount",
-                    "userCount"
+                    "userCount",
+                    "everyoneCount"
                 ],
                 "properties": {
                     "policyKey": {
@@ -446,6 +447,11 @@
                         "minimum": 0
                     },
                     "userCount": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "everyoneCount": {
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0

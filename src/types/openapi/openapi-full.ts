@@ -1475,6 +1475,8 @@ export type components = {
             groupCount: number;
             /** Format: int64 */
             userCount: number;
+            /** Format: int64 */
+            everyoneCount: number;
         };
         EffectivePolicyValue: (boolean | number | string | {
             [key: string]: Record<string, never>;
