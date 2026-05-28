@@ -1,11 +1,45 @@
-/* eslint-disable import/first */
 /*
  * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { defineComponent, h } from 'vue'
+
+import { getDefaultSignatureTextPolicyConfig } from '@/views/Settings/PolicyWorkbench/settings/signature-text/model'
+
+import SignatureTextRuleEditor from '@/views/Settings/PolicyWorkbench/settings/signature-text/SignatureTextRuleEditor.vue'
+
+vi.mock('@nextcloud/initial-state', () => ({
+	loadState: vi.fn((_app: string, key: string, defaultValue: unknown) => {
+		if (key === 'effective_policies') {
+			return {
+				policies: {
+					signature_stamp: {
+						effectiveValue: JSON.stringify({
+							template: 'Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}',
+							template_font_size: 9.8,
+							signature_font_size: 20,
+							signature_width: 350,
+							signature_height: 100,
+							background_type: 'default',
+							render_mode: 'default',
+						}),
+					},
+				},
+			}
+		}
+
+		return defaultValue
+	}),
+}))
+
+const { pdfElementsAutoReady } = vi.hoisted(() => ({
+	pdfElementsAutoReady: {
+		enabled: true,
+	},
+}))
 
 const axiosPostMock = vi.fn()
 const ensurePdfWorkerMock = vi.fn()
@@ -25,11 +59,18 @@ vi.mock('../../../../../../helpers/pdfWorker', () => ({
 }))
 
 vi.mock('@libresign/pdf-elements', () => ({
-	default: {
+	default: defineComponent({
 		name: 'PDFElements',
 		props: ['initFiles', 'initFileNames', 'initialScale', 'showPageFooter'],
-		template: '<div class="pdf-elements-stub" />',
-	},
+		emits: ['pdf-elements:end-init'],
+		setup(_props, { emit }) {
+			if (pdfElementsAutoReady.enabled) {
+				queueMicrotask(() => emit('pdf-elements:end-init', { docsCount: 1 }))
+			}
+
+			return () => h('div', { class: 'pdf-elements-stub' })
+		},
+	}),
 }))
 
 vi.mock('../../../../../../components/CodeEditor.vue', () => ({
@@ -41,11 +82,9 @@ vi.mock('../../../../../../components/CodeEditor.vue', () => ({
 	},
 }))
 
-import SignatureTextRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-text/SignatureTextRuleEditor.vue'
-import { getDefaultSignatureTextPolicyConfig } from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-text/model'
-
 describe('SignatureTextRuleEditor.vue', () => {
 	const defaultConfig = getDefaultSignatureTextPolicyConfig()
+	const defaultTemplate = 'Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}'
 	const inheritedConfig = {
 		template: 'Inherited signature template',
 		templateFontSize: 11,
@@ -69,6 +108,7 @@ describe('SignatureTextRuleEditor.vue', () => {
 	beforeEach(() => {
 		axiosPostMock.mockReset().mockResolvedValue({ data: new Blob(['preview'], { type: 'application/pdf' }) })
 		ensurePdfWorkerMock.mockReset()
+		pdfElementsAutoReady.enabled = true
 		window.localStorage.removeItem(zoomStorageKey)
 		vi.useFakeTimers()
 	})
@@ -169,6 +209,67 @@ describe('SignatureTextRuleEditor.vue', () => {
 
 		expect(wrapper.text()).toContain('Unable to load preview. Please check the template and try again.')
 		expect(wrapper.find('.pdf-elements-stub').exists()).toBe(false)
+	})
+
+	it('keeps a loading overlay visible until the pdf preview component finishes initializing', async () => {
+		pdfElementsAutoReady.enabled = false
+
+		const wrapper = mount(SignatureTextRuleEditor, {
+			props: {
+				modelValue: asModelValue({
+					template: 'Preview {{SignerCommonName}}',
+					template_font_size: 9,
+					signature_font_size: 9,
+					signature_width: 350,
+					signature_height: 100,
+					background_type: 'default',
+					render_mode: 'default',
+				}),
+			},
+			global: {
+				stubs: {
+					NcLoadingIcon: {
+						name: 'NcLoadingIcon',
+						template: '<span class="loading-stub" />',
+					},
+				},
+			},
+		})
+
+		await vi.advanceTimersByTimeAsync(250)
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(wrapper.find('.pdf-elements-stub').exists()).toBe(true)
+		expect(wrapper.find('.ste__preview-loading-overlay').exists()).toBe(true)
+		expect(wrapper.find('.loading-stub').exists()).toBe(true)
+
+		wrapper.findComponent({ name: 'PDFElements' }).vm.$emit('pdf-elements:end-init', { docsCount: 1 })
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(wrapper.find('.ste__preview-loading-overlay').exists()).toBe(false)
+	})
+
+	it('hydrates the canonical default template when the incoming draft is empty', async () => {
+		const wrapper = mount(SignatureTextRuleEditor, {
+			props: {
+				modelValue: '',
+			},
+		})
+
+		await vi.advanceTimersByTimeAsync(250)
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect((wrapper.find('textarea.code-editor-stub').element as HTMLTextAreaElement).value).toBe(defaultTemplate)
+		expect(axiosPostMock).toHaveBeenCalledWith(
+			'/apps/libresign/api/v1/signature-stamp/preview-pdf',
+			expect.objectContaining({
+				template: defaultTemplate,
+			}),
+			expect.objectContaining({ responseType: 'blob' }),
+		)
 	})
 
 	it('hides reset actions while the rule matches the inherited defaults', async () => {
