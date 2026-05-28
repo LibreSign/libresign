@@ -730,6 +730,9 @@ final class InMemoryPolicySource implements IPolicySource {
 	public function saveSystemPolicy(string $policyKey, mixed $value, bool $allowChildOverride = false): void {
 	}
 
+	public function clearSystemPolicy(string $policyKey): void {
+	}
+
 	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride, bool $createdBySystemAdmin = false): void {
 	}
 
