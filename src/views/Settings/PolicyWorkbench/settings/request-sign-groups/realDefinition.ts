@@ -23,7 +23,7 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 	normalizeDraftValue: (value: EffectivePolicyValue) => serializeRequestSignGroups(value),
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => resolveRequestSignGroups(value).length > 0,
 	normalizeAllowChildOverride: (scope, allowChildOverride) => {
-		if (scope === 'group' || scope === 'user') {
+		if (scope === 'user') {
 			return false
 		}
 
