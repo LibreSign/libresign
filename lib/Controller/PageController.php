@@ -109,12 +109,8 @@ class PageController extends AEnvironmentPageAwareController {
 		}
 
 		$this->provideSignerSignatues();
-		$resolvedPolicies = [];
-		foreach ($this->policyService->resolveKnownPolicies() as $policyKey => $resolvedPolicy) {
-			$resolvedPolicies[$policyKey] = $resolvedPolicy->toArray();
-		}
 		$this->initialState->provideInitialState('effective_policies', [
-			'policies' => $resolvedPolicies,
+			'policies' => $this->policyService->resolveKnownPolicyStates(),
 		]);
 		$this->initialState->provideInitialState('footer_template', $this->footerHandler->getTemplate());
 
@@ -645,12 +641,8 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->fileService->setSignRequest($signRequest);
 		}
 
-		$resolvedPolicies = [];
-		foreach ($this->policyService->resolveKnownPolicies() as $policyKey => $resolvedPolicy) {
-			$resolvedPolicies[$policyKey] = $resolvedPolicy->toArray();
-		}
 		$this->initialState->provideInitialState('effective_policies', [
-			'policies' => $resolvedPolicies,
+			'policies' => $this->policyService->resolveKnownPolicyStates(),
 		]);
 
 		$this->initialState->provideInitialState('file_info',
