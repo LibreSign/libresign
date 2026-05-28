@@ -75,6 +75,7 @@ vi.mock('@nextcloud/router', () => ({
 }))
 
 const saveSystemPolicy = vi.fn()
+const clearSystemPolicy = vi.fn()
 const saveGroupPolicy = vi.fn()
 const fetchGroupPolicy = vi.fn()
 const fetchSystemPolicy = vi.fn()
@@ -89,6 +90,7 @@ const fetchEffectivePolicies = vi.fn()
 vi.mock('../../../../store/policies', () => ({
 	usePoliciesStore: () => ({
 		saveSystemPolicy,
+		clearSystemPolicy,
 		saveGroupPolicy,
 		fetchGroupPolicy,
 		fetchSystemPolicy,
@@ -111,6 +113,7 @@ describe('useRealPolicyWorkbench', () => {
 		configState.manageable_policy_group_ids = []
 		axiosGet.mockReset()
 		saveSystemPolicy.mockReset()
+		clearSystemPolicy.mockReset()
 		saveGroupPolicy.mockReset()
 		fetchGroupPolicy.mockReset()
 		fetchSystemPolicy.mockReset()
@@ -125,6 +128,7 @@ describe('useRealPolicyWorkbench', () => {
 		fetchSystemPolicy.mockResolvedValue(null)
 		fetchGroupPolicy.mockResolvedValue(null)
 		fetchUserPolicyForUser.mockResolvedValue(null)
+		clearSystemPolicy.mockResolvedValue(null)
 		clearUserPreference.mockResolvedValue(null)
 		fetchEffectivePolicies.mockResolvedValue(undefined)
 		axiosGet.mockImplementation((url: string) => {
@@ -207,6 +211,37 @@ describe('useRealPolicyWorkbench', () => {
 			value: 'ordered_numeric',
 			allowChildOverride: false,
 		})
+	})
+
+	it('keeps collect_metadata custom-rule count visible after closing its dialog', async () => {
+		fetchGroupPolicy.mockImplementation(async (groupId: string, policyKey: string) => {
+			if (groupId !== 'finance' || policyKey !== 'collect_metadata') {
+				return null
+			}
+
+			return {
+				policyKey: 'collect_metadata',
+				scope: 'group',
+				targetId: 'finance',
+				value: true,
+				allowChildOverride: true,
+				visibleToChild: true,
+				allowedValues: [true],
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('collect_metadata')
+
+		await vi.waitFor(() => {
+			expect(state.visibleGroupRules).toHaveLength(1)
+		})
+
+		state.closeSetting()
+
+		const collectMetadataSummary = state.visibleSettingSummaries.find((summary) => summary.key === 'collect_metadata')
+		expect(collectMetadataSummary?.groupCount).toBe(1)
+		expect(collectMetadataSummary?.userCount).toBe(0)
 	})
 
 	it('shows docmdp as available setting in policy workbench summaries', async () => {
@@ -897,8 +932,8 @@ describe('useRealPolicyWorkbench', () => {
 
 		await state.removeRule('system-default')
 
-		expect(saveSystemPolicy).toHaveBeenCalledTimes(1)
-		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', null, false)
+		expect(clearSystemPolicy).toHaveBeenCalledTimes(1)
+		expect(clearSystemPolicy).toHaveBeenCalledWith('signature_flow', 'none')
 	})
 
 	it('closes editor when the edited system rule is reset', async () => {
@@ -1307,6 +1342,21 @@ describe('useRealPolicyWorkbench', () => {
 
 		expect(state.editorDraft?.value).toBe('["policy-e2e-group"]')
 		expect(state.canSaveDraft).toBe(true)
+	})
+
+	it('persists request-access group rule allow override toggle', async () => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+		state.startEditor({ scope: 'group' })
+
+		expect(state.editorDraft?.scope).toBe('group')
+
+		state.updateDraftTargets(['finance'])
+		state.updateDraftAllowOverride(false)
+
+		await state.saveDraft()
+
+		expect(saveGroupPolicy).toHaveBeenCalledWith('finance', 'groups_request_sign', '["finance"]', false)
 	})
 
 	it('blocks user-scope editing for request-sign-groups setting', () => {
