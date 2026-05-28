@@ -60,15 +60,10 @@ class TemplateLoader implements IEventListener {
 	}
 
 	protected function getInitialStatePayload(): array {
-		$resolvedPolicies = [];
-		foreach ($this->policyService->resolveKnownPolicies() as $policyKey => $resolvedPolicy) {
-			$resolvedPolicies[$policyKey] = $resolvedPolicy->toArray();
-		}
-
 		return [
 			'certificate_ok' => $this->certificateEngineFactory->getEngine()->isSetupOk(),
 			'effective_policies' => [
-				'policies' => $resolvedPolicies,
+				'policies' => $this->policyService->resolveKnownPolicyStates(),
 			],
 			'can_request_sign' => $this->canRequestSign(),
 		];
