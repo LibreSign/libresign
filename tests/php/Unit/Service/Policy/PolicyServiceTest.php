@@ -516,6 +516,39 @@ final class PolicyServiceTest extends TestCase {
 		$this->assertSame('system', $resolved->getSourceScope());
 	}
 
+	public function testClearSystemRemovesExplicitRuleAndReturnsResolvedDefault(): void {
+		$this->source
+			->expects($this->once())
+			->method('clearSystemPolicy')
+			->with(SignatureFlowPolicy::KEY);
+
+		$this->source
+			->method('loadSystemPolicy')
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue('none')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues(['none', 'parallel', 'ordered_numeric']));
+
+		$this->source->method('loadGroupPolicies')->willReturn([]);
+		$this->source->method('loadCirclePolicies')->willReturn([]);
+		$this->source->method('loadUserPreference')->willReturn(null);
+		$this->source->method('loadRequestOverride')->willReturn(null);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$resolved = $service->clearSystem(SignatureFlowPolicy::KEY);
+
+		$this->assertSame('none', $resolved->getEffectiveValue());
+		$this->assertSame('system', $resolved->getSourceScope());
+	}
+
 	public function testSaveGroupPolicyBlocksSubAdminWhenGlobalDefaultDisallowsOverrides(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('group-admin');
@@ -781,6 +814,111 @@ final class PolicyServiceTest extends TestCase {
 		$result = $service->getAllRuleCounts();
 
 		$this->assertSame($expected, $result);
+	}
+
+	public function testResolveKnownPolicyStatesSerializesResolvedPolicies(): void {
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setPolicyKey('signature_flow')
+			->setEffectiveValue('parallel')
+			->setInheritedValue('none')
+			->setSourceScope('group')
+			->setVisible(true)
+			->setEditableByCurrentActor(true)
+			->setAllowedValues(['parallel', 'ordered_numeric'])
+			->setCanSaveAsUserDefault(true)
+			->setCanUseAsRequestOverride(true)
+			->setPreferenceWasCleared(false)
+			->setBlockedBy(null);
+
+		/** @var PolicyService&MockObject $service */
+		$service = $this->getMockBuilder(PolicyService::class)
+			->setConstructorArgs([
+				$this->contextFactory,
+				$this->source,
+				$this->registry,
+				$this->l10n,
+			])
+			->onlyMethods(['resolveKnownPolicies'])
+			->getMock();
+
+		$service
+			->expects($this->once())
+			->method('resolveKnownPolicies')
+			->with([], null)
+			->willReturn(['signature_flow' => $resolvedPolicy]);
+
+		$result = $service->resolveKnownPolicyStates();
+
+		$this->assertSame([
+			'signature_flow' => [
+				'policyKey' => 'signature_flow',
+				'effectiveValue' => 'parallel',
+				'inheritedValue' => 'none',
+				'sourceScope' => 'group',
+				'visible' => true,
+				'editableByCurrentActor' => true,
+				'allowedValues' => ['parallel', 'ordered_numeric'],
+				'canSaveAsUserDefault' => true,
+				'canUseAsRequestOverride' => true,
+				'preferenceWasCleared' => false,
+				'blockedBy' => null,
+			],
+		], $result);
+	}
+
+	public function testResolveKnownPolicyStatesWithRuleCountsEmbedsCounters(): void {
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setPolicyKey('signature_flow')
+			->setEffectiveValue('ordered_numeric')
+			->setInheritedValue(null)
+			->setSourceScope('system')
+			->setVisible(true)
+			->setEditableByCurrentActor(true)
+			->setAllowedValues(['ordered_numeric'])
+			->setCanSaveAsUserDefault(false)
+			->setCanUseAsRequestOverride(false)
+			->setPreferenceWasCleared(false)
+			->setBlockedBy(null);
+
+		/** @var PolicyService&MockObject $service */
+		$service = $this->getMockBuilder(PolicyService::class)
+			->setConstructorArgs([
+				$this->contextFactory,
+				$this->source,
+				$this->registry,
+				$this->l10n,
+			])
+			->onlyMethods(['resolveKnownPolicies'])
+			->getMock();
+
+		$service
+			->expects($this->once())
+			->method('resolveKnownPolicies')
+			->with([], null)
+			->willReturn(['signature_flow' => $resolvedPolicy]);
+
+		$result = $service->resolveKnownPolicyStatesWithRuleCounts([
+			'signature_flow' => ['groupCount' => 3, 'userCount' => 7, 'everyoneCount' => 1],
+		]);
+
+		$this->assertSame([
+			'signature_flow' => [
+				'policyKey' => 'signature_flow',
+				'effectiveValue' => 'ordered_numeric',
+				'inheritedValue' => null,
+				'sourceScope' => 'system',
+				'visible' => true,
+				'editableByCurrentActor' => true,
+				'allowedValues' => ['ordered_numeric'],
+				'canSaveAsUserDefault' => false,
+				'canUseAsRequestOverride' => false,
+				'preferenceWasCleared' => false,
+				'blockedBy' => null,
+				'groupCount' => 3,
+				'userCount' => 7,
+				'everyoneCount' => 1,
+			],
+		], $result);
 	}
 
 }
