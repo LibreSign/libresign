@@ -159,6 +159,40 @@ describe('policies store', () => {
 		)
 	})
 
+	it('clears a system policy by posting the fallback system value', async () => {
+		vi.mocked(axios.post).mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						policy: {
+							policyKey: 'signature_flow',
+							effectiveValue: 'none',
+							allowedValues: ['none', 'parallel', 'ordered_numeric'],
+							sourceScope: 'system',
+							visible: true,
+							editableByCurrentActor: true,
+							canSaveAsUserDefault: true,
+							canUseAsRequestOverride: false,
+							preferenceWasCleared: false,
+							blockedBy: null,
+						},
+					},
+				},
+			},
+		})
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+		const policy = await store.clearSystemPolicy('signature_flow', 'none')
+
+		expect(axios.post).toHaveBeenCalledWith(
+			'/ocs/v2.php/apps/libresign/api/v1/policies/system/signature_flow',
+			{ value: 'none', allowChildOverride: false },
+		)
+		expect(policy?.effectiveValue).toBe('none')
+		expect(store.getPolicy('signature_flow')?.sourceScope).toBe('system')
+	})
+
 	it('saves a user preference through the generic endpoint', async () => {
 		vi.mocked(axios.put).mockResolvedValue({
 			data: {
