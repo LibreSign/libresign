@@ -4,6 +4,9 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { createRealPolicyWorkbenchState } from '../../../../views/Settings/PolicyWorkbench/useRealPolicyWorkbench'
+
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 const { currentUserState } = vi.hoisted(() => ({
@@ -52,6 +55,17 @@ vi.mock('@nextcloud/initial-state', () => ({
 					identify_methods: {
 						effectiveValue: identifyMethodsInitialState,
 					},
+					signature_stamp: {
+						effectiveValue: JSON.stringify({
+							template: 'Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}',
+							template_font_size: 9.8,
+							signature_font_size: 20,
+							signature_width: 350,
+							signature_height: 100,
+							background_type: 'default',
+							render_mode: 'default',
+						}),
+					},
 				},
 			}
 		}
@@ -87,6 +101,17 @@ const clearUserPolicyForUser = vi.fn()
 const getPolicy = vi.fn()
 const fetchEffectivePolicies = vi.fn()
 
+const createMockEffectivePolicyState = (overrides: {
+	effectiveValue?: unknown
+	allowedValues?: unknown[]
+	sourceScope?: string
+} = {}) => ({
+	effectiveValue: null,
+	allowedValues: [],
+	sourceScope: 'system',
+	...overrides,
+})
+
 vi.mock('../../../../store/policies', () => ({
 	usePoliciesStore: () => ({
 		saveSystemPolicy,
@@ -103,8 +128,6 @@ vi.mock('../../../../store/policies', () => ({
 		fetchEffectivePolicies,
 	}),
 }))
-
-import { createRealPolicyWorkbenchState } from '../../../../views/Settings/PolicyWorkbench/useRealPolicyWorkbench'
 
 describe('useRealPolicyWorkbench', () => {
 	beforeEach(() => {
@@ -724,11 +747,10 @@ describe('useRealPolicyWorkbench', () => {
 	})
 
 	it('transitions from fallback none to persisted global default after saving system rule', async () => {
-		let currentPolicy: any = {
+		let currentPolicy = createMockEffectivePolicyState({
 			effectiveValue: 'none',
 			allowedValues: ['parallel', 'ordered_numeric'],
-			sourceScope: 'system',
-		}
+		})
 
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'signature_flow') {
@@ -739,11 +761,11 @@ describe('useRealPolicyWorkbench', () => {
 		})
 
 		saveSystemPolicy.mockImplementation(async (_policyKey: string, value: unknown, allowChildOverride?: boolean) => {
-			currentPolicy = {
+			currentPolicy = createMockEffectivePolicyState({
 				effectiveValue: value,
 				allowedValues: allowChildOverride === false ? [value] : [],
 				sourceScope: 'global',
-			}
+			})
 			return currentPolicy
 		})
 
@@ -786,11 +808,11 @@ describe('useRealPolicyWorkbench', () => {
 	})
 
 	it('keeps explicit instance rule visible after saving when effective source remains group', async () => {
-		let currentPolicy: any = {
+		let currentPolicy = createMockEffectivePolicyState({
 			effectiveValue: 'parallel',
 			allowedValues: ['parallel', 'ordered_numeric'],
 			sourceScope: 'group',
-		}
+		})
 
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'signature_flow') {
@@ -801,11 +823,11 @@ describe('useRealPolicyWorkbench', () => {
 		})
 
 		saveSystemPolicy.mockImplementation(async (_policyKey: string, value: unknown) => {
-			currentPolicy = {
+			currentPolicy = createMockEffectivePolicyState({
 				effectiveValue: currentPolicy.effectiveValue,
 				allowedValues: currentPolicy.allowedValues,
 				sourceScope: 'group',
-			}
+			})
 
 			return {
 				effectiveValue: value,
@@ -1472,6 +1494,35 @@ describe('useRealPolicyWorkbench', () => {
 		expect(requestExpiration?.groupCount).toBe(1)
 		expect(requestExpiration?.userCount).toBe(1)
 		expect(summaries.some((summary) => summary.key === 'renewal_interval')).toBe(false)
+	})
+
+	it('seeds the signature stamp system editor with the canonical default template when no effective policy exists', async () => {
+		const defaultTemplate = 'Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}'
+
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_stamp' || key === 'collect_metadata') {
+				return null
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_stamp')
+		state.startEditor({ scope: 'system' })
+
+		expect(state.editorDraft?.value).toEqual({
+			signatureStampValue: JSON.stringify({
+				template: defaultTemplate,
+				template_font_size: 9.8,
+				signature_font_size: 20,
+				signature_width: 350,
+				signature_height: 100,
+				background_type: 'default',
+				render_mode: 'default',
+			}),
+			collectMetadataEnabled: false,
+		})
 	})
 
 	it('hydrates signature stamp group rule with collect metadata companion value', async () => {
