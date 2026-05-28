@@ -5,13 +5,39 @@
 
 import { describe, expect, it, vi } from 'vitest'
 
+import { signatureTextRealDefinition } from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-text/realDefinition'
+
 vi.mock('@nextcloud/l10n', () => ({
 	t: (_app: string, text: string) => text,
 	getLanguage: () => 'en',
 	isRTL: () => false,
 }))
 
-import { signatureTextRealDefinition } from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-text/realDefinition'
+vi.mock('@nextcloud/initial-state', () => ({
+	loadState: vi.fn((_app: string, key: string, defaultValue: unknown) => {
+		if (key === 'effective_policies') {
+			return {
+				policies: {
+					signature_stamp: {
+						effectiveValue: JSON.stringify({
+							template: 'Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}',
+							template_font_size: 9.8,
+							signature_font_size: 20,
+							signature_width: 350,
+							signature_height: 100,
+							background_type: 'default',
+							render_mode: 'default',
+						}),
+					},
+				},
+			}
+		}
+
+		return defaultValue
+	}),
+}))
+
+const defaultTemplate = 'Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}'
 
 describe('signatureTextRealDefinition', () => {
 	it('exposes expected identity metadata', () => {
@@ -25,7 +51,7 @@ describe('signatureTextRealDefinition', () => {
 		const parsed = JSON.parse(value)
 
 		expect(parsed).toEqual({
-			template: '',
+			template: defaultTemplate,
 			template_font_size: 9.8,
 			signature_font_size: 20,
 			signature_width: 350,
