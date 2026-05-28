@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { createAppConfig } from '@nextcloud/vite-config'
 import { resolve } from 'node:path'
+
+import { createAppConfig } from '@nextcloud/vite-config'
 
 export default createAppConfig({
 	main: resolve('src/main.ts'),
@@ -14,7 +15,18 @@ export default createAppConfig({
 	external: resolve('src/external.ts'),
 	validation: resolve('src/validation.ts'),
 }, {
+	emptyOutputDirectory: {
+		additionalDirectories: ['css', 'dist'],
+	},
 	config: {
+		build: {
+			watch: {
+				include: [
+					resolve(import.meta.dirname, 'src/**'),
+					resolve(import.meta.dirname, 'node_modules/@libresign/pdf-elements/src/**'),
+				],
+			},
+		},
 		server: {
 			port: 3000,
 			host: '0.0.0.0',
