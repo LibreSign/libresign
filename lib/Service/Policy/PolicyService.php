@@ -65,6 +65,22 @@ class PolicyService {
 		return $this->resolver->resolveMany($definitions, $context);
 	}
 
+	/** @return array<string, array<string, mixed>> */
+	public function resolveKnownPolicyStates(array $requestOverrides = [], ?array $activeContext = null): array {
+		return $this->serializeResolvedPolicies($this->resolveKnownPolicies($requestOverrides, $activeContext));
+	}
+
+	/**
+	 * @param array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $ruleCounts
+	 * @return array<string, array<string, mixed>>
+	 */
+	public function resolveKnownPolicyStatesWithRuleCounts(array $ruleCounts, array $requestOverrides = [], ?array $activeContext = null): array {
+		return $this->serializeResolvedPolicies(
+			$this->resolveKnownPolicies($requestOverrides, $activeContext),
+			$ruleCounts,
+		);
+	}
+
 	public function getSystemPolicy(string|\BackedEnum $policyKey): ?PolicyLayer {
 		$definition = $this->registry->get($policyKey);
 		return $this->source->loadSystemPolicy($definition->key());
@@ -92,6 +108,14 @@ class PolicyService {
 
 		$definition->validateValue($normalizedValue, $context);
 		$this->source->saveSystemPolicy($definition->key(), $normalizedValue, $allowChildOverride);
+
+		return $this->resolver->resolve($definition, $context);
+	}
+
+	public function clearSystem(string|\BackedEnum $policyKey): ResolvedPolicy {
+		$context = $this->contextFactory->forCurrentUser();
+		$definition = $this->registry->get($policyKey);
+		$this->source->clearSystemPolicy($definition->key());
 
 		return $this->resolver->resolve($definition, $context);
 	}
@@ -229,14 +253,35 @@ class PolicyService {
 	/**
 	 * @param list<string> $groupIds
 	 * @param list<string> $userIds
-	 * @return array<string, array{groupCount: int, userCount: int}>
+	 * @return array<string, array{groupCount: int, userCount: int, everyoneCount: int}>
 	 */
 	public function getRuleCounts(array $groupIds, array $userIds): array {
 		return $this->source->loadRuleCounts($groupIds, $userIds);
 	}
 
-	/** @return array<string, array{groupCount: int, userCount: int}> */
+	/** @return array<string, array{groupCount: int, userCount: int, everyoneCount: int}> */
 	public function getAllRuleCounts(): array {
 		return $this->source->loadAllRuleCounts();
+	}
+
+	/**
+	 * @param array<string, ResolvedPolicy> $resolvedPolicies
+	 * @param null|array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $ruleCounts
+	 * @return array<string, array<string, mixed>>
+	 */
+	private function serializeResolvedPolicies(array $resolvedPolicies, ?array $ruleCounts = null): array {
+		$states = [];
+		foreach ($resolvedPolicies as $policyKey => $resolvedPolicy) {
+			$policyState = $resolvedPolicy->toArray();
+			if ($ruleCounts !== null) {
+				$policyState['groupCount'] = $ruleCounts[$policyKey]['groupCount'] ?? 0;
+				$policyState['userCount'] = $ruleCounts[$policyKey]['userCount'] ?? 0;
+				$policyState['everyoneCount'] = $ruleCounts[$policyKey]['everyoneCount'] ?? 0;
+			}
+
+			$states[$policyKey] = $policyState;
+		}
+
+		return $states;
 	}
 }
