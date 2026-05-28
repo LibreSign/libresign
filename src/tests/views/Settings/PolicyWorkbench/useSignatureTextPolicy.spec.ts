@@ -1,10 +1,40 @@
-/* eslint-disable import/first */
 /*
  * SPDX-FileCopyrightText: 2026 LibreSign contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import {
+	getSignatureTextUiDefaults,
+	useSignatureTextPolicy,
+} from '../../../../views/Settings/PolicyWorkbench/settings/signature-text/useSignatureTextPolicy'
+
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+
+vi.mock('@nextcloud/initial-state', () => ({
+	loadState: vi.fn((_app: string, key: string, defaultValue: unknown) => {
+		if (key === 'effective_policies') {
+			return {
+				policies: {
+					signature_stamp: {
+						effectiveValue: JSON.stringify({
+							template: 'Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}',
+							template_font_size: 9.8,
+							signature_font_size: 20,
+							signature_width: 350,
+							signature_height: 100,
+							background_type: 'default',
+							render_mode: 'default',
+						}),
+					},
+				},
+			}
+		}
+
+		return defaultValue
+	}),
+}))
 
 const { policiesState } = vi.hoisted(() => ({
 	policiesState: {
@@ -16,10 +46,7 @@ vi.mock('../../../../store/policies', () => ({
 	usePoliciesStore: () => policiesState,
 }))
 
-import {
-	getSignatureTextUiDefaults,
-	useSignatureTextPolicy,
-} from '../../../../views/Settings/PolicyWorkbench/settings/signature-text/useSignatureTextPolicy'
+const defaultTemplate = 'Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}'
 
 describe('useSignatureTextPolicy', () => {
 	beforeEach(() => {
@@ -28,7 +55,7 @@ describe('useSignatureTextPolicy', () => {
 
 	it('reads canonical UI defaults without leaking effective render mode', () => {
 		expect(getSignatureTextUiDefaults()).toEqual({
-			template: '',
+			template: defaultTemplate,
 			templateFontSize: 9.8,
 			signatureFontSize: 20,
 			signatureWidth: 350,
@@ -70,7 +97,7 @@ describe('useSignatureTextPolicy', () => {
 		const { values } = useSignatureTextPolicy()
 
 		expect(values.value).toEqual({
-			template: '',
+			template: defaultTemplate,
 			templateFontSize: 9.8,
 			signatureFontSize: 20,
 			signatureWidth: 350,
