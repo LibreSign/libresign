@@ -47,7 +47,44 @@ async function openIdentificationFactorsDialog(page: Page): Promise<Locator> {
 
 	const dialog = page.getByRole('dialog').filter({ hasText: /Identification factors/i }).first()
 	await expect(dialog).toBeVisible({ timeout: 10000 })
+	await waitForPolicyWorkbenchIdle(page)
 	return dialog
+}
+
+async function findVisibleEnabledButton(container: Locator, name: RegExp): Promise<Locator | null> {
+	const buttons = container.getByRole('button', { name })
+	const count = await buttons.count()
+
+	for (let index = 0; index < count; index += 1) {
+		const button = buttons.nth(index)
+		const isVisible = await button.isVisible().catch(() => false)
+		if (!isVisible) {
+			continue
+		}
+
+		const isEnabled = await button.isEnabled().catch(() => false)
+		if (isEnabled) {
+			return button
+		}
+	}
+
+	return null
+}
+
+async function waitForVisibleEnabledButton(container: Locator, name: RegExp, timeout = 10000): Promise<Locator | null> {
+	const deadline = Date.now() + timeout
+
+	while (Date.now() < deadline) {
+		const button = await findVisibleEnabledButton(container, name)
+		if (button) {
+			return button
+		}
+
+		await waitForPolicyWorkbenchIdle(container.page())
+		await container.page().waitForTimeout(200)
+	}
+
+	return null
 }
 
 /**
@@ -65,24 +102,26 @@ async function openScopeRuleEditor(page: Page, _dialog: Locator, scope: 'everyon
 		if (await changeButton.isVisible({ timeout: 3000 }).catch(() => false)) {
 			await changeButton.click()
 		} else {
-			await activeDialog.getByRole('button', { name: /Create rule|Create policy rule/i }).first().click()
+			const createRuleButton = await waitForVisibleEnabledButton(activeDialog, /Create rule|Create policy rule/i)
+			expect(createRuleButton).not.toBeNull()
+			await createRuleButton?.click()
 			const everyoneOption = page.locator('[role="option"]').filter({ hasText: /Everyone/i }).first()
 			if (await everyoneOption.isVisible({ timeout: 3000 }).catch(() => false)) {
 				await everyoneOption.click()
 			}
 		}
 	} else {
-		const createRuleButton = activeDialog.getByRole('button', { name: /Create rule|Create policy rule/i }).first()
-		const canOpenCreateScope = await createRuleButton.isVisible({ timeout: 2000 }).catch(() => false)
-			&& await createRuleButton.isEnabled().catch(() => false)
+		const createRuleButton = await waitForVisibleEnabledButton(activeDialog, /Create rule|Create policy rule/i, 8000)
+		const canOpenCreateScope = createRuleButton !== null
 
 		if (canOpenCreateScope) {
-			await createRuleButton.click()
+			await createRuleButton?.click()
 			const targetOption = page.locator('[role="option"]').filter({ hasText: scope === 'group' ? /Group/i : /Account/i }).first()
 			await expect(targetOption).toBeVisible({ timeout: 5000 })
 			await targetOption.click()
 		} else {
 			const scopeRow = activeDialog.locator('tbody tr').filter({ hasText: scope === 'group' ? /Group/i : /Account/i }).first()
+			await waitForPolicyWorkbenchIdle(page)
 			await expect(scopeRow).toBeVisible({ timeout: 10000 })
 			await scopeRow.getByRole('button', { name: /^Change$/i }).first().click()
 		}
