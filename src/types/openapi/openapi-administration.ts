@@ -430,12 +430,16 @@ export type components = {
             success: boolean;
             message: string;
         };
+        EffectivePolicyMeta: {
+            defaultSystemValue?: components["schemas"]["EffectivePolicyValue"];
+        };
         EffectivePolicyResponse: {
             policy: components["schemas"]["EffectivePolicyState"];
         };
         EffectivePolicyState: {
             policyKey: string;
             effectiveValue: components["schemas"]["EffectivePolicyValue"];
+            meta?: components["schemas"]["EffectivePolicyMeta"];
             sourceScope: string;
             visible: boolean;
             editableByCurrentActor: boolean;
