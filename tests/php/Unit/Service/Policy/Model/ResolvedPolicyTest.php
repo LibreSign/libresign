@@ -26,6 +26,7 @@ final class ResolvedPolicyTest extends TestCase {
 		$this->assertFalse($policy->canUseAsRequestOverride());
 		$this->assertFalse($policy->wasPreferenceCleared());
 		$this->assertNull($policy->getBlockedBy());
+		$this->assertSame([], $policy->getMeta());
 	}
 
 	public function testSettersStoreValues(): void {
@@ -40,7 +41,8 @@ final class ResolvedPolicyTest extends TestCase {
 			->setCanSaveAsUserDefault(true)
 			->setCanUseAsRequestOverride(true)
 			->setPreferenceWasCleared(true)
-			->setBlockedBy('system');
+			->setBlockedBy('system')
+			->setMeta(['defaultSystemValue' => 'canonical']);
 
 		$this->assertSame('signature_flow', $policy->getPolicyKey());
 		$this->assertSame(['type' => 'parallel'], $policy->getEffectiveValue());
@@ -52,6 +54,7 @@ final class ResolvedPolicyTest extends TestCase {
 		$this->assertTrue($policy->canUseAsRequestOverride());
 		$this->assertTrue($policy->wasPreferenceCleared());
 		$this->assertSame('system', $policy->getBlockedBy());
+		$this->assertSame(['defaultSystemValue' => 'canonical'], $policy->getMeta());
 	}
 
 	public function testToArrayExportsFrontendPayload(): void {
@@ -80,6 +83,18 @@ final class ResolvedPolicyTest extends TestCase {
 			'preferenceWasCleared' => true,
 			'blockedBy' => 'group',
 		], $policy->toArray());
+	}
+
+	public function testToArrayIncludesMetaWhenPresent(): void {
+		$policy = (new ResolvedPolicy())
+			->setPolicyKey('signature_stamp')
+			->setEffectiveValue('parallel')
+			->setSourceScope('system')
+			->setVisible(true)
+			->setEditableByCurrentActor(true)
+			->setMeta(['defaultSystemValue' => 'canonical']);
+
+		$this->assertSame(['defaultSystemValue' => 'canonical'], $policy->toArray()['meta']);
 	}
 
 	#[DataProvider('providerGetEffectiveValueAsBool')]
