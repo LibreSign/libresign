@@ -139,6 +139,7 @@ class PolicyService {
 		$definition = $this->registry->get($policyKey);
 		$context = $this->contextFactory->forCurrentUser();
 		$this->assertCurrentActorCanManageGroupPolicy($definition->key(), $context);
+		$this->assertCurrentActorCanEditGroupPolicy($definition->key(), $groupId);
 		$normalizedValue = $definition->normalizeValue($value);
 		$definition->validateValue($normalizedValue, $context);
 		$createdBySystemAdmin = ($context->getActorCapabilities()['canManageSystemPolicies'] ?? false) === true;
@@ -186,12 +187,60 @@ class PolicyService {
 		return ($notes['createdByActorScope'] ?? 'system') === 'group';
 	}
 
+	public function canViewGroupPolicy(string|\BackedEnum $policyKey, string $groupId, ?PolicyLayer $policy = null): bool {
+		if ($this->contextFactory->isCurrentActorSystemAdmin()) {
+			return true;
+		}
+
+		$definition = $this->registry->get($policyKey);
+		$groupPolicy = $policy ?? $this->source->loadGroupPolicyConfig($definition->key(), $groupId);
+		if (!$groupPolicy instanceof PolicyLayer) {
+			return true;
+		}
+
+		if ($definition->key() !== RequestSignGroupsPolicy::KEY) {
+			return true;
+		}
+
+		return !$this->wasGroupPolicyCreatedBySystemAdmin($groupPolicy);
+	}
+
 	private function assertCurrentActorCanDeleteGroupPolicy(string $policyKey, string $groupId): void {
 		if ($this->canDeleteGroupPolicy($policyKey, $groupId)) {
 			return;
 		}
 
 		throw new \DomainException($this->l10n->t('Only system administrators can delete group rules created by a system administrator'));
+	}
+
+	private function assertCurrentActorCanEditGroupPolicy(string $policyKey, string $groupId): void {
+		if ($this->contextFactory->isCurrentActorSystemAdmin()) {
+			return;
+		}
+
+		if ($policyKey !== RequestSignGroupsPolicy::KEY) {
+			return;
+		}
+
+		$existingPolicy = $this->source->loadGroupPolicyConfig($policyKey, $groupId);
+		if (!$existingPolicy instanceof PolicyLayer) {
+			return;
+		}
+
+		if (!$this->wasGroupPolicyCreatedBySystemAdmin($existingPolicy)) {
+			return;
+		}
+
+		throw new \DomainException($this->l10n->t('Only system administrators can edit group access rules created by a system administrator'));
+	}
+
+	private function wasGroupPolicyCreatedBySystemAdmin(PolicyLayer $policy): bool {
+		$notes = $policy->getNotes();
+		if (($notes['createdBySystemAdmin'] ?? null) !== null) {
+			return $notes['createdBySystemAdmin'] === true;
+		}
+
+		return ($notes['createdByActorScope'] ?? null) === 'system';
 	}
 
 	private function assertCurrentActorCanManageGroupPolicy(string $policyKey, ?PolicyContext $context = null): void {
