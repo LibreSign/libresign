@@ -78,6 +78,7 @@ import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import { usePoliciesStore } from '../../store/policies'
 import type { EffectivePolicyValue, SignatureFlowMode } from '../../types/index'
 import { realDefinitions } from '../Settings/PolicyWorkbench/settings/realDefinitions'
+import { canRenderPersonalPreferencePolicy } from './personalPreferenceVisibility'
 
 defineOptions({
 	name: 'Preferences',
@@ -114,20 +115,11 @@ const preferenceEntries = computed(() => {
 })
 
 function shouldRenderPreferencePolicy(policyKey: string): boolean {
-	if (!canRequestSign) {
-		return false
-	}
-
-	if (!realDefinitions[policyKey as keyof typeof realDefinitions]) {
-		return false
-	}
-
-	const policy = policiesStore.getPolicy(policyKey)
-	if (!policy) {
-		return false
-	}
-
-	return policy.canSaveAsUserDefault || policy.sourceScope === 'user'
+	return canRenderPersonalPreferencePolicy(
+		policyKey,
+		policiesStore.getPolicy(policyKey),
+		canRequestSign,
+	)
 }
 
 function canSavePreferenceFor(policyKey: string): boolean {
