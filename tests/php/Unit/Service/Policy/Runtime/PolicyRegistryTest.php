@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Runtime;
 
+use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
@@ -54,11 +55,16 @@ final class PolicyRegistryTest extends TestCase {
 		$container->method('get')->with(FooterPolicy::class)->willReturn(new FooterPolicy());
 		$registry = new PolicyRegistry($container);
 		$definition = $registry->get(FooterPolicy::KEY);
+		$defaultTemplate = (string)file_get_contents(FooterHandler::DEFAULT_TEMPLATE_PATH);
 
 		$this->assertSame(FooterPolicy::KEY, $definition->key());
 		$this->assertSame(
 			FooterPolicyValue::encode(FooterPolicyValue::defaults()),
 			$definition->defaultSystemValue(),
+		);
+		$this->assertSame(
+			['defaultSystemValue' => FooterPolicyValue::encode(FooterPolicyValue::defaults($defaultTemplate), $defaultTemplate)],
+			$definition->resolvedStateMeta(new PolicyContext()),
 		);
 		$this->assertSame([], $definition->allowedValues(new PolicyContext()));
 		$this->assertSame(
