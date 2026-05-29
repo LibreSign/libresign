@@ -623,26 +623,8 @@ final class PolicyController extends AEnvironmentAwareController {
 			return $ruleCounts;
 		}
 
-		$visibleGroupCount = 0;
-		foreach ($this->policyService->listGroupPolicies(RequestSignGroupsPolicy::KEY) as $record) {
-			$groupId = (string)($record['targetId'] ?? '');
-			$policy = $record['policy'] ?? null;
-			if ($groupId === '' || !$policy instanceof PolicyLayer) {
-				continue;
-			}
-
-			if (!in_array($groupId, $groupIds, true)) {
-				continue;
-			}
-
-			if (!$this->policyService->canViewGroupPolicy(RequestSignGroupsPolicy::KEY, $groupId, $policy)) {
-				continue;
-			}
-
-			$visibleGroupCount++;
-		}
-
-		$ruleCounts[RequestSignGroupsPolicy::KEY]['groupCount'] = $visibleGroupCount;
+		$ruleCounts[RequestSignGroupsPolicy::KEY]['groupCount'] = $this->policyService
+			->countVisibleGroupPoliciesForTargets(RequestSignGroupsPolicy::KEY, $groupIds);
 
 		return $ruleCounts;
 	}
