@@ -55,7 +55,7 @@ final class FooterPolicyValue {
 
 			$decoded = json_decode($trimmedValue, true);
 			if (is_array($decoded)) {
-				return self::normalize($decoded);
+				return self::normalize($decoded, $defaultTemplate);
 			}
 
 			$defaults['enabled'] = self::toBool($trimmedValue);
@@ -65,8 +65,8 @@ final class FooterPolicyValue {
 		return $defaults;
 	}
 
-	public static function encode(array $value): string {
-		return (string)json_encode(self::normalize($value), JSON_UNESCAPED_SLASHES);
+	public static function encode(array $value, string $defaultTemplate = ''): string {
+		return (string)json_encode(self::normalize($value, $defaultTemplate), JSON_UNESCAPED_SLASHES);
 	}
 
 	public static function isEnabled(mixed $rawValue): bool {
