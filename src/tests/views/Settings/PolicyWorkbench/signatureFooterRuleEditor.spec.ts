@@ -183,20 +183,20 @@ describe('SignatureFooterRuleEditor.vue', () => {
 		})
 	})
 
-	it('keeps customize flag enabled and clears template when reset button is clicked', async () => {
+	it('clears the template override when reset button is clicked', async () => {
 		const wrapper = createWrapper(asModelValue({
 			enabled: true,
 			writeQrcodeOnFooter: true,
 			validationSite: '',
 			customizeFooterTemplate: true,
 			footerTemplate: 'Custom footer',
-		}))
+		}), 'Inherited footer')
 
 		await wrapper.find('.button-stub').trigger('click')
 
 		const emissions = wrapper.emitted('update:modelValue') ?? []
 		expect(parseEmittedValue(emissions.at(-1)?.[0])).toMatchObject({
-			customizeFooterTemplate: true,
+			customizeFooterTemplate: false,
 			footerTemplate: '',
 		})
 	})
@@ -480,7 +480,7 @@ describe('SignatureFooterRuleEditor.vue', () => {
 		expect(wrapper.find('.button-stub').exists()).toBe(false)
 	})
 
-	it('restores inherited template in editor after reset through parent v-model', async () => {
+	it('clears customize mode after reset through parent v-model', async () => {
 		const Harness = defineComponent({
 			components: { SignatureFooterRuleEditor },
 			data: () => ({
@@ -532,13 +532,12 @@ describe('SignatureFooterRuleEditor.vue', () => {
 		await wrapper.find('.button-stub').trigger('click')
 		await nextTick()
 
-		const editor = wrapper.find('.code-editor-stub')
-		expect((editor.element as HTMLTextAreaElement).value).toBe('Inherited footer template')
+		expect(wrapper.find('.code-editor-stub').exists()).toBe(false)
 
 		const model = parseEmittedValue((wrapper.vm as { value: EffectivePolicyValue }).value)
 		expect(model).toMatchObject({
-			customizeFooterTemplate: true,
-			footerTemplate: 'Inherited footer template',
+			customizeFooterTemplate: false,
+			footerTemplate: '',
 		})
 	})
 
