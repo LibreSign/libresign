@@ -33,6 +33,8 @@ use OCP\IURLGenerator;
 use OCP\L10N\IFactory;
 
 class FooterHandler {
+	public const DEFAULT_TEMPLATE_PATH = __DIR__ . '/Templates/footer.twig';
+
 	private QrCode $qrCode;
 	/** @var array<string, mixed> */
 	private array $requestPolicyOverrides = [];
@@ -223,7 +225,7 @@ class FooterHandler {
 	}
 
 	public function getDefaultTemplate(): string {
-		return (string)file_get_contents(__DIR__ . '/Templates/footer.twig');
+		return (string)file_get_contents(self::DEFAULT_TEMPLATE_PATH);
 	}
 
 	private function getQrCodeImageBase64(string $text): string {
