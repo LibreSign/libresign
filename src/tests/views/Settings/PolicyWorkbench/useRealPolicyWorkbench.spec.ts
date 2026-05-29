@@ -1465,6 +1465,54 @@ describe('useRealPolicyWorkbench', () => {
 		expect(saveGroupPolicy).toHaveBeenCalledWith('finance', 'groups_request_sign', '["finance"]', false)
 	})
 
+	it('hides system-created request-access group rules from group-admin CRUD state', async () => {
+		currentUserState.isAdmin = false
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'groups_request_sign') {
+				return {
+					effectiveValue: '["board"]',
+					groupCount: 1,
+					userCount: 0,
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+				}
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system', editableByCurrentActor: true }
+		})
+		fetchGroupPolicy.mockImplementation(async (groupId: string, policyKey: string) => {
+			if (policyKey !== 'groups_request_sign' || groupId !== 'finance') {
+				return null
+			}
+
+			return {
+				policyKey,
+				scope: 'group',
+				targetId: groupId,
+				value: '["finance"]',
+				allowChildOverride: true,
+				visibleToChild: true,
+				allowedValues: [],
+				deletableByCurrentActor: false,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+
+		await vi.waitFor(() => {
+			expect(fetchGroupPolicy).toHaveBeenCalledWith('finance', 'groups_request_sign')
+		})
+
+		expect(state.visibleGroupRules).toHaveLength(0)
+	})
+
 	it('blocks user-scope editing for request-sign-groups setting', () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'groups_request_sign') {
