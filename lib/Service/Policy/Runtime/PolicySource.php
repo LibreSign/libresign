@@ -429,6 +429,7 @@ class PolicySource implements IPolicySource {
 	 * @param list<string> $groupIds
 	 * @return list<array{targetId: string, policy: PolicyLayer}>
 	 */
+	#[\Override]
 	public function listGroupPoliciesByKeyForTargets(string $policyKey, array $groupIds): array {
 		$groupIds = array_values(array_unique(array_filter(
 			$groupIds,
