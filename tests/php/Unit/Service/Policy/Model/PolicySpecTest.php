@@ -25,6 +25,28 @@ final class PolicySpecTest extends TestCase {
 		$this->assertSame(['default' => 'none'], $spec->defaultSystemValue());
 	}
 
+	public function testResolvedStateMetaDefaultsToEmptyAndMayDependOnContext(): void {
+		$defaultSpec = new PolicySpec(
+			key: 'signature_flow',
+			defaultSystemValue: 'none',
+			allowedValues: [],
+		);
+		$contextAwareSpec = new PolicySpec(
+			key: 'signature_flow',
+			defaultSystemValue: 'none',
+			allowedValues: [],
+			resolvedStateMeta: static fn (PolicyContext $context): array => [
+				'defaultSystemValue' => 'canonical-' . $context->getUserId(),
+			],
+		);
+
+		$this->assertSame([], $defaultSpec->resolvedStateMeta(new PolicyContext()));
+		$this->assertSame(
+			['defaultSystemValue' => 'canonical-john'],
+			$contextAwareSpec->resolvedStateMeta(PolicyContext::fromUserId('john')),
+		);
+	}
+
 	public function testDefaultStorageKeysFallbackToPolicyKey(): void {
 		$spec = new PolicySpec(
 			key: 'signature_flow',
