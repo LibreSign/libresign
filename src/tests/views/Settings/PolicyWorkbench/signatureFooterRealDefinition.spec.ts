@@ -5,13 +5,12 @@
 
 import { describe, expect, it, vi } from 'vitest'
 
+import { signatureFooterRealDefinition } from '../../../../views/Settings/PolicyWorkbench/settings/signature-footer/realDefinition'
+
 vi.mock('@nextcloud/l10n', () => ({
 	t: (_app: string, text: string) => text,
 	getLanguage: () => 'en',
 }))
-
-// eslint-disable-next-line import/first
-import { signatureFooterRealDefinition } from '../../../../views/Settings/PolicyWorkbench/settings/signature-footer/realDefinition'
 
 const SYSTEM_DEFAULT_TEMPLATE = 'SYSTEM_DEFAULT_TEMPLATE'
 const SYSTEM_DEFAULT_POLICY = '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":false,"footerTemplate":"SYSTEM_DEFAULT_TEMPLATE","previewWidth":595,"previewHeight":100,"previewZoom":100}'
