@@ -11,7 +11,6 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 use OCA\Libresign\Controller\PageController;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
-use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\FileListService;
@@ -41,7 +40,6 @@ final class PageControllerTest extends TestCase {
 	private FileService&MockObject $fileService;
 	private SignFileService&MockObject $signFileService;
 	private SignerElementsService&MockObject $signerElementsService;
-	private FooterHandler&MockObject $footerHandler;
 	private IInitialState&MockObject $initialState;
 	private PolicyService&MockObject $policyService;
 	private PageController $controller;
@@ -91,9 +89,6 @@ final class PageControllerTest extends TestCase {
 		$this->signerElementsService->method('getElementsFromSessionAsArray')->willReturn([]);
 		$this->signerElementsService->method('getUserElements')->willReturn([]);
 
-		$this->footerHandler = $this->createMock(FooterHandler::class);
-		$this->footerHandler->method('getTemplate')->willReturn('Inherited footer template');
-
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->policyService->method('resolveKnownPolicyStates')->willReturn([]);
@@ -107,7 +102,6 @@ final class PageControllerTest extends TestCase {
 			signFileService: $this->signFileService,
 			requestSignatureService: \OCP\Server::get(RequestSignatureService::class),
 			policyService: $this->policyService,
-			footerHandler: $this->footerHandler,
 			signerElementsService: $this->signerElementsService,
 			l10n: $this->createMock(IL10N::class),
 			identifyMethodService: $this->createConfiguredMock(IdentifyMethodService::class, [
@@ -126,9 +120,6 @@ final class PageControllerTest extends TestCase {
 	}
 
 	public function testIndexAllowsSelfWorkerSrcDomain(): void {
-		$this->footerHandler->expects($this->once())
-			->method('getTemplate');
-
 		$response = $this->controller->index();
 
 		self::assertStringContainsString("worker-src 'self'", $response->getContentSecurityPolicy()->buildPolicy());
