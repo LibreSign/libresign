@@ -780,8 +780,8 @@ final class PolicyControllerTest extends TestCase {
 
 		$this->policyService
 			->expects($this->once())
-			->method('listGroupPolicies')
-			->with(RequestSignGroupsPolicy::KEY)
+			->method('listGroupPoliciesForTargets')
+			->with(RequestSignGroupsPolicy::KEY, ['company', 'board'])
 			->willReturn([
 				['targetId' => 'company', 'policy' => $hiddenPolicy],
 				['targetId' => 'board', 'policy' => $visiblePolicy],
