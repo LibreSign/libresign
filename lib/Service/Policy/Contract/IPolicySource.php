@@ -57,6 +57,12 @@ interface IPolicySource {
 	 */
 	public function listGroupPoliciesByKey(string $policyKey): array;
 
+	/**
+	 * @param list<string> $groupIds
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	public function listGroupPoliciesByKeyForTargets(string $policyKey, array $groupIds): array;
+
 	public function saveSystemPolicy(string $policyKey, mixed $value, bool $allowChildOverride = false): void;
 
 	public function clearSystemPolicy(string $policyKey): void;
