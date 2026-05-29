@@ -141,12 +141,20 @@ final class PolicyContextFactory {
 			$actorGroupIds,
 			static fn (mixed $groupId): bool => is_string($groupId) && trim($groupId) !== '',
 		));
-		$hasGroupMembership = $manageableGroupIds !== [];
+		if ($manageableGroupIds === []) {
+			return [
+				'canManageSystemPolicies' => false,
+				'canManageGroupPolicies' => false,
+				'manageableGroupCount' => 0,
+			];
+		}
+
+		$canManageGroupPolicies = $this->subAdmin->isSubAdmin($currentActor);
 
 		return [
 			'canManageSystemPolicies' => $canManageSystemPolicies,
-			'canManageGroupPolicies' => $canManageSystemPolicies || $hasGroupMembership,
-			'manageableGroupCount' => count($manageableGroupIds),
+			'canManageGroupPolicies' => $canManageGroupPolicies,
+			'manageableGroupCount' => $canManageGroupPolicies ? count($manageableGroupIds) : 0,
 		];
 	}
 
