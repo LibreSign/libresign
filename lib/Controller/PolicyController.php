@@ -129,6 +129,9 @@ final class PolicyController extends AEnvironmentAwareController {
 		}
 
 		$policy = $this->policyService->getGroupPolicy($policyKey, $groupId);
+		if ($policy instanceof PolicyLayer && !$this->policyService->canViewGroupPolicy($policyKey, $groupId, $policy)) {
+			return $this->forbiddenGroupPolicyResponse();
+		}
 
 		/** @var LibresignGroupPolicyResponse $data */
 		$data = [
@@ -160,6 +163,10 @@ final class PolicyController extends AEnvironmentAwareController {
 			}
 
 			if (!$this->canManageGroupPolicy($groupId)) {
+				continue;
+			}
+
+			if (!$this->policyService->canViewGroupPolicy($policyKey, $groupId, $policy)) {
 				continue;
 			}
 
