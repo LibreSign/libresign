@@ -57,16 +57,20 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 	#[\Override]
 	public function get(string|\BackedEnum $policyKey): IPolicyDefinition {
 		$normalizedKey = $this->normalizePolicyKey($policyKey);
+		$defaultConsolidatedValue = $this->encodeConsolidatedValue($this->defaultConsolidatedValue());
 
 		return match ($normalizedKey) {
 			self::KEY => new PolicySpec(
 				key: self::KEY,
-				defaultSystemValue: $this->encodeConsolidatedValue($this->defaultConsolidatedValue()),
+				defaultSystemValue: $defaultConsolidatedValue,
 				allowedValues: [],
 				normalizer: fn (mixed $rawValue): string => $this->encodeConsolidatedValue(
 					$this->normalizeConsolidatedValue($rawValue),
 				),
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
+				resolvedStateMeta: [
+					'defaultSystemValue' => $defaultConsolidatedValue,
+				],
 			),
 			self::KEY_TEMPLATE => new PolicySpec(
 				key: self::KEY_TEMPLATE,
