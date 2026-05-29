@@ -3,10 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { components as ApiComponents } from './openapi/openapi'
-import type { operations as ApiOperations } from './openapi/openapi'
-import type { components as AdminComponents } from './openapi/openapi-administration'
-import type { operations as AdminOperations } from './openapi/openapi-administration'
+import type { components as ApiComponents, operations as ApiOperations } from './openapi/openapi'
+import type { components as AdminComponents, operations as AdminOperations } from './openapi/openapi-administration'
 
 type ApiJsonBody<TRequestBody> = TRequestBody extends {
 	content: {
@@ -53,8 +51,10 @@ export type SignatureFlowMode = ApiComponents['schemas']['DetailedFileResponse']
 export type SignatureFlowValue = SignatureFlowMode
 export type EffectivePoliciesResponse = ApiOcsResponseData<ApiOperations['policy-effective'], 200>
 export type EffectivePoliciesState = EffectivePoliciesResponse['policies']
-export type EffectivePolicyState = ApiRecordValue<EffectivePoliciesState>
-type OpenApiEffectivePolicyValue = Exclude<EffectivePolicyState['effectiveValue'], undefined>
+type OpenApiEffectivePolicyState = ApiRecordValue<EffectivePoliciesState>
+export type EffectivePolicyMeta = Exclude<OpenApiEffectivePolicyState['meta'], undefined>
+export type EffectivePolicyState = OpenApiEffectivePolicyState
+type OpenApiEffectivePolicyValue = Exclude<OpenApiEffectivePolicyState['effectiveValue'], undefined>
 type OpenApiEffectivePolicyObjectValue = Extract<NonNullable<OpenApiEffectivePolicyValue>, { [key: string]: Record<string, never> }>
 type OpenApiEffectivePolicyPrimitiveValue = Exclude<NonNullable<OpenApiEffectivePolicyValue>, OpenApiEffectivePolicyObjectValue>
 export type EffectivePolicyObjectValue = object
