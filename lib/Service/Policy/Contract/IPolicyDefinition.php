@@ -28,6 +28,9 @@ interface IPolicyDefinition {
 
 	public function defaultSystemValue(): mixed;
 
+	/** @return array<string, mixed> */
+	public function resolvedStateMeta(PolicyContext $context): array;
+
 	/**
 	 * Whether this policy supports being saved as a user personal preference.
 	 * Returns false for administrative-only policies (e.g. groups_request_sign)
