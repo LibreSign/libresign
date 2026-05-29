@@ -413,6 +413,10 @@ export function createRealPolicyWorkbenchState() {
 			}
 		}
 
+		if (explicitSystemRule.value !== null) {
+			return explicitSystemRule.value
+		}
+
 		const explicitValue = isRequestExpirationPolicyKey(activeDefinition.value.key)
 			? buildRequestExpirationValue(
 				policy.effectiveValue,
@@ -425,15 +429,13 @@ export function createRealPolicyWorkbenchState() {
 				)
 				: policy.effectiveValue
 
-		explicitSystemRule.value = {
+		return {
 			id: 'system-default',
 			scope: 'system',
 			targetId: null,
 			allowChildOverride: inferSystemAllowOverride(policy),
 			value: explicitValue,
 		}
-
-		return explicitSystemRule.value
 	})
 
 	const policyResolutionMode = computed<PolicyResolutionMode>(() => {
@@ -740,6 +742,11 @@ export function createRealPolicyWorkbenchState() {
 		if (!isHydrationStale(requestId, policyKey)) {
 			rulesLoading.value = false
 		}
+	}
+
+	function cancelPendingHydration() {
+		hydratePersistedRulesRequestId.value += 1
+		rulesLoading.value = false
 	}
 
 	function applyRequestExpirationHydration(
@@ -1445,7 +1452,7 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		// Cancel any in-flight hydration result to avoid stale overwrite while editing.
-		hydratePersistedRulesRequestId.value += 1
+		cancelPendingHydration()
 
 		const isEdit = !!ruleId
 		editorMode.value = isEdit ? 'edit' : 'create'
@@ -1796,6 +1803,11 @@ export function createRealPolicyWorkbenchState() {
 			return
 		}
 
+		// Deletion can start directly from the CRUD table before persisted-rule hydration
+		// finishes. Cancel the in-flight hydration so stale GET responses do not
+		// recreate the just-deleted system rule in the table.
+		cancelPendingHydration()
+
 		const policyKey = activeDefinition.value.key
 		const isRequestExpiration = isRequestExpirationPolicyKey(policyKey)
 		const isUnifiedSigningExecution = isUnifiedSigningExecutionPolicyKey(policyKey)
@@ -1807,32 +1819,25 @@ export function createRealPolicyWorkbenchState() {
 		let shouldRefreshPolicies = false
 		let shouldCloseEditor = false
 
-		const getSystemClearValue = (policyKey: string): EffectivePolicyValue => {
-			const definition = realDefinitions[policyKey as keyof typeof realDefinitions]
-			const policy = policiesStore.getPolicy(policyKey)
-
-			return definition?.getFallbackSystemDefault(policy?.effectiveValue, policy?.sourceScope, policy) ?? policy?.effectiveValue ?? null
-		}
-
 		for (const ruleId of uniqueRuleIds) {
 			if (ruleId === 'system-default' || (inheritedSystemRuleId !== null && ruleId === inheritedSystemRuleId)) {
 				if (isRequestExpiration) {
 					await Promise.all([
-						policiesStore.clearSystemPolicy(policyKey, getSystemClearValue(policyKey)),
-						policiesStore.clearSystemPolicy(REQUEST_EXPIRATION_RENEWAL_KEY, getSystemClearValue(REQUEST_EXPIRATION_RENEWAL_KEY)),
+						policiesStore.saveSystemPolicy(policyKey, null, false),
+						policiesStore.saveSystemPolicy(REQUEST_EXPIRATION_RENEWAL_KEY, null, false),
 					])
 				} else if (isUnifiedSigningExecution) {
 					await Promise.all([
-						policiesStore.clearSystemPolicy(policyKey, getSystemClearValue(policyKey)),
-						policiesStore.clearSystemPolicy(SIGNING_EXECUTION_WORKER_KEY, getSystemClearValue(SIGNING_EXECUTION_WORKER_KEY)),
+						policiesStore.saveSystemPolicy(policyKey, null, false),
+						policiesStore.saveSystemPolicy(SIGNING_EXECUTION_WORKER_KEY, null, false),
 					])
 				} else if (isSignatureStamp) {
 					await Promise.all([
-						policiesStore.clearSystemPolicy(policyKey, getSystemClearValue(policyKey)),
-						policiesStore.clearSystemPolicy(COLLECT_METADATA_POLICY_KEY, getSystemClearValue(COLLECT_METADATA_POLICY_KEY)),
+						policiesStore.saveSystemPolicy(policyKey, null, false),
+						policiesStore.saveSystemPolicy(COLLECT_METADATA_POLICY_KEY, null, false),
 					])
 				} else {
-					await policiesStore.clearSystemPolicy(policyKey, getSystemClearValue(policyKey))
+					await policiesStore.saveSystemPolicy(policyKey, null, false)
 				}
 				explicitSystemRule.value = null
 				highlightedRuleId.value = null
