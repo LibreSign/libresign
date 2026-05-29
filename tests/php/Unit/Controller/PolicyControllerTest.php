@@ -215,13 +215,6 @@ final class PolicyControllerTest extends TestCase {
 		$this->subAdmin->method('isSubAdmin')->with($this->currentUser)->willReturn(true);
 		$this->groupManager->method('getUserGroupIds')->with($this->currentUser)->willReturn(['company', 'board']);
 
-		$hiddenPolicy = (new PolicyLayer())
-			->setScope('group')
-			->setValue('["board","company"]')
-			->setAllowChildOverride(true)
-			->setVisibleToChild(true)
-			->setAllowedValues([]);
-
 		$this->policyService
 			->expects($this->once())
 			->method('getRuleCounts')
@@ -233,17 +226,9 @@ final class PolicyControllerTest extends TestCase {
 
 		$this->policyService
 			->expects($this->once())
-			->method('listGroupPolicies')
-			->with(RequestSignGroupsPolicy::KEY)
-			->willReturn([
-				['targetId' => 'company', 'policy' => $hiddenPolicy],
-			]);
-
-		$this->policyService
-			->expects($this->once())
-			->method('canViewGroupPolicy')
-			->with(RequestSignGroupsPolicy::KEY, 'company', $hiddenPolicy)
-			->willReturn(false);
+			->method('countVisibleGroupPoliciesForTargets')
+			->with(RequestSignGroupsPolicy::KEY, ['company', 'board'])
+			->willReturn(0);
 
 		$this->policyService
 			->expects($this->once())
