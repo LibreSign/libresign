@@ -8,8 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy;
 
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\PolicyProviders;
 use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
@@ -135,16 +137,17 @@ class PolicyService {
 
 	public function saveGroupPolicy(string|\BackedEnum $policyKey, string $groupId, mixed $value, bool $allowChildOverride): PolicyLayer {
 		$definition = $this->registry->get($policyKey);
-		$this->assertCurrentActorCanManageGroupPolicy($definition->key());
 		$context = $this->contextFactory->forCurrentUser();
+		$this->assertCurrentActorCanManageGroupPolicy($definition->key(), $context);
 		$normalizedValue = $definition->normalizeValue($value);
 		$definition->validateValue($normalizedValue, $context);
+		$createdBySystemAdmin = ($context->getActorCapabilities()['canManageSystemPolicies'] ?? false) === true;
 		$this->source->saveGroupPolicy(
 			$definition->key(),
 			$groupId,
 			$normalizedValue,
 			$allowChildOverride,
-			$this->contextFactory->isCurrentActorSystemAdmin(),
+			$createdBySystemAdmin,
 		);
 
 		return $this->source->loadGroupPolicyConfig($definition->key(), $groupId)
@@ -191,15 +194,53 @@ class PolicyService {
 		throw new \DomainException($this->l10n->t('Only system administrators can delete group rules created by a system administrator'));
 	}
 
-	private function assertCurrentActorCanManageGroupPolicy(string $policyKey): void {
-		if ($this->contextFactory->isCurrentActorSystemAdmin()) {
+	private function assertCurrentActorCanManageGroupPolicy(string $policyKey, ?PolicyContext $context = null): void {
+		$context ??= $this->contextFactory->forCurrentUser();
+		if (($context->getActorCapabilities()['canManageSystemPolicies'] ?? false) === true) {
 			return;
+		}
+
+		if ($policyKey === RequestSignGroupsPolicy::KEY) {
+			if ($this->currentActorHasDelegatedRequestSignGroupsAccess($context)) {
+				return;
+			}
+
+			throw new \DomainException($this->l10n->t('Group policy management requires explicit delegation from the system administrator'));
 		}
 
 		$systemPolicy = $this->source->loadSystemPolicy($policyKey);
 		if ($systemPolicy === null || $systemPolicy->getScope() !== 'global' || !$systemPolicy->isAllowChildOverride()) {
 			throw new \DomainException($this->l10n->t('Group policy management requires explicit delegation from the system administrator'));
 		}
+	}
+
+	private function currentActorHasDelegatedRequestSignGroupsAccess(PolicyContext $context): bool {
+		$actorCapabilities = $context->getActorCapabilities();
+		if (($actorCapabilities['canManageGroupPolicies'] ?? false) !== true) {
+			return false;
+		}
+
+		if ((int)($actorCapabilities['manageableGroupCount'] ?? 0) <= 1) {
+			return false;
+		}
+
+		foreach ($this->source->loadGroupPolicies(RequestSignGroupsPolicy::KEY, $context) as $layer) {
+			if (!$layer->isVisibleToChild()) {
+				continue;
+			}
+
+			if (!$layer->isAllowChildOverride()) {
+				continue;
+			}
+
+			if ($layer->getValue() === null) {
+				continue;
+			}
+
+			return true;
+		}
+
+		return false;
 	}
 
 	public function saveUserPreference(string|\BackedEnum $policyKey, mixed $value): ResolvedPolicy {
