@@ -1504,6 +1504,8 @@ describe('useRealPolicyWorkbench', () => {
 		})
 
 		const state = createRealPolicyWorkbenchState()
+		expect(state.visibleSettingSummaries.find((summary) => summary.key === 'groups_request_sign')?.groupCount).toBe(1)
+
 		state.openSetting('groups_request_sign')
 
 		await vi.waitFor(() => {
@@ -1511,6 +1513,11 @@ describe('useRealPolicyWorkbench', () => {
 		})
 
 		expect(state.visibleGroupRules).toHaveLength(0)
+		expect(state.visibleSettingSummaries.find((summary) => summary.key === 'groups_request_sign')?.groupCount).toBe(0)
+
+		state.closeSetting()
+
+		expect(state.visibleSettingSummaries.find((summary) => summary.key === 'groups_request_sign')?.groupCount).toBe(0)
 	})
 
 	it('blocks user-scope editing for request-sign-groups setting', () => {
