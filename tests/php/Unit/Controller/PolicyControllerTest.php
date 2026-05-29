@@ -210,6 +210,89 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame(0, $response->getData()['policies']['signature_flow']['everyoneCount']);
 	}
 
+	public function testEffectiveHidesHiddenRequestAccessRuleCountsForSubAdmin(): void {
+		$this->groupManager->method('isAdmin')->with('admin')->willReturn(false);
+		$this->subAdmin->method('isSubAdmin')->with($this->currentUser)->willReturn(true);
+		$this->groupManager->method('getUserGroupIds')->with($this->currentUser)->willReturn(['company', 'board']);
+
+		$hiddenPolicy = (new PolicyLayer())
+			->setScope('group')
+			->setValue('["board","company"]')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true)
+			->setAllowedValues([]);
+
+		$this->policyService
+			->expects($this->once())
+			->method('getRuleCounts')
+			->with(['company', 'board'], [])
+			->willReturn($rawRuleCounts = [
+				RequestSignGroupsPolicy::KEY => ['groupCount' => 1, 'userCount' => 0, 'everyoneCount' => 0],
+				'signature_flow' => ['groupCount' => 2, 'userCount' => 0, 'everyoneCount' => 0],
+			]);
+
+		$this->policyService
+			->expects($this->once())
+			->method('listGroupPolicies')
+			->with(RequestSignGroupsPolicy::KEY)
+			->willReturn([
+				['targetId' => 'company', 'policy' => $hiddenPolicy],
+			]);
+
+		$this->policyService
+			->expects($this->once())
+			->method('canViewGroupPolicy')
+			->with(RequestSignGroupsPolicy::KEY, 'company', $hiddenPolicy)
+			->willReturn(false);
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolveKnownPolicyStatesWithRuleCounts')
+			->with([
+				RequestSignGroupsPolicy::KEY => ['groupCount' => 0, 'userCount' => 0, 'everyoneCount' => 0],
+				'signature_flow' => $rawRuleCounts['signature_flow'],
+			])
+			->willReturn([
+				RequestSignGroupsPolicy::KEY => [
+					'policyKey' => RequestSignGroupsPolicy::KEY,
+					'effectiveValue' => '["board"]',
+					'inheritedValue' => null,
+					'sourceScope' => 'group',
+					'visible' => true,
+					'editableByCurrentActor' => true,
+					'allowedValues' => [],
+					'canSaveAsUserDefault' => false,
+					'canUseAsRequestOverride' => false,
+					'preferenceWasCleared' => false,
+					'blockedBy' => null,
+					'groupCount' => 0,
+					'userCount' => 0,
+					'everyoneCount' => 0,
+				],
+				'signature_flow' => [
+					'policyKey' => 'signature_flow',
+					'effectiveValue' => 'parallel',
+					'inheritedValue' => null,
+					'sourceScope' => 'system',
+					'visible' => true,
+					'editableByCurrentActor' => true,
+					'allowedValues' => ['parallel'],
+					'canSaveAsUserDefault' => false,
+					'canUseAsRequestOverride' => false,
+					'preferenceWasCleared' => false,
+					'blockedBy' => null,
+					'groupCount' => 2,
+					'userCount' => 0,
+					'everyoneCount' => 0,
+				],
+			]);
+
+		$response = $this->controller->effective();
+
+		$this->assertSame(0, $response->getData()['policies'][RequestSignGroupsPolicy::KEY]['groupCount']);
+		$this->assertSame(2, $response->getData()['policies']['signature_flow']['groupCount']);
+	}
+
 	public function testEffectiveKeepsNonEditablePoliciesVisibleForSubAdmin(): void {
 		$this->groupManager->method('isAdmin')->with('admin')->willReturn(false);
 		$this->subAdmin->method('isSubAdmin')->with($this->currentUser)->willReturn(true);
