@@ -135,6 +135,30 @@ class PolicyService {
 		return $this->source->listGroupPoliciesByKey($definition->key());
 	}
 
+	/**
+	 * @param list<string> $groupIds
+	 */
+	public function countVisibleGroupPoliciesForTargets(string|\BackedEnum $policyKey, array $groupIds): int {
+		$definition = $this->registry->get($policyKey);
+		$visibleCount = 0;
+
+		foreach ($this->source->listGroupPoliciesByKeyForTargets($definition->key(), $groupIds) as $record) {
+			$groupId = (string)($record['targetId'] ?? '');
+			$policy = $record['policy'] ?? null;
+			if ($groupId === '' || !$policy instanceof PolicyLayer) {
+				continue;
+			}
+
+			if (!$this->canViewGroupPolicy($definition->key(), $groupId, $policy)) {
+				continue;
+			}
+
+			$visibleCount++;
+		}
+
+		return $visibleCount;
+	}
+
 	public function saveGroupPolicy(string|\BackedEnum $policyKey, string $groupId, mixed $value, bool $allowChildOverride): PolicyLayer {
 		$definition = $this->registry->get($policyKey);
 		$context = $this->contextFactory->forCurrentUser();
