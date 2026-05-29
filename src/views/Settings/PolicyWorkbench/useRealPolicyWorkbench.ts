@@ -340,7 +340,7 @@ export function createRealPolicyWorkbenchState() {
 						// TRANSLATORS Fallback shown when policy has no configured value in current scope chain.
 						: t('libresign', 'Not configured'),
 					groupCount: isActiveSetting
-						? groupRules.value.length
+						? visibleGroupRules.value.length
 						: Math.max(groupCount, cachedCounts?.groupCount ?? 0),
 					userCount: isActiveSetting
 						? userRules.value.length
@@ -359,6 +359,12 @@ export function createRealPolicyWorkbenchState() {
 				return policy?.editableByCurrentActor === true
 			})
 	})
+
+	function shouldHideGroupRuleFromGroupAdmin(rule: PolicyRuleRecord): boolean {
+		return viewMode.value === 'group-admin'
+			&& activeSettingKey.value === REQUEST_SIGN_GROUPS_POLICY_KEY
+			&& rule.canRemove === false
+	}
 
 	const activeDefinition = computed(() => {
 		if (!activeSettingKey.value) {
@@ -592,7 +598,9 @@ export function createRealPolicyWorkbenchState() {
 		return null
 	})
 
-	const visibleGroupRules = computed<PolicyRuleRecord[]>(() => groupRules.value)
+	const visibleGroupRules = computed<PolicyRuleRecord[]>(() => {
+		return groupRules.value.filter((rule) => !shouldHideGroupRuleFromGroupAdmin(rule))
+	})
 	const visibleUserRules = computed<PolicyRuleRecord[]>(() => userRules.value)
 
 	function filterTargetsForCreate(scope: 'group' | 'user', targets: PolicyTargetOption[]): PolicyTargetOption[] {
