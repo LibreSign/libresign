@@ -417,6 +417,31 @@ describe('Settings', () => {
 			expect(preferencesItem.props('to')).toEqual({ name: 'Preferences' })
 		})
 
+		it('hides Preferences when only unsupported policies report personal customization', () => {
+			wrapper = createWrapper(false, false, true, {
+				approval_group: {
+					canSaveAsUserDefault: true,
+					sourceScope: 'system',
+				},
+			})
+			const items = getItems()
+
+			expect(findItemByName(items, 'Preferences')).toBeUndefined()
+		})
+
+		it('shows Preferences when a saved user preference exists even if new saves are blocked', () => {
+			wrapper = createWrapper(false, false, true, {
+				signature_flow: {
+					canSaveAsUserDefault: false,
+					sourceScope: 'user',
+				},
+			})
+			const items = getItems()
+			const preferencesItem = expectItem(findItemByName(items, 'Preferences'))
+
+			expect(preferencesItem.props('to')).toEqual({ name: 'Preferences' })
+		})
+
 		it('updates Preferences visibility after policy state changes', async () => {
 			wrapper = createWrapper(false, false, true, {
 				signature_flow: {
