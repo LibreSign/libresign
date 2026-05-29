@@ -726,6 +726,11 @@ final class InMemoryPolicySource implements IPolicySource {
 		return [];
 	}
 
+	/** @return list<array{targetId: string, policy: PolicyLayer}> */
+	public function listGroupPoliciesByKeyForTargets(string $policyKey, array $groupIds): array {
+		return [];
+	}
+
 	public function loadCirclePolicies(string $policyKey, PolicyContext $context): array {
 		$this->circlePoliciesLoaded = true;
 		return $this->circleLayers;
