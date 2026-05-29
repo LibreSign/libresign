@@ -502,39 +502,39 @@ class PolicySource implements IPolicySource {
 		}
 
 		$userIds = array_values(array_unique(array_filter($userIds, static fn (string $userId): bool => $userId !== '')));
-		if ($userIds === []) {
-			return $counts;
-		}
-
-		$userPolicyKeyByPolicy = [];
-		foreach ($policyKeys as $policyKey) {
-			$userPolicyKeyByPolicy[$policyKey] = $this->getAssignedUserPolicyKey($this->registry->get($policyKey)->getUserPreferenceKey());
-		}
-		$policyKeyByUserPreference = array_flip($userPolicyKeyByPolicy);
-
-		$query = $this->db->getQueryBuilder();
-		$query->select('configkey')
-			->selectAlias($query->createFunction('COUNT(DISTINCT userid)'), 'user_count')
-			->from('preferences')
-			->where($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
-			->andWhere($query->expr()->in('userid', $query->createNamedParameter($userIds, IQueryBuilder::PARAM_STR_ARRAY)))
-			->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPolicyKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
-			->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')))
-			->groupBy('configkey');
-
-		$result = $query->executeQuery();
-		try {
-			while ($row = $result->fetchAssociative()) {
-				$policyKey = $policyKeyByUserPreference[$row['configkey']] ?? null;
-				if (!is_string($policyKey) || !isset($counts[$policyKey])) {
-					continue;
-				}
-
-				$counts[$policyKey]['userCount'] = (int)($row['user_count'] ?? 0);
+		if ($userIds !== []) {
+			$userPolicyKeyByPolicy = [];
+			foreach ($policyKeys as $policyKey) {
+				$userPolicyKeyByPolicy[$policyKey] = $this->getAssignedUserPolicyKey($this->registry->get($policyKey)->getUserPreferenceKey());
 			}
-		} finally {
-			$result->closeCursor();
+			$policyKeyByUserPreference = array_flip($userPolicyKeyByPolicy);
+
+			$query = $this->db->getQueryBuilder();
+			$query->select('configkey')
+				->selectAlias($query->createFunction('COUNT(DISTINCT userid)'), 'user_count')
+				->from('preferences')
+				->where($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
+				->andWhere($query->expr()->in('userid', $query->createNamedParameter($userIds, IQueryBuilder::PARAM_STR_ARRAY)))
+				->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPolicyKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
+				->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')))
+				->groupBy('configkey');
+
+			$result = $query->executeQuery();
+			try {
+				while ($row = $result->fetchAssociative()) {
+					$policyKey = $policyKeyByUserPreference[$row['configkey']] ?? null;
+					if (!is_string($policyKey) || !isset($counts[$policyKey])) {
+						continue;
+					}
+
+					$counts[$policyKey]['userCount'] = (int)($row['user_count'] ?? 0);
+				}
+			} finally {
+				$result->closeCursor();
+			}
 		}
+
+		$this->hydrateExplicitSystemRuleCounts($policyKeys, $counts);
 
 		return $counts;
 	}
@@ -609,46 +609,46 @@ class PolicySource implements IPolicySource {
 			$result->closeCursor();
 		}
 
+		$this->hydrateExplicitSystemRuleCounts($policyKeys, $counts);
+
+		return $counts;
+	}
+
+	/**
+	 * @param list<string> $policyKeys
+	 * @param array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $counts
+	 */
+	private function hydrateExplicitSystemRuleCounts(array $policyKeys, array &$counts): void {
+		$configKeyByPolicy = [];
+		foreach ($policyKeys as $policyKey) {
+			$configKeyByPolicy[$policyKey] = $this->registry->get($policyKey)->getAppConfigKey();
+		}
+
+		if ($configKeyByPolicy === []) {
+			return;
+		}
+
+		$policyKeyByConfigKey = array_flip($configKeyByPolicy);
+
 		$systemConfigQuery = $this->db->getQueryBuilder();
-		$systemConfigQuery->select('configkey', 'configvalue')
+		$systemConfigQuery->select('configkey')
 			->from('appconfig')
-			->where($systemConfigQuery->expr()->eq('appid', $systemConfigQuery->createNamedParameter(Application::APP_ID)));
+			->where($systemConfigQuery->expr()->eq('appid', $systemConfigQuery->createNamedParameter(Application::APP_ID)))
+			->andWhere($systemConfigQuery->expr()->in('configkey', $systemConfigQuery->createNamedParameter(array_values($configKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)));
 
 		$systemConfigResult = $systemConfigQuery->executeQuery();
-		$systemConfigValues = [];
 		try {
 			while ($row = $systemConfigResult->fetchAssociative()) {
-				$systemConfigValues[$row['configkey']] = $row['configvalue'];
+				$policyKey = $policyKeyByConfigKey[$row['configkey'] ?? ''] ?? null;
+				if (!is_string($policyKey) || !isset($counts[$policyKey])) {
+					continue;
+				}
+
+				$counts[$policyKey]['everyoneCount'] = 1;
 			}
 		} finally {
 			$systemConfigResult->closeCursor();
 		}
-
-		foreach ($policyKeys as $policyKey) {
-			$definition = $this->registry->get($policyKey);
-			$configKey = $definition->getAppConfigKey();
-			if (!isset($systemConfigValues[$configKey])) {
-				continue;
-			}
-
-			$defaultValue = $definition->normalizeValue($definition->defaultSystemValue());
-			$storedValueRaw = $systemConfigValues[$configKey];
-			$storedValue = $definition->normalizeValue($this->deserializeStoredValueWithType($storedValueRaw, $defaultValue));
-			$valuesAreEqual = $storedValue === $defaultValue;
-			if (!$valuesAreEqual && is_string($storedValue) && is_string($defaultValue)) {
-				$d1 = json_decode($storedValue, true);
-				$d2 = json_decode($defaultValue, true);
-				if (is_array($d1) && is_array($d2)) {
-					$valuesAreEqual = $d1 === $d2;
-				}
-			}
-
-			if (!$valuesAreEqual) {
-				$counts[$policyKey]['everyoneCount'] = 1;
-			}
-		}
-
-		return $counts;
 	}
 
 	#[\Override]
