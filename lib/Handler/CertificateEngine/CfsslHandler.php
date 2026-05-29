@@ -43,6 +43,8 @@ use Psr\Log\LoggerInterface;
 class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	public const CFSSL_URI = 'http://127.0.0.1:8888/api/v1/cfssl/';
 	private const string PROCESS_SOURCE = 'cfssl';
+	private const STARTUP_POLL_INTERVAL_MICROSECONDS = 250000;
+	private const STARTUP_MAX_POLLS = 40;
 
 	/** @var Client */
 	protected $client;
@@ -316,6 +318,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		if ($this->portOpen()) {
 			return;
 		}
+
 		$binary = $this->getBinary();
 		$configPath = $this->getCurrentConfigPath();
 		if (!$configPath) {
@@ -342,10 +345,10 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			]);
 		}
 
-		$loops = 0;
-		while (!$this->portOpen() && $loops <= 9) {
-			sleep(1);
-			$loops++;
+		$polls = 0;
+		while (!$this->portOpen() && $polls < self::STARTUP_MAX_POLLS) {
+			usleep(self::STARTUP_POLL_INTERVAL_MICROSECONDS);
+			$polls++;
 		}
 	}
 
