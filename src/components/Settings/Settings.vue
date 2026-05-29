@@ -49,6 +49,8 @@ import { generateUrl } from '@nextcloud/router'
 import { computed, onMounted } from 'vue'
 
 import { usePoliciesStore } from '../../store/policies'
+import type { EffectivePolicyState } from '../../types/index'
+import { canRenderPersonalPreferencePolicy } from '../../views/Preferences/personalPreferenceVisibility'
 
 import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
@@ -72,21 +74,11 @@ const initialEffectivePolicies = loadState('libresign', 'effective_policies', { 
 const policiesStore = usePoliciesStore()
 
 const canManagePreferences = computed(() => {
-	if (!canRequestSign) {
-		return false
-	}
-
-	return Object.values(policiesStore.policies).some((policy) => {
-		if (!policy || typeof policy !== 'object') {
-			return false
-		}
-
-		const policyState = policy as {
-			canSaveAsUserDefault?: boolean
-		}
-
-		return policyState.canSaveAsUserDefault === true
-	})
+	return Object.entries(policiesStore.policies).some(([policyKey, policy]) => canRenderPersonalPreferencePolicy(
+		policyKey,
+		policy as EffectivePolicyState | null,
+		canRequestSign,
+	))
 })
 
 const canManagePolicies = computed(() => {
