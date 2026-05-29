@@ -278,6 +278,31 @@ export function createRealPolicyWorkbenchState() {
 		return targets.filter((target) => manageablePolicyGroupIds.has(target.id))
 	}
 
+	/** Hide delegated access seed rules from group-admin summaries and CRUD state. */
+	function shouldHideGroupRuleFromGroupAdmin(rule: PolicyRuleRecord, policyKey: string | null = activeSettingKey.value): boolean {
+		return viewMode.value === 'group-admin'
+			&& policyKey === REQUEST_SIGN_GROUPS_POLICY_KEY
+			&& rule.canRemove === false
+	}
+
+	/** Count only the group rules the current actor is allowed to see for a policy. */
+	function countVisibleGroupRulesForPolicy(policyKey: string, rules: PolicyRuleRecord[]): number {
+		return rules.filter((rule) => !shouldHideGroupRuleFromGroupAdmin(rule, policyKey)).length
+	}
+
+	/** Prefer hydrated visible counts for delegated request-access summaries after opening a setting. */
+	function resolveSummaryGroupCount(policyKey: string, groupCount: number, cachedGroupCount: number | undefined, isActiveSetting: boolean): number {
+		if (isActiveSetting) {
+			return countVisibleGroupRulesForPolicy(policyKey, groupRules.value)
+		}
+
+		if (viewMode.value === 'group-admin' && policyKey === REQUEST_SIGN_GROUPS_POLICY_KEY && typeof cachedGroupCount === 'number') {
+			return cachedGroupCount
+		}
+
+		return Math.max(groupCount, cachedGroupCount ?? 0)
+	}
+
 	const visibleSettingSummaries = computed<PolicySettingSummary[]>(() => {
 		const isGroupAdminMode = viewMode.value === 'group-admin'
 
@@ -339,9 +364,7 @@ export function createRealPolicyWorkbenchState() {
 							: String(summaryValue))
 						// TRANSLATORS Fallback shown when policy has no configured value in current scope chain.
 						: t('libresign', 'Not configured'),
-					groupCount: isActiveSetting
-						? visibleGroupRules.value.length
-						: Math.max(groupCount, cachedCounts?.groupCount ?? 0),
+					groupCount: resolveSummaryGroupCount(definition.key, groupCount, cachedCounts?.groupCount, isActiveSetting),
 					userCount: isActiveSetting
 						? userRules.value.length
 						: Math.max(userCount, cachedCounts?.userCount ?? 0),
@@ -359,12 +382,6 @@ export function createRealPolicyWorkbenchState() {
 				return policy?.editableByCurrentActor === true
 			})
 	})
-
-	function shouldHideGroupRuleFromGroupAdmin(rule: PolicyRuleRecord): boolean {
-		return viewMode.value === 'group-admin'
-			&& activeSettingKey.value === REQUEST_SIGN_GROUPS_POLICY_KEY
-			&& rule.canRemove === false
-	}
 
 	const activeDefinition = computed(() => {
 		if (!activeSettingKey.value) {
@@ -533,11 +550,13 @@ export function createRealPolicyWorkbenchState() {
 			? activeDefinition.value.summarizeValue(inheritedSystemRule.value.value)
 			: fallbackLabel
 
-		const activeGroupExceptions = groupRules.value.length
+		const activePolicyKey = activeDefinition.value.key
+		const visibleGroupRulesForSummary = groupRules.value.filter((rule) => !shouldHideGroupRuleFromGroupAdmin(rule, activePolicyKey))
+		const activeGroupExceptions = visibleGroupRulesForSummary.length
 		const activeUserExceptions = userRules.value.length
 		const activeBlockCount = [
 			inheritedSystemRule.value?.allowChildOverride === false ? 1 : 0,
-			...groupRules.value.map((rule) => rule.allowChildOverride ? 0 : 1),
+			...visibleGroupRulesForSummary.map((rule) => rule.allowChildOverride ? 0 : 1),
 		].reduce((sum, count) => sum + count, 0)
 
 		const baseSource = hasGlobalDefault.value
@@ -602,6 +621,16 @@ export function createRealPolicyWorkbenchState() {
 		return groupRules.value.filter((rule) => !shouldHideGroupRuleFromGroupAdmin(rule))
 	})
 	const visibleUserRules = computed<PolicyRuleRecord[]>(() => userRules.value)
+
+	/** Cache summary counters using the same visibility rules shown in the UI. */
+	function cacheCurrentRuleCounts(policyKey: string) {
+		cacheRuleCountsWithEveryone(
+			policyKey,
+			countVisibleGroupRulesForPolicy(policyKey, groupRules.value),
+			userRules.value.length,
+			explicitSystemRule.value ? 1 : 0,
+		)
+	}
 
 	function filterTargetsForCreate(scope: 'group' | 'user', targets: PolicyTargetOption[]): PolicyTargetOption[] {
 		if (!editorDraft.value || editorDraft.value.scope !== scope || editorMode.value !== 'create') {
@@ -739,7 +768,7 @@ export function createRealPolicyWorkbenchState() {
 		groupRules.value = nextGroupRules
 		userRules.value = nextUserRules
 		nextRuleNumber.value = groupRules.value.length + userRules.value.length + 1
-		cacheRuleCountsWithEveryone(policyKey, groupRules.value.length, userRules.value.length, explicitSystemRule.value ? 1 : 0)
+		cacheCurrentRuleCounts(policyKey)
 	}
 
 	function isHydrationStale(requestId: number, policyKey: string): boolean {
@@ -1741,7 +1770,7 @@ export function createRealPolicyWorkbenchState() {
 						allowChildOverride,
 					)
 				}
-				cacheRuleCountsWithEveryone(policyKey, groupRules.value.length, userRules.value.length, explicitSystemRule.value ? 1 : 0)
+				cacheCurrentRuleCounts(policyKey)
 
 				await policiesStore.fetchEffectivePolicies()
 				cancelEditor()
@@ -1792,7 +1821,7 @@ export function createRealPolicyWorkbenchState() {
 					allowChildOverride,
 				)
 			}
-			cacheRuleCountsWithEveryone(policyKey, groupRules.value.length, userRules.value.length, explicitSystemRule.value ? 1 : 0)
+			cacheCurrentRuleCounts(policyKey)
 
 			await policiesStore.fetchEffectivePolicies()
 			cancelEditor()
@@ -1915,7 +1944,7 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		if (shouldRefreshPolicies) {
-			cacheRuleCountsWithEveryone(policyKey, groupRules.value.length, userRules.value.length, 0)
+			cacheCurrentRuleCounts(policyKey)
 			await policiesStore.fetchEffectivePolicies()
 		}
 
