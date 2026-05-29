@@ -276,18 +276,20 @@ final class DefaultPolicyResolverTest extends TestCase {
 	): void {
 		$source = new InMemoryPolicySource();
 		$source->systemLayer = (new PolicyLayer())
-			->setScope('global')
-			->setValue(RequestSignGroupsPolicyValue::encode(['board', 'company']))
+			->setScope('system')
+			->setValue(RequestSignGroupsPolicyValue::encode(['admin']))
 			->setAllowChildOverride(true)
 			->setVisibleToChild(true);
-		// Group layer restricts the allowed set to only ["board"]; end users cannot override further.
+		// A delegated group-layer rule grants the receiving group admin a manageable
+		// entry point for this policy, but only when they can actually delegate to
+		// at least one additional group they belong to.
 		$source->groupLayers = [
 			(new PolicyLayer())
 				->setScope('group')
 				->setValue(RequestSignGroupsPolicyValue::encode(['board']))
-				->setAllowChildOverride(false)
+				->setAllowChildOverride(true)
 				->setVisibleToChild(true)
-				->setAllowedValues([RequestSignGroupsPolicyValue::encode(['board'])]),
+				->setAllowedValues([]),
 		];
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -301,6 +303,27 @@ final class DefaultPolicyResolverTest extends TestCase {
 		);
 
 		$this->assertSame($expectedEditable, $resolved->isEditableByCurrentActor());
+	}
+
+	public function testResolveRequestSignGroupsDoesNotBecomeEditableFromSystemGrantAlone(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('global')
+			->setValue(RequestSignGroupsPolicyValue::encode(['board', 'company']))
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve(
+			$this->getRequestSignGroupsDefinition(),
+			PolicyContext::fromUserId('ceo')->setActorCapabilities([
+				'canManageSystemPolicies' => false,
+				'canManageGroupPolicies' => true,
+				'manageableGroupCount' => 2,
+			]),
+		);
+
+		$this->assertFalse($resolved->isEditableByCurrentActor());
 	}
 
 	/** @return array<string, array{0: int, 1: bool}> */
@@ -642,6 +665,23 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertSame('group', $resolved->getSourceScope());
 		$this->assertTrue($resolved->canSaveAsUserDefault());
 		$this->assertTrue($resolved->canUseAsRequestOverride());
+	}
+
+	public function testResolvePropagatesResolvedStateMetaFromDefinition(): void {
+		$source = new InMemoryPolicySource();
+		$definition = new PolicySpec(
+			key: 'signature_stamp',
+			defaultSystemValue: 'none',
+			allowedValues: [],
+			resolvedStateMeta: static fn (PolicyContext $context): array => [
+				'defaultSystemValue' => 'canonical-' . $context->getUserId(),
+			],
+		);
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve($definition, PolicyContext::fromUserId('john'));
+
+		$this->assertSame(['defaultSystemValue' => 'canonical-john'], $resolved->getMeta());
 	}
 
 	private function getValueChoiceDefinition(): PolicySpec {
