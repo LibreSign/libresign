@@ -4,19 +4,36 @@
  */
 
 import { t } from '@nextcloud/l10n'
-import { loadState } from '@nextcloud/initial-state'
 
-import type { EffectivePoliciesResponse, EffectivePolicyState, EffectivePolicyValue } from '../../../../../types/index'
-import type { RealPolicySettingDefinition } from '../realTypes'
 import SignatureFooterRuleEditor from './SignatureFooterRuleEditor.vue'
+
+import type { EffectivePolicyMeta, EffectivePolicyState, EffectivePolicyValue } from '../../../../../types/index'
+import type { RealPolicySettingDefinition } from '../realTypes'
 import {
 	getDefaultSignatureFooterPolicyConfig,
 	normalizeSignatureFooterPolicyConfig,
 	serializeSignatureFooterPolicyConfig,
 } from './model'
 
-const effectivePolicies = loadState<EffectivePoliciesResponse>('libresign', 'effective_policies', { policies: {} })
-const inheritedFooterPolicyConfig = normalizeSignatureFooterPolicyConfig(effectivePolicies.policies?.add_footer?.effectiveValue ?? null)
+type FooterPolicyState = EffectivePolicyState & {
+	inheritedValue?: EffectivePolicyValue
+	meta?: EffectivePolicyMeta
+}
+
+/**
+ * Resolves the canonical footer template baseline exposed through policy metadata.
+ *
+ * @param policy Effective policy state for the footer setting.
+ * @param fallbackTemplate Template used when metadata is unavailable.
+ */
+function resolveSystemDefaultFooterTemplate(policy: FooterPolicyState | null, fallbackTemplate = ''): string {
+	const normalizedDefault = normalizeSignatureFooterPolicyConfig(policy?.meta?.defaultSystemValue ?? null)
+	if (normalizedDefault.footerTemplate.trim() !== '') {
+		return normalizedDefault.footerTemplate
+	}
+
+	return fallbackTemplate
+}
 
 // TRANSLATORS Policy setting title for signature footer behavior.
 const signatureFooterTitle = t('libresign', 'Signature footer')
@@ -45,28 +62,39 @@ export const signatureFooterRealDefinition: RealPolicySettingDefinition = {
 	description: signatureFooterDescription,
 	editor: SignatureFooterRuleEditor,
 	editorProps: {
-		inheritedTemplate: inheritedFooterPolicyConfig.footerTemplate,
+		inheritedTemplate: '',
 		allowValidationSiteOverrideInUserScope: false,
 		preferenceAutoSave: true,
 	},
 	resolveEditorProps: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => {
-		const policyWithInherited = policy as (EffectivePolicyState & { inheritedValue?: EffectivePolicyValue }) | null
+		const policyWithInherited = policy as FooterPolicyState | null
+		const systemDefaultTemplate = resolveSystemDefaultFooterTemplate(
+			policyWithInherited,
+			(baseEditorProps.inheritedTemplate as string | undefined) ?? '',
+		)
+
 		if (policyWithInherited && Object.prototype.hasOwnProperty.call(policyWithInherited, 'inheritedValue')) {
 			if (policyWithInherited.sourceScope === 'global' || policyWithInherited.sourceScope === 'system') {
-				return baseEditorProps
+				return {
+					...baseEditorProps,
+					inheritedTemplate: systemDefaultTemplate,
+				}
 			}
 
 			const normalizedInherited = normalizeSignatureFooterPolicyConfig(policyWithInherited.inheritedValue ?? null)
 			const resolvedTemplate = normalizedInherited.footerTemplate.trim() !== ''
 				? normalizedInherited.footerTemplate
-				: (baseEditorProps.inheritedTemplate as string | undefined) ?? ''
+				: systemDefaultTemplate
 			return {
 				...baseEditorProps,
 				inheritedTemplate: resolvedTemplate,
 			}
 		}
 
-		return baseEditorProps
+		return {
+			...baseEditorProps,
+			inheritedTemplate: systemDefaultTemplate,
+		}
 	},
 	editorDialogLayout: 'wide',
 	resolutionMode: 'precedence',
@@ -76,9 +104,10 @@ export const signatureFooterRealDefinition: RealPolicySettingDefinition = {
 	},
 	hasSelectableDraftValue: () => true,
 	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
-	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
-		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
-			return policyValue
+	getFallbackSystemDefault: (_policyValue: EffectivePolicyValue | null | undefined, _sourceScope?: string | null, policyState?: EffectivePolicyState | null) => {
+		const footerPolicy = policyState as FooterPolicyState | null | undefined
+		if (footerPolicy?.meta?.defaultSystemValue !== null && footerPolicy?.meta?.defaultSystemValue !== undefined) {
+			return footerPolicy.meta.defaultSystemValue
 		}
 
 		return serializeSignatureFooterPolicyConfig(getDefaultSignatureFooterPolicyConfig())
