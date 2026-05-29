@@ -47,6 +47,13 @@ class SignatureTextPolicyTest extends TestCase {
 		$this->assertEquals(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE, $spec->getAppConfigKey());
 	}
 
+	public function testConsolidatedPolicyExposesCanonicalDefaultInResolvedMeta(): void {
+		$spec = $this->policy->get(SignatureTextPolicy::KEY);
+		$resolvedStateMeta = $spec->resolvedStateMeta(new \OCA\Libresign\Service\Policy\Model\PolicyContext());
+
+		$this->assertSame($spec->defaultSystemValue(), $resolvedStateMeta['defaultSystemValue']);
+	}
+
 	public function testGetTemplateFontSizePolicy(): void {
 		$spec = $this->policy->get(SignatureTextPolicy::KEY_TEMPLATE_FONT_SIZE);
 		$this->assertEquals(SignatureTextPolicy::KEY_TEMPLATE_FONT_SIZE, $spec->key());
