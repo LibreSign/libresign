@@ -46,7 +46,8 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		$policyKey = $definition->key();
 		$resolved = (new ResolvedPolicy())
 			->setPolicyKey($policyKey)
-			->setAllowedValues($definition->allowedValues($context));
+			->setAllowedValues($definition->allowedValues($context))
+			->setMeta($definition->resolvedStateMeta($context));
 
 		$systemLayer = $this->source->loadSystemPolicy($policyKey);
 
@@ -167,7 +168,12 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			->setInheritedValue($inheritedValue)
 			->setSourceScope($currentSourceScope)
 			->setVisible($visible)
-			->setEditableByCurrentActor($visible && $this->canManagePolicyAtCurrentScope($definition, $context, $isSystemExplicitlyGrantedForGroupAdmin, $hasConfiguredGroupLayer, $canOverrideAtGroupScope))
+			->setEditableByCurrentActor($visible && $this->canManagePolicyAtCurrentScope(
+				$definition,
+				$context,
+				$isSystemExplicitlyGrantedForGroupAdmin,
+				$this->hasDelegatedEditableGroupLayer($groupLayers),
+			))
 			->setCanSaveAsUserDefault($canPersistUserPreference)
 			->setCanUseAsRequestOverride($canPersistUserPreference)
 			->setBlockedBy($currentBlockedBy);
@@ -312,8 +318,7 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		IPolicyDefinition $definition,
 		PolicyContext $context,
 		bool $isSystemExplicitlyGrantedForGroupAdmin,
-		bool $hasConfiguredGroupLayer,
-		bool $canOverrideAtGroupScope,
+		bool $hasDelegatedEditableGroupLayer,
 	): bool {
 		$actorCapabilities = $context->getActorCapabilities();
 
@@ -326,10 +331,35 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 				return false;
 			}
 
+			if ($definition->key() === RequestSignGroupsPolicy::KEY) {
+				return $hasDelegatedEditableGroupLayer;
+			}
+
 			// Group admins can manage only when the system admin explicitly granted
 			// delegation for the policy at the system layer.
 			return $definition->supportsGroupAdminConfiguration()
 				&& $isSystemExplicitlyGrantedForGroupAdmin;
+		}
+
+		return false;
+	}
+
+	/** @param list<PolicyLayer> $groupLayers */
+	private function hasDelegatedEditableGroupLayer(array $groupLayers): bool {
+		foreach ($groupLayers as $layer) {
+			if (!$layer->isVisibleToChild()) {
+				continue;
+			}
+
+			if (!$layer->isAllowChildOverride()) {
+				continue;
+			}
+
+			if ($layer->getValue() === null) {
+				continue;
+			}
+
+			return true;
 		}
 
 		return false;
