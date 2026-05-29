@@ -528,6 +528,12 @@ final class PolicyControllerTest extends TestCase {
 
 		$this->policyService
 			->expects($this->once())
+			->method('canViewGroupPolicy')
+			->with('signature_flow', 'finance', $policyLayer)
+			->willReturn(true);
+
+		$this->policyService
+			->expects($this->once())
 			->method('canDeleteGroupPolicy')
 			->with('signature_flow', 'finance', $policyLayer)
 			->willReturn(false);
@@ -628,6 +634,124 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('ordered_numeric', $response->getData()['policy']['value']);
 		$this->assertFalse($response->getData()['policy']['allowChildOverride']);
+	}
+
+	public function testGetGroupReturnsForbiddenWhenRequestAccessRuleIsHiddenFromSubAdmin(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(false);
+		$this->subAdmin
+			->method('isSubAdmin')
+			->with($this->currentUser)
+			->willReturn(true);
+		$this->groupManager
+			->method('getUserGroupIds')
+			->with($this->currentUser)
+			->willReturn(['company', 'board']);
+
+		$policyLayer = (new PolicyLayer())
+			->setScope('group')
+			->setValue('["board","company"]')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true)
+			->setAllowedValues([]);
+
+		$this->policyService
+			->expects($this->once())
+			->method('getGroupPolicy')
+			->with(RequestSignGroupsPolicy::KEY, 'company')
+			->willReturn($policyLayer);
+
+		$this->policyService
+			->expects($this->once())
+			->method('canViewGroupPolicy')
+			->with(RequestSignGroupsPolicy::KEY, 'company', $policyLayer)
+			->willReturn(false);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Not allowed to manage this group policy')
+			->willReturn('Not allowed to manage this group policy');
+
+		$response = $this->controller->getGroup('company', RequestSignGroupsPolicy::KEY);
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Not allowed to manage this group policy',
+		], $response->getData());
+	}
+
+	public function testListGroupPoliciesHidesSysadminDelegationRulesFromSubAdmin(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(false);
+		$this->subAdmin
+			->method('isSubAdmin')
+			->with($this->currentUser)
+			->willReturn(true);
+		$this->groupManager
+			->method('getUserGroupIds')
+			->with($this->currentUser)
+			->willReturn(['company', 'board']);
+
+		$hiddenPolicy = (new PolicyLayer())
+			->setScope('group')
+			->setValue('["board","company"]')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true)
+			->setAllowedValues([]);
+		$visiblePolicy = (new PolicyLayer())
+			->setScope('group')
+			->setValue('["board"]')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true)
+			->setAllowedValues([]);
+
+		$this->policyService
+			->expects($this->once())
+			->method('listGroupPolicies')
+			->with(RequestSignGroupsPolicy::KEY)
+			->willReturn([
+				['targetId' => 'company', 'policy' => $hiddenPolicy],
+				['targetId' => 'board', 'policy' => $visiblePolicy],
+			]);
+
+		$this->policyService
+			->expects($this->exactly(2))
+			->method('canViewGroupPolicy')
+			->willReturnCallback(static function (string $policyKey, string $groupId, PolicyLayer $policy) use ($hiddenPolicy, $visiblePolicy): bool {
+				self::assertSame(RequestSignGroupsPolicy::KEY, $policyKey);
+				return match ($groupId) {
+					'company' => $policy === $hiddenPolicy ? false : false,
+					'board' => $policy === $visiblePolicy,
+					default => false,
+				};
+			});
+
+		$this->policyService
+			->expects($this->once())
+			->method('canDeleteGroupPolicy')
+			->with(RequestSignGroupsPolicy::KEY, 'board', $visiblePolicy)
+			->willReturn(true);
+
+		$response = $this->controller->listGroupPolicies(RequestSignGroupsPolicy::KEY);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame([
+			'policies' => [[
+				'policyKey' => RequestSignGroupsPolicy::KEY,
+				'scope' => 'group',
+				'targetId' => 'board',
+				'value' => '["board"]',
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'deletableByCurrentActor' => true,
+			]],
+		], $response->getData());
 	}
 
 	public function testSetGroupIgnoresStringAllowChildOverrideFromRequest(): void {
@@ -855,6 +979,12 @@ final class PolicyControllerTest extends TestCase {
 			->method('getGroupPolicy')
 			->with('signature_flow', 'finance')
 			->willReturn($policyLayer);
+
+		$this->policyService
+			->expects($this->once())
+			->method('canViewGroupPolicy')
+			->with('signature_flow', 'finance', $policyLayer)
+			->willReturn(true);
 
 		$this->policyService
 			->expects($this->once())
