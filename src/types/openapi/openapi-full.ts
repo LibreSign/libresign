@@ -1457,12 +1457,16 @@ export type components = {
                 [key: string]: components["schemas"]["EffectivePolicyState"];
             };
         };
+        EffectivePolicyMeta: {
+            defaultSystemValue?: components["schemas"]["EffectivePolicyValue"];
+        };
         EffectivePolicyResponse: {
             policy: components["schemas"]["EffectivePolicyState"];
         };
         EffectivePolicyState: {
             policyKey: string;
             effectiveValue: components["schemas"]["EffectivePolicyValue"];
+            meta?: components["schemas"]["EffectivePolicyMeta"];
             sourceScope: string;
             visible: boolean;
             editableByCurrentActor: boolean;

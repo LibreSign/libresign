@@ -1000,6 +1000,14 @@
                     }
                 }
             },
+            "EffectivePolicyMeta": {
+                "type": "object",
+                "properties": {
+                    "defaultSystemValue": {
+                        "$ref": "#/components/schemas/EffectivePolicyValue"
+                    }
+                }
+            },
             "EffectivePolicyResponse": {
                 "type": "object",
                 "required": [
@@ -1034,6 +1042,9 @@
                     },
                     "effectiveValue": {
                         "$ref": "#/components/schemas/EffectivePolicyValue"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/EffectivePolicyMeta"
                     },
                     "sourceScope": {
                         "type": "string"
