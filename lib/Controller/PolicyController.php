@@ -612,28 +612,52 @@ final class PolicyController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * @param array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $ruleCounts
+	 * @param array<string, array{groupCount?: int, userCount?: int, everyoneCount?: int}> $ruleCounts
 	 * @param list<string> $groupIds
 	 * @return array<string, array{groupCount: int, userCount: int, everyoneCount: int}>
 	 */
 	private function filterVisibleRuleCountsForManagedGroups(array $ruleCounts, array $groupIds): array {
+		/** @var array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $normalizedRuleCounts */
+		$normalizedRuleCounts = [];
+		foreach ($ruleCounts as $policyKey => $counts) {
+			$normalizedRuleCounts[$policyKey] = $this->normalizeRuleCounts($counts);
+		}
+
 		$groupIds = array_values(array_unique(array_filter(
 			$groupIds,
 			static fn (string $groupId): bool => trim($groupId) !== '',
 		)));
 
 		if ($groupIds === []) {
-			return $ruleCounts;
+			return $normalizedRuleCounts;
 		}
 
-		if (($ruleCounts[RequestSignGroupsPolicy::KEY]['groupCount'] ?? 0) <= 0) {
-			return $ruleCounts;
+		if (($normalizedRuleCounts[RequestSignGroupsPolicy::KEY]['groupCount'] ?? 0) <= 0) {
+			return $normalizedRuleCounts;
 		}
 
-		$ruleCounts[RequestSignGroupsPolicy::KEY]['groupCount'] = $this->policyService
+		$requestSignGroupsCounts = $normalizedRuleCounts[RequestSignGroupsPolicy::KEY] ?? [
+			'groupCount' => 0,
+			'userCount' => 0,
+			'everyoneCount' => 0,
+		];
+		$requestSignGroupsCounts['groupCount'] = $this->policyService
 			->countVisibleGroupPoliciesForTargets(RequestSignGroupsPolicy::KEY, $groupIds);
+		$normalizedRuleCounts[RequestSignGroupsPolicy::KEY] = $requestSignGroupsCounts;
 
-		return $ruleCounts;
+		return $normalizedRuleCounts;
+	}
+
+	/**
+	 * @param array{groupCount?: int, userCount?: int, everyoneCount?: int} $counts
+	 * @return array{groupCount: int, userCount: int, everyoneCount: int}
+	 */
+	private function normalizeRuleCounts(array $counts): array {
+		return [
+			'groupCount' => (int)($counts['groupCount'] ?? 0),
+			'userCount' => (int)($counts['userCount'] ?? 0),
+			'everyoneCount' => (int)($counts['everyoneCount'] ?? 0),
+		];
 	}
 
 	/** @return list<string> */
