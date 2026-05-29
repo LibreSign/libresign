@@ -88,4 +88,19 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$policy = $response->getContentSecurityPolicy()->buildPolicy();
 		$this->assertStringContainsString("worker-src 'self' blob:", $policy);
 	}
+
+	public function testGetFormDoesNotProvideLegacyFooterDefaultInitialState(): void {
+		$providedState = [];
+
+		$this->initialState
+			->expects($this->atLeastOnce())
+			->method('provideInitialState')
+			->willReturnCallback(function (string $key, mixed $value) use (&$providedState): void {
+				$providedState[$key] = $value;
+			});
+
+		$this->admin->getForm();
+
+		$this->assertArrayNotHasKey('footer_default_template', $providedState);
+	}
 }
