@@ -11,6 +11,7 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyGuard;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
@@ -594,10 +595,56 @@ final class PolicyController extends AEnvironmentAwareController {
 				$this->groupManager->getUserGroupIds($user),
 				static fn (mixed $groupId): bool => is_string($groupId) && trim($groupId) !== '',
 			));
-			return $this->policyService->getRuleCounts($groupIds, []);
+			return $this->filterVisibleRuleCountsForManagedGroups(
+				$this->policyService->getRuleCounts($groupIds, []),
+				$groupIds,
+			);
 		}
 
 		return [];
+	}
+
+	/**
+	 * @param array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $ruleCounts
+	 * @param list<string> $groupIds
+	 * @return array<string, array{groupCount: int, userCount: int, everyoneCount: int}>
+	 */
+	private function filterVisibleRuleCountsForManagedGroups(array $ruleCounts, array $groupIds): array {
+		$groupIds = array_values(array_unique(array_filter(
+			$groupIds,
+			static fn (string $groupId): bool => trim($groupId) !== '',
+		)));
+
+		if ($groupIds === []) {
+			return $ruleCounts;
+		}
+
+		if (($ruleCounts[RequestSignGroupsPolicy::KEY]['groupCount'] ?? 0) <= 0) {
+			return $ruleCounts;
+		}
+
+		$visibleGroupCount = 0;
+		foreach ($this->policyService->listGroupPolicies(RequestSignGroupsPolicy::KEY) as $record) {
+			$groupId = (string)($record['targetId'] ?? '');
+			$policy = $record['policy'] ?? null;
+			if ($groupId === '' || !$policy instanceof PolicyLayer) {
+				continue;
+			}
+
+			if (!in_array($groupId, $groupIds, true)) {
+				continue;
+			}
+
+			if (!$this->policyService->canViewGroupPolicy(RequestSignGroupsPolicy::KEY, $groupId, $policy)) {
+				continue;
+			}
+
+			$visibleGroupCount++;
+		}
+
+		$ruleCounts[RequestSignGroupsPolicy::KEY]['groupCount'] = $visibleGroupCount;
+
+		return $ruleCounts;
 	}
 
 	private function readPolicyValueParam(string $key, null|bool|int|float|string|array $default): null|bool|int|float|string|array {
