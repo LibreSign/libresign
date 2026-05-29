@@ -419,7 +419,36 @@ class PolicySource implements IPolicySource {
 	 */
 	#[\Override]
 	public function listGroupPoliciesByKey(string $policyKey): array {
-		$bindings = $this->bindingMapper->findByTargetType('group');
+		return $this->buildGroupPoliciesByKeyFromBindings(
+			$policyKey,
+			$this->bindingMapper->findByTargetType('group'),
+		);
+	}
+
+	/**
+	 * @param list<string> $groupIds
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	public function listGroupPoliciesByKeyForTargets(string $policyKey, array $groupIds): array {
+		$groupIds = array_values(array_unique(array_filter(
+			$groupIds,
+			static fn (string $groupId): bool => $groupId !== '',
+		)));
+		if ($groupIds === []) {
+			return [];
+		}
+
+		return $this->buildGroupPoliciesByKeyFromBindings(
+			$policyKey,
+			$this->bindingMapper->findByTargets('group', $groupIds),
+		);
+	}
+
+	/**
+	 * @param list<PermissionSetBinding> $bindings
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	private function buildGroupPoliciesByKeyFromBindings(string $policyKey, array $bindings): array {
 		if ($bindings === []) {
 			return [];
 		}
