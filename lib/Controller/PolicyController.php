@@ -153,7 +153,17 @@ final class PolicyController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/by-policy/group/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
 	public function listGroupPolicies(string $policyKey): DataResponse {
-		$records = $this->policyService->listGroupPolicies($policyKey);
+		$user = $this->userSession->getUser();
+		if ($user instanceof IUser && $this->groupManager->isAdmin($user->getUID())) {
+			$records = $this->policyService->listGroupPolicies($policyKey);
+		} elseif ($user instanceof IUser && $this->subAdmin->isSubAdmin($user)) {
+			$records = $this->policyService->listGroupPoliciesForTargets(
+				$policyKey,
+				$this->resolveManageableGroupIds($user),
+			);
+		} else {
+			$records = [];
+		}
 		$policies = [];
 
 		foreach ($records as $record) {
@@ -591,10 +601,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		}
 
 		if ($this->subAdmin->isSubAdmin($user)) {
-			$groupIds = array_values(array_filter(
-				$this->groupManager->getUserGroupIds($user),
-				static fn (mixed $groupId): bool => is_string($groupId) && trim($groupId) !== '',
-			));
+			$groupIds = $this->resolveManageableGroupIds($user);
 			return $this->filterVisibleRuleCountsForManagedGroups(
 				$this->policyService->getRuleCounts($groupIds, []),
 				$groupIds,
@@ -627,6 +634,14 @@ final class PolicyController extends AEnvironmentAwareController {
 			->countVisibleGroupPoliciesForTargets(RequestSignGroupsPolicy::KEY, $groupIds);
 
 		return $ruleCounts;
+	}
+
+	/** @return list<string> */
+	private function resolveManageableGroupIds(IUser $user): array {
+		return array_values(array_filter(
+			$this->groupManager->getUserGroupIds($user),
+			static fn (mixed $groupId): bool => is_string($groupId) && trim($groupId) !== '',
+		));
 	}
 
 	private function readPolicyValueParam(string $key, null|bool|int|float|string|array $default): null|bool|int|float|string|array {
