@@ -19,15 +19,17 @@ vi.mock('@nextcloud/initial-state', () => ({
 			return {
 				policies: {
 					signature_stamp: {
-						effectiveValue: JSON.stringify({
-							template: 'Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}',
-							template_font_size: 9.8,
-							signature_font_size: 20,
-							signature_width: 350,
-							signature_height: 100,
-							background_type: 'default',
-							render_mode: 'default',
-						}),
+						meta: {
+							defaultSystemValue: JSON.stringify({
+								template: 'Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}',
+								template_font_size: 9.8,
+								signature_font_size: 20,
+								signature_width: 350,
+								signature_height: 100,
+								background_type: 'default',
+								render_mode: 'default',
+							}),
+						},
 					},
 				},
 			}
@@ -95,12 +97,17 @@ describe('signatureTextRealDefinition', () => {
 		expect(parsed.signature_width).toBe(350)
 	})
 
-	it('keeps system value as fallback when system scope is provided', () => {
+	it('prefers policy meta default over the current system value when available', () => {
 		const systemPolicyValue = '{"template":"SYSTEM_TEMPLATE","template_font_size":10,"signature_font_size":11,"signature_width":150,"signature_height":65,"background_type":"custom","render_mode":"text"}'
+		const policyMetaDefault = '{"template":"CANONICAL_TEMPLATE","template_font_size":9.8,"signature_font_size":20,"signature_width":350,"signature_height":100,"background_type":"default","render_mode":"default"}'
 
-		const fallback = signatureTextRealDefinition.getFallbackSystemDefault(systemPolicyValue, 'system')
+		const fallback = signatureTextRealDefinition.getFallbackSystemDefault(systemPolicyValue, 'system', {
+			meta: {
+				defaultSystemValue: policyMetaDefault,
+			},
+		} as Parameters<typeof signatureTextRealDefinition.getFallbackSystemDefault>[2])
 
-		expect(fallback).toBe(systemPolicyValue)
+		expect(fallback).toBe(policyMetaDefault)
 	})
 
 	it('always allows selectable draft value', () => {
