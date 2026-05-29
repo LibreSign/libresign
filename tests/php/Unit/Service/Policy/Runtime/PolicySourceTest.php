@@ -415,6 +415,46 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame(['ordered_numeric'], $result[0]['policy']->getAllowedValues());
 	}
 
+	public function testListGroupPoliciesByKeyForTargetsScopesBindingsToProvidedGroups(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(11);
+		$binding->setTargetType('group');
+		$binding->setTargetId('finance');
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(11);
+		$permissionSet->setPolicyJson([
+			'signature_flow' => [
+				'defaultValue' => 'ordered_numeric',
+				'allowChildOverride' => false,
+				'visibleToChild' => true,
+				'allowedValues' => ['ordered_numeric'],
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('findByTargets')
+			->with('group', ['finance'])
+			->willReturn([$binding]);
+
+		$this->bindingMapper
+			->expects($this->never())
+			->method('findByTargetType');
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('findByIds')
+			->with([11])
+			->willReturn([$permissionSet]);
+
+		$result = $this->getSource()->listGroupPoliciesByKeyForTargets('signature_flow', ['finance', 'finance', '']);
+
+		$this->assertCount(1, $result);
+		$this->assertSame('finance', $result[0]['targetId']);
+		$this->assertSame('ordered_numeric', $result[0]['policy']->getValue());
+	}
+
 	public function testSaveSystemPolicyDeletesAppConfigWhenValueMatchesDefault(): void {
 		$this->setStoredAppConfigString('policy.signature_flow.system', 'ordered_numeric');
 		$this->setStoredAppConfigString('policy.signature_flow.system.allow_child_override', '1');
