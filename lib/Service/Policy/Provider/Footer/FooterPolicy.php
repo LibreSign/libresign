@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy\Provider\Footer;
 
+use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
@@ -16,6 +17,7 @@ use OCA\Libresign\Service\Policy\Model\PolicySpec;
 final class FooterPolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'add_footer';
 	public const SYSTEM_APP_CONFIG_KEY = 'add_footer';
+	private ?string $defaultTemplate = null;
 
 	#[\Override]
 	public function keys(): array {
@@ -26,10 +28,14 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 
 	#[\Override]
 	public function get(string|\BackedEnum $policyKey): IPolicyDefinition {
+		$defaultTemplate = $this->getDefaultTemplate();
+		$defaultSystemValue = FooterPolicyValue::encode(FooterPolicyValue::defaults());
+		$resolvedStateDefault = FooterPolicyValue::encode(FooterPolicyValue::defaults($defaultTemplate), $defaultTemplate);
+
 		return match ($this->normalizePolicyKey($policyKey)) {
 			self::KEY => new PolicySpec(
 				key: self::KEY,
-				defaultSystemValue: FooterPolicyValue::encode(FooterPolicyValue::defaults()),
+				defaultSystemValue: $defaultSystemValue,
 				allowedValues: static fn (): array => [],
 				normalizer: static function (mixed $rawValue): mixed {
 					return FooterPolicyValue::encode(FooterPolicyValue::normalize($rawValue));
@@ -52,9 +58,20 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 					}
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
+				resolvedStateMeta: static fn (PolicyContext $_context): array => [
+					'defaultSystemValue' => $resolvedStateDefault,
+				],
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
 		};
+	}
+
+	private function getDefaultTemplate(): string {
+		if ($this->defaultTemplate !== null) {
+			return $this->defaultTemplate;
+		}
+
+		return $this->defaultTemplate = (string)file_get_contents(FooterHandler::DEFAULT_TEMPLATE_PATH);
 	}
 
 	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {
