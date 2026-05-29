@@ -317,10 +317,17 @@ function onTemplateReset(event?: Event) {
 	event?.stopPropagation()
 	event?.preventDefault()
 
+	const inheritedTemplate = props.inheritedTemplate ?? ''
+	if (props.showPreview !== false && inheritedTemplate !== '') {
+		void updatePreview(inheritedTemplate)
+	}
+
 	updateValue({
-		customizeFooterTemplate: true,
-		footerTemplate: props.inheritedTemplate ?? '',
+		customizeFooterTemplate: false,
+		footerTemplate: '',
 	})
+	previewRequestId += 1
+	clearPreview()
 	onTemplateChanged()
 }
 
