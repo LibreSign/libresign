@@ -162,6 +162,8 @@ Feature: admin/initial_state
       | (jq).policies.signature_flow.effectiveValue                 | none                                  |
       | (jq).policies.signature_flow.allowedValues                  | ["none","parallel","ordered_numeric"] |
       | (jq)(.policies.signature_stamp.effectiveValue \| fromjson).background_type | default                     |
+      | (jq)(.policies.signature_stamp.meta.defaultSystemValue \| fromjson).render_mode | default                  |
+      | (jq)((.policies.signature_stamp.meta.defaultSystemValue \| fromjson).template \| length > 0) | true          |
       | (jq).policies.identification_documents.effectiveValue.enabled       | false                        |
       | (jq).policies.identification_documents.effectiveValue.approvers[0]    | admin                        |
       | (jq).policies.envelope_enabled.effectiveValue               | true                                  |
@@ -172,6 +174,8 @@ Feature: admin/initial_state
       | (jq)(.policies.add_footer.effectiveValue \| fromjson).previewZoom | 100                             |
       | (jq)(.policies.add_footer.effectiveValue \| fromjson).customizeFooterTemplate | false                   |
       | (jq)(.policies.add_footer.effectiveValue \| fromjson).footerTemplate |                                  |
+      | (jq)(.policies.add_footer.meta.defaultSystemValue \| fromjson).previewWidth | 595                      |
+      | (jq)((.policies.add_footer.meta.defaultSystemValue \| fromjson).footerTemplate \| length > 0) | true         |
       | (jq).policies.tsa_settings.policyKey                                      | tsa_settings |
       | (jq).policies.tsa_settings.sourceScope                                    | system       |
       | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).auth_type          | none         |
@@ -245,6 +249,7 @@ Feature: admin/initial_state
       | (jq).policies.signature_flow.effectiveValue                 | ordered_numeric                       |
       | (jq).policies.signature_flow.allowedValues                  | ["ordered_numeric"]                  |
       | (jq)(.policies.signature_stamp.effectiveValue \| fromjson).background_type | default                     |
+      | (jq)(.policies.signature_stamp.meta.defaultSystemValue \| fromjson).render_mode | default                  |
       | (jq).policies.identification_documents.effectiveValue.enabled       | true                         |
       | (jq).policies.identification_documents.effectiveValue.approvers[0]    | admin                        |
       | (jq).policies.identification_documents.effectiveValue.approvers[1]    | staff                        |
@@ -256,6 +261,8 @@ Feature: admin/initial_state
       | (jq)(.policies.add_footer.effectiveValue \| fromjson).previewZoom | 100                            |
       | (jq)(.policies.add_footer.effectiveValue \| fromjson).customizeFooterTemplate | true                    |
       | (jq)(.policies.add_footer.effectiveValue \| fromjson).footerTemplate | Custom footer for {{ uuid }}     |
+      | (jq)(.policies.add_footer.meta.defaultSystemValue \| fromjson).previewWidth | 595                      |
+      | (jq)((.policies.add_footer.meta.defaultSystemValue \| fromjson).footerTemplate \| length > 0) | true         |
       | (jq).policies.tsa_settings.policyKey                                      | tsa_settings                 |
       | (jq).policies.tsa_settings.sourceScope                                    | global                       |
       | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).url                | https://tsa.example.test/tsr |
