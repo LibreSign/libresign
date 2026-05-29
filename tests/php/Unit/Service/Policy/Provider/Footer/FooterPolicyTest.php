@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\Footer;
 
+use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
@@ -19,11 +20,16 @@ final class FooterPolicyTest extends TestCase {
 		$provider = new FooterPolicy();
 		$this->assertSame([FooterPolicy::KEY], $provider->keys());
 		$definition = $provider->get(FooterPolicy::KEY);
+		$defaultTemplate = (string)file_get_contents(FooterHandler::DEFAULT_TEMPLATE_PATH);
 
 		$this->assertSame(FooterPolicy::KEY, $definition->key());
 		$this->assertSame(
 			FooterPolicyValue::encode(FooterPolicyValue::defaults()),
 			$definition->defaultSystemValue(),
+		);
+		$this->assertSame(
+			['defaultSystemValue' => FooterPolicyValue::encode(FooterPolicyValue::defaults($defaultTemplate), $defaultTemplate)],
+			$definition->resolvedStateMeta(new PolicyContext()),
 		);
 		$this->assertSame([], $definition->allowedValues(new PolicyContext()));
 	}
@@ -32,9 +38,10 @@ final class FooterPolicyTest extends TestCase {
 	public function testProviderNormalizesValues(mixed $input, array $expected): void {
 		$provider = new FooterPolicy();
 		$definition = $provider->get(FooterPolicy::KEY);
+		$defaultTemplate = (string)file_get_contents(FooterHandler::DEFAULT_TEMPLATE_PATH);
 
 		$this->assertSame(
-			FooterPolicyValue::encode($expected),
+			FooterPolicyValue::encode($expected, $defaultTemplate),
 			$definition->normalizeValue($input),
 		);
 	}
@@ -51,6 +58,10 @@ final class FooterPolicyTest extends TestCase {
 					'writeQrcodeOnFooter' => true,
 					'validationSite' => '',
 					'customizeFooterTemplate' => false,
+					'footerTemplate' => '',
+					'previewWidth' => 595,
+					'previewHeight' => 100,
+					'previewZoom' => 100,
 				],
 			],
 			'string zero disables footer with defaults' => [
@@ -60,6 +71,10 @@ final class FooterPolicyTest extends TestCase {
 					'writeQrcodeOnFooter' => true,
 					'validationSite' => '',
 					'customizeFooterTemplate' => false,
+					'footerTemplate' => '',
+					'previewWidth' => 595,
+					'previewHeight' => 100,
+					'previewZoom' => 100,
 				],
 			],
 			'structured json keeps full explicit payload' => [
@@ -69,6 +84,7 @@ final class FooterPolicyTest extends TestCase {
 					'writeQrcodeOnFooter' => false,
 					'validationSite' => 'https://validation.example',
 					'customizeFooterTemplate' => true,
+					'footerTemplate' => '',
 					'previewWidth' => 740,
 					'previewHeight' => 160,
 					'previewZoom' => 130,
@@ -81,6 +97,10 @@ final class FooterPolicyTest extends TestCase {
 					'writeQrcodeOnFooter' => false,
 					'validationSite' => 'https://legacy.example/base/',
 					'customizeFooterTemplate' => true,
+					'footerTemplate' => '',
+					'previewWidth' => 595,
+					'previewHeight' => 100,
+					'previewZoom' => 100,
 				],
 			],
 			'invalid json falls back to enabled false from scalar parser' => [
@@ -90,6 +110,10 @@ final class FooterPolicyTest extends TestCase {
 					'writeQrcodeOnFooter' => true,
 					'validationSite' => '',
 					'customizeFooterTemplate' => false,
+					'footerTemplate' => '',
+					'previewWidth' => 595,
+					'previewHeight' => 100,
+					'previewZoom' => 100,
 				],
 			],
 		];
