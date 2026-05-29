@@ -56,15 +56,17 @@ vi.mock('@nextcloud/initial-state', () => ({
 						effectiveValue: identifyMethodsInitialState,
 					},
 					signature_stamp: {
-						effectiveValue: JSON.stringify({
-							template: 'Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}',
-							template_font_size: 9.8,
-							signature_font_size: 20,
-							signature_width: 350,
-							signature_height: 100,
-							background_type: 'default',
-							render_mode: 'default',
-						}),
+						meta: {
+							defaultSystemValue: JSON.stringify({
+								template: 'Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}',
+								template_font_size: 9.8,
+								signature_font_size: 20,
+								signature_width: 350,
+								signature_height: 100,
+								background_type: 'default',
+								render_mode: 'default',
+							}),
+						},
 					},
 				},
 			}
