@@ -383,6 +383,36 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
+	public function testSetSystemKeepsResolvedPolicyMetaWhenPresent(): void {
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setPolicyKey('signature_stamp')
+			->setEffectiveValue('ordered_numeric')
+			->setSourceScope('system')
+			->setVisible(true)
+			->setEditableByCurrentActor(true)
+			->setAllowedValues([])
+			->setCanSaveAsUserDefault(true)
+			->setCanUseAsRequestOverride(false)
+			->setPreferenceWasCleared(false)
+			->setBlockedBy(null)
+			->setMeta(['defaultSystemValue' => 'canonical']);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveSystem')
+			->with('signature_stamp', 'ordered_numeric', false)
+			->willReturn($resolvedPolicy);
+
+		$response = $this->controller->setSystem('signature_stamp', 'ordered_numeric');
+
+		$this->assertSame(['defaultSystemValue' => 'canonical'], $response->getData()['policy']['meta']);
+	}
 	public function testSetSystemReturnsBadRequestWhenPolicyValueIsInvalid(): void {
 		$this->policyService
 			->expects($this->once())
