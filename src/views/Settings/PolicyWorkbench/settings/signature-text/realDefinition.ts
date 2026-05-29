@@ -6,7 +6,8 @@
 import { t } from '@nextcloud/l10n'
 
 import SignatureTextRuleEditor from './SignatureTextRuleEditor.vue'
-import type { EffectivePolicyState, EffectivePolicyValue } from '../../../../../types/index'
+
+import type { EffectivePolicyMeta, EffectivePolicyState, EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
 import {
 	getDefaultSignatureTextPolicyConfig,
@@ -14,6 +15,24 @@ import {
 	normalizeSignatureTextPolicyConfig,
 	serializeSignatureTextPolicyConfig,
 } from './model'
+
+type SignatureTextPolicyState = EffectivePolicyState & {
+	inheritedValue?: EffectivePolicyValue
+	meta?: EffectivePolicyMeta
+}
+
+/**
+ * Resolves the canonical signature stamp baseline exposed through policy metadata.
+ *
+ * @param policyState Effective policy state for the signature stamp setting.
+ */
+function resolveSignatureStampSystemDefault(policyState?: SignatureTextPolicyState | null): EffectivePolicyValue | null {
+	if (policyState?.meta?.defaultSystemValue !== null && policyState?.meta?.defaultSystemValue !== undefined) {
+		return policyState.meta.defaultSystemValue
+	}
+
+	return null
+}
 
 // TRANSLATORS Policy setting title for signature stamp text configuration.
 const signatureStampTextTitle = t('libresign', 'Signature stamp text')
@@ -45,7 +64,7 @@ export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 	editor: SignatureTextRuleEditor,
 	editorProps: {},
 	resolveEditorProps: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => {
-		const policyWithInherited = policy as (EffectivePolicyState & { inheritedValue?: EffectivePolicyValue }) | null
+		const policyWithInherited = policy as SignatureTextPolicyState | null
 		if (!policyWithInherited || !Object.prototype.hasOwnProperty.call(policyWithInherited, 'inheritedValue')) {
 			return baseEditorProps
 		}
@@ -71,8 +90,13 @@ export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 	},
 	hasSelectableDraftValue: () => true,
 	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
-	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
-		if (policyValue !== null && policyValue !== undefined) {
+	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null, policyState?: EffectivePolicyState | null) => {
+		const metaDefault = resolveSignatureStampSystemDefault(policyState as SignatureTextPolicyState | null | undefined)
+		if (metaDefault !== null) {
+			return metaDefault
+		}
+
+		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
 			return policyValue
 		}
 
