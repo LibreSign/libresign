@@ -14,6 +14,8 @@ use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
@@ -60,6 +62,7 @@ final class PolicyServiceTest extends TestCase {
 				return match ($class) {
 					ApprovalGroupsPolicy::class => new ApprovalGroupsPolicy(),
 					FooterPolicy::class => new FooterPolicy(),
+					RequestSignGroupsPolicy::class => new RequestSignGroupsPolicy(),
 					SignatureFlowPolicy::class => new SignatureFlowPolicy(),
 					DocMdpPolicy::class => new DocMdpPolicy(),
 					default => throw new \RuntimeException('Unexpected provider class: ' . $class),
@@ -665,6 +668,129 @@ final class PolicyServiceTest extends TestCase {
 		$service->saveGroupPolicy(FooterPolicy::KEY, 'finance', '{"enabled":false}', false);
 	}
 
+	public function testSaveRequestSignGroupsAllowsSubAdminWithDelegatedGroupRuleAndMultipleGroups(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('group-admin');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('group-admin')
+			->willReturn(false);
+
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->with($user)
+			->willReturn(['board', 'company']);
+
+		$this->subAdmin
+			->expects($this->once())
+			->method('isSubAdmin')
+			->with($user)
+			->willReturn(true);
+
+		$this->source
+			->expects($this->once())
+			->method('loadGroupPolicies')
+			->with(RequestSignGroupsPolicy::KEY, $this->callback(static function ($context): bool {
+				return $context->getUserId() === 'group-admin'
+					&& $context->getGroups() === ['board', 'company']
+					&& $context->getActorCapabilities() === [
+						'canManageSystemPolicies' => false,
+						'canManageGroupPolicies' => true,
+						'manageableGroupCount' => 2,
+					];
+			}))
+			->willReturn([
+				(new PolicyLayer())
+					->setScope('group')
+					->setValue(RequestSignGroupsPolicyValue::encode(['board']))
+					->setAllowChildOverride(true)
+					->setVisibleToChild(true)
+					->setAllowedValues([]),
+			]);
+
+		$this->source
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with(RequestSignGroupsPolicy::KEY, 'company', RequestSignGroupsPolicyValue::encode(['board', 'company']), true, false);
+
+		$this->source
+			->expects($this->once())
+			->method('loadGroupPolicyConfig')
+			->with(RequestSignGroupsPolicy::KEY, 'company')
+			->willReturn((new PolicyLayer())
+				->setScope('group')
+				->setValue(RequestSignGroupsPolicyValue::encode(['board', 'company']))
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]));
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$policy = $service->saveGroupPolicy(RequestSignGroupsPolicy::KEY, 'company', ['board', 'company'], true);
+
+		self::assertInstanceOf(PolicyLayer::class, $policy);
+		self::assertSame(RequestSignGroupsPolicyValue::encode(['board', 'company']), $policy->getValue());
+	}
+
+	public function testSaveRequestSignGroupsBlocksSubAdminWithoutDelegatedGroupRuleEvenWithSystemGrant(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('group-admin');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('group-admin')
+			->willReturn(false);
+
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->with($user)
+			->willReturn(['board', 'company']);
+
+		$this->subAdmin
+			->expects($this->once())
+			->method('isSubAdmin')
+			->with($user)
+			->willReturn(true);
+
+		$this->source
+			->expects($this->once())
+			->method('loadGroupPolicies')
+			->with(RequestSignGroupsPolicy::KEY, $this->anything())
+			->willReturn([]);
+
+		$this->source
+			->expects($this->never())
+			->method('saveGroupPolicy');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->expectException(\DomainException::class);
+		$this->expectExceptionMessage('Group policy management requires explicit delegation from the system administrator');
+
+		$service->saveGroupPolicy(RequestSignGroupsPolicy::KEY, 'company', ['board', 'company'], true);
+	}
+
 	public function testClearGroupPolicyBlocksSubAdminWithoutExplicitSystemDelegation(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('group-admin');
@@ -864,6 +990,43 @@ final class PolicyServiceTest extends TestCase {
 				'blockedBy' => null,
 			],
 		], $result);
+	}
+
+	public function testResolveKnownPolicyStatesPreservesResolvedMetaWhenPresent(): void {
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setPolicyKey('signature_stamp')
+			->setEffectiveValue('parallel')
+			->setInheritedValue('none')
+			->setSourceScope('group')
+			->setVisible(true)
+			->setEditableByCurrentActor(true)
+			->setAllowedValues([])
+			->setCanSaveAsUserDefault(true)
+			->setCanUseAsRequestOverride(true)
+			->setPreferenceWasCleared(false)
+			->setBlockedBy(null)
+			->setMeta(['defaultSystemValue' => 'canonical']);
+
+		/** @var PolicyService&MockObject $service */
+		$service = $this->getMockBuilder(PolicyService::class)
+			->setConstructorArgs([
+				$this->contextFactory,
+				$this->source,
+				$this->registry,
+				$this->l10n,
+			])
+			->onlyMethods(['resolveKnownPolicies'])
+			->getMock();
+
+		$service
+			->expects($this->once())
+			->method('resolveKnownPolicies')
+			->with([], null)
+			->willReturn(['signature_stamp' => $resolvedPolicy]);
+
+		$result = $service->resolveKnownPolicyStates();
+
+		$this->assertSame(['defaultSystemValue' => 'canonical'], $result['signature_stamp']['meta']);
 	}
 
 	public function testResolveKnownPolicyStatesWithRuleCountsEmbedsCounters(): void {
