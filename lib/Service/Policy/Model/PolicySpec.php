@@ -24,11 +24,14 @@ final class PolicySpec implements IPolicyDefinition {
 	private ?Closure $normalizer;
 	/** @var Closure(mixed, PolicyContext): void|null */
 	private ?Closure $validator;
+	/** @var array<string, mixed>|Closure(PolicyContext): array<string, mixed> */
+	private array|Closure $resolvedStateMetaResolver;
 
 	/**
 	 * @param list<mixed>|Closure(PolicyContext): list<mixed> $allowedValues
 	 * @param Closure(mixed): mixed|null $normalizer
 	 * @param Closure(mixed, PolicyContext): void|null $validator
+	 * @param array<string, mixed>|Closure(PolicyContext): array<string, mixed> $resolvedStateMeta
 	 */
 	public function __construct(
 		private string $key,
@@ -41,10 +44,12 @@ final class PolicySpec implements IPolicyDefinition {
 		private string $resolutionMode = self::RESOLUTION_MODE_RESOLVED,
 		private bool $supportsUserPreference = true,
 		private bool $supportsGroupAdminConfiguration = true,
+		array|Closure $resolvedStateMeta = [],
 	) {
 		$this->allowedValuesResolver = $allowedValues;
 		$this->normalizer = $normalizer;
 		$this->validator = $validator;
+		$this->resolvedStateMetaResolver = $resolvedStateMeta;
 	}
 
 	#[\Override]
@@ -105,6 +110,16 @@ final class PolicySpec implements IPolicyDefinition {
 	#[\Override]
 	public function defaultSystemValue(): mixed {
 		return $this->defaultSystemValue;
+	}
+
+	/** @return array<string, mixed> */
+	#[\Override]
+	public function resolvedStateMeta(PolicyContext $context): array {
+		if ($this->resolvedStateMetaResolver instanceof Closure) {
+			return ($this->resolvedStateMetaResolver)($context);
+		}
+
+		return $this->resolvedStateMetaResolver;
 	}
 
 	#[\Override]
