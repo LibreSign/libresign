@@ -137,6 +137,15 @@ class PolicyService {
 
 	/**
 	 * @param list<string> $groupIds
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	public function listGroupPoliciesForTargets(string|\BackedEnum $policyKey, array $groupIds): array {
+		$definition = $this->registry->get($policyKey);
+		return $this->source->listGroupPoliciesByKeyForTargets($definition->key(), $groupIds);
+	}
+
+	/**
+	 * @param list<string> $groupIds
 	 */
 	public function countVisibleGroupPoliciesForTargets(string|\BackedEnum $policyKey, array $groupIds): int {
 		$definition = $this->registry->get($policyKey);
