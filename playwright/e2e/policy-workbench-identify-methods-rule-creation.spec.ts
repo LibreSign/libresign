@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { randomBytes } from 'node:crypto'
+
 import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
-import { randomBytes } from 'node:crypto'
 
 import { ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
 import { login } from '../support/nc-login'
@@ -18,7 +19,7 @@ import {
 	setSystemPolicy,
 	setUserLanguage,
 } from '../support/nc-provisioning'
-import { clearPolicyWorkbenchRules } from '../support/policy-workbench-rules'
+import { clearPolicyWorkbenchRules, waitForPolicyWorkbenchIdle } from '../support/policy-workbench-rules'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
@@ -33,6 +34,11 @@ test.afterEach(async ({ request }) => {
 	await deleteGroup(request, GROUP_ID, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
 })
 
+/**
+ * Opens the identification factors workbench dialog from the admin settings page.
+ *
+ * @param page Playwright page bound to the admin browser session.
+ */
 async function openIdentificationFactorsDialog(page: Page): Promise<Locator> {
 	await page.goto('./settings/admin/libresign')
 
@@ -44,6 +50,13 @@ async function openIdentificationFactorsDialog(page: Page): Promise<Locator> {
 	return dialog
 }
 
+/**
+ * Opens the rule editor for the requested scope inside the identification factors dialog.
+ *
+ * @param page Playwright page bound to the admin browser session.
+ * @param _dialog Existing workbench dialog locator kept for call-site symmetry.
+ * @param scope Scope to open in the rule editor.
+ */
 async function openScopeRuleEditor(page: Page, _dialog: Locator, scope: 'everyone' | 'group' | 'user'): Promise<Locator> {
 	const activeDialog = await openIdentificationFactorsDialog(page)
 
@@ -80,6 +93,11 @@ async function openScopeRuleEditor(page: Page, _dialog: Locator, scope: 'everyon
 	return ruleDialog
 }
 
+/**
+ * Verifies the identification rule editor exposes the supported methods list.
+ *
+ * @param ruleDialog Active rule editor dialog locator.
+ */
 async function assertIdentifyMethodsAreAvailable(ruleDialog: Locator): Promise<void> {
 	await expect(ruleDialog.getByText('No identification methods available.')).toHaveCount(0)
 	const factors = ruleDialog.locator('.identify-methods-editor__method')
@@ -89,6 +107,28 @@ async function assertIdentifyMethodsAreAvailable(ruleDialog: Locator): Promise<v
 		message: 'Expected at least two identify method entries in rule editor',
 	}).toBeGreaterThanOrEqual(2)
 	await expect(ruleDialog.getByText(/Account|Email/i).first()).toBeVisible({ timeout: 10000 })
+}
+
+/**
+ * Closes the currently open rule editor dialog, tolerating re-renders during dismissal.
+ *
+ * @param page Playwright page used to resolve the current top-most rule dialog.
+ */
+async function closeRuleEditorDialog(page: Page): Promise<void> {
+	const ruleDialog = page.getByRole('dialog', { name: /Edit rule|Create rule/i }).last()
+	await expect(ruleDialog).toBeVisible({ timeout: 10000 })
+
+	const cancelButton = ruleDialog.getByRole('button', { name: /Cancel/i }).first()
+	const closedWithButton = await cancelButton.click({ timeout: 5000 }).then(() => true).catch(() => false)
+	if (!closedWithButton) {
+		const alreadyClosed = await ruleDialog.isHidden().catch(() => true)
+		if (!alreadyClosed) {
+			await page.keyboard.press('Escape').catch(() => {})
+		}
+	}
+
+	await expect(ruleDialog).toBeHidden({ timeout: 10000 })
+	await waitForPolicyWorkbenchIdle(page)
 }
 
 test('identification factors rule editor shows available methods for everyone, group and user scopes', async ({ page }) => {
@@ -111,12 +151,13 @@ test('identification factors rule editor shows available methods for everyone, g
 
 	const everyoneRuleDialog = await openScopeRuleEditor(page, dialog, 'everyone')
 	await assertIdentifyMethodsAreAvailable(everyoneRuleDialog)
-	everyoneRuleDialog.getByRole('button', { name: /Cancel/i }).click()
+	await closeRuleEditorDialog(page)
 
 	const groupRuleDialog = await openScopeRuleEditor(page, dialog, 'group')
 	await assertIdentifyMethodsAreAvailable(groupRuleDialog)
-	await groupRuleDialog.getByRole('button', { name: /Cancel/i }).click()
+	await closeRuleEditorDialog(page)
 
 	const userRuleDialog = await openScopeRuleEditor(page, dialog, 'user')
 	await assertIdentifyMethodsAreAvailable(userRuleDialog)
+	await closeRuleEditorDialog(page)
 })
