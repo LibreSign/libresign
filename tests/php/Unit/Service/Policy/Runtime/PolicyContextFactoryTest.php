@@ -39,7 +39,7 @@ final class PolicyContextFactoryTest extends TestCase {
 		$this->userSession->expects($this->once())->method('getUser')->willReturn($user);
 		$this->groupManager->expects($this->once())->method('getUserGroupIds')->with($user)->willReturn(['finance']);
 		$this->groupManager->expects($this->once())->method('isAdmin')->with('john')->willReturn(false);
-		$this->subAdmin->expects($this->never())->method('isSubAdmin');
+		$this->subAdmin->expects($this->once())->method('isSubAdmin')->with($user)->willReturn(true);
 
 		$factory = $this->getFactory();
 		$context = $factory->forCurrentUser(['signature_flow' => 'parallel'], ['type' => 'group', 'id' => 'finance']);
@@ -52,6 +52,25 @@ final class PolicyContextFactoryTest extends TestCase {
 			'canManageSystemPolicies' => false,
 			'canManageGroupPolicies' => true,
 			'manageableGroupCount' => 1,
+		], $context->getActorCapabilities());
+	}
+
+	public function testForCurrentUserDoesNotGrantGroupPolicyCapabilityToRegularGroupMember(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('john');
+
+		$this->userSession->expects($this->once())->method('getUser')->willReturn($user);
+		$this->groupManager->expects($this->once())->method('getUserGroupIds')->with($user)->willReturn(['finance', 'staff']);
+		$this->groupManager->expects($this->once())->method('isAdmin')->with('john')->willReturn(false);
+		$this->subAdmin->expects($this->once())->method('isSubAdmin')->with($user)->willReturn(false);
+
+		$factory = $this->getFactory();
+		$context = $factory->forCurrentUser();
+
+		$this->assertSame([
+			'canManageSystemPolicies' => false,
+			'canManageGroupPolicies' => false,
+			'manageableGroupCount' => 0,
 		], $context->getActorCapabilities());
 	}
 
