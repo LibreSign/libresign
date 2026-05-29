@@ -259,10 +259,10 @@ describe('RealPolicyWorkbench.vue', () => {
 	})
 
 	it('does not crash when removal dialog closes while remove request is pending', async () => {
-		let resolveClearSystemPolicy: (() => void) | null = null
-		clearSystemPolicy
+		let resolvePendingSystemRemoval: (() => void) | null = null
+		saveSystemPolicy
 			.mockImplementationOnce(() => new Promise<void>((resolve) => {
-				resolveClearSystemPolicy = resolve
+				resolvePendingSystemRemoval = resolve
 			}))
 			.mockResolvedValue(undefined)
 
@@ -291,13 +291,13 @@ describe('RealPolicyWorkbench.vue', () => {
 		await confirmButton?.trigger('click')
 
 		await vi.waitFor(() => {
-			expect(clearSystemPolicy).toHaveBeenCalled()
+			expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', null, false)
 		})
 
 		await confirmDialog?.find('.dialog-close-stub').trigger('click')
 
-		expect(resolveClearSystemPolicy).toBeTypeOf('function')
-		const resolvePendingSave = resolveClearSystemPolicy as (() => void) | null
+		expect(resolvePendingSystemRemoval).toBeTypeOf('function')
+		const resolvePendingSave = resolvePendingSystemRemoval as (() => void) | null
 		resolvePendingSave?.()
 		await Promise.resolve()
 		await Promise.resolve()
@@ -495,36 +495,35 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
-		const text = wrapper.text()
-
 		// Validate scope filter action is available in search actions area
 		expect(wrapper.find('button[aria-label="Filter rules by scope"]').exists()).toBe(true)
 
 		// Validate search/filter UI exists
 		expect(wrapper.find('input[type="text"]').exists()).toBe(true)
-		expect(text).toContain('Find setting')
+		expect(wrapper.text()).toContain('Find setting')
 
 		// Validate settings count display is hidden
-		expect(text).not.toContain('Showing 2 settings')
+		expect(wrapper.text()).not.toContain('Showing 2 settings')
 
 		// Validate toggle button exists for card/list view
 		expect(wrapper.find('.policy-workbench__catalog-view-button').exists()).toBe(true)
 
 		// Validate signing order is displayed with compact header copy
-		expect(text).toContain('Signing order')
-		expect(text).toContain('Choose whether documents are signed in order or all at once.')
+		expect(wrapper.text()).toContain('Signing order')
+		expect(wrapper.text()).toContain('Choose whether documents are signed in order or all at once.')
 
 		// Validate default summary block content for custom default mode
-		expect(text).toContain('Default:')
-		expect(text).toContain('Sequential')
-		expect(text).toContain('(custom)')
-		expect(text).toContain('Change')
-		expect(text).toContain('Priority: Account > Group > Default')
-		expect(text).not.toContain('Effective result:')
+		expect(wrapper.text()).toContain('Default:')
+		expect(wrapper.text()).toContain('Sequential')
+		expect(wrapper.text()).toContain('(custom)')
+		expect(wrapper.text()).toContain('Change')
+		expect(wrapper.text()).toContain('Priority: Account > Group > Default')
+		expect(wrapper.text()).not.toContain('Effective result:')
 
 		await vi.waitFor(() => {
 			expect(wrapper.findAll('th').length).toBeGreaterThan(0)
 		})
+		const text = wrapper.text()
 		const tableHeaders = wrapper.findAll('th').map((header) => header.text())
 		expect(tableHeaders).toContain('Type')
 		expect(tableHeaders).toContain('Target')
@@ -535,11 +534,12 @@ describe('RealPolicyWorkbench.vue', () => {
 		// Validate noisy inheritance warning is not shown by default
 		expect(text).not.toContain('Some users may not allow user overrides because their group rule requires inheritance.')
 
-		// Validate counts shown
+		// Validate counts shown without the custom-rules badge when no scoped overrides exist
 		expect(text).toContain('Custom rules:none')
 		expect(text).toContain('Default access:Not configured')
 		expect(text).toContain('Custom overrides:none configured')
-		expect(text).toContain('Custom rules active')
+		expect(text).not.toContain('Custom rules active')
+		expect(text).not.toContain('Loading rules…')
 
 		// Validate migrated settings are present in the workbench catalog
 		expect(text).toContain('Confetti animation')
