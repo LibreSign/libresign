@@ -923,6 +923,50 @@ final class PolicyServiceTest extends TestCase {
 		));
 	}
 
+	public function testCountVisibleGroupPoliciesForTargetsSkipsHiddenRequestAccessRules(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('group-admin');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('group-admin')
+			->willReturn(false);
+
+		$visiblePolicy = (new PolicyLayer())->setNotes([
+			'createdBySystemAdmin' => false,
+			'createdByActorScope' => 'group',
+		]);
+		$hiddenPolicy = (new PolicyLayer())->setNotes([
+			'createdBySystemAdmin' => true,
+			'createdByActorScope' => 'system',
+		]);
+
+		$this->source
+			->expects($this->once())
+			->method('listGroupPoliciesByKeyForTargets')
+			->with(RequestSignGroupsPolicy::KEY, ['board', 'company'])
+			->willReturn([
+				['targetId' => 'board', 'policy' => $visiblePolicy],
+				['targetId' => 'company', 'policy' => $hiddenPolicy],
+			]);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		self::assertSame(1, $service->countVisibleGroupPoliciesForTargets(
+			RequestSignGroupsPolicy::KEY,
+			['board', 'company'],
+		));
+	}
+
 	public function testClearGroupPolicyBlocksSubAdminWithoutExplicitSystemDelegation(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('group-admin');
