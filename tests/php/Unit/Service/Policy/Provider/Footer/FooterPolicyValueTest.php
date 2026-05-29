@@ -43,6 +43,29 @@ final class FooterPolicyValueTest extends TestCase {
 		);
 	}
 
+	public function testNormalizeKeepsCanonicalDefaultTemplateWhenProvided(): void {
+		$defaultTemplate = 'DEFAULT_TEMPLATE_FROM_POLICY';
+
+		$this->assertSame(
+			FooterPolicyValue::defaults($defaultTemplate),
+			FooterPolicyValue::normalize('{"enabled":true,"writeQrcodeOnFooter":true,"customizeFooterTemplate":false}', $defaultTemplate),
+		);
+	}
+
+	public function testEncodeKeepsCanonicalDefaultTemplateWhenProvided(): void {
+		$defaultTemplate = 'DEFAULT_TEMPLATE_FROM_POLICY';
+
+		$this->assertSame(
+			'{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":false,"footerTemplate":"DEFAULT_TEMPLATE_FROM_POLICY","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+			FooterPolicyValue::encode([
+				'enabled' => true,
+				'writeQrcodeOnFooter' => true,
+				'validationSite' => '',
+				'customizeFooterTemplate' => false,
+			], $defaultTemplate),
+		);
+	}
+
 	#[DataProvider('isQrCodeEnabledCases')]
 	public function testIsQrCodeEnabled(mixed $input, bool $expected): void {
 		$this->assertSame($expected, FooterPolicyValue::isQrCodeEnabled($input));
