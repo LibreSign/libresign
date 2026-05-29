@@ -452,17 +452,18 @@ export function createRealPolicyWorkbenchState() {
 		const policy = activePolicyState.value
 		const fallbackValue = isRequestExpirationPolicyKey(activeDefinition.value.key)
 			? buildRequestExpirationValue(
-				activeDefinition.value.getFallbackSystemDefault(policy?.effectiveValue, policy?.sourceScope),
+				activeDefinition.value.getFallbackSystemDefault(policy?.effectiveValue, policy?.sourceScope, policy),
 				policiesStore.getPolicy(REQUEST_EXPIRATION_RENEWAL_KEY)?.effectiveValue,
 			)
 			: isUnifiedSigningExecutionPolicyKey(activeDefinition.value.key)
 				? buildSigningExecutionValue(
-					activeDefinition.value.getFallbackSystemDefault(policy?.effectiveValue, policy?.sourceScope),
+					activeDefinition.value.getFallbackSystemDefault(policy?.effectiveValue, policy?.sourceScope, policy),
 					policiesStore.getPolicy(SIGNING_EXECUTION_WORKER_KEY)?.effectiveValue,
 				)
 				: activeDefinition.value.getFallbackSystemDefault(
 					policy?.effectiveValue,
 					policy?.sourceScope,
+					policy,
 				)
 
 		if (fallbackValue === null || fallbackValue === undefined) {
@@ -1810,7 +1811,7 @@ export function createRealPolicyWorkbenchState() {
 			const definition = realDefinitions[policyKey as keyof typeof realDefinitions]
 			const policy = policiesStore.getPolicy(policyKey)
 
-			return definition?.getFallbackSystemDefault(policy?.effectiveValue, policy?.sourceScope) ?? policy?.effectiveValue ?? null
+			return definition?.getFallbackSystemDefault(policy?.effectiveValue, policy?.sourceScope, policy) ?? policy?.effectiveValue ?? null
 		}
 
 		for (const ruleId of uniqueRuleIds) {
