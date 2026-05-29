@@ -21,6 +21,8 @@ final class ResolvedPolicy {
 	private bool $canUseAsRequestOverride = false;
 	private bool $preferenceWasCleared = false;
 	private ?string $blockedBy = null;
+	/** @var array<string, mixed> */
+	private array $meta = [];
 
 	public function setPolicyKey(string $policyKey): self {
 		$this->policyKey = $policyKey;
@@ -148,9 +150,20 @@ final class ResolvedPolicy {
 		return $this->blockedBy;
 	}
 
+	/** @param array<string, mixed> $meta */
+	public function setMeta(array $meta): self {
+		$this->meta = $meta;
+		return $this;
+	}
+
+	/** @return array<string, mixed> */
+	public function getMeta(): array {
+		return $this->meta;
+	}
+
 	/** @return array<string, mixed> */
 	public function toArray(): array {
-		return [
+		$payload = [
 			'policyKey' => $this->getPolicyKey(),
 			'effectiveValue' => $this->getEffectiveValue(),
 			'inheritedValue' => $this->getInheritedValue(),
@@ -163,5 +176,11 @@ final class ResolvedPolicy {
 			'preferenceWasCleared' => $this->wasPreferenceCleared(),
 			'blockedBy' => $this->getBlockedBy(),
 		];
+
+		if ($this->getMeta() !== []) {
+			$payload['meta'] = $this->getMeta();
+		}
+
+		return $payload;
 	}
 }
