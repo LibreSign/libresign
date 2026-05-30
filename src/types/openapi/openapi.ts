@@ -635,6 +635,42 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/user/{userId}/{policyKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read an explicit user-level policy for a target user (admin scope) */
+        get: operations["policy-get-user-policy-for-user"];
+        /** Save an explicit user policy for a target user (admin scope) */
+        put: operations["policy-set-user-policy-for-user"];
+        post?: never;
+        /** Clear an explicit user policy for a target user (admin scope) */
+        delete: operations["policy-clear-user-policy-for-user"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/by-policy/user/{policyKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all explicit user-level policy values for a policy key */
+        get: operations["policy-list-user-policies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/user/{policyKey}": {
         parameters: {
             query?: never;
@@ -1519,6 +1555,18 @@ export type components = {
         UserElementsResponse: {
             elements: components["schemas"]["UserElement"][];
         };
+        UserPolicyResponse: {
+            policy: components["schemas"]["UserPolicyState"];
+        };
+        UserPolicyState: {
+            policyKey: string;
+            /** @enum {string} */
+            scope: "user_policy";
+            targetId: string;
+            value: components["schemas"]["EffectivePolicyValue"];
+            allowChildOverride: boolean;
+        };
+        UserPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["UserPolicyResponse"];
         ValidateMetadata: {
             extension: string;
             /** Format: int64 */
@@ -3847,6 +3895,226 @@ export interface operations {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
                                 policies: components["schemas"]["GroupPolicyState"][];
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-get-user-policy-for-user": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Target user identifier that receives the policy assignment. */
+                userId: string;
+                /** @description Policy identifier to read for the selected user. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["UserPolicyResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-set-user-policy-for-user": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Target user identifier that receives the policy assignment. */
+                userId: string;
+                /** @description Policy identifier to persist for the target user. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description Policy value to persist as assigned target user policy. */
+                    value?: (boolean | number | string | {
+                        [key: string]: Record<string, never>;
+                    }) | null;
+                    /**
+                     * @description Whether the target user may still override the assigned value in personal preferences.
+                     * @default false
+                     */
+                    allowChildOverride?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["UserPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid policy value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-clear-user-policy-for-user": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Target user identifier that receives the policy assignment removal. */
+                userId: string;
+                /** @description Policy identifier to clear for the target user. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["UserPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description User-scope not supported */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-list-user-policies": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Policy identifier to list user rules. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                policies: components["schemas"]["UserPolicyState"][];
                             };
                         };
                     };
