@@ -32,6 +32,13 @@ export type EffectivePolicyEntry = {
 	canSaveAsUserDefault?: boolean
 	editableByCurrentActor?: boolean
 	allowedValues?: unknown[]
+	everyoneCount?: number
+}
+
+export type SystemPolicySnapshot = {
+	exists: boolean
+	value: unknown
+	allowChildOverride: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -111,6 +118,70 @@ export async function getEffectivePolicy(
 	const result = await policyRequest(requestContext, 'GET', '/apps/libresign/api/v1/policies/effective')
 	const policies = (result.data.policies ?? {}) as Record<string, EffectivePolicyEntry>
 	return policies[policyKey] ?? null
+}
+
+/**
+ * Reads the current system-layer payload together with the effective rule count
+ * so tests can distinguish an explicit persisted system rule from the implicit
+ * built-in default.
+ */
+export async function getSystemPolicySnapshot(
+	ctx: APIRequestContext,
+	policyKey: string,
+): Promise<SystemPolicySnapshot> {
+	const [systemResult, effectivePolicy] = await Promise.all([
+		policyRequest(ctx, 'GET', `/apps/libresign/api/v1/policies/system/${policyKey}`),
+		getEffectivePolicy(ctx, policyKey),
+	])
+
+	expect(
+		systemResult.httpStatus,
+		`getSystemPolicySnapshot(${policyKey}): expected 200 but got ${systemResult.httpStatus}`,
+	).toBe(200)
+
+	const policy = (systemResult.data.policy ?? {}) as {
+		value?: unknown
+		allowChildOverride?: boolean
+	}
+
+	return {
+		exists: (effectivePolicy?.everyoneCount ?? 0) > 0,
+		value: policy.value ?? null,
+		allowChildOverride: policy.allowChildOverride === true,
+	}
+}
+
+/**
+ * Restores a previously captured system-layer snapshot.
+ *
+ * When the original state had no explicit persisted system rule, restore by
+ * posting the built-in default with `allowChildOverride=false`, which triggers
+ * `PolicySource::clearSystemPolicy()` and removes the leaked global delegation.
+ */
+export async function restoreSystemPolicySnapshot(
+	ctx: APIRequestContext,
+	policyKey: string,
+	snapshot: SystemPolicySnapshot,
+): Promise<void> {
+	if (!snapshot.exists) {
+		await setSystemPolicyEntry(ctx, policyKey, null, false)
+		return
+	}
+
+	const response = await policyRequest(
+		ctx,
+		'POST',
+		`/apps/libresign/api/v1/policies/system/${policyKey}`,
+		{
+			value: snapshot.value ?? null,
+			allowChildOverride: snapshot.allowChildOverride,
+		},
+	)
+
+	expect(
+		response.httpStatus,
+		`restoreSystemPolicySnapshot(${policyKey}): expected 200 but got ${response.httpStatus}`,
+	).toBe(200)
 }
 
 /**

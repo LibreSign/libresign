@@ -22,6 +22,7 @@
 
 import { expect, test as base, type APIRequestContext } from '@playwright/test'
 import { randomBytes } from 'node:crypto'
+
 import { login } from '../support/nc-login'
 import { expandSettingsMenu } from '../support/nc-navigation'
 import {
@@ -35,12 +36,19 @@ import {
 } from '../support/nc-provisioning'
 import {
 	createAuthenticatedRequestContext,
+	getSystemPolicySnapshot,
+	restoreSystemPolicySnapshot,
+	setSystemPolicyEntry,
+	type SystemPolicySnapshot,
 } from '../support/policy-api'
 
 const test = base.extend<{
 	adminRequestContext: APIRequestContext
 }>({
-	adminRequestContext: async ({}, use) => {
+	adminRequestContext: async ({ browserName }, use) => {
+		if (!browserName) {
+			throw new Error('Missing browserName fixture')
+		}
 		const ctx = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
 		await use(ctx)
 		await ctx.dispose()
@@ -65,10 +73,39 @@ const MULTI_GROUP_ADMIN_PASSWORD = '123456'
 const REGULAR_USER_NAME = `policy-sidebar-regular-user-${TEST_NAMESPACE}`
 const REGULAR_USER_PASSWORD = '123456'
 
+// Keep in sync with personalPreferenceVisibility.ts supported workbench keys.
+const MANAGEABLE_POLICY_KEYS = [
+	'groups_request_sign',
+	'identification_documents',
+	'identify_methods',
+	'signature_flow',
+	'envelope_enabled',
+	'add_footer',
+	'signature_stamp',
+	'show_confetti_after_signing',
+	'collect_metadata',
+	'legal_information',
+	'expiry_in_days',
+	'maximum_validity',
+	'reminder_settings',
+	'signature_hash_algorithm',
+	'docmdp',
+	'tsa_settings',
+	'crl_external_validation_enabled',
+	'default_user_folder',
+	'make_validation_url_private',
+	'signing_mode',
+] as const
+
 let adminLifecycleContext: APIRequestContext | null = null
+let originalSystemPolicies: Partial<Record<(typeof MANAGEABLE_POLICY_KEYS)[number], SystemPolicySnapshot>> = {}
 
 test.beforeAll(async () => {
 	adminLifecycleContext = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
+	for (const policyKey of MANAGEABLE_POLICY_KEYS) {
+		originalSystemPolicies[policyKey] = await getSystemPolicySnapshot(adminLifecycleContext, policyKey)
+		await setSystemPolicyEntry(adminLifecycleContext, policyKey, null, false)
+	}
 
 	await ensureGroupExists(adminLifecycleContext, GROUP_1)
 	await ensureGroupExists(adminLifecycleContext, GROUP_2)
@@ -99,8 +136,15 @@ test.afterAll(async () => {
 	await deleteUser(adminLifecycleContext, REGULAR_USER_NAME, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
 	await deleteGroup(adminLifecycleContext, GROUP_1, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
 	await deleteGroup(adminLifecycleContext, GROUP_2, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+	for (const policyKey of MANAGEABLE_POLICY_KEYS) {
+		const snapshot = originalSystemPolicies[policyKey]
+		if (snapshot) {
+			await restoreSystemPolicySnapshot(adminLifecycleContext, policyKey, snapshot)
+		}
+	}
 	await adminLifecycleContext.dispose()
 	adminLifecycleContext = null
+	originalSystemPolicies = {}
 })
 
 test.describe('Policies menu sidebar visibility', () => {

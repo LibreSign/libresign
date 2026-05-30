@@ -9,8 +9,11 @@ import { login } from '../support/nc-login'
 import {
 	createAuthenticatedRequestContext,
 	getEffectivePolicy,
+	getSystemPolicySnapshot,
 	policyRequest,
+	restoreSystemPolicySnapshot,
 	setSystemPolicyEntry,
+	type SystemPolicySnapshot,
 } from '../support/policy-api'
 
 type BooleanWorkbenchSetting = {
@@ -28,6 +31,7 @@ const booleanSettings: BooleanWorkbenchSetting[] = [
 ]
 
 let adminContext: Awaited<ReturnType<typeof createAuthenticatedRequestContext>> | null = null
+let originalSnapshots: Partial<Record<BooleanWorkbenchSetting['policyKey'], SystemPolicySnapshot>> = {}
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
@@ -38,15 +42,22 @@ test.afterEach(async () => {
 
 	for (const setting of booleanSettings) {
 		await clearAdminOverrides(adminContext, setting.policyKey)
-		await setSystemPolicyEntry(adminContext, setting.policyKey, null, true)
+		const snapshot = originalSnapshots[setting.policyKey]
+		if (snapshot) {
+			await restoreSystemPolicySnapshot(adminContext, setting.policyKey, snapshot)
+		}
 	}
 	await adminContext.dispose()
 	adminContext = null
+	originalSnapshots = {}
 })
 
 test('boolean settings stay consistent between effective policy and admin initial state', async ({ page }) => {
 	adminContext = await createAuthenticatedRequestContext(adminUser, adminPassword)
 	const ctx = adminContext
+	originalSnapshots = Object.fromEntries(await Promise.all(booleanSettings.map(async (setting) => {
+		return [setting.policyKey, await getSystemPolicySnapshot(ctx, setting.policyKey)]
+	}))) as Partial<Record<BooleanWorkbenchSetting['policyKey'], SystemPolicySnapshot>>
 
 	await login(page.request, adminUser, adminPassword)
 	await page.goto('./settings/admin/libresign')

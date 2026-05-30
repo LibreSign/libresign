@@ -11,7 +11,14 @@
  * requires PDFtk/Java which may not be available in every environment.
  */
 
-import { test, expect, request, type APIRequestContext } from '@playwright/test'
+import { test, request, type APIRequestContext } from '@playwright/test'
+
+import {
+	getSystemPolicySnapshot,
+	restoreSystemPolicySnapshot,
+	setSystemPolicyEntry,
+	type SystemPolicySnapshot,
+} from './policy-api'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -50,43 +57,6 @@ export async function makeAdminContext(): Promise<APIRequestContext> {
 	})
 }
 
-/**
- * Reads the current value of a system policy.  Returns `null` when the policy
- * has not been set (HTTP 404).
- */
-export async function getSystemPolicy(ctx: APIRequestContext, key: string): Promise<string | null> {
-	const response = await ctx.get(`./ocs/v2.php/apps/libresign/api/v1/policies/system/${key}`, {
-		failOnStatusCode: false,
-	})
-	if (response.status() === 404) {
-		return null
-	}
-
-	const payload = await response.json() as { ocs?: { data?: { value?: string | null } } }
-	return payload.ocs?.data?.value ?? null
-}
-
-/**
- * Writes a system policy value.  When `value` is `null` (meaning the policy
- * was not set before) this is a no-op so the absent state is preserved on
- * restore.
- */
-export async function setSystemPolicy(ctx: APIRequestContext, key: string, value: string | null): Promise<void> {
-	if (value === null) {
-		return
-	}
-
-	const response = await ctx.post(`./ocs/v2.php/apps/libresign/api/v1/policies/system/${key}`, {
-		data: {
-			value,
-			allowChildOverride: true,
-		},
-		failOnStatusCode: false,
-	})
-
-	expect(response.status(), `setSystemPolicy(${key}): expected 200 but got ${response.status()}`).toBe(200)
-}
-
 // ---------------------------------------------------------------------------
 // Spec-level hook
 // ---------------------------------------------------------------------------
@@ -104,16 +74,16 @@ export async function setSystemPolicy(ctx: APIRequestContext, key: string, value
  */
 export function useFooterPolicyGuard(): void {
 	let adminContext: APIRequestContext
-	let originalFooterPolicy: string | null
+	let originalFooterPolicy: SystemPolicySnapshot
 
 	test.beforeEach(async () => {
 		adminContext = await makeAdminContext()
-		originalFooterPolicy = await getSystemPolicy(adminContext, FOOTER_POLICY_KEY)
-		await setSystemPolicy(adminContext, FOOTER_POLICY_KEY, FOOTER_DISABLED_VALUE)
+		originalFooterPolicy = await getSystemPolicySnapshot(adminContext, FOOTER_POLICY_KEY)
+		await setSystemPolicyEntry(adminContext, FOOTER_POLICY_KEY, FOOTER_DISABLED_VALUE, true)
 	})
 
 	test.afterEach(async () => {
-		await setSystemPolicy(adminContext, FOOTER_POLICY_KEY, originalFooterPolicy)
+		await restoreSystemPolicySnapshot(adminContext, FOOTER_POLICY_KEY, originalFooterPolicy)
 		await adminContext.dispose()
 	})
 }
