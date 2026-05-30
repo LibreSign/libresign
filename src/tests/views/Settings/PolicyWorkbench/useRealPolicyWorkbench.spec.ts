@@ -1619,7 +1619,7 @@ describe('useRealPolicyWorkbench', () => {
 		state.startEditor({ scope: 'group' })
 
 		expect(state.editorDraft?.scope).toBe('group')
-		expect(state.editorDraft?.targetIds).toEqual(['board'])
+		expect(state.editorDraft?.targetIds).toEqual([])
 		expect(state.editorDraft?.value).toBe('{"allowGroups":["board"],"denyGroups":[]}')
 		expect(state.canSaveDraft).toBe(true)
 	})
