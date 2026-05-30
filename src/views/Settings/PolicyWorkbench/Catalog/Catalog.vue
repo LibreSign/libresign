@@ -515,6 +515,7 @@
 					:editor-help="editorHelp"
 					:active-editor="activeEditor"
 					:editor-props="activeEditorProps"
+					:editor-initial-target-ids="state.editorInitialTargetIds"
 					:selected-target-options="selectedTargetOptions"
 					:available-targets="state.availableTargets"
 					:loading-targets="state.loadingTargets"

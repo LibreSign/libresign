@@ -61,6 +61,7 @@ function mountEditor(modelValue = '["finance"]') {
 			modelValue,
 			editorScope: 'system',
 			editorMode: 'edit',
+			editorInitialTargetIds: [],
 			editorTargetIds: [],
 		},
 		global: {
@@ -77,6 +78,7 @@ function mountEditorWithScopeState(modelValue = '[]', hasSelectedTargets = false
 			modelValue,
 			editorScope: 'group',
 			editorMode: 'create',
+			editorInitialTargetIds: [],
 			hasSelectedTargets,
 		},
 		global: {
@@ -312,6 +314,7 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 		const wrapper = mountEditorWithProps('{"allowGroups":["board"],"denyGroups":[]}', {
 			editorScope: 'group',
 			editorMode: 'create',
+			editorInitialTargetIds: ['board'],
 			editorTargetIds: ['board'],
 			hasSelectedTargets: true,
 		})
@@ -340,6 +343,7 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 		const wrapper = mountEditorWithProps('{"allowGroups":["board"],"denyGroups":[]}', {
 			editorScope: 'group',
 			editorMode: 'edit',
+			editorInitialTargetIds: ['board'],
 			editorTargetIds: ['board'],
 			hasSelectedTargets: true,
 		})
@@ -372,6 +376,7 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 		const wrapper = mountEditorWithProps('{"allowGroups":[],"denyGroups":[]}', {
 			editorScope: 'group',
 			editorMode: 'create',
+			editorInitialTargetIds: ['external-team'],
 			editorTargetIds: ['external-team'],
 			hasSelectedTargets: true,
 		})
@@ -403,6 +408,7 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 		const wrapper = mountEditorWithProps('["board","company"]', {
 			editorScope: 'group',
 			editorMode: 'edit',
+			editorInitialTargetIds: ['board'],
 			editorTargetIds: ['board'],
 		})
 		await Promise.resolve()
@@ -415,5 +421,33 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 		expect(updateEvents).toBeTruthy()
 		expect(updateEvents?.at(-1)?.[0]).toBe('{"allowGroups":["company"],"denyGroups":[]}')
 		expect(wrapper.text()).not.toContain('Your managed group must remain authorized in this rule.')
+	})
+
+	it('keeps Authorized visible while create flow derives targetIds from selected allow groups', async () => {
+		currentUserState.isAdmin = false
+		initialConfigState.manageable_policy_group_ids = ['board']
+		axiosGet.mockReset()
+		axiosGet.mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						groups: ['board'],
+					},
+				},
+			},
+		})
+
+		const wrapper = mountEditorWithProps('{"allowGroups":["board"],"denyGroups":[]}', {
+			editorScope: 'group',
+			editorMode: 'create',
+			editorInitialTargetIds: [],
+			editorTargetIds: ['board'],
+			hasSelectedTargets: true,
+		})
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(wrapper.text()).toContain('Authorized requester groups')
+		expect(wrapper.text()).toContain('Denied requester groups')
 	})
 })
