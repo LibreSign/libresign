@@ -10,8 +10,8 @@ namespace OCA\Libresign\Tests\Unit\Service\Policy\Runtime;
 
 require_once __DIR__ . '/../../../../../../lib/Service/Policy/Contract/IPolicySource.php';
 
-use OCA\Libresign\Service\Policy\Contract\IPolicySource;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
+use OCA\Libresign\Service\Policy\Contract\IPolicySource;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
