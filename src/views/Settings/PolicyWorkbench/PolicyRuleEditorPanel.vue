@@ -37,6 +37,7 @@
 					v-bind="editorProps"
 					:editor-scope="editorDraft.scope"
 					:editor-mode="editorMode"
+					:editor-initial-target-ids="editorInitialTargetIds"
 					:editor-target-ids="editorDraft.targetIds"
 					:has-selected-targets="hideTargetSelector || editorDraft.targetIds.length > 0"
 					@template-changed="$emit('template-changed')"
@@ -116,6 +117,7 @@ const props = withDefaults(defineProps<{
 	editorHelp: string
 	activeEditor: unknown
 	editorProps?: Record<string, unknown>
+	editorInitialTargetIds: string[]
 	selectedTargetOptions: TargetOption[]
 	availableTargets: TargetOption[]
 	loadingTargets: boolean

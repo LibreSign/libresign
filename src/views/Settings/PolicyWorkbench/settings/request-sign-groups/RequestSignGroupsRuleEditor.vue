@@ -137,6 +137,7 @@ const props = defineProps<{
 	modelValue: EffectivePolicyValue
 	editorScope?: 'system' | 'group' | 'user'
 	editorMode?: 'create' | 'edit' | null
+	editorInitialTargetIds?: string[]
 	editorTargetIds?: string[]
 	hasSelectedTargets?: boolean
 }>()
@@ -164,6 +165,12 @@ function clampToManageableScope(groupIds: string[]): string[] {
 	}
 
 	return groupIds.filter((groupId) => manageableGroupIds.has(groupId))
+}
+
+function normalizeTargetIds(targetIds?: string[]): string[] {
+	return Array.isArray(targetIds)
+		? targetIds.filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
+		: []
 }
 
 selectedAllowGroupIds.value = clampToManageableScope(resolveRequestSignGroups(props.modelValue))
@@ -200,6 +207,11 @@ const shouldShowRequesterGroupsEditor = computed(() => {
  * In that situation the Authorized section is controlled by the system administrator
  * (via `allowChildOverride`) and the group admin should only be able to refine
  * the deny list. Showing the Authorized selector would be confusing and redundant.
+ *
+ * Important: this must be based on the original scope targets of the editor
+ * session, not on the live `allowGroups` selection, because for
+ * `groups_request_sign` the workbench now derives targetIds from the current
+ * allow list while the user edits the form.
  */
 const hideAllowGroups = computed(() => {
 	if (isInstanceAdmin) {
@@ -214,9 +226,7 @@ const hideAllowGroups = computed(() => {
 		return false
 	}
 
-	const targetIds = Array.isArray(props.editorTargetIds)
-		? props.editorTargetIds.filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
-		: []
+	const targetIds = normalizeTargetIds(props.editorInitialTargetIds)
 
 	if (targetIds.length === 0) {
 		return false
@@ -235,9 +245,7 @@ const requiredManagedGroupId = computed(() => {
 		return null
 	}
 
-	const targetIds = Array.isArray(props.editorTargetIds)
-		? props.editorTargetIds.filter((targetId): targetId is string => typeof targetId === 'string' && targetId.trim().length > 0)
-		: []
+	const targetIds = normalizeTargetIds(props.editorInitialTargetIds)
 
 	if (targetIds.length !== 1) {
 		return null

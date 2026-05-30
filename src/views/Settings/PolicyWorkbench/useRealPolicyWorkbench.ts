@@ -302,6 +302,7 @@ export function createRealPolicyWorkbenchState() {
 	const rulesLoading = ref(false)
 	const hydratePersistedRulesRequestId = ref(0)
 	const editorInitialSnapshot = ref('')
+	const editorInitialTargetIds = ref<string[]>([])
 	const draftTouchVersion = ref(0)
 	const editorInitialTouchVersion = ref(0)
 
@@ -1489,6 +1490,7 @@ export function createRealPolicyWorkbenchState() {
 		explicitSystemRule.value = null
 		editorDraft.value = null
 		editorMode.value = null
+		editorInitialTargetIds.value = []
 		duplicateMessage.value = null
 		rulesLoading.value = false
 	}
@@ -1587,6 +1589,7 @@ export function createRealPolicyWorkbenchState() {
 			value,
 			allowChildOverride,
 		}
+		editorInitialTargetIds.value = [...targetIds]
 
 		if (
 			!ruleId
@@ -1618,6 +1621,7 @@ export function createRealPolicyWorkbenchState() {
 		editorMode.value = null
 		duplicateMessage.value = null
 		editorInitialSnapshot.value = ''
+		editorInitialTargetIds.value = []
 		editorInitialTouchVersion.value = draftTouchVersion.value
 	}
 
@@ -2034,6 +2038,7 @@ export function createRealPolicyWorkbenchState() {
 		activeDefinition,
 		editorDraft,
 		editorMode: editorMode as any,
+		editorInitialTargetIds,
 		inheritedSystemRule,
 		systemDefaultRule,
 		hasGlobalDefault,
