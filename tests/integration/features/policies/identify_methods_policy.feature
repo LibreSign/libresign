@@ -1,4 +1,4 @@
-Feature: admin/identify_methods_policy
+Feature: policies/identify_methods_policy
   Scenario: Manage identify_methods policy layers through API
     Given as user "admin"
     And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/admin/identify_methods"

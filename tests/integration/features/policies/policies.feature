@@ -1,4 +1,4 @@
-Feature: admin/policies
+Feature: policies/policies
   Scenario: Manage signature_flow policy layers through API
     Given as user "admin"
     And user "signer1" exists
