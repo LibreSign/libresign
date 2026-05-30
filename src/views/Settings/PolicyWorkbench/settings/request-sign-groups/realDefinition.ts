@@ -33,13 +33,25 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 		allowGroups: [],
 		denyGroups: [],
 	}),
-	syncCreateDraftValueFromTargets: (scope, targetIds, currentValue) => {
+	syncCreateDraftValueFromTargets: (scope, targetIds, currentValue, isInstanceAdmin) => {
 		if (scope !== 'group') {
 			return currentValue
 		}
 
 		const currentAuthorizedGroups = resolveRequestSignGroups(currentValue)
 		const currentDeniedGroups = resolveDeniedRequestSignGroups(currentValue)
+
+		// Group admins should not have Authorized pre-filled with their own groups:
+		// the system administrator already set that via allowChildOverride, and the
+		// editor will hide the Authorized section for them. Pre-filling it would
+		// create spurious conflict warnings (e.g. group appears in both allow + deny).
+		if (!isInstanceAdmin) {
+			return serializeRequestSignGroups({
+				allowGroups: currentAuthorizedGroups,
+				denyGroups: currentDeniedGroups,
+			})
+		}
+
 		if (currentAuthorizedGroups.length > 0) {
 			return currentValue
 		}

@@ -1648,6 +1648,7 @@ export function createRealPolicyWorkbenchState() {
 				editorDraft.value.scope,
 				normalizedTargetIds,
 				editorDraft.value.value,
+				isInstanceAdmin,
 			)
 		}
 	}
