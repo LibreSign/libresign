@@ -41,7 +41,7 @@ export interface RealPolicySettingDefinition {
 	editorDialogLayout?: RealPolicyEditorDialogLayout
 	resolutionMode: RealPolicyResolutionMode
 	createEmptyValue: () => EffectivePolicyValue
-	syncCreateDraftValueFromTargets?: (scope: RealPolicyScope, targetIds: string[], currentValue: EffectivePolicyValue) => EffectivePolicyValue
+	syncCreateDraftValueFromTargets?: (scope: RealPolicyScope, targetIds: string[], currentValue: EffectivePolicyValue, isInstanceAdmin: boolean) => EffectivePolicyValue
 	normalizeDraftValue: (value: EffectivePolicyValue) => EffectivePolicyValue
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => boolean
 	isBaselineSeedable?: (value: EffectivePolicyValue) => boolean

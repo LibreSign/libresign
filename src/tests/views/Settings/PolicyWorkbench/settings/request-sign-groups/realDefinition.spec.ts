@@ -35,6 +35,7 @@ describe('requestSignGroupsRealDefinition', () => {
 			'group',
 			['finance'],
 			'{"allowGroups":[],"denyGroups":[]}',
+			true,
 		)
 
 		expect(seeded).toBe('{"allowGroups":["finance"],"denyGroups":[]}')
@@ -45,6 +46,7 @@ describe('requestSignGroupsRealDefinition', () => {
 			'group',
 			['finance'],
 			'{"allowGroups":[],"denyGroups":["legal"]}',
+			true,
 		)
 
 		expect(seeded).toBe('{"allowGroups":["finance"],"denyGroups":["legal"]}')

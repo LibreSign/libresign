@@ -6,34 +6,36 @@
 <template>
 	<div class="request-sign-groups-editor">
 		<template v-if="shouldShowRequesterGroupsEditor">
-			<header class="request-sign-groups-editor__header">
-				<h4 class="request-sign-groups-editor__title">
-					<!-- TRANSLATORS Section title for the policy that delegates who may create signature requests. -->
-					{{ t('libresign', 'Authorized requester groups') }}
-				</h4>
-				<p class="request-sign-groups-editor__description">
-					<!-- TRANSLATORS Description explaining this scope controls which groups may create signature requests. -->
-					{{ t('libresign', 'Choose which groups may create signature requests within this scope.') }}
-				</p>
-			</header>
+			<template v-if="!hideAllowGroups">
+				<header class="request-sign-groups-editor__header">
+					<h4 class="request-sign-groups-editor__title">
+						<!-- TRANSLATORS Section title for the policy that delegates who may create signature requests. -->
+						{{ t('libresign', 'Authorized requester groups') }}
+					</h4>
+					<p class="request-sign-groups-editor__description">
+						<!-- TRANSLATORS Description explaining this scope controls which groups may create signature requests. -->
+						{{ t('libresign', 'Choose which groups may create signature requests within this scope.') }}
+					</p>
+				</header>
 
-			<NcSelect
-				:model-value="selectedAllowGroups"
-				label="displayname"
-				:no-wrap="false"
-				:aria-label-combobox="authorizedRequesterGroupsAriaLabel"
-				:close-on-select="false"
-				:disabled="loadingGroups"
-				:loading="loadingGroups"
-				:multiple="true"
-				:options="availableGroups"
-				:placeholder="searchGroupsPlaceholder"
-				:searchable="true"
-				:show-no-options="false"
-				@search-change="searchGroup"
-				@update:modelValue="onAllowGroupsChange" />
+				<NcSelect
+					:model-value="selectedAllowGroups"
+					label="displayname"
+					:no-wrap="false"
+					:aria-label-combobox="authorizedRequesterGroupsAriaLabel"
+					:close-on-select="false"
+					:disabled="loadingGroups"
+					:loading="loadingGroups"
+					:multiple="true"
+					:options="availableGroups"
+					:placeholder="searchGroupsPlaceholder"
+					:searchable="true"
+					:show-no-options="false"
+					@search-change="searchGroup"
+					@update:modelValue="onAllowGroupsChange" />
+			</template>
 
-			<section class="request-sign-groups-editor__deny-section">
+			<section :class="['request-sign-groups-editor__deny-section', { 'request-sign-groups-editor__deny-section--standalone': hideAllowGroups }]">
 				<h4 class="request-sign-groups-editor__title">
 					<!-- TRANSLATORS Section title for explicitly denied groups in signature-request access policy. -->
 					{{ t('libresign', 'Denied requester groups') }}
@@ -59,18 +61,20 @@
 					@search-change="searchGroup"
 					@update:modelValue="onDenyGroupsChange" />
 
-				<p v-if="overlappingGroupIds.length > 0" class="request-sign-groups-editor__helper request-sign-groups-editor__helper--warning">
+				<p v-if="!hideAllowGroups && overlappingGroupIds.length > 0" class="request-sign-groups-editor__helper request-sign-groups-editor__helper--warning">
 					<!-- TRANSLATORS Warning shown when a group appears in both allow and deny lists; deny takes precedence. -->
 					{{ t('libresign', 'One or more groups are present in both allow and deny lists. Deny takes precedence.') }}
 				</p>
 			</section>
 
-			<p class="request-sign-groups-editor__helper">
+			<p v-if="!hideAllowGroups" class="request-sign-groups-editor__helper">
 				<!-- TRANSLATORS Helper note: administrators can only authorize groups they are members of. -->
 				{{ t('libresign', 'Only groups you belong to may be configured in allow or deny lists.') }}
 			</p>
 
-			<p v-if="requiredManagedGroupId" class="request-sign-groups-editor__helper request-sign-groups-editor__helper--warning">
+			<!-- The warning is only meaningful when the Authorized section is visible;
+			     when hideAllowGroups is true the managed group is preserved automatically. -->
+			<p v-if="requiredManagedGroupId && !hideAllowGroups" class="request-sign-groups-editor__helper request-sign-groups-editor__helper--warning">
 				<!-- TRANSLATORS Warning shown to delegated group admins while editing requester groups. -->
 				{{ t('libresign', 'Your managed group must remain authorized in this rule.') }}
 			</p>
@@ -189,6 +193,39 @@ const shouldShowRequesterGroupsEditor = computed(() => {
 	)
 })
 
+/**
+ * True when the current user is a group admin creating/editing a rule exclusively
+ * for groups they already manage.
+ *
+ * In that situation the Authorized section is controlled by the system administrator
+ * (via `allowChildOverride`) and the group admin should only be able to refine
+ * the deny list. Showing the Authorized selector would be confusing and redundant.
+ */
+const hideAllowGroups = computed(() => {
+	if (isInstanceAdmin) {
+		return false
+	}
+
+	if (props.editorScope !== 'group') {
+		return false
+	}
+
+	if (manageableGroupIds.size === 0) {
+		return false
+	}
+
+	const targetIds = Array.isArray(props.editorTargetIds)
+		? props.editorTargetIds.filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
+		: []
+
+	if (targetIds.length === 0) {
+		return false
+	}
+
+	// Hide Authorized only when ALL selected target groups are managed by this admin.
+	return targetIds.every((id) => manageableGroupIds.has(id))
+})
+
 const requiredManagedGroupId = computed(() => {
 	if (isInstanceAdmin) {
 		return null
@@ -282,8 +319,14 @@ function toGroupIds(value: Array<GroupRow | string>): string[] {
 }
 
 function emitValue() {
+	// When Authorized is hidden the group admin must not overwrite the inherited
+	// allowGroups that come from the parent (system/group) rule.
+	const effectiveAllowGroups = hideAllowGroups.value
+		? resolveRequestSignGroups(props.modelValue)
+		: selectedAllowGroupIds.value
+
 	emit('update:modelValue', serializeRequestSignGroups({
-		allowGroups: selectedAllowGroupIds.value,
+		allowGroups: effectiveAllowGroups,
 		denyGroups: selectedDenyGroupIds.value,
 	}))
 }
@@ -363,6 +406,13 @@ onMounted(async () => {
 		margin-top: 0.5rem;
 		padding-top: 0.75rem;
 		border-top: 1px solid var(--color-border);
+
+		// When Authorized is hidden the section needs no visual separator.
+		&--standalone {
+			margin-top: 0;
+			padding-top: 0;
+			border-top: none;
+		}
 	}
 
 }
