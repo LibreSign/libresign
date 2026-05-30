@@ -1574,9 +1574,6 @@ export function createRealPolicyWorkbenchState() {
 				: null
 			if (shouldUseBaselineForCreate('group', baselineRuleValue)) {
 				value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
-				if (typeof activeDefinition.value.extractScopeTargets === 'function') {
-					targetIds = activeDefinition.value.extractScopeTargets(scope, value)
-				}
 			}
 		} else if (scope === 'user') {
 			const baselineRuleValue = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
