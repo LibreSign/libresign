@@ -89,7 +89,10 @@ final class PolicyRegistryTest extends TestCase {
 			RequestSignGroupsPolicyValue::encode(RequestSignGroupsPolicyValue::DEFAULT_GROUPS),
 			$definition->defaultSystemValue(),
 		);
-		$this->assertSame('["admin","finance"]', $definition->normalizeValue(['finance', 'admin']));
+		$this->assertSame(
+			'{"allowGroups":["admin","finance"],"denyGroups":[]}',
+			$definition->normalizeValue(['finance', 'admin']),
+		);
 	}
 
 	public function testRegistryReturnsApprovalGroupsDefinition(): void {
