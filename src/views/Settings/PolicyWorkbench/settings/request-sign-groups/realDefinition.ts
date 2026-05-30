@@ -34,6 +34,7 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 		denyGroups: [],
 	}),
 	extractScopeTargets: (_scope, value) => resolveRequestSignGroups(value),
+	isBaselineSeedable: (value: EffectivePolicyValue) => resolveRequestSignGroups(value).length > 0,
 	syncCreateDraftValueFromTargets: (scope, targetIds, currentValue, isInstanceAdmin) => {
 		if (scope !== 'group') {
 			return currentValue
