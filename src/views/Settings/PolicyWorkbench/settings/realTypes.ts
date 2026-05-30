@@ -41,15 +41,8 @@ export interface RealPolicySettingDefinition {
 	editorDialogLayout?: RealPolicyEditorDialogLayout
 	resolutionMode: RealPolicyResolutionMode
 	createEmptyValue: () => EffectivePolicyValue
-	 * When true, the 'Scope groups' selector is hidden in the rule editor dialog and
-	 * the editor drives target selection: the workbench automatically sets
-	 * targetIds to the allow-group IDs extracted from the policy value each
-	 * time the editor emits a new value.
-	 *
-	 * Only meaningful for group-scope rules.
-	 */
 	scopeTargetsFromAllowGroups?: boolean
-	syncCreateDraftValueFromTargets?: (scope: RealPolicyScope, targetIds: string[], currentValue: EffectivePolicyValue, isInstanceAdmin: boolean) => EffectivePolicyValue
+	/**
 	 * When true, the 'Scope groups' selector is hidden in the rule editor dialog and
 	 * the editor drives target selection: the workbench automatically sets
 	 * targetIds to the allow-group IDs extracted from the policy value each
