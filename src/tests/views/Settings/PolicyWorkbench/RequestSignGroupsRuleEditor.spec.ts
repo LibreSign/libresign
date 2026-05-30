@@ -236,7 +236,7 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 
 		expect(wrapper.text()).toContain('Authorized requester groups')
 		expect(wrapper.text()).toContain('Choose which groups may create signature requests within this scope.')
-		expect(wrapper.text()).toContain('Only groups you belong to may be authorized.')
+		expect(wrapper.text()).toContain('Only groups you belong to may be configured in allow or deny lists.')
 	})
 
 	it('keeps long group labels visible for overflow-sensitive cases', async () => {
@@ -322,7 +322,7 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 
 		const updateEvents = wrapper.emitted('update:modelValue')
 		expect(updateEvents).toBeTruthy()
-		expect(updateEvents?.at(-1)?.[0]).toBe('["board","company"]')
+		expect(updateEvents?.at(-1)?.[0]).toBe('{"allowGroups":["board","company"],"denyGroups":[]}')
 		expect(wrapper.text()).toContain('Your managed group must remain authorized in this rule.')
 	})
 
@@ -356,7 +356,7 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 
 		const updateEvents = wrapper.emitted('update:modelValue')
 		expect(updateEvents).toBeTruthy()
-		expect(updateEvents?.at(-1)?.[0]).toBe('["company"]')
+		expect(updateEvents?.at(-1)?.[0]).toBe('{"allowGroups":["company"],"denyGroups":[]}')
 		expect(wrapper.text()).not.toContain('Your managed group must remain authorized in this rule.')
 	})
 })
