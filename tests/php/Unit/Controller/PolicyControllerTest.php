@@ -12,6 +12,7 @@ use OCA\Libresign\Controller\PolicyController;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyGuard;
 use OCP\AppFramework\Http;
@@ -176,6 +177,12 @@ final class PolicyControllerTest extends TestCase {
 
 		$this->policyService
 			->expects($this->once())
+			->method('shouldFilterVisibleGroupCountsForCurrentActor')
+			->with('signature_flow')
+			->willReturn(false);
+
+		$this->policyService
+			->expects($this->once())
 			->method('getRuleCounts')
 			->with(['finance'], [])
 			->willReturn($ruleCounts = ['signature_flow' => ['groupCount' => 1, 'userCount' => 0, 'everyoneCount' => 0]]);
@@ -214,6 +221,11 @@ final class PolicyControllerTest extends TestCase {
 		$this->groupManager->method('isAdmin')->with('admin')->willReturn(false);
 		$this->subAdmin->method('isSubAdmin')->with($this->currentUser)->willReturn(true);
 		$this->groupManager->method('getUserGroupIds')->with($this->currentUser)->willReturn(['company', 'board']);
+
+		$this->policyService
+			->expects($this->exactly(2))
+			->method('shouldFilterVisibleGroupCountsForCurrentActor')
+			->willReturnCallback(static fn (string $policyKey): bool => $policyKey === RequestSignGroupsPolicy::KEY);
 
 		$this->policyService
 			->expects($this->once())
@@ -278,10 +290,88 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame(2, $response->getData()['policies']['signature_flow']['groupCount']);
 	}
 
+	public function testEffectiveHidesHiddenConfettiRuleCountsForSubAdmin(): void {
+		$this->groupManager->method('isAdmin')->with('admin')->willReturn(false);
+		$this->subAdmin->method('isSubAdmin')->with($this->currentUser)->willReturn(true);
+		$this->groupManager->method('getUserGroupIds')->with($this->currentUser)->willReturn(['board']);
+
+		$this->policyService
+			->expects($this->exactly(2))
+			->method('shouldFilterVisibleGroupCountsForCurrentActor')
+			->willReturnCallback(static fn (string $policyKey): bool => $policyKey === ConfettiPolicy::KEY);
+
+		$this->policyService
+			->expects($this->once())
+			->method('getRuleCounts')
+			->with(['board'], [])
+			->willReturn($rawRuleCounts = [
+				ConfettiPolicy::KEY => ['groupCount' => 1, 'userCount' => 0, 'everyoneCount' => 0],
+				'signature_flow' => ['groupCount' => 2, 'userCount' => 0, 'everyoneCount' => 0],
+			]);
+
+		$this->policyService
+			->expects($this->once())
+			->method('countVisibleGroupPoliciesForTargets')
+			->with(ConfettiPolicy::KEY, ['board'])
+			->willReturn(0);
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolveKnownPolicyStatesWithRuleCounts')
+			->with([
+				ConfettiPolicy::KEY => ['groupCount' => 0, 'userCount' => 0, 'everyoneCount' => 0],
+				'signature_flow' => $rawRuleCounts['signature_flow'],
+			])
+			->willReturn([
+				ConfettiPolicy::KEY => [
+					'policyKey' => ConfettiPolicy::KEY,
+					'effectiveValue' => false,
+					'inheritedValue' => null,
+					'sourceScope' => 'group',
+					'visible' => true,
+					'editableByCurrentActor' => false,
+					'allowedValues' => [false, true],
+					'canSaveAsUserDefault' => true,
+					'canUseAsRequestOverride' => false,
+					'preferenceWasCleared' => false,
+					'blockedBy' => null,
+					'groupCount' => 0,
+					'userCount' => 0,
+					'everyoneCount' => 0,
+				],
+				'signature_flow' => [
+					'policyKey' => 'signature_flow',
+					'effectiveValue' => 'parallel',
+					'inheritedValue' => null,
+					'sourceScope' => 'system',
+					'visible' => true,
+					'editableByCurrentActor' => true,
+					'allowedValues' => ['parallel'],
+					'canSaveAsUserDefault' => false,
+					'canUseAsRequestOverride' => false,
+					'preferenceWasCleared' => false,
+					'blockedBy' => null,
+					'groupCount' => 2,
+					'userCount' => 0,
+					'everyoneCount' => 0,
+				],
+			]);
+
+		$response = $this->controller->effective();
+
+		$this->assertSame(0, $response->getData()['policies'][ConfettiPolicy::KEY]['groupCount']);
+		$this->assertSame(2, $response->getData()['policies']['signature_flow']['groupCount']);
+	}
+
 	public function testEffectiveKeepsNonEditablePoliciesVisibleForSubAdmin(): void {
 		$this->groupManager->method('isAdmin')->with('admin')->willReturn(false);
 		$this->subAdmin->method('isSubAdmin')->with($this->currentUser)->willReturn(true);
 		$this->groupManager->method('getUserGroupIds')->with($this->currentUser)->willReturn(['finance']);
+
+		$this->policyService
+			->expects($this->exactly(2))
+			->method('shouldFilterVisibleGroupCountsForCurrentActor')
+			->willReturn(false);
 
 		$this->policyService
 			->expects($this->once())
@@ -751,6 +841,53 @@ final class PolicyControllerTest extends TestCase {
 		], $response->getData());
 	}
 
+	public function testGetGroupReturnsForbiddenWhenConfettiSeedRuleIsHiddenFromSubAdmin(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(false);
+		$this->subAdmin
+			->method('isSubAdmin')
+			->with($this->currentUser)
+			->willReturn(true);
+		$this->groupManager
+			->method('getUserGroupIds')
+			->with($this->currentUser)
+			->willReturn(['board']);
+
+		$policyLayer = (new PolicyLayer())
+			->setScope('group')
+			->setValue(false)
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true)
+			->setAllowedValues([false, true]);
+
+		$this->policyService
+			->expects($this->once())
+			->method('getGroupPolicy')
+			->with(ConfettiPolicy::KEY, 'board')
+			->willReturn($policyLayer);
+
+		$this->policyService
+			->expects($this->once())
+			->method('canViewGroupPolicy')
+			->with(ConfettiPolicy::KEY, 'board', $policyLayer)
+			->willReturn(false);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Not allowed to manage this group policy')
+			->willReturn('Not allowed to manage this group policy');
+
+		$response = $this->controller->getGroup('board', ConfettiPolicy::KEY);
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Not allowed to manage this group policy',
+		], $response->getData());
+	}
+
 	public function testListGroupPoliciesHidesSysadminDelegationRulesFromSubAdmin(): void {
 		$this->groupManager
 			->method('isAdmin')
@@ -819,6 +956,49 @@ final class PolicyControllerTest extends TestCase {
 				'allowedValues' => [],
 				'deletableByCurrentActor' => true,
 			]],
+		], $response->getData());
+	}
+
+	public function testListGroupPoliciesHidesConfettiSeedRulesFromSubAdmin(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(false);
+		$this->subAdmin
+			->method('isSubAdmin')
+			->with($this->currentUser)
+			->willReturn(true);
+		$this->groupManager
+			->method('getUserGroupIds')
+			->with($this->currentUser)
+			->willReturn(['board']);
+
+		$hiddenPolicy = (new PolicyLayer())
+			->setScope('group')
+			->setValue(false)
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true)
+			->setAllowedValues([false, true]);
+
+		$this->policyService
+			->expects($this->once())
+			->method('listGroupPoliciesForTargets')
+			->with(ConfettiPolicy::KEY, ['board'])
+			->willReturn([
+				['targetId' => 'board', 'policy' => $hiddenPolicy],
+			]);
+
+		$this->policyService
+			->expects($this->once())
+			->method('canViewGroupPolicy')
+			->with(ConfettiPolicy::KEY, 'board', $hiddenPolicy)
+			->willReturn(false);
+
+		$response = $this->controller->listGroupPolicies(ConfettiPolicy::KEY);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame([
+			'policies' => [],
 		], $response->getData());
 	}
 
@@ -1071,6 +1251,12 @@ final class PolicyControllerTest extends TestCase {
 			->with('admin')
 			->willReturn(true);
 
+		$this->policyService
+			->expects($this->once())
+			->method('canManageUserPolicyForUserId')
+			->with('signature_flow', 'user1')
+			->willReturn(true);
+
 		$persistedPolicy = (new PolicyLayer())
 			->setScope('user_policy')
 			->setValue('ordered_numeric')
@@ -1103,6 +1289,12 @@ final class PolicyControllerTest extends TestCase {
 			->with('admin')
 			->willReturn(true);
 
+		$this->policyService
+			->expects($this->once())
+			->method('canManageUserPolicyForUserId')
+			->with('signature_flow', 'user1')
+			->willReturn(true);
+
 		$this->l10n
 			->expects($this->once())
 			->method('t')
@@ -1124,10 +1316,129 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertTrue($response->getData()['policy']['allowChildOverride']);
 	}
 
+	public function testSetUserPolicyForTargetUserAllowsSubAdminWhenPolicyDelegationIsPresent(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->willReturn(false);
+		$this->subAdmin
+			->method('isSubAdmin')
+			->with($this->currentUser)
+			->willReturn(true);
+		$this->userManager
+			->method('get')
+			->with('user1')
+			->willReturn($targetUser = $this->createMock(IUser::class));
+		$this->subAdmin
+			->method('getSubAdminsGroups')
+			->with($this->currentUser)
+			->willReturn([$managedGroup = $this->createMock(\OCP\IGroup::class)]);
+		$managedGroup->method('getGID')->willReturn('board');
+		$this->groupManager
+			->method('getUserGroupIds')
+			->with($targetUser)
+			->willReturn(['board']);
+
+		$this->policyService
+			->expects($this->once())
+			->method('canManageUserPolicyForUserId')
+			->with(ConfettiPolicy::KEY, 'user1')
+			->willReturn(true);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveUserPolicyForUserId')
+			->with(ConfettiPolicy::KEY, 'user1', true, false)
+			->willReturn((new PolicyLayer())
+				->setScope('user_policy')
+				->setValue(true)
+				->setAllowChildOverride(false));
+
+		$response = $this->controller->setUserPolicyForUser('user1', ConfettiPolicy::KEY, true, false);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame([
+			'message' => 'Settings saved',
+			'policy' => [
+				'policyKey' => ConfettiPolicy::KEY,
+				'scope' => 'user_policy',
+				'targetId' => 'user1',
+				'value' => true,
+				'allowChildOverride' => false,
+			],
+		], $response->getData());
+	}
+
+	public function testClearUserPolicyForTargetUserAllowsSubAdminWhenPolicyDelegationIsPresent(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->willReturn(false);
+		$this->subAdmin
+			->method('isSubAdmin')
+			->with($this->currentUser)
+			->willReturn(true);
+		$this->userManager
+			->method('get')
+			->with('user1')
+			->willReturn($targetUser = $this->createMock(IUser::class));
+		$this->subAdmin
+			->method('getSubAdminsGroups')
+			->with($this->currentUser)
+			->willReturn([$managedGroup = $this->createMock(\OCP\IGroup::class)]);
+		$managedGroup->method('getGID')->willReturn('board');
+		$this->groupManager
+			->method('getUserGroupIds')
+			->with($targetUser)
+			->willReturn(['board']);
+
+		$this->policyService
+			->expects($this->once())
+			->method('canManageUserPolicyForUserId')
+			->with(ConfettiPolicy::KEY, 'user1')
+			->willReturn(true);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+
+		$this->policyService
+			->expects($this->once())
+			->method('clearUserPolicyForUserId')
+			->with(ConfettiPolicy::KEY, 'user1')
+			->willReturn(null);
+
+		$response = $this->controller->clearUserPolicyForUser('user1', ConfettiPolicy::KEY);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame([
+			'message' => 'Settings saved',
+			'policy' => [
+				'policyKey' => ConfettiPolicy::KEY,
+				'scope' => 'user_policy',
+				'targetId' => 'user1',
+				'value' => null,
+				'allowChildOverride' => true,
+			],
+		], $response->getData());
+	}
+
 	public function testSetUserPolicyForTargetUserReturnsBadRequestWhenServiceBlocksSave(): void {
 		$this->groupManager
 			->method('isAdmin')
 			->with('admin')
+			->willReturn(true);
+
+		$this->policyService
+			->expects($this->once())
+			->method('canManageUserPolicyForUserId')
+			->with('signature_flow', 'user1')
 			->willReturn(true);
 
 		$this->policyService
@@ -1165,6 +1476,12 @@ final class PolicyControllerTest extends TestCase {
 
 		$this->policyService
 			->expects($this->once())
+			->method('canManageUserPolicyForUserId')
+			->with('signature_flow', 'user1')
+			->willReturn(true);
+
+		$this->policyService
+			->expects($this->once())
 			->method('saveUserPolicyForUserId')
 			->with('signature_flow', 'user1', 'ordered_numeric', false)
 			->willThrowException(new \RuntimeException('Unexpected policy failure'));
@@ -1192,6 +1509,12 @@ final class PolicyControllerTest extends TestCase {
 		$this->groupManager
 			->method('isAdmin')
 			->with('admin')
+			->willReturn(true);
+
+		$this->policyService
+			->expects($this->once())
+			->method('canManageUserPolicyForUserId')
+			->with('signature_flow', 'user1')
 			->willReturn(true);
 
 		$this->policyService
@@ -1224,6 +1547,50 @@ final class PolicyControllerTest extends TestCase {
 		$this->policyService->expects($this->never())->method('saveUserPolicyForUserId');
 
 		$response = $this->controller->setUserPolicyForUser('user1', 'signature_flow', 'ordered_numeric');
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Not allowed to manage this user policy',
+		], $response->getData());
+	}
+
+	public function testSetUserPolicyForTargetUserReturnsForbiddenWhenPolicyDelegationIsMissing(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->willReturn(false);
+		$this->subAdmin
+			->method('isSubAdmin')
+			->with($this->currentUser)
+			->willReturn(true);
+		$this->userManager
+			->method('get')
+			->with('user1')
+			->willReturn($targetUser = $this->createMock(IUser::class));
+		$this->subAdmin
+			->method('getSubAdminsGroups')
+			->with($this->currentUser)
+			->willReturn([$managedGroup = $this->createMock(\OCP\IGroup::class)]);
+		$managedGroup->method('getGID')->willReturn('board');
+		$this->groupManager
+			->method('getUserGroupIds')
+			->with($targetUser)
+			->willReturn(['board']);
+
+		$this->policyService
+			->expects($this->once())
+			->method('canManageUserPolicyForUserId')
+			->with(ConfettiPolicy::KEY, 'user1')
+			->willReturn(false);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Not allowed to manage this user policy')
+			->willReturn('Not allowed to manage this user policy');
+
+		$this->policyService->expects($this->never())->method('saveUserPolicyForUserId');
+
+		$response = $this->controller->setUserPolicyForUser('user1', ConfettiPolicy::KEY, true);
 
 		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
 		$this->assertSame([

@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Policy\Runtime;
 require_once __DIR__ . '/../../../../../../lib/Service/Policy/Contract/IPolicySource.php';
 
 use OCA\Libresign\Service\Policy\Contract\IPolicySource;
+use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
@@ -522,13 +523,8 @@ final class DefaultPolicyResolverTest extends TestCase {
 		);
 	}
 
-	private function getRequestSignGroupsDefinition(): PolicySpec {
-		return new PolicySpec(
-			key: RequestSignGroupsPolicy::KEY,
-			defaultSystemValue: '["admin"]',
-			allowedValues: [],
-			supportsUserPreference: false,
-		);
+	private function getRequestSignGroupsDefinition(): IPolicyDefinition {
+		return (new RequestSignGroupsPolicy())->get(RequestSignGroupsPolicy::KEY);
 	}
 
 	public function testResolveCanSaveAsUserDefaultFalseWhenDefinitionDoesNotSupportUserPreference(): void {

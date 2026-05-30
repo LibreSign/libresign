@@ -8,11 +8,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy;
 
+use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\Provider\PolicyProviders;
-use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
@@ -172,7 +172,7 @@ class PolicyService {
 		$definition = $this->registry->get($policyKey);
 		$context = $this->contextFactory->forCurrentUser();
 		$this->assertCurrentActorCanManageGroupPolicy($definition->key(), $context);
-		$this->assertCurrentActorCanEditGroupPolicy($definition->key(), $groupId);
+		$this->assertCurrentActorCanEditGroupPolicy($definition->key(), $groupId, $context);
 		$normalizedValue = $definition->normalizeValue($value);
 		$definition->validateValue($normalizedValue, $context);
 		$createdBySystemAdmin = ($context->getActorCapabilities()['canManageSystemPolicies'] ?? false) === true;
@@ -231,11 +231,29 @@ class PolicyService {
 			return true;
 		}
 
-		if ($definition->key() !== RequestSignGroupsPolicy::KEY) {
+		return !$this->shouldHideSystemCreatedGroupRuleFromCurrentActor($definition->key(), $groupPolicy);
+	}
+
+	public function shouldFilterVisibleGroupCountsForCurrentActor(string|\BackedEnum $policyKey): bool {
+		$definition = $this->registry->get($policyKey);
+		return $definition->shouldFilterVisibleGroupCountsForActor(
+			$this->contextFactory->forCurrentUser(),
+			$this->source->loadSystemPolicy($definition->key()),
+		);
+	}
+
+	public function canManageUserPolicyForUserId(string|\BackedEnum $policyKey, string $userId): bool {
+		if ($this->contextFactory->isCurrentActorSystemAdmin()) {
 			return true;
 		}
 
-		return !$this->wasGroupPolicyCreatedBySystemAdmin($groupPolicy);
+		$definition = $this->registry->get($policyKey);
+		$resolved = $this->resolver->resolve(
+			$definition,
+			$this->contextFactory->forUserId($userId),
+		);
+
+		return $resolved->canSaveAsUserDefault();
 	}
 
 	private function assertCurrentActorCanDeleteGroupPolicy(string $policyKey, string $groupId): void {
@@ -246,21 +264,27 @@ class PolicyService {
 		throw new \DomainException($this->l10n->t('Only system administrators can delete group rules created by a system administrator'));
 	}
 
-	private function assertCurrentActorCanEditGroupPolicy(string $policyKey, string $groupId): void {
-		if ($this->contextFactory->isCurrentActorSystemAdmin()) {
+	private function assertCurrentActorCanEditGroupPolicy(string $policyKey, string $groupId, ?PolicyContext $context = null): void {
+		$context ??= $this->contextFactory->forCurrentUser();
+		if (($context->getActorCapabilities()['canManageSystemPolicies'] ?? false) === true) {
 			return;
 		}
 
-		if ($policyKey !== RequestSignGroupsPolicy::KEY) {
-			return;
-		}
-
-		$existingPolicy = $this->source->loadGroupPolicyConfig($policyKey, $groupId);
+		$definition = $this->registry->get($policyKey);
+		$existingPolicy = $this->source->loadGroupPolicyConfig($definition->key(), $groupId);
 		if (!$existingPolicy instanceof PolicyLayer) {
 			return;
 		}
 
 		if (!$this->wasGroupPolicyCreatedBySystemAdmin($existingPolicy)) {
+			return;
+		}
+
+		if ($definition->canCurrentActorEditSystemCreatedGroupPolicy(
+			$context,
+			$this->source->loadSystemPolicy($definition->key()),
+			$existingPolicy,
+		)) {
 			return;
 		}
 
@@ -276,53 +300,29 @@ class PolicyService {
 		return ($notes['createdByActorScope'] ?? null) === 'system';
 	}
 
+	private function shouldHideSystemCreatedGroupRuleFromCurrentActor(string $policyKey, PolicyLayer $policy): bool {
+		return $this->wasGroupPolicyCreatedBySystemAdmin($policy)
+			&& $this->shouldFilterVisibleGroupCountsForCurrentActor($policyKey);
+	}
+
 	private function assertCurrentActorCanManageGroupPolicy(string $policyKey, ?PolicyContext $context = null): void {
 		$context ??= $this->contextFactory->forCurrentUser();
 		if (($context->getActorCapabilities()['canManageSystemPolicies'] ?? false) === true) {
 			return;
 		}
 
-		if ($policyKey === RequestSignGroupsPolicy::KEY) {
-			if ($this->currentActorHasDelegatedRequestSignGroupsAccess($context)) {
-				return;
-			}
-
-			throw new \DomainException($this->l10n->t('Group policy management requires explicit delegation from the system administrator'));
-		}
-
-		$systemPolicy = $this->source->loadSystemPolicy($policyKey);
-		if ($systemPolicy === null || $systemPolicy->getScope() !== 'global' || !$systemPolicy->isAllowChildOverride()) {
+		$definition = $this->registry->get($policyKey);
+		if (!$this->canCurrentActorManageGroupPolicy($definition, $context)) {
 			throw new \DomainException($this->l10n->t('Group policy management requires explicit delegation from the system administrator'));
 		}
 	}
 
-	private function currentActorHasDelegatedRequestSignGroupsAccess(PolicyContext $context): bool {
-		$actorCapabilities = $context->getActorCapabilities();
-		if (($actorCapabilities['canManageGroupPolicies'] ?? false) !== true) {
-			return false;
-		}
-
-		if ((int)($actorCapabilities['manageableGroupCount'] ?? 0) <= 1) {
-			return false;
-		}
-
-		foreach ($this->source->loadGroupPolicies(RequestSignGroupsPolicy::KEY, $context) as $layer) {
-			if (!$layer->isVisibleToChild()) {
-				continue;
-			}
-
-			if (!$layer->isAllowChildOverride()) {
-				continue;
-			}
-
-			if ($layer->getValue() === null) {
-				continue;
-			}
-
-			return true;
-		}
-
-		return false;
+	private function canCurrentActorManageGroupPolicy(IPolicyDefinition $definition, PolicyContext $context): bool {
+		return $definition->canCurrentActorManageGroupPolicy(
+			$context,
+			$this->source->loadSystemPolicy($definition->key()),
+			$this->source->loadGroupPolicies($definition->key(), $context),
+		);
 	}
 
 	public function saveUserPreference(string|\BackedEnum $policyKey, mixed $value): ResolvedPolicy {
