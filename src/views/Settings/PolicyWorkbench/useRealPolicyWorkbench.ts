@@ -780,7 +780,7 @@ export function createRealPolicyWorkbenchState() {
 			return false
 		}
 
-		if (editorDraft.value.scope !== 'system' && editorDraft.value.targetIds.length === 0) {
+		if (editorDraft.value.scope !== 'system' && editorDraft.value.targetIds.length === 0 && !activeDefinition.value?.extractScopeTargets) {
 			return false
 		}
 
@@ -1630,8 +1630,20 @@ export function createRealPolicyWorkbenchState() {
 	}
 
 	function updateDraftValue(value: EffectivePolicyValue) {
-		if (editorDraft.value) {
-			editorDraft.value.value = value
+		if (!editorDraft.value) {
+			return
+		}
+
+		editorDraft.value.value = value
+
+		// When the policy definition drives its own scope targets from the value
+		// (e.g. allow-groups become scope targets), sync targetIds automatically
+		// so 'Save' stays enabled without requiring manual scope-group selection.
+		const extractFn = activeDefinition.value?.extractScopeTargets
+		if (extractFn && editorDraft.value.scope === 'group') {
+			editorDraft.value.targetIds = Array.from(
+				new Set(extractFn(editorDraft.value.scope, value).filter(Boolean)),
+			)
 		}
 	}
 

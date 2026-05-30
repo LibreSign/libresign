@@ -525,6 +525,7 @@
 					:show-back-button="showCreateRuleBackAction"
 					:show-allow-override-switch="true"
 					:allow-override-mutable="isAllowOverrideMutable"
+					:hide-target-selector="hideTargetSelector"
 					@search-targets="state.searchAvailableTargets"
 					@update-targets="onTargetChange"
 					@update-value="state.updateDraftValue"
@@ -710,6 +711,12 @@ const REMOVAL_FEEDBACK_DURATION_MS = 6000
 const navigation = useNavigation(visibleCategorySections)
 
 const activeEditor = computed(() => state.activeDefinition?.editor ?? null)
+const hideTargetSelector = computed(() => {
+	if (!state.editorDraft || state.editorDraft.scope === 'system') {
+		return false
+	}
+	return state.activeDefinition?.extractScopeTargets !== undefined
+})
 const activeEditorProps = computed<Record<string, unknown>>(() => {
 	if (!state.activeDefinition) {
 		return {}
