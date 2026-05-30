@@ -71,7 +71,7 @@ export type GroupPolicyListResponse = {
 
 type OpenApiSystemPolicyResponse = ApiOcsResponseData<AdminOperations['policy-get-system'], 200>
 type OpenApiSystemPolicyState = OpenApiSystemPolicyResponse['policy']
-type OpenApiUserPolicyResponse = ApiOcsResponseData<AdminOperations['policy-get-user-policy-for-user'], 200>
+type OpenApiUserPolicyResponse = ApiOcsResponseData<ApiOperations['policy-get-user-policy-for-user'], 200>
 type OpenApiUserPolicyState = OpenApiUserPolicyResponse['policy']
 
 export type SystemPolicyState = Omit<OpenApiSystemPolicyState, 'value'> & {
