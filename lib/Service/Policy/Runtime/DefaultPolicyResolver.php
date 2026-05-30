@@ -14,7 +14,6 @@ use OCA\Libresign\Service\Policy\Contract\IPolicySource;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
-use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 
 final class DefaultPolicyResolver implements IPolicyResolver {
 	public function __construct(
@@ -58,13 +57,6 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		$visible = true;
 		$actorCapabilities = $context->getActorCapabilities();
 		$currentActorCanManageSystemPolicies = ($actorCapabilities['canManageSystemPolicies'] ?? false) === true;
-		// A group admin may only manage a policy when the system admin has explicitly
-		// configured it with allowChildOverride=true (scope 'global'). The implicit
-		// default (scope 'system', no stored config) is intentionally closed so that
-		// group admins start with no delegation access until the system admin opts in.
-		$isSystemExplicitlyGrantedForGroupAdmin = $systemLayer !== null
-			&& $systemLayer->getScope() === 'global'
-			&& $systemLayer->isAllowChildOverride();
 		// Personal preferences are closed by default for implicit system defaults,
 		// but should remain available when a managed group layer is configured and
 		// the hierarchy still allows the user-level override.
@@ -168,12 +160,7 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			->setInheritedValue($inheritedValue)
 			->setSourceScope($currentSourceScope)
 			->setVisible($visible)
-			->setEditableByCurrentActor($visible && $this->canManagePolicyAtCurrentScope(
-				$definition,
-				$context,
-				$isSystemExplicitlyGrantedForGroupAdmin,
-				$this->hasDelegatedEditableGroupLayer($groupLayers),
-			))
+			->setEditableByCurrentActor($visible && $definition->canCurrentActorManageGroupPolicy($context, $systemLayer, $groupLayers))
 			->setCanSaveAsUserDefault($canPersistUserPreference)
 			->setCanUseAsRequestOverride($canPersistUserPreference)
 			->setBlockedBy($currentBlockedBy);
@@ -312,70 +299,6 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 
 		$definition->validateValue($value, $context);
 		return true;
-	}
-
-	private function canManagePolicyAtCurrentScope(
-		IPolicyDefinition $definition,
-		PolicyContext $context,
-		bool $isSystemExplicitlyGrantedForGroupAdmin,
-		bool $hasDelegatedEditableGroupLayer,
-	): bool {
-		$actorCapabilities = $context->getActorCapabilities();
-
-		if (($actorCapabilities['canManageSystemPolicies'] ?? false) === true) {
-			return true;
-		}
-
-		if (($actorCapabilities['canManageGroupPolicies'] ?? false) === true) {
-			if (!$this->supportsGroupAdminConfigurationForActor($definition, $actorCapabilities)) {
-				return false;
-			}
-
-			if ($definition->key() === RequestSignGroupsPolicy::KEY) {
-				return $hasDelegatedEditableGroupLayer;
-			}
-
-			// Group admins can manage only when the system admin explicitly granted
-			// delegation for the policy at the system layer.
-			return $definition->supportsGroupAdminConfiguration()
-				&& $isSystemExplicitlyGrantedForGroupAdmin;
-		}
-
-		return false;
-	}
-
-	/** @param list<PolicyLayer> $groupLayers */
-	private function hasDelegatedEditableGroupLayer(array $groupLayers): bool {
-		foreach ($groupLayers as $layer) {
-			if (!$layer->isVisibleToChild()) {
-				continue;
-			}
-
-			if (!$layer->isAllowChildOverride()) {
-				continue;
-			}
-
-			if ($layer->getValue() === null) {
-				continue;
-			}
-
-			return true;
-		}
-
-		return false;
-	}
-
-	/** @param array<string, mixed> $actorCapabilities */
-	private function supportsGroupAdminConfigurationForActor(IPolicyDefinition $definition, array $actorCapabilities): bool {
-		if (!$definition->supportsGroupAdminConfiguration()) {
-			return false;
-		}
-
-		if ($definition->key() !== RequestSignGroupsPolicy::KEY) {
-			return true;
-		}
-
-		return (int)($actorCapabilities['manageableGroupCount'] ?? 0) > 1;
 	}
 
 	/** @param list<mixed> $currentAllowedValues

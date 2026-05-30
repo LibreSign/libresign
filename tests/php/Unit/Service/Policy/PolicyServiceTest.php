@@ -12,6 +12,7 @@ use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
+use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
@@ -61,6 +62,7 @@ final class PolicyServiceTest extends TestCase {
 			->willReturnCallback(static function (string $class): object {
 				return match ($class) {
 					ApprovalGroupsPolicy::class => new ApprovalGroupsPolicy(),
+					ConfettiPolicy::class => new ConfettiPolicy(),
 					FooterPolicy::class => new FooterPolicy(),
 					RequestSignGroupsPolicy::class => new RequestSignGroupsPolicy(),
 					SignatureFlowPolicy::class => new SignatureFlowPolicy(),
@@ -919,6 +921,82 @@ final class PolicyServiceTest extends TestCase {
 			(new PolicyLayer())->setNotes([
 				'createdBySystemAdmin' => false,
 				'createdByActorScope' => 'group',
+			]),
+		));
+	}
+
+	public function testCanViewConfettiBlocksSystemCreatedDelegationRuleWithoutExplicitSystemDelegation(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('group-admin');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('group-admin')
+			->willReturn(false);
+
+		$this->source
+			->expects($this->once())
+			->method('loadSystemPolicy')
+			->with(ConfettiPolicy::KEY)
+			->willReturn(null);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		self::assertFalse($service->canViewGroupPolicy(
+			ConfettiPolicy::KEY,
+			'company',
+			(new PolicyLayer())->setNotes([
+				'createdBySystemAdmin' => true,
+				'createdByActorScope' => 'system',
+			]),
+		));
+	}
+
+	public function testCanViewConfettiAllowsSystemCreatedDelegationRuleWithExplicitSystemDelegation(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('group-admin');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('group-admin')
+			->willReturn(false);
+
+		$this->source
+			->expects($this->once())
+			->method('loadSystemPolicy')
+			->with(ConfettiPolicy::KEY)
+			->willReturn((new PolicyLayer())
+				->setScope('global')
+				->setValue(true)
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true));
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		self::assertTrue($service->canViewGroupPolicy(
+			ConfettiPolicy::KEY,
+			'company',
+			(new PolicyLayer())->setNotes([
+				'createdBySystemAdmin' => true,
+				'createdByActorScope' => 'system',
 			]),
 		));
 	}

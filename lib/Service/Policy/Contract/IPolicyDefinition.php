@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy\Contract;
 
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 
 interface IPolicyDefinition {
 	public function key(): string;
@@ -44,4 +45,22 @@ interface IPolicyDefinition {
 	 * not be visible or editable by group admins.
 	 */
 	public function supportsGroupAdminConfiguration(): bool;
+
+	/**
+	 * Whether group-level rules for this policy should be filtered from counts and listings
+	 * for the current non-system actor when they were created by a system administrator.
+	 */
+	public function shouldFilterVisibleGroupCountsForActor(PolicyContext $context, ?PolicyLayer $systemPolicy): bool;
+
+	/**
+	 * Whether the current actor may manage group-level rules for this policy.
+	 *
+	 * @param list<PolicyLayer> $groupLayers Group layers already applicable to the actor context.
+	 */
+	public function canCurrentActorManageGroupPolicy(PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool;
+
+	/**
+	 * Whether the current actor may edit a system-created group rule for this policy.
+	 */
+	public function canCurrentActorEditSystemCreatedGroupPolicy(PolicyContext $context, ?PolicyLayer $systemPolicy, PolicyLayer $existingPolicy): bool;
 }

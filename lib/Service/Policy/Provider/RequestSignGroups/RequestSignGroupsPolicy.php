@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service\Policy\Provider\RequestSignGroups;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 
 final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
@@ -44,6 +45,48 @@ final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 				supportsUserPreference: false,
+				visibleGroupCountFilter: static function (PolicyContext $context, ?PolicyLayer $systemPolicy): bool {
+					return ($context->getActorCapabilities()['canManageSystemPolicies'] ?? false) !== true;
+				},
+				groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
+					$actorCapabilities = $context->getActorCapabilities();
+					if (($actorCapabilities['canManageSystemPolicies'] ?? false) === true) {
+						return true;
+					}
+
+					if (($actorCapabilities['canManageGroupPolicies'] ?? false) !== true) {
+						return false;
+					}
+
+					if ((int)($actorCapabilities['manageableGroupCount'] ?? 0) <= 1) {
+						return false;
+					}
+
+					foreach ($groupLayers as $layer) {
+						if (!$layer instanceof PolicyLayer) {
+							continue;
+						}
+
+						if (!$layer->isVisibleToChild()) {
+							continue;
+						}
+
+						if (!$layer->isAllowChildOverride()) {
+							continue;
+						}
+
+						if ($layer->getValue() === null) {
+							continue;
+						}
+
+						return true;
+					}
+
+					return false;
+				},
+				systemCreatedGroupRuleEditor: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, PolicyLayer $existingPolicy): bool {
+					return ($context->getActorCapabilities()['canManageSystemPolicies'] ?? false) === true;
+				},
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
 		};

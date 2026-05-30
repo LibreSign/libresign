@@ -26,12 +26,21 @@ final class PolicySpec implements IPolicyDefinition {
 	private ?Closure $validator;
 	/** @var array<string, mixed>|Closure(PolicyContext): array<string, mixed> */
 	private array|Closure $resolvedStateMetaResolver;
+	/** @var Closure(PolicyContext, ?PolicyLayer): bool|null */
+	private ?Closure $visibleGroupCountFilterResolver;
+	/** @var Closure(PolicyContext, ?PolicyLayer, array<array-key, PolicyLayer>): bool|null */
+	private ?Closure $groupPolicyManagerResolver;
+	/** @var Closure(PolicyContext, ?PolicyLayer, PolicyLayer): bool|null */
+	private ?Closure $systemCreatedGroupRuleEditorResolver;
 
 	/**
 	 * @param list<mixed>|Closure(PolicyContext): list<mixed> $allowedValues
 	 * @param Closure(mixed): mixed|null $normalizer
 	 * @param Closure(mixed, PolicyContext): void|null $validator
 	 * @param array<string, mixed>|Closure(PolicyContext): array<string, mixed> $resolvedStateMeta
+	 * @param Closure(PolicyContext, ?PolicyLayer): bool|null $visibleGroupCountFilter
+	 * @param Closure(PolicyContext, ?PolicyLayer, array<array-key, PolicyLayer>): bool|null $groupPolicyManager
+	 * @param Closure(PolicyContext, ?PolicyLayer, PolicyLayer): bool|null $systemCreatedGroupRuleEditor
 	 */
 	public function __construct(
 		private string $key,
@@ -45,11 +54,17 @@ final class PolicySpec implements IPolicyDefinition {
 		private bool $supportsUserPreference = true,
 		private bool $supportsGroupAdminConfiguration = true,
 		array|Closure $resolvedStateMeta = [],
+		?Closure $visibleGroupCountFilter = null,
+		?Closure $groupPolicyManager = null,
+		?Closure $systemCreatedGroupRuleEditor = null,
 	) {
 		$this->allowedValuesResolver = $allowedValues;
 		$this->normalizer = $normalizer;
 		$this->validator = $validator;
 		$this->resolvedStateMetaResolver = $resolvedStateMeta;
+		$this->visibleGroupCountFilterResolver = $visibleGroupCountFilter;
+		$this->groupPolicyManagerResolver = $groupPolicyManager;
+		$this->systemCreatedGroupRuleEditorResolver = $systemCreatedGroupRuleEditor;
 	}
 
 	#[\Override]
@@ -130,5 +145,56 @@ final class PolicySpec implements IPolicyDefinition {
 	#[\Override]
 	public function supportsGroupAdminConfiguration(): bool {
 		return $this->supportsGroupAdminConfiguration;
+	}
+
+	#[\Override]
+	public function shouldFilterVisibleGroupCountsForActor(PolicyContext $context, ?PolicyLayer $systemPolicy): bool {
+		if ($this->visibleGroupCountFilterResolver !== null) {
+			return ($this->visibleGroupCountFilterResolver)($context, $systemPolicy);
+		}
+
+		if (($context->getActorCapabilities()['canManageSystemPolicies'] ?? false) === true) {
+			return false;
+		}
+
+		return !$this->hasExplicitSystemGroupManagementDelegation($systemPolicy);
+	}
+
+	/** @param list<PolicyLayer> $groupLayers */
+	#[\Override]
+	public function canCurrentActorManageGroupPolicy(PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
+		if ($this->groupPolicyManagerResolver !== null) {
+			return ($this->groupPolicyManagerResolver)($context, $systemPolicy, $groupLayers);
+		}
+
+		$actorCapabilities = $context->getActorCapabilities();
+		if (($actorCapabilities['canManageSystemPolicies'] ?? false) === true) {
+			return true;
+		}
+
+		if (($actorCapabilities['canManageGroupPolicies'] ?? false) !== true) {
+			return false;
+		}
+
+		if (!$this->supportsGroupAdminConfiguration()) {
+			return false;
+		}
+
+		return $this->hasExplicitSystemGroupManagementDelegation($systemPolicy);
+	}
+
+	#[\Override]
+	public function canCurrentActorEditSystemCreatedGroupPolicy(PolicyContext $context, ?PolicyLayer $systemPolicy, PolicyLayer $existingPolicy): bool {
+		if ($this->systemCreatedGroupRuleEditorResolver !== null) {
+			return ($this->systemCreatedGroupRuleEditorResolver)($context, $systemPolicy, $existingPolicy);
+		}
+
+		return true;
+	}
+
+	private function hasExplicitSystemGroupManagementDelegation(?PolicyLayer $systemPolicy): bool {
+		return $systemPolicy instanceof PolicyLayer
+			&& $systemPolicy->getScope() === 'global'
+			&& $systemPolicy->isAllowChildOverride();
 	}
 }
