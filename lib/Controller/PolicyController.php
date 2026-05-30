@@ -199,9 +199,10 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 200: OK
 	 * 403: Forbidden
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function getUserPolicyForUser(string $userId, string $policyKey): DataResponse {
-		if (!$this->canManageUserPolicy($userId)) {
+		if (!$this->canManageScopedUserPolicy($userId, $policyKey)) {
 			return $this->forbiddenUserPolicyResponse();
 		}
 
@@ -223,6 +224,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 *
 	 * 200: OK
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/by-policy/user/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
 	public function listUserPolicies(string $policyKey): DataResponse {
 		$records = $this->policyService->listUserPolicies($policyKey);
@@ -235,7 +237,7 @@ final class PolicyController extends AEnvironmentAwareController {
 				continue;
 			}
 
-			if (!$this->canManageUserPolicy($userId)) {
+			if (!$this->canManageScopedUserPolicy($userId, $policyKey)) {
 				continue;
 			}
 
@@ -417,6 +419,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 400: Invalid policy value
 	 * 403: Forbidden
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function setUserPolicyForUser(string $userId, string $policyKey, null|bool|int|float|string|array $value = null, bool $allowChildOverride = false): DataResponse {
 		if (!$this->canManageUserPolicy($userId)) {
@@ -428,6 +431,9 @@ final class PolicyController extends AEnvironmentAwareController {
 
 		try {
 			$this->requestSignGroupsPolicyGuard->assertUserScopeSupported($policyKey);
+			if (!$this->policyService->canManageUserPolicyForUserId($policyKey, $userId)) {
+				return $this->forbiddenUserPolicyResponse();
+			}
 			$policy = $this->policyService->saveUserPolicyForUserId($policyKey, $userId, $value, $allowChildOverride);
 			/** @var LibresignUserPolicyWriteResponse $data */
 			$data = [
@@ -489,6 +495,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 400: User-scope not supported
 	 * 403: Forbidden
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function clearUserPolicyForUser(string $userId, string $policyKey): DataResponse {
 		if (!$this->canManageUserPolicy($userId)) {
@@ -497,6 +504,9 @@ final class PolicyController extends AEnvironmentAwareController {
 
 		try {
 			$this->requestSignGroupsPolicyGuard->assertUserScopeSupported($policyKey);
+			if (!$this->policyService->canManageUserPolicyForUserId($policyKey, $userId)) {
+				return $this->forbiddenUserPolicyResponse();
+			}
 			$policy = $this->policyService->clearUserPolicyForUserId($policyKey, $userId);
 			/** @var LibresignUserPolicyWriteResponse $data */
 			$data = [
@@ -588,6 +598,11 @@ final class PolicyController extends AEnvironmentAwareController {
 		return array_intersect($managedGroupIds, $targetGroupIds) !== [];
 	}
 
+	private function canManageScopedUserPolicy(string $userId, string $policyKey): bool {
+		return $this->canManageUserPolicy($userId)
+			&& $this->policyService->canManageUserPolicyForUserId($policyKey, $userId);
+	}
+
 	/**
 	 * @return array<string, array{groupCount: int, userCount: int, everyoneCount: int}>
 	 */
@@ -632,18 +647,18 @@ final class PolicyController extends AEnvironmentAwareController {
 			return $normalizedRuleCounts;
 		}
 
-		if (($normalizedRuleCounts[RequestSignGroupsPolicy::KEY]['groupCount'] ?? 0) <= 0) {
-			return $normalizedRuleCounts;
-		}
+		foreach ($normalizedRuleCounts as $policyKey => $counts) {
+			if (($counts['groupCount'] ?? 0) <= 0) {
+				continue;
+			}
 
-		$requestSignGroupsCounts = $normalizedRuleCounts[RequestSignGroupsPolicy::KEY] ?? [
-			'groupCount' => 0,
-			'userCount' => 0,
-			'everyoneCount' => 0,
-		];
-		$requestSignGroupsCounts['groupCount'] = $this->policyService
-			->countVisibleGroupPoliciesForTargets(RequestSignGroupsPolicy::KEY, $groupIds);
-		$normalizedRuleCounts[RequestSignGroupsPolicy::KEY] = $requestSignGroupsCounts;
+			if (!$this->policyService->shouldFilterVisibleGroupCountsForCurrentActor($policyKey)) {
+				continue;
+			}
+
+			$counts['groupCount'] = $this->policyService->countVisibleGroupPoliciesForTargets($policyKey, $groupIds);
+			$normalizedRuleCounts[$policyKey] = $counts;
+		}
 
 		return $normalizedRuleCounts;
 	}
