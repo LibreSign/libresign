@@ -295,35 +295,92 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 		expect(wrapperWithTargets.text()).toContain('Authorized requester groups')
 	})
 
-	it('re-adds managed target group when group admin tries to remove it in edit mode', async () => {
+	it('hides Authorized section when group admin creates rule for their own managed group', async () => {
 		currentUserState.isAdmin = false
-		initialConfigState.manageable_policy_group_ids = ['board', 'company']
+		initialConfigState.manageable_policy_group_ids = ['board']
 		axiosGet.mockReset()
 		axiosGet.mockResolvedValue({
 			data: {
 				ocs: {
 					data: {
-						groups: ['board', 'company'],
+						groups: ['board'],
 					},
 				},
 			},
 		})
 
-		const wrapper = mountEditorWithProps('["board","company"]', {
+		const wrapper = mountEditorWithProps('{"allowGroups":["board"],"denyGroups":[]}', {
 			editorScope: 'group',
-			editorMode: 'edit',
+			editorMode: 'create',
 			editorTargetIds: ['board'],
+			hasSelectedTargets: true,
 		})
 		await Promise.resolve()
 		await Promise.resolve()
 
+		expect(wrapper.text()).not.toContain('Authorized requester groups')
+		expect(wrapper.text()).toContain('Denied requester groups')
+		expect(wrapper.text()).not.toContain('Your managed group must remain authorized in this rule.')
+	})
+
+	it('preserves inherited allowGroups when group admin changes deny list for their own managed group', async () => {
+		currentUserState.isAdmin = false
+		initialConfigState.manageable_policy_group_ids = ['board']
+		axiosGet.mockReset()
+		axiosGet.mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						groups: ['board'],
+					},
+				},
+			},
+		})
+
+		const wrapper = mountEditorWithProps('{"allowGroups":["board"],"denyGroups":[]}', {
+			editorScope: 'group',
+			editorMode: 'edit',
+			editorTargetIds: ['board'],
+			hasSelectedTargets: true,
+		})
+		await Promise.resolve()
+		await Promise.resolve()
+
+		// Only the Deny selector is rendered; firing it should preserve inherited allowGroups from props.modelValue
 		const select = wrapper.findComponent(NcSelectStub)
-		select.vm.$emit('update:modelValue', ['company'])
+		select.vm.$emit('update:modelValue', [{ id: 'board', displayname: 'Board' }])
 
 		const updateEvents = wrapper.emitted('update:modelValue')
 		expect(updateEvents).toBeTruthy()
-		expect(updateEvents?.at(-1)?.[0]).toBe('{"allowGroups":["board","company"],"denyGroups":[]}')
-		expect(wrapper.text()).toContain('Your managed group must remain authorized in this rule.')
+		expect(updateEvents?.at(-1)?.[0]).toBe('{"allowGroups":["board"],"denyGroups":["board"]}')
+	})
+
+	it('shows both Authorized and Denied when group admin creates rule for a group outside their managed scope', async () => {
+		currentUserState.isAdmin = false
+		initialConfigState.manageable_policy_group_ids = ['board']
+		axiosGet.mockReset()
+		axiosGet.mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						groups: ['board', 'external-team'],
+					},
+				},
+			},
+		})
+
+		const wrapper = mountEditorWithProps('{"allowGroups":[],"denyGroups":[]}', {
+			editorScope: 'group',
+			editorMode: 'create',
+			editorTargetIds: ['external-team'],
+			hasSelectedTargets: true,
+		})
+		await Promise.resolve()
+		await Promise.resolve()
+
+		// 'external-team' is not in manageable_policy_group_ids → hideAllowGroups = false
+		expect(wrapper.text()).toContain('Authorized requester groups')
+		expect(wrapper.text()).toContain('Denied requester groups')
 	})
 
 	it('does not force target group for instance admin in edit mode', async () => {
