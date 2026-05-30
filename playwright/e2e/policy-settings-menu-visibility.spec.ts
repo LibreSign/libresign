@@ -19,6 +19,7 @@
  */
 
 import { expect, test as base, type APIRequestContext } from '@playwright/test'
+
 import { login } from '../support/nc-login'
 import { expandSettingsMenu } from '../support/nc-navigation'
 import {
@@ -34,7 +35,10 @@ import {
 import {
 	createAuthenticatedRequestContext,
 	getEffectivePolicy,
+	getSystemPolicySnapshot,
+	restoreSystemPolicySnapshot,
 	setSystemPolicyEntry,
+	type SystemPolicySnapshot,
 } from '../support/policy-api'
 
 // One serial block: a single browser session for the group admin
@@ -43,12 +47,18 @@ const test = base.extend<{
 	adminRequestContext: APIRequestContext
 	groupAdminRequestContext: APIRequestContext
 }>({
-	adminRequestContext: async ({}, use) => {
+	adminRequestContext: async ({ browserName }, use) => {
+		if (!browserName) {
+			throw new Error('Missing browserName fixture')
+		}
 		const ctx = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
 		await use(ctx)
 		await ctx.dispose()
 	},
-	groupAdminRequestContext: async ({}, use) => {
+	groupAdminRequestContext: async ({ browserName }, use) => {
+		if (!browserName) {
+			throw new Error('Missing browserName fixture')
+		}
 		const ctx = await createAuthenticatedRequestContext(GROUP_ADMIN, GROUP_ADMIN_PASSWORD)
 		await use(ctx)
 		await ctx.dispose()
@@ -66,7 +76,6 @@ const GROUP_ADMIN = 'policy-menu-visibility-admin'
 
 const POLICY_KEY = 'add_footer'
 const REQUEST_SIGN_GROUPS = JSON.stringify(['admin', GROUP_ID])
-const DEFAULT_REQUEST_SIGN_GROUPS = JSON.stringify(['admin'])
 const FOOTER_ENABLED_VALUE = JSON.stringify({
 	enabled: true,
 	writeQrcodeOnFooter: true,
@@ -74,10 +83,15 @@ const FOOTER_ENABLED_VALUE = JSON.stringify({
 	customizeFooterTemplate: false,
 })
 
+let originalFooterPolicy: SystemPolicySnapshot | null = null
+let originalRequestSignGroupsPolicy: SystemPolicySnapshot | null = null
 
 test.beforeEach(async ({ adminRequestContext }) => {
 	await deleteUser(adminRequestContext, GROUP_ADMIN, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
 	await deleteGroup(adminRequestContext, GROUP_ID, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+
+	originalFooterPolicy = await getSystemPolicySnapshot(adminRequestContext, POLICY_KEY)
+	originalRequestSignGroupsPolicy = await getSystemPolicySnapshot(adminRequestContext, 'groups_request_sign')
 
 	await ensureUserExists(adminRequestContext, GROUP_ADMIN, GROUP_ADMIN_PASSWORD)
 	await ensureGroupExists(adminRequestContext, GROUP_ID)
@@ -87,12 +101,17 @@ test.beforeEach(async ({ adminRequestContext }) => {
 	await setSystemPolicy(adminRequestContext, 'groups_request_sign', REQUEST_SIGN_GROUPS)
 })
 
-
 test.afterEach(async ({ adminRequestContext }) => {
-	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, null, true)
-	await setSystemPolicy(adminRequestContext, 'groups_request_sign', DEFAULT_REQUEST_SIGN_GROUPS)
+	if (originalFooterPolicy) {
+		await restoreSystemPolicySnapshot(adminRequestContext, POLICY_KEY, originalFooterPolicy)
+	}
+	if (originalRequestSignGroupsPolicy) {
+		await restoreSystemPolicySnapshot(adminRequestContext, 'groups_request_sign', originalRequestSignGroupsPolicy)
+	}
 	await deleteUser(adminRequestContext, GROUP_ADMIN, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
 	await deleteGroup(adminRequestContext, GROUP_ID, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+	originalFooterPolicy = null
+	originalRequestSignGroupsPolicy = null
 })
 
 test('group admin can access policies and start creating a delegated rule', async ({ page, adminRequestContext, groupAdminRequestContext }) => {

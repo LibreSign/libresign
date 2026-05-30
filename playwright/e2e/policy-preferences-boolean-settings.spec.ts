@@ -4,6 +4,7 @@
  */
 
 import { test, expect, type APIRequestContext, type Locator, type Page } from '@playwright/test'
+
 import { login } from '../support/nc-login'
 import { expandSettingsMenu } from '../support/nc-navigation'
 import {
@@ -18,16 +19,13 @@ import {
 	clearUserPolicyPreference,
 	createAuthenticatedRequestContext,
 	getEffectivePolicy,
+	getSystemPolicySnapshot,
 	policyRequest,
+	restoreSystemPolicySnapshot,
 	setGroupPolicyEntry,
 	setSystemPolicyEntry,
+	type SystemPolicySnapshot,
 } from '../support/policy-api'
-
-type SystemPolicySnapshot = {
-	exists: boolean
-	value: unknown
-	allowChildOverride: boolean
-}
 
 const adminUser = 'admin'
 const adminPass = process.env.ADMIN_PASSWORD || 'admin'
@@ -164,6 +162,12 @@ test.describe('Policy preferences: boolean settings', () => {
 	})
 })
 
+/**
+ * Resolves the settings section container from a visible section heading.
+ *
+ * @param page Browser page containing the preferences screen.
+ * @param title Visible heading text used to locate the section.
+ */
 async function sectionByTitle(page: Page, title: string | RegExp): Promise<Locator> {
 	const heading = page.getByRole('heading', { name: title }).first()
 	await expect(heading).toBeVisible()
@@ -172,50 +176,21 @@ async function sectionByTitle(page: Page, title: string | RegExp): Promise<Locat
 	return section
 }
 
-async function getSystemPolicySnapshot(
-	ctx: APIRequestContext,
-	policyKey: string,
-): Promise<SystemPolicySnapshot> {
-	const response = await policyRequest(ctx, 'GET', `/apps/libresign/api/v1/policies/system/${policyKey}`)
-	if (response.httpStatus === 404) {
-		return {
-			exists: false,
-			value: null,
-			allowChildOverride: true,
-		}
-	}
-
-	expect(response.httpStatus, `getSystemPolicySnapshot(${policyKey}): expected 200 or 404 but got ${response.httpStatus}`).toBe(200)
-
-	return {
-		exists: true,
-		value: response.data.value ?? null,
-		allowChildOverride: response.data.allowChildOverride === true,
-	}
-}
-
-async function restoreSystemPolicySnapshot(
-	ctx: APIRequestContext,
-	policyKey: string,
-	snapshot: SystemPolicySnapshot,
-): Promise<void> {
-	if (!snapshot.exists) {
-		await setSystemPolicyEntry(ctx, policyKey, null, true)
-		return
-	}
-
-	const response = await policyRequest(ctx, 'POST', `/apps/libresign/api/v1/policies/system/${policyKey}`, {
-		value: snapshot.value,
-		allowChildOverride: snapshot.allowChildOverride,
-	})
-	expect(response.httpStatus, `restoreSystemPolicySnapshot(${policyKey}): expected 200 but got ${response.httpStatus}`).toBe(200)
-}
-
+/**
+ * Selects the disabled option in a boolean preference section.
+ *
+ * @param section Preference section locator.
+ */
 async function savePreferenceAsDisabled(section: Locator): Promise<void> {
 	const disabledOption = section.getByRole('radio', { name: /^(Disable metadata collection|Disabled)\b/i }).first()
 	await disabledOption.click({ force: true })
 }
 
+/**
+ * Clears a user preference so the effective value falls back to the inherited layer.
+ *
+ * @param section Preference section locator.
+ */
 async function clearPreference(section: Locator): Promise<void> {
 	const resetButton = section.getByRole('button').filter({ hasText: 'Reset to default' }).first()
 	await expect(resetButton).toBeVisible()
@@ -223,6 +198,12 @@ async function clearPreference(section: Locator): Promise<void> {
 	await resetButton.click()
 }
 
+/**
+ * Selects a specific PDF certification level in the DocMDP preference section.
+ *
+ * @param section Preference section locator.
+ * @param level Desired DocMDP level.
+ */
 async function saveDocMdpPreference(section: Locator, level: 0 | 1 | 2 | 3): Promise<void> {
 	const labelByLevel: Record<number, string> = {
 		0: 'Disabled',
@@ -235,10 +216,21 @@ async function saveDocMdpPreference(section: Locator, level: 0 | 1 | 2 | 3): Pro
 	await option.click({ force: true })
 }
 
+/**
+ * Escapes user-facing labels before embedding them in a dynamic regular expression.
+ *
+ * @param value Raw label text.
+ */
 function escapeRegExp(value: string): string {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+/**
+ * Toggles the signature-stamp metadata checkbox to the requested value.
+ *
+ * @param section Preference section locator.
+ * @param enabled Whether metadata collection should remain enabled.
+ */
 async function saveSignatureTextCollectMetadataPreference(section: Locator, enabled: boolean): Promise<void> {
 	const toggle = section.getByRole('checkbox', { name: /Collect signer metadata/i }).first()
 	await expect(toggle).toBeVisible()
@@ -248,6 +240,14 @@ async function saveSignatureTextCollectMetadataPreference(section: Locator, enab
 	}
 }
 
+/**
+ * Polls until the effective value and source scope for a policy match the expectation.
+ *
+ * @param ctx Authenticated request context for the end user.
+ * @param policyKey Policy key to query.
+ * @param expectedValue Expected effective value.
+ * @param expectedScope Expected source scope.
+ */
 async function expectPolicyEffectiveValue(
 	ctx: APIRequestContext,
 	policyKey: string,
@@ -266,6 +266,13 @@ async function expectPolicyEffectiveValue(
 	})
 }
 
+/**
+ * Polls until the effective DocMDP value matches the expected inherited scope.
+ *
+ * @param ctx Authenticated request context for the end user.
+ * @param expectedValue Expected numeric DocMDP value.
+ * @param expectedScope Expected source scope.
+ */
 async function expectDocMdpEffectiveValue(
 	ctx: APIRequestContext,
 	expectedValue: number,
@@ -283,6 +290,15 @@ async function expectDocMdpEffectiveValue(
 	})
 }
 
+/**
+ * Polls until the effective signature-stamp state matches the expected scope and content.
+ *
+ * @param ctx Authenticated request context for the end user.
+ * @param expectedScope Expected source scope.
+ * @param expected Expected content matchers for the signature-stamp value.
+ * @param expected.templateContains Expected template substring when provided.
+ * @param expected.renderMode Expected render mode when provided.
+ */
 async function expectSignatureTextEffectiveState(
 	ctx: APIRequestContext,
 	expectedScope: string,
@@ -315,6 +331,11 @@ async function expectSignatureTextEffectiveState(
 	}, { timeout: 15000 }).toMatchObject(expectedMatch)
 }
 
+/**
+ * Normalizes a signature-stamp value returned as a stringified JSON blob or object.
+ *
+ * @param value Raw signature-stamp policy value.
+ */
 function parseSignatureTextValue(value: unknown): { template: string; renderMode: string } {
 	if (typeof value === 'string') {
 		const trimmed = value.trim()
@@ -344,6 +365,14 @@ function parseSignatureTextValue(value: unknown): { template: string; renderMode
 	return { template: '', renderMode: '' }
 }
 
+/**
+ * Writes a numeric system policy entry using the generic OCS helper.
+ *
+ * @param ctx Authenticated admin request context.
+ * @param policyKey Policy key to write.
+ * @param value Numeric value to store.
+ * @param allowChildOverride Whether lower layers may override the stored value.
+ */
 async function setSystemNumericPolicyEntry(
 	ctx: APIRequestContext,
 	policyKey: string,
@@ -357,6 +386,15 @@ async function setSystemNumericPolicyEntry(
 	expect(response.httpStatus, `setSystemNumericPolicyEntry(${policyKey}): expected 200 but got ${response.httpStatus}`).toBe(200)
 }
 
+/**
+ * Writes a numeric group policy entry using the generic OCS helper.
+ *
+ * @param ctx Authenticated admin request context.
+ * @param groupId Group identifier receiving the rule.
+ * @param policyKey Policy key to write.
+ * @param value Numeric value to store.
+ * @param allowChildOverride Whether lower layers may override the stored value.
+ */
 async function setGroupNumericPolicyEntry(
 	ctx: APIRequestContext,
 	groupId: string,
