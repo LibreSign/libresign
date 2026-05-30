@@ -651,9 +651,9 @@ final class PolicySourceTest extends TestCase {
 
 		$this->assertNotNull($layer);
 		$this->assertSame('global', $layer->getScope());
-		$this->assertSame('["admin","finance"]', $layer->getValue());
+		$this->assertSame('{"allowGroups":["admin","finance"],"denyGroups":[]}', $layer->getValue());
 		$this->assertFalse($layer->isAllowChildOverride());
-		$this->assertSame(['["admin","finance"]'], $layer->getAllowedValues());
+		$this->assertSame(['{"allowGroups":["admin","finance"],"denyGroups":[]}'], $layer->getAllowedValues());
 	}
 
 	public function testLoadGroupPolicyConfigReturnsBoundPolicyLayer(): void {

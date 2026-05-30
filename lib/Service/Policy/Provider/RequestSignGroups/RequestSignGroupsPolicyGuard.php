@@ -48,8 +48,11 @@ final class RequestSignGroupsPolicyGuard {
 			throw new \InvalidArgumentException($this->l10n->t('Not allowed to manage this policy'));
 		}
 
-		$groupIds = RequestSignGroupsPolicyValue::decode($value);
-		if ($groupIds === []) {
+		$decodedPolicy = RequestSignGroupsPolicyValue::decodePolicy($value);
+		$allowGroupIds = $decodedPolicy['allowGroups'];
+		$denyGroupIds = $decodedPolicy['denyGroups'];
+
+		if ($allowGroupIds === []) {
 			throw new \InvalidArgumentException($this->l10n->t('At least one authorized group is required'));
 		}
 
@@ -57,17 +60,18 @@ final class RequestSignGroupsPolicyGuard {
 		if (!$isSystemAdmin
 			&& is_string($requiredGroupId)
 			&& trim($requiredGroupId) !== ''
-			&& !in_array($requiredGroupId, $groupIds, true)) {
+			&& !in_array($requiredGroupId, $allowGroupIds, true)) {
 			throw new \InvalidArgumentException($this->l10n->t('You cannot remove your managed group from this rule'));
 		}
 
 		$allowedGroupIds = $this->resolveAllowedGroupIdsForActor($user);
-		$unknownGroupIds = array_values(array_diff($groupIds, $allowedGroupIds));
+		$groupsToValidate = array_values(array_unique(array_merge($allowGroupIds, $denyGroupIds)));
+		$unknownGroupIds = array_values(array_diff($groupsToValidate, $allowedGroupIds));
 		if ($unknownGroupIds !== []) {
 			throw new \InvalidArgumentException($this->l10n->t('One or more selected groups are not allowed for your administration scope'));
 		}
 
-		return RequestSignGroupsPolicyValue::encode($groupIds);
+		return RequestSignGroupsPolicyValue::encode($decodedPolicy);
 	}
 
 	/** @return list<string> */

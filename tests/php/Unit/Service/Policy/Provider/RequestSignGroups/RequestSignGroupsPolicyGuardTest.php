@@ -90,7 +90,28 @@ final class RequestSignGroupsPolicyGuardTest extends TestCase {
 		$guard = $this->createGuard();
 
 		$normalized = $guard->normalizeManagedValue(RequestSignGroupsPolicy::KEY, '["board","company"]', false, 'board');
-		$this->assertSame('["board","company"]', $normalized);
+		$this->assertSame('{"allowGroups":["board","company"],"denyGroups":[]}', $normalized);
+	}
+
+	public function testNormalizeManagedValueRejectsDeniedGroupsOutsideMembershipScope(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('ceo');
+		$this->userSession->method('getUser')->willReturn($user);
+		$this->groupManager->method('isAdmin')->with('ceo')->willReturn(false);
+		$this->subAdmin->method('isSubAdmin')->with($user)->willReturn(true);
+		$this->groupManager->method('getUserGroupIds')->with($user)->willReturn(['board', 'company']);
+
+		$guard = $this->createGuard();
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('One or more selected groups are not allowed for your administration scope');
+
+		$guard->normalizeManagedValue(
+			RequestSignGroupsPolicy::KEY,
+			'{"allowGroups":["board"],"denyGroups":["legal"]}',
+			false,
+			'board',
+		);
 	}
 
 	public function testAssertUserScopeSupportedRejectsRequestSignGroupsPolicy(): void {

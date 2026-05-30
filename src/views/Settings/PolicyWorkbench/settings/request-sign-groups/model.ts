@@ -6,35 +6,84 @@
 import type { EffectivePolicyValue } from '../../../../../types/index'
 
 export const DEFAULT_REQUEST_SIGN_GROUPS = ['admin']
+export const DEFAULT_REQUEST_SIGN_DENY_GROUPS: string[] = []
 
-export function resolveRequestSignGroups(value: EffectivePolicyValue | string[]): string[] {
+export type RequestSignGroupsPolicyValue = {
+	allowGroups: string[]
+	denyGroups: string[]
+}
+
+export function resolveRequestSignGroupsPolicy(value: EffectivePolicyValue | string[] | RequestSignGroupsPolicyValue): RequestSignGroupsPolicyValue {
 	if (Array.isArray(value)) {
-		return normalizeGroupIds(value)
+		return {
+			allowGroups: normalizeGroupIds(value),
+			denyGroups: [...DEFAULT_REQUEST_SIGN_DENY_GROUPS],
+		}
+	}
+
+	if (typeof value === 'object' && value !== null) {
+		const candidate = value as Partial<RequestSignGroupsPolicyValue>
+		return {
+			allowGroups: normalizeGroupIds(Array.isArray(candidate.allowGroups) ? candidate.allowGroups : []),
+			denyGroups: normalizeGroupIds(Array.isArray(candidate.denyGroups) ? candidate.denyGroups : []),
+		}
 	}
 
 	if (typeof value !== 'string') {
-		return []
+		return {
+			allowGroups: [],
+			denyGroups: [],
+		}
 	}
 
 	const trimmed = value.trim()
 	if (!trimmed) {
-		return []
+		return {
+			allowGroups: [],
+			denyGroups: [],
+		}
 	}
 
 	try {
 		const parsed = JSON.parse(trimmed)
 		if (Array.isArray(parsed)) {
-			return normalizeGroupIds(parsed)
+			return {
+				allowGroups: normalizeGroupIds(parsed),
+				denyGroups: [],
+			}
+		}
+
+		if (typeof parsed === 'object' && parsed !== null) {
+			const candidate = parsed as Partial<RequestSignGroupsPolicyValue>
+			return {
+				allowGroups: normalizeGroupIds(Array.isArray(candidate.allowGroups) ? candidate.allowGroups : []),
+				denyGroups: normalizeGroupIds(Array.isArray(candidate.denyGroups) ? candidate.denyGroups : []),
+			}
 		}
 	} catch {
 		// Keep CSV fallback for legacy or manually edited values.
 	}
 
-	return normalizeGroupIds(trimmed.split(','))
+	return {
+		allowGroups: normalizeGroupIds(trimmed.split(',')),
+		denyGroups: [],
+	}
 }
 
-export function serializeRequestSignGroups(value: EffectivePolicyValue | string[]): string {
-	return JSON.stringify(resolveRequestSignGroups(value))
+export function resolveRequestSignGroups(value: EffectivePolicyValue | string[]): string[] {
+	return resolveRequestSignGroupsPolicy(value).allowGroups
+}
+
+export function resolveDeniedRequestSignGroups(value: EffectivePolicyValue | string[] | RequestSignGroupsPolicyValue): string[] {
+	return resolveRequestSignGroupsPolicy(value).denyGroups
+}
+
+export function serializeRequestSignGroups(value: EffectivePolicyValue | string[] | RequestSignGroupsPolicyValue): string {
+	const resolved = resolveRequestSignGroupsPolicy(value)
+	return JSON.stringify({
+		allowGroups: resolved.allowGroups,
+		denyGroups: resolved.denyGroups,
+	})
 }
 
 function normalizeGroupIds(raw: unknown[]): string[] {

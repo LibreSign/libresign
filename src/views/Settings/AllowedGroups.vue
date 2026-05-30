@@ -37,7 +37,12 @@ import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import logger from '../../logger.js'
 import { usePoliciesStore } from '../../store/policies'
-import { DEFAULT_REQUEST_SIGN_GROUPS, resolveRequestSignGroups, serializeRequestSignGroups } from './PolicyWorkbench/settings/request-sign-groups/model'
+import {
+	DEFAULT_REQUEST_SIGN_GROUPS,
+	resolveDeniedRequestSignGroups,
+	resolveRequestSignGroups,
+	serializeRequestSignGroups,
+} from './PolicyWorkbench/settings/request-sign-groups/model'
 
 import '@nextcloud/password-confirmation/style.css'
 
@@ -77,8 +82,13 @@ async function saveGroups(value: Array<GroupRow | string>) {
 		}
 		return g
 	})
+	const existingPolicyValue = policiesStore.getEffectiveValue('groups_request_sign')
+	const denyGroupIds = resolveDeniedRequestSignGroups(existingPolicyValue)
 
-	await policiesStore.saveSystemPolicy('groups_request_sign', serializeRequestSignGroups(groupIds), false)
+	await policiesStore.saveSystemPolicy('groups_request_sign', serializeRequestSignGroups({
+		allowGroups: groupIds,
+		denyGroups: denyGroupIds,
+	}), false)
 	idKey.value += 1
 }
 
