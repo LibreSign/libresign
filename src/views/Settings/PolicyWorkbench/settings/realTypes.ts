@@ -9,6 +9,14 @@ export type RealPolicyScope = 'system' | 'group' | 'user'
 export type RealPolicyResolutionMode = 'precedence' | 'merge' | 'conflict_requires_selection'
 export type RealPolicyEditorDialogLayout = 'default' | 'wide'
 
+export type GroupAdminRenderablePolicyState = Pick<EffectivePolicyState, 'editableByCurrentActor' | 'canSaveAsUserDefault'> | null | undefined
+
+export interface RealPolicyGroupAdminBehavior {
+	canRenderPolicy?: (policy: GroupAdminRenderablePolicyState) => boolean
+	hideNonRemovableGroupRules?: (policy: GroupAdminRenderablePolicyState) => boolean
+	preferHydratedVisibleGroupCount?: boolean
+}
+
 export type RealPolicySettingCategory =
 	| 'who-can-sign'
 	| 'how-signing-works'
@@ -26,12 +34,14 @@ export interface RealPolicySettingDefinition {
 	description: string
 	supportedScopes?: ReadonlyArray<RealPolicyScope>
 	visibleInGroupAdmin?: boolean
+	groupAdminBehavior?: RealPolicyGroupAdminBehavior
 	editor: unknown
 	editorProps?: Record<string, unknown>
 	resolveEditorProps?: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => Record<string, unknown>
 	editorDialogLayout?: RealPolicyEditorDialogLayout
 	resolutionMode: RealPolicyResolutionMode
 	createEmptyValue: () => EffectivePolicyValue
+	syncCreateDraftValueFromTargets?: (scope: RealPolicyScope, targetIds: string[], currentValue: EffectivePolicyValue) => EffectivePolicyValue
 	normalizeDraftValue: (value: EffectivePolicyValue) => EffectivePolicyValue
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => boolean
 	isBaselineSeedable?: (value: EffectivePolicyValue) => boolean
