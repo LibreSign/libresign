@@ -286,7 +286,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		try {
 			$client = $this->getClient();
 			if (!$this->portOpen()) {
-				throw new LibresignException('CFSSL server is down', 500);
+				return false;
 			}
 			$response = $client
 				->request('get',
@@ -296,15 +296,20 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 					]
 				)
 			;
-		} catch (RequestException|ConnectException $th) {
+		} catch (ConnectException) {
+			return false;
+		} catch (RequestException $th) {
 			switch ($th->getCode()) {
 				case 404:
 					throw new \Exception('Endpoint /health of CFSSL server not found. Maybe you are using incompatible version of CFSSL server. Use latests version.', 1);
 				default:
 					if ($th->getHandlerContext() && $th->getHandlerContext()['error']) {
+						if (str_contains((string)$th->getHandlerContext()['error'], 'connect')) {
+							return false;
+						}
 						throw new \Exception($th->getHandlerContext()['error'], 1);
 					}
-					throw new LibresignException($th->getMessage(), 500);
+					return false;
 			}
 		}
 
