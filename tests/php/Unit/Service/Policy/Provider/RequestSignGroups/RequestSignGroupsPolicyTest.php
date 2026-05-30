@@ -32,11 +32,11 @@ final class RequestSignGroupsPolicyTest extends TestCase {
 		$definition = $provider->get(RequestSignGroupsPolicy::KEY);
 
 		$this->assertSame(
-			'["admin","finance"]',
+			'{"allowGroups":["admin","finance"],"denyGroups":[]}',
 			$definition->normalizeValue([' finance ', 'admin', 'finance']),
 		);
 		$this->assertSame(
-			'["admin","legal"]',
+			'{"allowGroups":["admin","legal"],"denyGroups":[]}',
 			$definition->normalizeValue('["legal", "admin"]'),
 		);
 	}

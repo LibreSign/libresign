@@ -285,7 +285,7 @@ final class Version18003Date20260517000000Test extends TestCase {
 			->method('setValueString')
 			->willReturnCallback(static function (string $app, string $key, string $value): bool {
 				if ($key === 'groups_request_sign') {
-					TestCase::assertSame('["admin","finance"]', $value);
+					TestCase::assertSame('{"allowGroups":["admin","finance"],"denyGroups":[]}', $value);
 				}
 
 				return true;

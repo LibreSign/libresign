@@ -34,7 +34,7 @@ final class RequestSignAuthorizationServiceTest extends TestCase {
 
 	public function testAllowsWhenUserBelongsToAuthorizedGroup(): void {
 		$user = $this->createMock(IUser::class);
-		$resolvedPolicy = (new ResolvedPolicy())->setEffectiveValue('["admin","finance"]');
+		$resolvedPolicy = (new ResolvedPolicy())->setEffectiveValue('{"allowGroups":["admin","finance"],"denyGroups":[]}');
 
 		$this->policyService
 			->expects($this->once())
@@ -54,7 +54,7 @@ final class RequestSignAuthorizationServiceTest extends TestCase {
 
 	public function testDeniesWhenUserDoesNotBelongToAuthorizedGroups(): void {
 		$user = $this->createMock(IUser::class);
-		$resolvedPolicy = (new ResolvedPolicy())->setEffectiveValue('["admin","finance"]');
+		$resolvedPolicy = (new ResolvedPolicy())->setEffectiveValue('{"allowGroups":["admin","finance"],"denyGroups":[]}');
 
 		$this->policyService
 			->expects($this->once())
@@ -67,6 +67,26 @@ final class RequestSignAuthorizationServiceTest extends TestCase {
 			->method('getUserGroupIds')
 			->with($user)
 			->willReturn(['sales']);
+
+		$service = new RequestSignAuthorizationService($this->policyService, $this->groupManager);
+		$this->assertFalse($service->canRequestSign($user));
+	}
+
+	public function testDeniesWhenUserBelongsToDeniedGroupEvenIfAllowed(): void {
+		$user = $this->createMock(IUser::class);
+		$resolvedPolicy = (new ResolvedPolicy())->setEffectiveValue('{"allowGroups":["board"],"denyGroups":["board"]}');
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUser')
+			->with(RequestSignGroupsPolicy::KEY, $user)
+			->willReturn($resolvedPolicy);
+
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->with($user)
+			->willReturn(['board']);
 
 		$service = new RequestSignAuthorizationService($this->policyService, $this->groupManager);
 		$this->assertFalse($service->canRequestSign($user));

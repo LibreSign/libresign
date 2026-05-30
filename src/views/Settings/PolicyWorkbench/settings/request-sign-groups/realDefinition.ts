@@ -8,7 +8,13 @@ import { t } from '@nextcloud/l10n'
 import type { EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
 import RequestSignGroupsRuleEditor from './RequestSignGroupsRuleEditor.vue'
-import { DEFAULT_REQUEST_SIGN_GROUPS, resolveRequestSignGroups, serializeRequestSignGroups } from './model'
+import {
+	DEFAULT_REQUEST_SIGN_DENY_GROUPS,
+	DEFAULT_REQUEST_SIGN_GROUPS,
+	resolveDeniedRequestSignGroups,
+	resolveRequestSignGroups,
+	serializeRequestSignGroups,
+} from './model'
 
 export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 	key: 'groups_request_sign',
@@ -23,18 +29,25 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 	},
 	editor: RequestSignGroupsRuleEditor,
 	resolutionMode: 'precedence',
-	createEmptyValue: () => serializeRequestSignGroups([]),
+	createEmptyValue: () => serializeRequestSignGroups({
+		allowGroups: [],
+		denyGroups: [],
+	}),
 	syncCreateDraftValueFromTargets: (scope, targetIds, currentValue) => {
 		if (scope !== 'group') {
 			return currentValue
 		}
 
 		const currentAuthorizedGroups = resolveRequestSignGroups(currentValue)
+		const currentDeniedGroups = resolveDeniedRequestSignGroups(currentValue)
 		if (currentAuthorizedGroups.length > 0) {
 			return currentValue
 		}
 
-		return serializeRequestSignGroups(targetIds)
+		return serializeRequestSignGroups({
+			allowGroups: targetIds,
+			denyGroups: currentDeniedGroups,
+		})
 	},
 	normalizeDraftValue: (value: EffectivePolicyValue) => serializeRequestSignGroups(value),
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => resolveRequestSignGroups(value).length > 0,
@@ -50,21 +63,33 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 			return policyValue
 		}
 
-		return serializeRequestSignGroups(DEFAULT_REQUEST_SIGN_GROUPS)
+		return serializeRequestSignGroups({
+			allowGroups: DEFAULT_REQUEST_SIGN_GROUPS,
+			denyGroups: DEFAULT_REQUEST_SIGN_DENY_GROUPS,
+		})
 	},
 	summarizeValue: (value: EffectivePolicyValue) => {
-		const groupIds = resolveRequestSignGroups(value)
-		if (groupIds.length === 0) {
+		const allowGroups = resolveRequestSignGroups(value)
+		const denyGroups = resolveDeniedRequestSignGroups(value)
+		if (allowGroups.length === 0) {
 			// TRANSLATORS Summary text when no requester groups are configured in this rule.
 			return t('libresign', 'none configured')
 		}
 
-		if (groupIds.length <= 2) {
-			return groupIds.join(', ')
+		if (allowGroups.length <= 2 && denyGroups.length === 0) {
+			return allowGroups.join(', ')
 		}
 
-		// TRANSLATORS {count} is the number of groups authorized to create signature requests.
-		return t('libresign', '{count} authorized requester groups', { count: String(groupIds.length) })
+		if (denyGroups.length === 0) {
+			// TRANSLATORS {count} is the number of groups authorized to create signature requests.
+			return t('libresign', '{count} authorized requester groups', { count: String(allowGroups.length) })
+		}
+
+		// TRANSLATORS Summary for composed request-sign policy. {allowCount} is allowed groups count and {denyCount} denied groups count.
+		return t('libresign', '{allowCount} allow · {denyCount} deny', {
+			allowCount: String(allowGroups.length),
+			denyCount: String(denyGroups.length),
+		})
 	},
 	formatAllowOverride: (allowChildOverride: boolean) => allowChildOverride
 		// TRANSLATORS Summary when system policy allows group admins to define requester-group rules.
