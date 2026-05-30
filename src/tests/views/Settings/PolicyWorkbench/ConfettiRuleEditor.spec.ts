@@ -6,11 +6,10 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
+import { createL10nMock } from '../../../testHelpers/l10n.js'
 import ConfettiRuleEditor from '../../../../views/Settings/PolicyWorkbench/settings/confetti/ConfettiRuleEditor.vue'
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: (_app: string, message: string) => message,
-}))
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 describe('ConfettiRuleEditor.vue', () => {
 	it('renders a single switch with compact helper copy', () => {
