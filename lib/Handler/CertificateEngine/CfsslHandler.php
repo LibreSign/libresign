@@ -299,9 +299,19 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		} catch (ConnectException) {
 			// Port not yet accepting connections — server still starting
 			return false;
-		} catch (RequestException $exception) {
-			if ($exception->getCode() === 404) {
-				throw new \Exception('Endpoint /health of CFSSL server not found. Maybe you are using incompatible version of CFSSL server. Use latests version.', 1);
+			return false;
+		} catch (RequestException $th) {
+			switch ($th->getCode()) {
+				case 404:
+					throw new \Exception('Endpoint /health of CFSSL server not found. Maybe you are using incompatible version of CFSSL server. Use latests version.', 1);
+				default:
+					if ($th->getHandlerContext() && $th->getHandlerContext()['error']) {
+						if (str_contains((string)$th->getHandlerContext()['error'], 'connect')) {
+							return false;
+						}
+						throw new \Exception($th->getHandlerContext()['error'], 1);
+					}
+					return false;
 			}
 			return false;
 		}
