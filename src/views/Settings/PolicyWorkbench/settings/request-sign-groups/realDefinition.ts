@@ -17,9 +17,25 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 	// TRANSLATORS Catalog description: this policy delegates signature-request creation rights by scope.
 	description: t('libresign', 'Define which groups may create signature requests within this scope. Administrators may authorize only groups they belong to.'),
 	supportedScopes: ['system', 'group'],
+	groupAdminBehavior: {
+		hideNonRemovableGroupRules: () => true,
+		preferHydratedVisibleGroupCount: true,
+	},
 	editor: RequestSignGroupsRuleEditor,
 	resolutionMode: 'precedence',
 	createEmptyValue: () => serializeRequestSignGroups([]),
+	syncCreateDraftValueFromTargets: (scope, targetIds, currentValue) => {
+		if (scope !== 'group') {
+			return currentValue
+		}
+
+		const currentAuthorizedGroups = resolveRequestSignGroups(currentValue)
+		if (currentAuthorizedGroups.length > 0) {
+			return currentValue
+		}
+
+		return serializeRequestSignGroups(targetIds)
+	},
 	normalizeDraftValue: (value: EffectivePolicyValue) => serializeRequestSignGroups(value),
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => resolveRequestSignGroups(value).length > 0,
 	normalizeAllowChildOverride: (scope, allowChildOverride) => {

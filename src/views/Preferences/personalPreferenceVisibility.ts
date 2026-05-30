@@ -29,6 +29,35 @@ const PREFERENCE_SUPPORTED_POLICY_KEYS = new Set([
 	'signing_mode',
 ])
 
+function defaultCanRenderWorkbenchPolicyForGroupAdmin(
+	policy: Pick<EffectivePolicyState, 'editableByCurrentActor' | 'canSaveAsUserDefault'> | null | undefined,
+): boolean {
+	if (!policy) {
+		return false
+	}
+
+	return policy.editableByCurrentActor === true || policy.canSaveAsUserDefault === true
+}
+
+export function isWorkbenchPolicyKey(policyKey: string): boolean {
+	return PREFERENCE_SUPPORTED_POLICY_KEYS.has(policyKey)
+}
+
+export function canRenderWorkbenchPolicyForGroupAdmin(
+	policyKey: string,
+	policy: Pick<EffectivePolicyState, 'editableByCurrentActor' | 'canSaveAsUserDefault'> | null | undefined,
+): boolean {
+	if (!PREFERENCE_SUPPORTED_POLICY_KEYS.has(policyKey)) {
+		return false
+	}
+
+	if (!policy) {
+		return false
+	}
+
+	return defaultCanRenderWorkbenchPolicyForGroupAdmin(policy)
+}
+
 export function canRenderPersonalPreferencePolicy(
 	policyKey: string,
 	policy: EffectivePolicyState | null | undefined,

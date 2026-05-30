@@ -27,7 +27,7 @@ import {
 	normalizeSignatureStampDraftValue,
 	resolveCollectMetadataValue,
 } from './settings/signature-text/model'
-import { resolveRequestSignGroups, serializeRequestSignGroups } from './settings/request-sign-groups/model'
+import { canRenderWorkbenchPolicyForGroupAdmin } from '../../Preferences/personalPreferenceVisibility'
 import { usePoliciesStore } from '../../../store/policies'
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../types/index'
 import logger from '../../../logger.js'
@@ -178,7 +178,6 @@ const SIGNING_EXECUTION_POLICY_KEY = 'signing_mode'
 const SIGNING_EXECUTION_WORKER_KEY = 'worker_config'
 const SIGNATURE_STAMP_POLICY_KEY = 'signature_stamp'
 const COLLECT_METADATA_POLICY_KEY = 'collect_metadata'
-const REQUEST_SIGN_GROUPS_POLICY_KEY = 'groups_request_sign'
 
 function isRequestExpirationPolicyKey(policyKey: string): boolean {
 	return policyKey === REQUEST_EXPIRATION_POLICY_KEY
@@ -278,25 +277,34 @@ export function createRealPolicyWorkbenchState() {
 		return targets.filter((target) => manageablePolicyGroupIds.has(target.id))
 	}
 
-	/** Hide delegated access seed rules from group-admin summaries and CRUD state. */
+	// Hide delegated access seed rules from group-admin summaries and CRUD state.
 	function shouldHideGroupRuleFromGroupAdmin(rule: PolicyRuleRecord, policyKey: string | null = activeSettingKey.value): boolean {
-		return viewMode.value === 'group-admin'
-			&& policyKey === REQUEST_SIGN_GROUPS_POLICY_KEY
-			&& rule.canRemove === false
+		if (viewMode.value !== 'group-admin' || rule.canRemove !== false || !policyKey) {
+			return false
+		}
+
+		const definition = realDefinitions[policyKey as keyof typeof realDefinitions]
+		const policy = policiesStore.getPolicy(policyKey)
+		return definition?.groupAdminBehavior?.hideNonRemovableGroupRules?.(policy as EffectivePolicyState | null) ?? false
 	}
 
-	/** Count only the group rules the current actor is allowed to see for a policy. */
+	// Count only the group rules the current actor is allowed to see for a policy.
 	function countVisibleGroupRulesForPolicy(policyKey: string, rules: PolicyRuleRecord[]): number {
 		return rules.filter((rule) => !shouldHideGroupRuleFromGroupAdmin(rule, policyKey)).length
 	}
 
-	/** Prefer hydrated visible counts for delegated request-access summaries after opening a setting. */
+	// Prefer hydrated visible counts for delegated request-access summaries after opening a setting.
 	function resolveSummaryGroupCount(policyKey: string, groupCount: number, cachedGroupCount: number | undefined, isActiveSetting: boolean): number {
 		if (isActiveSetting) {
 			return countVisibleGroupRulesForPolicy(policyKey, groupRules.value)
 		}
 
-		if (viewMode.value === 'group-admin' && policyKey === REQUEST_SIGN_GROUPS_POLICY_KEY && typeof cachedGroupCount === 'number') {
+		const definition = realDefinitions[policyKey as keyof typeof realDefinitions]
+		if (
+			viewMode.value === 'group-admin'
+			&& definition?.groupAdminBehavior?.preferHydratedVisibleGroupCount === true
+			&& typeof cachedGroupCount === 'number'
+		) {
 			return cachedGroupCount
 		}
 
@@ -379,7 +387,7 @@ export function createRealPolicyWorkbenchState() {
 				}
 
 				const policy = policiesStore.getPolicy(summary.key)
-				return policy?.editableByCurrentActor === true
+				return canRenderWorkbenchPolicyForGroupAdmin(summary.key, policy as EffectivePolicyState | null)
 			})
 	})
 
@@ -594,12 +602,23 @@ export function createRealPolicyWorkbenchState() {
 		return null
 	})
 
+	const canCreateUserOverridesAtCurrentScope = computed(() => {
+		if (!activeDefinition.value) {
+			return false
+		}
+
+		return canRenderWorkbenchPolicyForGroupAdmin(
+			activeDefinition.value.key,
+			activePolicyState.value as EffectivePolicyState | null,
+		)
+	})
+
 	const createUserOverrideDisabledReason = computed(() => {
 		if (viewMode.value === 'system-admin') {
 			return null
 		}
 
-		if (activePolicyState.value?.editableByCurrentActor === false) {
+		if (!canCreateUserOverridesAtCurrentScope.value) {
 			return t('libresign', 'Blocked by the global default.')
 		}
 
@@ -1588,15 +1607,12 @@ export function createRealPolicyWorkbenchState() {
 		const normalizedTargetIds = Array.from(new Set(targetIds.filter(Boolean)))
 		editorDraft.value.targetIds = normalizedTargetIds
 
-		if (
-			activeDefinition.value?.key === REQUEST_SIGN_GROUPS_POLICY_KEY
-			&& editorMode.value === 'create'
-			&& editorDraft.value.scope === 'group'
-		) {
-			const currentAuthorizedGroups = resolveRequestSignGroups(editorDraft.value.value)
-			if (currentAuthorizedGroups.length === 0) {
-				editorDraft.value.value = serializeRequestSignGroups(normalizedTargetIds)
-			}
+		if (activeDefinition.value?.syncCreateDraftValueFromTargets && editorMode.value === 'create') {
+			editorDraft.value.value = activeDefinition.value.syncCreateDraftValueFromTargets(
+				editorDraft.value.scope,
+				normalizedTargetIds,
+				editorDraft.value.value,
+			)
 		}
 	}
 

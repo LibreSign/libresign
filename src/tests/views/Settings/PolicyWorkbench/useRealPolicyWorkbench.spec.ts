@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { ref } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ref } from 'vue'
 
 import { createRealPolicyWorkbenchState } from '../../../../views/Settings/PolicyWorkbench/useRealPolicyWorkbench'
 
@@ -1216,7 +1216,12 @@ describe('useRealPolicyWorkbench', () => {
 	})
 
 	it('blocks user exceptions for group-admin when a group rule disables inheritance', async () => {
-		getPolicy.mockReturnValue({ effectiveValue: 'parallel', sourceScope: 'global' })
+		getPolicy.mockReturnValue({
+			effectiveValue: 'parallel',
+			sourceScope: 'global',
+			editableByCurrentActor: true,
+			canSaveAsUserDefault: true,
+		})
 
 		const state = createRealPolicyWorkbenchState()
 		state.setViewMode('group-admin')
@@ -1280,6 +1285,146 @@ describe('useRealPolicyWorkbench', () => {
 
 		expect(state.inheritedSystemRule).toBeNull()
 		expect(state.createUserOverrideDisabledReason).toBeNull()
+	})
+
+	it('shows descendant-manageable policies in group-admin catalog even when direct editing is blocked', () => {
+		currentUserState.isAdmin = false
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'show_confetti_after_signing') {
+				return {
+					policyKey: 'show_confetti_after_signing',
+					effectiveValue: true,
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [false, true],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 1,
+					userCount: 0,
+				}
+			}
+
+			return {
+				effectiveValue: 'parallel',
+				groupCount: 0,
+				userCount: 0,
+				editableByCurrentActor: false,
+				canSaveAsUserDefault: false,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+		const keys = state.visibleSettingSummaries.map((summary) => summary.key)
+
+		expect(keys).toContain('show_confetti_after_signing')
+		expect(keys).not.toContain('signature_flow')
+	})
+
+	it('allows group-admin to create user rules when policy is only delegated for lower levels', () => {
+		currentUserState.isAdmin = false
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'show_confetti_after_signing') {
+				return {
+					policyKey: 'show_confetti_after_signing',
+					effectiveValue: true,
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [false, true],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 1,
+					userCount: 0,
+				}
+			}
+
+			return {
+				effectiveValue: 'parallel',
+				groupCount: 0,
+				userCount: 0,
+				editableByCurrentActor: false,
+				canSaveAsUserDefault: false,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+		state.openSetting('show_confetti_after_signing')
+
+		expect(state.createGroupOverrideDisabledReason).not.toBeNull()
+		expect(state.createUserOverrideDisabledReason).toBeNull()
+
+		state.startEditor({ scope: 'user' })
+
+		expect(state.editorDraft?.scope).toBe('user')
+	})
+
+	it('hides system-created confetti group seed rules from group-admin CRUD state', async () => {
+		currentUserState.isAdmin = false
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'show_confetti_after_signing') {
+				return {
+					policyKey: 'show_confetti_after_signing',
+					effectiveValue: false,
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [false, true],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+					groupCount: 1,
+					userCount: 0,
+				}
+			}
+
+			return {
+				effectiveValue: 'parallel',
+				groupCount: 0,
+				userCount: 0,
+				editableByCurrentActor: false,
+				canSaveAsUserDefault: false,
+			}
+		})
+		fetchGroupPolicy.mockImplementation(async (groupId: string, policyKey: string) => {
+			if (policyKey !== 'show_confetti_after_signing' || groupId !== 'finance') {
+				return null
+			}
+
+			return {
+				policyKey,
+				scope: 'group',
+				targetId: groupId,
+				value: false,
+				allowChildOverride: true,
+				visibleToChild: true,
+				allowedValues: [false, true],
+				deletableByCurrentActor: false,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+		expect(state.visibleSettingSummaries.find((summary) => summary.key === 'show_confetti_after_signing')?.groupCount).toBe(1)
+
+		state.openSetting('show_confetti_after_signing')
+
+		await vi.waitFor(() => {
+			expect(fetchGroupPolicy).toHaveBeenCalledWith('finance', 'show_confetti_after_signing')
+		})
+
+		expect(state.visibleGroupRules).toHaveLength(0)
+		expect(state.visibleSettingSummaries.find((summary) => summary.key === 'show_confetti_after_signing')?.groupCount).toBe(0)
+
+		state.startEditor({ scope: 'user' })
+		expect(state.editorDraft?.scope).toBe('user')
 	})
 
 	it('clears current user preference when system-admin saves system rule', async () => {
