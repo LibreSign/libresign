@@ -1595,6 +1595,35 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.canSaveDraft).toBe(true)
 	})
 
+	it('seeds request access group create from inherited allow groups when baseline is seedable', async () => {
+		fetchSystemPolicy.mockResolvedValueOnce({
+			scope: 'global',
+			allowChildOverride: true,
+			value: '{"allowGroups":["board"],"denyGroups":[]}',
+		})
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'groups_request_sign') {
+				return {
+					effectiveValue: '{"allowGroups":["board"],"denyGroups":[]}',
+					sourceScope: 'system',
+				}
+			}
+
+			return { effectiveValue: 'parallel' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+		await Promise.resolve()
+		await Promise.resolve()
+		state.startEditor({ scope: 'group' })
+
+		expect(state.editorDraft?.scope).toBe('group')
+		expect(state.editorDraft?.targetIds).toEqual(['board'])
+		expect(state.editorDraft?.value).toBe('{"allowGroups":["board"],"denyGroups":[]}')
+		expect(state.canSaveDraft).toBe(true)
+	})
+
 	it('persists request-access group rule allow override toggle', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('groups_request_sign')

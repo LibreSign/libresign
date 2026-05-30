@@ -1569,11 +1569,15 @@ export function createRealPolicyWorkbenchState() {
 				value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
 			}
 		} else if (scope === 'group') {
-			const baselineRuleValue = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
+			const baselineRuleValue = activePolicyState.value?.sourceScope === 'system' || activePolicyState.value?.sourceScope === 'global'
+				? activePolicyState.value.effectiveValue
+				: null
 			if (shouldUseBaselineForCreate('group', baselineRuleValue)) {
 				value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
+				if (typeof activeDefinition.value.extractScopeTargets === 'function') {
+					targetIds = activeDefinition.value.extractScopeTargets(scope, value)
+				}
 			}
-			targetIds = []
 		} else if (scope === 'user') {
 			const baselineRuleValue = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
 			if (shouldUseBaselineForCreate('user', baselineRuleValue)) {
