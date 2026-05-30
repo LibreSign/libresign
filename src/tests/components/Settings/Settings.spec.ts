@@ -104,7 +104,7 @@ describe('Settings', () => {
 
 	const createWrapper = (
 		isAdmin = false,
-		_canManagePolicies = false,
+		canManageGroupPolicies = false,
 		canRequestSign = true,
 		effectivePolicies: Record<string, unknown> = {
 			signature_flow: {
@@ -120,6 +120,12 @@ describe('Settings', () => {
 				return {
 					...(defaults as Record<string, unknown>),
 					policies: effectivePolicies,
+				}
+			}
+			if (key === 'config') {
+				return {
+					...(defaults as Record<string, unknown>),
+					can_manage_group_policies: canManageGroupPolicies,
 				}
 			}
 			if (key === 'can_request_sign') {
@@ -505,6 +511,9 @@ describe('Settings', () => {
 				groups_request_sign: {
 					groupCount: 0,
 					userCount: 0,
+					editableByCurrentActor: false,
+				},
+				show_confetti_after_signing: {
 					editableByCurrentActor: true,
 				},
 			})
@@ -512,6 +521,30 @@ describe('Settings', () => {
 			const policiesItem = expectItem(findItemByName(items, 'Policies'))
 
 			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
+		})
+
+		it('shows Policies for non-admin group admins when only lower-level customization is available', () => {
+			wrapper = createWrapper(false, true, true, {
+				show_confetti_after_signing: {
+					editableByCurrentActor: false,
+					canSaveAsUserDefault: true,
+				},
+			})
+			const items = getItems()
+			const policiesItem = expectItem(findItemByName(items, 'Policies'))
+
+			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
+		})
+
+		it('hides Policies when only unsupported editable policies exist', () => {
+			wrapper = createWrapper(false, true, true, {
+				approval_group: {
+					editableByCurrentActor: true,
+				},
+			})
+			const items = getItems()
+
+			expect(findItemByName(items, 'Policies')).toBeUndefined()
 		})
 
 		it('shows Policies for non-admin users with group policy capability and delegated policies', () => {
@@ -554,7 +587,12 @@ describe('Settings', () => {
 		})
 
 		it('updates Policies visibility after the policies store receives delegated counts', async () => {
-			wrapper = createWrapper(false, true)
+			wrapper = createWrapper(false, true, true, {
+				signature_flow: {
+					editableByCurrentActor: false,
+					canSaveAsUserDefault: false,
+				},
+			})
 			expect(findItemByName(getItems(), 'Policies')).toBeUndefined()
 
 			mockPolicies.value = {
@@ -738,10 +776,15 @@ describe('Settings', () => {
 		})
 
 		it('hides policies entry for group manager without editable policies', () => {
-			wrapper = createWrapper(false, true)
+			wrapper = createWrapper(false, true, true, {
+				signature_flow: {
+					editableByCurrentActor: false,
+					canSaveAsUserDefault: false,
+				},
+			})
 			const items = getItems()
 
-			expect(items).toHaveLength(3)
+			expect(items).toHaveLength(2)
 
 			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
 			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
@@ -750,7 +793,7 @@ describe('Settings', () => {
 			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
 
 			expect(hasAccount).toBe(true)
-			expect(hasPreferences).toBe(true)
+			expect(hasPreferences).toBe(false)
 			expect(hasPolicies).toBe(false)
 			expect(hasRate).toBe(true)
 			expect(hasAdmin).toBe(false)
@@ -803,9 +846,9 @@ describe('Settings', () => {
 			expect(hasPolicies).toBe(true)
 		})
 
-		it('shows Policies menu for user when groups_request_sign is editable', () => {
-			wrapper = createWrapper(false, false, true, {
-				groups_request_sign: {
+		it('shows Policies menu for group admin when any manageable workbench policy exists', () => {
+			wrapper = createWrapper(false, true, true, {
+				show_confetti_after_signing: {
 					canSaveAsUserDefault: true,
 					editableByCurrentActor: true,
 				},
@@ -818,6 +861,7 @@ describe('Settings', () => {
 			wrapper = createWrapper(false, false, true, {
 				add_footer: {
 					editableByCurrentActor: false,
+					canSaveAsUserDefault: true,
 				},
 			})
 
@@ -831,8 +875,8 @@ describe('Settings', () => {
 			expect(getWrapper().vm.canManagePolicies).toBe(true)
 		})
 
-		it('canManagePolicies true when has editable policies', () => {
-			wrapper = createWrapper(false, false, true, {
+		it('canManagePolicies true when group admin has editable policies', () => {
+			wrapper = createWrapper(false, true, true, {
 				groups_request_sign: {
 					editableByCurrentActor: true,
 					groupCount: 1,
@@ -846,6 +890,7 @@ describe('Settings', () => {
 			wrapper = createWrapper(false, false, true, {
 				groups_request_sign: {
 					editableByCurrentActor: false,
+					canSaveAsUserDefault: true,
 				},
 			})
 

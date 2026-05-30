@@ -50,7 +50,11 @@ import { computed, onMounted } from 'vue'
 
 import { usePoliciesStore } from '../../store/policies'
 import type { EffectivePolicyState } from '../../types/index'
-import { canRenderPersonalPreferencePolicy } from '../../views/Preferences/personalPreferenceVisibility'
+import {
+	canRenderWorkbenchPolicyForGroupAdmin,
+	canRenderPersonalPreferencePolicy,
+	isWorkbenchPolicyKey,
+} from '../../views/Preferences/personalPreferenceVisibility'
 
 import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
@@ -68,10 +72,34 @@ defineOptions({
 
 const isAdmin = getCurrentUser()?.isAdmin ?? false
 const canRequestSign = loadState<boolean>('libresign', 'can_request_sign', false)
+const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', 'config', {})
+const canManageGroupPolicies = config.can_manage_group_policies === true
 const initialEffectivePolicies = loadState('libresign', 'effective_policies', { policies: {} }) as {
-	policies?: Record<string, { editableByCurrentActor?: boolean }>
+	policies?: Record<string, {
+		editableByCurrentActor?: boolean
+		canSaveAsUserDefault?: boolean
+	}>
 }
 const policiesStore = usePoliciesStore()
+
+function hasManageableWorkbenchPolicy(
+	policies: Record<string, {
+		editableByCurrentActor?: boolean
+		canSaveAsUserDefault?: boolean
+	}> | undefined,
+): boolean {
+	if (!policies) {
+		return false
+	}
+
+	return Object.entries(policies).some(([policyKey, policy]) => {
+		return isWorkbenchPolicyKey(policyKey)
+			&& canRenderWorkbenchPolicyForGroupAdmin(
+				policyKey,
+				policy as Pick<EffectivePolicyState, 'editableByCurrentActor' | 'canSaveAsUserDefault'>,
+			)
+	})
+}
 
 const canManagePreferences = computed(() => {
 	return Object.entries(policiesStore.policies).some(([policyKey, policy]) => canRenderPersonalPreferencePolicy(
@@ -86,15 +114,15 @@ const canManagePolicies = computed(() => {
 		return true
 	}
 
-	const groupsRequestSignPolicy = policiesStore.policies.groups_request_sign
-	if (groupsRequestSignPolicy && typeof groupsRequestSignPolicy === 'object') {
-		const policyState = groupsRequestSignPolicy as { editableByCurrentActor?: boolean }
-		if (typeof policyState.editableByCurrentActor === 'boolean') {
-			return policyState.editableByCurrentActor
-		}
+	if (!canManageGroupPolicies) {
+		return false
 	}
 
-	return initialEffectivePolicies.policies?.groups_request_sign?.editableByCurrentActor === true
+	return hasManageableWorkbenchPolicy(policiesStore.policies as Record<string, {
+		editableByCurrentActor?: boolean
+		canSaveAsUserDefault?: boolean
+	}>)
+		|| hasManageableWorkbenchPolicy(initialEffectivePolicies.policies)
 })
 
 onMounted(() => {
