@@ -1,4 +1,4 @@
-Feature: admin/collect_metadata_policy
+Feature: policies/collect_metadata_policy
   Scenario: Manage collect_metadata policy layers through API
     Given as user "admin"
     And user "signer1" exists

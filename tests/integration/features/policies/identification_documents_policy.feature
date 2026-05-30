@@ -1,4 +1,4 @@
-Feature: admin/identification_documents_policy
+Feature: policies/identification_documents_policy
   Scenario: Manage identification_documents policy layers through API
     Given as user "admin"
     And user "signer1" exists

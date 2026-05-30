@@ -1,4 +1,4 @@
-Feature: admin/legal_information_policy
+Feature: policies/legal_information_policy
   Scenario: Manage legal_information policy layers through API
     Given as user "admin"
     And user "signer1" exists

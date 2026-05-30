@@ -1,4 +1,4 @@
-Feature: TSA Administration - Core Configuration
+Feature: policies/tsa_policy
 
   Scenario: Configure and manage TSA configuration lifecycle
     Given as user "admin"
@@ -13,9 +13,9 @@ Feature: TSA Administration - Core Configuration
     When sending "get" to ocs "/apps/libresign/api/v1/policies/effective"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                                                  | value       |
-      | (jq).ocs.data.policies.tsa_settings.policyKey                                   | tsa_settings |
-      | (jq).ocs.data.policies.tsa_settings.sourceScope                               | global       |
+      | key                                                        | value        |
+      | (jq).ocs.data.policies.tsa_settings.policyKey             | tsa_settings |
+      | (jq).ocs.data.policies.tsa_settings.sourceScope           | global       |
       | (jq)(.ocs.data.policies.tsa_settings.effectiveValue \| fromjson).url        | <TSA_URL>    |
       | (jq)(.ocs.data.policies.tsa_settings.effectiveValue \| fromjson).policy_oid | 1.2.3.4.1    |
       | (jq)(.ocs.data.policies.tsa_settings.effectiveValue \| fromjson).auth_type  | none         |

@@ -1,4 +1,4 @@
-Feature: admin/policy_contracts_system_scope
+Feature: policies/policy_contracts_system_scope
   Scenario: Manage expiration-related policies at system scope
     Given as user "admin"
 
