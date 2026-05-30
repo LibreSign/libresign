@@ -376,7 +376,10 @@ final class DefaultPolicyResolverTest extends TestCase {
 
 	/** @return array<string, array{0: array<string, bool>, 1: bool, 2: string, 3: bool, 4: bool, 5: bool, 6: bool, 7: bool}> */
 	public static function provideEditableByActorCases(): array {
-		//                                            capabilities                                           supportsGroupAdmin  systemScope  allowChildOverride  visibleToChild  editable  canSave  canOverride
+		// Dataset order:
+		// [actorCapabilities, supportsGroupAdminConfiguration, systemLayerScope,
+		//  allowChildOverride, visibleToChild, expectedEditable,
+		//  expectedCanSaveAsUserDefault, expectedCanUseAsRequestOverride]
 		return [
 			// --- system admin scenarios ---
 			'system admin can edit and users can also override when hierarchy permits' => [
