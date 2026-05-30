@@ -4,6 +4,7 @@
  */
 
 import { expect, test as base, type APIRequestContext } from '@playwright/test'
+
 import { login } from '../support/nc-login'
 import { expandSettingsMenu } from '../support/nc-navigation'
 import {
@@ -17,8 +18,11 @@ import {
 	clearUserPolicyPreference,
 	createAuthenticatedRequestContext,
 	getEffectivePolicy,
+	getSystemPolicySnapshot,
+	restoreSystemPolicySnapshot,
 	setGroupPolicyEntry,
 	setSystemPolicyEntry,
+	type SystemPolicySnapshot,
 	waitForPolicyCanSaveAsUserDefault,
 } from '../support/policy-api'
 
@@ -26,12 +30,18 @@ const test = base.extend<{
 	adminRequestContext: APIRequestContext
 	endUserRequestContext: APIRequestContext
 }>({
-	adminRequestContext: async ({}, use) => {
+	adminRequestContext: async ({ browserName }, use) => {
+		if (!browserName) {
+			throw new Error('Missing browserName fixture')
+		}
 		const ctx = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
 		await use(ctx)
 		await ctx.dispose()
 	},
-	endUserRequestContext: async ({}, use) => {
+	endUserRequestContext: async ({ browserName }, use) => {
+		if (!browserName) {
+			throw new Error('Missing browserName fixture')
+		}
 		const ctx = await createAuthenticatedRequestContext(END_USER, DEFAULT_TEST_PASSWORD)
 		await use(ctx)
 		await ctx.dispose()
@@ -49,7 +59,6 @@ const END_USER = 'policy-preferences-member'
 const POLICY_KEY = 'signature_flow'
 const FOOTER_POLICY_KEY = 'add_footer'
 const REQUEST_SIGN_GROUPS = JSON.stringify(['admin', GROUP_ID])
-const DEFAULT_REQUEST_SIGN_GROUPS = JSON.stringify(['admin'])
 const FOOTER_ENABLED_VALUE = JSON.stringify({
 	enabled: true,
 	writeQrcodeOnFooter: true,
@@ -63,6 +72,17 @@ const FOOTER_DISABLED_VALUE = JSON.stringify({
 	customizeFooterTemplate: false,
 })
 
+let originalGroupsRequestSignPolicy: SystemPolicySnapshot | null = null
+let originalSignatureFlowPolicy: SystemPolicySnapshot | null = null
+let originalFooterPolicy: SystemPolicySnapshot | null = null
+
+/**
+ * Resets the preference-related policy state to the baseline expected by this
+ * scenario before policy delegation is toggled.
+ *
+ * @param adminRequestContext Authenticated admin API context used to reset system policies.
+ * @param endUserRequestContext Authenticated end-user API context used to clear user preferences.
+ */
 async function resetPolicyPreferencesState(
 	adminRequestContext: APIRequestContext,
 	endUserRequestContext: APIRequestContext,
@@ -77,6 +97,9 @@ test.beforeEach(async ({ page, adminRequestContext, endUserRequestContext }) => 
 	await ensureUserExists(page.request, END_USER, DEFAULT_TEST_PASSWORD)
 	await ensureGroupExists(page.request, GROUP_ID)
 	await ensureUserInGroup(page.request, END_USER, GROUP_ID)
+	originalGroupsRequestSignPolicy = await getSystemPolicySnapshot(adminRequestContext, 'groups_request_sign')
+	originalSignatureFlowPolicy = await getSystemPolicySnapshot(adminRequestContext, POLICY_KEY)
+	originalFooterPolicy = await getSystemPolicySnapshot(adminRequestContext, FOOTER_POLICY_KEY)
 	await setSystemPolicy(adminRequestContext, 'groups_request_sign', REQUEST_SIGN_GROUPS)
 	await configureOpenSsl(adminRequestContext, 'LibreSign Test', {
 		C: 'BR',
@@ -90,7 +113,18 @@ test.beforeEach(async ({ page, adminRequestContext, endUserRequestContext }) => 
 
 test.afterEach(async ({ adminRequestContext, endUserRequestContext }) => {
 	await resetPolicyPreferencesState(adminRequestContext, endUserRequestContext)
-	await setSystemPolicy(adminRequestContext, 'groups_request_sign', DEFAULT_REQUEST_SIGN_GROUPS)
+	if (originalFooterPolicy) {
+		await restoreSystemPolicySnapshot(adminRequestContext, FOOTER_POLICY_KEY, originalFooterPolicy)
+	}
+	if (originalSignatureFlowPolicy) {
+		await restoreSystemPolicySnapshot(adminRequestContext, POLICY_KEY, originalSignatureFlowPolicy)
+	}
+	if (originalGroupsRequestSignPolicy) {
+		await restoreSystemPolicySnapshot(adminRequestContext, 'groups_request_sign', originalGroupsRequestSignPolicy)
+	}
+	originalGroupsRequestSignPolicy = null
+	originalSignatureFlowPolicy = null
+	originalFooterPolicy = null
 })
 
 test('group member sees Preferences controls only when lower-layer customization is allowed', async ({ page, adminRequestContext, endUserRequestContext }) => {
