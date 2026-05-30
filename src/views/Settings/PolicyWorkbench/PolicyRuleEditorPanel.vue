@@ -13,10 +13,11 @@
 			</div>
 
 			<div v-if="editorDraft.scope !== 'system'" class="policy-workbench__field">
-				<label class="policy-workbench__label">
+				<label v-if="!hideTargetSelector" class="policy-workbench__label">
 					{{ targetScopeLabel }}
 				</label>
 				<NcSelectUsers
+					v-if="!hideTargetSelector"
 					:model-value="selectedTargetOptions"
 					:options="availableTargets"
 					:aria-label="targetScopeLabel"
@@ -37,7 +38,7 @@
 					:editor-scope="editorDraft.scope"
 					:editor-mode="editorMode"
 					:editor-target-ids="editorDraft.targetIds"
-					:has-selected-targets="editorDraft.targetIds.length > 0"
+					:has-selected-targets="hideTargetSelector || editorDraft.targetIds.length > 0"
 					@template-changed="$emit('template-changed')"
 					@update:modelValue="$emit('update-value', $event)" />
 			</div>
@@ -126,12 +127,14 @@ const props = withDefaults(defineProps<{
 	showBackButton?: boolean
 	showAllowOverrideSwitch?: boolean
 	allowOverrideMutable?: boolean
+	hideTargetSelector?: boolean
 }>(), {
 	showInlineActions: true,
 	stickyActions: false,
 	showBackButton: false,
 	showAllowOverrideSwitch: true,
 	allowOverrideMutable: true,
+	hideTargetSelector: false,
 	editorProps: () => ({}),
 })
 

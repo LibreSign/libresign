@@ -33,6 +33,7 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 		allowGroups: [],
 		denyGroups: [],
 	}),
+	extractScopeTargets: (_scope, value) => resolveRequestSignGroups(value),
 	syncCreateDraftValueFromTargets: (scope, targetIds, currentValue, isInstanceAdmin) => {
 		if (scope !== 'group') {
 			return currentValue
