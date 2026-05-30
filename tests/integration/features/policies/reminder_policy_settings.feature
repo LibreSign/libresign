@@ -1,4 +1,4 @@
-Feature: admin/reminder_policy_settings
+Feature: policies/reminder_policy_settings
   Scenario: Manage reminder_settings policy layers through API
     Given as user "admin"
     And user "signer1" exists

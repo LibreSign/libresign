@@ -1,4 +1,4 @@
-Feature: admin/footer_template_preview
+Feature: policies/footer_template_preview
   Scenario: Saving footer template returns a non-empty PDF preview
     Given as user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/footer-template"

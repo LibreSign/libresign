@@ -1,4 +1,4 @@
-Feature: admin/signature_text_policy
+Feature: policies/signature_text_policy
   Scenario: Manage signature_text policy layers through API
     Given as user "admin"
     And user "signer1" exists
