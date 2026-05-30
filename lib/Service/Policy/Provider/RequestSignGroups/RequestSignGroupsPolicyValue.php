@@ -10,33 +10,93 @@ namespace OCA\Libresign\Service\Policy\Provider\RequestSignGroups;
 
 final class RequestSignGroupsPolicyValue {
 	/** @var list<string> */
-	public const DEFAULT_GROUPS = ['admin'];
+	public const DEFAULT_ALLOW_GROUPS = ['admin'];
 
-	/** @return list<string> */
-	public static function decode(mixed $rawValue): array {
+	/** @var list<string> */
+	public const DEFAULT_DENY_GROUPS = [];
+
+	/** @var list<string> Backward-compatible alias */
+	public const DEFAULT_GROUPS = self::DEFAULT_ALLOW_GROUPS;
+
+	/**
+	 * @return array{allowGroups: list<string>, denyGroups: list<string>}
+	 */
+	public static function decodePolicy(mixed $rawValue): array {
 		if (is_array($rawValue)) {
-			return self::normalizeGroupIds($rawValue);
+			if (self::isSequentialList($rawValue)) {
+				return self::normalizePolicyPayload([
+					'allowGroups' => $rawValue,
+					'denyGroups' => [],
+				]);
+			}
+
+			return self::normalizePolicyPayload($rawValue);
 		}
 
 		if (!is_string($rawValue)) {
-			return [];
+			return self::normalizePolicyPayload([]);
 		}
 
 		$trimmed = trim($rawValue);
 		if ($trimmed === '') {
-			return [];
+			return self::normalizePolicyPayload([]);
 		}
 
 		$decoded = json_decode($trimmed, true);
 		if (is_array($decoded)) {
-			return self::normalizeGroupIds($decoded);
+			if (self::isSequentialList($decoded)) {
+				return self::normalizePolicyPayload([
+					'allowGroups' => $decoded,
+					'denyGroups' => [],
+				]);
+			}
+
+			return self::normalizePolicyPayload($decoded);
 		}
 
-		return self::normalizeGroupIds(array_map('trim', explode(',', $trimmed)));
+		// Keep CSV fallback for legacy or manually edited values.
+		return self::normalizePolicyPayload([
+			'allowGroups' => array_map('trim', explode(',', $trimmed)),
+			'denyGroups' => [],
+		]);
+	}
+
+	/** @return list<string> */
+	public static function decode(mixed $rawValue): array {
+		return self::decodePolicy($rawValue)['allowGroups'];
+	}
+
+	/** @return list<string> */
+	public static function decodeDenied(mixed $rawValue): array {
+		return self::decodePolicy($rawValue)['denyGroups'];
 	}
 
 	public static function encode(mixed $rawValue): string {
-		return json_encode(self::decode($rawValue), JSON_THROW_ON_ERROR);
+		$payload = self::decodePolicy($rawValue);
+		return json_encode($payload, JSON_THROW_ON_ERROR);
+	}
+
+	/** @param array<string, mixed> $rawValue */
+	private static function normalizePolicyPayload(array $rawValue): array {
+		$rawAllow = $rawValue['allowGroups'] ?? $rawValue['allow_groups'] ?? $rawValue['groups'] ?? self::DEFAULT_ALLOW_GROUPS;
+		$rawDeny = $rawValue['denyGroups'] ?? $rawValue['deny_groups'] ?? $rawValue['deniedGroups'] ?? self::DEFAULT_DENY_GROUPS;
+
+		$allowGroups = is_array($rawAllow)
+			? self::normalizeGroupIds($rawAllow)
+			: self::DEFAULT_ALLOW_GROUPS;
+		$denyGroups = is_array($rawDeny)
+			? self::normalizeGroupIds($rawDeny)
+			: self::DEFAULT_DENY_GROUPS;
+
+		return [
+			'allowGroups' => $allowGroups,
+			'denyGroups' => $denyGroups,
+		];
+	}
+
+	/** @param array<mixed> $value */
+	private static function isSequentialList(array $value): bool {
+		return array_is_list($value);
 	}
 
 	/** @param array<mixed> $rawGroups

@@ -10,7 +10,7 @@ Feature: policies/groups_request_sign_policy
     Then the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/groups_request_sign"
-      | value              | ["admin"] |
+      | value              | {"allowGroups":["admin"],"denyGroups":[]} |
       | allowChildOverride | true        |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -19,7 +19,7 @@ Feature: policies/groups_request_sign_policy
 
     Given as user "admin"
     When sending "put" to ocs "/apps/libresign/api/v1/policies/group/admin/groups_request_sign"
-      | value              | ["admin"] |
+      | value              | {"allowGroups":["admin"],"denyGroups":[]} |
       | allowChildOverride | true        |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -36,7 +36,7 @@ Feature: policies/groups_request_sign_policy
 
     Given as user "signer1"
     When sending "put" to ocs "/apps/libresign/api/v1/policies/group/admin/groups_request_sign"
-      | value              | ["admin"] |
+      | value              | {"allowGroups":["admin"],"denyGroups":[]} |
       | allowChildOverride | true        |
     Then the response should have a status code 403
     And the response should be a JSON array with the following mandatory values
@@ -51,7 +51,7 @@ Feature: policies/groups_request_sign_policy
 
     Given as user "admin"
     When sending "put" to ocs "/apps/libresign/api/v1/policies/user/signer1/groups_request_sign"
-      | value | ["admin"] |
+      | value | {"allowGroups":["admin"],"denyGroups":[]} |
     Then the response should have a status code 400
     And the response should be a JSON array with the following mandatory values
       | key                 | value                                            |
@@ -87,7 +87,7 @@ Feature: policies/groups_request_sign_policy
     Then the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/groups_request_sign"
-      | value              | ["policy-request-access-board-gadmin"] |
+      | value              | {"allowGroups":["policy-request-access-board-gadmin"],"denyGroups":[]} |
       | allowChildOverride | true                                     |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -95,7 +95,7 @@ Feature: policies/groups_request_sign_policy
       | (jq).ocs.data.policy.policyKey     | groups_request_sign |
 
     When sending "put" to ocs "/apps/libresign/api/v1/policies/group/policy-request-access-board-gadmin/groups_request_sign"
-      | value              | ["policy-request-access-board-gadmin"] |
+      | value              | {"allowGroups":["policy-request-access-board-gadmin"],"denyGroups":[]} |
       | allowChildOverride | true                                     |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -110,7 +110,7 @@ Feature: policies/groups_request_sign_policy
     And the response should be a JSON array with the following mandatory values
       | key                                                     | value                               |
       | (jq).ocs.data.policies.groups_request_sign.sourceScope | group                               |
-      | (jq).ocs.data.policies.groups_request_sign.effectiveValue | [\"policy-request-access-board-gadmin\"] |
+      | (jq).ocs.data.policies.groups_request_sign.effectiveValue | {\"allowGroups\":[\"policy-request-access-board-gadmin\"],\"denyGroups\":[]} |
       | (jq).ocs.data.policies.groups_request_sign.groupCount  | 0                                   |
 
     When sending "get" to ocs "/apps/libresign/api/v1/policies/group/policy-request-access-board-gadmin/groups_request_sign"
@@ -126,7 +126,7 @@ Feature: policies/groups_request_sign_policy
       | (jq).ocs.data.policies | (jq)length == 0 |
 
     When sending "put" to ocs "/apps/libresign/api/v1/policies/group/policy-request-access-board-gadmin/groups_request_sign"
-      | value              | ["policy-request-access-board-gadmin"] |
+      | value              | {"allowGroups":["policy-request-access-board-gadmin"],"denyGroups":[]} |
       | allowChildOverride | false                                    |
     Then the response should have a status code 403
     And the response should be a JSON array with the following mandatory values
@@ -147,4 +147,47 @@ Feature: policies/groups_request_sign_policy
     Then the response should have a status code 200
 
     And run the command "group:delete policy-request-access-board-gadmin" with result code 0
+
+  Scenario: denyGroups takes precedence over allowGroups for request creation
+    Given as user "admin"
+    And user "allow-only-requester" exists
+    And user "deny-precedence-requester" exists
+    And run the bash command "php <nextcloudRootDir>/console.php group:delete policy-request-access-allow >/dev/null 2>&1 || true" with result code 0
+    And run the bash command "php <nextcloudRootDir>/console.php group:delete policy-request-access-deny >/dev/null 2>&1 || true" with result code 0
+    And run the command "group:add policy-request-access-allow" with result code 0
+    And run the command "group:add policy-request-access-deny" with result code 0
+    And run the command "group:adduser policy-request-access-allow allow-only-requester" with result code 0
+    And run the command "group:adduser policy-request-access-allow deny-precedence-requester" with result code 0
+    And run the command "group:adduser policy-request-access-deny deny-precedence-requester" with result code 0
+    And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
+      | rootCert | {"commonName":"test"} |
+
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/groups_request_sign"
+      | value              | {"allowGroups":["policy-request-access-allow","policy-request-access-deny"],"denyGroups":["policy-request-access-deny"]} |
+      | allowChildOverride | true                                                                                                                       |
+    Then the response should have a status code 200
+
+    Given as user "allow-only-requester"
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | signers | [{"identifyMethods":[{"method":"account","value":"allow-only-requester"}]}] |
+      | name    | document |
+    Then the response should have a status code 200
+
+    Given as user "deny-precedence-requester"
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | signers | [{"identifyMethods":[{"method":"account","value":"deny-precedence-requester"}]}] |
+      | name    | document |
+    Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key                             | value                                  |
+      | (jq).ocs.data.action            | 2000                                   |
+      | (jq).ocs.data.errors[0].message | You are not allowed to create signature requests |
+
+    Given as user "admin"
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/groups_request_sign"
+    Then the response should have a status code 200
+    And run the command "group:delete policy-request-access-allow" with result code 0
+    And run the command "group:delete policy-request-access-deny" with result code 0
 

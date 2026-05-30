@@ -30,7 +30,10 @@ final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 		return match ($this->normalizePolicyKey($policyKey)) {
 			self::KEY => new PolicySpec(
 				key: self::KEY,
-				defaultSystemValue: RequestSignGroupsPolicyValue::encode(RequestSignGroupsPolicyValue::DEFAULT_GROUPS),
+				defaultSystemValue: RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => RequestSignGroupsPolicyValue::DEFAULT_ALLOW_GROUPS,
+					'denyGroups' => RequestSignGroupsPolicyValue::DEFAULT_DENY_GROUPS,
+				]),
 				allowedValues: static fn (PolicyContext $context): array => [],
 				normalizer: static fn (mixed $rawValue): mixed => RequestSignGroupsPolicyValue::encode($rawValue),
 				validator: static function (mixed $value): void {
@@ -38,8 +41,8 @@ final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 						throw new \InvalidArgumentException('Invalid value for ' . self::KEY);
 					}
 
-					$decoded = RequestSignGroupsPolicyValue::decode($value);
-					if ($decoded === []) {
+					$decoded = RequestSignGroupsPolicyValue::decodePolicy($value);
+					if ($decoded['allowGroups'] === []) {
 						throw new \InvalidArgumentException('At least one authorized group is required for ' . self::KEY);
 					}
 				},

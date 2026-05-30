@@ -18,7 +18,7 @@
 			</header>
 
 			<NcSelect
-				:model-value="selectedGroups"
+				:model-value="selectedAllowGroups"
 				label="displayname"
 				:no-wrap="false"
 				:aria-label-combobox="authorizedRequesterGroupsAriaLabel"
@@ -31,11 +31,43 @@
 				:searchable="true"
 				:show-no-options="false"
 				@search-change="searchGroup"
-				@update:modelValue="onGroupsChange" />
+				@update:modelValue="onAllowGroupsChange" />
+
+			<section class="request-sign-groups-editor__deny-section">
+				<h4 class="request-sign-groups-editor__title">
+					<!-- TRANSLATORS Section title for explicitly denied groups in signature-request access policy. -->
+					{{ t('libresign', 'Denied requester groups') }}
+				</h4>
+				<p class="request-sign-groups-editor__description">
+					<!-- TRANSLATORS Description for deny list in signature-request access policy. -->
+					{{ t('libresign', 'Optionally block selected groups from creating signature requests in this scope.') }}
+				</p>
+
+				<NcSelect
+					:model-value="selectedDenyGroups"
+					label="displayname"
+					:no-wrap="false"
+					:aria-label-combobox="deniedRequesterGroupsAriaLabel"
+					:close-on-select="false"
+					:disabled="loadingGroups"
+					:loading="loadingGroups"
+					:multiple="true"
+					:options="availableGroups"
+					:placeholder="searchGroupsPlaceholder"
+					:searchable="true"
+					:show-no-options="false"
+					@search-change="searchGroup"
+					@update:modelValue="onDenyGroupsChange" />
+
+				<p v-if="overlappingGroupIds.length > 0" class="request-sign-groups-editor__helper request-sign-groups-editor__helper--warning">
+					<!-- TRANSLATORS Warning shown when a group appears in both allow and deny lists; deny takes precedence. -->
+					{{ t('libresign', 'One or more groups are present in both allow and deny lists. Deny takes precedence.') }}
+				</p>
+			</section>
 
 			<p class="request-sign-groups-editor__helper">
 				<!-- TRANSLATORS Helper note: administrators can only authorize groups they are members of. -->
-				{{ t('libresign', 'Only groups you belong to may be authorized.') }}
+				{{ t('libresign', 'Only groups you belong to may be configured in allow or deny lists.') }}
 			</p>
 
 			<p v-if="requiredManagedGroupId" class="request-sign-groups-editor__helper request-sign-groups-editor__helper--warning">
@@ -63,7 +95,11 @@ import NcSelect from '@nextcloud/vue/components/NcSelect'
 
 import logger from '../../../../../logger.js'
 import type { EffectivePolicyValue } from '../../../../../types/index'
-import { resolveRequestSignGroups, serializeRequestSignGroups } from './model'
+import {
+	resolveDeniedRequestSignGroups,
+	resolveRequestSignGroups,
+	serializeRequestSignGroups,
+} from './model'
 
 type GroupRow = {
 	id: string
@@ -105,7 +141,8 @@ const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
 
-const selectedGroupIds = ref<string[]>([])
+const selectedAllowGroupIds = ref<string[]>([])
+const selectedDenyGroupIds = ref<string[]>([])
 const availableGroups = ref<GroupRow[]>([])
 const loadingGroups = ref(false)
 const currentUser = getCurrentUser()
@@ -125,12 +162,23 @@ function clampToManageableScope(groupIds: string[]): string[] {
 	return groupIds.filter((groupId) => manageableGroupIds.has(groupId))
 }
 
-selectedGroupIds.value = clampToManageableScope(resolveRequestSignGroups(props.modelValue))
+selectedAllowGroupIds.value = clampToManageableScope(resolveRequestSignGroups(props.modelValue))
+selectedDenyGroupIds.value = clampToManageableScope(resolveDeniedRequestSignGroups(props.modelValue))
 
-const selectedGroups = computed<Array<GroupRow | string>>(() => {
-	return selectedGroupIds.value.map((groupId) => {
+const selectedAllowGroups = computed<Array<GroupRow | string>>(() => {
+	return selectedAllowGroupIds.value.map((groupId) => {
 		return availableGroups.value.find((group) => group.id === groupId) ?? groupId
 	})
+})
+
+const selectedDenyGroups = computed<Array<GroupRow | string>>(() => {
+	return selectedDenyGroupIds.value.map((groupId) => {
+		return availableGroups.value.find((group) => group.id === groupId) ?? groupId
+	})
+})
+
+const overlappingGroupIds = computed(() => {
+	return selectedAllowGroupIds.value.filter((groupId) => selectedDenyGroupIds.value.includes(groupId))
 })
 
 const shouldShowRequesterGroupsEditor = computed(() => {
@@ -169,11 +217,15 @@ const requiredManagedGroupId = computed(() => {
 // TRANSLATORS Accessible label for the group multi-select that defines who can create signature requests.
 const authorizedRequesterGroupsAriaLabel = t('libresign', 'Authorized requester groups')
 
+// TRANSLATORS Accessible label for the group multi-select that defines explicitly denied signature-request groups.
+const deniedRequesterGroupsAriaLabel = t('libresign', 'Denied requester groups')
+
 // TRANSLATORS Placeholder text shown while searching available groups in the requester authorization selector.
 const searchGroupsPlaceholder = t('libresign', 'Search groups')
 
 watch(() => props.modelValue, (nextValue) => {
-	selectedGroupIds.value = clampToManageableScope(resolveRequestSignGroups(nextValue))
+	selectedAllowGroupIds.value = clampToManageableScope(resolveRequestSignGroups(nextValue))
+	selectedDenyGroupIds.value = clampToManageableScope(resolveDeniedRequestSignGroups(nextValue))
 })
 
 async function searchGroup(query: string) {
@@ -222,19 +274,36 @@ function filterGroupsByManageableScope(groups: GroupRow[]): GroupRow[] {
 	return groups.filter((group) => manageableGroupIds.has(group.id))
 }
 
-function onGroupsChange(value: Array<GroupRow | string>) {
-	let nextSelectedGroupIds = value
+function toGroupIds(value: Array<GroupRow | string>): string[] {
+	return value
 		.map((group): string => typeof group === 'string' ? group : group.id)
 		.map((groupId) => groupId.trim())
 		.filter((groupId) => groupId.length > 0)
+}
+
+function emitValue() {
+	emit('update:modelValue', serializeRequestSignGroups({
+		allowGroups: selectedAllowGroupIds.value,
+		denyGroups: selectedDenyGroupIds.value,
+	}))
+}
+
+function onAllowGroupsChange(value: Array<GroupRow | string>) {
+	let nextSelectedGroupIds = value
+		? toGroupIds(value)
+		: []
 
 	if (requiredManagedGroupId.value && !nextSelectedGroupIds.includes(requiredManagedGroupId.value)) {
 		nextSelectedGroupIds = [...nextSelectedGroupIds, requiredManagedGroupId.value]
 	}
 
-	selectedGroupIds.value = clampToManageableScope(nextSelectedGroupIds)
+	selectedAllowGroupIds.value = clampToManageableScope(nextSelectedGroupIds)
+	emitValue()
+}
 
-	emit('update:modelValue', serializeRequestSignGroups(selectedGroupIds.value))
+function onDenyGroupsChange(value: Array<GroupRow | string>) {
+	selectedDenyGroupIds.value = clampToManageableScope(toGroupIds(value))
+	emitValue()
 }
 
 onMounted(async () => {
@@ -285,6 +354,15 @@ onMounted(async () => {
 		font-size: 0.82rem;
 		color: var(--color-text-maxcontrast);
 		overflow-wrap: anywhere;
+	}
+
+	&__deny-section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		margin-top: 0.5rem;
+		padding-top: 0.75rem;
+		border-top: 1px solid var(--color-border);
 	}
 
 }

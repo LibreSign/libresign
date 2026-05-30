@@ -27,4 +27,26 @@ describe('requestSignGroupsRealDefinition', () => {
 		expect(requestSignGroupsRealDefinition.formatAllowOverride(true)).toBe('Group admins can define scope-specific requester groups')
 		expect(requestSignGroupsRealDefinition.formatAllowOverride(false)).toBe('Group admins must inherit the system requester groups')
 	})
+
+	it('normalizes empty draft and group-target seeding using composed payload', () => {
+		expect(requestSignGroupsRealDefinition.createEmptyValue()).toBe('{"allowGroups":[],"denyGroups":[]}')
+
+		const seeded = requestSignGroupsRealDefinition.syncCreateDraftValueFromTargets?.(
+			'group',
+			['finance'],
+			'{"allowGroups":[],"denyGroups":[]}',
+		)
+
+		expect(seeded).toBe('{"allowGroups":["finance"],"denyGroups":[]}')
+	})
+
+	it('keeps denied groups while seeding allow groups from targets', () => {
+		const seeded = requestSignGroupsRealDefinition.syncCreateDraftValueFromTargets?.(
+			'group',
+			['finance'],
+			'{"allowGroups":[],"denyGroups":["legal"]}',
+		)
+
+		expect(seeded).toBe('{"allowGroups":["finance"],"denyGroups":["legal"]}')
+	})
 })

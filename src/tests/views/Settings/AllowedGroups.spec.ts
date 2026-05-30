@@ -10,7 +10,7 @@ const axiosGetMock = vi.fn()
 const generateOcsUrlMock = vi.fn((path: string) => path)
 const confirmPasswordMock = vi.fn(() => Promise.resolve())
 const fetchEffectivePoliciesMock = vi.fn(async () => {})
-const getEffectiveValueMock = vi.fn(() => '["admin"]')
+const getEffectiveValueMock = vi.fn(() => '{"allowGroups":["admin"],"denyGroups":[]}')
 const saveSystemPolicyMock = vi.fn(async () => ({ policyKey: 'groups_request_sign' }))
 
 vi.mock('@nextcloud/axios', () => ({
@@ -98,7 +98,7 @@ describe('AllowedGroups', () => {
 		expect(saveSystemPolicyMock).toHaveBeenCalled()
 		const firstPersistCall = saveSystemPolicyMock.mock.calls.at(-1) as [string, string, boolean] | undefined
 		expect(firstPersistCall?.[0]).toBe('groups_request_sign')
-		expect(firstPersistCall?.[1]).toBe('["admin","testGroup"]')
+		expect(firstPersistCall?.[1]).toBe('{"allowGroups":["admin","testGroup"],"denyGroups":[]}')
 
 		select = wrapper.findComponent({ name: 'NcSelect' })
 
@@ -109,7 +109,7 @@ describe('AllowedGroups', () => {
 
 		const secondPersistCall = saveSystemPolicyMock.mock.calls.at(-1) as [string, string, boolean] | undefined
 		expect(secondPersistCall?.[0]).toBe('groups_request_sign')
-		expect(secondPersistCall?.[1]).toBe('["admin"]')
+		expect(secondPersistCall?.[1]).toBe('{"allowGroups":["admin"],"denyGroups":[]}')
 		expect(confirmPasswordMock).toHaveBeenCalledTimes(2)
 	})
 
@@ -161,6 +161,54 @@ describe('AllowedGroups', () => {
 
 		const lastCall = saveSystemPolicyMock.mock.calls.at(-1) as any
 		expect(lastCall?.[0]).toBe('groups_request_sign')
-		expect(lastCall?.[1]).toBe('["admin","SÖ"]')
+		expect(lastCall?.[1]).toBe('{"allowGroups":["admin","SÖ"],"denyGroups":[]}')
+	})
+
+	it('preserves deny groups when updating allow list from legacy settings view', async () => {
+		getEffectiveValueMock.mockReturnValue('{"allowGroups":["admin"],"denyGroups":["legal"]}')
+
+		axiosGetMock.mockImplementation((url: string) => {
+			if (url.includes('cloud/groups/details')) {
+				return Promise.resolve({
+					data: {
+						ocs: {
+							data: {
+								groups: [
+									{ id: 'admin', displayname: 'admin' },
+									{ id: 'finance', displayname: 'finance' },
+								],
+							},
+						},
+					},
+				})
+			}
+
+			return Promise.resolve({ data: { ocs: { data: {} } } })
+		})
+
+		const wrapper = mount(AllowedGroups as never, {
+			global: {
+				stubs: {
+					NcSettingsSection: { template: '<div><slot /></div>' },
+					NcSelect: {
+						name: 'NcSelect',
+						props: ['modelValue'],
+						emits: ['update:modelValue', 'search-change'],
+						template: '<div class="nc-select-stub" />',
+					},
+				},
+			},
+		})
+		await flushPromises()
+
+		const select = wrapper.findComponent({ name: 'NcSelect' })
+		select.vm.$emit('update:modelValue', [
+			{ id: 'admin', displayname: 'admin' },
+			{ id: 'finance', displayname: 'finance' },
+		])
+		await flushPromises()
+
+		const lastCall = saveSystemPolicyMock.mock.calls.at(-1) as [string, string, boolean] | undefined
+		expect(lastCall?.[1]).toBe('{"allowGroups":["admin","finance"],"denyGroups":["legal"]}')
 	})
 })

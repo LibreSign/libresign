@@ -1443,11 +1443,11 @@ describe('useRealPolicyWorkbench', () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('groups_request_sign')
 		state.startEditor({ scope: 'system' })
-		state.updateDraftValue('admin,policy-e2e-group' as never)
+		state.updateDraftValue('{"allowGroups":["admin","policy-e2e-group"],"denyGroups":[]}' as never)
 
 		await state.saveDraft()
 
-		expect(saveSystemPolicy).toHaveBeenCalledWith('groups_request_sign', 'admin,policy-e2e-group', true)
+		expect(saveSystemPolicy).toHaveBeenCalledWith('groups_request_sign', '{"allowGroups":["admin","policy-e2e-group"],"denyGroups":[]}', true)
 		expect(clearUserPreference).not.toHaveBeenCalled()
 		expect(state.editorDraft).toBeNull()
 	})
@@ -1587,11 +1587,11 @@ describe('useRealPolicyWorkbench', () => {
 		state.startEditor({ scope: 'group' })
 
 		expect(state.editorDraft?.scope).toBe('group')
-		expect(state.editorDraft?.value).toBe('[]')
+		expect(state.editorDraft?.value).toBe('{"allowGroups":[],"denyGroups":[]}')
 
 		state.updateDraftTargets(['policy-e2e-group'])
 
-		expect(state.editorDraft?.value).toBe('["policy-e2e-group"]')
+		expect(state.editorDraft?.value).toBe('{"allowGroups":["policy-e2e-group"],"denyGroups":[]}')
 		expect(state.canSaveDraft).toBe(true)
 	})
 
@@ -1607,7 +1607,33 @@ describe('useRealPolicyWorkbench', () => {
 
 		await state.saveDraft()
 
-		expect(saveGroupPolicy).toHaveBeenCalledWith('finance', 'groups_request_sign', '["finance"]', false)
+		expect(saveGroupPolicy).toHaveBeenCalledWith('finance', 'groups_request_sign', '{"allowGroups":["finance"],"denyGroups":[]}', false)
+	})
+
+	it('shows backend error message when saving request-access group rule is rejected', async () => {
+		saveGroupPolicy.mockRejectedValue({
+			response: {
+				data: {
+					ocs: {
+						data: {
+							error: 'Only system administrators can edit group access rules created by a system administrator',
+						},
+					},
+				},
+			},
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+		state.startEditor({ scope: 'group' })
+
+		state.updateDraftTargets(['finance'])
+		await state.saveDraft()
+
+		expect(saveGroupPolicy).toHaveBeenCalledWith('finance', 'groups_request_sign', '{"allowGroups":["finance"],"denyGroups":[]}', true)
+		expect(state.duplicateMessage).toBe('Only system administrators can edit group access rules created by a system administrator')
+		expect(fetchEffectivePolicies).not.toHaveBeenCalled()
+		expect(state.editorDraft).not.toBeNull()
 	})
 
 	it('hides system-created request-access group rules from group-admin CRUD state', async () => {
@@ -1615,7 +1641,7 @@ describe('useRealPolicyWorkbench', () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'groups_request_sign') {
 				return {
-					effectiveValue: '["board"]',
+					effectiveValue: '{"allowGroups":["board"],"denyGroups":[]}',
 					groupCount: 1,
 					userCount: 0,
 					sourceScope: 'group',
@@ -1640,7 +1666,7 @@ describe('useRealPolicyWorkbench', () => {
 				policyKey,
 				scope: 'group',
 				targetId: groupId,
-				value: '["finance"]',
+				value: '{"allowGroups":["finance"],"denyGroups":[]}',
 				allowChildOverride: true,
 				visibleToChild: true,
 				allowedValues: [],
@@ -1669,7 +1695,7 @@ describe('useRealPolicyWorkbench', () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'groups_request_sign') {
 				return {
-					effectiveValue: '["finance"]',
+					effectiveValue: '{"allowGroups":["finance"],"denyGroups":[]}',
 					sourceScope: 'system',
 					visible: true,
 					editableByCurrentActor: true,

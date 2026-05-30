@@ -231,6 +231,42 @@ function buildSignatureStampDraftValue(
 	)
 }
 
+function resolvePolicySaveErrorMessage(error: unknown): string | null {
+	if (!error || typeof error !== 'object') {
+		return null
+	}
+
+	const responseData = (error as {
+		response?: {
+			data?: {
+				error?: unknown
+				ocs?: {
+					data?: {
+						error?: unknown
+					}
+				}
+			}
+		}
+	}).response?.data
+
+	const ocsError = responseData?.ocs?.data?.error
+	if (typeof ocsError === 'string' && ocsError.trim().length > 0) {
+		return ocsError
+	}
+
+	const directError = responseData?.error
+	if (typeof directError === 'string' && directError.trim().length > 0) {
+		return directError
+	}
+
+	const message = (error as { message?: unknown }).message
+	if (typeof message === 'string' && message.trim().length > 0) {
+		return message
+	}
+
+	return null
+}
+
 export function createRealPolicyWorkbenchState() {
 	const policiesStore = usePoliciesStore()
 	const currentUser = getCurrentUser()
@@ -1842,7 +1878,15 @@ export function createRealPolicyWorkbenchState() {
 			await policiesStore.fetchEffectivePolicies()
 			cancelEditor()
 		} catch (error) {
-			console.error('Failed to save policy:', error)
+			duplicateMessage.value = resolvePolicySaveErrorMessage(error)
+				// TRANSLATORS Generic error shown when persisting a policy rule fails without a backend message.
+				?? t('libresign', 'Could not save this rule. Check your permissions and selected values.')
+
+			logger.debug('Could not save policy workbench draft', {
+				error,
+				policyKey,
+				scope,
+			})
 		}
 	}
 
