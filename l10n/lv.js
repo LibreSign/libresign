@@ -88,6 +88,7 @@ OC.L10N.register(
     "Password Creation" : "Paroles izveidošana",
     "Enter a password" : "Jāievada parole",
     "Filters" : "Filtri",
+    "Owner" : "Īpašnieks",
     "Type" : "Veids",
     "Reason" : "Iemesls",
     "Comment" : "Piebilde",
