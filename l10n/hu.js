@@ -348,6 +348,7 @@ OC.L10N.register(
     "Sign the document." : "Dokumentum aláírása.",
     "Unable to sign." : "Nem tud aláírni.",
     "Forgot password?" : "Elfelejtette a jelszavát?",
+    "Expiring soon" : "Hamarosan lejár",
     "Partial" : "Részleges",
     "Complete" : "Befejezve",
     "This document is valid" : "Ez a dokumentum érvényes",
