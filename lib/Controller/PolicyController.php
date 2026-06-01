@@ -10,7 +10,9 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyGuard;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
@@ -44,6 +46,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		private IL10N $l10n,
 		private PolicyService $policyService,
 		private RequestSignGroupsPolicyGuard $requestSignGroupsPolicyGuard,
+		private PolicyAuthorizationService $policyAuthorizationService,
 		private IUserSession $userSession,
 		private IGroupManager $groupManager,
 		private IUserManager $userManager,
@@ -124,7 +127,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/group/{groupId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'groupId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function getGroup(string $groupId, string $policyKey): DataResponse {
-		if (!$this->canManageGroupPolicy($groupId)) {
+		if (!$this->canManageGroupPolicy($groupId, $policyKey)) {
 			return $this->forbiddenGroupPolicyResponse();
 		}
 
@@ -158,7 +161,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		} elseif ($user instanceof IUser && $this->subAdmin->isSubAdmin($user)) {
 			$records = $this->policyService->listGroupPoliciesForTargets(
 				$policyKey,
-				$this->resolveManageableGroupIds($user),
+				$this->resolveManageableGroupIdsForPolicy($user, $policyKey),
 			);
 		} else {
 			$records = [];
@@ -172,7 +175,7 @@ final class PolicyController extends AEnvironmentAwareController {
 				continue;
 			}
 
-			if (!$this->canManageGroupPolicy($groupId)) {
+			if (!$this->canManageGroupPolicy($groupId, $policyKey)) {
 				continue;
 			}
 
@@ -300,7 +303,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/group/{groupId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'groupId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function setGroup(string $groupId, string $policyKey, null|bool|int|float|string|array $value = null, bool $allowChildOverride = false): DataResponse {
-		if (!$this->canManageGroupPolicy($groupId)) {
+		if (!$this->canManageGroupPolicy($groupId, $policyKey)) {
 			return $this->forbiddenGroupPolicyResponse();
 		}
 
@@ -347,7 +350,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/policies/group/{groupId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'groupId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function clearGroup(string $groupId, string $policyKey): DataResponse {
-		if (!$this->canManageGroupPolicy($groupId)) {
+		if (!$this->canManageGroupPolicy($groupId, $policyKey)) {
 			return $this->forbiddenGroupPolicyResponse();
 		}
 
@@ -549,7 +552,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		];
 	}
 
-	private function canManageGroupPolicy(string $groupId): bool {
+	private function canManageGroupPolicy(string $groupId, string $policyKey): bool {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
 			return false;
@@ -563,7 +566,7 @@ final class PolicyController extends AEnvironmentAwareController {
 			return false;
 		}
 
-		return in_array($groupId, $this->groupManager->getUserGroupIds($user), true);
+		return in_array($groupId, $this->resolveManageableGroupIdsForPolicy($user, $policyKey), true);
 	}
 
 	private function canManageUserPolicy(string $userId): bool {
@@ -615,9 +618,10 @@ final class PolicyController extends AEnvironmentAwareController {
 		}
 
 		if ($this->subAdmin->isSubAdmin($user)) {
-			$groupIds = $this->resolveManageableGroupIds($user);
+			$groupIds = $this->resolveSubAdminManagedGroupIds($user);
 			return $this->filterVisibleRuleCountsForManagedGroups(
 				$this->policyService->getRuleCounts($groupIds, []),
+				$user,
 				$groupIds,
 			);
 		}
@@ -630,7 +634,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * @param list<string> $groupIds
 	 * @return array<string, array{groupCount: int, userCount: int, everyoneCount: int}>
 	 */
-	private function filterVisibleRuleCountsForManagedGroups(array $ruleCounts, array $groupIds): array {
+	private function filterVisibleRuleCountsForManagedGroups(array $ruleCounts, IUser $user, array $groupIds): array {
 		/** @var array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $normalizedRuleCounts */
 		$normalizedRuleCounts = [];
 		foreach ($ruleCounts as $policyKey => $counts) {
@@ -655,7 +659,10 @@ final class PolicyController extends AEnvironmentAwareController {
 				continue;
 			}
 
-			$counts['groupCount'] = $this->policyService->countVisibleGroupPoliciesForTargets($policyKey, $groupIds);
+			$counts['groupCount'] = $this->policyService->countVisibleGroupPoliciesForTargets(
+				$policyKey,
+				$this->resolveManageableGroupIdsForPolicy($user, $policyKey),
+			);
 			$normalizedRuleCounts[$policyKey] = $counts;
 		}
 
@@ -675,11 +682,20 @@ final class PolicyController extends AEnvironmentAwareController {
 	}
 
 	/** @return list<string> */
-	private function resolveManageableGroupIds(IUser $user): array {
+	private function resolveSubAdminManagedGroupIds(IUser $user): array {
 		return array_values(array_filter(
 			$this->groupManager->getUserGroupIds($user),
 			static fn (mixed $groupId): bool => is_string($groupId) && trim($groupId) !== '',
 		));
+	}
+
+	/** @return list<string> */
+	private function resolveManageableGroupIdsForPolicy(IUser $user, string $policyKey): array {
+		if ($policyKey === RequestSignGroupsPolicy::KEY) {
+			return $this->policyAuthorizationService->getManageablePolicyGroupIds($user);
+		}
+
+		return $this->resolveSubAdminManagedGroupIds($user);
 	}
 
 	private function readPolicyValueParam(string $key, null|bool|int|float|string|array $default): null|bool|int|float|string|array {
