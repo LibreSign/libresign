@@ -71,6 +71,44 @@ final class RequestSignGroupsPolicyValue {
 		return self::decodePolicy($rawValue)['denyGroups'];
 	}
 
+	/**
+	 * Return all policy-scoped groups (allow + deny), normalized and deduplicated.
+	 *
+	 * @return list<string>
+	 */
+	public static function decodeScopedGroups(mixed $rawValue): array {
+		$policy = self::decodePolicy($rawValue);
+
+		return self::normalizeGroupIds([
+			...$policy['allowGroups'],
+			...$policy['denyGroups'],
+		]);
+	}
+
+	/**
+	 * Evaluate if at least one user group is authorized to request sign
+	 * and none of the user groups are explicitly denied.
+	 *
+	 * @param array<mixed> $userGroups
+	 */
+	public static function canUserGroupsRequestSign(mixed $rawValue, array $userGroups): bool {
+		$authorizedGroups = self::decode($rawValue);
+		if ($authorizedGroups === []) {
+			return false;
+		}
+
+		$normalizedUserGroups = self::normalizeGroupIds($userGroups);
+		if ($normalizedUserGroups === []) {
+			return false;
+		}
+
+		if (array_intersect($normalizedUserGroups, $authorizedGroups) === []) {
+			return false;
+		}
+
+		return array_intersect($normalizedUserGroups, self::decodeDenied($rawValue)) === [];
+	}
+
 	public static function encode(mixed $rawValue): string {
 		$payload = self::decodePolicy($rawValue);
 		return json_encode($payload, JSON_THROW_ON_ERROR);
