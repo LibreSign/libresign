@@ -24,6 +24,7 @@ use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Tests\Unit\TestCase;
+use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IAppConfig;
@@ -44,6 +45,7 @@ final class PageControllerTest extends TestCase {
 	private SignerElementsService&MockObject $signerElementsService;
 	private IInitialState&MockObject $initialState;
 	private PolicyService&MockObject $policyService;
+	private IURLGenerator&MockObject $urlGenerator;
 	private PageController $controller;
 
 	#[\Override]
@@ -99,6 +101,17 @@ final class PageControllerTest extends TestCase {
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->policyService->method('resolveKnownPolicyStates')->willReturn([]);
+		$this->urlGenerator = $this->createMock(IURLGenerator::class);
+		$this->urlGenerator
+			->method('linkToRouteAbsolute')
+			->willReturnCallback(static function (string $route, array $params = []): string {
+				return match ($route) {
+					'libresign.page.index' => 'https://localhost/apps/libresign/',
+					'libresign.page.indexF' => 'https://localhost/apps/libresign/f/',
+					'libresign.page.indexFPath' => 'https://localhost/apps/libresign/f/' . ($params['path'] ?? ''),
+					default => 'https://localhost/',
+				};
+			});
 
 		$this->controller = new PageController(
 			request: $this->request,
@@ -123,7 +136,7 @@ final class PageControllerTest extends TestCase {
 			logger: \OCP\Server::get(LoggerInterface::class),
 			validateHelper: $this->createMock(ValidateHelper::class),
 			eventDispatcher: $this->createMock(IEventDispatcher::class),
-			urlGenerator: \OCP\Server::get(IURLGenerator::class),
+			urlGenerator: $this->urlGenerator,
 		);
 	}
 
@@ -151,5 +164,48 @@ final class PageControllerTest extends TestCase {
 		$response = $this->controller->sign('sign-uuid');
 
 		self::assertStringContainsString("worker-src 'self'", $response->getContentSecurityPolicy()->buildPolicy());
+	}
+
+	public function testIndexFPathRedirectsRegularUserAwayFromPoliciesWorkbench(): void {
+		$this->accountService
+			->expects($this->once())
+			->method('getConfig')
+			->willReturn([
+				'can_manage_group_policies' => false,
+			]);
+
+		$this->initialState
+			->expects($this->never())
+			->method('provideInitialState');
+
+		$response = $this->controller->indexFPath('policies');
+
+		self::assertInstanceOf(RedirectResponse::class, $response);
+		self::assertStringContainsString('/apps/libresign/f/', $response->getRedirectURL());
+	}
+
+	public function testIncompleteRedirectsToInternalIndexWhenSetupBecomesOk(): void {
+		$this->accountService
+			->expects($this->once())
+			->method('isSetupOk')
+			->willReturn(true);
+
+		$response = $this->controller->incomplete();
+
+		self::assertInstanceOf(RedirectResponse::class, $response);
+		self::assertStringContainsString('/apps/libresign/f/', $response->getRedirectURL());
+	}
+
+	public function testIncompletePRedirectsToDefaultIndexWhenSetupBecomesOk(): void {
+		$this->accountService
+			->expects($this->once())
+			->method('isSetupOk')
+			->willReturn(true);
+
+		$response = $this->controller->incompleteP();
+
+		self::assertInstanceOf(RedirectResponse::class, $response);
+		self::assertStringContainsString('/apps/libresign/', $response->getRedirectURL());
+		self::assertStringNotContainsString('/apps/libresign/f/', $response->getRedirectURL());
 	}
 }
