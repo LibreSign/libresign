@@ -670,7 +670,7 @@ final class PolicyServiceTest extends TestCase {
 		$service->saveGroupPolicy(FooterPolicy::KEY, 'finance', '{"enabled":false}', false);
 	}
 
-	public function testSaveRequestSignGroupsAllowsSubAdminWithDelegatedGroupRuleAndMultipleGroups(): void {
+	public function testSaveRequestSignGroupsAllowsSubAdminWithExplicitSystemDelegationAndMultipleGroups(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('group-admin');
 
@@ -694,6 +694,17 @@ final class PolicyServiceTest extends TestCase {
 			->method('isSubAdmin')
 			->with($user)
 			->willReturn(true);
+
+		$this->source
+			->expects($this->once())
+			->method('loadSystemPolicy')
+			->with(RequestSignGroupsPolicy::KEY)
+			->willReturn((new PolicyLayer())
+				->setScope('global')
+				->setValue(RequestSignGroupsPolicyValue::encode(['board', 'company']))
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]));
 
 		$this->source
 			->expects($this->once())
@@ -748,7 +759,176 @@ final class PolicyServiceTest extends TestCase {
 		self::assertSame(RequestSignGroupsPolicyValue::encode(['board', 'company']), $policy->getValue());
 	}
 
-	public function testSaveRequestSignGroupsBlocksSubAdminWithoutDelegatedGroupRuleEvenWithSystemGrant(): void {
+	public function testSaveRequestSignGroupsAllowsSubAdminWithSystemGrantAndSingleManagedGroup(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('group-admin');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('group-admin')
+			->willReturn(false);
+
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->with($user)
+			->willReturn(['company']);
+
+		$this->subAdmin
+			->expects($this->once())
+			->method('isSubAdmin')
+			->with($user)
+			->willReturn(true);
+
+		$this->source
+			->expects($this->once())
+			->method('loadSystemPolicy')
+			->with(RequestSignGroupsPolicy::KEY)
+			->willReturn((new PolicyLayer())
+				->setScope('global')
+				->setValue(RequestSignGroupsPolicyValue::encode(['company']))
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]));
+
+		$this->source
+			->expects($this->once())
+			->method('loadGroupPolicies')
+			->with(RequestSignGroupsPolicy::KEY, $this->callback(static function ($context): bool {
+				return $context->getUserId() === 'group-admin'
+					&& $context->getGroups() === ['company']
+					&& $context->getActorCapabilities() === [
+						'canManageSystemPolicies' => false,
+						'canManageGroupPolicies' => true,
+						'manageableGroupCount' => 1,
+					];
+			}))
+			->willReturn([]);
+
+		$this->source
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with(RequestSignGroupsPolicy::KEY, 'company', RequestSignGroupsPolicyValue::encode(['company']), true, false);
+
+		$this->source
+			->expects($this->exactly(2))
+			->method('loadGroupPolicyConfig')
+			->with(RequestSignGroupsPolicy::KEY, 'company')
+			->willReturnOnConsecutiveCalls(
+				null,
+				(new PolicyLayer())
+					->setScope('group')
+					->setValue(RequestSignGroupsPolicyValue::encode(['company']))
+					->setAllowChildOverride(true)
+					->setVisibleToChild(true)
+					->setAllowedValues([]),
+			);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$policy = $service->saveGroupPolicy(RequestSignGroupsPolicy::KEY, 'company', ['company'], true);
+
+		self::assertInstanceOf(PolicyLayer::class, $policy);
+		self::assertSame(RequestSignGroupsPolicyValue::encode(['company']), $policy->getValue());
+	}
+
+	public function testSaveRequestSignGroupsAllowsSubAdminEditingSystemCreatedDelegationRuleWhenExplicitlyDelegated(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('group-admin');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('group-admin')
+			->willReturn(false);
+
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->with($user)
+			->willReturn(['board', 'company']);
+
+		$this->subAdmin
+			->expects($this->once())
+			->method('isSubAdmin')
+			->with($user)
+			->willReturn(true);
+
+		$this->source
+			->expects($this->exactly(2))
+			->method('loadSystemPolicy')
+			->with(RequestSignGroupsPolicy::KEY)
+			->willReturn((new PolicyLayer())
+				->setScope('global')
+				->setValue(RequestSignGroupsPolicyValue::encode(['board', 'company']))
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]));
+
+		$this->source
+			->expects($this->once())
+			->method('loadGroupPolicies')
+			->with(RequestSignGroupsPolicy::KEY, $this->anything())
+			->willReturn([
+				(new PolicyLayer())
+					->setScope('group')
+					->setValue(RequestSignGroupsPolicyValue::encode(['board']))
+					->setAllowChildOverride(true)
+					->setVisibleToChild(true)
+					->setAllowedValues([]),
+			]);
+
+		$this->source
+			->expects($this->exactly(2))
+			->method('loadGroupPolicyConfig')
+			->with(RequestSignGroupsPolicy::KEY, 'company')
+			->willReturn((new PolicyLayer())
+				->setScope('group')
+				->setValue(RequestSignGroupsPolicyValue::encode(['board', 'company']))
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setNotes([
+					'createdBySystemAdmin' => true,
+					'createdByActorScope' => 'system',
+				]));
+
+		$this->source
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with(
+				RequestSignGroupsPolicy::KEY,
+				'company',
+				RequestSignGroupsPolicyValue::encode(['board', 'company']),
+				false,
+				false,
+			);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$policy = $service->saveGroupPolicy(RequestSignGroupsPolicy::KEY, 'company', ['board', 'company'], false);
+
+		self::assertInstanceOf(PolicyLayer::class, $policy);
+		self::assertSame(RequestSignGroupsPolicyValue::encode(['board', 'company']), $policy->getValue());
+	}
+
+	public function testSaveRequestSignGroupsBlocksSubAdminWithoutExplicitGlobalSystemDelegationEvenWhenGroupRuleExists(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('group-admin');
 
@@ -775,9 +955,27 @@ final class PolicyServiceTest extends TestCase {
 
 		$this->source
 			->expects($this->once())
+			->method('loadSystemPolicy')
+			->with(RequestSignGroupsPolicy::KEY)
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue(RequestSignGroupsPolicyValue::encode(['board']))
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]));
+
+		$this->source
+			->expects($this->once())
 			->method('loadGroupPolicies')
 			->with(RequestSignGroupsPolicy::KEY, $this->anything())
-			->willReturn([]);
+			->willReturn([
+				(new PolicyLayer())
+					->setScope('group')
+					->setValue(RequestSignGroupsPolicyValue::encode(['board']))
+					->setAllowChildOverride(true)
+					->setVisibleToChild(true)
+					->setAllowedValues([]),
+			]);
 
 		$this->source
 			->expects($this->never())
@@ -796,7 +994,7 @@ final class PolicyServiceTest extends TestCase {
 		$service->saveGroupPolicy(RequestSignGroupsPolicy::KEY, 'company', ['board', 'company'], true);
 	}
 
-	public function testSaveRequestSignGroupsBlocksSubAdminEditingSystemCreatedDelegationRule(): void {
+	public function testSaveRequestSignGroupsAllowsSubAdminToSaveDenyOverrideWhenSystemCreatedGroupRuleExists(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('group-admin');
 
@@ -813,13 +1011,24 @@ final class PolicyServiceTest extends TestCase {
 			->expects($this->once())
 			->method('getUserGroupIds')
 			->with($user)
-			->willReturn(['board', 'company']);
+			->willReturn(['board']);
 
 		$this->subAdmin
 			->expects($this->once())
 			->method('isSubAdmin')
 			->with($user)
 			->willReturn(true);
+
+		$this->source
+			->expects($this->exactly(2))
+			->method('loadSystemPolicy')
+			->with(RequestSignGroupsPolicy::KEY)
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue(RequestSignGroupsPolicyValue::encode(['board']))
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]));
 
 		$this->source
 			->expects($this->once())
@@ -831,26 +1040,61 @@ final class PolicyServiceTest extends TestCase {
 					->setValue(RequestSignGroupsPolicyValue::encode(['board']))
 					->setAllowChildOverride(true)
 					->setVisibleToChild(true)
-					->setAllowedValues([]),
+					->setAllowedValues([])
+					->setNotes([
+						'createdBySystemAdmin' => true,
+						'createdByActorScope' => 'system',
+					]),
 			]);
 
 		$this->source
-			->expects($this->once())
+			->expects($this->exactly(2))
 			->method('loadGroupPolicyConfig')
-			->with(RequestSignGroupsPolicy::KEY, 'company')
-			->willReturn((new PolicyLayer())
-				->setScope('group')
-				->setValue(RequestSignGroupsPolicyValue::encode(['board', 'company']))
-				->setAllowChildOverride(true)
-				->setVisibleToChild(true)
-				->setNotes([
-					'createdBySystemAdmin' => true,
-					'createdByActorScope' => 'system',
-				]));
+			->with(RequestSignGroupsPolicy::KEY, 'board')
+			->willReturnOnConsecutiveCalls(
+				(new PolicyLayer())
+					->setScope('group')
+					->setValue(RequestSignGroupsPolicyValue::encode(['board']))
+					->setAllowChildOverride(true)
+					->setVisibleToChild(true)
+					->setAllowedValues([])
+					->setNotes([
+						'createdBySystemAdmin' => true,
+						'createdByActorScope' => 'system',
+					]),
+				(new PolicyLayer())
+					->setScope('group')
+					->setValue(RequestSignGroupsPolicyValue::encode([
+						'allowGroups' => ['board'],
+						'denyGroups' => ['board'],
+					]))
+					->setAllowChildOverride(false)
+					->setVisibleToChild(true)
+					->setAllowedValues([
+						RequestSignGroupsPolicyValue::encode([
+							'allowGroups' => ['board'],
+							'denyGroups' => ['board'],
+						]),
+					])
+					->setNotes([
+						'createdBySystemAdmin' => false,
+						'createdByActorScope' => 'group',
+					]),
+			);
 
 		$this->source
-			->expects($this->never())
-			->method('saveGroupPolicy');
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with(
+				RequestSignGroupsPolicy::KEY,
+				'board',
+				RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => ['board'],
+					'denyGroups' => ['board'],
+				]),
+				false,
+				false,
+			);
 
 		$service = new PolicyService(
 			$this->contextFactory,
@@ -859,10 +1103,19 @@ final class PolicyServiceTest extends TestCase {
 			$this->l10n,
 		);
 
-		$this->expectException(\DomainException::class);
-		$this->expectExceptionMessage('Only system administrators can edit group access rules created by a system administrator');
+		$policy = $service->saveGroupPolicy(RequestSignGroupsPolicy::KEY, 'board', [
+			'allowGroups' => ['board'],
+			'denyGroups' => ['board'],
+		], false);
 
-		$service->saveGroupPolicy(RequestSignGroupsPolicy::KEY, 'company', ['board', 'company'], false);
+		self::assertInstanceOf(PolicyLayer::class, $policy);
+		self::assertSame(
+			RequestSignGroupsPolicyValue::encode([
+				'allowGroups' => ['board'],
+				'denyGroups' => ['board'],
+			]),
+			$policy->getValue(),
+		);
 	}
 
 	public function testCanViewRequestSignGroupsBlocksSystemCreatedDelegationRuleForSubAdmin(): void {
@@ -892,6 +1145,63 @@ final class PolicyServiceTest extends TestCase {
 				'createdBySystemAdmin' => true,
 				'createdByActorScope' => 'system',
 			]),
+		));
+	}
+
+	public function testCanViewRequestSignGroupsBlocksSystemCreatedDelegationRuleEvenForDelegatedSubAdmin(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('group-admin');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('group-admin')
+			->willReturn(false);
+
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->with($user)
+			->willReturn(['board']);
+
+		$this->subAdmin
+			->expects($this->once())
+			->method('isSubAdmin')
+			->with($user)
+			->willReturn(true);
+
+		$this->source
+			->expects($this->once())
+			->method('loadSystemPolicy')
+			->with(RequestSignGroupsPolicy::KEY)
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue(RequestSignGroupsPolicyValue::encode(['board']))
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]));
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		self::assertFalse($service->canViewGroupPolicy(
+			RequestSignGroupsPolicy::KEY,
+			'board',
+			(new PolicyLayer())
+				->setValue(RequestSignGroupsPolicyValue::encode(['board']))
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setNotes([
+					'createdBySystemAdmin' => true,
+					'createdByActorScope' => 'system',
+				]),
 		));
 	}
 
@@ -1106,7 +1416,7 @@ final class PolicyServiceTest extends TestCase {
 		$this->source
 			->expects($this->once())
 			->method('clearGroupPolicy')
-			->with(FooterPolicy::KEY, 'finance');
+			->with(FooterPolicy::KEY, 'finance', true);
 
 		$service = new PolicyService(
 			$this->contextFactory,
