@@ -51,8 +51,8 @@ import RequestSignGroupsRuleEditor from '../../../../views/Settings/PolicyWorkbe
 
 const NcSelectStub = {
 	name: 'NcSelect',
-	props: ['options'],
-	template: '<div class="nc-select-stub">{{ JSON.stringify(options) }}</div>',
+	props: ['options', 'ariaLabelCombobox'],
+	template: '<div class="nc-select-stub" :data-aria-label="ariaLabelCombobox">{{ JSON.stringify(options) }}</div>',
 }
 
 function mountEditor(modelValue = '["finance"]') {
@@ -97,13 +97,14 @@ function mountEditorWithProps(modelValue: string, props: Record<string, unknown>
 		},
 		global: {
 			stubs: {
-				NcSelect: {
-					props: ['options'],
-					template: '<div class="nc-select-stub">{{ JSON.stringify(options) }}</div>',
-				},
+				NcSelect: NcSelectStub,
 			},
 		},
 	})
+}
+
+function findSelectByLabel(wrapper: ReturnType<typeof mount>, label: string) {
+	return wrapper.findAll('.nc-select-stub').find((select) => select.attributes('data-aria-label') === label)
 }
 
 describe('RequestSignGroupsRuleEditor.vue', () => {
@@ -297,7 +298,46 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 		expect(wrapperWithTargets.text()).toContain('Authorized requester groups')
 	})
 
-	it('hides Authorized section when group admin creates rule for their own managed group', async () => {
+	it('shows Authorized section when group admin creates rule for their own managed group but excludes inherited group from allow options', async () => {
+		currentUserState.isAdmin = false
+		initialConfigState.manageable_policy_group_ids = ['board', 'company']
+		axiosGet.mockReset()
+		axiosGet.mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						groups: ['board', 'company'],
+					},
+				},
+			},
+		})
+
+		const wrapper = mountEditorWithProps('{"allowGroups":["board"],"denyGroups":[]}', {
+			editorScope: 'group',
+			editorMode: 'create',
+			editorInitialTargetIds: [],
+			editorTargetIds: [],
+			hasSelectedTargets: true,
+		})
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(wrapper.text()).toContain('Authorized requester groups')
+		expect(wrapper.text()).toContain('Denied requester groups')
+		expect(wrapper.text()).not.toContain('Your managed group must remain authorized in this rule.')
+
+		const allowSelect = findSelectByLabel(wrapper, 'Authorized requester groups')
+		const denySelect = findSelectByLabel(wrapper, 'Denied requester groups')
+
+		expect(allowSelect).toBeTruthy()
+		expect(denySelect).toBeTruthy()
+		expect(allowSelect?.text()).toContain('company')
+		expect(allowSelect?.text()).not.toContain('board')
+		expect(denySelect?.text()).toContain('board')
+		expect(denySelect?.text()).toContain('company')
+	})
+
+	it('does not reinsert inherited allowGroups when group admin changes only deny list during create', async () => {
 		currentUserState.isAdmin = false
 		initialConfigState.manageable_policy_group_ids = ['board']
 		axiosGet.mockReset()
@@ -314,49 +354,21 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 		const wrapper = mountEditorWithProps('{"allowGroups":["board"],"denyGroups":[]}', {
 			editorScope: 'group',
 			editorMode: 'create',
-			editorInitialTargetIds: ['board'],
-			editorTargetIds: ['board'],
+			editorInitialTargetIds: [],
+			editorTargetIds: [],
 			hasSelectedTargets: true,
 		})
 		await Promise.resolve()
 		await Promise.resolve()
 
-		expect(wrapper.text()).not.toContain('Authorized requester groups')
-		expect(wrapper.text()).toContain('Denied requester groups')
-		expect(wrapper.text()).not.toContain('Your managed group must remain authorized in this rule.')
-	})
-
-	it('preserves inherited allowGroups when group admin changes deny list for their own managed group', async () => {
-		currentUserState.isAdmin = false
-		initialConfigState.manageable_policy_group_ids = ['board']
-		axiosGet.mockReset()
-		axiosGet.mockResolvedValue({
-			data: {
-				ocs: {
-					data: {
-						groups: ['board'],
-					},
-				},
-			},
-		})
-
-		const wrapper = mountEditorWithProps('{"allowGroups":["board"],"denyGroups":[]}', {
-			editorScope: 'group',
-			editorMode: 'edit',
-			editorInitialTargetIds: ['board'],
-			editorTargetIds: ['board'],
-			hasSelectedTargets: true,
-		})
-		await Promise.resolve()
-		await Promise.resolve()
-
-		// Only the Deny selector is rendered; firing it should preserve inherited allowGroups from props.modelValue
-		const select = wrapper.findComponent(NcSelectStub)
-		select.vm.$emit('update:modelValue', [{ id: 'board', displayname: 'Board' }])
+		const denySelect = wrapper.findAllComponents(NcSelectStub)
+			.find((component) => component.attributes('data-aria-label') === 'Denied requester groups')
+		expect(denySelect).toBeTruthy()
+		denySelect?.vm.$emit('update:modelValue', [{ id: 'board', displayname: 'Board' }])
 
 		const updateEvents = wrapper.emitted('update:modelValue')
 		expect(updateEvents).toBeTruthy()
-		expect(updateEvents?.at(-1)?.[0]).toBe('{"allowGroups":["board"],"denyGroups":["board"]}')
+		expect(updateEvents?.at(-1)?.[0]).toBe('{"allowGroups":[],"denyGroups":["board"]}')
 	})
 
 	it('shows both Authorized and Denied when group admin creates rule for a group outside their managed scope', async () => {
@@ -423,15 +435,15 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 		expect(wrapper.text()).not.toContain('Your managed group must remain authorized in this rule.')
 	})
 
-	it('keeps Authorized visible while create flow derives targetIds from selected allow groups', async () => {
+	it('keeps Authorized visible while create flow derives manageable targetIds from draft value', async () => {
 		currentUserState.isAdmin = false
-		initialConfigState.manageable_policy_group_ids = ['board']
+		initialConfigState.manageable_policy_group_ids = ['board', 'company']
 		axiosGet.mockReset()
 		axiosGet.mockResolvedValue({
 			data: {
 				ocs: {
 					data: {
-						groups: ['board'],
+						groups: ['board', 'company'],
 					},
 				},
 			},
@@ -449,5 +461,75 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 
 		expect(wrapper.text()).toContain('Authorized requester groups')
 		expect(wrapper.text()).toContain('Denied requester groups')
+
+		const allowSelect = findSelectByLabel(wrapper, 'Authorized requester groups')
+		expect(allowSelect?.text()).not.toContain('board')
+		expect(allowSelect?.text()).toContain('company')
+	})
+
+	it('keeps Authorized visible in delegated create flow even when manageable groups bootstrap is empty', async () => {
+		currentUserState.isAdmin = false
+		initialConfigState.manageable_policy_group_ids = []
+		axiosGet.mockReset()
+		axiosGet.mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						groups: ['board', 'company'],
+					},
+				},
+			},
+		})
+
+		const wrapper = mountEditorWithProps('{"allowGroups":["board"],"denyGroups":[]}', {
+			editorScope: 'group',
+			editorMode: 'create',
+			editorInitialTargetIds: [],
+			editorTargetIds: ['board'],
+			hasSelectedTargets: true,
+		})
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(wrapper.text()).toContain('Authorized requester groups')
+		expect(wrapper.text()).toContain('Denied requester groups')
+
+		const allowSelect = findSelectByLabel(wrapper, 'Authorized requester groups')
+		expect(allowSelect?.text()).not.toContain('board')
+		expect(allowSelect?.text()).toContain('company')
+	})
+
+	it('keeps Authorized visible when scope is derived from current request-sign value and selector is hidden', async () => {
+		currentUserState.isAdmin = false
+		initialConfigState.manageable_policy_group_ids = ['board', 'company']
+		axiosGet.mockReset()
+		axiosGet.mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						groups: ['board', 'company'],
+					},
+				},
+			},
+		})
+
+		const wrapper = mountEditorWithProps('{"allowGroups":["board"],"denyGroups":[]}', {
+			editorScope: 'group',
+			editorMode: 'create',
+			editorInitialTargetIds: [],
+			editorTargetIds: [],
+			hasSelectedTargets: true,
+		})
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(wrapper.text()).toContain('Authorized requester groups')
+		expect(wrapper.text()).toContain('Denied requester groups')
+
+		const allowSelect = findSelectByLabel(wrapper, 'Authorized requester groups')
+		const denySelect = findSelectByLabel(wrapper, 'Denied requester groups')
+		expect(allowSelect?.text()).not.toContain('board')
+		expect(allowSelect?.text()).toContain('company')
+		expect(denySelect?.text()).toContain('board')
 	})
 })
