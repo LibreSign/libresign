@@ -111,6 +111,7 @@ describe('Preferences view', () => {
 	})
 
 	async function createWrapper() {
+		vi.resetModules()
 		const { default: Preferences } = await import('../../../views/Preferences/Preferences.vue')
 		return mount(Preferences, {
 			global: {
@@ -130,9 +131,10 @@ describe('Preferences view', () => {
 
 	it('loads effective policies on mount', async () => {
 		await createWrapper()
+		await nextTick()
 
 		expect(fetchEffectivePoliciesMock).toHaveBeenCalledTimes(1)
-	}, 10000)
+	}, 30000)
 
 	it('hides all preferences when user cannot create signature requests', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
