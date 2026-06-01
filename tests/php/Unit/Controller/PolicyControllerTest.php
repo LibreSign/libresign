@@ -11,12 +11,14 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 use OCA\Libresign\Controller\PolicyController;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyGuard;
 use OCP\AppFramework\Http;
 use OCP\Group\ISubAdmin;
+use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -36,6 +38,7 @@ final class PolicyControllerTest extends TestCase {
 	private ISubAdmin&MockObject $subAdmin;
 	private IUser&MockObject $currentUser;
 	private RequestSignGroupsPolicyGuard $requestSignGroupsPolicyGuard;
+	private PolicyAuthorizationService $policyAuthorizationService;
 	private PolicyController $controller;
 
 	protected function setUp(): void {
@@ -59,11 +62,17 @@ final class PolicyControllerTest extends TestCase {
 		$this->userSession
 			->method('getUser')
 			->willReturn($this->currentUser);
+		$this->policyAuthorizationService = new PolicyAuthorizationService(
+			$this->groupManager,
+			$this->subAdmin,
+			$this->policyService,
+		);
 		$this->requestSignGroupsPolicyGuard = new RequestSignGroupsPolicyGuard(
 			$this->l10n,
 			$this->userSession,
 			$this->groupManager,
 			$this->subAdmin,
+			$this->policyAuthorizationService,
 		);
 
 		$this->controller = new PolicyController(
@@ -71,6 +80,7 @@ final class PolicyControllerTest extends TestCase {
 			$this->l10n,
 			$this->policyService,
 			$this->requestSignGroupsPolicyGuard,
+			$this->policyAuthorizationService,
 			$this->userSession,
 			$this->groupManager,
 			$this->userManager,
@@ -221,6 +231,7 @@ final class PolicyControllerTest extends TestCase {
 		$this->groupManager->method('isAdmin')->with('admin')->willReturn(false);
 		$this->subAdmin->method('isSubAdmin')->with($this->currentUser)->willReturn(true);
 		$this->groupManager->method('getUserGroupIds')->with($this->currentUser)->willReturn(['company', 'board']);
+		$this->mockDelegatedRequestSignGroups(['company', 'board'], ['company', 'board']);
 
 		$this->policyService
 			->expects($this->exactly(2))
@@ -759,6 +770,7 @@ final class PolicyControllerTest extends TestCase {
 			$this->l10n,
 			$this->policyService,
 			$this->requestSignGroupsPolicyGuard,
+			$this->policyAuthorizationService,
 			$this->userSession,
 			$this->groupManager,
 			$this->userManager,
@@ -807,6 +819,7 @@ final class PolicyControllerTest extends TestCase {
 			->method('getUserGroupIds')
 			->with($this->currentUser)
 			->willReturn(['company', 'board']);
+		$this->mockDelegatedRequestSignGroups(['company', 'board'], ['company', 'board']);
 
 		$policyLayer = (new PolicyLayer())
 			->setScope('group')
@@ -901,6 +914,7 @@ final class PolicyControllerTest extends TestCase {
 			->method('getUserGroupIds')
 			->with($this->currentUser)
 			->willReturn(['company', 'board']);
+		$this->mockDelegatedRequestSignGroups(['company', 'board'], ['company', 'board']);
 
 		$hiddenPolicy = (new PolicyLayer())
 			->setScope('group')
@@ -1018,6 +1032,7 @@ final class PolicyControllerTest extends TestCase {
 			$this->l10n,
 			$this->policyService,
 			$this->requestSignGroupsPolicyGuard,
+			$this->policyAuthorizationService,
 			$this->userSession,
 			$this->groupManager,
 			$this->userManager,
@@ -1638,6 +1653,7 @@ final class PolicyControllerTest extends TestCase {
 			$this->l10n,
 			$this->policyService,
 			$this->requestSignGroupsPolicyGuard,
+			$this->policyAuthorizationService,
 			$this->userSession,
 			$this->groupManager,
 			$this->userManager,
@@ -1712,20 +1728,26 @@ final class PolicyControllerTest extends TestCase {
 		], $response->getData());
 	}
 
-	public function testSetGroupRejectsRequestSignGroupsOutsideMembershipScope(): void {
+	public function testSetGroupRejectsRequestSignGroupsOutsideDelegatedPolicyScope(): void {
 
 		$this->groupManager
 			->method('isAdmin')
 			->willReturn(false);
-		$this->groupManager
-			->method('getUserGroupIds')
-			->with($this->currentUser)
-			->willReturn(['finance']);
 
 		$this->subAdmin
 			->method('isSubAdmin')
 			->with($this->currentUser)
 			->willReturn(true);
+		$this->subAdmin
+			->method('getSubAdminsGroups')
+			->with($this->currentUser)
+			->willReturn([$this->createGroup('finance')]);
+		$this->policyService
+			->method('resolveForUser')
+			->with(RequestSignGroupsPolicy::KEY, $this->currentUser)
+			->willReturn((new ResolvedPolicy())
+				->setEffectiveValue('{"allowGroups":["finance"],"denyGroups":[]}')
+				->setEditableByCurrentActor(true));
 
 		$this->l10n
 			->expects($this->once())
@@ -1741,6 +1763,119 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame([
 			'error' => 'One or more selected groups are not allowed for your administration scope',
 		], $response->getData());
+	}
+
+	public function testSetGroupAllowsRequestSignGroupForManagedGroupOutsideInheritedPolicyScope(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->willReturn(false);
+
+		$this->subAdmin
+			->method('isSubAdmin')
+			->with($this->currentUser)
+			->willReturn(true);
+		$this->subAdmin
+			->method('getSubAdminsGroups')
+			->with($this->currentUser)
+			->willReturn([
+				$this->createGroup('board'),
+				$this->createGroup('company'),
+			]);
+		$this->policyService
+			->method('resolveForUser')
+			->with(RequestSignGroupsPolicy::KEY, $this->currentUser)
+			->willReturn((new ResolvedPolicy())
+				->setEffectiveValue('{"allowGroups":["board"],"denyGroups":[]}')
+				->setEditableByCurrentActor(true));
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with(RequestSignGroupsPolicy::KEY, 'company', '{"allowGroups":["company"],"denyGroups":[]}', true)
+			->willReturn((new PolicyLayer())
+				->setScope('group')
+				->setValue('{"allowGroups":["company"],"denyGroups":[]}')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]));
+
+		$response = $this->controller->setGroup(
+			'company',
+			RequestSignGroupsPolicy::KEY,
+			'{"allowGroups":["company"],"denyGroups":[]}',
+			true,
+		);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('company', $response->getData()['policy']['targetId']);
+		$this->assertSame('{"allowGroups":["company"],"denyGroups":[]}', $response->getData()['policy']['value']);
+	}
+
+	public function testClearGroupReturnsForbiddenForRequestSignGroupOutsideSubAdminScope(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->willReturn(false);
+
+		$this->subAdmin
+			->method('isSubAdmin')
+			->with($this->currentUser)
+			->willReturn(true);
+		$this->subAdmin
+			->method('getSubAdminsGroups')
+			->with($this->currentUser)
+			->willReturn([
+				$this->createGroup('board'),
+				$this->createGroup('company'),
+			]);
+		$this->policyService
+			->method('resolveForUser')
+			->with(RequestSignGroupsPolicy::KEY, $this->currentUser)
+			->willReturn((new ResolvedPolicy())
+				->setEffectiveValue('{"allowGroups":["board"],"denyGroups":[]}')
+				->setEditableByCurrentActor(true));
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Not allowed to manage this group policy')
+			->willReturn('Not allowed to manage this group policy');
+
+		$this->policyService->expects($this->never())->method('clearGroupPolicy');
+
+		$response = $this->controller->clearGroup('legal', RequestSignGroupsPolicy::KEY);
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Not allowed to manage this group policy',
+		], $response->getData());
+	}
+
+	private function createGroup(string $groupId): IGroup {
+		$group = $this->createMock(IGroup::class);
+		$group->method('getGID')->willReturn($groupId);
+		return $group;
+	}
+
+	/**
+	 * @param list<string> $managedGroupIds
+	 * @param list<string> $allowGroups
+	 * @param list<string> $denyGroups
+	 */
+	private function mockDelegatedRequestSignGroups(array $managedGroupIds, array $allowGroups, array $denyGroups = []): void {
+		$this->subAdmin
+			->method('getSubAdminsGroups')
+			->with($this->currentUser)
+			->willReturn(array_map(fn (string $groupId): IGroup => $this->createGroup($groupId), $managedGroupIds));
+
+		$this->policyService
+			->method('resolveForUser')
+			->with(RequestSignGroupsPolicy::KEY, $this->currentUser)
+			->willReturn((new ResolvedPolicy())
+				->setEditableByCurrentActor(true)
+				->setEffectiveValue(json_encode([
+					'allowGroups' => $allowGroups,
+					'denyGroups' => $denyGroups,
+				], JSON_THROW_ON_ERROR)));
 	}
 
 }
