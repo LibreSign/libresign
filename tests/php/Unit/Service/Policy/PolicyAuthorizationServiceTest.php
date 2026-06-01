@@ -8,8 +8,12 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Policy;
 
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCP\Group\ISubAdmin;
+use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\IUser;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -18,15 +22,18 @@ use PHPUnit\Framework\TestCase;
 final class PolicyAuthorizationServiceTest extends TestCase {
 	private IGroupManager&MockObject $groupManager;
 	private ISubAdmin&MockObject $subAdmin;
+	private PolicyService&MockObject $policyService;
 	private PolicyAuthorizationService $service;
 
 	protected function setUp(): void {
 		parent::setUp();
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->subAdmin = $this->createMock(ISubAdmin::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 		$this->service = new PolicyAuthorizationService(
 			$this->groupManager,
 			$this->subAdmin,
+			$this->policyService,
 		);
 	}
 
@@ -113,28 +120,155 @@ final class PolicyAuthorizationServiceTest extends TestCase {
 		$this->groupManager->method('isAdmin')
 			->with('subadmin-user')
 			->willReturn(false);
-		$this->groupManager->method('getUserGroupIds')
+		$this->subAdmin->method('isSubAdmin')
 			->with($user)
-			->willReturn(['finance', 'legal', 'board']);
+			->willReturn(true);
+
+		$financeGroup = $this->createMock(IGroup::class);
+		$financeGroup->method('getGID')->willReturn('finance');
+		$legalGroup = $this->createMock(IGroup::class);
+		$legalGroup->method('getGID')->willReturn('legal');
+
+		$this->subAdmin->method('getSubAdminsGroups')
+			->with($user)
+			->willReturn([$financeGroup, $legalGroup]);
+
+		$resolved = (new ResolvedPolicy())
+			->setEffectiveValue('{"allowGroups":["finance","board"],"denyGroups":["legal"]}')
+			->setEditableByCurrentActor(true);
+		$this->policyService->method('resolveForUser')
+			->willReturn($resolved);
 
 		$result = $this->service->getManageablePolicyGroupIds($user);
 
-		$this->assertSame(['finance', 'legal', 'board'], $result);
+		$this->assertSame(['finance', 'legal'], $result);
 	}
 
-	public function testGetManageablePolicyGroupIdsReturnsGroupMembershipsForRegularUser(): void {
+	public function testGetManageablePolicyGroupIdsReturnsEmptyForRegularUser(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('regular-user');
 
 		$this->groupManager->method('isAdmin')
 			->with('regular-user')
 			->willReturn(false);
-		$this->groupManager->method('getUserGroupIds')
+		$this->subAdmin->method('isSubAdmin')
 			->with($user)
-			->willReturn(['users', 'staff']);
+			->willReturn(false);
 
 		$result = $this->service->getManageablePolicyGroupIds($user);
 
-		$this->assertSame(['users', 'staff'], $result);
+		$this->assertSame([], $result);
+	}
+
+	public function testGetManageablePolicyGroupIdsReturnsAllManagedGroupsWhenDelegationIsEditable(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('subadmin-user');
+
+		$this->groupManager->method('isAdmin')
+			->with('subadmin-user')
+			->willReturn(false);
+		$this->subAdmin->method('isSubAdmin')
+			->with($user)
+			->willReturn(true);
+
+		$board = $this->createMock(IGroup::class);
+		$board->method('getGID')->willReturn('board');
+		$company = $this->createMock(IGroup::class);
+		$company->method('getGID')->willReturn('company');
+
+		$this->subAdmin->method('getSubAdminsGroups')
+			->with($user)
+			->willReturn([$board, $company]);
+
+		$resolved = (new ResolvedPolicy())
+			->setEffectiveValue('{"allowGroups":["board"],"denyGroups":["ops"]}')
+			->setEditableByCurrentActor(true);
+		$this->policyService->method('resolveForUser')
+			->willReturn($resolved);
+
+		$result = $this->service->getManageablePolicyGroupIds($user);
+
+		$this->assertSame(['board', 'company'], $result);
+	}
+
+	public function testGetManageablePolicyGroupIdsReturnsEmptyWhenDelegationIsNotEditable(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('subadmin-user');
+
+		$this->groupManager->method('isAdmin')
+			->with('subadmin-user')
+			->willReturn(false);
+		$this->subAdmin->method('isSubAdmin')
+			->with($user)
+			->willReturn(true);
+
+		$board = $this->createMock(IGroup::class);
+		$board->method('getGID')->willReturn('board');
+		$company = $this->createMock(IGroup::class);
+		$company->method('getGID')->willReturn('company');
+
+		$this->subAdmin->method('getSubAdminsGroups')
+			->with($user)
+			->willReturn([$board, $company]);
+
+		$resolved = (new ResolvedPolicy())
+			->setEffectiveValue('{"allowGroups":["board"],"denyGroups":[]}')
+			->setEditableByCurrentActor(false);
+		$this->policyService->method('resolveForUser')
+			->willReturn($resolved);
+		$this->policyService->expects($this->once())
+			->method('listGroupPoliciesForTargets')
+			->with(RequestSignGroupsPolicy::KEY, ['board', 'company'])
+			->willReturn([]);
+
+		$result = $this->service->getManageablePolicyGroupIds($user);
+
+		$this->assertSame([], $result);
+	}
+
+	public function testGetManageablePolicyGroupIdsReturnsManagedGroupsWhenDelegationIsNotEditableButManagedOverrideExists(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('subadmin-user');
+
+		$this->groupManager->method('isAdmin')
+			->with('subadmin-user')
+			->willReturn(false);
+		$this->subAdmin->method('isSubAdmin')
+			->with($user)
+			->willReturn(true);
+
+		$board = $this->createMock(IGroup::class);
+		$board->method('getGID')->willReturn('board');
+		$company = $this->createMock(IGroup::class);
+		$company->method('getGID')->willReturn('company');
+
+		$this->subAdmin->method('getSubAdminsGroups')
+			->with($user)
+			->willReturn([$board, $company]);
+
+		$resolved = (new ResolvedPolicy())
+			->setEffectiveValue('{"allowGroups":["board"],"denyGroups":["board"]}')
+			->setEditableByCurrentActor(false);
+		$this->policyService->method('resolveForUser')
+			->willReturn($resolved);
+		$this->policyService->expects($this->once())
+			->method('listGroupPoliciesForTargets')
+			->with(RequestSignGroupsPolicy::KEY, ['board', 'company'])
+			->willReturn([
+				[
+					'targetId' => 'board',
+					'policy' => (new \OCA\Libresign\Service\Policy\Model\PolicyLayer())
+						->setScope('group')
+						->setAllowChildOverride(false)
+						->setNotes([
+							'createdBySystemAdmin' => false,
+							'createdByActorScope' => 'group',
+						]),
+				],
+			]);
+
+		$result = $this->service->getManageablePolicyGroupIds($user);
+
+		$this->assertSame(['board', 'company'], $result);
 	}
 }
