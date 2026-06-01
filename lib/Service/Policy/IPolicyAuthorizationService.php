@@ -23,7 +23,8 @@ interface IPolicyAuthorizationService {
 	 * Get list of group IDs manageable by the given user.
 	 *
 	 * For instance admins: returns empty (they manage all groups at policy level).
-	 * For subadmins: returns groups they belong to.
+	 * For subadmins: returns subadmin-managed groups restricted by the effective
+	 * request-sign policy scope (allow + deny concatenated).
 	 * For regular users: returns empty.
 	 *
 	 * @return list<string>
