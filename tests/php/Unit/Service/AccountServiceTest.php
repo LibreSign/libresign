@@ -30,7 +30,9 @@ use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -49,6 +51,7 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Group\ISubAdmin;
 use OCP\IAppConfig;
+use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -82,6 +85,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IURLGenerator&MockObject $urlGenerator;
 	private IGroupManager&MockObject $groupManager;
 	private ISubAdmin&MockObject $subAdmin;
+	private PolicyService&MockObject $policyService;
 	private PolicyAuthorizationService $policyAuthorizationService;
 	private IdDocsPolicyService&MockObject $idDocsPolicyService;
 	private IdDocsService&MockObject $idDocsService;
@@ -123,7 +127,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->subAdmin = $this->createMock(ISubAdmin::class);
-		$this->policyAuthorizationService = new PolicyAuthorizationService($this->groupManager, $this->subAdmin);
+		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyAuthorizationService = new PolicyAuthorizationService($this->groupManager, $this->subAdmin, $this->policyService);
 		$this->idDocsPolicyService = $this->createMock(IdDocsPolicyService::class);
 		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->willReturn(false);
 		$this->idDocsService = $this->createMock(IdDocsService::class);
@@ -1012,12 +1017,23 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user->method('getUID')->willReturn('manageable-user');
 
 		$this->groupManager->method('isAdmin')->with('manageable-user')->willReturn(false);
-		$this->groupManager->method('getUserGroupIds')->with($user)->willReturn(['finance']);
+		$this->subAdmin->method('isSubAdmin')->with($user)->willReturn(true);
+
+		$finance = $this->createMock(IGroup::class);
+		$finance->method('getGID')->willReturn('finance');
+		$legal = $this->createMock(IGroup::class);
+		$legal->method('getGID')->willReturn('legal');
+		$this->subAdmin->method('getSubAdminsGroups')->with($user)->willReturn([$finance, $legal]);
+
+		$this->policyService->method('resolveForUser')
+			->willReturn((new ResolvedPolicy())
+				->setEffectiveValue('{"allowGroups":["finance"],"denyGroups":[]}')
+				->setEditableByCurrentActor(true));
 
 		$config = $this->getService()->getConfig($user);
 
 		$this->assertArrayHasKey('manageable_policy_group_ids', $config);
-		$this->assertSame(['finance'], $config['manageable_policy_group_ids']);
+		$this->assertSame(['finance', 'legal'], $config['manageable_policy_group_ids']);
 	}
 
 	public function testGetConfigIncludesCanManageGroupPoliciesForInstanceAdmin(): void {
