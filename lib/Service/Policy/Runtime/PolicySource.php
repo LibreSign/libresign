@@ -18,6 +18,8 @@ use OCA\Libresign\Service\Policy\Contract\IPolicySource;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Provider\PolicyProviders;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\DB\QueryBuilder\IQueryBuilder;
@@ -26,6 +28,8 @@ use OCP\IDBConnection;
 use OCP\IL10N;
 
 class PolicySource implements IPolicySource {
+	private const REQUEST_SIGN_GROUPS_OVERRIDE_POLICY_KEY = RequestSignGroupsPolicy::KEY . '__delegated_override';
+
 	public function __construct(
 		private IAppConfig $appConfig,
 		private PermissionSetMapper $permissionSetMapper,
@@ -118,17 +122,15 @@ class PolicySource implements IPolicySource {
 				continue;
 			}
 
-			$policyConfig = $permissionSet->getDecodedPolicyJson()[$policyKey] ?? null;
-			if (!is_array($policyConfig)) {
+			$policyConfig = $this->resolveStoredGroupPolicyConfig(
+				$permissionSet->getDecodedPolicyJson(),
+				$policyKey,
+			);
+			if (!$this->hasExplicitGroupPolicyConfig($policyConfig)) {
 				continue;
 			}
 
-			$layers[] = (new PolicyLayer())
-				->setScope('group')
-				->setValue($policyConfig['defaultValue'] ?? null)
-				->setAllowChildOverride((bool)($policyConfig['allowChildOverride'] ?? false))
-				->setVisibleToChild((bool)($policyConfig['visibleToChild'] ?? true))
-				->setAllowedValues(is_array($policyConfig['allowedValues'] ?? null) ? $policyConfig['allowedValues'] : []);
+			$layers[] = $this->createGroupPolicyLayer($policyConfig);
 		}
 
 		return $layers;
@@ -266,17 +268,12 @@ class PolicySource implements IPolicySource {
 
 			$policyJson = $permissionSet->getDecodedPolicyJson();
 			foreach ($policyKeys as $policyKey) {
-				$policyConfig = $policyJson[$policyKey] ?? null;
-				if (!is_array($policyConfig)) {
+				$policyConfig = $this->resolveStoredGroupPolicyConfig($policyJson, $policyKey);
+				if (!$this->hasExplicitGroupPolicyConfig($policyConfig)) {
 					continue;
 				}
 
-				$result[$policyKey][] = (new PolicyLayer())
-					->setScope('group')
-					->setValue($policyConfig['defaultValue'] ?? null)
-					->setAllowChildOverride((bool)($policyConfig['allowChildOverride'] ?? false))
-					->setVisibleToChild((bool)($policyConfig['visibleToChild'] ?? true))
-					->setAllowedValues(is_array($policyConfig['allowedValues'] ?? null) ? $policyConfig['allowedValues'] : []);
+				$result[$policyKey][] = $this->createGroupPolicyLayer($policyConfig);
 			}
 		}
 
@@ -406,8 +403,11 @@ class PolicySource implements IPolicySource {
 			return null;
 		}
 
-		$policyConfig = $permissionSet->getDecodedPolicyJson()[$policyKey] ?? null;
-		if (!is_array($policyConfig)) {
+		$policyConfig = $this->resolveStoredGroupPolicyConfig(
+			$permissionSet->getDecodedPolicyJson(),
+			$policyKey,
+		);
+		if (!$this->hasExplicitGroupPolicyConfig($policyConfig)) {
 			return null;
 		}
 
@@ -471,8 +471,11 @@ class PolicySource implements IPolicySource {
 				continue;
 			}
 
-			$policyConfig = $permissionSet->getDecodedPolicyJson()[$policyKey] ?? null;
-			if (!is_array($policyConfig) || !array_key_exists('defaultValue', $policyConfig) || $policyConfig['defaultValue'] === null) {
+			$policyConfig = $this->resolveStoredGroupPolicyConfig(
+				$permissionSet->getDecodedPolicyJson(),
+				$policyKey,
+			);
+			if (!$this->hasExplicitGroupPolicyConfig($policyConfig)) {
 				continue;
 			}
 
@@ -517,17 +520,7 @@ class PolicySource implements IPolicySource {
 
 			foreach ($groupBindings as $binding) {
 				$policyJson = $permissionSetsById[$binding->getPermissionSetId()]?->getDecodedPolicyJson() ?? [];
-				foreach ($policyJson as $policyKey => $policyConfig) {
-					if (!isset($counts[$policyKey]) || !is_array($policyConfig)) {
-						continue;
-					}
-
-					if (!array_key_exists('defaultValue', $policyConfig) || $policyConfig['defaultValue'] === null) {
-						continue;
-					}
-
-					$counts[$policyKey]['groupCount']++;
-				}
+				$this->incrementGroupRuleCounts($counts, $policyJson);
 			}
 		}
 
@@ -596,17 +589,7 @@ class PolicySource implements IPolicySource {
 
 			foreach ($groupBindings as $binding) {
 				$policyJson = $permissionSetsById[$binding->getPermissionSetId()]?->getDecodedPolicyJson() ?? [];
-				foreach ($policyJson as $policyKey => $policyConfig) {
-					if (!isset($counts[$policyKey]) || !is_array($policyConfig)) {
-						continue;
-					}
-
-					if (!array_key_exists('defaultValue', $policyConfig) || $policyConfig['defaultValue'] === null) {
-						continue;
-					}
-
-					$counts[$policyKey]['groupCount']++;
-				}
+				$this->incrementGroupRuleCounts($counts, $policyJson);
 			}
 		}
 
@@ -892,22 +875,45 @@ class PolicySource implements IPolicySource {
 		}
 	}
 
-	#[\Override]
-	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride, bool $createdBySystemAdmin = false): void {
-		$definition = $this->registry->get($policyKey);
-		$normalizedValue = $definition->normalizeValue($value);
-		$permissionSet = $this->findPermissionSetByGroupId($groupId);
-		$now = new \DateTime('now', new \DateTimeZone('UTC'));
+	/** @param array<string, mixed> $policyJson */
+	private function resolveStoredGroupPolicyConfig(array $policyJson, string $policyKey): ?array {
+		if ($policyKey === RequestSignGroupsPolicy::KEY) {
+			$delegatedOverride = $policyJson[self::REQUEST_SIGN_GROUPS_OVERRIDE_POLICY_KEY] ?? null;
+			if ($this->hasExplicitGroupPolicyConfig($delegatedOverride)) {
+				$resolvedOverride = $delegatedOverride;
+				if ($this->isGroupPolicyConfigCreatedBySystemAdmin($policyJson[$policyKey] ?? null)) {
+					$resolvedOverride['delegatedFromSystemCreatedSeed'] = true;
+				}
 
-		if (!$permissionSet instanceof PermissionSet) {
-			$permissionSet = new PermissionSet();
-			$permissionSet->setName('group:' . $groupId);
-			$permissionSet->setScopeType('group');
-			$permissionSet->setCreatedAt($now);
+				return $resolvedOverride;
+			}
 		}
 
-		$policyJson = $permissionSet->getDecodedPolicyJson();
-		$policyJson[$policyKey] = [
+		$policyConfig = $policyJson[$policyKey] ?? null;
+		return $this->hasExplicitGroupPolicyConfig($policyConfig) ? $policyConfig : null;
+	}
+
+	private function hasExplicitGroupPolicyConfig(mixed $policyConfig): bool {
+		return is_array($policyConfig)
+			&& array_key_exists('defaultValue', $policyConfig)
+			&& $policyConfig['defaultValue'] !== null;
+	}
+
+	private function isGroupPolicyConfigCreatedBySystemAdmin(mixed $policyConfig): bool {
+		if (!is_array($policyConfig)) {
+			return false;
+		}
+
+		$createdBySystemAdmin = $policyConfig['createdBySystemAdmin'] ?? null;
+		if (is_bool($createdBySystemAdmin)) {
+			return $createdBySystemAdmin;
+		}
+
+		return ($policyConfig['createdByActorScope'] ?? null) === 'system';
+	}
+
+	private function buildStoredGroupPolicyConfig(mixed $normalizedValue, bool $allowChildOverride, bool $createdBySystemAdmin): array {
+		return [
 			'defaultValue' => $normalizedValue,
 			'allowChildOverride' => $allowChildOverride,
 			'visibleToChild' => true,
@@ -915,7 +921,37 @@ class PolicySource implements IPolicySource {
 			'createdBySystemAdmin' => $createdBySystemAdmin,
 			'createdByActorScope' => $createdBySystemAdmin ? 'system' : 'group',
 		];
+	}
 
+	/**
+	 * @param array<string, mixed> $policyJson
+	 * @param array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $counts
+	 */
+	private function incrementGroupRuleCounts(array &$counts, array $policyJson): void {
+		foreach ($policyJson as $policyKey => $policyConfig) {
+			if ($policyKey === self::REQUEST_SIGN_GROUPS_OVERRIDE_POLICY_KEY) {
+				if (
+					isset($counts[RequestSignGroupsPolicy::KEY])
+					&& !$this->hasExplicitGroupPolicyConfig($policyJson[RequestSignGroupsPolicy::KEY] ?? null)
+					&& $this->hasExplicitGroupPolicyConfig($policyConfig)
+				) {
+					$counts[RequestSignGroupsPolicy::KEY]['groupCount']++;
+				}
+				continue;
+			}
+
+			if (!isset($counts[$policyKey]) || !$this->hasExplicitGroupPolicyConfig($policyConfig)) {
+				continue;
+			}
+
+			$counts[$policyKey]['groupCount']++;
+		}
+	}
+
+	/**
+	 * @param array<string, mixed> $policyJson
+	 */
+	private function persistGroupPermissionSet(PermissionSet $permissionSet, string $groupId, array $policyJson, \DateTime $now): void {
 		$permissionSet->setPolicyJson($policyJson);
 		$permissionSet->setUpdatedAt($now);
 
@@ -937,7 +973,59 @@ class PolicySource implements IPolicySource {
 	}
 
 	#[\Override]
-	public function clearGroupPolicy(string $policyKey, string $groupId): void {
+	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride, bool $createdBySystemAdmin = false): void {
+		$definition = $this->registry->get($policyKey);
+		$normalizedValue = $definition->normalizeValue($value);
+		$permissionSet = $this->findPermissionSetByGroupId($groupId);
+		$now = new \DateTime('now', new \DateTimeZone('UTC'));
+
+		if (!$permissionSet instanceof PermissionSet) {
+			$permissionSet = new PermissionSet();
+			$permissionSet->setName('group:' . $groupId);
+			$permissionSet->setScopeType('group');
+			$permissionSet->setCreatedAt($now);
+		}
+
+		$policyJson = $permissionSet->getDecodedPolicyJson();
+
+		if ($policyKey === RequestSignGroupsPolicy::KEY) {
+			$existingSystemCreatedSeed = $this->isGroupPolicyConfigCreatedBySystemAdmin($policyJson[$policyKey] ?? null);
+			$existingDelegatedOverride = $policyJson[self::REQUEST_SIGN_GROUPS_OVERRIDE_POLICY_KEY] ?? null;
+			$decodedValue = RequestSignGroupsPolicyValue::decodePolicy($normalizedValue);
+
+			if ($existingSystemCreatedSeed && !$createdBySystemAdmin) {
+				if ($decodedValue['denyGroups'] === []) {
+					if ($this->hasExplicitGroupPolicyConfig($existingDelegatedOverride)) {
+						unset($policyJson[self::REQUEST_SIGN_GROUPS_OVERRIDE_POLICY_KEY]);
+					} else {
+						throw new \InvalidArgumentException($this->l10n->t('This group is already authorized by a system administrator. Add a deny rule to override it.'));
+					}
+				} else {
+					$policyJson[self::REQUEST_SIGN_GROUPS_OVERRIDE_POLICY_KEY] = $this->buildStoredGroupPolicyConfig(
+						$normalizedValue,
+						$allowChildOverride,
+						false,
+					);
+				}
+
+				$this->persistGroupPermissionSet($permissionSet, $groupId, $policyJson, $now);
+				return;
+			}
+
+			unset($policyJson[self::REQUEST_SIGN_GROUPS_OVERRIDE_POLICY_KEY]);
+		}
+
+		$policyJson[$policyKey] = $this->buildStoredGroupPolicyConfig(
+			$normalizedValue,
+			$allowChildOverride,
+			$createdBySystemAdmin,
+		);
+
+		$this->persistGroupPermissionSet($permissionSet, $groupId, $policyJson, $now);
+	}
+
+	#[\Override]
+	public function clearGroupPolicy(string $policyKey, string $groupId, bool $preserveSystemCreatedBase = false): void {
 		$binding = $this->findBindingByGroupId($groupId);
 		if (!$binding instanceof PermissionSetBinding) {
 			return;
@@ -949,7 +1037,21 @@ class PolicySource implements IPolicySource {
 		}
 
 		$policyJson = $permissionSet->getDecodedPolicyJson();
-		unset($policyJson[$policyKey]);
+		if ($policyKey === RequestSignGroupsPolicy::KEY) {
+			$seedConfig = $policyJson[$policyKey] ?? null;
+			$delegatedOverrideConfig = $policyJson[self::REQUEST_SIGN_GROUPS_OVERRIDE_POLICY_KEY] ?? null;
+			$shouldPreserveSystemSeed = $preserveSystemCreatedBase
+				&& $this->isGroupPolicyConfigCreatedBySystemAdmin($seedConfig)
+				&& $this->hasExplicitGroupPolicyConfig($delegatedOverrideConfig)
+				&& !$this->isGroupPolicyConfigCreatedBySystemAdmin($delegatedOverrideConfig);
+
+			unset($policyJson[self::REQUEST_SIGN_GROUPS_OVERRIDE_POLICY_KEY]);
+			if (!$shouldPreserveSystemSeed) {
+				unset($policyJson[$policyKey]);
+			}
+		} else {
+			unset($policyJson[$policyKey]);
+		}
 
 		if ($policyJson === []) {
 			$this->bindingMapper->delete($binding);
@@ -1048,6 +1150,11 @@ class PolicySource implements IPolicySource {
 			if (!isset($notes['createdBySystemAdmin'])) {
 				$notes['createdBySystemAdmin'] = $createdByActorScope === 'system';
 			}
+		}
+
+		$delegatedFromSystemCreatedSeed = $policyConfig['delegatedFromSystemCreatedSeed'] ?? null;
+		if (is_bool($delegatedFromSystemCreatedSeed)) {
+			$notes['delegatedFromSystemCreatedSeed'] = $delegatedFromSystemCreatedSeed;
 		}
 
 		return $notes;
