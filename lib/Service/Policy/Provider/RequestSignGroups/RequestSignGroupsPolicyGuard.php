@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy\Provider\RequestSignGroups;
 
+use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCP\Group\ISubAdmin;
 use OCP\IGroup;
 use OCP\IGroupManager;
@@ -23,6 +24,7 @@ final class RequestSignGroupsPolicyGuard {
 		private IUserSession $userSession,
 		private IGroupManager $groupManager,
 		private ISubAdmin $subAdmin,
+		private PolicyAuthorizationService $policyAuthorizationService,
 	) {
 	}
 
@@ -87,11 +89,6 @@ final class RequestSignGroupsPolicyGuard {
 			return [];
 		}
 
-		$groupIds = array_filter(
-			$this->groupManager->getUserGroupIds($user),
-			static fn (mixed $groupId): bool => is_string($groupId) && trim($groupId) !== '',
-		);
-
-		return array_values(array_unique($groupIds));
+		return $this->policyAuthorizationService->getManageablePolicyGroupIds($user);
 	}
 }
