@@ -27,7 +27,7 @@
 					:disabled="loadingGroups"
 					:loading="loadingGroups"
 					:multiple="true"
-					:options="availableGroups"
+					:options="availableAllowGroups"
 					:placeholder="searchGroupsPlaceholder"
 					:searchable="true"
 					:show-no-options="false"
@@ -152,6 +152,9 @@ const availableGroups = ref<GroupRow[]>([])
 const loadingGroups = ref(false)
 const currentUser = getCurrentUser()
 const isInstanceAdmin = currentUser?.isAdmin === true
+const isDelegatedGroupCreateFlow = computed(() => {
+	return !isInstanceAdmin && props.editorScope === 'group' && props.editorMode === 'create'
+})
 const config = loadState<{ manageable_policy_group_ids?: string[] }>('libresign', 'config', {})
 const manageableGroupIds = new Set(
 	Array.isArray(config.manageable_policy_group_ids)
@@ -173,7 +176,42 @@ function normalizeTargetIds(targetIds?: string[]): string[] {
 		: []
 }
 
-selectedAllowGroupIds.value = clampToManageableScope(resolveRequestSignGroups(props.modelValue))
+function resolveCurrentScopeTargetIds(): string[] {
+	const initialTargetIds = normalizeTargetIds(props.editorInitialTargetIds)
+	if (initialTargetIds.length > 0) {
+		return initialTargetIds
+	}
+
+	const draftTargetIds = normalizeTargetIds(props.editorTargetIds)
+	if (draftTargetIds.length > 0) {
+		return draftTargetIds
+	}
+
+	if (props.hasSelectedTargets !== true) {
+		return []
+	}
+
+	return Array.from(new Set([
+		...resolveRequestSignGroups(props.modelValue),
+		...resolveDeniedRequestSignGroups(props.modelValue),
+	]))
+}
+
+const lockedInheritedAllowGroupIds = new Set(
+	isDelegatedGroupCreateFlow.value
+		? clampToManageableScope(resolveRequestSignGroups(props.modelValue))
+		: [],
+)
+
+function stripLockedInheritedAllowGroups(groupIds: string[]): string[] {
+	if (!isDelegatedGroupCreateFlow.value || lockedInheritedAllowGroupIds.size === 0) {
+		return groupIds
+	}
+
+	return groupIds.filter((groupId) => !lockedInheritedAllowGroupIds.has(groupId))
+}
+
+selectedAllowGroupIds.value = clampToManageableScope(stripLockedInheritedAllowGroups(resolveRequestSignGroups(props.modelValue)))
 selectedDenyGroupIds.value = clampToManageableScope(resolveDeniedRequestSignGroups(props.modelValue))
 
 const selectedAllowGroups = computed<Array<GroupRow | string>>(() => {
@@ -186,6 +224,14 @@ const selectedDenyGroups = computed<Array<GroupRow | string>>(() => {
 	return selectedDenyGroupIds.value.map((groupId) => {
 		return availableGroups.value.find((group) => group.id === groupId) ?? groupId
 	})
+})
+
+const availableAllowGroups = computed(() => {
+	if (lockedInheritedAllowGroupIds.size === 0) {
+		return availableGroups.value
+	}
+
+	return availableGroups.value.filter((group) => !lockedInheritedAllowGroupIds.has(group.id))
 })
 
 const overlappingGroupIds = computed(() => {
@@ -208,12 +254,15 @@ const shouldShowRequesterGroupsEditor = computed(() => {
  * (via `allowChildOverride`) and the group admin should only be able to refine
  * the deny list. Showing the Authorized selector would be confusing and redundant.
  *
- * Important: this must be based on the original scope targets of the editor
- * session, not on the live `allowGroups` selection, because for
- * `groups_request_sign` the workbench now derives targetIds from the current
- * allow list while the user edits the form.
+ * Prefer original editor targets when available. During create flows where
+ * scope targets are derived from the current allowGroups payload, initial targets
+ * can be empty; in that case fall back to current draft target ids.
  */
 const hideAllowGroups = computed(() => {
+	if (props.editorMode === 'create') {
+		return false
+	}
+
 	if (isInstanceAdmin) {
 		return false
 	}
@@ -222,18 +271,26 @@ const hideAllowGroups = computed(() => {
 		return false
 	}
 
-	if (manageableGroupIds.size === 0) {
-		return false
-	}
-
-	const targetIds = normalizeTargetIds(props.editorInitialTargetIds)
+	const targetIds = resolveCurrentScopeTargetIds()
 
 	if (targetIds.length === 0) {
 		return false
 	}
 
-	// Hide Authorized only when ALL selected target groups are managed by this admin.
-	return targetIds.every((id) => manageableGroupIds.has(id))
+	// Preferred signal: explicit manageable groups configured for delegated admins.
+	if (manageableGroupIds.size > 0) {
+		return targetIds.every((id) => manageableGroupIds.has(id))
+	}
+
+	// Fallback signal: when manageable groups are not exposed by bootstrap config,
+	// consider delegated mode if all scope targets are already authorized by the
+	// inherited rule payload currently being edited.
+	const authorizedGroups = new Set(resolveRequestSignGroups(props.modelValue))
+	if (authorizedGroups.size === 0) {
+		return false
+	}
+
+	return targetIds.every((id) => authorizedGroups.has(id))
 })
 
 const requiredManagedGroupId = computed(() => {
@@ -269,7 +326,7 @@ const deniedRequesterGroupsAriaLabel = t('libresign', 'Denied requester groups')
 const searchGroupsPlaceholder = t('libresign', 'Search groups')
 
 watch(() => props.modelValue, (nextValue) => {
-	selectedAllowGroupIds.value = clampToManageableScope(resolveRequestSignGroups(nextValue))
+	selectedAllowGroupIds.value = clampToManageableScope(stripLockedInheritedAllowGroups(resolveRequestSignGroups(nextValue)))
 	selectedDenyGroupIds.value = clampToManageableScope(resolveDeniedRequestSignGroups(nextValue))
 })
 
@@ -343,6 +400,8 @@ function onAllowGroupsChange(value: Array<GroupRow | string>) {
 	let nextSelectedGroupIds = value
 		? toGroupIds(value)
 		: []
+
+	nextSelectedGroupIds = stripLockedInheritedAllowGroups(nextSelectedGroupIds)
 
 	if (requiredManagedGroupId.value && !nextSelectedGroupIds.includes(requiredManagedGroupId.value)) {
 		nextSelectedGroupIds = [...nextSelectedGroupIds, requiredManagedGroupId.value]
