@@ -131,8 +131,18 @@ const createSignMountOptions = () => ({
 	},
 })
 
+let realSignComponentPromise: Promise<typeof import('../../../views/SignPDF/_partials/Sign.vue')> | null = null
+
+async function getRealSignComponentModule() {
+	if (!realSignComponentPromise) {
+		realSignComponentPromise = import('../../../views/SignPDF/_partials/Sign.vue')
+	}
+
+	return realSignComponentPromise
+}
+
 const mountRealSignComponent = async () => {
-	const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+	const SignComponent = await getRealSignComponentModule()
 	return mount(SignComponent.default, createSignMountOptions())
 }
 
@@ -223,9 +233,9 @@ describe('Sign.vue - signWithTokenCode', () => {
 	let submitSignatureCompatMethod: SubmitSignatureCompatMethod
 
 	beforeAll(async () => {
-		const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+		const SignComponent = await getRealSignComponentModule()
 		submitSignatureCompatMethod = (SignComponent.default as any).methods.submitSignature
-	})
+	}, 30000)
 
 	beforeEach(async () => {
 		setActivePinia(createPinia())
@@ -1744,9 +1754,9 @@ describe('Sign.vue - signWithTokenCode', () => {
 		let submitSignatureCompatMethod: SubmitSignatureCompatMethod
 
 		beforeAll(async () => {
-			const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+			const SignComponent = await getRealSignComponentModule()
 			submitSignatureCompatMethod = (SignComponent.default as any).methods.submitSignature
-		})
+		}, 30000)
 
 		it('calls signStore.submitSignature once per file for envelopes with multiple me=true signers', async () => {
 			const storeSubmitMock = vi.fn().mockResolvedValue({ status: 'signed', data: {} })
