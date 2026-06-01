@@ -716,6 +716,7 @@ const hideTargetSelector = computed(() => {
 	if (!state.editorDraft || state.editorDraft.scope === 'system') {
 		return false
 	}
+
 	return state.activeDefinition?.extractScopeTargets !== undefined
 })
 const activeEditorProps = computed<Record<string, unknown>>(() => {
