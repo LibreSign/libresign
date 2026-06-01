@@ -5,9 +5,10 @@
 
 import { t } from '@nextcloud/l10n'
 
+import RequestSignGroupsRuleEditor from './RequestSignGroupsRuleEditor.vue'
+
 import type { EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
-import RequestSignGroupsRuleEditor from './RequestSignGroupsRuleEditor.vue'
 import {
 	DEFAULT_REQUEST_SIGN_DENY_GROUPS,
 	DEFAULT_REQUEST_SIGN_GROUPS,
@@ -33,7 +34,10 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 		allowGroups: [],
 		denyGroups: [],
 	}),
-	extractScopeTargets: (_scope, value) => resolveRequestSignGroups(value),
+	extractScopeTargets: (_scope, value) => Array.from(new Set([
+		...resolveRequestSignGroups(value),
+		...resolveDeniedRequestSignGroups(value),
+	])),
 	isBaselineSeedable: (value: EffectivePolicyValue) => resolveRequestSignGroups(value).length > 0,
 	syncCreateDraftValueFromTargets: (scope, targetIds, currentValue, isInstanceAdmin) => {
 		if (scope !== 'group') {
@@ -64,7 +68,7 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 		})
 	},
 	normalizeDraftValue: (value: EffectivePolicyValue) => serializeRequestSignGroups(value),
-	hasSelectableDraftValue: (value: EffectivePolicyValue) => resolveRequestSignGroups(value).length > 0,
+	hasSelectableDraftValue: (value: EffectivePolicyValue) => resolveRequestSignGroups(value).length > 0 || resolveDeniedRequestSignGroups(value).length > 0,
 	normalizeAllowChildOverride: (scope, allowChildOverride) => {
 		if (scope === 'user') {
 			return false
@@ -85,6 +89,18 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const allowGroups = resolveRequestSignGroups(value)
 		const denyGroups = resolveDeniedRequestSignGroups(value)
+		const deniedGroupsSet = new Set(denyGroups)
+		const allAllowedGroupsAreDenied = allowGroups.length > 0 && allowGroups.every((groupId) => deniedGroupsSet.has(groupId))
+
+		if (denyGroups.length > 0 && (allowGroups.length === 0 || allAllowedGroupsAreDenied)) {
+			if (denyGroups.length <= 2) {
+				return denyGroups.join(', ')
+			}
+
+			// TRANSLATORS {count} is the number of groups explicitly denied from creating signature requests.
+			return t('libresign', '{count} denied requester groups', { count: String(denyGroups.length) })
+		}
+
 		if (allowGroups.length === 0) {
 			// TRANSLATORS Summary text when no requester groups are configured in this rule.
 			return t('libresign', 'none configured')
