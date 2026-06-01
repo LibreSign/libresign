@@ -36,19 +36,11 @@ class RequestSignAuthorizationService {
 		}
 
 		$resolvedPolicy = $this->policyService->resolveForUser(RequestSignGroupsPolicy::KEY, $user);
-		$policy = RequestSignGroupsPolicyValue::decodePolicy($resolvedPolicy->getEffectiveValue());
-		$authorizedGroups = $policy['allowGroups'];
-		$deniedGroups = $policy['denyGroups'];
-
-		if ($authorizedGroups === []) {
-			return false;
-		}
-
 		$userGroups = $this->groupManager->getUserGroupIds($user);
-		if (array_intersect($userGroups, $authorizedGroups) === []) {
-			return false;
-		}
 
-		return array_intersect($userGroups, $deniedGroups) === [];
+		return RequestSignGroupsPolicyValue::canUserGroupsRequestSign(
+			$resolvedPolicy->getEffectiveValue(),
+			$userGroups,
+		);
 	}
 }
