@@ -11,6 +11,8 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 use OCA\Libresign\Controller\PageController;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\FileListService;
@@ -59,6 +61,10 @@ final class PageControllerTest extends TestCase {
 		$this->accountService->method('getConfigFilters')->willReturn([]);
 		$this->accountService->method('getConfigSorting')->willReturn([]);
 		$this->accountService->method('getCertificateEngineName')->willReturn('openssl');
+		$certificateEngine = $this->createMock(IEngineHandler::class);
+		$certificateEngine->method('isSetupOk')->willReturn(true);
+		$certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
+		$certificateEngineFactory->method('getEngine')->willReturn($certificateEngine);
 
 		$this->fileService = $this->createMock(FileService::class);
 		$this->fileService->method('setFile')->willReturnSelf();
@@ -100,6 +106,7 @@ final class PageControllerTest extends TestCase {
 			sessionService: $this->createMock(SessionService::class),
 			initialState: $this->initialState,
 			accountService: $this->accountService,
+			certificateEngineFactory: $certificateEngineFactory,
 			signFileService: $this->signFileService,
 			requestSignatureService: \OCP\Server::get(RequestSignatureService::class),
 			policyService: $this->policyService,
