@@ -50,6 +50,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 		];
 
 		$resolver = new DefaultPolicyResolver($source);
+
 		$resolved = $resolver->resolve($this->getDefinition(), PolicyContext::fromUserId('john'));
 
 		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
@@ -277,21 +278,10 @@ final class DefaultPolicyResolverTest extends TestCase {
 	): void {
 		$source = new InMemoryPolicySource();
 		$source->systemLayer = (new PolicyLayer())
-			->setScope('system')
+			->setScope('global')
 			->setValue(RequestSignGroupsPolicyValue::encode(['admin']))
 			->setAllowChildOverride(true)
 			->setVisibleToChild(true);
-		// A delegated group-layer rule grants the receiving group admin a manageable
-		// entry point for this policy, but only when they can actually delegate to
-		// at least one additional group they belong to.
-		$source->groupLayers = [
-			(new PolicyLayer())
-				->setScope('group')
-				->setValue(RequestSignGroupsPolicyValue::encode(['board']))
-				->setAllowChildOverride(true)
-				->setVisibleToChild(true)
-				->setAllowedValues([]),
-		];
 
 		$resolver = new DefaultPolicyResolver($source);
 		$resolved = $resolver->resolve(
@@ -306,13 +296,64 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertSame($expectedEditable, $resolved->isEditableByCurrentActor());
 	}
 
-	public function testResolveRequestSignGroupsDoesNotBecomeEditableFromSystemGrantAlone(): void {
+	public function testResolveRequestSignGroupsDoesNotBecomeEditableWithoutExplicitGlobalSystemDelegation(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue(RequestSignGroupsPolicyValue::encode(['board']))
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue(RequestSignGroupsPolicyValue::encode(['board']))
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true),
+		];
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve(
+			$this->getRequestSignGroupsDefinition(),
+			PolicyContext::fromUserId('ceo')->setActorCapabilities([
+				'canManageSystemPolicies' => false,
+				'canManageGroupPolicies' => true,
+				'manageableGroupCount' => 1,
+			]),
+		);
+
+		$this->assertFalse($resolved->isEditableByCurrentActor());
+	}
+
+	public function testResolveRequestSignGroupsBecomesEditableFromExplicitGlobalSystemGrantAlone(): void {
 		$source = new InMemoryPolicySource();
 		$source->systemLayer = (new PolicyLayer())
 			->setScope('global')
-			->setValue(RequestSignGroupsPolicyValue::encode(['board', 'company']))
+			->setValue(RequestSignGroupsPolicyValue::encode(['company']))
 			->setAllowChildOverride(true)
 			->setVisibleToChild(true);
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve(
+			$this->getRequestSignGroupsDefinition(),
+			PolicyContext::fromUserId('ceo')->setActorCapabilities([
+				'canManageSystemPolicies' => false,
+				'canManageGroupPolicies' => true,
+				'manageableGroupCount' => 1,
+			]),
+		);
+
+		$this->assertTrue($resolved->isEditableByCurrentActor());
+	}
+
+	public function testResolveRequestSignGroupsDoesNotBecomeEditableFromGroupLayerAlone(): void {
+		$source = new InMemoryPolicySource();
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue(RequestSignGroupsPolicyValue::encode(['board']))
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true),
+		];
 
 		$resolver = new DefaultPolicyResolver($source);
 		$resolved = $resolver->resolve(
@@ -327,12 +368,86 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertFalse($resolved->isEditableByCurrentActor());
 	}
 
+	public function testResolveRequestSignGroupsBecomesEditableFromSystemCreatedGroupLayerDelegation(): void {
+		$source = new InMemoryPolicySource();
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue(RequestSignGroupsPolicyValue::encode(['board']))
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setNotes([
+					'createdBySystemAdmin' => true,
+					'createdByActorScope' => 'system',
+				]),
+		];
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve(
+			$this->getRequestSignGroupsDefinition(),
+			PolicyContext::fromUserId('ceo')->setActorCapabilities([
+				'canManageSystemPolicies' => false,
+				'canManageGroupPolicies' => true,
+				'manageableGroupCount' => 1,
+			]),
+		);
+
+		$this->assertTrue($resolved->isEditableByCurrentActor());
+	}
+
+	public function testResolveRequestSignGroupsKeepsEditableWhenDelegatedOverrideOverlaysSystemCreatedSeed(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue(RequestSignGroupsPolicyValue::encode([
+				'allowGroups' => ['admin'],
+				'denyGroups' => [],
+			]))
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue(RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => ['board'],
+					'denyGroups' => ['board'],
+				]))
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setNotes([
+					'createdBySystemAdmin' => false,
+					'createdByActorScope' => 'group',
+					'delegatedFromSystemCreatedSeed' => true,
+				]),
+		];
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve(
+			$this->getRequestSignGroupsDefinition(),
+			PolicyContext::fromUserId('ceo')->setActorCapabilities([
+				'canManageSystemPolicies' => false,
+				'canManageGroupPolicies' => true,
+				'manageableGroupCount' => 1,
+			]),
+		);
+
+		$this->assertSame(
+			RequestSignGroupsPolicyValue::encode([
+				'allowGroups' => ['board'],
+				'denyGroups' => ['board'],
+			]),
+			$resolved->getEffectiveValue(),
+		);
+		$this->assertSame('group', $resolved->getSourceScope());
+		$this->assertTrue($resolved->isEditableByCurrentActor());
+	}
+
 	/** @return array<string, array{0: int, 1: bool}> */
 	public static function provideRequestSignGroupsEditableByManageableGroupCountCases(): array {
 		return [
 			'cannot edit with zero manageable groups' => [0, false],
-			'cannot edit with exactly one manageable group (below threshold)' => [1, false],
-			'can edit with exactly two manageable groups (meets threshold)' => [2, true],
+			'can edit with exactly one manageable group' => [1, true],
+			'can edit with exactly two manageable groups' => [2, true],
 			'can edit with more than two manageable groups' => [3, true],
 		];
 	}
@@ -795,7 +910,7 @@ final class InMemoryPolicySource implements IPolicySource {
 	public function saveUserPolicy(string $policyKey, PolicyContext $context, mixed $value, bool $allowChildOverride): void {
 	}
 
-	public function clearGroupPolicy(string $policyKey, string $groupId): void {
+	public function clearGroupPolicy(string $policyKey, string $groupId, bool $preserveSystemCreatedBase = false): void {
 	}
 
 	public function clearUserPreference(string $policyKey, PolicyContext $context): void {
