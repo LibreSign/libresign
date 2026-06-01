@@ -5,6 +5,7 @@
 
 import { createRouter, createWebHistory, type Router, type RouteRecordRaw } from 'vue-router'
 
+import { getCurrentUser } from '@nextcloud/auth'
 import { loadState } from '@nextcloud/initial-state'
 import { getRootUrl, generateUrl } from '@nextcloud/router'
 
@@ -23,6 +24,11 @@ function generateWebBasePath(): string {
 	return generateUrl('/apps/libresign', {}, {
 		noRewrite: doesURLContainIndexPHP,
 	})
+}
+
+function canAccessPoliciesWorkbench(): boolean {
+	const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', 'config', {})
+	return getCurrentUser()?.isAdmin === true || config.can_manage_group_policies === true
 }
 
 const routes: RouteRecordRaw[] = [
@@ -188,6 +194,13 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: '/f/policies',
 		name: 'Policies',
+		beforeEnter: () => {
+			if (!canAccessPoliciesWorkbench()) {
+				return { path: '/' }
+			}
+
+			return true
+		},
 		component: () => import('../views/Policies/Policies.vue'),
 	},
 	{
