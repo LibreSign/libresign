@@ -195,6 +195,10 @@ class AccountService {
 		return $this->certificateEngineFactory->getEngine()->getName();
 	}
 
+	public function isSetupOk(): bool {
+		return $this->certificateEngineFactory->getEngine()->isSetupOk();
+	}
+
 	/**
 	 * @return array<string, mixed>
 	 */
