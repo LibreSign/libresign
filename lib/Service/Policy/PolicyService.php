@@ -195,7 +195,11 @@ class PolicyService {
 	public function clearGroupPolicy(string|\BackedEnum $policyKey, string $groupId): ?PolicyLayer {
 		$definition = $this->registry->get($policyKey);
 		$this->assertCurrentActorCanDeleteGroupPolicy($definition->key(), $groupId);
-		$this->source->clearGroupPolicy($definition->key(), $groupId);
+		$this->source->clearGroupPolicy(
+			$definition->key(),
+			$groupId,
+			!$this->contextFactory->isCurrentActorSystemAdmin(),
+		);
 
 		return $this->source->loadGroupPolicyConfig($definition->key(), $groupId);
 	}
@@ -301,8 +305,11 @@ class PolicyService {
 	}
 
 	private function shouldHideSystemCreatedGroupRuleFromCurrentActor(string $policyKey, PolicyLayer $policy): bool {
-		return $this->wasGroupPolicyCreatedBySystemAdmin($policy)
-			&& $this->shouldFilterVisibleGroupCountsForCurrentActor($policyKey);
+		if (!$this->wasGroupPolicyCreatedBySystemAdmin($policy)) {
+			return false;
+		}
+
+		return $this->shouldFilterVisibleGroupCountsForCurrentActor($policyKey);
 	}
 
 	private function assertCurrentActorCanManageGroupPolicy(string $policyKey, ?PolicyContext $context = null): void {
