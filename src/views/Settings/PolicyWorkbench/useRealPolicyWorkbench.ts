@@ -27,6 +27,11 @@ import {
 	normalizeSignatureStampDraftValue,
 	resolveCollectMetadataValue,
 } from './settings/signature-text/model'
+import {
+	resolveDeniedRequestSignGroups,
+	resolveRequestSignGroups,
+	serializeRequestSignGroups,
+} from './settings/request-sign-groups/model'
 import { canRenderWorkbenchPolicyForGroupAdmin } from '../../Preferences/personalPreferenceVisibility'
 import { usePoliciesStore } from '../../../store/policies'
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../types/index'
@@ -178,6 +183,7 @@ const SIGNING_EXECUTION_POLICY_KEY = 'signing_mode'
 const SIGNING_EXECUTION_WORKER_KEY = 'worker_config'
 const SIGNATURE_STAMP_POLICY_KEY = 'signature_stamp'
 const COLLECT_METADATA_POLICY_KEY = 'collect_metadata'
+const REQUEST_SIGN_GROUPS_POLICY_KEY = 'groups_request_sign'
 
 function isRequestExpirationPolicyKey(policyKey: string): boolean {
 	return policyKey === REQUEST_EXPIRATION_POLICY_KEY
@@ -281,7 +287,7 @@ export function createRealPolicyWorkbenchState() {
 		? 'system-admin'
 		: config.can_manage_group_policies
 			? 'group-admin'
-			: 'system-admin'
+			: 'group-admin'
 	const viewMode = ref<'system-admin' | 'group-admin'>(initialViewMode)
 	const activeSettingKey = ref<string | null>(null)
 	const editorDraft = ref<PolicyEditorDraft | null>(null)
@@ -695,7 +701,7 @@ export function createRealPolicyWorkbenchState() {
 
 		const selectedTargetIds = new Set(editorDraft.value.targetIds)
 		const assignedTargetIds = new Set(
-			(scope === 'group' ? groupRules.value : userRules.value)
+			(scope === 'group' ? visibleGroupRules.value : userRules.value)
 				.map((rule) => rule.targetId)
 				.filter((targetId): targetId is string => !!targetId),
 		)
@@ -772,8 +778,40 @@ export function createRealPolicyWorkbenchState() {
 		return normalizedTrue !== normalizedFalse
 	}
 
+	function resolveDraftTargetIdsForSave(draft: PolicyEditorDraft): string[] {
+		const targetIds = Array.from(new Set(draft.targetIds.filter(Boolean)))
+
+		if (
+			isInstanceAdmin
+			|| activeDefinition.value?.key !== REQUEST_SIGN_GROUPS_POLICY_KEY
+			|| editorMode.value !== 'create'
+			|| draft.scope !== 'group'
+		) {
+			return targetIds
+		}
+
+		const allowedGroups = new Set(resolveRequestSignGroups(draft.value))
+		const deniedGroups = new Set(resolveDeniedRequestSignGroups(draft.value))
+
+		return targetIds.filter((targetId) => {
+			return allowedGroups.has(targetId) || deniedGroups.has(targetId)
+		})
+	}
+
 	const canSaveDraft = computed(() => {
 		if (!editorDraft.value) {
+			return false
+		}
+
+		const targetIdsForSave = resolveDraftTargetIdsForSave(editorDraft.value)
+
+		if (
+			!isInstanceAdmin
+			&& activeDefinition.value?.key === REQUEST_SIGN_GROUPS_POLICY_KEY
+			&& editorMode.value === 'create'
+			&& editorDraft.value.scope === 'group'
+			&& editorDraft.value.targetIds.length === 0
+		) {
 			return false
 		}
 
@@ -781,7 +819,11 @@ export function createRealPolicyWorkbenchState() {
 			return false
 		}
 
-		if (editorDraft.value.scope !== 'system' && editorDraft.value.targetIds.length === 0 && !activeDefinition.value?.extractScopeTargets) {
+		if (
+			editorDraft.value.scope !== 'system'
+			&& targetIdsForSave.length === 0
+			&& (editorDraft.value.targetIds.length > 0 || !activeDefinition.value?.extractScopeTargets)
+		) {
 			return false
 		}
 
@@ -1569,7 +1611,9 @@ export function createRealPolicyWorkbenchState() {
 				value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
 			}
 		} else if (scope === 'group') {
-			const baselineRuleValue = activePolicyState.value?.sourceScope === 'system' || activePolicyState.value?.sourceScope === 'global'
+			const baselineRuleValue = activePolicyState.value?.sourceScope === 'system'
+				|| activePolicyState.value?.sourceScope === 'global'
+				|| activePolicyState.value?.sourceScope === 'group'
 				? activePolicyState.value.effectiveValue
 				: null
 			if (shouldUseBaselineForCreate('group', baselineRuleValue)) {
@@ -1590,7 +1634,6 @@ export function createRealPolicyWorkbenchState() {
 			value,
 			allowChildOverride,
 		}
-		editorInitialTargetIds.value = [...targetIds]
 
 		if (
 			!ruleId
@@ -1608,6 +1651,25 @@ export function createRealPolicyWorkbenchState() {
 				fallbackCollectMetadataValue,
 			)
 		}
+
+		if (
+			!isInstanceAdmin
+			&& editorMode.value === 'create'
+			&& editorDraft.value.scope === 'group'
+			&& activeDefinition.value.key === REQUEST_SIGN_GROUPS_POLICY_KEY
+		) {
+			editorDraft.value.targetIds = []
+		} else if (
+			editorDraft.value.scope === 'group'
+			&& editorDraft.value.targetIds.length === 0
+			&& activeDefinition.value.extractScopeTargets
+		) {
+			editorDraft.value.targetIds = Array.from(
+				new Set(activeDefinition.value.extractScopeTargets(scope, editorDraft.value.value).filter(Boolean)),
+			)
+		}
+
+		editorInitialTargetIds.value = [...editorDraft.value.targetIds]
 
 		editorInitialSnapshot.value = toDraftSnapshot(editorDraft.value)
 		editorInitialTouchVersion.value = draftTouchVersion.value
@@ -1682,11 +1744,21 @@ export function createRealPolicyWorkbenchState() {
 		}
 	}
 
-	function upsertRule(ruleList: PolicyRuleRecord[], scope: 'group' | 'user', targetId: string, value: EffectivePolicyValue, allowChildOverride: boolean) {
+	function upsertRule(
+		ruleList: PolicyRuleRecord[],
+		scope: 'group' | 'user',
+		targetId: string,
+		value: EffectivePolicyValue,
+		allowChildOverride: boolean,
+		canRemove?: boolean,
+	) {
 		const existingRule = ruleList.find((rule) => rule.targetId === targetId)
 		if (existingRule) {
 			existingRule.value = value
 			existingRule.allowChildOverride = allowChildOverride
+			if (typeof canRemove === 'boolean') {
+				existingRule.canRemove = canRemove
+			}
 			highlightedRuleId.value = existingRule.id
 			return
 		}
@@ -1699,6 +1771,7 @@ export function createRealPolicyWorkbenchState() {
 			scope,
 			targetId,
 			allowChildOverride,
+			canRemove,
 			value,
 		})
 
@@ -1717,11 +1790,15 @@ export function createRealPolicyWorkbenchState() {
 			return
 		}
 
-		const { scope, value, targetIds } = editorDraft.value
+		const { scope, value } = editorDraft.value
+		const targetIds = scope === 'group'
+			? resolveDraftTargetIdsForSave(editorDraft.value)
+			: editorDraft.value.targetIds
 		const policyKey = activeDefinition.value.key
 		const isRequestExpiration = isRequestExpirationPolicyKey(policyKey)
 		const isUnifiedSigningExecution = isUnifiedSigningExecutionPolicyKey(policyKey)
 		const isSignatureStamp = isSignatureStampPolicyKey(policyKey)
+		const isRequestSignGroupsPolicy = policyKey === REQUEST_SIGN_GROUPS_POLICY_KEY
 		const normalizedRequestExpirationValue = isRequestExpiration
 			? normalizeRequestExpirationDraftValue(value)
 			: null
@@ -1796,6 +1873,10 @@ export function createRealPolicyWorkbenchState() {
 			}
 
 			if (scope === 'group') {
+				if (targetIds.length === 0) {
+					return
+				}
+
 				if (isRequestExpiration && normalizedRequestExpirationValue) {
 					await Promise.all(targetIds.map((targetId) => {
 						return Promise.all([
@@ -1825,6 +1906,37 @@ export function createRealPolicyWorkbenchState() {
 							policiesStore.saveGroupPolicy(targetId, COLLECT_METADATA_POLICY_KEY, normalizedSignatureStampValue.collectMetadataEnabled, allowChildOverride),
 						])
 					}))
+				} else if (isRequestSignGroupsPolicy) {
+					const deniedGroups = new Set(resolveDeniedRequestSignGroups(value))
+					const valueByTargetId = new Map<string, EffectivePolicyValue>()
+
+					for (const targetId of targetIds) {
+						valueByTargetId.set(targetId, serializeRequestSignGroups({
+							allowGroups: [targetId],
+							denyGroups: deniedGroups.has(targetId) ? [targetId] : [],
+						}))
+					}
+
+					const persistedPolicies = await Promise.all(targetIds.map((targetId) => {
+						return policiesStore.saveGroupPolicy(targetId, policyKey, valueByTargetId.get(targetId) ?? value, allowChildOverride)
+					}))
+
+					for (const [index, targetId] of targetIds.entries()) {
+						const persistedPolicy = persistedPolicies[index]
+						upsertRule(
+							groupRules.value,
+							'group',
+							targetId,
+							persistedPolicy?.value ?? valueByTargetId.get(targetId) ?? value,
+							allowChildOverride,
+							persistedPolicy?.deletableByCurrentActor,
+						)
+					}
+					cacheCurrentRuleCounts(policyKey)
+
+					await policiesStore.fetchEffectivePolicies()
+					cancelEditor()
+					return
 				} else {
 					await Promise.all(targetIds.map((targetId) => {
 						return policiesStore.saveGroupPolicy(targetId, policyKey, value, allowChildOverride)
@@ -1963,8 +2075,22 @@ export function createRealPolicyWorkbenchState() {
 
 			const groupIndex = groupRules.value.findIndex((rule) => rule.id === ruleId)
 			if (groupIndex >= 0) {
-				const targetId = groupRules.value[groupIndex]?.targetId
+				const currentGroupRule = groupRules.value[groupIndex]
+				const targetId = currentGroupRule?.targetId
 				if (targetId) {
+					if (!isInstanceAdmin && policyKey === REQUEST_SIGN_GROUPS_POLICY_KEY && currentGroupRule) {
+						const denyGroups = resolveDeniedRequestSignGroups(currentGroupRule.value)
+
+						if (denyGroups.length > 0) {
+							await policiesStore.clearGroupPolicy(targetId, policyKey)
+							groupRules.value.splice(groupIndex, 1)
+							highlightedRuleId.value = null
+							shouldRefreshPolicies = true
+							shouldCloseEditor = shouldCloseEditor || shouldCloseGroupEditor
+							continue
+						}
+					}
+
 					if (isRequestExpiration) {
 						await Promise.all([
 							policiesStore.clearGroupPolicy(targetId, policyKey),
