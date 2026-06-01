@@ -4,8 +4,82 @@
  */
 
 import { shallowMount } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { computed, nextTick, ref } from 'vue'
+
+const { mockWorkbenchStateStore } = vi.hoisted(() => ({
+	mockWorkbenchStateStore: {
+		overrides: {} as Record<string, unknown>,
+	},
+}))
+
+function resetWorkbenchStateOverrides() {
+	mockWorkbenchStateStore.overrides = {}
+}
+
+function createMockWorkbenchState() {
+	const overrides = mockWorkbenchStateStore.overrides as {
+		activeDefinition?: Record<string, unknown>
+		[key: string]: unknown
+	}
+
+	const baseState = {
+		visibleSettingSummaries: [],
+		rulesLoading: false,
+		viewMode: 'system-admin',
+		canManageGroups: true,
+		activeDefinition: {
+			key: 'signature_flow',
+			title: 'Signature flow',
+			description: 'Signature flow configuration',
+			editor: null,
+			supportedScopes: ['system', 'group', 'user'],
+			normalizeAllowChildOverride: (_scope: string, value: boolean) => value,
+		},
+		editorDraft: null,
+		editorInitialTargetIds: [],
+		inheritedSystemRule: null,
+		hasGlobalDefault: false,
+		summary: null,
+		visibleGroupRules: [],
+		visibleUserRules: [],
+		createGroupOverrideDisabledReason: '',
+		createUserOverrideDisabledReason: '',
+		availableTargets: [],
+		loadingTargets: false,
+		duplicateMessage: '',
+		canSaveDraft: false,
+		highlightedRuleId: null,
+		editorMode: 'create',
+		isSettingDialogOpen: false,
+		settingsLoading: false,
+		activeSettingKey: null,
+		editorTouched: false,
+		isEditingSystemRule: false,
+		isEditingRule: false,
+		searchAvailableTargets: vi.fn(),
+		updateDraftTargets: vi.fn(),
+		updateDraftValue: vi.fn(),
+		markDraftTouched: vi.fn(),
+		updateDraftAllowOverride: vi.fn(),
+		openSetting: vi.fn(),
+		startEditor: vi.fn(),
+		cancelEditor: vi.fn(),
+		closeSetting: vi.fn(),
+		saveDraft: vi.fn().mockResolvedValue(undefined),
+		removeRules: vi.fn().mockResolvedValue(undefined),
+		probeGroupAccess: vi.fn(),
+	}
+
+	return {
+		...baseState,
+		...overrides,
+		activeDefinition: {
+			...baseState.activeDefinition,
+			...(overrides.activeDefinition ?? {}),
+		},
+	}
+}
 
 vi.mock('@nextcloud/l10n', () => ({
 	t: (_app: string, text: string, params?: Record<string, string>) => {
@@ -40,52 +114,7 @@ vi.mock('../../../../../store/userconfig.js', () => ({
 }))
 
 vi.mock('../../../../../views/Settings/PolicyWorkbench/useRealPolicyWorkbench', () => ({
-	createRealPolicyWorkbenchState: () => ({
-		visibleSettingSummaries: [],
-		rulesLoading: false,
-		viewMode: 'system-admin',
-		canManageGroups: true,
-		activeDefinition: {
-			key: 'signature_flow',
-			title: 'Signature flow',
-			description: 'Signature flow configuration',
-			editor: null,
-			supportedScopes: ['system', 'group', 'user'],
-			normalizeAllowChildOverride: (_scope: string, value: boolean) => value,
-		},
-		editorDraft: null,
-		inheritedSystemRule: null,
-		hasGlobalDefault: false,
-		summary: null,
-		visibleGroupRules: [],
-		visibleUserRules: [],
-		createGroupOverrideDisabledReason: '',
-		createUserOverrideDisabledReason: '',
-		availableTargets: [],
-		loadingTargets: false,
-		duplicateMessage: '',
-		canSaveDraft: false,
-		highlightedRuleId: null,
-		editorMode: 'create',
-		isSettingDialogOpen: false,
-		settingsLoading: false,
-		activeSettingKey: null,
-		editorTouched: false,
-		isEditingSystemRule: false,
-		isEditingRule: false,
-		searchAvailableTargets: vi.fn(),
-		updateDraftTargets: vi.fn(),
-		updateDraftValue: vi.fn(),
-		markDraftTouched: vi.fn(),
-		updateDraftAllowOverride: vi.fn(),
-		openSetting: vi.fn(),
-		startEditor: vi.fn(),
-		cancelEditor: vi.fn(),
-		closeSetting: vi.fn(),
-		saveDraft: vi.fn().mockResolvedValue(undefined),
-		removeRules: vi.fn().mockResolvedValue(undefined),
-		probeGroupAccess: vi.fn(),
-	}),
+	createRealPolicyWorkbenchState: () => createMockWorkbenchState(),
 }))
 
 vi.mock('../../../../../views/Settings/PolicyWorkbench/Catalog/composables/useCatalogState', () => ({
@@ -191,6 +220,10 @@ vi.mock('../../../../../views/Settings/PolicyWorkbench/Catalog/composables/useCa
 
 import Catalog from '../../../../../views/Settings/PolicyWorkbench/Catalog/Catalog.vue'
 
+afterEach(() => {
+	resetWorkbenchStateOverrides()
+})
+
 describe('Catalog.vue CRUD permissions rendering', () => {
 	it('hides remove action and row checkbox for non-removable rules', async () => {
 		const wrapper = shallowMount(Catalog, {
@@ -233,5 +266,54 @@ describe('Catalog.vue CRUD permissions rendering', () => {
 		expect(removableRow).toBeDefined()
 		expect(removableRow?.findAll('.nc-checkbox-radio-switch')).toHaveLength(1)
 		expect(removableRow?.findAll('.nc-action-button').some((button) => button.text().includes('Remove'))).toBe(true)
+	})
+
+	it('hides scope group selector when request-sign rules derive scope from allow and deny groups', async () => {
+		mockWorkbenchStateStore.overrides = {
+			activeDefinition: {
+				key: 'groups_request_sign',
+				title: 'Authorized requester groups',
+				description: 'Delegated requester group management',
+				editor: {},
+				supportedScopes: ['group'],
+				extractScopeTargets: () => ['board'],
+				normalizeAllowChildOverride: (_scope: string, value: boolean) => value,
+			},
+			editorMode: 'create',
+			editorDraft: {
+				scope: 'group',
+				value: '{"allowGroups":["board"],"denyGroups":[]}',
+				allowChildOverride: true,
+				targetIds: ['board'],
+			},
+			editorInitialTargetIds: ['board'],
+			availableTargets: [
+				{ id: 'board', displayName: 'Board' },
+				{ id: 'company', displayName: 'Company' },
+			],
+		}
+
+		const wrapper = shallowMount(Catalog, {
+			global: {
+				stubs: {
+					teleport: true,
+					transition: true,
+					NcSettingsSection: {
+						template: '<section class="nc-settings-section"><slot /></section>',
+					},
+					NcDialog: {
+						template: '<div class="nc-dialog"><slot /></div>',
+					},
+					PolicyRuleEditorPanel: {
+						props: ['hideTargetSelector'],
+						template: '<div class="policy-rule-editor-panel" :data-hide-target-selector="String(hideTargetSelector)" />',
+					},
+				},
+			},
+		})
+
+		await nextTick()
+
+		expect(wrapper.find('.policy-rule-editor-panel').attributes('data-hide-target-selector')).toBe('true')
 	})
 })
