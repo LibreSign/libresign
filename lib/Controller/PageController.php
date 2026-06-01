@@ -39,6 +39,7 @@ use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
+use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -149,35 +150,54 @@ class PageController extends AEnvironmentPageAwareController {
 	/**
 	 * Incomplete page
 	 *
-	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 * @return TemplateResponse|RedirectResponse
 	 *
 	 * 200: OK
+	 * 303: Redirected when setup is already complete
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/f/incomplete')]
-	public function incomplete(): TemplateResponse {
-		Util::addScript(Application::APP_ID, 'libresign-main');
-		Util::addStyle(Application::APP_ID, 'libresign-main');
-		$response = new TemplateResponse(Application::APP_ID, 'main');
-		return $response;
+	public function incomplete(): TemplateResponse|RedirectResponse {
+		if ($this->accountService->isSetupOk()) {
+			return new RedirectResponse(
+				$this->urlGenerator->linkToRouteAbsolute('libresign.page.indexF'),
+			);
+		}
+
+		return $this->renderIncompletePage();
 	}
 
 	/**
 	 * Incomplete page in full screen
 	 *
-	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 * @return TemplateResponse|RedirectResponse
 	 *
 	 * 200: OK
+	 * 303: Redirected when setup is already complete
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/p/incomplete')]
-	public function incompleteP(): TemplateResponse {
+	public function incompleteP(): TemplateResponse|RedirectResponse {
+		if ($this->accountService->isSetupOk()) {
+			return new RedirectResponse(
+				$this->urlGenerator->linkToRouteAbsolute('libresign.page.index'),
+			);
+		}
+
+		return $this->renderIncompletePage(publicPage: true);
+	}
+
+	private function renderIncompletePage(bool $publicPage = false): TemplateResponse {
 		Util::addScript(Application::APP_ID, 'libresign-main');
 		Util::addStyle(Application::APP_ID, 'libresign-main');
-		$response = new TemplateResponse(Application::APP_ID, 'main', [], TemplateResponse::RENDER_AS_BASE);
-		return $response;
+
+		if ($publicPage) {
+			return new TemplateResponse(Application::APP_ID, 'main', [], TemplateResponse::RENDER_AS_BASE);
+		}
+
+		return new TemplateResponse(Application::APP_ID, 'main');
 	}
 
 	/**
@@ -186,15 +206,22 @@ class PageController extends AEnvironmentPageAwareController {
 	 * The path is used only by frontend
 	 *
 	 * @param string $path The path that was sent from frontend
-	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 *
 	 * 200: OK
+	 * 303: Redirected when the current actor cannot access the requested internal page
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'main')]
 	#[FrontpageRoute(verb: 'GET', url: '/f/{path}', requirements: ['path' => '.+'])]
-	public function indexFPath(string $path): TemplateResponse {
+	public function indexFPath(string $path): TemplateResponse|RedirectResponse {
+		if ($this->isPoliciesWorkbenchPath($path) && !$this->canAccessPoliciesWorkbench()) {
+			return new RedirectResponse(
+				$this->urlGenerator->linkToRouteAbsolute('libresign.page.indexF'),
+			);
+		}
+
 		if (preg_match('/validation\/(?<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/', $path, $matches)) {
 			$signRequest = null;
 
@@ -259,6 +286,20 @@ class PageController extends AEnvironmentPageAwareController {
 			}
 		}
 		return $this->index();
+	}
+
+	private function canAccessPoliciesWorkbench(): bool {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return false;
+		}
+
+		$config = $this->accountService->getConfig($user);
+		return ($config['can_manage_group_policies'] ?? false) === true;
+	}
+
+	private function isPoliciesWorkbenchPath(string $path): bool {
+		return preg_match('/^policies(?:\/|$)/', $path) === 1;
 	}
 
 
