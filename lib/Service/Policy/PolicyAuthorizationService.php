@@ -8,7 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy;
 
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCP\Group\ISubAdmin;
+use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\IUser;
 
@@ -16,6 +19,7 @@ final class PolicyAuthorizationService implements IPolicyAuthorizationService {
 	public function __construct(
 		private IGroupManager $groupManager,
 		private ISubAdmin $subAdmin,
+		private PolicyService $policyService,
 	) {
 	}
 
@@ -38,8 +42,11 @@ final class PolicyAuthorizationService implements IPolicyAuthorizationService {
 	/**
 	 * Get list of group IDs manageable by the given user.
 	 *
-	 * For instance admins: returns empty (they manage all groups at policy level).
-	 * For other users: returns groups they belong to (admin, subadmin, or member).
+	 * For instance admins: returns empty (all groups are manageable).
+	 * For subadmins: returns all groups they subadmin-manage, but only after the
+	 * request-sign policy itself has been explicitly delegated by the system
+	 * administrator (exposed as editable for the current actor).
+	 * For regular users: returns empty.
 	 *
 	 * @return list<string>
 	 */
@@ -55,15 +62,49 @@ final class PolicyAuthorizationService implements IPolicyAuthorizationService {
 			return [];
 		}
 
-		// For group admins and regular members: return all groups they belong to
-		// This allows them to authorize any group they're part of for policy rules
-		$groupIds = $this->groupManager->getUserGroupIds($user);
+		if (!$this->subAdmin->isSubAdmin($user)) {
+			return [];
+		}
 
-		$groupIds = array_filter(
-			$groupIds,
-			static fn (string $groupId): bool => trim($groupId) !== '',
-		);
+		$managedGroupIds = array_values(array_unique(array_filter(array_map(
+			static fn (IGroup $group): string => trim($group->getGID()),
+			$this->subAdmin->getSubAdminsGroups($user),
+		), static fn (string $groupId): bool => $groupId !== '')));
 
-		return array_values(array_unique($groupIds));
+		if ($managedGroupIds === []) {
+			return [];
+		}
+
+		$requestSignPolicy = $this->policyService->resolveForUser(RequestSignGroupsPolicy::KEY, $user);
+		if (!$requestSignPolicy->isEditableByCurrentActor()) {
+			foreach ($this->policyService->listGroupPoliciesForTargets(RequestSignGroupsPolicy::KEY, $managedGroupIds) as $record) {
+				$policy = $record['policy'] ?? null;
+				if (!$policy instanceof PolicyLayer) {
+					continue;
+				}
+
+				if (!$this->wasGroupPolicyCreatedBySystemAdmin($policy)) {
+					return $managedGroupIds;
+				}
+
+				if ($policy->isAllowChildOverride()) {
+					return $managedGroupIds;
+				}
+			}
+
+			return [];
+		}
+
+		return $managedGroupIds;
+	}
+
+	private function wasGroupPolicyCreatedBySystemAdmin(PolicyLayer $policy): bool {
+		$notes = $policy->getNotes();
+		$createdBySystemAdmin = $notes['createdBySystemAdmin'] ?? null;
+		if (is_bool($createdBySystemAdmin)) {
+			return $createdBySystemAdmin;
+		}
+
+		return ($notes['createdByActorScope'] ?? null) === 'system';
 	}
 }
