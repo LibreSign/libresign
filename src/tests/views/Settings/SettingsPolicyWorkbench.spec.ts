@@ -9,6 +9,56 @@ import { mdiFilterVariant } from '@mdi/js'
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
+const { currentUserState } = vi.hoisted(() => ({
+	currentUserState: {
+		isAdmin: true,
+	},
+}))
+
+const { configState } = vi.hoisted(() => ({
+	configState: {
+		can_manage_group_policies: true,
+		manageable_policy_group_ids: [] as string[],
+	},
+}))
+
+vi.mock('@nextcloud/auth', () => ({
+	getCurrentUser: vi.fn(() => currentUserState),
+}))
+
+vi.mock('@nextcloud/initial-state', () => ({
+	loadState: vi.fn((_app: string, key: string, defaultValue: unknown) => {
+		if (key === 'config') {
+			return configState
+		}
+
+		if (key === 'effective_policies') {
+			return {
+				policies: {
+					identify_methods: {
+						effectiveValue: [],
+					},
+					signature_stamp: {
+						meta: {
+							defaultSystemValue: JSON.stringify({
+								template: 'Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}',
+								template_font_size: 9.8,
+								signature_font_size: 20,
+								signature_width: 350,
+								signature_height: 100,
+								background_type: 'default',
+								render_mode: 'default',
+							}),
+						},
+					},
+				},
+			}
+		}
+
+		return defaultValue
+	}),
+}))
+
 const axiosGetMock = vi.fn().mockResolvedValue({
 	data: {
 		ocs: {
@@ -140,6 +190,9 @@ function findConfigureButtonForSetting(wrapper: ReturnType<typeof mountWorkbench
 
 describe('RealPolicyWorkbench.vue', () => {
 	beforeEach(() => {
+		currentUserState.isAdmin = true
+		configState.can_manage_group_policies = true
+		configState.manageable_policy_group_ids = []
 		getPolicy.mockReset()
 		axiosGetMock.mockClear()
 		fetchSystemPolicy.mockReset().mockResolvedValue(null)
