@@ -20,6 +20,8 @@ use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
@@ -182,6 +184,105 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame('ordered_numeric', $layers[0]->getValue());
 		$this->assertFalse($layers[0]->isAllowChildOverride());
 		$this->assertSame(['ordered_numeric'], $layers[0]->getAllowedValues());
+	}
+
+	public function testLoadGroupPoliciesHydratesSystemCreatedNotes(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(77);
+		$binding->setTargetType('group');
+		$binding->setTargetId('finance');
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(77);
+		$permissionSet->setPolicyJson([
+			'signature_flow' => [
+				'defaultValue' => 'ordered_numeric',
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'createdBySystemAdmin' => true,
+				'createdByActorScope' => 'system',
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('findByTargets')
+			->with('group', ['finance'])
+			->willReturn([$binding]);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('findByIds')
+			->with([77])
+			->willReturn([$permissionSet]);
+
+		$context = PolicyContext::fromUserId('john')
+			->setGroups(['finance'])
+			->setActiveContext(['type' => 'group', 'id' => 'finance']);
+
+		$layers = $this->getSource()->loadGroupPolicies('signature_flow', $context);
+
+		$this->assertCount(1, $layers);
+		$this->assertSame('system', $layers[0]->getNotes()['createdByActorScope'] ?? null);
+		$this->assertTrue($layers[0]->getNotes()['createdBySystemAdmin'] ?? false);
+	}
+
+	public function testLoadGroupPoliciesMarksDelegatedRequestSignOverrideAsBackedBySystemSeed(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(78);
+		$binding->setTargetType('group');
+		$binding->setTargetId('board');
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(78);
+		$permissionSet->setPolicyJson([
+			RequestSignGroupsPolicy::KEY => [
+				'defaultValue' => RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => ['board'],
+					'denyGroups' => [],
+				]),
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'createdBySystemAdmin' => true,
+				'createdByActorScope' => 'system',
+			],
+			RequestSignGroupsPolicy::KEY . '__delegated_override' => [
+				'defaultValue' => RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => ['board'],
+					'denyGroups' => ['board'],
+				]),
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'createdBySystemAdmin' => false,
+				'createdByActorScope' => 'group',
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('findByTargets')
+			->with('group', ['board'])
+			->willReturn([$binding]);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('findByIds')
+			->with([78])
+			->willReturn([$permissionSet]);
+
+		$context = PolicyContext::fromUserId('ceo')
+			->setGroups(['board'])
+			->setActiveContext(['type' => 'group', 'id' => 'board']);
+
+		$layers = $this->getSource()->loadGroupPolicies(RequestSignGroupsPolicy::KEY, $context);
+
+		$this->assertCount(1, $layers);
+		$this->assertFalse($layers[0]->getNotes()['createdBySystemAdmin'] ?? true);
+		$this->assertSame('group', $layers[0]->getNotes()['createdByActorScope'] ?? null);
+		$this->assertTrue($layers[0]->getNotes()['delegatedFromSystemCreatedSeed'] ?? false);
 	}
 
 	public function testLoadUserPreferenceReturnsLayerFromUserConfig(): void {
@@ -733,6 +834,270 @@ final class PolicySourceTest extends TestCase {
 		$this->assertTrue($layer->getNotes()['createdBySystemAdmin'] ?? false);
 	}
 
+	public function testLoadGroupPolicyConfigUsesDelegatedRequestSignOverrideWhenSystemSeedExists(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(77);
+		$binding->setTargetType('group');
+		$binding->setTargetId('board');
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(77);
+		$permissionSet->setPolicyJson([
+			RequestSignGroupsPolicy::KEY => [
+				'defaultValue' => RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => ['board'],
+					'denyGroups' => [],
+				]),
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'createdBySystemAdmin' => true,
+				'createdByActorScope' => 'system',
+			],
+			RequestSignGroupsPolicy::KEY . '__delegated_override' => [
+				'defaultValue' => RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => ['board'],
+					'denyGroups' => ['board'],
+				]),
+				'allowChildOverride' => false,
+				'visibleToChild' => true,
+				'allowedValues' => [RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => ['board'],
+					'denyGroups' => ['board'],
+				])],
+				'createdBySystemAdmin' => false,
+				'createdByActorScope' => 'group',
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('getByTarget')
+			->with('group', 'board')
+			->willReturn($binding);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('getById')
+			->with(77)
+			->willReturn($permissionSet);
+
+		$layer = $this->getSource()->loadGroupPolicyConfig(RequestSignGroupsPolicy::KEY, 'board');
+
+		$this->assertNotNull($layer);
+		$this->assertSame(
+			RequestSignGroupsPolicyValue::encode([
+				'allowGroups' => ['board'],
+				'denyGroups' => ['board'],
+			]),
+			$layer->getValue(),
+		);
+		$this->assertFalse($layer->getNotes()['createdBySystemAdmin'] ?? true);
+		$this->assertSame('group', $layer->getNotes()['createdByActorScope'] ?? null);
+	}
+
+	public function testListGroupPoliciesByKeyUsesDelegatedRequestSignOverrideOnlyOncePerTarget(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(88);
+		$binding->setTargetType('group');
+		$binding->setTargetId('board');
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(88);
+		$permissionSet->setPolicyJson([
+			RequestSignGroupsPolicy::KEY => [
+				'defaultValue' => RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => ['board'],
+					'denyGroups' => [],
+				]),
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'createdBySystemAdmin' => true,
+				'createdByActorScope' => 'system',
+			],
+			RequestSignGroupsPolicy::KEY . '__delegated_override' => [
+				'defaultValue' => RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => ['board'],
+					'denyGroups' => ['board'],
+				]),
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'createdBySystemAdmin' => false,
+				'createdByActorScope' => 'group',
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('findByTargetType')
+			->with('group')
+			->willReturn([$binding]);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('findByIds')
+			->with([88])
+			->willReturn([$permissionSet]);
+
+		$result = $this->getSource()->listGroupPoliciesByKey(RequestSignGroupsPolicy::KEY);
+
+		$this->assertCount(1, $result);
+		$this->assertSame('board', $result[0]['targetId']);
+		$this->assertSame(
+			RequestSignGroupsPolicyValue::encode([
+				'allowGroups' => ['board'],
+				'denyGroups' => ['board'],
+			]),
+			$result[0]['policy']->getValue(),
+		);
+	}
+
+	public function testSaveGroupPolicyStoresDelegatedRequestSignOverrideWithoutOverwritingSystemSeed(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(99);
+		$binding->setTargetType('group');
+		$binding->setTargetId('board');
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(99);
+		$permissionSet->setPolicyJson([
+			RequestSignGroupsPolicy::KEY => [
+				'defaultValue' => RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => ['board'],
+					'denyGroups' => [],
+				]),
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'createdBySystemAdmin' => true,
+				'createdByActorScope' => 'system',
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('getByTarget')
+			->with('group', 'board')
+			->willReturn($binding);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('getById')
+			->with(99)
+			->willReturn($permissionSet);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('update')
+			->with($this->callback(function (PermissionSet $updatedPermissionSet): bool {
+				$policyJson = $updatedPermissionSet->getDecodedPolicyJson();
+				$this->assertArrayHasKey(RequestSignGroupsPolicy::KEY, $policyJson);
+				$this->assertArrayHasKey(RequestSignGroupsPolicy::KEY . '__delegated_override', $policyJson);
+				$this->assertSame(
+					RequestSignGroupsPolicyValue::encode([
+						'allowGroups' => ['board'],
+						'denyGroups' => [],
+					]),
+					$policyJson[RequestSignGroupsPolicy::KEY]['defaultValue'] ?? null,
+				);
+				$this->assertSame(
+					RequestSignGroupsPolicyValue::encode([
+						'allowGroups' => ['board'],
+						'denyGroups' => ['board'],
+					]),
+					$policyJson[RequestSignGroupsPolicy::KEY . '__delegated_override']['defaultValue'] ?? null,
+				);
+				$this->assertFalse($policyJson[RequestSignGroupsPolicy::KEY . '__delegated_override']['createdBySystemAdmin'] ?? true);
+				return true;
+			}));
+
+		$source = $this->getSource();
+		$source->saveGroupPolicy(
+			RequestSignGroupsPolicy::KEY,
+			'board',
+			RequestSignGroupsPolicyValue::encode([
+				'allowGroups' => ['board'],
+				'denyGroups' => ['board'],
+			]),
+			false,
+			false,
+		);
+	}
+
+	public function testClearGroupPolicyPreservesSystemSeedWhenRemovingDelegatedRequestSignOverride(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(109);
+		$binding->setTargetType('group');
+		$binding->setTargetId('board');
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(109);
+		$permissionSet->setPolicyJson([
+			RequestSignGroupsPolicy::KEY => [
+				'defaultValue' => RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => ['board'],
+					'denyGroups' => [],
+				]),
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'createdBySystemAdmin' => true,
+				'createdByActorScope' => 'system',
+			],
+			RequestSignGroupsPolicy::KEY . '__delegated_override' => [
+				'defaultValue' => RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => ['board'],
+					'denyGroups' => ['board'],
+				]),
+				'allowChildOverride' => false,
+				'visibleToChild' => true,
+				'allowedValues' => [RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => ['board'],
+					'denyGroups' => ['board'],
+				])],
+				'createdBySystemAdmin' => false,
+				'createdByActorScope' => 'group',
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('getByTarget')
+			->with('group', 'board')
+			->willReturn($binding);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('getById')
+			->with(109)
+			->willReturn($permissionSet);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('update')
+			->with($this->callback(function (PermissionSet $updatedPermissionSet): bool {
+				$policyJson = $updatedPermissionSet->getDecodedPolicyJson();
+				$this->assertArrayHasKey(RequestSignGroupsPolicy::KEY, $policyJson);
+				$this->assertArrayNotHasKey(RequestSignGroupsPolicy::KEY . '__delegated_override', $policyJson);
+				$this->assertSame(
+					RequestSignGroupsPolicyValue::encode([
+						'allowGroups' => ['board'],
+						'denyGroups' => [],
+					]),
+					$policyJson[RequestSignGroupsPolicy::KEY]['defaultValue'] ?? null,
+				);
+				return true;
+			}));
+
+		$this->bindingMapper->expects($this->never())->method('delete');
+		$this->permissionSetMapper->expects($this->never())->method('delete');
+
+		$source = $this->getSource();
+		$source->clearGroupPolicy(RequestSignGroupsPolicy::KEY, 'board', true);
+	}
+
 	public function testSaveGroupPolicyCreatesPermissionSetAndBinding(): void {
 		$this->bindingMapper
 			->expects($this->once())
@@ -960,6 +1325,48 @@ final class PolicySourceTest extends TestCase {
 
 		$this->assertSame([], $result['docmdp']);
 		$this->assertSame([], $result['footer_template']);
+	}
+
+	public function testLoadAllGroupPoliciesHydratesSystemCreatedNotes(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(77);
+		$binding->setTargetType('group');
+		$binding->setTargetId('finance');
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(77);
+		$permissionSet->setPolicyJson([
+			'signature_flow' => [
+				'defaultValue' => 'ordered_numeric',
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'createdBySystemAdmin' => true,
+				'createdByActorScope' => 'system',
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('findByTargets')
+			->with('group', ['finance'])
+			->willReturn([$binding]);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('findByIds')
+			->with([77])
+			->willReturn([$permissionSet]);
+
+		$context = PolicyContext::fromUserId('john')
+			->setGroups(['finance'])
+			->setActiveContext(['type' => 'group', 'id' => 'finance']);
+
+		$result = $this->getSource()->loadAllGroupPolicies(['signature_flow'], $context);
+
+		$this->assertCount(1, $result['signature_flow']);
+		$this->assertSame('system', $result['signature_flow'][0]->getNotes()['createdByActorScope'] ?? null);
+		$this->assertTrue($result['signature_flow'][0]->getNotes()['createdBySystemAdmin'] ?? false);
 	}
 
 	public function testLoadAllGroupPoliciesReturnsEmptyArraysWhenContextHasNoGroups(): void {
