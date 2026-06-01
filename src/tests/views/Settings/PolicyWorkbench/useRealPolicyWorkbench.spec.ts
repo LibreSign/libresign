@@ -638,6 +638,47 @@ describe('useRealPolicyWorkbench', () => {
 		expect(axiosGet).not.toHaveBeenCalledWith('cloud/groups', expect.anything())
 	})
 
+	it('defaults regular users to the restrictive group-admin workbench mode', () => {
+		currentUserState.isAdmin = false
+		configState.can_manage_group_policies = false
+
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_flow') {
+				return {
+					effectiveValue: 'parallel',
+					groupCount: 0,
+					userCount: 0,
+					editableByCurrentActor: false,
+					canSaveAsUserDefault: false,
+				}
+			}
+
+			if (key === 'show_confetti_after_signing') {
+				return {
+					effectiveValue: true,
+					groupCount: 0,
+					userCount: 0,
+					editableByCurrentActor: false,
+					canSaveAsUserDefault: true,
+				}
+			}
+
+			return {
+				effectiveValue: null,
+				groupCount: 0,
+				userCount: 0,
+				editableByCurrentActor: false,
+				canSaveAsUserDefault: false,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+
+		expect(state.viewMode).toBe('group-admin')
+		expect(state.visibleSettingSummaries.map((summary) => summary.key)).toContain('show_confetti_after_signing')
+		expect(state.visibleSettingSummaries.map((summary) => summary.key)).not.toContain('signature_flow')
+	})
+
 	it('loads real user targets from OCS when searching the user editor', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
@@ -946,6 +987,67 @@ describe('useRealPolicyWorkbench', () => {
 		expect(clearUserPolicyForUser).toHaveBeenCalledWith('user1', 'signature_flow')
 		expect(state.visibleGroupRules).toHaveLength(0)
 		expect(state.visibleUserRules).toHaveLength(0)
+	})
+
+	it('removes delegated request-sign deny by deleting group override and falling back to inherited allow', async () => {
+		currentUserState.isAdmin = false
+		configState.can_manage_group_policies = true
+		configState.manageable_policy_group_ids = ['finance']
+
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'groups_request_sign') {
+				return {
+					effectiveValue: '{"allowGroups":["finance"],"denyGroups":["finance"]}',
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+				}
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system', editableByCurrentActor: true }
+		})
+
+		fetchGroupPolicy.mockImplementation(async (groupId: string, policyKey: string) => {
+			if (policyKey !== 'groups_request_sign' || groupId !== 'finance') {
+				return null
+			}
+
+			return {
+				policyKey,
+				scope: 'group',
+				targetId: groupId,
+				value: '{"allowGroups":["finance"],"denyGroups":["finance"]}',
+				allowChildOverride: true,
+				visibleToChild: true,
+				allowedValues: [],
+				deletableByCurrentActor: true,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+
+		await vi.waitFor(() => {
+			expect(state.visibleGroupRules).toHaveLength(1)
+		})
+
+		const groupRuleId = state.visibleGroupRules[0]?.id
+		expect(groupRuleId).toBeTruthy()
+
+		if (!groupRuleId) {
+			throw new Error('Expected delegated request-sign group rule')
+		}
+
+		await state.removeRule(groupRuleId)
+
+		expect(saveGroupPolicy).not.toHaveBeenCalledWith('finance', 'groups_request_sign', '{"allowGroups":["finance"],"denyGroups":[]}', true)
+		expect(clearGroupPolicy).toHaveBeenCalledWith('finance', 'groups_request_sign')
+		expect(state.visibleGroupRules).toHaveLength(0)
 	})
 
 	it('resets system default rule through backend request', async () => {
@@ -1595,6 +1697,32 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.canSaveDraft).toBe(true)
 	})
 
+	it('derives request-access scope targets from denied groups when scope selector is hidden', () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'groups_request_sign') {
+				return {
+					effectiveValue: '{"allowGroups":[],"denyGroups":[]}',
+					sourceScope: 'system',
+				}
+			}
+
+			return { effectiveValue: 'parallel' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+		state.startEditor({ scope: 'group' })
+
+		expect(state.editorDraft?.scope).toBe('group')
+		expect(state.editorDraft?.targetIds).toEqual([])
+		expect(state.canSaveDraft).toBe(false)
+
+		state.updateDraftValue('{"allowGroups":[],"denyGroups":["finance"]}' as never)
+
+		expect(state.editorDraft?.targetIds).toEqual(['finance'])
+		expect(state.canSaveDraft).toBe(true)
+	})
+
 	it('seeds request access group create from inherited allow groups when baseline is seedable', async () => {
 		fetchSystemPolicy.mockResolvedValueOnce({
 			scope: 'global',
@@ -1619,9 +1747,409 @@ describe('useRealPolicyWorkbench', () => {
 		state.startEditor({ scope: 'group' })
 
 		expect(state.editorDraft?.scope).toBe('group')
-		expect(state.editorDraft?.targetIds).toEqual([])
+		expect(state.editorDraft?.targetIds).toEqual(['board'])
 		expect(state.editorDraft?.value).toBe('{"allowGroups":["board"],"denyGroups":[]}')
 		expect(state.canSaveDraft).toBe(true)
+	})
+
+	it('seeds request access group create from inherited group-scope allow groups', async () => {
+		fetchSystemPolicy.mockResolvedValueOnce({
+			scope: 'global',
+			allowChildOverride: true,
+			value: '{"allowGroups":["admin"],"denyGroups":[]}',
+		})
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'groups_request_sign') {
+				return {
+					effectiveValue: '{"allowGroups":["board"],"denyGroups":[]}',
+					sourceScope: 'group',
+				}
+			}
+
+			return { effectiveValue: 'parallel' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+		await Promise.resolve()
+		await Promise.resolve()
+		state.startEditor({ scope: 'group' })
+
+		expect(state.editorDraft?.scope).toBe('group')
+		expect(state.editorDraft?.targetIds).toEqual(['board'])
+		expect(state.editorDraft?.value).toBe('{"allowGroups":["board"],"denyGroups":[]}')
+		expect(state.canSaveDraft).toBe(true)
+	})
+
+	it('derives delegated request-access scope from denied groups without manual scope selection', async () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['board', 'company']
+
+		fetchSystemPolicy.mockResolvedValueOnce({
+			scope: 'global',
+			allowChildOverride: true,
+			value: '{"allowGroups":["board"],"denyGroups":[]}',
+		})
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'groups_request_sign') {
+				return {
+					effectiveValue: '{"allowGroups":["board"],"denyGroups":[]}',
+					sourceScope: 'group',
+				}
+			}
+
+			return { effectiveValue: 'parallel' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+		await Promise.resolve()
+		await Promise.resolve()
+		state.startEditor({ scope: 'group' })
+
+		expect(state.editorDraft?.scope).toBe('group')
+		expect(state.editorDraft?.targetIds).toEqual([])
+		expect(state.editorDraft?.value).toBe('{"allowGroups":["board"],"denyGroups":[]}')
+		expect(state.canSaveDraft).toBe(false)
+
+		state.updateDraftValue('{"allowGroups":[],"denyGroups":["company"]}' as never)
+
+		expect(state.editorDraft?.targetIds).toEqual(['company'])
+		expect(state.editorDraft?.value).toBe('{"allowGroups":[],"denyGroups":["company"]}')
+		expect(state.canSaveDraft).toBe(true)
+	})
+
+	it('keeps hidden request-access seed targets selectable for delegated deny overrides', async () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['board', 'company']
+
+		axiosGet.mockImplementation((url: string) => {
+			if (url === 'cloud/groups/details') {
+				return Promise.resolve({
+					data: {
+						ocs: {
+							data: {
+								groups: [
+									{ id: 'board', displayname: 'Board', usercount: 1 },
+									{ id: 'company', displayname: 'Company', usercount: 1 },
+								],
+							},
+						},
+					},
+				})
+			}
+
+			if (url === 'cloud/groups') {
+				return Promise.resolve({
+					data: {
+						ocs: {
+							data: {
+								groups: ['board', 'company'],
+							},
+						},
+					},
+				})
+			}
+
+			return Promise.resolve({ data: { ocs: { data: {} } } })
+		})
+
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'groups_request_sign') {
+				return {
+					effectiveValue: '{"allowGroups":["board"],"denyGroups":[]}',
+					groupCount: 1,
+					userCount: 0,
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+				}
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system', editableByCurrentActor: true }
+		})
+
+		fetchGroupPolicy.mockImplementation(async (groupId: string, policyKey: string) => {
+			if (policyKey !== 'groups_request_sign' || groupId !== 'board') {
+				return null
+			}
+
+			return {
+				policyKey,
+				scope: 'group',
+				targetId: groupId,
+				value: '{"allowGroups":["board"],"denyGroups":[]}',
+				allowChildOverride: true,
+				visibleToChild: true,
+				allowedValues: [],
+				deletableByCurrentActor: false,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+
+		await vi.waitFor(() => {
+			expect(fetchGroupPolicy).toHaveBeenCalledWith('board', 'groups_request_sign')
+		})
+
+		state.startEditor({ scope: 'group' })
+
+		await vi.waitFor(() => {
+			expect(state.availableTargets.map((target) => target.id)).toEqual(expect.arrayContaining(['board', 'company']))
+		})
+
+		expect(state.canSaveDraft).toBe(false)
+
+		state.updateDraftValue('{"allowGroups":["board"],"denyGroups":["board"]}' as never)
+		expect(state.editorDraft?.targetIds).toEqual(['board'])
+		expect(state.canSaveDraft).toBe(true)
+	})
+
+	it('skips inherited request-access targets when saving delegated create drafts without deny groups', async () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['board', 'company']
+
+		axiosGet.mockImplementation((url: string) => {
+			if (url === 'cloud/groups/details') {
+				return Promise.resolve({
+					data: {
+						ocs: {
+							data: {
+								groups: [
+									{ id: 'board', displayname: 'Board', usercount: 1 },
+									{ id: 'company', displayname: 'Company', usercount: 1 },
+								],
+							},
+						},
+					},
+				})
+			}
+
+			if (url === 'cloud/groups') {
+				return Promise.resolve({
+					data: {
+						ocs: {
+							data: {
+								groups: ['board', 'company'],
+							},
+						},
+					},
+				})
+			}
+
+			return Promise.resolve({ data: { ocs: { data: {} } } })
+		})
+
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'groups_request_sign') {
+				return {
+					effectiveValue: '{"allowGroups":["board"],"denyGroups":[]}',
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+				}
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system', editableByCurrentActor: true }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+		state.startEditor({ scope: 'group' })
+
+		await vi.waitFor(() => {
+			expect(state.availableTargets.map((target) => target.id)).toEqual(expect.arrayContaining(['board', 'company']))
+		})
+
+		state.updateDraftValue('{"allowGroups":["company"],"denyGroups":[]}' as never)
+		expect(state.editorDraft?.targetIds).toEqual(['company'])
+		expect(state.canSaveDraft).toBe(true)
+
+		await state.saveDraft()
+
+		expect(saveGroupPolicy).toHaveBeenCalledTimes(1)
+		expect(saveGroupPolicy).toHaveBeenCalledWith('company', 'groups_request_sign', '{"allowGroups":["company"],"denyGroups":[]}', true)
+	})
+
+	it('saves delegated request-access allow and deny selections as separate scoped rules', async () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['board', 'company']
+
+		axiosGet.mockImplementation((url: string) => {
+			if (url === 'cloud/groups/details') {
+				return Promise.resolve({
+					data: {
+						ocs: {
+							data: {
+								groups: [
+									{ id: 'board', displayname: 'Board', usercount: 1 },
+									{ id: 'company', displayname: 'Company', usercount: 1 },
+								],
+							},
+						},
+					},
+				})
+			}
+
+			if (url === 'cloud/groups') {
+				return Promise.resolve({
+					data: {
+						ocs: {
+							data: {
+								groups: ['board', 'company'],
+							},
+						},
+					},
+				})
+			}
+
+			return Promise.resolve({ data: { ocs: { data: {} } } })
+		})
+
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'groups_request_sign') {
+				return {
+					effectiveValue: '{"allowGroups":["board"],"denyGroups":[]}',
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+				}
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system', editableByCurrentActor: true }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+		state.startEditor({ scope: 'group' })
+
+		state.updateDraftValue('{"allowGroups":["company"],"denyGroups":["board"]}' as never)
+		expect(state.editorDraft?.targetIds).toEqual(['company', 'board'])
+
+		await state.saveDraft()
+
+		expect(saveGroupPolicy).toHaveBeenCalledTimes(2)
+		expect(saveGroupPolicy).toHaveBeenNthCalledWith(1, 'company', 'groups_request_sign', '{"allowGroups":["company"],"denyGroups":[]}', true)
+		expect(saveGroupPolicy).toHaveBeenNthCalledWith(2, 'board', 'groups_request_sign', '{"allowGroups":["board"],"denyGroups":["board"]}', true)
+	})
+
+	it('promotes delegated request-access deny overrides to visible removable rules after saving', async () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['board']
+
+		axiosGet.mockImplementation((url: string) => {
+			if (url === 'cloud/groups/details') {
+				return Promise.resolve({
+					data: {
+						ocs: {
+							data: {
+								groups: [
+									{ id: 'board', displayname: 'Board', usercount: 1 },
+								],
+							},
+						},
+					},
+				})
+			}
+
+			if (url === 'cloud/groups') {
+				return Promise.resolve({
+					data: {
+						ocs: {
+							data: {
+								groups: ['board'],
+							},
+						},
+					},
+				})
+			}
+
+			return Promise.resolve({ data: { ocs: { data: {} } } })
+		})
+
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'groups_request_sign') {
+				return {
+					effectiveValue: '{"allowGroups":["board"],"denyGroups":[]}',
+					groupCount: 1,
+					userCount: 0,
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+				}
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system', editableByCurrentActor: true }
+		})
+
+		fetchGroupPolicy.mockImplementation(async (groupId: string, policyKey: string) => {
+			if (policyKey !== 'groups_request_sign' || groupId !== 'board') {
+				return null
+			}
+
+			return {
+				policyKey,
+				scope: 'group',
+				targetId: groupId,
+				value: '{"allowGroups":["board"],"denyGroups":[]}',
+				allowChildOverride: true,
+				visibleToChild: true,
+				allowedValues: [],
+				deletableByCurrentActor: false,
+			}
+		})
+
+		saveGroupPolicy.mockResolvedValueOnce({
+			policyKey: 'groups_request_sign',
+			scope: 'group',
+			targetId: 'board',
+			value: '{"allowGroups":["board"],"denyGroups":["board"]}',
+			allowChildOverride: true,
+			visibleToChild: true,
+			allowedValues: [],
+			deletableByCurrentActor: true,
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+
+		await vi.waitFor(() => {
+			expect(fetchGroupPolicy).toHaveBeenCalledWith('board', 'groups_request_sign')
+		})
+
+		state.startEditor({ scope: 'group' })
+		state.updateDraftTargets(['board'])
+		state.updateDraftValue('{"allowGroups":["board"],"denyGroups":["board"]}' as never)
+
+		await state.saveDraft()
+
+		expect(state.visibleGroupRules).toHaveLength(1)
+		expect(state.visibleGroupRules[0]).toMatchObject({
+			targetId: 'board',
+			canRemove: true,
+			value: '{"allowGroups":["board"],"denyGroups":["board"]}',
+		})
 	})
 
 	it('persists request-access group rule allow override toggle', async () => {
@@ -1637,6 +2165,28 @@ describe('useRealPolicyWorkbench', () => {
 		await state.saveDraft()
 
 		expect(saveGroupPolicy).toHaveBeenCalledWith('finance', 'groups_request_sign', '{"allowGroups":["finance"],"denyGroups":[]}', false)
+	})
+
+	it('persists request-access group rules with 1:1 target/value mapping for multi-group allow list', async () => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+		state.startEditor({ scope: 'group' })
+
+		state.updateDraftValue('{"allowGroups":["finance","legal"],"denyGroups":[]}' as never)
+		await state.saveDraft()
+
+		expect(saveGroupPolicy).toHaveBeenCalledTimes(2)
+		expect(saveGroupPolicy).toHaveBeenNthCalledWith(1, 'finance', 'groups_request_sign', '{"allowGroups":["finance"],"denyGroups":[]}', true)
+		expect(saveGroupPolicy).toHaveBeenNthCalledWith(2, 'legal', 'groups_request_sign', '{"allowGroups":["legal"],"denyGroups":[]}', true)
+		expect(state.visibleGroupRules).toHaveLength(2)
+		expect(state.visibleGroupRules[0]).toMatchObject({
+			targetId: 'finance',
+			value: '{"allowGroups":["finance"],"denyGroups":[]}',
+		})
+		expect(state.visibleGroupRules[1]).toMatchObject({
+			targetId: 'legal',
+			value: '{"allowGroups":["legal"],"denyGroups":[]}',
+		})
 	})
 
 	it('shows backend error message when saving request-access group rule is rejected', async () => {
