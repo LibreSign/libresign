@@ -51,4 +51,17 @@ describe('requestSignGroupsRealDefinition', () => {
 
 		expect(seeded).toBe('{"allowGroups":["finance"],"denyGroups":["legal"]}')
 	})
+
+	it('accepts deny-only payload as selectable draft value', () => {
+		expect(requestSignGroupsRealDefinition.hasSelectableDraftValue('{"allowGroups":[],"denyGroups":["board"]}')).toBe(true)
+		expect(requestSignGroupsRealDefinition.hasSelectableDraftValue('{"allowGroups":[],"denyGroups":[]}')).toBe(false)
+	})
+
+	it('summarizes overlap case as deny-only when allow groups are fully denied', () => {
+		expect(requestSignGroupsRealDefinition.summarizeValue('{"allowGroups":["board"],"denyGroups":["board"]}')).toBe('board')
+	})
+
+	it('keeps composed allow/deny summary when deny does not fully shadow allow', () => {
+		expect(requestSignGroupsRealDefinition.summarizeValue('{"allowGroups":["admin","board"],"denyGroups":["board"]}')).toBe('{allowCount} allow · {denyCount} deny')
+	})
 })
