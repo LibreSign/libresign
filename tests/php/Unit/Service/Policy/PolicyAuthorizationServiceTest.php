@@ -260,10 +260,8 @@ final class PolicyAuthorizationServiceTest extends TestCase {
 					'policy' => (new \OCA\Libresign\Service\Policy\Model\PolicyLayer())
 						->setScope('group')
 						->setAllowChildOverride(false)
-						->setNotes([
-							'createdBySystemAdmin' => false,
-							'createdByActorScope' => 'group',
-						]),
+						->setCreatedBySystemAdmin(false)
+						->setNotes(['createdByActorScope' => 'group']),
 				],
 			]);
 

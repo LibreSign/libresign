@@ -83,9 +83,8 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 	}
 
 	private static function canManageTechnicalFooterSettings(PolicyContext $context): bool {
-		$capabilities = $context->getActorCapabilities();
+		$actorRole = $context->getActorRole();
 
-		return ($capabilities['canManageSystemPolicies'] ?? false) === true
-			|| ($capabilities['canManageGroupPolicies'] ?? false) === true;
+		return $actorRole->canManageSystemPolicies || $actorRole->canManageGroupPolicies;
 	}
 }
