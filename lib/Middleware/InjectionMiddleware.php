@@ -326,6 +326,7 @@ class InjectionMiddleware extends Middleware {
 			);
 
 			$policy = new ContentSecurityPolicy();
+			$policy->addAllowedScriptDomain('unsafe-eval');
 			$policy->addAllowedFrameDomain('\'self\'');
 			$response->setContentSecurityPolicy($policy);
 			return $response;
