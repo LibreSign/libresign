@@ -12,6 +12,7 @@ require_once __DIR__ . '/../../../../../../lib/Service/Policy/Contract/IPolicySo
 
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicySource;
+use OCA\Libresign\Service\Policy\Model\ActorRole;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
@@ -234,10 +235,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$resolver = new DefaultPolicyResolver($source);
 		$resolved = $resolver->resolve(
 			$this->getDefinition(),
-			PolicyContext::fromUserId('ceo')->setActorCapabilities([
-				'canManageSystemPolicies' => false,
-				'canManageGroupPolicies' => true,
-			]),
+			PolicyContext::fromUserId('ceo')->setActorRole(ActorRole::groupAdmin(1)),
 		);
 
 		$this->assertTrue($resolved->isEditableByCurrentActor());
@@ -262,10 +260,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$resolver = new DefaultPolicyResolver($source);
 		$resolved = $resolver->resolve(
 			$this->getDefinition(),
-			PolicyContext::fromUserId('ceo')->setActorCapabilities([
-				'canManageSystemPolicies' => false,
-				'canManageGroupPolicies' => true,
-			]),
+			PolicyContext::fromUserId('ceo')->setActorRole(ActorRole::groupAdmin(1)),
 		);
 
 		$this->assertFalse($resolved->isEditableByCurrentActor());
@@ -286,11 +281,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$resolver = new DefaultPolicyResolver($source);
 		$resolved = $resolver->resolve(
 			$this->getRequestSignGroupsDefinition(),
-			PolicyContext::fromUserId('ceo')->setActorCapabilities([
-				'canManageSystemPolicies' => false,
-				'canManageGroupPolicies' => true,
-				'manageableGroupCount' => $manageableGroupCount,
-			]),
+			PolicyContext::fromUserId('ceo')->setActorRole(ActorRole::groupAdmin($manageableGroupCount)),
 		);
 
 		$this->assertSame($expectedEditable, $resolved->isEditableByCurrentActor());
@@ -314,11 +305,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$resolver = new DefaultPolicyResolver($source);
 		$resolved = $resolver->resolve(
 			$this->getRequestSignGroupsDefinition(),
-			PolicyContext::fromUserId('ceo')->setActorCapabilities([
-				'canManageSystemPolicies' => false,
-				'canManageGroupPolicies' => true,
-				'manageableGroupCount' => 1,
-			]),
+			PolicyContext::fromUserId('ceo')->setActorRole(ActorRole::groupAdmin(1)),
 		);
 
 		$this->assertFalse($resolved->isEditableByCurrentActor());
@@ -335,11 +322,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$resolver = new DefaultPolicyResolver($source);
 		$resolved = $resolver->resolve(
 			$this->getRequestSignGroupsDefinition(),
-			PolicyContext::fromUserId('ceo')->setActorCapabilities([
-				'canManageSystemPolicies' => false,
-				'canManageGroupPolicies' => true,
-				'manageableGroupCount' => 1,
-			]),
+			PolicyContext::fromUserId('ceo')->setActorRole(ActorRole::groupAdmin(1)),
 		);
 
 		$this->assertTrue($resolved->isEditableByCurrentActor());
@@ -358,11 +341,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$resolver = new DefaultPolicyResolver($source);
 		$resolved = $resolver->resolve(
 			$this->getRequestSignGroupsDefinition(),
-			PolicyContext::fromUserId('ceo')->setActorCapabilities([
-				'canManageSystemPolicies' => false,
-				'canManageGroupPolicies' => true,
-				'manageableGroupCount' => 2,
-			]),
+			PolicyContext::fromUserId('ceo')->setActorRole(ActorRole::groupAdmin(2)),
 		);
 
 		$this->assertFalse($resolved->isEditableByCurrentActor());
@@ -376,20 +355,14 @@ final class DefaultPolicyResolverTest extends TestCase {
 				->setValue(RequestSignGroupsPolicyValue::encode(['board']))
 				->setAllowChildOverride(true)
 				->setVisibleToChild(true)
-				->setNotes([
-					'createdBySystemAdmin' => true,
-					'createdByActorScope' => 'system',
-				]),
+				->setCreatedBySystemAdmin(true)
+				->setNotes(['createdByActorScope' => 'system']),
 		];
 
 		$resolver = new DefaultPolicyResolver($source);
 		$resolved = $resolver->resolve(
 			$this->getRequestSignGroupsDefinition(),
-			PolicyContext::fromUserId('ceo')->setActorCapabilities([
-				'canManageSystemPolicies' => false,
-				'canManageGroupPolicies' => true,
-				'manageableGroupCount' => 1,
-			]),
+			PolicyContext::fromUserId('ceo')->setActorRole(ActorRole::groupAdmin(1)),
 		);
 
 		$this->assertTrue($resolved->isEditableByCurrentActor());
@@ -414,21 +387,15 @@ final class DefaultPolicyResolverTest extends TestCase {
 				]))
 				->setAllowChildOverride(true)
 				->setVisibleToChild(true)
-				->setNotes([
-					'createdBySystemAdmin' => false,
-					'createdByActorScope' => 'group',
-					'delegatedFromSystemCreatedSeed' => true,
-				]),
+				->setCreatedBySystemAdmin(false)
+				->setDelegatedFromSystemCreatedSeed(true)
+				->setNotes(['createdByActorScope' => 'group']),
 		];
 
 		$resolver = new DefaultPolicyResolver($source);
 		$resolved = $resolver->resolve(
 			$this->getRequestSignGroupsDefinition(),
-			PolicyContext::fromUserId('ceo')->setActorCapabilities([
-				'canManageSystemPolicies' => false,
-				'canManageGroupPolicies' => true,
-				'manageableGroupCount' => 1,
-			]),
+			PolicyContext::fromUserId('ceo')->setActorRole(ActorRole::groupAdmin(1)),
 		);
 
 		$this->assertSame(
@@ -454,7 +421,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 
 	#[DataProvider('provideEditableByActorCases')]
 	public function testResolveActorPermissionFlagsRespectCapabilitiesDefinitionSupportAndHierarchy(
-		array $actorCapabilities,
+		ActorRole $actorRole,
 		bool $supportsGroupAdminConfiguration,
 		string $systemLayerScope,
 		bool $allowChildOverride,
@@ -472,7 +439,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			->setAllowedValues(['ordered_numeric']);
 
 		$context = PolicyContext::fromUserId('manager')
-			->setActorCapabilities($actorCapabilities);
+			->setActorRole($actorRole);
 
 		$definition = new PolicySpec(
 			key: 'signature_flow',
@@ -489,26 +456,26 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertSame($expectedCanOverride, $resolved->canUseAsRequestOverride());
 	}
 
-	/** @return array<string, array{0: array<string, bool>, 1: bool, 2: string, 3: bool, 4: bool, 5: bool, 6: bool, 7: bool}> */
+	/** @return array<string, array{0: ActorRole, 1: bool, 2: string, 3: bool, 4: bool, 5: bool, 6: bool, 7: bool}> */
 	public static function provideEditableByActorCases(): array {
 		// Dataset order:
-		// [actorCapabilities, supportsGroupAdminConfiguration, systemLayerScope,
+		// [actorRole, supportsGroupAdminConfiguration, systemLayerScope,
 		//  allowChildOverride, visibleToChild, expectedEditable,
 		//  expectedCanSaveAsUserDefault, expectedCanUseAsRequestOverride]
 		return [
 			// --- system admin scenarios ---
 			'system admin can edit and users can also override when hierarchy permits' => [
-				['canManageSystemPolicies' => true, 'canManageGroupPolicies' => false],
+				ActorRole::systemAdmin(),
 				false, 'system', true, true,
 				true, true, true,
 			],
 			'system admin can edit but hierarchy prevents user overrides' => [
-				['canManageSystemPolicies' => true, 'canManageGroupPolicies' => true],
+				ActorRole::systemAdmin(),
 				false, 'global', false, true,
 				true, false, false,
 			],
 			'system admin cannot edit when policy not visible to children' => [
-				['canManageSystemPolicies' => true, 'canManageGroupPolicies' => true],
+				ActorRole::systemAdmin(),
 				true, 'system', true, false,
 				false, false, false,
 			],
@@ -516,55 +483,55 @@ final class DefaultPolicyResolverTest extends TestCase {
 			// --- group admin scenarios ---
 			// scope='global' means the system admin explicitly configured allowChildOverride=true
 			'group admin can edit when system admin explicitly grants delegation' => [
-				['canManageSystemPolicies' => false, 'canManageGroupPolicies' => true],
+				ActorRole::groupAdmin(1),
 				true, 'global', true, true,
 				true, true, true,
 			],
 			// scope='system' means no explicit system config — group admin is closed by default
 			'group admin cannot edit or self-override without explicit system grant' => [
-				['canManageSystemPolicies' => false, 'canManageGroupPolicies' => true],
+				ActorRole::groupAdmin(1),
 				true, 'system', true, true,
 				false, false, false,
 			],
 			'group admin cannot edit when system blocks child overrides' => [
-				['canManageSystemPolicies' => false, 'canManageGroupPolicies' => true],
+				ActorRole::groupAdmin(1),
 				true, 'global', false, true,
 				false, false, false,
 			],
 			'group admin cannot edit system-only policy but users can still override when hierarchy allows' => [
-				['canManageSystemPolicies' => false, 'canManageGroupPolicies' => true],
+				ActorRole::groupAdmin(1),
 				false, 'global', true, true,
 				false, true, true,
 			],
 			'group admin cannot edit system-only policy and hierarchy also blocks user overrides' => [
-				['canManageSystemPolicies' => false, 'canManageGroupPolicies' => true],
+				ActorRole::groupAdmin(1),
 				false, 'global', false, true,
 				false, false, false,
 			],
 			'group admin cannot edit when policy not visible to children' => [
-				['canManageSystemPolicies' => false, 'canManageGroupPolicies' => true],
+				ActorRole::groupAdmin(1),
 				true, 'global', true, false,
 				false, false, false,
 			],
 
 			// --- regular user scenarios ---
 			'regular user cannot save without explicit system grant' => [
-				[],
+				ActorRole::regularUser(),
 				true, 'system', true, true,
 				false, false, false,
 			],
 			'regular user can save when system explicitly grants delegation' => [
-				[],
+				ActorRole::regularUser(),
 				true, 'global', true, true,
 				false, true, true,
 			],
 			'regular user cannot save when hierarchy blocks child overrides' => [
-				[],
+				ActorRole::regularUser(),
 				true, 'global', false, true,
 				false, false, false,
 			],
 			'regular user cannot save when policy not visible' => [
-				[],
+				ActorRole::regularUser(),
 				true, 'system', true, false,
 				false, false, false,
 			],
