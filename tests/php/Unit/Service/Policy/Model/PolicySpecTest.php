@@ -234,7 +234,66 @@ final class PolicySpecTest extends TestCase {
 				new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: [], supportsGroupAdminConfiguration: false),
 				'supportsGroupAdminConfiguration',
 			],
+			'group admin delegation' => [
+				new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: [], supportsGroupAdminDelegation: false),
+				'supportsGroupAdminDelegation',
+			],
 		];
+	}
+
+	public function testSupportsGroupAdminDelegationDefaultsToFalse(): void {
+		$spec = new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: []);
+
+		$this->assertFalse($spec->supportsGroupAdminDelegation(), 'policies must opt-in to group-admin delegation');
+	}
+
+	public function testSupportsGroupAdminDelegationCanBeEnabled(): void {
+		$spec = new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: [], supportsGroupAdminDelegation: true);
+
+		$this->assertTrue($spec->supportsGroupAdminDelegation());
+	}
+
+	public function testValidateGroupAdminDelegatedValueIsNoOpByDefault(): void {
+		$spec = new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: []);
+
+		$spec->validateGroupAdminDelegatedValue('proposed', 'seed', new PolicyContext());
+
+		$this->addToAssertionCount(1);
+	}
+
+	public function testDelegatedValueValidatorClosureIsInvokedDuringValidation(): void {
+		$called = false;
+		$spec = new PolicySpec(
+			key: 'x',
+			defaultSystemValue: 'none',
+			allowedValues: [],
+			supportsGroupAdminDelegation: true,
+			delegatedValueValidator: static function (mixed $proposed, mixed $seed, PolicyContext $context) use (&$called): void {
+				$called = true;
+				self::assertSame('proposed', $proposed);
+				self::assertSame('seed', $seed);
+			},
+		);
+
+		$spec->validateGroupAdminDelegatedValue('proposed', 'seed', new PolicyContext());
+
+		$this->assertTrue($called);
+	}
+
+	public function testDelegatedValueValidatorClosureExceptionIsPropagated(): void {
+		$spec = new PolicySpec(
+			key: 'x',
+			defaultSystemValue: 'none',
+			allowedValues: [],
+			supportsGroupAdminDelegation: true,
+			delegatedValueValidator: static function (): void {
+				throw new \DomainException('delegation rule violated');
+			},
+		);
+
+		$this->expectException(\DomainException::class);
+		$this->expectExceptionMessage('delegation rule violated');
+		$spec->validateGroupAdminDelegatedValue('proposed', 'seed', new PolicyContext());
 	}
 
 	/** @return array<string, array{0: mixed}> */
