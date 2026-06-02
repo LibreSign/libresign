@@ -80,7 +80,7 @@ final class EmailTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		self::assertArrayHasKey('signatureMethods', $settings);
 		self::assertSame('email', $settings['name']);
 		self::assertSame(false, $settings['enabled']);
-		self::assertSame(true, $settings['can_create_account']);
+		self::assertSame(false, $settings['can_create_account']);
 		self::assertSame(
 			$this->identifyService->getUrlGenerator()->linkToRoute('settings.MailSettings.sendTestMail'),
 			$settings['test_url'],
