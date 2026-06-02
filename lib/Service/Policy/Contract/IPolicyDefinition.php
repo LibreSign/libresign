@@ -63,4 +63,26 @@ interface IPolicyDefinition {
 	 * Whether the current actor may edit a system-created group rule for this policy.
 	 */
 	public function canCurrentActorEditSystemCreatedGroupPolicy(PolicyContext $context, ?PolicyLayer $systemPolicy, PolicyLayer $existingPolicy): bool;
+
+	/**
+	 * Whether this policy supports group-admin-delegated override rules.
+	 * When true, a separate `__delegated_override` slot is used so that the
+	 * system-created seed and the group-admin override coexist independently.
+	 */
+	public function supportsGroupAdminDelegation(): bool;
+
+	/**
+	 * Validate a proposed group-admin-delegated value against the parent
+	 * system-created seed value.  Implementations should throw
+	 * \InvalidArgumentException with a translatable message when the proposed
+	 * value violates policy constraints.
+	 *
+	 * This hook is called only when the actor is a non-system-admin and the
+	 * definition returns true from supportsGroupAdminDelegation().
+	 */
+	public function validateGroupAdminDelegatedValue(
+		mixed $proposedNormalizedValue,
+		mixed $parentSeedNormalizedValue,
+		PolicyContext $context,
+	): void;
 }
