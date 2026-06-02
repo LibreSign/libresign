@@ -143,7 +143,7 @@ for (const identifyMethod of identifyMethodsCatalog) {
 const methodsSupportingAccountCreation = new Set(['email'])
 
 const showGlobalOnboardingToggle = computed(() => entries.value.some((entry) => methodsSupportingAccountCreation.has(entry.name)))
-const canCreateAccount = computed(() => policyConfig.value.global.canCreateAccount ?? true)
+const canCreateAccount = computed(() => policyConfig.value.global.canCreateAccount ?? false)
 
 const enabledCount = computed(() => entries.value.filter((entry) => entry.enabled).length)
 const canAdjustRequirement = computed(() => enabledCount.value > 1)
