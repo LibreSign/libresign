@@ -302,6 +302,7 @@ OC.L10N.register(
     "Document not available for signature." : "Dokument pole allkirjastamiseks saadaval.",
     "Administration" : "Haldus",
     "Rate LibreSign ❤️" : "Hinda LibreSigni ❤️",
+    "Drag to reorder" : "Järjestuse muutmiseks lohista",
     "Signer" : "Allkirjastaja",
     "SENDER" : "SAATJA",
     "Method" : "Meetod",
