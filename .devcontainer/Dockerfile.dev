@@ -1,0 +1,8 @@
+ARG PHP_VERSION=82
+
+FROM ghcr.io/librecodecoop/nextcloud-dev-php${PHP_VERSION}:latest
+
+RUN apt-get update && apt-get install -y \
+    ghostscript \
+    poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
