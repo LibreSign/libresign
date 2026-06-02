@@ -1,0 +1,83 @@
+name: Upstream Sync
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday at 06:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-main:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: git remote add upstream https://github.com/LibreSign/libresign.git
+
+      - name: Fetch upstream
+        run: git fetch upstream main
+
+      - name: Fast-forward main
+        run: git merge upstream/main --ff-only
+
+      - name: Push main to origin
+        run: git push origin main
+
+      - name: Check if custom/main needs rebase
+        id: check-rebase
+        run: |
+          git fetch origin custom/main
+          if git merge-base --is-ancestor main origin/custom/main; then
+            echo "custom/main is up-to-date with main"
+            echo "needs_rebase=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "custom/main needs rebase"
+            echo "needs_rebase=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create rebase reminder issue
+        if: steps.check-rebase.outputs.needs_rebase == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'upstream-sync,rebase-needed',
+              state: 'open',
+            });
+            if (issues.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'Rebase custom/main on upstream main',
+                body: `Upstream \`main\` has advanced. \`custom/main\` needs rebasing.
+
+**Next steps:**
+1. \`git fetch origin\`
+2. \`git checkout custom/main\`
+3. \`git rebase origin/main\`
+4. Resolve conflicts per FIP (see BRANCH_STRATEGY.md)
+5. Run full test suite
+6. \`git push origin custom/main --force-with-lease\`
+
+See [BRANCH_STRATEGY.md](../blob/custom/main/docs/architecture/BRANCH_STRATEGY.md).`,
+                labels: ['upstream-sync', 'rebase-needed'],
+              });
+            }
