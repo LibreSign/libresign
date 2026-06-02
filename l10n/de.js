@@ -440,7 +440,7 @@ OC.L10N.register(
     "Edit signer {name}" : "Unterzeichner bearbeiten {name}",
     "Identification method: {method}" : "Identifizierungsmethode: {method}",
     "Signer status: {status}" : "Unterzeichnerstatus: {status}",
-    "Drag to reorder" : "Ziehen zum Umordnen",
+    "Drag to reorder" : "Zum Umsortieren ziehen",
     "Signer" : "Unterzeichner",
     "SENDER" : "ABSENDER",
     "Method" : "Methode",
