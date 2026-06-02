@@ -68,7 +68,6 @@ import {
 } from '@mdi/js'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
-import { showError, showWarning, showSuccess } from '@nextcloud/dialogs'
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -76,6 +75,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import { showError, showWarning, showSuccess } from '../../../services/toast'
 
 import { IDENTIFICATION_DOCUMENTS_STATUS } from '../../../constants.js'
 const loadFileToBase64 = (file: File): Promise<string | ArrayBuffer | null> => {

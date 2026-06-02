@@ -40,6 +40,10 @@
 				{{ search ? noResultText : t('libresign', 'No recommendations. Start typing.') }}
 			</template>
 		</NcSelect>
+		<p v-if="phoneMessage"
+	         class="account-or-email__helper-text-message">
+				{{ phoneMessage }}
+        </p>
 		<p v-if="haveError"
 			id="account-or-email-field"
 			class="account-or-email__helper-text-message account-or-email__helper-text-message--error">
@@ -67,7 +71,9 @@ import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
+import { sanitisePhoneNumber } from '../../utils/phone'
 import type { IdentifyAccountRecord } from '../../types'
+
 const iconMap = {
 	svgAccount,
 	svgEmail,
@@ -91,6 +97,7 @@ defineOptions({
 
 const emit = defineEmits<{
 	(event: 'update:signer', signer: IdentifyAccountRecord | null): void
+	(event: 'phone-not-found', phone: string): void
 }>()
 
 const props = withDefaults(defineProps<{
@@ -107,14 +114,20 @@ const options = ref<IdentifyAccountRecord[]>([])
 const selectedSigner = ref<IdentifyAccountRecord | null>(null)
 const haveError = ref(false)
 const activeRequestId = ref(0)
+const phoneMessage = ref('')
 
 const noResultText = computed(() => loading.value ? t('libresign', 'Searching …') : t('libresign', 'No signers.'))
+
+function isPhoneMethod() {
+	return ['sms', 'whatsapp'].includes(props.method || '')
+}
 
 function handleMethodChange() {
 	options.value = []
 	selectedSigner.value = null
 	haveError.value = false
 	loading.value = false
+	phoneMessage.value = ''
 }
 
 watch(() => props.method, () => {
@@ -146,7 +159,6 @@ function toIconKey(iconName?: string): IconKey | undefined {
 	if (typeof iconName !== 'string' || iconName.length === 0) {
 		return undefined
 	}
-
 	const iconKey = `svg${iconName.charAt(0).toUpperCase()}${iconName.slice(1)}` as IconKey
 	return iconKey in iconMap ? iconKey : undefined
 }
@@ -189,6 +201,21 @@ function getOptionIcon(slotProps?: OptionPayload) {
 
 async function _asyncFind(search: string) {
 	search = search.trim()
+
+	if (isPhoneMethod()) {
+		const normalized = sanitisePhoneNumber(search)
+
+		if (!normalized) {
+			phoneMessage.value = t('libresign', 'Enter a valid phone number')
+			options.value = []
+			loading.value = false
+			return
+		}
+
+		phoneMessage.value = ''
+		search = normalized
+	}
+
 	if (!search) {
 		options.value = []
 		loading.value = false
@@ -197,6 +224,7 @@ async function _asyncFind(search: string) {
 
 	const requestId = ++activeRequestId.value
 	loading.value = true
+
 	try {
 		const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/identify-account/search'), {
 			params: {
@@ -204,10 +232,24 @@ async function _asyncFind(search: string) {
 				method: props.method,
 			},
 		})
+
 		if (requestId !== activeRequestId.value) {
 			return
 		}
-		options.value = injectIcons(response.data.ocs.data as IdentifyAccountRecord[])
+
+		const results = injectIcons(response.data.ocs.data as IdentifyAccountRecord[])
+		options.value = results
+
+		// PHONE NOT FOUND FLOW
+		if (isPhoneMethod() && results.length === 0) {
+			phoneMessage.value = t(
+				'libresign',
+				'Phone number not found. Please use email instead.'
+			)
+
+			emit('phone-not-found', search)
+		}
+
 	} catch {
 		if (requestId === activeRequestId.value) {
 			haveError.value = true

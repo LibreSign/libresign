@@ -57,9 +57,9 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * Request that a file be signed by a list of signers.
 	 * Each signer in the signers array can optionally include a 'signingOrder' field
 	 * to control the order of signatures when ordered signing flow is enabled.
-	 * The returned `data` always includes `filesCount` and `files`.
-	 * For `nodeType=file`, `filesCount=1` and `files` contains the current file.
-	 * For `nodeType=envelope`, `files` contains envelope child files.
+	 * When the created entity is an envelope (`nodeType` = `envelope`),
+	 * the returned `data` includes `filesCount` and `files` as a list of
+	 * envelope child files.
 	 *
 	 * @param LibresignNewSigner[] $signers Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status
 	 * @param string $name The name of file to sign
@@ -79,7 +79,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[RequireManager]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/request-signature', requirements: ['apiVersion' => '(v1)'])]
-	public function requestSignature(
+	public function request(
 		array $signers = [],
 		string $name = '',
 		array $settings = [],
@@ -126,6 +126,27 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * @deprecated Use request() instead. Kept for backward compatibility.
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[RequireManager]
+	#[OpenAPI(tags: ['signing'])]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/request-signature', requirements: ['apiVersion' => '(v1)'])]
+	public function requestSignature(
+		array $signers = [],
+		string $name = '',
+		array $settings = [],
+		array $file = [],
+		array $files = [],
+		?string $callback = null,
+		?int $status = 1,
+		?string $signatureFlow = null,
+	): DataResponse {
+		return $this->request($signers, $name, $settings, $file, $files, $callback, $status, $signatureFlow);
+	}
+
+	/**
 	 * Updates signatures data
 	 *
 	 * It is necessary to inform the UUID of the file and a list of signers.
@@ -133,7 +154,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param LibresignNewSigner[]|null $signers Collection of signers who must sign the document. Use identifyMethods as the canonical format.
 	 * @param string|null $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
 	 * @param LibresignVisibleElement[]|null $visibleElements Visible elements on document
-	 * @param LibresignNewFile|null $file File object. Supports nodeId, url, base64 or path when creating a new request.
+	 * @param LibresignNewFile|array<empty>|null $file File object. Supports nodeId, url, base64 or path when creating a new request.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration
 	 * @param string|null $name The name of file to sign
@@ -149,11 +170,11 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[RequireManager]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/request-signature', requirements: ['apiVersion' => '(v1)'])]
-	public function updateSignatureRequest(
+	public function updateSign(
 		?array $signers = [],
 		?string $uuid = null,
 		?array $visibleElements = null,
-		?array $file = null,
+		?array $file = [],
 		?int $status = null,
 		?string $signatureFlow = null,
 		?string $name = null,
@@ -163,7 +184,6 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		try {
 			$user = $this->userSession->getUser();
 			$signers = is_array($signers) ? $signers : [];
-			$file = is_array($file) ? $file : [];
 
 			if (empty($uuid)) {
 				return $this->createSignatureRequest(
@@ -185,14 +205,12 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				'file' => $file,
 				'signers' => $signers,
 				'userManager' => $user,
+				'status' => $status,
 				'visibleElements' => $visibleElements,
 				'signatureFlow' => $signatureFlow,
 				'name' => $name,
 				'settings' => $settings,
 			];
-			if ($status !== null) {
-				$data['status'] = $status;
-			}
 			$this->validateHelper->validateExistingFile($data);
 			$this->validateHelper->validateFileStatus($data);
 			$this->validateHelper->validateIdentifySigners($data);
@@ -215,8 +233,30 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * @deprecated Use updateSign() instead. Kept for backward compatibility.
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[RequireManager]
+	#[OpenAPI(tags: ['signing'])]
+	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/request-signature', requirements: ['apiVersion' => '(v1)'])]
+	public function updateSignatureRequest(
+		?array $signers = [],
+		?string $uuid = null,
+		?array $visibleElements = null,
+		?array $file = [],
+		?int $status = null,
+		?string $signatureFlow = null,
+		?string $name = null,
+		array $settings = [],
+		array $files = [],
+	): DataResponse {
+		return $this->updateSign($signers, $uuid, $visibleElements, $file, $status, $signatureFlow, $name, $settings, $files);
+	}
+
+	/**
 	 * Internal method to handle signature request creation logic
-	 * Used by both requestSignature() and updateSignatureRequest() when creating new requests
+	 * Used by both request() and updateSign() when creating new requests
 	 *
 	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>
 	 * @throws LibresignException
@@ -245,15 +285,12 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			'file' => $file,
 			'name' => $name,
 			'signers' => $signers,
+			'status' => $status,
 			'callback' => $callback,
 			'userManager' => $user,
 			'signatureFlow' => $signatureFlow,
 			'settings' => !empty($settings) ? $settings : ($file['settings'] ?? []),
 		];
-
-		if ($status !== null) {
-			$data['status'] = $status;
-		}
 
 		if ($isEnvelope) {
 			$data['files'] = $filesToSave;
@@ -295,7 +332,47 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[RequireManager]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/sign/file_id/{fileId}/{signRequestId}', requirements: ['apiVersion' => '(v1)'])]
+	public function deleteOneRequestSignatureUsingFileId(int $fileId, int $signRequestId): DataResponse {
+		try {
+			$data = [
+				'userManager' => $this->userSession->getUser(),
+				'file' => [
+					'fileId' => $fileId
+				]
+			];
+			$this->validateHelper->validateExistingFile($data);
+			$this->validateHelper->validateIsSignerOfFile($signRequestId, $fileId);
+			$this->requestSignatureService->unassociateToUser($fileId, $signRequestId);
+		} catch (\Throwable $th) {
+			return new DataResponse(
+				[
+					'message' => $th->getMessage(),
+				],
+				Http::STATUS_UNAUTHORIZED
+			);
+		}
+		return new DataResponse(
+			[
+				'message' => $this->l10n->t('Success')
+			],
+			Http::STATUS_OK
+		);
+	}
+
+	/**
+	 * @deprecated Use deleteOneRequestSignatureUsingFileId() instead. Kept for backward compatibility.
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[RequireManager]
+	#[OpenAPI(tags: ['signing'])]
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/sign/file_id/{fileId}/{signRequestId}', requirements: ['apiVersion' => '(v1)'])]
 	public function removeSigner(int $fileId, int $signRequestId): DataResponse {
+		return $this->deleteOneRequestSignatureUsingFileId($fileId, $signRequestId);
+	}
+
+	/**
+	 * Delete sign request
 		try {
 			$data = [
 				'userManager' => $this->userSession->getUser(),
@@ -339,7 +416,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[RequireManager]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/sign/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
-	public function deleteSignatureRequest(int $fileId): DataResponse {
+	public function deleteAllRequestSignatureUsingFileId(int $fileId): DataResponse {
 		try {
 			$data = [
 				'userManager' => $this->userSession->getUser(),
@@ -363,6 +440,18 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			],
 			Http::STATUS_OK
 		);
+	}
+
+	/**
+	 * @deprecated Use deleteAllRequestSignatureUsingFileId() instead. Kept for backward compatibility.
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[RequireManager]
+	#[OpenAPI(tags: ['signing'])]
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/sign/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
+	public function deleteSignatureRequest(int $fileId): DataResponse {
+		return $this->deleteAllRequestSignatureUsingFileId($fileId);
 	}
 
 	private function loadChildFilesIfEnvelope($fileEntity): array {

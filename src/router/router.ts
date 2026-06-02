@@ -200,6 +200,21 @@ const routes: RouteRecordRaw[] = [
 		name: 'ResetPassword',
 		component: () => import('../views/ResetPassword.vue'),
 	},
+	{
+		path: '/f/admin/products',
+		name: 'AdminProducts',
+		component: () => import('../views/ProductManagement/ProductManagement.vue'),
+	},
+	{
+		path: '/f/payment/return',
+		name: 'PaymentReturn',
+		component: () => import('../views/PaymentReturn.vue'),
+	},
+	{
+		path: '/f/dashboard',
+		name: 'Dashboard',
+		component: () => import('../views/Dashboard/Dashboard.vue'),
+	}
 ]
 
 const router: Router = createRouter({

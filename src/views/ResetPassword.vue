@@ -42,7 +42,6 @@ import { t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
 
 import axios from '@nextcloud/axios'
-import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -51,6 +50,7 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 
 import { useSignMethodsStore } from '../store/signMethods.js'
+import { showError, showSuccess } from '../services/toast'
 
 defineOptions({
 	name: 'ResetPassword',

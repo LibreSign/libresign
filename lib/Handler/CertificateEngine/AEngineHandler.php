@@ -17,7 +17,6 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
-use OCA\Libresign\Service\Crl\CrlDistributionPointsExtractor;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
@@ -74,7 +73,6 @@ abstract class AEngineHandler implements IEngineHandler {
 	protected string $certificate = '';
 	protected string $currentCaId = '';
 	protected IAppData $appData;
-	private CrlDistributionPointsExtractor $crlDistributionPointsExtractor;
 
 	public function __construct(
 		protected IConfig $config,
@@ -89,7 +87,6 @@ abstract class AEngineHandler implements IEngineHandler {
 		private CrlRevocationChecker $crlRevocationChecker,
 	) {
 		$this->appData = $appDataFactory->get('libresign');
-		$this->crlDistributionPointsExtractor = new CrlDistributionPointsExtractor();
 	}
 
 	protected function exportToPkcs12(
@@ -185,30 +182,20 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	private function addCrlValidationInfo(array &$certData, string $certPem): void {
-		$extensions = $certData['extensions'] ?? [];
-		if (is_array($extensions)) {
-			['hasExtension' => $hasCrlExtension, 'urls' => $extractedUrls] = $this->crlDistributionPointsExtractor->extractFromExtensions($extensions);
-			if ($hasCrlExtension) {
-				$certData['crl_urls'] = $extractedUrls;
-				if (empty($extractedUrls)) {
-					$certData['crl_validation'] = CrlValidationStatus::NO_URLS;
-					return;
-				}
+		if (isset($certData['extensions']['crlDistributionPoints'])) {
+			preg_match_all('/URI:([^\s,\n]+)/', $certData['extensions']['crlDistributionPoints'], $matches);
+			$extractedUrls = $matches[1] ?? [];
 
-				$crlDetails = $this->crlRevocationChecker->validate($extractedUrls, $certPem);
-				$certData['crl_validation'] = $crlDetails['status'];
-				if (!empty($crlDetails['revoked_at'])) {
-					$certData['crl_revoked_at'] = $crlDetails['revoked_at'];
-				}
-				return;
+			$certData['crl_urls'] = $extractedUrls;
+			$crlDetails = $this->crlRevocationChecker->validate($extractedUrls, $certPem);
+			$certData['crl_validation'] = $crlDetails['status'];
+			if (!empty($crlDetails['revoked_at'])) {
+				$certData['crl_revoked_at'] = $crlDetails['revoked_at'];
 			}
+		} else {
+			$certData['crl_validation'] = CrlValidationStatus::MISSING;
+			$certData['crl_urls'] = [];
 		}
-
-		$externalValidationEnabled = $this->appConfig->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true);
-		$certData['crl_validation'] = $externalValidationEnabled
-			? CrlValidationStatus::MISSING
-			: CrlValidationStatus::DISABLED;
-		$certData['crl_urls'] = [];
 	}
 
 	private static function convertArrayToUtf8($array) {

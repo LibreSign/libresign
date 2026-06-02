@@ -16,7 +16,6 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\Files\IRootFolder;
-use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
 
 class EnvelopeAssembler {
@@ -25,7 +24,6 @@ class EnvelopeAssembler {
 		private IdentifyMethodService $identifyMethodService,
 		private FileMapper $fileMapper,
 		private IRootFolder $root,
-		private IURLGenerator $urlGenerator,
 		private SignersLoader $signersLoader,
 		private ?CertificateChainService $certificateChainService,
 		private \OCA\Libresign\Handler\SignEngine\Pkcs12Handler $pkcs12Handler,
@@ -42,13 +40,10 @@ class EnvelopeAssembler {
 		$fileData->status = $childFile->getStatus();
 		$fileData->statusText = $this->fileMapper->getTextOfStatus($childFile->getStatus());
 		$fileData->nodeId = $childFile->getNodeId();
-		$fileData->file = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $childFile->getUuid()]);
+		$fileData->metadata = $childFile->getMetadata();
 		$childMetadata = $childFile->getMetadata() ?? [];
 		$fileData->totalPages = (int)($childMetadata['p'] ?? 0);
 		$fileData->pdfVersion = (string)($childMetadata['pdfVersion'] ?? '');
-
-		$childMetadata = ValidationMetadataNormalizer::normalize($childMetadata, $childFile->getName(), $fileData->totalPages);
-		$fileData->metadata = $childMetadata;
 
 		$nodeId = $childFile->getSignedNodeId() ?: $childFile->getNodeId();
 		$fileNode = $this->root->getUserFolder($childFile->getUserId())->getFirstNodeById($nodeId);
@@ -143,9 +138,6 @@ class EnvelopeAssembler {
 						$certData = $this->certificateChainService->getCertificateChain($fileNode, $childFile, $options);
 					} else {
 						$resource = $fileNode->fopen('rb');
-						if (!is_resource($resource)) {
-							throw new \RuntimeException('unable to open signed file stream');
-						}
 						$sha256 = $this->getSha256FromResource($resource);
 						rewind($resource);
 						if ($sha256 === $childFile->getSignedHash()) {
@@ -167,16 +159,9 @@ class EnvelopeAssembler {
 	}
 
 	private function getSha256FromResource($resource): string {
-		if (!is_resource($resource)) {
-			return '';
-		}
-
 		$hashContext = hash_init('sha256');
 		while (!feof($resource)) {
 			$buffer = fread($resource, 8192);
-			if ($buffer === false) {
-				break;
-			}
 			hash_update($hashContext, $buffer);
 		}
 		return hash_final($hashContext);

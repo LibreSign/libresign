@@ -138,8 +138,7 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 		$originalCaId = $this->appConfig->getValueString(Application::APP_ID, 'ca_id');
 		if (empty($originalCaId)) {
 			$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine');
-			$validEngines = ['openssl', 'cfssl'];
-			if (!empty($engineName) && in_array($engineName, $validEngines, true)) {
+			if ($engineName) {
 				$originalCaId = $this->caIdentifierService->generateCaId($engineName);
 			}
 		}

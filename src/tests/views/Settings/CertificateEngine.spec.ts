@@ -4,6 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import CertificateEngine from '../../../views/Settings/CertificateEngine.vue'
@@ -16,7 +17,7 @@ vi.mock('@nextcloud/initial-state', () => ({
 	loadState: (...args: unknown[]) => loadStateMock(...args),
 }))
 
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 vi.mock('@nextcloud/event-bus', () => ({
 	emit: (...args: unknown[]) => emitMock(...args),

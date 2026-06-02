@@ -7,7 +7,8 @@
 		<SignerSelect v-if="isNewSigner"
 			:placeholder="placeholder"
 			:method="method"
-			@update:signer="applySelectedSigner" />
+			@update:signer="applySelectedSigner"
+			@phone-not-found="handlePhoneNotFound" />
 		<NcNoteCard v-else type="info">
 			<template #icon>
 				<NcIconSvgWrapper :size="20" :svg="getMethodIcon()" />
@@ -76,7 +77,6 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
-import { showError } from '@nextcloud/dialogs'
 
 import SignerSelect from './SignerSelect.vue'
 
@@ -86,6 +86,7 @@ import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
 import { getSignRequestStatusText } from '../../utils/getSignRequestStatusText.ts'
 import type { IdentifyAccountRecord } from '../../types'
+import { showError } from '../../services/toast'
 
 const iconMap = {
 	svgAccount,
@@ -110,6 +111,10 @@ const methodIconMap: Record<string, keyof typeof iconMap> = {
 defineOptions({
 	name: 'IdentifySigner',
 })
+
+const emit = defineEmits<{
+	(event: 'phone-not-found', phone: string): void
+}>()
 
 type IdentifyMethodConfig = {
 	name: string
@@ -279,6 +284,10 @@ function onToggleCustomMessage(checked: boolean) {
 	if (!checked) {
 		description.value = ''
 	}
+}
+
+function handlePhoneNotFound(phone: string) {
+	emit('phone-not-found', phone)
 }
 
 onBeforeMount(() => {

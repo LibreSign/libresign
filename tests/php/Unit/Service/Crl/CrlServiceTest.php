@@ -282,44 +282,12 @@ class CrlServiceTest extends TestCase {
 				$reasonText,
 				$revokedBy,
 				null,
-				5,
-				null,
+				5
 			);
 
 		$result = $this->service->revokeCertificate($serialNumber, $reason, $reasonText, $revokedBy);
 
 		$this->assertTrue($result);
-	}
-
-	public function testRevokeCertificateWithoutCrlMetadataFails(): void {
-		$serialNumber = '654321';
-		$certificate = new Crl();
-		$certificate->setSerialNumber($serialNumber);
-		$certificate->setEngine('openssl');
-
-		$this->crlMapper->expects($this->once())
-			->method('findBySerialNumber')
-			->with($serialNumber)
-			->willReturn($certificate);
-
-		$this->crlMapper->expects($this->never())
-			->method('getLastCrlNumber');
-
-		$this->crlMapper->expects($this->never())
-			->method('revokeCertificateEntity');
-
-		$this->logger->expects($this->once())
-			->method('warning')
-			->with(
-				'Failed to revoke certificate {serial}',
-				$this->callback(fn (array $context): bool => $context['serial'] === $serialNumber
-					&& isset($context['error'])
-					&& $context['error'] !== '')
-			);
-
-		$result = $this->service->revokeCertificate($serialNumber);
-
-		$this->assertFalse($result);
 	}
 
 	public function testGenerateCrlDerReturnsValidBinaryData(): void {

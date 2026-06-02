@@ -16,6 +16,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -56,8 +57,9 @@ class FileElementController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file-element/{uuid}', requirements: ['apiVersion' => '(v1)'])]
-	public function createVisibleElement(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
+	public function post(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
 		$visibleElement = [
 			'elementId' => $elementId,
 			'type' => $type,
@@ -107,9 +109,10 @@ class FileElementController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/file-element/{uuid}/{elementId}', requirements: ['apiVersion' => '(v1)'])]
-	public function updateVisibleElement(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
-		return $this->createVisibleElement($uuid, $signRequestId, $elementId, $fileId, $type, $metadata, $coordinates);
+	public function patch(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
+		return $this->post($uuid, $signRequestId, $elementId, $fileId, $type, $metadata, $coordinates);
 	}
 
 	/**
@@ -126,8 +129,9 @@ class FileElementController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/file-element/{uuid}/{elementId}', requirements: ['apiVersion' => '(v1)'])]
-	public function deleteVisibleElement(string $uuid, int $elementId): DataResponse {
+	public function delete(string $uuid, int $elementId): DataResponse {
 		try {
 			$this->validateHelper->validateExistingFile([
 				'uuid' => $uuid,
@@ -145,5 +149,38 @@ class FileElementController extends AEnvironmentAwareController {
 				Http::STATUS_NOT_FOUND
 			);
 		}
+	}
+
+	/**
+	 * @deprecated Use post() instead. Kept for backward compatibility.
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['signing'])]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file-element/{uuid}', requirements: ['apiVersion' => '(v1)'])]
+	public function createVisibleElement(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
+		return $this->post($uuid, $signRequestId, $elementId, $fileId, $type, $metadata, $coordinates);
+	}
+
+	/**
+	 * @deprecated Use patch() instead. Kept for backward compatibility.
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['signing'])]
+	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/file-element/{uuid}/{elementId}', requirements: ['apiVersion' => '(v1)'])]
+	public function updateVisibleElement(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
+		return $this->patch($uuid, $signRequestId, $elementId, $fileId, $type, $metadata, $coordinates);
+	}
+
+	/**
+	 * @deprecated Use delete() instead. Kept for backward compatibility.
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['signing'])]
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/file-element/{uuid}/{elementId}', requirements: ['apiVersion' => '(v1)'])]
+	public function deleteVisibleElement(string $uuid, int $elementId): DataResponse {
+		return $this->delete($uuid, $elementId);
 	}
 }

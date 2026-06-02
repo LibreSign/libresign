@@ -38,8 +38,6 @@ OC.L10N.register(
     "Open sidebar" : "Opne sidestolpe",
     "Cancel upload" : "Avbryt opplasting",
     "Unknown" : "Ukjend",
-    "Hide details" : "Gøym detaljar",
-    "Show details" : "Vis detaljar",
     "No date" : "No date",
     "Error" : "Feil",
     "File" : "Fil",
@@ -51,7 +49,6 @@ OC.L10N.register(
     "Create account" : "Opprett konto",
     "Password" : "Passord",
     "Enter a password" : "Skriv inn eit passord",
-    "Filters" : "Filter",
     "Type" : "Type",
     "Comment" : "Kommentér",
     "Actions" : "Handlingar",
@@ -73,11 +70,8 @@ OC.L10N.register(
     "No" : "Nei",
     "Username" : "Brukarnamn",
     "Optional" : "Valfritt",
-    "Forgot password?" : "Gløymt passordet?",
     "Hello {name}" : "Hallo {name}",
     "_{count} file_::_{count} files_" : ["{count} fil","{count} filer"],
-    "Today" : "I dag",
-    "Last 7 days" : "Siste 7 dagar",
-    "Last 30 days" : "Siste 30 dagar"
+    "Today" : "I dag"
 },
 "nplurals=2; plural=(n != 1);");

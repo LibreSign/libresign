@@ -19,8 +19,11 @@ defineOptions({ name: 'LibreSignExternal' })
 import DefaultPageError from './views/DefaultPageError.vue'
 import RightSidebar from './components/RightSidebar/RightSidebar.vue'
 import { initialActionCode, ACTION_CODES } from './helpers/ActionMapping'
+import { useForceLightMode } from '@/composables/useForceLightMode'
 
 const isDoNothingError = computed(() => initialActionCode.value === ACTION_CODES.DO_NOTHING)
+
+useForceLightMode()
 </script>
 
 <style lang="scss">

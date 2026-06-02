@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { ensureWorkerReady } from '@libresign/pdf-elements'
+import { setWorkerPath } from '@libresign/pdf-elements'
 
 let configured = false
 
@@ -11,5 +11,11 @@ export const ensurePdfWorker = (): void => {
 		return
 	}
 	configured = true
-	void ensureWorkerReady()
+	import('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url')
+		.then((mod) => {
+			setWorkerPath(mod.default as string)
+		})
+		.catch((error) => {
+			console.error('Failed to load pdf.js worker URL:', error)
+		})
 }

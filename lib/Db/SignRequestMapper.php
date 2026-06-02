@@ -15,6 +15,8 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\Entity;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
+use OCP\DB\Exception;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\ICacheFactory;
 use OCP\IDBConnection;
@@ -503,7 +505,7 @@ class SignRequestMapper extends CachedQBMapper {
 				$file = File::fromRow($row);
 
 				$files[] = $file;
-			} catch (\Exception) {
+			} catch (\Exception $e) {
 				continue;
 			}
 		}
@@ -740,6 +742,26 @@ class SignRequestMapper extends CachedQBMapper {
 		}
 
 		return $qb;
+	}
+
+
+	/**
+	 * @throws MultipleObjectsReturnedException
+	 * @throws DoesNotExistException
+	 * @throws Exception
+	 */
+	public function getByIdForUpdate(int $id): SignRequest {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('id', $qb->createNamedParameter($id))
+			)
+			->setMaxResults(1);
+
+		$qb->forUpdate();
+		return $this->findEntity($qb);
 	}
 
 	private function getFilesAssociatedFilesWithMeStmt(

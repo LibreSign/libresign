@@ -20,4 +20,3 @@ default:
     jarnaiz\JUnitFormatter\JUnitFormatterExtension:
       filename: report.xml
       outputDir: '%paths.base%/../output/'
-    LibreSign\Behat\TsaExtension\ServiceContainer\TsaExtension: ~

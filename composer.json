@@ -63,6 +63,9 @@
 	"require": {
 		"cweagans/composer-patches": "^2.0",
 		"jeidison/signer-php": "^1.0",
-		"phpseclib/phpseclib": "^3.0"
+		"phpseclib/phpseclib": "^3.0",
+		"ext-simplexml": "*",
+		"ramsey/uuid": "*",
+		"giggsey/libphonenumber-for-php": "^8.13"
 	}
 }

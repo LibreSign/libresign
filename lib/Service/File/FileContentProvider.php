@@ -15,22 +15,23 @@ use OCP\Http\Client\IClientService;
 use OCP\IL10N;
 use Psr\Log\LoggerInterface;
 
-class FileContentProvider {
+class FileContentProvider
+{
 	public function __construct(
 		private IClientService $client,
 		private MimeService $mimeService,
 		private IRootFolder $root,
 		private LoggerInterface $logger,
 		private IL10N $l10n,
-	) {
-	}
+	) {}
 
 	/**
 	 * Get file content from a URL
 	 *
 	 * @throws \Exception if URL is invalid or content cannot be retrieved
 	 */
-	public function getContentFromUrl(string $url): string {
+	public function getContentFromUrl(string $url): string
+	{
 		if (!filter_var($url, FILTER_VALIDATE_URL)) {
 			throw new LibresignException($this->l10n->t('Invalid URL file'), 422);
 		}
@@ -68,7 +69,8 @@ class FileContentProvider {
 	 *
 	 * @throws \Exception if MIME types don't match
 	 */
-	public function getContentFromBase64(string $base64): string {
+	public function getContentFromBase64(string $base64): string
+	{
 		$withMime = explode(',', $base64);
 
 		if (count($withMime) === 2) {
@@ -94,6 +96,30 @@ class FileContentProvider {
 		return $content;
 	}
 
+	public function getContentFromPath(string $path, string $userId): string
+	{
+		try {
+			$node = $this->root
+				->getUserFolder($userId)
+				->get($path);
+
+			if (!$node instanceof \OCP\Files\File) {
+				throw new LibresignException(
+					$this->l10n->t('File not found'),
+					404
+				);
+			}
+
+			return $node->getContent();
+		} catch (\Throwable $e) {
+			throw new LibresignException(
+				$this->l10n->t('File not found'),
+				404,
+				$e
+			);
+		}
+	}
+
 	/**
 	 * Get raw file content from URL or base64 data array
 	 *
@@ -101,13 +127,25 @@ class FileContentProvider {
 	 * @return string File content
 	 * @throws \Exception if data is invalid
 	 */
-	public function getContentFromData(array $data): string {
+	public function getContentFromData(array $data): string
+	{
 		if (!empty($data['file']['url'])) {
 			return $this->getContentFromUrl($data['file']['url']);
 		}
 
 		if (!empty($data['file']['base64'])) {
 			return $this->getContentFromBase64($data['file']['base64']);
+		}
+
+		if (
+			!empty($data['file']['type']) &&
+			$data['file']['type'] === 'path' &&
+			!empty($data['file']['file']['path'])
+		) {
+			return $this->getContentFromPath(
+				$data['file']['file']['path'],
+				$data['userManager']->getUID(),
+			);
 		}
 
 		throw new LibresignException($this->l10n->t('No file source provided'), 422);
@@ -119,7 +157,8 @@ class FileContentProvider {
 	 * @param \OCA\Libresign\Db\File $file
 	 * @throws LibresignException
 	 */
-	public function getContentFromLibresignFile(\OCA\Libresign\Db\File $file): string {
+	public function getContentFromLibresignFile(\OCA\Libresign\Db\File $file): string
+	{
 		try {
 			$nodeId = $file->getSignedNodeId();
 			if (!$nodeId) {

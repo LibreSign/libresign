@@ -27,6 +27,7 @@ class ResultEnricherTest extends TestCase {
 	private IUser&MockObject $currentUser;
 
 	protected function setUp(): void {
+		parent::setUp();
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->accountMethod = $this->createMock(Account::class);

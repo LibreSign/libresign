@@ -6,10 +6,9 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import type { useSignStore } from '../../../store/sign.js'
-import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../../constants.js'
 
 type TokenMethodKey = 'smsToken' | 'whatsappToken' | 'signalToken' | 'telegramToken' | 'xmppToken'
 
@@ -105,36 +104,6 @@ const createSignDocument = (overrides: Partial<SignDocument> = {}): SignDocument
 	visibleElements: [],
 	...overrides,
 })
-
-const createSignMountOptions = () => ({
-	global: {
-		stubs: {
-			NcButton: true,
-			NcDialog: true,
-			NcLoadingIcon: true,
-			TokenManager: true,
-			EmailManager: true,
-			UploadCertificate: true,
-			Documents: true,
-			Signatures: true,
-			Draw: true,
-			ManagePassword: true,
-			CreatePassword: true,
-			NcNoteCard: true,
-			NcPasswordField: true,
-			NcRichText: true,
-		},
-		mocks: {
-			$watch: vi.fn(),
-			$nextTick: vi.fn(),
-		},
-	},
-})
-
-const mountRealSignComponent = async () => {
-	const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
-	return mount(SignComponent.default, createSignMountOptions())
-}
 
 // Global mock for axios - prevents unhandled rejections during component mounting
 vi.mock('@nextcloud/axios', () => {
@@ -498,243 +467,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 		})
 	})
 
-	describe('Sign.vue - lifecycle regressions', () => {
-		it('consumes pendingAction on mount and opens the matching signing modal', async () => {
-			setActivePinia(createPinia())
-
-			const { useSignStore } = await import('../../../store/sign.js')
-			const signStore = useSignStore()
-			const signMethodsStore = useSignMethodsStore()
-
-			signStore.document = createSignDocument({
-				status: FILE_STATUS.ABLE_TO_SIGN,
-				signers: [{ me: true, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, signRequestId: 501, sign_request_uuid: 'pending-action-uuid' }],
-			})
-			signStore.queueAction('sign')
-			signMethodsStore.settings = {
-				clickToSign: {},
-			}
-
-			await mountRealSignComponent()
-			await flushPromises()
-
-			expect(signMethodsStore.modal.clickToSign).toBe(true)
-			expect(signStore.pendingAction).toBe(null)
-		})
-
-		it('emits signing-started on mount when document is already signing in progress', async () => {
-			setActivePinia(createPinia())
-
-			const { useSignStore } = await import('../../../store/sign.js')
-			const signStore = useSignStore()
-
-			signStore.document = createSignDocument({
-				status: FILE_STATUS.SIGNING_IN_PROGRESS,
-				signers: [{ me: true, signRequestId: 501, sign_request_uuid: 'progress-uuid' }],
-			})
-
-			const wrapper = await mountRealSignComponent()
-			await flushPromises()
-
-			expect(wrapper.emitted('signing-started')).toEqual([
-				[{ signRequestUuid: 'progress-uuid', async: true }],
-			])
-		})
-
-		it('resets modal and local signing state when signRequestUuid changes', async () => {
-			setActivePinia(createPinia())
-
-			const { useSignStore } = await import('../../../store/sign.js')
-			const signStore = useSignStore()
-			const signMethodsStore = useSignMethodsStore()
-
-			signStore.document = createSignDocument({
-				signers: [{ me: true, signRequestId: 501, sign_request_uuid: 'uuid-before' }],
-			})
-
-			const wrapper = await mountRealSignComponent()
-			const signVm = wrapper.vm as typeof wrapper.vm & {
-				showManagePassword: boolean
-				signPassword: string
-			}
-			signMethodsStore.showModal('password')
-			signMethodsStore.showModal('token')
-			signStore.setSigningErrors([{ message: 'existing error', code: 422 }])
-			signVm.showManagePassword = true
-			signVm.signPassword = '123456'
-
-			signStore.document = createSignDocument({
-				signers: [{ me: true, signRequestId: 502, sign_request_uuid: 'uuid-after' }],
-			})
-
-			await wrapper.vm.$nextTick()
-			await flushPromises()
-
-			expect(signMethodsStore.modal.password).toBe(false)
-			expect(signMethodsStore.modal.token).toBe(false)
-			expect(signStore.errors).toEqual([])
-			expect(signVm.showManagePassword).toBe(false)
-			expect(signVm.signPassword).toBe('')
-		})
-
-		it('cleans modal and signing errors on unmount', async () => {
-			setActivePinia(createPinia())
-
-			const { useSignStore } = await import('../../../store/sign.js')
-			const signStore = useSignStore()
-			const signMethodsStore = useSignMethodsStore()
-
-			signStore.document = createSignDocument({
-				signers: [{ me: true, signRequestId: 501, sign_request_uuid: 'cleanup-uuid' }],
-			})
-
-			const wrapper = await mountRealSignComponent()
-			signMethodsStore.showModal('password')
-			signMethodsStore.showModal('createSignature')
-			signMethodsStore.settings = {
-				password: { hasSignatureFile: true },
-			}
-			signStore.setSigningErrors([{ message: 'existing error', code: 422 }])
-
-			wrapper.unmount()
-
-			expect(signMethodsStore.modal.password).toBe(false)
-			expect(signMethodsStore.modal.createSignature).toBe(false)
-			expect(signMethodsStore.settings).toEqual({})
-			expect(signStore.errors).toEqual([])
-		})
-	})
-
 	describe('Sign.vue - API error handling', () => {
-		it('emits signed when envelope submit has mixed results and the final result is signed', async () => {
-			const context = {
-				loading: false,
-				elements: [
-					{ elementId: 101, signRequestId: 501, type: 'signature' },
-					{ elementId: 102, signRequestId: 502, type: 'signature' },
-				],
-				canCreateSignature: false,
-				signRequestUuid: 'fallback-uuid',
-				signatureElementsStore: {
-					signs: {},
-				},
-				actionHandler: {
-					showModal: vi.fn(),
-					closeModal: vi.fn(),
-				},
-				signMethodsStore: {
-					certificateEngine: 'openssl',
-				},
-				signStore: {
-					document: {
-						id: 10,
-						nodeType: 'envelope',
-						signers: [
-							{ me: true, signRequestId: 501, sign_request_uuid: 'uuid-file-a' },
-							{ me: true, signRequestId: 502, sign_request_uuid: 'uuid-file-b' },
-						],
-					},
-					clearSigningErrors: vi.fn(),
-					setSigningErrors: vi.fn(),
-					submitSignature: vi.fn()
-						.mockResolvedValueOnce({
-							status: 'signingInProgress',
-							data: {
-								job: {
-									file: { uuid: 'async-validation-uuid' },
-								},
-							},
-						})
-						.mockResolvedValueOnce({
-							status: 'signed',
-							data: {
-								action: 3500,
-								file: { uuid: 'validation-envelope-uuid' },
-							},
-						}),
-				},
-				$emit: vi.fn(),
-				sidebarStore: {
-					hideSidebar: vi.fn(),
-				},
-			}
-
-			await submitSignatureCompatMethod.call(context, {
-				method: 'password',
-				token: '123456',
-			})
-
-			expect(context.signStore.submitSignature).toHaveBeenCalledTimes(2)
-			expect(context.$emit).toHaveBeenCalledWith('signed', expect.objectContaining({
-				action: 3500,
-				signRequestUuid: 'validation-envelope-uuid',
-			}))
-			expect(context.$emit).not.toHaveBeenCalledWith('signing-started', expect.anything())
-			expect(context.loading).toBe(false)
-		})
-
-		it('emits signed when an earlier envelope submission is signed and a later one is unknown', async () => {
-			const context = {
-				loading: false,
-				elements: [
-					{ elementId: 101, signRequestId: 501, type: 'signature' },
-					{ elementId: 102, signRequestId: 502, type: 'signature' },
-				],
-				canCreateSignature: false,
-				signRequestUuid: 'fallback-uuid',
-				signatureElementsStore: {
-					signs: {},
-				},
-				actionHandler: {
-					showModal: vi.fn(),
-					closeModal: vi.fn(),
-				},
-				signMethodsStore: {
-					certificateEngine: 'openssl',
-				},
-				signStore: {
-					document: {
-						id: 10,
-						nodeType: 'envelope',
-						signers: [
-							{ me: true, signRequestId: 501, sign_request_uuid: 'uuid-file-a' },
-							{ me: true, signRequestId: 502, sign_request_uuid: 'uuid-file-b' },
-						],
-					},
-					clearSigningErrors: vi.fn(),
-					setSigningErrors: vi.fn(),
-					submitSignature: vi.fn()
-						.mockResolvedValueOnce({
-							status: 'signed',
-							data: {
-								action: 3500,
-								file: { uuid: 'validation-envelope-uuid' },
-							},
-						})
-						.mockResolvedValueOnce({
-							status: 'unknown',
-							data: {},
-						}),
-				},
-				$emit: vi.fn(),
-				sidebarStore: {
-					hideSidebar: vi.fn(),
-				},
-			}
-
-			await submitSignatureCompatMethod.call(context, {
-				method: 'password',
-				token: '123456',
-			})
-
-			expect(context.signStore.submitSignature).toHaveBeenCalledTimes(2)
-			expect(context.$emit).toHaveBeenCalledWith('signed', expect.objectContaining({
-				action: 3500,
-				signRequestUuid: 'validation-envelope-uuid',
-			}))
-			expect(context.$emit).not.toHaveBeenCalledWith('signing-started', expect.anything())
-		})
-
 		it('keeps certificate validation errors in signStore and does not open certificate modal', async () => {
 			const apiErrors = [{ message: 'Certificate has been revoked', code: 422 }]
 			const context = {
@@ -775,106 +508,6 @@ describe('Sign.vue - signWithTokenCode', () => {
 			expect(context.actionHandler.showModal).not.toHaveBeenCalled()
 			expect(context.signStore.setSigningErrors).toHaveBeenCalledWith(apiErrors)
 			expect(context.loading).toBe(false)
-		})
-
-		it('closes password modal when signing fails with non-retriable certificate error', async () => {
-			const apiErrors = [{ message: 'Certificate revocation status could not be verified', code: 422 }]
-			const context = {
-				loading: false,
-				elements: [],
-				canCreateSignature: false,
-				signRequestUuid: 'test-sign-request-uuid',
-				signMethodsStore: {
-					certificateEngine: 'openssl',
-				},
-				signatureElementsStore: {
-					signs: {},
-				},
-				actionHandler: {
-					showModal: vi.fn(),
-					closeModal: vi.fn(),
-				},
-				signStore: {
-					document: { id: 10 },
-					clearSigningErrors: vi.fn(),
-					setSigningErrors: vi.fn(),
-					submitSignature: vi.fn().mockRejectedValue({
-						type: 'signError',
-						errors: apiErrors,
-					}),
-				},
-				$emit: vi.fn(),
-				sidebarStore: {
-					hideSidebar: vi.fn(),
-				},
-			}
-
-			await submitSignatureCompatMethod.call(context, {
-				method: 'password',
-				token: '123456',
-			})
-
-			expect(context.actionHandler.closeModal).toHaveBeenCalledWith('password')
-			expect(context.signStore.setSigningErrors).toHaveBeenCalledWith(apiErrors)
-			expect(context.loading).toBe(false)
-		})
-
-		it('blocks sign CTA and shows explicit retry action when non-retriable error exists', async () => {
-			setActivePinia(createPinia())
-
-			const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
-			const realSign = SignComponent.default
-			const { useSignStore } = await import('../../../store/sign.js')
-
-			const mountedSignStore = useSignStore()
-			mountedSignStore.document = createSignDocument({
-				status: FILE_STATUS.ABLE_TO_SIGN,
-				signers: [{ me: true, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, signRequestId: 501 }],
-				visibleElements: [],
-			})
-			mountedSignStore.setSigningErrors([
-				{ message: 'Certificate validation failed', code: 422 },
-			])
-
-			const wrapper = mount(realSign, {
-				global: {
-					stubs: {
-						NcButton: {
-							template: '<button><slot /></button>',
-						},
-						NcDialog: true,
-						NcLoadingIcon: true,
-						TokenManager: true,
-						EmailManager: true,
-						UploadCertificate: true,
-						Documents: true,
-						Signatures: true,
-						Draw: true,
-						ManagePassword: true,
-						CreatePassword: true,
-						NcNoteCard: {
-							template: '<div class="nc-note-card-stub"><slot /></div>',
-						},
-						NcPasswordField: true,
-						NcRichText: {
-							props: ['text'],
-							template: '<span>{{ text }}</span>',
-						},
-					},
-					mocks: {
-						$watch: vi.fn(),
-						$nextTick: vi.fn(),
-					},
-				},
-			})
-
-			await wrapper.vm.$nextTick()
-			await wrapper.vm.$nextTick()
-			await flushPromises()
-
-			expect(wrapper.text()).toContain('Try signing again')
-			expect(wrapper.text()).not.toContain('Sign the document.')
-			expect(wrapper.findAll('.nc-note-card-stub')).toHaveLength(1)
 		})
 	})
 
@@ -1318,7 +951,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 				signStore.document = createSignDocument({
 					id: 99,
-					signers: [{ me: true, sign_request_uuid: 'test-sign-request-uuid' }],
+					signRequestUuid: 'test-sign-request-uuid',
 				})
 
 				const submitSignatureMock = vi.fn().mockResolvedValue({ status: 'signed' })
@@ -1404,7 +1037,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				id: 1,
 				type: 'signature',
 				file: { url: '/sig.png', nodeId: 11623 },
-				starred: false,
+				starred: 0,
 				createdAt: '2024-01-01',
 			}
 
@@ -1464,7 +1097,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				id: 1,
 				type: 'signature',
 				file: { url: '/sig.png', nodeId: 11623 },
-				starred: false,
+				starred: 0,
 				createdAt: '2024-01-01',
 			}
 
@@ -1522,7 +1155,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				id: 0,
 				type: '',
 				file: { url: '', nodeId: 0 },
-				starred: false,
+				starred: 0,
 				createdAt: '', // Empty createdAt means no signature
 			}
 
@@ -1560,7 +1193,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				id: 1,
 				type: 'signature',
 				file: { url: '/sig.png', nodeId: 11623 },
-				starred: false,
+				starred: 0,
 				createdAt: '2024-01-01', // Now has a createdAt, signature exists
 			}
 
@@ -1573,69 +1206,6 @@ describe('Sign.vue - signWithTokenCode', () => {
 			])
 			expect(wrapper.vm.hasSignatures).toBe(true)
 			expect(wrapper.vm.needCreateSignature).toBe(false)
-		})
-
-		it('requires signature creation for envelope child elements even when parent signer id differs', async () => {
-			const { default: realSign } = await import('../../../views/SignPDF/_partials/Sign.vue')
-			const { useSignStore } = await import('../../../store/sign.js')
-			const { useSignatureElementsStore } = await import('../../../store/signatureElements.js')
-
-			const signStore = useSignStore()
-			const signatureElementsStore = useSignatureElementsStore()
-
-			signStore.document = createSignDocument({
-				nodeType: 'envelope',
-				signers: [
-					{ signRequestId: 700, me: true },
-				],
-				files: [
-					{
-						id: 10,
-						name: 'child-file',
-						signers: [
-							{ signRequestId: 501, me: true },
-						],
-						visibleElements: [
-							{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
-						],
-					},
-				],
-			})
-
-			signatureElementsStore.signs.signature = {
-				id: 0,
-				type: '',
-				file: { url: '', nodeId: 0 },
-				starred: false,
-				createdAt: '',
-			}
-
-			const wrapper = mount(realSign, {
-				global: {
-					stubs: {
-						NcButton: true,
-						NcDialog: true,
-						NcLoadingIcon: true,
-						TokenManager: true,
-						EmailManager: true,
-						UploadCertificate: true,
-						Documents: true,
-						Signatures: true,
-						Draw: true,
-						ManagePassword: true,
-						CreatePassword: true,
-						NcNoteCard: true,
-						NcPasswordField: true,
-						NcRichText: true,
-					},
-					mocks: {
-						$watch: vi.fn(),
-					},
-				},
-			})
-
-			expect(wrapper.vm.hasSignatures).toBe(false)
-			expect(wrapper.vm.needCreateSignature).toBe(true)
 		})
 
 		it('returns false for needCreateSignature when signer has no placed visibleElements (clickToSign scenario)', async () => {
@@ -1739,249 +1309,3 @@ describe('Sign.vue - signWithTokenCode', () => {
 		})
 	})
 })
-
-	describe('Sign.vue - envelope multi-file signing (issue #7344 phase 2)', () => {
-		let submitSignatureCompatMethod: SubmitSignatureCompatMethod
-
-		beforeAll(async () => {
-			const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
-			submitSignatureCompatMethod = (SignComponent.default as any).methods.submitSignature
-		})
-
-		it('calls signStore.submitSignature once per file for envelopes with multiple me=true signers', async () => {
-			const storeSubmitMock = vi.fn().mockResolvedValue({ status: 'signed', data: {} })
-
-			const context = {
-				loading: false,
-				elements: [
-					{ elementId: 100, signRequestId: 10, type: 'signature' },
-					{ elementId: 200, signRequestId: 20, type: 'signature' },
-				],
-				canCreateSignature: false,
-				signRequestUuid: 'uuid-file-1',
-				signatureElementsStore: { signs: {} },
-				actionHandler: { showModal: vi.fn(), closeModal: vi.fn() },
-				signStore: {
-					document: {
-						id: 1,
-						nodeType: 'envelope',
-						signers: [
-							{ signRequestId: 10, me: true, sign_request_uuid: 'uuid-file-1' },
-							{ signRequestId: 20, me: true, sign_request_uuid: 'uuid-file-2' },
-						],
-					},
-					clearSigningErrors: vi.fn(),
-					setSigningErrors: vi.fn(),
-					submitSignature: storeSubmitMock,
-				},
-				$emit: vi.fn(),
-				sidebarStore: { hideSidebar: vi.fn() },
-			}
-
-			await submitSignatureCompatMethod.call(context, { method: 'clickToSign' })
-
-			expect(storeSubmitMock).toHaveBeenCalledTimes(2)
-			expect(storeSubmitMock).toHaveBeenNthCalledWith(
-				1,
-				{ method: 'clickToSign', elements: [{ documentElementId: 100 }] },
-				'uuid-file-1',
-				{ documentId: 1 },
-			)
-			expect(storeSubmitMock).toHaveBeenNthCalledWith(
-				2,
-				{ method: 'clickToSign', elements: [{ documentElementId: 200 }] },
-				'uuid-file-2',
-				{ documentId: 1 },
-			)
-		})
-
-		it('submits each file without elements when no visible elements are placed (click-to-sign envelope)', async () => {
-			const storeSubmitMock = vi.fn().mockResolvedValue({ status: 'signed', data: {} })
-
-			const context = {
-				loading: false,
-				elements: [],
-				canCreateSignature: false,
-				signRequestUuid: 'uuid-file-1',
-				signatureElementsStore: { signs: {} },
-				actionHandler: { showModal: vi.fn(), closeModal: vi.fn() },
-				signStore: {
-					document: {
-						id: 1,
-						nodeType: 'envelope',
-						signers: [
-							{ signRequestId: 10, me: true, sign_request_uuid: 'uuid-file-1' },
-							{ signRequestId: 20, me: true, sign_request_uuid: 'uuid-file-2' },
-						],
-					},
-					clearSigningErrors: vi.fn(),
-					setSigningErrors: vi.fn(),
-					submitSignature: storeSubmitMock,
-				},
-				$emit: vi.fn(),
-				sidebarStore: { hideSidebar: vi.fn() },
-			}
-
-			await submitSignatureCompatMethod.call(context, { method: 'clickToSign' })
-
-			expect(storeSubmitMock).toHaveBeenCalledTimes(2)
-			expect(storeSubmitMock).toHaveBeenNthCalledWith(
-				1,
-				{ method: 'clickToSign' },
-				'uuid-file-1',
-				{ documentId: 1 },
-			)
-			expect(storeSubmitMock).toHaveBeenNthCalledWith(
-				2,
-				{ method: 'clickToSign' },
-				'uuid-file-2',
-				{ documentId: 1 },
-			)
-		})
-
-		it('preserves single-file behavior when document nodeType is not envelope', async () => {
-			const storeSubmitMock = vi.fn().mockResolvedValue({ status: 'signed', data: {} })
-
-			const context = {
-				loading: false,
-				elements: [
-					{ elementId: 100, signRequestId: 10, type: 'signature' },
-				],
-				canCreateSignature: false,
-				signRequestUuid: 'uuid-file-1',
-				signatureElementsStore: { signs: {} },
-				actionHandler: { showModal: vi.fn(), closeModal: vi.fn() },
-				signStore: {
-					document: {
-						id: 1,
-						nodeType: 'file',
-						signers: [
-							{ signRequestId: 10, me: true, sign_request_uuid: 'uuid-file-1' },
-						],
-					},
-					clearSigningErrors: vi.fn(),
-					setSigningErrors: vi.fn(),
-					submitSignature: storeSubmitMock,
-				},
-				$emit: vi.fn(),
-				sidebarStore: { hideSidebar: vi.fn() },
-			}
-
-			await submitSignatureCompatMethod.call(context, { method: 'clickToSign' })
-
-			expect(storeSubmitMock).toHaveBeenCalledTimes(1)
-			expect(storeSubmitMock).toHaveBeenCalledWith(
-				{ method: 'clickToSign', elements: [{ documentElementId: 100 }] },
-				'uuid-file-1',
-				{ documentId: 1 },
-			)
-		})
-
-		it('includes profileNodeId per element when canCreateSignature is true for envelope', async () => {
-			const storeSubmitMock = vi.fn().mockResolvedValue({ status: 'signed', data: {} })
-
-			const context = {
-				loading: false,
-				elements: [
-					{ elementId: 100, signRequestId: 10, type: 'signature' },
-					{ elementId: 200, signRequestId: 20, type: 'signature' },
-				],
-				canCreateSignature: true,
-				signRequestUuid: 'uuid-file-1',
-				signatureElementsStore: {
-					signs: {
-						signature: { file: { nodeId: 42 } },
-					},
-				},
-				actionHandler: { showModal: vi.fn(), closeModal: vi.fn() },
-				signStore: {
-					document: {
-						id: 1,
-						nodeType: 'envelope',
-						signers: [
-							{ signRequestId: 10, me: true, sign_request_uuid: 'uuid-file-1' },
-							{ signRequestId: 20, me: true, sign_request_uuid: 'uuid-file-2' },
-						],
-					},
-					clearSigningErrors: vi.fn(),
-					setSigningErrors: vi.fn(),
-					submitSignature: storeSubmitMock,
-				},
-				$emit: vi.fn(),
-				sidebarStore: { hideSidebar: vi.fn() },
-			}
-
-			await submitSignatureCompatMethod.call(context, { method: 'clickToSign' })
-
-			expect(storeSubmitMock).toHaveBeenCalledTimes(2)
-			expect(storeSubmitMock).toHaveBeenNthCalledWith(
-				1,
-				{ method: 'clickToSign', elements: [{ documentElementId: 100, profileNodeId: 42 }] },
-				'uuid-file-1',
-				{ documentId: 1 },
-			)
-			expect(storeSubmitMock).toHaveBeenNthCalledWith(
-				2,
-				{ method: 'clickToSign', elements: [{ documentElementId: 200, profileNodeId: 42 }] },
-				'uuid-file-2',
-				{ documentId: 1 },
-			)
-		})
-
-		it('submits each envelope file when current signer uuids only exist in child files', async () => {
-			const storeSubmitMock = vi.fn().mockResolvedValue({ status: 'signed', data: {} })
-
-			const context = {
-				loading: false,
-				elements: [
-					{ elementId: 100, signRequestId: 10, type: 'signature' },
-					{ elementId: 200, signRequestId: 20, type: 'signature' },
-				],
-				canCreateSignature: false,
-				signRequestUuid: 'fallback-envelope-uuid',
-				signatureElementsStore: { signs: {} },
-				actionHandler: { showModal: vi.fn(), closeModal: vi.fn() },
-				signMethodsStore: { certificateEngine: 'openssl' },
-				signStore: {
-					document: {
-						id: 1,
-						nodeType: 'envelope',
-						signers: [],
-						files: [
-							{
-								signers: [
-									{ signRequestId: 10, me: true, sign_request_uuid: 'uuid-file-1' },
-								],
-							},
-							{
-								signers: [
-									{ signRequestId: 20, me: true, sign_request_uuid: 'uuid-file-2' },
-								],
-							},
-						],
-					},
-					clearSigningErrors: vi.fn(),
-					setSigningErrors: vi.fn(),
-					submitSignature: storeSubmitMock,
-				},
-				$emit: vi.fn(),
-				sidebarStore: { hideSidebar: vi.fn() },
-			}
-
-			await submitSignatureCompatMethod.call(context, { method: 'clickToSign' })
-
-			expect(storeSubmitMock).toHaveBeenCalledTimes(2)
-			expect(storeSubmitMock).toHaveBeenNthCalledWith(
-				1,
-				{ method: 'clickToSign', elements: [{ documentElementId: 100 }] },
-				'uuid-file-1',
-				{ documentId: 1 },
-			)
-			expect(storeSubmitMock).toHaveBeenNthCalledWith(
-				2,
-				{ method: 'clickToSign', elements: [{ documentElementId: 200 }] },
-				'uuid-file-2',
-				{ documentId: 1 },
-			)
-		})
-	})

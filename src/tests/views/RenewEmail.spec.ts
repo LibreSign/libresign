@@ -4,6 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 import axios from '@nextcloud/axios'
 
@@ -20,7 +21,7 @@ const loadStateMock = vi.fn((_: string, key: string) => {
 	return values[key]
 })
 
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {

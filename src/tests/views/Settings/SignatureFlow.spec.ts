@@ -4,6 +4,7 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 import { flushPromises, mount } from '@vue/test-utils'
 
 type SignatureFlowOption = {
@@ -34,7 +35,7 @@ vi.mock('@nextcloud/axios', () => ({
 	},
 }))
 
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 let SignatureFlow: unknown
 

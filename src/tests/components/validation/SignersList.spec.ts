@@ -4,6 +4,7 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount, VueWrapper } from '@vue/test-utils'
 
 type Signer = {
@@ -28,7 +29,7 @@ type SignersListWrapper = VueWrapper<any> & {
 let SignersList: unknown
 
 
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 vi.mock('@nextcloud/moment', () => ({
 	default: vi.fn((date) => ({

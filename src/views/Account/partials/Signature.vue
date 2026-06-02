@@ -61,8 +61,6 @@ import {
 } from '@mdi/js'
 
 
-import { showError, showSuccess } from '@nextcloud/dialogs'
-
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -71,6 +69,7 @@ import Draw from '../../../components/Draw/Draw.vue'
 import PreviewSignature from '../../../components/PreviewSignature/PreviewSignature.vue'
 
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
+import { showError, showSuccess } from '../../../services/toast'
 
 defineOptions({
 	name: 'Signature',

@@ -4,14 +4,13 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import SignatureEngine from '../../../views/Settings/SignatureEngine.vue'
 
-const { loadStateMock, emitMock } = vi.hoisted(() => ({
-	loadStateMock: vi.fn(),
-	emitMock: vi.fn(),
-}))
+const loadStateMock = vi.fn()
+const emitMock = vi.fn()
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: (...args: unknown[]) => loadStateMock(...args),
@@ -21,7 +20,7 @@ vi.mock('@nextcloud/event-bus', () => ({
 	emit: (...args: unknown[]) => emitMock(...args),
 }))
 
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 const OCP = {
 	AppConfig: {

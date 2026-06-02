@@ -107,8 +107,12 @@ appstore:
 		appinfo \
 		composer \
 		css \
+		dist \
 		img \
 		js \
+		css \
+		fonts \
+		dist \
 		l10n \
 		lib \
 		templates \
@@ -117,9 +121,6 @@ appstore:
 		CHANGELOG.md \
 		openapi*.json \
 		$(appstore_sign_dir)/$(app_name)
-	if [ -d dist ]; then \
-		cp -r dist $(appstore_sign_dir)/$(app_name)/; \
-	fi
 	rm -rf $(appstore_sign_dir)/$(app_name)/img/screenshot/
 	rm -rf $(appstore_sign_dir)/$(app_name)/3rdparty/.git
 	rm -rf $(appstore_sign_dir)/$(app_name)/3rdparty/.github
@@ -177,8 +178,7 @@ appstore:
 .PHONY: verify-appstore-package
 verify-appstore-package:
 	test -d $(appstore_sign_dir)/$(app_name)/css
-	test -d $(appstore_sign_dir)/$(app_name)/js
-	find $(appstore_sign_dir)/$(app_name)/js -maxdepth 1 -name 'pdf.worker.min-*.mjs' | grep -q .
 	if [ -d dist ]; then \
 		test -d $(appstore_sign_dir)/$(app_name)/dist; \
+		find $(appstore_sign_dir)/$(app_name)/dist -maxdepth 1 -name 'pdf.worker.min-*.mjs' | grep -q .; \
 	fi

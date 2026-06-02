@@ -4,6 +4,7 @@
  */
 
 import { beforeAll, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 
@@ -27,7 +28,7 @@ vi.mock('@nextcloud/dialogs', () => ({
 	showSuccess: vi.fn(),
 }))
 
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 type SignatureComponent = typeof import('../../../../views/Account/partials/Signature.vue').default
 

@@ -4,6 +4,7 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 const getCurrentUserMock = vi.fn()
@@ -16,7 +17,7 @@ vi.mock('@nextcloud/router', () => ({
 	generateUrl: vi.fn(() => '/settings/admin/libresign'),
 }))
 
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 let IncompleteCertification: unknown
 

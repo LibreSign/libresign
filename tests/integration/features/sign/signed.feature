@@ -9,11 +9,7 @@ Feature: signed
     And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
     And run the command "config:app:set libresign add_footer --value=true --type=boolean" with result code 0
     And run the command "config:app:set libresign write_qrcode_on_footer --value=true --type=boolean" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/admin/tsa"
-      | tsa_url        | <TSA_URL> |
-      | tsa_policy_oid | 1.2.3.4.1 |
-      | tsa_auth_type  | none      |
-    And the response should have a status code 200
+    And run the command "config:app:set libresign tsa_url --value=https://freetsa.org/tsr --type=string" with result code 0
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"password":{"name":"password","enabled":true}},"signatureMethodEnabled":"password"}] |
     And the response should have a status code 200
@@ -27,11 +23,11 @@ Feature: signed
     Then the response should be a JSON array with the following mandatory values
       | key                        | value         |
       | (jq).ocs.data.data[0].name | Document Name |
-    And fetch field "(SIGN_REQUEST_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
+    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
     And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
     And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
       | signPassword | TheComplexPfxPasswordHere |
-    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_REQUEST_UUID>"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
       | method | password |
       | token | TheComplexPfxPasswordHere |
     And the response should have a status code 200
@@ -80,9 +76,9 @@ Feature: signed
     Then the response should be a JSON array with the following mandatory values
       | key                        | value         |
       | (jq).ocs.data.data[0].name | Document Name |
-    And fetch field "(SIGN_REQUEST_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
+    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
     And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
-    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_REQUEST_UUID>"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
       | method | clickToSign |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -145,9 +141,9 @@ Feature: signed
     Then the response should be a JSON array with the following mandatory values
       | key                        | value         |
       | (jq).ocs.data.data[0].name | Document Name |
-    And fetch field "(SIGN_REQUEST_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
+    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
     And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
-    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_REQUEST_UUID>"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
       | method | clickToSign |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -198,7 +194,7 @@ Feature: signed
     And I open the latest email to "unauthenticated@email.tld" with subject "LibreSign: There is a file for you to sign"
     And I fetch the signer UUID from opened email
     And as user ""
-    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_REQUEST_UUID>"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
       | method | clickToSign |
     And the response should have a status code 200
     And the response should be a JSON array with the following mandatory values

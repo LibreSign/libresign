@@ -4,6 +4,7 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
@@ -47,26 +48,8 @@ const createValidationFile = (overrides: Partial<ValidationFileRecord> = {}): Va
 	statusText: 'Draft',
 	nodeId: 1,
 	nodeType: 'file',
-	signatureFlow: 'none',
+	signatureFlow: 0,
 	docmdpLevel: 0,
-	filesCount: 1,
-	files: [
-		{
-			id: 1,
-			uuid: 'file-uuid',
-			name: 'stub.pdf',
-			status: 0,
-			statusText: 'Draft',
-			nodeId: 1,
-			size: 0,
-			signers: [],
-			file: '/apps/libresign/p/pdf/file-uuid',
-			metadata: {
-				extension: 'pdf',
-				p: 1,
-			},
-		},
-	],
 	totalPages: 1,
 	size: 0,
 	pdfVersion: '1.7',
@@ -83,7 +66,7 @@ let axios: AxiosMock
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((url) => url.replace(/{id}/, 'fileId')),
 }))
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 vi.mock('@nextcloud/files', () => ({
 	formatFileSize: vi.fn((size) => `${size}B`),
 }))

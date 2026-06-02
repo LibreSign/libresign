@@ -308,7 +308,6 @@ import {
 
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import { showError, showSuccess } from '@nextcloud/dialogs'
 
 import { useUserConfigStore } from '../../store/userconfig.js'
 
@@ -326,6 +325,8 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
+
+import { showError, showSuccess } from '../../services/toast'
 
 type SelectOption = {
 	value: string

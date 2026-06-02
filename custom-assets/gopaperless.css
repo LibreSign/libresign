@@ -1,0 +1,307 @@
+/*
+// For testing
+#header {
+	display: none !important;
+}
+*/
+@font-face {
+	font-family: "Space Grotesk";
+	src: url("/apps-extra/libresign/fonts/SpaceGrotesk-VariableFont_wght.ttf") format("truetype");
+	font-weight: 300 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+body {
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+button,
+.button-vue,
+input,
+label,
+p,
+span {
+    font-family: 'Space Grotesk', sans-serif !important;
+}
+
+#header .header-start nav.app-menu {
+	display: none !important;
+}
+
+#header .header-end #notifications {
+	display: none !important;
+}
+
+#header .header-end #contactsmenu {
+	display: none !important;
+}
+
+#header .header-end {
+	gap: 0;
+}
+
+#header .header-start {
+	gap: 0;
+}
+
+.unified-search-modal__filters {
+	display: none !important;
+}
+
+@media (prefers-color-scheme: light) {
+    main.app-content .container {
+		background-color: #f5f5f5;
+	}
+
+	.app-navigation,
+	.app-navigation-list {
+		background-color: #dfe9e4 !important;
+	}
+}
+
+/* ==========================================
+   2. AGGRESIVE DARK MODE FALLBACKS FOR ADMIN
+   ========================================== */
+/* These will step in and apply only when the JS watchdog is inactive
+   (like in server-rendered admin pages) and Nextcloud forces its dark theme tags */
+
+body[data-themes="dark"] #body-settings .app-navigation,
+body[data-themes="dark"] #body-settings .app-navigation-list,
+body[data-theme-dark] #body-settings .app-navigation,
+body[data-theme-dark] #body-settings .app-navigation-list {
+    background-color: #F8FAFC !important;
+    padding: 20px 12px !important;
+}
+
+/* Optional: Ensure text remains highly visible over the light background in admin */
+body[data-themes="dark"] #body-settings .app-navigation-list a,
+body[data-themes="dark"] #body-settings .app-navigation-list span {
+    color: #1e293b !important; /* Dark text color for readability */
+}
+
+/* Fix text contrast in dark admin sidebars so menu links stay perfectly legible */
+body.theme-dark .app-navigation-list '../../' a,
+body.theme-dark .app-navigation-list span {
+    color: #e2e8f0 !important;
+}
+
+#container-request {
+	max-width: 520px;
+	margin: 120px auto;
+	padding: 48px;
+	border-radius: 16px;
+	background: #ffffff;
+	box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+	text-align: center;
+}
+
+#container-request header h1 {
+	font-size: 28px;
+	margin-bottom: 12px;
+}
+
+#container-request header p {
+	font-size: 16px;
+	color: #6b7280;
+	margin-bottom: 32px;
+}
+
+.request-picker-buttons {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	align-items: center;
+}
+
+.request-picker-buttons button:last-child {
+	background: var(--color-primary-element);
+	color: white;
+}
+
+.button-vue {
+	padding: 5px 20px !important;
+    border-radius: 10px !important;
+}
+
+.gopaperless-onboarding {
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 9999;
+	backdrop-filter: blur(3px);
+}
+
+.gopaperless-onboarding-card {
+	position: relative;
+	background: white;
+	padding: 40px;
+	border-radius: 16px;
+	width: 420px;
+	max-width: 90%;
+	text-align: center;
+	box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+	animation: gopaperlessModalIn 0.35s ease;
+}
+
+p.social-button a img {
+	width: 30px;
+	height: auto;
+}
+
+@keyframes gopaperlessModalIn {
+	from {
+		transform: translateY(20px);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+.gopaperless-onboarding-header h2 {
+	margin-bottom: 8px;
+}
+
+.gopaperless-onboarding-header p {
+	color: #6b7280;
+	margin-bottom: 24px;
+}
+
+.gopaperless-steps {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin-bottom: 28px;
+}
+
+.gopaperless-step {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	text-align: left;
+	padding: 12px;
+	border-radius: 10px;
+	background: #f9fafb;
+}
+
+.gopaperless-step-icon {
+	width: 36px;
+	height: 36px;
+	border-radius: 8px;
+	background: #e6f4ea;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 16px;
+}
+
+.gopaperless-step span {
+	display: block;
+	font-size: 13px;
+	color: #6b7280;
+}
+
+.gopaperless-start {
+	width: 100%;
+	background: #16a34a;
+	color: white;
+	border: none;
+	padding: 5px 20px !important;
+	border-radius: 10px !important;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.gopaperless-start:hover {
+	background: #15803d;
+}
+
+.gopaperless-skip {
+	margin-top: 10px;
+	background: none;
+	border: none;
+	color: #6b7280;
+	cursor: pointer;
+}
+
+.gopaperless-close {
+	position: absolute;
+	top: 16px;
+	right: 18px;
+	border: none;
+	background: none;
+	font-size: 20px;
+	cursor: pointer;
+}
+
+
+.gopaperless-illustration {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 640px) {
+
+	.gopaperless-onboarding {
+		padding: 20px;
+		align-items: flex-start;
+		overflow-y: auto;
+	}
+
+	.gopaperless-onboarding-card {
+		width: 100%;
+		max-width: 100%;
+		padding: 28px 20px;
+		margin-top: 40px;
+		border-radius: 14px;
+	}
+
+	.gopaperless-illustration svg {
+		width: 150px;
+		height: auto;
+	}
+
+	.gopaperless-onboarding-header h2 {
+		font-size: 20px;
+	}
+
+	.gopaperless-onboarding-header p {
+		font-size: 14px;
+	}
+
+	.gopaperless-steps {
+		gap: 12px;
+		margin-bottom: 22px;
+	}
+
+	.gopaperless-step {
+		padding: 10px;
+		gap: 10px;
+	}
+
+	.gopaperless-step-icon {
+		width: 32px;
+		height: 32px;
+	}
+
+	.gopaperless-step strong {
+		font-size: 14px;
+	}
+
+	.gopaperless-step span {
+		font-size: 12px;
+	}
+
+	.gopaperless-start {
+		padding: 10px 18px !important;
+		font-size: 14px;
+	}
+
+}

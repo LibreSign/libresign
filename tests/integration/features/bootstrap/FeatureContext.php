@@ -49,7 +49,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	protected function parseText(string $text): string {
 		$fields = $this->fields;
 		$fields['BASE_URL'] = $this->baseUrl . '/index.php';
-		$fields['TSA_URL'] = getenv('LIBRESIGN_TSA_URL') ?: 'https://freetsa.org/tsr';
 		foreach ($fields as $key => $value) {
 			$patterns[] = '/<' . $key . '>/';
 			$replacements[] = $value;
@@ -69,7 +68,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$openedEmail = $this->openedEmailStorage->getOpenedEmail();
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)"/', $openedEmail->body, $matches);
 		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
-		$this->fields['SIGN_REQUEST_UUID'] = $matches['uuid'];
+		$this->fields['SIGN_UUID'] = $matches['uuid'];
 	}
 
 	#[Given('I send a file to be signed')]
@@ -159,7 +158,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 
 		preg_match('/f\/sign\/(?<uuid>[\w-]+)\/pdf$/', $found['link'], $matches);
 		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
-		$this->fields['SIGN_REQUEST_UUID'] = $matches['uuid'];
+		$this->fields['SIGN_UUID'] = $matches['uuid'];
 	}
 
 	#[Given('user :user uploads file :source to :path')]
@@ -185,14 +184,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			</d:propfind>
 			XML;
 		$this->davRequest($user, 'PROPFIND', $path, $body, ['Depth' => '0']);
-	}
-
-	#[Given('user :user sends WebDAV :method to :path')]
-	public function userSendsWebDavRequest(string $user, string $method, string $path): void {
-		$this->setCurrentUser($user);
-		$normalizedMethod = strtoupper(trim($method));
-		Assert::assertContains($normalizedMethod, ['DELETE', 'PUT', 'PROPFIND', 'GET', 'HEAD', 'MOVE', 'COPY', 'MKCOL'], 'Unsupported WebDAV method');
-		$this->davRequest($user, $normalizedMethod, $path);
 	}
 
 	#[Given('the WebDAV response should contain property :property with value :value')]

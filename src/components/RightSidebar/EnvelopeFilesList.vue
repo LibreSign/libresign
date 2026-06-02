@@ -412,17 +412,11 @@ function validateMaxFileUploads(filesCount: number) {
 	return true
 }
 
-function getPreviewUrl(file: Partial<EnvelopeFile> & { id?: number; nodeId?: number }) {
-	if (!file.id && !file.nodeId) return null
-
-	const previewUrl = file.id
-		? generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
-			fileId: file.id,
-		})
-		: generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
-			nodeId: file.nodeId,
-		})
-	const url = new URL(previewUrl)
+function getPreviewUrl(file: Partial<EnvelopeFile> & { nodeId?: number }) {
+	if (!file.nodeId) return null
+	const url = new URL(generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
+		nodeId: file.nodeId,
+	}))
 	url.searchParams.set('x', '32')
 	url.searchParams.set('y', '32')
 	url.searchParams.set('mimeFallback', 'true')

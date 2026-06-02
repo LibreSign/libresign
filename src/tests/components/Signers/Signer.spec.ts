@@ -4,6 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
@@ -23,7 +24,7 @@ type FileSigner = {
 }
 
 type SelectedFile = {
-	signatureFlow?: string
+	signatureFlow?: string | number
 	signers: FileSigner[]
 }
 
@@ -81,7 +82,7 @@ vi.mock('@nextcloud/event-bus', () => ({
 	unsubscribe: vi.fn(),
 }))
 
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 import { emit } from '@nextcloud/event-bus'
 
@@ -142,23 +143,23 @@ describe('Signer', () => {
 		vi.clearAllMocks()
 	})
 
-	describe('RULE: signatureFlow uses string contract values only', () => {
-		it('returns ordered_numeric for ordered_numeric flow', () => {
-			filesStore.selectedFile = { signatureFlow: 'ordered_numeric', signers: [{}] }
+	describe('RULE: signatureFlow maps numeric values to string constants', () => {
+		it('returns ordered_numeric for value 2', () => {
+			filesStore.selectedFile = { signatureFlow: 2, signers: [{}] }
 			wrapper = createWrapper()
 
 			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
 		})
 
-		it('returns parallel for parallel flow', () => {
-			filesStore.selectedFile = { signatureFlow: 'parallel', signers: [{}] }
+		it('returns parallel for value 1', () => {
+			filesStore.selectedFile = { signatureFlow: 1, signers: [{}] }
 			wrapper = createWrapper()
 
 			expect(wrapper.vm.signatureFlow).toBe('parallel')
 		})
 
-		it('returns none for none flow', () => {
-			filesStore.selectedFile = { signatureFlow: 'none', signers: [{}] }
+		it('returns none for value 0', () => {
+			filesStore.selectedFile = { signatureFlow: 0, signers: [{}] }
 			wrapper = createWrapper()
 
 			expect(wrapper.vm.signatureFlow).toBe('none')

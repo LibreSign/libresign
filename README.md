@@ -1,5 +1,5 @@
 <!--
- - SPDX-FileCopyrightText: 2020-2026 LibreCode coop and contributors
+ - SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
  - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 ![Test Status](https://github.com/LibreSign/libresign/actions/workflows/behat.yml/badge.svg?branch=main)
@@ -8,66 +8,35 @@
 [![REUSE status](https://api.reuse.software/badge/github.com/LibreSign/libresign)](https://api.reuse.software/info/github.com/LibreSign/libresign)
 [![Start contributing](https://img.shields.io/github/issues/LibreSign/libresign/good%20first%20issue?color=7057ff&label=Contribute)](https://github.com/LibreSign/libresign/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22)
 
-# LibreSign
+Nextcloud app to sign PDF documents.
 
-Control how your documents get signed
+<img src="img/LibreSign.png" />
 
-LibreSign helps you control how document signing works across your organization.  
-Organizations use it with Nextcloud to run signing workflows that match internal rules, legal requirements, and daily processes.  
-It gives teams clear visibility into who signed, when they signed, and how each request moved through the process.
+[![Request a feature](https://img.shields.io/badge/Request%20a%20feature-7057ff?style=for-the-badge)](https://github.com/LibreSign/libresign/issues/new?template=feature_request.yml)
+[![Report a BUG](https://img.shields.io/badge/Report%20a%20bug-8e0000?style=for-the-badge)](https://github.com/LibreSign/libresign/issues/new?template=bug_report.yml)
 
-## Key features
+## Star History
 
-- Define signing order, roles, and rules per document flow
-- Include internal and external signers in the same request
-- Request and track signatures from start to completion
-- Send notifications and reminders to signers
-- Keep a traceable record of requests, actions, and validations
-- Validate signed documents and certificate status
-- Work directly with Nextcloud files, users, and sharing context
-- Integrate signing with other systems through APIs
-
-## Why LibreSign
-
-LibreSign is for teams where signing is part of a controlled business process.
-
-- Define clear signing rules by role, stage, or document type
-- Keep traceability for audits, legal checks, and internal reviews
-- Align signing with existing approval and governance processes
-- Adapt workflows to how your organization works instead of following fixed external models
+[![Star History Chart](https://api.star-history.com/svg?repos=libresign/libresign&type=Date)](https://www.star-history.com/#libresign/libresign&Date)
 
 ## Contributing
 
-Contributions are welcome from developers, implementers, and teams that use LibreSign in production.
+There are many ways to contribute, including writing code, filing issues on GitHub, helping people Overflow, helping to triage, reproduce, or fix bugs that people have filed, adding to our documentation.
+To get more details go to our [contributing guide](CONTRIBUTING.md).
 
-- Report bugs or suggest improvements: [Open an issue](https://github.com/LibreSign/libresign/issues)
-- Start with simple tasks: [Good first issues](https://github.com/LibreSign/libresign/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
-- Help with translations: [Transifex](https://app.transifex.com/nextcloud/nextcloud/libresign)
+## Integrations
 
-## Contributors
+* [GLPI](https://github.com/LibreSign/libresign-glpi): Plugin to sign GLPI tickets
+* [Approval](https://github.com/nextcloud/approval): Approve/reject files based on workflows defined by admins
 
-Thanks to all the people who contribute to LibreSign:
+## API Documentation
+
+[API Documentation](https://libresign.github.io/)
+
+## Contributors ✨
+
+Thanks go to these wonderful people:
 
 <a href="https://github.com/LibreSign/libresign/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=LibreSign/libresign" />
 </a>
-
-## Screenshots
-
-<p align="center">
-  <img src="img/LibreSign.png" alt="LibreSign interface screenshot" width="900"/>
-</p>
-
-## Documentation
-
-- Official documentation: https://docs.libresign.coop/
-- Developer manual: https://docs.libresign.coop/developer_manual/
-- Documentation repository: https://github.com/LibreSign/documentation
-
-## Sponsors
-
-If your organization depends on LibreSign, please sponsor the project.
-
-Sponsorship directly supports ongoing maintenance, reliable releases, better documentation, and long-term continuity for teams that rely on LibreSign in real workflows.
-
-Support LibreSign: https://github.com/sponsors/LibreSign

@@ -59,9 +59,6 @@
 			</template>
 		</NcListItem>
 
-		<!-- Timestamp Authority (TSA) -->
-		<SignerTimestamp v-if="isOpen" :timestamp="signer.timestamp" />
-
 		<!-- Validation Status Section -->
 		<NcListItem v-if="isOpen && hasValidationStatus(signer)"
 			class="extra"
@@ -118,7 +115,7 @@
 			</NcListItem>
 			<NcListItem v-if="signer.crl_validation" class="extra-chain" compact>
 				<template #icon>
-					<NcIconSvgWrapper :path="getCrlValidationIconPath(signer)"
+					<NcIconSvgWrapper :path="crlStatusMap[signer.crl_validation]?.icon || mdiHelpCircle"
 						:class="getCrlValidationIconClass(signer)" />
 				</template>
 				<template #name>
@@ -245,7 +242,6 @@ import Moment from '@nextcloud/moment'
 import { computed, ref } from 'vue'
 
 import CertificateChain from './CertificateChain.vue'
-import SignerTimestamp from './SignerTimestamp.vue'
 
 import {
 	mdiAlertCircle,
@@ -286,23 +282,9 @@ type SignerModifications = {
 	revisionCount?: number
 }
 
-type SignerTimestamp = {
-	genTime?: string
-	policy?: string
-	policyName?: string
-	hash?: string
-	hashAlgorithm?: string
-	serialNumber?: string | number
-	authority?: string
-	tsaName?: string
-	cnHints?: {
-		commonName?: string
-	}
-}
-
 type SignerModel = {
 	displayName?: string
-	email?: string | null
+	email?: string
 	name?: string
 	remote_address?: string
 	user_agent?: string
@@ -317,7 +299,6 @@ type SignerModel = {
 	docmdp_validation?: { message?: string }
 	modification_validation?: SignerModificationValidation
 	modifications?: SignerModifications
-	timestamp?: SignerTimestamp
 	signatureTypeSN?: string
 	hash?: string
 	chain?: Record<string, unknown>[]
@@ -383,13 +364,13 @@ function isRevokedBeforeSigning(signer: SignerModel) {
 		return true
 	}
 
-	const revokedTime = new Date(revokedAt).getTime()
-	const signedTime = new Date(signedAt).getTime()
-	if (Number.isNaN(revokedTime) || Number.isNaN(signedTime)) {
+	const revokedDate = new Date(revokedAt)
+	const signedDate = new Date(signedAt)
+	if (Number.isNaN(revokedDate.getTime()) || Number.isNaN(signedDate.getTime())) {
 		return true
 	}
 
-	return revokedTime <= signedTime
+	return revokedDate <= signedDate
 }
 
 function hasValidationIssues(signer: SignerModel) {
@@ -454,21 +435,9 @@ function getCrlValidationIconClass(signer: SignerModel) {
 	return crlStatusMap[signer.crl_validation ?? '']?.class || 'icon-warning'
 }
 
-function getCrlValidationIconPath(signer: SignerModel) {
-	if (isRevokedStatus(signer.crl_validation)) {
-		return isRevokedBeforeSigning(signer) ? mdiCloseCircle : mdiCheckCircle
-	}
-	return crlStatusMap[signer.crl_validation ?? '']?.icon || mdiHelpCircle
-}
-
 function dateFromSqlAnsi(date?: string | number | null) {
 	if (!date) return ''
 	return Moment(String(date)).format('LLL')
-}
-
-function dateFromSqlAnsiWithSeconds(date?: string | number | null) {
-	if (!date) return ''
-	return Moment(String(date)).format('L LTS')
 }
 
 function getCrlStatusText(signer: SignerModel) {
@@ -478,16 +447,12 @@ function getCrlStatusText(signer: SignerModel) {
 	}
 
 	if (isRevokedBeforeSigning(signer)) {
-		if (signer.crl_revoked_at) {
-			const revokedAt = dateFromSqlAnsiWithSeconds(signer.crl_revoked_at)
-			return t('libresign', 'CRL: Certificate revoked before signing (revocation date: {revokedAt})', { revokedAt })
-		}
 		return t('libresign', 'CRL: Certificate revoked before signing')
 	}
 
 	if (signer.crl_revoked_at) {
-		const revokedAt = dateFromSqlAnsiWithSeconds(signer.crl_revoked_at)
-		return t('libresign', 'CRL: Valid at signing time (revocation date: {revokedAt})', { revokedAt })
+		const formattedDate = dateFromSqlAnsi(signer.crl_revoked_at)
+		return t('libresign', 'CRL: Valid at signing time (revoked on {date})', { date: formattedDate })
 	}
 	return t('libresign', 'CRL: Valid at signing time')
 }
@@ -551,14 +516,12 @@ defineExpose({
 	getSignatureValidationMessage,
 	getCertificateTrustMessage,
 	getValidityStatusAtSigning,
-	getCrlValidationIconPath,
 	getCrlValidationIconClass,
 	getCrlStatusText,
 	hasDocMdpInfo,
 	getModificationStatusIcon,
 	getModificationStatusClass,
 	dateFromSqlAnsi,
-	dateFromSqlAnsiWithSeconds,
 	formatTimestamp,
 })
 </script>

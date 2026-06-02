@@ -170,7 +170,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			if (!empty($timestampData['genTime']) || !empty($timestampData['policy']) || !empty($timestampData['serialNumber'])) {
 				$result['timestamp'] = $timestampData;
 			}
-		} catch (\Throwable) {
+		} catch (\Throwable $e) {
 		}
 
 		if (!isset($result['signingTime']) || !$result['signingTime'] instanceof \DateTime) {
@@ -247,7 +247,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		foreach ($organizationalUnits as $ou) {
-			$ou = trim((string)$ou);
+			$ou = trim($ou);
 			if ($this->caIdentifierService->isValidCaId($ou, $instanceId)) {
 				return true;
 			}

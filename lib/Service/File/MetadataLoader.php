@@ -31,11 +31,11 @@ class MetadataLoader {
 			return;
 		}
 
-		$rawMetadata = $file->getMetadata() ?? [];
-
 		try {
 			$fileNode = $this->getFileNode($file);
-			$metadata = $rawMetadata;
+			$metadata = $file->getMetadata() ?? [];
+
+			$fileData->metadata = $metadata;
 
 			if (method_exists($fileNode, 'getSize')) {
 				$fileData->size = $fileNode->getSize();
@@ -49,11 +49,9 @@ class MetadataLoader {
 			}
 
 			$fileData->pages = $this->getPages($file);
+
 			$fileData->totalPages = (int)($metadata['p'] ?? count($fileData->pages ?? []));
 			$fileData->pdfVersion = (string)($metadata['pdfVersion'] ?? '');
-
-			$metadata = ValidationMetadataNormalizer::normalize($metadata, $file->getName(), $fileData->totalPages);
-			$fileData->metadata = $metadata;
 		} catch (\Throwable $e) {
 			$this->logger->warning('Failed to load file metadata: ' . $e->getMessage());
 		}
@@ -61,11 +59,6 @@ class MetadataLoader {
 		$fileData->size ??= 0;
 		$fileData->totalPages ??= 0;
 		$fileData->pdfVersion ??= '';
-		$fileData->metadata = ValidationMetadataNormalizer::normalize(
-			is_array($fileData->metadata ?? null) ? $fileData->metadata : $rawMetadata,
-			$file->getName(),
-			(int)$fileData->totalPages,
-		);
 	}
 
 	/**

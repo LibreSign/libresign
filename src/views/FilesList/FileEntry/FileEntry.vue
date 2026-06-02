@@ -55,7 +55,6 @@
 import { t } from '@nextcloud/l10n'
 import { ref } from 'vue'
 
-import { showSuccess } from '@nextcloud/dialogs'
 import NcDateTime from '@nextcloud/vue/components/NcDateTime'
 
 import FileEntryActions from './FileEntryActions.vue'
@@ -68,6 +67,7 @@ import FileEntryStatus from './FileEntryStatus.vue'
 import { useFileEntry, type FileEntrySource } from '../../../composables/useFileEntry.js'
 import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import { useFilesStore } from '../../../store/files.js'
+import { showSuccess } from '../../../services/toast'
 
 defineOptions({
 	name: 'FileEntry',

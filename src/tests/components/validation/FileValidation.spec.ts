@@ -4,6 +4,7 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import type { LoadedValidationFileDocument } from '../../../types/index'
@@ -18,7 +19,7 @@ type WrapperProps = {
 }
 
 let FileValidation: FileValidationComponent
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 beforeAll(async () => {
 	;({ default: FileValidation } = await import('../../../components/validation/FileValidation.vue'))
@@ -38,24 +39,8 @@ describe('FileValidation', () => {
 			statusText: 'Pending',
 			nodeId: 123,
 			nodeType: 'file',
-			signatureFlow: 'none',
+			signatureFlow: 0,
 			docmdpLevel: 0,
-			filesCount: 1,
-			files: [{
-				id: 1,
-				uuid: '550e8400-e29b-41d4-a716-446655440000',
-				name: 'Test Document',
-				status: 1,
-				statusText: 'Pending',
-				nodeId: 123,
-				size: 0,
-				signers: [],
-				file: '/apps/libresign/p/pdf/550e8400-e29b-41d4-a716-446655440000',
-				metadata: {
-					extension: 'pdf',
-					p: 1,
-				},
-			}],
 			totalPages: 1,
 			status: 1,
 			size: 0,

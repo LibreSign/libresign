@@ -1,0 +1,25 @@
+:root {
+  --gp-success-bg: rgba(46, 160, 67, 0.15);
+  --gp-success-text: #1e7e34;
+  --gp-error-bg: rgba(220, 53, 69, 0.15);
+  --gp-error-text: #c82333;
+  --toast-icon-margin-end: 12px !important;
+}
+
+[data-sonner-toaster][dir="ltr"] {
+  --toast-icon-margin-end: 12px;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}

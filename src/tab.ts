@@ -4,13 +4,15 @@
  */
 
 import { createPinia } from 'pinia'
-import { createApp, type App as VueApp } from 'vue'
+import { createApp } from 'vue'
 
 import { loadState } from '@nextcloud/initial-state'
 import { t, n } from '@nextcloud/l10n'
 import { FileType, registerSidebarTab } from '@nextcloud/files'
 
 import LibreSignLogoDarkSvg from '../img/app-dark.svg?raw'
+
+import AppFilesTab from './components/RightSidebar/AppFilesTab.vue'
 
 import './style/icons.scss'
 
@@ -77,13 +79,11 @@ function mapNodeToFileInfo(node: SidebarNode = {}): FileInfo {
 interface LibreSignSidebarTabElement extends HTMLElement {
 	_node?: SidebarNode
 	_active?: boolean
-	_vueApp?: VueApp<Element> | null
 	_vueInstance?: TabComponentInstance | null
-	_mountPromise?: Promise<void> | null
 	node?: SidebarNode
 	update(fileInfo: FileInfo): void
 	setActive(active: boolean): Promise<void>
-	mountVue(): Promise<void>
+	mountVue(): void
 	destroyVue(): void
 	updateFromNode(): void
 }
@@ -98,12 +98,11 @@ function setupCustomElement() {
 	class LibreSignSidebarTab extends HTMLElement implements LibreSignSidebarTabElement {
 		_node?: SidebarNode
 		_active?: boolean
-		_vueApp?: VueApp<Element> | null
 		_vueInstance?: TabComponentInstance | null
-		_mountPromise?: Promise<void> | null
 
 		connectedCallback() {
-			void this.mountVue()
+			this.mountVue()
+			this.updateFromNode()
 		}
 
 		disconnectedCallback() {
@@ -133,38 +132,27 @@ function setupCustomElement() {
 			}
 		}
 
-		async mountVue() {
-			if (this._vueInstance || this._mountPromise) {
-				return this._mountPromise ?? Promise.resolve()
+		mountVue() {
+			if (this._vueInstance) {
+				return
 			}
 
-			this._mountPromise = (async () => {
-				const { default: AppFilesTab } = await import('./components/RightSidebar/AppFilesTab.vue')
-				if (!this.isConnected || this._vueInstance) {
-					return
-				}
+			const app = createApp(AppFilesTab)
+			app.config.globalProperties.t = t
+			app.config.globalProperties.n = n
+			app.use(pinia)
 
-				const app = createApp(AppFilesTab)
-				app.config.globalProperties.t = t
-				app.config.globalProperties.n = n
-				app.use(pinia)
-
-				const element = document.createElement('div')
-				this._vueApp = app
-				this._vueInstance = app.mount(element)
-				this.appendChild(element)
-				this.updateFromNode()
-			})().finally(() => {
-				this._mountPromise = null
-			})
-
-			return this._mountPromise
+			const element = document.createElement('div')
+			this._vueInstance = app.mount(element)
+			this.appendChild(element)
 		}
 
 		destroyVue() {
-			this._vueApp?.unmount()
-			this._vueApp = null
-			this._vueInstance = null
+			if (this._vueInstance && this._vueInstance.$el) {
+				// For Vue 3, we need to unmount the app
+				// The best way would be to track the app instance
+				this._vueInstance = null
+			}
 		}
 
 		updateFromNode() {
@@ -172,6 +160,7 @@ function setupCustomElement() {
 				return
 			}
 			const fileInfo = mapNodeToFileInfo(this._node)
+			// Call update on the mounted component if it exists
 			if (typeof this._vueInstance.update === 'function') {
 				this._vueInstance.update(fileInfo)
 			}

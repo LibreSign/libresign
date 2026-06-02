@@ -64,7 +64,6 @@ import {
 
 
 import axios from '@nextcloud/axios'
-import { showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -77,6 +76,8 @@ import ResetPassword from '../../ResetPassword.vue'
 import UploadCertificate from '../../UploadCertificate.vue'
 
 import { useSignMethodsStore } from '../../../store/signMethods.js'
+import { showSuccess } from '../../../services/toast'
+
 import { onMounted, ref } from 'vue'
 
 defineOptions({

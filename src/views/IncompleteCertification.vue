@@ -35,7 +35,7 @@ import { generateUrl } from '@nextcloud/router'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
-import BackgroundImage from '../../img/logo-gray.svg'
+import BackgroundImage from '../../img/tenda-icon.png'
 
 defineOptions({
 	name: 'IncompleteCertification',

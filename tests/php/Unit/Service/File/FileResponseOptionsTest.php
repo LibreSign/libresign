@@ -17,6 +17,7 @@ class FileResponseOptionsTest extends TestCase {
 	private FileResponseOptions $options;
 
 	protected function setUp(): void {
+		parent::setUp();
 		$this->options = new FileResponseOptions();
 	}
 

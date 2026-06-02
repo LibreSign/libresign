@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use InvalidArgumentException;
+use libphonenumber\NumberParseException;
+use libphonenumber\PhoneNumberUtil;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
@@ -38,6 +40,7 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
+use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -63,6 +66,7 @@ class AccountService {
 		private SignFileService $signFileService,
 		private RequestSignatureService $requestSignatureService,
 		private CertificateEngineFactory $certificateEngineFactory,
+		protected IConfig $config,
 		private IAppConfig $appConfig,
 		private IUserConfig $userConfig,
 		private IMountProviderCollection $mountProviderCollection,
@@ -84,7 +88,7 @@ class AccountService {
 	) {
 	}
 
-	public function validateCreateToSign(array $data): void {
+	public function validateCreateToSign(array $data): array {
 		if (!UUIDUtil::validateUUID($data['uuid'])) {
 			throw new LibresignException($this->l10n->t('Invalid UUID'), 1);
 		}
@@ -106,12 +110,96 @@ class AccountService {
 			}
 		}
 		if (empty($data['password'])) {
-			throw new LibresignException($this->l10n->t('Password is mandatory'), 1);
+			throw new LibresignException($this->l10n->t('Password is required'), 1);
 		}
 		$file = $this->getFileByUuid($data['uuid']);
 		if (empty($file['fileToSign'])) {
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
+		if (class_exists(PhoneNumberUtil::class)) {
+			// Ensure phone number is provided
+			if ($data['phoneNumber']) {
+
+				// Validate and normalize phone number
+				$phoneNumber = $this->validatePhoneNumber($data['phoneNumber']);
+
+				// Ensure phone number is unique
+				if ($this->phoneNumberExists($phoneNumber)) {
+					throw new LibresignException(
+						$this->l10n->t('This phone number is already registered.')
+					);
+				}
+
+				// update data with normalized number
+				$data['phoneNumber'] = $phoneNumber;
+			}
+
+			return $data;
+
+		} else {
+			throw new LibresignException(
+				$this->l10n->t('Please provide a valid phone number.')
+			);
+		}
+	}
+
+
+	/**
+	 * @param string $phone
+	 * @throws LibresignException
+	 */
+	public function validatePhoneNumber(string $phone): string {
+		$phone = trim($phone);
+
+		$defaultRegion = $this->config->getSystemValueString(
+			'default_phone_region',
+			'KE'
+		);
+
+		$phoneUtil = PhoneNumberUtil::getInstance();
+		$defaultErrorMessage = $this->l10n->t('The phone number is invalid.');
+
+		try {
+			// Parse the phone number
+			$phoneNumber = $phoneUtil->parse($phone, $defaultRegion);
+
+			// Ensure the parsed number is valid
+			if (
+				!$phoneUtil->isPossibleNumber($phoneNumber)
+				|| !$phoneUtil->isValidNumber($phoneNumber)
+			) {
+				throw new LibresignException($defaultErrorMessage);
+			}
+
+			// Normalize the phone number to E.164 format
+			// Example: 0712345678 → +254712345678
+			return $phoneUtil->format(
+				$phoneNumber,
+				\libphonenumber\PhoneNumberFormat::E164
+			);
+
+		} catch (NumberParseException) {
+			throw new LibresignException($defaultErrorMessage);
+		}
+	}
+
+	/**
+	 * Check if a phone number already exists in the system
+	 */
+	private function phoneNumberExists(string $phoneNumber): bool {
+		$users = $this->userManager->search(''); // fetch users
+
+		foreach ($users as $user) {
+			$account = $this->accountManager->getAccount($user);
+
+			$phoneProperty = $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE);
+
+			if ($phoneProperty && $phoneProperty->getValue() === $phoneNumber) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public function getFileByUuid(string $uuid): array {
@@ -154,12 +242,18 @@ class AccountService {
 		return $this->signRequest;
 	}
 
-	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword): void {
+	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword, ?string $phoneNumber = null): void {
 		$signRequest = $this->getSignRequestByUuid($uuid);
 
 		$newUser = $this->userManager->createUser($email, $password);
 		$newUser->setDisplayName($signRequest->getDisplayName());
 		$newUser->setSystemEMailAddress($email);
+
+		if ($newUser instanceof \OCP\IUser && !empty($phoneNumber)) {
+			$this->setPhoneNumber($newUser, $phoneNumber);
+			// The user manager in Nextcloud typically persists changes to the IUser object
+			// when the object itself is updated. No explicit updateUser call is usually needed.
+		}
 
 		$this->updateIdentifyMethodToAccount($signRequest->getId(), $email, $newUser->getUID());
 
@@ -247,6 +341,22 @@ class AccountService {
 		}
 		$userAccount = $this->accountManager->getAccount($user);
 		return $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
+	}
+
+	private function setPhoneNumber(?IUser $user, ?string $phone): bool {
+		if (!$user && !$phone) {
+			return false;
+		}
+		$account = $this->accountManager->getAccount($user);
+		$property = $account->getProperty(IAccountManager::PROPERTY_PHONE);
+		$account->setProperty(
+			IAccountManager::PROPERTY_PHONE,
+			$phone,
+			$property->getScope(),
+			IAccountManager::NOT_VERIFIED
+		);
+		$this->accountManager->updateAccount($account);
+		return true;
 	}
 
 	public function hasSignatureFile(?IUser $user = null): bool {
@@ -342,11 +452,7 @@ class AccountService {
 
 		$userId = $this->fileMapper->getStorageUserIdByUuid($uuid);
 		$this->folderService->setUserId($userId);
-		try {
-			return $this->folderService->getFileByNodeId($nodeId);
-		} catch (NotFoundException) {
-			throw new DoesNotExistException('Not found');
-		}
+		return $this->folderService->getFileByNodeId($nodeId);
 	}
 
 	public function getFileByNodeId(int $nodeId): File {

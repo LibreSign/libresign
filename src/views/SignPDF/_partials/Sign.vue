@@ -8,21 +8,11 @@
 			<Signatures v-if="hasSignatures" />
 		</div>
 		<div v-if="!loading" class="button-wrapper">
-			<NcNoteCard v-for="(error, index) in signStore.errors"
-				:key="index"
-				:heading="error.title || ''"
-				type="error">
-				<NcRichText :text="error.message"
-					:use-markdown="true" />
-			</NcNoteCard>
 			<div v-if="needCreateSignature" class="no-signature-warning">
 				<p>
 					{{ t('libresign', 'You do not have any signature defined.') }}
 				</p>
-				<NcButton :wide="true"
-					:disabled="loading"
-					variant="primary"
-					@click="openModal('createSignature')">
+				<NcButton :wide="true" :disabled="loading" variant="primary" @click="openModal('createSignature')">
 					{{ t('libresign', 'Define your signature.') }}
 				</NcButton>
 			</div>
@@ -30,10 +20,7 @@
 				<p>
 					{{ t('libresign', 'You need to upload your certificate to sign the document.') }}
 				</p>
-				<NcButton :wide="true"
-					:disabled="loading"
-					variant="primary"
-					@click="openModal('uploadCertificate')">
+				<NcButton :wide="true" :disabled="loading" variant="primary" @click="openModal('uploadCertificate')">
 					{{ t('libresign', 'Upload certificate') }}
 				</NcButton>
 			</div>
@@ -41,31 +28,14 @@
 				<p>
 					{{ t('libresign', 'Please define your sign password') }}
 				</p>
-				<NcButton :wide="true"
-					:disabled="loading"
-					variant="primary"
-					@click="openModal('createPassword')">
+				<NcButton :wide="true" :disabled="loading" variant="primary" @click="openModal('createPassword')">
 					{{ t('libresign', 'Define a password and sign the document.') }}
 				</NcButton>
 			</div>
 			<div v-else-if="needIdentificationDocuments" class="no-identification-warning">
 				<Documents :sign-request-uuid="signRequestUuid" />
 			</div>
-			<div v-else-if="hasBlockingSignError" class="sign-blocked-warning">
-				<p>
-					<!-- TRANSLATORS Shown after a non-retriable certificate validation failure. "Signing is blocked" means the signer cannot continue now and must resolve the certificate issue first. -->
-					{{ t('libresign', 'Signing is blocked until the certificate validation issue is resolved.') }}
-				</p>
-				<NcButton :wide="true"
-					:disabled="loading"
-					@click="clearBlockingSignError">
-					{{ t('libresign', 'Try signing again') }}
-				</NcButton>
-			</div>
-			<NcButton v-else-if="ableToSign"
-				:wide="true"
-				:disabled="loading"
-				variant="primary"
+			<NcButton v-else-if="ableToSign" :wide="true" :disabled="loading" variant="primary"
 				@click="confirmSignDocument">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
@@ -78,18 +48,11 @@
 				</p>
 			</div>
 		</div>
-		<NcDialog v-if="signMethodsStore.modal.clickToSign"
-			:no-close="loading"
-			:name="t('libresign', 'Sign document')"
-			size="small"
-			dialog-classes="libresign-dialog"
-			@closing="signMethodsStore.closeModal('clickToSign')">
-			<NcNoteCard v-for="(error, index) in signStore.errors"
-				:key="index"
-				:heading="error.title || ''"
+		<NcDialog v-if="signMethodsStore.modal.clickToSign" :no-close="loading" :name="t('libresign', 'Sign document')"
+			size="small" dialog-classes="libresign-dialog" @closing="signMethodsStore.closeModal('clickToSign')">
+			<NcNoteCard v-for="(error, index) in signStore.errors" :key="index" :heading="error.title || ''"
 				type="error">
-				<NcRichText :text="error.message"
-					:use-markdown="true" />
+				<NcRichText :text="error.message" :use-markdown="true" />
 			</NcNoteCard>
 
 			<p class="confirmation-text">
@@ -97,13 +60,10 @@
 			</p>
 
 			<template #actions>
-				<NcButton :disabled="loading"
-					@click="signMethodsStore.closeModal('clickToSign')">
+				<NcButton :disabled="loading" @click="signMethodsStore.closeModal('clickToSign')">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
-				<NcButton variant="primary"
-					:disabled="loading"
-					@click="signWithClick">
+				<NcButton variant="primary" :disabled="loading" @click="signWithClick">
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
@@ -111,18 +71,11 @@
 				</NcButton>
 			</template>
 		</NcDialog>
-		<NcDialog v-if="signMethodsStore.modal.password"
-			:no-close="loading"
-			:name="t('libresign', 'Sign document')"
-			size="small"
-			dialog-classes="libresign-dialog"
-			@closing="onCloseConfirmPassword">
-			<NcNoteCard v-for="(error, index) in signStore.errors"
-				:key="index"
-				:heading="error.title || ''"
+		<NcDialog v-if="signMethodsStore.modal.password" :no-close="loading" :name="t('libresign', 'Sign document')"
+			size="small" dialog-classes="libresign-dialog" @closing="onCloseConfirmPassword">
+			<NcNoteCard v-for="(error, index) in signStore.errors" :key="index" :heading="error.title || ''"
 				type="error">
-				<NcRichText :text="error.message"
-					:use-markdown="true" />
+				<NcRichText :text="error.message" :use-markdown="true" />
 			</NcNoteCard>
 
 			<p class="confirmation-text">
@@ -130,17 +83,12 @@
 			</p>
 
 			<form @submit.prevent="signWithPassword()">
-				<NcPasswordField v-model="signPassword"
-					:label="t('libresign', 'Signature password')"
-					type="password" />
+				<NcPasswordField v-model="signPassword" :label="t('libresign', 'Signature password')" type="password" />
 			</form>
 			<a id="lost-password" @click="toggleManagePassword">{{ t('libresign', 'Forgot password?') }}</a>
-			<ManagePassword v-if="showManagePassword"
-				@certificate:uploaded="onSignatureFileCreated" />
+			<ManagePassword v-if="showManagePassword" @certificate:uploaded="onSignatureFileCreated" />
 			<template #actions>
-				<NcButton :disabled="signPassword.length < 3 || loading"
-					type="submit"
-					variant="primary"
+				<NcButton :disabled="signPassword.length < 3 || loading" type="submit" variant="primary"
 					@click="signWithPassword()">
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
@@ -149,40 +97,32 @@
 				</NcButton>
 			</template>
 		</NcDialog>
-		<Draw v-if="signMethodsStore.modal.createSignature"
-			:draw-editor="true"
-			:text-editor="true"
-			:file-editor="true"
-			:sign-request-uuid="signRequestUuid"
-			type="signature"
-			@save="saveSignature"
+		<Draw v-if="signMethodsStore.modal.createSignature" :draw-editor="true" :text-editor="true" :file-editor="true"
+			:sign-request-uuid="signRequestUuid" type="signature" @save="saveSignature"
 			@close="signMethodsStore.closeModal('createSignature')" />
 		<CreatePassword @password:created="onSignatureFileCreated" />
-		<UploadCertificate
-			:useModal="true"
-			:errors="signStore.errors"
-			@certificate:uploaded="onSignatureFileCreated" />
-		<ModalVerificationCode v-if="signMethodsStore.modal.token"
-			mode="token"
-			:phone-number="user.settings.phoneNumber"
-			@change="signWithTokenCode"
-			@update:phone="val => emit('update:phone', val)"
-			@close="signMethodsStore.closeModal('token')" />
-		<ModalVerificationCode v-if="signMethodsStore.modal.emailToken"
-			mode="email"
-			@change="signWithEmailToken"
+		<UploadCertificate :useModal="true" :errors="signStore.errors" @certificate:uploaded="onSignatureFileCreated" />
+		<ModalVerificationCode v-if="signMethodsStore.modal.token" mode="token"
+			:phone-number="user.settings.phoneNumber" @change="signWithTokenCode"
+			@update:phone="val => emit('update:phone', val)" @close="signMethodsStore.closeModal('token')" />
+		<ModalVerificationCode v-if="signMethodsStore.modal.emailToken" mode="email" @change="signWithEmailToken"
 			@close="signMethodsStore.closeModal('emailToken')" />
 	</div>
+
+	<PaymentModal v-if="showPaymentModal && paymentContext" :sign-uuid="paymentContext.signUuid"
+		:sign-request-id="paymentContext.signRequestId" :document="signStore.document" :signer="currentSigner"
+		:product-code="signStore.productCode || DEFAULT_SIGN_PRODUCT_CODE" @close="handlePaymentClose"
+		@success="onPaymentSuccess" />
 </template>
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
-import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
 
@@ -193,8 +133,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 
-import ModalVerificationCode from './ModalVerificationCode.vue'
-import { NON_RETRIABLE_SIGN_ERROR_CODE, shouldCloseCurrentModalOnSignError } from './signErrorUtils'
+import ModalVerificationCode, { type ModalVerificationChanged } from './ModalVerificationCode.vue'
 import Draw from '../../../components/Draw/Draw.vue'
 import Documents from '../../../views/Account/partials/Documents.vue'
 import Signatures from '../../../views/Account/partials/Signatures.vue'
@@ -207,7 +146,6 @@ import { useSignStore } from '../../../store/sign.js'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useIdentificationDocumentStore } from '../../../store/identificationDocument.js'
-import { getSigningRouteUuid } from '../../../utils/signRequestUuid.ts'
 import type { operations } from '../../../types/openapi/openapi'
 import type {
 	LibresignCapabilities,
@@ -217,28 +155,20 @@ import type {
 } from '../../../types/index'
 import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator'
 import { SignFlowHandler } from '../../../services/SignFlowHandler'
-import {
-	buildSubmitSignaturePayload,
-	createBaseSubmitSignaturePayload,
-	getEnvelopeSubmitRequests,
-	resolveSignSubmissionOutcome,
-} from '../../../services/signSubmit'
+import { showError, showSuccess } from '../../../services/toast'
 import {
 	normalizeDocumentForVisibleElements,
+	normalizeFileForVisibleElements,
 } from '../../../services/signingDocumentAdapter'
 import { FILE_STATUS } from '../../../constants.js'
-import {
-	getCurrentUserSignRequestIds,
-	hasVisibleElementsForCurrentUser,
-	getVisibleElementsFromDocument,
-	idsMatch,
-} from '../../../services/visibleElementsService'
-import type {
-	SignResult,
-	SignSubmissionAttempt,
-	SignatureMethodConfig,
-	SubmitSignaturePayload,
-} from '../../../services/signSubmit'
+import { getFileSigners, getVisibleElementsFromDocument, idsMatch, isCurrentUserSigner } from '../../../services/visibleElementsService'
+import { usePaywall } from '@/payment/usePaywall'
+import { notifyInfo, notifySuccess, notifyError } from '@/services/toast'
+import PaymentModal from '@/components/Payments/PaymentModal.vue'
+import { DEFAULT_SIGN_PRODUCT_CODE } from '@/constants/product'
+import { consumeEntitlement } from '@/payment/entitlement'
+import { usePaymentContextStore } from '@/store/paymentContext'
+import { resolveUserId } from '@/utils/resolveUserId'
 
 type OpenApiAccountMe = operations['account-me']['responses'][200]['content']['application/json']['ocs']['data']
 type LibreSignAccountMe = Omit<OpenApiAccountMe, 'settings'> & {
@@ -263,55 +193,48 @@ defineOptions({
 			this.signStore.clearSigningErrors()
 
 			try {
-				const basePayload = createBaseSubmitSignaturePayload(methodConfig)
-				const envelopeRequests = getEnvelopeSubmitRequests({
-					document: this.signStore.document,
-					basePayload,
-					elements: this.elements ?? [],
-					canCreateSignature: this.canCreateSignature,
-					signatures: this.signatureElementsStore.signs,
-				})
-
-				const attempts: SignSubmissionAttempt[] = []
-
-				if (envelopeRequests.length > 0) {
-					for (const request of envelopeRequests) {
-						const result = await this.signStore.submitSignature(request.payload, request.signRequestUuid, {
-							documentId: this.signStore.document.id,
-						})
-						attempts.push({
-							result,
-							signRequestUuid: request.signRequestUuid,
-						})
-					}
-				} else {
-					const payload = buildSubmitSignaturePayload({
-						basePayload,
-						elements: this.elements ?? [],
-						canCreateSignature: this.canCreateSignature,
-						signatures: this.signatureElementsStore.signs,
-					})
-
-					const result = await this.signStore.submitSignature(payload, this.signRequestUuid, {
-						documentId: this.signStore.document.id,
-					})
-
-					attempts.push({
-						result,
-						signRequestUuid: this.signRequestUuid,
-					})
+				const payload: SubmitSignaturePayload = {
+					method: methodConfig.method,
 				}
 
-				const outcome = resolveSignSubmissionOutcome(attempts)
-				const modalCode = methodConfig.modalCode || methodConfig.method || 'token'
+				if (methodConfig.token) {
+					payload.token = methodConfig.token
+				}
 
-				if (outcome?.type === 'signed') {
-					this.actionHandler.closeModal(modalCode)
+				if (this.elements?.length > 0) {
+					if (this.canCreateSignature) {
+						payload.elements = this.elements.flatMap((row) => typeof row.elementId === 'number'
+							? [{
+								documentElementId: row.elementId,
+								profileNodeId: row.type ? this.signatureElementsStore.signs[row.type]?.file.nodeId : undefined,
+							}]
+							: [])
+					} else {
+						payload.elements = this.elements.flatMap((row) => typeof row.elementId === 'number'
+							? [{
+								documentElementId: row.elementId,
+							}]
+							: [])
+					}
+				}
+
+				const result = await this.signStore.submitSignature(payload, this.signRequestUuid, {
+					documentId: this.signStore.document.id,
+				})
+
+				if (result.status === 'signingInProgress') {
+					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
+					this.$emit('signing-started', {
+						signRequestUuid: this.signRequestUuid,
+						async: true,
+					})
+				} else if (result.status === 'signed') {
+					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
 					this.sidebarStore.hideSidebar()
-					this.$emit('signed', outcome.payload)
-				} else if (outcome?.type === 'signing-started') {
-					this.actionHandler.closeModal(modalCode)
-					this.$emit('signing-started', outcome.payload)
+					this.$emit('signed', {
+						...result.data,
+						signRequestUuid: this.signRequestUuid,
+					})
 				}
 			} catch (error: unknown) {
 				const signError = typeof error === 'object' && error !== null ? error as SignSubmissionError : {}
@@ -320,10 +243,6 @@ defineOptions({
 						? 'uploadCertificate'
 						: 'createPassword'
 					this.actionHandler.showModal(modalCode)
-				}
-
-				if (shouldCloseCurrentModalOnSignError(methodConfig, signError)) {
-					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
 				}
 
 				this.signStore.setSigningErrors(signError.errors || [])
@@ -335,6 +254,13 @@ defineOptions({
 })
 
 type UserInfo = LibreSignAccountMe
+
+type SignatureMethodConfig = {
+	method?: string
+	modalCode?: string
+	token?: string
+	productCode?: string | null
+}
 
 type SignError = {
 	title?: string
@@ -363,6 +289,22 @@ type SignatureProfile = LibreSignUserElement
 
 type SignDocument = NonNullable<ReturnType<typeof useSignStore>['document']>
 type SignDocumentFile = NonNullable<SignDocument['files']>[number]
+type SignDocumentSigner = NonNullable<SignDocument['signers']>[number]
+
+type SignResult = {
+	status: 'signingInProgress' | 'signed' | 'unknown'
+	data: Record<string, unknown>
+}
+
+type SubmitSignaturePayload = {
+	method?: string
+	token?: string
+	productCode?: string | null
+	elements?: Array<{
+		documentElementId: number
+		profileNodeId?: number
+	}>
+}
 
 type SignSubmissionError = {
 	type?: string
@@ -409,6 +351,11 @@ type SubmitSignatureCompatContext = {
 	$emit: (event: string, payload: unknown) => void
 }
 
+type PaymentContext = {
+	signUuid: string
+	signRequestId: number
+}
+
 function isSignSubmissionError(error: unknown): error is SignSubmissionError {
 	return typeof error === 'object' && error !== null
 }
@@ -431,6 +378,7 @@ const signMethodsStore = useSignMethodsStore() as SignMethodsStoreContract
 const signatureElementsStore = useSignatureElementsStore() as SignatureElementsStoreContract
 const sidebarStore = useSidebarStore() as SidebarStoreContract
 const identificationDocumentStore = useIdentificationDocumentStore() as IdentificationDocumentStoreContract
+const paymentContextStore = usePaymentContextStore()
 
 const loading = ref(true)
 const user = ref<UserInfo>({
@@ -445,10 +393,26 @@ let requirementValidator: SigningRequirementValidator | null = null
 let actionHandler: SignFlowHandler | null = null
 const currentDocument = computed<SignDocument>(() => signStore.document)
 const visibleElementsDocument = computed(() => normalizeDocumentForVisibleElements(currentDocument.value))
-const currentUserSignRequestIds = computed(() => new Set(getCurrentUserSignRequestIds(visibleElementsDocument.value)))
+const isProcessingPayment = ref(false)
+const isPreparingSignFlow = ref(false)
 
 const elements = computed(() => {
-	const signRequestIds = currentUserSignRequestIds.value
+	const document = currentDocument.value
+	const signer = document?.signers?.find((row: SignDocumentSigner) => row.me)
+
+	const signRequestIds = new Set<number>()
+	if (signer?.signRequestId !== undefined) {
+		signRequestIds.add(signer.signRequestId)
+	}
+
+	if (Array.isArray(document?.files)) {
+		document.files
+			.map(normalizeFileForVisibleElements)
+			.flatMap((file) => getFileSigners(file))
+			.filter((row): row is ReturnType<typeof getFileSigners>[number] & { me: true; signRequestId: number } => isCurrentUserSigner(row) && row.signRequestId !== undefined)
+			.forEach((row) => signRequestIds.add(row.signRequestId))
+	}
+
 	if (signRequestIds.size === 0) {
 		return []
 	}
@@ -470,7 +434,13 @@ const needCreateSignature = computed(() => {
 	if (!canCreateSignature.value || hasSignatures.value) {
 		return false
 	}
-	return hasVisibleElementsForCurrentUser(visibleElementsDocument.value)
+	const document = currentDocument.value
+	const signer = document?.signers?.find((row: SignDocumentSigner) => row.me)
+	if (signer?.signRequestId === undefined) {
+		return false
+	}
+	const visibleElements = visibleElementsDocument.value.visibleElements || []
+	return visibleElements.some((row) => row.signRequestId === signer.signRequestId)
 })
 const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
 const canCreateSignature = computed(() => {
@@ -478,11 +448,55 @@ const canCreateSignature = computed(() => {
 	return capabilities.libresign?.config['sign-elements']['can-create-signature'] === true
 })
 const ableToSign = computed(() => signStore.ableToSign)
-const hasBlockingSignError = computed(() => signStore.errors.some((error) => Number(error?.code) === NON_RETRIABLE_SIGN_ERROR_CODE))
 const signRequestUuid = computed(() => {
-	const fallbackUuid = loadState('libresign', 'sign_request_uuid', '')
-	return String(getSigningRouteUuid(signStore.document, fallbackUuid) || '')
+	const doc = signStore.document
+	const signer = doc?.signers?.find((row) => row.me) ?? doc?.signers?.[0]
+	const fromDoc = doc?.signRequestUuid || doc?.sign_request_uuid || doc?.signUuid || doc?.sign_uuid
+	const fromSigner = signer?.sign_uuid
+	const isApprover = doc?.settings?.isApprover
+	const fromFile = isApprover ? doc?.uuid : null
+	return String(fromDoc || fromSigner || fromFile || loadState('libresign', 'sign_request_uuid', '') || '')
 })
+const currentSigner = computed(() => {
+	const signers = signStore.document.signers || []
+	const currentSigner = signers.find(s => s.me) || signers[0] || null
+	console.log('[Sign] Current signer:', currentSigner);
+	return currentSigner
+})
+
+const paymentContext = computed<PaymentContext | null>(() => {
+	const signer = currentSigner.value
+
+	if (
+		!signer ||
+		signer.sign_uuid == null ||
+		signer.signRequestId == null
+	) {
+		return null
+	}
+
+	return {
+		signUuid: signer.sign_uuid,
+		signRequestId: signer.signRequestId,
+	}
+})
+
+async function consumeEntitlementAfterSign() {
+	try {
+		await consumeEntitlement()
+		paymentContextStore.clear()
+	} catch (err) {
+		// DO NOT BLOCK UX
+		console.error('[Entitlement] failed silently', err)
+	}
+}
+
+/**
+ * Show/hide payment modal ref
+ */
+const showPaymentModal = ref(false)
+const route = useRoute()
+const router = useRouter()
 
 function openModal(modalCode: string) {
 	ensureServices()
@@ -525,10 +539,14 @@ function onCloseConfirmPassword() {
 }
 
 function resetSignMethodsState() {
-	Object.keys(signMethodsStore.modal || {}).forEach((key) => {
-		signMethodsStore.closeModal(key)
-	})
-	signMethodsStore.settings = {}
+	if (typeof signMethodsStore?.$reset === 'function') {
+		signMethodsStore.$reset()
+	} else {
+		Object.keys(signMethodsStore.modal || {}).forEach((key) => {
+			signMethodsStore.closeModal(key)
+		})
+		signMethodsStore.settings = {}
+	}
 	signStore.clearSigningErrors()
 	showManagePassword.value = false
 	signPassword.value = ''
@@ -539,10 +557,6 @@ function onSignatureFileCreated() {
 	showManagePassword.value = false
 }
 
-function clearBlockingSignError() {
-	signStore.clearSigningErrors()
-}
-
 function saveSignature() {
 	if (signatureElementsStore.success.length) {
 		showSuccess(signatureElementsStore.success)
@@ -550,6 +564,13 @@ function saveSignature() {
 		showError(signatureElementsStore.error)
 	}
 	signMethodsStore.closeModal('createSignature')
+}
+
+function handlePaymentClose() {
+	showPaymentModal.value = false
+
+	// Reset payment processing flag to allow signing actions again
+	isProcessingPayment.value = false
 }
 
 async function signWithClick() {
@@ -586,18 +607,37 @@ async function signWithTokenCode(token: string) {
 		method: identifyMethod,
 		modalCode: 'token',
 		token,
+		// added for consistency, especially in paywall scenarios where productCode is crucial during submission
+		productCode: signStore.productCode,
 	})
 }
 
-async function signWithEmailToken() {
-	const identifyMethod = getSignatureMethodSetting(signMethodsStore.settings, 'emailToken')?.identifyMethod
+async function signWithEmailToken(token: string) {
+	const emailTokenSettings = signMethodsStore.settings.emailToken
+
+	console.log('Email token settings:', emailTokenSettings)
+
+	if (!emailTokenSettings) {
+		throw new Error('Email token config missing')
+	}
+
+	// STORE TOKEN (important for consistency)
+	emailTokenSettings.token = token
+
+	console.log('Updated email token settings with token:', emailTokenSettings)
+
+	const identifyMethod = emailTokenSettings.identifyMethod
+
 	if (!identifyMethod) {
 		throw new Error('No identify method found for email token')
 	}
+
 	await submitSignature({
 		method: identifyMethod,
 		modalCode: 'emailToken',
-		token: signMethodsStore.settings.emailToken?.token,
+		token,
+		// Added productCode here to ensure it's available during submission, especially for paywall scenarios
+		productCode: signStore.productCode,
 	})
 }
 
@@ -606,60 +646,61 @@ let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 	signStore.clearSigningErrors()
 
 	try {
-		const basePayload = createBaseSubmitSignaturePayload(methodConfig)
-		const envelopeRequests = getEnvelopeSubmitRequests({
-			document: signStore.document,
-			basePayload,
-			elements: elements.value,
-			canCreateSignature: canCreateSignature.value,
-			signatures: signatureElementsStore.signs,
-		})
-		const attempts: SignSubmissionAttempt[] = []
-
-		if (envelopeRequests.length > 0) {
-			for (const request of envelopeRequests) {
-				const result = await signStore.submitSignature(request.payload, request.signRequestUuid, {
-					documentId: signStore.document.id,
-				})
-
-				attempts.push({
-					result,
-					signRequestUuid: request.signRequestUuid,
-				})
-			}
-		} else {
-			const payload = buildSubmitSignaturePayload({
-				basePayload,
-				elements: elements.value,
-				canCreateSignature: canCreateSignature.value,
-				signatures: signatureElementsStore.signs,
-			})
-
-			const result = await signStore.submitSignature(
-				payload,
-				signRequestUuid.value,
-				{
-					documentId: signStore.document.id,
-				},
-			)
-
-			attempts.push({
-				result,
-				signRequestUuid: signRequestUuid.value,
-			})
+		const payload: SubmitSignaturePayload = {
+			method: methodConfig.method,
 		}
 
-		const outcome = resolveSignSubmissionOutcome(attempts)
-		const modalCode = methodConfig.modalCode || methodConfig.method || 'token'
+		if (methodConfig.token) {
+			payload.token = methodConfig.token
+		}
+
+		if (methodConfig.productCode) {
+			payload.productCode = methodConfig.productCode
+		}
+
+		if (elements.value.length > 0) {
+			if (canCreateSignature.value) {
+				payload.elements = elements.value.flatMap((row) => typeof row.elementId === 'number'
+					? [{
+						documentElementId: row.elementId,
+						profileNodeId: row.type ? signatureElementsStore.signs[row.type]?.file.nodeId : undefined,
+					}]
+					: [])
+			} else {
+				payload.elements = elements.value.flatMap((row) => typeof row.elementId === 'number'
+					? [{
+						documentElementId: row.elementId,
+					}]
+					: [])
+			}
+		}
+
+		console.log('Submitting signature with payload:', payload, 'and signRequestUuid:', signRequestUuid.value)
+		const result = await signStore.submitSignature(
+			payload,
+			signRequestUuid.value,
+			{
+				documentId: signStore.document.id,
+			},
+		)
 
 		ensureServices()
-		if (outcome?.type === 'signed') {
-			actionHandler!.closeModal(modalCode)
+		if (result.status === 'signingInProgress') {
+			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
+			emit('signing-started', {
+				signRequestUuid: signRequestUuid.value,
+				async: true,
+			})
+		} else if (result.status === 'signed') {
+			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
 			sidebarStore.hideSidebar()
-			emit('signed', outcome.payload)
-		} else if (outcome?.type === 'signing-started') {
-			actionHandler!.closeModal(modalCode)
-			emit('signing-started', outcome.payload)
+			emit('signed', {
+				...result.data,
+				signRequestUuid: signRequestUuid.value,
+			})
+
+			// After a successful signing, check if we need to consume an entitlement (in paywall scenarios)
+			await consumeEntitlementAfterSign()
 		}
 	} catch (error: unknown) {
 		const signError = isSignSubmissionError(error) ? error : {}
@@ -671,19 +712,76 @@ let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 			actionHandler!.showModal(modalCode)
 		}
 
-		if (shouldCloseCurrentModalOnSignError(methodConfig, signError)) {
-			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
-		}
-
 		signStore.setSigningErrors(signError.errors || [])
 	} finally {
 		loading.value = false
 	}
 }
 
-function confirmSignDocument() {
+async function confirmSignDocument() {
+	// prevent double-trigger / race conditions
+	if (isProcessingPayment.value) return
+	isProcessingPayment.value = true
+
+	const signer = currentSigner.value
+
+	if (!signer) {
+		console.warn('[PaymentContext] no signer')
+		isProcessingPayment.value = false
+		return
+	}
+
+	const { sign_uuid, signRequestId } = signer;
+
+	if (!sign_uuid || !signRequestId) {
+		console.warn('[PaymentContext] no data for payment context')
+		isProcessingPayment.value = false
+		return
+	}
+
+	const resolvedUserId = await resolveUserId(user.value)
+
+	if (!resolvedUserId) {
+		notifyError({
+			message: 'Unable to identify user. Please refresh and try again.',
+			important: true,
+		})
+		isProcessingPayment.value = false
+		return
+	}
+
+	// 1. Set product
+	if (!signStore.productCode) {
+		signStore.productCode = DEFAULT_SIGN_PRODUCT_CODE
+	}
+
+	paymentContextStore.setContext({
+		userId: resolvedUserId,
+		signUuid: sign_uuid,
+		signRequestId: signRequestId,
+		productCode: signStore.productCode,
+	})
+
+	const paywall = usePaywall()
+
+	// 2. Check entitlement FIRST
+	const { allowed } = await paywall.checkEntitlement(signStore.productCode)
+
+	// 3. BLOCK signing if not allowed
+	if (!allowed) {
+		triggerPaymentFlow()
+		return
+	}
+
+	// reset flag if allowed
+	isProcessingPayment.value = false
+
 	ensureServices()
 	signStore.clearSigningErrors()
+
+	console.log(
+		`User is entitled to sign. Proceeding with signing action for product code: ${signStore.productCode}`
+	)
 
 	const unmetRequirement = requirementValidator!.getFirstUnmetRequirement({
 		errors: signStore.errors,
@@ -691,11 +789,35 @@ function confirmSignDocument() {
 		canCreateSignature: canCreateSignature.value,
 	})
 
-	const result = actionHandler!.handleAction('sign', { unmetRequirement: unmetRequirement || undefined })
+	const result = actionHandler!.handleAction('sign', {
+		unmetRequirement: unmetRequirement || undefined,
+	})
 
 	if (result === 'ready') {
 		proceedWithSigning()
 	}
+}
+
+function triggerPaymentFlow() {
+
+	// set productCode here
+	signStore.productCode =
+		signStore.productCode || DEFAULT_SIGN_PRODUCT_CODE
+	isProcessingPayment.value = false
+	showPaymentModal.value = true
+}
+
+function onPaymentSuccess() {
+	showPaymentModal.value = false
+
+	isProcessingPayment.value = false // IMPORTANT RESET
+
+	notifySuccess({
+		message: 'Payment successful',
+	})
+
+	// retry signing
+	confirmSignDocument()
 }
 
 function proceedWithSigning() {
@@ -731,6 +853,7 @@ onMounted(async () => {
 	loading.value = true
 	signatureElementsStore.signRequestUuid = signRequestUuid.value
 	signatureElementsStore.loadSignatures()
+	paymentContextStore.hydrate()
 
 	initializeServices()
 
@@ -754,6 +877,45 @@ onMounted(async () => {
 		loadUser(),
 	])
 
+	// Retry after payment redirect
+	if (route.query.retrySign === 'true') {
+		await nextTick()
+
+		notifyInfo({ message: 'Payment successful. Proceeding with signing...', important: true })
+
+		if (!paymentContextStore.isReady()) {
+			await nextTick() // ensure signer is ready
+			console.warn('[PaymentContext] rebuilding after redirect')
+
+			const signer = currentSigner.value
+			const resolvedUserId = await resolveUserId(user.value)
+
+			if (signer && resolvedUserId && signer.sign_uuid && signer.signRequestId) {
+				paymentContextStore.setContext({
+					userId: resolvedUserId,
+					signUuid: signer.sign_uuid,
+					signRequestId: signer.signRequestId,
+					productCode: signStore.productCode || DEFAULT_SIGN_PRODUCT_CODE,
+				})
+			}
+		}
+
+		// Guard
+		if (!signStore.pendingAction) {
+			await confirmSignDocument()
+		}
+
+		// Clean query
+		router.replace({ query: {} })
+	}
+
+	// handle payment failure
+	if (route.query.paymentFailed === 'true') {
+		notifyError({ message: 'Payment failed. Please try again.', important: true })
+
+		router.replace({ query: {} })
+	}
+
 	loading.value = false
 	if (signStore.document?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
 		emit('signing-started', {
@@ -761,6 +923,7 @@ onMounted(async () => {
 			async: true,
 		})
 	}
+
 })
 
 watch(signRequestUuid, (newUuid, oldUuid) => {
@@ -792,23 +955,6 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-.document-sign {
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-	width: 100%;
-	overscroll-behavior: contain;
-	-webkit-user-select: none;
-	user-select: none;
-	-webkit-touch-callout: none;
-}
-
-.sign-elements {
-	flex: 1;
-	overflow: hidden;
-	width: 100%;
-}
-
 .progress-indicator {
 	font-weight: bold;
 	color: var(--color-primary-element);
@@ -840,13 +986,6 @@ defineExpose({
 	margin-top: 1em;
 }
 
-.sign-blocked-warning {
-	margin-top: 1em;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-}
-
 .button-wrapper {
 	padding: calc(var(--default-grid-baseline, 4px)*2);
 }
@@ -865,6 +1004,7 @@ defineExpose({
 		padding: 20px;
 		gap: 4px 0;
 	}
+
 	&__header {
 		font-weight: bold;
 		font-size: 20px;
@@ -872,6 +1012,7 @@ defineExpose({
 		line-height: 30px;
 		color: var(--color-text-light);
 	}
+
 	&__button-row {
 		display: flex;
 		width: 100%;
@@ -883,7 +1024,7 @@ defineExpose({
 <style lang="scss">
 /* Targeted override: keep small dialog compact on guest/mobile */
 @media only screen and ((max-width: 512px) or (max-height: 400px)) {
-	.libresign-dialog .modal-wrapper--small > .modal-container {
+	.libresign-dialog .modal-wrapper--small>.modal-container {
 		width: fit-content !important;
 		height: unset !important;
 		max-height: 90% !important;
@@ -893,7 +1034,7 @@ defineExpose({
 	}
 
 	/* Apply same rule to NcDialog's default wrapper class */
-	.dialog__modal .modal-wrapper--small > .modal-container {
+	.dialog__modal .modal-wrapper--small>.modal-container {
 		width: fit-content !important;
 		height: unset !important;
 		max-height: 90% !important;

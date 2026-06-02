@@ -38,6 +38,7 @@ use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\Entitlement\EntitlementService;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\IToken;
@@ -64,6 +65,7 @@ use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Sabre\DAV\UUIDUtil;
+use OCP\IDBConnection;
 
 class SignFileService {
 	private ?SignRequestEntity $signRequest = null;
@@ -80,6 +82,7 @@ class SignFileService {
 	private string $friendlyName = '';
 	private ?IUser $user = null;
 	private ?SignEngineHandler $engine = null;
+	private IDBConnection $db;
 
 	public function __construct(
 		protected IL10N $l10n,
@@ -121,7 +124,10 @@ class SignFileService {
 		private PfxProvider $pfxProvider,
 		private SubjectAlternativeNameService $subjectAlternativeNameService,
 		private SignRequestService $signRequestService,
+		private EntitlementService $entitlementService,
+		IDBConnection $db,
 	) {
+		$this->db = $db;
 	}
 
 	/**
@@ -425,7 +431,17 @@ class SignFileService {
 		$this->tsaValidationService->validateConfiguration();
 	}
 
+	/**
+	 * @throws LibresignException
+	 * @throws \OCP\DB\Exception
+	 */
 	public function sign(): void {
+		$this->logger->info('[SignFileService] sign()');
+
+		if (!$this->user instanceof IUser) {
+			throw new \RuntimeException('Unauthorized');
+		}
+		// Proceed with signing
 		$signRequests = $this->getSignRequestsToSign();
 
 		if (empty($signRequests)) {
@@ -443,6 +459,7 @@ class SignFileService {
 	}
 
 	private function processParallelSigning(array $signRequests): ?DateTimeInterface {
+		$this->logger->info('SignFileService - USING PARALLEL SIGNING');
 		$this->enqueueParallelSigningJobs($signRequests, $this->getJobArgumentsWithoutCredentials());
 		return $this->getLatestSignedDate($signRequests);
 	}
@@ -464,6 +481,7 @@ class SignFileService {
 	}
 
 	public function signSingleFile(FileEntity $libreSignFile, SignRequestEntity $signRequest): void {
+		$this->logger->info('SignFileService - signSingleFile (ASYNC JOB)');
 		$previousState = $this->saveCachedState();
 		$this->resetCachedState();
 
@@ -493,7 +511,14 @@ class SignFileService {
 			$this->updateSignRequest($hash);
 			$this->updateLibreSignFile($libreSignFile, $signedFile->getId(), $hash);
 
-			$this->dispatchSignedEvent();
+			try {
+				$this->dispatchSignedEvent();
+			} catch (\Throwable $e) {
+				// TODO: Find solution later
+				$this->logger->error('SignSingleEvent - DispatchSignedEvent failed', [
+					'exception' => $e
+				]);
+			}
 
 			$envelopeContext = $this->getEnvelopeContext();
 			if ($envelopeContext['envelope'] instanceof FileEntity) {
@@ -632,7 +657,14 @@ class SignFileService {
 			$this->updateSignRequest($hash);
 			$this->updateLibreSignFile($this->libreSignFile, $signedFile->getId(), $hash);
 
-			$this->dispatchSignedEvent();
+			try {
+				$this->dispatchSignedEvent();
+			} catch (\Throwable $e) {
+				// TODO: Find solution later
+				$this->logger->error('SignSequentially - DispatchSignedEvent failed', [
+					'exception' => $e
+				]);
+			}
 		}
 
 		if ($envelopeContext['envelope'] instanceof FileEntity) {
@@ -731,7 +763,7 @@ class SignFileService {
 				$identifyMethod,
 				$result['envelope']->getId()
 			);
-		} catch (DoesNotExistException) {
+		} catch (DoesNotExistException $e) {
 		}
 
 		return $result;
@@ -833,6 +865,7 @@ class SignFileService {
 	}
 
 	protected function updateSignRequest(string $hash): void {
+		$this->logger->info('SignFileService - updateSignRequest');
 		$lastSignedDate = $this->getEngine()->getLastSignedDate();
 		$this->signRequest->setSigned($lastSignedDate);
 		$this->signRequest->setSignedHash($hash);
@@ -929,29 +962,15 @@ class SignFileService {
 	private function buildBaseSignatureParams(array $certificateData): array {
 		$issuerCommonName = $this->normalizeCertificateFieldToString($certificateData['issuer']['CN'] ?? '');
 		$signerCommonName = $this->normalizeCertificateFieldToString($certificateData['subject']['CN'] ?? '');
-		$documentUuid = $this->libreSignFile?->getUuid() ?? '';
-		$validationUrl = $documentUuid ? $this->buildValidationUrl($documentUuid) : '';
 
 		return [
-			'DocumentUUID' => $documentUuid,
+			'DocumentUUID' => $this->libreSignFile?->getUuid(),
 			'IssuerCommonName' => $issuerCommonName,
 			'SignerCommonName' => $signerCommonName,
 			'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
-			'ValidationURL' => $validationUrl,
 			'LocalSignerSignatureDateTime' => (new DateTime('now', new \DateTimeZone('UTC')))
 				->format(DateTimeInterface::ATOM)
 		];
-	}
-
-	private function buildValidationUrl(string $uuid): string {
-		$validationSite = trim($this->appConfig->getValueString(Application::APP_ID, 'validation_site', ''));
-		if ($validationSite !== '') {
-			return rtrim($validationSite, '/') . '/' . $uuid;
-		}
-
-		return $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFileWithShortUrl', [
-			'uuid' => $uuid,
-		]);
 	}
 
 	private function normalizeCertificateFieldToString(mixed $value): string {
@@ -962,11 +981,7 @@ class SignFileService {
 					$flattened[] = (string)$item;
 				}
 			});
-			$displayValues = array_values(array_filter(
-				$flattened,
-				static fn (string $item) => !preg_match('/^account:\s*/i', $item),
-			));
-			return implode(', ', $displayValues);
+			return implode(', ', $flattened);
 		}
 
 		return $value === null ? '' : (string)$value;
@@ -1404,7 +1419,7 @@ class SignFileService {
 		if (!$fileToSign instanceof File) {
 			$this->logger->error('[file-access] Node is not a File - nodeId={nodeId} type={type}', [
 				'nodeId' => $nodeId,
-				'type' => $fileToSign ? $fileToSign::class : 'NULL',
+				'type' => $fileToSign ? get_class($fileToSign) : 'NULL',
 			]);
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
@@ -1461,7 +1476,7 @@ class SignFileService {
 
 		$fileId = $this->libreSignFile->getId();
 		$extension = $originalFile->getExtension();
-		$uniqueFilename = substr((string)$filename, 0, -strlen($extension) - 1) . '_' . $fileId . '.' . $extension;
+		$uniqueFilename = substr($filename, 0, -strlen($extension) - 1) . '_' . $fileId . '.' . $extension;
 
 		try {
 			/** @var \OCP\Files\Folder */
@@ -1626,7 +1641,7 @@ class SignFileService {
 
 		$attempt = [
 			'timestamp' => (new DateTime())->format(\DateTime::ATOM),
-			'engine' => $this->engine ? $this->engine::class : 'unknown',
+			'engine' => $this->engine ? get_class($this->engine) : 'unknown',
 			'error_message' => $exception->getMessage(),
 			'error_code' => $exception->getCode(),
 		];

@@ -4,12 +4,13 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import File from '../../../components/File/File.vue'
 
 type FileEntry = {
-	id?: number
+	id: number
 	nodeId?: number
 	name: string
 	status: number
@@ -36,7 +37,7 @@ const sidebarStoreMock = {
 	activeRequestSignatureTab: vi.fn(),
 }
 
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path: string, params?: Record<string, string | number>) => {
@@ -83,23 +84,23 @@ describe('File.vue', () => {
 		sidebarStoreMock.activeRequestSignatureTab.mockReset()
 	})
 
-	it('renders the selected file preview using the file id thumbnail endpoint', () => {
+	it('renders the selected file preview using the node id thumbnail endpoint', () => {
 		const wrapper = createWrapper()
 
 		const image = wrapper.find('img')
 
 		expect(image.exists()).toBe(true)
 		expect(wrapper.find('h1').text()).toBe('contract.pdf')
-		expect(image.attributes('src')).toContain('/apps/libresign/api/v1/file/thumbnail/file_id/13')
+		expect(image.attributes('src')).toContain('/apps/libresign/api/v1/file/thumbnail/99')
 		expect(image.attributes('src')).toContain('x=128')
 		expect(image.attributes('src')).toContain('y=128')
 		expect(image.attributes('src')).toContain('mimeFallback=true')
 		expect(image.attributes('src')).toContain('a=0')
 	})
 
-	it('falls back to the node id thumbnail endpoint when the file id is absent', () => {
+	it('falls back to the file id thumbnail endpoint when node id is absent', () => {
 		filesStoreMock.files[7] = {
-			nodeId: 99,
+			id: 13,
 			name: 'fallback.pdf',
 			status: 1,
 			statusText: 'Pending',
@@ -107,7 +108,7 @@ describe('File.vue', () => {
 
 		const wrapper = createWrapper()
 
-		expect(wrapper.find('img').attributes('src')).toContain('/apps/libresign/api/v1/file/thumbnail/99')
+		expect(wrapper.find('img').attributes('src')).toContain('/apps/libresign/api/v1/file/thumbnail/file_id/13')
 	})
 
 	it('selects the file and opens the request signature sidebar on click', async () => {

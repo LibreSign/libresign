@@ -24,6 +24,7 @@ class FileStatusServiceTest extends TestCase {
 	private FileStatusService $service;
 
 	protected function setUp(): void {
+		parent::setUp();
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->statusCacheService = $this->createMock(StatusCacheService::class);
 		$this->service = new FileStatusService($this->fileMapper, $this->statusCacheService);

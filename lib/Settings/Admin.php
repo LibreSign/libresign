@@ -97,6 +97,26 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('show_confetti_after_signing', $this->appConfig->getValueBool(Application::APP_ID, 'show_confetti_after_signing', true));
 		$this->initialState->provideInitialState('crl_external_validation_enabled', $this->appConfig->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true));
 		$this->initialState->provideInitialState('ldap_extension_available', function_exists('ldap_connect'));
+
+		//	SMS & TIARA API CONFIG
+		$this->initialState->provideInitialState('sms_otp_enabled', $this->appConfig->getValueBool(Application::APP_ID, 'sms_otp_enabled', false));
+		$this->initialState->provideInitialState('tiara_api_key', $this->appConfig->getValueString(Application::APP_ID, 'tiara_api_key', ''));
+		$this->initialState->provideInitialState('tiara_sender_id', $this->appConfig->getValueString(Application::APP_ID, 'tiara_sender_id', ''));
+
+		//	DPO API CONFIG
+		$this->initialState->provideInitialState('dpo_endpoint', $this->appConfig->getValueString(Application::APP_ID, 'dpo_endpoint', ''));
+		$this->initialState->provideInitialState('dpo_company_token', $this->appConfig->getValueString(Application::APP_ID, 'dpo_company_token', ''));
+		$this->initialState->provideInitialState('dpo_service_id', $this->appConfig->getValueString(Application::APP_ID, 'dpo_service_id', ''));
+		$this->initialState->provideInitialState('dpo_payment_url', $this->appConfig->getValueString(Application::APP_ID, 'dpo_payment_url', ''));
+
+		//	DARAJA API CONFIG
+		$this->initialState->provideInitialState('daraja_base_url', $this->appConfig->getValueString(Application::APP_ID, 'daraja_base_url', ''));
+		$this->initialState->provideInitialState('daraja_consumer_key', $this->appConfig->getValueString(Application::APP_ID, 'daraja_consumer_key', ''));
+		$this->initialState->provideInitialState('daraja_consumer_secret', $this->appConfig->getValueString(Application::APP_ID, 'daraja_consumer_secret', ''));
+		$this->initialState->provideInitialState('daraja_pass_key', $this->appConfig->getValueString(Application::APP_ID, 'daraja_pass_key', ''));
+		$this->initialState->provideInitialState('daraja_shortcode', $this->appConfig->getValueString(Application::APP_ID, 'daraja_shortcode', ''));
+		$this->initialState->provideInitialState('daraja_gopaperless_callback_base_url', $this->appConfig->getValueString(Application::APP_ID, 'daraja_gopaperless_callback_base_url', ''));
+
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}
 

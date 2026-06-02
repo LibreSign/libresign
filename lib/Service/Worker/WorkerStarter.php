@@ -10,17 +10,13 @@ namespace OCA\Libresign\Service\Worker;
 
 use OCA\Libresign\BackgroundJob\SignFileJob;
 use OCA\Libresign\BackgroundJob\SignSingleFileJob;
-use OCA\Libresign\Service\Process\ProcessManager;
-use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\IBinaryFinder;
 
 class WorkerStarter {
 	private const MAX_WORKERS = 32;
-	private const PROCESS_SOURCE = 'worker';
 
 	public function __construct(
 		private IBinaryFinder $binaryFinder,
-		private ProcessManager $processManager,
 	) {
 	}
 
@@ -45,25 +41,13 @@ class WorkerStarter {
 	}
 
 	private function executeCommand(string $phpPath, string $occPath, array $jobClasses): void {
-		$command = [
-			$phpPath,
-			$occPath,
-			'background-job:worker',
-			...$jobClasses,
-			'--stop_after=30m',
-		];
-		$process = $this->createProcess($command);
-		$process->setOptions(['create_new_console' => true]);
-		$process->setTimeout(null);
-		$process->start();
-
-		$pid = $process->getPid() ?? 0;
-		if ($pid > 0) {
-			$this->processManager->register(self::PROCESS_SOURCE, $pid);
-		}
-	}
-
-	protected function createProcess(array $command): Process {
-		return new Process($command);
+		$jobClassesArg = implode(' ', array_map('escapeshellarg', $jobClasses));
+		$cmd = sprintf(
+			'%s %s background-job:worker %s --stop_after=30m >> /dev/null 2>&1 &',
+			escapeshellarg($phpPath),
+			escapeshellarg($occPath),
+			$jobClassesArg
+		);
+		shell_exec($cmd);
 	}
 }

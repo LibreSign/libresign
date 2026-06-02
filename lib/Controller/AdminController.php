@@ -31,6 +31,7 @@ use OCA\Libresign\Settings\Admin;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
@@ -45,7 +46,7 @@ use OCP\ISession;
 use UnexpectedValueException;
 
 /**
- * @psalm-import-type LibresignCertificateDataGenerated from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignCetificateDataGenerated from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignCertificateEngineConfigResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignCertificatePolicyResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignConfigureCheck from \OCA\Libresign\ResponseDefinitions
@@ -225,7 +226,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * Return all data of root certificate and a field called `generated` with a boolean value.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignCertificateDataGenerated, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignCetificateDataGenerated, array{}>
 	 *
 	 * 200: OK
 	 */
@@ -269,7 +270,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * This will disable hate limit to current session.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>
 	 *
 	 * 200: OK
 	 */
@@ -451,8 +452,8 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param string $template Template to signature text
 	 * @param float $templateFontSize Font size used when print the parsed text of this template at PDF file
 	 * @param float $signatureFontSize Font size used when the signature mode is SIGNAME_AND_DESCRIPTION
-	 * @param float $signatureWidth Signature box width, minimum 1
-	 * @param float $signatureHeight Signature box height, minimum 1
+	 * @param float $signatureWidth Signature width
+	 * @param float $signatureHeight Signature height
 	 * @param string $renderMode Signature render mode
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignatureTextSettingsResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
@@ -665,8 +666,9 @@ class AdminController extends AEnvironmentAwareController {
 	 * 200: OK
 	 * 422: Validation error
 	 */
+	#[OpenAPI(tags: ['settings'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/certificate-policy/oid', requirements: ['apiVersion' => '(v1)'])]
-	public function updateOid(string $oid): DataResponse {
+	public function updateOID(string $oid): DataResponse {
 		try {
 			$this->certificatePolicyService->updateOid($oid);
 			return new DataResponse(
@@ -686,6 +688,8 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * Get reminder settings
+	 *
 	 * Get reminder settings
 	 *
 	 * @return DataResponse<Http::STATUS_OK, LibresignReminderSettings, array{}>
@@ -957,31 +961,6 @@ class AdminController extends AEnvironmentAwareController {
 			$this->appConfig->deleteKey(Application::APP_ID, $key);
 		} else {
 			$this->appConfig->setValueString(Application::APP_ID, $key, $value);
-		}
-	}
-
-	/**
-	 * Persist groups allowed to request signatures as typed app config array
-	 *
-	 * @param list<string> $groups List of group IDs allowed to request signatures
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
-	 *
-	 * 200: Settings saved
-	 * 500: Internal server error
-	 */
-	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/groups-request-sign/config', requirements: ['apiVersion' => '(v1)'])]
-	public function setGroupsRequestSignConfig(array $groups = []): DataResponse {
-		try {
-			$normalizedGroups = array_values(array_map(static fn (mixed $group): string => (string)$group, $groups));
-			$this->appConfig->setValueArray(Application::APP_ID, 'groups_request_sign', $normalizedGroups);
-
-			return new DataResponse([
-				'message' => $this->l10n->t('Settings saved'),
-			]);
-		} catch (\Exception $e) {
-			return new DataResponse([
-				'error' => $e->getMessage(),
-			], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 	}
 

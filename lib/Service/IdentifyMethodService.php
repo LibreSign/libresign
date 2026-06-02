@@ -340,6 +340,7 @@ class IdentifyMethodService {
 		$this->identifyMethodsSettings = [
 			$this->account->getSettings(),
 			$this->email->getSettings(),
+			$this->sms->getSettings(),
 		];
 		if ($this->signal->isTwofactorGatewayEnabled()) {
 			$this->identifyMethodsSettings[] = $this->signal->getSettings();

@@ -4,7 +4,7 @@
  */
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { interpolateL10n } from '../../testHelpers/l10n.js'
+import { createL10nMock, interpolateL10n } from '../../testHelpers/l10n.js'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
@@ -65,7 +65,7 @@ vi.mock('@nextcloud/axios', () => ({
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((url: string) => url),
 }))
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n({
+vi.mock('@nextcloud/l10n', () => createL10nMock({
 	t: (_app: string, text: string, vars?: Record<string, unknown>) => interpolateL10n(text, vars),
 }))
 vi.mock('../../../utils/fileStatus.js', () => ({
@@ -460,28 +460,6 @@ describe('SigningProgress', () => {
 			wrapper = createWrapper()
 
 			const progress = wrapper.vm.buildProgressFromValidation({
-				signers: [
-					{ signed: true },
-					{ signed: false },
-				],
-			})
-
-			expect(progress).toEqual({
-				total: 2,
-				signed: 1,
-				inProgress: 0,
-				pending: 1,
-			})
-		})
-
-		it('uses signer progress for single-file documents even when files array exists', () => {
-			wrapper = createWrapper()
-
-			const progress = wrapper.vm.buildProgressFromValidation({
-				nodeType: 'file',
-				files: [
-					{ id: 1, name: 'contract.pdf', status: 3 },
-				],
 				signers: [
 					{ signed: true },
 					{ signed: false },

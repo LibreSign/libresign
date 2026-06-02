@@ -13,7 +13,7 @@ import type {
 export type SignerLike = {
 	signRequestId?: number
 	displayName?: string
-	email?: string | null
+	email?: string
 	identifyMethods?: IdentifyMethodRecord[]
 	signed?: string | null | boolean | unknown[]
 	status?: number
@@ -26,7 +26,6 @@ export type SignerLike = {
 export type NestedFileLike = {
 	id?: number | string
 	name?: string
-	url?: string | null
 	file?: string | NestedFileLike | null
 	metadata?: unknown
 	visibleElements?: VisibleElementRecord[] | null
@@ -107,32 +106,12 @@ export const isCurrentUserSigner = (signer: SignerLike | null | undefined): sign
 	&& 'me' in signer
 	&& signer.me === true
 
-export const getFileUrl = (file: FileLike | null | undefined): string | null => {
-	if (typeof file?.file === 'string') {
-		return file.file
-	}
-
-	if (file?.file && typeof file.file === 'object' && typeof file.file.url === 'string') {
-		return file.file.url
-	}
-
-	if (typeof file?.url === 'string') {
-		return file.url
-	}
-
-	if (!Array.isArray(file?.files)) {
-		return null
-	}
-
-	for (const nestedFile of file.files) {
-		const nestedFileUrl = getFileUrl(nestedFile)
-		if (nestedFileUrl) {
-			return nestedFileUrl
-		}
-	}
-
-	return null
-}
+export const getFileUrl = (file: FileLike | null | undefined): string | null =>
+	typeof file?.file === 'string'
+		? file.file
+		: Array.isArray(file?.files) && typeof file.files[0]?.file === 'string'
+			? file.files[0].file
+			: null
 
 export const getFileSigners = (file: FileLike): SignerLike[] => {
 	if (Array.isArray(file.signers) && file.signers.length > 0) {
@@ -144,40 +123,12 @@ export const getFileSigners = (file: FileLike): SignerLike[] => {
 	return []
 }
 
-export const getCurrentUserSignRequestIds = (document: DocumentLike): number[] => {
-	const signRequestIds = new Set<number>()
-	const addSignRequestId = (signer: SignerLike | null | undefined) => {
-		if (!isCurrentUserSigner(signer) || signer.signRequestId === undefined) {
-			return
-		}
-		signRequestIds.add(signer.signRequestId)
-	}
-
-	const signers = Array.isArray(document?.signers) ? document.signers : []
-	signers.forEach(addSignRequestId)
-
-	const files = Array.isArray(document?.files) ? document.files : []
-	files.flatMap((file) => getFileSigners(file)).forEach(addSignRequestId)
-
-	return Array.from(signRequestIds)
-}
-
 export const getVisibleElementsFromDocument = (document: DocumentLike): VisibleElementRecord[] => {
 	const topLevel = Array.isArray(document?.visibleElements) ? document.visibleElements : []
 	const signers = Array.isArray(document?.signers) ? document.signers : []
 	const nested = collectSignerVisibleElements(signers)
 	const files = Array.isArray(document?.files) ? aggregateVisibleElementsByFiles(document.files) : []
 	return deduplicateVisibleElements([...topLevel, ...nested, ...files])
-}
-
-export const hasVisibleElementsForCurrentUser = (document: DocumentLike): boolean => {
-	const signRequestIds = new Set(getCurrentUserSignRequestIds(document))
-	if (signRequestIds.size === 0) {
-		return false
-	}
-
-	return getVisibleElementsFromDocument(document)
-		.some((element) => element.signRequestId !== undefined && signRequestIds.has(element.signRequestId))
 }
 
 export const getVisibleElementsFromFile = (file: FileLike): VisibleElementRecord[] => {

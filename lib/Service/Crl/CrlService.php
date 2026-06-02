@@ -13,7 +13,6 @@ use DateTime;
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Enum\CertificateEngineType;
 use OCA\Libresign\Enum\CRLReason;
-use OCA\Libresign\Enum\CRLStatus;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\Certificate\FileService;
 use Psr\Log\LoggerInterface;
@@ -61,12 +60,14 @@ class CrlService {
 		?string $reasonText = null,
 		?string $revokedBy = null,
 		?DateTime $invalidityDate = null,
-		?DateTime $revokedAt = null,
 	): bool {
 
 		try {
 			$certificate = $this->crlMapper->findBySerialNumber($serialNumber);
-			['instanceId' => $instanceId, 'generation' => $generation, 'engineType' => $engineType] = $this->getCrlMetadata($certificate);
+			$instanceId = $certificate->getInstanceId();
+			$generation = $certificate->getGeneration();
+			$engineType = $certificate->getEngine();
+
 			$crlNumber = $this->getNextCrlNumber($instanceId, $generation, $engineType);
 
 			$this->crlMapper->revokeCertificateEntity(
@@ -75,16 +76,11 @@ class CrlService {
 				$reasonText,
 				$revokedBy,
 				$invalidityDate,
-				$crlNumber,
-				$revokedAt,
+				$crlNumber
 			);
 
 			return true;
-		} catch (\Throwable $exception) {
-			$this->logger->warning('Failed to revoke certificate {serial}', [
-				'serial' => $serialNumber,
-				'error' => $exception->getMessage(),
-			]);
+		} catch (\Exception $e) {
 			return false;
 		}
 	}
@@ -133,8 +129,11 @@ class CrlService {
 
 		foreach ($certificates as $certificate) {
 			try {
+				$instanceId = $certificate->getInstanceId();
+				$generation = $certificate->getGeneration();
+				$engineType = $certificate->getEngine();
 				$serialNumber = $certificate->getSerialNumber();
-				['instanceId' => $instanceId, 'generation' => $generation, 'engineType' => $engineType] = $this->getCrlMetadata($certificate);
+
 				$crlNumber = $this->getNextCrlNumber($instanceId, $generation, $engineType);
 
 				$this->crlMapper->revokeCertificateEntity(
@@ -179,7 +178,7 @@ class CrlService {
 
 			return ['status' => 'valid'];
 
-		} catch (\OCP\AppFramework\Db\DoesNotExistException) {
+		} catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
 			return ['status' => 'unknown'];
 		}
 	}
@@ -238,25 +237,6 @@ class CrlService {
 		return $result;
 	}
 
-	/**
-	 * @return array{instanceId: string, generation: int, engineType: string}
-	 */
-	private function getCrlMetadata(\OCA\Libresign\Db\Crl $certificate): array {
-		$instanceId = $certificate->getInstanceId();
-		$generation = $certificate->getGeneration();
-		$engineType = $certificate->getEngine();
-
-		if ($instanceId === null || $generation === null || $engineType === '') {
-			throw new \RuntimeException('Certificate missing CRL metadata: instance_id, generation or engine');
-		}
-
-		return [
-			'instanceId' => $instanceId,
-			'generation' => $generation,
-			'engineType' => $engineType,
-		];
-	}
-
 	private function getNextCrlNumber(string $instanceId, int $generation, string $engineType): int {
 		$lastCrlNumber = $this->crlMapper->getLastCrlNumber($instanceId, $generation, $engineType);
 
@@ -289,18 +269,9 @@ class CrlService {
 
 			return $engine->generateCrlDer($revokedCertificates, $instanceId, $generation, $crlNumber);
 		} catch (\Throwable $e) {
-			if ($e instanceof \RuntimeException && str_starts_with($e->getMessage(), 'Config path does not exist for instanceId:')) {
-				$this->logger->debug('Skipping local CRL generation because source PKI config path is missing', [
-					'instanceId' => $instanceId,
-					'generation' => $generation,
-					'engineType' => $engineType,
-					'reason' => $e->getMessage(),
-				]);
-			} else {
-				$this->logger->error('Failed to generate CRL', [
-					'exception' => $e,
-				]);
-			}
+			$this->logger->error('Failed to generate CRL', [
+				'exception' => $e,
+			]);
 			throw $e;
 		}
 	}
@@ -325,24 +296,26 @@ class CrlService {
 
 		$result = $this->crlMapper->listWithPagination($page, $length, $filter, $sort);
 
-		$formattedData = array_values(array_map(fn ($entity) => [
-			'id' => $entity->getId(),
-			'serial_number' => $entity->getSerialNumber(),
-			'owner' => $entity->getOwner(),
-			'status' => CRLStatus::from($entity->getStatus())->value,
-			'certificate_type' => $entity->getCertificateType(),
-			'engine' => $entity->getEngine(),
-			'instance_id' => $entity->getInstanceId(),
-			'generation' => $entity->getGeneration(),
-			'issued_at' => $entity->getIssuedAt()?->format('Y-m-d H:i:s'),
-			'valid_to' => $entity->getValidTo()?->format('Y-m-d H:i:s'),
-			'revoked_at' => $entity->getRevokedAt()?->format('Y-m-d H:i:s'),
-			'reason_code' => $entity->getReasonCode(),
-			'comment' => $entity->getComment(),
-			'revoked_by' => $entity->getRevokedBy(),
-			'invalidity_date' => $entity->getInvalidityDate()?->format('Y-m-d H:i:s'),
-			'crl_number' => $entity->getCrlNumber(),
-		], $result['data']));
+		$formattedData = array_values(array_map(function ($entity) {
+			return [
+				'id' => $entity->getId(),
+				'serial_number' => $entity->getSerialNumber(),
+				'owner' => $entity->getOwner(),
+				'status' => $entity->getStatus(),
+				'certificate_type' => $entity->getCertificateType(),
+				'engine' => $entity->getEngine(),
+				'instance_id' => $entity->getInstanceId(),
+				'generation' => $entity->getGeneration(),
+				'issued_at' => $entity->getIssuedAt()?->format('Y-m-d H:i:s'),
+				'valid_to' => $entity->getValidTo()?->format('Y-m-d H:i:s'),
+				'revoked_at' => $entity->getRevokedAt()?->format('Y-m-d H:i:s'),
+				'reason_code' => $entity->getReasonCode(),
+				'comment' => $entity->getComment(),
+				'revoked_by' => $entity->getRevokedBy(),
+				'invalidity_date' => $entity->getInvalidityDate()?->format('Y-m-d H:i:s'),
+				'crl_number' => $entity->getCrlNumber(),
+			];
+		}, $result['data']));
 
 		return [
 			'data' => $formattedData,

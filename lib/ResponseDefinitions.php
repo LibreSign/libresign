@@ -22,6 +22,7 @@ namespace OCA\Libresign;
  * @psalm-type LibresignSettings = array{
  *     canSign: bool,
  *     canRequestSign: bool,
+ *     signerFileUuid: ?string,
  *     phoneNumber: string,
  *     hasSignatureFile: bool,
  *     isApprover?: bool,
@@ -33,7 +34,6 @@ namespace OCA\Libresign;
  *
  * @psalm-type LibresignFolderSettings = array{
  *     folderName?: string,
- *     path?: string,
  *     separator?: string,
  *     folderPatterns?: array{
  *         name: string,
@@ -68,7 +68,7 @@ namespace OCA\Libresign;
  * Identity and signer contracts
  *
  * @psalm-type LibresignIdentifyMethod = array{
- *     method: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'xmpp',
+ *     method: string,
  *     value: string,
  *     mandatory: non-negative-int,
  * }
@@ -132,33 +132,17 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignIdentifyAccountsResponse = list<LibresignIdentifyAccount>
  * @psalm-type LibresignNotify = array{
- *     date: non-negative-int,
+ *     date: string,
  *     method: "activity"|"notify"|"mail",
- *     description?: string,
  * }
  * @psalm-type LibresignRequestedBy = array{
  *     userId: string,
  *     displayName: ?string,
  * }
- * @psalm-type LibresignDynamicMetadataScalar = string|int|float|bool|null
- * @psalm-type LibresignDynamicMetadataRecord = array<string, LibresignDynamicMetadataScalar>
- * @psalm-type LibresignDynamicMetadataValue = LibresignDynamicMetadataScalar|list<LibresignDynamicMetadataScalar>|LibresignDynamicMetadataRecord|list<LibresignDynamicMetadataRecord>
- * @psalm-type LibresignSignerCertificateInfo = array{
- *     serialNumber?: string,
- *     serialNumberHex?: string,
- *     hash?: string,
- *     subject?: LibresignDynamicMetadataValue,
- * }
- * @psalm-type LibresignSignerMetadata = array{
- *     remote-address?: string,
- *     user-agent?: string,
- *     notify?: LibresignNotify[],
- *     certificate_info?: LibresignSignerCertificateInfo,
- * }
  * @psalm-type LibresignSignerSummary = array{
  *     signRequestId: int,
  *     displayName: string,
- *     email?: ?string,
+ *     email: string,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     signed: ?string,
  *     status: int,
@@ -175,7 +159,7 @@ namespace OCA\Libresign;
  *     notify?: LibresignNotify[],
  *     userId?: string,
  *     sign_date?: ?string,
- *     sign_request_uuid?: string,
+ *     sign_uuid?: string,
  *     hash_algorithm?: string,
  *     me: bool,
  *     status: 0|1|2,
@@ -183,7 +167,7 @@ namespace OCA\Libresign;
  *     visibleElements: LibresignVisibleElement[],
  *     signatureMethods?: LibresignSignatureMethods,
  *     uid?: string,
- *     metadata?: LibresignSignerMetadata,
+ *     metadata?: mixed,
  * }
  *
  * Shared feedback and action contracts
@@ -301,7 +285,7 @@ namespace OCA\Libresign;
  *     policySection: LibresignPolicySection[],
  *     rootCert: LibresignRootCertificate,
  * }
- * @psalm-type LibresignCertificateDataGenerated = LibresignEngineHandler&array{
+ * @psalm-type LibresignCetificateDataGenerated = LibresignEngineHandler&array{
  *     generated: boolean,
  * }
  * @psalm-type LibresignEngineHandlerResponse = array{
@@ -379,7 +363,6 @@ namespace OCA\Libresign;
  *     pdfVersion?: string,
  *     status_changed_at?: string,
  * }
- * @psalm-type LibresignFileRuntimeMetadata = LibresignValidateMetadata|array<string, LibresignDynamicMetadataValue>
  * @psalm-type LibresignValidationPageResolution = array{
  *     w: float,
  *     h: float,
@@ -411,10 +394,10 @@ namespace OCA\Libresign;
  *     statusText: string,
  *     nodeId: non-negative-int,
  *     nodeType: 'file'|'envelope',
- *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
+ *     signatureFlow: int,
  *     docmdpLevel: int,
- *     filesCount: int<0, max>,
- *     files: list<LibresignValidatedChildFile>,
+ *     filesCount?: int<0, max>,
+ *     files?: list<LibresignValidatedChildFile>,
  *     totalPages: non-negative-int,
  *     size: non-negative-int,
  *     pdfVersion: string,
@@ -422,6 +405,7 @@ namespace OCA\Libresign;
  *     requested_by: LibresignRequestedBy,
  *     file?: string,
  *     url?: string,
+ *     signUuid?: string|null,
  *     mime?: string,
  *     pages?: list<LibresignValidationPage>,
  *     metadata?: LibresignValidateMetadata,
@@ -462,7 +446,7 @@ namespace OCA\Libresign;
  *     signers?: list<LibresignProgressSigner>,
  * }
  * @psalm-type LibresignProgressResponse = array{
- *     status: 'NOT_LIBRESIGN_FILE'|'DRAFT'|'ABLE_TO_SIGN'|'PARTIAL_SIGNED'|'SIGNED'|'DELETED'|'SIGNING_IN_PROGRESS'|'ERROR'|'UNKNOWN',
+ *     status: string,
  *     statusCode: int,
  *     statusText: string,
  *     fileId: int,
@@ -482,11 +466,12 @@ namespace OCA\Libresign;
  *     statusText: string,
  *     nodeType: 'file'|'envelope',
  *     created_at: string,
- *     metadata: LibresignFileRuntimeMetadata,
+ *     signUuid?: ?string,
+ *     metadata: LibresignValidateMetadata,
  *     docmdpLevel: int,
  *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
  *     signersCount: int,
- *     signers: list<LibresignSignerSummary>,
+ *     signers: list<empty>,
  *     requested_by: LibresignRequestedBy,
  *     filesCount: int<0, max>,
  *     canSign: bool,
@@ -502,7 +487,7 @@ namespace OCA\Libresign;
  *     docmdpLevel: int,
  *     signersCount: int,
  *     file: string,
- *     metadata: LibresignFileRuntimeMetadata,
+ *     metadata: LibresignValidateMetadata,
  *     size: non-negative-int,
  *     signers: list<LibresignSignerSummary>,
  * }
@@ -516,8 +501,8 @@ namespace OCA\Libresign;
  *     name: string,
  *     status: int,
  *     statusText: string,
- *     nodeType: 'file'|'envelope',
- *     metadata: LibresignFileRuntimeMetadata,
+ *     nodeType: string,
+ *     metadata: array<string, mixed>,
  *     size: non-negative-int,
  *     docmdpLevel: int,
  *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
@@ -530,7 +515,8 @@ namespace OCA\Libresign;
  *     message: string,
  *     name: non-falsy-string,
  *     nodeType: 'file'|'envelope',
- *     metadata: LibresignFileRuntimeMetadata,
+ *     signUuid?: string|null,
+ *     metadata: LibresignValidateMetadata,
  *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
  * }
  * @psalm-type LibresignFileListResponse = array{
@@ -579,7 +565,7 @@ namespace OCA\Libresign;
  *         nodeId: int,
  *     },
  *     userId: string,
- *     starred: bool,
+ *     starred: 0|1,
  *     createdAt: string,
  * }
  * @psalm-type LibresignUserElementsResponse = array{
@@ -610,7 +596,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignConfigValueResponse = array{
  *     key: string,
- *     value: ?string,
+ *     value: mixed,
  * }
  * @psalm-type LibresignIdDocsUploadErrorResponse = array{
  *     file: ?int,
@@ -623,7 +609,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignIdDocsApprovalListResponse = array{
  *     pagination: LibresignPagination,
- *     data: list<LibresignFile>,
+ *     data: null|list<LibresignFile>,
  * }
  * @psalm-type LibresignCreateToSignPdfReference = array{
  *     url: string,
@@ -654,7 +640,7 @@ namespace OCA\Libresign;
  *     id: int,
  *     serial_number: string,
  *     owner: string,
- *     status: 'issued'|'revoked',
+ *     status: string,
  *     certificate_type: string,
  *     engine: string,
  *     instance_id: ?string,

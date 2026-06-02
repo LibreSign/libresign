@@ -267,8 +267,9 @@ class PhpNativeHandler extends Pkcs12Handler {
 		}
 
 		$params = $this->getSignatureParams();
-		$params['ServerSignatureDate'] = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))
-			->format(\DateTimeInterface::ATOM);
+		$serverTimezone = new \DateTimeZone(date_default_timezone_get());
+		$now = new \DateTime('now', $serverTimezone);
+		$params['ServerSignatureDate'] = $now->format('Y.m.d H:i:s \U\T\C');
 
 		$textData = $this->signatureTextService->parse(context: $params);
 		$parsed = trim((string)($textData['parsed'] ?? ''));

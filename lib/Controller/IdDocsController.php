@@ -19,6 +19,7 @@ use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
@@ -73,7 +74,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 			} else {
 				throw new Exception('Invalid data');
 			}
-			return new DataResponse();
+			return new DataResponse([], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			$exceptionData = json_decode($exception->getMessage());
 			if (isset($exceptionData->file)) {
@@ -122,7 +123,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 			} else {
 				throw new Exception('Invalid data');
 			}
-			return new DataResponse();
+			return new DataResponse([], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			return new DataResponse(
 				[
@@ -151,8 +152,9 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/id-docs', requirements: ['apiVersion' => '(v1)'])]
-	public function listUnauthenticatedSignerDocuments(
+	public function listOfUnauthenticatedSigner(
 		?string $userId = null,
 		?int $signRequestId = null,
 		?int $page = null,
@@ -182,6 +184,24 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 				Http::STATUS_NOT_FOUND
 			);
 		}
+	}
+
+	/**
+	 * @deprecated Use listOfUnauthenticatedSigner() instead. Kept for backward compatibility.
+	 */
+	#[PublicPage]
+	#[AnonRateLimit(limit: 30, period: 60)]
+	#[NoCSRFRequired]
+	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['signing'])]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/id-docs', requirements: ['apiVersion' => '(v1)'])]
+	public function listUnauthenticatedSignerDocuments(
+		?string $userId = null,
+		?int $signRequestId = null,
+		?int $page = null,
+		?int $length = null,
+	): DataResponse {
+		return $this->listOfUnauthenticatedSigner($userId, $signRequestId, $page, $length);
 	}
 
 	/**

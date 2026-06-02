@@ -1,0 +1,982 @@
+<html>
+
+<head>
+	<style>
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0
+		}
+
+		body {
+			background: transparent
+		}
+
+		:root {
+			--white: #fff;
+			--bg: #f8f9fb;
+			--border: #e4e6ea;
+			--text: #1a1d23;
+			--muted: #6b7280;
+			--faint: #9ca3af;
+			--green: #0f6e56;
+			--green-light: #e1f5ee;
+			--green-mid: #1d9e75;
+			--blue: #0c447c;
+			--blue-light: #e6f1fb;
+			--blue-mid: #378add;
+			--purple: #3c3489;
+			--purple-light: #eeedfe;
+			--purple-mid: #7f77dd;
+			--amber: #854f0b;
+			--amber-light: #faeeda;
+			--amber-mid: #ba7517;
+			--coral: #993c1d;
+			--coral-light: #faece7;
+			--coral-mid: #d85a30;
+			--teal: #085041;
+			--teal-light: #e1f5ee;
+			--radius: 10px;
+			--shadow: 0 1px 4px rgba(0, 0, 0, .07), 0 0 0 1px rgba(0, 0, 0, .05);
+		}
+
+		.wrap {
+			font-family: "Anthropic Sans", system-ui, sans-serif;
+			color: var(--text);
+			font-size: 13px;
+			line-height: 1.4;
+			padding: 20px;
+			max-width: 1100px;
+			margin: 0 auto
+		}
+
+		.title-block {
+			text-align: center;
+			margin-bottom: 20px
+		}
+
+		.title-block h1 {
+			font-size: 18px;
+			font-weight: 500;
+			color: var(--text);
+			letter-spacing: -.01em
+		}
+
+		.title-block p {
+			font-size: 12px;
+			color: var(--muted);
+			margin-top: 3px
+		}
+
+		.title-block .author {
+			font-size: 11px;
+			color: var(--faint);
+			margin-top: 2px;
+			font-style: italic
+		}
+
+		.arch {
+			display: flex;
+			flex-direction: column;
+			gap: 10px
+		}
+
+		.layer {
+			border-radius: var(--radius);
+			padding: 14px;
+			position: relative
+		}
+
+		.layer-label {
+			font-size: 10px;
+			font-weight: 500;
+			letter-spacing: .08em;
+			text-transform: uppercase;
+			margin-bottom: 10px;
+			opacity: .7
+		}
+
+		.layer-inner {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+			align-items: flex-start
+		}
+
+		/* Layer colors */
+		.l-fe {
+			background: var(--purple-light);
+			border: 1px solid #afa9ec
+		}
+
+		.l-api {
+			background: var(--blue-light);
+			border: 1px solid #85b7eb
+		}
+
+		.l-app {
+			background: var(--green-light);
+			border: 1px solid #5dcaa5
+		}
+
+		.l-domain {
+			background: var(--amber-light);
+			border: 1px solid #ef9f27
+		}
+
+		.l-provider {
+			background: var(--coral-light);
+			border: 1px solid #f0997b
+		}
+
+		.l-external {
+			background: #f1f5f9;
+			border: 1px solid #b4b2a9
+		}
+
+		.l-persist {
+			background: #f0fdf4;
+			border: 1px solid #86efac
+		}
+
+		.l-flows {
+			background: #fafafa;
+			border: 1px solid var(--border)
+		}
+
+		.l-recovery {
+			background: #eff6ff;
+			border: 1px solid #93c5fd
+		}
+
+		.l-finality {
+			background: #fef3c7;
+			border: 1px solid #fcd34d
+		}
+
+		.l-future {
+			background: #f5f3ff;
+			border: 1px solid #c4b5fd
+		}
+
+		.l-principles {
+			background: #fff7ed;
+			border: 1px solid #fdba74
+		}
+
+		/* Boxes */
+		.box {
+			background: var(--white);
+			border-radius: 8px;
+			padding: 10px 12px;
+			box-shadow: var(--shadow);
+			min-width: 140px;
+			flex: 1
+		}
+
+		.box h4 {
+			font-size: 12px;
+			font-weight: 500;
+			color: var(--text);
+			margin-bottom: 4px
+		}
+
+		.box .sub {
+			font-size: 11px;
+			color: var(--muted)
+		}
+
+		.box ul {
+			list-style: none;
+			margin-top: 6px
+		}
+
+		.box ul li {
+			font-size: 11px;
+			color: var(--muted);
+			padding: 1px 0;
+			padding-left: 10px;
+			position: relative
+		}
+
+		.box ul li::before {
+			content: "·";
+			position: absolute;
+			left: 2px;
+			color: var(--faint)
+		}
+
+		.box .tag {
+			display: inline-block;
+			font-size: 10px;
+			padding: 1px 6px;
+			border-radius: 4px;
+			margin-top: 4px;
+			font-weight: 500
+		}
+
+		.tag-green {
+			background: var(--green-light);
+			color: var(--green)
+		}
+
+		.tag-blue {
+			background: var(--blue-light);
+			color: var(--blue)
+		}
+
+		.tag-purple {
+			background: var(--purple-light);
+			color: var(--purple)
+		}
+
+		.tag-amber {
+			background: var(--amber-light);
+			color: var(--amber)
+		}
+
+		.tag-coral {
+			background: var(--coral-light);
+			color: var(--coral)
+		}
+
+		.tag-gray {
+			background: #f1f5f9;
+			color: #374151
+		}
+
+		/* State machine */
+		.states {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 5px;
+			margin-top: 6px
+		}
+
+		.state {
+			font-size: 10px;
+			padding: 2px 8px;
+			border-radius: 20px;
+			font-weight: 500;
+			white-space: nowrap
+		}
+
+		.state-init {
+			background: #dbeafe;
+			color: #1e40af
+		}
+
+		.state-exec {
+			background: #d1fae5;
+			color: #065f46
+		}
+
+		.state-recon {
+			background: #fef3c7;
+			color: #92400e
+		}
+
+		.state-done {
+			background: #dcfce7;
+			color: #166534
+		}
+
+		.state-fail {
+			background: #fee2e2;
+			color: #991b1b
+		}
+
+		.state-warn {
+			background: #f3e8ff;
+			color: #6b21a8
+		}
+
+		/* Flow arrows */
+		.flow-row {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			margin: 4px 0;
+			font-size: 11px;
+			color: var(--muted)
+		}
+
+		.arrow {
+			color: var(--faint);
+			font-size: 13px
+		}
+
+		.flow-step {
+			background: var(--white);
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			padding: 2px 8px;
+			font-size: 11px;
+			white-space: nowrap
+		}
+
+		/* Confidence indicators */
+		.conf {
+			display: flex;
+			gap: 6px;
+			margin-top: 6px;
+			flex-wrap: wrap
+		}
+
+		.conf-pill {
+			font-size: 10px;
+			padding: 2px 8px;
+			border-radius: 20px;
+			font-weight: 500
+		}
+
+		.conf-high {
+			background: #dcfce7;
+			color: #166534
+		}
+
+		.conf-amb {
+			background: #fef3c7;
+			color: #92400e
+		}
+
+		.conf-unk {
+			background: #fee2e2;
+			color: #991b1b
+		}
+
+		/* Divider */
+		.divider {
+			text-align: center;
+			color: var(--faint);
+			font-size: 11px;
+			padding: 4px 0;
+			display: flex;
+			align-items: center;
+			gap: 6px
+		}
+
+		.divider::before,
+		.divider::after {
+			content: "";
+			flex: 1;
+			border-top: 1px dashed var(--border)
+		}
+
+		/* Endpoint list */
+		.endpoint {
+			font-family: monospace;
+			font-size: 11px;
+			color: var(--blue);
+			display: block;
+			margin: 2px 0
+		}
+
+		/* Principle pills */
+		.principles {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 6px;
+			margin-top: 4px
+		}
+
+		.principle {
+			background: var(--white);
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			padding: 4px 10px;
+			font-size: 11px;
+			color: var(--text)
+		}
+
+		.principle strong {
+			color: var(--coral-mid)
+		}
+
+		/* Grid helpers */
+		.col2 {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 10px
+		}
+
+		.col3 {
+			display: grid;
+			grid-template-columns: 1fr 1fr 1fr;
+			gap: 10px
+		}
+
+		.col4 {
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			gap: 8px
+		}
+
+		.grow {
+			flex: 2
+		}
+
+		.no-min {
+			min-width: 0
+		}
+
+		.note {
+			font-size: 11px;
+			color: var(--muted);
+			font-style: italic;
+			margin-top: 4px
+		}
+
+		.warn-badge {
+			background: #fef3c7;
+			border: 1px solid #fcd34d;
+			color: #92400e;
+			font-size: 10px;
+			padding: 2px 8px;
+			border-radius: 5px;
+			display: inline-block;
+			margin-top: 4px;
+			font-weight: 500
+		}
+	</style>
+
+</head>
+
+<body>
+	<div class="wrap">
+		<div class="title-block">
+			<h1>GoPaperless Payment Orchestration Architecture</h1>
+			<p>Multi-Provider Async Payment Engine</p>
+			<div class="author">Tendaworld Engineering (Chris Daniels Ohabo & Bruno Carl Ouko)</div>
+		</div>
+
+		<div class="arch">
+
+			<!-- 1. FRONTEND LAYER -->
+			<div class="layer l-fe">
+				<div class="layer-label" style="color:var(--purple)">1 — Frontend layer · Web / Mobile runtime</div>
+				<div class="col4">
+					<div class="box no-min">
+						<h4>usePayment</h4>
+						<ul>
+							<li>Start / retry / resume</li>
+							<li>Poll payment status</li>
+							<li>Provider locking</li>
+							<li>Offline detection</li>
+						</ul>
+						<span class="tag tag-purple">Runtime core</span>
+					</div>
+					<div class="box no-min">
+						<h4>usePaymentRouting</h4>
+						<ul>
+							<li>shouldStartPolling()</li>
+							<li>isCallbackFlow()</li>
+							<li>isMobileDirectFlow()</li>
+							<li>requiresMnoSelection()</li>
+						</ul>
+						<span class="tag tag-purple">FE prediction only</span>
+					</div>
+					<div class="box no-min">
+						<h4>usePaymentRecovery</h4>
+						<ul>
+							<li>checkRecovery()</li>
+							<li>resumeRecovery()</li>
+							<li>discardRecovery()</li>
+							<li>activeReference restore</li>
+						</ul>
+						<span class="tag tag-purple">Hydration recovery</span>
+					</div>
+					<div class="box no-min">
+						<h4>PaymentStep.vue</h4>
+						<ul>
+							<li>Phone input + E164</li>
+							<li>MNO detection UX</li>
+							<li>Provider selection chips</li>
+							<li>Resumable polling UX</li>
+						</ul>
+						<span class="tag tag-purple">UX orchestrator</span>
+					</div>
+				</div>
+				<div class="note" style="margin-top:8px">MNO detection states: idle → detecting → detected / suggested /
+					requires-selection → selected. Provider locked once reference acquired.</div>
+			</div>
+
+			<div class="divider">HTTP / REST boundary</div>
+
+			<!-- 2. API LAYER -->
+			<div class="layer l-api">
+				<div class="layer-label" style="color:var(--blue)">2 — API layer · PaymentController</div>
+				<div class="layer-inner">
+					<div class="box">
+						<h4>Endpoints</h4>
+						<span class="endpoint">POST /payment/start</span>
+						<span class="endpoint">POST /payment/charge-mobile</span>
+						<span class="endpoint">GET /payment/status</span>
+						<span class="endpoint">GET /payment/verify</span>
+						<span class="endpoint">GET /payment/mobile-options</span>
+						<span class="endpoint">POST /payment/callback/daraja</span>
+						<span class="endpoint">POST /payment/callback/dpo</span>
+					</div>
+					<div class="box">
+						<h4>Controller contract</h4>
+						<ul>
+							<li>Thin orchestration boundary</li>
+							<li>Delegates all logic to PaymentService</li>
+							<li>No routing ownership</li>
+							<li>No retry ownership</li>
+							<li>No persistence ownership</li>
+						</ul>
+						<span class="tag tag-blue">Passthrough only</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="divider">Service boundary</div>
+
+			<!-- 3. APPLICATION LAYER -->
+			<div class="layer l-app">
+				<div class="layer-label" style="color:var(--green)">3 — Application layer · Payments engine</div>
+				<div class="col3">
+					<div class="box">
+						<h4>PaymentService</h4>
+						<div class="sub">Core orchestration authority</div>
+						<ul>
+							<li>startPayment() — idempotency + routing</li>
+							<li>getPaymentStatus() — DB read-only</li>
+							<li>resumePayment() — hydration safe</li>
+							<li>verifyPayment() — one-shot UX boost</li>
+							<li>syncPaymentStatus() — BG job only</li>
+							<li>chargeMobile() — DPO deferred charge</li>
+							<li>queryPayment() — Daraja fallback</li>
+							<li>handleDarajaCallback()</li>
+							<li>handleDpoCallback()</li>
+						</ul>
+						<span class="tag tag-green">Execution authority</span>
+					</div>
+					<div class="box">
+						<h4>Sub-services</h4>
+						<div style="margin-bottom:8px">
+							<strong style="font-size:11px">MobileMoneyService</strong>
+							<ul>
+								<li>initiate() — route to Daraja / DPO</li>
+								<li>charge() — DPO deferred only</li>
+								<li>getMobileOptions()</li>
+							</ul>
+						</div>
+						<div style="margin-bottom:8px">
+							<strong style="font-size:11px">CardService</strong>
+							<ul>
+								<li>initiateCard() → DPO redirect</li>
+							</ul>
+						</div>
+						<div style="margin-bottom:8px">
+							<strong style="font-size:11px">VerificationService</strong>
+							<ul>
+								<li>verifyStatus() — DPO polling</li>
+								<li>query() — Daraja fallback</li>
+							</ul>
+						</div>
+						<div>
+							<strong style="font-size:11px">FxEngineService</strong>
+							<ul>
+								<li>convert() — KES → local currency</li>
+								<li>identityResult() — card bypass</li>
+							</ul>
+						</div>
+					</div>
+					<div class="box">
+						<h4>ProviderExecutionState</h4>
+						<div class="sub">Lifecycle state machine</div>
+						<div class="states">
+							<span class="state state-init">INITIATED</span>
+							<span class="state state-warn">REQUIRES_SELECTION</span>
+							<span class="state state-exec">EXECUTING</span>
+							<span class="state state-recon">RECONCILING</span>
+							<span class="state state-done">SUCCESS</span>
+							<span class="state state-fail">FAILED</span>
+							<span class="state state-fail">CANCELLED</span>
+							<span class="state state-fail">INVALID_REQUEST</span>
+						</div>
+						<div style="margin-top:10px">
+							<strong style="font-size:11px">Metadata DTOs</strong>
+							<ul>
+								<li>PaymentMetadataDTO</li>
+								<li>ProviderPayloadDTO</li>
+								<li>SelectedMnoDTO</li>
+								<li>SuggestedMnoDTO</li>
+								<li>SelectionDTO</li>
+							</ul>
+						</div>
+						<div class="warn-badge">Execution state ≠ business state</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="divider">Domain intelligence boundary</div>
+
+			<!-- 4. DOMAIN INTELLIGENCE -->
+			<div class="layer l-domain">
+				<div class="layer-label" style="color:var(--amber)">4 — Domain intelligence layer · Mobile money
+					decision pipeline</div>
+				<div class="col4">
+					<div class="box no-min">
+						<h4>PhoneResolutionService</h4>
+						<ul>
+							<li>libphonenumber (single entry)</li>
+							<li>E164 normalisation</li>
+							<li>Region extraction (ISO)</li>
+							<li>Carrier hint (best effort)</li>
+							<li>Returns PaymentPhoneResolutionDTO</li>
+						</ul>
+						<span class="tag tag-amber">Phone → region</span>
+					</div>
+					<div class="box no-min">
+						<h4>MnoDetectionRegistry</h4>
+						<ul>
+							<li>KE, TZ, UG, RW, MW, ZM, ZW</li>
+							<li>Prefix → MNO mapping</li>
+							<li>Ambiguous prefix flagging</li>
+							<li>Multi-match portability detection</li>
+						</ul>
+						<div class="conf">
+							<span class="conf-pill conf-high">HIGH</span>
+							<span class="conf-pill conf-amb">AMBIGUOUS</span>
+							<span class="conf-pill conf-unk">UNKNOWN</span>
+						</div>
+					</div>
+					<div class="box no-min">
+						<h4>MnoRoutingRegistry</h4>
+						<ul>
+							<li>route() — capability + region + carrier + confidence → MnoRoutingResultDTO</li>
+							<li>supportsRegion()</li>
+							<li>supportedRegions()</li>
+							<li>mnoKey resolution</li>
+						</ul>
+						<span class="tag tag-amber">Routes to provider</span>
+					</div>
+					<div class="box no-min">
+						<h4>PaymentCountryResolver + FxEngine</h4>
+						<ul>
+							<li>region → country, currency, min/max</li>
+							<li>KES → local currency conversion</li>
+							<li>FX rate lock at payment creation</li>
+							<li>Card: identity FX (bypass)</li>
+							<li>Daraja: always KES</li>
+						</ul>
+						<span class="tag tag-amber">Country + FX context</span>
+					</div>
+				</div>
+				<div
+					style="margin-top:8px;background:var(--white);border-radius:8px;padding:10px 12px;box-shadow:var(--shadow);/* overflow: clip; */">
+					<div class="layer-label" style="color:var(--amber);margin-bottom:6px">Phone resolution pipeline
+					</div>
+					<div class="flow-row">
+						<span class="flow-step">Phone input (+E164)</span>
+						<span class="arrow">→</span>
+						<span class="flow-step">libphonenumber parse</span>
+						<span class="arrow">→</span>
+						<span class="flow-step">Region (ISO)</span>
+						<span class="arrow">→</span>
+						<span class="flow-step">CountryResolver → currency, limits</span>
+						<span class="arrow">→</span>
+						<span class="flow-step">MnoDetectionRegistry → confidence</span>
+						<span class="arrow">→</span>
+					</div>
+					<div class="flow-row" style="padding-top: 10px;">
+						<span class="flow-step">MnoRoutingRegistry → provider + mnoKey</span>
+						<span class="arrow">→</span>
+						<span class="flow-step">FxEngine → display amount</span>
+					</div>
+					<div class="note" style="margin-top:6px">AMBIGUOUS or UNKNOWN confidence →
+						requiresUserSelection=true → DPO GetMobilePaymentOptions fetched → chip selector shown to user
+					</div>
+				</div>
+			</div>
+
+			<div class="divider">Provider adapter boundary — no orchestration crosses here</div>
+
+			<!-- 5. PROVIDER ADAPTERS -->
+			<div class="layer l-provider">
+				<div class="layer-label" style="color:var(--coral)">5 — Provider layer · Adapters</div>
+				<div class="col2">
+					<div class="box">
+						<h4>DpoProvider</h4>
+						<ul>
+							<li>initiateCard() — CreateTransaction token</li>
+							<li>initiateMobileMoney() — CreateTransaction token</li>
+							<li>charge() — ChargeTokenMobile</li>
+							<li>getMobileOptions() — GetMobilePaymentOptions</li>
+							<li>test()</li>
+						</ul>
+						<span class="tag tag-coral">Execution only · No routing · No retry · No persistence</span>
+					</div>
+					<div class="box">
+						<h4>DarajaProvider</h4>
+						<ul>
+							<li>initiateMobileMoney() — STK Push</li>
+							<li>query() — MpesaExpressQuery fallback</li>
+							<li>test()</li>
+						</ul>
+						<div class="note">Callback-only provider. No polling flow. Query used as fallback when callback
+							delayed (&gt;20s).</div>
+						<span class="tag tag-coral">Execution only · No routing · No retry · No persistence</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="divider">External network boundary</div>
+
+			<!-- 6. EXTERNAL APIs -->
+			<div class="layer l-external">
+				<div class="layer-label" style="color:#374151">6 — External providers · APIs</div>
+				<div class="col2">
+					<div class="box">
+						<h4>DPO Group</h4>
+						<ul>
+							<li>Card payments — redirect flow</li>
+							<li>Mobile money — mobile direct flow</li>
+							<li>ChargeTokenMobile (deferred charge)</li>
+							<li>GetMobilePaymentOptions (provider list)</li>
+							<li>Callback → /payment/callback/dpo</li>
+						</ul>
+						<span class="tag tag-gray">DPO Pay API</span>
+					</div>
+					<div class="box">
+						<h4>Safaricom Daraja</h4>
+						<ul>
+							<li>STK Push → callback flow</li>
+							<li>CheckoutRequestID as reference</li>
+							<li>Callback → /payment/callback/daraja</li>
+							<li>MpesaExpressQuery fallback</li>
+						</ul>
+						<span class="tag tag-gray">Daraja API 2.0</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="divider">Persistence boundary</div>
+
+			<!-- 7. PERSISTENCE -->
+			<div class="layer l-persist">
+				<div class="layer-label" style="color:#166534">7 — Persistence layer · gopaperless_payments</div>
+				<div class="col3">
+					<div class="box">
+						<h4>Payment entity — core fields</h4>
+						<ul>
+							<li>paymentAttemptId (idempotency)</li>
+							<li>providerReference (lookup key)</li>
+							<li>paymentStatus (business state)</li>
+							<li>provider / paymentProvider</li>
+							<li>phoneE164Digits / region / country</li>
+							<li>amount / currency (minor units)</li>
+							<li>displayAmount / displayCurrency</li>
+							<li>fxRate / fxRateSource / fxRateLockedAt</li>
+						</ul>
+					</div>
+					<div class="box">
+						<h4>Orchestration metadata — JSON blob</h4>
+						<ul>
+							<li>providerExecutionState</li>
+							<li>executedProvider</li>
+							<li>flow (redirect | callback | mobile_direct)</li>
+							<li>method (mobile | card)</li>
+							<li>selected / suggested / selection</li>
+							<li>confidence</li>
+							<li>alreadyCharged</li>
+							<li>instructions</li>
+							<li>providerPayload (init + charge + callback + query snapshots)</li>
+							<li>providerError</li>
+							<li>context (carrier, region, confidence breakdown)</li>
+						</ul>
+						<span class="tag tag-green">Metadata is first-class orchestration state</span>
+					</div>
+					<div class="box">
+						<h4>Verification + retry fields</h4>
+						<ul>
+							<li>verificationStatus</li>
+							<li>verificationRetryCount</li>
+							<li>verificationLastCheckedAt</li>
+							<li>nextVerificationAt</li>
+							<li>verificationLockedAt (BG job mutex)</li>
+							<li>createdAt (expiry reference)</li>
+							<li>paidAt</li>
+							<li>lastErrorCode / lastErrorMessage</li>
+						</ul>
+						<span class="tag tag-green">15 min expiry window</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="divider">Data flow examples</div>
+
+			<!-- 8. FLOWS -->
+			<div class="layer l-flows">
+				<div class="layer-label">8 — Data flows</div>
+				<div class="col3">
+					<div class="box">
+						<h4>Flow 1 · Card / Redirect</h4>
+						<div class="flow-row">
+							<span class="flow-step">FE startPayment(card)</span>
+							<span class="arrow">→</span>
+							<span class="flow-step">CardService</span>
+							<span class="arrow">→</span>
+						</div>
+						<div class="flow-row">
+                            <span class="flow-step">DPO CreateTransaction</span>
+							<span class="arrow">→</span>
+							<span class="flow-step">redirectUrl returned</span>
+						</div>
+						<div class="flow-row">
+							<span class="arrow">→</span>
+							<span class="flow-step">FE redirect</span>
+						</div>
+						<div class="flow-row">
+							<span class="flow-step">User completes card form</span>
+							<span class="arrow">→</span><span class="flow-step">DPO callback</span>
+						</div>
+						<div class="flow-row">
+							<span class="flow-step">handleDpoCallback()</span>
+							<span class="arrow">→</span><span class="flow-step">finalisePayment()</span>
+						</div>
+						<div class="flow-row">
+							<span class="flow-step">verifyPayment() one-shot</span>
+							<span class="arrow">→</span>
+							<span class="flow-step">PAID</span>
+						</div>
+					</div>
+					<div class="box">
+						<h4>Flow 2 · Mobile Direct (DPO)</h4>
+						<div class="flow-row"><span class="flow-step">Phone → PhoneResolution</span><span
+								class="arrow">→</span><span class="flow-step">Region</span></div>
+						<div class="flow-row"><span class="flow-step">MnoDetection → confidence</span><span
+								class="arrow">→</span><span class="flow-step">MnoRouting → DPO</span></div>
+						<div class="flow-row"><span class="flow-step">DPO CreateTransaction → reference</span></div>
+						<div class="flow-row"><span class="flow-step">FE: HIGH → auto <br/> / AMBIGUOUS → chips / UNKNOWN →
+								selector</span></div>
+						<div class="flow-row"><span class="flow-step">chargeMobile() → ChargeTokenMobile</span></div>
+						<div class="flow-row"><span class="flow-step">Poll /status → DPO verify → PAID</span></div>
+					</div>
+					<div class="box">
+						<h4>Flow 3 · Callback (Daraja)</h4>
+						<div class="flow-row"><span class="flow-step">Phone → KE → Daraja STK Push</span></div>
+						<div class="flow-row"><span class="flow-step">FE starts polling DB Status immediately</span></div>
+						<div class="flow-row"><span class="flow-step">Daraja callback arrives →
+								handleDarajaCallback()</span></div>
+						<div class="flow-row"><span class="flow-step">finalisePayment() → PAID + entitlement</span>
+						</div>
+						<div class="flow-row"><span class="flow-step">If callback delayed &gt;20s → queryPayment()
+								fallback</span></div>
+						<div class="note">Callback is source of truth. Query is fallback only. Never fail hard on query
+							error.</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- 9. RECOVERY -->
+			<div class="layer l-recovery">
+				<div class="layer-label" style="color:var(--blue)">9 — Recovery &amp; resumability</div>
+				<div class="col2">
+					<div class="box">
+						<h4>Resumable orchestration</h4>
+						<ul>
+							<li>resumePayment() → hydrates persisted session</li>
+							<li>activeReference restored from DB</li>
+							<li>Provider locked — prevents orchestration drift</li>
+							<li>MNO / selection state restored</li>
+							<li>FX context restored for display</li>
+							<li>Polling resumes if alreadyCharged=true</li>
+						</ul>
+						<div class="warn-badge">Payments are resumable — but not indefinitely resumable</div>
+					</div>
+					<div class="box">
+						<h4>Bounded recovery semantics</h4>
+						<ul>
+							<li>15 min expiry window from createdAt</li>
+							<li>Expired → status set FAILED, recovery stopped</li>
+							<li>Expiry is UX boundary, NOT provider settlement truth</li>
+							<li>Expired payment may still reconcile via async callback</li>
+							<li>hasPaymentExpired() checked at: status, verify, sync, resume</li>
+							<li>BG job stops retrying after expiry</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+
+			<!-- 10. FINALITY -->
+			<div class="layer l-finality">
+				<div class="layer-label" style="color:var(--amber)">10 — Finality &amp; reconciliation</div>
+				<div class="col3">
+					<div class="box">
+						<h4>Reconciliation layers</h4>
+						<ul>
+							<li>Provider callback (primary)</li>
+							<li>FE one-shot verify (UX boost)</li>
+							<li>BG job polling + retry scheduling</li>
+							<li>Daraja query fallback (&gt;20s)</li>
+						</ul>
+						<div class="warn-badge">Provider acknowledgement ≠ durable success</div>
+					</div>
+					<div class="box">
+						<h4>Idempotency guarantees</h4>
+						<ul>
+							<li>paymentAttemptId prevents duplicates</li>
+							<li>Duplicate callbacks silently ignored</li>
+							<li>finalisePayment() checks PAID before tx</li>
+							<li>Atomic DB tx: payment update + entitlement creation</li>
+						</ul>
+						<span class="tag tag-amber">DB transaction wraps finality</span>
+					</div>
+					<div class="box">
+						<h4>Final immutable states</h4>
+						<div class="states">
+							<span class="state state-done" style="font-size:12px;padding:4px 14px">PAID</span>
+							<span class="state state-fail" style="font-size:12px;padding:4px 14px">FAILED</span>
+							<span class="state state-fail" style="font-size:12px;padding:4px 14px">EXPIRED</span>
+						</div>
+						<div class="note" style="margin-top:8px">INITIATION_FAILED also terminal. Background job cannot
+							resurrect any terminal state.</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- 11. FUTURE -->
+			<div class="layer l-future">
+				<div class="layer-label" style="color:var(--purple)">11 — Future architecture (roadmap)</div>
+				<div class="principles" style="margin-top:0">
+					<span class="principle">Formal FSM + transition guards</span>
+					<span class="principle">Reconciliation engine</span>
+					<span class="principle">Weighted provider routing</span>
+					<span class="principle">Provider failover</span>
+					<span class="principle">Provider health scoring</span>
+					<span class="principle">Generic transaction platform</span>
+					<span class="principle">Entitlement ledger</span>
+					<span class="principle">Transition engines</span>
+					<span class="principle">Multi-currency settlement</span>
+				</div>
+			</div>
+
+			<!-- 12. PRINCIPLES -->
+			<div class="layer l-principles">
+				<div class="layer-label" style="color:#9a3412">12 — Key architectural principles</div>
+				<div class="principles">
+					<span class="principle"><strong>Backend is execution authority</strong></span>
+					<span class="principle"><strong>FE predicts</strong> — backend decides</span>
+					<span class="principle"><strong>Provider locking</strong> prevents orchestration drift</span>
+					<span class="principle"><strong>Orchestration must survive</strong> refreshes</span>
+					<span class="principle"><strong>Recovery is bounded</strong> — 15 min window</span>
+					<span class="principle"><strong>Adapters are execution-only</strong></span>
+					<span class="principle"><strong>Execution state ≠ business state</strong></span>
+					<span class="principle"><strong>Metadata is first-class</strong> orchestration state</span>
+					<span class="principle"><strong>Amounts stored in minor units</strong> — converted at
+						boundary</span>
+					<span class="principle"><strong>FX locked at payment creation</strong> — never re-fetched</span>
+					<span class="principle"><strong>One entitlement per payment</strong> — atomic transaction</span>
+					<span class="principle"><strong>Idempotency enforced</strong> at all callback ingress</span>
+				</div>
+			</div>
+
+		</div>
+	</div>
+</body>
+
+</html>

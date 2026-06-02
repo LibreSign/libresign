@@ -5,36 +5,10 @@
 
 import { describe, expect, it } from 'vitest'
 import {
-	getCurrentUserSignRequestIds,
-	getFileUrl,
 	getVisibleElementsFromDocument,
-	hasVisibleElementsForCurrentUser,
 } from '../../services/visibleElementsService'
 
 describe('visibleElementsService', () => {
-	describe('getFileUrl', () => {
-		it('supports nested file objects with url payloads', () => {
-			const file = {
-				file: {
-					url: '/apps/libresign/p/pdf/uuid-123',
-				},
-			}
-
-			expect(getFileUrl(file)).toBe('/apps/libresign/p/pdf/uuid-123')
-		})
-
-		it('finds the first renderable child file recursively', () => {
-			const file = {
-				files: [
-					{ id: 10, file: null },
-					{ id: 20, file: { url: '/apps/libresign/p/pdf/uuid-456' } },
-				],
-			}
-
-			expect(getFileUrl(file)).toBe('/apps/libresign/p/pdf/uuid-456')
-		})
-	})
-
 	describe('getVisibleElementsFromDocument', () => {
 		it('includes visible elements from child files (envelope)', () => {
 			const document = {
@@ -95,53 +69,6 @@ describe('visibleElementsService', () => {
 			expect(result).toEqual([
 				{ elementId: 101, fileId: 1, signRequestId: 401, type: 'signature', coordinates: { page: 1, left: 12, top: 18 } },
 			])
-		})
-	})
-
-	describe('getCurrentUserSignRequestIds', () => {
-		it('collects current signer ids from envelope parent and child files', () => {
-			const document = {
-				signers: [
-					{ me: true, signRequestId: 700 },
-				],
-				files: [
-					{
-						id: 10,
-						signers: [
-							{ me: true, signRequestId: 501 },
-							{ me: false, signRequestId: 502 },
-						],
-					},
-				],
-			}
-
-			const result = getCurrentUserSignRequestIds(document)
-
-			expect(result).toEqual([700, 501])
-		})
-	})
-
-	describe('hasVisibleElementsForCurrentUser', () => {
-		it('detects child file visible elements for current envelope signer', () => {
-			const document = {
-				visibleElements: [],
-				signers: [
-					{ me: true, signRequestId: 700 },
-				],
-				files: [
-					{
-						id: 10,
-						visibleElements: [
-							{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20 } },
-						],
-						signers: [
-							{ me: true, signRequestId: 501 },
-						],
-					},
-				],
-			}
-
-			expect(hasVisibleElementsForCurrentUser(document)).toBe(true)
 		})
 	})
 })

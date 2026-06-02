@@ -180,7 +180,7 @@ class MailNotifyListener implements IEventListener {
 			$manager = \OCP\Server::get(\OCP\Activity\IManager::class);
 			try {
 				$manager->getSettingById($type);
-			} catch (\Exception) {
+			} catch (\Exception $e) {
 				return false;
 			}
 

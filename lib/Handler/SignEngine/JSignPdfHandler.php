@@ -582,35 +582,10 @@ class JSignPdfHandler extends Pkcs12Handler {
 	private function parseSignatureText(): array {
 		if (!$this->parsedSignatureText) {
 			$params = $this->getSignatureParams();
-			$template = $this->signatureTextService->getTemplate();
-			$params['ServerSignatureDate'] = $this->shouldUseJSignTimestampPlaceholder($template)
-				? '${timestamp}'
-				: (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))
-					->format(\DateTimeInterface::ATOM);
+			$params['ServerSignatureDate'] = '${timestamp}';
 			$this->parsedSignatureText = $this->signatureTextService->parse(context: $params);
 		}
 		return $this->parsedSignatureText;
-	}
-
-	private function shouldUseJSignTimestampPlaceholder(string $template): bool {
-		if (!preg_match_all('/{{\s*(.*?)\s*}}/s', $template, $matches)) {
-			return true;
-		}
-
-		$hasPlainServerSignatureDate = false;
-		foreach ($matches[1] as $expression) {
-			if (!str_contains($expression, 'ServerSignatureDate')) {
-				continue;
-			}
-			if (trim($expression) === 'ServerSignatureDate') {
-				$hasPlainServerSignatureDate = true;
-				continue;
-			}
-			// Any transformation (for example Twig date filter) requires a real date value.
-			return false;
-		}
-
-		return $hasPlainServerSignatureDate;
 	}
 
 	public function getSignatureText(): string {
@@ -696,10 +671,10 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 		if ($isTsaError) {
 			if (str_contains($errorMessage, 'Invalid TSA') && preg_match("/Invalid TSA '([^']+)'/", $errorMessage, $matches)) {
-				$friendlyMessage = 'Timestamp Authority (TSA) service is unavailable. Check DNS/network/firewall connectivity from this server: ' . $matches[1];
+				$friendlyMessage = 'Timestamp Authority (TSA) service is unavailable or misconfigured: ' . $matches[1];
 			} else {
 				$friendlyMessage = 'Timestamp Authority (TSA) service error.' . "\n"
-					. 'Check TSA endpoint and DNS/network/firewall connectivity from this server.';
+					. 'Please check the TSA configuration.';
 			}
 			throw new LibresignException($friendlyMessage);
 		}

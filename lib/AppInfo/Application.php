@@ -23,6 +23,7 @@ use OCA\Libresign\Listener\MailNotifyListener;
 use OCA\Libresign\Listener\NotificationListener;
 use OCA\Libresign\Listener\RevokeClickToSignCertificateListener;
 use OCA\Libresign\Listener\SignedCallbackListener;
+use OCA\Libresign\Listener\SmsNotifyListener;
 use OCA\Libresign\Listener\TwofactorGatewayListener;
 use OCA\Libresign\Listener\UserDeletedListener;
 use OCA\Libresign\Middleware\GlobalInjectionMiddleware;
@@ -35,7 +36,9 @@ use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\Files\Cache\CacheEntryRemovedEvent;
 use OCP\Files\Events\Node\BeforeNodeDeletedEvent;
+use OCP\IConfig;
 use OCP\User\Events\UserDeletedEvent;
+use OCP\Util;
 
 /**
  * @codeCoverageIgnore
@@ -49,6 +52,9 @@ class Application extends App implements IBootstrap {
 
 	#[\Override]
 	public function boot(IBootContext $context): void {
+		// We need to load the styles here, because the LoadAdditionalListener is only loaded when the Files app is loaded, but we want the styles to be available in other places as well (e.g. dashboard widget)
+		\OCP\Util::addStyle(self::APP_ID, 'gopaperless');
+		Util::addScript(self::APP_ID, 'gopaperless');
 	}
 
 	#[\Override]
@@ -84,6 +90,8 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(SignedEvent::class, MailNotifyListener::class);
 		$context->registerEventListener(SignRequestCanceledEvent::class, MailNotifyListener::class);
 
+		// SMSNotify listener
+		$context->registerEventListener(SendSignNotificationEvent::class, SmsNotifyListener::class);
 		// Certificate Revocation listener
 		$context->registerEventListener(SignedEvent::class, RevokeClickToSignCertificateListener::class);
 

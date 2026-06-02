@@ -51,32 +51,30 @@
 						</template>
 					</Signer>
 				</ul>
-				<div class="sign-details__actions">
-					<NcButton v-if="canSave"
-						:variant="variantOfSaveButton"
-						:wide="true"
-						:class="{ disabled: signerSelected }"
-						@click="save()">
-						{{ t('libresign', 'Save') }}
-					</NcButton>
+				<NcButton v-if="canSave"
+					:variant="variantOfSaveButton"
+					:wide="true"
+					:class="{ disabled: signerSelected }"
+					@click="save()">
+					{{ t('libresign', 'Save') }}
+				</NcButton>
 
-					<NcButton v-if="canSign && !signerSelected"
-						:variant="variantOfSignButton"
-						:wide="true"
-						@click="goToSign">
-						{{ t('libresign', 'Sign') }}
-					</NcButton>
-				</div>
+				<NcButton v-if="canSign"
+					:variant="variantOfSignButton"
+					:wide="true"
+					@click="goToSign">
+					{{ t('libresign', 'Sign') }}
+				</NcButton>
 			</div>
-			<PdfEditor v-if="!filesStore.loading && pdfEditorFiles.length > 0"
+			<PdfEditor v-if="!filesStore.loading && pdfFiles.length > 0"
 				ref="pdfEditor"
 				width="100%"
 				height="100%"
-				:files="pdfEditorFiles"
+				:files="pdfFiles"
 				:file-names="pdfFileNames"
 				:signers="pdfEditorSigners"
 				@pdf-editor:end-init="updateSigners"
-				@pdf-editor:adding-ended="handleAddingEnded"
+				@pdf-editor:signer-added="handleSignerAdded"
 				@pdf-editor:on-delete-signer="handleDeleteSigner">
 			</PdfEditor>
 		</div>
@@ -86,11 +84,10 @@
 <script setup lang="ts">
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
-import { showSuccess, showError } from '@nextcloud/dialogs'
 import { subscribe, unsubscribe, type Event as NextcloudEvent, type EventHandler } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
-import { generateOcsUrl, generateUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcChip from '@nextcloud/vue/components/NcChip'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
@@ -101,7 +98,6 @@ import PdfEditor from '../PdfEditor/PdfEditor.vue'
 import Signer from '../Signers/Signer.vue'
 
 import { FILE_STATUS } from '../../constants.js'
-import { getSigningRouteUuid } from '../../utils/signRequestUuid.ts'
 import { useFilesStore } from '../../store/files.js'
 import {
 	aggregateVisibleElementsByFiles,
@@ -122,6 +118,7 @@ import type {
 	ValidationMetadataRecord,
 	VisibleElementRecord,
 } from '../../types/index'
+import { showError, showSuccess } from '../../services/toast'
 
 type FilesStoreContract = ReturnType<typeof useFilesStore>
 type EditableRequestFile = ReturnType<FilesStoreContract['getEditableFile']>
@@ -248,11 +245,6 @@ function toRecord(value: unknown): Record<string, unknown> | null {
 	return typeof value === 'object' && value !== null ? value as Record<string, unknown> : null
 }
 
-function getUrlValue(value: unknown): string | undefined {
-	const candidate = toRecord(value)
-	return candidate && typeof candidate.url === 'string' ? candidate.url : undefined
-}
-
 function normalizeMetadata(metadata: unknown): Partial<ValidationMetadataRecord> | undefined {
 	const candidate = toRecord(metadata)
 	return candidate ? candidate as Partial<ValidationMetadataRecord> : undefined
@@ -330,26 +322,19 @@ function normalizeEditableRequestFile(file: unknown): EditableRequestChildFile |
 	const signers = Array.isArray(candidate.signers)
 		? candidate.signers.map(normalizeEditableRequestSigner).filter((row): row is EditableRequestSigner => row !== null)
 		: undefined
-	const nestedFileReference = typeof candidate.file === 'object' && candidate.file !== null
-		? normalizeEditableRequestFile(candidate.file)
-		: undefined
 	const fileReference = typeof candidate.file === 'string' || candidate.file === null
 		? candidate.file
-		: nestedFileReference && Object.keys(nestedFileReference).length > 0
-			? nestedFileReference
-			: undefined
-	const url = getUrlValue(candidate)
+		: undefined
 
 	return {
 		...(Number.isFinite(id) ? { id } : {}),
 		...(name !== undefined ? { name } : {}),
-		...(url !== undefined ? { url } : {}),
 		...(fileReference !== undefined ? { file: fileReference } : {}),
 		...(nestedFiles !== undefined ? { files: nestedFiles } : {}),
 		...(normalizeMetadata(candidate.metadata) !== undefined ? { metadata: normalizeMetadata(candidate.metadata) } : {}),
 		...(normalizeVisibleElementList(candidate.visibleElements) !== undefined ? { visibleElements: normalizeVisibleElementList(candidate.visibleElements) } : {}),
 		...(signers !== undefined ? { signers } : {}),
-	} as EditableRequestChildFile
+	}
 }
 
 function toVisibleElementsFile(file: EditableRequestChildFile): FileLike {
@@ -364,14 +349,10 @@ function toVisibleElementsFile(file: EditableRequestChildFile): FileLike {
 		: file.file
 			? toVisibleElementsFile(file.file as EditableRequestChildFile)
 			: undefined
-	const fileUrl = typeof (file as { url?: unknown }).url === 'string'
-		? (file as { url?: string }).url
-		: undefined
 
 	return {
 		id: file.id,
 		name: file.name,
-		...(fileUrl !== undefined ? { url: fileUrl } : {}),
 		...(fileReference !== undefined ? { file: fileReference } : {}),
 		...(normalizeMetadata(file.metadata) !== undefined ? { metadata: normalizeMetadata(file.metadata) } : {}),
 		...(normalizeVisibleElementList(file.visibleElements) !== undefined ? { visibleElements: normalizeVisibleElementList(file.visibleElements) } : {}),
@@ -469,46 +450,9 @@ const height = ref(signElementsConfig['full-signature-height'])
 const filePagesMap = ref<Record<number, FilePageInfo>>({})
 const elementsLoaded = ref(false)
 const fetchedFiles = ref<EditableRequestChildFile[]>([])
-const pdfEditorFiles = ref<PdfInput[]>([])
 
 const document = computed<EditableRequestFile>(() => filesStore.getEditableFile())
-const fallbackDocumentFile = computed<EditableRequestChildFile | null>(() => {
-	const documentUrl = typeof (document.value as { url?: unknown }).url === 'string'
-		? (document.value as { url?: string }).url
-		: null
-	const pdfUrl = documentUrl
-		|| (typeof document.value.uuid === 'string' && document.value.uuid.length > 0
-			? generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: document.value.uuid })
-			: null)
-	const normalizedFile = normalizeEditableRequestFile({
-		id: document.value.id,
-		name: document.value.name,
-		file: document.value.file ?? pdfUrl ?? null,
-		metadata: document.value.metadata,
-		signers: document.value.signers,
-		visibleElements: document.value.visibleElements,
-	})
-
-	if (!normalizedFile) {
-		return null
-	}
-
-	return getFileUrl(toVisibleElementsFile(normalizedFile)) ? normalizedFile : null
-})
-function hasRenderablePdfFiles(files: EditableRequestChildFile[]): boolean {
-	return files.some((file) => getFileUrl(toVisibleElementsFile(file)) !== null)
-}
-const documentFiles = computed<EditableRequestChildFile[]>(() => {
-	if (fetchedFiles.value.length > 0) {
-		return fetchedFiles.value
-	}
-
-	if (Array.isArray(document.value.files) && document.value.files.length > 0 && hasRenderablePdfFiles(document.value.files)) {
-		return document.value.files
-	}
-
-	return fallbackDocumentFile.value ? [fallbackDocumentFile.value] : []
-})
+const documentFiles = computed<EditableRequestChildFile[]>(() => fetchedFiles.value.length > 0 ? fetchedFiles.value : (Array.isArray(document.value.files) ? document.value.files : []))
 const visibleElementsDocument = computed<DocumentLike>(() => toVisibleElementsDocument(document.value))
 const visibleElementsFiles = computed<FileLike[]>(() => documentFiles.value.map(toVisibleElementsFile))
 const sidebarSigners = computed<Array<{ signer: EditableRequestSigner; index: number }>>(() => {
@@ -523,7 +467,7 @@ const pdfEditorSigners = computed<SignerSummaryRecord[]>(() => (Array.isArray(do
 const status = computed(() => Number(document.value.status))
 const isDraft = computed(() => status.value === FILE_STATUS.DRAFT)
 const canSave = computed(() => ([FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED] as number[]).includes(status.value))
-const canSign = computed(() => status.value === FILE_STATUS.ABLE_TO_SIGN && !!getSigningRouteUuid(document.value))
+const canSign = computed(() => status.value === FILE_STATUS.ABLE_TO_SIGN && (document.value?.settings?.signerFileUuid ?? '').length > 0)
 const variantOfSaveButton = computed(() => canSave.value ? 'primary' : 'secondary')
 const variantOfSignButton = computed(() => canSave.value ? 'secondary' : 'primary')
 const statusLabel = computed(() => document.value.statusText || '')
@@ -608,39 +552,13 @@ async function showModal() {
 	}
 	modal.value = true
 	filesStore.loading = true
-	pdfEditorFiles.value = []
 
 	if (documentFiles.value.length === 0) {
 		await fetchFiles()
 	}
 
-	await loadPdfEditorFiles()
 	buildFilePagesMap()
 	filesStore.loading = false
-}
-
-async function loadPdfEditorFiles() {
-	const urls = pdfFiles.value.filter((file): file is string => typeof file === 'string' && file.length > 0)
-	if (urls.length === 0) {
-		pdfEditorFiles.value = []
-		return
-	}
-
-	const blobs: File[] = []
-	for (const [index, url] of urls.entries()) {
-		const response = await fetch(url)
-		const contentType = response.headers.get('Content-Type') ?? ''
-		if (!response.ok || contentType.includes('application/json')) {
-			showError(t('libresign', 'Document not found'))
-			pdfEditorFiles.value = []
-			return
-		}
-
-		const blob = await response.blob()
-		blobs.push(new File([blob], pdfFileNames.value[index] || `document-${index + 1}.pdf`, { type: 'application/pdf' }))
-	}
-
-	pdfEditorFiles.value = blobs
 }
 
 async function fetchFiles() {
@@ -702,7 +620,6 @@ function closeModal() {
 	filesStore.loading = false
 	elementsLoaded.value = false
 	fetchedFiles.value = []
-	pdfEditorFiles.value = []
 	stopAddSigner()
 }
 
@@ -793,7 +710,7 @@ function handleSignerSelect(signer: unknown) {
 	onSelectSigner(pdfEditorSigner)
 }
 
-function handleAddingEnded() {
+function handleSignerAdded() {
 	stopAddSigner()
 }
 
@@ -821,7 +738,7 @@ function handleDeleteSigner(object: unknown) {
 }
 
 async function goToSign() {
-	const uuid = getSigningRouteUuid(document.value)
+	const uuid = document.value.settings?.signerFileUuid
 	if (await save()) {
 		const route = instance?.proxy?.$router.resolve({ name: 'SignPDF', params: { uuid } })
 		if (route?.href) {
@@ -839,12 +756,12 @@ async function save() {
 		const successMessage = typeof response.message === 'string' && response.message.length > 0
 			? response.message
 			: t('libresign', 'Settings saved')
-		showSuccess(t('libresign', successMessage))
+		showSuccess(t('libresign', successMessage), true, true)
 		closeModal()
 		loading.value = false
 		return true
 	} catch (error) {
-		showError(getOcsErrorMessage(error) || t('libresign', 'An error occurred'))
+		showError(getOcsErrorMessage(error) || t('libresign', 'An error occurred'), false, true)
 		loading.value = false
 		return false
 	}
@@ -1029,12 +946,6 @@ defineExpose({
 			li {
 				margin: 3px 3px 1em 3px;
 			}
-		}
-		&__actions {
-			position: sticky;
-			bottom: 0;
-			background-color: var(--color-main-background);
-			padding-top: 4px;
 		}
 		.disabled {
 			pointer-events: none;

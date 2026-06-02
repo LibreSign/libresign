@@ -157,21 +157,10 @@ class CrlRevocationCheckerTest extends TestCase {
 			],
 			'empty URL list' => [
 				[],
-				CrlValidationStatus::DISABLED,
-				'Empty URL list should return disabled when external validation is off',
+				CrlValidationStatus::NO_URLS,
+				'Empty URL list should always return no_urls regardless of setting',
 			],
 		];
-	}
-
-	public function testValidateReturnsNoUrlsForEmptyListWhenSettingOn(): void {
-		$this->appConfig
-			->method('getValueBool')
-			->with(Application::APP_ID, 'crl_external_validation_enabled', true)
-			->willReturn(true);
-
-		$result = $this->checker->validate([], '');
-
-		$this->assertSame(CrlValidationStatus::NO_URLS, $result['status'], 'Empty URL list should return no_urls when external validation is on');
 	}
 
 	public function testValidateDoesNotReturnDisabledWhenSettingOn(): void {

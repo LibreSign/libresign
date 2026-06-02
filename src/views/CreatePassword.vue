@@ -34,7 +34,6 @@
 import { t } from '@nextcloud/l10n'
 
 import axios from '@nextcloud/axios'
-import { showSuccess } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 import { ref } from 'vue'
 
@@ -45,6 +44,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 
 import { useSignMethodsStore } from '../store/signMethods.js'
+import { showError, showSuccess } from '../services/toast'
 
 type SignMethodsStore = {
 	modal: {

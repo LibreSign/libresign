@@ -6,7 +6,6 @@
 import { vi, afterEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { cleanup } from '@testing-library/vue'
-import { createL10nMock } from './testHelpers/l10n.js'
 
 setActivePinia(createPinia())
 
@@ -64,8 +63,6 @@ vi.mock('@nextcloud/vue/components/NcRichText', () => ({
 		template: '<div></div>',
 	},
 }))
-
-globalThis.mockNextcloudL10n = (options) => createL10nMock(options)
 
 // Automatically cleanup after each test
 afterEach(() => {

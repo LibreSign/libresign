@@ -55,6 +55,300 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/index.php/apps/libresign/develop/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a demo PDF file to be used by test purpose
+         * @description To use this endpoint is necessary to enable the debug mode in your instance. To do this, run the command:
+         *     `occ config:system:set debug --value true --type boolean`
+         */
+        get: operations["develop-pdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Index page */
+        get: operations["page-index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign/f": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Index page to authenticated users
+         * @description This router is used to be possible render pages with /f/, is a workaround at frontend side to identify pages with authenticated accounts
+         */
+        get: operations["page-indexf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign/f/incomplete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Incomplete page */
+        get: operations["page-incomplete"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign/p/incomplete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Incomplete page in full screen */
+        get: operations["page-incompletep"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign/f/{path}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Main page to authenticated signer with a path
+         * @description The path is used only by frontend
+         */
+        get: operations["page-indexf-path"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign/f/sign/{uuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sign page to authenticated signer */
+        get: operations["page-signf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign/f/sign/{uuid}/{path}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sign page to authenticated signer with the path of file
+         * @description The path is used only by frontend
+         */
+        get: operations["page-signf-path"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign/p/sign/{uuid}/{path}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sign page to unauthenticated signer
+         * @description The path is used only by frontend
+         */
+        get: operations["page-signp-path"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign/p/sign/{uuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sign page to unauthenticated signer
+         * @description The path is used only by frontend
+         */
+        get: operations["page-sign"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign/p/pdf/{uuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Use UUID of file to get PDF */
+        get: operations["page-get-pdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign/pdf/{uuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Use UUID of user to get PDF */
+        get: operations["page-get-pdf-file"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign/p/validation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Show validation page */
+        get: operations["page-validation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign/validation/{uuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Show validation page
+         * @description The path is used only by frontend
+         */
+        get: operations["page-validation-file-with-short-url"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Show validation page */
+        get: operations["page-reset-password"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign/p/validation/{uuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public page to show validation for a specific file UUID */
+        get: operations["page-validation-file-public"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/account/create/{uuid}": {
         parameters: {
             query?: never;
@@ -208,7 +502,7 @@ export type paths = {
         };
         /**
          * Validate a file using Uuid
-         * @description Validate a file returning file data. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.
+         * @description Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.
          */
         get: operations["file-validate-uuid"];
         put?: never;
@@ -228,7 +522,7 @@ export type paths = {
         };
         /**
          * Validate a file using FileId
-         * @description Validate a file returning file data. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.
+         * @description Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.
          */
         get: operations["file-validate-file-id"];
         put?: never;
@@ -250,7 +544,7 @@ export type paths = {
         put?: never;
         /**
          * Validate a binary file
-         * @description Validate a binary file returning file data. Use field 'file' for the file upload. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.
+         * @description Validate a binary file returning file data. Use field 'file' for the file upload. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.
          */
         post: operations["file-validate-binary"];
         delete?: never;
@@ -365,7 +659,7 @@ export type paths = {
          * Delete File
          * @description This will delete the file and all data
          */
-        delete: operations["file-delete-file"];
+        delete: operations["file-delete-all-request-signature-using-file-id"];
         options?: never;
         head?: never;
         patch?: never;
@@ -384,7 +678,7 @@ export type paths = {
          * Create visible element
          * @description Create visible element of a specific file
          */
-        post: operations["file_element-create-visible-element"];
+        post: operations["file_element-post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -405,14 +699,14 @@ export type paths = {
          * Delete visible element
          * @description Delete visible element of a specific file
          */
-        delete: operations["file_element-delete-visible-element"];
+        delete: operations["file_element-delete"];
         options?: never;
         head?: never;
         /**
          * Update visible element
          * @description Update visible element of a specific file
          */
-        patch: operations["file_element-update-visible-element"];
+        patch: operations["file_element-patch"];
         trace?: never;
     };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/progress/{uuid}": {
@@ -443,7 +737,7 @@ export type paths = {
             cookie?: never;
         };
         /** List files of unauthenticated account */
-        get: operations["id_docs-list-unauthenticated-signer-documents"];
+        get: operations["id_docs-list-of-unauthenticated-signer"];
         put?: never;
         /** Add identification documents to user profile */
         post: operations["id_docs-add-files"];
@@ -569,9 +863,9 @@ export type paths = {
         put?: never;
         /**
          * Request signature
-         * @description Request that a file be signed by a list of signers. Each signer in the signers array can optionally include a 'signingOrder' field to control the order of signatures when ordered signing flow is enabled. The returned `data` always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.
+         * @description Request that a file be signed by a list of signers. Each signer in the signers array can optionally include a 'signingOrder' field to control the order of signatures when ordered signing flow is enabled. When the created entity is an envelope (`nodeType` = `envelope`), the returned `data` includes `filesCount` and `files` as a list of envelope child files.
          */
-        post: operations["request_signature-request-signature"];
+        post: operations["request_signature-request"];
         delete?: never;
         options?: never;
         head?: never;
@@ -579,7 +873,7 @@ export type paths = {
          * Updates signatures data
          * @description It is necessary to inform the UUID of the file and a list of signers.
          */
-        patch: operations["request_signature-update-signature-request"];
+        patch: operations["request_signature-update-sign"];
         trace?: never;
     };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/file_id/{fileId}/{signRequestId}": {
@@ -596,7 +890,7 @@ export type paths = {
          * Delete sign request
          * @description You can only request exclusion as any sign
          */
-        delete: operations["request_signature-remove-signer"];
+        delete: operations["request_signature-delete-one-request-signature-using-file-id"];
         options?: never;
         head?: never;
         patch?: never;
@@ -612,12 +906,12 @@ export type paths = {
         get?: never;
         put?: never;
         /** Sign a file using file Id */
-        post: operations["sign_file-sign-by-file-id"];
+        post: operations["sign_file-sign-using-file-id"];
         /**
          * Delete sign request
          * @description You can only request exclusion as any sign
          */
-        delete: operations["request_signature-delete-signature-request"];
+        delete: operations["request_signature-delete-all-request-signature-using-file-id"];
         options?: never;
         head?: never;
         patch?: never;
@@ -633,7 +927,7 @@ export type paths = {
         get?: never;
         put?: never;
         /** Sign a file using file UUID */
-        post: operations["sign_file-sign-by-signer-uuid"];
+        post: operations["sign_file-sign-using-uuid"];
         delete?: never;
         options?: never;
         head?: never;
@@ -667,7 +961,7 @@ export type paths = {
         get?: never;
         put?: never;
         /** Get code to sign the document using UUID */
-        post: operations["sign_file-request-code-by-signer-uuid"];
+        post: operations["sign_file-get-code-using-uuid"];
         delete?: never;
         options?: never;
         head?: never;
@@ -684,7 +978,7 @@ export type paths = {
         get?: never;
         put?: never;
         /** Get code to sign the document using FileID */
-        post: operations["sign_file-request-code-by-file-id"];
+        post: operations["sign_file-get-code-using-file-id"];
         delete?: never;
         options?: never;
         head?: never;
@@ -717,7 +1011,7 @@ export type paths = {
             cookie?: never;
         };
         /** Get preview of signature elements of */
-        get: operations["signature_elements-preview-signature-element"];
+        get: operations["signature_elements-get-signature-element-preview"];
         put?: never;
         post?: never;
         delete?: never;
@@ -824,7 +1118,7 @@ export type components = {
         };
         ConfigValueResponse: {
             key: string;
-            value: string | null;
+            value: Record<string, never>;
         };
         Coordinate: {
             /** Format: int64 */
@@ -896,9 +1190,10 @@ export type components = {
             /** Format: int64 */
             status: number;
             statusText: string;
-            /** @enum {string} */
-            nodeType: "file" | "envelope";
-            metadata: components["schemas"]["FileRuntimeMetadata"];
+            nodeType: string;
+            metadata: {
+                [key: string]: Record<string, never>;
+            };
             /** Format: int64 */
             size: number;
             /** Format: int64 */
@@ -916,15 +1211,11 @@ export type components = {
             name: string;
             /** @enum {string} */
             nodeType: "file" | "envelope";
-            metadata: components["schemas"]["FileRuntimeMetadata"];
+            signUuid?: string | null;
+            metadata: components["schemas"]["ValidateMetadata"];
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
         };
-        DynamicMetadataRecord: {
-            [key: string]: components["schemas"]["DynamicMetadataScalar"];
-        };
-        DynamicMetadataScalar: (string | number | boolean) | null;
-        DynamicMetadataValue: components["schemas"]["DynamicMetadataScalar"] | components["schemas"]["DynamicMetadataScalar"][] | components["schemas"]["DynamicMetadataRecord"] | components["schemas"]["DynamicMetadataRecord"][];
         ErrorItem: {
             message: string;
             title?: string;
@@ -989,7 +1280,7 @@ export type components = {
             /** Format: int64 */
             signersCount: number;
             file: string;
-            metadata: components["schemas"]["FileRuntimeMetadata"];
+            metadata: components["schemas"]["ValidateMetadata"];
             /** Format: int64 */
             size: number;
             signers: components["schemas"]["SignerSummary"][];
@@ -998,9 +1289,6 @@ export type components = {
             pagination: components["schemas"]["Pagination"];
             data: (components["schemas"]["FileSummary"] | components["schemas"]["DetailedFile"])[];
             settings?: components["schemas"]["Settings"];
-        };
-        FileRuntimeMetadata: components["schemas"]["ValidateMetadata"] | {
-            [key: string]: components["schemas"]["DynamicMetadataValue"];
         };
         FileSummary: {
             /** Format: int64 */
@@ -1015,14 +1303,15 @@ export type components = {
             /** @enum {string} */
             nodeType: "file" | "envelope";
             created_at: string;
-            metadata: components["schemas"]["FileRuntimeMetadata"];
+            signUuid?: string | null;
+            metadata: components["schemas"]["ValidateMetadata"];
             /** Format: int64 */
             docmdpLevel: number;
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
             /** Format: int64 */
             signersCount: number;
-            signers: components["schemas"]["SignerSummary"][];
+            signers: unknown[];
             requested_by: components["schemas"]["RequestedBy"];
             /** Format: int64 */
             filesCount: number;
@@ -1033,7 +1322,6 @@ export type components = {
         };
         FolderSettings: {
             folderName?: string;
-            path?: string;
             separator?: string;
             folderPatterns?: {
                 name: string;
@@ -1049,7 +1337,7 @@ export type components = {
         };
         IdDocsApprovalListResponse: {
             pagination: components["schemas"]["Pagination"];
-            data: components["schemas"]["File"][];
+            data: components["schemas"]["File"][] | null;
         };
         IdDocsListResponse: {
             pagination: components["schemas"]["Pagination"];
@@ -1080,8 +1368,7 @@ export type components = {
         };
         IdentifyAccountsResponse: components["schemas"]["IdentifyAccount"][];
         IdentifyMethod: {
-            /** @enum {string} */
-            method: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "xmpp";
+            method: string;
             value: string;
             /** Format: int64 */
             mandatory: number;
@@ -1121,11 +1408,9 @@ export type components = {
             status?: number;
         };
         Notify: {
-            /** Format: int64 */
-            date: number;
+            date: string;
             /** @enum {string} */
             method: "activity" | "notify" | "mail";
-            description?: string;
         };
         OCSMeta: {
             status: string;
@@ -1178,8 +1463,7 @@ export type components = {
             signers?: components["schemas"]["ProgressSigner"][];
         };
         ProgressResponse: {
-            /** @enum {string} */
-            status: "NOT_LIBRESIGN_FILE" | "DRAFT" | "ABLE_TO_SIGN" | "PARTIAL_SIGNED" | "SIGNED" | "DELETED" | "SIGNING_IN_PROGRESS" | "ERROR" | "UNKNOWN";
+            status: string;
             /** Format: int64 */
             statusCode: number;
             statusText: string;
@@ -1207,6 +1491,7 @@ export type components = {
         Settings: {
             canSign: boolean;
             canRequestSign: boolean;
+            signerFileUuid: string | null;
             phoneNumber: string;
             hasSignatureFile: boolean;
             isApprover?: boolean;
@@ -1250,12 +1535,6 @@ export type components = {
             emailToken?: components["schemas"]["SignatureMethodEmailToken"];
             password?: components["schemas"]["SignatureMethodPassword"];
         };
-        SignerCertificateInfo: {
-            serialNumber?: string;
-            serialNumberHex?: string;
-            hash?: string;
-            subject?: components["schemas"]["DynamicMetadataValue"];
-        };
         SignerDetail: components["schemas"]["SignerSummary"] & {
             description: string | null;
             subject?: string;
@@ -1269,7 +1548,7 @@ export type components = {
             notify?: components["schemas"]["Notify"][];
             userId?: string;
             sign_date?: string | null;
-            sign_request_uuid?: string;
+            sign_uuid?: string;
             hash_algorithm?: string;
             me: boolean;
             /**
@@ -1282,19 +1561,13 @@ export type components = {
             visibleElements: components["schemas"]["VisibleElement"][];
             signatureMethods?: components["schemas"]["SignatureMethods"];
             uid?: string;
-            metadata?: components["schemas"]["SignerMetadata"];
-        };
-        SignerMetadata: {
-            "remote-address"?: string;
-            "user-agent"?: string;
-            notify?: components["schemas"]["Notify"][];
-            certificate_info?: components["schemas"]["SignerCertificateInfo"];
+            metadata?: Record<string, never>;
         };
         SignerSummary: {
             /** Format: int64 */
             signRequestId: number;
             displayName: string;
-            email?: string | null;
+            email: string;
             identifyMethods?: components["schemas"]["IdentifyMethod"][];
             signed: string | null;
             /** Format: int64 */
@@ -1320,7 +1593,11 @@ export type components = {
                 nodeId: number;
             };
             userId: string;
-            starred: boolean;
+            /**
+             * Format: int64
+             * @enum {integer}
+             */
+            starred: 0 | 1;
             createdAt: string;
         };
         UserElementsMessageResponse: {
@@ -1378,13 +1655,13 @@ export type components = {
             nodeId: number;
             /** @enum {string} */
             nodeType: "file" | "envelope";
-            /** @enum {string} */
-            signatureFlow: "none" | "parallel" | "ordered_numeric";
+            /** Format: int64 */
+            signatureFlow: number;
             /** Format: int64 */
             docmdpLevel: number;
             /** Format: int64 */
-            filesCount: number;
-            files: components["schemas"]["ValidatedChildFile"][];
+            filesCount?: number;
+            files?: components["schemas"]["ValidatedChildFile"][];
             /** Format: int64 */
             totalPages: number;
             /** Format: int64 */
@@ -1394,6 +1671,7 @@ export type components = {
             requested_by: components["schemas"]["RequestedBy"];
             file?: string;
             url?: string;
+            signUuid?: string | null;
             mime?: string;
             pages?: components["schemas"]["ValidationPage"][];
             metadata?: components["schemas"]["ValidateMetadata"];
@@ -1529,6 +1807,373 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CrlErrorResponse"];
+                };
+            };
+        };
+    };
+    "develop-pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description PDF returned */
+            200: {
+                headers: {
+                    "Content-Disposition"?: "inline; filename=\"file.pdf\"";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Debug mode not enabled */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    "page-index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+        };
+    };
+    "page-indexf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+        };
+    };
+    "page-incomplete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+        };
+    };
+    "page-incompletep": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+        };
+    };
+    "page-indexf-path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The path that was sent from frontend */
+                path: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+        };
+    };
+    "page-signf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Sign request uuid */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+        };
+    };
+    "page-signf-path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Sign request uuid */
+                uuid: string;
+                path: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+        };
+    };
+    "page-signp-path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Sign request uuid */
+                uuid: string;
+                path: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+        };
+    };
+    "page-sign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Sign request uuid */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+        };
+    };
+    "page-get-pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description File uuid */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+            /** @description File not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    "page-get-pdf-file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Sign request uuid */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+        };
+    };
+    "page-validation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+        };
+    };
+    "page-validation-file-with-short-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+        };
+    };
+    "page-reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+        };
+    };
+    "page-validation-file-public": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description File uuid */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
                 };
             };
         };
@@ -2563,7 +3208,7 @@ export interface operations {
             };
         };
     };
-    "file-delete-file": {
+    "file-delete-all-request-signature-using-file-id": {
         parameters: {
             query?: {
                 /** @description Whether to delete the physical file from Nextcloud (default: true) */
@@ -2626,7 +3271,7 @@ export interface operations {
             };
         };
     };
-    "file_element-create-visible-element": {
+    "file_element-post": {
         parameters: {
             query?: never;
             header: {
@@ -2707,7 +3352,7 @@ export interface operations {
             };
         };
     };
-    "file_element-delete-visible-element": {
+    "file_element-delete": {
         parameters: {
             query?: never;
             header: {
@@ -2755,7 +3400,7 @@ export interface operations {
             };
         };
     };
-    "file_element-update-visible-element": {
+    "file_element-patch": {
         parameters: {
             query?: never;
             header: {
@@ -2882,7 +3527,7 @@ export interface operations {
             };
         };
     };
-    "id_docs-list-unauthenticated-signer-documents": {
+    "id_docs-list-of-unauthenticated-signer": {
         parameters: {
             query?: {
                 /** @description User ID to filter by */
@@ -3287,7 +3932,7 @@ export interface operations {
             };
         };
     };
-    "request_signature-request-signature": {
+    "request_signature-request": {
         parameters: {
             query?: never;
             header: {
@@ -3371,7 +4016,7 @@ export interface operations {
             };
         };
     };
-    "request_signature-update-signature-request": {
+    "request_signature-update-sign": {
         parameters: {
             query?: never;
             header: {
@@ -3395,8 +4040,11 @@ export interface operations {
                     uuid?: string | null;
                     /** @description Visible elements on document */
                     visibleElements?: components["schemas"]["VisibleElement"][] | null;
-                    /** @description File object. Supports nodeId, url, base64 or path when creating a new request. */
-                    file?: components["schemas"]["NewFile"];
+                    /**
+                     * @description File object. Supports nodeId, url, base64 or path when creating a new request.
+                     * @default []
+                     */
+                    file?: (components["schemas"]["NewFile"] | unknown[]) | null;
                     /**
                      * Format: int64
                      * @description Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
@@ -3450,7 +4098,7 @@ export interface operations {
             };
         };
     };
-    "request_signature-remove-signer": {
+    "request_signature-delete-one-request-signature-using-file-id": {
         parameters: {
             query?: never;
             header: {
@@ -3512,7 +4160,7 @@ export interface operations {
             };
         };
     };
-    "sign_file-sign-by-file-id": {
+    "sign_file-sign-using-file-id": {
         parameters: {
             query?: never;
             header: {
@@ -3587,7 +4235,7 @@ export interface operations {
             };
         };
     };
-    "request_signature-delete-signature-request": {
+    "request_signature-delete-all-request-signature-using-file-id": {
         parameters: {
             query?: never;
             header: {
@@ -3647,7 +4295,7 @@ export interface operations {
             };
         };
     };
-    "sign_file-sign-by-signer-uuid": {
+    "sign_file-sign-using-uuid": {
         parameters: {
             query?: never;
             header: {
@@ -3755,7 +4403,7 @@ export interface operations {
             };
         };
     };
-    "sign_file-request-code-by-signer-uuid": {
+    "sign_file-get-code-using-uuid": {
         parameters: {
             query?: never;
             header: {
@@ -3815,7 +4463,7 @@ export interface operations {
             };
         };
     };
-    "sign_file-request-code-by-file-id": {
+    "sign_file-get-code-using-file-id": {
         parameters: {
             query?: never;
             header: {
@@ -3972,7 +4620,7 @@ export interface operations {
             };
         };
     };
-    "signature_elements-preview-signature-element": {
+    "signature_elements-get-signature-element-preview": {
         parameters: {
             query?: never;
             header: {

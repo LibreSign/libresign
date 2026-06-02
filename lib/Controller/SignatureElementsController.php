@@ -21,6 +21,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\RequestHeader;
 use OCP\AppFramework\Http\DataResponse;
@@ -73,6 +74,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[PublicPage]
 	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/signature/elements', requirements: ['apiVersion' => '(v1)'])]
 	public function createSignatureElement(array $elements): DataResponse {
 		try {
@@ -122,6 +124,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[PublicPage]
 	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements', requirements: ['apiVersion' => '(v1)'])]
 	public function getSignatureElements(): DataResponse {
 		$userId = $this->userSession->getUser()?->getUID();
@@ -160,6 +163,49 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[PublicPage]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['signing'])]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements/preview/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
+	public function getSignatureElementPreview(int $nodeId) {
+		try {
+			$node = $this->accountService->getFileByNodeId($nodeId);
+			if ($this->preview->isAvailable($node)) {
+				$preview = $this->preview->getPreview(
+					file: $node,
+					width: (int)$this->signatureTextService->getSignatureWidth(),
+					height: (int)$this->signatureTextService->getSignatureHeight(),
+				);
+			} else {
+				// When the preview is disabled, use the icon image of mimetype
+				// as fallback
+				$url = $this->mimeIconProvider->getMimeIconUrl($node->getMimeType());
+				$baseUrl = $this->urlGenerator->getBaseUrl();
+				if (!str_starts_with((string)$url, $baseUrl)) {
+					throw new DoesNotExistException('Preview disabled');
+				}
+				$path = \OC::$SERVERROOT . str_replace($baseUrl, '', $url);
+				if (!file_exists($path)) {
+					throw new DoesNotExistException('Preview disabled');
+				}
+				$extension = pathinfo($path, PATHINFO_EXTENSION);
+				$preview = new InMemoryFile(implode('.', ['signature', $extension]), file_get_contents($path));
+			}
+		} catch (DoesNotExistException) {
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
+		}
+		$response = new FileDisplayResponse($preview, Http::STATUS_OK, [
+			'Content-Type' => $preview->getMimeType(),
+		]);
+		return $response;
+	}
+
+	/**
+	 * @deprecated Use getSignatureElementPreview() instead. Kept for backward compatibility.
+	 */
+	#[NoAdminRequired]
+	#[PublicPage]
+	#[NoCSRFRequired]
+	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements/preview/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function previewSignatureElement(int $nodeId) {
 		try {

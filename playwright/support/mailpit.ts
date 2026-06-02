@@ -10,17 +10,6 @@ export type { MailpitClient }
 
 type Message = Awaited<ReturnType<MailpitClient['getMessageSummary']>>
 
-function resolveAgainstPlaywrightBaseUrl(url: string): string {
-	const baseUrl = process.env.PLAYWRIGHT_BASE_URL
-	if (!baseUrl) {
-		return url
-	}
-
-	const parsedUrl = new URL(url)
-	const targetUrl = new URL(`${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`, baseUrl)
-	return targetUrl.toString()
-}
-
 /** Creates a MailpitClient using MAILPIT_URL (default: http://localhost:8025). */
 export function createMailpitClient(): MailpitClient {
 	const defaultUrl = existsSync('/.dockerenv')
@@ -76,12 +65,7 @@ export async function waitForEmailTo(
 /** Extracts a LibreSign sign link from an email body matching /p/sign/{uuid}. */
 export function extractSignLink(body: string): string | null {
 	const match = body.match(/\S+\/p\/sign\/[\w-]+/)
-	if (!match) {
-		return null
-	}
-
-	const parsedUrl = new URL(match[0])
-	return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`
+	return match ? match[0] : null
 }
 
 /** Extracts a numeric token from an email body. Default pattern: 4-8 digit sequence. */
@@ -96,5 +80,5 @@ export function extractTokenFromEmail(
 /** Extracts the first URL from an email body (email.Text). */
 export function extractLinkFromEmail(body: string): string | null {
 	const match = body.match(/https?:\/\/\S+/)
-	return match ? resolveAgainstPlaywrightBaseUrl(match[0]) : null
+	return match ? match[0] : null
 }

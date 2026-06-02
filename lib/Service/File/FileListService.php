@@ -278,9 +278,12 @@ class FileListService {
 				$meSignRequestId,
 			);
 			$file['signers'][] = $signerData;
-			if (!empty($signerData['me']) && isset($signerData['sign_request_uuid']) && !isset($file['url'])) {
-				$file['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signerData['sign_request_uuid']]);
+			if (!empty($signerData['me']) && !isset($file['signUuid'])) {
+				$file['signUuid'] = $signerData['sign_uuid'];
 			}
+		}
+		if (isset($file['signUuid'])) {
+			$file['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $file['signUuid']]);
 		}
 
 		$file['statusText'] = $this->fileMapper->getTextOfStatus((int)$file['status']);
@@ -341,6 +344,14 @@ class FileListService {
 			&& !array_filter($mySigners, fn (SignRequest $signer) => $signer->getSigned() !== null)
 			&& (!$isOrderedNumeric || array_filter($mySigners, fn (SignRequest $signer) => ($signer->getSigningOrder() ?: 1) === $minOrder));
 
+		$signUuid = null;
+		foreach ($mySigners as $signer) {
+			if ($signer->getUuid() !== '') {
+				$signUuid = $signer->getUuid();
+				break;
+			}
+		}
+
 		/** @var LibresignFileSummary */
 		return [
 			'id' => $fileEntity->getId(),
@@ -351,6 +362,7 @@ class FileListService {
 			'statusText' => $this->fileMapper->getTextOfStatus($fileEntity->getStatus()),
 			'nodeType' => $nodeType,
 			'created_at' => $fileEntity->getCreatedAt()->setTimezone(new \DateTimeZone('UTC'))->format(DateTimeInterface::ATOM),
+			'signUuid' => $signUuid,
 			'metadata' => $metadata,
 			'docmdpLevel' => $fileEntity->getDocmdpLevel(),
 			'signatureFlow' => SignatureFlow::fromNumeric($fileEntity->getSignatureFlow())->value,
@@ -456,7 +468,7 @@ class FileListService {
 			foreach ($temp as $methods) {
 				$data['signatureMethods'] = array_merge($data['signatureMethods'], $methods);
 			}
-			$data['sign_request_uuid'] = $signer->getUuid();
+			$data['sign_uuid'] = $signer->getUuid();
 		}
 
 		if ($signer->getSigned()) {
@@ -610,14 +622,14 @@ class FileListService {
 			: $this->signRequestMapper->getVisibleElementsFromSigners($signRequestEntities);
 
 		$signers = [];
-		$currentSignerRequestUuid = null;
+		$signUuid = null;
 		foreach ($signRequestEntities as $signer) {
 			if ($user) {
 				$signerData = $this->formatSignerData($signer, $identifyMethods, $visibleElementsData, $metadata, $user);
 				$signers[] = $signerData;
 
-				if ($currentSignerRequestUuid === null && !empty($signerData['me']) && isset($signerData['sign_request_uuid'])) {
-					$currentSignerRequestUuid = $signerData['sign_request_uuid'];
+				if ($signUuid === null && !empty($signerData['me']) && isset($signerData['sign_uuid'])) {
+					$signUuid = $signerData['sign_uuid'];
 				}
 			} else {
 				$signers[] = $this->formatSignerDataBasic($signer, $identifyMethods, $visibleElementsData);
@@ -663,8 +675,9 @@ class FileListService {
 
 		$response['visibleElements'] = $this->collectVisibleElementsFromSigners($signers);
 
-		if ($currentSignerRequestUuid !== null) {
-			$response['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $currentSignerRequestUuid]);
+		if ($signUuid !== null) {
+			$response['signUuid'] = $signUuid;
+			$response['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signUuid]);
 		}
 
 		if ($mainEntity->getNodeType() === 'envelope') {

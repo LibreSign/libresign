@@ -39,12 +39,7 @@ class LdapCrlDownloader {
 	}
 
 	public function isLdapUrl(string $url): bool {
-		$scheme = parse_url($url, PHP_URL_SCHEME);
-		if (!is_string($scheme)) {
-			return preg_match('/^ldaps?:\/\//i', trim($url)) === 1;
-		}
-
-		$scheme = strtolower($scheme);
+		$scheme = strtolower(parse_url($url, PHP_URL_SCHEME) ?? '');
 		return in_array($scheme, ['ldap', 'ldaps'], true);
 	}
 

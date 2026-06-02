@@ -12,7 +12,6 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Enum\DocMdpLevel;
-use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
@@ -26,7 +25,6 @@ use OCP\IAppConfig;
 use OCP\IDateTimeZone;
 use OCP\IRequest;
 use OCP\ITempManager;
-use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -75,18 +73,12 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	private function getInstance(array $methods = []): JSignPdfHandler|MockObject {
-		$urlGenerator = $this->createMock(IURLGenerator::class);
-		$urlGenerator
-			->method('linkToRouteAbsolute')
-			->willReturnCallback(fn (string $route, array $params): string => 'https://example.test/' . $route . '/' . ($params['uuid'] ?? ''));
-
 		$signatureTextService = new SignatureTextService(
 			$this->appConfig,
 			\OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID),
 			\OCP\Server::get(IDateTimeZone::class),
 			\OCP\Server::get(IRequest::class),
 			\OCP\Server::get(IUserSession::class),
-			$urlGenerator,
 			\OCP\Server::get(LoggerInterface::class),
 		);
 
@@ -297,7 +289,6 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$paramsAsOptions = preg_replace('/\\/\S+_text_image.png/', 'text_image.png', (string)$paramsAsOptions);
 		$paramsAsOptions = preg_replace('/\\/\S+_background.png/', 'background.png', (string)$paramsAsOptions);
 		$paramsAsOptions = preg_replace('/\\/\S+app-dark.png/', 'signature.png', (string)$paramsAsOptions);
-		$paramsAsOptions = preg_replace('/ --tsa-server-url\s+\S+/', '', (string)$paramsAsOptions);
 		$this->assertEquals($params, $paramsAsOptions);
 	}
 
@@ -516,24 +507,6 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'hashAlgorithm' => '',
 				'params' => '-a -kst PKCS12 --hash-algorithm SHA256 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png'
 			],
-			'regression: invalid stored dimensions should fallback to defaults and keep signing flow' => [
-				'visibleElements' => [self::getElement([
-					'page' => 2,
-					'llx' => 10,
-					'lly' => 20,
-					'urx' => 30,
-					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
-				'signatureWidth' => 0,
-				'signatureHeight' => 0,
-				'template' => '',
-				'signatureBackgroundType' => 'default',
-				'renderMode' => SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
-				'templateFontSize' => 10,
-				'pdfContent' => '%PDF-1.6',
-				'hashAlgorithm' => '',
-				'params' => '-a -kst PKCS12 --hash-algorithm SHA256 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png'
-			],
 		];
 	}
 
@@ -726,48 +699,6 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertEquals($expected, $actual);
 	}
 
-	public function testGetSignatureTextWithTwigDateFilterAndTimezone(): void {
-		$this->appConfig->setValueString(
-			'libresign',
-			'signature_text_template',
-			'{{ ServerSignatureDate|date("d/m/Y H:i:s T", "Europe/Paris") }}'
-		);
-		$this->appConfig->setValueString('libresign', 'signature_render_mode', SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY);
-
-		$jSignPdfHandler = $this->getInstance();
-		$actual = $jSignPdfHandler->getSignatureText();
-
-		$this->assertMatchesRegularExpression('/^"\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2} [A-Z]{3,4}"$/', $actual);
-	}
-
-	public function testGetSignatureTextWithTwigDateFilterWithoutTimezone(): void {
-		$this->appConfig->setValueString(
-			'libresign',
-			'signature_text_template',
-			'{{ ServerSignatureDate|date("d/m/Y") }}'
-		);
-		$this->appConfig->setValueString('libresign', 'signature_render_mode', SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY);
-
-		$jSignPdfHandler = $this->getInstance();
-		$actual = $jSignPdfHandler->getSignatureText();
-
-		$this->assertMatchesRegularExpression('/^"\d{2}\/\d{2}\/\d{4}"$/', $actual);
-	}
-
-	public function testGetSignatureTextGraphicOnlyWithTwigDateFilterAlwaysReturnsEmpty(): void {
-		$this->appConfig->setValueString(
-			'libresign',
-			'signature_text_template',
-			'{{ ServerSignatureDate|date("d/m/Y H:i:s T", "Europe/Paris") }}'
-		);
-		$this->appConfig->setValueString('libresign', 'signature_render_mode', SignerElementsService::RENDER_MODE_GRAPHIC_ONLY);
-
-		$jSignPdfHandler = $this->getInstance();
-		$actual = $jSignPdfHandler->getSignatureText();
-
-		$this->assertSame('""', $actual);
-	}
-
 	public static function providerGetSignatureText(): array {
 		return [
 			['FAKE_RENDER_MODE', '',     '""'],
@@ -775,37 +706,11 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['FAKE_RENDER_MODE', "a\na", "\"a\na\""],
 			['FAKE_RENDER_MODE', 'a"a',  '"a\"a"'],
 			['FAKE_RENDER_MODE', 'a$a',  '"a\$a"'],
-			// Plain {{ServerSignatureDate}} (no spaces) preserves JSign placeholder
-			['FAKE_RENDER_MODE', '{{ServerSignatureDate}}', '"\${timestamp}"'],
-			// Plain {{ ServerSignatureDate }} (with spaces) also preserves JSign placeholder
-			['FAKE_RENDER_MODE', '{{ ServerSignatureDate }}', '"\${timestamp}"'],
 			['GRAPHIC_ONLY',     '',     '""'],
 			['GRAPHIC_ONLY',     'a',    '""'],
 			['GRAPHIC_ONLY',     "a\na", '""'],
 			['GRAPHIC_ONLY',     'a"a',  '""'],
 			['GRAPHIC_ONLY',     'a$a',  '""'],
 		];
-	}
-
-	public function testCheckTsaErrorInvalidTsaMentionsDnsNetworkFirewall(): void {
-		$jSignPdfHandler = $this->getInstance();
-
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Timestamp Authority (TSA) service is unavailable. Check DNS/network/firewall connectivity from this server: https://invalid-tsa.example.com/tsr');
-
-		self::invokePrivate($jSignPdfHandler, 'checkTsaError', [
-			"Invalid TSA 'https://invalid-tsa.example.com/tsr'",
-		]);
-	}
-
-	public function testCheckTsaErrorUnknownHostMentionsDnsNetworkFirewall(): void {
-		$jSignPdfHandler = $this->getInstance();
-
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage("Timestamp Authority (TSA) service error.\nCheck TSA endpoint and DNS/network/firewall connectivity from this server.");
-
-		self::invokePrivate($jSignPdfHandler, 'checkTsaError', [
-			'TSAClientBouncyCastle: java.net.UnknownHostException: invalid-tsa.example.com',
-		]);
 	}
 }

@@ -4,6 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 import { markRaw } from '@vue/reactivity'
 
@@ -35,7 +36,7 @@ class IntersectionObserverMock {
 	constructor(public callback: IntersectionObserverCallback) {}
 }
 
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 vi.mock('debounce', () => ({
 	default: vi.fn((fn: (...args: unknown[]) => unknown) => fn),

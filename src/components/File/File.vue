@@ -3,23 +3,48 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
+	<div class="content-files">
 	<div v-if="currentFileId && currentFile" class="content-file" @click="openSidebar">
-		<img v-if="previewUrl && backgroundFailed !== true"
+
+		<!-- preview -->
+		<img
+			v-if="previewUrl && backgroundFailed !== true"
 			ref="previewImg"
-			alt=""
-			class="files-list__row-icon-preview"
-			:class="{'files-list__row-icon-preview--loaded': backgroundFailed === false}"
-			loading="lazy"
+			class="file-preview"
+			:class="{ 'file-preview--loaded': backgroundFailed === false }"
 			:src="previewUrl"
 			@error="backgroundFailed = true"
-			@load="backgroundFailed = false">
+			@load="backgroundFailed = false"
+		/>
+
 		<NcIconSvgWrapper v-else v-once :path="mdiFile" :size="128" />
-		<div class="enDot">
-			<div :class="'dot ' + statusToClass(currentFile.status)" />
-			<span>{{ currentFile.statusText }}</span>
+
+		<!-- file info -->
+		<div class="file-info">
+
+			<FileStatusIndicator />
+
+			<h1 class="file-name">
+				{{ rawFile?.name }}{{ rawFile?.metadata?.extension ? '.' + rawFile.metadata.extension : '' }}
+			</h1>
+
+			<div class="file-meta">
+				<span v-if="rawFile?.metadata?.p">
+					{{ rawFile.metadata.p }} pages
+				</span>
+
+				<span v-if="rawFile?.signersCount === 0">
+					No signers added
+				</span>
+
+				<span v-else-if="rawFile?.signersCount">
+					{{ rawFile.signersCount }} signers
+				</span>
+			</div>
+
 		</div>
-		<h1>{{ currentFile.name }}</h1>
 	</div>
+</div>
 </template>
 
 <script setup lang="ts">
@@ -33,6 +58,7 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
+import FileStatusIndicator from "../RightSidebar/FileStatusIndicator.vue"
 
 defineOptions({
 	name: 'File',
@@ -55,19 +81,25 @@ const currentFile = computed<CurrentFileState | null>(() => {
 	}
 	return filesStore.getSelectedFileView()
 })
+
+const rawFile = computed(() => {
+	if (!currentFileId.value) return null
+	return filesStore.files?.[currentFileId.value]
+})
+
 const previewUrl = computed(() => {
 	if (backgroundFailed.value === true || !currentFile.value) {
 		return null
 	}
 
 	let filePreviewUrl = ''
-	if (currentFile.value.id) {
-		filePreviewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
-			fileId: currentFile.value.id,
-		})
-	} else if (currentFile.value.nodeId) {
+	if (currentFile.value.nodeId) {
 		filePreviewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
 			nodeId: currentFile.value.nodeId,
+		})
+	} else if (currentFile.value.id) {
+		filePreviewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
+			fileId: currentFile.value.id,
 		})
 	} else {
 		filePreviewUrl = window.location.origin + generateUrl('/core/preview?fileId={fileid}', {
@@ -108,6 +140,19 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
+.content-files {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: flex-start;
+	margin: 0px 20px 20px 20px;
+	background: var(--color-background-hover);
+	padding: 20px;
+	border-radius: 16px;
+}
+
+/*
 .content-file{
 	display: flex;
 	flex-direction: column;
@@ -186,5 +231,61 @@ defineExpose({
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
+} */
+.content-file {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 16px;
+
+	padding: 28px;
+	border: 1px solid #eeeeee;
+	border-radius: 16px;
+
+	background: var(--color-main-background);
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+
+	cursor: pointer;
+	transition: transform 0.15s ease;
+}
+
+.content-file:hover {
+	transform: translateY(-2px);
+}
+
+.file-preview {
+	max-width: 120px;
+	border-radius: 6px;
+}
+
+.file-info {
+	text-align: center;
+}
+
+.file-name {
+	font-size: 20px;
+	margin: 6px 0;
+}
+
+.file-meta {
+	display: flex;
+	gap: 12px;
+	font-size: 13px;
+	color: var(--color-text-maxcontrast);
+	justify-content: center;
+}
+
+.file-status {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+}
+
+.dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #e74c3c;
 }
 </style>

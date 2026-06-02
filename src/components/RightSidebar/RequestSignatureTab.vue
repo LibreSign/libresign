@@ -3,6 +3,11 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
+	<div class="section-container">
+		<p class="custom-section-label">Document</p>
+		<FileDetailsCard />
+	</div>
+
 	<div id="request-signature-tab">
 		<NcNoteCard v-if="showDocMdpWarning" type="warning">
 			{{ t('libresign', 'This document has been certified with no changes allowed. You cannot add more signers to this document.') }}
@@ -16,156 +21,172 @@
 		<NcNoteCard v-if="shouldLoadDetail && isLoadingFileDetail" type="info">
 			{{ t('libresign', 'Loading signer details...') }}
 		</NcNoteCard>
-		<NcButton v-if="filesStore.canAddSigner() && !isOriginalFileDeleted"
-			:variant="hasSigners ? 'secondary' : 'primary'"
-			@click="addSigner">
-			<template #icon>
-				<NcIconSvgWrapper :path="mdiAccountPlus" :size="20" />
-			</template>
-			{{ t('libresign', 'Add signer') }}
-		</NcButton>
-		<NcCheckboxRadioSwitch v-if="showPreserveOrder && !isOriginalFileDeleted"
-			v-model="preserveOrder"
-			type="switch"
-			@update:modelValue="onPreserveOrderChange">
-			{{ t('libresign', 'Sign in order') }}
-		</NcCheckboxRadioSwitch>
-		<NcButton v-if="showViewOrderButton && !isOriginalFileDeleted"
-			variant="tertiary"
-			@click="showOrderDiagram = true">
-			<template #icon>
-				<NcIconSvgWrapper :path="mdiChartGantt" :size="20" />
-			</template>
-			{{ t('libresign', 'View signing order') }}
-		</NcButton>
-		<Signers v-if="!shouldLoadDetail || isCurrentFileDetailed"
-			:event="isOriginalFileDeleted ? '' : 'libresign:edit-signer'"
-			@signing-order-changed="debouncedSave">
-			<template #actions="{signer, closeActions}">
-				<template v-if="!isOriginalFileDeleted">
-					<NcActionInput v-if="canEditSigningOrder(signer)"
-						:label="t('libresign', 'Signing order')"
-						type="number"
-						:value="signer.signingOrder || 1"
-						@update:modelValue="updateSigningOrder(signer, $event)"
-						@submit="confirmSigningOrder(signer); closeActions()"
-						@blur="confirmSigningOrder(signer)">
-						<template #icon>
-							<NcIconSvgWrapper :path="mdiOrderNumericAscending" :size="20" />
-						</template>
-					</NcActionInput>
-					<NcActionButton v-if="canCustomizeMessage(signer)"
-						:close-after-click="true"
-						@click="customizeMessage(signer); closeActions()">
-						<template #icon>
-							<NcIconSvgWrapper :path="mdiMessageText" :size="20" />
-						</template>
-						{{ t('libresign', 'Customize message') }}
-					</NcActionButton>
-					<NcActionButton v-if="canDelete(signer)"
-						aria-label="Delete"
-						:close-after-click="true"
-						@click="filesStore.deleteSigner(signer)">
-						<template #icon>
-							<NcIconSvgWrapper :path="mdiDelete" :size="20" />
-						</template>
-						{{ t('libresign', 'Delete') }}
-					</NcActionButton>
-					<NcActionButton v-if="canRequestSignature(signer)"
-						:close-after-click="true"
-						@click="requestSignatureForSigner(signer)">
-						<template #icon>
-							<NcIconSvgWrapper :path="mdiSend" :size="20" />
-						</template>
-						{{ t('libresign', 'Request signature') }}
-					</NcActionButton>
-					<NcActionButton v-if="canSendReminder(signer)"
-						:close-after-click="true"
-						@click="sendNotify(signer)">
-						<template #icon>
-							<NcIconSvgWrapper :path="mdiBell" :size="20" />
-						</template>
-						{{ t('libresign', 'Send reminder') }}
-					</NcActionButton>
-				</template>
-			</template>
-		</Signers>
-		<NcFormBox v-if="isEnvelope" class="action-form-box">
-			<NcButton
-				wide
-				variant="secondary"
-				:disabled="hasLoading"
-				@click="openManageFiles">
+		<div class="section-container">
+			<p class="custom-section-label">
+				{{ t('libresign', 'Signer Actions') }}
+			</p>
+			<div class="add-signer-button-container">
+				<NcButton v-if="filesStore.canAddSigner() && !isOriginalFileDeleted"
+					wide
+					:variant="hasSigners ? 'secondary' : 'primary'"
+					:class="{ 'add-signer-glow': !hasSigners }"
+					@click="addSigner">
+					<template #icon>
+						<NcIconSvgWrapper :path="mdiAccountPlus" :size="20" />
+					</template>
+					{{ t('libresign', 'Add signer') }}
+				</NcButton>
+			</div>
+			<NcCheckboxRadioSwitch v-if="showPreserveOrder && !isOriginalFileDeleted"
+				v-model="preserveOrder"
+				type="switch"
+				@update:modelValue="onPreserveOrderChange">
+				{{ t('libresign', 'Sign in order') }}
+			</NcCheckboxRadioSwitch>
+			<NcButton v-if="showViewOrderButton && !isOriginalFileDeleted"
+				variant="tertiary"
+				@click="showOrderDiagram = true">
 				<template #icon>
-					<NcLoadingIcon v-if="hasLoading" :size="20" />
-					<NcIconSvgWrapper v-else :path="mdiFileMultiple" :size="20" />
+					<NcIconSvgWrapper :path="mdiChartGantt" :size="20" />
 				</template>
-				{{ t('libresign', 'Manage files ({count})', { count: envelopeFilesCount }) }}
+				{{ t('libresign', 'View signing order') }}
 			</NcButton>
-		</NcFormBox>
-		<NcFormBox v-if="showSaveButton || showRequestButton" class="action-form-box">
-			<NcButton v-if="showSaveButton"
-				wide
-				variant="secondary"
-				:disabled="hasLoading"
-				@click="save()">
-				<template #icon>
-					<NcLoadingIcon v-if="hasLoading" :size="20" />
-					<NcIconSvgWrapper v-else-if="isSignElementsAvailable()" :path="mdiPencil" :size="20" />
+			<Signers v-if="!shouldLoadDetail || isCurrentFileDetailed"
+				:event="isOriginalFileDeleted ? '' : 'libresign:edit-signer'"
+				@signing-order-changed="debouncedSave">
+				<template #actions="{signer, closeActions}">
+					<template v-if="!isOriginalFileDeleted">
+						<NcActionInput v-if="canEditSigningOrder(signer)"
+							:label="t('libresign', 'Signing order')"
+							type="number"
+							:value="signer.signingOrder || 1"
+							@update:modelValue="updateSigningOrder(signer, $event)"
+							@submit="confirmSigningOrder(signer); closeActions()"
+							@blur="confirmSigningOrder(signer)">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiOrderNumericAscending" :size="20" />
+							</template>
+						</NcActionInput>
+						<NcActionButton v-if="canCustomizeMessage(signer)"
+							:close-after-click="true"
+							@click="customizeMessage(signer); closeActions()">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiMessageText" :size="20" />
+							</template>
+							{{ t('libresign', 'Customize message') }}
+						</NcActionButton>
+						<NcActionButton v-if="canDelete(signer)"
+							aria-label="Delete"
+							:close-after-click="true"
+							@click="filesStore.deleteSigner(signer)">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiDelete" :size="20" />
+							</template>
+							{{ t('libresign', 'Delete') }}
+						</NcActionButton>
+						<NcActionButton v-if="canRequestSignature(signer)"
+							:close-after-click="true"
+							@click="requestSignatureForSigner(signer)">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiSend" :size="20" />
+							</template>
+							{{ t('libresign', 'Request signature') }}
+						</NcActionButton>
+						<NcActionButton v-if="canSendReminder(signer)"
+							:close-after-click="true"
+							@click="sendNotify(signer)">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiBell" :size="20" />
+							</template>
+							{{ t('libresign', 'Send reminder') }}
+						</NcActionButton>
+					</template>
 				</template>
-				{{ isSignElementsAvailable() ? t('libresign', 'Setup signature positions') : t('libresign', 'Save') }}
-			</NcButton>
-			<NcButton v-if="showRequestButton"
-				wide
-				:variant="filesStore.canSign() ? 'secondary' : 'primary'"
-				:disabled="hasLoading"
-				@click="request()">
-				<template #icon>
-					<NcLoadingIcon v-if="hasLoading" :size="20" />
-					<NcIconSvgWrapper v-else :path="mdiSend" :size="20" />
-				</template>
-				{{ t('libresign', 'Request signatures') }}
-			</NcButton>
-		</NcFormBox>
-		<SigningProgress
-			v-if="showSigningProgress"
-			:status="signingProgressStatus ?? FILE_STATUS.SIGNING_IN_PROGRESS"
-			:status-text="signingProgressStatusText"
-			:progress="signingProgress ?? undefined"
-			:is-loading="hasLoading" />
-		<NcFormBox v-if="filesStore.canSign()" class="action-form-box">
-			<NcButton
-				wide
-				variant="primary"
-				:disabled="hasLoading"
-				@click="sign()">
-				<template #icon>
-					<NcLoadingIcon v-if="hasLoading" :size="20" />
-					<NcIconSvgWrapper v-else :path="mdiPencil" :size="20" />
-				</template>
-				{{ t('libresign', 'Sign document') }}
-			</NcButton>
-		</NcFormBox>
-		<NcFormBox class="action-form-box">
-			<NcButton v-if="filesStore.canValidate()"
-				wide
-				variant="secondary"
-				@click="validationFile()">
-				<template #icon>
-					<NcIconSvgWrapper :path="mdiInformation" :size="20" />
-				</template>
-				{{ t('libresign', 'Validation info') }}
-			</NcButton>
-			<NcButton v-if="!isEnvelope && !isOriginalFileDeleted"
-				wide
-				variant="secondary"
-				@click="openFile()">
-				<template #icon>
-					<NcIconSvgWrapper :path="mdiFileDocument" :size="20" />
-				</template>
-				{{ t('libresign', 'Open file') }}
-			</NcButton>
-		</NcFormBox>
+			</Signers>
+		</div>
+		<div class="section-container">
+			<p class="custom-section-label">
+				{{ t('libresign', 'Document Actions') }}
+			</p>
+			<NcFormBox v-if="isEnvelope" class="action-form-box">
+				<NcButton
+					wide
+					variant="secondary"
+					:disabled="hasLoading"
+					@click="openManageFiles">
+					<template #icon>
+						<NcLoadingIcon v-if="hasLoading" :size="20" />
+						<NcIconSvgWrapper v-else :path="mdiFileMultiple" :size="20" />
+					</template>
+					{{ t('libresign', 'Manage files ({count})', { count: envelopeFilesCount }) }}
+				</NcButton>
+			</NcFormBox>
+			<div v-if="showSaveButton || showRequestButton" class="signature-form-box">
+				<NcButton v-if="showSaveButton"
+					wide
+					variant="secondary"
+					:disabled="hasLoading"
+					:class="{ 'setup-fields-highlight': shouldHighlightSetupSignPositionsButton }"
+					@click="save()">
+					<template #icon>
+						<NcLoadingIcon v-if="hasLoading" :size="20" />
+						<NcIconSvgWrapper v-else-if="isSignElementsAvailable()" :path="mdiPencil" :size="20" />
+					</template>
+					{{ isSignElementsAvailable() ? t('libresign', 'Setup signature positions') : t('libresign', 'Save') }}
+				</NcButton>
+				<NcButton v-if="showRequestButton"
+					wide
+					:variant="isReadyToRequest ? 'primary' : 'secondary'"
+					:disabled="hasLoading || !hasSigners"
+					:class="{ 'request-signature-glow': isReadyToRequest }"
+					@click="request()">
+					<template #icon>
+						<NcLoadingIcon v-if="hasLoading" :size="20" />
+						<NcIconSvgWrapper v-else :path="mdiSend" :size="20" />
+					</template>
+					{{ t('libresign', 'Request signatures') }}
+				</NcButton>
+			</div>
+			<SigningProgress
+				v-if="showSigningProgress"
+				:status="signingProgressStatus ?? FILE_STATUS.SIGNING_IN_PROGRESS"
+				:status-text="signingProgressStatusText"
+				:progress="signingProgress ?? undefined"
+				:is-loading="hasLoading" />
+			<NcFormBox v-if="filesStore.canSign()" class="action-form-box">
+				<NcButton
+					wide
+					variant="primary"
+					:disabled="hasLoading"
+					@click="sign()">
+					<template #icon>
+						<NcLoadingIcon v-if="hasLoading" :size="20" />
+						<NcIconSvgWrapper v-else :path="mdiPencil" :size="20" />
+					</template>
+					{{ t('libresign', 'Sign document') }}
+				</NcButton>
+			</NcFormBox>
+			<NcFormBox class="action-form-box">
+				<NcButton v-if="filesStore.canValidate()"
+					wide
+					variant="secondary"
+					@click="validationFile()">
+					<template #icon>
+						<NcIconSvgWrapper :path="mdiInformation" :size="20" />
+					</template>
+					{{ t('libresign', 'Validation info') }}
+				</NcButton>
+				<NcButton v-if="!isEnvelope && !isOriginalFileDeleted"
+					wide
+					variant="secondary"
+					@click="openFile()">
+					<template #icon>
+						<NcIconSvgWrapper :path="mdiFileDocument" :size="20" />
+					</template>
+					{{ t('libresign', 'Open file') }}
+				</NcButton>
+			</NcFormBox>
+		</div>
 		<VisibleElements />
 		<NcModal v-if="modalSrc"
 			size="full"
@@ -195,7 +216,9 @@
 						:placeholder="method.friendly_name"
 						:method="method.name"
 						:methods="methods"
-						:disabled="isSignerMethodDisabled" />
+						:disabled="isSignerMethodDisabled"
+						@phone-not-found="switchToEmail"
+						/>
 				</NcAppSidebarTab>
 			</NcAppSidebar>
 		</NcDialog>
@@ -283,7 +306,6 @@ import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
 
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
-import { showError, showSuccess } from '@nextcloud/dialogs'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
 import type { Event as NextcloudEvent, EventHandler } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
@@ -309,12 +331,12 @@ import Signers from '../Signers/Signers.vue'
 import SigningOrderDiagram from '../SigningOrder/SigningOrderDiagram.vue'
 import SigningProgress from '../RequestSigningProgress.vue'
 import VisibleElements from '../Request/VisibleElements.vue'
+import FileDetailsCard from "./FileDetailsCard.vue"
 
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../constants.js'
 import { getSignRequestStatusText } from '../../utils/getSignRequestStatusText.ts'
-import { getSigningRouteUuid, getValidationRouteUuid } from '../../utils/signRequestUuid.ts'
 import { openDocument } from '../../utils/viewer.js'
 import router from '../../router/router'
 import { useFilesStore } from '../../store/files.js'
@@ -324,6 +346,7 @@ import { useUserConfigStore } from '../../store/userconfig.js'
 import { startLongPolling } from '../../services/longPolling'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
 import type { components, operations } from '../../types/openapi/openapi'
+import { showError, showSuccess } from '../../services/toast'
 import type {
 	IdentifyMethodRecord,
 	IdentifyMethodSetting as IdentifyMethodConfig,
@@ -355,11 +378,11 @@ type PollingStatusData = {
 	statusText?: string
 	progress?: components['schemas']['ProgressPayload']
 }
-type RequestSignatureErrorData = operations['request_signature-request-signature']['responses'][422]['content']['application/json']['ocs']['data']
-type UpdateSignatureErrorData = operations['request_signature-update-signature-request']['responses'][422]['content']['application/json']['ocs']['data']
+type RequestSignatureErrorData = operations['request_signature-request']['responses'][422]['content']['application/json']['ocs']['data']
+type UpdateSignatureErrorData = operations['request_signature-update-sign']['responses'][422]['content']['application/json']['ocs']['data']
 type DeleteRequestSignatureErrorData =
-	| operations['request_signature-remove-signer']['responses'][401]['content']['application/json']['ocs']['data']
-	| operations['request_signature-remove-signer']['responses'][422]['content']['application/json']['ocs']['data']
+	| operations['request_signature-delete-one-request-signature-using-file-id']['responses'][401]['content']['application/json']['ocs']['data']
+	| operations['request_signature-delete-one-request-signature-using-file-id']['responses'][422]['content']['application/json']['ocs']['data']
 type NotifySignerErrorData = operations['notify-signer']['responses'][401]['content']['application/json']['ocs']['data']
 type NotifySignerSuccess = operations['notify-signer']['responses'][200]['content']['application/json']
 type OcsErrorData = RequestSignatureErrorData | UpdateSignatureErrorData | DeleteRequestSignatureErrorData | NotifySignerErrorData
@@ -408,6 +431,11 @@ const signatureFlow = computed(() => {
 	const file = filesStore.getFile()
 	let flow = file?.signatureFlow
 
+	if (typeof flow === 'number') {
+		const flowMap: Record<number, string> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+		return flowMap[flow]
+	}
+
 	if (flow && flow !== 'none') {
 		return flow
 	}
@@ -445,9 +473,35 @@ const signingOrderDiagramSigners = computed<SigningOrderDiagramSigner[]>(() => {
 		signingOrder: signer.signingOrder,
 	}))
 })
+const hasSignaturePositions = computed(() => {
+	const file = filesStore.getFile()
+	if (!file) {
+		return false
+	}
+	const visibleElements = file?.visibleElements ?? []
+	return visibleElements.length > 0
+})
+
+const isReadyToRequest = computed(() => {
+	return hasSigners.value && hasSignaturePositions.value
+})
+
+const shouldHighlightSetupSignPositionsButton = computed(() => {
+	const file = filesStore.getFile()
+
+	if (!file) return false
+
+	const signers = file?.signers ?? []
+	const visibleElements = file?.visibleElements ?? []
+
+	const hasSigners = signers.length > 0
+	const hasFields = visibleElements.length > 0
+
+	return hasSigners && !hasFields
+})
 
 function normalizeSignatureFlow(flow: unknown): SignatureFlowValue | null {
-	if (flow === 'none' || flow === 'parallel' || flow === 'ordered_numeric') {
+	if (flow === 'none' || flow === 'parallel' || flow === 'ordered_numeric' || flow === 0 || flow === 1 || flow === 2) {
 		return flow
 	}
 	return null
@@ -798,7 +852,7 @@ function syncPreserveOrderWithFile() {
 
 	const flow = file.signatureFlow
 	const normalizedFlow = normalizeSignatureFlow(flow)
-	preserveOrder.value = normalizedFlow === 'ordered_numeric' && !isAdminFlowForced.value
+	preserveOrder.value = (normalizedFlow === 'ordered_numeric' || normalizedFlow === 2) && !isAdminFlowForced.value
 }
 
 async function ensureCurrentFileDetail(force = false) {
@@ -841,11 +895,25 @@ function closeModal() {
 
 function getValidationFileUuid() {
 	const file = filesStore.getFile()
-	return getValidationRouteUuid(filesStore.getFile())
-}
+	if (file?.uuid) {
+		return file.uuid
+	}
 
-function getSignRouteUuid() {
-	return getSigningRouteUuid(filesStore.getFile())
+	const signer = file?.signers?.find((row: EditableRequestSigner) => row.me) || file?.signers?.[0]
+	if (signer?.sign_uuid) {
+		return signer.sign_uuid
+	}
+
+	const loadedUuid = loadState<string | null>('libresign', 'sign_request_uuid', null)
+	if (loadedUuid) {
+		return loadedUuid
+	}
+
+	if (file?.id) {
+		return file.id
+	}
+
+	return null
 }
 
 function validationFile() {
@@ -1049,11 +1117,7 @@ async function sign() {
 		return
 	}
 
-	const uuid = getSignRouteUuid()
-	if (!uuid) {
-		showError(t('libresign', 'Signer request not found'))
-		return
-	}
+	const uuid = 'signUuid' in file ? file.signUuid : null
 	if (props.useModal) {
 		const absoluteUrl = generateUrl('/apps/libresign/p/sign/{uuid}/pdf', { uuid })
 		const route = router.resolve({ name: 'SignPDFExternal', params: { uuid } })
@@ -1183,6 +1247,19 @@ function stopSigningProgressPolling() {
 	signingProgressStatusText.value = ''
 }
 
+function switchToEmail(phone: string) {
+	// Find email tab
+	const emailMethod = methods.value.find(m => m.name === 'email')
+
+	if (!emailMethod) {
+		return
+	}
+
+	// Switch tab
+	// activeTab.value = `tab-${emailMethod.name}`
+	console.log(`Switching to email tab for phone number ${phone}`);
+}
+
 watch(() => filesStore.selectedFileId, (newFileId) => {
 	if (newFileId) {
 		syncPreserveOrderWithFile()
@@ -1279,7 +1356,6 @@ defineExpose({
 	isSignElementsAvailable,
 	closeModal,
 	getValidationFileUuid,
-	getSignRouteUuid,
 	validationFile,
 	addSigner,
 	editSigner,
@@ -1303,6 +1379,92 @@ defineExpose({
 })
 </script>
 <style lang="scss" scoped>
+
+.section-container {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-bottom: 20px;
+}
+
+.signature-form-box {
+	display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.add-signer-button-container {
+	width: 100%;
+}
+
+.add-signer-glow {
+	animation: glowPulse 1.8s ease-in-out infinite;
+	border-radius: 8px;
+}
+
+.request-signature-glow {
+	animation: glowPulse 1.8s ease-in-out infinite;
+	border-radius: 8px;
+}
+
+@keyframes glowPulse {
+	0% {
+		box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.6);
+		transform: scale(1);
+	}
+
+	40% {
+		box-shadow: 0 0 0 6px rgba(46, 204, 113, 0.35);
+	}
+
+	70% {
+		box-shadow: 0 0 14px 6px rgba(46, 204, 113, 0.35);
+		transform: scale(1.03);
+	}
+
+	100% {
+		box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+		transform: scale(1);
+	}
+}
+
+.setup-fields-highlight:hover {
+	animation-play-state: paused !important;
+}
+
+.setup-fields-highlight {
+	background: #ffc107 !important;
+	border-color: #ffc107 !important;
+	color: #2c2c2c !important;
+
+	animation: amberGlow 2s ease-in-out infinite;
+}
+
+@keyframes amberGlow {
+
+	0% {
+		box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.45);
+		transform: scale(1);
+	}
+
+	40% {
+		box-shadow: 0 0 0 6px rgba(255, 193, 7, 0.25);
+	}
+
+	70% {
+		box-shadow: 0 0 14px 6px rgba(255, 193, 7, 0.25);
+		transform: scale(1.02);
+	}
+
+	100% {
+		box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+		transform: scale(1);
+	}
+}
+
+:deep(.signers) {
+	margin-top: 8px;
+}
 
 :deep(.checkbox-radio-switch) {
 	margin: 8px 0;
@@ -1336,4 +1498,9 @@ defineExpose({
 		}
 	}
 }
+	.request-hint {
+		font-size: 12px;
+		color: var(--color-text-maxcontrast);
+		margin-top: 6px;
+	}
 </style>

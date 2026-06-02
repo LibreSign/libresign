@@ -99,7 +99,7 @@ describe('useSigningOrder composable', () => {
 	})
 
 	describe('normalizeSigningOrders', () => {
-		it('handles empty signers array when normalizing', () => {
+		it('handles empty signers array', () => {
 			const signers: Signer[] = []
 
 			normalizeSigningOrders(signers)

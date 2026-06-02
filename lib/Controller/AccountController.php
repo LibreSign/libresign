@@ -71,10 +71,11 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * Create account to sign a document
 	 *
-	 * @param string $uuid Sign request uuid to allow account creation
+	 * @param string $tuuid Sign request uuid to allow account creation
 	 * @param string $email email to the new account
 	 * @param string $password the password to then new account
 	 * @param string|null $signPassword The password to create certificate
+	 * @param string|null $phoneNumber The phone number of the user
 	 * @return DataResponse<Http::STATUS_OK, LibresignCreateToSignResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignActionMessageResponse, array{}>
 	 *
 	 * 200: OK
@@ -86,7 +87,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	#[PublicPage]
 	#[UseSession]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/account/create/{uuid}', requirements: ['apiVersion' => '(v1)'])]
-	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword): DataResponse {
+	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword, ?string $phoneNumber = null): DataResponse {
 		try {
 			$data = [
 				'uuid' => $uuid,
@@ -96,14 +97,15 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 					]
 				],
 				'password' => $password,
-				'signPassword' => $signPassword
+				'signPassword' => $signPassword,
+				'phoneNumber' => $phoneNumber,
 			];
-			$this->accountService->validateCreateToSign($data);
+			$data = $this->accountService->validateCreateToSign($data);
 
 			$fileToSign = $this->accountService->getFileByUuid($uuid);
 			$signRequest = $this->accountService->getSignRequestByUuid($uuid);
 
-			$this->accountService->createToSign($uuid, $email, $password, $signPassword);
+			$this->accountService->createToSign($uuid, $email, $password, $signPassword, $data['phoneNumber']);
 			$data = [
 				'message' => $this->l10n->t('Success'),
 				'action' => JSActions::ACTION_SIGN,

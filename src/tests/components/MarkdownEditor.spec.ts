@@ -4,6 +4,7 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../testHelpers/l10n.js'
 import { mount, flushPromises } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 
@@ -29,7 +30,7 @@ type MarkdownEditorWrapper = VueWrapper<any> & {
 
 let MarkdownEditor: any
 
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 beforeAll(async () => {
 	;({ default: MarkdownEditor } = await import('../../components/MarkdownEditor.vue'))

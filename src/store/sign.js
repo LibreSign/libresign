@@ -23,7 +23,7 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
  * 	signRequestId?: number
  * 	displayName?: string
  * 	email?: string
- * 	sign_request_uuid?: string | null
+ * 	sign_uuid?: string | null
  * 	me?: boolean
  * 	status?: number
  * 	signed?: string | null | boolean | unknown[]
@@ -35,6 +35,7 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
  * @typedef {{
  * 	canSign?: boolean
  * 	canRequestSign?: boolean
+ * 	signerFileUuid?: string | null
  * 	phoneNumber?: string
  * 	hasSignatureFile?: boolean
  * 	isApprover?: boolean
@@ -80,6 +81,10 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
  * 	name?: string
  * 	description?: string
  * 	uuid?: string | null
+ * 	signUuid?: string | null
+ * 	sign_uuid?: string | null
+ * 	signRequestUuid?: string | null
+ * 	sign_request_uuid?: string | null
  * 	nodeId?: number
  * 	nodeType?: string
  * 	status?: number | string
@@ -100,18 +105,26 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
  * 	[key: string]: unknown
  * }} SignError
  */
+/**
+ * @typedef {'sign' | null} PendingAction
+ * @typedef {'SIGN_DOCUMENT' | null} ProductCode
+ */
 const defaultState = {
 	errors: /** @type {SignError[]} */ ([]),
 	document: /** @type {SignDocument | undefined} */ (undefined),
 	mounted: false,
 	pendingAction: null,
+	productCode: /** @type {ProductCode} */ (null),
 }
 
 export const useSignStore = defineStore('sign', () => {
 	const errors = ref([...defaultState.errors])
 	const document = ref(/** @type {SignDocument | undefined} */ (defaultState.document))
 	const mounted = ref(defaultState.mounted)
+	/** @type {import('vue').Ref<PendingAction>} */
 	const pendingAction = ref(defaultState.pendingAction)
+	/** @type {import('vue').Ref<ProductCode>} */
+	const productCode = ref(defaultState.productCode)
 
 	const ableToSign = computed(() => {
 		const allowedStatuses = [FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED]
@@ -171,7 +184,6 @@ export const useSignStore = defineStore('sign', () => {
 		if (file) {
 			errors.value = []
 			document.value = file
-			mounted.value = true
 
 			const sidebarStore = useSidebarStore()
 			sidebarStore.activeSignTab()
@@ -187,7 +199,6 @@ export const useSignStore = defineStore('sign', () => {
 	const reset = () => {
 		errors.value = []
 		document.value = defaultState.document
-		mounted.value = defaultState.mounted
 		const sidebarStore = useSidebarStore()
 		sidebarStore.setActiveTab()
 	}
@@ -304,5 +315,6 @@ export const useSignStore = defineStore('sign', () => {
 		parseSignError,
 		clearSigningErrors,
 		setSigningErrors,
+		productCode,
 	}
 })

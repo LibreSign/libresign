@@ -4,6 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from './testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import { initialActionCode, ACTION_CODES } from '../helpers/ActionMapping'
@@ -30,7 +31,7 @@ vi.mock('vue-router', async () => {
 	}
 })
 
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 vi.mock('@nextcloud/vue/components/NcContent', () => ({
 	default: { name: 'NcContent', template: '<div class="nc-content"><slot /></div>', props: ['appName'] },

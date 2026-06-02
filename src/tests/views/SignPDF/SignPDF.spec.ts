@@ -29,13 +29,15 @@ vi.mock('@nextcloud/capabilities', () => ({
 vi.mock('../../../components/PdfEditor/PdfEditor.vue', () => ({
 	default: {
 		name: 'PdfEditor',
-		template: '<div data-test="pdf-editor" />',
+		render() {
+			return null
+		},
 	},
 }))
 
-vi.mock('../../../store/files.js', () => {
+vi.mock('../../store/files.js', () => {
 	const filesInstance = {
-		fetchFileDetail: vi.fn(),
+		getAllFiles: vi.fn(),
 		addFile: vi.fn(),
 		selectFile: vi.fn(),
 		getFile: vi.fn(),
@@ -45,7 +47,7 @@ vi.mock('../../../store/files.js', () => {
 	}
 })
 
-vi.mock('../../../store/sidebar.js', () => {
+vi.mock('../../store/sidebar.js', () => {
 	const sidebarInstance = {
 		toggleSidebar: vi.fn(),
 		hideSidebar: vi.fn(),
@@ -56,8 +58,8 @@ vi.mock('../../../store/sidebar.js', () => {
 	}
 })
 
-vi.mock('../../../store/sign.js', async () => {
-	const actual = await vi.importActual('../../../store/sign.js')
+vi.mock('../../store/sign.js', async () => {
+	const actual = await vi.importActual('../../store/sign.js')
 	return actual
 })
 
@@ -66,7 +68,7 @@ describe('SignPDF.vue', () => {
 		id: 1,
 		name: 'Envelope',
 		description: '',
-		status: 0,
+		status: '',
 		statusText: '',
 		url: '/apps/libresign/p/pdf/uuid-123',
 		nodeId: 1,
@@ -196,13 +198,13 @@ describe('SignPDF.vue', () => {
 				id: 10,
 				name: 'file1',
 				file: '/file1.pdf',
-				files: undefined,
 				metadata: { extension: 'pdf' },
 				signers: [
 					{
 						signRequestId: 501,
 						displayName: 'Ada',
 						email: 'ada@example.com',
+							localKey: 'signer:501',
 						me: true,
 					},
 				],
@@ -211,178 +213,5 @@ describe('SignPDF.vue', () => {
 				],
 			},
 		])
-	})
-
-	it('hides PDF only when error scope is pdfLoad', async () => {
-		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
-		const { useSignStore } = await import('../../../store/sign.js')
-		const signStore = useSignStore()
-
-		signStore.document = createSignDocument()
-		signStore.errors = [{ message: 'Document not found', scope: 'pdfLoad' }]
-
-		const wrapper = mount(SignPDF, {
-			global: {
-				stubs: {
-					TopBar: true,
-					NcNoteCard: true,
-					NcButton: true,
-				},
-				mocks: {
-					$route: { name: 'TestRoute', params: { uuid: 'uuid-123' }, query: {} },
-				},
-			},
-		})
-
-		wrapper.vm.mounted = true
-		wrapper.vm.pdfBlobs = [new File([new Blob(['pdf'], { type: 'application/pdf' })], 'sample.pdf', { type: 'application/pdf' })]
-		await wrapper.vm.$nextTick()
-
-		expect(wrapper.find('[data-test="pdf-editor"]').exists()).toBe(false)
-	})
-
-	it('keeps PDF visible for non-pdfLoad errors', async () => {
-		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
-		const { useSignStore } = await import('../../../store/sign.js')
-		const signStore = useSignStore()
-
-		signStore.document = createSignDocument()
-		signStore.errors = [{ message: 'Certificate validation failed', code: 422 }]
-
-		const wrapper = mount(SignPDF, {
-			global: {
-				stubs: {
-					TopBar: true,
-					NcNoteCard: true,
-					NcButton: true,
-				},
-				mocks: {
-					$route: { name: 'TestRoute', params: { uuid: 'uuid-123' }, query: {} },
-				},
-			},
-		})
-
-		wrapper.vm.mounted = true
-		wrapper.vm.pdfBlobs = [new File([new Blob(['pdf'], { type: 'application/pdf' })], 'sample.pdf', { type: 'application/pdf' })]
-		await wrapper.vm.$nextTick()
-
-		expect(wrapper.find('[data-test="pdf-editor"]').exists()).toBe(true)
-	})
-
-	it('uses setSigningErrors with pdfLoad scope when document is missing', async () => {
-		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
-		const { useSignStore } = await import('../../../store/sign.js')
-		const signStore = useSignStore()
-
-		signStore.document = undefined
-		const setSigningErrorsSpy = vi.spyOn(signStore, 'setSigningErrors')
-
-		const wrapper = mount(SignPDF, {
-			global: {
-				stubs: {
-					TopBar: true,
-					NcNoteCard: true,
-					NcButton: true,
-				},
-				mocks: {
-					$route: { name: 'TestRoute', params: { uuid: 'uuid-123' }, query: {} },
-				},
-			},
-		})
-
-		await wrapper.vm.loadPdfsFromStore()
-
-		expect(setSigningErrorsSpy).toHaveBeenCalledWith([
-			{ message: 'Document not found', scope: 'pdfLoad' },
-		])
-	})
-
-	it('prefers canonical files collection URL when loading single-file PDF', async () => {
-		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
-		const { useSignStore } = await import('../../../store/sign.js')
-		const signStore = useSignStore()
-		const fetchMock = vi.fn().mockResolvedValue({
-			headers: {
-				get: vi.fn(() => 'application/pdf'),
-			},
-			blob: vi.fn(async () => new Blob(['pdf'], { type: 'application/pdf' })),
-		})
-		vi.stubGlobal('fetch', fetchMock)
-
-		signStore.document = createSignDocument({
-			nodeType: 'file',
-			url: '/legacy-root-url.pdf',
-			files: [
-				{ id: 99, name: 'contract', file: '/canonical-file-url.pdf', metadata: { extension: 'pdf' } },
-			],
-		})
-
-		const wrapper = mount(SignPDF, {
-			global: {
-				stubs: {
-					TopBar: true,
-					NcNoteCard: true,
-					NcButton: true,
-				},
-				mocks: {
-					$route: { name: 'TestRoute', params: { uuid: 'uuid-123' }, query: {} },
-				},
-			},
-		})
-		await wrapper.vm.$nextTick()
-		expect(fetchMock).toHaveBeenCalledWith('/canonical-file-url.pdf')
-	})
-
-	it('loads the signing document from file validation when entering the internal sign route', async () => {
-		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
-		const { useFilesStore } = await import('../../../store/files.js')
-		const { useSidebarStore } = await import('../../../store/sidebar.js')
-		const { useSignStore } = await import('../../../store/sign.js')
-		const filesStore = useFilesStore()
-		const sidebarStore = useSidebarStore()
-		const signStore = useSignStore()
-		const file = createSignDocument({
-			id: 12,
-			status: 1,
-			statusText: 'Ready to sign',
-			signers: [{ me: true, signRequestId: 44, displayName: 'Admin', email: 'admin@email.tld' }],
-		})
-
-		vi.mocked(filesStore.fetchFileDetail).mockResolvedValue(file)
-		vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-			headers: {
-				get: vi.fn(() => 'application/pdf'),
-			},
-			blob: vi.fn(async () => new Blob(['pdf'], { type: 'application/pdf' })),
-		}))
-
-		mount(SignPDF, {
-			global: {
-				stubs: {
-					TopBar: true,
-					PdfEditor: true,
-					NcNoteCard: true,
-					NcButton: true,
-				},
-				mocks: {
-					$route: { name: 'SignPDF', params: { uuid: 'sign-uuid-123' }, query: {} },
-				},
-			},
-		})
-
-		await vi.waitFor(() => {
-			expect(filesStore.fetchFileDetail).toHaveBeenCalledWith({
-				uuid: 'sign-uuid-123',
-				force: true,
-			})
-		})
-
-		expect(signStore.document).toEqual(expect.objectContaining({
-			id: 12,
-			status: 1,
-			statusText: 'Ready to sign',
-		}))
-		expect(filesStore.selectFile).toHaveBeenCalledWith(12)
-		expect(sidebarStore.activeSignTab).toHaveBeenCalled()
 	})
 })

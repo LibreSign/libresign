@@ -70,15 +70,10 @@ class SignSetupService {
 
 	public function getArchitectures(): array {
 		$appInfo = $this->appManager->getAppInfo(Application::APP_ID);
-		if (!is_array($appInfo) || !isset($appInfo['dependencies'])) {
+		if (empty($appInfo['dependencies']['architecture'])) {
 			throw new \Exception('dependencies>architecture not found at info.xml');
 		}
-		/** @var list<string> $architectures */
-		$architectures = $appInfo['dependencies']['architecture'] ?? [];
-		if ($architectures === []) {
-			throw new \Exception('dependencies>architecture not found at info.xml');
-		}
-		return $architectures;
+		return $appInfo['dependencies']['architecture'];
 	}
 
 	public function setPrivateKey(PrivateKey $privateKey): void {

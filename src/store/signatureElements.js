@@ -17,7 +17,7 @@ const createEmptyElement = () => ({
 		url: '',
 		nodeId: 0,
 	},
-	starred: false,
+	starred: 0,
 	createdAt: '',
 })
 

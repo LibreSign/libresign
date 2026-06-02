@@ -17,6 +17,7 @@ class StatusUpdatePolicyTest extends TestCase {
 	private StatusUpdatePolicy $policy;
 
 	protected function setUp(): void {
+		parent::setUp();
 		$this->policy = new StatusUpdatePolicy();
 	}
 

@@ -3,7 +3,7 @@
     "info": {
         "title": "libresign-administration",
         "version": "0.0.1",
-        "description": "Control document signing workflows inside Nextcloud",
+        "description": "✍️ Self-hosted document signer using digital certificate",
         "license": {
             "name": "agpl"
         }
@@ -158,24 +158,6 @@
                     }
                 }
             },
-            "CertificateDataGenerated": {
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/EngineHandler"
-                    },
-                    {
-                        "type": "object",
-                        "required": [
-                            "generated"
-                        ],
-                        "properties": {
-                            "generated": {
-                                "type": "boolean"
-                            }
-                        }
-                    }
-                ]
-            },
             "CertificateEngineConfigResponse": {
                 "type": "object",
                 "required": [
@@ -211,6 +193,24 @@
                         "type": "string"
                     }
                 }
+            },
+            "CetificateDataGenerated": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/EngineHandler"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "generated"
+                        ],
+                        "properties": {
+                            "generated": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                ]
             },
             "ConfigureCheck": {
                 "type": "object",
@@ -277,11 +277,7 @@
                         "type": "string"
                     },
                     "status": {
-                        "type": "string",
-                        "enum": [
-                            "issued",
-                            "revoked"
-                        ]
+                        "type": "string"
                     },
                     "certificate_type": {
                         "type": "string"
@@ -1319,7 +1315,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/CertificateDataGenerated"
+                                                    "$ref": "#/components/schemas/CetificateDataGenerated"
                                                 }
                                             }
                                         }
@@ -1466,9 +1462,7 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {
-                                                    "type": "object"
-                                                }
+                                                "data": {}
                                             }
                                         }
                                     }
@@ -1826,13 +1820,13 @@
                                         "type": "number",
                                         "format": "double",
                                         "default": 350,
-                                        "description": "Signature box width, minimum 1"
+                                        "description": "Signature width"
                                     },
                                     "signatureHeight": {
                                         "type": "number",
                                         "format": "double",
                                         "default": 100,
-                                        "description": "Signature box height, minimum 1"
+                                        "description": "Signature height"
                                     },
                                     "renderMode": {
                                         "type": "string",
@@ -2460,7 +2454,7 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/certificate-policy/oid": {
             "post": {
-                "operationId": "admin-update-oid",
+                "operationId": "admin-updateoid",
                 "summary": "Update OID",
                 "description": "This endpoint requires admin access",
                 "tags": [
@@ -3321,130 +3315,6 @@
                 }
             }
         },
-        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/groups-request-sign/config": {
-            "post": {
-                "operationId": "admin-set-groups-request-sign-config",
-                "summary": "Persist groups allowed to request signatures as typed app config array",
-                "description": "This endpoint requires admin access",
-                "tags": [
-                    "admin"
-                ],
-                "security": [
-                    {
-                        "bearer_auth": []
-                    },
-                    {
-                        "basic_auth": []
-                    }
-                ],
-                "requestBody": {
-                    "required": false,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "groups": {
-                                        "type": "array",
-                                        "default": [],
-                                        "description": "List of group IDs allowed to request signatures",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "apiVersion",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "v1"
-                            ],
-                            "default": "v1"
-                        }
-                    },
-                    {
-                        "name": "OCS-APIRequest",
-                        "in": "header",
-                        "description": "Required to be true for the API request to pass",
-                        "required": true,
-                        "schema": {
-                            "type": "boolean",
-                            "default": true
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Settings saved",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/ErrorResponse"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-flow/config": {
             "post": {
                 "operationId": "admin-set-signature-flow-config",
@@ -3872,7 +3742,7 @@
                 "summary": "List CRL entries with pagination and filters",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "crl"
+                    "crl_api"
                 ],
                 "security": [
                     {
@@ -4048,7 +3918,7 @@
                 "summary": "Revoke a certificate by serial number",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "crl"
+                    "crl_api"
                 ],
                 "security": [
                     {

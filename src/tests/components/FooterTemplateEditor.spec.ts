@@ -199,15 +199,4 @@ describe('FooterTemplateEditor.vue', () => {
 
 		expect(wrapper.vm.zoomLevel).toBe(120)
 	})
-
-	it('applies zoom level to PDFElements instance scale for preview', async () => {
-		const wrapper = createWrapper()
-		await flushPromises()
-
-		wrapper.vm.pdfPreview = { scale: 1 }
-		wrapper.vm.zoomLevel = 130
-		wrapper.vm.updateScale()
-
-		expect(wrapper.vm.pdfPreview.scale).toBe(1.3)
-	})
 })

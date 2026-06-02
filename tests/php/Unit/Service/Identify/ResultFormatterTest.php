@@ -20,6 +20,7 @@ class ResultFormatterTest extends TestCase {
 	private ResultFormatter $formatter;
 
 	protected function setUp(): void {
+		parent::setUp();
 		$this->formatter = new ResultFormatter();
 	}
 

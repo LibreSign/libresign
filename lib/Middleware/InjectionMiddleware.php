@@ -22,13 +22,11 @@ use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\PrivateValidation;
-use OCA\Libresign\Middleware\Attribute\RequireFileAccess;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Middleware\Attribute\RequireSignerUuid;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
-use OCA\Libresign\Service\FileAccessService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\UuidResolverService;
 use OCP\AppFramework\Controller;
@@ -60,7 +58,6 @@ class InjectionMiddleware extends Middleware {
 		private CertificateEngineFactory $certificateEngineFactory,
 		private FileMapper $fileMapper,
 		private IInitialState $initialState,
-		private FileAccessService $fileAccessService,
 		private SignFileService $signFileService,
 		private UuidResolverService $uuidResolverService,
 		private IL10N $l10n,
@@ -95,9 +92,6 @@ class InjectionMiddleware extends Middleware {
 		}
 		if (!empty($reflectionMethod->getAttributes(RequireSignerUuid::class))) {
 			$this->requireSignerUuid();
-		}
-		if (!empty($reflectionMethod->getAttributes(RequireFileAccess::class))) {
-			$this->requireFileAccess($reflectionMethod);
 		}
 
 		$this->requireSetupOk($reflectionMethod);
@@ -238,26 +232,6 @@ class InjectionMiddleware extends Middleware {
 		}
 	}
 
-	private function requireFileAccess(\ReflectionMethod $reflectionMethod): void {
-		$attributes = $reflectionMethod->getAttributes(RequireFileAccess::class);
-		$attribute = current($attributes);
-		/** @var RequireFileAccess $requirement */
-		$requirement = $attribute->newInstance();
-
-		$identifier = $requirement->getIdentifier();
-		$hasAccess = match ($identifier) {
-			'nodeId' => $this->fileAccessService->userCanAccessFileByNodeId((int)$this->request->getParam('nodeId', -1)),
-			'fileId' => $this->fileAccessService->userCanAccessFileById((int)$this->request->getParam('fileId', -1)),
-			default => throw new \InvalidArgumentException('Unsupported file access identifier: ' . $identifier),
-		};
-
-		if ($hasAccess) {
-			return;
-		}
-
-		throw new LibresignException(json_encode([]), Http::STATUS_FORBIDDEN);
-	}
-
 	private function redirectSignedToValidationIfNeeded(RequireSignRequestUuid $requirement): void {
 		if (!$requirement->redirectIfSignedToValidation()) {
 			return;
@@ -352,6 +326,7 @@ class InjectionMiddleware extends Middleware {
 			);
 
 			$policy = new ContentSecurityPolicy();
+			$policy->allowEvalScript(true);
 			$policy->addAllowedFrameDomain('\'self\'');
 			$response->setContentSecurityPolicy($policy);
 			return $response;

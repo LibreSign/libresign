@@ -105,7 +105,10 @@ const signatureFlow = computed(() => {
 	const file = filesStore.getFile()
 	const rawFlow = file?.signatureFlow
 	let flow: SignatureFlowMode = 'parallel'
-	if (rawFlow === 'none' || rawFlow === 'parallel' || rawFlow === 'ordered_numeric') {
+	if (typeof rawFlow === 'number') {
+		const flowMap: Record<number, SignatureFlowMode> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+		flow = flowMap[rawFlow] || 'parallel'
+	} else if (rawFlow === 'none' || rawFlow === 'parallel' || rawFlow === 'ordered_numeric') {
 		flow = rawFlow
 	}
 	return flow
@@ -257,6 +260,20 @@ defineExpose({
 })
 </script>
 <style lang="scss" scoped>
+
+:deep(.list-item) {
+	padding: 10px 0 !important;
+}
+
+:deep(.list-item:not(:last-child)) {
+	border-bottom: 1px solid var(--color-border) !important;
+}
+
+:deep(.list-item:hover) {
+	background: var(--color-background-hover);
+	border-radius: 6px;
+}
+
 .signer-subname {
 	display: flex;
 	align-items: center;

@@ -3,7 +3,7 @@
     "info": {
         "title": "libresign-full",
         "version": "0.0.1",
-        "description": "Control document signing workflows inside Nextcloud",
+        "description": "✍️ Self-hosted document signer using digital certificate",
         "license": {
             "name": "agpl"
         }
@@ -313,24 +313,6 @@
                     }
                 }
             },
-            "CertificateDataGenerated": {
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/EngineHandler"
-                    },
-                    {
-                        "type": "object",
-                        "required": [
-                            "generated"
-                        ],
-                        "properties": {
-                            "generated": {
-                                "type": "boolean"
-                            }
-                        }
-                    }
-                ]
-            },
             "CertificateEngineConfigResponse": {
                 "type": "object",
                 "required": [
@@ -414,6 +396,24 @@
                     }
                 }
             },
+            "CetificateDataGenerated": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/EngineHandler"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "generated"
+                        ],
+                        "properties": {
+                            "generated": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                ]
+            },
             "ConfigValueResponse": {
                 "type": "object",
                 "required": [
@@ -425,8 +425,7 @@
                         "type": "string"
                     },
                     "value": {
-                        "type": "string",
-                        "nullable": true
+                        "type": "object"
                     }
                 }
             },
@@ -628,11 +627,7 @@
                         "type": "string"
                     },
                     "status": {
-                        "type": "string",
-                        "enum": [
-                            "issued",
-                            "revoked"
-                        ]
+                        "type": "string"
                     },
                     "certificate_type": {
                         "type": "string"
@@ -820,14 +815,13 @@
                         "type": "string"
                     },
                     "nodeType": {
-                        "type": "string",
-                        "enum": [
-                            "file",
-                            "envelope"
-                        ]
+                        "type": "string"
                     },
                     "metadata": {
-                        "$ref": "#/components/schemas/FileRuntimeMetadata"
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object"
+                        }
                     },
                     "size": {
                         "type": "integer",
@@ -895,8 +889,12 @@
                                     "envelope"
                                 ]
                             },
+                            "signUuid": {
+                                "type": "string",
+                                "nullable": true
+                            },
                             "metadata": {
-                                "$ref": "#/components/schemas/FileRuntimeMetadata"
+                                "$ref": "#/components/schemas/ValidateMetadata"
                             },
                             "signatureFlow": {
                                 "type": "string",
@@ -952,53 +950,6 @@
                         "type": "string"
                     }
                 }
-            },
-            "DynamicMetadataRecord": {
-                "type": "object",
-                "additionalProperties": {
-                    "$ref": "#/components/schemas/DynamicMetadataScalar"
-                }
-            },
-            "DynamicMetadataScalar": {
-                "nullable": true,
-                "anyOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    {
-                        "type": "number",
-                        "format": "double"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
-            },
-            "DynamicMetadataValue": {
-                "anyOf": [
-                    {
-                        "$ref": "#/components/schemas/DynamicMetadataScalar"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/DynamicMetadataScalar"
-                        }
-                    },
-                    {
-                        "$ref": "#/components/schemas/DynamicMetadataRecord"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/DynamicMetadataRecord"
-                        }
-                    }
-                ]
             },
             "EngineHandler": {
                 "type": "object",
@@ -1303,7 +1254,7 @@
                         "type": "string"
                     },
                     "metadata": {
-                        "$ref": "#/components/schemas/FileRuntimeMetadata"
+                        "$ref": "#/components/schemas/ValidateMetadata"
                     },
                     "size": {
                         "type": "integer",
@@ -1345,19 +1296,6 @@
                         "$ref": "#/components/schemas/Settings"
                     }
                 }
-            },
-            "FileRuntimeMetadata": {
-                "anyOf": [
-                    {
-                        "$ref": "#/components/schemas/ValidateMetadata"
-                    },
-                    {
-                        "type": "object",
-                        "additionalProperties": {
-                            "$ref": "#/components/schemas/DynamicMetadataValue"
-                        }
-                    }
-                ]
             },
             "FileSummary": {
                 "type": "object",
@@ -1412,8 +1350,12 @@
                     "created_at": {
                         "type": "string"
                     },
+                    "signUuid": {
+                        "type": "string",
+                        "nullable": true
+                    },
                     "metadata": {
-                        "$ref": "#/components/schemas/FileRuntimeMetadata"
+                        "$ref": "#/components/schemas/ValidateMetadata"
                     },
                     "docmdpLevel": {
                         "type": "integer",
@@ -1433,9 +1375,7 @@
                     },
                     "signers": {
                         "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/SignerSummary"
-                        }
+                        "maxItems": 0
                     },
                     "requested_by": {
                         "$ref": "#/components/schemas/RequestedBy"
@@ -1465,9 +1405,6 @@
                 "type": "object",
                 "properties": {
                     "folderName": {
-                        "type": "string"
-                    },
-                    "path": {
                         "type": "string"
                     },
                     "separator": {
@@ -1558,6 +1495,7 @@
                     },
                     "data": {
                         "type": "array",
+                        "nullable": true,
                         "items": {
                             "$ref": "#/components/schemas/File"
                         }
@@ -1683,16 +1621,7 @@
                 ],
                 "properties": {
                     "method": {
-                        "type": "string",
-                        "enum": [
-                            "account",
-                            "email",
-                            "signal",
-                            "sms",
-                            "telegram",
-                            "whatsapp",
-                            "xmpp"
-                        ]
+                        "type": "string"
                     },
                     "value": {
                         "type": "string"
@@ -1852,9 +1781,7 @@
                 ],
                 "properties": {
                     "date": {
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "type": "string"
                     },
                     "method": {
                         "type": "string",
@@ -1863,9 +1790,6 @@
                             "notify",
                             "mail"
                         ]
-                    },
-                    "description": {
-                        "type": "string"
                     }
                 }
             },
@@ -2057,18 +1981,7 @@
                 ],
                 "properties": {
                     "status": {
-                        "type": "string",
-                        "enum": [
-                            "NOT_LIBRESIGN_FILE",
-                            "DRAFT",
-                            "ABLE_TO_SIGN",
-                            "PARTIAL_SIGNED",
-                            "SIGNED",
-                            "DELETED",
-                            "SIGNING_IN_PROGRESS",
-                            "ERROR",
-                            "UNKNOWN"
-                        ]
+                        "type": "string"
                     },
                     "statusCode": {
                         "type": "integer",
@@ -2212,6 +2125,7 @@
                 "required": [
                     "canSign",
                     "canRequestSign",
+                    "signerFileUuid",
                     "phoneNumber",
                     "hasSignatureFile",
                     "needIdentificationDocuments",
@@ -2223,6 +2137,10 @@
                     },
                     "canRequestSign": {
                         "type": "boolean"
+                    },
+                    "signerFileUuid": {
+                        "type": "string",
+                        "nullable": true
                     },
                     "phoneNumber": {
                         "type": "string"
@@ -2428,23 +2346,6 @@
                     }
                 }
             },
-            "SignerCertificateInfo": {
-                "type": "object",
-                "properties": {
-                    "serialNumber": {
-                        "type": "string"
-                    },
-                    "serialNumberHex": {
-                        "type": "string"
-                    },
-                    "hash": {
-                        "type": "string"
-                    },
-                    "subject": {
-                        "$ref": "#/components/schemas/DynamicMetadataValue"
-                    }
-                }
-            },
             "SignerDetail": {
                 "allOf": [
                     {
@@ -2499,7 +2400,7 @@
                                 "type": "string",
                                 "nullable": true
                             },
-                            "sign_request_uuid": {
+                            "sign_uuid": {
                                 "type": "string"
                             },
                             "hash_algorithm": {
@@ -2535,37 +2436,18 @@
                                 "type": "string"
                             },
                             "metadata": {
-                                "$ref": "#/components/schemas/SignerMetadata"
+                                "type": "object"
                             }
                         }
                     }
                 ]
-            },
-            "SignerMetadata": {
-                "type": "object",
-                "properties": {
-                    "remote-address": {
-                        "type": "string"
-                    },
-                    "user-agent": {
-                        "type": "string"
-                    },
-                    "notify": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/Notify"
-                        }
-                    },
-                    "certificate_info": {
-                        "$ref": "#/components/schemas/SignerCertificateInfo"
-                    }
-                }
             },
             "SignerSummary": {
                 "type": "object",
                 "required": [
                     "signRequestId",
                     "displayName",
+                    "email",
                     "signed",
                     "status",
                     "statusText"
@@ -2579,8 +2461,7 @@
                         "type": "string"
                     },
                     "email": {
-                        "type": "string",
-                        "nullable": true
+                        "type": "string"
                     },
                     "identifyMethods": {
                         "type": "array",
@@ -2686,7 +2567,12 @@
                         "type": "string"
                     },
                     "starred": {
-                        "type": "boolean"
+                        "type": "integer",
+                        "format": "int64",
+                        "enum": [
+                            0,
+                            1
+                        ]
                     },
                     "createdAt": {
                         "type": "string"
@@ -2845,8 +2731,6 @@
                     "nodeType",
                     "signatureFlow",
                     "docmdpLevel",
-                    "filesCount",
-                    "files",
                     "totalPages",
                     "size",
                     "pdfVersion",
@@ -2891,12 +2775,8 @@
                         ]
                     },
                     "signatureFlow": {
-                        "type": "string",
-                        "enum": [
-                            "none",
-                            "parallel",
-                            "ordered_numeric"
-                        ]
+                        "type": "integer",
+                        "format": "int64"
                     },
                     "docmdpLevel": {
                         "type": "integer",
@@ -2937,6 +2817,10 @@
                     },
                     "url": {
                         "type": "string"
+                    },
+                    "signUuid": {
+                        "type": "string",
+                        "nullable": true
                     },
                     "mime": {
                         "type": "string"
@@ -3212,6 +3096,635 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/CrlErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign/develop/pdf": {
+            "get": {
+                "operationId": "develop-pdf",
+                "summary": "Get a demo PDF file to be used by test purpose",
+                "description": "To use this endpoint is necessary to enable the debug mode in your instance. To do this, run the command:\n`occ config:system:set debug --value true --type boolean`",
+                "tags": [
+                    "develop"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "PDF returned",
+                        "headers": {
+                            "Content-Disposition": {
+                                "schema": {
+                                    "type": "string",
+                                    "enum": [
+                                        "inline; filename=\"file.pdf\""
+                                    ]
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/pdf": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Debug mode not enabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign": {
+            "get": {
+                "operationId": "page-index",
+                "summary": "Index page",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign/f": {
+            "get": {
+                "operationId": "page-indexf",
+                "summary": "Index page to authenticated users",
+                "description": "This router is used to be possible render pages with /f/, is a workaround at frontend side to identify pages with authenticated accounts",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign/f/incomplete": {
+            "get": {
+                "operationId": "page-incomplete",
+                "summary": "Incomplete page",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign/p/incomplete": {
+            "get": {
+                "operationId": "page-incompletep",
+                "summary": "Incomplete page in full screen",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign/f/{path}": {
+            "get": {
+                "operationId": "page-indexf-path",
+                "summary": "Main page to authenticated signer with a path",
+                "description": "The path is used only by frontend",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "path",
+                        "in": "path",
+                        "description": "The path that was sent from frontend",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^.+$"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign/f/sign/{uuid}": {
+            "get": {
+                "operationId": "page-signf",
+                "summary": "Sign page to authenticated signer",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "Sign request uuid",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign/f/sign/{uuid}/{path}": {
+            "get": {
+                "operationId": "page-signf-path",
+                "summary": "Sign page to authenticated signer with the path of file",
+                "description": "The path is used only by frontend",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "Sign request uuid",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "path",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^.+$"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign/p/sign/{uuid}/{path}": {
+            "get": {
+                "operationId": "page-signp-path",
+                "summary": "Sign page to unauthenticated signer",
+                "description": "The path is used only by frontend",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "Sign request uuid",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "path",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^.+$"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign/p/sign/{uuid}": {
+            "get": {
+                "operationId": "page-sign",
+                "summary": "Sign page to unauthenticated signer",
+                "description": "The path is used only by frontend",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "Sign request uuid",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign/p/pdf/{uuid}": {
+            "get": {
+                "operationId": "page-get-pdf",
+                "summary": "Use UUID of file to get PDF",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "File uuid",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign/pdf/{uuid}": {
+            "get": {
+                "operationId": "page-get-pdf-file",
+                "summary": "Use UUID of user to get PDF",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "Sign request uuid",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign/p/validation": {
+            "get": {
+                "operationId": "page-validation",
+                "summary": "Show validation page",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign/validation/{uuid}": {
+            "get": {
+                "operationId": "page-validation-file-with-short-url",
+                "summary": "Show validation page",
+                "description": "The path is used only by frontend",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign/reset-password": {
+            "get": {
+                "operationId": "page-reset-password",
+                "summary": "Show validation page",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/libresign/p/validation/{uuid}": {
+            "get": {
+                "operationId": "page-validation-file-public",
+                "summary": "Public page to show validation for a specific file UUID",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "File uuid",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -4353,7 +4866,7 @@
             "get": {
                 "operationId": "file-validate-uuid",
                 "summary": "Validate a file using Uuid",
-                "description": "Validate a file returning file data. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
+                "description": "Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.",
                 "tags": [
                     "file"
                 ],
@@ -4506,7 +5019,7 @@
             "get": {
                 "operationId": "file-validate-file-id",
                 "summary": "Validate a file using FileId",
-                "description": "Validate a file returning file data. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
+                "description": "Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.",
                 "tags": [
                     "file"
                 ],
@@ -4660,7 +5173,7 @@
             "post": {
                 "operationId": "file-validate-binary",
                 "summary": "Validate a binary file",
-                "description": "Validate a binary file returning file data. Use field 'file' for the file upload. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
+                "description": "Validate a binary file returning file data. Use field 'file' for the file upload. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.",
                 "tags": [
                     "file"
                 ],
@@ -5761,7 +6274,7 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/file_id/{fileId}": {
             "delete": {
-                "operationId": "file-delete-file",
+                "operationId": "file-delete-all-request-signature-using-file-id",
                 "summary": "Delete File",
                 "description": "This will delete the file and all data",
                 "tags": [
@@ -5918,7 +6431,7 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/file-element/{uuid}": {
             "post": {
-                "operationId": "file_element-create-visible-element",
+                "operationId": "file_element-post",
                 "summary": "Create visible element",
                 "description": "Create visible element of a specific file",
                 "tags": [
@@ -6078,7 +6591,7 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/file-element/{uuid}/{elementId}": {
             "patch": {
-                "operationId": "file_element-update-visible-element",
+                "operationId": "file_element-patch",
                 "summary": "Update visible element",
                 "description": "Update visible element of a specific file",
                 "tags": [
@@ -6241,7 +6754,7 @@
                 }
             },
             "delete": {
-                "operationId": "file_element-delete-visible-element",
+                "operationId": "file_element-delete",
                 "summary": "Delete visible element",
                 "description": "Delete visible element of a specific file",
                 "tags": [
@@ -6608,7 +7121,7 @@
                 }
             },
             "get": {
-                "operationId": "id_docs-list-unauthenticated-signer-documents",
+                "operationId": "id_docs-list-of-unauthenticated-signer",
                 "summary": "List files of unauthenticated account",
                 "tags": [
                     "id_docs"
@@ -7523,11 +8036,11 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/request-signature": {
             "post": {
-                "operationId": "request_signature-request-signature",
+                "operationId": "request_signature-request",
                 "summary": "Request signature",
-                "description": "Request that a file be signed by a list of signers. Each signer in the signers array can optionally include a 'signingOrder' field to control the order of signatures when ordered signing flow is enabled. The returned `data` always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
+                "description": "Request that a file be signed by a list of signers. Each signer in the signers array can optionally include a 'signingOrder' field to control the order of signatures when ordered signing flow is enabled. When the created entity is an envelope (`nodeType` = `envelope`), the returned `data` includes `filesCount` and `files` as a list of envelope child files.",
                 "tags": [
-                    "signing"
+                    "request_signature"
                 ],
                 "security": [
                     {
@@ -7692,11 +8205,11 @@
                 }
             },
             "patch": {
-                "operationId": "request_signature-update-signature-request",
+                "operationId": "request_signature-update-sign",
                 "summary": "Updates signatures data",
                 "description": "It is necessary to inform the UUID of the file and a list of signers.",
                 "tags": [
-                    "signing"
+                    "request_signature"
                 ],
                 "security": [
                     {
@@ -7736,9 +8249,18 @@
                                         }
                                     },
                                     "file": {
-                                        "$ref": "#/components/schemas/NewFile",
                                         "nullable": true,
-                                        "description": "File object. Supports nodeId, url, base64 or path when creating a new request."
+                                        "default": [],
+                                        "description": "File object. Supports nodeId, url, base64 or path when creating a new request.",
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/components/schemas/NewFile"
+                                            },
+                                            {
+                                                "type": "array",
+                                                "maxItems": 0
+                                            }
+                                        ]
                                     },
                                     "status": {
                                         "type": "integer",
@@ -7871,11 +8393,11 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/file_id/{fileId}/{signRequestId}": {
             "delete": {
-                "operationId": "request_signature-remove-signer",
+                "operationId": "request_signature-delete-one-request-signature-using-file-id",
                 "summary": "Delete sign request",
                 "description": "You can only request exclusion as any sign",
                 "tags": [
-                    "signing"
+                    "request_signature"
                 ],
                 "security": [
                     {
@@ -8025,11 +8547,11 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/file_id/{fileId}": {
             "delete": {
-                "operationId": "request_signature-delete-signature-request",
+                "operationId": "request_signature-delete-all-request-signature-using-file-id",
                 "summary": "Delete sign request",
                 "description": "You can only request exclusion as any sign",
                 "tags": [
-                    "signing"
+                    "request_signature"
                 ],
                 "security": [
                     {
@@ -8167,10 +8689,10 @@
                 }
             },
             "post": {
-                "operationId": "sign_file-sign-by-file-id",
+                "operationId": "sign_file-sign-using-file-id",
                 "summary": "Sign a file using file Id",
                 "tags": [
-                    "signing"
+                    "sign_file"
                 ],
                 "security": [
                     {},
@@ -8323,10 +8845,10 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/uuid/{uuid}": {
             "post": {
-                "operationId": "sign_file-sign-by-signer-uuid",
+                "operationId": "sign_file-sign-using-uuid",
                 "summary": "Sign a file using file UUID",
                 "tags": [
-                    "signing"
+                    "sign_file"
                 ],
                 "security": [
                     {},
@@ -8481,7 +9003,7 @@
                 "operationId": "sign_file-sign-renew",
                 "summary": "Renew the signature method",
                 "tags": [
-                    "signing"
+                    "sign_file"
                 ],
                 "security": [
                     {},
@@ -8569,10 +9091,10 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/uuid/{uuid}/code": {
             "post": {
-                "operationId": "sign_file-request-code-by-signer-uuid",
+                "operationId": "sign_file-get-code-using-uuid",
                 "summary": "Get code to sign the document using UUID",
                 "tags": [
-                    "signing"
+                    "sign_file"
                 ],
                 "security": [
                     {},
@@ -8713,10 +9235,10 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/file_id/{fileId}/code": {
             "post": {
-                "operationId": "sign_file-request-code-by-file-id",
+                "operationId": "sign_file-get-code-using-file-id",
                 "summary": "Get code to sign the document using FileID",
                 "tags": [
-                    "signing"
+                    "sign_file"
                 ],
                 "security": [
                     {},
@@ -9086,7 +9608,7 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements/preview/{nodeId}": {
             "get": {
-                "operationId": "signature_elements-preview-signature-element",
+                "operationId": "signature_elements-get-signature-element-preview",
                 "summary": "Get preview of signature elements of",
                 "tags": [
                     "signature_elements"
@@ -10053,7 +10575,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/CertificateDataGenerated"
+                                                    "$ref": "#/components/schemas/CetificateDataGenerated"
                                                 }
                                             }
                                         }
@@ -10200,9 +10722,7 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {
-                                                    "type": "object"
-                                                }
+                                                "data": {}
                                             }
                                         }
                                     }
@@ -10560,13 +11080,13 @@
                                         "type": "number",
                                         "format": "double",
                                         "default": 350,
-                                        "description": "Signature box width, minimum 1"
+                                        "description": "Signature width"
                                     },
                                     "signatureHeight": {
                                         "type": "number",
                                         "format": "double",
                                         "default": 100,
-                                        "description": "Signature box height, minimum 1"
+                                        "description": "Signature height"
                                     },
                                     "renderMode": {
                                         "type": "string",
@@ -11194,7 +11714,7 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/certificate-policy/oid": {
             "post": {
-                "operationId": "admin-update-oid",
+                "operationId": "admin-updateoid",
                 "summary": "Update OID",
                 "description": "This endpoint requires admin access",
                 "tags": [
@@ -12055,130 +12575,6 @@
                 }
             }
         },
-        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/groups-request-sign/config": {
-            "post": {
-                "operationId": "admin-set-groups-request-sign-config",
-                "summary": "Persist groups allowed to request signatures as typed app config array",
-                "description": "This endpoint requires admin access",
-                "tags": [
-                    "admin"
-                ],
-                "security": [
-                    {
-                        "bearer_auth": []
-                    },
-                    {
-                        "basic_auth": []
-                    }
-                ],
-                "requestBody": {
-                    "required": false,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "groups": {
-                                        "type": "array",
-                                        "default": [],
-                                        "description": "List of group IDs allowed to request signatures",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "apiVersion",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "v1"
-                            ],
-                            "default": "v1"
-                        }
-                    },
-                    {
-                        "name": "OCS-APIRequest",
-                        "in": "header",
-                        "description": "Required to be true for the API request to pass",
-                        "required": true,
-                        "schema": {
-                            "type": "boolean",
-                            "default": true
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Settings saved",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/ErrorResponse"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-flow/config": {
             "post": {
                 "operationId": "admin-set-signature-flow-config",
@@ -12606,7 +13002,7 @@
                 "summary": "List CRL entries with pagination and filters",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "crl"
+                    "crl_api"
                 ],
                 "security": [
                     {
@@ -12782,7 +13178,7 @@
                 "summary": "Revoke a certificate by serial number",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "crl"
+                    "crl_api"
                 ],
                 "security": [
                     {

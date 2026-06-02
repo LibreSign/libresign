@@ -69,19 +69,37 @@
 			</NcTextField>
 		</div>
 
-		<!-- Step 3: Signature confirmation (common) -->
-		<div v-else-if="identityVerified" class="step-content">
+		<!-- Step 3: Payment processing (common) -->
+		<!-- <div v-else-if="currentSigner?.sign_uuid && currentSigner?.signRequestId && identityVerified && !paymentCompleted" class="step-content">
+			<PaymentStep
+				:document="{
+					id: signStore.document.id,
+					name: signStore.document.name
+				}"
+				:signer="{
+					email: currentSigner?.email,
+					name: currentSigner?.displayName
+				}"
+				:sign-request-id="String(currentSigner?.signRequestId)"
+				:sign-uuid="currentSigner?.sign_uuid"
+				:modal-mode="mode === 'email' ? 'emailToken' : 'token'"
+				@payment-success="onPaymentSuccess"
+			/>
+        </div> -->
+
+		<!-- Step 4: Signature confirmation (common) -->
+		<!-- <div v-else-if="identityVerified && paymentCompleted" class="step-content">
 			<div class="verification-success">
-				<p class="verification-message">
+				<p class="verification-message"> -->
 					<!-- TRANSLATORS: Success message shown after the signer's identity has been confirmed via a numeric one-time password (OTP) delivered through email, SMS, WhatsApp, Telegram, Signal, or XMPP. "identity" here means the system confirmed the signer is who they claim to be. -->
-					{{ t('libresign', 'Your identity has been verified.') }}
-				</p>
-				<p class="signature-ready">
+					<!-- {{ t('libresign', 'Your identity has been verified.') }}
+				</p> -->
+				<!-- <p class="signature-ready"> -->
 					<!-- TRANSLATORS: Follow-up message shown right after identity verification succeeds, inviting the signer to proceed with signing the document. -->
-					{{ t('libresign', 'You can now sign the document.') }}
-				</p>
+					<!-- {{ t('libresign', 'You can now sign the document.') }} -->
+				<!-- </p>
 			</div>
-		</div>
+		</div> -->
 
 		<template #actions>
 			<!-- Step 1 action (common button, mode-specific disabled logic) -->
@@ -119,8 +137,12 @@
 				</NcButton>
 			</template>
 
-			<!-- Step 3 action (common) -->
-			<NcButton v-else
+			<!-- Step 3 action happens in PaymentStep -->
+			<!-- On this file ../../../components/Payments/PaymentStep.vue -->
+
+			<!-- Step 4 action (common) -->
+			<!-- <NcButton
+				v-else-if="identityVerified && paymentCompleted"
 				:disabled="loading"
 				type="submit"
 				variant="primary"
@@ -129,9 +151,9 @@
 					<NcLoadingIcon v-if="loading" :size="20" />
 				</template>
 				{{ t('libresign', 'Sign document') }}
-			</NcButton>
+			</NcButton> -->
 		</template>
-	</NcDialog>Step 1
+	</NcDialog>
 </template>
 
 <script setup lang="ts">
@@ -140,7 +162,7 @@ import {
 	mdiEmail,
 	mdiFormTextboxPassword,
 } from '@mdi/js'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 
 import md5 from 'blueimp-md5'
 
@@ -155,9 +177,9 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
+
 import { useSignStore } from '../../../store/sign.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
-import { getCurrentSignerSignRequestUuid } from '../../../utils/signRequestUuid.ts'
 import { validateEmail } from '../../../utils/validators.js'
 
 const sanitizePhoneNumber = (val: string) => {
@@ -196,11 +218,22 @@ type SignMethodsStore = {
 	closeModal: (type: string) => void
 }
 
+type Signer = {
+	me?: boolean
+	sign_uuid?: string
+	signRequestId?: number
+	email?: string
+	displayName?: string
+}
+
 type SignStore = {
 	document: {
 		fileId?: number
-		signers?: Array<{ me?: boolean; sign_request_uuid?: string }>
+		id?: number
+		name?: string
+		signers?: Signer[]
 	}
+	productCode: string | null
 	errors?: Array<{ message?: string }>
 }
 
@@ -228,6 +261,11 @@ const props = withDefaults(defineProps<{
 }>(), {
 	phoneNumber: '',
 })
+
+export type ModalVerificationChanged = {
+	token: string
+	productCode: string | null
+}
 
 const emit = defineEmits<{
 	(e: 'change', token: string): void
@@ -271,13 +309,13 @@ const dialogTitle = computed(() => {
 const progressText = computed(() => {
 	if (step1Active.value) {
 		return props.mode === 'email'
-			? t('libresign', 'Step 1 of 3 - Email verification')
-			: t('libresign', 'Step 1 of 3 - Identity verification')
+			? t('libresign', 'Step 1 of 2 - Email verification')
+			: t('libresign', 'Step 1 of 2 - Identity verification')
 	}
 	if (!identityVerified.value) {
-		return t('libresign', 'Step 2 of 3 - Code validation')
+		return t('libresign', 'Step 2 of 2 - Code validation')
 	}
-	return t('libresign', 'Step 3 of 3 - Signature confirmation')
+	return t('libresign', 'Signing...')
 })
 
 const displayContact = computed(() => {
@@ -317,6 +355,13 @@ const activeTokenMethod = computed<TokenMethod | undefined>(() => {
 })
 
 const activeIdentifyMethod = computed(() => signMethodsStore.settings[activeTokenMethod.value ?? '']?.identifyMethod)
+
+const currentSigner = computed(() => {
+	const signers = signStore.document.signers || []
+	const currentSigner = signers.find(s => s.me) || signers[0] || null
+	console.log('xxxxxxx Current signer:', currentSigner)
+	return currentSigner
+})
 
 watch(token, (newToken) => {
 	if (props.mode === 'email') {
@@ -392,13 +437,10 @@ async function requestCode() {
 				params,
 			)
 		} else {
-			const signRequestUuid = getCurrentSignerSignRequestUuid(signStore.document)
-			if (!signRequestUuid) {
-				throw new Error(t('libresign', 'Document not found'))
-			}
+			const signer = signStore.document.signers?.find((row) => row.me) || {}
 			await axios.post(
 				generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', {
-					uuid: signRequestUuid,
+					uuid: signer.sign_uuid,
 				}),
 				params,
 			)
@@ -429,6 +471,9 @@ function sendCode() {
 		return
 	}
 	identityVerified.value = true
+
+	// immediately proceed with signing
+    signDocument()
 }
 
 function signDocument() {
@@ -473,6 +518,7 @@ defineExpose({
 	requestCode,
 	sendCode,
 	signDocument,
+	currentSigner,
 	close,
 })
 </script>

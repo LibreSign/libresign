@@ -54,8 +54,6 @@ import { computed, onMounted, ref } from 'vue'
 
 import svgDelete from '@mdi/svg/svg/delete.svg?raw'
 
-import { showError, showSuccess } from '@nextcloud/dialogs'
-
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -67,6 +65,7 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import logger from '../../logger.js'
 import { useFilesStore } from '../../store/files.js'
 import { useSelectionStore } from '../../store/selection.js'
+import { showError, showSuccess } from '../../services/toast'
 
 defineOptions({
 	name: 'FilesListTableHeaderActions',

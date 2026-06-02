@@ -27,10 +27,6 @@ class CertificateChainService {
 
 		try {
 			$resource = $fileNode->fopen('rb');
-			if (!is_resource($resource)) {
-				$this->logger->warning('Failed to load certificate chain: unable to open signed file stream');
-				return [];
-			}
 			$sha256 = $this->getSha256FromResource($resource);
 			rewind($resource);
 			if ($sha256 === $libreSignFile->getSignedHash()) {
@@ -46,16 +42,9 @@ class CertificateChainService {
 	}
 
 	private function getSha256FromResource($resource): string {
-		if (!is_resource($resource)) {
-			return '';
-		}
-
 		$hashContext = hash_init('sha256');
 		while (!feof($resource)) {
 			$buffer = fread($resource, 8192);
-			if ($buffer === false) {
-				break;
-			}
 			hash_update($hashContext, $buffer);
 		}
 		return hash_final($hashContext);

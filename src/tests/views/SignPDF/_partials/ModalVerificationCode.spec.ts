@@ -119,7 +119,7 @@ describe('ModalVerificationCode (email mode)', () => {
 		}
 	})
 
-	it('displays progress indicator on step 1 in email mode', async () => {
+	it('displays progress indicator on step 1', async () => {
 		wrapper = mountEmail()
 
 		const progressIndicator = wrapper.find('.progress-indicator')
@@ -136,7 +136,7 @@ describe('ModalVerificationCode (email mode)', () => {
 		expect(explanation.text()).toContain('verification code')
 	})
 
-	it('shows correct dialog title for step 1 in email mode', async () => {
+	it('shows correct dialog title for step 1', async () => {
 		wrapper = mount(ModalVerificationCode, {
 			props: { mode: 'email' },
 			global: { stubs: stubsWithName },
@@ -145,7 +145,7 @@ describe('ModalVerificationCode (email mode)', () => {
 		expect(wrapper.vm.dialogTitle).toBe('Email verification')
 	})
 
-	it('renders step-content class for styling in email mode', async () => {
+	it('renders step-content class for styling', async () => {
 		wrapper = mountEmail()
 
 		expect(wrapper.find('.step-content').exists()).toBe(true)
@@ -160,7 +160,7 @@ describe('ModalVerificationCode (email mode)', () => {
 		expect(contactDisplay.text()).toContain('u***@email.com')
 	})
 
-	it('shows correct state on step 1 in email mode', async () => {
+	it('shows correct state on step 1', async () => {
 		wrapper = mount(ModalVerificationCode, {
 			props: { mode: 'email' },
 			global: { stubs: stubsWithActions },
@@ -170,7 +170,7 @@ describe('ModalVerificationCode (email mode)', () => {
 		expect(wrapper.vm.identityVerified).toBe(false)
 	})
 
-	it('shows correct state on step 2 in email mode', async () => {
+	it('shows correct state on step 2', async () => {
 		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mount(ModalVerificationCode, {
 			props: { mode: 'email' },
@@ -181,7 +181,7 @@ describe('ModalVerificationCode (email mode)', () => {
 		expect(wrapper.vm.identityVerified).toBe(false)
 	})
 
-	it('updates to step 3 when identityVerified is true in email mode', async () => {
+	it('updates to step 3 when identityVerified is true', async () => {
 		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mountEmail()
 
@@ -191,7 +191,7 @@ describe('ModalVerificationCode (email mode)', () => {
 		expect(wrapper.find('.progress-indicator').text()).toContain('Step 3 of 3 - Signature confirmation')
 	})
 
-	it('shows verification success message on step 3 in email mode', async () => {
+	it('shows verification success message on step 3', async () => {
 		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mountEmail()
 
@@ -204,7 +204,7 @@ describe('ModalVerificationCode (email mode)', () => {
 		expect(verificationSuccess.text()).toContain('You can now sign the document')
 	})
 
-	it('shows correct dialog title on step 3 in email mode', async () => {
+	it('shows correct dialog title on step 3', async () => {
 		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mount(ModalVerificationCode, {
 			props: { mode: 'email' },
@@ -217,7 +217,7 @@ describe('ModalVerificationCode (email mode)', () => {
 		expect(wrapper.vm.dialogTitle).toBe('Signature confirmation')
 	})
 
-	it('sendCode sets identityVerified to true in email mode', async () => {
+	it('sendCode sets identityVerified to true', async () => {
 		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mountEmail()
 
@@ -236,7 +236,7 @@ describe('ModalVerificationCode (email mode)', () => {
 		expect(wrapper.vm.identityVerified).toBe(false)
 	})
 
-	it('signDocument sets loading=true, emits change with token and does NOT self-close in email mode', async () => {
+	it('signDocument sets loading=true, emits change with token and does NOT self-close', async () => {
 		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mountEmail()
 
@@ -252,7 +252,7 @@ describe('ModalVerificationCode (email mode)', () => {
 		expect(wrapper.emitted('close')).toBeFalsy()
 	})
 
-	it('signStore.errors watcher resets loading when signing fails in email mode', async () => {
+	it('signStore.errors watcher resets loading when signing fails', async () => {
 		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mountEmail()
 

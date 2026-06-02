@@ -5,7 +5,7 @@
 
 <template>
 	<div>
-		<SupportProject />
+		<!-- <SupportProject /> -->
 		<CertificateEngine />
 		<SignatureEngine />
 		<DownloadBinaries />
@@ -30,6 +30,9 @@
 		<Reminders />
 		<TSA />
 		<Confetti />
+		<SmsToken />
+		<DarajaConfig />
+		<DpoPaymentConfig />
 	</div>
 </template>
 
@@ -59,6 +62,9 @@ import SigningMode from './SigningMode.vue'
 import SupportProject from './SupportProject.vue'
 import TSA from './TSA.vue'
 import Validation from './Validation.vue'
+import SmsToken from './SmsToken.vue'
+import DarajaConfig from "@/views/Settings/DarajaConfig.vue";
+import DpoPaymentConfig from "@/views/Settings/DpoPaymentConfig.vue";
 
 defineOptions({
 	name: 'Settings',

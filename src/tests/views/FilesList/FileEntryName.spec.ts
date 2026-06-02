@@ -4,11 +4,12 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import FileEntryName from '../../../views/FilesList/FileEntry/FileEntryName.vue'
 
-vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 describe('FileEntryName.vue', () => {
 	function createWrapper(props = {}) {

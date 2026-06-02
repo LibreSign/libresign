@@ -14,7 +14,6 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
-use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FileService;
 use OCP\IURLGenerator;
@@ -40,7 +39,7 @@ class FileDataAssembler {
 		$fileData->created_at = $file->getCreatedAt()->format(DateTimeInterface::ATOM);
 		$fileData->statusText = $this->fileMapper->getTextOfStatus($file->getStatus());
 		$fileData->nodeId = $file->getNodeId();
-		$fileData->signatureFlow = SignatureFlow::fromNumeric($file->getSignatureFlow())->value;
+		$fileData->signatureFlow = $file->getSignatureFlow();
 		$fileData->docmdpLevel = $file->getDocmdpLevel();
 		$fileData->nodeType = $file->getNodeType();
 

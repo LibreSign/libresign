@@ -10,29 +10,68 @@ namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\MailService;
+use OCA\Libresign\Service\SMSService;
 use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\IL10N;
 use OCP\Security\IHasher;
 use OCP\Security\ISecureRandom;
 use OCP\Server;
 use Psr\Container\NotFoundExceptionInterface;
+use Psr\Log\LoggerInterface;
 
 class TokenService {
 	public const TOKEN_LENGTH = 6;
+	private LoggerInterface $logger;
 
 	public function __construct(
 		private ISecureRandom $secureRandom,
 		private IHasher $hasher,
 		private MailService $mail,
 		private IL10N $l10n,
+		private SMSService $smsService,
+		LoggerInterface $logger,
 	) {
+		$this->logger = $logger;
 	}
 
-	public function sendCodeByGateway(string $identifier, string $gatewayName): string {
-		$gateway = $this->getGateway($gatewayName);
+//	public function sendCodeByGateway(string $identifier, string $gatewayName): string {
+//		$gateway = $this->getGateway($gatewayName);
+//
+//		$code = $this->secureRandom->generate(self::TOKEN_LENGTH, ISecureRandom::CHAR_DIGITS);
+//		$gateway->send($identifier, $this->l10n->t('%s is your LibreSign verification code.', $code));
+//		return $this->hasher->hash($code);
+//	}
 
+	/**
+	 * @throws OCSForbiddenException
+	 * @throws LibresignException
+	 */
+	public function sendCodeByGateway(string $identifier, string $gatewayName): string {
 		$code = $this->secureRandom->generate(self::TOKEN_LENGTH, ISecureRandom::CHAR_DIGITS);
-		$gateway->send($identifier, $this->l10n->t('%s is your LibreSign verification code.', $code));
+
+		if (strtolower($gatewayName) === 'sms') {
+			$this->logger->info('Sending SMS OTP', [
+				'identifier' => $identifier
+			]);
+
+			$sent = $this->smsService->sendSMS($identifier, $code);
+
+			if (!$sent) {
+				$this->logger->error('SMS OTP failed', [
+					'identifier' => $identifier
+				]);
+				throw new LibresignException(
+					$this->l10n->t('Failed to send SMS verification code.')
+				);
+			}
+		} else {
+			$gateway = $this->getGateway($gatewayName);
+			$gateway->send(
+				$identifier,
+				$this->l10n->t('%s is your LibreSign verification code.', $code)
+			);
+		}
+
 		return $this->hasher->hash($code);
 	}
 

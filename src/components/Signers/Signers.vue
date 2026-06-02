@@ -51,6 +51,14 @@ type FilesStoreContract = ReturnType<typeof useFilesStore>
 type SelectedFile = ReturnType<FilesStoreContract['getFile']>
 type SignerListItem = NonNullable<NonNullable<SelectedFile['signers']>[number]>
 
+function normalizeSignatureFlow(flow: SelectedFile['signatureFlow']): SignatureFlowValue | string | null | undefined {
+	if (typeof flow === 'number') {
+		const flowMap: Record<number, SignatureFlowValue> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+		return flowMap[flow]
+	}
+	return flow
+}
+
 const props = withDefaults(defineProps<{
 	event?: string
 }>(), {
@@ -81,7 +89,7 @@ const sortableSigners = computed<SignerListItem[] | undefined>({
 })
 
 const isOrderedNumeric = computed(() => {
-	const flow = filesStore.getFile()?.signatureFlow
+	const flow = normalizeSignatureFlow(filesStore.getFile()?.signatureFlow)
 	return flow === 'ordered_numeric'
 })
 

@@ -5,7 +5,7 @@
 
 import { test, expect } from '@playwright/test';
 import { login } from '../support/nc-login'
-import { configureOpenSsl, deleteAppConfig, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromEmail } from '../support/mailpit'
 
 test('sign document with email token as unauthenticated signer', async ({ page }) => {
@@ -32,8 +32,6 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { emailToken: { enabled: true } }, can_create_account: false },
 		]),
 	)
-	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
-	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
 
 	await page.goto('./apps/libresign')
 	await page.getByRole('button', { name: 'Upload from URL' }).click();
@@ -56,38 +54,13 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	await page.getByRole('button', { name: 'Request signatures' }).click();
 	await page.getByRole('button', { name: 'Send' }).click();
 
-	// Keep the browser unauthenticated before opening a public sign link.
-	// This avoids logout redirects to absolute hosts that may differ per environment.
-	await page.context().clearCookies();
-	await page.goto('about:blank');
+	// Logout before accessing the sign link to avoid session-related issues.
+	await page.getByRole('button', { name: 'Settings menu' }).click();
+	await page.getByRole('link', { name: 'Log out' }).click();
 
 	const email = await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: There is a file for you to sign')
 	const signLink = extractSignLink(email.Text)
 	if (!signLink) throw new Error('Sign link not found in email')
-
-	// Regression guard: validation payload can contain signer without email.
-	// Reuse this existing E2E flow and force `email = null` in the validate response.
-	await page.route('**/ocs/v2.php/apps/libresign/api/v1/file/validate/uuid/**', async (route) => {
-		const response = await route.fetch()
-		const payload = await response.json() as Record<string, unknown>
-		const ocs = payload.ocs as Record<string, unknown> | undefined
-		const data = ocs?.data as Record<string, unknown> | undefined
-
-		if (data && Array.isArray(data.signers) && data.signers.length > 0) {
-			const firstSigner = data.signers[0] as Record<string, unknown>
-			firstSigner.email = null
-		}
-
-		await route.fulfill({
-			status: response.status(),
-			headers: {
-				...response.headers(),
-				'content-type': 'application/json',
-			},
-			body: JSON.stringify(payload),
-		})
-	})
-
 	await page.goto(signLink);
 	await page.getByRole('button', { name: 'Sign the document.' }).click();
 	await page.getByRole('textbox', { name: 'Email' }).click();
@@ -108,7 +81,11 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	await page.getByRole('button', { name: 'Sign document' }).click();
 	await page.waitForURL('**/validation/**');
 	await expect(page.getByText('This document is valid')).toBeVisible();
-	await expect(page.getByText('Failed to validate document')).not.toBeVisible();
 	await expect(page.getByText('Congratulations you have')).toBeVisible();
-	await expect(page.getByRole('button', { name: 'Sign the document.' })).not.toBeVisible();
+
+	// Revisit the sign link after the document has been signed.
+	// The signer must not be able to sign a second time.
+	await page.goto(signLink)
+	await expect(page.getByRole('button', { name: 'Sign the document.' })).not.toBeVisible({ timeout: 10_000 })
+	await expect(page.getByText('This document is valid')).toBeVisible();
 });
