@@ -47,4 +47,47 @@ final class RequestSignGroupsPolicyTest extends TestCase {
 
 		$this->assertFalse($definition->supportsUserPreference(), 'groups_request_sign must not appear in user preferences');
 	}
+
+	public function testGroupsRequestSignSupportsGroupAdminDelegation(): void {
+		$provider = new RequestSignGroupsPolicy();
+		$definition = $provider->get(RequestSignGroupsPolicy::KEY);
+
+		$this->assertTrue($definition->supportsGroupAdminDelegation(), 'groups_request_sign must support group-admin delegation overrides');
+	}
+
+	public function testValidateGroupAdminDelegatedValuePassesWhenDenyGroupsIsNonEmpty(): void {
+		$provider = new RequestSignGroupsPolicy();
+		$definition = $provider->get(RequestSignGroupsPolicy::KEY);
+
+		$proposedValue = RequestSignGroupsPolicyValue::encode([
+			'allowGroups' => ['board'],
+			'denyGroups' => ['board'],
+		]);
+
+		$definition->validateGroupAdminDelegatedValue($proposedValue, null, new PolicyContext());
+
+		$this->addToAssertionCount(1);
+	}
+
+	public function testValidateGroupAdminDelegatedValueThrowsWhenDenyGroupsIsEmpty(): void {
+		$provider = new RequestSignGroupsPolicy();
+		$definition = $provider->get(RequestSignGroupsPolicy::KEY);
+
+		$proposedValue = RequestSignGroupsPolicyValue::encode(['board', 'company']);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Add a deny rule to override it');
+
+		$definition->validateGroupAdminDelegatedValue($proposedValue, null, new PolicyContext());
+	}
+
+	public function testValidateGroupAdminDelegatedValueSkipsNonStringPayload(): void {
+		$provider = new RequestSignGroupsPolicy();
+		$definition = $provider->get(RequestSignGroupsPolicy::KEY);
+
+		// Non-string proposed value must not throw (type normalization happens before this hook)
+		$definition->validateGroupAdminDelegatedValue(null, null, new PolicyContext());
+
+		$this->addToAssertionCount(1);
+	}
 }

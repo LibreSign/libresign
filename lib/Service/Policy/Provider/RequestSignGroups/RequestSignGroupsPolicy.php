@@ -49,19 +49,19 @@ final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 				supportsUserPreference: false,
 				visibleGroupCountFilter: static function (PolicyContext $context, ?PolicyLayer $systemPolicy): bool {
-					return ($context->getActorCapabilities()['canManageSystemPolicies'] ?? false) !== true;
+					return !$context->getActorRole()->canManageSystemPolicies;
 				},
 				groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
-					$actorCapabilities = $context->getActorCapabilities();
-					if (($actorCapabilities['canManageSystemPolicies'] ?? false) === true) {
+					$actorRole = $context->getActorRole();
+					if ($actorRole->canManageSystemPolicies) {
 						return true;
 					}
 
-					if (($actorCapabilities['canManageGroupPolicies'] ?? false) !== true) {
+					if (!$actorRole->canManageGroupPolicies) {
 						return false;
 					}
 
-					if ((int)($actorCapabilities['manageableGroupCount'] ?? 0) < 1) {
+					if ($actorRole->manageableGroupCount < 1) {
 						return false;
 					}
 
@@ -69,11 +69,12 @@ final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 						|| self::hasSystemCreatedGroupDelegation($groupLayers);
 				},
 				systemCreatedGroupRuleEditor: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, PolicyLayer $existingPolicy): bool {
-					if (($context->getActorCapabilities()['canManageSystemPolicies'] ?? false) === true) {
+					$actorRole = $context->getActorRole();
+					if ($actorRole->canManageSystemPolicies) {
 						return true;
 					}
 
-					if (($context->getActorCapabilities()['canManageGroupPolicies'] ?? false) !== true) {
+					if (!$actorRole->canManageGroupPolicies) {
 						return false;
 					}
 
@@ -86,6 +87,17 @@ final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 					}
 
 					return self::wasCreatedBySystemAdmin($existingPolicy);
+				},
+				supportsGroupAdminDelegation: true,
+				delegatedValueValidator: static function (mixed $proposedNormalizedValue): void {
+					if (!is_string($proposedNormalizedValue)) {
+						return;
+					}
+
+					$decoded = RequestSignGroupsPolicyValue::decodePolicy($proposedNormalizedValue);
+					if ($decoded['denyGroups'] === []) {
+						throw new \InvalidArgumentException('This group is already authorized by a system administrator. Add a deny rule to override it.');
+					}
 				},
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
@@ -120,17 +132,11 @@ final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 	}
 
 	private static function isDelegatedFromSystemCreatedSeed(PolicyLayer $policy): bool {
-		return ($policy->getNotes()['delegatedFromSystemCreatedSeed'] ?? false) === true;
+		return $policy->isDelegatedFromSystemCreatedSeed();
 	}
 
 	private static function wasCreatedBySystemAdmin(PolicyLayer $policy): bool {
-		$notes = $policy->getNotes();
-		$createdBySystemAdmin = $notes['createdBySystemAdmin'] ?? null;
-		if (is_bool($createdBySystemAdmin)) {
-			return $createdBySystemAdmin;
-		}
-
-		return ($notes['createdByActorScope'] ?? null) === 'system';
+		return $policy->isCreatedBySystemAdmin();
 	}
 
 	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {
