@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy\Runtime;
 
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\Policy\Model\ActorRole;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCP\AppFramework\Http;
 use OCP\Group\ISubAdmin;
@@ -74,7 +75,7 @@ final class PolicyContextFactory {
 		$context = (new PolicyContext())
 			->setRequestOverrides($requestOverrides)
 			->setActiveContext($validatedActiveContext)
-			->setActorCapabilities($this->resolveActorCapabilities($currentActor, $actorGroupIds));
+			->setActorRole($this->resolveActorRole($currentActor, $actorGroupIds));
 
 		if ($userId !== null && $userId !== '') {
 			$context->setUserId($userId);
@@ -116,24 +117,14 @@ final class PolicyContextFactory {
 		];
 	}
 
-	/** @return array<string, bool|int> */
-	private function resolveActorCapabilities(?IUser $currentActor, ?array $currentActorGroupIds = null): array {
+	private function resolveActorRole(?IUser $currentActor, ?array $currentActorGroupIds = null): ActorRole {
 		if (!$currentActor instanceof IUser) {
-			return [
-				'canManageSystemPolicies' => false,
-				'canManageGroupPolicies' => false,
-				'manageableGroupCount' => 0,
-			];
+			return ActorRole::regularUser();
 		}
 
 		$userId = $currentActor->getUID();
-		$canManageSystemPolicies = $this->groupManager->isAdmin($userId) === true;
-		if ($canManageSystemPolicies) {
-			return [
-				'canManageSystemPolicies' => true,
-				'canManageGroupPolicies' => true,
-				'manageableGroupCount' => PHP_INT_MAX,
-			];
+		if ($this->groupManager->isAdmin($userId) === true) {
+			return ActorRole::systemAdmin();
 		}
 
 		$actorGroupIds = $currentActorGroupIds ?? $this->getUserGroupIds($currentActor);
@@ -142,20 +133,14 @@ final class PolicyContextFactory {
 			static fn (mixed $groupId): bool => is_string($groupId) && trim($groupId) !== '',
 		));
 		if ($manageableGroupIds === []) {
-			return [
-				'canManageSystemPolicies' => false,
-				'canManageGroupPolicies' => false,
-				'manageableGroupCount' => 0,
-			];
+			return ActorRole::regularUser();
 		}
 
-		$canManageGroupPolicies = $this->subAdmin->isSubAdmin($currentActor);
+		if ($this->subAdmin->isSubAdmin($currentActor)) {
+			return ActorRole::groupAdmin(count($manageableGroupIds));
+		}
 
-		return [
-			'canManageSystemPolicies' => $canManageSystemPolicies,
-			'canManageGroupPolicies' => $canManageGroupPolicies,
-			'manageableGroupCount' => $canManageGroupPolicies ? count($manageableGroupIds) : 0,
-		];
+		return ActorRole::regularUser();
 	}
 
 	/** @return list<string> */
