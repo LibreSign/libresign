@@ -45,7 +45,7 @@ function createWrapper(modelValue: EffectivePolicyValue) {
 					name: 'NcCheckboxRadioSwitch',
 					props: ['modelValue', 'type', 'name', 'value', 'disabled'],
 					emits: ['update:modelValue'],
-					template: '<button class="switch-stub" :disabled="disabled" @click="$emit(\'update:modelValue\', !modelValue)"><slot /></button>',
+					template: '<button class="switch-stub" :data-model-value="String(modelValue)" :disabled="disabled" @click="$emit(\'update:modelValue\', !modelValue)"><slot /></button>',
 				},
 			},
 		},
@@ -176,6 +176,30 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 		expect(wrapper.text()).toContain('Rule settings')
 		expect(wrapper.text()).toContain('Automatically create account')
 		expect(wrapper.findAll('.identify-methods-editor__global-onboarding')).toHaveLength(1)
+	})
+
+	it('starts with automatic account creation disabled when the policy omits that flag', async () => {
+		const wrapper = createWrapper(JSON.stringify([
+			{
+				name: 'email',
+				enabled: true,
+				signatureMethods: {
+					emailToken: { enabled: true, label: 'Email code' },
+				},
+				signatureMethodEnabled: 'emailToken',
+			},
+		]))
+
+		const onboardingSwitch = wrapper.find('.identify-methods-editor__global-onboarding .switch-stub')
+		expect(onboardingSwitch.attributes('data-model-value')).toBe('false')
+
+		await onboardingSwitch.trigger('click')
+
+		const emissions = wrapper.emitted('update:modelValue') ?? []
+		expect(emissions).toHaveLength(1)
+
+		const emittedValue = JSON.parse(String(emissions[0][0]))
+		expect(emittedValue.can_create_account).toBe(true)
 	})
 
 	it('uses a neutral translated fallback when verification method label is unavailable', () => {
