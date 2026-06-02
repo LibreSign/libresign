@@ -4,7 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4e7c1fe2e3ed2a4289c5dc67199ce847",
+    "content-hash": "6c9e022ba21ac34ea61fda9faba4185a",
+
     "packages": [
         {
             "name": "brick/math",
@@ -190,75 +191,6 @@
             "time": "2025-10-30T23:44:22+00:00"
         },
         {
-            "name": "jeidison/signer-php",
-            "version": "v1.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/jeidison/signer-php.git",
-                "reference": "47c8d011558c9995a1a46674be1911d9087cfd73"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/jeidison/signer-php/zipball/47c8d011558c9995a1a46674be1911d9087cfd73",
-                "reference": "47c8d011558c9995a1a46674be1911d9087cfd73",
-                "shasum": ""
-            },
-            "require": {
-                "ext-curl": "*",
-                "ext-fileinfo": "*",
-                "ext-openssl": "*",
-                "ext-zlib": "*",
-                "php": "^8.2"
-            },
-            "require-dev": {
-                "deptrac/deptrac": "^4.6",
-                "infection/infection": "^0.29",
-                "laravel/pint": "^1.20",
-                "pestphp/pest": "^3.0",
-                "roave/security-advisories": "dev-latest",
-                "symfony/var-dumper": "^6.4.2",
-                "vimeo/psalm": "^6.15"
-            },
-            "bin": [
-                "bin/signer-sign",
-                "bin/signer-inspect",
-                "bin/signer-doctor"
-            ],
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "SignerPHP\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Jeidison Farias"
-                }
-            ],
-            "description": "Open-source PHP library for PDF digital signing with multiple signatures, RFC3161 timestamping, PAdES profiles, and PDF protection",
-            "keywords": [
-                "digital-signature",
-                "docmdp",
-                "icp-brasil",
-                "multiple-signatures",
-                "pades",
-                "pdf",
-                "php",
-                "rfc3161",
-                "signer",
-                "timestamp"
-            ],
-            "support": {
-                "issues": "https://github.com/jeidison/signer-php/issues",
-                "source": "https://github.com/jeidison/signer-php/tree/v1.0.1"
-            },
-            "time": "2026-03-17T00:40:40+00:00"
-        },
-        {
             "name": "giggsey/libphonenumber-for-php",
             "version": "8.13.55",
             "source": {
@@ -392,6 +324,75 @@
                 "source": "https://github.com/giggsey/Locale/tree/2.9.0"
             },
             "time": "2026-02-24T15:32:13+00:00"
+        },
+        {
+            "name": "jeidison/signer-php",
+            "version": "v1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jeidison/signer-php.git",
+                "reference": "47c8d011558c9995a1a46674be1911d9087cfd73"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jeidison/signer-php/zipball/47c8d011558c9995a1a46674be1911d9087cfd73",
+                "reference": "47c8d011558c9995a1a46674be1911d9087cfd73",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-fileinfo": "*",
+                "ext-openssl": "*",
+                "ext-zlib": "*",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "deptrac/deptrac": "^4.6",
+                "infection/infection": "^0.29",
+                "laravel/pint": "^1.20",
+                "pestphp/pest": "^3.0",
+                "roave/security-advisories": "dev-latest",
+                "symfony/var-dumper": "^6.4.2",
+                "vimeo/psalm": "^6.15"
+            },
+            "bin": [
+                "bin/signer-sign",
+                "bin/signer-inspect",
+                "bin/signer-doctor"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "SignerPHP\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jeidison Farias"
+                }
+            ],
+            "description": "Open-source PHP library for PDF digital signing with multiple signatures, RFC3161 timestamping, PAdES profiles, and PDF protection",
+            "keywords": [
+                "digital-signature",
+                "docmdp",
+                "icp-brasil",
+                "multiple-signatures",
+                "pades",
+                "pdf",
+                "php",
+                "rfc3161",
+                "signer",
+                "timestamp"
+            ],
+            "support": {
+                "issues": "https://github.com/jeidison/signer-php/issues",
+                "source": "https://github.com/jeidison/signer-php/tree/v1.0.1"
+            },
+            "time": "2026-03-17T00:40:40+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -926,12 +927,13 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "72de02fbad95545055983d050e564fe39128992d"
+                "reference": "eb30299ea60b96170cfb9113a1cc8079d6c7ea87"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/72de02fbad95545055983d050e564fe39128992d",
-                "reference": "72de02fbad95545055983d050e564fe39128992d",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/eb30299ea60b96170cfb9113a1cc8079d6c7ea87",
+                "reference": "eb30299ea60b96170cfb9113a1cc8079d6c7ea87",
+
                 "shasum": ""
             },
             "require": {
@@ -939,6 +941,7 @@
                 "psr/clock": "^1.0",
                 "psr/container": "^2.0.2",
                 "psr/event-dispatcher": "^1.0",
+                "psr/http-client": "^1.0.3",
                 "psr/log": "^3.0.2"
             },
             "type": "library",
@@ -966,7 +969,8 @@
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
                 "source": "https://github.com/nextcloud-deps/ocp/tree/stable34"
             },
-            "time": "2026-05-15T08:43:27+00:00"
+            "time": "2026-06-02T02:35:02+00:00"
+
         },
         {
             "name": "psr/clock",
@@ -1118,6 +1122,111 @@
                 "source": "https://github.com/php-fig/event-dispatcher/tree/1.0.0"
             },
             "time": "2019-01-08T18:20:26+00:00"
+        },
+        {
+            "name": "psr/http-client",
+            "version": "1.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/http-client.git",
+                "reference": "bb5906edc1c324c9a05aa0873d40117941e5fa90"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/http-client/zipball/bb5906edc1c324c9a05aa0873d40117941e5fa90",
+                "reference": "bb5906edc1c324c9a05aa0873d40117941e5fa90",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.0 || ^8.0",
+                "psr/http-message": "^1.0 || ^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Http\\Client\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for HTTP clients",
+            "homepage": "https://github.com/php-fig/http-client",
+            "keywords": [
+                "http",
+                "http-client",
+                "psr",
+                "psr-18"
+            ],
+            "support": {
+                "source": "https://github.com/php-fig/http-client"
+            },
+            "time": "2023-09-23T14:17:50+00:00"
+        },
+        {
+            "name": "psr/http-message",
+            "version": "2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/http-message.git",
+                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/http-message/zipball/402d35bcb92c70c026d1a6a9883f06b2ead23d71",
+                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2 || ^8.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Http\\Message\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for HTTP messages",
+            "homepage": "https://github.com/php-fig/http-message",
+            "keywords": [
+                "http",
+                "http-message",
+                "psr",
+                "psr-7",
+                "request",
+                "response"
+            ],
+            "support": {
+                "source": "https://github.com/php-fig/http-message/tree/2.0"
+            },
+            "time": "2023-04-04T09:54:51+00:00"
         },
         {
             "name": "psr/log",
@@ -2220,5 +2329,5 @@
     "platform-overrides": {
         "php": "8.2"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }
