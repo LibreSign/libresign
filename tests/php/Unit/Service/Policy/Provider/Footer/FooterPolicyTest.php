@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\Footer;
 
 use OCA\Libresign\Handler\FooterHandler;
+use OCA\Libresign\Service\Policy\Model\ActorRole;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
@@ -121,7 +122,7 @@ final class FooterPolicyTest extends TestCase {
 
 	#[DataProvider('validationSiteOverrideCases')]
 	public function testValidationSiteOverrideRules(
-		array $actorCapabilities,
+		ActorRole $actorRole,
 		bool $expectException,
 	): void {
 		$provider = new FooterPolicy();
@@ -134,7 +135,7 @@ final class FooterPolicyTest extends TestCase {
 		]);
 
 		$context = (new PolicyContext())
-			->setActorCapabilities($actorCapabilities);
+			->setActorRole($actorRole);
 
 		if ($expectException) {
 			$this->expectException(\InvalidArgumentException::class);
@@ -148,22 +149,16 @@ final class FooterPolicyTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{0: array{canManageSystemPolicies: bool, canManageGroupPolicies: bool}, 1: bool}>
+	 * @return array<string, array{0: ActorRole, 1: bool}>
 	 */
 	public static function validationSiteOverrideCases(): array {
 		return [
 			'rejects override for regular actors' => [
-				[
-					'canManageSystemPolicies' => false,
-					'canManageGroupPolicies' => false,
-				],
+				ActorRole::regularUser(),
 				true,
 			],
 			'allows override for policy managers' => [
-				[
-					'canManageSystemPolicies' => false,
-					'canManageGroupPolicies' => true,
-				],
+				ActorRole::groupAdmin(1),
 				false,
 			],
 		];

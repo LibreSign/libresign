@@ -55,8 +55,7 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		$currentBlockedBy = null;
 		$canOverrideBelow = false;
 		$visible = true;
-		$actorCapabilities = $context->getActorCapabilities();
-		$currentActorCanManageSystemPolicies = ($actorCapabilities['canManageSystemPolicies'] ?? false) === true;
+		$currentActorCanManageSystemPolicies = $context->getActorRole()->canManageSystemPolicies;
 		// Personal preferences are closed by default for implicit system defaults,
 		// but should remain available when a managed group layer is configured and
 		// the hierarchy still allows the user-level override.

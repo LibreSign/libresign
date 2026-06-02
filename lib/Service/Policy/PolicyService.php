@@ -175,7 +175,7 @@ class PolicyService {
 		$this->assertCurrentActorCanEditGroupPolicy($definition->key(), $groupId, $context);
 		$normalizedValue = $definition->normalizeValue($value);
 		$definition->validateValue($normalizedValue, $context);
-		$createdBySystemAdmin = ($context->getActorCapabilities()['canManageSystemPolicies'] ?? false) === true;
+		$createdBySystemAdmin = $context->getActorRole()->canManageSystemPolicies;
 		$this->source->saveGroupPolicy(
 			$definition->key(),
 			$groupId,
@@ -215,13 +215,7 @@ class PolicyService {
 			return false;
 		}
 
-		$notes = $groupPolicy->getNotes();
-		$createdBySystemAdmin = $notes['createdBySystemAdmin'] ?? null;
-		if (is_bool($createdBySystemAdmin)) {
-			return !$createdBySystemAdmin;
-		}
-
-		return ($notes['createdByActorScope'] ?? 'system') === 'group';
+		return !$groupPolicy->isCreatedBySystemAdmin();
 	}
 
 	public function canViewGroupPolicy(string|\BackedEnum $policyKey, string $groupId, ?PolicyLayer $policy = null): bool {
@@ -270,7 +264,7 @@ class PolicyService {
 
 	private function assertCurrentActorCanEditGroupPolicy(string $policyKey, string $groupId, ?PolicyContext $context = null): void {
 		$context ??= $this->contextFactory->forCurrentUser();
-		if (($context->getActorCapabilities()['canManageSystemPolicies'] ?? false) === true) {
+		if ($context->getActorRole()->canManageSystemPolicies) {
 			return;
 		}
 
@@ -296,12 +290,7 @@ class PolicyService {
 	}
 
 	private function wasGroupPolicyCreatedBySystemAdmin(PolicyLayer $policy): bool {
-		$notes = $policy->getNotes();
-		if (($notes['createdBySystemAdmin'] ?? null) !== null) {
-			return $notes['createdBySystemAdmin'] === true;
-		}
-
-		return ($notes['createdByActorScope'] ?? null) === 'system';
+		return $policy->isCreatedBySystemAdmin();
 	}
 
 	private function shouldHideSystemCreatedGroupRuleFromCurrentActor(string $policyKey, PolicyLayer $policy): bool {
@@ -314,7 +303,7 @@ class PolicyService {
 
 	private function assertCurrentActorCanManageGroupPolicy(string $policyKey, ?PolicyContext $context = null): void {
 		$context ??= $this->contextFactory->forCurrentUser();
-		if (($context->getActorCapabilities()['canManageSystemPolicies'] ?? false) === true) {
+		if ($context->getActorRole()->canManageSystemPolicies) {
 			return;
 		}
 
