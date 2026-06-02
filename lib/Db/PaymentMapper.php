@@ -12,6 +12,7 @@ use OCP\IDBConnection;
 use OCP\DB\Types;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
+use OCP\DB\IQueryBuilder;
 
 class PaymentMapper extends QBMapper
 {

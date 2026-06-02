@@ -40,7 +40,8 @@ class SignJobCoordinator {
 		$signRequest = null;
 		try {
 			if (empty($argument)) {
-				throw new \InvalidArgumentException('SignFileJob: Cannot proceed with empty arguments');
+				$this->logger->warning('SignFileJob: skipping — empty arguments (stale job?)');
+				return;
 			}
 
 			[$fileId, $signRequestId] = $this->requireIds($argument, 'SignFileJob');
@@ -69,7 +70,8 @@ class SignJobCoordinator {
 
 		try {
 			if (empty($argument)) {
-				throw new \InvalidArgumentException('SignSingleFileJob: Cannot proceed with empty arguments');
+				$this->logger->warning('SignSingleFileJob: skipping — empty arguments (stale job?)');
+				return;
 			}
 
 			[$fileId, $signRequestId] = $this->requireIds($argument, 'SignSingleFileJob');

@@ -21,8 +21,8 @@ class VerifyPayments extends TimedJob
 	) {
 		parent::__construct($time);
 
-		// Run every 15 seconds (tune later)
-		$this->setInterval(15);
+		// Run every 5 minutes (tuned from 15s to reduce DB load)
+		$this->setInterval(300);
 		$this->setTimeSensitivity(IJob::TIME_SENSITIVE);
 	}
 
