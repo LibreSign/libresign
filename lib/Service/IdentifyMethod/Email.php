@@ -223,7 +223,7 @@ class Email extends AbstractIdentifyMethod {
 		$this->settings = parent::getSettingsFromDatabase(
 			default: [
 				'enabled' => false,
-				'can_create_account' => true,
+				'can_create_account' => false,
 			],
 			immutable: [
 				'test_url' => $this->identifyService->getUrlGenerator()->linkToRoute('settings.MailSettings.sendTestMail'),
@@ -236,7 +236,7 @@ class Email extends AbstractIdentifyMethod {
 	public function getDefaultSettings(): array {
 		$settings = parent::getDefaultSettings();
 		$settings['enabled'] = false;
-		$settings['can_create_account'] = true;
+		$settings['can_create_account'] = false;
 		$settings['test_url'] = $this->identifyService->getUrlGenerator()->linkToRoute('settings.MailSettings.sendTestMail');
 		return $settings;
 	}
