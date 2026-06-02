@@ -15,6 +15,8 @@ final class PolicyLayer {
 	private bool $visibleToChild = true;
 	/** @var list<mixed> */
 	private array $allowedValues = [];
+	private bool $createdBySystemAdmin = false;
+	private bool $delegatedFromSystemCreatedSeed = false;
 	/** @var array<string, mixed> */
 	private array $notes = [];
 
@@ -63,6 +65,24 @@ final class PolicyLayer {
 	/** @return list<mixed> */
 	public function getAllowedValues(): array {
 		return $this->allowedValues;
+	}
+
+	public function setCreatedBySystemAdmin(bool $value): self {
+		$this->createdBySystemAdmin = $value;
+		return $this;
+	}
+
+	public function isCreatedBySystemAdmin(): bool {
+		return $this->createdBySystemAdmin;
+	}
+
+	public function setDelegatedFromSystemCreatedSeed(bool $value): self {
+		$this->delegatedFromSystemCreatedSeed = $value;
+		return $this;
+	}
+
+	public function isDelegatedFromSystemCreatedSeed(): bool {
+		return $this->delegatedFromSystemCreatedSeed;
 	}
 
 	/** @param array<string, mixed> $notes */
