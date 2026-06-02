@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy\Model;
 
 final class PolicyContext {
+	private ActorRole $actorRole;
 	private ?string $userId = null;
 	/** @var list<string> */
 	private array $groups = [];
@@ -18,8 +19,9 @@ final class PolicyContext {
 	private ?array $activeContext = null;
 	/** @var array<string, mixed> */
 	private array $requestOverrides = [];
-	/** @var array<string, mixed> */
-	private array $actorCapabilities = [];
+	public function __construct() {
+		$this->actorRole = ActorRole::regularUser();
+	}
 
 	public static function fromUserId(string $userId): self {
 		$context = new self();
@@ -80,14 +82,12 @@ final class PolicyContext {
 		return $this->requestOverrides;
 	}
 
-	/** @param array<string, mixed> $actorCapabilities */
-	public function setActorCapabilities(array $actorCapabilities): self {
-		$this->actorCapabilities = $actorCapabilities;
+	public function setActorRole(ActorRole $role): self {
+		$this->actorRole = $role;
 		return $this;
 	}
 
-	/** @return array<string, mixed> */
-	public function getActorCapabilities(): array {
-		return $this->actorCapabilities;
+	public function getActorRole(): ActorRole {
+		return $this->actorRole;
 	}
 }
