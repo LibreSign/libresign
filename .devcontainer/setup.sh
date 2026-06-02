@@ -23,6 +23,13 @@ git config --global --add safe.directory /var/www/html/apps-extra/libresign
 # =========================
 cd /var/www/html/apps-extra/libresign
 
+# If 3rdparty exists but is not a proper submodule (e.g., leftover files
+# from a broken init), remove it so submodule update can clone it fresh.
+if [[ -d "3rdparty" && ! -f "3rdparty/.git" ]]; then
+	echo "⚠️  3rdparty exists but is not a submodule. Cleaning up..."
+	rm -rf 3rdparty
+fi
+
 git submodule update --init --recursive
 
 # =========================
