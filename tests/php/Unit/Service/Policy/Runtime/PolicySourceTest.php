@@ -225,7 +225,7 @@ final class PolicySourceTest extends TestCase {
 
 		$this->assertCount(1, $layers);
 		$this->assertSame('system', $layers[0]->getNotes()['createdByActorScope'] ?? null);
-		$this->assertTrue($layers[0]->getNotes()['createdBySystemAdmin'] ?? false);
+		$this->assertTrue($layers[0]->isCreatedBySystemAdmin());
 	}
 
 	public function testLoadGroupPoliciesMarksDelegatedRequestSignOverrideAsBackedBySystemSeed(): void {
@@ -280,9 +280,9 @@ final class PolicySourceTest extends TestCase {
 		$layers = $this->getSource()->loadGroupPolicies(RequestSignGroupsPolicy::KEY, $context);
 
 		$this->assertCount(1, $layers);
-		$this->assertFalse($layers[0]->getNotes()['createdBySystemAdmin'] ?? true);
+		$this->assertFalse($layers[0]->isCreatedBySystemAdmin());
 		$this->assertSame('group', $layers[0]->getNotes()['createdByActorScope'] ?? null);
-		$this->assertTrue($layers[0]->getNotes()['delegatedFromSystemCreatedSeed'] ?? false);
+		$this->assertTrue($layers[0]->isDelegatedFromSystemCreatedSeed());
 	}
 
 	public function testLoadUserPreferenceReturnsLayerFromUserConfig(): void {
@@ -793,6 +793,7 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame('group', $layer->getScope());
 		$this->assertSame('parallel', $layer->getValue());
 		$this->assertTrue($layer->isAllowChildOverride());
+		$this->assertFalse($layer->isCreatedBySystemAdmin());
 		$this->assertSame([], $layer->getNotes());
 	}
 
@@ -831,7 +832,7 @@ final class PolicySourceTest extends TestCase {
 
 		$this->assertNotNull($layer);
 		$this->assertSame('system', $layer->getNotes()['createdByActorScope'] ?? null);
-		$this->assertTrue($layer->getNotes()['createdBySystemAdmin'] ?? false);
+		$this->assertTrue($layer->isCreatedBySystemAdmin());
 	}
 
 	public function testLoadGroupPolicyConfigUsesDelegatedRequestSignOverrideWhenSystemSeedExists(): void {
@@ -892,7 +893,7 @@ final class PolicySourceTest extends TestCase {
 			]),
 			$layer->getValue(),
 		);
-		$this->assertFalse($layer->getNotes()['createdBySystemAdmin'] ?? true);
+		$this->assertFalse($layer->isCreatedBySystemAdmin());
 		$this->assertSame('group', $layer->getNotes()['createdByActorScope'] ?? null);
 	}
 
@@ -1096,6 +1097,58 @@ final class PolicySourceTest extends TestCase {
 
 		$source = $this->getSource();
 		$source->clearGroupPolicy(RequestSignGroupsPolicy::KEY, 'board', true);
+	}
+
+	public function testSaveGroupPolicyThrowsWhenDelegatedOverrideHasEmptyDenyGroups(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(110);
+		$binding->setTargetType('group');
+		$binding->setTargetId('board');
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(110);
+		$permissionSet->setPolicyJson([
+			RequestSignGroupsPolicy::KEY => [
+				'defaultValue' => RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => ['board'],
+					'denyGroups' => [],
+				]),
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'createdBySystemAdmin' => true,
+				'createdByActorScope' => 'system',
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('getByTarget')
+			->with('group', 'board')
+			->willReturn($binding);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('getById')
+			->with(110)
+			->willReturn($permissionSet);
+
+		$this->permissionSetMapper->expects($this->never())->method('update');
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Add a deny rule to override it');
+
+		$source = $this->getSource();
+		$source->saveGroupPolicy(
+			RequestSignGroupsPolicy::KEY,
+			'board',
+			RequestSignGroupsPolicyValue::encode([
+				'allowGroups' => ['board'],
+				'denyGroups' => [],
+			]),
+			false,
+			false,
+		);
 	}
 
 	public function testSaveGroupPolicyCreatesPermissionSetAndBinding(): void {
@@ -1366,7 +1419,7 @@ final class PolicySourceTest extends TestCase {
 
 		$this->assertCount(1, $result['signature_flow']);
 		$this->assertSame('system', $result['signature_flow'][0]->getNotes()['createdByActorScope'] ?? null);
-		$this->assertTrue($result['signature_flow'][0]->getNotes()['createdBySystemAdmin'] ?? false);
+		$this->assertTrue($result['signature_flow'][0]->isCreatedBySystemAdmin());
 	}
 
 	public function testLoadAllGroupPoliciesReturnsEmptyArraysWhenContextHasNoGroups(): void {
