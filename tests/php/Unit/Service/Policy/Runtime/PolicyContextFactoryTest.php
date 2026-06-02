@@ -48,11 +48,10 @@ final class PolicyContextFactoryTest extends TestCase {
 		$this->assertSame(['finance'], $context->getGroups());
 		$this->assertSame(['signature_flow' => 'parallel'], $context->getRequestOverrides());
 		$this->assertSame(['type' => 'group', 'id' => 'finance'], $context->getActiveContext());
-		$this->assertSame([
-			'canManageSystemPolicies' => false,
-			'canManageGroupPolicies' => true,
-			'manageableGroupCount' => 1,
-		], $context->getActorCapabilities());
+		$role = $context->getActorRole();
+		$this->assertFalse($role->canManageSystemPolicies);
+		$this->assertTrue($role->canManageGroupPolicies);
+		$this->assertSame(1, $role->manageableGroupCount);
 	}
 
 	public function testForCurrentUserDoesNotGrantGroupPolicyCapabilityToRegularGroupMember(): void {
@@ -67,11 +66,10 @@ final class PolicyContextFactoryTest extends TestCase {
 		$factory = $this->getFactory();
 		$context = $factory->forCurrentUser();
 
-		$this->assertSame([
-			'canManageSystemPolicies' => false,
-			'canManageGroupPolicies' => false,
-			'manageableGroupCount' => 0,
-		], $context->getActorCapabilities());
+		$role = $context->getActorRole();
+		$this->assertFalse($role->canManageSystemPolicies);
+		$this->assertFalse($role->canManageGroupPolicies);
+		$this->assertSame(0, $role->manageableGroupCount);
 	}
 
 	public function testForCurrentUserHasNoGroupPolicyCapabilityWhenActorHasNoGroups(): void {
@@ -86,11 +84,10 @@ final class PolicyContextFactoryTest extends TestCase {
 		$factory = $this->getFactory();
 		$context = $factory->forCurrentUser();
 
-		$this->assertSame([
-			'canManageSystemPolicies' => false,
-			'canManageGroupPolicies' => false,
-			'manageableGroupCount' => 0,
-		], $context->getActorCapabilities());
+		$role = $context->getActorRole();
+		$this->assertFalse($role->canManageSystemPolicies);
+		$this->assertFalse($role->canManageGroupPolicies);
+		$this->assertSame(0, $role->manageableGroupCount);
 	}
 
 	public function testForUserIdLoadsUserWhenAvailable(): void {

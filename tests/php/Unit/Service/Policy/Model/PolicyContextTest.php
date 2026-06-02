@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Model;
 
+use OCA\Libresign\Service\Policy\Model\ActorRole;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use PHPUnit\Framework\TestCase;
 
@@ -20,7 +21,10 @@ final class PolicyContextTest extends TestCase {
 		$this->assertSame([], $context->getCircles());
 		$this->assertNull($context->getActiveContext());
 		$this->assertSame([], $context->getRequestOverrides());
-		$this->assertSame([], $context->getActorCapabilities());
+		$role = $context->getActorRole();
+		$this->assertFalse($role->canManageSystemPolicies);
+		$this->assertFalse($role->canManageGroupPolicies);
+		$this->assertSame(0, $role->manageableGroupCount);
 	}
 
 	public function testSettersStoreValues(): void {
@@ -36,14 +40,16 @@ final class PolicyContextTest extends TestCase {
 			->setCircles(['board'])
 			->setActiveContext($activeContext)
 			->setRequestOverrides(['signature_flow' => 'parallel'])
-			->setActorCapabilities(['canManageOrganizationPolicies' => true]);
+			->setActorRole(ActorRole::systemAdmin());
 
 		$this->assertSame('john', $context->getUserId());
 		$this->assertSame(['finance', 'legal'], $context->getGroups());
 		$this->assertSame(['board'], $context->getCircles());
 		$this->assertSame($activeContext, $context->getActiveContext());
 		$this->assertSame(['signature_flow' => 'parallel'], $context->getRequestOverrides());
-		$this->assertSame(['canManageOrganizationPolicies' => true], $context->getActorCapabilities());
+		$role = $context->getActorRole();
+		$this->assertTrue($role->canManageSystemPolicies);
+		$this->assertTrue($role->canManageGroupPolicies);
 	}
 
 	public function testFromUserIdCreatesContextWithUserId(): void {
