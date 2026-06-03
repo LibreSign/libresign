@@ -52,9 +52,8 @@ class Application extends App implements IBootstrap {
 
 	#[\Override]
 	public function boot(IBootContext $context): void {
-		// We need to load the styles here, because the LoadAdditionalListener is only loaded when the Files app is loaded, but we want the styles to be available in other places as well (e.g. dashboard widget)
-		\OCP\Util::addStyle(self::APP_ID, 'gopaperless');
-		Util::addScript(self::APP_ID, 'gopaperless');
+		// gopaperless assets are loaded per-page via templates/controllers,
+		// not globally, to avoid resource-loader 404s on non-LibreSign pages.
 	}
 
 	#[\Override]
