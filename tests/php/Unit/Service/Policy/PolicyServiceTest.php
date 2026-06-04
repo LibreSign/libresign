@@ -70,7 +70,14 @@ final class PolicyServiceTest extends TestCase {
 					default => throw new \RuntimeException('Unexpected provider class: ' . $class),
 				};
 			});
-		$this->registry = new PolicyRegistry($container);
+		$this->registry = new PolicyRegistry($container, [
+			ApprovalGroupsPolicy::class,
+			ConfettiPolicy::class,
+			FooterPolicy::class,
+			RequestSignGroupsPolicy::class,
+			SignatureFlowPolicy::class,
+			DocMdpPolicy::class,
+		]);
 		$this->contextFactory = new PolicyContextFactory($this->userManager, $this->groupManager, $this->subAdmin, $this->userSession);
 	}
 
@@ -899,8 +906,7 @@ final class PolicyServiceTest extends TestCase {
 				->setValue(RequestSignGroupsPolicyValue::encode(['board', 'company']))
 				->setAllowChildOverride(true)
 				->setVisibleToChild(true)
-				->setCreatedBySystemAdmin(true)
-				->setNotes(['createdByActorScope' => 'system']));
+				->setCreatedBySystemAdmin(true));
 
 		$this->source
 			->expects($this->once())
@@ -1040,7 +1046,6 @@ final class PolicyServiceTest extends TestCase {
 					->setVisibleToChild(true)
 					->setAllowedValues([])
 					->setCreatedBySystemAdmin(true)
-					->setNotes(['createdByActorScope' => 'system']),
 			]);
 
 		$this->source
@@ -1054,8 +1059,7 @@ final class PolicyServiceTest extends TestCase {
 					->setAllowChildOverride(true)
 					->setVisibleToChild(true)
 					->setAllowedValues([])
-					->setCreatedBySystemAdmin(true)
-					->setNotes(['createdByActorScope' => 'system']),
+					->setCreatedBySystemAdmin(true),
 				(new PolicyLayer())
 					->setScope('group')
 					->setValue(RequestSignGroupsPolicyValue::encode([
@@ -1071,7 +1075,6 @@ final class PolicyServiceTest extends TestCase {
 						]),
 					])
 					->setCreatedBySystemAdmin(false)
-					->setNotes(['createdByActorScope' => 'group']),
 			);
 
 		$this->source
@@ -1135,7 +1138,6 @@ final class PolicyServiceTest extends TestCase {
 			'company',
 			(new PolicyLayer())
 				->setCreatedBySystemAdmin(true)
-				->setNotes(['createdByActorScope' => 'system']),
 		));
 	}
 
@@ -1190,7 +1192,6 @@ final class PolicyServiceTest extends TestCase {
 				->setAllowChildOverride(true)
 				->setVisibleToChild(true)
 				->setCreatedBySystemAdmin(true)
-				->setNotes(['createdByActorScope' => 'system']),
 		));
 	}
 
@@ -1219,7 +1220,6 @@ final class PolicyServiceTest extends TestCase {
 			'company',
 			(new PolicyLayer())
 				->setCreatedBySystemAdmin(false)
-				->setNotes(['createdByActorScope' => 'group']),
 		));
 	}
 
@@ -1254,7 +1254,6 @@ final class PolicyServiceTest extends TestCase {
 			'company',
 			(new PolicyLayer())
 				->setCreatedBySystemAdmin(true)
-				->setNotes(['createdByActorScope' => 'system']),
 		));
 	}
 
@@ -1293,7 +1292,6 @@ final class PolicyServiceTest extends TestCase {
 			'company',
 			(new PolicyLayer())
 				->setCreatedBySystemAdmin(true)
-				->setNotes(['createdByActorScope' => 'system']),
 		));
 	}
 
@@ -1311,11 +1309,9 @@ final class PolicyServiceTest extends TestCase {
 			->willReturn(false);
 
 		$visiblePolicy = (new PolicyLayer())
-			->setCreatedBySystemAdmin(false)
-			->setNotes(['createdByActorScope' => 'group']);
+			->setCreatedBySystemAdmin(false);
 		$hiddenPolicy = (new PolicyLayer())
-			->setCreatedBySystemAdmin(true)
-			->setNotes(['createdByActorScope' => 'system']);
+			->setCreatedBySystemAdmin(true);
 
 		$this->source
 			->expects($this->once())

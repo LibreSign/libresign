@@ -29,7 +29,7 @@ final class PolicyRegistryTest extends TestCase {
 	public function testRegistryReturnsSignatureFlowDefinition(): void {
 		$container = $this->createMock(ContainerInterface::class);
 		$container->method('get')->with(SignatureFlowPolicy::class)->willReturn(new SignatureFlowPolicy());
-		$registry = new PolicyRegistry($container);
+		$registry = new PolicyRegistry($container, [SignatureFlowPolicy::class]);
 		$definition = $registry->get(SignatureFlowPolicy::KEY);
 
 		$this->assertSame(SignatureFlowPolicy::KEY, $definition->key());
@@ -41,7 +41,7 @@ final class PolicyRegistryTest extends TestCase {
 	public function testRegistryReturnsDocMdpDefinition(): void {
 		$container = $this->createMock(ContainerInterface::class);
 		$container->method('get')->with(DocMdpPolicy::class)->willReturn(new DocMdpPolicy());
-		$registry = new PolicyRegistry($container);
+		$registry = new PolicyRegistry($container, [DocMdpPolicy::class]);
 		$definition = $registry->get(DocMdpPolicy::KEY);
 
 		$this->assertSame(DocMdpPolicy::KEY, $definition->key());
@@ -53,7 +53,7 @@ final class PolicyRegistryTest extends TestCase {
 	public function testRegistryReturnsFooterDefinition(): void {
 		$container = $this->createMock(ContainerInterface::class);
 		$container->method('get')->with(FooterPolicy::class)->willReturn(new FooterPolicy());
-		$registry = new PolicyRegistry($container);
+		$registry = new PolicyRegistry($container, [FooterPolicy::class]);
 		$definition = $registry->get(FooterPolicy::KEY);
 		$defaultTemplate = (string)file_get_contents(FooterHandler::DEFAULT_TEMPLATE_PATH);
 
@@ -81,7 +81,7 @@ final class PolicyRegistryTest extends TestCase {
 	public function testRegistryReturnsRequestSignGroupsDefinition(): void {
 		$container = $this->createMock(ContainerInterface::class);
 		$container->method('get')->with(RequestSignGroupsPolicy::class)->willReturn(new RequestSignGroupsPolicy());
-		$registry = new PolicyRegistry($container);
+		$registry = new PolicyRegistry($container, [RequestSignGroupsPolicy::class]);
 		$definition = $registry->get(RequestSignGroupsPolicy::KEY);
 
 		$this->assertSame(RequestSignGroupsPolicy::KEY, $definition->key());
@@ -98,7 +98,7 @@ final class PolicyRegistryTest extends TestCase {
 	public function testRegistryReturnsApprovalGroupsDefinition(): void {
 		$container = $this->createMock(ContainerInterface::class);
 		$container->method('get')->with(ApprovalGroupsPolicy::class)->willReturn(new ApprovalGroupsPolicy());
-		$registry = new PolicyRegistry($container);
+		$registry = new PolicyRegistry($container, [ApprovalGroupsPolicy::class]);
 		$definition = $registry->get(ApprovalGroupsPolicy::KEY);
 
 		$this->assertSame(ApprovalGroupsPolicy::KEY, $definition->key());
@@ -115,7 +115,7 @@ final class PolicyRegistryTest extends TestCase {
 
 		$container = $this->createMock(ContainerInterface::class);
 		$container->method('get')->with(SignatureFlowPolicy::class)->willReturn(new SignatureFlowPolicy());
-		$registry = new PolicyRegistry($container);
+		$registry = new PolicyRegistry($container, [SignatureFlowPolicy::class]);
 		$registry->get('unknown_policy');
 	}
 
@@ -126,7 +126,7 @@ final class PolicyRegistryTest extends TestCase {
 			->method('get')
 			->with(SignatureFlowPolicy::class)
 			->willReturn($provider);
-		$registry = new PolicyRegistry($container);
+		$registry = new PolicyRegistry($container, [SignatureFlowPolicy::class]);
 
 		$first = $registry->get(SignatureFlowPolicy::KEY);
 		$second = $registry->get(SignatureFlowPolicy::KEY);

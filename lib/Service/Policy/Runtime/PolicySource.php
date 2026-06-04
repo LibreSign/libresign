@@ -17,7 +17,6 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicySource;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
-use OCA\Libresign\Service\Policy\Provider\PolicyProviders;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\DB\QueryBuilder\IQueryBuilder;
@@ -490,7 +489,7 @@ class PolicySource implements IPolicySource {
 	 * @return array<string, array{groupCount: int, userCount: int, everyoneCount: int}>
 	 */
 	public function loadRuleCounts(array $groupIds, array $userIds): array {
-		$policyKeys = array_keys(PolicyProviders::BY_KEY);
+		$policyKeys = $this->registry->getAllPolicyKeys();
 		/** @var array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $counts */
 		$counts = [];
 		foreach ($policyKeys as $policyKey) {
@@ -564,7 +563,7 @@ class PolicySource implements IPolicySource {
 	 * @return array<string, array{groupCount: int, userCount: int, everyoneCount: int}>
 	 */
 	public function loadAllRuleCounts(): array {
-		$policyKeys = array_keys(PolicyProviders::BY_KEY);
+		$policyKeys = $this->registry->getAllPolicyKeys();
 		/** @var array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $counts */
 		$counts = [];
 		foreach ($policyKeys as $policyKey) {
@@ -967,7 +966,7 @@ class PolicySource implements IPolicySource {
 	}
 
 	#[\Override]
-	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride, bool $createdBySystemAdmin = false): void {
+	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride, bool $createdBySystemAdmin = false, ?PolicyContext $context = null): void {
 		$definition = $this->registry->get($policyKey);
 		$normalizedValue = $definition->normalizeValue($value);
 		$permissionSet = $this->findPermissionSetByGroupId($groupId);
@@ -988,11 +987,11 @@ class PolicySource implements IPolicySource {
 
 			if ($existingSystemCreatedSeed && !$createdBySystemAdmin) {
 				$seedRaw = $policyJson[$policyKey];
-				$context = new \OCA\Libresign\Service\Policy\Model\PolicyContext();
+				$effectiveContext = $context ?? new PolicyContext();
 				$definition->validateGroupAdminDelegatedValue(
 					$normalizedValue,
-					$definition->normalizeValue($seedRaw['value'] ?? null),
-					$context,
+					$definition->normalizeValue($seedRaw['defaultValue'] ?? null),
+					$effectiveContext,
 				);
 				$policyJson[$overrideKey] = $this->buildStoredGroupPolicyConfig($normalizedValue, $allowChildOverride, false);
 				$this->persistGroupPermissionSet($permissionSet, $groupId, $policyJson, $now);
@@ -1106,9 +1105,9 @@ class PolicySource implements IPolicySource {
 
 	/** @return list<string> */
 	private function resolveGroupIds(PolicyContext $context): array {
-		$activeContext = $context->getActiveContext();
-		if (($activeContext['type'] ?? null) === 'group' && is_string($activeContext['id'] ?? null)) {
-			return [$activeContext['id']];
+		$scope = $context->getActiveGroupScope();
+		if ($scope !== null) {
+			return [$scope->groupId];
 		}
 
 		return $context->getGroups();
@@ -1129,24 +1128,7 @@ class PolicySource implements IPolicySource {
 			->setCreatedBySystemAdmin($createdBySystemAdmin)
 			->setDelegatedFromSystemCreatedSeed($delegatedFromSystemCreatedSeed);
 
-		$notes = $this->extractGroupPolicyNotes($policyConfig);
-		if ($notes !== []) {
-			$layer->setNotes($notes);
-		}
-
 		return $layer;
-	}
-
-	/** @param array<string, mixed> $policyConfig */
-	private function extractGroupPolicyNotes(array $policyConfig): array {
-		$notes = [];
-
-		$createdByActorScope = $policyConfig['createdByActorScope'] ?? null;
-		if (is_string($createdByActorScope) && $createdByActorScope !== '') {
-			$notes['createdByActorScope'] = $createdByActorScope;
-		}
-
-		return $notes;
 	}
 
 	private function resolveCreatedBySystemAdmin(array $policyConfig): bool {

@@ -261,7 +261,6 @@ final class PolicyAuthorizationServiceTest extends TestCase {
 						->setScope('group')
 						->setAllowChildOverride(false)
 						->setCreatedBySystemAdmin(false)
-						->setNotes(['createdByActorScope' => 'group']),
 				],
 			]);
 

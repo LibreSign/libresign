@@ -15,8 +15,7 @@ final class PolicyContext {
 	private array $groups = [];
 	/** @var list<string> */
 	private array $circles = [];
-	/** @var array<string, mixed>|null */
-	private ?array $activeContext = null;
+	private ?ActiveGroupScope $activeGroupScope = null;
 	/** @var array<string, mixed> */
 	private array $requestOverrides = [];
 	public function __construct() {
@@ -60,15 +59,13 @@ final class PolicyContext {
 		return $this->circles;
 	}
 
-	/** @param array<string, mixed>|null $activeContext */
-	public function setActiveContext(?array $activeContext): self {
-		$this->activeContext = $activeContext;
+	public function setActiveGroupScope(?ActiveGroupScope $activeGroupScope): self {
+		$this->activeGroupScope = $activeGroupScope;
 		return $this;
 	}
 
-	/** @return array<string, mixed>|null */
-	public function getActiveContext(): ?array {
-		return $this->activeContext;
+	public function getActiveGroupScope(): ?ActiveGroupScope {
+		return $this->activeGroupScope;
 	}
 
 	/** @param array<string, mixed> $requestOverrides */

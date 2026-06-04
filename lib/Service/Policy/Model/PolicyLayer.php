@@ -17,8 +17,6 @@ final class PolicyLayer {
 	private array $allowedValues = [];
 	private bool $createdBySystemAdmin = false;
 	private bool $delegatedFromSystemCreatedSeed = false;
-	/** @var array<string, mixed> */
-	private array $notes = [];
 
 	public function setScope(string $scope): self {
 		$this->scope = $scope;
@@ -83,16 +81,5 @@ final class PolicyLayer {
 
 	public function isDelegatedFromSystemCreatedSeed(): bool {
 		return $this->delegatedFromSystemCreatedSeed;
-	}
-
-	/** @param array<string, mixed> $notes */
-	public function setNotes(array $notes): self {
-		$this->notes = $notes;
-		return $this;
-	}
-
-	/** @return array<string, mixed> */
-	public function getNotes(): array {
-		return $this->notes;
 	}
 }
