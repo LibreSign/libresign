@@ -10,16 +10,33 @@ namespace OCA\Libresign\Service\Policy\Runtime;
 
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
-use OCA\Libresign\Service\Policy\Provider\PolicyProviders;
 use Psr\Container\ContainerInterface;
 
 final class PolicyRegistry {
+	/** @var array<string, class-string<IPolicyDefinitionProvider>> */
+	private array $keyToProviderClass = [];
+	/** @var array<string, IPolicyDefinitionProvider> */
+	private array $providerInstances = [];
 	/** @var array<string, IPolicyDefinition> */
 	private array $definitions = [];
 
+	/**
+	 * @param list<class-string<IPolicyDefinitionProvider>> $providerClasses
+	 */
 	public function __construct(
 		private ContainerInterface $container,
+		array $providerClasses = [],
 	) {
+		foreach ($providerClasses as $providerClass) {
+			$provider = $this->container->get($providerClass);
+			if (!$provider instanceof IPolicyDefinitionProvider) {
+				throw new \UnexpectedValueException('Invalid policy provider: ' . $providerClass);
+			}
+			$this->providerInstances[$providerClass] = $provider;
+			foreach ($provider->keys() as $key) {
+				$this->keyToProviderClass[$key] = $providerClass;
+			}
+		}
 	}
 
 	public function get(string|\BackedEnum $policyKey): IPolicyDefinition {
@@ -29,12 +46,12 @@ final class PolicyRegistry {
 			return $definition;
 		}
 
-		$providerClass = PolicyProviders::BY_KEY[$policyKeyValue] ?? null;
+		$providerClass = $this->keyToProviderClass[$policyKeyValue] ?? null;
 		if (!is_string($providerClass) || $providerClass === '') {
 			throw new \InvalidArgumentException('Unknown policy key: ' . $policyKeyValue);
 		}
 
-		$provider = $this->container->get($providerClass);
+		$provider = $this->providerInstances[$providerClass] ?? null;
 		if (!$provider instanceof IPolicyDefinitionProvider) {
 			throw new \UnexpectedValueException('Invalid policy provider: ' . $providerClass);
 		}
@@ -45,6 +62,11 @@ final class PolicyRegistry {
 		}
 
 		return $this->definitions[$policyKeyValue] = $definition;
+	}
+
+	/** @return list<string> */
+	public function getAllPolicyKeys(): array {
+		return array_keys($this->keyToProviderClass);
 	}
 
 	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {

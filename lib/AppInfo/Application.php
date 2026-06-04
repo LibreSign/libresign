@@ -29,6 +29,28 @@ use OCA\Libresign\Middleware\GlobalInjectionMiddleware;
 use OCA\Libresign\Middleware\InjectionMiddleware;
 use OCA\Libresign\Notification\Notifier;
 use OCA\Libresign\Search\FileSearchProvider;
+use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
+use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
+use OCA\Libresign\Service\Policy\Provider\CrlValidation\CrlValidationPolicy;
+use OCA\Libresign\Service\Policy\Provider\DefaultUserFolder\DefaultUserFolderPolicy;
+use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
+use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
+use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
+use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
+use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
+use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
+use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
+use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
+use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
+use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -56,6 +78,32 @@ class Application extends App implements IBootstrap {
 		$context->registerMiddleWare(GlobalInjectionMiddleware::class, true);
 		$context->registerMiddleWare(InjectionMiddleware::class);
 		$context->registerCapability(Capabilities::class);
+
+		$context->registerService(PolicyRegistry::class, static function ($c) {
+			return new PolicyRegistry($c, [
+				ApprovalGroupsPolicy::class,
+				CollectMetadataPolicy::class,
+				ConfettiPolicy::class,
+				CrlValidationPolicy::class,
+				DefaultUserFolderPolicy::class,
+				DocMdpPolicy::class,
+				EnvelopePolicy::class,
+				ExpirationRulesPolicy::class,
+				FooterPolicy::class,
+				IdentificationDocumentsPolicy::class,
+				IdentifyMethodsPolicy::class,
+				LegalInformationPolicy::class,
+				ReminderPolicy::class,
+				RequestSignGroupsPolicy::class,
+				SignatureFlowPolicy::class,
+				SignatureHashAlgorithmPolicy::class,
+				SignatureTextPolicy::class,
+				TsaPolicy::class,
+				ValidationAccessPolicy::class,
+				SigningModePolicy::class,
+				WorkerConfigPolicy::class,
+			]);
+		});
 
 		$context->registerNotifierService(Notifier::class);
 

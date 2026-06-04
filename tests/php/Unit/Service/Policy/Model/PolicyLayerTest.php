@@ -22,7 +22,6 @@ final class PolicyLayerTest extends TestCase {
 		$this->assertSame([], $layer->getAllowedValues());
 		$this->assertFalse($layer->isCreatedBySystemAdmin());
 		$this->assertFalse($layer->isDelegatedFromSystemCreatedSeed());
-		$this->assertSame([], $layer->getNotes());
 	}
 
 	public function testSettersStoreValues(): void {
@@ -34,8 +33,7 @@ final class PolicyLayerTest extends TestCase {
 			->setVisibleToChild(false)
 			->setAllowedValues([['type' => 'parallel'], ['type' => 'ordered_numeric']])
 			->setCreatedBySystemAdmin(true)
-			->setDelegatedFromSystemCreatedSeed(true)
-			->setNotes(['reason' => 'organization-default']);
+			->setDelegatedFromSystemCreatedSeed(true);
 
 		$this->assertSame('group', $layer->getScope());
 		$this->assertSame(['type' => 'ordered_numeric'], $layer->getValue());
@@ -44,15 +42,5 @@ final class PolicyLayerTest extends TestCase {
 		$this->assertSame([['type' => 'parallel'], ['type' => 'ordered_numeric']], $layer->getAllowedValues());
 		$this->assertTrue($layer->isCreatedBySystemAdmin());
 		$this->assertTrue($layer->isDelegatedFromSystemCreatedSeed());
-		$this->assertSame(['reason' => 'organization-default'], $layer->getNotes());
-	}
-
-	public function testTypedAuthFieldsDefaultToFalseAndAreIndependentOfNotes(): void {
-		$layer = (new PolicyLayer())
-			->setNotes(['reason' => 'some-metadata']);
-
-		$this->assertFalse($layer->isCreatedBySystemAdmin());
-		$this->assertFalse($layer->isDelegatedFromSystemCreatedSeed());
-		$this->assertSame(['reason' => 'some-metadata'], $layer->getNotes());
 	}
 }

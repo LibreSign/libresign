@@ -99,12 +99,6 @@ final class PolicyAuthorizationService implements IPolicyAuthorizationService {
 	}
 
 	private function wasGroupPolicyCreatedBySystemAdmin(PolicyLayer $policy): bool {
-		$notes = $policy->getNotes();
-		$createdBySystemAdmin = $notes['createdBySystemAdmin'] ?? null;
-		if (is_bool($createdBySystemAdmin)) {
-			return $createdBySystemAdmin;
-		}
-
-		return ($notes['createdByActorScope'] ?? null) === 'system';
+		return $policy->isCreatedBySystemAdmin();
 	}
 }
