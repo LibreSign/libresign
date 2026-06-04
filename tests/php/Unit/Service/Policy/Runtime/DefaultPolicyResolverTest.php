@@ -356,7 +356,6 @@ final class DefaultPolicyResolverTest extends TestCase {
 				->setAllowChildOverride(true)
 				->setVisibleToChild(true)
 				->setCreatedBySystemAdmin(true)
-				->setNotes(['createdByActorScope' => 'system']),
 		];
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -389,7 +388,6 @@ final class DefaultPolicyResolverTest extends TestCase {
 				->setVisibleToChild(true)
 				->setCreatedBySystemAdmin(false)
 				->setDelegatedFromSystemCreatedSeed(true)
-				->setNotes(['createdByActorScope' => 'group']),
 		];
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -859,7 +857,7 @@ final class InMemoryPolicySource implements IPolicySource {
 	public function clearSystemPolicy(string $policyKey): void {
 	}
 
-	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride, bool $createdBySystemAdmin = false): void {
+	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride, bool $createdBySystemAdmin = false, ?PolicyContext $context = null): void {
 	}
 
 	public function loadUserPolicyConfig(string $policyKey, string $userId): ?PolicyLayer {

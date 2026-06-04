@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy\Runtime;
 
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\Policy\Model\ActiveGroupScope;
 use OCA\Libresign\Service\Policy\Model\ActorRole;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCP\AppFramework\Http;
@@ -30,7 +31,9 @@ final class PolicyContextFactory {
 	/** @param array<string, mixed> $requestOverrides */
 	public function forCurrentUser(array $requestOverrides = [], ?array $activeContext = null): PolicyContext {
 		$user = $this->userSession->getUser();
-		return $this->build($user?->getUID(), $user, $requestOverrides, $activeContext, $user);
+		$actorGroupIds = $activeContext !== null ? $this->getUserGroupIds($user) : null;
+		$scope = $this->parseActiveGroupScope($activeContext, $user, $actorGroupIds);
+		return $this->build($user?->getUID(), $user, $requestOverrides, $scope, $user, $actorGroupIds);
 	}
 
 	public function isCurrentActorSystemAdmin(): bool {
@@ -44,7 +47,10 @@ final class PolicyContextFactory {
 
 	/** @param array<string, mixed> $requestOverrides */
 	public function forUser(?IUser $user, array $requestOverrides = [], ?array $activeContext = null): PolicyContext {
-		return $this->build($user?->getUID(), $user, $requestOverrides, $activeContext, $this->userSession->getUser());
+		$currentActor = $this->userSession->getUser();
+		$actorGroupIds = $activeContext !== null ? $this->getUserGroupIds($currentActor) : null;
+		$scope = $this->parseActiveGroupScope($activeContext, $currentActor, $actorGroupIds);
+		return $this->build($user?->getUID(), $user, $requestOverrides, $scope, $currentActor, $actorGroupIds);
 	}
 
 	/** @param array<string, mixed> $requestOverrides */
@@ -57,24 +63,27 @@ final class PolicyContextFactory {
 			}
 		}
 
-		return $this->build($userId, $user, $requestOverrides, $activeContext, $this->userSession->getUser());
+		$currentActor = $this->userSession->getUser();
+		$actorGroupIds = $activeContext !== null ? $this->getUserGroupIds($currentActor) : null;
+		$scope = $this->parseActiveGroupScope($activeContext, $currentActor, $actorGroupIds);
+		return $this->build($userId, $user, $requestOverrides, $scope, $currentActor, $actorGroupIds);
 	}
 
 	/** @param array<string, mixed> $requestOverrides */
-	private function build(?string $userId, ?IUser $user, array $requestOverrides = [], ?array $activeContext = null, ?IUser $currentActor = null): PolicyContext {
-		$isCurrentActorContext = $user instanceof IUser && $currentActor instanceof IUser && $user === $currentActor;
+	private function build(?string $userId, ?IUser $user, array $requestOverrides = [], ?ActiveGroupScope $activeGroupScope = null, ?IUser $currentActor = null, ?array $currentActorGroupIds = null): PolicyContext {
+		$isCurrentActorContext = $user instanceof IUser
+			&& $currentActor instanceof IUser
+			&& $user->getUID() === $currentActor->getUID();
 		$sharedGroupIds = [];
 		if ($isCurrentActorContext) {
-			$sharedGroupIds = $this->getUserGroupIds($user);
+			$sharedGroupIds = $currentActorGroupIds ?? $this->getUserGroupIds($user);
 		}
 
-		$actorGroupIds = $isCurrentActorContext ? $sharedGroupIds : null;
-
-		$validatedActiveContext = $this->validateActiveContext($activeContext, $currentActor, $actorGroupIds);
+		$actorGroupIds = $currentActorGroupIds ?? ($isCurrentActorContext ? $sharedGroupIds : null);
 
 		$context = (new PolicyContext())
 			->setRequestOverrides($requestOverrides)
-			->setActiveContext($validatedActiveContext)
+			->setActiveGroupScope($activeGroupScope)
 			->setActorRole($this->resolveActorRole($currentActor, $actorGroupIds));
 
 		if ($userId !== null && $userId !== '') {
@@ -87,10 +96,11 @@ final class PolicyContextFactory {
 		return $context;
 	}
 
-	/** @param array<string, mixed>|null $activeContext
-	 * @return array<string, mixed>|null
+	/**
+	 * @param array<string, mixed>|null $activeContext
+	 * @param list<string>|null $currentActorGroupIds
 	 */
-	private function validateActiveContext(?array $activeContext, ?IUser $currentActor, ?array $currentActorGroupIds = null): ?array {
+	private function parseActiveGroupScope(?array $activeContext, ?IUser $currentActor, ?array $currentActorGroupIds = null): ?ActiveGroupScope {
 		if ($activeContext === null) {
 			return null;
 		}
@@ -111,10 +121,7 @@ final class PolicyContextFactory {
 			throw new LibresignException('You are not allowed to use this policy context.', Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
 
-		return [
-			'type' => 'group',
-			'id' => $groupId,
-		];
+		return new ActiveGroupScope($groupId);
 	}
 
 	private function resolveActorRole(?IUser $currentActor, ?array $currentActorGroupIds = null): ActorRole {

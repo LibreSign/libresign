@@ -12,7 +12,6 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
-use OCA\Libresign\Service\Policy\Provider\PolicyProviders;
 use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
@@ -60,7 +59,7 @@ class PolicyService {
 	public function resolveKnownPolicies(array $requestOverrides = [], ?array $activeContext = null): array {
 		$context = $this->contextFactory->forCurrentUser($requestOverrides, $activeContext);
 		$definitions = [];
-		foreach (array_keys(PolicyProviders::BY_KEY) as $policyKey) {
+		foreach ($this->registry->getAllPolicyKeys() as $policyKey) {
 			$definitions[] = $this->registry->get($policyKey);
 		}
 
@@ -182,6 +181,7 @@ class PolicyService {
 			$normalizedValue,
 			$allowChildOverride,
 			$createdBySystemAdmin,
+			$context,
 		);
 
 		return $this->source->loadGroupPolicyConfig($definition->key(), $groupId)

@@ -17,15 +17,29 @@ use OCA\Libresign\Db\PermissionSetMapper;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
+use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
+use OCA\Libresign\Service\Policy\Provider\CrlValidation\CrlValidationPolicy;
+use OCA\Libresign\Service\Policy\Provider\DefaultUserFolder\DefaultUserFolderPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
+use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
+use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
+use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyManagedValue;
+use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
+use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
+use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
 use OCA\Libresign\Tests\Unit\TestCase;
@@ -115,7 +129,29 @@ final class PolicySourceTest extends TestCase {
 
 				return new $class();
 			});
-		$this->registry = new PolicyRegistry($container);
+		$this->registry = new PolicyRegistry($container, [
+			ApprovalGroupsPolicy::class,
+			CollectMetadataPolicy::class,
+			ConfettiPolicy::class,
+			CrlValidationPolicy::class,
+			DefaultUserFolderPolicy::class,
+			DocMdpPolicy::class,
+			EnvelopePolicy::class,
+			ExpirationRulesPolicy::class,
+			FooterPolicy::class,
+			IdentificationDocumentsPolicy::class,
+			IdentifyMethodsPolicy::class,
+			LegalInformationPolicy::class,
+			ReminderPolicy::class,
+			RequestSignGroupsPolicy::class,
+			SignatureFlowPolicy::class,
+			SignatureHashAlgorithmPolicy::class,
+			SignatureTextPolicy::class,
+			TsaPolicy::class,
+			ValidationAccessPolicy::class,
+			SigningModePolicy::class,
+			WorkerConfigPolicy::class,
+		]);
 	}
 
 	public function testLoadSystemPolicyReturnsForcedLayerWhenAppConfigIsSet(): void {
@@ -174,7 +210,7 @@ final class PolicySourceTest extends TestCase {
 
 		$context = PolicyContext::fromUserId('john')
 			->setGroups(['finance'])
-			->setActiveContext(['type' => 'group', 'id' => 'finance']);
+			->setActiveGroupScope(new \OCA\Libresign\Service\Policy\Model\ActiveGroupScope('finance'));
 
 		$source = $this->getSource();
 		$layers = $source->loadGroupPolicies('signature_flow', $context);
@@ -219,12 +255,11 @@ final class PolicySourceTest extends TestCase {
 
 		$context = PolicyContext::fromUserId('john')
 			->setGroups(['finance'])
-			->setActiveContext(['type' => 'group', 'id' => 'finance']);
+			->setActiveGroupScope(new \OCA\Libresign\Service\Policy\Model\ActiveGroupScope('finance'));
 
 		$layers = $this->getSource()->loadGroupPolicies('signature_flow', $context);
 
 		$this->assertCount(1, $layers);
-		$this->assertSame('system', $layers[0]->getNotes()['createdByActorScope'] ?? null);
 		$this->assertTrue($layers[0]->isCreatedBySystemAdmin());
 	}
 
@@ -275,13 +310,12 @@ final class PolicySourceTest extends TestCase {
 
 		$context = PolicyContext::fromUserId('ceo')
 			->setGroups(['board'])
-			->setActiveContext(['type' => 'group', 'id' => 'board']);
+			->setActiveGroupScope(new \OCA\Libresign\Service\Policy\Model\ActiveGroupScope('board'));
 
 		$layers = $this->getSource()->loadGroupPolicies(RequestSignGroupsPolicy::KEY, $context);
 
 		$this->assertCount(1, $layers);
 		$this->assertFalse($layers[0]->isCreatedBySystemAdmin());
-		$this->assertSame('group', $layers[0]->getNotes()['createdByActorScope'] ?? null);
 		$this->assertTrue($layers[0]->isDelegatedFromSystemCreatedSeed());
 	}
 
@@ -794,10 +828,9 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame('parallel', $layer->getValue());
 		$this->assertTrue($layer->isAllowChildOverride());
 		$this->assertFalse($layer->isCreatedBySystemAdmin());
-		$this->assertSame([], $layer->getNotes());
 	}
 
-	public function testLoadGroupPolicyConfigMapsLegacyCreatorScopeToBooleanOriginNote(): void {
+	public function testLoadGroupPolicyConfigMapsLegacyCreatorScopeToSystemAdminFlag(): void {
 		$binding = new PermissionSetBinding();
 		$binding->setPermissionSetId(77);
 		$binding->setTargetType('group');
@@ -831,7 +864,6 @@ final class PolicySourceTest extends TestCase {
 		$layer = $source->loadGroupPolicyConfig('signature_flow', 'finance');
 
 		$this->assertNotNull($layer);
-		$this->assertSame('system', $layer->getNotes()['createdByActorScope'] ?? null);
 		$this->assertTrue($layer->isCreatedBySystemAdmin());
 	}
 
@@ -894,7 +926,6 @@ final class PolicySourceTest extends TestCase {
 			$layer->getValue(),
 		);
 		$this->assertFalse($layer->isCreatedBySystemAdmin());
-		$this->assertSame('group', $layer->getNotes()['createdByActorScope'] ?? null);
 	}
 
 	public function testListGroupPoliciesByKeyUsesDelegatedRequestSignOverrideOnlyOncePerTarget(): void {
@@ -1363,7 +1394,7 @@ final class PolicySourceTest extends TestCase {
 
 		$context = PolicyContext::fromUserId('john')
 			->setGroups(['finance'])
-			->setActiveContext(['type' => 'group', 'id' => 'finance']);
+			->setActiveGroupScope(new \OCA\Libresign\Service\Policy\Model\ActiveGroupScope('finance'));
 
 		$source = $this->getSource();
 		$result = $source->loadAllGroupPolicies(['signature_flow', 'docmdp', 'footer_template'], $context);
@@ -1413,12 +1444,11 @@ final class PolicySourceTest extends TestCase {
 
 		$context = PolicyContext::fromUserId('john')
 			->setGroups(['finance'])
-			->setActiveContext(['type' => 'group', 'id' => 'finance']);
+			->setActiveGroupScope(new \OCA\Libresign\Service\Policy\Model\ActiveGroupScope('finance'));
 
 		$result = $this->getSource()->loadAllGroupPolicies(['signature_flow'], $context);
 
 		$this->assertCount(1, $result['signature_flow']);
-		$this->assertSame('system', $result['signature_flow'][0]->getNotes()['createdByActorScope'] ?? null);
 		$this->assertTrue($result['signature_flow'][0]->isCreatedBySystemAdmin());
 	}
 

@@ -47,7 +47,9 @@ final class PolicyContextFactoryTest extends TestCase {
 		$this->assertSame('john', $context->getUserId());
 		$this->assertSame(['finance'], $context->getGroups());
 		$this->assertSame(['signature_flow' => 'parallel'], $context->getRequestOverrides());
-		$this->assertSame(['type' => 'group', 'id' => 'finance'], $context->getActiveContext());
+		$scope = $context->getActiveGroupScope();
+		$this->assertNotNull($scope);
+		$this->assertSame('finance', $scope->groupId);
 		$role = $context->getActorRole();
 		$this->assertFalse($role->canManageSystemPolicies);
 		$this->assertTrue($role->canManageGroupPolicies);
