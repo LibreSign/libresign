@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service\Policy\Runtime;
 
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
+use OCA\Libresign\Service\Policy\Provider\PolicyProviders;
 use Psr\Container\ContainerInterface;
 
 final class PolicyRegistry {
@@ -27,15 +28,18 @@ final class PolicyRegistry {
 		private ContainerInterface $container,
 		array $providerClasses = [],
 	) {
-		foreach ($providerClasses as $providerClass) {
-			$provider = $this->container->get($providerClass);
-			if (!$provider instanceof IPolicyDefinitionProvider) {
-				throw new \UnexpectedValueException('Invalid policy provider: ' . $providerClass);
+		if ($providerClasses === []) {
+			$this->keyToProviderClass = PolicyProviders::BY_KEY;
+			return;
+		}
+
+		$allowedProviders = array_fill_keys($providerClasses, true);
+		foreach (PolicyProviders::BY_KEY as $key => $providerClass) {
+			if (!isset($allowedProviders[$providerClass])) {
+				continue;
 			}
-			$this->providerInstances[$providerClass] = $provider;
-			foreach ($provider->keys() as $key) {
-				$this->keyToProviderClass[$key] = $providerClass;
-			}
+
+			$this->keyToProviderClass[$key] = $providerClass;
 		}
 	}
 
@@ -51,10 +55,12 @@ final class PolicyRegistry {
 			throw new \InvalidArgumentException('Unknown policy key: ' . $policyKeyValue);
 		}
 
-		$provider = $this->providerInstances[$providerClass] ?? null;
+		$provider = $this->providerInstances[$providerClass] ?? $this->container->get($providerClass);
 		if (!$provider instanceof IPolicyDefinitionProvider) {
 			throw new \UnexpectedValueException('Invalid policy provider: ' . $providerClass);
 		}
+
+		$this->providerInstances[$providerClass] = $provider;
 
 		$definition = $provider->get($policyKeyValue);
 		if ($definition->key() !== $policyKeyValue) {
