@@ -134,6 +134,13 @@ final class PolicyRegistryTest extends TestCase {
 		$this->assertSame($first, $second);
 		$this->assertSame(1, $provider->calls);
 	}
+
+	public function testRegistryDoesNotResolveProvidersDuringConstruction(): void {
+		$container = $this->createMock(ContainerInterface::class);
+		$container->expects($this->never())->method('get');
+
+		new PolicyRegistry($container, [SignatureFlowPolicy::class]);
+	}
 }
 
 final class CountingPolicyDefinitionProvider implements IPolicyDefinitionProvider {
