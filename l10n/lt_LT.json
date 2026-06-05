@@ -273,7 +273,7 @@
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Data ir laikas, kai pasirašantysis patvirtino pasirašymą (jo laiko juostoje)",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Pasirašančiojo laiko juosta, kai jis patvirtino pasirašymą (jo laiko juostoje)",
     "Date and time when the signature was applied on the server (ISO 8601 format). Can be formatted using the Twig date filter." : "Data ir laikas, kada parašas buvo taikomas serveryje (ISO 8601 formatu). Galima formatuoti naudojant „Twig“ datos filtrą.",
-    "Common Name (CN) used to identify the document signer." : "Bendrasis vardas (CN), naudojamas dokumento pasirašytojo identifikavimui.",
+    "Common Name (CN) used to identify the document signer." : "Bendrasis pavadinimas (CN), naudojamas dokumento pasirašytojo identifikavimui.",
     "The signer's email is optional and can be left blank." : "Pasirašančiojo el. pašto adresas yra neprivalomas ir gali būti paliktas tuščias.",
     "Unique information used to identify the signer (such as email, phone number, or username)." : "Unikali informacija, naudojama pasirašančiąjam identifikuoti (pvz., el. pašto adresas, telefono numeris arba vartotojo vardas).",
     "Validation URL of the signed document." : "Pasirašyto dokumento patvirtinimo URL.",
