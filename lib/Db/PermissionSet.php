@@ -10,7 +10,6 @@ namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\Entity;
 use OCP\DB\Types;
-
 use function json_decode;
 use function json_encode;
 

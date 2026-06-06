@@ -109,7 +109,6 @@ final class PolicyRegistryTest extends TestCase {
 		$this->assertSame('["admin","finance"]', $definition->normalizeValue(['finance', 'admin']));
 	}
 
-
 	public function testRegistryThrowsForUnknownPolicy(): void {
 		$this->expectException(\InvalidArgumentException::class);
 

@@ -10,7 +10,6 @@ namespace OCA\Libresign\Service\Policy\Model;
 
 use Closure;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
-
 use function in_array;
 use function sprintf;
 
