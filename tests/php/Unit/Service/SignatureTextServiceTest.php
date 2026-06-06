@@ -44,7 +44,6 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 	/** @var array<string, mixed> */
 	private array $policyValues = [];
 
-
 	public function setUp(): void {
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->dateTimeZone = \OCP\Server::get(IDateTimeZone::class);

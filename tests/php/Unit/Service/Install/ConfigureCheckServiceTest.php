@@ -9,6 +9,7 @@ declare(strict_types=1);
 /**
  * Mock extension_loaded in the ConfigureCheckService namespace to control its behavior in tests
  */
+
 namespace OCA\Libresign\Service\Install;
 
 function extension_loaded(string $name): bool {

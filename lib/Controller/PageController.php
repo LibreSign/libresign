@@ -302,7 +302,6 @@ class PageController extends AEnvironmentPageAwareController {
 		return preg_match('/^policies(?:\/|$)/', $path) === 1;
 	}
 
-
 	/**
 	 * Sign page to authenticated signer
 	 *

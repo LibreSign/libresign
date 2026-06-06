@@ -134,7 +134,6 @@ class CrlRevocationChecker {
 			}
 
 			return $this->checkCertificateInCrlWithDetails($certPem, $crlContent);
-
 		} catch (\Exception) {
 			return ['status' => CrlValidationStatus::VALIDATION_ERROR];
 		}
@@ -289,7 +288,6 @@ class CrlRevocationChecker {
 				}
 
 				return ['status' => CrlValidationStatus::VALID];
-
 			} finally {
 				if (file_exists($tempCrlFile)) {
 					unlink($tempCrlFile);

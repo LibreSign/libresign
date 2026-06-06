@@ -260,7 +260,6 @@ final class DocMdpHandlerTest extends TestCase {
 		$this->assertSame($expectedLevel->value, $result['docmdp']['level'], "PDF with P=$pValue must be detected as {$expectedLevel->name}");
 	}
 
-
 	// PDF fixture methods are now provided by PdfFixtureTrait
 
 	// ISO 32000-1 Table 252 validation tests

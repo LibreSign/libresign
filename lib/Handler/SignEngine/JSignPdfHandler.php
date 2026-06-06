@@ -441,7 +441,6 @@ class JSignPdfHandler extends Pkcs12Handler {
 		return max($scaleFactor, self::SCALE_FACTOR_MIN);
 	}
 
-
 	#[\Override]
 	public function readCertificate(): array {
 		$result = $this->certificateEngineFactory

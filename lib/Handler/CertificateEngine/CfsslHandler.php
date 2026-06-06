@@ -596,7 +596,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			}
 
 			return $responseData['success'];
-
 		} catch (RequestException|ConnectException $e) {
 			throw new \RuntimeException('Failed to communicate with CFSSL server: ' . $e->getMessage());
 		} catch (\Throwable $e) {

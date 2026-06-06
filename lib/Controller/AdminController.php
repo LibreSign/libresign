@@ -242,8 +242,6 @@ class AdminController extends AEnvironmentAwareController {
 		);
 	}
 
-
-
 	/**
 	 * @IgnoreOpenAPI
 	 */

@@ -226,7 +226,6 @@ class ReminderService {
 		return $this->shouldNotifyAfterSomeDays($summarized['last'], $now, $daysBetween);
 	}
 
-
 	private function isMaxReached(int $total, int $max): bool {
 		return $max > 0 && $total >= $max;
 	}

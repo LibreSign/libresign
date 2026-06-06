@@ -37,7 +37,6 @@ final class CapabilitiesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->policyService = $this->createMock(PolicyService::class);
 	}
 
-
 	private function getClass(): Capabilities {
 		$this->capabilities = new Capabilities(
 			$this->signerElementsService,

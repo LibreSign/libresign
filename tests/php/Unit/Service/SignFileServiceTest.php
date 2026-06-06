@@ -341,7 +341,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame(1, $enqueued);
 	}
 
-
 	public function testEnqueueParallelSigningJobsStoresCredentialsWhenPasswordless(): void {
 		$service = $this->getService();
 		$service->setSignWithoutPassword(true);

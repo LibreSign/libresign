@@ -38,7 +38,6 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 		$this->policyService = $this->createMock(PolicyService::class);
 	}
 
-
 	private function getClass(): SignatureBackgroundService {
 		$this->service = new SignatureBackgroundService(
 			$this->appData,

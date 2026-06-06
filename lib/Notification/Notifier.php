@@ -213,7 +213,6 @@ class Notifier implements INotifier {
 		}
 
 		return $notification;
-
 	}
 
 	private function parseCanceled(

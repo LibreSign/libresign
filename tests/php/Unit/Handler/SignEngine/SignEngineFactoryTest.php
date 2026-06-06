@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
 
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
