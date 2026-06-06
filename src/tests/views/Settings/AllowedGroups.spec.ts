@@ -52,6 +52,42 @@ describe('AllowedGroups', () => {
 		saveSystemPolicyMock.mockClear()
 	})
 
+	it('renders managed-group guidance in the legacy settings copy', async () => {
+		axiosGetMock.mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						groups: [
+							{ id: 'admin', displayname: 'admin' },
+						],
+					},
+				},
+			},
+		})
+
+		const wrapper = mount(AllowedGroups as never, {
+			global: {
+				stubs: {
+					NcSettingsSection: {
+						name: 'NcSettingsSection',
+						props: ['name', 'description'],
+						template: '<div class="settings-section-stub" :data-name="name" :data-description="description"><slot /></div>',
+					},
+					NcSelect: {
+						name: 'NcSelect',
+						props: ['modelValue', 'ariaLabelCombobox'],
+						emits: ['update:modelValue', 'search-change'],
+						template: '<div class="nc-select-stub" :data-aria-label="ariaLabelCombobox" />',
+					},
+				},
+			},
+		})
+		await flushPromises()
+
+		expect(wrapper.find('.settings-section-stub').attributes('data-description')).toBe('Choose which groups are authorized to create signature requests. Delegated group admins may authorize only groups they manage. The default admin group always has this permission.')
+		expect(wrapper.find('.nc-select-stub').attributes('data-aria-label')).toBe('Choose groups authorized to create signature requests. Delegated group admins may authorize only groups they manage.')
+	})
+
 	it('persists when adding and removing groups', async () => {
 		axiosGetMock.mockImplementation((url: string) => {
 			if (url.includes('cloud/groups/details')) {
