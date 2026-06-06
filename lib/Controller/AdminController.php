@@ -240,8 +240,6 @@ class AdminController extends AEnvironmentAwareController {
 		return new DataResponse($checks);
 	}
 
-
-
 	/**
 	 * @IgnoreOpenAPI
 	 */
