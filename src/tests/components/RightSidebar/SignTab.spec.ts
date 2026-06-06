@@ -3,24 +3,23 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import type { Pinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi, type MockedFunction } from 'vitest'
+
 import SignTab from '../../../components/RightSidebar/SignTab.vue'
-import { useSignStore } from '../../../store/sign.js'
-import { useSidebarStore } from '../../../store/sidebar.js'
+
 import { FILE_STATUS } from '../../../constants.js'
+import { useSidebarStore } from '../../../store/sidebar.js'
+import { useSignStore } from '../../../store/sign.js'
 import type { SignatureMethodsRecord } from '../../../types/index'
 import type { TranslationFunction } from '../../test-types'
-import type { MockedFunction } from 'vitest'
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn(),
 }))
-
-import { loadState } from '@nextcloud/initial-state'
 
 type SignDocument = {
 	id: number
@@ -46,8 +45,11 @@ type SignDocument = {
 type SignTabVm = {
 	signEnabled: () => boolean
 	getSignRequestUuid: () => string | null
+	openSignDocument: () => Promise<void> | void
 	onSigned: (data: { signRequestUuid: string }) => Promise<void> | void
 	onSigningStarted: (data: { signRequestUuid: string }) => Promise<void> | void
+	shouldReviewBeforeSigning?: boolean
+	canOpenSignDocument?: boolean
 	showSidebar?: boolean
 	activeTab?: string
 	show?: boolean
@@ -82,6 +84,7 @@ const createDocument = (overrides: Partial<SignDocument> = {}): SignDocument => 
 
 describe('SignTab', () => {
 	let wrapper: SignTabWrapper | null
+	let loadStateMock: MockedFunction<typeof import('@nextcloud/initial-state').loadState>
 	let signStore: ReturnType<typeof useSignStore>
 	let mockRouter: {
 		push: MockedFunction<(location: unknown) => Promise<unknown>>
@@ -89,7 +92,7 @@ describe('SignTab', () => {
 	}
 	let pinia: Pinia
 
-	const createWrapper = async (routePath = '/', mockPush = true): Promise<SignTabWrapper> => {
+	const createWrapper = async (routePath = '/'): Promise<SignTabWrapper> => {
 		const t: TranslationFunction = (_app, text) => text
 		// Create a mock router that the component will use via $router
 		mockRouter = {
@@ -112,6 +115,11 @@ describe('SignTab', () => {
 					t,
 				},
 				stubs: {
+					NcButton: {
+						emits: ['click'],
+						template: '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
+						props: ['disabled'],
+					},
 					NcChip: true,
 					Sign: true,
 				},
@@ -119,7 +127,12 @@ describe('SignTab', () => {
 		}) as unknown as SignTabWrapper
 	}
 
-	beforeEach(() => {
+	beforeEach(async () => {
+		const { loadState } = await import('@nextcloud/initial-state')
+		loadStateMock = loadState as MockedFunction<typeof import('@nextcloud/initial-state').loadState>
+		loadStateMock.mockReset()
+		loadStateMock.mockReturnValue(null)
+
 		pinia = createPinia()
 		setActivePinia(pinia)
 		signStore = useSignStore()
@@ -196,27 +209,67 @@ describe('SignTab', () => {
 					{ sign_request_uuid: 'second-uuid' },
 				],
 			})
-			vi.mocked(loadState).mockReturnValue(null)
+			loadStateMock.mockReturnValue(null)
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.getSignRequestUuid()).toBeNull()
 		})
 
 		it('falls back to loadState when no current signer uuid is available', async () => {
-			vi.mocked(loadState).mockReturnValue('state-uuid')
+			loadStateMock.mockReturnValue('state-uuid')
 			signStore.document = createDocument()
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.getSignRequestUuid()).toBe('state-uuid')
-			expect(loadState).toHaveBeenCalledWith('libresign', 'sign_request_uuid', null)
+			expect(loadStateMock).toHaveBeenCalledWith('libresign', 'sign_request_uuid', null)
 		})
 
 		it('returns null when all sources empty', async () => {
-			vi.mocked(loadState).mockReturnValue(null)
+			loadStateMock.mockReturnValue(null)
 			signStore.document = createDocument()
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.getSignRequestUuid()).toBeNull()
+		})
+	})
+
+	describe('RULE: files list sidebar must send the signer to the review screen before signing', () => {
+		it('shows a review-first CTA instead of the embedded signing flow on the files list route', async () => {
+			signStore.document = createDocument({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				statusText: 'Ready to sign',
+				signers: [{ me: true, sign_request_uuid: 'signer-uuid' }],
+			})
+
+			wrapper = await createWrapper('/f/filelist/sign')
+
+			expect(wrapper.vm.shouldReviewBeforeSigning).toBe(true)
+			expect(wrapper.vm.canOpenSignDocument).toBe(true)
+			expect(wrapper.text()).toContain('Open the document to review it before signing.')
+			expect(wrapper.text()).toContain('Review and sign document')
+			expect(wrapper.findComponent({ name: 'Sign' }).exists()).toBe(false)
+		})
+
+		it('routes to the full signing page from the files list CTA', async () => {
+			const sidebarStore = useSidebarStore()
+			const hideSidebarSpy = vi.spyOn(sidebarStore, 'hideSidebar')
+			signStore.document = createDocument({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				statusText: 'Ready to sign',
+				signers: [{ me: true, sign_request_uuid: 'signer-uuid' }],
+			})
+
+			wrapper = await createWrapper('/f/filelist/sign')
+			hideSidebarSpy.mockClear()
+			mockRouter.push.mockClear()
+
+			await wrapper.find('button').trigger('click')
+
+			expect(hideSidebarSpy).toHaveBeenCalledTimes(1)
+			expect(mockRouter.push).toHaveBeenCalledWith({
+				name: 'SignPDF',
+				params: { uuid: 'signer-uuid' },
+			})
 		})
 	})
 
@@ -282,7 +335,7 @@ describe('SignTab', () => {
 				status: FILE_STATUS.SIGNING_IN_PROGRESS,
 				signers: [{ me: true, sign_request_uuid: 'progress-uuid' }],
 			})
-			wrapper = await createWrapper('/', true)
+			wrapper = await createWrapper('/')
 
 			// onSigningStarted should be called in mounted hook and push to router
 			expect(mockRouter.push).toHaveBeenCalledWith({
@@ -297,7 +350,7 @@ describe('SignTab', () => {
 				status: FILE_STATUS.ABLE_TO_SIGN,
 				signers: [{ me: true, sign_request_uuid: 'able-uuid' }],
 			})
-			wrapper = await createWrapper('/', true)
+			wrapper = await createWrapper('/')
 
 			// Should not push for non-SIGNING_IN_PROGRESS status
 			expect(mockRouter.push).not.toHaveBeenCalled()
@@ -307,8 +360,8 @@ describe('SignTab', () => {
 			signStore.document = createDocument({
 				status: FILE_STATUS.SIGNING_IN_PROGRESS,
 			})
-			vi.mocked(loadState).mockReturnValue(null)
-			wrapper = await createWrapper('/', true)
+			loadStateMock.mockReturnValue(null)
+			wrapper = await createWrapper('/')
 
 			// Should not push when UUID is not available
 			expect(mockRouter.push).not.toHaveBeenCalled()
