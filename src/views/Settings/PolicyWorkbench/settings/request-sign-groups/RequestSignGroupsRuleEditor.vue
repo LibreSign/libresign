@@ -68,8 +68,8 @@
 			</section>
 
 			<p v-if="!hideAllowGroups" class="request-sign-groups-editor__helper">
-				<!-- TRANSLATORS Helper note: administrators can only authorize groups they are members of. -->
-				{{ t('libresign', 'Only groups you belong to may be configured in allow or deny lists.') }}
+				<!-- TRANSLATORS Helper note: delegated group admins can only configure groups within their managed scope. -->
+				{{ t('libresign', 'Only groups you manage may be configured in allow or deny lists.') }}
 			</p>
 
 			<!-- The warning is only meaningful when the Authorized section is visible;
