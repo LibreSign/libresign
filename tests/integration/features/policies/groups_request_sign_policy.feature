@@ -394,19 +394,20 @@ Feature: policies/groups_request_sign_policy
       | allowChildOverride | true                                                                    |
     Then the response should have a status code 200
 
-    # RULE: The delegated admin can create a deny override for the hidden board seed.
+    # RULE: The delegated admin can create a deny override for the hidden board seed and lock lower-level customization.
     When sending "put" to ocs "/apps/libresign/api/v1/policies/group/policy-request-access-board-overlay/groups_request_sign"
       | value              | {"allowGroups":["policy-request-access-board-overlay"],"denyGroups":["policy-request-access-board-overlay"]} |
-      | allowChildOverride | true                                                                                                      |
+      | allowChildOverride | false                                                                                                     |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                            | value                                                                                                       |
-      | (jq).ocs.data.policy.policyKey | groups_request_sign                                                                                         |
-      | (jq).ocs.data.policy.targetId  | policy-request-access-board-overlay                                                                         |
-      | (jq).ocs.data.policy.value     | {\"allowGroups\":[\"policy-request-access-board-overlay\"],\"denyGroups\":[\"policy-request-access-board-overlay\"]} |
+      | key                                     | value                                                                                                       |
+      | (jq).ocs.data.policy.policyKey          | groups_request_sign                                                                                         |
+      | (jq).ocs.data.policy.targetId           | policy-request-access-board-overlay                                                                         |
+      | (jq).ocs.data.policy.allowChildOverride | false                                                                                                       |
+      | (jq).ocs.data.policy.value              | {\"allowGroups\":[\"policy-request-access-board-overlay\"],\"denyGroups\":[\"policy-request-access-board-overlay\"]} |
 
     # VALIDATION: The delegated admin must keep the policy card editable and still be able to read the deny row they just created,
-    # even if another managed allow rule remains the effective winner for request creation.
+    # even after locking lower-level customization and while another managed allow rule remains editable.
     When sending "get" to ocs "/apps/libresign/api/v1/policies/effective"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -417,9 +418,10 @@ Feature: policies/groups_request_sign_policy
     When sending "get" to ocs "/apps/libresign/api/v1/policies/group/policy-request-access-board-overlay/groups_request_sign"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                            | value                                                                                                       |
-      | (jq).ocs.data.policy.targetId  | policy-request-access-board-overlay                                                                         |
-      | (jq).ocs.data.policy.value     | {\"allowGroups\":[\"policy-request-access-board-overlay\"],\"denyGroups\":[\"policy-request-access-board-overlay\"]} |
+      | key                                     | value                                                                                                       |
+      | (jq).ocs.data.policy.targetId           | policy-request-access-board-overlay                                                                         |
+      | (jq).ocs.data.policy.allowChildOverride | false                                                                                                       |
+      | (jq).ocs.data.policy.value              | {\"allowGroups\":[\"policy-request-access-board-overlay\"],\"denyGroups\":[\"policy-request-access-board-overlay\"]} |
 
     # RULE: Removing the board row deletes only the delegated deny override.
     When sending "delete" to ocs "/apps/libresign/api/v1/policies/group/policy-request-access-board-overlay/groups_request_sign"
@@ -453,3 +455,4 @@ Feature: policies/groups_request_sign_policy
     Then the response should have a status code 200
     And run the command "group:delete policy-request-access-board-overlay" with result code 0
     And run the command "group:delete policy-request-access-company-overlay" with result code 0
+
