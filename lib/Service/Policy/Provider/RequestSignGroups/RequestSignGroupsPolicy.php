@@ -119,11 +119,15 @@ final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 				continue;
 			}
 
-			if (!$groupLayer->isVisibleToChild() || !$groupLayer->isAllowChildOverride() || $groupLayer->getValue() === null) {
+			if (!$groupLayer->isVisibleToChild() || $groupLayer->getValue() === null) {
 				continue;
 			}
 
-			if (self::wasCreatedBySystemAdmin($groupLayer) || self::isDelegatedFromSystemCreatedSeed($groupLayer)) {
+			if (self::isDelegatedFromSystemCreatedSeed($groupLayer)) {
+				return true;
+			}
+
+			if ($groupLayer->isAllowChildOverride() && self::wasCreatedBySystemAdmin($groupLayer)) {
 				return true;
 			}
 		}
