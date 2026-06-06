@@ -14,6 +14,10 @@ vi.mock('@nextcloud/l10n', () => ({
 import { requestSignGroupsRealDefinition } from '../../../../../../views/Settings/PolicyWorkbench/settings/request-sign-groups/realDefinition'
 
 describe('requestSignGroupsRealDefinition', () => {
+	it('describes delegated request access using managed groups', () => {
+		expect(requestSignGroupsRealDefinition.description).toBe('Define which groups may create signature requests within this scope. Delegated group admins may authorize only groups they manage.')
+	})
+
 	it('allows overriding child customization at system and group scopes', () => {
 		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('system', true)).toBe(true)
 		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('system', false)).toBe(false)
