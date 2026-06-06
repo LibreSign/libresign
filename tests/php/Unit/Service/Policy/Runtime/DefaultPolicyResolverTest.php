@@ -407,6 +407,46 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertTrue($resolved->isEditableByCurrentActor());
 	}
 
+	public function testResolveRequestSignGroupsKeepsEditableWhenDelegatedOverrideLocksLowerLevels(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue(RequestSignGroupsPolicyValue::encode([
+				'allowGroups' => ['admin'],
+				'denyGroups' => [],
+			]))
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue(RequestSignGroupsPolicyValue::encode([
+					'allowGroups' => ['board'],
+					'denyGroups' => ['board'],
+				]))
+				->setAllowChildOverride(false)
+				->setVisibleToChild(true)
+				->setCreatedBySystemAdmin(false)
+				->setDelegatedFromSystemCreatedSeed(true),
+		];
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve(
+			$this->getRequestSignGroupsDefinition(),
+			PolicyContext::fromUserId('ceo')->setActorRole(ActorRole::groupAdmin(1)),
+		);
+
+		$this->assertSame(
+			RequestSignGroupsPolicyValue::encode([
+				'allowGroups' => ['board'],
+				'denyGroups' => ['board'],
+			]),
+			$resolved->getEffectiveValue(),
+		);
+		$this->assertSame('group', $resolved->getSourceScope());
+		$this->assertTrue($resolved->isEditableByCurrentActor());
+	}
+
 	/** @return array<string, array{0: int, 1: bool}> */
 	public static function provideRequestSignGroupsEditableByManageableGroupCountCases(): array {
 		return [
