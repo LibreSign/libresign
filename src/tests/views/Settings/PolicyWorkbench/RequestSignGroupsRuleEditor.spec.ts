@@ -239,7 +239,7 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 
 		expect(wrapper.text()).toContain('Authorized requester groups')
 		expect(wrapper.text()).toContain('Choose which groups may create signature requests within this scope.')
-		expect(wrapper.text()).toContain('Only groups you belong to may be configured in allow or deny lists.')
+		expect(wrapper.text()).toContain('Only groups you manage may be configured in allow or deny lists.')
 	})
 
 	it('keeps long group labels visible for overflow-sensitive cases', async () => {
