@@ -3,19 +3,33 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import axios from '@nextcloud/axios'
-import { getCurrentUser } from '@nextcloud/auth'
-import { loadState } from '@nextcloud/initial-state'
-import { generateOcsUrl } from '@nextcloud/router'
-import { computed, nextTick, reactive, ref } from 'vue'
-import { t } from '@nextcloud/l10n'
+import { computed, nextTick, reactive, ref, type Ref } from 'vue'
 
-import { realDefinitions } from './settings/realDefinitions'
-import type { RealPolicyResolutionMode } from './settings/realTypes'
+import { getCurrentUser } from '@nextcloud/auth'
+import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
+import { t } from '@nextcloud/l10n'
+import { generateOcsUrl } from '@nextcloud/router'
+
 import {
 	normalizeRequestExpirationDraftValue,
 	type RequestExpirationDraftValue,
 } from './settings/expiration-rules/model'
+import {
+	getEnabledIdentifyMethodNames,
+	restrictIdentifyMethodsPolicyToNames,
+} from './settings/identify-methods/model'
+import { realDefinitions } from './settings/realDefinitions'
+import type { RealPolicyResolutionMode } from './settings/realTypes'
+import {
+	resolveDeniedRequestSignGroups,
+	resolveRequestSignGroups,
+	serializeRequestSignGroups,
+} from './settings/request-sign-groups/model'
+import {
+	normalizeSignatureStampDraftValue,
+	resolveCollectMetadataValue,
+} from './settings/signature-text/model'
 import {
 	normalizeSigningExecutionSettings,
 	normalizeWorkerConfig,
@@ -23,29 +37,13 @@ import {
 	serializeWorkerConfig,
 	type SigningExecutionSettingsValue,
 } from './settings/signing-mode/model'
-import {
-	normalizeSignatureStampDraftValue,
-	resolveCollectMetadataValue,
-} from './settings/signature-text/model'
-import {
-	resolveDeniedRequestSignGroups,
-	resolveRequestSignGroups,
-	serializeRequestSignGroups,
-} from './settings/request-sign-groups/model'
-import { canRenderWorkbenchPolicyForGroupAdmin } from '../../Preferences/personalPreferenceVisibility'
+import logger from '../../../logger.js'
 import { usePoliciesStore } from '../../../store/policies'
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../types/index'
-import logger from '../../../logger.js'
+import { canRenderWorkbenchPolicyForGroupAdmin } from '../../Preferences/personalPreferenceVisibility'
 
 type PolicyScope = 'system' | 'group' | 'user'
 type PolicyResolutionMode = RealPolicyResolutionMode
-
-interface PolicyImpactPreview {
-	groupCount?: number
-	userCount?: number
-	activeChildRules?: number
-	blockedChildRules?: number
-}
 
 interface PolicyStickySummary {
 	currentBaseValue: string
@@ -572,6 +570,31 @@ export function createRealPolicyWorkbenchState() {
 		return policy.sourceScope === 'global'
 	})
 
+	const manageableGroupTargetCount = computed(() => {
+		if (manageablePolicyGroupIds.size > 0) {
+			return manageablePolicyGroupIds.size
+		}
+
+		return groups.value.length
+	})
+
+	const canCreateIdentifyMethodsGroupOverride = computed(() => {
+		if (isInstanceAdmin || activeDefinition.value?.key !== 'identify_methods') {
+			return false
+		}
+
+		if (!isScopeSupported('group')) {
+			return false
+		}
+
+		if (manageableGroupTargetCount.value <= 1) {
+			return false
+		}
+
+		return activePolicyState.value?.editableByCurrentActor === false
+			&& activePolicyState.value?.canSaveAsUserDefault === true
+	})
+
 	const effectiveSource = computed(() => {
 		const sourceScope = activePolicyState.value?.sourceScope
 		if (sourceScope === 'system') {
@@ -634,11 +657,11 @@ export function createRealPolicyWorkbenchState() {
 			return null
 		}
 
-		if (activePolicyState.value?.editableByCurrentActor === false) {
+		if (inheritedSystemRule.value?.allowChildOverride === false) {
 			return t('libresign', 'Blocked by the global default.')
 		}
 
-		if (inheritedSystemRule.value?.allowChildOverride === false) {
+		if (activePolicyState.value?.editableByCurrentActor === false && !canCreateIdentifyMethodsGroupOverride.value) {
 			return t('libresign', 'Blocked by the global default.')
 		}
 
@@ -1366,7 +1389,12 @@ export function createRealPolicyWorkbenchState() {
 		explicitSystemRule.value = null
 		groupRules.value = []
 		userRules.value = []
-		void hydratePersistedRules(key)
+		hydratePersistedRules(key).catch((error) => {
+			logger.error('Could not hydrate persisted policy rules', {
+				error,
+				key,
+			})
+		})
 	}
 
 	function mergeSelectedTargets(scope: 'group' | 'user', fetchedTargets: PolicyTargetOption[]) {
@@ -1500,7 +1528,13 @@ export function createRealPolicyWorkbenchState() {
 			return
 		}
 
-		void loadTargets(scope, query)
+		loadTargets(scope, query).catch((error) => {
+			logger.error('Could not search available policy workbench targets', {
+				error,
+				scope,
+				query,
+			})
+		})
 	}
 
 	async function probeGroupAccess() {
@@ -1652,6 +1686,14 @@ export function createRealPolicyWorkbenchState() {
 			)
 		}
 
+		if (!isInstanceAdmin && activeDefinition.value.key === 'identify_methods') {
+			const delegatedMethodNames = getEnabledIdentifyMethodNames(activePolicyState.value?.effectiveValue ?? null)
+			editorDraft.value.value = restrictIdentifyMethodsPolicyToNames(
+				editorDraft.value.value,
+				delegatedMethodNames,
+			)
+		}
+
 		if (
 			!isInstanceAdmin
 			&& editorMode.value === 'create'
@@ -1675,7 +1717,12 @@ export function createRealPolicyWorkbenchState() {
 		editorInitialTouchVersion.value = draftTouchVersion.value
 
 		if (scope === 'group' || scope === 'user') {
-			void loadTargets(scope)
+			loadTargets(scope).catch((error) => {
+				logger.error('Could not preload policy workbench targets', {
+					error,
+					scope,
+				})
+			})
 		}
 	}
 
@@ -2164,7 +2211,7 @@ export function createRealPolicyWorkbenchState() {
 	return reactive({
 		activeDefinition,
 		editorDraft,
-		editorMode: editorMode as any,
+		editorMode: editorMode as Ref<'create' | 'edit' | null>,
 		editorInitialTargetIds,
 		inheritedSystemRule,
 		systemDefaultRule,
@@ -2177,14 +2224,14 @@ export function createRealPolicyWorkbenchState() {
 		createGroupOverrideDisabledReason,
 		createUserOverrideDisabledReason,
 		visibleSettingSummaries,
-		highlightedRuleId: highlightedRuleId as any,
-		viewMode: viewMode as any,
+		highlightedRuleId: highlightedRuleId as Ref<string | null>,
+		viewMode: viewMode as Ref<'system-admin' | 'group-admin'>,
 		availableTargets,
 		loadingTargets,
 		rulesLoading,
 		canManageGroups,
 		draftTargetLabel,
-		duplicateMessage: duplicateMessage as any,
+		duplicateMessage: duplicateMessage as Ref<string | null>,
 		canSaveDraft,
 		isDraftDirty,
 		openSetting,
