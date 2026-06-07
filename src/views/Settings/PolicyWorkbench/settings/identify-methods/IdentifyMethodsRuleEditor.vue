@@ -14,16 +14,19 @@
 			class="identify-methods-editor__method"
 			:class="{ 'identify-methods-editor__method--disabled': !identifyMethod.enabled }">
 			<div class="identify-methods-editor__method-header">
-				<NcCheckboxRadioSwitch type="switch"
+				<NcCheckboxRadioSwitch v-if="canToggleMethodAvailability"
+					type="switch"
 					class="identify-methods-editor__method-main-toggle"
 					:model-value="identifyMethod.enabled"
 					@update:modelValue="onMethodToggle(index, $event)">
 					{{ identifyMethod.friendly_name ?? identifyMethod.name }}
 				</NcCheckboxRadioSwitch>
+				<span v-else class="identify-methods-editor__method-main-label">
+					{{ identifyMethod.friendly_name ?? identifyMethod.name }}
+				</span>
 
 				<div v-if="identifyMethod.enabled" class="identify-methods-editor__requirement-area">
-					<NcCheckboxRadioSwitch
-						v-if="canAdjustRequirement"
+					<NcCheckboxRadioSwitch v-if="canAdjustRequirement"
 						type="switch"
 						class="identify-methods-editor__requirement-switch"
 						:model-value="isRequired(identifyMethod)"
@@ -31,8 +34,7 @@
 						{{ t('libresign', 'Required to sign') }}
 					</NcCheckboxRadioSwitch>
 
-					<NcCheckboxRadioSwitch
-						v-else
+					<NcCheckboxRadioSwitch v-else
 						type="switch"
 						class="identify-methods-editor__requirement-switch identify-methods-editor__requirement-switch--locked"
 						:model-value="true"
@@ -47,8 +49,7 @@
 				<fieldset v-if="Object.keys(identifyMethod.signatureMethods).length > 0" class="identify-methods-editor__sub-section">
 					<legend>{{ t('libresign', 'Confirmation method') }}</legend>
 					<div class="identify-methods-editor__verification-options" role="radiogroup" :aria-label="t('libresign', 'Confirmation method')">
-						<NcCheckboxRadioSwitch
-							v-for="(signatureMethod, signatureMethodName) in identifyMethod.signatureMethods"
+						<NcCheckboxRadioSwitch v-for="(signatureMethod, signatureMethodName) in identifyMethod.signatureMethods"
 							:key="signatureMethodName"
 							type="radio"
 							:name="`verification-method-${identifyMethod.name}-${index}`"
@@ -69,8 +70,7 @@
 				{{ t('libresign', 'Rule settings') }}
 			</p>
 			<div class="identify-methods-editor__global-onboarding">
-				<NcCheckboxRadioSwitch
-					type="switch"
+				<NcCheckboxRadioSwitch type="switch"
 					:model-value="canCreateAccount"
 					@update:modelValue="onGlobalCanCreateAccountToggle($event)">
 					<div class="identify-methods-editor__onboarding-content">
@@ -86,51 +86,85 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import { getCurrentUser } from '@nextcloud/auth'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
+
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 
-import type { EffectivePoliciesResponse, EffectivePolicyValue } from '../../../../../types/index'
 import {
+	getEnabledIdentifyMethodNames,
+	mergeIdentifyMethodsEntriesWithCatalog,
 	normalizeIdentifyMethodsPolicyConfig,
 	normalizeIdentifyMethodsPolicy,
 	serializeIdentifyMethodsPolicy,
-} from './model'
-import type { IdentifyMethodPolicyEntry } from './model'
+} from './model.ts'
 
 defineOptions({
 	name: 'IdentifyMethodsRuleEditor',
 })
 
-const props = defineProps<{
-	modelValue: EffectivePolicyValue
-}>()
+const props = defineProps({
+	modelValue: {
+		type: [String, Number, Boolean, Object, Array],
+		default: null,
+	},
+})
 
-const emit = defineEmits<{
-	'update:modelValue': [value: EffectivePolicyValue]
-}>()
+const emit = defineEmits(['update:modelValue'])
 
 const policyConfig = computed(() => normalizeIdentifyMethodsPolicyConfig(props.modelValue))
 
+const effectivePolicies = loadState('libresign', 'effective_policies', { policies: {} })
+const isInstanceAdmin = getCurrentUser()?.isAdmin === true
+const effectiveIdentifyMethods = (() => {
+	const policies = effectivePolicies && typeof effectivePolicies === 'object'
+		? effectivePolicies.policies
+		: null
+	if (!policies || typeof policies !== 'object') {
+		return []
+	}
+
+	const identifyMethodsPolicy = policies.identify_methods
+	if (!identifyMethodsPolicy || typeof identifyMethodsPolicy !== 'object') {
+		return []
+	}
+
+	if (identifyMethodsPolicy.effectiveValue === undefined || identifyMethodsPolicy.effectiveValue === null) {
+		return []
+	}
+
+	return identifyMethodsPolicy.effectiveValue
+})()
+const identifyMethodsCatalog = normalizeIdentifyMethodsPolicy(effectiveIdentifyMethods)
+const delegatedMethodNames = isInstanceAdmin
+	? null
+	: new Set(getEnabledIdentifyMethodNames(effectiveIdentifyMethods))
+
 const entries = computed(() => {
-	const normalized = policyConfig.value.factors
-	return ensureSignatureMethodSelection(normalized)
+	const normalized = mergeIdentifyMethodsEntriesWithCatalog(policyConfig.value.factors, identifyMethodsCatalog)
+	const visibleEntries = delegatedMethodNames
+		? normalized.filter((entry) => delegatedMethodNames.has(entry.name))
+		: normalized
+	return ensureSignatureMethodSelection(visibleEntries)
 })
 
-const effectivePolicies = loadState<EffectivePoliciesResponse>('libresign', 'effective_policies', { policies: {} })
-const identifyMethodsCatalog = normalizeIdentifyMethodsPolicy(
-	effectivePolicies.policies?.identify_methods?.effectiveValue ?? [],
-)
+const canToggleMethodAvailability = computed(() => entries.value.length > 1)
 
-const signatureMethodLabelsByMethod = new Map<string, Map<string, string>>()
-const signatureMethodLabelsGlobal = new Map<string, string>()
+const signatureMethodLabelsByMethod = new Map()
+const signatureMethodLabelsGlobal = new Map()
 for (const identifyMethod of identifyMethodsCatalog) {
-	const labels = new Map<string, string>()
-	for (const [signatureMethodName, signatureMethodConfig] of Object.entries(identifyMethod.signatureMethods)) {
-		if (typeof signatureMethodConfig.label === 'string' && signatureMethodConfig.label.trim().length > 0) {
-			labels.set(signatureMethodName, signatureMethodConfig.label)
+	const labels = new Map()
+	for (const [signatureMethodName, rawSignatureMethodConfig] of Object.entries(identifyMethod.signatureMethods)) {
+		if (!rawSignatureMethodConfig || typeof rawSignatureMethodConfig !== 'object') {
+			continue
+		}
+
+		const signatureMethodLabel = Reflect.get(rawSignatureMethodConfig, 'label')
+		if (typeof signatureMethodLabel === 'string' && signatureMethodLabel.trim().length > 0) {
+			labels.set(signatureMethodName, signatureMethodLabel)
 			if (!signatureMethodLabelsGlobal.has(signatureMethodName)) {
-				signatureMethodLabelsGlobal.set(signatureMethodName, signatureMethodConfig.label)
+				signatureMethodLabelsGlobal.set(signatureMethodName, signatureMethodLabel)
 			}
 		}
 	}
@@ -148,7 +182,7 @@ const canCreateAccount = computed(() => policyConfig.value.global.canCreateAccou
 const enabledCount = computed(() => entries.value.filter((entry) => entry.enabled).length)
 const canAdjustRequirement = computed(() => enabledCount.value > 1)
 
-function onMethodToggle(index: number, enabled: boolean): void {
+function onMethodToggle(index, enabled) {
 	const nextEntries = [...entries.value]
 	nextEntries[index] = {
 		...nextEntries[index],
@@ -157,7 +191,7 @@ function onMethodToggle(index: number, enabled: boolean): void {
 	emit('update:modelValue', serializeIdentifyMethodsPolicy(ensureSignatureMethodSelection(nextEntries), policyConfig.value.global))
 }
 
-function onRequirementToggle(index: number, required: boolean): void {
+function onRequirementToggle(index, required) {
 	const nextEntries = [...entries.value]
 	nextEntries[index] = {
 		...nextEntries[index],
@@ -166,7 +200,7 @@ function onRequirementToggle(index: number, required: boolean): void {
 	emit('update:modelValue', serializeIdentifyMethodsPolicy(ensureSignatureMethodSelection(nextEntries), policyConfig.value.global))
 }
 
-function onSignatureMethodChange(index: number, signatureMethodName: string): void {
+function onSignatureMethodChange(index, signatureMethodName) {
 	const nextEntries = [...entries.value]
 	nextEntries[index] = {
 		...nextEntries[index],
@@ -175,18 +209,18 @@ function onSignatureMethodChange(index: number, signatureMethodName: string): vo
 	emit('update:modelValue', serializeIdentifyMethodsPolicy(ensureSignatureMethodSelection(nextEntries), policyConfig.value.global))
 }
 
-function onGlobalCanCreateAccountToggle(canCreateAccount: boolean): void {
+function onGlobalCanCreateAccountToggle(canCreateAccount) {
 	emit('update:modelValue', serializeIdentifyMethodsPolicy(entries.value, {
 		...policyConfig.value.global,
 		canCreateAccount,
 	}))
 }
 
-function isRequired(entry: IdentifyMethodPolicyEntry): boolean {
+function isRequired(entry) {
 	return entry.requirement === 'required'
 }
 
-function getVerificationMethodLabel(identifyMethodName: string, signatureMethodName: string, fallbackLabel?: string): string {
+function getVerificationMethodLabel(identifyMethodName, signatureMethodName, fallbackLabel) {
 	if (typeof fallbackLabel === 'string' && fallbackLabel.trim().length > 0) {
 		return fallbackLabel
 	}
@@ -204,7 +238,7 @@ function getVerificationMethodLabel(identifyMethodName: string, signatureMethodN
 	return t('libresign', 'Verification option')
 }
 
-function ensureSignatureMethodSelection(entries: IdentifyMethodPolicyEntry[]): IdentifyMethodPolicyEntry[] {
+function ensureSignatureMethodSelection(entries) {
 	return entries.map((entry) => {
 		const signatureMethodNames = Object.keys(entry.signatureMethods)
 		if (signatureMethodNames.length === 0) {
@@ -287,6 +321,15 @@ function ensureSignatureMethodSelection(entries: IdentifyMethodPolicyEntry[]): I
 	:deep(.checkbox-content) {
 		font-weight: 500;
 	}
+}
+
+.identify-methods-editor__method-main-label {
+	flex: 1 1 auto;
+	font-size: 0.95rem;
+	font-weight: 500;
+	line-height: 1.4;
+	color: var(--color-main-text);
+	padding: 0.24rem 0;
 }
 
 .identify-methods-editor__requirement-area {
