@@ -214,6 +214,7 @@
     "Select a signer to set their signature position" : "Vyberte podpisovateľa a definujte jeho podpisové pozície",
     "Click on the place you want to add." : "Kliknite na miesto, ktoré chcete pridať.",
     "Sign" : "Podpísať",
+    "Failed to load files" : "Nepodarilo sa načítať súbory",
     "Upload cancelled" : "Odosielanie bolo zrušené",
     "Saved" : "Uložené",
     "_{count} selected_::_{count} selected_" : ["{count} vybraný","{count} vybrané","{count} vybraných","{count} vybraných"],
