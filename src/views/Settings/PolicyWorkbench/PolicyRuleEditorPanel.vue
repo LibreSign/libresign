@@ -8,8 +8,7 @@
 		<div class="policy-workbench__editor-panel-content" :class="{ 'policy-workbench__editor-panel-content--saving': saveStatus === 'saving' }">
 			<div class="policy-workbench__editor-header">
 				<p v-if="editorHelp">{{ editorHelp }}</p>
-				<!-- TRANSLATORS Precedence hint for policy scopes from most specific to least specific. -->
-				<p class="policy-workbench__precedence-hint">{{ t('libresign', 'Priority: Account > Group > Default') }}</p>
+				<PolicyPrecedenceHint :scopes="precedenceScopes" variant="editor" />
 			</div>
 
 			<div v-if="editorDraft.scope !== 'system'" class="policy-workbench__field">
@@ -94,6 +93,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSelectUsers from '@nextcloud/vue/components/NcSelectUsers'
+import PolicyPrecedenceHint from './components/PolicyPrecedenceHint.vue'
 
 interface EditorDraft {
 	scope: 'system' | 'group' | 'user'
@@ -117,6 +117,7 @@ const props = withDefaults(defineProps<{
 	editorHelp: string
 	activeEditor: unknown
 	editorProps?: Record<string, unknown>
+	precedenceScopes?: string[]
 	editorInitialTargetIds: string[]
 	selectedTargetOptions: TargetOption[]
 	availableTargets: TargetOption[]
@@ -138,6 +139,7 @@ const props = withDefaults(defineProps<{
 	allowOverrideMutable: true,
 	hideTargetSelector: false,
 	editorProps: () => ({}),
+	precedenceScopes: () => [],
 })
 
 defineEmits<{
