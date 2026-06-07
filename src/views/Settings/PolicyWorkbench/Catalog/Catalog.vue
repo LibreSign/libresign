@@ -278,11 +278,7 @@
 				<div class="policy-workbench__main">
 					<header class="policy-workbench__dialog-header">
 						<p class="policy-workbench__dialog-description">{{ dialogDescription }}</p>
-						<div class="policy-workbench__table-priority-note" role="note" aria-live="polite">
-							<NcIconSvgWrapper :path="mdiInformationOutline" :size="16" />
-							<!-- TRANSLATORS Policy precedence hint: account rules override group rules, which override default/system rule. -->
-							<span>{{ t('libresign', 'Priority: Account > Group > Default') }}</span>
-						</div>
+						<PolicyPrecedenceHint :scopes="priorityNoteScopes" variant="dialog" />
 					</header>
 
 					<NcNoteCard
@@ -293,7 +289,7 @@
 						{{ removalFeedback }}
 					</NcNoteCard>
 
-					<div v-if="state.summary" class="policy-workbench__default-inline">
+					<div v-if="showDefaultInline" class="policy-workbench__default-inline">
 						<!-- TRANSLATORS Label introducing the currently effective base/default value for selected setting. -->
 						<span class="policy-workbench__default-inline-label">{{ defaultInlineLabel }}</span>
 						<strong class="policy-workbench__default-inline-value">{{ state.summary.currentBaseValue }}</strong>
@@ -513,6 +509,7 @@
 					:editor-mode="state.editorMode"
 					:editor-title="editorTitle"
 					:editor-help="editorHelp"
+					:precedence-scopes="priorityNoteScopes"
 					:active-editor="activeEditor"
 					:editor-props="activeEditorProps"
 					:editor-initial-target-ids="state.editorInitialTargetIds"
@@ -559,9 +556,8 @@
 						<span class="policy-workbench__create-scope-option-description">{{ option.description }}</span>
 					</button>
 				</div>
-				<ul class="policy-workbench__create-scope-notes">
-					<li v-if="scopeCreateDisabledReason('group')">{{ t('libresign', 'Group') }}: {{ scopeCreateDisabledReason('group') }}</li>
-					<li v-if="scopeCreateDisabledReason('user') && state.viewMode === 'system-admin'">{{ t('libresign', 'Account') }}: {{ scopeCreateDisabledReason('user') }}</li>
+				<ul v-if="createScopeNotes.length > 0" class="policy-workbench__create-scope-notes">
+					<li v-for="note in createScopeNotes" :key="note.scope">{{ note.label }}: {{ note.reason }}</li>
 				</ul>
 			</div>
 		</NcDialog>
@@ -597,7 +593,6 @@ import {
 	mdiDelete,
 	mdiFilterVariant,
 	mdiFormatListBulletedSquare,
-	mdiInformationOutline,
 	mdiOfficeBuildingOutline,
 	mdiPencil,
 	mdiPlus,
@@ -622,6 +617,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import { usePoliciesStore } from '../../../../store/policies'
 import { useUserConfigStore } from '../../../../store/userconfig.js'
+import PolicyPrecedenceHint from '../components/PolicyPrecedenceHint.vue'
 import PolicyRuleEditorPanel from '../PolicyRuleEditorPanel.vue'
 import { createRealPolicyWorkbenchState } from '../useRealPolicyWorkbench'
 import { useCatalogCrudTable } from './composables/useCatalogCrudTable'
@@ -631,6 +627,32 @@ import { useCatalogInteractions } from './composables/useCatalogInteractions'
 import { useNavigation } from './composables/useNavigation'
 import type { RealPolicySettingCategory } from '../settings/realTypes'
 
+type CreateRuleScope = 'system' | 'group' | 'user'
+type PolicyWorkbenchSaveStatus = 'idle' | 'saving' | 'saved'
+type PendingDiscardActionKey = 'back-create-rule' | 'cancel-create-rule' | 'cancel-editor' | 'close-setting'
+type CatalogCategoryKey = RealPolicySettingCategory
+
+interface PendingRemovalState {
+	ruleId?: string
+	ruleIds?: string[]
+	scope?: CreateRuleScope
+	targetLabel?: string
+	help: string
+}
+
+interface CreateScopeOption {
+	scope: CreateRuleScope
+	label: string
+	description: string
+	disabled: boolean
+}
+
+interface CreateScopeNote {
+	scope: 'group' | 'user'
+	label: string
+	reason: string
+}
+
 defineOptions({
 	name: 'RealPolicyWorkbench',
 })
@@ -639,12 +661,12 @@ const policiesStore = usePoliciesStore()
 const userConfigStore = useUserConfigStore()
 const state = reactive(createRealPolicyWorkbenchState())
 const isSmallViewport = ref(false)
-const saveStatus = ref<'idle' | 'saving' | 'saved'>('idle')
+const saveStatus = ref<PolicyWorkbenchSaveStatus>('idle')
 const saveFeedbackTimeout = ref<number | null>(null)
-const pendingRemoval = ref<{ ruleId?: string, ruleIds?: string[], scope?: 'system' | 'group' | 'user', targetLabel?: string, help: string } | null>(null)
-const pendingDiscardAction = ref<'back-create-rule' | 'cancel-create-rule' | 'cancel-editor' | 'close-setting' | null>(null)
+const pendingRemoval = ref<PendingRemovalState | null>(null)
+const pendingDiscardAction = ref<PendingDiscardActionKey | null>(null)
 const showCreateScopeDialog = ref(false)
-const selectedCreateScope = ref<'system' | 'group' | 'user' | null>(null)
+const selectedCreateScope = ref<CreateRuleScope | null>(null)
 const ruleDialogInstanceKey = ref(0)
 const isRemovingRule = ref(false)
 const removalFeedback = ref<string | null>(null)
@@ -803,7 +825,7 @@ const ruleEditorDialogBodyClass = computed(() => {
 		: ''
 })
 
-function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
+function scopeCreateDisabledReason(scope: CreateRuleScope) {
 	if (state.activeDefinition?.supportedScopes && !state.activeDefinition.supportedScopes.includes(scope)) {
 		return t('libresign', 'Not available for this setting.')
 	}
@@ -823,13 +845,13 @@ function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
 	return ''
 }
 
-const allowedCreateScopes = computed<Array<'system' | 'group' | 'user'>>(() => {
-	const allScopes: Array<'system' | 'group' | 'user'> = ['system', 'group', 'user']
+const allowedCreateScopes = computed<CreateRuleScope[]>(() => {
+	const allScopes: CreateRuleScope[] = ['system', 'group', 'user']
 	const supportedScopes = state.activeDefinition?.supportedScopes
 		? new Set(state.activeDefinition.supportedScopes)
 		: null
 
-	const isSupported = (scope: 'system' | 'group' | 'user') => {
+	const isSupported = (scope: CreateRuleScope) => {
 		if (!supportedScopes) {
 			return true
 		}
@@ -849,7 +871,7 @@ const allowedCreateScopes = computed<Array<'system' | 'group' | 'user'>>(() => {
 
 const hasCreatableScope = computed(() => {
 	return allowedCreateScopes.value
-		.some((scope) => scopeCreateDisabledReason(scope as 'system' | 'group' | 'user').length === 0)
+		.some((scope) => scopeCreateDisabledReason(scope).length === 0)
 })
 
 const createRuleDisabledReason = computed(() => {
@@ -860,12 +882,7 @@ const createRuleDisabledReason = computed(() => {
 	return ''
 })
 
-const createScopeOptions = computed<Array<{
-	scope: 'system' | 'group' | 'user',
-	label: string,
-	description: string,
-	disabled: boolean,
-}>>(() => {
+const createScopeOptions = computed<CreateScopeOption[]>(() => {
 	const options = [
 		{
 			scope: 'user' as const,
@@ -896,12 +913,133 @@ const createScopeOptions = computed<Array<{
 			return state.viewMode === 'system-admin' && !option.disabled
 		}
 
+		if (state.viewMode === 'group-admin') {
+			return !option.disabled
+		}
+
 		if (option.scope !== 'user') {
 			return true
 		}
 
 		return state.viewMode === 'system-admin' || !option.disabled
 	})
+})
+
+const createScopeNotes = computed<CreateScopeNote[]>(() => {
+	const notes: CreateScopeNote[] = []
+
+	const groupOption = createScopeOptions.value.find((option) => option.scope === 'group')
+	if (groupOption?.disabled) {
+		notes.push({
+			scope: 'group',
+			label: t('libresign', 'Group'),
+			reason: scopeCreateDisabledReason('group'),
+		})
+	}
+
+	const userOption = createScopeOptions.value.find((option) => option.scope === 'user')
+	if (state.viewMode === 'system-admin' && userOption?.disabled) {
+		notes.push({
+			scope: 'user',
+			label: t('libresign', 'Account'),
+			reason: scopeCreateDisabledReason('user'),
+		})
+	}
+
+	return notes
+})
+
+function supportsPriorityScope(scope: CreateRuleScope): boolean {
+	if (!state.activeDefinition?.supportedScopes || state.activeDefinition.supportedScopes.length === 0) {
+		return true
+	}
+
+	return state.activeDefinition.supportedScopes.includes(scope)
+}
+
+function hasVisiblePriorityScope(scope: 'group' | 'user'): boolean {
+	if (state.editorDraft?.scope === scope) {
+		return true
+	}
+
+	const visibleRules = scope === 'group'
+		? state.visibleGroupRules
+		: state.visibleUserRules
+
+	if (visibleRules.length > 0) {
+		return true
+	}
+
+	return createScopeOptions.value.some((option) => option.scope === scope && !option.disabled)
+}
+
+function isPriorityScopeAccessible(scope: CreateRuleScope): boolean {
+	if (!supportsPriorityScope(scope)) {
+		return false
+	}
+
+	if (scope === 'system') {
+		return state.viewMode === 'system-admin'
+	}
+
+	return hasVisiblePriorityScope(scope)
+}
+
+const priorityScopeKeys = computed<CreateRuleScope[]>(() => {
+	const scopes: CreateRuleScope[] = []
+
+	if (isPriorityScopeAccessible('user')) {
+		scopes.push('user')
+	}
+
+	if (isPriorityScopeAccessible('group')) {
+		scopes.push('group')
+	}
+
+	if (isPriorityScopeAccessible('system')) {
+		scopes.push('system')
+	}
+
+	return scopes
+})
+
+const priorityNoteScopes = computed<string[]>(() => {
+	return priorityScopeKeys.value.map((scope) => {
+		if (scope === 'user') {
+			return t('libresign', 'Account')
+		}
+
+		if (scope === 'group') {
+			return t('libresign', 'Group')
+		}
+
+		return t('libresign', 'Default')
+	})
+})
+
+const showDefaultInline = computed(() => {
+	if (!state.summary) {
+		return false
+	}
+
+	if (state.viewMode === 'system-admin') {
+		return true
+	}
+
+	return priorityScopeKeys.value.length >= 2
+})
+
+const singleVisibleCreateScope = computed<CreateRuleScope | null>(() => {
+	if (createScopeOptions.value.length !== 1) {
+		return null
+	}
+
+	const [option] = createScopeOptions.value
+	if (!option || option.disabled) {
+		return null
+	}
+
+	return option.scope
 })
 
 const defaultSourceLabel = computed(() => {
@@ -1123,8 +1261,8 @@ function requestCreateRule() {
 		state.cancelEditor()
 	}
 
-	if (state.viewMode === 'group-admin' && state.canManageGroups === false) {
-		selectCreateScope('user')
+	if (singleVisibleCreateScope.value) {
+		selectCreateScope(singleVisibleCreateScope.value)
 		return
 	}
 
@@ -1138,7 +1276,7 @@ function cancelCreateScopeDialog() {
 	selectedCreateScope.value = null
 }
 
-function selectCreateScope(scope: 'system' | 'group' | 'user') {
+function selectCreateScope(scope: CreateRuleScope) {
 	if (scopeCreateDisabledReason(scope).length > 0) {
 		return
 	}
@@ -1147,11 +1285,11 @@ function selectCreateScope(scope: 'system' | 'group' | 'user') {
 	startCreateRuleForScope(scope)
 }
 
-function openRuleEditor(scope: 'system' | 'group' | 'user', ruleId?: string) {
+function openRuleEditor(scope: CreateRuleScope, ruleId?: string) {
 	state.startEditor(ruleId ? { scope, ruleId } : { scope })
 }
 
-function startCreateRuleForScope(scope: 'system' | 'group' | 'user') {
+function startCreateRuleForScope(scope: CreateRuleScope) {
 	if (scopeCreateDisabledReason(scope).length > 0) {
 		return
 	}
@@ -1230,7 +1368,7 @@ function toggleCatalogCollapsed() {
 	catalogState.toggleCatalogCollapsed()
 }
 
-function isCategoryExpandedForRender(category: RealPolicySettingCategory): boolean {
+function isCategoryExpandedForRender(category: CatalogCategoryKey): boolean {
 	if (hasActiveFilter.value) {
 		// Search results must be visible even when the persisted state is collapsed.
 		return true
@@ -1239,7 +1377,7 @@ function isCategoryExpandedForRender(category: RealPolicySettingCategory): boole
 	return catalogState.isCategoryExpanded(category)
 }
 
-function handleCategoryChipNavigation(category: RealPolicySettingCategory, event?: MouseEvent) {
+function handleCategoryChipNavigation(category: CatalogCategoryKey, event?: MouseEvent) {
 	if (!hasActiveFilter.value && !catalogState.isCategoryExpanded(category)) {
 		catalogState.toggleCategoryCollapsed(category)
 	}
@@ -1281,7 +1419,7 @@ async function handleSaveDraft() {
 	}, 1300)
 }
 
-function promptRuleRemoval(ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string) {
+function promptRuleRemoval(ruleId: string, scope: CreateRuleScope, targetLabel: string) {
 	const help = scope === 'system'
 		? t('libresign', 'Removing this custom default restores the default behavior for everyone.')
 		: scope === 'group'
@@ -1314,12 +1452,12 @@ function closeOpenActionsMenu() {
 	}
 }
 
-function handleEditRule(scope: 'system' | 'group' | 'user', ruleId: string) {
+function handleEditRule(scope: CreateRuleScope, ruleId: string) {
 	closeOpenActionsMenu()
 	openRuleEditor(scope, ruleId)
 }
 
-function handlePromptRuleRemoval(ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string) {
+function handlePromptRuleRemoval(ruleId: string, scope: CreateRuleScope, targetLabel: string) {
 	closeOpenActionsMenu()
 	promptRuleRemoval(ruleId, scope, targetLabel)
 }
