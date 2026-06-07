@@ -3,9 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { mdiFilterVariant } from '@mdi/js'
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mdiFilterVariant } from '@mdi/js'
+
+import RealPolicyWorkbench from '../../../views/Settings/PolicyWorkbench/Catalog/Catalog.vue'
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
@@ -105,8 +107,6 @@ vi.mock('../../../store/policies', () => ({
 		saveUserPreference,
 	}),
 }))
-
-import RealPolicyWorkbench from '../../../views/Settings/PolicyWorkbench/Catalog/Catalog.vue'
 
 function mountWorkbench() {
 	return mount(RealPolicyWorkbench, {
@@ -243,6 +243,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(editorModal.exists()).toBe(true)
 		const editorText = editorModal.text()
 		expect(editorText).toContain('Priority: Account > Group > Default')
+		expect(wrapper.find('.policy-workbench__table-priority-note').exists()).toBe(true)
 		expect(editorText).not.toContain('This rule overrides group and default settings for selected users.')
 		expect(editorText).toContain('Scope accounts')
 		expect(editorText).toContain('Search scope accounts')
@@ -393,6 +394,181 @@ describe('RealPolicyWorkbench.vue', () => {
 		await vi.waitFor(() => {
 			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
 		})
+	})
+
+	it('skips the scope chooser for group admins when account is the only creatable option', async () => {
+		currentUserState.isAdmin = false
+		configState.can_manage_group_policies = true
+		configState.manageable_policy_group_ids = ['board']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_flow') {
+				return {
+					effectiveValue: 'ordered_numeric',
+					sourceScope: 'system',
+					editableByCurrentActor: false,
+					canSaveAsUserDefault: true,
+				}
+			}
+
+			return null
+		})
+
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		await vi.waitFor(() => {
+			expect(findCreateRuleButton(wrapper).exists()).toBe(true)
+		})
+		await findCreateRuleButton(wrapper).trigger('click')
+
+		await vi.waitFor(() => {
+			expect(wrapper.find('.policy-workbench__editor-modal-body').exists()).toBe(true)
+		})
+
+		expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(false)
+		expect(wrapper.find('.policy-workbench__table-priority-note').exists()).toBe(false)
+		expect(wrapper.findAll('.dialog-title').some((title) => title.text() === 'What do you want to create?')).toBe(false)
+		expect(wrapper.text()).not.toContain('Blocked by the global default.')
+		expect(wrapper.text()).not.toContain('Priority:')
+		expect(wrapper.text()).not.toContain('← Back')
+		expect(wrapper.text()).toContain('Create rule')
+	})
+
+	it('shows priority note without default for group admins who can manage group and account rules', async () => {
+		currentUserState.isAdmin = false
+		configState.can_manage_group_policies = true
+		configState.manageable_policy_group_ids = ['board']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_flow') {
+				return {
+					effectiveValue: 'ordered_numeric',
+					editableByCurrentActor: true,
+					canSaveAsUserDefault: true,
+				}
+			}
+
+			return null
+		})
+
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		const priorityNote = wrapper.find('.policy-workbench__table-priority-note')
+		expect(priorityNote.exists()).toBe(true)
+		expect(priorityNote.text()).toContain('Priority: Account > Group')
+		expect(priorityNote.text()).not.toContain('Default')
+		expect(wrapper.find('.policy-workbench__default-inline').exists()).toBe(true)
+	})
+
+	it('hides the priority note for identify methods when only account rules are actionable', async () => {
+		currentUserState.isAdmin = false
+		configState.can_manage_group_policies = true
+		configState.manageable_policy_group_ids = ['board']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'identify_methods') {
+				return {
+					effectiveValue: {
+						factors: [
+							{
+								name: 'account',
+								enabled: true,
+								requirement: 'required',
+							},
+						],
+						minimumTotalVerifiedFactors: 1,
+					},
+					sourceScope: 'group',
+					editableByCurrentActor: false,
+					canSaveAsUserDefault: true,
+				}
+			}
+
+			if (key === 'signature_flow') {
+				return { effectiveValue: 'ordered_numeric' }
+			}
+
+			return null
+		})
+
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Identification factors')
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		await vi.waitFor(() => {
+			expect(findCreateRuleButton(wrapper).exists()).toBe(true)
+		})
+
+		expect(wrapper.find('.policy-workbench__table-priority-note').exists()).toBe(false)
+		expect(wrapper.find('.policy-workbench__default-inline').exists()).toBe(false)
+
+		await findCreateRuleButton(wrapper).trigger('click')
+
+		await vi.waitFor(() => {
+			expect(wrapper.find('.policy-workbench__editor-modal-body').exists()).toBe(true)
+		})
+
+		expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(false)
+		expect(wrapper.text()).not.toContain('Priority:')
+	})
+
+	it('shows the group option for identify methods when group admin manages multiple groups', async () => {
+		currentUserState.isAdmin = false
+		configState.can_manage_group_policies = true
+		configState.manageable_policy_group_ids = ['board', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'identify_methods') {
+				return {
+					effectiveValue: {
+						factors: [
+							{
+								name: 'account',
+								enabled: true,
+								requirement: 'required',
+							},
+						],
+						minimumTotalVerifiedFactors: 1,
+					},
+					sourceScope: 'group',
+					editableByCurrentActor: false,
+					canSaveAsUserDefault: true,
+				}
+			}
+
+			if (key === 'signature_flow') {
+				return { effectiveValue: 'ordered_numeric' }
+			}
+
+			return null
+		})
+
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Identification factors')
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		await vi.waitFor(() => {
+			expect(findCreateRuleButton(wrapper).exists()).toBe(true)
+		})
+
+		await findCreateRuleButton(wrapper).trigger('click')
+
+		await vi.waitFor(() => {
+			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		})
+
+		const createScopeText = wrapper.find('.policy-workbench__create-scope-dialog').text()
+		expect(createScopeText).toContain('Account')
+		expect(createScopeText).toContain('Group')
+		expect(createScopeText).not.toContain('Everyone')
 	})
 
 	it('keeps create-rule editor visible after dismissing discard dialog from ESC flow', async () => {
@@ -571,6 +747,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(wrapper.text()).toContain('(custom)')
 		expect(wrapper.text()).toContain('Change')
 		expect(wrapper.text()).toContain('Priority: Account > Group > Default')
+		expect(wrapper.find('.policy-workbench__table-priority-note').exists()).toBe(true)
 		expect(wrapper.text()).not.toContain('Effective result:')
 
 		await vi.waitFor(() => {
@@ -679,6 +856,5 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(text).toContain('Everyone')
 		expect(text).not.toContain('Not available for this setting.')
 	})
-
 })
 
