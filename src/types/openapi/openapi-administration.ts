@@ -300,6 +300,11 @@ export type components = {
         ActiveSigningsResponse: {
             data: components["schemas"]["ActiveSigningItem"][];
         };
+        AdminSignatureMethodSetting: {
+            enabled: boolean;
+            label: string;
+            name: string;
+        };
         Capabilities: {
             features: string[];
             config: {
@@ -330,8 +335,9 @@ export type components = {
             generated: boolean;
         };
         CertificateEngineConfigResponse: {
-            engine: string;
-            identify_methods: components["schemas"]["IdentifyMethodSetting"][];
+            /** @enum {string} */
+            engine: "cfssl" | "none" | "openssl";
+            identify_methods: components["schemas"]["IdentifyMethodAdminSetting"][];
         };
         CertificatePolicyResponse: {
             /** @enum {string} */
@@ -430,17 +436,21 @@ export type components = {
         HasRootCertResponse: {
             hasRootCert: boolean;
         };
-        /** @enum {string} */
-        IdentifyMethodRequirement: "required" | "optional";
-        IdentifyMethodSetting: {
+        IdentifyMethodAdminSetting: {
             name: string;
             friendly_name: string;
             enabled: boolean;
             requirement: components["schemas"]["IdentifyMethodRequirement"];
             /** Format: int64 */
             minimumTotalVerifiedFactors?: number;
-            signatureMethods?: components["schemas"]["SignatureMethods"];
+            can_create_account?: boolean;
+            test_url?: string;
+            signatureMethods?: {
+                [key: string]: components["schemas"]["AdminSignatureMethodSetting"];
+            };
         };
+        /** @enum {string} */
+        IdentifyMethodRequirement: "required" | "optional";
         MessageResponse: {
             message: string;
         };
@@ -465,30 +475,6 @@ export type components = {
         RootCertificateName: {
             id: string;
             value: (string | string[]) | null;
-        };
-        SignatureMethod: {
-            enabled: boolean;
-            label: string;
-            name: string;
-        };
-        SignatureMethodEmailToken: {
-            label: string;
-            /** @enum {string} */
-            identifyMethod: "email" | "account";
-            needCode: boolean;
-            hasConfirmCode: boolean;
-            blurredEmail: string;
-            hashOfEmail: string;
-        };
-        SignatureMethodPassword: {
-            label: string;
-            name: string;
-            hasSignatureFile: boolean;
-        };
-        SignatureMethods: {
-            clickToSign?: components["schemas"]["SignatureMethod"];
-            emailToken?: components["schemas"]["SignatureMethodEmailToken"];
-            password?: components["schemas"]["SignatureMethodPassword"];
         };
         SuccessStatusResponse: {
             /** @enum {string} */
