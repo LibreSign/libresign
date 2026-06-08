@@ -12,6 +12,7 @@ import FilesListTableFooter from '../../../views/FilesList/FilesListTableFooter.
 const filesStoreMock = {
 	files: {} as Record<string, unknown>,
 	loading: false,
+	canDelete: vi.fn(() => true),
 }
 
 const filtersStoreMock = {
@@ -43,6 +44,8 @@ describe('FilesListTableFooter.vue', () => {
 	beforeEach(() => {
 		filesStoreMock.files = {}
 		filesStoreMock.loading = false
+		filesStoreMock.canDelete.mockReset()
+		filesStoreMock.canDelete.mockReturnValue(true)
 		filtersStoreMock.activeChips = []
 	})
 
@@ -79,5 +82,13 @@ describe('FilesListTableFooter.vue', () => {
 		const wrapper = createWrapper()
 
 		expect(wrapper.find('tr').isVisible()).toBe(true)
+	})
+
+	it('hides the selection summary cell when no files are deletable', () => {
+		filesStoreMock.files = { 1: { id: 1 } }
+		filesStoreMock.canDelete.mockReturnValue(false)
+		const wrapper = createWrapper()
+
+		expect(wrapper.find('th.files-list__row-checkbox').exists()).toBe(false)
 	})
 })
