@@ -19,6 +19,7 @@ const filesStoreMock = {
 		1: { id: 1, loading: null },
 		2: { id: 2, loading: null },
 	},
+	canDelete: vi.fn(() => true),
 	deleteMultiple: vi.fn(),
 }
 
@@ -114,6 +115,8 @@ describe('FilesListTableHeaderActions.vue', () => {
 			1: { id: 1, loading: null },
 			2: { id: 2, loading: null },
 		}
+		filesStoreMock.canDelete.mockReset()
+		filesStoreMock.canDelete.mockReturnValue(true)
 		filesStoreMock.deleteMultiple.mockReset()
 		selectionStoreMock.selected = [1, 2]
 		selectionStoreMock.reset.mockReset()
@@ -128,8 +131,30 @@ describe('FilesListTableHeaderActions.vue', () => {
 		await wrapper.vm.$nextTick()
 
 		expect(wrapper.vm.enabledMenuActions).toHaveLength(1)
+		expect(wrapper.vm.visibleMenuActions).toHaveLength(1)
 		expect(wrapper.vm.enabledMenuActions[0].id).toBe('delete')
 		expect(wrapper.find('.nc-action-button-stub').text()).toContain('Delete')
+	})
+
+	it('hides delete when the current selection is not deletable', async () => {
+		filesStoreMock.canDelete.mockReturnValue(false)
+		const wrapper = createWrapper()
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.vm.enabledMenuActions).toHaveLength(1)
+		expect(wrapper.vm.visibleMenuActions).toHaveLength(0)
+		expect(wrapper.find('.nc-action-button-stub').exists()).toBe(false)
+	})
+
+	it('does not trigger delete when the user lacks permission for the selected files', async () => {
+		filesStoreMock.canDelete.mockReturnValue(false)
+		const wrapper = createWrapper()
+		await wrapper.vm.$nextTick()
+
+		await wrapper.vm.onActionClick(wrapper.vm.enabledMenuActions[0])
+
+		expect(wrapper.vm.confirmDelete).toBe(false)
+		expect(filesStoreMock.deleteMultiple).not.toHaveBeenCalled()
 	})
 
 	it('shows success and resets selection after a successful batch action', async () => {
