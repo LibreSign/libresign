@@ -84,6 +84,26 @@ final class PolicySourceTest extends TestCase {
 		$this->l10n->method('t')->willReturnArgument(0);
 		$container = $this->createMock(ContainerInterface::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->identifyMethodService->method('getIdentifyMethodsSettings')->willReturn([
+			[
+				'name' => 'account',
+				'friendly_name' => 'Account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'password' => ['enabled' => true],
+				],
+			],
+			[
+				'name' => 'email',
+				'friendly_name' => 'Email',
+				'enabled' => false,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+			],
+		]);
 		$this->identifyMethodService->method('getFriendlyNamesMap')->willReturn([
 			'account' => 'Account',
 			'email' => 'Email',
@@ -1128,6 +1148,218 @@ final class PolicySourceTest extends TestCase {
 
 		$source = $this->getSource();
 		$source->clearGroupPolicy(RequestSignGroupsPolicy::KEY, 'board', true);
+	}
+
+	public function testSaveGroupPolicyStoresDelegatedIdentifyMethodsOverrideWithoutDestroyingSystemSeed(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(111);
+		$binding->setTargetType('group');
+		$binding->setTargetId('board');
+
+		$systemSeed = IdentifyMethodsPolicyValue::normalize([
+			[
+				'name' => 'account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'password' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'password',
+			],
+			[
+				'name' => 'email',
+				'enabled' => true,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'emailToken',
+			],
+		], $this->identifyMethodService);
+		$groupOverride = IdentifyMethodsPolicyValue::normalize([
+			[
+				'name' => 'account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'password' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'password',
+			],
+			[
+				'name' => 'email',
+				'enabled' => false,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'emailToken',
+			],
+		], $this->identifyMethodService);
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(111);
+		$permissionSet->setPolicyJson([
+			IdentifyMethodsPolicy::KEY => [
+				'defaultValue' => $systemSeed,
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'createdBySystemAdmin' => true,
+				'createdByActorScope' => 'system',
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('getByTarget')
+			->with('group', 'board')
+			->willReturn($binding);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('getById')
+			->with(111)
+			->willReturn($permissionSet);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('update')
+			->with($this->callback(function (PermissionSet $updatedPermissionSet) use ($systemSeed, $groupOverride): bool {
+				$policyJson = $updatedPermissionSet->getDecodedPolicyJson();
+				$this->assertArrayHasKey(IdentifyMethodsPolicy::KEY, $policyJson);
+				$this->assertArrayHasKey(IdentifyMethodsPolicy::KEY . '__delegated_override', $policyJson);
+				$this->assertSame($systemSeed, $policyJson[IdentifyMethodsPolicy::KEY]['defaultValue'] ?? null);
+				$this->assertSame($groupOverride, $policyJson[IdentifyMethodsPolicy::KEY . '__delegated_override']['defaultValue'] ?? null);
+				$this->assertFalse($policyJson[IdentifyMethodsPolicy::KEY . '__delegated_override']['createdBySystemAdmin'] ?? true);
+				return true;
+			}));
+
+		$source = $this->getSource();
+		$source->saveGroupPolicy(
+			IdentifyMethodsPolicy::KEY,
+			'board',
+			[
+				[
+					'name' => 'account',
+					'enabled' => true,
+					'requirement' => 'required',
+					'signatureMethods' => [
+						'password' => ['enabled' => true],
+					],
+					'signatureMethodEnabled' => 'password',
+				],
+				[
+					'name' => 'email',
+					'enabled' => false,
+					'requirement' => 'optional',
+					'signatureMethods' => [
+						'emailToken' => ['enabled' => true],
+					],
+					'signatureMethodEnabled' => 'emailToken',
+				],
+			],
+			false,
+			false,
+		);
+	}
+
+	public function testClearGroupPolicyPreservesSystemIdentifyMethodsSeedWhenRemovingDelegatedOverride(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(112);
+		$binding->setTargetType('group');
+		$binding->setTargetId('board');
+
+		$systemSeed = IdentifyMethodsPolicyValue::normalize([
+			[
+				'name' => 'account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'password' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'password',
+			],
+			[
+				'name' => 'email',
+				'enabled' => true,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'emailToken',
+			],
+		], $this->identifyMethodService);
+		$groupOverride = IdentifyMethodsPolicyValue::normalize([
+			[
+				'name' => 'account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'password' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'password',
+			],
+			[
+				'name' => 'email',
+				'enabled' => false,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'emailToken',
+			],
+		], $this->identifyMethodService);
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(112);
+		$permissionSet->setPolicyJson([
+			IdentifyMethodsPolicy::KEY => [
+				'defaultValue' => $systemSeed,
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'createdBySystemAdmin' => true,
+				'createdByActorScope' => 'system',
+			],
+			IdentifyMethodsPolicy::KEY . '__delegated_override' => [
+				'defaultValue' => $groupOverride,
+				'allowChildOverride' => false,
+				'visibleToChild' => true,
+				'allowedValues' => [$groupOverride],
+				'createdBySystemAdmin' => false,
+				'createdByActorScope' => 'group',
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('getByTarget')
+			->with('group', 'board')
+			->willReturn($binding);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('getById')
+			->with(112)
+			->willReturn($permissionSet);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('update')
+			->with($this->callback(function (PermissionSet $updatedPermissionSet) use ($systemSeed): bool {
+				$policyJson = $updatedPermissionSet->getDecodedPolicyJson();
+				$this->assertArrayHasKey(IdentifyMethodsPolicy::KEY, $policyJson);
+				$this->assertArrayNotHasKey(IdentifyMethodsPolicy::KEY . '__delegated_override', $policyJson);
+				$this->assertSame($systemSeed, $policyJson[IdentifyMethodsPolicy::KEY]['defaultValue'] ?? null);
+				return true;
+			}));
+
+		$this->bindingMapper->expects($this->never())->method('delete');
+		$this->permissionSetMapper->expects($this->never())->method('delete');
+
+		$source = $this->getSource();
+		$source->clearGroupPolicy(IdentifyMethodsPolicy::KEY, 'board', true);
 	}
 
 	public function testSaveGroupPolicyThrowsWhenDelegatedOverrideHasEmptyDenyGroups(): void {
