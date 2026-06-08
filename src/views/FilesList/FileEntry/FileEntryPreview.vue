@@ -6,25 +6,20 @@
 	<span class="files-list__row-icon">
 		<!-- Decorative images, should not be aria documented -->
 		<span v-if="previewUrl && !isEnvelope" class="files-list__row-icon-preview-container">
-			<img v-if="backgroundFailed !== true"
-				ref="previewImg"
+			<img
 				alt=""
-				class="files-list__row-icon-preview"
-				:class="{'files-list__row-icon-preview--loaded': backgroundFailed === false}"
+				class="files-list__row-icon-preview files-list__row-icon-preview--loaded"
 				loading="lazy"
-				:src="previewUrl"
-				@error="backgroundFailed = true"
-				@load="backgroundFailed = false">
+				:src="previewUrl">
 		</span>
 
-		<NcIconSvgWrapper :path="mdiFolder" v-if="isEnvelope" v-once />
-		<NcIconSvgWrapper :path="mdiFile" v-else-if="!previewUrl" v-once />
+		<NcIconSvgWrapper v-else :path="iconPath" />
 	</span>
 </template>
 
 <script setup lang="ts">
-import { generateUrl, generateOcsUrl } from '@nextcloud/router'
-import { computed, ref } from 'vue'
+import { generateOcsUrl } from '@nextcloud/router'
+import { computed } from 'vue'
 
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import {
@@ -42,9 +37,14 @@ type Source = {
 	attributes?: {
 		favorite?: number
 	}
+	metadata?: {
+		extension?: string
+	}
 	nodeType?: string
 	nodeId?: number
 	id?: number
+	name?: string
+	mime?: string
 }
 
 const props = defineProps<{
@@ -52,18 +52,20 @@ const props = defineProps<{
 }>()
 
 const userConfigStore = useUserConfigStore()
-const backgroundFailed = ref(false)
 const cropPreviews = false
 
 const isFavorite = computed(() => props.source?.attributes?.favorite === 1)
 const isEnvelope = computed(() => props.source?.nodeType === 'envelope')
 const isGridView = computed(() => Boolean(userConfigStore.files_list_grid_view))
-
-const previewUrl = computed(() => {
-	if (backgroundFailed.value === true) {
-		return null
+const iconPath = computed(() => {
+	if (isEnvelope.value) {
+		return mdiFolder
 	}
 
+	return mdiFile
+})
+
+const previewUrl = computed(() => {
 	let nextPreviewUrl = ''
 	if (props.source?.id) {
 		nextPreviewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
@@ -74,9 +76,7 @@ const previewUrl = computed(() => {
 			nodeId: props.source.nodeId,
 		})
 	} else {
-		nextPreviewUrl = window.location.origin + generateUrl('/core/preview?fileId={fileid}', {
-			fileid: props.source.nodeId,
-		})
+		return null
 	}
 
 	const url = new URL(nextPreviewUrl)
@@ -89,7 +89,6 @@ const previewUrl = computed(() => {
 
 defineExpose({
 	userConfigStore,
-	backgroundFailed,
 	cropPreviews,
 	isFavorite,
 	isEnvelope,
@@ -97,5 +96,6 @@ defineExpose({
 	props,
 	mdiFile,
 	mdiFolder,
+	iconPath,
 })
 </script>
