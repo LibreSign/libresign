@@ -1231,6 +1231,11 @@ export type components = {
         };
         /** @enum {string} */
         AdminSignatureEngine: "JSignPdf" | "PhpNative";
+        AdminSignatureMethodSetting: {
+            enabled: boolean;
+            label: string;
+            name: string;
+        };
         Capabilities: {
             features: string[];
             config: {
@@ -1261,8 +1266,9 @@ export type components = {
             generated: boolean;
         };
         CertificateEngineConfigResponse: {
-            engine: string;
-            identify_methods: components["schemas"]["IdentifyMethodSetting"][];
+            /** @enum {string} */
+            engine: "cfssl" | "none" | "openssl";
+            identify_methods: components["schemas"]["IdentifyMethodAdminSetting"][];
         };
         CertificatePfxData: {
             name: string;
@@ -1685,6 +1691,19 @@ export type components = {
             method: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "whatsappbusiness" | "xmpp";
             value: string;
             requirement: components["schemas"]["IdentifyMethodRequirement"];
+        };
+        IdentifyMethodAdminSetting: {
+            name: string;
+            friendly_name: string;
+            enabled: boolean;
+            requirement: components["schemas"]["IdentifyMethodRequirement"];
+            /** Format: int64 */
+            minimumTotalVerifiedFactors?: number;
+            can_create_account?: boolean;
+            test_url?: string;
+            signatureMethods?: {
+                [key: string]: components["schemas"]["AdminSignatureMethodSetting"];
+            };
         };
         /** @enum {string} */
         IdentifyMethodRequirement: "required" | "optional";

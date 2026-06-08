@@ -67,6 +67,25 @@
                     }
                 }
             },
+            "AdminSignatureMethodSetting": {
+                "type": "object",
+                "required": [
+                    "enabled",
+                    "label",
+                    "name"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
             "Capabilities": {
                 "type": "object",
                 "required": [
@@ -184,12 +203,17 @@
                 ],
                 "properties": {
                     "engine": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "cfssl",
+                            "none",
+                            "openssl"
+                        ]
                     },
                     "identify_methods": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/IdentifyMethodSetting"
+                            "$ref": "#/components/schemas/IdentifyMethodAdminSetting"
                         }
                     }
                 }
@@ -571,14 +595,7 @@
                     }
                 }
             },
-            "IdentifyMethodRequirement": {
-                "type": "string",
-                "enum": [
-                    "required",
-                    "optional"
-                ]
-            },
-            "IdentifyMethodSetting": {
+            "IdentifyMethodAdminSetting": {
                 "type": "object",
                 "required": [
                     "name",
@@ -604,10 +621,26 @@
                         "format": "int64",
                         "minimum": 1
                     },
+                    "can_create_account": {
+                        "type": "boolean"
+                    },
+                    "test_url": {
+                        "type": "string"
+                    },
                     "signatureMethods": {
-                        "$ref": "#/components/schemas/SignatureMethods"
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/AdminSignatureMethodSetting"
+                        }
                     }
                 }
+            },
+            "IdentifyMethodRequirement": {
+                "type": "string",
+                "enum": [
+                    "required",
+                    "optional"
+                ]
             },
             "MessageResponse": {
                 "type": "object",
@@ -708,93 +741,6 @@
                                 }
                             }
                         ]
-                    }
-                }
-            },
-            "SignatureMethod": {
-                "type": "object",
-                "required": [
-                    "enabled",
-                    "label",
-                    "name"
-                ],
-                "properties": {
-                    "enabled": {
-                        "type": "boolean"
-                    },
-                    "label": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                }
-            },
-            "SignatureMethodEmailToken": {
-                "type": "object",
-                "required": [
-                    "label",
-                    "identifyMethod",
-                    "needCode",
-                    "hasConfirmCode",
-                    "blurredEmail",
-                    "hashOfEmail"
-                ],
-                "properties": {
-                    "label": {
-                        "type": "string"
-                    },
-                    "identifyMethod": {
-                        "type": "string",
-                        "enum": [
-                            "email",
-                            "account"
-                        ]
-                    },
-                    "needCode": {
-                        "type": "boolean"
-                    },
-                    "hasConfirmCode": {
-                        "type": "boolean"
-                    },
-                    "blurredEmail": {
-                        "type": "string"
-                    },
-                    "hashOfEmail": {
-                        "type": "string"
-                    }
-                }
-            },
-            "SignatureMethodPassword": {
-                "type": "object",
-                "required": [
-                    "label",
-                    "name",
-                    "hasSignatureFile"
-                ],
-                "properties": {
-                    "label": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "hasSignatureFile": {
-                        "type": "boolean"
-                    }
-                }
-            },
-            "SignatureMethods": {
-                "type": "object",
-                "properties": {
-                    "clickToSign": {
-                        "$ref": "#/components/schemas/SignatureMethod"
-                    },
-                    "emailToken": {
-                        "$ref": "#/components/schemas/SignatureMethodEmailToken"
-                    },
-                    "password": {
-                        "$ref": "#/components/schemas/SignatureMethodPassword"
                     }
                 }
             },
