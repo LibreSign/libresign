@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+	mergeIdentifyMethodsEntriesWithCatalog,
 	normalizeIdentifyMethodsPolicyConfig,
 	normalizeIdentifyMethodsPolicy,
 	serializeIdentifyMethodsPolicy,
@@ -193,5 +194,58 @@ describe('identify-methods model compatibility', () => {
 				signatureMethodEnabled: undefined,
 			},
 		])
+	})
+
+	it('merges editor entries with the admin catalog so omitted methods stay visible', () => {
+		const merged = mergeIdentifyMethodsEntriesWithCatalog([
+			{
+				name: 'account',
+				enabled: true,
+				signatureMethods: {
+					password: { enabled: true },
+				},
+				signatureMethodEnabled: 'password',
+			},
+		], [
+			{
+				name: 'account',
+				friendly_name: 'Account',
+				enabled: true,
+				requirement: 'required',
+				signatureMethods: {
+					clickToSign: { enabled: false, label: 'One-click confirmation' },
+					password: { enabled: true, label: 'Certificate with password' },
+				},
+				signatureMethodEnabled: 'password',
+			},
+			{
+				name: 'email',
+				friendly_name: 'Email',
+				enabled: false,
+				requirement: 'required',
+				signatureMethods: {
+					emailToken: { enabled: true, label: 'Email code' },
+				},
+				signatureMethodEnabled: 'emailToken',
+			},
+		])
+
+		expect(merged).toHaveLength(2)
+		expect(merged[0]).toMatchObject({
+			name: 'account',
+			friendly_name: 'Account',
+			enabled: true,
+			signatureMethodEnabled: 'password',
+		})
+		expect(merged[0].signatureMethods).toEqual({
+			clickToSign: { enabled: false, label: 'One-click confirmation' },
+			password: { enabled: true, label: 'Certificate with password' },
+		})
+		expect(merged[1]).toMatchObject({
+			name: 'email',
+			friendly_name: 'Email',
+			enabled: false,
+			signatureMethodEnabled: 'emailToken',
+		})
 	})
 })

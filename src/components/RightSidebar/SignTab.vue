@@ -55,6 +55,29 @@ import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import { getSigningRouteUuid } from '../../utils/signRequestUuid.ts'
 
+type SignRoutePayload = {
+	signRequestUuid?: string | null
+}
+
+type RouterLocation = {
+	name: string
+	params: {
+		uuid: string
+	}
+	state?: {
+		isAfterSigned?: boolean
+		isAsync?: boolean
+	}
+}
+
+type RouterLike = {
+	push: (location: RouterLocation) => unknown
+}
+
+type RouteLike = {
+	path?: string
+}
+
 defineOptions({
 	name: 'SignTab',
 })
@@ -76,7 +99,7 @@ function getRouter() {
 		|| instance?.proxy?.$router
 
 	if (typeof router === 'object' && router !== null && typeof router.push === 'function') {
-		return router
+		return router as RouterLike
 	}
 
 	return undefined
@@ -87,7 +110,7 @@ function getRoute() {
 		|| instance?.proxy?.$route
 
 	if (typeof route === 'object' && route !== null) {
-		return route
+		return route as RouteLike
 	}
 
 	return undefined
@@ -99,7 +122,7 @@ function signEnabled() {
 }
 
 function getSignRequestUuid() {
-	const fromState = loadState('libresign', 'sign_request_uuid', null)
+	const fromState = loadState<string | null>('libresign', 'sign_request_uuid', null)
 	return getSigningRouteUuid(
 		currentDocument.value,
 		typeof fromState === 'string' && fromState.length > 0 ? fromState : null,
@@ -129,7 +152,7 @@ function openSignDocument() {
 	})
 }
 
-function onSigned(data) {
+function onSigned(data: SignRoutePayload): void {
 	if (typeof data?.signRequestUuid !== 'string' || data.signRequestUuid.length === 0) {
 		return
 	}
@@ -141,7 +164,7 @@ function onSigned(data) {
 	})
 }
 
-function onSigningStarted(payload) {
+function onSigningStarted(payload: SignRoutePayload): void {
 	if (typeof payload?.signRequestUuid !== 'string' || payload.signRequestUuid.length === 0) {
 		return
 	}
