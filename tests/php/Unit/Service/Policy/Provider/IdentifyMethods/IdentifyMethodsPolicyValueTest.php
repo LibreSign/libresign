@@ -218,6 +218,26 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 
 	public function testReturnDefaultsWhenPayloadIsEmptyWithService(): void {
 		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$identifyMethodService->method('getIdentifyMethodsCatalogSettings')->willReturn([
+			[
+				'name' => 'account',
+				'friendly_name' => 'Account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'clickToSign' => ['enabled' => true],
+				],
+			],
+			[
+				'name' => 'email',
+				'friendly_name' => 'Email',
+				'enabled' => true,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+			],
+		]);
 		$identifyMethodService->method('getFriendlyNamesMap')->willReturn([
 			'account' => 'Account',
 			'email' => 'Email',
@@ -252,6 +272,26 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 
 	public function testEmptyPayloadMatchesNormalizationOfServiceDefaults(): void {
 		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$identifyMethodService->method('getIdentifyMethodsCatalogSettings')->willReturn([
+			[
+				'name' => 'account',
+				'friendly_name' => 'Account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'password' => ['enabled' => true],
+				],
+			],
+			[
+				'name' => 'email',
+				'friendly_name' => 'Email',
+				'enabled' => false,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+			],
+		]);
 		$identifyMethodService->method('getFriendlyNamesMap')->willReturn([
 			'account' => 'Account',
 			'email' => 'Email',
@@ -295,6 +335,22 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 
 	public function testKeepsProvidedFriendlyNameAndOnlyEnrichesMissingOnes(): void {
 		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$identifyMethodService->method('getIdentifyMethodsCatalogSettings')->willReturn([
+			[
+				'name' => 'account',
+				'friendly_name' => 'Conta',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [],
+			],
+			[
+				'name' => 'email',
+				'friendly_name' => 'Email',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [],
+			],
+		]);
 		$identifyMethodService->method('getFriendlyNamesMap')->willReturn([
 			'account' => 'Conta',
 			'email' => 'Email',
@@ -315,5 +371,88 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 		self::assertCount(2, $normalized['factors']);
 		self::assertSame('Account', $normalized['factors'][0]['friendly_name']);
 		self::assertSame('Email', $normalized['factors'][1]['friendly_name']);
+	}
+
+	public function testMergesSparsePolicyPayloadWithServiceCatalog(): void {
+		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$identifyMethodService->expects($this->never())
+			->method('getIdentifyMethodsSettings');
+		$identifyMethodService->expects($this->once())
+			->method('getIdentifyMethodsCatalogSettings')
+			->willReturn([
+				[
+					'name' => 'account',
+					'friendly_name' => 'Account',
+					'enabled' => true,
+					'requirement' => 'required',
+					'signatureMethods' => [
+						'password' => [
+							'enabled' => true,
+							'label' => 'Certificate with password',
+						],
+					],
+				],
+				[
+					'name' => 'email',
+					'friendly_name' => 'Email',
+					'enabled' => false,
+					'requirement' => 'required',
+					'signatureMethods' => [
+						'emailToken' => [
+							'enabled' => true,
+							'label' => 'Email code',
+						],
+					],
+				],
+			]);
+		$identifyMethodService->method('getFriendlyNamesMap')->willReturn([
+			'account' => 'Account',
+			'email' => 'Email',
+		]);
+
+		$normalized = IdentifyMethodsPolicyValue::normalize([
+			'factors' => [
+				[
+					'name' => 'account',
+					'enabled' => true,
+					'signatureMethods' => [
+						'password' => [
+							'enabled' => true,
+						],
+					],
+					'signatureMethodEnabled' => 'password',
+				],
+			],
+		], $identifyMethodService);
+
+		self::assertSame([
+			'factors' => [
+				[
+					'name' => 'account',
+					'enabled' => true,
+					'signatureMethods' => [
+						'password' => [
+							'enabled' => true,
+							'label' => 'Certificate with password',
+						],
+					],
+					'friendly_name' => 'Account',
+					'requirement' => 'required',
+					'signatureMethodEnabled' => 'password',
+				],
+				[
+					'name' => 'email',
+					'enabled' => false,
+					'signatureMethods' => [
+						'emailToken' => [
+							'enabled' => true,
+							'label' => 'Email code',
+						],
+					],
+					'friendly_name' => 'Email',
+					'requirement' => 'required',
+				],
+			],
+		], $normalized);
 	}
 }
