@@ -9,7 +9,7 @@ import { computed, ref } from 'vue'
 export const useSidebarStore = defineStore('sidebar', () => {
 	const show = ref(false)
 	const activeTab = ref('')
-	const sidebarRoutes = ref(['fileslist', 'SignPDF', 'SignPDFExternal', 'ValidationFile', 'IdDocsApprove'])
+	const sidebarRoutes = ref(['fileslist', 'SignPDF', 'SignPDFExternal', 'IdDocsApprove'])
 
 	const canShow = computed(() => show.value === false && activeTab.value.length > 0)
 	const isVisible = computed(() => show.value === true && activeTab.value.length > 0)
@@ -43,7 +43,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
 
 	const handleRouteChange = (routeName) => {
 		if (routeName && !sidebarRoutes.value.includes(routeName)) {
-			hideSidebar()
+			setActiveTab()
 		}
 	}
 
