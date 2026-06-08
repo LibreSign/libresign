@@ -15,11 +15,13 @@ use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\Folder;
 use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
+use OCP\Files\ISetupManager;
 use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
+use OCP\IUserManager;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -64,6 +66,8 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IGroupManager&MockObject $groupManager;
 	private IAppConfig&MockObject $appConfig;
 	private IL10N&MockObject $l10n;
+	private ISetupManager&MockObject $setupManager;
+	private IUserManager&MockObject $userManager;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -72,17 +76,25 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->l10n = $this->createMock(IL10N::class);
+		$this->setupManager = $this->createMock(ISetupManager::class);
+		$this->userManager = $this->createMock(IUserManager::class);
 	}
 
 	private function getInstance(?string $userId = '171'): FolderService {
-		$service = new FolderService(
-			$this->root,
-			$this->appDataFactory,
-			$this->groupManager,
-			$this->appConfig,
-			$this->l10n,
-			$userId
-		);
+		$service = $this->getMockBuilder(FolderService::class)
+			->setConstructorArgs([
+				$this->root,
+				$this->appDataFactory,
+				$this->groupManager,
+				$this->appConfig,
+				$this->l10n,
+				$this->setupManager,
+				$this->userManager,
+				$userId,
+			])
+			->onlyMethods(['initializeUserFilesystem'])
+			->getMock();
+		$service->method('initializeUserFilesystem');
 		return $service;
 	}
 
