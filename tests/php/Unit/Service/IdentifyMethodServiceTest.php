@@ -229,6 +229,69 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		], $result);
 	}
 
+	public function testGetIdentifyMethodsCatalogSettingsUsesDefaultSettings(): void {
+		$accountDefaultSettings = [
+			'name' => 'account',
+			'friendly_name' => 'Account',
+			'enabled' => true,
+			'requirement' => 'required',
+			'signatureMethods' => [
+				'password' => ['enabled' => true],
+			],
+		];
+		$emailDefaultSettings = [
+			'name' => 'email',
+			'friendly_name' => 'Email',
+			'enabled' => false,
+			'requirement' => 'optional',
+			'signatureMethods' => [
+				'emailToken' => ['enabled' => true],
+			],
+			'can_create_account' => false,
+		];
+		$smsDefaultSettings = [
+			'name' => 'sms',
+			'friendly_name' => 'SMS',
+			'enabled' => true,
+			'requirement' => 'required',
+			'signatureMethods' => [
+				'smsToken' => ['enabled' => true],
+			],
+		];
+
+		$this->account->expects($this->once())
+			->method('getDefaultSettings')
+			->willReturn($accountDefaultSettings);
+		$this->account->expects($this->never())
+			->method('getSettings');
+		$this->email->expects($this->once())
+			->method('getDefaultSettings')
+			->willReturn($emailDefaultSettings);
+		$this->email->expects($this->never())
+			->method('getSettings');
+		$this->signal->method('isTwofactorGatewayEnabled')->willReturn(false);
+		$this->telegram->method('isTwofactorGatewayEnabled')->willReturn(false);
+		$this->whatsapp->method('isTwofactorGatewayEnabled')->willReturn(false);
+		$this->whatsappbusiness->method('isTwofactorGatewayEnabled')->willReturn(false);
+		$this->xmpp->method('isTwofactorGatewayEnabled')->willReturn(false);
+		$this->sms->expects($this->once())
+			->method('isTwofactorGatewayEnabled')
+			->willReturn(true);
+		$this->sms->expects($this->once())
+			->method('getDefaultSettings')
+			->willReturn($smsDefaultSettings);
+		$this->sms->expects($this->never())
+			->method('getSettings');
+
+		$result = $this->service->getIdentifyMethodsCatalogSettings();
+
+		self::assertSame([
+			$accountDefaultSettings,
+			$emailDefaultSettings,
+			$smsDefaultSettings,
+		], $result);
+	}
+
 	#[DataProvider('providerGetFirstAvailableMethod')]
 	public function testGetFirstAvailableMethod(?string $expectedKey, array $methodsData): void {
 		$matrix = $this->buildMatrix($methodsData);
