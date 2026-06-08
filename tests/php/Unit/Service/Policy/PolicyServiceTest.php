@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Policy;
 
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
@@ -15,6 +16,8 @@ use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
@@ -32,6 +35,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 
 final class PolicyServiceTest extends TestCase {
+	private IdentifyMethodService&MockObject $identifyMethodService;
 	private IUserManager&MockObject $userManager;
 	private IGroupManager&MockObject $groupManager;
 	private ISubAdmin&MockObject $subAdmin;
@@ -43,6 +47,53 @@ final class PolicyServiceTest extends TestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
+		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->identifyMethodService->method('getFriendlyNamesMap')->willReturn([
+			'account' => 'Account',
+			'email' => 'Email',
+		]);
+		$this->identifyMethodService->method('getDefaultIdentifyMethodsPolicy')->willReturn([
+			[
+				'name' => 'account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'password' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'password',
+			],
+			[
+				'name' => 'email',
+				'enabled' => false,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'emailToken',
+			],
+		]);
+		$this->identifyMethodService->method('getIdentifyMethodsCatalogSettings')->willReturn([
+			[
+				'name' => 'account',
+				'friendly_name' => 'Account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'password' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'password',
+			],
+			[
+				'name' => 'email',
+				'friendly_name' => 'Email',
+				'enabled' => false,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'emailToken',
+			],
+		]);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->subAdmin = $this->createMock(ISubAdmin::class);
@@ -59,11 +110,12 @@ final class PolicyServiceTest extends TestCase {
 		$container = $this->createMock(ContainerInterface::class);
 		$container
 			->method('get')
-			->willReturnCallback(static function (string $class): object {
+			->willReturnCallback(function (string $class): object {
 				return match ($class) {
 					ApprovalGroupsPolicy::class => new ApprovalGroupsPolicy(),
 					ConfettiPolicy::class => new ConfettiPolicy(),
 					FooterPolicy::class => new FooterPolicy(),
+					IdentifyMethodsPolicy::class => new IdentifyMethodsPolicy($this->identifyMethodService),
 					RequestSignGroupsPolicy::class => new RequestSignGroupsPolicy(),
 					SignatureFlowPolicy::class => new SignatureFlowPolicy(),
 					DocMdpPolicy::class => new DocMdpPolicy(),
@@ -74,6 +126,7 @@ final class PolicyServiceTest extends TestCase {
 			ApprovalGroupsPolicy::class,
 			ConfettiPolicy::class,
 			FooterPolicy::class,
+			IdentifyMethodsPolicy::class,
 			RequestSignGroupsPolicy::class,
 			SignatureFlowPolicy::class,
 			DocMdpPolicy::class,
@@ -930,6 +983,160 @@ final class PolicyServiceTest extends TestCase {
 
 		self::assertInstanceOf(PolicyLayer::class, $policy);
 		self::assertSame(RequestSignGroupsPolicyValue::encode(['board', 'company']), $policy->getValue());
+	}
+
+	public function testSaveIdentifyMethodsAllowsSubAdminToSaveDelegatedGroupOverrideWhenSystemCreatedRuleExists(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('group-admin');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('group-admin')
+			->willReturn(false);
+
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->with($user)
+			->willReturn(['board', 'company']);
+
+		$this->subAdmin
+			->expects($this->once())
+			->method('isSubAdmin')
+			->with($user)
+			->willReturn(true);
+
+		$systemSeed = IdentifyMethodsPolicyValue::normalize([
+			[
+				'name' => 'account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'password' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'password',
+			],
+			[
+				'name' => 'email',
+				'enabled' => true,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'emailToken',
+			],
+		], $this->identifyMethodService);
+		$groupOverride = IdentifyMethodsPolicyValue::normalize([
+			[
+				'name' => 'account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'password' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'password',
+			],
+			[
+				'name' => 'email',
+				'enabled' => false,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'emailToken',
+			],
+		], $this->identifyMethodService);
+
+		$this->source
+			->expects($this->exactly(2))
+			->method('loadSystemPolicy')
+			->with(IdentifyMethodsPolicy::KEY)
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue($systemSeed)
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]));
+
+		$this->source
+			->expects($this->once())
+			->method('loadGroupPolicies')
+			->with(IdentifyMethodsPolicy::KEY, $this->anything())
+			->willReturn([
+				(new PolicyLayer())
+					->setScope('group')
+					->setValue($systemSeed)
+					->setAllowChildOverride(true)
+					->setVisibleToChild(true)
+					->setAllowedValues([])
+					->setCreatedBySystemAdmin(true),
+			]);
+
+		$this->source
+			->expects($this->exactly(2))
+			->method('loadGroupPolicyConfig')
+			->with(IdentifyMethodsPolicy::KEY, 'board')
+			->willReturnOnConsecutiveCalls(
+				(new PolicyLayer())
+					->setScope('group')
+					->setValue($systemSeed)
+					->setAllowChildOverride(true)
+					->setVisibleToChild(true)
+					->setCreatedBySystemAdmin(true),
+				(new PolicyLayer())
+					->setScope('group')
+					->setValue($groupOverride)
+					->setAllowChildOverride(false)
+					->setVisibleToChild(true)
+					->setCreatedBySystemAdmin(false)
+					->setDelegatedFromSystemCreatedSeed(true),
+			);
+
+		$this->source
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with(
+				IdentifyMethodsPolicy::KEY,
+				'board',
+				$groupOverride,
+				false,
+				false,
+			);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$policy = $service->saveGroupPolicy(IdentifyMethodsPolicy::KEY, 'board', [
+			[
+				'name' => 'account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'password' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'password',
+			],
+			[
+				'name' => 'email',
+				'enabled' => false,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'emailToken',
+			],
+		], false);
+
+		self::assertInstanceOf(PolicyLayer::class, $policy);
+		self::assertSame($groupOverride, $policy->getValue());
 	}
 
 	public function testSaveRequestSignGroupsBlocksSubAdminWithoutExplicitGlobalSystemDelegationEvenWhenGroupRuleExists(): void {
