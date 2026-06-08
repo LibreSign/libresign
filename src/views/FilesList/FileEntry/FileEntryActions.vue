@@ -74,6 +74,7 @@ import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 
 import { openDocument } from '../../../utils/viewer.js'
+import { openFilesListSidebarForFile } from '../../../utils/filesListSidebar.ts'
 import { getSigningRouteUuid } from '../../../utils/signRequestUuid.ts'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -185,7 +186,8 @@ function getSignRouteUuid(file: SourceFile | null | undefined) {
 function visibleIf(action: Pick<MenuAction, 'id'>) {
 	let visible = false
 	if (action.id === 'request-signature') {
-		visible = (props.source?.signersCount ?? props.source?.signers?.length ?? 0) === 0
+		visible = filesStore.canRequestSign
+			&& (props.source?.signersCount ?? props.source?.signers?.length ?? 0) === 0
 	} else if (action.id === 'details') {
 		visible = (props.source?.signersCount ?? props.source?.signers?.length ?? 0) > 0
 	} else if (action.id === 'rename') {
@@ -206,6 +208,17 @@ function visibleIf(action: Pick<MenuAction, 'id'>) {
 async function onActionClick(action: Pick<MenuAction, 'id'>) {
 	openedMenu.value = false
 	if (action.id === 'details' || action.id === 'request-signature') {
+		if (action.id === 'details') {
+			await openFilesListSidebarForFile(props.source.id, {
+				filesStore,
+				sidebarStore,
+				signStore,
+			})
+			return
+		}
+		if (!filesStore.canRequestSign) {
+			return
+		}
 		filesStore.selectFile(props.source.id)
 		sidebarStore.activeRequestSignatureTab()
 	} else if (action.id === 'sign') {
