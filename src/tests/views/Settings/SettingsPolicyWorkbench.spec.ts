@@ -9,6 +9,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import RealPolicyWorkbench from '../../../views/Settings/PolicyWorkbench/Catalog/Catalog.vue'
 
+type MockPolicyState = {
+	effectiveValue: unknown
+	sourceScope?: string
+	editableByCurrentActor?: boolean
+	canSaveAsUserDefault?: boolean
+	visible?: boolean
+	allowedValues?: unknown[]
+	blockedBy?: string | null
+	canUseAsRequestOverride?: boolean
+	preferenceWasCleared?: boolean
+	groupCount?: number
+	userCount?: number
+	everyoneCount?: number
+	meta?: Record<string, unknown>
+}
+
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 const { currentUserState } = vi.hoisted(() => ({
@@ -78,7 +94,7 @@ vi.mock('@nextcloud/axios', () => ({
 	},
 }))
 
-const getPolicy = vi.fn((key: string) => {
+const getPolicy = vi.fn((key: string): MockPolicyState | null => {
 	if (key === 'signature_flow') {
 		return { effectiveValue: 'ordered_numeric' }
 	}

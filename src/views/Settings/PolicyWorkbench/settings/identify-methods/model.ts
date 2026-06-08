@@ -130,6 +130,56 @@ export function normalizeIdentifyMethodsPolicy(value: EffectivePolicyValue): Ide
 	return normalizeIdentifyMethodsPolicyConfig(value).factors
 }
 
+export function getEnabledIdentifyMethodNames(value: EffectivePolicyValue): string[] {
+	return normalizeIdentifyMethodsPolicy(value)
+		.filter((entry) => entry.enabled)
+		.map((entry) => entry.name)
+}
+
+export function restrictIdentifyMethodsPolicyToNames(
+	value: EffectivePolicyValue,
+	allowedMethodNames: Iterable<string>,
+): string {
+	const normalizedConfig = normalizeIdentifyMethodsPolicyConfig(value)
+	const allowedNames = new Set(
+		Array.from(allowedMethodNames).filter((name): name is string => typeof name === 'string' && name.trim().length > 0),
+	)
+
+	return serializeIdentifyMethodsPolicy(
+		normalizedConfig.factors.filter((entry) => allowedNames.has(entry.name)),
+		normalizedConfig.global,
+	)
+}
+
+export function mergeIdentifyMethodsEntriesWithCatalog(
+	policyEntries: IdentifyMethodPolicyEntry[],
+	catalogEntries: IdentifyMethodPolicyEntry[],
+): IdentifyMethodPolicyEntry[] {
+	if (catalogEntries.length === 0) {
+		return policyEntries.map(cloneIdentifyMethodEntry)
+	}
+
+	const policyEntriesByName = new Map(policyEntries.map((entry) => [entry.name, entry]))
+	const catalogEntryNames = new Set(catalogEntries.map((entry) => entry.name))
+
+	const mergedEntries = catalogEntries.map((catalogEntry) => {
+		const policyEntry = policyEntriesByName.get(catalogEntry.name)
+		if (!policyEntry) {
+			return buildCatalogEditorEntry(catalogEntry)
+		}
+
+		return mergeIdentifyMethodEntryWithCatalog(policyEntry, catalogEntry)
+	})
+
+	for (const policyEntry of policyEntries) {
+		if (!catalogEntryNames.has(policyEntry.name)) {
+			mergedEntries.push(cloneIdentifyMethodEntry(policyEntry))
+		}
+	}
+
+	return mergedEntries
+}
+
 export function serializeIdentifyMethodsPolicy(
 	entries: IdentifyMethodPolicyEntry[],
 	globalSettings: IdentifyMethodsPolicyGlobalSettings = {},
@@ -221,6 +271,128 @@ function normalizeSignatureMethods(value: unknown, legacyAvailableSignatureMetho
 	}
 
 	return signatureMethods
+}
+
+function buildCatalogEditorEntry(entry: IdentifyMethodPolicyEntry): IdentifyMethodPolicyEntry {
+	const catalogEntry: IdentifyMethodPolicyEntry = {
+		name: entry.name,
+		enabled: false,
+		signatureMethods: cloneSignatureMethods(entry.signatureMethods),
+	}
+
+	if (typeof entry.friendly_name === 'string') {
+		catalogEntry.friendly_name = entry.friendly_name
+	}
+
+	if (entry.requirement) {
+		catalogEntry.requirement = entry.requirement
+	}
+
+	if (entry.minimumTotalVerifiedFactors !== undefined) {
+		catalogEntry.minimumTotalVerifiedFactors = entry.minimumTotalVerifiedFactors
+	}
+
+	if (entry.signatureMethodEnabled) {
+		catalogEntry.signatureMethodEnabled = entry.signatureMethodEnabled
+	}
+
+	return catalogEntry
+}
+
+function mergeIdentifyMethodEntryWithCatalog(
+	policyEntry: IdentifyMethodPolicyEntry,
+	catalogEntry: IdentifyMethodPolicyEntry,
+): IdentifyMethodPolicyEntry {
+	const mergedEntry: IdentifyMethodPolicyEntry = {
+		name: policyEntry.name,
+		enabled: policyEntry.enabled,
+		signatureMethods: mergeSignatureMethods(catalogEntry.signatureMethods, policyEntry.signatureMethods),
+	}
+
+	if (typeof policyEntry.friendly_name === 'string') {
+		mergedEntry.friendly_name = policyEntry.friendly_name
+	} else if (typeof catalogEntry.friendly_name === 'string') {
+		mergedEntry.friendly_name = catalogEntry.friendly_name
+	}
+
+	if (policyEntry.requirement) {
+		mergedEntry.requirement = policyEntry.requirement
+	} else if (catalogEntry.requirement) {
+		mergedEntry.requirement = catalogEntry.requirement
+	}
+
+	if (policyEntry.minimumTotalVerifiedFactors !== undefined) {
+		mergedEntry.minimumTotalVerifiedFactors = policyEntry.minimumTotalVerifiedFactors
+	} else if (catalogEntry.minimumTotalVerifiedFactors !== undefined) {
+		mergedEntry.minimumTotalVerifiedFactors = catalogEntry.minimumTotalVerifiedFactors
+	}
+
+	if (policyEntry.signatureMethodEnabled) {
+		mergedEntry.signatureMethodEnabled = policyEntry.signatureMethodEnabled
+	} else if (catalogEntry.signatureMethodEnabled) {
+		mergedEntry.signatureMethodEnabled = catalogEntry.signatureMethodEnabled
+	}
+
+	return mergedEntry
+}
+
+function mergeSignatureMethods(
+	catalogSignatureMethods: Record<string, IdentifyMethodSignatureMethod>,
+	policySignatureMethods: Record<string, IdentifyMethodSignatureMethod>,
+): Record<string, IdentifyMethodSignatureMethod> {
+	const mergedSignatureMethods: Record<string, IdentifyMethodSignatureMethod> = {}
+	const signatureMethodNames = new Set([
+		...Object.keys(catalogSignatureMethods),
+		...Object.keys(policySignatureMethods),
+	])
+
+	for (const signatureMethodName of signatureMethodNames) {
+		mergedSignatureMethods[signatureMethodName] = {
+			...(catalogSignatureMethods[signatureMethodName]
+				? { ...catalogSignatureMethods[signatureMethodName] }
+				: {}),
+			...(policySignatureMethods[signatureMethodName]
+				? { ...policySignatureMethods[signatureMethodName] }
+				: {}),
+		}
+	}
+
+	return mergedSignatureMethods
+}
+
+function cloneIdentifyMethodEntry(entry: IdentifyMethodPolicyEntry): IdentifyMethodPolicyEntry {
+	const clonedEntry: IdentifyMethodPolicyEntry = {
+		name: entry.name,
+		enabled: entry.enabled,
+		signatureMethods: cloneSignatureMethods(entry.signatureMethods),
+	}
+
+	if (typeof entry.friendly_name === 'string') {
+		clonedEntry.friendly_name = entry.friendly_name
+	}
+
+	if (entry.requirement) {
+		clonedEntry.requirement = entry.requirement
+	}
+
+	if (entry.minimumTotalVerifiedFactors !== undefined) {
+		clonedEntry.minimumTotalVerifiedFactors = entry.minimumTotalVerifiedFactors
+	}
+
+	if (entry.signatureMethodEnabled) {
+		clonedEntry.signatureMethodEnabled = entry.signatureMethodEnabled
+	}
+
+	return clonedEntry
+}
+
+function cloneSignatureMethods(signatureMethods: Record<string, IdentifyMethodSignatureMethod>): Record<string, IdentifyMethodSignatureMethod> {
+	return Object.fromEntries(
+		Object.entries(signatureMethods).map(([signatureMethodName, signatureMethod]) => [
+			signatureMethodName,
+			{ ...signatureMethod },
+		]),
+	)
 }
 
 function normalizeRequirement(requirement: unknown): IdentifyMethodRequirement | undefined {

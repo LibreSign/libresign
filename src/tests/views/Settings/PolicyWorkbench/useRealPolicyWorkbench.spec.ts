@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 
 import { createRealPolicyWorkbenchState } from '../../../../views/Settings/PolicyWorkbench/useRealPolicyWorkbench'
+import type { IdentifyMethodPolicyEntry } from '../../../../views/Settings/PolicyWorkbench/settings/identify-methods/model'
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
@@ -37,7 +38,7 @@ const { identifyMethodsInitialState } = vi.hoisted(() => ({
 				},
 			},
 		},
-	],
+	] as IdentifyMethodPolicyEntry[],
 }))
 
 vi.mock('@nextcloud/auth', () => ({
