@@ -8,7 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Api\Controller;
 
+use DateTime;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
@@ -189,6 +191,46 @@ final class FileControllerTest extends ApiTestCase {
 			])
 			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId())
 			->expectStatus(403);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testGetThumbnailByFileIdAfterSignerAlreadySigned(): void {
+		$owner = $this->createAccount('owner', 'password');
+		$this->createAccount('signer', 'password');
+		$this->getMockAppConfig();
+
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+			'name' => 'test.pdf',
+			'signers' => [[
+				'identifyMethods' => [[
+					'method' => 'account',
+					'mandatory' => 0,
+					'value' => 'signer',
+				]],
+			]],
+			'userManager' => $owner,
+		]);
+
+		$signers = $this->getSignersFromFileId($file->getId());
+		$signers[0]->setSigned(new DateTime());
+		/** @var SignRequestMapper $signRequestMapper */
+		$signRequestMapper = \OCP\Server::get(SignRequestMapper::class);
+		$signRequestMapper->update($signers[0]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('signer:password'),
+			])
+			->withQuery([
+				'x' => 0,
+			])
+			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId())
+			->assertResponseCode(400);
 
 		$this->assertRequest();
 	}
