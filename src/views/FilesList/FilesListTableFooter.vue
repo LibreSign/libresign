@@ -4,7 +4,7 @@
 -->
 <template>
 	<tr v-show="haveFiles || activeChips.length > 0">
-		<th class="files-list__row-checkbox">
+		<th v-if="showSelectionColumn" class="files-list__row-checkbox">
 			<!-- TRANSLATORS Label for a table footer which summarizes the columns of the table -->
 			<span class="hidden-visually">{{ t('libresign', 'Total rows summary') }}</span>
 		</th>
@@ -37,6 +37,7 @@ defineOptions({
 const filesStore = useFilesStore()
 const filtersStore = useFiltersStore()
 const activeChips = computed(() => Array.isArray(filtersStore.activeChips) ? filtersStore.activeChips : [])
+const showSelectionColumn = computed(() => Object.values(filesStore.files).some((file) => filesStore.canDelete(file)))
 
 const totalFiles = computed(() => Object.keys(filesStore.files).length)
 
@@ -59,6 +60,7 @@ defineExpose({
 	filesStore,
 	filtersStore,
 	activeChips,
+	showSelectionColumn,
 	totalFiles,
 	summary,
 	haveFiles,
