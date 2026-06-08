@@ -170,11 +170,13 @@ class AdminController extends AEnvironmentAwareController {
 		$handler = $this->certificateEngineFactory->getEngine();
 		$handler->setEngine($engine);
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsSettings();
-
-		return new DataResponse([
+		/** @var LibresignCertificateEngineConfigResponse $response */
+		$response = [
 			'engine' => $engine,
 			'identify_methods' => $identifyMethods,
-		]);
+		];
+
+		return new DataResponse($response);
 	}
 
 	private function generateCertificate(
