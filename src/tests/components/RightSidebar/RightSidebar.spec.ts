@@ -121,6 +121,14 @@ describe('RightSidebar.vue', () => {
 		expect(wrapper.find('.sign-tab').exists()).toBe(false)
 	})
 
+	it('does not render the sidebar when the request tab has no visible content', () => {
+		filesStoreMock.canRequestSign = false
+		const wrapper = createWrapper()
+
+		expect(wrapper.find('.app-sidebar').exists()).toBe(false)
+		expect(wrapper.find('.request-signature-tab').exists()).toBe(false)
+	})
+
 	it('forwards active and open state updates to the sidebar store', async () => {
 		const wrapper = createWrapper()
 		const sidebar = wrapper.findComponent({ name: 'NcAppSidebar' })
