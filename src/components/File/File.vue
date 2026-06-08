@@ -4,15 +4,11 @@
 -->
 <template>
 	<div v-if="currentFileId && currentFile" class="content-file" @click="openSidebar">
-		<img v-if="previewUrl && backgroundFailed !== true"
-			ref="previewImg"
+		<img v-if="previewUrl"
 			alt=""
-			class="files-list__row-icon-preview"
-			:class="{'files-list__row-icon-preview--loaded': backgroundFailed === false}"
+			class="files-list__row-icon-preview files-list__row-icon-preview--loaded"
 			loading="lazy"
-			:src="previewUrl"
-			@error="backgroundFailed = true"
-			@load="backgroundFailed = false">
+			:src="previewUrl">
 		<NcIconSvgWrapper v-else v-once :path="mdiFile" :size="128" />
 		<div class="enDot">
 			<div :class="'dot ' + statusToClass(currentFile.status)" />
@@ -23,12 +19,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import type { FileStatus } from '../../types/index'
 
 import { mdiFile } from '@mdi/js'
 
-import { generateUrl, generateOcsUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { useFilesStore } from '../../store/files.js'
@@ -44,7 +40,6 @@ type CurrentFileState = NonNullable<ReturnType<FilesStoreContract['getSelectedFi
 const filesStore = useFilesStore()
 const sidebarStore = useSidebarStore()
 
-const backgroundFailed = ref(false)
 const gridMode = true
 const cropPreviews = true
 
@@ -56,7 +51,7 @@ const currentFile = computed<CurrentFileState | null>(() => {
 	return filesStore.getSelectedFileView()
 })
 const previewUrl = computed(() => {
-	if (backgroundFailed.value === true || !currentFile.value) {
+	if (!currentFile.value) {
 		return null
 	}
 
@@ -70,9 +65,7 @@ const previewUrl = computed(() => {
 			nodeId: currentFile.value.nodeId,
 		})
 	} else {
-		filePreviewUrl = window.location.origin + generateUrl('/core/preview?fileId={fileid}', {
-			fileid: currentFile.value.id,
-		})
+		return null
 	}
 
 	const url = new URL(filePreviewUrl)
