@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcAppSidebar v-if="sidebarStore.activeTab.length > 0"
+	<NcAppSidebar v-if="hasVisibleTab"
 		ref="rightAppSidebar"
 		v-model:open="opened"
 		:name="fileName"
@@ -77,6 +77,7 @@ const subTitle = computed(() => {
 
 const showRequestSignatureTab = computed(() => sidebarStore.activeTab === 'request-signature-tab' && filesStore.canRequestSign)
 const showSign = computed(() => sidebarStore.activeTab === 'sign-tab' && signStore.document !== undefined)
+const hasVisibleTab = computed(() => showRequestSignatureTab.value || showSign.value)
 
 watch(() => sidebarStore.activeTab, (newValue) => {
 	if (rightAppSidebar.value?.$refs?.tabs) {
@@ -106,6 +107,7 @@ defineExpose({
 	subTitle,
 	showRequestSignatureTab,
 	showSign,
+	hasVisibleTab,
 	handleUpdateActive,
 	closeSidebar,
 })
