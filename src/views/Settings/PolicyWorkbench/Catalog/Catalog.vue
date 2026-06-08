@@ -292,7 +292,7 @@
 					<div v-if="showDefaultInline" class="policy-workbench__default-inline">
 						<!-- TRANSLATORS Label introducing the currently effective base/default value for selected setting. -->
 						<span class="policy-workbench__default-inline-label">{{ defaultInlineLabel }}</span>
-						<strong class="policy-workbench__default-inline-value">{{ state.summary.currentBaseValue }}</strong>
+						<strong class="policy-workbench__default-inline-value">{{ state.summary?.currentBaseValue ?? '' }}</strong>
 						<span class="policy-workbench__default-inline-source">({{ defaultSourceLabel }})</span>
 						<span v-if="state.viewMode === 'system-admin'" class="policy-workbench__default-inline-separator" aria-hidden="true">&middot;</span>
 						<NcButton

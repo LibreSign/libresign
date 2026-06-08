@@ -92,40 +92,38 @@ import { t } from '@nextcloud/l10n'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 
+import type { EffectivePoliciesResponse, EffectivePolicyValue } from '../../../../../types/index'
+
 import {
 	getEnabledIdentifyMethodNames,
+	type IdentifyMethodPolicyEntry,
+	type IdentifyMethodSignatureMethod,
 	mergeIdentifyMethodsEntriesWithCatalog,
 	normalizeIdentifyMethodsPolicyConfig,
 	normalizeIdentifyMethodsPolicy,
 	serializeIdentifyMethodsPolicy,
-} from './model.ts'
+} from './model'
 
 defineOptions({
 	name: 'IdentifyMethodsRuleEditor',
 })
 
-const props = defineProps({
-	modelValue: {
-		type: [String, Number, Boolean, Object, Array],
-		default: null,
-	},
+const props = withDefaults(defineProps<{
+	modelValue?: EffectivePolicyValue
+}>(), {
+	modelValue: null,
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits<{
+	'update:modelValue': [value: EffectivePolicyValue]
+}>()
 
-const policyConfig = computed(() => normalizeIdentifyMethodsPolicyConfig(props.modelValue))
+const policyConfig = computed(() => normalizeIdentifyMethodsPolicyConfig(props.modelValue ?? null))
 
-const effectivePolicies = loadState('libresign', 'effective_policies', { policies: {} })
+const effectivePolicies = loadState<EffectivePoliciesResponse>('libresign', 'effective_policies', { policies: {} })
 const isInstanceAdmin = getCurrentUser()?.isAdmin === true
-const effectiveIdentifyMethods = (() => {
-	const policies = effectivePolicies && typeof effectivePolicies === 'object'
-		? effectivePolicies.policies
-		: null
-	if (!policies || typeof policies !== 'object') {
-		return []
-	}
-
-	const identifyMethodsPolicy = policies.identify_methods
+const effectiveIdentifyMethods: EffectivePolicyValue = (() => {
+	const identifyMethodsPolicy = effectivePolicies.policies?.identify_methods
 	if (!identifyMethodsPolicy || typeof identifyMethodsPolicy !== 'object') {
 		return []
 	}
@@ -141,7 +139,7 @@ const delegatedMethodNames = isInstanceAdmin
 	? null
 	: new Set(getEnabledIdentifyMethodNames(effectiveIdentifyMethods))
 
-const entries = computed(() => {
+const entries = computed<IdentifyMethodPolicyEntry[]>(() => {
 	const normalized = mergeIdentifyMethodsEntriesWithCatalog(policyConfig.value.factors, identifyMethodsCatalog)
 	const visibleEntries = delegatedMethodNames
 		? normalized.filter((entry) => delegatedMethodNames.has(entry.name))
@@ -151,16 +149,12 @@ const entries = computed(() => {
 
 const canToggleMethodAvailability = computed(() => entries.value.length > 1)
 
-const signatureMethodLabelsByMethod = new Map()
-const signatureMethodLabelsGlobal = new Map()
+const signatureMethodLabelsByMethod = new Map<string, Map<string, string>>()
+const signatureMethodLabelsGlobal = new Map<string, string>()
 for (const identifyMethod of identifyMethodsCatalog) {
-	const labels = new Map()
+	const labels = new Map<string, string>()
 	for (const [signatureMethodName, rawSignatureMethodConfig] of Object.entries(identifyMethod.signatureMethods)) {
-		if (!rawSignatureMethodConfig || typeof rawSignatureMethodConfig !== 'object') {
-			continue
-		}
-
-		const signatureMethodLabel = Reflect.get(rawSignatureMethodConfig, 'label')
+		const signatureMethodLabel = rawSignatureMethodConfig.label
 		if (typeof signatureMethodLabel === 'string' && signatureMethodLabel.trim().length > 0) {
 			labels.set(signatureMethodName, signatureMethodLabel)
 			if (!signatureMethodLabelsGlobal.has(signatureMethodName)) {
@@ -174,7 +168,7 @@ for (const identifyMethod of identifyMethodsCatalog) {
 	}
 }
 
-const methodsSupportingAccountCreation = new Set(['email'])
+const methodsSupportingAccountCreation = new Set<string>(['email'])
 
 const showGlobalOnboardingToggle = computed(() => entries.value.some((entry) => methodsSupportingAccountCreation.has(entry.name)))
 const canCreateAccount = computed(() => policyConfig.value.global.canCreateAccount ?? false)
@@ -182,7 +176,7 @@ const canCreateAccount = computed(() => policyConfig.value.global.canCreateAccou
 const enabledCount = computed(() => entries.value.filter((entry) => entry.enabled).length)
 const canAdjustRequirement = computed(() => enabledCount.value > 1)
 
-function onMethodToggle(index, enabled) {
+function onMethodToggle(index: number, enabled: boolean): void {
 	const nextEntries = [...entries.value]
 	nextEntries[index] = {
 		...nextEntries[index],
@@ -191,7 +185,7 @@ function onMethodToggle(index, enabled) {
 	emit('update:modelValue', serializeIdentifyMethodsPolicy(ensureSignatureMethodSelection(nextEntries), policyConfig.value.global))
 }
 
-function onRequirementToggle(index, required) {
+function onRequirementToggle(index: number, required: boolean): void {
 	const nextEntries = [...entries.value]
 	nextEntries[index] = {
 		...nextEntries[index],
@@ -200,7 +194,7 @@ function onRequirementToggle(index, required) {
 	emit('update:modelValue', serializeIdentifyMethodsPolicy(ensureSignatureMethodSelection(nextEntries), policyConfig.value.global))
 }
 
-function onSignatureMethodChange(index, signatureMethodName) {
+function onSignatureMethodChange(index: number, signatureMethodName: string): void {
 	const nextEntries = [...entries.value]
 	nextEntries[index] = {
 		...nextEntries[index],
@@ -209,18 +203,18 @@ function onSignatureMethodChange(index, signatureMethodName) {
 	emit('update:modelValue', serializeIdentifyMethodsPolicy(ensureSignatureMethodSelection(nextEntries), policyConfig.value.global))
 }
 
-function onGlobalCanCreateAccountToggle(canCreateAccount) {
+function onGlobalCanCreateAccountToggle(canCreateAccount: boolean): void {
 	emit('update:modelValue', serializeIdentifyMethodsPolicy(entries.value, {
 		...policyConfig.value.global,
 		canCreateAccount,
 	}))
 }
 
-function isRequired(entry) {
+function isRequired(entry: IdentifyMethodPolicyEntry): boolean {
 	return entry.requirement === 'required'
 }
 
-function getVerificationMethodLabel(identifyMethodName, signatureMethodName, fallbackLabel) {
+function getVerificationMethodLabel(identifyMethodName: string, signatureMethodName: string, fallbackLabel?: string): string {
 	if (typeof fallbackLabel === 'string' && fallbackLabel.trim().length > 0) {
 		return fallbackLabel
 	}
@@ -238,7 +232,7 @@ function getVerificationMethodLabel(identifyMethodName, signatureMethodName, fal
 	return t('libresign', 'Verification option')
 }
 
-function ensureSignatureMethodSelection(entries) {
+function ensureSignatureMethodSelection(entries: IdentifyMethodPolicyEntry[]): IdentifyMethodPolicyEntry[] {
 	return entries.map((entry) => {
 		const signatureMethodNames = Object.keys(entry.signatureMethods)
 		if (signatureMethodNames.length === 0) {
@@ -254,15 +248,13 @@ function ensureSignatureMethodSelection(entries) {
 				?? signatureMethodNames[0]
 		}
 
-		const signatureMethods = Object.fromEntries(
-			signatureMethodNames.map((signatureMethodName) => [
-				signatureMethodName,
-				{
-					...entry.signatureMethods[signatureMethodName],
-					enabled: signatureMethodName === selectedSignatureMethod,
-				},
-			]),
-		)
+		const signatureMethods = signatureMethodNames.reduce<Record<string, IdentifyMethodSignatureMethod>>((result, signatureMethodName) => {
+			result[signatureMethodName] = {
+				...entry.signatureMethods[signatureMethodName],
+				enabled: signatureMethodName === selectedSignatureMethod,
+			}
+			return result
+		}, {})
 
 		return {
 			...entry,
