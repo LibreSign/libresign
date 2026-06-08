@@ -227,6 +227,25 @@
                     "PhpNative"
                 ]
             },
+            "AdminSignatureMethodSetting": {
+                "type": "object",
+                "required": [
+                    "enabled",
+                    "label",
+                    "name"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
             "Capabilities": {
                 "type": "object",
                 "required": [
@@ -344,12 +363,17 @@
                 ],
                 "properties": {
                     "engine": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "cfssl",
+                            "none",
+                            "openssl"
+                        ]
                     },
                     "identify_methods": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/IdentifyMethodSetting"
+                            "$ref": "#/components/schemas/IdentifyMethodAdminSetting"
                         }
                     }
                 }
@@ -1925,6 +1949,46 @@
                     },
                     "requirement": {
                         "$ref": "#/components/schemas/IdentifyMethodRequirement"
+                    }
+                }
+            },
+            "IdentifyMethodAdminSetting": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "friendly_name",
+                    "enabled",
+                    "requirement"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "friendly_name": {
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "requirement": {
+                        "$ref": "#/components/schemas/IdentifyMethodRequirement"
+                    },
+                    "minimumTotalVerifiedFactors": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 1
+                    },
+                    "can_create_account": {
+                        "type": "boolean"
+                    },
+                    "test_url": {
+                        "type": "string"
+                    },
+                    "signatureMethods": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/AdminSignatureMethodSetting"
+                        }
                     }
                 }
             },
