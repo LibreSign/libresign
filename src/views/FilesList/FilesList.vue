@@ -118,8 +118,10 @@ import RequestPicker from '../../components/Request/RequestPicker.vue'
 
 import { useFilesStore } from '../../store/files.js'
 import { useFiltersStore } from '../../store/filters.js'
+import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 import { useSidebarStore } from '../../store/sidebar.js'
+import { openFilesListSidebarForFile } from '../../utils/filesListSidebar.ts'
 
 defineOptions({
 	name: 'FilesList',
@@ -127,6 +129,7 @@ defineOptions({
 
 const filesStore = useFilesStore()
 const filtersStore = useFiltersStore()
+const signStore = useSignStore()
 const userConfigStore = useUserConfigStore()
 const sidebarStore = useSidebarStore()
 const route = useRoute()
@@ -154,15 +157,18 @@ function toggleGridView() {
 	userConfigStore.update('files_list_grid_view', !isGridView.value)
 }
 
-function checkAndOpenFileFromUri() {
+async function checkAndOpenFileFromUri() {
 	const query = route.query as { uuid?: string | string[] }
 	const uuid = Array.isArray(query.uuid) ? query.uuid[0] : query.uuid
 	if (uuid) {
-		filesStore.selectFileByUuid(uuid).then((fileId) => {
-			if (fileId) {
-				sidebarStore.activeRequestSignatureTab()
-			}
-		})
+		const fileId = await filesStore.selectFileByUuid(uuid)
+		if (fileId) {
+			await openFilesListSidebarForFile(fileId, {
+				filesStore,
+				sidebarStore,
+				signStore,
+			})
+		}
 	}
 }
 
@@ -170,7 +176,7 @@ onMounted(async () => {
 	await filesStore.getAllFiles({ force_fetch: true })
 	loading.value = false
 	filesStore.disableIdentifySigner()
-	checkAndOpenFileFromUri()
+	await checkAndOpenFileFromUri()
 })
 
 onBeforeUnmount(() => {
