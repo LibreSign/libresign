@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "683fc6c9ae20a480af7b531acfea05bb",
+    "content-hash": "a0127fa8dfa35f6e73a6f5cd728c9b40",
     "packages": [
         {
             "name": "cweagans/composer-configurable-plugin",
@@ -197,6 +197,57 @@
                 "source": "https://github.com/jeidison/signer-php/tree/v1.0.1"
             },
             "time": "2026-03-17T00:40:40+00:00"
+        },
+        {
+            "name": "libresign/pdf-signature-validator",
+            "version": "v0.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/LibreSign/pdf-signature-validator.git",
+                "reference": "8288a4648c8d738fe538f182bb8a9c6a123feb1a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/LibreSign/pdf-signature-validator/zipball/8288a4648c8d738fe538f182bb8a9c6a123feb1a",
+                "reference": "8288a4648c8d738fe538f182bb8a9c6a123feb1a",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.2",
+                "phpseclib/phpseclib": "^3.0"
+            },
+            "require-dev": {
+                "bamarni/composer-bin-plugin": "^1.8",
+                "roave/security-advisories": "dev-latest"
+            },
+            "type": "library",
+            "extra": {
+                "bamarni-bin": {
+                    "bin-links": true,
+                    "forward-command": true
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "LibreSign\\PdfSignatureValidator\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "AGPL-3.0-or-later"
+            ],
+            "description": "High-quality PDF signature extraction and validation primitives for LibreSign and external consumers.",
+            "support": {
+                "issues": "https://github.com/LibreSign/pdf-signature-validator/issues",
+                "source": "https://github.com/LibreSign/pdf-signature-validator/tree/v0.2.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sponsors/libresign",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-04-24T14:34:32+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",

@@ -74,47 +74,7 @@ class ConfigureCheckService {
 	}
 
 	public function checkPoppler(): array {
-		$return = $this->checkPdfSig();
-		$return = array_merge($return, $this->checkPdfinfo());
-		return $return;
-	}
-
-	public function checkPdfSig(): array {
-		if (!empty($this->result['poppler'])) {
-			return $this->result['poppler'];
-		}
-		// The output of this command go to STDERR and exec get the STDOUT
-		// With 2>&1 the STRERR is redirected to STDOUT
-		exec('pdfsig -v 2>&1', $version, $retval);
-		if ($retval !== 0) {
-			return $this->result['poppler'] = [
-				(new ConfigureCheckHelper())
-					->setInfoMessage('Poppler utils not installed')
-					->setResource('pdfsig')
-					->setTip('Install the package poppler-utils at your operational system to be possible get more details about validation of signatures.'),
-			];
-		}
-		if (!$version) {
-			return $this->result['poppler'] = [
-				(new ConfigureCheckHelper())
-					->setErrorMessage('Fail to retrieve pdfsig version')
-					->setResource('pdfsig')
-					->setTip("The command <pdfsig -v> executed by PHP haven't any output."),
-			];
-		}
-		$returnValue = preg_match('/pdfsig version (?<version>.*)/', implode(PHP_EOL, $version), $matches);
-		if ($returnValue !== 1) {
-			return $this->result['poppler'] = [
-				(new ConfigureCheckHelper())
-					->setErrorMessage('Fail to retrieve pdfsig version')
-					->setResource('pdfsig')
-					->setTip("This is a poppler-utils dependency and wasn't possible to parse the output of command pdfsig -v"),
-			];
-		}
-		return $this->result['poppler'] = [(new ConfigureCheckHelper())
-			->setSuccessMessage('pdfsig version: ' . $matches['version'])
-			->setResource('pdfsig')
-		];
+		return $this->checkPdfinfo();
 	}
 
 	public function checkPdfinfo(): array {
