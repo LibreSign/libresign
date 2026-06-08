@@ -25,6 +25,7 @@ const filesStoreMock = {
 			signers: [{ me: true, sign_request_uuid: 'sign-request-uuid' }],
 		},
 	},
+	canRequestSign: true,
 	canSign: vi.fn(() => true),
 	canValidate: vi.fn(() => true),
 	canDelete: vi.fn(() => true),
@@ -169,6 +170,7 @@ describe('FileEntryActions.vue', () => {
 	beforeEach(() => {
 		actionsMenuStoreMock.opened = null
 		filesStoreMock.files[1] = { ...source }
+		filesStoreMock.canRequestSign = true
 		filesStoreMock.canSign.mockReturnValue(true)
 		filesStoreMock.canValidate.mockReturnValue(true)
 		filesStoreMock.canDelete.mockReturnValue(true)
@@ -219,6 +221,19 @@ describe('FileEntryActions.vue', () => {
 		expect(wrapper.vm.visibleIf({ id: 'details' })).toBe(false)
 	})
 
+	it('hides request-signature when the user cannot request signatures', async () => {
+		filesStoreMock.canRequestSign = false
+		const wrapper = createWrapper()
+		await wrapper.setProps({
+			source: {
+				...source,
+				signers: [],
+			},
+		})
+
+		expect(wrapper.vm.visibleIf({ id: 'request-signature' })).toBe(false)
+	})
+
 	it('opens the sign flow for the current signer', async () => {
 		const wrapper = createWrapper()
 
@@ -239,6 +254,85 @@ describe('FileEntryActions.vue', () => {
 		})
 		expect(filesStoreMock.selectFile).toHaveBeenCalledWith(1)
 		expect(sidebarStoreMock.activeSignTab).toHaveBeenCalledTimes(1)
+		expect(sidebarStoreMock.activeRequestSignatureTab).not.toHaveBeenCalled()
+	})
+
+	it('opens the sign sidebar from details when the current user can sign the file', async () => {
+		const detailedFile = {
+			id: 1,
+			uuid: 'file-uuid',
+			name: 'contract.pdf',
+			nodeId: 17,
+			nodeType: 'file',
+			status: 1,
+			statusText: 'Ready to sign',
+			signers: [{ me: true, sign_request_uuid: 'sign-request-uuid' }],
+			visibleElements: [],
+			settings: { isApprover: false },
+		}
+		filesStoreMock.fetchFileDetail.mockResolvedValueOnce(detailedFile)
+
+		const wrapper = createWrapper()
+
+		await wrapper.vm.onActionClick({ id: 'details' })
+
+		expect(filesStoreMock.selectFile).toHaveBeenCalledWith(1)
+		expect(filesStoreMock.fetchFileDetail).toHaveBeenCalledWith({
+			fileId: 1,
+			force: true,
+		})
+		expect(signStoreMock.setFileToSign).toHaveBeenCalledWith(detailedFile)
+		expect(sidebarStoreMock.activeSignTab).toHaveBeenCalledTimes(1)
+		expect(sidebarStoreMock.activeRequestSignatureTab).not.toHaveBeenCalled()
+		expect(routerPushMock).not.toHaveBeenCalled()
+	})
+
+	it('closes details instead of opening an empty sidebar when the file is signed and the user cannot request signatures', async () => {
+		filesStoreMock.canRequestSign = false
+		filesStoreMock.canSign.mockReturnValue(false)
+		filesStoreMock.fetchFileDetail.mockResolvedValueOnce({
+			id: 1,
+			uuid: 'file-uuid',
+			name: 'contract.pdf',
+			nodeId: 17,
+			nodeType: 'file',
+			status: 3,
+			statusText: 'Signed',
+			signers: [{ me: true, sign_request_uuid: 'sign-request-uuid' }],
+			visibleElements: [],
+			settings: { isApprover: false },
+		})
+
+		const wrapper = createWrapper()
+
+		await wrapper.vm.onActionClick({ id: 'details' })
+
+		expect(filesStoreMock.selectFile).toHaveBeenCalledWith(1)
+		expect(signStoreMock.setFileToSign).not.toHaveBeenCalled()
+		expect(sidebarStoreMock.activeSignTab).not.toHaveBeenCalled()
+		expect(sidebarStoreMock.activeRequestSignatureTab).not.toHaveBeenCalled()
+		expect(sidebarStoreMock.hideSidebar).toHaveBeenCalledTimes(1)
+	})
+
+	it('keeps request-signature on the request sidebar', async () => {
+		const wrapper = createWrapper()
+
+		await wrapper.vm.onActionClick({ id: 'request-signature' })
+
+		expect(filesStoreMock.selectFile).toHaveBeenCalledWith(1)
+		expect(filesStoreMock.fetchFileDetail).not.toHaveBeenCalled()
+		expect(signStoreMock.setFileToSign).not.toHaveBeenCalled()
+		expect(sidebarStoreMock.activeSignTab).not.toHaveBeenCalled()
+		expect(sidebarStoreMock.activeRequestSignatureTab).toHaveBeenCalledTimes(1)
+	})
+
+	it('does not open request-signature when the user lacks permission', async () => {
+		filesStoreMock.canRequestSign = false
+		const wrapper = createWrapper()
+
+		await wrapper.vm.onActionClick({ id: 'request-signature' })
+
+		expect(filesStoreMock.selectFile).not.toHaveBeenCalled()
 		expect(sidebarStoreMock.activeRequestSignatureTab).not.toHaveBeenCalled()
 	})
 
