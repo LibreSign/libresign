@@ -193,14 +193,26 @@ describe('sidebar store - visibility rules', () => {
 			expect(store.show).toBe(true)
 		})
 
-		it('keeps sidebar visible for ValidationFile route', () => {
+		it('closes and clears the sidebar when navigating to ValidationFile', () => {
 			const store = useSidebarStore()
 			store.show = true
 			store.activeTab = 'sign-tab'
 
 			store.handleRouteChange('ValidationFile')
 
-			expect(store.show).toBe(true)
+			expect(store.show).toBe(false)
+			expect(store.activeTab).toBe('')
+		})
+
+		it('closes and clears the sidebar when navigating to ValidationFileExternal', () => {
+			const store = useSidebarStore()
+			store.show = true
+			store.activeTab = 'request-signature-tab'
+
+			store.handleRouteChange('ValidationFileExternal')
+
+			expect(store.show).toBe(false)
+			expect(store.activeTab).toBe('')
 		})
 
 		it('keeps sidebar visible for IdDocsApprove route', () => {
@@ -231,6 +243,7 @@ describe('sidebar store - visibility rules', () => {
 			store.handleRouteChange('SomeOtherRoute')
 
 			expect(store.show).toBe(false)
+			expect(store.activeTab).toBe('')
 		})
 
 		it('hides sidebar when navigating to home', () => {
@@ -241,6 +254,7 @@ describe('sidebar store - visibility rules', () => {
 			store.handleRouteChange('home')
 
 			expect(store.show).toBe(false)
+			expect(store.activeTab).toBe('')
 		})
 
 		it('handles undefined route name gracefully', () => {
