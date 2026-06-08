@@ -253,6 +253,7 @@ OC.L10N.register(
     "Select a signer to set their signature position" : "Виберіть підписанта, щоб встановити його позицію для підпису",
     "Click on the place you want to add." : "Натисніть на місце, яке ви хочете додати.",
     "Sign" : "Знак",
+    "Failed to load files" : "Не вдалося завантажити файл",
     "Upload cancelled" : "Завантаження скасовано",
     "Saved" : "ЗбереженоЗбережено",
     "_{count} selected_::_{count} selected_" : ["Вибрано {count}","Вибрано {count}","Вибрано {count} ","Вибрано {count} "],
