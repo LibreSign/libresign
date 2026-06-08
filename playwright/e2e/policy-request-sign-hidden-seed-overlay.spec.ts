@@ -250,6 +250,25 @@ async function openSignatureRequestAccessDialog(page: Page): Promise<Locator> {
 	return dialog
 }
 
+/**
+ * Opens the group-rule editor, supporting both the direct-create shortcut and the scope chooser flow.
+ *
+ * @param page Active Playwright page.
+ * @param settingDialog Policy dialog containing the create-rule action.
+ */
+async function openGroupCreateRuleDialog(page: Page, settingDialog: Locator): Promise<Locator> {
+	await settingDialog.getByRole('button', { name: /^Create rule$/i }).click()
+
+	const createScopeDialog = page.getByRole('dialog').filter({ hasText: /What do you want to create\?/i }).last()
+	if (await createScopeDialog.isVisible({ timeout: 1500 }).catch(() => false)) {
+		await createScopeDialog.getByRole('option', { name: /^Group/i }).click()
+	}
+
+	const createRuleDialog = page.getByRole('dialog', { name: /Create rule/i }).last()
+	await expect(createRuleDialog).toBeVisible({ timeout: 10000 })
+	return createRuleDialog
+}
+
 test.beforeEach(async ({ adminRequestContext }) => {
 	await clearGroupPolicyEntry(adminRequestContext, BOARD_GROUP).catch(() => {})
 	await clearGroupPolicyEntry(adminRequestContext, COMPANY_GROUP).catch(() => {})
@@ -300,14 +319,7 @@ test('delegated group admin can keep a sibling allow while denying a hidden requ
 	const settingDialog = await openSignatureRequestAccessDialog(page)
 	await expect(settingDialog.getByText(BOARD_GROUP, { exact: false })).toHaveCount(0)
 
-	await settingDialog.getByRole('button', { name: /^Create rule$/i }).click()
-
-	const createScopeDialog = page.getByRole('dialog').filter({ hasText: /What do you want to create\?/i }).last()
-	await expect(createScopeDialog).toBeVisible({ timeout: 10000 })
-	await createScopeDialog.getByRole('option', { name: /^Group/i }).click()
-
-	const createRuleDialog = page.getByRole('dialog', { name: /Create rule/i }).last()
-	await expect(createRuleDialog).toBeVisible({ timeout: 10000 })
+	const createRuleDialog = await openGroupCreateRuleDialog(page, settingDialog)
 
 	await expect(createRuleDialog.getByText('Scope groups')).toHaveCount(0)
 
