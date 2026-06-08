@@ -114,10 +114,25 @@ namespace OCA\Libresign;
  *     name: string,
  *     hasSignatureFile: bool,
  * }
+ * @psalm-type LibresignAdminSignatureMethodSetting = array{
+ *     enabled: bool,
+ *     label: string,
+ *     name: string,
+ * }
  * @psalm-type LibresignSignatureMethods = array{
  *     clickToSign?: LibresignSignatureMethod,
  *     emailToken?: LibresignSignatureMethodEmailToken,
  *     password?: LibresignSignatureMethodPassword,
+ * }
+ * @psalm-type LibresignIdentifyMethodAdminSetting = array{
+ *     name: string,
+ *     friendly_name: string,
+ *     enabled: bool,
+ *     requirement: LibresignIdentifyMethodRequirement,
+ *     minimumTotalVerifiedFactors?: positive-int,
+ *     can_create_account?: bool,
+ *     test_url?: string,
+ *     signatureMethods?: array<string, LibresignAdminSignatureMethodSetting>,
  * }
  * @psalm-type LibresignIdentifyMethodSetting = array{
  *     name: string,
@@ -314,8 +329,8 @@ namespace OCA\Libresign;
  *     data: LibresignEngineHandler,
  * }
  * @psalm-type LibresignCertificateEngineConfigResponse = array{
- *     engine: string,
- *     identify_methods: list<LibresignIdentifyMethodSetting>,
+ *     engine: 'cfssl'|'none'|'openssl',
+ *     identify_methods: list<LibresignIdentifyMethodAdminSetting>,
  * }
  * @psalm-type LibresignHasRootCertResponse = array{
  *     hasRootCert: bool,
