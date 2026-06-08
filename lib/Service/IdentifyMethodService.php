@@ -26,7 +26,7 @@ use OCP\IL10N;
 use OCP\IUserManager;
 
 /**
- * @psalm-import-type LibresignIdentifyMethodSetting from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignIdentifyMethodAdminSetting from \OCA\Libresign\ResponseDefinitions
  */
 class IdentifyMethodService {
 	public const IDENTIFY_ACCOUNT = 'account';
@@ -69,9 +69,13 @@ class IdentifyMethodService {
 	private bool $isRequest = true;
 	private ?IdentifyMethod $currentIdentifyMethod = null;
 	/**
-	 * @var list<LibresignIdentifyMethodSetting>
+	 * @var list<array<string, mixed>>
 	 */
 	private array $identifyMethodsSettings = [];
+	/**
+	 * @var list<array<string, mixed>>
+	 */
+	private array $identifyMethodsCatalogSettings = [];
 	/**
 	 * @var array<string,array<IIdentifyMethod>>
 	 */
@@ -96,6 +100,8 @@ class IdentifyMethodService {
 	public function clearCache(): void {
 		$this->identifyMethods = [];
 		$this->currentIdentifyMethod = null;
+		$this->identifyMethodsSettings = [];
+		$this->identifyMethodsCatalogSettings = [];
 	}
 
 	public function setIsRequest(bool $isRequest): self {
@@ -365,11 +371,54 @@ class IdentifyMethodService {
 
 	/**
 	 * @return array
-	 * @psalm-return list<LibresignIdentifyMethodSetting>
+	 * @return list<array<string, mixed>>
+	 * @psalm-return list<LibresignIdentifyMethodAdminSetting>
+	 */
+	public function getIdentifyMethodsCatalogSettings(): array {
+		if ($this->identifyMethodsCatalogSettings) {
+			/** @var list<LibresignIdentifyMethodAdminSetting> $cachedCatalogSettings */
+			$cachedCatalogSettings = $this->identifyMethodsCatalogSettings;
+			return $cachedCatalogSettings;
+		}
+
+		$this->identifyMethodsCatalogSettings = [
+			$this->account->getDefaultSettings(),
+			$this->email->getDefaultSettings(),
+		];
+		if ($this->signal->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsCatalogSettings[] = $this->signal->getDefaultSettings();
+		}
+		if ($this->sms->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsCatalogSettings[] = $this->sms->getDefaultSettings();
+		}
+		if ($this->telegram->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsCatalogSettings[] = $this->telegram->getDefaultSettings();
+		}
+		if ($this->Whatsapp->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsCatalogSettings[] = $this->Whatsapp->getDefaultSettings();
+		}
+		if ($this->whatsappbusiness->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsCatalogSettings[] = $this->whatsappbusiness->getDefaultSettings();
+		}
+		if ($this->xmpp->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsCatalogSettings[] = $this->xmpp->getDefaultSettings();
+		}
+
+		/** @var list<LibresignIdentifyMethodAdminSetting> $catalogSettings */
+		$catalogSettings = $this->identifyMethodsCatalogSettings;
+		return $catalogSettings;
+	}
+
+	/**
+	 * @return array
+	 * @return list<array<string, mixed>>
+	 * @psalm-return list<LibresignIdentifyMethodAdminSetting>
 	 */
 	public function getIdentifyMethodsSettings(): array {
 		if ($this->identifyMethodsSettings) {
-			return $this->identifyMethodsSettings;
+			/** @var list<LibresignIdentifyMethodAdminSetting> $cachedIdentifyMethodsSettings */
+			$cachedIdentifyMethodsSettings = $this->identifyMethodsSettings;
+			return $cachedIdentifyMethodsSettings;
 		}
 		$this->identifyMethodsSettings = [
 			$this->account->getSettings(),
@@ -393,7 +442,9 @@ class IdentifyMethodService {
 		if ($this->xmpp->isTwofactorGatewayEnabled()) {
 			$this->identifyMethodsSettings[] = $this->xmpp->getSettings();
 		}
-		return $this->identifyMethodsSettings;
+		/** @var list<LibresignIdentifyMethodAdminSetting> $identifyMethodsSettings */
+		$identifyMethodsSettings = $this->identifyMethodsSettings;
+		return $identifyMethodsSettings;
 	}
 
 	/** @return array<string, string> */
@@ -434,7 +485,7 @@ class IdentifyMethodService {
 	}
 
 	/**
-	 * @param LibresignIdentifyMethodSetting $settings
+	 * @param array<string, mixed> $settings
 	 * @return array{
 	 *     name: string,
 	 *     enabled: bool,
