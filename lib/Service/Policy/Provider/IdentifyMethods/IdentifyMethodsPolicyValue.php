@@ -17,6 +17,7 @@ final class IdentifyMethodsPolicyValue {
 	 */
 	public static function normalize(mixed $rawValue, ?IdentifyMethodService $identifyMethodService = null): array {
 		$preparedInput = self::prepareInput($rawValue);
+		$catalogFactors = self::normalizeCatalogFactors($identifyMethodService);
 		// Use service-provided defaults when policy is empty and service is available
 		$isEmpty = $preparedInput['factors'] === null || (is_array($preparedInput['factors']) && count($preparedInput['factors']) === 0);
 		if ($isEmpty) {
@@ -37,6 +38,9 @@ final class IdentifyMethodsPolicyValue {
 			}
 			$normalization = self::normalizeFactors($defaultFactors, null, null);
 			$normalized = $normalization['factors'];
+			if ($catalogFactors !== []) {
+				$normalized = self::mergeFactorsWithCatalog($normalized, $catalogFactors);
+			}
 
 			if ($identifyMethodService !== null) {
 				$normalized = self::enrichFriendlyNames($normalized, $identifyMethodService->getFriendlyNamesMap());
@@ -54,6 +58,9 @@ final class IdentifyMethodsPolicyValue {
 		);
 		$normalized = $normalization['factors'];
 		$legacyGlobalCanCreateAccount = $normalization['globalCanCreateAccount'];
+		if ($catalogFactors !== []) {
+			$normalized = self::mergeFactorsWithCatalog($normalized, $catalogFactors);
+		}
 
 		if ($identifyMethodService !== null) {
 			$normalized = self::enrichFriendlyNames($normalized, $identifyMethodService->getFriendlyNamesMap());
@@ -170,6 +177,131 @@ final class IdentifyMethodsPolicyValue {
 			'factors' => $normalized,
 			'globalCanCreateAccount' => $globalCanCreateAccount,
 		];
+	}
+
+	/**
+	 * @return list<array<string, mixed>>
+	 */
+	private static function normalizeCatalogFactors(?IdentifyMethodService $identifyMethodService): array {
+		if ($identifyMethodService === null) {
+			return [];
+		}
+
+		return self::extractFactors(self::normalize($identifyMethodService->getIdentifyMethodsCatalogSettings()));
+	}
+
+	/**
+	 * @param list<array<string, mixed>> $policyFactors
+	 * @param list<array<string, mixed>> $catalogFactors
+	 * @return list<array<string, mixed>>
+	 */
+	private static function mergeFactorsWithCatalog(array $policyFactors, array $catalogFactors): array {
+		if ($catalogFactors === []) {
+			return $policyFactors;
+		}
+
+		$policyFactorsByName = [];
+		foreach ($policyFactors as $policyFactor) {
+			if (!isset($policyFactor['name']) || !is_string($policyFactor['name']) || $policyFactor['name'] === '') {
+				continue;
+			}
+
+			$policyFactorsByName[$policyFactor['name']] = $policyFactor;
+		}
+
+		$catalogFactorNames = [];
+		$mergedFactors = [];
+		foreach ($catalogFactors as $catalogFactor) {
+			if (!isset($catalogFactor['name']) || !is_string($catalogFactor['name']) || $catalogFactor['name'] === '') {
+				continue;
+			}
+
+			$catalogFactorNames[$catalogFactor['name']] = true;
+			$policyFactor = $policyFactorsByName[$catalogFactor['name']] ?? null;
+			if ($policyFactor === null) {
+				$mergedFactors[] = self::buildCatalogFactor($catalogFactor);
+				continue;
+			}
+
+			$mergedFactors[] = self::mergeFactorWithCatalog($policyFactor, $catalogFactor);
+		}
+
+		foreach ($policyFactors as $policyFactor) {
+			if (!isset($policyFactor['name']) || !is_string($policyFactor['name']) || $policyFactor['name'] === '') {
+				$mergedFactors[] = $policyFactor;
+				continue;
+			}
+
+			if (!isset($catalogFactorNames[$policyFactor['name']])) {
+				$mergedFactors[] = $policyFactor;
+			}
+		}
+
+		return $mergedFactors;
+	}
+
+	/**
+	 * @param array<string, mixed> $catalogFactor
+	 * @return array<string, mixed>
+	 */
+	private static function buildCatalogFactor(array $catalogFactor): array {
+		$catalogFactor['enabled'] = false;
+
+		return $catalogFactor;
+	}
+
+	/**
+	 * @param array<string, mixed> $policyFactor
+	 * @param array<string, mixed> $catalogFactor
+	 * @return array<string, mixed>
+	 */
+	private static function mergeFactorWithCatalog(array $policyFactor, array $catalogFactor): array {
+		$mergedFactor = $policyFactor;
+
+		if (!isset($mergedFactor['friendly_name']) && isset($catalogFactor['friendly_name'])) {
+			$mergedFactor['friendly_name'] = $catalogFactor['friendly_name'];
+		}
+
+		if (!isset($mergedFactor['requirement']) && isset($catalogFactor['requirement'])) {
+			$mergedFactor['requirement'] = $catalogFactor['requirement'];
+		}
+
+		if (!isset($mergedFactor['minimumTotalVerifiedFactors']) && isset($catalogFactor['minimumTotalVerifiedFactors'])) {
+			$mergedFactor['minimumTotalVerifiedFactors'] = $catalogFactor['minimumTotalVerifiedFactors'];
+		}
+
+		if (!isset($mergedFactor['signatureMethodEnabled']) && isset($catalogFactor['signatureMethodEnabled'])) {
+			$mergedFactor['signatureMethodEnabled'] = $catalogFactor['signatureMethodEnabled'];
+		}
+
+		$catalogSignatureMethods = isset($catalogFactor['signatureMethods']) && is_array($catalogFactor['signatureMethods'])
+			? $catalogFactor['signatureMethods']
+			: [];
+		$policySignatureMethods = isset($policyFactor['signatureMethods']) && is_array($policyFactor['signatureMethods'])
+			? $policyFactor['signatureMethods']
+			: [];
+		$mergedFactor['signatureMethods'] = self::mergeSignatureMethods($catalogSignatureMethods, $policySignatureMethods);
+
+		return $mergedFactor;
+	}
+
+	/**
+	 * @param array<string, array<string, mixed>> $catalogSignatureMethods
+	 * @param array<string, array<string, mixed>> $policySignatureMethods
+	 * @return array<string, array<string, mixed>>
+	 */
+	private static function mergeSignatureMethods(array $catalogSignatureMethods, array $policySignatureMethods): array {
+		$mergedSignatureMethods = [];
+		$signatureMethodNames = array_unique(array_merge(array_keys($catalogSignatureMethods), array_keys($policySignatureMethods)));
+
+		foreach ($signatureMethodNames as $signatureMethodName) {
+			$mergedSignatureMethods[$signatureMethodName] = array_merge(
+				$catalogSignatureMethods[$signatureMethodName] ?? [],
+				$policySignatureMethods[$signatureMethodName] ?? [],
+			);
+		}
+
+		return $mergedSignatureMethods;
 	}
 
 	/**
