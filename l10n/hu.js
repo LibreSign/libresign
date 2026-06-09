@@ -179,6 +179,7 @@ OC.L10N.register(
     "No recommendations. Start typing." : "Nincs javaslat. Kezdjen gépelni.",
     "An error occurred" : "Hiba történt",
     "Sign" : "Aláírás",
+    "Failed to load files" : "Nem sikerült a fájlok betöltése",
     "Upload cancelled" : "Feltöltés megszakítva",
     "Saved" : "Mentve",
     "_{count} selected_::_{count} selected_" : ["{count} kijelölve","{count} kijelölve"],
