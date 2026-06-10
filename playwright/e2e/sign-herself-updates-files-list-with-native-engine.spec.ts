@@ -146,8 +146,9 @@ test('updates files list status after signing with native engine', async ({ page
 	await expect(targetRow.locator('.status-chip__text')).toHaveText('Ready to sign')
 
 	await page.goto(`./apps/libresign/f/sign/${signRequestUuid}/pdf`)
-	const signButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
-	await expect(signButton).toBeVisible()
+	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15_000 })
+	const signButton = page.locator('.sign-pdf-sidebar .button-wrapper').getByRole('button', { name: 'Sign document' })
+	await expect(signButton).toBeVisible({ timeout: 15_000 })
 	await signButton.click({ force: true })
 	const signResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'

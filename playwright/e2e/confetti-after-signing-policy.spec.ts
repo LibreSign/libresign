@@ -25,8 +25,9 @@ async function runSelfSigningFlow(page: Page): Promise<void> {
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
 	await page.getByRole('button', { name: 'Send' }).click()
 	await page.getByRole('button', { name: 'Add signer' }).click()
-	await page.getByPlaceholder('Account').fill('admin')
-	await page.getByText('admin@email.tld').click()
+	await page.getByPlaceholder('Account').click()
+	await page.getByPlaceholder('Account').fill('a')
+	await page.locator('.account-or-email__option__title').filter({ hasText: /^admin$/ }).click()
 	await page.getByRole('button', { name: 'Save' }).click()
 	await page.getByRole('button', { name: 'Request signatures' }).click()
 	await page.getByRole('button', { name: 'Send' }).click()
@@ -56,9 +57,10 @@ async function runSelfSigningFlow(page: Page): Promise<void> {
 	await page.getByRole('menuitem', { name: 'Sign' }).click()
 
 	await page.waitForURL('**/f/sign/**/pdf')
-	const signButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
-	await expect(signButton).toBeVisible()
-	await signButton.click()
+	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15_000 })
+	const signButton = page.locator('.sign-pdf-sidebar .button-wrapper').getByRole('button', { name: 'Sign document' })
+	await expect(signButton).toBeVisible({ timeout: 15_000 })
+	await signButton.click({ force: true })
 
 	const signResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'

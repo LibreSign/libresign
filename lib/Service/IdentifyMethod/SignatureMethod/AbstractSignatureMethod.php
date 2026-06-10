@@ -27,6 +27,8 @@ abstract class AbstractSignatureMethod extends AbstractIdentifyMethod implements
 	public function toArray(): array {
 		return [
 			'label' => $this->getFriendlyName(),
+			'name' => $this->getName(),
+			'enabled' => $this->isEnabled(),
 		];
 	}
 }

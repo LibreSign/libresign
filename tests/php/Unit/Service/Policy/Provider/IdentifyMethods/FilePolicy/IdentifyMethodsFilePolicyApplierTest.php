@@ -59,7 +59,15 @@ final class IdentifyMethodsFilePolicyApplierTest extends \OCA\Libresign\Tests\Un
 		$this->assertSame([
 			'policy_snapshot' => [
 				IdentifyMethodsPolicy::KEY => [
-					'effectiveValue' => $effectiveValue,
+					'effectiveValue' => [
+						[
+							'name' => 'email',
+							'enabled' => true,
+							'signatureMethods' => [],
+							'minimumTotalVerifiedFactors' => 2,
+							'requirement' => 'required',
+						],
+					],
 					'sourceScope' => 'group',
 				],
 			],

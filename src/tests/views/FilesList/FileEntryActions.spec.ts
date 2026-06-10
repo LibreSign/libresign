@@ -7,6 +7,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 
 import FileEntryActions from '../../../views/FilesList/FileEntry/FileEntryActions.vue'
+import type { FileEntrySource } from '../../../composables/useFileEntry.js'
+
+type FileDetailMock = Partial<FileEntrySource> & {
+	id: number
+}
 
 const openDocumentMock = vi.fn()
 
@@ -39,7 +44,7 @@ const filesStoreMock = {
 		nodeType: 'file',
 		signers: [{ me: true, sign_request_uuid: 'sign-request-uuid' }],
 		settings: { isApprover: false },
-	})),
+	} as FileDetailMock)),
 	getAllFiles: vi.fn(async () => ({
 		1: { id: 1, uuid: 'file-uuid' },
 	})),

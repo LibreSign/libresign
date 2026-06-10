@@ -22,6 +22,7 @@ use OCA\Libresign\Service\IdentifyMethod\Telegram;
 use OCA\Libresign\Service\IdentifyMethod\Whatsapp;
 use OCA\Libresign\Service\IdentifyMethod\Whatsappbusiness;
 use OCA\Libresign\Service\IdentifyMethod\Xmpp;
+use OCA\Libresign\Vendor\Wobeto\EmailBlur\Blur;
 use OCP\IL10N;
 use OCP\IUserManager;
 
@@ -340,7 +341,30 @@ class IdentifyMethodService {
 						continue;
 					}
 					$signatureMethod->setEntity($identifyMethod->getEntity());
-					$return[$signatureMethod->getName()] = $signatureMethod->toArray();
+					$signatureMethodData = $signatureMethod->toArray();
+					if ($signatureMethod->getName() === 'emailToken') {
+						$entity = $identifyMethod->getEntity();
+						$email = match ($entity->getIdentifierKey()) {
+							'email', 'emailToken' => $entity->getIdentifierValue(),
+							'account' => $this->getUserManager()->get($entity->getIdentifierValue())?->getEMailAddress() ?? '',
+							default => '',
+						};
+						$emailLowercase = strtolower($email);
+						$code = $entity->getCode();
+						$identifiedAt = $entity->getIdentifiedAtDate();
+						$signatureMethodData = [
+							'label' => $signatureMethodData['label'] ?? $signatureMethod->getFriendlyName(),
+							'identifyMethod' => match ($entity->getIdentifierKey()) {
+								'emailToken' => 'email',
+								default => $entity->getIdentifierKey(),
+							},
+							'needCode' => empty($code) || empty($identifiedAt),
+							'hasConfirmCode' => !empty($code),
+							'blurredEmail' => $emailLowercase ? (new Blur($emailLowercase))->make() : '',
+							'hashOfEmail' => $emailLowercase ? md5($emailLowercase) : '',
+						];
+					}
+					$return[$signatureMethod->getName()] = $signatureMethodData;
 				}
 			}
 		}
@@ -500,9 +524,12 @@ class IdentifyMethodService {
 
 		foreach ($settings['signatureMethods'] ?? [] as $signatureMethodName => $signatureMethodConfig) {
 			$isEnabled = (bool)($signatureMethodConfig['enabled'] ?? false);
-			$signatureMethods[$signatureMethodName] = [
-				'enabled' => $isEnabled,
-			];
+			$signatureMethods[$signatureMethodName] = is_array($signatureMethodConfig)
+				? $signatureMethodConfig
+				: [];
+			$signatureMethods[$signatureMethodName]['enabled'] = $isEnabled;
+			$signatureMethods[$signatureMethodName]['name'] = $signatureMethodName;
+			$signatureMethods[$signatureMethodName]['label'] = $signatureMethods[$signatureMethodName]['label'] ?? $signatureMethodName;
 
 			if ($signatureMethodEnabled === '' && $isEnabled) {
 				$signatureMethodEnabled = $signatureMethodName;
