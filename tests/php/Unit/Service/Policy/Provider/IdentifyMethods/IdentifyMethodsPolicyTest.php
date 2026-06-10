@@ -65,6 +65,7 @@ final class IdentifyMethodsPolicyTest extends TestCase {
 						'email' => [
 							'enabled' => true,
 							'label' => 'Email token',
+							'name' => 'Email token',
 						],
 						'clickToSign' => [
 							'enabled' => false,

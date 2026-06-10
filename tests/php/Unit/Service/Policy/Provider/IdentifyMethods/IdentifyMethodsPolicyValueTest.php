@@ -373,7 +373,7 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 		self::assertSame('Email', $normalized['factors'][1]['friendly_name']);
 	}
 
-	public function testMergesSparsePolicyPayloadWithServiceCatalog(): void {
+	public function testEnrichesExplicitFactorsFromCatalogWithoutAddingMissingFactors(): void {
 		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$identifyMethodService->expects($this->never())
 			->method('getIdentifyMethodsSettings');
@@ -434,23 +434,12 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 						'password' => [
 							'enabled' => true,
 							'label' => 'Certificate with password',
+							'name' => 'Certificate with password',
 						],
 					],
 					'friendly_name' => 'Account',
 					'requirement' => 'required',
 					'signatureMethodEnabled' => 'password',
-				],
-				[
-					'name' => 'email',
-					'enabled' => false,
-					'signatureMethods' => [
-						'emailToken' => [
-							'enabled' => true,
-							'label' => 'Email code',
-						],
-					],
-					'friendly_name' => 'Email',
-					'requirement' => 'required',
 				],
 			],
 		], $normalized);

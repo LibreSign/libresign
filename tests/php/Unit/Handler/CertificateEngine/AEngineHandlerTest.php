@@ -15,6 +15,7 @@ use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
@@ -69,7 +70,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			\OCP\Server::get(\OCA\Libresign\Service\SerialNumberService::class),
 			$this->caIdentifierService,
-			\OCP\Server::get(\OCA\Libresign\Service\Policy\PolicyService::class),
+			\OCP\Server::get(PolicyService::class),
 			$this->logger,
 			\OCP\Server::get(\OCA\Libresign\Db\CrlMapper::class),
 			$this->subjectAlternativeNameService,
@@ -100,6 +101,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testSetEngineConfiguresIdentifyMethodsForNoneEngine(
 		string $fromEngine,
 		?array $initialIdentifyMethods,
+		int $expectedFactorCount,
 		string $description,
 	): void {
 		$instance = $this->getInstance();
@@ -114,20 +116,15 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$instance->setEngine('none');
 
 		$savedIdentifyMethods = $this->appConfig->getValueArray(Application::APP_ID, 'identify_methods');
-		$expected = [
-			'factors' => [[
-				'name' => 'account',
-				'enabled' => true,
-				'signatureMethods' => [],
-				'friendly_name' => 'Account',
-			]],
-		];
+		$this->assertArrayHasKey('factors', $savedIdentifyMethods);
+		$this->assertCount($expectedFactorCount, $savedIdentifyMethods['factors'], "identify_methods should be restricted for none engine: $description");
 
-		$this->assertEquals(
-			$expected,
-			$savedIdentifyMethods,
-			"identify_methods should be restricted for none engine: $description"
-		);
+		[$accountFactor] = $savedIdentifyMethods['factors'];
+		$this->assertSame('account', $accountFactor['name']);
+		$this->assertTrue($accountFactor['enabled']);
+		$this->assertSame('required', $accountFactor['requirement']);
+		$this->assertSame('Account', $accountFactor['friendly_name']);
+		$this->assertArrayNotHasKey('email', $savedIdentifyMethods['factors']);
 	}
 
 	#[DataProvider('dataProviderIdentifyMethodsOtherEngines')]
@@ -202,10 +199,10 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 
 		return [
-			'First time setting to none' => ['', null, 'no previous config'],
-			'From openssl to none' => ['openssl', $fullConfig, 'with full config'],
-			'From cfssl to none' => ['cfssl', $fullConfig, 'with full config'],
-			'Keeping none' => ['none', $noneConfig, 'already restricted'],
+			'First time setting to none' => ['', null, 1, 'no previous config'],
+			'From openssl to none' => ['openssl', $fullConfig, 1, 'with full config'],
+			'From cfssl to none' => ['cfssl', $fullConfig, 1, 'with full config'],
+			'Keeping none' => ['none', $noneConfig, 1, 'already restricted'],
 		];
 	}
 
