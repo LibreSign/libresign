@@ -7,6 +7,7 @@
 
 import { expect, test } from '@playwright/test'
 import type { APIRequestContext, Page } from '@playwright/test'
+
 import { createMailpitClient, extractSignLink, waitForEmailTo } from '../support/mailpit'
 import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 import { getSmallValidPdfBase64 } from '../support/pdf-fixtures'
@@ -34,6 +35,9 @@ type OcsEnvelopeResponse = {
 	files?: OcsEnvelopeChildFile[]
 }
 
+/**
+ *
+ */
 function buildSigningScenario(): EnvelopeSigningScenario {
 	const runId = Date.now()
 	return {
@@ -43,6 +47,13 @@ function buildSigningScenario(): EnvelopeSigningScenario {
 	}
 }
 
+/**
+ *
+ * @param request
+ * @param method
+ * @param path
+ * @param body
+ */
 async function requestLibreSignApiAsAdmin(
 	request: APIRequestContext,
 	method: 'POST' | 'PATCH',
@@ -71,6 +82,10 @@ async function requestLibreSignApiAsAdmin(
 	return response.json() as Promise<{ ocs: { data: OcsEnvelopeResponse } }>
 }
 
+/**
+ *
+ * @param request
+ */
 async function enableEnvelopeScenario(request: APIRequestContext) {
 	await configureOpenSsl(request, 'LibreSign Test', {
 		C: 'BR',
@@ -92,6 +107,11 @@ async function enableEnvelopeScenario(request: APIRequestContext) {
 	await setSystemPolicy(request, 'make_validation_url_private', '0')
 }
 
+/**
+ *
+ * @param request
+ * @param scenario
+ */
 async function createEnvelopeWithMultipleFiles(
 	request: APIRequestContext,
 	scenario: EnvelopeSigningScenario,
@@ -129,6 +149,10 @@ async function createEnvelopeWithMultipleFiles(
 	return envelope
 }
 
+/**
+ *
+ * @param signerEmail
+ */
 async function waitForSignerInvitationLink(signerEmail: string) {
 	const email = await waitForEmailTo(
 		createMailpitClient(),
@@ -142,6 +166,11 @@ async function waitForSignerInvitationLink(signerEmail: string) {
 	return signLink
 }
 
+/**
+ *
+ * @param page
+ * @param signLink
+ */
 async function openInvitationAsExternalSigner(page: Page, signLink: string) {
 	// API setup runs as admin. Clear cookies so the browser behaves like the real external signer.
 	await page.context().clearCookies()
@@ -176,11 +205,19 @@ async function openInvitationAsExternalSigner(page: Page, signLink: string) {
 	throw new Error(`Invitation link redirected to login instead of public sign page: ${page.url()}`)
 }
 
+/**
+ *
+ * @param page
+ */
 async function defineClickToSignature(page: Page) {
 	// Wait for click-to-sign button
 	await expect(page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })).toBeVisible({ timeout: 15_000 })
 }
 
+/**
+ *
+ * @param page
+ */
 async function finishSigning(page: Page) {
 	const signButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
 	await expect(signButton).toBeVisible({ timeout: 15_000 })
@@ -216,11 +253,13 @@ test('validation screen should display all data correctly for envelope with 2 fi
 		await page.waitForURL('**/validation/**')
 
 		// Verify envelope information section is visible
-		await expect(page.getByText('Envelope information')).toBeVisible()
+		const envelopeInformationSection = page.locator('.section').filter({
+			has: page.getByRole('heading', { name: 'Envelope information' }),
+		}).first()
+		await expect(envelopeInformationSection).toBeVisible()
 
 		// Verify envelope name is displayed
-		const envelopeName = page.locator('h2.app-sidebar-header__mainname')
-		await expect(envelopeName).toHaveText(scenario.envelopeName)
+		await expect(envelopeInformationSection.getByText(scenario.envelopeName)).toBeVisible()
 
 		// Verify documents in envelope section exists
 		await expect(page.getByText('Documents in this envelope')).toBeVisible()
@@ -230,8 +269,6 @@ test('validation screen should display all data correctly for envelope with 2 fi
 		// Get the documents list
 		const documentsList = page.locator('ul.documents-list li.document-item')
 		const documentsCount = await documentsList.count()
-
-		console.log(`Found ${documentsCount} documents in the list`)
 		expect(documentsCount).toBe(2)
 
 		// Success message should be visible

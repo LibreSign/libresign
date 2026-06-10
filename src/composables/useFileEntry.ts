@@ -13,6 +13,10 @@ type FileEntryMetadata = {
 	extension?: string
 }
 
+type FileEntryStoreFile = Partial<FileEntrySource> & {
+	id?: number | string
+}
+
 type FileEntrySigner = {
 	displayName?: string
 	email?: string
@@ -39,8 +43,8 @@ export type FileEntrySource = {
 
 type FileEntryStore = {
 	selectFile: (id: number) => void
-	fetchFileDetail: (options: { fileId: number, force?: boolean }) => Promise<FileEntrySource | null>
-	canSign: (file: FileEntrySource | null | undefined) => boolean
+	fetchFileDetail: (options: { fileId: number, force?: boolean }) => Promise<FileEntryStoreFile | null>
+	canSign: (file: FileEntryStoreFile | null | undefined) => boolean
 }
 
 type ActionsMenuStore = {

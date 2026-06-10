@@ -191,8 +191,8 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 			'enabled' => true,
 			'requirement' => 'required',
 			'signatureMethods' => [
-				'clickToSign' => ['enabled' => false],
-				'password' => ['enabled' => true],
+				'clickToSign' => ['enabled' => false, 'name' => 'clickToSign', 'label' => 'clickToSign'],
+				'password' => ['enabled' => true, 'name' => 'password', 'label' => 'password'],
 			],
 		]);
 		$this->email->method('getDefaultSettings')->willReturn([
@@ -200,7 +200,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 			'enabled' => false,
 			'requirement' => 'optional',
 			'signatureMethods' => [
-				'emailToken' => ['enabled' => true],
+				'emailToken' => ['enabled' => true, 'name' => 'emailToken', 'label' => 'emailToken'],
 			],
 		]);
 
@@ -212,8 +212,8 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 				'enabled' => true,
 				'requirement' => 'required',
 				'signatureMethods' => [
-					'clickToSign' => ['enabled' => false],
-					'password' => ['enabled' => true],
+					'clickToSign' => ['enabled' => false, 'name' => 'clickToSign', 'label' => 'clickToSign'],
+					'password' => ['enabled' => true, 'name' => 'password', 'label' => 'password'],
 				],
 				'signatureMethodEnabled' => 'password',
 			],
@@ -222,7 +222,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 				'enabled' => false,
 				'requirement' => 'optional',
 				'signatureMethods' => [
-					'emailToken' => ['enabled' => true],
+					'emailToken' => ['enabled' => true, 'name' => 'emailToken', 'label' => 'emailToken'],
 				],
 				'signatureMethodEnabled' => 'emailToken',
 			],

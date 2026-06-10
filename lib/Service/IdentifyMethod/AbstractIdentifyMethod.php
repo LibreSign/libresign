@@ -93,11 +93,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	#[\Override]
 	public function signatureMethodsToArray(): array {
-		return array_map(fn (AbstractSignatureMethod $method) => [
-			'label' => $method->getFriendlyName(),
-			'name' => $method->getName(),
-			'enabled' => $method->isEnabled(),
-		], $this->signatureMethods);
+		return array_map(fn (AbstractSignatureMethod $method) => $method->toArray(), $this->signatureMethods);
 	}
 
 	public function getAvailableSignatureMethods(): array {

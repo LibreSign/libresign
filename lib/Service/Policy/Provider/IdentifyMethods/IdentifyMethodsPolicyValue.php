@@ -59,7 +59,7 @@ final class IdentifyMethodsPolicyValue {
 		$normalized = $normalization['factors'];
 		$legacyGlobalCanCreateAccount = $normalization['globalCanCreateAccount'];
 		if ($catalogFactors !== []) {
-			$normalized = self::mergeFactorsWithCatalog($normalized, $catalogFactors);
+			$normalized = self::mergeFactorsWithCatalog($normalized, $catalogFactors, false);
 		}
 
 		if ($identifyMethodService !== null) {
@@ -193,13 +193,45 @@ final class IdentifyMethodsPolicyValue {
 	/**
 	 * @param list<array<string, mixed>> $policyFactors
 	 * @param list<array<string, mixed>> $catalogFactors
+	 * @param bool $addMissingFromCatalog When true (default), factors present in the catalog but absent
+	 *                                     from the policy are appended as disabled entries (used for the
+	 *                                     empty-policy path).  When false, only the factors already in
+	 *                                     the policy are kept (in policy order) and each is enriched
+	 *                                     with catalog metadata such as labels and friendly names.
 	 * @return list<array<string, mixed>>
 	 */
-	private static function mergeFactorsWithCatalog(array $policyFactors, array $catalogFactors): array {
+	private static function mergeFactorsWithCatalog(array $policyFactors, array $catalogFactors, bool $addMissingFromCatalog = true): array {
 		if ($catalogFactors === []) {
 			return $policyFactors;
 		}
 
+		if (!$addMissingFromCatalog) {
+			// Enrich-only mode: preserve policy factors in policy order, enrich each from catalog.
+			$catalogFactorsByName = [];
+			foreach ($catalogFactors as $catalogFactor) {
+				if (!isset($catalogFactor['name']) || !is_string($catalogFactor['name']) || $catalogFactor['name'] === '') {
+					continue;
+				}
+				$catalogFactorsByName[$catalogFactor['name']] = $catalogFactor;
+			}
+
+			$mergedFactors = [];
+			foreach ($policyFactors as $policyFactor) {
+				if (!isset($policyFactor['name']) || !is_string($policyFactor['name']) || $policyFactor['name'] === '') {
+					$mergedFactors[] = $policyFactor;
+					continue;
+				}
+				$catalogFactor = $catalogFactorsByName[$policyFactor['name']] ?? null;
+				if ($catalogFactor === null) {
+					$mergedFactors[] = $policyFactor;
+					continue;
+				}
+				$mergedFactors[] = self::mergeFactorWithCatalog($policyFactor, $catalogFactor);
+			}
+			return $mergedFactors;
+		}
+
+		// Full merge mode: catalog-ordered, catalog factors missing from the policy are added as disabled.
 		$policyFactorsByName = [];
 		foreach ($policyFactors as $policyFactor) {
 			if (!isset($policyFactor['name']) || !is_string($policyFactor['name']) || $policyFactor['name'] === '') {
@@ -292,13 +324,23 @@ final class IdentifyMethodsPolicyValue {
 	 */
 	private static function mergeSignatureMethods(array $catalogSignatureMethods, array $policySignatureMethods): array {
 		$mergedSignatureMethods = [];
-		$signatureMethodNames = array_unique(array_merge(array_keys($catalogSignatureMethods), array_keys($policySignatureMethods)));
 
-		foreach ($signatureMethodNames as $signatureMethodName) {
-			$mergedSignatureMethods[$signatureMethodName] = array_merge(
-				$catalogSignatureMethods[$signatureMethodName] ?? [],
-				$policySignatureMethods[$signatureMethodName] ?? [],
-			);
+		if ($policySignatureMethods !== []) {
+			// Policy explicitly declares which signature methods are active.
+			// Enrich each declared method with catalog metadata (e.g. label) but do NOT
+			// add catalog methods that the policy omitted.
+			foreach (array_keys($policySignatureMethods) as $signatureMethodName) {
+				$mergedSignatureMethods[$signatureMethodName] = array_merge(
+					$catalogSignatureMethods[$signatureMethodName] ?? [],
+					$policySignatureMethods[$signatureMethodName],
+				);
+			}
+			return $mergedSignatureMethods;
+		}
+
+		// No explicit signature methods in policy – expose all catalog methods.
+		foreach ($catalogSignatureMethods as $signatureMethodName => $catalogMethod) {
+			$mergedSignatureMethods[$signatureMethodName] = $catalogMethod;
 		}
 
 		return $mergedSignatureMethods;
@@ -434,12 +476,21 @@ final class IdentifyMethodsPolicyValue {
 		}
 
 		$normalizedSignatureMethod = [];
+		$normalizedSignatureMethod = $signatureMethodConfig;
 		if (array_key_exists('enabled', $signatureMethodConfig)) {
 			$normalizedSignatureMethod['enabled'] = (bool)$signatureMethodConfig['enabled'];
 		}
 
-		if (isset($signatureMethodConfig['label']) && is_string($signatureMethodConfig['label'])) {
+		if (isset($signatureMethodConfig['name']) && is_string($signatureMethodConfig['name']) && trim($signatureMethodConfig['name']) !== '') {
+			$normalizedSignatureMethod['name'] = trim($signatureMethodConfig['name']);
+		}
+
+		if (isset($signatureMethodConfig['label']) && is_string($signatureMethodConfig['label']) && trim($signatureMethodConfig['label']) !== '') {
 			$normalizedSignatureMethod['label'] = $signatureMethodConfig['label'];
+		}
+
+		if (!isset($normalizedSignatureMethod['name']) && isset($normalizedSignatureMethod['label']) && is_string($normalizedSignatureMethod['label'])) {
+			$normalizedSignatureMethod['name'] = $normalizedSignatureMethod['label'];
 		}
 
 		return $normalizedSignatureMethod;

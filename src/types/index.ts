@@ -104,7 +104,7 @@ export type IdentifyMethodRecord = Omit<OpenApiIdentifyMethodRecord, 'mandatory'
 export type IdentifyAccountRecord = ApiComponents['schemas']['IdentifyAccount']
 export type VisibleElementRecord = ApiComponents['schemas']['VisibleElement']
 export type FileSettings = ApiComponents['schemas']['FolderSettings']
-export type IdentifyMethodSetting = AdminComponents['schemas']['IdentifyMethodSetting']
+export type IdentifyMethodSetting = AdminComponents['schemas']['IdentifyMethodAdminSetting']
 export type IdentifyMethodsEffectivePolicyValue = {
 	factors: IdentifyMethodSetting[]
 	can_create_account?: boolean

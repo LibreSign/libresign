@@ -246,10 +246,13 @@ async function finishSigning(page: Page) {
 
 async function expectEnvelopeSigned(page: Page, envelopeName: string) {
 	await page.waitForURL('**/validation/**', { waitUntil: 'commit' })
-	await expect(page.getByText('Envelope information')).toBeVisible()
+	const envelopeInformationSection = page.locator('.section').filter({
+		has: page.getByRole('heading', { name: 'Envelope information' }),
+	}).first()
+	await expect(envelopeInformationSection).toBeVisible()
 	await expect(page.getByText('Documents in this envelope')).toBeVisible()
 	await expect(page.getByText('Congratulations you have digitally signed a document using LibreSign')).toBeVisible()
-	await expect(page.locator('h2.app-sidebar-header__mainname')).toHaveText(envelopeName)
+	await expect(envelopeInformationSection.getByText(envelopeName)).toBeVisible()
 	await expect(page.getByText('You need to define a visible signature or initials to sign this document.')).not.toBeVisible()
 }
 

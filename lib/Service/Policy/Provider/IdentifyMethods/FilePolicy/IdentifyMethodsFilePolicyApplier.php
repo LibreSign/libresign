@@ -14,6 +14,7 @@ use OCA\Libresign\Service\Policy\Contract\IFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
 use OCP\IL10N;
 use OCP\IUser;
 
@@ -52,8 +53,9 @@ class IdentifyMethodsFilePolicyApplier implements IFilePolicyApplier {
 	private function storePolicySnapshot(FileEntity $file, ResolvedPolicy $resolvedPolicy): void {
 		$metadata = $file->getMetadata() ?? [];
 		$policySnapshot = $metadata['policy_snapshot'] ?? [];
+		$normalized = IdentifyMethodsPolicyValue::normalize($resolvedPolicy->getEffectiveValue());
 		$policySnapshot[$resolvedPolicy->getPolicyKey()] = [
-			'effectiveValue' => $resolvedPolicy->getEffectiveValue(),
+			'effectiveValue' => IdentifyMethodsPolicyValue::extractFactors($normalized),
 			'sourceScope' => $resolvedPolicy->getSourceScope(),
 		];
 		$metadata['policy_snapshot'] = $policySnapshot;
