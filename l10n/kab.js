@@ -49,6 +49,7 @@ OC.L10N.register(
     "Create account" : "Snulfu-d amiḍan",
     "Password" : "Awal uffir",
     "Enter a password" : "Sekcem awal n uɛeddi",
+    "Filters" : "Imsizdigen",
     "Owner" : "Bab-is",
     "Type" : "Anaw",
     "Comment" : "Awennit",
@@ -76,6 +77,7 @@ OC.L10N.register(
     "Today" : "Ass-a",
     "Last 7 days" : "7 n wussan yezrin",
     "Last 30 days" : "30 n wussan aya yezrin",
+    "This year ({year})" : "Aseggas-a ({year})",
     "Last year ({year})" : "Ilindi ({year})"
 },
 "nplurals=2; plural=(n != 1);");
