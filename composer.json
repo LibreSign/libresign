@@ -62,7 +62,7 @@
 	},
 	"require": {
 		"cweagans/composer-patches": "^2.0",
-		"jeidison/signer-php": "^1.0",
+		"jeidison/signer-php": "dev-main",
 		"phpseclib/phpseclib": "^3.0"
 	}
 }
