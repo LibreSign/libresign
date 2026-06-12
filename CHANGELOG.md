@@ -26,9 +26,11 @@ Types of changes:
 
 ### Changed
 - Update translations
+- update loading message in request signature tab [#7723](https://github.com/LibreSign/libresign/pull/7723)
 - Bump dependencies [#7633](https://github.com/LibreSign/libresign/pull/7633) [#7638](https://github.com/LibreSign/libresign/pull/7638) [#7640](https://github.com/LibreSign/libresign/pull/7640)
 
 ### Fixes
+- cache generated CRL DER to avoid DB queries during validation [#7719](https://github.com/LibreSign/libresign/pull/7719)
 - align getArchitectures typing with main [#7684](https://github.com/LibreSign/libresign/pull/7684)
 - keep groups_request_sign JSON unicode serialization consistent [#7675](https://github.com/LibreSign/libresign/pull/7675)
 - use default DataResponse success constructor in id docs [#7666](https://github.com/LibreSign/libresign/pull/7666)
