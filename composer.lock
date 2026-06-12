@@ -1833,6 +1833,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "jeidison/signer-php": 20,
         "nextcloud/ocp": 20,
         "roave/security-advisories": 20
     },
