@@ -26,19 +26,12 @@ Types of changes:
 
 ### Changed
 - Update translations
-- Bump dependencies [#7636](https://github.com/LibreSign/libresign/pull/7636) [#7620](https://github.com/LibreSign/libresign/pull/7620) [#7618](https://github.com/LibreSign/libresign/pull/7618) [#7633](https://github.com/LibreSign/libresign/pull/7633)
-- harden openapi contracts for sdk generators [#7662](https://github.com/LibreSign/libresign/pull/7662)
-- use default DataResponse success constructor in id docs [#7661](https://github.com/LibreSign/libresign/pull/7661)
+- bump dependency [#7718](https://github.com/LibreSign/libresign/pull/7718)
+- update loading message in request signature tab [#7725](https://github.com/LibreSign/libresign/pull/7725)
 
 ### Fixes
-- align getArchitectures typing with main [#7680](https://github.com/LibreSign/libresign/pull/7680)
-- keep groups_request_sign JSON unicode serialization consistent [#7675](https://github.com/LibreSign/libresign/pull/7675)
-- align openapi signatureflow structure [#7668](https://github.com/LibreSign/libresign/pull/7668)
-- align openapi file metadata contract with runtime payloads [#7656](https://github.com/LibreSign/libresign/pull/7656)
-- expose ValidationURL and qrcode in signature stamp templates [#7650](https://github.com/LibreSign/libresign/pull/7650)
-- render envelope validation data correctly for multi-file requests [#7647](https://github.com/LibreSign/libresign/pull/7647)
-- remove stale addStyle icons call from TemplateLoader [#7641](https://github.com/LibreSign/libresign/pull/7641)
-- support Twig date filter for ServerSignatureDate in JSign [#7644](https://github.com/LibreSign/libresign/pull/7644)
+- cache generated CRL DER to avoid DB queries during validation [#7721](https://github.com/LibreSign/libresign/pull/7721)
+- keep groups_request_sign JSON unicode serialization consistent [#7680](https://github.com/LibreSign/libresign/pull/7680)
 
 ## 13.2.4 - 2026-04-25
 
