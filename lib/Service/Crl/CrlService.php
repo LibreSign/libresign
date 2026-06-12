@@ -15,6 +15,8 @@ use OCA\Libresign\Enum\CertificateEngineType;
 use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\Certificate\FileService;
+use OCP\ICache;
+use OCP\ICacheFactory;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -24,6 +26,17 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignCrlListResponse from \OCA\Libresign\ResponseDefinitions
  */
 class CrlService {
+	/** Distributed cache for generated CRL DER content (TTL: 24 h). */
+	private ICache $cache;
+
+	/** How long (seconds) a generated CRL DER is kept in cache.
+	 *
+	 * Must be ≤ the CRL's own nextUpdate window, which AEngineHandler sets to
+	 * 7 days (+7 days in createAndSignCrl). Cache invalidation happens
+	 * explicitly on every revocation, so this TTL is only a safety-net for
+	 * edge cases that bypass the normal revocation flow.
+	 */
+	private const GENERATED_CRL_TTL = 7 * 86400; // 7 days
 
 	public function __construct(
 		private CrlMapper $crlMapper,
@@ -31,7 +44,9 @@ class CrlService {
 		private CertificateEngineFactory $certificateEngineFactory,
 		private CrlUrlParserService $crlUrlParserService,
 		private FileService $certificateFileService,
+		ICacheFactory $cacheFactory,
 	) {
+		$this->cache = $cacheFactory->createDistributed('libresign_crl_generated');
 	}
 
 	public function getRootCertificateFromCrlUrls(array $crlUrls): string {
@@ -77,6 +92,8 @@ class CrlService {
 				$crlNumber,
 				$revokedAt,
 			);
+
+			$this->invalidateGeneratedCrlCache($instanceId, $generation, $engineType);
 
 			return true;
 		} catch (\Throwable $exception) {
@@ -129,6 +146,8 @@ class CrlService {
 		?string $revokedBy = null,
 	): int {
 		$revokedCount = 0;
+		/** @var array<string, true> $invalidated keys already evicted this call */
+		$invalidated = [];
 
 		foreach ($certificates as $certificate) {
 			try {
@@ -144,6 +163,12 @@ class CrlService {
 					null,
 					$crlNumber
 				);
+
+				$cacheKey = $this->generatedCrlCacheKey($instanceId, $generation, $engineType);
+				if (!isset($invalidated[$cacheKey])) {
+					$this->invalidateGeneratedCrlCache($instanceId, $generation, $engineType);
+					$invalidated[$cacheKey] = true;
+				}
 
 				$revokedCount++;
 			} catch (\Exception $e) {
@@ -262,6 +287,14 @@ class CrlService {
 		return $lastCrlNumber + 1;
 	}
 
+	private function generatedCrlCacheKey(string $instanceId, int $generation, string $engineType): string {
+		return sha1($instanceId . '_' . $generation . '_' . $engineType);
+	}
+
+	private function invalidateGeneratedCrlCache(string $instanceId, int $generation, string $engineType): void {
+		$this->cache->remove($this->generatedCrlCacheKey($instanceId, $generation, $engineType));
+	}
+
 	public function cleanupExpiredCertificates(?DateTime $before = null): int {
 		return $this->crlMapper->cleanupExpiredCertificates($before);
 	}
@@ -275,6 +308,12 @@ class CrlService {
 	}
 
 	public function generateCrlDer(string $instanceId, int $generation, string $engineType): string {
+		$cacheKey = $this->generatedCrlCacheKey($instanceId, $generation, $engineType);
+		$cached = $this->cache->get($cacheKey);
+		if ($cached !== null) {
+			return $cached;
+		}
+
 		try {
 			$revokedCertificates = $this->crlMapper->getRevokedCertificates($instanceId, $generation, $engineType);
 
@@ -286,7 +325,11 @@ class CrlService {
 
 			$crlNumber = $this->getNextCrlNumber($instanceId, $generation, $engineType);
 
-			return $engine->generateCrlDer($revokedCertificates, $instanceId, $generation, $crlNumber);
+			$crlDer = $engine->generateCrlDer($revokedCertificates, $instanceId, $generation, $crlNumber);
+
+			$this->cache->set($cacheKey, $crlDer, self::GENERATED_CRL_TTL);
+
+			return $crlDer;
 		} catch (\Throwable $e) {
 			if ($e instanceof \RuntimeException && str_starts_with($e->getMessage(), 'Config path does not exist for instanceId:')) {
 				$this->logger->debug('Skipping local CRL generation because source PKI config path is missing', [
