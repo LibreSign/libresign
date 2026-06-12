@@ -1780,8 +1780,21 @@ export type components = {
             effectiveValue: string;
             sourceScope: string;
         };
+        PolicySnapshotIdentifyMethodFactor: {
+            name: string;
+            enabled: boolean;
+            signatureMethods?: {
+                [key: string]: {
+                    [key: string]: Record<string, never>;
+                };
+            };
+            requirement?: components["schemas"]["IdentifyMethodRequirement"];
+            /** Format: int64 */
+            minimumTotalVerifiedFactors?: number;
+            friendly_name?: string;
+        };
         PolicySnapshotIdentifyMethodsEntry: {
-            effectiveValue: components["schemas"]["IdentifyMethodSetting"][];
+            effectiveValue: components["schemas"]["PolicySnapshotIdentifyMethodFactor"][];
             sourceScope: string;
         };
         PolicySnapshotNumericEntry: {
