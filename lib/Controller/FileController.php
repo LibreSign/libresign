@@ -102,7 +102,7 @@ class FileController extends AEnvironmentAwareController {
 	 * 404: Request failed
 	 * 422: Request failed
 	 */
-	#[PrivateValidation]
+	#[PrivateValidation(allowValidSignRequestUuid: true)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
@@ -183,7 +183,7 @@ class FileController extends AEnvironmentAwareController {
 				->toArray();
 			$statusCode = Http::STATUS_OK;
 		} catch (InvalidArgumentException $e) {
-			$message = $this->l10n->t($e->getMessage());
+			$message = $e->getMessage();
 			$return = [
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $message]]
@@ -255,15 +255,15 @@ class FileController extends AEnvironmentAwareController {
 				->toArray();
 			$statusCode = Http::STATUS_OK;
 		} catch (LibresignException $e) {
-			$message = $this->l10n->t($e->getMessage());
+			$message = $e->getMessage();
 			$return = [
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $message]]
 			];
 			$statusCode = Http::STATUS_NOT_FOUND;
 		} catch (\Throwable $th) {
-			$message = $this->l10n->t($th->getMessage());
-			$this->logger->error($message);
+			$this->logger->error($th->getMessage(), ['exception' => $th]);
+			$message = $this->l10n->t('Internal error. Contact admin.');
 			$return = [
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $message]]
@@ -499,7 +499,7 @@ class FileController extends AEnvironmentAwareController {
 	/**
 	 * Send a file
 	 *
-	 * Send a new file to Nextcloud and return the fileId to request signature.
+	 * Send a new file to Nextcloud and return the fileId used to create a signature request.
 	 * Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.
 	 *
 	 * **Note on multiple file uploads:**
@@ -603,7 +603,6 @@ class FileController extends AEnvironmentAwareController {
 			$envelope = $this->fileMapper->getById($envelope->getId());
 			$response = $this->fileListService->formatFileWithChildren($envelope, $addedFiles, $this->userSession->getUser());
 			return new DataResponse($response, Http::STATUS_OK);
-
 		} catch (DoesNotExistException) {
 			return new DataResponse(
 				['message' => $this->l10n->t('Envelope not found')],

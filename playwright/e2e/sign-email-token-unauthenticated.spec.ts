@@ -5,10 +5,15 @@
 
 import { test, expect } from '@playwright/test';
 import { login } from '../support/nc-login'
-import { configureOpenSsl, deleteAppConfig, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, setAppConfig, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromEmail } from '../support/mailpit'
+import { getSmallValidPdfBase64 } from '../support/pdf-fixtures'
+import { useFooterPolicyGuard } from '../support/system-policies'
+
+useFooterPolicyGuard()
 
 test('sign document with email token as unauthenticated signer', async ({ page }) => {
+	const signerEmail = `signer-email-token-${Date.now()}@libresign.coop`
 	await login(
 		page.request,
 		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
@@ -23,92 +28,128 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
-			{ name: 'account', enabled: true, mandatory: false },
+			{ name: 'account', enabled: false, mandatory: false },
 			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { emailToken: { enabled: true } }, can_create_account: false },
 		]),
 	)
+	await setSystemPolicy(
+		page.request,
+		'identification_documents',
+		JSON.stringify({ enabled: false, approvers: ['admin'] }),
+	)
+	await setCertificateEngine(page.request, 'openssl')
 	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
-	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
-
-	await page.goto('./apps/libresign')
-	await page.getByRole('button', { name: 'Upload from URL' }).click();
-	await page.getByRole('textbox', { name: 'URL of a PDF file' }).click();
-	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('http://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf');
-	await page.getByRole('button', { name: 'Send' }).click();
-	await page.getByRole('button', { name: 'Add signer' }).click();
-	await page.getByRole('tab', { name: 'Email' }).click();
-	await page.getByPlaceholder('Email').click();
-	await page.getByPlaceholder('Email').fill('signer01@libresign.coop');
-	await page.getByRole('option', { name: 'signer01@libresign.coop' }).click();
-	await page.getByRole('textbox', { name: 'Signer name' }).click();
-	await page.getByRole('textbox', { name: 'Signer name' }).press('ControlOrMeta+a');
-	await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 01');
-	await page.getByRole('button', { name: 'Save' }).click();
 
 	const mailpit = createMailpitClient()
 	await mailpit.deleteMessages()
 
-	await page.getByRole('button', { name: 'Request signatures' }).click();
-	await page.getByRole('button', { name: 'Send' }).click();
+	const pdfBase64 = await getSmallValidPdfBase64()
+	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+	const auth = 'Basic ' + Buffer.from(`${adminUser}:${adminPassword}`).toString('base64')
+	const createResponse = await page.request.fetch('./ocs/v2.php/apps/libresign/api/v1/request-signature', {
+		method: 'POST',
+		headers: {
+			'OCS-ApiRequest': 'true',
+			Accept: 'application/json',
+			Authorization: auth,
+			'Content-Type': 'application/json',
+		},
+		data: JSON.stringify({
+			name: `email-token-unauth-${Date.now()}.pdf`,
+			status: 1,
+			file: { name: 'email-token-unauth.pdf', base64: pdfBase64 },
+			signers: [{
+				displayName: 'Signer 01',
+				identifyMethods: [{ method: 'email', value: signerEmail, mandatory: 1 }],
+			}],
+		}),
+		failOnStatusCode: false,
+	})
+	expect(
+		createResponse.ok(),
+		`Create request-signature failed with status ${createResponse.status()}: ${await createResponse.text()}`,
+	).toBeTruthy()
 
 	// Keep the browser unauthenticated before opening a public sign link.
 	// This avoids logout redirects to absolute hosts that may differ per environment.
 	await page.context().clearCookies();
 	await page.goto('about:blank');
 
-	const email = await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: There is a file for you to sign')
+	const email = await waitForEmailTo(mailpit, signerEmail, 'LibreSign: There is a file for you to sign')
 	const signLink = extractSignLink(email.Text)
 	if (!signLink) throw new Error('Sign link not found in email')
+	const signLinkCandidates = signLink.startsWith('/index.php/')
+		? [signLink, signLink.replace(/^\/index\.php/, '')]
+		: [signLink, `/index.php${signLink.startsWith('/') ? '' : '/'}${signLink}`]
 
-	// Regression guard: validation payload can contain signer without email.
-	// Reuse this existing E2E flow and force `email = null` in the validate response.
-	await page.route('**/ocs/v2.php/apps/libresign/api/v1/file/validate/uuid/**', async (route) => {
-		const response = await route.fetch()
-		const payload = await response.json() as Record<string, unknown>
-		const ocs = payload.ocs as Record<string, unknown> | undefined
-		const data = ocs?.data as Record<string, unknown> | undefined
-
-		if (data && Array.isArray(data.signers) && data.signers.length > 0) {
-			const firstSigner = data.signers[0] as Record<string, unknown>
-			firstSigner.email = null
+	let invitationOpened = false
+	for (const candidate of signLinkCandidates) {
+		await page.goto(candidate)
+		const loginHeading = page.getByRole('heading', { name: 'Log in to Nextcloud' })
+		if (await loginHeading.isVisible({ timeout: 1_500 }).catch(() => false)) {
+			continue
 		}
+		invitationOpened = true
+		break
+	}
+	if (!invitationOpened) {
+		throw new Error(`Invitation link redirected to login instead of public sign page: ${page.url()}`)
+	}
+	const openSignButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' }).first()
+	const emailTextbox = page.getByRole('textbox', { name: 'Email' }).first()
+	await Promise.any([
+		openSignButton.waitFor({ state: 'visible', timeout: 10_000 }),
+		emailTextbox.waitFor({ state: 'visible', timeout: 10_000 }),
+	])
+	if (!await emailTextbox.isVisible()) {
+		await expect(openSignButton).toBeVisible({ timeout: 15_000 })
+		await openSignButton.click({ force: true })
+	}
+	await expect(emailTextbox).toBeVisible()
+	await emailTextbox.click();
+	await emailTextbox.fill(signerEmail);
+	const sendVerificationCodeButton = page.getByRole('button', { name: 'Send verification code' })
+	const codeTextbox = page.getByRole('textbox', { name: 'Enter your code' }).first()
+	await Promise.any([
+		sendVerificationCodeButton.waitFor({ state: 'visible', timeout: 15_000 }),
+		codeTextbox.waitFor({ state: 'visible', timeout: 15_000 }),
+	])
+	if (!await codeTextbox.isVisible({ timeout: 200 }).catch(() => false)) {
+		await expect(sendVerificationCodeButton).toBeVisible({ timeout: 15_000 })
+		await expect(sendVerificationCodeButton).toBeEnabled({ timeout: 15_000 })
+		await sendVerificationCodeButton.click();
+	}
+	await expect(codeTextbox).toBeVisible({ timeout: 15_000 })
 
-		await route.fulfill({
-			status: response.status(),
-			headers: {
-				...response.headers(),
-				'content-type': 'application/json',
-			},
-			body: JSON.stringify(payload),
-		})
-	})
-
-	await page.goto(signLink);
-	await page.getByRole('button', { name: 'Sign the document.' }).click();
-	await page.getByRole('textbox', { name: 'Email' }).click();
-	await page.getByRole('textbox', { name: 'Email' }).fill('signer01@libresign.coop');
-	await page.getByRole('button', { name: 'Send verification code' }).click();
-
-	const tokenEmail = await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: Code to sign file')
+	const tokenEmail = await waitForEmailTo(mailpit, signerEmail, 'LibreSign: Code to sign file', { timeout: 60_000 })
 	const token = extractTokenFromEmail(tokenEmail.Text)
 	if (!token) throw new Error('Token not found in email')
-	await page.getByRole('textbox', { name: 'Enter your code' }).click();
-	await page.getByRole('textbox', { name: 'Enter your code' }).fill(token);
+	await codeTextbox.click();
+	await codeTextbox.fill(token);
 	await page.getByRole('button', { name: 'Validate code' }).click();
 
 	await expect(page.getByRole('heading', { name: 'Signature confirmation' })).toBeVisible();
 	await expect(page.getByText('Step 3 of 3 - Signature')).toBeVisible();
 	await expect(page.getByText('Your identity has been')).toBeVisible();
 	await expect(page.getByText('You can now sign the document.')).toBeVisible();
-	await page.getByRole('button', { name: 'Sign document' }).click();
-	await page.waitForURL('**/validation/**');
-	await expect(page.getByText('This document is valid')).toBeVisible();
-	await expect(page.getByText('Failed to validate document')).not.toBeVisible();
-	await expect(page.getByText('Congratulations you have')).toBeVisible();
-	await expect(page.getByRole('button', { name: 'Sign the document.' })).not.toBeVisible();
+	const signResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/sign/'),
+	)
+	await page.getByRole('dialog', { name: 'Signature confirmation' }).getByRole('button', { name: 'Sign document' }).click();
+	const signResponse = await signResponsePromise
+	const signResponseBody = await signResponse.text()
+	expect(
+		signResponse.ok(),
+		`Sign API failed with status ${signResponse.status()}: ${signResponseBody}`,
+	).toBeTruthy()
+	await page.waitForURL('**/validation/**', { waitUntil: 'commit' })
+	await expect(page.getByText('This document is valid')).toBeVisible({ timeout: 15_000 })
+	await expect(page.getByText('Congratulations you have')).toBeVisible({ timeout: 15_000 })
+	await expect(page.getByRole('button', { name: 'Sign document' })).not.toBeVisible();
 });

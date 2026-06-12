@@ -11,6 +11,8 @@ namespace OCA\Libresign\Tests\Unit\Service\Identify;
 use OCA\Libresign\Service\Identify\ResultEnricher;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
+use OCP\Config\IUserConfig;
+use OCP\IAppConfig;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
@@ -22,6 +24,8 @@ class ResultEnricherTest extends TestCase {
 	private ResultEnricher $enricher;
 	private IUserSession&MockObject $userSession;
 	private IUserManager&MockObject $userManager;
+	private IAppConfig&MockObject $appConfig;
+	private IUserConfig&MockObject $userConfig;
 	private Account&MockObject $accountMethod;
 	private Email&MockObject $emailMethod;
 	private IUser&MockObject $currentUser;
@@ -29,6 +33,8 @@ class ResultEnricherTest extends TestCase {
 	protected function setUp(): void {
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->userManager = $this->createMock(IUserManager::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->userConfig = $this->createMock(IUserConfig::class);
 		$this->accountMethod = $this->createMock(Account::class);
 		$this->emailMethod = $this->createMock(Email::class);
 		$this->currentUser = $this->createMock(IUser::class);
@@ -38,6 +44,8 @@ class ResultEnricherTest extends TestCase {
 			$this->userManager,
 			$this->emailMethod,
 			$this->accountMethod,
+			$this->appConfig,
+			$this->userConfig,
 		);
 	}
 
@@ -179,7 +187,13 @@ class ResultEnricherTest extends TestCase {
 	}
 
 	#[DataProvider('providerAddEmailNotificationPreference')]
-	public function testAddEmailNotificationPreference(string $method, bool $shouldHaveEmail, bool $acceptsNotifications): void {
+	public function testAddEmailNotificationPreference(
+		string $method,
+		string $adminSetting,
+		string $userSetting,
+		bool $shouldHaveEmail,
+		?bool $acceptsNotifications,
+	): void {
 		if ($method === 'account') {
 			$user = $this->createMock(IUser::class);
 			$user->method('getEMailAddress')
@@ -190,6 +204,14 @@ class ResultEnricherTest extends TestCase {
 			$this->userManager->method('get')
 				->with('john')
 				->willReturn($user);
+
+			$this->appConfig->method('getValueString')
+				->with('activity', 'notify_email_libresign_file_to_sign', '1')
+				->willReturn($adminSetting);
+
+			$this->userConfig->method('getValueString')
+				->with('john', 'activity', 'notify_email_libresign_file_to_sign', '')
+				->willReturn($userSetting);
 		}
 
 		$list = [
@@ -199,7 +221,7 @@ class ResultEnricherTest extends TestCase {
 		$result = $this->enricher->addEmailNotificationPreference($list);
 
 		if ($method === 'account') {
-			$this->assertEquals($acceptsNotifications, $result[0]['acceptsEmailNotifications']);
+			$this->assertSame($acceptsNotifications, $result[0]['acceptsEmailNotifications']);
 			if ($shouldHaveEmail) {
 				$this->assertEquals('john@company.com', $result[0]['emailAddress']);
 			} else {
@@ -213,9 +235,11 @@ class ResultEnricherTest extends TestCase {
 
 	public static function providerAddEmailNotificationPreference(): array {
 		return [
-			'account with email notifications enabled' => ['account', true, true],
-			'email method' => ['email', false, false],
-			'phone method' => ['sms', false, false],
+			'account with email notifications enabled' => ['account', '1', '1', true, true],
+			'account with user setting disabled' => ['account', '1', '0', false, false],
+			'account with global setting disabled' => ['account', '0', '1', false, false],
+			'email method' => ['email', '1', '1', false, null],
+			'phone method' => ['sms', '1', '1', false, null],
 		];
 	}
 

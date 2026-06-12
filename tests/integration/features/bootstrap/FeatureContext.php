@@ -26,6 +26,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	public static function beforeSuite(BeforeSuiteScope $scope):void {
 		parent::beforeSuite($scope);
 		self::runCommand('config:system:set debug --value true --type boolean');
+		self::runCommand('app:enable --force libresign');
 		self::runCommand('app:enable --force notifications');
 	}
 
@@ -50,6 +51,8 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$fields = $this->fields;
 		$fields['BASE_URL'] = $this->baseUrl . '/index.php';
 		$fields['TSA_URL'] = getenv('LIBRESIGN_TSA_URL') ?: 'https://freetsa.org/tsr';
+		$patterns = [];
+		$replacements = [];
 		foreach ($fields as $key => $value) {
 			$patterns[] = '/<' . $key . '>/';
 			$replacements[] = $value;
@@ -155,7 +158,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			throw new Exception('Notification with the subject [admin requested your signature on document] not found');
 		}
 		$found = current($found);
-
 
 		preg_match('/f\/sign\/(?<uuid>[\w-]+)\/pdf$/', $found['link'], $matches);
 		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');

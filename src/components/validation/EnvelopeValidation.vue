@@ -262,12 +262,14 @@ function getFileStatusText(file: EnvelopeFile) {
 }
 
 function getName(signer: EnvelopeSigner) {
+	// TRANSLATORS Fallback signer name shown when no display name and no email are available.
 	return signer.displayName || signer.email || t('libresign', 'Unknown')
 }
 
 function getSignerProgressText(signer: EnvelopeSigner) {
 	const progress = signer.documentsSignedCount || 0
 	const total = signer.totalDocuments || 0
+	// TRANSLATORS {progress} is how many envelope documents this signer has already signed. {total} is total documents assigned to this signer.
 	return n('libresign', '{progress} of {total} document signed', '{progress} of {total} documents signed', total, { progress, total })
 }
 

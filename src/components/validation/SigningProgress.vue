@@ -16,14 +16,17 @@
 			<div v-if="progress" class="progress-body">
 				<div class="summary">
 					<div class="metric">
+						<!-- TRANSLATORS Progress metric label: count of files already signed successfully. -->
 						<div class="metric-label">{{ t('libresign', 'Signed') }}</div>
 						<div class="metric-value text-success">{{ progress.signed }} / {{ progress.total }}</div>
 					</div>
 					<div class="metric">
+						<!-- TRANSLATORS Progress metric label: count of files currently being processed. -->
 						<div class="metric-label">{{ t('libresign', 'In progress') }}</div>
 						<div class="metric-value text-warning">{{ progress.inProgress ?? 0 }}</div>
 					</div>
 					<div class="metric">
+						<!-- TRANSLATORS Progress metric label: count of files still waiting for processing. -->
 						<div class="metric-label">{{ t('libresign', 'Pending') }}</div>
 						<div class="metric-value text-muted">{{ progress.pending }}</div>
 					</div>
@@ -31,7 +34,9 @@
 
 				<div v-if="progress.files?.length" class="file-list">
 					<div class="file-row header">
+						<!-- TRANSLATORS Table column header for file name in signing progress list. -->
 						<span>{{ t('libresign', 'File') }}</span>
+						<!-- TRANSLATORS Table column header for current status of each file during signing. -->
 						<span>{{ t('libresign', 'Status') }}</span>
 					</div>
 					<div v-for="file in progress.files" :key="file.id" class="file-item">
@@ -114,16 +119,20 @@ const pollTimeoutSeconds = ref(30)
 function getHeaderTitle() {
 	const { allProcessed, errorCount } = getProgressState()
 	if (!isPolling.value && allProcessed && errorCount > 0) {
+		// TRANSLATORS Heading shown when signing process ended but at least one file failed.
 		return t('libresign', 'Signing finished with errors')
 	}
+	// TRANSLATORS Heading shown while digital signing process is running.
 	return t('libresign', 'Signing document...')
 }
 
 function getHeaderSubtitle() {
 	const { allProcessed, errorCount } = getProgressState()
 	if (!isPolling.value && allProcessed && errorCount > 0) {
+		// TRANSLATORS Subtitle explaining user should review individual file errors after partial failure.
 		return t('libresign', 'Some files could not be signed. Please review the errors below.')
 	}
+	// TRANSLATORS Subtitle shown while waiting for background signing workers to finish.
 	return t('libresign', 'Your document is being signed. This may take a few moments.')
 }
 
@@ -193,6 +202,7 @@ async function pollFileProgress() {
 
 		if (responseData?.error && !hasFileErrors) {
 			stopPolling()
+			// TRANSLATORS Fallback signing error message used when backend does not provide a detailed message.
 			generalErrorMessage.value = responseData.error.message || t('libresign', 'Signing failed. Please try again.')
 			emit('error', generalErrorMessage.value)
 			return
@@ -206,6 +216,7 @@ async function pollFileProgress() {
 
 		if (status === 'ABLE_TO_SIGN' || statusCode === 1) {
 			stopPolling()
+			// TRANSLATORS Informational message emitted when document returns to state "ready to sign".
 			emit('error', t('libresign', 'Document ready to sign'))
 			return
 		}
@@ -213,6 +224,7 @@ async function pollFileProgress() {
 		if (allProcessed && errorCount > 0) {
 			stopPolling()
 			const firstError = fileErrors.find(file => file?.error?.message)?.error?.message
+			// TRANSLATORS Fallback error used when one or more files failed and no specific message is available.
 			emit('error', firstError || t('libresign', 'Signing failed. Please try again.'))
 			return
 		}
@@ -227,6 +239,7 @@ async function pollFileProgress() {
 
 		if (status === 'ERROR' && !hasPendingWork && !hasFileErrors) {
 			stopPolling()
+			// TRANSLATORS Generic error shown when signing process ends with error state.
 			generalErrorMessage.value = t('libresign', 'Signing failed. Please try again.')
 			emit('error', generalErrorMessage.value)
 			return
@@ -238,6 +251,7 @@ async function pollFileProgress() {
 			pollingInterval.value = setTimeout(() => pollFileProgress(), 0)
 		} else {
 			stopPolling()
+			// TRANSLATORS Error shown when client cannot query server for current signing progress.
 			emit('error', t('libresign', 'Failed to check signing progress'))
 		}
 	}
@@ -301,12 +315,14 @@ function getStatusMeta(status?: number) {
 	if (meta) {
 		return meta
 	}
+	// TRANSLATORS Fallback status label for unknown status code in older/newer client-server combinations.
 	return { label: t('libresign', 'Unknown'), icon: mdiHelpCircle }
 }
 
 function getFileStatusMeta(file?: ProgressFile) {
 	if (file?.error) {
 		return {
+			// TRANSLATORS Status label shown for file entries that failed during signing.
 			label: t('libresign', 'Error'),
 			icon: mdiAlertCircleOutline,
 			class: 'error',

@@ -6,8 +6,8 @@ Feature: sequential-signing
     And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
     And run the command "libresign:configure:openssl --cn=Common\ Name" with result code 0
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}}}] |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}] |
     And the response should have a status code 200
 
   Scenario: Parallel signing - all signers can sign immediately
@@ -36,9 +36,8 @@ Feature: sequential-signing
   Scenario: Sequential signing - only first signer can sign initially
     Given user "signer1" exists
     And user "signer2" exists
-    And sending "post" to ocs "/apps/libresign/api/v1/admin/signature-flow/config"
-      | enabled | true            |
-      | mode    | ordered_numeric |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_flow"
+      | value | ordered_numeric |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |

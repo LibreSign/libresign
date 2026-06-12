@@ -44,11 +44,13 @@
 				</tbody>
 			</table>
 			<NcButton variant="primary" @click="showModal">
+				<!-- TRANSLATORS Button label for regenerating system root certificate used by LibreSign PKI. -->
 					{{ t('libresign', 'Regenerate root certificate') }}
 			</NcButton>
 			<NcDialog v-if="modal"
 				:name="t('libresign', 'Confirm')"
 				@closing="closeModal">
+				<!-- TRANSLATORS High-risk confirmation warning: regenerating root certificate invalidates existing signing keys. -->
 				{{ t('libresign', 'Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?') }}
 				<template #actions>
 					<NcButton variant="error"
@@ -65,10 +67,11 @@
 		<div v-else id="formRootCertificate" class="form-libresign">
 			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Common Name (CN)') }}</label>
+				<!-- TRANSLATORS Helper text explaining Common Name (CN) value for generated root certificate subject. -->
 				<NcTextField id="commonName"
 					ref="commonName"
 					v-model="certificate.rootCert.commonName"
-					:helper-text="t('libresign', 'Full name of the main company or main user of this instance')"
+					:helper-text="t('libresign', 'Full name of the main company or main person of this instance')"
 					:minlength="1"
 					:success="certificate.rootCert.commonName !== ''"
 					:error="certificate.rootCert.commonName === ''"
@@ -97,7 +100,7 @@
 				<NcTextField id="cfsslUri"
 					v-model="certificate.cfsslUri"
 					:label-outside="true"
-					:placeholder="t('libresign', 'Not mandatory, leave blank to use the default value.')"
+					:placeholder="notMandatoryDefaultPlaceholder"
 					:disabled="formDisabled" />
 			</div>
 			<div v-if="customData" class="form-group">
@@ -105,7 +108,7 @@
 				<NcTextField id="configPath"
 					v-model="certificate.configPath"
 					:label-outside="true"
-					:placeholder="t('libresign', 'Not mandatory, leave blank to use the default value.')"
+					:placeholder="notMandatoryDefaultPlaceholder"
 					:disabled="formDisabled" />
 			</div>
 			<NcButton :disabled="!canSave"
@@ -182,6 +185,8 @@ const description = ref('')
 const submitLabel = ref('')
 
 const includeCertificatePolicy = computed(() => toggleCertificatePolicy.value || !!CPS || !!OID)
+// TRANSLATORS Placeholder text indicating optional advanced field that can be left empty to keep system default.
+const notMandatoryDefaultPlaceholder = t('libresign', 'Not mandatory, leave blank to use the default value.')
 const canSave = computed(() => {
 	if (formDisabled.value) {
 		return false
@@ -241,11 +246,13 @@ function clearAndShowForm() {
 	customData.value = false
 	formDisabled.value = false
 	modal.value = false
+	// TRANSLATORS Status label shown on submit button before root certificate generation starts.
 	submitLabel.value = t('libresign', 'Generate root certificate')
 }
 
 async function generateCertificate() {
 	formDisabled.value = true
+	// TRANSLATORS In-progress label shown while backend generates a new root certificate.
 	submitLabel.value = t('libresign', 'Generating certificate.')
 
 	try {
@@ -264,12 +271,16 @@ async function generateCertificate() {
 	} catch (caughtError: any) {
 		const response = caughtError?.response
 		if (response?.data?.ocs?.data?.message?.length > 0) {
+			// TRANSLATORS Error prefix for root certificate generation failure. Detailed server message is appended after newline.
 			showError(t('libresign', 'Could not generate certificate.') + '\n' + response.data.ocs.data.message)
 		} else if (response?.length) {
+			// TRANSLATORS Error prefix for root certificate generation failure with raw response details appended.
 			showError(t('libresign', 'Could not generate certificate.') + '\n' + response)
 		} else {
+			// TRANSLATORS Generic error when root certificate generation fails without additional details.
 			showError(t('libresign', 'Could not generate certificate.'))
 		}
+		// TRANSLATORS Status label shown on submit button when user can retry root certificate generation.
 		submitLabel.value = t('libresign', 'Generate root certificate')
 	} finally {
 		formDisabled.value = false
@@ -310,12 +321,15 @@ async function loadRootCertificate() {
 }
 
 function afterCertificateGenerated() {
+	// TRANSLATORS Success label shown on submit button after root certificate has been generated.
 	submitLabel.value = t('libresign', 'Generated certificate!')
 	description.value = ''
 }
 
 onMounted(() => {
+	// TRANSLATORS Introductory description telling admin that root certificate generation is required before issuing signatures.
 	description.value = t('libresign', 'To generate new signatures, you must first generate the root certificate.')
+	// TRANSLATORS Initial submit button label before root certificate generation.
 	submitLabel.value = t('libresign', 'Generate root certificate')
 	void loadRootCertificate()
 	subscribe('libresign:certificate-engine:changed', handleChangeEngine)

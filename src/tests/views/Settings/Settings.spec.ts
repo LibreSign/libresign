@@ -3,83 +3,56 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 
-import Settings from '../../../views/Settings/Settings.vue'
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+
+let Settings: unknown
+
+beforeAll(async () => {
+	const settingsModule = await import('../../../views/Settings/Settings.vue')
+	Settings = settingsModule.default
+})
 
 describe('Settings.vue', () => {
 	it('renders the main settings sections container', () => {
-		const wrapper = mount(Settings, {
+		const wrapper = mount(Settings as never, {
 			global: {
 				stubs: {
 					SupportProject: { template: '<div class="support-project-stub" />' },
 					CertificateEngine: true,
 					SignatureEngine: true,
+					SettingsPolicyWorkbench: true,
 					DownloadBinaries: true,
 					ConfigureCheck: true,
 					RootCertificateCfssl: true,
 					RootCertificateOpenSsl: true,
-					IdentificationFactors: true,
-					ExpirationRules: true,
-					Validation: true,
-					CrlValidation: true,
-					DocMDP: true,
-					SignatureFlow: true,
-					SigningMode: true,
-					AllowedGroups: true,
-					LegalInformation: true,
-					IdentificationDocuments: true,
-					CollectMetadata: true,
-					SignatureStamp: true,
-					SignatureHashAlgorithm: true,
-					DefaultUserFolder: true,
-					Envelope: true,
-					Reminders: true,
-					TSA: true,
-					Confetti: true,
 				},
 			},
 		})
 
 		expect(wrapper.find('.support-project-stub').exists()).toBe(true)
 		expect(wrapper.findAllComponents({ name: 'SignatureEngine' })).toHaveLength(1)
-		expect(wrapper.findAllComponents({ name: 'Reminders' })).toHaveLength(1)
+		expect(wrapper.findAllComponents({ name: 'SettingsPolicyWorkbench' })).toHaveLength(1)
 	})
 
-	it('does not render SigningMode because the template gate is false', () => {
-		const wrapper = mount(Settings, {
+	it('keeps PolicyWorkbench as the settings policy entry point', () => {
+		const wrapper = mount(Settings as never, {
 			global: {
 				stubs: {
 					SupportProject: true,
 					CertificateEngine: true,
 					SignatureEngine: true,
+					SettingsPolicyWorkbench: true,
 					DownloadBinaries: true,
 					ConfigureCheck: true,
 					RootCertificateCfssl: true,
 					RootCertificateOpenSsl: true,
-					IdentificationFactors: true,
-					ExpirationRules: true,
-					Validation: true,
-					CrlValidation: true,
-					DocMDP: true,
-					SignatureFlow: true,
-					SigningMode: { name: 'SigningMode', template: '<div class="signing-mode-stub" />' },
-					AllowedGroups: true,
-					LegalInformation: true,
-					IdentificationDocuments: true,
-					CollectMetadata: true,
-					SignatureStamp: true,
-					SignatureHashAlgorithm: true,
-					DefaultUserFolder: true,
-					Envelope: true,
-					Reminders: true,
-					TSA: true,
-					Confetti: true,
 				},
 			},
 		})
 
-		expect(wrapper.find('.signing-mode-stub').exists()).toBe(false)
+		expect(wrapper.findAllComponents({ name: 'SettingsPolicyWorkbench' })).toHaveLength(1)
 	})
 })

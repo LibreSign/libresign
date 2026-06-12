@@ -14,13 +14,24 @@
 		</header>
 
 		<main>
-			<div v-if="!signStore.mounted" class="sidebar-loading">
+			<div v-if="!signStore.mounted && !shouldReviewBeforeSigning" class="sidebar-loading">
 				<p>
 					{{ t('libresign', 'Loading …') }}
 				</p>
 			</div>
 			<div v-if="!signEnabled()">
 				{{ t('libresign', 'Document not available for signature.') }}
+			</div>
+			<div v-else-if="shouldReviewBeforeSigning" class="sidebar-review-sign">
+				<p>
+					{{ t('libresign', 'Open the document to review it before signing.') }}
+				</p>
+				<NcButton :wide="true"
+					:disabled="!canOpenSignDocument"
+					variant="primary"
+					@click="openSignDocument">
+					{{ t('libresign', 'Review and sign document') }}
+				</NcButton>
 			</div>
 			<Sign v-else-if="signStore.mounted"
 				@signed="onSigned"
@@ -30,39 +41,79 @@
 </template>
 
 <script setup lang="ts">
-import { t } from '@nextcloud/l10n'
 import { computed, getCurrentInstance, onMounted } from 'vue'
 
-import Sign from '../../views/SignPDF/_partials/Sign.vue'
-
 import { loadState } from '@nextcloud/initial-state'
+import { t } from '@nextcloud/l10n'
+
+import NcButton from '@nextcloud/vue/components/NcButton'
+
+import Sign from '../../views/SignPDF/_partials/Sign.vue'
 
 import { FILE_STATUS } from '../../constants.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import { getSigningRouteUuid } from '../../utils/signRequestUuid.ts'
 
+type SignRoutePayload = {
+	signRequestUuid?: string | null
+}
+
+type RouterLocation = {
+	name: string
+	params: {
+		uuid: string
+	}
+	state?: {
+		isAfterSigned?: boolean
+		isAsync?: boolean
+	}
+}
+
+type RouterLike = {
+	push: (location: RouterLocation) => unknown
+}
+
+type RouteLike = {
+	path?: string
+}
+
 defineOptions({
 	name: 'SignTab',
 })
 
-type SignStoreContract = ReturnType<typeof useSignStore>
-type SignTabDocument = NonNullable<SignStoreContract['document']>
-
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
-const currentDocument = computed<SignTabDocument>(() => signStore.document as SignTabDocument)
+const currentDocument = computed(() => signStore.document ?? {
+	status: null,
+	statusText: '',
+	signers: [],
+})
+const shouldReviewBeforeSigning = computed(() => getRoute()?.path?.startsWith('/f/filelist/sign') === true)
+const canOpenSignDocument = computed(() => Boolean(getSignRequestUuid()))
 
 const instance = getCurrentInstance()
 
 function getRouter() {
-	return (instance?.appContext.config.globalProperties.$router
-		|| instance?.proxy?.$router) as { push: (payload: unknown) => Promise<unknown> | void } | undefined
+	const router = instance?.appContext.config.globalProperties.$router
+		|| instance?.proxy?.$router
+
+	if (typeof router === 'object' && router !== null && typeof router.push === 'function') {
+		return router as RouterLike
+	}
+
+	return undefined
 }
 
 function getRoute() {
-	return (instance?.appContext.config.globalProperties.$route
-		|| instance?.proxy?.$route) as { path?: string } | undefined
+	const route = instance?.appContext.config.globalProperties.$route
+		|| instance?.proxy?.$route
+
+	if (typeof route === 'object' && route !== null) {
+		return route as RouteLike
+	}
+
+	return undefined
 }
 
 function signEnabled() {
@@ -83,7 +134,29 @@ function getValidationRouteName() {
 	return path.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile'
 }
 
-function onSigned(data: { signRequestUuid: string }) {
+function getSignRouteName() {
+	const path = getRoute()?.path || ''
+	return path.startsWith('/p/') ? 'SignPDFExternal' : 'SignPDF'
+}
+
+function openSignDocument() {
+	const signRequestUuid = getSignRequestUuid()
+	if (!signRequestUuid) {
+		return
+	}
+
+	sidebarStore.hideSidebar()
+	getRouter()?.push({
+		name: getSignRouteName(),
+		params: { uuid: signRequestUuid },
+	})
+}
+
+function onSigned(data: SignRoutePayload): void {
+	if (typeof data?.signRequestUuid !== 'string' || data.signRequestUuid.length === 0) {
+		return
+	}
+
 	getRouter()?.push({
 		name: getValidationRouteName(),
 		params: { uuid: data.signRequestUuid },
@@ -91,7 +164,11 @@ function onSigned(data: { signRequestUuid: string }) {
 	})
 }
 
-function onSigningStarted(payload: { signRequestUuid: string }) {
+function onSigningStarted(payload: SignRoutePayload): void {
+	if (typeof payload?.signRequestUuid !== 'string' || payload.signRequestUuid.length === 0) {
+		return
+	}
+
 	getRouter()?.push({
 		name: getValidationRouteName(),
 		params: { uuid: payload.signRequestUuid },
@@ -113,6 +190,9 @@ defineExpose({
 	sidebarStore,
 	signEnabled,
 	getSignRequestUuid,
+	shouldReviewBeforeSigning,
+	canOpenSignDocument,
+	openSignDocument,
 	onSigned,
 	onSigningStarted,
 })
@@ -164,8 +244,16 @@ main {
 	flex-direction: column;
 	align-items: center;
 	width: 100%;
+	.sidebar-review-sign,
 	.sidebar-loading {
 		text-align: center;
+	}
+
+	.sidebar-review-sign {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		width: 100%;
 	}
 }
 </style>

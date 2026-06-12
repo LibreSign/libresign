@@ -189,19 +189,30 @@ const props = withDefaults(defineProps<{
 const EXPIRATION_WARNING_DAYS = 30
 
 const validityStatusMap = computed<Record<string, StatusChip>>(() => ({
+	// TRANSLATORS Certificate validity fallback status when expiration cannot be determined from certificate metadata.
 	unknown: { text: t('libresign', 'Unknown'), variant: 'tertiary', icon: mdiHelpCircle },
+	// TRANSLATORS Certificate validity status shown when certificate has passed its expiration date.
 	expired: { text: t('libresign', 'Expired'), variant: 'error', icon: mdiCancel },
+	// TRANSLATORS Certificate validity status shown when expiration is near (within warning threshold).
 	expiring: { text: t('libresign', 'Expires Soon'), variant: 'warning', icon: mdiAlertCircleOutline },
+	// TRANSLATORS Certificate validity status shown when certificate is currently within its valid date range.
 	valid: { text: t('libresign', 'Valid'), variant: 'success', icon: mdiCheckCircle },
 }))
 
 const crlStatusMap = computed<Record<string, StatusChip>>(() => ({
+	// TRANSLATORS CRL check result meaning the certificate was found and is not revoked. CRL means Certificate Revocation List.
 	valid: { text: t('libresign', 'Valid (Not Revoked)'), variant: 'success', icon: mdiShieldCheck },
+	// TRANSLATORS CRL check result meaning the certificate has been revoked by its issuing authority.
 	revoked: { text: t('libresign', 'Revoked'), variant: 'error', icon: mdiShieldOff },
+	// TRANSLATORS CRL check result meaning the certificate does not contain CRL metadata needed to verify revocation.
 	missing: { text: t('libresign', 'No CRL Information'), variant: 'warning', icon: mdiShieldAlert },
+	// TRANSLATORS CRL check result meaning no CRL distribution point URLs were present in the certificate.
 	no_urls: { text: t('libresign', 'No CRL URLs Found'), variant: 'warning', icon: mdiShieldAlert },
+	// TRANSLATORS CRL check result meaning CRL URLs exist but could not be reached.
 	urls_inaccessible: { text: t('libresign', 'CRL URLs Inaccessible'), variant: 'tertiary', icon: mdiHelpCircle },
+	// TRANSLATORS CRL check result meaning CRL validation process did not complete successfully.
 	validation_failed: { text: t('libresign', 'CRL Validation Failed'), variant: 'tertiary', icon: mdiHelpCircle },
+	// TRANSLATORS CRL check result meaning an unexpected error occurred while validating revocation using CRL.
 	validation_error: { text: t('libresign', 'CRL Validation Error'), variant: 'tertiary', icon: mdiHelpCircle },
 }))
 
@@ -213,6 +224,7 @@ const shouldShowPurposes = computed(() => Boolean(
 
 const certificateValidityStatus = computed(() => validityStatusMap.value[getValidityStatus()])
 const crlValidationStatus = computed<StatusChip>(() => crlStatusMap.value[props.certificate.crl_validation ?? ''] || {
+	// TRANSLATORS Fallback label when CRL validation state is unknown to this client version.
 	text: t('libresign', 'Unknown Status'),
 	variant: 'tertiary',
 	icon: mdiHelpCircle,
@@ -255,15 +267,25 @@ function camelCaseToTitleCase(text: string) {
 
 function formatPurposeName(purpose: string) {
 	const purposeNames: Record<string, string> = {
+		// TRANSLATORS Certificate key-usage purpose indicating client-side TLS/SSL authentication.
 		sslclient: t('libresign', 'SSL Client'),
+		// TRANSLATORS Certificate key-usage purpose indicating server-side TLS/SSL authentication.
 		sslserver: t('libresign', 'SSL Server'),
+		// TRANSLATORS Legacy Netscape certificate purpose for SSL server usage.
 		nssslserver: t('libresign', 'Netscape SSL Server'),
+		// TRANSLATORS Certificate purpose for signing S/MIME email messages.
 		smimesign: t('libresign', 'S/MIME Signing'),
+		// TRANSLATORS Certificate purpose for encrypting S/MIME email messages.
 		smimeencrypt: t('libresign', 'S/MIME Encryption'),
+		// TRANSLATORS Certificate purpose that allows signing CRLs (Certificate Revocation Lists).
 		crlsign: t('libresign', 'CRL Signing'),
+		// TRANSLATORS Certificate purpose indicating unrestricted or generic usage.
 		any: t('libresign', 'Any Purpose'),
+		// TRANSLATORS Certificate purpose for OCSP responder support. OCSP means Online Certificate Status Protocol.
 		ocsphelper: t('libresign', 'OCSP Helper'),
+		// TRANSLATORS Certificate purpose for creating trusted timestamp signatures (TSA).
 		timestampsign: t('libresign', 'Timestamp Signing'),
+		// TRANSLATORS Certificate purpose for signing software/code artifacts.
 		codesign: t('libresign', 'Code Signing'),
 	}
 	return purposeNames[purpose] || purpose
@@ -271,12 +293,15 @@ function formatPurposeName(purpose: string) {
 
 function getChainCertificateLabel(index: number, certificate: CertificateData) {
 	if (index === 0) {
+		// TRANSLATORS Label for a non-root certificate in the chain that links end-entity certificate to the root CA.
 		return t('libresign', 'Intermediate Certificate')
 	}
 	if (certificate.subject && certificate.issuer
 		&& JSON.stringify(certificate.subject) === JSON.stringify(certificate.issuer)) {
+		// TRANSLATORS Label for self-signed root Certificate Authority certificate. CA means Certificate Authority.
 		return t('libresign', 'Root Certificate (CA)')
 	}
+	// TRANSLATORS Generic chain certificate label. {number} is 1-based position within displayed certificate chain list.
 	return t('libresign', 'Certificate {number}', { number: index + 1 })
 }
 

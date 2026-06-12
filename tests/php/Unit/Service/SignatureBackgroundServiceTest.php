@@ -9,7 +9,9 @@ namespace OCA\Libresign\Tests\Unit\Service;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\SignatureBackgroundService;
+use OCA\Libresign\Service\SignatureTextService;
 use OCP\Files\IAppData;
 use OCP\IAppConfig;
 use OCP\IConfig;
@@ -23,14 +25,18 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 	private IAppData&MockObject $appData;
 	private IConfig&MockObject $config;
 	private ITempManager&MockObject $tempManager;
+	private SignatureTextService&MockObject $signatureTextService;
+	private PolicyService&MockObject $policyService;
 
 	public function setUp(): void {
 		$this->appData = $this->createMock(IAppData::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->config = $this->createMock(IConfig::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
+		$this->tempManager->method('getTempBaseDir')->willReturn(sys_get_temp_dir());
+		$this->signatureTextService = $this->createMock(SignatureTextService::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 	}
-
 
 	private function getClass(): SignatureBackgroundService {
 		$this->service = new SignatureBackgroundService(
@@ -38,8 +44,35 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 			$this->appConfig,
 			$this->config,
 			$this->tempManager,
+			$this->signatureTextService,
+			$this->policyService,
 		);
 		return $this->service;
+	}
+
+	/**
+	 * @return array{width: int, height: int, x: int, y: int}
+	 */
+	#[DataProvider('providerFitWithinBounds')]
+	public function testFitWithinBounds(
+		int $width,
+		int $height,
+		int $maxWidth,
+		int $maxHeight,
+		array $expected,
+	): void {
+		$class = $this->getClass();
+		$result = self::invokePrivate($class, 'fitWithinBounds', [$width, $height, $maxWidth, $maxHeight]);
+
+		$this->assertSame($expected, $result);
+	}
+
+	public static function providerFitWithinBounds(): array {
+		return [
+			'fits with identical ratio' => [1000, 500, 200, 100, ['width' => 200, 'height' => 100, 'x' => 0, 'y' => 0]],
+			'letterbox horizontally' => [1000, 1000, 200, 100, ['width' => 100, 'height' => 100, 'x' => 50, 'y' => 0]],
+			'upscales small image without distortion' => [100, 50, 200, 100, ['width' => 200, 'height' => 100, 'x' => 0, 'y' => 0]],
+		];
 	}
 
 	#[DataProvider('providerScaleDimensions')]
@@ -51,8 +84,8 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 		int $expectedWidth,
 		int $expectedHeight,
 	): void {
-		$this->appConfig->setValueFloat('libresign', 'signature_width', $configWidth);
-		$this->appConfig->setValueFloat('libresign', 'signature_height', $configHeight);
+		$this->signatureTextService->method('getFullSignatureWidth')->willReturn($configWidth);
+		$this->signatureTextService->method('getFullSignatureHeight')->willReturn($configHeight);
 		$class = $this->getClass();
 		$result = self::invokePrivate($class, 'scaleDimensions', [$inputWidth, $inputHeight]);
 		$this->assertSame(
@@ -75,4 +108,5 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 				=> [2000, 1600, 200.7, 100.5, 376, 301],
 		];
 	}
+
 }

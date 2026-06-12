@@ -60,7 +60,6 @@ class Application extends App implements IBootstrap {
 		$context->registerNotifierService(Notifier::class);
 
 		$context->registerSearchProvider(FileSearchProvider::class);
-
 		$context->registerEventListener(LoadSidebar::class, TemplateLoader::class);
 		$context->registerEventListener(BeforeNodeDeletedEvent::class, BeforeNodeDeletedListener::class);
 		$context->registerEventListener(CacheEntryRemovedEvent::class, BeforeNodeDeletedListener::class);

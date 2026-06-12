@@ -4,12 +4,14 @@
 -->
 <template>
 	<div v-if="enabledFlow" class="documents">
+		<!-- TRANSLATORS Section title for identity document upload/management required by signer verification flow. -->
 		<h2>{{ t('libresign', 'Identification documents') }}</h2>
 
 		<NcLoadingIcon v-if="loading" :size="44" />
 
 		<template v-else>
 			<NcNoteCard v-if="hasDocumentsWaitingApproval" type="info">
+				<!-- TRANSLATORS Informational status indicating uploaded identity documents are pending manual approval. -->
 				{{ t('libresign', 'Your identification documents are waiting for approval.') }}
 			</NcNoteCard>
 
@@ -31,6 +33,7 @@
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiFolder" :size="20" />
 							</template>
+							<!-- TRANSLATORS Button label to pick an existing identification document from Nextcloud Files. -->
 							{{ t('libresign', 'Choose from Files') }}
 						</NcButton>
 						<NcButton v-if="doc.status === -1 && doc.file_type?.key"
@@ -40,6 +43,7 @@
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiUpload" :size="20" />
 							</template>
+							<!-- TRANSLATORS Button label to upload identification document from local device. -->
 							{{ t('libresign', 'Upload file') }}
 						</NcButton>
 						<NcButton v-if="doc.status !== -1"
@@ -49,6 +53,7 @@
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 							</template>
+							<!-- TRANSLATORS Button label to remove a previously uploaded identification document. -->
 							{{ t('libresign', 'Delete file') }}
 						</NcButton>
 					</div>
@@ -134,7 +139,9 @@ const fileTypeInfo = computed<Record<string, DocumentTypeInfo>>(() => ({
 	IDENTIFICATION: {
 		key: 'IDENTIFICATION',
 		type: 'IDENTIFICATION',
+		// TRANSLATORS Document type name displayed for personal identity verification document.
 		name: t('libresign', 'Identification Document'),
+		// TRANSLATORS Description label for identity verification document type.
 		description: t('libresign', 'Identification Document'),
 	},
 }))
@@ -156,12 +163,16 @@ function findDocumentByType(list: IdentificationDocument[], type: string) {
 		nodeId: 0,
 		uuid: '',
 		status: -1,
+		// TRANSLATORS Initial status shown when no document has been uploaded yet.
 		statusText: t('libresign', 'Not sent yet'),
+		// TRANSLATORS Placeholder name shown when no document is present.
 		name: t('libresign', 'Not defined yet'),
 		file_type: fileTypeInfo.value[type] || {
 			key: type,
 			type,
+			// TRANSLATORS Generic fallback document type name.
 			name: t('libresign', 'Document'),
+			// TRANSLATORS Generic fallback document type description.
 			description: t('libresign', 'Document'),
 		},
 	}
@@ -174,6 +185,7 @@ async function toggleFilePicker(type: string) {
 		.setMultiSelect(false)
 		.setMimeTypeFilter(['application/pdf'])
 		.addButton({
+			// TRANSLATORS File picker confirmation button label.
 			label: t('libresign', 'Choose'),
 			callback: (nodes: FilePickerNode[]) => handleFileChoose(nodes),
 		})
@@ -206,6 +218,7 @@ async function loadDocuments() {
 async function handleFileChoose(nodes: FilePickerNode[]) {
 	const path = nodes[0]?.path
 	if (!path) {
+		// TRANSLATORS Warning shown when selected file path could not be retrieved from picker result.
 		showWarning(t('libresign', 'Impossible to get file entry'))
 		return
 	}
@@ -227,10 +240,12 @@ async function handleFileChoose(nodes: FilePickerNode[]) {
 
 	await axios.post(generateOcsUrl('/apps/libresign/api/v1/id-docs'), params)
 		.then(async () => {
+			// TRANSLATORS Success toast shown after identification document is submitted.
 			showSuccess(t('libresign', 'File was sent.'))
 			await loadDocuments()
 		})
 		.catch(({ response }) => {
+			// TRANSLATORS Fallback error shown when upload from file picker fails without specific backend message.
 			showError(response?.data?.ocs?.data?.message || t('libresign', 'Upload failed'))
 		})
 	loading.value = false
@@ -253,6 +268,7 @@ async function uploadFile(type: string, inputFile: File) {
 	}
 	await axios.post(generateOcsUrl('/apps/libresign/api/v1/id-docs'), params)
 		.then(async () => {
+			// TRANSLATORS Success toast shown after local-file identification document upload.
 			showSuccess(t('libresign', 'File was sent.'))
 			await loadDocuments()
 		})
@@ -268,6 +284,7 @@ async function deleteFile(doc: IdentificationDocument) {
 	const params = props.signRequestUuid ? { uuid: props.signRequestUuid } : {}
 	await axios.delete(generateOcsUrl(`/apps/libresign/api/v1/id-docs/${nodeId}`), { params })
 		.then(async () => {
+			// TRANSLATORS Success toast shown after deleting an uploaded identification document.
 			showSuccess(t('libresign', 'File was deleted.'))
 			await loadDocuments()
 		})

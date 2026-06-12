@@ -9,11 +9,12 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Crl;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCA\Libresign\Service\Crl\Ldap\LdapCrlDownloader;
-use OCP\IAppConfig;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\CrlValidation\CrlValidationPolicy;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IConfig;
@@ -40,7 +41,7 @@ class CrlRevocationCheckerTestable extends CrlRevocationChecker {
 
 class CrlRevocationCheckerTest extends TestCase {
 	private IConfig&MockObject $config;
-	private IAppConfig&MockObject $appConfig;
+	private PolicyService&MockObject $policyService;
 	private IURLGenerator&MockObject $urlGenerator;
 	private ITempManager&MockObject $tempManager;
 	private LoggerInterface&MockObject $logger;
@@ -51,7 +52,7 @@ class CrlRevocationCheckerTest extends TestCase {
 
 	protected function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
-		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
@@ -62,7 +63,7 @@ class CrlRevocationCheckerTest extends TestCase {
 
 		$this->checker = new CrlRevocationCheckerTestable(
 			$this->config,
-			$this->appConfig,
+			$this->policyService,
 			$this->urlGenerator,
 			$this->tempManager,
 			$this->logger,
@@ -120,10 +121,7 @@ class CrlRevocationCheckerTest extends TestCase {
 		CrlValidationStatus $expectedStatus,
 		string $description,
 	): void {
-		$this->appConfig
-			->method('getValueBool')
-			->with(Application::APP_ID, 'crl_external_validation_enabled', true)
-			->willReturn(false);
+		$this->mockExternalValidationEnabled(false);
 
 		$this->config
 			->method('getSystemValue')
@@ -164,10 +162,7 @@ class CrlRevocationCheckerTest extends TestCase {
 	}
 
 	public function testValidateReturnsNoUrlsForEmptyListWhenSettingOn(): void {
-		$this->appConfig
-			->method('getValueBool')
-			->with(Application::APP_ID, 'crl_external_validation_enabled', true)
-			->willReturn(true);
+		$this->mockExternalValidationEnabled(true);
 
 		$result = $this->checker->validate([], '');
 
@@ -175,10 +170,7 @@ class CrlRevocationCheckerTest extends TestCase {
 	}
 
 	public function testValidateDoesNotReturnDisabledWhenSettingOn(): void {
-		$this->appConfig
-			->method('getValueBool')
-			->with(Application::APP_ID, 'crl_external_validation_enabled', true)
-			->willReturn(true);
+		$this->mockExternalValidationEnabled(true);
 
 		$this->config
 			->method('getSystemValue')
@@ -192,10 +184,7 @@ class CrlRevocationCheckerTest extends TestCase {
 	}
 
 	public function testValidateChecksLocalUrlsEvenWhenExternalValidationDisabled(): void {
-		$this->appConfig
-			->method('getValueBool')
-			->with(Application::APP_ID, 'crl_external_validation_enabled', true)
-			->willReturn(false);
+		$this->mockExternalValidationEnabled(false);
 
 		// Make the domain trusted so isLocalCrlUrl returns true for this host.
 		$this->config
@@ -271,6 +260,15 @@ class CrlRevocationCheckerTest extends TestCase {
 				'Serial absent from CRL text should not match',
 			],
 		];
+	}
+
+	private function mockExternalValidationEnabled(bool $enabled): void {
+		$resolved = (new ResolvedPolicy())
+			->setPolicyKey(CrlValidationPolicy::KEY)
+			->setEffectiveValue($enabled);
+		$this->policyService->method('resolve')
+			->with(CrlValidationPolicy::KEY)
+			->willReturn($resolved);
 	}
 
 }

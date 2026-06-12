@@ -4,7 +4,7 @@
 -->
 <template>
 	<div>
-		<NcLoadingIcon v-if="loading" :size="64" :name="t('libresign', 'Loading …')" />
+		<NcLoadingIcon v-if="loading" :size="64" :name="loadingLabel" />
 		<div v-show="isLoaded" class="wrapper">
 			<img v-show="isLoaded"
 				:src="imageData"
@@ -46,12 +46,16 @@ defineOptions({
 	name: 'PreviewSignature',
 })
 
+// TRANSLATORS Accessible loading label shown while signature preview image is being fetched.
+const loadingLabel = t('libresign', 'Loading …')
+
 const props = withDefaults(defineProps<{
 	src: string
 	signRequestUuid?: string
 	alt?: string
 }>(), {
 	signRequestUuid: '',
+	// TRANSLATORS Default alternative text for signature preview image.
 	alt: () => t('libresign', 'Signature preview'),
 })
 
@@ -63,12 +67,9 @@ const loading = ref(true)
 const isLoaded = ref(false)
 const imageData = ref('')
 const capabilities = getCapabilities() as LibresignCapabilities
-const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
-	'signature-width': 0,
-	'signature-height': 0,
-}
-const width = ref(`${signElementsConfig['signature-width']}px`)
-const height = ref(`${signElementsConfig['signature-height']}px`)
+const signElementsConfig = capabilities.libresign?.config['sign-elements']
+const width = ref(`${Number(signElementsConfig?.['signature-width'])}px`)
+const height = ref(`${Number(signElementsConfig?.['signature-height'])}px`)
 
 function arrayBufferToBase64(data: ArrayBuffer) {
 	const bytes = new Uint8Array(data)

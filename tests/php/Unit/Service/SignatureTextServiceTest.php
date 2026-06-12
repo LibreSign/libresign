@@ -12,8 +12,16 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use Imagick;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy as SignatureTextPolicyProvider;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCA\Libresign\Service\SignatureTextService;
-use OCP\IAppConfig;
+use OCA\Libresign\Service\SignatureTextTemplate;
+use OCA\Libresign\Service\SignerElementsService;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -26,18 +34,18 @@ use Psr\Log\LoggerInterface;
 
 final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignatureTextService $service;
-	private IAppConfig $appConfig;
 	private IL10N $l10n;
 	private IDateTimeZone $dateTimeZone;
 	private IRequest&MockObject $request;
 	private IUserSession&MockObject $userSession;
 	private IURLGenerator&MockObject $urlGenerator;
 	private LoggerInterface&MockObject $logger;
-
+	private PolicyService&MockObject $policyService;
+	/** @var array<string, mixed> */
+	private array $policyValues = [];
 
 	public function setUp(): void {
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
-		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->dateTimeZone = \OCP\Server::get(IDateTimeZone::class);
 		$this->request = $this->createMock(IRequest::class);
 		$this->userSession = $this->createMock(IUserSession::class);
@@ -46,24 +54,70 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 			->method('linkToRouteAbsolute')
 			->willReturnCallback(fn (string $route, array $params): string => 'https://example.test/' . $route . '/' . ($params['uuid'] ?? ''));
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyValues = [
+			CollectMetadataPolicy::KEY => false,
+			FooterPolicy::KEY => FooterPolicyValue::encode(FooterPolicyValue::defaults()),
+			SignatureTextPolicyProvider::KEY => SignatureTextPolicyValue::encode([
+				'template' => '',
+				'template_font_size' => SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+				'signature_font_size' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+				'signature_width' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+				'signature_height' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
+				'background_type' => 'default',
+				'render_mode' => SignerElementsService::RENDER_MODE_DEFAULT,
+			]),
+		];
+
+		$this->policyService
+			->method('resolve')
+			->willReturnCallback(function (string|\BackedEnum $policyKey): ResolvedPolicy {
+				$key = $policyKey instanceof \BackedEnum ? (string)$policyKey->value : $policyKey;
+				$value = $this->policyValues[$key] ?? null;
+				return (new ResolvedPolicy())
+					->setPolicyKey($key)
+					->setEffectiveValue($value);
+			});
+
+		$this->policyService
+			->method('saveSystem')
+			->willReturnCallback(function (string|\BackedEnum $policyKey, mixed $value): ResolvedPolicy {
+				$key = $policyKey instanceof \BackedEnum ? (string)$policyKey->value : $policyKey;
+				$this->policyValues[$key] = $value;
+				return (new ResolvedPolicy())
+					->setPolicyKey($key)
+					->setEffectiveValue($value);
+			});
 	}
 
 	private function getClass(): SignatureTextService {
 		$this->service = new SignatureTextService(
-			$this->appConfig,
 			$this->l10n,
 			$this->dateTimeZone,
 			$this->request,
 			$this->userSession,
 			$this->urlGenerator,
 			$this->logger,
+			$this->policyService,
 		);
 		return $this->service;
 	}
 
+	public function testParseBuildsValidationUrlFromFooterPolicy(): void {
+		$this->policyValues[FooterPolicy::KEY] = FooterPolicyValue::encode([
+			...FooterPolicyValue::defaults(),
+			'validationSite' => 'https://validator.example/base/',
+		]);
+
+		$actual = $this->getClass()->parse('{{ValidationURL}}', [
+			'DocumentUUID' => 'abc-123',
+		]);
+
+		$this->assertSame('https://validator.example/base/abc-123', $actual['parsed']);
+	}
+
 	public function testCollectingMetadata(): void {
-		$appConfig = $this->getMockAppConfig();
-		$appConfig->setValueBool(Application::APP_ID, 'collect_metadata', true);
+		$this->policyValues[CollectMetadataPolicy::KEY] = true;
 
 		$actual = $this->getClass()->getAvailableVariables();
 		$this->assertArrayHasKey('{{SignerIP}}', $actual);
@@ -71,13 +125,12 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		$this->assertArrayHasKey('{{qrcode}}', $actual);
 		$this->assertArrayHasKey('{{ValidationURL}}', $actual);
 
-		$template = $this->getClass()->getDefaultTemplate();
+		$template = SignatureTextTemplate::translated($this->l10n, true);
 		$this->assertStringContainsString('IP', $template);
 	}
 
 	public function testNotCollectingMetadata(): void {
-		$appConfig = $this->getMockAppConfig();
-		$appConfig->setValueBool(Application::APP_ID, 'collect_metadata', false);
+		$this->policyValues[CollectMetadataPolicy::KEY] = false;
 
 		$actual = $this->getClass()->getAvailableVariables();
 		$this->assertArrayNotHasKey('{{SignerIP}}', $actual);
@@ -85,7 +138,7 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		$this->assertArrayHasKey('{{qrcode}}', $actual);
 		$this->assertArrayHasKey('{{ValidationURL}}', $actual);
 
-		$template = $this->getClass()->getDefaultTemplate();
+		$template = SignatureTextTemplate::translated($this->l10n, false);
 		$this->assertStringNotContainsString('IP', $template);
 	}
 
@@ -94,6 +147,35 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		$fromSave = $this->getClass()->save($template);
 		$fromParse = $this->getClass()->parse($fromSave['template'], $context);
 		$this->assertEquals($parsed, $fromParse['parsed']);
+	}
+
+	public function testParseMapsDefaultRenderModeToRuntimeGraphicAndDescription(): void {
+		$this->policyValues[SignatureTextPolicyProvider::KEY] = SignatureTextPolicyValue::encode([
+			'template' => '',
+			'template_font_size' => SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+			'signature_font_size' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+			'signature_width' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+			'signature_height' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
+			'background_type' => 'default',
+			'render_mode' => 'default',
+		]);
+
+		$actual = $this->getClass()->parse('');
+
+		$this->assertSame(SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION, $actual['renderMode']);
+	}
+
+	public function testSavePersistsNormalizedRenderModeInConsolidatedPolicy(): void {
+		$this->getClass()->save(
+			template: 'Signed by {{SignerCommonName}}',
+			renderMode: SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
+		);
+
+		$storedPolicy = SignatureTextPolicyValue::normalize($this->policyValues[SignatureTextPolicyProvider::KEY]);
+
+		$this->assertSame('text', $storedPolicy['render_mode']);
+		$this->assertSame('default', $storedPolicy['background_type']);
+		$this->assertSame('Signed by {{SignerCommonName}}', $storedPolicy['template']);
 	}
 
 	public static function providerSave(): array {
@@ -280,12 +362,19 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 	}
 
 	public function testGetFullSignatureDimensionsShouldFallbackToDefaultsWhenConfigIsInvalid(): void {
-		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_width', 0.0);
-		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_height', -1.0);
+		$this->policyValues[SignatureTextPolicyProvider::KEY] = SignatureTextPolicyValue::encode([
+			'template' => '',
+			'template_font_size' => SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+			'signature_font_size' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+			'signature_width' => 0.0,
+			'signature_height' => -1.0,
+			'background_type' => 'default',
+			'render_mode' => SignerElementsService::RENDER_MODE_DEFAULT,
+		]);
 
 		$class = $this->getClass();
 
-		$this->assertEquals(SignatureTextService::DEFAULT_SIGNATURE_WIDTH, $class->getFullSignatureWidth());
-		$this->assertEquals(SignatureTextService::DEFAULT_SIGNATURE_HEIGHT, $class->getFullSignatureHeight());
+		$this->assertEquals(SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH, $class->getFullSignatureWidth());
+		$this->assertEquals(SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT, $class->getFullSignatureHeight());
 	}
 }

@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
+use OCA\Libresign\Service\IdentifyMethodService;
 
 class TwofactorGatewayToken extends AbstractSignatureMethod implements IToken {
 	private const VISIBILITY_START = 2;
@@ -95,9 +96,6 @@ class TwofactorGatewayToken extends AbstractSignatureMethod implements IToken {
 	}
 
 	private function getGatewayName(string $identifyMethod): string {
-		return match ($identifyMethod) {
-			'whatsapp' => 'gowhatsapp',
-			default => strtolower($identifyMethod),
-		};
+		return IdentifyMethodService::resolveTwofactorGatewayName($identifyMethod);
 	}
 }

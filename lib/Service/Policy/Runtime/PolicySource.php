@@ -1,0 +1,1186 @@
+<?php
+
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+namespace OCA\Libresign\Service\Policy\Runtime;
+
+use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\PermissionSet;
+use OCA\Libresign\Db\PermissionSetBinding;
+use OCA\Libresign\Db\PermissionSetBindingMapper;
+use OCA\Libresign\Db\PermissionSetMapper;
+use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
+use OCA\Libresign\Service\Policy\Contract\IPolicySource;
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Services\IAppConfig;
+use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\Exceptions\AppConfigTypeConflictException;
+use OCP\IDBConnection;
+use OCP\IL10N;
+
+class PolicySource implements IPolicySource {
+	public function __construct(
+		private IAppConfig $appConfig,
+		private PermissionSetMapper $permissionSetMapper,
+		private PermissionSetBindingMapper $bindingMapper,
+		private PolicyRegistry $registry,
+		private IDBConnection $db,
+		private IL10N $l10n,
+	) {
+	}
+
+	#[\Override]
+	public function loadSystemPolicy(string $policyKey): ?PolicyLayer {
+		$definition = $this->registry->get($policyKey);
+		$defaultValue = $definition->normalizeValue($definition->defaultSystemValue());
+		$hasExplicitSystemValue = $this->appConfig->hasAppKey($definition->getAppConfigKey());
+		$storedValue = $hasExplicitSystemValue
+			? $this->readSystemValue($definition->getAppConfigKey(), $defaultValue)
+			: null;
+		$value = $hasExplicitSystemValue
+			? $definition->normalizeValue($storedValue)
+			: $defaultValue;
+
+		$layer = (new PolicyLayer())
+			->setScope($hasExplicitSystemValue ? 'global' : 'system')
+			->setValue($value)
+			->setVisibleToChild(true);
+
+		if (!$hasExplicitSystemValue) {
+			return $layer->setAllowChildOverride(true);
+		}
+
+		if ($value === $defaultValue) {
+			$allowChildOverride = $this->appConfig->getAppValueString(
+				$this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey()),
+				'0',
+			) === '1';
+
+			if ($allowChildOverride) {
+				// Explicitly persisted default value ("let users choose")
+				return $layer
+					->setAllowChildOverride(true)
+					->setAllowedValues([]);
+			}
+
+			return $layer->setAllowChildOverride(true);
+		}
+
+		$allowChildOverride = $this->appConfig->getAppValueString(
+			$this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey()),
+			'0',
+		) === '1';
+
+		return $layer
+			->setAllowChildOverride($allowChildOverride)
+			->setAllowedValues($allowChildOverride ? [] : [$value]);
+	}
+
+	#[\Override]
+	public function loadGroupPolicies(string $policyKey, PolicyContext $context): array {
+		$groupIds = $this->resolveGroupIds($context);
+		if ($groupIds === []) {
+			return [];
+		}
+
+		$bindingsByTargetId = [];
+		foreach ($this->bindingMapper->findByTargets('group', $groupIds) as $binding) {
+			$bindingsByTargetId[$binding->getTargetId()] = $binding;
+		}
+
+		$permissionSetIds = [];
+		foreach ($bindingsByTargetId as $binding) {
+			$permissionSetIds[] = $binding->getPermissionSetId();
+		}
+
+		$permissionSetsById = [];
+		foreach ($this->permissionSetMapper->findByIds(array_values(array_unique($permissionSetIds))) as $permissionSet) {
+			$permissionSetsById[$permissionSet->getId()] = $permissionSet;
+		}
+
+		$layers = [];
+
+		foreach ($groupIds as $groupId) {
+			$binding = $bindingsByTargetId[$groupId] ?? null;
+			if (!$binding instanceof PermissionSetBinding) {
+				continue;
+			}
+
+			$permissionSet = $permissionSetsById[$binding->getPermissionSetId()] ?? null;
+			if (!$permissionSet instanceof PermissionSet) {
+				continue;
+			}
+
+			$policyConfig = $this->resolveStoredGroupPolicyConfig(
+				$permissionSet->getDecodedPolicyJson(),
+				$policyKey,
+			);
+			if (!$this->hasExplicitGroupPolicyConfig($policyConfig)) {
+				continue;
+			}
+
+			$layers[] = $this->createGroupPolicyLayer($policyConfig);
+		}
+
+		return $layers;
+	}
+
+	#[\Override]
+	public function loadCirclePolicies(string $policyKey, PolicyContext $context): array {
+		return [];
+	}
+
+	#[\Override]
+	public function loadUserPolicy(string $policyKey, PolicyContext $context): ?PolicyLayer {
+		$userId = $context->getUserId();
+		if ($userId === null || $userId === '') {
+			return null;
+		}
+
+		return $this->loadUserPolicyConfig($policyKey, $userId);
+	}
+
+	#[\Override]
+	public function loadUserPreference(string $policyKey, PolicyContext $context): ?PolicyLayer {
+		$userId = $context->getUserId();
+		if ($userId === null || $userId === '') {
+			return null;
+		}
+
+		$definition = $this->registry->get($policyKey);
+		$value = $this->appConfig->getUserValue($userId, $definition->getUserPreferenceKey(), '');
+		if ($value === '') {
+			return null;
+		}
+
+		return (new PolicyLayer())
+			->setScope('user')
+			->setValue($definition->normalizeValue($this->deserializeStoredValue($value)));
+	}
+
+	#[\Override]
+	public function loadUserPolicyConfig(string $policyKey, string $userId): ?PolicyLayer {
+		if ($userId === '') {
+			return null;
+		}
+
+		$definition = $this->registry->get($policyKey);
+		$storedPayload = $this->appConfig->getUserValue($userId, $this->getAssignedUserPolicyKey($definition->getUserPreferenceKey()), '');
+		if ($storedPayload === '') {
+			return null;
+		}
+
+		return $this->createUserPolicyLayerFromPayload($definition, $storedPayload);
+	}
+
+	/**
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	#[\Override]
+	public function listUserPoliciesByKey(string $policyKey): array {
+		$definition = $this->registry->get($policyKey);
+		$assignedPolicyKey = $this->getAssignedUserPolicyKey($definition->getUserPreferenceKey());
+
+		$query = $this->db->getQueryBuilder();
+		$query->select('userid', 'configvalue')
+			->from('preferences')
+			->where($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
+			->andWhere($query->expr()->eq('configkey', $query->createNamedParameter($assignedPolicyKey)))
+			->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')));
+
+		$result = $query->executeQuery();
+		$policies = [];
+		try {
+			while ($row = $result->fetchAssociative()) {
+				$userId = (string)($row['userid'] ?? '');
+				$payload = (string)($row['configvalue'] ?? '');
+				if ($userId === '' || $payload === '') {
+					continue;
+				}
+
+				$policyLayer = $this->createUserPolicyLayerFromPayload($definition, $payload);
+				if (!$policyLayer instanceof PolicyLayer) {
+					continue;
+				}
+
+				$policies[] = [
+					'targetId' => $userId,
+					'policy' => $policyLayer,
+				];
+			}
+		} finally {
+			$result->closeCursor();
+		}
+
+		return $policies;
+	}
+
+	/**
+	 * @param list<string> $policyKeys
+	 * @return array<string, list<PolicyLayer>>
+	 */
+	#[\Override]
+	public function loadAllGroupPolicies(array $policyKeys, PolicyContext $context): array {
+		/** @var array<string, list<PolicyLayer>> $result */
+		$result = array_fill_keys($policyKeys, []);
+
+		$groupIds = $this->resolveGroupIds($context);
+		if ($groupIds === []) {
+			return $result;
+		}
+
+		$bindingsByTargetId = [];
+		foreach ($this->bindingMapper->findByTargets('group', $groupIds) as $binding) {
+			$bindingsByTargetId[$binding->getTargetId()] = $binding;
+		}
+
+		$permissionSetIds = array_values(array_unique(array_map(
+			static fn (PermissionSetBinding $b): int => $b->getPermissionSetId(),
+			$bindingsByTargetId,
+		)));
+
+		$permissionSetsById = [];
+		foreach ($this->permissionSetMapper->findByIds($permissionSetIds) as $permissionSet) {
+			$permissionSetsById[$permissionSet->getId()] = $permissionSet;
+		}
+
+		foreach ($groupIds as $groupId) {
+			$binding = $bindingsByTargetId[$groupId] ?? null;
+			if (!$binding instanceof PermissionSetBinding) {
+				continue;
+			}
+
+			$permissionSet = $permissionSetsById[$binding->getPermissionSetId()] ?? null;
+			if (!$permissionSet instanceof PermissionSet) {
+				continue;
+			}
+
+			$policyJson = $permissionSet->getDecodedPolicyJson();
+			foreach ($policyKeys as $policyKey) {
+				$policyConfig = $this->resolveStoredGroupPolicyConfig($policyJson, $policyKey);
+				if (!$this->hasExplicitGroupPolicyConfig($policyConfig)) {
+					continue;
+				}
+
+				$result[$policyKey][] = $this->createGroupPolicyLayer($policyConfig);
+			}
+		}
+
+		return $result;
+	}
+
+	/**
+	 * @param list<string> $policyKeys
+	 * @return array<string, PolicyLayer>
+	 */
+	#[\Override]
+	public function loadAllUserPolicies(array $policyKeys, PolicyContext $context): array {
+		$userId = $context->getUserId();
+		if ($userId === null || $userId === '') {
+			return [];
+		}
+
+		$userPolicyKeyByPolicy = [];
+		foreach ($policyKeys as $policyKey) {
+			$userPolicyKeyByPolicy[$policyKey] = $this->getAssignedUserPolicyKey($this->registry->get($policyKey)->getUserPreferenceKey());
+		}
+		$policyKeyByAssignedKey = array_flip($userPolicyKeyByPolicy);
+
+		$query = $this->db->getQueryBuilder();
+		$query->select('configkey', 'configvalue')
+			->from('preferences')
+			->where($query->expr()->eq('userid', $query->createNamedParameter($userId)))
+			->andWhere($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
+			->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPolicyKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')));
+
+		$result = $query->executeQuery();
+		$layers = [];
+		try {
+			while ($row = $result->fetchAssociative()) {
+				$policyKey = $policyKeyByAssignedKey[$row['configkey']] ?? null;
+				if ($policyKey === null) {
+					continue;
+				}
+
+				$definition = $this->registry->get($policyKey);
+				$decodedPayload = $this->deserializeStoredUserPolicyPayload($row['configvalue']);
+				if (!is_array($decodedPayload) || !array_key_exists('value', $decodedPayload) || $decodedPayload['value'] === null) {
+					continue;
+				}
+
+				$normalizedValue = $definition->normalizeValue($decodedPayload['value']);
+				$allowChildOverride = (bool)($decodedPayload['allowChildOverride'] ?? false);
+				$layers[$policyKey] = (new PolicyLayer())
+					->setScope('user_policy')
+					->setValue($normalizedValue)
+					->setAllowChildOverride($allowChildOverride)
+					->setVisibleToChild(true)
+					->setAllowedValues($allowChildOverride ? [] : [$normalizedValue]);
+			}
+		} finally {
+			$result->closeCursor();
+		}
+
+		return $layers;
+	}
+
+	/**
+	 * @param list<string> $policyKeys
+	 * @return array<string, PolicyLayer>
+	 */
+	#[\Override]
+	public function loadAllUserPreferences(array $policyKeys, PolicyContext $context): array {
+		$userId = $context->getUserId();
+		if ($userId === null || $userId === '') {
+			return [];
+		}
+
+		$userPreferenceKeyByPolicy = [];
+		foreach ($policyKeys as $policyKey) {
+			$userPreferenceKeyByPolicy[$policyKey] = $this->registry->get($policyKey)->getUserPreferenceKey();
+		}
+		$policyKeyByPreferenceKey = array_flip($userPreferenceKeyByPolicy);
+
+		$query = $this->db->getQueryBuilder();
+		$query->select('configkey', 'configvalue')
+			->from('preferences')
+			->where($query->expr()->eq('userid', $query->createNamedParameter($userId)))
+			->andWhere($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
+			->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPreferenceKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')));
+
+		$result = $query->executeQuery();
+		$layers = [];
+		try {
+			while ($row = $result->fetchAssociative()) {
+				$policyKey = $policyKeyByPreferenceKey[$row['configkey']] ?? null;
+				if ($policyKey === null) {
+					continue;
+				}
+
+				$definition = $this->registry->get($policyKey);
+				$layers[$policyKey] = (new PolicyLayer())
+					->setScope('user')
+					->setValue($definition->normalizeValue($this->deserializeStoredValue($row['configvalue'])));
+			}
+		} finally {
+			$result->closeCursor();
+		}
+
+		return $layers;
+	}
+
+	#[\Override]
+	public function loadRequestOverride(string $policyKey, PolicyContext $context): ?PolicyLayer {
+		$requestOverrides = $context->getRequestOverrides();
+		if (!array_key_exists($policyKey, $requestOverrides)) {
+			return null;
+		}
+
+		$definition = $this->registry->get($policyKey);
+
+		return (new PolicyLayer())
+			->setScope('request')
+			->setValue($definition->normalizeValue($requestOverrides[$policyKey]));
+	}
+
+	#[\Override]
+	public function loadGroupPolicyConfig(string $policyKey, string $groupId): ?PolicyLayer {
+		$permissionSet = $this->findPermissionSetByGroupId($groupId);
+		if (!$permissionSet instanceof PermissionSet) {
+			return null;
+		}
+
+		$policyConfig = $this->resolveStoredGroupPolicyConfig(
+			$permissionSet->getDecodedPolicyJson(),
+			$policyKey,
+		);
+		if (!$this->hasExplicitGroupPolicyConfig($policyConfig)) {
+			return null;
+		}
+
+		return $this->createGroupPolicyLayer($policyConfig);
+	}
+
+	/**
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	#[\Override]
+	public function listGroupPoliciesByKey(string $policyKey): array {
+		return $this->buildGroupPoliciesByKeyFromBindings(
+			$policyKey,
+			$this->bindingMapper->findByTargetType('group'),
+		);
+	}
+
+	/**
+	 * @param list<string> $groupIds
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	#[\Override]
+	public function listGroupPoliciesByKeyForTargets(string $policyKey, array $groupIds): array {
+		$groupIds = array_values(array_unique(array_filter(
+			$groupIds,
+			static fn (string $groupId): bool => $groupId !== '',
+		)));
+		if ($groupIds === []) {
+			return [];
+		}
+
+		return $this->buildGroupPoliciesByKeyFromBindings(
+			$policyKey,
+			$this->bindingMapper->findByTargets('group', $groupIds),
+		);
+	}
+
+	/**
+	 * @param list<PermissionSetBinding> $bindings
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	private function buildGroupPoliciesByKeyFromBindings(string $policyKey, array $bindings): array {
+		if ($bindings === []) {
+			return [];
+		}
+
+		$permissionSetIds = array_values(array_unique(array_map(
+			static fn (PermissionSetBinding $binding): int => $binding->getPermissionSetId(),
+			$bindings,
+		)));
+
+		$permissionSetsById = [];
+		foreach ($this->permissionSetMapper->findByIds($permissionSetIds) as $permissionSet) {
+			$permissionSetsById[$permissionSet->getId()] = $permissionSet;
+		}
+
+		$policies = [];
+		foreach ($bindings as $binding) {
+			$permissionSet = $permissionSetsById[$binding->getPermissionSetId()] ?? null;
+			if (!$permissionSet instanceof PermissionSet) {
+				continue;
+			}
+
+			$policyConfig = $this->resolveStoredGroupPolicyConfig(
+				$permissionSet->getDecodedPolicyJson(),
+				$policyKey,
+			);
+			if (!$this->hasExplicitGroupPolicyConfig($policyConfig)) {
+				continue;
+			}
+
+			$policies[] = [
+				'targetId' => $binding->getTargetId(),
+				'policy' => $this->createGroupPolicyLayer($policyConfig),
+			];
+		}
+
+		return $policies;
+	}
+
+	/**
+	 * @param list<string> $groupIds
+	 * @param list<string> $userIds
+	 * @return array<string, array{groupCount: int, userCount: int, everyoneCount: int}>
+	 */
+	public function loadRuleCounts(array $groupIds, array $userIds): array {
+		$policyKeys = $this->registry->getAllPolicyKeys();
+		/** @var array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $counts */
+		$counts = [];
+		foreach ($policyKeys as $policyKey) {
+			$counts[$policyKey] = [
+				'groupCount' => 0,
+				'userCount' => 0,
+				'everyoneCount' => 0,
+			];
+		}
+
+		$groupIds = array_values(array_unique(array_filter($groupIds, static fn (string $groupId): bool => $groupId !== '')));
+		if ($groupIds !== []) {
+			$groupBindings = $this->bindingMapper->findByTargets('group', $groupIds);
+			$permissionSetIds = array_values(array_unique(array_map(
+				static fn (PermissionSetBinding $binding): int => $binding->getPermissionSetId(),
+				$groupBindings,
+			)));
+
+			$permissionSetsById = [];
+			foreach ($this->permissionSetMapper->findByIds($permissionSetIds) as $permissionSet) {
+				$permissionSetsById[$permissionSet->getId()] = $permissionSet;
+			}
+
+			foreach ($groupBindings as $binding) {
+				$policyJson = $permissionSetsById[$binding->getPermissionSetId()]?->getDecodedPolicyJson() ?? [];
+				$this->incrementGroupRuleCounts($counts, $policyJson);
+			}
+		}
+
+		$userIds = array_values(array_unique(array_filter($userIds, static fn (string $userId): bool => $userId !== '')));
+		if ($userIds !== []) {
+			$userPolicyKeyByPolicy = [];
+			foreach ($policyKeys as $policyKey) {
+				$userPolicyKeyByPolicy[$policyKey] = $this->getAssignedUserPolicyKey($this->registry->get($policyKey)->getUserPreferenceKey());
+			}
+			$policyKeyByUserPreference = array_flip($userPolicyKeyByPolicy);
+
+			$query = $this->db->getQueryBuilder();
+			$query->select('configkey')
+				->selectAlias($query->createFunction('COUNT(DISTINCT userid)'), 'user_count')
+				->from('preferences')
+				->where($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
+				->andWhere($query->expr()->in('userid', $query->createNamedParameter($userIds, IQueryBuilder::PARAM_STR_ARRAY)))
+				->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPolicyKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
+				->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')))
+				->groupBy('configkey');
+
+			$result = $query->executeQuery();
+			try {
+				while ($row = $result->fetchAssociative()) {
+					$policyKey = $policyKeyByUserPreference[$row['configkey']] ?? null;
+					if (!is_string($policyKey) || !isset($counts[$policyKey])) {
+						continue;
+					}
+
+					$counts[$policyKey]['userCount'] = (int)($row['user_count'] ?? 0);
+				}
+			} finally {
+				$result->closeCursor();
+			}
+		}
+
+		$this->hydrateExplicitSystemRuleCounts($policyKeys, $counts);
+
+		return $counts;
+	}
+
+	/**
+	 * Count group/user/system rules for ALL known targets (no ID filter). Suitable for system admins.
+	 *
+	 * @return array<string, array{groupCount: int, userCount: int, everyoneCount: int}>
+	 */
+	public function loadAllRuleCounts(): array {
+		$policyKeys = $this->registry->getAllPolicyKeys();
+		/** @var array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $counts */
+		$counts = [];
+		foreach ($policyKeys as $policyKey) {
+			$counts[$policyKey] = ['groupCount' => 0, 'userCount' => 0, 'everyoneCount' => 0];
+		}
+
+		$groupBindings = $this->bindingMapper->findByTargetType('group');
+		if ($groupBindings !== []) {
+			$permissionSetIds = array_values(array_unique(array_map(
+				static fn (PermissionSetBinding $binding): int => $binding->getPermissionSetId(),
+				$groupBindings,
+			)));
+
+			$permissionSetsById = [];
+			foreach ($this->permissionSetMapper->findByIds($permissionSetIds) as $permissionSet) {
+				$permissionSetsById[$permissionSet->getId()] = $permissionSet;
+			}
+
+			foreach ($groupBindings as $binding) {
+				$policyJson = $permissionSetsById[$binding->getPermissionSetId()]?->getDecodedPolicyJson() ?? [];
+				$this->incrementGroupRuleCounts($counts, $policyJson);
+			}
+		}
+
+		$userPolicyKeyByPolicy = [];
+		foreach ($policyKeys as $policyKey) {
+			$userPolicyKeyByPolicy[$policyKey] = $this->getAssignedUserPolicyKey($this->registry->get($policyKey)->getUserPreferenceKey());
+		}
+		$policyKeyByUserPreference = array_flip($userPolicyKeyByPolicy);
+
+		$query = $this->db->getQueryBuilder();
+		$query->select('configkey')
+			->selectAlias($query->createFunction('COUNT(DISTINCT userid)'), 'user_count')
+			->from('preferences')
+			->where($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
+			->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPolicyKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')))
+			->groupBy('configkey');
+
+		$result = $query->executeQuery();
+		try {
+			while ($row = $result->fetchAssociative()) {
+				$policyKey = $policyKeyByUserPreference[$row['configkey']] ?? null;
+				if (!is_string($policyKey) || !isset($counts[$policyKey])) {
+					continue;
+				}
+
+				$counts[$policyKey]['userCount'] = (int)($row['user_count'] ?? 0);
+			}
+		} finally {
+			$result->closeCursor();
+		}
+
+		$this->hydrateExplicitSystemRuleCounts($policyKeys, $counts);
+
+		return $counts;
+	}
+
+	/**
+	 * @param list<string> $policyKeys
+	 * @param array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $counts
+	 */
+	private function hydrateExplicitSystemRuleCounts(array $policyKeys, array &$counts): void {
+		$configKeyByPolicy = [];
+		foreach ($policyKeys as $policyKey) {
+			$configKeyByPolicy[$policyKey] = $this->registry->get($policyKey)->getAppConfigKey();
+		}
+
+		if ($configKeyByPolicy === []) {
+			return;
+		}
+
+		$policyKeyByConfigKey = array_flip($configKeyByPolicy);
+
+		$systemConfigQuery = $this->db->getQueryBuilder();
+		$systemConfigQuery->select('configkey')
+			->from('appconfig')
+			->where($systemConfigQuery->expr()->eq('appid', $systemConfigQuery->createNamedParameter(Application::APP_ID)))
+			->andWhere($systemConfigQuery->expr()->in('configkey', $systemConfigQuery->createNamedParameter(array_values($configKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)));
+
+		$systemConfigResult = $systemConfigQuery->executeQuery();
+		try {
+			while ($row = $systemConfigResult->fetchAssociative()) {
+				$policyKey = $policyKeyByConfigKey[$row['configkey'] ?? ''] ?? null;
+				if (!is_string($policyKey) || !isset($counts[$policyKey])) {
+					continue;
+				}
+
+				$counts[$policyKey]['everyoneCount'] = 1;
+			}
+		} finally {
+			$systemConfigResult->closeCursor();
+		}
+	}
+
+	#[\Override]
+	public function saveSystemPolicy(string $policyKey, mixed $value, bool $allowChildOverride = false): void {
+		$definition = $this->registry->get($policyKey);
+		$normalizedValue = $definition->normalizeValue($value);
+		$defaultValue = $definition->normalizeValue($definition->defaultSystemValue());
+		$allowOverrideConfigKey = $this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey());
+
+		$valuesAreEqual = $normalizedValue === $defaultValue;
+		if (!$valuesAreEqual && is_string($normalizedValue) && is_string($defaultValue)) {
+			$d1 = json_decode($normalizedValue, true);
+			$d2 = json_decode($defaultValue, true);
+			if (is_array($d1) && is_array($d2)) {
+				$valuesAreEqual = $d1 === $d2;
+			}
+		}
+		if ($valuesAreEqual) {
+			if ($allowChildOverride) {
+				$this->writeSystemValue($definition->getAppConfigKey(), $normalizedValue);
+				$this->appConfig->setAppValueString($allowOverrideConfigKey, '1');
+				return;
+			}
+
+			$this->clearSystemPolicy($policyKey);
+			return;
+		}
+
+		$this->writeSystemValue($definition->getAppConfigKey(), $normalizedValue);
+		$this->appConfig->setAppValueString($allowOverrideConfigKey, $allowChildOverride ? '1' : '0');
+	}
+
+	#[\Override]
+	public function clearSystemPolicy(string $policyKey): void {
+		$definition = $this->registry->get($policyKey);
+		$configKey = $definition->getAppConfigKey();
+		$allowOverrideConfigKey = $this->getSystemAllowOverrideConfigKey($configKey);
+
+		if ($this->appConfig->hasAppKey($configKey)) {
+			$this->appConfig->deleteAppValue($configKey);
+		}
+
+		if ($this->appConfig->hasAppKey($allowOverrideConfigKey)) {
+			$this->appConfig->deleteAppValue($allowOverrideConfigKey);
+		}
+	}
+
+	private function readSystemValue(string $key, mixed $defaultValue): mixed {
+		try {
+			if (is_int($defaultValue)) {
+				return $this->appConfig->getAppValueInt($key, $defaultValue);
+			}
+
+			if (is_bool($defaultValue)) {
+				return $this->appConfig->getAppValueBool($key, $defaultValue);
+			}
+
+			if (is_float($defaultValue)) {
+				return $this->appConfig->getAppValueFloat($key, $defaultValue);
+			}
+
+			if (is_array($defaultValue)) {
+				return $this->appConfig->getAppValueArray($key, $defaultValue);
+			}
+
+			return $this->appConfig->getAppValueString($key, (string)$defaultValue);
+		} catch (AppConfigTypeConflictException $exception) {
+			if (is_string($defaultValue)) {
+				try {
+					$arrayValue = $this->appConfig->getAppValueArray($key, []);
+					return json_encode($arrayValue, JSON_THROW_ON_ERROR);
+				} catch (AppConfigTypeConflictException) {
+					return $this->appConfig->getAppValueBool($key, in_array(strtolower(trim($defaultValue)), ['1', 'true', 'yes', 'on'], true));
+				} catch (\JsonException) {
+					return (string)$defaultValue;
+				}
+			}
+
+			if (is_bool($defaultValue)) {
+				return $this->appConfig->getAppValueString($key, $defaultValue ? '1' : '0');
+			}
+
+			if (is_array($defaultValue)) {
+				// Value was stored as a scalar (e.g., by Nextcloud provisioning API).
+				// Return the raw string so the policy normalizer can decode it.
+				try {
+					return $this->appConfig->getAppValueString($key, '');
+				} catch (AppConfigTypeConflictException) {
+					return $defaultValue;
+				}
+			}
+
+			throw $exception;
+		}
+	}
+
+	private function writeSystemValue(string $key, mixed $value): void {
+		try {
+			$this->setSystemValueByType($key, $value);
+		} catch (AppConfigTypeConflictException) {
+			if ($this->appConfig->hasAppKey($key)) {
+				$this->appConfig->deleteAppValue($key);
+			}
+
+			$this->setSystemValueByType($key, $value);
+		}
+	}
+
+	private function setSystemValueByType(string $key, mixed $value): void {
+		if (is_int($value)) {
+			$this->appConfig->setAppValueInt($key, $value);
+			return;
+		}
+
+		if (is_bool($value)) {
+			$this->appConfig->setAppValueBool($key, $value);
+			return;
+		}
+
+		if (is_float($value)) {
+			$this->appConfig->setAppValueFloat($key, $value);
+			return;
+		}
+
+		if (is_array($value)) {
+			$this->appConfig->setAppValueArray($key, $value);
+			return;
+		}
+
+		$this->appConfig->setAppValueString($key, (string)$value);
+	}
+
+	/**
+	 * Deserialize a raw appconfig value string based on the expected type.
+	 * Does not perform any database queries - pure local deserialization.
+	 */
+	private function deserializeStoredValueWithType(string $storedValueRaw, mixed $defaultValue): mixed {
+		if (is_int($defaultValue)) {
+			return (int)$storedValueRaw;
+		}
+
+		if (is_bool($defaultValue)) {
+			return in_array(strtolower(trim($storedValueRaw)), ['1', 'true', 'yes', 'on'], true);
+		}
+
+		if (is_float($defaultValue)) {
+			return (float)$storedValueRaw;
+		}
+
+		if (is_array($defaultValue)) {
+			try {
+				$decoded = json_decode($storedValueRaw, true, flags: JSON_THROW_ON_ERROR);
+				return is_array($decoded) ? $decoded : [];
+			} catch (\JsonException) {
+				return [];
+			}
+		}
+
+		return $storedValueRaw;
+	}
+
+	private function getSystemAllowOverrideConfigKey(string $policyConfigKey): string {
+		return $policyConfigKey . '.allow_child_override';
+	}
+
+	private function getAssignedUserPolicyKey(string $policyConfigKey): string {
+		return $policyConfigKey . '.assigned';
+	}
+
+	private function serializeStoredValue(mixed $value): string {
+		return json_encode($value, JSON_THROW_ON_ERROR);
+	}
+
+	private function deserializeStoredValue(string $value): mixed {
+		try {
+			return json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+		} catch (\JsonException) {
+			return $value;
+		}
+	}
+
+	private function serializeStoredUserPolicyPayload(mixed $value, bool $allowChildOverride): string {
+		return json_encode([
+			'value' => $value,
+			'allowChildOverride' => $allowChildOverride,
+		], JSON_THROW_ON_ERROR);
+	}
+
+	private function createUserPolicyLayerFromPayload(IPolicyDefinition $definition, string $storedPayload): ?PolicyLayer {
+		$decodedPayload = $this->deserializeStoredUserPolicyPayload($storedPayload);
+		if (!is_array($decodedPayload) || !array_key_exists('value', $decodedPayload) || $decodedPayload['value'] === null) {
+			return null;
+		}
+
+		$normalizedValue = $definition->normalizeValue($decodedPayload['value']);
+		$allowChildOverride = (bool)($decodedPayload['allowChildOverride'] ?? false);
+
+		return (new PolicyLayer())
+			->setScope('user_policy')
+			->setValue($normalizedValue)
+			->setAllowChildOverride($allowChildOverride)
+			->setVisibleToChild(true)
+			->setAllowedValues($allowChildOverride ? [] : [$normalizedValue]);
+	}
+
+	private function deserializeStoredUserPolicyPayload(string $payload): mixed {
+		try {
+			return json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
+		} catch (\JsonException) {
+			return null;
+		}
+	}
+
+	/** @param array<string, mixed> $policyJson */
+	private function resolveStoredGroupPolicyConfig(array $policyJson, string $policyKey): ?array {
+		$overrideKey = $this->getDelegatedGroupAdminOverrideKey($policyKey);
+		$delegatedOverride = $policyJson[$overrideKey] ?? null;
+		if ($this->hasExplicitGroupPolicyConfig($delegatedOverride)) {
+			$definition = $this->registry->get($policyKey);
+			if ($definition->supportsGroupAdminDelegation()) {
+				$resolvedOverride = $delegatedOverride;
+				if ($this->isGroupPolicyConfigCreatedBySystemAdmin($policyJson[$policyKey] ?? null)) {
+					$resolvedOverride['delegatedFromSystemCreatedSeed'] = true;
+				}
+
+				return $resolvedOverride;
+			}
+		}
+
+		$policyConfig = $policyJson[$policyKey] ?? null;
+		return $this->hasExplicitGroupPolicyConfig($policyConfig) ? $policyConfig : null;
+	}
+
+	private function hasExplicitGroupPolicyConfig(mixed $policyConfig): bool {
+		return is_array($policyConfig)
+			&& array_key_exists('defaultValue', $policyConfig)
+			&& $policyConfig['defaultValue'] !== null;
+	}
+
+	private function isGroupPolicyConfigCreatedBySystemAdmin(mixed $policyConfig): bool {
+		if (!is_array($policyConfig)) {
+			return false;
+		}
+
+		return $this->resolveCreatedBySystemAdmin($policyConfig);
+	}
+
+	private function buildStoredGroupPolicyConfig(mixed $normalizedValue, bool $allowChildOverride, bool $createdBySystemAdmin): array {
+		return [
+			'defaultValue' => $normalizedValue,
+			'allowChildOverride' => $allowChildOverride,
+			'visibleToChild' => true,
+			'allowedValues' => $allowChildOverride ? [] : [$normalizedValue],
+			'createdBySystemAdmin' => $createdBySystemAdmin,
+			'createdByActorScope' => $createdBySystemAdmin ? 'system' : 'group',
+		];
+	}
+
+	/**
+	 * @param array<string, mixed> $policyJson
+	 * @param array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $counts
+	 */
+	private function incrementGroupRuleCounts(array &$counts, array $policyJson): void {
+		foreach ($policyJson as $policyKey => $policyConfig) {
+			$baseKey = $this->tryResolveDelegatedOverrideBaseKey($policyKey);
+			if ($baseKey !== null) {
+				if (
+					isset($counts[$baseKey])
+					&& !$this->hasExplicitGroupPolicyConfig($policyJson[$baseKey] ?? null)
+					&& $this->hasExplicitGroupPolicyConfig($policyConfig)
+				) {
+					$counts[$baseKey]['groupCount']++;
+				}
+				continue;
+			}
+
+			if (!isset($counts[$policyKey]) || !$this->hasExplicitGroupPolicyConfig($policyConfig)) {
+				continue;
+			}
+
+			$counts[$policyKey]['groupCount']++;
+		}
+	}
+
+	/**
+	 * @param array<string, mixed> $policyJson
+	 */
+	private function persistGroupPermissionSet(PermissionSet $permissionSet, string $groupId, array $policyJson, \DateTime $now): void {
+		$permissionSet->setPolicyJson($policyJson);
+		$permissionSet->setUpdatedAt($now);
+
+		if ($permissionSet->getId() > 0) {
+			$this->permissionSetMapper->update($permissionSet);
+			return;
+		}
+
+		/** @var PermissionSet $permissionSet */
+		$permissionSet = $this->permissionSetMapper->insert($permissionSet);
+
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId($permissionSet->getId());
+		$binding->setTargetType('group');
+		$binding->setTargetId($groupId);
+		$binding->setCreatedAt($now);
+
+		$this->bindingMapper->insert($binding);
+	}
+
+	#[\Override]
+	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride, bool $createdBySystemAdmin = false, ?PolicyContext $context = null): void {
+		$definition = $this->registry->get($policyKey);
+		$normalizedValue = $definition->normalizeValue($value);
+		$permissionSet = $this->findPermissionSetByGroupId($groupId);
+		$now = new \DateTime('now', new \DateTimeZone('UTC'));
+
+		if (!$permissionSet instanceof PermissionSet) {
+			$permissionSet = new PermissionSet();
+			$permissionSet->setName('group:' . $groupId);
+			$permissionSet->setScopeType('group');
+			$permissionSet->setCreatedAt($now);
+		}
+
+		$policyJson = $permissionSet->getDecodedPolicyJson();
+
+		if ($definition->supportsGroupAdminDelegation()) {
+			$overrideKey = $this->getDelegatedGroupAdminOverrideKey($policyKey);
+			$existingSystemCreatedSeed = $this->isGroupPolicyConfigCreatedBySystemAdmin($policyJson[$policyKey] ?? null);
+
+			if ($existingSystemCreatedSeed && !$createdBySystemAdmin) {
+				$seedRaw = $policyJson[$policyKey];
+				$effectiveContext = $context ?? new PolicyContext();
+				$definition->validateGroupAdminDelegatedValue(
+					$normalizedValue,
+					$definition->normalizeValue($seedRaw['defaultValue'] ?? null),
+					$effectiveContext,
+				);
+				$policyJson[$overrideKey] = $this->buildStoredGroupPolicyConfig($normalizedValue, $allowChildOverride, false);
+				$this->persistGroupPermissionSet($permissionSet, $groupId, $policyJson, $now);
+				return;
+			}
+
+			// When a system admin saves, clear any stale delegated override.
+			unset($policyJson[$overrideKey]);
+		}
+
+		$policyJson[$policyKey] = $this->buildStoredGroupPolicyConfig(
+			$normalizedValue,
+			$allowChildOverride,
+			$createdBySystemAdmin,
+		);
+
+		$this->persistGroupPermissionSet($permissionSet, $groupId, $policyJson, $now);
+	}
+
+	#[\Override]
+	public function clearGroupPolicy(string $policyKey, string $groupId, bool $preserveSystemCreatedBase = false): void {
+		$binding = $this->findBindingByGroupId($groupId);
+		if (!$binding instanceof PermissionSetBinding) {
+			return;
+		}
+
+		$permissionSet = $this->findPermissionSetByBinding($binding);
+		if (!$permissionSet instanceof PermissionSet) {
+			return;
+		}
+
+		$policyJson = $permissionSet->getDecodedPolicyJson();
+		$definition = $this->registry->get($policyKey);
+		if ($definition->supportsGroupAdminDelegation()) {
+			$overrideKey = $this->getDelegatedGroupAdminOverrideKey($policyKey);
+			$seedConfig = $policyJson[$policyKey] ?? null;
+			$delegatedOverrideConfig = $policyJson[$overrideKey] ?? null;
+			$shouldPreserveSystemSeed = $preserveSystemCreatedBase
+				&& $this->isGroupPolicyConfigCreatedBySystemAdmin($seedConfig)
+				&& $this->hasExplicitGroupPolicyConfig($delegatedOverrideConfig)
+				&& !$this->isGroupPolicyConfigCreatedBySystemAdmin($delegatedOverrideConfig);
+
+			unset($policyJson[$overrideKey]);
+			if (!$shouldPreserveSystemSeed) {
+				unset($policyJson[$policyKey]);
+			}
+		} else {
+			unset($policyJson[$policyKey]);
+		}
+
+		if ($policyJson === []) {
+			$this->bindingMapper->delete($binding);
+			$this->permissionSetMapper->delete($permissionSet);
+			return;
+		}
+
+		$permissionSet->setPolicyJson($policyJson);
+		$permissionSet->setUpdatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
+		$this->permissionSetMapper->update($permissionSet);
+	}
+
+	#[\Override]
+	public function saveUserPreference(string $policyKey, PolicyContext $context, mixed $value): void {
+		$userId = $context->getUserId();
+		if ($userId === null || $userId === '') {
+			throw new \InvalidArgumentException($this->l10n->t('A signed-in user is required to save a policy preference.'));
+		}
+
+		$definition = $this->registry->get($policyKey);
+		$normalizedValue = $definition->normalizeValue($value);
+		$this->appConfig->setUserValue($userId, $definition->getUserPreferenceKey(), $this->serializeStoredValue($normalizedValue));
+	}
+
+	#[\Override]
+	public function saveUserPolicy(string $policyKey, PolicyContext $context, mixed $value, bool $allowChildOverride): void {
+		$userId = $context->getUserId();
+		if ($userId === null || $userId === '') {
+			throw new \InvalidArgumentException($this->l10n->t('A target user is required to save a user policy.'));
+		}
+
+		$definition = $this->registry->get($policyKey);
+		$normalizedValue = $definition->normalizeValue($value);
+		$this->appConfig->setUserValue(
+			$userId,
+			$this->getAssignedUserPolicyKey($definition->getUserPreferenceKey()),
+			$this->serializeStoredUserPolicyPayload($normalizedValue, $allowChildOverride),
+		);
+	}
+
+	#[\Override]
+	public function clearUserPreference(string $policyKey, PolicyContext $context): void {
+		$userId = $context->getUserId();
+		if ($userId === null || $userId === '') {
+			return;
+		}
+
+		$definition = $this->registry->get($policyKey);
+		$this->appConfig->deleteUserValue($userId, $definition->getUserPreferenceKey());
+	}
+
+	#[\Override]
+	public function clearUserPolicy(string $policyKey, PolicyContext $context): void {
+		$userId = $context->getUserId();
+		if ($userId === null || $userId === '') {
+			return;
+		}
+
+		$definition = $this->registry->get($policyKey);
+		$this->appConfig->deleteUserValue($userId, $this->getAssignedUserPolicyKey($definition->getUserPreferenceKey()));
+	}
+
+	/** @return list<string> */
+	private function resolveGroupIds(PolicyContext $context): array {
+		$scope = $context->getActiveGroupScope();
+		if ($scope !== null) {
+			return [$scope->groupId];
+		}
+
+		return $context->getGroups();
+	}
+
+	/** @param array<string, mixed> $policyConfig */
+	private function createGroupPolicyLayer(array $policyConfig): PolicyLayer {
+		$createdBySystemAdmin = $this->resolveCreatedBySystemAdmin($policyConfig);
+		$delegatedFromSystemCreatedSeed = isset($policyConfig['delegatedFromSystemCreatedSeed'])
+			&& (bool)$policyConfig['delegatedFromSystemCreatedSeed'];
+
+		$layer = (new PolicyLayer())
+			->setScope('group')
+			->setValue($policyConfig['defaultValue'] ?? null)
+			->setAllowChildOverride((bool)($policyConfig['allowChildOverride'] ?? false))
+			->setVisibleToChild((bool)($policyConfig['visibleToChild'] ?? true))
+			->setAllowedValues(is_array($policyConfig['allowedValues'] ?? null) ? $policyConfig['allowedValues'] : [])
+			->setCreatedBySystemAdmin($createdBySystemAdmin)
+			->setDelegatedFromSystemCreatedSeed($delegatedFromSystemCreatedSeed);
+
+		return $layer;
+	}
+
+	private function resolveCreatedBySystemAdmin(array $policyConfig): bool {
+		$createdBySystemAdmin = $policyConfig['createdBySystemAdmin'] ?? null;
+		if (is_bool($createdBySystemAdmin)) {
+			return $createdBySystemAdmin;
+		}
+
+		return ($policyConfig['createdByActorScope'] ?? null) === 'system';
+	}
+
+	private function getDelegatedGroupAdminOverrideKey(string $policyKey): string {
+		return $policyKey . '__delegated_override';
+	}
+
+	private function tryResolveDelegatedOverrideBaseKey(string $key): ?string {
+		$suffix = '__delegated_override';
+		if (!str_ends_with($key, $suffix)) {
+			return null;
+		}
+
+		$baseKey = substr($key, 0, -strlen($suffix));
+		try {
+			$definition = $this->registry->get($baseKey);
+			return $definition->supportsGroupAdminDelegation() ? $baseKey : null;
+		} catch (\InvalidArgumentException) {
+			return null;
+		}
+	}
+
+	private function findBindingByGroupId(string $groupId): ?PermissionSetBinding {
+		try {
+			return $this->bindingMapper->getByTarget('group', $groupId);
+		} catch (DoesNotExistException) {
+			return null;
+		}
+	}
+
+	private function findPermissionSetByBinding(PermissionSetBinding $binding): ?PermissionSet {
+		try {
+			return $this->permissionSetMapper->getById($binding->getPermissionSetId());
+		} catch (DoesNotExistException) {
+			return null;
+		}
+	}
+
+	private function findPermissionSetByGroupId(string $groupId): ?PermissionSet {
+		$binding = $this->findBindingByGroupId($groupId);
+		if (!$binding instanceof PermissionSetBinding) {
+			return null;
+		}
+
+		return $this->findPermissionSetByBinding($binding);
+	}
+}

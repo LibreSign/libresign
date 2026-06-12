@@ -40,11 +40,13 @@
 				</tbody>
 			</table>
 			<NcButton variant="primary" @click="showModal">
-					{{ t('libresign', 'Regenerate root certificate') }}
+				<!-- TRANSLATORS Button label to regenerate root certificate for OpenSSL certificate engine. -->
+				{{ t('libresign', 'Regenerate root certificate') }}
 			</NcButton>
 			<NcDialog v-if="modal"
 				:name="t('libresign', 'Confirm')"
 				@closing="closeModal">
+				<!-- TRANSLATORS High-impact warning: regenerating root certificate invalidates existing signature keys. -->
 				{{ t('libresign', 'Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?') }}
 				<template #actions>
 					<NcButton variant="error"
@@ -61,10 +63,11 @@
 		<div v-else id="formRootCertificateOpenSsl" class="form-libresign">
 			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Common Name (CN)') }}</label>
+				<!-- TRANSLATORS Helper text for certificate subject Common Name (CN) field. -->
 				<NcTextField id="commonName"
 					ref="commonName"
 					v-model="certificate.rootCert.commonName"
-					:helper-text="t('libresign', 'Full name of the main company or main user of this instance')"
+					:helper-text="t('libresign', 'Full name of the main company or main person of this instance')"
 					:minlength="1"
 					:success="certificate.rootCert.commonName !== ''"
 					:error="certificate.rootCert.commonName === ''"
@@ -90,6 +93,7 @@
 			</div>
 			<div v-if="customData" class="form-group">
 				<label for="configPath">{{ t('libresign', 'Config path') }}</label>
+				<!-- TRANSLATORS Placeholder for optional OpenSSL config path; leave empty to use default path. -->
 				<NcTextField id="configPath"
 					v-model="certificate.configPath"
 					:label-outside="true"
@@ -225,11 +229,13 @@ function clearAndShowForm() {
 	customData.value = false
 	formDisabled.value = false
 	modal.value = false
+	// TRANSLATORS Submit button label before generating root certificate.
 	submitLabel.value = t('libresign', 'Generate root certificate')
 }
 
 async function generateCertificate() {
 	formDisabled.value = true
+	// TRANSLATORS Submit button label shown while root certificate generation is running.
 	submitLabel.value = t('libresign', 'Generating certificate.')
 
 	try {
@@ -248,12 +254,16 @@ async function generateCertificate() {
 	} catch (caughtError: any) {
 		const response = caughtError?.response
 		if (response?.data?.ocs?.data?.message?.length > 0) {
+			// TRANSLATORS Error prefix for certificate generation failure; backend detail is appended after newline.
 			showError(t('libresign', 'Could not generate certificate.') + '\n' + response.data.ocs.data.message)
 		} else if (response?.length) {
+			// TRANSLATORS Error prefix for certificate generation failure with raw response content appended.
 			showError(t('libresign', 'Could not generate certificate.') + '\n' + response)
 		} else {
+			// TRANSLATORS Generic certificate generation failure message when no details are available.
 			showError(t('libresign', 'Could not generate certificate.'))
 		}
+		// TRANSLATORS Submit button label after failure to allow retry.
 		submitLabel.value = t('libresign', 'Generate root certificate')
 	} finally {
 		formDisabled.value = false
@@ -293,12 +303,15 @@ async function loadRootCertificate() {
 }
 
 function afterCertificateGenerated() {
+	// TRANSLATORS Submit button label shown after successful certificate generation.
 	submitLabel.value = t('libresign', 'Generated certificate!')
 	description.value = ''
 }
 
 onMounted(() => {
+	// TRANSLATORS Intro text explaining that generating root certificate is prerequisite for new signatures.
 	description.value = t('libresign', 'To generate new signatures, you must first generate the root certificate.')
+	// TRANSLATORS Initial submit button label before any generation action.
 	submitLabel.value = t('libresign', 'Generate root certificate')
 	void loadRootCertificate()
 	subscribe('libresign:certificate-engine:changed', handleChangeEngine)

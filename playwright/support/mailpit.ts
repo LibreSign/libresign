@@ -75,13 +75,18 @@ export async function waitForEmailTo(
 
 /** Extracts a LibreSign sign link from an email body matching /p/sign/{uuid}. */
 export function extractSignLink(body: string): string | null {
-	const match = body.match(/\S+\/p\/sign\/[\w-]+/)
-	if (!match) {
+	const match = body.match(/(?:https?:\/\/[^\s"'<>)]*)?\/(?:index\.php\/)?(?:[^\s"'<>)]*\/)?p\/sign\/[\w-]+(?:\?[^\s"'<>)]*)?(?:#[^\s"'<>)]*)?/)
+	if (!match?.[0]) {
 		return null
 	}
 
-	const parsedUrl = new URL(match[0])
-	return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`
+	const normalizedMatch = match[0].replace(/[).,;]+$/, '')
+	if (normalizedMatch.startsWith('http://') || normalizedMatch.startsWith('https://')) {
+		const parsedUrl = new URL(normalizedMatch)
+		return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`.replace(/^\/index\.php/, '')
+	}
+
+	return normalizedMatch.replace(/^\/index\.php/, '')
 }
 
 /** Extracts a numeric token from an email body. Default pattern: 4-8 digit sequence. */

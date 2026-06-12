@@ -7,30 +7,39 @@
 		<p v-linkify="{ linkify: true, text: footerDescription }" class="footer-template-description" />
 		<div class="footer-template-header">
 			<NcButton variant="tertiary"
-				:aria-label="t('libresign', 'Show available variables')"
+				:aria-label="showAvailableVariablesLabel"
 				@click="showVariablesDialog = true">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiHelpCircleOutline" :size="20" />
 				</template>
-				{{ t('libresign', 'Available variables') }}
+				{{ availableVariablesLabel }}
+			</NcButton>
+				<NcButton v-if="!isDefaultTemplate"
+				variant="tertiary"
+					:aria-label="resetTemplateToDefaultLabel"
+					@click="resetTemplateToDefault">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
+				</template>
 			</NcButton>
 		</div>
 		<CodeEditor
 			v-model="footerTemplate"
-			:label="t('libresign', 'Footer template')"
-			:placeholder="t('libresign', 'A twig template to be used at footer of PDF. Will be rendered by mPDF.')"
-			@update:modelValue="debouncedSaveFooterTemplate" />
+			:label="footerTemplateLabel"
+			:placeholder="footerTemplatePlaceholder"
+			@update:modelValue="onTemplateChange" />
 		<div v-if="pdfPreviewFile" class="footer-preview">
+			<!-- TRANSLATORS Section title for live PDF preview of footer template output. -->
 			<h4>{{ t('libresign', 'Preview') }}</h4>
 			<div class="footer-preview__controls">
 				<div class="footer-preview__zoom-controls">
-					<NcButton :aria-label="t('libresign', 'Decrease zoom level')"
+					<NcButton :aria-label="decreaseZoomLevelLabel"
 						@click="changeZoomLevel(-10)">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiMagnifyMinusOutline" :size="20" />
 						</template>
 					</NcButton>
-					<NcButton :aria-label="t('libresign', 'Increase zoom level')"
+					<NcButton :aria-label="increaseZoomLevelLabel"
 						@click="changeZoomLevel(+10)">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiMagnifyPlusOutline" :size="20" />
@@ -39,7 +48,7 @@
 					<NcTextField
 						v-model="zoomLevel"
 						class="footer-preview__zoom-level"
-						:label="t('libresign', 'Zoom level')"
+						:label="zoomLevelLabel"
 						type="number"
 						:min="10"
 						:step="10"
@@ -49,7 +58,7 @@
 				<div class="footer-preview__dimension-controls">
 					<NcTextField
 						v-model="previewWidth"
-						:label="t('libresign', 'Width')"
+						:label="widthLabel"
 						type="number"
 						:min="100"
 						:max="2000"
@@ -57,23 +66,23 @@
 						@input="debouncedSaveDimensions" />
 					<NcTextField
 						v-model="previewHeight"
-						:label="t('libresign', 'Height')"
+						:label="heightLabel"
 						type="number"
 						:min="10"
 						:max="500"
 						:spellcheck="false"
 						@input="debouncedSaveDimensions" />
-					<NcButton v-if="showResetDimensions"
-						:aria-label="t('libresign', 'Reset dimensions')"
+					<NcButton v-if="hasDimensionsChanged"
+						:aria-label="resetDimensionsLabel"
 						variant="tertiary"
-						@click="resetDimensions">
+						@click="resetDimensionsToOriginal">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 						</template>
 					</NcButton>
 				</div>
 			</div>
-			<div ref="pdfContainer" class="footer-preview__pdf" :style="containerHeight ? `min-height: ${containerHeight}px` : ''">
+			<div ref="pdfContainer" class="footer-preview__pdf" :style="`min-height: ${previewContainerMinHeight}px`">
 				<div v-if="loadingPreview" class="footer-preview__loading">
 					<NcLoadingIcon :size="64" />
 				</div>
@@ -87,11 +96,12 @@
 			</div>
 		</div>
 
-		<NcDialog :name="t('libresign', 'Available template variables')"
+		<NcDialog :name="availableTemplateVariablesDialogTitle"
 			v-model:open="showVariablesDialog"
 			size="normal">
 			<div class="variables-dialog">
 				<p class="variables-dialog__description">
+					<!-- TRANSLATORS Instruction text in template-variable picker dialog. -->
 					{{ t('libresign', 'Click on a variable to copy it to clipboard') }}
 				</p>
 				<div class="variables-list">
@@ -101,6 +111,7 @@
 						@click="copyToClipboard(getVariableText(name))">
 						<template #default>
 							<span class="hidden-visually">
+								<!-- TRANSLATORS Accessible text for button that copies selected variable token. -->
 								{{ t('libresign', 'Copy to clipboard') }}
 							</span>
 							{{ getVariableText(name) }}
@@ -114,6 +125,7 @@
 							<div class="variable-meta">
 								<span class="meta-badge">{{ meta.type }}</span>
 								<code v-if="meta.example" class="meta-example">{{ meta.example }}</code>
+								<!-- TRANSLATORS Prefix shown before default value of a template variable in dialog. -->
 								<span v-if="meta.default" class="meta-default">{{ t('libresign', 'Default:') }} {{ meta.default }}</span>
 							</div>
 						</template>
@@ -126,12 +138,11 @@
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
-import { nextTick, onMounted, ref, computed } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 
 import debounce from 'debounce'
 
 import axios from '@nextcloud/axios'
-import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -163,6 +174,7 @@ defineOptions({
 
 const emit = defineEmits<{
 	(event: 'template-reset'): void
+	(event: 'template-changed'): void
 }>()
 
 const vLinkify = Linkify
@@ -178,33 +190,70 @@ type PdfPreviewRef = {
 	scale: number
 }
 
-type AppConfigApi = {
-	deleteKey: (app: string, key: string) => void
-	setValue: (app: string, key: string, value: string | number) => void
-}
-
 const DEFAULT_PREVIEW_WIDTH = 595
 const DEFAULT_PREVIEW_HEIGHT = 100
 
+// TRANSLATORS Button label opening dialog with Twig variables available for PDF footer template.
+const showAvailableVariablesLabel = t('libresign', 'Show available variables')
+// TRANSLATORS Button caption for dialog listing variables available in footer template.
+const availableVariablesLabel = t('libresign', 'Available variables')
+// TRANSLATORS Icon-only button that restores default footer template content.
+const resetTemplateToDefaultLabel = t('libresign', 'Reset template to default')
+// TRANSLATORS Label for the code editor containing the PDF footer template source.
+const footerTemplateLabel = t('libresign', 'Footer template')
+// TRANSLATORS Placeholder for footer template field; "Twig" and "mPDF" are technical names.
+const footerTemplatePlaceholder = t('libresign', 'A twig template to be used at footer of PDF. Will be rendered by mPDF.')
+// TRANSLATORS Button label to reduce PDF preview zoom percentage.
+const decreaseZoomLevelLabel = t('libresign', 'Decrease zoom level')
+// TRANSLATORS Button label to increase PDF preview zoom percentage.
+const increaseZoomLevelLabel = t('libresign', 'Increase zoom level')
+// TRANSLATORS Numeric input label for PDF preview zoom percentage.
+const zoomLevelLabel = t('libresign', 'Zoom level')
+// TRANSLATORS Numeric input label for footer preview width in PDF units.
+const widthLabel = t('libresign', 'Width')
+// TRANSLATORS Numeric input label for footer preview height in PDF units.
+const heightLabel = t('libresign', 'Height')
+// TRANSLATORS Icon-only button that restores original preview width/height values.
+const resetDimensionsLabel = t('libresign', 'Reset dimensions')
+// TRANSLATORS Dialog title listing all available template variables.
+const availableTemplateVariablesDialogTitle = t('libresign', 'Available template variables')
+// TRANSLATORS Description of PDF footer template editor; "Twig" and URL are technical references and should remain recognizable.
 const footerDescription = t('libresign', 'Configure the content displayed at the footer of the PDF. The text template uses Twig syntax: https://twig.symfony.com/')
 const footerTemplate = ref('')
+const originalTemplate = ref('')
+const isDefaultTemplate = ref(true)
 const pdfPreviewFile = ref<File | null>(null)
 const loadingPreview = ref(false)
 const pdfKey = ref(0)
-const zoomLevel = ref(loadState('libresign', 'footer_preview_zoom_level', 100))
+const zoomLevel = ref(100)
 const previewWidth = ref<number | string>(DEFAULT_PREVIEW_WIDTH)
 const previewHeight = ref<number | string>(DEFAULT_PREVIEW_HEIGHT)
+const originalWidth = ref<number | string>(DEFAULT_PREVIEW_WIDTH)
+const originalHeight = ref<number | string>(DEFAULT_PREVIEW_HEIGHT)
 const containerHeight = ref<number | null>(null)
 const showVariablesDialog = ref(false)
-const templateVariables = ref<Record<string, TemplateVariableMeta>>(loadState('libresign', 'footer_template_variables', {}))
+const templateVariables = ref<Record<string, TemplateVariableMeta>>({})
 const copiedVariable = ref<string | null>(null)
 
 const pdfContainer = ref<HTMLElement | null>(null)
 const pdfPreview = ref<PdfPreviewRef | null>(null)
 
-const showResetDimensions = computed(() => Number(previewWidth.value) !== DEFAULT_PREVIEW_WIDTH || Number(previewHeight.value) !== DEFAULT_PREVIEW_HEIGHT)
+const hasTemplateChanged = computed(() => footerTemplate.value !== originalTemplate.value)
+const hasDimensionsChanged = computed(() => Number(previewWidth.value) !== Number(originalWidth.value) || Number(previewHeight.value) !== Number(originalHeight.value))
 
-const appConfig = (globalThis as typeof globalThis & { OCP?: { AppConfig: AppConfigApi } }).OCP?.AppConfig
+const previewContainerMinHeight = computed(() => {
+	if (containerHeight.value && containerHeight.value > 0) {
+		return containerHeight.value
+	}
+	return estimateContainerHeightForFirstRender(Number(previewHeight.value), Number(zoomLevel.value))
+})
+
+function estimateContainerHeightForFirstRender(height: number, zoom: number): number {
+	if (!Number.isFinite(height) || height <= 0 || !Number.isFinite(zoom) || zoom <= 0) {
+		return 160
+	}
+	return Math.max(160, Math.round((height * zoom) / 100) + 24)
+}
 
 ensurePdfWorker()
 
@@ -233,33 +282,49 @@ function copyToClipboard(text: string) {
 	}, 2000)
 }
 
-async function resetFooterTemplate() {
-	emit('template-reset')
-	resetDimensions()
-	await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
+function onTemplateChange() {
+	emit('template-changed')
+	debouncedSaveFooterTemplate()
+}
+
+function resetTemplateToDefault() {
+	axios.post(
+		generateOcsUrl('/apps/libresign/api/v1/footer-template'),
+		{
+			template: '',
+			width: Number(previewWidth.value),
+			height: Number(previewHeight.value),
+		},
+		{ responseType: 'blob' },
+	).then(response => {
+		footerTemplate.value = ''
+		originalTemplate.value = ''
+		isDefaultTemplate.value = true
+		emit('template-reset')
+		setPdfPreview(response.data)
+	}).catch(error => {
+		console.error('Error resetting footer template:', error)
+	})
+}
+
+function resetDimensionsToOriginal() {
+	previewWidth.value = originalWidth.value
+	previewHeight.value = originalHeight.value
+	debouncedSaveDimensions()
 }
 
 function resetDimensions() {
 	previewWidth.value = DEFAULT_PREVIEW_WIDTH
 	previewHeight.value = DEFAULT_PREVIEW_HEIGHT
-	appConfig?.deleteKey('libresign', 'footer_preview_width')
-	appConfig?.deleteKey('libresign', 'footer_preview_height')
 }
 
 function saveDimensions() {
-	if (Number(previewWidth.value) === DEFAULT_PREVIEW_WIDTH && Number(previewHeight.value) === DEFAULT_PREVIEW_HEIGHT) {
-		appConfig?.deleteKey('libresign', 'footer_preview_width')
-		appConfig?.deleteKey('libresign', 'footer_preview_height')
-	} else {
-		appConfig?.setValue('libresign', 'footer_preview_width', previewWidth.value)
-		appConfig?.setValue('libresign', 'footer_preview_height', previewHeight.value)
-	}
 	saveFooterTemplate()
 }
 
 function saveFooterTemplate() {
 	axios.post(
-		generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'),
+		generateOcsUrl('/apps/libresign/api/v1/footer-template'),
 		{
 			template: footerTemplate.value,
 			width: Number(previewWidth.value),
@@ -284,10 +349,26 @@ function setPdfPreview(blob: Blob) {
 		const timestamp = Date.now()
 		pdfPreviewFile.value = new File([blob], `footer-preview-${timestamp}.pdf`, { type: 'application/pdf' })
 		pdfKey.value += 1
+
+		// Timeout to prevent infinite loading if PDFElements doesn't emit end-init
+		const loadingTimeout = setTimeout(() => {
+			if (loadingPreview.value) {
+				console.warn('PDF loading timeout - forcing preview ready state')
+				loadingPreview.value = false
+				containerHeight.value = null
+			}
+		}, 5000)
+
+		// Store timeout ID so it can be cleared when PDF actually loads
+		;(blob as any).__loadingTimeoutId = loadingTimeout
 	})
 }
 
 function onPdfReady() {
+	// Clear the loading timeout if it exists
+	if (pdfPreviewFile.value && (pdfPreviewFile.value as any).__loadingTimeoutId !== undefined) {
+		clearTimeout((pdfPreviewFile.value as any).__loadingTimeoutId)
+	}
 	loadingPreview.value = false
 	containerHeight.value = null
 }
@@ -312,12 +393,23 @@ const debouncedUpdateScale = debounce(updateScale, 300)
 const debouncedSaveDimensions = debounce(saveDimensions, 500)
 
 onMounted(() => {
-	axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
+	axios.get(generateOcsUrl('/apps/libresign/api/v1/footer-template'))
 		.then(response => {
-			footerTemplate.value = response.data.ocs.data.template
-			previewHeight.value = response.data.ocs.data.preview_height
-			previewWidth.value = response.data.ocs.data.preview_width
-			saveFooterTemplate()
+				const template = response.data.ocs.data.template
+				const width = response.data.ocs.data.preview_width
+				const height = response.data.ocs.data.preview_height
+				const zoom = response.data.ocs.data.preview_zoom ?? 100
+
+				footerTemplate.value = template
+				originalTemplate.value = template
+				isDefaultTemplate.value = response.data.ocs.data.isDefault ?? true
+				templateVariables.value = response.data.ocs.data.template_variables ?? {}
+				previewHeight.value = height
+				originalHeight.value = height
+				previewWidth.value = width
+				originalWidth.value = width
+				zoomLevel.value = zoom
+				saveFooterTemplate()
 		})
 })
 
@@ -325,7 +417,9 @@ defineExpose({
 	DEFAULT_PREVIEW_WIDTH,
 	DEFAULT_PREVIEW_HEIGHT,
 	footerDescription,
-	footerTemplate,
+		footerTemplate,
+		originalTemplate,
+	isDefaultTemplate,
 	pdfPreviewFile,
 	loadingPreview,
 	pdfKey,
@@ -336,16 +430,22 @@ defineExpose({
 	showVariablesDialog,
 	templateVariables,
 	copiedVariable,
-	showResetDimensions,
+	originalWidth,
+	originalHeight,
+	hasTemplateChanged,
+	hasDimensionsChanged,
+	previewContainerMinHeight,
 	getVariableText,
 	isCopied,
 	copyToClipboard,
-	resetFooterTemplate,
+	resetTemplateToDefault,
+	resetDimensionsToOriginal,
 	resetDimensions,
 	saveDimensions,
 	saveFooterTemplate,
 	setPdfPreview,
 	onPdfReady,
+	onTemplateChange,
 	changeZoomLevel,
 	onZoomInput,
 	updateScale,

@@ -10,13 +10,11 @@ Feature: TSA Integration - End-to-End Workflow
 
   Scenario: TSA workflow - Successfully signs document with timestamp
     Given run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/admin/tsa"
-      | tsa_url        | <TSA_URL> |
-      | tsa_policy_oid | 1.2.3.4.1 |
-      | tsa_auth_type  | none      |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/tsa_settings"
+      | value | (string){"url":"<TSA_URL>","policy_oid":"1.2.3.4.1","auth_type":"none","username":""} |
     And the response should have a status code 200
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}] |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}] |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file  | {"url":"<BASE_URL>/apps/libresign/develop/pdf"}                    |
@@ -56,10 +54,11 @@ Feature: TSA Integration - End-to-End Workflow
       | (jq).ocs.data.signers[0].timestamp.cnHints.commonName \|test("LibreSign Local TSA") | true  |
 
   Scenario: TSA error handling - Invalid server
-    Given run the command "config:app:set libresign tsa_url --value=https://invalid-tsa-server.example.com/tsr --type=string" with result code 0
-    And run the command "config:app:set libresign tsa_auth_type --value=none --type=string" with result code 0
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}] |
+    Given sending "post" to ocs "/apps/libresign/api/v1/policies/system/tsa_settings"
+      | value | (string){"url":"https://invalid-tsa-server.example.com/tsr","policy_oid":"","auth_type":"none","username":""} |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}] |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file  | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers | [{"identifyMethods": [{"method": "account", "value": "signer1"}]}] |
@@ -79,6 +78,7 @@ Feature: TSA Integration - End-to-End Workflow
       | (jq).ocs.data.action | 2000  |
 
   Scenario: Clean up TSA configuration after tests
-    Given run the command "config:app:delete libresign tsa_url" with result code 0
-    And run the command "config:app:delete libresign tsa_policy_oid" with result code 0
-    And run the command "config:app:delete libresign tsa_auth_type" with result code 0
+    Given as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/tsa_settings"
+      | value | (string){"url":"","policy_oid":"","auth_type":"none","username":""} |
+    And the response should have a status code 200

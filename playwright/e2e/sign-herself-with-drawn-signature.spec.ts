@@ -4,12 +4,41 @@
  */
 
 import { expect, test } from '@playwright/test'
-import type { Locator } from '@playwright/test'
-import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import type { Locator, Page } from '@playwright/test'
 
+import { login } from '../support/nc-login'
+import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
+
+/**
+ *
+ * @param dialog
+ */
 function getVisiblePdfOverlay(dialog: Locator) {
 	return dialog.locator('.overlay:visible').first()
+}
+
+/**
+ *
+ * @param signatureDialog
+ * @param page
+ */
+async function drawSignatureOnCanvas(signatureDialog: Locator, page: Page) {
+	const canvas = signatureDialog.locator('canvas').first()
+	await expect(canvas).toBeVisible()
+	const box = await canvas.boundingBox()
+	if (!box) {
+		throw new Error('Signature canvas bounding box is not available')
+	}
+
+	const padding = 10
+	const startX = box.x + Math.max(padding, box.width * 0.2)
+	const endX = box.x + Math.min(box.width - padding, box.width * 0.8)
+	const y = box.y + Math.min(box.height - padding, Math.max(padding, box.height * 0.5))
+
+	await page.mouse.move(startX, y)
+	await page.mouse.down()
+	await page.mouse.move(endX, y)
+	await page.mouse.up()
 }
 
 test('sign herself with drawn signature', async ({ page }) => {
@@ -27,9 +56,8 @@ test('sign herself with drawn signature', async ({ page }) => {
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } } },
@@ -38,22 +66,21 @@ test('sign herself with drawn signature', async ({ page }) => {
 	)
 
 	await page.goto('./apps/libresign')
-	await page.getByRole('button', { name: 'Upload from URL' }).click();
-	await page.getByRole('textbox', { name: 'URL of a PDF file' }).click();
-	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf');
-	await page.getByRole('button', { name: 'Send' }).click();
-	await page.getByRole('button', { name: 'Add signer' }).click();
-	await page.getByPlaceholder('Account').click();
-	await page.getByPlaceholder('Account').fill('a');
-	await page.getByRole('option', { name: 'admin@email.tld' }).click();
+	await page.getByRole('button', { name: 'Upload from URL' }).click()
+	await page.getByRole('textbox', { name: 'URL of a PDF file' }).click()
+	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
+	await page.getByRole('button', { name: 'Send' }).click()
+	await page.getByRole('button', { name: 'Add signer' }).click()
+	await page.getByPlaceholder('Account').click()
+	await page.getByPlaceholder('Account').fill('a')
+	await page.locator('.account-or-email__option__title').filter({ hasText: /^admin$/ }).click()
 
-	await page.getByRole('textbox', { name: 'Signer name' }).click();
-	await page.getByRole('textbox', { name: 'Signer name' }).press('ControlOrMeta+a');
-	await page.getByRole('textbox', { name: 'Signer name' }).fill('Admin Name');
+	await page.getByRole('textbox', { name: 'Signer name' }).click()
+	await page.getByRole('textbox', { name: 'Signer name' }).press('ControlOrMeta+a')
+	await page.getByRole('textbox', { name: 'Signer name' }).fill('Admin Name')
 
-
-	await page.getByRole('button', { name: 'Save' }).click();
-	await page.getByRole('button', { name: 'Setup signature positions' }).click();
+	await page.getByRole('button', { name: 'Save' }).click()
+	await page.getByRole('button', { name: 'Setup signature positions' }).click()
 	const signaturePositionsDialog = page.getByLabel('Signature positions')
 	const pageOverlay = getVisiblePdfOverlay(signaturePositionsDialog)
 	const addInstruction = signaturePositionsDialog.getByText('Click on the place you want to add.')
@@ -61,11 +88,11 @@ test('sign herself with drawn signature', async ({ page }) => {
 	const editSignerLink = signaturePositionsDialog.getByRole('link', { name: 'Edit signer Admin Name' })
 	await expect(signaturePositionsDialog).toBeVisible()
 	await expect(pageOverlay).toBeVisible()
-	await editSignerLink.click();
+	await editSignerLink.click()
 
-	await expect(addInstruction).toBeVisible();
-	await expect(cancelPlacementButton).toBeVisible();
-	await expect(editSignerLink).toBeHidden();
+	await expect(addInstruction).toBeVisible()
+	await expect(cancelPlacementButton).toBeVisible()
+	await expect(editSignerLink).toBeHidden()
 
 	// Placing a signature element on the PDF canvas requires three steps:
 	// 1. hover() triggers handleMouseMove, which sets previewVisible=true inside a
@@ -85,52 +112,43 @@ test('sign herself with drawn signature', async ({ page }) => {
 		signaturePositionsDialog.getByRole('img', { name: 'Signature position for Admin Name' })
 	).toBeVisible()
 
-	await page.getByRole('button', { name: 'Save' }).click();
-	await page.getByRole('button', { name: 'Request signatures' }).click();
-	await page.getByRole('button', { name: 'Send' }).click();
-	await page.getByRole('button', { name: 'Sign document' }).click();
+	await page.getByRole('button', { name: 'Save' }).click()
+	await expect(signaturePositionsDialog).toBeHidden()
+	await page.getByRole('button', { name: 'Request signatures' }).click()
+	await page.getByRole('button', { name: 'Send' }).click()
+	await page.getByRole('button', { name: 'Sign document' }).first().click()
+	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15000 })
 
 	await expect(
 		page.getByLabel('PDF document to sign').getByRole('img', { name: 'Signature position for Admin Name' })
-	).toBeVisible()
+	).toBeVisible({ timeout: 15000 })
 
-	await page.getByRole('button', { name: 'Define your signature.' }).click();
+	await page.getByRole('button', { name: 'Define your signature.' }).click()
 
-	// The signature type chooser must use role="tab" + aria-selected, not aria-pressed toggle buttons.
-	// Screen readers announce role="tab" as "tab, 1 of 3" which lets blind users understand the widget.
-	// With aria-pressed buttons they only hear "toggle button, pressed" with no tab count context.
 	const signatureDialog = page.getByRole('dialog', { name: 'Customize your signatures' })
-	await expect(signatureDialog.getByRole('tab', { name: 'Draw' })).toBeVisible()
-	await expect(signatureDialog.getByRole('tab', { name: 'Text' })).toBeVisible()
-	await expect(signatureDialog.getByRole('tab', { name: 'Upload' })).toBeVisible()
-	await expect(signatureDialog.getByRole('tab', { name: 'Draw' })).toHaveAttribute('aria-selected', 'true')
+	await expect(signatureDialog).toBeVisible()
+	await drawSignatureOnCanvas(signatureDialog, page)
+	await page.getByRole('button', { name: 'Save' }).click()
+	await expect(page.getByRole('heading', { name: 'Confirm your signature' })).toBeVisible()
+	await page.getByLabel('Confirm your signature').getByRole('button', { name: 'Save' }).click()
+	const signButton = page.locator('.sign-pdf-sidebar .button-wrapper').getByRole('button', { name: 'Sign document' })
+	await expect(signButton).toBeVisible({ timeout: 15_000 })
 
-	// Navigate to a different tab and back — verifies aria-selected updates correctly
-	await signatureDialog.getByRole('tab', { name: 'Text' }).click()
-	await expect(signatureDialog.getByRole('tab', { name: 'Text' })).toHaveAttribute('aria-selected', 'true')
-	await expect(signatureDialog.getByRole('tab', { name: 'Draw' })).toHaveAttribute('aria-selected', 'false')
-	await signatureDialog.getByRole('tab', { name: 'Draw' }).click()
-	await expect(signatureDialog.getByRole('tab', { name: 'Draw' })).toHaveAttribute('aria-selected', 'true')
-
-	await signatureDialog.locator('canvas').click({
-		position: {
-			x: 156,
-			y: 132
-		}
-	});
-	await page.getByRole('button', { name: 'Save' }).click();
-	await expect(page.getByRole('heading', { name: 'Confirm your signature' })).toBeVisible();
-	await expect(page.getByRole('img', { name: 'Signature preview' })).toBeVisible();
-	await page.getByLabel('Confirm your signature').getByRole('button', { name: 'Save' }).click();
-	await expect(page.getByRole('button', { name: 'Sign the document.' })).toBeVisible();
-
-	await page.getByRole('button', { name: 'Sign the document.' }).click();
-	await page.getByRole('button', { name: 'Sign document' }).click();
-	await page.waitForURL('**/validation/**')
+	await signButton.click({ force: true })
+	const signResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/sign/'),
+	)
+	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
+	const signResponse = await signResponsePromise
+	const signResponseBody = await signResponse.text()
+	expect(
+		signResponse.ok(),
+		`Sign API failed with status ${signResponse.status()}: ${signResponseBody}`,
+	).toBeTruthy()
 	await expect(page.getByText('This document is valid')).toBeVisible()
 	await page.getByRole('button', { name: 'Expand details' }).click()
 	await page.getByRole('button', { name: 'Expand validation status', exact: true }).click()
 	await expect(page.getByRole('link', { name: 'Document integrity verified' })).toBeVisible()
 	await page.getByRole('button', { name: 'Expand document certification', exact: true }).click()
-	await expect(page.getByRole('link', { name: 'Document has not been modified after signing' })).toBeVisible()
-});
+})

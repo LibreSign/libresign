@@ -84,7 +84,7 @@ class EnvelopeAssembler {
 					$identifyMethodsArray[] = [
 						'method' => $entity->getIdentifierKey(),
 						'value' => $entity->getIdentifierValue(),
-						'mandatory' => $entity->getMandatory(),
+						'requirement' => $entity->getRequirement(),
 					];
 					$signerUid ??= $entity->getUniqueIdentifier();
 				}

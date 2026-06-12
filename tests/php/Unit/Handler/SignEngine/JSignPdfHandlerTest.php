@@ -17,6 +17,13 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -48,9 +55,9 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		parent::setUpBeforeClass();
 
 		try {
-			self::$certificateEngineFactory = \OCP\Server::get(CertificateEngineFactory::class);
 			$appConfig = self::getMockAppConfig();
 			$appConfig->setValueString(Application::APP_ID, 'certificate_engine', 'openssl');
+			self::$certificateEngineFactory = \OCP\Server::get(CertificateEngineFactory::class);
 			$certificateEngine = self::$certificateEngineFactory->getEngine();
 			$certificateEngine
 				->setConfigPath(\OCP\Server::get(ITempManager::class)->getTemporaryFolder('certificate'))
@@ -79,15 +86,37 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$urlGenerator
 			->method('linkToRouteAbsolute')
 			->willReturnCallback(fn (string $route, array $params): string => 'https://example.test/' . $route . '/' . ($params['uuid'] ?? ''));
+		$policyService = $this->createMock(PolicyService::class);
+		$policyService
+			->method('resolve')
+			->willReturnCallback(function (string|\BackedEnum $policyKey): ResolvedPolicy {
+				$key = $policyKey instanceof \BackedEnum ? (string)$policyKey->value : $policyKey;
+				$value = match ($key) {
+					CollectMetadataPolicy::KEY => $this->appConfig->getValueBool(Application::APP_ID, CollectMetadataPolicy::SYSTEM_APP_CONFIG_KEY, false),
+					SignatureTextPolicy::KEY_TEMPLATE => $this->appConfig->getValueString(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE, ''),
+					SignatureTextPolicy::KEY_TEMPLATE_FONT_SIZE => $this->appConfig->getValueFloat(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE, SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE),
+					SignatureTextPolicy::KEY_SIGNATURE_FONT_SIZE => $this->appConfig->getValueFloat(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE, SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE),
+					SignatureTextPolicy::KEY_SIGNATURE_WIDTH => $this->appConfig->getValueFloat(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH, SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH),
+					SignatureTextPolicy::KEY_SIGNATURE_HEIGHT => $this->appConfig->getValueFloat(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT, SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT),
+					SignatureTextPolicy::KEY_RENDER_MODE => $this->appConfig->getValueString(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE, SignerElementsService::RENDER_MODE_DEFAULT),
+					TsaPolicy::KEY => $this->appConfig->getValueString(Application::APP_ID, TsaPolicy::SYSTEM_APP_CONFIG_KEY, ''),
+					SignatureHashAlgorithmPolicy::KEY => $this->appConfig->getValueString(Application::APP_ID, SignatureHashAlgorithmPolicy::KEY, 'SHA256'),
+					default => null,
+				};
+
+				return (new ResolvedPolicy())
+					->setPolicyKey($key)
+					->setEffectiveValue($value);
+			});
 
 		$signatureTextService = new SignatureTextService(
-			$this->appConfig,
 			\OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID),
 			\OCP\Server::get(IDateTimeZone::class),
 			\OCP\Server::get(IRequest::class),
 			\OCP\Server::get(IUserSession::class),
 			$urlGenerator,
 			\OCP\Server::get(LoggerInterface::class),
+			$policyService,
 		);
 
 		// Create mock factory if initialization failed in setUpBeforeClass
@@ -100,6 +129,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$signatureTextService,
 				$this->tempManager,
 				$this->signatureBackgroundService,
+				$policyService,
 				$certificateEngineFactory,
 				$this->javaHelper,
 				$this->createMock(DocMdpConfigService::class),
@@ -112,6 +142,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$signatureTextService,
 				$this->tempManager,
 				$this->signatureBackgroundService,
+				$policyService,
 				$certificateEngineFactory,
 				$this->javaHelper,
 				$this->createMock(DocMdpConfigService::class),
@@ -328,7 +359,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'template' => '',
 				'signatureBackgroundType' => 'default',
 				'renderMode' => SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY,
-				'templateFontSize' => 10,
+				'templateFontSize' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
 				'params' => '-a -kst PKCS12 --hash-algorithm SHA256 --l2-text "" -V -llx 0 -lly 0 -urx 0 -ury 0 --bg-path merged.png'
@@ -346,7 +377,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'template' => '',
 				'signatureBackgroundType' => 'default',
 				'renderMode' => SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY,
-				'templateFontSize' => 10,
+				'templateFontSize' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
 				'params' => '-a -kst PKCS12 --hash-algorithm SHA256 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png'
@@ -364,12 +395,12 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'template' => 'aaaaa',
 				'signatureBackgroundType' => 'default',
 				'renderMode' => SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY,
-				'templateFontSize' => 10,
+				'templateFontSize' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
 				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path background.png --hash-algorithm SHA256'
 			],
-			'font size != 10' => [
+			'font size != default font size: emits --font-size' => [
 				'visibleElements' => [self::getElement([
 					'page' => 2,
 					'llx' => 10,
@@ -400,7 +431,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'template' => 'aaaaa',
 				'signatureBackgroundType' => 'deleted',
 				'renderMode' => SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY,
-				'templateFontSize' => 10,
+				'templateFontSize' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
 				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path signature.png --hash-algorithm SHA256'
@@ -418,7 +449,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'template' => 'aaaaa',
 				'signatureBackgroundType' => 'default',
 				'renderMode' => SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
-				'templateFontSize' => 10,
+				'templateFontSize' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
 				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --img-path signature.png --hash-algorithm SHA256'
@@ -436,7 +467,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'template' => 'aaaaa',
 				'signatureBackgroundType' => 'default',
 				'renderMode' => SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
-				'templateFontSize' => 10,
+				'templateFontSize' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
 				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 1 -lly 100 -urx 351 -ury 200 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --img-path text_image.png --hash-algorithm SHA256'
@@ -454,7 +485,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'template' => 'aaaaa',
 				'signatureBackgroundType' => 'deleted',
 				'renderMode' => SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
-				'templateFontSize' => 10,
+				'templateFontSize' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
 				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --img-path text_image.png --hash-algorithm SHA256'
@@ -472,7 +503,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'template' => 'aaaaa',
 				'signatureBackgroundType' => 'deleted',
 				'renderMode' => SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
-				'templateFontSize' => 10,
+				'templateFontSize' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
 				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --img-path text_image.png --hash-algorithm SHA256'
@@ -493,7 +524,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'template' => 'aaaaa',
 				'signatureBackgroundType' => 'default',
 				'renderMode' => SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
-				'templateFontSize' => 10,
+				'templateFontSize' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
 				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --hash-algorithm SHA256'
@@ -511,7 +542,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'template' => '',
 				'signatureBackgroundType' => 'default',
 				'renderMode' => SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
-				'templateFontSize' => 10,
+				'templateFontSize' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
 				'params' => '-a -kst PKCS12 --hash-algorithm SHA256 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png'
@@ -529,7 +560,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'template' => '',
 				'signatureBackgroundType' => 'default',
 				'renderMode' => SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
-				'templateFontSize' => 10,
+				'templateFontSize' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
 				'params' => '-a -kst PKCS12 --hash-algorithm SHA256 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png'

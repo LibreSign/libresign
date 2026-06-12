@@ -5,7 +5,7 @@
 
 import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, deleteUserPfx, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, deleteUserPfx, setSystemPolicy } from '../support/nc-provisioning'
 
 async function prepareSignFlow(page: Parameters<typeof test>[1] extends (args: infer T) => any ? T['page'] : never, adminUser: string) {
 	await page.goto('./apps/libresign')
@@ -19,11 +19,11 @@ async function prepareSignFlow(page: Parameters<typeof test>[1] extends (args: i
 	await page.getByRole('button', { name: 'Save' }).click()
 	await page.getByRole('button', { name: 'Request signatures' }).click()
 	await page.getByRole('button', { name: 'Send' }).click()
-	await page.getByRole('button', { name: 'Sign document' }).click()
+	await page.getByRole('button', { name: 'Sign document' }).first().click()
 	await page.getByRole('button', { name: 'Define a password and sign the document.' }).click()
 	await page.getByLabel('Enter a password').fill('Password1234')
 	await page.getByRole('button', { name: 'Confirm' }).click()
-	await page.getByRole('button', { name: 'Sign the document.' }).click()
+	await page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' }).click()
 	await page.getByLabel('Signature password').fill('Password1234')
 }
 
@@ -41,9 +41,8 @@ async function bootstrapAdminCertificate(page: Parameters<typeof test>[1] extend
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: true, mandatory: true, signatureMethods: { password: { enabled: true } } },
@@ -51,9 +50,8 @@ async function bootstrapAdminCertificate(page: Parameters<typeof test>[1] extend
 		]),
 	)
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'crl_external_validation_enabled',
 		'1',
 	)
@@ -94,17 +92,16 @@ test('switches from blocked (enabled) to normal (disabled) without extra scenari
 
 	await page.route(signRoute, blockedHandler)
 
-	await page.getByRole('button', { name: 'Sign document' }).click()
+	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
 
 	await expect(page.getByLabel('Signature password')).toBeHidden()
-	await expect(page.getByRole('button', { name: 'Sign the document.' })).toBeHidden()
+	await expect(page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })).toBeHidden()
 	await expect(page.getByRole('button', { name: 'Try signing again' })).toBeVisible()
 	await expect(page.locator('.button-wrapper').getByText('Certificate revocation status could not be verified').first()).toBeVisible()
 	await page.screenshot({ path: '/tmp/playwright-results/non-retriable-blocked-ui.png', fullPage: true })
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'crl_external_validation_enabled',
 		'0',
 	)
@@ -132,9 +129,9 @@ test('switches from blocked (enabled) to normal (disabled) without extra scenari
 	})
 
 	await page.getByRole('button', { name: 'Try signing again' }).click()
-	await page.getByRole('button', { name: 'Sign the document.' }).click()
+	await page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' }).click()
 	await page.getByLabel('Signature password').fill('Password1234')
-	await page.getByRole('button', { name: 'Sign document' }).click()
+	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
 
 	await expect(page.getByText('Signing is blocked until the certificate validation issue is resolved.')).toBeHidden()
 	await expect(page.getByRole('button', { name: 'Try signing again' })).toBeHidden()

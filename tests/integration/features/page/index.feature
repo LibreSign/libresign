@@ -4,13 +4,18 @@ Feature: page/sign_identify_default
 
   Scenario: Open sign file with all data valid
     Given as user "admin"
-    And sending "delete" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+    And run the command "config:app:set libresign identify_methods --value=[] --type=array" with result code 0
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string)[{"name":"account","enabled":true,"requirement":"required"},{"name":"email","enabled":true,"requirement":"optional"}] |
     When sending "get" to "/apps/libresign/f/"
     Then the response should have a status code 200
-    And the response should contain the initial state "libresign-identify_methods" with the following values:
-      """
-      [
-        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":false,"label":"Click to sign","name":"clickToSign"},"emailToken":{"enabled":false,"label":"Email token","name":"emailToken"},"password":{"enabled":true,"label":"Certificate with password","name":"password"}}},
-        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest","signatureMethods":{"clickToSign":{"enabled":false,"label":"Click to sign","name":"clickToSign"},"emailToken":{"enabled":true,"label":"Email token","name":"emailToken"}}}
-      ]
-      """
+    And the response should contain the initial state "libresign-effective_policies" json that match with:
+      | key                                                                                                              | value            |
+      | (jq).policies.identify_methods.policyKey                                                                         | identify_methods |
+      | (jq)(.policies.identify_methods.sourceScope \| test("^(system\|global)$"))                                    | true             |
+      | (jq).policies.identify_methods.effectiveValue \| type                                                            | object           |
+      | (jq).policies.identify_methods.effectiveValue.factors \| length                                                  | 2                |
+      | (jq).policies.identify_methods.effectiveValue.factors \| map(select(.name == "account")) \| .[0].enabled       | true             |
+      | (jq).policies.identify_methods.effectiveValue.factors \| map(select(.name == "account")) \| .[0].requirement   | required         |
+      | (jq).policies.identify_methods.effectiveValue.factors \| map(select(.name == "email")) \| .[0].enabled         | true             |
+      | (jq).policies.identify_methods.effectiveValue.factors \| map(select(.name == "email")) \| .[0].requirement     | optional         |

@@ -28,6 +28,12 @@ namespace OCA\Libresign;
  *     needIdentificationDocuments: bool,
  *     identificationDocumentsWaitingApproval: bool,
  * }
+ * @psalm-type LibresignAccountCapabilitySettings = array{
+ *     canRequestSign: bool,
+ *     hasSignatureFile: bool,
+ *     isApprover: bool,
+ * }
+ * @psalm-type LibresignIdentifyMethodRequirement = 'required'|'optional'
  *
  * Request input contracts
  *
@@ -45,7 +51,7 @@ namespace OCA\Libresign;
  *     identifyMethods: list<array{
  *         method: string,
  *         value: string,
- *         mandatory: non-negative-int,
+ *         requirement: LibresignIdentifyMethodRequirement,
  *     }>,
  *     displayName?: string,
  *     description?: string,
@@ -68,9 +74,9 @@ namespace OCA\Libresign;
  * Identity and signer contracts
  *
  * @psalm-type LibresignIdentifyMethod = array{
- *     method: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'xmpp',
+ *     method: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'whatsappbusiness'|'xmpp',
  *     value: string,
- *     mandatory: non-negative-int,
+ *     requirement: LibresignIdentifyMethodRequirement,
  * }
  * @psalm-type LibresignCoordinate = array{
  *     page?: int,
@@ -108,16 +114,32 @@ namespace OCA\Libresign;
  *     name: string,
  *     hasSignatureFile: bool,
  * }
+ * @psalm-type LibresignAdminSignatureMethodSetting = array{
+ *     enabled: bool,
+ *     label: string,
+ *     name: string,
+ * }
  * @psalm-type LibresignSignatureMethods = array{
  *     clickToSign?: LibresignSignatureMethod,
  *     emailToken?: LibresignSignatureMethodEmailToken,
  *     password?: LibresignSignatureMethodPassword,
  * }
+ * @psalm-type LibresignIdentifyMethodAdminSetting = array{
+ *     name: string,
+ *     friendly_name: string,
+ *     enabled: bool,
+ *     requirement: LibresignIdentifyMethodRequirement,
+ *     minimumTotalVerifiedFactors?: positive-int,
+ *     can_create_account?: bool,
+ *     test_url?: string,
+ *     signatureMethods?: array<string, LibresignAdminSignatureMethodSetting>,
+ * }
  * @psalm-type LibresignIdentifyMethodSetting = array{
  *     name: string,
  *     friendly_name: string,
  *     enabled: bool,
- *     mandatory: bool,
+ *     requirement: LibresignIdentifyMethodRequirement,
+ *     minimumTotalVerifiedFactors?: positive-int,
  *     signatureMethods?: LibresignSignatureMethods,
  * }
  * @psalm-type LibresignIdentifyAccount = array{
@@ -126,7 +148,7 @@ namespace OCA\Libresign;
  *     displayName: string,
  *     subname: string,
  *     shareType: 0|4,
- *     method?: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'xmpp',
+ *     method?: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'whatsappbusiness'|'xmpp',
  *     iconName?: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'xmpp',
  *     acceptsEmailNotifications?: boolean,
  * }
@@ -141,8 +163,8 @@ namespace OCA\Libresign;
  *     displayName: ?string,
  * }
  * @psalm-type LibresignDynamicMetadataScalar = string|int|float|bool|null
- * @psalm-type LibresignDynamicMetadataRecord = array<string, LibresignDynamicMetadataScalar>
- * @psalm-type LibresignDynamicMetadataValue = LibresignDynamicMetadataScalar|list<LibresignDynamicMetadataScalar>|LibresignDynamicMetadataRecord|list<LibresignDynamicMetadataRecord>
+ * @psalm-type LibresignDynamicMetadataRecord = array<string, mixed>
+ * @psalm-type LibresignDynamicMetadataValue = mixed
  * @psalm-type LibresignSignerCertificateInfo = array{
  *     serialNumber?: string,
  *     serialNumberHex?: string,
@@ -285,7 +307,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignRootCertificateName = array{
  *     id: string,
- *     value: string,
+ *     value: string|list<string>|null,
  * }
  * @psalm-type LibresignRootCertificate = array{
  *     commonName: string,
@@ -308,8 +330,8 @@ namespace OCA\Libresign;
  *     data: LibresignEngineHandler,
  * }
  * @psalm-type LibresignCertificateEngineConfigResponse = array{
- *     engine: string,
- *     identify_methods: list<LibresignIdentifyMethodSetting>,
+ *     engine: 'cfssl'|'none'|'openssl',
+ *     identify_methods: list<LibresignIdentifyMethodAdminSetting>,
  * }
  * @psalm-type LibresignHasRootCertResponse = array{
  *     hasRootCert: bool,
@@ -321,8 +343,6 @@ namespace OCA\Libresign;
  *     send_timer: string,
  *     next_run?: string,
  * }
- * @psalm-type LibresignAdminSigningMode = 'sync'|'async'
- * @psalm-type LibresignAdminWorkerType = 'local'|'external'
  * @psalm-type LibresignAdminSignatureEngine = 'JSignPdf'|'PhpNative'
  * @psalm-type LibresignDocMdpLevelOption = array{
  *     value: int,
@@ -334,19 +354,6 @@ namespace OCA\Libresign;
  *     defaultLevel: int,
  *     availableLevels: list<LibresignDocMdpLevelOption>,
  * }
- * @psalm-type LibresignSignatureTextSettingsResponse = array{
- *     template: string,
- *     parsed: string,
- *     templateFontSize: float,
- *     signatureFontSize: float,
- *     signatureWidth: float,
- *     signatureHeight: float,
- *     renderMode: string,
- * }
- * @psalm-type LibresignSignatureTemplateSettingsResponse = array{
- *     default_signature_text_template: string,
- *     signature_available_variables: array<string, string>,
- * }
  * @psalm-type LibresignCertificatePolicyResponse = array{
  *     status: 'success',
  *     CPS: string,
@@ -354,8 +361,15 @@ namespace OCA\Libresign;
  * @psalm-type LibresignFooterTemplateResponse = array{
  *     template: string,
  *     isDefault: bool,
+ *     template_variables: array<string, array{
+ *         description?: string,
+ *         type?: string,
+ *         example?: string,
+ *         default?: string,
+ *     }>,
  *     preview_width: int,
  *     preview_height: int,
+ *     preview_zoom: int,
  * }
  * @psalm-type LibresignActiveSigningItem = array{
  *     id: int,
@@ -371,11 +385,108 @@ namespace OCA\Libresign;
  *
  * Validation and progress contracts
  *
+ * @psalm-type LibresignEffectivePolicyValue = null|bool|int|float|string|array<string, mixed>
+ * @psalm-type LibresignEffectivePolicyMeta = array{
+ *     defaultSystemValue?: LibresignEffectivePolicyValue,
+ * }
+ * @psalm-type LibresignEffectivePolicyState = array{
+ *     policyKey: string,
+ *     effectiveValue: LibresignEffectivePolicyValue,
+ *     meta?: LibresignEffectivePolicyMeta,
+ *     sourceScope: string,
+ *     visible: bool,
+ *     editableByCurrentActor: bool,
+ *     allowedValues: list<LibresignEffectivePolicyValue>,
+ *     canSaveAsUserDefault: bool,
+ *     canUseAsRequestOverride: bool,
+ *     preferenceWasCleared: bool,
+ *     blockedBy: ?string,
+ *     groupCount: non-negative-int,
+ *     userCount: non-negative-int,
+ *     everyoneCount: non-negative-int,
+ * }
+ * @psalm-type LibresignEffectivePolicyResponse = array{
+ *     policy: LibresignEffectivePolicyState,
+ * }
+ * @psalm-type LibresignEffectivePoliciesResponse = array{
+ *     policies: array<string, LibresignEffectivePolicyState>,
+ * }
+ * @psalm-type LibresignSystemPolicyWriteRequest = array{
+ *     value: LibresignEffectivePolicyValue,
+ * }
+ * @psalm-type LibresignGroupPolicyState = array{
+ *     policyKey: string,
+ *     scope: 'group',
+ *     targetId: string,
+ *     value: null|LibresignEffectivePolicyValue,
+ *     allowChildOverride: bool,
+ *     visibleToChild: bool,
+ *     allowedValues: list<LibresignEffectivePolicyValue>,
+ *     deletableByCurrentActor: bool,
+ * }
+ * @psalm-type LibresignGroupPolicyResponse = array{
+ *     policy: LibresignGroupPolicyState,
+ * }
+ * @psalm-type LibresignGroupPolicyWriteRequest = array{
+ *     value: LibresignEffectivePolicyValue,
+ *     allowChildOverride: bool,
+ * }
+ * @psalm-type LibresignSystemPolicyState = array{
+ *     policyKey: string,
+ *     scope: 'system'|'global',
+ *     value: null|LibresignEffectivePolicyValue,
+ *     allowChildOverride: bool,
+ *     visibleToChild: bool,
+ *     allowedValues: list<LibresignEffectivePolicyValue>,
+ * }
+ * @psalm-type LibresignSystemPolicyResponse = array{
+ *     policy: LibresignSystemPolicyState,
+ * }
+ * @psalm-type LibresignUserPolicyState = array{
+ *     policyKey: string,
+ *     scope: 'user_policy',
+ *     targetId: string,
+ *     value: null|LibresignEffectivePolicyValue,
+ *     allowChildOverride: bool,
+ * }
+ * @psalm-type LibresignUserPolicyResponse = array{
+ *     policy: LibresignUserPolicyState,
+ * }
+ * @psalm-type LibresignGroupPolicyWriteResponse = LibresignMessageResponse&LibresignGroupPolicyResponse
+ * @psalm-type LibresignSystemPolicyWriteResponse = LibresignMessageResponse&LibresignEffectivePolicyResponse
+ * @psalm-type LibresignUserPolicyWriteResponse = LibresignMessageResponse&LibresignUserPolicyResponse
+ * @psalm-type LibresignPolicySnapshotEntry = array{
+ *     effectiveValue: string,
+ *     sourceScope: string,
+ * }
+ * @psalm-type LibresignPolicySnapshotNumericEntry = array{
+ *     effectiveValue: int,
+ *     sourceScope: string,
+ * }
+ * @psalm-type LibresignPolicySnapshotIdentifyMethodFactor = array{
+ *     name: string,
+ *     enabled: bool,
+ *     signatureMethods?: array<string, array<string, mixed>>,
+ *     requirement?: LibresignIdentifyMethodRequirement,
+ *     minimumTotalVerifiedFactors?: positive-int,
+ *     friendly_name?: string,
+ * }
+ * @psalm-type LibresignPolicySnapshotIdentifyMethodsEntry = array{
+ *     effectiveValue: list<LibresignPolicySnapshotIdentifyMethodFactor>,
+ *     sourceScope: string,
+ * }
+ * @psalm-type LibresignValidatePolicySnapshot = array{
+ *     docmdp?: LibresignPolicySnapshotNumericEntry,
+ *     signature_flow?: LibresignPolicySnapshotEntry,
+ *     add_footer?: LibresignPolicySnapshotEntry,
+ *     identify_methods?: LibresignPolicySnapshotIdentifyMethodsEntry,
+ * }
  * @psalm-type LibresignValidateMetadata = array{
  *     extension: string,
  *     p: int,
  *     d?: list<array{w: float, h: float}>,
  *     original_file_deleted?: bool,
+ *     policy_snapshot?: LibresignValidatePolicySnapshot,
  *     pdfVersion?: string,
  *     status_changed_at?: string,
  * }

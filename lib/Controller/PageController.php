@@ -18,11 +18,11 @@ use OCA\Libresign\Middleware\Attribute\PrivateValidation;
 use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -39,6 +39,7 @@ use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
+use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -60,6 +61,7 @@ class PageController extends AEnvironmentPageAwareController {
 		private AccountService $accountService,
 		protected SignFileService $signFileService,
 		protected RequestSignatureService $requestSignatureService,
+		private PolicyService $policyService,
 		private SignerElementsService $signerElementsService,
 		protected IL10N $l10n,
 		private IdentifyMethodService $identifyMethodService,
@@ -72,7 +74,6 @@ class PageController extends AEnvironmentPageAwareController {
 		private ValidateHelper $validateHelper,
 		private IEventDispatcher $eventDispatcher,
 		private IURLGenerator $urlGenerator,
-		private ConfigService $docMdpConfigService,
 	) {
 		parent::__construct(
 			request: $request,
@@ -107,10 +108,9 @@ class PageController extends AEnvironmentPageAwareController {
 		}
 
 		$this->provideSignerSignatues();
-		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
-		$this->initialState->provideInitialState('signature_flow', $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', \OCA\Libresign\Enum\SignatureFlow::NONE->value));
-		$this->initialState->provideInitialState('docmdp_config', $this->docMdpConfigService->getConfig());
-		$this->initialState->provideInitialState('legal_information', $this->appConfig->getValueString(Application::APP_ID, 'legal_information'));
+		$this->initialState->provideInitialState('effective_policies', [
+			'policies' => $this->policyService->resolveKnownPolicyStates(),
+		]);
 
 		Util::addScript(Application::APP_ID, 'libresign-main');
 		Util::addStyle(Application::APP_ID, 'libresign-main');
@@ -150,35 +150,54 @@ class PageController extends AEnvironmentPageAwareController {
 	/**
 	 * Incomplete page
 	 *
-	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 * @return TemplateResponse|RedirectResponse
 	 *
 	 * 200: OK
+	 * 303: Redirected when setup is already complete
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/f/incomplete')]
-	public function incomplete(): TemplateResponse {
-		Util::addScript(Application::APP_ID, 'libresign-main');
-		Util::addStyle(Application::APP_ID, 'libresign-main');
-		$response = new TemplateResponse(Application::APP_ID, 'main');
-		return $response;
+	public function incomplete(): TemplateResponse|RedirectResponse {
+		if ($this->accountService->isSetupOk()) {
+			return new RedirectResponse(
+				$this->urlGenerator->linkToRouteAbsolute('libresign.page.indexF'),
+			);
+		}
+
+		return $this->renderIncompletePage();
 	}
 
 	/**
 	 * Incomplete page in full screen
 	 *
-	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 * @return TemplateResponse|RedirectResponse
 	 *
 	 * 200: OK
+	 * 303: Redirected when setup is already complete
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/p/incomplete')]
-	public function incompleteP(): TemplateResponse {
+	public function incompleteP(): TemplateResponse|RedirectResponse {
+		if ($this->accountService->isSetupOk()) {
+			return new RedirectResponse(
+				$this->urlGenerator->linkToRouteAbsolute('libresign.page.index'),
+			);
+		}
+
+		return $this->renderIncompletePage(publicPage: true);
+	}
+
+	private function renderIncompletePage(bool $publicPage = false): TemplateResponse {
 		Util::addScript(Application::APP_ID, 'libresign-main');
 		Util::addStyle(Application::APP_ID, 'libresign-main');
-		$response = new TemplateResponse(Application::APP_ID, 'main', [], TemplateResponse::RENDER_AS_BASE);
-		return $response;
+
+		if ($publicPage) {
+			return new TemplateResponse(Application::APP_ID, 'main', [], TemplateResponse::RENDER_AS_BASE);
+		}
+
+		return new TemplateResponse(Application::APP_ID, 'main');
 	}
 
 	/**
@@ -187,15 +206,22 @@ class PageController extends AEnvironmentPageAwareController {
 	 * The path is used only by frontend
 	 *
 	 * @param string $path The path that was sent from frontend
-	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 *
 	 * 200: OK
+	 * 303: Redirected when the current actor cannot access the requested internal page
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'main')]
 	#[FrontpageRoute(verb: 'GET', url: '/f/{path}', requirements: ['path' => '.+'])]
-	public function indexFPath(string $path): TemplateResponse {
+	public function indexFPath(string $path): TemplateResponse|RedirectResponse {
+		if ($this->isPoliciesWorkbenchPath($path) && !$this->canAccessPoliciesWorkbench()) {
+			return new RedirectResponse(
+				$this->urlGenerator->linkToRouteAbsolute('libresign.page.indexF'),
+			);
+		}
+
 		if (preg_match('/validation\/(?<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/', $path, $matches)) {
 			$signRequest = null;
 
@@ -262,6 +288,19 @@ class PageController extends AEnvironmentPageAwareController {
 		return $this->index();
 	}
 
+	private function canAccessPoliciesWorkbench(): bool {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return false;
+		}
+
+		$config = $this->accountService->getConfig($user);
+		return ($config['can_manage_group_policies'] ?? false) === true;
+	}
+
+	private function isPoliciesWorkbenchPath(string $path): bool {
+		return preg_match('/^policies(?:\/|$)/', $path) === 1;
+	}
 
 	/**
 	 * Sign page to authenticated signer
@@ -271,6 +310,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 *
 	 * 200: OK
 	 */
+	#[PrivateValidation(allowValidSignRequestUuid: false)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
@@ -317,6 +357,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
+	#[PrivateValidation(allowValidSignRequestUuid: true)]
 	#[RequireSignRequestUuid(redirectIfSignedToValidation: true, allowIdDocs: true)]
 	#[FrontpageRoute(verb: 'GET', url: '/p/sign/{uuid}/{path}', requirements: ['path' => '.+'])]
 	public function signPPath(string $uuid): TemplateResponse {
@@ -333,11 +374,11 @@ class PageController extends AEnvironmentPageAwareController {
 	 *
 	 * 200: OK
 	 */
-	#[PrivateValidation]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
+	#[PrivateValidation(allowValidSignRequestUuid: true)]
 	#[RequireSignRequestUuid(redirectIfSignedToValidation: true, allowIdDocs: true)]
 	#[FrontpageRoute(verb: 'GET', url: '/p/sign/{uuid}')]
 	public function sign(string $uuid): TemplateResponse {
@@ -455,7 +496,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * 401: Validation page not accessible if unauthenticated
 	 * 404: File not found
 	 */
-	#[PrivateValidation]
+	#[PrivateValidation(allowValidSignRequestUuid: false)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
@@ -479,9 +520,9 @@ class PageController extends AEnvironmentPageAwareController {
 	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>
 	 *
 	 * 200: OK
-	 * 401: Validation page not accessible if unauthenticated
+	 * 401: Validation page not accessible if unauthenticated without a valid sign request UUID
 	 */
-	#[PrivateValidation]
+	#[PrivateValidation(allowValidSignRequestUuid: true)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(allowIdDocs: true)]
@@ -509,7 +550,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * 200: OK
 	 * 401: Validation page not accessible if unauthenticated
 	 */
-	#[PrivateValidation]
+	#[PrivateValidation(allowValidSignRequestUuid: false)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'validation')]
@@ -554,7 +595,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * 303: Redirected to validation page
 	 * 401: Validation page not accessible if unauthenticated
 	 */
-	#[PrivateValidation]
+	#[PrivateValidation(allowValidSignRequestUuid: false)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
@@ -600,7 +641,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * 200: OK
 	 * 401: Validation page not accessible if unauthenticated
 	 */
-	#[PrivateValidation]
+	#[PrivateValidation(allowValidSignRequestUuid: false)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'validation')]
@@ -637,7 +678,9 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->fileService->setSignRequest($signRequest);
 		}
 
-		$this->initialState->provideInitialState('legal_information', $this->appConfig->getValueString(Application::APP_ID, 'legal_information'));
+		$this->initialState->provideInitialState('effective_policies', [
+			'policies' => $this->policyService->resolveKnownPolicyStates(),
+		]);
 
 		$this->initialState->provideInitialState('file_info',
 			$this->fileService

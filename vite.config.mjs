@@ -3,8 +3,17 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { createAppConfig } from '@nextcloud/vite-config'
 import { resolve } from 'node:path'
+
+import { createAppConfig } from '@nextcloud/vite-config'
+
+import { isBuildWatchArgv } from './src/helpers/isBuildWatchArgv.js'
+
+const isBuildWatch = isBuildWatchArgv()
+const buildWatchInclude = [
+	resolve(import.meta.dirname, 'src/**'),
+	resolve(import.meta.dirname, 'node_modules/@libresign/pdf-elements/src/**'),
+]
 
 export default createAppConfig({
 	main: resolve('src/main.ts'),
@@ -14,15 +23,34 @@ export default createAppConfig({
 	external: resolve('src/external.ts'),
 	validation: resolve('src/validation.ts'),
 }, {
+	emptyOutputDirectory: {
+		additionalDirectories: ['css', 'dist'],
+	},
 	config: {
+		build: {
+			...(isBuildWatch
+				? {
+					watch: {
+						include: buildWatchInclude,
+					},
+				}
+				: {}),
+		},
 		server: {
 			port: 3000,
 			host: '0.0.0.0',
 		},
 		resolve: {
-			alias: {
-				'@': resolve(import.meta.dirname, 'src'),
-			},
+			alias: [
+				{
+					find: /^@libresign\/pdf-elements$/,
+					replacement: resolve(import.meta.dirname, 'node_modules/@libresign/pdf-elements/src/index.ts'),
+				},
+				{
+					find: /^@\//,
+					replacement: `${resolve(import.meta.dirname, 'src')}/`,
+				},
+			],
 		},
 		plugins: [
 			{

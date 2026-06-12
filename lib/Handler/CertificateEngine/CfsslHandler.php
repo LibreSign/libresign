@@ -22,6 +22,7 @@ use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Process\ProcessManager;
 use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\Files\AppData\IAppDataFactory;
@@ -42,6 +43,8 @@ use Psr\Log\LoggerInterface;
 class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	public const CFSSL_URI = 'http://127.0.0.1:8888/api/v1/cfssl/';
 	private const PROCESS_SOURCE = 'cfssl';
+	private const STARTUP_POLL_INTERVAL_MICROSECONDS = 250000;
+	private const STARTUP_MAX_POLLS = 40;
 
 	/** @var Client */
 	protected $client;
@@ -58,6 +61,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		protected CertificatePolicyService $certificatePolicyService,
 		protected IURLGenerator $urlGenerator,
 		protected CaIdentifierService $caIdentifierService,
+		protected PolicyService $policyService,
 		protected CrlMapper $crlMapper,
 		protected LoggerInterface $logger,
 		CrlRevocationChecker $crlRevocationChecker,
@@ -72,6 +76,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$certificatePolicyService,
 			$urlGenerator,
 			$caIdentifierService,
+			$policyService,
 			$logger,
 			$crlRevocationChecker,
 		);
@@ -281,7 +286,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		try {
 			$client = $this->getClient();
 			if (!$this->portOpen()) {
-				throw new LibresignException('CFSSL server is down', 500);
+				return false;
 			}
 			$response = $client
 				->request('get',
@@ -291,15 +296,20 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 					]
 				)
 			;
-		} catch (RequestException|ConnectException $th) {
+		} catch (ConnectException) {
+			return false;
+		} catch (RequestException $th) {
 			switch ($th->getCode()) {
 				case 404:
 					throw new \Exception('Endpoint /health of CFSSL server not found. Maybe you are using incompatible version of CFSSL server. Use latests version.', 1);
 				default:
 					if ($th->getHandlerContext() && $th->getHandlerContext()['error']) {
+						if (str_contains((string)$th->getHandlerContext()['error'], 'connect')) {
+							return false;
+						}
 						throw new \Exception($th->getHandlerContext()['error'], 1);
 					}
-					throw new LibresignException($th->getMessage(), 500);
+					return false;
 			}
 		}
 
@@ -319,6 +329,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		if ($this->portOpen()) {
 			return;
 		}
+
 		$binary = $this->getBinary();
 		$configPath = $this->getCurrentConfigPath();
 		if (!$configPath) {
@@ -345,10 +356,10 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			]);
 		}
 
-		$loops = 0;
-		while (!$this->portOpen() && $loops <= 4) {
-			sleep(1);
-			$loops++;
+		$polls = 0;
+		while (!$this->portOpen() && $polls < self::STARTUP_MAX_POLLS) {
+			usleep(self::STARTUP_POLL_INTERVAL_MICROSECONDS);
+			$polls++;
 		}
 	}
 
@@ -585,7 +596,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			}
 
 			return $responseData['success'];
-
 		} catch (RequestException|ConnectException $e) {
 			throw new \RuntimeException('Failed to communicate with CFSSL server: ' . $e->getMessage());
 		} catch (\Throwable $e) {

@@ -47,6 +47,7 @@
 						<!-- TRANSLATORS: Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
 						<h1>{{ t('libresign', 'Validate signature') }}</h1>
 						<NcTextField v-model="uuidToValidate"
+							autofocus
 							:label="t('libresign', 'Enter the ID or UUID of the document to validate.')"
 							:helper-text="helperTextValidation" :error="!!uuidToValidate && !canValidate" />
 						<template #actions>
@@ -141,6 +142,7 @@ import { ACTION_CODES } from '../helpers/ActionMapping'
 import { normalizeRouteRecord } from '../services/routeNormalization.js'
 import logger from '../logger.js'
 import { useFilesStore } from '../store/files.js'
+import { usePoliciesStore } from '../store/policies'
 import { useSignStore } from '../store/sign.js'
 import { useSidebarStore } from '../store/sidebar.js'
 import type {
@@ -254,6 +256,7 @@ function handleValidationRedirect(response: ValidationErrorResponse | undefined)
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
 const filesStore = useFilesStore()
+const policiesStore = usePoliciesStore()
 const instance = getCurrentInstance()
 const EXPIRATION_WARNING_DAYS = 30
 
@@ -272,7 +275,10 @@ const uuidToValidate = ref(route.value.params.uuid ?? '')
 const hasInfo = ref(false)
 const loading = ref(false)
 const document = ref<ValidationDocumentState | null>(null)
-const legalInformation = ref(loadState('libresign', 'legal_information', ''))
+const legalInformation = computed(() => {
+	const value = policiesStore.getEffectiveValue('legal_information')
+	return typeof value === 'string' ? value : ''
+})
 const clickedValidate = ref(false)
 const getUUID = ref(false)
 const validationStatusOpenState = ref<ToggleOpenState>({})

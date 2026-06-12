@@ -8,24 +8,24 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Controller;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Controller\PageController;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Tests\Unit\TestCase;
+use OCP\AppFramework\Http\RedirectResponse;
+use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IAppConfig;
-use OCP\IInitialStateService;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -41,9 +41,13 @@ final class PageControllerTest extends TestCase {
 	private FileService&MockObject $fileService;
 	private SignFileService&MockObject $signFileService;
 	private SignerElementsService&MockObject $signerElementsService;
+	private IInitialState&MockObject $initialState;
+	private PolicyService&MockObject $policyService;
+	private IURLGenerator&MockObject $urlGenerator;
 	private PageController $controller;
 
 	public function setUp(): void {
+		$this->getMockAppConfigWithReset();
 		$this->request = $this->createMock(IRequest::class);
 		$this->request->method('getServerHost')->willReturn('localhost:8080');
 		$this->userSession = $this->createMock(IUserSession::class);
@@ -87,17 +91,30 @@ final class PageControllerTest extends TestCase {
 		$this->signerElementsService->method('getElementsFromSessionAsArray')->willReturn([]);
 		$this->signerElementsService->method('getUserElements')->willReturn([]);
 
+		$this->initialState = $this->createMock(IInitialState::class);
+		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyService->method('resolveKnownPolicyStates')->willReturn([]);
+		$this->urlGenerator = $this->createMock(IURLGenerator::class);
+		$this->urlGenerator
+			->method('linkToRouteAbsolute')
+			->willReturnCallback(static function (string $route, array $params = []): string {
+				return match ($route) {
+					'libresign.page.index' => 'https://localhost/apps/libresign/',
+					'libresign.page.indexF' => 'https://localhost/apps/libresign/f/',
+					'libresign.page.indexFPath' => 'https://localhost/apps/libresign/f/' . ($params['path'] ?? ''),
+					default => 'https://localhost/',
+				};
+			});
+
 		$this->controller = new PageController(
 			request: $this->request,
 			userSession: $this->userSession,
 			sessionService: $this->createMock(SessionService::class),
-			initialState: new \OC\AppFramework\Services\InitialState(
-				$this->createMock(IInitialStateService::class),
-				Application::APP_ID,
-			),
+			initialState: $this->initialState,
 			accountService: $this->accountService,
 			signFileService: $this->signFileService,
 			requestSignatureService: \OCP\Server::get(RequestSignatureService::class),
+			policyService: $this->policyService,
 			signerElementsService: $this->signerElementsService,
 			l10n: $this->createMock(IL10N::class),
 			identifyMethodService: $this->createConfiguredMock(IdentifyMethodService::class, [
@@ -111,10 +128,7 @@ final class PageControllerTest extends TestCase {
 			logger: \OCP\Server::get(LoggerInterface::class),
 			validateHelper: $this->createMock(ValidateHelper::class),
 			eventDispatcher: $this->createMock(IEventDispatcher::class),
-			urlGenerator: \OCP\Server::get(IURLGenerator::class),
-			docMdpConfigService: $this->createConfiguredMock(ConfigService::class, [
-				'getConfig' => [],
-			]),
+			urlGenerator: $this->urlGenerator,
 		);
 	}
 
@@ -142,5 +156,48 @@ final class PageControllerTest extends TestCase {
 		$response = $this->controller->sign('sign-uuid');
 
 		self::assertStringContainsString("worker-src 'self'", $response->getContentSecurityPolicy()->buildPolicy());
+	}
+
+	public function testIndexFPathRedirectsRegularUserAwayFromPoliciesWorkbench(): void {
+		$this->accountService
+			->expects($this->once())
+			->method('getConfig')
+			->willReturn([
+				'can_manage_group_policies' => false,
+			]);
+
+		$this->initialState
+			->expects($this->never())
+			->method('provideInitialState');
+
+		$response = $this->controller->indexFPath('policies');
+
+		self::assertInstanceOf(RedirectResponse::class, $response);
+		self::assertStringContainsString('/apps/libresign/f/', $response->getRedirectURL());
+	}
+
+	public function testIncompleteRedirectsToInternalIndexWhenSetupBecomesOk(): void {
+		$this->accountService
+			->expects($this->once())
+			->method('isSetupOk')
+			->willReturn(true);
+
+		$response = $this->controller->incomplete();
+
+		self::assertInstanceOf(RedirectResponse::class, $response);
+		self::assertStringContainsString('/apps/libresign/f/', $response->getRedirectURL());
+	}
+
+	public function testIncompletePRedirectsToDefaultIndexWhenSetupBecomesOk(): void {
+		$this->accountService
+			->expects($this->once())
+			->method('isSetupOk')
+			->willReturn(true);
+
+		$response = $this->controller->incompleteP();
+
+		self::assertInstanceOf(RedirectResponse::class, $response);
+		self::assertStringContainsString('/apps/libresign/', $response->getRedirectURL());
+		self::assertStringNotContainsString('/apps/libresign/f/', $response->getRedirectURL());
 	}
 }

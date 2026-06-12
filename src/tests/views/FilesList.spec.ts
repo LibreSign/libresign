@@ -3,126 +3,117 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { describe, expect, it, beforeEach, vi } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { useFilesStore } from '../../store/files.js'
-import { useSidebarStore } from '../../store/sidebar.js'
+import { describe, expect, it, vi } from 'vitest'
 
-// Only mock what the stores need
-vi.mock('@nextcloud/logger', () => ({
-	getLogger: vi.fn(() => ({
-		error: vi.fn(),
-		warn: vi.fn(),
-		info: vi.fn(),
-		debug: vi.fn(),
-	})),
-	getLoggerBuilder: vi.fn(() => ({
-		setApp: vi.fn().mockReturnThis(),
-		detectUser: vi.fn().mockReturnThis(),
-		build: vi.fn(() => ({
-			error: vi.fn(),
-			warn: vi.fn(),
-			info: vi.fn(),
-			debug: vi.fn(),
-		})),
-	})),
-}))
+import { openFilesListSidebarForFile } from '../../utils/filesListSidebar.ts'
 
-vi.mock('@nextcloud/axios', () => ({
-	default: {
-		post: vi.fn(),
-		delete: vi.fn(),
-		patch: vi.fn(),
-	},
-}))
-
-vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: vi.fn((path) => `/ocs/v2.php${path}`),
-}))
-
-vi.mock('@nextcloud/auth', () => ({
-	getCurrentUser: vi.fn(() => ({
-		uid: 'testuser',
-		displayName: 'Test User',
-	})),
-}))
-
-vi.mock('@nextcloud/event-bus', () => ({
-	emit: vi.fn(),
-	subscribe: vi.fn(),
-}))
-
-vi.mock('@nextcloud/initial-state', () => ({
-	loadState: vi.fn((app, key, defaultValue) => defaultValue),
-}))
-
-vi.mock('@nextcloud/moment', () => ({
-	default: vi.fn(() => ({
-		fromNow: () => '2 days ago',
-	})),
-}))
-
-describe('FilesList - URI file opening business rules', () => {
-	beforeEach(() => {
-		setActivePinia(createPinia())
-		vi.clearAllMocks()
-	})
-
-	it('RULE: does nothing when uuid is not in query params', async () => {
-		const filesStore = useFilesStore()
-		const selectSpy = vi.spyOn(filesStore, 'selectFileByUuid')
-
-		const uuid = undefined
-		if (uuid) {
-			await filesStore.selectFileByUuid(uuid)
+describe('FilesList - sidebar opening business rules', () => {
+	it('opens the sign sidebar when the current user can sign the selected file', async () => {
+		const detailedFile = {
+			id: 42,
+			status: 1,
+			statusText: 'Ready to sign',
+			signers: [{ me: true, sign_request_uuid: 'sign-request-uuid' }],
+			visibleElements: [],
+		}
+		const filesStore = {
+			selectFile: vi.fn(),
+			fetchFileDetail: vi.fn().mockResolvedValue(detailedFile),
+			canSign: vi.fn().mockReturnValue(true),
+			canRequestSign: false,
+		}
+		const sidebarStore = {
+			activeSignTab: vi.fn(),
+			activeRequestSignatureTab: vi.fn(),
+			setActiveTab: vi.fn(),
+		}
+		const signStore = {
+			setFileToSign: vi.fn(),
 		}
 
-		expect(selectSpy).not.toHaveBeenCalled()
+		await openFilesListSidebarForFile(42, {
+			filesStore,
+			sidebarStore,
+			signStore,
+		})
+
+		expect(filesStore.selectFile).toHaveBeenCalledWith(42)
+		expect(filesStore.fetchFileDetail).toHaveBeenCalledWith({
+			fileId: 42,
+			force: true,
+		})
+		expect(signStore.setFileToSign).toHaveBeenCalledWith(detailedFile)
+		expect(sidebarStore.activeSignTab).toHaveBeenCalledTimes(1)
+		expect(sidebarStore.activeRequestSignatureTab).not.toHaveBeenCalled()
 	})
 
-	it('RULE: passes uuid to selectFileByUuid when present', async () => {
-		const filesStore = useFilesStore()
-		vi.spyOn(filesStore, 'selectFileByUuid').mockResolvedValue(42)
-
-		const uuid = 'test-uuid-123'
-		if (uuid) {
-			await filesStore.selectFileByUuid(uuid)
+	it('falls back to the request sidebar when the selected file is not signable but the user can request signatures', async () => {
+		const detailedFile = {
+			id: 42,
+			status: 3,
+			statusText: 'Signed',
+			signers: [],
+			visibleElements: [],
+		}
+		const filesStore = {
+			selectFile: vi.fn(),
+			fetchFileDetail: vi.fn().mockResolvedValue(detailedFile),
+			canSign: vi.fn().mockReturnValue(false),
+			canRequestSign: true,
+		}
+		const sidebarStore = {
+			activeSignTab: vi.fn(),
+			activeRequestSignatureTab: vi.fn(),
+			setActiveTab: vi.fn(),
+		}
+		const signStore = {
+			setFileToSign: vi.fn(),
 		}
 
-		expect(filesStore.selectFileByUuid).toHaveBeenCalledWith('test-uuid-123')
-	})
-
-	it('RULE: opens sidebar only when file is found', async () => {
-		const filesStore = useFilesStore()
-		const sidebarStore = useSidebarStore()
-		const activeTabSpy = vi.spyOn(sidebarStore, 'activeRequestSignatureTab')
-
-		vi.spyOn(filesStore, 'selectFileByUuid').mockResolvedValue(42)
-
-		const uuid = 'test-uuid'
-		await filesStore.selectFileByUuid(uuid).then((fileId: unknown) => {
-			if (fileId) {
-				sidebarStore.activeRequestSignatureTab()
-			}
+		await openFilesListSidebarForFile(42, {
+			filesStore,
+			sidebarStore,
+			signStore,
 		})
 
-		expect(activeTabSpy).toHaveBeenCalledTimes(1)
+		expect(signStore.setFileToSign).not.toHaveBeenCalled()
+		expect(sidebarStore.activeSignTab).not.toHaveBeenCalled()
+		expect(sidebarStore.activeRequestSignatureTab).toHaveBeenCalledTimes(1)
+		expect(sidebarStore.setActiveTab).not.toHaveBeenCalled()
 	})
 
-	it('RULE: does not open sidebar when file not found', async () => {
-		const filesStore = useFilesStore()
-		const sidebarStore = useSidebarStore()
-		const activeTabSpy = vi.spyOn(sidebarStore, 'activeRequestSignatureTab')
+	it('clears the sidebar when the selected file is not signable and the user cannot request signatures', async () => {
+		const detailedFile = {
+			id: 42,
+			status: 3,
+			statusText: 'Signed',
+			signers: [],
+			visibleElements: [],
+		}
+		const filesStore = {
+			selectFile: vi.fn(),
+			fetchFileDetail: vi.fn().mockResolvedValue(detailedFile),
+			canSign: vi.fn().mockReturnValue(false),
+			canRequestSign: false,
+		}
+		const sidebarStore = {
+			activeSignTab: vi.fn(),
+			activeRequestSignatureTab: vi.fn(),
+			setActiveTab: vi.fn(),
+		}
+		const signStore = {
+			setFileToSign: vi.fn(),
+		}
 
-		vi.spyOn(filesStore, 'selectFileByUuid').mockResolvedValue(null)
-
-		const uuid = 'nonexistent-uuid'
-		await filesStore.selectFileByUuid(uuid).then((fileId: unknown) => {
-			if (fileId) {
-				sidebarStore.activeRequestSignatureTab()
-			}
+		await openFilesListSidebarForFile(42, {
+			filesStore,
+			sidebarStore,
+			signStore,
 		})
 
-		expect(activeTabSpy).not.toHaveBeenCalled()
+		expect(signStore.setFileToSign).not.toHaveBeenCalled()
+		expect(sidebarStore.activeSignTab).not.toHaveBeenCalled()
+		expect(sidebarStore.activeRequestSignatureTab).not.toHaveBeenCalled()
+		expect(sidebarStore.setActiveTab).toHaveBeenCalledTimes(1)
 	})
 })

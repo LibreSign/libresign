@@ -5,7 +5,7 @@
 
 import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo } from '../support/mailpit'
 
 /**
@@ -29,9 +29,8 @@ test('admin can send a reminder to a pending signer', async ({ page }) => {
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: false, mandatory: false },
@@ -67,7 +66,9 @@ test('admin can send a reminder to a pending signer', async ({ page }) => {
 	// The signer row renders as NcListItem with force-display-actions, so the
 	// three-dots NcActions toggle is always visible (aria-label="Actions").
 	await page.locator('li').filter({ hasText: 'Signer 01' }).getByRole('button', { name: 'Actions' }).click()
-	await page.getByRole('menuitem', { name: 'Send reminder' }).click()
+	const sendReminderAction = page.locator('[role="menuitem"], [role="dialog"] button').filter({ hasText: /^Send reminder$/i }).first()
+	await expect(sendReminderAction).toBeVisible({ timeout: 8000 })
+	await sendReminderAction.click()
 
 	// The reminder uses a different subject: "LibreSign: Changes into a file for you to sign".
 	await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: Changes into a file for you to sign')

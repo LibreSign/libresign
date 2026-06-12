@@ -17,6 +17,7 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -101,7 +102,7 @@ class IdDocsService {
 			$identifyMethod->setSignRequestId($signRequest->getId());
 			$identifyMethod->setIdentifierKey(IdentifyMethodService::IDENTIFY_ACCOUNT);
 			$identifyMethod->setIdentifierValue($user->getUID());
-			$identifyMethod->setMandatory(1);
+			$identifyMethod->setRequirement(IdentifyMethodRequirement::REQUIRED->value);
 			$this->identifyMethodMapper->insert($identifyMethod);
 
 			$this->idDocsMapper->save($file->getId(), $signRequest->getId(), $user->getUID(), $fileData['type']);

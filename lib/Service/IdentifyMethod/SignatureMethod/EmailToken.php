@@ -33,7 +33,7 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 		$entity = $this->getEntity();
 
 		$email = match ($entity->getIdentifierKey()) {
-			'email' => $entity->getIdentifierValue(),
+			'email', 'emailToken' => $entity->getIdentifierValue(),
 			'account' => $this->identifyService->getUserManager()->get($entity->getIdentifierValue())
 				?->getEMailAddress() ?? '',
 			default => '',
@@ -50,13 +50,17 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 			|| empty($identifiedAt)
 			|| empty($codeSentByUser);
 
-		$return = parent::toArray();
-		$return['identifyMethod'] = $entity->getIdentifierKey();
-		$return['needCode'] = $needCode;
-		$return['hasConfirmCode'] = $hasConfirmCode;
-		$return['blurredEmail'] = $emailLowercase ? $this->blurEmail($emailLowercase) : '';
-		$return['hashOfEmail'] = $emailLowercase ? md5($emailLowercase) : '';
-		return $return;
+		return [
+			'label' => $this->getFriendlyName(),
+			'identifyMethod' => match ($entity->getIdentifierKey()) {
+				'emailToken' => 'email',
+				default => $entity->getIdentifierKey(),
+			},
+			'needCode' => $needCode,
+			'hasConfirmCode' => $hasConfirmCode,
+			'blurredEmail' => $emailLowercase ? $this->blurEmail($emailLowercase) : '',
+			'hashOfEmail' => $emailLowercase ? md5($emailLowercase) : '',
+		];
 	}
 
 	private function blurEmail(string $email): string {
