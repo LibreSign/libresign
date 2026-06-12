@@ -212,6 +212,8 @@ OC.L10N.register(
     "Delete file" : "حذف پرونده",
     "Delete certificate" : "Delete certificate",
     "Change password" : "تغییر گذرواژه",
+    "Delete {type}" : "Delete {type}",
+    "Edit {type}" : "Edit {type}",
     "Your signatures" : "Your signatures",
     "Signature" : "امضا",
     "Initials" : "Initials",
