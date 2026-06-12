@@ -235,7 +235,11 @@ class TSA {
 
 		$tsa['cnHints'] = $cnHints;
 		$tsa['displayName'] = $this->generateDistinguishedNames($cnHints);
-		$tsa['genTime'] = $tsa['genTime'] ? new \DateTime($tsa['genTime']) : null;
+		try {
+			$tsa['genTime'] = $tsa['genTime'] ? new \DateTime($tsa['genTime']) : null;
+		} catch (\Exception) {
+			$tsa['genTime'] = null;
+		}
 
 		return $tsa;
 	}

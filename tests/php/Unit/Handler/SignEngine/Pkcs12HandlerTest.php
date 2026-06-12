@@ -24,6 +24,7 @@ use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\L10N\IFactory as IL10NFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -353,6 +354,28 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->assertIsArray($signatureData['chain']);
 			}
 		}
+	}
+
+	public static function provideExtractableFixture(): array {
+		foreach ((new PdfFixtureCatalog())->getAll() as $fixture) {
+			if ($fixture->shouldExtract()) {
+				return [[$fixture]];
+			}
+		}
+		return [];
+	}
+
+	#[DataProvider('provideExtractableFixture')]
+	public function testGetCertificateChainPreservesRealSignaturesWhenPdfAlsoHasHyperlinkAnnotation($fixture): void {
+		$this->docMdpHandler->method('extractDocMdpData')->willReturn([]);
+
+		$resource = fopen('php://memory', 'r+');
+		fwrite($resource, file_get_contents($fixture->getFilePath())
+			. "\n99 0 obj<</Type/Annot/Subtype/Link/Contents <" . bin2hex('https://example.com') . ">>>>\nendobj\n");
+		rewind($resource);
+
+		$this->assertCount($fixture->getSignatureCount(), $this->getHandler()->getCertificateChain($resource));
+		fclose($resource);
 	}
 
 	public function testDocMdpPdfsExtraction(): void {
