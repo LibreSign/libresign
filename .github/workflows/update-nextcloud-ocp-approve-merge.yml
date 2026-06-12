@@ -45,14 +45,14 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       # GitHub actions bot approve
-      - uses: hmarr/auto-approve-action@b40d6c9ed2fa10c9a2749eca7eb004418a705501 # v2
+      - uses: hmarr/auto-approve-action@f0939ea97e9205ef24d872e76833fa908a770363 # v4.0.0
         if: startsWith(steps.branchname.outputs.branch, 'automated/noid/') && endsWith(steps.branchname.outputs.branch, 'update-nextcloud-ocp')
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       # Enable GitHub auto merge
       - name: Auto merge
-        uses: alexwilson/enable-github-automerge-action@56e3117d1ae1540309dc8f7a9f2825bc3c5f06ff # v2.0.0
+        uses: alexwilson/enable-github-automerge-action@2c32e18a76e0726ffe7a573bfff2d42a20885126 # 3.0.0
         if: startsWith(steps.branchname.outputs.branch, 'automated/noid/') && endsWith(steps.branchname.outputs.branch, 'update-nextcloud-ocp')
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
