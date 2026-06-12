@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "683fc6c9ae20a480af7b531acfea05bb",
+    "content-hash": "4a5593ef6c8bbde4bfd2c8f59d77ff95",
     "packages": [
         {
             "name": "cweagans/composer-configurable-plugin",
@@ -131,16 +131,16 @@
         },
         {
             "name": "jeidison/signer-php",
-            "version": "v1.0.1",
+            "version": "dev-main",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jeidison/signer-php.git",
-                "reference": "47c8d011558c9995a1a46674be1911d9087cfd73"
+                "reference": "38b85b2e8280869d5a9a374d36a490621e001a0d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jeidison/signer-php/zipball/47c8d011558c9995a1a46674be1911d9087cfd73",
-                "reference": "47c8d011558c9995a1a46674be1911d9087cfd73",
+                "url": "https://api.github.com/repos/jeidison/signer-php/zipball/38b85b2e8280869d5a9a374d36a490621e001a0d",
+                "reference": "38b85b2e8280869d5a9a374d36a490621e001a0d",
                 "shasum": ""
             },
             "require": {
@@ -159,6 +159,7 @@
                 "symfony/var-dumper": "^6.4.2",
                 "vimeo/psalm": "^6.15"
             },
+            "default-branch": true,
             "bin": [
                 "bin/signer-sign",
                 "bin/signer-inspect",
@@ -194,9 +195,9 @@
             ],
             "support": {
                 "issues": "https://github.com/jeidison/signer-php/issues",
-                "source": "https://github.com/jeidison/signer-php/tree/v1.0.1"
+                "source": "https://github.com/jeidison/signer-php/tree/main"
             },
-            "time": "2026-03-17T00:40:40+00:00"
+            "time": "2026-05-27T18:35:28+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -1902,6 +1903,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "jeidison/signer-php": 20,
         "nextcloud/ocp": 20,
         "roave/security-advisories": 20
     },
