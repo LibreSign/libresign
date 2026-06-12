@@ -49,9 +49,9 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[
 				'name' => 'email',
 				'enabled' => true,
-				'requirement' => 'required',
-				'mandatory' => true,
+				'signatureMethods' => [],
 				'minimumTotalVerifiedFactors' => 2,
+				'requirement' => 'required',
 			],
 		];
 
@@ -169,8 +169,8 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						[
 							'name' => 'email',
 							'enabled' => true,
+							'signatureMethods' => [],
 							'requirement' => 'required',
-							'mandatory' => true,
 						],
 					],
 					'sourceScope' => 'system',
@@ -204,8 +204,8 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							[
 								'name' => 'email',
 								'enabled' => true,
+								'signatureMethods' => [],
 								'requirement' => 'required',
-								'mandatory' => true,
 							],
 						],
 						'system',
