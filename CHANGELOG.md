@@ -18,6 +18,24 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 14.0.0 - 2026-06-12
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Added
+- first stable release for the 14.x line (Nextcloud 34)
+
+### Changed
+- Update translations
+- bump dependency [#7718](https://github.com/LibreSign/libresign/pull/7718)
+- update loading message in request signature tab [#7725](https://github.com/LibreSign/libresign/pull/7725)
+
+### Fixes
+- cache generated CRL DER to avoid DB queries during validation [#7721](https://github.com/LibreSign/libresign/pull/7721)
+- keep groups_request_sign JSON unicode serialization consistent [#7680](https://github.com/LibreSign/libresign/pull/7680)
+
 ## 13.2.4 - 2026-04-25
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
