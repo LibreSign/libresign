@@ -38,7 +38,7 @@ jobs:
           exit 1
 
       # GitHub actions bot approve
-      - uses: hmarr/auto-approve-action@b40d6c9ed2fa10c9a2749eca7eb004418a705501 # v2
+      - uses: hmarr/auto-approve-action@f0939ea97e9205ef24d872e76833fa908a770363 # v4.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
