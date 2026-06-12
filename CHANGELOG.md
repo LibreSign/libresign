@@ -24,6 +24,9 @@ Types of changes:
 
 🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
 
+### Added
+- first stable release for the 14.x line (Nextcloud 34)
+
 ### Changed
 - Update translations
 - bump dependency [#7718](https://github.com/LibreSign/libresign/pull/7718)
