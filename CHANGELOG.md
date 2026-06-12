@@ -18,6 +18,28 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 14.0.0 - 2026-06-12
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- Update translations
+- Bump dependencies [#7636](https://github.com/LibreSign/libresign/pull/7636) [#7620](https://github.com/LibreSign/libresign/pull/7620) [#7618](https://github.com/LibreSign/libresign/pull/7618) [#7633](https://github.com/LibreSign/libresign/pull/7633)
+- harden openapi contracts for sdk generators [#7662](https://github.com/LibreSign/libresign/pull/7662)
+- use default DataResponse success constructor in id docs [#7661](https://github.com/LibreSign/libresign/pull/7661)
+
+### Fixes
+- align getArchitectures typing with main [#7680](https://github.com/LibreSign/libresign/pull/7680)
+- keep groups_request_sign JSON unicode serialization consistent [#7675](https://github.com/LibreSign/libresign/pull/7675)
+- align openapi signatureflow structure [#7668](https://github.com/LibreSign/libresign/pull/7668)
+- align openapi file metadata contract with runtime payloads [#7656](https://github.com/LibreSign/libresign/pull/7656)
+- expose ValidationURL and qrcode in signature stamp templates [#7650](https://github.com/LibreSign/libresign/pull/7650)
+- render envelope validation data correctly for multi-file requests [#7647](https://github.com/LibreSign/libresign/pull/7647)
+- remove stale addStyle icons call from TemplateLoader [#7641](https://github.com/LibreSign/libresign/pull/7641)
+- support Twig date filter for ServerSignatureDate in JSign [#7644](https://github.com/LibreSign/libresign/pull/7644)
+
 ## 13.2.4 - 2026-04-25
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
