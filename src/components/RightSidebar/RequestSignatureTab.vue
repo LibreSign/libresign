@@ -14,7 +14,7 @@
 			{{ t('libresign', 'Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures.') }}
 		</NcNoteCard>
 		<NcNoteCard v-if="shouldLoadDetail && isLoadingFileDetail" type="info">
-			{{ t('libresign', 'Loading signer details...') }}
+			{{ t('libresign', 'Loading signer details\u00A0…') }}
 		</NcNoteCard>
 		<NcButton v-if="filesStore.canAddSigner() && !isOriginalFileDeleted"
 			:variant="hasSigners ? 'secondary' : 'primary'"
