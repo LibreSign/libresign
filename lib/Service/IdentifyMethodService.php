@@ -346,7 +346,7 @@ class IdentifyMethodService {
 						$entity = $identifyMethod->getEntity();
 						$email = match ($entity->getIdentifierKey()) {
 							'email', 'emailToken' => $entity->getIdentifierValue(),
-							'account' => $this->getUserManager()->get($entity->getIdentifierValue())?->getEMailAddress() ?? '',
+							'account' => $this->userManager->get($entity->getIdentifierValue())?->getEMailAddress() ?? '',
 							default => '',
 						};
 						$emailLowercase = strtolower($email);

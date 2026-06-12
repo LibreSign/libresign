@@ -1291,15 +1291,6 @@ export type components = {
         };
         /** @enum {string} */
         IdentifyMethodRequirement: "required" | "optional";
-        IdentifyMethodSetting: {
-            name: string;
-            friendly_name: string;
-            enabled: boolean;
-            requirement: components["schemas"]["IdentifyMethodRequirement"];
-            /** Format: int64 */
-            minimumTotalVerifiedFactors?: number;
-            signatureMethods?: components["schemas"]["SignatureMethods"];
-        };
         InfoMessage: {
             /** @enum {string} */
             type: "info";
@@ -1360,8 +1351,21 @@ export type components = {
             effectiveValue: string;
             sourceScope: string;
         };
+        PolicySnapshotIdentifyMethodFactor: {
+            name: string;
+            enabled: boolean;
+            signatureMethods?: {
+                [key: string]: {
+                    [key: string]: Record<string, never>;
+                };
+            };
+            requirement?: components["schemas"]["IdentifyMethodRequirement"];
+            /** Format: int64 */
+            minimumTotalVerifiedFactors?: number;
+            friendly_name?: string;
+        };
         PolicySnapshotIdentifyMethodsEntry: {
-            effectiveValue: components["schemas"]["IdentifyMethodSetting"][];
+            effectiveValue: components["schemas"]["PolicySnapshotIdentifyMethodFactor"][];
             sourceScope: string;
         };
         PolicySnapshotNumericEntry: {

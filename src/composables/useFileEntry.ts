@@ -13,7 +13,7 @@ type FileEntryMetadata = {
 	extension?: string
 }
 
-type FileEntryStoreFile = Partial<FileEntrySource> & {
+type FileEntryStoreFile = Omit<Partial<FileEntrySource>, 'id'> & {
 	id?: number | string
 }
 

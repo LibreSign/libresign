@@ -462,8 +462,16 @@ namespace OCA\Libresign;
  *     effectiveValue: int,
  *     sourceScope: string,
  * }
+ * @psalm-type LibresignPolicySnapshotIdentifyMethodFactor = array{
+ *     name: string,
+ *     enabled: bool,
+ *     signatureMethods?: array<string, array<string, mixed>>,
+ *     requirement?: LibresignIdentifyMethodRequirement,
+ *     minimumTotalVerifiedFactors?: positive-int,
+ *     friendly_name?: string,
+ * }
  * @psalm-type LibresignPolicySnapshotIdentifyMethodsEntry = array{
- *     effectiveValue: list<LibresignIdentifyMethodSetting>,
+ *     effectiveValue: list<LibresignPolicySnapshotIdentifyMethodFactor>,
  *     sourceScope: string,
  * }
  * @psalm-type LibresignValidatePolicySnapshot = array{

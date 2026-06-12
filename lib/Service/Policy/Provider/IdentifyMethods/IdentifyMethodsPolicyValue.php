@@ -194,10 +194,10 @@ final class IdentifyMethodsPolicyValue {
 	 * @param list<array<string, mixed>> $policyFactors
 	 * @param list<array<string, mixed>> $catalogFactors
 	 * @param bool $addMissingFromCatalog When true (default), factors present in the catalog but absent
-	 *                                     from the policy are appended as disabled entries (used for the
-	 *                                     empty-policy path).  When false, only the factors already in
-	 *                                     the policy are kept (in policy order) and each is enriched
-	 *                                     with catalog metadata such as labels and friendly names.
+	 *                                    from the policy are appended as disabled entries (used for the
+	 *                                    empty-policy path).  When false, only the factors already in
+	 *                                    the policy are kept (in policy order) and each is enriched
+	 *                                    with catalog metadata such as labels and friendly names.
 	 * @return list<array<string, mixed>>
 	 */
 	private static function mergeFactorsWithCatalog(array $policyFactors, array $catalogFactors, bool $addMissingFromCatalog = true): array {

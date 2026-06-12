@@ -2235,6 +2235,41 @@
                     }
                 }
             },
+            "PolicySnapshotIdentifyMethodFactor": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "enabled"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "signatureMethods": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "requirement": {
+                        "$ref": "#/components/schemas/IdentifyMethodRequirement"
+                    },
+                    "minimumTotalVerifiedFactors": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 1
+                    },
+                    "friendly_name": {
+                        "type": "string"
+                    }
+                }
+            },
             "PolicySnapshotIdentifyMethodsEntry": {
                 "type": "object",
                 "required": [
@@ -2245,7 +2280,7 @@
                     "effectiveValue": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/IdentifyMethodSetting"
+                            "$ref": "#/components/schemas/PolicySnapshotIdentifyMethodFactor"
                         }
                     },
                     "sourceScope": {
