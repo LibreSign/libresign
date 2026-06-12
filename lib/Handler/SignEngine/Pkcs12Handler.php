@@ -162,15 +162,16 @@ class Pkcs12Handler extends SignEngineHandler {
 		return array_merge($result, $docMdpData);
 	}
 
-	private function extractTimestampData(array $decoded, array $result): array {
+	private function extractTimestampData(?array $decoded, array $result): array {
+		if ($decoded === null) {
+			return $result;
+		}
+
 		$tsa = new TSA();
 
-		try {
-			$timestampData = $tsa->extract($decoded);
-			if (!empty($timestampData['genTime']) || !empty($timestampData['policy']) || !empty($timestampData['serialNumber'])) {
-				$result['timestamp'] = $timestampData;
-			}
-		} catch (\Throwable) {
+		$timestampData = $tsa->extract($decoded);
+		if (!empty($timestampData['genTime']) || !empty($timestampData['policy']) || !empty($timestampData['serialNumber'])) {
+			$result['timestamp'] = $timestampData;
 		}
 
 		if (!isset($result['signingTime']) || !$result['signingTime'] instanceof \DateTime) {
