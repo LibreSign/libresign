@@ -187,7 +187,7 @@ class CrlRevocationChecker {
 	 * URL generator and then cached in a property to avoid redundant work on
 	 * installations that validate many certificates in a single request.
 	 */
-	private function getLocalCrlPattern(): string {
+	protected function getLocalCrlPattern(): string {
 		if ($this->localCrlPattern !== null) {
 			return $this->localCrlPattern;
 		}
@@ -198,14 +198,19 @@ class CrlRevocationChecker {
 			'engineType' => 'ENGINETYPE',
 		]);
 
-		$patternUrl = str_replace('INSTANCEID', '([^/_]+)', $templateUrl);
-		$patternUrl = str_replace('999999', '(\d+)', $patternUrl);
-		$patternUrl = str_replace('ENGINETYPE', '([^/_]+)', $patternUrl);
+		// Match the path only and accept any scheme/host: the CRL DP host is fixed
+		// at certificate issuance and may differ from the request host (already
+		// vetted as trusted by isLocalCrlUrl()).
+		$templatePath = parse_url($templateUrl, PHP_URL_PATH) ?: $templateUrl;
 
-		$escapedPattern = str_replace([':', '/', '.'], ['\:', '\/', '\.'], $patternUrl);
+		$patternPath = str_replace('INSTANCEID', '([^/_]+)', $templatePath);
+		$patternPath = str_replace('999999', '(\d+)', $patternPath);
+		$patternPath = str_replace('ENGINETYPE', '([^/_]+)', $patternPath);
+
+		$escapedPattern = str_replace([':', '/', '.'], ['\:', '\/', '\.'], $patternPath);
 		$escapedPattern = str_replace('\/apps\/', '(?:\/index\.php)?\/apps\/', $escapedPattern);
 
-		$this->localCrlPattern = '/^' . $escapedPattern . '$/';
+		$this->localCrlPattern = '/^https?\:\/\/[^\/]+' . $escapedPattern . '$/';
 		return $this->localCrlPattern;
 	}
 
