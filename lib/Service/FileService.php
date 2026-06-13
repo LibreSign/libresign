@@ -16,6 +16,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -50,6 +51,7 @@ use TypeError;
 
 /**
  * @psalm-import-type LibresignValidatedFile from ResponseDefinitions
+ * @psalm-import-type LibresignIdentifyMethod from ResponseDefinitions
  * @psalm-import-type LibresignSignerDetail from ResponseDefinitions
  * @psalm-import-type LibresignSignerSummary from ResponseDefinitions
  */
@@ -645,23 +647,94 @@ class FileService {
 				continue;
 			}
 
+			$email = $signerData['email'] ?? null;
+			$signed = $signerData['signed'] ?? null;
+			$identifyMethods = $this->normalizeSignerIdentifyMethods($signerData['identifyMethods'] ?? null);
+
 			$summary = [
 				'signRequestId' => $signRequestId,
 				'displayName' => isset($signerData['displayName']) ? (string)$signerData['displayName'] : '',
-				'email' => isset($signerData['email']) ? (string)$signerData['email'] : '',
-				'signed' => $signerData['signed'] ?? null,
-				'status' => isset($signerData['status']) ? (int)$signerData['status'] : 0,
+				'email' => is_string($email) ? $email : null,
+				'signed' => is_string($signed) ? $signed : null,
+				'status' => $this->normalizeSignerSummaryStatus($signerData['status'] ?? null),
 				'statusText' => isset($signerData['statusText']) ? (string)$signerData['statusText'] : '',
 			];
 
-			if (isset($signerData['identifyMethods']) && is_array($signerData['identifyMethods'])) {
-				$summary['identifyMethods'] = $signerData['identifyMethods'];
+			if ($identifyMethods !== null) {
+				$summary['identifyMethods'] = $identifyMethods;
 			}
 
+			/** @var LibresignSignerSummary $summary */
 			$summaries[] = $summary;
 		}
 
 		return $summaries;
+	}
+
+	/**
+	 * @psalm-return 0|1|2
+	 */
+	private function normalizeSignerSummaryStatus(mixed $status): int {
+		return match ((string)$status) {
+			'1' => SignRequestStatus::ABLE_TO_SIGN->value,
+			'2' => SignRequestStatus::SIGNED->value,
+			default => SignRequestStatus::DRAFT->value,
+		};
+	}
+
+	/**
+	 * @psalm-return list<LibresignIdentifyMethod>|null
+	 */
+	private function normalizeSignerIdentifyMethods(mixed $identifyMethods): ?array {
+		if (!is_array($identifyMethods)) {
+			return null;
+		}
+
+		$normalizedMethods = [];
+
+		foreach ($identifyMethods as $identifyMethod) {
+			$identifyMethodData = is_object($identifyMethod) ? (array)$identifyMethod : $identifyMethod;
+			if (!is_array($identifyMethodData)) {
+				continue;
+			}
+
+			$method = match ($identifyMethodData['method'] ?? null) {
+				'account', 'email', 'signal', 'sms', 'telegram', 'whatsapp', 'xmpp' => $identifyMethodData['method'],
+				default => null,
+			};
+
+			$value = $identifyMethodData['value'] ?? null;
+			$mandatory = $this->normalizeNonNegativeInt($identifyMethodData['mandatory'] ?? null);
+
+			if ($method === null || !is_string($value) || $mandatory === null) {
+				continue;
+			}
+
+			$normalizedMethods[] = [
+				'method' => $method,
+				'value' => $value,
+				'mandatory' => $mandatory,
+			];
+		}
+
+		return $normalizedMethods === [] ? null : $normalizedMethods;
+	}
+
+	/**
+	 * @psalm-return non-negative-int|null
+	 */
+	private function normalizeNonNegativeInt(mixed $value): ?int {
+		if (is_int($value) && $value >= 0) {
+			return $value;
+		}
+
+		if (is_string($value) && ctype_digit($value)) {
+			$normalizedValue = (int)$value;
+			/** @var non-negative-int $normalizedValue */
+			return $normalizedValue;
+		}
+
+		return null;
 	}
 
 	private function extractValidSignRequestId(array $signerData): ?int {
