@@ -522,7 +522,8 @@
                         "type": "string"
                     },
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     },
                     "status": {
                         "type": "integer",
@@ -1973,7 +1974,12 @@
                     },
                     "status": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ]
                     },
                     "statusText": {
                         "type": "string"
