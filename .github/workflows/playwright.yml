@@ -55,6 +55,9 @@ jobs:
   playwright:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    container:
+      image: mcr.microsoft.com/playwright:v1.59.1-noble
+      options: --ipc=host
 
     needs: [matrix, changes]
     if: needs.changes.outputs.src != 'false'
@@ -78,9 +81,6 @@ jobs:
           # Split and keep last
           echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
 
-      - name: Install system dependencies
-        run: sudo apt update && sudo apt install poppler-utils
-
       - name: Checkout server
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -102,16 +102,25 @@ jobs:
         with:
           filename: apps/${{ env.APP_NAME }}/appinfo/info.xml
 
-      - name: Set up php ${{ steps.php_versions.outputs.php-min }}
-        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
-        with:
-          php-version: ${{ steps.php_versions.outputs.php-min }}
-          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, sqlite, pdo_sqlite, xmlreader, xmlwriter, zip, zlib
-          coverage: none
-          ini-file: development
-          ini-values: disable_functions=
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install system and PHP dependencies
+        run: |
+          php_version='${{ steps.php_versions.outputs.php-min }}'
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            composer \
+            poppler-utils \
+            unzip \
+            php${php_version}-bz2 \
+            php${php_version}-cli \
+            php${php_version}-curl \
+            php${php_version}-gd \
+            php${php_version}-intl \
+            php${php_version}-mbstring \
+            php${php_version}-sqlite3 \
+            php${php_version}-xml \
+            php${php_version}-zip
+          php -v
+          composer --version
 
       - name: Check composer file existence
         id: check_composer
@@ -163,7 +172,6 @@ jobs:
 
       - name: Set up Nextcloud
         run: |
-          sudo echo "127.0.0.1 mailpit" | sudo tee -a /etc/hosts
           mkdir data
           ./occ maintenance:install \
             --verbose \
@@ -231,35 +239,13 @@ jobs:
           timeout 30 bash -c 'until curl -s http://localhost:8080/status.php > /dev/null; do sleep 1; done'
           echo "Nextcloud is ready at http://localhost:8080"
 
-      - name: Start Playwright server container
-        run: |
-          # Playwright's host-side browser installation hangs on the GitHub-hosted
-          # Linux runner after download completion. Run the browser remotely in the
-          # official Playwright Docker image instead, as documented for CI.
-          docker rm -f libresign-playwright-server >/dev/null 2>&1 || true
-          docker run -d --rm \
-            --name libresign-playwright-server \
-            --init \
-            --ipc=host \
-            --add-host=hostmachine:host-gateway \
-            -p 3000:3000 \
-            mcr.microsoft.com/playwright:v1.59.1-noble \
-            /bin/sh -c "npx -y playwright@1.59.1 run-server --port 3000 --host 0.0.0.0"
-          timeout 30 bash -c 'until docker logs libresign-playwright-server 2>&1 | grep -q "Listening on"; do sleep 1; done'
-          docker logs libresign-playwright-server | tail -20
-
       - name: Run Playwright tests
         working-directory: apps/${{ env.APP_NAME }}
         env:
-          PLAYWRIGHT_BASE_URL: http://hostmachine:8080
-          PW_TEST_CONNECT_WS_ENDPOINT: ws://127.0.0.1:3000/
+          PLAYWRIGHT_BASE_URL: http://localhost:8080
           NEXTCLOUD_ADMIN_USER: admin
           NEXTCLOUD_ADMIN_PASSWORD: admin
         run: npx playwright test
-
-      - name: Stop Playwright server container
-        if: always()
-        run: docker rm -f libresign-playwright-server >/dev/null 2>&1 || true
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
