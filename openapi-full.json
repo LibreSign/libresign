@@ -805,8 +805,7 @@
                         "type": "string"
                     },
                     "name": {
-                        "type": "string",
-                        "minLength": 1
+                        "type": "string"
                     },
                     "status": {
                         "type": "integer",
