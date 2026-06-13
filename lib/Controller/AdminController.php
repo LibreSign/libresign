@@ -30,6 +30,7 @@ use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Settings\Admin;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataDownloadResponse;
@@ -202,7 +203,7 @@ class AdminController extends AEnvironmentAwareController {
 			$this->validateService->validateNames($rootCert['names']);
 			foreach ($rootCert['names'] as $item) {
 				if (is_array($item['value'])) {
-					$trimmedValues = array_map('trim', $item['value']);
+					$trimmedValues = array_map(trim(...), $item['value']);
 					$names[$item['id']]['value'] = array_filter($trimmedValues, fn ($val) => $val !== '');
 				} else {
 					$names[$item['id']]['value'] = trim((string)$item['value']);
@@ -888,9 +889,6 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Preview footer template as PDF
 	 *
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 *
 	 * @param string $template Template to preview
 	 * @param int $width Width of preview in points (default: 595 - A4 width)
 	 * @param int $height Height of preview in points (default: 50)
@@ -900,6 +898,8 @@ class AdminController extends AEnvironmentAwareController {
 	 * 400: Bad request
 	 */
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/footer-template/preview-pdf', requirements: ['apiVersion' => '(v1)'])]
+	#[NoCSRFRequired]
+	#[NoAdminRequired]
 	public function footerTemplatePreviewPdf(string $template = '', int $width = 595, int $height = 50) {
 		try {
 			$pdf = $this->footerService->renderPreviewPdf($template ?: null, $width, $height);

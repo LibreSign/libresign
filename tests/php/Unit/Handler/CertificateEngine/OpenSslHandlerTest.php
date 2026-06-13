@@ -44,6 +44,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private LoggerInterface $logger;
 	private SubjectAlternativeNameService $subjectAlternativeNameService;
 	private CrlRevocationChecker&MockObject $crlRevocationChecker;
+	#[\Override]
 	public function setUp(): void {
 		$this->config = \OCP\Server::get(IConfig::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
@@ -348,7 +349,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		// Parse DN string like "/C=US/ST=State/O=Org/CN=Name"
 		$parts = explode('/', trim($dn, '/'));
 		foreach ($parts as $part) {
-			if (strpos($part, '=') !== false) {
+			if (str_contains($part, '=')) {
 				[$key, $value] = explode('=', $part, 2);
 				$result[$key] = $value;
 			}
@@ -486,7 +487,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$revokedCert->setRevokedAt(new \DateTime('2025-01-01 12:00:00'));
 
 		$configPath = $rootInstance->getCurrentConfigPath();
-		$pkiDirName = basename($configPath);
+		$pkiDirName = basename((string)$configPath);
 		preg_match('/^([^_]+)_(\d+)_(.+)$/', $pkiDirName, $matches);
 
 		$crlDer = $rootInstance->generateCrlDer([$revokedCert], $matches[1], (int)$matches[2], 1);
@@ -498,7 +499,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$crlText = implode("\n", $output);
 
-		$this->assertMatchesRegularExpression('/Serial Number: 0*' . preg_quote($parsed['serialNumberHex'], '/') . '/', $crlText);
+		$this->assertMatchesRegularExpression('/Serial Number: 0*' . preg_quote((string)$parsed['serialNumberHex'], '/') . '/', $crlText);
 
 		unlink($tempCrlFile);
 	}
@@ -565,7 +566,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertFileExists($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
 		$this->assertFileExists($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
 
-		$pkiDirName = basename($configPath);
+		$pkiDirName = basename((string)$configPath);
 		$this->assertMatchesRegularExpression('/^[^_]+_\d+_.+$/', $pkiDirName);
 		preg_match('/^([^_]+)_(\d+)_(.+)$/', $pkiDirName, $matches);
 		$instanceId = $matches[1];
@@ -698,7 +699,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$revokedCert->setRevokedAt(new \DateTime('2025-01-01 12:00:00'));
 
 		$configPath = $rootInstance->getCurrentConfigPath();
-		$pkiDirName = basename($configPath);
+		$pkiDirName = basename((string)$configPath);
 		preg_match('/^([^_]+)_(\d+)_(.+)$/', $pkiDirName, $matches);
 		$instanceId = $matches[1];
 		$generation = (int)$matches[2];

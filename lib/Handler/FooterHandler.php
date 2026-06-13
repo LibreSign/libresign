@@ -31,8 +31,8 @@ use OCP\L10N\IFactory;
 
 class FooterHandler {
 	private QrCode $qrCode;
-	private const MIN_QRCODE_SIZE = 100;
-	private const POINT_TO_MILIMETER = 0.3527777778;
+	private const int MIN_QRCODE_SIZE = 100;
+	private const float POINT_TO_MILIMETER = 0.3527777778;
 
 	public function __construct(
 		private IAppConfig $appConfig,

@@ -17,8 +17,9 @@ use OCA\Libresign\Tests\Api\ApiTestCase;
  * @group DB
  */
 class CrlControllerTest extends ApiTestCase {
-	private const VALID_CERT_SERIAL = '123456';
+	private const string VALID_CERT_SERIAL = '123456';
 
+	#[\Override]
 	public function setUp(): void {
 		$data = json_decode(file_get_contents('openapi-full.json'), true);
 		$data['servers'][] = ['url' => '/index.php/apps/libresign'];

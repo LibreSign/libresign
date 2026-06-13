@@ -172,15 +172,11 @@ class ProgressService {
 
 	private function buildProgressHash(array $progress): string {
 		if (!empty($progress['files']) && is_array($progress['files'])) {
-			usort($progress['files'], function (array $left, array $right): int {
-				return ($left['id'] ?? 0) <=> ($right['id'] ?? 0);
-			});
+			usort($progress['files'], fn (array $left, array $right): int => ($left['id'] ?? 0) <=> ($right['id'] ?? 0));
 		}
 
 		if (!empty($progress['signers']) && is_array($progress['signers'])) {
-			usort($progress['signers'], function (array $left, array $right): int {
-				return ($left['id'] ?? 0) <=> ($right['id'] ?? 0);
-			});
+			usort($progress['signers'], fn (array $left, array $right): int => ($left['id'] ?? 0) <=> ($right['id'] ?? 0));
 		}
 
 		return hash('sha256', json_encode($progress, JSON_UNESCAPED_SLASHES) ?: '');

@@ -16,21 +16,21 @@ class TSA {
 	private static bool $areOidsInitialized = false;
 	private static array $asn1DecodingCache = [];
 
-	private const CERTIFICATE_ATTRIBUTE_OIDS = [
+	private const array CERTIFICATE_ATTRIBUTE_OIDS = [
 		'2.5.4.3' => 'commonName',
 		'2.5.4.6' => 'countryName',
 		'2.5.4.10' => 'organizationName',
 		'1.2.840.113549.1.9.1' => 'emailAddress',
 	];
 
-	private const TIMESTAMP_OIDS = [
+	private const array TIMESTAMP_OIDS = [
 		'TIME_STAMP_TOKEN' => '1.2.840.113549.1.9.16.2.14',
 		'SIGNING_TIME' => '1.2.840.113549.1.9.5',
 		'TST_INFO' => '1.2.840.113549.1.9.16.1.4',
 	];
 
 	private static ?array $timestampInfoStructure = null;
-	private const CACHE_SIZE_LIMIT = 50;
+	private const int CACHE_SIZE_LIMIT = 50;
 
 	public function __construct() {
 		$this->ensureOidsAreLoaded();
@@ -406,7 +406,7 @@ class TSA {
 			array_map(
 				fn ($field) => empty($hints[$field])
 					? null
-					: $mapping[$field] . '=' . addcslashes($hints[$field], '/+<>"#;'),
+					: $mapping[$field] . '=' . addcslashes((string)$hints[$field], '/+<>"#;'),
 				array_keys($mapping)
 			)
 		);

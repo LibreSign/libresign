@@ -108,7 +108,7 @@ final class TokenClassesTest extends TestCase {
 		$parent = $reflection->getParentClass();
 
 		$this->assertNotFalse($parent);
-		$this->assertEquals('OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TwofactorGatewayToken', $parent->getName());
+		$this->assertEquals(\OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TwofactorGatewayToken::class, $parent->getName());
 	}
 
 	public static function providerTokenClasses(): array {

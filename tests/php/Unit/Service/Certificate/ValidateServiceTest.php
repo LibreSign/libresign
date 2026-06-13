@@ -20,6 +20,7 @@ final class ValidateServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N $l10n;
 	private RulesService $rulesService;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->rulesService = new RulesService($this->l10n);

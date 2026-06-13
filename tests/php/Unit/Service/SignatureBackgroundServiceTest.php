@@ -24,13 +24,13 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 	private IConfig&MockObject $config;
 	private ITempManager&MockObject $tempManager;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->appData = $this->createMock(IAppData::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->config = $this->createMock(IConfig::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 	}
-
 
 	private function getClass(): SignatureBackgroundService {
 		$this->service = new SignatureBackgroundService(

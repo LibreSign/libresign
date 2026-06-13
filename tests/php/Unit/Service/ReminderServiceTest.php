@@ -7,7 +7,6 @@
 
 declare(strict_types=1);
 
-
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use DateTime;
@@ -33,6 +32,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected IdentifyMethodService|MockObject $identifyMethodService;
 	protected LoggerInterface|MockObject $logger;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->jobList = $this->createMock(IJobList::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();

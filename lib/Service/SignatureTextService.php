@@ -41,7 +41,7 @@ class SignatureTextService {
 	public const FRONT_SIZE_MAX = 30;
 	public const DEFAULT_SIGNATURE_WIDTH = 350;
 	public const DEFAULT_SIGNATURE_HEIGHT = 100;
-	private const QRCODE_SIZE = 100;
+	private const int QRCODE_SIZE = 100;
 	public function __construct(
 		private IAppConfig $appConfig,
 		private IL10N $l10n,

@@ -5,6 +5,7 @@ declare(strict_types=1);
  * SPDX-FileCopyrightText: 2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
+
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Exception\LibresignException;
@@ -522,9 +523,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileMapper->method('getTextOfStatus')->willReturn('Status text');
 		$this->fileMapper->method('getChildrenFiles')->willReturn([]);
 		$this->userManager->method('get')->with('creator-user')->willReturn($creator);
-		$this->urlGenerator->method('linkToRoute')->willReturnCallback(static function (string $route, array $params): string {
-			return sprintf('%s:%s', $route, $params['uuid']);
-		});
+		$this->urlGenerator->method('linkToRoute')->willReturnCallback(static fn (string $route, array $params): string => sprintf('%s:%s', $route, $params['uuid']));
 		$this->signersLoader->expects($this->once())
 			->method('loadLibreSignSigners')
 			->willReturnCallback(static function ($fileEntity, \stdClass $fileData): void {
@@ -556,7 +555,6 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testMapSignerDetailsToSummaryFiltersInvalidSigners(array $signers, array $expectedSummaries): void {
 		$service = $this->createFileService();
 		$reflectionMethod = new \ReflectionMethod(FileService::class, 'mapSignerDetailsToSummary');
-		$reflectionMethod->setAccessible(true);
 
 		$result = $reflectionMethod->invokeArgs($service, [$signers]);
 

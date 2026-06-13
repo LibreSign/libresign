@@ -52,9 +52,7 @@ class AccountPhonePluginTest extends TestCase {
 
 		$userManager = $this->createStub(IUserManager::class);
 		$userManager->method('get')
-			->willReturnCallback(function (string $uid) use ($user, $currentUser) {
-				return $uid === 'target' ? $user : ($uid === 'current' ? $currentUser : null);
-			});
+			->willReturnCallback(fn (string $uid) => $uid === 'target' ? $user : ($uid === 'current' ? $currentUser : null));
 
 		$groupManager = $this->createStub(IGroupManager::class);
 		$groupManager->method('getUserGroupIds')

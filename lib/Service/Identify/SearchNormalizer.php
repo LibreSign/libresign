@@ -12,7 +12,7 @@ use OCP\IConfig;
 use OCP\IPhoneNumberUtil;
 
 class SearchNormalizer {
-	private const PHONE_BASED_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
+	private const array PHONE_BASED_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
 
 	public function __construct(
 		private IConfig $config,

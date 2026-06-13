@@ -29,6 +29,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IFactory $l10nFactory;
 	private ITempManager $tempManager;
 	private FooterHandler $footerHandler;
+	#[\Override]
 	public function setUp(): void {
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->pdfMetadataExtractor = $this->createMock(PdfMetadataExtractor::class);
@@ -230,7 +231,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$pdf = $parser->parseContent($content);
 		$text = $pdf->getText();
 		$this->assertNotEmpty($text, 'PDF without text');
-		$content = explode("\n", $text);
+		$content = explode("\n", (string)$text);
 		$this->assertNotEmpty($content, 'PDF without any row');
 		$content = array_map(fn ($row) => str_getcsv($row, ':', '"', '\\'), $content);
 

@@ -9,6 +9,7 @@ declare(strict_types=1);
 /**
  * Mock extension_loaded in the ConfigureCheckService namespace to control its behavior in tests
  */
+
 namespace OCA\Libresign\Service\Install;
 
 function extension_loaded(string $name): bool {
@@ -46,6 +47,7 @@ final class ConfigureCheckServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 	private LoggerInterface&MockObject $logger;
 	private JavaHelper&MockObject $javaHelper;
 
+	#[\Override]
 	public function setUp(): void {
 		self::$mockExtensionLoaded = [];
 		$this->appConfig = $this->getMockAppConfigWithReset();
@@ -60,6 +62,7 @@ final class ConfigureCheckServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		$this->javaHelper = $this->createMock(JavaHelper::class);
 	}
 
+	#[\Override]
 	public function tearDown(): void {
 		self::$mockExtensionLoaded = [];
 	}

@@ -30,6 +30,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppDataFactory $appDataFactory;
 	private ITempManager $tempManager;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->environmentHelper = $this->createMock(EnvironmentHelper::class);
 		$this->fileAccessHelper = new FileAccessHelper();

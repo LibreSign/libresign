@@ -7,7 +7,6 @@
 
 namespace OCA\Libresign\Dav;
 
-use OC;
 use OCA\DAV\Connector\Sabre\Directory;
 use OCA\DAV\Connector\Sabre\File;
 use OCA\Libresign\Service\FileService;
@@ -18,7 +17,7 @@ use Sabre\DAV\ServerPlugin;
 
 class SignatureStatusPlugin extends ServerPlugin {
 	public function initialize(Server $server): void {
-		$server->on('propFind', [$this, 'propFind']);
+		$server->on('propFind', $this->propFind(...));
 	}
 
 	public function propFind(PropFind $propFind, INode $node): void {
@@ -26,7 +25,7 @@ class SignatureStatusPlugin extends ServerPlugin {
 			return;
 		}
 
-		$fileService = OC::$server->get(FileService::class);
+		$fileService = \OCP\Server::get(FileService::class);
 		$nodeId = $node->getId();
 
 		if (!$fileService->isLibresignFile($nodeId)) {

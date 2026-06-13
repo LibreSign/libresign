@@ -126,7 +126,7 @@ class FileService {
 	}
 
 	public function getNodeFromData(array $data): Node {
-		$data['userManager'] = $data['userManager'] ?? '';
+		$data['userManager'] ??= '';
 		if (!$this->folderService->getUserId() && $data['userManager'] instanceof \OCP\IUser) {
 			$this->folderService->setUserId($data['userManager']->getUID());
 		}
@@ -192,10 +192,10 @@ class FileService {
 			}
 		}
 
-		$name = preg_replace('/\s+/', '_', $name);
+		$name = preg_replace('/\s+/', '_', $name) ?? $name;
 		$name = $name !== '' ? $name : 'document';
 		$extensionSuffix = '.' . $extension;
-		if (str_ends_with(strtolower($name), strtolower($extensionSuffix))) {
+		if (str_ends_with(strtolower((string)$name), strtolower($extensionSuffix))) {
 			return $name;
 		}
 		return $name . $extensionSuffix;

@@ -213,11 +213,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$engine->expects($this->once())
 			->method('generateCertificate')
 			->with(
-				$this->callback(function (array $user): bool {
-					return $user['host'] === 'user@example.com'
+				$this->callback(fn (array $user): bool => $user['host'] === 'user@example.com'
 						&& $user['uid'] === 'user@example.com'
-						&& $user['name'] === 'User Example';
-				}),
+						&& $user['name'] === 'User Example'),
 				$this->isType('string'),
 				'User Example',
 			)
@@ -307,11 +305,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('add')
 			->with(
 				SignSingleFileJob::class,
-				$this->callback(function (array $args): bool {
-					return $args['fileId'] === 2
+				$this->callback(fn (array $args): bool => $args['fileId'] === 2
 						&& $args['signRequestId'] === 200
-						&& $args['signRequestUuid'] === 'uuid-b';
-				})
+						&& $args['signRequestUuid'] === 'uuid-b')
 			);
 
 		$enqueued = $service->enqueueParallelSigningJobs([
@@ -321,7 +317,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertSame(1, $enqueued);
 	}
-
 
 	public function testEnqueueParallelSigningJobsStoresCredentialsWhenPasswordless(): void {
 		$service = $this->getService();
@@ -348,19 +343,15 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->with(
 				'',
 				$this->stringContains('libresign_sign_'),
-				$this->callback(function (array $payload): bool {
-					return $payload['signWithoutPassword'] === true
-						&& isset($payload['expires']);
-				})
+				$this->callback(fn (array $payload): bool => $payload['signWithoutPassword'] === true
+						&& isset($payload['expires']))
 			);
 
 		$this->jobList->expects($this->once())
 			->method('add')
 			->with(
 				SignSingleFileJob::class,
-				$this->callback(function (array $args): bool {
-					return isset($args['credentialsId']);
-				})
+				$this->callback(fn (array $args): bool => isset($args['credentialsId']))
 			);
 
 		$enqueued = $service->enqueueParallelSigningJobs([
@@ -685,14 +676,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->method('getEngine')->willReturn($pkcs12Handler);
 
 		$signRequest = $this->createMock(SignRequest::class);
-		$signRequest->method('__call')->willReturnCallback(function ($method, $args) {
-			switch ($method) {
-				case 'getFileId':
-					return 1;
-				case 'getSigningOrder':
-					return 1;
-				default: return null;
-			}
+		$signRequest->method('__call')->willReturnCallback(fn ($method, $args) => match ($method) {
+			'getFileId' => 1,
+			'getSigningOrder' => 1,
+			default => null,
 		});
 		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$libreSignFile->method('__call')->willReturnCallback(function ($method) {
@@ -738,14 +725,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->method('getEngine')->willReturn($pkcs12Handler);
 
 		$signRequest = $this->createMock(SignRequest::class);
-		$signRequest->method('__call')->willReturnCallback(function ($method, $args) {
-			switch ($method) {
-				case 'getFileId':
-					return 1;
-				case 'getSigningOrder':
-					return 1;
-				default: return null;
-			}
+		$signRequest->method('__call')->willReturnCallback(fn ($method, $args) => match ($method) {
+			'getFileId' => 1,
+			'getSigningOrder' => 1,
+			default => null,
 		});
 		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$libreSignFile->method('__call')->willReturnCallback(function ($method) {
@@ -930,15 +913,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$pkcs12Handler->method('getLastSignedDate')->willReturn(new \DateTime());
 		$service->method('getEngine')->willReturn($pkcs12Handler);
 
-		$signRequestCallback = function ($method, $args) {
-			switch ($method) {
-				case 'getFileId':
-					return 1;
-				case 'getSigningOrder':
-					return 1;
-				default: return null;
-			}
-		};
+		$signRequestCallback = (fn ($method, $args) => match ($method) {
+			'getFileId' => 1,
+			'getSigningOrder' => 1,
+			default => null,
+		});
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest->method('__call')->willReturnCallback($signRequestCallback);
 		$libreSignFile = new \OCA\Libresign\Db\File();
@@ -1063,27 +1042,17 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->method('getNextcloudFiles')->willReturn([$mockFile]);
 
 		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
-		$libreSignFile->method('__call')->willReturnCallback(function ($method) {
-			switch ($method) {
-				case 'isEnvelope':
-					return false;
-				case 'getDocmdpLevelEnum':
-					return \OCA\Libresign\Enum\DocMdpLevel::NOT_CERTIFIED;
-				default:
-					return null;
-			}
+		$libreSignFile->method('__call')->willReturnCallback(fn ($method) => match ($method) {
+			'isEnvelope' => false,
+			'getDocmdpLevelEnum' => \OCA\Libresign\Enum\DocMdpLevel::NOT_CERTIFIED,
+			default => null,
 		});
 
 		$signRequest = $this->createMock(SignRequest::class);
-		$signRequest->method('__call')->willReturnCallback(function ($method) {
-			switch ($method) {
-				case 'getFileId':
-					return 1;
-				case 'getSigningOrder':
-					return 1;
-				default:
-					return null;
-			}
+		$signRequest->method('__call')->willReturnCallback(fn ($method) => match ($method) {
+			'getFileId' => 1,
+			'getSigningOrder' => 1,
+			default => null,
 		});
 
 		$service
@@ -1306,7 +1275,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$libreSignFile = new \OCA\Libresign\Db\File();
 		$libreSignFile->setUuid('uuid');
 
-		$expectedEmail = isset($expected['SignerEmail']) ? $expected['SignerEmail'] : null;
+		$expectedEmail = $expected['SignerEmail'] ?? null;
 		$this->subjectAlternativeNameService
 			->method('extractEmailFromCertificate')
 			->willReturn($expectedEmail);
@@ -1937,14 +1906,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->method('getEngine')->willReturn($engineMock);
 
 		$signRequest = $this->createMock(SignRequest::class);
-		$signRequest->method('__call')->willReturnCallback(function ($method) {
-			switch ($method) {
-				case 'getFileId':
-					return 1;
-				case 'getSigningOrder':
-					return 1;
-				default: return null;
-			}
+		$signRequest->method('__call')->willReturnCallback(fn ($method) => match ($method) {
+			'getFileId' => 1,
+			'getSigningOrder' => 1,
+			default => null,
 		});
 
 		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
@@ -1972,7 +1937,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$pdfContent = $pdfContentGenerator($this);
 		$resource = fopen('php://memory', 'r+');
-		fwrite($resource, $pdfContent);
+		fwrite($resource, (string)$pdfContent);
 		rewind($resource);
 
 		$service->method('getLibreSignFileAsResource')->willReturn($resource);

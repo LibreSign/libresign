@@ -22,7 +22,7 @@ use OCP\IUserSession;
 
 class ContactPhonePlugin implements ISearchPlugin {
 	public const TYPE_SIGNER_CONTACT_PHONE = 52;
-	private const PHONE_BASED_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
+	private const array PHONE_BASED_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
 
 	public function __construct(
 		private IAppConfig $appConfig,
@@ -147,7 +147,7 @@ class ContactPhonePlugin implements ISearchPlugin {
 		$searchLower = strtolower($search);
 		foreach ($pagedRows as $item) {
 			if (strtolower($item['shareWithDisplayNameUnique']) === $searchLower
-				|| strtolower($item['label']) === $searchLower
+				|| strtolower((string)$item['label']) === $searchLower
 			) {
 				$result['exact'][] = $item;
 			} else {

@@ -7,7 +7,6 @@
 
 declare(strict_types=1);
 
-
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Db\FileElement;
@@ -184,11 +183,9 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 
 		$service->expects($this->once())
 			->method('save')
-			->with($this->callback(function (array $payload): bool {
-				return $payload['name'] === 'My File'
+			->with($this->callback(fn (array $payload): bool => $payload['name'] === 'My File'
 					&& $payload['status'] === \OCA\Libresign\Enum\FileStatus::DRAFT->value
-					&& $payload['settings'] === ['path' => '/docs'];
-			}))
+					&& $payload['settings'] === ['path' => '/docs']))
 			->willReturn($fileEntity);
 
 		$result = $service->saveFiles([
@@ -651,10 +648,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->fileElementService
 			->expects($this->once())
 			->method('saveVisibleElement')
-			->with($this->callback(function (array $element) use ($expectedPersistedSignRequestId): bool {
-				return $element['fileId'] === 545
-					&& $element['signRequestId'] === $expectedPersistedSignRequestId;
-			}))
+			->with($this->callback(fn (array $element): bool => $element['fileId'] === 545
+					&& $element['signRequestId'] === $expectedPersistedSignRequestId))
 			->willReturn(new FileElement());
 
 		$actual = self::invokePrivate($this->getService(), 'saveVisibleElements', [[
@@ -806,9 +801,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		// not the doubled-nested wrapper { file: { path }, name }.
 		$this->fileService->expects($this->exactly(2))
 			->method('getNodeFromData')
-			->with($this->callback(function (array $data): bool {
-				return isset($data['file']['path']) && !isset($data['file']['file']);
-			}))
+			->with($this->callback(fn (array $data): bool => isset($data['file']['path']) && !isset($data['file']['file'])))
 			->willReturnOnConsecutiveCalls($nodeA, $nodeB);
 
 		$this->envelopeFileRelocator->method('ensureFileInEnvelopeFolder')

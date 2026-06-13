@@ -638,7 +638,6 @@ abstract class AEngineHandler implements IEngineHandler {
 			}
 
 			return null;
-
 		} catch (\Exception $e) {
 			return (new ConfigureCheckHelper())
 				->setErrorMessage('Failed to analyze root certificate: ' . $e->getMessage())
@@ -668,7 +667,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		}
 
 		foreach ($organizationalUnits as $ou) {
-			$ou = trim($ou);
+			$ou = trim((string)$ou);
 			if ($this->caIdentifierService->isValidCaId($ou, $instanceId)) {
 				return true;
 			}
@@ -788,7 +787,7 @@ abstract class AEngineHandler implements IEngineHandler {
 	private function removeCaIdFromOrganizationalUnit(array $organizationalUnits): array {
 		$filtered = array_filter(
 			$organizationalUnits,
-			fn ($item) => !str_starts_with($item, 'libresign-ca-id:')
+			fn ($item) => !str_starts_with((string)$item, 'libresign-ca-id:')
 		);
 		return array_values($filtered);
 	}
@@ -834,7 +833,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		$caPrivateKey = \phpseclib3\Crypt\PublicKeyLoader::load($caKey);
 
 		if (!$caPrivateKey instanceof \phpseclib3\Crypt\Common\PrivateKey) {
-			$this->logger->error('Loaded key is not a private key', ['keyType' => get_class($caPrivateKey)]);
+			$this->logger->error('Loaded key is not a private key', ['keyType' => $caPrivateKey::class]);
 			throw new \RuntimeException('Loaded key is not a private key');
 		}
 
@@ -867,7 +866,7 @@ abstract class AEngineHandler implements IEngineHandler {
 			$dateFormat = 'D, d M Y H:i:s O';
 			foreach ($revokedCertificates as $cert) {
 				$serialNumber = $cert->getSerialNumber();
-				$normalizedSerial = ltrim($serialNumber, '0') ?: '0';
+				$normalizedSerial = ltrim((string)$serialNumber, '0') ?: '0';
 				$crlToSign->revoke(
 					new \phpseclib3\Math\BigInteger($normalizedSerial, 16),
 					$cert->getRevokedAt()->format($dateFormat)
@@ -976,7 +975,7 @@ abstract class AEngineHandler implements IEngineHandler {
 	private function checkCertificateRevoked(string $serialNumber): bool {
 		try {
 			/** @var \OCA\Libresign\Service\Crl\CrlService */
-			$crlService = \OC::$server->get(\OCA\Libresign\Service\Crl\CrlService::class);
+			$crlService = \OCP\Server::get(\OCA\Libresign\Service\Crl\CrlService::class);
 			$status = $crlService->getCertificateStatus($serialNumber);
 			return $status['status'] === 'revoked';
 		} catch (\Exception $e) {

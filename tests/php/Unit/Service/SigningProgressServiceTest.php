@@ -40,9 +40,7 @@ class SigningProgressServiceTest extends TestCase {
 		$this->fileStatusService->expects($this->once())
 			->method('update')
 			->with(
-				$this->callback(function (File $f) use ($file1) {
-					return $f === $file1 && $f->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
-				}),
+				$this->callback(fn (File $f) => $f === $file1 && $f->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value),
 			)
 			->willReturnArgument(0);
 
@@ -68,9 +66,7 @@ class SigningProgressServiceTest extends TestCase {
 		$this->fileStatusService->expects($this->once())
 			->method('update')
 			->with(
-				$this->callback(function (File $f) use ($file1) {
-					return $f === $file1 && $f->getStatus() === FileStatus::ABLE_TO_SIGN->value;
-				}),
+				$this->callback(fn (File $f) => $f === $file1 && $f->getStatus() === FileStatus::ABLE_TO_SIGN->value),
 			)
 			->willReturnArgument(0);
 

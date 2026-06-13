@@ -44,7 +44,7 @@ class FileUploadHelper {
 			throw new InvalidArgumentException($this->l10n->t('File is too big'));
 		}
 
-		if (!$this->filenameValidator->isFilenameValid(basename($uploadedFile['tmp_name']))) {
+		if (!$this->filenameValidator->isFilenameValid(basename((string)$uploadedFile['tmp_name']))) {
 			@unlink($uploadedFile['tmp_name']);
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
 		}

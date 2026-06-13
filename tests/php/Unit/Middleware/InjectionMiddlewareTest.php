@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace OCA\Libresign\Tests\Unit\Middleware;
 
 use OC\AppFramework\Bootstrap\Coordinator;
@@ -57,6 +56,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	private InitialStateService $initialStateService;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
 		$this->session = $this->createMock(ISession::class);

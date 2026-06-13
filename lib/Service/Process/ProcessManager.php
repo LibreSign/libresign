@@ -13,8 +13,8 @@ use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
 
 class ProcessManager {
-	private const APP_CONFIG_KEY = 'process_registry';
-	private const APP_CONFIG_HINTS_KEY = 'process_registry_hints';
+	private const string APP_CONFIG_KEY = 'process_registry';
+	private const string APP_CONFIG_HINTS_KEY = 'process_registry_hints';
 
 	private ProcessSignaler $signaler;
 	private ListeningPidResolver $pidResolver;

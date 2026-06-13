@@ -12,8 +12,8 @@ use OCA\Libresign\AppInfo\Application;
 use OCP\IAppConfig;
 
 class WorkerConfiguration {
-	private const MAX_WORKERS = 32;
-	private const DEFAULT_WORKERS = 4;
+	private const int MAX_WORKERS = 32;
+	private const int DEFAULT_WORKERS = 4;
 
 	public function __construct(
 		private IAppConfig $appConfig,

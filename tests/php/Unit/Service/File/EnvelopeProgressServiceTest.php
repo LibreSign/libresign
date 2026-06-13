@@ -23,22 +23,18 @@ final class EnvelopeProgressServiceTest extends TestCase {
 	private function identifyMethodWrapper(string $method, string $value): array {
 		// return as array of arrays to match real identify-method service shape
 		return [[new class($method, $value) {
-			private string $method;
-			private string $value;
-
-			public function __construct(string $method, string $value) {
-				$this->method = $method;
-				$this->value = $value;
+			public function __construct(
+				private string $method,
+				private string $value,
+			) {
 			}
 
 			public function getEntity(): object {
 				return new class($this->method, $this->value) {
-					private string $method;
-					private string $value;
-
-					public function __construct(string $method, string $value) {
-						$this->method = $method;
-						$this->value = $value;
+					public function __construct(
+						private string $method,
+						private string $value,
+					) {
 					}
 
 					public function getIdentifierKey(): string {

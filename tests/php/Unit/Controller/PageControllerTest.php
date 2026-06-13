@@ -43,6 +43,7 @@ final class PageControllerTest extends TestCase {
 	private SignerElementsService&MockObject $signerElementsService;
 	private PageController $controller;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
 		$this->request->method('getServerHost')->willReturn('localhost:8080');

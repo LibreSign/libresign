@@ -300,7 +300,6 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 			}
 
 			return new \DateTime('@' . $parsed['validFrom_time_t']);
-
 		} catch (\Exception $e) {
 			$this->logger->error('Error parsing certificate for creation date during migration: ' . $e->getMessage(), ['exception' => $e]);
 			return null;

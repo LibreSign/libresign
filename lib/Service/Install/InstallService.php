@@ -47,13 +47,13 @@ class InstallService {
 	}
 
 	public const JAVA_VERSION = 'openjdk version "21.0.8" 2025-07-15 LTS';
-	private const JAVA_URL_PATH_NAME = '21.0.8+9';
+	private const string JAVA_URL_PATH_NAME = '21.0.8+9';
 	public const PDFTK_VERSION = '3.3.3'; /** @todo When update, verify the hash **/
-	private const PDFTK_HASH = '59a28bed53b428595d165d52988bf4cf';
+	private const string PDFTK_HASH = '59a28bed53b428595d165d52988bf4cf';
 	public const JSIGNPDF_VERSION = '2.3.0'; /** @todo When update, verify the hash **/
-	private const JSIGNPDF_HASH = 'd239658ea50a39eb35169d8392feaffb';
+	private const string JSIGNPDF_HASH = 'd239658ea50a39eb35169d8392feaffb';
 	public const CFSSL_VERSION = '1.6.5';
-	private const PROCESS_SOURCE = 'install';
+	private const string PROCESS_SOURCE = 'install';
 
 	private ICache $cache;
 	private ?OutputInterface $output = null;
@@ -755,7 +755,7 @@ class InstallService {
 
 		$names['OU']['value'] = array_filter(
 			$names['OU']['value'],
-			fn ($value) => !str_starts_with($value, 'libresign-ca-id:')
+			fn ($value) => !str_starts_with((string)$value, 'libresign-ca-id:')
 		);
 
 		$names['OU']['value'][] = $caId;

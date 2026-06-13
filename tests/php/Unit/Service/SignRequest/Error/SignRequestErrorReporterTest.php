@@ -40,13 +40,11 @@ class SignRequestErrorReporterTest extends TestCase {
 			->method('setSignRequestError')
 			->with(
 				'uuid-123',
-				$this->callback(function (array $payload) {
-					return $payload['message'] === 'boom'
+				$this->callback(fn (array $payload) => $payload['message'] === 'boom'
 						&& $payload['code'] === 123
 						&& $payload['fileId'] === 10
 						&& $payload['signRequestId'] === 20
-						&& $payload['signRequestUuid'] === 'uuid-123';
-				}),
+						&& $payload['signRequestUuid'] === 'uuid-123'),
 				300
 			);
 
@@ -55,13 +53,11 @@ class SignRequestErrorReporterTest extends TestCase {
 			->with(
 				'uuid-123',
 				10,
-				$this->callback(function (array $payload) {
-					return $payload['message'] === 'boom'
+				$this->callback(fn (array $payload) => $payload['message'] === 'boom'
 						&& $payload['code'] === 123
 						&& $payload['fileId'] === 10
 						&& $payload['signRequestId'] === 20
-						&& $payload['signRequestUuid'] === 'uuid-123';
-				}),
+						&& $payload['signRequestUuid'] === 'uuid-123'),
 				300
 			);
 
@@ -274,10 +270,8 @@ class SignRequestErrorReporterTest extends TestCase {
 				->method('setSignRequestError')
 				->with(
 					$context['signRequestUuid'],
-					$this->callback(function (array $payload) use ($context) {
-						return $payload['message'] === $context['exception']->getMessage()
-							&& $payload['code'] === $context['exception']->getCode();
-					}),
+					$this->callback(fn (array $payload) => $payload['message'] === $context['exception']->getMessage()
+							&& $payload['code'] === $context['exception']->getCode()),
 					$expectedTtl
 				);
 		} else {
@@ -352,13 +346,11 @@ class SignRequestErrorReporterTest extends TestCase {
 			->method('setSignRequestError')
 			->with(
 				'uuid-exception-types',
-				$this->callback(function (array $payload) use ($expectedMessage, $expectedCode) {
-					return $payload['message'] === $expectedMessage
+				$this->callback(fn (array $payload) => $payload['message'] === $expectedMessage
 						&& $payload['code'] === $expectedCode
 						&& isset($payload['timestamp'])
 						&& isset($payload['fileId'])
-						&& $payload['fileId'] === 100;
-				}),
+						&& $payload['fileId'] === 100),
 				300
 			);
 
@@ -367,10 +359,8 @@ class SignRequestErrorReporterTest extends TestCase {
 			->with(
 				'uuid-exception-types',
 				100,
-				$this->callback(function (array $payload) use ($expectedMessage, $expectedCode) {
-					return $payload['message'] === $expectedMessage
-						&& $payload['code'] === $expectedCode;
-				}),
+				$this->callback(fn (array $payload) => $payload['message'] === $expectedMessage
+						&& $payload['code'] === $expectedCode),
 				300
 			);
 

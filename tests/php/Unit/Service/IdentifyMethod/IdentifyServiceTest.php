@@ -146,10 +146,8 @@ final class IdentifyServiceTest extends TestCase {
 		$this->identifyMethodMapper
 			->expects($this->once())
 			->method('update')
-			->with($this->callback(function (IdentifyMethod $updated) use ($siblingIdentifyMethod, $identifyMethod) {
-				return $updated->getSignRequestId() === $siblingIdentifyMethod->getSignRequestId()
-					&& $updated->getIdentifiedAtDate() == $identifyMethod->getIdentifiedAtDate();
-			}));
+			->with($this->callback(fn (IdentifyMethod $updated) => $updated->getSignRequestId() === $siblingIdentifyMethod->getSignRequestId()
+					&& $updated->getIdentifiedAtDate() == $identifyMethod->getIdentifiedAtDate()));
 
 		$this->service->save($identifyMethod);
 	}

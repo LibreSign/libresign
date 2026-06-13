@@ -12,7 +12,7 @@ use OCA\Libresign\Service\Process\ProcessManager;
 use Psr\Log\LoggerInterface;
 
 class WorkerHealthService {
-	private const PROCESS_SOURCE = 'worker';
+	private const string PROCESS_SOURCE = 'worker';
 
 	public function __construct(
 		private WorkerConfiguration $workerConfiguration,

@@ -17,6 +17,7 @@ class Test {
 final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private Test $orderCertificates;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->orderCertificates = new Test();
 	}

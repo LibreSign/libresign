@@ -45,7 +45,7 @@ class ListeningPidResolver {
 		}
 
 		return array_values(array_filter(
-			array_unique(array_map('intval', $pids)),
+			array_unique(array_map(intval(...), $pids)),
 			static fn (int $pid): bool => $pid > 0,
 		));
 	}
@@ -70,7 +70,7 @@ class ListeningPidResolver {
 			return [];
 		}
 
-		return array_map('intval', $matches[1]);
+		return array_map(intval(...), $matches[1]);
 	}
 
 	/**
@@ -92,7 +92,7 @@ class ListeningPidResolver {
 			return [];
 		}
 
-		return array_map('intval', array_filter($lines, static fn (string $line): bool => $line !== ''));
+		return array_map(intval(...), array_filter($lines, static fn (string $line): bool => $line !== ''));
 	}
 
 	/**

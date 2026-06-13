@@ -275,7 +275,6 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-
 	#[DataProvider('providerGetFolderNameWithStringIdentifier')]
 	public function testGetFolderNameWithStringIdentifier(array $data, string $identifier, ?string $expectExact, ?string $expectRegex): void {
 		$service = $this->getInstance();

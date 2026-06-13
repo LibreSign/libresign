@@ -131,9 +131,7 @@ class SignJobCoordinatorTest extends TestCase {
 
 		$this->fileService->expects($this->once())
 			->method('update')
-			->with($this->callback(function (File $updated) {
-				return $updated->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
-			}))
+			->with($this->callback(fn (File $updated) => $updated->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value))
 			->willReturnArgument(0);
 
 		$this->credentialsManager->expects($this->once())
@@ -189,9 +187,7 @@ class SignJobCoordinatorTest extends TestCase {
 
 		$this->fileService->expects($this->once())
 			->method('update')
-			->with($this->callback(function (File $updated) {
-				return $updated->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
-			}))
+			->with($this->callback(fn (File $updated) => $updated->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value))
 			->willReturnArgument(0);
 
 		$this->credentialsManager->expects($this->once())
@@ -296,9 +292,7 @@ class SignJobCoordinatorTest extends TestCase {
 
 		$this->fileService->expects($this->once())
 			->method('update')
-			->with($this->callback(function (File $updated) {
-				return $updated->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
-			}))
+			->with($this->callback(fn (File $updated) => $updated->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value))
 			->willReturnArgument(0);
 
 		$this->coordinator->runSignSingleFile([

@@ -20,7 +20,6 @@ class SerialNumberServiceTest extends TestCase {
 	private SerialNumberService $service;
 
 	protected function setUp(): void {
-		parent::setUp();
 		$this->crlMapper = $this->createMock(CrlMapper::class);
 		$this->service = new SerialNumberService($this->crlMapper);
 	}
