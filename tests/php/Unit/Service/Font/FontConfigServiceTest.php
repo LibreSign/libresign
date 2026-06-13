@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Font;
  */
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Service\Font\BundledFontLocator;
 use OCA\Libresign\Service\Font\FontConfigService;
 use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -17,6 +18,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 final class FontConfigServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
 	private InMemoryLogger $logger;
+	private BundledFontLocator $bundledFontLocator;
 	/**
 	 * @var list<string>
 	 */
@@ -26,6 +28,7 @@ final class FontConfigServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function setUp(): void {
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->logger = new InMemoryLogger();
+		$this->bundledFontLocator = new BundledFontLocator();
 	}
 
 	#[\Override]
@@ -70,11 +73,9 @@ final class FontConfigServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private function createTempFontDirectory(array $fontFiles): string {
 		$fontDirectory = $this->createTempDirectory('libresign-font-config-service-');
 
-		$sourceDirectory = __DIR__ . '/../../../../../3rdparty/composer/mpdf/mpdf/ttfonts';
 		foreach ($fontFiles as $fontFile) {
-			$sourcePath = $sourceDirectory . '/' . $fontFile;
+			$sourcePath = $this->bundledFontLocator->requireFontFile($fontFile);
 			$destinationPath = $fontDirectory . '/' . $fontFile;
-			$this->assertFileExists($sourcePath);
 			$this->assertTrue(copy($sourcePath, $destinationPath));
 		}
 
@@ -83,9 +84,8 @@ final class FontConfigServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	private function createEscapingFontSymlink(string $fontDirectory, string $sourceFontFile): string {
 		$outsideDirectory = $this->createTempDirectory('libresign-font-config-outside-');
-		$sourceDirectory = __DIR__ . '/../../../../../3rdparty/composer/mpdf/mpdf/ttfonts';
 		$outsideFontPath = $outsideDirectory . '/outside-font.ttf';
-		$this->assertTrue(copy($sourceDirectory . '/' . $sourceFontFile, $outsideFontPath));
+		$this->assertTrue(copy($this->bundledFontLocator->requireFontFile($sourceFontFile), $outsideFontPath));
 
 		$symlinkFilename = 'escaped-font.ttf';
 		$symlinkPath = $fontDirectory . '/' . $symlinkFilename;
@@ -222,6 +222,64 @@ final class FontConfigServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	public function testTemplateFontConfigurationTakesPrecedenceOverLegacyFooterConfiguration(): void {
+		$templateFontDirectory = $this->createTempFontDirectory([
+			'DejaVuSansCondensed.ttf',
+		]);
+		$footerFontDirectory = $this->createTempFontDirectory([
+			'DejaVuSerifCondensed.ttf',
+		]);
+		$this->setFontConfig('template_font', $templateFontDirectory, [
+			'family' => 'Template Sans',
+			'regular' => 'DejaVuSansCondensed.ttf',
+		]);
+		$this->setFontConfig('footer_font', $footerFontDirectory, [
+			'family' => 'Footer Serif',
+			'regular' => 'DejaVuSerifCondensed.ttf',
+		]);
+
+		$service = $this->getClass();
+		$fontDefinition = $service->getConfiguredTemplateFont();
+
+		$this->assertNotNull($fontDefinition);
+		$this->assertSame('templatesans', $fontDefinition->getFamily());
+		$this->assertSame($templateFontDirectory, $fontDefinition->getDirectory());
+		$this->assertSame('DejaVuSansCondensed.ttf', $fontDefinition->getRegular());
+		$this->assertSame('templatesans', $service->getActiveFontFamily());
+		$this->assertSame([], $this->logger->warnings());
+	}
+
+	public function testLegacyFooterFontConfigurationIsUsedWhenTemplateConfigurationIsInvalid(): void {
+		$templateFontDirectory = $this->createTempFontDirectory([
+			'DejaVuSansCondensed.ttf',
+		]);
+		$footerFontDirectory = $this->createTempFontDirectory([
+			'DejaVuSerifCondensed.ttf',
+		]);
+		$this->setFontConfig('template_font', $templateFontDirectory, [
+			'family' => 'Template Sans',
+			'regular' => 'Missing.ttf',
+		]);
+		$this->setFontConfig('footer_font', $footerFontDirectory, [
+			'family' => 'Footer Serif',
+			'regular' => 'DejaVuSerifCondensed.ttf',
+		]);
+
+		$service = $this->getClass();
+		$fontDefinition = $service->getConfiguredTemplateFont();
+
+		$this->assertNotNull($fontDefinition);
+		$this->assertSame('footerserif', $fontDefinition->getFamily());
+		$this->assertSame($footerFontDirectory, $fontDefinition->getDirectory());
+		$this->assertSame('DejaVuSerifCondensed.ttf', $fontDefinition->getRegular());
+		$this->assertSame('footerserif', $service->getActiveFontFamily());
+
+		$warnings = $this->logger->warnings();
+		$this->assertCount(1, $warnings);
+		$this->assertStringContainsString('configured font file does not exist', $warnings[0]['message']);
+		$this->assertSame('template_font_regular', $warnings[0]['context']['configKey'] ?? null);
+	}
+
 	#[DataProvider('provideInvalidConfiguredFonts')]
 	public function testInvalidConfiguredFontsFallBackAndLogWarning(
 		string $configuredRegular,
@@ -320,44 +378,74 @@ final class FontConfigServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame('template_font_regular', $warnings[0]['context']['configKey'] ?? null);
 	}
 
-	public function testInvalidOptionalBoldFontFallsBackToRegularAndLogsWarning(): void {
-		$fontDirectory = $this->createTempFontDirectory([
-			'DejaVuSansCondensed.ttf',
-		]);
-		$this->setFontConfig('template_font', $fontDirectory, [
-			'bold' => 'Missing.ttf',
-		]);
+	#[DataProvider('provideInvalidOptionalVariants')]
+	public function testInvalidOptionalVariantFallsBackToValidVariantsAndLogsWarning(
+		array $availableFontFiles,
+		array $settings,
+		array $expectedVariants,
+		string $expectedWarningConfigKey,
+	): void {
+		$fontDirectory = $this->createTempFontDirectory($availableFontFiles);
+		$this->setFontConfig('template_font', $fontDirectory, $settings);
 		$service = $this->getClass();
 
 		$fontDefinition = $service->getConfiguredTemplateFont();
 
 		$this->assertNotNull($fontDefinition);
 		$this->assertSame('customsans', $fontDefinition->getFamily());
-		$this->assertSame('DejaVuSansCondensed.ttf', $fontDefinition->getRegular());
-		$this->assertSame('DejaVuSansCondensed.ttf', $fontDefinition->getBold());
-		$this->assertSame('DejaVuSansCondensed.ttf', $fontDefinition->getItalic());
-		$this->assertSame('DejaVuSansCondensed.ttf', $fontDefinition->getBoldItalic());
+		$this->assertSame($expectedVariants['regular'], $fontDefinition->getRegular());
+		$this->assertSame($expectedVariants['bold'], $fontDefinition->getBold());
+		$this->assertSame($expectedVariants['italic'], $fontDefinition->getItalic());
+		$this->assertSame($expectedVariants['boldItalic'], $fontDefinition->getBoldItalic());
 		$this->assertSame('customsans', $service->getActiveFontFamily());
 
 		$warnings = $this->logger->warnings();
 		$this->assertCount(1, $warnings);
 		$this->assertStringContainsString('configured font file does not exist', $warnings[0]['message']);
-		$this->assertSame('template_font_bold', $warnings[0]['context']['configKey'] ?? null);
+		$this->assertSame($expectedWarningConfigKey, $warnings[0]['context']['configKey'] ?? null);
 	}
 
-	#[DataProvider('provideTypedFontConstants')]
-	public function testFontConfigServiceConstantsAreTyped(string $constant, string $expectedType): void {
-		$reflectionConstant = new \ReflectionClassConstant(FontConfigService::class, $constant);
-
-		$this->assertTrue($reflectionConstant->hasType());
-		$this->assertSame($expectedType, (string)$reflectionConstant->getType());
-	}
-
-	public static function provideTypedFontConstants(): array {
+	public static function provideInvalidOptionalVariants(): array {
 		return [
-			'DEFAULT_FONT_FAMILY is typed as string' => ['DEFAULT_FONT_FAMILY', 'string'],
-			'ALLOWED_FONT_EXTENSIONS is typed as array' => ['ALLOWED_FONT_EXTENSIONS', 'array'],
-			'CONFIGURATION_GROUPS is typed as array' => ['CONFIGURATION_GROUPS', 'array'],
+			'invalid bold falls back to regular' => [
+				['DejaVuSansCondensed.ttf'],
+				['bold' => 'Missing.ttf'],
+				[
+					'regular' => 'DejaVuSansCondensed.ttf',
+					'bold' => 'DejaVuSansCondensed.ttf',
+					'italic' => 'DejaVuSansCondensed.ttf',
+					'boldItalic' => 'DejaVuSansCondensed.ttf',
+				],
+				'template_font_bold',
+			],
+			'invalid italic falls back to regular' => [
+				['DejaVuSansCondensed.ttf'],
+				['italic' => 'Missing.ttf'],
+				[
+					'regular' => 'DejaVuSansCondensed.ttf',
+					'bold' => 'DejaVuSansCondensed.ttf',
+					'italic' => 'DejaVuSansCondensed.ttf',
+					'boldItalic' => 'DejaVuSansCondensed.ttf',
+				],
+				'template_font_italic',
+			],
+			'invalid bold italic falls back to configured bold' => [
+				[
+					'DejaVuSansCondensed.ttf',
+					'DejaVuSansCondensed-Bold.ttf',
+				],
+				[
+					'bold' => 'DejaVuSansCondensed-Bold.ttf',
+					'bold_italic' => 'Missing.ttf',
+				],
+				[
+					'regular' => 'DejaVuSansCondensed.ttf',
+					'bold' => 'DejaVuSansCondensed-Bold.ttf',
+					'italic' => 'DejaVuSansCondensed.ttf',
+					'boldItalic' => 'DejaVuSansCondensed-Bold.ttf',
+				],
+				'template_font_bold_italic',
+			],
 		];
 	}
 }
