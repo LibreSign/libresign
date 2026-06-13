@@ -32,7 +32,7 @@ final class AccountControllerTest extends ApiTestCase {
 				'signPassword' => 'secretToSign'
 			])
 			->withPath('/api/v1/account/create/1234564789')
-			> expectStatus(422);
+			->expectStatus(422);
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
@@ -45,7 +45,7 @@ final class AccountControllerTest extends ApiTestCase {
 	public function testMeWithoutAuthenticatedUser():void {
 		$this->request
 			->withPath('/api/v1/account/me')
-			> expectStatus(404);
+			->expectStatus(404);
 
 		$this->assertRequest();
 	}

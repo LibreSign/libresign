@@ -24,7 +24,7 @@ final class FileControllerTest extends ApiTestCase {
 		$this->getMockAppConfig();
 		$this->request
 			->withPath('/api/v1/file/validate/uuid/invalid')
-			> expectStatus(404);
+			->expectStatus(404);
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
@@ -39,7 +39,7 @@ final class FileControllerTest extends ApiTestCase {
 	public function testValidateUsignFileIdWithInvalidData():void {
 		$this->request
 			->withPath('/api/v1/file/validate/file_id/171')
-			> expectStatus(404);
+			->expectStatus(404);
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
@@ -188,7 +188,7 @@ final class FileControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('nonsigner:password'),
 			])
 			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId())
-			> expectStatus(403);
+			->expectStatus(403);
 
 		$this->assertRequest();
 	}
@@ -220,7 +220,7 @@ final class FileControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('nonsigner:password'),
 			])
 			->withPath('/api/v1/file/thumbnail/' . $file->getNodeId())
-			> expectStatus(403);
+			->expectStatus(403);
 
 		$this->assertRequest();
 	}
