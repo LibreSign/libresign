@@ -81,6 +81,11 @@ jobs:
           # Split and keep last
           echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
 
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends poppler-utils
+
       - name: Checkout server
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -102,25 +107,16 @@ jobs:
         with:
           filename: apps/${{ env.APP_NAME }}/appinfo/info.xml
 
-      - name: Install system and PHP dependencies
-        run: |
-          php_version='${{ steps.php_versions.outputs.php-min }}'
-          apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-            composer \
-            poppler-utils \
-            unzip \
-            php${php_version}-bz2 \
-            php${php_version}-cli \
-            php${php_version}-curl \
-            php${php_version}-gd \
-            php${php_version}-intl \
-            php${php_version}-mbstring \
-            php${php_version}-sqlite3 \
-            php${php_version}-xml \
-            php${php_version}-zip
-          php -v
-          composer --version
+      - name: Set up php ${{ steps.php_versions.outputs.php-min }}
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
+        with:
+          php-version: ${{ steps.php_versions.outputs.php-min }}
+          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, sqlite, pdo_sqlite, xmlreader, xmlwriter, zip, zlib
+          coverage: none
+          ini-file: development
+          ini-values: disable_functions=
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check composer file existence
         id: check_composer
