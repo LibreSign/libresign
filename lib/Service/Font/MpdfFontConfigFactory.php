@@ -12,9 +12,13 @@ use OCA\Libresign\Vendor\Mpdf\Config\ConfigVariables;
 use OCA\Libresign\Vendor\Mpdf\Config\FontVariables;
 
 class MpdfFontConfigFactory {
+	private BundledFontLocator $bundledFontLocator;
+
 	public function __construct(
 		private FontConfigService $fontConfigService,
+		?BundledFontLocator $bundledFontLocator = null,
 	) {
+		$this->bundledFontLocator = $bundledFontLocator ?? new BundledFontLocator();
 	}
 
 	/**
@@ -58,10 +62,7 @@ class MpdfFontConfigFactory {
 			$fontDirectories = [$fontDirectories];
 		}
 
-		$bundledMpdfFontsDirectory = __DIR__ . '/../../../3rdparty/composer/mpdf/mpdf/ttfonts';
-		if (is_dir($bundledMpdfFontsDirectory)) {
-			$fontDirectories[] = $bundledMpdfFontsDirectory;
-		}
+		$fontDirectories = array_merge($fontDirectories, $this->bundledFontLocator->getFontDirectories());
 
 		return array_values(array_unique(array_filter(
 			$fontDirectories,
