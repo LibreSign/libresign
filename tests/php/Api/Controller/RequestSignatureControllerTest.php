@@ -32,7 +32,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 				'file' => [],
 				'signers' => []
 			])
-			->assertResponseCode(422);
+			>expectStatus(422);
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
@@ -95,7 +95,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 				'uuid' => '12345678-1234-1234-1234-123456789012',
 				'signers' => []
 			])
-			->assertResponseCode(422);
+			>expectStatus(422);
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);

@@ -35,7 +35,7 @@ final class NotifyControllerTest extends ApiTestCase {
 				]
 			])
 			->withPath('/api/v1/notify/signers')
-			->assertResponseCode(401);
+			>expectStatus(401);
 
 		$this->assertRequest();
 	}
