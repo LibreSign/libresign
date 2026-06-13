@@ -522,8 +522,7 @@
                         "type": "string"
                     },
                     "name": {
-                        "type": "string",
-                        "minLength": 1
+                        "type": "string"
                     },
                     "status": {
                         "type": "integer",
@@ -1880,15 +1879,6 @@
                             },
                             "me": {
                                 "type": "boolean"
-                            },
-                            "status": {
-                                "type": "integer",
-                                "format": "int64",
-                                "enum": [
-                                    0,
-                                    1,
-                                    2
-                                ]
                             },
                             "signingOrder": {
                                 "type": "integer",

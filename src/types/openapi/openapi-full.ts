@@ -1489,12 +1489,6 @@ export type components = {
         };
         DetailedFileResponse: components["schemas"]["DetailedFile"] & {
             message: string;
-            name: string;
-            /** @enum {string} */
-            nodeType: "file" | "envelope";
-            metadata: components["schemas"]["FileRuntimeMetadata"];
-            /** @enum {string} */
-            signatureFlow: "none" | "parallel" | "ordered_numeric";
         };
         DocMdpConfig: {
             enabled: boolean;
@@ -1938,11 +1932,6 @@ export type components = {
             sign_request_uuid?: string;
             hash_algorithm?: string;
             me: boolean;
-            /**
-             * Format: int64
-             * @enum {integer}
-             */
-            status: 0 | 1 | 2;
             /** Format: int64 */
             signingOrder?: number;
             visibleElements: components["schemas"]["VisibleElement"][];
@@ -1963,8 +1952,11 @@ export type components = {
             email?: string | null;
             identifyMethods?: components["schemas"]["IdentifyMethod"][];
             signed: string | null;
-            /** Format: int64 */
-            status: number;
+            /**
+             * Format: int64
+             * @enum {integer}
+             */
+            status: 0 | 1 | 2;
             statusText: string;
         };
         SigningJob: {
