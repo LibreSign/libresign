@@ -15,6 +15,7 @@ use ImagickDraw;
 use ImagickPixel;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\Font\FontReferenceResolver;
 use OCA\Libresign\Vendor\Endroid\QrCode\Color\Color;
 use OCA\Libresign\Vendor\Endroid\QrCode\Encoding\Encoding;
 use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
@@ -42,6 +43,7 @@ class SignatureTextService {
 	public const DEFAULT_SIGNATURE_WIDTH = 350;
 	public const DEFAULT_SIGNATURE_HEIGHT = 100;
 	private const int QRCODE_SIZE = 100;
+
 	public function __construct(
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
@@ -50,6 +52,8 @@ class SignatureTextService {
 		private IUserSession $userSession,
 		private IURLGenerator $urlGenerator,
 		protected LoggerInterface $logger,
+		private FontReferenceResolver $fontReferenceResolver,
+		private SignatureTextLineBreaker $signatureTextLineBreaker,
 	) {
 	}
 
@@ -264,17 +268,7 @@ class SignatureTextService {
 		$image->setImageFormat('png');
 
 		$draw = new ImagickDraw();
-		$fonts = Imagick::queryFonts();
-		if ($fonts) {
-			$draw->setFont($fonts[0]);
-		} else {
-			$fallbackFond = __DIR__ . '/../../3rdparty/composer/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf';
-			if (!file_exists($fallbackFond)) {
-				$this->logger->error('No fonts available at system, and fallback font not found: ' . $fallbackFond);
-				throw new LibresignException('No fonts available at system, and fallback font not found: ' . $fallbackFond);
-			}
-			$draw->setFont(__DIR__ . '/../../3rdparty/composer/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf');
-		}
+		$draw->setFont($this->fontReferenceResolver->resolveFontReference(Imagick::queryFonts()));
 		if (!$fontSize) {
 			$fontSize = $this->getSignatureFontSize();
 		}
@@ -288,8 +282,7 @@ class SignatureTextService {
 		};
 		$draw->setTextAlignment($align);
 
-		$maxCharsPerLine = $this->splitAndGetLongestHalfLength($text);
-		$wrappedText = $this->mbWordwrap($text, $maxCharsPerLine, "\n", true);
+		$wrappedText = $this->signatureTextLineBreaker->wrap($text);
 
 		$textMetrics = $image->queryFontMetrics($draw, $wrappedText);
 		$lineCount = substr_count($wrappedText, "\n") + 1;
@@ -321,127 +314,6 @@ class SignatureTextService {
 		$visualCenterOffset = ($ascender + $descender) / 2;
 
 		return $centerY - ($textBlockHeight / 2) + $lineHeight - $visualCenterOffset;
-	}
-
-	private function splitAndGetLongestHalfLength(string $text): int {
-		$text = trim($text);
-		$length = mb_strlen($text);
-
-		if ($length === 0) {
-			return 0;
-		}
-
-		$middle = (int)($length / 2);
-		$results = [];
-
-		foreach (['backward' => -1, 'forward' => 1] as $directionName => $direction) {
-			$index = $middle;
-
-			while (
-				$index >= 0
-				&& $index < $length
-				&& mb_substr($text, $index, 1) !== ' '
-			) {
-				$index += $direction;
-			}
-
-			if (
-				$index > 0
-				&& $index < $length
-				&& mb_substr($text, $index, 1) === ' '
-			) {
-				$first = mb_substr($text, 0, $index);
-				$second = mb_substr($text, $index + 1);
-				$results[] = max(mb_strlen($first), mb_strlen($second));
-			}
-		}
-
-		return !empty($results) ? max($results) : $length;
-	}
-
-	/**
-	 * Multibyte-safe version of wordwrap
-	 *
-	 * @param string $text The text to wrap
-	 * @param int $width The number of characters at which the string will be wrapped
-	 * @param string $break The line break character
-	 * @param bool $cut If true, words longer than $width will be broken
-	 * @return string The wrapped text
-	 */
-	private function mbWordwrap(string $text, int $width, string $break = "\n", bool $cut = false): string {
-		if ($width <= 0) {
-			return $text;
-		}
-
-		$lines = [];
-		$currentLine = '';
-		$currentLength = 0;
-
-		$paragraphs = explode("\n", $text);
-
-		foreach ($paragraphs as $paragraphIndex => $paragraph) {
-			if ($paragraph === '') {
-				if ($currentLength > 0) {
-					$lines[] = $currentLine;
-					$currentLine = '';
-					$currentLength = 0;
-				}
-				$lines[] = '';
-				continue;
-			}
-
-			$words = explode(' ', $paragraph);
-
-			foreach ($words as $word) {
-				$wordLength = mb_strlen($word);
-
-				if ($cut && $wordLength > $width) {
-					if ($currentLength > 0) {
-						$lines[] = $currentLine;
-						$currentLine = '';
-						$currentLength = 0;
-					}
-
-					while ($wordLength > $width) {
-						$lines[] = mb_substr($word, 0, $width);
-						$word = mb_substr($word, $width);
-						$wordLength = mb_strlen($word);
-					}
-
-					if ($wordLength > 0) {
-						$currentLine = $word;
-						$currentLength = $wordLength;
-					}
-					continue;
-				}
-
-				$spaceLength = ($currentLength > 0) ? 1 : 0;
-				if ($currentLength + $spaceLength + $wordLength > $width && $currentLength > 0) {
-					$lines[] = $currentLine;
-					$currentLine = $word;
-					$currentLength = $wordLength;
-				} else {
-					if ($currentLength > 0) {
-						$currentLine .= ' ';
-						$currentLength++;
-					}
-					$currentLine .= $word;
-					$currentLength += $wordLength;
-				}
-			}
-
-			if ($currentLength > 0 && $paragraphIndex < count($paragraphs) - 1) {
-				$lines[] = $currentLine;
-				$currentLine = '';
-				$currentLength = 0;
-			}
-		}
-
-		if ($currentLength > 0) {
-			$lines[] = $currentLine;
-		}
-
-		return implode($break, $lines);
 	}
 
 	public function getDefaultTemplate(): string {

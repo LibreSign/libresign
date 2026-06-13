@@ -12,6 +12,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
+use OCA\Libresign\Service\Font\MpdfFontConfigFactory;
 use OCA\Libresign\Vendor\Endroid\QrCode\Color\Color;
 use OCA\Libresign\Vendor\Endroid\QrCode\Encoding\Encoding;
 use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
@@ -42,6 +43,7 @@ class FooterHandler {
 		private IFactory $l10nFactory,
 		private ITempManager $tempManager,
 		private TemplateVariables $templateVars,
+		private MpdfFontConfigFactory $mpdfFontConfigFactory,
 	) {
 	}
 
@@ -51,23 +53,17 @@ class FooterHandler {
 			return '';
 		}
 
-		$htmlFooter = $this->getRenderedHtmlFooter();
+		return $this->renderFooterPdf(
+			$dimensions,
+			$this->getRenderedHtmlFooter(),
+		);
+	}
+
+	protected function renderFooterPdf(array $dimensions, string $htmlFooter): string {
+		$pdf = null;
 		foreach ($dimensions as $dimension) {
 			if (!isset($pdf)) {
-				$pdf = new Mpdf([
-					'tempDir' => $this->tempManager->getTempBaseDir(),
-					'orientation' => 'P',
-					'margin_left' => 0,
-					'margin_right' => 0,
-					'margin_top' => 0,
-					'margin_bottom' => 0,
-					'margin_header' => 0,
-					'margin_footer' => 0,
-					'format' => [
-						$dimension['w'] * self::POINT_TO_MILIMETER,
-						$dimension['h'] * self::POINT_TO_MILIMETER,
-					],
-				]);
+				$pdf = new Mpdf($this->getPdfConfig($dimension));
 				$pdf->SetDirectionality($this->templateVars->getDirection());
 			}
 			$pdf->AddPage(
@@ -80,8 +76,33 @@ class FooterHandler {
 
 			$pdf->SetHTMLFooter($htmlFooter);
 		}
+		if (!$pdf instanceof Mpdf) {
+			return '';
+		}
 
 		return $pdf->Output('', 'S');
+	}
+
+	protected function getPdfConfig(array $dimension): array {
+		$fontConfig = $this->mpdfFontConfigFactory->getConfig();
+
+		return [
+			'tempDir' => $this->tempManager->getTempBaseDir(),
+			'fontDir' => $fontConfig['fontDir'],
+			'fontdata' => $fontConfig['fontdata'],
+			'default_font' => $fontConfig['default_font'],
+			'orientation' => 'P',
+			'margin_left' => 0,
+			'margin_right' => 0,
+			'margin_top' => 0,
+			'margin_bottom' => 0,
+			'margin_header' => 0,
+			'margin_footer' => 0,
+			'format' => [
+				$dimension['w'] * self::POINT_TO_MILIMETER,
+				$dimension['h'] * self::POINT_TO_MILIMETER,
+			],
+		];
 	}
 
 	public function getMetadata(File $file, FileEntity $fileEntity): array {
@@ -130,6 +151,8 @@ class FooterHandler {
 				$this->appConfig->getValueString(Application::APP_ID, 'footer_link_to_site', 'https://libresign.coop')
 			);
 		}
+
+		$this->templateVars->setFontFamily($this->mpdfFontConfigFactory->getFontFamily());
 
 		if (!$this->templateVars->getValidationSite() && $this->templateVars->getUuid()) {
 			$validationSite = $this->appConfig->getValueString(Application::APP_ID, 'validation_site');

@@ -36,6 +36,7 @@ final class TemplateVariablesTest extends TestCase {
 			'signers' => ['signers', [['name' => 'John']]],
 			'signedBy' => ['signedBy', 'LibreSign'],
 			'direction' => ['direction', 'ltr'],
+			'fontFamily' => ['fontFamily', 'dejavusanscondensed'],
 			'linkToSite' => ['linkToSite', 'https://example.com'],
 			'validationSite' => ['validationSite', 'https://validate.com'],
 			'validateIn' => ['validateIn', 'Validate in %s'],
@@ -132,10 +133,10 @@ final class TemplateVariablesTest extends TestCase {
 		$metadata = $this->variables->getVariablesMetadata();
 
 		$this->assertIsArray($metadata);
-		$this->assertCount(9, $metadata);
+		$this->assertCount(10, $metadata);
 
 		$expectedVariables = [
-			'direction', 'linkToSite', 'qrcode', 'qrcodeSize',
+			'direction', 'fontFamily', 'linkToSite', 'qrcode', 'qrcodeSize',
 			'signedBy', 'signers', 'uuid', 'validateIn', 'validationSite'
 		];
 		foreach ($expectedVariables as $varName) {
@@ -148,6 +149,7 @@ final class TemplateVariablesTest extends TestCase {
 
 	public static function provideVariablesWithDefaults(): array {
 		return [
+			'fontFamily' => ['fontFamily', 'dejavusanscondensed'],
 			'linkToSite' => ['linkToSite', 'https://libresign.coop'],
 			'signedBy' => ['signedBy', 'Digitally signed by LibreSign.'],
 			'validateIn' => ['validateIn', 'Validate in %s.'],
@@ -165,6 +167,7 @@ final class TemplateVariablesTest extends TestCase {
 	public static function provideVariableTypes(): array {
 		return [
 			'direction is string' => ['direction', 'string'],
+			'fontFamily is string' => ['fontFamily', 'string'],
 			'linkToSite is string' => ['linkToSite', 'string'],
 			'qrcode is string' => ['qrcode', 'string'],
 			'qrcodeSize is integer' => ['qrcodeSize', 'integer'],
