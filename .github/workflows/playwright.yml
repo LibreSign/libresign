@@ -152,15 +152,6 @@ jobs:
           npm ci --prefer-offline
           TESTING=true npm run build --if-present
 
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v5
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles(format('apps/{0}/package-lock.json', env.APP_NAME)) }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-
-
       - name: Cache LibreSign binary payloads
         id: libresign-binaries-cache
         uses: actions/cache@v5
@@ -240,22 +231,35 @@ jobs:
           timeout 30 bash -c 'until curl -s http://localhost:8080/status.php > /dev/null; do sleep 1; done'
           echo "Nextcloud is ready at http://localhost:8080"
 
-      - name: Install Playwright browsers
-        working-directory: apps/${{ env.APP_NAME }}
-        timeout-minutes: 10
+      - name: Start Playwright server container
         run: |
-          # CI runs Playwright headlessly and this project uses bundled Chromium
-          # without a channel override, so only the documented headless shell is
-          # required here.
-          npx playwright install --with-deps --only-shell chromium
+          # Playwright's host-side browser installation hangs on the GitHub-hosted
+          # Linux runner after download completion. Run the browser remotely in the
+          # official Playwright Docker image instead, as documented for CI.
+          docker rm -f libresign-playwright-server >/dev/null 2>&1 || true
+          docker run -d --rm \
+            --name libresign-playwright-server \
+            --init \
+            --ipc=host \
+            --add-host=hostmachine:host-gateway \
+            -p 3000:3000 \
+            mcr.microsoft.com/playwright:v1.59.1-noble \
+            /bin/sh -c "npx -y playwright@1.59.1 run-server --port 3000 --host 0.0.0.0"
+          timeout 30 bash -c 'until docker logs libresign-playwright-server 2>&1 | grep -q "Listening on"; do sleep 1; done'
+          docker logs libresign-playwright-server | tail -20
 
       - name: Run Playwright tests
         working-directory: apps/${{ env.APP_NAME }}
         env:
-          PLAYWRIGHT_BASE_URL: http://localhost:8080
+          PLAYWRIGHT_BASE_URL: http://hostmachine:8080
+          PW_TEST_CONNECT_WS_ENDPOINT: ws://127.0.0.1:3000/
           NEXTCLOUD_ADMIN_USER: admin
           NEXTCLOUD_ADMIN_PASSWORD: admin
         run: npx playwright test
+
+      - name: Stop Playwright server container
+        if: always()
+        run: docker rm -f libresign-playwright-server >/dev/null 2>&1 || true
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
