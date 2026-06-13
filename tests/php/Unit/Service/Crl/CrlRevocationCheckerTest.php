@@ -36,6 +36,10 @@ class CrlRevocationCheckerTestable extends CrlRevocationChecker {
 	public function publicExtractRevocationDateFromCrlText(string $crlText, array $serialNumbers): ?string {
 		return $this->extractRevocationDateFromCrlText($crlText, $serialNumbers);
 	}
+
+	public function publicGetLocalCrlPattern(): string {
+		return $this->getLocalCrlPattern();
+	}
 }
 
 class CrlRevocationCheckerTest extends TestCase {
@@ -212,6 +216,62 @@ class CrlRevocationCheckerTest extends TestCase {
 		);
 
 		$this->assertNotSame(CrlValidationStatus::DISABLED, $result['status'], 'Local CRL URLs must not be skipped when external validation is disabled');
+	}
+
+	/**
+	 * In a given request the CRL route resolves to one specific host. The tests
+	 * below assert that the recognition pattern does not depend on that host.
+	 */
+	private function mockCrlRouteUrlGenerator(): void {
+		$this->urlGenerator
+			->method('linkToRouteAbsolute')
+			->with('libresign.crl.getRevocationList', [
+				'instanceId' => 'INSTANCEID',
+				'generation' => 999999,
+				'engineType' => 'ENGINETYPE',
+			])
+			->willReturn('https://cloud.example.com/apps/libresign/crl/libresign_INSTANCEID_999999_ENGINETYPE.crl');
+	}
+
+	#[DataProvider('dataProviderLocalCrlUrlsWithDifferentHosts')]
+	public function testGetLocalCrlPatternMatchesAnyHost(
+		string $url,
+		string $expectedInstanceId,
+		string $expectedGeneration,
+		string $expectedEngineType,
+	): void {
+		// A certificate's embedded CRL DP host is fixed at issuance and may differ
+		// from the current request host (e.g. signing through the API from another
+		// origin). The pattern must still recognise the local CRL and capture its
+		// instanceId / generation / engineType regardless of the host.
+		$this->mockCrlRouteUrlGenerator();
+
+		$pattern = $this->checker->publicGetLocalCrlPattern();
+
+		$this->assertSame(1, preg_match($pattern, $url, $matches), 'Local CRL URL should match');
+		$this->assertSame($expectedInstanceId, $matches[1], 'instanceId should be captured');
+		$this->assertSame($expectedGeneration, $matches[2], 'generation should be captured');
+		$this->assertSame($expectedEngineType, $matches[3], 'engineType should be captured');
+	}
+
+	public static function dataProviderLocalCrlUrlsWithDifferentHosts(): array {
+		return [
+			'same host' => ['https://cloud.example.com/apps/libresign/crl/libresign_abc123_4_o.crl', 'abc123', '4', 'o'],
+			'different host and port' => ['http://localhost:9000/apps/libresign/crl/libresign_abc123_4_o.crl', 'abc123', '4', 'o'],
+			'different host with index.php' => ['http://host.docker.internal:9000/index.php/apps/libresign/crl/libresign_abc123_4_o.crl', 'abc123', '4', 'o'],
+		];
+	}
+
+	public function testGetLocalCrlPatternRejectsNonCrlUrls(): void {
+		$this->mockCrlRouteUrlGenerator();
+
+		$pattern = $this->checker->publicGetLocalCrlPattern();
+
+		$this->assertSame(
+			0,
+			preg_match($pattern, 'https://cloud.example.com/apps/libresign/crl/not-a-crl.txt'),
+			'A non-CRL path must not match the local CRL pattern',
+		);
 	}
 
 	#[DataProvider('dataProviderIsSerialNumberInCrl')]
