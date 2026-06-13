@@ -178,7 +178,6 @@ namespace OCA\Libresign;
  *     sign_request_uuid?: string,
  *     hash_algorithm?: string,
  *     me: bool,
- *     status: 0|1|2,
  *     signingOrder?: non-negative-int,
  *     visibleElements: LibresignVisibleElement[],
  *     signatureMethods?: LibresignSignatureMethods,
@@ -528,10 +527,6 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignDetailedFileResponse = LibresignDetailedFile&array{
  *     message: string,
- *     name: non-falsy-string,
- *     nodeType: 'file'|'envelope',
- *     metadata: LibresignFileRuntimeMetadata,
- *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
  * }
  * @psalm-type LibresignFileListResponse = array{
  *     pagination: LibresignPagination,

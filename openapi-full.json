@@ -875,36 +875,11 @@
                     {
                         "type": "object",
                         "required": [
-                            "message",
-                            "name",
-                            "nodeType",
-                            "metadata",
-                            "signatureFlow"
+                            "message"
                         ],
                         "properties": {
                             "message": {
                                 "type": "string"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "nodeType": {
-                                "type": "string",
-                                "enum": [
-                                    "file",
-                                    "envelope"
-                                ]
-                            },
-                            "metadata": {
-                                "$ref": "#/components/schemas/FileRuntimeMetadata"
-                            },
-                            "signatureFlow": {
-                                "type": "string",
-                                "enum": [
-                                    "none",
-                                    "parallel",
-                                    "ordered_numeric"
-                                ]
                             }
                         }
                     }
@@ -2456,7 +2431,6 @@
                             "description",
                             "request_sign_date",
                             "me",
-                            "status",
                             "visibleElements"
                         ],
                         "properties": {
