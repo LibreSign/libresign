@@ -77,7 +77,7 @@ class CrlControllerTest extends ApiTestCase {
 		$this->request
 			->withMethod('GET')
 			->withPath('/crl/check/invalid')
-			>expectStatus(400);
+			> expectStatus(400);
 
 		$this->assertRequest();
 	}
@@ -89,7 +89,7 @@ class CrlControllerTest extends ApiTestCase {
 		$this->request
 			->withMethod('GET')
 			->withPath('/crl/check/-123')
-			>expectStatus(400);
+			> expectStatus(400);
 
 		$this->assertRequest();
 	}
@@ -101,7 +101,7 @@ class CrlControllerTest extends ApiTestCase {
 		$this->request
 			->withMethod('GET')
 			->withPath('/crl/check/$')
-			>expectStatus(400);
+			> expectStatus(400);
 
 		$this->assertRequest();
 	}

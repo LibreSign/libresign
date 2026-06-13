@@ -38,7 +38,7 @@ final class IdDocsControllerTest extends ApiTestCase {
 				]
 			])
 			->withPath('/api/v1/id-docs')
-			>expectStatus(401);
+			> expectStatus(401);
 
 		$this->assertRequest();
 	}

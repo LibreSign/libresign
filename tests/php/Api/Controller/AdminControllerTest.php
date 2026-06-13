@@ -50,7 +50,7 @@ final class AdminControllerTest extends ApiTestCase {
 				],
 				'configPath' => ''
 			])
-			>expectStatus(401);
+			> expectStatus(401);
 
 		// Make and test request mach with schema
 		$this->assertRequest();
@@ -74,7 +74,7 @@ final class AdminControllerTest extends ApiTestCase {
 				'tsa_username' => 'testuser',
 				'tsa_password' => 'secret_password'
 			])
-			>expectStatus(200);
+			> expectStatus(200);
 
 		$this->assertRequest();
 	}
@@ -94,7 +94,7 @@ final class AdminControllerTest extends ApiTestCase {
 			->withRequestBody([
 				'tsa_password' => 'secret_password'
 			])
-			>expectStatus(200);
+			> expectStatus(200);
 
 		$this->assertRequest();
 	}
@@ -111,7 +111,7 @@ final class AdminControllerTest extends ApiTestCase {
 			])
 			->withPath('/api/v1/admin/tsa')
 			->withMethod('DELETE')
-			>expectStatus(200);
+			> expectStatus(200);
 
 		$this->assertRequest();
 	}
@@ -133,7 +133,7 @@ final class AdminControllerTest extends ApiTestCase {
 			->withRequestBody([
 				'groups' => ['admin', 'editors'],
 			])
-			>expectStatus(200);
+			> expectStatus(200);
 
 		$this->assertRequest();
 	}
@@ -155,7 +155,7 @@ final class AdminControllerTest extends ApiTestCase {
 			->withRequestBody([
 				'groups' => ['admin', 'SÖ'],
 			])
-			>expectStatus(200);
+			> expectStatus(200);
 
 		$this->assertRequest();
 	}
