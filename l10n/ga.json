@@ -414,7 +414,6 @@
     "Error monitoring signing progress" : "Earráid ag monatóireacht dul chun cinn sínithe",
     "The original file was deleted. You can no longer add signers or open it." : "Scriosadh an comhad bunaidh. Ní féidir leat sínitheoirí a chur leis ná é a oscailt a thuilleadh.",
     "Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures." : "Úsáideann roinnt sínitheoirí modhanna aitheantais atá díchumasaithe. Bain nó nuashonraigh iad le do thoil sula n-iarrann tú sínithe.",
-    "Loading signer details..." : "Ag lódáil sonraí an tsínitheora...",
     "Add signer" : "Cuir sínitheoir leis",
     "Sign in order" : "Ordú sínithe isteach",
     "View signing order" : "Féach ar an ordú sínithe",

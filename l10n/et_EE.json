@@ -305,7 +305,6 @@
     "Document URL not found" : "Dokumendi aadressi/võrguaadressi ei leidunud",
     "Error monitoring signing progress" : "Viga allkirjastamisprotsessi jälgimisel",
     "The original file was deleted. You can no longer add signers or open it." : "Algfail on kustutatud. Sa ei saa sinna enam lisada allkirjastajaid ega seda avada.",
-    "Loading signer details..." : "Laadin allkirjastaja üksikasju...",
     "Add signer" : "Lisa allkirjastaja",
     "View signing order" : "Vaata allkirjastamise järjekorda",
     "Customize message" : "Kohenda sõnumit",
