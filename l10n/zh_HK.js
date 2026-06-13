@@ -416,7 +416,6 @@ OC.L10N.register(
     "Error monitoring signing progress" : "監察簽署進度時發生錯誤",
     "The original file was deleted. You can no longer add signers or open it." : "原始檔案已被刪除。您將無法再新增簽署者或開啟該檔案。",
     "Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures." : "部分簽署者使用了已被停用的驗證方法。請在請求簽署前移除或更新這些方法。",
-    "Loading signer details..." : "正在載入簽署人資料…",
     "Add signer" : "添加簽署人",
     "Sign in order" : "依序簽署",
     "View signing order" : "檢視簽署順序",
