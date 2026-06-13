@@ -416,7 +416,6 @@ OC.L10N.register(
     "Error monitoring signing progress" : "Klaida stebint pasirašymo eigą",
     "The original file was deleted. You can no longer add signers or open it." : "Originalus failas buvo ištrintas. Nebegalite pridėti pasirašančiųjų ar jo atidaryti.",
     "Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures." : "Kai kurie pasirašantys asmenys naudoja išjungtus identifikavimo metodus. Prieš prašydami parašų, pašalinkite arba atnaujinkite juos.",
-    "Loading signer details..." : "Įkeliami pasirašančiojo duomenys...",
     "Add signer" : "Pridėti pasirašantįjį",
     "Sign in order" : "Pasirašyti eilės tvarka",
     "View signing order" : "Žiūrėti pasirašymo tvarką",
