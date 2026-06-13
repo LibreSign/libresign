@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Font;
  */
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Service\Font\BundledFontLocator;
 use OCA\Libresign\Service\Font\FontConfigService;
 use OCA\Libresign\Service\Font\MpdfFontConfigFactory;
 use OCA\Libresign\Vendor\Mpdf\Config\FontVariables;
@@ -19,6 +20,7 @@ use Psr\Log\NullLogger;
 
 final class MpdfFontConfigFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
+	private BundledFontLocator $bundledFontLocator;
 	/**
 	 * @var list<string>
 	 */
@@ -27,6 +29,7 @@ final class MpdfFontConfigFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase
 	#[\Override]
 	public function setUp(): void {
 		$this->appConfig = $this->getMockAppConfigWithReset();
+		$this->bundledFontLocator = new BundledFontLocator();
 	}
 
 	#[\Override]
@@ -41,6 +44,7 @@ final class MpdfFontConfigFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase
 	private function getClass(): MpdfFontConfigFactory {
 		return new MpdfFontConfigFactory(
 			new FontConfigService($this->appConfig, new NullLogger()),
+			$this->bundledFontLocator,
 		);
 	}
 
@@ -67,11 +71,9 @@ final class MpdfFontConfigFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase
 		$this->assertTrue(mkdir($fontDirectory, 0777, true) || is_dir($fontDirectory));
 		$this->temporaryDirectories[] = $fontDirectory;
 
-		$sourceDirectory = __DIR__ . '/../../../../../3rdparty/composer/mpdf/mpdf/ttfonts';
 		foreach ($fontFiles as $fontFile) {
-			$sourcePath = $sourceDirectory . '/' . $fontFile;
+			$sourcePath = $this->bundledFontLocator->requireFontFile($fontFile);
 			$destinationPath = $fontDirectory . '/' . $fontFile;
-			$this->assertFileExists($sourcePath);
 			$this->assertTrue(copy($sourcePath, $destinationPath));
 		}
 
@@ -216,15 +218,58 @@ final class MpdfFontConfigFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase
 		];
 	}
 
-	public function testFactoryDoesNotScanSystemFontDirectoriesRecursively(): void {
-		$factorySource = file_get_contents(__DIR__ . '/../../../../../lib/Service/Font/MpdfFontConfigFactory.php');
-		$serviceSource = file_get_contents(__DIR__ . '/../../../../../lib/Service/Font/FontConfigService.php');
+	public function testGetFontFamilyReturnsResolvedConfiguredTemplateFamily(): void {
+		$fontDirectory = $this->createTempFontDirectory([
+			'DejaVuSansCondensed.ttf',
+		]);
+		$this->setFontConfig('template_font', $fontDirectory, [
+			'family' => 'Custom Sans',
+			'regular' => 'DejaVuSansCondensed.ttf',
+		]);
 
-		$this->assertIsString($factorySource);
-		$this->assertIsString($serviceSource);
-		$this->assertStringNotContainsString('/usr/share/fonts', $factorySource . $serviceSource);
-		$this->assertStringNotContainsString('/usr/local/share/fonts', $factorySource . $serviceSource);
-		$this->assertStringNotContainsString('RecursiveDirectoryIterator', $factorySource . $serviceSource);
-		$this->assertStringNotContainsString('scandir(', $factorySource);
+		$this->assertSame('customsans', $this->getClass()->getFontFamily());
+	}
+
+	public function testGetFontFamilyFallsBackToLegacyFooterConfigurationWhenTemplateConfigurationIsInvalid(): void {
+		$templateFontDirectory = $this->createTempFontDirectory([
+			'DejaVuSansCondensed.ttf',
+		]);
+		$footerFontDirectory = $this->createTempFontDirectory([
+			'DejaVuSerifCondensed.ttf',
+		]);
+		$this->setFontConfig('template_font', $templateFontDirectory, [
+			'family' => 'Template Sans',
+			'regular' => 'Missing.ttf',
+		]);
+		$this->setFontConfig('footer_font', $footerFontDirectory, [
+			'family' => 'Footer Serif',
+			'regular' => 'DejaVuSerifCondensed.ttf',
+		]);
+
+		$this->assertSame('footerserif', $this->getClass()->getFontFamily());
+	}
+
+	public function testConfiguredFontDirectoryIsPrependedOnlyOnceWhenItMatchesBundledDirectory(): void {
+		$bundledFontDirectory = dirname($this->bundledFontLocator->requireFontFile('DejaVuSansCondensed.ttf'));
+		$this->setFontConfig('template_font', $bundledFontDirectory, [
+			'family' => 'Bundled Sans',
+			'regular' => 'DejaVuSansCondensed.ttf',
+		]);
+
+		$config = $this->getClass()->getConfig();
+		$matchingDirectories = array_values(array_filter(
+			$config['fontDir'],
+			static fn (string $directory): bool => $directory === $bundledFontDirectory,
+		));
+
+		$this->assertCount(1, $matchingDirectories);
+		$this->assertSame($bundledFontDirectory, $config['fontDir'][0]);
+		$this->assertSame('bundledsans', $config['default_font']);
+		$this->assertSame([
+			'R' => 'DejaVuSansCondensed.ttf',
+			'B' => 'DejaVuSansCondensed.ttf',
+			'I' => 'DejaVuSansCondensed.ttf',
+			'BI' => 'DejaVuSansCondensed.ttf',
+		], $config['fontdata']['bundledsans']);
 	}
 }
