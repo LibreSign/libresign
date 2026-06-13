@@ -707,7 +707,13 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'signed' => null,
 						'status' => 0,
 						'statusText' => 'pending',
-						'identifyMethods' => ['cpf', 'email'],
+						'identifyMethods' => [
+							[
+								'method' => 'email',
+								'value' => 'john@example.com',
+								'mandatory' => 1,
+							],
+						],
 					],
 				],
 				'expectedSummaries' => [
@@ -718,11 +724,62 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'signed' => null,
 						'status' => 0,
 						'statusText' => 'pending',
-						'identifyMethods' => ['cpf', 'email'],
+						'identifyMethods' => [
+							[
+								'method' => 'email',
+								'value' => 'john@example.com',
+								'mandatory' => 1,
+							],
+						],
 					],
 				],
 			],
-			'type-casts string fields to proper types' => [
+			'filters invalid identifyMethods entries' => [
+				'signers' => [
+					[
+						'signRequestId' => 3,
+						'displayName' => 'Jane',
+						'email' => 'jane@example.com',
+						'signed' => null,
+						'status' => 1,
+						'statusText' => 'ready',
+						'identifyMethods' => ['cpf', 'email'],
+					],
+				],
+				'expectedSummaries' => [
+					[
+						'signRequestId' => 3,
+						'displayName' => 'Jane',
+						'email' => 'jane@example.com',
+						'signed' => null,
+						'status' => 1,
+						'statusText' => 'ready',
+					],
+				],
+			],
+			'casts supported scalar fields to contract types' => [
+				'signers' => [
+					[
+						'signRequestId' => '5',
+						'displayName' => 123,
+						'email' => '456.78',
+						'signed' => null,
+						'status' => '1',
+						'statusText' => 890,
+					],
+				],
+				'expectedSummaries' => [
+					[
+						'signRequestId' => 5,
+						'displayName' => '123',
+						'email' => '456.78',
+						'signed' => null,
+						'status' => 1,
+						'statusText' => '890',
+					],
+				],
+			],
+			'normalizes invalid email and status values' => [
 				'signers' => [
 					[
 						'signRequestId' => 5,
@@ -737,9 +794,9 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					[
 						'signRequestId' => 5,
 						'displayName' => '123',
-						'email' => '456.78',
+						'email' => null,
 						'signed' => null,
-						'status' => 7,
+						'status' => 0,
 						'statusText' => '890',
 					],
 				],
