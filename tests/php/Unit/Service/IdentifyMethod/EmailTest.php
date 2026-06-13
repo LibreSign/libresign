@@ -43,6 +43,7 @@ final class EmailTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private LoggerInterface&MockObject $logger;
 	private IL10N $l10n;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->identifyService = $this->createMock(IdentifyService::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);

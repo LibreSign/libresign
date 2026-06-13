@@ -75,7 +75,7 @@ class UploadProcessor {
 
 		try {
 			foreach ($filesArray as $uploadedFile) {
-				$fileName = pathinfo($uploadedFile['name'], PATHINFO_FILENAME);
+				$fileName = pathinfo((string)$uploadedFile['name'], PATHINFO_FILENAME);
 
 				$node = $this->getNodeFromUploadedFile([
 					'userManager' => $user,

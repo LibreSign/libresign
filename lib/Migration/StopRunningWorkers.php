@@ -14,7 +14,7 @@ use OCP\Migration\IRepairStep;
 use Psr\Log\LoggerInterface;
 
 class StopRunningWorkers implements IRepairStep {
-	private const PROCESS_SOURCE = 'worker';
+	private const string PROCESS_SOURCE = 'worker';
 
 	public function __construct(
 		private ProcessManager $processManager,

@@ -34,7 +34,7 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 	private IURLGenerator&MockObject $urlGenerator;
 	private LoggerInterface&MockObject $logger;
 
-
+	#[\Override]
 	public function setUp(): void {
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->appConfig = $this->getMockAppConfigWithReset();

@@ -75,12 +75,10 @@ class FileServiceTest extends TestCase {
 			->method('debug')
 			->with(
 				'Failed to load certificate file',
-				$this->callback(function (array $context) use ($engineType): bool {
-					return $context['instanceId'] === 'instance-1'
+				$this->callback(fn (array $context): bool => $context['instanceId'] === 'instance-1'
 						&& $context['generation'] === 1
 						&& $context['engineType'] === $engineType->value
-						&& isset($context['error']);
-				})
+						&& isset($context['error']))
 			);
 
 		$result = $this->service->getRootCertificateByGeneration('instance-1', 1, $engineType);

@@ -5,6 +5,7 @@ declare(strict_types=1);
  * SPDX-FileCopyrightText: 2020-2025 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
+
 namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod;
 
 use OCA\Libresign\AppInfo\Application;
@@ -45,6 +46,7 @@ class AccountTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private MailService&MockObject $mailService;
 	private IL10N $l10n;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->identifyService = $this->createMock(IdentifyService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
@@ -193,12 +195,10 @@ class AccountTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	private function createSignatureMethod(string $name, bool $enabled): ISignatureMethod {
 		return new class($name, $enabled) implements ISignatureMethod {
-			private string $name;
-			private bool $enabled;
-
-			public function __construct(string $name, bool $enabled) {
-				$this->name = $name;
-				$this->enabled = $enabled;
+			public function __construct(
+				private string $name,
+				private bool $enabled,
+			) {
 			}
 
 			public function getName(): string {

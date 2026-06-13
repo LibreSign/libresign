@@ -27,6 +27,7 @@ final class CapabilitiesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private EnvelopeService&MockObject $envelopeService;
 	private IAppConfig&MockObject $appConfig;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->signatureTextService = $this->createMock(SignatureTextService::class);
@@ -34,7 +35,6 @@ final class CapabilitiesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->envelopeService = $this->createMock(EnvelopeService::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 	}
-
 
 	private function getClass(): Capabilities {
 		$this->capabilities = new Capabilities(

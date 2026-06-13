@@ -39,6 +39,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SubjectAlternativeNameService $subjectAlternativeNameService;
 	private CrlRevocationChecker&MockObject $crlRevocationChecker;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->config = \OCP\Server::get(IConfig::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
@@ -259,7 +260,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$instance = $this->getInstance();
 
 		foreach ($certificateData as $setter => $value) {
-			$method = 'set' . ucfirst($setter);
+			$method = 'set' . ucfirst((string)$setter);
 			if (method_exists($instance, $method)) {
 				$instance->$method($value);
 			}

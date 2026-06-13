@@ -17,7 +17,7 @@ use OCP\IPhoneNumberUtil;
 
 class ManualPhonePlugin implements ISearchPlugin {
 	public const TYPE_SIGNER_MANUAL_PHONE = 53;
-	private const PHONE_BASED_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
+	private const array PHONE_BASED_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
 
 	public function __construct(
 		private IConfig $config,

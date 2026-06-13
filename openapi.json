@@ -587,36 +587,11 @@
                     {
                         "type": "object",
                         "required": [
-                            "message",
-                            "name",
-                            "nodeType",
-                            "metadata",
-                            "signatureFlow"
+                            "message"
                         ],
                         "properties": {
                             "message": {
                                 "type": "string"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "nodeType": {
-                                "type": "string",
-                                "enum": [
-                                    "file",
-                                    "envelope"
-                                ]
-                            },
-                            "metadata": {
-                                "$ref": "#/components/schemas/FileRuntimeMetadata"
-                            },
-                            "signatureFlow": {
-                                "type": "string",
-                                "enum": [
-                                    "none",
-                                    "parallel",
-                                    "ordered_numeric"
-                                ]
                             }
                         }
                     }
@@ -1854,7 +1829,6 @@
                             "description",
                             "request_sign_date",
                             "me",
-                            "status",
                             "visibleElements"
                         ],
                         "properties": {
@@ -1905,15 +1879,6 @@
                             },
                             "me": {
                                 "type": "boolean"
-                            },
-                            "status": {
-                                "type": "integer",
-                                "format": "int64",
-                                "enum": [
-                                    0,
-                                    1,
-                                    2
-                                ]
                             },
                             "signingOrder": {
                                 "type": "integer",
@@ -1992,7 +1957,12 @@
                     },
                     "status": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ]
                     },
                     "statusText": {
                         "type": "string"

@@ -143,7 +143,7 @@ class CrlApiControllerTest extends ApiTestCase {
 			->withRequestBody([
 				'serialNumber' => '',
 			])
-			->assertResponseCode(400);
+			->expectStatus(400);
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
@@ -169,7 +169,7 @@ class CrlApiControllerTest extends ApiTestCase {
 				'serialNumber' => '123456',
 				'reasonCode' => 99, // Invalid code
 			])
-			->assertResponseCode(400);
+			->expectStatus(400);
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
@@ -198,7 +198,7 @@ class CrlApiControllerTest extends ApiTestCase {
 				'reasonCode' => 0, // Unspecified
 				'reasonText' => 'Test revocation',
 			])
-			->assertResponseCode(404); // Certificate doesn't exist, so we expect 404
+			->expectStatus(404); // Certificate doesn't exist, so we expect 404
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
@@ -229,7 +229,7 @@ class CrlApiControllerTest extends ApiTestCase {
 					'reasonCode' => $reasonCode,
 					'reasonText' => 'Test revocation with reason code ' . $reasonCode,
 				])
-				->assertResponseCode(404); // Certificate doesn't exist
+				->expectStatus(404); // Certificate doesn't exist
 
 			$response = $this->assertRequest();
 			$body = json_decode($response->getBody()->getContents(), true);
@@ -257,7 +257,7 @@ class CrlApiControllerTest extends ApiTestCase {
 			->withRequestBody([
 				'serialNumber' => '123456',
 			])
-			->assertResponseCode(404); // Certificate doesn't exist, but request is valid
+			->expectStatus(404); // Certificate doesn't exist, but request is valid
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);

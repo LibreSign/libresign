@@ -35,6 +35,7 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignatureBackgroundService&MockObject $signatureBackgroundService;
 	private FooterService&MockObject $footerService;
 	private DocMdpConfigService&MockObject $docMdpConfigService;
+	#[\Override]
 	public function setUp(): void {
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);

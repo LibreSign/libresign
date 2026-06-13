@@ -27,14 +27,14 @@ use OCP\ITempManager;
 use Psr\Log\LoggerInterface;
 
 class JSignPdfHandler extends Pkcs12Handler {
-	private const MIN_PDF_VERSION = 1.2;
-	private const TARGET_OLD_PDF_VERSION = '1.3';
-	private const MIN_PDF_VERSION_SHA256 = 1.6;
-	private const TARGET_PDF_VERSION_SHA256 = '1.6';
-	private const MIN_PDF_VERSION_SHA1_REJECT = 1.7;
-	private const SIGNATURE_DEFAULT_FONT_SIZE = 10.0;
-	private const PAGE_FIRST = 1;
-	private const SCALE_FACTOR_MIN = 5;
+	private const float MIN_PDF_VERSION = 1.2;
+	private const string TARGET_OLD_PDF_VERSION = '1.3';
+	private const float MIN_PDF_VERSION_SHA256 = 1.6;
+	private const string TARGET_PDF_VERSION_SHA256 = '1.6';
+	private const float MIN_PDF_VERSION_SHA1_REJECT = 1.7;
+	private const float SIGNATURE_DEFAULT_FONT_SIZE = 10.0;
+	private const int PAGE_FIRST = 1;
+	private const int SCALE_FACTOR_MIN = 5;
 
 	/** @var JSignPDF */
 	private $jSignPdf;
@@ -435,7 +435,6 @@ class JSignPdfHandler extends Pkcs12Handler {
 	private function normalizeScaleFactor(float $scaleFactor): float {
 		return max($scaleFactor, self::SCALE_FACTOR_MIN);
 	}
-
 
 	#[\Override]
 	public function readCertificate(): array {

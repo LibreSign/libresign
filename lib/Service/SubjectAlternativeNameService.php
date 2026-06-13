@@ -87,7 +87,7 @@ class SubjectAlternativeNameService {
 		$value = $parsed['value'];
 
 		if (in_array($method, [IdentifyMethodService::IDENTIFY_EMAIL, IdentifyMethodService::IDENTIFY_ACCOUNT], true)) {
-			if (str_ends_with($value, $host)) {
+			if (str_ends_with((string)$value, $host)) {
 				$uid = str_replace('@' . $host, '', $value);
 				$user = $this->userManager->get($uid);
 				if ($user) {

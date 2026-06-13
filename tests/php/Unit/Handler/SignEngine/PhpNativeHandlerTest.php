@@ -31,6 +31,7 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignatureBackgroundService&MockObject $signatureBackgroundService;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
@@ -489,7 +490,6 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	private function callPrivateMethod(object $instance, string $methodName, mixed ...$args): mixed {
 		$method = new \ReflectionMethod($instance, $methodName);
-		$method->setAccessible(true);
 		return $method->invoke($instance, ...$args);
 	}
 }

@@ -41,7 +41,7 @@ use Psr\Log\LoggerInterface;
  */
 class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	public const CFSSL_URI = 'http://127.0.0.1:8888/api/v1/cfssl/';
-	private const PROCESS_SOURCE = 'cfssl';
+	private const string PROCESS_SOURCE = 'cfssl';
 
 	/** @var Client */
 	protected $client;
@@ -356,9 +356,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		$host = parse_url($this->getCfsslUri(), PHP_URL_HOST);
 		$port = parse_url($this->getCfsslUri(), PHP_URL_PORT);
 
-		set_error_handler(function (int $errno, string $errstr, string $errfile = '', int $errline = 0, array $errcontext = []): bool {
-			return true;
-		});
+		set_error_handler(fn (int $errno, string $errstr, string $errfile = '', int $errline = 0, array $errcontext = []): bool => true);
 		$socket = fsockopen($host, $port, $errno, $errstr, 0.1);
 		restore_error_handler();
 		if (!$socket || $errno || $errstr) {
@@ -585,7 +583,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			}
 
 			return $responseData['success'];
-
 		} catch (RequestException|ConnectException $e) {
 			throw new \RuntimeException('Failed to communicate with CFSSL server: ' . $e->getMessage());
 		} catch (\Throwable $e) {

@@ -13,7 +13,7 @@ namespace OCA\Libresign\Service\File;
  * @psalm-import-type LibresignValidateMetadata from \OCA\Libresign\ResponseDefinitions
  */
 final class ValidationMetadataNormalizer {
-	private const OPTIONAL_SCALAR_TYPE_GUARDS = [
+	private const array OPTIONAL_SCALAR_TYPE_GUARDS = [
 		'original_file_deleted' => 'is_bool',
 		'pdfVersion' => 'is_string',
 		'status_changed_at' => 'is_string',

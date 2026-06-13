@@ -44,6 +44,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private static ?CertificateEngineFactory $certificateEngineFactory = null;
 	private JavaHelper&MockObject $javaHelper;
 	private static string $certificateContent = '';
+	#[\Override]
 	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 
@@ -61,11 +62,12 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				->setCommonName('John Doe')
 				->setPassword('password')
 				->generateCertificate();
-		} catch (\Throwable $e) {
+		} catch (\Throwable) {
 			self::$certificateContent = '';
 			self::$certificateEngineFactory = null;
 		}
 	}
+	#[\Override]
 	public function setUp(): void {
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
@@ -122,7 +124,6 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	private function setDocMdpConfigService(JSignPdfHandler $handler, DocMdpConfigService $docMdpConfigService): void {
 		$reflection = new \ReflectionProperty(JSignPdfHandler::class, 'docMdpConfigService');
-		$reflection->setAccessible(true);
 		$reflection->setValue($handler, $docMdpConfigService);
 	}
 

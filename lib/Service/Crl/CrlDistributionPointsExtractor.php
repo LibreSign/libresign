@@ -11,13 +11,13 @@ namespace OCA\Libresign\Service\Crl;
 
 final class CrlDistributionPointsExtractor {
 	/** @var array<string, true> */
-	private const ACCEPTED_EXTENSION_NAMES = [
+	private const array ACCEPTED_EXTENSION_NAMES = [
 		'crldistributionpoints' => true,
 		'x509v3 crl distribution points' => true,
 		'2.5.29.31' => true,
 	];
 
-	private const URI_PATTERN = '/URI\s*:\s*([^\s\n]+)/i';
+	private const string URI_PATTERN = '/URI\s*:\s*([^\s\n]+)/i';
 
 	/**
 	 * @param array<array-key, mixed> $extensions

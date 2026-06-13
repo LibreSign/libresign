@@ -19,8 +19,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 class ProcessManagerTest extends TestCase {
-	private const INSTALL_SOURCE = 'install';
-	private const WORKER_SOURCE = 'worker';
+	private const string INSTALL_SOURCE = 'install';
+	private const string WORKER_SOURCE = 'worker';
 
 	private IAppConfig&MockObject $appConfig;
 	private LoggerInterface&MockObject $logger;

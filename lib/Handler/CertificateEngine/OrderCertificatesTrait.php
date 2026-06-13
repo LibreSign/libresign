@@ -370,7 +370,7 @@ trait OrderCertificatesTrait {
 					$issuerSki = $chainCertData['extensions']['subjectKeyIdentifier'];
 					$aki = $certData['extensions']['authorityKeyIdentifier'];
 
-					if (!str_contains($aki, $issuerSki)) {
+					if (!str_contains((string)$aki, $issuerSki)) {
 						$result['errors'][] = 'authorityKeyIdentifier does not match issuer subjectKeyIdentifier';
 						$result['valid'] = false;
 					}

@@ -11,8 +11,8 @@ namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 
 class TwofactorGatewayToken extends AbstractSignatureMethod implements IToken {
-	private const VISIBILITY_START = 2;
-	private const VISIBILITY_END = 2;
+	private const int VISIBILITY_START = 2;
+	private const int VISIBILITY_END = 2;
 
 	public function __construct(
 		protected IdentifyService $identifyService,

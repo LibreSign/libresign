@@ -181,13 +181,11 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->processManager->expects($this->once())
 			->method('findRunningPid')
 			->with('install', $this->callback('is_callable'))
-			->willReturnCallback(function (string $_source, callable $filter): int {
-				return $filter([
-					'pid' => 123,
-					'context' => ['resource' => 'cfssl'],
-					'createdAt' => 123,
-				]) ? 123 : 0;
-			});
+			->willReturnCallback(fn (string $_source, callable $filter): int => $filter([
+				'pid' => 123,
+				'context' => ['resource' => 'cfssl'],
+				'createdAt' => 123,
+			]) ? 123 : 0);
 
 		$actual = self::invokePrivate($installService, 'getInstallPid');
 
@@ -219,13 +217,11 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->processManager->expects($this->once())
 			->method('findRunningPid')
 			->with('install', $this->callback('is_callable'))
-			->willReturnCallback(function (string $_source, callable $filter): int {
-				return $filter([
-					'pid' => 321,
-					'context' => ['resource' => 'cfssl'],
-					'createdAt' => 123,
-				]) ? 321 : 0;
-			});
+			->willReturnCallback(fn (string $_source, callable $filter): int => $filter([
+				'pid' => 321,
+				'context' => ['resource' => 'cfssl'],
+				'createdAt' => 123,
+			]) ? 321 : 0);
 
 		$this->processManager->expects($this->never())
 			->method('unregister');

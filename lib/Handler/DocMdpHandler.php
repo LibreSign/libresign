@@ -15,7 +15,7 @@ use OCP\IL10N;
 
 class DocMdpHandler {
 	/** @var array<string, string[]> Allowed modification types per DocMDP level */
-	private const ALLOWED_MODIFICATIONS = [
+	private const array ALLOWED_MODIFICATIONS = [
 		'CERTIFIED_NO_CHANGES_ALLOWED' => [],
 		'CERTIFIED_FORM_FILLING' => ['form_field', 'template', 'signature'],
 		'CERTIFIED_FORM_FILLING_AND_ANNOTATIONS' => ['form_field', 'template', 'annotation', 'signature'],
@@ -181,7 +181,7 @@ class DocMdpHandler {
 
 		if (isset($objMatch[1]) && preg_match('/(\d+\s+\d+\s+R)/', $objMatch[1], $paramsRef)) {
 			$objNum = preg_replace('/\s+R$/', '', $paramsRef[1]);
-			$paramsPattern = '/' . preg_quote($objNum, '/') . '\s+obj\s*(<<.*?>>)\s*endobj/s';
+			$paramsPattern = '/' . preg_quote((string)$objNum, '/') . '\s+obj\s*(<<.*?>>)\s*endobj/s';
 			if (preg_match($paramsPattern, $content, $paramsMatch)) {
 				if (preg_match('/\/P\s*(\d+)/', $paramsMatch[1], $pMatch)) {
 					if ($this->validateTransformParamsVersion($content, $paramsMatch[0])) {
@@ -223,7 +223,7 @@ class DocMdpHandler {
 	private function validateTransformParamsVersion(string $content, string $context): bool {
 		if (preg_match('/\/TransformParams\s*(\d+\s+\d+\s+R)/', $context, $paramsRef)) {
 			$objNum = preg_replace('/\s+R$/', '', $paramsRef[1]);
-			$paramsPattern = '/' . preg_quote($objNum, '/') . '\s+obj\s*(<<.*?>>)\s*endobj/s';
+			$paramsPattern = '/' . preg_quote((string)$objNum, '/') . '\s+obj\s*(<<.*?>>)\s*endobj/s';
 			if (preg_match($paramsPattern, $content, $objMatch)) {
 				return preg_match('/\/V\s*\/1\.2/', $objMatch[1]) === 1;
 			}
@@ -427,7 +427,7 @@ class DocMdpHandler {
 		$docMdpSignatureCount = 0;
 		foreach ($latestByObj as $obj) {
 			$dict = $obj['dict'];
-			if (!preg_match('/\/Type\s*\/Sig\b/', $dict) || !preg_match('/\/Reference\s*\[/', $dict)) {
+			if (!preg_match('/\/Type\s*\/Sig\b/', (string)$dict) || !preg_match('/\/Reference\s*\[/', (string)$dict)) {
 				continue;
 			}
 			if ($this->signatureHasDocMdp($content, $dict)) {
@@ -523,7 +523,7 @@ class DocMdpHandler {
 	private function findSignatureDictionary(array $objects): ?string {
 		foreach ($objects as $obj) {
 			$dict = $obj['dict'];
-			if (preg_match('/\/Type\s*\/Sig\b/', $dict) && preg_match('/\/Reference\s*\[/', $dict)) {
+			if (preg_match('/\/Type\s*\/Sig\b/', (string)$dict) && preg_match('/\/Reference\s*\[/', (string)$dict)) {
 				return $dict;
 			}
 		}

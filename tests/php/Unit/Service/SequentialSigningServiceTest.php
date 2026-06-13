@@ -180,9 +180,7 @@ final class SequentialSigningServiceTest extends TestCase {
 		if ($expectedActivations > 0) {
 			$this->signRequestMapper->expects($this->exactly($expectedActivations))
 				->method('update')
-				->with($this->callback(function (SignRequest $request): bool {
-					return $request->getStatusEnum() === SignRequestStatus::ABLE_TO_SIGN;
-				}));
+				->with($this->callback(fn (SignRequest $request): bool => $request->getStatusEnum() === SignRequestStatus::ABLE_TO_SIGN));
 
 			$identifyMethod = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
 			$identifyMethod->expects($this->exactly($expectedActivations))
@@ -258,9 +256,7 @@ final class SequentialSigningServiceTest extends TestCase {
 		if ($expectedActivations > 0) {
 			$this->signRequestMapper->expects($this->exactly($expectedActivations))
 				->method('update')
-				->with($this->callback(function (SignRequest $request): bool {
-					return $request->getStatusEnum() === SignRequestStatus::ABLE_TO_SIGN;
-				}));
+				->with($this->callback(fn (SignRequest $request): bool => $request->getStatusEnum() === SignRequestStatus::ABLE_TO_SIGN));
 
 			$identifyMethod = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
 			$identifyMethod->expects($this->exactly($expectedActivations))

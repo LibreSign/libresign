@@ -841,8 +841,8 @@ class FileListService {
 		?array $identifyMethods = null,
 	): array {
 		$fileIds = array_map(fn (File $file) => $file->getId(), $files);
-		$allSigners = $allSigners ?? ($fileIds ? $this->signRequestMapper->getByMultipleFileId($fileIds) : []);
-		$identifyMethods = $identifyMethods ?? $this->signRequestMapper->getIdentifyMethodsFromSigners($allSigners);
+		$allSigners ??= $fileIds ? $this->signRequestMapper->getByMultipleFileId($fileIds) : [];
+		$identifyMethods ??= $this->signRequestMapper->getIdentifyMethodsFromSigners($allSigners);
 
 		$signersByFileId = [];
 		foreach ($allSigners as $signer) {

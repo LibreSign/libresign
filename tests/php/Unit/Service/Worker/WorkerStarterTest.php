@@ -59,14 +59,16 @@ class WorkerStarterTest extends TestCase {
 			});
 
 		$workerStarter = new class($this->binaryFinder, $this->processManager, [$this->makeProcessMock(101), $this->makeProcessMock(202)]) extends WorkerStarter {
-			/** @var Process[] */
-			private array $processes;
 			/** @var array<int, array<int, string>> */
 			public array $commands = [];
 
-			public function __construct(IBinaryFinder $binaryFinder, ProcessManager $processManager, array $processes) {
+			public function __construct(
+				IBinaryFinder $binaryFinder,
+				ProcessManager $processManager,
+				/** @var Process[] */
+				private array $processes,
+			) {
 				parent::__construct($binaryFinder, $processManager);
-				$this->processes = $processes;
 			}
 
 			protected function createProcess(array $command): Process {
@@ -92,14 +94,16 @@ class WorkerStarterTest extends TestCase {
 			->method('register');
 
 		$workerStarter = new class($this->binaryFinder, $this->processManager, [$this->makeProcessMock(0)]) extends WorkerStarter {
-			/** @var Process[] */
-			private array $processes;
 			/** @var array<int, array<int, string>> */
 			public array $commands = [];
 
-			public function __construct(IBinaryFinder $binaryFinder, ProcessManager $processManager, array $processes) {
+			public function __construct(
+				IBinaryFinder $binaryFinder,
+				ProcessManager $processManager,
+				/** @var Process[] */
+				private array $processes,
+			) {
 				parent::__construct($binaryFinder, $processManager);
-				$this->processes = $processes;
 			}
 
 			protected function createProcess(array $command): Process {
@@ -123,14 +127,16 @@ class WorkerStarterTest extends TestCase {
 			->method('register');
 
 		$workerStarter = new class($this->binaryFinder, $this->processManager, $this->makeProcessMocks(32, null)) extends WorkerStarter {
-			/** @var Process[] */
-			private array $processes;
 			/** @var array<int, array<int, string>> */
 			public array $commands = [];
 
-			public function __construct(IBinaryFinder $binaryFinder, ProcessManager $processManager, array $processes) {
+			public function __construct(
+				IBinaryFinder $binaryFinder,
+				ProcessManager $processManager,
+				/** @var Process[] */
+				private array $processes,
+			) {
 				parent::__construct($binaryFinder, $processManager);
-				$this->processes = $processes;
 			}
 
 			protected function createProcess(array $command): Process {
@@ -154,12 +160,13 @@ class WorkerStarterTest extends TestCase {
 			->method('register');
 
 		$workerStarter = new class($this->binaryFinder, $this->processManager, [$this->makeProcessMock(0), $this->makeProcessMock(-1), $this->makeProcessMock(null)]) extends WorkerStarter {
-			/** @var Process[] */
-			private array $processes;
-
-			public function __construct(IBinaryFinder $binaryFinder, ProcessManager $processManager, array $processes) {
+			public function __construct(
+				IBinaryFinder $binaryFinder,
+				ProcessManager $processManager,
+				/** @var Process[] */
+				private array $processes,
+			) {
 				parent::__construct($binaryFinder, $processManager);
-				$this->processes = $processes;
 			}
 
 			protected function createProcess(array $command): Process {

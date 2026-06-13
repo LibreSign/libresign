@@ -23,7 +23,7 @@ class PhpLdapConnection implements ILdapConnection {
 		if (!function_exists('ldap_connect')) {
 			throw new \RuntimeException('PHP ldap extension is not loaded');
 		}
-		$conn = @ldap_connect($host, $port);
+		$conn = @ldap_connect("{$host}:{$port}");
 		if (!$conn) {
 			throw new \RuntimeException(sprintf('ldap_connect failed for %s:%d', $host, $port));
 		}

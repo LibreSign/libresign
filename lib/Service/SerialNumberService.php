@@ -14,8 +14,8 @@ use OCA\Libresign\Db\CrlMapper;
 use OCP\DB\Exception as DBException;
 
 class SerialNumberService {
-	private const MAX_RETRY_ATTEMPTS = 10;
-	private const SERIAL_MAX_VALUE = 9223372036854775807;
+	private const int MAX_RETRY_ATTEMPTS = 10;
+	private const int SERIAL_MAX_VALUE = 9223372036854775807;
 
 	public function __construct(
 		private CrlMapper $crlMapper,
@@ -52,7 +52,6 @@ class SerialNumberService {
 				);
 
 				return $serialString;
-
 			} catch (DBException $e) {
 				if ($e->getReason() === DBException::REASON_UNIQUE_CONSTRAINT_VIOLATION) {
 					continue;

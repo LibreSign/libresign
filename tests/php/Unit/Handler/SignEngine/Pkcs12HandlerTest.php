@@ -41,6 +41,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private DocMdpHandler&MockObject $docMdpHandler;
 	private CrlService&MockObject $crlService;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
