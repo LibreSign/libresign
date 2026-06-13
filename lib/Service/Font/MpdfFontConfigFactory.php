@@ -12,44 +12,42 @@ use OCA\Libresign\Vendor\Mpdf\Config\ConfigVariables;
 use OCA\Libresign\Vendor\Mpdf\Config\FontVariables;
 
 class MpdfFontConfigFactory {
+	public const string DEFAULT_FONT_FAMILY = 'dejavusanscondensed';
+
 	private BundledFontLocator $bundledFontLocator;
+	private SystemFontCatalog $systemFontCatalog;
 
 	public function __construct(
-		private FontConfigService $fontConfigService,
 		?BundledFontLocator $bundledFontLocator = null,
+		?SystemFontCatalog $systemFontCatalog = null,
 	) {
 		$this->bundledFontLocator = $bundledFontLocator ?? new BundledFontLocator();
+		$this->systemFontCatalog = $systemFontCatalog ?? new SystemFontCatalog();
 	}
 
 	/**
 	 * @return array{fontDir: list<string>, fontdata: array<string, array<string, mixed>>, default_font: string}
 	 */
 	public function getConfig(): array {
-		$fontDirectories = $this->getDefaultFontDirectories();
+		$fontDirectories = array_values(array_unique(array_merge(
+			$this->getDefaultFontDirectories(),
+			$this->systemFontCatalog->getFontDirectories(),
+		)));
 		$fontData = $this->getDefaultFontData();
-		$defaultFont = $this->fontConfigService->getActiveFontFamily();
 
-		$configuredFont = $this->fontConfigService->getConfiguredTemplateFont();
-		if ($configuredFont !== null) {
-			array_unshift($fontDirectories, $configuredFont->getDirectory());
-			$fontDirectories = array_values(array_unique($fontDirectories));
-			$fontData[$configuredFont->getFamily()] = [
-				'R' => $configuredFont->getRegular(),
-				'B' => $configuredFont->getBold(),
-				'I' => $configuredFont->getItalic(),
-				'BI' => $configuredFont->getBoldItalic(),
-			];
+		foreach ($this->systemFontCatalog->getFontData() as $family => $variants) {
+			$fontData[$family] ??= $variants;
 		}
 
 		return [
 			'fontDir' => $fontDirectories,
 			'fontdata' => $fontData,
-			'default_font' => $defaultFont,
+			'default_font' => self::DEFAULT_FONT_FAMILY,
 		];
 	}
 
 	public function getFontFamily(): string {
-		return $this->fontConfigService->getActiveFontFamily();
+		return self::DEFAULT_FONT_FAMILY;
 	}
 
 	/**
