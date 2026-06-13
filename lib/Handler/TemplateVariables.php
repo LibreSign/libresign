@@ -13,6 +13,7 @@ use OCP\IL10N;
 
 /**
  * @method self setDirection(string $value)
+ * @method self setFontFamily(string $value)
  * @method self setLinkToSite(string $value)
  * @method self setQrcode(string $value)
  * @method self setQrcodeSize(int $value)
@@ -22,6 +23,7 @@ use OCP\IL10N;
  * @method self setValidateIn(string $value)
  * @method self setValidationSite(string $value)
  * @method string|null getDirection()
+ * @method string|null getFontFamily()
  * @method string|null getLinkToSite()
  * @method string|null getQrcode()
  * @method int|null getQrcodeSize()
@@ -47,6 +49,12 @@ class TemplateVariables {
 				'type' => 'string',
 				'description' => $this->l10n->t('Text direction for the footer (ltr or rtl based on language)'),
 				'example' => 'ltr',
+			],
+			'fontFamily' => [
+				'type' => 'string',
+				'description' => $this->l10n->t('Resolved font family alias used by the active renderer'),
+				'example' => 'dejavusanscondensed',
+				'default' => 'dejavusanscondensed',
 			],
 			'linkToSite' => [
 				'type' => 'string',
