@@ -240,14 +240,20 @@ jobs:
           timeout 30 bash -c 'until curl -s http://localhost:8080/status.php > /dev/null; do sleep 1; done'
           echo "Nextcloud is ready at http://localhost:8080"
 
-      - name: Install Playwright system dependencies
-        working-directory: apps/${{ env.APP_NAME }}
-        run: npx playwright install-deps chromium
-
       - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: apps/${{ env.APP_NAME }}
-        run: npx playwright install chromium
+        timeout-minutes: 5
+        run: |
+          # If the exact chromium version is already cached (exact or restore-key hit),
+          # playwright's install will detect it and exit immediately without verification.
+          # Use --with-deps to ensure system sandbox libraries are present, which also
+          # avoids the post-install chromium --version verification hang on Ubuntu 24.04.
+          if ls ~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome 1>/dev/null 2>&1; then
+            echo "Chromium binary found in cache, installing system deps only"
+            npx playwright install-deps chromium
+          else
+            npx playwright install --with-deps chromium
+          fi
 
       - name: Run Playwright tests
         working-directory: apps/${{ env.APP_NAME }}
