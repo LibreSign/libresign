@@ -17,7 +17,10 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
+use OCA\Libresign\Service\Font\BundledFontLocator;
+use OCA\Libresign\Service\Font\FontReferenceResolver;
 use OCA\Libresign\Service\SignatureBackgroundService;
+use OCA\Libresign\Service\SignatureTextLineBreaker;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Vendor\Jeidison\JSignPDF\JSignPDF;
@@ -76,11 +79,12 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->javaHelper = $this->createMock(JavaHelper::class);
 	}
 
-	private function getInstance(array $methods = []): JSignPdfHandler|MockObject {
+	private function getInstance(array $methods = [], ?DocMdpConfigService $docMdpConfigService = null): JSignPdfHandler|MockObject {
 		$urlGenerator = $this->createMock(IURLGenerator::class);
 		$urlGenerator
 			->method('linkToRouteAbsolute')
 			->willReturnCallback(fn (string $route, array $params): string => 'https://example.test/' . $route . '/' . ($params['uuid'] ?? ''));
+		$docMdpConfigService ??= $this->createMock(DocMdpConfigService::class);
 
 		$signatureTextService = new SignatureTextService(
 			$this->appConfig,
@@ -90,6 +94,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			\OCP\Server::get(IUserSession::class),
 			$urlGenerator,
 			\OCP\Server::get(LoggerInterface::class),
+			new FontReferenceResolver(new BundledFontLocator(), \OCP\Server::get(LoggerInterface::class)),
+			new SignatureTextLineBreaker(),
 		);
 
 		// Create mock factory if initialization failed in setUpBeforeClass
@@ -104,7 +110,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->signatureBackgroundService,
 				$certificateEngineFactory,
 				$this->javaHelper,
-				$this->createMock(DocMdpConfigService::class),
+				$docMdpConfigService,
 			);
 		}
 		return $this->getMockBuilder(JSignPdfHandler::class)
@@ -116,15 +122,10 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->signatureBackgroundService,
 				$certificateEngineFactory,
 				$this->javaHelper,
-				$this->createMock(DocMdpConfigService::class),
+				$docMdpConfigService,
 			])
 			->onlyMethods($methods)
 			->getMock();
-	}
-
-	private function setDocMdpConfigService(JSignPdfHandler $handler, DocMdpConfigService $docMdpConfigService): void {
-		$reflection = new \ReflectionProperty(JSignPdfHandler::class, 'docMdpConfigService');
-		$reflection->setValue($handler, $docMdpConfigService);
 	}
 
 	#[DataProvider('providerGetHashAlgorithm')]
@@ -574,8 +575,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$docMdpConfigService->method('isEnabled')->willReturn(true);
 		$docMdpConfigService->method('getLevel')->willReturn(DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS);
 
-		$jSignPdfHandler = $this->getInstance();
-		$this->setDocMdpConfigService($jSignPdfHandler, $docMdpConfigService);
+		$jSignPdfHandler = $this->getInstance([], $docMdpConfigService);
 		$jSignPdfHandler->setVisibleElements([
 			self::getElement([
 				'page' => 1,
@@ -641,8 +641,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$docMdpConfigService->method('isEnabled')->willReturn(true);
 		$docMdpConfigService->method('getLevel')->willReturn(DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS);
 
-		$jSignPdfHandler = $this->getInstance();
-		$this->setDocMdpConfigService($jSignPdfHandler, $docMdpConfigService);
+		$jSignPdfHandler = $this->getInstance([], $docMdpConfigService);
 		$jSignPdfHandler->setVisibleElements([
 			self::getElement([
 				'page' => 1,
