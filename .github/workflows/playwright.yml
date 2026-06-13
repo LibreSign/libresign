@@ -231,9 +231,6 @@ jobs:
             cp -a "$source_dir"/. .cache/libresign-binaries/
           fi
 
-      - name: Allow Chromium user namespaces
-        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-
       - name: Start PHP built-in server
         run: |
           # front_controller_active tells Nextcloud to generate clean URLs (without index.php prefix)
@@ -246,7 +243,11 @@ jobs:
       - name: Install Playwright browsers
         working-directory: apps/${{ env.APP_NAME }}
         timeout-minutes: 10
-        run: npx playwright install --with-deps chromium
+        run: |
+          # CI runs Playwright headlessly and this project uses bundled Chromium
+          # without a channel override, so only the documented headless shell is
+          # required here.
+          npx playwright install --with-deps --only-shell chromium
 
       - name: Run Playwright tests
         working-directory: apps/${{ env.APP_NAME }}
