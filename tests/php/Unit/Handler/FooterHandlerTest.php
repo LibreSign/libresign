@@ -15,8 +15,8 @@ use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\TemplateVariables;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\Font\BundledFontLocator;
-use OCA\Libresign\Service\Font\FontConfigService;
 use OCA\Libresign\Service\Font\MpdfFontConfigFactory;
+use OCA\Libresign\Service\Font\SystemFontCatalog;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -25,7 +25,6 @@ use OCP\IURLGenerator;
 use OCP\L10N\IFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
@@ -68,8 +67,8 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	private function getMpdfFontConfigFactory(): MpdfFontConfigFactory {
 		return new MpdfFontConfigFactory(
-			new FontConfigService($this->appConfig, new NullLogger()),
 			$this->bundledFontLocator,
+			new SystemFontCatalog(sys_get_temp_dir() . '/libresign-footer-font-catalog-missing-' . bin2hex(random_bytes(4))),
 		);
 	}
 
@@ -78,26 +77,11 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	/**
-	 * @param array<string, string> $settings
-	 */
-	private function setTemplateFontConfig(array $settings = []): void {
-		$defaults = [
-			'family' => 'Custom Sans',
-			'dir' => $this->getBundledMpdfFontsDirectory(),
-			'regular' => 'DejaVuSansCondensed.ttf',
-		];
-
-		foreach (array_merge($defaults, $settings) as $suffix => $value) {
-			$this->appConfig->setValueString(Application::APP_ID, 'template_font_' . $suffix, $value);
-		}
-	}
-
-	/**
 	 * @param array<string, mixed> $config
 	 */
 	private function getStubMpdfFontConfigFactory(
 		array $config = [],
-		string $fontFamily = FontConfigService::DEFAULT_FONT_FAMILY,
+		string $fontFamily = MpdfFontConfigFactory::DEFAULT_FONT_FAMILY,
 	): MpdfFontConfigFactory {
 		$defaultConfig = [
 			'fontDir' => [$this->getBundledMpdfFontsDirectory()],
@@ -442,33 +426,6 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertStringContainsString('test-uuid', $text);
 	}
 
-	public function testStrongTagDoesNotBreakFooterWhenConfiguredBoldVariantIsInvalid(): void {
-		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
-		$this->appConfig->setValueBool(Application::APP_ID, 'write_qrcode_on_footer', false);
-		$this->appConfig->setValueString(
-			Application::APP_ID,
-			'footer_template',
-			'<div><strong>{{ signedBy|raw }}</strong> {{ uuid }}</div>'
-		);
-		$this->setTemplateFontConfig([
-			'bold' => 'Missing.ttf',
-		]);
-		$this->l10n = $this->l10nFactory->get(Application::APP_ID, 'en');
-
-		$pdf = $this->getClass()
-			->setTemplateVar('uuid', 'test-uuid')
-			->setTemplateVar('signedBy', 'Signed by LibreSign')
-			->getFooter([['w' => 595, 'h' => 100]]);
-
-		$this->assertNotEmpty($pdf);
-		$parser = new \Smalot\PdfParser\Parser();
-		$pdfParsed = $parser->parseContent($pdf);
-		$text = $pdfParsed->getText();
-
-		$this->assertStringContainsString('Signed by LibreSign', $text);
-		$this->assertStringContainsString('test-uuid', $text);
-	}
-
 	public function testCustomValidationSiteNotOverwritten(): void {
 		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
 		$this->appConfig->setValueString(Application::APP_ID, 'validation_site', 'https://default.site');
@@ -494,7 +451,10 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$template = $this->getClass()->getDefaultTemplate();
 
-		$this->assertStringContainsString("font-family: {{ fontFamily|default('dejavusanscondensed')|e('css') }}, sans-serif;", $template);
+		$this->assertStringContainsString(
+			"font-family: {{ fontFamily|default('" . MpdfFontConfigFactory::DEFAULT_FONT_FAMILY . "')|e('css') }}, sans-serif;",
+			$template,
+		);
 	}
 
 	public function testManualFontFamilyCannotOverrideResolvedFontFamily(): void {
@@ -550,7 +510,6 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testFooterFontServicesResolveFromContainer(): void {
 		$this->assertInstanceOf(LoggerInterface::class, \OCP\Server::get(LoggerInterface::class));
 		$this->assertInstanceOf(BundledFontLocator::class, \OCP\Server::get(BundledFontLocator::class));
-		$this->assertInstanceOf(FontConfigService::class, \OCP\Server::get(FontConfigService::class));
 		$this->assertInstanceOf(MpdfFontConfigFactory::class, \OCP\Server::get(MpdfFontConfigFactory::class));
 		$this->assertInstanceOf(FooterHandler::class, \OCP\Server::get(FooterHandler::class));
 	}
