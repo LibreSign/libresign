@@ -1,4 +1,4 @@
-<table style="width:100%; border:0; {% if not qrcode %}padding-left:15px;{% endif %} font-size:8px;">
+<table style="width:100%; border:0; {% if not qrcode %}padding-left:15px;{% endif %} font-size:8px; font-family: {{ fontFamily|default('dejavusanscondensed')|e('css') }}, sans-serif;">
 	<tr>
 		{% if qrcode %}
 			<td width="{{ qrcodeSize }}px">
