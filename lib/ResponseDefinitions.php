@@ -161,7 +161,7 @@ namespace OCA\Libresign;
  *     email?: ?string,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     signed: ?string,
- *     status: int,
+ *     status: 0|1|2,
  *     statusText: string,
  * }
  * @psalm-type LibresignSignerDetail = LibresignSignerSummary&array{
@@ -513,7 +513,7 @@ namespace OCA\Libresign;
  *     id: int,
  *     nodeId: int,
  *     uuid: string,
- *     name: string,
+ *     name: non-falsy-string,
  *     status: int,
  *     statusText: string,
  *     nodeType: 'file'|'envelope',
