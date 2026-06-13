@@ -12,7 +12,11 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use Imagick;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\Font\BundledFontLocator;
+use OCA\Libresign\Service\Font\FontReferenceResolver;
 use OCA\Libresign\Service\SignatureTextService;
+use OCA\Libresign\Service\SignerElementsService;
+use OCA\Libresign\Tests\Unit\Service\Font\InMemoryLogger;
 use OCP\IAppConfig;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
@@ -22,30 +26,31 @@ use OCP\IUserSession;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
-use Psr\Log\LoggerInterface;
 
 final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignatureTextService $service;
 	private IAppConfig $appConfig;
 	private IL10N $l10n;
 	private IDateTimeZone $dateTimeZone;
-	private IRequest&MockObject $request;
-	private IUserSession&MockObject $userSession;
+	private IRequest $request;
+	private IUserSession $userSession;
 	private IURLGenerator&MockObject $urlGenerator;
-	private LoggerInterface&MockObject $logger;
+	private InMemoryLogger $logger;
+	private BundledFontLocator $bundledFontLocator;
 
 	#[\Override]
 	public function setUp(): void {
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->dateTimeZone = \OCP\Server::get(IDateTimeZone::class);
-		$this->request = $this->createMock(IRequest::class);
-		$this->userSession = $this->createMock(IUserSession::class);
+		$this->request = $this->createStub(IRequest::class);
+		$this->userSession = $this->createStub(IUserSession::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->urlGenerator
 			->method('linkToRouteAbsolute')
 			->willReturnCallback(fn (string $route, array $params): string => 'https://example.test/' . $route . '/' . ($params['uuid'] ?? ''));
-		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->logger = new InMemoryLogger();
+		$this->bundledFontLocator = new BundledFontLocator();
 	}
 
 	private function getClass(): SignatureTextService {
@@ -57,13 +62,14 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 			$this->userSession,
 			$this->urlGenerator,
 			$this->logger,
+			new FontReferenceResolver($this->bundledFontLocator, $this->logger),
+			new \OCA\Libresign\Service\SignatureTextLineBreaker(),
 		);
 		return $this->service;
 	}
 
 	public function testCollectingMetadata(): void {
-		$appConfig = $this->getMockAppConfig();
-		$appConfig->setValueBool(Application::APP_ID, 'collect_metadata', true);
+		$this->appConfig->setValueBool(Application::APP_ID, 'collect_metadata', true);
 
 		$actual = $this->getClass()->getAvailableVariables();
 		$this->assertArrayHasKey('{{SignerIP}}', $actual);
@@ -76,8 +82,7 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 	}
 
 	public function testNotCollectingMetadata(): void {
-		$appConfig = $this->getMockAppConfig();
-		$appConfig->setValueBool(Application::APP_ID, 'collect_metadata', false);
+		$this->appConfig->setValueBool(Application::APP_ID, 'collect_metadata', false);
 
 		$actual = $this->getClass()->getAvailableVariables();
 		$this->assertArrayNotHasKey('{{SignerIP}}', $actual);
@@ -158,41 +163,87 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		$this->assertStringStartsWith("\x89PNG\r\n\x1A\n", $decoded);
 	}
 
-	#[DataProvider('providerSplitAndGetLongestHalfLength')]
-	public function testSplitAndGetLongestHalfLength(string $text, int $expected): void {
-		$class = $this->getClass();
-		$actual = self::invokePrivate($class, 'splitAndGetLongestHalfLength', [$text]);
-		$this->assertEquals($expected, $actual);
+	public function testParseBuildsValidationUrlAndQrcodeFromDocumentUuid(): void {
+		$this->appConfig->setValueString(Application::APP_ID, 'validation_site', 'https://validator.example/base');
+
+		$actual = $this->getClass()->parse('{{ValidationURL}}|{{qrcode}}', [
+			'DocumentUUID' => 'abc-123',
+		]);
+
+		[$validationUrl, $qrcode] = explode('|', $actual['parsed'], 2);
+
+		$this->assertSame('https://validator.example/base/abc-123', $validationUrl);
+		$this->assertMatchesRegularExpression('/^[A-Za-z0-9+\/=]+$/', $qrcode);
+		$decoded = base64_decode($qrcode, true);
+		$this->assertNotFalse($decoded);
+		$this->assertStringStartsWith("\x89PNG\r\n\x1A\n", $decoded);
 	}
 
-	public static function providerSplitAndGetLongestHalfLength(): array {
+	#[DataProvider('providerTemplateFontSizeScenarios')]
+	public function testTemplateFontSizesDependOnMetadataCollection(
+		bool $collectMetadata,
+		float $configuredTemplateFontSize,
+		float $expectedTemplateFontSize,
+		float $expectedDefaultTemplateFontSize,
+	): void {
+		$this->appConfig->setValueBool(Application::APP_ID, 'collect_metadata', $collectMetadata);
+		$this->appConfig->setValueFloat(Application::APP_ID, 'template_font_size', $configuredTemplateFontSize);
+
+		$class = $this->getClass();
+
+		$this->assertSame($expectedTemplateFontSize, $class->getTemplateFontSize());
+		$this->assertSame($expectedDefaultTemplateFontSize, $class->getDefaultTemplateFontSize());
+	}
+
+	public static function providerTemplateFontSizeScenarios(): array {
 		return [
-			'empty string' => ['', mb_strlen('')],
-			'single character' => ['A', mb_strlen('A')],
-			'no spaces' => ['Loremipsumdolorsitamet', mb_strlen('Loremipsumdolorsitamet')],
-			'space exactly in the middle' => ['Lorem ipsum', mb_strlen('Lorem')],
-			'space after middle' => ['Open source rocks', mb_strlen('source rocks')],
-			'space before middle' => ['Free software forever', mb_strlen('software forever')],
-			'spaces on edges' => [' Leading and trailing ', mb_strlen('and trailing')],
-			'unbalanced halves' => ['Short veryveryverylongword', mb_strlen('veryveryverylongword')],
-			'equal halves' => ['One Two', mb_strlen('One')],
-			'multiple words' => ['This is a longer string with more words', mb_strlen('This is a longer string')],
-			'no possible split (no spaces)' => ['ABCDEFGHIJK', mb_strlen('ABCDEFGHIJK')],
-			'only spaces' => ['     ', mb_strlen('')],
-			'space at beginning' => [' HelloWorld', mb_strlen('HelloWorld')],
-			'space at end' => ['HelloWorld ', mb_strlen('HelloWorld')],
-			'two short words' => ['a b', mb_strlen('a')],
-			'multibyte with accents' => ['João da Silva', mb_strlen('da Silva')],
-			'multibyte at split' => ['José Antônio', mb_strlen('Antônio')],
-			'multibyte no spaces' => ['Ñandúçara', mb_strlen('Ñandúçara')],
-			'emoji in middle' => ['Smile 😀 always', mb_strlen('Smile 😀')],
-			'emoji before space' => ['Good job 👍 team', mb_strlen('Good job 👍')],
-			'emoji after space' => ['Team 👏 effort', mb_strlen('Team 👏')],
-			'cjk characters with space' => ['漢字 漢字', mb_strlen('漢字')],
-			'arabic with space' => ['سلام عليكم', mb_strlen('عليكم')],
-			'emoji only' => ['😊 🙃', mb_strlen('😊')],
-			'mixed accented and emoji' => ['Renée 💡 Dubois', mb_strlen('Renée 💡')],
-			'greek with space' => ['Αθήνα Ελλάδα', mb_strlen('Ελλάδα')],
+			'metadata disabled keeps configured size and standard default size' => [false, 12.5, 12.5, 10.0],
+			'metadata enabled keeps configured size and reduces default size' => [true, 8.75, 8.75, 9.8],
+		];
+	}
+
+	#[DataProvider('providerSignatureWidthScenarios')]
+	public function testGetSignatureWidthDependsOnRenderModeAndTemplate(
+		string $renderMode,
+		?string $template,
+		float $expectedSignatureWidth,
+	): void {
+		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_width', 400.0);
+		$this->appConfig->setValueString(Application::APP_ID, 'signature_render_mode', $renderMode);
+		if ($template === null) {
+			$this->appConfig->deleteKey(Application::APP_ID, 'signature_text_template');
+		} else {
+			$this->appConfig->setValueString(Application::APP_ID, 'signature_text_template', $template);
+		}
+
+		$class = $this->getClass();
+
+		$this->assertSame($expectedSignatureWidth, $class->getSignatureWidth());
+		$this->assertSame($class->getFullSignatureHeight(), $class->getSignatureHeight());
+	}
+
+	public static function providerSignatureWidthScenarios(): array {
+		return [
+			'default render mode halves width when template is enabled' => [
+				SignerElementsService::RENDER_MODE_DEFAULT,
+				'Signed by {{SignerCommonName}}',
+				200.0,
+			],
+			'graphic only keeps full width' => [
+				SignerElementsService::RENDER_MODE_GRAPHIC_ONLY,
+				'Signed by {{SignerCommonName}}',
+				400.0,
+			],
+			'empty configured template keeps full width' => [
+				SignerElementsService::RENDER_MODE_DEFAULT,
+				'',
+				400.0,
+			],
+			'not configured uses default template and halves width' => [
+				SignerElementsService::RENDER_MODE_DEFAULT,
+				null,
+				200.0,
+			],
 		];
 	}
 
@@ -225,6 +276,7 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 
 	public static function providerSignerNameImage(): array {
 		return [
+			'empty text keeps canvas dimensions' => ['', 350, 100, 'center', 5],
 			'center 350x100 scale 5' => ['LibreSign', 350, 100, 'center', 5],
 			'left 350x100 scale 4' => ['Secure signature', 350, 100, 'left', 4],
 			'right 350x100 scale 3' => ['Verified by LibreCode', 350, 100, 'right', 3],
@@ -245,7 +297,7 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 	}
 
 	public function testHasFont(): void {
-		$this->assertFileExists($fallbackFond = __DIR__ . '/../../../../3rdparty/composer/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf');
+		$this->assertFileExists($this->bundledFontLocator->requireFontFile('DejaVuSerifCondensed.ttf'));
 	}
 
 	#[DataProvider('providerInvalidSignatureDimensions')]
@@ -279,13 +331,61 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		];
 	}
 
-	public function testGetFullSignatureDimensionsShouldFallbackToDefaultsWhenConfigIsInvalid(): void {
-		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_width', 0.0);
-		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_height', -1.0);
+	#[DataProvider('providerInvalidStoredDimensions')]
+	public function testInvalidStoredDimensionsFallbackToDefaultsAndLogWarnings(
+		float $configuredWidth,
+		float $configuredHeight,
+		array $expectedInvalidKeys,
+	): void {
+		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_width', $configuredWidth);
+		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_height', $configuredHeight);
 
 		$class = $this->getClass();
 
 		$this->assertEquals(SignatureTextService::DEFAULT_SIGNATURE_WIDTH, $class->getFullSignatureWidth());
 		$this->assertEquals(SignatureTextService::DEFAULT_SIGNATURE_HEIGHT, $class->getFullSignatureHeight());
+
+		$this->assertSame(
+			in_array('signature_width', $expectedInvalidKeys, true) ? (float)SignatureTextService::DEFAULT_SIGNATURE_WIDTH : $configuredWidth,
+			$this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', -1)
+		);
+		$this->assertSame(
+			in_array('signature_height', $expectedInvalidKeys, true) ? (float)SignatureTextService::DEFAULT_SIGNATURE_HEIGHT : $configuredHeight,
+			$this->appConfig->getValueFloat(Application::APP_ID, 'signature_height', -1)
+		);
+
+		$warnings = $this->logger->warnings();
+		$this->assertCount(count($expectedInvalidKeys), $warnings);
+		$this->assertSame($expectedInvalidKeys, array_map(
+			static fn (array $warning): string => $warning['context']['key'],
+			$warnings,
+		));
+	}
+
+	public static function providerInvalidStoredDimensions(): array {
+		return [
+			'invalid width only' => [0.0, 100.0, ['signature_width']],
+			'invalid height only' => [350.0, -1.0, ['signature_height']],
+			'both invalid' => [0.0, -1.0, ['signature_width', 'signature_height']],
+		];
+	}
+
+	#[DataProvider('providerEnabledStates')]
+	public function testIsEnabledDependsOnConfiguredTemplate(?string $configuredTemplate, bool $expectedEnabled): void {
+		if ($configuredTemplate === null) {
+			$this->appConfig->deleteKey(Application::APP_ID, 'signature_text_template');
+		} else {
+			$this->appConfig->setValueString(Application::APP_ID, 'signature_text_template', $configuredTemplate);
+		}
+
+		$this->assertSame($expectedEnabled, $this->getClass()->isEnabled());
+	}
+
+	public static function providerEnabledStates(): array {
+		return [
+			'not configured uses default template' => [null, true],
+			'empty configured template disables signature text' => ['', false],
+			'custom configured template enables signature text' => ['Signed by {{SignerCommonName}}', true],
+		];
 	}
 }
