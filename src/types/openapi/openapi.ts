@@ -1297,8 +1297,11 @@ export type components = {
             email?: string | null;
             identifyMethods?: components["schemas"]["IdentifyMethod"][];
             signed: string | null;
-            /** Format: int64 */
-            status: number;
+            /**
+             * Format: int64
+             * @enum {integer}
+             */
+            status: 0 | 1 | 2;
             statusText: string;
         };
         SigningJob: {
