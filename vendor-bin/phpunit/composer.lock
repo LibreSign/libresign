@@ -4,83 +4,32 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6e13f00098dde1822e82007b21460eef",
+    "content-hash": "75fefa53eac30494002760f3d0abdf8f",
     "packages": [],
     "packages-dev": [
         {
-            "name": "byjg/serializer",
-            "version": "5.0.x-dev",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/byjg/php-serializer.git",
-                "reference": "1a380318533355badf9b2090f50bbc300fa3fd34"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-serializer/zipball/1a380318533355badf9b2090f50bbc300fa3fd34",
-                "reference": "1a380318533355badf9b2090f50bbc300fa3fd34",
-                "shasum": ""
-            },
-            "require": {
-                "ext-json": "*",
-                "ext-simplexml": "*",
-                "php": ">=8.1 <8.4",
-                "symfony/yaml": "> 4"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^9.6",
-                "vimeo/psalm": "^5.9"
-            },
-            "suggest": {
-                "ext-curl": "*"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "ByJG\\Serializer\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "description": "Serialize any object into array and format it JSON or XML",
-            "support": {
-                "issues": "https://github.com/byjg/php-serializer/issues",
-                "source": "https://github.com/byjg/php-serializer/tree/5.0"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/byjg",
-                    "type": "github"
-                }
-            ],
-            "time": "2024-10-27T15:09:25+00:00"
-        },
-        {
             "name": "byjg/swagger-test",
-            "version": "5.0.x-dev",
+            "version": "6.0.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-swagger-test.git",
-                "reference": "9cfff6640201b288c7f2736cf669879c313b6070"
+                "reference": "93e0eaf911d70c4a2366211876710f4f2b2c7703"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/9cfff6640201b288c7f2736cf669879c313b6070",
-                "reference": "9cfff6640201b288c7f2736cf669879c313b6070",
+                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/93e0eaf911d70c4a2366211876710f4f2b2c7703",
+                "reference": "93e0eaf911d70c4a2366211876710f4f2b2c7703",
                 "shasum": ""
             },
             "require": {
-                "byjg/webrequest": "^5.0",
-                "byjg/xmlutil": "^5.0",
+                "byjg/webrequest": "^6.0",
                 "ext-json": "*",
-                "php": ">=8.1 <8.4"
+                "php": ">=8.3 <8.6"
             },
             "require-dev": {
-                "byjg/restserver": "^5.0",
-                "phpunit/phpunit": "^9.6",
-                "vimeo/psalm": "^5.9"
+                "byjg/restserver": "^6.0",
+                "phpunit/phpunit": "^10.5|^11.5",
+                "vimeo/psalm": "^5.9|^6.13"
             },
             "type": "library",
             "autoload": {
@@ -92,10 +41,10 @@
             "license": [
                 "MIT"
             ],
-            "description": "A set of tools for testing your REST calls based on the Swagger or OpenAPI documentation using PHPUnit",
+            "description": "A set of tools for testing your REST calls based on the OpenApi specification using PHPUnit. Currently, this library supports the OpenApi specifications 2.0 (formerly swagger) and 3.0.",
             "support": {
                 "issues": "https://github.com/byjg/php-swagger-test/issues",
-                "source": "https://github.com/byjg/php-swagger-test/tree/5.0"
+                "source": "https://github.com/byjg/php-swagger-test/tree/6.0"
             },
             "funding": [
                 {
@@ -103,32 +52,32 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-07-02T21:49:39+00:00"
+            "time": "2026-02-17T20:27:45+00:00"
         },
         {
             "name": "byjg/uri",
-            "version": "5.0.x-dev",
+            "version": "6.0.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-uri.git",
-                "reference": "fc3e8d3b50159fdc0abd4896ac8e8f68fa01732f"
+                "reference": "f731affb648fe52e4533fd7d83f69cc212e980a7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-uri/zipball/fc3e8d3b50159fdc0abd4896ac8e8f68fa01732f",
-                "reference": "fc3e8d3b50159fdc0abd4896ac8e8f68fa01732f",
+                "url": "https://api.github.com/repos/byjg/php-uri/zipball/f731affb648fe52e4533fd7d83f69cc212e980a7",
+                "reference": "f731affb648fe52e4533fd7d83f69cc212e980a7",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.1 <8.5",
+                "php": ">=8.3 <8.6",
                 "psr/http-message": "^1.0|^1.1|^2.0"
             },
             "provide": {
                 "psr/http-message-implementation": "1.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^9.6",
-                "vimeo/psalm": "^6.0"
+                "phpunit/phpunit": "^10.5|^11.5",
+                "vimeo/psalm": "^5.9|^6.13"
             },
             "type": "project",
             "autoload": {
@@ -140,10 +89,10 @@
             "license": [
                 "MIT"
             ],
-            "description": "An implementation of PSR-7 Uri Interface ",
+            "description": "A PHP implementation of PSR-7 UriInterface with additional utility methods",
             "support": {
                 "issues": "https://github.com/byjg/php-uri/issues",
-                "source": "https://github.com/byjg/php-uri/tree/5.0"
+                "source": "https://github.com/byjg/php-uri/tree/6.0"
             },
             "funding": [
                 {
@@ -151,27 +100,27 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-11-30T15:33:08+00:00"
+            "time": "2025-11-25T17:51:35+00:00"
         },
         {
             "name": "byjg/webrequest",
-            "version": "5.0.x-dev",
+            "version": "6.0.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-webrequest.git",
-                "reference": "07bdfaca2fc410f1084c3b56aa5258f918d4ec0e"
+                "reference": "f4e85957ea7b5647a5584a7a15594d5a07670ba2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-webrequest/zipball/07bdfaca2fc410f1084c3b56aa5258f918d4ec0e",
-                "reference": "07bdfaca2fc410f1084c3b56aa5258f918d4ec0e",
+                "url": "https://api.github.com/repos/byjg/php-webrequest/zipball/f4e85957ea7b5647a5584a7a15594d5a07670ba2",
+                "reference": "f4e85957ea7b5647a5584a7a15594d5a07670ba2",
                 "shasum": ""
             },
             "require": {
-                "byjg/uri": "^5.0",
+                "byjg/uri": "^6.0",
                 "ext-curl": "*",
                 "ext-json": "*",
-                "php": ">=8.1 <8.4",
+                "php": ">=8.3 <8.6",
                 "psr/http-client": "^1.0",
                 "psr/http-factory": "^1.0|^1.1",
                 "psr/http-message": "^1.0|^2.0"
@@ -183,8 +132,8 @@
             },
             "require-dev": {
                 "ext-soap": "*",
-                "phpunit/phpunit": "^9.6",
-                "vimeo/psalm": "^5.9"
+                "phpunit/phpunit": "^10.5|^11.5",
+                "vimeo/psalm": "^5.9|^6.13"
             },
             "type": "library",
             "autoload": {
@@ -202,10 +151,10 @@
                     "email": "joao@byjg.com.br"
                 }
             ],
-            "description": "A lightweight and highly customized CURL wrapper for making RESt calls using PSR7 implementation and a wrapper for call dynamically SOAP requests.",
+            "description": "A lightweight PSR-7 implementation and highly customized CURL wrapper for making REST calls.",
             "support": {
                 "issues": "https://github.com/byjg/php-webrequest/issues",
-                "source": "https://github.com/byjg/php-webrequest/tree/5.0"
+                "source": "https://github.com/byjg/php-webrequest/tree/6.0"
             },
             "funding": [
                 {
@@ -213,55 +162,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-01-19T20:27:02+00:00"
-        },
-        {
-            "name": "byjg/xmlutil",
-            "version": "5.0.x-dev",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/byjg/php-xmlutil.git",
-                "reference": "5880d0ccf9e401ec84704b154ad5434c9db18aa0"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-xmlutil/zipball/5880d0ccf9e401ec84704b154ad5434c9db18aa0",
-                "reference": "5880d0ccf9e401ec84704b154ad5434c9db18aa0",
-                "shasum": ""
-            },
-            "require": {
-                "byjg/serializer": "^5.0",
-                "ext-dom": "*",
-                "ext-libxml": "*",
-                "ext-simplexml": "*",
-                "php": ">=8.1 <8.4"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^9.6",
-                "vimeo/psalm": "^5.20"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "ByJG\\XmlUtil\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "description": "A utility class to make easy work with XML in PHP.",
-            "support": {
-                "issues": "https://github.com/byjg/php-xmlutil/issues",
-                "source": "https://github.com/byjg/php-xmlutil/tree/5.0"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/byjg",
-                    "type": "github"
-                }
-            ],
-            "time": "2025-07-03T15:32:03+00:00"
+            "time": "2025-11-22T05:25:27+00:00"
         },
         {
             "name": "cweagans/composer-configurable-plugin",
@@ -2965,7 +2866,6 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "byjg/swagger-test": 20,
         "mikey179/vfsstream": 20,
         "phpunit/phpunit": 20,
         "smalot/pdfparser": 20,

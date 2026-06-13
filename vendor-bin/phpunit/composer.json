@@ -2,7 +2,7 @@
     "require-dev": {
         "donatj/mock-webserver": "^2.7",
         "mikey179/vfsstream": "dev-master",
-        "byjg/swagger-test": "5.0.x-dev",
+        "byjg/swagger-test": "^6.0",
         "cweagans/composer-patches": "^2.0",
         "guzzlehttp/psr7": "^2.4",
         "symfony/yaml": "7.4.x-dev",
