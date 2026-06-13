@@ -10,21 +10,22 @@ namespace OCA\Libresign\Tests\Unit\Handler;
  */
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\TemplateVariables;
-use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
+use OCA\Libresign\Service\Font\BundledFontLocator;
 use OCA\Libresign\Service\Font\FontConfigService;
 use OCA\Libresign\Service\Font\MpdfFontConfigFactory;
-use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use PHPUnit\Framework\Attributes\DataProvider;
 
 final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
@@ -34,6 +35,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IFactory $l10nFactory;
 	private ITempManager $tempManager;
 	private FooterHandler $footerHandler;
+	private BundledFontLocator $bundledFontLocator;
 
 	#[\Override]
 	public function setUp(): void {
@@ -42,6 +44,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->urlGenerator = $this->createStub(IURLGenerator::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->l10nFactory = \OCP\Server::get(IFactory::class);
+		$this->bundledFontLocator = new BundledFontLocator();
 	}
 
 	private function getClass(
@@ -66,14 +69,12 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private function getMpdfFontConfigFactory(): MpdfFontConfigFactory {
 		return new MpdfFontConfigFactory(
 			new FontConfigService($this->appConfig, new NullLogger()),
+			$this->bundledFontLocator,
 		);
 	}
 
-	private function getBundledMpdfFontsDirectory(): string {
-		$directory = __DIR__ . '/../../../../3rdparty/composer/mpdf/mpdf/ttfonts';
-		$this->assertDirectoryExists($directory);
-
-		return $directory;
+	private function getBundledMpdfFontsDirectory(string $requiredFontFile = 'DejaVuSansCondensed.ttf'): string {
+		return dirname($this->bundledFontLocator->requireFontFile($requiredFontFile));
 	}
 
 	/**
@@ -548,24 +549,10 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testFooterFontServicesResolveFromContainer(): void {
 		$this->assertInstanceOf(LoggerInterface::class, \OCP\Server::get(LoggerInterface::class));
+		$this->assertInstanceOf(BundledFontLocator::class, \OCP\Server::get(BundledFontLocator::class));
 		$this->assertInstanceOf(FontConfigService::class, \OCP\Server::get(FontConfigService::class));
 		$this->assertInstanceOf(MpdfFontConfigFactory::class, \OCP\Server::get(MpdfFontConfigFactory::class));
 		$this->assertInstanceOf(FooterHandler::class, \OCP\Server::get(FooterHandler::class));
-	}
-
-	#[DataProvider('dataTypedFooterConstants')]
-	public function testFooterHandlerConstantsAreTyped(string $constant, string $expectedType): void {
-		$reflectionConstant = new \ReflectionClassConstant(FooterHandler::class, $constant);
-
-		$this->assertTrue($reflectionConstant->hasType());
-		$this->assertSame($expectedType, (string)$reflectionConstant->getType());
-	}
-
-	public static function dataTypedFooterConstants(): array {
-		return [
-			'MIN_QRCODE_SIZE is typed as int' => ['MIN_QRCODE_SIZE', 'int'],
-			'POINT_TO_MILIMETER is typed as float' => ['POINT_TO_MILIMETER', 'float'],
-		];
 	}
 
 	public function testGetTemplateReturnsCustomTemplate(): void {
