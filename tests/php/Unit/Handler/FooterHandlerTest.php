@@ -261,6 +261,32 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNotEmpty($text);
 	}
 
+	public function testBoldFooterRendersWithBundledFontVariants(): void {
+		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
+		$this->appConfig->setValueBool(Application::APP_ID, 'write_qrcode_on_footer', false);
+		$this->appConfig->setValueString(
+			Application::APP_ID,
+			'footer_template',
+			'<div><strong>{{ signedBy|raw }}</strong> {{ uuid }}</div>'
+		);
+
+		$dimensions = [['w' => 595, 'h' => 100]];
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID, 'en');
+
+		$pdf = $this->getClass()
+			->setTemplateVar('uuid', 'test-uuid')
+			->setTemplateVar('signedBy', 'Signed by LibreSign')
+			->getFooter($dimensions);
+
+		$this->assertNotEmpty($pdf);
+		$parser = new \Smalot\PdfParser\Parser();
+		$pdfParsed = $parser->parseContent($pdf);
+		$text = $pdfParsed->getText();
+
+		$this->assertStringContainsString('Signed by LibreSign', $text);
+		$this->assertStringContainsString('test-uuid', $text);
+	}
+
 	public function testCustomValidationSiteNotOverwritten(): void {
 		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
 		$this->appConfig->setValueString(Application::APP_ID, 'validation_site', 'https://default.site');
