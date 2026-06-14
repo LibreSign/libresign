@@ -252,6 +252,26 @@ Every commit must include the `Signed-off-by` line to comply with the [DCO](http
 
 ## Build & Release Process
 
+### Changelog Release Guardrails (Mandatory)
+
+When preparing release changelog entries, follow these rules strictly:
+
+- Every new release section (including patch-only releases) **MUST** include the support block immediately below the version heading.
+- For `14.x+` and `13.x` series use:
+  - `💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign`
+  - `🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop`
+- For `12.x` series use:
+  - `💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign`
+  - `🏢 **ENTERPRISE SUPPORT** — Need help upgrading or custom implementations? Contact us: contact@librecode.coop`
+
+Before committing a release changelog PR, run this checklist:
+
+1. Confirm each new version section has both support lines.
+2. Confirm `ENTERPRISE SUPPORT` wording matches the series (`migration` for 13+/14+, `upgrading` for 12.x).
+3. Confirm entries are grouped under valid Keep a Changelog headings (`Added`, `Changed`, `Fixed`, etc.).
+4. Confirm PR links are in this format: `[#1234](https://github.com/LibreSign/libresign/pull/1234)`.
+5. Confirm changelog-only PR contains only `CHANGELOG.md`.
+
 ### Development
 ```bash
 make dev-setup          # Install deps (composer + npm)
