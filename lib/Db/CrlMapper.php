@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Db;
 
 use DateTime;
+use OCA\Libresign\Enum\CertificateEngineType;
 use OCA\Libresign\Enum\CertificateType;
 use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Enum\CRLStatus;
@@ -227,6 +228,42 @@ class CrlMapper extends QBMapper {
 
 		$result->closeCursor();
 		return $stats;
+	}
+
+	/**
+	 * @return list<array{instanceId: string, generation: int, engineType: string}>
+	 */
+	public function listGeneratedCrlScopes(): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->selectDistinct(['instance_id', 'generation', 'engine'])
+			->from($this->getTableName())
+			->where($qb->expr()->isNotNull('instance_id'))
+			->andWhere($qb->expr()->isNotNull('generation'))
+			->andWhere($qb->expr()->isNotNull('engine'))
+			->andWhere($qb->expr()->neq('instance_id', $qb->createNamedParameter('')))
+			->andWhere($qb->expr()->neq('engine', $qb->createNamedParameter('')))
+			->orderBy('instance_id', 'ASC')
+			->addOrderBy('generation', 'ASC')
+			->addOrderBy('engine', 'ASC');
+
+		$result = $qb->executeQuery();
+		$scopes = [];
+		while (($row = $result->fetch()) !== false) {
+			$engineType = CertificateEngineType::tryFromValue($row['engine']);
+			if ($engineType === null) {
+				continue;
+			}
+
+			$scopes[] = [
+				'instanceId' => (string)$row['instance_id'],
+				'generation' => (int)$row['generation'],
+				'engineType' => $engineType->value,
+			];
+		}
+
+		$result->closeCursor();
+		return $scopes;
 	}
 
 	public function getLastCrlNumber(string $instanceId, int $generation, string $engineType): int {
