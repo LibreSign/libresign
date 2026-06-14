@@ -20,6 +20,10 @@ Types of changes:
 <!-- changelog-linker -->
 ## 14.0.1 - 2026-06-14
 
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
 ### Fixed
 - skip non-signature /Contents entries while preserving valid signature extraction [#7735](https://github.com/LibreSign/libresign/pull/7735)
 - run playwright in official container [#7743](https://github.com/LibreSign/libresign/pull/7743)
@@ -28,6 +32,10 @@ Types of changes:
 
 ## 13.2.6 - 2026-06-14
 
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
 ### Fixed
 - skip non-signature /Contents entries while preserving valid signature extraction [#7734](https://github.com/LibreSign/libresign/pull/7734)
 - run playwright in official container [#7744](https://github.com/LibreSign/libresign/pull/7744)
@@ -35,6 +43,10 @@ Types of changes:
 - match local CRL distribution points by path, not by request host [#7751](https://github.com/LibreSign/libresign/pull/7751)
 
 ## 12.4.6 - 2026-06-14
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help upgrading or custom implementations? Contact us: contact@librecode.coop
 
 ### Fixed
 - skip non-signature /Contents entries while preserving valid signature extraction [#7739](https://github.com/LibreSign/libresign/pull/7739)
