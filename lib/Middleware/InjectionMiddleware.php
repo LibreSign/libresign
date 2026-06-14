@@ -49,6 +49,7 @@ use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserSession;
 use OCP\Util;
+use Psr\Log\LoggerInterface;
 
 class InjectionMiddleware extends Middleware {
 	public function __construct(
@@ -66,6 +67,7 @@ class InjectionMiddleware extends Middleware {
 		private IL10N $l10n,
 		private IAppConfig $appConfig,
 		private IURLGenerator $urlGenerator,
+		private LoggerInterface $logger,
 		protected ?string $userId,
 	) {
 		$this->request = $request;
@@ -320,6 +322,13 @@ class InjectionMiddleware extends Middleware {
 	#[\Override]
 	public function afterException($controller, $methodName, \Exception $exception): Response {
 		if (str_contains($this->request->getHeader('Accept'), 'html')) {
+			if (!$exception instanceof LibresignException) {
+				$this->logger->error('Unexpected exception in LibreSign middleware', [
+					'exception' => $exception,
+					'app' => Application::APP_ID,
+				]);
+			}
+
 			$template = 'external';
 			if ($this->isJson($exception->getMessage())) {
 				$settings = json_decode($exception->getMessage(), true);
