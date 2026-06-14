@@ -467,10 +467,14 @@ function toggleSidebar() {
 	sidebarStore.toggleSidebar()
 }
 
-function dispatchPrimaryAction() {
+function ensureSignSidebarOpen() {
 	if (!sidebarStore.show || sidebarStore.activeTab !== 'sign-tab') {
 		sidebarStore.activeSignTab()
 	}
+}
+
+function dispatchPrimaryAction() {
+	ensureSignSidebarOpen()
 	signStore.queueAction('sign')
 }
 
@@ -538,6 +542,7 @@ const compat = {
 	fetchEnvelopeFiles,
 	updateSigners,
 	toggleSidebar,
+	ensureSignSidebarOpen,
 	setupElementClickListener,
 	removeElementClickListener,
 	dispatchPrimaryAction,
@@ -568,7 +573,7 @@ onBeforeMount(async () => {
 	}
 
 	if (isMobile && route.name !== 'SignPDFExternal') {
-		getCompatMethod('toggleSidebar')()
+		getCompatMethod('ensureSignSidebarOpen')()
 	}
 
 	const pdfs = loadState<string[]>('libresign', 'pdfs', EMPTY_PDFS)
