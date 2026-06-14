@@ -80,6 +80,11 @@ describe('SignPDF.vue', () => {
 	beforeEach(() => {
 		setActivePinia(createPinia())
 		vi.clearAllMocks()
+		Object.defineProperty(window, 'innerWidth', {
+			configurable: true,
+			writable: true,
+			value: 1024,
+		})
 	})
 
 	it('attaches envelope files to signStore document', async () => {
@@ -384,5 +389,57 @@ describe('SignPDF.vue', () => {
 		}))
 		expect(filesStore.selectFile).toHaveBeenCalledWith(12)
 		expect(sidebarStore.activeSignTab).toHaveBeenCalled()
+	})
+
+	it('keeps sidebar open on mobile internal sign route', async () => {
+		Object.defineProperty(window, 'innerWidth', {
+			configurable: true,
+			writable: true,
+			value: 480,
+		})
+		vi.resetModules()
+
+		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
+		const { useFilesStore } = await import('../../../store/files.js')
+		const { useSidebarStore } = await import('../../../store/sidebar.js')
+		const filesStore = useFilesStore()
+		const sidebarStore = useSidebarStore()
+		const file = createSignDocument({
+			id: 77,
+			status: 1,
+			signers: [{ me: true, signRequestId: 44, displayName: 'Admin', email: 'admin@email.tld' }],
+		})
+
+		vi.mocked(filesStore.fetchFileDetail).mockResolvedValue(file)
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+			headers: {
+				get: vi.fn(() => 'application/pdf'),
+			},
+			blob: vi.fn(async () => new Blob(['pdf'], { type: 'application/pdf' })),
+		}))
+
+		mount(SignPDF, {
+			global: {
+				stubs: {
+					TopBar: true,
+					PdfEditor: true,
+					NcNoteCard: true,
+					NcButton: true,
+				},
+				mocks: {
+					$route: { name: 'SignPDF', params: { uuid: 'sign-uuid-mobile' }, query: {} },
+				},
+			},
+		})
+
+		await vi.waitFor(() => {
+			expect(filesStore.fetchFileDetail).toHaveBeenCalledWith({
+				uuid: 'sign-uuid-mobile',
+				force: true,
+			})
+		})
+
+		expect(sidebarStore.activeSignTab).toHaveBeenCalled()
+		expect(sidebarStore.toggleSidebar).not.toHaveBeenCalled()
 	})
 })
