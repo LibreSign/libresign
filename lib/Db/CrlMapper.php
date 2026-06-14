@@ -249,7 +249,7 @@ class CrlMapper extends QBMapper {
 
 		$result = $qb->executeQuery();
 		$scopes = [];
-		while (($row = $result->fetchAssociative()) !== false) {
+		while (($row = $result->fetch()) !== false) {
 			$engineType = CertificateEngineType::tryFromValue($row['engine']);
 			if ($engineType === null) {
 				continue;
