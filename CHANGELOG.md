@@ -18,6 +18,30 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 14.0.1 - 2026-06-14
+
+### Fixed
+- skip non-signature /Contents entries while preserving valid signature extraction [#7735](https://github.com/LibreSign/libresign/pull/7735)
+- run playwright in official container [#7743](https://github.com/LibreSign/libresign/pull/7743)
+- psalm fixes [#7746](https://github.com/LibreSign/libresign/pull/7746)
+- match local CRL distribution points by path, not by request host [#7752](https://github.com/LibreSign/libresign/pull/7752)
+
+## 13.2.6 - 2026-06-14
+
+### Fixed
+- skip non-signature /Contents entries while preserving valid signature extraction [#7734](https://github.com/LibreSign/libresign/pull/7734)
+- run playwright in official container [#7744](https://github.com/LibreSign/libresign/pull/7744)
+- psalm fixes [#7747](https://github.com/LibreSign/libresign/pull/7747)
+- match local CRL distribution points by path, not by request host [#7751](https://github.com/LibreSign/libresign/pull/7751)
+
+## 12.4.6 - 2026-06-14
+
+### Fixed
+- skip non-signature /Contents entries while preserving valid signature extraction [#7739](https://github.com/LibreSign/libresign/pull/7739)
+- run playwright in official container [#7745](https://github.com/LibreSign/libresign/pull/7745)
+- psalm fixes [#7748](https://github.com/LibreSign/libresign/pull/7748)
+- match local CRL distribution points by path, not by request host [#7750](https://github.com/LibreSign/libresign/pull/7750)
+
 ## 14.0.0 - 2026-06-12
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
