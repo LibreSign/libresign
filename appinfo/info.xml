@@ -56,6 +56,7 @@ https://libresign.coop
 	</dependencies>
 	<background-jobs>
 		<job>OCA\Libresign\BackgroundJob\Reminder</job>
+		<job>OCA\Libresign\BackgroundJob\RefreshGeneratedCrlCache</job>
 		<job>OCA\Libresign\BackgroundJob\UserDeleted</job>
 		<job>OCA\Libresign\BackgroundJob\CleanupStaleSigningStatus</job>
 		<job>OCA\Libresign\BackgroundJob\SignFileJob</job>
