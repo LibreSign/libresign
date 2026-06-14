@@ -18,6 +18,18 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 14.0.1 - 2026-06-14
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Fixes
+- skip non-signature /Contents entries while preserving valid signature extraction [#7735](https://github.com/LibreSign/libresign/pull/7735)
+- run playwright in official container [#7743](https://github.com/LibreSign/libresign/pull/7743)
+- psalm fixes [#7746](https://github.com/LibreSign/libresign/pull/7746)
+- match local CRL distribution points by path, not by request host [#7752](https://github.com/LibreSign/libresign/pull/7752)
+
 ## 14.0.0 - 2026-06-12
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
