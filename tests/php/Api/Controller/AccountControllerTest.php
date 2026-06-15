@@ -94,7 +94,7 @@ final class AccountControllerTest extends ApiTestCase {
 				'signPassword' => 'secretToSign',
 			])
 			->withPath('/api/v1/account/signature')
-			->assertResponseCode(200);
+			->expectStatus(200);
 
 		$this->assertRequest();
 		self::assertFileExists($userFilesDirectory . '/LibreSign/signature.pfx');
