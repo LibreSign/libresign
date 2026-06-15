@@ -414,6 +414,41 @@ class CrlServiceTest extends TestCase {
 		$this->assertSame($cachedDer, $this->service->generateCrlDer('test-instance', 1, 'o'));
 	}
 
+	public function testGenerateCrlDerThrowsWhenLockRemainsHeldAndNoReusablePersistedResultExists(): void {
+		$this->generatedCrlStorage->expects($this->atLeast(2))
+			->method('read')
+			->with('test-instance', 1, 'o')
+			->willReturn(null);
+
+		$this->generatedCrlStorage->expects($this->never())
+			->method('readMetadata');
+
+		$this->lockCache->expects($this->exactly(2))
+			->method('add')
+			->with($this->isType('string'), $this->isType('string'), 60)
+			->willReturn(false);
+
+		$this->lockCache->expects($this->never())
+			->method('cad');
+
+		$this->crlMapper->expects($this->never())
+			->method('getRevokedCertificates');
+
+		$this->crlMapper->expects($this->never())
+			->method('getLastCrlNumber');
+
+		$this->certificateEngineFactory->expects($this->never())
+			->method('getEngine');
+
+		$this->generatedCrlStorage->expects($this->never())
+			->method('write');
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('CRL generation is already in progress');
+
+		$this->service->generateCrlDer('test-instance', 1, 'o');
+	}
+
 	public function testGenerateCrlDerGeneratesAndPersistsOnStorageMiss(): void {
 		$revokedCertificates = [
 			$this->createRevokedCertificateEntity(123456, 'user1@example.com', 1),
