@@ -227,6 +227,7 @@ OC.L10N.register(
     "Underline" : "Підкреслений",
     "Undo" : "Скасувати",
     "Redo" : "Повторити",
+    "{currentPage} of {totalPages}" : "{currentPage} із {totalPages}",
     "Duplicate" : "Копіювати",
     "Loading …" : "Завантаження …",
     "Name" : "Назва",
