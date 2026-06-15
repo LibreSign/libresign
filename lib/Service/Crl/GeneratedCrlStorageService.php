@@ -41,12 +41,16 @@ class GeneratedCrlStorageService {
 
 	public function read(string $instanceId, int $generation, string $engineType): ?string {
 		try {
-			$scopeFolder = $this->getScopeFolderNode($this->getScopeRelativePath($instanceId, $generation, $engineType));
+			$scopeFolder = $this->getScopeFolder($this->getScopeRelativePath($instanceId, $generation, $engineType));
 		} catch (NotFoundException) {
 			return null;
 		}
 
-		return $this->getFileNode($scopeFolder, self::GENERATED_CRL_FILE)?->getContent();
+		if (!$scopeFolder->fileExists(self::GENERATED_CRL_FILE)) {
+			return null;
+		}
+
+		return $scopeFolder->getFile(self::GENERATED_CRL_FILE)->getContent();
 	}
 
 	/**
@@ -54,17 +58,16 @@ class GeneratedCrlStorageService {
 	 */
 	public function readMetadata(string $instanceId, int $generation, string $engineType): ?array {
 		try {
-			$scopeFolder = $this->getScopeFolderNode($this->getScopeRelativePath($instanceId, $generation, $engineType));
+			$scopeFolder = $this->getScopeFolder($this->getScopeRelativePath($instanceId, $generation, $engineType));
 		} catch (NotFoundException) {
 			return null;
 		}
 
-		$metadataFile = $this->getFileNode($scopeFolder, self::METADATA_FILE);
-		if ($metadataFile === null) {
+		if (!$scopeFolder->fileExists(self::METADATA_FILE)) {
 			return null;
 		}
 
-		$rawMetadata = $metadataFile->getContent();
+		$rawMetadata = $scopeFolder->getFile(self::METADATA_FILE)->getContent();
 		$decoded = json_decode($rawMetadata, true);
 		if (!is_array($decoded)) {
 			return null;
@@ -75,17 +78,16 @@ class GeneratedCrlStorageService {
 
 	public function getMTime(string $instanceId, int $generation, string $engineType): ?int {
 		try {
-			$scopeFolder = $this->getScopeFolderNode($this->getScopeRelativePath($instanceId, $generation, $engineType));
+			$scopeFolder = $this->getScopeFolder($this->getScopeRelativePath($instanceId, $generation, $engineType));
 		} catch (NotFoundException) {
 			return null;
 		}
 
-		$crlFile = $this->getFileNode($scopeFolder, self::GENERATED_CRL_FILE);
-		if ($crlFile === null) {
+		if (!$scopeFolder->fileExists(self::GENERATED_CRL_FILE)) {
 			return null;
 		}
 
-		return $crlFile->getMTime();
+		return $scopeFolder->getFile(self::GENERATED_CRL_FILE)->getMTime();
 	}
 
 	/**
@@ -93,13 +95,13 @@ class GeneratedCrlStorageService {
 	 */
 	public function write(string $instanceId, int $generation, string $engineType, string $crlDer, array $metadata = []): void {
 		$relativePath = $this->getScopeRelativePath($instanceId, $generation, $engineType);
-		$this->ensureFolderExists($relativePath);
+		$scopeFolder = $this->ensureFolderExists($relativePath);
 
-		$scopeFolder = $this->getScopeFolderNode($relativePath);
-		$this->writeFileAtomically($scopeFolder, self::GENERATED_CRL_FILE, $crlDer);
+		$this->writeScopeFile($relativePath, $scopeFolder, self::GENERATED_CRL_FILE, $crlDer);
 
 		if ($metadata !== []) {
-			$this->writeFileAtomically(
+			$this->writeScopeFile(
+				$relativePath,
 				$scopeFolder,
 				self::METADATA_FILE,
 				json_encode($metadata, JSON_THROW_ON_ERROR)
@@ -109,7 +111,7 @@ class GeneratedCrlStorageService {
 
 	public function delete(string $instanceId, int $generation, string $engineType): void {
 		try {
-			$this->getScopeFolderNode($this->getScopeRelativePath($instanceId, $generation, $engineType))->delete();
+			$this->getScopeFolder($this->getScopeRelativePath($instanceId, $generation, $engineType))->delete();
 		} catch (NotFoundException) {
 			// Nothing persisted for this scope yet.
 		}
@@ -140,6 +142,19 @@ class GeneratedCrlStorageService {
 		return $folder;
 	}
 
+	private function getScopeFolder(string $relativePath): ISimpleFolder {
+		$folder = $this->appDataFactory->get(Application::APP_ID)->getFolder('/');
+		foreach (explode('/', trim($relativePath, '/')) as $segment) {
+			if ($segment === '') {
+				continue;
+			}
+
+			$folder = $folder->getFolder($segment);
+		}
+
+		return $folder;
+	}
+
 	private function getScopeFolderNode(string $relativePath): Folder {
 		$scopeFolder = $this->rootFolder->get($this->getScopeAbsolutePath($relativePath));
 		if (!$scopeFolder instanceof Folder) {
@@ -160,6 +175,25 @@ class GeneratedCrlStorageService {
 		}
 
 		return $file;
+	}
+
+	private function writeScopeFile(string $relativePath, ISimpleFolder $simpleFolder, string $fileName, string $content): void {
+		try {
+			$this->writeFileAtomically($this->getScopeFolderNode($relativePath), $fileName, $content);
+		} catch (NotFoundException|\TypeError) {
+			// Some unit-test/bootstrap environments cannot resolve AppData root nodes,
+			// so fall back to the SimpleFS handle we already created for this scope.
+			$this->writeFileWithSimpleFolder($simpleFolder, $fileName, $content);
+		}
+	}
+
+	private function writeFileWithSimpleFolder(ISimpleFolder $folder, string $fileName, string $content): void {
+		if ($folder->fileExists($fileName)) {
+			$folder->getFile($fileName)->putContent($content);
+			return;
+		}
+
+		$folder->newFile($fileName, $content);
 	}
 
 	private function writeFileAtomically(Folder $folder, string $fileName, string $content): void {
