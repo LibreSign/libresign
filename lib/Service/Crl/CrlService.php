@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Crl;
 
 use DateTime;
+use OCA\Libresign\Db\Crl as CrlEntity;
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Enum\CertificateEngineType;
 use OCA\Libresign\Enum\CRLReason;
@@ -20,6 +21,11 @@ use OCP\IMemcache;
 use Psr\Log\LoggerInterface;
 
 /**
+ * @psalm-import-type LibresignCrlCertificateStatusResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignCrlListItem from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignCrlListResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-type LibresignCrlStatusInfo = array{status: 'valid'}|array{status: 'unknown'}|array{status: 'expired', valid_to?: string}|array{status: 'revoked', reason_code?: null|int, revoked_at?: string}
+ *
  * RFC 5280 compliant CRL management
  */
 class CrlService {
@@ -181,23 +187,36 @@ class CrlService {
 		return $revokedCount;
 	}
 
+	/**
+	 * @return LibresignCrlStatusInfo
+	 */
 	public function getCertificateStatus(string $serialNumber, ?DateTime $checkDate = null): array {
 		try {
 			$certificate = $this->crlMapper->findBySerialNumber($serialNumber);
 
 			if ($certificate->isRevoked()) {
-				return [
+				$response = [
 					'status' => 'revoked',
 					'reason_code' => $certificate->getReasonCode(),
-					'revoked_at' => $certificate->getRevokedAt()?->format('Y-m-d\TH:i:s\Z'),
 				];
+
+				$revokedAt = $certificate->getRevokedAt()?->format('Y-m-d\TH:i:s\Z');
+				if ($revokedAt !== null) {
+					$response['revoked_at'] = $revokedAt;
+				}
+
+				return $response;
 			}
 
 			if ($certificate->isExpired()) {
-				return [
-					'status' => 'expired',
-					'valid_to' => $certificate->getValidTo()?->format('Y-m-d\TH:i:s\Z'),
-				];
+				$response = ['status' => 'expired'];
+
+				$validTo = $certificate->getValidTo()?->format('Y-m-d\TH:i:s\Z');
+				if ($validTo !== null) {
+					$response['valid_to'] = $validTo;
+				}
+
+				return $response;
 			}
 
 			return ['status' => 'valid'];
@@ -208,11 +227,12 @@ class CrlService {
 	}
 
 	/**
-	 * @return array{serial_number: string, status: string, checked_at: string, reason_code?: int|null, revoked_at?: string|null, valid_to?: string|null}
+	 * @return LibresignCrlCertificateStatusResponse
 	 */
 	public function getCertificateStatusResponse(string $serialNumber): array {
 		$statusInfo = $this->getCertificateStatus($serialNumber);
 
+		/** @var LibresignCrlCertificateStatusResponse $response */
 		$response = [
 			'serial_number' => $serialNumber,
 			'status' => $statusInfo['status'],
@@ -220,16 +240,16 @@ class CrlService {
 		];
 
 		if ($statusInfo['status'] === 'revoked') {
-			if (isset($statusInfo['reason_code'])) {
+			if (array_key_exists('reason_code', $statusInfo)) {
 				$response['reason_code'] = $statusInfo['reason_code'];
 			}
-			if (isset($statusInfo['revoked_at'])) {
+			if (array_key_exists('revoked_at', $statusInfo)) {
 				$response['revoked_at'] = $statusInfo['revoked_at'];
 			}
 		}
 
 		if ($statusInfo['status'] === 'expired') {
-			if (isset($statusInfo['valid_to'])) {
+			if (array_key_exists('valid_to', $statusInfo)) {
 				$response['valid_to'] = $statusInfo['valid_to'];
 			}
 		}
@@ -523,7 +543,7 @@ class CrlService {
 	 * @param int|null $length Number of items per page, defaults to 100
 	 * @param array<string, mixed> $filter Filters to apply (status, engine, instance_id, owner, serial_number, revoked_by, generation)
 	 * @param array<string, string> $sort Sort fields and directions ['field' => 'ASC|DESC']
-	 * @return array{data: list<array<string, mixed>>, total: int, page: int, length: int}
+	 * @return LibresignCrlListResponse
 	 */
 	public function listCrlEntries(
 		?int $page = null,
@@ -536,8 +556,29 @@ class CrlService {
 
 		$result = $this->crlMapper->listWithPagination($page, $length, $filter, $sort);
 
-		$formattedData = array_values(array_map(fn ($entity) => [
-			'id' => $entity->getId(),
+		/** @var list<LibresignCrlListItem> $formattedData */
+		$formattedData = array_values(array_map(
+			fn (CrlEntity $entity): array => $this->formatCrlListEntry($entity),
+			$result['data']
+		));
+
+		/** @var LibresignCrlListResponse $response */
+		$response = [
+			'data' => $formattedData,
+			'total' => $result['total'],
+			'page' => $page,
+			'length' => $length,
+		];
+
+		return $response;
+	}
+
+	/**
+	 * @return LibresignCrlListItem
+	 */
+	private function formatCrlListEntry(CrlEntity $entity): array {
+		return [
+			'id' => (int)$entity->getId(),
 			'serial_number' => $entity->getSerialNumber(),
 			'owner' => $entity->getOwner(),
 			'status' => $entity->getStatus(),
@@ -553,13 +594,6 @@ class CrlService {
 			'revoked_by' => $entity->getRevokedBy(),
 			'invalidity_date' => $entity->getInvalidityDate()?->format('Y-m-d H:i:s'),
 			'crl_number' => $entity->getCrlNumber(),
-		], $result['data']));
-
-		return [
-			'data' => $formattedData,
-			'total' => $result['total'],
-			'page' => $page,
-			'length' => $length,
 		];
 	}
 }

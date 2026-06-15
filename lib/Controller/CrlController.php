@@ -84,13 +84,22 @@ class CrlController extends Controller {
 	#[FrontpageRoute(verb: 'GET', url: '/crl/check/{serialNumber}')]
 	public function checkCertificateStatus(string $serialNumber): DataResponse {
 		if (!$this->isValidSerial($serialNumber)) {
+			/** @var LibresignCrlErrorResponse $errorResponse */
+			$errorResponse = [
+				'error' => 'Invalid serial number',
+				'message' => 'Serial number must be numeric (decimal or hex format, no 0x prefix)',
+			];
+
 			return new DataResponse(
-				['error' => 'Invalid serial number', 'message' => 'Serial number must be numeric (decimal or hex format, no 0x prefix)'],
+				$errorResponse,
 				Http::STATUS_BAD_REQUEST
 			);
 		}
 
-		return new DataResponse($this->crlService->getCertificateStatusResponse($serialNumber));
+		/** @var LibresignCrlCertificateStatusResponse $statusResponse */
+		$statusResponse = $this->crlService->getCertificateStatusResponse($serialNumber);
+
+		return new DataResponse($statusResponse);
 	}
 
 	private function isValidSerial(string $serialNumber): bool {
