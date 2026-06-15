@@ -80,6 +80,7 @@ class CrlApiController extends AEnvironmentAwareController {
 			$sort[$sortBy] = $sortOrder ?? 'DESC';
 		}
 
+		/** @var LibresignCrlListResponse $result */
 		$result = $this->crlService->listCrlEntries($page, $length, $filter, $sort);
 
 		return new DataResponse($result);
