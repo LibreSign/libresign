@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\CrlValidationStatus;
+use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -116,8 +117,13 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('providerValidateToSignWithError')]
 	public function testValidateToSignWithError(bool $throwsException, string $pfx): void {
-		$this->pkcs12Handler = $this->getPkcs12Instance(['getPfxOfCurrentSigner']);
+		$this->pkcs12Handler = $this->getPkcs12Instance(['getPfxOfCurrentSigner', 'setCertificate', 'setPassword', 'readCertificate']);
 		$this->pkcs12Handler->method('getPfxOfCurrentSigner')->willReturn($pfx);
+		$this->pkcs12Handler->method('setCertificate')->willReturnSelf();
+		$this->pkcs12Handler->method('setPassword')->willReturnSelf();
+		if ($pfx !== '') {
+			$this->pkcs12Handler->method('readCertificate')->willThrowException(new InvalidPasswordException());
+		}
 		if ($throwsException) {
 			$this->expectException(LibresignException::class);
 		} else {
