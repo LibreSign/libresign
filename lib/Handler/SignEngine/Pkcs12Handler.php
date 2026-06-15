@@ -49,6 +49,11 @@ class Pkcs12Handler extends SignEngineHandler {
 		parent::__construct($l10n, $folderService, $logger);
 	}
 
+	#[\Override]
+	protected function getCertificateEngineFactory(): CertificateEngineFactory {
+		return $this->certificateEngineFactory;
+	}
+
 	/**
 	 * @throws LibresignException When is not a signed file
 	 */
