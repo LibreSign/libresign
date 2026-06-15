@@ -1,0 +1,222 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+namespace OCA\Libresign\Service\Crl;
+
+use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Enum\CertificateEngineType;
+use OCP\Files\File;
+use OCP\Files\AppData\IAppDataFactory;
+use OCP\Files\Folder;
+use OCP\Files\IRootFolder;
+use OCP\Files\NotFoundException;
+use OCP\Files\SimpleFS\ISimpleFolder;
+
+class GeneratedCrlStorageService {
+	private const STORAGE_ROOT = 'generated_crl';
+	private const GENERATED_CRL_FILE = 'crl.der';
+	private const METADATA_FILE = 'meta.json';
+
+	public function __construct(
+		private IAppDataFactory $appDataFactory,
+		private IRootFolder $rootFolder,
+	) {
+	}
+
+	public function getScopeKey(string $instanceId, int $generation, string $engineType): string {
+		$normalizedEngineType = $this->normalizeEngineType($engineType)->value;
+
+		return implode('/', [
+			$instanceId,
+			(string)$generation,
+			$normalizedEngineType,
+		]);
+	}
+
+	public function read(string $instanceId, int $generation, string $engineType): ?string {
+		try {
+			$scopeFolder = $this->getScopeFolderNode($this->getScopeRelativePath($instanceId, $generation, $engineType));
+		} catch (NotFoundException) {
+			return null;
+		}
+
+		return $this->getFileNode($scopeFolder, self::GENERATED_CRL_FILE)?->getContent();
+	}
+
+	/**
+	 * @return array<string, mixed>|null
+	 */
+	public function readMetadata(string $instanceId, int $generation, string $engineType): ?array {
+		try {
+			$scopeFolder = $this->getScopeFolderNode($this->getScopeRelativePath($instanceId, $generation, $engineType));
+		} catch (NotFoundException) {
+			return null;
+		}
+
+		$metadataFile = $this->getFileNode($scopeFolder, self::METADATA_FILE);
+		if ($metadataFile === null) {
+			return null;
+		}
+
+		$rawMetadata = $metadataFile->getContent();
+		$decoded = json_decode($rawMetadata, true);
+		if (!is_array($decoded)) {
+			return null;
+		}
+
+		return $decoded;
+	}
+
+	public function getMTime(string $instanceId, int $generation, string $engineType): ?int {
+		try {
+			$scopeFolder = $this->getScopeFolderNode($this->getScopeRelativePath($instanceId, $generation, $engineType));
+		} catch (NotFoundException) {
+			return null;
+		}
+
+		$crlFile = $this->getFileNode($scopeFolder, self::GENERATED_CRL_FILE);
+		if ($crlFile === null) {
+			return null;
+		}
+
+		return $crlFile->getMTime();
+	}
+
+	/**
+	 * @param array<string, mixed> $metadata
+	 */
+	public function write(string $instanceId, int $generation, string $engineType, string $crlDer, array $metadata = []): void {
+		$relativePath = $this->getScopeRelativePath($instanceId, $generation, $engineType);
+		$this->ensureFolderExists($relativePath);
+
+		$scopeFolder = $this->getScopeFolderNode($relativePath);
+		$this->writeFileAtomically($scopeFolder, self::GENERATED_CRL_FILE, $crlDer);
+
+		if ($metadata !== []) {
+			$this->writeFileAtomically(
+				$scopeFolder,
+				self::METADATA_FILE,
+				json_encode($metadata, JSON_THROW_ON_ERROR)
+			);
+		}
+	}
+
+	public function delete(string $instanceId, int $generation, string $engineType): void {
+		try {
+			$this->getScopeFolderNode($this->getScopeRelativePath($instanceId, $generation, $engineType))->delete();
+		} catch (NotFoundException) {
+			// Nothing persisted for this scope yet.
+		}
+	}
+
+	private function getScopeRelativePath(string $instanceId, int $generation, string $engineType): string {
+		return self::STORAGE_ROOT . '/' . $this->getScopeKey($instanceId, $generation, $engineType);
+	}
+
+	private function getScopeAbsolutePath(string $relativePath): string {
+		return '/' . $this->rootFolder->getAppDataDirectoryName() . '/' . Application::APP_ID . '/' . ltrim($relativePath, '/');
+	}
+
+	private function ensureFolderExists(string $relativePath): ISimpleFolder {
+		$folder = $this->appDataFactory->get(Application::APP_ID)->getFolder('/');
+		foreach (explode('/', trim($relativePath, '/')) as $segment) {
+			if ($segment === '') {
+				continue;
+			}
+
+			try {
+				$folder = $folder->getFolder($segment);
+			} catch (NotFoundException) {
+				$folder = $folder->newFolder($segment);
+			}
+		}
+
+		return $folder;
+	}
+
+	private function getScopeFolderNode(string $relativePath): Folder {
+		$scopeFolder = $this->rootFolder->get($this->getScopeAbsolutePath($relativePath));
+		if (!$scopeFolder instanceof Folder) {
+			throw new \RuntimeException('Generated CRL storage scope is not a folder');
+		}
+
+		return $scopeFolder;
+	}
+
+	private function getFileNode(Folder $folder, string $fileName): ?File {
+		if (!$folder->nodeExists($fileName)) {
+			return null;
+		}
+
+		$file = $folder->get($fileName);
+		if (!$file instanceof File) {
+			return null;
+		}
+
+		return $file;
+	}
+
+	private function writeFileAtomically(Folder $folder, string $fileName, string $content): void {
+		$tmpName = sprintf('.%s.tmp.%s', $fileName, bin2hex(random_bytes(8)));
+		$tmpFile = $folder->newFile($tmpName, $content);
+
+		try {
+			if ($this->replaceFileAtomicallyOnLocalStorage($folder, $tmpFile, $fileName)) {
+				return;
+			}
+
+			$tmpFile->move($folder->getFullPath($fileName));
+		} finally {
+			if ($folder->nodeExists($tmpName)) {
+				$folder->get($tmpName)->delete();
+			}
+		}
+	}
+
+	private function replaceFileAtomicallyOnLocalStorage(Folder $folder, File $tmpFile, string $fileName): bool {
+		$storage = $folder->getStorage();
+		if (!$storage->isLocal()) {
+			return false;
+		}
+
+		$tmpInternalPath = $tmpFile->getInternalPath();
+		$targetInternalPath = $this->getChildInternalPath($folder, $fileName);
+
+		$tmpLocalPath = $storage->getLocalFile($tmpInternalPath);
+		$targetLocalPath = $storage->getLocalFile($targetInternalPath);
+		if (!is_string($tmpLocalPath) || $tmpLocalPath === '' || !is_string($targetLocalPath) || $targetLocalPath === '') {
+			return false;
+		}
+
+		if (!@rename($tmpLocalPath, $targetLocalPath)) {
+			return false;
+		}
+
+		$storage->getUpdater()->renameFromStorage($storage, $tmpInternalPath, $targetInternalPath);
+		return true;
+	}
+
+	private function getChildInternalPath(Folder $folder, string $childName): string {
+		$folderInternalPath = trim($folder->getInternalPath(), '/');
+		if ($folderInternalPath === '') {
+			return $childName;
+		}
+
+		return $folderInternalPath . '/' . $childName;
+	}
+
+	private function normalizeEngineType(string $engineType): CertificateEngineType {
+		$normalizedEngineType = CertificateEngineType::tryFromValue($engineType);
+		if ($normalizedEngineType === null) {
+			throw new \InvalidArgumentException("Invalid engine type: $engineType");
+		}
+
+		return $normalizedEngineType;
+	}
+}
