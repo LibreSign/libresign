@@ -80,6 +80,18 @@ class LdapCrlDownloaderTest extends TestCase {
 		$this->assertSame($cachedData, $result);
 	}
 
+	public function testDownloadDecodesSerializedCachedValueWithoutCallingLdap(): void {
+		$url = 'ldap://ldap.example.com/cn=CRL,o=Org';
+		$cachedData = 'binary-crl-data';
+
+		$this->cache->method('get')->willReturn('base64:' . base64_encode($cachedData));
+		$this->ldap->expects($this->never())->method('connect');
+
+		$result = $this->downloader->download($url);
+
+		$this->assertSame($cachedData, $result);
+	}
+
 	public function testDownloadCachesSuccessfulFetchResult(): void {
 		$url = 'ldap://ldap.example.com/cn=CRL,o=Org?certificateRevocationList;binary?base';
 		$crlData = 'binary-crl-content';
@@ -95,7 +107,7 @@ class LdapCrlDownloaderTest extends TestCase {
 		$this->cache
 			->expects($this->once())
 			->method('set')
-			->with(sha1($url), $crlData, 86400);
+			->with(sha1($url), 'base64:' . base64_encode($crlData), 86400);
 
 		$result = $this->downloader->download($url);
 
