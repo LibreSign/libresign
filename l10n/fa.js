@@ -416,6 +416,7 @@ OC.L10N.register(
     "Error monitoring signing progress" : "خطا در پایش روند امضا",
     "The original file was deleted. You can no longer add signers or open it." : "پروندهٔ اصلی حذف شده است. دیگر نمی‌توانید امضاکننده‌ای اضافه کنید یا آن را باز کنید.",
     "Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures." : "برخی امضاکنندگان از روش‌های شناسایی استفاده می‌کنند که غیر‌فعال شده‌اند. لطفاً پیش از درخواست امضاها، آن‌ها را حذف یا به‌روزرسانی کنید.",
+    "Loading signer details …" : "در حال بارگذاری جزئیات امضاکننده …",
     "Add signer" : "افزودن امضاکننده",
     "Sign in order" : "امضا به ترتیب",
     "View signing order" : "مشاهدهٔ ترتیب امضا",
