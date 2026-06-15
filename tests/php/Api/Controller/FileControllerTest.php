@@ -230,7 +230,7 @@ final class FileControllerTest extends ApiTestCase {
 				'x' => 0,
 			])
 			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId())
-			->assertResponseCode(400);
+			->expectStatus(400);
 
 		$this->assertRequest();
 	}
