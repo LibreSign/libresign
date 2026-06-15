@@ -12,6 +12,7 @@ use DateTime;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\OrderCertificatesTrait;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
@@ -493,6 +494,11 @@ class Pkcs12Handler extends SignEngineHandler {
 		$pem = chunk_split(base64_encode((string)$derData), 64, "\n");
 		$pem = "-----BEGIN CERTIFICATE-----\n" . $pem . "-----END CERTIFICATE-----\n";
 		return $pem;
+	}
+
+	#[\Override]
+	protected function getCertificateEngine(): IEngineHandler {
+		return $this->certificateEngineFactory->getEngine();
 	}
 
 	private function getHandler(): SignEngineHandler {
