@@ -40,6 +40,8 @@ final class PageControllerTest extends TestCase {
 	private IRequest&MockObject $request;
 	private IUserSession&MockObject $userSession;
 	private AccountService&MockObject $accountService;
+	private CertificateEngineFactory&MockObject $certificateEngineFactory;
+	private IEngineHandler&MockObject $certificateEngine;
 	private FileService&MockObject $fileService;
 	private SignFileService&MockObject $signFileService;
 	private SignerElementsService&MockObject $signerElementsService;
@@ -63,10 +65,10 @@ final class PageControllerTest extends TestCase {
 		$this->accountService->method('getConfigFilters')->willReturn([]);
 		$this->accountService->method('getConfigSorting')->willReturn([]);
 		$this->accountService->method('getCertificateEngineName')->willReturn('openssl');
-		$certificateEngine = $this->createMock(IEngineHandler::class);
-		$certificateEngine->method('isSetupOk')->willReturn(true);
-		$certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
-		$certificateEngineFactory->method('getEngine')->willReturn($certificateEngine);
+		$this->certificateEngine = $this->createMock(IEngineHandler::class);
+		$this->certificateEngine->method('isSetupOk')->willReturn(true);
+		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
+		$this->certificateEngineFactory->method('getEngine')->willReturn($this->certificateEngine);
 
 		$this->fileService = $this->createMock(FileService::class);
 		$this->fileService->method('setFile')->willReturnSelf();
@@ -119,7 +121,7 @@ final class PageControllerTest extends TestCase {
 			sessionService: $this->createMock(SessionService::class),
 			initialState: $this->initialState,
 			accountService: $this->accountService,
-			certificateEngineFactory: $certificateEngineFactory,
+			certificateEngineFactory: $this->certificateEngineFactory,
 			signFileService: $this->signFileService,
 			requestSignatureService: \OCP\Server::get(RequestSignatureService::class),
 			policyService: $this->policyService,
@@ -185,7 +187,7 @@ final class PageControllerTest extends TestCase {
 	}
 
 	public function testIncompleteRedirectsToInternalIndexWhenSetupBecomesOk(): void {
-		$this->accountService
+		$this->certificateEngine
 			->expects($this->once())
 			->method('isSetupOk')
 			->willReturn(true);
@@ -197,7 +199,7 @@ final class PageControllerTest extends TestCase {
 	}
 
 	public function testIncompletePRedirectsToDefaultIndexWhenSetupBecomesOk(): void {
-		$this->accountService
+		$this->certificateEngine
 			->expects($this->once())
 			->method('isSetupOk')
 			->willReturn(true);
