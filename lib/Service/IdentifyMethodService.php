@@ -13,6 +13,7 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -27,7 +28,9 @@ use OCP\IL10N;
 use OCP\IUserManager;
 
 /**
- * @psalm-import-type LibresignIdentifyMethodAdminSetting from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignIdentifyMethodAdminSetting from ResponseDefinitions
+ * @psalm-import-type LibresignPolicySnapshotIdentifyMethodFactor from ResponseDefinitions
+ * @psalm-import-type LibresignPolicySnapshotSignatureMethodSetting from ResponseDefinitions
  */
 class IdentifyMethodService {
 	public const IDENTIFY_ACCOUNT = 'account';
@@ -69,13 +72,9 @@ class IdentifyMethodService {
 	];
 	private bool $isRequest = true;
 	private ?IdentifyMethod $currentIdentifyMethod = null;
-	/**
-	 * @var list<array<string, mixed>>
-	 */
+	/** @var list<LibresignIdentifyMethodAdminSetting> */
 	private array $identifyMethodsSettings = [];
-	/**
-	 * @var list<array<string, mixed>>
-	 */
+	/** @var list<LibresignIdentifyMethodAdminSetting> */
 	private array $identifyMethodsCatalogSettings = [];
 	/**
 	 * @var array<string,array<IIdentifyMethod>>
@@ -198,6 +197,11 @@ class IdentifyMethodService {
 			$requirement = isset($identifyMethod['requirement']) && is_string($identifyMethod['requirement'])
 				? $identifyMethod['requirement']
 				: null;
+			if ($requirement === null && array_key_exists('mandatory', $identifyMethod)) {
+				$requirement = ((int)$identifyMethod['mandatory']) === 1
+					? IdentifyMethodRequirement::REQUIRED->value
+					: IdentifyMethodRequirement::OPTIONAL->value;
+			}
 			$this->setEntityData($identifyMethod['method'], $identifyMethod['value'], $requirement);
 		}
 	}
@@ -395,7 +399,6 @@ class IdentifyMethodService {
 
 	/**
 	 * @return array
-	 * @return list<array<string, mixed>>
 	 * @psalm-return list<LibresignIdentifyMethodAdminSetting>
 	 */
 	public function getIdentifyMethodsCatalogSettings(): array {
@@ -435,7 +438,6 @@ class IdentifyMethodService {
 
 	/**
 	 * @return array
-	 * @return list<array<string, mixed>>
 	 * @psalm-return list<LibresignIdentifyMethodAdminSetting>
 	 */
 	public function getIdentifyMethodsSettings(): array {
@@ -493,13 +495,7 @@ class IdentifyMethodService {
 	 * for new rules without hardcoding payload values in this service.
 	 *
 	 * @return array Default identify methods factors array
-	 * @psalm-return list<array{
-	 *     name: string,
-	 *     enabled: bool,
-	 *     requirement: 'required'|'optional',
-	 *     signatureMethods: array<string, array{enabled: bool}>,
-	 *     signatureMethodEnabled: string
-	 * }>
+	 * @psalm-return list<LibresignPolicySnapshotIdentifyMethodFactor>
 	 */
 	public function getDefaultIdentifyMethodsPolicy(): array {
 		return [
@@ -509,27 +505,26 @@ class IdentifyMethodService {
 	}
 
 	/**
-	 * @param array<string, mixed> $settings
-	 * @return array{
-	 *     name: string,
-	 *     enabled: bool,
-	 *     requirement: 'required'|'optional',
-	 *     signatureMethods: array<string, array{enabled: bool}>,
-	 *     signatureMethodEnabled: string
-	 * }
+	 * @param LibresignIdentifyMethodAdminSetting $settings
+	 * @return array
+	 * @psalm-return LibresignPolicySnapshotIdentifyMethodFactor
 	 */
 	private function buildDefaultPolicyFactorFromSettings(array $settings): array {
+		/** @var array<string, LibresignPolicySnapshotSignatureMethodSetting> $signatureMethods */
 		$signatureMethods = [];
 		$signatureMethodEnabled = '';
 
 		foreach ($settings['signatureMethods'] ?? [] as $signatureMethodName => $signatureMethodConfig) {
 			$isEnabled = (bool)($signatureMethodConfig['enabled'] ?? false);
-			$signatureMethods[$signatureMethodName] = is_array($signatureMethodConfig)
+			$normalizedSignatureMethod = is_array($signatureMethodConfig)
 				? $signatureMethodConfig
 				: [];
-			$signatureMethods[$signatureMethodName]['enabled'] = $isEnabled;
-			$signatureMethods[$signatureMethodName]['name'] = $signatureMethodName;
-			$signatureMethods[$signatureMethodName]['label'] = $signatureMethods[$signatureMethodName]['label'] ?? $signatureMethodName;
+			$normalizedSignatureMethod['enabled'] = $isEnabled;
+			$normalizedSignatureMethod['name'] = $signatureMethodName;
+			$normalizedSignatureMethod['label'] = $normalizedSignatureMethod['label'] ?? $signatureMethodName;
+
+			/** @var LibresignPolicySnapshotSignatureMethodSetting $normalizedSignatureMethod */
+			$signatureMethods[$signatureMethodName] = $normalizedSignatureMethod;
 
 			if ($signatureMethodEnabled === '' && $isEnabled) {
 				$signatureMethodEnabled = $signatureMethodName;
@@ -542,13 +537,16 @@ class IdentifyMethodService {
 
 		$requirement = IdentifyMethodRequirement::tryFrom((string)($settings['requirement'] ?? ''));
 
-		return [
+		/** @var LibresignPolicySnapshotIdentifyMethodFactor $defaultPolicyFactor */
+		$defaultPolicyFactor = [
 			'name' => $settings['name'],
 			'enabled' => (bool)($settings['enabled'] ?? true),
 			'requirement' => $requirement?->value ?? IdentifyMethodRequirement::REQUIRED->value,
 			'signatureMethods' => $signatureMethods,
 			'signatureMethodEnabled' => $signatureMethodEnabled,
 		];
+
+		return $defaultPolicyFactor;
 	}
 
 	/**
