@@ -400,7 +400,13 @@ class CrlService {
 
 			$lockAcquired = $this->lockCache->add($lockKey, $lockToken, self::GENERATED_CRL_LOCK_TTL);
 			if (!$lockAcquired) {
-				return $this->buildAndPersistGeneratedCrlDer($instanceId, $generation, $engineType);
+				throw new \RuntimeException(sprintf(
+					'CRL %s is already in progress for %s/%d/%s',
+					$forceRefresh ? 'refresh' : 'generation',
+					$instanceId,
+					$generation,
+					$engineType,
+				));
 			}
 		}
 
