@@ -2251,11 +2251,11 @@
                     "signatureMethods": {
                         "type": "object",
                         "additionalProperties": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "object"
-                            }
+                            "$ref": "#/components/schemas/PolicySnapshotSignatureMethodSetting"
                         }
+                    },
+                    "signatureMethodEnabled": {
+                        "type": "string"
                     },
                     "requirement": {
                         "$ref": "#/components/schemas/IdentifyMethodRequirement"
@@ -2303,6 +2303,43 @@
                         "type": "string"
                     }
                 }
+            },
+            "PolicySnapshotSignatureMethodSetting": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/AdminSignatureMethodSetting"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "identifyMethod": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "needCode": {
+                                "type": "boolean"
+                            },
+                            "hasConfirmCode": {
+                                "type": "boolean"
+                            },
+                            "blurredEmail": {
+                                "type": "string"
+                            },
+                            "hashOfEmail": {
+                                "type": "string"
+                            },
+                            "blurredIdentifier": {
+                                "type": "string"
+                            },
+                            "hashOfIdentifier": {
+                                "type": "string"
+                            },
+                            "hasSignatureFile": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                ]
             },
             "ProgressError": {
                 "type": "object",

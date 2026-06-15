@@ -1784,10 +1784,9 @@ export type components = {
             name: string;
             enabled: boolean;
             signatureMethods?: {
-                [key: string]: {
-                    [key: string]: Record<string, never>;
-                };
+                [key: string]: components["schemas"]["PolicySnapshotSignatureMethodSetting"];
             };
+            signatureMethodEnabled?: string;
             requirement?: components["schemas"]["IdentifyMethodRequirement"];
             /** Format: int64 */
             minimumTotalVerifiedFactors?: number;
@@ -1801,6 +1800,16 @@ export type components = {
             /** Format: int64 */
             effectiveValue: number;
             sourceScope: string;
+        };
+        PolicySnapshotSignatureMethodSetting: components["schemas"]["AdminSignatureMethodSetting"] & {
+            identifyMethod?: string | null;
+            needCode?: boolean;
+            hasConfirmCode?: boolean;
+            blurredEmail?: string;
+            hashOfEmail?: string;
+            blurredIdentifier?: string;
+            hashOfIdentifier?: string;
+            hasSignatureFile?: boolean;
         };
         ProgressError: {
             message: string;
