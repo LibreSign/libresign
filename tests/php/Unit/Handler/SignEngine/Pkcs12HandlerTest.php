@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
@@ -37,6 +38,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ITempManager $tempManager;
 	private LoggerInterface&MockObject $logger;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
+	private IEngineHandler&MockObject $certificateEngine;
 	private CaIdentifierService&MockObject $caIdentifierService;
 	private DocMdpHandler&MockObject $docMdpHandler;
 	private CrlService&MockObject $crlService;
@@ -46,6 +48,22 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
+		$this->certificateEngine = $this->createMock(IEngineHandler::class);
+		$this->certificateEngine
+			->method('parseCertificate')
+			->willReturnCallback(static function (string $certificate): array {
+				$resource = openssl_x509_read($certificate);
+				if ($resource === false) {
+					return [];
+				}
+
+				$parsed = openssl_x509_parse($resource);
+				return is_array($parsed) ? $parsed : [];
+			});
+		$this->certificateEngine->method('isSetupOk')->willReturn(true);
+		$this->certificateEngine->method('validateRootCertificate')->willReturnCallback(static function (): void {
+		});
+		$this->certificateEngineFactory->method('getEngine')->willReturn($this->certificateEngine);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
