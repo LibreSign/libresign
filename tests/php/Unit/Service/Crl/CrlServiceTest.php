@@ -366,6 +366,47 @@ class CrlServiceTest extends TestCase {
 		$this->service->revokeCertificate($serialNumber);
 	}
 
+	public static function freshPersistedCrlProvider(): array {
+		return [
+			'refreshDate marks current artifact as fresh' => ['current-refresh-date', false],
+			'invalid generatedAt falls back to current mtime' => ['invalid-generated-at', true],
+			'missing metadata falls back to current mtime' => ['missing-metadata', true],
+		];
+	}
+
+	#[DataProvider('freshPersistedCrlProvider')]
+	public function testGenerateCrlDerReturnsPersistedFreshResultWhenFreshnessRulesMatch(
+		string $metadataScenario,
+		bool $expectsMTimeFallback,
+	): void {
+		$cachedDer = "\x30\x82\x01\x00";
+		$metadata = $this->buildPersistedMetadataForScenario($metadataScenario);
+
+		$this->generatedCrlStorage->expects($this->once())
+			->method('read')
+			->with('test-instance', 1, 'o')
+			->willReturn($cachedDer);
+		$this->generatedCrlStorage->method('readMetadata')
+			->willReturn($metadata);
+
+		if ($expectsMTimeFallback) {
+			$this->generatedCrlStorage->expects($this->exactly(2))
+			->method('getMTime')
+			->with('test-instance', 1, 'o')
+			->willReturn($this->getCurrentDayTimestamp());
+		} else {
+			$this->generatedCrlStorage->expects($this->never())
+			->method('getMTime');
+		}
+
+		$this->lockCache->expects($this->never())->method('add');
+		$this->crlMapper->expects($this->never())->method('getRevokedCertificates');
+		$this->certificateEngineFactory->expects($this->never())->method('getEngine');
+		$this->generatedCrlStorage->expects($this->never())->method('write');
+
+		$this->assertSame($cachedDer, $this->service->generateCrlDer('test-instance', 1, 'o'));
+	}
+
 	public function testGenerateCrlDerReturnsPersistedFreshResultWithoutHittingDb(): void {
 		$cachedDer = "\x30\x82\x01\x00";
 
@@ -412,6 +453,77 @@ class CrlServiceTest extends TestCase {
 		$this->generatedCrlStorage->expects($this->never())->method('write');
 
 		$this->assertSame($cachedDer, $this->service->generateCrlDer('test-instance', 1, 'o'));
+	}
+
+	public static function reusablePersistedCrlProvider(): array {
+		return [
+			'missing metadata uses recent mtime as reusable fallback' => ['missing-metadata'],
+			'invalid generatedAt uses recent mtime as reusable fallback' => ['invalid-generated-at'],
+			'empty refreshDate still falls back to recent mtime' => ['empty-refresh-date'],
+		];
+	}
+
+	#[DataProvider('reusablePersistedCrlProvider')]
+	public function testGenerateCrlDerReturnsReusablePersistedResultDuringContentionWhenTimestampFallbackAllowsIt(
+		string $metadataScenario,
+	): void {
+		$cachedDer = "\x30\x82\x01\x00";
+		$metadata = $this->buildPersistedMetadataForScenario($metadataScenario);
+
+		$this->generatedCrlStorage->expects($this->exactly(2))
+			->method('read')
+			->with('test-instance', 1, 'o')
+			->willReturn($cachedDer);
+		$this->generatedCrlStorage->method('readMetadata')
+			->willReturn($metadata);
+		$this->generatedCrlStorage->expects($this->exactly(4))
+			->method('getMTime')
+			->with('test-instance', 1, 'o')
+			->willReturn($this->getRecentStaleTimestamp());
+
+		$this->lockCache->expects($this->once())
+			->method('add')
+			->with($this->isType('string'), $this->isType('string'), 60)
+			->willReturn(false);
+		$this->lockCache->expects($this->never())->method('cad');
+
+		$this->crlMapper->expects($this->never())->method('getRevokedCertificates');
+		$this->certificateEngineFactory->expects($this->never())->method('getEngine');
+		$this->generatedCrlStorage->expects($this->never())->method('write');
+
+		$this->assertSame($cachedDer, $this->service->generateCrlDer('test-instance', 1, 'o'));
+	}
+
+	public function testRefreshGeneratedCrlDerThrowsWhenLockHeldAndOnlyReusablePersistedResultExists(): void {
+		$cachedDer = "\x30\x82\x01\x00";
+
+		$this->generatedCrlStorage->expects($this->exactly(3))
+			->method('read')
+			->with('test-instance', 1, 'o')
+			->willReturn($cachedDer);
+		$this->generatedCrlStorage->method('readMetadata')
+			->willReturn([
+				'refreshDate' => (new \DateTimeImmutable('yesterday', new \DateTimeZone(date_default_timezone_get())))->format('Y-m-d'),
+				'generatedAt' => $this->getCurrentGeneratedAt(),
+			]);
+		$this->generatedCrlStorage->expects($this->never())
+			->method('getMTime');
+
+		$this->lockCache->expects($this->exactly(2))
+			->method('add')
+			->with($this->isType('string'), $this->isType('string'), 60)
+			->willReturn(false);
+		$this->lockCache->expects($this->never())->method('cad');
+
+		$this->crlMapper->expects($this->never())->method('getRevokedCertificates');
+		$this->crlMapper->expects($this->never())->method('getLastCrlNumber');
+		$this->certificateEngineFactory->expects($this->never())->method('getEngine');
+		$this->generatedCrlStorage->expects($this->never())->method('write');
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('CRL refresh is already in progress');
+
+		$this->service->refreshGeneratedCrlDer('test-instance', 1, 'o');
 	}
 
 	public function testGenerateCrlDerThrowsWhenLockRemainsHeldAndNoReusablePersistedResultExists(): void {
@@ -798,6 +910,41 @@ class CrlServiceTest extends TestCase {
 	private function getCurrentRefreshDate(): string {
 		return (new \DateTimeImmutable('now', new \DateTimeZone(date_default_timezone_get())))
 			->format('Y-m-d');
+	}
+
+	/**
+	 * @return array<string, string>|null
+	 */
+	private function buildPersistedMetadataForScenario(string $metadataScenario): ?array {
+		return match ($metadataScenario) {
+			'current-refresh-date' => [
+				'refreshDate' => $this->getCurrentRefreshDate(),
+				'generatedAt' => $this->getCurrentGeneratedAt(),
+			],
+			'invalid-generated-at' => [
+				'generatedAt' => 'not-a-valid-date',
+			],
+			'empty-refresh-date' => [
+				'refreshDate' => '',
+				'generatedAt' => 'not-a-valid-date',
+			],
+			'missing-metadata' => null,
+			default => throw new \InvalidArgumentException('Unknown metadata scenario: ' . $metadataScenario),
+		};
+	}
+
+	private function getCurrentGeneratedAt(): string {
+		return (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(\DateTimeInterface::ATOM);
+	}
+
+	private function getCurrentDayTimestamp(): int {
+		return (new \DateTimeImmutable('today 12:00:00', new \DateTimeZone(date_default_timezone_get())))
+			->getTimestamp();
+	}
+
+	private function getRecentStaleTimestamp(): int {
+		return (new \DateTimeImmutable('yesterday 12:00:00', new \DateTimeZone(date_default_timezone_get())))
+			->getTimestamp();
 	}
 
 	private function createRevokedCertificateEntity(int $serialNumber, string $owner, int $reasonCode): Crl {

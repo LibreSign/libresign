@@ -46,6 +46,10 @@ class GeneratedCrlStorageService {
 			return null;
 		}
 
+		if ($scopeFolder === null) {
+			return null;
+		}
+
 		if (!$scopeFolder->fileExists(self::GENERATED_CRL_FILE)) {
 			return null;
 		}
@@ -60,6 +64,10 @@ class GeneratedCrlStorageService {
 		try {
 			$scopeFolder = $this->getScopeFolder($this->getScopeRelativePath($instanceId, $generation, $engineType));
 		} catch (NotFoundException) {
+			return null;
+		}
+
+		if ($scopeFolder === null) {
 			return null;
 		}
 
@@ -83,6 +91,10 @@ class GeneratedCrlStorageService {
 			return null;
 		}
 
+		if ($scopeFolder === null) {
+			return null;
+		}
+
 		if (!$scopeFolder->fileExists(self::GENERATED_CRL_FILE)) {
 			return null;
 		}
@@ -96,6 +108,9 @@ class GeneratedCrlStorageService {
 	public function write(string $instanceId, int $generation, string $engineType, string $crlDer, array $metadata = []): void {
 		$relativePath = $this->getScopeRelativePath($instanceId, $generation, $engineType);
 		$scopeFolder = $this->ensureFolderExists($relativePath);
+		if ($scopeFolder === null) {
+			return;
+		}
 
 		$this->writeScopeFile($relativePath, $scopeFolder, self::GENERATED_CRL_FILE, $crlDer);
 
@@ -111,10 +126,17 @@ class GeneratedCrlStorageService {
 
 	public function delete(string $instanceId, int $generation, string $engineType): void {
 		try {
-			$this->getScopeFolder($this->getScopeRelativePath($instanceId, $generation, $engineType))->delete();
+			$scopeFolder = $this->getScopeFolder($this->getScopeRelativePath($instanceId, $generation, $engineType));
 		} catch (NotFoundException) {
 			// Nothing persisted for this scope yet.
+			return;
 		}
+
+		if ($scopeFolder === null) {
+			return;
+		}
+
+		$scopeFolder->delete();
 	}
 
 	private function getScopeRelativePath(string $instanceId, int $generation, string $engineType): string {
@@ -125,8 +147,12 @@ class GeneratedCrlStorageService {
 		return '/' . $this->rootFolder->getAppDataDirectoryName() . '/' . Application::APP_ID . '/' . ltrim($relativePath, '/');
 	}
 
-	private function ensureFolderExists(string $relativePath): ISimpleFolder {
-		$folder = $this->appDataFactory->get(Application::APP_ID)->getFolder('/');
+	private function ensureFolderExists(string $relativePath): ?ISimpleFolder {
+		$folder = $this->getAppDataRootFolder();
+		if ($folder === null) {
+			return null;
+		}
+
 		foreach (explode('/', trim($relativePath, '/')) as $segment) {
 			if ($segment === '') {
 				continue;
@@ -142,8 +168,12 @@ class GeneratedCrlStorageService {
 		return $folder;
 	}
 
-	private function getScopeFolder(string $relativePath): ISimpleFolder {
-		$folder = $this->appDataFactory->get(Application::APP_ID)->getFolder('/');
+	private function getScopeFolder(string $relativePath): ?ISimpleFolder {
+		$folder = $this->getAppDataRootFolder();
+		if ($folder === null) {
+			return null;
+		}
+
 		foreach (explode('/', trim($relativePath, '/')) as $segment) {
 			if ($segment === '') {
 				continue;
@@ -153,6 +183,18 @@ class GeneratedCrlStorageService {
 		}
 
 		return $folder;
+	}
+
+	private function getAppDataRootFolder(): ?ISimpleFolder {
+		try {
+			return $this->appDataFactory->get(Application::APP_ID)->getFolder('/');
+		} catch (\TypeError $exception) {
+			if (!$this->isKnownAppDataBootstrapFailure($exception)) {
+				throw $exception;
+			}
+
+			return null;
+		}
 	}
 
 	private function getScopeFolderNode(string $relativePath): Folder {
@@ -180,7 +222,15 @@ class GeneratedCrlStorageService {
 	private function writeScopeFile(string $relativePath, ISimpleFolder $simpleFolder, string $fileName, string $content): void {
 		try {
 			$this->writeFileAtomically($this->getScopeFolderNode($relativePath), $fileName, $content);
-		} catch (NotFoundException|\TypeError) {
+		} catch (NotFoundException $exception) {
+			// Some unit-test/bootstrap environments cannot resolve AppData root nodes,
+			// so fall back to the SimpleFS handle we already created for this scope.
+			$this->writeFileWithSimpleFolder($simpleFolder, $fileName, $content);
+		} catch (\TypeError $exception) {
+			if (!$this->isKnownAppDataBootstrapFailure($exception)) {
+				throw $exception;
+			}
+
 			// Some unit-test/bootstrap environments cannot resolve AppData root nodes,
 			// so fall back to the SimpleFS handle we already created for this scope.
 			$this->writeFileWithSimpleFolder($simpleFolder, $fileName, $content);
@@ -243,6 +293,10 @@ class GeneratedCrlStorageService {
 		}
 
 		return $folderInternalPath . '/' . $childName;
+	}
+
+	private function isKnownAppDataBootstrapFailure(\TypeError $exception): bool {
+		return str_contains($exception->getMessage(), 'OC\\Files\\Cache\\Scanner::$connection');
 	}
 
 	private function normalizeEngineType(string $engineType): CertificateEngineType {
