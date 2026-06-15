@@ -18,9 +18,10 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\Certificate\FileService;
 use OCA\Libresign\Service\Crl\CrlService;
+use OCA\Libresign\Service\Crl\GeneratedCrlStorageService;
 use OCA\Libresign\Service\Crl\CrlUrlParserService;
-use OCP\ICache;
 use OCP\ICacheFactory;
+use OCP\IMemcache;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -33,7 +34,8 @@ class CrlServiceTest extends TestCase {
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private CrlUrlParserService&MockObject $crlUrlParserService;
 	private FileService&MockObject $certificateFileService;
-	private ICache&MockObject $cache;
+	private GeneratedCrlStorageService&MockObject $generatedCrlStorage;
+	private IMemcache&MockObject $lockCache;
 	private ICacheFactory&MockObject $cacheFactory;
 
 	protected function setUp(): void {
@@ -42,9 +44,12 @@ class CrlServiceTest extends TestCase {
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->crlUrlParserService = $this->createMock(CrlUrlParserService::class);
 		$this->certificateFileService = $this->createMock(FileService::class);
-		$this->cache = $this->createMock(ICache::class);
+		$this->generatedCrlStorage = $this->createMock(GeneratedCrlStorageService::class);
+		$this->generatedCrlStorage->method('getScopeKey')
+			->willReturnCallback(static fn (string $instanceId, int $generation, string $engineType): string => $instanceId . '/' . $generation . '/' . $engineType);
+		$this->lockCache = $this->createMock(IMemcache::class);
 		$this->cacheFactory = $this->createMock(ICacheFactory::class);
-		$this->cacheFactory->method('createDistributed')->willReturn($this->cache);
+		$this->cacheFactory->method('createLocking')->willReturn($this->lockCache);
 
 		$this->service = new CrlService(
 			$this->crlMapper,
@@ -53,6 +58,7 @@ class CrlServiceTest extends TestCase {
 			$this->crlUrlParserService,
 			$this->certificateFileService,
 			$this->cacheFactory,
+			$this->generatedCrlStorage,
 		);
 	}
 
@@ -206,7 +212,6 @@ class CrlServiceTest extends TestCase {
 		int $expectedRevoked,
 		bool $expectWarning,
 	): void {
-		$this->cache->expects($this->never())->method('remove');
 		$certificates = [];
 		for ($i = 1; $i <= $certificateCount; $i++) {
 			$cert = new Crl();
@@ -239,6 +244,11 @@ class CrlServiceTest extends TestCase {
 					return $certificate;
 				});
 		}
+
+		$expectedDeleteCalls = $expectedRevoked > 0 ? 1 : 0;
+		$this->generatedCrlStorage->expects($this->exactly($expectedDeleteCalls))
+			->method('delete')
+			->with('test-instance', 1, 'openssl');
 
 		if ($expectWarning) {
 			$this->logger->expects($this->once())
@@ -295,8 +305,9 @@ class CrlServiceTest extends TestCase {
 				null,
 			);
 
-		$this->cache->expects($this->never())
-			->method('remove');
+		$this->generatedCrlStorage->expects($this->once())
+			->method('delete')
+			->with('test-instance', 1, 'openssl');
 
 		$result = $this->service->revokeCertificate($serialNumber, $reason, $reasonText, $revokedBy);
 
@@ -309,7 +320,7 @@ class CrlServiceTest extends TestCase {
 		$certificate->setSerialNumber($serialNumber);
 		$certificate->setEngine('openssl');
 
-		$this->cache->expects($this->never())->method('remove');
+		$this->generatedCrlStorage->expects($this->never())->method('delete');
 
 		$this->crlMapper->expects($this->once())
 			->method('findBySerialNumber')
@@ -339,7 +350,7 @@ class CrlServiceTest extends TestCase {
 	public function testRevokeCertificateDoesNotSwallowErrors(): void {
 		$serialNumber = '999999';
 
-		$this->cache->expects($this->never())->method('remove');
+		$this->generatedCrlStorage->expects($this->never())->method('delete');
 
 		$this->crlMapper->expects($this->once())
 			->method('findBySerialNumber')
@@ -355,35 +366,72 @@ class CrlServiceTest extends TestCase {
 		$this->service->revokeCertificate($serialNumber);
 	}
 
-	public function testGenerateCrlDerReturnsCachedResultWithoutHittingDb(): void {
+	public function testGenerateCrlDerReturnsPersistedFreshResultWithoutHittingDb(): void {
 		$cachedDer = "\x30\x82\x01\x00";
 
-		$this->cache->expects($this->once())
-			->method('get')
-			->with($this->isType('string'))
+		$this->generatedCrlStorage->expects($this->once())
+			->method('read')
+			->with('test-instance', 1, 'o')
 			->willReturn($cachedDer);
+		$this->generatedCrlStorage->method('readMetadata')
+			->willReturn([
+				'refreshDate' => $this->getCurrentRefreshDate(),
+				'generatedAt' => '2026-01-17T10:00:00+00:00',
+			]);
 
-		// DB and engine must NOT be called when cache is warm
+		$this->lockCache->expects($this->never())->method('add');
 		$this->crlMapper->expects($this->never())->method('getRevokedCertificates');
 		$this->certificateEngineFactory->expects($this->never())->method('getEngine');
-		$this->cache->expects($this->never())->method('set');
+		$this->generatedCrlStorage->expects($this->never())->method('write');
 
 		$result = $this->service->generateCrlDer('test-instance', 1, 'o');
 
 		$this->assertSame($cachedDer, $result);
 	}
 
-	public function testGenerateCrlDerGeneratesAndCachesOnCacheMiss(): void {
+	public function testGenerateCrlDerReturnsReusablePersistedResultWhileAnotherRequestRefreshes(): void {
+		$cachedDer = "\x30\x82\x01\x00";
+
+		$this->generatedCrlStorage->expects($this->exactly(2))
+			->method('read')
+			->with('test-instance', 1, 'o')
+			->willReturn($cachedDer);
+		$this->generatedCrlStorage->method('readMetadata')
+			->willReturn([
+				'refreshDate' => (new \DateTimeImmutable('yesterday', new \DateTimeZone(date_default_timezone_get())))->format('Y-m-d'),
+				'generatedAt' => (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(\DateTimeInterface::ATOM),
+			]);
+
+		$this->lockCache->expects($this->once())
+			->method('add')
+			->with($this->isType('string'), $this->isType('string'), 60)
+			->willReturn(false);
+
+		$this->crlMapper->expects($this->never())->method('getRevokedCertificates');
+		$this->certificateEngineFactory->expects($this->never())->method('getEngine');
+		$this->generatedCrlStorage->expects($this->never())->method('write');
+
+		$this->assertSame($cachedDer, $this->service->generateCrlDer('test-instance', 1, 'o'));
+	}
+
+	public function testGenerateCrlDerGeneratesAndPersistsOnStorageMiss(): void {
 		$revokedCertificates = [
 			$this->createRevokedCertificateEntity(123456, 'user1@example.com', 1),
 			$this->createRevokedCertificateEntity(789012, 'user2@example.com', 2),
 		];
 
-		// Cache miss
-		$this->cache->expects($this->once())
-			->method('get')
-			->with($this->isType('string'))
+		$this->generatedCrlStorage->expects($this->exactly(2))
+			->method('read')
+			->with('test-instance', 1, 'o')
 			->willReturn(null);
+
+		$this->lockCache->expects($this->once())
+			->method('add')
+			->with($this->isType('string'), $this->isType('string'), 60)
+			->willReturn(true);
+		$this->lockCache->expects($this->once())
+			->method('cad')
+			->with($this->isType('string'), $this->isType('string'));
 
 		$this->crlMapper->expects($this->once())
 			->method('getRevokedCertificates')
@@ -391,7 +439,7 @@ class CrlServiceTest extends TestCase {
 			->willReturn($revokedCertificates);
 
 		$mockEngine = $this->createMock(IEngineHandler::class);
-		$mockCrlDer = "\x30\x82\x01\x00"; // Valid DER sequence
+		$mockCrlDer = "\x30\x82\x01\x00";
 		$mockEngine->expects($this->once())
 			->method('generateCrlDer')
 			->with($revokedCertificates, 'test-instance', 1, 1)
@@ -406,36 +454,130 @@ class CrlServiceTest extends TestCase {
 			->with('test-instance', 1, 'openssl')
 			->willReturn(0);
 
-		// Must be stored in cache for 7 days (aligned with CRL nextUpdate)
-		$this->cache->expects($this->once())
-			->method('set')
-			->with($this->isType('string'), $mockCrlDer, 7 * 86400);
+		$this->generatedCrlStorage->expects($this->once())
+			->method('write')
+			->with(
+				'test-instance',
+				1,
+				'o',
+				$mockCrlDer,
+				$this->callback(function (array $metadata): bool {
+					return ($metadata['refreshDate'] ?? null) === $this->getCurrentRefreshDate()
+						&& ($metadata['engineType'] ?? null) === 'o'
+						&& is_string($metadata['generatedAt'] ?? null)
+						&& $metadata['generatedAt'] !== '';
+				})
+			);
 
 		$result = $this->service->generateCrlDer('test-instance', 1, 'o');
 
 		$this->assertIsString($result);
 		$this->assertNotEmpty($result);
-		// Basic DER structure should start with SEQUENCE tag (0x30)
 		$this->assertEquals(0x30, ord($result[0]));
 	}
 
-	public function testGenerateCrlDerReusesSameDailyCacheForEngineAliases(): void {
-		$cacheEntries = [];
+	public function testGenerateCrlDerDoesNotWriteGeneratedBinaryToDistributedCache(): void {
+		$lockCache = $this->createMock(IMemcache::class);
+		$cacheFactory = $this->createMock(ICacheFactory::class);
+		$cacheFactory->expects($this->once())
+			->method('createLocking')
+			->with('libresign_crl_generated')
+			->willReturn($lockCache);
+		$cacheFactory->expects($this->never())
+			->method('createDistributed');
+
+		$service = new CrlService(
+			$this->crlMapper,
+			$this->logger,
+			$this->certificateEngineFactory,
+			$this->crlUrlParserService,
+			$this->certificateFileService,
+			$cacheFactory,
+			$this->generatedCrlStorage,
+		);
+
 		$mockCrlDer = "\x30\x82\x01\x00";
 
-		$this->cache->expects($this->exactly(2))
-			->method('get')
-			->with($this->isType('string'))
-			->willReturnCallback(static function (string $key) use (&$cacheEntries): ?string {
-				return $cacheEntries[$key] ?? null;
+		$this->generatedCrlStorage->expects($this->exactly(2))
+			->method('read')
+			->with('test-instance', 1, 'o')
+			->willReturn(null);
+
+		$lockCache->expects($this->once())
+			->method('add')
+			->with($this->isType('string'), $this->isType('string'), 60)
+			->willReturn(true);
+		$lockCache->expects($this->once())
+			->method('cad')
+			->with($this->isType('string'), $this->isType('string'));
+
+		$this->crlMapper->expects($this->once())
+			->method('getRevokedCertificates')
+			->with('test-instance', 1, 'o')
+			->willReturn([]);
+
+		$this->crlMapper->expects($this->once())
+			->method('getLastCrlNumber')
+			->with('test-instance', 1, 'openssl')
+			->willReturn(0);
+
+		$mockEngine = $this->createMock(IEngineHandler::class);
+		$mockEngine->expects($this->once())
+			->method('generateCrlDer')
+			->with([], 'test-instance', 1, 1)
+			->willReturn($mockCrlDer);
+
+		$this->certificateEngineFactory->expects($this->once())
+			->method('getEngine')
+			->willReturn($mockEngine);
+
+		$this->generatedCrlStorage->expects($this->once())
+			->method('write')
+			->with(
+				'test-instance',
+				1,
+				'o',
+				$mockCrlDer,
+				$this->isType('array')
+			);
+
+		$this->assertSame($mockCrlDer, $service->generateCrlDer('test-instance', 1, 'o'));
+	}
+
+	public function testGenerateCrlDerReusesPersistedScopeForEngineAliases(): void {
+		$persistedEntries = [];
+		$persistedMetadata = [];
+		$normalizeEngineType = static fn (string $engineType): string => CertificateEngineType::tryFromValue($engineType)?->value ?? $engineType;
+		$mockCrlDer = "\x30\x82\x01\x00";
+
+		$this->generatedCrlStorage->expects($this->exactly(3))
+			->method('read')
+			->willReturnCallback(static function (string $instanceId, int $generation, string $engineType) use (&$persistedEntries, $normalizeEngineType): ?string {
+				$scopeKey = $instanceId . '/' . $generation . '/' . $normalizeEngineType($engineType);
+				return $persistedEntries[$scopeKey] ?? null;
 			});
 
-		$this->cache->expects($this->once())
-			->method('set')
-			->with($this->isType('string'), $mockCrlDer, 7 * 86400)
-			->willReturnCallback(static function (string $key, string $value) use (&$cacheEntries): void {
-				$cacheEntries[$key] = $value;
+		$this->generatedCrlStorage->method('readMetadata')
+			->willReturnCallback(static function (string $instanceId, int $generation, string $engineType) use (&$persistedMetadata, $normalizeEngineType): ?array {
+				$scopeKey = $instanceId . '/' . $generation . '/' . $normalizeEngineType($engineType);
+				return $persistedMetadata[$scopeKey] ?? null;
 			});
+
+		$this->generatedCrlStorage->expects($this->once())
+			->method('write')
+			->willReturnCallback(function (string $instanceId, int $generation, string $engineType, string $crlDer, array $metadata) use (&$persistedEntries, &$persistedMetadata, $normalizeEngineType): void {
+				$scopeKey = $instanceId . '/' . $generation . '/' . $normalizeEngineType($engineType);
+				$persistedEntries[$scopeKey] = $crlDer;
+				$persistedMetadata[$scopeKey] = $metadata;
+			});
+
+		$this->lockCache->expects($this->once())
+			->method('add')
+			->with($this->isType('string'), $this->isType('string'), 60)
+			->willReturn(true);
+		$this->lockCache->expects($this->once())
+			->method('cad')
+			->with($this->isType('string'), $this->isType('string'));
 
 		$this->crlMapper->expects($this->once())
 			->method('getRevokedCertificates')
@@ -465,16 +607,26 @@ class CrlServiceTest extends TestCase {
 	}
 
 	public function testRefreshGeneratedCrlCacheRefreshesEveryKnownScope(): void {
-		$cachedKeys = [];
+		$writtenScopes = [];
 		$observedEngineNames = [];
 
-		$this->cache->expects($this->never())->method('get');
-		$this->cache->expects($this->exactly(2))
-			->method('set')
-			->with($this->isType('string'), $this->isType('string'), 7 * 86400)
-			->willReturnCallback(static function (string $key) use (&$cachedKeys): void {
-				$cachedKeys[] = $key;
+		$this->generatedCrlStorage->expects($this->exactly(2))
+			->method('read')
+			->willReturn(null);
+
+		$this->generatedCrlStorage->expects($this->exactly(2))
+			->method('write')
+			->willReturnCallback(function (string $instanceId, int $generation, string $engineType, string $crlDer, array $metadata) use (&$writtenScopes): void {
+				$writtenScopes[] = $instanceId . '/' . $generation . '/' . $engineType;
 			});
+
+		$this->lockCache->expects($this->exactly(2))
+			->method('add')
+			->with($this->isType('string'), $this->isType('string'), 60)
+			->willReturn(true);
+		$this->lockCache->expects($this->exactly(2))
+			->method('cad')
+			->with($this->isType('string'), $this->isType('string'));
 
 		$this->crlMapper->expects($this->once())
 			->method('listGeneratedCrlScopes')
@@ -509,12 +661,24 @@ class CrlServiceTest extends TestCase {
 
 		$this->assertSame(2, $refreshedScopes);
 		$this->assertSame(['openssl', 'cfssl'], $observedEngineNames);
-		$this->assertCount(2, array_unique($cachedKeys));
+		$this->assertSame(['instance-a/1/o', 'instance-b/2/c'], $writtenScopes);
 	}
 
 	public function testRefreshGeneratedCrlCacheDoesNotSwallowErrors(): void {
-		$this->cache->expects($this->never())->method('get');
-		$this->cache->expects($this->never())->method('set');
+		$this->generatedCrlStorage->expects($this->once())
+			->method('read')
+			->with('instance-a', 1, 'o')
+			->willReturn(null);
+
+		$this->generatedCrlStorage->expects($this->never())->method('write');
+
+		$this->lockCache->expects($this->once())
+			->method('add')
+			->with($this->isType('string'), $this->isType('string'), 60)
+			->willReturn(true);
+		$this->lockCache->expects($this->once())
+			->method('cad')
+			->with($this->isType('string'), $this->isType('string'));
 
 		$this->crlMapper->expects($this->once())
 			->method('listGeneratedCrlScopes')
@@ -594,6 +758,11 @@ class CrlServiceTest extends TestCase {
 		$result = $this->service->getStatistics();
 
 		$this->assertEquals($expectedStats, $result);
+	}
+
+	private function getCurrentRefreshDate(): string {
+		return (new \DateTimeImmutable('now', new \DateTimeZone(date_default_timezone_get())))
+			->format('Y-m-d');
 	}
 
 	private function createRevokedCertificateEntity(int $serialNumber, string $owner, int $reasonCode): Crl {
