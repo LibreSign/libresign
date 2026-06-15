@@ -6,42 +6,6 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace Test;
-
-/**
- * Overwrite opendir in the Test namespace.
- */
-
-function testCaseWillIgnore(string $node): bool {
-	$libresignPath = current(glob(\OC::$SERVERROOT . '/data/appdata_*/libresign'));
-	$knownEntries = [
-		$libresignPath . '/aarch',
-		$libresignPath . '/arm64',
-		$libresignPath . '/cfssl_config',
-		$libresignPath . '/x86_64',
-	];
-	foreach ($knownEntries as $ignored) {
-		if (str_starts_with($node, $ignored)) {
-			return true;
-		}
-	}
-	return false;
-}
-
-function rmdir($dir) {
-	if (testCaseWillIgnore($dir)) {
-		return false;
-	}
-	return \rmdir($dir);
-}
-
-function unlink($file) {
-	if (testCaseWillIgnore($file)) {
-		return false;
-	}
-	return \unlink($file);
-}
-
 namespace OCA\Libresign\Tests\Unit;
 
 use donatj\MockWebServer\MockWebServer;
@@ -60,6 +24,11 @@ class TestCase extends \Test\TestCase {
 	private const TEST_FILE_MODE = 0640;
 
 	protected static MockWebServer $server;
+	private static bool $preservedOriginalAppData = false;
+	private static bool $hadOriginalLibresignAppData = false;
+	private static string $libresignAppDataPath = '';
+	private static string $libresignAppDataCachePath = '';
+	private static string $originalLibresignAppDataBackupPath = '';
 	private RequestSignatureService $requestSignatureService;
 	private SignRequestMapper $signRequestMapper;
 	private array $users = [];
@@ -130,8 +99,100 @@ class TestCase extends \Test\TestCase {
 
 	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
+		self::preserveOriginalLibresignAppData();
 		self::$server = new MockWebServer();
 		self::$server->start();
+	}
+
+	private static function preserveOriginalLibresignAppData(): void {
+		if (self::$preservedOriginalAppData) {
+			return;
+		}
+
+		self::$preservedOriginalAppData = true;
+		register_shutdown_function(static function (): void {
+			self::restoreOriginalLibresignAppData();
+		});
+
+		self::$libresignAppDataPath = self::getFullLiresignAppFolder(false);
+		if (self::$libresignAppDataPath === '') {
+			self::$libresignAppDataPath = self::buildLibresignAppFolderPath();
+		}
+		self::$libresignAppDataCachePath = self::buildLibresignAppDataCachePath(self::$libresignAppDataPath);
+		self::$originalLibresignAppDataBackupPath = self::$libresignAppDataCachePath !== ''
+			? self::$libresignAppDataCachePath . '__original'
+			: '';
+
+		self::$hadOriginalLibresignAppData = self::directoryHasContents(self::$libresignAppDataPath);
+		if (!self::$hadOriginalLibresignAppData) {
+			return;
+		}
+
+		$backupPath = self::$originalLibresignAppDataBackupPath;
+		if ($backupPath === '') {
+			return;
+		}
+
+		self::removeDirectoryRecursively($backupPath);
+		self::recursiveCopy(self::$libresignAppDataPath, $backupPath);
+	}
+
+	private static function restoreOriginalLibresignAppData(): void {
+		if (!self::$preservedOriginalAppData) {
+			return;
+		}
+
+		$appPath = self::$libresignAppDataPath;
+		if ($appPath !== '') {
+			self::removeDirectoryRecursively($appPath);
+		}
+
+		if (!self::$hadOriginalLibresignAppData) {
+			return;
+		}
+
+		$backupPath = self::$originalLibresignAppDataBackupPath;
+		if ($backupPath === '' || !self::directoryHasContents($backupPath)) {
+			return;
+		}
+
+		self::recursiveCopy($backupPath, $appPath);
+	}
+
+	private static function buildLibresignAppDataCachePath(string $appPath): string {
+		$cachePath = preg_replace(
+			'/\/.*\/appdata_[a-z0-9]*/',
+			(string)\OCP\Server::get(\OCP\ITempManager::class)->getTempBaseDir(),
+			$appPath
+		);
+
+		if (!is_string($cachePath) || $cachePath === '') {
+			return '';
+		}
+
+		return $cachePath;
+	}
+
+	private static function restoreCachedLibresignAppData(): void {
+		if (self::$libresignAppDataPath === '' || self::$libresignAppDataCachePath === '') {
+			return;
+		}
+
+		if (!self::directoryHasContents(self::$libresignAppDataCachePath)) {
+			return;
+		}
+
+		self::removeDirectoryRecursively(self::$libresignAppDataPath);
+		self::recursiveCopy(self::$libresignAppDataCachePath, self::$libresignAppDataPath);
+	}
+
+	private static function directoryHasContents(string $path): bool {
+		if ($path === '' || !is_dir($path)) {
+			return false;
+		}
+
+		$entries = scandir($path);
+		return is_array($entries) && count($entries) > 2;
 	}
 
 	public function setUp(): void {
@@ -172,8 +233,13 @@ class TestCase extends \Test\TestCase {
 			return;
 		}
 
+		$connection = $this->getDbConnection();
+		if (!$connection instanceof \OCP\IDBConnection) {
+			return;
+		}
+
 		$this->overwriteService(IAppConfig::class, new AppConfigOverwrite(
-			\OCP\Server::get(\OCP\IDBConnection::class),
+			$connection,
 			\OCP\Server::get(IConfig::class),
 			\OCP\Server::get(\OC\Config\ConfigManager::class),
 			\OCP\Server::get(\OC\Config\PresetManager::class),
@@ -183,9 +249,28 @@ class TestCase extends \Test\TestCase {
 		));
 	}
 
+	private function getDbConnection(): ?\OCP\IDBConnection {
+		$connection = \OCP\Server::get(\OCP\IDBConnection::class);
+		if ($connection instanceof \OCP\IDBConnection) {
+			return $connection;
+		}
+
+		if (!isset(\OC::$server)) {
+			return null;
+		}
+
+		try {
+			$connection = \OC::$server->get(\OCP\IDBConnection::class);
+		} catch (\Throwable) {
+			return null;
+		}
+
+		return $connection instanceof \OCP\IDBConnection ? $connection : null;
+	}
+
 	private function ensureDavDefaultContactFixture(): void {
-		$instanceId = $this->getInstanceId();
-		$dir = '../../data/appdata_' . $instanceId . '/dav/defaultContact';
+		$instanceId = self::getInstanceId();
+		$dir = self::getDataDirectoryPath() . '/appdata_' . $instanceId . '/dav/defaultContact';
 		if (!is_dir($dir)) {
 			mkdir($dir, self::TEST_DIR_MODE, true);
 		}
@@ -209,11 +294,13 @@ class TestCase extends \Test\TestCase {
 		try {
 			parent::tearDownAfterClass();
 		} catch (\Throwable) {
+		} finally {
+			self::restoreCachedLibresignAppData();
 		}
 	}
 
 	private function cleanDatabase(): void {
-		$db = \OCP\Server::get(\OCP\IDBConnection::class);
+		$db = $this->getDbConnection();
 		if (!$db) {
 			return;
 		}
@@ -278,32 +365,53 @@ class TestCase extends \Test\TestCase {
 	}
 
 	private function getBinariesFromCache(): void {
-		$appPath = $this->getFullLiresignAppFolder();
+		$appPath = self::getFullLiresignAppFolder();
 		if (!$appPath) {
 			return;
 		}
-		$cachePath = preg_replace('/\/.*\/appdata_[a-z0-9]*/', (string)\OCP\Server::get(\OCP\ITempManager::class)->getTempBaseDir(), $appPath);
+		$cachePath = self::$libresignAppDataCachePath !== ''
+			? self::$libresignAppDataCachePath
+			: self::buildLibresignAppDataCachePath($appPath);
 		if (!file_exists($cachePath)) {
 			return;
 		}
 		if (!is_dir($appPath)) {
 			mkdir($appPath, self::TEST_DIR_MODE, true);
 		}
-		$this->recursiveCopy($cachePath, $appPath);
+		self::recursiveCopy($cachePath, $appPath);
 	}
 
-	private function getFullLiresignAppFolder(): string {
-		$path = '../../data/appdata_' . $this->getInstanceId() . '/libresign';
-		if (!is_dir($path)) {
+	private static function buildLibresignAppFolderPath(): string {
+		return self::getDataDirectoryPath() . '/appdata_' . self::getInstanceId() . '/libresign';
+	}
+
+	private static function getDataDirectoryPath(): string {
+		return rtrim(
+			\OCP\Server::get(IConfig::class)->getSystemValueString('datadirectory', \OC::$SERVERROOT . '/data'),
+			'/'
+		);
+	}
+
+	private static function getFullLiresignAppFolder(bool $createIfMissing = true): string {
+		$path = self::buildLibresignAppFolderPath();
+		if ($createIfMissing && !is_dir($path)) {
 			mkdir($path, self::TEST_DIR_MODE, true);
 			$user = fileowner(__FILE__);
 			chown($path, $user);
 			@chgrp($path, $user);
 		}
-		return realpath($path);
+
+		if (is_dir($path)) {
+			$resolvedPath = realpath($path);
+			if (is_string($resolvedPath) && $resolvedPath !== '') {
+				return $resolvedPath;
+			}
+		}
+
+		return $createIfMissing ? $path : (is_string($path) ? $path : '');
 	}
 
-	private function getInstanceId(): string {
+	private static function getInstanceId(): string {
 		$instanceId = \OCP\Server::get(IConfig::class)->getSystemValueString('instanceid', '');
 		if ($instanceId === '') {
 			throw new \RuntimeException('Missing Nextcloud instanceid from system config.');
@@ -312,7 +420,7 @@ class TestCase extends \Test\TestCase {
 	}
 
 	private function backupBinaries(): void {
-		$appPath = $this->getFullLiresignAppFolder();
+		$appPath = self::getFullLiresignAppFolder();
 		if (!is_readable($appPath)) {
 			return;
 		}
@@ -320,19 +428,21 @@ class TestCase extends \Test\TestCase {
 		if ($isEmpty) {
 			return;
 		}
-		$cachePath = preg_replace('/\/.*\/appdata_[a-z0-9]*/', (string)\OCP\Server::get(\OCP\ITempManager::class)->getTempBaseDir(), $appPath);
+		$cachePath = self::$libresignAppDataCachePath !== ''
+			? self::$libresignAppDataCachePath
+			: self::buildLibresignAppDataCachePath($appPath);
 		if (!file_exists($cachePath)) {
 			mkdir($cachePath, self::TEST_DIR_MODE, true);
 		}
-		$this->recursiveCopy($appPath, $cachePath);
+		self::recursiveCopy($appPath, $cachePath);
 	}
 
-	private function normalizeCopiedFileMode(int $sourcePerms): int {
+	private static function normalizeCopiedFileMode(int $sourcePerms): int {
 		$execBits = $sourcePerms & 0111;
 		return self::TEST_FILE_MODE | $execBits;
 	}
 
-	private function recursiveCopy(string $source, string $dest): void {
+	private static function recursiveCopy(string $source, string $dest): void {
 		if (!is_dir($source)) {
 			return;
 		}
@@ -385,7 +495,7 @@ class TestCase extends \Test\TestCase {
 			if ($item->isDir()) {
 				$expectedMode = self::TEST_DIR_MODE;
 			} elseif (is_int($sourcePerms)) {
-				$expectedMode = $this->normalizeCopiedFileMode($sourcePerms);
+				$expectedMode = self::normalizeCopiedFileMode($sourcePerms);
 			} else {
 				$expectedMode = self::TEST_FILE_MODE;
 			}
@@ -393,6 +503,34 @@ class TestCase extends \Test\TestCase {
 				@chmod($newDest, $expectedMode);
 			}
 		}
+	}
+
+	private static function removeDirectoryRecursively(string $path): void {
+		if ($path === '' || !file_exists($path)) {
+			return;
+		}
+
+		if (is_file($path) || is_link($path)) {
+			@unlink($path);
+			return;
+		}
+
+		$iterator = new \RecursiveIteratorIterator(
+			new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
+			\RecursiveIteratorIterator::CHILD_FIRST,
+			\RecursiveIteratorIterator::CATCH_GET_CHILD,
+		);
+
+		foreach ($iterator as $item) {
+			$pathname = $item->getPathname();
+			if ($item->isDir() && !$item->isLink()) {
+				@rmdir($pathname);
+				continue;
+			}
+			@unlink($pathname);
+		}
+
+		@rmdir($path);
 	}
 
 	public function requestSignFile($data): File {
