@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
@@ -37,6 +38,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ITempManager $tempManager;
 	private LoggerInterface&MockObject $logger;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
+	private IEngineHandler&MockObject $certificateEngine;
 	private CaIdentifierService&MockObject $caIdentifierService;
 	private DocMdpHandler&MockObject $docMdpHandler;
 	private CrlService&MockObject $crlService;
@@ -45,6 +47,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
+		$this->certificateEngine = $this->createMock(IEngineHandler::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
@@ -52,6 +55,11 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
 		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
 		$this->crlService = $this->createMock(CrlService::class);
+
+		$this->certificateEngineFactory->method('getEngine')
+			->willReturn($this->certificateEngine);
+		$this->certificateEngine->method('parseCertificate')
+			->willReturnCallback(fn (string $certificate): array => $this->parseCertificateWithoutCrlLookup($certificate));
 	}
 
 	private function getHandler(array $methods = []): Pkcs12Handler|MockObject {
@@ -143,10 +151,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testIsHandlerOkReturnsBoolean(): void {
-		$engineMock = $this->createMock(\OCA\Libresign\Handler\CertificateEngine\AEngineHandler::class);
-		$engineMock->method('isSetupOk')->willReturn(true);
-
-		$this->certificateEngineFactory->method('getEngine')->willReturn($engineMock);
+		$this->certificateEngine->method('isSetupOk')->willReturn(true);
 
 		$handler = $this->getHandler();
 		$result = $handler->isHandlerOk();
@@ -401,6 +406,38 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->assertGreaterThan(0, count($signatureData['chain']));
 			}
 		}
+	}
+
+	private function parseCertificateWithoutCrlLookup(string $certificate): array {
+		$resource = openssl_x509_read($certificate);
+		if ($resource === false) {
+			return [];
+		}
+
+		$parsed = openssl_x509_parse($resource);
+		if ($parsed === false) {
+			return [];
+		}
+
+		return [
+			'name' => is_string($parsed['name'] ?? null) ? $parsed['name'] : '',
+			'subject' => $this->normalizeDistinguishedName($parsed['subject'] ?? []),
+			'issuer' => $this->normalizeDistinguishedName($parsed['issuer'] ?? []),
+		];
+	}
+
+	private function normalizeDistinguishedName(mixed $distinguishedName): array {
+		if (!is_array($distinguishedName)) {
+			return [];
+		}
+
+		foreach ($distinguishedName as $part => $value) {
+			if (is_string($value) && str_contains($value, ', ')) {
+				$distinguishedName[$part] = explode(', ', $value);
+			}
+		}
+
+		return $distinguishedName;
 	}
 
 }
