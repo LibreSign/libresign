@@ -28,6 +28,8 @@ use Psr\Log\LoggerInterface;
  * ldap extension.
  */
 class LdapCrlDownloader {
+	private const BINARY_CACHE_PREFIX = 'base64:';
+
 	private ICache $cache;
 
 	public function __construct(
@@ -52,14 +54,27 @@ class LdapCrlDownloader {
 		$cacheKey = sha1($url);
 		$cached = $this->cache->get($cacheKey);
 		if ($cached !== null) {
-			return $cached;
+			return is_string($cached) ? $this->decodeCachedBinaryContent($cached) : null;
 		}
 
 		$content = $this->fetchFromLdap($url);
 		if ($content !== null) {
-			$this->cache->set($cacheKey, $content, 86400);
+			$this->cache->set($cacheKey, $this->encodeCacheableBinaryContent($content), 86400);
 		}
 		return $content;
+	}
+
+	private function encodeCacheableBinaryContent(string $content): string {
+		return self::BINARY_CACHE_PREFIX . base64_encode($content);
+	}
+
+	private function decodeCachedBinaryContent(string $cachedContent): string {
+		if (!str_starts_with($cachedContent, self::BINARY_CACHE_PREFIX)) {
+			return $cachedContent;
+		}
+
+		$decoded = base64_decode(substr($cachedContent, strlen(self::BINARY_CACHE_PREFIX)), true);
+		return $decoded === false ? $cachedContent : $decoded;
 	}
 
 	private function fetchFromLdap(string $url): ?string {
