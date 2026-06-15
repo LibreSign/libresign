@@ -12,6 +12,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Crl;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
+use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\Crl\Ldap\LdapCrlDownloader;
 use OCP\IAppConfig;
 use OCP\ICache;
@@ -29,6 +30,9 @@ use Psr\Log\LoggerInterface;
  * tests can call them directly without reflection.
  */
 class CrlRevocationCheckerTestable extends CrlRevocationChecker {
+	private ?CrlService $crlService = null;
+	private string|false|null $remoteCrlContent = null;
+
 	public function publicIsSerialNumberInCrl(string $crlText, string $serialNumber): bool {
 		return $this->isSerialNumberInCrl($crlText, $serialNumber);
 	}
@@ -39,6 +43,40 @@ class CrlRevocationCheckerTestable extends CrlRevocationChecker {
 
 	public function publicGetLocalCrlPattern(): string {
 		return $this->getLocalCrlPattern();
+	}
+
+	public function publicGenerateLocalCrl(string $crlUrl): ?string {
+		return $this->generateLocalCrl($crlUrl);
+	}
+
+	public function publicDownloadCrlContent(string $url): ?string {
+		return $this->downloadCrlContent($url);
+	}
+
+	public function setCrlService(CrlService $crlService): void {
+		$this->crlService = $crlService;
+	}
+
+	public function setRemoteCrlContent(string|false|null $remoteCrlContent): void {
+		$this->remoteCrlContent = $remoteCrlContent;
+	}
+
+	#[\Override]
+	protected function getCrlService(): CrlService {
+		if ($this->crlService !== null) {
+			return $this->crlService;
+		}
+
+		return parent::getCrlService();
+	}
+
+	#[\Override]
+	protected function fetchRemoteCrlContent(string $url, $context): string|false {
+		if ($this->remoteCrlContent !== null) {
+			return $this->remoteCrlContent;
+		}
+
+		return parent::fetchRemoteCrlContent($url, $context);
 	}
 }
 
@@ -272,6 +310,58 @@ class CrlRevocationCheckerTest extends TestCase {
 			preg_match($pattern, 'https://cloud.example.com/apps/libresign/crl/not-a-crl.txt'),
 			'A non-CRL path must not match the local CRL pattern',
 		);
+	}
+
+	public function testGenerateLocalCrlMemoizesPerRequest(): void {
+		$this->mockCrlRouteUrlGenerator();
+
+		$crlService = $this->createMock(CrlService::class);
+		$crlService->expects($this->once())
+			->method('generateCrlDer')
+			->with('abc123', 4, 'o')
+			->willReturn('memoized-der');
+
+		$this->checker->setCrlService($crlService);
+
+		$url = 'https://cloud.example.com/apps/libresign/crl/libresign_abc123_4_o.crl';
+
+		$this->assertSame('memoized-der', $this->checker->publicGenerateLocalCrl($url));
+		$this->assertSame('memoized-der', $this->checker->publicGenerateLocalCrl($url));
+	}
+
+	public function testDownloadCrlContentCachesEncodedBinaryValue(): void {
+		$binaryContent = "\x30\x82\x01\x00";
+
+		$this->crlCache->expects($this->once())
+			->method('get')
+			->with(sha1('https://crl.example.com/current.crl'))
+			->willReturn(null);
+
+		$this->crlCache->expects($this->once())
+			->method('set')
+			->with(
+				sha1('https://crl.example.com/current.crl'),
+				'base64:' . base64_encode($binaryContent),
+				86400
+			);
+
+		$this->checker->setRemoteCrlContent($binaryContent);
+
+		$this->assertSame($binaryContent, $this->checker->publicDownloadCrlContent('https://crl.example.com/current.crl'));
+	}
+
+	public function testDownloadCrlContentDecodesEncodedCachedBinaryValue(): void {
+		$binaryContent = "\x30\x82\x01\x00";
+
+		$this->crlCache->expects($this->once())
+			->method('get')
+			->with(sha1('https://crl.example.com/current.crl'))
+			->willReturn('base64:' . base64_encode($binaryContent));
+
+		$this->crlCache->expects($this->never())
+			->method('set');
+
+		$this->assertSame($binaryContent, $this->checker->publicDownloadCrlContent('https://crl.example.com/current.crl'));
 	}
 
 	#[DataProvider('dataProviderIsSerialNumberInCrl')]
