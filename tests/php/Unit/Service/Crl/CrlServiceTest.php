@@ -391,12 +391,12 @@ class CrlServiceTest extends TestCase {
 
 		if ($expectsMTimeFallback) {
 			$this->generatedCrlStorage->expects($this->exactly(2))
-			->method('getMTime')
-			->with('test-instance', 1, 'o')
-			->willReturn($this->getCurrentDayTimestamp());
+				->method('getMTime')
+				->with('test-instance', 1, 'o')
+				->willReturn($this->getCurrentDayTimestamp());
 		} else {
 			$this->generatedCrlStorage->expects($this->never())
-			->method('getMTime');
+				->method('getMTime');
 		}
 
 		$this->lockCache->expects($this->never())->method('add');
