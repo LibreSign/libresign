@@ -119,6 +119,16 @@ namespace OCA\Libresign;
  *     label: string,
  *     name: string,
  * }
+ * @psalm-type LibresignPolicySnapshotSignatureMethodSetting = LibresignAdminSignatureMethodSetting&array{
+ *     identifyMethod?: string|null,
+ *     needCode?: bool,
+ *     hasConfirmCode?: bool,
+ *     blurredEmail?: string,
+ *     hashOfEmail?: string,
+ *     blurredIdentifier?: string,
+ *     hashOfIdentifier?: string,
+ *     hasSignatureFile?: bool,
+ * }
  * @psalm-type LibresignSignatureMethods = array{
  *     clickToSign?: LibresignSignatureMethod,
  *     emailToken?: LibresignSignatureMethodEmailToken,
@@ -465,7 +475,8 @@ namespace OCA\Libresign;
  * @psalm-type LibresignPolicySnapshotIdentifyMethodFactor = array{
  *     name: string,
  *     enabled: bool,
- *     signatureMethods?: array<string, array<string, mixed>>,
+ *     signatureMethods?: array<string, LibresignPolicySnapshotSignatureMethodSetting>,
+ *     signatureMethodEnabled?: string,
  *     requirement?: LibresignIdentifyMethodRequirement,
  *     minimumTotalVerifiedFactors?: positive-int,
  *     friendly_name?: string,
