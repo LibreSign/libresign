@@ -15,6 +15,7 @@ use OCA\Libresign\Service\FolderService;
  * @group DB
  */
 final class FolderServiceDbTest extends \OCA\Libresign\Tests\Unit\TestCase {
+	/** @runInSeparateProcess */
 	public function testGetFolderRestoresMissingUserFilesystemBeforeWriting(): void {
 		$user = $this->createAccount('folderserviceuser', 'password');
 		$userFilesDirectory = $user->getHome() . '/files';
