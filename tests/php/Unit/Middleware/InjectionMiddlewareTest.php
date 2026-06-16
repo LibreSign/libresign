@@ -52,6 +52,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N&MockObject $l10n;
 	private IAppConfig&MockObject $appConfig;
 	private IURLGenerator&MockObject $urlGenerator;
+	private LoggerInterface&MockObject $logger;
 	private ?string $userId = null;
 
 	private InitialStateService $initialStateService;
@@ -67,6 +68,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 
 		$this->initialStateService = new InitialStateService(
 			$this->createMock(LoggerInterface::class),
@@ -97,6 +99,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->appConfig,
 			$this->urlGenerator,
+			$this->logger,
 			$this->userId,
 		);
 	}
@@ -235,5 +238,34 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				},
 			],
 		];
+	}
+
+	public function testAfterExceptionLogsUnexpectedHtmlExceptions(): void {
+		$controller = $this->createMock(Controller::class);
+
+		$this->request
+			->expects($this->once())
+			->method('getHeader')
+			->with('Accept')
+			->willReturn('text/html');
+
+		$this->logger
+			->expects($this->once())
+			->method('error')
+			->with(
+				'Unexpected exception in LibreSign middleware',
+				$this->callback(static function (array $context): bool {
+					return ($context['app'] ?? null) === 'libresign'
+						&& ($context['exception'] ?? null) instanceof \Exception;
+				})
+			);
+
+		$response = $this->getInjectionMiddleware()->afterException(
+			$controller,
+			'fake',
+			new \Exception('boom', 0)
+		);
+
+		$this->assertInstanceOf(TemplateResponse::class, $response);
 	}
 }
