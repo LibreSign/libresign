@@ -22,7 +22,7 @@ use OCP\Files\File;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
-use phpseclib3\File\ASN1;
+use OCA\Libresign\Vendor\phpseclib3\File\ASN1;
 use Psr\Log\LoggerInterface;
 
 class Pkcs12Handler extends SignEngineHandler {
