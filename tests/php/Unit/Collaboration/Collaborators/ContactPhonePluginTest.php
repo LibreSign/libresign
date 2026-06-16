@@ -45,9 +45,7 @@ class ContactPhonePluginTest extends TestCase {
 
 		$userManager = $this->createMock(IUserManager::class);
 		$userManager->method('get')
-			->willReturnCallback(function (string $uid) use ($contactUser): ?IUser {
-				return $uid === 'contactUser' ? $contactUser : null;
-			});
+			->willReturnCallback(fn (string $uid): ?IUser => $uid === 'contactUser' ? $contactUser : null);
 
 		$groupManager = $this->createMock(IGroupManager::class);
 		$groupManager->method('getUserGroupIds')
@@ -245,9 +243,7 @@ class ContactPhonePluginTest extends TestCase {
 
 		$userManager = $this->createMock(IUserManager::class);
 		$userManager->method('get')
-			->willReturnCallback(function (string $uid) use ($contactUser): ?IUser {
-				return $uid === 'contactUser' ? $contactUser : null;
-			});
+			->willReturnCallback(fn (string $uid): ?IUser => $uid === 'contactUser' ? $contactUser : null);
 
 		$groupManager = $this->createMock(IGroupManager::class);
 		$groupManager->method('getUserGroupIds')

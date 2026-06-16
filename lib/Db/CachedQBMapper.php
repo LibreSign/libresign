@@ -22,16 +22,14 @@ abstract class CachedQBMapper extends QBMapper {
 	protected const DEFAULT_CACHE_TTL = 30;
 
 	private ?ICache $cache = null;
-	private int $cacheTtl = self::DEFAULT_CACHE_TTL;
 
 	public function __construct(
 		IDBConnection $db,
 		ICacheFactory $cacheFactory,
 		string $tableName,
-		int $cacheTtl = self::DEFAULT_CACHE_TTL,
+		private int $cacheTtl = self::DEFAULT_CACHE_TTL,
 	) {
 		parent::__construct($db, $tableName);
-		$this->cacheTtl = $cacheTtl;
 		if ($cacheFactory->isAvailable()) {
 			$this->cache = $cacheFactory->createDistributed($tableName);
 		}

@@ -61,6 +61,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IRootFolder&MockObject $root;
 	private DocMdpValidator&MockObject $docMdpValidator;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n

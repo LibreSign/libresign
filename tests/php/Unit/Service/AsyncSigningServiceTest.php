@@ -120,18 +120,14 @@ class AsyncSigningServiceTest extends TestCase {
 			->with(
 				$userId ?? '',
 				$expectedCredentialsId,
-				$this->callback(function ($credentials) use ($signWithoutPassword, $password) {
-					return $credentials['signWithoutPassword'] === $signWithoutPassword
+				$this->callback(fn ($credentials) => $credentials['signWithoutPassword'] === $signWithoutPassword
 						&& $credentials['password'] === $password
-						&& isset($credentials['timestamp']);
-				})
+						&& isset($credentials['timestamp']))
 			);
 
 		$this->fileStatusService->expects($this->once())
 			->method('update')
-			->with($this->callback(function ($updatedFile) {
-				return $updatedFile->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
-			}))
+			->with($this->callback(fn ($updatedFile) => $updatedFile->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value))
 			->willReturnArgument(0);
 
 		$signatureMethod = 'clickToSign';
@@ -139,8 +135,7 @@ class AsyncSigningServiceTest extends TestCase {
 			->method('add')
 			->with(
 				SignFileJob::class,
-				$this->callback(function ($args) use ($fileId, $signRequestId, $userId, $expectedCredentialsId, $signatureMethod) {
-					return $args['fileId'] === $fileId
+				$this->callback(fn ($args) => $args['fileId'] === $fileId
 						&& $args['signRequestId'] === $signRequestId
 						&& ($userId === null ? $args['userId'] === '' : $args['userId'] === $userId)
 						&& $args['credentialsId'] === $expectedCredentialsId
@@ -149,8 +144,7 @@ class AsyncSigningServiceTest extends TestCase {
 						&& isset($args['friendlyName'])
 						&& isset($args['visibleElements'])
 						&& isset($args['metadata'])
-						&& $args['isExternalSigner'] === ($userId === null);
-				})
+						&& $args['isExternalSigner'] === ($userId === null))
 			);
 
 		$this->workerHealthService->expects($this->once())
@@ -182,9 +176,7 @@ class AsyncSigningServiceTest extends TestCase {
 
 		$this->fileStatusService->expects($this->once())
 			->method('update')
-			->with($this->callback(function ($updatedFile) {
-				return $updatedFile->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
-			}))
+			->with($this->callback(fn ($updatedFile) => $updatedFile->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value))
 			->willReturnArgument(0);
 
 		$signRequest = new SignRequest();
@@ -216,9 +208,7 @@ class AsyncSigningServiceTest extends TestCase {
 
 		$this->fileStatusService->expects($this->once())
 			->method('update')
-			->with($this->callback(function ($updatedFile) {
-				return $updatedFile->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
-			}))
+			->with($this->callback(fn ($updatedFile) => $updatedFile->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value))
 			->willReturnArgument(0);
 
 		$signRequest = new SignRequest();
@@ -259,7 +249,7 @@ class AsyncSigningServiceTest extends TestCase {
 		$jobAdded = false;
 		$this->jobList->expects($this->once())
 			->method('add')
-			->willReturnCallback(function () use (&$jobAdded) {
+			->willReturnCallback(function () use (&$jobAdded): void {
 				$jobAdded = true;
 			});
 

@@ -29,6 +29,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IFactory $l10nFactory;
 	private ITempManager $tempManager;
 	private FooterHandler $footerHandler;
+	#[\Override]
 	public function setUp(): void {
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->pdfMetadataExtractor = $this->createMock(PdfMetadataExtractor::class);
@@ -230,7 +231,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$pdf = $parser->parseContent($content);
 		$text = $pdf->getText();
 		$this->assertNotEmpty($text, 'PDF without text');
-		$content = explode("\n", $text);
+		$content = explode("\n", (string)$text);
 		$this->assertNotEmpty($content, 'PDF without any row');
 		$content = array_map(fn ($row) => str_getcsv($row, ':', '"', '\\'), $content);
 
@@ -258,6 +259,32 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$pdfParsed = $parser->parseContent($pdf);
 		$text = $pdfParsed->getText();
 		$this->assertNotEmpty($text);
+	}
+
+	public function testBoldFooterRendersWithBundledFontVariants(): void {
+		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
+		$this->appConfig->setValueBool(Application::APP_ID, 'write_qrcode_on_footer', false);
+		$this->appConfig->setValueString(
+			Application::APP_ID,
+			'footer_template',
+			'<div><strong>{{ signedBy|raw }}</strong> {{ uuid }}</div>'
+		);
+
+		$dimensions = [['w' => 595, 'h' => 100]];
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID, 'en');
+
+		$pdf = $this->getClass()
+			->setTemplateVar('uuid', 'test-uuid')
+			->setTemplateVar('signedBy', 'Signed by LibreSign')
+			->getFooter($dimensions);
+
+		$this->assertNotEmpty($pdf);
+		$parser = new \Smalot\PdfParser\Parser();
+		$pdfParsed = $parser->parseContent($pdf);
+		$text = $pdfParsed->getText();
+
+		$this->assertStringContainsString('Signed by LibreSign', $text);
+		$this->assertStringContainsString('test-uuid', $text);
 	}
 
 	public function testCustomValidationSiteNotOverwritten(): void {

@@ -262,7 +262,6 @@ class PageController extends AEnvironmentPageAwareController {
 		return $this->index();
 	}
 
-
 	/**
 	 * Sign page to authenticated signer
 	 *

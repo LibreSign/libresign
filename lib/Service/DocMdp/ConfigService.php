@@ -19,7 +19,7 @@ use OCP\IL10N;
  * @psalm-import-type LibresignDocMdpLevelOption from \OCA\Libresign\ResponseDefinitions
  */
 class ConfigService {
-	private const CONFIG_KEY_LEVEL = 'docmdp_level';
+	private const string CONFIG_KEY_LEVEL = 'docmdp_level';
 
 	public function __construct(
 		private IAppConfig $appConfig,

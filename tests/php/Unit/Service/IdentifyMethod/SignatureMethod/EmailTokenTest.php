@@ -20,6 +20,7 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IdentifyService&MockObject $identifyService;
 	private TokenService&MockObject $tokenService;
 
+	#[\Override]
 	public function setUp(): void {
 		$identifyService = $this->createMock(IdentifyService::class);
 		$identifyService = $this->getMockBuilder(IdentifyService::class)

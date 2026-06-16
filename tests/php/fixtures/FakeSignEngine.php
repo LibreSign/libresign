@@ -29,16 +29,19 @@ class FakeSignEngine extends SignEngineHandler {
 		// No infrastructure dependencies needed
 	}
 
+	#[\Override]
 	public function getCertificate(): string {
 		return $this->storedCertificate;
 	}
 
+	#[\Override]
 	public function setLeafExpiryOverrideInDays(?int $days): self {
 		$this->currentLeafExpiry = $days;
 		$this->leafExpiryCalls[] = $days;
 		return $this;
 	}
 
+	#[\Override]
 	public function generateCertificate(array $user, string $signPassword, string $friendlyName): string {
 		if ($this->shouldFailOnGenerate) {
 			throw new \RuntimeException('Certificate generation failed');
@@ -52,11 +55,13 @@ class FakeSignEngine extends SignEngineHandler {
 		return $this->storedCertificate;
 	}
 
+	#[\Override]
 	public function setPassword(string $password): self {
 		$this->setPasswordCalls[] = $password;
 		return $this;
 	}
 
+	#[\Override]
 	public function getPfxOfCurrentSigner(?string $uid = null): string {
 		$this->getPfxCalls[] = $uid;
 		return $this->pfxToReturn;

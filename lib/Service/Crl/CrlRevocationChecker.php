@@ -29,8 +29,13 @@ class CrlRevocationChecker {
 	/** Cached result of {@see getLocalCrlPattern()} — built once per request. */
 	private ?string $localCrlPattern = null;
 
+	/** @var array<string, string|null> */
+	private array $localCrlRequestCache = [];
+
 	/** Distributed cache for externally downloaded CRL content (TTL: 24 h). */
 	private ICache $cache;
+
+	private const BINARY_CACHE_PREFIX = 'base64:';
 
 	public function __construct(
 		private IConfig $config,
@@ -134,7 +139,6 @@ class CrlRevocationChecker {
 			}
 
 			return $this->checkCertificateInCrlWithDetails($certPem, $crlContent);
-
 		} catch (\Exception) {
 			return ['status' => CrlValidationStatus::VALIDATION_ERROR];
 		}
@@ -151,7 +155,11 @@ class CrlRevocationChecker {
 		return in_array($host, $trustedDomains, true);
 	}
 
-	private function generateLocalCrl(string $crlUrl): ?string {
+	protected function generateLocalCrl(string $crlUrl): ?string {
+		if (array_key_exists($crlUrl, $this->localCrlRequestCache)) {
+			return $this->localCrlRequestCache[$crlUrl];
+		}
+
 		try {
 			$pattern = $this->getLocalCrlPattern();
 			if (preg_match($pattern, $crlUrl, $matches)) {
@@ -159,16 +167,11 @@ class CrlRevocationChecker {
 				$generation = (int)$matches[2];
 				$engineType = $matches[3];
 
-				// Lazy-loaded to avoid a circular dependency:
-				// CrlService → CertificateEngineFactory → OpenSslHandler → CrlRevocationChecker → CrlService
-				/** @var \OCA\Libresign\Service\Crl\CrlService */
-				$crlService = \OCP\Server::get(\OCA\Libresign\Service\Crl\CrlService::class);
-
-				return $crlService->generateCrlDer($instanceId, $generation, $engineType);
+				return $this->localCrlRequestCache[$crlUrl] = $this->getCrlService()->generateCrlDer($instanceId, $generation, $engineType);
 			}
 
 			$this->logger->debug('CRL URL does not match expected pattern', ['url' => $crlUrl, 'pattern' => $pattern]);
-			return null;
+			return $this->localCrlRequestCache[$crlUrl] = null;
 		} catch (\Exception $e) {
 			if ($e instanceof \RuntimeException && str_starts_with($e->getMessage(), 'Config path does not exist for instanceId:')) {
 				$this->logger->debug('Skipping local CRL generation because source PKI config path is missing', [
@@ -177,8 +180,17 @@ class CrlRevocationChecker {
 			} else {
 				$this->logger->warning('Failed to generate local CRL: ' . $e->getMessage());
 			}
-			return null;
+			return $this->localCrlRequestCache[$crlUrl] = null;
 		}
+	}
+
+	/**
+	 * Lazy-loaded to avoid a circular dependency:
+	 * CrlService → CertificateEngineFactory → OpenSslHandler → CrlRevocationChecker → CrlService
+	 */
+	protected function getCrlService(): CrlService {
+		/** @var CrlService */
+		return \OCP\Server::get(CrlService::class);
 	}
 
 	/**
@@ -187,7 +199,7 @@ class CrlRevocationChecker {
 	 * URL generator and then cached in a property to avoid redundant work on
 	 * installations that validate many certificates in a single request.
 	 */
-	private function getLocalCrlPattern(): string {
+	protected function getLocalCrlPattern(): string {
 		if ($this->localCrlPattern !== null) {
 			return $this->localCrlPattern;
 		}
@@ -198,18 +210,23 @@ class CrlRevocationChecker {
 			'engineType' => 'ENGINETYPE',
 		]);
 
-		$patternUrl = str_replace('INSTANCEID', '([^/_]+)', $templateUrl);
-		$patternUrl = str_replace('999999', '(\d+)', $patternUrl);
-		$patternUrl = str_replace('ENGINETYPE', '([^/_]+)', $patternUrl);
+		// Match the path only and accept any scheme/host: the CRL DP host is fixed
+		// at certificate issuance and may differ from the request host (already
+		// vetted as trusted by isLocalCrlUrl()).
+		$templatePath = parse_url($templateUrl, PHP_URL_PATH) ?: $templateUrl;
 
-		$escapedPattern = str_replace([':', '/', '.'], ['\:', '\/', '\.'], $patternUrl);
+		$patternPath = str_replace('INSTANCEID', '([^/_]+)', $templatePath);
+		$patternPath = str_replace('999999', '(\d+)', $patternPath);
+		$patternPath = str_replace('ENGINETYPE', '([^/_]+)', $patternPath);
+
+		$escapedPattern = str_replace([':', '/', '.'], ['\:', '\/', '\.'], $patternPath);
 		$escapedPattern = str_replace('\/apps\/', '(?:\/index\.php)?\/apps\/', $escapedPattern);
 
-		$this->localCrlPattern = '/^' . $escapedPattern . '$/';
+		$this->localCrlPattern = '/^https?\:\/\/[^\/]+' . $escapedPattern . '$/';
 		return $this->localCrlPattern;
 	}
 
-	private function downloadCrlContent(string $url): ?string {
+	protected function downloadCrlContent(string $url): ?string {
 		if (!filter_var($url, FILTER_VALIDATE_URL) || !in_array(parse_url($url, PHP_URL_SCHEME), ['http', 'https'])) {
 			return null;
 		}
@@ -217,7 +234,7 @@ class CrlRevocationChecker {
 		$cacheKey = sha1($url);
 		$cached = $this->cache->get($cacheKey);
 		if ($cached !== null) {
-			return $cached;
+			return is_string($cached) ? $this->decodeCachedBinaryContent($cached) : null;
 		}
 
 		$context = stream_context_create([
@@ -229,13 +246,33 @@ class CrlRevocationChecker {
 			]
 		]);
 
-		$content = @file_get_contents($url, false, $context);
+		$content = $this->fetchRemoteCrlContent($url, $context);
 		if ($content === false) {
 			return null;
 		}
 
-		$this->cache->set($cacheKey, $content, 86400);
+		$this->cache->set($cacheKey, $this->encodeCacheableBinaryContent($content), 86400);
 		return $content;
+	}
+
+	/**
+	 * @param resource $context
+	 */
+	protected function fetchRemoteCrlContent(string $url, $context): string|false {
+		return @file_get_contents($url, false, $context);
+	}
+
+	private function encodeCacheableBinaryContent(string $content): string {
+		return self::BINARY_CACHE_PREFIX . base64_encode($content);
+	}
+
+	private function decodeCachedBinaryContent(string $cachedContent): string {
+		if (!str_starts_with($cachedContent, self::BINARY_CACHE_PREFIX)) {
+			return $cachedContent;
+		}
+
+		$decoded = base64_decode(substr($cachedContent, strlen(self::BINARY_CACHE_PREFIX)), true);
+		return $decoded === false ? $cachedContent : $decoded;
 	}
 
 	protected function isSerialNumberInCrl(string $crlText, string $serialNumber): bool {
@@ -289,7 +326,6 @@ class CrlRevocationChecker {
 				}
 
 				return ['status' => CrlValidationStatus::VALID];
-
 			} finally {
 				if (file_exists($tempCrlFile)) {
 					unlink($tempCrlFile);

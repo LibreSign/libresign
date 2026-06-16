@@ -33,7 +33,7 @@ use OCP\Migration\SimpleMigrationStep;
  * - filter_status → files_list_filter_status
  */
 class Version17001Date20260210000000 extends SimpleMigrationStep {
-	private const LEGACY_MAPPING = [
+	private const array LEGACY_MAPPING = [
 		'signal' => 'signalToken',
 		'sms' => 'smsToken',
 		'telegram' => 'telegramToken',
@@ -41,7 +41,7 @@ class Version17001Date20260210000000 extends SimpleMigrationStep {
 		'xmpp' => 'xmppToken',
 	];
 
-	private const USER_CONFIG_MIGRATIONS = [
+	private const array USER_CONFIG_MIGRATIONS = [
 		'grid_view' => 'files_list_grid_view',
 		'signer_identify_tab' => 'files_list_signer_identify_tab',
 		'sorting_mode' => 'files_list_sorting_mode',

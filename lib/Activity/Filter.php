@@ -16,7 +16,7 @@ use OCP\IL10N;
 use OCP\IURLGenerator;
 
 class Filter implements IFilter {
-	private const ALLOWED_TYPES = [
+	private const array ALLOWED_TYPES = [
 		SendSignNotificationEvent::FILE_TO_SIGN,
 		SignedEvent::FILE_SIGNED,
 	];

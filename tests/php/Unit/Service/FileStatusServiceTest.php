@@ -151,9 +151,7 @@ class FileStatusServiceTest extends TestCase {
 		if ($currentEnvelopeStatus !== $expectedEnvelopeStatus) {
 			$this->fileMapper->expects($this->once())
 				->method('update')
-				->with($this->callback(function (FileEntity $file) use ($expectedEnvelopeStatus) {
-					return $file->getStatus() === $expectedEnvelopeStatus;
-				}));
+				->with($this->callback(fn (FileEntity $file) => $file->getStatus() === $expectedEnvelopeStatus));
 		} else {
 			$this->fileMapper->expects($this->never())->method('update');
 		}
@@ -322,9 +320,7 @@ class FileStatusServiceTest extends TestCase {
 
 		$this->fileMapper->expects($this->exactly(2))
 			->method('update')
-			->with($this->callback(function (FileEntity $file) use ($newStatus) {
-				return $file->getStatus() === $newStatus;
-			}));
+			->with($this->callback(fn (FileEntity $file) => $file->getStatus() === $newStatus));
 
 		$this->service->propagateStatusToChildren($envelopeId, $newStatus);
 	}
@@ -436,9 +432,7 @@ class FileStatusServiceTest extends TestCase {
 		// Should only update child2, not child1
 		$this->fileMapper->expects($this->once())
 			->method('update')
-			->with($this->callback(function (FileEntity $file) use ($newStatus) {
-				return $file->getId() === 11 && $file->getStatus() === $newStatus;
-			}));
+			->with($this->callback(fn (FileEntity $file) => $file->getId() === 11 && $file->getStatus() === $newStatus));
 
 		$this->service->propagateStatusToChildren($envelopeId, $newStatus);
 	}

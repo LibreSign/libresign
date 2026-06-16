@@ -15,8 +15,8 @@ use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\IBinaryFinder;
 
 class WorkerStarter {
-	private const MAX_WORKERS = 32;
-	private const PROCESS_SOURCE = 'worker';
+	private const int MAX_WORKERS = 32;
+	private const string PROCESS_SOURCE = 'worker';
 
 	public function __construct(
 		private IBinaryFinder $binaryFinder,

@@ -11,7 +11,7 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 
 class CertificateValidityPolicy {
-	private const CLICK_TO_SIGN_CERT_VALIDITY_DAYS = 1;
+	private const int CLICK_TO_SIGN_CERT_VALIDITY_DAYS = 1;
 
 	public function getLeafExpiryDays(?string $signatureMethodName, bool $signWithoutPassword): ?int {
 		if (!$signWithoutPassword) {

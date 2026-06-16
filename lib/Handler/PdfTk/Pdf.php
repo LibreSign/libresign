@@ -53,7 +53,6 @@ class Pdf extends BasePdf {
 			throw new RuntimeException('PDFtk path not set.');
 		}
 
-
 		if (!file_exists($this->javaPath) || !file_exists($this->pdftkPath)) {
 			throw new LibresignException($this->l10n->t('The admin hasn\'t set up LibreSign yet, please wait.'));
 		}

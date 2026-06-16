@@ -51,7 +51,7 @@ class Version16001Date20251227000000 extends SimpleMigrationStep {
 		$filesToUpdate = [];
 
 		while ($row = $cursor->fetch()) {
-			$metadata = json_decode($row['metadata'], true);
+			$metadata = json_decode((string)$row['metadata'], true);
 
 			// Only process files that have an extension in metadata
 			if (!isset($metadata['extension']) || empty($metadata['extension'])) {
@@ -62,8 +62,8 @@ class Version16001Date20251227000000 extends SimpleMigrationStep {
 			$extension = $metadata['extension'];
 
 			// Remove the extension from the name
-			$extensionPattern = '/\.' . preg_quote($extension, '/') . '$/i';
-			$newName = preg_replace($extensionPattern, '', $name);
+			$extensionPattern = '/\.' . preg_quote((string)$extension, '/') . '$/i';
+			$newName = preg_replace($extensionPattern, '', (string)$name);
 
 			// Only update if the name actually changed
 			if ($newName !== $name) {

@@ -25,7 +25,7 @@ use Psr\Log\LoggerInterface;
  */
 class CleanupStaleSigningStatus extends TimedJob {
 	/** @var int Timeout in minutes - files in IN_PROGRESS for longer will be reverted */
-	private const STALE_TIMEOUT_MINUTES = 10;
+	private const int STALE_TIMEOUT_MINUTES = 10;
 
 	public function __construct(
 		ITimeFactory $time,

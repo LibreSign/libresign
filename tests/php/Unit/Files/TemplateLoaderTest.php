@@ -38,6 +38,7 @@ final class TemplateLoaderTest extends TestCase {
 	private IAppManager&MockObject $appManager;
 	private ConfigService&MockObject $docMdpConfigService;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
 		$this->userSession = $this->createMock(IUserSession::class);

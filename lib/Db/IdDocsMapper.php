@@ -240,7 +240,7 @@ class IdDocsMapper extends QBMapper {
 		if (!$count) {
 			if (!empty($filter['sort'])) {
 				foreach ($filter['sort'] as $field => $direction) {
-					$direction = strtoupper($direction) === 'ASC' ? 'ASC' : 'DESC';
+					$direction = strtoupper((string)$direction) === 'ASC' ? 'ASC' : 'DESC';
 
 					switch ($field) {
 						case 'owner':

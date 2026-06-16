@@ -152,7 +152,6 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $signer;
 	}
 
-
 	private function extractDocMdpData($resource, array $result): array {
 		if (empty($result['chain'])) {
 			return $result;
@@ -429,7 +428,6 @@ class Pkcs12Handler extends SignEngineHandler {
 		};
 	}
 
-
 	private function getReadableCertState(string $status) {
 		return match ($status) {
 			'Certificate is Trusted.' => [
@@ -462,7 +460,6 @@ class Pkcs12Handler extends SignEngineHandler {
 			],
 		};
 	}
-
 
 	private function parseDistinguishedNameWithMultipleValues(string $dn): array {
 		$result = [];

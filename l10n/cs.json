@@ -402,7 +402,6 @@
     "Error monitoring signing progress" : "Chyba při monitorování procesu podepisování",
     "The original file was deleted. You can no longer add signers or open it." : "Původní soubor byl smazán. Není už možné přidávat podepisující nebo ho otevřít.",
     "Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures." : "Někteří podepisující používají metody identifikace, které byly vypnuty. Než budete žádat o podpisy, tyto metody odeberte nebo zaktualizujte.",
-    "Loading signer details..." : "Načítání podrobností o podepisujícím…",
     "Add signer" : "Přidat podepisujícího",
     "Sign in order" : "Pořadí podepisování",
     "View signing order" : "Zobrazit pořadí podepisování",

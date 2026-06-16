@@ -161,7 +161,7 @@ namespace OCA\Libresign;
  *     email?: ?string,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     signed: ?string,
- *     status: int,
+ *     status: 0|1|2,
  *     statusText: string,
  * }
  * @psalm-type LibresignSignerDetail = LibresignSignerSummary&array{
@@ -178,7 +178,6 @@ namespace OCA\Libresign;
  *     sign_request_uuid?: string,
  *     hash_algorithm?: string,
  *     me: bool,
- *     status: 0|1|2,
  *     signingOrder?: non-negative-int,
  *     visibleElements: LibresignVisibleElement[],
  *     signatureMethods?: LibresignSignatureMethods,
@@ -513,7 +512,7 @@ namespace OCA\Libresign;
  *     id: int,
  *     nodeId: int,
  *     uuid: string,
- *     name: string,
+ *     name: non-falsy-string,
  *     status: int,
  *     statusText: string,
  *     nodeType: 'file'|'envelope',
@@ -528,10 +527,6 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignDetailedFileResponse = LibresignDetailedFile&array{
  *     message: string,
- *     name: non-falsy-string,
- *     nodeType: 'file'|'envelope',
- *     metadata: LibresignFileRuntimeMetadata,
- *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
  * }
  * @psalm-type LibresignFileListResponse = array{
  *     pagination: LibresignPagination,

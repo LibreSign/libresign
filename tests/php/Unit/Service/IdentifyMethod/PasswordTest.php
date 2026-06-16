@@ -44,6 +44,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private DocMdpHandler&MockObject $docMdpHandler;
 	private CrlService&MockObject $crlService;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->identifyService = $this->createMock(IdentifyService::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();

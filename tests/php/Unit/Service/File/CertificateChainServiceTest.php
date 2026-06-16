@@ -24,9 +24,9 @@ final class CertificateChainServiceTest extends TestCase {
 		rewind($stream);
 
 		$fileNode = new class($stream) {
-			private $s;
-			public function __construct($s) {
-				$this->s = $s;
+			public function __construct(
+				private $s,
+			) {
 			}
 			public function fopen($mode) {
 				return $this->s;

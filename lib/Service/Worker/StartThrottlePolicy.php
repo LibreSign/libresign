@@ -12,8 +12,8 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IAppConfig;
 
 class StartThrottlePolicy {
-	private const CONFIG_KEY = 'worker_last_start_attempt';
-	private const MIN_INTERVAL_BETWEEN_STARTS = 10;
+	private const string CONFIG_KEY = 'worker_last_start_attempt';
+	private const int MIN_INTERVAL_BETWEEN_STARTS = 10;
 
 	public function __construct(
 		private IAppConfig $appConfig,

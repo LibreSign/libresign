@@ -416,7 +416,6 @@ OC.L10N.register(
     "Error monitoring signing progress" : "Erro ao monitorar o progresso da assinatura",
     "The original file was deleted. You can no longer add signers or open it." : "O arquivo original foi excluído. Você não pode mais adicionar signatários ou abri-lo.",
     "Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures." : "Alguns signatários utilizam métodos de identificação que foram desativados. Remova-os ou atualize-os antes de solicitar assinaturas.",
-    "Loading signer details..." : "Carregando os detalhes do signatário…",
     "Add signer" : "Adicionar signatário",
     "Sign in order" : "Assinar em ordem",
     "View signing order" : "Ver ordem de assinatura",

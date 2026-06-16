@@ -10,34 +10,41 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Crl;
 
 use DateTime;
+use OCA\Libresign\Db\Crl as CrlEntity;
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Enum\CertificateEngineType;
 use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Enum\CRLStatus;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\Certificate\FileService;
-use OCP\ICache;
 use OCP\ICacheFactory;
+use OCP\IMemcache;
 use Psr\Log\LoggerInterface;
 
 /**
- * RFC 5280 compliant CRL management
- *
  * @psalm-import-type LibresignCrlCertificateStatusResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignCrlListItem from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignCrlListResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-type LibresignCrlStatusInfo = array{status: 'valid'}|array{status: 'unknown'}|array{status: 'expired', valid_to?: string}|array{status: 'revoked', reason_code?: null|int, revoked_at?: string}
+ *
+ * RFC 5280 compliant CRL management
  */
 class CrlService {
-	/** Distributed cache for generated CRL DER content (TTL: 24 h). */
-	private ICache $cache;
+	/**
+	 * Short-lived distributed lock used only to avoid CRL regeneration stampedes.
+	 */
+	private IMemcache $lockCache;
 
-	/** How long (seconds) a generated CRL DER is kept in cache.
+	/** How long (seconds) a generated CRL remains reusable as a stale fallback.
 	 *
 	 * Must be ≤ the CRL's own nextUpdate window, which AEngineHandler sets to
-	 * 7 days (+7 days in createAndSignCrl). Cache invalidation happens
-	 * explicitly on every revocation, so this TTL is only a safety-net for
-	 * edge cases that bypass the normal revocation flow.
+	 * 7 days (+7 days in createAndSignCrl).
 	 */
-	private const GENERATED_CRL_TTL = 7 * 86400; // 7 days
+	private const GENERATED_CRL_MAX_STALE_AGE = 7 * 86400; // 7 days
+	private const GENERATED_CRL_REFRESH_DATE_FORMAT = 'Y-m-d';
+	private const GENERATED_CRL_LOCK_TTL = 60;
+	private const GENERATED_CRL_LOCK_WAIT_USEC = 100000;
+	private const GENERATED_CRL_LOCK_WAIT_ATTEMPTS = 10;
 
 	public function __construct(
 		private CrlMapper $crlMapper,
@@ -46,8 +53,9 @@ class CrlService {
 		private CrlUrlParserService $crlUrlParserService,
 		private FileService $certificateFileService,
 		ICacheFactory $cacheFactory,
+		private GeneratedCrlStorageService $generatedCrlStorage,
 	) {
-		$this->cache = $cacheFactory->createDistributed('libresign_crl_generated');
+		$this->lockCache = $cacheFactory->createLocking('libresign_crl_generated');
 	}
 
 	public function getRootCertificateFromCrlUrls(array $crlUrls): string {
@@ -93,11 +101,10 @@ class CrlService {
 				$crlNumber,
 				$revokedAt,
 			);
-
 			$this->invalidateGeneratedCrlCache($instanceId, $generation, $engineType);
 
 			return true;
-		} catch (\Throwable $exception) {
+		} catch (\Exception $exception) {
 			$this->logger->warning('Failed to revoke certificate {serial}', [
 				'serial' => $serialNumber,
 				'error' => $exception->getMessage(),
@@ -147,12 +154,10 @@ class CrlService {
 		?string $revokedBy = null,
 	): int {
 		$revokedCount = 0;
-		/** @var array<string, true> $invalidated keys already evicted this call */
-		$invalidated = [];
+		$invalidatedScopes = [];
 
 		foreach ($certificates as $certificate) {
 			try {
-				$serialNumber = $certificate->getSerialNumber();
 				['instanceId' => $instanceId, 'generation' => $generation, 'engineType' => $engineType] = $this->getCrlMetadata($certificate);
 				$crlNumber = $this->getNextCrlNumber($instanceId, $generation, $engineType);
 
@@ -165,10 +170,10 @@ class CrlService {
 					$crlNumber
 				);
 
-				$cacheKey = $this->generatedCrlCacheKey($instanceId, $generation, $engineType);
-				if (!isset($invalidated[$cacheKey])) {
+				$scopeKey = $this->generatedCrlStorage->getScopeKey($instanceId, $generation, $engineType);
+				if (!isset($invalidatedScopes[$scopeKey])) {
 					$this->invalidateGeneratedCrlCache($instanceId, $generation, $engineType);
-					$invalidated[$cacheKey] = true;
+					$invalidatedScopes[$scopeKey] = true;
 				}
 
 				$revokedCount++;
@@ -183,27 +188,39 @@ class CrlService {
 		return $revokedCount;
 	}
 
+	/**
+	 * @return LibresignCrlStatusInfo
+	 */
 	public function getCertificateStatus(string $serialNumber, ?DateTime $checkDate = null): array {
 		try {
 			$certificate = $this->crlMapper->findBySerialNumber($serialNumber);
 
 			if ($certificate->isRevoked()) {
-				return [
+				$response = [
 					'status' => 'revoked',
 					'reason_code' => $certificate->getReasonCode(),
-					'revoked_at' => $certificate->getRevokedAt()?->format('Y-m-d\TH:i:s\Z'),
 				];
+
+				$revokedAt = $certificate->getRevokedAt()?->format('Y-m-d\TH:i:s\Z');
+				if ($revokedAt !== null) {
+					$response['revoked_at'] = $revokedAt;
+				}
+
+				return $response;
 			}
 
 			if ($certificate->isExpired()) {
-				return [
-					'status' => 'expired',
-					'valid_to' => $certificate->getValidTo()?->format('Y-m-d\TH:i:s\Z'),
-				];
+				$response = ['status' => 'expired'];
+
+				$validTo = $certificate->getValidTo()?->format('Y-m-d\TH:i:s\Z');
+				if ($validTo !== null) {
+					$response['valid_to'] = $validTo;
+				}
+
+				return $response;
 			}
 
 			return ['status' => 'valid'];
-
 		} catch (\OCP\AppFramework\Db\DoesNotExistException) {
 			return ['status' => 'unknown'];
 		}
@@ -215,6 +232,7 @@ class CrlService {
 	public function getCertificateStatusResponse(string $serialNumber): array {
 		$statusInfo = $this->getCertificateStatus($serialNumber);
 
+		/** @var LibresignCrlCertificateStatusResponse $response */
 		$response = [
 			'serial_number' => $serialNumber,
 			'status' => $statusInfo['status'],
@@ -222,16 +240,16 @@ class CrlService {
 		];
 
 		if ($statusInfo['status'] === 'revoked') {
-			if (isset($statusInfo['reason_code'])) {
+			if (array_key_exists('reason_code', $statusInfo)) {
 				$response['reason_code'] = $statusInfo['reason_code'];
 			}
-			if (isset($statusInfo['revoked_at'])) {
+			if (array_key_exists('revoked_at', $statusInfo)) {
 				$response['revoked_at'] = $statusInfo['revoked_at'];
 			}
 		}
 
 		if ($statusInfo['status'] === 'expired') {
-			if (isset($statusInfo['valid_to'])) {
+			if (array_key_exists('valid_to', $statusInfo)) {
 				$response['valid_to'] = $statusInfo['valid_to'];
 			}
 		}
@@ -283,17 +301,32 @@ class CrlService {
 	}
 
 	private function getNextCrlNumber(string $instanceId, int $generation, string $engineType): int {
-		$lastCrlNumber = $this->crlMapper->getLastCrlNumber($instanceId, $generation, $engineType);
+		$lastCrlNumber = $this->crlMapper->getLastCrlNumber(
+			$instanceId,
+			$generation,
+			$this->normalizeEngineType($engineType)->getEngineName()
+		);
 
 		return $lastCrlNumber + 1;
 	}
 
 	private function generatedCrlCacheKey(string $instanceId, int $generation, string $engineType): string {
-		return sha1($instanceId . '_' . $generation . '_' . $engineType);
+		$normalizedEngineType = $this->normalizeEngineType($engineType)->value;
+
+		return sha1($instanceId . '_' . $generation . '_' . $normalizedEngineType);
 	}
 
 	private function invalidateGeneratedCrlCache(string $instanceId, int $generation, string $engineType): void {
-		$this->cache->remove($this->generatedCrlCacheKey($instanceId, $generation, $engineType));
+		$this->generatedCrlStorage->delete($instanceId, $generation, $engineType);
+	}
+
+	private function normalizeEngineType(string $engineType): CertificateEngineType {
+		$normalizedEngineType = CertificateEngineType::tryFromValue($engineType);
+		if ($normalizedEngineType === null) {
+			throw new \InvalidArgumentException("Invalid engine type: $engineType");
+		}
+
+		return $normalizedEngineType;
 	}
 
 	public function cleanupExpiredCertificates(?DateTime $before = null): int {
@@ -308,27 +341,169 @@ class CrlService {
 		return $this->crlMapper->getRevocationStatistics();
 	}
 
+	public function refreshGeneratedCrlCache(): int {
+		$refreshedScopes = 0;
+
+		foreach ($this->crlMapper->listGeneratedCrlScopes() as $scope) {
+			try {
+				$this->refreshGeneratedCrlDer(
+					$scope['instanceId'],
+					$scope['generation'],
+					$scope['engineType']
+				);
+				$refreshedScopes++;
+			} catch (\Exception $exception) {
+				$this->logger->warning('Failed to refresh generated CRL cache for {instanceId}/{generation}/{engineType}', [
+					'instanceId' => $scope['instanceId'],
+					'generation' => $scope['generation'],
+					'engineType' => $scope['engineType'],
+					'error' => $exception->getMessage(),
+				]);
+			}
+		}
+
+		return $refreshedScopes;
+	}
+
 	public function generateCrlDer(string $instanceId, int $generation, string $engineType): string {
-		$cacheKey = $this->generatedCrlCacheKey($instanceId, $generation, $engineType);
-		$cached = $this->cache->get($cacheKey);
-		if ($cached !== null) {
-			return $cached;
+		return $this->resolveGeneratedCrlDer($instanceId, $generation, $engineType, false);
+	}
+
+	public function refreshGeneratedCrlDer(string $instanceId, int $generation, string $engineType): string {
+		return $this->resolveGeneratedCrlDer($instanceId, $generation, $engineType, true);
+	}
+
+	private function resolveGeneratedCrlDer(string $instanceId, int $generation, string $engineType, bool $forceRefresh): string {
+		$persistedCrl = $this->readPersistedGeneratedCrl($instanceId, $generation, $engineType);
+		if (!$forceRefresh && $persistedCrl !== null && $persistedCrl['isFresh']) {
+			return $persistedCrl['content'];
+		}
+
+		$lockKey = $this->generatedCrlCacheKey($instanceId, $generation, $engineType);
+		$lockToken = bin2hex(random_bytes(16));
+		$lockAcquired = $this->lockCache->add($lockKey, $lockToken, self::GENERATED_CRL_LOCK_TTL);
+
+		if (!$lockAcquired) {
+			$reloadedPersistedCrl = $this->readPersistedGeneratedCrl($instanceId, $generation, $engineType);
+			if ($reloadedPersistedCrl !== null && ($reloadedPersistedCrl['isFresh'] || (!$forceRefresh && $reloadedPersistedCrl['isReusable']))) {
+				return $reloadedPersistedCrl['content'];
+			}
+
+			if (!$forceRefresh && $persistedCrl !== null && $persistedCrl['isReusable']) {
+				return $persistedCrl['content'];
+			}
+
+			$waitedPersistedCrl = $this->waitForPersistedGeneratedCrl($instanceId, $generation, $engineType);
+			if ($waitedPersistedCrl !== null && ($waitedPersistedCrl['isFresh'] || (!$forceRefresh && $waitedPersistedCrl['isReusable']))) {
+				return $waitedPersistedCrl['content'];
+			}
+
+			$lockAcquired = $this->lockCache->add($lockKey, $lockToken, self::GENERATED_CRL_LOCK_TTL);
+			if (!$lockAcquired) {
+				throw new \RuntimeException(sprintf(
+					'CRL %s is already in progress for %s/%d/%s',
+					$forceRefresh ? 'refresh' : 'generation',
+					$instanceId,
+					$generation,
+					$engineType,
+				));
+			}
 		}
 
 		try {
-			$revokedCertificates = $this->crlMapper->getRevokedCertificates($instanceId, $generation, $engineType);
-
-			$engine = $this->certificateEngineFactory->getEngine();
-
-			if (!method_exists($engine, 'generateCrlDer')) {
-				throw new \RuntimeException('Current certificate engine does not support CRL generation');
+			if (!$forceRefresh) {
+				$reloadedPersistedCrl = $this->readPersistedGeneratedCrl($instanceId, $generation, $engineType);
+				if ($reloadedPersistedCrl !== null && $reloadedPersistedCrl['isFresh']) {
+					return $reloadedPersistedCrl['content'];
+				}
 			}
 
-			$crlNumber = $this->getNextCrlNumber($instanceId, $generation, $engineType);
+			return $this->buildAndPersistGeneratedCrlDer($instanceId, $generation, $engineType);
+		} finally {
+			$this->lockCache->cad($lockKey, $lockToken);
+		}
+	}
 
-			$crlDer = $engine->generateCrlDer($revokedCertificates, $instanceId, $generation, $crlNumber);
+	/**
+	 * @return array{content: string, isFresh: bool, isReusable: bool}|null
+	 */
+	private function waitForPersistedGeneratedCrl(string $instanceId, int $generation, string $engineType): ?array {
+		for ($attempt = 0; $attempt < self::GENERATED_CRL_LOCK_WAIT_ATTEMPTS; $attempt++) {
+			usleep(self::GENERATED_CRL_LOCK_WAIT_USEC);
+			$persistedCrl = $this->readPersistedGeneratedCrl($instanceId, $generation, $engineType);
+			if ($persistedCrl !== null && ($persistedCrl['isFresh'] || $persistedCrl['isReusable'])) {
+				return $persistedCrl;
+			}
+		}
 
-			$this->cache->set($cacheKey, $crlDer, self::GENERATED_CRL_TTL);
+		return null;
+	}
+
+	/**
+	 * @return array{content: string, isFresh: bool, isReusable: bool}|null
+	 */
+	private function readPersistedGeneratedCrl(string $instanceId, int $generation, string $engineType): ?array {
+		$content = $this->generatedCrlStorage->read($instanceId, $generation, $engineType);
+		if ($content === null) {
+			return null;
+		}
+
+		$generatedAt = $this->getPersistedGeneratedCrlTimestamp($instanceId, $generation, $engineType);
+		$isReusable = $generatedAt !== null
+			&& $generatedAt >= (time() - self::GENERATED_CRL_MAX_STALE_AGE);
+
+		return [
+			'content' => $content,
+			'isFresh' => $this->isPersistedGeneratedCrlFresh($instanceId, $generation, $engineType),
+			'isReusable' => $isReusable,
+		];
+	}
+
+	private function isPersistedGeneratedCrlFresh(string $instanceId, int $generation, string $engineType): bool {
+		$metadata = $this->generatedCrlStorage->readMetadata($instanceId, $generation, $engineType);
+		$refreshDate = $metadata['refreshDate'] ?? null;
+		if (is_string($refreshDate) && $refreshDate !== '') {
+			return $refreshDate === $this->getCurrentRefreshDate();
+		}
+
+		$generatedAt = $this->getPersistedGeneratedCrlTimestamp($instanceId, $generation, $engineType);
+		if ($generatedAt === null) {
+			return false;
+		}
+
+		return (new \DateTimeImmutable('@' . $generatedAt))
+			->setTimezone(new \DateTimeZone(date_default_timezone_get()))
+			->format(self::GENERATED_CRL_REFRESH_DATE_FORMAT) === $this->getCurrentRefreshDate();
+	}
+
+	private function getPersistedGeneratedCrlTimestamp(string $instanceId, int $generation, string $engineType): ?int {
+		$metadata = $this->generatedCrlStorage->readMetadata($instanceId, $generation, $engineType);
+		$generatedAt = $metadata['generatedAt'] ?? null;
+		if (is_string($generatedAt) && $generatedAt !== '') {
+			try {
+				return (new \DateTimeImmutable($generatedAt))->getTimestamp();
+			} catch (\Exception) {
+				// Fall back to file mtime below.
+			}
+		}
+
+		return $this->generatedCrlStorage->getMTime($instanceId, $generation, $engineType);
+	}
+
+	private function buildAndPersistGeneratedCrlDer(string $instanceId, int $generation, string $engineType): string {
+		try {
+			$crlDer = $this->buildCrlDer($instanceId, $generation, $engineType);
+			$this->generatedCrlStorage->write(
+				$instanceId,
+				$generation,
+				$engineType,
+				$crlDer,
+				[
+					'refreshDate' => $this->getCurrentRefreshDate(),
+					'generatedAt' => (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(\DateTimeInterface::ATOM),
+					'engineType' => $this->normalizeEngineType($engineType)->value,
+				]
+			);
 
 			return $crlDer;
 		} catch (\Throwable $e) {
@@ -346,6 +521,25 @@ class CrlService {
 			}
 			throw $e;
 		}
+	}
+
+	private function getCurrentRefreshDate(): string {
+		return (new \DateTimeImmutable('now', new \DateTimeZone(date_default_timezone_get())))
+			->format(self::GENERATED_CRL_REFRESH_DATE_FORMAT);
+	}
+
+	private function buildCrlDer(string $instanceId, int $generation, string $engineType): string {
+		$revokedCertificates = $this->crlMapper->getRevokedCertificates($instanceId, $generation, $engineType);
+
+		$engine = $this->certificateEngineFactory->getEngine();
+
+		if (!method_exists($engine, 'generateCrlDer')) {
+			throw new \RuntimeException('Current certificate engine does not support CRL generation');
+		}
+
+		$crlNumber = $this->getNextCrlNumber($instanceId, $generation, $engineType);
+
+		return $engine->generateCrlDer($revokedCertificates, $instanceId, $generation, $crlNumber);
 	}
 
 	/**
@@ -368,8 +562,29 @@ class CrlService {
 
 		$result = $this->crlMapper->listWithPagination($page, $length, $filter, $sort);
 
-		$formattedData = array_values(array_map(fn ($entity) => [
-			'id' => $entity->getId(),
+		/** @var list<LibresignCrlListItem> $formattedData */
+		$formattedData = array_values(array_map(
+			fn (CrlEntity $entity): array => $this->formatCrlListEntry($entity),
+			$result['data']
+		));
+
+		/** @var LibresignCrlListResponse $response */
+		$response = [
+			'data' => $formattedData,
+			'total' => $result['total'],
+			'page' => $page,
+			'length' => $length,
+		];
+
+		return $response;
+	}
+
+	/**
+	 * @return LibresignCrlListItem
+	 */
+	private function formatCrlListEntry(CrlEntity $entity): array {
+		return [
+			'id' => (int)$entity->getId(),
 			'serial_number' => $entity->getSerialNumber(),
 			'owner' => $entity->getOwner(),
 			'status' => CRLStatus::from($entity->getStatus())->value,
@@ -385,13 +600,6 @@ class CrlService {
 			'revoked_by' => $entity->getRevokedBy(),
 			'invalidity_date' => $entity->getInvalidityDate()?->format('Y-m-d H:i:s'),
 			'crl_number' => $entity->getCrlNumber(),
-		], $result['data']));
-
-		return [
-			'data' => $formattedData,
-			'total' => $result['total'],
-			'page' => $page,
-			'length' => $length,
 		];
 	}
 }

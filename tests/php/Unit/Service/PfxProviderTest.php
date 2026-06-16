@@ -43,7 +43,7 @@ class PfxProviderTest extends TestCase {
 	private function configurePasswordEvent(string $password): void {
 		$this->eventDispatcher
 			->method('dispatchTyped')
-			->willReturnCallback(function (GenerateSecurePasswordEvent $event) use ($password) {
+			->willReturnCallback(function (GenerateSecurePasswordEvent $event) use ($password): void {
 				$event->setPassword($password);
 			});
 	}

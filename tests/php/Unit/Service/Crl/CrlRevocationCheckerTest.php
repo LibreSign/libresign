@@ -12,6 +12,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Crl;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
+use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\Crl\Ldap\LdapCrlDownloader;
 use OCP\IAppConfig;
 use OCP\ICache;
@@ -29,12 +30,53 @@ use Psr\Log\LoggerInterface;
  * tests can call them directly without reflection.
  */
 class CrlRevocationCheckerTestable extends CrlRevocationChecker {
+	private ?CrlService $crlService = null;
+	private string|false|null $remoteCrlContent = null;
+
 	public function publicIsSerialNumberInCrl(string $crlText, string $serialNumber): bool {
 		return $this->isSerialNumberInCrl($crlText, $serialNumber);
 	}
 
 	public function publicExtractRevocationDateFromCrlText(string $crlText, array $serialNumbers): ?string {
 		return $this->extractRevocationDateFromCrlText($crlText, $serialNumbers);
+	}
+
+	public function publicGetLocalCrlPattern(): string {
+		return $this->getLocalCrlPattern();
+	}
+
+	public function publicGenerateLocalCrl(string $crlUrl): ?string {
+		return $this->generateLocalCrl($crlUrl);
+	}
+
+	public function publicDownloadCrlContent(string $url): ?string {
+		return $this->downloadCrlContent($url);
+	}
+
+	public function setCrlService(CrlService $crlService): void {
+		$this->crlService = $crlService;
+	}
+
+	public function setRemoteCrlContent(string|false|null $remoteCrlContent): void {
+		$this->remoteCrlContent = $remoteCrlContent;
+	}
+
+	#[\Override]
+	protected function getCrlService(): CrlService {
+		if ($this->crlService !== null) {
+			return $this->crlService;
+		}
+
+		return parent::getCrlService();
+	}
+
+	#[\Override]
+	protected function fetchRemoteCrlContent(string $url, $context): string|false {
+		if ($this->remoteCrlContent !== null) {
+			return $this->remoteCrlContent;
+		}
+
+		return parent::fetchRemoteCrlContent($url, $context);
 	}
 }
 
@@ -212,6 +254,114 @@ class CrlRevocationCheckerTest extends TestCase {
 		);
 
 		$this->assertNotSame(CrlValidationStatus::DISABLED, $result['status'], 'Local CRL URLs must not be skipped when external validation is disabled');
+	}
+
+	/**
+	 * In a given request the CRL route resolves to one specific host. The tests
+	 * below assert that the recognition pattern does not depend on that host.
+	 */
+	private function mockCrlRouteUrlGenerator(): void {
+		$this->urlGenerator
+			->method('linkToRouteAbsolute')
+			->with('libresign.crl.getRevocationList', [
+				'instanceId' => 'INSTANCEID',
+				'generation' => 999999,
+				'engineType' => 'ENGINETYPE',
+			])
+			->willReturn('https://cloud.example.com/apps/libresign/crl/libresign_INSTANCEID_999999_ENGINETYPE.crl');
+	}
+
+	#[DataProvider('dataProviderLocalCrlUrlsWithDifferentHosts')]
+	public function testGetLocalCrlPatternMatchesAnyHost(
+		string $url,
+		string $expectedInstanceId,
+		string $expectedGeneration,
+		string $expectedEngineType,
+	): void {
+		// A certificate's embedded CRL DP host is fixed at issuance and may differ
+		// from the current request host (e.g. signing through the API from another
+		// origin). The pattern must still recognise the local CRL and capture its
+		// instanceId / generation / engineType regardless of the host.
+		$this->mockCrlRouteUrlGenerator();
+
+		$pattern = $this->checker->publicGetLocalCrlPattern();
+
+		$this->assertSame(1, preg_match($pattern, $url, $matches), 'Local CRL URL should match');
+		$this->assertSame($expectedInstanceId, $matches[1], 'instanceId should be captured');
+		$this->assertSame($expectedGeneration, $matches[2], 'generation should be captured');
+		$this->assertSame($expectedEngineType, $matches[3], 'engineType should be captured');
+	}
+
+	public static function dataProviderLocalCrlUrlsWithDifferentHosts(): array {
+		return [
+			'same host' => ['https://cloud.example.com/apps/libresign/crl/libresign_abc123_4_o.crl', 'abc123', '4', 'o'],
+			'different host and port' => ['http://localhost:9000/apps/libresign/crl/libresign_abc123_4_o.crl', 'abc123', '4', 'o'],
+			'different host with index.php' => ['http://host.docker.internal:9000/index.php/apps/libresign/crl/libresign_abc123_4_o.crl', 'abc123', '4', 'o'],
+		];
+	}
+
+	public function testGetLocalCrlPatternRejectsNonCrlUrls(): void {
+		$this->mockCrlRouteUrlGenerator();
+
+		$pattern = $this->checker->publicGetLocalCrlPattern();
+
+		$this->assertSame(
+			0,
+			preg_match($pattern, 'https://cloud.example.com/apps/libresign/crl/not-a-crl.txt'),
+			'A non-CRL path must not match the local CRL pattern',
+		);
+	}
+
+	public function testGenerateLocalCrlMemoizesPerRequest(): void {
+		$this->mockCrlRouteUrlGenerator();
+
+		$crlService = $this->createMock(CrlService::class);
+		$crlService->expects($this->once())
+			->method('generateCrlDer')
+			->with('abc123', 4, 'o')
+			->willReturn('memoized-der');
+
+		$this->checker->setCrlService($crlService);
+
+		$url = 'https://cloud.example.com/apps/libresign/crl/libresign_abc123_4_o.crl';
+
+		$this->assertSame('memoized-der', $this->checker->publicGenerateLocalCrl($url));
+		$this->assertSame('memoized-der', $this->checker->publicGenerateLocalCrl($url));
+	}
+
+	public function testDownloadCrlContentCachesEncodedBinaryValue(): void {
+		$binaryContent = "\x30\x82\x01\x00";
+
+		$this->crlCache->expects($this->once())
+			->method('get')
+			->with(sha1('https://crl.example.com/current.crl'))
+			->willReturn(null);
+
+		$this->crlCache->expects($this->once())
+			->method('set')
+			->with(
+				sha1('https://crl.example.com/current.crl'),
+				'base64:' . base64_encode($binaryContent),
+				86400
+			);
+
+		$this->checker->setRemoteCrlContent($binaryContent);
+
+		$this->assertSame($binaryContent, $this->checker->publicDownloadCrlContent('https://crl.example.com/current.crl'));
+	}
+
+	public function testDownloadCrlContentDecodesEncodedCachedBinaryValue(): void {
+		$binaryContent = "\x30\x82\x01\x00";
+
+		$this->crlCache->expects($this->once())
+			->method('get')
+			->with(sha1('https://crl.example.com/current.crl'))
+			->willReturn('base64:' . base64_encode($binaryContent));
+
+		$this->crlCache->expects($this->never())
+			->method('set');
+
+		$this->assertSame($binaryContent, $this->checker->publicDownloadCrlContent('https://crl.example.com/current.crl'));
 	}
 
 	#[DataProvider('dataProviderIsSerialNumberInCrl')]

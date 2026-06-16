@@ -142,6 +142,7 @@ OC.L10N.register(
     "Underline" : "下划线",
     "Undo" : "撤消",
     "Redo" : "重做",
+    "{currentPage} of {totalPages}" : "{currentPage} / {totalPages}",
     "Duplicate" : "重复",
     "Loading …" : "正在加载 …",
     "Name" : "名称",

@@ -289,9 +289,7 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('error')
 			->with(
 				'Failed to rollback uploaded file',
-				$this->callback(function ($context) {
-					return isset($context['nodeId']) && isset($context['error']);
-				})
+				$this->callback(fn ($context) => isset($context['nodeId']) && isset($context['error']))
 			);
 
 		$targetFolder->method('newFile')->willReturn($node);

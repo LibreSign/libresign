@@ -13,7 +13,7 @@ use OCP\IAppConfig;
 use OCP\Security\ISecureRandom;
 
 class CaIdentifierService {
-	private const ENGINE_TYPES = [
+	private const array ENGINE_TYPES = [
 		'openssl' => 'o',
 		'cfssl' => 'c',
 	];
@@ -28,7 +28,7 @@ class CaIdentifierService {
 		if (strlen($instanceId) === 10) {
 			return $instanceId;
 		}
-		$instanceId = \OC::$server->get(ISecureRandom::class)->generate(10, ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
+		$instanceId = \OCP\Server::get(ISecureRandom::class)->generate(10, ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
 		$this->appConfig->setValueString(Application::APP_ID, 'instance_id', $instanceId);
 		return $instanceId;
 	}

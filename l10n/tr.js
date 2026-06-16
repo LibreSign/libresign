@@ -416,7 +416,7 @@ OC.L10N.register(
     "Error monitoring signing progress" : "İmzalama ilerlemesi izlenirken sorun çıktı",
     "The original file was deleted. You can no longer add signers or open it." : "Özgün dosya silinmiş. Artık imzalayan ekleyemez veya açamazsınız.",
     "Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures." : "Bazı imzalayanlar kullanımdan kaldırılmış tanımlama yöntemlerini kullanıyor. İmza isteğinde bulunmadan önce lütfen bunları kaldırın ya da güncelleyin.",
-    "Loading signer details..." : "İmzalayan bilgileri yükleniyor...",
+    "Loading signer details …" : "İmzalayan bilgileri yükleniyor…",
     "Add signer" : "İmzalayan seçin",
     "Sign in order" : "İmzalama sırası",
     "View signing order" : "İmzalama sırasını görüntüle",

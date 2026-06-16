@@ -28,6 +28,7 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 	private SignatureBackgroundService&MockObject $signatureBackgroundService;
 	private SignatureTextService&MockObject $signatureTextService;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->sessionService = $this->createMock(SessionService::class);

@@ -29,7 +29,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 class CfsslHandlerTest extends TestCase {
-	private const PROCESS_SOURCE = 'cfssl';
+	private const string PROCESS_SOURCE = 'cfssl';
 
 	private ProcessManager&MockObject $processManager;
 
@@ -44,13 +44,11 @@ class CfsslHandlerTest extends TestCase {
 		$this->processManager->expects($this->once())
 			->method('findRunningPid')
 			->with(self::PROCESS_SOURCE, $this->callback('is_callable'))
-			->willReturnCallback(function (string $_source, callable $filter): int {
-				return $filter([
-					'pid' => 302,
-					'context' => ['uri' => CfsslHandler::CFSSL_URI],
-					'createdAt' => 123,
-				]) ? 302 : 0;
-			});
+			->willReturnCallback(fn (string $_source, callable $filter): int => $filter([
+				'pid' => 302,
+				'context' => ['uri' => CfsslHandler::CFSSL_URI],
+				'createdAt' => 123,
+			]) ? 302 : 0);
 
 		$actual = self::invokePrivate($handler, 'getServerPid');
 
@@ -171,7 +169,6 @@ class CfsslHandlerTest extends TestCase {
 
 		@unlink((string)$binary);
 	}
-
 
 	/**
 	 * @return array<string, array{0: bool, 1: string, 2: string}>

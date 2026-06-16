@@ -39,7 +39,7 @@ class PdfSignatureDetectionServiceTest extends TestCase {
 			'synthetic PDF with DocMDP level 1' => [fn () => PdfGenerator::createPdfWithDocMdp(1), false],
 			'synthetic PDF with DocMDP level 2' => [fn () => PdfGenerator::createPdfWithDocMdp(2), false],
 			'synthetic PDF with DocMDP level 3' => [fn () => PdfGenerator::createPdfWithDocMdp(3), false],
-			'synthetic minimal PDF unsigned' => [fn () => PdfGenerator::createMinimalPdf(), false],
+			'synthetic minimal PDF unsigned' => [PdfGenerator::createMinimalPdf(...), false],
 			'empty string' => [fn () => '', false],
 			'invalid content' => [fn () => 'not a valid pdf content', false],
 		];

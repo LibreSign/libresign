@@ -335,8 +335,6 @@ final class SignersLoaderTest extends TestCase {
 		$this->assertSame('account:admin', $fileData->signers[0]->uid);
 	}
 
-
-
 	public function testLoadSignersFromCertDataMatchesLibreSignSignerByUid(): void {
 		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('Signed');
 		$this->identifyMethodService->expects($this->never())->method('resolveUid');
@@ -597,7 +595,7 @@ final class SignersLoaderTest extends TestCase {
 				],
 				'UID without prefix should have account: added',
 				[
-					function (array $signers) {
+					function (array $signers): void {
 						assert(isset($signers[0]), 'signer should exist');
 						assert($signers[0]->uid === 'account:admin', "uid should be 'account:admin', got {$signers[0]->uid}");
 					},
@@ -635,7 +633,7 @@ final class SignersLoaderTest extends TestCase {
 				],
 				'only end-entity (chain[0]) fields should enrich root',
 				[
-					function (array $signers) {
+					function (array $signers): void {
 						$signer = $signers[0];
 						assert($signer->hash === 'endentity123', 'root hash should be from chain[0]');
 						assert($signer->serialNumber === '111', 'root serialNumber should be from chain[0]');
@@ -643,7 +641,7 @@ final class SignersLoaderTest extends TestCase {
 						assert($signer->chain[1]['hash'] === 'cacert456', 'chain[1] should retain its hash');
 						assert($signer->chain[1]['serialNumber'] === '222', 'chain[1] should retain its serialNumber');
 					},
-					function (array $signers) {
+					function (array $signers): void {
 						$signer = $signers[0];
 						assert($signer->chain[0]['valid_from'] === '2021-01-01T00:00:00+00:00', 'chain[0] valid_from should be ISO');
 						assert($signer->chain[0]['valid_to'] === '2022-01-01T00:00:00+00:00', 'chain[0] valid_to should be ISO');
@@ -680,7 +678,7 @@ final class SignersLoaderTest extends TestCase {
 				],
 				'should match by uid and not overwrite existing fields',
 				[
-					function (array $signers) {
+					function (array $signers): void {
 						assert(count($signers) === 1, 'should match existing signer');
 						$signer = $signers[0];
 						assert($signer->hash === 'existing_hash', 'existing hash should NOT be overwritten');

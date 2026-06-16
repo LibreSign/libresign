@@ -17,7 +17,7 @@ use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCP\Share\IShare;
 
 class ShareTypeResolver {
-	private const PHONE_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
+	private const array PHONE_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
 
 	public function __construct(
 		private Email $identifyEmailMethod,

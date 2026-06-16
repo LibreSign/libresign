@@ -519,7 +519,6 @@ class ProgressServiceTest extends TestCase {
 
 		$reflection = new \ReflectionClass($this->service);
 		$method = $reflection->getMethod('mapSignRequestFileProgress');
-		$method->setAccessible(true);
 
 		$mapped = $method->invoke($this->service, $file, $signRequest);
 
@@ -534,7 +533,6 @@ class ProgressServiceTest extends TestCase {
 
 		$reflection = new \ReflectionClass($this->service);
 		$method = $reflection->getMethod('mapSignRequestFileProgress');
-		$method->setAccessible(true);
 
 		$mapped = $method->invoke($this->service, $file, $signRequest);
 
@@ -603,7 +601,6 @@ class ProgressServiceTest extends TestCase {
 
 		$reflection = new \ReflectionClass($this->service);
 		$method = $reflection->getMethod('mapSignRequestFileProgressWithContext');
-		$method->setAccessible(true);
 
 		$mapped = $method->invoke($this->service, $file, $defaultSignRequest, $childSignRequest);
 
@@ -636,7 +633,6 @@ class ProgressServiceTest extends TestCase {
 
 		$reflection = new \ReflectionClass($this->service);
 		$method = $reflection->getMethod('mapSignRequestFileProgressWithContext');
-		$method->setAccessible(true);
 
 		$mapped = $method->invoke($this->service, $file, $defaultSignRequest, $childSignRequest);
 
@@ -829,7 +825,7 @@ class InMemoryCache implements ICache {
 		}
 
 		foreach (array_keys($this->data) as $key) {
-			if (str_starts_with($key, $prefix)) {
+			if (str_starts_with((string)$key, (string)$prefix)) {
 				unset($this->data[$key]);
 			}
 		}

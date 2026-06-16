@@ -1166,7 +1166,6 @@ class SignFileService {
 			}
 
 			throw new \Exception('Invalid arguments');
-
 		} catch (DoesNotExistException) {
 			throw new LibresignException($this->l10n->t('File not found'), 1);
 		}

@@ -22,7 +22,7 @@ use OCP\IUserSession;
 
 class AccountPhonePlugin implements ISearchPlugin {
 	public const TYPE_SIGNER_ACCOUNT_PHONE = 51;
-	private const PHONE_BASED_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
+	private const array PHONE_BASED_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
 
 	public function __construct(
 		private IAppConfig $appConfig,

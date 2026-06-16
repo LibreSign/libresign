@@ -143,12 +143,10 @@ class PdfFixtureCatalog {
 }
 
 class PdfFixture {
-	private string $basePath;
-	private array $metadata;
-
-	public function __construct(string $basePath, array $metadata) {
-		$this->basePath = $basePath;
-		$this->metadata = $metadata;
+	public function __construct(
+		private string $basePath,
+		private array $metadata,
+	) {
 	}
 
 	public function getFilename(): string {

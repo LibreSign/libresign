@@ -30,6 +30,7 @@ final class CertificatePolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestC
 	private IAppConfig $appConfig;
 	private IL10N $l10n;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->appData = $this->createMock(IAppData::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
