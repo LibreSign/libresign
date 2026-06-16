@@ -19,13 +19,31 @@ class JavaHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
 	private IL10N|MockObject $l10n;
 	private LoggerInterface|MockObject $logger;
+	private string|false $originalLang;
+	private string|false $originalLocale;
 
 	public function setUp(): void {
 		parent::setUp();
+		$this->originalLang = getenv('LANG');
+		$this->originalLocale = setlocale(LC_CTYPE, 0);
 
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+	}
+
+	public function tearDown(): void {
+		if ($this->originalLang === false) {
+			putenv('LANG');
+		} else {
+			putenv('LANG=' . $this->originalLang);
+		}
+
+		if (is_string($this->originalLocale) && $this->originalLocale !== '') {
+			setlocale(LC_CTYPE, $this->originalLocale);
+		}
+
+		parent::tearDown();
 	}
 
 	private function getInstance(array $methods = []): MockObject|JavaHelper {
@@ -56,10 +74,25 @@ class JavaHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testInitSetsUtf8LocaleIfMissing(): void {
+		$this->l10n->method('getLocaleCode')->willReturn('');
+		$this->logger->expects($this->never())->method('warning');
+
+		$helper = $this->getInstance(['isNonUTF8Locale']);
+		$helper->method('isNonUTF8Locale')->willReturnOnConsecutiveCalls(true, false);
+		$helper->init();
+
+		$this->assertSame('C.UTF-8', getenv('LANG'));
+	}
+
+	public function testInitRestoresOriginalEnvironmentWhenNoUtf8LocaleWorks(): void {
+		$this->l10n->method('getLocaleCode')->willReturn('en_US');
+		$this->logger->expects($this->once())->method('warning');
+
 		$helper = $this->getInstance(['isNonUTF8Locale']);
 		$helper->method('isNonUTF8Locale')->willReturn(true);
-		$this->logger->expects($this->once())->method('warning');
 		$helper->init();
+
+		$this->assertSame($this->originalLang, getenv('LANG'));
 	}
 
 	public function testGetJavaPathTriggersInit(): void {
