@@ -28,14 +28,66 @@ class JavaHelper {
 			return;
 		}
 		if ($this->isNonUTF8Locale()) {
-			$locale = $this->l10n->getLocaleCode() . '.UTF-8';
-			putenv('LANG=' . $locale);
-			setlocale(LC_CTYPE, $locale, 'UTF-8');
-			if ($this->isNonUTF8Locale()) {
-				$this->logger->warning("JavaHelper: setlocale did not work properly after attempting locale '{$locale}'");
-			}
+			$this->initializeUtf8Locale();
 		}
 		$this->isInitialized = true;
+	}
+
+	private function initializeUtf8Locale(): void {
+		$originalLang = getenv('LANG');
+		$originalLocale = setlocale(LC_CTYPE, 0);
+		$attemptedLocales = $this->getUtf8LocaleCandidates();
+
+		foreach ($attemptedLocales as $locale) {
+			putenv('LANG=' . $locale);
+			setlocale(LC_CTYPE, $locale, 'UTF-8');
+			if (!$this->isNonUTF8Locale()) {
+				return;
+			}
+		}
+
+		$this->restoreOriginalLocaleEnvironment($originalLang, $originalLocale);
+		$this->logger->warning(sprintf(
+			'JavaHelper: setlocale did not work properly after attempting locales: %s',
+			implode(', ', $attemptedLocales)
+		));
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private function getUtf8LocaleCandidates(): array {
+		$localeCode = trim(str_replace('-', '_', $this->l10n->getLocaleCode()));
+		$candidates = [];
+
+		if ($localeCode !== '') {
+			if (preg_match('/^[A-Za-z]{2,3}_[A-Za-z]{2}$/', $localeCode) === 1) {
+				[$language, $region] = explode('_', $localeCode, 2);
+				$candidates[] = sprintf('%s_%s.UTF-8', strtolower($language), strtoupper($region));
+				$candidates[] = sprintf('%s_%s.utf8', strtolower($language), strtoupper($region));
+			} elseif (preg_match('/^[A-Za-z]{2,3}$/', $localeCode) === 1) {
+				$language = strtolower($localeCode);
+				$candidates[] = sprintf('%s_%s.UTF-8', $language, strtoupper($language));
+				$candidates[] = $language . '.UTF-8';
+			}
+		}
+
+		$candidates[] = 'C.UTF-8';
+		$candidates[] = 'UTF-8';
+
+		return array_values(array_unique($candidates));
+	}
+
+	private function restoreOriginalLocaleEnvironment(string|false $originalLang, string|false $originalLocale): void {
+		if ($originalLang === false) {
+			putenv('LANG');
+		} else {
+			putenv('LANG=' . $originalLang);
+		}
+
+		if (is_string($originalLocale) && $originalLocale !== '') {
+			setlocale(LC_CTYPE, $originalLocale);
+		}
 	}
 
 	/**
