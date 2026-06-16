@@ -25,10 +25,10 @@ use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\ITempManager;
-use phpseclib3\Crypt\PublicKeyLoader;
-use phpseclib3\Crypt\RSA;
-use phpseclib3\Crypt\RSA\PrivateKey;
-use phpseclib3\File\X509;
+use OCA\Libresign\Vendor\phpseclib3\Crypt\PublicKeyLoader;
+use OCA\Libresign\Vendor\phpseclib3\Crypt\RSA;
+use OCA\Libresign\Vendor\phpseclib3\Crypt\RSA\PrivateKey;
+use OCA\Libresign\Vendor\phpseclib3\File\X509;
 
 class SignSetupService {
 	private array $exclude = [
