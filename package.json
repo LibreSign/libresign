@@ -93,7 +93,7 @@
     "mailpit-api": "^1.9.0",
     "openapi-typescript": "^7.13.0",
     "typescript": "^5.9.3",
-    "vite": "^7.3.2",
+    "vite": "^7.3.5",
     "vite-plugin-node-polyfills": "^0.26.0",
     "vitest": "^4.1.4",
     "vue-tsc": "^3.2.7"
