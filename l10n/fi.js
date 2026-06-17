@@ -213,6 +213,7 @@ OC.L10N.register(
     "An error occurred" : "Tapahtui virhe",
     "Signature positions" : "Allekirjoitusten sijainnit",
     "Sign" : "Allekirjoita",
+    "Failed to load files" : "Tiedostojen lataaminen epäonnistui",
     "Upload cancelled" : "Lataus peruutettu",
     "Saved" : "Tallennettu",
     "_{count} selected_::_{count} selected_" : ["{count} valittu","{count} valittu"],
