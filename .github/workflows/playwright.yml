@@ -84,7 +84,10 @@ jobs:
       - name: Install system dependencies
         run: |
           apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends poppler-utils
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            poppler-utils \
+            libgd3 \
+            libc-client2007e
 
       - name: Checkout server
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -111,7 +114,7 @@ jobs:
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
         with:
           php-version: ${{ steps.php_versions.outputs.php-min }}
-          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, sqlite, pdo_sqlite, xmlreader, xmlwriter, zip, zlib
+          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, imap, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, sqlite, pdo_sqlite, xmlreader, xmlwriter, zip, zlib
           coverage: none
           ini-file: development
           ini-values: disable_functions=
