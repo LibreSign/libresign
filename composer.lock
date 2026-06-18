@@ -264,12 +264,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "40842eb82f4972ef0fe465e9c03832275bb85533"
+                "reference": "aebdbace84b4c0b55517174fd39bc64c4b3a47d9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/40842eb82f4972ef0fe465e9c03832275bb85533",
-                "reference": "40842eb82f4972ef0fe465e9c03832275bb85533",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/aebdbace84b4c0b55517174fd39bc64c4b3a47d9",
+                "reference": "aebdbace84b4c0b55517174fd39bc64c4b3a47d9",
                 "shasum": ""
             },
             "require": {
@@ -306,7 +306,7 @@
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
                 "source": "https://github.com/nextcloud-deps/ocp/tree/master"
             },
-            "time": "2026-06-13T09:58:31+00:00"
+            "time": "2026-06-18T02:35:58+00:00"
         },
         {
             "name": "psr/clock",
@@ -620,12 +620,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "6cf5f0de69e31a1ddc9724bf1ee6776beaa827c7"
+                "reference": "6b43b34b35cef5e93f19f389daf029845e391351"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/6cf5f0de69e31a1ddc9724bf1ee6776beaa827c7",
-                "reference": "6cf5f0de69e31a1ddc9724bf1ee6776beaa827c7",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/6b43b34b35cef5e93f19f389daf029845e391351",
+                "reference": "6b43b34b35cef5e93f19f389daf029845e391351",
                 "shasum": ""
             },
             "conflict": {
@@ -726,6 +726,7 @@
                 "bytefury/crater": "<6.0.2",
                 "cachethq/cachet": "<2.5.1",
                 "cadmium-org/cadmium-cms": "<=0.4.9",
+                "cakephp/authentication": "<3.3.6|>=4,<4.1.1",
                 "cakephp/cakephp": "<3.10.3|>=4,<4.0.10|>=4.1,<4.1.4|>=4.2,<4.2.12|>=4.3,<4.3.11|>=4.4,<4.4.10|>=5.2.10,<5.2.12|==5.3",
                 "cakephp/database": ">=4.2,<4.2.12|>=4.3,<4.3.11|>=4.4,<4.4.10",
                 "cardgate/magento2": "<2.0.33",
@@ -903,6 +904,7 @@
                 "fenom/fenom": "<=2.12.1",
                 "filament/actions": ">=3.2,<3.2.123|>=4,<=4.11.3|>=5,<=5.6.3",
                 "filament/filament": ">=4,<4.3.1",
+                "filament/forms": ">=3,<=3.3.52",
                 "filament/infolists": ">=3,<3.2.115",
                 "filament/tables": ">=3,<=3.3.50|>=4,<4.8.5|>=5,<5.3.5",
                 "filegator/filegator": "<7.8",
@@ -1071,7 +1073,7 @@
                 "lara-zeus/artemis": ">=1,<=1.0.6",
                 "lara-zeus/dynamic-dashboard": ">=3,<=3.0.1",
                 "laravel/fortify": "<1.11.1",
-                "laravel/framework": "<12.60|>=13,<13.10",
+                "laravel/framework": "<12.61.1|>=13,<13.12",
                 "laravel/laravel": ">=5.4,<5.4.22",
                 "laravel/passport": ">=13,<13.7.1",
                 "laravel/pulse": "<1.3.1",
@@ -1162,6 +1164,7 @@
                 "movim/moxl": ">=0.8,<=0.10",
                 "movingbytes/social-network": "<=1.2.1",
                 "mpdf/mpdf": "<=7.1.7",
+                "mtdowling/jmespath.php": "<2.9.1",
                 "munkireport/comment": "<4",
                 "munkireport/managedinstalls": "<2.6",
                 "munkireport/munki_facts": "<1.5",
@@ -1408,6 +1411,7 @@
                 "spencer14420/sp-php-email-handler": "<1",
                 "spipu/html2pdf": "<5.2.8",
                 "spiral/roadrunner": "<2025.1",
+                "spomky-labs/otphp": "<11.4.3",
                 "spoon/library": "<1.4.1",
                 "spoonity/tcpdf": "<6.2.22",
                 "squizlabs/php_codesniffer": ">=1,<2.8.1|>=3,<3.0.1",
@@ -1583,6 +1587,8 @@
                 "web-auth/webauthn-lib": ">=4.5,<4.9|>=5.2,<5.2.4",
                 "web-auth/webauthn-symfony-bundle": ">=5.2,<5.2.4",
                 "web-feet/coastercms": "==5.5",
+                "web-token/jwt-framework": "<3.4.10|>=4,<4.0.7|>=4.1,<4.1.7",
+                "web-token/jwt-library": "<3.4.10|>=4,<4.0.7|>=4.1,<4.1.7",
                 "web-tp3/wec_map": "<3.0.3",
                 "webbuilders-group/silverstripe-kapost-bridge": "<0.4",
                 "webcoast/deferred-image-processing": "<1.0.2",
@@ -1708,7 +1714,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-06-16T16:34:38+00:00"
+            "time": "2026-06-17T19:44:27+00:00"
         }
     ],
     "aliases": [],
