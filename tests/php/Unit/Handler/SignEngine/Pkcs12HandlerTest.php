@@ -9,7 +9,7 @@ namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-use LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
