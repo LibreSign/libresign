@@ -833,7 +833,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		$issuer->loadX509($caCert);
 		$caPrivateKey = \OCA\Libresign\Vendor\phpseclib3\Crypt\PublicKeyLoader::load($caKey);
 
-		if (!$caPrivateKey instanceof \phpseclib3\Crypt\Common\PrivateKey) {
+		if (!$caPrivateKey instanceof \OCA\Libresign\Vendor\phpseclib3\Crypt\Common\PrivateKey) {
 			$this->logger->error('Loaded key is not a private key', ['keyType' => get_class($caPrivateKey)]);
 			throw new \RuntimeException('Loaded key is not a private key');
 		}
