@@ -15,6 +15,7 @@ OC.L10N.register(
     "Cancel" : "අවලංගු කරන්න",
     "Save" : "සුරකින්න",
     "Upload" : "උඩුගත",
+    "Delete" : "Delete",
     "Preview" : "පෙරදසුන",
     "Files" : "ගොනු",
     "Settings" : "සැකසුම්",
