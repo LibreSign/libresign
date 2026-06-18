@@ -42,6 +42,7 @@ OC.L10N.register(
     "Saved" : "Bewaar",
     "Select all" : "Kies alle",
     "Open file" : "Open lêer",
+    "Close" : "Close",
     "Confirm" : "Bevestig",
     "Status" : "Status",
     "Contact" : "Kontak",
