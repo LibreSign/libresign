@@ -12,8 +12,7 @@
 				:style="{
 					width,
 					height,
-				}"
-				@load="onImageLoad">
+				}">
 		</div>
 	</div>
 </template>
@@ -56,7 +55,7 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-	(e: 'loaded', status: boolean | Event): void
+	(e: 'loaded', status: boolean): void
 }>()
 
 const loading = ref(true)
@@ -82,6 +81,7 @@ function arrayBufferToBase64(data: ArrayBuffer) {
 async function loadImage() {
 	if (props.src.startsWith('data:')) {
 		imageData.value = props.src
+		onImageLoad(true)
 		return
 	}
 
@@ -105,7 +105,7 @@ async function loadImage() {
 	}
 }
 
-function onImageLoad(status: boolean | Event) {
+function onImageLoad(status: boolean) {
 	loading.value = false
 	isLoaded.value = true
 	emit('loaded', status)
