@@ -638,7 +638,6 @@ abstract class AEngineHandler implements IEngineHandler {
 			}
 
 			return null;
-
 		} catch (\Exception $e) {
 			return (new ConfigureCheckHelper())
 				->setErrorMessage('Failed to analyze root certificate: ' . $e->getMessage())

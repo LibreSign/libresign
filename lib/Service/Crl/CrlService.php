@@ -221,7 +221,6 @@ class CrlService {
 			}
 
 			return ['status' => 'valid'];
-
 		} catch (\OCP\AppFramework\Db\DoesNotExistException) {
 			return ['status' => 'unknown'];
 		}

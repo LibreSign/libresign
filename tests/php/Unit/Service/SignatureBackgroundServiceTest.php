@@ -31,7 +31,6 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 		$this->tempManager = $this->createMock(ITempManager::class);
 	}
 
-
 	private function getClass(): SignatureBackgroundService {
 		$this->service = new SignatureBackgroundService(
 			$this->appData,

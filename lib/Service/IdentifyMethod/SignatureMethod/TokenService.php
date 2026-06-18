@@ -45,7 +45,6 @@ class TokenService {
 			$factory = Server::get(\OCA\TwoFactorGateway\Provider\Gateway\Factory::class);
 		} catch (NotFoundExceptionInterface) {
 			throw new LibresignException('App Two-Factor Gateway is not installed.');
-
 		}
 		$gateway = $factory->get($gatewayName);
 		if (!$gateway->isComplete()) {
