@@ -9,7 +9,6 @@ namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
@@ -21,6 +20,7 @@ use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Tests\Fixtures\PdfFixtureCatalog;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IAppConfig;

@@ -8,10 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\SignEngine;
 
-use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationReason;
-use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationResult;
-use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationState;
-use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
@@ -23,6 +19,10 @@ use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationReason;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationResult;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationState;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
 use OCA\Libresign\Vendor\phpseclib3\File\ASN1;
 use OCP\Files\File;
 use OCP\IAppConfig;
