@@ -61,10 +61,6 @@
 	},
 	"require": {
 		"cweagans/composer-patches": "^2.0",
-		"jeidison/signer-php": "dev-main",
-		"libresign/pdf-signature-validator": "^0.2.0"
-	},
-	"provide": {
-		"phpseclib/phpseclib": "^3.0"
+		"jeidison/signer-php": "dev-main"
 	}
 }
