@@ -60,7 +60,6 @@
 		}
 	},
 	"require": {
-		"cweagans/composer-patches": "^2.0",
-		"phpseclib/phpseclib": "^3.0"
+		"cweagans/composer-patches": "^2.0"
 	}
 }
