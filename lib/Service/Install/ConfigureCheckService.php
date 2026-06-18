@@ -503,7 +503,6 @@ class ConfigureCheckService {
 		return empty($error);
 	}
 
-
 	/**
 	 * Check all requirements to use certificate
 	 *
