@@ -55,8 +55,6 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig = $this->createMock(IAppConfig::class);
 	}
 
-
-
 	private function getIdDocsService(): IdDocsService {
 		return new IdDocsService(
 			$this->l10n,

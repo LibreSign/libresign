@@ -15,7 +15,6 @@ use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Service\Crl\CrlService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\QueuedJob;
-
 use Psr\Log\LoggerInterface;
 
 class UserDeleted extends QueuedJob {

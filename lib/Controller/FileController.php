@@ -603,7 +603,6 @@ class FileController extends AEnvironmentAwareController {
 			$envelope = $this->fileMapper->getById($envelope->getId());
 			$response = $this->fileListService->formatFileWithChildren($envelope, $addedFiles, $this->userSession->getUser());
 			return new DataResponse($response, Http::STATUS_OK);
-
 		} catch (DoesNotExistException) {
 			return new DataResponse(
 				['message' => $this->l10n->t('Envelope not found')],

@@ -522,8 +522,6 @@ class RequestSignatureService {
 		return $return;
 	}
 
-
-
 	private function saveVisibleElements(array $data, FileEntity $file): array {
 		if (empty($data['visibleElements'])) {
 			return [];
@@ -581,8 +579,6 @@ class RequestSignatureService {
 			$this->identifyMethod->setAllEntityData($signer);
 		}
 	}
-
-
 
 	public function unassociateToUser(int $fileId, int $signRequestId): void {
 		$file = $this->fileMapper->getById($fileId);

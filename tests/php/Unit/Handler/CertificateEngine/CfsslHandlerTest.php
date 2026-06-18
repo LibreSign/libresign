@@ -172,7 +172,6 @@ class CfsslHandlerTest extends TestCase {
 		@unlink((string)$binary);
 	}
 
-
 	/**
 	 * @return array<string, array{0: bool, 1: string, 2: string}>
 	 */

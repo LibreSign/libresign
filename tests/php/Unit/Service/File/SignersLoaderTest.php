@@ -335,8 +335,6 @@ final class SignersLoaderTest extends TestCase {
 		$this->assertSame('account:admin', $fileData->signers[0]->uid);
 	}
 
-
-
 	public function testLoadSignersFromCertDataMatchesLibreSignSignerByUid(): void {
 		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('Signed');
 		$this->identifyMethodService->expects($this->never())->method('resolveUid');

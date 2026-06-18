@@ -156,7 +156,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		}
 		$found = current($found);
 
-
 		preg_match('/f\/sign\/(?<uuid>[\w-]+)\/pdf$/', $found['link'], $matches);
 		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
 		$this->fields['SIGN_REQUEST_UUID'] = $matches['uuid'];

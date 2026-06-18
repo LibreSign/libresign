@@ -35,7 +35,6 @@ final class CapabilitiesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig = $this->createMock(IAppConfig::class);
 	}
 
-
 	private function getClass(): Capabilities {
 		$this->capabilities = new Capabilities(
 			$this->signerElementsService,

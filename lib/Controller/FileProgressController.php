@@ -84,7 +84,6 @@ class FileProgressController extends AEnvironmentAwareController {
 			}
 
 			return $this->buildStatusResponse($file, $signRequest, $currentStatus);
-
 		} catch (\Exception $e) {
 			return new DataResponse([
 				'message' => $e->getMessage(),

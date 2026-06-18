@@ -52,7 +52,6 @@ class SerialNumberService {
 				);
 
 				return $serialString;
-
 			} catch (DBException $e) {
 				if ($e->getReason() === DBException::REASON_UNIQUE_CONSTRAINT_VIOLATION) {
 					continue;
