@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Signature;
 
-use LibreSign\PdfSignatureValidator\Model\ValidationResult;
-use LibreSign\PdfSignatureValidator\Model\ValidationState;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationResult;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationState;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\IL10N;
