@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod;
 
-use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Exception\LibresignException;
@@ -22,6 +21,7 @@ use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\Password;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IUserSession;
