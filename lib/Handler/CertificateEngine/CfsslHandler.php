@@ -281,7 +281,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		try {
 			$client = $this->getClient();
 			if (!$this->portOpen()) {
-				throw new LibresignException('CFSSL server is down', 500);
+				return false;
 			}
 			$response = $client
 				->request('get',
@@ -291,24 +291,18 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 					]
 				)
 			;
-		} catch (RequestException|ConnectException $th) {
-			switch ($th->getCode()) {
-				case 404:
-					throw new \Exception('Endpoint /health of CFSSL server not found. Maybe you are using incompatible version of CFSSL server. Use latests version.', 1);
-				default:
-					if ($th->getHandlerContext() && $th->getHandlerContext()['error']) {
-						throw new \Exception($th->getHandlerContext()['error'], 1);
-					}
-					throw new LibresignException($th->getMessage(), 500);
+		} catch (ConnectException) {
+			// Port not yet accepting connections — server still starting
+			return false;
+		} catch (RequestException $th) {
+			if ($th->getCode() === 404) {
+				throw new \Exception('Endpoint /health of CFSSL server not found. Maybe you are using incompatible version of CFSSL server. Use latests version.', 1);
 			}
+			return false;
 		}
 
 		$responseDecoded = json_decode((string)$response->getBody(), true);
-		if (!isset($responseDecoded['success']) || !$responseDecoded['success']) {
-			throw new LibresignException('Error while check cfssl API health!', 500);
-		}
-
-		if (empty($responseDecoded['result']) || empty($responseDecoded['result']['healthy'])) {
+		if (empty($responseDecoded['result']['healthy'])) {
 			return false;
 		}
 
@@ -346,7 +340,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		}
 
 		$loops = 0;
-		while (!$this->portOpen() && $loops <= 4) {
+		while (!$this->portOpen() && $loops <= 9) {
 			sleep(1);
 			$loops++;
 		}
