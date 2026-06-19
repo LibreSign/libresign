@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Identify;
 
-use OCA\Libresign\Service\NotificationPreferenceResolver;
 use OCA\Libresign\Service\Identify\ResultEnricher;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
+use OCA\Libresign\Service\NotificationPreferenceResolver;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
