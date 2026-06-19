@@ -74,9 +74,10 @@ class NotificationListener implements IEventListener {
 		if ($identifyMethod->getEntity()->isDeletedAccount()) {
 			return;
 		}
-		$notificationDisabled = $this->isNotificationDisabledAtActivity(
+		$notificationDisabled = $this->notificationPreferenceResolver->isInAppNotificationDisabled(
 			$identifyMethod->getEntity()->getIdentifierValue(),
 			SendSignNotificationEvent::FILE_TO_SIGN,
+			true,
 		);
 		if ($notificationDisabled) {
 			return;
@@ -119,9 +120,10 @@ class NotificationListener implements IEventListener {
 		if ($identifyMethod->getEntity()->isDeletedAccount()) {
 			return;
 		}
-		$notificationDisabled = $this->isNotificationDisabledAtActivity(
+		$notificationDisabled = $this->notificationPreferenceResolver->isInAppNotificationDisabled(
 			$libreSignFile->getUserId(),
 			SignedEvent::FILE_SIGNED,
+			true,
 		);
 		if ($notificationDisabled) {
 			return;
