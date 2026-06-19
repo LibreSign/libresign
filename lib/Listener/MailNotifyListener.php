@@ -84,7 +84,11 @@ class MailNotifyListener implements IEventListener {
 			$users = $this->userManager->getByEmail($email);
 			if (count($users) === 1) {
 				$userId = $users[0]->getUID();
-				if ($this->isNotificationDisabledAtActivity($userId, SendSignNotificationEvent::FILE_TO_SIGN)) {
+				if ($this->notificationPreferenceResolver->isEmailNotificationDisabled(
+							$userId,
+							SendSignNotificationEvent::FILE_TO_SIGN,
+							true,
+						)) {
 					return;
 				}
 			}
@@ -114,7 +118,11 @@ class MailNotifyListener implements IEventListener {
 			if ($identifyMethod->getEntity()->isDeletedAccount()) {
 				return;
 			}
-			if ($this->isNotificationDisabledAtActivity($libreSignFile->getUserId(), SignedEvent::FILE_SIGNED)) {
+			if ($this->notificationPreferenceResolver->isEmailNotificationDisabled(
+					$libreSignFile->getUserId(),
+					SignedEvent::FILE_SIGNED,
+					true,
+				)) {
 				return;
 			}
 
