@@ -17,6 +17,7 @@ use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\MailService;
+use OCA\Libresign\Service\NotificationPreferenceResolver;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IUser;
@@ -33,6 +34,7 @@ class MailNotifyListener implements IEventListener {
 		protected MailService $mail,
 		private SignRequestMapper $signRequestMapper,
 		private LoggerInterface $logger,
+		private NotificationPreferenceResolver $notificationPreferenceResolver,
 	) {
 	}
 
@@ -158,7 +160,7 @@ class MailNotifyListener implements IEventListener {
 			$users = $this->userManager->getByEmail($email);
 			if (count($users) === 1) {
 				$userId = $users[0]->getUID();
-				if ($this->isNotificationDisabledAtActivity($userId, SignRequestCanceledEvent::SIGN_REQUEST_CANCELED)) {
+				if ($this->notificationPreferenceResolver->isEmailNotificationDisabled($userId, SignRequestCanceledEvent::SIGN_REQUEST_CANCELED, true)) {
 					return;
 				}
 			}
@@ -169,34 +171,5 @@ class MailNotifyListener implements IEventListener {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
 			return;
 		}
-	}
-
-	private function isNotificationDisabledAtActivity(string $userId, string $type): bool {
-		if (!class_exists(\OCA\Activity\UserSettings::class)) {
-			return false;
-		}
-		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
-		if ($activityUserSettings) {
-			$manager = \OCP\Server::get(\OCP\Activity\IManager::class);
-			try {
-				$manager->getSettingById($type);
-			} catch (\Exception) {
-				return false;
-			}
-
-			$adminSetting = $activityUserSettings->getAdminSetting('email', $type);
-			if (!$adminSetting) {
-				return true;
-			}
-			$notificationSetting = $activityUserSettings->getUserSetting(
-				$userId,
-				'email',
-				$type
-			);
-			if (!$notificationSetting) {
-				return true;
-			}
-		}
-		return false;
 	}
 }
