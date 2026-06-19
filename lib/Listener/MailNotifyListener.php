@@ -85,10 +85,10 @@ class MailNotifyListener implements IEventListener {
 			if (count($users) === 1) {
 				$userId = $users[0]->getUID();
 				if ($this->notificationPreferenceResolver->isEmailNotificationDisabled(
-							$userId,
-							SendSignNotificationEvent::FILE_TO_SIGN,
-							true,
-						)) {
+					$userId,
+					SendSignNotificationEvent::FILE_TO_SIGN,
+					true,
+				)) {
 					return;
 				}
 			}
@@ -119,10 +119,10 @@ class MailNotifyListener implements IEventListener {
 				return;
 			}
 			if ($this->notificationPreferenceResolver->isEmailNotificationDisabled(
-					$libreSignFile->getUserId(),
-					SignedEvent::FILE_SIGNED,
-					true,
-				)) {
+				$libreSignFile->getUserId(),
+				SignedEvent::FILE_SIGNED,
+				true,
+			)) {
 				return;
 			}
 
