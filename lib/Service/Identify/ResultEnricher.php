@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Identify;
 
+use OCA\Libresign\Service\NotificationPreferenceResolver;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCP\IUser;
@@ -20,6 +21,7 @@ class ResultEnricher {
 		private IUserManager $userManager,
 		private Email $identifyEmailMethod,
 		private Account $identifyAccountMethod,
+		private NotificationPreferenceResolver $notificationPreferenceResolver,
 	) {
 	}
 
@@ -111,7 +113,11 @@ class ResultEnricher {
 				continue;
 			}
 
-			$acceptsNotifications = !$this->isNotificationDisabledAtActivity($user->getUID(), 'libresign_file_to_sign');
+			$acceptsNotifications = !$this->notificationPreferenceResolver->isEmailNotificationDisabled(
+				$user->getUID(),
+				'libresign_file_to_sign',
+				false,
+			);
 
 			if ($acceptsNotifications) {
 				$list[$key]['emailAddress'] = $email;
@@ -125,24 +131,5 @@ class ResultEnricher {
 		return str_contains($user->getUID(), $searchLower)
 			|| str_contains(strtolower($user->getDisplayName()), $searchLower)
 			|| ($user->getEMailAddress() !== null && str_contains($user->getEMailAddress(), $searchLower));
-	}
-
-	private function isNotificationDisabledAtActivity(string $userId, string $type): bool {
-		if (!class_exists(\OCA\Activity\UserSettings::class)) {
-			return false;
-		}
-		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
-
-		$adminSetting = $activityUserSettings->getAdminSetting('email', $type);
-		if (!$adminSetting) {
-			return true;
-		}
-
-		$userSetting = $activityUserSettings->getUserSetting($userId, 'email', $type);
-		if (!$userSetting) {
-			return true;
-		}
-
-		return false;
 	}
 }
