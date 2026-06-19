@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\Service\ActivitySettingsStore;
 use OCP\Config\IUserConfig;
 use OCP\IAppConfig;
 
