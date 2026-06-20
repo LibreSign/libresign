@@ -203,6 +203,14 @@ describe('SignatureTextRuleEditor.vue', () => {
 					render_mode: 'default',
 				}),
 			},
+			global: {
+				stubs: {
+					NcIconSvgWrapper: {
+						name: 'NcIconSvgWrapper',
+						template: '<span class="icon-stub" />',
+					},
+				},
+			},
 		})
 
 		await vi.advanceTimersByTimeAsync(250)
@@ -230,6 +238,10 @@ describe('SignatureTextRuleEditor.vue', () => {
 			},
 			global: {
 				stubs: {
+					NcIconSvgWrapper: {
+						name: 'NcIconSvgWrapper',
+						template: '<span class="icon-stub" />',
+					},
 					NcLoadingIcon: {
 						name: 'NcLoadingIcon',
 						template: '<span class="loading-stub" />',
@@ -257,6 +269,14 @@ describe('SignatureTextRuleEditor.vue', () => {
 		const wrapper = mount(SignatureTextRuleEditor, {
 			props: {
 				modelValue: '',
+			},
+			global: {
+				stubs: {
+					NcIconSvgWrapper: {
+						name: 'NcIconSvgWrapper',
+						template: '<span class="icon-stub" />',
+					},
+				},
 			},
 		})
 
