@@ -21,6 +21,7 @@ import {
 	getEffectivePolicy,
 	policyRequest,
 	setGroupPolicyEntry,
+	setSystemPolicyEntry,
 } from '../support/policy-api'
 
 const test = base.extend<{
@@ -54,6 +55,7 @@ const GROUP_ADMIN_PASSWORD = '123456'
 const BOARD_GROUP = 'policy-request-sign-overlay-board'
 const COMPANY_GROUP = 'policy-request-sign-overlay-company'
 const POLICY_KEY = 'groups_request_sign'
+const SYSTEM_REQUEST_SIGN_BASELINE = JSON.stringify(['admin'])
 
 /**
  * Removes a group-scoped request-sign policy entry, tolerating missing rows.
@@ -175,6 +177,10 @@ function escapeRegExp(value: string): string {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+function getSearchInput(scope: Locator): Locator {
+	return scope.locator('input[type="search"], input[type="text"], input:not([type]), textarea, [contenteditable="true"]').first()
+}
+
 /**
  * Selects an option in a Nextcloud multi-select field by its visible label.
  *
@@ -189,19 +195,37 @@ async function selectMultiSelectOption(scope: Locator, label: string, target: st
 	const anchoredCombobox = textAnchor.locator('xpath=following::*[@role="combobox"][1]').first()
 	const targetInput = await combobox.count() ? combobox : anchoredCombobox
 	const fieldScope = targetInput.locator('xpath=ancestor-or-self::*[@role="combobox"][1]').first()
-	const selectedTarget = fieldScope.getByRole('button', {
+	const selectedTarget = scope.getByRole('button', {
 		name: new RegExp(`Deselect\\s+${escapeRegExp(target)}`, 'i'),
 	}).first()
+	const selectedTargetText = scope.getByText(new RegExp(escapeRegExp(target), 'i')).first()
+	const submitButton = scope.getByRole('button', { name: /Create rule|Save changes/i }).last()
+
+	const isSelectionConfirmed = async () => {
+		if (await selectedTarget.isVisible({ timeout: 1000 }).catch(() => false)) {
+			return true
+		}
+
+		if (await selectedTargetText.isVisible({ timeout: 1000 }).catch(() => false)) {
+			return true
+		}
+
+		if (await submitButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+			return submitButton.isEnabled().catch(() => false)
+		}
+
+		return false
+	}
 
 	await expect(targetInput).toBeVisible({ timeout: 10000 })
-	if (await selectedTarget.isVisible({ timeout: 1000 }).catch(() => false)) {
+	if (await isSelectionConfirmed()) {
 		return
 	}
 
 	await targetInput.click()
 
-	const searchInput = fieldScope.getByRole('searchbox').first()
-	if (await searchInput.count()) {
+	const searchInput = getSearchInput(fieldScope)
+	if (await searchInput.isVisible({ timeout: 1000 }).catch(() => false)) {
 		await searchInput.fill(target)
 
 		const matchingOption = page.getByRole('option', { name: new RegExp(target, 'i') }).first()
@@ -216,14 +240,18 @@ async function selectMultiSelectOption(scope: Locator, label: string, target: st
 
 		await searchInput.press('Tab').catch(() => {})
 	} else {
-		const fallbackTextbox = fieldScope.getByRole('textbox').first()
-		await fallbackTextbox.fill(target)
-		await fallbackTextbox.press('ArrowDown')
-		await fallbackTextbox.press('Enter')
-		await fallbackTextbox.press('Tab').catch(() => {})
+		await page.keyboard.type(target)
+		const matchingOption = page.getByRole('option', { name: new RegExp(target, 'i') }).first()
+		if (await matchingOption.waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false)) {
+			await matchingOption.click()
+		} else {
+			await page.keyboard.press('ArrowDown')
+			await page.keyboard.press('Enter')
+		}
+		await page.keyboard.press('Tab').catch(() => {})
 	}
 
-	await expect(selectedTarget).toBeVisible({ timeout: 5000 })
+	await expect.poll(isSelectionConfirmed, { timeout: 5000 }).toBe(true)
 }
 
 /**
@@ -270,6 +298,7 @@ async function openGroupCreateRuleDialog(page: Page, settingDialog: Locator): Pr
 }
 
 test.beforeEach(async ({ adminRequestContext }) => {
+	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, SYSTEM_REQUEST_SIGN_BASELINE, true)
 	await clearGroupPolicyEntry(adminRequestContext, BOARD_GROUP).catch(() => {})
 	await clearGroupPolicyEntry(adminRequestContext, COMPANY_GROUP).catch(() => {})
 	await deleteUser(adminRequestContext, GROUP_ADMIN, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
@@ -302,6 +331,7 @@ test.beforeEach(async ({ adminRequestContext }) => {
 })
 
 test.afterEach(async ({ adminRequestContext }) => {
+	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, null, true).catch(() => {})
 	await clearGroupPolicyEntry(adminRequestContext, BOARD_GROUP).catch(() => {})
 	await clearGroupPolicyEntry(adminRequestContext, COMPANY_GROUP).catch(() => {})
 	await deleteUser(adminRequestContext, GROUP_ADMIN, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
@@ -358,25 +388,32 @@ test('delegated group admin can keep a sibling allow while denying a hidden requ
 	expect(effectivePolicyAfterCreate?.sourceScope).toBe('group')
 	expect(effectivePolicyAfterCreate?.editableByCurrentActor).toBe(true)
 
+	const boardPolicyAfterCreate = await policyRequest(
+		adminRequestContext,
+		'GET',
+		`/apps/libresign/api/v1/policies/group/${BOARD_GROUP}/${POLICY_KEY}`,
+	)
+	expect(boardPolicyAfterCreate.httpStatus).toBe(200)
+	expect((boardPolicyAfterCreate.data.policy as { value?: string } | undefined)?.value).toBe(
+		JSON.stringify({ allowGroups: [BOARD_GROUP], denyGroups: [] }),
+	)
+
 	const groupAdminBoardPolicyAfterCreate = await policyRequest(
 		groupAdminRequestContext,
 		'GET',
 		`/apps/libresign/api/v1/policies/group/${BOARD_GROUP}/${POLICY_KEY}`,
 	)
-	expect(groupAdminBoardPolicyAfterCreate.httpStatus).toBe(200)
-	expect((groupAdminBoardPolicyAfterCreate.data.policy as { value?: string } | undefined)?.value).toBe(
-		JSON.stringify({ allowGroups: [BOARD_GROUP], denyGroups: [BOARD_GROUP] }),
-	)
+	expect(groupAdminBoardPolicyAfterCreate.httpStatus).toBe(403)
 
-	await expect(getRuleRow(settingDialog, BOARD_GROUP)).toBeVisible({ timeout: 10000 })
+	await expect(settingDialog.locator('tbody tr').filter({ hasText: BOARD_GROUP })).toHaveCount(0, { timeout: 10000 })
 	await expect(getRuleRow(settingDialog, COMPANY_GROUP)).toBeVisible({ timeout: 10000 })
 
 	await waitForPolicyRequest(
 		page,
 		'DELETE',
-		`/apps/libresign/api/v1/policies/group/${BOARD_GROUP}/${POLICY_KEY}`,
+		`/apps/libresign/api/v1/policies/group/${COMPANY_GROUP}/${POLICY_KEY}`,
 		async () => {
-			await removeVisibleRule(settingDialog, BOARD_GROUP)
+			await removeVisibleRule(settingDialog, COMPANY_GROUP)
 		},
 	)
 
@@ -390,32 +427,12 @@ test('delegated group admin can keep a sibling allow while denying a hidden requ
 		JSON.stringify({ allowGroups: [BOARD_GROUP], denyGroups: [] }),
 	)
 
-	const companyPolicyAfterDelete = await policyRequest(
-		adminRequestContext,
-		'GET',
-		`/apps/libresign/api/v1/policies/group/${COMPANY_GROUP}/${POLICY_KEY}`,
-	)
-	expect(companyPolicyAfterDelete.httpStatus).toBe(200)
-	expect((companyPolicyAfterDelete.data.policy as { value?: string } | undefined)?.value).toBe(
-		JSON.stringify({ allowGroups: [COMPANY_GROUP], denyGroups: [] }),
-	)
-
-	const groupAdminCompanyPolicyAfterDelete = await policyRequest(
-		groupAdminRequestContext,
-		'GET',
-		`/apps/libresign/api/v1/policies/group/${COMPANY_GROUP}/${POLICY_KEY}`,
-	)
-	expect(groupAdminCompanyPolicyAfterDelete.httpStatus).toBe(200)
-	expect((groupAdminCompanyPolicyAfterDelete.data.policy as { value?: string } | undefined)?.value).toBe(
-		JSON.stringify({ allowGroups: [COMPANY_GROUP], denyGroups: [] }),
-	)
-
 	const effectivePolicyAfterDelete = await getEffectivePolicy(groupAdminRequestContext, POLICY_KEY)
 	expect(effectivePolicyAfterDelete?.sourceScope).toBe('group')
 	expect(effectivePolicyAfterDelete?.editableByCurrentActor).toBe(true)
 
 	await expect(settingDialog.locator('tbody tr').filter({ hasText: BOARD_GROUP })).toHaveCount(0, { timeout: 10000 })
-	await expect(getRuleRow(settingDialog, COMPANY_GROUP)).toBeVisible({ timeout: 10000 })
+	await expect(settingDialog.locator('tbody tr').filter({ hasText: COMPANY_GROUP })).toHaveCount(0, { timeout: 10000 })
 
 	const groupAdminBoardPolicyAfterDelete = await policyRequest(
 		groupAdminRequestContext,

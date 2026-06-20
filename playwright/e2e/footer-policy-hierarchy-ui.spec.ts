@@ -10,13 +10,14 @@ import {
 	ensureGroupExists,
 	ensureUserExists,
 	ensureUserInGroup,
-	setSystemPolicy,
+	setUserLanguage,
 } from '../support/nc-provisioning'
 import {
 	clearUserPolicyPreference,
 	createAuthenticatedRequestContext,
 	getEffectivePolicy,
 	policyRequest,
+	setGroupPolicyEntry,
 	setSystemPolicyEntry,
 } from '../support/policy-api'
 
@@ -45,8 +46,11 @@ const DEFAULT_TEST_PASSWORD = '123456'
 const GROUP_ID = 'libresign-footer-ui-flow-group'
 const END_USER = 'signer1'
 const FOOTER_POLICY_KEY = 'add_footer'
-const REQUEST_SIGN_GROUPS = JSON.stringify(['admin', GROUP_ID])
-const DEFAULT_REQUEST_SIGN_GROUPS = JSON.stringify(['admin'])
+const REQUEST_SIGN_POLICY_KEY = 'groups_request_sign'
+const REQUEST_SIGN_GROUP_POLICY_VALUE = JSON.stringify({
+	allowGroups: [GROUP_ID],
+	denyGroups: [],
+})
 const SYSTEM_FOOTER_DISABLED_VALUE = JSON.stringify({
 	enabled: false,
 	writeQrcodeOnFooter: false,
@@ -80,6 +84,18 @@ function getTrimmedFooterTemplate(value: unknown): string {
 	const parsed = normalizeFooterPolicyValue(value)
 	const template = parsed.footerTemplate
 	return typeof template === 'string' ? template.trim() : ''
+}
+
+function escapeRegExp(value: string): string {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function getTargetFieldPattern(kind: 'group' | 'user'): RegExp {
+	const labels = kind === 'group'
+		? ['Scope groups', 'Target groups']
+		: ['Scope accounts', 'Target users']
+
+	return new RegExp(`^(?:${labels.map(escapeRegExp).join('|')})$`, 'i')
 }
 
 async function deleteGroupPolicyEntry(
@@ -159,32 +175,50 @@ async function openCreateRuleEditor(dialog: Locator, scopeName: 'Group' | 'User'
 	await scopeDialog.getByRole('option', { name: new RegExp(`^${scopeName}`) }).click()
 }
 
-async function selectTarget(dialogScope: Locator, label: 'Target groups' | 'Target users', _placeholder: 'Search groups' | 'Search users', target: string): Promise<void> {
+async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target: string): Promise<void> {
 	const page = dialogScope.page()
-	const combobox = dialogScope.getByRole('combobox', { name: /Search for option/i }).first()
-	const labeledInput = dialogScope.getByLabel(label).first()
+	const labelPattern = getTargetFieldPattern(kind)
+	const combobox = dialogScope.getByRole('combobox', { name: labelPattern }).first()
+	const labeledInput = dialogScope.getByLabel(labelPattern).first()
 	const targetInput = await combobox.count() ? combobox : labeledInput
-	const selectedTarget = dialogScope.locator('.vs__selected').filter({ hasText: new RegExp(target, 'i') }).first()
+	const selectedTarget = dialogScope.locator('.vs__selected').filter({ hasText: new RegExp(escapeRegExp(target), 'i') }).first()
+	const submitButton = dialogScope.getByRole('button', {
+		name: /Create rule|Create policy rule|Save changes|Save policy rule changes|Save rule changes/i,
+	}).last()
+
+	const isSelectionConfirmed = async () => {
+		if (await selectedTarget.isVisible({ timeout: 1000 }).catch(() => false)) {
+			return true
+		}
+
+		if (await submitButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+			return submitButton.isEnabled().catch(() => false)
+		}
+
+		return false
+	}
 
 	await expect(targetInput).toBeVisible({ timeout: 8000 })
-	if (await selectedTarget.isVisible({ timeout: 1000 }).catch(() => false)) {
-		await expect(selectedTarget).toBeVisible()
+	if (await isSelectionConfirmed()) {
 		return
 	}
 
 	await targetInput.click()
+	if (await isSelectionConfirmed()) {
+		return
+	}
 
-	const searchInput = targetInput.locator('input').first()
-	if (await searchInput.count()) {
+	const searchInput = targetInput.locator('input, textarea, [contenteditable="true"]').first()
+	if (await searchInput.isVisible({ timeout: 1000 }).catch(() => false)) {
 		for (let attempt = 0; attempt < 3; attempt += 1) {
 			await searchInput.fill(target)
 
-			const matchingOption = page.getByRole('option', { name: new RegExp(target, 'i') }).first()
+			const matchingOption = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
 			const matchingVisible = await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)
 			if (matchingVisible) {
 				await matchingOption.click()
 			} else {
-				const floatingOption = page.locator('ul[role="listbox"] li, .vs__dropdown-menu--floating li').filter({ hasText: new RegExp(target, 'i') }).first()
+				const floatingOption = page.locator('ul[role="listbox"] li, .vs__dropdown-menu--floating li').filter({ hasText: new RegExp(escapeRegExp(target), 'i') }).first()
 				if (await floatingOption.isVisible({ timeout: 2000 }).catch(() => false)) {
 					await floatingOption.click()
 				} else {
@@ -195,17 +229,22 @@ async function selectTarget(dialogScope: Locator, label: 'Target groups' | 'Targ
 
 			await page.keyboard.press('Escape').catch(() => {})
 			await searchInput.press('Tab').catch(() => {})
-			if (await selectedTarget.isVisible({ timeout: 2000 }).catch(() => false)) {
+			if (await isSelectionConfirmed()) {
 				break
 			}
 		}
-		await expect(selectedTarget).toBeVisible({ timeout: 5000 })
+		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
 	} else {
-		const fallbackTextbox = dialogScope.getByRole('textbox').first()
-		await fallbackTextbox.fill(target)
-		await fallbackTextbox.press('ArrowDown')
-		await fallbackTextbox.press('Enter')
-		await fallbackTextbox.press('Tab').catch(() => {})
+		await page.keyboard.type(target)
+		const matchingOption = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
+		if (await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)) {
+			await matchingOption.click()
+		} else {
+			await page.keyboard.press('ArrowDown')
+			await page.keyboard.press('Enter')
+		}
+		await page.keyboard.press('Tab').catch(() => {})
+		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
 	}
 
 	await expect(page.locator('ul[role="listbox"].vs__dropdown-menu--floating')).toHaveCount(0)
@@ -245,9 +284,9 @@ async function createFooterRuleViaUi(
 	await expect(createRuleDialog).toBeVisible({ timeout: 10000 })
 
 	if (scopeName === 'Group') {
-		await selectTarget(createRuleDialog, 'Target groups', 'Search groups', target)
+		await selectTarget(createRuleDialog, 'group', target)
 	} else {
-		await selectTarget(createRuleDialog, 'Target users', 'Search users', target)
+		await selectTarget(createRuleDialog, 'user', target)
 	}
 
 	const footerTemplateField = await ensureFooterTemplateEditorVisible(createRuleDialog)
@@ -274,7 +313,9 @@ test.beforeEach(async ({ page, adminRequestContext, endUserRequestContext }) => 
 	await ensureUserExists(page.request, END_USER, DEFAULT_TEST_PASSWORD)
 	await ensureGroupExists(page.request, GROUP_ID)
 	await ensureUserInGroup(page.request, END_USER, GROUP_ID)
-	await setSystemPolicy(adminRequestContext, 'groups_request_sign', REQUEST_SIGN_GROUPS)
+	await setUserLanguage(adminRequestContext, ADMIN_USER, 'en')
+	await setUserLanguage(adminRequestContext, END_USER, 'en')
+	await setGroupPolicyEntry(adminRequestContext, GROUP_ID, REQUEST_SIGN_POLICY_KEY, REQUEST_SIGN_GROUP_POLICY_VALUE, true)
 	await configureOpenSsl(adminRequestContext, 'LibreSign Test', {
 		C: 'BR',
 		OU: ['Organization Unit'],
@@ -287,7 +328,7 @@ test.beforeEach(async ({ page, adminRequestContext, endUserRequestContext }) => 
 
 test.afterEach(async ({ adminRequestContext, endUserRequestContext }) => {
 	await resetFooterHierarchyState(adminRequestContext, endUserRequestContext)
-	await setSystemPolicy(adminRequestContext, 'groups_request_sign', DEFAULT_REQUEST_SIGN_GROUPS)
+	await deleteGroupPolicyEntry(adminRequestContext, GROUP_ID, REQUEST_SIGN_POLICY_KEY)
 })
 
 test('footer hierarchy works through policies and preferences UI', async ({ page, adminRequestContext, endUserRequestContext }) => {

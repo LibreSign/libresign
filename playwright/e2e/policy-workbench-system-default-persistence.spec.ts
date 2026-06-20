@@ -247,9 +247,12 @@ async function chooseTarget(dialog: Locator, ariaLabel: 'Target groups' | 'Targe
 	const page = dialog.page()
 	const activeDialog = await getActiveRuleDialog(page).catch(() => null)
 	const root = activeDialog ?? dialog
+	const labelPattern = ariaLabel === 'Target groups'
+		? /^(Scope groups|Target groups)$/i
+		: /^(Scope accounts|Target users)$/i
 
-	const combobox = root.getByRole('combobox', { name: ariaLabel }).first()
-	const labeledInput = root.getByLabel(ariaLabel).first()
+	const combobox = root.getByRole('combobox', { name: labelPattern }).first()
+	const labeledInput = root.getByLabel(labelPattern).first()
 	const targetInput = await combobox.count() ? combobox : labeledInput
 	const selectedTarget = root.locator('.vs__selected').filter({ hasText: new RegExp(optionText, 'i') }).first()
 	const submitButton = root.getByRole('button', {
@@ -273,8 +276,8 @@ async function chooseTarget(dialog: Locator, ariaLabel: 'Target groups' | 'Targe
 		return
 	}
 
-	const searchInput = targetInput.locator('input').first()
-	if (await searchInput.count()) {
+	const searchInput = targetInput.locator('input, textarea, [contenteditable="true"]').first()
+	if (await searchInput.isVisible({ timeout: 1000 }).catch(() => false)) {
 		for (let attempt = 0; attempt < 3; attempt += 1) {
 			await searchInput.fill(optionText)
 
@@ -300,11 +303,15 @@ async function chooseTarget(dialog: Locator, ariaLabel: 'Target groups' | 'Targe
 		}
 		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
 	} else {
-		const fallbackTextbox = root.getByRole('textbox').first()
-		await fallbackTextbox.fill(optionText)
-		await fallbackTextbox.press('ArrowDown')
-		await fallbackTextbox.press('Enter')
-		await fallbackTextbox.press('Tab').catch(() => {})
+		await page.keyboard.type(optionText)
+		const matchingOption = page.getByRole('option', { name: new RegExp(optionText, 'i') }).first()
+		if (await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)) {
+			await matchingOption.click()
+		} else {
+			await page.keyboard.press('ArrowDown')
+			await page.keyboard.press('Enter')
+		}
+		await page.keyboard.press('Tab').catch(() => {})
 		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
 	}
 }
@@ -401,8 +408,8 @@ test('admin can manage instance, group, and user rules when system default is fi
 
 	// User rule: create
 	await userScopeOption.click()
-	const targetUsersCombobox = stableDialog.page().getByRole('combobox', { name: 'Target users' }).first()
-	const targetUsersLabel = stableDialog.page().getByLabel('Target users').first()
+	const targetUsersCombobox = stableDialog.page().getByRole('combobox', { name: /^(Scope accounts|Target users)$/i }).first()
+	const targetUsersLabel = stableDialog.page().getByLabel(/^(Scope accounts|Target users)$/i).first()
 	const hasTargetUsersSelector = await targetUsersCombobox.isVisible({ timeout: 2000 }).catch(() => false)
 			|| await targetUsersLabel.isVisible({ timeout: 2000 }).catch(() => false)
 	if (!hasTargetUsersSelector) {
