@@ -35,7 +35,7 @@ class JavaHelper {
 
 	private function initializeUtf8Locale(): void {
 		$originalLang = getenv('LANG');
-		$originalLocale = setlocale(LC_CTYPE, 0);
+		$originalLocale = setlocale(LC_CTYPE, '0');
 		$attemptedLocales = $this->getUtf8LocaleCandidates();
 
 		foreach ($attemptedLocales as $locale) {
@@ -104,7 +104,7 @@ class JavaHelper {
 		if (function_exists('escapeshellarg')) {
 			return escapeshellarg('§') === '\'\'';
 		}
-		return preg_match('/utf-?8/i', setlocale(LC_CTYPE, 0)) === 0;
+		return preg_match('/utf-?8/i', setlocale(LC_CTYPE, '0')) === 0;
 	}
 
 	/**
