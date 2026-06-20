@@ -55,6 +55,7 @@ OC.L10N.register(
     "Underline" : "下線",
     "Undo" : "元に戻す",
     "Redo" : "やり直し",
+    "{currentPage} of {totalPages}" : "{totalPages}の{currentPage}",
     "Duplicate" : "複製",
     "Loading …" : "読み込み中…",
     "Name" : "名前",
