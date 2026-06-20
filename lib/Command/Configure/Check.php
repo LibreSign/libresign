@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Command\Configure;
 
 use OC\Core\Command\Base;
+use OCA\Libresign\Service\SetupCheck\ConfigureCheckResult;
 use OCA\Libresign\Service\SetupCheckResultService;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableCell;
@@ -50,14 +51,14 @@ class Check extends Base {
 
 		$allChecks = $this->setupCheckResultService->getFormattedChecks();
 
-		$filteredRows = array_filter($allChecks, function ($check) use ($all, $sign, $certificate) {
+		$filteredRows = array_filter($allChecks, function (ConfigureCheckResult $check) use ($all, $sign, $certificate) {
 			if ($all) {
 				return true;
 			}
-			if ($sign && $check['category'] === 'system') {
+			if ($sign && $check->getCategory() === 'system') {
 				return true;
 			}
-			if ($certificate && $check['category'] === 'security') {
+			if ($certificate && $check->getCategory() === 'security') {
 				return true;
 			}
 			return false;
@@ -68,14 +69,14 @@ class Check extends Base {
 			$table->setColumnMaxWidth(3, 40);
 			foreach ($filteredRows as $row) {
 				$table->addRow([
-					new TableCell($row['status'], ['style' => new TableCellStyle([
-						'bg' => $this->getStatusColor($row['status']),
+					new TableCell($row->getStatus(), ['style' => new TableCellStyle([
+						'bg' => $this->getStatusColor($row->getStatus()),
 						'fg' => 'black',
 						'align' => 'center',
 					])]),
-					$row['resource'],
-					$row['message'],
-					$row['tip'],
+					$row->getResource(),
+					$row->getMessage(),
+					$row->getTip(),
 				]);
 			}
 			$table
