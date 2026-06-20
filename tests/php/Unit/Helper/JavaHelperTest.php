@@ -25,7 +25,7 @@ class JavaHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function setUp(): void {
 		parent::setUp();
 		$this->originalLang = getenv('LANG');
-		$this->originalLocale = setlocale(LC_CTYPE, 0);
+		$this->originalLocale = setlocale(LC_CTYPE, '0');
 
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->l10n = $this->createMock(IL10N::class);

@@ -471,7 +471,10 @@ class ProgressService {
 			->getByEnvelopeChildrenAndIdentifyMethod($envelope->getId(), $signRequest->getId());
 		$childSignRequestsByFileId = [];
 		foreach ($childSignRequests as $childSignRequest) {
-			$childSignRequestsByFileId[$childSignRequest->getFileId()] = $childSignRequest;
+			$fileId = $childSignRequest->getFileId();
+			if ($fileId !== null) {
+				$childSignRequestsByFileId[$fileId] = $childSignRequest;
+			}
 		}
 
 		$files = array_map(function (FileEntity $child) use ($signRequest, $childSignRequestsByFileId): array {
