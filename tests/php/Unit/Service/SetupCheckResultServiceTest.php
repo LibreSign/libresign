@@ -72,12 +72,12 @@ class SetupCheckResultServiceTest extends TestCase {
 
 		$this->assertCount($expectedCount, $result);
 		if ($expectedCount > 0) {
-			$this->assertEquals($expectedFirstResource, $result[0]['resource']);
-			$this->assertArrayHasKey('category', $result[0]);
+			$this->assertEquals($expectedFirstResource, $result[0]->getResource());
+			$this->assertNotSame('', $result[0]->getCategory());
 		}
 	}
 
-	public function testGetLegacyFormattedChecksRemovesCategory(): void {
+	public function testJsonSerializeOmitsCategory(): void {
 		$checkData = [
 			'system' => [
 				'OCA\\Libresign\\SetupCheck\\JavaSetupCheck' => [
@@ -90,15 +90,14 @@ class SetupCheckResultServiceTest extends TestCase {
 		$checks = $this->buildCheckResults($checkData);
 		$this->checkManager->method('runAll')->willReturn($checks);
 
-		$formatted = $this->service->getFormattedChecks();
-		$legacyFormatted = $this->service->getLegacyFormattedChecks();
+		$result = $this->service->getFormattedChecks();
 
-		$this->assertCount(1, $legacyFormatted);
-		$this->assertArrayNotHasKey('category', $legacyFormatted[0]);
-		$this->assertEquals('info', $legacyFormatted[0]['status']);
-		$expected = $formatted[0];
-		unset($expected['category']);
-		$this->assertEquals($expected, $legacyFormatted[0]);
+		$this->assertCount(1, $result);
+		$this->assertSame('system', $result[0]->getCategory());
+
+		$serialized = $result[0]->jsonSerialize();
+		$this->assertSame(['status', 'resource', 'message', 'tip'], array_keys($serialized));
+		$this->assertSame('info', $serialized['status']);
 	}
 
 	/**
@@ -119,7 +118,7 @@ class SetupCheckResultServiceTest extends TestCase {
 
 		$result = $this->service->getFormattedChecks();
 
-		$this->assertEquals($expectedStatus, $result[0]['status']);
+		$this->assertEquals($expectedStatus, $result[0]->getStatus());
 	}
 
 	public static function providerSeverityMapping(): array {
