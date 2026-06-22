@@ -61,6 +61,9 @@ export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 	key: 'signature_stamp',
 	title: signatureStampTextTitle,
 	description: signatureStampTextDescription,
+	groupAdminBehavior: {
+		allowGroupRuleCreationFromDescendantDelegation: true,
+	},
 	editor: SignatureTextRuleEditor,
 	editorProps: {},
 	resolveEditorProps: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => {
