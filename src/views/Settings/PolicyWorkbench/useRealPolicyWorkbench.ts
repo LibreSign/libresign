@@ -578,8 +578,12 @@ export function createRealPolicyWorkbenchState() {
 		return groups.value.length
 	})
 
-	const canCreateIdentifyMethodsGroupOverride = computed(() => {
-		if (isInstanceAdmin || activeDefinition.value?.key !== 'identify_methods') {
+	const canCreateDelegatedGroupRuleFromDescendantDelegation = computed(() => {
+		if (isInstanceAdmin) {
+			return false
+		}
+
+		if (!activeDefinition.value?.groupAdminBehavior?.allowGroupRuleCreationFromDescendantDelegation) {
 			return false
 		}
 
@@ -661,7 +665,7 @@ export function createRealPolicyWorkbenchState() {
 			return t('libresign', 'Blocked by the global default.')
 		}
 
-		if (activePolicyState.value?.editableByCurrentActor === false && !canCreateIdentifyMethodsGroupOverride.value) {
+		if (activePolicyState.value?.editableByCurrentActor === false && !canCreateDelegatedGroupRuleFromDescendantDelegation.value) {
 			return t('libresign', 'Blocked by the global default.')
 		}
 
