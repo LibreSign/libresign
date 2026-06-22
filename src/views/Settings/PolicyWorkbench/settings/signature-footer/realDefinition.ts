@@ -60,6 +60,9 @@ export const signatureFooterRealDefinition: RealPolicySettingDefinition = {
 	key: 'add_footer',
 	title: signatureFooterTitle,
 	description: signatureFooterDescription,
+	groupAdminBehavior: {
+		allowGroupRuleCreationFromDescendantDelegation: true,
+	},
 	editor: SignatureFooterRuleEditor,
 	editorProps: {
 		inheritedTemplate: '',
