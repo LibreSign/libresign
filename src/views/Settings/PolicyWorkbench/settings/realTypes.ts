@@ -15,6 +15,7 @@ export interface RealPolicyGroupAdminBehavior {
 	canRenderPolicy?: (policy: GroupAdminRenderablePolicyState) => boolean
 	hideNonRemovableGroupRules?: (policy: GroupAdminRenderablePolicyState) => boolean
 	preferHydratedVisibleGroupCount?: boolean
+	allowGroupRuleCreationFromDescendantDelegation?: boolean
 }
 
 export type RealPolicySettingCategory =
