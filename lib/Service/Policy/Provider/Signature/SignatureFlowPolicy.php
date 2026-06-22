@@ -11,6 +11,8 @@ namespace OCA\Libresign\Service\Policy\Provider\Signature;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 
 final class SignatureFlowPolicy implements IPolicyDefinitionProvider {
@@ -43,10 +45,87 @@ final class SignatureFlowPolicy implements IPolicyDefinitionProvider {
 					return $rawValue;
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
+				groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
+					$actorRole = $context->getActorRole();
+					if ($actorRole->canManageSystemPolicies) {
+						return true;
+					}
+
+					if (!$actorRole->canManageGroupPolicies) {
+						return false;
+					}
+
+					if ($actorRole->manageableGroupCount < 1) {
+						return false;
+					}
+
+					return self::hasExplicitGlobalDelegation($systemPolicy)
+						|| self::hasSystemCreatedGroupDelegation($groupLayers);
+				},
+				systemCreatedGroupRuleEditor: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, PolicyLayer $existingPolicy): bool {
+					$actorRole = $context->getActorRole();
+					if ($actorRole->canManageSystemPolicies) {
+						return true;
+					}
+
+					if (!$actorRole->canManageGroupPolicies) {
+						return false;
+					}
+
+					if (!$existingPolicy->isVisibleToChild() || !$existingPolicy->isAllowChildOverride() || $existingPolicy->getValue() === null) {
+						return false;
+					}
+
+					if (self::hasExplicitGlobalDelegation($systemPolicy)) {
+						return true;
+					}
+
+					return self::wasCreatedBySystemAdmin($existingPolicy);
+				},
+				supportsGroupAdminDelegation: true,
 				resolutionMode: PolicySpec::RESOLUTION_MODE_VALUE_CHOICE,
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
 		};
+	}
+
+	private static function hasExplicitGlobalDelegation(?PolicyLayer $systemPolicy): bool {
+		return $systemPolicy instanceof PolicyLayer
+			&& $systemPolicy->getScope() === 'global'
+			&& $systemPolicy->isVisibleToChild()
+			&& $systemPolicy->isAllowChildOverride()
+			&& $systemPolicy->getValue() !== null;
+	}
+
+	/** @param array<array-key, PolicyLayer> $groupLayers */
+	private static function hasSystemCreatedGroupDelegation(array $groupLayers): bool {
+		foreach ($groupLayers as $groupLayer) {
+			if (!$groupLayer instanceof PolicyLayer) {
+				continue;
+			}
+
+			if (!$groupLayer->isVisibleToChild() || $groupLayer->getValue() === null) {
+				continue;
+			}
+
+			if (self::isDelegatedFromSystemCreatedSeed($groupLayer)) {
+				return true;
+			}
+
+			if ($groupLayer->isAllowChildOverride() && self::wasCreatedBySystemAdmin($groupLayer)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static function isDelegatedFromSystemCreatedSeed(PolicyLayer $policy): bool {
+		return $policy->isDelegatedFromSystemCreatedSeed();
+	}
+
+	private static function wasCreatedBySystemAdmin(PolicyLayer $policy): bool {
+		return $policy->isCreatedBySystemAdmin();
 	}
 
 	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {
