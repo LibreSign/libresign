@@ -18,6 +18,9 @@ export const signatureFlowRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'Signing order'),
 	// TRANSLATORS Policy description shown under "Signing order". It explains that the rule decides between sequential signing and concurrent signing.
 	description: t('libresign', 'Choose whether documents are signed in order or all at once.'),
+	groupAdminBehavior: {
+		allowGroupRuleCreationFromDescendantDelegation: true,
+	},
 	editor: SignatureFlowScalarRuleEditor,
 	resolutionMode: 'precedence',
 	createEmptyValue: () => '' as unknown as EffectivePolicyValue,
