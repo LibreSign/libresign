@@ -25,6 +25,7 @@ describe('useCatalogCrudTable', () => {
 			state: {
 				inheritedSystemRule: null,
 				hasGlobalDefault: false,
+				viewMode: 'group-admin',
 				visibleGroupRules: [
 					{ id: 'group-finance', targetId: 'finance', value: 'parallel', canRemove: false },
 				],
