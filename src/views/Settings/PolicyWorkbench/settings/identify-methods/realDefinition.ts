@@ -67,6 +67,9 @@ export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'Identification factors'),
 	description: t('libresign', 'Ways to identify a person who will sign a document.'),
 	supportedScopes: ['system', 'group', 'user'],
+	groupAdminBehavior: {
+		allowGroupRuleCreationFromDescendantDelegation: true,
+	},
 	editor: IdentifyMethodsRuleEditor,
 	resolutionMode: 'precedence',
 	createEmptyValue: () => getInitialIdentifyMethods(),
