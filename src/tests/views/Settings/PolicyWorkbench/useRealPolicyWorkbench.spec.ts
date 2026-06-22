@@ -2502,6 +2502,78 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.editorDraft?.scope).toBe('group')
 	})
 
+	it('allows group-admin to create signature_flow group rules when managing multiple groups', async () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['board', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_flow') {
+				return {
+					effectiveValue: 'ordered_numeric',
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+				}
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+		state.openSetting('signature_flow')
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(state.createGroupOverrideDisabledReason).toBeNull()
+
+		state.startEditor({ scope: 'group' })
+
+		expect(state.editorDraft?.scope).toBe('group')
+	})
+
+	it('allows group-admin to create signature_stamp group rules when managing multiple groups', async () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['board', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_stamp') {
+				return {
+					effectiveValue: '{"template":"Signed with LibreSign","template_font_size":9.8,"signature_font_size":20,"signature_width":350,"signature_height":100,"background_type":"default","render_mode":"default"}',
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+				}
+			}
+
+			if (key === 'collect_metadata') {
+				return { effectiveValue: false, sourceScope: 'system' }
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+		state.openSetting('signature_stamp')
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(state.createGroupOverrideDisabledReason).toBeNull()
+
+		state.startEditor({ scope: 'group' })
+
+		expect(state.editorDraft?.scope).toBe('group')
+	})
+
 	it('keeps identify_methods system create draft populated when baseline policy value is empty', async () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'identify_methods') {
