@@ -748,6 +748,92 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(createScopeText).not.toContain('Everyone')
 	})
 
+	it('shows the group option for signing order when group admin manages multiple groups', async () => {
+		currentUserState.isAdmin = false
+		configState.can_manage_group_policies = true
+		configState.manageable_policy_group_ids = ['board', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_flow') {
+				return {
+					effectiveValue: 'ordered_numeric',
+					sourceScope: 'group',
+					editableByCurrentActor: false,
+					canSaveAsUserDefault: true,
+				}
+			}
+
+			return null
+		})
+
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		await vi.waitFor(() => {
+			expect(findCreateRuleButton(wrapper).exists()).toBe(true)
+		})
+
+		await findCreateRuleButton(wrapper).trigger('click')
+
+		await vi.waitFor(() => {
+			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		})
+
+		const createScopeText = wrapper.find('.policy-workbench__create-scope-dialog').text()
+		expect(createScopeText).toContain('Account')
+		expect(createScopeText).toContain('Group')
+		expect(createScopeText).not.toContain('Everyone')
+	})
+
+	it('shows the group option for signature stamp text when group admin manages multiple groups', async () => {
+		currentUserState.isAdmin = false
+		configState.can_manage_group_policies = true
+		configState.manageable_policy_group_ids = ['board', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_stamp') {
+				return {
+					effectiveValue: '{"template":"Signed with LibreSign","template_font_size":9.8,"signature_font_size":20,"signature_width":350,"signature_height":100,"background_type":"default","render_mode":"default"}',
+					sourceScope: 'group',
+					editableByCurrentActor: false,
+					canSaveAsUserDefault: true,
+				}
+			}
+
+			if (key === 'collect_metadata') {
+				return { effectiveValue: false, sourceScope: 'system' }
+			}
+
+			if (key === 'signature_flow') {
+				return { effectiveValue: 'ordered_numeric' }
+			}
+
+			return null
+		})
+
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signature stamp text')
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		await vi.waitFor(() => {
+			expect(findCreateRuleButton(wrapper).exists()).toBe(true)
+		})
+
+		await findCreateRuleButton(wrapper).trigger('click')
+
+		await vi.waitFor(() => {
+			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		})
+
+		const createScopeText = wrapper.find('.policy-workbench__create-scope-dialog').text()
+		expect(createScopeText).toContain('Account')
+		expect(createScopeText).toContain('Group')
+		expect(createScopeText).not.toContain('Everyone')
+	})
+
 	it('shows allow-lower-level-customization toggle for request access by group', async () => {
 		const wrapper = mountWorkbench()
 
