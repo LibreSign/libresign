@@ -121,7 +121,7 @@ class JavaSetupCheck implements ISetupCheck {
 
 		if (!str_contains($encoding, 'UTF-8')) {
 			$detectedEncoding = trim($encoding);
-			$phpLocale = setlocale(LC_CTYPE, 0) ?: 'not set';
+			$phpLocale = setlocale(LC_CTYPE, '0') ?: 'not set';
 			$phpLcAll = getenv('LC_ALL') ?: 'not set';
 			$phpLang = getenv('LANG') ?: 'not set';
 
