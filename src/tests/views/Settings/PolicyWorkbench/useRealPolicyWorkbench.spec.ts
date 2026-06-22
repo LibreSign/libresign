@@ -2468,6 +2468,40 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.editorDraft?.scope).toBe('group')
 	})
 
+	it('allows group-admin to create add_footer group rules when managing multiple groups', async () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['board', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'add_footer') {
+				return {
+					effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":false,"footerTemplate":"","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+				}
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+		state.openSetting('add_footer')
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(state.createGroupOverrideDisabledReason).toBeNull()
+
+		state.startEditor({ scope: 'group' })
+
+		expect(state.editorDraft?.scope).toBe('group')
+	})
+
 	it('keeps identify_methods system create draft populated when baseline policy value is empty', async () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'identify_methods') {
