@@ -734,6 +734,60 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(editorModal.text()).toContain('Allow lower-level customization')
 	})
 
+	it('does not render the system default request-access row for group-admins', async () => {
+		currentUserState.isAdmin = false
+		configState.can_manage_group_policies = true
+		configState.manageable_policy_group_ids = ['board']
+
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'groups_request_sign') {
+				return {
+					effectiveValue: '{"allowGroups":["board"],"denyGroups":[]}',
+					sourceScope: 'global',
+					editableByCurrentActor: true,
+					canSaveAsUserDefault: false,
+					visible: true,
+					allowedValues: [],
+					blockedBy: null,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+					groupCount: 0,
+					userCount: 0,
+					everyoneCount: 1,
+				}
+			}
+
+			if (key === 'signature_flow') {
+				return { effectiveValue: 'ordered_numeric' }
+			}
+
+			return null
+		})
+
+		fetchSystemPolicy.mockResolvedValue({
+			policyKey: 'groups_request_sign',
+			scope: 'global',
+			value: '{"allowGroups":["board"],"denyGroups":[]}',
+			allowChildOverride: true,
+			visibleToChild: true,
+			allowedValues: [],
+		})
+
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signature request access')
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		await vi.waitFor(() => {
+			expect(fetchSystemPolicy).toHaveBeenCalledWith('groups_request_sign')
+		})
+
+		expect(wrapper.text()).not.toContain('Default (everyone)')
+		expect(wrapper.findAll('button[aria-label="Rule actions"]')).toHaveLength(0)
+		expect(wrapper.find('.policy-workbench__table').exists()).toBe(false)
+	})
+
 	it('shows signing order with sophisticated visual interface: filter, toggle, counts, and scopes', async () => {
 		const wrapper = mountWorkbench()
 		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
