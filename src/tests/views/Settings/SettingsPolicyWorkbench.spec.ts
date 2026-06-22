@@ -705,6 +705,49 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(wrapper.text()).toContain('Inherited template:')
 	})
 
+	it('shows the group option for signature footer when group admin manages multiple groups', async () => {
+		currentUserState.isAdmin = false
+		configState.can_manage_group_policies = true
+		configState.manageable_policy_group_ids = ['board', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'add_footer') {
+				return {
+					effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":false,"footerTemplate":"","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+					sourceScope: 'group',
+					editableByCurrentActor: false,
+					canSaveAsUserDefault: true,
+				}
+			}
+
+			if (key === 'signature_flow') {
+				return { effectiveValue: 'ordered_numeric' }
+			}
+
+			return null
+		})
+
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signature footer')
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		await vi.waitFor(() => {
+			expect(findCreateRuleButton(wrapper).exists()).toBe(true)
+		})
+
+		await findCreateRuleButton(wrapper).trigger('click')
+
+		await vi.waitFor(() => {
+			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		})
+
+		const createScopeText = wrapper.find('.policy-workbench__create-scope-dialog').text()
+		expect(createScopeText).toContain('Account')
+		expect(createScopeText).toContain('Group')
+		expect(createScopeText).not.toContain('Everyone')
+	})
+
 	it('shows allow-lower-level-customization toggle for request access by group', async () => {
 		const wrapper = mountWorkbench()
 
