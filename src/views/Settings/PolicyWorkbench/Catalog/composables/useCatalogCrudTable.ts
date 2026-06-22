@@ -4,6 +4,7 @@
  */
 
 import { computed, nextTick, ref, watch } from 'vue'
+
 import { t } from '@nextcloud/l10n'
 
 type CrudScope = 'system' | 'group' | 'user'
@@ -27,6 +28,7 @@ type PolicyRuleLike = {
 type CatalogStateLike = {
 	inheritedSystemRule: { id: string } | null,
 	hasGlobalDefault: boolean,
+	viewMode: 'system-admin' | 'group-admin',
 	summary?: { currentBaseValue?: string } | null,
 	visibleGroupRules: PolicyRuleLike[],
 	visibleUserRules: PolicyRuleLike[],
@@ -35,10 +37,10 @@ type CatalogStateLike = {
 
 const CRUD_PAGE_SIZE = 20
 
-export function useCatalogCrudTable(options: {
+export const useCatalogCrudTable = (options: {
 	state: CatalogStateLike,
 	summarizeRuleValue: (value: unknown) => string,
-}) {
+}) => {
 	const crudSearch = ref('')
 	const crudScopeFilter = ref<'all' | CrudScope>('all')
 	const visibleCrudCount = ref(CRUD_PAGE_SIZE)
@@ -46,7 +48,7 @@ export function useCatalogCrudTable(options: {
 	const selectedCrudRuleIds = ref<Set<string>>(new Set())
 	const scopeFilterOpen = ref(false)
 
-	function crudScopeLabel(scope: CrudScope) {
+	const crudScopeLabel = (scope: CrudScope) => {
 		if (scope === 'system') {
 			return t('libresign', 'Everyone')
 		}
@@ -61,7 +63,7 @@ export function useCatalogCrudTable(options: {
 	const filteredCrudRows = computed<CrudRow[]>(() => {
 		const rows: CrudRow[] = []
 		const systemRule = options.state.inheritedSystemRule
-		if (systemRule && options.state.hasGlobalDefault) {
+		if (systemRule && options.state.hasGlobalDefault && options.state.viewMode === 'system-admin') {
 			rows.push({
 				key: systemRule.id,
 				ruleId: systemRule.id,
@@ -144,13 +146,13 @@ export function useCatalogCrudTable(options: {
 		})
 	})
 
-	function onCrudSearchChange(value: string | number) {
+	const onCrudSearchChange = (value: string | number) => {
 		crudSearch.value = String(value ?? '')
 		visibleCrudCount.value = CRUD_PAGE_SIZE
 		selectedCrudRuleIds.value = new Set()
 	}
 
-	function setCrudScopeFilter(value: 'all' | CrudScope, selected: boolean) {
+	const setCrudScopeFilter = (value: 'all' | CrudScope, selected: boolean) => {
 		if (!selected) {
 			return
 		}
@@ -161,15 +163,15 @@ export function useCatalogCrudTable(options: {
 		scopeFilterOpen.value = false
 	}
 
-	function clearCrudSelection() {
+	const clearCrudSelection = () => {
 		selectedCrudRuleIds.value = new Set()
 	}
 
-	function isCrudRowSelected(ruleId: string) {
+	const isCrudRowSelected = (ruleId: string) => {
 		return selectedCrudRuleIds.value.has(ruleId)
 	}
 
-	function toggleCrudRowSelection(ruleId: string, selected: boolean) {
+	const toggleCrudRowSelection = (ruleId: string, selected: boolean) => {
 		const row = filteredCrudRows.value.find((candidate) => (candidate.ruleId ?? candidate.key) === ruleId)
 		if (!row?.canRemove) {
 			return
@@ -184,7 +186,7 @@ export function useCatalogCrudTable(options: {
 		selectedCrudRuleIds.value = nextSelection
 	}
 
-	function toggleVisibleCrudRowsSelection(selected: boolean) {
+	const toggleVisibleCrudRowsSelection = (selected: boolean) => {
 		const nextSelection = new Set(selectedCrudRuleIds.value)
 		for (const row of displayedCrudRows.value) {
 			if (!row.canRemove) {
@@ -201,7 +203,7 @@ export function useCatalogCrudTable(options: {
 		selectedCrudRuleIds.value = nextSelection
 	}
 
-	async function loadMoreCrudRows() {
+	const loadMoreCrudRows = async () => {
 		if (loadingMoreCrudRows.value || !hasMoreCrudRows.value) {
 			return
 		}
