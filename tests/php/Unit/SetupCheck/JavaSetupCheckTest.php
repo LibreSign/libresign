@@ -24,7 +24,6 @@ namespace OCA\Libresign\Tests\Unit\SetupCheck;
 
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\Install\InstallService;
-
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCA\Libresign\SetupCheck\JavaSetupCheck;
 use OCA\Libresign\Tests\Mock\ExecMock;

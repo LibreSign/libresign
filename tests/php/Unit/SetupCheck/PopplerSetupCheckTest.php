@@ -17,9 +17,7 @@ if (!function_exists('OCA\Libresign\SetupCheck\exec')) {
 namespace OCA\Libresign\Tests\Unit\SetupCheck;
 
 use OCA\Libresign\SetupCheck\PopplerSetupCheck;
-
 use OCA\Libresign\Tests\Mock\ExecMock;
-
 use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
