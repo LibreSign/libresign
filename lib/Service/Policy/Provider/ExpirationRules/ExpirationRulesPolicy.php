@@ -10,6 +10,8 @@ namespace OCA\Libresign\Service\Policy\Provider\ExpirationRules;
 
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 
 final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
@@ -35,19 +37,13 @@ final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
 		$normalizedKey = $this->normalizePolicyKey($policyKey);
 
 		return match ($normalizedKey) {
-			self::KEY_MAXIMUM_VALIDITY => new PolicySpec(
-				key: self::KEY_MAXIMUM_VALIDITY,
-				defaultSystemValue: self::DEFAULT_MAXIMUM_VALIDITY,
-				allowedValues: [],
-				normalizer: static fn (mixed $rawValue): int => self::normalizeNonNegativeInt($rawValue, self::DEFAULT_MAXIMUM_VALIDITY),
-				appConfigKey: self::KEY_MAXIMUM_VALIDITY,
+			self::KEY_MAXIMUM_VALIDITY => $this->buildDelegableNonNegativeIntPolicy(
+				self::KEY_MAXIMUM_VALIDITY,
+				self::DEFAULT_MAXIMUM_VALIDITY,
 			),
-			self::KEY_RENEWAL_INTERVAL => new PolicySpec(
-				key: self::KEY_RENEWAL_INTERVAL,
-				defaultSystemValue: self::DEFAULT_RENEWAL_INTERVAL,
-				allowedValues: [],
-				normalizer: static fn (mixed $rawValue): int => self::normalizeNonNegativeInt($rawValue, self::DEFAULT_RENEWAL_INTERVAL),
-				appConfigKey: self::KEY_RENEWAL_INTERVAL,
+			self::KEY_RENEWAL_INTERVAL => $this->buildDelegableNonNegativeIntPolicy(
+				self::KEY_RENEWAL_INTERVAL,
+				self::DEFAULT_RENEWAL_INTERVAL,
 			),
 			self::KEY_EXPIRY_IN_DAYS => new PolicySpec(
 				key: self::KEY_EXPIRY_IN_DAYS,
@@ -58,6 +54,55 @@ final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $normalizedKey),
 		};
+	}
+
+	private function buildDelegableNonNegativeIntPolicy(string $key, int $defaultValue): PolicySpec {
+		return new PolicySpec(
+			key: $key,
+			defaultSystemValue: $defaultValue,
+			allowedValues: [],
+			normalizer: static fn (mixed $rawValue): int => self::normalizeNonNegativeInt($rawValue, $defaultValue),
+			appConfigKey: $key,
+			supportsUserPreference: false,
+			groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
+				$actorRole = $context->getActorRole();
+				if ($actorRole->canManageSystemPolicies) {
+					return true;
+				}
+
+				if (!$actorRole->canManageGroupPolicies) {
+					return false;
+				}
+
+				if ($actorRole->manageableGroupCount < 1) {
+					return false;
+				}
+
+				return self::hasExplicitGlobalDelegation($systemPolicy)
+					|| self::hasSystemCreatedGroupDelegation($groupLayers);
+			},
+			systemCreatedGroupRuleEditor: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, PolicyLayer $existingPolicy): bool {
+				$actorRole = $context->getActorRole();
+				if ($actorRole->canManageSystemPolicies) {
+					return true;
+				}
+
+				if (!$actorRole->canManageGroupPolicies) {
+					return false;
+				}
+
+				if (!$existingPolicy->isVisibleToChild() || !$existingPolicy->isAllowChildOverride() || $existingPolicy->getValue() === null) {
+					return false;
+				}
+
+				if (self::hasExplicitGlobalDelegation($systemPolicy)) {
+					return true;
+				}
+
+				return self::wasCreatedBySystemAdmin($existingPolicy);
+			},
+			supportsGroupAdminDelegation: true,
+		);
 	}
 
 	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {
@@ -105,5 +150,44 @@ final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
 		}
 
 		return null;
+	}
+
+	private static function hasExplicitGlobalDelegation(?PolicyLayer $systemPolicy): bool {
+		return $systemPolicy instanceof PolicyLayer
+			&& $systemPolicy->getScope() === 'global'
+			&& $systemPolicy->isVisibleToChild()
+			&& $systemPolicy->isAllowChildOverride()
+			&& $systemPolicy->getValue() !== null;
+	}
+
+	/** @param array<array-key, PolicyLayer> $groupLayers */
+	private static function hasSystemCreatedGroupDelegation(array $groupLayers): bool {
+		foreach ($groupLayers as $groupLayer) {
+			if (!$groupLayer instanceof PolicyLayer) {
+				continue;
+			}
+
+			if (!$groupLayer->isVisibleToChild() || $groupLayer->getValue() === null) {
+				continue;
+			}
+
+			if (self::isDelegatedFromSystemCreatedSeed($groupLayer)) {
+				return true;
+			}
+
+			if ($groupLayer->isAllowChildOverride() && self::wasCreatedBySystemAdmin($groupLayer)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static function isDelegatedFromSystemCreatedSeed(PolicyLayer $policy): bool {
+		return $policy->isDelegatedFromSystemCreatedSeed();
+	}
+
+	private static function wasCreatedBySystemAdmin(PolicyLayer $policy): bool {
+		return $policy->isCreatedBySystemAdmin();
 	}
 }
