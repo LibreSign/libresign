@@ -684,21 +684,30 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->fileService->setSignRequest($signRequest);
 		}
 
+		$fileInfo = $this->fileService
+			->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
+			->setHost($this->request->getServerHost())
+			->showVisibleElements()
+			->showSigners()
+			->showSettings()
+			->showMessages()
+			->showValidateFile()
+			->toArray();
+
+		$requesterUserId = null;
+		$requestedBy = $fileInfo['requested_by'] ?? null;
+		if (is_array($requestedBy) && is_string($requestedBy['userId'] ?? null)) {
+			$requestedByUserId = trim($requestedBy['userId']);
+			$requesterUserId = $requestedByUserId !== '' ? $requestedByUserId : null;
+		}
+
 		$this->initialState->provideInitialState('effective_policies', [
-			'policies' => $this->policyService->resolveKnownPolicyStates(),
+			'policies' => $requesterUserId !== null
+				? $this->policyService->resolveKnownPolicyStatesForUserId($requesterUserId)
+				: $this->policyService->resolveKnownPolicyStates(),
 		]);
 
-		$this->initialState->provideInitialState('file_info',
-			$this->fileService
-				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
-				->setHost($this->request->getServerHost())
-				->showVisibleElements()
-				->showSigners()
-				->showSettings()
-				->showMessages()
-				->showValidateFile()
-				->toArray()
-		);
+		$this->initialState->provideInitialState('file_info', $fileInfo);
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
 		if (class_exists(LoadViewer::class)) {
