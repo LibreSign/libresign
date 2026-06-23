@@ -61,12 +61,7 @@ export function canRenderWorkbenchPolicyForGroupAdmin(
 export function canRenderPersonalPreferencePolicy(
 	policyKey: string,
 	policy: EffectivePolicyState | null | undefined,
-	canRequestSign: boolean,
 ): boolean {
-	if (!canRequestSign) {
-		return false
-	}
-
 	if (!PREFERENCE_SUPPORTED_POLICY_KEYS.has(policyKey)) {
 		return false
 	}
