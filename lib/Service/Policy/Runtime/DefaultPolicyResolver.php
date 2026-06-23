@@ -45,8 +45,7 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		$policyKey = $definition->key();
 		$resolved = (new ResolvedPolicy())
 			->setPolicyKey($policyKey)
-			->setAllowedValues($definition->allowedValues($context))
-			->setMeta($definition->resolvedStateMeta($context));
+			->setAllowedValues($definition->allowedValues($context));
 
 		$systemLayer = $this->source->loadSystemPolicy($policyKey);
 
@@ -55,11 +54,12 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		$currentBlockedBy = null;
 		$canOverrideBelow = false;
 		$visible = true;
-		$currentActorCanManageSystemPolicies = $context->getActorRole()->canManageSystemPolicies;
-		// Personal preferences are closed by default for implicit system defaults,
-		// but should remain available when a managed group layer is configured and
-		// the hierarchy still allows the user-level override.
-		$isSystemExplicitlyGrantedForUserPreference = $systemLayer !== null
+		$actorRole = $context->getActorRole();
+		$currentActorCanManageSystemPolicies = $actorRole->canManageSystemPolicies;
+		$currentActorCanManageGroupPolicies = $actorRole->canManageGroupPolicies && $actorRole->manageableGroupCount > 0;
+		// Lower-level rule creation is closed by default for implicit system defaults,
+		// but remains available when the system explicitly delegates downward.
+		$isSystemExplicitlyGrantedForDescendantRules = $systemLayer !== null
 			&& $systemLayer->getScope() === 'global'
 			&& $systemLayer->isAllowChildOverride();
 
@@ -123,7 +123,10 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		$inheritedValue = $currentValue;
 
 		if ($userPreference !== null) {
-			if ($this->canApplyLowerLayer($definition, $resolved, $userPreference, $canOverrideBelow, $visible, $context)) {
+			if (!$definition->supportsUserPreference()) {
+				$this->source->clearUserPreference($policyKey, $context);
+				$resolved->setPreferenceWasCleared(true);
+			} elseif ($this->canApplyLowerLayer($definition, $resolved, $userPreference, $canOverrideBelow, $visible, $context)) {
 				$currentValue = $definition->normalizeValue($userPreference->getValue());
 				$definition->validateValue($currentValue, $context);
 				$currentSourceScope = $userPreference->getScope();
@@ -145,16 +148,30 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			}
 		}
 
+		$canCreateDescendantRules = $visible
+			&& $canOverrideBelow
+			&& (
+				$currentActorCanManageSystemPolicies
+				|| (
+					$currentActorCanManageGroupPolicies
+					&& (
+						$isSystemExplicitlyGrantedForDescendantRules
+						|| $hasConfiguredGroupLayer
+					)
+				)
+			);
+
 		$canPersistUserPreference = $visible
 			&& $canOverrideBelow
 			&& $definition->supportsUserPreference()
 			&& (
 				$currentActorCanManageSystemPolicies
-				|| $isSystemExplicitlyGrantedForUserPreference
+				|| $isSystemExplicitlyGrantedForDescendantRules
 				|| $hasConfiguredGroupLayer
 			);
 
 		$resolved
+			->setMeta($this->buildResolvedStateMeta($definition, $context, $canCreateDescendantRules))
 			->setEffectiveValue($currentValue)
 			->setInheritedValue($inheritedValue)
 			->setSourceScope($currentSourceScope)
@@ -165,6 +182,21 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			->setBlockedBy($currentBlockedBy);
 
 		return $resolved;
+	}
+
+	/** @return array<string, mixed> */
+	private function buildResolvedStateMeta(IPolicyDefinition $definition, PolicyContext $context, bool $canCreateDescendantRules): array {
+		$meta = $definition->resolvedStateMeta($context);
+
+		if (!$definition->supportsUserPreference()) {
+			$meta['supportsUserPreference'] = false;
+		}
+
+		if ($canCreateDescendantRules) {
+			$meta['canCreateDescendantRules'] = true;
+		}
+
+		return $meta;
 	}
 
 	/**
