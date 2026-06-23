@@ -18,7 +18,7 @@ export const tsaRealDefinition: RealPolicySettingDefinition = {
 	context: t('libresign', 'TSA'),
 	// TRANSLATORS Policy description for TSA settings used during digital signing and long-term signature validation.
 	description: t('libresign', 'Timestamp Authority (TSA) settings for digitally signing documents.'),
-	supportedScopes: ['system'],
+	supportedScopes: ['system', 'group', 'user'],
 	editor: TsaRuleEditor,
 	resolutionMode: 'precedence',
 	createEmptyValue: () => serializeTsaSettings(DEFAULT_TSA_SETTINGS),
