@@ -1572,6 +1572,412 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.editorDraft?.scope).toBe('user')
 	})
 
+	it('allows group-admin to create group and user rules for delegated automatic reminders', () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['finance', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'reminder_settings') {
+				return {
+					policyKey: 'reminder_settings',
+					effectiveValue: '{"days_before":2,"days_between":3,"max":4,"send_timer":"09:45"}',
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 1,
+					userCount: 0,
+				}
+			}
+
+			return {
+				effectiveValue: 'parallel',
+				groupCount: 0,
+				userCount: 0,
+				editableByCurrentActor: false,
+				canSaveAsUserDefault: false,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+
+		expect(state.visibleSettingSummaries.map((summary) => summary.key)).toContain('reminder_settings')
+
+		state.openSetting('reminder_settings')
+
+		expect(state.createGroupOverrideDisabledReason).toBeNull()
+		expect(state.createUserOverrideDisabledReason).toBeNull()
+
+		state.startEditor({ scope: 'group' })
+		expect(state.editorDraft?.scope).toBe('group')
+
+		state.cancelEditor()
+		state.startEditor({ scope: 'user' })
+		expect(state.editorDraft?.scope).toBe('user')
+	})
+
+	it('allows group-admin to create group and user rules for delegated request expiration', () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['finance', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'maximum_validity') {
+				return {
+					policyKey: 'maximum_validity',
+					effectiveValue: 86400,
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					meta: {
+						canCreateDescendantRules: true,
+						supportsUserPreference: false,
+					},
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+					groupCount: 1,
+					userCount: 0,
+				}
+			}
+
+			if (key === 'renewal_interval') {
+				return {
+					policyKey: 'renewal_interval',
+					effectiveValue: 3600,
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					meta: {
+						canCreateDescendantRules: true,
+						supportsUserPreference: false,
+					},
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+					groupCount: 1,
+					userCount: 0,
+				}
+			}
+
+			return {
+				effectiveValue: 'parallel',
+				groupCount: 0,
+				userCount: 0,
+				editableByCurrentActor: false,
+				canSaveAsUserDefault: false,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+
+		expect(state.visibleSettingSummaries.map((summary) => summary.key)).toContain('maximum_validity')
+
+		state.openSetting('maximum_validity')
+
+		expect(state.createGroupOverrideDisabledReason).toBeNull()
+		expect(state.createUserOverrideDisabledReason).toBeNull()
+
+		state.startEditor({ scope: 'group' })
+		expect(state.editorDraft?.scope).toBe('group')
+
+		state.cancelEditor()
+		state.startEditor({ scope: 'user' })
+		expect(state.editorDraft?.scope).toBe('user')
+	})
+
+	it('allows group-admin to create group and user rules for delegated external CRL validation', () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['finance', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'crl_external_validation_enabled') {
+				return {
+					policyKey: 'crl_external_validation_enabled',
+					effectiveValue: true,
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					meta: {
+						canCreateDescendantRules: true,
+						supportsUserPreference: false,
+					},
+					allowedValues: [false, true],
+					blockedBy: null,
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+					groupCount: 1,
+					userCount: 0,
+				}
+			}
+
+			return {
+				effectiveValue: 'parallel',
+				groupCount: 0,
+				userCount: 0,
+				editableByCurrentActor: false,
+				canSaveAsUserDefault: false,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+
+		expect(state.visibleSettingSummaries.map((summary) => summary.key)).toContain('crl_external_validation_enabled')
+
+		state.openSetting('crl_external_validation_enabled')
+
+		expect(state.createGroupOverrideDisabledReason).toBeNull()
+		expect(state.createUserOverrideDisabledReason).toBeNull()
+
+		state.startEditor({ scope: 'group' })
+		expect(state.editorDraft?.scope).toBe('group')
+
+		state.cancelEditor()
+		state.startEditor({ scope: 'user' })
+		expect(state.editorDraft?.scope).toBe('user')
+	})
+
+	it('allows group-admin to create group and user rules for delegated signature hash algorithm', () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['finance', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_hash_algorithm') {
+				return {
+					policyKey: 'signature_hash_algorithm',
+					effectiveValue: 'SHA512',
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 1,
+					userCount: 0,
+				}
+			}
+
+			return {
+				effectiveValue: 'parallel',
+				groupCount: 0,
+				userCount: 0,
+				editableByCurrentActor: false,
+				canSaveAsUserDefault: false,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+
+		expect(state.visibleSettingSummaries.map((summary) => summary.key)).toContain('signature_hash_algorithm')
+
+		state.openSetting('signature_hash_algorithm')
+
+		expect(state.createGroupOverrideDisabledReason).toBeNull()
+		expect(state.createUserOverrideDisabledReason).toBeNull()
+
+		state.startEditor({ scope: 'group' })
+		expect(state.editorDraft?.scope).toBe('group')
+
+		state.cancelEditor()
+		state.startEditor({ scope: 'user' })
+		expect(state.editorDraft?.scope).toBe('user')
+	})
+
+	it('allows group-admin to create group and user rules for delegated default account folder', () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['finance', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'default_user_folder') {
+				return {
+					policyKey: 'default_user_folder',
+					effectiveValue: 'Team Certificates',
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 1,
+					userCount: 0,
+				}
+			}
+
+			return {
+				effectiveValue: 'parallel',
+				groupCount: 0,
+				userCount: 0,
+				editableByCurrentActor: false,
+				canSaveAsUserDefault: false,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+
+		expect(state.visibleSettingSummaries.map((summary) => summary.key)).toContain('default_user_folder')
+
+		state.openSetting('default_user_folder')
+
+		expect(state.createGroupOverrideDisabledReason).toBeNull()
+		expect(state.createUserOverrideDisabledReason).toBeNull()
+
+		state.startEditor({ scope: 'group' })
+		expect(state.editorDraft?.scope).toBe('group')
+
+		state.cancelEditor()
+		state.startEditor({ scope: 'user' })
+		expect(state.editorDraft?.scope).toBe('user')
+	})
+
+	it('allows group-admin to create group and user rules for delegated validation page access', () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['finance', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'make_validation_url_private') {
+				return {
+					policyKey: 'make_validation_url_private',
+					effectiveValue: true,
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [false, true],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 1,
+					userCount: 0,
+				}
+			}
+
+			return {
+				effectiveValue: 'parallel',
+				groupCount: 0,
+				userCount: 0,
+				editableByCurrentActor: false,
+				canSaveAsUserDefault: false,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+
+		expect(state.visibleSettingSummaries.map((summary) => summary.key)).toContain('make_validation_url_private')
+
+		state.openSetting('make_validation_url_private')
+
+		expect(state.createGroupOverrideDisabledReason).toBeNull()
+		expect(state.createUserOverrideDisabledReason).toBeNull()
+
+		state.startEditor({ scope: 'group' })
+		expect(state.editorDraft?.scope).toBe('group')
+
+		state.cancelEditor()
+		state.startEditor({ scope: 'user' })
+		expect(state.editorDraft?.scope).toBe('user')
+	})
+
+	it('allows group-admin to create group and user rules for delegated identification documents flow', () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['finance', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'identification_documents') {
+				return {
+					policyKey: 'identification_documents',
+					effectiveValue: {
+						enabled: true,
+						approvers: ['finance'],
+					},
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 1,
+					userCount: 0,
+				}
+			}
+
+			return {
+				effectiveValue: 'parallel',
+				groupCount: 0,
+				userCount: 0,
+				editableByCurrentActor: false,
+				canSaveAsUserDefault: false,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+
+		expect(state.visibleSettingSummaries.map((summary) => summary.key)).toContain('identification_documents')
+
+		state.openSetting('identification_documents')
+
+		expect(state.createGroupOverrideDisabledReason).toBeNull()
+		expect(state.createUserOverrideDisabledReason).toBeNull()
+
+		state.startEditor({ scope: 'group' })
+		expect(state.editorDraft?.scope).toBe('group')
+
+		state.cancelEditor()
+		state.startEditor({ scope: 'user' })
+		expect(state.editorDraft?.scope).toBe('user')
+	})
+
+	it('allows system-admin to create TSA rules for groups and users', () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'tsa_settings') {
+				return {
+					policyKey: 'tsa_settings',
+					effectiveValue: '{"url":"https://freetsa.org/tsr","policy_oid":"","auth_type":"none","username":""}',
+					sourceScope: 'system',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+					groupCount: 0,
+					userCount: 0,
+				}
+			}
+
+			return {
+				effectiveValue: 'parallel',
+				groupCount: 0,
+				userCount: 0,
+				editableByCurrentActor: true,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('tsa_settings')
+
+		state.startEditor({ scope: 'group' })
+		expect(state.editorDraft?.scope).toBe('group')
+
+		state.cancelEditor()
+		state.startEditor({ scope: 'user' })
+		expect(state.editorDraft?.scope).toBe('user')
+	})
+
 	it('hides system-created confetti group seed rules from group-admin CRUD state', async () => {
 		currentUserState.isAdmin = false
 		getPolicy.mockImplementation((key: string) => {
