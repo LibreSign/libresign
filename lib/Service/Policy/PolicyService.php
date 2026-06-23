@@ -118,15 +118,20 @@ class PolicyService {
 		$definition->validateValue($normalizedValue, $context);
 		$this->source->saveSystemPolicy($definition->key(), $normalizedValue, $allowChildOverride);
 
-		return $this->resolver->resolve($definition, $context);
+		return $this->resolver->resolve(
+			$definition,
+			$this->contextFactory->forUserId(null),
+		);
 	}
 
 	public function clearSystem(string|\BackedEnum $policyKey): ResolvedPolicy {
-		$context = $this->contextFactory->forCurrentUser();
 		$definition = $this->registry->get($policyKey);
 		$this->source->clearSystemPolicy($definition->key());
 
-		return $this->resolver->resolve($definition, $context);
+		return $this->resolver->resolve(
+			$definition,
+			$this->contextFactory->forUserId(null),
+		);
 	}
 
 	public function getGroupPolicy(string|\BackedEnum $policyKey, string $groupId): ?PolicyLayer {

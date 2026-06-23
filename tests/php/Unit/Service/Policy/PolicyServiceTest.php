@@ -584,6 +584,68 @@ final class PolicyServiceTest extends TestCase {
 		$this->assertSame('system', $resolved->getSourceScope());
 	}
 
+	public function testSaveSystemIgnoresCurrentActorUserPolicyInReturnedState(): void {
+		$admin = $this->createMock(IUser::class);
+		$admin->method('getUID')->willReturn('admin');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($admin);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$this->source
+			->expects($this->once())
+			->method('saveSystemPolicy')
+			->with(SignatureFlowPolicy::KEY, 'ordered_numeric', true);
+
+		$this->source
+			->method('loadSystemPolicy')
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue('ordered_numeric')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]));
+
+		$this->source->method('loadGroupPolicies')->willReturn([]);
+		$this->source->method('loadCirclePolicies')->willReturn([]);
+		$this->source->method('loadRequestOverride')->willReturn(null);
+		$this->source
+			->method('loadUserPreference')
+			->willReturnCallback(static function (string $policyKey, $context): ?PolicyLayer {
+				if ($policyKey !== SignatureFlowPolicy::KEY) {
+					return null;
+				}
+
+				if (!is_object($context) || !method_exists($context, 'getUserId')) {
+					return null;
+				}
+
+				return $context->getUserId() === 'admin'
+					? (new PolicyLayer())
+						->setScope('user')
+						->setValue('parallel')
+						->setAllowChildOverride(false)
+					: null;
+			});
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$resolved = $service->saveSystem(SignatureFlowPolicy::KEY, 'ordered_numeric', true);
+
+		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
+		$this->assertSame('system', $resolved->getSourceScope());
+	}
+
 	public function testClearSystemRemovesExplicitRuleAndReturnsResolvedDefault(): void {
 		$this->source
 			->expects($this->once())
