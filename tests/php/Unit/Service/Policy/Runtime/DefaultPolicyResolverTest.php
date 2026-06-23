@@ -670,6 +670,60 @@ final class DefaultPolicyResolverTest extends TestCase {
 
 		$this->assertFalse($resolved->canSaveAsUserDefault(), 'canSaveAsUserDefault must be false when supportsUserPreference() returns false');
 		$this->assertFalse($resolved->canUseAsRequestOverride());
+		$this->assertFalse($resolved->getMeta()['supportsUserPreference'] ?? true);
+	}
+
+	public function testResolveClearsStoredUserPreferenceWhenDefinitionDoesNotSupportUserPreference(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('global')
+			->setValue('none')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->userPreference = (new PolicyLayer())
+			->setScope('user')
+			->setValue('strict');
+
+		$definition = new PolicySpec(
+			key: 'admin_only_policy',
+			defaultSystemValue: 'none',
+			allowedValues: ['none', 'strict'],
+			supportsUserPreference: false,
+		);
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve($definition, PolicyContext::fromUserId('john'));
+
+		$this->assertSame('none', $resolved->getEffectiveValue());
+		$this->assertSame('global', $resolved->getSourceScope());
+		$this->assertTrue($resolved->wasPreferenceCleared());
+		$this->assertTrue($source->userPreferenceCleared);
+	}
+
+	public function testResolveKeepsDescendantRuleCapabilityWhenDefinitionDoesNotSupportUserPreference(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('global')
+			->setValue('none')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+
+		$definition = new PolicySpec(
+			key: 'admin_only_policy',
+			defaultSystemValue: 'none',
+			allowedValues: ['none', 'strict'],
+			supportsGroupAdminConfiguration: true,
+			supportsUserPreference: false,
+		);
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve(
+			$definition,
+			PolicyContext::fromUserId('john')->setActorRole(ActorRole::groupAdmin(1)),
+		);
+
+		$this->assertFalse($resolved->canSaveAsUserDefault());
+		$this->assertTrue($resolved->getMeta()['canCreateDescendantRules'] ?? false);
 	}
 
 	#[DataProvider('provideUserPreferenceSupportCases')]
