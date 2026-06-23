@@ -57,18 +57,26 @@ class PolicyService {
 
 	/** @return array<string, ResolvedPolicy> */
 	public function resolveKnownPolicies(array $requestOverrides = [], ?array $activeContext = null): array {
-		$context = $this->contextFactory->forCurrentUser($requestOverrides, $activeContext);
-		$definitions = [];
-		foreach ($this->registry->getAllPolicyKeys() as $policyKey) {
-			$definitions[] = $this->registry->get($policyKey);
-		}
+		return $this->resolveKnownPoliciesForContext(
+			$this->contextFactory->forCurrentUser($requestOverrides, $activeContext),
+		);
+	}
 
-		return $this->resolver->resolveMany($definitions, $context);
+	/** @return array<string, ResolvedPolicy> */
+	public function resolveKnownPoliciesForUserId(?string $userId, array $requestOverrides = [], ?array $activeContext = null): array {
+		return $this->resolveKnownPoliciesForContext(
+			$this->contextFactory->forUserId($userId, $requestOverrides, $activeContext),
+		);
 	}
 
 	/** @return array<string, array<string, mixed>> */
 	public function resolveKnownPolicyStates(array $requestOverrides = [], ?array $activeContext = null): array {
 		return $this->serializeResolvedPolicies($this->resolveKnownPolicies($requestOverrides, $activeContext));
+	}
+
+	/** @return array<string, array<string, mixed>> */
+	public function resolveKnownPolicyStatesForUserId(?string $userId, array $requestOverrides = [], ?array $activeContext = null): array {
+		return $this->serializeResolvedPolicies($this->resolveKnownPoliciesForUserId($userId, $requestOverrides, $activeContext));
 	}
 
 	/**
@@ -402,5 +410,15 @@ class PolicyService {
 		}
 
 		return $states;
+	}
+
+	/** @return array<string, ResolvedPolicy> */
+	private function resolveKnownPoliciesForContext(PolicyContext $context): array {
+		$definitions = [];
+		foreach ($this->registry->getAllPolicyKeys() as $policyKey) {
+			$definitions[] = $this->registry->get($policyKey);
+		}
+
+		return $this->resolver->resolveMany($definitions, $context);
 	}
 }
