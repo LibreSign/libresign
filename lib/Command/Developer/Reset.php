@@ -274,6 +274,12 @@ class Reset extends Base {
 			$delete = $this->db->getQueryBuilder();
 			$delete->delete('libresign_permission_set')
 				->executeStatement();
+
+			$delete = $this->db->getQueryBuilder();
+			$delete->delete('preferences')
+				->where($delete->expr()->eq('appid', $delete->createNamedParameter(Application::APP_ID)))
+				->andWhere($delete->expr()->like('configkey', $delete->createNamedParameter('policy.%')))
+				->executeStatement();
 		} catch (\Throwable) {
 		}
 	}
