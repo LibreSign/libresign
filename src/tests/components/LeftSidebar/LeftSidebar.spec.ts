@@ -18,7 +18,7 @@ const {
 }))
 
 vi.mock('@nextcloud/initial-state', () => ({
-	loadState: (...args: unknown[]) => loadStateMock(...args),
+	loadState: (app: string, key: string, fallback: unknown) => loadStateMock(app, key, fallback),
 }))
 
 vi.mock('@nextcloud/auth', () => ({
