@@ -210,4 +210,5 @@ final class PageControllerTest extends TestCase {
 		self::assertStringContainsString('/apps/libresign/', $response->getRedirectURL());
 		self::assertStringNotContainsString('/apps/libresign/f/', $response->getRedirectURL());
 	}
+
 }
