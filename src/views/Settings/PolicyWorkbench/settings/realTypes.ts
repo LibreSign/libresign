@@ -9,7 +9,7 @@ export type RealPolicyScope = 'system' | 'group' | 'user'
 export type RealPolicyResolutionMode = 'precedence' | 'merge' | 'conflict_requires_selection'
 export type RealPolicyEditorDialogLayout = 'default' | 'wide'
 
-export type GroupAdminRenderablePolicyState = Pick<EffectivePolicyState, 'editableByCurrentActor' | 'canSaveAsUserDefault'> | null | undefined
+export type GroupAdminRenderablePolicyState = Pick<EffectivePolicyState, 'editableByCurrentActor' | 'canSaveAsUserDefault' | 'meta'> | null | undefined
 
 export interface RealPolicyGroupAdminBehavior {
 	canRenderPolicy?: (policy: GroupAdminRenderablePolicyState) => boolean
