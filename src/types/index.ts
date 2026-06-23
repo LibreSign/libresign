@@ -52,8 +52,14 @@ export type SignatureFlowValue = SignatureFlowMode
 export type EffectivePoliciesResponse = ApiOcsResponseData<ApiOperations['policy-effective'], 200>
 export type EffectivePoliciesState = EffectivePoliciesResponse['policies']
 type OpenApiEffectivePolicyState = ApiRecordValue<EffectivePoliciesState>
-export type EffectivePolicyMeta = Exclude<OpenApiEffectivePolicyState['meta'], undefined>
-export type EffectivePolicyState = OpenApiEffectivePolicyState
+type OpenApiEffectivePolicyMeta = Exclude<OpenApiEffectivePolicyState['meta'], undefined>
+export type EffectivePolicyMeta = OpenApiEffectivePolicyMeta & {
+	canCreateDescendantRules?: boolean
+	supportsUserPreference?: boolean
+}
+export type EffectivePolicyState = Omit<OpenApiEffectivePolicyState, 'meta'> & {
+	meta?: EffectivePolicyMeta
+}
 type OpenApiEffectivePolicyValue = Exclude<OpenApiEffectivePolicyState['effectiveValue'], undefined>
 type OpenApiEffectivePolicyObjectValue = Extract<NonNullable<OpenApiEffectivePolicyValue>, { [key: string]: Record<string, never> }>
 type OpenApiEffectivePolicyPrimitiveValue = Exclude<NonNullable<OpenApiEffectivePolicyValue>, OpenApiEffectivePolicyObjectValue>
