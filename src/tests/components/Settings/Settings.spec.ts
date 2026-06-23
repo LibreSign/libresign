@@ -454,6 +454,58 @@ describe('Settings', () => {
 			expect(preferencesItem.props('to')).toEqual({ name: 'Preferences' })
 		})
 
+		it('hides Preferences when only TSA is assigned at user scope by an administrator', () => {
+			wrapper = createWrapper(false, false, true, {
+				tsa_settings: {
+					canSaveAsUserDefault: false,
+					sourceScope: 'user',
+					meta: {
+						supportsUserPreference: false,
+					},
+				},
+			})
+			const items = getItems()
+
+			expect(findItemByName(items, 'Preferences')).toBeUndefined()
+		})
+
+		it('hides Preferences when only external CRL validation is assigned at user scope by an administrator', () => {
+			wrapper = createWrapper(false, false, true, {
+				crl_external_validation_enabled: {
+					canSaveAsUserDefault: false,
+					sourceScope: 'user',
+					meta: {
+						supportsUserPreference: false,
+					},
+				},
+			})
+			const items = getItems()
+
+			expect(findItemByName(items, 'Preferences')).toBeUndefined()
+		})
+
+		it('hides Preferences when only request expiration is assigned at user scope by an administrator', () => {
+			wrapper = createWrapper(false, false, true, {
+				maximum_validity: {
+					canSaveAsUserDefault: false,
+					sourceScope: 'user',
+					meta: {
+						supportsUserPreference: false,
+					},
+				},
+				renewal_interval: {
+					canSaveAsUserDefault: false,
+					sourceScope: 'user',
+					meta: {
+						supportsUserPreference: false,
+					},
+				},
+			})
+			const items = getItems()
+
+			expect(findItemByName(items, 'Preferences')).toBeUndefined()
+		})
+
 		it('updates Preferences visibility after policy state changes', async () => {
 			wrapper = createWrapper(false, false, true, {
 				signature_flow: {
@@ -538,6 +590,23 @@ describe('Settings', () => {
 				},
 				show_confetti_after_signing: {
 					editableByCurrentActor: true,
+				},
+			})
+			const items = getItems()
+			const policiesItem = expectItem(findItemByName(items, 'Policies'))
+
+			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
+		})
+
+		it('shows Policies for non-admin group admins when external CRL validation only allows descendant admin rules', () => {
+			wrapper = createWrapper(false, true, true, {
+				crl_external_validation_enabled: {
+					editableByCurrentActor: false,
+					canSaveAsUserDefault: false,
+					meta: {
+						canCreateDescendantRules: true,
+						supportsUserPreference: false,
+					},
 				},
 			})
 			const items = getItems()
