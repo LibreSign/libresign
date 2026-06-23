@@ -45,6 +45,7 @@ export const confettiRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'Confetti animation'),
 	description: t('libresign', 'Control whether confetti animation is shown after a signature is completed.'),
 	groupAdminBehavior: {
+		allowGroupRuleCreationFromDescendantDelegation: true,
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
 	},
 	editor: ConfettiRuleEditor,
