@@ -18,6 +18,7 @@ use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
@@ -116,6 +117,7 @@ final class PolicyServiceTest extends TestCase {
 					ConfettiPolicy::class => new ConfettiPolicy(),
 					FooterPolicy::class => new FooterPolicy(),
 					IdentifyMethodsPolicy::class => new IdentifyMethodsPolicy($this->identifyMethodService),
+					LegalInformationPolicy::class => new LegalInformationPolicy(),
 					RequestSignGroupsPolicy::class => new RequestSignGroupsPolicy(),
 					SignatureFlowPolicy::class => new SignatureFlowPolicy(),
 					DocMdpPolicy::class => new DocMdpPolicy(),
@@ -127,6 +129,7 @@ final class PolicyServiceTest extends TestCase {
 			ConfettiPolicy::class,
 			FooterPolicy::class,
 			IdentifyMethodsPolicy::class,
+			LegalInformationPolicy::class,
 			RequestSignGroupsPolicy::class,
 			SignatureFlowPolicy::class,
 			DocMdpPolicy::class,
@@ -1741,6 +1744,131 @@ final class PolicyServiceTest extends TestCase {
 				'blockedBy' => null,
 			],
 		], $result);
+	}
+
+	/**
+	 * @return iterable<string, array{?PolicyLayer, list<PolicyLayer>, ?PolicyLayer, string, string}>
+	 */
+	public static function provideLegalInformationResolutionCases(): iterable {
+		yield 'user policy overrides group and global' => [
+			(new PolicyLayer())
+				->setScope('global')
+				->setValue('# Global legal copy')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true),
+			[(new PolicyLayer())
+				->setScope('group')
+				->setValue('## Group legal copy')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)],
+			(new PolicyLayer())
+				->setScope('user_policy')
+				->setValue('### User legal copy')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true),
+			'### User legal copy',
+			'user_policy',
+		];
+
+		yield 'group policy overrides global when user policy missing' => [
+			(new PolicyLayer())
+				->setScope('global')
+				->setValue('# Global legal copy')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true),
+			[(new PolicyLayer())
+				->setScope('group')
+				->setValue('## Group legal copy')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)],
+			null,
+			'## Group legal copy',
+			'group',
+		];
+
+		yield 'global policy is used as fallback' => [
+			(new PolicyLayer())
+				->setScope('global')
+				->setValue('# Global legal copy')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true),
+			[],
+			null,
+			'# Global legal copy',
+			'global',
+		];
+	}
+
+	/**
+	 * @dataProvider provideLegalInformationResolutionCases
+	 * @param list<PolicyLayer> $groupPolicies
+	 */
+	public function testResolveKnownPolicyStatesForUserIdResolvesRequesterLegalInformation(
+		?PolicyLayer $systemPolicy,
+		array $groupPolicies,
+		?PolicyLayer $userPolicy,
+		string $expectedValue,
+		string $expectedScope,
+	): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('requester');
+
+		$this->userManager
+			->expects($this->once())
+			->method('get')
+			->with('requester')
+			->willReturn($user);
+
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->with($user)
+			->willReturn(['admin']);
+
+		$this->source
+			->method('loadSystemPolicy')
+			->willReturnMap([
+				[LegalInformationPolicy::KEY, $systemPolicy],
+			]);
+
+		$this->source
+			->method('loadAllGroupPolicies')
+			->willReturnCallback(static function (array $policyKeys, $context) use ($groupPolicies): array {
+				if ($context->getUserId() !== 'requester' || !in_array(LegalInformationPolicy::KEY, $policyKeys, true)) {
+					return [];
+				}
+
+				return [
+					LegalInformationPolicy::KEY => $groupPolicies,
+				];
+			});
+
+		$this->source
+			->method('loadAllUserPolicies')
+			->willReturnCallback(static function (array $policyKeys, $context) use ($userPolicy): array {
+				if ($context->getUserId() !== 'requester' || !in_array(LegalInformationPolicy::KEY, $policyKeys, true) || $userPolicy === null) {
+					return [];
+				}
+
+				return [
+					LegalInformationPolicy::KEY => $userPolicy,
+				];
+			});
+
+		$this->source->method('loadAllUserPreferences')->willReturn([]);
+		$this->source->method('loadRequestOverride')->willReturn(null);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$result = $service->resolveKnownPolicyStatesForUserId('requester');
+
+		$this->assertSame($expectedValue, $result[LegalInformationPolicy::KEY]['effectiveValue']);
+		$this->assertSame($expectedScope, $result[LegalInformationPolicy::KEY]['sourceScope']);
 	}
 
 	public function testResolveKnownPolicyStatesPreservesResolvedMetaWhenPresent(): void {
