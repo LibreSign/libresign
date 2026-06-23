@@ -6,7 +6,7 @@
 import type { EffectivePolicyState } from '../../types/index'
 
 // Keep in sync with the keys exported by Policy Workbench realDefinitions.
-const PREFERENCE_SUPPORTED_POLICY_KEYS = new Set([
+const WORKBENCH_SUPPORTED_POLICY_KEYS = new Set([
 	'groups_request_sign',
 	'identification_documents',
 	'identify_methods',
@@ -29,25 +29,39 @@ const PREFERENCE_SUPPORTED_POLICY_KEYS = new Set([
 	'signing_mode',
 ])
 
-function defaultCanRenderWorkbenchPolicyForGroupAdmin(
-	policy: Pick<EffectivePolicyState, 'editableByCurrentActor' | 'canSaveAsUserDefault'> | null | undefined,
-): boolean {
+const policySupportsPersonalPreference = (
+	policy: { meta?: { supportsUserPreference?: boolean } } | null | undefined,
+): boolean => {
+	return policy?.meta?.supportsUserPreference !== false
+}
+
+const policySupportsDescendantRuleCreation = (
+	policy: { meta?: { canCreateDescendantRules?: boolean } } | null | undefined,
+): boolean => {
+	return policy?.meta?.canCreateDescendantRules === true
+}
+
+const defaultCanRenderWorkbenchPolicyForGroupAdmin = (
+	policy: Pick<EffectivePolicyState, 'editableByCurrentActor' | 'canSaveAsUserDefault' | 'meta'> | null | undefined,
+): boolean => {
 	if (!policy) {
 		return false
 	}
 
-	return policy.editableByCurrentActor === true || policy.canSaveAsUserDefault === true
+	return policy.editableByCurrentActor === true
+		|| policy.canSaveAsUserDefault === true
+		|| policySupportsDescendantRuleCreation(policy)
 }
 
-export function isWorkbenchPolicyKey(policyKey: string): boolean {
-	return PREFERENCE_SUPPORTED_POLICY_KEYS.has(policyKey)
+export const isWorkbenchPolicyKey = (policyKey: string): boolean => {
+	return WORKBENCH_SUPPORTED_POLICY_KEYS.has(policyKey)
 }
 
-export function canRenderWorkbenchPolicyForGroupAdmin(
+export const canRenderWorkbenchPolicyForGroupAdmin = (
 	policyKey: string,
-	policy: Pick<EffectivePolicyState, 'editableByCurrentActor' | 'canSaveAsUserDefault'> | null | undefined,
-): boolean {
-	if (!PREFERENCE_SUPPORTED_POLICY_KEYS.has(policyKey)) {
+	policy: Pick<EffectivePolicyState, 'editableByCurrentActor' | 'canSaveAsUserDefault' | 'meta'> | null | undefined,
+): boolean => {
+	if (!WORKBENCH_SUPPORTED_POLICY_KEYS.has(policyKey)) {
 		return false
 	}
 
@@ -58,15 +72,19 @@ export function canRenderWorkbenchPolicyForGroupAdmin(
 	return defaultCanRenderWorkbenchPolicyForGroupAdmin(policy)
 }
 
-export function canRenderPersonalPreferencePolicy(
+export const canRenderPersonalPreferencePolicy = (
 	policyKey: string,
 	policy: EffectivePolicyState | null | undefined,
-): boolean {
-	if (!PREFERENCE_SUPPORTED_POLICY_KEYS.has(policyKey)) {
+): boolean => {
+	if (!WORKBENCH_SUPPORTED_POLICY_KEYS.has(policyKey)) {
 		return false
 	}
 
 	if (!policy) {
+		return false
+	}
+
+	if (!policySupportsPersonalPreference(policy)) {
 		return false
 	}
 
