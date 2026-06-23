@@ -19,8 +19,13 @@ export const reminderRealDefinition: RealPolicySettingDefinition = {
 	key: 'reminder_settings',
 	title: t('libresign', 'Automatic reminders'),
 	description: t('libresign', 'Configure automatic reminder cadence, max attempts, and daily send time.'),
+	groupAdminBehavior: {
+		allowGroupRuleCreationFromDescendantDelegation: true,
+		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
+	},
 	editor: ReminderRuleEditor,
 	resolutionMode: 'precedence',
+	supportedScopes: ['system', 'group', 'user'],
 	createEmptyValue: () => serializeReminderPolicyConfig(REMINDER_POLICY_DEFAULTS),
 	normalizeDraftValue: (value: EffectivePolicyValue) => serializeReminderPolicyConfig(normalizeReminderPolicyConfig(value)),
 	hasSelectableDraftValue: () => true,
