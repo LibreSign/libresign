@@ -7,9 +7,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import LeftSidebar from '../../../components/LeftSidebar/LeftSidebar.vue'
 
-const loadStateMock = vi.fn()
-const getCurrentUserMock = vi.fn()
-const selectFileMock = vi.fn()
+const {
+	loadStateMock,
+	getCurrentUserMock,
+	selectFileMock,
+} = vi.hoisted(() => ({
+	loadStateMock: vi.fn((_app: string, _key: string, fallback: unknown) => fallback),
+	getCurrentUserMock: vi.fn(),
+	selectFileMock: vi.fn(),
+}))
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: (...args: unknown[]) => loadStateMock(...args),
