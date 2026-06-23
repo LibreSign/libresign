@@ -3465,6 +3465,21 @@
                     }
                 }
             },
+            "ValidatedFileResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/ValidatedFile"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "effective_policies": {
+                                "$ref": "#/components/schemas/EffectivePoliciesResponse"
+                            }
+                        }
+                    }
+                ]
+            },
             "ValidationPage": {
                 "type": "object",
                 "required": [
@@ -4834,7 +4849,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/ValidatedFile"
+                                                    "$ref": "#/components/schemas/ValidatedFileResponse"
                                                 }
                                             }
                                         }
@@ -4988,7 +5003,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/ValidatedFile"
+                                                    "$ref": "#/components/schemas/ValidatedFileResponse"
                                                 }
                                             }
                                         }
@@ -5093,7 +5108,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/ValidatedFile"
+                                                    "$ref": "#/components/schemas/ValidatedFileResponse"
                                                 }
                                             }
                                         }
