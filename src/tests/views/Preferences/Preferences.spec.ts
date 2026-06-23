@@ -89,8 +89,10 @@ const SignatureTextRuleEditor = defineComponent({
 })
 
 function createPolicyState(overrides: Partial<EffectivePolicyState> & Pick<EffectivePolicyState, 'policyKey'>): EffectivePolicyState {
+	const { policyKey, ...rest } = overrides
+
 	return {
-		policyKey: overrides.policyKey,
+		policyKey,
 		effectiveValue: 'parallel',
 		sourceScope: 'system',
 		visible: true,
@@ -103,7 +105,7 @@ function createPolicyState(overrides: Partial<EffectivePolicyState> & Pick<Effec
 		groupCount: 0,
 		userCount: 0,
 		everyoneCount: 0,
-		...overrides,
+		...rest,
 	}
 }
 

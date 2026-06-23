@@ -55,7 +55,7 @@
 						:is="entry.definition.editor"
 						:model-value="selectedPreferenceValues[entry.definition.key]"
 						v-bind="editorPropsFor(entry.definition.key)"
-						@update:modelValue="(value) => onPreferenceChange(entry.definition.key, value)" />
+						@update:modelValue="onPreferenceModelUpdate(entry.definition.key, $event)" />
 				</div>
 			</div>
 		</NcSettingsSection>
@@ -271,6 +271,10 @@ function onPreferenceChange(policyKey: string, value: EffectivePolicyValue): voi
 	if (canSavePreferenceFor(policyKey)) {
 		void savePreferenceByKey(policyKey, normalizedNextValue)
 	}
+}
+
+function onPreferenceModelUpdate(policyKey: string, value: EffectivePolicyValue): void {
+	onPreferenceChange(policyKey, value)
 }
 
 async function savePreferenceByKey(policyKey: string, value: EffectivePolicyValue): Promise<void> {
