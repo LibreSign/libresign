@@ -214,6 +214,12 @@ type ValidationErrorResponse = {
 	}
 }
 
+type EffectivePoliciesBootstrapPayload = {
+	effective_policies?: {
+		policies?: Record<string, unknown>
+	}
+}
+
 function toNumber(value: unknown): number | null {
 	return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
@@ -251,6 +257,21 @@ function handleValidationRedirect(response: ValidationErrorResponse | undefined)
 	}
 	window.location.href = redirect
 	return true
+}
+
+function extractEffectivePolicies(data: unknown): Record<string, unknown> | null {
+	if (typeof data !== 'object' || data === null) {
+		return null
+	}
+
+	const payload = data as EffectivePoliciesBootstrapPayload
+	const policies = payload.effective_policies?.policies
+
+	if (typeof policies !== 'object' || policies === null || Array.isArray(policies)) {
+		return null
+	}
+
+	return policies
 }
 
 const signStore = useSignStore()
@@ -747,6 +768,10 @@ function handleValidationSuccess(data: unknown) {
 	if (!normalizedDocument) {
 		setValidationError(t('libresign', 'Failed to validate document'))
 		return
+	}
+	const effectivePolicies = extractEffectivePolicies(data)
+	if (effectivePolicies) {
+		policiesStore.setPolicies(effectivePolicies)
 	}
 	const shouldUpdateRoute = isValidationRouteName(route.value.name)
 	if (shouldUpdateRoute && route.value.params.uuid !== normalizedDocument.uuid) {
