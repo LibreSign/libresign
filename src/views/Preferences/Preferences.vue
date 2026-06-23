@@ -55,7 +55,7 @@
 						:is="entry.definition.editor"
 						:model-value="selectedPreferenceValues[entry.definition.key]"
 						v-bind="editorPropsFor(entry.definition.key)"
-						@update:modelValue="(value: EffectivePolicyValue) => onPreferenceChange(entry.definition.key, value)" />
+						@update:modelValue="(value) => onPreferenceChange(entry.definition.key, value)" />
 				</div>
 			</div>
 		</NcSettingsSection>
@@ -65,7 +65,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 
-import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 import { mdiCheckCircleOutline, mdiUndoVariant } from '@mdi/js'
 
@@ -78,6 +77,7 @@ import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import { usePoliciesStore } from '../../store/policies'
 import type { EffectivePolicyValue, SignatureFlowMode } from '../../types/index'
 import { realDefinitions } from '../Settings/PolicyWorkbench/settings/realDefinitions'
+import type { RealPolicyPersonalPreferenceContext } from '../Settings/PolicyWorkbench/settings/realTypes'
 import { canRenderPersonalPreferencePolicy } from './personalPreferenceVisibility'
 
 defineOptions({
@@ -85,7 +85,6 @@ defineOptions({
 })
 
 const policiesStore = usePoliciesStore()
-const canRequestSign = loadState<boolean>('libresign', 'can_request_sign', false)
 const preferencesReady = ref(false)
 const saving = ref(false)
 const errorMessage = ref('')
@@ -93,6 +92,21 @@ const selectedPreferenceValues = reactive<Record<string, EffectivePolicyValue>>(
 const autoSaveSavingByKey = reactive<Record<string, boolean>>({})
 const autoSaveSavedByKey = reactive<Record<string, boolean>>({})
 const autoSaveFeedbackTimers = new Map<string, ReturnType<typeof setTimeout>>()
+const preferenceBehaviorContext: RealPolicyPersonalPreferenceContext = {
+	getPolicy: (policyKey: string) => policiesStore.getPolicy(policyKey),
+	saveUserPreference: (policyKey: string, value: EffectivePolicyValue) => policiesStore.saveUserPreference(policyKey, value),
+	clearUserPreference: (policyKey: string) => policiesStore.clearUserPreference(policyKey),
+}
+
+function getPreferenceBehaviorFor(policyKey: string) {
+	return realDefinitions[policyKey as keyof typeof realDefinitions]?.personalPreferenceBehavior
+}
+
+function getResolvedPreferencePolicy(policyKey: string) {
+	const policy = policiesStore.getPolicy(policyKey)
+	const behavior = getPreferenceBehaviorFor(policyKey)
+	return behavior?.resolvePolicy?.(policy, preferenceBehaviorContext) ?? policy
+}
 
 const preferencePolicyKeys = computed(() => {
 	const policyKeysFromApi = Object.keys(policiesStore.policies ?? {})
@@ -105,29 +119,43 @@ const preferencePolicyKeys = computed(() => {
 
 const preferenceEntries = computed(() => {
 	return preferencePolicyKeys.value
-		.filter((policyKey) => shouldRenderPreferencePolicy(policyKey))
-		.map((policyKey) => realDefinitions[policyKey as keyof typeof realDefinitions])
-		.filter((definition): definition is (typeof realDefinitions)[keyof typeof realDefinitions] => Boolean(definition))
-		.map((definition) => ({
+		.filter((policyKey: string) => shouldRenderPreferencePolicy(policyKey))
+		.map((policyKey: string) => realDefinitions[policyKey as keyof typeof realDefinitions])
+		.filter((definition: (typeof realDefinitions)[keyof typeof realDefinitions] | undefined): definition is (typeof realDefinitions)[keyof typeof realDefinitions] => Boolean(definition))
+		.map((definition: (typeof realDefinitions)[keyof typeof realDefinitions]) => ({
 		definition,
-		policy: policiesStore.getPolicy(definition.key),
+		policy: getResolvedPreferencePolicy(definition.key),
 		}))
 })
 
 function shouldRenderPreferencePolicy(policyKey: string): boolean {
-	return canRenderPersonalPreferencePolicy(
-		policyKey,
-		policiesStore.getPolicy(policyKey),
-		canRequestSign,
-	)
+	const policy = policiesStore.getPolicy(policyKey)
+	const behavior = getPreferenceBehaviorFor(policyKey)
+	if (behavior?.shouldRender) {
+		return behavior.shouldRender(policy, preferenceBehaviorContext)
+	}
+
+	return canRenderPersonalPreferencePolicy(policyKey, policy)
 }
 
 function canSavePreferenceFor(policyKey: string): boolean {
-	return policiesStore.getPolicy(policyKey)?.canSaveAsUserDefault ?? false
+	const policy = policiesStore.getPolicy(policyKey)
+	const behavior = getPreferenceBehaviorFor(policyKey)
+	if (behavior?.canSave) {
+		return behavior.canSave(policy, preferenceBehaviorContext)
+	}
+
+	return policy?.canSaveAsUserDefault ?? false
 }
 
 function hasSavedPreferenceFor(policyKey: string): boolean {
-	return policiesStore.getPolicy(policyKey)?.sourceScope === 'user'
+	const policy = policiesStore.getPolicy(policyKey)
+	const behavior = getPreferenceBehaviorFor(policyKey)
+	if (behavior?.hasSavedPreference) {
+		return behavior.hasSavedPreference(policy, preferenceBehaviorContext)
+	}
+
+	return policy?.sourceScope === 'user'
 }
 
 function syncSelectedPreference(policyKey: string): void {
@@ -137,7 +165,9 @@ function syncSelectedPreference(policyKey: string): void {
 	}
 
 	const policy = policiesStore.getPolicy(policyKey)
-	selectedPreferenceValues[policyKey] = definition.normalizeDraftValue(policy?.effectiveValue ?? null)
+	const behavior = getPreferenceBehaviorFor(policyKey)
+	selectedPreferenceValues[policyKey] = behavior?.resolveSelectedValue?.(policy, preferenceBehaviorContext)
+		?? definition.normalizeDraftValue(policy?.effectiveValue ?? null)
 }
 
 function syncAllSelectedPreferences(): void {
@@ -149,7 +179,7 @@ function syncAllSelectedPreferences(): void {
 function editorPropsFor(policyKey: string): Record<string, unknown> {
 	const definition = realDefinitions[policyKey as keyof typeof realDefinitions]
 	const baseEditorProps = definition?.editorProps ?? {}
-	const resolvedEditorProps = definition?.resolveEditorProps?.(policiesStore.getPolicy(policyKey), baseEditorProps) ?? baseEditorProps
+	const resolvedEditorProps = definition?.resolveEditorProps?.(getResolvedPreferencePolicy(policyKey), baseEditorProps) ?? baseEditorProps
 
 	return {
 		...resolvedEditorProps,
@@ -190,6 +220,11 @@ function undoLabelFor(policyKey: string): string {
 }
 
 function normalizePreferenceValue(policyKey: string, value: EffectivePolicyValue): EffectivePolicyValue {
+	const behavior = getPreferenceBehaviorFor(policyKey)
+	if (behavior?.normalizeValue) {
+		return behavior.normalizeValue(value, preferenceBehaviorContext)
+	}
+
 	const definition = realDefinitions[policyKey as keyof typeof realDefinitions]
 	if (!definition) {
 		return value
@@ -198,17 +233,36 @@ function normalizePreferenceValue(policyKey: string, value: EffectivePolicyValue
 	return definition.normalizeDraftValue(value)
 }
 
+function getEffectivePreferenceValue(policyKey: string): EffectivePolicyValue {
+	const policy = policiesStore.getPolicy(policyKey)
+	const behavior = getPreferenceBehaviorFor(policyKey)
+	if (behavior?.getEffectiveValue) {
+		return behavior.getEffectiveValue(policy, preferenceBehaviorContext)
+	}
+
+	return policy?.effectiveValue ?? null
+}
+
+function arePreferenceValuesEqual(left: EffectivePolicyValue, right: EffectivePolicyValue): boolean {
+	if (typeof left === 'object' && left !== null && typeof right === 'object' && right !== null) {
+		return JSON.stringify(left) === JSON.stringify(right)
+	}
+
+	return left === right
+}
+
 function onPreferenceChange(policyKey: string, value: EffectivePolicyValue): void {
 	const normalizedNextValue = normalizePreferenceValue(policyKey, value)
 	const normalizedSelectedValue = normalizePreferenceValue(policyKey, selectedPreferenceValues[policyKey] ?? null)
-	const normalizedEffectiveValue = normalizePreferenceValue(policyKey, policiesStore.getPolicy(policyKey)?.effectiveValue ?? null)
+	const normalizedEffectiveValue = normalizePreferenceValue(policyKey, getEffectivePreferenceValue(policyKey))
 
 	if (!preferencesReady.value) {
 		selectedPreferenceValues[policyKey] = normalizedNextValue
 		return
 	}
 
-	if (normalizedSelectedValue === normalizedNextValue || normalizedEffectiveValue === normalizedNextValue) {
+	if (arePreferenceValuesEqual(normalizedSelectedValue, normalizedNextValue)
+		|| arePreferenceValuesEqual(normalizedEffectiveValue, normalizedNextValue)) {
 		selectedPreferenceValues[policyKey] = normalizedNextValue
 		return
 	}
@@ -253,15 +307,14 @@ async function clearPreference(): Promise<void> {
 }
 
 async function savePreferenceValue(policyKey: string, value: EffectivePolicyValue, errorText: string): Promise<boolean> {
-	const policy = policiesStore.getPolicy(policyKey)
-	if (!policy?.canSaveAsUserDefault) {
+	if (!canSavePreferenceFor(policyKey)) {
 		return false
 	}
 
 	saving.value = true
 	errorMessage.value = ''
 	try {
-		await policiesStore.saveUserPreference(policyKey, value)
+		await persistPreferenceValue(policyKey, value)
 		return true
 	} catch (error) {
 		console.error(`Failed to save ${policyKey} preference`, error)
@@ -272,17 +325,38 @@ async function savePreferenceValue(policyKey: string, value: EffectivePolicyValu
 	}
 }
 
+async function persistPreferenceValue(policyKey: string, value: EffectivePolicyValue): Promise<void> {
+	const behavior = getPreferenceBehaviorFor(policyKey)
+	if (behavior?.savePreference) {
+		await behavior.savePreference(value, preferenceBehaviorContext)
+		return
+	}
+
+	await policiesStore.saveUserPreference(policyKey, value)
+}
+
 async function clearPreferenceValue(policyKey: string, errorText: string): Promise<void> {
 	saving.value = true
 	errorMessage.value = ''
 	try {
-		await policiesStore.clearUserPreference(policyKey)
+		await clearPersistedPreferenceValue(policyKey)
 	} catch (error) {
 		console.error(`Failed to clear ${policyKey} preference`, error)
 		errorMessage.value = errorText
 	} finally {
 		saving.value = false
 	}
+}
+
+
+async function clearPersistedPreferenceValue(policyKey: string): Promise<void> {
+	const behavior = getPreferenceBehaviorFor(policyKey)
+	if (behavior?.clearPreference) {
+		await behavior.clearPreference(preferenceBehaviorContext)
+		return
+	}
+
+	await policiesStore.clearUserPreference(policyKey)
 }
 
 syncAllSelectedPreferences()
