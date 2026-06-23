@@ -397,6 +397,8 @@ namespace OCA\Libresign;
  * @psalm-type LibresignEffectivePolicyValue = null|bool|int|float|string|array<string, mixed>
  * @psalm-type LibresignEffectivePolicyMeta = array{
  *     defaultSystemValue?: LibresignEffectivePolicyValue,
+ *     canCreateDescendantRules?: bool,
+ *     supportsUserPreference?: bool,
  * }
  * @psalm-type LibresignEffectivePolicyState = array{
  *     policyKey: string,
