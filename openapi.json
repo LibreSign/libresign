@@ -638,6 +638,12 @@
                 "properties": {
                     "defaultSystemValue": {
                         "$ref": "#/components/schemas/EffectivePolicyValue"
+                    },
+                    "canCreateDescendantRules": {
+                        "type": "boolean"
+                    },
+                    "supportsUserPreference": {
+                        "type": "boolean"
                     }
                 }
             },
