@@ -36,6 +36,7 @@ class CertificateChainService {
 			if ($sha256 === $libreSignFile->getSignedHash()) {
 				$this->pkcs12Handler->setIsLibreSignFile();
 			}
+			$this->pkcs12Handler->setPolicyUserIdForValidation($libreSignFile->getUserId());
 			$certData = $this->pkcs12Handler->getCertificateChain($resource);
 			fclose($resource);
 			return $certData;
