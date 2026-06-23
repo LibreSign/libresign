@@ -15,6 +15,10 @@ export const defaultUserFolderRealDefinition: RealPolicySettingDefinition = {
 	key: 'default_user_folder',
 	title: t('libresign', 'Customize default account folder'),
 	description: t('libresign', 'Name of the folder that will contain the account\'s digital certificate, visible signature images, and other files related to LibreSign.'),
+	groupAdminBehavior: {
+		allowGroupRuleCreationFromDescendantDelegation: true,
+		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
+	},
 	editor: DefaultUserFolderRuleEditor,
 	resolutionMode: 'precedence',
 	createEmptyValue: () => DEFAULT_USER_FOLDER,
