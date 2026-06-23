@@ -32,6 +32,17 @@ const buildSignatureStampPreferenceValue = (context: RealPolicyPersonalPreferenc
 	)
 }
 
+const getCurrentSignatureStampPreferenceValue = (context: RealPolicyPersonalPreferenceContext): string => {
+	return normalizeSignatureStampDraftValue(
+		getSignatureStampPolicy(context)?.effectiveValue ?? null,
+		resolveCollectMetadataValue(getCollectMetadataPolicy(context)?.effectiveValue, false),
+	).signatureStampValue
+}
+
+const getCurrentCollectMetadataPreferenceValue = (context: RealPolicyPersonalPreferenceContext): boolean => {
+	return resolveCollectMetadataValue(getCollectMetadataPolicy(context)?.effectiveValue, false)
+}
+
 const canSaveMergedSignatureStampPreference = (context: RealPolicyPersonalPreferenceContext): boolean => {
 	const signatureStampCanSave = getSignatureStampPolicy(context)?.canSaveAsUserDefault ?? false
 	const collectMetadataPolicy = getCollectMetadataPolicy(context)
@@ -100,10 +111,25 @@ export const signatureStampPersonalPreferenceBehavior: RealPolicyPersonalPrefere
 	hasSavedPreference: (_policy, context) => hasSavedMergedSignatureStampPreference(context),
 	savePreference: async (value, context) => {
 		const normalizedValue = normalizeSignatureStampPreferenceValue(value, context)
-		await Promise.all([
-			context.saveUserPreference(SIGNATURE_STAMP_POLICY_KEY, normalizedValue.signatureStampValue),
-			context.saveUserPreference(COLLECT_METADATA_POLICY_KEY, normalizedValue.collectMetadataEnabled),
-		])
+		const saveOperations: Promise<unknown>[] = []
+
+		if (normalizedValue.signatureStampValue !== getCurrentSignatureStampPreferenceValue(context)) {
+			saveOperations.push(
+				context.saveUserPreference(SIGNATURE_STAMP_POLICY_KEY, normalizedValue.signatureStampValue),
+			)
+		}
+
+		if (normalizedValue.collectMetadataEnabled !== getCurrentCollectMetadataPreferenceValue(context)) {
+			saveOperations.push(
+				context.saveUserPreference(COLLECT_METADATA_POLICY_KEY, normalizedValue.collectMetadataEnabled),
+			)
+		}
+
+		if (saveOperations.length === 0) {
+			return
+		}
+
+		await Promise.all(saveOperations)
 	},
 	clearPreference: async (context) => {
 		await Promise.all([

@@ -131,15 +131,13 @@ test.describe('Policy preferences: boolean settings', () => {
 		await page.locator('#app-navigation-vue').waitFor({ state: 'visible' })
 		await expandSettingsMenu(page)
 
-		const collectMetadataSection = await sectionByTitle(page, 'Collect signer metadata')
 		const docMdpSection = await sectionByTitle(page, 'PDF certification')
 		const signatureTextSection = await sectionByTitle(page, /Signature stamp text|Signature text|Signature stamp/i)
 
-		expect(await collectMetadataSection.isVisible()).toBe(true)
+		await expect(page.getByRole('heading', { name: 'Collect signer metadata' })).toHaveCount(0)
 		expect(await docMdpSection.isVisible()).toBe(true)
 		expect(await signatureTextSection.isVisible()).toBe(true)
 
-		await savePreferenceAsDisabled(collectMetadataSection)
 		await saveDocMdpPreference(docMdpSection, 3)
 		await saveSignatureTextCollectMetadataPreference(signatureTextSection, false)
 
@@ -150,7 +148,7 @@ test.describe('Policy preferences: boolean settings', () => {
 			renderMode: 'text',
 		})
 
-		await clearPreference(collectMetadataSection)
+		await clearPreference(signatureTextSection)
 		await clearPreference(docMdpSection)
 
 		await expectPolicyEffectiveValue(endUserCtx, 'collect_metadata', true, 'group')
@@ -174,16 +172,6 @@ async function sectionByTitle(page: Page, title: string | RegExp): Promise<Locat
 	const section = heading.locator('xpath=ancestor::div[contains(@class, "settings-section")][1]')
 	await expect(section).toBeVisible()
 	return section
-}
-
-/**
- * Selects the disabled option in a boolean preference section.
- *
- * @param section Preference section locator.
- */
-async function savePreferenceAsDisabled(section: Locator): Promise<void> {
-	const disabledOption = section.getByRole('radio', { name: /^(Disable metadata collection|Disabled)\b/i }).first()
-	await disabledOption.click({ force: true })
 }
 
 /**

@@ -681,8 +681,51 @@ describe('Preferences view', () => {
 			collectMetadataEnabled: false,
 		})
 
+		expect(saveUserPreferenceMock).toHaveBeenCalledTimes(1)
+		expect(saveUserPreferenceMock).toHaveBeenCalledWith('collect_metadata', false)
+	})
+
+	it('saves signature stamp and collect metadata when both merged values change', async () => {
+		getPolicyMock.mockImplementation((key: string) => {
+			if (key === 'signature_stamp') {
+				return createPolicyState({
+					policyKey: key,
+					effectiveValue: signatureStampPreferenceValue,
+				})
+			}
+
+			if (key === 'collect_metadata') {
+				return createPolicyState({
+					policyKey: key,
+					effectiveValue: true,
+					allowedValues: [],
+				})
+			}
+
+			return null
+		})
+
+		const wrapper = await createWrapper()
+		await nextTick()
+		saveUserPreferenceMock.mockClear()
+
+		const changedSignatureStampValue = JSON.stringify({
+			template: 'Signed by {{SignerCommonName}}\nCustom footer',
+			template_font_size: 9.8,
+			signature_font_size: 20,
+			signature_width: 350,
+			signature_height: 100,
+			background_type: 'default',
+			render_mode: 'default',
+		})
+
+		await wrapper.vm.onPreferenceChange('signature_stamp', {
+			signatureStampValue: changedSignatureStampValue,
+			collectMetadataEnabled: false,
+		})
+
 		expect(saveUserPreferenceMock).toHaveBeenCalledTimes(2)
-		expect(saveUserPreferenceMock).toHaveBeenNthCalledWith(1, 'signature_stamp', signatureStampEditorValue)
+		expect(saveUserPreferenceMock).toHaveBeenNthCalledWith(1, 'signature_stamp', changedSignatureStampValue)
 		expect(saveUserPreferenceMock).toHaveBeenNthCalledWith(2, 'collect_metadata', false)
 	})
 
