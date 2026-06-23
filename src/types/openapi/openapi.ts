@@ -1666,6 +1666,9 @@ export type components = {
             messages?: components["schemas"]["InfoMessage"][];
             visibleElements?: components["schemas"]["VisibleElement"][];
         };
+        ValidatedFileResponse: components["schemas"]["ValidatedFile"] & {
+            effective_policies?: components["schemas"]["EffectivePoliciesResponse"];
+        };
         ValidationPage: {
             /** Format: int64 */
             number: number;
@@ -2254,7 +2257,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ValidatedFile"];
+                            data: components["schemas"]["ValidatedFileResponse"];
                         };
                     };
                 };
@@ -2307,7 +2310,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ValidatedFile"];
+                            data: components["schemas"]["ValidatedFileResponse"];
                         };
                     };
                 };
@@ -2351,7 +2354,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ValidatedFile"];
+                            data: components["schemas"]["ValidatedFileResponse"];
                         };
                     };
                 };
