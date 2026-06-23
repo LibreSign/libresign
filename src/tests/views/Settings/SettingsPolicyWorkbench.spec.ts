@@ -834,6 +834,49 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(createScopeText).not.toContain('Everyone')
 	})
 
+	it('shows the group option for confetti animation when group admin manages multiple groups', async () => {
+		currentUserState.isAdmin = false
+		configState.can_manage_group_policies = true
+		configState.manageable_policy_group_ids = ['board', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'show_confetti_after_signing') {
+				return {
+					effectiveValue: true,
+					sourceScope: 'group',
+					editableByCurrentActor: false,
+					canSaveAsUserDefault: true,
+				}
+			}
+
+			if (key === 'signature_flow') {
+				return { effectiveValue: 'ordered_numeric' }
+			}
+
+			return null
+		})
+
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Confetti animation')
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		await vi.waitFor(() => {
+			expect(findCreateRuleButton(wrapper).exists()).toBe(true)
+		})
+
+		await findCreateRuleButton(wrapper).trigger('click')
+
+		await vi.waitFor(() => {
+			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		})
+
+		const createScopeText = wrapper.find('.policy-workbench__create-scope-dialog').text()
+		expect(createScopeText).toContain('Account')
+		expect(createScopeText).toContain('Group')
+		expect(createScopeText).not.toContain('Everyone')
+	})
+
 	it('shows allow-lower-level-customization toggle for request access by group', async () => {
 		const wrapper = mountWorkbench()
 
