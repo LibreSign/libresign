@@ -646,6 +646,63 @@ final class PolicyServiceTest extends TestCase {
 		$this->assertSame('system', $resolved->getSourceScope());
 	}
 
+	public function testResolveKnownPolicyStatesForUserIdWithoutUserScopeUsesRequesterGroupsButIgnoresUserPolicy(): void {
+		$requester = $this->createMock(IUser::class);
+		$this->userManager
+			->expects($this->once())
+			->method('get')
+			->with('admin')
+			->willReturn($requester);
+
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->with($requester)
+			->willReturn(['admin']);
+
+		$this->source
+			->method('loadSystemPolicy')
+			->willReturnCallback(static function (string $policyKey): ?PolicyLayer {
+				if ($policyKey !== LegalInformationPolicy::KEY) {
+					return null;
+				}
+
+				return (new PolicyLayer())
+					->setScope('system')
+					->setValue('System legal copy')
+					->setAllowChildOverride(true)
+					->setVisibleToChild(true);
+			});
+
+		$this->source
+			->method('loadAllGroupPolicies')
+			->willReturn([
+				LegalInformationPolicy::KEY => [(new PolicyLayer())
+					->setScope('group')
+					->setValue('Admin group legal copy')
+					->setAllowChildOverride(true)
+					->setVisibleToChild(true)
+					->setAllowedValues([])],
+			]);
+
+		$this->source->method('loadCirclePolicies')->willReturn([]);
+		$this->source->method('loadRequestOverride')->willReturn(null);
+		$this->source->method('loadAllUserPolicies')->willReturn([]);
+		$this->source->method('loadAllUserPreferences')->willReturn([]);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$states = $service->resolveKnownPolicyStatesForUserIdWithoutUserScope('admin');
+
+		$this->assertSame('Admin group legal copy', $states[LegalInformationPolicy::KEY]['effectiveValue']);
+		$this->assertSame('group', $states[LegalInformationPolicy::KEY]['sourceScope']);
+	}
+
 	public function testClearSystemRemovesExplicitRuleAndReturnsResolvedDefault(): void {
 		$this->source
 			->expects($this->once())

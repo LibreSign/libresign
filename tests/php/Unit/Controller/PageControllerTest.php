@@ -80,6 +80,8 @@ final class PageControllerTest extends TestCase {
 		$this->fileService->method('showVisibleElements')->willReturnSelf();
 		$this->fileService->method('showSigners')->willReturnSelf();
 		$this->fileService->method('showSettings')->willReturnSelf();
+		$this->fileService->method('showMessages')->willReturnSelf();
+		$this->fileService->method('showValidateFile')->willReturnSelf();
 		$this->fileService->method('toArray')->willReturn([
 			'id' => 5,
 			'nodeId' => 50,
@@ -209,6 +211,81 @@ final class PageControllerTest extends TestCase {
 		self::assertInstanceOf(RedirectResponse::class, $response);
 		self::assertStringContainsString('/apps/libresign/', $response->getRedirectURL());
 		self::assertStringNotContainsString('/apps/libresign/f/', $response->getRedirectURL());
+	}
+
+	public function testValidationFilePublicBootstrapsRequesterPoliciesWithoutUserScope(): void {
+		$fileEntity = new FileEntity();
+		$fileEntity->setId(7);
+		$fileEntity->setUuid('validation-file-uuid');
+		$fileEntity->setName('validation-file.pdf');
+
+		$fileService = $this->createMock(FileService::class);
+		$fileService->method('setFileByUuid')->willReturnSelf();
+		$fileService->method('setHost')->willReturnSelf();
+		$fileService->method('setMe')->willReturnSelf();
+		$fileService->method('setIdentifyMethodId')->willReturnSelf();
+		$fileService->method('showVisibleElements')->willReturnSelf();
+		$fileService->method('showSigners')->willReturnSelf();
+		$fileService->method('showSettings')->willReturnSelf();
+		$fileService->method('showMessages')->willReturnSelf();
+		$fileService->method('showValidateFile')->willReturnSelf();
+		$fileService->method('toArray')->willReturn([
+			'requested_by' => [
+				'userId' => 'admin',
+			],
+		]);
+
+		$signFileService = $this->createMock(SignFileService::class);
+		$signFileService->method('getFileByUuid')->willReturn($fileEntity);
+
+		$initialState = $this->createMock(IInitialState::class);
+		$policyService = $this->createMock(PolicyService::class);
+		$policyService
+			->expects($this->once())
+			->method('resolveKnownPolicyStatesForUserIdWithoutUserScope')
+			->with('admin')
+			->willReturn([]);
+		$policyService
+			->expects($this->never())
+			->method('resolveKnownPolicyStates');
+
+		$capturedInitialState = [];
+		$initialState
+			->expects($this->atLeastOnce())
+			->method('provideInitialState')
+			->willReturnCallback(static function (string $key, mixed $value) use (&$capturedInitialState): void {
+				$capturedInitialState[$key] = $value;
+			});
+
+		$controller = new PageController(
+			request: $this->request,
+			userSession: $this->userSession,
+			sessionService: $this->createMock(SessionService::class),
+			initialState: $initialState,
+			accountService: $this->accountService,
+			certificateEngineFactory: $this->certificateEngineFactory,
+			signFileService: $signFileService,
+			requestSignatureService: \OCP\Server::get(RequestSignatureService::class),
+			policyService: $policyService,
+			signerElementsService: $this->signerElementsService,
+			l10n: $this->createMock(IL10N::class),
+			identifyMethodService: $this->createConfiguredMock(IdentifyMethodService::class, [
+				'getIdentifyMethodsSettings' => [],
+			]),
+			appConfig: \OCP\Server::get(IAppConfig::class),
+			fileService: $fileService,
+			fileListService: \OCP\Server::get(FileListService::class),
+			fileMapper: \OCP\Server::get(\OCA\Libresign\Db\FileMapper::class),
+			signRequestMapper: \OCP\Server::get(\OCA\Libresign\Db\SignRequestMapper::class),
+			logger: \OCP\Server::get(LoggerInterface::class),
+			validateHelper: $this->createMock(ValidateHelper::class),
+			eventDispatcher: $this->createMock(IEventDispatcher::class),
+			urlGenerator: $this->urlGenerator,
+		);
+
+		$controller->validationFilePublic('validation-file-uuid');
+
+		self::assertArrayHasKey('effective_policies', $capturedInitialState);
 	}
 
 }
