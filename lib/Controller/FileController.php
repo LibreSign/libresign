@@ -24,6 +24,7 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\File\SettingsLoader;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -59,6 +60,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignPagination from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignSettings from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignValidatedFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignValidatedFileResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignValidateMetadata from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignVisibleElement from \OCA\Libresign\ResponseDefinitions
  */
@@ -73,6 +75,7 @@ class FileController extends AEnvironmentAwareController {
 		private FileMapper $fileMapper,
 		private RequestSignatureService $requestSignatureService,
 		private AccountService $accountService,
+		private PolicyService $policyService,
 		private IPreview $preview,
 		private IMimeIconProvider $mimeIconProvider,
 		private FileService $fileService,
@@ -96,7 +99,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param bool $showVisibleElements Whether to include visible elements in the response
 	 * @param bool $showMessages Whether to include validation messages in the response
 	 * @param bool $showValidateFile Whether to include the file payload in the response
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFileResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -128,7 +131,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param bool $showVisibleElements Whether to include visible elements in the response
 	 * @param bool $showMessages Whether to include validation messages in the response
 	 * @param bool $showValidateFile Whether to include the file payload in the response
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFileResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -157,7 +160,7 @@ class FileController extends AEnvironmentAwareController {
 	 * For `nodeType=file`, `filesCount=1` and `files` contains the current file.
 	 * For `nodeType=envelope`, `files` contains envelope child files.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFileResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -181,6 +184,7 @@ class FileController extends AEnvironmentAwareController {
 				->showMessages()
 				->showValidateFile()
 				->toArray();
+			$return = $this->appendRequesterEffectivePolicies($return);
 			$statusCode = Http::STATUS_OK;
 		} catch (InvalidArgumentException $e) {
 			$message = $e->getMessage();
@@ -205,7 +209,7 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * @param string|null $type The type of identifier could be Uuid or FileId
 	 * @param string|int $identifier The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFileResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
 	 */
 	private function validate(
 		?string $type = null,
@@ -253,6 +257,7 @@ class FileController extends AEnvironmentAwareController {
 				->showMessages($showMessages)
 				->showValidateFile($showValidateFile)
 				->toArray();
+			$return = $this->appendRequesterEffectivePolicies($return);
 			$statusCode = Http::STATUS_OK;
 		} catch (LibresignException $e) {
 			$message = $e->getMessage();
@@ -272,6 +277,40 @@ class FileController extends AEnvironmentAwareController {
 		}
 
 		return new DataResponse($return, $statusCode);
+	}
+
+	/**
+	 * @param array<string, mixed> $payload
+	 * @return array<string, mixed>
+	 */
+	private function appendRequesterEffectivePolicies(array $payload): array {
+		$requesterUserId = $this->extractRequesterUserId($payload);
+		$payload['effective_policies'] = [
+			'policies' => $requesterUserId !== null
+				? $this->policyService->resolveKnownPolicyStatesForUserId($requesterUserId)
+				: $this->policyService->resolveKnownPolicyStates(),
+		];
+
+		return $payload;
+	}
+
+	/**
+	 * @param array<string, mixed> $payload
+	 */
+	private function extractRequesterUserId(array $payload): ?string {
+		$requestedBy = $payload['requested_by'] ?? null;
+		if (!is_array($requestedBy)) {
+			return null;
+		}
+
+		$userId = $requestedBy['userId'] ?? null;
+		if (!is_string($userId)) {
+			return null;
+		}
+
+		$userId = trim($userId);
+
+		return $userId !== '' ? $userId : null;
 	}
 
 	/**
