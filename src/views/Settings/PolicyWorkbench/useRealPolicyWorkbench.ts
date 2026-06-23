@@ -596,7 +596,10 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		return activePolicyState.value?.editableByCurrentActor === false
-			&& activePolicyState.value?.canSaveAsUserDefault === true
+			&& (
+				activePolicyState.value?.canSaveAsUserDefault === true
+				|| activePolicyState.value?.meta?.canCreateDescendantRules === true
+			)
 	})
 
 	const effectiveSource = computed(() => {
