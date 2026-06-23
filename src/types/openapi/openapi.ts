@@ -1075,6 +1075,8 @@ export type components = {
         };
         EffectivePolicyMeta: {
             defaultSystemValue?: components["schemas"]["EffectivePolicyValue"];
+            canCreateDescendantRules?: boolean;
+            supportsUserPreference?: boolean;
         };
         EffectivePolicyResponse: {
             policy: components["schemas"]["EffectivePolicyState"];
