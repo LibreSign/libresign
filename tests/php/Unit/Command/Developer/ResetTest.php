@@ -11,6 +11,8 @@ namespace OCA\Libresign\Tests\Unit\Command\Developer;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Command\Developer\Reset;
 use OCA\Libresign\Tests\Unit\TestCase;
+use OCP\DB\QueryBuilder\IExpressionBuilder;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDBConnection;
@@ -72,5 +74,82 @@ final class ResetTest extends TestCase {
 
 		$this->assertSame(Command::SUCCESS, $status);
 		$this->assertSame(['docmdp_level', 'signature_flow'], $deletedKeys);
+	}
+
+	public function testResetPolicyClearsPermissionSetsAndStoredUserPolicyPreferences(): void {
+		$bindingDelete = $this->createMock(IQueryBuilder::class);
+		$bindingDelete
+			->expects($this->once())
+			->method('delete')
+			->with('libresign_permission_set_binding')
+			->willReturnSelf();
+		$bindingDelete
+			->expects($this->once())
+			->method('executeStatement');
+
+		$permissionSetDelete = $this->createMock(IQueryBuilder::class);
+		$permissionSetDelete
+			->expects($this->once())
+			->method('delete')
+			->with('libresign_permission_set')
+			->willReturnSelf();
+		$permissionSetDelete
+			->expects($this->once())
+			->method('executeStatement');
+
+		$expr = $this->createMock(IExpressionBuilder::class);
+		$expr
+			->expects($this->once())
+			->method('eq')
+			->with('appid', ':appId')
+			->willReturn('appid = :appId');
+		$expr
+			->expects($this->once())
+			->method('like')
+			->with('configkey', ':policyPrefix')
+			->willReturn('configkey LIKE :policyPrefix');
+
+		$preferencesDelete = $this->createMock(IQueryBuilder::class);
+		$preferencesDelete
+			->expects($this->once())
+			->method('delete')
+			->with('preferences')
+			->willReturnSelf();
+		$preferencesDelete
+			->expects($this->once())
+			->method('where')
+			->with('appid = :appId')
+			->willReturnSelf();
+		$preferencesDelete
+			->expects($this->once())
+			->method('andWhere')
+			->with('configkey LIKE :policyPrefix')
+			->willReturnSelf();
+		$preferencesDelete
+			->method('expr')
+			->willReturn($expr);
+		$preferencesDelete
+			->method('createNamedParameter')
+			->willReturnCallback(static function (mixed $value): string {
+				return match ($value) {
+					Application::APP_ID => ':appId',
+					'policy.%' => ':policyPrefix',
+					default => ':unexpected',
+				};
+			});
+		$preferencesDelete
+			->expects($this->once())
+			->method('executeStatement');
+
+		$this->db
+			->expects($this->exactly(3))
+			->method('getQueryBuilder')
+			->willReturnOnConsecutiveCalls($bindingDelete, $permissionSetDelete, $preferencesDelete);
+
+		$status = $this->command->run(new ArrayInput([
+			'--policy' => true,
+		]), new BufferedOutput());
+
+		$this->assertSame(Command::SUCCESS, $status);
 	}
 }
