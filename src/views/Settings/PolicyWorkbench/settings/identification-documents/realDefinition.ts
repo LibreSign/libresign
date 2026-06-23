@@ -46,6 +46,10 @@ export const identificationDocumentsRealDefinition: RealPolicySettingDefinition 
 	key: 'identification_documents',
 	title: t('libresign', 'Identification documents flow'),
 	description: t('libresign', 'Control whether signers must submit identification documents for approval.'),
+	groupAdminBehavior: {
+		allowGroupRuleCreationFromDescendantDelegation: true,
+		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
+	},
 	supportedScopes: ['system', 'group', 'user'],
 	editor: IdentificationDocumentsRuleEditor,
 	resolutionMode: 'precedence',
