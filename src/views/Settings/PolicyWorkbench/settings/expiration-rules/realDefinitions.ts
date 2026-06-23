@@ -27,8 +27,13 @@ export const maximumValidityRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'Request expiration'),
 	// TRANSLATORS Policy description explaining expiration and renewal timing of signing requests.
 	description: t('libresign', 'Configure expiration and renewal timing for signing requests.'),
+	groupAdminBehavior: {
+		allowGroupRuleCreationFromDescendantDelegation: true,
+		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && (policy?.canSaveAsUserDefault === true || policy?.meta?.canCreateDescendantRules === true),
+	},
 	editor: RequestExpirationRuleEditor,
 	resolutionMode: 'precedence',
+	supportedScopes: ['system', 'group', 'user'],
 	createEmptyValue: () => normalizeRequestExpirationDraftValue(DEFAULT_MAXIMUM_VALIDITY),
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeRequestExpirationDraftValue(value),
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => hasValidRequestExpirationCombination(value),
