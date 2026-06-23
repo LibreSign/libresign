@@ -162,7 +162,7 @@ jobs:
 
       - name: Cache LibreSign binary payloads
         id: libresign-binaries-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: .cache/libresign-binaries
           key: ${{ runner.os }}-libresign-binaries-${{ hashFiles(format('apps/{0}/appinfo/install-*.json', env.APP_NAME), format('apps/{0}/lib/Service/Install/InstallService.php', env.APP_NAME)) }}
