@@ -33,6 +33,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	private ?PhpNativeHandler $phpNativeHandler = null;
 	private string $rootCertificatePem = '';
 	private bool $isLibreSignFile = false;
+	private ?string $policyUserIdForValidation = null;
 
 	public function __construct(
 		private FolderService $folderService,
@@ -89,6 +90,14 @@ class Pkcs12Handler extends SignEngineHandler {
 		$this->isLibreSignFile = true;
 	}
 
+	public function setPolicyUserIdForValidation(?string $userId): self {
+		$this->policyUserIdForValidation = is_string($userId) && trim($userId) !== ''
+			? trim($userId)
+			: null;
+
+		return $this;
+	}
+
 	/**
 	 * @param resource $resource
 	 * @throws LibresignException When is not a signed file
@@ -97,20 +106,28 @@ class Pkcs12Handler extends SignEngineHandler {
 	#[\Override]
 	public function getCertificateChain($resource): array {
 		$certificates = [];
+		$certificateEngine = $this->getCertificateEngine();
+		$certificateEngine->setPolicyUserIdForValidation($this->policyUserIdForValidation);
 
-		foreach ($this->getSignatures($resource) as $signature) {
-			if (!$signature) {
-				continue;
+		try {
+			foreach ($this->getSignatures($resource) as $signature) {
+				if (!$signature) {
+					continue;
+				}
+
+				$result = $this->processSignature($resource, $signature);
+
+				if (empty($result['chain'])) {
+					continue;
+				}
+
+				$certificates[] = $result;
 			}
-
-			$result = $this->processSignature($resource, $signature);
-
-			if (empty($result['chain'])) {
-				continue;
-			}
-
-			$certificates[] = $result;
+		} finally {
+			$certificateEngine->setPolicyUserIdForValidation(null);
+			$this->policyUserIdForValidation = null;
 		}
+
 		return $certificates;
 	}
 
