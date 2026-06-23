@@ -46,6 +46,10 @@ export const validationAccessRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'Validation page access'),
 	// TRANSLATORS Policy description explaining whether authentication is required to access document validation results.
 	description: t('libresign', 'Control whether the validation page URL requires authentication.'),
+	groupAdminBehavior: {
+		allowGroupRuleCreationFromDescendantDelegation: true,
+		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
+	},
 	editor: ValidationAccessRuleEditor,
 	resolutionMode: 'precedence',
 	createEmptyValue: () => false,
