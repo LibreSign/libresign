@@ -91,10 +91,22 @@ class CrlRevocationCheckerTest extends TestCase {
 	private ICache&MockObject $crlCache;
 	private LdapCrlDownloader&MockObject $ldapDownloader;
 	private CrlRevocationCheckerTestable $checker;
+	private bool $externalValidationEnabled = true;
+	private int $resolveCallCount = 0;
 
 	protected function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
 		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyService
+			->method('resolve')
+			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
+				$this->resolveCallCount++;
+				$this->assertSame(CrlValidationPolicy::KEY, $policyKey);
+
+				return (new ResolvedPolicy())
+					->setPolicyKey(CrlValidationPolicy::KEY)
+					->setEffectiveValue($this->externalValidationEnabled);
+			});
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
@@ -223,6 +235,29 @@ class CrlRevocationCheckerTest extends TestCase {
 		$result = $this->checker->validate(['http://crl.unreachable.invalid/crl.crl'], '');
 
 		$this->assertNotSame(CrlValidationStatus::DISABLED, $result['status'], 'Status should not be disabled when external validation is enabled');
+	}
+
+	public function testValidateResolvesPolicyForRequesterWhenProvided(): void {
+		$resolved = (new ResolvedPolicy())
+			->setPolicyKey(CrlValidationPolicy::KEY)
+			->setEffectiveValue(false);
+		$this->resolveCallCount = 0;
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUserId')
+			->with(CrlValidationPolicy::KEY, 'requester')
+			->willReturn($resolved);
+
+		$this->config
+			->method('getSystemValue')
+			->with('trusted_domains', [])
+			->willReturn([]);
+
+		$result = $this->checker->validate(['http://crl.external.example.com/crl.crl'], '', 'requester');
+
+		$this->assertSame(CrlValidationStatus::DISABLED, $result['status']);
+		$this->assertSame(0, $this->resolveCallCount);
 	}
 
 	public function testValidateChecksLocalUrlsEvenWhenExternalValidationDisabled(): void {
@@ -413,12 +448,7 @@ class CrlRevocationCheckerTest extends TestCase {
 	}
 
 	private function mockExternalValidationEnabled(bool $enabled): void {
-		$resolved = (new ResolvedPolicy())
-			->setPolicyKey(CrlValidationPolicy::KEY)
-			->setEffectiveValue($enabled);
-		$this->policyService->method('resolve')
-			->with(CrlValidationPolicy::KEY)
-			->willReturn($resolved);
+		$this->externalValidationEnabled = $enabled;
 	}
 
 }
