@@ -61,6 +61,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignSettings from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignValidatedFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignValidatedFileResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignEffectivePolicyState from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignValidateMetadata from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignVisibleElement from \OCA\Libresign\ResponseDefinitions
  */
@@ -174,7 +175,8 @@ class FileController extends AEnvironmentAwareController {
 	public function validateBinary(): DataResponse {
 		try {
 			$file = $this->request->getUploadedFile('file');
-			$return = $this->fileService
+			/** @var LibresignValidatedFile $validatedFile */
+			$validatedFile = $this->fileService
 				->setMe($this->userSession->getUser())
 				->setFileFromRequest($file)
 				->setHost($this->request->getServerHost())
@@ -184,24 +186,33 @@ class FileController extends AEnvironmentAwareController {
 				->showMessages()
 				->showValidateFile()
 				->toArray();
-			$return = $this->appendRequesterEffectivePolicies($return);
-			$statusCode = Http::STATUS_OK;
+
+			/** @var LibresignValidatedFileResponse $response */
+			$response = $this->appendRequesterEffectivePolicies($validatedFile);
+
+			return new DataResponse($response, Http::STATUS_OK);
 		} catch (InvalidArgumentException $e) {
 			$message = $e->getMessage();
-			$return = [
+			/** @var LibresignActionErrorResponse $response */
+			$response = [
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $message]]
 			];
-			$statusCode = Http::STATUS_NOT_FOUND;
+
+			return new DataResponse($response, Http::STATUS_NOT_FOUND);
 		} catch (\Exception $e) {
 			$this->logger->error('Failed to post file to validate', [
 				'exception' => $e,
 			]);
 
-			$return = ['message' => $this->l10n->t('Internal error. Contact admin.')];
-			$statusCode = Http::STATUS_BAD_REQUEST;
+			/** @var LibresignActionErrorResponse $response */
+			$response = [
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [['message' => $this->l10n->t('Internal error. Contact admin.')]],
+			];
+
+			return new DataResponse($response, Http::STATUS_BAD_REQUEST);
 		}
-		return new DataResponse($return, $statusCode);
 	}
 
 	/**
@@ -247,7 +258,8 @@ class FileController extends AEnvironmentAwareController {
 				$this->fileService->setSignRequest($signRequest);
 			}
 
-			$return = $this->fileService
+			/** @var LibresignValidatedFile $validatedFile */
+			$validatedFile = $this->fileService
 				->setMe($this->userSession->getUser())
 				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
 				->setHost($this->request->getServerHost())
@@ -257,38 +269,46 @@ class FileController extends AEnvironmentAwareController {
 				->showMessages($showMessages)
 				->showValidateFile($showValidateFile)
 				->toArray();
-			$return = $this->appendRequesterEffectivePolicies($return);
-			$statusCode = Http::STATUS_OK;
+
+			/** @var LibresignValidatedFileResponse $response */
+			$response = $this->appendRequesterEffectivePolicies($validatedFile);
+
+			return new DataResponse($response, Http::STATUS_OK);
 		} catch (LibresignException $e) {
 			$message = $e->getMessage();
-			$return = [
+			/** @var LibresignActionErrorResponse $response */
+			$response = [
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $message]]
 			];
-			$statusCode = Http::STATUS_NOT_FOUND;
+
+			return new DataResponse($response, Http::STATUS_NOT_FOUND);
 		} catch (\Throwable $th) {
 			$this->logger->error($th->getMessage(), ['exception' => $th]);
 			$message = $this->l10n->t('Internal error. Contact admin.');
-			$return = [
+			/** @var LibresignActionErrorResponse $response */
+			$response = [
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $message]]
 			];
-			$statusCode = Http::STATUS_NOT_FOUND;
-		}
 
-		return new DataResponse($return, $statusCode);
+			return new DataResponse($response, Http::STATUS_NOT_FOUND);
+		}
 	}
 
 	/**
-	 * @param array<string, mixed> $payload
-	 * @return array<string, mixed>
+	 * @param LibresignValidatedFile $payload
+	 * @return LibresignValidatedFileResponse
 	 */
 	private function appendRequesterEffectivePolicies(array $payload): array {
 		$requesterUserId = $this->extractRequesterUserId($payload);
+		/** @var array<string, LibresignEffectivePolicyState> $resolvedPolicyStates */
+		$resolvedPolicyStates = $requesterUserId !== null
+			? $this->policyService->resolveKnownPolicyStatesForUserId($requesterUserId)
+			: $this->policyService->resolveKnownPolicyStates();
+
 		$payload['effective_policies'] = [
-			'policies' => $requesterUserId !== null
-				? $this->policyService->resolveKnownPolicyStatesForUserId($requesterUserId)
-				: $this->policyService->resolveKnownPolicyStates(),
+			'policies' => $resolvedPolicyStates,
 		];
 
 		return $payload;
