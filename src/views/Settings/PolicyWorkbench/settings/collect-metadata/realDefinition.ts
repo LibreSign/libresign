@@ -7,6 +7,7 @@ import { t } from '@nextcloud/l10n'
 
 import type { EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
+import { collectMetadataPersonalPreferenceBehavior } from '../signature-text/personalPreferenceBehavior'
 import CollectMetadataRuleEditor from './CollectMetadataRuleEditor.vue'
 
 function resolveCollectMetadata(value: EffectivePolicyValue): boolean | null {
@@ -44,6 +45,7 @@ export const collectMetadataRealDefinition: RealPolicySettingDefinition = {
 	key: 'collect_metadata',
 	title: t('libresign', 'Collect signer metadata'),
 	description: t('libresign', 'Control whether signer IP address and user agent are stored when signing documents.'),
+	personalPreferenceBehavior: collectMetadataPersonalPreferenceBehavior,
 	editor: CollectMetadataRuleEditor,
 	resolutionMode: 'precedence',
 	createEmptyValue: () => false,
