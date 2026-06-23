@@ -49,6 +49,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->certificateEngine = $this->createMock(IEngineHandler::class);
+		$this->certificateEngine->method('setPolicyUserIdForValidation')->willReturnSelf();
 		$this->certificateEngine
 			->method('parseCertificate')
 			->willReturnCallback(static function (string $certificate): array {
