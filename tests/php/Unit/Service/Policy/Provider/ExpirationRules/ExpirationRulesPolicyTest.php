@@ -8,7 +8,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\ExpirationRules;
 
+use OCA\Libresign\Service\Policy\Model\ActorRole;
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class ExpirationRulesPolicyTest extends TestCase {
@@ -43,5 +47,83 @@ final class ExpirationRulesPolicyTest extends TestCase {
 
 		$this->assertSame(90, $definition->normalizeValue('90'));
 		$this->assertSame(ExpirationRulesPolicy::DEFAULT_EXPIRY_IN_DAYS, $definition->normalizeValue(0));
+	}
+
+	#[DataProvider('provideDelegatedRequestExpirationKeys')]
+	public function testRequestExpirationKeysSupportDelegatedGroupAdminOverlays(string $policyKey): void {
+		$provider = new ExpirationRulesPolicy();
+		$definition = $provider->get($policyKey);
+
+		$this->assertTrue($definition->supportsGroupAdminDelegation());
+		$this->assertFalse($definition->supportsUserPreference());
+	}
+
+	#[DataProvider('provideDelegatedRequestExpirationKeys')]
+	public function testGroupAdminCanManageDelegatedRequestExpirationGroupPolicy(string $policyKey): void {
+		$provider = new ExpirationRulesPolicy();
+		$definition = $provider->get($policyKey);
+		$context = (new PolicyContext())->setActorRole(ActorRole::groupAdmin(1));
+
+		$canManage = $definition->canCurrentActorManageGroupPolicy(
+			$context,
+			null,
+			[
+				self::buildPolicyLayer(
+					scope: 'group',
+					allowChildOverride: false,
+					visibleToChild: true,
+					value: 86400,
+					delegatedFromSystemCreatedSeed: true,
+				),
+			],
+		);
+
+		$this->assertTrue($canManage);
+	}
+
+	#[DataProvider('provideDelegatedRequestExpirationKeys')]
+	public function testGroupAdminCanEditSystemCreatedRequestExpirationSeedWhenVisibleAndOverridable(string $policyKey): void {
+		$provider = new ExpirationRulesPolicy();
+		$definition = $provider->get($policyKey);
+		$context = (new PolicyContext())->setActorRole(ActorRole::groupAdmin(1));
+
+		$canEdit = $definition->canCurrentActorEditSystemCreatedGroupPolicy(
+			$context,
+			null,
+			self::buildPolicyLayer(
+				scope: 'group',
+				allowChildOverride: true,
+				visibleToChild: true,
+				value: 86400,
+				createdBySystemAdmin: true,
+			),
+		);
+
+		$this->assertTrue($canEdit);
+	}
+
+	/**
+	 * @return iterable<string, array{0: string}>
+	 */
+	public static function provideDelegatedRequestExpirationKeys(): iterable {
+		yield 'maximum validity' => [ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY];
+		yield 'renewal interval' => [ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL];
+	}
+
+	private static function buildPolicyLayer(
+		string $scope,
+		bool $allowChildOverride,
+		bool $visibleToChild,
+		mixed $value,
+		bool $createdBySystemAdmin = false,
+		bool $delegatedFromSystemCreatedSeed = false,
+	): PolicyLayer {
+		return (new PolicyLayer())
+			->setScope($scope)
+			->setAllowChildOverride($allowChildOverride)
+			->setVisibleToChild($visibleToChild)
+			->setValue($value)
+			->setCreatedBySystemAdmin($createdBySystemAdmin)
+			->setDelegatedFromSystemCreatedSeed($delegatedFromSystemCreatedSeed);
 	}
 }
