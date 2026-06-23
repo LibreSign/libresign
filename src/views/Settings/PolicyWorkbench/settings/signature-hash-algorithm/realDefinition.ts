@@ -17,6 +17,10 @@ export const signatureHashAlgorithmRealDefinition: RealPolicySettingDefinition =
 	title: t('libresign', 'Signature hash algorithm'),
 	// TRANSLATORS Policy description shown in admin settings. It refers to the digest/hash algorithm used by the signature engine.
 	description: t('libresign', 'Hash algorithm used for signature.'),
+	groupAdminBehavior: {
+		allowGroupRuleCreationFromDescendantDelegation: true,
+		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
+	},
 	editor: SignatureHashAlgorithmRuleEditor,
 	resolutionMode: 'precedence',
 	createEmptyValue: () => DEFAULT_HASH_ALGORITHM,
