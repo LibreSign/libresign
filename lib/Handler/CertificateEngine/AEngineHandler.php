@@ -78,6 +78,7 @@ abstract class AEngineHandler implements IEngineHandler {
 	protected string $currentCaId = '';
 	protected IAppData $appData;
 	private CrlDistributionPointsExtractor $crlDistributionPointsExtractor;
+	private ?string $policyUserIdForValidation = null;
 
 	public function __construct(
 		protected IConfig $config,
@@ -165,6 +166,15 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $this->parseX509($certificate);
 	}
 
+	#[\Override]
+	public function setPolicyUserIdForValidation(?string $userId): self {
+		$this->policyUserIdForValidation = is_string($userId) && trim($userId) !== ''
+			? trim($userId)
+			: null;
+
+		return $this;
+	}
+
 	private function parseX509(string $x509): array {
 		$parsed = openssl_x509_parse(openssl_x509_read($x509));
 
@@ -199,7 +209,7 @@ abstract class AEngineHandler implements IEngineHandler {
 					return;
 				}
 
-				$crlDetails = $this->crlRevocationChecker->validate($extractedUrls, $certPem);
+				$crlDetails = $this->crlRevocationChecker->validate($extractedUrls, $certPem, $this->policyUserIdForValidation);
 				$certData['crl_validation'] = $crlDetails['status'];
 				if (!empty($crlDetails['revoked_at'])) {
 					$certData['crl_revoked_at'] = $crlDetails['revoked_at'];
@@ -208,7 +218,7 @@ abstract class AEngineHandler implements IEngineHandler {
 			}
 		}
 
-		$emptyCrlValidation = $this->crlRevocationChecker->validate([], $certPem);
+		$emptyCrlValidation = $this->crlRevocationChecker->validate([], $certPem, $this->policyUserIdForValidation);
 		$certData['crl_validation'] = ($emptyCrlValidation['status'] ?? CrlValidationStatus::NO_URLS) === CrlValidationStatus::DISABLED
 			? CrlValidationStatus::DISABLED
 			: CrlValidationStatus::MISSING;
