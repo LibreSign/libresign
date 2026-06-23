@@ -414,6 +414,7 @@
     "Error monitoring signing progress" : "Erreur lors du suivi de la signature",
     "The original file was deleted. You can no longer add signers or open it." : "Le fichier d’origine a été supprimé. Vous ne pouvez plus ajouter de signataires ni l’ouvrir.",
     "Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures." : "Certains signataires utilisent des méthodes d’identification qui ont été désactivées. Veuillez les supprimer ou les mettre à jour avant de demander les signatures.",
+    "Loading signer details …" : "Chargement des informations du signataire ...",
     "Add signer" : "Ajouter un signataire",
     "Sign in order" : "Signer selon l'ordre défini",
     "View signing order" : "Voir l'ordre de signature",
