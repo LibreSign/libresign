@@ -18,6 +18,24 @@ export interface RealPolicyGroupAdminBehavior {
 	allowGroupRuleCreationFromDescendantDelegation?: boolean
 }
 
+export interface RealPolicyPersonalPreferenceContext {
+	getPolicy: (policyKey: string) => EffectivePolicyState | null
+	saveUserPreference: (policyKey: string, value: EffectivePolicyValue) => Promise<unknown>
+	clearUserPreference: (policyKey: string) => Promise<unknown>
+}
+
+export interface RealPolicyPersonalPreferenceBehavior {
+	shouldRender?: (policy: EffectivePolicyState | null, context: RealPolicyPersonalPreferenceContext) => boolean
+	resolvePolicy?: (policy: EffectivePolicyState | null, context: RealPolicyPersonalPreferenceContext) => EffectivePolicyState | null
+	resolveSelectedValue?: (policy: EffectivePolicyState | null, context: RealPolicyPersonalPreferenceContext) => EffectivePolicyValue
+	normalizeValue?: (value: EffectivePolicyValue, context: RealPolicyPersonalPreferenceContext) => EffectivePolicyValue
+	getEffectiveValue?: (policy: EffectivePolicyState | null, context: RealPolicyPersonalPreferenceContext) => EffectivePolicyValue
+	canSave?: (policy: EffectivePolicyState | null, context: RealPolicyPersonalPreferenceContext) => boolean
+	hasSavedPreference?: (policy: EffectivePolicyState | null, context: RealPolicyPersonalPreferenceContext) => boolean
+	savePreference?: (value: EffectivePolicyValue, context: RealPolicyPersonalPreferenceContext) => Promise<void>
+	clearPreference?: (context: RealPolicyPersonalPreferenceContext) => Promise<void>
+}
+
 export type RealPolicySettingCategory =
 	| 'who-can-sign'
 	| 'how-signing-works'
@@ -36,6 +54,7 @@ export interface RealPolicySettingDefinition {
 	supportedScopes?: ReadonlyArray<RealPolicyScope>
 	visibleInGroupAdmin?: boolean
 	groupAdminBehavior?: RealPolicyGroupAdminBehavior
+	personalPreferenceBehavior?: RealPolicyPersonalPreferenceBehavior
 	editor: unknown
 	editorProps?: Record<string, unknown>
 	resolveEditorProps?: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => Record<string, unknown>
