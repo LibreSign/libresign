@@ -702,7 +702,7 @@ class PageController extends AEnvironmentPageAwareController {
 
 		$this->initialState->provideInitialState('effective_policies', [
 			'policies' => $requesterUserId !== null
-				? $this->policyService->resolveKnownPolicyStatesForUserId($requesterUserId)
+				? $this->policyService->resolveKnownPolicyStatesForUserIdWithoutUserScope($requesterUserId)
 				: $this->policyService->resolveKnownPolicyStates(),
 		]);
 

@@ -80,6 +80,25 @@ class PolicyService {
 	}
 
 	/**
+	 * Resolve requester-facing policy states using the target user's group membership,
+	 * while intentionally ignoring user-specific layers such as assigned user policies
+	 * and personal preferences.
+	 *
+	 * This is used by public validation pages, which should reflect the requester's
+	 * inherited group/system policy posture without exposing user-scoped overrides.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	public function resolveKnownPolicyStatesForUserIdWithoutUserScope(?string $userId, array $requestOverrides = [], ?array $activeContext = null): array {
+		$context = $this->contextFactory->forUserId($userId, $requestOverrides, $activeContext);
+		$context->setUserId(null);
+
+		return $this->serializeResolvedPolicies(
+			$this->resolveKnownPoliciesForContext($context),
+		);
+	}
+
+	/**
 	 * @param array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $ruleCounts
 	 * @return array<string, array<string, mixed>>
 	 */
