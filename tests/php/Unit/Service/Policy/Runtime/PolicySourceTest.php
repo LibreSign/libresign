@@ -1362,6 +1362,124 @@ final class PolicySourceTest extends TestCase {
 		$source->clearGroupPolicy(IdentifyMethodsPolicy::KEY, 'board', true);
 	}
 
+	public function testSaveGroupPolicyStoresDelegatedSignatureStampOverrideWithoutDestroyingSystemSeed(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(113);
+		$binding->setTargetType('group');
+		$binding->setTargetId('board');
+
+		$systemSeed = '{"template":"Signed with LibreSign","template_font_size":9.8,"signature_font_size":20,"signature_width":350,"signature_height":100,"background_type":"default","render_mode":"default"}';
+		$groupOverride = '{"template":"Board approval","template_font_size":10,"signature_font_size":18,"signature_width":280,"signature_height":90,"background_type":"custom","render_mode":"graphic"}';
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(113);
+		$permissionSet->setPolicyJson([
+			SignatureTextPolicy::KEY => [
+				'defaultValue' => $systemSeed,
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'createdBySystemAdmin' => true,
+				'createdByActorScope' => 'system',
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('getByTarget')
+			->with('group', 'board')
+			->willReturn($binding);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('getById')
+			->with(113)
+			->willReturn($permissionSet);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('update')
+			->with($this->callback(function (PermissionSet $updatedPermissionSet) use ($systemSeed, $groupOverride): bool {
+				$policyJson = $updatedPermissionSet->getDecodedPolicyJson();
+				$this->assertArrayHasKey(SignatureTextPolicy::KEY, $policyJson);
+				$this->assertArrayHasKey(SignatureTextPolicy::KEY . '__delegated_override', $policyJson);
+				$this->assertSame($systemSeed, $policyJson[SignatureTextPolicy::KEY]['defaultValue'] ?? null);
+				$this->assertSame($groupOverride, $policyJson[SignatureTextPolicy::KEY . '__delegated_override']['defaultValue'] ?? null);
+				$this->assertFalse($policyJson[SignatureTextPolicy::KEY . '__delegated_override']['allowChildOverride'] ?? true);
+				$this->assertFalse($policyJson[SignatureTextPolicy::KEY . '__delegated_override']['createdBySystemAdmin'] ?? true);
+				return true;
+			}));
+
+		$source = $this->getSource();
+		$source->saveGroupPolicy(
+			SignatureTextPolicy::KEY,
+			'board',
+			$groupOverride,
+			false,
+			false,
+		);
+	}
+
+	public function testClearGroupPolicyPreservesSystemSignatureStampSeedWhenRemovingDelegatedOverride(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(114);
+		$binding->setTargetType('group');
+		$binding->setTargetId('board');
+
+		$systemSeed = '{"template":"Signed with LibreSign","template_font_size":9.8,"signature_font_size":20,"signature_width":350,"signature_height":100,"background_type":"default","render_mode":"default"}';
+		$groupOverride = '{"template":"Board approval","template_font_size":10,"signature_font_size":18,"signature_width":280,"signature_height":90,"background_type":"custom","render_mode":"graphic"}';
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(114);
+		$permissionSet->setPolicyJson([
+			SignatureTextPolicy::KEY => [
+				'defaultValue' => $systemSeed,
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'createdBySystemAdmin' => true,
+				'createdByActorScope' => 'system',
+			],
+			SignatureTextPolicy::KEY . '__delegated_override' => [
+				'defaultValue' => $groupOverride,
+				'allowChildOverride' => false,
+				'visibleToChild' => true,
+				'allowedValues' => [$groupOverride],
+				'createdBySystemAdmin' => false,
+				'createdByActorScope' => 'group',
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('getByTarget')
+			->with('group', 'board')
+			->willReturn($binding);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('getById')
+			->with(114)
+			->willReturn($permissionSet);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('update')
+			->with($this->callback(function (PermissionSet $updatedPermissionSet) use ($systemSeed): bool {
+				$policyJson = $updatedPermissionSet->getDecodedPolicyJson();
+				$this->assertArrayHasKey(SignatureTextPolicy::KEY, $policyJson);
+				$this->assertArrayNotHasKey(SignatureTextPolicy::KEY . '__delegated_override', $policyJson);
+				$this->assertSame($systemSeed, $policyJson[SignatureTextPolicy::KEY]['defaultValue'] ?? null);
+				return true;
+			}));
+
+		$this->bindingMapper->expects($this->never())->method('delete');
+		$this->permissionSetMapper->expects($this->never())->method('delete');
+
+		$source = $this->getSource();
+		$source->clearGroupPolicy(SignatureTextPolicy::KEY, 'board', true);
+	}
+
 	public function testSaveGroupPolicyThrowsWhenDelegatedOverrideHasEmptyDenyGroups(): void {
 		$binding = new PermissionSetBinding();
 		$binding->setPermissionSetId(110);
