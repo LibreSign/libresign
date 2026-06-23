@@ -8,6 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\Reminder;
 
+use OCA\Libresign\Service\Policy\Model\ActorRole;
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
 use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicyValue;
 use PHPUnit\Framework\TestCase;
@@ -57,5 +60,71 @@ final class ReminderPolicyTest extends TestCase {
 			'{"days_before":0,"days_between":0,"max":0,"send_timer":"10:00"}',
 			$normalized,
 		);
+	}
+
+	public function testProviderSupportsDelegatedGroupAdminOverlays(): void {
+		$provider = new ReminderPolicy();
+		$definition = $provider->get(ReminderPolicy::KEY);
+
+		$this->assertTrue($definition->supportsGroupAdminDelegation());
+	}
+
+	public function testGroupAdminCanManageReminderGroupPolicyWhenDelegatedFromSystemCreatedSeed(): void {
+		$provider = new ReminderPolicy();
+		$definition = $provider->get(ReminderPolicy::KEY);
+		$context = (new PolicyContext())->setActorRole(ActorRole::groupAdmin(1));
+
+		$canManage = $definition->canCurrentActorManageGroupPolicy(
+			$context,
+			null,
+			[
+				self::buildPolicyLayer(
+					scope: 'group',
+					allowChildOverride: false,
+					visibleToChild: true,
+					value: ReminderPolicyValue::encode(ReminderPolicyValue::defaults()),
+					delegatedFromSystemCreatedSeed: true,
+				),
+			],
+		);
+
+		$this->assertTrue($canManage);
+	}
+
+	public function testGroupAdminCanEditSystemCreatedReminderSeedWhenVisibleAndOverridable(): void {
+		$provider = new ReminderPolicy();
+		$definition = $provider->get(ReminderPolicy::KEY);
+		$context = (new PolicyContext())->setActorRole(ActorRole::groupAdmin(1));
+
+		$canEdit = $definition->canCurrentActorEditSystemCreatedGroupPolicy(
+			$context,
+			null,
+			self::buildPolicyLayer(
+				scope: 'group',
+				allowChildOverride: true,
+				visibleToChild: true,
+				value: ReminderPolicyValue::encode(ReminderPolicyValue::defaults()),
+				createdBySystemAdmin: true,
+			),
+		);
+
+		$this->assertTrue($canEdit);
+	}
+
+	private static function buildPolicyLayer(
+		string $scope,
+		bool $allowChildOverride,
+		bool $visibleToChild,
+		mixed $value,
+		bool $createdBySystemAdmin = false,
+		bool $delegatedFromSystemCreatedSeed = false,
+	): PolicyLayer {
+		return (new PolicyLayer())
+			->setScope($scope)
+			->setAllowChildOverride($allowChildOverride)
+			->setVisibleToChild($visibleToChild)
+			->setValue($value)
+			->setCreatedBySystemAdmin($createdBySystemAdmin)
+			->setDelegatedFromSystemCreatedSeed($delegatedFromSystemCreatedSeed);
 	}
 }
