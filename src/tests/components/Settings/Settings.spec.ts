@@ -51,7 +51,13 @@ vi.mock('../../../store/policies', () => ({
 		get policies() {
 			return mockPolicies.value
 		},
+		getPolicy: (policyKey: string) => {
+			const policy = mockPolicies.value[policyKey]
+			return policy ? policy as Record<string, unknown> : null
+		},
 		fetchEffectivePolicies: vi.fn(async () => {}),
+		saveUserPreference: vi.fn(async () => null),
+		clearUserPreference: vi.fn(async () => null),
 	}),
 }))
 
@@ -467,10 +473,27 @@ describe('Settings', () => {
 			expect(preferencesItem.props('to')).toEqual({ name: 'Preferences' })
 		})
 
-		it('hides Preferences when user cannot create signature requests', () => {
+		it('shows Preferences when personal defaults are allowed even if user cannot create signature requests', () => {
 			wrapper = createWrapper(false, false, false, {
 				signature_flow: {
 					canSaveAsUserDefault: true,
+				},
+			})
+			const items = getItems()
+			const preferencesItem = expectItem(findItemByName(items, 'Preferences'))
+
+			expect(preferencesItem.props('to')).toEqual({ name: 'Preferences' })
+		})
+
+		it('hides Preferences when the merged signature stamp preference is blocked by its companion policy', () => {
+			wrapper = createWrapper(false, false, true, {
+				signature_stamp: {
+					canSaveAsUserDefault: true,
+					sourceScope: 'group',
+				},
+				collect_metadata: {
+					canSaveAsUserDefault: false,
+					sourceScope: 'group',
 				},
 			})
 			const items = getItems()

@@ -1349,7 +1349,7 @@ describe('useRealPolicyWorkbench', () => {
 		state.updateDraftAllowOverride(false)
 		await state.saveDraft()
 
-		expect(state.createUserOverrideDisabledReason).toContain('Blocked by the Finance group rule')
+		expect(state.createUserOverrideDisabledReason).toMatch(/Blocked by the finance group rule\.?/i)
 
 		state.startEditor({ scope: 'user' })
 		expect(state.editorDraft).toBeNull()
@@ -2902,6 +2902,142 @@ describe('useRealPolicyWorkbench', () => {
 
 		expect(saveGroupPolicy).toHaveBeenCalledWith('finance', 'signature_stamp', signatureStampValue, true)
 		expect(saveGroupPolicy).toHaveBeenCalledWith('finance', 'collect_metadata', true, true)
+	})
+
+	it('saves signature stamp group rule with lower-level editing disabled for both companion policies', async () => {
+		const signatureStampValue = JSON.stringify({
+			template: 'Board approved by {{SignerCommonName}}',
+			template_font_size: 10,
+			signature_font_size: 10,
+			signature_width: 320,
+			signature_height: 90,
+			background_type: 'default',
+			render_mode: 'graphic',
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_stamp')
+		state.startEditor({ scope: 'group' })
+		state.updateDraftTargets(['board'])
+		state.updateDraftAllowOverride(false)
+		state.updateDraftValue({
+			signatureStampValue,
+			collectMetadataEnabled: false,
+		} as never)
+
+		await state.saveDraft()
+
+		expect(saveGroupPolicy).toHaveBeenCalledWith('board', 'signature_stamp', signatureStampValue, false)
+		expect(saveGroupPolicy).toHaveBeenCalledWith('board', 'collect_metadata', false, false)
+	})
+
+	it('blocks signature stamp account rules when a persisted group rule disables lower-level editing', async () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['finance', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_stamp') {
+				return {
+					policyKey: 'signature_stamp',
+					effectiveValue: JSON.stringify({
+						template: 'Board approved by {{SignerCommonName}}',
+						template_font_size: 10,
+						signature_font_size: 10,
+						signature_width: 320,
+						signature_height: 90,
+						background_type: 'default',
+						render_mode: 'graphic',
+					}),
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 1,
+					userCount: 0,
+				}
+			}
+
+			if (key === 'collect_metadata') {
+				return {
+					policyKey: 'collect_metadata',
+					effectiveValue: false,
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 1,
+					userCount: 0,
+				}
+			}
+
+			return {
+				effectiveValue: 'parallel',
+				groupCount: 0,
+				userCount: 0,
+				editableByCurrentActor: false,
+				canSaveAsUserDefault: false,
+			}
+		})
+
+		fetchGroupPolicy.mockImplementation(async (groupId: string, policyKey: string) => {
+			if (groupId !== 'finance') {
+				return null
+			}
+
+			if (policyKey === 'signature_stamp') {
+				return {
+					policyKey,
+					scope: 'group',
+					targetId: groupId,
+					value: JSON.stringify({
+						template: 'Board approved by {{SignerCommonName}}',
+						template_font_size: 10,
+						signature_font_size: 10,
+						signature_width: 320,
+						signature_height: 90,
+						background_type: 'default',
+						render_mode: 'graphic',
+					}),
+					allowChildOverride: false,
+					visibleToChild: true,
+					allowedValues: [],
+				}
+			}
+
+			if (policyKey === 'collect_metadata') {
+				return {
+					policyKey,
+					scope: 'group',
+					targetId: groupId,
+					value: false,
+					allowChildOverride: false,
+					visibleToChild: true,
+					allowedValues: [],
+				}
+			}
+
+			return null
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+		state.openSetting('signature_stamp')
+
+		await vi.waitFor(() => {
+			expect(state.visibleGroupRules).toHaveLength(1)
+		})
+
+		expect(state.createUserOverrideDisabledReason).toMatch(/Blocked by the finance group rule\.?/i)
+
+		state.startEditor({ scope: 'user' })
+		expect(state.editorDraft).toBeNull()
 	})
 
 	it('removes signature stamp group rule and auto-removes collect metadata companion rule', async () => {

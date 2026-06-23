@@ -81,6 +81,52 @@ const SignatureFlowScalarRuleEditor = defineComponent({
 	template: '<div class="signature-flow-rule-editor-stub">Flow editor</div>',
 })
 
+const SignatureTextRuleEditor = defineComponent({
+	name: 'SignatureTextRuleEditor',
+	props: ['modelValue', 'editorScope', 'editorMode'],
+	emits: ['update:modelValue'],
+	template: '<div class="signature-text-rule-editor-stub">Signature stamp editor</div>',
+})
+
+function createPolicyState(overrides: Partial<EffectivePolicyState> & Pick<EffectivePolicyState, 'policyKey'>): EffectivePolicyState {
+	return {
+		policyKey: overrides.policyKey,
+		effectiveValue: 'parallel',
+		sourceScope: 'system',
+		visible: true,
+		editableByCurrentActor: true,
+		allowedValues: ['parallel', 'ordered_numeric'],
+		blockedBy: null,
+		canSaveAsUserDefault: true,
+		canUseAsRequestOverride: true,
+		preferenceWasCleared: false,
+		groupCount: 0,
+		userCount: 0,
+		everyoneCount: 0,
+		...overrides,
+	}
+}
+
+const signatureStampPreferenceValue = JSON.stringify({
+	template: 'Signed by {{SignerCommonName}}',
+	template_font_size: 9.8,
+	signature_font_size: 20,
+	signature_width: 350,
+	signature_height: 100,
+	background_type: 'default',
+	render_mode: 'GRAPHIC_AND_DESCRIPTION',
+})
+
+const signatureStampEditorValue = JSON.stringify({
+	template: 'Signed by {{SignerCommonName}}',
+	template_font_size: 9.8,
+	signature_font_size: 20,
+	signature_width: 350,
+	signature_height: 100,
+	background_type: 'default',
+	render_mode: 'default',
+})
+
 describe('Preferences view', () => {
 	beforeEach(() => {
 		loadStateMock.mockReset().mockImplementation((_app: string, key: string, fallback: unknown) => {
@@ -124,6 +170,7 @@ describe('Preferences view', () => {
 					NcLoadingIcon,
 					SignatureFlowScalarRuleEditor,
 					SignatureFooterRuleEditor,
+					SignatureTextRuleEditor,
 				},
 			},
 		})
@@ -136,7 +183,7 @@ describe('Preferences view', () => {
 		expect(fetchEffectivePoliciesMock).toHaveBeenCalledTimes(1)
 	}, 30000)
 
-	it('hides all preferences when user cannot create signature requests', async () => {
+	it('renders preferences when personal defaults are allowed even if user cannot create signature requests', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
 			if (key === 'can_request_sign') {
 				return false
@@ -146,8 +193,10 @@ describe('Preferences view', () => {
 		})
 
 		const wrapper = await createWrapper()
+		await nextTick()
 
-		expect(wrapper.findComponent({ name: 'NcSettingsSection' }).exists()).toBe(false)
+		expect(wrapper.findComponent({ name: 'NcSettingsSection' }).exists()).toBe(true)
+		expect(wrapper.text()).toContain('Signing order')
 	})
 
 	it('renders signing order section without verbose summary labels', async () => {
@@ -508,7 +557,9 @@ describe('Preferences view', () => {
 			'add_footer',
 			'{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Changed template","previewWidth":595,"previewHeight":100,"previewZoom":100}',
 		)
-		expect(wrapper.vm.isAutoSaveSavedFor('add_footer')).toBe(true)
+		await vi.waitFor(() => {
+			expect(wrapper.vm.isAutoSaveSavedFor('add_footer')).toBe(true)
+		})
 		expect(wrapper.vm.canUndoAutoSaveFor('add_footer')).toBe(false)
 
 		await wrapper.vm.undoAutoSaveByKey('add_footer')
@@ -564,6 +615,73 @@ describe('Preferences view', () => {
 		expect(wrapper.text()).toContain('Signature footer')
 		expect(wrapper.findComponent({ name: 'SignatureFooterRuleEditor' }).exists()).toBe(false)
 		expect(wrapper.text()).toContain('does not allow saving a personal default')
+	})
+
+	it('hides the merged signature stamp preference when its companion policy blocks personal defaults', async () => {
+		getPolicyMock.mockImplementation((key: string) => {
+			if (key === 'signature_stamp') {
+				return createPolicyState({
+					policyKey: key,
+					effectiveValue: signatureStampPreferenceValue,
+					canSaveAsUserDefault: true,
+				})
+			}
+
+			if (key === 'collect_metadata') {
+				return createPolicyState({
+					policyKey: key,
+					effectiveValue: true,
+					sourceScope: 'group',
+					blockedBy: 'group',
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+				})
+			}
+
+			return null
+		})
+
+		const wrapper = await createWrapper()
+		await nextTick()
+
+		expect(wrapper.text()).not.toContain('Signature stamp text')
+		expect(wrapper.text()).not.toContain('Collect signer metadata')
+		expect(wrapper.vm.preferenceEntries.some((entry: { definition: { key: string } }) => entry.definition.key === 'signature_stamp')).toBe(false)
+		expect(wrapper.findComponent({ name: 'SignatureTextRuleEditor' }).exists()).toBe(false)
+	})
+
+	it('saves collect metadata changes through the merged signature stamp preference', async () => {
+		getPolicyMock.mockImplementation((key: string) => {
+			if (key === 'signature_stamp') {
+				return createPolicyState({
+					policyKey: key,
+					effectiveValue: signatureStampPreferenceValue,
+				})
+			}
+
+			if (key === 'collect_metadata') {
+				return createPolicyState({
+					policyKey: key,
+					effectiveValue: true,
+					allowedValues: [],
+				})
+			}
+
+			return null
+		})
+
+		const wrapper = await createWrapper()
+		await nextTick()
+		saveUserPreferenceMock.mockClear()
+
+		await wrapper.vm.onPreferenceChange('signature_stamp', {
+			signatureStampValue: signatureStampEditorValue,
+			collectMetadataEnabled: false,
+		})
+
+		expect(saveUserPreferenceMock).toHaveBeenCalledTimes(2)
+		expect(saveUserPreferenceMock).toHaveBeenNthCalledWith(1, 'signature_stamp', signatureStampEditorValue)
+		expect(saveUserPreferenceMock).toHaveBeenNthCalledWith(2, 'collect_metadata', false)
 	})
 
 	it('shows reset button on page load when user already has a saved preference', async () => {
