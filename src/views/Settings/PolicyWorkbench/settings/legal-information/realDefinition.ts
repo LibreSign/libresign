@@ -15,6 +15,10 @@ export const legalInformationRealDefinition: RealPolicySettingDefinition = {
 	key: 'legal_information',
 	title: t('libresign', 'Legal information'),
 	description: t('libresign', 'This information will appear on the validation page'),
+	groupAdminBehavior: {
+		allowGroupRuleCreationFromDescendantDelegation: true,
+		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
+	},
 	editor: LegalInformationRuleEditor,
 	resolutionMode: 'precedence',
 	createEmptyValue: () => '',
