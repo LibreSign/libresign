@@ -650,7 +650,6 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PrivateValidation(allowValidSignRequestUuid: false)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	#[RequireSetupOk(template: 'validation')]
 	#[PublicPage]
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[FrontpageRoute(verb: 'GET', url: '/p/validation/{uuid}')]
