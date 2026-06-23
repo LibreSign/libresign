@@ -1474,7 +1474,7 @@ describe('useRealPolicyWorkbench', () => {
 		const state = createRealPolicyWorkbenchState()
 		state.setViewMode('group-admin')
 		state.openSetting('show_confetti_after_signing')
-		
+
 		expect(state.createGroupOverrideDisabledReason).toBeNull()
 		expect(state.createUserOverrideDisabledReason).toBeNull()
 
@@ -1521,6 +1521,54 @@ describe('useRealPolicyWorkbench', () => {
 
 		state.startEditor({ scope: 'user' })
 
+		expect(state.editorDraft?.scope).toBe('user')
+	})
+
+	it('allows group-admin to create group and user rules for delegated legal information', () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['finance', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'legal_information') {
+				return {
+					policyKey: 'legal_information',
+					effectiveValue: 'Delegated legal information text',
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 1,
+					userCount: 0,
+				}
+			}
+
+			return {
+				effectiveValue: 'parallel',
+				groupCount: 0,
+				userCount: 0,
+				editableByCurrentActor: false,
+				canSaveAsUserDefault: false,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+
+		expect(state.visibleSettingSummaries.map((summary) => summary.key)).toContain('legal_information')
+
+		state.openSetting('legal_information')
+
+		expect(state.createGroupOverrideDisabledReason).toBeNull()
+		expect(state.createUserOverrideDisabledReason).toBeNull()
+
+		state.startEditor({ scope: 'group' })
+		expect(state.editorDraft?.scope).toBe('group')
+
+		state.cancelEditor()
+		state.startEditor({ scope: 'user' })
 		expect(state.editorDraft?.scope).toBe('user')
 	})
 
