@@ -46,6 +46,10 @@ export const crlValidationRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'External CRL validation'),
 	// TRANSLATORS Policy description about checking external CRL URLs during certificate trust validation.
 	description: t('libresign', 'Control whether external CRL distribution points are validated during certificate checks.'),
+	groupAdminBehavior: {
+		allowGroupRuleCreationFromDescendantDelegation: true,
+		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && (policy?.canSaveAsUserDefault === true || policy?.meta?.canCreateDescendantRules === true),
+	},
 	editor: CrlValidationRuleEditor,
 	resolutionMode: 'precedence',
 	createEmptyValue: () => true,
