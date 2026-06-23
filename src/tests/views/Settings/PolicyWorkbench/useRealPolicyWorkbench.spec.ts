@@ -1441,8 +1441,51 @@ describe('useRealPolicyWorkbench', () => {
 		expect(keys).not.toContain('signature_flow')
 	})
 
-	it('allows group-admin to create user rules when policy is only delegated for lower levels', () => {
+	it('allows group-admin to create group and user rules when policy is delegated from a system-created seed', () => {
 		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['finance', 'legal']
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'show_confetti_after_signing') {
+				return {
+					policyKey: 'show_confetti_after_signing',
+					effectiveValue: true,
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [false, true],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 1,
+					userCount: 0,
+				}
+			}
+
+			return {
+				effectiveValue: 'parallel',
+				groupCount: 0,
+				userCount: 0,
+				editableByCurrentActor: false,
+				canSaveAsUserDefault: false,
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+		state.openSetting('show_confetti_after_signing')
+		
+		expect(state.createGroupOverrideDisabledReason).toBeNull()
+		expect(state.createUserOverrideDisabledReason).toBeNull()
+
+		state.startEditor({ scope: 'group' })
+
+		expect(state.editorDraft?.scope).toBe('group')
+	})
+
+	it('keeps user rule creation available for group-admin when confetti is delegated from a system-created seed', () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['finance', 'legal']
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'show_confetti_after_signing') {
 				return {
@@ -1474,7 +1517,6 @@ describe('useRealPolicyWorkbench', () => {
 		state.setViewMode('group-admin')
 		state.openSetting('show_confetti_after_signing')
 
-		expect(state.createGroupOverrideDisabledReason).not.toBeNull()
 		expect(state.createUserOverrideDisabledReason).toBeNull()
 
 		state.startEditor({ scope: 'user' })
