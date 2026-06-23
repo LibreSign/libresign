@@ -51,10 +51,12 @@ import { computed, onMounted } from 'vue'
 import { usePoliciesStore } from '../../store/policies'
 import type { EffectivePolicyState } from '../../types/index'
 import {
-	canRenderWorkbenchPolicyForGroupAdmin,
 	canRenderPersonalPreferencePolicy,
+	canRenderWorkbenchPolicyForGroupAdmin,
 	isWorkbenchPolicyKey,
 } from '../../views/Preferences/personalPreferenceVisibility'
+import { realDefinitions } from '../../views/Settings/PolicyWorkbench/settings/realDefinitions'
+import type { RealPolicyPersonalPreferenceContext } from '../../views/Settings/PolicyWorkbench/settings/realTypes'
 
 import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
@@ -71,7 +73,6 @@ defineOptions({
 })
 
 const isAdmin = getCurrentUser()?.isAdmin ?? false
-const canRequestSign = loadState<boolean>('libresign', 'can_request_sign', false)
 const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', 'config', {})
 const canManageGroupPolicies = config.can_manage_group_policies === true
 const initialEffectivePolicies = loadState('libresign', 'effective_policies', { policies: {} }) as {
@@ -81,6 +82,15 @@ const initialEffectivePolicies = loadState('libresign', 'effective_policies', { 
 	}>
 }
 const policiesStore = usePoliciesStore()
+const preferenceBehaviorContext: RealPolicyPersonalPreferenceContext = {
+	getPolicy: (policyKey: string) => policiesStore.getPolicy(policyKey),
+	saveUserPreference: (policyKey: string, value) => policiesStore.saveUserPreference(policyKey, value),
+	clearUserPreference: (policyKey: string) => policiesStore.clearUserPreference(policyKey),
+}
+
+function getPreferenceBehaviorFor(policyKey: string) {
+	return realDefinitions[policyKey as keyof typeof realDefinitions]?.personalPreferenceBehavior
+}
 
 function hasManageableWorkbenchPolicy(
 	policies: Record<string, {
@@ -102,11 +112,17 @@ function hasManageableWorkbenchPolicy(
 }
 
 const canManagePreferences = computed(() => {
-	return Object.entries(policiesStore.policies).some(([policyKey, policy]) => canRenderPersonalPreferencePolicy(
-		policyKey,
-		policy as EffectivePolicyState | null,
-		canRequestSign,
-	))
+	return Object.entries(policiesStore.policies).some(([policyKey, policy]) => {
+		const behavior = getPreferenceBehaviorFor(policyKey)
+		if (behavior?.shouldRender) {
+			return behavior.shouldRender(policy as EffectivePolicyState | null, preferenceBehaviorContext)
+		}
+
+		return canRenderPersonalPreferencePolicy(
+			policyKey,
+			policy as EffectivePolicyState | null,
+		)
+	})
 })
 
 const canManagePolicies = computed(() => {
