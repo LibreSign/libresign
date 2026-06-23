@@ -15,6 +15,7 @@ import {
 	normalizeSignatureTextPolicyConfig,
 	serializeSignatureTextPolicyConfig,
 } from './model'
+import { signatureStampPersonalPreferenceBehavior } from './personalPreferenceBehavior'
 
 type SignatureTextPolicyState = EffectivePolicyState & {
 	inheritedValue?: EffectivePolicyValue
@@ -64,6 +65,7 @@ export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 	groupAdminBehavior: {
 		allowGroupRuleCreationFromDescendantDelegation: true,
 	},
+	personalPreferenceBehavior: signatureStampPersonalPreferenceBehavior,
 	editor: SignatureTextRuleEditor,
 	editorProps: {},
 	resolveEditorProps: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => {
