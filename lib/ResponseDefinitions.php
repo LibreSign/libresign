@@ -552,6 +552,9 @@ namespace OCA\Libresign;
  *     messages?: list<LibresignInfoMessage>,
  *     visibleElements?: LibresignVisibleElement[],
  * }
+ * @psalm-type LibresignValidatedFileResponse = LibresignValidatedFile&array{
+ *     effective_policies?: LibresignEffectivePoliciesResponse,
+ * }
  * @psalm-type LibresignProgressError = array{
  *     message: string,
  *     code?: int,
