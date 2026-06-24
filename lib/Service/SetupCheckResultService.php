@@ -8,13 +8,25 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Service\SetupCheck\ConfigureCheckResult;
 use OCP\SetupCheck\ISetupCheckManager;
 
 class SetupCheckResultService {
 
+	/** @var array<string, string> */
+	private const RESOURCE_MAP = [
+		'OCA\\Libresign\\SetupCheck\\JavaSetupCheck' => 'java',
+		'OCA\\Libresign\\SetupCheck\\JSignPdfSetupCheck' => 'jsignpdf',
+		'OCA\\Libresign\\SetupCheck\\PDFtkSetupCheck' => 'pdftk',
+		'OCA\\Libresign\\SetupCheck\\PopplerSetupCheck' => 'poppler',
+		'OCA\\Libresign\\SetupCheck\\ImagickSetupCheck' => 'imagick',
+	];
+
 	public function __construct(
 		private ISetupCheckManager $checkManager,
+		private CertificateEngineFactory $certificateEngineFactory,
 	) {
 	}
 
@@ -22,22 +34,55 @@ class SetupCheckResultService {
 	 * @return list<ConfigureCheckResult>
 	 */
 	public function getFormattedChecks(): array {
+		return array_merge(
+			$this->getBinaryChecks(),
+			$this->getCertificateEngineChecks(),
+		);
+	}
+
+	/**
+	 * @return list<ConfigureCheckResult>
+	 */
+	private function getBinaryChecks(): array {
 		$allResults = $this->checkManager->runAll();
 		$formatted = [];
 
 		foreach ($allResults as $category => $checks) {
 			foreach ($checks as $checkName => $result) {
-				if (!str_starts_with($checkName, 'OCA\\Libresign\\SetupCheck\\')) {
+				if (!isset(self::RESOURCE_MAP[$checkName])) {
 					continue;
 				}
 				$formatted[] = new ConfigureCheckResult(
 					$this->mapSeverityToStatus($result->getSeverity()),
-					$this->formatResourceName($checkName),
+					self::RESOURCE_MAP[$checkName],
 					(string)$result->getDescription(),
 					$result->getLinkToDoc() ?? '',
 					$category,
 				);
 			}
+		}
+
+		return $formatted;
+	}
+
+	/**
+	 * @return list<ConfigureCheckResult>
+	 */
+	private function getCertificateEngineChecks(): array {
+		$engineChecks = $this->certificateEngineFactory->getEngine()->configureCheck();
+
+		$formatted = [];
+		foreach ($engineChecks as $check) {
+			if (!$check instanceof ConfigureCheckHelper) {
+				continue;
+			}
+			$formatted[] = new ConfigureCheckResult(
+				$check->getStatus(),
+				$check->getResource(),
+				$check->getMessage(),
+				$check->getTip(),
+				'security',
+			);
 		}
 
 		return $formatted;
@@ -56,16 +101,5 @@ class SetupCheckResultService {
 			'success' => 'success',
 			default => 'info',
 		};
-	}
-
-	/**
-	 * Format a fully qualified class name to a short resource name.
-	 *
-	 * @param string $checkName e.g. "OCA\Libresign\SetupCheck\JavaSetupCheck"
-	 * @return string e.g. "Java"
-	 */
-	private function formatResourceName(string $checkName): string {
-		$shortName = substr($checkName, strrpos($checkName, '\\') + 1);
-		return str_replace('SetupCheck', '', $shortName);
 	}
 }
