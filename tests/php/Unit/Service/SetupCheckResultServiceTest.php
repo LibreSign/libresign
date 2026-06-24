@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\SetupCheckResultService;
 use OCP\SetupCheck\ISetupCheckManager;
 use OCP\SetupCheck\SetupResult;
@@ -17,11 +19,17 @@ use PHPUnit\Framework\TestCase;
 class SetupCheckResultServiceTest extends TestCase {
 	/** @var ISetupCheckManager&MockObject */
 	private $checkManager;
+	/** @var CertificateEngineFactory&MockObject */
+	private $certificateEngineFactory;
 	private SetupCheckResultService $service;
 
 	public function setUp(): void {
 		$this->checkManager = $this->createMock(ISetupCheckManager::class);
-		$this->service = new SetupCheckResultService($this->checkManager);
+		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
+		$engine = $this->createMock(IEngineHandler::class);
+		$engine->method('configureCheck')->willReturn([]);
+		$this->certificateEngineFactory->method('getEngine')->willReturn($engine);
+		$this->service = new SetupCheckResultService($this->checkManager, $this->certificateEngineFactory);
 	}
 
 	/**
@@ -43,7 +51,7 @@ class SetupCheckResultServiceTest extends TestCase {
 					],
 				],
 				'expectedCount' => 1,
-				'expectedFirstResource' => 'Java',
+				'expectedFirstResource' => 'java',
 			],
 			'mixed_checks' => [
 				'checkData' => [
@@ -62,7 +70,7 @@ class SetupCheckResultServiceTest extends TestCase {
 					],
 				],
 				'expectedCount' => 2,
-				'expectedFirstResource' => 'JSignPdf',
+				'expectedFirstResource' => 'jsignpdf',
 			],
 		];
 	}
