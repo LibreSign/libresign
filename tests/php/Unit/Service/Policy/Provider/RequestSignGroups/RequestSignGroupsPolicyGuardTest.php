@@ -146,13 +146,12 @@ final class RequestSignGroupsPolicyGuardTest extends TestCase {
 		$this->assertSame('{"allowGroups":["company"],"denyGroups":[]}', $normalized);
 	}
 
-	public function testAssertUserScopeSupportedRejectsRequestSignGroupsPolicy(): void {
+	public function testAssertUserScopeSupportedAllowsRequestSignGroupsPolicy(): void {
 		$guard = $this->createGuard();
 
-		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('User-level scope is not supported for this policy');
-
 		$guard->assertUserScopeSupported(RequestSignGroupsPolicy::KEY);
+
+		$this->addToAssertionCount(1);
 	}
 
 	/**
