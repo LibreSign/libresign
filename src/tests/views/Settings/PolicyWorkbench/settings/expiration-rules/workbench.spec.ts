@@ -9,6 +9,7 @@ import {
 	fetchGroupPolicy,
 	getPolicy,
 	resetWorkbenchHarness,
+	saveGroupPolicy,
 	saveSystemPolicy,
 } from '../workbenchTestUtils'
 import { createRealPolicyWorkbenchState } from '../../../../../../views/Settings/PolicyWorkbench/useRealPolicyWorkbench'
@@ -148,5 +149,36 @@ describe('expiration rules workbench', () => {
 			maximumValidity: 7200,
 			renewalInterval: 600,
 		})
+	})
+
+	it('locks lower-level customization for group-admin request expiration group rules', async () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'maximum_validity' || key === 'renewal_interval') {
+				return { effectiveValue: 0, sourceScope: 'system', editableByCurrentActor: true }
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system', editableByCurrentActor: true }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+		state.openSetting('maximum_validity')
+		state.startEditor({ scope: 'group' })
+
+		expect(state.editorDraft?.allowChildOverride).toBe(false)
+
+		state.updateDraftTargets(['board'])
+		state.updateDraftAllowOverride(true)
+		expect(state.editorDraft?.allowChildOverride).toBe(false)
+
+		state.updateDraftValue({
+			maximumValidity: 86400,
+			renewalInterval: 3600,
+		} as never)
+
+		await state.saveDraft()
+
+		expect(saveGroupPolicy).toHaveBeenCalledWith('board', 'maximum_validity', 86400, false)
+		expect(saveGroupPolicy).toHaveBeenCalledWith('board', 'renewal_interval', 3600, false)
 	})
 })
