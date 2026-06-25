@@ -12,6 +12,7 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
@@ -353,9 +354,18 @@ class PolicyService {
 		);
 	}
 
+	private function assertUserScopeSupported(string $policyKey): void {
+		if ($policyKey !== RequestSignGroupsPolicy::KEY) {
+			return;
+		}
+
+		throw new \InvalidArgumentException($this->l10n->t('User-level scope is not supported for this policy'));
+	}
+
 	public function saveUserPreference(string|\BackedEnum $policyKey, mixed $value): ResolvedPolicy {
 		$context = $this->contextFactory->forCurrentUser();
 		$definition = $this->registry->get($policyKey);
+		$this->assertUserScopeSupported($definition->key());
 		$normalizedValue = $definition->normalizeValue($value);
 		$definition->validateValue($normalizedValue, $context);
 		$resolved = $this->resolver->resolve($definition, $context);
@@ -373,6 +383,7 @@ class PolicyService {
 	public function clearUserPreference(string|\BackedEnum $policyKey): ResolvedPolicy {
 		$context = $this->contextFactory->forCurrentUser();
 		$definition = $this->registry->get($policyKey);
+		$this->assertUserScopeSupported($definition->key());
 		$this->source->clearUserPreference($definition->key(), $context);
 
 		return $this->resolver->resolve($definition, $context);
@@ -381,6 +392,7 @@ class PolicyService {
 	public function saveUserPolicyForUserId(string|\BackedEnum $policyKey, string $userId, mixed $value, bool $allowChildOverride): ?PolicyLayer {
 		$context = $this->contextFactory->forUserId($userId);
 		$definition = $this->registry->get($policyKey);
+		$this->assertUserScopeSupported($definition->key());
 		$normalizedValue = $definition->normalizeValue($value);
 		$definition->validateValue($normalizedValue, $context);
 		$this->source->saveUserPolicy($definition->key(), $context, $normalizedValue, $allowChildOverride);
@@ -396,6 +408,7 @@ class PolicyService {
 	public function clearUserPolicyForUserId(string|\BackedEnum $policyKey, string $userId): ?PolicyLayer {
 		$context = $this->contextFactory->forUserId($userId);
 		$definition = $this->registry->get($policyKey);
+		$this->assertUserScopeSupported($definition->key());
 		$this->source->clearUserPolicy($definition->key(), $context);
 
 		return $this->source->loadUserPolicy($definition->key(), $context);
