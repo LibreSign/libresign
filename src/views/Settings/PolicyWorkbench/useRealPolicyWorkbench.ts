@@ -797,13 +797,22 @@ export function createRealPolicyWorkbenchState() {
 		return activeDefinition.value.supportedScopes.includes(scope)
 	}
 
+	function buildAllowOverrideContext(scope: PolicyScope) {
+		return {
+			scope,
+			editorMode: editorMode.value,
+			viewMode: viewMode.value,
+		}
+	}
+
 	function isAllowOverrideMutable(scope: PolicyScope): boolean {
 		if (!activeDefinition.value) {
 			return true
 		}
 
-		const normalizedTrue = activeDefinition.value.normalizeAllowChildOverride(scope, true)
-		const normalizedFalse = activeDefinition.value.normalizeAllowChildOverride(scope, false)
+		const context = buildAllowOverrideContext(scope)
+		const normalizedTrue = activeDefinition.value.normalizeAllowChildOverride(scope, true, context)
+		const normalizedFalse = activeDefinition.value.normalizeAllowChildOverride(scope, false, context)
 
 		return normalizedTrue !== normalizedFalse
 	}
@@ -1637,13 +1646,13 @@ export function createRealPolicyWorkbenchState() {
 
 		let value: EffectivePolicyValue = activeDefinition.value.createEmptyValue()
 		let targetIds: string[] = []
-		let allowChildOverride = activeDefinition.value.normalizeAllowChildOverride(scope, true)
+		let allowChildOverride = activeDefinition.value.normalizeAllowChildOverride(scope, true, buildAllowOverrideContext(scope))
 
 		if (isEdit && ruleId) {
 			const rule = findRuleById(scope, ruleId)
 			if (rule) {
 				value = activeDefinition.value.normalizeDraftValue(rule.value)
-				allowChildOverride = activeDefinition.value.normalizeAllowChildOverride(scope, rule.allowChildOverride)
+				allowChildOverride = activeDefinition.value.normalizeAllowChildOverride(scope, rule.allowChildOverride, buildAllowOverrideContext(scope))
 				targetIds = rule.targetId ? [rule.targetId] : []
 			}
 		} else if (scope === 'system') {
@@ -1793,7 +1802,7 @@ export function createRealPolicyWorkbenchState() {
 	function updateDraftAllowOverride(allowChildOverride: boolean) {
 		if (editorDraft.value) {
 			editorDraft.value.allowChildOverride = activeDefinition.value
-				? activeDefinition.value.normalizeAllowChildOverride(editorDraft.value.scope, allowChildOverride)
+				? activeDefinition.value.normalizeAllowChildOverride(editorDraft.value.scope, allowChildOverride, buildAllowOverrideContext(editorDraft.value.scope))
 				: allowChildOverride
 		}
 	}
@@ -1865,7 +1874,7 @@ export function createRealPolicyWorkbenchState() {
 				resolveCollectMetadataValue(policiesStore.getPolicy(COLLECT_METADATA_POLICY_KEY)?.effectiveValue, false),
 			)
 			: null
-		const allowChildOverride = activeDefinition.value.normalizeAllowChildOverride(scope, editorDraft.value.allowChildOverride)
+		const allowChildOverride = activeDefinition.value.normalizeAllowChildOverride(scope, editorDraft.value.allowChildOverride, buildAllowOverrideContext(scope))
 
 		try {
 			if (scope === 'system') {
