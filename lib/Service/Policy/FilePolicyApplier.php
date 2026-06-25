@@ -36,7 +36,7 @@ class FilePolicyApplier {
 	}
 
 	/**
-	 * Re-evaluate and persist signature_flow + docmdp on an existing file.
+	 * Re-evaluate and persist signing-critical file policies on an existing file.
 	 * Use this when updating a file located by UUID.
 	 */
 	public function syncCoreFlowPolicies(FileEntity $file, array $data): void {
