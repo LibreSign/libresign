@@ -5,10 +5,16 @@
 
 import { describe, expect, it } from 'vitest'
 
-import type { EffectivePolicyState, EffectivePolicyValue } from '../../../../../../types/index'
+import type { EffectivePolicyState } from '../../../../../../types/index'
 import { canRenderPersonalPreferencePolicy } from '../../../../../../views/Preferences/personalPreferenceVisibility'
 
-function createAdminAssignedUserPolicy(policyKey: string, effectiveValue: EffectivePolicyValue): EffectivePolicyState {
+/**
+ * Builds a user-scoped policy assigned by an administrator for visibility checks.
+ *
+ * @param policyKey The policy key under test.
+ * @param effectiveValue The effective value assigned at user scope.
+ */
+function createAdminAssignedUserPolicy(policyKey: string, effectiveValue: EffectivePolicyState['effectiveValue']): EffectivePolicyState {
 	return {
 		policyKey,
 		effectiveValue,
