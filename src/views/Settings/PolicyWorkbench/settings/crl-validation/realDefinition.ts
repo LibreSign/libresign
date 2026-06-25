@@ -58,7 +58,13 @@ export const crlValidationRealDefinition: RealPolicySettingDefinition = {
 		return resolved ?? true
 	},
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => resolveCrlValidation(value) !== null,
-	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
+	normalizeAllowChildOverride: (scope, allowChildOverride: boolean, context) => {
+		if (context?.viewMode === 'group-admin' && scope === 'group') {
+			return false
+		}
+
+		return allowChildOverride
+	},
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
 		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
 			return policyValue
