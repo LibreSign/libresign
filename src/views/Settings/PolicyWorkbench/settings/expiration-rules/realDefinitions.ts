@@ -97,8 +97,13 @@ export const expiryInDaysRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'Expiration in days'),
 	// TRANSLATORS Policy description for generated certificate lifetime in days.
 	description: t('libresign', 'The length of time for which the generated certificate will be valid, in days.'),
+	groupAdminBehavior: {
+		allowGroupRuleCreationFromDescendantDelegation: true,
+		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && (policy?.canSaveAsUserDefault === true || policy?.meta?.canCreateDescendantRules === true),
+	},
 	editor: ExpiryInDaysRuleEditor,
 	resolutionMode: 'precedence',
+	supportedScopes: ['system', 'group', 'user'],
 	createEmptyValue: () => DEFAULT_EXPIRY_IN_DAYS,
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizePositiveInt(value, DEFAULT_EXPIRY_IN_DAYS),
 	hasSelectableDraftValue: () => true,
