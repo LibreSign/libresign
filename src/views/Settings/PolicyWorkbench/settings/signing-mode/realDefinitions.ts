@@ -24,7 +24,9 @@ export const signingModeRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'Signature processing'),
 	// TRANSLATORS Policy description for selecting synchronous/asynchronous signing and worker behavior.
 	description: t('libresign', 'Choose how LibreSign processes signatures and configure background workers when needed.'),
-	visibleInGroupAdmin: false,
+	groupAdminBehavior: {
+		canRenderPolicy: () => false,
+	},
 	editor: SigningModeRuleEditor,
 	resolutionMode: 'precedence',
 	createEmptyValue: () => normalizeSigningExecutionSettings('sync'),

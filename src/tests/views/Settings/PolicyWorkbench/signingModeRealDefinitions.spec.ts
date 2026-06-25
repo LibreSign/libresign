@@ -90,7 +90,11 @@ describe('signing-mode policy real definitions', () => {
 		expect(signingModeRealDefinition.title).toBe('Signature processing')
 		expect(workerConfigRealDefinition.key).toBe('worker_config')
 		expect(workerConfigRealDefinition.title).toBe('Background workers')
-		expect(signingModeRealDefinition.visibleInGroupAdmin).toBe(false)
+		expect(signingModeRealDefinition.groupAdminBehavior?.canRenderPolicy?.({
+			editableByCurrentActor: true,
+			canSaveAsUserDefault: true,
+			meta: {},
+		} as never)).toBe(false)
 		expect(signingModeRealDefinition.supportedScopes).toBeUndefined()
 		expect(workerConfigRealDefinition.supportedScopes).toEqual(['system'])
 		expect(signingModeRealDefinition.formatAllowOverride(true)).toBe('Lower-level customization is disabled for this setting')

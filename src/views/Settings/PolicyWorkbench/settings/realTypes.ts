@@ -58,7 +58,6 @@ export interface RealPolicySettingDefinition {
 	category?: RealPolicySettingCategory
 	description: string
 	supportedScopes?: ReadonlyArray<RealPolicyScope>
-	visibleInGroupAdmin?: boolean
 	groupAdminBehavior?: RealPolicyGroupAdminBehavior
 	personalPreferenceBehavior?: RealPolicyPersonalPreferenceBehavior
 	editor: unknown
@@ -67,7 +66,6 @@ export interface RealPolicySettingDefinition {
 	editorDialogLayout?: RealPolicyEditorDialogLayout
 	resolutionMode: RealPolicyResolutionMode
 	createEmptyValue: () => EffectivePolicyValue
-	scopeTargetsFromAllowGroups?: boolean
 	/**
 	 * When true, the 'Scope groups' selector is hidden in the rule editor dialog and
 	 * the editor drives target selection: the workbench automatically sets
