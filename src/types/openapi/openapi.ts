@@ -1358,6 +1358,14 @@ export type components = {
             effectiveValue: string;
             sourceScope: string;
         };
+        PolicySnapshotIdentificationDocumentsEntry: {
+            effectiveValue: components["schemas"]["PolicySnapshotIdentificationDocumentsValue"];
+            sourceScope: string;
+        };
+        PolicySnapshotIdentificationDocumentsValue: {
+            enabled: boolean;
+            approvers: string[];
+        };
         PolicySnapshotIdentifyMethodFactor: {
             name: string;
             enabled: boolean;
@@ -1606,6 +1614,7 @@ export type components = {
             docmdp?: components["schemas"]["PolicySnapshotNumericEntry"];
             signature_flow?: components["schemas"]["PolicySnapshotEntry"];
             add_footer?: components["schemas"]["PolicySnapshotEntry"];
+            identification_documents?: components["schemas"]["PolicySnapshotIdentificationDocumentsEntry"];
             identify_methods?: components["schemas"]["PolicySnapshotIdentifyMethodsEntry"];
         };
         ValidatedChildFile: {

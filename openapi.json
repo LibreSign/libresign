@@ -1690,6 +1690,39 @@
                     }
                 }
             },
+            "PolicySnapshotIdentificationDocumentsEntry": {
+                "type": "object",
+                "required": [
+                    "effectiveValue",
+                    "sourceScope"
+                ],
+                "properties": {
+                    "effectiveValue": {
+                        "$ref": "#/components/schemas/PolicySnapshotIdentificationDocumentsValue"
+                    },
+                    "sourceScope": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PolicySnapshotIdentificationDocumentsValue": {
+                "type": "object",
+                "required": [
+                    "enabled",
+                    "approvers"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "approvers": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "PolicySnapshotIdentifyMethodFactor": {
                 "type": "object",
                 "required": [
@@ -2555,6 +2588,9 @@
                     },
                     "add_footer": {
                         "$ref": "#/components/schemas/PolicySnapshotEntry"
+                    },
+                    "identification_documents": {
+                        "$ref": "#/components/schemas/PolicySnapshotIdentificationDocumentsEntry"
                     },
                     "identify_methods": {
                         "$ref": "#/components/schemas/PolicySnapshotIdentifyMethodsEntry"
