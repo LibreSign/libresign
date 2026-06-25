@@ -551,6 +551,78 @@ final class PolicyServiceTest extends TestCase {
 		$this->assertFalse($policy?->isAllowChildOverride() ?? true);
 	}
 
+	public function testSaveUserPreferenceRejectsRequestSignGroupsUserScope(): void {
+		$this->source
+			->expects($this->never())
+			->method('saveUserPreference');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('User-level scope is not supported for this policy');
+
+		$service->saveUserPreference(RequestSignGroupsPolicy::KEY, '{"allowGroups":["admin"],"denyGroups":[]}');
+	}
+
+	public function testClearUserPreferenceRejectsRequestSignGroupsUserScope(): void {
+		$this->source
+			->expects($this->never())
+			->method('clearUserPreference');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('User-level scope is not supported for this policy');
+
+		$service->clearUserPreference(RequestSignGroupsPolicy::KEY);
+	}
+
+	public function testSaveUserPolicyForUserIdRejectsRequestSignGroupsUserScope(): void {
+		$this->source
+			->expects($this->never())
+			->method('saveUserPolicy');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('User-level scope is not supported for this policy');
+
+		$service->saveUserPolicyForUserId(RequestSignGroupsPolicy::KEY, 'user1', '{"allowGroups":["admin"],"denyGroups":[]}', false);
+	}
+
+	public function testClearUserPolicyForUserIdRejectsRequestSignGroupsUserScope(): void {
+		$this->source
+			->expects($this->never())
+			->method('clearUserPolicy');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('User-level scope is not supported for this policy');
+
+		$service->clearUserPolicyForUserId(RequestSignGroupsPolicy::KEY, 'user1');
+	}
+
 	public function testSaveSystemPersistsAllowChildOverrideWhenEnabled(): void {
 		$this->source
 			->expects($this->once())
