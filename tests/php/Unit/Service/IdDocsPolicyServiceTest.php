@@ -8,7 +8,12 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use OCA\Libresign\Db\File;
+use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\IdDocs;
 use OCA\Libresign\Db\IdDocsMapper;
+use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
@@ -27,6 +32,8 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IGroupManager&MockObject $groupManager;
 	private IL10N&MockObject $l10n;
 	private IdDocsMapper&MockObject $idDocsMapper;
+	private FileMapper&MockObject $fileMapper;
+	private SignRequestMapper&MockObject $signRequestMapper;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -36,6 +43,8 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			't' => 'You are not allowed to approve user profile documents.',
 		]);
 		$this->idDocsMapper = $this->createMock(IdDocsMapper::class);
+		$this->fileMapper = $this->createMock(FileMapper::class);
+		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 	}
 
 	private function getService(): IdDocsPolicyService {
@@ -44,6 +53,8 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->groupManager,
 			$this->l10n,
 			$this->idDocsMapper,
+			$this->fileMapper,
+			$this->signRequestMapper,
 		);
 	}
 
@@ -57,6 +68,20 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	): void {
 		$user = $this->createMock(IUser::class);
 		$fileId = 123;
+		$idDocs = new IdDocs();
+		$idDocs->setFileId($fileId);
+
+		if ($idDocExists) {
+			$this->idDocsMapper
+				->method('getByFileId')
+				->with($fileId)
+				->willReturn($idDocs);
+		} else {
+			$this->idDocsMapper
+				->method('getByFileId')
+				->with($fileId)
+				->willThrowException(new DoesNotExistException(''));
+		}
 
 		$this->policyService
 			->method('resolveForUser')
@@ -71,7 +96,7 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					return (new ResolvedPolicy())->setEffectiveValue($userCanApprove ? ['approvers'] : ['admin']);
 				}
 
-				self::fail('Unexpected policy key: ' . $policyKey);
+				throw new \RuntimeException('Unexpected policy key: ' . $policyKey);
 			});
 
 		$this->groupManager
@@ -79,24 +104,110 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->with($user)
 			->willReturn($userCanApprove ? ['approvers'] : ['users']);
 
-		$identificationDocumentsEnabled = $identificationDocumentsValue['enabled'] ?? false;
-		if ($identificationDocumentsEnabled && $userCanApprove && in_array($fileStatus, [FileStatus::ABLE_TO_SIGN->value, FileStatus::PARTIAL_SIGNED->value])) {
-			if ($idDocExists) {
-				$this->idDocsMapper
-					->method('getByFileId')
-					->with($fileId)
-					->willReturn($this->createMock(\OCA\Libresign\Db\IdDocs::class));
-			} else {
-				$this->idDocsMapper
-					->method('getByFileId')
-					->with($fileId)
-					->willThrowException(new DoesNotExistException(''));
-			}
-		}
-
 		$result = $this->getService()->canApproverSignIdDoc($user, $fileId, $fileStatus);
 
 		$this->assertSame($expectedResult, $result);
+	}
+
+	public function testIsIdentificationDocumentsEnabledPrefersDocumentSnapshot(): void {
+		$user = $this->createMock(IUser::class);
+		$signRequest = new SignRequest();
+		$signRequest->setFileId(501);
+
+		$file = new File();
+		$file->setMetadata([
+			'policy_snapshot' => [
+				IdentificationDocumentsPolicy::KEY => [
+					'effectiveValue' => [
+						'enabled' => true,
+						'approvers' => ['legal'],
+					],
+					'sourceScope' => 'request',
+				],
+			],
+		]);
+
+		$this->fileMapper
+			->expects($this->once())
+			->method('getById')
+			->with(501)
+			->willReturn($file);
+
+		$this->policyService
+			->expects($this->never())
+			->method('resolveForUser');
+
+		$this->policyService
+			->expects($this->never())
+			->method('resolve');
+
+		$this->assertTrue($this->getService()->isIdentificationDocumentsEnabled($user, $signRequest));
+	}
+
+	public function testCanApproverSignIdDocUsesSnapshotFromLinkedSignRequest(): void {
+		$user = $this->createMock(IUser::class);
+		$fileId = 123;
+		$linkedSignRequestId = 77;
+		$requestedFileId = 501;
+
+		$idDocs = new IdDocs();
+		$idDocs->setFileId($fileId);
+		$idDocs->setSignRequestId($linkedSignRequestId);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId($linkedSignRequestId);
+		$signRequest->setFileId($requestedFileId);
+
+		$file = new File();
+		$file->setMetadata([
+			'policy_snapshot' => [
+				IdentificationDocumentsPolicy::KEY => [
+					'effectiveValue' => [
+						'enabled' => true,
+						'approvers' => ['legal'],
+					],
+					'sourceScope' => 'request',
+				],
+			],
+		]);
+
+		$this->idDocsMapper
+			->expects($this->once())
+			->method('getByFileId')
+			->with($fileId)
+			->willReturn($idDocs);
+
+		$this->signRequestMapper
+			->expects($this->once())
+			->method('getById')
+			->with($linkedSignRequestId)
+			->willReturn($signRequest);
+
+		$this->fileMapper
+			->expects($this->once())
+			->method('getById')
+			->with($requestedFileId)
+			->willReturn($file);
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUser')
+			->willReturnCallback(static function (string $policyKey, IUser $resolvedUser) use ($user): ResolvedPolicy {
+				self::assertSame($user, $resolvedUser);
+				self::assertSame(ApprovalGroupsPolicy::KEY, $policyKey);
+
+				return (new ResolvedPolicy())->setEffectiveValue(['approvers']);
+			});
+
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->with($user)
+			->willReturn(['approvers']);
+
+		$this->assertTrue(
+			$this->getService()->canApproverSignIdDoc($user, $fileId, FileStatus::ABLE_TO_SIGN->value)
+		);
 	}
 
 	#[DataProvider('provideGetApproverGroupsScenarios')]
