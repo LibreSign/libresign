@@ -67,6 +67,7 @@ final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
 			key: $key,
 			defaultValue: $defaultValue,
 			normalizer: static fn (mixed $rawValue): int => self::normalizePositiveInt($rawValue, $defaultValue),
+			supportsUserPreference: false,
 		);
 	}
 
