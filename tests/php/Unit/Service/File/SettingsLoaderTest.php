@@ -71,7 +71,7 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'canRequestSign' => false,
 		]);
 		$this->accountSettingsProvider->method('getPhoneNumber')->with($user)->willReturn('123456789');
-		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->with($user)->willReturn(false);
+		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->with($user, null)->willReturn(false);
 
 		$service = $this->getService();
 		$service->loadSettings($fileData, $options);
@@ -87,7 +87,7 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$options->method('isShowSettings')->willReturn(true);
 		$options->method('getMe')->willReturn(null);
 		$options->method('isSignerIdentified')->willReturn(false);
-		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->with(null)->willReturn(false);
+		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->with(null, null)->willReturn(false);
 
 		$service = $this->getService();
 		$service->loadSettings($fileData, $options);
@@ -120,7 +120,7 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'isApprover' => true,
 			]);
 		$this->accountSettingsProvider->method('getPhoneNumber')->with($user)->willReturn('');
-		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->with($user)->willReturn(false);
+		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->with($user, null)->willReturn(false);
 		$this->idDocsPolicyService->method('canApproverSignIdDoc')
 			->with($user, 10, FileStatus::ABLE_TO_SIGN->value)
 			->willReturn(true);
@@ -286,6 +286,25 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertEquals($expected, $status);
 	}
 
+	public function testGetIdentificationDocumentsStatusPassesSignRequestToPolicyService(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(42);
+
+		$this->idDocsPolicyService->expects($this->once())
+			->method('isIdentificationDocumentsEnabled')
+			->with(null, $signRequest)
+			->willReturn(true);
+
+		$this->idDocsMapper->expects($this->once())
+			->method('getFilesOfSignRequest')
+			->with(42)
+			->willReturn([]);
+
+		$status = $this->getService()->getIdentificationDocumentsStatus(null, $signRequest);
+
+		$this->assertSame(SettingsLoader::IDENTIFICATION_DOCUMENTS_NEED_SEND, $status);
+	}
+
 	public function testLoadSettingsWithSignerIdentifiedNeedSend(): void {
 		$fileData = new \stdClass();
 		$options = $this->createMock(FileResponseOptions::class);
@@ -293,7 +312,7 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$options->method('getMe')->willReturn(null);
 		$options->method('isSignerIdentified')->willReturn(true);
 
-		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->with(null)->willReturn(true);
+		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->with(null, null)->willReturn(true);
 
 		$this->idDocsMapper->method('getFilesOfAccount')->willReturn([]);
 
@@ -311,7 +330,7 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$options->method('isShowSettings')->willReturn(true);
 		$options->method('getMe')->willReturn(null);
 		$options->method('isSignerIdentified')->willReturn(true);
-		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->with(null)->willReturn(true);
+		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->with(null, null)->willReturn(true);
 
 		// When getMe() returns null and isSignerIdentified() is true,
 		// getIdentificationDocumentsStatus is called with empty string
@@ -330,7 +349,7 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$options->method('getMe')->willReturn(null);
 		$options->method('isSignerIdentified')->willReturn(true);
 
-		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->with(null)->willReturn(true);
+		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->with(null, null)->willReturn(true);
 
 		$service = $this->getService();
 		$status = $service->getIdentificationDocumentsStatus(null);
