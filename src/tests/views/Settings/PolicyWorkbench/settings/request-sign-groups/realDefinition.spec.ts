@@ -14,6 +14,23 @@ vi.mock('@nextcloud/l10n', () => ({
 import { requestSignGroupsRealDefinition } from '../../../../../../views/Settings/PolicyWorkbench/settings/request-sign-groups/realDefinition'
 
 describe('requestSignGroupsRealDefinition', () => {
+	it('supports instance, group, and account rule scopes', () => {
+		expect(requestSignGroupsRealDefinition.supportedScopes).toEqual(['system', 'group', 'user'])
+	})
+
+	it('locks child customization for group-admin group rules', () => {
+		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('group', true, {
+			scope: 'group',
+			editorMode: 'create',
+			viewMode: 'group-admin',
+		})).toBe(false)
+		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('group', false, {
+			scope: 'group',
+			editorMode: 'create',
+			viewMode: 'group-admin',
+		})).toBe(false)
+	})
+
 	it('describes delegated request access using managed groups', () => {
 		expect(requestSignGroupsRealDefinition.description).toBe('Define which groups may create signature requests within this scope. Delegated group admins may authorize only groups they manage.')
 	})
@@ -21,8 +38,16 @@ describe('requestSignGroupsRealDefinition', () => {
 	it('allows overriding child customization at system and group scopes', () => {
 		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('system', true)).toBe(true)
 		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('system', false)).toBe(false)
-		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('group', true)).toBe(true)
-		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('group', false)).toBe(false)
+		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('group', true, {
+			scope: 'group',
+			editorMode: 'create',
+			viewMode: 'system-admin',
+		})).toBe(true)
+		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('group', false, {
+			scope: 'group',
+			editorMode: 'create',
+			viewMode: 'system-admin',
+		})).toBe(false)
 		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('user', true)).toBe(false)
 		expect(requestSignGroupsRealDefinition.normalizeAllowChildOverride('user', false)).toBe(false)
 	})
