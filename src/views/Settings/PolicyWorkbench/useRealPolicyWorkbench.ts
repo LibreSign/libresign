@@ -356,13 +356,6 @@ export function createRealPolicyWorkbenchState() {
 		const isGroupAdminMode = viewMode.value === 'group-admin'
 
 		return Object.values(realDefinitions)
-			.filter((definition) => {
-				if (viewMode.value === 'group-admin' && definition.visibleInGroupAdmin === false) {
-					return false
-				}
-
-				return true
-			})
 			.map((definition) => {
 				const policy = policiesStore.getPolicy(definition.key)
 				const isRequestExpiration = isRequestExpirationPolicyKey(definition.key)
