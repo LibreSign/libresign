@@ -1728,6 +1728,44 @@ final class PolicyControllerTest extends TestCase {
 		], $response->getData());
 	}
 
+	public function testClearUserPreferenceBlocksRequestSignGroupsUserScope(): void {
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('User-level scope is not supported for this policy')
+			->willReturn('User-level scope is not supported for this policy');
+
+		$this->policyService->expects($this->never())->method('clearUserPreference');
+
+		$response = $this->controller->clearUserPreference(RequestSignGroupsPolicy::KEY);
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame([
+			'error' => 'User-level scope is not supported for this policy',
+		], $response->getData());
+	}
+
+	public function testClearUserPolicyForUserBlocksRequestSignGroupsUserScope(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->willReturn(true);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('User-level scope is not supported for this policy')
+			->willReturn('User-level scope is not supported for this policy');
+
+		$this->policyService->expects($this->never())->method('clearUserPolicyForUserId');
+
+		$response = $this->controller->clearUserPolicyForUser('user1', RequestSignGroupsPolicy::KEY);
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame([
+			'error' => 'User-level scope is not supported for this policy',
+		], $response->getData());
+	}
+
 	public function testSetGroupRejectsRequestSignGroupsOutsideDelegatedPolicyScope(): void {
 
 		$this->groupManager
