@@ -75,7 +75,7 @@ class SettingsLoader {
 	}
 
 	public function getIdentificationDocumentsStatus(?IUser $user = null, ?SignRequest $signRequest = null): int {
-		if (!$this->idDocsPolicyService->isIdentificationDocumentsEnabled($user)) {
+		if (!$this->idDocsPolicyService->isIdentificationDocumentsEnabled($user, $signRequest)) {
 			return self::IDENTIFICATION_DOCUMENTS_DISABLED;
 		}
 
