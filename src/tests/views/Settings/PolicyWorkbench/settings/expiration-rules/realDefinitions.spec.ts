@@ -5,15 +5,31 @@
 
 import { describe, expect, it, vi } from 'vitest'
 
+import {
+	expiryInDaysRealDefinition,
+	maximumValidityRealDefinition,
+} from '../../../../../../views/Settings/PolicyWorkbench/settings/expiration-rules/realDefinitions'
+
 vi.mock('@nextcloud/l10n', () => ({
 	t: (_app: string, text: string) => text,
 	getLanguage: () => 'en',
 	isRTL: () => false,
 }))
 
-import { expiryInDaysRealDefinition } from '../../../../../../views/Settings/PolicyWorkbench/settings/expiration-rules/realDefinitions'
-
 describe('expiryInDaysRealDefinition', () => {
+	it('locks child customization for group-admin unified request-expiration group rules', () => {
+		expect(maximumValidityRealDefinition.normalizeAllowChildOverride('group', true, {
+			scope: 'group',
+			editorMode: 'create',
+			viewMode: 'group-admin',
+		})).toBe(false)
+		expect(maximumValidityRealDefinition.normalizeAllowChildOverride('group', false, {
+			scope: 'group',
+			editorMode: 'create',
+			viewMode: 'group-admin',
+		})).toBe(false)
+	})
+
 	it('supports instance, group, and account rule scopes', () => {
 		expect(expiryInDaysRealDefinition.supportedScopes).toEqual(['system', 'group', 'user'])
 	})
