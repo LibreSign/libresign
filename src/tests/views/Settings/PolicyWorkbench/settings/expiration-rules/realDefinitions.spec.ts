@@ -21,4 +21,17 @@ describe('expiryInDaysRealDefinition', () => {
 	it('allows delegated group admins to create group and account rules', () => {
 		expect(expiryInDaysRealDefinition.groupAdminBehavior?.allowGroupRuleCreationFromDescendantDelegation).toBe(true)
 	})
+
+	it('locks child customization for group-admin group rules', () => {
+		expect(expiryInDaysRealDefinition.normalizeAllowChildOverride('group', true, {
+			scope: 'group',
+			editorMode: 'create',
+			viewMode: 'group-admin',
+		})).toBe(false)
+		expect(expiryInDaysRealDefinition.normalizeAllowChildOverride('group', false, {
+			scope: 'group',
+			editorMode: 'create',
+			viewMode: 'group-admin',
+		})).toBe(false)
+	})
 })
