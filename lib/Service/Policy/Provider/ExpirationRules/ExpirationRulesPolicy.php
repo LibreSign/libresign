@@ -45,25 +45,44 @@ final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
 				self::KEY_RENEWAL_INTERVAL,
 				self::DEFAULT_RENEWAL_INTERVAL,
 			),
-			self::KEY_EXPIRY_IN_DAYS => new PolicySpec(
-				key: self::KEY_EXPIRY_IN_DAYS,
-				defaultSystemValue: self::DEFAULT_EXPIRY_IN_DAYS,
-				allowedValues: [],
-				normalizer: static fn (mixed $rawValue): int => self::normalizePositiveInt($rawValue, self::DEFAULT_EXPIRY_IN_DAYS),
-				appConfigKey: self::KEY_EXPIRY_IN_DAYS,
+			self::KEY_EXPIRY_IN_DAYS => $this->buildDelegablePositiveIntPolicy(
+				self::KEY_EXPIRY_IN_DAYS,
+				self::DEFAULT_EXPIRY_IN_DAYS,
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $normalizedKey),
 		};
 	}
 
 	private function buildDelegableNonNegativeIntPolicy(string $key, int $defaultValue): PolicySpec {
+		return $this->buildDelegableIntPolicy(
+			key: $key,
+			defaultValue: $defaultValue,
+			normalizer: static fn (mixed $rawValue): int => self::normalizeNonNegativeInt($rawValue, $defaultValue),
+			supportsUserPreference: false,
+		);
+	}
+
+	private function buildDelegablePositiveIntPolicy(string $key, int $defaultValue): PolicySpec {
+		return $this->buildDelegableIntPolicy(
+			key: $key,
+			defaultValue: $defaultValue,
+			normalizer: static fn (mixed $rawValue): int => self::normalizePositiveInt($rawValue, $defaultValue),
+		);
+	}
+
+	private function buildDelegableIntPolicy(
+		string $key,
+		int $defaultValue,
+		\Closure $normalizer,
+		bool $supportsUserPreference = true,
+	): PolicySpec {
 		return new PolicySpec(
 			key: $key,
 			defaultSystemValue: $defaultValue,
 			allowedValues: [],
-			normalizer: static fn (mixed $rawValue): int => self::normalizeNonNegativeInt($rawValue, $defaultValue),
+			normalizer: $normalizer,
 			appConfigKey: $key,
-			supportsUserPreference: false,
+			supportsUserPreference: $supportsUserPreference,
 			groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
 				$actorRole = $context->getActorRole();
 				if ($actorRole->canManageSystemPolicies) {
