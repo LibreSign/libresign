@@ -795,8 +795,13 @@ const isAllowOverrideMutable = computed(() => {
 	}
 
 	const scope = state.editorDraft.scope
-	const normalizedTrue = state.activeDefinition.normalizeAllowChildOverride(scope, true)
-	const normalizedFalse = state.activeDefinition.normalizeAllowChildOverride(scope, false)
+	const context = {
+		scope,
+		editorMode: state.editorMode,
+		viewMode: state.viewMode,
+	}
+	const normalizedTrue = state.activeDefinition.normalizeAllowChildOverride(scope, true, context)
+	const normalizedFalse = state.activeDefinition.normalizeAllowChildOverride(scope, false, context)
 
 	return normalizedTrue !== normalizedFalse
 })
