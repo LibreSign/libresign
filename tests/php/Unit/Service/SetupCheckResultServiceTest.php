@@ -11,100 +11,93 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\SetupCheckResultService;
-use OCP\SetupCheck\ISetupCheckManager;
+use OCA\Libresign\SetupCheck\ImagickSetupCheck;
+use OCA\Libresign\SetupCheck\JavaSetupCheck;
+use OCA\Libresign\SetupCheck\JSignPdfSetupCheck;
+use OCA\Libresign\SetupCheck\PDFtkSetupCheck;
+use OCA\Libresign\SetupCheck\PopplerSetupCheck;
+use OCP\SetupCheck\ISetupCheck;
 use OCP\SetupCheck\SetupResult;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class SetupCheckResultServiceTest extends TestCase {
-	/** @var ISetupCheckManager&MockObject */
-	private $checkManager;
 	/** @var CertificateEngineFactory&MockObject */
 	private $certificateEngineFactory;
+	/** @var JavaSetupCheck&MockObject */
+	private $javaSetupCheck;
+	/** @var JSignPdfSetupCheck&MockObject */
+	private $jSignPdfSetupCheck;
+	/** @var PDFtkSetupCheck&MockObject */
+	private $pdftkSetupCheck;
+	/** @var PopplerSetupCheck&MockObject */
+	private $popplerSetupCheck;
+	/** @var ImagickSetupCheck&MockObject */
+	private $imagickSetupCheck;
 	private SetupCheckResultService $service;
 
 	public function setUp(): void {
-		$this->checkManager = $this->createMock(ISetupCheckManager::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$engine = $this->createMock(IEngineHandler::class);
 		$engine->method('configureCheck')->willReturn([]);
 		$this->certificateEngineFactory->method('getEngine')->willReturn($engine);
-		$this->service = new SetupCheckResultService($this->checkManager, $this->certificateEngineFactory);
+
+		$this->javaSetupCheck = $this->createMock(JavaSetupCheck::class);
+		$this->jSignPdfSetupCheck = $this->createMock(JSignPdfSetupCheck::class);
+		$this->pdftkSetupCheck = $this->createMock(PDFtkSetupCheck::class);
+		$this->popplerSetupCheck = $this->createMock(PopplerSetupCheck::class);
+		$this->imagickSetupCheck = $this->createMock(ImagickSetupCheck::class);
+
+		$this->configureCheck($this->javaSetupCheck, 'system', 'success', 'Java OK', 'https://example.com');
+		$this->configureCheck($this->jSignPdfSetupCheck, 'system', 'success', 'JSignPdf OK', 'https://example.com/jsignpdf');
+		$this->configureCheck($this->pdftkSetupCheck, 'system', 'success', 'PDFtk OK', 'https://example.com/pdftk');
+		$this->configureCheck($this->popplerSetupCheck, 'system', 'success', 'Poppler OK', 'https://example.com/poppler');
+		$this->configureCheck($this->imagickSetupCheck, 'system', 'success', 'Imagick OK', 'https://example.com/imagick');
+
+		$this->buildService();
+	}
+
+	private function buildService(): void {
+		$this->service = new SetupCheckResultService(
+			$this->certificateEngineFactory,
+			$this->javaSetupCheck,
+			$this->jSignPdfSetupCheck,
+			$this->pdftkSetupCheck,
+			$this->popplerSetupCheck,
+			$this->imagickSetupCheck,
+		);
 	}
 
 	/**
-	 * @return array<string, array{checkData: array, expectedCount: int, expectedFirstResource: string}>
+	 * @param ISetupCheck&MockObject $check
 	 */
-	public static function providerGetFormattedChecks(): array {
-		return [
-			'only_libresign_checks' => [
-				'checkData' => [
-					'security' => [
-						'OCA\\Libresign\\SetupCheck\\JavaSetupCheck' => [
-							'severity' => 'success',
-							'description' => 'Java OK',
-							'link' => 'https://example.com',
-						],
-					],
-					'system' => [
-						'OCA\\OtherApp\\SetupCheck\\DatabaseCheck' => [],
-					],
-				],
-				'expectedCount' => 1,
-				'expectedFirstResource' => 'java',
-			],
-			'mixed_checks' => [
-				'checkData' => [
-					'system' => [
-						'OCA\\Libresign\\SetupCheck\\JSignPdfSetupCheck' => [
-							'severity' => 'success',
-							'description' => 'JSignPdf OK',
-							'link' => 'https://example.com/jsignpdf',
-						],
-						'OCA\\OtherApp\\SetupCheck\\DatabaseCheck' => [],
-						'OCA\\Libresign\\SetupCheck\\ImagickSetupCheck' => [
-							'severity' => 'success',
-							'description' => 'Imagick OK',
-							'link' => 'https://example.com/imagick',
-						],
-					],
-				],
-				'expectedCount' => 2,
-				'expectedFirstResource' => 'jsignpdf',
-			],
-		];
+	private function configureCheck($check, string $category, string $severity, string $description, ?string $link): void {
+		$result = $this->createMock(SetupResult::class);
+		$result->method('getSeverity')->willReturn($severity);
+		$result->method('getDescription')->willReturn($description);
+		$result->method('getLinkToDoc')->willReturn($link);
+		$check->method('getCategory')->willReturn($category);
+		$check->method('run')->willReturn($result);
 	}
 
-	/** @dataProvider providerGetFormattedChecks */
-	public function testGetFormattedChecks(array $checkData, int $expectedCount, string $expectedFirstResource): void {
-		$checks = $this->buildCheckResults($checkData);
-		$this->checkManager->method('runAll')->willReturn($checks);
-
+	public function testGetFormattedChecksReturnsOnlyLibresignChecks(): void {
 		$result = $this->service->getFormattedChecks();
 
-		$this->assertCount($expectedCount, $result);
-		if ($expectedCount > 0) {
-			$this->assertEquals($expectedFirstResource, $result[0]->getResource());
-			$this->assertNotSame('', $result[0]->getCategory());
+		$this->assertCount(5, $result);
+		$resources = array_map(static fn ($check) => $check->getResource(), $result);
+		$this->assertSame(['java', 'jsignpdf', 'pdftk', 'poppler', 'imagick'], $resources);
+		foreach ($result as $check) {
+			$this->assertNotSame('', $check->getCategory());
 		}
 	}
 
 	public function testJsonSerializeOmitsCategory(): void {
-		$checkData = [
-			'system' => [
-				'OCA\\Libresign\\SetupCheck\\JavaSetupCheck' => [
-					'severity' => 'warning',
-					'description' => 'Java Warning',
-					'link' => null,
-				],
-			],
-		];
-		$checks = $this->buildCheckResults($checkData);
-		$this->checkManager->method('runAll')->willReturn($checks);
+		$this->javaSetupCheck = $this->createMock(JavaSetupCheck::class);
+		$this->configureCheck($this->javaSetupCheck, 'system', 'warning', 'Java Warning', null);
+		$this->buildService();
 
 		$result = $this->service->getFormattedChecks();
 
-		$this->assertCount(1, $result);
 		$this->assertSame('system', $result[0]->getCategory());
 
 		$serialized = $result[0]->jsonSerialize();
@@ -116,17 +109,9 @@ class SetupCheckResultServiceTest extends TestCase {
 	 * @dataProvider providerSeverityMapping
 	 */
 	public function testSeverityMapping(string $severity, string $expectedStatus): void {
-		$checkData = [
-			'system' => [
-				'OCA\\Libresign\\SetupCheck\\JavaSetupCheck' => [
-					'severity' => $severity,
-					'description' => 'Message',
-					'link' => null,
-				],
-			],
-		];
-		$checks = $this->buildCheckResults($checkData);
-		$this->checkManager->method('runAll')->willReturn($checks);
+		$this->javaSetupCheck = $this->createMock(JavaSetupCheck::class);
+		$this->configureCheck($this->javaSetupCheck, 'system', $severity, 'Message', null);
+		$this->buildService();
 
 		$result = $this->service->getFormattedChecks();
 
@@ -140,30 +125,5 @@ class SetupCheckResultServiceTest extends TestCase {
 			'success' => ['success', 'success'],
 			'unknown' => ['unknown', 'info'],
 		];
-	}
-
-	/**
-	 * Constrói os mocks de SetupResult a partir dos dados fornecidos.
-	 *
-	 * @param array $checkData Estrutura com os dados das verificações
-	 * @return array Array no formato esperado pelo ISetupCheckManager::runAll()
-	 */
-	private function buildCheckResults(array $checkData): array {
-		$checks = [];
-		foreach ($checkData as $category => $items) {
-			foreach ($items as $checkName => $data) {
-				if (!empty($data)) {
-					$mockResult = $this->createMock(SetupResult::class);
-					$mockResult->method('getSeverity')->willReturn($data['severity']);
-					$mockResult->method('getDescription')->willReturn($data['description']);
-					$mockResult->method('getLinkToDoc')->willReturn($data['link']);
-					$checks[$category][$checkName] = $mockResult;
-				} else {
-					$mockResult = $this->createMock(SetupResult::class);
-					$checks[$category][$checkName] = $mockResult;
-				}
-			}
-		}
-		return $checks;
 	}
 }
