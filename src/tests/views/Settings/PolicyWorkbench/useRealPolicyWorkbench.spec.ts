@@ -1151,7 +1151,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.editorDraft?.allowChildOverride).toBe(false)
 	})
 
-	it('builds sticky summary metadata with precedence mode and fallback', () => {
+	it('builds sticky summary metadata with fallback labels', () => {
 		getPolicy.mockReturnValue({
 			effectiveValue: 'ordered_numeric',
 			sourceScope: 'global',
@@ -1161,7 +1161,6 @@ describe('useRealPolicyWorkbench', () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
 
-		expect(state.policyResolutionMode).toBe('precedence')
 		expect(state.summary).not.toBeNull()
 		expect(state.summary?.currentBaseValue).toBe('Sequential')
 		expect(state.summary?.platformFallback).toBe('Using instance default')

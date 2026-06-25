@@ -44,7 +44,6 @@ const defaultTemplate = 'Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{
 describe('signatureTextRealDefinition', () => {
 	it('exposes expected identity metadata', () => {
 		expect(signatureTextRealDefinition.key).toBe('signature_stamp')
-		expect(signatureTextRealDefinition.resolutionMode).toBe('precedence')
 		expect(signatureTextRealDefinition.editorDialogLayout).toBe('wide')
 	})
 

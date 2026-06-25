@@ -6,7 +6,6 @@
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../../types/index'
 
 export type RealPolicyScope = 'system' | 'group' | 'user'
-export type RealPolicyResolutionMode = 'precedence' | 'merge' | 'conflict_requires_selection'
 export type RealPolicyEditorDialogLayout = 'default' | 'wide'
 
 export type GroupAdminRenderablePolicyState = Pick<EffectivePolicyState, 'editableByCurrentActor' | 'canSaveAsUserDefault' | 'meta'> | null | undefined
@@ -64,7 +63,6 @@ export interface RealPolicySettingDefinition {
 	editorProps?: Record<string, unknown>
 	resolveEditorProps?: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => Record<string, unknown>
 	editorDialogLayout?: RealPolicyEditorDialogLayout
-	resolutionMode: RealPolicyResolutionMode
 	createEmptyValue: () => EffectivePolicyValue
 	/**
 	 * When true, the 'Scope groups' selector is hidden in the rule editor dialog and

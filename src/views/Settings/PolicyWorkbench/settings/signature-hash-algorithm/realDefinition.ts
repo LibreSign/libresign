@@ -22,7 +22,6 @@ export const signatureHashAlgorithmRealDefinition: RealPolicySettingDefinition =
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
 	},
 	editor: SignatureHashAlgorithmRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => DEFAULT_HASH_ALGORITHM,
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeHashAlgorithm(value),
 	hasSelectableDraftValue: () => true,

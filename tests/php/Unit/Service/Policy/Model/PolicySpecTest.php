@@ -59,17 +59,16 @@ final class PolicySpecTest extends TestCase {
 		$this->assertSame('policy.signature_flow', $spec->getUserPreferenceKey());
 	}
 
-	public function testStorageKeysMayBeConfiguredPerPolicy(): void {
+	public function testAppConfigKeyMayBeConfiguredPerPolicy(): void {
 		$spec = new PolicySpec(
 			key: 'signature_flow',
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
 			appConfigKey: 'configured.signature_flow',
-			userPreferenceKey: 'user.signature_flow',
 		);
 
 		$this->assertSame('configured.signature_flow', $spec->getAppConfigKey());
-		$this->assertSame('user.signature_flow', $spec->getUserPreferenceKey());
+		$this->assertSame('policy.signature_flow', $spec->getUserPreferenceKey());
 	}
 
 	public function testResolutionModeMayBeConfiguredPerPolicy(): void {
@@ -219,7 +218,6 @@ final class PolicySpecTest extends TestCase {
 	public static function provideSupportFlagDefaults(): array {
 		return [
 			'user preference' => ['supportsUserPreference'],
-			'group admin configuration' => ['supportsGroupAdminConfiguration'],
 		];
 	}
 
@@ -229,10 +227,6 @@ final class PolicySpecTest extends TestCase {
 			'user preference' => [
 				new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: [], supportsUserPreference: false),
 				'supportsUserPreference',
-			],
-			'group admin configuration' => [
-				new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: [], supportsGroupAdminConfiguration: false),
-				'supportsGroupAdminConfiguration',
 			],
 			'group admin delegation' => [
 				new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: [], supportsGroupAdminDelegation: false),

@@ -47,7 +47,6 @@ export const collectMetadataRealDefinition: RealPolicySettingDefinition = {
 	description: t('libresign', 'Control whether signer IP address and user agent are stored when signing documents.'),
 	personalPreferenceBehavior: collectMetadataPersonalPreferenceBehavior,
 	editor: CollectMetadataRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => false,
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
 		const resolved = resolveCollectMetadata(value)

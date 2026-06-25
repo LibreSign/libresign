@@ -20,7 +20,6 @@ export const legalInformationRealDefinition: RealPolicySettingDefinition = {
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
 	},
 	editor: LegalInformationRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => '',
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeLegalInformation(value),
 	hasSelectableDraftValue: () => true,

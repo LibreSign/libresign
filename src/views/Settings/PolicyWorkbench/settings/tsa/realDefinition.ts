@@ -24,7 +24,6 @@ export const tsaRealDefinition: RealPolicySettingDefinition = {
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && (policy?.canSaveAsUserDefault === true || policy?.meta?.canCreateDescendantRules === true),
 	},
 	editor: TsaRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => serializeTsaSettings(DEFAULT_TSA_SETTINGS),
 	normalizeDraftValue: (value: EffectivePolicyValue) => serializeTsaSettings(value),
 	hasSelectableDraftValue: () => true,

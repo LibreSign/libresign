@@ -100,7 +100,6 @@ export const signatureFooterRealDefinition: RealPolicySettingDefinition = {
 		}
 	},
 	editorDialogLayout: 'wide',
-	resolutionMode: 'precedence',
 	createEmptyValue: () => serializeSignatureFooterPolicyConfig(getDefaultSignatureFooterPolicyConfig()),
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
 		return serializeSignatureFooterPolicyConfig(normalizeSignatureFooterPolicyConfig(value))

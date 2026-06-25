@@ -84,7 +84,6 @@ export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 		}
 	},
 	editorDialogLayout: 'wide',
-	resolutionMode: 'precedence',
 	createEmptyValue: () => serializeSignatureTextPolicyConfig(getDefaultSignatureTextPolicyConfig()),
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
 		const normalized = normalizeSignatureStampDraftValue(value)

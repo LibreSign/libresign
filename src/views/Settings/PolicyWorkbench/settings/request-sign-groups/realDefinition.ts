@@ -29,7 +29,6 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 		preferHydratedVisibleGroupCount: true,
 	},
 	editor: RequestSignGroupsRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => serializeRequestSignGroups({
 		allowGroups: [],
 		denyGroups: [],

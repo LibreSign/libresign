@@ -45,7 +45,6 @@ export const envelopeRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'Signing envelopes'),
 	description: t('libresign', 'Allow accounts to group multiple files into envelopes for signing.'),
 	editor: EnvelopeRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => true,
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
 		const resolved = resolveEnvelopeEnabled(value)
