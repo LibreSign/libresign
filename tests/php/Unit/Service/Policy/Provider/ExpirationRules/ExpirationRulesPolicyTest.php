@@ -49,6 +49,13 @@ final class ExpirationRulesPolicyTest extends TestCase {
 		$this->assertSame(ExpirationRulesPolicy::DEFAULT_EXPIRY_IN_DAYS, $definition->normalizeValue(0));
 	}
 
+	public function testExpiryInDaysDoesNotSupportUserPreference(): void {
+		$provider = new ExpirationRulesPolicy();
+		$definition = $provider->get(ExpirationRulesPolicy::KEY_EXPIRY_IN_DAYS);
+
+		$this->assertFalse($definition->supportsUserPreference(), 'expiry_in_days must not appear in user preferences');
+	}
+
 	#[DataProvider('provideDelegableExpirationKeys')]
 	public function testDelegableExpirationKeysSupportDelegatedGroupAdminOverlaysAndExpectedPreferenceBehavior(
 		string $policyKey,
@@ -119,7 +126,7 @@ final class ExpirationRulesPolicyTest extends TestCase {
 	public static function provideDelegableExpirationKeys(): iterable {
 		yield 'maximum validity' => [ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY, false, 86400];
 		yield 'renewal interval' => [ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL, false, 3600];
-		yield 'expiry in days' => [ExpirationRulesPolicy::KEY_EXPIRY_IN_DAYS, true, 365];
+		yield 'expiry in days' => [ExpirationRulesPolicy::KEY_EXPIRY_IN_DAYS, false, 365];
 	}
 
 	private static function buildPolicyLayer(
