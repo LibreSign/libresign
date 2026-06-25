@@ -37,7 +37,13 @@ export const maximumValidityRealDefinition: RealPolicySettingDefinition = {
 	createEmptyValue: () => normalizeRequestExpirationDraftValue(DEFAULT_MAXIMUM_VALIDITY),
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeRequestExpirationDraftValue(value),
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => hasValidRequestExpirationCombination(value),
-	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
+	normalizeAllowChildOverride: (scope, allowChildOverride: boolean, context) => {
+		if (context?.viewMode === 'group-admin' && scope === 'group') {
+			return false
+		}
+
+		return allowChildOverride
+	},
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
 		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
 			return normalizeRequestExpirationDraftValue(policyValue)
