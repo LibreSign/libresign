@@ -36,6 +36,12 @@ export interface RealPolicyPersonalPreferenceBehavior {
 	clearPreference?: (context: RealPolicyPersonalPreferenceContext) => Promise<void>
 }
 
+export interface RealPolicyAllowOverrideContext {
+	scope: RealPolicyScope
+	editorMode: 'create' | 'edit' | null
+	viewMode: 'system-admin' | 'group-admin'
+}
+
 export type RealPolicySettingCategory =
 	| 'who-can-sign'
 	| 'how-signing-works'
@@ -75,7 +81,7 @@ export interface RealPolicySettingDefinition {
 	normalizeDraftValue: (value: EffectivePolicyValue) => EffectivePolicyValue
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => boolean
 	isBaselineSeedable?: (value: EffectivePolicyValue) => boolean
-	normalizeAllowChildOverride: (scope: RealPolicyScope, allowChildOverride: boolean) => boolean
+	normalizeAllowChildOverride: (scope: RealPolicyScope, allowChildOverride: boolean, context?: RealPolicyAllowOverrideContext) => boolean
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null, policyState?: EffectivePolicyState | null) => EffectivePolicyValue
 	summarizeValue: (value: EffectivePolicyValue) => string
 	formatAllowOverride: (allowChildOverride: boolean) => string
