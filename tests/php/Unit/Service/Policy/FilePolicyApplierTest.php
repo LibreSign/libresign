@@ -17,6 +17,7 @@ use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCP\IL10N;
@@ -45,6 +46,10 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testApplyAllAppliesAllRegisteredFilePolicies(): void {
 		$file = new FileEntity();
+		$identificationDocumentsValue = [
+			'enabled' => true,
+			'approvers' => ['legal'],
+		];
 		$identifyMethodsPolicyValue = [
 			[
 				'name' => 'email',
@@ -56,9 +61,9 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 
 		$this->policyService
-			->expects($this->exactly(4))
+			->expects($this->exactly(5))
 			->method('resolveForUser')
-			->willReturnCallback(function (string $policyKey) use ($identifyMethodsPolicyValue): ResolvedPolicy {
+			->willReturnCallback(function (string $policyKey) use ($identificationDocumentsValue, $identifyMethodsPolicyValue): ResolvedPolicy {
 				return match ($policyKey) {
 					SignatureFlowPolicy::KEY => $this->createResolvedPolicy(
 						SignatureFlowPolicy::KEY,
@@ -74,6 +79,11 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						FooterPolicy::KEY,
 						'{"enabled":true}',
 						'system',
+					),
+					IdentificationDocumentsPolicy::KEY => $this->createResolvedPolicy(
+						IdentificationDocumentsPolicy::KEY,
+						$identificationDocumentsValue,
+						'request',
 					),
 					IdentifyMethodsPolicy::KEY => $this->createResolvedPolicy(
 						IdentifyMethodsPolicy::KEY,
@@ -103,6 +113,10 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'sourceScope' => 'system',
 		], $metadata['policy_snapshot'][FooterPolicy::KEY] ?? null);
 		$this->assertSame([
+			'effectiveValue' => $identificationDocumentsValue,
+			'sourceScope' => 'request',
+		], $metadata['policy_snapshot'][IdentificationDocumentsPolicy::KEY] ?? null);
+		$this->assertSame([
 			'effectiveValue' => $identifyMethodsPolicyValue,
 			'sourceScope' => 'group',
 		], $metadata['policy_snapshot'][IdentifyMethodsPolicy::KEY] ?? null);
@@ -115,7 +129,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->setDocmdpLevelEnum(DocMdpLevel::NOT_CERTIFIED);
 
 		$this->policyService
-			->expects($this->exactly(2))
+			->expects($this->exactly(3))
 			->method('resolveForUserId')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				return match ($policyKey) {
@@ -129,18 +143,24 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->value,
 						'system',
 					),
+					IdentificationDocumentsPolicy::KEY => $this->createResolvedPolicy(
+						IdentificationDocumentsPolicy::KEY,
+						['enabled' => true, 'approvers' => ['legal']],
+						'request',
+					),
 					default => throw new \RuntimeException('Unexpected policy key: ' . $policyKey),
 				};
 			});
 
 		$this->fileService
-			->expects($this->exactly(2))
+			->expects($this->exactly(3))
 			->method('update')
 			->with($this->identicalTo($file));
 
 		$this->getApplier()->syncCoreFlowPolicies($file, []);
 
 		$this->assertArrayNotHasKey(FooterPolicy::KEY, $file->getMetadata()['policy_snapshot']);
+		$this->assertArrayHasKey(IdentificationDocumentsPolicy::KEY, $file->getMetadata()['policy_snapshot']);
 		$this->assertSame(SignatureFlow::ORDERED_NUMERIC, $file->getSignatureFlowEnum());
 		$this->assertSame(DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS, $file->getDocmdpLevelEnum());
 	}
@@ -164,6 +184,13 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'effectiveValue' => '{"enabled":false}',
 					'sourceScope' => 'system',
 				],
+				IdentificationDocumentsPolicy::KEY => [
+					'effectiveValue' => [
+						'enabled' => true,
+						'approvers' => ['legal'],
+					],
+					'sourceScope' => 'request',
+				],
 				IdentifyMethodsPolicy::KEY => [
 					'effectiveValue' => [
 						[
@@ -179,7 +206,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 
 		$this->policyService
-			->expects($this->exactly(4))
+			->expects($this->exactly(5))
 			->method('resolveForUserId')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				return match ($policyKey) {
@@ -197,6 +224,14 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						FooterPolicy::KEY,
 						'{"enabled":false}',
 						'system',
+					),
+					IdentificationDocumentsPolicy::KEY => $this->createResolvedPolicy(
+						IdentificationDocumentsPolicy::KEY,
+						[
+							'enabled' => true,
+							'approvers' => ['legal'],
+						],
+						'request',
 					),
 					IdentifyMethodsPolicy::KEY => $this->createResolvedPolicy(
 						IdentifyMethodsPolicy::KEY,
@@ -223,6 +258,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame(SignatureFlow::PARALLEL, $file->getSignatureFlowEnum());
 		$this->assertSame(DocMdpLevel::CERTIFIED_FORM_FILLING, $file->getDocmdpLevelEnum());
 		$this->assertArrayHasKey(FooterPolicy::KEY, $file->getMetadata()['policy_snapshot']);
+		$this->assertArrayHasKey(IdentificationDocumentsPolicy::KEY, $file->getMetadata()['policy_snapshot']);
 	}
 
 	private function createResolvedPolicy(
