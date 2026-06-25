@@ -2052,7 +2052,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(clearUserPreference).toHaveBeenCalledWith('signature_flow')
 	})
 
-	it('does not clear user preference when saving system rule for policy without user scope', async () => {
+	it('clears current user preference when saving system rule for request-access policy with account scope', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('groups_request_sign')
 		state.startEditor({ scope: 'system' })
@@ -2061,7 +2061,7 @@ describe('useRealPolicyWorkbench', () => {
 		await state.saveDraft()
 
 		expect(saveSystemPolicy).toHaveBeenCalledWith('groups_request_sign', '{"allowGroups":["admin","policy-e2e-group"],"denyGroups":[]}', true)
-		expect(clearUserPreference).not.toHaveBeenCalled()
+		expect(clearUserPreference).toHaveBeenCalledWith('groups_request_sign')
 		expect(state.editorDraft).toBeNull()
 	})
 
@@ -2490,7 +2490,7 @@ describe('useRealPolicyWorkbench', () => {
 		await state.saveDraft()
 
 		expect(saveGroupPolicy).toHaveBeenCalledTimes(1)
-		expect(saveGroupPolicy).toHaveBeenCalledWith('company', 'groups_request_sign', '{"allowGroups":["company"],"denyGroups":[]}', true)
+		expect(saveGroupPolicy).toHaveBeenCalledWith('company', 'groups_request_sign', '{"allowGroups":["company"],"denyGroups":[]}', false)
 	})
 
 	it('saves delegated request-access allow and deny selections as separate scoped rules', async () => {
@@ -2556,8 +2556,8 @@ describe('useRealPolicyWorkbench', () => {
 		await state.saveDraft()
 
 		expect(saveGroupPolicy).toHaveBeenCalledTimes(2)
-		expect(saveGroupPolicy).toHaveBeenNthCalledWith(1, 'company', 'groups_request_sign', '{"allowGroups":["company"],"denyGroups":[]}', true)
-		expect(saveGroupPolicy).toHaveBeenNthCalledWith(2, 'board', 'groups_request_sign', '{"allowGroups":["board"],"denyGroups":["board"]}', true)
+		expect(saveGroupPolicy).toHaveBeenNthCalledWith(1, 'company', 'groups_request_sign', '{"allowGroups":["company"],"denyGroups":[]}', false)
+		expect(saveGroupPolicy).toHaveBeenNthCalledWith(2, 'board', 'groups_request_sign', '{"allowGroups":["board"],"denyGroups":["board"]}', false)
 	})
 
 	it('promotes delegated request-access deny overrides to visible removable rules after saving', async () => {
@@ -2781,7 +2781,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.visibleSettingSummaries.find((summary) => summary.key === 'groups_request_sign')?.groupCount).toBe(0)
 	})
 
-	it('blocks user-scope editing for request-sign-groups setting', () => {
+	it('allows user-scope editing for request-sign-groups setting for system admins', () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'groups_request_sign') {
 				return {
@@ -2804,8 +2804,12 @@ describe('useRealPolicyWorkbench', () => {
 		state.openSetting('groups_request_sign')
 		state.startEditor({ scope: 'user' })
 
-		expect(state.editorDraft).toBeNull()
-		expect(state.duplicateMessage).toBe('This setting cannot be configured at this scope.')
+		expect(state.editorDraft).not.toBeNull()
+		expect(state.editorDraft).toMatchObject({
+			scope: 'user',
+			allowChildOverride: false,
+		})
+		expect(state.duplicateMessage).toBeNull()
 	})
 
 	it('keeps identify_methods create draft populated when baseline policy value is empty', async () => {
