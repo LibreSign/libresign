@@ -107,7 +107,13 @@ export const expiryInDaysRealDefinition: RealPolicySettingDefinition = {
 	createEmptyValue: () => DEFAULT_EXPIRY_IN_DAYS,
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizePositiveInt(value, DEFAULT_EXPIRY_IN_DAYS),
 	hasSelectableDraftValue: () => true,
-	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
+	normalizeAllowChildOverride: (scope, allowChildOverride: boolean, context) => {
+		if (context?.viewMode === 'group-admin' && scope === 'group') {
+			return false
+		}
+
+		return allowChildOverride
+	},
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
 		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
 			return policyValue
