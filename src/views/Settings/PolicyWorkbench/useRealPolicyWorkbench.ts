@@ -20,7 +20,6 @@ import {
 	restrictIdentifyMethodsPolicyToNames,
 } from './settings/identify-methods/model'
 import { realDefinitions } from './settings/realDefinitions'
-import type { RealPolicyResolutionMode } from './settings/realTypes'
 import {
 	resolveDeniedRequestSignGroups,
 	resolveRequestSignGroups,
@@ -43,14 +42,12 @@ import type { EffectivePolicyState, EffectivePolicyValue } from '../../../types/
 import { canRenderWorkbenchPolicyForGroupAdmin } from '../../Preferences/personalPreferenceVisibility'
 
 type PolicyScope = 'system' | 'group' | 'user'
-type PolicyResolutionMode = RealPolicyResolutionMode
 
 interface PolicyStickySummary {
 	currentBaseValue: string
 	baseSource: string
 	configurableLayers: string
 	platformFallback: string
-	resolutionMode: PolicyResolutionMode
 	activeGroupExceptions: number
 	activeUserExceptions: number
 	activeBlockCount: number
@@ -503,14 +500,6 @@ export function createRealPolicyWorkbenchState() {
 		}
 	})
 
-	const policyResolutionMode = computed<PolicyResolutionMode>(() => {
-		if (!activeDefinition.value) {
-			return 'precedence'
-		}
-
-		return activeDefinition.value.resolutionMode
-	})
-
 	const systemDefaultRule = computed<PolicyRuleRecord | null>(() => {
 		if (!activeDefinition.value) {
 			return null
@@ -645,7 +634,6 @@ export function createRealPolicyWorkbenchState() {
 			// TRANSLATORS Scope precedence order for policy inheritance.
 			configurableLayers: t('libresign', 'Default > Group > Account'),
 			platformFallback: fallbackLabel,
-			resolutionMode: policyResolutionMode.value,
 			activeGroupExceptions,
 			activeUserExceptions,
 			activeBlockCount,
@@ -2226,7 +2214,6 @@ export function createRealPolicyWorkbenchState() {
 		systemDefaultRule,
 		hasGlobalDefault,
 		effectiveSource,
-		policyResolutionMode,
 		summary,
 		visibleGroupRules,
 		visibleUserRules,

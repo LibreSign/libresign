@@ -32,7 +32,6 @@ export const maximumValidityRealDefinition: RealPolicySettingDefinition = {
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && (policy?.canSaveAsUserDefault === true || policy?.meta?.canCreateDescendantRules === true),
 	},
 	editor: RequestExpirationRuleEditor,
-	resolutionMode: 'precedence',
 	supportedScopes: ['system', 'group', 'user'],
 	createEmptyValue: () => normalizeRequestExpirationDraftValue(DEFAULT_MAXIMUM_VALIDITY),
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeRequestExpirationDraftValue(value),
@@ -67,7 +66,6 @@ export const renewalIntervalRealDefinition: RealPolicySettingDefinition = {
 	// TRANSLATORS Policy description. Interval is in seconds and determines when signer must renew access link/session.
 	description: t('libresign', 'Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link.'),
 	editor: RenewalIntervalRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => DEFAULT_RENEWAL_INTERVAL,
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeNonNegativeInt(value, DEFAULT_RENEWAL_INTERVAL),
 	hasSelectableDraftValue: () => true,
@@ -108,7 +106,6 @@ export const expiryInDaysRealDefinition: RealPolicySettingDefinition = {
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && (policy?.canSaveAsUserDefault === true || policy?.meta?.canCreateDescendantRules === true),
 	},
 	editor: ExpiryInDaysRuleEditor,
-	resolutionMode: 'precedence',
 	supportedScopes: ['system', 'group', 'user'],
 	createEmptyValue: () => DEFAULT_EXPIRY_IN_DAYS,
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizePositiveInt(value, DEFAULT_EXPIRY_IN_DAYS),

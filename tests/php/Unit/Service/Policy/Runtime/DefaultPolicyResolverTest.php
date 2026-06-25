@@ -460,7 +460,6 @@ final class DefaultPolicyResolverTest extends TestCase {
 	#[DataProvider('provideEditableByActorCases')]
 	public function testResolveActorPermissionFlagsRespectCapabilitiesDefinitionSupportAndHierarchy(
 		ActorRole $actorRole,
-		bool $supportsGroupAdminConfiguration,
 		string $systemLayerScope,
 		bool $allowChildOverride,
 		bool $visibleToChild,
@@ -483,7 +482,6 @@ final class DefaultPolicyResolverTest extends TestCase {
 			key: 'signature_flow',
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
-			supportsGroupAdminConfiguration: $supportsGroupAdminConfiguration,
 		);
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -494,27 +492,27 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertSame($expectedCanOverride, $resolved->canUseAsRequestOverride());
 	}
 
-	/** @return array<string, array{0: ActorRole, 1: bool, 2: string, 3: bool, 4: bool, 5: bool, 6: bool, 7: bool}> */
+	/** @return array<string, array{0: ActorRole, 1: string, 2: bool, 3: bool, 4: bool, 5: bool, 6: bool}> */
 	public static function provideEditableByActorCases(): array {
 		// Dataset order:
-		// [actorRole, supportsGroupAdminConfiguration, systemLayerScope,
+		// [actorRole, systemLayerScope,
 		//  allowChildOverride, visibleToChild, expectedEditable,
 		//  expectedCanSaveAsUserDefault, expectedCanUseAsRequestOverride]
 		return [
 			// --- system admin scenarios ---
 			'system admin can edit and users can also override when hierarchy permits' => [
 				ActorRole::systemAdmin(),
-				false, 'system', true, true,
+				'system', true, true,
 				true, true, true,
 			],
 			'system admin can edit but hierarchy prevents user overrides' => [
 				ActorRole::systemAdmin(),
-				false, 'global', false, true,
+				'global', false, true,
 				true, false, false,
 			],
 			'system admin cannot edit when policy not visible to children' => [
 				ActorRole::systemAdmin(),
-				true, 'system', true, false,
+				'system', true, false,
 				false, false, false,
 			],
 
@@ -522,55 +520,45 @@ final class DefaultPolicyResolverTest extends TestCase {
 			// scope='global' means the system admin explicitly configured allowChildOverride=true
 			'group admin can edit when system admin explicitly grants delegation' => [
 				ActorRole::groupAdmin(1),
-				true, 'global', true, true,
+				'global', true, true,
 				true, true, true,
 			],
 			// scope='system' means no explicit system config — group admin is closed by default
 			'group admin cannot edit or self-override without explicit system grant' => [
 				ActorRole::groupAdmin(1),
-				true, 'system', true, true,
+				'system', true, true,
 				false, false, false,
 			],
 			'group admin cannot edit when system blocks child overrides' => [
 				ActorRole::groupAdmin(1),
-				true, 'global', false, true,
-				false, false, false,
-			],
-			'group admin cannot edit system-only policy but users can still override when hierarchy allows' => [
-				ActorRole::groupAdmin(1),
-				false, 'global', true, true,
-				false, true, true,
-			],
-			'group admin cannot edit system-only policy and hierarchy also blocks user overrides' => [
-				ActorRole::groupAdmin(1),
-				false, 'global', false, true,
+				'global', false, true,
 				false, false, false,
 			],
 			'group admin cannot edit when policy not visible to children' => [
 				ActorRole::groupAdmin(1),
-				true, 'global', true, false,
+				'global', true, false,
 				false, false, false,
 			],
 
 			// --- regular user scenarios ---
 			'regular user cannot save without explicit system grant' => [
 				ActorRole::regularUser(),
-				true, 'system', true, true,
+				'system', true, true,
 				false, false, false,
 			],
 			'regular user can save when system explicitly grants delegation' => [
 				ActorRole::regularUser(),
-				true, 'global', true, true,
+				'global', true, true,
 				false, true, true,
 			],
 			'regular user cannot save when hierarchy blocks child overrides' => [
 				ActorRole::regularUser(),
-				true, 'global', false, true,
+				'global', false, true,
 				false, false, false,
 			],
 			'regular user cannot save when policy not visible' => [
 				ActorRole::regularUser(),
-				true, 'system', true, false,
+				'system', true, false,
 				false, false, false,
 			],
 		];
@@ -712,7 +700,6 @@ final class DefaultPolicyResolverTest extends TestCase {
 			key: 'admin_only_policy',
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'strict'],
-			supportsGroupAdminConfiguration: true,
 			supportsUserPreference: false,
 		);
 

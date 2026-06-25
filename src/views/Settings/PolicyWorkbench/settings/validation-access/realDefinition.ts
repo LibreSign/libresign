@@ -51,7 +51,6 @@ export const validationAccessRealDefinition: RealPolicySettingDefinition = {
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
 	},
 	editor: ValidationAccessRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => false,
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
 		const resolved = resolveValidationAccess(value)

@@ -71,7 +71,6 @@ export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 		allowGroupRuleCreationFromDescendantDelegation: true,
 	},
 	editor: IdentifyMethodsRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => getInitialIdentifyMethods(),
 	normalizeDraftValue: (value: EffectivePolicyValue) => serializeIdentifyMethodsPolicy(normalizeIdentifyMethodsPolicy(value)),
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => {

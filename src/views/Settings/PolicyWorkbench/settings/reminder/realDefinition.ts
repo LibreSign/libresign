@@ -24,7 +24,6 @@ export const reminderRealDefinition: RealPolicySettingDefinition = {
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
 	},
 	editor: ReminderRuleEditor,
-	resolutionMode: 'precedence',
 	supportedScopes: ['system', 'group', 'user'],
 	createEmptyValue: () => serializeReminderPolicyConfig(REMINDER_POLICY_DEFAULTS),
 	normalizeDraftValue: (value: EffectivePolicyValue) => serializeReminderPolicyConfig(normalizeReminderPolicyConfig(value)),

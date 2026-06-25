@@ -9,11 +9,10 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy\Model;
 
 use Closure;
-use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use function in_array;
 use function sprintf;
 
-final class PolicySpec implements IPolicyDefinition {
+final class PolicySpec implements \OCA\Libresign\Service\Policy\Contract\IPolicyDefinition {
 	public const RESOLUTION_MODE_RESOLVED = 'resolved';
 	public const RESOLUTION_MODE_VALUE_CHOICE = 'value_choice';
 
@@ -51,10 +50,8 @@ final class PolicySpec implements IPolicyDefinition {
 		?Closure $normalizer = null,
 		?Closure $validator = null,
 		private ?string $appConfigKey = null,
-		private ?string $userPreferenceKey = null,
 		private string $resolutionMode = self::RESOLUTION_MODE_RESOLVED,
 		private bool $supportsUserPreference = true,
-		private bool $supportsGroupAdminConfiguration = true,
 		array|Closure $resolvedStateMeta = [],
 		?Closure $visibleGroupCountFilter = null,
 		?Closure $groupPolicyManager = null,
@@ -89,7 +86,7 @@ final class PolicySpec implements IPolicyDefinition {
 
 	#[\Override]
 	public function getUserPreferenceKey(): string {
-		return $this->userPreferenceKey ?? 'policy.' . $this->key;
+		return 'policy.' . $this->key;
 	}
 
 	#[\Override]
@@ -148,11 +145,6 @@ final class PolicySpec implements IPolicyDefinition {
 	}
 
 	#[\Override]
-	public function supportsGroupAdminConfiguration(): bool {
-		return $this->supportsGroupAdminConfiguration;
-	}
-
-	#[\Override]
 	public function shouldFilterVisibleGroupCountsForActor(PolicyContext $context, ?PolicyLayer $systemPolicy): bool {
 		if ($this->visibleGroupCountFilterResolver !== null) {
 			return ($this->visibleGroupCountFilterResolver)($context, $systemPolicy);
@@ -178,10 +170,6 @@ final class PolicySpec implements IPolicyDefinition {
 		}
 
 		if (!$actorRole->canManageGroupPolicies) {
-			return false;
-		}
-
-		if (!$this->supportsGroupAdminConfiguration()) {
 			return false;
 		}
 

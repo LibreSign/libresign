@@ -20,7 +20,6 @@ export const defaultUserFolderRealDefinition: RealPolicySettingDefinition = {
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
 	},
 	editor: DefaultUserFolderRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => DEFAULT_USER_FOLDER,
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeDefaultUserFolder(value),
 	hasSelectableDraftValue: () => true,

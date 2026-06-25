@@ -49,7 +49,6 @@ export const confettiRealDefinition: RealPolicySettingDefinition = {
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
 	},
 	editor: ConfettiRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => true,
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
 		const resolved = resolveConfetti(value)

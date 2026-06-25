@@ -22,7 +22,6 @@ export const signatureBackgroundRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'Signature background'),
 	description: t('libresign', 'Configure whether signatures use the default, custom, or no background image.'),
 	editor: SignatureBackgroundRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => 'default',
 	normalizeDraftValue: (value: EffectivePolicyValue) => resolveBackgroundType(value),
 	hasSelectableDraftValue: () => true,

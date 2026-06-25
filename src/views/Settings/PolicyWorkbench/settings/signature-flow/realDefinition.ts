@@ -22,7 +22,6 @@ export const signatureFlowRealDefinition: RealPolicySettingDefinition = {
 		allowGroupRuleCreationFromDescendantDelegation: true,
 	},
 	editor: SignatureFlowScalarRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => '' as unknown as EffectivePolicyValue,
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
 		const mode = resolveSignatureFlowMode(value)

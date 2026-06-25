@@ -40,13 +40,6 @@ interface IPolicyDefinition {
 	public function supportsUserPreference(): bool;
 
 	/**
-	 * Whether group admins (subAdmins) are allowed to configure this policy
-	 * at the group level. Returns false for system-only policies that must
-	 * not be visible or editable by group admins.
-	 */
-	public function supportsGroupAdminConfiguration(): bool;
-
-	/**
 	 * Whether group-level rules for this policy should be filtered from counts and listings
 	 * for the current non-system actor when they were created by a system administrator.
 	 */

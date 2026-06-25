@@ -30,7 +30,6 @@ export const docMdpRealDefinition: RealPolicySettingDefinition = {
 	// TRANSLATORS Policy description explaining that this rule defines what edits remain allowed after the first signature.
 	description: t('libresign', 'Control what changes are allowed after a document is signed.'),
 	editor: DocMdpScalarRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => 0,
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
 		const level = resolveDocMdpLevel(value)

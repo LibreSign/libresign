@@ -51,7 +51,6 @@ export const crlValidationRealDefinition: RealPolicySettingDefinition = {
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && (policy?.canSaveAsUserDefault === true || policy?.meta?.canCreateDescendantRules === true),
 	},
 	editor: CrlValidationRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => true,
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
 		const resolved = resolveCrlValidation(value)

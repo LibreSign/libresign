@@ -52,7 +52,6 @@ export const identificationDocumentsRealDefinition: RealPolicySettingDefinition 
 	},
 	supportedScopes: ['system', 'group', 'user'],
 	editor: IdentificationDocumentsRuleEditor,
-	resolutionMode: 'precedence',
 	createEmptyValue: () => DEFAULT_IDENTIFICATION_DOCUMENTS_PAYLOAD,
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeToPayload(value),
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => resolveIdentificationDocuments(value) !== null,
