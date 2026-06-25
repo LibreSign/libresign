@@ -27,7 +27,11 @@ final class RequestSignGroupsPolicyGuard {
 	}
 
 	public function assertUserScopeSupported(string $policyKey): void {
-		return;
+		if ($policyKey !== RequestSignGroupsPolicy::KEY) {
+			return;
+		}
+
+		throw new \InvalidArgumentException($this->l10n->t('User-level scope is not supported for this policy'));
 	}
 
 	public function normalizeManagedValue(string $policyKey, mixed $value, bool $allowNullReset = false, ?string $requiredGroupId = null): mixed {
