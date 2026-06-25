@@ -474,6 +474,14 @@ namespace OCA\Libresign;
  *     effectiveValue: int,
  *     sourceScope: string,
  * }
+ * @psalm-type LibresignPolicySnapshotIdentificationDocumentsValue = array{
+ *     enabled: bool,
+ *     approvers: list<string>,
+ * }
+ * @psalm-type LibresignPolicySnapshotIdentificationDocumentsEntry = array{
+ *     effectiveValue: LibresignPolicySnapshotIdentificationDocumentsValue,
+ *     sourceScope: string,
+ * }
  * @psalm-type LibresignPolicySnapshotIdentifyMethodFactor = array{
  *     name: string,
  *     enabled: bool,
@@ -491,6 +499,7 @@ namespace OCA\Libresign;
  *     docmdp?: LibresignPolicySnapshotNumericEntry,
  *     signature_flow?: LibresignPolicySnapshotEntry,
  *     add_footer?: LibresignPolicySnapshotEntry,
+ *     identification_documents?: LibresignPolicySnapshotIdentificationDocumentsEntry,
  *     identify_methods?: LibresignPolicySnapshotIdentifyMethodsEntry,
  * }
  * @psalm-type LibresignValidateMetadata = array{
