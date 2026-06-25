@@ -9,6 +9,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\Tsa;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Service\Policy\Model\ActorRole;
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyManagedValue;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
@@ -29,6 +32,38 @@ final class TsaPolicyTest extends TestCase {
 			TsaPolicyValue::encode(TsaPolicyValue::defaults()),
 			$definition->defaultSystemValue(),
 		);
+	}
+
+	public function testProviderSupportsDelegatedGroupAdminOverlays(): void {
+		$appConfig = $this->createMock(IAppConfig::class);
+		$provider = new TsaPolicy(new TsaPolicyManagedValue($appConfig));
+		$definition = $provider->get(TsaPolicy::KEY);
+
+		$this->assertTrue($definition->supportsGroupAdminDelegation());
+		$this->assertFalse($definition->supportsUserPreference());
+	}
+
+	public function testGroupAdminCanManageDelegatedTsaGroupPolicy(): void {
+		$appConfig = $this->createMock(IAppConfig::class);
+		$provider = new TsaPolicy(new TsaPolicyManagedValue($appConfig));
+		$definition = $provider->get(TsaPolicy::KEY);
+		$context = (new PolicyContext())->setActorRole(ActorRole::groupAdmin(1));
+
+		$canManage = $definition->canCurrentActorManageGroupPolicy(
+			$context,
+			null,
+			[
+				self::buildPolicyLayer(
+					scope: 'group',
+					allowChildOverride: false,
+					visibleToChild: true,
+					value: TsaPolicyValue::encode(TsaPolicyValue::defaults()),
+					delegatedFromSystemCreatedSeed: true,
+				),
+			],
+		);
+
+		$this->assertTrue($canManage);
 	}
 
 	#[DataProvider('nonBasicAuthPayloadProvider')]
@@ -151,5 +186,22 @@ final class TsaPolicyTest extends TestCase {
 				'already-stored-secret',
 			],
 		];
+	}
+
+	private static function buildPolicyLayer(
+		string $scope,
+		bool $allowChildOverride,
+		bool $visibleToChild,
+		mixed $value,
+		bool $createdBySystemAdmin = false,
+		bool $delegatedFromSystemCreatedSeed = false,
+	): PolicyLayer {
+		return (new PolicyLayer())
+			->setScope($scope)
+			->setAllowChildOverride($allowChildOverride)
+			->setVisibleToChild($visibleToChild)
+			->setValue($value)
+			->setCreatedBySystemAdmin($createdBySystemAdmin)
+			->setDelegatedFromSystemCreatedSeed($delegatedFromSystemCreatedSeed);
 	}
 }
