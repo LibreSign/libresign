@@ -11,22 +11,22 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Service\SetupCheck\ConfigureCheckResult;
-use OCP\SetupCheck\ISetupCheckManager;
+use OCA\Libresign\SetupCheck\ImagickSetupCheck;
+use OCA\Libresign\SetupCheck\JavaSetupCheck;
+use OCA\Libresign\SetupCheck\JSignPdfSetupCheck;
+use OCA\Libresign\SetupCheck\PDFtkSetupCheck;
+use OCA\Libresign\SetupCheck\PopplerSetupCheck;
+use OCP\SetupCheck\ISetupCheck;
 
 class SetupCheckResultService {
 
-	/** @var array<string, string> */
-	private const RESOURCE_MAP = [
-		'OCA\\Libresign\\SetupCheck\\JavaSetupCheck' => 'java',
-		'OCA\\Libresign\\SetupCheck\\JSignPdfSetupCheck' => 'jsignpdf',
-		'OCA\\Libresign\\SetupCheck\\PDFtkSetupCheck' => 'pdftk',
-		'OCA\\Libresign\\SetupCheck\\PopplerSetupCheck' => 'poppler',
-		'OCA\\Libresign\\SetupCheck\\ImagickSetupCheck' => 'imagick',
-	];
-
 	public function __construct(
-		private ISetupCheckManager $checkManager,
 		private CertificateEngineFactory $certificateEngineFactory,
+		private JavaSetupCheck $javaSetupCheck,
+		private JSignPdfSetupCheck $jSignPdfSetupCheck,
+		private PDFtkSetupCheck $pdftkSetupCheck,
+		private PopplerSetupCheck $popplerSetupCheck,
+		private ImagickSetupCheck $imagickSetupCheck,
 	) {
 	}
 
@@ -44,22 +44,25 @@ class SetupCheckResultService {
 	 * @return list<ConfigureCheckResult>
 	 */
 	private function getBinaryChecks(): array {
-		$allResults = $this->checkManager->runAll();
-		$formatted = [];
+		/** @var array<string, ISetupCheck> $checks */
+		$checks = [
+			'java' => $this->javaSetupCheck,
+			'jsignpdf' => $this->jSignPdfSetupCheck,
+			'pdftk' => $this->pdftkSetupCheck,
+			'poppler' => $this->popplerSetupCheck,
+			'imagick' => $this->imagickSetupCheck,
+		];
 
-		foreach ($allResults as $category => $checks) {
-			foreach ($checks as $checkName => $result) {
-				if (!isset(self::RESOURCE_MAP[$checkName])) {
-					continue;
-				}
-				$formatted[] = new ConfigureCheckResult(
-					$this->mapSeverityToStatus($result->getSeverity()),
-					self::RESOURCE_MAP[$checkName],
-					(string)$result->getDescription(),
-					$result->getLinkToDoc() ?? '',
-					$category,
-				);
-			}
+		$formatted = [];
+		foreach ($checks as $resource => $check) {
+			$result = $check->run();
+			$formatted[] = new ConfigureCheckResult(
+				$this->mapSeverityToStatus($result->getSeverity()),
+				$resource,
+				(string)$result->getDescription(),
+				$result->getLinkToDoc() ?? '',
+				$check->getCategory(),
+			);
 		}
 
 		return $formatted;
