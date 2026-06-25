@@ -49,17 +49,24 @@ final class ExpirationRulesPolicyTest extends TestCase {
 		$this->assertSame(ExpirationRulesPolicy::DEFAULT_EXPIRY_IN_DAYS, $definition->normalizeValue(0));
 	}
 
-	#[DataProvider('provideDelegatedRequestExpirationKeys')]
-	public function testRequestExpirationKeysSupportDelegatedGroupAdminOverlays(string $policyKey): void {
+	#[DataProvider('provideDelegableExpirationKeys')]
+	public function testDelegableExpirationKeysSupportDelegatedGroupAdminOverlaysAndExpectedPreferenceBehavior(
+		string $policyKey,
+		bool $supportsUserPreference,
+	): void {
 		$provider = new ExpirationRulesPolicy();
 		$definition = $provider->get($policyKey);
 
 		$this->assertTrue($definition->supportsGroupAdminDelegation());
-		$this->assertFalse($definition->supportsUserPreference());
+		$this->assertSame($supportsUserPreference, $definition->supportsUserPreference());
 	}
 
-	#[DataProvider('provideDelegatedRequestExpirationKeys')]
-	public function testGroupAdminCanManageDelegatedRequestExpirationGroupPolicy(string $policyKey): void {
+	#[DataProvider('provideDelegableExpirationKeys')]
+	public function testGroupAdminCanManageDelegatedExpirationGroupPolicy(
+		string $policyKey,
+		bool $supportsUserPreference,
+		int $delegatedValue,
+	): void {
 		$provider = new ExpirationRulesPolicy();
 		$definition = $provider->get($policyKey);
 		$context = (new PolicyContext())->setActorRole(ActorRole::groupAdmin(1));
@@ -72,7 +79,7 @@ final class ExpirationRulesPolicyTest extends TestCase {
 					scope: 'group',
 					allowChildOverride: false,
 					visibleToChild: true,
-					value: 86400,
+					value: $delegatedValue,
 					delegatedFromSystemCreatedSeed: true,
 				),
 			],
@@ -81,8 +88,12 @@ final class ExpirationRulesPolicyTest extends TestCase {
 		$this->assertTrue($canManage);
 	}
 
-	#[DataProvider('provideDelegatedRequestExpirationKeys')]
-	public function testGroupAdminCanEditSystemCreatedRequestExpirationSeedWhenVisibleAndOverridable(string $policyKey): void {
+	#[DataProvider('provideDelegableExpirationKeys')]
+	public function testGroupAdminCanEditSystemCreatedDelegableExpirationSeedWhenVisibleAndOverridable(
+		string $policyKey,
+		bool $supportsUserPreference,
+		int $delegatedValue,
+	): void {
 		$provider = new ExpirationRulesPolicy();
 		$definition = $provider->get($policyKey);
 		$context = (new PolicyContext())->setActorRole(ActorRole::groupAdmin(1));
@@ -94,7 +105,7 @@ final class ExpirationRulesPolicyTest extends TestCase {
 				scope: 'group',
 				allowChildOverride: true,
 				visibleToChild: true,
-				value: 86400,
+				value: $delegatedValue,
 				createdBySystemAdmin: true,
 			),
 		);
@@ -103,11 +114,12 @@ final class ExpirationRulesPolicyTest extends TestCase {
 	}
 
 	/**
-	 * @return iterable<string, array{0: string}>
+	 * @return iterable<string, array{0: string, 1: bool, 2: int}>
 	 */
-	public static function provideDelegatedRequestExpirationKeys(): iterable {
-		yield 'maximum validity' => [ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY];
-		yield 'renewal interval' => [ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL];
+	public static function provideDelegableExpirationKeys(): iterable {
+		yield 'maximum validity' => [ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY, false, 86400];
+		yield 'renewal interval' => [ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL, false, 3600];
+		yield 'expiry in days' => [ExpirationRulesPolicy::KEY_EXPIRY_IN_DAYS, true, 365];
 	}
 
 	private static function buildPolicyLayer(
