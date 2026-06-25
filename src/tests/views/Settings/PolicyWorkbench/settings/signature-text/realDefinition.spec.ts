@@ -48,6 +48,10 @@ describe('signatureTextRealDefinition', () => {
 		expect(signatureTextRealDefinition.editorDialogLayout).toBe('wide')
 	})
 
+	it('allows delegated group admins to create descendant rules', () => {
+		expect(signatureTextRealDefinition.groupAdminBehavior?.allowGroupRuleCreationFromDescendantDelegation).toBe(true)
+	})
+
 	it('creates default serialized value', () => {
 		const value = String(signatureTextRealDefinition.createEmptyValue())
 		const parsed = JSON.parse(value)
