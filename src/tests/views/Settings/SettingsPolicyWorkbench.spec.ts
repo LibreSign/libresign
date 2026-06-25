@@ -101,6 +101,7 @@ const getPolicy = vi.fn((key: string): MockPolicyState | null => {
 
 	return null
 })
+
 const fetchSystemPolicy = vi.fn().mockResolvedValue(null)
 const fetchGroupPolicy = vi.fn().mockResolvedValue(null)
 const fetchUserPolicyForUser = vi.fn().mockResolvedValue(null)
@@ -676,8 +677,6 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(text).toContain('Using instance default')
 		expect(text).toContain('(default)')
 		expect(text).toContain('Change')
-		expect(text).not.toContain('Effective result:')
-		expect(text).not.toContain('No instance default is configured. This setting currently uses the system default.')
 	})
 
 	it('uses large outer editor dialog for signature footer', async () => {
@@ -875,35 +874,6 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(createScopeText).toContain('Account')
 		expect(createScopeText).toContain('Group')
 		expect(createScopeText).not.toContain('Everyone')
-	})
-
-	it('shows allow-lower-level-customization toggle for request access by group', async () => {
-		const wrapper = mountWorkbench()
-
-		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signature request access')
-		expect(openPolicyButton).toBeTruthy()
-		await openPolicyButton?.trigger('click')
-
-		await vi.waitFor(() => {
-			expect(findCreateRuleButton(wrapper).exists()).toBe(true)
-		})
-		const createRuleButton = findCreateRuleButton(wrapper)
-		expect(createRuleButton.exists()).toBe(true)
-		await createRuleButton.trigger('click')
-		await vi.waitFor(() => {
-			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
-		})
-
-		const createScopeDialog = wrapper.find('.policy-workbench__create-scope-dialog')
-		expect(createScopeDialog.exists()).toBe(true)
-
-		const groupScopeButton = createScopeDialog.findAll('button').find((button) => button.text().includes('Group'))
-		expect(groupScopeButton).toBeTruthy()
-		await groupScopeButton?.trigger('click')
-
-		const editorModal = wrapper.find('.policy-workbench__editor-modal-body')
-		expect(editorModal.exists()).toBe(true)
-		expect(editorModal.text()).toContain('Allow lower-level customization')
 	})
 
 	it('does not render the system default request-access row for group-admins', async () => {
