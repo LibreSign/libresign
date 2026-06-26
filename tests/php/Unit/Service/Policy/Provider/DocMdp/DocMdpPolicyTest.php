@@ -21,8 +21,10 @@ final class DocMdpPolicyTest extends TestCase {
 		$definition = $provider->get(DocMdpPolicy::KEY);
 
 		$this->assertSame(DocMdpPolicy::KEY, $definition->key());
+		$this->assertSame(DocMdpPolicy::SYSTEM_APP_CONFIG_KEY, $definition->getAppConfigKey());
 		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $definition->defaultSystemValue());
 		$this->assertSame([0, 1, 2, 3], $definition->allowedValues(new PolicyContext()));
+		$this->assertSame(['system', 'group', 'user'], $definition->supportedScopes());
 	}
 
 	#[DataProvider('normalizationCases')]
