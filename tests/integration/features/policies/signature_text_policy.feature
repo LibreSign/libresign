@@ -65,6 +65,14 @@ Feature: policies/signature_text_policy
       | (jq).ocs.data.policy.policyKey     | signature_render_mode |
       | (jq).ocs.data.policy.effectiveValue| graphic  |
 
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_render_mode"
+      | value | description_only |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                | value            |
+      | (jq).ocs.data.policy.policyKey     | signature_render_mode |
+      | (jq).ocs.data.policy.effectiveValue| description_only |
+
   Scenario: Manage signature dimensions policy layers through API
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_width"
