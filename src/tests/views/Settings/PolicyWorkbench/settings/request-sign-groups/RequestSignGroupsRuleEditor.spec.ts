@@ -6,10 +6,10 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
-import { createL10nMock } from '../../../testHelpers/l10n.js'
+import { createL10nMock } from '../../../../../testHelpers/l10n.js'
 
 vi.mock('@nextcloud/l10n', async () => {
-	const { createL10nMock } = await import('../../../testHelpers/l10n.js')
+	const { createL10nMock } = await import('../../../../../testHelpers/l10n.js')
 	return createL10nMock()
 })
 
@@ -47,7 +47,7 @@ vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path: string) => path),
 }))
 
-import RequestSignGroupsRuleEditor from '../../../../views/Settings/PolicyWorkbench/settings/request-sign-groups/RequestSignGroupsRuleEditor.vue'
+import RequestSignGroupsRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/request-sign-groups/RequestSignGroupsRuleEditor.vue'
 
 const NcSelectStub = {
 	name: 'NcSelect',
