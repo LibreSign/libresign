@@ -82,7 +82,7 @@ describe('SignatureTextDimensionsSection.vue', () => {
 		expect(wrapper.emitted('update:signatureHeight')?.[0]?.[0]).toBe(140)
 	})
 
-	it('renders one reset action button for each visible dimension control', () => {
+	it('renders one label row for each visible dimension control', () => {
 		const wrapper = mount(SignatureTextDimensionsSection, {
 			props: {
 				id: 'text',
@@ -95,6 +95,6 @@ describe('SignatureTextDimensionsSection.vue', () => {
 			global: { stubs: globalStubs },
 		})
 
-		expect(wrapper.findAllComponents({ name: 'NcButton' })).toHaveLength(4)
+		expect(wrapper.findAll('.ste__label-row')).toHaveLength(4)
 	})
 })
