@@ -140,6 +140,31 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 			],
 		];
 
+		yield 'accepts legacy root factor list payloads' => [
+			[
+				[
+					'name' => 'email',
+					'enabled' => true,
+					'minimumTotalVerifiedFactors' => 2,
+					'signatureMethods' => [
+						'emailToken' => ['enabled' => true],
+					],
+				],
+			],
+			[
+				'factors' => [
+					[
+						'name' => 'email',
+						'enabled' => true,
+						'signatureMethods' => [
+							'emailToken' => ['enabled' => true],
+						],
+						'minimumTotalVerifiedFactors' => 2,
+					],
+				],
+			],
+		];
+
 		yield 'ignores available signature methods when signatureMethods is absent' => [
 			[
 				'factors' => [
