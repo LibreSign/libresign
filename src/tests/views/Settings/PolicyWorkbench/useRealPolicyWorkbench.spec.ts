@@ -1294,7 +1294,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(clearUserPreference).toHaveBeenCalledWith('signature_flow')
 	})
 
-	it('clears user preference when saving system rule for request-access policy with user scope', async () => {
+	it('does not clear user preference when saving system rule for request-access policy because account scope is unsupported', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('groups_request_sign')
 		state.startEditor({ scope: 'system' })
@@ -1303,7 +1303,7 @@ describe('useRealPolicyWorkbench', () => {
 		await state.saveDraft()
 
 		expect(saveSystemPolicy).toHaveBeenCalledWith('groups_request_sign', '{"allowGroups":["admin","policy-e2e-group"],"denyGroups":[]}', true)
-		expect(clearUserPreference).toHaveBeenCalledWith('groups_request_sign')
+		expect(clearUserPreference).not.toHaveBeenCalledWith('groups_request_sign')
 		expect(state.editorDraft).toBeNull()
 	})
 
