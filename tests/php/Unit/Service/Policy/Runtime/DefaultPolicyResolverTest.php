@@ -841,7 +841,39 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$resolver = new DefaultPolicyResolver($source);
 		$resolved = $resolver->resolve($definition, PolicyContext::fromUserId('john'));
 
-		$this->assertSame(['defaultSystemValue' => 'canonical-john'], $resolved->getMeta());
+		$this->assertSame('canonical-john', $resolved->getMeta()['defaultSystemValue']);
+		$this->assertSame('signature_stamp', $resolved->getMeta()['appConfigKey']);
+		$this->assertSame('policy.signature_stamp', $resolved->getMeta()['userPreferenceKey']);
+		$this->assertSame(PolicySpec::RESOLUTION_MODE_RESOLVED, $resolved->getMeta()['resolutionMode']);
+		$this->assertSame(['system', 'group', 'user'], $resolved->getMeta()['supportedScopes']);
+		$this->assertFalse($resolved->getMeta()['backendOnly']);
+		$this->assertFalse($resolved->getMeta()['helper']);
+	}
+
+	public function testResolveSystemOnlyPolicyDisablesGroupEditingAndUserPreferenceFlags(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('global')
+			->setValue('sync')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+
+		$definition = new PolicySpec(
+			key: 'signing_mode',
+			defaultSystemValue: 'sync',
+			allowedValues: ['sync', 'async'],
+			supportsUserPreference: false,
+			supportedScopes: [PolicySpec::SCOPE_SYSTEM],
+		);
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve($definition, PolicyContext::fromUserId('john')->setActorRole(ActorRole::groupAdmin(1)));
+
+		$this->assertFalse($resolved->isEditableByCurrentActor());
+		$this->assertFalse($resolved->canSaveAsUserDefault());
+		$this->assertFalse($resolved->canUseAsRequestOverride());
+		$this->assertArrayNotHasKey('canCreateDescendantRules', $resolved->getMeta());
+		$this->assertSame(['system'], $resolved->getMeta()['supportedScopes']);
 	}
 
 	private function getValueChoiceDefinition(): PolicySpec {
