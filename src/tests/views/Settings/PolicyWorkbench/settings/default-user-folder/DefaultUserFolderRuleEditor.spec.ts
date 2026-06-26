@@ -8,8 +8,8 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
-import DefaultUserFolderRuleEditor from '../../../views/Settings/PolicyWorkbench/settings/default-user-folder/DefaultUserFolderRuleEditor.vue'
-import { DEFAULT_USER_FOLDER } from '../../../views/Settings/PolicyWorkbench/settings/default-user-folder/model'
+import DefaultUserFolderRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/default-user-folder/DefaultUserFolderRuleEditor.vue'
+import { DEFAULT_USER_FOLDER } from '../../../../../../views/Settings/PolicyWorkbench/settings/default-user-folder/model'
 
 function mountEditor(modelValue = DEFAULT_USER_FOLDER) {
 	return mount(DefaultUserFolderRuleEditor, {
