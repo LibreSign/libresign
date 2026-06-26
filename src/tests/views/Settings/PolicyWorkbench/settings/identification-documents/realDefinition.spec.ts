@@ -28,4 +28,22 @@ describe('identificationDocumentsRealDefinition', () => {
 			canSaveAsUserDefault: true,
 		} as never)).toBe(true)
 	})
+
+	it('normalizes malformed approver lists back to valid ids with admin fallback', () => {
+		expect(identificationDocumentsRealDefinition.normalizeDraftValue({
+			enabled: true,
+			approvers: [],
+		} as never)).toEqual({
+			enabled: true,
+			approvers: ['admin'],
+		})
+
+		expect(identificationDocumentsRealDefinition.normalizeDraftValue({
+			enabled: true,
+			approvers: ['finance', '', 'legal'],
+		} as never)).toEqual({
+			enabled: true,
+			approvers: ['finance', 'legal'],
+		})
+	})
 })
