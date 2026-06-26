@@ -22,6 +22,7 @@ use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolic
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
@@ -126,6 +127,7 @@ final class PolicyServiceTest extends TestCase {
 					LegalInformationPolicy::class => new LegalInformationPolicy(),
 					RequestSignGroupsPolicy::class => new RequestSignGroupsPolicy(),
 					SignatureFlowPolicy::class => new SignatureFlowPolicy(),
+					SignatureTextPolicy::class => new SignatureTextPolicy($this->l10n),
 					DocMdpPolicy::class => new DocMdpPolicy(),
 					SigningModePolicy::class => new SigningModePolicy(),
 					WorkerConfigPolicy::class => new WorkerConfigPolicy(),
@@ -140,6 +142,7 @@ final class PolicyServiceTest extends TestCase {
 			LegalInformationPolicy::class,
 			RequestSignGroupsPolicy::class,
 			SignatureFlowPolicy::class,
+			SignatureTextPolicy::class,
 			DocMdpPolicy::class,
 			SigningModePolicy::class,
 			WorkerConfigPolicy::class,
@@ -344,6 +347,80 @@ final class PolicyServiceTest extends TestCase {
 		$this->assertInstanceOf(ResolvedPolicy::class, $resolved);
 		$this->assertSame('parallel', $resolved->getEffectiveValue());
 		$this->assertSame('group', $resolved->getSourceScope());
+	}
+
+	public function testResolveSignatureStampMergesLegacyChildHelperPoliciesIntoComposite(): void {
+		$this->source
+			->method('loadSystemPolicy')
+			->willReturnCallback(static function (string $policyKey): ?PolicyLayer {
+				return match ($policyKey) {
+					SignatureTextPolicy::KEY_RENDER_MODE => (new PolicyLayer())
+						->setScope('global')
+						->setValue('description_only')
+						->setAllowChildOverride(true)
+						->setVisibleToChild(true),
+					default => null,
+				};
+			});
+
+		$this->source->method('loadGroupPolicies')->willReturn([]);
+		$this->source->method('loadCirclePolicies')->willReturn([]);
+		$this->source->method('loadUserPolicy')->willReturn(null);
+		$this->source->method('loadUserPreference')->willReturn(null);
+		$this->source->method('loadRequestOverride')->willReturn(null);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$resolved = $service->resolve(SignatureTextPolicy::KEY);
+		$effective = json_decode((string)$resolved->getEffectiveValue(), true, flags: JSON_THROW_ON_ERROR);
+
+		$this->assertSame('description_only', $effective['render_mode']);
+		$this->assertSame('global', $resolved->getSourceScope());
+	}
+
+	public function testResolveWorkerConfigMergesLegacyChildHelperPoliciesIntoComposite(): void {
+		$this->source
+			->method('loadSystemPolicy')
+			->willReturnCallback(static function (string $policyKey): ?PolicyLayer {
+				return match ($policyKey) {
+					SigningModePolicy::KEY_WORKER_TYPE => (new PolicyLayer())
+						->setScope('global')
+						->setValue('external')
+						->setAllowChildOverride(true)
+						->setVisibleToChild(true),
+					SigningModePolicy::KEY_PARALLEL_WORKERS => (new PolicyLayer())
+						->setScope('global')
+						->setValue(8)
+						->setAllowChildOverride(true)
+						->setVisibleToChild(true),
+					default => null,
+				};
+			});
+
+		$this->source->method('loadGroupPolicies')->willReturn([]);
+		$this->source->method('loadCirclePolicies')->willReturn([]);
+		$this->source->method('loadUserPolicy')->willReturn(null);
+		$this->source->method('loadUserPreference')->willReturn(null);
+		$this->source->method('loadRequestOverride')->willReturn(null);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$resolved = $service->resolve(WorkerConfigPolicy::KEY);
+		$effective = json_decode((string)$resolved->getEffectiveValue(), true, flags: JSON_THROW_ON_ERROR);
+
+		$this->assertSame('external', $effective['worker_type']);
+		$this->assertSame(8, $effective['parallel_workers']);
+		$this->assertSame('global', $resolved->getSourceScope());
 	}
 
 	public function testSaveUserPolicyForUserIdPersistsForTargetUser(): void {
