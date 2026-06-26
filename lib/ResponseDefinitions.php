@@ -394,11 +394,21 @@ namespace OCA\Libresign;
  *
  * Validation and progress contracts
  *
+ * @psalm-type LibresignPolicyScope = 'system'|'group'|'user'
  * @psalm-type LibresignEffectivePolicyValue = null|bool|int|float|string|array<string, mixed>
  * @psalm-type LibresignEffectivePolicyMeta = array{
  *     defaultSystemValue?: LibresignEffectivePolicyValue,
+ *     appConfigKey?: string,
+ *     userPreferenceKey?: string,
+ *     resolutionMode?: string,
+ *     supportsGroupAdminDelegation?: bool,
  *     canCreateDescendantRules?: bool,
  *     supportsUserPreference?: bool,
+ *     supportedScopes?: list<LibresignPolicyScope>,
+ *     backendOnly?: bool,
+ *     helper?: bool,
+ *     parentPolicyKey?: string,
+ *     compositeChildren?: list<string>,
  * }
  * @psalm-type LibresignEffectivePolicyState = array{
  *     policyKey: string,
@@ -470,6 +480,10 @@ namespace OCA\Libresign;
  *     effectiveValue: string,
  *     sourceScope: string,
  * }
+ * @psalm-type LibresignPolicySnapshotLegalInformationEntry = array{
+ *     effectiveValue: string,
+ *     sourceScope: string,
+ * }
  * @psalm-type LibresignPolicySnapshotNumericEntry = array{
  *     effectiveValue: int,
  *     sourceScope: string,
@@ -499,6 +513,7 @@ namespace OCA\Libresign;
  *     docmdp?: LibresignPolicySnapshotNumericEntry,
  *     signature_flow?: LibresignPolicySnapshotEntry,
  *     add_footer?: LibresignPolicySnapshotEntry,
+ *     legal_information?: LibresignPolicySnapshotLegalInformationEntry,
  *     identification_documents?: LibresignPolicySnapshotIdentificationDocumentsEntry,
  *     identify_methods?: LibresignPolicySnapshotIdentifyMethodsEntry,
  * }
