@@ -25,11 +25,15 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 	public static function provideNormalizeCases(): iterable {
 		yield 'preserves canonical requirement from payload' => [
 			[
-				[
-					'name' => 'email',
-					'enabled' => true,
-					'requirement' => 'required',
-					'signatureMethods' => ['emailToken'],
+				'factors' => [
+					[
+						'name' => 'email',
+						'enabled' => true,
+						'requirement' => 'required',
+						'signatureMethods' => [
+							'emailToken' => ['enabled' => false],
+						],
+					],
 				],
 			],
 			[
@@ -54,7 +58,9 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 						'name' => 'email',
 						'enabled' => true,
 						'requirement' => 'required',
-						'signatureMethods' => ['emailToken'],
+						'signatureMethods' => [
+							'emailToken' => ['enabled' => false],
+						],
 					],
 				],
 			],
@@ -80,7 +86,9 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 					[
 						'name' => 'sms',
 						'enabled' => true,
-						'signatureMethods' => ['smsToken'],
+						'signatureMethods' => [
+							'smsToken' => ['enabled' => false],
+						],
 					],
 				],
 			],
@@ -100,10 +108,12 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 
 		yield 'defaults enabled to true and supports signature methods labels' => [
 			[
-				[
-					'name' => 'email',
-					'signatureMethods' => [
-						'emailToken' => 'Email token',
+				'factors' => [
+					[
+						'name' => 'email',
+						'signatureMethods' => [
+							'emailToken' => 'Email token',
+						],
 					],
 				],
 			],
@@ -123,17 +133,26 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 			],
 		];
 
-		yield 'normalizes legacy string list entries' => [
+		yield 'ignores root string list entries' => [
 			['email', 'sms'],
 			[
+				'factors' => [],
+			],
+		];
+
+		yield 'ignores available signature methods when signatureMethods is absent' => [
+			[
 				'factors' => [
 					[
 						'name' => 'email',
-						'enabled' => true,
-						'signatureMethods' => [],
+						'availableSignatureMethods' => ['emailToken'],
 					],
+				],
+			],
+			[
+				'factors' => [
 					[
-						'name' => 'sms',
+						'name' => 'email',
 						'enabled' => true,
 						'signatureMethods' => [],
 					],
@@ -141,11 +160,17 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 			],
 		];
 
-		yield 'falls back to available signature methods when signatureMethods is absent' => [
+		yield 'ignores can_create_account from legacy factor settings' => [
 			[
-				[
-					'name' => 'email',
-					'availableSignatureMethods' => ['emailToken'],
+				'factors' => [
+					[
+						'name' => 'email',
+						'enabled' => true,
+						'can_create_account' => false,
+						'signatureMethods' => [
+							'emailToken' => ['enabled' => false],
+						],
+					],
 				],
 			],
 			[
@@ -158,29 +183,6 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 						],
 					],
 				],
-			],
-		];
-
-		yield 'normalizes can_create_account from legacy factor settings' => [
-			[
-				[
-					'name' => 'email',
-					'enabled' => true,
-					'can_create_account' => false,
-					'signatureMethods' => ['emailToken'],
-				],
-			],
-			[
-				'factors' => [
-					[
-						'name' => 'email',
-						'enabled' => true,
-						'signatureMethods' => [
-							'emailToken' => ['enabled' => false],
-						],
-					],
-				],
-				'can_create_account' => false,
 			],
 		];
 
@@ -190,7 +192,9 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 				'factors' => [
 					[
 						'name' => 'email',
-						'signatureMethods' => ['emailToken'],
+						'signatureMethods' => [
+							'emailToken' => ['enabled' => false],
+						],
 					],
 				],
 			], JSON_THROW_ON_ERROR),
@@ -319,7 +323,9 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 
 		$normalizedDefault = IdentifyMethodsPolicyValue::normalize([], $identifyMethodService);
 		$normalizedServiceDefaults = IdentifyMethodsPolicyValue::normalize(
-			$identifyMethodService->getDefaultIdentifyMethodsPolicy(),
+			[
+				'factors' => $identifyMethodService->getDefaultIdentifyMethodsPolicy(),
+			],
 			$identifyMethodService,
 		);
 
@@ -357,14 +363,16 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 		]);
 
 		$normalized = IdentifyMethodsPolicyValue::normalize([
-			[
-				'name' => 'account',
-				'friendly_name' => 'Account',
-				'signatureMethods' => [],
-			],
-			[
-				'name' => 'email',
-				'signatureMethods' => [],
+			'factors' => [
+				[
+					'name' => 'account',
+					'friendly_name' => 'Account',
+					'signatureMethods' => [],
+				],
+				[
+					'name' => 'email',
+					'signatureMethods' => [],
+				],
 			],
 		], $identifyMethodService);
 
