@@ -42,7 +42,7 @@ trait SetupCheckUtils {
 			if (isset($result['EMPTY_SIGNATURE_DATA'])) {
 				return [
 					$l10n->t('Your signature data is empty.'),
-					$l10n->t("Sounds that you are running from source code of LibreSign.\nEnable debug mode by: occ config:system:set debug --value true --type boolean"),
+					$l10n->t("Sounds that you are running from source code of LibreSign.\nEnable debug mode by: %s", ['occ config:system:set debug --value true --type boolean']),
 				];
 			}
 		}
