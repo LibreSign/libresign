@@ -19,17 +19,36 @@ use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 final class DefaultPolicyResolver implements IPolicyResolver {
 	public function __construct(
 		private IPolicySource $source,
+		private ?PolicyRegistry $registry = null,
 	) {
 	}
 
 	#[\Override]
 	public function resolve(IPolicyDefinition $definition, PolicyContext $context): ResolvedPolicy {
-		return $this->resolveCore(
+		$rawResolved = $this->resolveCore(
 			$definition,
 			$context,
 			$this->source->loadGroupPolicies($definition->key(), $context),
 			$this->source->loadUserPolicy($definition->key(), $context),
 			$this->source->loadUserPreference($definition->key(), $context),
+		);
+
+		if ($this->registry === null) {
+			return $rawResolved;
+		}
+
+		$rawResolvedByKey = [
+			$definition->key() => $rawResolved,
+		];
+		$finalizedByKey = [];
+		$resolvingKeys = [];
+
+		return $this->finalizeResolvedPolicy(
+			$definition,
+			$context,
+			$rawResolvedByKey,
+			$finalizedByKey,
+			$resolvingKeys,
 		);
 	}
 
@@ -309,7 +328,80 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 				$allUserPrefs[$key] ?? null,
 			);
 		}
-		return $resolved;
+
+		if ($this->registry === null) {
+			return $resolved;
+		}
+
+		$finalizedByKey = [];
+		$resolvingKeys = [];
+		$finalizedResolved = [];
+		foreach ($validDefinitions as $definition) {
+			$finalizedResolved[$definition->key()] = $this->finalizeResolvedPolicy(
+				$definition,
+				$context,
+				$resolved,
+				$finalizedByKey,
+				$resolvingKeys,
+			);
+		}
+
+		return $finalizedResolved;
+	}
+
+	/**
+	 * @param array<string, ResolvedPolicy> $rawResolvedByKey
+	 * @param array<string, ResolvedPolicy> $finalizedByKey
+	 * @param array<string, true> $resolvingKeys
+	 */
+	private function finalizeResolvedPolicy(
+		IPolicyDefinition $definition,
+		PolicyContext $context,
+		array $rawResolvedByKey,
+		array &$finalizedByKey,
+		array &$resolvingKeys,
+	): ResolvedPolicy {
+		$policyKey = $definition->key();
+
+		if (isset($finalizedByKey[$policyKey])) {
+			return $finalizedByKey[$policyKey];
+		}
+
+		if (isset($resolvingKeys[$policyKey])) {
+			throw new \LogicException('Circular composite policy finalization detected for ' . $policyKey);
+		}
+
+		$resolvingKeys[$policyKey] = true;
+		$resolved = $rawResolvedByKey[$policyKey] ?? $this->resolveCore(
+			$definition,
+			$context,
+			$this->source->loadGroupPolicies($policyKey, $context),
+			$this->source->loadUserPolicy($policyKey, $context),
+			$this->source->loadUserPreference($policyKey, $context),
+		);
+
+		$finalized = $definition->finalizeResolvedPolicy(
+			$resolved,
+			$context,
+			function (string $dependencyKey) use ($context, $rawResolvedByKey, &$finalizedByKey, &$resolvingKeys): ResolvedPolicy {
+				if ($this->registry === null) {
+					throw new \LogicException('Policy registry is required to resolve composite helper dependencies');
+				}
+
+				return $this->finalizeResolvedPolicy(
+					$this->registry->get($dependencyKey),
+					$context,
+					$rawResolvedByKey,
+					$finalizedByKey,
+					$resolvingKeys,
+				);
+			},
+		);
+
+		unset($resolvingKeys[$policyKey]);
+		$finalizedByKey[$policyKey] = $finalized;
+
+		return $finalized;
 	}
 
 	private function applyLayer(
