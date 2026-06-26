@@ -24,10 +24,12 @@ test('sign herself with pkcs12 certificate', async ({ page }) => {
 	await setSystemPolicy(
 		page.request,
 		'identify_methods',
-		JSON.stringify([
-			{ name: 'account', enabled: true, mandatory: true, signatureMethods: { password: { enabled: true } } },
-			{ name: 'email', enabled: false, mandatory: false },
-		]),
+		JSON.stringify({
+			factors: [
+				{ name: 'account', enabled: true, requirement: 'required', signatureMethods: { password: { enabled: true } } },
+				{ name: 'email', enabled: false, requirement: 'optional' },
+			],
+		}),
 	)
 
 	// Ensure the user has no existing certificate so the test always goes
