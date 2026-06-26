@@ -270,6 +270,18 @@ function syncTemplateWithCollectMetadata(template: string, enabled: boolean): st
 	return lines.join('\n')
 }
 
+function syncCanonicalDefaultTemplateVariant(template: string, enabled: boolean): string {
+	const normalizedTemplate = String(template ?? '').replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+	const canonicalWithoutMetadata = defaultConfig.template
+	const canonicalWithMetadata = syncTemplateWithCollectMetadata(defaultConfig.template, true)
+
+	if (normalizedTemplate !== canonicalWithoutMetadata && normalizedTemplate !== canonicalWithMetadata) {
+		return template
+	}
+
+	return enabled ? canonicalWithMetadata : canonicalWithoutMetadata
+}
+
 function applyCollectMetadataEnabled(nextValue: boolean): void {
 	collectMetadataEnabled.value = nextValue
 	const syncedTemplate = syncTemplateWithCollectMetadata(config.template, nextValue)
@@ -278,8 +290,11 @@ function applyCollectMetadataEnabled(nextValue: boolean): void {
 	}
 }
 
-function applyNormalizedConfig(nextConfig: ReturnType<typeof normalizeSignatureTextPolicyConfig>): void {
-	config.template = nextConfig.template
+function applyNormalizedConfig(
+	nextConfig: ReturnType<typeof normalizeSignatureTextPolicyConfig>,
+	metadataEnabled = collectMetadataEnabled.value,
+): void {
+	config.template = syncCanonicalDefaultTemplateVariant(nextConfig.template, metadataEnabled)
 	config.templateFontSize = nextConfig.templateFontSize
 	config.signatureFontSize = nextConfig.signatureFontSize
 	config.signatureWidth = nextConfig.signatureWidth
@@ -287,6 +302,15 @@ function applyNormalizedConfig(nextConfig: ReturnType<typeof normalizeSignatureT
 	config.backgroundType = nextConfig.backgroundType as BackgroundType
 	config.renderMode = nextConfig.renderMode as DisplayMode
 }
+
+config.template = syncCanonicalDefaultTemplateVariant(config.template, collectMetadataEnabled.value)
+
+const effectiveInheritedConfig = computed(() => {
+	return {
+		...inheritedConfig.value,
+		template: syncCanonicalDefaultTemplateVariant(inheritedConfig.value.template, collectMetadataEnabled.value),
+	}
+})
 
 const previewScale = computed(() => Math.max(0.25, Math.min(5, previewZoom.value / 100)))
 
@@ -300,14 +324,14 @@ const previewFrameStyle = computed(() => {
 })
 
 const previewPdfRenderKey = computed(() => `${previewRenderKey.value}-${previewZoom.value}`)
-const showResetRenderModeButton = computed(() => config.renderMode !== inheritedConfig.value.renderMode)
-const showResetTemplateButton = computed(() => config.template !== inheritedConfig.value.template)
-const showResetTemplateFontSizeButton = computed(() => config.templateFontSize !== inheritedConfig.value.templateFontSize)
-const showResetSignatureFontSizeButton = computed(() => config.signatureFontSize !== inheritedConfig.value.signatureFontSize)
-const showResetWidthButton = computed(() => config.signatureWidth !== inheritedConfig.value.signatureWidth)
-const showResetHeightButton = computed(() => config.signatureHeight !== inheritedConfig.value.signatureHeight)
+const showResetRenderModeButton = computed(() => config.renderMode !== effectiveInheritedConfig.value.renderMode)
+const showResetTemplateButton = computed(() => config.template !== effectiveInheritedConfig.value.template)
+const showResetTemplateFontSizeButton = computed(() => config.templateFontSize !== effectiveInheritedConfig.value.templateFontSize)
+const showResetSignatureFontSizeButton = computed(() => config.signatureFontSize !== effectiveInheritedConfig.value.signatureFontSize)
+const showResetWidthButton = computed(() => config.signatureWidth !== effectiveInheritedConfig.value.signatureWidth)
+const showResetHeightButton = computed(() => config.signatureHeight !== effectiveInheritedConfig.value.signatureHeight)
 const showResetDefaultsButton = computed(() => (
-	serializeSignatureTextPolicyConfig(config) !== serializeSignatureTextPolicyConfig(inheritedConfig.value)
+	serializeSignatureTextPolicyConfig(config) !== serializeSignatureTextPolicyConfig(effectiveInheritedConfig.value)
 	|| previewZoom.value !== 100
 ))
 
@@ -326,7 +350,7 @@ watch(() => config.signatureHeight, emitUpdate)
 watch(() => config.backgroundType, emitUpdate)
 watch(() => config.renderMode, emitUpdate)
 
-watch(() => props.modelValue, (nextValue) => {
+watch(() => props.modelValue, (nextValue: unknown) => {
 	const normalizedDraftValue = normalizeSignatureStampDraftValue(
 		nextValue,
 		collectMetadataEnabled.value,
@@ -337,10 +361,10 @@ watch(() => props.modelValue, (nextValue) => {
 		return
 	}
 	collectMetadataEnabled.value = normalizedDraftValue.collectMetadataEnabled
-	applyNormalizedConfig(nextConfig)
+	applyNormalizedConfig(nextConfig, normalizedDraftValue.collectMetadataEnabled)
 })
 
-watch(() => props.collectMetadataEnabled, (nextValue) => {
+watch(() => props.collectMetadataEnabled, (nextValue: boolean) => {
 	const normalizedValue = resolveCollectMetadataValue(nextValue, collectMetadataEnabled.value)
 	if (collectMetadataEnabled.value === normalizedValue) {
 		return
@@ -520,37 +544,37 @@ function onCollectMetadataToggle(value: boolean | unknown): void {
 }
 
 function resetToDefaults(): void {
-	applyNormalizedConfig(inheritedConfig.value)
+	applyNormalizedConfig(effectiveInheritedConfig.value, collectMetadataEnabled.value)
 	previewZoom.value = 100
 	errorMessage.value = ''
 }
 
 function resetTemplateToDefault(): void {
-	config.template = inheritedConfig.value.template
+	config.template = effectiveInheritedConfig.value.template
 }
 
 function resetRenderModeToDefault(): void {
-	config.renderMode = inheritedConfig.value.renderMode as DisplayMode
+	config.renderMode = effectiveInheritedConfig.value.renderMode as DisplayMode
 }
 
 function resetTemplateFontSizeToDefault(): void {
-	config.templateFontSize = inheritedConfig.value.templateFontSize
+	config.templateFontSize = effectiveInheritedConfig.value.templateFontSize
 }
 
 function resetSignatureFontSizeToDefault(): void {
-	config.signatureFontSize = inheritedConfig.value.signatureFontSize
+	config.signatureFontSize = effectiveInheritedConfig.value.signatureFontSize
 }
 
 function resetWidthToDefault(): void {
-	config.signatureWidth = inheritedConfig.value.signatureWidth
+	config.signatureWidth = effectiveInheritedConfig.value.signatureWidth
 }
 
 function resetHeightToDefault(): void {
-	config.signatureHeight = inheritedConfig.value.signatureHeight
+	config.signatureHeight = effectiveInheritedConfig.value.signatureHeight
 }
 
 function resetBackgroundToDefault(): void {
-	config.backgroundType = inheritedConfig.value.backgroundType as BackgroundType
+	config.backgroundType = effectiveInheritedConfig.value.backgroundType as BackgroundType
 	errorMessage.value = ''
 }
 
