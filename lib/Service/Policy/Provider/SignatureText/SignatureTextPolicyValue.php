@@ -14,7 +14,17 @@ final class SignatureTextPolicyValue {
 	public const DEFAULT_SIGNATURE_WIDTH = 350.0;
 	public const DEFAULT_SIGNATURE_HEIGHT = 100.0;
 
-	/** @var array<string, mixed> */
+	/**
+	 * @var array{
+	 *     template: string,
+	 *     template_font_size: float,
+	 *     signature_font_size: float,
+	 *     signature_width: float,
+	 *     signature_height: float,
+	 *     background_type: 'default'|'custom'|'deleted',
+	 *     render_mode: 'default'|'graphic'|'text'|'description_only',
+	 * }
+	 */
 	public const DEFAULTS = [
 		'template' => '',
 		'template_font_size' => self::DEFAULT_TEMPLATE_FONT_SIZE,
@@ -27,7 +37,24 @@ final class SignatureTextPolicyValue {
 
 	/**
 	 * @param mixed $rawValue
-	 * @return array<string, mixed>
+	 * @param null|array{
+	 *     template: string,
+	 *     template_font_size: float,
+	 *     signature_font_size: float,
+	 *     signature_width: float,
+	 *     signature_height: float,
+	 *     background_type: 'default'|'custom'|'deleted',
+	 *     render_mode: 'default'|'graphic'|'text'|'description_only',
+	 * } $defaults
+	 * @return array{
+	 *     template: string,
+	 *     template_font_size: float,
+	 *     signature_font_size: float,
+	 *     signature_width: float,
+	 *     signature_height: float,
+	 *     background_type: 'default'|'custom'|'deleted',
+	 *     render_mode: 'default'|'graphic'|'text'|'description_only',
+	 * }
 	 */
 	public static function normalize(mixed $rawValue, ?array $defaults = null): array {
 		$defaults = $defaults === null ? self::DEFAULTS : array_replace(self::DEFAULTS, $defaults);
@@ -59,7 +86,15 @@ final class SignatureTextPolicyValue {
 	}
 
 	/**
-	 * @param array<string, mixed> $value
+	 * @param array{
+	 *     template: string,
+	 *     template_font_size: float,
+	 *     signature_font_size: float,
+	 *     signature_width: float,
+	 *     signature_height: float,
+	 *     background_type: 'default'|'custom'|'deleted',
+	 *     render_mode: 'default'|'graphic'|'text'|'description_only',
+	 * } $value
 	 */
 	public static function encode(array $value): string {
 		$normalized = self::normalize($value);
