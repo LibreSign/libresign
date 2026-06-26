@@ -21,7 +21,10 @@ final class RequestSignGroupsPolicyValue {
 	public static function decodePolicy(mixed $rawValue): array {
 		if (is_array($rawValue)) {
 			if (array_is_list($rawValue)) {
-				return self::normalizePolicyPayload([]);
+				return [
+					'allowGroups' => self::normalizeGroupIds($rawValue),
+					'denyGroups' => [],
+				];
 			}
 
 			return self::normalizePolicyPayload($rawValue);
@@ -39,7 +42,10 @@ final class RequestSignGroupsPolicyValue {
 		$decoded = json_decode($trimmed, true);
 		if (is_array($decoded)) {
 			if (array_is_list($decoded)) {
-				return self::normalizePolicyPayload([]);
+				return [
+					'allowGroups' => self::normalizeGroupIds($decoded),
+					'denyGroups' => [],
+				];
 			}
 
 			return self::normalizePolicyPayload($decoded);
