@@ -788,6 +788,41 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame('finance', $response->getData()['policy']['targetId']);
 	}
 
+	public function testSetGroupReturnsEffectiveValueForConsolidatedSignatureStamp(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$payload = '{"template":"Admin template {{SignerCommonName}}","template_font_size":9.8,"signature_font_size":20,"signature_width":350,"signature_height":100,"background_type":"default","render_mode":"default"}';
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with('signature_stamp', 'admin', $payload, true)
+			->willReturn((new PolicyLayer())
+				->setScope('group')
+				->setValue($payload)
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]));
+
+		$response = $this->controller->setGroup('admin', 'signature_stamp', $payload, true);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame($payload, $response->getData()['policy']['effectiveValue']);
+		$this->assertSame(
+			'Admin template {{SignerCommonName}}',
+			json_decode((string)$response->getData()['policy']['effectiveValue'], true, flags: JSON_THROW_ON_ERROR)['template'],
+		);
+	}
+
 	public function testSetGroupReadsBodyParamsFromRequest(): void {
 		$request = $this->createMock(IRequest::class);
 		$request
