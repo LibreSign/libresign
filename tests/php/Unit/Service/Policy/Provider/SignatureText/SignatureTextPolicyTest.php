@@ -56,6 +56,37 @@ class SignatureTextPolicyTest extends TestCase {
 		$resolvedStateMeta = $spec->resolvedStateMeta(new \OCA\Libresign\Service\Policy\Model\PolicyContext());
 
 		$this->assertSame($spec->defaultSystemValue(), $resolvedStateMeta['defaultSystemValue']);
+		$this->assertSame(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY, $spec->getAppConfigKey());
+		$this->assertSame(['system', 'group', 'user'], $spec->supportedScopes());
+		$this->assertSame([
+			SignatureTextPolicy::KEY_TEMPLATE,
+			SignatureTextPolicy::KEY_TEMPLATE_FONT_SIZE,
+			SignatureTextPolicy::KEY_SIGNATURE_WIDTH,
+			SignatureTextPolicy::KEY_SIGNATURE_HEIGHT,
+			SignatureTextPolicy::KEY_SIGNATURE_FONT_SIZE,
+			SignatureTextPolicy::KEY_RENDER_MODE,
+		], $spec->compositeChildren());
+	}
+
+	public function testConsolidatedPolicyPreservesDescriptionOnlyRenderMode(): void {
+		$spec = $this->policy->get(SignatureTextPolicy::KEY);
+		$normalized = $spec->normalizeValue([
+			'template' => 'Signed with LibreSign',
+			'render_mode' => 'description_only',
+		]);
+
+		$this->assertIsString($normalized);
+		$this->assertSame('description_only', json_decode($normalized, true, flags: JSON_THROW_ON_ERROR)['render_mode']);
+	}
+
+	public function testSignatureTextPolicyValuePreservesDescriptionOnlyRenderMode(): void {
+		$normalized = SignatureTextPolicyValue::normalize([
+			'template' => 'Signed with LibreSign',
+			'render_mode' => 'description_only',
+		]);
+
+		$this->assertSame('description_only', $normalized['render_mode']);
+		$this->assertSame('description_only', json_decode(SignatureTextPolicyValue::encode($normalized), true, flags: JSON_THROW_ON_ERROR)['render_mode']);
 	}
 
 	public function testProviderSupportsDelegatedGroupAdminOverlays(): void {
@@ -105,10 +136,11 @@ class SignatureTextPolicyTest extends TestCase {
 		$this->assertEquals(SignatureTextPolicy::KEY_RENDER_MODE, $spec->key());
 		$this->assertEquals('default', $spec->defaultSystemValue());
 		$allowedValues = $spec->allowedValues(new \OCA\Libresign\Service\Policy\Model\PolicyContext());
-		$this->assertCount(3, $allowedValues);
+		$this->assertCount(4, $allowedValues);
 		$this->assertContains('default', $allowedValues);
 		$this->assertContains('graphic', $allowedValues);
 		$this->assertContains('text', $allowedValues);
+		$this->assertContains('description_only', $allowedValues);
 	}
 
 	public function testRenderModeNormalizerAcceptsValidValues(): void {
@@ -116,6 +148,7 @@ class SignatureTextPolicyTest extends TestCase {
 		$this->assertEquals('default', $spec->normalizeValue('default'));
 		$this->assertEquals('graphic', $spec->normalizeValue('graphic'));
 		$this->assertEquals('text', $spec->normalizeValue('text'));
+		$this->assertEquals('description_only', $spec->normalizeValue('description_only'));
 	}
 
 	public function testRenderModeNormalizerFallsBackToDefaultForInvalid(): void {
