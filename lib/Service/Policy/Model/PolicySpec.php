@@ -9,12 +9,16 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy\Model;
 
 use Closure;
+use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use function in_array;
 use function sprintf;
 
-final class PolicySpec implements \OCA\Libresign\Service\Policy\Contract\IPolicyDefinition {
+final class PolicySpec implements IPolicyDefinition {
 	public const RESOLUTION_MODE_RESOLVED = 'resolved';
 	public const RESOLUTION_MODE_VALUE_CHOICE = 'value_choice';
+	public const SCOPE_SYSTEM = 'system';
+	public const SCOPE_GROUP = 'group';
+	public const SCOPE_USER = 'user';
 
 	/** @var list<mixed>|Closure(PolicyContext): list<mixed> */
 	private array|Closure $allowedValuesResolver;
@@ -42,6 +46,8 @@ final class PolicySpec implements \OCA\Libresign\Service\Policy\Contract\IPolicy
 	 * @param Closure(PolicyContext, ?PolicyLayer): bool|null $visibleGroupCountFilter
 	 * @param Closure(PolicyContext, ?PolicyLayer, array<array-key, PolicyLayer>): bool|null $groupPolicyManager
 	 * @param Closure(PolicyContext, ?PolicyLayer, PolicyLayer): bool|null $systemCreatedGroupRuleEditor
+	 * @param list<string> $supportedScopes
+	 * @param list<string> $compositeChildren
 	 */
 	public function __construct(
 		private string $key,
@@ -58,6 +64,11 @@ final class PolicySpec implements \OCA\Libresign\Service\Policy\Contract\IPolicy
 		?Closure $systemCreatedGroupRuleEditor = null,
 		private bool $supportsGroupAdminDelegation = false,
 		?Closure $delegatedValueValidator = null,
+		private array $supportedScopes = [self::SCOPE_SYSTEM, self::SCOPE_GROUP, self::SCOPE_USER],
+		private bool $backendOnly = false,
+		private bool $helper = false,
+		private ?string $parentPolicyKey = null,
+		private array $compositeChildren = [],
 	) {
 		$this->allowedValuesResolver = $allowedValues;
 		$this->normalizer = $normalizer;
@@ -79,6 +90,17 @@ final class PolicySpec implements \OCA\Libresign\Service\Policy\Contract\IPolicy
 		return $this->resolutionMode;
 	}
 
+	/** @return list<string> */
+	#[\Override]
+	public function supportedScopes(): array {
+		return $this->supportedScopes;
+	}
+
+	#[\Override]
+	public function supportsScope(string $scope): bool {
+		return in_array($scope, $this->supportedScopes, true);
+	}
+
 	#[\Override]
 	public function getAppConfigKey(): string {
 		return $this->appConfigKey ?? $this->key;
@@ -87,6 +109,27 @@ final class PolicySpec implements \OCA\Libresign\Service\Policy\Contract\IPolicy
 	#[\Override]
 	public function getUserPreferenceKey(): string {
 		return 'policy.' . $this->key;
+	}
+
+	#[\Override]
+	public function isBackendOnly(): bool {
+		return $this->backendOnly;
+	}
+
+	#[\Override]
+	public function isHelper(): bool {
+		return $this->helper;
+	}
+
+	#[\Override]
+	public function parentPolicyKey(): ?string {
+		return $this->parentPolicyKey;
+	}
+
+	/** @return list<string> */
+	#[\Override]
+	public function compositeChildren(): array {
+		return $this->compositeChildren;
 	}
 
 	#[\Override]
