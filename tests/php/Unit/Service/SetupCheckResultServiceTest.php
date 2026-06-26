@@ -22,8 +22,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class SetupCheckResultServiceTest extends TestCase {
-	/** @var CertificateEngineFactory&MockObject */
-	private $certificateEngineFactory;
+	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	/** @var JavaSetupCheck&MockObject */
 	private $javaSetupCheck;
 	/** @var JSignPdfSetupCheck&MockObject */
