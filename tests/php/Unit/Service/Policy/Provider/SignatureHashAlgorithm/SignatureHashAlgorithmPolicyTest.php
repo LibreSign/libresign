@@ -23,6 +23,7 @@ final class SignatureHashAlgorithmPolicyTest extends TestCase {
 		$definition = $provider->get(SignatureHashAlgorithmPolicy::KEY);
 		$this->assertSame(SignatureHashAlgorithmPolicy::KEY, $definition->key());
 		$this->assertSame('SHA256', $definition->defaultSystemValue());
+		$this->assertSame(['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'], $definition->allowedValues(new PolicyContext()));
 	}
 
 	public function testNormalizesToAllowedAlgorithm(): void {
@@ -30,6 +31,7 @@ final class SignatureHashAlgorithmPolicyTest extends TestCase {
 		$definition = $provider->get(SignatureHashAlgorithmPolicy::KEY);
 
 		$this->assertSame('SHA512', $definition->normalizeValue('sha512'));
+		$this->assertSame('SHA1', $definition->normalizeValue('sha1'));
 		$this->assertSame('SHA256', $definition->normalizeValue('unknown'));
 	}
 
