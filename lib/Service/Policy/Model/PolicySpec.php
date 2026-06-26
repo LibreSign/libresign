@@ -36,6 +36,8 @@ final class PolicySpec implements IPolicyDefinition {
 	private ?Closure $systemCreatedGroupRuleEditorResolver;
 	/** @var Closure(mixed, mixed, PolicyContext): void|null */
 	private ?Closure $delegatedValidator;
+	/** @var Closure(ResolvedPolicy, PolicyContext, callable(string): ResolvedPolicy): ResolvedPolicy|null */
+	private ?Closure $resolvedPolicyFinalizer;
 
 	/**
 	 * @param list<mixed>|Closure(PolicyContext): list<mixed> $allowedValues
@@ -46,6 +48,7 @@ final class PolicySpec implements IPolicyDefinition {
 	 * @param Closure(PolicyContext, ?PolicyLayer): bool|null $visibleGroupCountFilter
 	 * @param Closure(PolicyContext, ?PolicyLayer, array<array-key, PolicyLayer>): bool|null $groupPolicyManager
 	 * @param Closure(PolicyContext, ?PolicyLayer, PolicyLayer): bool|null $systemCreatedGroupRuleEditor
+	 * @param Closure(ResolvedPolicy, PolicyContext, callable(string): ResolvedPolicy): ResolvedPolicy|null $resolvedPolicyFinalizer
 	 * @param list<string> $supportedScopes
 	 * @param list<string> $compositeChildren
 	 */
@@ -69,6 +72,7 @@ final class PolicySpec implements IPolicyDefinition {
 		private bool $helper = false,
 		private ?string $parentPolicyKey = null,
 		private array $compositeChildren = [],
+		?Closure $resolvedPolicyFinalizer = null,
 	) {
 		$this->allowedValuesResolver = $allowedValues;
 		$this->normalizer = $normalizer;
@@ -78,6 +82,7 @@ final class PolicySpec implements IPolicyDefinition {
 		$this->groupPolicyManagerResolver = $groupPolicyManager;
 		$this->systemCreatedGroupRuleEditorResolver = $systemCreatedGroupRuleEditor;
 		$this->delegatedValidator = $delegatedValueValidator;
+		$this->resolvedPolicyFinalizer = $resolvedPolicyFinalizer;
 	}
 
 	#[\Override]
@@ -180,6 +185,15 @@ final class PolicySpec implements IPolicyDefinition {
 		}
 
 		return $this->resolvedStateMetaResolver;
+	}
+
+	#[\Override]
+	public function finalizeResolvedPolicy(ResolvedPolicy $resolved, PolicyContext $context, callable $resolvePolicy): ResolvedPolicy {
+		if ($this->resolvedPolicyFinalizer !== null) {
+			return ($this->resolvedPolicyFinalizer)($resolved, $context, $resolvePolicy);
+		}
+
+		return $resolved;
 	}
 
 	#[\Override]
