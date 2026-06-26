@@ -6,7 +6,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
-import RequestExpirationRuleEditor from '../../../../views/Settings/PolicyWorkbench/settings/expiration-rules/RequestExpirationRuleEditor.vue'
+import RequestExpirationRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/expiration-rules/RequestExpirationRuleEditor.vue'
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
@@ -70,7 +70,7 @@ describe('RequestExpirationRuleEditor.vue', () => {
 				stubs: {
 					NcTextField: {
 						props: ['modelValue', 'label', 'error'],
-						template: '<label><span>{{ label }}</span><input class="field-input" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" /><span class="error-state">{{ error ? \'error\' : \'ok\' }}</span></label>',
+						template: '<label><span>{{ label }}</span><input class="field-input" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" /><span class="error-state">{{ error ? \"error\" : \"ok\" }}</span></label>',
 					},
 				},
 			},
