@@ -21,6 +21,7 @@ class PopplerSetupCheck implements ISetupCheck {
 
 	#[\Override]
 	public function getName(): string {
+		// TRANSLATORS Name of the Poppler utilities setup check shown in the admin settings.
 		return $this->l10n->t('Poppler utils');
 	}
 
@@ -36,17 +37,21 @@ class PopplerSetupCheck implements ISetupCheck {
 
 		if ($pdfsigOk && $pdfinfoOk) {
 			return SetupResult::success(
+				// TRANSLATORS %s is the pdfsig version, the second %s is the pdfinfo version detected on the server.
 				$this->l10n->t('pdfsig version: %s, pdfinfo version: %s', [$pdfsigOk, $pdfinfoOk])
 			);
 		}
 
 		$messages = [];
+		// TRANSLATORS Hint shown to the administrator when poppler-utils is not installed on the server.
 		$tip = $this->l10n->t('Install the package poppler-utils on your operating system to enable PDF signature validation and page dimension detection.');
 
 		if (!$pdfsigOk) {
+			// TRANSLATORS Shown when the pdfsig binary from poppler-utils is missing or not working.
 			$messages[] = $this->l10n->t('pdfsig not installed or not working');
 		}
 		if (!$pdfinfoOk) {
+			// TRANSLATORS Shown when the pdfinfo binary from poppler-utils is missing or not working.
 			$messages[] = $this->l10n->t('pdfinfo not installed or not working');
 		}
 
