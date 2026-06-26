@@ -1817,6 +1817,21 @@
                     }
                 }
             },
+            "PolicySnapshotLegalInformationEntry": {
+                "type": "object",
+                "required": [
+                    "effectiveValue",
+                    "sourceScope"
+                ],
+                "properties": {
+                    "effectiveValue": {
+                        "type": "string"
+                    },
+                    "sourceScope": {
+                        "type": "string"
+                    }
+                }
+            },
             "PolicySnapshotNumericEntry": {
                 "type": "object",
                 "required": [
@@ -2629,6 +2644,9 @@
                     },
                     "add_footer": {
                         "$ref": "#/components/schemas/PolicySnapshotEntry"
+                    },
+                    "legal_information": {
+                        "$ref": "#/components/schemas/PolicySnapshotLegalInformationEntry"
                     },
                     "identification_documents": {
                         "$ref": "#/components/schemas/PolicySnapshotIdentificationDocumentsEntry"
@@ -8155,6 +8173,36 @@
                                                 },
                                                 "data": {
                                                     "$ref": "#/components/schemas/GroupPolicyWriteResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid policy value",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
                                                 }
                                             }
                                         }
