@@ -6,7 +6,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
-import LegalInformationRuleEditor from '../../../../views/Settings/PolicyWorkbench/settings/legal-information/LegalInformationRuleEditor.vue'
+import LegalInformationRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/legal-information/LegalInformationRuleEditor.vue'
 
 vi.mock('@nextcloud/l10n', () => ({
 	t: (_app: string, message: string) => message,
