@@ -7,7 +7,7 @@ Feature: sequential-signing
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
     And run the command "libresign:configure:openssl --cn=Common\ Name" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}] |
+      | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And the response should have a status code 200
 
   Scenario: Parallel signing - all signers can sign immediately
