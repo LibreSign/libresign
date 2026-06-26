@@ -49,7 +49,6 @@ class CertificateEngineSetupCheck implements ISetupCheck {
 			);
 		}
 
-		// Process results: if any error, return error; else if any warning, return warning; else success
 		$hasError = false;
 		$hasWarning = false;
 		$messages = [];
