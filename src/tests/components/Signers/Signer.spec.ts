@@ -74,10 +74,12 @@ vi.mock('@nextcloud/initial-state', () => ({
 				policies: {
 					identify_methods: {
 						policyKey: 'identify_methods',
-						effectiveValue: [
-							{ name: 'email', enabled: true, friendly_name: 'Email' },
-							{ name: 'phone', enabled: false, friendly_name: 'Phone' },
-						],
+						effectiveValue: {
+							factors: [
+								{ name: 'email', enabled: true, friendly_name: 'Email', signatureMethods: {} },
+								{ name: 'phone', enabled: false, friendly_name: 'Phone', signatureMethods: {} },
+							],
+						},
 						sourceScope: 'system',
 						visible: true,
 						editableByCurrentActor: true,
@@ -296,8 +298,8 @@ describe('Signer', () => {
 			updateIdentifyMethodsPolicy({
 				minimumTotalVerifiedFactors: '2',
 				factors: [
-					{ name: 'email', signatureMethods: ['emailToken'] },
-					{ name: 'phone', enabled: false, signatureMethods: ['smsToken'] },
+					{ name: 'email', signatureMethods: { emailToken: { enabled: false } } },
+					{ name: 'phone', enabled: false, signatureMethods: { smsToken: { enabled: false } } },
 				],
 			})
 
