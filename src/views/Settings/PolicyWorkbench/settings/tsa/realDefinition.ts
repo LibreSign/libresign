@@ -16,8 +16,8 @@ export const tsaRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'Timestamp Authority'),
 	// TRANSLATORS Short technical context label. TSA means Time-Stamp Authority.
 	context: t('libresign', 'TSA'),
-	// TRANSLATORS Policy description for TSA settings used during digital signing and long-term signature validation.
-	description: t('libresign', 'Timestamp Authority (TSA) settings for digitally signing documents.'),
+	// TRANSLATORS Policy description for trusted timestamp evidence used during digital signing and long-term validation.
+	description: t('libresign', 'Configure trusted timestamp evidence (TSA) applied when digitally signing documents.'),
 	supportedScopes: ['system', 'group', 'user'],
 	groupAdminBehavior: {
 		allowGroupRuleCreationFromDescendantDelegation: true,
