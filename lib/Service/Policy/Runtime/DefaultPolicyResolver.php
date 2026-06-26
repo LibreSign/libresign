@@ -13,6 +13,7 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyResolver;
 use OCA\Libresign\Service\Policy\Contract\IPolicySource;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 
 final class DefaultPolicyResolver implements IPolicyResolver {
@@ -148,7 +149,11 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			}
 		}
 
-		$canCreateDescendantRules = $visible
+		$canCreateDescendantRules = (
+			$definition->supportsScope(PolicySpec::SCOPE_GROUP)
+			|| $definition->supportsScope(PolicySpec::SCOPE_USER)
+		)
+			&& $visible
 			&& $canOverrideBelow
 			&& (
 				$currentActorCanManageSystemPolicies
@@ -161,7 +166,8 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 				)
 			);
 
-		$canPersistUserPreference = $visible
+		$canPersistUserPreference = $definition->supportsScope(PolicySpec::SCOPE_USER)
+			&& $visible
 			&& $canOverrideBelow
 			&& $definition->supportsUserPreference()
 			&& (
@@ -176,7 +182,11 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			->setInheritedValue($inheritedValue)
 			->setSourceScope($currentSourceScope)
 			->setVisible($visible)
-			->setEditableByCurrentActor($visible && $definition->canCurrentActorManageGroupPolicy($context, $systemLayer, $groupLayers))
+			->setEditableByCurrentActor(
+				$visible
+				&& $definition->supportsScope(PolicySpec::SCOPE_GROUP)
+				&& $definition->canCurrentActorManageGroupPolicy($context, $systemLayer, $groupLayers)
+			)
 			->setCanSaveAsUserDefault($canPersistUserPreference)
 			->setCanUseAsRequestOverride($canPersistUserPreference)
 			->setBlockedBy($currentBlockedBy);
@@ -186,11 +196,27 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 
 	/** @return array<string, mixed> */
 	private function buildResolvedStateMeta(IPolicyDefinition $definition, PolicyContext $context, bool $canCreateDescendantRules): array {
-		$meta = $definition->resolvedStateMeta($context);
+		$meta = [
+			'appConfigKey' => $definition->getAppConfigKey(),
+			'userPreferenceKey' => $definition->getUserPreferenceKey(),
+			'defaultSystemValue' => $definition->defaultSystemValue(),
+			'resolutionMode' => $definition->resolutionMode(),
+			'supportsUserPreference' => $definition->supportsUserPreference(),
+			'supportsGroupAdminDelegation' => $definition->supportsGroupAdminDelegation(),
+			'supportedScopes' => $definition->supportedScopes(),
+			'backendOnly' => $definition->isBackendOnly(),
+			'helper' => $definition->isHelper(),
+		];
 
-		if (!$definition->supportsUserPreference()) {
-			$meta['supportsUserPreference'] = false;
+		if ($definition->parentPolicyKey() !== null) {
+			$meta['parentPolicyKey'] = $definition->parentPolicyKey();
 		}
+
+		if ($definition->compositeChildren() !== []) {
+			$meta['compositeChildren'] = $definition->compositeChildren();
+		}
+
+		$meta = array_merge($meta, $definition->resolvedStateMeta($context));
 
 		if ($canCreateDescendantRules) {
 			$meta['canCreateDescendantRules'] = true;
