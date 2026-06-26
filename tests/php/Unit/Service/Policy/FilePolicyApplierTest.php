@@ -19,6 +19,7 @@ use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
+use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -61,7 +62,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 
 		$this->policyService
-			->expects($this->exactly(5))
+			->expects($this->exactly(6))
 			->method('resolveForUser')
 			->willReturnCallback(function (string $policyKey) use ($identificationDocumentsValue, $identifyMethodsPolicyValue): ResolvedPolicy {
 				return match ($policyKey) {
@@ -84,6 +85,11 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						IdentificationDocumentsPolicy::KEY,
 						$identificationDocumentsValue,
 						'request',
+					),
+					LegalInformationPolicy::KEY => $this->createResolvedPolicy(
+						LegalInformationPolicy::KEY,
+						'Legal snapshot copy',
+						'group',
 					),
 					IdentifyMethodsPolicy::KEY => $this->createResolvedPolicy(
 						IdentifyMethodsPolicy::KEY,
@@ -120,6 +126,10 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'effectiveValue' => $identifyMethodsPolicyValue,
 			'sourceScope' => 'group',
 		], $metadata['policy_snapshot'][IdentifyMethodsPolicy::KEY] ?? null);
+		$this->assertSame([
+			'effectiveValue' => 'Legal snapshot copy',
+			'sourceScope' => 'group',
+		], $metadata['policy_snapshot'][LegalInformationPolicy::KEY] ?? null);
 	}
 
 	public function testSyncCoreFlowPoliciesSkipsNonCoreProviders(): void {
@@ -206,7 +216,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 
 		$this->policyService
-			->expects($this->exactly(5))
+			->expects($this->exactly(6))
 			->method('resolveForUserId')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				return match ($policyKey) {
@@ -233,6 +243,11 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						],
 						'request',
 					),
+					LegalInformationPolicy::KEY => $this->createResolvedPolicy(
+						LegalInformationPolicy::KEY,
+						'Legal snapshot copy',
+						'group',
+					),
 					IdentifyMethodsPolicy::KEY => $this->createResolvedPolicy(
 						IdentifyMethodsPolicy::KEY,
 						[
@@ -250,7 +265,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			});
 
 		$this->fileService
-			->expects($this->never())
+			->expects($this->once())
 			->method('update');
 
 		$this->getApplier()->syncAllPolicies($file, []);
@@ -259,6 +274,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame(DocMdpLevel::CERTIFIED_FORM_FILLING, $file->getDocmdpLevelEnum());
 		$this->assertArrayHasKey(FooterPolicy::KEY, $file->getMetadata()['policy_snapshot']);
 		$this->assertArrayHasKey(IdentificationDocumentsPolicy::KEY, $file->getMetadata()['policy_snapshot']);
+		$this->assertArrayHasKey(LegalInformationPolicy::KEY, $file->getMetadata()['policy_snapshot']);
 	}
 
 	private function createResolvedPolicy(
