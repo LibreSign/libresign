@@ -29,7 +29,7 @@ class PolicyService {
 		private PolicyRegistry $registry,
 		private IL10N $l10n,
 	) {
-		$this->resolver = new DefaultPolicyResolver($this->source, $this->registry);
+		$this->resolver = new DefaultPolicyResolver($this->source);
 	}
 
 	/** @param array<string, mixed> $requestOverrides */
