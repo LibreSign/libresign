@@ -14,6 +14,10 @@ vi.mock('@nextcloud/l10n', () => ({
 import { signatureHashAlgorithmRealDefinition } from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-hash-algorithm/realDefinition'
 
 describe('signatureHashAlgorithmRealDefinition', () => {
+	it('keeps SHA256 as the secure fallback summary default', () => {
+		expect(signatureHashAlgorithmRealDefinition.getFallbackSystemDefault(null, null)).toBe('SHA256')
+	})
+
 	it('allows delegated group admins to create descendant rules', () => {
 		expect(signatureHashAlgorithmRealDefinition.groupAdminBehavior?.allowGroupRuleCreationFromDescendantDelegation).toBe(true)
 	})
