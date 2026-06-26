@@ -22,11 +22,13 @@ final class IdentificationDocumentsPolicyTest extends TestCase {
 		$definition = $provider->get(IdentificationDocumentsPolicy::KEY);
 
 		$this->assertSame(IdentificationDocumentsPolicy::KEY, $definition->key());
+		$this->assertSame(IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY, $definition->getAppConfigKey());
 		$this->assertSame([
 			'enabled' => false,
 			'approvers' => ['admin'],
 		], $definition->defaultSystemValue());
 		$this->assertSame([], $definition->allowedValues(new PolicyContext()));
+		$this->assertSame(['system', 'group', 'user'], $definition->supportedScopes());
 	}
 
 	public function testProviderSupportsDelegatedGroupAdminOverlays(): void {
