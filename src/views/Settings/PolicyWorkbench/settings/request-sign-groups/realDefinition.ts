@@ -23,7 +23,7 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'Signature request access'),
 	// TRANSLATORS Catalog description: this policy delegates signature-request creation rights by scope.
 	description: t('libresign', 'Define which groups may create signature requests within this scope. Delegated group admins may authorize only groups they manage.'),
-	supportedScopes: ['system', 'group', 'user'],
+	supportedScopes: ['system', 'group'],
 	groupAdminBehavior: {
 		hideNonRemovableGroupRules: () => true,
 		preferHydratedVisibleGroupCount: true,
