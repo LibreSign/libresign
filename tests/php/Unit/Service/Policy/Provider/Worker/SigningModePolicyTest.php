@@ -18,8 +18,6 @@ final class SigningModePolicyTest extends TestCase {
 		$provider = new SigningModePolicy();
 		$this->assertSame([
 			SigningModePolicy::KEY_SIGNING_MODE,
-			SigningModePolicy::KEY_WORKER_TYPE,
-			SigningModePolicy::KEY_PARALLEL_WORKERS,
 		], $provider->keys());
 
 		$signingMode = $provider->get(SigningModePolicy::KEY_SIGNING_MODE);
@@ -31,24 +29,6 @@ final class SigningModePolicyTest extends TestCase {
 		$this->assertFalse($signingMode->supportsUserPreference());
 		$this->assertSame(['system'], $signingMode->supportedScopes());
 		$this->assertSame([WorkerConfigPolicy::KEY], $signingMode->compositeChildren());
-
-		$workerType = $provider->get(SigningModePolicy::KEY_WORKER_TYPE);
-		$this->assertSame(SigningModePolicy::KEY_WORKER_TYPE, $workerType->key());
-		$this->assertSame('local', $workerType->defaultSystemValue());
-		$this->assertSame(['local', 'external'], $workerType->allowedValues(new PolicyContext()));
-		$this->assertSame('external', $workerType->normalizeValue('external'));
-		$this->assertSame('local', $workerType->normalizeValue('invalid-worker'));
-		$this->assertTrue($workerType->isHelper());
-		$this->assertSame(WorkerConfigPolicy::KEY, $workerType->parentPolicyKey());
-
-		$parallelWorkers = $provider->get(SigningModePolicy::KEY_PARALLEL_WORKERS);
-		$this->assertSame(SigningModePolicy::KEY_PARALLEL_WORKERS, $parallelWorkers->key());
-		$this->assertSame(4, $parallelWorkers->defaultSystemValue());
-		$this->assertSame(1, $parallelWorkers->normalizeValue(0));
-		$this->assertSame(32, $parallelWorkers->normalizeValue(33));
-		$this->assertSame(8, $parallelWorkers->normalizeValue(8));
-		$this->assertTrue($parallelWorkers->isHelper());
-		$this->assertSame(WorkerConfigPolicy::KEY, $parallelWorkers->parentPolicyKey());
 	}
 
 	public function testThrowsOnUnknownPolicyKey(): void {
