@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\SetupCheck;
 
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
@@ -62,7 +63,7 @@ final class CertificateEngineSetupCheckTest extends TestCase {
 		$this->certificateEngineFactory->expects($this->exactly(2))
 			->method('getEngine')
 			->willReturnOnConsecutiveCalls(
-				$this->throwException(new \RuntimeException('Engine not found')),
+				$this->throwException(new LibresignException('Engine not found')),
 				$engineMock
 			);
 
