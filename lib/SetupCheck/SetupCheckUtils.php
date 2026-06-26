@@ -36,7 +36,7 @@ trait SetupCheckUtils {
 			if (isset($result['SIGNATURE_DATA_NOT_FOUND'])) {
 				return [
 					$l10n->t('Signature data not found.'),
-					$l10n->t("Sounds that you are running from source code of LibreSign.\nEnable debug mode by: occ config:system:set debug --value true --type boolean"),
+					$l10n->t("Sounds that you are running from source code of LibreSign.\nEnable debug mode by: %s", ['occ config:system:set debug --value true --type boolean']),
 				];
 			}
 			if (isset($result['EMPTY_SIGNATURE_DATA'])) {
