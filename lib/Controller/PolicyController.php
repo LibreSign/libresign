@@ -342,9 +342,10 @@ final class PolicyController extends AEnvironmentAwareController {
 	 *
 	 * @param string $groupId Group identifier that receives the policy binding.
 	 * @param string $policyKey Policy identifier to clear for the selected group.
-	 * @return DataResponse<Http::STATUS_OK, LibresignGroupPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignGroupPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
+	 * 400: Invalid policy value
 	 * 403: Forbidden
 	 */
 	#[NoAdminRequired]
@@ -363,6 +364,13 @@ final class PolicyController extends AEnvironmentAwareController {
 			];
 
 			return new DataResponse($data);
+		} catch (\InvalidArgumentException $exception) {
+			/** @var LibresignErrorResponse $data */
+			$data = [
+				'error' => $exception->getMessage(),
+			];
+
+			return new DataResponse($data, Http::STATUS_BAD_REQUEST);
 		} catch (\DomainException $exception) {
 			/** @var LibresignErrorResponse $data */
 			$data = [
