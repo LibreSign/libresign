@@ -44,6 +44,11 @@ export const envelopeRealDefinition: RealPolicySettingDefinition = {
 	key: 'envelope_enabled',
 	title: t('libresign', 'Signing envelopes'),
 	description: t('libresign', 'Allow accounts to group multiple files into envelopes for signing.'),
+	supportedScopes: ['system', 'group', 'user'],
+	groupAdminBehavior: {
+		allowGroupRuleCreationFromDescendantDelegation: true,
+		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
+	},
 	editor: EnvelopeRuleEditor,
 	createEmptyValue: () => true,
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
