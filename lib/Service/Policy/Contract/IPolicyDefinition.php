@@ -10,7 +10,6 @@ namespace OCA\Libresign\Service\Policy\Contract;
 
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
-use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 
 interface IPolicyDefinition {
 	public function key(): string;
@@ -46,18 +45,6 @@ interface IPolicyDefinition {
 
 	/** @return array<string, mixed> */
 	public function resolvedStateMeta(PolicyContext $context): array;
-
-	/**
-	 * Allow provider-local post-processing of the resolved policy state after the
-	 * generic precedence algorithm runs.
-	 *
-	 * The lookup callable receives another policy key and returns its own resolved
-	 * state for the same context, enabling modular composite/helper coordination
-	 * without hardcoding policy-specific branches in the resolver.
-	 *
-	 * @param callable(string): ResolvedPolicy $resolvePolicy
-	 */
-	public function finalizeResolvedPolicy(ResolvedPolicy $resolved, PolicyContext $context, callable $resolvePolicy): ResolvedPolicy;
 
 	/**
 	 * Whether this policy supports being saved as a user personal preference.
