@@ -25,7 +25,6 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 	// Canonical consolidated key (signature stamp)
 	public const KEY = 'signature_stamp';
 	public const SYSTEM_APP_CONFIG_KEY = 'signature_text';
-	public const SYSTEM_APP_CONFIG_KEY_BACKGROUND_TYPE = 'signature_background_type';
 
 	// Exposed policy keys (for policy API)
 	public const KEY_TEMPLATE = 'signature_text_template';
@@ -41,6 +40,7 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 	public const SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH = 'signature_width';
 	public const SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT = 'signature_height';
 	public const SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE = 'signature_font_size';
+	public const SYSTEM_APP_CONFIG_KEY_BACKGROUND_TYPE = 'signature_background_type';
 	public const SYSTEM_APP_CONFIG_KEY_RENDER_MODE = 'signature_render_mode';
 
 	#[\Override]
@@ -108,6 +108,14 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 					return self::wasCreatedBySystemAdmin($existingPolicy);
 				},
 				supportsGroupAdminDelegation: true,
+				compositeChildren: [
+					self::KEY_TEMPLATE,
+					self::KEY_TEMPLATE_FONT_SIZE,
+					self::KEY_SIGNATURE_WIDTH,
+					self::KEY_SIGNATURE_HEIGHT,
+					self::KEY_SIGNATURE_FONT_SIZE,
+					self::KEY_RENDER_MODE,
+				],
 				resolvedStateMeta: [
 					'defaultSystemValue' => $defaultConsolidatedValue,
 				],
@@ -118,6 +126,8 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 				allowedValues: [],
 				normalizer: fn (mixed $rawValue): string => (string)$rawValue,
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_TEMPLATE,
+				helper: true,
+				parentPolicyKey: self::KEY,
 			),
 			self::KEY_TEMPLATE_FONT_SIZE => new PolicySpec(
 				key: self::KEY_TEMPLATE_FONT_SIZE,
@@ -125,6 +135,8 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 				allowedValues: [],
 				normalizer: fn (mixed $rawValue): float => (float)$rawValue,
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE,
+				helper: true,
+				parentPolicyKey: self::KEY,
 			),
 			self::KEY_SIGNATURE_WIDTH => new PolicySpec(
 				key: self::KEY_SIGNATURE_WIDTH,
@@ -132,6 +144,8 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 				allowedValues: [],
 				normalizer: fn (mixed $rawValue): float => (float)$rawValue,
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH,
+				helper: true,
+				parentPolicyKey: self::KEY,
 			),
 			self::KEY_SIGNATURE_HEIGHT => new PolicySpec(
 				key: self::KEY_SIGNATURE_HEIGHT,
@@ -139,6 +153,8 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 				allowedValues: [],
 				normalizer: fn (mixed $rawValue): float => (float)$rawValue,
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT,
+				helper: true,
+				parentPolicyKey: self::KEY,
 			),
 			self::KEY_SIGNATURE_FONT_SIZE => new PolicySpec(
 				key: self::KEY_SIGNATURE_FONT_SIZE,
@@ -146,17 +162,21 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 				allowedValues: [],
 				normalizer: fn (mixed $rawValue): float => (float)$rawValue,
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE,
+				helper: true,
+				parentPolicyKey: self::KEY,
 			),
 			self::KEY_RENDER_MODE => new PolicySpec(
 				key: self::KEY_RENDER_MODE,
 				defaultSystemValue: 'default',
-				allowedValues: ['default', 'graphic', 'text'],
+				allowedValues: ['default', 'graphic', 'text', 'description_only'],
 				normalizer: function (mixed $rawValue): string {
 					$value = (string)$rawValue;
-					$allowed = ['default', 'graphic', 'text'];
+					$allowed = ['default', 'graphic', 'text', 'description_only'];
 					return in_array($value, $allowed, true) ? $value : 'default';
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_RENDER_MODE,
+				helper: true,
+				parentPolicyKey: self::KEY,
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $normalizedKey),
 		};
@@ -242,7 +262,7 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 		}
 
 		$renderMode = (string)($rawValue['render_mode'] ?? $defaults['render_mode']);
-		if (!in_array($renderMode, ['default', 'graphic', 'text'], true)) {
+		if (!in_array($renderMode, ['default', 'graphic', 'text', 'description_only'], true)) {
 			$renderMode = 'default';
 		}
 
