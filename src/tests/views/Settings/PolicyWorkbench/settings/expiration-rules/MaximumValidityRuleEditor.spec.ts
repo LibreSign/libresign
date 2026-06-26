@@ -8,9 +8,11 @@ import { describe, expect, it, vi } from 'vitest'
 
 import MaximumValidityRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/expiration-rules/MaximumValidityRuleEditor.vue'
 
-import { createL10nMock } from '../../../../../testHelpers/l10n.js'
-
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => ({
+	t: (_app: string, text: string) => text,
+	getLanguage: () => 'en',
+	isRTL: () => false,
+}))
 
 const NcCheckboxRadioSwitchStub = {
 	name: 'NcCheckboxRadioSwitch',
