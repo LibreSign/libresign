@@ -14,7 +14,7 @@ Feature: signed
       | value | (string){"url":"<TSA_URL>","policy_oid":"1.2.3.4.1","auth_type":"none","username":""} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"password":{"name":"password","enabled":true}},"signatureMethodEnabled":"password"}] |
+      | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"password":{"name":"password","enabled":true}},"signatureMethodEnabled":"password"}]} |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
@@ -63,7 +63,7 @@ Feature: signed
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
     And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}] |
+      | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And the response should have a status code 200
     And my inbox is empty
     And reset notifications of user "signer1"
@@ -128,7 +128,7 @@ Feature: signed
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
     And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}] |
+      | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And the response should have a status code 200
     And my inbox is empty
     And reset notifications of user "signer1"
@@ -185,7 +185,7 @@ Feature: signed
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
     And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}},"can_create_account":false}] |
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And my inbox is empty
     And reset notifications of user "admin"
     And reset activity of user "admin"

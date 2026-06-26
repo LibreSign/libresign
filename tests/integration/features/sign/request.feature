@@ -178,7 +178,7 @@ Feature: request-signature
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"requirement":"required","can_create_account":false}] |
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required"}]} |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer2@domain.test"}]}] |
@@ -230,7 +230,7 @@ Feature: request-signature
   Scenario: Create signature request with error using account as identifier when the user don't exists
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true}] |
+      | value | (string){"factors":[{"name":"account","enabled":true}]} |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
@@ -358,7 +358,7 @@ Feature: request-signature
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"requirement":"required","can_create_account":false}] |
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required"}]} |
     And I send a file to be signed
       | file   | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers  | [{"identifyMethods":[{"method":"email","value":"signer1@domain.test"}]}]  |
@@ -376,7 +376,7 @@ Feature: request-signature
       | (jq).ocs.meta.message             | OK     |
       | (jq).ocs.data.fileElementId\|type | number |
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"requirement":"required","can_create_account":true}] |
+      | value | (string){"can_create_account":true,"factors":[{"name":"email","enabled":true,"requirement":"required"}]} |
     And sending "post" to ocs "/apps/libresign/api/v1/file-element/<FILE_UUID>"
       | signRequestId | <ocs.data.data.0.signers.0.signRequestId> |
       | type | signature |
@@ -406,7 +406,7 @@ Feature: request-signature
     Given run the command "libresign:configure:openssl --cn test" with result code 0
     And as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}},"can_create_account":false}] |
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}}}]} |
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
@@ -448,7 +448,7 @@ Feature: request-signature
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}},"can_create_account":false}] |
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}}}]} |
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
@@ -493,7 +493,7 @@ Feature: request-signature
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}},"can_create_account":false}] |
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}}}]} |
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
@@ -574,7 +574,7 @@ Feature: request-signature
     And my inbox is empty
     And as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}}}] |
+      | value | (string){"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}}}]} |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer1@domain.test"}]}] |
