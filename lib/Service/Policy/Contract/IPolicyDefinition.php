@@ -16,9 +16,23 @@ interface IPolicyDefinition {
 
 	public function resolutionMode(): string;
 
+	/** @return list<string> */
+	public function supportedScopes(): array;
+
+	public function supportsScope(string $scope): bool;
+
 	public function getAppConfigKey(): string;
 
 	public function getUserPreferenceKey(): string;
+
+	public function isBackendOnly(): bool;
+
+	public function isHelper(): bool;
+
+	public function parentPolicyKey(): ?string;
+
+	/** @return list<string> */
+	public function compositeChildren(): array;
 
 	public function normalizeValue(mixed $rawValue): mixed;
 
