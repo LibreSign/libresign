@@ -1300,6 +1300,10 @@
                         "$ref": "#/components/schemas/EffectivePolicyValue",
                         "nullable": true
                     },
+                    "effectiveValue": {
+                        "$ref": "#/components/schemas/EffectivePolicyValue",
+                        "nullable": true
+                    },
                     "allowChildOverride": {
                         "type": "boolean"
                     },
