@@ -6,8 +6,8 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
-import { createL10nMock } from '../../../testHelpers/l10n.js'
-import ConfettiRuleEditor from '../../../../views/Settings/PolicyWorkbench/settings/confetti/ConfettiRuleEditor.vue'
+import { createL10nMock } from '../../../../../testHelpers/l10n.js'
+import ConfettiRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/confetti/ConfettiRuleEditor.vue'
 
 vi.mock('@nextcloud/l10n', () => createL10nMock())
 
