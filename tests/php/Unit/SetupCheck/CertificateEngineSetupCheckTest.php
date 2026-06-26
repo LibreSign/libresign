@@ -23,10 +23,8 @@ interface MockableIEngineHandler extends IEngineHandler {
 }
 
 final class CertificateEngineSetupCheckTest extends TestCase {
-	/** @var IL10N&MockObject */
-	private $l10n;
-	/** @var CertificateEngineFactory&MockObject */
-	private $certificateEngineFactory;
+	private IL10N&MockObject $l10n;
+	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 
 	protected function setUp(): void {
 		parent::setUp();
