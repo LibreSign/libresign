@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\Worker;
 
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
 use PHPUnit\Framework\TestCase;
 
@@ -22,6 +23,10 @@ final class WorkerConfigPolicyTest extends TestCase {
 		$definition = $provider->get(WorkerConfigPolicy::KEY);
 		$this->assertSame(WorkerConfigPolicy::KEY, $definition->key());
 		$this->assertSame([], $definition->allowedValues(new PolicyContext()));
+		$this->assertSame(['system'], $definition->supportedScopes());
+		$this->assertTrue($definition->isHelper());
+		$this->assertSame(SigningModePolicy::KEY_SIGNING_MODE, $definition->parentPolicyKey());
+		$this->assertSame([SigningModePolicy::KEY_WORKER_TYPE, SigningModePolicy::KEY_PARALLEL_WORKERS], $definition->compositeChildren());
 
 		$default = json_decode((string)$definition->defaultSystemValue(), true);
 		$this->assertSame('local', $default['worker_type']);
