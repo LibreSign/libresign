@@ -21,23 +21,29 @@ final class RequestSignGroupsPolicyTest extends TestCase {
 
 		$this->assertSame(RequestSignGroupsPolicy::KEY, $definition->key());
 		$this->assertSame(
-			RequestSignGroupsPolicyValue::encode(RequestSignGroupsPolicyValue::DEFAULT_GROUPS),
+			RequestSignGroupsPolicyValue::encode([
+				'allowGroups' => RequestSignGroupsPolicyValue::DEFAULT_ALLOW_GROUPS,
+				'denyGroups' => RequestSignGroupsPolicyValue::DEFAULT_DENY_GROUPS,
+			]),
 			$definition->defaultSystemValue(),
 		);
 		$this->assertSame([], $definition->allowedValues(new PolicyContext()));
 	}
 
-	public function testProviderNormalizesGroupListPayload(): void {
+	public function testProviderNormalizesCanonicalGroupPayload(): void {
 		$provider = new RequestSignGroupsPolicy();
 		$definition = $provider->get(RequestSignGroupsPolicy::KEY);
 
 		$this->assertSame(
 			'{"allowGroups":["admin","finance"],"denyGroups":[]}',
-			$definition->normalizeValue([' finance ', 'admin', 'finance']),
+			$definition->normalizeValue([
+				'allowGroups' => [' finance ', 'admin', 'finance'],
+				'denyGroups' => [],
+			]),
 		);
 		$this->assertSame(
 			'{"allowGroups":["admin","legal"],"denyGroups":[]}',
-			$definition->normalizeValue('["legal", "admin"]'),
+			$definition->normalizeValue('{"allowGroups":["legal", "admin"],"denyGroups":[]}'),
 		);
 	}
 
@@ -75,7 +81,10 @@ final class RequestSignGroupsPolicyTest extends TestCase {
 		$provider = new RequestSignGroupsPolicy();
 		$definition = $provider->get(RequestSignGroupsPolicy::KEY);
 
-		$proposedValue = RequestSignGroupsPolicyValue::encode(['board', 'company']);
+		$proposedValue = RequestSignGroupsPolicyValue::encode([
+			'allowGroups' => ['board', 'company'],
+			'denyGroups' => [],
+		]);
 
 		$this->expectException(\InvalidArgumentException::class);
 		$this->expectExceptionMessage('Add a deny rule to override it');
