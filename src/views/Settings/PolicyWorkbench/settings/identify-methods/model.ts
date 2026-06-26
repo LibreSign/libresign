@@ -35,7 +35,9 @@ export function normalizeIdentifyMethodsPolicyConfig(value: EffectivePolicyValue
 	let entries: unknown = null
 	let sharedMinimumTotalVerifiedFactors: number | undefined
 	let globalCanCreateAccount: boolean | undefined
-	if (typeof value === 'string') {
+	if (Array.isArray(value)) {
+		entries = value
+	} else if (typeof value === 'string') {
 		const decoded = safeJsonParse(value)
 		if (decoded && typeof decoded === 'object' && !Array.isArray(decoded)) {
 			const candidate = decoded as Record<string, unknown>
