@@ -147,7 +147,7 @@ final class FileControllerTest extends ApiTestCase {
 	 */
 	public function testSendNewFile():void {
 		$this->createAccount('allowrequestsign', 'password');
-		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
+		$this->getMockAppConfig()->setValueString(Application::APP_ID, 'groups_request_sign', '{"allowGroups":["admin","testGroup"],"denyGroups":[]}');
 		$this->request
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),

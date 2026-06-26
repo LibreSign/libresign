@@ -46,7 +46,7 @@ final class NotifyControllerTest extends ApiTestCase {
 	public function testNotifySignersWithSuccess():void {
 		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
 		$appConfig = $this->getMockAppConfig();
-		$appConfig->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
+		$appConfig->setValueString(Application::APP_ID, 'groups_request_sign', '{"allowGroups":["admin","testGroup"],"denyGroups":[]}');
 		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', true);
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
