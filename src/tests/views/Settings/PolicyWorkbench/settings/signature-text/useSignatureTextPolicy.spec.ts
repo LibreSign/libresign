@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	getSignatureTextUiDefaults,
 	useSignatureTextPolicy,
-} from '../../../../views/Settings/PolicyWorkbench/settings/signature-text/useSignatureTextPolicy'
+} from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-text/useSignatureTextPolicy'
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
@@ -44,7 +44,7 @@ const { policiesState } = vi.hoisted(() => ({
 	},
 }))
 
-vi.mock('../../../../store/policies', () => ({
+vi.mock('../../../../../../store/policies', () => ({
 	usePoliciesStore: () => policiesState,
 }))
 
