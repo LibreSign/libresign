@@ -21,6 +21,8 @@ use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
+use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
@@ -107,6 +109,36 @@ final class PolicyRegistryTest extends TestCase {
 			$definition->defaultSystemValue(),
 		);
 		$this->assertSame('["admin","finance"]', $definition->normalizeValue(['finance', 'admin']));
+	}
+
+	public function testRegistryResolvesWorkerPoliciesAndKeepsHelperRelationship(): void {
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->willReturnCallback(static function (string $class): object {
+			return match ($class) {
+				SigningModePolicy::class => new SigningModePolicy(),
+				WorkerConfigPolicy::class => new WorkerConfigPolicy(),
+				default => throw new \RuntimeException('Unexpected provider class: ' . $class),
+			};
+		});
+		$registry = new PolicyRegistry($container, [SigningModePolicy::class, WorkerConfigPolicy::class]);
+
+		$signingMode = $registry->get(SigningModePolicy::KEY_SIGNING_MODE);
+		$workerConfig = $registry->get(WorkerConfigPolicy::KEY);
+
+		$this->assertSame(['system'], $signingMode->supportedScopes());
+		$this->assertSame([WorkerConfigPolicy::KEY], $signingMode->compositeChildren());
+		$this->assertTrue($workerConfig->isHelper());
+		$this->assertSame(SigningModePolicy::KEY_SIGNING_MODE, $workerConfig->parentPolicyKey());
+	}
+
+	public function testRegistryDoesNotResolveRemovedSignatureBackgroundHelper(): void {
+		$container = $this->createMock(ContainerInterface::class);
+		$registry = new PolicyRegistry($container);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Unknown policy key: signature_background_type');
+
+		$registry->get('signature_background_type');
 	}
 
 	public function testRegistryThrowsForUnknownPolicy(): void {
