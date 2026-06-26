@@ -1817,6 +1817,10 @@ export type components = {
             effectiveValue: components["schemas"]["PolicySnapshotIdentifyMethodFactor"][];
             sourceScope: string;
         };
+        PolicySnapshotLegalInformationEntry: {
+            effectiveValue: string;
+            sourceScope: string;
+        };
         PolicySnapshotNumericEntry: {
             /** Format: int64 */
             effectiveValue: number;
@@ -2086,6 +2090,7 @@ export type components = {
             docmdp?: components["schemas"]["PolicySnapshotNumericEntry"];
             signature_flow?: components["schemas"]["PolicySnapshotEntry"];
             add_footer?: components["schemas"]["PolicySnapshotEntry"];
+            legal_information?: components["schemas"]["PolicySnapshotLegalInformationEntry"];
             identification_documents?: components["schemas"]["PolicySnapshotIdentificationDocumentsEntry"];
             identify_methods?: components["schemas"]["PolicySnapshotIdentifyMethodsEntry"];
         };
@@ -4352,6 +4357,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["GroupPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid policy value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
