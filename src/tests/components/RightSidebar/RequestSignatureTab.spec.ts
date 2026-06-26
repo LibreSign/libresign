@@ -342,7 +342,9 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 				factors: [
 					{
 						name: 'email',
-						signatureMethods: ['emailToken'],
+						signatureMethods: {
+							emailToken: { enabled: false },
+						},
 					},
 				],
 			})

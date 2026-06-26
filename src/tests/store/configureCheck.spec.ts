@@ -122,7 +122,12 @@ describe('configureCheck store - essential business rules', () => {
 		it('saveCertificateEngine persists engine and updates identifyMethods', async () => {
 			axiosMock.post.mockResolvedValue(generateOCSResponse({
 				payload: {
-					identify_methods: ['email', 'sms'],
+					identify_methods: {
+						factors: [
+							{ name: 'email', enabled: true, signatureMethods: {} },
+							{ name: 'sms', enabled: true, signatureMethods: {} },
+						],
+					},
 				},
 			}))
 
@@ -159,8 +164,8 @@ describe('configureCheck store - essential business rules', () => {
 					identify_methods: {
 						minimumTotalVerifiedFactors: '2',
 						factors: [
-							{ name: 'email', signatureMethods: ['emailToken'] },
-							{ name: 'sms', enabled: false, signatureMethods: ['smsToken'] },
+							{ name: 'email', signatureMethods: { emailToken: { enabled: false } } },
+							{ name: 'sms', enabled: false, signatureMethods: { smsToken: { enabled: false } } },
 						],
 					},
 				},
