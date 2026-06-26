@@ -11,8 +11,8 @@ namespace OCA\Libresign\Service\Policy;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
-use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
@@ -117,6 +117,10 @@ class PolicyService {
 
 	public function getUserPolicyForUserId(string|\BackedEnum $policyKey, string $userId): ?PolicyLayer {
 		$definition = $this->registry->get($policyKey);
+		if (!$definition->supportsScope(PolicySpec::SCOPE_USER)) {
+			return null;
+		}
+
 		return $this->source->loadUserPolicyConfig($definition->key(), $userId);
 	}
 
@@ -125,12 +129,17 @@ class PolicyService {
 	 */
 	public function listUserPolicies(string|\BackedEnum $policyKey): array {
 		$definition = $this->registry->get($policyKey);
+		if (!$definition->supportsScope(PolicySpec::SCOPE_USER)) {
+			return [];
+		}
+
 		return $this->source->listUserPoliciesByKey($definition->key());
 	}
 
 	public function saveSystem(string|\BackedEnum $policyKey, mixed $value, bool $allowChildOverride = false): ResolvedPolicy {
 		$context = $this->contextFactory->forCurrentUser();
 		$definition = $this->registry->get($policyKey);
+		$this->assertScopeSupported($definition, PolicySpec::SCOPE_SYSTEM);
 		$normalizedValue = $value === null
 			? $definition->normalizeValue($definition->defaultSystemValue())
 			: $definition->normalizeValue($value);
@@ -146,6 +155,7 @@ class PolicyService {
 
 	public function clearSystem(string|\BackedEnum $policyKey): ResolvedPolicy {
 		$definition = $this->registry->get($policyKey);
+		$this->assertScopeSupported($definition, PolicySpec::SCOPE_SYSTEM);
 		$this->source->clearSystemPolicy($definition->key());
 
 		return $this->resolver->resolve(
@@ -156,6 +166,10 @@ class PolicyService {
 
 	public function getGroupPolicy(string|\BackedEnum $policyKey, string $groupId): ?PolicyLayer {
 		$definition = $this->registry->get($policyKey);
+		if (!$definition->supportsScope(PolicySpec::SCOPE_GROUP)) {
+			return null;
+		}
+
 		return $this->source->loadGroupPolicyConfig($definition->key(), $groupId);
 	}
 
@@ -164,6 +178,10 @@ class PolicyService {
 	 */
 	public function listGroupPolicies(string|\BackedEnum $policyKey): array {
 		$definition = $this->registry->get($policyKey);
+		if (!$definition->supportsScope(PolicySpec::SCOPE_GROUP)) {
+			return [];
+		}
+
 		return $this->source->listGroupPoliciesByKey($definition->key());
 	}
 
@@ -173,6 +191,10 @@ class PolicyService {
 	 */
 	public function listGroupPoliciesForTargets(string|\BackedEnum $policyKey, array $groupIds): array {
 		$definition = $this->registry->get($policyKey);
+		if (!$definition->supportsScope(PolicySpec::SCOPE_GROUP)) {
+			return [];
+		}
+
 		return $this->source->listGroupPoliciesByKeyForTargets($definition->key(), $groupIds);
 	}
 
@@ -181,6 +203,10 @@ class PolicyService {
 	 */
 	public function countVisibleGroupPoliciesForTargets(string|\BackedEnum $policyKey, array $groupIds): int {
 		$definition = $this->registry->get($policyKey);
+		if (!$definition->supportsScope(PolicySpec::SCOPE_GROUP)) {
+			return 0;
+		}
+
 		$visibleCount = 0;
 
 		foreach ($this->source->listGroupPoliciesByKeyForTargets($definition->key(), $groupIds) as $record) {
@@ -202,6 +228,7 @@ class PolicyService {
 
 	public function saveGroupPolicy(string|\BackedEnum $policyKey, string $groupId, mixed $value, bool $allowChildOverride): PolicyLayer {
 		$definition = $this->registry->get($policyKey);
+		$this->assertScopeSupported($definition, PolicySpec::SCOPE_GROUP);
 		$context = $this->contextFactory->forCurrentUser();
 		$this->assertCurrentActorCanManageGroupPolicy($definition->key(), $context);
 		$this->assertCurrentActorCanEditGroupPolicy($definition->key(), $groupId, $context);
@@ -227,6 +254,7 @@ class PolicyService {
 
 	public function clearGroupPolicy(string|\BackedEnum $policyKey, string $groupId): ?PolicyLayer {
 		$definition = $this->registry->get($policyKey);
+		$this->assertScopeSupported($definition, PolicySpec::SCOPE_GROUP);
 		$this->assertCurrentActorCanDeleteGroupPolicy($definition->key(), $groupId);
 		$this->source->clearGroupPolicy(
 			$definition->key(),
@@ -238,11 +266,15 @@ class PolicyService {
 	}
 
 	public function canDeleteGroupPolicy(string|\BackedEnum $policyKey, string $groupId, ?PolicyLayer $policy = null): bool {
+		$definition = $this->registry->get($policyKey);
+		if (!$definition->supportsScope(PolicySpec::SCOPE_GROUP)) {
+			return false;
+		}
+
 		if ($this->contextFactory->isCurrentActorSystemAdmin()) {
 			return true;
 		}
 
-		$definition = $this->registry->get($policyKey);
 		$groupPolicy = $policy ?? $this->source->loadGroupPolicyConfig($definition->key(), $groupId);
 		if (!$groupPolicy instanceof PolicyLayer) {
 			return false;
@@ -252,11 +284,15 @@ class PolicyService {
 	}
 
 	public function canViewGroupPolicy(string|\BackedEnum $policyKey, string $groupId, ?PolicyLayer $policy = null): bool {
+		$definition = $this->registry->get($policyKey);
+		if (!$definition->supportsScope(PolicySpec::SCOPE_GROUP)) {
+			return false;
+		}
+
 		if ($this->contextFactory->isCurrentActorSystemAdmin()) {
 			return true;
 		}
 
-		$definition = $this->registry->get($policyKey);
 		$groupPolicy = $policy ?? $this->source->loadGroupPolicyConfig($definition->key(), $groupId);
 		if (!$groupPolicy instanceof PolicyLayer) {
 			return true;
@@ -274,17 +310,22 @@ class PolicyService {
 	}
 
 	public function canManageUserPolicyForUserId(string|\BackedEnum $policyKey, string $userId): bool {
+		$definition = $this->registry->get($policyKey);
+		if (!$definition->supportsScope(PolicySpec::SCOPE_USER)) {
+			return false;
+		}
+
 		if ($this->contextFactory->isCurrentActorSystemAdmin()) {
 			return true;
 		}
 
-		$definition = $this->registry->get($policyKey);
 		$resolved = $this->resolver->resolve(
 			$definition,
 			$this->contextFactory->forUserId($userId),
 		);
 
-		return $resolved->canSaveAsUserDefault();
+		return $resolved->canSaveAsUserDefault()
+			|| (($resolved->getMeta()['canCreateDescendantRules'] ?? false) === true);
 	}
 
 	private function assertCurrentActorCanDeleteGroupPolicy(string $policyKey, string $groupId): void {
@@ -354,18 +395,25 @@ class PolicyService {
 		);
 	}
 
-	private function assertUserScopeSupported(string $policyKey): void {
-		if ($policyKey !== RequestSignGroupsPolicy::KEY) {
+	private function assertScopeSupported(IPolicyDefinition $definition, string $scope): void {
+		if ($definition->supportsScope($scope)) {
 			return;
 		}
 
-		throw new \InvalidArgumentException($this->l10n->t('User-level scope is not supported for this policy'));
+		$scopeLabel = match ($scope) {
+			PolicySpec::SCOPE_SYSTEM => 'System',
+			PolicySpec::SCOPE_GROUP => 'Group',
+			PolicySpec::SCOPE_USER => 'User',
+			default => ucfirst($scope),
+		};
+
+		throw new \InvalidArgumentException($this->l10n->t('%s-level scope is not supported for this policy', [$scopeLabel]));
 	}
 
 	public function saveUserPreference(string|\BackedEnum $policyKey, mixed $value): ResolvedPolicy {
 		$context = $this->contextFactory->forCurrentUser();
 		$definition = $this->registry->get($policyKey);
-		$this->assertUserScopeSupported($definition->key());
+		$this->assertScopeSupported($definition, PolicySpec::SCOPE_USER);
 		$normalizedValue = $definition->normalizeValue($value);
 		$definition->validateValue($normalizedValue, $context);
 		$resolved = $this->resolver->resolve($definition, $context);
@@ -383,7 +431,7 @@ class PolicyService {
 	public function clearUserPreference(string|\BackedEnum $policyKey): ResolvedPolicy {
 		$context = $this->contextFactory->forCurrentUser();
 		$definition = $this->registry->get($policyKey);
-		$this->assertUserScopeSupported($definition->key());
+		$this->assertScopeSupported($definition, PolicySpec::SCOPE_USER);
 		$this->source->clearUserPreference($definition->key(), $context);
 
 		return $this->resolver->resolve($definition, $context);
@@ -392,7 +440,7 @@ class PolicyService {
 	public function saveUserPolicyForUserId(string|\BackedEnum $policyKey, string $userId, mixed $value, bool $allowChildOverride): ?PolicyLayer {
 		$context = $this->contextFactory->forUserId($userId);
 		$definition = $this->registry->get($policyKey);
-		$this->assertUserScopeSupported($definition->key());
+		$this->assertScopeSupported($definition, PolicySpec::SCOPE_USER);
 		$normalizedValue = $definition->normalizeValue($value);
 		$definition->validateValue($normalizedValue, $context);
 		$this->source->saveUserPolicy($definition->key(), $context, $normalizedValue, $allowChildOverride);
@@ -408,7 +456,7 @@ class PolicyService {
 	public function clearUserPolicyForUserId(string|\BackedEnum $policyKey, string $userId): ?PolicyLayer {
 		$context = $this->contextFactory->forUserId($userId);
 		$definition = $this->registry->get($policyKey);
-		$this->assertUserScopeSupported($definition->key());
+		$this->assertScopeSupported($definition, PolicySpec::SCOPE_USER);
 		$this->source->clearUserPolicy($definition->key(), $context);
 
 		return $this->source->loadUserPolicy($definition->key(), $context);
