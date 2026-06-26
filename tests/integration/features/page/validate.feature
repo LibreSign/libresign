@@ -75,7 +75,7 @@ Feature: page/validate
   Scenario: Unauthenticated email signer can fetch PDF and gets controlled error after source deletion
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}},"can_create_account":false}] |
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
