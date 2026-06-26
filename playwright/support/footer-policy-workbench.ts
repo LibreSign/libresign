@@ -18,7 +18,7 @@ export async function bootstrapLibreSignAdmin(page: Page): Promise<void> {
 		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
 	)
 
-	await setSystemPolicy(page.request, 'groups_request_sign', JSON.stringify(['admin']))
+	await setSystemPolicy(page.request, 'groups_request_sign', JSON.stringify({ allowGroups: ['admin'], denyGroups: [] }))
 	await setSystemPolicy(page.request, 'add_footer', JSON.stringify(true))
 
 	await configureOpenSsl(page.request, 'LibreSign Test', {
