@@ -28,6 +28,7 @@ final class TsaPolicyTest extends TestCase {
 
 		$definition = $provider->get(TsaPolicy::KEY);
 		$this->assertSame(TsaPolicy::KEY, $definition->key());
+		$this->assertSame(['system', 'group', 'user'], $definition->supportedScopes());
 		$this->assertSame(
 			TsaPolicyValue::encode(TsaPolicyValue::defaults()),
 			$definition->defaultSystemValue(),
