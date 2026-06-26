@@ -6,11 +6,11 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
-import { createL10nMock } from '../../../testHelpers/l10n.js'
+import { createL10nMock } from '../../../../../testHelpers/l10n.js'
 
 vi.mock('@nextcloud/l10n', () => createL10nMock())
 
-import SignatureFlowScalarRuleEditor from '../../../../views/Settings/PolicyWorkbench/settings/signature-flow/SignatureFlowScalarRuleEditor.vue'
+import SignatureFlowScalarRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-flow/SignatureFlowScalarRuleEditor.vue'
 
 describe('SignatureFlowScalarRuleEditor.vue', () => {
 	it('shows explicit options plus inherited-default info and emits the selected scalar value', async () => {
