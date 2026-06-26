@@ -62,10 +62,10 @@ final class RequestSignGroupsPolicyValueTest extends TestCase {
 			],
 		];
 
-		yield 'json list payloads are ignored' => [
+		yield 'json list payloads become legacy allow groups' => [
 			'["admin"," board "]',
 			[
-				'allowGroups' => [],
+				'allowGroups' => ['admin', 'board'],
 				'denyGroups' => [],
 			],
 		];
@@ -104,14 +104,14 @@ final class RequestSignGroupsPolicyValueTest extends TestCase {
 			['board', 'finance', 'legal', 'ops'],
 		];
 
-		yield 'native list arrays are ignored' => [
+		yield 'native list arrays become legacy allow groups' => [
 			['admin', ' board ', 'admin'],
-			[],
+			['admin', 'board'],
 		];
 
-		yield 'json list payloads are ignored' => [
+		yield 'json list payloads become legacy allow groups' => [
 			'["admin", " board ", "admin"]',
-			[],
+			['admin', 'board'],
 		];
 
 		yield 'invalid strings are ignored' => [
@@ -177,10 +177,10 @@ final class RequestSignGroupsPolicyValueTest extends TestCase {
 			false,
 		];
 
-		yield 'denies json list payloads that are no longer canonical' => [
+		yield 'allows legacy json list payloads when user belongs to one group' => [
 			'["admin"]',
 			['admin'],
-			false,
+			true,
 		];
 
 		yield 'denies when normalized user groups are empty' => [
