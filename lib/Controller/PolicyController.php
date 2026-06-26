@@ -316,7 +316,7 @@ final class PolicyController extends AEnvironmentAwareController {
 			/** @var LibresignGroupPolicyWriteResponse $data */
 			$data = [
 				'message' => $this->l10n->t('Settings saved'),
-				'policy' => $this->serializeGroupPolicy($groupId, $policyKey, $policy),
+				'policy' => $this->serializeGroupWritePolicy($groupId, $policyKey, $policy),
 			];
 
 			return new DataResponse($data);
@@ -360,7 +360,7 @@ final class PolicyController extends AEnvironmentAwareController {
 			/** @var LibresignGroupPolicyWriteResponse $data */
 			$data = [
 				'message' => $this->l10n->t('Settings saved'),
-				'policy' => $this->serializeGroupPolicy($groupId, $policyKey, $policy),
+				'policy' => $this->serializeGroupWritePolicy($groupId, $policyKey, $policy),
 			];
 
 			return new DataResponse($data);
@@ -547,6 +547,14 @@ final class PolicyController extends AEnvironmentAwareController {
 			'allowedValues' => $policy?->getAllowedValues() ?? [],
 			'deletableByCurrentActor' => $this->policyService->canDeleteGroupPolicy($policyKey, $groupId, $policy),
 		];
+	}
+
+	/** @return LibresignGroupPolicyState */
+	private function serializeGroupWritePolicy(string $groupId, string $policyKey, ?PolicyLayer $policy): array {
+		$serialized = $this->serializeGroupPolicy($groupId, $policyKey, $policy);
+		$serialized['effectiveValue'] = $policy?->getValue();
+
+		return $serialized;
 	}
 
 	/** @return LibresignUserPolicyState */
