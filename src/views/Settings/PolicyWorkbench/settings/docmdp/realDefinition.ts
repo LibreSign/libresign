@@ -6,9 +6,15 @@
 import { t } from '@nextcloud/l10n'
 
 import DocMdpScalarRuleEditor from './DocMdpScalarRuleEditor.vue'
+
 import type { EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
 
+/**
+ * Normalizes known DocMDP levels from numeric or string inputs.
+ *
+ * @param value Raw effective policy value to normalize.
+ */
 export function resolveDocMdpLevel(value: EffectivePolicyValue): number | null {
 	if (typeof value === 'number' && value >= 0 && value <= 3) {
 		return value
@@ -27,8 +33,8 @@ export const docMdpRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'PDF certification'),
 	// TRANSLATORS Technical context label. DocMDP is a PDF mechanism that defines permitted post-signature modifications.
 	context: t('libresign', 'DocMDP'),
-	// TRANSLATORS Policy description explaining that this rule defines what edits remain allowed after the first signature.
-	description: t('libresign', 'Control what changes are allowed after a document is signed.'),
+	// TRANSLATORS Policy description explaining that this rule controls and reveals which post-signature PDF changes are allowed.
+	description: t('libresign', 'Control which PDF changes remain allowed after signing and help readers detect disallowed modifications.'),
 	editor: DocMdpScalarRuleEditor,
 	createEmptyValue: () => 0,
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
