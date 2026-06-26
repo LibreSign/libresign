@@ -23,6 +23,8 @@ final class ApprovalGroupsPolicyTest extends TestCase {
 			$definition->defaultSystemValue(),
 		);
 		$this->assertSame([], $definition->allowedValues(new \OCA\Libresign\Service\Policy\Model\PolicyContext()));
+		$this->assertSame(['system'], $definition->supportedScopes());
+		$this->assertTrue($definition->isBackendOnly());
 	}
 
 	public function testNormalizeValueEncodesGroupsList(): void {
