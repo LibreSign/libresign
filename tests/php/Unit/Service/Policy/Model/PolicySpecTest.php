@@ -82,6 +82,64 @@ final class PolicySpecTest extends TestCase {
 		$this->assertSame(PolicySpec::RESOLUTION_MODE_VALUE_CHOICE, $spec->resolutionMode());
 	}
 
+	public function testSupportedScopesDefaultToSystemGroupAndUser(): void {
+		$spec = new PolicySpec(
+			key: 'signature_flow',
+			defaultSystemValue: 'none',
+			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+		);
+
+		$this->assertSame(['system', 'group', 'user'], $spec->supportedScopes());
+		$this->assertTrue($spec->supportsScope('system'));
+		$this->assertTrue($spec->supportsScope('group'));
+		$this->assertTrue($spec->supportsScope('user'));
+		$this->assertFalse($spec->supportsScope('request'));
+	}
+
+	public function testSupportedScopesMayBeRestrictedPerPolicy(): void {
+		$spec = new PolicySpec(
+			key: 'signing_mode',
+			defaultSystemValue: 'sync',
+			allowedValues: ['sync', 'async'],
+			supportedScopes: [PolicySpec::SCOPE_SYSTEM],
+		);
+
+		$this->assertSame(['system'], $spec->supportedScopes());
+		$this->assertTrue($spec->supportsScope('system'));
+		$this->assertFalse($spec->supportsScope('group'));
+		$this->assertFalse($spec->supportsScope('user'));
+	}
+
+	public function testStructuralMetadataDefaultsToPublicStandalonePolicy(): void {
+		$spec = new PolicySpec(
+			key: 'signature_flow',
+			defaultSystemValue: 'none',
+			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+		);
+
+		$this->assertFalse($spec->isBackendOnly());
+		$this->assertFalse($spec->isHelper());
+		$this->assertNull($spec->parentPolicyKey());
+		$this->assertSame([], $spec->compositeChildren());
+	}
+
+	public function testStructuralMetadataMayDescribeHelpersAndCompositePolicies(): void {
+		$spec = new PolicySpec(
+			key: 'worker_config',
+			defaultSystemValue: '{}',
+			allowedValues: [],
+			helper: true,
+			parentPolicyKey: 'signing_mode',
+			compositeChildren: ['worker_type', 'parallel_workers'],
+			backendOnly: true,
+		);
+
+		$this->assertTrue($spec->isBackendOnly());
+		$this->assertTrue($spec->isHelper());
+		$this->assertSame('signing_mode', $spec->parentPolicyKey());
+		$this->assertSame(['worker_type', 'parallel_workers'], $spec->compositeChildren());
+	}
+
 	public function testNormalizerAndValidatorAreApplied(): void {
 		$spec = new PolicySpec(
 			key: 'signature_flow',
