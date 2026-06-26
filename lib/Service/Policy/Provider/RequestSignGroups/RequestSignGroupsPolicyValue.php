@@ -15,19 +15,13 @@ final class RequestSignGroupsPolicyValue {
 	/** @var list<string> */
 	public const DEFAULT_DENY_GROUPS = [];
 
-	/** @var list<string> Backward-compatible alias */
-	public const DEFAULT_GROUPS = self::DEFAULT_ALLOW_GROUPS;
-
 	/**
 	 * @return array{allowGroups: list<string>, denyGroups: list<string>}
 	 */
 	public static function decodePolicy(mixed $rawValue): array {
 		if (is_array($rawValue)) {
-			if (self::isSequentialList($rawValue)) {
-				return self::normalizePolicyPayload([
-					'allowGroups' => $rawValue,
-					'denyGroups' => [],
-				]);
+			if (array_is_list($rawValue)) {
+				return self::normalizePolicyPayload([]);
 			}
 
 			return self::normalizePolicyPayload($rawValue);
@@ -44,21 +38,14 @@ final class RequestSignGroupsPolicyValue {
 
 		$decoded = json_decode($trimmed, true);
 		if (is_array($decoded)) {
-			if (self::isSequentialList($decoded)) {
-				return self::normalizePolicyPayload([
-					'allowGroups' => $decoded,
-					'denyGroups' => [],
-				]);
+			if (array_is_list($decoded)) {
+				return self::normalizePolicyPayload([]);
 			}
 
 			return self::normalizePolicyPayload($decoded);
 		}
 
-		// Keep CSV fallback for legacy or manually edited values.
-		return self::normalizePolicyPayload([
-			'allowGroups' => array_map('trim', explode(',', $trimmed)),
-			'denyGroups' => [],
-		]);
+		return self::normalizePolicyPayload([]);
 	}
 
 	/** @return list<string> */
@@ -110,31 +97,31 @@ final class RequestSignGroupsPolicyValue {
 	}
 
 	public static function encode(mixed $rawValue): string {
-		$payload = self::decodePolicy($rawValue);
+		$payload = is_array($rawValue) && array_is_list($rawValue)
+			? [
+				'allowGroups' => self::normalizeGroupIds($rawValue),
+				'denyGroups' => [],
+			]
+			: self::decodePolicy($rawValue);
 		return json_encode($payload, JSON_THROW_ON_ERROR);
 	}
 
 	/** @param array<string, mixed> $rawValue */
 	private static function normalizePolicyPayload(array $rawValue): array {
-		$rawAllow = $rawValue['allowGroups'] ?? $rawValue['allow_groups'] ?? $rawValue['groups'] ?? self::DEFAULT_ALLOW_GROUPS;
-		$rawDeny = $rawValue['denyGroups'] ?? $rawValue['deny_groups'] ?? $rawValue['deniedGroups'] ?? self::DEFAULT_DENY_GROUPS;
+		$rawAllow = $rawValue['allowGroups'] ?? [];
+		$rawDeny = $rawValue['denyGroups'] ?? [];
 
 		$allowGroups = is_array($rawAllow)
 			? self::normalizeGroupIds($rawAllow)
-			: self::DEFAULT_ALLOW_GROUPS;
+			: [];
 		$denyGroups = is_array($rawDeny)
 			? self::normalizeGroupIds($rawDeny)
-			: self::DEFAULT_DENY_GROUPS;
+			: [];
 
 		return [
 			'allowGroups' => $allowGroups,
 			'denyGroups' => $denyGroups,
 		];
-	}
-
-	/** @param array<mixed> $value */
-	private static function isSequentialList(array $value): bool {
-		return array_is_list($value);
 	}
 
 	/** @param array<mixed> $rawGroups
