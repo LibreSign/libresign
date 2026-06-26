@@ -11,6 +11,13 @@ import { t } from '@nextcloud/l10n'
 import IdentificationDocumentsRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/identification-documents/IdentificationDocumentsRuleEditor.vue'
 import type { IdentificationDocumentsPayload } from '../../../../../../views/Settings/PolicyWorkbench/settings/identification-documents/realDefinition'
 
+const NcSelectStub = {
+	name: 'NcSelect',
+	props: ['modelValue', 'options', 'placeholder', 'ariaLabelCombobox', 'multiple', 'trackBy', 'label', 'clearable', 'loading'],
+	emits: ['update:modelValue'],
+	template: '<div class="identification-documents-editor__select-stub" />',
+}
+
 function makeMountOptions(switchValue = true) {
 	return {
 		global: {
@@ -22,9 +29,7 @@ function makeMountOptions(switchValue = true) {
 					template: '<button class="identification-documents-editor__switch-stub" @click="$emit(\'update:modelValue\', switchValue)"><slot /></button>',
 					data: () => ({ switchValue }),
 				},
-				NcSelect: {
-					template: '<div class="identification-documents-editor__select-stub" />',
-				},
+				NcSelect: NcSelectStub,
 			},
 		},
 	}
@@ -134,5 +139,42 @@ describe('IdentificationDocumentsRuleEditor', () => {
 
 		const approversSection = wrapper.find('.identification-documents-editor__approvers-section')
 		expect(approversSection.exists()).toBe(true)
+	})
+
+	it('normalizes selected approver option objects to group ids', async () => {
+		const wrapper = mount(IdentificationDocumentsRuleEditor, {
+			...makeMountOptions(),
+			props: {
+				modelValue: { enabled: true, approvers: ['admin'] } satisfies IdentificationDocumentsPayload,
+			},
+		})
+
+		wrapper.getComponent({ name: 'NcSelect' }).vm.$emit('update:modelValue', [
+			{ id: 'approvers', displayName: 'Approvers' },
+			{ id: '', displayName: 'Ignored empty id' },
+		])
+		await Promise.resolve()
+
+		expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([{
+			enabled: true,
+			approvers: ['approvers'],
+		}])
+	})
+
+	it('falls back to admin when approver selection becomes empty', async () => {
+		const wrapper = mount(IdentificationDocumentsRuleEditor, {
+			...makeMountOptions(),
+			props: {
+				modelValue: { enabled: true, approvers: ['approvers'] } satisfies IdentificationDocumentsPayload,
+			},
+		})
+
+		wrapper.getComponent({ name: 'NcSelect' }).vm.$emit('update:modelValue', [])
+		await Promise.resolve()
+
+		expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([{
+			enabled: true,
+			approvers: ['admin'],
+		}])
 	})
 })
