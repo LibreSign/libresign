@@ -40,10 +40,13 @@ final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
 			self::KEY_MAXIMUM_VALIDITY => $this->buildDelegableNonNegativeIntPolicy(
 				self::KEY_MAXIMUM_VALIDITY,
 				self::DEFAULT_MAXIMUM_VALIDITY,
+				compositeChildren: [self::KEY_RENEWAL_INTERVAL],
 			),
 			self::KEY_RENEWAL_INTERVAL => $this->buildDelegableNonNegativeIntPolicy(
 				self::KEY_RENEWAL_INTERVAL,
 				self::DEFAULT_RENEWAL_INTERVAL,
+				helper: true,
+				parentPolicyKey: self::KEY_MAXIMUM_VALIDITY,
 			),
 			self::KEY_EXPIRY_IN_DAYS => $this->buildDelegablePositiveIntPolicy(
 				self::KEY_EXPIRY_IN_DAYS,
@@ -53,21 +56,39 @@ final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
 		};
 	}
 
-	private function buildDelegableNonNegativeIntPolicy(string $key, int $defaultValue): PolicySpec {
+	private function buildDelegableNonNegativeIntPolicy(
+		string $key,
+		int $defaultValue,
+		array $compositeChildren = [],
+		bool $helper = false,
+		?string $parentPolicyKey = null,
+	): PolicySpec {
 		return $this->buildDelegableIntPolicy(
 			key: $key,
 			defaultValue: $defaultValue,
 			normalizer: static fn (mixed $rawValue): int => self::normalizeNonNegativeInt($rawValue, $defaultValue),
 			supportsUserPreference: false,
+			compositeChildren: $compositeChildren,
+			helper: $helper,
+			parentPolicyKey: $parentPolicyKey,
 		);
 	}
 
-	private function buildDelegablePositiveIntPolicy(string $key, int $defaultValue): PolicySpec {
+	private function buildDelegablePositiveIntPolicy(
+		string $key,
+		int $defaultValue,
+		array $compositeChildren = [],
+		bool $helper = false,
+		?string $parentPolicyKey = null,
+	): PolicySpec {
 		return $this->buildDelegableIntPolicy(
 			key: $key,
 			defaultValue: $defaultValue,
 			normalizer: static fn (mixed $rawValue): int => self::normalizePositiveInt($rawValue, $defaultValue),
 			supportsUserPreference: false,
+			compositeChildren: $compositeChildren,
+			helper: $helper,
+			parentPolicyKey: $parentPolicyKey,
 		);
 	}
 
@@ -76,6 +97,9 @@ final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
 		int $defaultValue,
 		\Closure $normalizer,
 		bool $supportsUserPreference = true,
+		array $compositeChildren = [],
+		bool $helper = false,
+		?string $parentPolicyKey = null,
 	): PolicySpec {
 		return new PolicySpec(
 			key: $key,
@@ -122,6 +146,9 @@ final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
 				return self::wasCreatedBySystemAdmin($existingPolicy);
 			},
 			supportsGroupAdminDelegation: true,
+			compositeChildren: $compositeChildren,
+			helper: $helper,
+			parentPolicyKey: $parentPolicyKey,
 		);
 	}
 
