@@ -14,7 +14,7 @@ vi.mock('@nextcloud/l10n', () => ({
 import { requestSignGroupsRealDefinition } from '../../../../../../views/Settings/PolicyWorkbench/settings/request-sign-groups/realDefinition'
 
 describe('requestSignGroupsRealDefinition', () => {
-	it('supports only instance and group rule scopes', () => {
+	it('supports instance and group rule scopes only', () => {
 		expect(requestSignGroupsRealDefinition.supportedScopes).toEqual(['system', 'group'])
 	})
 

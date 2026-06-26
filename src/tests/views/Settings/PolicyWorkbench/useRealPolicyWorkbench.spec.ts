@@ -54,7 +54,9 @@ vi.mock('@nextcloud/initial-state', () => ({
 			return {
 				policies: {
 					identify_methods: {
-						effectiveValue: identifyMethodsInitialState,
+						effectiveValue: {
+							factors: identifyMethodsInitialState,
+						},
 					},
 					signature_stamp: {
 						meta: {
@@ -1292,7 +1294,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(clearUserPreference).toHaveBeenCalledWith('signature_flow')
 	})
 
-	it('does not clear user preference when saving system rule for request-access policy without user scope', async () => {
+	it('clears user preference when saving system rule for request-access policy with user scope', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('groups_request_sign')
 		state.startEditor({ scope: 'system' })
@@ -1301,7 +1303,7 @@ describe('useRealPolicyWorkbench', () => {
 		await state.saveDraft()
 
 		expect(saveSystemPolicy).toHaveBeenCalledWith('groups_request_sign', '{"allowGroups":["admin","policy-e2e-group"],"denyGroups":[]}', true)
-		expect(clearUserPreference).not.toHaveBeenCalledWith('groups_request_sign')
+		expect(clearUserPreference).toHaveBeenCalledWith('groups_request_sign')
 		expect(state.editorDraft).toBeNull()
 	})
 

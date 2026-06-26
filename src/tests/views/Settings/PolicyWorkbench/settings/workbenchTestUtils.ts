@@ -52,7 +52,9 @@ vi.mock('@nextcloud/initial-state', () => ({
 			return {
 				policies: {
 					identify_methods: {
-						effectiveValue: hoistedState.identifyMethodsInitialState,
+						effectiveValue: {
+							factors: hoistedState.identifyMethodsInitialState,
+						},
 					},
 					signature_stamp: {
 						meta: {

@@ -55,7 +55,7 @@ const NcSelectStub = {
 	template: '<div class="nc-select-stub" :data-aria-label="ariaLabelCombobox">{{ JSON.stringify(options) }}</div>',
 }
 
-function mountEditor(modelValue = '["finance"]') {
+function mountEditor(modelValue = '{"allowGroups":["finance"],"denyGroups":[]}') {
 	return mount(RequestSignGroupsRuleEditor, {
 		props: {
 			modelValue,
@@ -72,7 +72,7 @@ function mountEditor(modelValue = '["finance"]') {
 	})
 }
 
-function mountEditorWithScopeState(modelValue = '[]', hasSelectedTargets = false) {
+function mountEditorWithScopeState(modelValue = '{"allowGroups":[],"denyGroups":[]}', hasSelectedTargets = false) {
 	return mount(RequestSignGroupsRuleEditor, {
 		props: {
 			modelValue,
@@ -154,7 +154,7 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 			},
 		})
 
-		const wrapper = mountEditor('["finance","legal"]')
+		const wrapper = mountEditor('{"allowGroups":["finance","legal"],"denyGroups":[]}')
 		await Promise.resolve()
 		await Promise.resolve()
 
@@ -183,7 +183,7 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 			},
 		})
 
-		const wrapper = mountEditor('[]')
+		const wrapper = mountEditor('{"allowGroups":[],"denyGroups":[]}')
 		await Promise.resolve()
 		await Promise.resolve()
 
@@ -209,7 +209,7 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 			},
 		})
 
-		const wrapper = mountEditor('[]')
+		const wrapper = mountEditor('{"allowGroups":[],"denyGroups":[]}')
 		await Promise.resolve()
 		await Promise.resolve()
 
@@ -233,7 +233,7 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 			},
 		})
 
-		const wrapper = mountEditor('["finance"]')
+		const wrapper = mountEditor('{"allowGroups":["finance"],"denyGroups":[]}')
 		await Promise.resolve()
 		await Promise.resolve()
 
@@ -261,7 +261,7 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 			},
 		})
 
-		const wrapper = mountEditor('[]')
+		const wrapper = mountEditor('{"allowGroups":[],"denyGroups":[]}')
 		await Promise.resolve()
 		await Promise.resolve()
 
@@ -284,14 +284,14 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 			},
 		})
 
-		const wrapperWithoutTargets = mountEditorWithScopeState('[]', false)
+		const wrapperWithoutTargets = mountEditorWithScopeState('{"allowGroups":[],"denyGroups":[]}', false)
 		await Promise.resolve()
 		await Promise.resolve()
 
 		expect(wrapperWithoutTargets.text()).toContain('Select scope groups first to define authorized requester groups.')
 		expect(wrapperWithoutTargets.text()).not.toContain('Authorized requester groups')
 
-		const wrapperWithTargets = mountEditorWithScopeState('["board"]', true)
+		const wrapperWithTargets = mountEditorWithScopeState('{"allowGroups":["board"],"denyGroups":[]}', true)
 		await Promise.resolve()
 		await Promise.resolve()
 
@@ -417,7 +417,7 @@ describe('RequestSignGroupsRuleEditor.vue', () => {
 			},
 		})
 
-		const wrapper = mountEditorWithProps('["board","company"]', {
+		const wrapper = mountEditorWithProps('{"allowGroups":["board","company"],"denyGroups":[]}', {
 			editorScope: 'group',
 			editorMode: 'edit',
 			editorInitialTargetIds: ['board'],

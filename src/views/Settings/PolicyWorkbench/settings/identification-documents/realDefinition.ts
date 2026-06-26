@@ -15,7 +15,7 @@ export interface IdentificationDocumentsPayload {
 	approvers: string[]
 }
 
-type ApproverLike = string | { id?: unknown }
+type ApproverLikeObject = { id?: unknown }
 
 const DEFAULT_IDENTIFICATION_DOCUMENTS_PAYLOAD: IdentificationDocumentsPayload = {
 	enabled: false,
@@ -30,6 +30,10 @@ function isIdentificationDocumentsPayload(value: unknown): value is Identificati
 	return typeof obj.enabled === 'boolean' && Array.isArray(obj.approvers)
 }
 
+function isApproverLikeObject(value: unknown): value is ApproverLikeObject {
+	return typeof value === 'object' && value !== null && 'id' in value
+	}
+
 function normalizeApprovers(value: unknown): string[] {
 	if (!Array.isArray(value)) {
 		return ['admin']
@@ -41,8 +45,8 @@ function normalizeApprovers(value: unknown): string[] {
 				return entry.trim()
 			}
 
-			if (entry && typeof entry === 'object' && 'id' in (entry as ApproverLike)) {
-				const id = (entry as { id?: unknown }).id
+			if (isApproverLikeObject(entry)) {
+				const id = entry.id
 				return typeof id === 'string' ? id.trim() : ''
 			}
 

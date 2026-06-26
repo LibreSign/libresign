@@ -32,14 +32,12 @@ export type IdentifyMethodsPolicyConfig = {
 }
 
 export function normalizeIdentifyMethodsPolicyConfig(value: EffectivePolicyValue): IdentifyMethodsPolicyConfig {
-	let entries: unknown = value
+	let entries: unknown = null
 	let sharedMinimumTotalVerifiedFactors: number | undefined
 	let globalCanCreateAccount: boolean | undefined
 	if (typeof value === 'string') {
 		const decoded = safeJsonParse(value)
-		if (Array.isArray(decoded)) {
-			entries = decoded
-		} else if (decoded && typeof decoded === 'object') {
+		if (decoded && typeof decoded === 'object' && !Array.isArray(decoded)) {
 			const candidate = decoded as Record<string, unknown>
 			if (Array.isArray(candidate.factors)) {
 				entries = candidate.factors
@@ -70,24 +68,8 @@ export function normalizeIdentifyMethodsPolicyConfig(value: EffectivePolicyValue
 	}
 
 	const normalized: IdentifyMethodPolicyEntry[] = []
-	let legacyGlobalCanCreateAccount = globalCanCreateAccount
 
 	for (const rawEntry of entries) {
-		if (typeof rawEntry === 'string') {
-			const name = rawEntry.trim()
-			if (!name) {
-				continue
-			}
-
-			normalized.push({
-				name,
-				enabled: true,
-				minimumTotalVerifiedFactors: sharedMinimumTotalVerifiedFactors,
-				signatureMethods: {},
-			})
-			continue
-		}
-
 		if (!rawEntry || typeof rawEntry !== 'object') {
 			continue
 		}
@@ -98,11 +80,7 @@ export function normalizeIdentifyMethodsPolicyConfig(value: EffectivePolicyValue
 			continue
 		}
 
-		if (legacyGlobalCanCreateAccount === undefined && candidate.can_create_account !== undefined) {
-			legacyGlobalCanCreateAccount = Boolean(candidate.can_create_account)
-		}
-
-		const signatureMethods = normalizeSignatureMethods(candidate.signatureMethods, candidate.availableSignatureMethods)
+		const signatureMethods = normalizeSignatureMethods(candidate.signatureMethods)
 
 		normalized.push({
 			name,
@@ -121,7 +99,7 @@ export function normalizeIdentifyMethodsPolicyConfig(value: EffectivePolicyValue
 	return {
 		factors: normalized,
 		global: {
-			canCreateAccount: legacyGlobalCanCreateAccount,
+			canCreateAccount: globalCanCreateAccount,
 		},
 	}
 }
@@ -232,15 +210,8 @@ export function serializeIdentifyMethodsPolicy(
 	return JSON.stringify(payload)
 }
 
-function normalizeSignatureMethods(value: unknown, legacyAvailableSignatureMethods?: unknown): Record<string, IdentifyMethodSignatureMethod> {
-	if (Array.isArray(value)) {
-		return normalizeSignatureMethodsFromList(value)
-	}
-
-	if (!value || typeof value !== 'object') {
-		if (Array.isArray(legacyAvailableSignatureMethods)) {
-			return normalizeSignatureMethodsFromList(legacyAvailableSignatureMethods)
-		}
+function normalizeSignatureMethods(value: unknown): Record<string, IdentifyMethodSignatureMethod> {
+	if (!value || typeof value !== 'object' || Array.isArray(value)) {
 		return {}
 	}
 
@@ -264,10 +235,6 @@ function normalizeSignatureMethods(value: unknown, legacyAvailableSignatureMetho
 			enabled: Boolean(candidate.enabled),
 			label: typeof candidate.label === 'string' ? candidate.label : undefined,
 		}
-	}
-
-	if (Object.keys(signatureMethods).length === 0 && Array.isArray(legacyAvailableSignatureMethods)) {
-		return normalizeSignatureMethodsFromList(legacyAvailableSignatureMethods)
 	}
 
 	return signatureMethods
@@ -428,22 +395,6 @@ function normalizeMinimumTotalVerifiedFactors(value: unknown): number | undefine
 	}
 
 	return normalized
-}
-
-function normalizeSignatureMethodsFromList(value: unknown[]): Record<string, IdentifyMethodSignatureMethod> {
-	const signatureMethods: Record<string, IdentifyMethodSignatureMethod> = {}
-
-	for (const signatureMethodName of value) {
-		if (typeof signatureMethodName !== 'string' || signatureMethodName.trim().length === 0) {
-			continue
-		}
-
-		signatureMethods[signatureMethodName] = {
-			enabled: false,
-		}
-	}
-
-	return signatureMethods
 }
 
 function safeJsonParse(value: string): unknown {
