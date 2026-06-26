@@ -48,6 +48,7 @@ final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 				supportsUserPreference: false,
+				supportedScopes: [PolicySpec::SCOPE_SYSTEM, PolicySpec::SCOPE_GROUP],
 				visibleGroupCountFilter: static function (PolicyContext $context, ?PolicyLayer $systemPolicy): bool {
 					return !$context->getActorRole()->canManageSystemPolicies;
 				},
