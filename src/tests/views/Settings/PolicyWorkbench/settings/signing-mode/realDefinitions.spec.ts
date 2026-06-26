@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	signingModeRealDefinition,
 	workerConfigRealDefinition,
-} from '../../../../views/Settings/PolicyWorkbench/settings/signing-mode/realDefinitions'
+} from '../../../../../../views/Settings/PolicyWorkbench/settings/signing-mode/realDefinitions'
 import {
 	getDefaultWorkerConfig,
 	normalizeSigningExecutionSettings,
@@ -17,7 +17,7 @@ import {
 	resolveSigningMode,
 	resolveWorkerType,
 	serializeWorkerConfig,
-} from '../../../../views/Settings/PolicyWorkbench/settings/signing-mode/model'
+} from '../../../../../../views/Settings/PolicyWorkbench/settings/signing-mode/model'
 
 describe('signing-mode policy real definitions', () => {
 	it.each([
@@ -95,7 +95,7 @@ describe('signing-mode policy real definitions', () => {
 			canSaveAsUserDefault: true,
 			meta: {},
 		} as never)).toBe(false)
-		expect(signingModeRealDefinition.supportedScopes).toBeUndefined()
+		expect(signingModeRealDefinition.supportedScopes).toEqual(['system'])
 		expect(workerConfigRealDefinition.supportedScopes).toEqual(['system'])
 		expect(signingModeRealDefinition.formatAllowOverride(true)).toBe('Lower-level customization is disabled for this setting')
 	})
