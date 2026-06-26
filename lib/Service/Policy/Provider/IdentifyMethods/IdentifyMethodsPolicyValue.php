@@ -54,10 +54,9 @@ final class IdentifyMethodsPolicyValue {
 		$normalization = self::normalizeFactors(
 			$preparedInput['factors'],
 			$preparedInput['sharedMinimumTotalVerifiedFactors'],
-			$preparedInput['globalCanCreateAccount'],
 		);
 		$normalized = $normalization['factors'];
-		$legacyGlobalCanCreateAccount = $normalization['globalCanCreateAccount'];
+		$globalCanCreateAccount = $preparedInput['globalCanCreateAccount'];
 		if ($catalogFactors !== []) {
 			$normalized = self::mergeFactorsWithCatalog($normalized, $catalogFactors, false);
 		}
@@ -70,8 +69,8 @@ final class IdentifyMethodsPolicyValue {
 		$payload = [
 			'factors' => $normalized,
 		];
-		if ($legacyGlobalCanCreateAccount !== null) {
-			$payload['can_create_account'] = $legacyGlobalCanCreateAccount;
+		if ($globalCanCreateAccount !== null) {
+			$payload['can_create_account'] = $globalCanCreateAccount;
 		}
 
 		return $payload;
@@ -93,9 +92,7 @@ final class IdentifyMethodsPolicyValue {
 		}
 
 		if (is_array($rawValue)) {
-			if (array_is_list($rawValue)) {
-				$factors = $rawValue;
-			} else {
+			if (!array_is_list($rawValue)) {
 				return self::prepareInputFromArrayPayload($rawValue);
 			}
 		}
@@ -114,7 +111,7 @@ final class IdentifyMethodsPolicyValue {
 	private static function prepareInputFromArrayPayload(array $payload): array {
 		if (array_is_list($payload)) {
 			return [
-				'factors' => $payload,
+				'factors' => null,
 				'sharedMinimumTotalVerifiedFactors' => null,
 				'globalCanCreateAccount' => null,
 			];
@@ -141,41 +138,28 @@ final class IdentifyMethodsPolicyValue {
 
 	/**
 	 * @param list<mixed> $rawFactors
-	 * @return array{factors: list<array<string, mixed>>, globalCanCreateAccount: ?bool}
+	 * @return array{factors: list<array<string, mixed>>}
 	 */
 	private static function normalizeFactors(
 		array $rawFactors,
 		?int $sharedMinimumTotalVerifiedFactors,
-		?bool $globalCanCreateAccount,
 	): array {
 		$normalized = [];
 		foreach ($rawFactors as $entry) {
-			if (is_string($entry)) {
-				$normalizedEntry = self::normalizeLegacyStringEntry($entry, $sharedMinimumTotalVerifiedFactors);
-				if ($normalizedEntry !== null) {
-					$normalized[] = $normalizedEntry;
-				}
-				continue;
-			}
-
 			if (!is_array($entry)) {
 				continue;
 			}
 
-			$normalizedEntry = self::normalizeFactorEntry($entry, $sharedMinimumTotalVerifiedFactors, $globalCanCreateAccount);
+			$normalizedEntry = self::normalizeFactorEntry($entry, $sharedMinimumTotalVerifiedFactors);
 			if ($normalizedEntry === null) {
 				continue;
 			}
 
-			$normalized[] = $normalizedEntry['entry'];
-			if ($globalCanCreateAccount === null && $normalizedEntry['globalCanCreateAccount'] !== null) {
-				$globalCanCreateAccount = $normalizedEntry['globalCanCreateAccount'];
-			}
+			$normalized[] = $normalizedEntry;
 		}
 
 		return [
 			'factors' => $normalized,
-			'globalCanCreateAccount' => $globalCanCreateAccount,
 		];
 	}
 
@@ -187,7 +171,9 @@ final class IdentifyMethodsPolicyValue {
 			return [];
 		}
 
-		return self::extractFactors(self::normalize($identifyMethodService->getIdentifyMethodsCatalogSettings()));
+		return self::extractFactors(self::normalize([
+			'factors' => $identifyMethodService->getIdentifyMethodsCatalogSettings(),
+		]));
 	}
 
 	/**
@@ -347,35 +333,12 @@ final class IdentifyMethodsPolicyValue {
 	}
 
 	/**
-	 * @return ?array<string, mixed>
-	 */
-	private static function normalizeLegacyStringEntry(string $entry, ?int $sharedMinimumTotalVerifiedFactors): ?array {
-		$name = trim($entry);
-		if ($name === '') {
-			return null;
-		}
-
-		$normalizedEntry = [
-			'name' => $name,
-			'enabled' => true,
-			'signatureMethods' => [],
-		];
-
-		if ($sharedMinimumTotalVerifiedFactors !== null) {
-			$normalizedEntry['minimumTotalVerifiedFactors'] = $sharedMinimumTotalVerifiedFactors;
-		}
-
-		return $normalizedEntry;
-	}
-
-	/**
 	 * @param array<string, mixed> $entry
-	 * @return array{entry: array<string, mixed>, globalCanCreateAccount: ?bool}|null
+	 * @return ?array<string, mixed>
 	 */
 	private static function normalizeFactorEntry(
 		array $entry,
 		?int $sharedMinimumTotalVerifiedFactors,
-		?bool $globalCanCreateAccount,
 	): ?array {
 		$name = isset($entry['name']) && is_string($entry['name'])
 			? trim($entry['name'])
@@ -395,11 +358,6 @@ final class IdentifyMethodsPolicyValue {
 			$normalizedEntry['friendly_name'] = $entry['friendly_name'];
 		}
 
-		$entryCanCreateAccount = null;
-		if ($globalCanCreateAccount === null && array_key_exists('can_create_account', $entry)) {
-			$entryCanCreateAccount = (bool)$entry['can_create_account'];
-		}
-
 		$minimumTotalVerifiedFactors = self::normalizeMinimumTotalVerifiedFactors($entry['minimumTotalVerifiedFactors'] ?? null)
 			?? $sharedMinimumTotalVerifiedFactors;
 		if ($minimumTotalVerifiedFactors !== null) {
@@ -415,10 +373,7 @@ final class IdentifyMethodsPolicyValue {
 			$normalizedEntry['signatureMethodEnabled'] = $entry['signatureMethodEnabled'];
 		}
 
-		return [
-			'entry' => $normalizedEntry,
-			'globalCanCreateAccount' => $entryCanCreateAccount,
-		];
+		return $normalizedEntry;
 	}
 
 	/**
@@ -427,33 +382,15 @@ final class IdentifyMethodsPolicyValue {
 	 */
 	private static function normalizeSignatureMethods(array $entry): array {
 		$signatureMethods = [];
-		if (isset($entry['signatureMethods']) && is_array($entry['signatureMethods'])) {
-			if (array_is_list($entry['signatureMethods'])) {
-				foreach ($entry['signatureMethods'] as $signatureMethodName) {
-					if (!is_string($signatureMethodName) || trim($signatureMethodName) === '') {
-						continue;
-					}
-					$signatureMethods[$signatureMethodName] = ['enabled' => false];
-				}
-			} else {
-				foreach ($entry['signatureMethods'] as $signatureMethodName => $signatureMethodConfig) {
-					if (!is_string($signatureMethodName) || trim($signatureMethodName) === '') {
-						continue;
-					}
-					$normalizedSignatureMethod = self::normalizeSignatureMethodConfig($signatureMethodConfig);
-					if ($normalizedSignatureMethod !== null) {
-						$signatureMethods[$signatureMethodName] = $normalizedSignatureMethod;
-					}
-				}
-			}
-		}
-
-		if ($signatureMethods === [] && isset($entry['availableSignatureMethods']) && is_array($entry['availableSignatureMethods'])) {
-			foreach ($entry['availableSignatureMethods'] as $signatureMethodName) {
+		if (isset($entry['signatureMethods']) && is_array($entry['signatureMethods']) && !array_is_list($entry['signatureMethods'])) {
+			foreach ($entry['signatureMethods'] as $signatureMethodName => $signatureMethodConfig) {
 				if (!is_string($signatureMethodName) || trim($signatureMethodName) === '') {
 					continue;
 				}
-				$signatureMethods[$signatureMethodName] = ['enabled' => false];
+				$normalizedSignatureMethod = self::normalizeSignatureMethodConfig($signatureMethodConfig);
+				if ($normalizedSignatureMethod !== null) {
+					$signatureMethods[$signatureMethodName] = $normalizedSignatureMethod;
+				}
 			}
 		}
 
@@ -545,23 +482,12 @@ final class IdentifyMethodsPolicyValue {
 			return array_values(array_filter($normalizedPayload['factors'], static fn (mixed $entry): bool => is_array($entry)));
 		}
 
-		if (array_is_list($normalizedPayload)) {
-			return array_values(array_filter($normalizedPayload, static fn (mixed $entry): bool => is_array($entry)));
-		}
-
 		return [];
 	}
 
 	public static function resolveGlobalCanCreateAccount(array $normalizedPayload): ?bool {
 		if (array_key_exists('can_create_account', $normalizedPayload)) {
 			return (bool)$normalizedPayload['can_create_account'];
-		}
-
-		$factors = self::extractFactors($normalizedPayload);
-		foreach ($factors as $entry) {
-			if (array_key_exists('can_create_account', $entry)) {
-				return (bool)$entry['can_create_account'];
-			}
 		}
 
 		return null;

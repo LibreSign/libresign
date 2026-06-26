@@ -37,7 +37,9 @@ final class IdentifyMethodsPolicy implements IPolicyDefinitionProvider {
 		return match ($this->normalizePolicyKey($policyKey)) {
 			self::KEY => new PolicySpec(
 				key: self::KEY,
-				defaultSystemValue: [],
+				defaultSystemValue: [
+					'factors' => [],
+				],
 				allowedValues: static fn (): array => [],
 				normalizer: fn (mixed $rawValue): array => IdentifyMethodsPolicyValue::normalize($rawValue, $identifyMethodService),
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
