@@ -409,11 +409,44 @@
                     "defaultSystemValue": {
                         "$ref": "#/components/schemas/EffectivePolicyValue"
                     },
+                    "appConfigKey": {
+                        "type": "string"
+                    },
+                    "userPreferenceKey": {
+                        "type": "string"
+                    },
+                    "resolutionMode": {
+                        "type": "string"
+                    },
+                    "supportsGroupAdminDelegation": {
+                        "type": "boolean"
+                    },
                     "canCreateDescendantRules": {
                         "type": "boolean"
                     },
                     "supportsUserPreference": {
                         "type": "boolean"
+                    },
+                    "supportedScopes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PolicyScope"
+                        }
+                    },
+                    "backendOnly": {
+                        "type": "boolean"
+                    },
+                    "helper": {
+                        "type": "boolean"
+                    },
+                    "parentPolicyKey": {
+                        "type": "string"
+                    },
+                    "compositeChildren": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },
@@ -682,6 +715,14 @@
                         "type": "string"
                     }
                 }
+            },
+            "PolicyScope": {
+                "type": "string",
+                "enum": [
+                    "system",
+                    "group",
+                    "user"
+                ]
             },
             "PolicySection": {
                 "type": "object",

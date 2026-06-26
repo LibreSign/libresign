@@ -1075,8 +1075,17 @@ export type components = {
         };
         EffectivePolicyMeta: {
             defaultSystemValue?: components["schemas"]["EffectivePolicyValue"];
+            appConfigKey?: string;
+            userPreferenceKey?: string;
+            resolutionMode?: string;
+            supportsGroupAdminDelegation?: boolean;
             canCreateDescendantRules?: boolean;
             supportsUserPreference?: boolean;
+            supportedScopes?: components["schemas"]["PolicyScope"][];
+            backendOnly?: boolean;
+            helper?: boolean;
+            parentPolicyKey?: string;
+            compositeChildren?: string[];
         };
         EffectivePolicyResponse: {
             policy: components["schemas"]["EffectivePolicyState"];
@@ -1354,6 +1363,8 @@ export type components = {
             last: string | null;
             first: string | null;
         };
+        /** @enum {string} */
+        PolicyScope: "system" | "group" | "user";
         PolicySnapshotEntry: {
             effectiveValue: string;
             sourceScope: string;
