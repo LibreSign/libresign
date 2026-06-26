@@ -6,9 +6,9 @@
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import IdentifyMethodsRuleEditor from '../../../../views/Settings/PolicyWorkbench/settings/identify-methods/IdentifyMethodsRuleEditor.vue'
+import IdentifyMethodsRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/identify-methods/IdentifyMethodsRuleEditor.vue'
 
-type EffectivePolicyValue = import('../../../../types/index').EffectivePolicyValue
+type EffectivePolicyValue = import('../../../../../../types/index').EffectivePolicyValue
 type EffectivePoliciesState = {
 	policies: {
 		identify_methods: {
