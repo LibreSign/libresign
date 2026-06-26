@@ -13,6 +13,7 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\SignatureTextTemplate;
 use OCP\IL10N;
 
@@ -119,6 +120,7 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 				resolvedStateMeta: [
 					'defaultSystemValue' => $defaultConsolidatedValue,
 				],
+				resolvedPolicyFinalizer: fn (ResolvedPolicy $resolved, PolicyContext $context, callable $resolvePolicy): ResolvedPolicy => $this->finalizeResolvedSignatureStamp($resolved, $resolvePolicy),
 			),
 			self::KEY_TEMPLATE => new PolicySpec(
 				key: self::KEY_TEMPLATE,
@@ -179,6 +181,83 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 				parentPolicyKey: self::KEY,
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $normalizedKey),
+		};
+	}
+
+	private function finalizeResolvedSignatureStamp(ResolvedPolicy $resolved, callable $resolvePolicy): ResolvedPolicy {
+		$defaults = SignatureTextPolicyValue::DEFAULTS;
+		$effective = SignatureTextPolicyValue::normalize($resolved->getEffectiveValue(), $this->defaultConsolidatedValue());
+		$inherited = SignatureTextPolicyValue::normalize($resolved->getInheritedValue(), $effective);
+		$currentScope = $resolved->getSourceScope();
+		$currentPriority = $this->scopePriority($currentScope);
+
+		foreach ($this->childFieldMap() as $childKey => $field) {
+			$childResolved = $resolvePolicy($childKey);
+			$childScope = $childResolved->getSourceScope();
+			$childPriority = $this->scopePriority($childScope);
+
+			if ($childPriority < 0 || $childPriority < $currentPriority) {
+				continue;
+			}
+
+			if ($childPriority === $currentPriority && ($effective[$field] ?? null) !== ($defaults[$field] ?? null)) {
+				continue;
+			}
+
+			$effective[$field] = $this->normalizeChildFieldValue($childKey, $childResolved->getEffectiveValue(), $defaults[$field] ?? null);
+			$inherited[$field] = $this->normalizeChildFieldValue(
+				$childKey,
+				$childResolved->getInheritedValue() ?? $childResolved->getEffectiveValue(),
+				$inherited[$field] ?? ($defaults[$field] ?? null),
+			);
+
+			if ($childPriority >= $currentPriority) {
+				$currentScope = $childScope;
+				$currentPriority = $childPriority;
+			}
+		}
+
+		return $resolved
+			->setEffectiveValue(SignatureTextPolicyValue::encode($effective))
+			->setInheritedValue(SignatureTextPolicyValue::encode($inherited))
+			->setSourceScope($currentScope);
+	}
+
+	/** @return array<string, string> */
+	private function childFieldMap(): array {
+		return [
+			self::KEY_TEMPLATE => 'template',
+			self::KEY_TEMPLATE_FONT_SIZE => 'template_font_size',
+			self::KEY_SIGNATURE_WIDTH => 'signature_width',
+			self::KEY_SIGNATURE_HEIGHT => 'signature_height',
+			self::KEY_SIGNATURE_FONT_SIZE => 'signature_font_size',
+			self::KEY_RENDER_MODE => 'render_mode',
+		];
+	}
+
+	private function normalizeChildFieldValue(string $childKey, mixed $value, mixed $fallback): mixed {
+		return match ($childKey) {
+			self::KEY_TEMPLATE => is_string($value) ? $value : (string)($value ?? $fallback ?? ''),
+			self::KEY_TEMPLATE_FONT_SIZE,
+			self::KEY_SIGNATURE_WIDTH,
+			self::KEY_SIGNATURE_HEIGHT,
+			self::KEY_SIGNATURE_FONT_SIZE => max(0.1, (float)($value ?? $fallback ?? 0.1)),
+			self::KEY_RENDER_MODE => SignatureTextPolicyValue::normalize([
+				'render_mode' => $value,
+			])['render_mode'],
+			default => $value ?? $fallback,
+		};
+	}
+
+	private function scopePriority(string $scope): int {
+		return match ($scope) {
+			'system' => -1,
+			'global' => 0,
+			'group' => 1,
+			'user_policy' => 2,
+			'user' => 3,
+			'request' => 4,
+			default => -1,
 		};
 	}
 
