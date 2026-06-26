@@ -38,10 +38,13 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 	await setSystemPolicy(
 		page.request,
 		'identify_methods',
-		JSON.stringify([
-			{ name: 'account', enabled: false, mandatory: false },
-			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { emailToken: { enabled: true } }, can_create_account: false },
-		]),
+		JSON.stringify({
+			can_create_account: false,
+			factors: [
+				{ name: 'account', enabled: false, requirement: 'optional' },
+				{ name: 'email', enabled: true, requirement: 'required', signatureMethods: { emailToken: { enabled: true } } },
+			],
+		}),
 	)
 	await setCertificateEngine(page.request, 'openssl')
 	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
