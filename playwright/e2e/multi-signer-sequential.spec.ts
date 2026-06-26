@@ -62,7 +62,7 @@ const test = base.extend<{
 test.setTimeout(120_000)
 
 test.afterEach(async ({ page, adminContext, originalConfigSnapshot }) => {
-	await setSystemPolicy(page.request, 'identify_methods', originalConfigSnapshot.identifyMethods ?? '[]')
+	await setSystemPolicy(page.request, 'identify_methods', originalConfigSnapshot.identifyMethods ?? '{"factors":[]}')
 	if (originalConfigSnapshot.signatureEngine !== null) {
 		await setAppConfig(page.request, 'libresign', 'signature_engine', originalConfigSnapshot.signatureEngine)
 	} else {
@@ -150,10 +150,13 @@ test('request signatures from two signers in sequential order', async ({ page, a
 		await setSystemPolicy(
 			page.request,
 			'identify_methods',
-			JSON.stringify([
-				{ name: 'account', enabled: false, mandatory: false },
-				{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true }, emailToken: { enabled: false } }, can_create_account: false },
-			]),
+			JSON.stringify({
+				can_create_account: false,
+				factors: [
+					{ name: 'account', enabled: false, requirement: 'optional' },
+					{ name: 'email', enabled: true, requirement: 'required', signatureMethods: { clickToSign: { enabled: true }, emailToken: { enabled: false } } },
+				],
+			}),
 		)
 		await setSystemPolicy(page.request, 'make_validation_url_private', '0')
 		await setCertificateEngine(page.request, 'openssl')

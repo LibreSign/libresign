@@ -58,7 +58,7 @@ const GROUP_ID = 'policy-preferences-group'
 const END_USER = 'policy-preferences-member'
 const POLICY_KEY = 'signature_flow'
 const FOOTER_POLICY_KEY = 'add_footer'
-const REQUEST_SIGN_GROUPS = JSON.stringify(['admin', GROUP_ID])
+const REQUEST_SIGN_GROUPS = JSON.stringify({ allowGroups: ['admin', GROUP_ID], denyGroups: [] })
 const FOOTER_ENABLED_VALUE = JSON.stringify({
 	enabled: true,
 	writeQrcodeOnFooter: true,

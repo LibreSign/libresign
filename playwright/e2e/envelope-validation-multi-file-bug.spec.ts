@@ -99,10 +99,13 @@ async function enableEnvelopeScenario(request: APIRequestContext) {
 	await setSystemPolicy(
 		request,
 		'identify_methods',
-		JSON.stringify([
-			{ name: 'account', enabled: false, mandatory: false },
-			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true }, emailToken: { enabled: false } }, can_create_account: false },
-		]),
+		JSON.stringify({
+			can_create_account: false,
+			factors: [
+				{ name: 'account', enabled: false, requirement: 'optional' },
+				{ name: 'email', enabled: true, requirement: 'required', signatureMethods: { clickToSign: { enabled: true }, emailToken: { enabled: false } } },
+			],
+		}),
 	)
 	await setSystemPolicy(request, 'make_validation_url_private', '0')
 }

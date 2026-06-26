@@ -116,7 +116,7 @@ test.describe('Policy preferences: boolean settings', () => {
 		await ensureUserExists(page.request, endUser, endPass)
 		await ensureUserInGroup(page.request, endUser, groupId)
 
-		await setSystemPolicyEntry(adminCtx, 'groups_request_sign', JSON.stringify([groupId]), true)
+		await setSystemPolicyEntry(adminCtx, 'groups_request_sign', JSON.stringify({ allowGroups: [groupId], denyGroups: [] }), true)
 		await setSystemPolicyEntry(adminCtx, 'collect_metadata', JSON.stringify(false), true)
 		await setGroupPolicyEntry(adminCtx, groupId, 'collect_metadata', JSON.stringify(true), true)
 		await setSystemNumericPolicyEntry(adminCtx, 'docmdp', 0, true)
