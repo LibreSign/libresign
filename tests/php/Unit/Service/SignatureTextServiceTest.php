@@ -143,6 +143,25 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		$this->assertStringNotContainsString('IP', $template);
 	}
 
+	public function testGetTemplatePromotesCanonicalDefaultWhenMetadataCollectionIsEnabled(): void {
+		$this->policyValues[CollectMetadataPolicy::KEY] = true;
+
+		$this->policyValues[SignatureTextPolicyProvider::KEY] = SignatureTextPolicyValue::encode([
+			'template' => SignatureTextTemplate::translated($this->l10n, false),
+			'template_font_size' => SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+			'signature_font_size' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+			'signature_width' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+			'signature_height' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
+			'background_type' => 'default',
+			'render_mode' => 'default',
+		]);
+
+		$template = $this->getClass()->getTemplate();
+
+		$this->assertStringContainsString('{{SignerIP}}', $template);
+		$this->assertStringContainsString('{{SignerUserAgent}}', $template);
+	}
+
 	#[DataProvider('providerSave')]
 	public function testSave($template, $context, $parsed): void {
 		$fromSave = $this->getClass()->save($template);
