@@ -64,7 +64,7 @@ Feature: policies/identification_documents_policy
       | value | {"enabled":true,"approvers":["admin"]} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}] |
+      | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"

@@ -7,7 +7,7 @@ Feature: policies/identify_methods_policy
 
     # Persist the system rule that will act as the baseline for lower scopes.
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}] |
+      | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
       | allowChildOverride | true |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -16,7 +16,7 @@ Feature: policies/identify_methods_policy
 
     # Override the system rule at group scope and verify the persisted target metadata.
     When sending "put" to ocs "/apps/libresign/api/v1/policies/group/admin/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"requirement":"optional","signatureMethods":{"emailToken":{"enabled":true}}}] |
+      | value | (string){"factors":[{"name":"email","enabled":true,"requirement":"optional","signatureMethods":{"emailToken":{"enabled":true}}}]} |
       | allowChildOverride | true |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -35,7 +35,7 @@ Feature: policies/identify_methods_policy
 
     # Add a user-level override and verify that it takes precedence over the group rule.
     When sending "put" to ocs "/apps/libresign/api/v1/policies/user/admin/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}}}] |
+      | value | (string){"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}}}]} |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key | value |
@@ -61,7 +61,7 @@ Feature: policies/identify_methods_policy
 
     # Persist an empty system payload and ensure runtime expansion still exposes the catalog factors.
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[] |
+      | value | (string){"factors":[]} |
       | allowChildOverride | true |
     Then the response should have a status code 200
 
@@ -99,12 +99,12 @@ Feature: policies/identify_methods_policy
 
     # Seed both group rules as the system administrator so delegated overrides have a parent rule.
     When sending "put" to ocs "/apps/libresign/api/v1/policies/group/policy-identify-board-overlay/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"password":{"enabled":true}},"signatureMethodEnabled":"password"},{"name":"email","enabled":true,"requirement":"optional","signatureMethods":{"emailToken":{"enabled":true}},"signatureMethodEnabled":"emailToken"}] |
+      | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"password":{"enabled":true}},"signatureMethodEnabled":"password"},{"name":"email","enabled":true,"requirement":"optional","signatureMethods":{"emailToken":{"enabled":true}},"signatureMethodEnabled":"emailToken"}]} |
       | allowChildOverride | true |
     Then the response should have a status code 200
 
     When sending "put" to ocs "/apps/libresign/api/v1/policies/group/policy-identify-company-overlay/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"password":{"enabled":true}},"signatureMethodEnabled":"password"},{"name":"email","enabled":true,"requirement":"optional","signatureMethods":{"emailToken":{"enabled":true}},"signatureMethodEnabled":"emailToken"}] |
+      | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"password":{"enabled":true}},"signatureMethodEnabled":"password"},{"name":"email","enabled":true,"requirement":"optional","signatureMethods":{"emailToken":{"enabled":true}},"signatureMethodEnabled":"emailToken"}]} |
       | allowChildOverride | true |
     Then the response should have a status code 200
 
@@ -118,7 +118,7 @@ Feature: policies/identify_methods_policy
 
     # Narrow only the board group through a delegated override that disables email.
     When sending "put" to ocs "/apps/libresign/api/v1/policies/group/policy-identify-board-overlay/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"password":{"enabled":true}},"signatureMethodEnabled":"password"},{"name":"email","enabled":false,"requirement":"optional","signatureMethods":{"emailToken":{"enabled":true}},"signatureMethodEnabled":"emailToken"}] |
+      | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"password":{"enabled":true}},"signatureMethodEnabled":"password"},{"name":"email","enabled":false,"requirement":"optional","signatureMethods":{"emailToken":{"enabled":true}},"signatureMethodEnabled":"emailToken"}]} |
       | allowChildOverride | false |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
