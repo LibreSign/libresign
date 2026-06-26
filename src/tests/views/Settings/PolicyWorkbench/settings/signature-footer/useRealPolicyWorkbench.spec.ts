@@ -15,6 +15,9 @@ import {
 	saveSystemPolicy,
 } from '../workbenchTestUtils'
 
+/**
+ * Lazily imports the workbench state factory after the mock harness is registered.
+ */
 async function createWorkbenchState() {
 	const { createRealPolicyWorkbenchState } = await import('../../../../../../views/Settings/PolicyWorkbench/useRealPolicyWorkbench')
 	return createRealPolicyWorkbenchState()
