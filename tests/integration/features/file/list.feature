@@ -45,7 +45,7 @@ Feature: file-list
   Scenario: Return a list with 3 pages
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"requirement":"required","can_create_account":false}] |
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required"}]} |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer1@domain.test"}]}] |
