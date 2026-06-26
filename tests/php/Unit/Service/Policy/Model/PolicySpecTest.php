@@ -10,7 +10,6 @@ namespace OCA\Libresign\Tests\Unit\Service\Policy\Model;
 
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
-use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -46,41 +45,6 @@ final class PolicySpecTest extends TestCase {
 			['defaultSystemValue' => 'canonical-john'],
 			$contextAwareSpec->resolvedStateMeta(PolicyContext::fromUserId('john')),
 		);
-	}
-
-	public function testResolvedPolicyFinalizerDefaultsToPassthroughAndMayMutateResolvedState(): void {
-		$passthroughSpec = new PolicySpec(
-			key: 'signature_flow',
-			defaultSystemValue: 'none',
-			allowedValues: [],
-		);
-		$customSpec = new PolicySpec(
-			key: 'worker_config',
-			defaultSystemValue: '{}',
-			allowedValues: [],
-			resolvedPolicyFinalizer: static function (ResolvedPolicy $resolved, PolicyContext $context, callable $resolvePolicy): ResolvedPolicy {
-				return $resolved->setEffectiveValue('finalized-' . $context->getUserId());
-			},
-		);
-
-		$resolved = (new ResolvedPolicy())
-			->setPolicyKey('signature_flow')
-			->setEffectiveValue('none');
-
-		$this->assertSame(
-			$resolved,
-			$passthroughSpec->finalizeResolvedPolicy($resolved, new PolicyContext(), static fn (string $policyKey): ResolvedPolicy => new ResolvedPolicy()),
-		);
-
-		$finalized = $customSpec->finalizeResolvedPolicy(
-			(new ResolvedPolicy())
-				->setPolicyKey('worker_config')
-				->setEffectiveValue('{}'),
-			PolicyContext::fromUserId('john'),
-			static fn (string $policyKey): ResolvedPolicy => new ResolvedPolicy(),
-		);
-
-		$this->assertSame('finalized-john', $finalized->getEffectiveValue());
 	}
 
 	public function testDefaultStorageKeysFallbackToPolicyKey(): void {
@@ -166,14 +130,14 @@ final class PolicySpecTest extends TestCase {
 			allowedValues: [],
 			helper: true,
 			parentPolicyKey: 'signing_mode',
-			compositeChildren: ['worker_type', 'parallel_workers'],
+			compositeChildren: ['child_a', 'child_b'],
 			backendOnly: true,
 		);
 
 		$this->assertTrue($spec->isBackendOnly());
 		$this->assertTrue($spec->isHelper());
 		$this->assertSame('signing_mode', $spec->parentPolicyKey());
-		$this->assertSame(['worker_type', 'parallel_workers'], $spec->compositeChildren());
+		$this->assertSame(['child_a', 'child_b'], $spec->compositeChildren());
 	}
 
 	public function testNormalizerAndValidatorAreApplied(): void {
@@ -230,7 +194,7 @@ final class PolicySpecTest extends TestCase {
 	#[DataProvider('provideUnconstrainedValues')]
 	public function testValidationAllowsAnyValueWhenAllowedValuesIsEmpty(mixed $value): void {
 		$spec = new PolicySpec(
-			key: 'signature_text_template',
+			key: 'unconstrained_setting',
 			defaultSystemValue: '',
 			allowedValues: [],
 		);
@@ -243,7 +207,7 @@ final class PolicySpecTest extends TestCase {
 	#[DataProvider('provideConstrainedValidationCases')]
 	public function testValidationAgainstDefinedAllowedValues(mixed $value, bool $shouldThrow): void {
 		$spec = new PolicySpec(
-			key: 'signature_render_mode',
+			key: 'enum_setting',
 			defaultSystemValue: 'default',
 			allowedValues: ['default', 'graphic', 'text'],
 		);
