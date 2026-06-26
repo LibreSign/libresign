@@ -54,8 +54,17 @@ export type EffectivePoliciesState = EffectivePoliciesResponse['policies']
 type OpenApiEffectivePolicyState = ApiRecordValue<EffectivePoliciesState>
 type OpenApiEffectivePolicyMeta = Exclude<OpenApiEffectivePolicyState['meta'], undefined>
 export type EffectivePolicyMeta = OpenApiEffectivePolicyMeta & {
+	appConfigKey?: string
+	userPreferenceKey?: string
+	resolutionMode?: string
 	canCreateDescendantRules?: boolean
+	supportsGroupAdminDelegation?: boolean
 	supportsUserPreference?: boolean
+	supportedScopes?: Array<'system' | 'group' | 'user'>
+	backendOnly?: boolean
+	helper?: boolean
+	parentPolicyKey?: string
+	compositeChildren?: string[]
 }
 export type EffectivePolicyState = Omit<OpenApiEffectivePolicyState, 'meta'> & {
 	meta?: EffectivePolicyMeta
