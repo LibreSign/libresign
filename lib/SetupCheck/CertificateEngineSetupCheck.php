@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\SetupCheck;
 
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCP\IL10N;
@@ -41,7 +42,7 @@ class CertificateEngineSetupCheck implements ISetupCheck {
 		try {
 			$engine = $this->certificateEngineFactory->getEngine();
 			$checkResults = $engine->configureCheck();
-		} catch (\Throwable $e) {
+		} catch (LibresignException $e) {
 			$engineName = $this->certificateEngineFactory->getEngine()->getName() ?? 'unknown';
 			return SetupResult::error(
 				$this->l10n->t('Define the certificate engine to use'),
