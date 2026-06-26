@@ -107,7 +107,8 @@ class JSignPdfSetupCheck implements ISetupCheck {
 
 		if (!$currentVersion) {
 			$msg = $this->l10n->t('Necessary install the version %s', [InstallService::JSIGNPDF_VERSION]);
-			return SetupResult::error($msg, $this->l10n->t('Run occ libresign:install --jsignpdf'));
+			// TRANSLATORS Command to run into terminal using Nextcloud occ to configure LibreSign using CLI when the sysadmin want to do this by CLI.
+			return SetupResult::error($msg, $this->l10n->t('Run %s', ['occ libresign:install --jsignpdf']));
 		}
 
 		if (version_compare($currentVersion, InstallService::JSIGNPDF_VERSION, '<')) {
