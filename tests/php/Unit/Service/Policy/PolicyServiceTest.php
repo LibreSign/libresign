@@ -22,6 +22,8 @@ use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolic
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
+use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
@@ -102,6 +104,10 @@ final class PolicyServiceTest extends TestCase {
 		$this->source = $this->createMock(PolicySource::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n->method('t')->willReturnCallback(static function (string $text, array $parameters = []): string {
+			if ($parameters !== [] && array_is_list($parameters)) {
+				return vsprintf($text, array_map(static fn (mixed $value): string => (string)$value, $parameters));
+			}
+
 			foreach ($parameters as $key => $value) {
 				$text = str_replace('{' . $key . '}', (string)$value, $text);
 			}
@@ -121,6 +127,8 @@ final class PolicyServiceTest extends TestCase {
 					RequestSignGroupsPolicy::class => new RequestSignGroupsPolicy(),
 					SignatureFlowPolicy::class => new SignatureFlowPolicy(),
 					DocMdpPolicy::class => new DocMdpPolicy(),
+					SigningModePolicy::class => new SigningModePolicy(),
+					WorkerConfigPolicy::class => new WorkerConfigPolicy(),
 					default => throw new \RuntimeException('Unexpected provider class: ' . $class),
 				};
 			});
@@ -133,6 +141,8 @@ final class PolicyServiceTest extends TestCase {
 			RequestSignGroupsPolicy::class,
 			SignatureFlowPolicy::class,
 			DocMdpPolicy::class,
+			SigningModePolicy::class,
+			WorkerConfigPolicy::class,
 		]);
 		$this->contextFactory = new PolicyContextFactory($this->userManager, $this->groupManager, $this->subAdmin, $this->userSession);
 	}
@@ -623,6 +633,82 @@ final class PolicyServiceTest extends TestCase {
 		$service->clearUserPolicyForUserId(RequestSignGroupsPolicy::KEY, 'user1');
 	}
 
+	#[\PHPUnit\Framework\Attributes\DataProvider('provideSystemOnlyPolicyKeys')]
+	public function testSaveGroupPolicyRejectsSystemOnlyPolicies(string $policyKey): void {
+		$this->source
+			->expects($this->never())
+			->method('saveGroupPolicy');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Group-level scope is not supported for this policy');
+
+		$service->saveGroupPolicy($policyKey, 'finance', 'async', false);
+	}
+
+	#[\PHPUnit\Framework\Attributes\DataProvider('provideSystemOnlyPolicyKeys')]
+	public function testClearGroupPolicyRejectsSystemOnlyPolicies(string $policyKey): void {
+		$this->source
+			->expects($this->never())
+			->method('clearGroupPolicy');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Group-level scope is not supported for this policy');
+
+		$service->clearGroupPolicy($policyKey, 'finance');
+	}
+
+	#[\PHPUnit\Framework\Attributes\DataProvider('provideSystemOnlyPolicyKeys')]
+	public function testSaveUserPreferenceRejectsSystemOnlyPolicies(string $policyKey): void {
+		$this->source
+			->expects($this->never())
+			->method('saveUserPreference');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('User-level scope is not supported for this policy');
+
+		$service->saveUserPreference($policyKey, 'async');
+	}
+
+	#[\PHPUnit\Framework\Attributes\DataProvider('provideSystemOnlyPolicyKeys')]
+	public function testSaveUserPolicyForUserIdRejectsSystemOnlyPolicies(string $policyKey): void {
+		$this->source
+			->expects($this->never())
+			->method('saveUserPolicy');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('User-level scope is not supported for this policy');
+
+		$service->saveUserPolicyForUserId($policyKey, 'user1', 'async', false);
+	}
+
 	public function testSaveSystemPersistsAllowChildOverrideWhenEnabled(): void {
 		$this->source
 			->expects($this->once())
@@ -654,6 +740,12 @@ final class PolicyServiceTest extends TestCase {
 
 		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
 		$this->assertSame('system', $resolved->getSourceScope());
+	}
+
+	/** @return iterable<string, array{0: string}> */
+	public static function provideSystemOnlyPolicyKeys(): iterable {
+		yield 'signing_mode card' => [SigningModePolicy::KEY_SIGNING_MODE];
+		yield 'worker_config helper' => [WorkerConfigPolicy::KEY];
 	}
 
 	public function testSaveSystemIgnoresCurrentActorUserPolicyInReturnedState(): void {
