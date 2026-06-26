@@ -23,7 +23,6 @@ function createPolicyState(overrides: Partial<EffectivePolicyState>): EffectiveP
 	return {
 		policyKey: overrides.policyKey ?? 'policy',
 		effectiveValue: overrides.effectiveValue ?? null,
-		inheritedValue: overrides.inheritedValue,
 		sourceScope: overrides.sourceScope ?? 'system',
 		visible: overrides.visible ?? true,
 		editableByCurrentActor: overrides.editableByCurrentActor ?? true,
