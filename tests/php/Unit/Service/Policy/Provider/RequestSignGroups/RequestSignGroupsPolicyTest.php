@@ -46,6 +46,8 @@ final class RequestSignGroupsPolicyTest extends TestCase {
 		$definition = $provider->get(RequestSignGroupsPolicy::KEY);
 
 		$this->assertFalse($definition->supportsUserPreference(), 'groups_request_sign must not appear in user preferences');
+		$this->assertSame(['system', 'group'], $definition->supportedScopes());
+		$this->assertFalse($definition->supportsScope('user'));
 	}
 
 	public function testGroupsRequestSignSupportsGroupAdminDelegation(): void {
