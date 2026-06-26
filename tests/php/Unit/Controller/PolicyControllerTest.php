@@ -522,6 +522,38 @@ final class PolicyControllerTest extends TestCase {
 		], $response->getData());
 	}
 
+	public function testSetSystemAcceptsDescriptionOnlySignatureRenderMode(): void {
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setPolicyKey('signature_render_mode')
+			->setEffectiveValue('description_only')
+			->setSourceScope('system')
+			->setVisible(true)
+			->setEditableByCurrentActor(true)
+			->setAllowedValues(['default', 'graphic', 'text', 'description_only'])
+			->setCanSaveAsUserDefault(true)
+			->setCanUseAsRequestOverride(false)
+			->setPreferenceWasCleared(false)
+			->setBlockedBy(null);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveSystem')
+			->with('signature_render_mode', 'description_only', false)
+			->willReturn($resolvedPolicy);
+
+		$response = $this->controller->setSystem('signature_render_mode', 'description_only');
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('description_only', $response->getData()['policy']['effectiveValue']);
+		$this->assertSame(['default', 'graphic', 'text', 'description_only'], $response->getData()['policy']['allowedValues']);
+	}
+
 	public function testSetSystemForwardsAllowChildOverrideWhenProvided(): void {
 		$resolvedPolicy = (new ResolvedPolicy())
 			->setPolicyKey('signature_flow')
@@ -1193,6 +1225,26 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
 		$this->assertSame([
 			'error' => 'Lower-level overrides are not allowed for this policy',
+		], $response->getData());
+	}
+
+	public function testClearGroupReturnsBadRequestWhenPolicyDoesNotSupportGroupScope(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$this->policyService
+			->expects($this->once())
+			->method('clearGroupPolicy')
+			->with('signing_mode', 'finance')
+			->willThrowException(new \InvalidArgumentException('Group-level scope is not supported for this policy'));
+
+		$response = $this->controller->clearGroup('finance', 'signing_mode');
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Group-level scope is not supported for this policy',
 		], $response->getData());
 	}
 
