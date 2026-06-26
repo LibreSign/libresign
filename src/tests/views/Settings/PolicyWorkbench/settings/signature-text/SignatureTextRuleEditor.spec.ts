@@ -294,6 +294,39 @@ describe('SignatureTextRuleEditor.vue', () => {
 		)
 	})
 
+	it('hydrates the canonical metadata template when collect metadata is already enabled', async () => {
+		const wrapper = mount(SignatureTextRuleEditor, {
+			props: {
+				modelValue: asModelValue({
+					template: defaultTemplate,
+					template_font_size: 9.8,
+					signature_font_size: 20,
+					signature_width: 350,
+					signature_height: 100,
+					background_type: 'default',
+					render_mode: 'default',
+				}),
+				collectMetadataEnabled: true,
+			},
+			global: {
+				stubs: {
+					NcIconSvgWrapper: {
+						name: 'NcIconSvgWrapper',
+						template: '<span class="icon-stub" />',
+					},
+				},
+			},
+		})
+
+		await vi.advanceTimersByTimeAsync(250)
+		await Promise.resolve()
+		await Promise.resolve()
+
+		const template = (wrapper.find('textarea.code-editor-stub').element as HTMLTextAreaElement).value
+		expect(template).toContain('{{SignerIP}}')
+		expect(template).toContain('{{SignerUserAgent}}')
+	})
+
 	it('hides reset actions while the rule matches the inherited defaults', async () => {
 		const wrapper = mount(SignatureTextRuleEditor, {
 			props: {
