@@ -770,12 +770,23 @@ export function createRealPolicyWorkbenchState() {
 		return activeDefinition.value.hasSelectableDraftValue(draft.value)
 	}
 
-	function isScopeSupported(scope: PolicyScope): boolean {
-		if (!activeDefinition.value?.supportedScopes || activeDefinition.value.supportedScopes.length === 0) {
-			return true
+	function resolveSupportedScopes(): PolicyScope[] {
+		const backendSupportedScopes = activePolicyState.value?.meta?.supportedScopes
+		if (Array.isArray(backendSupportedScopes) && backendSupportedScopes.length > 0) {
+			return backendSupportedScopes.filter((scope): scope is PolicyScope => {
+				return scope === 'system' || scope === 'group' || scope === 'user'
+			})
 		}
 
-		return activeDefinition.value.supportedScopes.includes(scope)
+		if (!activeDefinition.value?.supportedScopes || activeDefinition.value.supportedScopes.length === 0) {
+			return ['system', 'group', 'user']
+		}
+
+		return [...activeDefinition.value.supportedScopes]
+	}
+
+	function isScopeSupported(scope: PolicyScope): boolean {
+		return resolveSupportedScopes().includes(scope)
 	}
 
 	function buildAllowOverrideContext(scope: PolicyScope) {
