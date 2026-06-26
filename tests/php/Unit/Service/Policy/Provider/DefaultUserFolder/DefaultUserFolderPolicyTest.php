@@ -22,7 +22,9 @@ final class DefaultUserFolderPolicyTest extends TestCase {
 
 		$definition = $provider->get(DefaultUserFolderPolicy::KEY);
 		$this->assertSame(DefaultUserFolderPolicy::KEY, $definition->key());
+		$this->assertSame(DefaultUserFolderPolicy::SYSTEM_APP_CONFIG_KEY, $definition->getAppConfigKey());
 		$this->assertSame(DefaultUserFolderPolicy::DEFAULT_FOLDER, $definition->defaultSystemValue());
+		$this->assertSame(['system', 'group', 'user'], $definition->supportedScopes());
 	}
 
 	public function testNormalizesEmptyFolderToDefault(): void {
@@ -31,6 +33,7 @@ final class DefaultUserFolderPolicyTest extends TestCase {
 
 		$this->assertSame('Team Certificates', $definition->normalizeValue('Team Certificates'));
 		$this->assertSame(DefaultUserFolderPolicy::DEFAULT_FOLDER, $definition->normalizeValue(''));
+		$this->assertSame(DefaultUserFolderPolicy::DEFAULT_FOLDER, $definition->normalizeValue('   '));
 	}
 
 	public function testProviderSupportsDelegatedGroupAdminOverlays(): void {
