@@ -44,13 +44,23 @@ const emit = defineEmits<{
 
 const selected = computed(() => normalizeHashAlgorithm(props.modelValue))
 
+function getOptionDescription(algorithm: HashAlgorithm): string {
+	if (algorithm === 'SHA1') {
+		return t('libresign', 'Use {algorithm} only for legacy compatibility with very old PDF files. Newer PDFs will still use a stronger algorithm when required.', {
+			algorithm,
+		})
+	}
+
+	return t('libresign', 'Use {algorithm} as the signature digest algorithm.', {
+		algorithm,
+	})
+}
+
 const options = HASH_ALGORITHMS.map((algorithm) => ({
 	value: algorithm,
 	label: algorithm,
 	// TRANSLATORS {algorithm} is the hash algorithm name (for example SHA256) used to compute the digital signature digest.
-	description: t('libresign', 'Use {algorithm} as the signature digest algorithm.', {
-		algorithm,
-	}),
+	description: getOptionDescription(algorithm),
 }))
 
 function onChange(nextValue: HashAlgorithm, selectedOption?: unknown): void {
