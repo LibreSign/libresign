@@ -152,6 +152,8 @@ OC.L10N.register(
     "Modified" : "Modificado",
     "Switch to list view" : "Mudar visualização para o modo lista",
     "Switch to grid view" : "Mudar visualização para o modo grelha",
+    "Reload content" : "Recarregar conteúdo",
+    "File list is reloading" : "A lista de arquivos está recarregando",
     "1 file" : "1 ficheiro",
     "Total rows summary" : "Resumo do total de linhas",
     "Created at" : "Criado em",
@@ -190,6 +192,8 @@ OC.L10N.register(
     "_{count} file_::_{count} files_" : ["{count} ficheiro","{count} ficheiros","{count} ficheiros"],
     "Today" : "Hoje",
     "Last 7 days" : "Últimos 7 dias",
-    "Last 30 days" : "Últimos 30 dias"
+    "Last 30 days" : "Últimos 30 dias",
+    "This year ({year})" : "Este ano ({year})",
+    "Last year ({year})" : "Último ano ({year})"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
