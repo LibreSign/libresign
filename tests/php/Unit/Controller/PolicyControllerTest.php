@@ -522,14 +522,15 @@ final class PolicyControllerTest extends TestCase {
 		], $response->getData());
 	}
 
-	public function testSetSystemAcceptsDescriptionOnlySignatureRenderMode(): void {
+	public function testSetSystemAcceptsDescriptionOnlySignatureStampPayload(): void {
+		$payload = '{"template":"Signed with LibreSign","template_font_size":9.8,"signature_font_size":20,"signature_width":350,"signature_height":100,"background_type":"default","render_mode":"description_only"}';
 		$resolvedPolicy = (new ResolvedPolicy())
-			->setPolicyKey('signature_render_mode')
-			->setEffectiveValue('description_only')
+			->setPolicyKey('signature_stamp')
+			->setEffectiveValue($payload)
 			->setSourceScope('system')
 			->setVisible(true)
 			->setEditableByCurrentActor(true)
-			->setAllowedValues(['default', 'graphic', 'text', 'description_only'])
+			->setAllowedValues([])
 			->setCanSaveAsUserDefault(true)
 			->setCanUseAsRequestOverride(false)
 			->setPreferenceWasCleared(false)
@@ -544,14 +545,15 @@ final class PolicyControllerTest extends TestCase {
 		$this->policyService
 			->expects($this->once())
 			->method('saveSystem')
-			->with('signature_render_mode', 'description_only', false)
+			->with('signature_stamp', $payload, false)
 			->willReturn($resolvedPolicy);
 
-		$response = $this->controller->setSystem('signature_render_mode', 'description_only');
+		$response = $this->controller->setSystem('signature_stamp', $payload);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame('description_only', $response->getData()['policy']['effectiveValue']);
-		$this->assertSame(['default', 'graphic', 'text', 'description_only'], $response->getData()['policy']['allowedValues']);
+		$effectiveValue = json_decode((string)$response->getData()['policy']['effectiveValue'], true, flags: JSON_THROW_ON_ERROR);
+		$this->assertSame('description_only', $effectiveValue['render_mode']);
+		$this->assertSame([], $response->getData()['policy']['allowedValues']);
 	}
 
 	public function testSetSystemForwardsAllowChildOverrideWhenProvided(): void {
