@@ -13,6 +13,7 @@ use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
 use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicyValue;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class ReminderPolicyTest extends TestCase {
@@ -22,44 +23,54 @@ final class ReminderPolicyTest extends TestCase {
 
 		$definition = $provider->get(ReminderPolicy::KEY);
 		$this->assertSame(ReminderPolicy::KEY, $definition->key());
+		$this->assertSame(ReminderPolicy::SYSTEM_APP_CONFIG_KEY, $definition->getAppConfigKey());
 		$this->assertSame(
 			ReminderPolicyValue::encode(ReminderPolicyValue::defaults()),
 			$definition->defaultSystemValue(),
 		);
+		$this->assertSame(['system', 'group', 'user'], $definition->supportedScopes());
 	}
 
-	public function testProviderNormalizesReminderPayload(): void {
+	#[DataProvider('providerNormalizeReminderPayload')]
+	public function testProviderNormalizesReminderPayload(array $input, string $expected): void {
 		$provider = new ReminderPolicy();
 		$definition = $provider->get(ReminderPolicy::KEY);
 
-		$normalized = $definition->normalizeValue([
-			'days_before' => '2',
-			'days_between' => 3,
-			'max' => '4',
-			'send_timer' => '09:45',
-		]);
+		$normalized = $definition->normalizeValue($input);
 
-		$this->assertSame(
-			'{"days_before":2,"days_between":3,"max":4,"send_timer":"09:45"}',
-			$normalized,
-		);
+		$this->assertSame($expected, $normalized);
 	}
 
-	public function testProviderNormalizesInvalidReminderPayload(): void {
-		$provider = new ReminderPolicy();
-		$definition = $provider->get(ReminderPolicy::KEY);
-
-		$normalized = $definition->normalizeValue([
-			'days_before' => -5,
-			'days_between' => 'not-number',
-			'max' => -1,
-			'send_timer' => 'invalid',
-		]);
-
-		$this->assertSame(
-			'{"days_before":0,"days_between":0,"max":0,"send_timer":"10:00"}',
-			$normalized,
-		);
+	public static function providerNormalizeReminderPayload(): array {
+		return [
+			'valid reminder payload' => [
+				[
+					'days_before' => '2',
+					'days_between' => 3,
+					'max' => '4',
+					'send_timer' => '09:45',
+				],
+				'{"days_before":2,"days_between":3,"max":4,"send_timer":"09:45"}',
+			],
+			'invalid reminder payload collapses to disabled state' => [
+				[
+					'days_before' => -5,
+					'days_between' => 'not-number',
+					'max' => -1,
+					'send_timer' => 'invalid',
+				],
+				'{"days_before":0,"days_between":0,"max":0,"send_timer":""}',
+			],
+			'enabled reminder payload without send time falls back to default time' => [
+				[
+					'days_before' => 2,
+					'days_between' => 3,
+					'max' => 4,
+					'send_timer' => '',
+				],
+				'{"days_before":2,"days_between":3,"max":4,"send_timer":"10:00"}',
+			],
+		];
 	}
 
 	public function testProviderSupportsDelegatedGroupAdminOverlays(): void {
