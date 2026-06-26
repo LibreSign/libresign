@@ -42,6 +42,19 @@ final class ReminderPolicyValue {
 		$max = self::toNonNegativeInt($rawValue['max'] ?? $defaults['max']);
 		$sendTimer = self::normalizeSendTimer($rawValue['send_timer'] ?? $defaults['send_timer']);
 
+		if ($daysBefore <= 0 || $daysBetween <= 0 || $max <= 0) {
+			return [
+				'days_before' => 0,
+				'days_between' => 0,
+				'max' => 0,
+				'send_timer' => '',
+			];
+		}
+
+		if ($sendTimer === '') {
+			$sendTimer = $defaults['send_timer'];
+		}
+
 		return [
 			'days_before' => $daysBefore,
 			'days_between' => $daysBetween,
