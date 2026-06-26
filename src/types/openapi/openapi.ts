@@ -1256,6 +1256,7 @@ export type components = {
             scope: "group";
             targetId: string;
             value: components["schemas"]["EffectivePolicyValue"];
+            effectiveValue?: components["schemas"]["EffectivePolicyValue"];
             allowChildOverride: boolean;
             visibleToChild: boolean;
             allowedValues: components["schemas"]["EffectivePolicyValue"][];
