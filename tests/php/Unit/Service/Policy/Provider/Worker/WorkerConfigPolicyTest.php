@@ -26,7 +26,7 @@ final class WorkerConfigPolicyTest extends TestCase {
 		$this->assertSame(['system'], $definition->supportedScopes());
 		$this->assertTrue($definition->isHelper());
 		$this->assertSame(SigningModePolicy::KEY_SIGNING_MODE, $definition->parentPolicyKey());
-		$this->assertSame([SigningModePolicy::KEY_WORKER_TYPE, SigningModePolicy::KEY_PARALLEL_WORKERS], $definition->compositeChildren());
+		$this->assertSame([], $definition->compositeChildren());
 
 		$default = json_decode((string)$definition->defaultSystemValue(), true);
 		$this->assertSame('local', $default['worker_type']);
