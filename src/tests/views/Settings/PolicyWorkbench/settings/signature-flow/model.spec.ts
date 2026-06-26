@@ -9,7 +9,7 @@ import {
 	resolveSignatureFlowPayloadForRequest,
 	resolveSignatureFlowMode,
 	toRequestSignatureFlowOverride,
-} from '../../../../views/Settings/PolicyWorkbench/settings/signature-flow/model'
+} from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-flow/model'
 
 describe('signature-flow model', () => {
 	it('resolves scalar integer values to flow modes', () => {
