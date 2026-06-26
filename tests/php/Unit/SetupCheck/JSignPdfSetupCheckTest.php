@@ -33,8 +33,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 class JSignPdfSetupCheckTest extends TestCase {
-	/** @var IL10N&MockObject */
-	private $l10n;
+	private IL10N&MockObject $l10n;
 	/** @var IAppConfig&MockObject */
 	private $appConfig;
 	/** @var JSignPdfHandler&MockObject */
