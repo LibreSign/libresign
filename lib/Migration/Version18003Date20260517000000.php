@@ -26,7 +26,6 @@ use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
-use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
@@ -38,6 +37,15 @@ use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 class Version18003Date20260517000000 extends SimpleMigrationStep {
+	private const LEGACY_SIGNATURE_TEXT_SYSTEM_APP_CONFIG_KEY = 'signature_text';
+	private const LEGACY_SIGNATURE_TEXT_TEMPLATE_KEY = 'signature_text_template';
+	private const LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY = 'template_font_size';
+	private const LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY = 'signature_width';
+	private const LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY = 'signature_height';
+	private const LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY = 'signature_font_size';
+	private const LEGACY_SIGNATURE_TEXT_BACKGROUND_TYPE_KEY = 'signature_background_type';
+	private const LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY = 'signature_render_mode';
+
 	public function __construct(
 		private IAppConfig $appConfig,
 	) {
@@ -303,15 +311,15 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 	}
 
 	private function migrateSignatureTextSettingsType(): void {
-		$legacyTemplate = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE);
+		$legacyTemplate = $this->readLegacyString(self::LEGACY_SIGNATURE_TEXT_TEMPLATE_KEY);
 		// These keys may be stored as float (type 16) by a previous migration (Version17003);
 		// readLegacyFloat falls back to getValueFloat when getValueString throws AppConfigTypeConflictException.
-		$legacyTemplateFontSize = $this->readLegacyFloat(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE);
-		$legacySignatureFontSize = $this->readLegacyFloat(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE);
-		$legacySignatureWidth = $this->readLegacyFloat(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH);
-		$legacySignatureHeight = $this->readLegacyFloat(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT);
-		$legacyBackgroundType = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_BACKGROUND_TYPE);
-		$legacyRenderMode = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE);
+		$legacyTemplateFontSize = $this->readLegacyFloat(self::LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY);
+		$legacySignatureFontSize = $this->readLegacyFloat(self::LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY);
+		$legacySignatureWidth = $this->readLegacyFloat(self::LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY);
+		$legacySignatureHeight = $this->readLegacyFloat(self::LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY);
+		$legacyBackgroundType = $this->readLegacyString(self::LEGACY_SIGNATURE_TEXT_BACKGROUND_TYPE_KEY);
+		$legacyRenderMode = $this->readLegacyString(self::LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY);
 
 		$hasLegacyValues = ($legacyTemplate !== null && trim($legacyTemplate) !== '')
 			|| $legacyTemplateFontSize !== null
@@ -342,7 +350,7 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 		// Check if there's an existing consolidated value
 		$existingValue = $this->appConfig->getValueString(
 			Application::APP_ID,
-			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY,
+			self::LEGACY_SIGNATURE_TEXT_SYSTEM_APP_CONFIG_KEY,
 			'',
 		);
 
@@ -359,20 +367,20 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 		// Save the consolidated JSON value
 		$this->appConfig->setValueString(
 			Application::APP_ID,
-			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY,
+			self::LEGACY_SIGNATURE_TEXT_SYSTEM_APP_CONFIG_KEY,
 			$encodedValue,
 		);
 	}
 
 	private function deleteLegacySignatureTextKeys(): void {
 		$legacyKeys = [
-			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE,
-			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE,
-			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH,
-			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT,
-			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE,
-			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE,
-			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_BACKGROUND_TYPE,
+			self::LEGACY_SIGNATURE_TEXT_TEMPLATE_KEY,
+			self::LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY,
+			self::LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY,
+			self::LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY,
+			self::LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY,
+			self::LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY,
+			self::LEGACY_SIGNATURE_TEXT_BACKGROUND_TYPE_KEY,
 		];
 
 		foreach ($legacyKeys as $key) {
@@ -426,7 +434,7 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 		$typedValue = $this->appConfig->getValueArray(
 			Application::APP_ID,
 			RequestSignGroupsPolicy::SYSTEM_APP_CONFIG_KEY,
-			RequestSignGroupsPolicyValue::DEFAULT_GROUPS,
+			RequestSignGroupsPolicyValue::DEFAULT_ALLOW_GROUPS,
 		);
 
 		$this->appConfig->deleteKey(Application::APP_ID, RequestSignGroupsPolicy::SYSTEM_APP_CONFIG_KEY);
@@ -495,9 +503,38 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 			return null;
 		}
 
+		if (array_is_list($decoded)) {
+			$decoded = $this->wrapLegacyIdentifyMethodsListPayload($decoded);
+		}
+
 		$prepared = $this->normalizeLegacyIdentifyMethodsSignatureMethodEnabled($decoded);
 
 		return IdentifyMethodsPolicyValue::normalize($prepared);
+	}
+
+	/**
+	 * @param list<mixed> $payload
+	 * @return array{factors: list<array<string, mixed>>}
+	 */
+	private function wrapLegacyIdentifyMethodsListPayload(array $payload): array {
+		$factors = [];
+
+		foreach ($payload as $entry) {
+			if (is_string($entry) && trim($entry) !== '') {
+				$factors[] = [
+					'name' => trim($entry),
+				];
+				continue;
+			}
+
+			if (is_array($entry)) {
+				$factors[] = $entry;
+			}
+		}
+
+		return [
+			'factors' => $factors,
+		];
 	}
 
 	private function normalizeLegacyIdentifyMethodsSignatureMethodEnabled(mixed $payload): mixed {
@@ -517,11 +554,33 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 			$payload['signatureMethodEnabled'] = $this->normalizeLegacySignatureMethodEnabled($payload['signatureMethodEnabled']);
 		}
 
+		if (isset($payload['signatureMethods']) && is_array($payload['signatureMethods']) && array_is_list($payload['signatureMethods'])) {
+			$payload['signatureMethods'] = $this->normalizeLegacySignatureMethods($payload['signatureMethods']);
+		}
+
 		if (isset($payload['factors']) && is_array($payload['factors'])) {
 			$payload['factors'] = $this->normalizeLegacyIdentifyMethodsSignatureMethodEnabled($payload['factors']);
 		}
 
 		return $payload;
+	}
+
+	/**
+	 * @param list<mixed> $value
+	 * @return array<string, array{enabled: bool}>
+	 */
+	private function normalizeLegacySignatureMethods(array $value): array {
+		$normalized = [];
+
+		foreach ($value as $signatureMethodName) {
+			if (!is_string($signatureMethodName) || trim($signatureMethodName) === '') {
+				continue;
+			}
+
+			$normalized[trim($signatureMethodName)] = ['enabled' => false];
+		}
+
+		return $normalized;
 	}
 
 	/**
