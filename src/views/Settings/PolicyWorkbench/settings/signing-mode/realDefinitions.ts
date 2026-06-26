@@ -27,6 +27,7 @@ export const signingModeRealDefinition: RealPolicySettingDefinition = {
 	groupAdminBehavior: {
 		canRenderPolicy: () => false,
 	},
+	supportedScopes: ['system'],
 	editor: SigningModeRuleEditor,
 	createEmptyValue: () => normalizeSigningExecutionSettings('sync'),
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeSigningExecutionSettings(value),
