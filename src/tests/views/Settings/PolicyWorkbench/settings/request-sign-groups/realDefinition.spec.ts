@@ -14,8 +14,8 @@ vi.mock('@nextcloud/l10n', () => ({
 import { requestSignGroupsRealDefinition } from '../../../../../../views/Settings/PolicyWorkbench/settings/request-sign-groups/realDefinition'
 
 describe('requestSignGroupsRealDefinition', () => {
-	it('supports instance, group, and account rule scopes', () => {
-		expect(requestSignGroupsRealDefinition.supportedScopes).toEqual(['system', 'group', 'user'])
+	it('supports only instance and group rule scopes', () => {
+		expect(requestSignGroupsRealDefinition.supportedScopes).toEqual(['system', 'group'])
 	})
 
 	it('locks child customization for group-admin group rules', () => {
