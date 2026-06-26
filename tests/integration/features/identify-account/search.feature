@@ -2,7 +2,7 @@ Feature: search
   Scenario: Search account by specific user
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true}] |
+      | value | (string){"factors":[{"name":"account","enabled":true}]} |
     And user "search-signer1" exists
     And user "search-signer2" exists
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=search-signer1"
@@ -20,7 +20,7 @@ Feature: search
   Scenario: Search account by multiple users
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true}] |
+      | value | (string){"factors":[{"name":"account","enabled":true}]} |
     And user "search-signer1" exists
     And user "search-signer2" exists
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=search-signer"
@@ -45,7 +45,7 @@ Feature: search
   Scenario: Search account by herself with partial name search
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true}] |
+      | value | (string){"factors":[{"name":"account","enabled":true}]} |
     And user "can-find-myself" exists
     And run the command "group:adduser admin can-find-myself" with result code 0
     And set the email of user "can-find-myself" to "my@email.tld"
@@ -64,7 +64,7 @@ Feature: search
   Scenario: Search account by herself without permission to identify by account
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"email","enabled":true}] |
+      | value | (string){"factors":[{"name":"email","enabled":true}]} |
     Given user "cant-find-myself" exists
     And run the command "group:adduser admin cant-find-myself" with result code 0
     And set the display name of user "cant-find-myself" to "Temporary Name"
@@ -81,7 +81,7 @@ Feature: search
     And set the email of user "admin" to "admin@email.tld"
     And set the display name of user "admin" to "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true}] |
+      | value | (string){"factors":[{"name":"account","enabled":true}]} |
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=admin@email.tld"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -99,7 +99,7 @@ Feature: search
     And set the email of user "admin" to "admin@email.tld"
     And set the display name of user "admin" to "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true}] |
+      | value | (string){"factors":[{"name":"account","enabled":true}]} |
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=admin@email.tld"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -110,7 +110,7 @@ Feature: search
     Given as user "admin"
     And set the email of user "admin" to "admin@email.tld"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"email","enabled":true}] |
+      | value | (string){"factors":[{"name":"email","enabled":true}]} |
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=admin@email.tld"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -130,7 +130,7 @@ Feature: search
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
     And run the command "user:setting notification-enabled activity notify_email_libresign_file_to_sign 1" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true}] |
+      | value | (string){"factors":[{"name":"account","enabled":true}]} |
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=notification-enabled"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -147,7 +147,7 @@ Feature: search
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
     And run the command "user:setting notification-disabled activity notify_email_libresign_file_to_sign 0" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true}] |
+      | value | (string){"factors":[{"name":"account","enabled":true}]} |
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=notification-disabled"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -164,7 +164,7 @@ Feature: search
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=0" with result code 0
     And run the command "user:setting notification-global-off activity notify_email_libresign_file_to_sign 1" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true}] |
+      | value | (string){"factors":[{"name":"account","enabled":true}]} |
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=notification-global-off"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
