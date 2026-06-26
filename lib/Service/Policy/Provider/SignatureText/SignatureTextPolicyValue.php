@@ -110,6 +110,7 @@ final class SignatureTextPolicyValue {
 		return max(0.1, $float);
 	}
 
+	/** @return 'default'|'graphic'|'text'|'description_only' */
 	private static function normalizeRenderMode(mixed $value): string {
 		$mode = (string)($value ?? 'default');
 		return match ($mode) {
@@ -118,6 +119,7 @@ final class SignatureTextPolicyValue {
 		};
 	}
 
+	/** @return 'default'|'custom'|'deleted' */
 	private static function normalizeBackgroundType(mixed $value): string {
 		$mode = (string)($value ?? 'default');
 		return match ($mode) {
