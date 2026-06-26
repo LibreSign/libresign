@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Policy\Model;
 
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -45,6 +46,41 @@ final class PolicySpecTest extends TestCase {
 			['defaultSystemValue' => 'canonical-john'],
 			$contextAwareSpec->resolvedStateMeta(PolicyContext::fromUserId('john')),
 		);
+	}
+
+	public function testResolvedPolicyFinalizerDefaultsToPassthroughAndMayMutateResolvedState(): void {
+		$passthroughSpec = new PolicySpec(
+			key: 'signature_flow',
+			defaultSystemValue: 'none',
+			allowedValues: [],
+		);
+		$customSpec = new PolicySpec(
+			key: 'worker_config',
+			defaultSystemValue: '{}',
+			allowedValues: [],
+			resolvedPolicyFinalizer: static function (ResolvedPolicy $resolved, PolicyContext $context, callable $resolvePolicy): ResolvedPolicy {
+				return $resolved->setEffectiveValue('finalized-' . $context->getUserId());
+			},
+		);
+
+		$resolved = (new ResolvedPolicy())
+			->setPolicyKey('signature_flow')
+			->setEffectiveValue('none');
+
+		$this->assertSame(
+			$resolved,
+			$passthroughSpec->finalizeResolvedPolicy($resolved, new PolicyContext(), static fn (string $policyKey): ResolvedPolicy => new ResolvedPolicy()),
+		);
+
+		$finalized = $customSpec->finalizeResolvedPolicy(
+			(new ResolvedPolicy())
+				->setPolicyKey('worker_config')
+				->setEffectiveValue('{}'),
+			PolicyContext::fromUserId('john'),
+			static fn (string $policyKey): ResolvedPolicy => new ResolvedPolicy(),
+		);
+
+		$this->assertSame('finalized-john', $finalized->getEffectiveValue());
 	}
 
 	public function testDefaultStorageKeysFallbackToPolicyKey(): void {
