@@ -14,6 +14,14 @@ use PHPUnit\Framework\TestCase;
 
 final class RequestSignGroupsPolicyValueTest extends TestCase {
 	/**
+	 * @param array{allowGroups: list<string>, denyGroups: list<string>} $expected
+	 */
+	#[DataProvider('decodePolicyProvider')]
+	public function testDecodePolicy(mixed $rawValue, array $expected): void {
+		self::assertSame($expected, RequestSignGroupsPolicyValue::decodePolicy($rawValue));
+	}
+
+	/**
 	 * @param list<string> $expected
 	 */
 	#[DataProvider('scopedGroupsProvider')]
@@ -21,9 +29,62 @@ final class RequestSignGroupsPolicyValueTest extends TestCase {
 		self::assertSame($expected, RequestSignGroupsPolicyValue::decodeScopedGroups($rawValue));
 	}
 
+	#[DataProvider('encodeProvider')]
+	public function testEncode(mixed $rawValue, string $expected): void {
+		self::assertSame($expected, RequestSignGroupsPolicyValue::encode($rawValue));
+	}
+
 	#[DataProvider('canUserGroupsRequestSignProvider')]
 	public function testCanUserGroupsRequestSign(mixed $rawValue, array $userGroups, bool $expected): void {
 		self::assertSame($expected, RequestSignGroupsPolicyValue::canUserGroupsRequestSign($rawValue, $userGroups));
+	}
+
+	/**
+	 * @return iterable<string, array{0: mixed, 1: array{allowGroups: list<string>, denyGroups: list<string>}}>
+	 */
+	public static function decodePolicyProvider(): iterable {
+		yield 'json canonical policy normalizes and sorts both lists' => [
+			'{"allowGroups":[" finance ","admin","finance"],"denyGroups":[""," legal "]}',
+			[
+				'allowGroups' => ['admin', 'finance'],
+				'denyGroups' => ['legal'],
+			],
+		];
+
+		yield 'native canonical payload is normalized' => [
+			[
+				'allowGroups' => [' board ', 'admin', 'board'],
+				'denyGroups' => ['legal', '', ' ops '],
+			],
+			[
+				'allowGroups' => ['admin', 'board'],
+				'denyGroups' => ['legal', 'ops'],
+			],
+		];
+
+		yield 'json list payloads are ignored' => [
+			'["admin"," board "]',
+			[
+				'allowGroups' => [],
+				'denyGroups' => [],
+			],
+		];
+
+		yield 'blank strings collapse to empty policy' => [
+			'   ',
+			[
+				'allowGroups' => [],
+				'denyGroups' => [],
+			],
+		];
+
+		yield 'non array allow groups are ignored while valid deny groups survive' => [
+			'{"allowGroups":"admin","denyGroups":[" legal "]}',
+			[
+				'allowGroups' => [],
+				'denyGroups' => ['legal'],
+			],
+		];
 	}
 
 	/**
@@ -35,9 +96,50 @@ final class RequestSignGroupsPolicyValueTest extends TestCase {
 			['board', 'finance', 'legal', 'ops'],
 		];
 
-		yield 'legacy list format is still supported' => [
+		yield 'native canonical payload merges allow and deny groups' => [
+			[
+				'allowGroups' => [' finance ', 'board', ''],
+				'denyGroups' => ['legal', 'board', ' ops '],
+			],
+			['board', 'finance', 'legal', 'ops'],
+		];
+
+		yield 'native list arrays are ignored' => [
 			['admin', ' board ', 'admin'],
-			['admin', 'board'],
+			[],
+		];
+
+		yield 'json list payloads are ignored' => [
+			'["admin", " board ", "admin"]',
+			[],
+		];
+
+		yield 'invalid strings are ignored' => [
+			'not-json',
+			[],
+		];
+	}
+
+	/**
+	 * @return iterable<string, array{0: mixed, 1: string}>
+	 */
+	public static function encodeProvider(): iterable {
+		yield 'native allow-list input becomes canonical policy object' => [
+			[' finance ', 'admin', 'finance'],
+			'{"allowGroups":["admin","finance"],"denyGroups":[]}',
+		];
+
+		yield 'canonical object input preserves deny groups' => [
+			[
+				'allowGroups' => ['board', ' admin '],
+				'denyGroups' => [' legal ', 'board'],
+			],
+			'{"allowGroups":["admin","board"],"denyGroups":["board","legal"]}',
+		];
+
+		yield 'invalid payloads collapse to empty canonical object' => [
+			'not-json',
+			'{"allowGroups":[],"denyGroups":[]}',
 		];
 	}
 
@@ -60,6 +162,24 @@ final class RequestSignGroupsPolicyValueTest extends TestCase {
 		yield 'denies when user matches denied group' => [
 			'{"allowGroups":["board"],"denyGroups":["board"]}',
 			['board'],
+			false,
+		];
+
+		yield 'allows when user group is normalized and denied groups are unrelated' => [
+			'{"allowGroups":[" finance ","admin"],"denyGroups":["legal"]}',
+			[' finance ', 'finance', 123],
+			true,
+		];
+
+		yield 'denies when canonical allow groups collapse to empty after normalization' => [
+			'{"allowGroups":["", "   "],"denyGroups":[]}',
+			['admin'],
+			false,
+		];
+
+		yield 'denies json list payloads that are no longer canonical' => [
+			'["admin"]',
+			['admin'],
 			false,
 		];
 
