@@ -180,10 +180,12 @@ test('identification factors rule editor shows available methods for everyone, g
 	await ensureUserExists(page.request, USER_ID, '123456')
 	await ensureGroupExists(page.request, GROUP_ID)
 	await ensureUserInGroup(page.request, USER_ID, GROUP_ID)
-	await setSystemPolicy(page.request, 'identify_methods', JSON.stringify([
-		{ name: 'account', enabled: true, requirement: 'required' },
-		{ name: 'email', enabled: true, requirement: 'optional' },
-	]))
+	await setSystemPolicy(page.request, 'identify_methods', JSON.stringify({
+		factors: [
+			{ name: 'account', enabled: true, requirement: 'required' },
+			{ name: 'email', enabled: true, requirement: 'optional' },
+		],
+	}))
 
 	const dialog = await openIdentificationFactorsDialog(page)
 	await clearPolicyWorkbenchRules(dialog)

@@ -55,7 +55,7 @@ const GROUP_ADMIN_PASSWORD = '123456'
 const BOARD_GROUP = 'policy-request-sign-overlay-board'
 const COMPANY_GROUP = 'policy-request-sign-overlay-company'
 const POLICY_KEY = 'groups_request_sign'
-const SYSTEM_REQUEST_SIGN_BASELINE = JSON.stringify(['admin'])
+const SYSTEM_REQUEST_SIGN_BASELINE = JSON.stringify({ allowGroups: ['admin'], denyGroups: [] })
 
 /**
  * Removes a group-scoped request-sign policy entry, tolerating missing rows.

@@ -75,7 +75,7 @@ const GROUP_ID = 'policy-menu-visibility-group'
 const GROUP_ADMIN = 'policy-menu-visibility-admin'
 
 const POLICY_KEY = 'add_footer'
-const REQUEST_SIGN_GROUPS = JSON.stringify(['admin', GROUP_ID])
+const REQUEST_SIGN_GROUPS = JSON.stringify({ allowGroups: ['admin', GROUP_ID], denyGroups: [] })
 const FOOTER_ENABLED_VALUE = JSON.stringify({
 	enabled: true,
 	writeQrcodeOnFooter: true,

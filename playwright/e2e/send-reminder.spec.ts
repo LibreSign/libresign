@@ -32,10 +32,13 @@ test('admin can send a reminder to a pending signer', async ({ page }) => {
 	await setSystemPolicy(
 		page.request,
 		'identify_methods',
-		JSON.stringify([
-			{ name: 'account', enabled: false, mandatory: false },
-			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } }, can_create_account: false },
-		]),
+		JSON.stringify({
+			can_create_account: false,
+			factors: [
+				{ name: 'account', enabled: false, requirement: 'optional' },
+				{ name: 'email', enabled: true, requirement: 'required', signatureMethods: { clickToSign: { enabled: true } } },
+			],
+		}),
 	)
 
 	const mailpit = createMailpitClient()
