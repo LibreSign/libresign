@@ -44,10 +44,12 @@ async function bootstrapAdminCertificate(page: Parameters<typeof test>[1] extend
 	await setSystemPolicy(
 		page.request,
 		'identify_methods',
-		JSON.stringify([
-			{ name: 'account', enabled: true, mandatory: true, signatureMethods: { password: { enabled: true } } },
-			{ name: 'email', enabled: false, mandatory: false },
-		]),
+		JSON.stringify({
+			factors: [
+				{ name: 'account', enabled: true, requirement: 'required', signatureMethods: { password: { enabled: true } } },
+				{ name: 'email', enabled: false, requirement: 'optional' },
+			],
+		}),
 	)
 
 	await setSystemPolicy(

@@ -59,10 +59,12 @@ test('sign herself with drawn signature', async ({ page }) => {
 	await setSystemPolicy(
 		page.request,
 		'identify_methods',
-		JSON.stringify([
-			{ name: 'account', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } } },
-			{ name: 'email', enabled: false, mandatory: false },
-		]),
+		JSON.stringify({
+			factors: [
+				{ name: 'account', enabled: true, requirement: 'required', signatureMethods: { clickToSign: { enabled: true } } },
+				{ name: 'email', enabled: false, requirement: 'optional' },
+			],
+		}),
 	)
 
 	await page.goto('./apps/libresign')
