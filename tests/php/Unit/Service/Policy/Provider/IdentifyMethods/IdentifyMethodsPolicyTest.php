@@ -31,7 +31,9 @@ final class IdentifyMethodsPolicyTest extends TestCase {
 
 		$definition = $provider->get(IdentifyMethodsPolicy::KEY);
 		$this->assertSame(IdentifyMethodsPolicy::KEY, $definition->key());
-		$this->assertSame([], $definition->defaultSystemValue());
+		$this->assertSame([
+			'factors' => [],
+		], $definition->defaultSystemValue());
 	}
 
 	public function testProviderNormalizesIdentifyMethodsPayload(): void {
@@ -39,18 +41,20 @@ final class IdentifyMethodsPolicyTest extends TestCase {
 		$definition = $provider->get(IdentifyMethodsPolicy::KEY);
 
 		$normalized = $definition->normalizeValue([
-			[
-				'name' => 'email',
-				'friendly_name' => 'Email',
-				'enabled' => 1,
-				'can_create_account' => '0',
-				'signatureMethods' => [
-					'email' => [
-						'enabled' => true,
-						'label' => 'Email token',
-					],
-					'clickToSign' => [
-						'enabled' => false,
+			'can_create_account' => false,
+			'factors' => [
+				[
+					'name' => 'email',
+					'friendly_name' => 'Email',
+					'enabled' => 1,
+					'signatureMethods' => [
+						'email' => [
+							'enabled' => true,
+							'label' => 'Email token',
+						],
+						'clickToSign' => [
+							'enabled' => false,
+						],
 					],
 				],
 			],
