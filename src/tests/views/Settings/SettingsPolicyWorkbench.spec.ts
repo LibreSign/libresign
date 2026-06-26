@@ -604,9 +604,9 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(accountScopeButton).toBeTruthy()
 		await accountScopeButton?.trigger('click')
 
-		const sha1Input = wrapper.find('input[type="radio"]')
-		expect(sha1Input.exists()).toBe(true)
-		await sha1Input.setValue(true)
+		const firstHashAlgorithmInput = wrapper.find('input[type="radio"]')
+		expect(firstHashAlgorithmInput.exists()).toBe(true)
+		await firstHashAlgorithmInput.setValue(true)
 
 		const createRuleDialog = wrapper
 			.findAll('.dialog')
@@ -1043,7 +1043,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(text).not.toContain('Renewal interval in seconds of a subscription request.')
 	})
 
-	it('allows user, group, and everyone scopes for signature processing', async () => {
+	it('opens signature processing directly in the system-scope editor', async () => {
 		const wrapper = mountWorkbench()
 
 		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signature processing')
@@ -1056,17 +1056,13 @@ describe('RealPolicyWorkbench.vue', () => {
 		const createRuleButton = findCreateRuleButton(wrapper)
 		expect(createRuleButton.exists()).toBe(true)
 		await createRuleButton.trigger('click')
+
 		await vi.waitFor(() => {
-			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+			expect(wrapper.find('.policy-workbench__editor-modal-body').exists()).toBe(true)
 		})
 
-		const createScopeDialog = wrapper.find('.policy-workbench__create-scope-dialog')
-		expect(createScopeDialog.exists()).toBe(true)
-		const text = createScopeDialog.text()
-		expect(text).toContain('Account')
-		expect(text).toContain('Group')
-		expect(text).toContain('Everyone')
-		expect(text).not.toContain('Not available for this setting.')
+		expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(false)
+		expect(wrapper.text()).toContain('Create rule')
 	})
 })
 
