@@ -78,7 +78,7 @@ final class SignatureTextPolicyValue {
 	private static function normalizeRenderMode(mixed $value): string {
 		$mode = (string)($value ?? 'default');
 		return match ($mode) {
-			'default', 'graphic', 'text' => $mode,
+			'default', 'graphic', 'text', 'description_only' => $mode,
 			default => 'default',
 		};
 	}
