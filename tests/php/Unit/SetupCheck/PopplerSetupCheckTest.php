@@ -23,11 +23,9 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class PopplerSetupCheckTest extends TestCase {
-	/** @var IL10N|MockObject */
-	private $l10n;
+	private IL10N&MockObject $l10n;
 
-	/** @var PopplerSetupCheck */
-	private $check;
+	private PopplerSetupCheck $check;
 
 	protected function setUp(): void {
 		parent::setUp();

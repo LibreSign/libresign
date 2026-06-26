@@ -23,16 +23,11 @@ use PHPUnit\Framework\TestCase;
 
 class SetupCheckResultServiceTest extends TestCase {
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
-	/** @var JavaSetupCheck&MockObject */
-	private $javaSetupCheck;
-	/** @var JSignPdfSetupCheck&MockObject */
-	private $jSignPdfSetupCheck;
-	/** @var PDFtkSetupCheck&MockObject */
-	private $pdftkSetupCheck;
-	/** @var PopplerSetupCheck&MockObject */
-	private $popplerSetupCheck;
-	/** @var ImagickSetupCheck&MockObject */
-	private $imagickSetupCheck;
+	private JavaSetupCheck&MockObject $javaSetupCheck;
+	private JSignPdfSetupCheck&MockObject $jSignPdfSetupCheck;
+	private PDFtkSetupCheck&MockObject $pdftkSetupCheck;
+	private PopplerSetupCheck&MockObject $popplerSetupCheck;
+	private ImagickSetupCheck&MockObject $imagickSetupCheck;
 	private SetupCheckResultService $service;
 
 	public function setUp(): void {
