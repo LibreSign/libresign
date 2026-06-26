@@ -6,7 +6,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
-import PolicyPrecedenceHint from '../../../../views/Settings/PolicyWorkbench/components/PolicyPrecedenceHint.vue'
+import PolicyPrecedenceHint from '../../../../../views/Settings/PolicyWorkbench/components/PolicyPrecedenceHint.vue'
 
 function escapeHtml(value: string) {
 	return value
