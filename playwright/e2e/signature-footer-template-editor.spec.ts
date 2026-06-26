@@ -28,7 +28,7 @@ async function bootstrapLibreSignAdmin(page: Page) {
 		},
 	})
 
-	await setSystemPolicy(page.request, 'groups_request_sign', JSON.stringify(['admin']))
+	await setSystemPolicy(page.request, 'groups_request_sign', JSON.stringify({ allowGroups: ['admin'], denyGroups: [] }))
 
 	await configureOpenSsl(page.request, 'LibreSign Test', {
 		C: 'BR',

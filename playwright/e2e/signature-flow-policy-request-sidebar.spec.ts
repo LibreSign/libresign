@@ -71,7 +71,7 @@ test.afterEach(async ({ adminRequestContext, groupAdminRequestContext }) => {
 	await clearUserPolicyPreference(adminRequestContext, POLICY_KEY, [200, 401, 500])
 	await clearUserPolicyPreference(groupAdminRequestContext, POLICY_KEY, [200, 401, 500])
 	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, 'none', true)
-	await setSystemPolicy(adminRequestContext, 'groups_request_sign', JSON.stringify(['admin']))
+	await setSystemPolicy(adminRequestContext, 'groups_request_sign', JSON.stringify({ allowGroups: ['admin'], denyGroups: [] }))
 })
 
 test('request sidebar persists signature flow preference through policies endpoint', async ({ page, adminRequestContext }) => {
@@ -88,10 +88,13 @@ test('request sidebar persists signature flow preference through policies endpoi
 	await setSystemPolicy(
 		adminRequestContext,
 		'identify_methods',
-		JSON.stringify([
-			{ name: 'account', enabled: false, mandatory: false },
-			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } }, can_create_account: false },
-		]),
+		JSON.stringify({
+			can_create_account: false,
+			factors: [
+				{ name: 'account', enabled: false, requirement: 'optional' },
+				{ name: 'email', enabled: true, requirement: 'required', signatureMethods: { clickToSign: { enabled: true } } },
+			],
+		}),
 	)
 
 	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, 'parallel', true)
@@ -141,16 +144,19 @@ for (const systemFlow of ['ordered_numeric', 'parallel'] as const) {
 		await setSystemPolicy(
 			adminRequestContext,
 			'identify_methods',
-			JSON.stringify([
-				{ name: 'account', enabled: false, mandatory: false },
-				{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } }, can_create_account: false },
-			]),
+			JSON.stringify({
+				can_create_account: false,
+				factors: [
+					{ name: 'account', enabled: false, requirement: 'optional' },
+					{ name: 'email', enabled: true, requirement: 'required', signatureMethods: { clickToSign: { enabled: true } } },
+				],
+			}),
 		)
 
 		await setSystemPolicy(
 			adminRequestContext,
 			'groups_request_sign',
-			JSON.stringify(['admin', GROUP_ADMIN_GROUP]),
+			JSON.stringify({ allowGroups: ['admin', GROUP_ADMIN_GROUP], denyGroups: [] }),
 		)
 
 		await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, systemFlow, false)
