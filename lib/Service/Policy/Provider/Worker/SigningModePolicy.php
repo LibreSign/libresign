@@ -45,6 +45,8 @@ final class SigningModePolicy implements IPolicyDefinitionProvider {
 					: 'sync',
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_SIGNING_MODE,
 				supportsUserPreference: false,
+				supportedScopes: [PolicySpec::SCOPE_SYSTEM],
+				compositeChildren: [WorkerConfigPolicy::KEY],
 			),
 			self::KEY_WORKER_TYPE => new PolicySpec(
 				key: self::KEY_WORKER_TYPE,
@@ -55,6 +57,9 @@ final class SigningModePolicy implements IPolicyDefinitionProvider {
 					: 'local',
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_WORKER_TYPE,
 				supportsUserPreference: false,
+				supportedScopes: [PolicySpec::SCOPE_SYSTEM],
+				helper: true,
+				parentPolicyKey: WorkerConfigPolicy::KEY,
 			),
 			self::KEY_PARALLEL_WORKERS => new PolicySpec(
 				key: self::KEY_PARALLEL_WORKERS,
@@ -66,6 +71,9 @@ final class SigningModePolicy implements IPolicyDefinitionProvider {
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_PARALLEL_WORKERS,
 				supportsUserPreference: false,
+				supportedScopes: [PolicySpec::SCOPE_SYSTEM],
+				helper: true,
+				parentPolicyKey: WorkerConfigPolicy::KEY,
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
 		};
