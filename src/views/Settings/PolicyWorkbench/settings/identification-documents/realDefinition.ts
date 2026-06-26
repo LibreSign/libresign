@@ -15,6 +15,8 @@ export interface IdentificationDocumentsPayload {
 	approvers: string[]
 }
 
+type ApproverLike = string | { id?: unknown }
+
 const DEFAULT_IDENTIFICATION_DOCUMENTS_PAYLOAD: IdentificationDocumentsPayload = {
 	enabled: false,
 	approvers: ['admin'],
@@ -28,9 +30,45 @@ function isIdentificationDocumentsPayload(value: unknown): value is Identificati
 	return typeof obj.enabled === 'boolean' && Array.isArray(obj.approvers)
 }
 
+function normalizeApprovers(value: unknown): string[] {
+	if (!Array.isArray(value)) {
+		return ['admin']
+	}
+
+	const approvers = value
+		.map((entry): string => {
+			if (typeof entry === 'string') {
+				return entry.trim()
+			}
+
+			if (entry && typeof entry === 'object' && 'id' in (entry as ApproverLike)) {
+				const id = (entry as { id?: unknown }).id
+				return typeof id === 'string' ? id.trim() : ''
+			}
+
+			return ''
+		})
+		.filter((entry) => entry.length > 0)
+
+	return approvers.length > 0 ? approvers : ['admin']
+}
+
 function normalizeToPayload(value: EffectivePolicyValue): IdentificationDocumentsPayload {
 	if (isIdentificationDocumentsPayload(value)) {
-		return value
+		return {
+			enabled: value.enabled,
+			approvers: normalizeApprovers(value.approvers),
+		}
+	}
+
+	if (typeof value === 'object' && value !== null) {
+		const obj = value as Record<string, unknown>
+		if (typeof obj.enabled === 'boolean') {
+			return {
+				enabled: obj.enabled,
+				approvers: normalizeApprovers(obj.approvers),
+			}
+		}
 	}
 
 	// Default fallback

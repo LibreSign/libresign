@@ -24,7 +24,7 @@
 				{{ t('libresign', 'No groups available for this scope. Keep the default approver group or choose another scope.') }}
 			</p>
 			<NcSelect
-				v-model="draft.approvers"
+				:model-value="selectedApprovers"
 				:options="groupOptions"
 				:placeholder="t('libresign', 'Select groups...')"
 				:aria-label-combobox="t('libresign', 'Select approver groups')"
@@ -33,7 +33,7 @@
 				label="displayName"
 				:clearable="false"
 				:loading="groupsLoading"
-				@update:model-value="updateApprovers"
+				@update:modelValue="updateApprovers"
 			/>
 		</div>
 	</div>
@@ -62,6 +62,8 @@ interface GroupOption {
 	displayName: string
 }
 
+type ApproverSelection = Array<GroupOption | string>
+
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
@@ -74,18 +76,47 @@ const availableGroups = ref<GroupOption[]>([])
 function createDraftFromValue(value: IdentificationDocumentsPayload): IdentificationDocumentsPayload {
 	return {
 		enabled: value.enabled,
-		approvers: Array.isArray(value.approvers) ? value.approvers : ['admin'],
+		approvers: normalizeApproverIds(value.approvers),
 	}
 }
 
 const draft = ref<IdentificationDocumentsPayload>(createDraftFromValue(props.modelValue))
 
+const selectedApprovers = computed<ApproverSelection>(() => {
+	return draft.value.approvers.map((approverId: string) => {
+		return availableGroups.value.find((group: GroupOption) => group.id === approverId) ?? approverId
+	})
+})
+
 const groupOptions = computed(() => {
-	return availableGroups.value.map(group => ({
+	return availableGroups.value.map((group: GroupOption) => ({
 		id: group.id,
 		displayName: group.displayName,
 	}))
 })
+
+function normalizeApproverIds(value: unknown): string[] {
+	if (!Array.isArray(value)) {
+		return ['admin']
+	}
+
+	const approvers = value
+		.map((entry): string => {
+			if (typeof entry === 'string') {
+				return entry.trim()
+			}
+
+			if (entry && typeof entry === 'object' && 'id' in (entry as GroupOption)) {
+				const id = (entry as { id?: unknown }).id
+				return typeof id === 'string' ? id.trim() : ''
+			}
+
+			return ''
+		})
+		.filter((entry) => entry.length > 0)
+
+	return approvers.length > 0 ? approvers : ['admin']
+}
 
 function updateEnabled(enabled: boolean) {
 	draft.value.enabled = enabled
@@ -102,8 +133,8 @@ function emitChange() {
 	emit('update:modelValue', draft.value)
 }
 
-function updateApprovers(approvers: string[]) {
-	draft.value.approvers = approvers.length > 0 ? approvers : ['admin']
+function updateApprovers(approvers: ApproverSelection) {
+	draft.value.approvers = normalizeApproverIds(approvers)
 	emitChange()
 }
 
