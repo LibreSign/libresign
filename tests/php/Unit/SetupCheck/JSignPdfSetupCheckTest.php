@@ -34,25 +34,16 @@ use Psr\Log\LoggerInterface;
 
 class JSignPdfSetupCheckTest extends TestCase {
 	private IL10N&MockObject $l10n;
-	/** @var IAppConfig&MockObject */
-	private $appConfig;
-	/** @var JSignPdfHandler&MockObject */
-	private $jSignPdfHandler;
-	/** @var SignSetupService&MockObject */
-	private $signSetupService;
-	/** @var IURLGenerator&MockObject */
-	private $urlGenerator;
-	/** @var IAppManager&MockObject */
-	private $appManager;
-	/** @var LoggerInterface&MockObject */
-	private $logger;
-	/** @var IConfig&MockObject */
-	private $systemConfig;
-	/** @var JavaHelper&MockObject */
-	private $javaHelper;
+	private IAppConfig&MockObject $appConfig;
+	private JSignPdfHandler&MockObject $jSignPdfHandler;
+	private SignSetupService&MockObject $signSetupService;
+	private IURLGenerator&MockObject $urlGenerator;
+	private IAppManager&MockObject $appManager;
+	private LoggerInterface&MockObject $logger;
+	private IConfig&MockObject $systemConfig;
+	private JavaHelper&MockObject $javaHelper;
 
-	/** @var JSignPdfSetupCheck */
-	private $check;
+	private JSignPdfSetupCheck $check;
 
 	protected function setUp(): void {
 		parent::setUp();
