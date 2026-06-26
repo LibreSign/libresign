@@ -22,9 +22,12 @@ final class SignatureFlowPolicyTest extends TestCase {
 		$definition = $provider->get(SignatureFlowPolicy::KEY);
 
 		$this->assertSame(SignatureFlowPolicy::KEY, $definition->key());
+		$this->assertSame(SignatureFlowPolicy::SYSTEM_APP_CONFIG_KEY, $definition->getAppConfigKey());
 		$this->assertSame('none', $definition->defaultSystemValue());
 		$this->assertSame(['none', 'parallel', 'ordered_numeric'], $definition->allowedValues(new PolicyContext()));
 		$this->assertSame('ordered_numeric', $definition->normalizeValue('ordered_numeric'));
+		$this->assertSame(['system', 'group', 'user'], $definition->supportedScopes());
+		$this->assertSame('value_choice', $definition->resolutionMode());
 	}
 
 	public function testProviderSupportsDelegatedGroupAdminOverlays(): void {
