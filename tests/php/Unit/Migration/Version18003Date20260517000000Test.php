@@ -12,7 +12,6 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Migration\Version18003Date20260517000000;
 use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
-use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
@@ -23,6 +22,15 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class Version18003Date20260517000000Test extends TestCase {
+	private const LEGACY_SIGNATURE_TEXT_SYSTEM_APP_CONFIG_KEY = 'signature_text';
+	private const LEGACY_SIGNATURE_TEXT_TEMPLATE_KEY = 'signature_text_template';
+	private const LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY = 'template_font_size';
+	private const LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY = 'signature_width';
+	private const LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY = 'signature_height';
+	private const LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY = 'signature_font_size';
+	private const LEGACY_SIGNATURE_TEXT_BACKGROUND_TYPE_KEY = 'signature_background_type';
+	private const LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY = 'signature_render_mode';
+
 	private IAppConfig&MockObject $appConfig;
 
 	#[\Override]
@@ -315,11 +323,11 @@ final class Version18003Date20260517000000Test extends TestCase {
 					'groups_request_sign' => '',
 					'policy.signature_flow.system' => '',
 					'signature_flow' => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '11.5',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '350',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '100.25',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '18',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => 'default',
+					self::LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY => '11.5',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY => '350',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY => '100.25',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY => '18',
+					self::LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY => 'default',
 					'identify_methods' => '',
 				];
 				return $map[$key] ?? $default;
@@ -343,18 +351,18 @@ final class Version18003Date20260517000000Test extends TestCase {
 		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
-		self::assertArrayHasKey(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY, $savedStrings);
-		$decoded = json_decode($savedStrings[SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY], true);
+		self::assertArrayHasKey(self::LEGACY_SIGNATURE_TEXT_SYSTEM_APP_CONFIG_KEY, $savedStrings);
+		$decoded = json_decode($savedStrings[self::LEGACY_SIGNATURE_TEXT_SYSTEM_APP_CONFIG_KEY], true);
 		self::assertIsArray($decoded);
 		self::assertSame(11.5, $decoded['template_font_size']);
 		self::assertEquals(350.0, $decoded['signature_width']);
 		self::assertSame(100.25, $decoded['signature_height']);
 		self::assertEquals(18.0, $decoded['signature_font_size']);
-		self::assertContains([Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE], $deleted);
-		self::assertContains([Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH], $deleted);
-		self::assertContains([Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT], $deleted);
-		self::assertContains([Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE], $deleted);
-		self::assertArrayNotHasKey(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE, $savedStrings);
+		self::assertContains([Application::APP_ID, self::LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY], $deleted);
+		self::assertContains([Application::APP_ID, self::LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY], $deleted);
+		self::assertContains([Application::APP_ID, self::LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY], $deleted);
+		self::assertContains([Application::APP_ID, self::LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY], $deleted);
+		self::assertArrayNotHasKey(self::LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY, $savedStrings);
 	}
 
 	public function testNormalizesSignatureTextRenderModeToCanonicalPolicyValue(): void {
@@ -375,11 +383,11 @@ final class Version18003Date20260517000000Test extends TestCase {
 					'groups_request_sign' => '',
 					'policy.signature_flow.system' => '',
 					'signature_flow' => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => 'GRAPHIC_AND_DESCRIPTION',
+					self::LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY => 'GRAPHIC_AND_DESCRIPTION',
 					'identify_methods' => '',
 				];
 				return $map[$key] ?? $default;
@@ -397,7 +405,7 @@ final class Version18003Date20260517000000Test extends TestCase {
 		$this->appConfig
 			->method('setValueString')
 			->willReturnCallback(static function (string $app, string $key, string $value) use (&$renderModeWasNormalized): bool {
-				if ($key === SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY) {
+				if ($key === self::LEGACY_SIGNATURE_TEXT_SYSTEM_APP_CONFIG_KEY) {
 					TestCase::assertSame(Application::APP_ID, $app);
 					$decoded = json_decode($value, true);
 					TestCase::assertIsArray($decoded);
@@ -411,7 +419,7 @@ final class Version18003Date20260517000000Test extends TestCase {
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertTrue($renderModeWasNormalized);
-		self::assertContains([Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE], $deleted);
+		self::assertContains([Application::APP_ID, self::LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY], $deleted);
 	}
 
 	public function testMigratesPendingBooleanPoliciesFromLegacyStrings(): void {
@@ -432,11 +440,11 @@ final class Version18003Date20260517000000Test extends TestCase {
 					'groups_request_sign' => '',
 					'policy.signature_flow.system' => '',
 					'signature_flow' => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => '',
+					self::LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY => '',
 					'identify_methods' => '',
 				];
 				return $map[$key] ?? $default;
@@ -495,11 +503,11 @@ final class Version18003Date20260517000000Test extends TestCase {
 					'groups_request_sign' => '',
 					'policy.signature_flow.system' => '',
 					'signature_flow' => '2',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => '',
+					self::LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY => '',
 					'identify_methods' => '',
 				];
 				return $map[$key] ?? $default;
@@ -546,11 +554,11 @@ final class Version18003Date20260517000000Test extends TestCase {
 					'groups_request_sign' => '',
 					'policy.signature_flow.system' => '',
 					'signature_flow' => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => '',
+					self::LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY => '',
 					'identify_methods' => '',
 					ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY => '600',
 					ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL => '300',
@@ -605,11 +613,11 @@ final class Version18003Date20260517000000Test extends TestCase {
 					'groups_request_sign' => '',
 					'policy.signature_flow.system' => '',
 					'signature_flow' => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => '',
+					self::LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY => '',
 					'identify_methods' => '[{"name":"email","enabled":true,"mandatory":true,"signatureMethods":["emailToken"],"signatureMethodEnabled":["emailToken"]}]',
 				];
 
@@ -668,11 +676,11 @@ final class Version18003Date20260517000000Test extends TestCase {
 					'groups_request_sign' => '',
 					'policy.signature_flow.system' => '',
 					'signature_flow' => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => '',
+					self::LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY => '',
 					'identify_methods' => 'invalid-json',
 				];
 
@@ -720,11 +728,11 @@ final class Version18003Date20260517000000Test extends TestCase {
 					'groups_request_sign' => '',
 					'policy.signature_flow.system' => '',
 					'signature_flow' => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => '',
+					self::LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY => '',
 					'identify_methods' => '["email","sms"]',
 				];
 
@@ -785,11 +793,11 @@ final class Version18003Date20260517000000Test extends TestCase {
 					'groups_request_sign' => '',
 					'policy.signature_flow.system' => '',
 					'signature_flow' => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => '',
+					self::LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY => '',
 					'identify_methods' => '{"minimumTotalVerifiedFactors":"2","factors":[{"name":"email","signatureMethods":["emailToken"]},{"name":"sms","enabled":false,"signatureMethods":["smsToken"]}]}',
 				];
 
@@ -856,11 +864,11 @@ final class Version18003Date20260517000000Test extends TestCase {
 					'groups_request_sign' => '',
 					'policy.signature_flow.system' => '',
 					'signature_flow' => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => '',
+					self::LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY => '',
 					'identify_methods' => '{"factors":[{"name":"email","signatureMethods":["emailToken"],"signatureMethodEnabled":["emailToken"]}]}',
 				];
 
@@ -936,10 +944,10 @@ final class Version18003Date20260517000000Test extends TestCase {
 	 */
 	public function testPreservesSignatureTextFloatDimensionsAlreadyTypedAsFloat(): void {
 		$floatValues = [
-			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => 9.9,
-			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => 351.0,
-			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => 101.0,
-			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => 20.0,
+			self::LEGACY_SIGNATURE_TEXT_TEMPLATE_FONT_SIZE_KEY => 9.9,
+			self::LEGACY_SIGNATURE_TEXT_SIGNATURE_WIDTH_KEY => 351.0,
+			self::LEGACY_SIGNATURE_TEXT_SIGNATURE_HEIGHT_KEY => 101.0,
+			self::LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY => 20.0,
 		];
 
 		$this->appConfig
@@ -954,10 +962,10 @@ final class Version18003Date20260517000000Test extends TestCase {
 				}
 
 				$map = [
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE => 'Assinado com LibreSign',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => 'SIGNAME_AND_DESCRIPTION',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY => '',
-					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_BACKGROUND_TYPE => '',
+					self::LEGACY_SIGNATURE_TEXT_TEMPLATE_KEY => 'Assinado com LibreSign',
+					self::LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY => 'SIGNAME_AND_DESCRIPTION',
+					self::LEGACY_SIGNATURE_TEXT_SYSTEM_APP_CONFIG_KEY => '',
+					self::LEGACY_SIGNATURE_TEXT_BACKGROUND_TYPE_KEY => '',
 					'add_footer' => '',
 					'write_qrcode_on_footer' => '',
 					'validation_site' => '',
@@ -995,8 +1003,8 @@ final class Version18003Date20260517000000Test extends TestCase {
 		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
-		self::assertArrayHasKey(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY, $savedStrings);
-		$decoded = json_decode($savedStrings[SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY], true);
+		self::assertArrayHasKey(self::LEGACY_SIGNATURE_TEXT_SYSTEM_APP_CONFIG_KEY, $savedStrings);
+		$decoded = json_decode($savedStrings[self::LEGACY_SIGNATURE_TEXT_SYSTEM_APP_CONFIG_KEY], true);
 		self::assertIsArray($decoded);
 
 		// Values from the production dump must be preserved, not replaced with defaults
