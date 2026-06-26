@@ -13,14 +13,7 @@ export type RequestSignGroupsPolicyValue = {
 	denyGroups: string[]
 }
 
-export function resolveRequestSignGroupsPolicy(value: EffectivePolicyValue | string[] | RequestSignGroupsPolicyValue): RequestSignGroupsPolicyValue {
-	if (Array.isArray(value)) {
-		return {
-			allowGroups: normalizeGroupIds(value),
-			denyGroups: [...DEFAULT_REQUEST_SIGN_DENY_GROUPS],
-		}
-	}
-
+export function resolveRequestSignGroupsPolicy(value: EffectivePolicyValue | RequestSignGroupsPolicyValue): RequestSignGroupsPolicyValue {
 	if (typeof value === 'object' && value !== null) {
 		const candidate = value as Partial<RequestSignGroupsPolicyValue>
 		return {
@@ -46,13 +39,6 @@ export function resolveRequestSignGroupsPolicy(value: EffectivePolicyValue | str
 
 	try {
 		const parsed = JSON.parse(trimmed)
-		if (Array.isArray(parsed)) {
-			return {
-				allowGroups: normalizeGroupIds(parsed),
-				denyGroups: [],
-			}
-		}
-
 		if (typeof parsed === 'object' && parsed !== null) {
 			const candidate = parsed as Partial<RequestSignGroupsPolicyValue>
 			return {
@@ -61,24 +47,27 @@ export function resolveRequestSignGroupsPolicy(value: EffectivePolicyValue | str
 			}
 		}
 	} catch {
-		// Keep CSV fallback for legacy or manually edited values.
+		return {
+			allowGroups: [],
+			denyGroups: [],
+		}
 	}
 
 	return {
-		allowGroups: normalizeGroupIds(trimmed.split(',')),
+		allowGroups: [],
 		denyGroups: [],
 	}
 }
 
-export function resolveRequestSignGroups(value: EffectivePolicyValue | string[]): string[] {
+export function resolveRequestSignGroups(value: EffectivePolicyValue): string[] {
 	return resolveRequestSignGroupsPolicy(value).allowGroups
 }
 
-export function resolveDeniedRequestSignGroups(value: EffectivePolicyValue | string[] | RequestSignGroupsPolicyValue): string[] {
+export function resolveDeniedRequestSignGroups(value: EffectivePolicyValue | RequestSignGroupsPolicyValue): string[] {
 	return resolveRequestSignGroupsPolicy(value).denyGroups
 }
 
-export function serializeRequestSignGroups(value: EffectivePolicyValue | string[] | RequestSignGroupsPolicyValue): string {
+export function serializeRequestSignGroups(value: EffectivePolicyValue | RequestSignGroupsPolicyValue): string {
 	const resolved = resolveRequestSignGroupsPolicy(value)
 	return JSON.stringify({
 		allowGroups: resolved.allowGroups,

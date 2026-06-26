@@ -66,6 +66,13 @@ function createWrapper(modelValue: EffectivePolicyValue) {
 	})
 }
 
+function serializePolicyValue(factors: Array<Record<string, unknown>>, canCreateAccount?: boolean): string {
+	return JSON.stringify({
+		factors,
+		...(canCreateAccount === undefined ? {} : { can_create_account: canCreateAccount }),
+	})
+}
+
 describe('IdentifyMethodsRuleEditor.vue', () => {
 	beforeEach(() => {
 		currentUserState.isAdmin = true
@@ -109,7 +116,7 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 	})
 
 	it('does not read identify_methods from legacy initial state', () => {
-		createWrapper(JSON.stringify([
+		createWrapper(serializePolicyValue([
 			{
 				name: 'account',
 				enabled: true,
@@ -128,7 +135,7 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 	})
 
 	it('emits canonical requirement when required factor toggle is changed', async () => {
-		const wrapper = createWrapper(JSON.stringify([
+		const wrapper = createWrapper(serializePolicyValue([
 			{
 				name: 'email',
 				enabled: true,
@@ -166,7 +173,7 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 	})
 
 	it('allows disabling required without enforcing any extra factor', async () => {
-		const wrapper = createWrapper(JSON.stringify([
+		const wrapper = createWrapper(serializePolicyValue([
 			{
 				name: 'account',
 				enabled: true,
@@ -205,7 +212,7 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 	})
 
 	it('renders user-facing verification method labels instead of internal identifiers', () => {
-		const wrapper = createWrapper(JSON.stringify([
+		const wrapper = createWrapper(serializePolicyValue([
 			{
 				name: 'account',
 				enabled: true,
@@ -229,7 +236,7 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 	})
 
 	it('shows catalog methods even when the saved rule omits them', () => {
-		const wrapper = createWrapper(JSON.stringify([
+		const wrapper = createWrapper(serializePolicyValue([
 			{
 				name: 'account',
 				enabled: true,
@@ -273,7 +280,7 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 			],
 		}
 
-		const wrapper = createWrapper(JSON.stringify([
+		const wrapper = createWrapper(serializePolicyValue([
 			{
 				name: 'account',
 				enabled: true,
@@ -302,7 +309,7 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 	})
 
 	it('allows enabling a catalog method that is missing from the saved rule', async () => {
-		const wrapper = createWrapper(JSON.stringify([
+		const wrapper = createWrapper(serializePolicyValue([
 			{
 				name: 'account',
 				enabled: true,
@@ -332,7 +339,7 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 	})
 
 	it('shows a single global onboarding toggle when supported by enabled factors', () => {
-		const wrapper = createWrapper(JSON.stringify([
+		const wrapper = createWrapper(serializePolicyValue([
 			{
 				name: 'email',
 				enabled: true,
@@ -357,7 +364,7 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 	})
 
 	it('starts with automatic account creation disabled when the policy omits that flag', async () => {
-		const wrapper = createWrapper(JSON.stringify([
+		const wrapper = createWrapper(serializePolicyValue([
 			{
 				name: 'email',
 				enabled: true,
@@ -381,7 +388,7 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 	})
 
 	it('uses a neutral translated fallback when verification method label is unavailable', () => {
-		const wrapper = createWrapper(JSON.stringify([
+		const wrapper = createWrapper(serializePolicyValue([
 			{
 				name: 'account',
 				enabled: true,
@@ -397,7 +404,7 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 	})
 
 	it('shows locked required switch with explanation when only one factor is enabled', () => {
-		const wrapper = createWrapper(JSON.stringify([
+		const wrapper = createWrapper(serializePolicyValue([
 			{
 				name: 'email',
 				enabled: true,

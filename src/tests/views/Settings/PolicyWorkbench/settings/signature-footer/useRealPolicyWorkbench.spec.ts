@@ -14,7 +14,11 @@ import {
 	resetWorkbenchHarness,
 	saveSystemPolicy,
 } from '../workbenchTestUtils'
-import { createRealPolicyWorkbenchState } from '../../../../../../views/Settings/PolicyWorkbench/useRealPolicyWorkbench'
+
+async function createWorkbenchState() {
+	const { createRealPolicyWorkbenchState } = await import('../../../../../../views/Settings/PolicyWorkbench/useRealPolicyWorkbench')
+	return createRealPolicyWorkbenchState()
+}
 
 describe('signature footer workbench', () => {
 	beforeEach(() => {
@@ -76,7 +80,7 @@ describe('signature footer workbench', () => {
 			})
 		})
 
-		const state = createRealPolicyWorkbenchState()
+		const state = await createWorkbenchState()
 		state.openSetting('add_footer')
 
 		await vi.waitFor(() => {

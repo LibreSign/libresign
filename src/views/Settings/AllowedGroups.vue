@@ -38,6 +38,7 @@ import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import logger from '../../logger.js'
 import { usePoliciesStore } from '../../store/policies'
 import {
+	DEFAULT_REQUEST_SIGN_DENY_GROUPS,
 	DEFAULT_REQUEST_SIGN_GROUPS,
 	resolveDeniedRequestSignGroups,
 	resolveRequestSignGroups,
@@ -64,8 +65,11 @@ const policiesStore = usePoliciesStore()
 async function getData() {
 	loadingGroups.value = true
 	await policiesStore.fetchEffectivePolicies()
-	const selected = resolveRequestSignGroups(policiesStore.getEffectiveValue('groups_request_sign') ?? DEFAULT_REQUEST_SIGN_GROUPS)
-	groupsSelected.value = groups.value.filter(group => selected.includes(group.id))
+	const selected = resolveRequestSignGroups(policiesStore.getEffectiveValue('groups_request_sign') ?? {
+		allowGroups: DEFAULT_REQUEST_SIGN_GROUPS,
+		denyGroups: DEFAULT_REQUEST_SIGN_DENY_GROUPS,
+	})
+	groupsSelected.value = groups.value.filter((group: GroupRow) => selected.includes(group.id))
 	loadingGroups.value = false
 }
 
@@ -76,7 +80,7 @@ async function saveGroups(value: Array<GroupRow | string>) {
 
 	await confirmPassword()
 
-	const groupIds = groupsSelected.value.map((g) => {
+	const groupIds = groupsSelected.value.map((g: GroupRow | string) => {
 		if (typeof g === 'object') {
 			return g.id
 		}
@@ -101,10 +105,10 @@ async function searchGroup(query: string) {
 			offset: 0,
 		},
 	})
-		.then(({ data }) => {
+		.then(({ data }: { data: { ocs: { data: { groups: GroupRow[] } } } }) => {
 			groups.value = data.ocs.data.groups.sort((a: GroupRow, b: GroupRow) => a.displayname.localeCompare(b.displayname))
 		})
-		.catch((error) => logger.debug('Could not search by groups', { error }))
+		.catch((error: unknown) => logger.debug('Could not search by groups', { error }))
 	loadingGroups.value = false
 }
 

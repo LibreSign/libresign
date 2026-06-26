@@ -13,41 +13,50 @@ import {
 } from '../../../../../../views/Settings/PolicyWorkbench/settings/identify-methods/model'
 
 describe('identify-methods model compatibility', () => {
-	it('parses legacy availableSignatureMethods for account', () => {
-		const normalized = normalizeIdentifyMethodsPolicy([
-			{
-				name: 'account',
-				enabled: true,
-				availableSignatureMethods: ['clickToSign', 'emailToken', 'password'],
-			},
-		] as never)
+	it('ignores availableSignatureMethods when signatureMethods is absent', () => {
+		const normalized = normalizeIdentifyMethodsPolicy({
+			factors: [
+				{
+					name: 'account',
+					enabled: true,
+					availableSignatureMethods: ['clickToSign', 'emailToken', 'password'],
+				},
+			],
+		} as never)
 
 		expect(normalized).toHaveLength(1)
-		expect(Object.keys(normalized[0].signatureMethods)).toEqual(['clickToSign', 'emailToken', 'password'])
+		expect(normalized[0].signatureMethods).toEqual({})
 	})
 
-	it('parses signatureMethods when provided as a list', () => {
-		const normalized = normalizeIdentifyMethodsPolicy([
-			{
-				name: 'account',
-				enabled: true,
-				signatureMethods: ['clickToSign', 'password'],
-			},
-		] as never)
+	it('ignores list-shaped signatureMethods payloads', () => {
+		const normalized = normalizeIdentifyMethodsPolicy({
+			factors: [
+				{
+					name: 'account',
+					enabled: true,
+					signatureMethods: ['clickToSign', 'password'],
+				},
+			],
+		} as never)
 
 		expect(normalized).toHaveLength(1)
-		expect(Object.keys(normalized[0].signatureMethods)).toEqual(['clickToSign', 'password'])
+		expect(normalized[0].signatureMethods).toEqual({})
 	})
 
 	it('uses canonical requirement from payload', () => {
-		const normalized = normalizeIdentifyMethodsPolicy([
-			{
-				name: 'email',
-				enabled: true,
-				requirement: 'required',
-				signatureMethods: ['emailToken'],
-			},
-		] as never)
+		const normalized = normalizeIdentifyMethodsPolicy({
+			factors: [
+				{
+					name: 'email',
+					enabled: true,
+					requirement: 'required',
+					signatureMethods: {
+						emailToken: { enabled: true },
+					},
+					signatureMethodEnabled: 'emailToken',
+				},
+			],
+		} as never)
 
 		expect(normalized).toHaveLength(1)
 		expect(normalized[0].requirement).toBe('required')
@@ -90,7 +99,10 @@ describe('identify-methods model compatibility', () => {
 				{
 					name: 'email',
 					enabled: true,
-					signatureMethods: ['emailToken'],
+					signatureMethods: {
+						emailToken: { enabled: true },
+					},
+					signatureMethodEnabled: 'emailToken',
 				},
 			],
 		} as never)
@@ -134,7 +146,10 @@ describe('identify-methods model compatibility', () => {
 					name: 'email',
 					enabled: true,
 					requirement: 'required',
-					signatureMethods: ['emailToken'],
+					signatureMethods: {
+						emailToken: { enabled: true },
+					},
+					signatureMethodEnabled: 'emailToken',
 				},
 			],
 		} as never)
@@ -144,12 +159,16 @@ describe('identify-methods model compatibility', () => {
 	})
 
 	it('defaults enabled to true when the payload omits it', () => {
-		const normalized = normalizeIdentifyMethodsPolicy([
-			{
-				name: 'email',
-				signatureMethods: ['emailToken'],
-			},
-		] as never)
+		const normalized = normalizeIdentifyMethodsPolicy({
+			factors: [
+				{
+					name: 'email',
+					signatureMethods: {
+						emailToken: { enabled: false },
+					},
+				},
+			],
+		} as never)
 
 		expect(normalized).toHaveLength(1)
 		expect(normalized[0].enabled).toBe(true)
@@ -162,7 +181,10 @@ describe('identify-methods model compatibility', () => {
 				{
 					name: 'sms',
 					enabled: true,
-					signatureMethods: ['smsToken'],
+					signatureMethods: {
+						smsToken: { enabled: true },
+					},
+					signatureMethodEnabled: 'smsToken',
 				},
 			],
 		} as never)
@@ -171,29 +193,10 @@ describe('identify-methods model compatibility', () => {
 		expect(normalized[0].minimumTotalVerifiedFactors).toBe(2)
 	})
 
-	it('normalizes legacy string-list payloads into canonical entries', () => {
+	it('ignores root list payloads that are no longer canonical', () => {
 		const normalized = normalizeIdentifyMethodsPolicy(['email', 'sms'] as never)
 
-		expect(normalized).toEqual([
-			{
-				name: 'email',
-				enabled: true,
-				signatureMethods: {},
-				friendly_name: undefined,
-				requirement: undefined,
-				minimumTotalVerifiedFactors: undefined,
-				signatureMethodEnabled: undefined,
-			},
-			{
-				name: 'sms',
-				enabled: true,
-				signatureMethods: {},
-				friendly_name: undefined,
-				requirement: undefined,
-				minimumTotalVerifiedFactors: undefined,
-				signatureMethodEnabled: undefined,
-			},
-		])
+		expect(normalized).toEqual([])
 	})
 
 	it('merges editor entries with the admin catalog so omitted methods stay visible', () => {
