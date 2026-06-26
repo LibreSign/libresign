@@ -446,7 +446,15 @@ class SignatureTextService {
 	}
 
 	/**
-	 * @return array<string, mixed>
+	 * @return array{
+	 *     template: string,
+	 *     template_font_size: float,
+	 *     signature_font_size: float,
+	 *     signature_width: float,
+	 *     signature_height: float,
+	 *     background_type: 'default'|'custom'|'deleted',
+	 *     render_mode: 'default'|'graphic'|'text'|'description_only',
+	 * }
 	 */
 	public function getDefaultSignatureStampConfig(): array {
 		return [
@@ -541,14 +549,22 @@ class SignatureTextService {
 	}
 
 	/**
-	 * @return array<string, mixed>
+	 * @return array{
+	 *     template: string,
+	 *     template_font_size: float,
+	 *     signature_font_size: float,
+	 *     signature_width: float,
+	 *     signature_height: float,
+	 *     background_type: 'default'|'custom'|'deleted',
+	 *     render_mode: 'default'|'graphic'|'text'|'description_only',
+	 * }
 	 */
 	private function getSignatureStampPolicyConfig(): array {
 		$rawValue = $this->policyService->resolve(SignatureTextPolicyProvider::KEY)->getEffectiveValue();
 		$normalized = SignatureTextPolicyValue::normalize($rawValue, $this->getDefaultSignatureStampConfig());
 
 		if ($this->hasConsolidatedStampPayload($rawValue)) {
-			return $normalized;
+			return $this->syncCanonicalDefaultTemplateWithCollectMetadata($normalized);
 		}
 
 		$template = $this->policyService->resolve(SignatureTextPolicyProvider::KEY_TEMPLATE)->getEffectiveValue();
@@ -567,7 +583,43 @@ class SignatureTextService {
 		$normalized['signature_height'] = max(0.1, (float)($signatureHeight ?? SignatureTextPolicyValue::DEFAULTS['signature_height']));
 		$normalized['render_mode'] = (string)($renderMode ?? SignatureTextPolicyValue::DEFAULTS['render_mode']);
 
-		return $normalized;
+		return $this->syncCanonicalDefaultTemplateWithCollectMetadata($normalized);
+	}
+
+	/**
+	 * @param array{
+	 *     template: string,
+	 *     template_font_size: float,
+	 *     signature_font_size: float,
+	 *     signature_width: float,
+	 *     signature_height: float,
+	 *     background_type: 'default'|'custom'|'deleted',
+	 *     render_mode: 'default'|'graphic'|'text'|'description_only',
+	 * } $config
+	 * @return array{
+	 *     template: string,
+	 *     template_font_size: float,
+	 *     signature_font_size: float,
+	 *     signature_width: float,
+	 *     signature_height: float,
+	 *     background_type: 'default'|'custom'|'deleted',
+	 *     render_mode: 'default'|'graphic'|'text'|'description_only',
+	 * }
+	 */
+	private function syncCanonicalDefaultTemplateWithCollectMetadata(array $config): array {
+		$template = (string)($config['template'] ?? '');
+		$canonicalWithoutMetadata = SignatureTextTemplate::translated($this->l10n, false);
+		$canonicalWithMetadata = SignatureTextTemplate::translated($this->l10n, true);
+
+		if ($template !== $canonicalWithoutMetadata && $template !== $canonicalWithMetadata) {
+			return $config;
+		}
+
+		$config['template'] = $this->isCollectMetadataEnabled()
+			? $canonicalWithMetadata
+			: $canonicalWithoutMetadata;
+
+		return $config;
 	}
 
 	private function hasConsolidatedStampPayload(mixed $rawValue): bool {
