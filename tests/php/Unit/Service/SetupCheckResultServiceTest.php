@@ -18,6 +18,7 @@ use OCA\Libresign\SetupCheck\PDFtkSetupCheck;
 use OCA\Libresign\SetupCheck\PopplerSetupCheck;
 use OCP\SetupCheck\ISetupCheck;
 use OCP\SetupCheck\SetupResult;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -99,9 +100,7 @@ class SetupCheckResultServiceTest extends TestCase {
 		$this->assertSame('info', $serialized['status']);
 	}
 
-	/**
-	 * @dataProvider providerSeverityMapping
-	 */
+	#[DataProvider('providerSeverityMapping')]
 	public function testSeverityMapping(string $severity, string $expectedStatus): void {
 		$this->javaSetupCheck = $this->createMock(JavaSetupCheck::class);
 		$this->configureCheck($this->javaSetupCheck, 'system', $severity, 'Message', null);
