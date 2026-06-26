@@ -51,18 +51,10 @@ final class PolicyProviders {
 		ValidationAccessPolicy::KEY => ValidationAccessPolicy::class,
 		SignatureFlowPolicy::KEY => SignatureFlowPolicy::class,
 		SigningModePolicy::KEY_SIGNING_MODE => SigningModePolicy::class,
-		SigningModePolicy::KEY_WORKER_TYPE => SigningModePolicy::class,
-		SigningModePolicy::KEY_PARALLEL_WORKERS => SigningModePolicy::class,
 		WorkerConfigPolicy::KEY => WorkerConfigPolicy::class,
 		IdentificationDocumentsPolicy::KEY => IdentificationDocumentsPolicy::class,
 		IdentifyMethodsPolicy::KEY => IdentifyMethodsPolicy::class,
 		SignatureTextPolicy::KEY => SignatureTextPolicy::class,
 		TsaPolicy::KEY => TsaPolicy::class,
-		SignatureTextPolicy::KEY_TEMPLATE => SignatureTextPolicy::class,
-		SignatureTextPolicy::KEY_TEMPLATE_FONT_SIZE => SignatureTextPolicy::class,
-		SignatureTextPolicy::KEY_SIGNATURE_WIDTH => SignatureTextPolicy::class,
-		SignatureTextPolicy::KEY_SIGNATURE_HEIGHT => SignatureTextPolicy::class,
-		SignatureTextPolicy::KEY_SIGNATURE_FONT_SIZE => SignatureTextPolicy::class,
-		SignatureTextPolicy::KEY_RENDER_MODE => SignatureTextPolicy::class,
 	];
 }
