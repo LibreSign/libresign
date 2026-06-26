@@ -274,7 +274,7 @@ Feature: admin/initial_state
       | (jq).policies.signature_flow.policyKey                      | signature_flow                        |
       | (jq).policies.signature_flow.effectiveValue                 | ordered_numeric                       |
       | (jq).policies.signature_flow.allowedValues                  | ["ordered_numeric"]                  |
-      | (jq)(.policies.signature_stamp.effectiveValue \| fromjson).background_type | default                     |
+      | (jq)(.policies.signature_stamp.effectiveValue \| fromjson).background_type | deleted                     |
       | (jq)(.policies.signature_stamp.meta.defaultSystemValue \| fromjson).render_mode | default                  |
       | (jq).policies.identification_documents.effectiveValue.enabled       | true                         |
       | (jq).policies.identification_documents.effectiveValue.approvers[0]    | admin                        |
