@@ -14,14 +14,7 @@ import {
 	resetWorkbenchHarness,
 	saveSystemPolicy,
 } from '../workbenchTestUtils'
-
-/**
- * Lazily imports the workbench state factory after the mock harness is registered.
- */
-async function createWorkbenchState() {
-	const { createRealPolicyWorkbenchState } = await import('../../../../../../views/Settings/PolicyWorkbench/useRealPolicyWorkbench')
-	return createRealPolicyWorkbenchState()
-}
+import { createRealPolicyWorkbenchState } from '../../../../../../views/Settings/PolicyWorkbench/useRealPolicyWorkbench'
 
 describe('signature footer workbench', () => {
 	beforeEach(() => {
@@ -83,7 +76,7 @@ describe('signature footer workbench', () => {
 			})
 		})
 
-		const state = await createWorkbenchState()
+		const state = createRealPolicyWorkbenchState()
 		state.openSetting('add_footer')
 
 		await vi.waitFor(() => {
