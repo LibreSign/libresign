@@ -6,7 +6,7 @@ Feature: admin/initial_state
     And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/admin/identify_methods"
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[] |
+      | value | (string){"factors":[]} |
     And the response should have a status code 200
     When sending "get" to "/settings/admin/libresign"
     Then the response should contain the initial state "libresign-effective_policies" json that match with:
@@ -19,7 +19,7 @@ Feature: admin/initial_state
     Given as user "admin"
     And run the command "config:app:set libresign identify_methods --value=invalid --type=string" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","fake":null}] |
+      | value | (string){"factors":[{"name":"account","fake":null}]} |
     And the response should have a status code 200
     When sending "get" to "/settings/admin/libresign"
     Then the response should contain the initial state "libresign-effective_policies" json that match with:
@@ -31,7 +31,7 @@ Feature: admin/initial_state
   Scenario Outline: Invalid identify methods updates preserve the default contract
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[] |
+      | value | (string){"factors":[]} |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string)<payload> |
@@ -44,17 +44,17 @@ Feature: admin/initial_state
 
     Examples:
       | payload                                 | expected_factor_name |
-      | [{"name":"account","fake":null}]   | account |
-      | [{"name":"account","enabled":"string"}] | account |
-      | [{"name":"email","test_url":"immutable"}] | email |
+      | {"factors":[{"name":"account","fake":null}]}   | account |
+      | {"factors":[{"name":"account","enabled":"string"}]} | account |
+      | {"factors":[{"name":"email","test_url":"immutable"}]} | email |
 
   Scenario: Updated identify methods are exposed in admin initial state
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[] |
+      | value | (string){"factors":[]} |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}},{"name":"email","enabled":false,"requirement":"optional"}] |
+      | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}},{"name":"email","enabled":false,"requirement":"optional"}]} |
     Then sending "get" to "/settings/admin/libresign"
     And the response should contain the initial state "libresign-effective_policies" json that match with:
       | key | value |
@@ -64,16 +64,16 @@ Feature: admin/initial_state
       | (jq)(.policies.identify_methods.effectiveValue.factors \| map(select(.name == "email")) \| .[0].enabled) | false |
       | (jq)(.policies.identify_methods.effectiveValue.factors \| map(select(.name == "email")) \| .[0].requirement) | optional |
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[] |
+      | value | (string){"factors":[]} |
     And the response should have a status code 200
 
   Scenario: Deleting custom identify methods clears the custom rule badge data
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[] |
+      | value | (string){"factors":[]} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}},{"name":"email","enabled":false,"requirement":"optional"}] |
+      | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}},{"name":"email","enabled":false,"requirement":"optional"}]} |
     And the response should have a status code 200
     When sending "get" to "/settings/admin/libresign"
     Then the response should contain the initial state "libresign-effective_policies" json that match with:
@@ -82,7 +82,7 @@ Feature: admin/initial_state
       | (jq).policies.identify_methods.sourceScope | global |
       | (jq).policies.identify_methods.everyoneCount | 1 |
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string)[] |
+      | value | (string){"factors":[]} |
     And the response should have a status code 200
     When sending "get" to "/settings/admin/libresign"
     Then the response should contain the initial state "libresign-effective_policies" json that match with:
@@ -104,29 +104,44 @@ Feature: admin/initial_state
     And run the command "user:setting admin libresign files_list_sorting_direction asc" with result code 0
     And run the command "config:app:delete libresign footer_template" with result code 0
     And run the command "config:app:delete libresign config_path" with result code 0
-    And run the command "config:app:delete libresign policy.tsa_settings.password" with result code 0
+    And run the command "config:app:delete libresign tsa_settings.password" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/tsa_settings"
       | value | (string){"url":"","policy_oid":"","auth_type":"none","username":""} |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/collect_metadata"
+      | value | false |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/legal_information"
+      | value | |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/docmdp"
+      | value | 2 |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_flow"
+      | value | none |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identification_documents"
+      | value | {"enabled":false,"approvers":["admin"]} |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/approval_group"
+      | value | (string)["admin"] |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/envelope_enabled"
+      | value | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/show_confetti_after_signing"
+      | value | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/crl_external_validation_enabled"
+      | value | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_stamp"
+      | value | (string){"template":"Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}","template_font_size":9.8,"signature_font_size":20,"signature_width":350,"signature_height":100,"background_type":"default","render_mode":"default"} |
     And the response should have a status code 200
     And the following libresign app config is set
       | certificate_engine                | openssl                  |
       | certificate_policies_oid          |                          |
-      | collect_metadata                  | false                    |
-      | legal_information                 |                          |
-      | signature_background_type         | default                  |
-      | signature_font_size               | 20                       |
-      | signature_height                  | 100                      |
       | signature_engine                  | JSignPdf                 |
-      | signature_render_mode             | GRAPHIC_AND_DESCRIPTION  |
-      | signature_width                   | 350                      |
-      | template_font_size                | 9.8                      |
-      | docmdp_level                      | 2                        |
-      | policy.signature_flow.system      | none                     |
-      | identification_documents          | false                    |
-      | approval_group                    | ["admin"]                |
-      | envelope_enabled                  | true                     |
-      | show_confetti_after_signing       | true                     |
-      | crl_external_validation_enabled   | true                     |
     When sending "get" to "/settings/admin/libresign"
     Then the response should contain the initial state "libresign-config" json that match with:
       | key                                        | value |
@@ -184,27 +199,38 @@ Feature: admin/initial_state
 
   Scenario: Custom admin initial states are exposed
     Given as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/collect_metadata"
+      | value | false |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/legal_information"
+      | value | Custom legal information |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/docmdp"
+      | value | 0 |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_flow"
+      | value | ordered_numeric |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_stamp"
+      | value | (string){"template":"Issuer: {{IssuerCommonName}}","template_font_size":12.5,"signature_font_size":18.5,"signature_width":420,"signature_height":140,"background_type":"deleted","render_mode":"description_only"} |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/approval_group"
+      | value | (string)["admin","staff"] |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/envelope_enabled"
+      | value | false |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/show_confetti_after_signing"
+      | value | false |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/crl_external_validation_enabled"
+      | value | false |
+    And the response should have a status code 200
     And the following libresign app config is set
       | certificate_engine                | openssl                           |
-      | collect_metadata                  | false                             |
       | config_path                       | /tmp                              |
-      | legal_information                 | Custom legal information          |
-      | signature_background_type         | deleted                           |
-      | signature_font_size               | 18.5                              |
-      | signature_height                  | 140                               |
       | signature_engine                  | PhpNative                         |
-      | signature_render_mode             | DESCRIPTION_ONLY                  |
-      | signature_text_template           | Issuer: {{IssuerCommonName}}      |
-      | signature_width                   | 420                               |
-      | template_font_size                | 12.5                              |
-      | policy.tsa_settings.password      | topsecret                         |
-      | docmdp_level                      | 0                                 |
-      | policy.signature_flow.system      | ordered_numeric                   |
-      | identification_documents          | true                              |
-      | approval_group                    | ["admin","staff"]               |
-      | envelope_enabled                  | false                             |
-      | show_confetti_after_signing       | false                             |
-      | crl_external_validation_enabled   | false                             |
+      | tsa_settings.password             | topsecret                         |
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identification_documents"
       | value | {"enabled":true,"approvers":["admin","staff"]} |
     And the response should have a status code 200
@@ -271,28 +297,43 @@ Feature: admin/initial_state
     And the following libresign app config is set
       | certificate_engine                | openssl                  |
       | certificate_policies_oid          |                          |
-      | collect_metadata                  | false                    |
-      | legal_information                 |                          |
-      | signature_background_type         | default                  |
-      | signature_font_size               | 20                       |
-      | signature_height                  | 100                      |
       | signature_engine                  | JSignPdf                 |
-      | signature_render_mode             | GRAPHIC_AND_DESCRIPTION  |
-      | signature_width                   | 350                      |
-      | template_font_size                | 9.8                      |
-      | docmdp_level                      | 2                        |
-      | policy.signature_flow.system      | none                     |
-      | identification_documents          | false                    |
-      | approval_group                    | ["admin"]                |
-      | envelope_enabled                  | true                     |
-      | show_confetti_after_signing       | true                     |
-      | crl_external_validation_enabled   | true                     |
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/tsa_settings"
       | value | (string){"url":"","policy_oid":"","auth_type":"none","username":""} |
     And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/collect_metadata"
+      | value | false |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/legal_information"
+      | value | |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/docmdp"
+      | value | 2 |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_flow"
+      | value | none |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_stamp"
+      | value | (string){"template":"Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}","template_font_size":9.8,"signature_font_size":20,"signature_width":350,"signature_height":100,"background_type":"default","render_mode":"default"} |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identification_documents"
+      | value | {"enabled":false,"approvers":["admin"]} |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/approval_group"
+      | value | (string)["admin"] |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/envelope_enabled"
+      | value | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/show_confetti_after_signing"
+      | value | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/crl_external_validation_enabled"
+      | value | true |
+    And the response should have a status code 200
     And run the command "config:app:delete libresign footer_template" with result code 0
     And run the command "config:app:delete libresign config_path" with result code 0
-    And run the command "config:app:delete libresign policy.tsa_settings.password" with result code 0
+    And run the command "config:app:delete libresign tsa_settings.password" with result code 0
 
   Scenario: User preference is exposed in config initial state
     Given as user "admin"
