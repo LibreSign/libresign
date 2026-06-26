@@ -561,29 +561,9 @@ class SignatureTextService {
 	 */
 	private function getSignatureStampPolicyConfig(): array {
 		$rawValue = $this->policyService->resolve(SignatureTextPolicyProvider::KEY)->getEffectiveValue();
-		$normalized = SignatureTextPolicyValue::normalize($rawValue, $this->getDefaultSignatureStampConfig());
-
-		if ($this->hasConsolidatedStampPayload($rawValue)) {
-			return $this->syncCanonicalDefaultTemplateWithCollectMetadata($normalized);
-		}
-
-		$template = $this->policyService->resolve(SignatureTextPolicyProvider::KEY_TEMPLATE)->getEffectiveValue();
-		$templateFontSize = $this->policyService->resolve(SignatureTextPolicyProvider::KEY_TEMPLATE_FONT_SIZE)->getEffectiveValue();
-		$signatureFontSize = $this->policyService->resolve(SignatureTextPolicyProvider::KEY_SIGNATURE_FONT_SIZE)->getEffectiveValue();
-		$signatureWidth = $this->policyService->resolve(SignatureTextPolicyProvider::KEY_SIGNATURE_WIDTH)->getEffectiveValue();
-		$signatureHeight = $this->policyService->resolve(SignatureTextPolicyProvider::KEY_SIGNATURE_HEIGHT)->getEffectiveValue();
-		$renderMode = $this->policyService->resolve(SignatureTextPolicyProvider::KEY_RENDER_MODE)->getEffectiveValue();
-
-		$normalized['template'] = is_string($template)
-			? $template
-			: (string)($template ?? SignatureTextTemplate::translated($this->l10n, $this->isCollectMetadataEnabled()));
-		$normalized['template_font_size'] = max(0.1, (float)($templateFontSize ?? $this->getDefaultTemplateFontSize()));
-		$normalized['signature_font_size'] = max(0.1, (float)($signatureFontSize ?? SignatureTextPolicyValue::DEFAULTS['signature_font_size']));
-		$normalized['signature_width'] = max(0.1, (float)($signatureWidth ?? SignatureTextPolicyValue::DEFAULTS['signature_width']));
-		$normalized['signature_height'] = max(0.1, (float)($signatureHeight ?? SignatureTextPolicyValue::DEFAULTS['signature_height']));
-		$normalized['render_mode'] = (string)($renderMode ?? SignatureTextPolicyValue::DEFAULTS['render_mode']);
-
-		return $this->syncCanonicalDefaultTemplateWithCollectMetadata($normalized);
+		return $this->syncCanonicalDefaultTemplateWithCollectMetadata(
+			SignatureTextPolicyValue::normalize($rawValue, $this->getDefaultSignatureStampConfig())
+		);
 	}
 
 	/**
@@ -620,19 +600,6 @@ class SignatureTextService {
 			: $canonicalWithoutMetadata;
 
 		return $config;
-	}
-
-	private function hasConsolidatedStampPayload(mixed $rawValue): bool {
-		if (is_array($rawValue)) {
-			return true;
-		}
-
-		if (!is_string($rawValue) || trim($rawValue) === '') {
-			return false;
-		}
-
-		$decoded = json_decode($rawValue, true);
-		return is_array($decoded);
 	}
 
 	public function getPreviewSignerName(): string {
