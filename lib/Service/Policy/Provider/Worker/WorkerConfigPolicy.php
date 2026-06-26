@@ -35,6 +35,10 @@ final class WorkerConfigPolicy implements IPolicyDefinitionProvider {
 			normalizer: fn (mixed $rawValue): string => $this->encodeNormalized($rawValue),
 			appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 			supportsUserPreference: false,
+			supportedScopes: [PolicySpec::SCOPE_SYSTEM],
+			helper: true,
+			parentPolicyKey: SigningModePolicy::KEY_SIGNING_MODE,
+			compositeChildren: [SigningModePolicy::KEY_WORKER_TYPE, SigningModePolicy::KEY_PARALLEL_WORKERS],
 		);
 	}
 
@@ -85,11 +89,4 @@ final class WorkerConfigPolicy implements IPolicyDefinitionProvider {
 		return json_encode($this->normalizeValue($rawValue), JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
 	}
 
-	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {
-		if ($policyKey instanceof \BackedEnum) {
-			return (string)$policyKey->value;
-		}
-
-		return $policyKey;
-	}
 }
