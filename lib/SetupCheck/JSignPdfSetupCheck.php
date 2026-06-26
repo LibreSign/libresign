@@ -76,7 +76,8 @@ class JSignPdfSetupCheck implements ISetupCheck {
 		if (!$jsignpdfJarPath) {
 			return SetupResult::error(
 				$this->l10n->t('JSignPdf not found'),
-				$this->l10n->t('Run occ libresign:install --jsignpdf')
+				// TRANSLATORS Command to run into terminal using Nextcloud occ to configure LibreSign using CLI when the sysadmin want to do this by CLI.
+				$this->l10n->t('Run %s', ['occ libresign:install --jsignpdf'])
 			);
 		}
 
@@ -89,7 +90,8 @@ class JSignPdfSetupCheck implements ISetupCheck {
 		if (!file_exists($jsignpdfJarPath)) {
 			return SetupResult::error(
 				$this->l10n->t('JSignPdf binary not found: %s', [$jsignpdfJarPath]),
-				$this->l10n->t('Run occ libresign:install --jsignpdf')
+				// TRANSLATORS Command to run into terminal using Nextcloud occ to configure LibreSign using CLI when the sysadmin want to do this by CLI.
+				$this->l10n->t('Run %s', ['occ libresign:install --jsignpdf'])
 			);
 		}
 
@@ -97,7 +99,8 @@ class JSignPdfSetupCheck implements ISetupCheck {
 		if (!$javaPath || !file_exists($javaPath)) {
 			return SetupResult::error(
 				$this->l10n->t('Necessary Java to run JSignPdf'),
-				$this->l10n->t('Run occ libresign:install --java')
+				// TRANSLATORS Command to run into terminal using Nextcloud occ to configure LibreSign using CLI when the sysadmin want to do this by CLI.
+				$this->l10n->t('Run %s', ['occ libresign:install --java'])
 			);
 		}
 
@@ -113,13 +116,15 @@ class JSignPdfSetupCheck implements ISetupCheck {
 
 		if (version_compare($currentVersion, InstallService::JSIGNPDF_VERSION, '<')) {
 			$msg = $this->l10n->t('Necessary bump JSignPdf version from %s to %s', [$currentVersion, InstallService::JSIGNPDF_VERSION]);
-			return SetupResult::error($msg, $this->l10n->t('Run occ libresign:install --jsignpdf'));
+			// TRANSLATORS Command to run into terminal using Nextcloud occ to configure LibreSign using CLI when the sysadmin want to do this by CLI.
+			return SetupResult::error($msg, $this->l10n->t('Run %s', ['occ libresign:install --jsignpdf']));
 		}
 
 		if (version_compare($currentVersion, InstallService::JSIGNPDF_VERSION, '>')) {
 			return SetupResult::error(
 				$this->l10n->t('Necessary downgrade JSignPdf version from %s to %s', [$currentVersion, InstallService::JSIGNPDF_VERSION]),
-				$this->l10n->t('Run occ libresign:install --jsignpdf')
+				// TRANSLATORS Command to run into terminal using Nextcloud occ to configure LibreSign using CLI when the sysadmin want to do this by CLI.
+				$this->l10n->t('Run %s', ['occ libresign:install --jsignpdf'])
 			);
 		}
 
