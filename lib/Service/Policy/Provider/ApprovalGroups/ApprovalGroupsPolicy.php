@@ -44,6 +44,8 @@ final class ApprovalGroupsPolicy implements IPolicyDefinitionProvider {
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 				supportsUserPreference: false,
+				supportedScopes: [PolicySpec::SCOPE_SYSTEM],
+				backendOnly: true,
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
 		};
