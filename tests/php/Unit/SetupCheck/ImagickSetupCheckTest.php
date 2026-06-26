@@ -28,8 +28,7 @@ namespace OCA\Libresign\Tests\Unit\SetupCheck {
 		/** @var array<string, bool> */
 		public static array $mockExtensionLoaded = [];
 
-		/** @var IL10N&MockObject */
-		private $l10n;
+		private IL10N&MockObject $l10n;
 
 		/** @var ImagickSetupCheck */
 		private $check;
