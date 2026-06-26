@@ -10,7 +10,9 @@ namespace OCA\Libresign\Service\Policy\Provider\Worker;
 
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 
 final class WorkerConfigPolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'worker_config';
@@ -39,7 +41,62 @@ final class WorkerConfigPolicy implements IPolicyDefinitionProvider {
 			helper: true,
 			parentPolicyKey: SigningModePolicy::KEY_SIGNING_MODE,
 			compositeChildren: [SigningModePolicy::KEY_WORKER_TYPE, SigningModePolicy::KEY_PARALLEL_WORKERS],
+			resolvedPolicyFinalizer: fn (ResolvedPolicy $resolved, PolicyContext $context, callable $resolvePolicy): ResolvedPolicy => $this->finalizeResolvedWorkerConfig($resolved, $resolvePolicy),
 		);
+	}
+
+	private function finalizeResolvedWorkerConfig(ResolvedPolicy $resolved, callable $resolvePolicy): ResolvedPolicy {
+		$effective = $this->normalizeValue($resolved->getEffectiveValue());
+		$inherited = $this->normalizeValue($resolved->getInheritedValue());
+		$defaults = $this->defaultValue();
+		$currentScope = $resolved->getSourceScope();
+		$currentPriority = $this->scopePriority($currentScope);
+
+		foreach ([
+			SigningModePolicy::KEY_WORKER_TYPE => 'worker_type',
+			SigningModePolicy::KEY_PARALLEL_WORKERS => 'parallel_workers',
+		] as $childKey => $field) {
+			$childResolved = $resolvePolicy($childKey);
+			$childScope = $childResolved->getSourceScope();
+			$childPriority = $this->scopePriority($childScope);
+
+			if ($childPriority < 0 || $childPriority < $currentPriority) {
+				continue;
+			}
+
+			if ($childPriority === $currentPriority && ($effective[$field] ?? null) !== ($defaults[$field] ?? null)) {
+				continue;
+			}
+
+			$effective[$field] = $field === 'worker_type'
+				? ($childResolved->getEffectiveValue() === 'external' ? 'external' : 'local')
+				: max(self::MIN_PARALLEL_WORKERS, min(self::MAX_PARALLEL_WORKERS, (int)$childResolved->getEffectiveValue()));
+			$inherited[$field] = $field === 'worker_type'
+				? (($childResolved->getInheritedValue() ?? $childResolved->getEffectiveValue()) === 'external' ? 'external' : 'local')
+				: max(self::MIN_PARALLEL_WORKERS, min(self::MAX_PARALLEL_WORKERS, (int)($childResolved->getInheritedValue() ?? $childResolved->getEffectiveValue())));
+
+			if ($childPriority >= $currentPriority) {
+				$currentScope = $childScope;
+				$currentPriority = $childPriority;
+			}
+		}
+
+		return $resolved
+			->setEffectiveValue(json_encode($effective, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES))
+			->setInheritedValue(json_encode($inherited, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES))
+			->setSourceScope($currentScope);
+	}
+
+	private function scopePriority(string $scope): int {
+		return match ($scope) {
+			'system' => -1,
+			'global' => 0,
+			'group' => 1,
+			'user_policy' => 2,
+			'user' => 3,
+			'request' => 4,
+			default => -1,
+		};
 	}
 
 	/**
