@@ -56,6 +56,22 @@ final class ExpirationRulesPolicyTest extends TestCase {
 		$this->assertFalse($definition->supportsUserPreference(), 'expiry_in_days must not appear in user preferences');
 	}
 
+	public function testMaximumValidityDeclaresRenewalIntervalAsCompositeHelper(): void {
+		$provider = new ExpirationRulesPolicy();
+		$definition = $provider->get(ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY);
+
+		$this->assertSame([ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL], $definition->compositeChildren());
+		$this->assertFalse($definition->isHelper());
+	}
+
+	public function testRenewalIntervalIsMarkedAsHelperOfMaximumValidity(): void {
+		$provider = new ExpirationRulesPolicy();
+		$definition = $provider->get(ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL);
+
+		$this->assertTrue($definition->isHelper());
+		$this->assertSame(ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY, $definition->parentPolicyKey());
+	}
+
 	#[DataProvider('provideDelegableExpirationKeys')]
 	public function testDelegableExpirationKeysSupportDelegatedGroupAdminOverlaysAndExpectedPreferenceBehavior(
 		string $policyKey,
