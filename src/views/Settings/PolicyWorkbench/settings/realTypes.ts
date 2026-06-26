@@ -5,6 +5,8 @@
 
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../../types/index'
 
+export type { EffectivePolicyState, EffectivePolicyValue }
+
 export type RealPolicyScope = 'system' | 'group' | 'user'
 export type RealPolicyEditorDialogLayout = 'default' | 'wide'
 
