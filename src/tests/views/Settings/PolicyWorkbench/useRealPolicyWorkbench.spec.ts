@@ -107,6 +107,7 @@ const createMockEffectivePolicyState = (overrides: {
 	effectiveValue?: unknown
 	allowedValues?: unknown[]
 	sourceScope?: string
+	meta?: Record<string, unknown>
 } = {}) => ({
 	effectiveValue: null,
 	allowedValues: [],
@@ -583,6 +584,28 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.availableTargets).toEqual([
 			{ id: 'legal', displayName: 'legal', isNoUser: true },
 		])
+	})
+
+	it('prefers backend-supported scopes over frontend defaults when opening the editor', () => {
+		getPolicy.mockImplementation((policyKey: string) => {
+			if (policyKey === 'signature_flow') {
+				return createMockEffectivePolicyState({
+					effectiveValue: 'parallel',
+					meta: {
+						supportedScopes: ['system'],
+					},
+				})
+			}
+
+			return createMockEffectivePolicyState({ effectiveValue: 'parallel' })
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope: 'group' })
+
+		expect(state.editorDraft).toBeNull()
+		expect(state.duplicateMessage).toBe('This setting cannot be configured at this scope.')
 	})
 
 	it('probeGroupAccess uses manageable_policy_group_ids shortcut for group-admin', async () => {
@@ -1269,7 +1292,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(clearUserPreference).toHaveBeenCalledWith('signature_flow')
 	})
 
-	it('clears current user preference when saving system rule for request-access policy with account scope', async () => {
+	it('does not clear user preference when saving system rule for request-access policy without user scope', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('groups_request_sign')
 		state.startEditor({ scope: 'system' })
@@ -1278,7 +1301,7 @@ describe('useRealPolicyWorkbench', () => {
 		await state.saveDraft()
 
 		expect(saveSystemPolicy).toHaveBeenCalledWith('groups_request_sign', '{"allowGroups":["admin","policy-e2e-group"],"denyGroups":[]}', true)
-		expect(clearUserPreference).toHaveBeenCalledWith('groups_request_sign')
+		expect(clearUserPreference).not.toHaveBeenCalledWith('groups_request_sign')
 		expect(state.editorDraft).toBeNull()
 	})
 
