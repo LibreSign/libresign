@@ -11,7 +11,7 @@ import {
 	normalizeSignatureFooterPolicyConfig,
 	resolveFooterPolicyPayloadForRequest,
 	serializeSignatureFooterPolicyConfig,
-} from '../../../../views/Settings/PolicyWorkbench/settings/signature-footer/model'
+} from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-footer/model'
 
 const footerTemplateLabels = {
 	mySavedTemplate: 'My saved footer template',
