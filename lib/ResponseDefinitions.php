@@ -440,6 +440,7 @@ namespace OCA\Libresign;
  *     scope: 'group',
  *     targetId: string,
  *     value: null|LibresignEffectivePolicyValue,
+ *     effectiveValue?: null|LibresignEffectivePolicyValue,
  *     allowChildOverride: bool,
  *     visibleToChild: bool,
  *     allowedValues: list<LibresignEffectivePolicyValue>,
