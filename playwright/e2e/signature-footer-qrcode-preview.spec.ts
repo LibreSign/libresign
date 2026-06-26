@@ -73,7 +73,7 @@ test('toggleing writeQrcodeOnFooter sends correct flag to preview API and QR cod
 		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
 		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
 	)
-	await setSystemPolicy(page.request, 'groups_request_sign', JSON.stringify(['admin']))
+	await setSystemPolicy(page.request, 'groups_request_sign', JSON.stringify({ allowGroups: ['admin'], denyGroups: [] }))
 	await setSystemPolicy(page.request, 'add_footer', JSON.stringify(true))
 
 	const dialog = await openFooterPolicyEditor(page)
@@ -140,7 +140,7 @@ test('preview request always includes writeQrcodeOnFooter when template is custo
 		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
 		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
 	)
-	await setSystemPolicy(page.request, 'groups_request_sign', JSON.stringify(['admin']))
+	await setSystemPolicy(page.request, 'groups_request_sign', JSON.stringify({ allowGroups: ['admin'], denyGroups: [] }))
 	await setSystemPolicy(page.request, 'add_footer', JSON.stringify(true))
 
 	const dialog = await openFooterPolicyEditor(page)
