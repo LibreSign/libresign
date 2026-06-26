@@ -24,7 +24,7 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\File\SettingsLoader;
 use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\ValidationEffectivePolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -76,7 +76,7 @@ class FileController extends AEnvironmentAwareController {
 		private FileMapper $fileMapper,
 		private RequestSignatureService $requestSignatureService,
 		private AccountService $accountService,
-		private PolicyService $policyService,
+		private ValidationEffectivePolicyService $validationEffectivePolicyService,
 		private IPreview $preview,
 		private IMimeIconProvider $mimeIconProvider,
 		private FileService $fileService,
@@ -188,7 +188,7 @@ class FileController extends AEnvironmentAwareController {
 				->toArray();
 
 			/** @var LibresignValidatedFileResponse $response */
-			$response = $this->appendRequesterEffectivePolicies($validatedFile);
+			$response = $this->validationEffectivePolicyService->appendEffectivePolicies($validatedFile);
 
 			return new DataResponse($response, Http::STATUS_OK);
 		} catch (InvalidArgumentException $e) {
@@ -271,7 +271,7 @@ class FileController extends AEnvironmentAwareController {
 				->toArray();
 
 			/** @var LibresignValidatedFileResponse $response */
-			$response = $this->appendRequesterEffectivePolicies($validatedFile);
+			$response = $this->validationEffectivePolicyService->appendEffectivePolicies($validatedFile);
 
 			return new DataResponse($response, Http::STATUS_OK);
 		} catch (LibresignException $e) {
@@ -294,43 +294,6 @@ class FileController extends AEnvironmentAwareController {
 
 			return new DataResponse($response, Http::STATUS_NOT_FOUND);
 		}
-	}
-
-	/**
-	 * @param LibresignValidatedFile $payload
-	 * @return LibresignValidatedFileResponse
-	 */
-	private function appendRequesterEffectivePolicies(array $payload): array {
-		$requesterUserId = $this->extractRequesterUserId($payload);
-		/** @var array<string, LibresignEffectivePolicyState> $resolvedPolicyStates */
-		$resolvedPolicyStates = $requesterUserId !== null
-			? $this->policyService->resolveKnownPolicyStatesForUserId($requesterUserId)
-			: $this->policyService->resolveKnownPolicyStates();
-
-		$payload['effective_policies'] = [
-			'policies' => $resolvedPolicyStates,
-		];
-
-		return $payload;
-	}
-
-	/**
-	 * @param array<string, mixed> $payload
-	 */
-	private function extractRequesterUserId(array $payload): ?string {
-		$requestedBy = $payload['requested_by'] ?? null;
-		if (!is_array($requestedBy)) {
-			return null;
-		}
-
-		$userId = $requestedBy['userId'] ?? null;
-		if (!is_string($userId)) {
-			return null;
-		}
-
-		$userId = trim($userId);
-
-		return $userId !== '' ? $userId : null;
 	}
 
 	/**
