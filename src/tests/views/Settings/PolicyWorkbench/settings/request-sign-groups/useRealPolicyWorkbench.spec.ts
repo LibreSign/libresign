@@ -87,7 +87,7 @@ describe('request sign groups workbench', () => {
 		expect(state.visibleGroupRules).toHaveLength(0)
 	})
 
-	it('clears current user preference when saving system rule for request-access policy with account scope', async () => {
+	it('does not clear user preference when saving system rule for request-access policy because account scope is unsupported', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('groups_request_sign')
 		state.startEditor({ scope: 'system' })
@@ -96,7 +96,7 @@ describe('request sign groups workbench', () => {
 		await state.saveDraft()
 
 		expect(saveSystemPolicy).toHaveBeenCalledWith('groups_request_sign', '{"allowGroups":["admin","policy-e2e-group"],"denyGroups":[]}', true)
-		expect(clearUserPreference).toHaveBeenCalledWith('groups_request_sign')
+		expect(clearUserPreference).not.toHaveBeenCalledWith('groups_request_sign')
 		expect(state.editorDraft).toBeNull()
 	})
 
@@ -112,7 +112,7 @@ describe('request sign groups workbench', () => {
 		expect(keys).toContain('signature_flow')
 	})
 
-	it('requires changing request-access system draft before enabling save', () => {
+	it('keeps request-access system save disabled until at least one requester group is selected', () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('groups_request_sign')
 		state.startEditor({ scope: 'system' })
@@ -121,7 +121,7 @@ describe('request sign groups workbench', () => {
 		expect(state.canSaveDraft).toBe(false)
 
 		state.updateDraftAllowOverride(false)
-		expect(state.canSaveDraft).toBe(true)
+		expect(state.canSaveDraft).toBe(false)
 	})
 
 	it('seeds request access groups from selected scope groups when creating a group rule', () => {
@@ -715,7 +715,7 @@ describe('request sign groups workbench', () => {
 		expect(state.visibleSettingSummaries.find((summary) => summary.key === 'groups_request_sign')?.groupCount).toBe(0)
 	})
 
-	it('allows user-scope editing for request-sign-groups setting for system admins', () => {
+	it('blocks user-scope editing for request-sign-groups because the policy only supports system and group scopes', () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'groups_request_sign') {
 				return {
@@ -738,11 +738,7 @@ describe('request sign groups workbench', () => {
 		state.openSetting('groups_request_sign')
 		state.startEditor({ scope: 'user' })
 
-		expect(state.editorDraft).not.toBeNull()
-		expect(state.editorDraft).toMatchObject({
-			scope: 'user',
-			allowChildOverride: false,
-		})
-		expect(state.duplicateMessage).toBeNull()
+		expect(state.editorDraft).toBeNull()
+		expect(state.duplicateMessage).toBe('This setting cannot be configured at this scope.')
 	})
 })
