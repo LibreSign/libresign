@@ -39,22 +39,14 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 class PDFtkSetupCheckTest extends TestCase {
-	/** @var IL10N|MockObject */
-	private $l10n;
-	/** @var IAppConfig|MockObject */
-	private $appConfig;
-	/** @var SignSetupService|MockObject */
-	private $signSetupService;
-	/** @var IURLGenerator|MockObject */
-	private $urlGenerator;
-	/** @var IAppManager|MockObject */
-	private $appManager;
-	/** @var LoggerInterface|MockObject */
-	private $logger;
-	/** @var IConfig|MockObject */
-	private $systemConfig;
-	/** @var JavaHelper|MockObject */
-	private $javaHelper;
+	private IL10N&MockObject $l10n;
+	private IAppConfig&MockObject $appConfig;
+	private SignSetupService&MockObject $signSetupService;
+	private IURLGenerator&MockObject $urlGenerator;
+	private IAppManager&MockObject $appManager;
+	private LoggerInterface&MockObject $logger;
+	private IConfig&MockObject $systemConfig;
+	private JavaHelper&MockObject $javaHelper;
 
 	protected function setUp(): void {
 		parent::setUp();

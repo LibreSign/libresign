@@ -30,8 +30,7 @@ namespace OCA\Libresign\Tests\Unit\SetupCheck {
 
 		private IL10N&MockObject $l10n;
 
-		/** @var ImagickSetupCheck */
-		private $check;
+		private ImagickSetupCheck $check;
 
 		protected function setUp(): void {
 			parent::setUp();
