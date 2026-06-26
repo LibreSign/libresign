@@ -10,7 +10,7 @@ import {
 	normalizeIdentifyMethodsPolicyConfig,
 	normalizeIdentifyMethodsPolicy,
 	serializeIdentifyMethodsPolicy,
-} from '../../../../views/Settings/PolicyWorkbench/settings/identify-methods/model'
+} from '../../../../../../views/Settings/PolicyWorkbench/settings/identify-methods/model'
 
 describe('identify-methods model compatibility', () => {
 	it('parses legacy availableSignatureMethods for account', () => {
