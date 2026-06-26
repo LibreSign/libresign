@@ -16,6 +16,7 @@ use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\NotificationPreferenceResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -34,6 +35,7 @@ class NotificationListener implements IEventListener {
 		private ITimeFactory $timeFactory,
 		protected IURLGenerator $url,
 		private SignRequestMapper $signRequestMapper,
+		private NotificationPreferenceResolver $notificationPreferenceResolver,
 	) {
 	}
 
@@ -72,9 +74,10 @@ class NotificationListener implements IEventListener {
 		if ($identifyMethod->getEntity()->isDeletedAccount()) {
 			return;
 		}
-		$notificationDisabled = $this->isNotificationDisabledAtActivity(
+		$notificationDisabled = $this->notificationPreferenceResolver->isInAppNotificationDisabled(
 			$identifyMethod->getEntity()->getIdentifierValue(),
 			SendSignNotificationEvent::FILE_TO_SIGN,
+			true,
 		);
 		if ($notificationDisabled) {
 			return;
@@ -117,9 +120,10 @@ class NotificationListener implements IEventListener {
 		if ($identifyMethod->getEntity()->isDeletedAccount()) {
 			return;
 		}
-		$notificationDisabled = $this->isNotificationDisabledAtActivity(
+		$notificationDisabled = $this->notificationPreferenceResolver->isInAppNotificationDisabled(
 			$libreSignFile->getUserId(),
 			SignedEvent::FILE_SIGNED,
+			true,
 		);
 		if ($notificationDisabled) {
 			return;
@@ -169,9 +173,10 @@ class NotificationListener implements IEventListener {
 		if ($identifyMethod->getEntity()->isDeletedAccount()) {
 			return;
 		}
-		$notificationDisabled = $this->isNotificationDisabledAtActivity(
+		$notificationDisabled = $this->notificationPreferenceResolver->isInAppNotificationDisabled(
 			$identifyMethod->getEntity()->getIdentifierValue(),
 			SignRequestCanceledEvent::SIGN_REQUEST_CANCELED,
+			true,
 		);
 		if ($notificationDisabled) {
 			return;
@@ -202,36 +207,6 @@ class NotificationListener implements IEventListener {
 			]);
 
 		$this->notificationManager->notify($notification);
-	}
-
-	private function isNotificationDisabledAtActivity(string $userId, string $type): bool {
-		if (!class_exists(\OCA\Activity\UserSettings::class)) {
-			return false;
-		}
-		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
-		if ($activityUserSettings) {
-			$manager = \OCP\Server::get(\OCP\Activity\IManager::class);
-			try {
-				$manager->getSettingById($type);
-			} catch (\Exception) {
-				return false;
-			}
-
-			$adminSetting = $activityUserSettings->getAdminSetting('notification', $type);
-			if (!$adminSetting) {
-				return true;
-			}
-
-			$notificationSetting = $activityUserSettings->getUserSetting(
-				$userId,
-				'notification',
-				$type
-			);
-			if ($notificationSetting === false) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/**
