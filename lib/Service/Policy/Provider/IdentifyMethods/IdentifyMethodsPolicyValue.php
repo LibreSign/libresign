@@ -92,9 +92,7 @@ final class IdentifyMethodsPolicyValue {
 		}
 
 		if (is_array($rawValue)) {
-			if (!array_is_list($rawValue)) {
-				return self::prepareInputFromArrayPayload($rawValue);
-			}
+			return self::prepareInputFromArrayPayload($rawValue);
 		}
 
 		return [
@@ -111,7 +109,7 @@ final class IdentifyMethodsPolicyValue {
 	private static function prepareInputFromArrayPayload(array $payload): array {
 		if (array_is_list($payload)) {
 			return [
-				'factors' => null,
+				'factors' => array_values($payload),
 				'sharedMinimumTotalVerifiedFactors' => null,
 				'globalCanCreateAccount' => null,
 			];
