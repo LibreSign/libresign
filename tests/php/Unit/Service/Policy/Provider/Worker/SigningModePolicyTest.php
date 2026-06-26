@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\Worker;
 
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
+use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
 use PHPUnit\Framework\TestCase;
 
 final class SigningModePolicyTest extends TestCase {
@@ -28,6 +29,8 @@ final class SigningModePolicyTest extends TestCase {
 		$this->assertSame('async', $signingMode->normalizeValue('async'));
 		$this->assertSame('sync', $signingMode->normalizeValue('invalid-value'));
 		$this->assertFalse($signingMode->supportsUserPreference());
+		$this->assertSame(['system'], $signingMode->supportedScopes());
+		$this->assertSame([WorkerConfigPolicy::KEY], $signingMode->compositeChildren());
 
 		$workerType = $provider->get(SigningModePolicy::KEY_WORKER_TYPE);
 		$this->assertSame(SigningModePolicy::KEY_WORKER_TYPE, $workerType->key());
@@ -35,6 +38,8 @@ final class SigningModePolicyTest extends TestCase {
 		$this->assertSame(['local', 'external'], $workerType->allowedValues(new PolicyContext()));
 		$this->assertSame('external', $workerType->normalizeValue('external'));
 		$this->assertSame('local', $workerType->normalizeValue('invalid-worker'));
+		$this->assertTrue($workerType->isHelper());
+		$this->assertSame(WorkerConfigPolicy::KEY, $workerType->parentPolicyKey());
 
 		$parallelWorkers = $provider->get(SigningModePolicy::KEY_PARALLEL_WORKERS);
 		$this->assertSame(SigningModePolicy::KEY_PARALLEL_WORKERS, $parallelWorkers->key());
@@ -42,6 +47,8 @@ final class SigningModePolicyTest extends TestCase {
 		$this->assertSame(1, $parallelWorkers->normalizeValue(0));
 		$this->assertSame(32, $parallelWorkers->normalizeValue(33));
 		$this->assertSame(8, $parallelWorkers->normalizeValue(8));
+		$this->assertTrue($parallelWorkers->isHelper());
+		$this->assertSame(WorkerConfigPolicy::KEY, $parallelWorkers->parentPolicyKey());
 	}
 
 	public function testThrowsOnUnknownPolicyKey(): void {
