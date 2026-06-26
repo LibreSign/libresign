@@ -20,7 +20,7 @@ vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: (path: string) => path,
 }))
 
-vi.mock('../../../../helpers/pdfWorker', () => ({
+vi.mock('../../../../../../helpers/pdfWorker', () => ({
 	ensurePdfWorker: () => ensurePdfWorkerMock(),
 }))
 
@@ -32,8 +32,8 @@ vi.mock('@libresign/pdf-elements', () => ({
 	},
 }))
 
-import SignatureFooterRuleEditor from '../../../../views/Settings/PolicyWorkbench/settings/signature-footer/SignatureFooterRuleEditor.vue'
-import type { EffectivePolicyValue } from '../../../../types/index'
+import SignatureFooterRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-footer/SignatureFooterRuleEditor.vue'
+import type { EffectivePolicyValue } from '../../../../../../types/index'
 
 describe('SignatureFooterRuleEditor.vue', () => {
 	beforeEach(() => {
