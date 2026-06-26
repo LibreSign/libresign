@@ -6,7 +6,7 @@
 import { mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { pickCategoryWithFullyVisibleCard, useNavigation } from '../../../../views/Settings/PolicyWorkbench/Catalog/composables/useNavigation'
+import { pickCategoryWithFullyVisibleCard, useNavigation } from '../../../../../../views/Settings/PolicyWorkbench/Catalog/composables/useNavigation'
 
 function createRect(top: number): DOMRect {
 	return {
