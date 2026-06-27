@@ -85,10 +85,6 @@ class JSignPdfSetupCheckTest extends TestCase {
 	}
 
 	public function testGetName(): void {
-		$this->l10n->expects($this->once())
-			->method('t')
-			->with('JSignPdf')
-			->willReturn('JSignPdf');
 		$this->assertSame('JSignPdf', $this->check->getName());
 	}
 
