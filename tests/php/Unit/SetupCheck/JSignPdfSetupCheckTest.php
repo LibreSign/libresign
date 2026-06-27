@@ -154,7 +154,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 		$this->assertInstanceOf(SetupResult::class, $result);
 		$this->assertSame('error', $result->getSeverity());
-		$this->assertStringContainsString('JSignPdf binary not found', $result->getDescription());
+		$this->assertStringContainsString('JSignPdf file not found', $result->getDescription());
 	}
 
 	public function testRunJavaNotFound(): void {
