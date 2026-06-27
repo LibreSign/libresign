@@ -35,7 +35,8 @@ trait SetupCheckUtils {
 		if (count($result) === 1 && !$debugEnabled) {
 			if (isset($result['SIGNATURE_DATA_NOT_FOUND'])) {
 				return [
-					$l10n->t('Signature data not found.'),
+					// TRANSLATORS This refers to LibreSign binary integrity verification metadata, not to a user's document signature. LibreSign validates approved signing binaries using maintainer-signed metadata shipped with the app.
+					$l10n->t('Binary integrity signature data not found.'),
 					$l10n->t("Sounds that you are running from source code of LibreSign.\nEnable debug mode by: %s", ['occ config:system:set debug --value true --type boolean']),
 				];
 			}
