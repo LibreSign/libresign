@@ -37,7 +37,8 @@ trait SetupCheckUtils {
 				return [
 					// TRANSLATORS This refers to LibreSign binary integrity verification metadata, not to a user's document signature. LibreSign validates approved signing binaries using maintainer-signed metadata shipped with the app.
 					$l10n->t('Binary integrity signature data not found.'),
-					$l10n->t("Sounds that you are running from source code of LibreSign.\nEnable debug mode by: %s", ['occ config:system:set debug --value true --type boolean']),
+					// TRANSLATORS This tip is shown when LibreSign seems to be running from source code instead of an official packaged release. %s is the occ command to enable debug mode.
+					$l10n->t("It looks like this LibreSign instance is running from source code.\nEnable debug mode by running %s", ['occ config:system:set debug --value true --type boolean']),
 				];
 			}
 			if (isset($result['EMPTY_SIGNATURE_DATA'])) {
