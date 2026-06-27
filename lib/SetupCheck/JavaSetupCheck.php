@@ -51,7 +51,7 @@ class JavaSetupCheck implements ISetupCheck {
 
 	#[\Override]
 	public function getName(): string {
-		return $this->l10n->t('Java');
+		return 'Java';
 	}
 
 	#[\Override]
