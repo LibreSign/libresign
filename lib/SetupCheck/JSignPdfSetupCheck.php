@@ -122,7 +122,10 @@ class JSignPdfSetupCheck implements ISetupCheck {
 		}
 
 		if (version_compare($currentVersion, InstallService::JSIGNPDF_VERSION, '<')) {
-			$msg = $this->l10n->t('Necessary bump JSignPdf version from %s to %s', [$currentVersion, InstallService::JSIGNPDF_VERSION]);
+			// TRANSLATORS JSignPdf is an optional external signing backend.
+			// LibreSign is tested/validated with a specific JSignPdf version.
+			// The first %s is the currently installed JSignPdf version; the second %s is the required supported version.
+			$msg = $this->l10n->t('JSignPdf must be updated from version %s to %s', [$currentVersion, InstallService::JSIGNPDF_VERSION]);
 			// TRANSLATORS Command to run into terminal using Nextcloud occ to configure LibreSign using CLI when the sysadmin want to do this by CLI.
 			return SetupResult::error($msg, $this->l10n->t('Run %s', ['occ libresign:install --jsignpdf']));
 		}
