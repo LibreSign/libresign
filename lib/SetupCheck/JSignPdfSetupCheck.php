@@ -145,8 +145,11 @@ class JSignPdfSetupCheck implements ISetupCheck {
 		}
 
 		$messages = [
+			// TRANSLATORS: JSignPdf is an optional external signing backend. %s is the detected JSignPdf version.
 			$this->l10n->t('JSignPdf version: %s', [$currentVersion]),
-			$this->l10n->t('JSignPdf path: %s', [$jsignpdfJarPath])
+
+			// TRANSLATORS: JSignPdf is an optional external signing backend. %s is the configured or detected path to the JSignPdf executable/JAR file.
+			$this->l10n->t('JSignPdf path: %s', [$jsignpdfJarPath]),
 		];
 
 		return SetupResult::success(implode("\n", $messages));
