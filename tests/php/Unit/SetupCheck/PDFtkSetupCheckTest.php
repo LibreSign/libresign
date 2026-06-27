@@ -89,10 +89,6 @@ class PDFtkSetupCheckTest extends TestCase {
 	}
 
 	public function testGetName(): void {
-		$this->l10n->expects($this->once())
-			->method('t')
-			->with('PDFtk')
-			->willReturn('PDFtk');
 		$check = $this->getInstance();
 		$this->assertEquals('PDFtk', $check->getName());
 	}

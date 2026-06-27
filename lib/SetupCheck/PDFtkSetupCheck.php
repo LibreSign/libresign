@@ -56,7 +56,7 @@ class PDFtkSetupCheck implements ISetupCheck {
 
 	#[\Override]
 	public function getName(): string {
-		return $this->l10n->t('PDFtk');
+		return 'PDFtk';
 	}
 
 	#[\Override]

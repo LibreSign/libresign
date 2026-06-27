@@ -307,7 +307,6 @@ class JavaSetupCheckTest extends TestCase {
 	}
 
 	public function testGetName(): void {
-		$this->l10n->method('t')->willReturnArgument(0);
 		$instance = $this->getInstance();
 		$this->assertEquals('Java', $instance->getName());
 	}

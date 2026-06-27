@@ -146,10 +146,6 @@ class PopplerSetupCheckTest extends TestCase {
 	}
 
 	public function testGetName(): void {
-		$this->l10n->expects($this->once())
-			->method('t')
-			->with('Poppler utils')
-			->willReturn('Poppler utils');
 		$this->assertEquals('Poppler utils', $this->check->getName());
 	}
 
