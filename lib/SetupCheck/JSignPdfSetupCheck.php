@@ -101,6 +101,8 @@ class JSignPdfSetupCheck implements ISetupCheck {
 		$javaPath = $this->javaHelper->getJavaPath();
 		if (!$javaPath || !file_exists($javaPath)) {
 			return SetupResult::error(
+				// TRANSLATORS JSignPdf is an optional external signing backend that requires Java to run.
+				// LibreSign also supports other signing methods, including its native PHP signer.
 				$this->l10n->t('Necessary Java to run JSignPdf'),
 				// TRANSLATORS Command to run into terminal using Nextcloud occ to configure LibreSign using CLI when the sysadmin want to do this by CLI.
 				$this->l10n->t('Run %s', ['occ libresign:install --java'])
