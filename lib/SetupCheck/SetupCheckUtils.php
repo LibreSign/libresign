@@ -70,6 +70,7 @@ trait SetupCheckUtils {
 			];
 		}
 		return [
+			// TRANSLATORS This is a security/integrity check failure. LibreSign only accepts approved signing binaries whose hashes match maintainer-signed metadata shipped with the app. Even a one-bit change makes the binary invalid.
 			$l10n->t('Invalid hash of binaries files.'),
 			$l10n->t('Check your nextcloud.log file and run occ libresign:install --all'),
 		];
