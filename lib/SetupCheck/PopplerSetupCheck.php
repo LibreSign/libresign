@@ -21,8 +21,7 @@ class PopplerSetupCheck implements ISetupCheck {
 
 	#[\Override]
 	public function getName(): string {
-		// TRANSLATORS Name of the Poppler utilities setup check shown in the admin settings.
-		return $this->l10n->t('Poppler utils');
+		return 'Poppler utils';
 	}
 
 	#[\Override]
