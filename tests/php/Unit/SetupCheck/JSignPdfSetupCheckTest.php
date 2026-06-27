@@ -242,7 +242,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 		$this->assertInstanceOf(SetupResult::class, $result);
 		$this->assertSame('error', $result->getSeverity());
-		$this->assertStringContainsString('bump JSignPdf version', $result->getDescription());
+		$this->assertStringContainsString('JSignPdf must be updated from version', $result->getDescription());
 	}
 
 	public function testRunVersionTooHigh(): void {
