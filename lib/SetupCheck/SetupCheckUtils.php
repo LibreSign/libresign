@@ -42,7 +42,8 @@ trait SetupCheckUtils {
 			}
 			if (isset($result['EMPTY_SIGNATURE_DATA'])) {
 				return [
-					$l10n->t('Your signature data is empty.'),
+					// TRANSLATORS This refers to LibreSign binary integrity verification metadata, not to a user's document signature. LibreSign validates approved signing binaries using maintainer-signed metadata shipped with the app.
+					$l10n->t('Binary integrity signature data is empty.'),
 					$l10n->t("Sounds that you are running from source code of LibreSign.\nEnable debug mode by: %s", ['occ config:system:set debug --value true --type boolean']),
 				];
 			}
