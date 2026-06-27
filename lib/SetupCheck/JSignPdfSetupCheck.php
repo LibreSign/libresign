@@ -89,7 +89,10 @@ class JSignPdfSetupCheck implements ISetupCheck {
 
 		if (!file_exists($jsignpdfJarPath)) {
 			return SetupResult::error(
-				$this->l10n->t('JSignPdf binary not found: %s', [$jsignpdfJarPath]),
+				// TRANSLATORS JSignPdf is an optional external signing backend used by LibreSign.
+				// LibreSign also supports other signing methods, including its native PHP signer.
+				// %s is the configured JSignPdf path that could not be found.
+				$this->l10n->t('JSignPdf file not found: %s', [$jsignpdfJarPath]),
 				// TRANSLATORS Command to run into terminal using Nextcloud occ to configure LibreSign using CLI when the sysadmin want to do this by CLI.
 				$this->l10n->t('Run %s', ['occ libresign:install --jsignpdf'])
 			);
