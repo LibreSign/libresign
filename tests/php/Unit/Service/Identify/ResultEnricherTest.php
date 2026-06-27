@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Identify;
 use OCA\Libresign\Service\Identify\ResultEnricher;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
+use OCA\Libresign\Service\NotificationPreferenceResolver;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
@@ -24,6 +25,7 @@ class ResultEnricherTest extends TestCase {
 	private IUserManager&MockObject $userManager;
 	private Account&MockObject $accountMethod;
 	private Email&MockObject $emailMethod;
+	private NotificationPreferenceResolver&MockObject $notificationPreferenceResolver;
 	private IUser&MockObject $currentUser;
 
 	protected function setUp(): void {
@@ -31,6 +33,7 @@ class ResultEnricherTest extends TestCase {
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->accountMethod = $this->createMock(Account::class);
 		$this->emailMethod = $this->createMock(Email::class);
+		$this->notificationPreferenceResolver = $this->createMock(NotificationPreferenceResolver::class);
 		$this->currentUser = $this->createMock(IUser::class);
 
 		$this->enricher = new ResultEnricher(
@@ -38,6 +41,7 @@ class ResultEnricherTest extends TestCase {
 			$this->userManager,
 			$this->emailMethod,
 			$this->accountMethod,
+			$this->notificationPreferenceResolver,
 		);
 	}
 
@@ -217,6 +221,45 @@ class ResultEnricherTest extends TestCase {
 			'email method' => ['email', false, false],
 			'phone method' => ['sms', false, false],
 		];
+	}
+
+	public static function providerAddEmailNotificationPreferenceFallbackSettings(): array {
+		return [
+			'notifications disabled' => [true, false],
+			'notifications enabled' => [false, true],
+		];
+	}
+
+	#[DataProvider('providerAddEmailNotificationPreferenceFallbackSettings')]
+	public function testAddEmailNotificationPreferenceRespectsNotificationPreference(
+		bool $notificationDisabled,
+		bool $acceptsNotifications,
+	): void {
+		$this->notificationPreferenceResolver->expects($this->once())
+			->method('isEmailNotificationDisabled')
+			->with('john', 'libresign_file_to_sign', false)
+			->willReturn($notificationDisabled);
+
+		$user = $this->createMock(IUser::class);
+		$user->method('getEMailAddress')
+			->willReturn('john@company.com');
+		$user->method('getUID')
+			->willReturn('john');
+
+		$this->userManager->method('get')
+			->with('john')
+			->willReturn($user);
+
+		$result = $this->enricher->addEmailNotificationPreference([
+			['identify' => 'john', 'method' => 'account'],
+		]);
+
+		$this->assertSame($acceptsNotifications, $result[0]['acceptsEmailNotifications']);
+		if ($acceptsNotifications) {
+			$this->assertSame('john@company.com', $result[0]['emailAddress']);
+		} else {
+			$this->assertArrayNotHasKey('emailAddress', $result[0]);
+		}
 	}
 
 	public function testAddEmailNotificationPreferenceWhenUserNotFound(): void {
