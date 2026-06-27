@@ -53,6 +53,7 @@ trait SetupCheckUtils {
 		if (isset($result['HASH_FILE_ERROR'])) {
 			if ($debugEnabled) {
 				return [
+					// TRANSLATORS This is a security/integrity check failure. LibreSign only accepts approved signing binaries whose hashes match maintainer-signed metadata shipped with the app. Even a one-bit change makes the binary invalid.
 					$l10n->t('Invalid hash of binaries files.'),
 					$l10n->t('Debug mode is enabled at your config.php and your LibreSign app was signed using a production signature. If you are not working at development of LibreSign, disable your debug mode or run the command: occ libresign install --%s --use-local-cert', [$resource]),
 				];
