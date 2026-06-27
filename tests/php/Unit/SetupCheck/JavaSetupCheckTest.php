@@ -359,7 +359,7 @@ class JavaSetupCheckTest extends TestCase {
 		$result = $instance->run();
 
 		$this->assertEquals('error', $result->getSeverity());
-		$this->assertStringContainsString('Your signature data is empty', $result->getDescription());
+		$this->assertStringContainsString('Binary integrity signature data is empty', $result->getDescription());
 	}
 
 	public function testVerifyResourceIntegritySignatureDataNotFoundWithDebug(): void {
