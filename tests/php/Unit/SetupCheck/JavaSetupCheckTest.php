@@ -336,7 +336,7 @@ class JavaSetupCheckTest extends TestCase {
 		$result = $instance->run();
 
 		$this->assertEquals('error', $result->getSeverity());
-		$this->assertStringContainsString('Signature data not found', $result->getDescription());
+		$this->assertStringContainsString('Binary integrity signature data not found', $result->getDescription());
 		$this->assertStringContainsString('running from source code', $result->getLinkToDoc());
 	}
 
