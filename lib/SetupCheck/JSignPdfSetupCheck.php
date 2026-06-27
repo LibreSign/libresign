@@ -60,7 +60,7 @@ class JSignPdfSetupCheck implements ISetupCheck {
 
 	#[\Override]
 	public function getName(): string {
-		return $this->l10n->t('JSignPdf');
+		return 'JSignPdf';
 	}
 
 	#[\Override]
