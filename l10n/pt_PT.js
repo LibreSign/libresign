@@ -110,6 +110,7 @@ OC.L10N.register(
     "Cancel upload" : "Cancelar envio",
     "Issued by:" : "Emitido por:",
     "Name:" : "Nome:",
+    "Status:" : "Status:",
     "Unknown" : "Desconhecido",
     "Congratulations you have digitally signed a document using LibreSign" : "Parabéns, você assinou digitalmente um documento usando LibreSign",
     "View PDF" : "Ver PDF",
