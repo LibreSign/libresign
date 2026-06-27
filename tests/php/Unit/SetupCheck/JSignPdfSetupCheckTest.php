@@ -272,7 +272,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 		$this->assertInstanceOf(SetupResult::class, $result);
 		$this->assertSame('error', $result->getSeverity());
-		$this->assertStringContainsString('downgrade JSignPdf version', $result->getDescription());
+		$this->assertStringContainsString('JSignPdf must be downgraded from version', $result->getDescription());
 	}
 
 	public function testRunSuccess(): void {
