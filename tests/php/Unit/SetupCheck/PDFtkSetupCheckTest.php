@@ -141,7 +141,7 @@ class PDFtkSetupCheckTest extends TestCase {
 
 		$this->assertInstanceOf(SetupResult::class, $result);
 		$this->assertEquals(SetupResult::ERROR, $result->getSeverity());
-		$this->assertStringContainsString('Signature data not found', $result->getDescription());
+		$this->assertStringContainsString('Binary integrity signature data not found', $result->getDescription());
 	}
 
 	public function testRunFileNotExists(): void {
