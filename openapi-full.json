@@ -449,6 +449,7 @@
                         "type": "string",
                         "enum": [
                             "error",
+                            "info",
                             "success"
                         ]
                     },
