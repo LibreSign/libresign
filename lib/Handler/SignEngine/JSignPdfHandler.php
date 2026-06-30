@@ -181,8 +181,8 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 	private function getHashAlgorithmForPdfVersion(float $pdfVersion, string $configuredAlgorithm): string {
 		// Legacy compatibility: JSignPdf still requires SHA1 for very old PDFs (< 1.6).
-		// SHA1 remains available in the policy/UI for legacy workflows, but newer PDFs
-		// continue to be upgraded to stronger algorithms by the runtime rules below.
+		// The policy still exposes SHA1 for supported legacy workflows, and the runtime
+		// must continue enforcing this fallback for ancient PDFs that JSignPdf cannot sign otherwise.
 		if ($pdfVersion < 1.6) {
 			return 'SHA1';
 		}
@@ -302,6 +302,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 	private function signUsingVisibleElements(string $normalizedPdf, string $hashAlgorithm): string {
 		$visibleElements = $this->getVisibleElements();
 		if ($visibleElements) {
+			$signed = '';
 			$jSignPdf = $this->getJSignPdf();
 
 			$renderMode = $this->signatureTextService->getRenderMode();
