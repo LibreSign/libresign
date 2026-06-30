@@ -22,10 +22,24 @@ describe('signatureHashAlgorithmRealDefinition', () => {
 		expect(signatureHashAlgorithmRealDefinition.groupAdminBehavior?.allowGroupRuleCreationFromDescendantDelegation).toBe(true)
 	})
 
+	it('summarizes supported legacy and invalid values correctly', () => {
+		expect(signatureHashAlgorithmRealDefinition.summarizeValue('SHA1')).toBe('SHA1')
+		expect(signatureHashAlgorithmRealDefinition.summarizeValue('RIPEMD160')).toBe('RIPEMD160')
+		expect(signatureHashAlgorithmRealDefinition.summarizeValue('MD5')).toBe('SHA256')
+	})
+
 	it('hides non-removable delegated group seed rules', () => {
 		expect(signatureHashAlgorithmRealDefinition.groupAdminBehavior?.hideNonRemovableGroupRules?.({
 			editableByCurrentActor: false,
 			canSaveAsUserDefault: true,
 		} as never)).toBe(true)
+	})
+
+	it('uses backend allowedValues as the editor option subset when provided', () => {
+		expect(signatureHashAlgorithmRealDefinition.resolveEditorProps?.({
+			allowedValues: ['SHA256', 'SHA512'],
+		} as never, {})).toEqual({
+			allowedValues: ['SHA256', 'SHA512'],
+		})
 	})
 })
