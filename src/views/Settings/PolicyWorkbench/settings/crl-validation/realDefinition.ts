@@ -46,9 +46,9 @@ export const crlValidationRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'External CRL validation'),
 	// TRANSLATORS Policy description about checking external CRL URLs during certificate trust validation.
 	description: t('libresign', 'Control whether external CRL distribution points are validated during certificate checks.'),
+	supportedScopes: ['system'],
 	groupAdminBehavior: {
-		allowGroupRuleCreationFromDescendantDelegation: true,
-		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && (policy?.canSaveAsUserDefault === true || policy?.meta?.canCreateDescendantRules === true),
+		canRenderPolicy: () => false,
 	},
 	editor: CrlValidationRuleEditor,
 	createEmptyValue: () => true,
@@ -57,13 +57,7 @@ export const crlValidationRealDefinition: RealPolicySettingDefinition = {
 		return resolved ?? true
 	},
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => resolveCrlValidation(value) !== null,
-	normalizeAllowChildOverride: (scope, allowChildOverride: boolean, context) => {
-		if (context?.viewMode === 'group-admin' && scope === 'group') {
-			return false
-		}
-
-		return allowChildOverride
-	},
+	normalizeAllowChildOverride: () => false,
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
 		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
 			return policyValue
@@ -86,10 +80,5 @@ export const crlValidationRealDefinition: RealPolicySettingDefinition = {
 		// TRANSLATORS Fallback policy summary shown when no explicit value is set.
 		return t('libresign', 'Not configured')
 	},
-	formatAllowOverride: (allowChildOverride: boolean) =>
-		allowChildOverride
-			// TRANSLATORS Policy inheritance message indicating child scopes can define their own CRL validation behavior.
-			? t('libresign', 'Groups and accounts can set their own rule')
-			// TRANSLATORS Policy inheritance message indicating child scopes must use the current CRL validation behavior.
-			: t('libresign', 'Groups and accounts must follow this value'),
+	formatAllowOverride: () => t('libresign', 'Lower-level customization is disabled for this setting'),
 }
