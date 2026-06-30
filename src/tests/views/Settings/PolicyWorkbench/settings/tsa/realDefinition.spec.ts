@@ -14,15 +14,19 @@ vi.mock('@nextcloud/l10n', () => ({
 import { tsaRealDefinition } from '../../../../../../views/Settings/PolicyWorkbench/settings/tsa/realDefinition'
 
 describe('tsaRealDefinition', () => {
-	it('supports instance, group, and account rule scopes for delegated admins', () => {
-		expect(tsaRealDefinition.supportedScopes).toEqual(['system', 'group', 'user'])
-		expect(tsaRealDefinition.groupAdminBehavior?.allowGroupRuleCreationFromDescendantDelegation).toBe(true)
+	it('supports only the system scope and hides the workbench card for group admins', () => {
+		expect(tsaRealDefinition.supportedScopes).toEqual(['system'])
+		expect(tsaRealDefinition.groupAdminBehavior?.canRenderPolicy?.({
+			editableByCurrentActor: false,
+			canSaveAsUserDefault: false,
+			meta: { canCreateDescendantRules: false },
+		} as never)).toBe(false)
 	})
 
-	it('preserves child-override toggles for system and group rules', () => {
-		expect(tsaRealDefinition.normalizeAllowChildOverride('system', true)).toBe(true)
+	it('disables child-override toggles for every scope', () => {
+		expect(tsaRealDefinition.normalizeAllowChildOverride('system', true)).toBe(false)
 		expect(tsaRealDefinition.normalizeAllowChildOverride('system', false)).toBe(false)
-		expect(tsaRealDefinition.normalizeAllowChildOverride('group', true)).toBe(true)
+		expect(tsaRealDefinition.normalizeAllowChildOverride('group', true)).toBe(false)
 		expect(tsaRealDefinition.normalizeAllowChildOverride('group', false)).toBe(false)
 	})
 })
