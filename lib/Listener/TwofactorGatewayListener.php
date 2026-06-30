@@ -101,7 +101,12 @@ class TwofactorGatewayListener implements IEventListener {
 			$gatewayName = $this->getGatewayName($entity->getIdentifierKey());
 			$gateway = $gatewayFactory->get($gatewayName);
 			try {
-				$gateway->send($identifier, $message);
+				$gateway->send($identifier, $message, [
+					'body_parameters' => [
+						$link,
+						$libreSignFile->getName(),
+					],
+				]);
 			} catch (Exception $e) {
 				$this->logger->error('Could not send 2FA message', [
 					'identifier' => $identifier,
