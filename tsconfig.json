@@ -4,6 +4,7 @@
 		"src/env.d.ts",
 		"src/global.d.ts",
 		"src/tests/vitest.d.ts",
+		"playwright/support/**/*.ts",
 		"src/**/*.ts",
 		"src/**/*.vue"
 	],
