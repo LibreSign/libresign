@@ -8,8 +8,9 @@ import { t } from '@nextcloud/l10n'
 import SignatureHashAlgorithmRuleEditor from './SignatureHashAlgorithmRuleEditor.vue'
 
 import type { EffectivePolicyValue } from '../../../../../types/index'
+import type { EffectivePolicyState } from '../realTypes'
 import type { RealPolicySettingDefinition } from '../realTypes'
-import { DEFAULT_HASH_ALGORITHM, normalizeHashAlgorithm } from './model'
+import { DEFAULT_HASH_ALGORITHM, HASH_ALGORITHMS, isHashAlgorithm, normalizeHashAlgorithm } from './model'
 
 export const signatureHashAlgorithmRealDefinition: RealPolicySettingDefinition = {
 	key: 'signature_hash_algorithm',
@@ -22,6 +23,16 @@ export const signatureHashAlgorithmRealDefinition: RealPolicySettingDefinition =
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
 	},
 	editor: SignatureHashAlgorithmRuleEditor,
+	resolveEditorProps: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => {
+		const allowedValues = Array.isArray(policy?.allowedValues)
+			? policy.allowedValues.filter((value): value is typeof HASH_ALGORITHMS[number] => isHashAlgorithm(value))
+			: []
+
+		return {
+			...baseEditorProps,
+			allowedValues: allowedValues.length > 0 ? allowedValues : [...HASH_ALGORITHMS],
+		}
+	},
 	createEmptyValue: () => DEFAULT_HASH_ALGORITHM,
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeHashAlgorithm(value),
 	hasSelectableDraftValue: () => true,
