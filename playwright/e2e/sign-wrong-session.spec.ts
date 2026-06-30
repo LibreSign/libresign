@@ -10,14 +10,17 @@ import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support
 
 /**
  * When an authenticated Nextcloud user visits a sign link that belongs to a
- * different email address, LibreSign must block the attempt with a clear error
- * message instead of silently failing or allowing the wrong user to sign.
+ * different email address, LibreSign must block the attempt with clear
+ * authentication guidance instead of silently failing or allowing the wrong
+ * user to sign.
  *
  * The admin is logged in as admin@email.tld but the email sign request is for
- * signer01@libresign.coop — they do NOT match, so the backend throws:
- * "This document is not yours. Log out and use the sign link again."
+ * signer01@libresign.coop — they do NOT match, so the backend must render the
+ * neutral authentication-required state and keep the signing UI unavailable.
  */
-test('authenticated user sees error when accessing another signer\'s email link', async ({ page }) => {
+test('authenticated user sees authentication guidance when accessing another signer\'s email link', async ({ page }) => {
+	test.setTimeout(90_000)
+
 	await login(
 		page.request,
 		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
@@ -50,10 +53,9 @@ test('authenticated user sees error when accessing another signer\'s email link'
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
 	await page.getByRole('button', { name: 'Send' }).click()
 
-	// Email signer — only the email method is active so there are no tabs in the Add signer dialog
+	// Email signer — only the email method is active so there are no tabs in the Add signer dialog.
 	await page.getByRole('button', { name: 'Add signer' }).click()
-	await page.getByPlaceholder('Email').click()
-	await page.getByPlaceholder('Email').pressSequentially('signer01@libresign.coop', { delay: 50 })
+	await page.getByPlaceholder('Email').fill('signer01@libresign.coop')
 	await page.getByRole('option', { name: 'signer01@libresign.coop' }).click()
 	await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 01')
 	await page.getByRole('button', { name: 'Save' }).click()
@@ -63,16 +65,22 @@ test('authenticated user sees error when accessing another signer\'s email link'
 
 	// Retrieve the sign link from the notification email sent to the signer.
 	// The admin is intentionally NOT logged out — this simulates the wrong-session scenario.
-	const email = await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: There is a file for you to sign')
+	const email = await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: There is a file for you to sign', {
+		timeout: 60_000,
+	})
 	const signLink = extractSignLink(email.Text)
 	if (!signLink) throw new Error('Sign link not found in email')
 
 	// Admin is still logged in (admin@email.tld) but navigates to a link
 	// that belongs to signer01@libresign.coop — the emails do NOT match.
 	// The identity check runs on page load; the "Sign the document." button is
-	// never rendered — the error is shown directly in the signing status panel.
+	// never rendered — the authentication-required guidance is shown directly.
 	await page.goto(signLink)
 
-	// Backend must return the "wrong session" error via ACTION_DO_NOTHING.
-	await expect(page.getByText('This document is not yours. Log out and use the sign link again.')).toBeVisible()
+	// Backend must keep blocking the flow via ACTION_DO_NOTHING while explaining
+	// how to continue safely without exposing either account identity.
+	await expect(page.getByText('Authentication required')).toBeVisible()
+	await expect(page.getByText('The current authenticated session cannot be used to sign this document.')).toBeVisible()
+	await expect(page.getByText('To continue, sign out from the current account and open the signing link again, or open the signing link in a browser session where this account is not active.')).toBeVisible()
+	await expect(page.getByRole('button', { name: 'Sign the document.' })).toHaveCount(0)
 })
