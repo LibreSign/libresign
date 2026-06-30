@@ -41,9 +41,11 @@ final class SignatureHashAlgorithmPolicy implements IPolicyDefinitionProvider {
 				key: self::KEY,
 				defaultSystemValue: 'SHA256',
 				allowedValues: self::ALGORITHMS,
-				normalizer: function (mixed $rawValue): string {
-					$candidate = strtoupper(trim((string)$rawValue));
-					return in_array($candidate, self::ALGORITHMS, true) ? $candidate : 'SHA256';
+				normalizer: static fn (mixed $rawValue): string => strtoupper(trim((string)$rawValue)),
+				validator: static function (mixed $value): void {
+					if (!is_string($value) || !in_array($value, self::ALGORITHMS, true)) {
+						throw new \InvalidArgumentException('Invalid value for ' . self::KEY);
+					}
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 				groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
