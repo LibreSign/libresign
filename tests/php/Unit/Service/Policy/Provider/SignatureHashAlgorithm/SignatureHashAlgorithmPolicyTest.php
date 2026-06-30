@@ -26,13 +26,15 @@ final class SignatureHashAlgorithmPolicyTest extends TestCase {
 		$this->assertSame(['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'], $definition->allowedValues(new PolicyContext()));
 	}
 
-	public function testNormalizesToAllowedAlgorithm(): void {
+	public function testNormalizesSupportedAndUnsupportedHashAlgorithms(): void {
 		$provider = new SignatureHashAlgorithmPolicy();
 		$definition = $provider->get(SignatureHashAlgorithmPolicy::KEY);
 
 		$this->assertSame('SHA512', $definition->normalizeValue('sha512'));
 		$this->assertSame('SHA1', $definition->normalizeValue('sha1'));
-		$this->assertSame('SHA256', $definition->normalizeValue('unknown'));
+		$this->assertSame('RIPEMD160', $definition->normalizeValue('ripemd160'));
+		$this->assertSame('MD5', $definition->normalizeValue('md5'));
+		$this->assertSame('UNKNOWN', $definition->normalizeValue('unknown'));
 	}
 
 	public function testProviderSupportsDelegatedGroupAdminOverlays(): void {
@@ -40,6 +42,55 @@ final class SignatureHashAlgorithmPolicyTest extends TestCase {
 		$definition = $provider->get(SignatureHashAlgorithmPolicy::KEY);
 
 		$this->assertTrue($definition->supportsGroupAdminDelegation());
+	}
+
+	#[DataProvider('provideInvalidHashAlgorithms')]
+	public function testValidateValueRejectsWeakOrInvalidAlgorithms(string $algorithm): void {
+		$provider = new SignatureHashAlgorithmPolicy();
+		$definition = $provider->get(SignatureHashAlgorithmPolicy::KEY);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Invalid value for ' . SignatureHashAlgorithmPolicy::KEY);
+
+		$definition->validateValue($definition->normalizeValue($algorithm), new PolicyContext());
+	}
+
+	#[DataProvider('provideValidHashAlgorithms')]
+	public function testValidateValueAcceptsSafeAlgorithms(string $algorithm): void {
+		$provider = new SignatureHashAlgorithmPolicy();
+		$definition = $provider->get(SignatureHashAlgorithmPolicy::KEY);
+
+		$definition->validateValue($definition->normalizeValue($algorithm), new PolicyContext());
+		$this->addToAssertionCount(1);
+	}
+
+	/** @return array<string, array{0: string}> */
+	public static function provideInvalidHashAlgorithms(): array {
+		return [
+			'MD5 is rejected' => ['MD5'],
+			'unknown hash is rejected' => ['UNKNOWN'],
+		];
+	}
+
+	/** @return array<string, array{0: string}> */
+	public static function provideValidHashAlgorithms(): array {
+		return [
+			'SHA1 is allowed' => ['SHA1'],
+			'SHA256 is allowed' => ['SHA256'],
+			'SHA384 is allowed' => ['SHA384'],
+			'SHA512 is allowed' => ['SHA512'],
+			'RIPEMD160 is allowed' => ['RIPEMD160'],
+		];
+	}
+
+	public function testDelegatedValidationDoesNotRejectSupportedLegacyAlgorithms(): void {
+		$provider = new SignatureHashAlgorithmPolicy();
+		$definition = $provider->get(SignatureHashAlgorithmPolicy::KEY);
+
+		$definition->validateGroupAdminDelegatedValue('SHA1', 'SHA512', new PolicyContext());
+		$definition->validateGroupAdminDelegatedValue('RIPEMD160', 'SHA256', new PolicyContext());
+
+		$this->addToAssertionCount(2);
 	}
 
 	#[DataProvider('provideCanCurrentActorManageGroupPolicyCases')]
