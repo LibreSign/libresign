@@ -564,7 +564,7 @@ export type components = {
             message: string;
             resource: string;
             /** @enum {string} */
-            status: "error" | "success";
+            status: "error" | "info" | "success";
             tip: string;
         };
         ConfigureChecksResponse: components["schemas"]["ConfigureCheck"][];
