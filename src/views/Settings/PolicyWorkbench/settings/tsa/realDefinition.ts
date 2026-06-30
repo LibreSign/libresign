@@ -18,16 +18,15 @@ export const tsaRealDefinition: RealPolicySettingDefinition = {
 	context: t('libresign', 'TSA'),
 	// TRANSLATORS Policy description for trusted timestamp evidence used during digital signing and long-term validation.
 	description: t('libresign', 'Configure trusted timestamp evidence (TSA) applied when digitally signing documents.'),
-	supportedScopes: ['system', 'group', 'user'],
+	supportedScopes: ['system'],
 	groupAdminBehavior: {
-		allowGroupRuleCreationFromDescendantDelegation: true,
-		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && (policy?.canSaveAsUserDefault === true || policy?.meta?.canCreateDescendantRules === true),
+		canRenderPolicy: () => false,
 	},
 	editor: TsaRuleEditor,
 	createEmptyValue: () => serializeTsaSettings(DEFAULT_TSA_SETTINGS),
 	normalizeDraftValue: (value: EffectivePolicyValue) => serializeTsaSettings(value),
 	hasSelectableDraftValue: () => true,
-	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
+	normalizeAllowChildOverride: () => false,
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
 		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
 			return policyValue
@@ -50,10 +49,5 @@ export const tsaRealDefinition: RealPolicySettingDefinition = {
 		// TRANSLATORS Policy summary meaning TSA is enabled without authentication details in this summary.
 		return t('libresign', 'Enabled')
 	},
-	formatAllowOverride: (allowChildOverride: boolean) =>
-		allowChildOverride
-			// TRANSLATORS Policy inheritance message indicating child scopes may define their own TSA configuration.
-			? t('libresign', 'Groups and accounts can set their own rule')
-			// TRANSLATORS Policy inheritance message indicating child scopes must keep this TSA configuration.
-			: t('libresign', 'Groups and accounts must follow this value'),
+	formatAllowOverride: () => t('libresign', 'Lower-level customization is disabled for this setting'),
 }
