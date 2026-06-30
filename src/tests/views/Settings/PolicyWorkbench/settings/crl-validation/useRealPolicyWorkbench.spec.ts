@@ -17,13 +17,18 @@ describe('crl validation workbench', () => {
 		resetWorkbenchHarness()
 	})
 
-	it('locks lower-level customization for group-admin CRL validation group rules', async () => {
+	it('rejects group-scope editing for group-admin because CRL validation is system-only', async () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'crl_external_validation_enabled') {
 				return {
 					effectiveValue: true,
 					sourceScope: 'system',
-					editableByCurrentActor: true,
+					editableByCurrentActor: false,
+					canSaveAsUserDefault: false,
+					meta: {
+						supportedScopes: ['system'],
+						supportsUserPreference: false,
+					},
 				}
 			}
 
@@ -35,16 +40,8 @@ describe('crl validation workbench', () => {
 		state.openSetting('crl_external_validation_enabled')
 		state.startEditor({ scope: 'group' })
 
-		expect(state.editorDraft?.allowChildOverride).toBe(false)
-
-		state.updateDraftTargets(['company'])
-		state.updateDraftAllowOverride(true)
-		expect(state.editorDraft?.allowChildOverride).toBe(false)
-
-		state.updateDraftValue(false as never)
-
-		await state.saveDraft()
-
-		expect(saveGroupPolicy).toHaveBeenCalledWith('company', 'crl_external_validation_enabled', false, false)
+		expect(state.editorDraft).toBeNull()
+		expect(state.duplicateMessage).toBe('This setting cannot be configured at this scope.')
+		expect(saveGroupPolicy).not.toHaveBeenCalled()
 	})
 })

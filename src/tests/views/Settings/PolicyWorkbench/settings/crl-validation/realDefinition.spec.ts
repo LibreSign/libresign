@@ -14,28 +14,26 @@ vi.mock('@nextcloud/l10n', () => ({
 }))
 
 describe('crlValidationRealDefinition', () => {
-	it('allows delegated group admins to create descendant rules', () => {
-		expect(crlValidationRealDefinition.groupAdminBehavior?.allowGroupRuleCreationFromDescendantDelegation).toBe(true)
+	it('is system-only and hides the workbench card for group admins', () => {
+		expect(crlValidationRealDefinition.supportedScopes).toEqual(['system'])
+		expect(crlValidationRealDefinition.groupAdminBehavior?.canRenderPolicy?.({
+			editableByCurrentActor: false,
+			canSaveAsUserDefault: false,
+			meta: { canCreateDescendantRules: false },
+		} as never)).toBe(false)
 	})
 
-	it('locks child customization for group-admin group rules', () => {
+	it('locks child customization for every scope', () => {
+		expect(crlValidationRealDefinition.normalizeAllowChildOverride('system', true)).toBe(false)
 		expect(crlValidationRealDefinition.normalizeAllowChildOverride('group', true, {
 			scope: 'group',
 			editorMode: 'create',
 			viewMode: 'group-admin',
 		})).toBe(false)
-		expect(crlValidationRealDefinition.normalizeAllowChildOverride('group', false, {
+		expect(crlValidationRealDefinition.normalizeAllowChildOverride('group', true, {
 			scope: 'group',
 			editorMode: 'create',
 			viewMode: 'group-admin',
 		})).toBe(false)
-	})
-
-	it('hides non-removable delegated group seed rules', () => {
-		expect(crlValidationRealDefinition.groupAdminBehavior?.hideNonRemovableGroupRules?.({
-			editableByCurrentActor: false,
-			canSaveAsUserDefault: false,
-			meta: { canCreateDescendantRules: true },
-		} as never)).toBe(true)
 	})
 })
