@@ -15,9 +15,7 @@ Feature: account/signature
       | (jq).ocs.data.rootCert.names[2]               | {"id":"L","value":"City name"}                                        |
       | (jq).ocs.data.rootCert.names[3]               | {"id":"O","value":"Organization"}                                     |
       | (jq).ocs.data.rootCert.names[4].id            | OU                                                                    |
-      | (jq).ocs.data.rootCert.names[4].value\|length | 2                                                                     |
-      | (jq).ocs.data.rootCert.names[4].value[0]      | Organizational Unit                                                   |
-      | (jq).ocs.data.rootCert.names[4].value         | (jq)any(.[]; test("^libresign-ca-id:[a-z0-9]+_g:[0-9]+_e:[oc]?$")) |
+      | (jq).ocs.data.rootCert.names[4]               | (jq).value \|test("^Organizational Unit, libresign-ca-id:[a-z0-9]+_g:[0-9]+_e:[oc]?$") |
       | (jq).ocs.data.generated                       | true                                                                  |
 
   Scenario: Create root certificate with CFSSL engine using API
@@ -38,9 +36,7 @@ Feature: account/signature
       | (jq).ocs.data.rootCert.names[2]               | {"id":"L","value":"City name"}                                        |
       | (jq).ocs.data.rootCert.names[3]               | {"id":"O","value":"Organization"}                                     |
       | (jq).ocs.data.rootCert.names[4].id            | OU                                                                    |
-      | (jq).ocs.data.rootCert.names[4].value\|length | 2                                                                     |
-      | (jq).ocs.data.rootCert.names[4].value[0]      | Organizational Unit                                                   |
-      | (jq).ocs.data.rootCert.names[4].value         | (jq)any(.[]; test("^libresign-ca-id:[a-z0-9]+_g:[0-9]+_e:[oc]?$")) |
+      | (jq).ocs.data.rootCert.names[4]               | (jq).value \|test("^Organizational Unit, libresign-ca-id:[a-z0-9]+_g:[0-9]+_e:[oc]?$") |
       | (jq).ocs.data.generated                       | true                                                                  |
 
   Scenario: Create pfx with success using CFSSL
