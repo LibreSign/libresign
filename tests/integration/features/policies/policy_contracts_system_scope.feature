@@ -36,7 +36,7 @@ Feature: policies/policy_contracts_system_scope
       | (jq).ocs.data.policies.maximum_validity.effectiveValue | 0  |
       | (jq).ocs.data.policies.expiry_in_days.effectiveValue   | 30 |
 
-  Scenario: Manage signature_hash_algorithm policy normalization
+  Scenario: Manage signature_hash_algorithm policy validation
     Given as user "admin"
 
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_hash_algorithm"
@@ -51,11 +51,36 @@ Feature: policies/policy_contracts_system_scope
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_hash_algorithm"
       | value              | invalid_hash |
       | allowChildOverride | true         |
+    Then the response should have a status code 400
+    And the response should be a JSON array with the following mandatory values
+      | key                  | value                                    |
+      | (jq).ocs.data.error  | Invalid value for signature_hash_algorithm |
+
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_hash_algorithm"
+      | value              | SHA1 |
+      | allowChildOverride | true |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                                | value                    |
       | (jq).ocs.data.policy.policyKey     | signature_hash_algorithm |
-      | (jq).ocs.data.policy.effectiveValue| SHA256                   |
+      | (jq).ocs.data.policy.effectiveValue| SHA1                     |
+
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_hash_algorithm"
+      | value              | RIPEMD160 |
+      | allowChildOverride | true      |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                | value                    |
+      | (jq).ocs.data.policy.policyKey     | signature_hash_algorithm |
+      | (jq).ocs.data.policy.effectiveValue| RIPEMD160                |
+
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_hash_algorithm"
+      | value              | MD5 |
+      | allowChildOverride | true |
+    Then the response should have a status code 400
+    And the response should be a JSON array with the following mandatory values
+      | key                  | value                                    |
+      | (jq).ocs.data.error  | Invalid value for signature_hash_algorithm |
 
   Scenario: Manage system behavior policies for validation and workers
     Given as user "admin"
