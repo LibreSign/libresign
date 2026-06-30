@@ -184,3 +184,78 @@ test('admin can remove explicit instance policy and restore system baseline', as
 		expect(effectivePolicy?.sourceScope).toBe('system')
 	await instanceResetUserRequest.dispose()
 })
+
+test('group admins and end users cannot manage CRL or TSA outside system scope', async ({ page }) => {
+	const localGroupId = 'policy-e2e-wave1-group'
+	const localGroupAdminUser = 'policy-e2e-wave1-group-admin'
+	const localEndUser = 'policy-e2e-wave1-end-user'
+
+	await ensureUserExists(page.request, localGroupAdminUser, DEFAULT_TEST_PASSWORD)
+	await ensureUserExists(page.request, localEndUser, DEFAULT_TEST_PASSWORD)
+	await ensureGroupExists(page.request, localGroupId)
+	await ensureUserInGroup(page.request, localGroupAdminUser, localGroupId)
+	await ensureUserInGroup(page.request, localEndUser, localGroupId)
+	await ensureSubadminOfGroup(page.request, localGroupAdminUser, localGroupId)
+
+	const groupAdminRequest = await createAuthenticatedRequestContext(localGroupAdminUser, DEFAULT_TEST_PASSWORD)
+	const endUserRequest = await createAuthenticatedRequestContext(localEndUser, DEFAULT_TEST_PASSWORD)
+	const systemOnlyPolicyKeys = ['crl_external_validation_enabled', 'tsa_settings']
+
+	for (const policyKey of systemOnlyPolicyKeys) {
+		let result = await policyRequest(
+			groupAdminRequest,
+			'PUT',
+			`/apps/libresign/api/v1/policies/group/${localGroupId}/${policyKey}`,
+			policyKey === 'tsa_settings'
+				? { value: { url: 'https://tsa.example.test/tsr', policy_oid: '', auth_type: 'none', username: '' }, allowChildOverride: false }
+				: { value: false, allowChildOverride: false },
+		)
+		expect([400, 403]).toContain(result.httpStatus)
+
+		result = await policyRequest(
+			groupAdminRequest,
+			'DELETE',
+			`/apps/libresign/api/v1/policies/group/${localGroupId}/${policyKey}`,
+		)
+		expect([400, 403]).toContain(result.httpStatus)
+
+		result = await policyRequest(
+			groupAdminRequest,
+			'PUT',
+			`/apps/libresign/api/v1/policies/user/${localEndUser}/${policyKey}`,
+			policyKey === 'tsa_settings'
+				? { value: { url: 'https://tsa.example.test/tsr', policy_oid: '', auth_type: 'none', username: '' }, allowChildOverride: false }
+				: { value: false, allowChildOverride: false },
+		)
+		expect([400, 403]).toContain(result.httpStatus)
+
+		result = await policyRequest(
+			groupAdminRequest,
+			'DELETE',
+			`/apps/libresign/api/v1/policies/user/${localEndUser}/${policyKey}`,
+		)
+		expect([400, 403]).toContain(result.httpStatus)
+
+		result = await policyRequest(
+			endUserRequest,
+			'PUT',
+			`/apps/libresign/api/v1/policies/user/${policyKey}`,
+			policyKey === 'tsa_settings'
+				? { value: { url: 'https://tsa.example.test/tsr', policy_oid: '', auth_type: 'none', username: '' } }
+				: { value: false },
+		)
+		expect(result.httpStatus).toBe(400)
+
+		result = await policyRequest(
+			endUserRequest,
+			'DELETE',
+			`/apps/libresign/api/v1/policies/user/${policyKey}`,
+		)
+		expect(result.httpStatus).toBe(400)
+	}
+
+	await Promise.all([
+		groupAdminRequest.dispose(),
+		endUserRequest.dispose(),
+	])
+})

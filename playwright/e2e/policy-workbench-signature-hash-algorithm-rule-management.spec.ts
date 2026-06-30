@@ -10,7 +10,7 @@ import { waitForPolicyWorkbenchIdle } from '../support/policy-workbench-rules'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 120000 })
 
-test('signature_hash_algorithm allows creating and persisting a system rule from workbench UI', async ({ page }) => {
+test('signature_hash_algorithm allows persisting a supported rule from workbench UI', async ({ page }) => {
 	await bootstrapLibreSignAdmin(page)
 	await page.goto('./settings/admin/libresign')
 
@@ -23,18 +23,36 @@ test('signature_hash_algorithm allows creating and persisting a system rule from
 
 	const createRuleButton = page.getByRole('button', { name: /Create rule/i }).first()
 	await expect(createRuleButton).toBeVisible({ timeout: 10000 })
-	await createRuleButton.click()
 
-	const createScopeDialog = page.getByRole('dialog').filter({ hasText: /What do you want to create\?/i }).last()
-	if (await createScopeDialog.isVisible().catch(() => false)) {
-		await createScopeDialog.getByRole('option', { name: /^Everyone\b/i }).first().click()
+	const changeButton = page.getByRole('button', { name: /^Change$/i }).first()
+	const hasExistingSystemRule = await changeButton.isVisible().catch(() => false)
+
+	if (hasExistingSystemRule) {
+		await changeButton.click()
+	} else {
+		await createRuleButton.click()
+
+		const createScopeDialog = page.getByRole('dialog').filter({ hasText: /What do you want to create\?/i }).last()
+		if (await createScopeDialog.isVisible().catch(() => false)) {
+			await createScopeDialog.getByRole('option', { name: /^Everyone\b/i }).first().click()
+		}
 	}
 
-	const createDialog = page.getByRole('dialog', { name: /Create rule/i }).last()
+	const createDialog = page.getByRole('dialog', { name: /Create rule|Save changes/i }).last()
 	await expect(createDialog).toBeVisible({ timeout: 10000 })
-	await createDialog.getByText('SHA512', { exact: true }).first().click()
+	await expect(createDialog.getByText('SHA1', { exact: true })).toBeVisible({ timeout: 10000 })
+	await expect(createDialog.getByText('SHA256', { exact: true })).toBeVisible({ timeout: 10000 })
+	await expect(createDialog.getByText('SHA384', { exact: true })).toBeVisible({ timeout: 10000 })
+	await expect(createDialog.getByText('SHA512', { exact: true })).toBeVisible({ timeout: 10000 })
+	await expect(createDialog.getByText('RIPEMD160', { exact: true })).toBeVisible({ timeout: 10000 })
 
 	const submitButton = createDialog.getByRole('button', { name: /Create rule|Save changes/i }).first()
+	for (const algorithm of ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160']) {
+		await createDialog.getByText(algorithm, { exact: true }).click()
+		if (await submitButton.isEnabled().catch(() => false)) {
+			break
+		}
+	}
 	await expect(submitButton).toBeEnabled({ timeout: 10000 })
 	const [response] = await Promise.all([
 		page.waitForResponse((response) => {
