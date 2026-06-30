@@ -19,10 +19,11 @@ const NcCheckboxRadioSwitchStub = {
 }
 
 describe('SignatureHashAlgorithmRuleEditor.vue', () => {
-	it('renders the full canonical algorithm list including the legacy SHA1 option', () => {
+	it('renders the full supported canonical algorithm list', () => {
 		const wrapper = mount(SignatureHashAlgorithmRuleEditor, {
 			props: {
 				modelValue: 'SHA256',
+				allowedValues: ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'],
 			},
 			global: {
 				stubs: {
@@ -34,7 +35,30 @@ describe('SignatureHashAlgorithmRuleEditor.vue', () => {
 		expect(wrapper.findAll('.radio-stub')).toHaveLength(5)
 		expect(wrapper.text()).toContain('SHA1')
 		expect(wrapper.text()).toContain('SHA256')
-		expect(wrapper.text()).toContain('Use SHA1 only for legacy compatibility with very old PDF files.')
+		expect(wrapper.text()).toContain('RIPEMD160')
+		expect(wrapper.text()).toContain('SHA384')
+		expect(wrapper.text()).toContain('SHA512')
+		expect(wrapper.text()).toContain('Use SHA1 as a supported legacy signature digest algorithm.')
+	})
+
+	it('renders only the backend-provided allowedValues subset when present', () => {
+		const wrapper = mount(SignatureHashAlgorithmRuleEditor, {
+			props: {
+				modelValue: 'SHA256',
+				allowedValues: ['SHA256', 'SHA512'],
+			},
+			global: {
+				stubs: {
+					NcCheckboxRadioSwitch: { ...NcCheckboxRadioSwitchStub, template: '<div class="radio-stub"><slot /></div>' },
+				},
+			},
+		})
+
+		expect(wrapper.findAll('.radio-stub')).toHaveLength(2)
+		expect(wrapper.text()).toContain('SHA256')
+		expect(wrapper.text()).toContain('SHA512')
+		expect(wrapper.text()).not.toContain('SHA1')
+		expect(wrapper.text()).not.toContain('RIPEMD160')
 	})
 
 	it('emits the selected algorithm when a radio option is chosen', async () => {
