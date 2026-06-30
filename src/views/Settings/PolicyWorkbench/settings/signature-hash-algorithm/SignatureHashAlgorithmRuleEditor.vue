@@ -36,6 +36,7 @@ defineOptions({
 
 const props = defineProps<{
 	modelValue: EffectivePolicyValue
+	allowedValues?: HashAlgorithm[]
 }>()
 
 const emit = defineEmits<{
@@ -45,8 +46,8 @@ const emit = defineEmits<{
 const selected = computed(() => normalizeHashAlgorithm(props.modelValue))
 
 function getOptionDescription(algorithm: HashAlgorithm): string {
-	if (algorithm === 'SHA1') {
-		return t('libresign', 'Use {algorithm} only for legacy compatibility with very old PDF files. Newer PDFs will still use a stronger algorithm when required.', {
+	if (algorithm === 'SHA1' || algorithm === 'RIPEMD160') {
+		return t('libresign', 'Use {algorithm} as a supported legacy signature digest algorithm.', {
 			algorithm,
 		})
 	}
@@ -56,12 +57,20 @@ function getOptionDescription(algorithm: HashAlgorithm): string {
 	})
 }
 
-const options = HASH_ALGORITHMS.map((algorithm) => ({
-	value: algorithm,
+const availableAlgorithms = computed(() => {
+	if (Array.isArray(props.allowedValues) && props.allowedValues.length > 0) {
+		return props.allowedValues
+	}
+
+	return [...HASH_ALGORITHMS]
+})
+
+const options = computed(() => availableAlgorithms.value.map((algorithm) => ({
+	value: algorithm as HashAlgorithm,
 	label: algorithm,
 	// TRANSLATORS {algorithm} is the hash algorithm name (for example SHA256) used to compute the digital signature digest.
 	description: getOptionDescription(algorithm),
-}))
+})))
 
 function onChange(nextValue: HashAlgorithm, selectedOption?: unknown): void {
 	if (selectedOption === false) {
