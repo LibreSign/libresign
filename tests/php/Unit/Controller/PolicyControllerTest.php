@@ -1796,6 +1796,111 @@ final class PolicyControllerTest extends TestCase {
 		], $response->getData());
 	}
 
+	public function testSetGroupReturnsBadRequestWhenCrlValidationDoesNotSupportGroupScope(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with('crl_external_validation_enabled', 'finance', true, false)
+			->willThrowException(new \InvalidArgumentException('Group-level scope is not supported for this policy'));
+
+		$response = $this->controller->setGroup('finance', 'crl_external_validation_enabled', true, false);
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Group-level scope is not supported for this policy',
+		], $response->getData());
+	}
+
+	public function testSetGroupReturnsBadRequestWhenTsaDoesNotSupportGroupScope(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with('tsa_settings', 'finance', ['url' => 'https://tsa.example.test/tsr'], false)
+			->willThrowException(new \InvalidArgumentException('Group-level scope is not supported for this policy'));
+
+		$response = $this->controller->setGroup('finance', 'tsa_settings', ['url' => 'https://tsa.example.test/tsr'], false);
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Group-level scope is not supported for this policy',
+		], $response->getData());
+	}
+
+	public function testSetUserPreferenceBlocksCrlValidationUserScope(): void {
+		$this->policyService
+			->expects($this->once())
+			->method('saveUserPreference')
+			->with('crl_external_validation_enabled', true)
+			->willThrowException(new \InvalidArgumentException('User-level scope is not supported for this policy'));
+
+		$response = $this->controller->setUserPreference('crl_external_validation_enabled', true);
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame([
+			'error' => 'User-level scope is not supported for this policy',
+		], $response->getData());
+	}
+
+	public function testSetUserPreferenceBlocksTsaUserScope(): void {
+		$this->policyService
+			->expects($this->once())
+			->method('saveUserPreference')
+			->with('tsa_settings', ['url' => 'https://tsa.example.test/tsr'])
+			->willThrowException(new \InvalidArgumentException('User-level scope is not supported for this policy'));
+
+		$response = $this->controller->setUserPreference('tsa_settings', ['url' => 'https://tsa.example.test/tsr']);
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame([
+			'error' => 'User-level scope is not supported for this policy',
+		], $response->getData());
+	}
+
+	public function testClearGroupReturnsBadRequestWhenCrlValidationDoesNotSupportGroupScope(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$this->policyService
+			->expects($this->once())
+			->method('clearGroupPolicy')
+			->with('crl_external_validation_enabled', 'finance')
+			->willThrowException(new \InvalidArgumentException('Group-level scope is not supported for this policy'));
+
+		$response = $this->controller->clearGroup('finance', 'crl_external_validation_enabled');
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Group-level scope is not supported for this policy',
+		], $response->getData());
+	}
+
+	public function testSetSystemReturnsBadRequestWhenSignatureHashAlgorithmIsWeak(): void {
+		$this->policyService
+			->expects($this->once())
+			->method('saveSystem')
+			->with('signature_hash_algorithm', 'SHA1', false)
+			->willThrowException(new \InvalidArgumentException('Invalid value for signature_hash_algorithm'));
+
+		$response = $this->controller->setSystem('signature_hash_algorithm', 'SHA1');
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Invalid value for signature_hash_algorithm',
+		], $response->getData());
+	}
+
 	public function testSetUserPolicyForUserBlocksRequestSignGroupsUserScope(): void {
 		$this->groupManager
 			->method('isAdmin')
