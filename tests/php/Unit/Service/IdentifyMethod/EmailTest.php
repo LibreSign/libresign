@@ -199,14 +199,14 @@ final class EmailTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'signerEmail' => 'signer@example.com',
 				'code' => null,
 				'identified' => false,
-				'errorMessage' => 'This document is not yours',
+				'errorMessage' => 'open the signing link again',
 			],
 			'authenticated_wrong_email' => [
 				'userEmail' => 'admin@example.com',
 				'signerEmail' => 'signer@example.com',
 				'code' => null,
 				'identified' => false,
-				'errorMessage' => 'This document is not yours',
+				'errorMessage' => 'open the signing link again',
 			],
 			'authenticated_wrong_email_token_in_progress' => [
 				'userEmail' => 'admin@example.com',
@@ -220,9 +220,36 @@ final class EmailTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'signerEmail' => 'signer@example.com',
 				'code' => 'abc123',
 				'identified' => true,
-				'errorMessage' => 'This document is not yours',
+				'errorMessage' => 'open the signing link again',
 			],
 		];
+	}
+
+	public function testThrowIfIsAuthenticatedWithDifferentAccountProvidesAuthenticationRequiredPageState(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getEMailAddress')->willReturn('admin@example.com');
+		$this->userSession->method('getUser')->willReturn($user);
+
+		$identifyMethod = $this->getClass();
+		$identifyMethod->getEntity()->setIdentifierValue('signer@example.com');
+
+		try {
+			self::invokePrivate($identifyMethod, 'throwIfIsAuthenticatedWithDifferentAccount');
+			self::fail('Expected LibresignException to be thrown');
+		} catch (LibresignException $exception) {
+			$payload = json_decode($exception->getMessage(), true, flags: JSON_THROW_ON_ERROR);
+
+			self::assertSame(2000, $payload['action']);
+			self::assertSame('authentication_required', $payload['page_state']);
+			self::assertSame('Authentication required', $payload['page_state_data']['title']);
+			self::assertSame('The current authenticated session cannot be used to sign this document.', $payload['page_state_data']['description']);
+			self::assertSame('info', $payload['page_state_data']['noteType']);
+			self::assertSame('info', $payload['page_state_data']['icon']);
+			self::assertSame(
+				'To continue, sign out from the current account and open the signing link again, or open the signing link in a browser session where this account is not active.',
+				$payload['errors'][0]['message']
+			);
+		}
 	}
 
 	public function testThrowIfFileNotFoundThrowsControlledErrorWhenNodeIdIsInvalid(): void {
