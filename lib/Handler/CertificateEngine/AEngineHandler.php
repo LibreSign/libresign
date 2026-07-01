@@ -290,9 +290,9 @@ abstract class AEngineHandler implements IEngineHandler {
 
 	#[\Override]
 	public function setEngine(string $engine): void {
-		$this->configureIdentifyMethodsForEngine($engine);
 		$this->appConfig->setValueString(Application::APP_ID, 'certificate_engine', $engine);
 		$this->engine = $engine;
+		$this->configureIdentifyMethodsForEngine($engine);
 	}
 
 	/**
@@ -325,6 +325,16 @@ abstract class AEngineHandler implements IEngineHandler {
 	#[\Override]
 	public function getEngine(): string {
 		if ($this->engine) {
+			return $this->engine;
+		}
+		$configValues = $this->appConfig->getAllValues(Application::APP_ID);
+		$configuredEngine = $configValues['certificate_engine'] ?? '';
+		if (is_string($configuredEngine) && $configuredEngine !== '') {
+			$this->engine = $configuredEngine;
+			return $this->engine;
+		}
+		if (is_scalar($configuredEngine) && (string)$configuredEngine !== '') {
+			$this->engine = (string)$configuredEngine;
 			return $this->engine;
 		}
 		$this->engine = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
