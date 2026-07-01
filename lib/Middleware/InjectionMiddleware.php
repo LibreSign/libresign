@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Middleware;
 
-use OC\AppFramework\Http as AppFrameworkHttp;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Controller\AEnvironmentAwareController;
 use OCA\Libresign\Controller\AEnvironmentPageAwareController;
@@ -172,6 +171,7 @@ class InjectionMiddleware extends Middleware {
 	private function throwPrivateValidationRedirect(?string $redirectUrl): void {
 		throw new LibresignException(json_encode([
 			'action' => JSActions::ACTION_REDIRECT,
+			// TRANSLATORS: Error shown to anonymous users when a private validation URL requires authentication before continuing.
 			'errors' => [$this->l10n->t('You are not logged in. Please log in.')],
 			'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
 				'redirect_url' => $redirectUrl,
@@ -275,6 +275,7 @@ class InjectionMiddleware extends Middleware {
 	private function getLoggedIn(): void {
 		$user = $this->userSession->getUser();
 		if (!$user instanceof IUser) {
+			// TRANSLATORS: Error shown when an anonymous user tries to create a signature request, an action allowed only for authenticated users with permission.
 			throw new \Exception($this->l10n->t('You are not allowed to create signature requests'), Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
 		$this->validateHelper->canRequestSign($user);
@@ -479,7 +480,7 @@ class InjectionMiddleware extends Middleware {
 
 	private function getStatusCodeFromException(\Exception $exception): int {
 		if ($exception->getCode() === 0) {
-			return AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY;
+			return Http::STATUS_UNPROCESSABLE_ENTITY;
 		}
 		return (int)$exception->getCode();
 	}
