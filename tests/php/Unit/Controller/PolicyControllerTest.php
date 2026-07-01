@@ -12,6 +12,7 @@ use OCA\Libresign\Controller\PolicyController;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
+use OCA\Libresign\Service\Policy\PolicyManagementScopeService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
@@ -39,6 +40,7 @@ final class PolicyControllerTest extends TestCase {
 	private IUser&MockObject $currentUser;
 	private RequestSignGroupsPolicyGuard $requestSignGroupsPolicyGuard;
 	private PolicyAuthorizationService $policyAuthorizationService;
+	private PolicyManagementScopeService $policyManagementScopeService;
 	private PolicyController $controller;
 
 	protected function setUp(): void {
@@ -67,6 +69,14 @@ final class PolicyControllerTest extends TestCase {
 			$this->subAdmin,
 			$this->policyService,
 		);
+		$this->policyManagementScopeService = new PolicyManagementScopeService(
+			$this->userSession,
+			$this->groupManager,
+			$this->userManager,
+			$this->subAdmin,
+			$this->policyService,
+			$this->policyAuthorizationService,
+		);
 		$this->requestSignGroupsPolicyGuard = new RequestSignGroupsPolicyGuard(
 			$this->l10n,
 			$this->userSession,
@@ -80,11 +90,7 @@ final class PolicyControllerTest extends TestCase {
 			$this->l10n,
 			$this->policyService,
 			$this->requestSignGroupsPolicyGuard,
-			$this->policyAuthorizationService,
-			$this->userSession,
-			$this->groupManager,
-			$this->userManager,
-			$this->subAdmin,
+			$this->policyManagementScopeService,
 		);
 	}
 
@@ -839,11 +845,7 @@ final class PolicyControllerTest extends TestCase {
 			$this->l10n,
 			$this->policyService,
 			$this->requestSignGroupsPolicyGuard,
-			$this->policyAuthorizationService,
-			$this->userSession,
-			$this->groupManager,
-			$this->userManager,
-			$this->subAdmin,
+			$this->policyManagementScopeService,
 		);
 
 		$this->groupManager
@@ -1101,11 +1103,7 @@ final class PolicyControllerTest extends TestCase {
 			$this->l10n,
 			$this->policyService,
 			$this->requestSignGroupsPolicyGuard,
-			$this->policyAuthorizationService,
-			$this->userSession,
-			$this->groupManager,
-			$this->userManager,
-			$this->subAdmin,
+			$this->policyManagementScopeService,
 		);
 
 		$this->groupManager
@@ -1742,11 +1740,7 @@ final class PolicyControllerTest extends TestCase {
 			$this->l10n,
 			$this->policyService,
 			$this->requestSignGroupsPolicyGuard,
-			$this->policyAuthorizationService,
-			$this->userSession,
-			$this->groupManager,
-			$this->userManager,
-			$this->subAdmin,
+			$this->policyManagementScopeService,
 		);
 
 		$resolvedPolicy = (new ResolvedPolicy())
