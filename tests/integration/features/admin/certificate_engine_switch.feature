@@ -29,17 +29,17 @@ Feature: admin/certificate_engine_switch
       | (jq).ocs.data\|map(select(.resource=="cfssl-configure"))[0].status | error                                    |
       | (jq).ocs.data\|map(select(.resource=="cfssl-configure"))[0].tip    | Run occ libresign:configure:cfssl --help |
 
-  Scenario: Set engine to none and verify root-certificate checks no longer reuse previous success state
+  Scenario: Set engine to none and verify configure-check reports none mode without root certificate state
     # Set engine to none (reset engine configuration)
     When sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/engine"
       | engine | none |
     Then the response should have a status code 200
-    # Verify configure-check no longer reuses the previously configured OpenSSL success state
+    # Verify configure-check reports none mode instead of reusing OpenSSL root certificate checks
     And sending "get" to ocs "/apps/libresign/api/v1/admin/configure-check"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                                                                 | value |
-      | (jq).ocs.data\|map(select(.resource=="openssl-configure"))[0].status | error |
+      | key                                                              | value   |
+      | (jq).ocs.data\|map(select(.resource=="none-configure"))[0].status | success |
     # Verify has-root-cert returns false when engine is none
     And sending "get" to ocs "/apps/libresign/api/v1/setting/has-root-cert"
     Then the response should have a status code 200
