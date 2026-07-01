@@ -91,7 +91,12 @@ final class SignatureFlowPolicyTest extends TestCase {
 
 		yield 'group admin with explicit global delegation can manage signature flow group policy' => [
 			ActorRole::groupAdmin(1),
-			self::buildPolicyLayer(scope: 'global', allowChildOverride: true, visibleToChild: true, value: 'ordered_numeric'),
+			static::buildPolicyLayer(
+				scope: 'global',
+				allowChildOverride: true,
+				visibleToChild: true,
+				value: 'ordered_numeric',
+			),
 			[],
 			true,
 		];
@@ -100,7 +105,7 @@ final class SignatureFlowPolicyTest extends TestCase {
 			ActorRole::groupAdmin(1),
 			null,
 			[
-				self::buildPolicyLayer(
+				static::buildPolicyLayer(
 					scope: 'group',
 					allowChildOverride: true,
 					visibleToChild: true,
@@ -115,7 +120,7 @@ final class SignatureFlowPolicyTest extends TestCase {
 			ActorRole::groupAdmin(1),
 			null,
 			[
-				self::buildPolicyLayer(
+				static::buildPolicyLayer(
 					scope: 'group',
 					allowChildOverride: false,
 					visibleToChild: true,
@@ -128,7 +133,12 @@ final class SignatureFlowPolicyTest extends TestCase {
 
 		yield 'group admin without manageable groups cannot manage signature flow group policy' => [
 			ActorRole::groupAdmin(0),
-			self::buildPolicyLayer(scope: 'global', allowChildOverride: true, visibleToChild: true, value: 'ordered_numeric'),
+			static::buildPolicyLayer(
+				scope: 'global',
+				allowChildOverride: true,
+				visibleToChild: true,
+				value: 'ordered_numeric',
+			),
 			[],
 			false,
 		];
@@ -137,7 +147,7 @@ final class SignatureFlowPolicyTest extends TestCase {
 			ActorRole::groupAdmin(1),
 			null,
 			[
-				self::buildPolicyLayer(
+				static::buildPolicyLayer(
 					scope: 'group',
 					allowChildOverride: false,
 					visibleToChild: true,
@@ -156,14 +166,19 @@ final class SignatureFlowPolicyTest extends TestCase {
 		yield 'system admin can edit any signature flow seed' => [
 			ActorRole::systemAdmin(),
 			null,
-			self::buildPolicyLayer(scope: 'group', allowChildOverride: true, visibleToChild: true, value: 'ordered_numeric'),
+			static::buildPolicyLayer(
+				scope: 'group',
+				allowChildOverride: true,
+				visibleToChild: true,
+				value: 'ordered_numeric',
+			),
 			true,
 		];
 
 		yield 'group admin can edit visible signature flow seed' => [
 			ActorRole::groupAdmin(1),
 			null,
-			self::buildPolicyLayer(
+			static::buildPolicyLayer(
 				scope: 'group',
 				allowChildOverride: true,
 				visibleToChild: true,
@@ -175,22 +190,37 @@ final class SignatureFlowPolicyTest extends TestCase {
 
 		yield 'group admin can edit signature flow seed when explicit global delegation exists' => [
 			ActorRole::groupAdmin(1),
-			self::buildPolicyLayer(scope: 'global', allowChildOverride: true, visibleToChild: true, value: 'ordered_numeric'),
-			self::buildPolicyLayer(scope: 'group', allowChildOverride: true, visibleToChild: true, value: 'ordered_numeric'),
+			static::buildPolicyLayer(
+				scope: 'global',
+				allowChildOverride: true,
+				visibleToChild: true,
+				value: 'ordered_numeric',
+			),
+			static::buildPolicyLayer(
+				scope: 'group',
+				allowChildOverride: true,
+				visibleToChild: true,
+				value: 'ordered_numeric',
+			),
 			true,
 		];
 
 		yield 'group admin cannot edit non-system-created signature flow seed without explicit global delegation' => [
 			ActorRole::groupAdmin(1),
 			null,
-			self::buildPolicyLayer(scope: 'group', allowChildOverride: true, visibleToChild: true, value: 'ordered_numeric'),
+			static::buildPolicyLayer(
+				scope: 'group',
+				allowChildOverride: true,
+				visibleToChild: true,
+				value: 'ordered_numeric',
+			),
 			false,
 		];
 
 		yield 'group admin cannot edit invisible signature flow seed' => [
 			ActorRole::groupAdmin(1),
 			null,
-			self::buildPolicyLayer(
+			static::buildPolicyLayer(
 				scope: 'group',
 				allowChildOverride: true,
 				visibleToChild: false,
@@ -203,7 +233,7 @@ final class SignatureFlowPolicyTest extends TestCase {
 		yield 'group admin cannot edit signature flow seed that disallows child override' => [
 			ActorRole::groupAdmin(1),
 			null,
-			self::buildPolicyLayer(
+			static::buildPolicyLayer(
 				scope: 'group',
 				allowChildOverride: false,
 				visibleToChild: true,
@@ -216,7 +246,7 @@ final class SignatureFlowPolicyTest extends TestCase {
 		yield 'regular user cannot edit signature flow seed' => [
 			ActorRole::regularUser(),
 			null,
-			self::buildPolicyLayer(
+			static::buildPolicyLayer(
 				scope: 'group',
 				allowChildOverride: true,
 				visibleToChild: true,

@@ -147,7 +147,12 @@ final class SignatureHashAlgorithmPolicyTest extends TestCase {
 
 		yield 'group admin with explicit global delegation can manage signature hash algorithm group policy' => [
 			ActorRole::groupAdmin(1),
-			self::buildPolicyLayer(scope: 'global', allowChildOverride: true, visibleToChild: true, value: 'SHA512'),
+			self::buildPolicyLayer(
+				scope: 'global',
+				allowChildOverride: true,
+				visibleToChild: true,
+				value: 'SHA512',
+			),
 			[],
 			true,
 		];
@@ -184,7 +189,12 @@ final class SignatureHashAlgorithmPolicyTest extends TestCase {
 
 		yield 'group admin without manageable groups cannot manage signature hash algorithm group policy' => [
 			ActorRole::groupAdmin(0),
-			self::buildPolicyLayer(scope: 'global', allowChildOverride: true, visibleToChild: true, value: 'SHA512'),
+			self::buildPolicyLayer(
+				scope: 'global',
+				allowChildOverride: true,
+				visibleToChild: true,
+				value: 'SHA512',
+			),
 			[],
 			false,
 		];
@@ -212,7 +222,12 @@ final class SignatureHashAlgorithmPolicyTest extends TestCase {
 		yield 'system admin can edit any signature hash algorithm seed' => [
 			ActorRole::systemAdmin(),
 			null,
-			self::buildPolicyLayer(scope: 'group', allowChildOverride: true, visibleToChild: true, value: 'SHA512'),
+			self::buildPolicyLayer(
+				scope: 'group',
+				allowChildOverride: true,
+				visibleToChild: true,
+				value: 'SHA512',
+			),
 			true,
 		];
 
@@ -231,15 +246,30 @@ final class SignatureHashAlgorithmPolicyTest extends TestCase {
 
 		yield 'group admin can edit signature hash algorithm seed when explicit global delegation exists' => [
 			ActorRole::groupAdmin(1),
-			self::buildPolicyLayer(scope: 'global', allowChildOverride: true, visibleToChild: true, value: 'SHA512'),
-			self::buildPolicyLayer(scope: 'group', allowChildOverride: true, visibleToChild: true, value: 'SHA512'),
+			self::buildPolicyLayer(
+				scope: 'global',
+				allowChildOverride: true,
+				visibleToChild: true,
+				value: 'SHA512',
+			),
+			self::buildPolicyLayer(
+				scope: 'group',
+				allowChildOverride: true,
+				visibleToChild: true,
+				value: 'SHA512',
+			),
 			true,
 		];
 
 		yield 'group admin cannot edit non-system-created signature hash algorithm seed without explicit global delegation' => [
 			ActorRole::groupAdmin(1),
 			null,
-			self::buildPolicyLayer(scope: 'group', allowChildOverride: true, visibleToChild: true, value: 'SHA512'),
+			self::buildPolicyLayer(
+				scope: 'group',
+				allowChildOverride: true,
+				visibleToChild: true,
+				value: 'SHA512',
+			),
 			false,
 		];
 
