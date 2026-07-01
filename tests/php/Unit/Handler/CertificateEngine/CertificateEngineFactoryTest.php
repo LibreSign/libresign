@@ -93,4 +93,79 @@ class CertificateEngineFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['dummy'],
 		];
 	}
+
+	public function testSetEngineUpdatesCachedHandlerWithoutRereadingAppConfig(): void {
+		$this->noneHandler->expects($this->once())
+			->method('setEngine')
+			->with('none');
+		$this->noneHandler->expects($this->once())
+			->method('populateInstance')
+			->with([])
+			->willReturnSelf();
+
+		$factory = $this->getInstance();
+		$actual = $factory->setEngine('none');
+
+		$this->assertSame($this->noneHandler, $actual);
+		$this->assertSame($this->noneHandler, $factory->getEngine());
+	}
+
+	public function testGetEngineWithoutArgumentUsesConfiguredEngineAndCachesIt(): void {
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->appConfig->expects($this->once())
+			->method('getValueString')
+			->with('libresign', 'certificate_engine', 'openssl')
+			->willReturn('cfssl');
+		$this->cfsslHandler->expects($this->exactly(2))
+			->method('populateInstance')
+			->with([])
+			->willReturnSelf();
+
+		$factory = $this->getInstance();
+
+		$this->assertSame($this->cfsslHandler, $factory->getEngine());
+		$this->assertSame($this->cfsslHandler, $factory->getEngine());
+	}
+
+	public function testGetEngineWithExplicitNameReusesMatchingCachedHandler(): void {
+		$populateCalls = 0;
+		$this->noneHandler->expects($this->once())
+			->method('getName')
+			->willReturn('none');
+		$this->noneHandler->expects($this->exactly(2))
+			->method('populateInstance')
+			->willReturnCallback(function (array $rootCert) use (&$populateCalls) {
+				++$populateCalls;
+				if ($populateCalls === 1) {
+					$this->assertSame([], $rootCert);
+				} else {
+					$this->assertSame(['cert' => 'abc'], $rootCert);
+				}
+				return $this->noneHandler;
+			});
+
+		$factory = $this->getInstance();
+
+		$this->assertSame($this->noneHandler, $factory->getEngine('none'));
+		$this->assertSame($this->noneHandler, $factory->getEngine('none', ['cert' => 'abc']));
+	}
+
+	public function testGetEngineWithDifferentExplicitNameReplacesCachedHandler(): void {
+		$this->openSslHandler->expects($this->once())
+			->method('getName')
+			->willReturn('openssl');
+		$this->openSslHandler->expects($this->once())
+			->method('populateInstance')
+			->with([])
+			->willReturnSelf();
+		$this->cfsslHandler->expects($this->once())
+			->method('populateInstance')
+			->with([])
+			->willReturnSelf();
+
+		$factory = $this->getInstance();
+
+		$this->assertSame($this->openSslHandler, $factory->getEngine('openssl'));
+		$this->assertSame($this->cfsslHandler, $factory->getEngine('cfssl'));
+	}
 }
