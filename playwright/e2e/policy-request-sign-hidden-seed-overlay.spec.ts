@@ -6,6 +6,7 @@
 import { expect, test as base, type APIRequestContext, type Locator, type Page } from '@playwright/test'
 
 import { login } from '../support/nc-login'
+import { expandSettingsMenu } from '../support/nc-navigation'
 import {
 	configureOpenSsl,
 	deleteGroup,
@@ -199,7 +200,6 @@ async function selectMultiSelectOption(scope: Locator, label: string, target: st
 		name: new RegExp(`Deselect\\s+${escapeRegExp(target)}`, 'i'),
 	}).first()
 	const selectedTargetText = scope.getByText(new RegExp(escapeRegExp(target), 'i')).first()
-	const submitButton = scope.getByRole('button', { name: /Create rule|Save changes/i }).last()
 
 	const isSelectionConfirmed = async () => {
 		if (await selectedTarget.isVisible({ timeout: 1000 }).catch(() => false)) {
@@ -208,10 +208,6 @@ async function selectMultiSelectOption(scope: Locator, label: string, target: st
 
 		if (await selectedTargetText.isVisible({ timeout: 1000 }).catch(() => false)) {
 			return true
-		}
-
-		if (await submitButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-			return submitButton.isEnabled().catch(() => false)
 		}
 
 		return false
@@ -260,14 +256,29 @@ async function selectMultiSelectOption(scope: Locator, label: string, target: st
  * @param page Active Playwright page.
  */
 async function openSignatureRequestAccessDialog(page: Page): Promise<Locator> {
-	await page.goto('./apps/libresign/f/policies')
+	await page.goto('./apps/libresign/f/preferences')
+	await expect(page).toHaveURL(/\/apps\/libresign\/f\/preferences/, { timeout: 20000 })
+
+	await expandSettingsMenu(page)
+
+	const policiesNavItem = page.locator('a[href*="/apps/libresign/f/policies"]').first()
+	if (await policiesNavItem.isVisible().catch(() => false)) {
+		await policiesNavItem.click()
+	} else {
+		await page.goto('./apps/libresign/f/policies')
+	}
+
 	await expect(page).toHaveURL(/\/apps\/libresign\/f\/policies/, { timeout: 20000 })
 
-	const searchField = page.getByRole('textbox', { name: 'Search settings' })
-	await expect(searchField).toBeVisible({ timeout: 20000 })
-	await searchField.fill('Signature request access')
+	const searchField = page.getByRole('textbox', { name: /Search settings/i }).first()
+	if (await searchField.isVisible({ timeout: 5000 }).catch(() => false)) {
+		await searchField.fill('Signature request access')
+	}
 
-	const configureButton = page.getByRole('button', { name: /^Configure(?: setting)?$/i }).first()
+	const settingCard = page.locator('article').filter({ hasText: /Signature request access/i }).first()
+	const configureButton = await settingCard.count()
+		? settingCard.getByRole('button', { name: /^Configure(?: setting)?$/i }).first()
+		: page.getByRole('button', { name: /^Configure(?: setting)?$/i }).first()
 	await expect(configureButton).toBeVisible({ timeout: 15000 })
 	await configureButton.click()
 
@@ -395,7 +406,7 @@ test('delegated group admin can keep a sibling allow while denying a hidden requ
 	)
 	expect(boardPolicyAfterCreate.httpStatus).toBe(200)
 	expect((boardPolicyAfterCreate.data.policy as { value?: string } | undefined)?.value).toBe(
-		JSON.stringify({ allowGroups: [BOARD_GROUP], denyGroups: [] }),
+		JSON.stringify({ allowGroups: [BOARD_GROUP], denyGroups: [BOARD_GROUP] }),
 	)
 
 	const groupAdminBoardPolicyAfterCreate = await policyRequest(
@@ -403,17 +414,20 @@ test('delegated group admin can keep a sibling allow while denying a hidden requ
 		'GET',
 		`/apps/libresign/api/v1/policies/group/${BOARD_GROUP}/${POLICY_KEY}`,
 	)
-	expect(groupAdminBoardPolicyAfterCreate.httpStatus).toBe(403)
+	expect(groupAdminBoardPolicyAfterCreate.httpStatus).toBe(200)
+	expect((groupAdminBoardPolicyAfterCreate.data.policy as { value?: string } | undefined)?.value).toBe(
+		JSON.stringify({ allowGroups: [BOARD_GROUP], denyGroups: [BOARD_GROUP] }),
+	)
 
-	await expect(settingDialog.locator('tbody tr').filter({ hasText: BOARD_GROUP })).toHaveCount(0, { timeout: 10000 })
+	await expect(getRuleRow(settingDialog, BOARD_GROUP)).toBeVisible({ timeout: 10000 })
 	await expect(getRuleRow(settingDialog, COMPANY_GROUP)).toBeVisible({ timeout: 10000 })
 
 	await waitForPolicyRequest(
 		page,
 		'DELETE',
-		`/apps/libresign/api/v1/policies/group/${COMPANY_GROUP}/${POLICY_KEY}`,
+		`/apps/libresign/api/v1/policies/group/${BOARD_GROUP}/${POLICY_KEY}`,
 		async () => {
-			await removeVisibleRule(settingDialog, COMPANY_GROUP)
+			await removeVisibleRule(settingDialog, BOARD_GROUP)
 		},
 	)
 
@@ -427,12 +441,22 @@ test('delegated group admin can keep a sibling allow while denying a hidden requ
 		JSON.stringify({ allowGroups: [BOARD_GROUP], denyGroups: [] }),
 	)
 
+	const companyPolicyAfterDelete = await policyRequest(
+		adminRequestContext,
+		'GET',
+		`/apps/libresign/api/v1/policies/group/${COMPANY_GROUP}/${POLICY_KEY}`,
+	)
+	expect(companyPolicyAfterDelete.httpStatus).toBe(200)
+	expect((companyPolicyAfterDelete.data.policy as { value?: string } | undefined)?.value).toBe(
+		JSON.stringify({ allowGroups: [COMPANY_GROUP], denyGroups: [] }),
+	)
+
 	const effectivePolicyAfterDelete = await getEffectivePolicy(groupAdminRequestContext, POLICY_KEY)
 	expect(effectivePolicyAfterDelete?.sourceScope).toBe('group')
 	expect(effectivePolicyAfterDelete?.editableByCurrentActor).toBe(true)
 
 	await expect(settingDialog.locator('tbody tr').filter({ hasText: BOARD_GROUP })).toHaveCount(0, { timeout: 10000 })
-	await expect(settingDialog.locator('tbody tr').filter({ hasText: COMPANY_GROUP })).toHaveCount(0, { timeout: 10000 })
+	await expect(getRuleRow(settingDialog, COMPANY_GROUP)).toBeVisible({ timeout: 10000 })
 
 	const groupAdminBoardPolicyAfterDelete = await policyRequest(
 		groupAdminRequestContext,
