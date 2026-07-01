@@ -23,6 +23,7 @@ use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
@@ -64,6 +65,7 @@ class PageController extends AEnvironmentPageAwareController {
 		protected SignFileService $signFileService,
 		protected RequestSignatureService $requestSignatureService,
 		private PolicyService $policyService,
+		private PolicyAuthorizationService $policyAuthorizationService,
 		private SignerElementsService $signerElementsService,
 		protected IL10N $l10n,
 		private IdentifyMethodService $identifyMethodService,
@@ -300,8 +302,7 @@ class PageController extends AEnvironmentPageAwareController {
 			return false;
 		}
 
-		$config = $this->accountService->getConfig($user);
-		return ($config['can_manage_group_policies'] ?? false) === true;
+		return $this->policyAuthorizationService->canUserManageGroupPolicies($user);
 	}
 
 	private function isPoliciesWorkbenchPath(string $path): bool {
