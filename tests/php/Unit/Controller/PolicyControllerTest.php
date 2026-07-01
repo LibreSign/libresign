@@ -1796,24 +1796,34 @@ final class PolicyControllerTest extends TestCase {
 		], $response->getData());
 	}
 
-	public function testSetGroupReturnsBadRequestWhenCrlValidationDoesNotSupportGroupScope(): void {
+	public function testSetGroupReturnsSavedCrlValidationGroupPolicy(): void {
 		$this->groupManager
 			->method('isAdmin')
 			->with('admin')
 			->willReturn(true);
 
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+
 		$this->policyService
 			->expects($this->once())
 			->method('saveGroupPolicy')
 			->with('crl_external_validation_enabled', 'finance', true, false)
-			->willThrowException(new \InvalidArgumentException('Group-level scope is not supported for this policy'));
+			->willReturn((new PolicyLayer())
+				->setScope('group')
+				->setValue(true)
+				->setAllowChildOverride(false)
+				->setVisibleToChild(true)
+				->setAllowedValues([false, true]));
 
 		$response = $this->controller->setGroup('finance', 'crl_external_validation_enabled', true, false);
 
-		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
-		$this->assertSame([
-			'error' => 'Group-level scope is not supported for this policy',
-		], $response->getData());
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('group', $response->getData()['policy']['scope']);
+		$this->assertSame(true, $response->getData()['policy']['effectiveValue']);
 	}
 
 	public function testSetGroupReturnsBadRequestWhenTsaDoesNotSupportGroupScope(): void {
@@ -1866,23 +1876,40 @@ final class PolicyControllerTest extends TestCase {
 		], $response->getData());
 	}
 
-	public function testClearGroupReturnsBadRequestWhenCrlValidationDoesNotSupportGroupScope(): void {
+	public function testClearGroupReturnsOkWhenCrlValidationSupportsGroupScope(): void {
 		$this->groupManager
 			->method('isAdmin')
 			->with('admin')
 			->willReturn(true);
 
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+
 		$this->policyService
 			->expects($this->once())
 			->method('clearGroupPolicy')
 			->with('crl_external_validation_enabled', 'finance')
-			->willThrowException(new \InvalidArgumentException('Group-level scope is not supported for this policy'));
+			->willReturn(null);
 
 		$response = $this->controller->clearGroup('finance', 'crl_external_validation_enabled');
 
-		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame([
-			'error' => 'Group-level scope is not supported for this policy',
+			'message' => 'Settings saved',
+			'policy' => [
+				'policyKey' => 'crl_external_validation_enabled',
+				'scope' => 'group',
+				'targetId' => 'finance',
+				'value' => null,
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+				'deletableByCurrentActor' => false,
+				'effectiveValue' => null,
+			],
 		], $response->getData());
 	}
 
