@@ -37,7 +37,8 @@ export const options: CertificationOption[] = [
 	},
 	{
 		id: 'C',
-		label: 'Country',
+		// TRANSLATORS Certificate subject field label. "C" means the two-letter country code in an X.509 certificate subject.
+		label: t('libresign', 'Country'),
 		min: 2,
 		max: 2,
 		value: '',
@@ -45,7 +46,8 @@ export const options: CertificationOption[] = [
 	},
 	{
 		id: 'ST',
-		label: 'State',
+		// TRANSLATORS Certificate subject field label. "ST" means state or province name in an X.509 certificate subject.
+		label: t('libresign', 'State'),
 		min: 1,
 		max: 128,
 		value: '',
@@ -53,7 +55,8 @@ export const options: CertificationOption[] = [
 	},
 	{
 		id: 'L',
-		label: 'Locality',
+		// TRANSLATORS Certificate subject field label. "L" means locality, usually a city or municipality, in an X.509 certificate subject.
+		label: t('libresign', 'Locality'),
 		min: 1,
 		max: 128,
 		value: '',
@@ -61,7 +64,8 @@ export const options: CertificationOption[] = [
 	},
 	{
 		id: 'O',
-		label: 'Organization',
+		// TRANSLATORS Certificate subject field label. "O" means organization name in an X.509 certificate subject.
+		label: t('libresign', 'Organization'),
 		min: 1,
 		max: 64,
 		value: '',
@@ -69,7 +73,8 @@ export const options: CertificationOption[] = [
 	},
 	{
 		id: 'OU',
-		label: 'OrganizationalUnit',
+		// TRANSLATORS Certificate subject field label. "OU" means organizational unit, such as a department or team, in an X.509 certificate subject.
+		label: t('libresign', 'Organizational Unit'),
 		min: 1,
 		max: 64,
 		value: '',
