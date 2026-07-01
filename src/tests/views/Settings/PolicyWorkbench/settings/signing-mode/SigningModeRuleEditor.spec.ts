@@ -6,15 +6,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('@nextcloud/l10n', () => ({
-	getLanguage: () => 'en',
-	t: (_app: string, message: string, params?: Record<string, unknown>) => {
-		if (params) {
-			return message.replace(/\{(\w+)\}/g, (_, key) => String(params[key] ?? `{${key}}`))
-		}
-		return message
-	},
-}))
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 import SigningModeRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/signing-mode/SigningModeRuleEditor.vue'
 
