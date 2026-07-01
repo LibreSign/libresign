@@ -18,6 +18,7 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
@@ -27,7 +28,9 @@ use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\Group\ISubAdmin;
 use OCP\IAppConfig;
+use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -46,7 +49,10 @@ final class PageControllerTest extends TestCase {
 	private SignFileService&MockObject $signFileService;
 	private SignerElementsService&MockObject $signerElementsService;
 	private IInitialState&MockObject $initialState;
+	private IGroupManager&MockObject $groupManager;
+	private ISubAdmin&MockObject $subAdmin;
 	private PolicyService&MockObject $policyService;
+	private PolicyAuthorizationService $policyAuthorizationService;
 	private IURLGenerator&MockObject $urlGenerator;
 	private PageController $controller;
 
@@ -103,8 +109,17 @@ final class PageControllerTest extends TestCase {
 		$this->signerElementsService->method('getUserElements')->willReturn([]);
 
 		$this->initialState = $this->createMock(IInitialState::class);
+		$this->groupManager = $this->createMock(IGroupManager::class);
+		$this->groupManager->method('isAdmin')->willReturn(false);
+		$this->subAdmin = $this->createMock(ISubAdmin::class);
+		$this->subAdmin->method('isSubAdmin')->willReturn(false);
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->policyService->method('resolveKnownPolicyStates')->willReturn([]);
+		$this->policyAuthorizationService = new PolicyAuthorizationService(
+			$this->groupManager,
+			$this->subAdmin,
+			$this->policyService,
+		);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->urlGenerator
 			->method('linkToRouteAbsolute')
@@ -127,6 +142,7 @@ final class PageControllerTest extends TestCase {
 			signFileService: $this->signFileService,
 			requestSignatureService: \OCP\Server::get(RequestSignatureService::class),
 			policyService: $this->policyService,
+			policyAuthorizationService: $this->policyAuthorizationService,
 			signerElementsService: $this->signerElementsService,
 			l10n: $this->createMock(IL10N::class),
 			identifyMethodService: $this->createConfiguredMock(IdentifyMethodService::class, [
@@ -172,11 +188,9 @@ final class PageControllerTest extends TestCase {
 
 	public function testIndexFPathRedirectsRegularUserAwayFromPoliciesWorkbench(): void {
 		$this->accountService
-			->expects($this->once())
+			->expects($this->never())
 			->method('getConfig')
-			->willReturn([
-				'can_manage_group_policies' => false,
-			]);
+		;
 
 		$this->initialState
 			->expects($this->never())
@@ -267,6 +281,7 @@ final class PageControllerTest extends TestCase {
 			signFileService: $signFileService,
 			requestSignatureService: \OCP\Server::get(RequestSignatureService::class),
 			policyService: $policyService,
+			policyAuthorizationService: $this->policyAuthorizationService,
 			signerElementsService: $this->signerElementsService,
 			l10n: $this->createMock(IL10N::class),
 			identifyMethodService: $this->createConfiguredMock(IdentifyMethodService::class, [
