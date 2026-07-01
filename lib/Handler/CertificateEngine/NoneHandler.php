@@ -8,7 +8,18 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
+use OCA\Libresign\Helper\ConfigureCheckHelper;
+
 class NoneHandler extends AEngineHandler implements IEngineHandler {
+	#[\Override]
+	public function configureCheck(): array {
+		return [
+			(new ConfigureCheckHelper())
+				->setSuccessMessage($this->getSetupSuccessMessage())
+				->setResource($this->getConfigureCheckResourceName()),
+		];
+	}
+
 	#[\Override]
 	protected function getConfigureCheckResourceName(): string {
 		return 'none-configure';
