@@ -10,22 +10,12 @@ namespace OCA\Libresign\Service\Policy\Provider\Signature\FilePolicy;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Enum\SignatureFlow;
-use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\Policy\Contract\IFilePolicyApplier;
+use OCA\Libresign\Service\Policy\AbstractFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
-use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
-use OCP\IL10N;
 use OCP\IUser;
 
-class SignatureFlowFilePolicyApplier implements IFilePolicyApplier {
-	public function __construct(
-		private readonly PolicyService $policyService,
-		private readonly FileService $fileService,
-		private readonly IL10N $l10n,
-	) {
-	}
+class SignatureFlowFilePolicyApplier extends AbstractFilePolicyApplier {
 
 	#[\Override]
 	public function apply(FileEntity $file, array $data): void {
@@ -64,54 +54,13 @@ class SignatureFlowFilePolicyApplier implements IFilePolicyApplier {
 		return true;
 	}
 
-	/**
-	 * @param array{policyActiveContext?: array<string,mixed>} $data
-	 * @return array{type: string, id: string}|null
-	 */
-	private function extractActiveContext(array $data): ?array {
-		if (!isset($data['policyActiveContext']) || !is_array($data['policyActiveContext'])) {
-			return null;
-		}
-
-		$type = $data['policyActiveContext']['type'] ?? null;
-		$id = $data['policyActiveContext']['id'] ?? null;
-		if (!is_string($type) || !is_string($id) || $type === '' || $id === '') {
-			return null;
-		}
-
-		return [
-			'type' => $type,
-			'id' => $id,
-		];
-	}
-
 	/** @return array<string, string> */
 	private function getOverrides(array $data): array {
-		if (isset($data['policyOverrides']) && is_array($data['policyOverrides']) && array_key_exists(SignatureFlowPolicy::KEY, $data['policyOverrides'])) {
-			return [SignatureFlowPolicy::KEY => $data['policyOverrides'][SignatureFlowPolicy::KEY]];
-		}
-
-		return [];
+		return $this->extractSinglePolicyOverride($data, SignatureFlowPolicy::KEY);
 	}
 
 	/** @param array<string, string> $requestOverrides */
 	private function assertOverrideAllowed(array $requestOverrides, ResolvedPolicy $resolvedPolicy): void {
-		if ($requestOverrides === [] || $resolvedPolicy->canUseAsRequestOverride()) {
-			return;
-		}
-
-		$blockedBy = $resolvedPolicy->getBlockedBy() ?? $resolvedPolicy->getSourceScope();
-		throw new LibresignException($this->l10n->t('Signature flow override is blocked by %s.', [$blockedBy]), 422);
-	}
-
-	private function storePolicySnapshot(FileEntity $file, ResolvedPolicy $resolvedPolicy): void {
-		$metadata = $file->getMetadata() ?? [];
-		$policySnapshot = $metadata['policy_snapshot'] ?? [];
-		$policySnapshot[$resolvedPolicy->getPolicyKey()] = [
-			'effectiveValue' => $resolvedPolicy->getEffectiveValue(),
-			'sourceScope' => $resolvedPolicy->getSourceScope(),
-		];
-		$metadata['policy_snapshot'] = $policySnapshot;
-		$file->setMetadata($metadata);
+		$this->assertRequestOverrideAllowed($requestOverrides, $resolvedPolicy, 'Signature flow override is blocked by %s.');
 	}
 }
