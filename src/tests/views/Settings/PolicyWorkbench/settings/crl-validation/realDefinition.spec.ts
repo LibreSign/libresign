@@ -14,13 +14,14 @@ vi.mock('@nextcloud/l10n', () => ({
 }))
 
 describe('crlValidationRealDefinition', () => {
-	it('is system-only and hides the workbench card for group admins', () => {
-		expect(crlValidationRealDefinition.supportedScopes).toEqual(['system'])
-		expect(crlValidationRealDefinition.groupAdminBehavior?.canRenderPolicy?.({
+	it('allows delegated group admins to create descendant rules while keeping preference support disabled elsewhere', () => {
+		expect(crlValidationRealDefinition.supportedScopes).toEqual(['system', 'group'])
+		expect(crlValidationRealDefinition.groupAdminBehavior?.allowGroupRuleCreationFromDescendantDelegation).toBe(true)
+		expect(crlValidationRealDefinition.groupAdminBehavior?.hideNonRemovableGroupRules?.({
 			editableByCurrentActor: false,
 			canSaveAsUserDefault: false,
-			meta: { canCreateDescendantRules: false },
-		} as never)).toBe(false)
+			meta: { canCreateDescendantRules: true },
+		} as never)).toBe(true)
 	})
 
 	it('locks child customization for every scope', () => {
