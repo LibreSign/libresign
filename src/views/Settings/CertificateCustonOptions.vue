@@ -4,11 +4,13 @@
 -->
 <template>
 	<div class="form-group">
+		<!-- TRANSLATORS Section label for optional certificate subject fields that administrators may add to the root certificate form. -->
 		<label for="optionalAttribute">{{ t('libresign', 'Optional attributes') }}</label>
 		<NcPopover container="body" :popper-hide-triggers="extendHideTriggers">
 			<template #trigger>
 				<NcButton :disabled="customNamesOptions.length === 0">
-					{{ t('libresign', 'Select a custom name') }}
+					<!-- TRANSLATORS Button label that opens the picker for adding another certificate subject field. -->
+					{{ t('libresign', 'Select a certificate field') }}
 				</NcButton>
 			</template>
 			<template #default>
@@ -34,17 +36,19 @@
 						<span v-if="isMaxItemsReached(certificate)" class="max-items-warning">
 							({{ t('libresign', 'Maximum {max} items', {max: MAX_ARRAY_ITEMS}) }})
 						</span>
-						<NcButton :aria-label="t('libresign', 'Add new')"
+						<!-- TRANSLATORS Accessible label for the button that adds another value to a multi-value certificate field. -->
+						<NcButton :aria-label="t('libresign', 'Add another value')"
 							:disabled="isMaxItemsReached(certificate)"
 							@click="addArrayEntry(certificate.id)">
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiPlus" :size="20" />
 							</template>
 						</NcButton>
-						<NcButton :aria-label="t('libresign', 'Remove custom name entry from root certificate')"
+						<!-- TRANSLATORS Accessible label for the button that removes the current optional field from the root certificate form. -->
+						<NcButton :aria-label="t('libresign', 'Remove this certificate field')"
 							@click="removeOptionalAttribute(certificate.id)">
 							<template #icon>
-							<NcIconSvgWrapper :path="mdiDelete" :size="20" />
+								<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 							</template>
 						</NcButton>
 					</div>
@@ -55,11 +59,12 @@
 							v-model="certificate.value[index]"
 							:placeholder="t('libresign', 'Item {index}', {index: index + 1})"
 							@update:modelValue="validateArray(certificate.id)" />
+						<!-- TRANSLATORS Accessible label for the button that removes one value from a multi-value certificate field. -->
 						<NcButton v-if="certificate.value.length > 1"
-							:aria-label="t('libresign', 'Remove')"
+							:aria-label="t('libresign', 'Remove this value')"
 							@click="removeArrayEntry(certificate.id, index)">
 							<template #icon>
-							<NcIconSvgWrapper :path="mdiDelete" :size="20" />
+								<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 							</template>
 						</NcButton>
 					</div>
@@ -74,7 +79,8 @@
 						:label="getOptionLabel(certificate.id)"
 						:helper-text="getOptionHelperText(certificate.id)"
 						@update:modelValue="updateCertificateValue(certificate, $event)" />
-					<NcButton :aria-label="t('libresign', 'Remove custom name entry from root certificate')"
+					<!-- TRANSLATORS Accessible label for the button that removes the current optional field from the root certificate form. -->
+					<NcButton :aria-label="t('libresign', 'Remove this certificate field')"
 						@click="removeOptionalAttribute(certificate.id)">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiDelete" :size="20" />
@@ -128,18 +134,18 @@ const props = defineProps<{
 
 const certificateList = ref<CertificateOption[]>([])
 
-const availableOptions = computed(() => options.filter(option => option.id !== 'CN'))
+const availableOptions = computed(() => options.filter((option: { id: string }) => option.id !== 'CN'))
 
-const customNamesOptions = computed(() => availableOptions.value.filter(itemA =>
-	!certificateList.value.some(itemB => itemB.id === itemA.id),
+const customNamesOptions = computed(() => availableOptions.value.filter((itemA: { id: string }) =>
+	!certificateList.value.some((itemB: CertificateOption) => itemB.id === itemA.id),
 ))
 
-watch(() => props.names, (values) => {
+watch(() => props.names, (values: CertificateOption[]) => {
 	certificateList.value = values as CertificateOption[]
 }, { immediate: true })
 
 function getOptionProperty(id: string, property: 'label' | 'helperText' | 'max') {
-	return availableOptions.value.find(option => option.id === id)?.[property]
+	return availableOptions.value.find((option: { id: string; label?: string; helperText?: string; max?: number }) => option.id === id)?.[property]
 }
 
 function getOptionLabel(id: string) {
@@ -177,7 +183,7 @@ function validateMax(item: CertificateOption) {
 }
 
 function emitCertificateList() {
-	const listToSave = certificateList.value.map(certificate => ({
+	const listToSave = certificateList.value.map((certificate: CertificateOption) => ({
 		id: certificate.id,
 		value: certificate.value,
 	}))
@@ -186,7 +192,7 @@ function emitCertificateList() {
 
 function validate(id: string) {
 	const metadata = selectCustonOption(id)
-	const certificate = certificateList.value.find(item => item.id === id)
+	const certificate = certificateList.value.find((item: CertificateOption) => item.id === id)
 	if (metadata.isSome() && certificate) {
 		const option = metadata.unwrap()
 		certificate.min = option.min
@@ -206,7 +212,7 @@ function validateArray(_id: string) {
 }
 
 function addArrayEntry(id: string) {
-	const certificate = certificateList.value.find(cert => cert.id === id)
+	const certificate = certificateList.value.find((cert: CertificateOption) => cert.id === id)
 	if (certificate && Array.isArray(certificate.value) && certificate.value.length < MAX_ARRAY_ITEMS) {
 		certificate.value.push('')
 		validateArray(id)
@@ -214,7 +220,7 @@ function addArrayEntry(id: string) {
 }
 
 function removeArrayEntry(id: string, index: number) {
-	const certificate = certificateList.value.find(cert => cert.id === id)
+	const certificate = certificateList.value.find((cert: CertificateOption) => cert.id === id)
 	if (certificate && Array.isArray(certificate.value) && certificate.value.length > 1) {
 		certificate.value.splice(index, 1)
 		validateArray(id)
@@ -224,7 +230,7 @@ function removeArrayEntry(id: string, index: number) {
 async function removeOptionalAttribute(id: string) {
 	const custonOption = selectCustonOption(id)
 	if (custonOption.isSome()) {
-		certificateList.value = certificateList.value.filter(item => item.id !== custonOption.unwrap().id)
+		certificateList.value = certificateList.value.filter((item: CertificateOption) => item.id !== custonOption.unwrap().id)
 		emitCertificateList()
 	}
 }
