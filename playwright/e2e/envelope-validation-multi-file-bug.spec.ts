@@ -163,7 +163,7 @@ async function waitForSignerInvitationLink(signerEmail: string) {
 	const email = await waitForEmailTo(
 		createMailpitClient(),
 		signerEmail,
-		'LibreSign: There is a file for you to sign',
+		'LibreSign: A document is ready for your signature',
 	)
 	const signLink = extractSignLink(email.Text)
 	if (!signLink) {
