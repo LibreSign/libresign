@@ -261,7 +261,7 @@ Feature: account/signature
       | signers | [{"identifyMethods":[{"method":"email","value":"signer@test.coop"}]}] |
       | name | document |
     When as user ""
-    And I open the latest email to "signer@test.coop" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer@test.coop" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And set the custom http header "libresign-sign-request-uuid" with "<SIGN_REQUEST_UUID>" as value to next request
     When sending "post" to ocs "/apps/libresign/api/v1/signature/elements"

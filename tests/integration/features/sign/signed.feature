@@ -89,9 +89,9 @@ Feature: signed
       | (jq).ocs.data.message   | File signed |
       | (jq).ocs.data.file.uuid | <FILE_UUID> |
     # broking at GitHub Action but worked fine locally
-    # Then I open the latest email to "signer@domain.test" with subject "LibreSign: There is a file for you to sign"
-    Then I open the latest email to "admin@email.tld" with subject "LibreSign: There is a file for you to sign"
-    Then I open the latest email to "admin@email.tld" with subject "LibreSign: A file has been signed"
+    # Then I open the latest email to "signer@domain.test" with subject "LibreSign: A document is ready for your signature"
+    Then I open the latest email to "admin@email.tld" with subject "LibreSign: A document is ready for your signature"
+    Then I open the latest email to "admin@email.tld" with subject "LibreSign: A document has been signed"
     When sending "get" to ocs "/apps/notifications/api/v2/notifications"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -194,7 +194,7 @@ Feature: signed
       | signers | [{"displayName": "Signer Name","identifyMethods": [{"method": "email", "value": "unauthenticated@email.tld"}]}] |
       | name | Document Name |
     And the response should have a status code 200
-    And I open the latest email to "unauthenticated@email.tld" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "unauthenticated@email.tld" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_REQUEST_UUID>"
