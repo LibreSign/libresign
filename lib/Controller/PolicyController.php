@@ -10,22 +10,16 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
-use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
+use OCA\Libresign\Service\Policy\PolicyManagementScopeService;
 use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyGuard;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataResponse;
-use OCP\Group\ISubAdmin;
-use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
-use OCP\IUser;
-use OCP\IUserManager;
-use OCP\IUserSession;
 
 /**
  * @psalm-import-type LibresignErrorResponse from \OCA\Libresign\ResponseDefinitions
@@ -46,11 +40,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		private IL10N $l10n,
 		private PolicyService $policyService,
 		private RequestSignGroupsPolicyGuard $requestSignGroupsPolicyGuard,
-		private PolicyAuthorizationService $policyAuthorizationService,
-		private IUserSession $userSession,
-		private IGroupManager $groupManager,
-		private IUserManager $userManager,
-		private ISubAdmin $subAdmin,
+		private PolicyManagementScopeService $policyManagementScopeService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -66,8 +56,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/effective', requirements: ['apiVersion' => '(v1)'])]
 	public function effective(): DataResponse {
-		$user = $this->userSession->getUser();
-		$ruleCounts = $this->resolveRuleCountsForActor($user);
+		$ruleCounts = $this->policyManagementScopeService->resolveVisibleRuleCountsForCurrentActor();
 
 		/** @var array<string, LibresignEffectivePolicyState> $policies */
 		$policies = $this->policyService->resolveKnownPolicyStatesWithRuleCounts($ruleCounts);
@@ -127,7 +116,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/group/{groupId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'groupId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function getGroup(string $groupId, string $policyKey): DataResponse {
-		if (!$this->canManageGroupPolicy($groupId, $policyKey)) {
+		if (!$this->policyManagementScopeService->canCurrentActorManageGroupPolicy($groupId, $policyKey)) {
 			return $this->forbiddenGroupPolicyResponse();
 		}
 
@@ -155,16 +144,13 @@ final class PolicyController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/by-policy/group/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
 	public function listGroupPolicies(string $policyKey): DataResponse {
-		$user = $this->userSession->getUser();
-		if ($user instanceof IUser && $this->groupManager->isAdmin($user->getUID())) {
+		$manageableGroupIds = $this->policyManagementScopeService->resolveCurrentActorManageableGroupIdsForPolicy($policyKey);
+		if ($manageableGroupIds === null) {
 			$records = $this->policyService->listGroupPolicies($policyKey);
-		} elseif ($user instanceof IUser && $this->subAdmin->isSubAdmin($user)) {
-			$records = $this->policyService->listGroupPoliciesForTargets(
-				$policyKey,
-				$this->resolveManageableGroupIdsForPolicy($user, $policyKey),
-			);
-		} else {
+		} elseif ($manageableGroupIds === []) {
 			$records = [];
+		} else {
+			$records = $this->policyService->listGroupPoliciesForTargets($policyKey, $manageableGroupIds);
 		}
 		$policies = [];
 
@@ -175,7 +161,7 @@ final class PolicyController extends AEnvironmentAwareController {
 				continue;
 			}
 
-			if (!$this->canManageGroupPolicy($groupId, $policyKey)) {
+			if (!$this->policyManagementScopeService->canCurrentActorManageGroupPolicy($groupId, $policyKey)) {
 				continue;
 			}
 
@@ -204,7 +190,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function getUserPolicyForUser(string $userId, string $policyKey): DataResponse {
-		if (!$this->canManageScopedUserPolicy($userId, $policyKey)) {
+		if (!$this->policyManagementScopeService->canCurrentActorManageScopedUserPolicy($userId, $policyKey)) {
 			return $this->forbiddenUserPolicyResponse();
 		}
 
@@ -239,7 +225,7 @@ final class PolicyController extends AEnvironmentAwareController {
 				continue;
 			}
 
-			if (!$this->canManageScopedUserPolicy($userId, $policyKey)) {
+			if (!$this->policyManagementScopeService->canCurrentActorManageScopedUserPolicy($userId, $policyKey)) {
 				continue;
 			}
 
@@ -303,7 +289,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/group/{groupId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'groupId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function setGroup(string $groupId, string $policyKey, null|bool|int|float|string|array $value = null, bool $allowChildOverride = false): DataResponse {
-		if (!$this->canManageGroupPolicy($groupId, $policyKey)) {
+		if (!$this->policyManagementScopeService->canCurrentActorManageGroupPolicy($groupId, $policyKey)) {
 			return $this->forbiddenGroupPolicyResponse();
 		}
 
@@ -351,7 +337,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/policies/group/{groupId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'groupId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function clearGroup(string $groupId, string $policyKey): DataResponse {
-		if (!$this->canManageGroupPolicy($groupId, $policyKey)) {
+		if (!$this->policyManagementScopeService->canCurrentActorManageGroupPolicy($groupId, $policyKey)) {
 			return $this->forbiddenGroupPolicyResponse();
 		}
 
@@ -432,7 +418,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function setUserPolicyForUser(string $userId, string $policyKey, null|bool|int|float|string|array $value = null, bool $allowChildOverride = false): DataResponse {
-		if (!$this->canManageUserPolicy($userId)) {
+		if (!$this->policyManagementScopeService->canCurrentActorManageUserPolicy($userId)) {
 			return $this->forbiddenUserPolicyResponse();
 		}
 
@@ -441,7 +427,7 @@ final class PolicyController extends AEnvironmentAwareController {
 
 		try {
 			$this->requestSignGroupsPolicyGuard->assertUserScopeSupported($policyKey);
-			if (!$this->policyService->canManageUserPolicyForUserId($policyKey, $userId)) {
+			if (!$this->policyManagementScopeService->canCurrentActorManageScopedUserPolicy($userId, $policyKey)) {
 				return $this->forbiddenUserPolicyResponse();
 			}
 			$policy = $this->policyService->saveUserPolicyForUserId($policyKey, $userId, $value, $allowChildOverride);
@@ -508,13 +494,13 @@ final class PolicyController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function clearUserPolicyForUser(string $userId, string $policyKey): DataResponse {
-		if (!$this->canManageUserPolicy($userId)) {
+		if (!$this->policyManagementScopeService->canCurrentActorManageUserPolicy($userId)) {
 			return $this->forbiddenUserPolicyResponse();
 		}
 
 		try {
 			$this->requestSignGroupsPolicyGuard->assertUserScopeSupported($policyKey);
-			if (!$this->policyService->canManageUserPolicyForUserId($policyKey, $userId)) {
+			if (!$this->policyManagementScopeService->canCurrentActorManageScopedUserPolicy($userId, $policyKey)) {
 				return $this->forbiddenUserPolicyResponse();
 			}
 			$policy = $this->policyService->clearUserPolicyForUserId($policyKey, $userId);
@@ -566,152 +552,6 @@ final class PolicyController extends AEnvironmentAwareController {
 			'value' => $policy?->getValue(),
 			'allowChildOverride' => $policy?->isAllowChildOverride() ?? true,
 		];
-	}
-
-	private function canManageGroupPolicy(string $groupId, string $policyKey): bool {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return false;
-		}
-
-		if ($this->groupManager->isAdmin($user->getUID())) {
-			return true;
-		}
-
-		if (!$this->subAdmin->isSubAdmin($user)) {
-			return false;
-		}
-
-		return in_array($groupId, $this->resolveManageableGroupIdsForPolicy($user, $policyKey), true);
-	}
-
-	private function canManageUserPolicy(string $userId): bool {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return false;
-		}
-
-		if ($this->groupManager->isAdmin($user->getUID())) {
-			return true;
-		}
-
-		if (!$this->subAdmin->isSubAdmin($user)) {
-			return false;
-		}
-
-		$targetUser = $this->userManager->get($userId);
-		if (!$targetUser instanceof IUser) {
-			return false;
-		}
-
-		$managedGroupIds = array_values(array_map(
-			static fn ($group): string => $group->getGID(),
-			$this->subAdmin->getSubAdminsGroups($user),
-		));
-		if ($managedGroupIds === []) {
-			return false;
-		}
-
-		$targetGroupIds = $this->groupManager->getUserGroupIds($targetUser);
-		return array_intersect($managedGroupIds, $targetGroupIds) !== [];
-	}
-
-	private function canManageScopedUserPolicy(string $userId, string $policyKey): bool {
-		return $this->canManageUserPolicy($userId)
-			&& $this->policyService->canManageUserPolicyForUserId($policyKey, $userId);
-	}
-
-	/**
-	 * @return array<string, array{groupCount: int, userCount: int, everyoneCount: int}>
-	 */
-	private function resolveRuleCountsForActor(?IUser $user): array {
-		if ($user === null) {
-			return [];
-		}
-
-		if ($this->groupManager->isAdmin($user->getUID())) {
-			return $this->policyService->getAllRuleCounts();
-		}
-
-		if ($this->subAdmin->isSubAdmin($user)) {
-			$groupIds = $this->resolveSubAdminManagedGroupIds($user);
-			return $this->filterVisibleRuleCountsForManagedGroups(
-				$this->policyService->getRuleCounts($groupIds, []),
-				$user,
-				$groupIds,
-			);
-		}
-
-		return [];
-	}
-
-	/**
-	 * @param array<string, array{groupCount?: int, userCount?: int, everyoneCount?: int}> $ruleCounts
-	 * @param list<string> $groupIds
-	 * @return array<string, array{groupCount: int, userCount: int, everyoneCount: int}>
-	 */
-	private function filterVisibleRuleCountsForManagedGroups(array $ruleCounts, IUser $user, array $groupIds): array {
-		/** @var array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $normalizedRuleCounts */
-		$normalizedRuleCounts = [];
-		foreach ($ruleCounts as $policyKey => $counts) {
-			$normalizedRuleCounts[$policyKey] = $this->normalizeRuleCounts($counts);
-		}
-
-		$groupIds = array_values(array_unique(array_filter(
-			$groupIds,
-			static fn (string $groupId): bool => trim($groupId) !== '',
-		)));
-
-		if ($groupIds === []) {
-			return $normalizedRuleCounts;
-		}
-
-		foreach ($normalizedRuleCounts as $policyKey => $counts) {
-			if (($counts['groupCount'] ?? 0) <= 0) {
-				continue;
-			}
-
-			if (!$this->policyService->shouldFilterVisibleGroupCountsForCurrentActor($policyKey)) {
-				continue;
-			}
-
-			$counts['groupCount'] = $this->policyService->countVisibleGroupPoliciesForTargets(
-				$policyKey,
-				$this->resolveManageableGroupIdsForPolicy($user, $policyKey),
-			);
-			$normalizedRuleCounts[$policyKey] = $counts;
-		}
-
-		return $normalizedRuleCounts;
-	}
-
-	/**
-	 * @param array{groupCount?: int, userCount?: int, everyoneCount?: int} $counts
-	 * @return array{groupCount: int, userCount: int, everyoneCount: int}
-	 */
-	private function normalizeRuleCounts(array $counts): array {
-		return [
-			'groupCount' => (int)($counts['groupCount'] ?? 0),
-			'userCount' => (int)($counts['userCount'] ?? 0),
-			'everyoneCount' => (int)($counts['everyoneCount'] ?? 0),
-		];
-	}
-
-	/** @return list<string> */
-	private function resolveSubAdminManagedGroupIds(IUser $user): array {
-		return array_values(array_filter(
-			$this->groupManager->getUserGroupIds($user),
-			static fn (mixed $groupId): bool => is_string($groupId) && trim($groupId) !== '',
-		));
-	}
-
-	/** @return list<string> */
-	private function resolveManageableGroupIdsForPolicy(IUser $user, string $policyKey): array {
-		if ($policyKey === RequestSignGroupsPolicy::KEY) {
-			return $this->policyAuthorizationService->getManageablePolicyGroupIds($user);
-		}
-
-		return $this->resolveSubAdminManagedGroupIds($user);
 	}
 
 	private function readPolicyValueParam(string $key, null|bool|int|float|string|array $default): null|bool|int|float|string|array {
