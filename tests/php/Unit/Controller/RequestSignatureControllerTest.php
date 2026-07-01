@@ -15,8 +15,8 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\File\FileListService;
-use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\RequestSignatureService;
+use OCA\Libresign\Service\RequestSignatureWorkflowService;
 use OCP\AppFramework\Http;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -31,18 +31,17 @@ final class RequestSignatureControllerTest extends TestCase {
 	private IRequest&MockObject $request;
 	private IL10N&MockObject $l10n;
 	private IUserSession&MockObject $userSession;
-	private FileService&MockObject $fileService;
 	private FileListService&MockObject $fileListService;
 	private ValidateHelper&MockObject $validateHelper;
 	private RequestSignatureService&MockObject $requestSignatureService;
 	private FileMapper&MockObject $fileMapper;
+	private RequestSignatureWorkflowService $requestSignatureWorkflowService;
 	private IUser&MockObject $user;
 
 	protected function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->userSession = $this->createMock(IUserSession::class);
-		$this->fileService = $this->createMock(FileService::class);
 		$this->fileListService = $this->createMock(FileListService::class);
 		$this->validateHelper = $this->createMock(ValidateHelper::class);
 		$this->requestSignatureService = $this->createMock(RequestSignatureService::class);
@@ -51,16 +50,21 @@ final class RequestSignatureControllerTest extends TestCase {
 
 		$this->userSession->method('getUser')->willReturn($this->user);
 		$this->l10n->method('t')->willReturnCallback(static fn (string $message): string => $message);
+		$this->requestSignatureWorkflowService = new RequestSignatureWorkflowService(
+			$this->l10n,
+			$this->requestSignatureService,
+			$this->validateHelper,
+			$this->fileMapper,
+		);
 
 		$this->controller = new RequestSignatureController(
 			$this->request,
 			$this->l10n,
 			$this->userSession,
-			$this->fileService,
 			$this->fileListService,
 			$this->validateHelper,
 			$this->requestSignatureService,
-			$this->fileMapper,
+			$this->requestSignatureWorkflowService,
 		);
 	}
 
