@@ -47,7 +47,7 @@ Feature: request-signature
       | name | document |
     And the response should have a status code 200
     And there should be 1 emails in my inbox
-    And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer1@domain.test" with subject "LibreSign: A document is ready for your signature"
     And as user "signer1"
     And I fetch the signer UUID from notification
     When sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
@@ -84,7 +84,7 @@ Feature: request-signature
       | name | document |
     And the response should have a status code 200
     And there should be 1 emails in my inbox
-    And I open the latest email to "contact@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "contact@domain.test" with subject "LibreSign: A document is ready for your signature"
     And as user "signer1"
     And I fetch the signer UUID from notification
     When sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
@@ -137,7 +137,7 @@ Feature: request-signature
       | name | document |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
-    And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer1@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And user "signer2" exists
     And set the email of user "signer2" to "signer2@domain.test"
@@ -161,7 +161,7 @@ Feature: request-signature
       | name | document |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
-    And I open the latest email to "signer2@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer2@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     When wait for 2 second
@@ -185,7 +185,7 @@ Feature: request-signature
       | name | document |
     And the response should have a status code 200
     And there should be 1 emails in my inbox
-    And I open the latest email to "signer2@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer2@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     And run the command "config:app:set libresign maximum_validity --value=300 --type=integer" with result code 0
@@ -204,7 +204,7 @@ Feature: request-signature
     And the response should be a JSON array with the following mandatory values
       | key                   | value                                        |
       | (jq).ocs.data.message | Renewed with success. Access the link again. |
-    And I open the latest email to "signer2@domain.test" with subject "LibreSign: Changes into a file for you to sign"
+    And I open the latest email to "signer2@domain.test" with subject "LibreSign: Changes were made to a document waiting for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     # setting the renewal interval to 3 and making 4 requests, one by second,
@@ -273,7 +273,7 @@ Feature: request-signature
     And the response should be a JSON array with the following mandatory values
       | key                      | value                                                   |
       | (jq).ocs.data[0].subject | admin requested your signature on document              |
-      | (jq).ocs.data[0].message | Changes have been made in a file that you have to sign. |
+      | (jq).ocs.data[0].message | Changes were made to a document you need to sign. |
     When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
     Then the response should be a JSON array with the following mandatory values
       | key                      | value                          |
@@ -317,7 +317,7 @@ Feature: request-signature
       | name | document |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
-    And I open the latest email to "signer2@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer2@domain.test" with subject "LibreSign: A document is ready for your signature"
 
   Scenario: Create signature request with success using account as identifier and URL as file
     Given as user "admin"
@@ -351,7 +351,7 @@ Feature: request-signature
       | name | document |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
-    And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer1@domain.test" with subject "LibreSign: A document is ready for your signature"
 
   Scenario: Create signature request using email as identifier and when is necessary to use visible elements
     Given as user "admin"
@@ -400,7 +400,7 @@ Feature: request-signature
       | key | value                                                         |
       | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
     And there should be 1 emails in my inbox
-    And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer1@domain.test" with subject "LibreSign: A document is ready for your signature"
 
   Scenario: Create signature request with success using multiple emails
     Given run the command "libresign:configure:openssl --cn test" with result code 0
@@ -413,7 +413,7 @@ Feature: request-signature
       | signers | [{"identifyMethods":[{"method":"email","value":"11111@domain.test"}]},{"identifyMethods":[{"method":"email","value":"22222@domain.test"}]}] |
       | name | document |
     Then the response should have a status code 200
-    When I open the latest email to "11111@domain.test" with subject "LibreSign: There is a file for you to sign"
+    When I open the latest email to "11111@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     And follow the link on opened email
@@ -426,7 +426,7 @@ Feature: request-signature
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.hasConfirmCode | false                            |
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.blurredEmail   | 111***@***.test                  |
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.hashOfEmail    | c8cb84220c4cf19b723390f29b83a0f8 |
-    When I open the latest email to "22222@domain.test" with subject "LibreSign: There is a file for you to sign"
+    When I open the latest email to "22222@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     And follow the link on opened email
@@ -455,7 +455,7 @@ Feature: request-signature
       | signers | [{"identifyMethods":[{"method":"email","value":"11111@domain.test"}]}] |
       | name | document |
     Then the response should have a status code 200
-    When I open the latest email to "11111@domain.test" with subject "LibreSign: There is a file for you to sign"
+    When I open the latest email to "11111@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     And follow the link on opened email
@@ -500,7 +500,7 @@ Feature: request-signature
       | signers | [{"identifyMethods":[{"method":"email","value":"11111@domain.test"}]}] |
       | name | document |
     Then the response should have a status code 200
-    When I open the latest email to "11111@domain.test" with subject "LibreSign: There is a file for you to sign"
+    When I open the latest email to "11111@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     And follow the link on opened email

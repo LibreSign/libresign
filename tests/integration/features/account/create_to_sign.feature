@@ -16,7 +16,7 @@ Feature: account/create_to_sign
     Given as user ""
     And run the command "user:delete signer1@domain.test" with result code 0
     And run the command "user:delete signer1" with result code 0
-    And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer1@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And follow the link on opened email
     And the response should have a status code 422
@@ -37,7 +37,7 @@ Feature: account/create_to_sign
   Scenario: Create with valid data
     Given as user ""
     And run the command "user:delete signer1@domain.test" with result code 0
-    And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer1@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And follow the link on opened email
     And the response should have a status code 422

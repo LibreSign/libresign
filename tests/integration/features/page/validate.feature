@@ -83,7 +83,7 @@ Feature: page/validate
       | name    | external-email-pdf |
       | settings | {"folderName":"rm-target-folder"} |
     Then the response should have a status code 200
-    And I open the latest email to "external@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "external@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     When sending "get" to "/apps/libresign/pdf/<SIGN_REQUEST_UUID>"
