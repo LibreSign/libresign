@@ -30,12 +30,14 @@ class CertificateEngineFactory {
 		}
 
 		if (!$engineName) {
-			if (self::$engine) {
+			$configuredEngineName = $this->getConfiguredEngineName();
+
+			if (self::$engine && self::$engine->getName() === $configuredEngineName) {
 				self::$engine->populateInstance($rootCert);
 				return self::$engine;
 			}
 
-			$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
+			$engineName = $configuredEngineName;
 		}
 
 		self::$engine = $this->resolveHandler($engineName);
@@ -48,6 +50,21 @@ class CertificateEngineFactory {
 		$handler->setEngine($engineName);
 		self::$engine = $handler;
 		return self::$engine;
+	}
+
+	private function getConfiguredEngineName(): string {
+		$configValues = $this->appConfig->getAllValues(Application::APP_ID);
+		$configuredEngineName = $configValues['certificate_engine'] ?? '';
+
+		if (is_string($configuredEngineName) && $configuredEngineName !== '') {
+			return $configuredEngineName;
+		}
+
+		if (is_scalar($configuredEngineName) && (string)$configuredEngineName !== '') {
+			return (string)$configuredEngineName;
+		}
+
+		return $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
 	}
 
 	private function resolveHandler(string $engineName): IEngineHandler {
