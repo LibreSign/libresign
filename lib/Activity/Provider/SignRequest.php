@@ -83,9 +83,11 @@ class SignRequest implements IProvider {
 
 	private function getParsedSubject(\OCP\IL10N $l, string $subject) {
 		if ($subject === 'new_sign_request') {
+			// TRANSLATORS Activity message shown to a signer. {from} is the requester name and {file} is the document filename.
 			return $l->t('{from} requested your signature on {file}');
 		} elseif ($subject === 'update_sign_request') {
-			return $l->t('{from} made changes on {file}');
+			// TRANSLATORS Activity message shown when an existing signature request was updated. {from} is the requester name and {file} is the document filename.
+			return $l->t('{from} updated the signature request for {file}');
 		}
 	}
 }
