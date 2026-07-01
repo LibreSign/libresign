@@ -58,5 +58,14 @@ Feature: policies/boolean_policy_layers
     Examples:
       | policy_key                       |
       | envelope_enabled                 |
-      | crl_external_validation_enabled  |
       | show_confetti_after_signing      |
+
+  Scenario: System-only boolean policies reject user-scope assignments
+    Given as user "admin"
+    And user "signer1" exists
+    When sending "put" to ocs "/apps/libresign/api/v1/policies/user/signer1/crl_external_validation_enabled"
+      | value | true |
+    Then the response should have a status code 403
+    And the response should be a JSON array with the following mandatory values
+      | key                  | value                                  |
+      | (jq).ocs.data.error  | Not allowed to manage this user policy |
