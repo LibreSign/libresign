@@ -113,7 +113,7 @@ class Notifier implements INotifier {
 		}
 		if ($update) {
 			// TRANSLATORS Notification message informing the signer that a pending document changed and should be reviewed again.
-			$notification->setParsedMessage($l->t('Changes have been made in a file that you have to sign.'));
+			$notification->setParsedMessage($l->t('Changes were made to a document you need to sign.'));
 		}
 
 		if (isset($parameters['signRequest']) && isset($parameters['signRequest']['id'])) {
