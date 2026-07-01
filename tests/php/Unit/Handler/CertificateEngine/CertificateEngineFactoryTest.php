@@ -94,10 +94,18 @@ class CertificateEngineFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	public function testSetEngineUpdatesCachedHandlerWithoutRereadingAppConfig(): void {
+	public function testSetEngineUpdatesCachedHandlerAndPersistsConfiguredEngine(): void {
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->appConfig->expects($this->once())
+			->method('getAllValues')
+			->with('libresign')
+			->willReturn(['certificate_engine' => 'none']);
 		$this->noneHandler->expects($this->once())
 			->method('setEngine')
 			->with('none');
+		$this->noneHandler->expects($this->once())
+			->method('getName')
+			->willReturn('none');
 		$this->noneHandler->expects($this->once())
 			->method('populateInstance')
 			->with([])
@@ -112,10 +120,13 @@ class CertificateEngineFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetEngineWithoutArgumentUsesConfiguredEngineAndCachesIt(): void {
 		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->appConfig->expects($this->once())
+		$this->appConfig->expects($this->exactly(2))
+			->method('getAllValues')
+			->with('libresign')
+			->willReturn(['certificate_engine' => 'cfssl']);
+		$this->appConfig->expects($this->never())
 			->method('getValueString')
-			->with('libresign', 'certificate_engine', 'openssl')
-			->willReturn('cfssl');
+			->with('libresign', 'certificate_engine', 'openssl');
 		$this->cfsslHandler->expects($this->exactly(2))
 			->method('populateInstance')
 			->with([])
@@ -125,6 +136,35 @@ class CertificateEngineFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertSame($this->cfsslHandler, $factory->getEngine());
 		$this->assertSame($this->cfsslHandler, $factory->getEngine());
+	}
+
+	public function testGetEngineWithoutArgumentReplacesCachedHandlerWhenConfiguredEngineChanges(): void {
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->appConfig->expects($this->exactly(2))
+			->method('getAllValues')
+			->with('libresign')
+			->willReturnOnConsecutiveCalls(
+				['certificate_engine' => 'openssl'],
+				['certificate_engine' => 'none'],
+			);
+		$this->appConfig->expects($this->never())
+			->method('getValueString');
+		$this->openSslHandler->expects($this->once())
+			->method('populateInstance')
+			->with([])
+			->willReturnSelf();
+		$this->openSslHandler->expects($this->once())
+			->method('getName')
+			->willReturn('openssl');
+		$this->noneHandler->expects($this->once())
+			->method('populateInstance')
+			->with([])
+			->willReturnSelf();
+
+		$factory = $this->getInstance();
+
+		$this->assertSame($this->openSslHandler, $factory->getEngine());
+		$this->assertSame($this->noneHandler, $factory->getEngine());
 	}
 
 	public function testGetEngineWithExplicitNameReusesMatchingCachedHandler(): void {
