@@ -87,7 +87,8 @@
 			:name="t('libresign', 'Technical details')">
 			<div class="certificate-fields">
 				<div class="certificate-field">
-					<span class="field-label">Name</span>
+					<!-- TRANSLATORS Technical field label showing the internal certificate entry name reported by the parser. -->
+					<span class="field-label">{{ t('libresign', 'Name') }}</span>
 					<span class="field-value">{{ certificate.name }}</span>
 				</div>
 				<div v-for="(value, name, index) in certificate.extensions"
@@ -117,9 +118,12 @@
 					:type="purpose[0] ? 'success' : 'error'"
 					:heading="formatPurposeName(purpose[2])">
 					<div class="purpose-status">
+						<!-- TRANSLATORS Certificate purpose status meaning the selected certificate usage is permitted. -->
 						<span v-if="purpose[0]">{{ t('libresign', 'Allowed') }}</span>
+						<!-- TRANSLATORS Certificate purpose status meaning the selected certificate usage is forbidden or unsupported. -->
 						<span v-else>{{ t('libresign', 'Not allowed') }}</span>
-						<NcChip v-if="purpose[1]" no-close>CA</NcChip>
+						<!-- TRANSLATORS Short acronym chip for "Certificate Authority", the organization that issues or signs certificates. -->
+						<NcChip v-if="purpose[1]" no-close>{{ t('libresign', 'CA') }}</NcChip>
 					</div>
 				</NcNoteCard>
 			</div>
