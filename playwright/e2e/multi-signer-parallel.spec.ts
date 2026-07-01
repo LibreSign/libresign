@@ -4,9 +4,13 @@
  */
 
 import { expect, test } from '@playwright/test'
+
+import { createMailpitClient, waitForEmailTo } from '../support/mailpit'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
-import { createMailpitClient, waitForEmailTo } from '../support/mailpit'
+import { useRequestSignPolicyGuard } from '../support/system-policies'
+
+useRequestSignPolicyGuard()
 
 test('request signatures from two signers in parallel', async ({ page }) => {
 	await login(
