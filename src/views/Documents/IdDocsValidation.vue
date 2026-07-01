@@ -6,6 +6,7 @@
 	<div class="id-docs-validation">
 		<div class="id-docs-validation__toolbar">
 			<div class="filter-wrapper" :class="{ 'filter-wrapper--active': hasActiveFilters }">
+				<!-- TRANSLATORS {count} is the number of active filters currently applied to the document validation list. -->
 				<NcActions :aria-label="hasActiveFilters ? t('libresign', 'Filters ({count})', { count: activeFilterCount }) : t('libresign', 'Filters')">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiFilter" :size="20" />
@@ -126,7 +127,7 @@
 									<template #icon>
 										<NcIconSvgWrapper :path="mdiEye" :size="20" />
 									</template>
-									<!-- TRANSLATORS: "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. Choose a word in your language that conveys "to check" or "to verify", not "to approve" or "to authorize". -->
+									<!-- TRANSLATORS: "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. -->
 									{{ t('libresign', 'Validate') }}
 								</NcActionButton>
 							</template>
@@ -234,7 +235,9 @@ type UserConfigStore = {
 
 const SORT_FIELDS: readonly SortField[] = ['owner', 'file_type', 'status']
 const STATUS_OPTIONS: StatusOption[] = [
+	// TRANSLATORS Filter status label meaning the document already has the required signature approval result.
 	{ value: 'signed', label: t('libresign', 'Signed') },
+	// TRANSLATORS Filter status label meaning the document is still waiting for validation or approval.
 	{ value: 'pending', label: t('libresign', 'Pending') },
 ]
 
