@@ -106,10 +106,12 @@ class ValidateHelper {
 				return;
 			}
 			if ($type === self::TYPE_TO_SIGN) {
+				// TRANSLATORS Validation error shown when the API expected a document to be signed but received an empty file payload. %s is the localized file-role label such as "document to sign".
 				throw new LibresignException($this->l10n->t('File type: %s. Empty file.', [$this->getTypeOfFile($type)]));
 			}
 			if ($type === self::TYPE_VISIBLE_ELEMENT_USER) {
 				if ($this->elementNeedFile($data)) {
+					// TRANSLATORS Validation error shown when a visible signature element (for example a handwritten signature image) requires an uploaded file. %s is the requested visible element type.
 					throw new LibresignException($this->l10n->t('Elements of type %s need file.', [$data['type']]));
 				}
 			}
@@ -117,6 +119,7 @@ class ValidateHelper {
 		}
 		if (!empty($data['file']['url'])) {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
+				// TRANSLATORS Validation error shown when the caller must provide a valid URL, Base64 payload, or file identifier. %s is the localized file-role label.
 				throw new LibresignException($this->l10n->t('File type: %s. Specify a URL, a Base64 string or a fileID.', [$this->getTypeOfFile($type)]));
 			}
 		} elseif (!empty($data['file']['nodeId'])) {
@@ -160,9 +163,11 @@ class ValidateHelper {
 
 	private function getTypeOfFile(int $type): string {
 		if ($type === self::TYPE_TO_SIGN) {
+			// TRANSLATORS File-role label used inside validation errors to mean the PDF document that will receive signatures.
 			return $this->l10n->t('document to sign');
 		}
-		return $this->l10n->t('visible element');
+		// TRANSLATORS File-role label used inside validation errors for a visible signature asset such as a signature image or initials image.
+		return $this->l10n->t('visible signature element');
 	}
 
 	public function validateBase64(string $base64, int $type = self::TYPE_TO_SIGN): void {
@@ -186,7 +191,7 @@ class ValidateHelper {
 		$string = base64_decode($base64);
 		if (in_array($type, [self::TYPE_VISIBLE_ELEMENT_USER, self::TYPE_VISIBLE_ELEMENT_PDF])) {
 			if (strlen($string) > 5000 * 1024) { // 5Mb
-				// TRANSLATORS Error when the visible element to add to document, like a signature or initial is bigger than normal
+				// TRANSLATORS Error shown when a visible signature asset (for example a signature or initials image) exceeds the allowed upload size.
 				throw new InvalidArgumentException($this->l10n->t('File is too big'));
 			}
 		}
@@ -239,7 +244,7 @@ class ValidateHelper {
 			return;
 		}
 		if (!array_key_exists('signRequestId', $element) && !array_key_exists('uuid', $element)) {
-			// TRANSLATION The element can be an image or text. It has to be associated with an user. The element will be added to the document.
+			// TRANSLATORS Validation error shown when a visible element (image or text placed on the document) is missing the signer association it belongs to.
 			throw new LibresignException($this->l10n->t('Element must be associated with a user'));
 		}
 
