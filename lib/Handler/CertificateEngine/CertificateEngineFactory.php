@@ -14,6 +14,7 @@ use OCP\IAppConfig;
 
 class CertificateEngineFactory {
 	private static ?IEngineHandler $engine = null;
+
 	public function __construct(
 		private IAppConfig $appConfig,
 		private OpenSslHandler $openSslHandler,
@@ -21,20 +22,40 @@ class CertificateEngineFactory {
 		private NoneHandler $noneHandler,
 	) {
 	}
+
 	public function getEngine(string $engineName = '', array $rootCert = []): IEngineHandler {
 		if (self::$engine && !empty($engineName) && self::$engine->getName() === $engineName) {
+			self::$engine->populateInstance($rootCert);
 			return self::$engine;
 		}
+
 		if (!$engineName) {
+			if (self::$engine) {
+				self::$engine->populateInstance($rootCert);
+				return self::$engine;
+			}
+
 			$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
 		}
-		self::$engine = match ($engineName) {
+
+		self::$engine = $this->resolveHandler($engineName);
+		self::$engine->populateInstance($rootCert);
+		return self::$engine;
+	}
+
+	public function setEngine(string $engineName): IEngineHandler {
+		$handler = $this->resolveHandler($engineName);
+		$handler->setEngine($engineName);
+		self::$engine = $handler;
+		return self::$engine;
+	}
+
+	private function resolveHandler(string $engineName): IEngineHandler {
+		return match ($engineName) {
 			'openssl' => $this->openSslHandler,
 			'cfssl' => $this->cfsslHandler,
 			'none' => $this->noneHandler,
 			default => throw new LibresignException("Certificate engine not found: $engineName"),
 		};
-		self::$engine->populateInstance($rootCert);
-		return self::$engine;
 	}
 }
