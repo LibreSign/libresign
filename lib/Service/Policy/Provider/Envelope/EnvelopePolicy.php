@@ -37,9 +37,14 @@ final class EnvelopePolicy implements IPolicyDefinitionProvider {
 				],
 				normalizer: static fn (mixed $rawValue): bool => filter_var($rawValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
-				supportedScopes: [PolicySpec::SCOPE_SYSTEM, PolicySpec::SCOPE_GROUP, PolicySpec::SCOPE_USER],
+				supportedScopes: [
+					PolicySpec::SCOPE_SYSTEM,
+					PolicySpec::SCOPE_GROUP,
+					PolicySpec::SCOPE_USER,
+				],
 				groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
 					$actorRole = $context->getActorRole();
+
 					if ($actorRole->canManageSystemPolicies) {
 						return true;
 					}
@@ -52,11 +57,15 @@ final class EnvelopePolicy implements IPolicyDefinitionProvider {
 						return false;
 					}
 
-					return self::hasExplicitGlobalDelegation($systemPolicy)
-						|| self::hasSystemCreatedGroupDelegation($groupLayers);
+					if (self::hasExplicitGlobalDelegation($systemPolicy)) {
+						return true;
+					}
+
+					return self::hasSystemCreatedGroupDelegation($groupLayers);
 				},
 				systemCreatedGroupRuleEditor: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, PolicyLayer $existingPolicy): bool {
 					$actorRole = $context->getActorRole();
+
 					if ($actorRole->canManageSystemPolicies) {
 						return true;
 					}
@@ -65,7 +74,15 @@ final class EnvelopePolicy implements IPolicyDefinitionProvider {
 						return false;
 					}
 
-					if (!$existingPolicy->isVisibleToChild() || !$existingPolicy->isAllowChildOverride() || $existingPolicy->getValue() === null) {
+					if (!$existingPolicy->isVisibleToChild()) {
+						return false;
+					}
+
+					if (!$existingPolicy->isAllowChildOverride()) {
+						return false;
+					}
+
+					if ($existingPolicy->getValue() === null) {
 						return false;
 					}
 
@@ -73,7 +90,7 @@ final class EnvelopePolicy implements IPolicyDefinitionProvider {
 						return true;
 					}
 
-					return self::wasCreatedBySystemAdmin($existingPolicy);
+					return $existingPolicy->isCreatedBySystemAdmin();
 				},
 				supportsGroupAdminDelegation: true,
 			),
@@ -96,28 +113,26 @@ final class EnvelopePolicy implements IPolicyDefinitionProvider {
 				continue;
 			}
 
-			if (!$groupLayer->isVisibleToChild() || $groupLayer->getValue() === null) {
+			if (!$groupLayer->isVisibleToChild()) {
 				continue;
 			}
 
-			if (self::isDelegatedFromSystemCreatedSeed($groupLayer)) {
+			if ($groupLayer->getValue() === null) {
+				continue;
+			}
+
+			if ($groupLayer->isDelegatedFromSystemCreatedSeed()) {
 				return true;
 			}
 
-			if ($groupLayer->isAllowChildOverride() && self::wasCreatedBySystemAdmin($groupLayer)) {
-				return true;
+			if ($groupLayer->isAllowChildOverride()) {
+				if ($groupLayer->isCreatedBySystemAdmin()) {
+					return true;
+				}
 			}
 		}
 
 		return false;
-	}
-
-	private static function isDelegatedFromSystemCreatedSeed(PolicyLayer $policy): bool {
-		return $policy->isDelegatedFromSystemCreatedSeed();
-	}
-
-	private static function wasCreatedBySystemAdmin(PolicyLayer $policy): bool {
-		return $policy->isCreatedBySystemAdmin();
 	}
 
 	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {
