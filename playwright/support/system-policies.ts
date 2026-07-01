@@ -25,12 +25,18 @@ import {
 // ---------------------------------------------------------------------------
 
 export const FOOTER_POLICY_KEY = 'add_footer'
+export const REQUEST_SIGN_POLICY_KEY = 'groups_request_sign'
 
 export const FOOTER_DISABLED_VALUE = JSON.stringify({
 	enabled: false,
 	writeQrcodeOnFooter: false,
 	validationSite: '',
 	customizeFooterTemplate: false,
+})
+
+export const REQUEST_SIGN_ADMIN_BASELINE_VALUE = JSON.stringify({
+	allowGroups: ['admin'],
+	denyGroups: [],
 })
 
 // ---------------------------------------------------------------------------
@@ -84,6 +90,33 @@ export function useFooterPolicyGuard(): void {
 
 	test.afterEach(async () => {
 		await restoreSystemPolicySnapshot(adminContext, FOOTER_POLICY_KEY, originalFooterPolicy)
+		await adminContext.dispose()
+	})
+}
+
+/**
+ * Registers hooks that ensure request-sign access starts from a predictable
+ * baseline and is restored after each test. This prevents policy-management
+ * specs from leaking a restrictive `groups_request_sign` rule into unrelated
+ * request-flow specs that expect the admin to be allowed to request
+ * signatures.
+ *
+ * @param baselineValue Policy value to force during the test body.
+ */
+export function useRequestSignPolicyGuard(
+	baselineValue: string = REQUEST_SIGN_ADMIN_BASELINE_VALUE,
+): void {
+	let adminContext: APIRequestContext
+	let originalRequestSignPolicy: SystemPolicySnapshot
+
+	test.beforeEach(async () => {
+		adminContext = await makeAdminContext()
+		originalRequestSignPolicy = await getSystemPolicySnapshot(adminContext, REQUEST_SIGN_POLICY_KEY)
+		await setSystemPolicyEntry(adminContext, REQUEST_SIGN_POLICY_KEY, baselineValue, true)
+	})
+
+	test.afterEach(async () => {
+		await restoreSystemPolicySnapshot(adminContext, REQUEST_SIGN_POLICY_KEY, originalRequestSignPolicy)
 		await adminContext.dispose()
 	})
 }

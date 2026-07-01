@@ -11,6 +11,9 @@ import type { APIRequestContext, Page } from '@playwright/test'
 import { createMailpitClient, extractSignLink, waitForEmailTo } from '../support/mailpit'
 import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 import { getSmallValidPdfBase64 } from '../support/pdf-fixtures'
+import { useRequestSignPolicyGuard } from '../support/system-policies'
+
+useRequestSignPolicyGuard()
 
 type EnvelopeSigningScenario = {
 	envelopeName: string

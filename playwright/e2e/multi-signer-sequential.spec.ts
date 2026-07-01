@@ -5,11 +5,14 @@
 
 import type { APIRequestContext, Page } from '@playwright/test'
 import { expect, test as base } from '@playwright/test'
+
+import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support/mailpit'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, deleteAppConfig, getAppConfig, setAppConfig, setCertificateEngine, getSystemPolicyValue, setSystemPolicy } from '../support/nc-provisioning'
-import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support/mailpit'
-import { makeAdminContext } from '../support/system-policies'
 import { setSystemPolicyEntry } from '../support/policy-api'
+import { makeAdminContext, useRequestSignPolicyGuard } from '../support/system-policies'
+
+useRequestSignPolicyGuard()
 
 const FOOTER_POLICY_KEY = 'add_footer'
 const FOOTER_DISABLED_VALUE = JSON.stringify({
@@ -30,7 +33,7 @@ const test = base.extend<{
 	adminContext: APIRequestContext
 	originalConfigSnapshot: OriginalConfigSnapshot
 }>({
-	adminContext: async ({}, use) => {
+	adminContext: async ({ request: _request }, use) => {
 		const ctx = await makeAdminContext()
 		await use(ctx)
 		await ctx.dispose()
@@ -224,9 +227,9 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	// Signer01 signed; signer02 is still waiting (sequential mode proof at this point)
 	await expect(page.getByText('Signer 01')).toBeVisible()
 	await page.getByRole('button', { name: 'Expand details of Signer 01' }).click()
-	await page.getByRole('button', { name: 'Expand validation status', exact: true }).click();
-	await page.getByRole('link', { name: 'Document integrity verified' }).click();
-	await page.getByRole('button', { name: 'Expand document certification', exact: true }).click();
+	await page.getByRole('button', { name: 'Expand validation status', exact: true }).click()
+	await page.getByRole('link', { name: 'Document integrity verified' }).click()
+	await page.getByRole('button', { name: 'Expand document certification', exact: true }).click()
 
 	await expect(page.getByText('Signer 02')).toBeVisible()
 	await expect(page.getByText('Not signed yet')).toBeVisible()
