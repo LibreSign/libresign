@@ -117,6 +117,7 @@ class RuntimeRequirementValidator {
 	 */
 	public function validateRequiredFactorsCompleted(array $summary): void {
 		if ($summary['identifiedRequiredFactors'] < $summary['requiredFactors']) {
+			// TRANSLATORS: Error shown when a signer tries to sign before completing every identification factor marked as required, such as email, password, or document validation.
 			throw new LibresignException($this->l10n->t('You need to complete all required identification factors before signing.'));
 		}
 	}
@@ -130,8 +131,13 @@ class RuntimeRequirementValidator {
 	public function validateMinimumFactorsCompleted(array $summary, int $minimumTotalVerifiedFactors): void {
 		$requiredVerifiedFactors = max($summary['requiredFactors'], $minimumTotalVerifiedFactors);
 		if ($summary['identifiedFactors'] < $requiredVerifiedFactors) {
+			// TRANSLATORS: Error shown when signing requires a minimum number of completed identification factors. %n is the required number of verified factors.
 			throw new LibresignException(
-				$this->l10n->t('You need to complete at least %s identification factors before signing.', [$requiredVerifiedFactors])
+				$this->l10n->n(
+					'You need to complete at least %n identification factor before signing.',
+					'You need to complete at least %n identification factors before signing.',
+					$requiredVerifiedFactors
+				)
 			);
 		}
 	}
