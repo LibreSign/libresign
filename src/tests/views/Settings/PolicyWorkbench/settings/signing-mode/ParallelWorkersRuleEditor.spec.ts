@@ -6,15 +6,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('@nextcloud/l10n', () => ({
-	getLanguage: () => 'en',
-	t: (_app: string, message: string, params?: Record<string, unknown>) => {
-		if (params) {
-			return message.replace(/\{(\w+)\}/g, (_, key) => String(params[key] ?? `{${key}}`))
-		}
-		return message
-	},
-}))
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 import ParallelWorkersRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/signing-mode/ParallelWorkersRuleEditor.vue'
 
@@ -52,7 +44,7 @@ describe('ParallelWorkersRuleEditor.vue', () => {
 		const emissions = wrapper.emitted('update:modelValue')
 		expect(emissions?.[emissions.length - 1]?.[0]).toBe(4)
 	})
-	
+
 	it('falls back to the canonical default when initialized with invalid input', () => {
 		const wrapper = mount(ParallelWorkersRuleEditor, {
 			props: { modelValue: 'invalid' },
