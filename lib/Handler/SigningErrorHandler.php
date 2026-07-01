@@ -75,8 +75,11 @@ class SigningErrorHandler {
 
 	private function translateKnownError(string $message): string {
 		return match ($message) {
+			// TRANSLATORS: Error returned when the signing service rejects a request to a local/private host for security reasons.
 			'Host violates local access rules.' => $this->l10n->t('Host violates local access rules.'),
+			// TRANSLATORS: Error shown when the password provided to unlock the signing certificate is incorrect.
 			'Certificate Password Invalid.' => $this->l10n->t('Certificate Password Invalid.'),
+			// TRANSLATORS: Error shown when no password was provided to unlock the signing certificate.
 			'Certificate Password is Empty.' => $this->l10n->t('Certificate Password is Empty.'),
 			default => $message,
 		};
@@ -89,16 +92,19 @@ class SigningErrorHandler {
 		$this->logger->error($message, ['exception' => $exception]);
 
 		return [[
-			'message' => sprintf(
+			// TRANSLATORS: Multi-line error shown when an unexpected server error happens during signing. %1$s is the client IP address, %2$s is the request ID, and %3$s is the technical error message. Keep the Markdown formatting and line breaks.
+			'message' => $this->l10n->t(
 				"The server was unable to complete your request.\n"
 				. "If this happens again, please send the technical details below to the server administrator.\n"
 				. "## Technical details:\n"
-				. "**Remote Address**: %s\n"
-				. "**Request ID**: %s\n"
-				. '**Message**: %s',
-				$this->request->getRemoteAddress(),
-				$this->request->getId(),
-				$message,
+				. "**Remote Address**: %1\$s\n"
+				. "**Request ID**: %2\$s\n"
+				. '**Message**: %3$s',
+				[
+					$this->request->getRemoteAddress(),
+					$this->request->getId(),
+					$message,
+				],
 			),
 			'title' => $this->l10n->t('Internal Server Error'),
 		]];
