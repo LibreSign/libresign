@@ -5,10 +5,17 @@
 
 import { t } from '@nextcloud/l10n'
 
-import type { EffectivePolicyValue } from '../../../../../types/index'
-import type { RealPolicySettingDefinition } from '../realTypes'
 import CrlValidationRuleEditor from './CrlValidationRuleEditor.vue'
 
+import type { EffectivePolicyValue } from '../../../../../types/index'
+import type { RealPolicySettingDefinition } from '../realTypes'
+
+/**
+ * Normalize the CRL validation policy value to a boolean when possible.
+ *
+ * @param value Raw effective policy value.
+ * @return Normalized boolean value or null when the input is not interpretable.
+ */
 function resolveCrlValidation(value: EffectivePolicyValue): boolean | null {
 	if (typeof value === 'boolean') {
 		return value
@@ -46,9 +53,10 @@ export const crlValidationRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'External CRL validation'),
 	// TRANSLATORS Policy description about checking external CRL URLs during certificate trust validation.
 	description: t('libresign', 'Control whether external CRL distribution points are validated during certificate checks.'),
-	supportedScopes: ['system'],
+	supportedScopes: ['system', 'group'],
 	groupAdminBehavior: {
-		canRenderPolicy: () => false,
+		allowGroupRuleCreationFromDescendantDelegation: true,
+		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && (policy?.canSaveAsUserDefault === true || policy?.meta?.canCreateDescendantRules === true),
 	},
 	editor: CrlValidationRuleEditor,
 	createEmptyValue: () => true,
