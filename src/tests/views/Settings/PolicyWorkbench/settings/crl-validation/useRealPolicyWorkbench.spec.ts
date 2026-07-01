@@ -6,6 +6,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import {
+	configState,
+	currentUserState,
 	getPolicy,
 	resetWorkbenchHarness,
 	saveGroupPolicy,
@@ -17,17 +19,21 @@ describe('crl validation workbench', () => {
 		resetWorkbenchHarness()
 	})
 
-	it('rejects group-scope editing for group-admin because CRL validation is system-only', async () => {
+	it('allows group-admin to create CRL group rules when delegation comes from inherited policy', async () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['board', 'legal']
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'crl_external_validation_enabled') {
 				return {
 					effectiveValue: true,
-					sourceScope: 'system',
+					sourceScope: 'group',
+					visible: true,
 					editableByCurrentActor: false,
 					canSaveAsUserDefault: false,
 					meta: {
-						supportedScopes: ['system'],
+						supportedScopes: ['system', 'group'],
 						supportsUserPreference: false,
+						canCreateDescendantRules: true,
 					},
 				}
 			}
@@ -38,10 +44,19 @@ describe('crl validation workbench', () => {
 		const state = createRealPolicyWorkbenchState()
 		state.setViewMode('group-admin')
 		state.openSetting('crl_external_validation_enabled')
-		state.startEditor({ scope: 'group' })
+		await Promise.resolve()
+		await Promise.resolve()
 
-		expect(state.editorDraft).toBeNull()
-		expect(state.duplicateMessage).toBe('This setting cannot be configured at this scope.')
-		expect(saveGroupPolicy).not.toHaveBeenCalled()
+		expect(state.createGroupOverrideDisabledReason).toBeNull()
+
+		state.startEditor({ scope: 'group' })
+		expect(state.editorDraft?.scope).toBe('group')
+
+		state.updateDraftTargets(['board'])
+		state.updateDraftValue(false as never)
+
+		await state.saveDraft()
+
+		expect(saveGroupPolicy).toHaveBeenCalledWith('board', 'crl_external_validation_enabled', false, false)
 	})
 })
