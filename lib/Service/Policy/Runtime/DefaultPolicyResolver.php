@@ -327,8 +327,16 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		$resolved->setAllowedValues($this->mergeAllowedValues($resolved->getAllowedValues(), $layer->getAllowedValues()));
 
 		if ($layer->getValue() !== null && $canOverrideBelow) {
-			$currentValue = $definition->normalizeValue($layer->getValue());
-			$definition->validateValue($currentValue, $context);
+			$normalized = $definition->normalizeValue($layer->getValue());
+			try {
+				$definition->validateValue($normalized, $context);
+			} catch (\InvalidArgumentException) {
+				// Stored config value is invalid (e.g. leftover from an unconfigured
+				// or migrated state). Skip this layer and keep the current/default value.
+				$canOverrideBelow = $canOverrideBelow && $layer->isAllowChildOverride();
+				return [$currentValue, $currentSourceScope, $canOverrideBelow, $visible];
+			}
+			$currentValue = $normalized;
 			$currentSourceScope = $layer->getScope();
 		}
 

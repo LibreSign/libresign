@@ -10,6 +10,7 @@ namespace OCA\Libresign\Files;
 
 use OCA\Files\Event\LoadSidebar;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
@@ -59,16 +60,10 @@ class TemplateLoader implements IEventListener {
 	}
 
 	protected function getInitialStatePayload(): array {
-		$isSetupOk = $this->certificateEngineFactory->getEngine()->isSetupOk();
-		try {
-			$effectivePolicies = $this->policyService->resolveKnownPolicyStates();
-		} catch (\Throwable) {
-			$effectivePolicies = [];
-		}
 		return [
-			'certificate_ok' => $isSetupOk,
+			'certificate_ok' => $this->certificateEngineFactory->getEngine()->isSetupOk(),
 			'effective_policies' => [
-				'policies' => $effectivePolicies,
+				'policies' => $this->policyService->resolveKnownPolicyStates(),
 			],
 			'can_request_sign' => $this->canRequestSign(),
 		];
@@ -78,7 +73,7 @@ class TemplateLoader implements IEventListener {
 		try {
 			$this->validateHelper->canRequestSign($this->userSession->getUser());
 			return true;
-		} catch (\Throwable) {
+		} catch (LibresignException) {
 			return false;
 		}
 	}
