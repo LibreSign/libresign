@@ -6,6 +6,9 @@
 import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, deleteUserPfx, setSystemPolicy } from '../support/nc-provisioning'
+import { useRequestSignPolicyGuard } from '../support/system-policies'
+
+useRequestSignPolicyGuard()
 
 async function prepareSignFlow(page: Parameters<typeof test>[1] extends (args: infer T) => any ? T['page'] : never, adminUser: string) {
 	await page.goto('./apps/libresign')

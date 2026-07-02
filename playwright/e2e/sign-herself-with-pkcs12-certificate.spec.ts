@@ -6,6 +6,9 @@
 import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, deleteUserPfx, setSystemPolicy } from '../support/nc-provisioning'
+import { useRequestSignPolicyGuard } from '../support/system-policies'
+
+useRequestSignPolicyGuard()
 
 test('sign herself with pkcs12 certificate', async ({ page }) => {
 	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
