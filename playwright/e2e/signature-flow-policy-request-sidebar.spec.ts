@@ -18,6 +18,9 @@ import {
 	createAuthenticatedRequestContext,
 	setSystemPolicyEntry,
 } from '../support/policy-api'
+import { useRequestSignPolicyGuard } from '../support/system-policies'
+
+useRequestSignPolicyGuard()
 
 const POLICY_KEY = 'signature_flow'
 const GROUP_ADMIN_USER = 'signature-flow-e2e-group-admin'

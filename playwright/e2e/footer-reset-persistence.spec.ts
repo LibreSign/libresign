@@ -11,8 +11,11 @@ import {
 	fillTemplateEditor,
 	openSystemFooterRuleEditor,
 } from '../support/footer-policy-workbench'
+import { useRequestSignPolicyGuard } from '../support/system-policies'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
+
+useRequestSignPolicyGuard()
 
 async function waitForFooterTemplateRequest(page: Page, action: () => Promise<void>) {
 	const requestPromise = page.waitForRequest((request) => {

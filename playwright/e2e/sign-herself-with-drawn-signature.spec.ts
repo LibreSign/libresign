@@ -8,6 +8,9 @@ import type { Locator, Page } from '@playwright/test'
 
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
+import { useRequestSignPolicyGuard } from '../support/system-policies'
+
+useRequestSignPolicyGuard()
 
 /**
  *

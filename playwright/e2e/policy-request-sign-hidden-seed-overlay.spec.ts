@@ -125,11 +125,19 @@ async function clickVisibleRuleMenuAction(page: Page, actionName: 'Remove'): Pro
 		.filter({ hasText: actionPattern })
 		.first()
 
-	if (!(await actionItem.isVisible().catch(() => false))) {
+	const isVisible = await actionItem.waitFor({ state: 'visible', timeout: 2000 }).then(() => true).catch(() => false)
+	if (!isVisible) {
 		return false
 	}
 
-	return actionItem.click({ timeout: 1500 }).then(() => true).catch(() => false)
+	await actionItem.scrollIntoViewIfNeeded().catch(() => {})
+
+	const clickedNormally = await actionItem.click({ timeout: 1500 }).then(() => true).catch(() => false)
+	if (clickedNormally) {
+		return true
+	}
+
+	return actionItem.click({ timeout: 1500, force: true }).then(() => true).catch(() => false)
 }
 
 /**
@@ -421,6 +429,9 @@ test('delegated group admin can keep a sibling allow while denying a hidden requ
 
 	await expect(getRuleRow(settingDialog, BOARD_GROUP)).toBeVisible({ timeout: 10000 })
 	await expect(getRuleRow(settingDialog, COMPANY_GROUP)).toBeVisible({ timeout: 10000 })
+
+	// Wait for the workbench to finish any in-progress saves before interacting with rule actions
+	await page.locator('[aria-busy="true"]').first().waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {})
 
 	await waitForPolicyRequest(
 		page,

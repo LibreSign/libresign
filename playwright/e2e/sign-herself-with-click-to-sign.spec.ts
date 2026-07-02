@@ -7,6 +7,9 @@ import { expect, test } from '@playwright/test'
 
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
+import { useRequestSignPolicyGuard } from '../support/system-policies'
+
+useRequestSignPolicyGuard()
 
 test('sign herself with click to sign', async ({ page }) => {
 	await login(
