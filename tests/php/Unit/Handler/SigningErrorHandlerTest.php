@@ -30,7 +30,13 @@ class SigningErrorHandlerTest extends TestCase {
 		$this->request = $this->createMock(IRequest::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 
-		$this->l10n->method('t')->willReturnCallback(fn ($text) => $text);
+		$this->l10n->method('t')->willReturnCallback(function (string $text, array $parameters = []): string {
+			if ($parameters === []) {
+				return $text;
+			}
+
+			return vsprintf($text, $parameters);
+		});
 
 		$this->handler = new SigningErrorHandler(
 			$this->l10n,

@@ -70,7 +70,7 @@
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 				</template>
-				{{ t('libresign', 'Sign the document.') }}
+				{{ t('libresign', 'Sign document') }}
 			</NcButton>
 			<div v-else>
 				<p>

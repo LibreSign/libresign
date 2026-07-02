@@ -110,7 +110,7 @@ describe('File.vue', () => {
 		expect(wrapper.find('img').attributes('src')).toContain('/apps/libresign/api/v1/file/thumbnail/99')
 	})
 
-	it('selects the file and opens the request signature sidebar on click', async () => {
+	it('selects the file and opens the signature request sidebar on click', async () => {
 		const wrapper = createWrapper()
 
 		await wrapper.get('.content-file').trigger('click')

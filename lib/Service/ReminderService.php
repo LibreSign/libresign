@@ -9,21 +9,22 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use DateTime;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\BackgroundJob\Reminder;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
+use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicyValue;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
-use OCP\IAppConfig;
 use OCP\IDateTimeZone;
 use Psr\Log\LoggerInterface;
 
 class ReminderService {
 	public function __construct(
 		protected IJobList $jobList,
-		protected IAppConfig $appConfig,
+		protected PolicyService $policyService,
 		protected IDateTimeZone $dateTimeZone,
 		protected ITimeFactory $time,
 		protected SignRequestMapper $signRequestMapper,
@@ -33,13 +34,8 @@ class ReminderService {
 	}
 
 	public function getSettings(): array {
-		$settings = [
-			'days_before' => $this->appConfig->getValueInt(Application::APP_ID, 'reminder_days_before', 0),
-			'days_between' => $this->appConfig->getValueInt(Application::APP_ID, 'reminder_days_between', 0),
-			'max' => $this->appConfig->getValueInt(Application::APP_ID, 'reminder_max', 0),
-			'send_timer' => $this->appConfig->getValueString(Application::APP_ID, 'reminder_send_timer', '10:00'),
-			'next_run' => null,
-		];
+		$settings = $this->getEffectiveSettings();
+		$settings['next_run'] = null;
 		foreach ($this->jobList->getJobsIterator(Reminder::class, 1, 0) as $job) {
 			$details = $this->jobList->getDetailsById($job->getId());
 			$settings['next_run'] = new \DateTime('@' . $details['last_checked'], new \DateTimeZone('UTC'));
@@ -68,31 +64,28 @@ class ReminderService {
 			|| $daysBefore <= 0
 			|| $max <= 0
 		) {
-			$this->appConfig->deleteKey(Application::APP_ID, 'reminder_days_before');
-			$this->appConfig->deleteKey(Application::APP_ID, 'reminder_days_between');
-			$this->appConfig->deleteKey(Application::APP_ID, 'reminder_max');
-			$this->appConfig->deleteKey(Application::APP_ID, 'reminder_send_timer');
-			return [
+			$normalized = [
 				'days_before' => 0,
 				'days_between' => 0,
 				'max' => 0,
 				'send_timer' => '',
 			];
+
+			$this->saveSystemSettings($normalized);
+			return $normalized;
 		}
 
 		$sendTimer = $this->normalizeTime($sendTimer);
 
-		$this->setIfChangedInt('reminder_days_before', $daysBefore);
-		$this->setIfChangedInt('reminder_days_between', $daysBetween);
-		$this->setIfChangedInt('reminder_max', $max);
-		$this->setIfChangedString('reminder_send_timer', $sendTimer);
-
-		return [
+		$normalized = [
 			'days_before' => $daysBefore,
 			'days_between' => $daysBetween,
 			'max' => $max,
 			'send_timer' => $sendTimer,
 		];
+
+		$this->saveSystemSettings($normalized);
+		return $normalized;
 	}
 
 	private function normalizeTime(string $time): string {
@@ -102,18 +95,20 @@ class ReminderService {
 		return $time;
 	}
 
-	private function setIfChangedInt(string $key, int $value, int $default = 0): void {
-		$prev = $this->appConfig->getValueInt(Application::APP_ID, $key, $default);
-		if ($prev !== $value) {
-			$this->appConfig->setValueInt(Application::APP_ID, $key, $value);
-		}
+	/** @return array{days_before: int, days_between: int, max: int, send_timer: string} */
+	private function getEffectiveSettings(): array {
+		$resolvedValue = $this->policyService->resolve(ReminderPolicy::KEY)->getEffectiveValue();
+		return ReminderPolicyValue::normalize($resolvedValue);
 	}
 
-	private function setIfChangedString(string $key, string $value, string $default = ''): void {
-		$prev = $this->appConfig->getValueString(Application::APP_ID, $key, $default);
-		if ($prev !== $value) {
-			$this->appConfig->setValueString(Application::APP_ID, $key, $value);
-		}
+	/** @param array{days_before: int, days_between: int, max: int, send_timer: string} $settings */
+	private function saveSystemSettings(array $settings): void {
+		$allowChildOverride = $this->policyService->getSystemPolicy(ReminderPolicy::KEY)?->isAllowChildOverride() ?? false;
+		$this->policyService->saveSystem(
+			ReminderPolicy::KEY,
+			ReminderPolicyValue::encode($settings),
+			$allowChildOverride,
+		);
 	}
 
 	protected function scheduleJob(string $startTime): ?DateTime {
@@ -160,15 +155,19 @@ class ReminderService {
 	}
 
 	public function sendReminders(): void {
-		$daysBefore = $this->appConfig->getValueInt(Application::APP_ID, 'reminder_days_before', 0);
+		$settings = $this->getEffectiveSettings();
+
+		$daysBefore = $settings['days_before'];
 		if ($daysBefore <= 0) {
 			return;
 		}
-		$daysBetween = $this->appConfig->getValueInt(Application::APP_ID, 'reminder_days_between', 0);
+
+		$daysBetween = $settings['days_between'];
 		if ($daysBetween <= 0) {
 			return;
 		}
-		$max = $this->appConfig->getValueInt(Application::APP_ID, 'reminder_max', 0);
+
+		$max = $settings['max'];
 		if ($max === 0) {
 			return;
 		}

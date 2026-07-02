@@ -5,10 +5,16 @@
 
 import { computed } from '@vue/reactivity'
 
+import { useSignStore } from '../store/sign.js'
 import { useSidebarStore } from '../store/sidebar.js'
+import { openFilesListSidebarForFile } from '../utils/filesListSidebar.ts'
 
 type FileEntryMetadata = {
 	extension?: string
+}
+
+type FileEntryStoreFile = Omit<Partial<FileEntrySource>, 'id'> & {
+	id?: number | string
 }
 
 type FileEntrySigner = {
@@ -37,6 +43,8 @@ export type FileEntrySource = {
 
 type FileEntryStore = {
 	selectFile: (id: number) => void
+	fetchFileDetail: (options: { fileId: number, force?: boolean }) => Promise<FileEntryStoreFile | null>
+	canSign: (file: FileEntryStoreFile | null | undefined) => boolean
 }
 
 type ActionsMenuStore = {
@@ -55,6 +63,7 @@ export function useFileEntry(
 	},
 ) {
 	const sidebarStore = useSidebarStore()
+	const signStore = useSignStore()
 
 	const mtime = computed(() => new Date(props.source?.created_at || Date.now()))
 	const openedMenu = computed({
@@ -107,11 +116,14 @@ export function useFileEntry(
 		root.style.setProperty('--mouse-pos-y', `${Math.max(0, event.clientY - contentRect.top)}px`)
 	}
 
-	function openDetailsIfAvailable(event: Event) {
+	async function openDetailsIfAvailable(event: Event) {
 		event.preventDefault()
 		event.stopPropagation()
-		options.filesStore.selectFile(props.source.id)
-		sidebarStore.activeRequestSignatureTab()
+		await openFilesListSidebarForFile(props.source.id, {
+			filesStore: options.filesStore,
+			sidebarStore,
+			signStore,
+		})
 	}
 
 	return {

@@ -83,6 +83,13 @@ interface IEngineHandler {
 	 * @param string $certificate PEM-encoded certificate
 	 * @return array Parsed certificate data including CRL validation information
 	 */
+	public function setPolicyUserIdForValidation(?string $userId): self;
+
+	/**
+	 * Parse an X.509 certificate and return its details with CRL validation
+	 * @param string $certificate PEM-encoded certificate
+	 * @return array Parsed certificate data including CRL validation information
+	 */
 	public function parseCertificate(string $certificate): array;
 
 	/**

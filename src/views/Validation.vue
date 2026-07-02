@@ -47,6 +47,7 @@
 						<!-- TRANSLATORS: Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
 						<h1>{{ t('libresign', 'Validate signature') }}</h1>
 						<NcTextField v-model="uuidToValidate"
+							autofocus
 							:label="t('libresign', 'Enter the ID or UUID of the document to validate.')"
 							:helper-text="helperTextValidation" :error="!!uuidToValidate && !canValidate" />
 						<template #actions>
@@ -141,6 +142,7 @@ import { ACTION_CODES } from '../helpers/ActionMapping'
 import { normalizeRouteRecord } from '../services/routeNormalization.js'
 import logger from '../logger.js'
 import { useFilesStore } from '../store/files.js'
+import { usePoliciesStore } from '../store/policies'
 import { useSignStore } from '../store/sign.js'
 import { useSidebarStore } from '../store/sidebar.js'
 import type {
@@ -212,6 +214,12 @@ type ValidationErrorResponse = {
 	}
 }
 
+type EffectivePoliciesBootstrapPayload = {
+	effective_policies?: {
+		policies?: Record<string, unknown>
+	}
+}
+
 function toNumber(value: unknown): number | null {
 	return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
@@ -251,9 +259,25 @@ function handleValidationRedirect(response: ValidationErrorResponse | undefined)
 	return true
 }
 
+function extractEffectivePolicies(data: unknown): Record<string, unknown> | null {
+	if (typeof data !== 'object' || data === null) {
+		return null
+	}
+
+	const payload = data as EffectivePoliciesBootstrapPayload
+	const policies = payload.effective_policies?.policies
+
+	if (typeof policies !== 'object' || policies === null || Array.isArray(policies)) {
+		return null
+	}
+
+	return policies
+}
+
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
 const filesStore = useFilesStore()
+const policiesStore = usePoliciesStore()
 const instance = getCurrentInstance()
 const EXPIRATION_WARNING_DAYS = 30
 
@@ -272,7 +296,10 @@ const uuidToValidate = ref(route.value.params.uuid ?? '')
 const hasInfo = ref(false)
 const loading = ref(false)
 const document = ref<ValidationDocumentState | null>(null)
-const legalInformation = ref(loadState('libresign', 'legal_information', ''))
+const legalInformation = computed(() => {
+	const value = policiesStore.getEffectiveValue('legal_information')
+	return typeof value === 'string' ? value : ''
+})
 const clickedValidate = ref(false)
 const getUUID = ref(false)
 const validationStatusOpenState = ref<ToggleOpenState>({})
@@ -741,6 +768,10 @@ function handleValidationSuccess(data: unknown) {
 	if (!normalizedDocument) {
 		setValidationError(t('libresign', 'Failed to validate document'))
 		return
+	}
+	const effectivePolicies = extractEffectivePolicies(data)
+	if (effectivePolicies) {
+		policiesStore.setPolicies(effectivePolicies)
 	}
 	const shouldUpdateRoute = isValidationRouteName(route.value.name)
 	if (shouldUpdateRoute && route.value.params.uuid !== normalizedDocument.uuid) {

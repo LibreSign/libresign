@@ -12,11 +12,6 @@ const axiosGetMock = vi.fn()
 const axiosPostMock = vi.fn()
 const ensurePdfWorkerMock = vi.fn()
 
-const appConfigMock = {
-	deleteKey: vi.fn(),
-	setValue: vi.fn(),
-}
-
 const clipboardWriteTextMock = vi.fn()
 
 vi.mock('debounce', () => ({
@@ -28,20 +23,6 @@ vi.mock('@nextcloud/axios', () => ({
 		get: vi.fn((...args: unknown[]) => axiosGetMock(...args)),
 		post: vi.fn((...args: unknown[]) => axiosPostMock(...args)),
 	},
-}))
-
-vi.mock('@nextcloud/initial-state', () => ({
-	loadState: vi.fn((_app: string, key: string, defaultValue: unknown) => {
-		if (key === 'footer_preview_zoom_level') {
-			return 100
-		}
-		if (key === 'footer_template_variables') {
-			return {
-				signerName: { description: 'Signer', type: 'string', example: 'Alice' },
-			}
-		}
-		return defaultValue
-	}),
 }))
 
 vi.mock('@nextcloud/router', () => ({
@@ -80,6 +61,7 @@ vi.mock('@nextcloud/vue/components/NcButton', () => ({
 vi.mock('@nextcloud/vue/components/NcDialog', () => ({
 	default: {
 		name: 'NcDialog',
+		props: ['name', 'open', 'size'],
 		template: '<div class="nc-dialog-stub"><slot /><slot name="actions" /></div>',
 	},
 }))
@@ -131,8 +113,6 @@ describe('FooterTemplateEditor.vue', () => {
 		axiosGetMock.mockReset()
 		axiosPostMock.mockReset()
 		ensurePdfWorkerMock.mockReset()
-		appConfigMock.deleteKey.mockReset()
-		appConfigMock.setValue.mockReset()
 		clipboardWriteTextMock.mockReset()
 
 		axiosGetMock.mockResolvedValue({
@@ -140,15 +120,17 @@ describe('FooterTemplateEditor.vue', () => {
 				ocs: {
 					data: {
 						template: 'Footer {{ signerName }}',
+						template_variables: {
+							signerName: { description: 'Signer', type: 'string', example: 'Alice' },
+						},
 						preview_height: 120,
 						preview_width: 640,
+						preview_zoom: 100,
 					},
 				},
 			},
 		})
 		axiosPostMock.mockResolvedValue({ data: new Blob(['pdf'], { type: 'application/pdf' }) })
-
-		vi.stubGlobal('OCP', { AppConfig: appConfigMock })
 		vi.stubGlobal('navigator', {
 			clipboard: {
 				writeText: clipboardWriteTextMock,
@@ -161,10 +143,11 @@ describe('FooterTemplateEditor.vue', () => {
 		await flushPromises()
 
 		expect(ensurePdfWorkerMock).toHaveBeenCalledTimes(1)
-		expect(axiosGetMock).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/admin/footer-template')
+		expect(axiosGetMock).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/footer-template')
 		expect(wrapper.vm.footerTemplate).toBe('Footer {{ signerName }}')
 		expect(wrapper.vm.previewWidth).toBe(640)
 		expect(wrapper.vm.previewHeight).toBe(120)
+		expect(wrapper.getComponent({ name: 'NcDialog' }).props('size')).toBe('normal')
 	})
 
 	it('copies template variables to the clipboard and marks them as copied', async () => {
@@ -177,18 +160,16 @@ describe('FooterTemplateEditor.vue', () => {
 		expect(wrapper.vm.isCopied('signerName')).toBe(true)
 	})
 
-	it('resets dimensions and clears the stored app config values', async () => {
+	it('resets dimensions to default values', async () => {
 		const wrapper = createWrapper()
 		await flushPromises()
 
-		wrapper.vm.previewWidth = 700
+		wrapper.vm.previewWidth = 800
 		wrapper.vm.previewHeight = 150
-		wrapper.vm.resetDimensions()
+		await wrapper.vm.resetDimensions()
 
 		expect(wrapper.vm.previewWidth).toBe(wrapper.vm.DEFAULT_PREVIEW_WIDTH)
 		expect(wrapper.vm.previewHeight).toBe(wrapper.vm.DEFAULT_PREVIEW_HEIGHT)
-		expect(appConfigMock.deleteKey).toHaveBeenCalledWith('libresign', 'footer_preview_width')
-		expect(appConfigMock.deleteKey).toHaveBeenCalledWith('libresign', 'footer_preview_height')
 	})
 
 	it('updates zoom level through the zoom controls logic', async () => {
@@ -209,5 +190,184 @@ describe('FooterTemplateEditor.vue', () => {
 		wrapper.vm.updateScale()
 
 		expect(wrapper.vm.pdfPreview.scale).toBe(1.3)
+	})
+
+	it('updates PDF scale when zoom input changes', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+
+		const previewRef = { scale: 1 }
+		wrapper.vm.pdfPreview = previewRef
+		wrapper.vm.zoomLevel = 140
+		wrapper.vm.onZoomInput()
+
+		expect(previewRef.scale).toBe(1.4)
+	})
+
+	it('persists custom dimensions and requests a new preview PDF', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+
+		wrapper.vm.footerTemplate = 'Custom footer'
+		wrapper.vm.previewWidth = 700
+		wrapper.vm.previewHeight = 150
+
+		wrapper.vm.saveDimensions()
+		await flushPromises()
+
+		expect(axiosPostMock).toHaveBeenLastCalledWith(
+					'/ocs/v2.php/apps/libresign/api/v1/footer-template',
+			{
+				template: 'Custom footer',
+				width: 700,
+				height: 150,
+			},
+			{ responseType: 'blob' },
+		)
+	})
+
+	it('marks preview as loading and updates preview file when saving template', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+
+		wrapper.vm.footerTemplate = 'Updated template'
+		wrapper.vm.previewWidth = 595
+		wrapper.vm.previewHeight = 100
+
+		wrapper.vm.saveFooterTemplate()
+		await flushPromises()
+
+		expect(wrapper.vm.loadingPreview).toBe(true)
+		expect(wrapper.vm.pdfPreviewFile).toBeInstanceOf(File)
+		expect(axiosPostMock).toHaveBeenLastCalledWith(
+					'/ocs/v2.php/apps/libresign/api/v1/footer-template',
+			{
+				template: 'Updated template',
+				width: 595,
+				height: 100,
+			},
+			{ responseType: 'blob' },
+		)
+	})
+
+	it('clears loading state when PDF preview initialization completes', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+
+		wrapper.vm.loadingPreview = true
+		wrapper.vm.containerHeight = 200
+
+		wrapper.vm.onPdfReady()
+
+		expect(wrapper.vm.loadingPreview).toBe(false)
+		expect(wrapper.vm.containerHeight).toBe(null)
+	})
+
+	it('binds a non-zero min-height to the preview container before PDF initialization completes', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+
+		wrapper.vm.pdfPreviewFile = new File(['pdf'], 'preview.pdf', { type: 'application/pdf' })
+		await wrapper.vm.$nextTick()
+
+		const previewContainer = wrapper.find('.footer-preview__pdf')
+		expect(previewContainer.exists()).toBe(true)
+		const minHeight = parseInt((previewContainer.element as HTMLElement).style.minHeight, 10)
+		expect(minHeight).toBeGreaterThan(0)
+	})
+
+	describe('previewContainerMinHeight', () => {
+		it.each([
+			// containerHeight set → returned directly, previewHeight/zoomLevel irrelevant
+			{ description: 'uses containerHeight directly when it is positive', containerHeight: 350, previewHeight: 120, zoomLevel: 100, expected: 350 },
+			// invalid previewHeight → falls back to 160 floor
+			{ description: 'returns the floor value when height is invalid', containerHeight: null, previewHeight: 0, zoomLevel: 100, expected: 160 },
+			// 100 * 100 / 100 + 24 = 124 → clamped to 160 floor
+			{ description: 'returns the floor value when the formula result is below the minimum', containerHeight: null, previewHeight: 100, zoomLevel: 100, expected: 160 },
+			// 250 * 100 / 100 + 24 = 274 → above floor
+			{ description: 'returns a value above the floor for larger dimensions', containerHeight: null, previewHeight: 250, zoomLevel: 100, expected: 274 },
+			// 250 * 200 / 100 + 24 = 524 → grows with zoom
+			{ description: 'grows proportionally with zoom level', containerHeight: null, previewHeight: 250, zoomLevel: 200, expected: 524 },
+		])('$description', async ({ containerHeight, previewHeight, zoomLevel, expected }) => {
+			const wrapper = createWrapper()
+			await flushPromises()
+
+			wrapper.vm.containerHeight = containerHeight
+			wrapper.vm.previewHeight = previewHeight
+			wrapper.vm.zoomLevel = zoomLevel
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.vm.previewContainerMinHeight).toBe(expected)
+		})
+	})
+
+	describe('reset template button', () => {
+		it('does not show the reset button when template is default', async () => {
+			const wrapper = createWrapper()
+			await flushPromises()
+
+			expect(wrapper.vm.isDefaultTemplate).toBe(true)
+			const resetButton = wrapper.find('button[aria-label*="Reset template to default"]')
+			expect(resetButton.exists()).toBe(false)
+		})
+
+		it('shows the reset button when loaded template is not default', async () => {
+			axiosGetMock.mockResolvedValueOnce({
+				data: {
+					ocs: {
+						data: {
+							template: 'Custom footer template',
+							isDefault: false,
+							preview_height: 120,
+							preview_width: 640,
+						},
+					},
+				},
+			})
+
+			const wrapper = createWrapper()
+			await flushPromises()
+
+			expect(wrapper.vm.isDefaultTemplate).toBe(false)
+			const resetButton = wrapper.find('button[aria-label*="Reset template to default"]')
+			expect(resetButton.exists()).toBe(true)
+		})
+
+		it('resets the template to default value', async () => {
+			axiosGetMock.mockResolvedValueOnce({
+				data: {
+					ocs: {
+						data: {
+							template: 'Custom footer template',
+							isDefault: false,
+							preview_height: 120,
+							preview_width: 640,
+						},
+					},
+				},
+			})
+
+			const wrapper = createWrapper()
+			await flushPromises()
+
+			const resetButton = wrapper.find('button[aria-label*="Reset template to default"]')
+			expect(resetButton.exists()).toBe(true)
+
+			await wrapper.vm.resetTemplateToDefault()
+			await flushPromises()
+
+			expect(axiosPostMock).toHaveBeenCalledWith(
+						'/ocs/v2.php/apps/libresign/api/v1/footer-template',
+				expect.objectContaining({
+					template: '',
+					width: 640,
+					height: 120,
+				}),
+				{ responseType: 'blob' },
+			)
+
+			expect(wrapper.vm.footerTemplate).toBe('')
+			expect(wrapper.vm.isDefaultTemplate).toBe(true)
+		})
 	})
 })

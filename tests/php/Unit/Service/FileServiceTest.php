@@ -726,7 +726,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							[
 								'method' => 'email',
 								'value' => 'john@example.com',
-								'mandatory' => 1,
+								'requirement' => 'required',
 							],
 						],
 					],

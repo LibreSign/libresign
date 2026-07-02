@@ -68,17 +68,26 @@ class SignSetupService {
 		return $this;
 	}
 
+	/**
+	 * @return array<int|string, string>
+	 */
 	public function getArchitectures(): array {
 		$appInfo = $this->appManager->getAppInfo(Application::APP_ID);
 		if (!is_array($appInfo) || !isset($appInfo['dependencies'])) {
 			throw new \Exception('dependencies>architecture not found at info.xml');
 		}
-		/** @var list<string> $architectures */
-		$architectures = $appInfo['dependencies']['architecture'] ?? [];
-		if ($architectures === []) {
+		$architectures = $appInfo['dependencies']['architecture'] ?? null;
+		if ($architectures === null || $architectures === '' || $architectures === []) {
 			throw new \Exception('dependencies>architecture not found at info.xml');
 		}
-		return $architectures;
+
+		if (is_array($architectures)) {
+			/** @var list<string> $normalized */
+			$normalized = array_values(array_map(static fn (mixed $value): string => (string)$value, $architectures));
+			return $normalized;
+		}
+
+		return [(string)$architectures];
 	}
 
 	public function setPrivateKey(PrivateKey $privateKey): void {

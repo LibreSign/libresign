@@ -1,5 +1,5 @@
 Feature: request-signature
-  Scenario: Get error when try to request to sign isn't manager
+  Scenario: Get error when trying to create a signature request as non-manager
     Given user "signer1" exists
     And as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -13,9 +13,9 @@ Feature: request-signature
     And the response should be a JSON array with the following mandatory values
       | key                             | value                                  |
       | (jq).ocs.data.action            | 2000                                   |
-      | (jq).ocs.data.errors[0].message | You are not allowed to request signing |
+      | (jq).ocs.data.errors[0].message | You are not allowed to create signature requests |
 
-  Scenario: Get error when try to request to sign without file name
+  Scenario: Get error when trying to create a signature request without file name
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
@@ -28,7 +28,7 @@ Feature: request-signature
       | key                   | value                 |
       | (jq).ocs.data.message | File name is required |
 
-  Scenario: Request to sign with error using different authenticated account
+  Scenario: Create signature request with error using different authenticated account
     Given as user "admin"
     And user "signer1" exists
     And user "signer2" exists
@@ -47,7 +47,7 @@ Feature: request-signature
       | name | document |
     And the response should have a status code 200
     And there should be 1 emails in my inbox
-    And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer1@domain.test" with subject "LibreSign: A document is ready for your signature"
     And as user "signer1"
     And I fetch the signer UUID from notification
     When sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
@@ -64,7 +64,7 @@ Feature: request-signature
       | action | 2000             |
       | errors | [{"message":"Invalid user"}] |
 
-  Scenario: Request to sign with two accounts with same email
+  Scenario: Create signature request with two accounts with same email
     Given as user "admin"
     And user "signer1" exists
     And user "signer2" exists
@@ -84,7 +84,7 @@ Feature: request-signature
       | name | document |
     And the response should have a status code 200
     And there should be 1 emails in my inbox
-    And I open the latest email to "contact@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "contact@domain.test" with subject "LibreSign: A document is ready for your signature"
     And as user "signer1"
     And I fetch the signer UUID from notification
     When sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
@@ -101,7 +101,7 @@ Feature: request-signature
       | action | 2000             |
       | errors | [{"message":"Invalid user"}] |
 
-  Scenario: Request to sign with error when the user is not authenticated
+  Scenario: Create signature request with error when the user is not authenticated
     Given as user "admin"
     And user "signer1" exists
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -123,7 +123,7 @@ Feature: request-signature
       | action | 1000                                      |
       | errors | ["You are not logged in. Please log in."] |
 
-  Scenario: Request to sign with error when the authenticated user have an email different of signer
+  Scenario: Create signature request with error when the authenticated user have an email different of signer
     Given as user "admin"
     And user "signer1" exists
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -137,7 +137,7 @@ Feature: request-signature
       | name | document |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
-    And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer1@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And user "signer2" exists
     And set the email of user "signer2" to "signer2@domain.test"
@@ -149,7 +149,7 @@ Feature: request-signature
       | action | 1000                                                           |
       | errors | ["User already exists. Please login.","This is not your file"] |
 
-  Scenario: Request to sign with error when the link was expired
+  Scenario: Create signature request with error when the link was expired
     Given as user "admin"
     And my inbox is empty
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -161,7 +161,7 @@ Feature: request-signature
       | name | document |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
-    And I open the latest email to "signer2@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer2@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     When wait for 2 second
@@ -172,20 +172,20 @@ Feature: request-signature
       | action | 2000              |
       | errors | [{"message":"Link expired."}] |
 
-  Scenario: Request to sign with success when is necessary to renew the link
+  Scenario: Create signature request with success when is necessary to renew the link
     Given as user "admin"
     And my inbox is empty
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":false}] |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required"}]} |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer2@domain.test"}]}] |
       | name | document |
     And the response should have a status code 200
     And there should be 1 emails in my inbox
-    And I open the latest email to "signer2@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer2@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     And run the command "config:app:set libresign maximum_validity --value=300 --type=integer" with result code 0
@@ -204,7 +204,7 @@ Feature: request-signature
     And the response should be a JSON array with the following mandatory values
       | key                   | value                                        |
       | (jq).ocs.data.message | Renewed with success. Access the link again. |
-    And I open the latest email to "signer2@domain.test" with subject "LibreSign: Changes into a file for you to sign"
+    And I open the latest email to "signer2@domain.test" with subject "LibreSign: Changes were made to a document waiting for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     # setting the renewal interval to 3 and making 4 requests, one by second,
@@ -227,10 +227,10 @@ Feature: request-signature
       2500
       """
 
-  Scenario: Request to sign with error using account as identifier when the user don't exists
+  Scenario: Create signature request with error using account as identifier when the user don't exists
     Given as user "admin"
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"account","enabled":true}] |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"factors":[{"name":"account","enabled":true}]} |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
@@ -239,7 +239,7 @@ Feature: request-signature
       | key                   | value        |
       | (jq).ocs.data.message | Invalid user |
 
-  Scenario: Request to sign with success using account as identifier
+  Scenario: Create signature request with success using account as identifier
     Given as user "admin"
     And user "signer1" exists
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -254,32 +254,19 @@ Feature: request-signature
     Then the response should have a status code 200
     And fetch field "(FILE_UUID)ocs.data.uuid" from previous JSON response
     When as user "signer1"
-    Then sending "get" to ocs "/apps/notifications/api/v2/notifications"
-    And the response should be a JSON array with the following mandatory values
-      | key                      | value                                      |
-      | (jq).ocs.data[0].subject | admin requested your signature on document |
-      | (jq).ocs.data[0].message |                                            |
-    When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
-    Then the response should be a JSON array with the following mandatory values
-      | key                      | value                                      |
-      | (jq).ocs.data[0].subject | admin requested your signature on document |
+    Then there should be 1 emails in my inbox
+    And I open the latest email to "signer1@domain.test" with subject "LibreSign: A document is ready for your signature"
     When as user "admin"
     And sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
     And the response should have a status code 200
     When as user "signer1"
-    Then sending "get" to ocs "/apps/notifications/api/v2/notifications"
-    And the response should be a JSON array with the following mandatory values
-      | key                      | value                                                   |
-      | (jq).ocs.data[0].subject | admin requested your signature on document              |
-      | (jq).ocs.data[0].message | Changes have been made in a file that you have to sign. |
-    When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
-    Then the response should be a JSON array with the following mandatory values
-      | key                      | value                          |
-      | (jq).ocs.data[0].subject | admin made changes on document |
+    Then there should be 2 emails in my inbox
+    And I open the latest email to "signer1@domain.test" with subject "LibreSign: Changes were made to a document waiting for your signature"
+    And I should see "Changes were made to a document you need to sign" in the opened email
 
-  Scenario: Request to sign with error using account as identifier with invalid email
+  Scenario: Create signature request with error using account as identifier with invalid email
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
@@ -292,7 +279,7 @@ Feature: request-signature
       | key                   | value        |
       | (jq).ocs.data.message | Invalid user |
 
-  Scenario: Request to sign with error using email as account identifier
+  Scenario: Create signature request with error using email as account identifier
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
@@ -305,7 +292,7 @@ Feature: request-signature
       | key                   | value        |
       | (jq).ocs.data.message | Invalid user |
 
-  Scenario: Request to sign with success using email as identifier and URL as file
+  Scenario: Create signature request with success using email as identifier and URL as file
     Given as user "admin"
     And as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -317,9 +304,9 @@ Feature: request-signature
       | name | document |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
-    And I open the latest email to "signer2@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer2@domain.test" with subject "LibreSign: A document is ready for your signature"
 
-  Scenario: Request to sign with success using account as identifier and URL as file
+  Scenario: Create signature request with success using account as identifier and URL as file
     Given as user "admin"
     And user "signer1" exists
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -332,14 +319,9 @@ Feature: request-signature
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
     Then the response should have a status code 200
-    When as user "signer1"
-    And sending "get" to ocs "/apps/notifications/api/v2/notifications"
-    Then the response should be a JSON array with the following mandatory values
-      | key | value                                                         |
-      | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
     And there should be 0 emails in my inbox
 
-  Scenario: Request to sign with success using email as identifier
+  Scenario: Create signature request with success using email as identifier
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
@@ -351,14 +333,14 @@ Feature: request-signature
       | name | document |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
-    And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer1@domain.test" with subject "LibreSign: A document is ready for your signature"
 
-  Scenario: Request to sign using email as identifier and when is necessary to use visible elements
+  Scenario: Create signature request using email as identifier and when is necessary to use visible elements
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":false}] |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required"}]} |
     And I send a file to be signed
       | file   | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers  | [{"identifyMethods":[{"method":"email","value":"signer1@domain.test"}]}]  |
@@ -375,14 +357,14 @@ Feature: request-signature
       | key                               | value  |
       | (jq).ocs.meta.message             | OK     |
       | (jq).ocs.data.fileElementId\|type | number |
-    When sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":true}] |
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"can_create_account":true,"factors":[{"name":"email","enabled":true,"requirement":"required"}]} |
     And sending "post" to ocs "/apps/libresign/api/v1/file-element/<FILE_UUID>"
       | signRequestId | <ocs.data.data.0.signers.0.signRequestId> |
       | type | signature |
     Then the response should have a status code 200
 
-  Scenario: Request to sign with success using multiple users
+  Scenario: Create signature request with success using multiple users
     Given as user "admin"
     And user "signer1" exists
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -400,20 +382,20 @@ Feature: request-signature
       | key | value                                                         |
       | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
     And there should be 1 emails in my inbox
-    And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer1@domain.test" with subject "LibreSign: A document is ready for your signature"
 
-  Scenario: Request to sign with success using multiple emails
+  Scenario: Create signature request with success using multiple emails
     Given run the command "libresign:configure:openssl --cn test" with result code 0
     And as user "admin"
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"signatureMethods":{"emailToken":{"enabled":true}},"can_create_account":false}] |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}}}]} |
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"11111@domain.test"}]},{"identifyMethods":[{"method":"email","value":"22222@domain.test"}]}] |
       | name | document |
     Then the response should have a status code 200
-    When I open the latest email to "11111@domain.test" with subject "LibreSign: There is a file for you to sign"
+    When I open the latest email to "11111@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     And follow the link on opened email
@@ -426,7 +408,7 @@ Feature: request-signature
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.hasConfirmCode | false                            |
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.blurredEmail   | 111***@***.test                  |
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.hashOfEmail    | c8cb84220c4cf19b723390f29b83a0f8 |
-    When I open the latest email to "22222@domain.test" with subject "LibreSign: There is a file for you to sign"
+    When I open the latest email to "22222@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     And follow the link on opened email
@@ -447,15 +429,15 @@ Feature: request-signature
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And as user "admin"
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"signatureMethods":{"emailToken":{"enabled":true}},"can_create_account":false}] |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}}}]} |
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"11111@domain.test"}]}] |
       | name | document |
     Then the response should have a status code 200
-    When I open the latest email to "11111@domain.test" with subject "LibreSign: There is a file for you to sign"
+    When I open the latest email to "11111@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     And follow the link on opened email
@@ -492,15 +474,15 @@ Feature: request-signature
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And as user "admin"
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"signatureMethods":{"emailToken":{"enabled":true}},"can_create_account":false}] |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}}}]} |
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"11111@domain.test"}]}] |
       | name | document |
     Then the response should have a status code 200
-    When I open the latest email to "11111@domain.test" with subject "LibreSign: There is a file for you to sign"
+    When I open the latest email to "11111@domain.test" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And as user ""
     And follow the link on opened email
@@ -573,8 +555,8 @@ Feature: request-signature
     And set the email of user "signer1" to "signer1@domain.test"
     And my inbox is empty
     And as user "admin"
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"signatureMethods":{"emailToken":{"enabled":true}}}] |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}}}]} |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer1@domain.test"}]}] |

@@ -18,6 +18,7 @@ use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\SerialNumberService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\Files\AppData\IAppDataFactory;
@@ -36,10 +37,11 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppDataFactory $appDataFactory;
 	private IDateTimeFormatter $dateTimeFormatter;
 	private ITempManager $tempManager;
-	protected CertificatePolicyService $certificatePolicyService;
+	protected CertificatePolicyService&MockObject $certificatePolicyService;
 	private SerialNumberService $serialNumberService;
 	private IURLGenerator $urlGenerator;
 	private CaIdentifierService $caIdentifierService;
+	private PolicyService $policyService;
 	private CrlMapper $crlMapper;
 	private LoggerInterface $logger;
 	private SubjectAlternativeNameService $subjectAlternativeNameService;
@@ -51,10 +53,13 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
 		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
-		$this->certificatePolicyService = \OCP\Server::get(CertificatePolicyService::class);
+		$this->certificatePolicyService = $this->createMock(CertificatePolicyService::class);
+		$this->certificatePolicyService->method('getOid')->willReturn('');
+		$this->certificatePolicyService->method('getCps')->willReturn('');
 		$this->serialNumberService = \OCP\Server::get(SerialNumberService::class);
 		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
 		$this->caIdentifierService = \OCP\Server::get(CaIdentifierService::class);
+		$this->policyService = \OCP\Server::get(PolicyService::class);
 		$this->crlMapper = \OCP\Server::get(CrlMapper::class);
 		$this->logger = \OCP\Server::get(LoggerInterface::class);
 		$this->subjectAlternativeNameService = \OCP\Server::get(SubjectAlternativeNameService::class);
@@ -74,6 +79,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->serialNumberService,
 			$this->caIdentifierService,
+			$this->policyService,
 			$this->logger,
 			$this->crlMapper,
 			$this->subjectAlternativeNameService,
@@ -108,6 +114,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->urlGenerator,
 				$this->serialNumberService,
 				$this->caIdentifierService,
+				$this->policyService,
 				$this->logger,
 				$this->crlMapper,
 				$this->subjectAlternativeNameService,
@@ -135,6 +142,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->urlGenerator,
 				$this->serialNumberService,
 				$this->caIdentifierService,
+				$this->policyService,
 				$this->logger,
 				$this->crlMapper,
 				$this->subjectAlternativeNameService,
@@ -162,6 +170,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->urlGenerator,
 				$this->serialNumberService,
 				$this->caIdentifierService,
+				$this->policyService,
 				$this->logger,
 				$this->crlMapper,
 				$this->subjectAlternativeNameService,
@@ -617,7 +626,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 			$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
 			$verifyCmd = sprintf(
-				'openssl crl -in %s -inform DER -CAfile %s -noout 2>&1',
+				'openssl crl -in %s -inform DER -CAfile %s -verify -noout 2>&1',
 				escapeshellarg($tempCrlFile),
 				escapeshellarg($caCertPath)
 			);
@@ -626,6 +635,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 			$this->assertEquals(0, $verifyExitCode, 'CRL signature verification should succeed. Output: ' . $verifyResult);
 			$this->assertStringNotContainsString('unable to get issuer certificate', strtolower($verifyResult), 'CRL verification should use the provided CA certificate');
+			// OpenSSL output text varies across versions/distributions; rely on exit code for stability.
+			$this->assertStringNotContainsString('Error loading CRL', $verifyResult, 'CRL output should not report parsing/loading errors');
 
 		} finally {
 			if (file_exists($tempCrlFile)) {

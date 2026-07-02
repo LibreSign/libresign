@@ -31,22 +31,26 @@ class FileUploadHelper {
 	public function validateUploadedFile(array $uploadedFile): void {
 		if ($uploadedFile['error'] !== 0) {
 			@unlink($uploadedFile['tmp_name']);
-			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
+			// TRANSLATORS Validation error shown when the browser upload did not produce a usable temporary file.
+			throw new InvalidArgumentException($this->l10n->t('The uploaded file is invalid'));
 		}
 
 		if (!is_uploaded_file($uploadedFile['tmp_name'])) {
 			@unlink($uploadedFile['tmp_name']);
-			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
+			// TRANSLATORS Validation error shown when the received file was not uploaded through the expected HTTP upload flow.
+			throw new InvalidArgumentException($this->l10n->t('The uploaded file is invalid'));
 		}
 
 		if ($uploadedFile['size'] > \OCP\Util::uploadLimit()) {
 			@unlink($uploadedFile['tmp_name']);
-			throw new InvalidArgumentException($this->l10n->t('File is too big'));
+			// TRANSLATORS Validation error shown when an uploaded file is larger than the server's configured upload limit.
+			throw new InvalidArgumentException($this->l10n->t('The uploaded file is too large'));
 		}
 
 		if (!$this->filenameValidator->isFilenameValid(basename((string)$uploadedFile['tmp_name']))) {
 			@unlink($uploadedFile['tmp_name']);
-			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
+			// TRANSLATORS Validation error shown when the temporary upload filename fails security validation.
+			throw new InvalidArgumentException($this->l10n->t('The uploaded file is invalid'));
 		}
 	}
 
@@ -60,7 +64,8 @@ class FileUploadHelper {
 	public function readUploadedFile(array $uploadedFile): string {
 		$content = @file_get_contents($uploadedFile['tmp_name']);
 		if ($content === false) {
-			throw new InvalidArgumentException($this->l10n->t('Cannot read file'));
+			// TRANSLATORS Error shown when LibreSign cannot read the temporary file contents after upload.
+			throw new InvalidArgumentException($this->l10n->t('Cannot read the uploaded file'));
 		}
 		return $content;
 	}

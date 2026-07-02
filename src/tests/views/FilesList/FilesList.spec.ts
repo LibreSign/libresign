@@ -222,7 +222,7 @@ describe('FilesList.vue rendering rules', () => {
 		expect(updateSpy.mock.calls.length).toBe(callsBefore + 1)
 	})
 
-	it('shows empty-state request action when user can request sign', async () => {
+	it('shows empty-state request action when user can create signature requests', async () => {
 		const filesStore = useFilesStore()
 		const userConfigStore = useUserConfigStore()
 
@@ -239,7 +239,7 @@ describe('FilesList.vue rendering rules', () => {
 		expect(pickers).toHaveLength(2)
 	})
 
-	it('hides empty-state request action when user cannot request sign', async () => {
+	it('hides empty-state request action when user cannot create signature requests', async () => {
 		const filesStore = useFilesStore()
 		const userConfigStore = useUserConfigStore()
 

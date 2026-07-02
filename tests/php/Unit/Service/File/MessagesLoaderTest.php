@@ -79,7 +79,7 @@ final class MessagesLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertTrue(isset($fileData->messages));
 		$this->assertCount(1, $fileData->messages);
-		$this->assertEquals('You cannot request signature for this document, please contact your administrator', $fileData->messages[0]['message']);
+		$this->assertEquals('You cannot create a signature request for this document. Please contact your administrator.', $fileData->messages[0]['message']);
 	}
 
 	public function testLoadMessagesCanRequestSignWithSigners(): void {

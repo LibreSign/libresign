@@ -13,8 +13,13 @@ use Exception;
 use Imagick;
 use ImagickDraw;
 use ImagickPixel;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy as SignatureTextPolicyProvider;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCA\Libresign\Vendor\Endroid\QrCode\Color\Color;
 use OCA\Libresign\Vendor\Endroid\QrCode\Encoding\Encoding;
 use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
@@ -24,7 +29,6 @@ use OCA\Libresign\Vendor\Endroid\QrCode\Writer\PngWriter;
 use OCA\Libresign\Vendor\Twig\Environment;
 use OCA\Libresign\Vendor\Twig\Error\SyntaxError;
 use OCA\Libresign\Vendor\Twig\Loader\FilesystemLoader;
-use OCP\IAppConfig;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -34,22 +38,19 @@ use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 
 class SignatureTextService {
-	public const TEMPLATE_DEFAULT_FONT_SIZE = 10;
-	public const SIGNATURE_DEFAULT_FONT_SIZE = 20;
 	public const SIGNATURE_DIMENSION_MINIMUM = 1;
 	public const FONT_SIZE_MINIMUM = 0.1;
 	public const FRONT_SIZE_MAX = 30;
-	public const DEFAULT_SIGNATURE_WIDTH = 350;
-	public const DEFAULT_SIGNATURE_HEIGHT = 100;
 	private const int QRCODE_SIZE = 100;
+
 	public function __construct(
-		private IAppConfig $appConfig,
 		private IL10N $l10n,
 		private IDateTimeZone $dateTimeZone,
 		private IRequest $request,
 		private IUserSession $userSession,
 		private IURLGenerator $urlGenerator,
 		protected LoggerInterface $logger,
+		private PolicyService $policyService,
 	) {
 	}
 
@@ -59,10 +60,10 @@ class SignatureTextService {
 	 */
 	public function save(
 		string $template,
-		float $templateFontSize = self::TEMPLATE_DEFAULT_FONT_SIZE,
-		float $signatureFontSize = self::SIGNATURE_DEFAULT_FONT_SIZE,
-		float $signatureWidth = self::DEFAULT_SIGNATURE_WIDTH,
-		float $signatureHeight = self::DEFAULT_SIGNATURE_HEIGHT,
+		float $templateFontSize = SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+		float $signatureFontSize = SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+		float $signatureWidth = SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+		float $signatureHeight = SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
 		string $renderMode = SignerElementsService::RENDER_MODE_DEFAULT,
 	): array {
 		if ($templateFontSize > self::FRONT_SIZE_MAX || $templateFontSize < self::FONT_SIZE_MINIMUM) {
@@ -111,12 +112,14 @@ class SignatureTextService {
 		$template = strip_tags((string)$template);
 		$template = trim($template);
 		$template = html_entity_decode($template);
-		$this->appConfig->setValueString(Application::APP_ID, 'signature_text_template', $template);
-		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_width', $signatureWidth);
-		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_height', $signatureHeight);
-		$this->appConfig->setValueFloat(Application::APP_ID, 'template_font_size', $templateFontSize);
-		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_font_size', $signatureFontSize);
-		$this->appConfig->setValueString(Application::APP_ID, 'signature_render_mode', $renderMode);
+		$resolvedConfig = $this->getSignatureStampPolicyConfig();
+		$resolvedConfig['template'] = $template;
+		$resolvedConfig['signature_width'] = $signatureWidth;
+		$resolvedConfig['signature_height'] = $signatureHeight;
+		$resolvedConfig['template_font_size'] = $templateFontSize;
+		$resolvedConfig['signature_font_size'] = $signatureFontSize;
+		$resolvedConfig['render_mode'] = $this->normalizePersistedRenderMode($renderMode);
+		$this->policyService->saveSystem(SignatureTextPolicyProvider::KEY, SignatureTextPolicyValue::encode($resolvedConfig));
 		return $this->parse($template);
 	}
 
@@ -192,19 +195,17 @@ class SignatureTextService {
 	}
 
 	public function getTemplate(): string {
-		if ($this->appConfig->hasKey(Application::APP_ID, 'signature_text_template')) {
-			return $this->appConfig->getValueString(Application::APP_ID, 'signature_text_template');
-		}
-		return $this->getDefaultTemplate();
+		$config = $this->getSignatureStampPolicyConfig();
+		return (string)($config['template'] ?? '');
 	}
 
 	public function getAvailableVariables(): array {
 		$list = [
 			'{{DocumentUUID}}' => $this->l10n->t('Unique identifier of the signed document'),
 			'{{IssuerCommonName}}' => $this->l10n->t('Name of the certificate issuer used for the signature.'),
-			'{{LocalSignerSignatureDateOnly}}' => $this->l10n->t('Date when the signer sent the request to sign (without time, in their local time zone).'),
-			'{{LocalSignerSignatureDateTime}}' => $this->l10n->t('Date and time when the signer sent the request to sign (in their local time zone).'),
-			'{{LocalSignerTimezone}}' => $this->l10n->t('Time zone of signer when sent the request to sign (in their local time zone).'),
+			'{{LocalSignerSignatureDateOnly}}' => $this->l10n->t('Date when the signer created the signature request (without time, in their local time zone).'),
+			'{{LocalSignerSignatureDateTime}}' => $this->l10n->t('Date and time when the signer created the signature request (in their local time zone).'),
+			'{{LocalSignerTimezone}}' => $this->l10n->t('Time zone of signer when the signature request was created (in their local time zone).'),
 			'{{ServerSignatureDate}}' => $this->l10n->t('Date and time when the signature was applied on the server (ISO 8601 format). Can be formatted using the Twig date filter.'),
 			'{{SignerCommonName}}' => $this->l10n->t('Common Name (CN) used to identify the document signer.'),
 			'{{SignerEmail}}' => $this->l10n->t('The signer\'s email is optional and can be left blank.'),
@@ -217,7 +218,7 @@ class SignatureTextService {
 			// <img src="data:image/png;base64,{{ qrcode }}">
 			'{{qrcode}}' => $this->l10n->t('Base64-encoded PNG QR code for the validation URL. In HTML/Twig, use <img src="data:image/png;base64,{{ qrcode }}">. In plain-text templates, use {{ValidationURL}}.'),
 		];
-		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
+		$collectMetadata = $this->isCollectMetadataEnabled();
 		if ($collectMetadata) {
 			$list['{{SignerIP}}'] = $this->l10n->t('IP address of the person who signed the document.');
 			$list['{{SignerUserAgent}}'] = $this->l10n->t('Browser and device information of the person who signed the document.');
@@ -444,62 +445,40 @@ class SignatureTextService {
 		return implode($break, $lines);
 	}
 
-	public function getDefaultTemplate(): string {
-		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
-		if ($collectMetadata) {
-			// TRANSLATORS Variables enclosed in double curly braces {{variableName}} are template placeholders.
-			//
-			// DO NOT translate or remove these variables:
-			// - {{SignerCommonName}}
-			// - {{IssuerCommonName}}
-			// - {{ServerSignatureDate}}
-			// - {{SignerIP}}
-			// - {{SignerUserAgent}}
-			//
-			// Only translate the text outside the curly braces, such as:
-			// - "Signed with LibreSign"
-			// - "Issuer:"
-			// - "Date:"
-			// - "IP:"
-			// - "User agent:"
-			return $this->l10n->t(
-				"Signed with LibreSign\n"
-				. "{{SignerCommonName}}\n"
-				. "Issuer: {{IssuerCommonName}}\n"
-				. "Date: {{ServerSignatureDate}}\n"
-				. "IP: {{SignerIP}}\n"
-				. 'User agent: {{SignerUserAgent}}'
-			);
-		}
-		// TRANSLATORS Variables enclosed in double curly braces {{variableName}} are template placeholders.
-		//
-		// DO NOT translate or remove these variables:
-		// - {{SignerCommonName}}
-		// - {{IssuerCommonName}}
-		// - {{ServerSignatureDate}}
-		//
-		// Only translate the text outside the curly braces, such as:
-		// - "Signed with LibreSign"
-		// - "Issuer:"
-		// - "Date:"
-		return $this->l10n->t(
-			"Signed with LibreSign\n"
-			. "{{SignerCommonName}}\n"
-			. "Issuer: {{IssuerCommonName}}\n"
-			. 'Date: {{ServerSignatureDate}}'
-		);
+	/**
+	 * @return array{
+	 *     template: string,
+	 *     template_font_size: float,
+	 *     signature_font_size: float,
+	 *     signature_width: float,
+	 *     signature_height: float,
+	 *     background_type: 'default'|'custom'|'deleted',
+	 *     render_mode: 'default'|'graphic'|'text'|'description_only',
+	 * }
+	 */
+	public function getDefaultSignatureStampConfig(): array {
+		return [
+			'template' => SignatureTextTemplate::translated($this->l10n, $this->isCollectMetadataEnabled()),
+			'template_font_size' => $this->getDefaultTemplateFontSize(),
+			'signature_font_size' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+			'signature_width' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+			'signature_height' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
+			'background_type' => 'default',
+			'render_mode' => 'default',
+		];
 	}
 
 	public function getFullSignatureWidth(): float {
-		return $this->getSanitizedDimension('signature_width', self::DEFAULT_SIGNATURE_WIDTH);
+		return $this->getSanitizedDimension('signature_width', SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH);
 	}
 
 	public function getFullSignatureHeight(): float {
-		return $this->getSanitizedDimension('signature_height', self::DEFAULT_SIGNATURE_HEIGHT);
+		return $this->getSanitizedDimension('signature_height', SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT);
 	}
 
 	public function getSignatureWidth(): float {
-		$current = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', self::DEFAULT_SIGNATURE_WIDTH);
+		$config = $this->getSignatureStampPolicyConfig();
+		$current = (float)($config['signature_width'] ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH);
 		if ($this->getRenderMode() === SignerElementsService::RENDER_MODE_GRAPHIC_ONLY || !$this->getTemplate()) {
 			return $current;
 		}
@@ -511,10 +490,10 @@ class SignatureTextService {
 	}
 
 	private function getSanitizedDimension(string $key, float $default): float {
-		$value = $this->appConfig->getValueFloat(Application::APP_ID, $key, $default);
+		$config = $this->getSignatureStampPolicyConfig();
+		$value = (float)($config[$key] ?? $default);
 		if (!is_finite($value) || $value < self::SIGNATURE_DIMENSION_MINIMUM) {
-			$this->appConfig->setValueFloat(Application::APP_ID, $key, $default);
-			$this->logger->warning('Invalid signature dimension found in app config. Falling back to default.', [
+			$this->logger->warning('Invalid signature dimension found in policy resolution. Falling back to default value in memory.', [
 				'key' => $key,
 				'value' => $value,
 				'default' => $default,
@@ -525,27 +504,30 @@ class SignatureTextService {
 	}
 
 	public function getTemplateFontSize(): float {
-		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
-		if ($collectMetadata) {
-			return $this->appConfig->getValueFloat(Application::APP_ID, 'template_font_size', self::TEMPLATE_DEFAULT_FONT_SIZE - 1);
-		}
-		return $this->appConfig->getValueFloat(Application::APP_ID, 'template_font_size', self::TEMPLATE_DEFAULT_FONT_SIZE);
+		$config = $this->getSignatureStampPolicyConfig();
+		return (float)($config['template_font_size'] ?? SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE);
 	}
 
 	public function getDefaultTemplateFontSize(): float {
-		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
+		$collectMetadata = $this->isCollectMetadataEnabled();
 		if ($collectMetadata) {
-			return self::TEMPLATE_DEFAULT_FONT_SIZE - 0.2;
+			return SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE - 0.2;
 		}
-		return self::TEMPLATE_DEFAULT_FONT_SIZE;
+		return SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE;
+	}
+
+	private function isCollectMetadataEnabled(): bool {
+		return (bool)$this->policyService->resolve(CollectMetadataPolicy::KEY)->getEffectiveValue();
 	}
 
 	public function getSignatureFontSize(): float {
-		return $this->appConfig->getValueFloat(Application::APP_ID, 'signature_font_size', self::SIGNATURE_DEFAULT_FONT_SIZE);
+		$config = $this->getSignatureStampPolicyConfig();
+		return (float)($config['signature_font_size'] ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE);
 	}
 
 	public function getRenderMode(): string {
-		return $this->appConfig->getValueString(Application::APP_ID, 'signature_render_mode', SignerElementsService::RENDER_MODE_DEFAULT);
+		$config = $this->getSignatureStampPolicyConfig();
+		return $this->normalizeRuntimeRenderMode((string)($config['render_mode'] ?? SignerElementsService::RENDER_MODE_DEFAULT));
 	}
 
 	public function isEnabled(): bool {
@@ -553,7 +535,10 @@ class SignatureTextService {
 	}
 
 	private function buildValidationUrl(string $uuid): string {
-		$validationSite = trim($this->appConfig->getValueString(Application::APP_ID, 'validation_site', ''));
+		$footerPolicy = FooterPolicyValue::normalize(
+			$this->policyService->resolve(FooterPolicy::KEY)->getEffectiveValue()
+		);
+		$validationSite = trim($footerPolicy['validationSite']);
 		if ($validationSite !== '') {
 			return rtrim($validationSite, '/') . '/' . $uuid;
 		}
@@ -561,5 +546,87 @@ class SignatureTextService {
 		return $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFileWithShortUrl', [
 			'uuid' => $uuid,
 		]);
+	}
+
+	/**
+	 * @return array{
+	 *     template: string,
+	 *     template_font_size: float,
+	 *     signature_font_size: float,
+	 *     signature_width: float,
+	 *     signature_height: float,
+	 *     background_type: 'default'|'custom'|'deleted',
+	 *     render_mode: 'default'|'graphic'|'text'|'description_only',
+	 * }
+	 */
+	private function getSignatureStampPolicyConfig(): array {
+		$rawValue = $this->policyService->resolve(SignatureTextPolicyProvider::KEY)->getEffectiveValue();
+		return $this->syncCanonicalDefaultTemplateWithCollectMetadata(
+			SignatureTextPolicyValue::normalize($rawValue, $this->getDefaultSignatureStampConfig())
+		);
+	}
+
+	/**
+	 * @param array{
+	 *     template: string,
+	 *     template_font_size: float,
+	 *     signature_font_size: float,
+	 *     signature_width: float,
+	 *     signature_height: float,
+	 *     background_type: 'default'|'custom'|'deleted',
+	 *     render_mode: 'default'|'graphic'|'text'|'description_only',
+	 * } $config
+	 * @return array{
+	 *     template: string,
+	 *     template_font_size: float,
+	 *     signature_font_size: float,
+	 *     signature_width: float,
+	 *     signature_height: float,
+	 *     background_type: 'default'|'custom'|'deleted',
+	 *     render_mode: 'default'|'graphic'|'text'|'description_only',
+	 * }
+	 */
+	private function syncCanonicalDefaultTemplateWithCollectMetadata(array $config): array {
+		$template = (string)($config['template'] ?? '');
+		$canonicalWithoutMetadata = SignatureTextTemplate::translated($this->l10n, false);
+		$canonicalWithMetadata = SignatureTextTemplate::translated($this->l10n, true);
+
+		if ($template !== $canonicalWithoutMetadata && $template !== $canonicalWithMetadata) {
+			return $config;
+		}
+
+		$config['template'] = $this->isCollectMetadataEnabled()
+			? $canonicalWithMetadata
+			: $canonicalWithoutMetadata;
+
+		return $config;
+	}
+
+	public function getPreviewSignerName(): string {
+		return $this->userSession?->getUser()?->getDisplayName() ?? 'John Doe';
+	}
+
+	private function normalizeRuntimeRenderMode(string $renderMode): string {
+		return match ($renderMode) {
+			'default' => SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+			'graphic' => SignerElementsService::RENDER_MODE_GRAPHIC_ONLY,
+			'text' => SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
+			'description_only',
+			SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY,
+			SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
+			SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+			SignerElementsService::RENDER_MODE_GRAPHIC_ONLY => $renderMode,
+			default => SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+		};
+	}
+
+	private function normalizePersistedRenderMode(string $renderMode): string {
+		return match ($renderMode) {
+			SignerElementsService::RENDER_MODE_GRAPHIC_ONLY, 'graphic' => 'graphic',
+			SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY, 'description_only' => 'description_only',
+			SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION, 'text' => 'text',
+			SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION, 'default' => 'default',
+			default => 'default',
+		};
 	}
 }

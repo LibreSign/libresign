@@ -2,6 +2,7 @@
 	"require-dev": {
 		"bamarni/composer-bin-plugin": "^1.8",
 		"nextcloud/ocp": "dev-master",
+		"psr/http-client": "^1.0",
 		"roave/security-advisories": "dev-latest"
 	},
 	"config": {

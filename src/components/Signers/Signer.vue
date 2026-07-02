@@ -21,12 +21,12 @@
 				<NcChip v-for="method in identifyMethodsNames"
 					:key="method"
 					:text="method"
-					:aria-label="t('libresign', 'Identification method: {method}', { method })"
+					:aria-label="getIdentificationMethodAriaLabel(method)"
 					:no-close="true" />
 				<NcChip :text="signerStatusText"
 					:variant="chipType"
 					:icon-path="statusIconPath"
-					:aria-label="t('libresign', 'Signer status: {status}', { status: signerStatusText })"
+					:aria-label="signerStatusAriaLabel"
 					:no-close="true"
 					class="signer-status-chip" />
 				<span v-if="disabledTooltip" class="sr-only">{{ disabledTooltip }}</span>
@@ -37,7 +37,7 @@
 				<div class="drag-handle-wrapper">
 					<NcIconSvgWrapper :path="mdiDragVertical" :size="20"
 						class="drag-handle"
-						:title="t('libresign', 'Drag to reorder')" />
+						:title="dragToReorderLabel" />
 				</div>
 			</div>
 		</template>
@@ -64,7 +64,12 @@ import NcChip from '@nextcloud/vue/components/NcChip'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
-import type { IdentifyMethodSetting, SignatureFlowMode } from '../../types/index'
+import { usePoliciesStore } from '../../store/policies'
+import {
+	normalizeIdentifyMethodsPolicy,
+	type IdentifyMethodPolicyEntry,
+} from '../../views/Settings/PolicyWorkbench/settings/identify-methods/model'
+import type { SignatureFlowMode } from '../../types/index'
 defineOptions({
 	name: 'Signer',
 })
@@ -96,10 +101,14 @@ const emit = defineEmits<{
 }>()
 
 const filesStore = useFilesStore()
+const policiesStore = usePoliciesStore()
 const listItem = ref<any | null>(null)
 
 const canRequestSign = loadState('libresign', 'can_request_sign', false)
-const methods = loadState<IdentifyMethodSetting[]>('libresign', 'identify_methods', [])
+const methods = computed<IdentifyMethodPolicyEntry[]>(() => {
+	const value = policiesStore.getEffectiveValue('identify_methods')
+	return normalizeIdentifyMethodsPolicy(value)
+})
 
 const signatureFlow = computed(() => {
 	const file = filesStore.getFile()
@@ -132,7 +141,7 @@ const isMethodDisabled = computed(() => {
 		return false
 	}
 	const signerMethod = signer.value.identifyMethods[0].method
-	const methodConfig = methods.find(m => m.name === signerMethod)
+	const methodConfig = methods.value.find(m => m.name === signerMethod)
 	return methodConfig ? !methodConfig.enabled : false
 })
 
@@ -141,12 +150,13 @@ const disabledMethodLabel = computed(() => {
 		return ''
 	}
 	const signerMethod = signer.value.identifyMethods[0].method
-	const methodConfig = methods.find(m => m.name === signerMethod)
+	const methodConfig = methods.value.find(m => m.name === signerMethod)
 	return methodConfig?.friendly_name || signerMethod
 })
 
 const disabledTooltip = computed(() => {
 	if (isMethodDisabled.value) {
+		// TRANSLATORS Tooltip explaining signer is disabled because its identification method is disabled by admin.
 		return t('libresign', 'This signer cannot be used because the identification method "{method}" has been disabled by the administrator.', { method: disabledMethodLabel.value })
 	}
 	return ''
@@ -182,6 +192,19 @@ const identifyMethodsNames = computed(() => {
 	return signer.value.identifyMethods.map(method => method.method)
 })
 
+function getIdentificationMethodAriaLabel(method: string) {
+	// TRANSLATORS Accessible label announcing signer identification method chip.
+	return t('libresign', 'Identification method: {method}', { method })
+}
+
+const signerStatusAriaLabel = computed(() => {
+	// TRANSLATORS Accessible label announcing current signer status chip.
+	return t('libresign', 'Signer status: {status}', { status: signerStatusText.value })
+})
+
+// TRANSLATORS Tooltip for drag handle used to reorder signers.
+const dragToReorderLabel = t('libresign', 'Drag to reorder')
+
 const chipType = computed(() => {
 	switch (signer.value.status) {
 	case SIGN_REQUEST_STATUS.SIGNED:
@@ -196,8 +219,10 @@ const chipType = computed(() => {
 
 const signerLinkAriaLabel = computed(() => {
 	if (Boolean(signer.value.signed)) {
+		// TRANSLATORS Accessible label for signed signer list item.
 		return t('libresign', 'Signer {name} (already signed)', { name: signerName.value })
 	}
+	// TRANSLATORS Accessible label for editable signer list item.
 	return t('libresign', 'Edit signer {name}', { name: signerName.value })
 })
 

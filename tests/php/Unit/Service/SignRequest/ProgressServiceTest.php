@@ -121,6 +121,7 @@ class ProgressServiceTest extends TestCase {
 		$signRequest->setUuid('envelope-sign-request-uuid');
 
 		$childSignRequest = $this->createSignRequestEntity(300, 'Child', FileStatus::DRAFT->value, null);
+		$childSignRequest->setFileId(100);
 		$childSignRequest->setUuid('child-sign-request-uuid');
 
 		$this->signRequestMapper
@@ -298,6 +299,70 @@ class ProgressServiceTest extends TestCase {
 		$this->assertEquals(2, $progress['signed']);
 		$this->assertEquals(0, $progress['inProgress']);
 		$this->assertEquals(0, $progress['pending']);
+	}
+
+	public function testGetEnvelopeProgressSkipsChildSignRequestWithNullFileId(): void {
+		$envelope = $this->createFileEntity(1, 'envelope.pdf', FileStatus::DRAFT->value, null, 'envelope');
+		$child = $this->createFileEntity(2, 'child.pdf', FileStatus::DRAFT->value, 1);
+
+		$this->fileMapper
+			->method('getChildrenFiles')
+			->willReturn([$child]);
+
+		$this->fileMapper
+			->method('getTextOfStatus')
+			->willReturnCallback(fn ($status) => FileStatus::tryFrom($status)?->name ?? 'UNKNOWN');
+
+		// Child sign request has no fileId set (getFileId() returns null) — must be skipped
+		$orphanSignRequest = $this->createSignRequestEntity(300, 'Orphan', FileStatus::DRAFT->value, null);
+		$this->assertNull($orphanSignRequest->getFileId());
+
+		$this->signRequestMapper
+			->method('getByEnvelopeChildrenAndIdentifyMethod')
+			->willReturn([$orphanSignRequest]);
+
+		$signRequest = $this->createSignRequestEntity(100, 'John Doe', FileStatus::DRAFT->value, null);
+
+		$progress = $this->service->getEnvelopeProgressForSignRequest($envelope, $signRequest);
+
+		$this->assertEquals(1, $progress['total']);
+		$this->assertEquals(0, $progress['signed']);
+		$this->assertEquals(0, $progress['errors']);
+		$this->assertEquals(1, $progress['pending']);
+	}
+
+	public function testGetEnvelopeProgressMapsChildSignRequestByFileId(): void {
+		$envelope = $this->createFileEntity(1, 'envelope.pdf', FileStatus::DRAFT->value, null, 'envelope');
+		$child1 = $this->createFileEntity(2, 'child1.pdf', FileStatus::DRAFT->value, 1);
+		$child2 = $this->createFileEntity(3, 'child2.pdf', FileStatus::DRAFT->value, 1);
+
+		$this->fileMapper
+			->method('getChildrenFiles')
+			->willReturn([$child1, $child2]);
+
+		$this->fileMapper
+			->method('getTextOfStatus')
+			->willReturnCallback(fn ($status) => FileStatus::tryFrom($status)?->name ?? 'UNKNOWN');
+
+		$signedTime = new \DateTime('2024-01-01');
+		$childSignRequest1 = $this->createSignRequestEntity(201, 'Child 1', FileStatus::SIGNED->value, $signedTime);
+		$childSignRequest1->setFileId(2);
+
+		$childSignRequest2 = $this->createSignRequestEntity(202, 'Child 2', FileStatus::DRAFT->value, null);
+		$childSignRequest2->setFileId(3);
+
+		$this->signRequestMapper
+			->method('getByEnvelopeChildrenAndIdentifyMethod')
+			->willReturn([$childSignRequest1, $childSignRequest2]);
+
+		$signRequest = $this->createSignRequestEntity(100, 'John Doe', FileStatus::DRAFT->value, null);
+
+		$progress = $this->service->getEnvelopeProgressForSignRequest($envelope, $signRequest);
+
+		$this->assertEquals(2, $progress['total']);
+		$this->assertEquals(1, $progress['signed']);  // child1 uses childSignRequest1 (signed)
+		$this->assertEquals(0, $progress['errors']);
+		$this->assertEquals(1, $progress['pending']); // child2 uses childSignRequest2 (not signed)
 	}
 
 	public function testGetSignRequestProgressForFileInEnvelope(): void {

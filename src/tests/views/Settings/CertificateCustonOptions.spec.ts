@@ -90,6 +90,9 @@ describe('CertificateCustonOptions.vue', () => {
 				value: [''],
 			}),
 		])
+		expect(emitMock).toHaveBeenLastCalledWith('libresign:update:certificateToSave', [
+			{ id: 'OU', value: [''] },
+		])
 	})
 
 	it('emits updated list when validating and editing OU array entries', async () => {
@@ -119,7 +122,7 @@ describe('CertificateCustonOptions.vue', () => {
 		])
 	})
 
-	it('removes selected custom attributes from the local list', async () => {
+	it('removes selected custom attributes and emits updated payload', async () => {
 		const wrapper = createWrapper([
 			{ id: 'O', value: 'LibreSign' },
 			{ id: 'OU', value: ['Security'] },
@@ -131,5 +134,18 @@ describe('CertificateCustonOptions.vue', () => {
 		expect(vm.certificateList).toEqual([
 			{ id: 'OU', value: ['Security'] },
 		])
+		expect(emitMock).toHaveBeenLastCalledWith('libresign:update:certificateToSave', [
+			{ id: 'OU', value: ['Security'] },
+		])
+	})
+
+	it('emits empty list when removing the last optional attribute', async () => {
+		const wrapper = createWrapper([{ id: 'OU', value: ['Security'] }])
+		const vm = wrapper.vm as CertificateCustonOptionsVm
+
+		await vm.removeOptionalAttribute('OU')
+
+		expect(vm.certificateList).toEqual([])
+		expect(emitMock).toHaveBeenLastCalledWith('libresign:update:certificateToSave', [])
 	})
 })

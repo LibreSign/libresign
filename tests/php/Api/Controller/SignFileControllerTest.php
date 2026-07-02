@@ -23,7 +23,7 @@ final class SignFileControllerTest extends ApiTestCase {
 		$this->createAccount('allowrequestsign', 'password', 'testGroup');
 
 		$appConfig = $this->getMockAppConfig();
-		$appConfig->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
+		$appConfig->setValueString(Application::APP_ID, 'groups_request_sign', '{"allowGroups":["admin","testGroup"],"denyGroups":[]}');
 		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', false);
 		$this->request
 			->withMethod('POST')
@@ -281,7 +281,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user,
 		]);
 
-		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
+		$this->getMockAppConfig()->setValueString(Application::APP_ID, 'groups_request_sign', '{"allowGroups":["admin","testGroup"],"denyGroups":[]}');
 
 		$signers = $this->getSignersFromFileId($file->getId());
 		$this->request
@@ -331,7 +331,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user,
 		]);
 
-		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
+		$this->getMockAppConfig()->setValueString(Application::APP_ID, 'groups_request_sign', '{"allowGroups":["admin","testGroup"],"denyGroups":[]}');
 
 		$this->request
 			->withMethod('DELETE')
@@ -365,7 +365,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 */
 	public function testDeleteUsingSignFileIdWithInvalidFile():void {
 		$user = $this->createAccount('username', 'password');
-		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
+		$this->getMockAppConfig()->setValueString(Application::APP_ID, 'groups_request_sign', '{"allowGroups":["admin","testGroup"],"denyGroups":[]}');
 
 		$this->request
 			->withMethod('DELETE')

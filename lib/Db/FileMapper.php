@@ -261,7 +261,7 @@ class FileMapper extends CachedQBMapper {
 	}
 
 	/**
-	 * @return File[]
+	 * @return list<File>
 	 */
 	public function getChildrenFiles(int $parentId): array {
 		$qb = $this->db->getQueryBuilder();
@@ -282,7 +282,7 @@ class FileMapper extends CachedQBMapper {
 			$this->cacheEntity($child);
 		}
 
-		return $children;
+		return array_values($children);
 	}
 
 	public function getParentEnvelope(int $fileId): ?File {

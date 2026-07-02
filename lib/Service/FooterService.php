@@ -8,46 +8,91 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\FooterHandler;
-use OCP\IAppConfig;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 
 class FooterService {
 	public function __construct(
-		private IAppConfig $appConfig,
+		private PolicyService $policyService,
 		private FooterHandler $footerHandler,
 	) {
 	}
 
 	public function isDefaultTemplate(): bool {
-		$customTemplate = $this->appConfig->getValueString(Application::APP_ID, 'footer_template', '');
-		return empty($customTemplate);
+		$footerPolicy = $this->getEffectiveFooterPolicy();
+		return !$footerPolicy['customizeFooterTemplate'];
 	}
 
 	public function getTemplate(): string {
 		return $this->footerHandler->getTemplate();
 	}
 
-	public function saveTemplate(string $template = ''): void {
+	public function getDefaultTemplate(): string {
+		return $this->footerHandler->getDefaultTemplate();
+	}
+
+	/** @return array{preview_width: int, preview_height: int, preview_zoom: int} */
+	public function getPreviewSettings(): array {
+		$footerPolicy = $this->getEffectiveFooterPolicy();
+
+		return [
+			'preview_width' => (int)$footerPolicy['previewWidth'],
+			'preview_height' => (int)$footerPolicy['previewHeight'],
+			'preview_zoom' => (int)$footerPolicy['previewZoom'],
+		];
+	}
+
+	public function saveTemplate(string $template = '', ?int $previewWidth = null, ?int $previewHeight = null): void {
+		$defaultTemplate = $this->footerHandler->getDefaultTemplate();
+		$currentPolicy = $this->getEffectiveFooterPolicy();
+		$normalizedPolicy = FooterPolicyValue::normalize($currentPolicy);
+
+		if ($previewWidth !== null) {
+			$normalizedPolicy['previewWidth'] = $previewWidth;
+		}
+
+		if ($previewHeight !== null) {
+			$normalizedPolicy['previewHeight'] = $previewHeight;
+		}
+
 		if (empty($template)) {
-			$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
+			$normalizedPolicy['customizeFooterTemplate'] = false;
+			$normalizedPolicy['footerTemplate'] = '';
+			$this->saveSystemFooterPolicy($normalizedPolicy);
 			return;
 		}
 
-		if ($template === $this->footerHandler->getDefaultTemplate()) {
-			$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
+		$isProvidedTemplateEqualsDefault = $template === $defaultTemplate;
+
+		if ($isProvidedTemplateEqualsDefault) {
+			$normalizedPolicy['customizeFooterTemplate'] = false;
+			$normalizedPolicy['footerTemplate'] = '';
 		} else {
-			$this->appConfig->setValueString(Application::APP_ID, 'footer_template', $template);
+			$normalizedPolicy['customizeFooterTemplate'] = true;
+			$normalizedPolicy['footerTemplate'] = $template;
 		}
+
+		$this->saveSystemFooterPolicy($normalizedPolicy);
 	}
 
-	public function renderPreviewPdf(string $template = '', int $width = 595, int $height = 50): string {
-		if (!empty($template)) {
-			$this->saveTemplate($template);
-		}
+	/** @param array{enabled: bool, writeQrcodeOnFooter: bool, validationSite: string, customizeFooterTemplate: bool, footerTemplate: string, previewWidth: int, previewHeight: int, previewZoom: int} $normalizedPolicy */
+	private function saveSystemFooterPolicy(array $normalizedPolicy): void {
+		$allowChildOverride = $this->policyService->getSystemPolicy(FooterPolicy::KEY)?->isAllowChildOverride() ?? false;
+		$this->policyService->saveSystem(
+			FooterPolicy::KEY,
+			FooterPolicyValue::encode($normalizedPolicy),
+			$allowChildOverride,
+		);
+	}
 
-		// Generate a realistic UUID format for preview (36 chars with hyphens, same as real UUIDs)
-		// This ensures QR code size matches the final document
+	private function getEffectiveFooterPolicy(): array {
+		$policyJson = $this->footerHandler->getEffectiveFooterPolicyAsJson();
+		return FooterPolicyValue::normalize($policyJson, '');
+	}
+
+	public function renderPreviewPdf(string $template = '', int $width = 595, int $height = 50, ?bool $writeQrcodeOnFooter = null): string {
 		$previewUuid = sprintf(
 			'preview-%04x-%04x-%04x-%012x',
 			random_int(0, 0xffff),
@@ -56,18 +101,29 @@ class FooterService {
 			random_int(0, 0xffffffffffff)
 		);
 
-		return $this->footerHandler
+		$handler = $this->footerHandler
+			->setTemplateOverride($template !== '' ? $template : null)
 			->setTemplateVar('uuid', $previewUuid)
 			->setTemplateVar('signers', [
 				[
 					'displayName' => 'Preview Signer',
 					'signed' => date('c'),
 				],
-			])
-			->getFooter([['w' => $width, 'h' => $height]]);
+			]);
+
+		if ($writeQrcodeOnFooter !== null) {
+			$handler->setWriteQrcodeOnFooterOverride($writeQrcodeOnFooter);
+		}
+
+		return $handler->getFooter([['w' => $width, 'h' => $height]], true);
 	}
 
 	public function getTemplateVariablesMetadata(): array {
 		return $this->footerHandler->getTemplateVariablesMetadata();
+	}
+
+	public function isPreviewAllowed(): bool {
+		$footerPolicy = $this->getEffectiveFooterPolicy();
+		return (bool)$footerPolicy['enabled'];
 	}
 }

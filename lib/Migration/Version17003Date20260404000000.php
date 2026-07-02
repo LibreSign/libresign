@@ -11,6 +11,7 @@ namespace OCA\Libresign\Migration;
 
 use Closure;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\DB\ISchemaWrapper;
 use OCP\IAppConfig;
@@ -33,12 +34,12 @@ class Version17003Date20260404000000 extends SimpleMigrationStep {
 		$this->sanitizeDimension(
 			$output,
 			'signature_width',
-			SignatureTextService::DEFAULT_SIGNATURE_WIDTH,
+			SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
 		);
 		$this->sanitizeDimension(
 			$output,
 			'signature_height',
-			SignatureTextService::DEFAULT_SIGNATURE_HEIGHT,
+			SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
 		);
 	}
 

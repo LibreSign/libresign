@@ -4,9 +4,13 @@
  */
 
 import { expect, test } from '@playwright/test'
-import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+
 import { createMailpitClient, waitForEmailTo } from '../support/mailpit'
+import { login } from '../support/nc-login'
+import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
+import { useRequestSignPolicyGuard } from '../support/system-policies'
+
+useRequestSignPolicyGuard()
 
 test('request signatures from two signers in parallel', async ({ page }) => {
 	await login(
@@ -23,14 +27,16 @@ test('request signatures from two signers in parallel', async ({ page }) => {
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
-		JSON.stringify([
-			{ name: 'account', enabled: false, mandatory: false },
-			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } }, can_create_account: false },
-		]),
+		JSON.stringify({
+			can_create_account: false,
+			factors: [
+				{ name: 'account', enabled: false, requirement: 'optional' },
+				{ name: 'email', enabled: true, requirement: 'required', signatureMethods: { clickToSign: { enabled: true } } },
+			],
+		}),
 	)
 
 	const mailpit = createMailpitClient()
@@ -69,10 +75,10 @@ test('request signatures from two signers in parallel', async ({ page }) => {
 
 	// In parallel mode both signers are notified simultaneously.
 	// Proof: wait for signer01's email, then verify that signer02's email also arrived.
-	await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: There is a file for you to sign')
-	await waitForEmailTo(mailpit, 'signer02@libresign.coop', 'LibreSign: There is a file for you to sign')
+	await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: A document is ready for your signature')
+	await waitForEmailTo(mailpit, 'signer02@libresign.coop', 'LibreSign: A document is ready for your signature')
 
 	// Both emails arrived — both signers were notified at the same time, confirming parallel mode.
-	const result = await mailpit.searchMessages({ query: 'subject:"LibreSign: There is a file for you to sign"' })
+	const result = await mailpit.searchMessages({ query: 'subject:"LibreSign: A document is ready for your signature"' })
 	expect(result.messages).toHaveLength(2)
 })

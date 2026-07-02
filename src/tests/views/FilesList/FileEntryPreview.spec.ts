@@ -44,7 +44,11 @@ describe('FileEntryPreview.vue', () => {
 			props: { source },
 			global: {
 				stubs: {
-					NcIconSvgWrapper: true,
+					NcIconSvgWrapper: {
+						name: 'NcIconSvgWrapper',
+						template: '<i class="icon-stub" :data-path="path" />',
+						props: ['path'],
+					},
 				},
 			},
 		})
@@ -54,6 +58,13 @@ describe('FileEntryPreview.vue', () => {
 		const wrapper = createWrapper({ nodeType: 'envelope' })
 
 		expect(wrapper.vm.isEnvelope).toBe(true)
+	})
+
+	it('renders the folder icon for envelope nodes instead of a preview image', () => {
+		const wrapper = createWrapper({ nodeType: 'envelope' })
+
+		expect(wrapper.find('img').exists()).toBe(false)
+		expect(wrapper.get('.icon-stub').attributes('data-path')).toBe(wrapper.vm.mdiFolder)
 	})
 
 	it('prefers the file id thumbnail URL with list-size previews', () => {
@@ -83,12 +94,14 @@ describe('FileEntryPreview.vue', () => {
 		expect(url.searchParams.get('y')).toBe('128')
 	})
 
-	it('disables the preview URL after a background load failure', async () => {
-		const wrapper = createWrapper({ nodeId: 42 })
-
-		wrapper.vm.backgroundFailed = true
-		await wrapper.vm.$nextTick()
+	it('renders the generic file icon when there is no preview source to build a URL', () => {
+		const wrapper = createWrapper({
+			nodeType: 'file',
+			name: 'orphan.pdf',
+		})
 
 		expect(wrapper.vm.previewUrl).toBe(null)
+		expect(wrapper.find('.icon-stub').exists()).toBe(true)
+		expect(wrapper.get('.icon-stub').attributes('data-path')).toBe(wrapper.vm.mdiFile)
 	})
 })

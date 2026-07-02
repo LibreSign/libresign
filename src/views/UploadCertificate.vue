@@ -4,7 +4,7 @@
 -->
 <template>
 	<NcDialog v-if="showModal"
-		:name="t('libresign', 'Upload certificate')"
+		:name="uploadCertificateDialogTitle"
 		@closing="closeDialog">
 		<NcNoteCard v-for="(error, index) in displayErrors"
 			:key="index"
@@ -14,11 +14,11 @@
 		</NcNoteCard>
 		<template #actions>
 			<NcButton @click="closeDialog">
-				{{ t('libresign', 'Close') }}
+				{{ closeLabel }}
 			</NcButton>
 			<NcButton variant="primary"
 				@click="triggerUpload">
-				{{ t('libresign', 'Upload certificate') }}
+				{{ uploadCertificateActionLabel }}
 			</NcButton>
 		</template>
 	</NcDialog>
@@ -69,6 +69,13 @@ const emit = defineEmits<{
 
 const signMethodsStore = useSignMethodsStore() as SignMethodsStore
 const localErrors = ref<UploadError[]>([])
+
+// TRANSLATORS Dialog title shown when user uploads a digital certificate file.
+const uploadCertificateDialogTitle = t('libresign', 'Upload certificate')
+// TRANSLATORS Primary action label that starts uploading the selected certificate file.
+const uploadCertificateActionLabel = t('libresign', 'Upload certificate')
+// TRANSLATORS Secondary action label used to close upload certificate dialog.
+const closeLabel = t('libresign', 'Close')
 
 const showModal = computed(() => props.useModal && signMethodsStore.modal.uploadCertificate)
 const displayErrors = computed(() => [...props.errors, ...localErrors.value])

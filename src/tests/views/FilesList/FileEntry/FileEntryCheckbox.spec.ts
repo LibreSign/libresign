@@ -10,7 +10,14 @@ import { mount } from '@vue/test-utils'
 import FileEntryCheckbox from '../../../../views/FilesList/FileEntry/FileEntryCheckbox.vue'
 
 const filesStoreMock = {
+	files: {
+		1: { id: 1 },
+		2: { id: 2 },
+		3: { id: 3 },
+		4: { id: 4 },
+	},
 	ordered: [1, 2, 3, 4],
+	canDelete: vi.fn(() => true),
 }
 
 const keyboardStoreMock = {
@@ -96,7 +103,15 @@ function createWrapper(overrides: Record<string, unknown> = {}) {
 
 describe('FileEntryCheckbox.vue', () => {
 	beforeEach(() => {
+		filesStoreMock.files = {
+			1: { id: 1 },
+			2: { id: 2 },
+			3: { id: 3 },
+			4: { id: 4 },
+		}
 		filesStoreMock.ordered = [1, 2, 3, 4]
+		filesStoreMock.canDelete.mockReset()
+		filesStoreMock.canDelete.mockReturnValue(true)
 		keyboardStoreMock.shiftKey = false
 		selectionStoreMock.selected = []
 		selectionStoreMock.lastSelectedIndex = null
@@ -131,6 +146,22 @@ describe('FileEntryCheckbox.vue', () => {
 
 		expect(selectionStoreMock.set).toHaveBeenCalledWith([2, 3])
 		expect(selectionStoreMock.setLastIndex).not.toHaveBeenCalled()
+	})
+
+	it('skips non-selectable rows when extending selection with shift', () => {
+		filesStoreMock.ordered = [1, 2, 3, 4]
+		filesStoreMock.canDelete.mockImplementation((file?: unknown) => {
+			const id = Number((file as { id?: number } | undefined)?.id)
+			return id !== 2
+		})
+		keyboardStoreMock.shiftKey = true
+		selectionStoreMock.lastSelectedIndex = 0
+		selectionStoreMock.lastSelection = [1]
+		const wrapper = createWrapper({ source: { id: 3, basename: 'contract.pdf' } })
+
+		wrapper.vm.onSelectionChange(true)
+
+		expect(selectionStoreMock.set).toHaveBeenCalledWith([1, 3])
 	})
 
 	it('resets the selection when escape is handled', () => {
@@ -179,6 +210,25 @@ describe('FileEntryCheckbox.vue', () => {
 
 			expect(wrapper.find('.loading-icon').exists()).toBe(false)
 			expect(wrapper.findComponent(NcCheckboxRadioSwitchStub).exists()).toBe(true)
+		})
+
+		it('hides the checkbox when the current file cannot be selected', () => {
+			filesStoreMock.canDelete.mockReturnValue(false)
+			const wrapper = createWrapper({ isLoading: false })
+
+			expect(wrapper.find('.files-list__row-checkbox').exists()).toBe(false)
+			expect(wrapper.find('.loading-icon').exists()).toBe(false)
+			expect(wrapper.findComponent(NcCheckboxRadioSwitchStub).exists()).toBe(false)
+		})
+
+		it('ignores selection changes for non-selectable rows', () => {
+			filesStoreMock.canDelete.mockReturnValue(false)
+			const wrapper = createWrapper()
+
+			wrapper.vm.onSelectionChange(true)
+
+			expect(selectionStoreMock.set).not.toHaveBeenCalled()
+			expect(selectionStoreMock.setLastIndex).not.toHaveBeenCalled()
 		})
 	})
 })

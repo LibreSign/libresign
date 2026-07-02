@@ -23,30 +23,37 @@ import { FILE_STATUS } from '../constants.js'
 
 const STATUS_CONFIG = {
 	[FILE_STATUS.NOT_LIBRESIGN_FILE]: {
+		// TRANSLATORS File status shown when a file exists in Nextcloud but is not managed by LibreSign workflows.
 		label: () => t('libresign', 'Not LibreSign file'),
 		icon: mdiFileDocument,
 	},
 	[FILE_STATUS.DRAFT]: {
+		// TRANSLATORS File status shown before any signer is allowed to sign.
 		label: () => t('libresign', 'Draft'),
 		icon: mdiFileDocument,
 	},
 	[FILE_STATUS.ABLE_TO_SIGN]: {
+		// TRANSLATORS File status shown when at least one signer can currently apply a digital signature.
 		label: () => t('libresign', 'Ready to sign'),
 		icon: mdiClockOutline,
 	},
 	[FILE_STATUS.PARTIAL_SIGNED]: {
+		// TRANSLATORS File status shown when some required signers have signed, but the signing workflow is not finished yet.
 		label: () => t('libresign', 'Partially signed'),
 		icon: mdiAlert,
 	},
 	[FILE_STATUS.SIGNED]: {
+		// TRANSLATORS File status shown when all required signatures were completed successfully.
 		label: () => t('libresign', 'Signed'),
 		icon: mdiCheckCircle,
 	},
 	[FILE_STATUS.DELETED]: {
+		// TRANSLATORS File status shown for a LibreSign record that was removed.
 		label: () => t('libresign', 'Deleted'),
 		icon: mdiFileCancel,
 	},
 	[FILE_STATUS.SIGNING_IN_PROGRESS]: {
+		// TRANSLATORS File status shown while asynchronous signing work is still running in the background.
 		label: () => t('libresign', 'Signing'),
 		icon: mdiSync,
 	},
@@ -54,6 +61,7 @@ const STATUS_CONFIG = {
 
 export function getStatusConfig(status) {
 	return STATUS_CONFIG[status] || {
+		// TRANSLATORS Fallback status shown when a file status code is unknown by this client version.
 		label: () => t('libresign', 'Unknown'),
 		icon: mdiHelpCircle,
 	}

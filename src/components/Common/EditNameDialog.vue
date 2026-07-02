@@ -13,6 +13,7 @@
 			{{ localErrorMessage }}
 		</NcNoteCard>
 		<NcTextField v-model="localName"
+			autofocus
 			:label="label"
 			:placeholder="placeholder"
 			:minlength="ENVELOPE_NAME_MIN_LENGTH"

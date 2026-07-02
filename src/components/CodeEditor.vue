@@ -4,9 +4,14 @@
 -->
 <template>
 	<div class="code-editor">
-		<label v-if="label" :for="editorId" class="code-editor__label">
-			{{ label }}
-		</label>
+		<div v-if="label || $slots['label-actions']" class="code-editor__header">
+			<label v-if="label" :for="editorId" class="code-editor__label">
+				{{ label }}
+			</label>
+			<span class="code-editor__label-actions">
+				<slot name="label-actions" />
+			</span>
+		</div>
 		<CodeMirror
 			:id="editorId"
 			v-model="internalValue"
@@ -20,7 +25,7 @@
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import CodeMirror from 'vue-codemirror6'
 import { twig } from '@ssddanbrown/codemirror-lang-twig'
 import { EditorView, lineNumbers } from '@codemirror/view'
@@ -49,7 +54,12 @@ const emit = defineEmits<{
 }>()
 
 const editorId = `code-editor-${Math.random().toString(36).slice(2, 11)}`
-const internalValue = ref(props.modelValue)
+const internalValue = computed({
+	get: () => props.modelValue,
+	set: (newValue: string) => {
+		emit('update:modelValue', newValue)
+	},
+})
 
 const extensions = computed(() => {
 	return [
@@ -68,18 +78,6 @@ const extensions = computed(() => {
 	]
 })
 
-watch(() => props.modelValue, (newValue) => {
-	if (newValue !== internalValue.value) {
-		internalValue.value = newValue
-	}
-})
-
-watch(internalValue, (newValue) => {
-	if (newValue !== props.modelValue) {
-		emit('update:modelValue', newValue)
-	}
-})
-
 defineExpose({
 	editorId,
 	internalValue,
@@ -93,14 +91,28 @@ defineExpose({
 	border-radius: var(--border-radius);
 	overflow: hidden;
 
-	&__label {
-		display: block;
+	&__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
 		padding: 8px 12px;
-		font-weight: bold;
-		font-size: 14px;
 		background-color: var(--color-background-dark);
 		border-bottom: 1px solid var(--color-border);
 		color: var(--color-main-text);
+	}
+
+	&__label {
+		display: inline-block;
+		padding: 0;
+		font-weight: bold;
+		font-size: 14px;
+	}
+
+	&__label-actions {
+		display: inline-flex;
+		align-items: center;
+		margin-inline-start: auto;
 	}
 
 	.cm-editor {

@@ -16,6 +16,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
@@ -51,12 +52,11 @@ use TypeError;
 
 /**
  * @psalm-import-type LibresignValidatedFile from ResponseDefinitions
- * @psalm-import-type LibresignIdentifyMethod from ResponseDefinitions
  * @psalm-import-type LibresignSignerDetail from ResponseDefinitions
  * @psalm-import-type LibresignSignerSummary from ResponseDefinitions
+ * @psalm-import-type LibresignIdentifyMethod from ResponseDefinitions
  */
 class FileService {
-
 	private string $fileContent = '';
 	private ?File $file = null;
 	private array $certData = [];
@@ -587,8 +587,7 @@ class FileService {
 	}
 
 	/**
-	 * @return array
-	 * @psalm-return LibresignValidatedFile
+	 * @return LibresignValidatedFile
 	 */
 	public function toArray(): array {
 		$this->loadLibreSignData();
@@ -630,8 +629,8 @@ class FileService {
 	}
 
 	/**
-	 * @param list<LibresignSignerDetail> $signers
-	 * @return list<LibresignSignerSummary>
+	 * @param LibresignSignerDetail[] $signers
+	 * @return LibresignSignerSummary[]
 	 */
 	private function mapSignerDetailsToSummary(array $signers): array {
 		$summaries = [];
@@ -683,6 +682,7 @@ class FileService {
 	}
 
 	/**
+	 * @return LibresignIdentifyMethod[]|null
 	 * @psalm-return list<LibresignIdentifyMethod>|null
 	 */
 	private function normalizeSignerIdentifyMethods(mixed $identifyMethods): ?array {
@@ -690,6 +690,7 @@ class FileService {
 			return null;
 		}
 
+		/** @var list<LibresignIdentifyMethod> $normalizedMethods */
 		$normalizedMethods = [];
 
 		foreach ($identifyMethods as $identifyMethod) {
@@ -699,25 +700,48 @@ class FileService {
 			}
 
 			$method = match ($identifyMethodData['method'] ?? null) {
-				'account', 'email', 'signal', 'sms', 'telegram', 'whatsapp', 'xmpp' => $identifyMethodData['method'],
+				'account', 'email', 'signal', 'sms', 'telegram', 'whatsapp', 'whatsappbusiness', 'xmpp' => $identifyMethodData['method'],
 				default => null,
 			};
 
 			$value = $identifyMethodData['value'] ?? null;
-			$mandatory = $this->normalizeNonNegativeInt($identifyMethodData['mandatory'] ?? null);
+			$requirement = $this->normalizeIdentifyMethodRequirement(
+				$identifyMethodData['requirement'] ?? null,
+				$identifyMethodData['mandatory'] ?? null,
+			);
 
-			if ($method === null || !is_string($value) || $mandatory === null) {
+			if ($method === null || !is_string($value) || $requirement === null) {
 				continue;
 			}
 
-			$normalizedMethods[] = [
+			/** @var LibresignIdentifyMethod $normalizedMethod */
+			$normalizedMethod = [
 				'method' => $method,
 				'value' => $value,
-				'mandatory' => $mandatory,
+				'requirement' => $requirement,
 			];
+
+			$normalizedMethods[] = $normalizedMethod;
 		}
 
 		return $normalizedMethods === [] ? null : $normalizedMethods;
+	}
+
+	private function normalizeIdentifyMethodRequirement(mixed $requirement, mixed $mandatory): ?string {
+		if (is_string($requirement)) {
+			$normalizedRequirement = IdentifyMethodRequirement::tryFrom(trim($requirement));
+			if ($normalizedRequirement !== null) {
+				return $normalizedRequirement->value;
+			}
+		}
+
+		$mandatoryValue = $this->normalizeNonNegativeInt($mandatory);
+
+		return match ($mandatoryValue) {
+			0 => IdentifyMethodRequirement::OPTIONAL->value,
+			1 => IdentifyMethodRequirement::REQUIRED->value,
+			default => null,
+		};
 	}
 
 	/**

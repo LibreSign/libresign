@@ -33,6 +33,12 @@ export default defineConfig({
 		/* Base URL to use in actions like `await page.goto('./apps/libresign')`. */
 		baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://localhost',
 
+		/* Force E2E execution in English regardless of container/user locale. */
+		locale: 'en-US',
+		extraHTTPHeaders: {
+			'Accept-Language': 'en-US,en;q=0.9',
+		},
+
 		/* Ignore HTTPS errors on local self-signed certificates */
 		ignoreHTTPSErrors: true,
 

@@ -9,13 +9,12 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Service\File\FileListService;
-use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\RequestSignatureService;
+use OCA\Libresign\Service\RequestSignatureWorkflowService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -42,11 +41,10 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		IRequest $request,
 		protected IL10N $l10n,
 		protected IUserSession $userSession,
-		protected FileService $fileService,
 		protected FileListService $fileListService,
 		protected ValidateHelper $validateHelper,
 		protected RequestSignatureService $requestSignatureService,
-		protected FileMapper $fileMapper,
+		private RequestSignatureWorkflowService $requestSignatureWorkflowService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -68,7 +66,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
 	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
-	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration
+	 * @param array<string, mixed>|null $policy Structured policy payload with request-level overrides and active context.
 	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
@@ -87,11 +85,11 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		array $files = [],
 		?string $callback = null,
 		?int $status = 1,
-		?string $signatureFlow = null,
+		?array $policy = null,
 	): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
-			return $this->createSignatureRequest(
+			$result = $this->requestSignatureWorkflowService->createRequest(
 				$user,
 				$file,
 				$files,
@@ -100,8 +98,11 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				$signers,
 				$status,
 				$callback,
-				$signatureFlow
+				$policy,
 			);
+
+			$fileData = $this->fileListService->formatFileWithChildren($result['file'], $result['children'], $user);
+			return new DataResponse($fileData, Http::STATUS_OK);
 		} catch (LibresignException $e) {
 			$errorMessage = $e->getMessage();
 			$decoded = json_decode($errorMessage, true);
@@ -135,7 +136,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param LibresignVisibleElement[]|null $visibleElements Visible elements on document
 	 * @param LibresignNewFile|null $file File object. Supports nodeId, url, base64 or path when creating a new request.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
-	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration
+	 * @param array<string, mixed>|null $policy Structured policy payload with request-level overrides and active context.
 	 * @param string|null $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
@@ -155,7 +156,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		?array $visibleElements = null,
 		?array $file = null,
 		?int $status = null,
-		?string $signatureFlow = null,
+		?array $policy = null,
 		?string $name = null,
 		array $settings = [],
 		array $files = [],
@@ -166,7 +167,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			$file = is_array($file) ? $file : [];
 
 			if (empty($uuid)) {
-				return $this->createSignatureRequest(
+				$result = $this->requestSignatureWorkflowService->createRequest(
 					$user,
 					$file,
 					$files,
@@ -175,34 +176,27 @@ class RequestSignatureController extends AEnvironmentAwareController {
 					$signers,
 					$status,
 					null,
-					$signatureFlow,
+					$policy,
 					$visibleElements
 				);
+
+				$fileData = $this->fileListService->formatFileWithChildren($result['file'], $result['children'], $user);
+				return new DataResponse($fileData, Http::STATUS_OK);
 			}
 
-			$data = [
-				'uuid' => $uuid,
-				'file' => $file,
-				'signers' => $signers,
-				'userManager' => $user,
-				'visibleElements' => $visibleElements,
-				'signatureFlow' => $signatureFlow,
-				'name' => $name,
-				'settings' => $settings,
-			];
-			if ($status !== null) {
-				$data['status'] = $status;
-			}
-			$this->validateHelper->validateExistingFile($data);
-			$this->validateHelper->validateFileStatus($data);
-			$this->validateHelper->validateIdentifySigners($data);
-			if (!empty($visibleElements)) {
-				$this->validateHelper->validateVisibleElements($visibleElements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
-			}
-			$fileEntity = $this->requestSignatureService->save($data);
-			$childFiles = $this->loadChildFilesIfEnvelope($fileEntity);
+			$result = $this->requestSignatureWorkflowService->updateExistingRequest(
+				$user,
+				$signers,
+				$uuid,
+				$visibleElements,
+				$file,
+				$status,
+				$policy,
+				$name,
+				$settings,
+			);
 
-			$fileData = $this->fileListService->formatFileWithChildren($fileEntity, $childFiles, $user);
+			$fileData = $this->fileListService->formatFileWithChildren($result['file'], $result['children'], $user);
 			return new DataResponse($fileData, Http::STATUS_OK);
 		} catch (\Throwable $th) {
 			return new DataResponse(
@@ -212,69 +206,6 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
-	}
-
-	/**
-	 * Internal method to handle signature request creation logic
-	 * Used by both requestSignature() and updateSignatureRequest() when creating new requests
-	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>
-	 * @throws LibresignException
-	 */
-	private function createSignatureRequest(
-		$user,
-		array $file,
-		array $files,
-		string $name,
-		array $settings,
-		array $signers,
-		?int $status,
-		?string $callback,
-		?string $signatureFlow,
-		?array $visibleElements = null,
-	): DataResponse {
-		$isEnvelope = !empty($files);
-
-		$filesToSave = $isEnvelope ? $files : null;
-
-		if (empty($file) && empty($files)) {
-			throw new LibresignException($this->l10n->t('File or files parameter is required'));
-		}
-
-		$data = [
-			'file' => $file,
-			'name' => $name,
-			'signers' => $signers,
-			'callback' => $callback,
-			'userManager' => $user,
-			'signatureFlow' => $signatureFlow,
-			'settings' => !empty($settings) ? $settings : ($file['settings'] ?? []),
-		];
-
-		if ($status !== null) {
-			$data['status'] = $status;
-		}
-
-		if ($isEnvelope) {
-			$data['files'] = $filesToSave;
-		}
-
-		if ($visibleElements !== null) {
-			$data['visibleElements'] = $visibleElements;
-		}
-		$this->requestSignatureService->validateNewRequestToFile($data);
-
-		if ($isEnvelope) {
-			$result = $this->requestSignatureService->saveFiles($data);
-			$fileEntity = $result['file'];
-			$childFiles = $result['children'] ?? [];
-		} else {
-			$fileEntity = $this->requestSignatureService->save($data);
-			$childFiles = $this->loadChildFilesIfEnvelope($fileEntity);
-		}
-
-		$fileData = $this->fileListService->formatFileWithChildren($fileEntity, $childFiles, $user);
-		return new DataResponse($fileData, Http::STATUS_OK);
 	}
 
 	/**
@@ -365,9 +296,4 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		);
 	}
 
-	private function loadChildFilesIfEnvelope($fileEntity): array {
-		return $fileEntity->getParentFileId() === null || $fileEntity->isEnvelope()
-			? $this->fileMapper->getChildrenFiles($fileEntity->getId())
-			: [];
-	}
 }

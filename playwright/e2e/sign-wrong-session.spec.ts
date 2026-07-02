@@ -5,8 +5,11 @@
 
 import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support/mailpit'
+import { useRequestSignPolicyGuard } from '../support/system-policies'
+
+useRequestSignPolicyGuard()
 
 /**
  * When an authenticated Nextcloud user visits a sign link that belongs to a
@@ -32,14 +35,16 @@ test('authenticated user sees error when accessing another signer\'s email link'
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
-		JSON.stringify([
-			{ name: 'account', enabled: false, mandatory: false },
-			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } }, can_create_account: false },
-		]),
+		JSON.stringify({
+			can_create_account: false,
+			factors: [
+				{ name: 'account', enabled: false, requirement: 'optional' },
+				{ name: 'email', enabled: true, requirement: 'required', signatureMethods: { clickToSign: { enabled: true } } },
+			],
+		}),
 	)
 
 	const mailpit = createMailpitClient()
@@ -63,7 +68,7 @@ test('authenticated user sees error when accessing another signer\'s email link'
 
 	// Retrieve the sign link from the notification email sent to the signer.
 	// The admin is intentionally NOT logged out — this simulates the wrong-session scenario.
-	const email = await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: There is a file for you to sign')
+	const email = await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: A document is ready for your signature')
 	const signLink = extractSignLink(email.Text)
 	if (!signLink) throw new Error('Sign link not found in email')
 

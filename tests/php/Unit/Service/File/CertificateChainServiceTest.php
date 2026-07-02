@@ -12,7 +12,7 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\File\CertificateChainService;
 use OCA\Libresign\Service\File\FileResponseOptions;
-use OCA\Libresign\Tests\Unit\TestCase;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 final class CertificateChainServiceTest extends TestCase {
@@ -36,10 +36,9 @@ final class CertificateChainServiceTest extends TestCase {
 		$libreSignFile = new File();
 		$libreSignFile->setSignedNodeId(1);
 		$libreSignFile->setSignedHash(hash('sha256', $content));
+		$libreSignFile->setUserId('requester');
 
-		$pkcs12 = $this->createMock(Pkcs12Handler::class);
-		$pkcs12->expects($this->once())->method('setIsLibreSignFile');
-		$pkcs12->method('getCertificateChain')->willReturn(['chain' => []]);
+		$pkcs12 = new PolicyAwarePkcs12HandlerDouble();
 
 		$logger = $this->createMock(LoggerInterface::class);
 
@@ -52,6 +51,8 @@ final class CertificateChainServiceTest extends TestCase {
 
 		$this->assertIsArray($result);
 		$this->assertArrayHasKey('chain', $result);
+		$this->assertTrue($pkcs12->libreSignFlagSet);
+		$this->assertSame('requester', $pkcs12->policyUserIdForValidation);
 	}
 
 	public function testGetCertificateChainHandlesInvalidResourceGracefully(): void {

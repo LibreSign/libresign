@@ -11,13 +11,14 @@ namespace OCA\Libresign\Service\IdentifyMethod;
 use DateTime;
 use InvalidArgumentException;
 use OC\AppFramework\Http as AppFrameworkHttp;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\AbstractSignatureMethod;
+use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Vendor\Wobeto\EmailBlur\Blur;
 use OCP\Files\NotFoundException;
@@ -92,11 +93,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	#[\Override]
 	public function signatureMethodsToArray(): array {
-		return array_map(fn (AbstractSignatureMethod $method) => [
-			'label' => $method->getFriendlyName(),
-			'name' => $method->getName(),
-			'enabled' => $method->isEnabled(),
-		], $this->signatureMethods);
+		return array_map(fn (AbstractSignatureMethod $method) => $method->toArray(), $this->signatureMethods);
 	}
 
 	public function getAvailableSignatureMethods(): array {
@@ -130,6 +127,26 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	public function getSettings(): array {
 		$this->getSettingsFromDatabase();
 		return $this->settings;
+	}
+
+	#[\Override]
+	public function getDefaultSettings(): array {
+		$this->signatureMethods = [];
+		foreach ($this->availableSignatureMethods as $signatureMethodName) {
+			$signatureMethod = $this->getEmptyInstanceOfSignatureMethodByName($signatureMethodName);
+			if ($signatureMethodName === $this->defaultSignatureMethod) {
+				$signatureMethod->enable();
+			}
+			$this->signatureMethods[$signatureMethodName] = $signatureMethod;
+		}
+
+		return [
+			'name' => $this->name,
+			'friendly_name' => $this->friendlyName,
+			'enabled' => true,
+			'requirement' => IdentifyMethodRequirement::REQUIRED->value,
+			'signatureMethods' => $this->signatureMethodsToArray(),
+		];
 	}
 
 	#[\Override]
@@ -216,7 +233,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfMaximumValidityExpired(): void {
-		$maximumValidity = (int)$this->identifyService->getAppConfig()->getValueInt(Application::APP_ID, 'maximum_validity', SessionService::NO_MAXIMUM_VALIDITY);
+		$maximumValidity = $this->getRuntimeConfigInt(ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY, SessionService::NO_MAXIMUM_VALIDITY);
 		if ($maximumValidity <= 0) {
 			return;
 		}
@@ -247,11 +264,11 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	protected function renewSession(): void {
 		$this->identifyService->getSessionService()->setIdentifyMethodId($this->getEntity()->getId());
-		$renewalInterval = $this->getRuntimeConfigInt('renewal_interval', SessionService::NO_RENEWAL_INTERVAL);
+		$renewalInterval = $this->getRuntimeConfigInt(ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL, SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
-		$this->identifyService->getSessionService()->resetDurationOfSignPage();
+		$this->identifyService->getSessionService()->resetDurationOfSignPage($renewalInterval);
 	}
 
 	protected function updateIdentifiedAt(): void {
@@ -265,7 +282,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfRenewalIntervalExpired(): void {
-		$renewalInterval = $this->getRuntimeConfigInt('renewal_interval', SessionService::NO_RENEWAL_INTERVAL);
+		$renewalInterval = $this->getRuntimeConfigInt(ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL, SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
@@ -318,9 +335,9 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	private function getRuntimeConfigInt(string $key, int $default): int {
-		$appConfig = $this->identifyService->getAppConfig();
-		$appConfig->clearCache(true);
-		return (int)$appConfig->getValueInt(Application::APP_ID, $key, $default);
+		$resolved = $this->identifyService->getPolicyService()->resolve($key);
+		$value = $resolved->getEffectiveValue();
+		return $value !== null ? (int)$value : $default;
 	}
 
 	protected function throwIfAlreadySigned(): void {
@@ -350,7 +367,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 				'name' => $this->name,
 				'friendly_name' => $this->getFriendlyName(),
 				'enabled' => true,
-				'mandatory' => true,
+				'requirement' => IdentifyMethodRequirement::REQUIRED->value,
 				'signatureMethods' => $this->signatureMethodsToArray(),
 			],
 			$default
@@ -358,6 +375,9 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$this->removeKeysThatDontExists($default);
 		$this->overrideImmutable($immutable);
 		$this->settings = $this->applyDefault($this->settings, $default);
+		if (!isset($this->settings['requirement'])) {
+			$this->settings['requirement'] = IdentifyMethodRequirement::REQUIRED->value;
+		}
 		return $this->settings;
 	}
 

@@ -6,9 +6,9 @@
 	<div class="container">
 		<div id="container-request">
 			<header>
-				<h1>{{ t('libresign', 'Request Signatures') }}</h1>
+				<h1>{{ requestSignaturesTitle }}</h1>
 				<p v-if="!sidebarStore.isVisible">
-					{{ t('libresign', 'Choose the file to request signatures.') }}
+					{{ chooseFileToRequestSignaturesHint }}
 				</p>
 			</header>
 			<div class="content-request">
@@ -47,6 +47,11 @@ type SidebarStore = {
 
 const filesStore = useFilesStore() as FilesStore
 const sidebarStore = useSidebarStore() as SidebarStore
+
+// TRANSLATORS Page title for the signature request creation screen.
+const requestSignaturesTitle = t('libresign', 'Request Signatures')
+// TRANSLATORS Helper text instructing the user to choose a file before requesting signatures.
+const chooseFileToRequestSignaturesHint = t('libresign', 'Choose a file to create a signature request.')
 
 onMounted(() => {
 	filesStore.disableIdentifySigner()

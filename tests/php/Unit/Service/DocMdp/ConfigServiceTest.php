@@ -8,36 +8,41 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\DocMdp;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Service\DocMdp\ConfigService;
-use OCP\IAppConfig;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCP\IL10N;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class ConfigServiceTest extends TestCase {
-	private IAppConfig&MockObject $appConfig;
+	private PolicyService&MockObject $policyService;
 	private IL10N&MockObject $l10n;
 
 	protected function setUp(): void {
-		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n->method('t')->willReturnArgument(0);
 	}
 
 	private function createService(): ConfigService {
-		return new ConfigService($this->appConfig, $this->l10n);
+		return new ConfigService($this->policyService, $this->l10n);
 	}
 
 	#[DataProvider('providerGetLevelCases')]
-	public function testGetLevelReturnsExpectedEnum(int $storedLevel, DocMdpLevel $expectedLevel): void {
-		$this->appConfig
+	public function testGetLevelReturnsExpectedEnum(int|string|null $storedLevel, DocMdpLevel $expectedLevel): void {
+		$this->policyService
 			->expects($this->once())
-			->method('getValueInt')
-			->with(Application::APP_ID, 'docmdp_level', DocMdpLevel::CERTIFIED_FORM_FILLING->value)
-			->willReturn($storedLevel);
+			->method('getSystemPolicy')
+			->with('docmdp')
+			->willReturn($storedLevel === null
+				? null
+				: (new PolicyLayer())
+					->setScope('global')
+					->setValue($storedLevel));
 
 		$service = $this->createService();
 
@@ -45,11 +50,15 @@ final class ConfigServiceTest extends TestCase {
 	}
 
 	#[DataProvider('providerGetConfigCases')]
-	public function testGetConfigReturnsExpectedState(int $storedLevel, bool $expectedEnabled, int $expectedDefaultLevel): void {
-		$this->appConfig
-			->method('getValueInt')
-			->with(Application::APP_ID, 'docmdp_level', DocMdpLevel::CERTIFIED_FORM_FILLING->value)
-			->willReturn($storedLevel);
+	public function testGetConfigReturnsExpectedState(int|string|null $storedLevel, bool $expectedEnabled, int $expectedDefaultLevel): void {
+		$this->policyService
+			->method('getSystemPolicy')
+			->with('docmdp')
+			->willReturn($storedLevel === null
+				? null
+				: (new PolicyLayer())
+					->setScope('global')
+					->setValue($storedLevel));
 
 		$service = $this->createService();
 		$config = $service->getConfig();
@@ -59,41 +68,61 @@ final class ConfigServiceTest extends TestCase {
 	}
 
 	public function testSetEnabledFalseSetsNotCertifiedLevel(): void {
-		$this->appConfig
+		$this->policyService
 			->expects($this->once())
-			->method('setValueInt')
-			->with(Application::APP_ID, 'docmdp_level', DocMdpLevel::NOT_CERTIFIED->value);
+			->method('getSystemPolicy')
+			->with('docmdp')
+			->willReturn((new PolicyLayer())
+				->setScope('global')
+				->setValue(DocMdpLevel::CERTIFIED_FORM_FILLING->value)
+				->setAllowChildOverride(true));
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveSystem')
+			->with('docmdp', DocMdpLevel::NOT_CERTIFIED->value, true)
+			->willReturn((new ResolvedPolicy())
+				->setPolicyKey('docmdp')
+				->setEffectiveValue(DocMdpLevel::NOT_CERTIFIED->value));
 
 		$service = $this->createService();
 		$service->setEnabled(false);
 	}
 
 	public function testSetEnabledTrueRestoresDefaultLevelWhenCurrentlyDisabled(): void {
-		$this->appConfig
-			->expects($this->once())
-			->method('getValueInt')
-			->with(Application::APP_ID, 'docmdp_level', DocMdpLevel::CERTIFIED_FORM_FILLING->value)
-			->willReturn(DocMdpLevel::NOT_CERTIFIED->value);
+		$this->policyService
+			->expects($this->exactly(2))
+			->method('getSystemPolicy')
+			->with('docmdp')
+			->willReturn((new PolicyLayer())
+				->setScope('global')
+				->setValue(DocMdpLevel::NOT_CERTIFIED->value)
+				->setAllowChildOverride(true));
 
-		$this->appConfig
+		$this->policyService
 			->expects($this->once())
-			->method('setValueInt')
-			->with(Application::APP_ID, 'docmdp_level', DocMdpLevel::CERTIFIED_FORM_FILLING->value);
+			->method('saveSystem')
+			->with('docmdp', DocMdpLevel::CERTIFIED_FORM_FILLING->value, true)
+			->willReturn((new ResolvedPolicy())
+				->setPolicyKey('docmdp')
+				->setEffectiveValue(DocMdpLevel::CERTIFIED_FORM_FILLING->value));
 
 		$service = $this->createService();
 		$service->setEnabled(true);
 	}
 
 	public function testSetEnabledTrueKeepsCurrentLevelWhenAlreadyEnabled(): void {
-		$this->appConfig
+		$this->policyService
 			->expects($this->once())
-			->method('getValueInt')
-			->with(Application::APP_ID, 'docmdp_level', DocMdpLevel::CERTIFIED_FORM_FILLING->value)
-			->willReturn(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value);
+			->method('getSystemPolicy')
+			->with('docmdp')
+			->willReturn((new PolicyLayer())
+				->setScope('global')
+				->setValue(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value));
 
-		$this->appConfig
+		$this->policyService
 			->expects($this->never())
-			->method('setValueInt');
+			->method('saveSystem');
 
 		$service = $this->createService();
 		$service->setEnabled(true);
@@ -101,9 +130,9 @@ final class ConfigServiceTest extends TestCase {
 
 	public static function providerGetLevelCases(): array {
 		return [
-			'default/fallback level is form filling' => [
-				DocMdpLevel::CERTIFIED_FORM_FILLING->value,
-				DocMdpLevel::CERTIFIED_FORM_FILLING,
+			'policy default falls back to not certified when unset' => [
+				null,
+				DocMdpLevel::NOT_CERTIFIED,
 			],
 			'explicit no changes level' => [
 				DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value,
@@ -113,15 +142,19 @@ final class ConfigServiceTest extends TestCase {
 				DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->value,
 				DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS,
 			],
+			'string encoded levels are normalized' => [
+				'2',
+				DocMdpLevel::CERTIFIED_FORM_FILLING,
+			],
 		];
 	}
 
 	public static function providerGetConfigCases(): array {
 		return [
-			'not configured defaults to enabled and level 2' => [
-				DocMdpLevel::CERTIFIED_FORM_FILLING->value,
-				true,
-				2,
+			'not configured defaults to disabled and level 0' => [
+				null,
+				false,
+				0,
 			],
 			'explicitly disabled with level 0' => [
 				DocMdpLevel::NOT_CERTIFIED->value,

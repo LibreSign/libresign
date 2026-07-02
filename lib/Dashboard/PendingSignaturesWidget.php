@@ -45,6 +45,7 @@ class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget
 
 	#[Override]
 	public function getTitle(): string {
+		// TRANSLATORS Dashboard widget title listing documents still waiting for the current user's signature.
 		return $this->l10n->t('Pending signatures');
 	}
 
@@ -84,6 +85,7 @@ class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget
 	public function getItemsV2(string $userId, ?string $since = null, int $limit = 7): WidgetItems {
 		$user = $this->userSession->getUser();
 		if (!$user) {
+			// TRANSLATORS Dashboard error shown when the logged-in account cannot be resolved.
 			return new WidgetItems([], $this->l10n->t('User not found'));
 		}
 
@@ -121,6 +123,7 @@ class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget
 
 		return new WidgetItems(
 			$items,
+			// TRANSLATORS Empty dashboard state shown when there are no documents waiting for the current user's signature.
 			empty($items) ? $this->l10n->t('No pending signatures') : '',
 		);
 	}
@@ -130,10 +133,10 @@ class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget
 		$createdAt = $fileEntity->getCreatedAt();
 		if ($createdAt instanceof \DateTime) {
 			$date = $createdAt->format('d/m/Y');
-			// TRANSLATORS %s is the sender name, %s is the date
-			return $this->l10n->t('From: %s • Date: %s', [$displayName, $date]);
+			// TRANSLATORS Subtitle in pending-signature widget. %1$s is the requester name and %2$s is the request creation date.
+			return $this->l10n->t('From: %1$s • Date: %2$s', [$displayName, $date]);
 		}
-		// TRANSLATORS %s is the sender name
+		// TRANSLATORS Subtitle in pending-signature widget. %s is the requester name.
 		return $this->l10n->t('From: %s', [$displayName]);
 	}
 
@@ -157,6 +160,7 @@ class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget
 			new WidgetButton(
 				WidgetButton::TYPE_MORE,
 				$this->urlGenerator->linkToRouteAbsolute('libresign.page.index'),
+				// TRANSLATORS Dashboard button that opens the full list of documents related to signatures.
 				$this->l10n->t('View all documents')
 			),
 		];

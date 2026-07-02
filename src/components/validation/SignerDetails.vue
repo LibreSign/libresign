@@ -196,6 +196,7 @@
 					<NcIconSvgWrapper :path="mdiInformationOutline" />
 				</template>
 				<template #name>
+					<!-- TRANSLATORS %n is the number of detected revisions after the signature workflow began. -->
 					{{ n('libresign', 'Document has %n revision', 'Document has %n revisions', signer.modifications.revisionCount ?? 0) }}
 				</template>
 			</NcListItem>
@@ -348,12 +349,19 @@ const MODIFICATION_UNMODIFIED = 1
 const MODIFICATION_ALLOWED = 2
 const MODIFICATION_VIOLATION = 3
 const crlStatusMap: Record<string, CrlStatusMeta> = {
+	// TRANSLATORS CRL status text indicating certificate was checked and is not revoked.
 	valid: { icon: mdiCheckCircle, text: t('libresign', 'CRL: Not revoked'), class: 'icon-success' },
+	// TRANSLATORS CRL status text indicating certificate is revoked.
 	revoked: { icon: mdiCloseCircle, text: t('libresign', 'CRL: Certificate revoked'), class: 'icon-error' },
+	// TRANSLATORS CRL status text indicating revocation information is unavailable.
 	missing: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No information'), class: 'icon-warning' },
+	// TRANSLATORS CRL status text indicating no CRL distribution URLs were found in certificate metadata.
 	no_urls: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No URLs found'), class: 'icon-warning' },
+	// TRANSLATORS CRL status text indicating CRL URLs exist but were unreachable.
 	urls_inaccessible: { icon: mdiHelpCircle, text: t('libresign', 'CRL: URLs inaccessible'), class: 'icon-warning' },
+	// TRANSLATORS CRL status text indicating CRL validation process failed.
 	validation_failed: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation failed'), class: 'icon-warning' },
+	// TRANSLATORS CRL status text indicating unexpected error during CRL validation.
 	validation_error: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation error'), class: 'icon-warning' },
 }
 
@@ -365,6 +373,7 @@ function toggleOpen() {
 }
 
 function getName(signer: SignerModel) {
+	// TRANSLATORS Fallback signer name when no display name, email, or name is available.
 	return signer.displayName || signer.email || signer.name || t('libresign', 'Unknown')
 }
 
@@ -424,16 +433,20 @@ function hasValidationStatus(signer: SignerModel) {
 
 function getSignatureValidationMessage(signer: SignerModel) {
 	if (signer.signature_validation?.id === 1) {
+		// TRANSLATORS Validation message indicating signature cryptographic integrity check passed.
 		return t('libresign', 'Document integrity verified')
 	}
+	// TRANSLATORS Fallback validation message when signature integrity check fails and backend does not provide custom detail.
 	return signer.signature_validation?.message || t('libresign', 'Document integrity check failed')
 }
 
 function getCertificateTrustMessage(signer: SignerModel) {
 	if (signer.certificate_validation?.id === 1) {
 		const trustedBy = signer.certificate_validation?.trustedBy || 'LibreSign CA'
+		// TRANSLATORS Trust-chain status. {trustedBy} is the certificate authority or trust source name.
 		return t('libresign', 'Trust Chain: Trusted ({trustedBy})', { trustedBy })
 	}
+	// TRANSLATORS Fallback trust-chain status shown when certificate chain validation fails.
 	return signer.certificate_validation?.message || t('libresign', 'Trust Chain: Not Trusted')
 }
 
@@ -480,15 +493,19 @@ function getCrlStatusText(signer: SignerModel) {
 	if (isRevokedBeforeSigning(signer)) {
 		if (signer.crl_revoked_at) {
 			const revokedAt = dateFromSqlAnsiWithSeconds(signer.crl_revoked_at)
+			// TRANSLATORS CRL status detail. {revokedAt} is the revocation date/time showing certificate was revoked before signing happened.
 			return t('libresign', 'CRL: Certificate revoked before signing (revocation date: {revokedAt})', { revokedAt })
 		}
+		// TRANSLATORS CRL status detail shown when revocation happened before signing and exact revocation date is unavailable.
 		return t('libresign', 'CRL: Certificate revoked before signing')
 	}
 
 	if (signer.crl_revoked_at) {
 		const revokedAt = dateFromSqlAnsiWithSeconds(signer.crl_revoked_at)
+		// TRANSLATORS CRL status detail. {revokedAt} is revocation date/time showing certificate was valid at signing time but revoked later.
 		return t('libresign', 'CRL: Valid at signing time (revocation date: {revokedAt})', { revokedAt })
 	}
+	// TRANSLATORS CRL status detail indicating certificate was valid when signature was applied.
 	return t('libresign', 'CRL: Valid at signing time')
 }
 
@@ -525,8 +542,10 @@ function formatTimestamp(timestamp?: number | null) {
 const toggleDetailsAriaLabel = computed(() => {
 	const signerName = getName(props.signer)
 	if (isOpen.value) {
+		// TRANSLATORS ARIA label for action that collapses signer details section. {signerName} is signer display name.
 		return t('libresign', 'Collapse details of {signerName}', { signerName })
 	}
+	// TRANSLATORS ARIA label for action that expands signer details section. {signerName} is signer display name.
 	return t('libresign', 'Expand details of {signerName}', { signerName })
 })
 

@@ -24,6 +24,7 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\File\SettingsLoader;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\Policy\ValidationEffectivePolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -59,6 +60,8 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignPagination from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignSettings from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignValidatedFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignValidatedFileResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignEffectivePolicyState from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignValidateMetadata from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignVisibleElement from \OCA\Libresign\ResponseDefinitions
  */
@@ -73,6 +76,7 @@ class FileController extends AEnvironmentAwareController {
 		private FileMapper $fileMapper,
 		private RequestSignatureService $requestSignatureService,
 		private AccountService $accountService,
+		private ValidationEffectivePolicyService $validationEffectivePolicyService,
 		private IPreview $preview,
 		private IMimeIconProvider $mimeIconProvider,
 		private FileService $fileService,
@@ -96,13 +100,13 @@ class FileController extends AEnvironmentAwareController {
 	 * @param bool $showVisibleElements Whether to include visible elements in the response
 	 * @param bool $showMessages Whether to include validation messages in the response
 	 * @param bool $showValidateFile Whether to include the file payload in the response
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFileResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
 	 * 422: Request failed
 	 */
-	#[PrivateValidation]
+	#[PrivateValidation(allowValidSignRequestUuid: true)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
@@ -128,7 +132,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param bool $showVisibleElements Whether to include visible elements in the response
 	 * @param bool $showMessages Whether to include validation messages in the response
 	 * @param bool $showValidateFile Whether to include the file payload in the response
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFileResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -157,7 +161,7 @@ class FileController extends AEnvironmentAwareController {
 	 * For `nodeType=file`, `filesCount=1` and `files` contains the current file.
 	 * For `nodeType=envelope`, `files` contains envelope child files.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFileResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -171,7 +175,8 @@ class FileController extends AEnvironmentAwareController {
 	public function validateBinary(): DataResponse {
 		try {
 			$file = $this->request->getUploadedFile('file');
-			$return = $this->fileService
+			/** @var LibresignValidatedFile $validatedFile */
+			$validatedFile = $this->fileService
 				->setMe($this->userSession->getUser())
 				->setFileFromRequest($file)
 				->setHost($this->request->getServerHost())
@@ -181,23 +186,33 @@ class FileController extends AEnvironmentAwareController {
 				->showMessages()
 				->showValidateFile()
 				->toArray();
-			$statusCode = Http::STATUS_OK;
+
+			/** @var LibresignValidatedFileResponse $response */
+			$response = $this->validationEffectivePolicyService->appendEffectivePolicies($validatedFile);
+
+			return new DataResponse($response, Http::STATUS_OK);
 		} catch (InvalidArgumentException $e) {
-			$message = $this->l10n->t($e->getMessage());
-			$return = [
+			$message = $e->getMessage();
+			/** @var LibresignActionErrorResponse $response */
+			$response = [
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $message]]
 			];
-			$statusCode = Http::STATUS_NOT_FOUND;
+
+			return new DataResponse($response, Http::STATUS_NOT_FOUND);
 		} catch (\Exception $e) {
 			$this->logger->error('Failed to post file to validate', [
 				'exception' => $e,
 			]);
 
-			$return = ['message' => $this->l10n->t('Internal error. Contact admin.')];
-			$statusCode = Http::STATUS_BAD_REQUEST;
+			/** @var LibresignActionErrorResponse $response */
+			$response = [
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [['message' => $this->l10n->t('Internal error. Contact admin.')]],
+			];
+
+			return new DataResponse($response, Http::STATUS_BAD_REQUEST);
 		}
-		return new DataResponse($return, $statusCode);
 	}
 
 	/**
@@ -205,7 +220,7 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * @param string|null $type The type of identifier could be Uuid or FileId
 	 * @param string|int $identifier The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFileResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
 	 */
 	private function validate(
 		?string $type = null,
@@ -243,7 +258,8 @@ class FileController extends AEnvironmentAwareController {
 				$this->fileService->setSignRequest($signRequest);
 			}
 
-			$return = $this->fileService
+			/** @var LibresignValidatedFile $validatedFile */
+			$validatedFile = $this->fileService
 				->setMe($this->userSession->getUser())
 				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
 				->setHost($this->request->getServerHost())
@@ -253,25 +269,31 @@ class FileController extends AEnvironmentAwareController {
 				->showMessages($showMessages)
 				->showValidateFile($showValidateFile)
 				->toArray();
-			$statusCode = Http::STATUS_OK;
-		} catch (LibresignException $e) {
-			$message = $this->l10n->t($e->getMessage());
-			$return = [
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [['message' => $message]]
-			];
-			$statusCode = Http::STATUS_NOT_FOUND;
-		} catch (\Throwable $th) {
-			$message = $this->l10n->t($th->getMessage());
-			$this->logger->error($message);
-			$return = [
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [['message' => $message]]
-			];
-			$statusCode = Http::STATUS_NOT_FOUND;
-		}
 
-		return new DataResponse($return, $statusCode);
+			/** @var LibresignValidatedFileResponse $response */
+			$response = $this->validationEffectivePolicyService->appendEffectivePolicies($validatedFile);
+
+			return new DataResponse($response, Http::STATUS_OK);
+		} catch (LibresignException $e) {
+			$message = $e->getMessage();
+			/** @var LibresignActionErrorResponse $response */
+			$response = [
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [['message' => $message]]
+			];
+
+			return new DataResponse($response, Http::STATUS_NOT_FOUND);
+		} catch (\Throwable $th) {
+			$this->logger->error($th->getMessage(), ['exception' => $th]);
+			$message = $this->l10n->t('Internal error. Contact admin.');
+			/** @var LibresignActionErrorResponse $response */
+			$response = [
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [['message' => $message]]
+			];
+
+			return new DataResponse($response, Http::STATUS_NOT_FOUND);
+		}
 	}
 
 	/**
@@ -499,7 +521,7 @@ class FileController extends AEnvironmentAwareController {
 	/**
 	 * Send a file
 	 *
-	 * Send a new file to Nextcloud and return the fileId to request signature.
+	 * Send a new file to Nextcloud and return the fileId used to create a signature request.
 	 * Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.
 	 *
 	 * **Note on multiple file uploads:**

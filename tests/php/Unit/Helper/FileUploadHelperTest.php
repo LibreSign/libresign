@@ -68,7 +68,7 @@ class FileUploadHelperTest extends TestCase {
 		];
 
 		$this->expectException(InvalidArgumentException::class);
-		$this->expectExceptionMessage('Invalid file provided');
+		$this->expectExceptionMessage('The uploaded file is invalid');
 
 		try {
 			$this->helper->validateUploadedFile($uploadedFile);
@@ -87,7 +87,7 @@ class FileUploadHelperTest extends TestCase {
 		];
 
 		$this->expectException(InvalidArgumentException::class);
-		$this->expectExceptionMessage('Invalid file provided');
+		$this->expectExceptionMessage('The uploaded file is invalid');
 
 		$this->helper->validateUploadedFile($uploadedFile);
 	}
@@ -100,7 +100,7 @@ class FileUploadHelperTest extends TestCase {
 		];
 
 		$this->expectException(InvalidArgumentException::class);
-		$this->expectExceptionMessage('File is too big');
+		$this->expectExceptionMessage('The uploaded file is too large');
 
 		try {
 			$this->helper->validateUploadedFile($uploadedFile);
@@ -128,7 +128,7 @@ class FileUploadHelperTest extends TestCase {
 		];
 
 		$this->expectException(InvalidArgumentException::class);
-		$this->expectExceptionMessage('Cannot read file');
+		$this->expectExceptionMessage('Cannot read the uploaded file');
 
 		$this->helper->readUploadedFile($uploadedFile);
 	}
@@ -143,7 +143,7 @@ class FileUploadHelperTest extends TestCase {
 		];
 
 		$this->expectException(InvalidArgumentException::class);
-		$this->expectExceptionMessage('Invalid file provided');
+		$this->expectExceptionMessage('The uploaded file is invalid');
 
 		try {
 			$this->helper->validateUploadedFile($uploadedFile);
