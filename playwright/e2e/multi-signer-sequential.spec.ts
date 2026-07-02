@@ -198,9 +198,9 @@ test('request signatures from two signers in sequential order', async ({ page, a
 
 	// In sequential mode only signer01 (order 1) gets the email immediately.
 	// Proof: signer01's email arrives, but signer02's does NOT at this point.
-	const email01 = await waitForEmailTo(mailpit, signer01Email, 'LibreSign: There is a file for you to sign')
+	const email01 = await waitForEmailTo(mailpit, signer01Email, 'LibreSign: A document is ready for your signature')
 
-	const afterFirst = await mailpit.searchMessages({ query: `to:${signer01Email} subject:"LibreSign: There is a file for you to sign"` })
+	const afterFirst = await mailpit.searchMessages({ query: `to:${signer01Email} subject:"LibreSign: A document is ready for your signature"` })
 	expect(afterFirst.messages).toHaveLength(1)
 
 	// Keep the browser unauthenticated before opening a public sign link.
@@ -235,9 +235,9 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	await expect(page.getByText('Not signed yet')).toBeVisible()
 
 	// Now that signer01 has signed, signer02 must receive their notification.
-	const email02 = await waitForEmailTo(mailpit, signer02Email, 'LibreSign: There is a file for you to sign')
+	const email02 = await waitForEmailTo(mailpit, signer02Email, 'LibreSign: A document is ready for your signature')
 
-	const afterSecond = await mailpit.searchMessages({ query: `to:${signer02Email} subject:"LibreSign: There is a file for you to sign"` })
+	const afterSecond = await mailpit.searchMessages({ query: `to:${signer02Email} subject:"LibreSign: A document is ready for your signature"` })
 	expect(afterSecond.messages).toHaveLength(1)
 
 	// Signer02 signs via their email link.

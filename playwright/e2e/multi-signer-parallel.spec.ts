@@ -75,10 +75,10 @@ test('request signatures from two signers in parallel', async ({ page }) => {
 
 	// In parallel mode both signers are notified simultaneously.
 	// Proof: wait for signer01's email, then verify that signer02's email also arrived.
-	await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: There is a file for you to sign')
-	await waitForEmailTo(mailpit, 'signer02@libresign.coop', 'LibreSign: There is a file for you to sign')
+	await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: A document is ready for your signature')
+	await waitForEmailTo(mailpit, 'signer02@libresign.coop', 'LibreSign: A document is ready for your signature')
 
 	// Both emails arrived — both signers were notified at the same time, confirming parallel mode.
-	const result = await mailpit.searchMessages({ query: 'subject:"LibreSign: There is a file for you to sign"' })
+	const result = await mailpit.searchMessages({ query: 'subject:"LibreSign: A document is ready for your signature"' })
 	expect(result.messages).toHaveLength(2)
 })

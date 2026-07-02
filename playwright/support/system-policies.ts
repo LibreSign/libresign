@@ -14,11 +14,10 @@
 import { test, request, type APIRequestContext } from '@playwright/test'
 
 import {
-	getSystemPolicySnapshot,
-	restoreSystemPolicySnapshot,
-	setSystemPolicyEntry,
-	type SystemPolicySnapshot,
-} from './policy-api'
+	deleteAppConfig,
+	getAppConfig,
+	setAppConfig,
+} from './nc-provisioning'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -80,17 +79,27 @@ export async function makeAdminContext(): Promise<APIRequestContext> {
  */
 export function useFooterPolicyGuard(): void {
 	let adminContext: APIRequestContext
-	let originalFooterPolicy: SystemPolicySnapshot
+	let originalFooterPolicy: string | null = null
 
 	test.beforeEach(async () => {
 		adminContext = await makeAdminContext()
-		originalFooterPolicy = await getSystemPolicySnapshot(adminContext, FOOTER_POLICY_KEY)
-		await setSystemPolicyEntry(adminContext, FOOTER_POLICY_KEY, FOOTER_DISABLED_VALUE, true)
+		originalFooterPolicy = null
+		originalFooterPolicy = await getAppConfig(adminContext, 'libresign', FOOTER_POLICY_KEY)
+		await setAppConfig(adminContext, 'libresign', FOOTER_POLICY_KEY, FOOTER_DISABLED_VALUE)
 	})
 
 	test.afterEach(async () => {
-		await restoreSystemPolicySnapshot(adminContext, FOOTER_POLICY_KEY, originalFooterPolicy)
-		await adminContext.dispose()
+		try {
+			if (adminContext) {
+				if (originalFooterPolicy === null) {
+					await deleteAppConfig(adminContext, 'libresign', FOOTER_POLICY_KEY)
+				} else {
+					await setAppConfig(adminContext, 'libresign', FOOTER_POLICY_KEY, originalFooterPolicy)
+				}
+			}
+		} finally {
+			await adminContext?.dispose()
+		}
 	})
 }
 
@@ -107,16 +116,26 @@ export function useRequestSignPolicyGuard(
 	baselineValue: string = REQUEST_SIGN_ADMIN_BASELINE_VALUE,
 ): void {
 	let adminContext: APIRequestContext
-	let originalRequestSignPolicy: SystemPolicySnapshot
+	let originalRequestSignPolicy: string | null = null
 
 	test.beforeEach(async () => {
 		adminContext = await makeAdminContext()
-		originalRequestSignPolicy = await getSystemPolicySnapshot(adminContext, REQUEST_SIGN_POLICY_KEY)
-		await setSystemPolicyEntry(adminContext, REQUEST_SIGN_POLICY_KEY, baselineValue, true)
+		originalRequestSignPolicy = null
+		originalRequestSignPolicy = await getAppConfig(adminContext, 'libresign', REQUEST_SIGN_POLICY_KEY)
+		await setAppConfig(adminContext, 'libresign', REQUEST_SIGN_POLICY_KEY, baselineValue)
 	})
 
 	test.afterEach(async () => {
-		await restoreSystemPolicySnapshot(adminContext, REQUEST_SIGN_POLICY_KEY, originalRequestSignPolicy)
-		await adminContext.dispose()
+		try {
+			if (adminContext) {
+				if (originalRequestSignPolicy === null) {
+					await setAppConfig(adminContext, 'libresign', REQUEST_SIGN_POLICY_KEY, REQUEST_SIGN_ADMIN_BASELINE_VALUE)
+				} else {
+					await setAppConfig(adminContext, 'libresign', REQUEST_SIGN_POLICY_KEY, originalRequestSignPolicy)
+				}
+			}
+		} finally {
+			await adminContext?.dispose()
+		}
 	})
 }

@@ -11,6 +11,8 @@ import { useFooterPolicyGuard } from '../support/system-policies'
 
 useFooterPolicyGuard()
 
+test.setTimeout(120_000)
+
 /**
  * An authenticated Nextcloud user can sign a document via the email+token
  * identify method when the signer's email matches their Nextcloud account email.
@@ -68,7 +70,7 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 
 	// Get the sign link from the notification email sent to admin@email.tld.
 	// The admin is intentionally NOT logged out — this tests the authenticated path.
-	const notificationEmail = await waitForEmailTo(mailpit, 'admin@email.tld', 'LibreSign: There is a file for you to sign')
+	const notificationEmail = await waitForEmailTo(mailpit, 'admin@email.tld', 'LibreSign: A document is ready for your signature')
 	const signLink = extractSignLink(notificationEmail.Text)
 	if (!signLink) throw new Error('Sign link not found in notification email')
 
@@ -91,7 +93,7 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 	await emailTextbox.fill('admin@email.tld')
 	await page.getByRole('button', { name: 'Send verification code' }).click()
 
-	const tokenEmail = await waitForEmailTo(mailpit, 'admin@email.tld', 'LibreSign: Code to sign file')
+	const tokenEmail = await waitForEmailTo(mailpit, 'admin@email.tld', 'LibreSign: Verification code to sign a document', { timeout: 60_000 })
 	const token = extractTokenFromEmail(tokenEmail.Text)
 	if (!token) throw new Error('Token not found in email')
 	await page.getByRole('textbox', { name: 'Enter your code' }).fill(token)

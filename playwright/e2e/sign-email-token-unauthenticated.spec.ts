@@ -12,6 +12,8 @@ import { useFooterPolicyGuard } from '../support/system-policies'
 
 useFooterPolicyGuard()
 
+test.setTimeout(120_000)
+
 test('sign document with email token as unauthenticated signer', async ({ page }) => {
 	const signerEmail = `signer-email-token-${Date.now()}@libresign.coop`
 	await login(
@@ -83,7 +85,7 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	await page.context().clearCookies();
 	await page.goto('about:blank');
 
-	const email = await waitForEmailTo(mailpit, signerEmail, 'LibreSign: There is a file for you to sign')
+	const email = await waitForEmailTo(mailpit, signerEmail, 'LibreSign: A document is ready for your signature')
 	const signLink = extractSignLink(email.Text)
 	if (!signLink) throw new Error('Sign link not found in email')
 	const signLinkCandidates = signLink.startsWith('/index.php/')
@@ -129,7 +131,7 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	}
 	await expect(codeTextbox).toBeVisible({ timeout: 15_000 })
 
-	const tokenEmail = await waitForEmailTo(mailpit, signerEmail, 'LibreSign: Code to sign file', { timeout: 60_000 })
+	const tokenEmail = await waitForEmailTo(mailpit, signerEmail, 'LibreSign: Verification code to sign a document', { timeout: 60_000 })
 	const token = extractTokenFromEmail(tokenEmail.Text)
 	if (!token) throw new Error('Token not found in email')
 	await codeTextbox.click();

@@ -7,6 +7,9 @@ import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support/mailpit'
+import { useRequestSignPolicyGuard } from '../support/system-policies'
+
+useRequestSignPolicyGuard()
 
 /**
  * When an authenticated Nextcloud user visits a sign link that belongs to a
@@ -67,7 +70,7 @@ test('authenticated user sees authentication guidance when accessing another sig
 
 	// Retrieve the sign link from the notification email sent to the signer.
 	// The admin is intentionally NOT logged out — this simulates the wrong-session scenario.
-	const email = await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: There is a file for you to sign', {
+	const email = await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: A document is ready for your signature', {
 		timeout: 60_000,
 	})
 	const signLink = extractSignLink(email.Text)
