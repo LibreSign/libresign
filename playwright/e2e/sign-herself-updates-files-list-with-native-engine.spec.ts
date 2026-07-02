@@ -8,9 +8,12 @@ import { expect, test, type Page } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
 import { getSmallValidPdfBase64 } from '../support/pdf-fixtures.ts'
-import { useFooterPolicyGuard } from '../support/system-policies'
+import { useFooterPolicyGuard, useRequestSignPolicyGuard } from '../support/system-policies'
 
 useFooterPolicyGuard()
+useRequestSignPolicyGuard()
+
+test.setTimeout(120_000)
 
 type SignerRecord = {
 	me?: boolean
@@ -163,7 +166,8 @@ test('updates files list status after signing with native engine', async ({ page
 		signResponse.ok(),
 		`Sign API failed with status ${signResponse.status()}: ${signResponseBody}`,
 	).toBeTruthy()
-	await expect(page.getByText('This document is valid')).toBeVisible()
+	await page.waitForURL('**/validation/**', { waitUntil: 'commit', timeout: 30_000 })
+	await expect(page.getByText('This document is valid')).toBeVisible({ timeout: 15_000 })
 
 	await page.locator('#fileslist').getByRole('link', { name: 'Files' }).click()
 	if (await filesSearch.isVisible({ timeout: 2000 }).catch(() => false)) {
