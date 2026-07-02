@@ -8,9 +8,10 @@ import { login } from '../support/nc-login'
 import { configureOpenSsl, setAppConfig, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromEmail } from '../support/mailpit'
 import { getSmallValidPdfBase64 } from '../support/pdf-fixtures'
-import { useFooterPolicyGuard } from '../support/system-policies'
+import { useFooterPolicyGuard, useRequestSignPolicyGuard } from '../support/system-policies'
 
 useFooterPolicyGuard()
+useRequestSignPolicyGuard()
 
 test.setTimeout(120_000)
 

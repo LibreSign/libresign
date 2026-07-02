@@ -7,9 +7,10 @@ import { test, expect } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, deleteAppConfig, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromEmail } from '../support/mailpit'
-import { useFooterPolicyGuard } from '../support/system-policies'
+import { useFooterPolicyGuard, useRequestSignPolicyGuard } from '../support/system-policies'
 
 useFooterPolicyGuard()
+useRequestSignPolicyGuard()
 
 test.setTimeout(120_000)
 
