@@ -128,8 +128,8 @@ export function useRequestSignPolicyGuard(
 	test.afterEach(async () => {
 		try {
 			if (adminContext) {
-				if (originalRequestSignPolicy === null) {
-					await setAppConfig(adminContext, 'libresign', REQUEST_SIGN_POLICY_KEY, REQUEST_SIGN_ADMIN_BASELINE_VALUE)
+				if (originalRequestSignPolicy === null || originalRequestSignPolicy === '') {
+					await deleteAppConfig(adminContext, 'libresign', REQUEST_SIGN_POLICY_KEY)
 				} else {
 					await setAppConfig(adminContext, 'libresign', REQUEST_SIGN_POLICY_KEY, originalRequestSignPolicy)
 				}
