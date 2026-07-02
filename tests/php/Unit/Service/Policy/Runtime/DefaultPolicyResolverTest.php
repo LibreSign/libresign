@@ -884,6 +884,38 @@ final class DefaultPolicyResolverTest extends TestCase {
 			resolutionMode: PolicySpec::RESOLUTION_MODE_VALUE_CHOICE,
 		);
 	}
+
+	/** @return array<string, array{0: string}> */
+	public static function provideInvalidStoredLayerValues(): array {
+		return [
+			'empty string (unconfigured state)' => [''],
+			'empty JSON object' => ['{}'],
+			'empty JSON array' => ['[]'],
+			'non-JSON garbage' => ['corrupted-value'],
+		];
+	}
+
+	#[DataProvider('provideInvalidStoredLayerValues')]
+	public function testResolveSkipsSystemLayerWithInvalidStoredValueAndFallsBackToDefault(string $invalidValue): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue($invalidValue)
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+
+		$definition = $this->getRequestSignGroupsDefinition();
+		$resolver = new DefaultPolicyResolver($source);
+
+		// Must not throw — instead falls back to the definition default
+		$resolved = $resolver->resolve($definition, new PolicyContext());
+
+		$this->assertSame(
+			$definition->defaultSystemValue(),
+			$resolved->getEffectiveValue(),
+			'Resolver must fall back to the definition default when stored layer value fails validation',
+		);
+	}
 }
 
 final class InMemoryPolicySource implements IPolicySource {

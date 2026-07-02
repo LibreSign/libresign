@@ -12,7 +12,6 @@ use OCA\Files\Event\LoadAdditionalScriptsEvent;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCP\App\IAppManager;
-use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\Util;
@@ -24,7 +23,6 @@ class LoadAdditionalListener implements IEventListener {
 	public function __construct(
 		private IAppManager $appManager,
 		private CertificateEngineFactory $certificateEngineFactory,
-		private IInitialState $initialState,
 	) {
 	}
 	#[\Override]
@@ -42,7 +40,6 @@ class LoadAdditionalListener implements IEventListener {
 		}
 
 		if (class_exists('\OCA\Files\App')) {
-			$this->initialState->provideInitialState('certificate_ok', true);
 			Util::addInitScript(Application::APP_ID, 'libresign-init');
 		}
 	}
