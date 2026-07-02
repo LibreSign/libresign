@@ -148,6 +148,7 @@ OC.L10N.register(
     "Yes" : "Да",
     "No" : "Не",
     "Reset to default" : "Ресетирај на стандардно",
+    "Background image" : "Позадинска слика",
     "Remove background" : "Избриши ја позадината",
     "Learn more" : "Научи повеќе",
     "Invalid URL" : "Неправилна URL",
