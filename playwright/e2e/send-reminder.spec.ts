@@ -7,6 +7,9 @@ import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo } from '../support/mailpit'
+import { useRequestSignPolicyGuard } from '../support/system-policies'
+
+useRequestSignPolicyGuard()
 
 /**
  * After an admin sends a signature request, they can re-notify a signer who
@@ -61,8 +64,8 @@ test('admin can send a reminder to a pending signer', async ({ page }) => {
 	await page.getByRole('button', { name: 'Send' }).click()
 
 	// Confirm the initial notification email arrived — one email so far.
-	await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: There is a file for you to sign')
-	const afterInitial = await mailpit.searchMessages({ query: 'to:signer01@libresign.coop subject:"LibreSign: There is a file for you to sign"' })
+	await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: A document is ready for your signature')
+	const afterInitial = await mailpit.searchMessages({ query: 'to:signer01@libresign.coop subject:"LibreSign: A document is ready for your signature"' })
 	expect(afterInitial.messages).toHaveLength(1)
 
 	// Find the signer row and click "Send reminder" from its action menu.
@@ -73,8 +76,8 @@ test('admin can send a reminder to a pending signer', async ({ page }) => {
 	await expect(sendReminderAction).toBeVisible({ timeout: 8000 })
 	await sendReminderAction.click()
 
-	// The reminder uses a different subject: "LibreSign: Changes into a file for you to sign".
-	await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: Changes into a file for you to sign')
-	const afterReminder = await mailpit.searchMessages({ query: 'to:signer01@libresign.coop subject:"LibreSign: Changes into a file for you to sign"' })
+	// The reminder uses the updated pending-document subject.
+	await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: Changes were made to a document waiting for your signature')
+	const afterReminder = await mailpit.searchMessages({ query: 'to:signer01@libresign.coop subject:"LibreSign: Changes were made to a document waiting for your signature"' })
 	expect(afterReminder.messages).toHaveLength(1)
 })

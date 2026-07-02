@@ -11,9 +11,10 @@ import type { APIRequestContext, Locator, Page } from '@playwright/test'
 import { createMailpitClient, extractSignLink, waitForEmailTo } from '../support/mailpit'
 import { configureOpenSsl, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
 import { getSmallValidPdfBase64 } from '../support/pdf-fixtures'
-import { useFooterPolicyGuard } from '../support/system-policies'
+import { useFooterPolicyGuard, useRequestSignPolicyGuard } from '../support/system-policies'
 
 useFooterPolicyGuard()
+useRequestSignPolicyGuard()
 test.setTimeout(60_000)
 
 type EnvelopeSigningScenario = {
@@ -161,7 +162,7 @@ async function waitForSignerInvitationLink(signerEmail: string) {
 	const email = await waitForEmailTo(
 		createMailpitClient(),
 		signerEmail,
-		'LibreSign: There is a file for you to sign',
+		'LibreSign: A document is ready for your signature',
 		{ interval: 250 },
 	)
 	const signLink = extractSignLink(email.Text)
