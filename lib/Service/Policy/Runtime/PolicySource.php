@@ -43,6 +43,15 @@ class PolicySource implements IPolicySource {
 		$storedValue = $hasExplicitSystemValue
 			? $this->readSystemValue($definition->getAppConfigKey(), $defaultValue)
 			: null;
+
+		// An empty string means the key was written directly (bypassing the
+		// policy API) or cleared via a migration path.  Treat it the same as
+		// having no explicit system value so the default applies cleanly.
+		if ($storedValue === '') {
+			$hasExplicitSystemValue = false;
+			$storedValue = null;
+		}
+
 		$value = $hasExplicitSystemValue
 			? $definition->normalizeValue($storedValue)
 			: $defaultValue;
@@ -642,7 +651,8 @@ class PolicySource implements IPolicySource {
 		$systemConfigQuery->select('configkey')
 			->from('appconfig')
 			->where($systemConfigQuery->expr()->eq('appid', $systemConfigQuery->createNamedParameter(Application::APP_ID)))
-			->andWhere($systemConfigQuery->expr()->in('configkey', $systemConfigQuery->createNamedParameter(array_values($configKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)));
+			->andWhere($systemConfigQuery->expr()->in('configkey', $systemConfigQuery->createNamedParameter(array_values($configKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($systemConfigQuery->expr()->neq('configvalue', $systemConfigQuery->createNamedParameter('')));
 
 		$systemConfigResult = $systemConfigQuery->executeQuery();
 		try {

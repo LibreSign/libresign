@@ -811,6 +811,22 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame(['{"allowGroups":["admin","finance"],"denyGroups":[]}'], $layer->getAllowedValues());
 	}
 
+	public function testLoadSystemPolicyTreatsEmptyStoredValueAsNoExplicitSystemValue(): void {
+		// Simulate a state where the policy key exists in appconfig but with
+		// an empty string value – as can happen when the value is written
+		// directly (bypassing the policy API) or via a legacy migration path.
+		$this->setStoredAppConfigString('groups_request_sign', '');
+
+		$source = $this->getSource();
+		$layer = $source->loadSystemPolicy('groups_request_sign');
+
+		$this->assertNotNull($layer);
+		// Must be treated as if no explicit system value was set:
+		$this->assertSame('system', $layer->getScope());
+		$this->assertSame('{"allowGroups":["admin"],"denyGroups":[]}', $layer->getValue());
+		$this->assertTrue($layer->isAllowChildOverride());
+	}
+
 	public function testLoadGroupPolicyConfigReturnsBoundPolicyLayer(): void {
 		$binding = new PermissionSetBinding();
 		$binding->setPermissionSetId(77);
@@ -1942,6 +1958,7 @@ final class PolicySourceTest extends TestCase {
 		$systemConfigQuery->method('select')->willReturnSelf();
 		$systemConfigQuery->method('from')->willReturnSelf();
 		$systemConfigQuery->method('where')->willReturnSelf();
+		$systemConfigQuery->method('andWhere')->willReturnSelf();
 		$systemConfigQuery->method('expr')->willReturn($expr);
 		$systemConfigQuery->method('createNamedParameter')->willReturn(':p');
 
@@ -2144,6 +2161,7 @@ final class PolicySourceTest extends TestCase {
 		$systemConfigQuery->method('select')->willReturnSelf();
 		$systemConfigQuery->method('from')->willReturnSelf();
 		$systemConfigQuery->method('where')->willReturnSelf();
+		$systemConfigQuery->method('andWhere')->willReturnSelf();
 		$systemConfigQuery->method('expr')->willReturn($expr);
 		$systemConfigQuery->method('createNamedParameter')->willReturn(':p');
 
