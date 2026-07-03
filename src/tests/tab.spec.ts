@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockLoadState = vi.fn(() => true)
 const mockRegisterSidebarTab = vi.fn()
@@ -51,42 +51,71 @@ vi.mock('../components/RightSidebar/AppFilesTab.vue', () => appFilesTabModuleLoa
 vi.mock('../../img/app-dark.svg?raw', () => ({ default: '<svg />' }))
 vi.mock('../style/icons.scss', () => ({}))
 
-beforeAll(async () => {
+async function loadTabModule(readyState: DocumentReadyState = 'complete') {
+	Object.defineProperty(document, 'readyState', {
+		value: readyState,
+		writable: true,
+		configurable: true,
+	})
+
 	await import('../tab')
-})
+}
+
+function getRegisteredTabConfig<T = { id: string; tagName: string }>() {
+	expect(mockRegisterSidebarTab).toHaveBeenCalledOnce()
+	return mockRegisterSidebarTab.mock.calls[0][0] as T
+}
 
 beforeEach(() => {
+	vi.resetModules()
 	vi.clearAllMocks()
+	mockLoadState.mockReturnValue(true)
 	window.OCA = window.OCA ?? {}
 	window.OCA.Libresign = {}
+	document.body.innerHTML = ''
+	Object.defineProperty(document, 'readyState', {
+		value: 'complete',
+		writable: true,
+		configurable: true,
+	})
 })
 
 describe('tab.ts', () => {
-	it('registers LibreSign sidebar tab on DOMContentLoaded', () => {
-		window.dispatchEvent(new Event('DOMContentLoaded'))
+	it('registers LibreSign sidebar tab immediately when DOM is already ready', async () => {
+		await loadTabModule('complete')
 
 		expect(mockRegisterSidebarTab).toHaveBeenCalledOnce()
-		const tabConfig = mockRegisterSidebarTab.mock.calls[0][0] as { id: string; tagName: string }
+		const tabConfig = getRegisteredTabConfig()
 		expect(tabConfig.id).toBe('libresign')
 		expect(tabConfig.tagName).toBe('libresign-files-sidebar-tab')
 	})
 
-	it('enabled() returns false when certificate is not configured', () => {
-		mockLoadState.mockReturnValue(false)
+	it('registers LibreSign sidebar tab on DOMContentLoaded when document is still loading', async () => {
+		await loadTabModule('loading')
+
+		expect(mockRegisterSidebarTab).not.toHaveBeenCalled()
 		window.dispatchEvent(new Event('DOMContentLoaded'))
-		const tabConfig = mockRegisterSidebarTab.mock.calls[0][0] as {
+
+		const tabConfig = getRegisteredTabConfig()
+		expect(tabConfig.id).toBe('libresign')
+		expect(tabConfig.tagName).toBe('libresign-files-sidebar-tab')
+	})
+
+	it('enabled() returns false when certificate is not configured', async () => {
+		mockLoadState.mockReturnValue(false)
+		await loadTabModule('complete')
+		const tabConfig = getRegisteredTabConfig<{
 			enabled: (context: { node: Record<string, unknown> }) => boolean
-		}
+		}>()
 
 		expect(tabConfig.enabled({ node: { type: 'file', mimetype: 'application/pdf' } })).toBe(false)
 	})
 
-	it('enabled() accepts signed folders and maps file info into OCA.Libresign', () => {
-		mockLoadState.mockReturnValue(true)
-		window.dispatchEvent(new Event('DOMContentLoaded'))
-		const tabConfig = mockRegisterSidebarTab.mock.calls[0][0] as {
+	it('enabled() accepts signed folders and maps file info into OCA.Libresign', async () => {
+		await loadTabModule('complete')
+		const tabConfig = getRegisteredTabConfig<{
 			enabled: (context: { node: Record<string, unknown> }) => boolean
-		}
+		}>()
 
 		const enabled = tabConfig.enabled({
 			node: {
@@ -109,7 +138,7 @@ describe('tab.ts', () => {
 	})
 
 	it('lazy mounts Vue only when custom element is connected and unmounts on disconnect', async () => {
-		window.dispatchEvent(new Event('DOMContentLoaded'))
+		await loadTabModule('complete')
 
 		const TabElement = window.customElements.get('libresign-files-sidebar-tab')
 		expect(TabElement).toBeDefined()

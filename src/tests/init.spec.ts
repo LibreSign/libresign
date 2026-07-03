@@ -26,6 +26,18 @@ import { describe, expect, it, beforeEach, vi, afterEach } from 'vitest'
  *   stayed 0, and saveOrUpdateSignatureRequest sent POST without any file reference.
  *   Fix: pass data: getDefaultPropfind() to client.stat() so fileid is always
  *   included and the sidebar can correctly identify the uploaded file.
+ *
+ * Bug 4: the Files runtime calls New-menu handlers as plain functions.
+ *   Relying on `this.uploadManager` works in unit tests that bind the handler,
+ *   but fails in production when the handler is executed without a bound entry.
+ *   Fix: close over getUploader() instead of reading upload state from `this`.
+ *
+ * Bug 5: the Files menu upload hit DAV 403 Forbidden.
+ *   The new-menu handler used the upload helper directly and hit DAV 403.
+ *   The @nextcloud/files contract recommends creating files through its WebDAV
+ *   client and then emitting Files event-bus updates. Fix: upload via
+ *   getClient().putFileContents(), stat the created node, and emit
+ *   files:node:created so the list refreshes.
  */
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
@@ -34,22 +46,21 @@ const mockDefaultPropfind = '<propfind xmlns="DAV:"><prop><fileid/></prop></prop
 const mockGetDefaultPropfind = vi.fn(() => mockDefaultPropfind)
 
 const mockStat = vi.fn()
-const mockClient = { stat: mockStat }
+const mockPutFileContents = vi.fn(() => Promise.resolve(true))
+const mockClient = { putFileContents: mockPutFileContents, stat: mockStat }
 const mockGetClient = vi.fn(() => mockClient)
 const mockGetRootPath = vi.fn(() => '/files/testuser')
 const mockResultToNode = vi.fn((data: unknown) => data)
 const mockRegisterDavProperty = vi.fn()
+const mockEmit = vi.fn()
 
 const mockSidebarOpen = vi.fn()
 const mockSidebarSetActiveTab = vi.fn()
 const mockSidebar = { open: mockSidebarOpen, setActiveTab: mockSidebarSetActiveTab }
 const mockGetSidebar = vi.fn(() => mockSidebar)
+const mockGetSidebarTabs = vi.fn(() => [{ id: 'libresign' }])
 const mockAddNewFileMenuEntry = vi.fn()
 const mockRegisterFileAction = vi.fn()
-
-const mockUpload = vi.fn(() => Promise.resolve())
-const mockUploader = { upload: mockUpload }
-const mockGetUploader = vi.fn(() => mockUploader)
 
 const mockAxiosPost = vi.fn(() => Promise.resolve({ data: {} }))
 
@@ -64,17 +75,18 @@ vi.mock('@nextcloud/axios', () => ({
 	default: { post: mockAxiosPost },
 }))
 
-vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: vi.fn((path: string) => `https://localhost${path}`),
+vi.mock('@nextcloud/event-bus', () => ({
+	emit: mockEmit,
 }))
 
-vi.mock('@nextcloud/upload', () => ({
-	getUploader: mockGetUploader,
+vi.mock('@nextcloud/router', () => ({
+	generateOcsUrl: vi.fn((path: string) => `https://localhost${path}`),
 }))
 
 vi.mock('@nextcloud/files', () => ({
 	addNewFileMenuEntry: mockAddNewFileMenuEntry,
 	getSidebar: mockGetSidebar,
+	getSidebarTabs: mockGetSidebarTabs,
 	Permission: { CREATE: 4 },
 	registerFileAction: mockRegisterFileAction,
 }))
@@ -113,14 +125,15 @@ vi.mock('../actions/showStatusInlineAction.js', () => ({}))
 /**
  * Extract the handler that was registered via addNewFileMenuEntry so tests
  * can call it directly without simulating a real click.
+ *
+ * Important: return the raw handler without binding, to mirror how the
+ * Files runtime executes registered menu handlers.
  */
 function captureNewMenuHandler(): (context: unknown, content: unknown) => Promise<void> {
 	expect(mockAddNewFileMenuEntry).toHaveBeenCalledOnce()
-	type MenuEntry = { handler: (context: unknown, content: unknown) => Promise<void>; uploadManager?: { upload: typeof mockUpload } }
+	type MenuEntry = { handler: (context: unknown, content: unknown) => Promise<void> }
 	const entry = mockAddNewFileMenuEntry.mock.calls[0][0] as MenuEntry
-	// Inject the mock uploader so handler can call this.uploadManager.upload()
-	entry.uploadManager = mockUploader
-	return entry.handler.bind(entry)
+	return entry.handler
 }
 
 /**
@@ -159,6 +172,7 @@ function setupFileInputInterception(fileName: string, mimeType = 'application/pd
 describe('init.ts', () => {
 	beforeEach(async () => {
 		vi.clearAllMocks()
+		mockGetSidebarTabs.mockReturnValue([{ id: 'libresign' }])
 
 		// Reset stat mock to return valid data for resultToNode
 		mockStat.mockResolvedValue({ data: { filename: '/files/testuser/Documents/test.pdf' } })
@@ -288,9 +302,30 @@ describe('init.ts', () => {
 		})
 
 		it('uploads the file before posting the OCS request', () => {
-			const uploadCallOrder = mockUpload.mock.invocationCallOrder[0]
+			const uploadCallOrder = mockPutFileContents.mock.invocationCallOrder[0]
 			const postCallOrder = mockAxiosPost.mock.invocationCallOrder[0]
 			expect(uploadCallOrder).toBeLessThan(postCallOrder)
+		})
+
+		it('uploads the file to the normalized current folder path via WebDAV', () => {
+			expect(mockPutFileContents).toHaveBeenCalledWith(
+				`${mockGetRootPath()}${folderPath}/${fileName}`,
+				expect.anything(),
+				expect.objectContaining({
+					contentLength: expect.any(Number),
+					overwrite: false,
+				}),
+			)
+
+			const uploadedData = mockPutFileContents.mock.calls[0][1] as ArrayBuffer
+			expect(uploadedData.byteLength).toBeGreaterThan(0)
+		})
+
+		it('emits files:node:created after the uploaded file is statted', () => {
+			expect(mockEmit).toHaveBeenCalledWith(
+				'files:node:created',
+				expect.anything(),
+			)
 		})
 
 		it('posts to the LibreSign OCS file endpoint', () => {
@@ -303,6 +338,32 @@ describe('init.ts', () => {
 		it('opens the sidebar to the LibreSign tab after upload', () => {
 			expect(mockSidebarOpen).toHaveBeenCalledOnce()
 			expect(mockSidebarSetActiveTab).toHaveBeenCalledWith('libresign')
+		})
+
+		it('waits for the LibreSign sidebar tab to register before activating it', async () => {
+			mockStat.mockClear()
+			mockPutFileContents.mockClear()
+			mockAxiosPost.mockClear()
+			mockSidebarOpen.mockClear()
+			mockSidebarSetActiveTab.mockClear()
+			mockGetSidebarTabs.mockClear()
+
+			let sidebarTabChecks = 0
+			mockGetSidebarTabs.mockImplementation(() => {
+				sidebarTabChecks += 1
+				return sidebarTabChecks > 1 ? [{ id: 'libresign' }] : []
+			})
+
+			const delayedFileName = 'delayed-tab.pdf'
+			const context = { path: '/Documents', permissions: 4 }
+			const triggerChange = setupFileInputInterception(delayedFileName)
+			const handler = captureNewMenuHandler()
+
+			await handler(context, [])
+			await triggerChange()
+
+			await vi.waitFor(() => expect(mockGetSidebarTabs).toHaveBeenCalledTimes(2))
+			await vi.waitFor(() => expect(mockSidebarSetActiveTab).toHaveBeenCalledWith('libresign'))
 		})
 	})
 })

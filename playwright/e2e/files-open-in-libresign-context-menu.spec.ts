@@ -3,45 +3,15 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { expect, test, type APIRequestContext } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 import { login } from '../support/nc-login'
+import { ensureFilesHomeInitialized, uploadFileToFilesApp, waitForFilesAction } from '../support/nc-files'
 import { configureOpenSsl } from '../support/nc-provisioning'
 import { getSmallValidPdfBuffer } from '../support/pdf-fixtures'
 import { useRequestSignPolicyGuard } from '../support/system-policies'
 
 useRequestSignPolicyGuard()
-
-/**
- * Uploads a PDF file directly into the admin Files area using the current
- * authenticated browser session token.
- *
- * @param request Authenticated Playwright API request context.
- * @param fileName Target file name in the admin root folder.
- * @param pdfBuffer PDF fixture contents.
- * @param requestToken Nextcloud CSRF request token from the current page.
- */
-async function uploadPdfToAdminFiles(
-	request: APIRequestContext,
-	fileName: string,
-	pdfBuffer: Buffer,
-	requestToken: string,
-) {
-	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
-	const response = await request.fetch(`./remote.php/dav/files/${adminUser}/${fileName}`, {
-		method: 'PUT',
-		headers: {
-			'Content-Type': 'application/pdf',
-			requesttoken: requestToken,
-		},
-		data: pdfBuffer,
-		failOnStatusCode: false,
-	})
-
-	if (![201, 204].includes(response.status())) {
-		throw new Error(`WebDAV upload failed for ${fileName}: ${response.status()} ${await response.text()}`)
-	}
-}
 
 test('open PDF in LibreSign from Files context menu', async ({ page }) => {
 	test.slow()
@@ -60,18 +30,19 @@ test('open PDF in LibreSign from Files context menu', async ({ page }) => {
 		L: 'Rio de Janeiro',
 	})
 
+	await ensureFilesHomeInitialized(page.request)
+
 	const fileName = `libresign-context-menu-${Date.now()}.pdf`
 	const pdfBuffer = await getSmallValidPdfBuffer()
 
 	await page.goto('./apps/files')
 	await expect(page.getByRole('heading', { name: 'All files' })).toBeVisible({ timeout: 15000 })
-	const requestToken = await page.evaluate(() => {
-		const nextcloudWindow = window as Window & { OC?: { requestToken?: string } }
-		return nextcloudWindow.OC?.requestToken ?? ''
+	await waitForFilesAction(page, 'open-in-libresign')
+	await uploadFileToFilesApp(page, {
+		name: fileName,
+		mimeType: 'application/pdf',
+		buffer: pdfBuffer,
 	})
-	await uploadPdfToAdminFiles(page.request, fileName, pdfBuffer, requestToken)
-	await page.reload()
-	await expect(page.getByRole('heading', { name: 'All files' })).toBeVisible({ timeout: 15000 })
 
 	const filesTable = page.getByRole('table', {
 		name: /List of your files and folders/i,

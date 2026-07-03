@@ -4,15 +4,14 @@
  */
 
 import axios from '@nextcloud/axios'
-import { addNewFileMenuEntry, Permission, getSidebar } from '@nextcloud/files'
-import type { NewMenuEntry, IFolder, INode } from '@nextcloud/files'
+import { emit } from '@nextcloud/event-bus'
+import { addNewFileMenuEntry, Permission, getSidebar, getSidebarTabs } from '@nextcloud/files'
+import type { IFolder, INode } from '@nextcloud/files'
 import { registerDavProperty } from '@nextcloud/files/dav'
 import { getClient, getDefaultPropfind, getRootPath, resultToNode } from '@nextcloud/files/dav'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
-import { getUploader } from '@nextcloud/upload'
-import type { Uploader } from '@nextcloud/upload'
 import type { FileStat, ResponseDataDetailed } from 'webdav'
 
 import './actions/openInLibreSignAction.js'
@@ -21,14 +20,30 @@ import LibreSignLogoSvg from '../img/app-colored.svg?raw'
 import LibreSignLogoDarkSvg from '../img/app-dark.svg?raw'
 import { useIsDarkTheme } from './helpers/useIsDarkTheme'
 
-// Extend NewMenuEntry to include uploadManager
-interface ExtendedNewMenuEntry extends NewMenuEntry {
-	uploadManager?: Uploader
-}
-
 interface UploadPayload {
 	file: {
 		name: string
+	}
+}
+
+const libresignSidebarTabId = 'libresign'
+
+function getNormalizedUploadPath(contextPath: string, fileName: string): string {
+	const normalizedContextPath = contextPath === '/'
+		? ''
+		: contextPath.replace(/\/$/, '')
+
+	return `${normalizedContextPath}/${fileName}`
+}
+
+async function waitForSidebarTabRegistration(tabId: string, timeoutMs = 5000): Promise<void> {
+	const startedAt = Date.now()
+	while (Date.now() - startedAt < timeoutMs) {
+		if (getSidebarTabs().some((tab) => tab.id === tabId)) {
+			return
+		}
+
+		await new Promise((resolve) => setTimeout(resolve, 50))
 	}
 }
 
@@ -39,7 +54,6 @@ addNewFileMenuEntry({
 	id: 'libresign-request',
 	displayName: t('libresign', 'New signature request'),
 	iconSvgInline: useIsDarkTheme() ? LibreSignLogoDarkSvg : LibreSignLogoSvg,
-	uploadManager: getUploader(),
 	order: 1,
 	enabled(context: IFolder) {
 		if (!loadState('libresign', 'certificate_ok', false)) {
@@ -47,7 +61,7 @@ addNewFileMenuEntry({
 		}
 		return (context.permissions & Permission.CREATE) !== 0
 	},
-	async handler(this: ExtendedNewMenuEntry, context: IFolder, content: INode[]) {
+	async handler(context: IFolder, content: INode[]) {
 		const input = document.createElement('input')
 		input.accept = 'application/pdf'
 		input.type = 'file'
@@ -58,9 +72,14 @@ addNewFileMenuEntry({
 				return
 			}
 
-			const path = context.path + '/' + file.name
+			const path = getNormalizedUploadPath(context.path, file.name)
+			const remotePath = `${getRootPath()}${path}`
+			const client = getClient()
 
-			await this.uploadManager?.upload(file.name, file)
+			await client.putFileContents(remotePath, await file.arrayBuffer(), {
+				contentLength: file.size,
+				overwrite: false,
+			})
 
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
 				file: {
@@ -70,19 +89,20 @@ addNewFileMenuEntry({
 			})
 
 			// Fetch the complete node object including Nextcloud-specific props (fileid, etc.)
-			const client = getClient()
-			const result = await client.stat(`${getRootPath()}${path}`, {
+			const result = await client.stat(remotePath, {
 				details: true,
 				data: getDefaultPropfind(),
 			}) as ResponseDataDetailed<FileStat>
 			const node = resultToNode(result.data)
+			emit('files:node:created', node)
 
 			// Open sidebar with LibreSign tab
 			const sidebar = getSidebar()
-			await sidebar.open(node, 'libresign')
-			sidebar.setActiveTab('libresign')
+			await sidebar.open(node, libresignSidebarTabId)
+			await waitForSidebarTabRegistration(libresignSidebarTabId)
+			sidebar.setActiveTab(libresignSidebarTabId)
 		}
 
 		input.click()
 	},
-} as ExtendedNewMenuEntry)
+})
