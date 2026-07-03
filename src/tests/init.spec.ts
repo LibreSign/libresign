@@ -5,50 +5,17 @@
 
 import { describe, expect, it, beforeEach, vi, afterEach } from 'vitest'
 
-/**
- * Regression tests for src/init.ts
- *
- * Bug 1: PROPFIND 404 on file upload via "New signature request" menu.
- *   client.stat() was called with only the bare file path (e.g. "/folder/test.pdf"),
- *   which resolves to /remote.php/dav/folder/test.pdf → 404.
- *   Fix: path must be prefixed with getRootPath() (e.g. "/files/uid/folder/test.pdf").
- *
- * Bug 2: "Open in LibreSign" action was missing from Files context-menu.
- *   The action files were never imported by any bundle entry point, so
- *   registerFileAction() was never called for them.
- *   Fix: init.ts now imports both action modules as side-effects.
- *
- * Bug 3: POST /request-signature missing "file" parameter after upload.
- *   client.stat() was called WITHOUT getDefaultPropfind() data, so the WebDAV
- *   PROPFIND response omitted the Nextcloud-specific {owncloud}fileid property.
- *   resultToNode() produced a Node with fileid = undefined, mapNodeToFileInfo
- *   returned id = '', addFile() silently rejected the temp record, selectedFileId
- *   stayed 0, and saveOrUpdateSignatureRequest sent POST without any file reference.
- *   Fix: pass data: getDefaultPropfind() to client.stat() so fileid is always
- *   included and the sidebar can correctly identify the uploaded file.
- *
- * Bug 4: the Files runtime calls New-menu handlers as plain functions.
- *   Relying on `this.uploadManager` works in unit tests that bind the handler,
- *   but fails in production when the handler is executed without a bound entry.
- *   Fix: close over getUploader() instead of reading upload state from `this`.
- *
- * Bug 5: the Files menu upload hit DAV 403 Forbidden.
- *   The new-menu handler used the upload helper directly and hit DAV 403.
- *   The @nextcloud/files contract recommends creating files through its WebDAV
- *   client and then emitting Files event-bus updates. Fix: upload via
- *   getClient().putFileContents(), stat the created node, and emit
- *   files:node:created so the list refreshes.
- */
-
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
 const mockDefaultPropfind = '<propfind xmlns="DAV:"><prop><fileid/></prop></propfind>'
 const mockGetDefaultPropfind = vi.fn(() => mockDefaultPropfind)
 
 const mockStat = vi.fn()
-const mockPutFileContents = vi.fn(() => Promise.resolve(true))
-const mockClient = { putFileContents: mockPutFileContents, stat: mockStat }
+const mockUpload = vi.fn(() => Promise.resolve({}))
+const mockUploader = { upload: mockUpload }
+const mockClient = { stat: mockStat }
 const mockGetClient = vi.fn(() => mockClient)
+const mockGetUploader = vi.fn(() => mockUploader)
 const mockGetRootPath = vi.fn(() => '/files/testuser')
 const mockResultToNode = vi.fn((data: unknown) => data)
 const mockRegisterDavProperty = vi.fn()
@@ -101,6 +68,10 @@ vi.mock('@nextcloud/files/dav', () => ({
 	getRootPath: mockGetRootPath,
 	resultToNode: mockResultToNode,
 	registerDavProperty: mockRegisterDavProperty,
+}))
+
+vi.mock('@nextcloud/upload', () => ({
+	getUploader: mockGetUploader,
 }))
 
 // Stub the SVG imports so they don't blow up in the test environment
@@ -261,7 +232,11 @@ describe('init.ts', () => {
 	describe('new-menu handler', () => {
 		const folderPath = '/Documents'
 		const fileName = 'contract.pdf'
-		const context = { path: folderPath, permissions: 4 /* CREATE */ }
+		const context = {
+			path: folderPath,
+			permissions: 4 /* CREATE */,
+			source: 'https://localhost/remote.php/dav/files/testuser/Documents',
+		}
 
 		beforeEach(async () => {
 			const triggerChange = setupFileInputInterception(fileName)
@@ -302,23 +277,20 @@ describe('init.ts', () => {
 		})
 
 		it('uploads the file before posting the OCS request', () => {
-			const uploadCallOrder = mockPutFileContents.mock.invocationCallOrder[0]
+			const uploadCallOrder = mockUpload.mock.invocationCallOrder[0]
 			const postCallOrder = mockAxiosPost.mock.invocationCallOrder[0]
 			expect(uploadCallOrder).toBeLessThan(postCallOrder)
 		})
 
-		it('uploads the file to the normalized current folder path via WebDAV', () => {
-			expect(mockPutFileContents).toHaveBeenCalledWith(
-				`${mockGetRootPath()}${folderPath}/${fileName}`,
-				expect.anything(),
-				expect.objectContaining({
-					contentLength: expect.any(Number),
-					overwrite: false,
-				}),
+		it('uploads the file through @nextcloud/upload using the current folder source', () => {
+			expect(mockUpload).toHaveBeenCalledWith(
+				fileName,
+				expect.any(File),
+				context.source,
 			)
 
-			const uploadedData = mockPutFileContents.mock.calls[0][1] as ArrayBuffer
-			expect(uploadedData.byteLength).toBeGreaterThan(0)
+			const uploadedFile = mockUpload.mock.calls[0][1] as File
+			expect(uploadedFile.size).toBeGreaterThan(0)
 		})
 
 		it('emits files:node:created after the uploaded file is statted', () => {
@@ -342,7 +314,7 @@ describe('init.ts', () => {
 
 		it('waits for the LibreSign sidebar tab to register before activating it', async () => {
 			mockStat.mockClear()
-			mockPutFileContents.mockClear()
+			mockUpload.mockClear()
 			mockAxiosPost.mockClear()
 			mockSidebarOpen.mockClear()
 			mockSidebarSetActiveTab.mockClear()
@@ -355,7 +327,11 @@ describe('init.ts', () => {
 			})
 
 			const delayedFileName = 'delayed-tab.pdf'
-			const context = { path: '/Documents', permissions: 4 }
+			const context = {
+				path: '/Documents',
+				permissions: 4,
+				source: 'https://localhost/remote.php/dav/files/testuser/Documents',
+			}
 			const triggerChange = setupFileInputInterception(delayedFileName)
 			const handler = captureNewMenuHandler()
 
