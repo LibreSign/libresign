@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service\Policy\Provider\Tsa;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
 
 final class TsaPolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'tsa_settings';
@@ -31,7 +32,7 @@ final class TsaPolicy implements IPolicyDefinitionProvider {
 
 	#[\Override]
 	public function get(string|\BackedEnum $policyKey): IPolicyDefinition {
-		return match ($this->normalizePolicyKey($policyKey)) {
+		return match (PolicyKeyNormalizer::normalize($policyKey)) {
 			self::KEY => new PolicySpec(
 				key: self::KEY,
 				defaultSystemValue: TsaPolicyValue::encode(TsaPolicyValue::defaults()),
@@ -42,15 +43,7 @@ final class TsaPolicy implements IPolicyDefinitionProvider {
 				supportedScopes: [PolicySpec::SCOPE_SYSTEM],
 				supportsGroupAdminDelegation: false,
 			),
-			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
+			default => throw new \InvalidArgumentException('Unknown policy key: ' . PolicyKeyNormalizer::normalize($policyKey)),
 		};
-	}
-
-	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {
-		if ($policyKey instanceof \BackedEnum) {
-			return (string)$policyKey->value;
-		}
-
-		return $policyKey;
 	}
 }
