@@ -28,6 +28,7 @@ OC.L10N.register(
     "Account" : "Cont",
     "Invalid user" : "Utilizator invalid",
     "Email" : "E-mail",
+    "Authentication required" : "Este necesară autentificarea",
     "User already exists" : "Utilizatorul există deja",
     "Name cannot be empty" : "Numele nu poate fi gol",
     "Cancel" : "Anulare",

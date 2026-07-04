@@ -28,6 +28,7 @@ OC.L10N.register(
     "Account" : "Account",
     "Invalid user" : "Invalid user",
     "Email" : "Email",
+    "Authentication required" : "Authentication required",
     "Name cannot be empty" : "Name cannot be empty",
     "Cancel" : "Cancel",
     "Save" : "Save",

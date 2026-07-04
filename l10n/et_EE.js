@@ -153,7 +153,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Selle faili allkirjastamiseks peab sul olema kasutajakonto.",
     "User already exists. Please login." : "Selline kasutaja on juba olemas. Palun logi sisse.",
     "This is not your file" : "See pole sinu fail",
-    "This document is not yours. Log out and use the sign link again." : "See pole sinu dokument. Logi välja ja kasuta allkirjastamise linki uuesti.",
+    "Authentication required" : "Autentimine on vajalik",
     "User already exists" : "Kasutaja on juba olemas",
     "It is not possible to create new accounts." : "Uute kasutajakontode loomine pole võimalik.",
     "Signal" : "Signal",
@@ -770,6 +770,7 @@ OC.L10N.register(
     "Last 7 days" : "Viimase 7 päeva jooksul",
     "Last 30 days" : "Viimase 30 päeva jooksul",
     "This year ({year})" : "Sel aastal ({year})",
-    "Last year ({year})" : "Eelmisel aastal ({year})"
+    "Last year ({year})" : "Eelmisel aastal ({year})",
+    "This document is not yours. Log out and use the sign link again." : "See pole sinu dokument. Logi välja ja kasuta allkirjastamise linki uuesti."
 },
 "nplurals=2; plural=(n != 1);");

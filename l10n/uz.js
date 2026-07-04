@@ -22,6 +22,7 @@ OC.L10N.register(
     "Pending" : "Kutilmoqda",
     "Account" : "Akkaunt",
     "Email" : "Email",
+    "Authentication required" : "Autentifikatsiya talab qilinadi",
     "Cancel" : "Bekor qilish",
     "Save" : "Saqlash",
     "Text" : "Matn",

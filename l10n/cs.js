@@ -221,7 +221,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Pro podepsání tohoto souboru je třeba vytvořit si účet.",
     "User already exists. Please login." : "Uživatel už existuje – přihlaste se jím.",
     "This is not your file" : "Toto není váš soubor",
-    "This document is not yours. Log out and use the sign link again." : "Tento dokument není váš. Odhlaste se a znovu použijte odkaz pro podepsání.",
+    "Authentication required" : "Vyžadováno ověření se",
     "User already exists" : "Uživatel už existuje",
     "It is not possible to create new accounts." : "Není možné vytvářet nové účty.",
     "Signal" : "Signal",
@@ -938,6 +938,7 @@ OC.L10N.register(
     "Last 7 days" : "Uplynulých 7 dnů",
     "Last 30 days" : "Uplynulých 30 dnů",
     "This year ({year})" : "Tento rok ({year})",
-    "Last year ({year})" : "Minulý rok ({year})"
+    "Last year ({year})" : "Minulý rok ({year})",
+    "This document is not yours. Log out and use the sign link again." : "Tento dokument není váš. Odhlaste se a znovu použijte odkaz pro podepsání."
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

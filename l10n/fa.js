@@ -221,7 +221,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "برای امضای این فایل باید یک حساب کاربری ایجاد کنید",
     "User already exists. Please login." : "کاربر از قبل وجود دارد. لطفاً وارد شوید",
     "This is not your file" : "این فایل متعلق به شما نیست",
-    "This document is not yours. Log out and use the sign link again." : "این سند متعلق به شما نیست. از حساب خارج شده و دوباره از لینک امضا استفاده کنید",
+    "Authentication required" : "احراز هویت الزامی است",
     "User already exists" : "کاربر از قبل وجود دارد",
     "It is not possible to create new accounts." : "امکان ایجاد حساب‌های جدید وجود ندارد",
     "Signal" : "سیگنال",
@@ -958,6 +958,7 @@ OC.L10N.register(
     "Last 7 days" : "۷ روز گذشته",
     "Last 30 days" : "۳۰ روز گذشته",
     "This year ({year})" : "امسال ({year})",
-    "Last year ({year})" : "سال گذشته ({year})"
+    "Last year ({year})" : "سال گذشته ({year})",
+    "This document is not yours. Log out and use the sign link again." : "این سند متعلق به شما نیست. از حساب خارج شده و دوباره از لینک امضا استفاده کنید"
 },
 "nplurals=2; plural=(n > 1);");

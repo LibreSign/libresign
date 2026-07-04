@@ -157,6 +157,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "ທ່ານຕ້ອງສ້າງບັນຊີເພື່ອເຊັນໄຟລ໌ນີ້.",
     "User already exists. Please login." : "ມີຜູ້ໃຊ້ນີ້ຢູ່ແລ້ວ. ກະລຸນາເຂົ້າສູ່ລະບົບ.",
     "This is not your file" : "ນີ້ບໍ່ແມ່ນໄຟລ໌ຂອງທ່ານ",
+    "Authentication required" : "ການຢັ້ງຢືນທີ່ຈໍາເປັນ",
     "User already exists" : "ມີຜູ້ໃຊ້ນີ້ຢູ່ແລ້ວ",
     "It is not possible to create new accounts." : "ບໍ່ສາມາດສ້າງບັນຊີໃໝ່ໄດ້.",
     "Signal" : "Signal",

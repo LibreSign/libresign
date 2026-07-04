@@ -221,7 +221,6 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Du musst ein Konto erstellen, um diese Datei signieren zu können.",
     "User already exists. Please login." : "Benutzer existiert bereits. Bitte anmelden.",
     "This is not your file" : "Dies ist nicht deine Datei",
-    "This document is not yours. Log out and use the sign link again." : "Dieses Dokument gehört nicht dir. Bitte erneut anmelden und den Signatur-Link erneut verwenden.",
     "User already exists" : "Benutzer existiert bereits",
     "It is not possible to create new accounts." : "Es ist nicht möglich, neue Konten zu erstellen.",
     "Signal" : "Signal",
@@ -1003,6 +1002,7 @@ OC.L10N.register(
     "Last 7 days" : "Die letzten 7 Tage",
     "Last 30 days" : "Die letzten 30 Tage",
     "This year ({year})" : "Dieses Jahr ({year})",
-    "Last year ({year})" : "Letztes Jahr ({year})"
+    "Last year ({year})" : "Letztes Jahr ({year})",
+    "This document is not yours. Log out and use the sign link again." : "Dieses Dokument gehört nicht dir. Bitte erneut anmelden und den Signatur-Link erneut verwenden."
 },
 "nplurals=2; plural=(n != 1);");

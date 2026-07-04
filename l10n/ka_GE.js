@@ -18,6 +18,7 @@ OC.L10N.register(
     "Account" : "ანგარიში",
     "Invalid user" : "არასწორი მომხმარებელი",
     "Email" : "ელ-ფოსტა",
+    "Authentication required" : "აუტენტიფიკაცია საჭიროებს",
     "Name cannot be empty" : "სახელი ვერ იქნება ცარიელი",
     "Cancel" : "უარყოფა",
     "Save" : "შენახვა",
