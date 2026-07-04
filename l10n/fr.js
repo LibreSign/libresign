@@ -221,7 +221,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Vous devez créer un compte pour signer ce fichier.",
     "User already exists. Please login." : "Cet utilisateur existe déjà. Veuillez vous connecter.",
     "This is not your file" : "Ce fichier ne vous appartient pas",
-    "This document is not yours. Log out and use the sign link again." : "Ce document ne vous est pas destiné. Déconnectez-vous puis utilisez à nouveau le lien de signature.",
+    "Authentication required" : "Authentification requise",
     "User already exists" : "Cet utilisateur existe déjà",
     "It is not possible to create new accounts." : "Il n'est pas possible de créer de nouveaux comptes.",
     "Signal" : "Signal",
@@ -958,6 +958,7 @@ OC.L10N.register(
     "Last 7 days" : "7 derniers jours",
     "Last 30 days" : "30 derniers jours",
     "This year ({year})" : "Cette année ({year})",
-    "Last year ({year})" : "L'année dernière ({year})"
+    "Last year ({year})" : "L'année dernière ({year})",
+    "This document is not yours. Log out and use the sign link again." : "Ce document ne vous est pas destiné. Déconnectez-vous puis utilisez à nouveau le lien de signature."
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

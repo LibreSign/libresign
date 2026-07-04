@@ -27,6 +27,7 @@ OC.L10N.register(
     "Account" : "Cuenta",
     "Invalid user" : "Usuario inválido",
     "Email" : "Correo electrónico",
+    "Authentication required" : "Autenticación requerida",
     "User already exists" : "El usuario ya existe",
     "Name cannot be empty" : "El nombre no puede estar en blanco",
     "Cancel" : "Cancelar",

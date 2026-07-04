@@ -21,6 +21,7 @@ OC.L10N.register(
     "Account" : "Llogari",
     "Invalid user" : "Përdorues i pavlefshëm",
     "Email" : "Emaili",
+    "Authentication required" : "Verifikim i kërkuar",
     "Cancel" : "Anullo",
     "Save" : "Ruaj",
     "Text" : "Tekst",

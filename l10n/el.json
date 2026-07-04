@@ -153,6 +153,7 @@
     "You need to create an account to sign this file." : "Πρέπει να δημιουργήσετε έναν λογαριασμό για να υπογράψετε αυτό το αρχείο.",
     "User already exists. Please login." : "Ο χρήστης υπάρχει ήδη. Παρακαλώ συνδεθείτε.",
     "This is not your file" : "Αυτό δεν είναι το αρχείο σας",
+    "Authentication required" : "Απαιτείται πιστοποίηση",
     "User already exists" : "Ο χρήστης υπάρχει ήδη",
     "It is not possible to create new accounts." : "Δεν είναι δυνατή η δημιουργία νέων λογαριασμών.",
     "Signal" : "Signal",

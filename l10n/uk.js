@@ -157,6 +157,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Вам потрібно створити обліковий запис, щоб підписати цей файл.",
     "User already exists. Please login." : "Користувач вже існує. Будь ласка, увійдіть.",
     "This is not your file" : "Це не ваш файл",
+    "Authentication required" : "Потрібно підтвердити вашу особистість",
     "User already exists" : "Користувач вже існує",
     "It is not possible to create new accounts." : "Створювати нові акаунти неможливо.",
     "Signal" : "Сигнал",

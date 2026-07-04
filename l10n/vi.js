@@ -26,6 +26,7 @@ OC.L10N.register(
     "Account" : "Tài khoản",
     "Invalid user" : "Người dùng không hợp lệ",
     "Email" : "Thư điện tử",
+    "Authentication required" : "Cần phải được xác thực",
     "Name cannot be empty" : "Tên không thể trống",
     "Cancel" : "Hủy",
     "Save" : "Lưu",

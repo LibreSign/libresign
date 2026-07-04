@@ -103,6 +103,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Aby podpisać ten plik, musisz utworzyć konto.",
     "User already exists. Please login." : "Użytkownik już istnieje. Zaloguj się.",
     "This is not your file" : "To nie jest Twój plik",
+    "Authentication required" : "Wymagane uwierzytelnienie",
     "User already exists" : "Użytkownik już istnieje",
     "%s is your LibreSign verification code." : "%s to Twój kod weryfikacyjny LibreSign.",
     "Gateway %s not configured on Two-Factor Gateway." : "Bramka %s nie jest skonfigurowana w uwierzytelnieniu dwuskładnikowym.",

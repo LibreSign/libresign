@@ -12,6 +12,7 @@ OC.L10N.register(
     "Pending" : "Pendente",
     "Invalid user" : "Usator invalide",
     "Email" : "E-posta",
+    "Authentication required" : "Authentication requirite",
     "Cancel" : "Cancellar",
     "Save" : "Salveguardar",
     "Upload" : "Incargar",

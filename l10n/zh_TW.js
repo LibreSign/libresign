@@ -221,7 +221,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "您必須建立帳號以簽署此檔案。",
     "User already exists. Please login." : "使用者已存在。請登入。",
     "This is not your file" : "這不是您的檔案",
-    "This document is not yours. Log out and use the sign link again." : "此文件不是您的。請登出並重新使用簽署連結。",
+    "Authentication required" : "需要驗證",
     "User already exists" : "使用者已存在",
     "It is not possible to create new accounts." : "無法建立新帳號。",
     "Signal" : "Signal",
@@ -1003,6 +1003,7 @@ OC.L10N.register(
     "Last 7 days" : "過去 7 天",
     "Last 30 days" : "過去 30 天",
     "This year ({year})" : "今年 ({year})",
-    "Last year ({year})" : "去年 ({year})"
+    "Last year ({year})" : "去年 ({year})",
+    "This document is not yours. Log out and use the sign link again." : "此文件不是您的。請登出並重新使用簽署連結。"
 },
 "nplurals=1; plural=0;");

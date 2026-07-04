@@ -209,6 +209,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Anda perlu membuat akun untuk menandatangani file ini.",
     "User already exists. Please login." : "Pengguna sudah ada. Silakan masuk.",
     "This is not your file" : "Ini bukan file Anda",
+    "Authentication required" : "Diperlukan otentikasi",
     "User already exists" : "Pengguna sudah ada",
     "It is not possible to create new accounts." : "Tidak memungkinkan untuk membuat akun baru.",
     "Signal" : "Signal",

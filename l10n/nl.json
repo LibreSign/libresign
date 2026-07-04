@@ -100,6 +100,7 @@
     "You need to create an account to sign this file." : "Je moet een account maken om het bestand te tekenen.",
     "User already exists. Please login." : "Gebruiker bestaat al. Inloggen.",
     "This is not your file" : "Dit is niet jouw bestand",
+    "Authentication required" : "Authenticatie vereist",
     "User already exists" : "Gebruiker bestaat al",
     "%s is your LibreSign verification code." : "%s is je LibreSign verificatiecode.",
     "Gateway %s not configured on Two-Factor Gateway." : "Gateway %s niet geconfigureerd op Twee-Factor Gateway.",

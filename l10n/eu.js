@@ -111,6 +111,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Fitxategi hau sinatzeko kontu bat sortu behar duzu.",
     "User already exists. Please login." : "Erabiltzailea dagoeneko existitzen da. Mesedez hasi saioa.",
     "This is not your file" : "Hau ez da zure fitxategia",
+    "Authentication required" : "Autentikazioa beharrezkoa",
     "User already exists" : "Erabiltzailea dagoeneko existitzen da",
     "Email token" : "Posta elektronikoaren tokena",
     "%s is your LibreSign verification code." : "Zure LibreSign berrespen kodea %s da.",

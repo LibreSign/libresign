@@ -221,7 +221,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Du skal oprette en konto til at underskrive denne fil.",
     "User already exists. Please login." : "Brugeren findes allerede. Log ind.",
     "This is not your file" : "Dette er ikke din fil",
-    "This document is not yours. Log out and use the sign link again." : "Dette dokument er ikke dit. Log ud og brug tegnlinket igen.",
+    "Authentication required" : "Godkendelse påkrævet",
     "User already exists" : "Brugeren eksisterer allerede",
     "It is not possible to create new accounts." : "Det er ikke muligt at oprette nye konti.",
     "Signal" : "Signal",
@@ -999,6 +999,7 @@ OC.L10N.register(
     "Last 7 days" : "Sidste 7 dage",
     "Last 30 days" : "Sidste 30 dage",
     "This year ({year})" : "Dette år ({year})",
-    "Last year ({year})" : "Sidste år ({year})"
+    "Last year ({year})" : "Sidste år ({year})",
+    "This document is not yours. Log out and use the sign link again." : "Dette dokument er ikke dit. Log ud og brug tegnlinket igen."
 },
 "nplurals=2; plural=(n != 1);");

@@ -107,6 +107,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Necesitas crear una cuenta para firmar este archivo",
     "User already exists. Please login." : "El usuario ya existe. Por favor, inicia sesión.",
     "This is not your file" : "Este archivo no es tuyo",
+    "Authentication required" : "Autenticación requerida",
     "User already exists" : "El usuario ya existe",
     "%s is your LibreSign verification code." : "%s es tu código de verificación de LibreSign.",
     "Gateway %s not configured on Two-Factor Gateway." : "La pasarela %s no está configurada en la Pasarela de Autenticación de Dos Factores.",
