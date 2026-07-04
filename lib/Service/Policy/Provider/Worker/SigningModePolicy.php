@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service\Policy\Provider\Worker;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
 
 final class SigningModePolicy implements IPolicyDefinitionProvider {
 	public const KEY_SIGNING_MODE = 'signing_mode';
@@ -26,7 +27,7 @@ final class SigningModePolicy implements IPolicyDefinitionProvider {
 
 	#[\Override]
 	public function get(string|\BackedEnum $policyKey): IPolicyDefinition {
-		return match ($this->normalizePolicyKey($policyKey)) {
+		return match (PolicyKeyNormalizer::normalize($policyKey)) {
 			self::KEY_SIGNING_MODE => new PolicySpec(
 				key: self::KEY_SIGNING_MODE,
 				defaultSystemValue: 'sync',
@@ -39,15 +40,7 @@ final class SigningModePolicy implements IPolicyDefinitionProvider {
 				supportedScopes: [PolicySpec::SCOPE_SYSTEM],
 				compositeChildren: [WorkerConfigPolicy::KEY],
 			),
-			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
+			default => throw new \InvalidArgumentException('Unknown policy key: ' . PolicyKeyNormalizer::normalize($policyKey)),
 		};
-	}
-
-	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {
-		if ($policyKey instanceof \BackedEnum) {
-			return (string)$policyKey->value;
-		}
-
-		return $policyKey;
 	}
 }
