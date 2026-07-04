@@ -4,6 +4,7 @@
 -->
 <template>
 	<div ref="root" class="markdown-heading-menu">
+		<!-- TRANSLATORS Aria label for the markdown editor toolbar button that opens the menu for choosing paragraph or heading styles. -->
 		<button ref="toggle"
 			type="button"
 			class="markdown-heading-menu__toggle"
@@ -13,7 +14,7 @@
 			@click.stop="toggleMenu"
 			@keydown.escape.prevent="closeMenu">
 			<NcIconSvgWrapper :path="isOpen ? mdiChevronUp : mdiChevronDown" :size="18" />
-			<span>{{ t('libresign', 'H') }}</span>
+				<span>H</span>
 		</button>
 
 		<ul v-if="isOpen"
@@ -28,6 +29,7 @@
 					class="markdown-heading-menu__item"
 					@click="clearHeading">
 					<span class="markdown-heading-menu__option markdown-heading-menu__option--p">
+						<!-- TRANSLATORS Menu option in the markdown editor that removes heading formatting and returns the text to normal paragraph style. -->
 						{{ t('libresign', 'Paragraph') }}
 					</span>
 				</button>
@@ -69,51 +71,32 @@ const menu = ref(null)
 const isOpen = ref(false)
 const menuStyle = ref({})
 
-/**
- *
- * @param level
- */
-function headingClass(level) {
+
+const headingClass = (level) => {
 	return ['markdown-heading-menu__option', `markdown-heading-menu__option--${level}`]
 }
 
-/**
- *
- * @param level
- */
-function headingText(level) {
-	return `${t('libresign', 'Heading')} ${level}`
+const headingText = (level) => {
+	// TRANSLATORS Label shown in the markdown editor heading menu for each option. {level} is the heading level number.
+	return t('libresign', 'Heading {level}', { level })
 }
 
-/**
- *
- */
-function clearHeading() {
+const clearHeading = () => {
 	emit('clear-heading')
 	closeMenu()
 }
 
-/**
- *
- * @param level
- */
-function applyHeading(level) {
+const applyHeading = (level) => {
 	emit('apply-heading', level)
 	closeMenu()
 }
 
-/**
- *
- */
-function closeMenu() {
+const closeMenu = () => {
 	isOpen.value = false
 	menuStyle.value = {}
 }
 
-/**
- *
- */
-async function toggleMenu() {
+const toggleMenu = async () => {
 	isOpen.value = !isOpen.value
 	if (isOpen.value) {
 		await nextTick()
@@ -121,10 +104,7 @@ async function toggleMenu() {
 	}
 }
 
-/**
- *
- */
-function updateMenuPosition() {
+const updateMenuPosition = () => {
 	if (!toggle.value || !menu.value) {
 		return
 	}
@@ -143,11 +123,7 @@ function updateMenuPosition() {
 	}
 }
 
-/**
- *
- * @param event
- */
-function onDocumentPointerDown(event) {
+const onDocumentPointerDown = (event) => {
 	if (!isOpen.value || !root.value) {
 		return
 	}
