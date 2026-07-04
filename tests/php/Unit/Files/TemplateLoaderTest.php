@@ -171,6 +171,26 @@ final class TemplateLoaderTest extends TestCase {
 	}
 
 	/**
+	 * @return list<string>
+	 */
+	private function getRegisteredInitScripts(): array {
+		$property = new \ReflectionProperty(\OCP\Util::class, 'scriptsInit');
+		$property->setAccessible(true);
+		/** @var list<string> $scripts */
+		$scripts = $property->getValue();
+		return $scripts;
+	}
+
+	/**
+	 * @param list<string> $scripts
+	 */
+	private function setRegisteredInitScripts(array $scripts): void {
+		$property = new \ReflectionProperty(\OCP\Util::class, 'scriptsInit');
+		$property->setAccessible(true);
+		$property->setValue(null, $scripts);
+	}
+
+	/**
 	 * Regression test for https://github.com/LibreSign/libresign/issues/7632
 	 *
 	 * The `icons` CSS style must NOT be registered separately because:
@@ -216,6 +236,48 @@ final class TemplateLoaderTest extends TestCase {
 				$style,
 				'The "icons" CSS must not be registered separately — it is already bundled in libresign-tab and loading it would cause a 404 and potential global CSS leaks (issue #7632).'
 			);
+		}
+	}
+
+	public function testHandleRegistersFilesInitScriptWhenCertificateIsReady(): void {
+		$this->appManager
+			->method('isEnabledForUser')
+			->with('libresign')
+			->willReturn(true);
+
+		$engine = $this->createMock(IEngineHandler::class);
+		$engine->method('isSetupOk')->willReturn(true);
+		$this->certificateEngineFactory
+			->method('getEngine')
+			->willReturn($engine);
+		$this->identifyMethodService
+			->method('getIdentifyMethodsSettings')
+			->willReturn([]);
+		$this->policyService
+			->method('resolveKnownPolicyStates')
+			->willReturn([]);
+		$user = $this->createMock(IUser::class);
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$initScriptsBefore = $this->getRegisteredInitScripts();
+
+		try {
+			$this->setRegisteredInitScripts([]);
+
+			$loader = $this->getLoader();
+			$loader->handle(new LoadSidebar());
+
+			$registeredInitScripts = $this->getRegisteredInitScripts();
+
+			$this->assertContains(
+				Application::APP_ID . '/js/libresign-init',
+				$registeredInitScripts,
+				'Files page integration must register libresign-init whenever the certificate engine is ready, or Files menu/context actions disappear from the page shell.'
+			);
+		} finally {
+			$this->setRegisteredInitScripts($initScriptsBefore);
 		}
 	}
 }
