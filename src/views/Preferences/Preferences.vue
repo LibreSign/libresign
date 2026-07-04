@@ -11,6 +11,7 @@
 			:name="entry.definition.title"
 			:description="entry.definition.description">
 			<NcNoteCard v-if="entry.policy?.preferenceWasCleared" type="info">
+				<!-- TRANSLATORS Informational message in the user preferences screen when a previously saved personal default was removed because a group or system policy now overrides it. -->
 				{{ t('libresign', 'A previously saved preference was cleared because it is no longer compatible with a higher-level policy.') }}
 			</NcNoteCard>
 
@@ -19,6 +20,7 @@
 			</NcNoteCard>
 
 			<NcNoteCard v-if="!canSavePreferenceFor(entry.definition.key)" type="info">
+				<!-- TRANSLATORS Informational message in the user preferences screen when the current user is not allowed to save a personal default value for this setting. -->
 				{{ t('libresign', 'Your current context does not allow saving a personal default for this setting.') }}
 			</NcNoteCard>
 
@@ -46,8 +48,13 @@
 						aria-live="polite">
 						<NcLoadingIcon v-if="isAutoSaveSavingFor(entry.definition.key)" :size="16" />
 						<NcIconSvgWrapper v-else :path="mdiCheckCircleOutline" :size="16" />
-						<span>
-							{{ isAutoSaveSavingFor(entry.definition.key) ? t('libresign', 'Saving your preference...') : t('libresign', 'Preference saved') }}
+						<span v-if="isAutoSaveSavingFor(entry.definition.key)">
+							<!-- TRANSLATORS Status text shown while the preferences screen is automatically saving the user's personal default value. -->
+							{{ t('libresign', 'Saving your preference...') }}
+						</span>
+						<span v-else>
+							<!-- TRANSLATORS Status text shown after the preferences screen successfully saves the user's personal default value. -->
+							{{ t('libresign', 'Preference saved') }}
 						</span>
 					</div>
 
@@ -216,7 +223,18 @@ function canUndoAutoSaveFor(policyKey: string): boolean {
 
 function undoLabelFor(policyKey: string): string {
 	void policyKey
+	// TRANSLATORS Button label in the preferences screen that clears the user's saved personal default and returns to the inherited effective value.
 	return t('libresign', 'Reset to default')
+}
+
+function savePreferenceErrorText(): string {
+	// TRANSLATORS Error message shown when saving the user's personal default preference fails.
+	return t('libresign', 'Could not save your preference. Try again.')
+}
+
+function clearPreferenceErrorText(): string {
+	// TRANSLATORS Error message shown when clearing the user's personal default preference fails.
+	return t('libresign', 'Could not clear your preference. Try again.')
 }
 
 function normalizePreferenceValue(policyKey: string, value: EffectivePolicyValue): EffectivePolicyValue {
@@ -280,7 +298,7 @@ function onPreferenceModelUpdate(policyKey: string, value: EffectivePolicyValue)
 async function savePreferenceByKey(policyKey: string, value: EffectivePolicyValue): Promise<void> {
 	autoSaveSavingByKey[policyKey] = canSavePreferenceFor(policyKey)
 	autoSaveSavedByKey[policyKey] = false
-	const saved = await savePreferenceValue(policyKey, value, t('libresign', 'Could not save your preference. Try again.'))
+	const saved = await savePreferenceValue(policyKey, value, savePreferenceErrorText())
 	autoSaveSavingByKey[policyKey] = false
 	if (saved && canSavePreferenceFor(policyKey)) {
 		setAutoSaveSavedFeedback(policyKey)
@@ -289,7 +307,7 @@ async function savePreferenceByKey(policyKey: string, value: EffectivePolicyValu
 }
 
 async function clearPreferenceByKey(policyKey: string): Promise<void> {
-	await clearPreferenceValue(policyKey, t('libresign', 'Could not clear your preference. Try again.'))
+	await clearPreferenceValue(policyKey, clearPreferenceErrorText())
 	await policiesStore.fetchEffectivePolicies()
 	syncSelectedPreference(policyKey)
 }
