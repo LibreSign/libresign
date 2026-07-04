@@ -60,13 +60,13 @@
 
 			<div v-if="showInlineActions" class="policy-workbench__editor-actions" :class="{ 'policy-workbench__editor-actions--sticky-mobile': stickyActions }">
 				<NcButton v-if="showBackButton" variant="tertiary" :aria-label="goBackToRuleTypeSelectionLabel" :disabled="saveStatus === 'saving'" @click="$emit('back')">
-					{{ t('libresign', '← Back') }}
+					{{ backButtonLabel }}
 				</NcButton>
 				<NcButton variant="primary" :aria-label="savePolicyRuleActionLabel" :loading="saveStatus === 'saving'" :disabled="!canSaveDraft" @click="$emit('save')">
-					{{ editorMode === 'edit' ? t('libresign', 'Save changes') : t('libresign', 'Create rule') }}
+					{{ saveActionButtonLabel }}
 				</NcButton>
 				<NcButton variant="secondary" :aria-label="cancelEditingLabel" :disabled="saveStatus === 'saving'" @click="$emit('cancel')">
-					{{ t('libresign', 'Cancel') }}
+					{{ cancelButtonLabel }}
 				</NcButton>
 			</div>
 		</div>
@@ -143,17 +143,26 @@ defineEmits<{
 	(e: 'cancel'): void
 }>()
 
-// TRANSLATORS Label for selecting groups in the current policy scope.
+// TRANSLATORS Secondary button label in the policy rule editor that returns to the previous step where the user chooses the rule type.
+const backButtonLabel = t('libresign', '← Back')
+// TRANSLATORS Primary button label in edit mode of the policy rule editor. It saves changes to the current rule.
+const saveChangesButtonLabel = t('libresign', 'Save changes')
+// TRANSLATORS Primary button label in create mode of the policy rule editor. It creates a new policy rule.
+const createRuleButtonLabel = t('libresign', 'Create rule')
+// TRANSLATORS Secondary button label in the policy rule editor that closes the panel without saving the current changes.
+const cancelButtonLabel = t('libresign', 'Cancel')
+
+// TRANSLATORS Label shown above the target selector in the policy rule editor when the rule applies to groups.
 const targetGroupsLabel = t('libresign', 'Scope groups')
-// TRANSLATORS Label for selecting accounts in the current policy scope.
+// TRANSLATORS Label shown above the target selector in the policy rule editor when the rule applies to individual accounts.
 const targetAccountsLabel = t('libresign', 'Scope accounts')
 const targetScopeLabel = computed(() => props.editorDraft.scope === 'group'
 	? targetGroupsLabel
 	: targetAccountsLabel)
 
-// TRANSLATORS Placeholder text for searching scope groups in policy picker.
+// TRANSLATORS Search placeholder in the policy rule editor for finding groups that this rule should target.
 const searchGroupsPlaceholder = t('libresign', 'Search scope groups')
-// TRANSLATORS Placeholder text for searching scope accounts in policy picker.
+// TRANSLATORS Search placeholder in the policy rule editor for finding individual accounts that this rule should target.
 const searchAccountsPlaceholder = t('libresign', 'Search scope accounts')
 const targetScopeSearchPlaceholder = computed(() => props.editorDraft.scope === 'group'
 	? searchGroupsPlaceholder
@@ -170,14 +179,17 @@ const createPolicyRuleAriaLabel = t('libresign', 'Create policy rule')
 const savePolicyRuleActionLabel = computed(() => props.editorMode === 'edit'
 	? savePolicyRuleChangesAriaLabel
 	: createPolicyRuleAriaLabel)
+const saveActionButtonLabel = computed(() => props.editorMode === 'edit'
+	? saveChangesButtonLabel
+	: createRuleButtonLabel)
 
-// TRANSLATORS User-scope description when account-level customization is allowed.
+// TRANSLATORS Help text below the customization switch for an account-scoped rule, explaining that this account may save personal defaults and choose request-specific values.
 const accountCustomizationAllowedDescription = t('libresign', 'This account can customize personal defaults and request-specific values.')
-// TRANSLATORS User-scope description when value is mandatory and cannot be customized.
+// TRANSLATORS Help text below the customization switch for an account-scoped rule, explaining that the effective value is mandatory and cannot be customized by this account.
 const accountCustomizationLockedDescription = t('libresign', 'This value is mandatory for this account.')
-// TRANSLATORS Parent-scope description when groups/accounts may define more specific values.
+// TRANSLATORS Help text below the customization switch for a parent policy scope, explaining that child scopes such as groups or accounts may override this value with a more specific one.
 const childScopesCanOverrideDescription = t('libresign', 'Groups and accounts can define a more specific value.')
-// TRANSLATORS Parent-scope description when groups/accounts must inherit parent value.
+// TRANSLATORS Help text below the customization switch for a parent policy scope, explaining that child scopes such as groups or accounts must inherit this value unchanged.
 const childScopesMustInheritDescription = t('libresign', 'Groups and accounts must inherit this value.')
 
 const allowOverrideDescription = computed(() => {
@@ -194,11 +206,11 @@ const allowOverrideDescription = computed(() => {
 
 const allowOverrideTitle = computed(() => {
 	if (props.editorDraft.scope === 'user') {
-		// TRANSLATORS Switch title that allows account-level personal customization.
+		// TRANSLATORS Title of the switch in the policy rule editor that allows a specific account to customize its own effective value.
 		return t('libresign', 'Allow this account to customize')
 	}
 
-	// TRANSLATORS Switch title that allows child scopes to override parent policy values.
+	// TRANSLATORS Title of the switch in the policy rule editor that allows lower scopes, such as groups or accounts, to override the parent policy value.
 	return t('libresign', 'Allow lower-level customization')
 })
 </script>
