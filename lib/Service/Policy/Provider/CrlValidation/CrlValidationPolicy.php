@@ -13,6 +13,8 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Provider\Helper\DelegationLayerHelper;
+use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
 
 final class CrlValidationPolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'crl_external_validation_enabled';
@@ -27,7 +29,7 @@ final class CrlValidationPolicy implements IPolicyDefinitionProvider {
 
 	#[\Override]
 	public function get(string|\BackedEnum $policyKey): IPolicyDefinition {
-		return match ($this->normalizePolicyKey($policyKey)) {
+		return match (PolicyKeyNormalizer::normalize($policyKey)) {
 			self::KEY => new PolicySpec(
 				key: self::KEY,
 				defaultSystemValue: true,
@@ -57,11 +59,11 @@ final class CrlValidationPolicy implements IPolicyDefinitionProvider {
 						return false;
 					}
 
-					if (self::hasExplicitGlobalDelegation($systemPolicy)) {
+					if (DelegationLayerHelper::hasExplicitGlobalDelegation($systemPolicy)) {
 						return true;
 					}
 
-					return self::hasSystemCreatedGroupDelegation($groupLayers);
+					return DelegationLayerHelper::hasSystemCreatedGroupDelegation($groupLayers);
 				},
 				systemCreatedGroupRuleEditor: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, PolicyLayer $existingPolicy): bool {
 					$actorRole = $context->getActorRole();
@@ -86,7 +88,7 @@ final class CrlValidationPolicy implements IPolicyDefinitionProvider {
 						return false;
 					}
 
-					if (self::hasExplicitGlobalDelegation($systemPolicy)) {
+					if (DelegationLayerHelper::hasExplicitGlobalDelegation($systemPolicy)) {
 						return true;
 					}
 
@@ -94,52 +96,8 @@ final class CrlValidationPolicy implements IPolicyDefinitionProvider {
 				},
 				supportsGroupAdminDelegation: true,
 			),
-			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
+			default => throw new \InvalidArgumentException('Unknown policy key: ' . PolicyKeyNormalizer::normalize($policyKey)),
 		};
 	}
 
-	private static function hasExplicitGlobalDelegation(?PolicyLayer $systemPolicy): bool {
-		return $systemPolicy instanceof PolicyLayer
-			&& $systemPolicy->getScope() === 'global'
-			&& $systemPolicy->isVisibleToChild()
-			&& $systemPolicy->isAllowChildOverride()
-			&& $systemPolicy->getValue() !== null;
-	}
-
-	/** @param array<array-key, PolicyLayer> $groupLayers */
-	private static function hasSystemCreatedGroupDelegation(array $groupLayers): bool {
-		foreach ($groupLayers as $groupLayer) {
-			if (!$groupLayer instanceof PolicyLayer) {
-				continue;
-			}
-
-			if (!$groupLayer->isVisibleToChild()) {
-				continue;
-			}
-
-			if ($groupLayer->getValue() === null) {
-				continue;
-			}
-
-			if ($groupLayer->isDelegatedFromSystemCreatedSeed()) {
-				return true;
-			}
-
-			if ($groupLayer->isAllowChildOverride()) {
-				if ($groupLayer->isCreatedBySystemAdmin()) {
-					return true;
-				}
-			}
-		}
-
-		return false;
-	}
-
-	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {
-		if ($policyKey instanceof \BackedEnum) {
-			return (string)$policyKey->value;
-		}
-
-		return $policyKey;
-	}
 }
