@@ -115,6 +115,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "A fájl aláírásához létre kell hoznia egy fiókot.",
     "User already exists. Please login." : "A felhasználó már létezik. Jelentkezzen be.",
     "This is not your file" : "Ez nem az Ön fájlja",
+    "Authentication required" : "Hitelesítés szükséges",
     "User already exists" : "A felhasználó már létezik",
     "It is not possible to create new accounts." : "Nem lehetséges új fiókot létrehozni.",
     "%s is your LibreSign verification code." : "Ez a LibreSign ellenőrzési kódja: %s.",

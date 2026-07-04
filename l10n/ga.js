@@ -221,7 +221,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Ní mór duit cuntas a chruthú chun an comhad seo a shíniú.",
     "User already exists. Please login." : "Úsáideoir ann cheana féin. Logáil isteach le do thoil.",
     "This is not your file" : "Ní hé seo do chomhad",
-    "This document is not yours. Log out and use the sign link again." : "Ní leatsa an doiciméad seo. Logáil amach agus bain úsáid as an nasc sínithe arís.",
+    "Authentication required" : "Fíordheimhniú ag teastáil",
     "User already exists" : "Úsáideoir ann cheana féin",
     "It is not possible to create new accounts." : "Ní féidir cuntais nua a chruthú.",
     "Signal" : "Comhartha",
@@ -958,6 +958,7 @@ OC.L10N.register(
     "Last 7 days" : "7 lá seo caite",
     "Last 30 days" : "30 lá anuas",
     "This year ({year})" : "i mbliana ({year})",
-    "Last year ({year})" : "An bhliain seo caite {year}"
+    "Last year ({year})" : "An bhliain seo caite {year}",
+    "This document is not yours. Log out and use the sign link again." : "Ní leatsa an doiciméad seo. Logáil amach agus bain úsáid as an nasc sínithe arís."
 },
 "nplurals=5; plural=(n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4);");

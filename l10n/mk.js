@@ -32,6 +32,7 @@ OC.L10N.register(
     "Account" : "Сметка",
     "Invalid user" : "Неправилен корисник",
     "Email" : "Е-пошта",
+    "Authentication required" : "Потребна е автентификација",
     "User already exists" : "Корисникот веќе постои",
     "File already signed by you" : "Датотеката е веќе потпишана од вас",
     "Name cannot be empty" : "Името неможе да биде празно",

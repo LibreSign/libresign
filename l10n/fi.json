@@ -127,6 +127,7 @@
     "You need to create an account to sign this file." : "Sinun tulee luoda tili, jotta voit allekirjoittaa tämän tiedoston.",
     "User already exists. Please login." : "Käyttäjä on jo olemassa. Kirjaudu sisään.",
     "This is not your file" : "Tämä ei ole tiedostosi",
+    "Authentication required" : "Tunnistautuminen vaaditaan",
     "User already exists" : "Käyttäjä on jo olemassa",
     "It is not possible to create new accounts." : "Uusia tilejä ei ole mahdollista luoda.",
     "Signal" : "Signal",

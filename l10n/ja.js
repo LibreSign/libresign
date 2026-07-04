@@ -34,6 +34,7 @@ OC.L10N.register(
     "Account" : "アカウント",
     "Invalid user" : "無効なユーザー",
     "Email" : "メール",
+    "Authentication required" : "認証が必要です",
     "User already exists" : "ユーザは既に存在する",
     "Name cannot be empty" : "名前は空にできません",
     "Cancel" : "キャンセル",

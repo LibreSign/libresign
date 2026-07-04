@@ -98,6 +98,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "이 파일에 서명하려면 계정을 만들어야 합니다.",
     "User already exists. Please login." : "사용자가 이미 있습니다. 로그인하십시오.",
     "This is not your file" : "이것은 당신의 파일이 아닙니다.",
+    "Authentication required" : "인증 필요",
     "User already exists" : "사용자가 이미 있습니다.",
     "%s is your LibreSign verification code." : "%s은 LibreSign 인증 코드입니다.",
     "Gateway %s not configured on Two-Factor Gateway." : "게이트웨이%s가 이중 요인 게이트웨이에 구성되지 않았습니다.",

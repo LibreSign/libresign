@@ -29,6 +29,7 @@ OC.L10N.register(
     "Pending" : "Yegguni",
     "Account" : "Amiḍan",
     "Email" : "Imayl",
+    "Authentication required" : "Tlaq tuqqna",
     "Signal" : "Signal",
     "Email token" : "Tiddest n yimayl",
     "Certificate with password" : "Aselkin s wawal n uɛeddi",

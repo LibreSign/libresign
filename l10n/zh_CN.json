@@ -99,6 +99,7 @@
     "You need to create an account to sign this file." : "你需要创建一个账号来签署此文件。",
     "User already exists. Please login." : "用户已存在。请登录。 ",
     "This is not your file" : "这不是你的文件",
+    "Authentication required" : "需要验证身份",
     "User already exists" : "用户已存在",
     "%s is your LibreSign verification code." : "%s 为你的 LibreSign 验证码",
     "Gateway %s not configured on Two-Factor Gateway." : "未在双因素认证门户上配置 %s",

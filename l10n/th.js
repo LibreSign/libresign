@@ -26,6 +26,7 @@ OC.L10N.register(
     "Account" : "บัญชี",
     "Invalid user" : "ผู้ใช้ไม่ถูกต้อง",
     "Email" : "อีเมล",
+    "Authentication required" : "จำเป็นต้องตรวจสอบความถูกต้อง",
     "Cancel" : "ยกเลิก",
     "Save" : "บันทึก",
     "Text" : "ข้อความ",

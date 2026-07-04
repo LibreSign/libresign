@@ -219,7 +219,7 @@
     "You need to create an account to sign this file." : "Você precisa criar uma conta para assinar este documento.",
     "User already exists. Please login." : "Usuário já existe. Por favor, autentique-se.",
     "This is not your file" : "Este arquivo não é seu",
-    "This document is not yours. Log out and use the sign link again." : "Este documento não é seu. Saia da sua conta e utilize o link de assinatura novamente.",
+    "Authentication required" : "Autentificação necessária",
     "User already exists" : "Usuário já existe",
     "It is not possible to create new accounts." : "Não é possível criar novas contas.",
     "Signal" : "Signal",
@@ -1001,6 +1001,7 @@
     "Last 7 days" : "Últimos 7 dias",
     "Last 30 days" : "Últimos 30 dias",
     "This year ({year})" : "Este ano ({year})",
-    "Last year ({year})" : "Último ano ({year})"
+    "Last year ({year})" : "Último ano ({year})",
+    "This document is not yours. Log out and use the sign link again." : "Este documento não é seu. Saia da sua conta e utilize o link de assinatura novamente."
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

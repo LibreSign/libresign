@@ -144,6 +144,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Pre podpísanie tohoto súboru si musíte vytvoriť účet.",
     "User already exists. Please login." : "Používateľ už existuje. Prihláste sa, prosím.",
     "This is not your file" : "Toto nie je váš súbor",
+    "Authentication required" : "Vyžaduje sa overenie",
     "User already exists" : "Používateľ už existuje",
     "It is not possible to create new accounts." : "Nie je možné vytvoriť nové účty.",
     "Click to sign" : "Kliknite pre podpísanie",
