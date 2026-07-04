@@ -51,8 +51,13 @@ class TemplateLoader implements IEventListener {
 			return;
 		}
 
-		foreach ($this->getInitialStatePayload() as $key => $value) {
+		$initialStatePayload = $this->getInitialStatePayload();
+		foreach ($initialStatePayload as $key => $value) {
 			$this->initialState->provideInitialState($key, $value);
+		}
+
+		if ($initialStatePayload['certificate_ok'] === true) {
+			Util::addInitScript(Application::APP_ID, 'libresign-init');
 		}
 
 		Util::addScript(Application::APP_ID, 'libresign-tab');
