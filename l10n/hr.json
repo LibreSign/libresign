@@ -96,6 +96,7 @@
     "You need to create an account to sign this file." : "Morate stvoriti račun kako biste potpisali ovu datoteku.",
     "User already exists. Please login." : "Korisnik već postoji. Prijavite se.",
     "This is not your file" : "Ovo nije vaša datoteka",
+    "Authentication required" : "Potrebna autentifikacija",
     "User already exists" : "Korisnik već postoji",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: pretvara se u datoteku radi potpisivanja",
     "File to sign" : "Datoteka za potpisivanje",

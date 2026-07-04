@@ -29,6 +29,7 @@ OC.L10N.register(
     "Account" : "Aðgangur",
     "Invalid user" : "Ógildur notandi",
     "Email" : "Tölvupóstur",
+    "Authentication required" : "Auðkenningar krafist",
     "User already exists" : "Notandi er þegar til",
     "Name cannot be empty" : "Heiti má ekki vera tómt",
     "Cancel" : "Hætta við",

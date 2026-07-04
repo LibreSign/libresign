@@ -29,6 +29,7 @@ OC.L10N.register(
     "Account" : "Konts",
     "Invalid user" : "Nepareizs lietotājs",
     "Email" : "E-pasts",
+    "Authentication required" : "Nepieciešama autentifikācija",
     "Cancel" : "Atcelt",
     "Save" : "Saglabāt",
     "Text" : "Teksts",

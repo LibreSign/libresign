@@ -221,7 +221,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Norėdami pasirašyti šį failą, turite susikurti paskyrą.",
     "User already exists. Please login." : "Naudotojas jau yra. Prisijunkite.",
     "This is not your file" : "Tai ne jūsų failas",
-    "This document is not yours. Log out and use the sign link again." : "Šis dokumentas ne jūsų. Atsijunkite ir dar kartą naudokite pasirašymo nuorodą.",
+    "Authentication required" : "Reikalingas tapatybės nustatymas",
     "User already exists" : "Naudotojas jau yra",
     "It is not possible to create new accounts." : "Neįmanoma sukurti naujų paskyrų.",
     "Signal" : "Signal",
@@ -1003,6 +1003,7 @@ OC.L10N.register(
     "Last 7 days" : "Paskutinės 7 dienos",
     "Last 30 days" : "Paskutinės 30 dienų",
     "This year ({year})" : "Šie metai ({year})",
-    "Last year ({year})" : "Praėję metai ({year})"
+    "Last year ({year})" : "Praėję metai ({year})",
+    "This document is not yours. Log out and use the sign link again." : "Šis dokumentas ne jūsų. Atsijunkite ir dar kartą naudokite pasirašymo nuorodą."
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

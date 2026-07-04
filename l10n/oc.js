@@ -54,6 +54,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Devètz crear un compte per signar aqueste fichièr.",
     "User already exists. Please login." : "L’utilizaire existís ja. Volgatz vos autentificar.",
     "This is not your file" : "Aquò es pas vòstre fichièr",
+    "Authentication required" : "Autentificacion requerida",
     "User already exists" : "L’utilizaire existís ja",
     "File to sign" : "Fichièr a signar",
     "Sign »%s«" : "Signar « %s »",

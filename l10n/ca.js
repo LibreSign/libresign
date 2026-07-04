@@ -115,6 +115,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Heu de crear un compte per signar aquest fitxer.",
     "User already exists. Please login." : "L'usuari ja existeix. Si us plau inicieu sessió.",
     "This is not your file" : "Aquest no és el vostre fitxer",
+    "Authentication required" : "Cal autenticació",
     "User already exists" : "L'usuari ja existeix",
     "%s is your LibreSign verification code." : "%s és el vostre codi de verificació de LibreSign.",
     "Gateway %s not configured on Two-Factor Gateway." : "Pasarel·la %s no configurada a Pasarel·la de doble factor.",

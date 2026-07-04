@@ -27,6 +27,7 @@ OC.L10N.register(
     "Account" : "חשבון",
     "Invalid user" : "משתמש שגוי",
     "Email" : "דוא״ל",
+    "Authentication required" : "נדרש אימות",
     "Name cannot be empty" : "השם לא יכול להישאר ריק",
     "Cancel" : "ביטול",
     "Save" : "שמירה",

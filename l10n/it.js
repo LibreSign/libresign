@@ -156,6 +156,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Devi creare un account per firmare questo file.",
     "User already exists. Please login." : "L'utente esiste già. Esegui l'accesso.",
     "This is not your file" : "Questo non è il tuo file",
+    "Authentication required" : "Autenticazione richiesta",
     "User already exists" : "L'utente esiste già",
     "It is not possible to create new accounts." : "Non è possibile creare nuovi account.",
     "Click to sign" : "Fai clic per firmare",

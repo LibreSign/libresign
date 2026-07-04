@@ -129,6 +129,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Du må opprette en konto for å signere denne filen.",
     "User already exists. Please login." : "Brukeren finnes allerede. Vennligst logg inn.",
     "This is not your file" : "Dette er ikke din fil",
+    "Authentication required" : "Autentisering påkrevd",
     "User already exists" : "Brukeren eksisterer allerede",
     "It is not possible to create new accounts." : "Det er ikke mulig å opprette nye kontoer.",
     "Click to sign" : "Klikk for å signere",

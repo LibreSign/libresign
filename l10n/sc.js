@@ -61,6 +61,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Depes creare unu contu pro firmare custu documentu.",
     "User already exists. Please login." : "S'utente b'est giai. Intra, pro praghere.",
     "This is not your file" : "Custu no est s'archìviu tuo",
+    "Authentication required" : "Bi cheret s'autenticazione ",
     "User already exists" : "S'utente b'est giai",
     "It is not possible to create new accounts." : "Impossìbile creare contos noos.",
     "LibreSign: Changes into a file for you to sign" : "LIbreSign: Càmbios in intro de un archìviu chi depes firmare",

@@ -8,6 +8,7 @@ OC.L10N.register(
     "in %s" : "an %s",
     "Pending" : "Ausstoend",
     "Email" : "Email",
+    "Authentication required" : "Authentifizéierung néideg",
     "Cancel" : "Ofbriechen",
     "Save" : "Späicheren",
     "Upload" : "Eroplueden",

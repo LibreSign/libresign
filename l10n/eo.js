@@ -27,6 +27,7 @@ OC.L10N.register(
     "Account" : "Konto",
     "Invalid user" : "Nevalida uzanto",
     "Email" : "Retpoŝtadreso",
+    "Authentication required" : "Aŭtentiĝo nepras",
     "Name cannot be empty" : "Nomo ne povas mapleni",
     "Cancel" : "Nuligi",
     "Save" : "Konservi",

@@ -221,7 +221,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Bu dosyayı imzalamak için bir hesap açmalısınız.",
     "User already exists. Please login." : "Bu kullanıcı zaten var. Lütfen oturum açın.",
     "This is not your file" : "Bu dosya sizin değil",
-    "This document is not yours. Log out and use the sign link again." : "Bu belge sizin değil. Oturumu kapatın ve yeniden oturum açma bağlantısını kullanın.",
+    "Authentication required" : "Kimlik doğrulaması gerekli",
     "User already exists" : "Kullanıcı zaten var",
     "It is not possible to create new accounts." : "Yeni hesap açılamaz.",
     "Signal" : "Signal",
@@ -958,6 +958,7 @@ OC.L10N.register(
     "Last 7 days" : "Son 7 gün",
     "Last 30 days" : "Son 30 gün",
     "This year ({year})" : "Bu yıl ({year})",
-    "Last year ({year})" : "Son yıl ({year})"
+    "Last year ({year})" : "Son yıl ({year})",
+    "This document is not yours. Log out and use the sign link again." : "Bu belge sizin değil. Oturumu kapatın ve yeniden oturum açma bağlantısını kullanın."
 },
 "nplurals=2; plural=(n > 1);");
