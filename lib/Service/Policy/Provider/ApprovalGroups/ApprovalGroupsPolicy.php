@@ -12,6 +12,7 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
 
 final class ApprovalGroupsPolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'approval_group';
@@ -26,7 +27,7 @@ final class ApprovalGroupsPolicy implements IPolicyDefinitionProvider {
 
 	#[\Override]
 	public function get(string|\BackedEnum $policyKey): IPolicyDefinition {
-		return match ($this->normalizePolicyKey($policyKey)) {
+		return match (PolicyKeyNormalizer::normalize($policyKey)) {
 			self::KEY => new PolicySpec(
 				key: self::KEY,
 				defaultSystemValue: ApprovalGroupsPolicyValue::encode(ApprovalGroupsPolicyValue::DEFAULT_GROUPS),
@@ -47,15 +48,7 @@ final class ApprovalGroupsPolicy implements IPolicyDefinitionProvider {
 				supportedScopes: [PolicySpec::SCOPE_SYSTEM],
 				backendOnly: true,
 			),
-			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
+			default => throw new \InvalidArgumentException('Unknown policy key: ' . PolicyKeyNormalizer::normalize($policyKey)),
 		};
-	}
-
-	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {
-		if ($policyKey instanceof \BackedEnum) {
-			return (string)$policyKey->value;
-		}
-
-		return $policyKey;
 	}
 }
