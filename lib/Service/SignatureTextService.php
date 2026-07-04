@@ -201,15 +201,25 @@ class SignatureTextService {
 
 	public function getAvailableVariables(): array {
 		$list = [
+			// TRANSLATORS Description for the template variable {{DocumentUUID}} shown in the signature template helper list.
 			'{{DocumentUUID}}' => $this->l10n->t('Unique identifier of the signed document'),
+			// TRANSLATORS Description for the template variable {{IssuerCommonName}} shown in the signature template helper list.
 			'{{IssuerCommonName}}' => $this->l10n->t('Name of the certificate issuer used for the signature.'),
+			// TRANSLATORS Description for the template variable {{LocalSignerSignatureDateOnly}} shown in the signature template helper list.
 			'{{LocalSignerSignatureDateOnly}}' => $this->l10n->t('Date when the signer created the signature request (without time, in their local time zone).'),
+			// TRANSLATORS Description for the template variable {{LocalSignerSignatureDateTime}} shown in the signature template helper list.
 			'{{LocalSignerSignatureDateTime}}' => $this->l10n->t('Date and time when the signer created the signature request (in their local time zone).'),
+			// TRANSLATORS Description for the template variable {{LocalSignerTimezone}} shown in the signature template helper list.
 			'{{LocalSignerTimezone}}' => $this->l10n->t('Time zone of signer when the signature request was created (in their local time zone).'),
+			// TRANSLATORS Description for the template variable {{ServerSignatureDate}} shown in the signature template helper list. Keep "ISO 8601" unchanged. "date filter" refers to template syntax used to format dates.
 			'{{ServerSignatureDate}}' => $this->l10n->t('Date and time when the signature was applied on the server (ISO 8601 format). Can be formatted using the Twig date filter.'),
+			// TRANSLATORS Description for the template variable {{SignerCommonName}} shown in the signature template helper list. "Common Name (CN)" is the X.509 certificate subject field and "CN" must remain unchanged.
 			'{{SignerCommonName}}' => $this->l10n->t('Common Name (CN) used to identify the document signer.'),
+			// TRANSLATORS Description for the template variable {{SignerEmail}} shown in the signature template helper list.
 			'{{SignerEmail}}' => $this->l10n->t('The signer\'s email is optional and can be left blank.'),
+			// TRANSLATORS Description for the template variable {{SignerIdentifier}} shown in the signature template helper list.
 			'{{SignerIdentifier}}' => $this->l10n->t('Unique information used to identify the signer (such as email, phone number, or username).'),
+			// TRANSLATORS Description for the template variable {{ValidationURL}} shown in the signature template helper list.
 			'{{ValidationURL}}' => $this->l10n->t('Validation URL of the signed document.'),
 			// TRANSLATORS This sentence is a description shown in the list of
 			// available template variables.
@@ -220,7 +230,9 @@ class SignatureTextService {
 		];
 		$collectMetadata = $this->isCollectMetadataEnabled();
 		if ($collectMetadata) {
+			// TRANSLATORS Description for the template variable {{SignerIP}} shown in the signature template helper list. This variable is available only when metadata collection policy is enabled.
 			$list['{{SignerIP}}'] = $this->l10n->t('IP address of the person who signed the document.');
+			// TRANSLATORS Description for the template variable {{SignerUserAgent}} shown in the signature template helper list. This variable is available only when metadata collection policy is enabled.
 			$list['{{SignerUserAgent}}'] = $this->l10n->t('Browser and device information of the person who signed the document.');
 		}
 		return $list;
