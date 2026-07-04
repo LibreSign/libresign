@@ -14,6 +14,8 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Provider\Helper\DelegationLayerHelper;
+use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
 
 final class FooterPolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'add_footer';
@@ -33,7 +35,7 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 		$defaultSystemValue = FooterPolicyValue::encode(FooterPolicyValue::defaults());
 		$resolvedStateDefault = FooterPolicyValue::encode(FooterPolicyValue::defaults($defaultTemplate), $defaultTemplate);
 
-		return match ($this->normalizePolicyKey($policyKey)) {
+		return match (PolicyKeyNormalizer::normalize($policyKey)) {
 			self::KEY => new PolicySpec(
 				key: self::KEY,
 				defaultSystemValue: $defaultSystemValue,
@@ -73,8 +75,8 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 						return false;
 					}
 
-					return self::hasExplicitGlobalDelegation($systemPolicy)
-						|| self::hasSystemCreatedGroupDelegation($groupLayers);
+					return DelegationLayerHelper::hasExplicitGlobalDelegation($systemPolicy)
+						|| DelegationLayerHelper::hasSystemCreatedGroupDelegation($groupLayers);
 				},
 				systemCreatedGroupRuleEditor: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, PolicyLayer $existingPolicy): bool {
 					$actorRole = $context->getActorRole();
@@ -90,58 +92,19 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 						return false;
 					}
 
-					if (self::hasExplicitGlobalDelegation($systemPolicy)) {
+					if (DelegationLayerHelper::hasExplicitGlobalDelegation($systemPolicy)) {
 						return true;
 					}
 
-					return self::wasCreatedBySystemAdmin($existingPolicy);
+					return $existingPolicy->isCreatedBySystemAdmin();
 				},
 				supportsGroupAdminDelegation: true,
 				resolvedStateMeta: static fn (PolicyContext $_context): array => [
 					'defaultSystemValue' => $resolvedStateDefault,
 				],
 			),
-			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
+			default => throw new \InvalidArgumentException('Unknown policy key: ' . PolicyKeyNormalizer::normalize($policyKey)),
 		};
-	}
-
-	private static function hasExplicitGlobalDelegation(?PolicyLayer $systemPolicy): bool {
-		return $systemPolicy instanceof PolicyLayer
-			&& $systemPolicy->getScope() === 'global'
-			&& $systemPolicy->isVisibleToChild()
-			&& $systemPolicy->isAllowChildOverride()
-			&& $systemPolicy->getValue() !== null;
-	}
-
-	/** @param array<array-key, PolicyLayer> $groupLayers */
-	private static function hasSystemCreatedGroupDelegation(array $groupLayers): bool {
-		foreach ($groupLayers as $groupLayer) {
-			if (!$groupLayer instanceof PolicyLayer) {
-				continue;
-			}
-
-			if (!$groupLayer->isVisibleToChild() || $groupLayer->getValue() === null) {
-				continue;
-			}
-
-			if (self::isDelegatedFromSystemCreatedSeed($groupLayer)) {
-				return true;
-			}
-
-			if ($groupLayer->isAllowChildOverride() && self::wasCreatedBySystemAdmin($groupLayer)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	private static function isDelegatedFromSystemCreatedSeed(PolicyLayer $policy): bool {
-		return $policy->isDelegatedFromSystemCreatedSeed();
-	}
-
-	private static function wasCreatedBySystemAdmin(PolicyLayer $policy): bool {
-		return $policy->isCreatedBySystemAdmin();
 	}
 
 	private function getDefaultTemplate(): string {
@@ -150,14 +113,6 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 		}
 
 		return $this->defaultTemplate = (string)file_get_contents(FooterHandler::DEFAULT_TEMPLATE_PATH);
-	}
-
-	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {
-		if ($policyKey instanceof \BackedEnum) {
-			return (string)$policyKey->value;
-		}
-
-		return $policyKey;
 	}
 
 	private static function canManageTechnicalFooterSettings(PolicyContext $context): bool {
