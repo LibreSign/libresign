@@ -13,6 +13,8 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Provider\Helper\DelegationLayerHelper;
+use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
 
 final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'groups_request_sign';
@@ -27,7 +29,9 @@ final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 
 	#[\Override]
 	public function get(string|\BackedEnum $policyKey): IPolicyDefinition {
-		return match ($this->normalizePolicyKey($policyKey)) {
+		$normalizedKey = PolicyKeyNormalizer::normalize($policyKey);
+
+		return match ($normalizedKey) {
 			self::KEY => new PolicySpec(
 				key: self::KEY,
 				defaultSystemValue: RequestSignGroupsPolicyValue::encode([
@@ -66,8 +70,8 @@ final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 						return false;
 					}
 
-					return self::hasExplicitGlobalDelegation($systemPolicy)
-						|| self::hasSystemCreatedGroupDelegation($groupLayers);
+					return DelegationLayerHelper::hasExplicitGlobalDelegation($systemPolicy)
+						|| DelegationLayerHelper::hasSystemCreatedGroupDelegation($groupLayers);
 				},
 				systemCreatedGroupRuleEditor: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, PolicyLayer $existingPolicy): bool {
 					$actorRole = $context->getActorRole();
@@ -83,11 +87,11 @@ final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 						return false;
 					}
 
-					if (self::hasExplicitGlobalDelegation($systemPolicy)) {
+					if (DelegationLayerHelper::hasExplicitGlobalDelegation($systemPolicy)) {
 						return true;
 					}
 
-					return self::wasCreatedBySystemAdmin($existingPolicy);
+					return $existingPolicy->isCreatedBySystemAdmin();
 				},
 				supportsGroupAdminDelegation: true,
 				delegatedValueValidator: static function (mixed $proposedNormalizedValue): void {
@@ -101,54 +105,7 @@ final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 					}
 				},
 			),
-			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
+				default => throw new \InvalidArgumentException('Unknown policy key: ' . $normalizedKey),
 		};
-	}
-
-	private static function hasExplicitGlobalDelegation(?PolicyLayer $systemPolicy): bool {
-		return $systemPolicy instanceof PolicyLayer
-			&& $systemPolicy->getScope() === 'global'
-			&& $systemPolicy->isVisibleToChild()
-			&& $systemPolicy->isAllowChildOverride()
-			&& $systemPolicy->getValue() !== null;
-	}
-
-	/** @param array<array-key, PolicyLayer> $groupLayers */
-	private static function hasSystemCreatedGroupDelegation(array $groupLayers): bool {
-		foreach ($groupLayers as $groupLayer) {
-			if (!$groupLayer instanceof PolicyLayer) {
-				continue;
-			}
-
-			if (!$groupLayer->isVisibleToChild() || $groupLayer->getValue() === null) {
-				continue;
-			}
-
-			if (self::isDelegatedFromSystemCreatedSeed($groupLayer)) {
-				return true;
-			}
-
-			if ($groupLayer->isAllowChildOverride() && self::wasCreatedBySystemAdmin($groupLayer)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	private static function isDelegatedFromSystemCreatedSeed(PolicyLayer $policy): bool {
-		return $policy->isDelegatedFromSystemCreatedSeed();
-	}
-
-	private static function wasCreatedBySystemAdmin(PolicyLayer $policy): bool {
-		return $policy->isCreatedBySystemAdmin();
-	}
-
-	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {
-		if ($policyKey instanceof \BackedEnum) {
-			return (string)$policyKey->value;
-		}
-
-		return $policyKey;
 	}
 }
