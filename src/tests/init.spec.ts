@@ -7,11 +7,13 @@ import { describe, expect, it, beforeEach, vi, afterEach } from 'vitest'
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
+type UploadMock = (destinationPath: string, file: File, source: string) => Promise<unknown>
+
 const mockDefaultPropfind = '<propfind xmlns="DAV:"><prop><fileid/></prop></propfind>'
 const mockGetDefaultPropfind = vi.fn(() => mockDefaultPropfind)
 
 const mockStat = vi.fn()
-const mockUpload = vi.fn(() => Promise.resolve({}))
+const mockUpload = vi.fn<UploadMock>(() => Promise.resolve({}))
 const mockUploader = { upload: mockUpload }
 const mockClient = { stat: mockStat }
 const mockGetClient = vi.fn(() => mockClient)
@@ -289,8 +291,9 @@ describe('init.ts', () => {
 				context.source,
 			)
 
-			const uploadedFile = mockUpload.mock.calls[0][1] as File
-			expect(uploadedFile.size).toBeGreaterThan(0)
+			const uploadedFile = mockUpload.mock.lastCall?.[1]
+			expect(uploadedFile).toBeInstanceOf(File)
+			expect(uploadedFile?.size).toBeGreaterThan(0)
 		})
 
 		it('emits files:node:created after the uploaded file is statted', () => {
