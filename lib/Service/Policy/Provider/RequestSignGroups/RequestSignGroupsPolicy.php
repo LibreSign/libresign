@@ -105,7 +105,7 @@ final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 					}
 				},
 			),
-				default => throw new \InvalidArgumentException('Unknown policy key: ' . $normalizedKey),
+			default => throw new \InvalidArgumentException('Unknown policy key: ' . $normalizedKey),
 		};
 	}
 }
