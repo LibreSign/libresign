@@ -22,6 +22,7 @@ OC.L10N.register(
     "Account" : "Rekening",
     "Invalid user" : "Ongeldige gebruiker",
     "Email" : "E-pos",
+    "Authentication required" : "Verifikasie word vereis",
     "Name cannot be empty" : "Naam kan nie leeg wees nie",
     "Cancel" : "Kanselleer",
     "Save" : "Bewaar",
