@@ -141,6 +141,7 @@
     "You need to create an account to sign this file." : "تحتاج إلى إنشاء حساب للتوقيع على هذا الملف.",
     "User already exists. Please login." : "المستخدم موجود اصلا. الرجاء تسجيل الدخول.",
     "This is not your file" : "هذا ليس ملفك",
+    "Authentication required" : "المصادقة مطلوبة",
     "User already exists" : "أنت موجودٌ مُسبقاً",
     "It is not possible to create new accounts." : "يتعذّر إنشاء حسابات جديدة.",
     "Click to sign" : "إضغَط للتوقيع",
