@@ -26,6 +26,7 @@ OC.L10N.register(
     "Pending" : "У чаканні",
     "Account" : "Уліковы запіс",
     "Email" : "Электронная пошта",
+    "Authentication required" : "Патрабуецца аўтэнтыфікацыя",
     "Signal" : "Signal",
     "Email token" : "Токен электроннай пошты",
     "SMS" : "СМС",

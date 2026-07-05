@@ -18,6 +18,7 @@ OC.L10N.register(
     "Account" : "Hesab",
     "Invalid user" : "İstifadəçi adı yalnışdır",
     "Email" : "Email",
+    "Authentication required" : "Qeydiyyat tələb edilir",
     "Cancel" : "Dayandır",
     "Save" : "Saxla",
     "Upload" : "Serverə yüklə",
