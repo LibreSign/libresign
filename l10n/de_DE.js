@@ -222,6 +222,8 @@ OC.L10N.register(
     "User already exists. Please login." : "Benutzer existiert bereits. Bitte anmelden.",
     "This is not your file" : "Dies ist nicht Ihre Datei",
     "Authentication required" : "Authentifizierung erforderlich",
+    "The current authenticated session cannot be used to sign this document." : "Die aktuelle authentifizierte Sitzung kann nicht zum Signieren dieses Dokuments verwendet werden.",
+    "To continue, sign out from the current account and open the signing link again, or open the signing link in a browser session where this account is not active." : "Um fortzufahren, vom aktuellen Konto abmelden und den Signier-Link erneut öffnen, oder den Signier-Link in einer Browsersitzung öffnen, in der dieses Konto nicht aktiv ist.",
     "User already exists" : "Benutzer existiert bereits",
     "It is not possible to create new accounts." : "Es ist nicht möglich, neue Konten zu erstellen.",
     "Signal" : "Signal",

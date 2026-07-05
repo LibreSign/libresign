@@ -30,6 +30,7 @@ OC.L10N.register(
     "Account" : "Cuenta",
     "Invalid user" : "L'usuariu ye inválidu",
     "Email" : "Corréu electrónicu",
+    "Authentication required" : "L'autenticación ye obligatoria",
     "User already exists" : "L'usuariu yá esiste",
     "%s already signed this file" : "%s xá firmó esti ficheru",
     "Name cannot be empty" : "El nome nun pue tar baleru",
