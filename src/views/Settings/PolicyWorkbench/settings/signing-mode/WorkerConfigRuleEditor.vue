@@ -7,6 +7,7 @@
 	<div class="worker-config-rule-editor">
 		<fieldset class="worker-config-rule-editor__worker-type">
 			<legend class="worker-config-rule-editor__section-label">
+				<!-- TRANSLATORS Section title for choosing whether signing jobs use a local Nextcloud worker service or an external worker service. -->
 				{{ t('libresign', 'Worker service type') }}
 			</legend>
 
@@ -16,7 +17,9 @@
 				:model-value="config.workerType === 'local'"
 				@update:modelValue="onWorkerTypeChange('local', $event)">
 				<div class="worker-config-rule-editor__copy">
+					<!-- TRANSLATORS Option label for using Nextcloud's local background worker service to process signing jobs. -->
 					<strong>{{ t('libresign', 'Local worker') }}</strong>
+					<!-- TRANSLATORS Option description meaning Nextcloud itself runs the background workers that process signing jobs. -->
 					<p>{{ t('libresign', 'Nextcloud manages and executes background workers locally.') }}</p>
 				</div>
 			</NcCheckboxRadioSwitch>
@@ -27,7 +30,9 @@
 				:model-value="config.workerType === 'external'"
 				@update:modelValue="onWorkerTypeChange('external', $event)">
 				<div class="worker-config-rule-editor__copy">
+					<!-- TRANSLATORS Option label for using an external background worker service instead of Nextcloud's local workers. -->
 					<strong>{{ t('libresign', 'External worker') }}</strong>
+					<!-- TRANSLATORS Option description meaning a separate external service processes signing jobs. -->
 					<p>{{ t('libresign', 'An external service processes signing jobs.') }}</p>
 				</div>
 			</NcCheckboxRadioSwitch>
@@ -35,14 +40,16 @@
 
 		<div class="worker-config-rule-editor__parallel">
 			<p class="worker-config-rule-editor__parallel-description">
+				<!-- TRANSLATORS Helper text explaining that this setting controls how many signing jobs can run at the same time. -->
 				{{ t('libresign', 'Defines how many signing jobs may run concurrently.') }}
 			</p>
 			<p v-if="config.workerType === 'external'" class="worker-config-rule-editor__parallel-hint">
+				<!-- TRANSLATORS Hint shown when an external worker service is selected, meaning the parallel-worker count is controlled outside Nextcloud. -->
 				{{ t('libresign', 'Parallel workers is managed by the external worker service.') }}
 			</p>
 			<NcTextField
 				id="worker-config-parallel-input"
-				:label="t('libresign', 'Parallel workers')"
+				:label="parallelWorkersLabel"
 				type="number"
 				min="1"
 				max="32"
@@ -82,11 +89,14 @@ const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
 
+// TRANSLATORS Label for the numeric field that sets how many signing jobs may be processed in parallel.
+const parallelWorkersLabel = t('libresign', 'Parallel workers')
+
 const config = computed(() => normalizeWorkerConfig(props.modelValue))
 
 const localParallelValue = ref(String(config.value.parallelWorkers))
 
-watch(() => config.value.parallelWorkers, (val) => {
+watch(() => config.value.parallelWorkers, (val: number) => {
 	localParallelValue.value = String(val)
 })
 
