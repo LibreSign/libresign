@@ -18,6 +18,25 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 14.0.2 - 2026-07-06
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- update translations
+- bump dependencies [#7780](https://github.com/LibreSign/libresign/pull/7780) [#7805](https://github.com/LibreSign/libresign/pull/7805) [#7818](https://github.com/LibreSign/libresign/pull/7818) [#7850](https://github.com/LibreSign/libresign/pull/7850)
+- surface setup checks in the admin overview and `occ setupchecks:check` [#7841](https://github.com/LibreSign/libresign/pull/7841)
+
+### Fixed
+- avoid autoload issues from the authoritative classmap configuration [#7776](https://github.com/LibreSign/libresign/pull/7776)
+- cache generated CRL data in appdata correctly [#7783](https://github.com/LibreSign/libresign/pull/7783)
+- prevent invalid user element rows from breaking node ID writes [#7811](https://github.com/LibreSign/libresign/pull/7811)
+- honor notification preferences more consistently for email notifications [#7835](https://github.com/LibreSign/libresign/pull/7835)
+- avoid transient CFSSL startup failures during setup [#7838](https://github.com/LibreSign/libresign/pull/7838)
+- clarify the error shown when a signing link is opened in the wrong authenticated session [#7857](https://github.com/LibreSign/libresign/pull/7857)
+
 ## 14.0.1 - 2026-06-14
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
