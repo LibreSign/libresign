@@ -12,10 +12,6 @@ import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import {
-	normalizeRequestExpirationDraftValue,
-	type RequestExpirationDraftValue,
-} from './settings/expiration-rules/model'
-import {
 	getEnabledIdentifyMethodNames,
 	restrictIdentifyMethodsPolicyToNames,
 } from './settings/identify-methods/model'
@@ -26,22 +22,31 @@ import {
 	serializeRequestSignGroups,
 } from './settings/request-sign-groups/model'
 import {
-	normalizeSignatureStampDraftValue,
-	resolveCollectMetadataValue,
-} from './settings/signature-text/model'
-import {
-	normalizeSigningExecutionSettings,
-	normalizeWorkerConfig,
-	resolveSigningMode,
-	serializeWorkerConfig,
-	type SigningExecutionSettingsValue,
-} from './settings/signing-mode/model'
+	buildRequestExpirationValue,
+	buildSignatureStampDraftValue,
+	buildSigningExecutionValue,
+	clearCompoundPolicyTarget,
+	clearCompoundUserPreferences,
+	hydrateCompoundPolicyRules,
+	isRequestExpirationPolicyKey,
+	isSignatureStampPolicyKey,
+	isUnifiedSigningExecutionPolicyKey,
+	REQUEST_EXPIRATION_POLICY_KEY,
+	REQUEST_EXPIRATION_RENEWAL_KEY,
+	REQUEST_SIGN_GROUPS_POLICY_KEY,
+	saveCompoundPolicyValue,
+	SIGNATURE_STAMP_POLICY_KEY,
+	SIGNING_EXECUTION_POLICY_KEY,
+	SIGNING_EXECUTION_WORKER_KEY,
+	COLLECT_METADATA_POLICY_KEY,
+	type PersistedSystemPolicyRecord,
+	type PolicyRuleRecord,
+	type PolicyScope,
+} from './policyWorkbenchCompoundPolicies'
 import logger from '../../../logger.js'
 import { usePoliciesStore } from '../../../store/policies'
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../types/index'
 import { canRenderWorkbenchPolicyForGroupAdmin } from '../../Preferences/personalPreferenceVisibility'
-
-type PolicyScope = 'system' | 'group' | 'user'
 
 interface PolicyStickySummary {
 	currentBaseValue: string
@@ -51,21 +56,6 @@ interface PolicyStickySummary {
 	activeGroupExceptions: number
 	activeUserExceptions: number
 	activeBlockCount: number
-}
-
-interface PolicyRuleRecord {
-	id: string
-	scope: PolicyScope
-	targetId: string | null
-	allowChildOverride: boolean
-	value: EffectivePolicyValue
-	canRemove?: boolean
-}
-
-interface PersistedSystemPolicyRecord {
-	scope?: string | null
-	value?: EffectivePolicyValue | null
-	allowChildOverride?: boolean
 }
 
 interface PolicyEditorDraft {
@@ -170,66 +160,6 @@ function toDraftSnapshot(draft: PolicyEditorDraft | null): string {
 		value: draft.value,
 		allowChildOverride: draft.allowChildOverride,
 	})
-}
-
-const REQUEST_EXPIRATION_POLICY_KEY = 'maximum_validity'
-const REQUEST_EXPIRATION_RENEWAL_KEY = 'renewal_interval'
-const SIGNING_EXECUTION_POLICY_KEY = 'signing_mode'
-const SIGNING_EXECUTION_WORKER_KEY = 'worker_config'
-const SIGNATURE_STAMP_POLICY_KEY = 'signature_stamp'
-const COLLECT_METADATA_POLICY_KEY = 'collect_metadata'
-const REQUEST_SIGN_GROUPS_POLICY_KEY = 'groups_request_sign'
-
-function isRequestExpirationPolicyKey(policyKey: string): boolean {
-	return policyKey === REQUEST_EXPIRATION_POLICY_KEY
-}
-
-function isUnifiedSigningExecutionPolicyKey(policyKey: string): boolean {
-	return policyKey === SIGNING_EXECUTION_POLICY_KEY
-}
-
-function isSignatureStampPolicyKey(policyKey: string): boolean {
-	return policyKey === SIGNATURE_STAMP_POLICY_KEY
-}
-
-function buildRequestExpirationValue(
-	maximumValidity: EffectivePolicyValue | undefined,
-	renewalInterval: EffectivePolicyValue | undefined,
-): RequestExpirationDraftValue {
-	const normalizedMaximum = normalizeRequestExpirationDraftValue(maximumValidity ?? null)
-	const normalizedRenewal = normalizeRequestExpirationDraftValue({
-		maximumValidity: 0,
-		renewalInterval: renewalInterval ?? null,
-	})
-
-	return {
-		maximumValidity: normalizedMaximum.maximumValidity,
-		renewalInterval: normalizedRenewal.renewalInterval,
-	}
-}
-
-function buildSigningExecutionValue(
-	signingMode: EffectivePolicyValue | undefined,
-	workerConfig: EffectivePolicyValue | undefined,
-): SigningExecutionSettingsValue {
-	const normalizedMode = normalizeSigningExecutionSettings(signingMode ?? null)
-	const normalizedWorker = normalizeWorkerConfig(workerConfig ?? null)
-
-	return {
-		signingMode: resolveSigningMode(normalizedMode.signingMode),
-		workerType: normalizedWorker.workerType,
-		parallelWorkers: normalizedWorker.parallelWorkers,
-	}
-}
-
-function buildSignatureStampDraftValue(
-	signatureStampValue: EffectivePolicyValue | undefined,
-	collectMetadataValue: EffectivePolicyValue | undefined,
-) {
-	return normalizeSignatureStampDraftValue(
-		signatureStampValue,
-		resolveCollectMetadataValue(collectMetadataValue, false),
-	)
 }
 
 function resolvePolicySaveErrorMessage(error: unknown): string | null {
@@ -915,243 +845,6 @@ export function createRealPolicyWorkbenchState() {
 		rulesLoading.value = false
 	}
 
-	function applyRequestExpirationHydration(
-		policyKey: string,
-		persistedSystemPolicy: PersistedSystemPolicyRecord | null,
-		renewalSystemPolicy: PersistedSystemPolicyRecord | null,
-		persistedGroupPolicies: PolicyRuleRecord[],
-		renewalGroupPolicies: PolicyRuleRecord[],
-		persistedUserPolicies: PolicyRuleRecord[],
-		renewalUserPolicies: PolicyRuleRecord[],
-	) {
-		const maxHasValue = persistedSystemPolicy?.value !== null && persistedSystemPolicy?.value !== undefined
-		const renewalHasValue = renewalSystemPolicy?.value !== null && renewalSystemPolicy?.value !== undefined
-		explicitSystemRule.value = (persistedSystemPolicy?.scope === 'global' || renewalSystemPolicy?.scope === 'global') && (maxHasValue || renewalHasValue)
-			? {
-				id: 'system-default',
-				scope: 'system',
-				targetId: null,
-				allowChildOverride: persistedSystemPolicy?.allowChildOverride ?? renewalSystemPolicy?.allowChildOverride ?? true,
-				value: buildRequestExpirationValue(
-					persistedSystemPolicy?.value,
-					renewalSystemPolicy?.value,
-				),
-			}
-			: null
-
-		const mergedGroupRules = new Map<string, PolicyRuleRecord>()
-		for (const rule of persistedGroupPolicies) {
-			if (!rule.targetId) {
-				continue
-			}
-
-			mergedGroupRules.set(rule.targetId, {
-				id: rule.id,
-				scope: 'group',
-				targetId: rule.targetId,
-				allowChildOverride: rule.allowChildOverride,
-				value: buildRequestExpirationValue(rule.value, null),
-				canRemove: rule.canRemove,
-			})
-		}
-
-		for (const rule of renewalGroupPolicies) {
-			if (!rule.targetId) {
-				continue
-			}
-
-			const existing = mergedGroupRules.get(rule.targetId)
-			mergedGroupRules.set(rule.targetId, {
-				id: existing?.id ?? rule.id,
-				scope: 'group',
-				targetId: rule.targetId,
-				allowChildOverride: existing?.allowChildOverride ?? rule.allowChildOverride,
-				value: buildRequestExpirationValue(existing?.value, rule.value),
-				canRemove: existing?.canRemove ?? rule.canRemove,
-			})
-		}
-
-		const mergedUserRules = new Map<string, PolicyRuleRecord>()
-		for (const rule of persistedUserPolicies) {
-			if (!rule.targetId) {
-				continue
-			}
-
-			mergedUserRules.set(rule.targetId, {
-				id: rule.id,
-				scope: 'user',
-				targetId: rule.targetId,
-				allowChildOverride: rule.allowChildOverride,
-				value: buildRequestExpirationValue(rule.value, null),
-			})
-		}
-
-		for (const rule of renewalUserPolicies) {
-			if (!rule.targetId) {
-				continue
-			}
-
-			const existing = mergedUserRules.get(rule.targetId)
-			mergedUserRules.set(rule.targetId, {
-				id: existing?.id ?? rule.id,
-				scope: 'user',
-				targetId: rule.targetId,
-				allowChildOverride: existing?.allowChildOverride ?? rule.allowChildOverride,
-				value: buildRequestExpirationValue(existing?.value, rule.value),
-			})
-		}
-
-		commitHydratedRules(policyKey, Array.from(mergedGroupRules.values()), Array.from(mergedUserRules.values()))
-	}
-
-	function applySigningExecutionHydration(
-		policyKey: string,
-		persistedSystemPolicy: PersistedSystemPolicyRecord | null,
-		workerSystemPolicy: PersistedSystemPolicyRecord | null,
-		persistedGroupPolicies: PolicyRuleRecord[],
-		workerGroupPolicies: PolicyRuleRecord[],
-		persistedUserPolicies: PolicyRuleRecord[],
-		workerUserPolicies: PolicyRuleRecord[],
-	) {
-		const modeHasValue = persistedSystemPolicy?.value !== null && persistedSystemPolicy?.value !== undefined
-		const workerHasValue = workerSystemPolicy?.value !== null && workerSystemPolicy?.value !== undefined
-		explicitSystemRule.value = (persistedSystemPolicy?.scope === 'global' || workerSystemPolicy?.scope === 'global') && (modeHasValue || workerHasValue)
-			? {
-				id: 'system-default',
-				scope: 'system',
-				targetId: null,
-				allowChildOverride: persistedSystemPolicy?.allowChildOverride ?? workerSystemPolicy?.allowChildOverride ?? true,
-				value: buildSigningExecutionValue(
-					persistedSystemPolicy?.value,
-					workerSystemPolicy?.value,
-				),
-			}
-			: null
-
-		const mergedGroupRules = new Map<string, PolicyRuleRecord>()
-		for (const rule of persistedGroupPolicies) {
-			if (!rule.targetId) {
-				continue
-			}
-
-			mergedGroupRules.set(rule.targetId, {
-				id: rule.id,
-				scope: 'group',
-				targetId: rule.targetId,
-				allowChildOverride: rule.allowChildOverride,
-				value: buildSigningExecutionValue(rule.value, null),
-				canRemove: rule.canRemove,
-			})
-		}
-
-		for (const rule of workerGroupPolicies) {
-			if (!rule.targetId) {
-				continue
-			}
-
-			const existing = mergedGroupRules.get(rule.targetId)
-			mergedGroupRules.set(rule.targetId, {
-				id: existing?.id ?? rule.id,
-				scope: 'group',
-				targetId: rule.targetId,
-				allowChildOverride: existing?.allowChildOverride ?? rule.allowChildOverride,
-				value: buildSigningExecutionValue(existing?.value, rule.value),
-				canRemove: existing?.canRemove ?? rule.canRemove,
-			})
-		}
-
-		const mergedUserRules = new Map<string, PolicyRuleRecord>()
-		for (const rule of persistedUserPolicies) {
-			if (!rule.targetId) {
-				continue
-			}
-
-			mergedUserRules.set(rule.targetId, {
-				id: rule.id,
-				scope: 'user',
-				targetId: rule.targetId,
-				allowChildOverride: rule.allowChildOverride,
-				value: buildSigningExecutionValue(rule.value, null),
-			})
-		}
-
-		for (const rule of workerUserPolicies) {
-			if (!rule.targetId) {
-				continue
-			}
-
-			const existing = mergedUserRules.get(rule.targetId)
-			mergedUserRules.set(rule.targetId, {
-				id: existing?.id ?? rule.id,
-				scope: 'user',
-				targetId: rule.targetId,
-				allowChildOverride: existing?.allowChildOverride ?? rule.allowChildOverride,
-				value: buildSigningExecutionValue(existing?.value, rule.value),
-			})
-		}
-
-		commitHydratedRules(policyKey, Array.from(mergedGroupRules.values()), Array.from(mergedUserRules.values()))
-	}
-
-	function applySignatureStampHydration(
-		policyKey: string,
-		persistedSystemPolicy: PersistedSystemPolicyRecord | null,
-		collectMetadataSystemPolicy: PersistedSystemPolicyRecord | null,
-		persistedGroupPolicies: PolicyRuleRecord[],
-		collectMetadataGroupPolicies: PolicyRuleRecord[],
-		persistedUserPolicies: PolicyRuleRecord[],
-		collectMetadataUserPolicies: PolicyRuleRecord[],
-	) {
-		explicitSystemRule.value = (persistedSystemPolicy?.scope === 'global' || collectMetadataSystemPolicy?.scope === 'global')
-			&& (persistedSystemPolicy?.value !== null && persistedSystemPolicy?.value !== undefined)
-			? {
-				id: 'system-default',
-				scope: 'system',
-				targetId: null,
-				allowChildOverride: persistedSystemPolicy?.allowChildOverride ?? collectMetadataSystemPolicy?.allowChildOverride ?? true,
-				value: buildSignatureStampDraftValue(
-					persistedSystemPolicy?.value,
-					collectMetadataSystemPolicy?.value,
-				),
-			}
-			: null
-
-		const mergedGroupRules = new Map<string, PolicyRuleRecord>()
-		for (const rule of persistedGroupPolicies) {
-			if (!rule.targetId) {
-				continue
-			}
-
-			const collectMetadataRule = collectMetadataGroupPolicies.find((metadataRule) => metadataRule.targetId === rule.targetId)
-			mergedGroupRules.set(rule.targetId, {
-				id: rule.id,
-				scope: 'group',
-				targetId: rule.targetId,
-				allowChildOverride: rule.allowChildOverride,
-				value: buildSignatureStampDraftValue(rule.value, collectMetadataRule?.value),
-				canRemove: rule.canRemove,
-			})
-		}
-
-		const mergedUserRules = new Map<string, PolicyRuleRecord>()
-		for (const rule of persistedUserPolicies) {
-			if (!rule.targetId) {
-				continue
-			}
-
-			const collectMetadataRule = collectMetadataUserPolicies.find((metadataRule) => metadataRule.targetId === rule.targetId)
-			mergedUserRules.set(rule.targetId, {
-				id: rule.id,
-				scope: 'user',
-				targetId: rule.targetId,
-				allowChildOverride: rule.allowChildOverride,
-				value: buildSignatureStampDraftValue(rule.value, collectMetadataRule?.value),
-			})
-		}
-
-		commitHydratedRules(policyKey, Array.from(mergedGroupRules.values()), Array.from(mergedUserRules.values()))
-	}
-
 	function applyDefaultHydration(
 		policyKey: string,
 		persistedSystemPolicy: PersistedSystemPolicyRecord | null,
@@ -1341,44 +1034,37 @@ export function createRealPolicyWorkbenchState() {
 
 		const [persistedSystemPolicy, persistedGroupPolicies, persistedUserPolicies, renewalSystemPolicy, renewalGroupPolicies, renewalUserPolicies, workerSystemPolicy, workerGroupPolicies, workerUserPolicies, collectMetadataSystemPolicy, collectMetadataGroupPolicies, collectMetadataUserPolicies] = hydratedPayload
 
-		if (shouldMergeRequestExpiration) {
-			applyRequestExpirationHydration(
-				policyKey,
-				persistedSystemPolicy,
-				renewalSystemPolicy,
-				persistedGroupPolicies,
-				renewalGroupPolicies,
-				persistedUserPolicies,
-				renewalUserPolicies,
-			)
-			finishHydration(currentRequestId, policyKey)
-			return
-		}
+		const compoundHydration = hydrateCompoundPolicyRules({
+			policyKey,
+			persistedSystemPolicy,
+			companionSystemPolicy: shouldMergeRequestExpiration
+				? renewalSystemPolicy
+				: shouldMergeSigningExecution
+					? workerSystemPolicy
+					: shouldMergeSignatureStamp
+						? collectMetadataSystemPolicy
+						: null,
+			persistedGroupPolicies,
+			companionGroupPolicies: shouldMergeRequestExpiration
+				? renewalGroupPolicies
+				: shouldMergeSigningExecution
+					? workerGroupPolicies
+					: shouldMergeSignatureStamp
+						? collectMetadataGroupPolicies
+						: [],
+			persistedUserPolicies,
+			companionUserPolicies: shouldMergeRequestExpiration
+				? renewalUserPolicies
+				: shouldMergeSigningExecution
+					? workerUserPolicies
+					: shouldMergeSignatureStamp
+						? collectMetadataUserPolicies
+						: [],
+		})
 
-		if (shouldMergeSigningExecution) {
-			applySigningExecutionHydration(
-				policyKey,
-				persistedSystemPolicy,
-				workerSystemPolicy,
-				persistedGroupPolicies,
-				workerGroupPolicies,
-				persistedUserPolicies,
-				workerUserPolicies,
-			)
-			finishHydration(currentRequestId, policyKey)
-			return
-		}
-
-		if (shouldMergeSignatureStamp) {
-			applySignatureStampHydration(
-				policyKey,
-				persistedSystemPolicy,
-				collectMetadataSystemPolicy,
-				persistedGroupPolicies,
-				collectMetadataGroupPolicies,
-				persistedUserPolicies,
-				collectMetadataUserPolicies,
-			)
+		if (compoundHydration) {
+			explicitSystemRule.value = compoundHydration.explicitSystemRule
+			commitHydratedRules(policyKey, compoundHydration.groupRules, compoundHydration.userRules)
 			finishHydration(currentRequestId, policyKey)
 			return
 		}
@@ -1850,68 +1536,28 @@ export function createRealPolicyWorkbenchState() {
 			? resolveDraftTargetIdsForSave(editorDraft.value)
 			: editorDraft.value.targetIds
 		const policyKey = activeDefinition.value.key
-		const isRequestExpiration = isRequestExpirationPolicyKey(policyKey)
-		const isUnifiedSigningExecution = isUnifiedSigningExecutionPolicyKey(policyKey)
-		const isSignatureStamp = isSignatureStampPolicyKey(policyKey)
 		const isRequestSignGroupsPolicy = policyKey === REQUEST_SIGN_GROUPS_POLICY_KEY
-		const normalizedRequestExpirationValue = isRequestExpiration
-			? normalizeRequestExpirationDraftValue(value)
-			: null
-		const normalizedSigningExecutionValue = isUnifiedSigningExecution
-			? normalizeSigningExecutionSettings(value)
-			: null
-		const normalizedSignatureStampValue = isSignatureStamp
-			? normalizeSignatureStampDraftValue(
-				value,
-				resolveCollectMetadataValue(policiesStore.getPolicy(COLLECT_METADATA_POLICY_KEY)?.effectiveValue, false),
-			)
-			: null
 		const allowChildOverride = activeDefinition.value.normalizeAllowChildOverride(scope, editorDraft.value.allowChildOverride, buildAllowOverrideContext(scope))
 
 		try {
 			if (scope === 'system') {
-				if (isRequestExpiration && normalizedRequestExpirationValue) {
-					await Promise.all([
-						policiesStore.saveSystemPolicy(policyKey, normalizedRequestExpirationValue.maximumValidity, allowChildOverride),
-						policiesStore.saveSystemPolicy(REQUEST_EXPIRATION_RENEWAL_KEY, normalizedRequestExpirationValue.renewalInterval, allowChildOverride),
-					])
-				} else if (isUnifiedSigningExecution && normalizedSigningExecutionValue) {
-					await Promise.all([
-						policiesStore.saveSystemPolicy(policyKey, normalizedSigningExecutionValue.signingMode, allowChildOverride),
-						policiesStore.saveSystemPolicy(
-							SIGNING_EXECUTION_WORKER_KEY,
-							serializeWorkerConfig({
-								workerType: normalizedSigningExecutionValue.workerType,
-								parallelWorkers: normalizedSigningExecutionValue.parallelWorkers,
-							}),
-							allowChildOverride,
-						),
-					])
-				} else if (isSignatureStamp && normalizedSignatureStampValue) {
-					await Promise.all([
-						policiesStore.saveSystemPolicy(policyKey, normalizedSignatureStampValue.signatureStampValue, allowChildOverride),
-						policiesStore.saveSystemPolicy(COLLECT_METADATA_POLICY_KEY, normalizedSignatureStampValue.collectMetadataEnabled, allowChildOverride),
-					])
-				} else {
+				const compoundSaveResult = await saveCompoundPolicyValue({
+					scope,
+					policyKey,
+					value,
+					targetIds,
+					allowChildOverride,
+					policiesStore,
+					collectMetadataEffectiveValue: policiesStore.getPolicy(COLLECT_METADATA_POLICY_KEY)?.effectiveValue,
+				})
+				const savedValue = compoundSaveResult.handled ? compoundSaveResult.savedValue : value
+
+				if (!compoundSaveResult.handled) {
 					await policiesStore.saveSystemPolicy(policyKey, value, allowChildOverride)
 				}
 				if (viewMode.value === 'system-admin' && isScopeSupported('user')) {
-					if (isRequestExpiration) {
-						await Promise.all([
-							policiesStore.clearUserPreference(policyKey),
-							policiesStore.clearUserPreference(REQUEST_EXPIRATION_RENEWAL_KEY),
-						])
-					} else if (isUnifiedSigningExecution) {
-						await Promise.all([
-							policiesStore.clearUserPreference(policyKey),
-							policiesStore.clearUserPreference(SIGNING_EXECUTION_WORKER_KEY),
-						])
-					} else if (isSignatureStamp) {
-						await Promise.all([
-							policiesStore.clearUserPreference(policyKey),
-							policiesStore.clearUserPreference(COLLECT_METADATA_POLICY_KEY),
-						])
-					} else {
+					const clearedCompoundPreferences = await clearCompoundUserPreferences(policyKey, policiesStore)
+					if (!clearedCompoundPreferences) {
 						await policiesStore.clearUserPreference(policyKey)
 					}
 				}
@@ -1920,7 +1566,7 @@ export function createRealPolicyWorkbenchState() {
 					scope: 'system',
 					targetId: null,
 					allowChildOverride,
-					value: normalizedRequestExpirationValue ?? normalizedSigningExecutionValue ?? normalizedSignatureStampValue ?? value,
+					value: savedValue,
 				}
 				await policiesStore.fetchEffectivePolicies()
 				cancelEditor()
@@ -1932,36 +1578,7 @@ export function createRealPolicyWorkbenchState() {
 					return
 				}
 
-				if (isRequestExpiration && normalizedRequestExpirationValue) {
-					await Promise.all(targetIds.map((targetId) => {
-						return Promise.all([
-							policiesStore.saveGroupPolicy(targetId, policyKey, normalizedRequestExpirationValue.maximumValidity, allowChildOverride),
-							policiesStore.saveGroupPolicy(targetId, REQUEST_EXPIRATION_RENEWAL_KEY, normalizedRequestExpirationValue.renewalInterval, allowChildOverride),
-						])
-					}))
-				} else if (isUnifiedSigningExecution && normalizedSigningExecutionValue) {
-					await Promise.all(targetIds.map((targetId) => {
-						return Promise.all([
-							policiesStore.saveGroupPolicy(targetId, policyKey, normalizedSigningExecutionValue.signingMode, allowChildOverride),
-							policiesStore.saveGroupPolicy(
-								targetId,
-								SIGNING_EXECUTION_WORKER_KEY,
-								serializeWorkerConfig({
-									workerType: normalizedSigningExecutionValue.workerType,
-									parallelWorkers: normalizedSigningExecutionValue.parallelWorkers,
-								}),
-								allowChildOverride,
-							),
-						])
-					}))
-				} else if (isSignatureStamp && normalizedSignatureStampValue) {
-					await Promise.all(targetIds.map((targetId) => {
-						return Promise.all([
-							policiesStore.saveGroupPolicy(targetId, policyKey, normalizedSignatureStampValue.signatureStampValue, allowChildOverride),
-							policiesStore.saveGroupPolicy(targetId, COLLECT_METADATA_POLICY_KEY, normalizedSignatureStampValue.collectMetadataEnabled, allowChildOverride),
-						])
-					}))
-				} else if (isRequestSignGroupsPolicy) {
+				if (isRequestSignGroupsPolicy) {
 					const deniedGroups = new Set(resolveDeniedRequestSignGroups(value))
 					const valueByTargetId = new Map<string, EffectivePolicyValue>()
 
@@ -1992,7 +1609,20 @@ export function createRealPolicyWorkbenchState() {
 					await policiesStore.fetchEffectivePolicies()
 					cancelEditor()
 					return
-				} else {
+				}
+
+				const compoundSaveResult = await saveCompoundPolicyValue({
+					scope,
+					policyKey,
+					value,
+					targetIds,
+					allowChildOverride,
+					policiesStore,
+					collectMetadataEffectiveValue: policiesStore.getPolicy(COLLECT_METADATA_POLICY_KEY)?.effectiveValue,
+				})
+				const savedValue = compoundSaveResult.handled ? compoundSaveResult.savedValue : value
+
+				if (!compoundSaveResult.handled) {
 					await Promise.all(targetIds.map((targetId) => {
 						return policiesStore.saveGroupPolicy(targetId, policyKey, value, allowChildOverride)
 					}))
@@ -2003,7 +1633,7 @@ export function createRealPolicyWorkbenchState() {
 						groupRules.value,
 						'group',
 						targetId,
-						normalizedRequestExpirationValue ?? normalizedSigningExecutionValue ?? normalizedSignatureStampValue ?? value,
+						savedValue,
 						allowChildOverride,
 					)
 				}
@@ -2014,36 +1644,18 @@ export function createRealPolicyWorkbenchState() {
 				return
 			}
 
-			if (isRequestExpiration && normalizedRequestExpirationValue) {
-				await Promise.all(targetIds.map((targetId) => {
-					return Promise.all([
-						policiesStore.saveUserPolicyForUser(targetId, policyKey, normalizedRequestExpirationValue.maximumValidity, allowChildOverride),
-						policiesStore.saveUserPolicyForUser(targetId, REQUEST_EXPIRATION_RENEWAL_KEY, normalizedRequestExpirationValue.renewalInterval, allowChildOverride),
-					])
-				}))
-			} else if (isUnifiedSigningExecution && normalizedSigningExecutionValue) {
-				await Promise.all(targetIds.map((targetId) => {
-					return Promise.all([
-						policiesStore.saveUserPolicyForUser(targetId, policyKey, normalizedSigningExecutionValue.signingMode, allowChildOverride),
-						policiesStore.saveUserPolicyForUser(
-							targetId,
-							SIGNING_EXECUTION_WORKER_KEY,
-							serializeWorkerConfig({
-								workerType: normalizedSigningExecutionValue.workerType,
-								parallelWorkers: normalizedSigningExecutionValue.parallelWorkers,
-							}),
-							allowChildOverride,
-						),
-					])
-				}))
-			} else if (isSignatureStamp && normalizedSignatureStampValue) {
-				await Promise.all(targetIds.map((targetId) => {
-					return Promise.all([
-						policiesStore.saveUserPolicyForUser(targetId, policyKey, normalizedSignatureStampValue.signatureStampValue, allowChildOverride),
-						policiesStore.saveUserPolicyForUser(targetId, COLLECT_METADATA_POLICY_KEY, normalizedSignatureStampValue.collectMetadataEnabled, allowChildOverride),
-					])
-				}))
-			} else {
+			const compoundSaveResult = await saveCompoundPolicyValue({
+				scope,
+				policyKey,
+				value,
+				targetIds,
+				allowChildOverride,
+				policiesStore,
+				collectMetadataEffectiveValue: policiesStore.getPolicy(COLLECT_METADATA_POLICY_KEY)?.effectiveValue,
+			})
+			const savedValue = compoundSaveResult.handled ? compoundSaveResult.savedValue : value
+
+			if (!compoundSaveResult.handled) {
 				await Promise.all(targetIds.map((targetId) => {
 					return policiesStore.saveUserPolicyForUser(targetId, policyKey, value, allowChildOverride)
 				}))
@@ -2054,7 +1666,7 @@ export function createRealPolicyWorkbenchState() {
 					userRules.value,
 					'user',
 					targetId,
-					normalizedRequestExpirationValue ?? normalizedSigningExecutionValue ?? normalizedSignatureStampValue ?? value,
+					savedValue,
 					allowChildOverride,
 				)
 			}
@@ -2103,22 +1715,8 @@ export function createRealPolicyWorkbenchState() {
 
 		for (const ruleId of uniqueRuleIds) {
 			if (ruleId === 'system-default' || (inheritedSystemRuleId !== null && ruleId === inheritedSystemRuleId)) {
-				if (isRequestExpiration) {
-					await Promise.all([
-						policiesStore.saveSystemPolicy(policyKey, null, false),
-						policiesStore.saveSystemPolicy(REQUEST_EXPIRATION_RENEWAL_KEY, null, false),
-					])
-				} else if (isUnifiedSigningExecution) {
-					await Promise.all([
-						policiesStore.saveSystemPolicy(policyKey, null, false),
-						policiesStore.saveSystemPolicy(SIGNING_EXECUTION_WORKER_KEY, null, false),
-					])
-				} else if (isSignatureStamp) {
-					await Promise.all([
-						policiesStore.saveSystemPolicy(policyKey, null, false),
-						policiesStore.saveSystemPolicy(COLLECT_METADATA_POLICY_KEY, null, false),
-					])
-				} else {
+				const clearedCompoundRule = await clearCompoundPolicyTarget('system', policyKey, undefined, policiesStore)
+				if (!clearedCompoundRule) {
 					await policiesStore.saveSystemPolicy(policyKey, null, false)
 				}
 				explicitSystemRule.value = null
@@ -2146,22 +1744,8 @@ export function createRealPolicyWorkbenchState() {
 						}
 					}
 
-					if (isRequestExpiration) {
-						await Promise.all([
-							policiesStore.clearGroupPolicy(targetId, policyKey),
-							policiesStore.clearGroupPolicy(targetId, REQUEST_EXPIRATION_RENEWAL_KEY),
-						])
-					} else if (isUnifiedSigningExecution) {
-						await Promise.all([
-							policiesStore.clearGroupPolicy(targetId, policyKey),
-							policiesStore.clearGroupPolicy(targetId, SIGNING_EXECUTION_WORKER_KEY),
-						])
-					} else if (isSignatureStamp) {
-						await Promise.all([
-							policiesStore.clearGroupPolicy(targetId, policyKey),
-							policiesStore.clearGroupPolicy(targetId, COLLECT_METADATA_POLICY_KEY),
-						])
-					} else {
+					const clearedCompoundRule = await clearCompoundPolicyTarget('group', policyKey, targetId, policiesStore)
+					if (!clearedCompoundRule) {
 						await policiesStore.clearGroupPolicy(targetId, policyKey)
 					}
 				}
@@ -2176,22 +1760,8 @@ export function createRealPolicyWorkbenchState() {
 			if (userIndex >= 0) {
 				const targetId = userRules.value[userIndex]?.targetId
 				if (targetId) {
-					if (isRequestExpiration) {
-						await Promise.all([
-							policiesStore.clearUserPolicyForUser(targetId, policyKey),
-							policiesStore.clearUserPolicyForUser(targetId, REQUEST_EXPIRATION_RENEWAL_KEY),
-						])
-					} else if (isUnifiedSigningExecution) {
-						await Promise.all([
-							policiesStore.clearUserPolicyForUser(targetId, policyKey),
-							policiesStore.clearUserPolicyForUser(targetId, SIGNING_EXECUTION_WORKER_KEY),
-						])
-					} else if (isSignatureStamp) {
-						await Promise.all([
-							policiesStore.clearUserPolicyForUser(targetId, policyKey),
-							policiesStore.clearUserPolicyForUser(targetId, COLLECT_METADATA_POLICY_KEY),
-						])
-					} else {
+					const clearedCompoundRule = await clearCompoundPolicyTarget('user', policyKey, targetId, policiesStore)
+					if (!clearedCompoundRule) {
 						await policiesStore.clearUserPolicyForUser(targetId, policyKey)
 					}
 				}
