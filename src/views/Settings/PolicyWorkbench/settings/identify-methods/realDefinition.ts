@@ -64,7 +64,9 @@ function getInitialIdentifyMethods(): string {
 
 export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 	key: 'identify_methods',
+	// TRANSLATORS Policy title for configuring which identification factors are available to signers.
 	title: t('libresign', 'Identification factors'),
+	// TRANSLATORS Policy description explaining that these are the methods used to identify someone before signing.
 	description: t('libresign', 'Ways to identify a person who will sign a document.'),
 	supportedScopes: ['system', 'group', 'user'],
 	groupAdminBehavior: {
@@ -89,11 +91,13 @@ export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const normalized = normalizeIdentifyMethodsPolicy(value)
 		if (normalized.length === 0) {
+			// TRANSLATORS Summary shown when no explicit identification-factor rule is configured and runtime defaults are used.
 			return t('libresign', 'Default runtime behavior')
 		}
 
 		const enabled = normalized.filter((entry) => entry.enabled)
 		if (enabled.length === 0) {
+			// TRANSLATORS Summary shown when all identification factors are disabled.
 			return t('libresign', 'No enabled identification factor')
 		}
 
@@ -101,10 +105,16 @@ export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 			return enabled.map((entry) => entry.friendly_name ?? entry.name).join(', ')
 		}
 
+		// TRANSLATORS Summary showing how many identification factors are enabled. {count} is the number of enabled factors.
 		return t('libresign', '{count} enabled factors', { count: String(enabled.length) })
 	},
-	formatAllowOverride: (allowChildOverride: boolean) =>
-		allowChildOverride
-			? t('libresign', 'Groups and accounts can set their own rule')
-			: t('libresign', 'Groups and accounts must follow this value'),
+	formatAllowOverride: (allowChildOverride: boolean) => {
+		if (allowChildOverride) {
+			// TRANSLATORS Policy inheritance message indicating group and account scopes may define their own identification-factor rule.
+			return t('libresign', 'Groups and accounts can set their own rule')
+		}
+
+		// TRANSLATORS Policy inheritance message indicating child scopes must use the identification-factor rule defined here.
+		return t('libresign', 'Groups and accounts must follow this value')
+	},
 }
