@@ -7,17 +7,17 @@
 	<div class="legal-information-editor">
 		<MarkdownEditor
 			:model-value="legalInformation"
-			:label="t('libresign', 'Legal information')"
-			:description="t('libresign', 'Supports Markdown formatting.')"
+			:label="legalInformationLabel"
+			:description="legalInformationDescription"
 			min-height="100px"
 			max-height="300px"
-			:placeholder="t('libresign', 'Add legal information displayed on the validation page using Markdown formatting...')"
+			:placeholder="legalInformationPlaceholder"
 			@update:model-value="onChange" />
 
 		<div class="legal-information-editor__preview">
-			<strong>{{ t('libresign', 'Preview') }}</strong>
+			<strong>{{ previewLabel }}</strong>
 			<p class="legal-information-editor__compatibility-note">
-				{{ t('libresign', 'Supported in preview: headings, bold, italic, lists, blockquotes, code, links and horizontal rules.') }}
+				{{ previewCompatibilityNote }}
 			</p>
 			<div class="legal-information-editor__preview-surface">
 				<NcRichText
@@ -53,6 +53,17 @@ const props = defineProps<{
 const emit = defineEmits<{
 	'update:modelValue': [value: LegalInformationValue]
 }>()
+
+// TRANSLATORS Field label for the Markdown editor that controls legal information shown on the validation page.
+const legalInformationLabel = t('libresign', 'Legal information')
+// TRANSLATORS Helper text explaining that the legal information field supports Markdown formatting.
+const legalInformationDescription = t('libresign', 'Supports Markdown formatting.')
+// TRANSLATORS Placeholder inviting administrators to write legal information shown on the validation page. The ellipsis indicates free-form text entry.
+const legalInformationPlaceholder = t('libresign', 'Add legal information displayed on the validation page using Markdown formatting...')
+// TRANSLATORS Heading for the live preview of the legal information Markdown content.
+const previewLabel = t('libresign', 'Preview')
+// TRANSLATORS Note explaining which Markdown elements are rendered in the preview.
+const previewCompatibilityNote = t('libresign', 'Supported in preview: headings, bold, italic, lists, blockquotes, code, links and horizontal rules.')
 
 const legalInformation = computed(() => {
 	const normalized = normalizeLegalInformation(props.modelValue)
