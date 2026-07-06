@@ -229,6 +229,7 @@ OC.L10N.register(
     "Type:" : "Type:",
     "Page not found" : "Pagina niet gevonden",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Sorry maar de pagina die je zoekt bestaat niet, is verwijderd, verplaatst of is tijdelijk niet beschikbaar.",
+    "Failed to load documents" : "Documenten laden mislukt",
     "Approved by" : "Goedgekeurd door",
     "Renamed \"{oldName}\" to \"{newName}\"" : "\"{oldName}\" hernoemd naar \"{newName}\"",
     "Rename" : "Hernoemen",
