@@ -45,22 +45,30 @@ const emit = defineEmits<{
 const levels: Array<{ value: number, label: string, description: string }> = [
 	{
 		value: 0,
+		// TRANSLATORS Option label meaning DocMDP PDF certification is not applied automatically.
 		label: t('libresign', 'Disabled'),
+		// TRANSLATORS Option description meaning signed PDFs are not certified with DocMDP restrictions by default.
 		description: t('libresign', 'Do not apply DocMDP certification by default.'),
 	},
 	{
 		value: 1,
+		// TRANSLATORS Option label for the strict DocMDP level that forbids any document changes after signing.
 		label: t('libresign', 'No changes allowed'),
+		// TRANSLATORS Option description explaining that the signed PDF cannot be modified after signing.
 		description: t('libresign', 'After signing, no changes are allowed in the document.'),
 	},
 	{
 		value: 2,
+		// TRANSLATORS Option label for the DocMDP level that allows only form fields to be filled after signing.
 		label: t('libresign', 'Form filling'),
+		// TRANSLATORS Option description explaining that only form fields may be completed after signing.
 		description: t('libresign', 'After signing, only form filling is allowed.'),
 	},
 	{
 		value: 3,
+		// TRANSLATORS Option label for the DocMDP level that allows form filling and PDF annotations after signing.
 		label: t('libresign', 'Form filling and annotations'),
+		// TRANSLATORS Option description explaining that form fields and annotations/comments remain allowed after signing.
 		description: t('libresign', 'After signing, form filling and annotations are allowed.'),
 	},
 ]
