@@ -22,7 +22,6 @@ use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IRequest;
 use OCP\IUserSession;
-use OCP\Util;
 
 /**
  * @template-implements IEventListener<Event>
@@ -38,6 +37,7 @@ class TemplateLoader implements IEventListener {
 		private CertificateEngineFactory $certificateEngineFactory,
 		private PolicyService $policyService,
 		private IAppManager $appManager,
+		private TemplateLoaderAssets $assets,
 	) {
 	}
 
@@ -57,11 +57,11 @@ class TemplateLoader implements IEventListener {
 		}
 
 		if ($initialStatePayload['certificate_ok'] === true) {
-			Util::addInitScript(Application::APP_ID, 'libresign-init');
+			$this->assets->addInitScript(Application::APP_ID, 'libresign-init');
 		}
 
-		Util::addScript(Application::APP_ID, 'libresign-tab');
-		Util::addStyle(Application::APP_ID, 'libresign-tab');
+		$this->assets->addScript(Application::APP_ID, 'libresign-tab');
+		$this->assets->addStyle(Application::APP_ID, 'libresign-tab');
 	}
 
 	protected function getInitialStatePayload(): array {
