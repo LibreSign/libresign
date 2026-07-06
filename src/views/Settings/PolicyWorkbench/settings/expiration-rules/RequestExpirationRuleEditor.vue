@@ -11,10 +11,10 @@
 				type="number"
 				:min="1"
 				:step="1"
-				:label="t('libresign', 'Maximum validity (seconds)')"
+				:label="maximumValidityLabel"
 				@update:modelValue="onMaximumValidityChange" />
 			<p class="expiration-rule-editor__helper">
-				{{ t('libresign', 'Leave empty to disable expiration.') }}
+				{{ disableExpirationHelperText }}
 			</p>
 		</div>
 
@@ -24,17 +24,17 @@
 				type="number"
 				:min="1"
 				:step="1"
-				:label="t('libresign', 'Renewal interval (seconds)')"
+				:label="renewalIntervalLabel"
 				:error="renewalRequiresExpiration"
 				@update:modelValue="onRenewalIntervalChange" />
 			<p class="expiration-rule-editor__helper">
-				{{ t('libresign', 'Leave empty to disable renewal.') }}
+				{{ disableRenewalHelperText }}
 			</p>
 			<p class="expiration-rule-editor__helper expiration-rule-editor__helper--secondary">
-				{{ t('libresign', 'Accounts may renew the signing request after expiration using the access link.') }}
+				{{ renewalIntervalDescription }}
 			</p>
 			<p v-if="renewalRequiresExpiration" class="expiration-rule-editor__validation" role="alert">
-				{{ t('libresign', 'Maximum validity is required when renewal interval is set.') }}
+				{{ renewalRequiresExpirationMessage }}
 			</p>
 		</div>
 	</div>
@@ -64,6 +64,19 @@ const props = defineProps<{
 const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
+
+// TRANSLATORS Label for the numeric field setting signature request expiration time in seconds.
+const maximumValidityLabel = t('libresign', 'Maximum validity (seconds)')
+// TRANSLATORS Helper text indicating that leaving the expiration field empty disables request expiration.
+const disableExpirationHelperText = t('libresign', 'Leave empty to disable expiration.')
+// TRANSLATORS Label for the numeric field setting the renewal interval in seconds for an expired request link.
+const renewalIntervalLabel = t('libresign', 'Renewal interval (seconds)')
+// TRANSLATORS Helper text indicating that leaving the renewal field empty disables renewal.
+const disableRenewalHelperText = t('libresign', 'Leave empty to disable renewal.')
+// TRANSLATORS Secondary helper text explaining that accounts can renew access to a signing request after it expires.
+const renewalIntervalDescription = t('libresign', 'Accounts may renew the signing request after expiration using the access link.')
+// TRANSLATORS Validation error shown when a renewal interval is entered without configuring a maximum validity.
+const renewalRequiresExpirationMessage = t('libresign', 'Maximum validity is required when renewal interval is set.')
 
 const normalized = computed(() => normalizeRequestExpirationDraftValue(props.modelValue))
 const maximumValidityField = computed(() => normalized.value.maximumValidity > 0 ? String(normalized.value.maximumValidity) : '')
