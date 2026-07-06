@@ -40,16 +40,25 @@ const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
 
+// TRANSLATORS Radio option label in the policy editor that enables storing signer metadata such as IP address and browser information.
+const collectSignerMetadataLabel = t('libresign', 'Collect signer metadata')
+// TRANSLATORS Description for the radio option that enables storing signer metadata in the signed document audit/signing metadata.
+const collectSignerMetadataDescription = t('libresign', 'Store signer IP address and browser information in signing metadata.')
+// TRANSLATORS Radio option label in the policy editor that disables storing signer metadata.
+const disableMetadataCollectionLabel = t('libresign', 'Disable metadata collection')
+// TRANSLATORS Description for the radio option that disables storing signer metadata such as IP address and browser information.
+const disableMetadataCollectionDescription = t('libresign', 'Do not store signer IP address or browser information in signing metadata.')
+
 const options = [
 	{
 		value: true,
-		label: t('libresign', 'Collect signer metadata'),
-		description: t('libresign', 'Store signer IP address and browser information in signing metadata.'),
+		label: collectSignerMetadataLabel,
+		description: collectSignerMetadataDescription,
 	},
 	{
 		value: false,
-		label: t('libresign', 'Disable metadata collection'),
-		description: t('libresign', 'Do not store signer IP address or browser information in signing metadata.'),
+		label: disableMetadataCollectionLabel,
+		description: disableMetadataCollectionDescription,
 	},
 ]
 
