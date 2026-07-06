@@ -11,7 +11,9 @@
 			:model-value="normalizedValue === 'local'"
 			@update:modelValue="onWorkerTypeChange('local', $event)">
 			<div class="worker-type-rule-editor__copy">
+				<!-- TRANSLATORS Option label for using Nextcloud's local background worker service to process signing jobs. -->
 				<strong>{{ t('libresign', 'Local worker') }}</strong>
+				<!-- TRANSLATORS Option description meaning Nextcloud itself runs the background workers that process signing jobs. -->
 				<p>{{ t('libresign', 'Nextcloud manages and executes background workers locally.') }}</p>
 			</div>
 		</NcCheckboxRadioSwitch>
@@ -22,7 +24,9 @@
 			:model-value="normalizedValue === 'external'"
 			@update:modelValue="onWorkerTypeChange('external', $event)">
 			<div class="worker-type-rule-editor__copy">
+				<!-- TRANSLATORS Option label for using an external background worker service instead of Nextcloud's local workers. -->
 				<strong>{{ t('libresign', 'External worker') }}</strong>
+				<!-- TRANSLATORS Option description meaning a separate external service processes signing jobs. -->
 				<p>{{ t('libresign', 'An external service processes signing jobs.') }}</p>
 			</div>
 		</NcCheckboxRadioSwitch>
