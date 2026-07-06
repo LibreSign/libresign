@@ -223,19 +223,26 @@ final class TemplateLoaderTest extends TestCase {
 			->willReturn($user);
 
 		$stylesBefore = \OC_Util::$styles;
-		$loader = $this->getLoader();
-		$loader->handle(new LoadSidebar());
-		$stylesAfter = \OC_Util::$styles;
 
-		$newStyles = array_diff($stylesAfter, $stylesBefore);
-		$iconsStylePath = Application::APP_ID . '/css/icons';
+		try {
+			\OC_Util::$styles = [];
 
-		foreach ($newStyles as $style) {
-			$this->assertStringNotContainsString(
-				$iconsStylePath,
-				$style,
+			$loader = $this->getLoader();
+			$loader->handle(new LoadSidebar());
+
+			$this->assertContains(
+				Application::APP_ID . '/css/libresign-tab',
+				\OC_Util::$styles,
+				'Files sidebar integration must register the bundled libresign-tab stylesheet.'
+			);
+
+			$this->assertNotContains(
+				Application::APP_ID . '/css/icons',
+				\OC_Util::$styles,
 				'The "icons" CSS must not be registered separately — it is already bundled in libresign-tab and loading it would cause a 404 and potential global CSS leaks (issue #7632).'
 			);
+		} finally {
+			\OC_Util::$styles = $stylesBefore;
 		}
 	}
 
