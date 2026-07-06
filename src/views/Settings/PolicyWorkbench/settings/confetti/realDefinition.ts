@@ -42,7 +42,9 @@ function resolveConfetti(value: EffectivePolicyValue): boolean | null {
 
 export const confettiRealDefinition: RealPolicySettingDefinition = {
 	key: 'show_confetti_after_signing',
+	// TRANSLATORS Policy title for enabling or disabling the confetti celebration shown after signing completes.
 	title: t('libresign', 'Confetti animation'),
+	// TRANSLATORS Policy description explaining whether the post-signing confetti animation is shown to users.
 	description: t('libresign', 'Control whether confetti animation is shown after a signature is completed.'),
 	groupAdminBehavior: {
 		allowGroupRuleCreationFromDescendantDelegation: true,
@@ -66,17 +68,25 @@ export const confettiRealDefinition: RealPolicySettingDefinition = {
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const resolved = resolveConfetti(value)
 		if (resolved === true) {
+			// TRANSLATORS Policy value meaning the post-signing confetti animation is active.
 			return t('libresign', 'Enabled')
 		}
 
 		if (resolved === false) {
+			// TRANSLATORS Policy value meaning the post-signing confetti animation is turned off.
 			return t('libresign', 'Disabled')
 		}
 
+		// TRANSLATORS Fallback policy summary shown when no explicit confetti rule is set.
 		return t('libresign', 'Not configured')
 	},
-	formatAllowOverride: (allowChildOverride: boolean) =>
-		allowChildOverride
-			? t('libresign', 'Groups and accounts can set their own rule')
-			: t('libresign', 'Groups and accounts must follow this value'),
+	formatAllowOverride: (allowChildOverride: boolean) => {
+		if (allowChildOverride) {
+			// TRANSLATORS Policy inheritance message indicating group and account scopes may choose their own confetti setting.
+			return t('libresign', 'Groups and accounts can set their own rule')
+		}
+
+		// TRANSLATORS Policy inheritance message indicating child scopes must keep the confetti setting defined here.
+		return t('libresign', 'Groups and accounts must follow this value')
+	},
 }
