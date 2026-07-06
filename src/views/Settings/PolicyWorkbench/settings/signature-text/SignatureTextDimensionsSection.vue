@@ -6,11 +6,11 @@
 	<div class="ste__group ste__dims">
 		<div v-if="renderMode !== 'graphic'" class="ste__field">
 			<div class="ste__label-row">
-				<label :for="`ste-tfs-${id}`" class="ste__label ste__label--sm">{{ t('libresign', 'Text font') }}</label>
+				<label :for="`ste-tfs-${id}`" class="ste__label ste__label--sm">{{ textFontLabel }}</label>
 				<NcButton
 					v-if="showResetTemplateFontSizeButton ?? true"
 					variant="tertiary"
-					:aria-label="t('libresign', 'Reset to default')"
+					:aria-label="resetToDefaultLabel"
 					@click="$emit('resetTemplateFontSize')">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
@@ -25,11 +25,11 @@
 
 		<div v-if="renderMode === 'text'" class="ste__field">
 			<div class="ste__label-row">
-				<label :for="`ste-sfs-${id}`" class="ste__label ste__label--sm">{{ t('libresign', 'Sig font') }}</label>
+				<label :for="`ste-sfs-${id}`" class="ste__label ste__label--sm">{{ signatureFontLabel }}</label>
 				<NcButton
 					v-if="showResetSignatureFontSizeButton ?? true"
 					variant="tertiary"
-					:aria-label="t('libresign', 'Reset to default')"
+					:aria-label="resetToDefaultLabel"
 					@click="$emit('resetSignatureFontSize')">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
@@ -44,11 +44,11 @@
 
 		<div class="ste__field">
 			<div class="ste__label-row">
-				<label :for="`ste-w-${id}`" class="ste__label ste__label--sm">{{ t('libresign', 'Width') }}</label>
+				<label :for="`ste-w-${id}`" class="ste__label ste__label--sm">{{ widthLabel }}</label>
 				<NcButton
 					v-if="showResetWidthButton ?? true"
 					variant="tertiary"
-					:aria-label="t('libresign', 'Reset to default')"
+					:aria-label="resetToDefaultLabel"
 					@click="$emit('resetWidth')">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
@@ -63,11 +63,11 @@
 
 		<div class="ste__field">
 			<div class="ste__label-row">
-				<label :for="`ste-h-${id}`" class="ste__label ste__label--sm">{{ t('libresign', 'Height') }}</label>
+				<label :for="`ste-h-${id}`" class="ste__label ste__label--sm">{{ heightLabel }}</label>
 				<NcButton
 					v-if="showResetHeightButton ?? true"
 					variant="tertiary"
-					:aria-label="t('libresign', 'Reset to default')"
+					:aria-label="resetToDefaultLabel"
 					@click="$emit('resetHeight')">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
@@ -115,6 +115,17 @@ const emit = defineEmits<{
 	(event: 'resetWidth'): void
 	(event: 'resetHeight'): void
 }>()
+
+// TRANSLATORS Short label for the template text font-size field in the signature stamp editor.
+const textFontLabel = t('libresign', 'Text font')
+// TRANSLATORS Short label for the signature text font-size field. "Sig" means signature.
+const signatureFontLabel = t('libresign', 'Sig font')
+// TRANSLATORS Short label for the signature stamp width field.
+const widthLabel = t('libresign', 'Width')
+// TRANSLATORS Short label for the signature stamp height field.
+const heightLabel = t('libresign', 'Height')
+// TRANSLATORS Accessible label for icon-only buttons that restore the adjacent signature-stamp dimension or font setting to its default value.
+const resetToDefaultLabel = t('libresign', 'Reset to default')
 
 function emitNumber(event: Event, field: 'templateFontSize' | 'signatureFontSize' | 'signatureWidth' | 'signatureHeight'): void {
 	const target = event.target
