@@ -225,7 +225,7 @@ afterEach(() => {
 })
 
 describe('Catalog.vue CRUD permissions rendering', () => {
-	it('hides remove action and row checkbox for non-removable rules', async () => {
+	it('passes mixed removable and non-removable CRUD rows to the rules table component', async () => {
 		const wrapper = shallowMount(Catalog, {
 			global: {
 				stubs: {
@@ -237,15 +237,13 @@ describe('Catalog.vue CRUD permissions rendering', () => {
 					NcDialog: {
 						template: '<div class="nc-dialog"><slot /></div>',
 					},
-					NcActions: {
-						template: '<div class="nc-actions"><slot /></div>',
+					CatalogSettingDialogFrame: {
+						template: '<div class="catalog-setting-dialog-frame-stub"><slot /></div>',
 					},
-					NcActionButton: {
-						template: '<button class="nc-action-button"><slot /></button>',
-					},
-					NcCheckboxRadioSwitch: {
-						props: ['modelValue'],
-						template: '<input class="nc-checkbox-radio-switch" type="checkbox" :checked="modelValue" />',
+					CatalogCrudRulesTable: {
+						name: 'CatalogCrudRulesTable',
+						props: ['displayedCrudRows'],
+						template: '<div class="catalog-crud-rules-table-stub" :data-rows="JSON.stringify(displayedCrudRows)" />',
 					},
 				},
 			},
@@ -253,19 +251,14 @@ describe('Catalog.vue CRUD permissions rendering', () => {
 
 		await nextTick()
 
-		const rows = wrapper.findAll('tbody tr')
-		expect(rows).toHaveLength(2)
+		const crudTable = wrapper.findComponent({ name: 'CatalogCrudRulesTable' })
+		expect(crudTable.exists()).toBe(true)
 
-		const nonRemovableRow = rows.find((row) => row.text().includes('finance'))
-		expect(nonRemovableRow).toBeDefined()
-		expect(nonRemovableRow?.findAll('.nc-checkbox-radio-switch')).toHaveLength(0)
-		expect(nonRemovableRow?.find('.policy-workbench__table-select-placeholder').exists()).toBe(true)
-		expect(nonRemovableRow?.findAll('.nc-action-button').some((button) => button.text().includes('Remove'))).toBe(false)
-
-		const removableRow = rows.find((row) => row.text().includes('john'))
-		expect(removableRow).toBeDefined()
-		expect(removableRow?.findAll('.nc-checkbox-radio-switch')).toHaveLength(1)
-		expect(removableRow?.findAll('.nc-action-button').some((button) => button.text().includes('Remove'))).toBe(true)
+		const displayedCrudRows = crudTable.props('displayedCrudRows') as Array<{ ruleId: string, canRemove: boolean, targetLabel: string }>
+		expect(displayedCrudRows).toEqual([
+			expect.objectContaining({ ruleId: 'group-finance', targetLabel: 'finance', canRemove: false }),
+			expect.objectContaining({ ruleId: 'user-john', targetLabel: 'john', canRemove: true }),
+		])
 	})
 
 	it('hides scope group selector when request-sign rules derive scope from allow and deny groups', async () => {
