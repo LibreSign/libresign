@@ -5,14 +5,14 @@
 
 <template>
 	<NcSettingsSection
-		:name="t('libresign', 'Signature request access')"
-		:description="t('libresign', 'Choose which groups are authorized to create signature requests. Delegated group admins may authorize only groups they manage. The default admin group always has this permission.')"
+		:name="signatureRequestAccessTitle"
+		:description="signatureRequestAccessDescription"
 	>
 		<NcSelect :key="idKey"
 			v-model="groupsSelected"
 			label="displayname"
 			:no-wrap="false"
-			:aria-label-combobox="t('libresign', 'Choose groups authorized to create signature requests. Delegated group admins may authorize only groups they manage.')"
+			:aria-label-combobox="allowedGroupsAriaLabel"
 			:close-on-select="false"
 			:disabled="loadingGroups"
 			:loading="loadingGroups"
@@ -61,6 +61,13 @@ const groups = ref<GroupRow[]>([])
 const loadingGroups = ref(false)
 const idKey = ref(0)
 const policiesStore = usePoliciesStore()
+
+// TRANSLATORS Settings section title for configuring which groups may create signature requests.
+const signatureRequestAccessTitle = t('libresign', 'Signature request access')
+// TRANSLATORS Settings section description explaining that delegated group admins may only authorize groups they manage, while the default admin group always keeps this permission.
+const signatureRequestAccessDescription = t('libresign', 'Choose which groups are authorized to create signature requests. Delegated group admins may authorize only groups they manage. The default admin group always has this permission.')
+// TRANSLATORS Accessible label for the group selector used to choose which groups may create signature requests.
+const allowedGroupsAriaLabel = t('libresign', 'Choose groups authorized to create signature requests. Delegated group admins may authorize only groups they manage.')
 
 async function getData() {
 	loadingGroups.value = true
