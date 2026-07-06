@@ -10,7 +10,7 @@
 			type="number"
 			:min="1"
 			:step="1"
-			:label="t('libresign', 'The length of time for which the generated certificate will be valid, in days.')"
+			:label="expiryInDaysLabel"
 			@update:modelValue="onValueChange" />
 	</div>
 </template>
@@ -36,6 +36,9 @@ const props = defineProps<{
 const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
+
+// TRANSLATORS Label for the number field that defines how many days generated certificates remain valid.
+const expiryInDaysLabel = t('libresign', 'The length of time for which the generated certificate will be valid, in days.')
 
 const expiryInDays = computed(() => normalizePositiveInt(props.modelValue, DEFAULT_EXPIRY_IN_DAYS))
 
