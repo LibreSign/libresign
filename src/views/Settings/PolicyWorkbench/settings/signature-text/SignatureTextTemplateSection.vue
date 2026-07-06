@@ -5,8 +5,7 @@
 <template>
 	<div class="ste__group">
 		<div class="ste__label-row">
-			<!-- TRANSLATORS Label for choosing how signature stamp content is rendered. -->
-			<label class="ste__label">{{ t('libresign', 'Render mode') }}</label>
+			<label class="ste__label">{{ renderModeLabel }}</label>
 			<NcButton
 				v-if="showResetRenderModeButton ?? true"
 				variant="tertiary"
@@ -15,8 +14,7 @@
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 				</template>
-				<!-- TRANSLATORS Button caption that reverts a setting to inherited/default value. -->
-				{{ t('libresign', 'Undo') }}
+				{{ undoLabel }}
 			</NcButton>
 		</div>
 		<div class="ste__seg ste__seg--modes" role="radiogroup" :aria-label="renderModeLabel">
@@ -58,7 +56,7 @@
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 					</template>
-					{{ t('libresign', 'Undo') }}
+					{{ undoLabel }}
 				</NcButton>
 			</template>
 		</CodeEditor>
@@ -70,8 +68,7 @@
 		size="normal">
 		<div class="ste__vars-dialog">
 			<p class="ste__vars-description">
-				<!-- TRANSLATORS Instruction in variable picker dialog. -->
-				{{ t('libresign', 'Click on a variable to copy it to clipboard') }}
+				{{ clickVariableToCopyInstruction }}
 			</p>
 			<div class="ste__vars-list">
 				<NcFormBoxButton
@@ -132,8 +129,10 @@ const copiedVariable = ref<string | null>(null)
 
 // TRANSLATORS Accessible label for button that restores render mode to default value.
 const resetRenderModeToDefaultLabel = t('libresign', 'Reset render mode to default')
-// TRANSLATORS Accessible label for render mode radio group.
+// TRANSLATORS Label for the signature-stamp render mode selector and its radio-group accessibility label.
 const renderModeLabel = t('libresign', 'Render mode')
+// TRANSLATORS Button caption that reverts a setting to its inherited or default value.
+const undoLabel = t('libresign', 'Undo')
 // TRANSLATORS Label for code editor containing signature text template.
 const signatureTextTemplateLabel = t('libresign', 'Signature text template')
 // TRANSLATORS Placeholder in signature text template editor input.
@@ -148,6 +147,8 @@ const resetToDefaultLabel = t('libresign', 'Reset to default')
 const availableTemplateVariablesDialogTitle = t('libresign', 'Available template variables')
 // TRANSLATORS Accessible text for action that copies variable token to clipboard.
 const copyToClipboardLabel = t('libresign', 'Copy to clipboard')
+// TRANSLATORS Instruction in the template-variable dialog telling the user that clicking a variable copies it to the clipboard.
+const clickVariableToCopyInstruction = t('libresign', 'Click on a variable to copy it to clipboard')
 
 function copyVariableToClipboard(value: string): void {
 	if (copiedVariable.value === value) {
