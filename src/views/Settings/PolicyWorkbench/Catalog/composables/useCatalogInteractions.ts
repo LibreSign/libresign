@@ -5,7 +5,7 @@
 
 import { ref } from 'vue'
 
-type Surface = 'cards' | 'list'
+type Surface = 'cards' | 'compact'
 
 type LastPress = {
 	surface: Surface,
