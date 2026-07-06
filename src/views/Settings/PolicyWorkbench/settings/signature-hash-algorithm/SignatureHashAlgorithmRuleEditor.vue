@@ -47,11 +47,13 @@ const selected = computed(() => normalizeHashAlgorithm(props.modelValue))
 
 function getOptionDescription(algorithm: HashAlgorithm): string {
 	if (algorithm === 'SHA1' || algorithm === 'RIPEMD160') {
+		// TRANSLATORS Description for legacy hash-algorithm options. {algorithm} is the digest name, for example SHA1.
 		return t('libresign', 'Use {algorithm} as a supported legacy signature digest algorithm.', {
 			algorithm,
 		})
 	}
 
+	// TRANSLATORS Description for hash-algorithm options. {algorithm} is the digest name, for example SHA256.
 	return t('libresign', 'Use {algorithm} as the signature digest algorithm.', {
 		algorithm,
 	})
@@ -65,10 +67,9 @@ const availableAlgorithms = computed(() => {
 	return [...HASH_ALGORITHMS]
 })
 
-const options = computed(() => availableAlgorithms.value.map((algorithm) => ({
+const options = computed(() => availableAlgorithms.value.map((algorithm: HashAlgorithm) => ({
 	value: algorithm as HashAlgorithm,
 	label: algorithm,
-	// TRANSLATORS {algorithm} is the hash algorithm name (for example SHA256) used to compute the digital signature digest.
 	description: getOptionDescription(algorithm),
 })))
 
