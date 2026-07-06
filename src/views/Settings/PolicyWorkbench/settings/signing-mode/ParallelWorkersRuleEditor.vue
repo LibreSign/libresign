@@ -5,10 +5,10 @@
 
 <template>
 	<div class="parallel-workers-rule-editor">
-		<p>{{ t('libresign', 'Set how many background workers process signing jobs in parallel (1-32).') }}</p>
+		<p>{{ parallelWorkersDescription }}</p>
 		<NcTextField
 			id="parallel-workers-policy-input"
-			:label="t('libresign', 'Parallel workers')"
+			:label="parallelWorkersLabel"
 			type="number"
 			min="1"
 			max="32"
@@ -38,9 +38,14 @@ const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
 
+// TRANSLATORS Helper text explaining that this setting controls how many background workers can process signing jobs simultaneously. The allowed range is 1 to 32.
+const parallelWorkersDescription = t('libresign', 'Set how many background workers process signing jobs in parallel (1-32).')
+// TRANSLATORS Label for the numeric field that sets the number of parallel background workers.
+const parallelWorkersLabel = t('libresign', 'Parallel workers')
+
 const localValue = ref(String(resolveParallelWorkers(props.modelValue)))
 
-watch(() => props.modelValue, (value) => {
+watch(() => props.modelValue, (value: EffectivePolicyValue) => {
 	localValue.value = String(resolveParallelWorkers(value))
 })
 
