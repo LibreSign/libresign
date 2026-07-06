@@ -221,6 +221,7 @@
     "This is not your file" : "Este arquivo não é seu",
     "Authentication required" : "Autenticação necessária",
     "The current authenticated session cannot be used to sign this document." : "A sessão autenticada atual não pode ser usada para assinar este documento.",
+    "To continue, sign out from the current account and open the signing link again, or open the signing link in a browser session where this account is not active." : "Para continuar, saia da conta atual e abra o link de assinatura novamente, ou abra o link de assinatura em uma sessão do navegador em que essa conta não esteja ativa.",
     "User already exists" : "Usuário já existe",
     "It is not possible to create new accounts." : "Não é possível criar novas contas.",
     "Signal" : "Signal",
