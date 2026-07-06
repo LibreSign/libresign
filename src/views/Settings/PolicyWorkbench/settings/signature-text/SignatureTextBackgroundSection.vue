@@ -4,8 +4,8 @@
 -->
 <template>
 	<div class="ste__group ste__bg-row">
-		<span class="ste__label">{{ t('libresign', 'Background') }}</span>
-		<div class="ste__seg ste__seg--background" role="radiogroup" :aria-label="t('libresign', 'Background source')">
+		<span class="ste__label">{{ backgroundLabel }}</span>
+		<div class="ste__seg ste__seg--background" role="radiogroup" :aria-label="backgroundSourceLabel">
 			<button
 				v-for="opt in backgroundOptions"
 				:key="opt.value"
@@ -20,17 +20,17 @@
 		</div>
 		<NcButton
 			variant="secondary"
-			:aria-label="t('libresign', 'Upload background image')"
+			:aria-label="uploadBackgroundImageLabel"
 			@click="triggerFilePicker">
 			<template #icon>
 				<NcIconSvgWrapper :path="mdiUpload" :size="16" />
 			</template>
-			{{ t('libresign', 'Upload') }}
+			{{ uploadLabel }}
 		</NcButton>
 		<NcButton
 			v-if="backgroundType !== 'default'"
 			variant="tertiary"
-			:aria-label="t('libresign', 'Reset background to default')"
+			:aria-label="resetBackgroundToDefaultLabel"
 			@click="$emit('resetBackground')">
 			<template #icon>
 				<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
@@ -39,7 +39,7 @@
 		<NcButton
 			v-if="backgroundType !== 'deleted'"
 			variant="tertiary"
-			:aria-label="t('libresign', 'Remove background')"
+			:aria-label="removeBackgroundLabel"
 			@click="$emit('removeBackground')">
 			<template #icon>
 				<NcIconSvgWrapper :path="mdiDelete" :size="20" />
@@ -80,6 +80,19 @@ const emit = defineEmits<{
 	(event: 'removeBackground'): void
 	(event: 'fileSelected', file: File): void
 }>()
+
+// TRANSLATORS Section label for choosing the background of the visible signature stamp.
+const backgroundLabel = t('libresign', 'Background')
+// TRANSLATORS Accessible label for the control that selects the signature stamp background source.
+const backgroundSourceLabel = t('libresign', 'Background source')
+// TRANSLATORS Accessible label for the button that uploads a custom background image for the signature stamp.
+const uploadBackgroundImageLabel = t('libresign', 'Upload background image')
+// TRANSLATORS Button label for uploading a custom signature stamp background image.
+const uploadLabel = t('libresign', 'Upload')
+// TRANSLATORS Accessible label for the icon-only button that restores the signature stamp background to the default source.
+const resetBackgroundToDefaultLabel = t('libresign', 'Reset background to default')
+// TRANSLATORS Accessible label for the icon-only button that removes the current signature stamp background.
+const removeBackgroundLabel = t('libresign', 'Remove background')
 
 const input = ref<HTMLInputElement | null>(null)
 
