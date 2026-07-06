@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { computed, reactive } from 'vue'
 import { describe, expect, it, vi } from 'vitest'
+import { reactive } from 'vue'
+
+import { useCatalogRuleCreation } from '../../../../../../views/Settings/PolicyWorkbench/Catalog/composables/useCatalogRuleCreation'
 
 vi.mock('@nextcloud/l10n', () => ({
 	t: (_app: string, text: string, params?: Record<string, string>) => {
@@ -18,11 +20,11 @@ vi.mock('@nextcloud/l10n', () => ({
 	},
 }))
 
-import { useCatalogRuleCreation } from '../../../../../../views/Settings/PolicyWorkbench/Catalog/composables/useCatalogRuleCreation'
+type RuleCreationState = Parameters<typeof useCatalogRuleCreation>[0]['state']
 
 describe('useCatalogRuleCreation', () => {
 	it('builds system-admin scope options and priority notes when all scopes are available', () => {
-		const state = reactive({
+		const state = reactive<RuleCreationState>({
 			activeDefinition: {
 				key: 'signature_flow',
 				supportedScopes: ['system', 'group', 'user'],
@@ -53,7 +55,7 @@ describe('useCatalogRuleCreation', () => {
 	})
 
 	it('reduces group-admin creation flow to one visible account scope when group rules are unavailable', () => {
-		const state = reactive({
+		const state = reactive<RuleCreationState>({
 			activeDefinition: {
 				key: 'groups_request_sign',
 				supportedScopes: ['group', 'user'],
