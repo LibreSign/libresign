@@ -10,9 +10,9 @@ import { t } from '@nextcloud/l10n'
 import { realDefinitions } from '../../settings/realDefinitions'
 import type { RealPolicySettingCategory } from '../../settings/realTypes'
 
-type CatalogLayout = 'cards' | 'compact'
+export type CatalogLayout = 'cards' | 'compact'
 
-type SettingSummary = {
+export type CatalogSettingSummary = {
 	key: string,
 	title: string,
 	context?: string | null,
@@ -21,6 +21,13 @@ type SettingSummary = {
 	groupCount?: number,
 	userCount?: number,
 	everyoneCount?: number,
+}
+
+export type CatalogCategorySection = {
+	key: RealPolicySettingCategory,
+	id: string,
+	label: string,
+	summaries: CatalogSettingSummary[],
 }
 
 // TRANSLATORS Category heading grouping rules about who is allowed to sign documents.
@@ -72,7 +79,7 @@ function categoryLabel(category: RealPolicySettingCategory): string {
 }
 
 export function useCatalogPresentation(options: {
-	visibleSettingSummaries: Ref<SettingSummary[]> | ComputedRef<SettingSummary[]>,
+	visibleSettingSummaries: Ref<CatalogSettingSummary[]> | ComputedRef<CatalogSettingSummary[]>,
 	settingsFilter: Ref<string>,
 	catalogLayout: Ref<CatalogLayout>,
 	isCatalogCollapsed: Ref<boolean>,
@@ -99,12 +106,7 @@ export function useCatalogPresentation(options: {
 		})
 	})
 
-	const visibleCategorySections = computed<Array<{
-		key: RealPolicySettingCategory,
-		id: string,
-		label: string,
-		summaries: typeof filteredSettingSummaries.value,
-	}>>(() => {
+	const visibleCategorySections = computed<CatalogCategorySection[]>(() => {
 		const grouped = new Map<RealPolicySettingCategory, typeof filteredSettingSummaries.value>()
 		for (const category of CATEGORY_ORDER) {
 			grouped.set(category, [])
