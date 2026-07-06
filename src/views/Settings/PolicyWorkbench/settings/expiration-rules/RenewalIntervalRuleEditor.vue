@@ -9,7 +9,7 @@
 			type="switch"
 			:model-value="enabled"
 			@update:modelValue="onToggleEnabled">
-			{{ t('libresign', 'Renewal interval') }}
+			{{ renewalIntervalToggleLabel }}
 		</NcCheckboxRadioSwitch>
 
 		<NcTextField
@@ -18,7 +18,7 @@
 			type="number"
 			:min="1"
 			:step="1"
-			:label="t('libresign', 'Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link.')"
+			:label="renewalIntervalInputLabel"
 			@update:modelValue="onValueChange" />
 	</div>
 </template>
@@ -45,6 +45,11 @@ const props = defineProps<{
 const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
+
+// TRANSLATORS Toggle label for enabling or disabling a renewal interval on signing requests.
+const renewalIntervalToggleLabel = t('libresign', 'Renewal interval')
+// TRANSLATORS Label for the numeric field that sets renewal interval in seconds for a signing request access link.
+const renewalIntervalInputLabel = t('libresign', 'Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link.')
 
 const normalized = computed(() => normalizeNonNegativeInt(props.modelValue, DEFAULT_RENEWAL_INTERVAL))
 const enabled = computed(() => normalized.value > 0)
