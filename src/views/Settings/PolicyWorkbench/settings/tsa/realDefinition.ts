@@ -49,5 +49,8 @@ export const tsaRealDefinition: RealPolicySettingDefinition = {
 		// TRANSLATORS Policy summary meaning TSA is enabled without authentication details in this summary.
 		return t('libresign', 'Enabled')
 	},
-	formatAllowOverride: () => t('libresign', 'Lower-level customization is disabled for this setting'),
+	formatAllowOverride: () => {
+		// TRANSLATORS Policy inheritance message indicating group and user scopes cannot override this TSA setting.
+		return t('libresign', 'Lower-level customization is disabled for this setting')
+	},
 }
