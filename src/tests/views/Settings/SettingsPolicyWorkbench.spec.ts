@@ -88,9 +88,18 @@ const axiosGetMock = vi.fn().mockResolvedValue({
 	},
 })
 
+const axiosPutMock = vi.fn().mockResolvedValue({
+	data: {
+		ocs: {
+			data: {},
+		},
+	},
+})
+
 vi.mock('@nextcloud/axios', () => ({
 	default: {
 		get: (...args: unknown[]) => axiosGetMock(...args),
+		put: (...args: unknown[]) => axiosPutMock(...args),
 	},
 }))
 
@@ -207,11 +216,13 @@ function findConfigureButtonForSetting(wrapper: ReturnType<typeof mountWorkbench
 
 describe('RealPolicyWorkbench.vue', () => {
 	beforeEach(() => {
+		Object.defineProperty(window, 'innerWidth', { value: 1280, configurable: true })
 		currentUserState.isAdmin = true
 		configState.can_manage_group_policies = true
 		configState.manageable_policy_group_ids = []
 		getPolicy.mockReset()
 		axiosGetMock.mockClear()
+		axiosPutMock.mockClear()
 		fetchSystemPolicy.mockReset().mockResolvedValue(null)
 		fetchGroupPolicy.mockReset().mockResolvedValue(null)
 		fetchUserPolicyForUser.mockReset().mockResolvedValue(null)
@@ -1032,6 +1043,25 @@ describe('RealPolicyWorkbench.vue', () => {
 
 		expect(wrapper.find('.nc-empty-content-stub__description').text()).toBe('Try adjusting or clearing the current filters.')
 		expect(wrapper.find('.policy-workbench__table-empty-content .icon-stub').attributes('data-path')).toBe(mdiFilterVariant)
+	})
+
+	it('collapses and re-expands category content from the category heading', async () => {
+		const wrapper = mountWorkbench()
+
+		const firstCategoryContent = wrapper.find('.policy-workbench__category-content')
+		expect(firstCategoryContent.exists()).toBe(true)
+		expect(firstCategoryContent.isVisible()).toBe(true)
+
+		const firstCategoryToggle = wrapper.find('.policy-workbench__category-toggle')
+		expect(firstCategoryToggle.exists()).toBe(true)
+
+		await firstCategoryToggle.trigger('click')
+		expect(firstCategoryToggle.attributes('aria-expanded')).toBe('false')
+		expect(firstCategoryContent.attributes('style')).toContain('display: none;')
+
+		await firstCategoryToggle.trigger('click')
+		expect(firstCategoryToggle.attributes('aria-expanded')).toBe('true')
+		expect(firstCategoryContent.attributes('style') ?? '').not.toContain('display: none;')
 	})
 
 	it('shows one unified request expiration setting card', () => {
