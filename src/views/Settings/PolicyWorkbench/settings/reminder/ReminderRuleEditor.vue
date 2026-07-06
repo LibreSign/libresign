@@ -8,33 +8,33 @@
 		<NcCheckboxRadioSwitch type="switch"
 			:model-value="isEnabled"
 			@update:modelValue="onToggleEnabled">
-			<span>{{ t('libresign', 'Enable automatic reminders') }}</span>
+			<span>{{ enableAutomaticRemindersLabel }}</span>
 		</NcCheckboxRadioSwitch>
 
 		<div v-if="isEnabled" class="reminder-editor__fields">
 			<NcTextField :model-value="String(value.days_before)"
-				:label="t('libresign', 'First reminder after (days)')"
+				:label="firstReminderAfterLabel"
 				type="number"
 				:min="1"
 				:step="1"
 				@update:modelValue="onDaysBeforeChange" />
 
 			<NcTextField :model-value="String(value.days_between)"
-				:label="t('libresign', 'Days between reminders')"
+				:label="daysBetweenRemindersLabel"
 				type="number"
 				:min="1"
 				:step="1"
 				@update:modelValue="onDaysBetweenChange" />
 
 			<NcTextField :model-value="String(value.max)"
-				:label="t('libresign', 'Max reminders per signer')"
+				:label="maxRemindersPerSignerLabel"
 				type="number"
 				:min="1"
 				:step="1"
 				@update:modelValue="onMaxChange" />
 
 			<NcDateTimePickerNative :model-value="sendTimerDate"
-				:label="t('libresign', 'Send time (HH:mm)')"
+				:label="sendTimeLabel"
 				type="time"
 				@update:modelValue="onSendTimerChange" />
 		</div>
@@ -69,6 +69,17 @@ const props = defineProps<{
 const emit = defineEmits<{
 	'update:modelValue': [value: string]
 }>()
+
+// TRANSLATORS Toggle label for enabling automatic reminder emails or notifications for pending signers.
+const enableAutomaticRemindersLabel = t('libresign', 'Enable automatic reminders')
+// TRANSLATORS Label for the numeric field defining how many days after request creation the first reminder is sent.
+const firstReminderAfterLabel = t('libresign', 'First reminder after (days)')
+// TRANSLATORS Label for the numeric field defining the interval in days between reminder attempts.
+const daysBetweenRemindersLabel = t('libresign', 'Days between reminders')
+// TRANSLATORS Label for the numeric field defining the maximum number of reminders sent to each signer.
+const maxRemindersPerSignerLabel = t('libresign', 'Max reminders per signer')
+// TRANSLATORS Label for the time field defining when reminders are sent each day. HH:mm is a 24-hour time format shown literally.
+const sendTimeLabel = t('libresign', 'Send time (HH:mm)')
 
 const value = computed(() => normalizeReminderPolicyConfig(props.modelValue))
 
