@@ -10,8 +10,8 @@
 			:model-value="normalizedValue"
 			@update:modelValue="onChange">
 			<div class="envelope-editor__copy">
-				<span>{{ t('libresign', 'Signing envelopes') }}</span>
-				<p>{{ t('libresign', 'Allow accounts to group multiple files into envelopes for signing.') }}</p>
+				<span>{{ envelopeTitle }}</span>
+				<p>{{ envelopeDescription }}</p>
 			</div>
 		</NcCheckboxRadioSwitch>
 	</div>
@@ -35,6 +35,11 @@ const props = defineProps<{
 const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
+
+// TRANSLATORS Toggle label for enabling signing envelopes, which let users bundle multiple files in one signing workflow.
+const envelopeTitle = t('libresign', 'Signing envelopes')
+// TRANSLATORS Toggle description explaining that multiple files can be grouped together into a signing envelope.
+const envelopeDescription = t('libresign', 'Allow accounts to group multiple files into envelopes for signing.')
 
 const normalizedValue = computed<boolean>(() => {
 	if (typeof props.modelValue === 'boolean') {
