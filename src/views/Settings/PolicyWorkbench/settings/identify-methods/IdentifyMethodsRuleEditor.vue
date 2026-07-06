@@ -6,7 +6,7 @@
 <template>
 	<div class="identify-methods-editor">
 		<div v-if="entries.length === 0" class="identify-methods-editor__empty">
-			{{ t('libresign', 'No identification methods available.') }}
+			{{ noIdentificationMethodsAvailableText }}
 		</div>
 
 		<div v-for="(identifyMethod, index) in entries"
@@ -31,7 +31,7 @@
 						class="identify-methods-editor__requirement-switch"
 						:model-value="isRequired(identifyMethod)"
 						@update:modelValue="onRequirementToggle(index, $event)">
-						{{ t('libresign', 'Required to sign') }}
+						{{ requiredToSignLabel }}
 					</NcCheckboxRadioSwitch>
 
 					<NcCheckboxRadioSwitch v-else
@@ -39,16 +39,16 @@
 						class="identify-methods-editor__requirement-switch identify-methods-editor__requirement-switch--locked"
 						:model-value="true"
 						:disabled="true"
-						:title="t('libresign', 'At least one identification factor must remain required.')">
-						{{ t('libresign', 'Required to sign') }}
+						:title="requiredFactorLockedTitle">
+						{{ requiredToSignLabel }}
 					</NcCheckboxRadioSwitch>
 				</div>
 			</div>
 
 			<div v-if="identifyMethod.enabled" class="identify-methods-editor__method-details">
 				<fieldset v-if="Object.keys(identifyMethod.signatureMethods).length > 0" class="identify-methods-editor__sub-section">
-					<legend>{{ t('libresign', 'Confirmation method') }}</legend>
-					<div class="identify-methods-editor__verification-options" role="radiogroup" :aria-label="t('libresign', 'Confirmation method')">
+					<legend>{{ confirmationMethodLabel }}</legend>
+					<div class="identify-methods-editor__verification-options" role="radiogroup" :aria-label="confirmationMethodLabel">
 						<NcCheckboxRadioSwitch v-for="(signatureMethod, signatureMethodName) in identifyMethod.signatureMethods"
 							:key="signatureMethodName"
 							type="radio"
@@ -67,15 +67,15 @@
 
 		<div v-if="showGlobalOnboardingToggle" class="identify-methods-editor__global-settings">
 			<p class="identify-methods-editor__global-settings-label">
-				{{ t('libresign', 'Rule settings') }}
+				{{ ruleSettingsLabel }}
 			</p>
 			<div class="identify-methods-editor__global-onboarding">
 				<NcCheckboxRadioSwitch type="switch"
 					:model-value="canCreateAccount"
 					@update:modelValue="onGlobalCanCreateAccountToggle($event)">
 					<div class="identify-methods-editor__onboarding-content">
-						<span>{{ t('libresign', 'Automatically create account') }}</span>
-						<p>{{ t('libresign', 'Create an account when the signer does not already have one.') }}</p>
+						<span>{{ automaticallyCreateAccountLabel }}</span>
+						<p>{{ automaticallyCreateAccountDescription }}</p>
 					</div>
 				</NcCheckboxRadioSwitch>
 			</div>
@@ -117,6 +117,23 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
+
+// TRANSLATORS Empty-state message shown when there are no identification methods available to configure.
+const noIdentificationMethodsAvailableText = t('libresign', 'No identification methods available.')
+// TRANSLATORS Toggle label indicating that a specific identification factor is required before signing is allowed.
+const requiredToSignLabel = t('libresign', 'Required to sign')
+// TRANSLATORS Tooltip shown when the "Required to sign" toggle is locked because at least one identification factor must remain mandatory.
+const requiredFactorLockedTitle = t('libresign', 'At least one identification factor must remain required.')
+// TRANSLATORS Label for selecting which confirmation or verification method is used within an identification factor.
+const confirmationMethodLabel = t('libresign', 'Confirmation method')
+// TRANSLATORS Section heading for additional rule-wide settings in the identification methods editor.
+const ruleSettingsLabel = t('libresign', 'Rule settings')
+// TRANSLATORS Toggle label for enabling automatic account creation when a signer does not yet have an account.
+const automaticallyCreateAccountLabel = t('libresign', 'Automatically create account')
+// TRANSLATORS Toggle description explaining that an account is created automatically for a signer who does not already have one.
+const automaticallyCreateAccountDescription = t('libresign', 'Create an account when the signer does not already have one.')
+// TRANSLATORS Fallback label for a verification option when no more specific signature-method label is available.
+const verificationOptionFallbackLabel = t('libresign', 'Verification option')
 
 const policyConfig = computed(() => normalizeIdentifyMethodsPolicyConfig(props.modelValue ?? null))
 
@@ -170,10 +187,10 @@ for (const identifyMethod of identifyMethodsCatalog) {
 
 const methodsSupportingAccountCreation = new Set<string>(['email'])
 
-const showGlobalOnboardingToggle = computed(() => entries.value.some((entry) => methodsSupportingAccountCreation.has(entry.name)))
+const showGlobalOnboardingToggle = computed(() => entries.value.some((entry: IdentifyMethodPolicyEntry) => methodsSupportingAccountCreation.has(entry.name)))
 const canCreateAccount = computed(() => policyConfig.value.global.canCreateAccount ?? false)
 
-const enabledCount = computed(() => entries.value.filter((entry) => entry.enabled).length)
+const enabledCount = computed(() => entries.value.filter((entry: IdentifyMethodPolicyEntry) => entry.enabled).length)
 const canAdjustRequirement = computed(() => enabledCount.value > 1)
 
 function onMethodToggle(index: number, enabled: boolean): void {
@@ -229,7 +246,7 @@ function getVerificationMethodLabel(identifyMethodName: string, signatureMethodN
 		return globalCatalogLabel
 	}
 
-	return t('libresign', 'Verification option')
+	return verificationOptionFallbackLabel
 }
 
 function ensureSignatureMethodSelection(entries: IdentifyMethodPolicyEntry[]): IdentifyMethodPolicyEntry[] {
