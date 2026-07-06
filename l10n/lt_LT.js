@@ -222,6 +222,8 @@ OC.L10N.register(
     "User already exists. Please login." : "Naudotojas jau yra. Prisijunkite.",
     "This is not your file" : "Tai ne jūsų failas",
     "Authentication required" : "Reikalingas tapatybės nustatymas",
+    "The current authenticated session cannot be used to sign this document." : "Šiam dokumentui pasirašyti negalima naudoti dabartinės autentifikuotos sesijos.",
+    "To continue, sign out from the current account and open the signing link again, or open the signing link in a browser session where this account is not active." : "Norėdami tęsti, atsijunkite nuo dabartinės paskyros ir dar kartą atidarykite pasirašymo nuorodą arba atidarykite ją naršyklės sesijoje, kurioje ši paskyra nėra aktyvi.",
     "User already exists" : "Naudotojas jau yra",
     "It is not possible to create new accounts." : "Neįmanoma sukurti naujų paskyrų.",
     "Signal" : "Signal",
