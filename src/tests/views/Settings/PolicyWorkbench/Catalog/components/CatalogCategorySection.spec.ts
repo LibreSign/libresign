@@ -7,10 +7,11 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
 import CatalogCategorySection from '../../../../../../views/Settings/PolicyWorkbench/Catalog/components/CatalogCategorySection.vue'
+import type { CatalogCategorySection as CatalogCategorySectionModel } from '../../../../../../views/Settings/PolicyWorkbench/Catalog/composables/useCatalogPresentation'
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
-const category = {
+const category: CatalogCategorySectionModel = {
 	key: 'how-signing-works',
 	id: 'policy-category-how-signing-works',
 	label: 'How signing works',
@@ -26,7 +27,7 @@ const category = {
 			everyoneCount: 0,
 		},
 	],
-} as const
+}
 
 function mountSection(overrides: Record<string, unknown> = {}) {
 	return mount(CatalogCategorySection, {
