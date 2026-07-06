@@ -5,6 +5,7 @@
 
 import { computed } from 'vue'
 import { t } from '@nextcloud/l10n'
+import type { RealPolicyScope } from '../../settings/realTypes'
 
 // TRANSLATORS Message shown in the LibreSign policy workbench when a policy cannot be created in the selected scope for this setting.
 const settingUnavailableForScopeMessage = t('libresign', 'Not available for this setting.')
@@ -57,13 +58,13 @@ export interface CreateScopeNote {
 type RuleCreationStateLike = {
 	activeDefinition?: {
 		key?: string
-		supportedScopes?: ReadonlyArray<CreateRuleScope>
+		supportedScopes?: ReadonlyArray<RealPolicyScope>
 	} | null
-	createGroupOverrideDisabledReason: string
-	createUserOverrideDisabledReason: string
+	createGroupOverrideDisabledReason: string | null
+	createUserOverrideDisabledReason: string | null
 	hasGlobalDefault: boolean
 	viewMode: 'system-admin' | 'group-admin'
-	canManageGroups: boolean
+	canManageGroups: boolean | null
 	editorDraft?: { scope: CreateRuleScope } | null
 	visibleGroupRules: unknown[]
 	visibleUserRules: unknown[]
