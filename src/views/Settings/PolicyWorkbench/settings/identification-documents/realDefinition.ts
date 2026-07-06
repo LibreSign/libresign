@@ -86,7 +86,9 @@ function resolveIdentificationDocuments(value: EffectivePolicyValue): boolean | 
 
 export const identificationDocumentsRealDefinition: RealPolicySettingDefinition = {
 	key: 'identification_documents',
+	// TRANSLATORS Policy title for requiring signers to provide identification documents before certificate issuance.
 	title: t('libresign', 'Identification documents flow'),
+	// TRANSLATORS Policy description explaining whether submitted identification documents must be approved.
 	description: t('libresign', 'Control whether signers must submit identification documents for approval.'),
 	groupAdminBehavior: {
 		allowGroupRuleCreationFromDescendantDelegation: true,
@@ -108,17 +110,25 @@ export const identificationDocumentsRealDefinition: RealPolicySettingDefinition 
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const resolved = resolveIdentificationDocuments(value)
 		if (resolved === true) {
+			// TRANSLATORS Policy value meaning the identification-documents workflow is enabled.
 			return t('libresign', 'Enabled')
 		}
 
 		if (resolved === false) {
+			// TRANSLATORS Policy value meaning the identification-documents workflow is disabled.
 			return t('libresign', 'Disabled')
 		}
 
+		// TRANSLATORS Fallback policy summary shown when no explicit identification-documents rule is set.
 		return t('libresign', 'Not configured')
 	},
-	formatAllowOverride: (allowChildOverride: boolean) =>
-		allowChildOverride
-			? t('libresign', 'Groups can set their own rule')
-			: t('libresign', 'Groups must follow this value'),
+	formatAllowOverride: (allowChildOverride: boolean) => {
+		if (allowChildOverride) {
+			// TRANSLATORS Policy inheritance message indicating group and account scopes may define their own identification-documents rule.
+			return t('libresign', 'Groups and accounts can set their own rule')
+		}
+
+		// TRANSLATORS Policy inheritance message indicating child scopes must use the identification-documents rule defined here.
+		return t('libresign', 'Groups and accounts must follow this value')
+	},
 }
