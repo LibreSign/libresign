@@ -9,7 +9,7 @@
 			type="switch"
 			:model-value="enabled"
 			@update:modelValue="onToggleEnabled">
-			{{ t('libresign', 'Maximum validity') }}
+			{{ maximumValidityToggleLabel }}
 		</NcCheckboxRadioSwitch>
 
 		<NcTextField
@@ -18,7 +18,7 @@
 			type="number"
 			:min="1"
 			:step="1"
-			:label="t('libresign', 'Maximum validity in seconds of a signature request.')"
+			:label="maximumValidityInputLabel"
 			@update:modelValue="onValueChange" />
 	</div>
 </template>
@@ -45,6 +45,11 @@ const props = defineProps<{
 const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
+
+// TRANSLATORS Toggle label for enabling or disabling a maximum lifetime for signature requests.
+const maximumValidityToggleLabel = t('libresign', 'Maximum validity')
+// TRANSLATORS Label for the numeric field that sets the maximum lifetime of a signature request, measured in seconds.
+const maximumValidityInputLabel = t('libresign', 'Maximum validity in seconds of a signature request.')
 
 const normalized = computed(() => normalizeNonNegativeInt(props.modelValue, DEFAULT_MAXIMUM_VALIDITY))
 const enabled = computed(() => normalized.value > 0)
