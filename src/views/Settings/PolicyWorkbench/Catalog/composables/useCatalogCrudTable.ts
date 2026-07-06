@@ -7,12 +7,12 @@ import { computed, nextTick, ref, watch } from 'vue'
 
 import { t } from '@nextcloud/l10n'
 
-type CrudScope = 'system' | 'group' | 'user'
+export type CatalogCrudScope = 'system' | 'group' | 'user'
 
-type CrudRow = {
+export type CatalogCrudRow = {
 	key: string,
 	ruleId: string | null,
-	scope: CrudScope,
+	scope: CatalogCrudScope,
 	targetLabel: string,
 	valueLabel: string,
 	canRemove: boolean,
@@ -48,7 +48,7 @@ export const useCatalogCrudTable = (options: {
 	const selectedCrudRuleIds = ref<Set<string>>(new Set())
 	const scopeFilterOpen = ref(false)
 
-	const crudScopeLabel = (scope: CrudScope) => {
+	const crudScopeLabel = (scope: CatalogCrudScope) => {
 		if (scope === 'system') {
 			return t('libresign', 'Everyone')
 		}
@@ -60,8 +60,8 @@ export const useCatalogCrudTable = (options: {
 		return t('libresign', 'Account')
 	}
 
-	const filteredCrudRows = computed<CrudRow[]>(() => {
-		const rows: CrudRow[] = []
+	const filteredCrudRows = computed<CatalogCrudRow[]>(() => {
+		const rows: CatalogCrudRow[] = []
 		const systemRule = options.state.inheritedSystemRule
 		if (systemRule && options.state.hasGlobalDefault && options.state.viewMode === 'system-admin') {
 			rows.push({
@@ -96,7 +96,7 @@ export const useCatalogCrudTable = (options: {
 			})
 		}
 
-		const scopePriority: Record<CrudScope, number> = {
+		const scopePriority: Record<CatalogCrudScope, number> = {
 			user: 0,
 			group: 1,
 			system: 2,
@@ -152,7 +152,7 @@ export const useCatalogCrudTable = (options: {
 		selectedCrudRuleIds.value = new Set()
 	}
 
-	const setCrudScopeFilter = (value: 'all' | CrudScope, selected: boolean) => {
+	const setCrudScopeFilter = (value: 'all' | CatalogCrudScope, selected: boolean) => {
 		if (!selected) {
 			return
 		}
