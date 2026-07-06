@@ -138,7 +138,19 @@ class Email extends AbstractIdentifyMethod {
 		}
 		throw new LibresignException(json_encode([
 			'action' => JSActions::ACTION_DO_NOTHING,
-			'errors' => [['message' => $this->identifyService->getL10n()->t('This document is not yours. Log out and use the sign link again.')]],
+			'page_state' => 'authentication_required',
+			'page_state_data' => [
+				// TRANSLATORS Title shown when a signing link is opened while a different authenticated Nextcloud session is active. This is an expected security check, not a system failure.
+				'title' => $this->identifyService->getL10n()->t('Authentication required'),
+				// TRANSLATORS Description shown when the current authenticated Nextcloud session cannot be used to sign a document because it does not match the authorized signer.
+				'description' => $this->identifyService->getL10n()->t('The current authenticated session cannot be used to sign this document.'),
+				'noteType' => 'info',
+				'icon' => 'info',
+			],
+			'errors' => [[
+				// TRANSLATORS Guidance shown when the current authenticated Nextcloud session cannot be used to sign a document because it does not match the authorized signer. Keep it generic and do not mention emails or delivery channels.
+				'message' => $this->identifyService->getL10n()->t('To continue, sign out from the current account and open the signing link again, or open the signing link in a browser session where this account is not active.'),
+			]],
 		]));
 	}
 

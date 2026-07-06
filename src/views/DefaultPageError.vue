@@ -15,13 +15,13 @@
 			<NcEmptyContent :name="title"
 				:description="description">
 				<template #icon>
-					<NcIconSvgWrapper :path="mdiAlertCircleOutline" :size="80" class="alert-icon" />
+					<NcIconSvgWrapper :path="iconPath" :size="80" :class="iconClass" />
 				</template>
 				<template #action>
 					<div v-if="errors.length" class="error-messages">
 						<NcNoteCard v-for="(error, index) in errors"
 							:key="index"
-							type="error">
+							:type="noteCardType">
 							{{ error.message }}
 						</NcNoteCard>
 					</div>
@@ -37,6 +37,7 @@ import { computed } from 'vue'
 
 import {
 	mdiAlertCircleOutline,
+	mdiInformationOutline,
 } from '@mdi/js'
 import { t } from '@nextcloud/l10n'
 
@@ -51,8 +52,17 @@ defineOptions({
 })
 
 type ErrorRow = { message: string }
+type NoteCardType = 'error' | 'info'
+type IconVariant = 'error' | 'info'
+type PageStateData = {
+	title?: string
+	description?: string
+	noteType?: NoteCardType
+	icon?: IconVariant
+}
 
 const logoLibreSign = logoLibreSignAsset
+const pageStateData = computed<PageStateData>(() => loadState<PageStateData>('libresign', 'page_state_data', {}))
 
 const errors = computed<ErrorRow[]>(() => {
 	const loadedErrors = loadState<ErrorRow[]>('libresign', 'errors', [])
@@ -66,13 +76,21 @@ const errors = computed<ErrorRow[]>(() => {
 	return []
 })
 
-const title = computed(() => (errors.value.length
-	? t('libresign', 'An error occurred')
-	: t('libresign', 'Page not found')))
+const title = computed(() => pageStateData.value.title ?? (errors.value.length
+		? t('libresign', 'An error occurred')
+		: t('libresign', 'Page not found')))
 
-const description = computed(() => (errors.value.length
-	? ''
-	: t('libresign', 'Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable.')))
+const description = computed(() => pageStateData.value.description ?? (errors.value.length
+		? ''
+		: t('libresign', 'Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable.')))
+
+const noteCardType = computed<NoteCardType>(() => pageStateData.value.noteType ?? 'error')
+
+const iconVariant = computed<IconVariant>(() => pageStateData.value.icon ?? 'error')
+
+const iconPath = computed(() => (iconVariant.value === 'info' ? mdiInformationOutline : mdiAlertCircleOutline))
+
+const iconClass = computed(() => (iconVariant.value === 'info' ? 'info-icon' : 'alert-icon'))
 </script>
 
 <style lang="scss" scoped>
@@ -127,6 +145,10 @@ const description = computed(() => (errors.value.length
 
 	.alert-icon {
 		color: #e53c3c;
+	}
+
+	.info-icon {
+		color: var(--color-primary-element);
 	}
 }
 </style>
