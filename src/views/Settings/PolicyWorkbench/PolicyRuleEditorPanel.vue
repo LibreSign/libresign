@@ -67,12 +67,14 @@
 
 			<div v-if="showInlineActions" class="policy-workbench__editor-actions" :class="{ 'policy-workbench__editor-actions--sticky-mobile': stickyActions }">
 				<NcButton v-if="showBackButton" variant="tertiary" :aria-label="goBackToRuleTypeSelectionLabel" :disabled="saveStatus === 'saving'" @click="$emit('back')">
+					<!-- TRANSLATORS Secondary button label that returns to the previous step in the policy rule creation flow. -->
 					{{ t('libresign', '← Back') }}
 				</NcButton>
 				<NcButton variant="primary" :aria-label="savePolicyRuleActionLabel" :loading="saveStatus === 'saving'" :disabled="!canSaveDraft" @click="$emit('save')">
-					{{ editorMode === 'edit' ? t('libresign', 'Save changes') : t('libresign', 'Create rule') }}
+					{{ savePolicyRuleActionText }}
 				</NcButton>
 				<NcButton variant="secondary" :aria-label="cancelEditingLabel" :disabled="saveStatus === 'saving'" @click="$emit('cancel')">
+					<!-- TRANSLATORS Secondary button label that closes the editor without saving pending changes. -->
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 			</div>
@@ -153,53 +155,68 @@ defineEmits<{
 	(e: 'cancel'): void
 }>()
 
-// TRANSLATORS Label for selecting groups in the current policy scope.
-const targetGroupsLabel = t('libresign', 'Scope groups')
-// TRANSLATORS Label for selecting accounts in the current policy scope.
-const targetAccountsLabel = t('libresign', 'Scope accounts')
-const targetScopeLabel = computed(() => props.editorDraft.scope === 'group'
-	? targetGroupsLabel
-	: targetAccountsLabel)
+const targetScopeLabel = computed(() => {
+	if (props.editorDraft.scope === 'group') {
+		// TRANSLATORS Label for selecting which groups the current policy rule applies to.
+		return t('libresign', 'Scope groups')
+	}
 
-// TRANSLATORS Placeholder text for searching scope groups in policy picker.
-const searchGroupsPlaceholder = t('libresign', 'Search scope groups')
-// TRANSLATORS Placeholder text for searching scope accounts in policy picker.
-const searchAccountsPlaceholder = t('libresign', 'Search scope accounts')
-const targetScopeSearchPlaceholder = computed(() => props.editorDraft.scope === 'group'
-	? searchGroupsPlaceholder
-	: searchAccountsPlaceholder)
+	// TRANSLATORS Label for selecting which accounts the current policy rule applies to.
+	return t('libresign', 'Scope accounts')
+})
+
+const targetScopeSearchPlaceholder = computed(() => {
+	if (props.editorDraft.scope === 'group') {
+		// TRANSLATORS Placeholder text for searching groups within the current policy scope picker.
+		return t('libresign', 'Search scope groups')
+	}
+
+	// TRANSLATORS Placeholder text for searching accounts within the current policy scope picker.
+	return t('libresign', 'Search scope accounts')
+})
 
 // TRANSLATORS Button label to return to policy rule type selection step.
 const goBackToRuleTypeSelectionLabel = t('libresign', 'Go back to rule type selection')
 // TRANSLATORS Button label to cancel rule editing without saving.
 const cancelEditingLabel = t('libresign', 'Cancel editing')
-// TRANSLATORS Primary action aria-label in edit mode to persist changes to an existing policy rule.
-const savePolicyRuleChangesAriaLabel = t('libresign', 'Save policy rule changes')
-// TRANSLATORS Primary action aria-label in create mode to create a new policy rule.
-const createPolicyRuleAriaLabel = t('libresign', 'Create policy rule')
-const savePolicyRuleActionLabel = computed(() => props.editorMode === 'edit'
-	? savePolicyRuleChangesAriaLabel
-	: createPolicyRuleAriaLabel)
+const savePolicyRuleActionLabel = computed(() => {
+	if (props.editorMode === 'edit') {
+		// TRANSLATORS Primary action aria-label in edit mode to persist changes to an existing policy rule.
+		return t('libresign', 'Save policy rule changes')
+	}
 
-// TRANSLATORS User-scope description when account-level customization is allowed.
-const accountCustomizationAllowedDescription = t('libresign', 'This account can customize personal defaults and request-specific values.')
-// TRANSLATORS User-scope description when value is mandatory and cannot be customized.
-const accountCustomizationLockedDescription = t('libresign', 'This value is mandatory for this account.')
-// TRANSLATORS Parent-scope description when groups/accounts may define more specific values.
-const childScopesCanOverrideDescription = t('libresign', 'Groups and accounts can define a more specific value.')
-// TRANSLATORS Parent-scope description when groups/accounts must inherit parent value.
-const childScopesMustInheritDescription = t('libresign', 'Groups and accounts must inherit this value.')
+	// TRANSLATORS Primary action aria-label in create mode to create a new policy rule.
+	return t('libresign', 'Create policy rule')
+})
+
+const savePolicyRuleActionText = computed(() => {
+	if (props.editorMode === 'edit') {
+		// TRANSLATORS Primary button label in edit mode.
+		return t('libresign', 'Save changes')
+	}
+
+	// TRANSLATORS Primary button label in create mode.
+	return t('libresign', 'Create rule')
+})
 
 const allowOverrideDescription = computed(() => {
 	if (props.editorDraft.scope === 'user') {
-		return props.editorDraft.allowChildOverride
-			? accountCustomizationAllowedDescription
-			: accountCustomizationLockedDescription
+		if (props.editorDraft.allowChildOverride) {
+			// TRANSLATORS User-scope description when account-level customization is allowed.
+			return t('libresign', 'This account can customize personal defaults and request-specific values.')
+		}
+
+		// TRANSLATORS User-scope description when value is mandatory and cannot be customized.
+		return t('libresign', 'This value is mandatory for this account.')
 	}
 
-	return props.editorDraft.allowChildOverride
-		? childScopesCanOverrideDescription
-		: childScopesMustInheritDescription
+	if (props.editorDraft.allowChildOverride) {
+		// TRANSLATORS Parent-scope description when groups and accounts may define a more specific value.
+		return t('libresign', 'Groups and accounts can define a more specific value.')
+	}
+
+	// TRANSLATORS Parent-scope description when groups and accounts must inherit the parent value.
+	return t('libresign', 'Groups and accounts must inherit this value.')
 })
 
 const allowOverrideTitle = computed(() => {
