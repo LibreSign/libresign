@@ -42,7 +42,9 @@ function resolveEnvelopeEnabled(value: EffectivePolicyValue): boolean | null {
 
 export const envelopeRealDefinition: RealPolicySettingDefinition = {
 	key: 'envelope_enabled',
+	// TRANSLATORS Policy title for enabling signing envelopes that bundle multiple files into one request.
 	title: t('libresign', 'Signing envelopes'),
+	// TRANSLATORS Policy description explaining whether accounts may group several files into a single signing envelope.
 	description: t('libresign', 'Allow accounts to group multiple files into envelopes for signing.'),
 	supportedScopes: ['system', 'group', 'user'],
 	groupAdminBehavior: {
@@ -67,17 +69,25 @@ export const envelopeRealDefinition: RealPolicySettingDefinition = {
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const resolved = resolveEnvelopeEnabled(value)
 		if (resolved === true) {
+			// TRANSLATORS Policy value meaning signing envelopes are enabled.
 			return t('libresign', 'Enabled')
 		}
 
 		if (resolved === false) {
+			// TRANSLATORS Policy value meaning signing envelopes are disabled.
 			return t('libresign', 'Disabled')
 		}
 
+		// TRANSLATORS Fallback policy summary shown when no explicit envelope rule is set.
 		return t('libresign', 'Not configured')
 	},
-	formatAllowOverride: (allowChildOverride: boolean) =>
-		allowChildOverride
-			? t('libresign', 'Groups and accounts can set their own rule')
-			: t('libresign', 'Groups and accounts must follow this value'),
+	formatAllowOverride: (allowChildOverride: boolean) => {
+		if (allowChildOverride) {
+			// TRANSLATORS Policy inheritance message indicating group and account scopes may define their own envelope rule.
+			return t('libresign', 'Groups and accounts can set their own rule')
+		}
+
+		// TRANSLATORS Policy inheritance message indicating child scopes must use the envelope rule defined here.
+		return t('libresign', 'Groups and accounts must follow this value')
+	},
 }
