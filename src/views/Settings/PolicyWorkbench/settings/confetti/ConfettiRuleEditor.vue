@@ -37,7 +37,9 @@ const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
 
+// TRANSLATORS Toggle title for the policy editor that enables a celebratory confetti animation after signing.
 const title = t('libresign', 'Confetti animation')
+// TRANSLATORS Toggle description explaining that a confetti celebration is shown after a document is signed successfully.
 const description = t('libresign', 'Show a confetti animation after successful signing.')
 
 const normalizedValue = computed<boolean | null>(() => {
