@@ -5,27 +5,27 @@
 <template>
 	<div class="ste__preview-section">
 		<div class="ste__preview-header">
-			<span class="ste__label">{{ t('libresign', 'Preview') }}</span>
+			<span class="ste__label">{{ previewLabel }}</span>
 			<NcButton v-if="showResetDefaultsButton ?? true"
 				variant="tertiary"
-				:aria-label="t('libresign', 'Reset signature stamp settings to defaults')"
+				:aria-label="resetSignatureStampSettingsLabel"
 				@click="$emit('reset-defaults')">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiUndoVariant" :size="16" />
 				</template>
-				{{ t('libresign', 'Reset defaults') }}
+				{{ resetDefaultsLabel }}
 			</NcButton>
 			<span class="ste__preview-meta">{{ signatureWidth }} × {{ signatureHeight }}</span>
 			<div class="ste__zoom">
 				<NcButton variant="tertiary"
 					class="ste__zoom-btn"
-					:aria-label="t('libresign', 'Decrease zoom')"
+					:aria-label="decreaseZoomLabel"
 					@click="$emit('change-zoom', -10)">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiMagnifyMinus" :size="16" />
 					</template>
 				</NcButton>
-				<label class="hidden-visually" :for="`ste-zoom-${id}`">{{ t('libresign', 'Zoom') }}</label>
+				<label class="hidden-visually" :for="`ste-zoom-${id}`">{{ zoomLabel }}</label>
 				<div class="ste__zoom-input-wrap">
 					<input :id="`ste-zoom-${id}`"
 						class="ste__zoom-input"
@@ -33,7 +33,7 @@
 						min="25"
 						max="400"
 						step="1"
-						:aria-label="t('libresign', 'Zoom')"
+						:aria-label="zoomLabel"
 						:value="previewZoomInput"
 						@input="$emit('zoom-input', $event)"
 						@blur="$emit('commit-zoom-input')"
@@ -42,7 +42,7 @@
 				</div>
 				<NcButton variant="tertiary"
 					class="ste__zoom-btn"
-					:aria-label="t('libresign', 'Increase zoom')"
+					:aria-label="increaseZoomLabel"
 					@click="$emit('change-zoom', 10)">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiMagnifyPlus" :size="16" />
@@ -71,7 +71,7 @@
 					{{ previewError }}
 				</div>
 				<div v-else class="ste__preview-placeholder ste__preview-placeholder--empty">
-					{{ t('libresign', 'Preview will appear here') }}
+					{{ previewWillAppearHereLabel }}
 				</div>
 			</div>
 		</div>
@@ -138,6 +138,21 @@ defineProps({
 		default: true,
 	},
 })
+
+// TRANSLATORS Section heading for the live signature-stamp preview.
+const previewLabel = t('libresign', 'Preview')
+// TRANSLATORS Accessible label for the button that restores all signature-stamp preview settings to their default values.
+const resetSignatureStampSettingsLabel = t('libresign', 'Reset signature stamp settings to defaults')
+// TRANSLATORS Button label that restores signature-stamp preview settings to default values.
+const resetDefaultsLabel = t('libresign', 'Reset defaults')
+// TRANSLATORS Accessible label for the button that decreases preview zoom.
+const decreaseZoomLabel = t('libresign', 'Decrease zoom')
+// TRANSLATORS Label for the preview zoom input field.
+const zoomLabel = t('libresign', 'Zoom')
+// TRANSLATORS Accessible label for the button that increases preview zoom.
+const increaseZoomLabel = t('libresign', 'Increase zoom')
+// TRANSLATORS Placeholder text shown before the signature-stamp preview PDF is available.
+const previewWillAppearHereLabel = t('libresign', 'Preview will appear here')
 
 defineEmits(['reset-defaults', 'change-zoom', 'zoom-input', 'commit-zoom-input', 'preview-ready'])
 </script>
