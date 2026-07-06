@@ -88,5 +88,8 @@ export const crlValidationRealDefinition: RealPolicySettingDefinition = {
 		// TRANSLATORS Fallback policy summary shown when no explicit value is set.
 		return t('libresign', 'Not configured')
 	},
-	formatAllowOverride: () => t('libresign', 'Lower-level customization is disabled for this setting'),
+	formatAllowOverride: () => {
+		// TRANSLATORS Policy inheritance message indicating group and user scopes cannot override this CRL validation rule.
+		return t('libresign', 'Lower-level customization is disabled for this setting')
+	},
 }
