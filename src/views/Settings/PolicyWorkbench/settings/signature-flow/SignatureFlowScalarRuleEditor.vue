@@ -21,8 +21,8 @@
 			</NcCheckboxRadioSwitch>
 		</div>
 		<div class="signature-flow-scalar-editor__info" role="note" aria-live="polite">
-			<strong>{{ t('libresign', 'Using instance default') }}</strong>
-			<p>{{ t('libresign', 'Accounts can choose the signing order unless an explicit rule is configured.') }}</p>
+			<strong>{{ usingInstanceDefaultLabel }}</strong>
+			<p>{{ usingInstanceDefaultDescription }}</p>
 		</div>
 	</div>
 </template>
@@ -48,15 +48,24 @@ const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
 
+// TRANSLATORS Informational label shown when no explicit signing-flow rule is configured and the instance default applies.
+const usingInstanceDefaultLabel = t('libresign', 'Using instance default')
+// TRANSLATORS Informational text explaining that accounts can still choose signing order when no explicit policy is configured.
+const usingInstanceDefaultDescription = t('libresign', 'Accounts can choose the signing order unless an explicit rule is configured.')
+
 const baseFlows: Array<{ value: SignatureFlowMode | 'none', label: string, description: string }> = [
 	{
 		value: 'parallel',
+		// TRANSLATORS Option label for the signing flow where all signers may sign at the same time.
 		label: t('libresign', 'Parallel'),
+		// TRANSLATORS Option description explaining that all signers receive the document simultaneously and may sign in any order.
 		description: t('libresign', 'All signers receive the document at the same time and can sign in any order.'),
 	},
 	{
 		value: 'ordered_numeric',
+		// TRANSLATORS Option label for the signing flow where signers proceed one after another in sequence.
 		label: t('libresign', 'Sequential'),
+		// TRANSLATORS Option description explaining that only the next signer in the configured sequence may proceed.
 		description: t('libresign', 'Signers follow a defined order. Only the next signer can proceed.'),
 	},
 ]
