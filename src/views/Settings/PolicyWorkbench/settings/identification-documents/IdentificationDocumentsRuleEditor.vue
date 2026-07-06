@@ -10,24 +10,24 @@
 			:model-value="draft.enabled"
 			@update:modelValue="updateEnabled">
 			<div class="identification-documents-editor__switch-copy">
-				<span>{{ t('libresign', 'Enable identification documents flow') }}</span>
-				<p>{{ t('libresign', 'Request signers to submit identification documents before certificate issuance.') }}</p>
+				<span>{{ identificationDocumentsFlowTitle }}</span>
+				<p>{{ identificationDocumentsFlowDescription }}</p>
 			</div>
 		</NcCheckboxRadioSwitch>
 
 		<div v-if="draft.enabled" class="identification-documents-editor__approvers-section">
-			<label class="identification-documents-editor__approvers-title">{{ t('libresign', 'Approver groups') }}</label>
+			<label class="identification-documents-editor__approvers-title">{{ approverGroupsLabel }}</label>
 			<p class="identification-documents-editor__help-text">
-				{{ t('libresign', 'Select which groups can approve identification documents.') }}
+				{{ approverGroupsHelpText }}
 			</p>
 			<p v-if="!groupsLoading && groupOptions.length === 0" class="identification-documents-editor__empty-state">
-				{{ t('libresign', 'No groups available for this scope. Keep the default approver group or choose another scope.') }}
+				{{ noGroupsAvailableText }}
 			</p>
 			<NcSelect
 				:model-value="selectedApprovers"
 				:options="groupOptions"
-				:placeholder="t('libresign', 'Select groups...')"
-				:aria-label-combobox="t('libresign', 'Select approver groups')"
+				:placeholder="selectGroupsPlaceholder"
+				:aria-label-combobox="selectApproverGroupsAriaLabel"
 				multiple
 				track-by="id"
 				label="displayName"
@@ -69,6 +69,25 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
 	'update:modelValue': [value: IdentificationDocumentsPayload]
 }>()
+
+// TRANSLATORS Toggle label for enabling the workflow that asks signers to upload identification documents.
+const identificationDocumentsFlowTitle = t('libresign', 'Enable identification documents flow')
+// TRANSLATORS Toggle description explaining that signers must provide identification documents before a certificate is issued.
+const identificationDocumentsFlowDescription = t('libresign', 'Request signers to submit identification documents before certificate issuance.')
+// TRANSLATORS Section label for the group selector that chooses who may approve identification documents.
+const approverGroupsLabel = t('libresign', 'Approver groups')
+// TRANSLATORS Helper text explaining that the selected groups are allowed to approve submitted identification documents.
+const approverGroupsHelpText = t('libresign', 'Select which groups can approve identification documents.')
+// TRANSLATORS Empty-state message shown when there are no available groups to choose as document approvers in the current scope.
+const noGroupsAvailableText = t('libresign', 'No groups available for this scope. Keep the default approver group or choose another scope.')
+// TRANSLATORS Placeholder text in the multi-select used to choose approver groups.
+const selectGroupsPlaceholder = t('libresign', 'Select groups...')
+// TRANSLATORS Accessible label for the multi-select that chooses approver groups for identification documents.
+const selectApproverGroupsAriaLabel = t('libresign', 'Select approver groups')
+// TRANSLATORS Fallback display name for the administrator group in the temporary approver-group selector.
+const adminGroupDisplayName = t('libresign', 'Admin')
+// TRANSLATORS Fallback display name for the generic approvers group in the temporary approver-group selector.
+const approversGroupDisplayName = t('libresign', 'Approvers')
 
 const groupsLoading = ref(false)
 const availableGroups = ref<GroupOption[]>([])
@@ -149,8 +168,8 @@ async function loadGroups() {
 		// For now, we'll use a placeholder implementation
 		// In production, this would call an API to fetch groups
 		const systemGroups: GroupOption[] = [
-			{ id: 'admin', displayName: t('libresign', 'Admin') },
-			{ id: 'approvers', displayName: t('libresign', 'Approvers') },
+			{ id: 'admin', displayName: adminGroupDisplayName },
+			{ id: 'approvers', displayName: approversGroupDisplayName },
 		]
 
 		if (props.scope === 'user') {
