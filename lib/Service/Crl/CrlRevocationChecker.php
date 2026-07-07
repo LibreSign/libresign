@@ -56,8 +56,8 @@ class CrlRevocationChecker {
 	 *
 	 * @return array{status: CrlValidationStatus, revoked_at?: string}
 	 */
-	public function validate(array $crlUrls, string $certPem): array {
-		return $this->validateFromUrlsWithDetails($crlUrls, $certPem);
+	public function validate(array $crlUrls, string $certPem, ?string $policyUserId = null): array {
+		return $this->validateFromUrlsWithDetails($crlUrls, $certPem, $policyUserId);
 	}
 
 	/**
@@ -66,7 +66,7 @@ class CrlRevocationChecker {
 	 *
 	 * @return array{status: CrlValidationStatus, revoked_at?: string}
 	 */
-	private function validateFromUrlsWithDetails(array $crlUrls, string $certPem): array {
+	private function validateFromUrlsWithDetails(array $crlUrls, string $certPem, ?string $policyUserId = null): array {
 		$externalValidationEnabled = $this->appConfig->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true);
 
 		if (empty($crlUrls)) {
