@@ -18,12 +18,13 @@ use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Tests\Fixtures\PdfFixtureCatalog;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IAppConfig;
 use OCP\IL10N;
-use OCP\ITempManager;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -35,26 +36,33 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
 	private IL10N $l10n;
 	private FooterHandler&MockObject $footerHandler;
-	private ITempManager $tempManager;
 	private LoggerInterface&MockObject $logger;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private IEngineHandler&MockObject $certificateEngine;
 	private CaIdentifierService&MockObject $caIdentifierService;
 	private DocMdpHandler&MockObject $docMdpHandler;
 	private CrlService&MockObject $crlService;
+	private PdfSignatureValidationService&MockObject $pdfSignatureValidationService;
+	private PdfSignatureExtractor $pdfSignatureExtractor;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->certificateEngine = $this->createMock(IEngineHandler::class);
+		$this->certificateEngine->method('isSetupOk')->willReturn(true);
+		$this->certificateEngine->method('validateRootCertificate')->willReturnCallback(static function (): void {
+		});
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
-		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
 		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
 		$this->crlService = $this->createMock(CrlService::class);
+		$this->pdfSignatureValidationService = $this->createMock(PdfSignatureValidationService::class);
+		$this->pdfSignatureValidationService->method('validateFromResource')->willReturn([]);
+		$this->pdfSignatureExtractor = new PdfSignatureExtractor();
 
 		$this->certificateEngineFactory->method('getEngine')
 			->willReturn($this->certificateEngine);
@@ -71,11 +79,12 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->certificateEngineFactory,
 					$this->l10n,
 					$this->footerHandler,
-					$this->tempManager,
 					$this->logger,
 					$this->caIdentifierService,
 					$this->docMdpHandler,
 					$this->crlService,
+					$this->pdfSignatureValidationService,
+					$this->pdfSignatureExtractor,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -86,11 +95,12 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->certificateEngineFactory,
 			$this->l10n,
 			$this->footerHandler,
-			$this->tempManager,
 			$this->logger,
 			$this->caIdentifierService,
 			$this->docMdpHandler,
 			$this->crlService,
+			$this->pdfSignatureValidationService,
+			$this->pdfSignatureExtractor,
 		);
 	}
 
@@ -438,6 +448,30 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 
 		return $distinguishedName;
+	}
+
+	public function testGetCertificateChainDoesNotOverrideLegacySignatureValidationOnDigestMismatch(): void {
+		$this->pdfSignatureValidationService->method('validateFromResource')
+			->willReturn([
+				[
+					'signatureValidation' => [
+						'id' => 3,
+						'label' => 'Digest mismatch.',
+						'reason' => 'PDF content hash does not match signed digest',
+					],
+				],
+			]);
+
+		$handler = $this->getHandler();
+		$resource = fopen(__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf', 'r');
+		$this->assertIsResource($resource);
+
+		$result = $handler->getCertificateChain($resource);
+		fclose($resource);
+
+		$this->assertNotEmpty($result);
+		$this->assertSame(1, $result[0]['chain'][0]['signature_validation']['id']);
+		$this->assertSame('Signature is valid.', $result[0]['chain'][0]['signature_validation']['label']);
 	}
 
 }
