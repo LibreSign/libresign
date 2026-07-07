@@ -15,9 +15,10 @@ use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Tests\Api\ApiTestCase;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
 use OCP\IAppConfig;
-use OCP\ITempManager;
 use OCP\L10N\IFactory as IL10NFactory;
 use Psr\Log\LoggerInterface;
 
@@ -108,11 +109,12 @@ final class AccountControllerTest extends ApiTestCase {
 				\OCP\Server::get(CertificateEngineFactory::class),
 				\OCP\Server::get(IL10NFactory::class)->get('libresign'),
 				\OCP\Server::get(FooterHandler::class),
-				\OCP\Server::get(ITempManager::class),
 				\OCP\Server::get(LoggerInterface::class),
 				\OCP\Server::get(CaIdentifierService::class),
 				\OCP\Server::get(DocMdpHandler::class),
 				\OCP\Server::get(CrlService::class),
+				\OCP\Server::get(PdfSignatureValidationService::class),
+				\OCP\Server::get(PdfSignatureExtractor::class),
 			])
 			->onlyMethods(['generateCertificate'])
 			->getMock();
