@@ -545,19 +545,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$certificateEngineFactory->method('getEngine')->willReturn($certificateEngine);
 
-		$handler = new class(
-			$this->folderService,
-			$this->appConfig,
-			$certificateEngineFactory,
-			$this->l10n,
-			$this->footerHandler,
-			$this->logger,
-			$this->caIdentifierService,
-			$this->docMdpHandler,
-			$this->crlService,
-			$this->pdfSignatureValidationService,
-			$this->pdfSignatureExtractor,
-		) extends Pkcs12Handler {
+		$handler = new class($this->folderService, $this->appConfig, $certificateEngineFactory, $this->l10n, $this->footerHandler, $this->logger, $this->caIdentifierService, $this->docMdpHandler, $this->crlService, $this->pdfSignatureValidationService, $this->pdfSignatureExtractor, ) extends Pkcs12Handler {
 			protected function extractNativeSignaturesFromContent(string $content): array {
 				throw new \RuntimeException('metadata boom');
 			}
