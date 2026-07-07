@@ -38,7 +38,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 		$body = json_decode($response->getBody()->getContents(), true);
 		$this->assertCount(1, $body['ocs']['data']['errors']);
 		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
-		$this->assertEquals('You are not allowed to request signing', $body['ocs']['data']['errors'][0]['message']);
+		$this->assertEquals('You are not allowed to create signature requests', $body['ocs']['data']['errors'][0]['message']);
 	}
 
 	/**
@@ -48,7 +48,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 		$this->createAccount('allowrequestsign', 'password', 'testGroup');
 
 		$appConfig = $this->getMockAppConfig();
-		$appConfig->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
+		$appConfig->setValueString(Application::APP_ID, 'groups_request_sign', '{"allowGroups":["admin","testGroup"],"denyGroups":[]}');
 		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', false);
 
 		$this->request
@@ -67,7 +67,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 					[
 						'identifyMethods' => [[
 							'method' => 'email',
-							'mandatory' => 0,
+							'requirement' => 'optional',
 							'value' => 'user@test.coop',
 						]],
 					],
@@ -101,7 +101,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 		$body = json_decode($response->getBody()->getContents(), true);
 		$this->assertCount(1, $body['ocs']['data']['errors']);
 		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
-		$this->assertEquals('You are not allowed to request signing', $body['ocs']['data']['errors'][0]['message']);
+		$this->assertEquals('You are not allowed to create signature requests', $body['ocs']['data']['errors'][0]['message']);
 	}
 
 	/**
@@ -111,7 +111,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
 
 		$appConfig = $this->getMockAppConfig();
-		$appConfig->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
+		$appConfig->setValueString(Application::APP_ID, 'groups_request_sign', '{"allowGroups":["admin","testGroup"],"denyGroups":[]}');
 		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', false);
 
 		$user->setEMailAddress('person@test.coop');
@@ -122,7 +122,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 				[
 					'identifyMethods' => [[
 						'method' => 'email',
-						'mandatory' => 0,
+						'requirement' => 'optional',
 						'value' => 'person@test.coop',
 					]],
 				],
@@ -143,7 +143,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 					[
 						'identifyMethods' => [[
 							'method' => 'email',
-							'mandatory' => 0,
+							'requirement' => 'optional',
 							'value' => 'user@test.coop',
 						]],
 					],

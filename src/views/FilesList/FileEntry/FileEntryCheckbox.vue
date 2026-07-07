@@ -3,10 +3,11 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<td class="files-list__row-checkbox"
+	<td v-if="showSelectionColumn"
+		class="files-list__row-checkbox"
 		@keyup.esc.exact="resetSelection">
-		<NcLoadingIcon v-if="isLoading" :name="loadingLabel" />
-		<NcCheckboxRadioSwitch v-else
+		<NcLoadingIcon v-if="canSelect && isLoading" :name="loadingLabel" />
+		<NcCheckboxRadioSwitch v-else-if="canSelect"
 			:aria-label="ariaLabel"
 			:model-value="isSelected"
 			@update:modelValue="onSelectionChange" />
@@ -36,7 +37,9 @@ type Source = {
 }
 
 type FilesStore = {
+	files: Record<number | string, unknown>
 	ordered: Array<number | string>
+	canDelete: (file?: unknown) => boolean
 }
 
 type KeyboardStore = {
@@ -63,6 +66,12 @@ const filesStore = useFilesStore() as FilesStore
 const keyboardStore = useKeyboardStore() as KeyboardStore
 const selectionStore = useSelectionStore() as SelectionStore
 
+const currentFile = computed(() => filesStore.files[props.source.id] ?? props.source)
+const selectableOrderedIds = computed(() => filesStore.ordered
+	.map((id) => Number(id))
+	.filter((id) => Number.isFinite(id) && filesStore.canDelete(filesStore.files[id])))
+const showSelectionColumn = computed(() => selectableOrderedIds.value.length > 0)
+const canSelect = computed(() => filesStore.canDelete(currentFile.value))
 const selectedFiles = computed(() => selectionStore.selected)
 const isSelected = computed(() => {
 	const normalizedId = Number(props.source.id)
@@ -71,7 +80,7 @@ const isSelected = computed(() => {
 
 const index = computed(() => {
 	const normalizedId = Number(props.source.id)
-	return filesStore.ordered.findIndex((key) => Number(key) === normalizedId)
+	return selectableOrderedIds.value.findIndex((key) => Number(key) === normalizedId)
 })
 
 const ariaLabel = computed(() => {
@@ -81,6 +90,10 @@ const ariaLabel = computed(() => {
 const loadingLabel = computed(() => t('libresign', 'File is loading'))
 
 function onSelectionChange(selected: boolean) {
+	if (!canSelect.value) {
+		return
+	}
+
 	const newSelectedIndex = index.value
 	const lastSelectedIndex = selectionStore.lastSelectedIndex
 	const normalizedCurrentId = Number(props.source.id)
@@ -90,7 +103,7 @@ function onSelectionChange(selected: boolean) {
 		const start = Math.min(newSelectedIndex, lastSelectedIndex)
 		const end = Math.max(lastSelectedIndex, newSelectedIndex)
 		const lastSelection = selectionStore.lastSelection
-		const filesToSelect = filesStore.ordered
+		const filesToSelect = selectableOrderedIds.value
 			.slice(start, end + 1)
 			.map((id) => Number(id))
 
@@ -117,6 +130,10 @@ defineExpose({
 	filesStore,
 	keyboardStore,
 	selectionStore,
+	currentFile,
+	selectableOrderedIds,
+	showSelectionColumn,
+	canSelect,
 	selectedFiles,
 	isSelected,
 	index,

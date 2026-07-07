@@ -83,8 +83,30 @@ class ShareTypeResolverTest extends TestCase {
 					...$phoneShareTypes,
 				],
 			],
+			'whatsappbusiness uses signer and phone types' => [
+				'whatsappbusiness',
+				true,
+				true,
+				0,
+				0,
+				[
+					SignerPlugin::TYPE_SIGNER,
+					...$phoneShareTypes,
+				],
+			],
 			'trim and case insensitive phone method' => [
 				'  WhAtSaPp  ',
+				true,
+				true,
+				0,
+				0,
+				[
+					SignerPlugin::TYPE_SIGNER,
+					...$phoneShareTypes,
+				],
+			],
+			'trim and case insensitive whatsappbusiness method' => [
+				'  WhAtSaPpBuSiNeSs  ',
 				true,
 				true,
 				0,

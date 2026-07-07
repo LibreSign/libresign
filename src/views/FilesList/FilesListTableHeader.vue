@@ -5,7 +5,8 @@
 <template>
 	<tr v-if="filesStore.ordered.length > 0"
 		class="files-list__row-head">
-		<th class="files-list__column files-list__row-checkbox"
+		<th v-if="showSelectionCheckbox"
+			class="files-list__column files-list__row-checkbox"
 			scope="col"
 			@keyup.esc.exact="resetSelection">
 			<NcCheckboxRadioSwitch v-bind="selectAllBind" @update:modelValue="onToggleAll" />
@@ -90,9 +91,14 @@ const columns = ref<Column[]>([
 	},
 ])
 
+const selectableNodeIds = computed(() => filesStore.ordered
+	.map((item) => Number(item))
+	.filter((item) => Number.isFinite(item) && filesStore.canDelete(filesStore.files[item])))
 const selectedNodes = computed(() => selectionStore.selected)
-const isAllSelected = computed(() => selectedNodes.value.length === filesStore.ordered.length && filesStore.ordered.length > 0)
-const isNoneSelected = computed(() => selectedNodes.value.length === 0)
+const selectedSelectableNodes = computed(() => selectedNodes.value.filter((item) => selectableNodeIds.value.includes(Number(item))))
+const showSelectionCheckbox = computed(() => selectableNodeIds.value.length > 0)
+const isAllSelected = computed(() => selectedSelectableNodes.value.length === selectableNodeIds.value.length && selectableNodeIds.value.length > 0)
+const isNoneSelected = computed(() => selectedSelectableNodes.value.length === 0)
 const isSomeSelected = computed(() => !isAllSelected.value && !isNoneSelected.value)
 const selectAllBind = computed(() => {
 	const label = t('libresign', 'Toggle selection for all files')
@@ -124,8 +130,12 @@ function classForColumn(column: Column) {
 }
 
 function onToggleAll(selected: boolean) {
+	if (!showSelectionCheckbox.value) {
+		return
+	}
+
 	if (selected) {
-		const selection = filesStore.ordered.map((item: any) => Number(item))
+		const selection = [...selectableNodeIds.value]
 		logger.debug('Added all nodes to selection', { selection })
 		selectionStore.setLastIndex(null)
 		selectionStore.set(selection)
@@ -142,7 +152,10 @@ function resetSelection() {
 defineExpose({
 	columns,
 	selectAllBind,
+	selectableNodeIds,
 	selectedNodes,
+	selectedSelectableNodes,
+	showSelectionCheckbox,
 	isAllSelected,
 	isNoneSelected,
 	isSomeSelected,

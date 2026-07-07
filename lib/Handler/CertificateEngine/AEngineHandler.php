@@ -19,6 +19,9 @@ use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Crl\CrlDistributionPointsExtractor;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
@@ -75,6 +78,7 @@ abstract class AEngineHandler implements IEngineHandler {
 	protected string $currentCaId = '';
 	protected IAppData $appData;
 	private CrlDistributionPointsExtractor $crlDistributionPointsExtractor;
+	private ?string $policyUserIdForValidation = null;
 
 	public function __construct(
 		protected IConfig $config,
@@ -85,6 +89,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		protected CertificatePolicyService $certificatePolicyService,
 		protected IURLGenerator $urlGenerator,
 		protected CaIdentifierService $caIdentifierService,
+		protected PolicyService $policyService,
 		protected LoggerInterface $logger,
 		private CrlRevocationChecker $crlRevocationChecker,
 	) {
@@ -161,6 +166,15 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $this->parseX509($certificate);
 	}
 
+	#[\Override]
+	public function setPolicyUserIdForValidation(?string $userId): self {
+		$this->policyUserIdForValidation = is_string($userId) && trim($userId) !== ''
+			? trim($userId)
+			: null;
+
+		return $this;
+	}
+
 	private function parseX509(string $x509): array {
 		$parsed = openssl_x509_parse(openssl_x509_read($x509));
 
@@ -195,7 +209,7 @@ abstract class AEngineHandler implements IEngineHandler {
 					return;
 				}
 
-				$crlDetails = $this->crlRevocationChecker->validate($extractedUrls, $certPem);
+				$crlDetails = $this->crlRevocationChecker->validate($extractedUrls, $certPem, $this->policyUserIdForValidation);
 				$certData['crl_validation'] = $crlDetails['status'];
 				if (!empty($crlDetails['revoked_at'])) {
 					$certData['crl_revoked_at'] = $crlDetails['revoked_at'];
@@ -204,10 +218,10 @@ abstract class AEngineHandler implements IEngineHandler {
 			}
 		}
 
-		$externalValidationEnabled = $this->appConfig->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true);
-		$certData['crl_validation'] = $externalValidationEnabled
-			? CrlValidationStatus::MISSING
-			: CrlValidationStatus::DISABLED;
+		$emptyCrlValidation = $this->crlRevocationChecker->validate([], $certPem, $this->policyUserIdForValidation);
+		$certData['crl_validation'] = ($emptyCrlValidation['status'] ?? CrlValidationStatus::NO_URLS) === CrlValidationStatus::DISABLED
+			? CrlValidationStatus::DISABLED
+			: CrlValidationStatus::MISSING;
 		$certData['crl_urls'] = [];
 	}
 
@@ -305,12 +319,22 @@ abstract class AEngineHandler implements IEngineHandler {
 			'enabled' => true,
 			'mandatory' => true,
 		]];
-		$this->appConfig->setValueArray(Application::APP_ID, 'identify_methods', $config);
+		$this->policyService->saveSystem(IdentifyMethodsPolicy::KEY, $config);
 	}
 
 	#[\Override]
 	public function getEngine(): string {
 		if ($this->engine) {
+			return $this->engine;
+		}
+		$configValues = $this->appConfig->getAllValues(Application::APP_ID);
+		$configuredEngine = $configValues['certificate_engine'] ?? '';
+		if (is_string($configuredEngine) && $configuredEngine !== '') {
+			$this->engine = $configuredEngine;
+			return $this->engine;
+		}
+		if (is_scalar($configuredEngine) && (string)$configuredEngine !== '') {
+			$this->engine = (string)$configuredEngine;
 			return $this->engine;
 		}
 		$this->engine = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
@@ -477,7 +501,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		if ($this->leafExpiryOverrideInDays !== null) {
 			return $this->leafExpiryOverrideInDays;
 		}
-		$exp = $this->appConfig->getValueInt(Application::APP_ID, 'expiry_in_days', 365);
+		$exp = (int)$this->policyService->resolve(ExpirationRulesPolicy::KEY_EXPIRY_IN_DAYS)->getEffectiveValue();
 		return $exp > 0 ? $exp : 365;
 	}
 
@@ -764,9 +788,13 @@ abstract class AEngineHandler implements IEngineHandler {
 		);
 		$names = $this->getNames();
 		foreach ($names as $name => $value) {
+			$filteredValue = $this->filterNameValue($name, $value, $generated);
+			if ($filteredValue === null) {
+				continue;
+			}
 			$return['rootCert']['names'][] = [
 				'id' => $name,
-				'value' => $this->filterNameValue($name, $value, $generated),
+				'value' => $filteredValue,
 			];
 		}
 		return $return;

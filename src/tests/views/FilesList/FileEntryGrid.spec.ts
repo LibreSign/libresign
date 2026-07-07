@@ -20,10 +20,17 @@ const actionsMenuStoreMock = {
 const filesStoreMock = {
 	loading: true,
 	selectFile: vi.fn(),
+	fetchFileDetail: vi.fn(),
+	canSign: vi.fn(),
 }
 
 const sidebarStoreMock = {
+	activeSignTab: vi.fn(),
 	activeRequestSignatureTab: vi.fn(),
+}
+
+const signStoreMock = {
+	setFileToSign: vi.fn(),
 }
 
 vi.mock('@nextcloud/vue/components/NcDateTime', () => ({
@@ -94,13 +101,21 @@ vi.mock('../../../store/sidebar.js', () => ({
 	useSidebarStore: vi.fn(() => sidebarStoreMock),
 }))
 
+vi.mock('../../../store/sign.js', () => ({
+	useSignStore: vi.fn(() => signStoreMock),
+}))
+
 describe('FileEntryGrid.vue', () => {
 	beforeEach(() => {
 		setActivePinia(createPinia())
 		actionsMenuStoreMock.opened = null
 		filesStoreMock.loading = true
 		filesStoreMock.selectFile.mockReset()
+		filesStoreMock.fetchFileDetail.mockReset()
+		filesStoreMock.canSign.mockReset()
+		sidebarStoreMock.activeSignTab.mockReset()
 		sidebarStoreMock.activeRequestSignatureTab.mockReset()
+		signStoreMock.setFileToSign.mockReset()
 	})
 
 	function createWrapper() {
@@ -142,7 +157,16 @@ describe('FileEntryGrid.vue', () => {
 		expect(checkbox.props('source')).toMatchObject({ id: 7 })
 	})
 
-	it('opens the details sidebar for the selected file', () => {
+	it('opens the sign sidebar for the selected file when the current user can sign it', async () => {
+		const detailedFile = {
+			id: 7,
+			status: 1,
+			statusText: 'Ready to sign',
+			signers: [{ me: true, sign_request_uuid: 'sign-request-uuid' }],
+			visibleElements: [],
+		}
+		filesStoreMock.fetchFileDetail.mockResolvedValue(detailedFile)
+		filesStoreMock.canSign.mockReturnValue(true)
 		const wrapper = createWrapper()
 		const vm = wrapper.vm as FileEntryGridVm
 		const event = {
@@ -150,9 +174,11 @@ describe('FileEntryGrid.vue', () => {
 			stopPropagation: vi.fn(),
 		} as unknown as Event
 
-		vm.openDetailsIfAvailable(event)
+		await vm.openDetailsIfAvailable(event)
 
 		expect(filesStoreMock.selectFile).toHaveBeenCalledWith(7)
-		expect(sidebarStoreMock.activeRequestSignatureTab).toHaveBeenCalled()
+		expect(signStoreMock.setFileToSign).toHaveBeenCalledWith(detailedFile)
+		expect(sidebarStoreMock.activeSignTab).toHaveBeenCalled()
+		expect(sidebarStoreMock.activeRequestSignatureTab).not.toHaveBeenCalled()
 	})
 })

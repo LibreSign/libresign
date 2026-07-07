@@ -7,12 +7,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import LeftSidebar from '../../../components/LeftSidebar/LeftSidebar.vue'
 
-const loadStateMock = vi.fn()
-const getCurrentUserMock = vi.fn()
-const selectFileMock = vi.fn()
+const {
+	loadStateMock,
+	getCurrentUserMock,
+	selectFileMock,
+} = vi.hoisted(() => ({
+	loadStateMock: vi.fn((_app: string, _key: string, fallback: unknown) => fallback),
+	getCurrentUserMock: vi.fn(),
+	selectFileMock: vi.fn(),
+}))
 
 vi.mock('@nextcloud/initial-state', () => ({
-	loadState: (...args: unknown[]) => loadStateMock(...args),
+	loadState: (app: string, key: string, fallback: unknown) => loadStateMock(app, key, fallback),
 }))
 
 vi.mock('@nextcloud/auth', () => ({
@@ -77,5 +83,66 @@ describe('LeftSidebar', () => {
 		for (const icon of icons) {
 			expect(icon.attributes('data-path')).toBeTruthy()
 		}
+	})
+
+	describe('RULE: LeftSidebar config loading', () => {
+		it('loads config with optional properties', async () => {
+			loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
+				if (key === 'can_request_sign') return true
+				if (key === 'config') {
+					return {
+						identificationDocumentsFlow: false,
+						isApprover: false,
+					}
+				}
+				return fallback
+			})
+			getCurrentUserMock.mockReturnValue({ isAdmin: false })
+
+			const wrapper = mount(LeftSidebar, {
+				global: {
+					stubs: {
+						NcAppNavigation: true,
+						NcAppNavigationItem: true,
+						NcAppNavigationSettings: true,
+						NcIconSvgWrapper: true,
+						Settings: true,
+					},
+				},
+			})
+
+			// Component should mount successfully with the config
+			expect(wrapper.exists()).toBe(true)
+		})
+
+		it('renders without requiring can_manage_group_policies in config', async () => {
+			loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
+				if (key === 'can_request_sign') return true
+				if (key === 'config') {
+					return {
+						identificationDocumentsFlow: false,
+						isApprover: false,
+						// Deliberately omit can_manage_group_policies
+					}
+				}
+				return fallback
+			})
+			getCurrentUserMock.mockReturnValue({ isAdmin: false })
+
+			const wrapper = mount(LeftSidebar, {
+				global: {
+					stubs: {
+						NcAppNavigation: true,
+						NcAppNavigationItem: true,
+						NcAppNavigationSettings: true,
+						NcIconSvgWrapper: true,
+						Settings: true,
+					},
+				},
+			})
+
+			// Component should still render fine even without these fields
+			expect(wrapper.exists()).toBe(true)
+		})
 	})
 })

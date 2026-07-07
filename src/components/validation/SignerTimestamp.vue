@@ -6,12 +6,12 @@
 	<template v-if="hasContent">
 		<NcListItem class="extra"
 			compact
-			:name="t('libresign', 'Timestamp Authority (TSA)')"
+			:name="timestampAuthorityLabel"
 			:aria-expanded="open ? 'true' : 'false'"
 			role="button"
 			@click="open = !open">
 			<template #name>
-				<strong>{{ t('libresign', 'Timestamp Authority (TSA)') }}</strong>
+				<strong>{{ timestampAuthorityLabel }}</strong>
 			</template>
 			<template #extra-actions>
 				<NcButton variant="tertiary"
@@ -28,26 +28,31 @@
 				</NcButton>
 			</template>
 		</NcListItem>
-		<div v-if="open" class="timestamp-wrapper" role="region" :aria-label="t('libresign', 'Timestamp authority details')">
+		<div v-if="open" class="timestamp-wrapper" role="region" :aria-label="timestampAuthorityDetailsAriaLabel">
 			<div class="extra-chain timestamp-item">
 				<dl class="timestamp-details">
 					<div v-if="authority" class="timestamp-field">
+						<!-- TRANSLATORS Label for the organization name that issued the trusted timestamp token. -->
 						<dt>{{ t('libresign', 'Authority:') }}</dt>
 						<dd>{{ authority }}</dd>
 					</div>
 					<div v-if="timestamp?.genTime" class="timestamp-field">
+						<!-- TRANSLATORS Label for the date and time when the TSA generated the timestamp token. -->
 						<dt>{{ t('libresign', 'Generated at:') }}</dt>
 						<dd>{{ dateFromSqlAnsi(timestamp.genTime) }}</dd>
 					</div>
 					<div v-if="policy" class="timestamp-field">
+						<!-- TRANSLATORS Label for the TSA timestamp policy identifier applied to this token. -->
 						<dt>{{ t('libresign', 'Policy:') }}</dt>
 						<dd>{{ policy }}</dd>
 					</div>
 					<div v-if="hashAlgorithm" class="timestamp-field">
+						<!-- TRANSLATORS Label for cryptographic hash algorithm used in timestamp token creation. -->
 						<dt>{{ t('libresign', 'Hash algorithm:') }}</dt>
 						<dd>{{ hashAlgorithm }}</dd>
 					</div>
 					<div v-if="serialNumber" class="timestamp-field">
+						<!-- TRANSLATORS Label for TSA certificate serial number associated with the timestamp token. -->
 						<dt>{{ t('libresign', 'Serial number:') }}</dt>
 						<dd>{{ serialNumber }}</dd>
 					</div>
@@ -94,6 +99,12 @@ const props = defineProps<{
 
 const open = ref(false)
 
+// TRANSLATORS Section title in signature validation view. TSA means Time-Stamp Authority, the service that provides trusted signing time evidence.
+const timestampAuthorityLabel = t('libresign', 'Timestamp Authority (TSA)')
+
+// TRANSLATORS ARIA label announced by screen readers for the collapsible region containing TSA technical details.
+const timestampAuthorityDetailsAriaLabel = t('libresign', 'Timestamp authority details')
+
 const authority = computed(() =>
 	props.timestamp?.cnHints?.commonName
 	|| props.timestamp?.authority
@@ -127,7 +138,9 @@ const hasContent = computed(() =>
 
 const toggleAriaLabel = computed(() =>
 	open.value
+		// TRANSLATORS ARIA label for button action that hides TSA detail fields.
 		? t('libresign', 'Collapse timestamp authority details')
+		// TRANSLATORS ARIA label for button action that reveals TSA detail fields.
 		: t('libresign', 'Expand timestamp authority details'),
 )
 

@@ -16,6 +16,8 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -25,13 +27,14 @@ class EnvelopeService {
 	public function __construct(
 		protected FileMapper $fileMapper,
 		protected IL10N $l10n,
+		protected PolicyService $policyService,
 		protected IAppConfig $appConfig,
 		protected FolderService $folderService,
 	) {
 	}
 
 	public function isEnabled(): bool {
-		return $this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true);
+		return $this->policyService->resolve(EnvelopePolicy::KEY)->getEffectiveValueAsBool(true);
 	}
 
 	/**

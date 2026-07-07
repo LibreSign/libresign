@@ -84,7 +84,7 @@ class EnvelopeAssembler {
 					$identifyMethodsArray[] = [
 						'method' => $entity->getIdentifierKey(),
 						'value' => $entity->getIdentifierValue(),
-						'mandatory' => $entity->getMandatory(),
+						'requirement' => $entity->getRequirement(),
 					];
 					$signerUid ??= $entity->getUniqueIdentifier();
 				}
@@ -151,6 +151,7 @@ class EnvelopeAssembler {
 						if ($sha256 === $childFile->getSignedHash()) {
 							$this->pkcs12Handler->setIsLibreSignFile();
 						}
+						$this->pkcs12Handler->setPolicyUserIdForValidation($childFile->getUserId());
 						$certData = $this->pkcs12Handler->getCertificateChain($resource);
 						fclose($resource);
 					}

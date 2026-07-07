@@ -10,6 +10,7 @@ import FileEntry from '../../../views/FilesList/FileEntry/FileEntry.vue'
 import { useFilesStore } from '../../../store/files.js'
 import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
+import { useSignStore } from '../../../store/sign.js'
 import type { FileEntrySource } from '../../../composables/useFileEntry.js'
 import type { TranslationFunction } from '../../test-types'
 
@@ -306,8 +307,20 @@ describe('FileEntry.vue - Individual File Entry', () => {
 	})
 
 	it('opens details through the sidebar store', async () => {
+		const detailedFile = {
+			id: 1,
+			status: 1,
+			statusText: 'Ready to sign',
+			signers: [{ me: true, sign_request_uuid: 'sign-request-uuid' }],
+			visibleElements: [],
+		}
 		const sidebarStore = useSidebarStore()
+		const signStore = useSignStore()
 		const selectFileSpy = vi.spyOn(useFilesStore(), 'selectFile')
+		vi.spyOn(useFilesStore(), 'fetchFileDetail').mockResolvedValue(detailedFile as never)
+		vi.spyOn(useFilesStore(), 'canSign').mockReturnValue(true)
+		const setFileToSignSpy = vi.spyOn(signStore, 'setFileToSign')
+		const activeSignTabSpy = vi.spyOn(sidebarStore, 'activeSignTab')
 		const activeRequestSignatureTabSpy = vi.spyOn(sidebarStore, 'activeRequestSignatureTab')
 		const wrapper = createWrapper()
 		const vm = wrapper.vm as FileEntryVm
@@ -316,10 +329,12 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			stopPropagation: vi.fn(),
 		} as unknown as Event
 
-		vm.openDetailsIfAvailable(event)
+		await vm.openDetailsIfAvailable(event)
 
 		expect(selectFileSpy).toHaveBeenCalledWith(1)
-		expect(activeRequestSignatureTabSpy).toHaveBeenCalled()
+		expect(setFileToSignSpy).toHaveBeenCalledWith(detailedFile)
+		expect(activeSignTabSpy).toHaveBeenCalled()
+		expect(activeRequestSignatureTabSpy).not.toHaveBeenCalled()
 	})
 
 	it('restores file name on rename failure', async () => {

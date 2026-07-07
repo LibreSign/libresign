@@ -21,6 +21,7 @@
 				{{ signMethodsStore.blurredEmail() }}
 			</div>
 			<NcTextField v-model="sendTo"
+				autofocus
 				:disabled="loading"
 				:label="t('libresign', 'Email')"
 				:placeholder="t('libresign', 'Email')"
@@ -41,6 +42,7 @@
 			</p>
 			<!-- TRANSLATORS: Label and placeholder for the phone number input field used to receive a verification code via SMS, WhatsApp, Telegram, Signal, or XMPP. "Contact information" here means a phone number, not a generic address book entry. -->
 			<NcTextField v-model="newPhoneNumber"
+				autofocus
 				:disabled="loading"
 				name="cellphone"
 				:label="t('libresign', 'Contact information')"
@@ -59,6 +61,7 @@
 			</div>
 			<!-- TRANSLATORS: Label and placeholder for the input field where the signer types the numeric one-time password (OTP) delivered via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
 			<NcTextField v-model="token"
+				autofocus
 				:disabled="loading"
 				:label="t('libresign', 'Enter your code')"
 				:placeholder="t('libresign', 'Enter your code')"

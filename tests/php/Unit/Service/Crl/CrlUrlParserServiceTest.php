@@ -80,6 +80,14 @@ class CrlUrlParserServiceTest extends TestCase {
 				'/index.php/apps/libresign/crl/libresign_ABC123_10_o.crl',
 				['instanceId' => 'ABC123', 'generation' => 10, 'engineType' => 'o'],
 			],
+			'Absolute URL with query string' => [
+				'https://cloud.example.com/index.php/apps/libresign/crl/libresign_ab12_44_c.crl?download=1',
+				['instanceId' => 'ab12', 'generation' => 44, 'engineType' => 'c'],
+			],
+			'Absolute URL with fragment' => [
+				'https://cloud.example.com/apps/libresign/crl/libresign_z9_7_n.crl#anchor',
+				['instanceId' => 'z9', 'generation' => 7, 'engineType' => 'n'],
+			],
 		];
 	}
 
@@ -90,6 +98,8 @@ class CrlUrlParserServiceTest extends TestCase {
 			'Non numeric generation' => ['/index.php/apps/libresign/crl/libresign_abc_notanumber_o.crl'],
 			'Engine type too long' => ['/index.php/apps/libresign/crl/libresign_abc_1_xy.crl'],
 			'Wrong file extension' => ['/index.php/apps/libresign/crl/libresign_abc_1_o.crl.bak'],
+			'Absolute URL without CRL path' => ['https://cloud.example.com/index.php/apps/files/'],
+			'Absolute URL with empty path' => ['https://cloud.example.com'],
 		];
 	}
 

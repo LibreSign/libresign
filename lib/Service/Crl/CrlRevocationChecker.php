@@ -9,10 +9,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Crl;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Service\Crl\Ldap\LdapCrlDownloader;
-use OCP\IAppConfig;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\CrlValidation\CrlValidationPolicy;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IConfig;
@@ -39,7 +39,7 @@ class CrlRevocationChecker {
 
 	public function __construct(
 		private IConfig $config,
-		private IAppConfig $appConfig,
+		private PolicyService $policyService,
 		private IURLGenerator $urlGenerator,
 		private ITempManager $tempManager,
 		private LoggerInterface $logger,
@@ -54,10 +54,11 @@ class CrlRevocationChecker {
 	 * data. Returns an array with a 'status' key (always {@see CrlValidationStatus})
 	 * and optionally 'revoked_at' (ISO 8601) when the certificate is revoked.
 	 *
+	 * @param string|null $policyUserId Resolve the CRL policy in the context of this user when provided.
 	 * @return array{status: CrlValidationStatus, revoked_at?: string}
 	 */
-	public function validate(array $crlUrls, string $certPem): array {
-		return $this->validateFromUrlsWithDetails($crlUrls, $certPem);
+	public function validate(array $crlUrls, string $certPem, ?string $policyUserId = null): array {
+		return $this->validateFromUrlsWithDetails($crlUrls, $certPem, $policyUserId);
 	}
 
 	/**
@@ -66,8 +67,11 @@ class CrlRevocationChecker {
 	 *
 	 * @return array{status: CrlValidationStatus, revoked_at?: string}
 	 */
-	private function validateFromUrlsWithDetails(array $crlUrls, string $certPem): array {
-		$externalValidationEnabled = $this->appConfig->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true);
+	private function validateFromUrlsWithDetails(array $crlUrls, string $certPem, ?string $policyUserId = null): array {
+		$normalizedPolicyUserId = is_string($policyUserId) ? trim($policyUserId) : '';
+		$externalValidationEnabled = $normalizedPolicyUserId !== ''
+			? $this->policyService->resolveForUserId(CrlValidationPolicy::KEY, $normalizedPolicyUserId)->getEffectiveValueAsBool(true)
+			: $this->policyService->resolve(CrlValidationPolicy::KEY)->getEffectiveValueAsBool(true);
 
 		if (empty($crlUrls)) {
 			// When external validation is disabled, treat an empty distribution-point

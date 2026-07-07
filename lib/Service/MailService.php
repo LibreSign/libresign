@@ -47,21 +47,24 @@ class MailService {
 	 */
 	public function notifySignDataUpdated(SignRequest $data, string $email, ?string $description = null): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
-		// TRANSLATORS The subject of the email that is sent after changes are made to the signature request that may affect something for the signer who will sign the document. Some possible reasons: URL for signature changed (when the URL expires), the person who requested the signature sent a notification
-		$emailTemplate->setSubject($this->l10n->t('LibreSign: Changes into a file for you to sign'));
+		// TRANSLATORS Email subject notifying a signer that a pending signature request changed and should be reviewed again.
+		$emailTemplate->setSubject($this->l10n->t('LibreSign: Changes were made to a document waiting for your signature'));
 		$emailTemplate->addHeader();
-		$emailTemplate->addHeading($this->l10n->t('File to sign'), false);
+		// TRANSLATORS Email heading shown above a pending document that still needs the recipient's signature.
+		$emailTemplate->addHeading($this->l10n->t('Document to sign'), false);
 
 		if (!empty($description)) {
 			$emailTemplate->addBodyText($description);
 			$emailTemplate->addBodyText('');
 		}
 
-		$emailTemplate->addBodyText($this->l10n->t('Changes have been made in a file that you have to sign. Access the link below:'));
+		// TRANSLATORS Email body telling the signer to reopen the request because some request details changed.
+		$emailTemplate->addBodyText($this->l10n->t('Changes were made to a document you need to sign. Open the link below:'));
 		$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $data->getUuid()]);
 		$file = $this->getFileById($data->getFileId());
 		$emailTemplate->addBodyButton(
-			$this->l10n->t('Sign »%s«', [$file->getName()]),
+			// TRANSLATORS Email button label that opens the signing page. %s is the document filename.
+			$this->l10n->t('Sign "%s"', [$file->getName()]),
 			$link
 		);
 		$message = $this->mailer->createMessage();
@@ -84,20 +87,24 @@ class MailService {
 	 */
 	public function notifyUnsignedUser(SignRequest $data, string $email, ?string $description = null): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
-		$emailTemplate->setSubject($this->l10n->t('LibreSign: There is a file for you to sign'));
+		// TRANSLATORS Email subject notifying a signer that a document is ready for their digital signature.
+		$emailTemplate->setSubject($this->l10n->t('LibreSign: A document is ready for your signature'));
 		$emailTemplate->addHeader();
-		$emailTemplate->addHeading($this->l10n->t('File to sign'), false);
+		// TRANSLATORS Email heading shown above a document awaiting the recipient's signature.
+		$emailTemplate->addHeading($this->l10n->t('Document to sign'), false);
 
 		if (!empty($description)) {
 			$emailTemplate->addBodyText($description);
 			$emailTemplate->addBodyText('');
 		}
 
-		$emailTemplate->addBodyText($this->l10n->t('There is a document for you to sign. Access the link below:'));
+		// TRANSLATORS Email body inviting the signer to open the document and sign it.
+		$emailTemplate->addBodyText($this->l10n->t('A document is ready for your signature. Open the link below:'));
 		$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $data->getUuid()]);
 		$file = $this->getFileById($data->getFileId());
 		$emailTemplate->addBodyButton(
-			$this->l10n->t('Sign »%s«', [$file->getName()]),
+			// TRANSLATORS Email button label that opens the signing page. %s is the document filename.
+			$this->l10n->t('Sign "%s"', [$file->getName()]),
 			$link
 		);
 		$message = $this->mailer->createMessage();
@@ -117,19 +124,20 @@ class MailService {
 
 	public function notifySignedUser(SignRequest $signRequest, string $email, File $libreSignFile, string $displayName): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
-		// TRANSLATORS The subject of the email that is sent after a document has been signed by a user. This email is sent to the person who requested the signature.
-		$emailTemplate->setSubject($this->l10n->t('LibreSign: A file has been signed'));
+		// TRANSLATORS Email subject sent to the requester after another signer successfully signs the document.
+		$emailTemplate->setSubject($this->l10n->t('LibreSign: A document has been signed'));
 		$emailTemplate->addHeader();
-		$emailTemplate->addHeading($this->l10n->t('File signed'), false);
-		// TRANSLATORS The text in the email that is sent after a document has been signed by a user. %s will be replaced with the name of the user who signed the document.
+		// TRANSLATORS Email heading shown after a document was completed by one signer.
+		$emailTemplate->addHeading($this->l10n->t('Signed document'), false);
+		// TRANSLATORS Email body confirming that a signer finished signing. %s is the display name of the signer who completed the document.
 		$emailTemplate->addBodyText($this->l10n->t('%s signed the document. You can access it using the link below:', [$signRequest->getDisplayName()]));
 		$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.indexFPath', [
 			'path' => 'validation/' . $libreSignFile->getUuid(),
 		]);
 		$file = $this->getFileById($signRequest->getFileId());
 		$emailTemplate->addBodyButton(
-			// TRANSLATORS The button text in the email that is sent after a document has been signed by a user. %s will be replaced with the name of the file that was signed.
-			$this->l10n->t('View signed file »%s«', [$file->getName()]),
+			// TRANSLATORS Email button label that opens the validation view of the signed document. %s is the document filename.
+			$this->l10n->t('View signed document "%s"', [$file->getName()]),
 			$link
 		);
 		$message = $this->mailer->createMessage();
@@ -146,11 +154,12 @@ class MailService {
 
 	public function notifyCanceledRequest(SignRequest $signRequest, string $email, File $libreSignFile): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
-		// TRANSLATORS The subject of the email that is sent when a signature request has been canceled.
+		// TRANSLATORS Email subject shown when the requester cancels a pending signature request.
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: A signature request has been canceled'));
 		$emailTemplate->addHeader();
+		// TRANSLATORS Email heading shown when a signature request is no longer active.
 		$emailTemplate->addHeading($this->l10n->t('Signature request canceled'), false);
-		// TRANSLATORS The text in the email that is sent when a signature request has been canceled. %s will be replaced with the name of the file.
+		// TRANSLATORS Email body text shown after cancellation. %s is the document filename that no longer needs a signature.
 		$emailTemplate->addBodyText($this->l10n->t('The request for you to sign "%s" has been canceled.', [$libreSignFile->getName()]));
 		$message = $this->mailer->createMessage();
 		if ($signRequest->getDisplayName()) {
@@ -169,8 +178,10 @@ class MailService {
 
 	public function sendCodeToSign(string $email, string $name, string $code): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
-		$emailTemplate->setSubject($this->l10n->t('LibreSign: Code to sign file'));
+		// TRANSLATORS Email subject for a one-time verification code required to sign a document.
+		$emailTemplate->setSubject($this->l10n->t('LibreSign: Verification code to sign a document'));
 		$emailTemplate->addHeader();
+		// TRANSLATORS Email instruction introducing the one-time code used to complete a digital signature.
 		$emailTemplate->addBodyText($this->l10n->t('Use this code to sign the document:'));
 		$emailTemplate->addBodyText($code);
 		$message = $this->mailer->createMessage();

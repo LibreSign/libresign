@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\Account;
@@ -20,12 +21,16 @@ use OCA\Libresign\Service\IdentifyMethod\Signal;
 use OCA\Libresign\Service\IdentifyMethod\Sms;
 use OCA\Libresign\Service\IdentifyMethod\Telegram;
 use OCA\Libresign\Service\IdentifyMethod\Whatsapp;
+use OCA\Libresign\Service\IdentifyMethod\Whatsappbusiness;
 use OCA\Libresign\Service\IdentifyMethod\Xmpp;
+use OCA\Libresign\Vendor\Wobeto\EmailBlur\Blur;
 use OCP\IL10N;
 use OCP\IUserManager;
 
 /**
- * @psalm-import-type LibresignIdentifyMethodSetting from ResponseDefinitions
+ * @psalm-import-type LibresignIdentifyMethodAdminSetting from ResponseDefinitions
+ * @psalm-import-type LibresignPolicySnapshotIdentifyMethodFactor from ResponseDefinitions
+ * @psalm-import-type LibresignPolicySnapshotSignatureMethodSetting from ResponseDefinitions
  */
 class IdentifyMethodService {
 	public const IDENTIFY_ACCOUNT = 'account';
@@ -34,7 +39,23 @@ class IdentifyMethodService {
 	public const IDENTIFY_TELEGRAM = 'telegram';
 	public const IDENTIFY_SMS = 'sms';
 	public const IDENTIFY_WHATSAPP = 'whatsapp';
+	public const IDENTIFY_WHATSAPP_BUSINESS = 'whatsappbusiness';
 	public const IDENTIFY_XMPP = 'xmpp';
+	public const IDENTIFY_PHONE_METHODS = [
+		self::IDENTIFY_WHATSAPP,
+		self::IDENTIFY_WHATSAPP_BUSINESS,
+		self::IDENTIFY_SMS,
+		self::IDENTIFY_TELEGRAM,
+		self::IDENTIFY_SIGNAL,
+	];
+	public const IDENTIFY_TWOFACTOR_GATEWAY_METHODS = [
+		self::IDENTIFY_SMS,
+		self::IDENTIFY_SIGNAL,
+		self::IDENTIFY_TELEGRAM,
+		self::IDENTIFY_WHATSAPP,
+		self::IDENTIFY_WHATSAPP_BUSINESS,
+		self::IDENTIFY_XMPP,
+	];
 	public const IDENTIFY_PASSWORD = 'password';
 	public const IDENTIFY_CLICK_TO_SIGN = 'clickToSign';
 	public const IDENTIFY_METHODS = [
@@ -44,14 +65,17 @@ class IdentifyMethodService {
 		self::IDENTIFY_TELEGRAM,
 		self::IDENTIFY_SMS,
 		self::IDENTIFY_WHATSAPP,
+		self::IDENTIFY_WHATSAPP_BUSINESS,
 		self::IDENTIFY_XMPP,
 		self::IDENTIFY_PASSWORD,
 		self::IDENTIFY_CLICK_TO_SIGN,
 	];
 	private bool $isRequest = true;
 	private ?IdentifyMethod $currentIdentifyMethod = null;
-	/** @var list<LibresignIdentifyMethodSetting> */
+	/** @var list<LibresignIdentifyMethodAdminSetting> */
 	private array $identifyMethodsSettings = [];
+	/** @var list<LibresignIdentifyMethodAdminSetting> */
+	private array $identifyMethodsCatalogSettings = [];
 	/**
 	 * @var array<string,array<IIdentifyMethod>>
 	 */
@@ -67,6 +91,7 @@ class IdentifyMethodService {
 		private Sms $sms,
 		private Telegram $telegram,
 		private Whatsapp $Whatsapp,
+		private Whatsappbusiness $whatsappbusiness,
 		private Xmpp $xmpp,
 		private SubjectAlternativeNameService $subjectAlternativeNameService,
 	) {
@@ -75,6 +100,8 @@ class IdentifyMethodService {
 	public function clearCache(): void {
 		$this->identifyMethods = [];
 		$this->currentIdentifyMethod = null;
+		$this->identifyMethodsSettings = [];
+		$this->identifyMethodsCatalogSettings = [];
 	}
 
 	public function setIsRequest(bool $isRequest): self {
@@ -82,7 +109,7 @@ class IdentifyMethodService {
 		return $this;
 	}
 
-	public function getInstanceOfIdentifyMethod(string $name, ?string $identifyValue = null): IIdentifyMethod {
+	public function getInstanceOfIdentifyMethod(string $name, ?string $identifyValue = null, ?string $requirement = null): IIdentifyMethod {
 		if ($identifyValue && isset($this->identifyMethods[$name])) {
 			foreach ($this->identifyMethods[$name] as $identifyMethod) {
 				if ($identifyMethod->getEntity()->getIdentifierValue() === $identifyValue) {
@@ -97,7 +124,7 @@ class IdentifyMethodService {
 		if (!$entity->getId()) {
 			$entity->setIdentifierKey($name);
 			$entity->setIdentifierValue($identifyValue);
-			$entity->setMandatory($this->isMandatoryMethod($name) ? 1 : 0);
+			$entity->setRequirement($requirement ?? $this->resolveMethodRequirement($name));
 		}
 		if ($identifyValue && $this->isRequest) {
 			$identifyMethod->validateToRequest();
@@ -142,17 +169,23 @@ class IdentifyMethodService {
 		return $identifyMethod;
 	}
 
-	private function setEntityData(string $method, string $identifyValue): void {
-		// @todo Replace by enum when PHP 8.1 is the minimum version acceptable
-		// at server. Check file lib/versioncheck.php of server repository
-		if (!in_array($method, IdentifyMethodService::IDENTIFY_METHODS)) {
-			// TRANSLATORS When is requested to a person to sign a file, is
-			// necessary identify what is the identification method. The
-			// identification method is used to define how will be the sign
-			// flow.
-			throw new LibresignException($this->l10n->t('Invalid identification method'));
+	public function exists(string $name): bool {
+		$className = 'OCA\\Libresign\\Service\\IdentifyMethod\\' . ucfirst($name);
+		if (class_exists($className)) {
+			return true;
 		}
-		$identifyMethod = $this->getInstanceOfIdentifyMethod($method, $identifyValue);
+		return class_exists('OCA\\Libresign\\Service\\IdentifyMethod\\SignatureMethod\\' . ucfirst($name));
+	}
+
+	public static function resolveTwofactorGatewayName(string $identifyMethod): string {
+		return match ($identifyMethod) {
+			self::IDENTIFY_WHATSAPP => 'gowhatsapp',
+			default => strtolower($identifyMethod),
+		};
+	}
+
+	private function setEntityData(string $method, string $identifyValue, ?string $requirement = null): void {
+		$identifyMethod = $this->getInstanceOfIdentifyMethod($method, $identifyValue, $requirement);
 		$identifyMethod->validateToRequest();
 	}
 
@@ -161,18 +194,27 @@ class IdentifyMethodService {
 			if (!is_array($identifyMethod) || !isset($identifyMethod['method'], $identifyMethod['value'])) {
 				continue;
 			}
-			$this->setEntityData($identifyMethod['method'], $identifyMethod['value']);
+			$requirement = isset($identifyMethod['requirement']) && is_string($identifyMethod['requirement'])
+				? $identifyMethod['requirement']
+				: null;
+			if ($requirement === null && array_key_exists('mandatory', $identifyMethod)) {
+				$requirement = ((int)$identifyMethod['mandatory']) === 1
+					? IdentifyMethodRequirement::REQUIRED->value
+					: IdentifyMethodRequirement::OPTIONAL->value;
+			}
+			$this->setEntityData($identifyMethod['method'], $identifyMethod['value'], $requirement);
 		}
 	}
 
-	private function isMandatoryMethod(string $methodName): bool {
+	private function resolveMethodRequirement(string $methodName): string {
 		$settings = $this->getIdentifyMethodsSettings();
 		foreach ($settings as $setting) {
 			if ($setting['name'] === $methodName) {
-				return $setting['mandatory'];
+				$requirement = IdentifyMethodRequirement::tryFrom((string)($setting['requirement'] ?? ''));
+				return $requirement?->value ?? IdentifyMethodRequirement::OPTIONAL->value;
 			}
 		}
-		return false;
+		return IdentifyMethodRequirement::OPTIONAL->value;
 	}
 
 	/**
@@ -303,7 +345,30 @@ class IdentifyMethodService {
 						continue;
 					}
 					$signatureMethod->setEntity($identifyMethod->getEntity());
-					$return[$signatureMethod->getName()] = $signatureMethod->toArray();
+					$signatureMethodData = $signatureMethod->toArray();
+					if ($signatureMethod->getName() === 'emailToken') {
+						$entity = $identifyMethod->getEntity();
+						$email = match ($entity->getIdentifierKey()) {
+							'email', 'emailToken' => $entity->getIdentifierValue(),
+							'account' => $this->userManager->get($entity->getIdentifierValue())?->getEMailAddress() ?? '',
+							default => '',
+						};
+						$emailLowercase = strtolower($email);
+						$code = $entity->getCode();
+						$identifiedAt = $entity->getIdentifiedAtDate();
+						$signatureMethodData = [
+							'label' => $signatureMethodData['label'] ?? $signatureMethod->getFriendlyName(),
+							'identifyMethod' => match ($entity->getIdentifierKey()) {
+								'emailToken' => 'email',
+								default => $entity->getIdentifierKey(),
+							},
+							'needCode' => empty($code) || empty($identifiedAt),
+							'hasConfirmCode' => !empty($code),
+							'blurredEmail' => $emailLowercase ? (new Blur($emailLowercase))->make() : '',
+							'hashOfEmail' => $emailLowercase ? md5($emailLowercase) : '',
+						];
+					}
+					$return[$signatureMethod->getName()] = $signatureMethodData;
 				}
 			}
 		}
@@ -332,10 +397,54 @@ class IdentifyMethodService {
 		}
 	}
 
-	/** @return list<LibresignIdentifyMethodSetting> */
+	/**
+	 * @return array
+	 * @psalm-return list<LibresignIdentifyMethodAdminSetting>
+	 */
+	public function getIdentifyMethodsCatalogSettings(): array {
+		if ($this->identifyMethodsCatalogSettings) {
+			/** @var list<LibresignIdentifyMethodAdminSetting> $cachedCatalogSettings */
+			$cachedCatalogSettings = $this->identifyMethodsCatalogSettings;
+			return $cachedCatalogSettings;
+		}
+
+		$this->identifyMethodsCatalogSettings = [
+			$this->account->getDefaultSettings(),
+			$this->email->getDefaultSettings(),
+		];
+		if ($this->signal->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsCatalogSettings[] = $this->signal->getDefaultSettings();
+		}
+		if ($this->sms->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsCatalogSettings[] = $this->sms->getDefaultSettings();
+		}
+		if ($this->telegram->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsCatalogSettings[] = $this->telegram->getDefaultSettings();
+		}
+		if ($this->Whatsapp->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsCatalogSettings[] = $this->Whatsapp->getDefaultSettings();
+		}
+		if ($this->whatsappbusiness->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsCatalogSettings[] = $this->whatsappbusiness->getDefaultSettings();
+		}
+		if ($this->xmpp->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsCatalogSettings[] = $this->xmpp->getDefaultSettings();
+		}
+
+		/** @var list<LibresignIdentifyMethodAdminSetting> $catalogSettings */
+		$catalogSettings = $this->identifyMethodsCatalogSettings;
+		return $catalogSettings;
+	}
+
+	/**
+	 * @return array
+	 * @psalm-return list<LibresignIdentifyMethodAdminSetting>
+	 */
 	public function getIdentifyMethodsSettings(): array {
 		if ($this->identifyMethodsSettings) {
-			return $this->identifyMethodsSettings;
+			/** @var list<LibresignIdentifyMethodAdminSetting> $cachedIdentifyMethodsSettings */
+			$cachedIdentifyMethodsSettings = $this->identifyMethodsSettings;
+			return $cachedIdentifyMethodsSettings;
 		}
 		$this->identifyMethodsSettings = [
 			$this->account->getSettings(),
@@ -353,10 +462,91 @@ class IdentifyMethodService {
 		if ($this->Whatsapp->isTwofactorGatewayEnabled()) {
 			$this->identifyMethodsSettings[] = $this->Whatsapp->getSettings();
 		}
+		if ($this->whatsappbusiness->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsSettings[] = $this->whatsappbusiness->getSettings();
+		}
 		if ($this->xmpp->isTwofactorGatewayEnabled()) {
 			$this->identifyMethodsSettings[] = $this->xmpp->getSettings();
 		}
-		return $this->identifyMethodsSettings;
+		/** @var list<LibresignIdentifyMethodAdminSetting> $identifyMethodsSettings */
+		$identifyMethodsSettings = $this->identifyMethodsSettings;
+		return $identifyMethodsSettings;
+	}
+
+	/** @return array<string, string> */
+	public function getFriendlyNamesMap(): array {
+		return [
+			$this->account->getName() => $this->account->getFriendlyName(),
+			$this->email->getName() => $this->email->getFriendlyName(),
+			$this->signal->getName() => $this->signal->getFriendlyName(),
+			$this->sms->getName() => $this->sms->getFriendlyName(),
+			$this->telegram->getName() => $this->telegram->getFriendlyName(),
+			$this->Whatsapp->getName() => $this->Whatsapp->getFriendlyName(),
+			$this->whatsappbusiness->getName() => $this->whatsappbusiness->getFriendlyName(),
+			$this->xmpp->getName() => $this->xmpp->getFriendlyName(),
+		];
+	}
+
+	/**
+	 * Get default identify methods policy seed
+	 *
+	 * Returns a legitimate default configuration with account and email methods
+	 * when no policy is explicitly configured. This provides a reasonable baseline
+	 * for new rules without hardcoding payload values in this service.
+	 *
+	 * @return array Default identify methods factors array
+	 * @psalm-return list<LibresignPolicySnapshotIdentifyMethodFactor>
+	 */
+	public function getDefaultIdentifyMethodsPolicy(): array {
+		return [
+			$this->buildDefaultPolicyFactorFromSettings($this->account->getDefaultSettings()),
+			$this->buildDefaultPolicyFactorFromSettings($this->email->getDefaultSettings()),
+		];
+	}
+
+	/**
+	 * @param LibresignIdentifyMethodAdminSetting $settings
+	 * @return array
+	 * @psalm-return LibresignPolicySnapshotIdentifyMethodFactor
+	 */
+	private function buildDefaultPolicyFactorFromSettings(array $settings): array {
+		/** @var array<string, LibresignPolicySnapshotSignatureMethodSetting> $signatureMethods */
+		$signatureMethods = [];
+		$signatureMethodEnabled = '';
+
+		foreach ($settings['signatureMethods'] ?? [] as $signatureMethodName => $signatureMethodConfig) {
+			$isEnabled = (bool)($signatureMethodConfig['enabled'] ?? false);
+			$normalizedSignatureMethod = is_array($signatureMethodConfig)
+				? $signatureMethodConfig
+				: [];
+			$normalizedSignatureMethod['enabled'] = $isEnabled;
+			$normalizedSignatureMethod['name'] = $signatureMethodName;
+			$normalizedSignatureMethod['label'] = $normalizedSignatureMethod['label'] ?? $signatureMethodName;
+
+			/** @var LibresignPolicySnapshotSignatureMethodSetting $normalizedSignatureMethod */
+			$signatureMethods[$signatureMethodName] = $normalizedSignatureMethod;
+
+			if ($signatureMethodEnabled === '' && $isEnabled) {
+				$signatureMethodEnabled = $signatureMethodName;
+			}
+		}
+
+		if ($signatureMethodEnabled === '' && !empty($signatureMethods)) {
+			$signatureMethodEnabled = (string)array_key_first($signatureMethods);
+		}
+
+		$requirement = IdentifyMethodRequirement::tryFrom((string)($settings['requirement'] ?? ''));
+
+		/** @var LibresignPolicySnapshotIdentifyMethodFactor $defaultPolicyFactor */
+		$defaultPolicyFactor = [
+			'name' => $settings['name'],
+			'enabled' => (bool)($settings['enabled'] ?? true),
+			'requirement' => $requirement?->value ?? IdentifyMethodRequirement::REQUIRED->value,
+			'signatureMethods' => $signatureMethods,
+			'signatureMethodEnabled' => $signatureMethodEnabled,
+		];
+
+		return $defaultPolicyFactor;
 	}
 
 	/**

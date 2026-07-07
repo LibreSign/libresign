@@ -31,14 +31,14 @@
 			</NcActionButton>
 		</NcActions>
 		<NcDialog v-if="confirmDelete"
-			:name="t('libresign', 'Confirm')"
+			:name="confirmDialogTitle"
 			:no-close="deleting"
 			v-model:open="confirmDelete">
-			{{ t('libresign', 'The signature request will be deleted. Do you confirm this action?') }}
+			{{ deleteConfirmationMessage }}
 			<NcCheckboxRadioSwitch type="switch"
 				v-model="deleteFile"
 				:disabled="deleting">
-				{{ t('libresign', 'Also delete the file.') }}
+				{{ alsoDeleteFileLabel }}
 			</NcCheckboxRadioSwitch>
 			<template #actions>
 				<NcButton variant="primary"
@@ -47,11 +47,11 @@
 					<template #icon>
 						<NcLoadingIcon v-if="deleting" :size="20" />
 					</template>
-					{{ t('libresign', 'Ok') }}
+					{{ okLabel }}
 				</NcButton>
 				<NcButton :disabled="deleting"
 					@click="confirmDelete = false">
-					{{ t('libresign', 'Cancel') }}
+					{{ cancelLabel }}
 				</NcButton>
 			</template>
 		</NcDialog>
@@ -74,6 +74,7 @@ import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 
 import { openDocument } from '../../../utils/viewer.js'
+import { openFilesListSidebarForFile } from '../../../utils/filesListSidebar.ts'
 import { getSigningRouteUuid } from '../../../utils/signRequestUuid.ts'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -136,6 +137,31 @@ const deleting = ref(false)
 const documentData = ref(loadState('libresign', 'file_info', {}))
 const hasInfo = ref(false)
 
+// TRANSLATORS Generic confirm dialog title.
+const confirmDialogTitle = t('libresign', 'Confirm')
+// TRANSLATORS Warning message shown before deleting a signature request.
+const deleteConfirmationMessage = t('libresign', 'The signature request will be deleted. Do you confirm this action?')
+// TRANSLATORS Switch label enabling deletion of the underlying file in addition to request metadata.
+const alsoDeleteFileLabel = t('libresign', 'Also delete the file.')
+// TRANSLATORS Confirmation button label.
+const okLabel = t('libresign', 'Ok')
+// TRANSLATORS Cancel button label.
+const cancelLabel = t('libresign', 'Cancel')
+// TRANSLATORS Context-menu action label for creating a new signature request from file.
+const actionRequestSignatureLabel = t('libresign', 'Request signature')
+// TRANSLATORS Context-menu action label opening request details.
+const actionDetailsLabel = t('libresign', 'Details')
+// TRANSLATORS Context-menu action label to rename entry.
+const actionRenameLabel = t('libresign', 'Rename')
+// TRANSLATORS Context-menu action label to open validation view.
+const actionValidateLabel = t('libresign', 'Validate')
+// TRANSLATORS Context-menu action label to begin signing flow.
+const actionSignLabel = t('libresign', 'Sign')
+// TRANSLATORS Context-menu action label to delete entry.
+const actionDeleteLabel = t('libresign', 'Delete')
+// TRANSLATORS Context-menu action label to open file in viewer.
+const actionOpenFileLabel = t('libresign', 'Open file')
+
 const openedMenu = computed({
 	get: () => actionsMenuStore.opened === props.source.id,
 	set: (opened) => {
@@ -160,7 +186,8 @@ function getSignRouteUuid(file: SourceFile | null | undefined) {
 function visibleIf(action: Pick<MenuAction, 'id'>) {
 	let visible = false
 	if (action.id === 'request-signature') {
-		visible = (props.source?.signersCount ?? props.source?.signers?.length ?? 0) === 0
+		visible = filesStore.canRequestSign
+			&& (props.source?.signersCount ?? props.source?.signers?.length ?? 0) === 0
 	} else if (action.id === 'details') {
 		visible = (props.source?.signersCount ?? props.source?.signers?.length ?? 0) > 0
 	} else if (action.id === 'rename') {
@@ -181,6 +208,17 @@ function visibleIf(action: Pick<MenuAction, 'id'>) {
 async function onActionClick(action: Pick<MenuAction, 'id'>) {
 	openedMenu.value = false
 	if (action.id === 'details' || action.id === 'request-signature') {
+		if (action.id === 'details') {
+			await openFilesListSidebarForFile(props.source.id, {
+				filesStore,
+				sidebarStore,
+				signStore,
+			})
+			return
+		}
+		if (!filesStore.canRequestSign) {
+			return
+		}
 		filesStore.selectFile(props.source.id)
 		sidebarStore.activeRequestSignatureTab()
 	} else if (action.id === 'sign') {
@@ -255,37 +293,37 @@ function onMenuClosed() {
 onMounted(() => {
 	registerAction({
 		id: 'request-signature',
-		title: t('libresign', 'Request signature'),
+		title: actionRequestSignatureLabel,
 		iconSvgInline: svgSignature,
 	})
 	registerAction({
 		id: 'details',
-		title: t('libresign', 'Details'),
+		title: actionDetailsLabel,
 		iconSvgInline: svgInformation,
 	})
 	registerAction({
 		id: 'rename',
-		title: t('libresign', 'Rename'),
+		title: actionRenameLabel,
 		iconSvgInline: svgPencil,
 	})
 	registerAction({
 		id: 'validate',
-		title: t('libresign', 'Validate'),
+		title: actionValidateLabel,
 		iconSvgInline: svgTextBoxCheck,
 	})
 	registerAction({
 		id: 'sign',
-		title: t('libresign', 'Sign'),
+		title: actionSignLabel,
 		iconSvgInline: svgSignature,
 	})
 	registerAction({
 		id: 'delete',
-		title: t('libresign', 'Delete'),
+		title: actionDeleteLabel,
 		iconSvgInline: svgDelete,
 	})
 	registerAction({
 		id: 'open',
-		title: t('libresign', 'Open file'),
+		title: actionOpenFileLabel,
 		iconSvgInline: svgFileDocument,
 	})
 	hasInfo.value = Object.keys(documentData.value as Record<string, unknown>).length > 0

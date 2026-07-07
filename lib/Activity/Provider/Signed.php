@@ -84,6 +84,7 @@ class Signed implements IProvider {
 		$l = $this->languageFactory->get(Application::APP_ID, $language);
 		$parameters = $event->getSubjectParameters();
 
+		// TRANSLATORS Activity message shown after a signer completes the document. {from} is the signer name and {file} is the document filename.
 		$subject = $l->t('{from} signed {file}');
 		$event->setParsedSubject(
 			str_replace(

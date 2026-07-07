@@ -94,9 +94,16 @@ const NcCheckboxRadioSwitchStub = {
 	template: '<input type="checkbox" :checked="modelValue" :data-indeterminate="indeterminate" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
 }
 
-function createWrapper(filesCount = 2) {
+function createWrapper(filesCount = 2, options: { resetFiles?: boolean, canRequestSign?: boolean } = {}) {
 	const filesStore = useFilesStore()
 	filesStore.ordered = Array.from({ length: filesCount }, (_, index) => index + 1) as typeof filesStore.ordered
+	if (options.resetFiles !== false) {
+		filesStore.files = Object.fromEntries(Array.from({ length: filesCount }, (_, index) => {
+			const id = index + 1
+			return [id, { id }]
+		})) as typeof filesStore.files
+	}
+	filesStore.canRequestSign = options.canRequestSign ?? true
 
 	return mount(FilesListTableHeader, {
 		props: {
@@ -208,6 +215,14 @@ describe('FilesListTableHeader.vue', () => {
 			expect(stub.props('indeterminate')).toBe(false)
 		})
 
+		it('hides the select-all checkbox when no files are deletable', async () => {
+			const wrapper = createWrapper(2, { canRequestSign: false })
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.find('th.files-list__row-checkbox').exists()).toBe(false)
+			expect(wrapper.findComponent(NcCheckboxRadioSwitchStub).exists()).toBe(false)
+		})
+
 		it('selects all files when update:modelValue emits true', async () => {
 			const wrapper = createWrapper(3)
 			const stub = wrapper.findComponent(NcCheckboxRadioSwitchStub)
@@ -227,6 +242,22 @@ describe('FilesListTableHeader.vue', () => {
 			await stub.vm.$emit('update:modelValue', false)
 
 			expect(selectionStore.selected).toEqual([])
+		})
+
+		it('selects only deletable files when using select all', async () => {
+			const filesStore = useFilesStore()
+			filesStore.files = {
+				1: { id: 1 },
+				2: { id: 2, requested_by: { userId: 'someone-else' } },
+				3: { id: 3 },
+			}
+			const wrapper = createWrapper(3, { resetFiles: false })
+			const stub = wrapper.findComponent(NcCheckboxRadioSwitchStub)
+			const selectionStore = useSelectionStore()
+
+			await stub.vm.$emit('update:modelValue', true)
+
+			expect(selectionStore.selected).toEqual([1, 3])
 		})
 
 		it('sets modelValue to true when all files are selected', async () => {

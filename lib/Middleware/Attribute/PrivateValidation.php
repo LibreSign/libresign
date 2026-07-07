@@ -12,4 +12,12 @@ use Attribute;
 
 #[Attribute]
 class PrivateValidation {
+	public function __construct(
+		private bool $allowValidSignRequestUuid = false,
+	) {
+	}
+
+	public function allowValidSignRequestUuid(): bool {
+		return $this->allowValidSignRequestUuid;
+	}
 }

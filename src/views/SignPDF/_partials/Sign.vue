@@ -17,34 +17,40 @@
 			</NcNoteCard>
 			<div v-if="needCreateSignature" class="no-signature-warning">
 				<p>
+					<!-- TRANSLATORS Warning shown when the signer has not created any reusable signature yet. -->
 					{{ t('libresign', 'You do not have any signature defined.') }}
 				</p>
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
 					@click="openModal('createSignature')">
+					<!-- TRANSLATORS Button label that opens the signature creation flow. -->
 					{{ t('libresign', 'Define your signature.') }}
 				</NcButton>
 			</div>
 			<div v-else-if="signMethodsStore.needCertificate()">
 				<p>
+					<!-- TRANSLATORS Warning shown when the signer must upload a certificate before signing the document. -->
 					{{ t('libresign', 'You need to upload your certificate to sign the document.') }}
 				</p>
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
 					@click="openModal('uploadCertificate')">
+					<!-- TRANSLATORS Button label that opens certificate upload for signing. -->
 					{{ t('libresign', 'Upload certificate') }}
 				</NcButton>
 			</div>
 			<div v-else-if="signMethodsStore.needCreatePassword()">
 				<p>
+					<!-- TRANSLATORS Warning shown when the signer must define a signing password before proceeding. -->
 					{{ t('libresign', 'Please define your sign password') }}
 				</p>
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
 					@click="openModal('createPassword')">
+					<!-- TRANSLATORS Button label that opens the password creation step and then allows signing. -->
 					{{ t('libresign', 'Define a password and sign the document.') }}
 				</NcButton>
 			</div>
@@ -59,6 +65,7 @@
 				<NcButton :wide="true"
 					:disabled="loading"
 					@click="clearBlockingSignError">
+					<!-- TRANSLATORS Button label that retries the signing flow after clearing a blocking certificate-validation error. -->
 					{{ t('libresign', 'Try signing again') }}
 				</NcButton>
 			</div>
@@ -70,17 +77,19 @@
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 				</template>
-				{{ t('libresign', 'Sign the document.') }}
+				<!-- TRANSLATORS Primary action button that starts signing the current document. -->
+				{{ t('libresign', 'Sign document') }}
 			</NcButton>
 			<div v-else>
 				<p>
+					<!-- TRANSLATORS Fallback message shown when the current signer cannot sign the document. -->
 					{{ t('libresign', 'Unable to sign.') }}
 				</p>
 			</div>
 		</div>
 		<NcDialog v-if="signMethodsStore.modal.clickToSign"
 			:no-close="loading"
-			:name="t('libresign', 'Sign document')"
+			:name="signDocumentDialogTitle"
 			size="small"
 			dialog-classes="libresign-dialog"
 			@closing="signMethodsStore.closeModal('clickToSign')">
@@ -93,12 +102,14 @@
 			</NcNoteCard>
 
 			<p class="confirmation-text">
+				<!-- TRANSLATORS Confirmation prompt asking the signer to confirm they want to sign the current document. -->
 				{{ t('libresign', 'Confirm that you want to sign this document.') }}
 			</p>
 
 			<template #actions>
 				<NcButton :disabled="loading"
 					@click="signMethodsStore.closeModal('clickToSign')">
+					<!-- TRANSLATORS Dialog action button that closes signing confirmation without signing. -->
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 				<NcButton variant="primary"
@@ -107,13 +118,14 @@
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
+					<!-- TRANSLATORS Dialog action button that confirms signing the current document. -->
 					{{ t('libresign', 'Sign document') }}
 				</NcButton>
 			</template>
 		</NcDialog>
 		<NcDialog v-if="signMethodsStore.modal.password"
 			:no-close="loading"
-			:name="t('libresign', 'Sign document')"
+			:name="signDocumentDialogTitle"
 			size="small"
 			dialog-classes="libresign-dialog"
 			@closing="onCloseConfirmPassword">
@@ -126,15 +138,19 @@
 			</NcNoteCard>
 
 			<p class="confirmation-text">
+				<!-- TRANSLATORS Instruction asking the signer to enter the signature password before signing the current document. -->
 				{{ t('libresign', 'Enter your signature password to sign the document.') }}
 			</p>
 
 			<form @submit.prevent="signWithPassword()">
 				<NcPasswordField v-model="signPassword"
-					:label="t('libresign', 'Signature password')"
+					:label="signaturePasswordLabel"
 					type="password" />
 			</form>
-			<a id="lost-password" @click="toggleManagePassword">{{ t('libresign', 'Forgot password?') }}</a>
+			<a id="lost-password" @click="toggleManagePassword">
+				<!-- TRANSLATORS Link text that opens the password recovery or management flow for the signing password. -->
+				{{ t('libresign', 'Forgot password?') }}
+			</a>
 			<ManagePassword v-if="showManagePassword"
 				@certificate:uploaded="onSignatureFileCreated" />
 			<template #actions>
@@ -145,6 +161,7 @@
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
+					<!-- TRANSLATORS Dialog action button that signs the current document after password entry. -->
 					{{ t('libresign', 'Sign document') }}
 				</NcButton>
 			</template>
@@ -425,6 +442,11 @@ const emit = defineEmits<{
 	(e: 'signing-started', payload: { signRequestUuid: string; async: boolean }): void
 	(e: 'signed', payload: Record<string, unknown> & { signRequestUuid: string }): void
 }>()
+
+// TRANSLATORS Dialog title for signing the current document.
+const signDocumentDialogTitle = t('libresign', 'Sign document')
+// TRANSLATORS Field label for the password input used to unlock the signer certificate or signing credential.
+const signaturePasswordLabel = t('libresign', 'Signature password')
 
 const signStore = useSignStore() as SignStoreContract
 const signMethodsStore = useSignMethodsStore() as SignMethodsStoreContract

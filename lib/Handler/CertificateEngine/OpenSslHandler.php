@@ -15,6 +15,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\SerialNumberService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\Files\AppData\IAppDataFactory;
@@ -46,6 +47,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		protected IURLGenerator $urlGenerator,
 		protected SerialNumberService $serialNumberService,
 		protected CaIdentifierService $caIdentifierService,
+		protected PolicyService $policyService,
 		protected LoggerInterface $logger,
 		protected CrlMapper $crlMapper,
 		protected SubjectAlternativeNameService $subjectAlternativeNameService,
@@ -60,6 +62,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			$certificatePolicyService,
 			$urlGenerator,
 			$caIdentifierService,
+			$policyService,
 			$logger,
 			$crlRevocationChecker,
 		);

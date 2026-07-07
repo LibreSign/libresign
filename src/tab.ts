@@ -208,7 +208,7 @@ function isEnabled(context: SidebarContext | null | undefined) {
 	return mimetype === 'application/pdf'
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+function registerLibresignSidebarTab() {
 	setupCustomElement()
 	registerSidebarTab({
 		id: 'libresign',
@@ -218,4 +218,10 @@ window.addEventListener('DOMContentLoaded', () => {
 		enabled: isEnabled,
 		tagName,
 	})
-})
+}
+
+if (document.readyState === 'loading') {
+	window.addEventListener('DOMContentLoaded', registerLibresignSidebarTab, { once: true })
+} else {
+	registerLibresignSidebarTab()
+}

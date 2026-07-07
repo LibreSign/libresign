@@ -8,12 +8,15 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -26,7 +29,7 @@ use OCP\Security\IHasher;
 use Psr\Log\LoggerInterface;
 
 class IdentifyService {
-	private array $savedSettings = [];
+	private ?array $savedSettings = null;
 	public function __construct(
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private SessionService $sessionService,
@@ -42,6 +45,7 @@ class IdentifyService {
 		private IURLGenerator $urlGenerator,
 		private LoggerInterface $logger,
 		private FolderService $folderService,
+		private PolicyService $policyService,
 	) {
 	}
 
@@ -126,10 +130,26 @@ class IdentifyService {
 	}
 
 	public function getSavedSettings(): array {
-		if (!empty($this->savedSettings)) {
+		if ($this->savedSettings !== null) {
 			return $this->savedSettings;
 		}
-		return $this->getAppConfig()->getValueArray(Application::APP_ID, 'identify_methods', []);
+
+		$resolved = $this->getPolicyService()->resolve(IdentifyMethodsPolicy::KEY)->getEffectiveValue();
+		$normalizedPayload = IdentifyMethodsPolicyValue::normalize($resolved);
+		$settings = IdentifyMethodsPolicyValue::extractFactors($normalizedPayload);
+		$globalCanCreateAccount = IdentifyMethodsPolicyValue::resolveGlobalCanCreateAccount($normalizedPayload);
+
+		if ($globalCanCreateAccount !== null) {
+			foreach ($settings as &$setting) {
+				if (($setting['name'] ?? null) === IdentifyMethodService::IDENTIFY_EMAIL) {
+					$setting['can_create_account'] = $globalCanCreateAccount;
+				}
+			}
+			unset($setting);
+		}
+
+		$this->savedSettings = $settings;
+		return $this->savedSettings;
 	}
 
 	public function getEventDispatcher(): IEventDispatcher {
@@ -182,5 +202,9 @@ class IdentifyService {
 
 	public function getFolderService(): FolderService {
 		return $this->folderService;
+	}
+
+	public function getPolicyService(): PolicyService {
+		return $this->policyService;
 	}
 }

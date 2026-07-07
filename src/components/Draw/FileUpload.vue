@@ -8,11 +8,7 @@
 			<NcButton variant="primary"
 				:wide="true"
 				@click="file?.click()">
-				{{
-					hasImage
-						? t('libresign', 'Change file')
-						: t('libresign', 'Select your signature file.')
-				}}
+				{{ filePickerButtonLabel }}
 			</NcButton>
 			<input id="signature-file"
 				ref="file"
@@ -31,8 +27,8 @@
 				@change="change" />
 			<div class="zoom-controls">
 				<NcButton variant="tertiary"
-					:aria-label="t('libresign', 'Decrease zoom level')"
-					:title="t('libresign', 'Decrease zoom level')"
+					:aria-label="decreaseZoomLevelLabel"
+					:title="decreaseZoomLevelLabel"
 					:disabled="!hasImage"
 					@click="zoomOut">
 					<template #icon>
@@ -40,8 +36,8 @@
 					</template>
 				</NcButton>
 				<NcButton variant="tertiary"
-					:aria-label="t('libresign', 'Increase zoom level')"
-					:title="t('libresign', 'Increase zoom level')"
+					:aria-label="increaseZoomLevelLabel"
+					:title="increaseZoomLevelLabel"
 					:disabled="!hasImage"
 					@click="zoomIn">
 					<template #icon>
@@ -49,8 +45,8 @@
 					</template>
 				</NcButton>
 				<NcButton variant="tertiary"
-					:aria-label="t('libresign', 'Fit image to frame')"
-					:title="t('libresign', 'Fit image to frame')"
+					:aria-label="fitImageToFrameLabel"
+					:title="fitImageToFrameLabel"
 					:disabled="!hasImage"
 					@click="fitToArea">
 					<template #icon>
@@ -64,20 +60,23 @@
 						min="10"
 						max="800"
 						step="5"
-						:label="t('libresign', 'Zoom level')"
+						:label="zoomLevelLabel"
 						v-model="zoomPercentValue"
 						:disabled="!hasImage" />
 					<span class="zoom-suffix">%</span>
 				</label>
 			</div>
 			<p class="zoom-hint">
+				<!-- TRANSLATORS Hint explaining how to control cropper zoom with mouse wheel or buttons. -->
 				{{ t('libresign', 'Use the mouse wheel or the zoom buttons to adjust.') }}
 			</p>
 
 			<div class="action-buttons">
+				<!-- TRANSLATORS Button label to confirm selected signature image crop. -->
 				<NcButton variant="primary" :disabled="!canSave" @click="confirmSave">
 					{{ t('libresign', 'Save') }}
 				</NcButton>
+				<!-- TRANSLATORS Button label to cancel signature image upload/cropping. -->
 				<NcButton @click="close">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
@@ -85,7 +84,7 @@
 		</div>
 
 		<NcDialog v-if="modal"
-			:name="t('libresign', 'Confirm your signature')"
+			:name="confirmSignatureDialogTitle"
 			content-classes="confirm-dialog__content"
 			@closing="cancel">
 			<div class="confirm-preview">
@@ -160,10 +159,23 @@ const emit = defineEmits<{
 }>()
 
 const capabilities = getCapabilities() as LibresignCapabilities
-const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
-	'signature-width': 0,
-	'signature-height': 0,
-}
+const signElementsConfig = capabilities.libresign?.config['sign-elements']
+
+// TRANSLATORS Primary action label when user can choose an image file for signature upload.
+const selectSignatureFileLabel = t('libresign', 'Select your signature file.')
+// TRANSLATORS Primary action label shown after an image is loaded, allowing user to replace it.
+const changeSignatureFileLabel = t('libresign', 'Change file')
+
+// TRANSLATORS Accessible label/title for zoom-out control in signature image cropper.
+const decreaseZoomLevelLabel = t('libresign', 'Decrease zoom level')
+// TRANSLATORS Accessible label/title for zoom-in control in signature image cropper.
+const increaseZoomLevelLabel = t('libresign', 'Increase zoom level')
+// TRANSLATORS Accessible label/title for action that fits image within crop frame.
+const fitImageToFrameLabel = t('libresign', 'Fit image to frame')
+// TRANSLATORS Numeric input label for cropper zoom percentage.
+const zoomLevelLabel = t('libresign', 'Zoom level')
+// TRANSLATORS Confirmation dialog title before saving the generated signature image.
+const confirmSignatureDialogTitle = t('libresign', 'Confirm your signature')
 
 const file = ref<HTMLInputElement | null>(null)
 const cropper = ref<CropperInstance | null>(null)
@@ -179,11 +191,14 @@ const zoomLevel = ref(1)
 const zoomMin = 0.1
 const zoomMax = 8
 const zoomStep = 0.1
-const stencilBaseWidth = signElementsConfig['signature-width']
-const stencilBaseHeight = signElementsConfig['signature-height']
+const stencilBaseWidth = Number(signElementsConfig?.['signature-width'])
+const stencilBaseHeight = Number(signElementsConfig?.['signature-height'])
 
 const hasImage = computed(() => !!image.value)
 const canSave = computed(() => hasImage.value && imageData.value.length > 0)
+const filePickerButtonLabel = computed(() => hasImage.value
+	? changeSignatureFileLabel
+	: selectSignatureFileLabel)
 
 const zoomPercentValue = computed({
 	get: () => Math.round(zoomLevel.value * 100),

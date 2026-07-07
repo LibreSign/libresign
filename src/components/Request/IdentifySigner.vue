@@ -24,7 +24,7 @@
 			aria-describedby="name-input"
 			autocapitalize="none"
 			maxlength="64"
-			:label="t('libresign', 'Signer name')"
+			:label="signerNameLabel"
 			:required="true"
 			:error="nameHaveError"
 			:helper-text="nameHelperText"
@@ -34,14 +34,15 @@
 			<NcCheckboxRadioSwitch v-model="enableCustomMessage"
 				type="switch"
 				@update:model-value="onToggleCustomMessage">
+				<!-- TRANSLATORS Switch label to enable personalized message for signer. -->
 				{{ t('libresign', 'Add custom message') }}
 			</NcCheckboxRadioSwitch>
 			<NcTextArea v-if="enableCustomMessage"
 				v-model="description"
 				aria-describedby="description-input"
 				maxlength="500"
-				:label="t('libresign', 'Custom message')"
-				:placeholder="t('libresign', 'Add a personal message for this signer')"
+				:label="customMessageLabel"
+				:placeholder="customMessagePlaceholder"
 				:rows="3"
 				resize="none" />
 		</div>
@@ -49,6 +50,7 @@
 		<div v-if="!disabled" class="identifySigner__footer">
 			<div class="button-group">
 				<NcButton @click="filesStore.disableIdentifySigner()">
+					<!-- TRANSLATORS Button label to close signer editor without saving changes. -->
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 				<NcButton variant="primary"
@@ -104,6 +106,7 @@ const methodIconMap: Record<string, keyof typeof iconMap> = {
 	sms: 'svgSms',
 	telegram: 'svgTelegram',
 	whatsapp: 'svgWhatsapp',
+	whatsappbusiness: 'svgWhatsapp',
 	xmpp: 'svgXmpp',
 }
 
@@ -130,6 +133,17 @@ type SignerToEdit = {
 type FilesStore = ReturnType<typeof useFilesStore>
 type StoredSigner = NonNullable<ReturnType<FilesStore['getFile']>['signers']>[number]
 
+// TRANSLATORS Field label for signer display name.
+const signerNameLabel = t('libresign', 'Signer name')
+// TRANSLATORS Field label for optional personalized message sent to signer.
+const customMessageLabel = t('libresign', 'Custom message')
+// TRANSLATORS Placeholder inviting user to write a personalized message for signer.
+const customMessagePlaceholder = t('libresign', 'Add a personal message for this signer')
+// TRANSLATORS Primary button label to save a newly added signer.
+const saveSignerButtonLabel = t('libresign', 'Save')
+// TRANSLATORS Primary button label to update an existing signer.
+const updateSignerButtonLabel = t('libresign', 'Update')
+
 const props = withDefaults(defineProps<{
 	signerToEdit?: SignerToEdit
 	method?: string
@@ -142,6 +156,7 @@ const props = withDefaults(defineProps<{
 		identifyMethods: [],
 	}),
 	method: 'all',
+	// TRANSLATORS Default placeholder in signer picker input field.
 	placeholder: t('libresign', 'Name'),
 	methods: () => [],
 	disabled: false,
@@ -160,7 +175,7 @@ const acceptsEmailNotifications = ref<boolean | undefined>()
 
 const signerSelected = computed(() => identify.value.length > 0)
 const isNewSigner = computed(() => !props.signerToEdit || Object.keys(props.signerToEdit).length === 0)
-const saveButtonText = computed(() => isNewSigner.value ? t('libresign', 'Save') : t('libresign', 'Update'))
+const saveButtonText = computed(() => isNewSigner.value ? saveSignerButtonLabel : updateSignerButtonLabel)
 const identifyMethodLabel = computed(() => {
 	if (!identifyMethod.value) {
 		return ''
@@ -243,7 +258,7 @@ async function saveSigner() {
 		identifyMethods: [
 			{
 					method: identifyMethod.value,
-				mandatory: 0,
+					requirement: 'optional',
 					value: identify.value,
 			},
 		],
@@ -252,10 +267,12 @@ async function saveSigner() {
 	try {
 		const response = await filesStore.saveOrUpdateSignatureRequest({ signers })
 		if ('success' in response && response.success === false) {
+			// TRANSLATORS Error shown when signer save/update operation fails.
 			showError(response.message ?? t('libresign', 'Failed to save or update signature request'))
 			return
 		}
 	} catch {
+		// TRANSLATORS Error shown when signer save/update operation fails.
 		showError(t('libresign', 'Failed to save or update signature request'))
 		return
 	}
@@ -271,6 +288,7 @@ function onNameChange() {
 		nameHaveError.value = false
 		return
 	}
+	// TRANSLATORS Validation helper text requesting a valid signer name.
 	nameHelperText.value = t('libresign', 'Please enter signer name.')
 	nameHaveError.value = true
 }

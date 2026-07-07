@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
+use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCP\AppFramework\Db\Entity;
 use OCP\DB\Types;
 
@@ -92,5 +93,27 @@ class IdentifyMethod extends Entity {
 
 	public function getUniqueIdentifier(): string {
 		return $this->getIdentifierKey() . ':' . $this->getIdentifierValue();
+	}
+
+	public function getRequirement(): string {
+		$metadata = $this->getMetadata();
+		if (is_array($metadata) && isset($metadata['requirement']) && is_string($metadata['requirement'])) {
+			$requirement = IdentifyMethodRequirement::tryFrom($metadata['requirement']);
+			if ($requirement !== null) {
+				return $requirement->value;
+			}
+		}
+
+		return $this->mandatory === 1
+			? IdentifyMethodRequirement::REQUIRED->value
+			: IdentifyMethodRequirement::OPTIONAL->value;
+	}
+
+	public function setRequirement(string $requirement): void {
+		$normalized = IdentifyMethodRequirement::tryFrom($requirement) ?? IdentifyMethodRequirement::OPTIONAL;
+		$metadata = $this->getMetadata() ?? [];
+		$metadata['requirement'] = $normalized->value;
+		$this->setMetadata($metadata);
+		$this->setMandatory($normalized === IdentifyMethodRequirement::REQUIRED ? 1 : 0);
 	}
 }

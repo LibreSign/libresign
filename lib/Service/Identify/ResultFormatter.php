@@ -24,6 +24,7 @@ class ResultFormatter {
 			'telegram',
 			'whatsapp',
 			'xmpp' => $method,
+			'whatsappbusiness' => 'whatsapp',
 			default => null,
 		};
 	}

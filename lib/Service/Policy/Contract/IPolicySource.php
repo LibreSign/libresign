@@ -1,0 +1,88 @@
+<?php
+
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+namespace OCA\Libresign\Service\Policy\Contract;
+
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+
+interface IPolicySource {
+	public function loadSystemPolicy(string $policyKey): ?PolicyLayer;
+
+	/** @return list<PolicyLayer> */
+	public function loadGroupPolicies(string $policyKey, PolicyContext $context): array;
+
+	/** @return list<PolicyLayer> */
+	public function loadCirclePolicies(string $policyKey, PolicyContext $context): array;
+
+	public function loadUserPolicy(string $policyKey, PolicyContext $context): ?PolicyLayer;
+
+	public function loadUserPreference(string $policyKey, PolicyContext $context): ?PolicyLayer;
+
+	/**
+	 * Bulk-load group policy layers for all known policy keys at once.
+	 *
+	 * @param list<string> $policyKeys
+	 * @return array<string, list<PolicyLayer>> keyed by policyKey
+	 */
+	public function loadAllGroupPolicies(array $policyKeys, PolicyContext $context): array;
+
+	/**
+	 * Bulk-load user preference layers for all known policy keys at once.
+	 *
+	 * @param list<string> $policyKeys
+	 * @return array<string, PolicyLayer> keyed by policyKey
+	 */
+	public function loadAllUserPolicies(array $policyKeys, PolicyContext $context): array;
+
+	/**
+	 * Bulk-load user preference layers for all known policy keys at once.
+	 *
+	 * @param list<string> $policyKeys
+	 * @return array<string, PolicyLayer> keyed by policyKey
+	 */
+	public function loadAllUserPreferences(array $policyKeys, PolicyContext $context): array;
+
+	public function loadRequestOverride(string $policyKey, PolicyContext $context): ?PolicyLayer;
+
+	public function loadGroupPolicyConfig(string $policyKey, string $groupId): ?PolicyLayer;
+
+	/**
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	public function listGroupPoliciesByKey(string $policyKey): array;
+
+	/**
+	 * @param list<string> $groupIds
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	public function listGroupPoliciesByKeyForTargets(string $policyKey, array $groupIds): array;
+
+	public function saveSystemPolicy(string $policyKey, mixed $value, bool $allowChildOverride = false): void;
+
+	public function clearSystemPolicy(string $policyKey): void;
+
+	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride, bool $createdBySystemAdmin = false, ?PolicyContext $context = null): void;
+
+	public function clearGroupPolicy(string $policyKey, string $groupId, bool $preserveSystemCreatedBase = false): void;
+
+	public function loadUserPolicyConfig(string $policyKey, string $userId): ?PolicyLayer;
+
+	/**
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	public function listUserPoliciesByKey(string $policyKey): array;
+
+	public function saveUserPolicy(string $policyKey, PolicyContext $context, mixed $value, bool $allowChildOverride): void;
+
+	public function clearUserPolicy(string $policyKey, PolicyContext $context): void;
+
+	public function saveUserPreference(string $policyKey, PolicyContext $context, mixed $value): void;
+
+	public function clearUserPreference(string $policyKey, PolicyContext $context): void;
+}

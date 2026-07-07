@@ -218,10 +218,10 @@ Feature: account/signature
     Then the response should have a status code 200
 
   Scenario: CRUD of signature element to guest
-    Given guest "guest@test.coop" exists
+    Given guest "signature-elements-guest@test.coop" exists
     And run the command "config:app:set guests whitelist --value=libresign" with result code 0
     And wait for 3 seconds
-    And as user "guest@test.coop"
+    And as user "signature-elements-guest@test.coop"
     When sending "post" to ocs "/apps/libresign/api/v1/signature/elements"
       | elements | [{"type":"signature","file":{"base64":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="}}] |
     Then the response should have a status code 200
@@ -254,14 +254,14 @@ Feature: account/signature
     Given run the command "config:app:set guests whitelist --value=libresign" with result code 0
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And as user "admin"
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":false}] |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required"}]} |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer@test.coop"}]}] |
       | name | document |
     When as user ""
-    And I open the latest email to "signer@test.coop" with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer@test.coop" with subject "LibreSign: A document is ready for your signature"
     And I fetch the signer UUID from opened email
     And set the custom http header "libresign-sign-request-uuid" with "<SIGN_REQUEST_UUID>" as value to next request
     When sending "post" to ocs "/apps/libresign/api/v1/signature/elements"

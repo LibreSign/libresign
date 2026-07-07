@@ -11,16 +11,16 @@ namespace OCA\Libresign\Tests\Unit\Files;
 use OCA\Files\Event\LoadSidebar;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Files\TemplateLoader;
+use OCA\Libresign\Files\TemplateLoaderAssets;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Services\IInitialState;
-use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -34,9 +34,9 @@ final class TemplateLoaderTest extends TestCase {
 	private ValidateHelper&MockObject $validateHelper;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
-	private IAppConfig&MockObject $appConfig;
+	private PolicyService&MockObject $policyService;
 	private IAppManager&MockObject $appManager;
-	private ConfigService&MockObject $docMdpConfigService;
+	private TemplateLoaderAssets&MockObject $assets;
 
 	#[\Override]
 	public function setUp(): void {
@@ -47,25 +47,25 @@ final class TemplateLoaderTest extends TestCase {
 		$this->validateHelper = $this->createMock(ValidateHelper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
-		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 		$this->appManager = $this->createMock(IAppManager::class);
-		$this->docMdpConfigService = $this->createMock(ConfigService::class);
+		$this->assets = $this->createMock(TemplateLoaderAssets::class);
 	}
 
-	public function testGetInitialStatePayload(): void {
+	public function testHandleProvidesInitialStatePayload(): void {
 		$engine = $this->createMock(IEngineHandler::class);
 		$engine->method('isSetupOk')->willReturn(true);
 		$this->certificateEngineFactory
 			->method('getEngine')
 			->willReturn($engine);
+		$this->appManager
+			->method('isEnabledForUser')
+			->with('libresign')
+			->willReturn(true);
 
 		$this->identifyMethodService
 			->method('getIdentifyMethodsSettings')
 			->willReturn([]);
-
-		$this->appConfig
-			->method('getValueString')
-			->willReturn('none');
 
 		$this->validateHelper
 			->method('canRequestSign');
@@ -75,41 +75,87 @@ final class TemplateLoaderTest extends TestCase {
 			->method('getUser')
 			->willReturn($user);
 
-		$docMdpConfig = [
-			'enabled' => true,
-			'defaultLevel' => 1,
-			'availableLevels' => [],
-		];
-		$this->docMdpConfigService
-			->method('getConfig')
-			->willReturn($docMdpConfig);
+		$this->policyService
+			->method('resolveKnownPolicyStates')
+			->willReturn([
+				'signature_flow' => [
+					'policyKey' => 'signature_flow',
+					'effectiveValue' => 'parallel',
+					'inheritedValue' => null,
+					'sourceScope' => 'group',
+					'visible' => true,
+					'editableByCurrentActor' => true,
+					'allowedValues' => ['parallel', 'ordered_numeric'],
+					'canSaveAsUserDefault' => true,
+					'canUseAsRequestOverride' => true,
+					'preferenceWasCleared' => false,
+					'blockedBy' => null,
+				],
+			]);
+		$this->assets
+			->expects($this->once())
+			->method('addInitScript')
+			->with(Application::APP_ID, 'libresign-init');
+		$this->assets
+			->expects($this->once())
+			->method('addScript')
+			->with(Application::APP_ID, 'libresign-tab');
+		$this->assets
+			->expects($this->once())
+			->method('addStyle')
+			->with(Application::APP_ID, 'libresign-tab');
+
+		$capturedState = [];
+		$this->initialState
+			->expects($this->exactly(3))
+			->method('provideInitialState')
+			->willReturnCallback(static function (string $key, mixed $value) use (&$capturedState): void {
+				$capturedState[$key] = $value;
+			});
 
 		$loader = $this->getLoader();
-		$payload = self::invokePrivate($loader, 'getInitialStatePayload');
+		$loader->handle(new LoadSidebar());
 
-		$this->assertSame([
+		$expectedState = [
 			'certificate_ok' => true,
-			'identify_methods' => [],
-			'signature_flow' => 'none',
-			'docmdp_config' => $docMdpConfig,
+			'effective_policies' => [
+				'policies' => [
+					'signature_flow' => [
+						'policyKey' => 'signature_flow',
+						'effectiveValue' => 'parallel',
+						'inheritedValue' => null,
+						'sourceScope' => 'group',
+						'visible' => true,
+						'editableByCurrentActor' => true,
+						'allowedValues' => ['parallel', 'ordered_numeric'],
+						'canSaveAsUserDefault' => true,
+						'canUseAsRequestOverride' => true,
+						'preferenceWasCleared' => false,
+						'blockedBy' => null,
+					],
+				],
+			],
 			'can_request_sign' => true,
-		], $payload);
+		];
+		ksort($capturedState);
+		ksort($expectedState);
+		$this->assertSame($expectedState, $capturedState);
 	}
 
-	public function testGetInitialStatePayloadWhenCannotRequestSign(): void {
+	public function testHandleProvidesCannotRequestSignWhenValidationFails(): void {
 		$engine = $this->createMock(IEngineHandler::class);
 		$engine->method('isSetupOk')->willReturn(true);
 		$this->certificateEngineFactory
 			->method('getEngine')
 			->willReturn($engine);
+		$this->appManager
+			->method('isEnabledForUser')
+			->with('libresign')
+			->willReturn(true);
 
 		$this->identifyMethodService
 			->method('getIdentifyMethodsSettings')
 			->willReturn([]);
-
-		$this->appConfig
-			->method('getValueString')
-			->willReturn('none');
 
 		$this->validateHelper
 			->method('canRequestSign')
@@ -120,14 +166,49 @@ final class TemplateLoaderTest extends TestCase {
 			->method('getUser')
 			->willReturn($user);
 
-		$this->docMdpConfigService
-			->method('getConfig')
-			->willReturn([]);
+		$this->policyService
+			->method('resolveKnownPolicyStates')
+			->willReturn([
+				'signature_flow' => [
+					'policyKey' => 'signature_flow',
+					'effectiveValue' => 'none',
+					'inheritedValue' => null,
+					'sourceScope' => 'system',
+					'visible' => true,
+					'editableByCurrentActor' => true,
+					'allowedValues' => ['none', 'parallel', 'ordered_numeric'],
+					'canSaveAsUserDefault' => true,
+					'canUseAsRequestOverride' => true,
+					'preferenceWasCleared' => false,
+					'blockedBy' => null,
+				],
+			]);
+		$this->assets
+			->expects($this->once())
+			->method('addInitScript')
+			->with(Application::APP_ID, 'libresign-init');
+		$this->assets
+			->expects($this->once())
+			->method('addScript')
+			->with(Application::APP_ID, 'libresign-tab');
+		$this->assets
+			->expects($this->once())
+			->method('addStyle')
+			->with(Application::APP_ID, 'libresign-tab');
+
+		$capturedState = [];
+		$this->initialState
+			->expects($this->exactly(3))
+			->method('provideInitialState')
+			->willReturnCallback(static function (string $key, mixed $value) use (&$capturedState): void {
+				$capturedState[$key] = $value;
+			});
 
 		$loader = $this->getLoader();
-		$payload = self::invokePrivate($loader, 'getInitialStatePayload');
+		$loader->handle(new LoadSidebar());
 
-		$this->assertFalse($payload['can_request_sign']);
+		$this->assertArrayHasKey('can_request_sign', $capturedState);
+		$this->assertFalse($capturedState['can_request_sign']);
 	}
 
 	private function getLoader(): TemplateLoader {
@@ -139,9 +220,9 @@ final class TemplateLoaderTest extends TestCase {
 			$this->validateHelper,
 			$this->identifyMethodService,
 			$this->certificateEngineFactory,
-			$this->appConfig,
+			$this->policyService,
 			$this->appManager,
-			$this->docMdpConfigService,
+			$this->assets,
 		);
 	}
 
@@ -169,31 +250,74 @@ final class TemplateLoaderTest extends TestCase {
 		$this->identifyMethodService
 			->method('getIdentifyMethodsSettings')
 			->willReturn([]);
-		$this->appConfig
-			->method('getValueString')
-			->willReturn('none');
-		$this->docMdpConfigService
-			->method('getConfig')
+		$this->policyService
+			->method('resolveKnownPolicyStates')
 			->willReturn([]);
 		$user = $this->createMock(IUser::class);
 		$this->userSession
 			->method('getUser')
 			->willReturn($user);
+		$this->assets
+			->expects($this->once())
+			->method('addStyle')
+			->with(
+				Application::APP_ID,
+				$this->callback(static function (string $style): bool {
+					self::assertNotSame('icons', $style, 'The "icons" CSS must not be registered separately because it is bundled in libresign-tab (issue #7632).');
+					return $style === 'libresign-tab';
+				})
+			);
+		$this->assets
+			->expects($this->once())
+			->method('addScript')
+			->with(Application::APP_ID, 'libresign-tab');
+		$this->assets
+			->expects($this->once())
+			->method('addInitScript')
+			->with(Application::APP_ID, 'libresign-init');
 
-		$stylesBefore = \OC_Util::$styles;
 		$loader = $this->getLoader();
 		$loader->handle(new LoadSidebar());
-		$stylesAfter = \OC_Util::$styles;
+	}
 
-		$newStyles = array_diff($stylesAfter, $stylesBefore);
-		$iconsStylePath = Application::APP_ID . '/css/icons';
+	public function testHandleRegistersFilesInitScriptWhenCertificateIsReady(): void {
+		$this->appManager
+			->method('isEnabledForUser')
+			->with('libresign')
+			->willReturn(true);
 
-		foreach ($newStyles as $style) {
-			$this->assertStringNotContainsString(
-				$iconsStylePath,
-				$style,
-				'The "icons" CSS must not be registered separately — it is already bundled in libresign-tab and loading it would cause a 404 and potential global CSS leaks (issue #7632).'
+		$engine = $this->createMock(IEngineHandler::class);
+		$engine->method('isSetupOk')->willReturn(true);
+		$this->certificateEngineFactory
+			->method('getEngine')
+			->willReturn($engine);
+		$this->identifyMethodService
+			->method('getIdentifyMethodsSettings')
+			->willReturn([]);
+		$this->policyService
+			->method('resolveKnownPolicyStates')
+			->willReturn([]);
+		$user = $this->createMock(IUser::class);
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+		$this->assets
+			->expects($this->once())
+			->method('addInitScript')
+			->with(
+				Application::APP_ID,
+				'libresign-init'
 			);
-		}
+		$this->assets
+			->expects($this->once())
+			->method('addScript')
+			->with(Application::APP_ID, 'libresign-tab');
+		$this->assets
+			->expects($this->once())
+			->method('addStyle')
+			->with(Application::APP_ID, 'libresign-tab');
+
+		$loader = $this->getLoader();
+		$loader->handle(new LoadSidebar());
 	}
 }

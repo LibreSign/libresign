@@ -8,9 +8,9 @@
 			container="#app-content-vue"
 			:disabled="!!loading || areFilesLoading"
 			:force-name="true">
-			<NcActionButton v-for="action in enabledMenuActions"
+			<NcActionButton v-for="action in visibleMenuActions"
 				:key="action.id"
-				:aria-label="action.displayName(selectionStore.selected) + ' ' + t('libresign', '(selected)') /** TRANSLATORS: Selected like 'selected files' */"
+				:aria-label="action.displayName(selectionStore.selected) + ' ' + selectedBatchActionSuffix"
 				:class="'files-list__row-actions-batch-' + action.id"
 				@click="onActionClick(action)">
 				<template #icon>
@@ -78,6 +78,7 @@ type BatchAction = {
 	displayName: (selection: number[]) => string
 	iconSvgInline: (selection: number[]) => string
 	execBatch: (selection: number[]) => Promise<BatchActionResult[]> | BatchActionResult[]
+	visible?: (selection: number[]) => boolean
 }
 
 const filesStore = useFilesStore()
@@ -90,7 +91,11 @@ const confirmDelete = ref(false)
 const deleteFile = ref(true)
 const deleting = ref(false)
 
+// TRANSLATORS Accessibility suffix appended to a batch action label to indicate it applies to the currently selected files.
+const selectedBatchActionSuffix = t('libresign', '(selected)')
+
 const areFilesLoading = computed(() => filesStore.loading)
+const visibleMenuActions = computed(() => enabledMenuActions.value.filter((action) => action.visible?.(selectionStore.selected) ?? true))
 
 function registerAction(action: BatchAction) {
 	enabledMenuActions.value = [...enabledMenuActions.value, action]
@@ -107,6 +112,10 @@ function doDelete() {
 }
 
 async function onActionClick(action: BatchAction) {
+	if (action.visible && !action.visible(selectionStore.selected)) {
+		return
+	}
+
 	const displayName = action.displayName(selectionStore.selected)
 	const selectionSources = selectionStore.selected
 	try {
@@ -157,6 +166,7 @@ onMounted(() => {
 		id: 'delete',
 		displayName: () => t('libresign', 'Delete'),
 		iconSvgInline: () => svgDelete,
+		visible: (selection) => selection.length > 0 && selection.every((key) => filesStore.canDelete(filesStore.files[key])),
 		execBatch: (files) => {
 			confirmDelete.value = true
 			toDelete.value = files
@@ -167,11 +177,13 @@ onMounted(() => {
 
 defineExpose({
 	enabledMenuActions,
+	visibleMenuActions,
 	loading,
 	toDelete,
 	confirmDelete,
 	deleteFile,
 	deleting,
+	selectedBatchActionSuffix,
 	registerAction,
 	doDelete,
 	onActionClick,

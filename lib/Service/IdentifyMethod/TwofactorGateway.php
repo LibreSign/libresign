@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service\IdentifyMethod;
 
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SessionService;
 use OCA\TwoFactorGateway\Provider\Gateway\Factory;
 use OCP\App\IAppManager;
@@ -18,6 +19,7 @@ use OCP\Files\IRootFolder;
 use OCP\IUserSession;
 use OCP\Server;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 class TwofactorGateway extends AbstractIdentifyMethod {
 	public function __construct(
@@ -67,15 +69,21 @@ class TwofactorGateway extends AbstractIdentifyMethod {
 
 		$gatewayName = $this->getGatewayName();
 
-		$gateway = $gatewayFactory->get($gatewayName);
-		return $gateway->isComplete();
+		try {
+			$gateway = $gatewayFactory->get($gatewayName);
+			return $gateway->isComplete();
+		} catch (Throwable $exception) {
+			$this->logger->warning('Unable to load twofactor gateway provider.', [
+				'gateway' => $gatewayName,
+				'identifyMethod' => $this->getId(),
+				'exception' => $exception,
+			]);
+			return false;
+		}
 	}
 
 	private function getGatewayName(): string {
-		return match ($this->getId()) {
-			'whatsapp' => 'gowhatsapp',
-			default => strtolower($this->getId()),
-		};
+		return IdentifyMethodService::resolveTwofactorGatewayName($this->getId());
 	}
 
 	#[\Override]

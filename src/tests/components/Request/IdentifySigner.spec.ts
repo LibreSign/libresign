@@ -402,7 +402,7 @@ describe('IdentifySigner rules', () => {
 
 		it('sends signer list to save request', async () => {
 			filesStore.getFile.mockReturnValueOnce({
-				signers: [{ identifyMethods: [{ method: 'email', value: 'existing@example.com', mandatory: 0 }] }],
+				signers: [{ identifyMethods: [{ method: 'email', value: 'existing@example.com', requirement: 'optional' }] }],
 			})
 			wrapper.vm.identifyMethod = 'email'
 			wrapper.vm.displayName = 'John Doe'
@@ -413,7 +413,7 @@ describe('IdentifySigner rules', () => {
 
 			expect(filesStore.saveOrUpdateSignatureRequest).toHaveBeenCalledWith({
 				signers: [
-					{ identifyMethods: [{ method: 'email', value: 'existing@example.com', mandatory: 0 }] },
+					{ identifyMethods: [{ method: 'email', value: 'existing@example.com', requirement: 'optional' }] },
 					{
 						displayName: 'John Doe',
 						description: undefined,
@@ -421,7 +421,7 @@ describe('IdentifySigner rules', () => {
 						status: 0,
 						statusText: 'Draft',
 						identifyMethods: [{
-							mandatory: 0,
+							requirement: 'optional',
 							method: 'email',
 							value: 'john@example.com',
 						}],

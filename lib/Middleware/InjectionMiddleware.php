@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Middleware;
 
-use OC\AppFramework\Http as AppFrameworkHttp;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Controller\AEnvironmentAwareController;
 use OCA\Libresign\Controller\AEnvironmentPageAwareController;
@@ -29,6 +28,8 @@ use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Middleware\Attribute\RequireSignerUuid;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\FileAccessService;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\UuidResolverService;
 use OCP\AppFramework\Controller;
@@ -41,7 +42,6 @@ use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Middleware;
 use OCP\AppFramework\Services\IInitialState;
-use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
@@ -52,6 +52,9 @@ use OCP\Util;
 use Psr\Log\LoggerInterface;
 
 class InjectionMiddleware extends Middleware {
+	private ?bool $isLoggedIn = null;
+	private ?bool $isValidationUrlPrivate = null;
+
 	public function __construct(
 		private IRequest $request,
 		private ISession $session,
@@ -64,8 +67,8 @@ class InjectionMiddleware extends Middleware {
 		private FileAccessService $fileAccessService,
 		private SignFileService $signFileService,
 		private UuidResolverService $uuidResolverService,
+		private PolicyService $policyService,
 		private IL10N $l10n,
-		private IAppConfig $appConfig,
 		private IURLGenerator $urlGenerator,
 		private LoggerInterface $logger,
 		protected ?string $userId,
@@ -80,6 +83,9 @@ class InjectionMiddleware extends Middleware {
 	 */
 	#[\Override]
 	public function beforeController(Controller $controller, string $methodName) {
+		$this->isLoggedIn = null;
+		$this->isValidationUrlPrivate = null;
+
 		if ($controller instanceof AEnvironmentAwareController) {
 			$apiVersion = $this->request->getParam('apiVersion');
 			/** @var AEnvironmentAwareController $controller */
@@ -103,27 +109,69 @@ class InjectionMiddleware extends Middleware {
 		}
 
 		$this->requireSetupOk($reflectionMethod);
-
 		$this->privateValidation($reflectionMethod);
 
 		$this->handleUuid($controller, $reflectionMethod);
 	}
 
 	private function privateValidation(\ReflectionMethod $reflectionMethod): void {
-		if (empty($reflectionMethod->getAttributes(PrivateValidation::class))) {
+		$attributes = $reflectionMethod->getAttributes(PrivateValidation::class);
+		if (empty($attributes)) {
 			return;
 		}
-		if ($this->userSession->isLoggedIn()) {
-			return;
-		}
-		$isValidationUrlPrivate = (bool)$this->appConfig->getValueBool(Application::APP_ID, 'make_validation_url_private', false);
-		if (!$isValidationUrlPrivate) {
-			return;
-		}
-		$redirectUrl = $this->request->getRawPathInfo();
 
+		if ($this->shouldForcePrivateValidationRedirect($reflectionMethod)) {
+			$this->throwPrivateValidationRedirect($this->request->getRawPathInfo());
+		}
+
+		/** @var PrivateValidation $privateValidation */
+		$privateValidation = current($attributes)->newInstance();
+		if ($this->isLoggedIn() || !$this->isValidationUrlPrivate()) {
+			return;
+		}
+
+		if (!$privateValidation->allowValidSignRequestUuid()) {
+			$this->throwPrivateValidationRedirect($this->request->getRawPathInfo());
+		}
+
+		$uuid = $this->getUuidFromRequest();
+		if ($uuid) {
+			try {
+				$this->signRequestMapper->getByUuid($uuid);
+				return; // sign-request UUID is valid, allow access
+			} catch (\Throwable) {
+			}
+
+			try {
+				$this->fileMapper->getByUuid($uuid);
+				return; // file UUID is valid, allow access
+			} catch (\Throwable) {
+			}
+		}
+		$this->throwPrivateValidationRedirect($this->request->getRawPathInfo());
+	}
+
+	private function isLoggedIn(): bool {
+		if ($this->isLoggedIn === null) {
+			$this->isLoggedIn = $this->userSession->isLoggedIn();
+		}
+		return $this->isLoggedIn;
+	}
+
+	private function isValidationUrlPrivate(): bool {
+		if ($this->isValidationUrlPrivate === null) {
+			$this->isValidationUrlPrivate = $this->policyService
+				->resolve(ValidationAccessPolicy::KEY)
+				->getEffectiveValueAsBool();
+		}
+
+		return $this->isValidationUrlPrivate;
+	}
+
+	private function throwPrivateValidationRedirect(?string $redirectUrl): void {
 		throw new LibresignException(json_encode([
 			'action' => JSActions::ACTION_REDIRECT,
+			// TRANSLATORS: Error shown to anonymous users when a private validation URL requires authentication before continuing.
 			'errors' => [$this->l10n->t('You are not logged in. Please log in.')],
 			'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
 				'redirect_url' => $redirectUrl,
@@ -151,6 +199,10 @@ class InjectionMiddleware extends Middleware {
 		}
 
 		if (!empty($attribute = $reflectionMethod->getAttributes(RequireSignRequestUuid::class))) {
+			if ($this->shouldForcePrivateValidationRedirect($reflectionMethod)) {
+				$this->throwPrivateValidationRedirect($this->request->getRawPathInfo());
+			}
+
 			$attribute = $reflectionMethod->getAttributes(RequireSignRequestUuid::class);
 			$attribute = current($attribute);
 			/** @var RequireSignRequestUuid $intance */
@@ -183,6 +235,21 @@ class InjectionMiddleware extends Middleware {
 		}
 	}
 
+	private function shouldForcePrivateValidationRedirect(\ReflectionMethod $reflectionMethod): bool {
+		$attributes = $reflectionMethod->getAttributes(PrivateValidation::class);
+		if (empty($attributes)) {
+			return false;
+		}
+
+		if ($this->isLoggedIn() || !$this->isValidationUrlPrivate()) {
+			return false;
+		}
+
+		/** @var PrivateValidation $privateValidation */
+		$privateValidation = current($attributes)->newInstance();
+		return !$privateValidation->allowValidSignRequestUuid();
+	}
+
 	private function getUuidFromRequest(): ?string {
 		return $this->request->getParam('uuid', $this->request->getHeader('libresign-sign-request-uuid'));
 	}
@@ -208,7 +275,8 @@ class InjectionMiddleware extends Middleware {
 	private function getLoggedIn(): void {
 		$user = $this->userSession->getUser();
 		if (!$user instanceof IUser) {
-			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
+			// TRANSLATORS: Error shown when an anonymous user tries to create a signature request, an action allowed only for authenticated users with permission.
+			throw new \Exception($this->l10n->t('You are not allowed to create signature requests'), Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
 		$this->validateHelper->canRequestSign($user);
 	}
@@ -412,7 +480,7 @@ class InjectionMiddleware extends Middleware {
 
 	private function getStatusCodeFromException(\Exception $exception): int {
 		if ($exception->getCode() === 0) {
-			return AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY;
+			return Http::STATUS_UNPROCESSABLE_ENTITY;
 		}
 		return (int)$exception->getCode();
 	}

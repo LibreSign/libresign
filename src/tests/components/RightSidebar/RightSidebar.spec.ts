@@ -12,6 +12,7 @@ const filesStoreMock = {
 	getFile: vi.fn(() => ({ name: 'agreement.pdf' })),
 	getSelectedFileView: vi.fn(() => ({ name: 'agreement.pdf' })),
 	getSubtitle: vi.fn(() => 'Alice, Bob'),
+	canRequestSign: true,
 }
 
 const sidebarStoreMock = {
@@ -66,6 +67,7 @@ describe('RightSidebar.vue', () => {
 		filesStoreMock.getFile.mockReturnValue({ name: 'agreement.pdf' })
 		filesStoreMock.getSelectedFileView.mockReturnValue({ name: 'agreement.pdf' })
 		filesStoreMock.getSubtitle.mockReturnValue('Alice, Bob')
+		filesStoreMock.canRequestSign = true
 		sidebarStoreMock.activeTab = 'request-signature-tab'
 		sidebarStoreMock.isVisible = true
 		sidebarStoreMock.showSidebar.mockReset()
@@ -117,6 +119,14 @@ describe('RightSidebar.vue', () => {
 		const wrapper = createWrapper()
 
 		expect(wrapper.find('.sign-tab').exists()).toBe(false)
+	})
+
+	it('does not render the sidebar when the request tab has no visible content', () => {
+		filesStoreMock.canRequestSign = false
+		const wrapper = createWrapper()
+
+		expect(wrapper.find('.app-sidebar').exists()).toBe(false)
+		expect(wrapper.find('.request-signature-tab').exists()).toBe(false)
 	})
 
 	it('forwards active and open state updates to the sidebar store', async () => {

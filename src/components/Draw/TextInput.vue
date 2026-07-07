@@ -60,12 +60,9 @@ const emit = defineEmits<{
 }>()
 
 const capabilities = getCapabilities() as LibresignCapabilities
-const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
-	'signature-width': 0,
-	'signature-height': 0,
-}
-const canvasWidth = signElementsConfig['signature-width']
-const canvasHeight = signElementsConfig['signature-height']
+const signElementsConfig = capabilities.libresign?.config['sign-elements']
+const canvasWidth = Number(signElementsConfig?.['signature-width'])
+const canvasHeight = Number(signElementsConfig?.['signature-height'])
 const value = ref('')
 const modal = ref(false)
 const imageData = ref('')

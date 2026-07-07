@@ -112,14 +112,14 @@ class ListeningPidResolver {
 			return [];
 		}
 
-		$fdPaths = glob('/proc/[0-9]*/fd/[0-9]*');
-		if (!is_array($fdPaths)) {
+		$fdPaths = $this->getProcFdPaths();
+		if ($fdPaths === []) {
 			return [];
 		}
 
 		$pids = [];
 		foreach ($fdPaths as $fdPath) {
-			$target = @readlink($fdPath);
+			$target = $this->readProcFdTarget($fdPath);
 			if (!is_string($target) || !preg_match('/^socket:\\[(\\d+)\\]$/', $target, $matches)) {
 				continue;
 			}
@@ -135,6 +135,32 @@ class ListeningPidResolver {
 		}
 
 		return $pids;
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	protected function getProcFdPaths(): array {
+		$fdPaths = glob('/proc/[0-9]*/fd/[0-9]*');
+		if (!is_array($fdPaths)) {
+			return [];
+		}
+
+		return array_values($fdPaths);
+	}
+
+	protected function readProcFdTarget(string $fdPath): ?string {
+		set_error_handler(static function (): bool {
+			return true;
+		});
+
+		try {
+			$target = readlink($fdPath);
+		} finally {
+			restore_error_handler();
+		}
+
+		return is_string($target) ? $target : null;
 	}
 
 	/**

@@ -43,8 +43,9 @@ class SettingController extends AEnvironmentAwareController {
 	#[OpenAPI(scope: OpenAPI::SCOPE_ADMINISTRATION)]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/setting/has-root-cert', requirements: ['apiVersion' => '(v1)'])]
 	public function hasRootCert(): DataResponse {
+		$engine = $this->certificateEngineFactory->getEngine();
 		$checkData = [
-			'hasRootCert' => $this->certificateEngineFactory->getEngine()->isSetupOk()
+			'hasRootCert' => $engine->getName() !== 'none' && $engine->isSetupOk()
 		];
 
 		return new DataResponse($checkData);

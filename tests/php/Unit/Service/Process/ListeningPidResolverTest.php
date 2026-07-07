@@ -74,4 +74,42 @@ class ListeningPidResolverTest extends TestCase {
 
 		$resolver->findListeningPids(8888);
 	}
+
+	public function testFindListeningPidsUsingProcSkipsUnreadableFdTargets(): void {
+		if (PHP_OS_FAMILY !== 'Linux') {
+			$this->markTestSkipped('Proc-based listener lookup only applies on Linux.');
+		}
+
+		$resolver = new class() extends ListeningPidResolver {
+			protected function findListeningPidsUsingSs(int $port): ?array {
+				return null;
+			}
+
+			protected function findListeningPidsUsingLsof(int $port): ?array {
+				return null;
+			}
+
+			protected function getListeningSocketInodesByPort(int $port): array {
+				return ['999' => true];
+			}
+
+			protected function getProcFdPaths(): array {
+				return [
+					'/proc/10/fd/1',
+					'/proc/11/fd/2',
+					'/proc/12/fd/3',
+				];
+			}
+
+			protected function readProcFdTarget(string $fdPath): ?string {
+				return match ($fdPath) {
+					'/proc/10/fd/1' => null,
+					'/proc/11/fd/2' => 'socket:[999]',
+					default => 'pipe:[123]',
+				};
+			}
+		};
+
+		$this->assertSame([11], $resolver->findListeningPids(8888));
+	}
 }

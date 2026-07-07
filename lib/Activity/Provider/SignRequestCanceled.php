@@ -66,6 +66,7 @@ class SignRequestCanceled implements IProvider {
 		$l = $this->languageFactory->get(Application::APP_ID, $language);
 		$parameters = $event->getSubjectParameters();
 
+		// TRANSLATORS Activity message shown when a signature request is canceled. {from} is the requester name and {file} is the document filename.
 		$subject = $l->t('{from} canceled the signature request for {file}');
 		$event->setParsedSubject(
 			str_replace(

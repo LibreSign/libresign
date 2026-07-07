@@ -81,7 +81,7 @@ trait LibresignTrait {
 		if ($resolution['type'] !== 'id_doc') {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [['message' => $this->l10n->t('Invalid id-doc request')]],
+				'errors' => [['message' => $this->l10n->t('Invalid identification document request')]],
 			]), AppFrameworkHttp::STATUS_BAD_REQUEST);
 		}
 

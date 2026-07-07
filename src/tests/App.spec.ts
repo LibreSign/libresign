@@ -71,6 +71,28 @@ describe('App', () => {
 		expect(wrapper.find('.left-sidebar').exists()).toBe(true)
 	})
 
+	it('shows left sidebar on request route', () => {
+		routeState.path = '/f/request'
+		routeState.name = 'requestFiles'
+		routeState.matched = []
+
+		const wrapper = mount(App, {
+			global: {
+				stubs: {
+					NcContent: { template: '<div><slot /></div>' },
+					NcAppContent: { template: '<main><slot /></main>' },
+					NcEmptyContent: { template: '<div><slot /></div>' },
+					LeftSidebar: { name: 'LeftSidebar', template: '<aside class="left-sidebar" />' },
+					RightSidebar: true,
+					DefaultPageError: true,
+					RouterView: { template: '<div class="router-view" />' },
+				},
+			},
+		})
+
+		expect(wrapper.find('.left-sidebar').exists()).toBe(true)
+	})
+
 	it('hides left sidebar on incomplete setup routes', () => {
 		routeState.path = '/f/incomplete'
 		routeState.name = 'Incomplete'

@@ -20,8 +20,8 @@ Feature: Custom message for signers
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
-    When I open the latest email to "signer1@test.com" with subject "LibreSign: There is a file for you to sign"
-    Then I should see "There is a document for you to sign" in the opened email
+    When I open the latest email to "signer1@test.com" with subject "LibreSign: A document is ready for your signature"
+    Then I should see "A document is ready for your signature" in the opened email
 
   Scenario: Account method - custom description in email
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
@@ -30,9 +30,9 @@ Feature: Custom message for signers
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}],"description":"Please review section 3 and the appendix before signing."}] |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
-    When I open the latest email to "signer1@test.com" with subject "LibreSign: There is a file for you to sign"
+    When I open the latest email to "signer1@test.com" with subject "LibreSign: A document is ready for your signature"
     Then I should see "Please review section 3 and the appendix before signing" in the opened email
-    And I should see "There is a document for you to sign" in the opened email
+    And I should see "A document is ready for your signature" in the opened email
 
   Scenario: Email method - default notification
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"

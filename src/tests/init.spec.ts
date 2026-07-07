@@ -5,51 +5,31 @@
 
 import { describe, expect, it, beforeEach, vi, afterEach } from 'vitest'
 
-/**
- * Regression tests for src/init.ts
- *
- * Bug 1: PROPFIND 404 on file upload via "New signature request" menu.
- *   client.stat() was called with only the bare file path (e.g. "/folder/test.pdf"),
- *   which resolves to /remote.php/dav/folder/test.pdf → 404.
- *   Fix: path must be prefixed with getRootPath() (e.g. "/files/uid/folder/test.pdf").
- *
- * Bug 2: "Open in LibreSign" action was missing from Files context-menu.
- *   The action files were never imported by any bundle entry point, so
- *   registerFileAction() was never called for them.
- *   Fix: init.ts now imports both action modules as side-effects.
- *
- * Bug 3: POST /request-signature missing "file" parameter after upload.
- *   client.stat() was called WITHOUT getDefaultPropfind() data, so the WebDAV
- *   PROPFIND response omitted the Nextcloud-specific {owncloud}fileid property.
- *   resultToNode() produced a Node with fileid = undefined, mapNodeToFileInfo
- *   returned id = '', addFile() silently rejected the temp record, selectedFileId
- *   stayed 0, and saveOrUpdateSignatureRequest sent POST without any file reference.
- *   Fix: pass data: getDefaultPropfind() to client.stat() so fileid is always
- *   included and the sidebar can correctly identify the uploaded file.
- */
-
 // ─── Mocks ────────────────────────────────────────────────────────────────────
+
+type UploadMock = (destinationPath: string, file: File, source: string) => Promise<unknown>
 
 const mockDefaultPropfind = '<propfind xmlns="DAV:"><prop><fileid/></prop></propfind>'
 const mockGetDefaultPropfind = vi.fn(() => mockDefaultPropfind)
 
 const mockStat = vi.fn()
+const mockUpload = vi.fn<UploadMock>(() => Promise.resolve({}))
+const mockUploader = { upload: mockUpload }
 const mockClient = { stat: mockStat }
 const mockGetClient = vi.fn(() => mockClient)
+const mockGetUploader = vi.fn(() => mockUploader)
 const mockGetRootPath = vi.fn(() => '/files/testuser')
 const mockResultToNode = vi.fn((data: unknown) => data)
 const mockRegisterDavProperty = vi.fn()
+const mockEmit = vi.fn()
 
 const mockSidebarOpen = vi.fn()
 const mockSidebarSetActiveTab = vi.fn()
 const mockSidebar = { open: mockSidebarOpen, setActiveTab: mockSidebarSetActiveTab }
 const mockGetSidebar = vi.fn(() => mockSidebar)
+const mockGetSidebarTabs = vi.fn(() => [{ id: 'libresign' }])
 const mockAddNewFileMenuEntry = vi.fn()
 const mockRegisterFileAction = vi.fn()
-
-const mockUpload = vi.fn(() => Promise.resolve())
-const mockUploader = { upload: mockUpload }
-const mockGetUploader = vi.fn(() => mockUploader)
 
 const mockAxiosPost = vi.fn(() => Promise.resolve({ data: {} }))
 
@@ -64,17 +44,18 @@ vi.mock('@nextcloud/axios', () => ({
 	default: { post: mockAxiosPost },
 }))
 
-vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: vi.fn((path: string) => `https://localhost${path}`),
+vi.mock('@nextcloud/event-bus', () => ({
+	emit: mockEmit,
 }))
 
-vi.mock('@nextcloud/upload', () => ({
-	getUploader: mockGetUploader,
+vi.mock('@nextcloud/router', () => ({
+	generateOcsUrl: vi.fn((path: string) => `https://localhost${path}`),
 }))
 
 vi.mock('@nextcloud/files', () => ({
 	addNewFileMenuEntry: mockAddNewFileMenuEntry,
 	getSidebar: mockGetSidebar,
+	getSidebarTabs: mockGetSidebarTabs,
 	Permission: { CREATE: 4 },
 	registerFileAction: mockRegisterFileAction,
 }))
@@ -89,6 +70,10 @@ vi.mock('@nextcloud/files/dav', () => ({
 	getRootPath: mockGetRootPath,
 	resultToNode: mockResultToNode,
 	registerDavProperty: mockRegisterDavProperty,
+}))
+
+vi.mock('@nextcloud/upload', () => ({
+	getUploader: mockGetUploader,
 }))
 
 // Stub the SVG imports so they don't blow up in the test environment
@@ -113,14 +98,15 @@ vi.mock('../actions/showStatusInlineAction.js', () => ({}))
 /**
  * Extract the handler that was registered via addNewFileMenuEntry so tests
  * can call it directly without simulating a real click.
+ *
+ * Important: return the raw handler without binding, to mirror how the
+ * Files runtime executes registered menu handlers.
  */
 function captureNewMenuHandler(): (context: unknown, content: unknown) => Promise<void> {
 	expect(mockAddNewFileMenuEntry).toHaveBeenCalledOnce()
-	type MenuEntry = { handler: (context: unknown, content: unknown) => Promise<void>; uploadManager?: { upload: typeof mockUpload } }
+	type MenuEntry = { handler: (context: unknown, content: unknown) => Promise<void> }
 	const entry = mockAddNewFileMenuEntry.mock.calls[0][0] as MenuEntry
-	// Inject the mock uploader so handler can call this.uploadManager.upload()
-	entry.uploadManager = mockUploader
-	return entry.handler.bind(entry)
+	return entry.handler
 }
 
 /**
@@ -159,6 +145,7 @@ function setupFileInputInterception(fileName: string, mimeType = 'application/pd
 describe('init.ts', () => {
 	beforeEach(async () => {
 		vi.clearAllMocks()
+		mockGetSidebarTabs.mockReturnValue([{ id: 'libresign' }])
 
 		// Reset stat mock to return valid data for resultToNode
 		mockStat.mockResolvedValue({ data: { filename: '/files/testuser/Documents/test.pdf' } })
@@ -247,7 +234,11 @@ describe('init.ts', () => {
 	describe('new-menu handler', () => {
 		const folderPath = '/Documents'
 		const fileName = 'contract.pdf'
-		const context = { path: folderPath, permissions: 4 /* CREATE */ }
+		const context = {
+			path: folderPath,
+			permissions: 4 /* CREATE */,
+			source: 'https://localhost/remote.php/dav/files/testuser/Documents',
+		}
 
 		beforeEach(async () => {
 			const triggerChange = setupFileInputInterception(fileName)
@@ -293,6 +284,25 @@ describe('init.ts', () => {
 			expect(uploadCallOrder).toBeLessThan(postCallOrder)
 		})
 
+		it('uploads the file through @nextcloud/upload using the current folder source', () => {
+			expect(mockUpload).toHaveBeenCalledWith(
+				fileName,
+				expect.any(File),
+				context.source,
+			)
+
+			const uploadedFile = mockUpload.mock.lastCall?.[1]
+			expect(uploadedFile).toBeInstanceOf(File)
+			expect(uploadedFile?.size).toBeGreaterThan(0)
+		})
+
+		it('emits files:node:created after the uploaded file is statted', () => {
+			expect(mockEmit).toHaveBeenCalledWith(
+				'files:node:created',
+				expect.anything(),
+			)
+		})
+
 		it('posts to the LibreSign OCS file endpoint', () => {
 			expect(mockAxiosPost).toHaveBeenCalledWith(
 				expect.stringContaining('/apps/libresign/api/v1/file'),
@@ -303,6 +313,36 @@ describe('init.ts', () => {
 		it('opens the sidebar to the LibreSign tab after upload', () => {
 			expect(mockSidebarOpen).toHaveBeenCalledOnce()
 			expect(mockSidebarSetActiveTab).toHaveBeenCalledWith('libresign')
+		})
+
+		it('waits for the LibreSign sidebar tab to register before activating it', async () => {
+			mockStat.mockClear()
+			mockUpload.mockClear()
+			mockAxiosPost.mockClear()
+			mockSidebarOpen.mockClear()
+			mockSidebarSetActiveTab.mockClear()
+			mockGetSidebarTabs.mockClear()
+
+			let sidebarTabChecks = 0
+			mockGetSidebarTabs.mockImplementation(() => {
+				sidebarTabChecks += 1
+				return sidebarTabChecks > 1 ? [{ id: 'libresign' }] : []
+			})
+
+			const delayedFileName = 'delayed-tab.pdf'
+			const context = {
+				path: '/Documents',
+				permissions: 4,
+				source: 'https://localhost/remote.php/dav/files/testuser/Documents',
+			}
+			const triggerChange = setupFileInputInterception(delayedFileName)
+			const handler = captureNewMenuHandler()
+
+			await handler(context, [])
+			await triggerChange()
+
+			await vi.waitFor(() => expect(mockGetSidebarTabs).toHaveBeenCalledTimes(2))
+			await vi.waitFor(() => expect(mockSidebarSetActiveTab).toHaveBeenCalledWith('libresign'))
 		})
 	})
 })

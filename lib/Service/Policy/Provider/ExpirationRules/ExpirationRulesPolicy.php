@@ -1,0 +1,196 @@
+<?php
+
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+namespace OCA\Libresign\Service\Policy\Provider\ExpirationRules;
+
+use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
+use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Provider\Helper\DelegationLayerHelper;
+use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
+
+final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
+	public const KEY_MAXIMUM_VALIDITY = 'maximum_validity';
+	public const KEY_RENEWAL_INTERVAL = 'renewal_interval';
+	public const KEY_EXPIRY_IN_DAYS = 'expiry_in_days';
+
+	public const DEFAULT_MAXIMUM_VALIDITY = 0;
+	public const DEFAULT_RENEWAL_INTERVAL = 0;
+	public const DEFAULT_EXPIRY_IN_DAYS = 365;
+
+	#[\Override]
+	public function keys(): array {
+		return [
+			self::KEY_MAXIMUM_VALIDITY,
+			self::KEY_RENEWAL_INTERVAL,
+			self::KEY_EXPIRY_IN_DAYS,
+		];
+	}
+
+	#[\Override]
+	public function get(string|\BackedEnum $policyKey): IPolicyDefinition {
+		$normalizedKey = PolicyKeyNormalizer::normalize($policyKey);
+
+		return match ($normalizedKey) {
+			self::KEY_MAXIMUM_VALIDITY => $this->buildDelegableNonNegativeIntPolicy(
+				self::KEY_MAXIMUM_VALIDITY,
+				self::DEFAULT_MAXIMUM_VALIDITY,
+				compositeChildren: [self::KEY_RENEWAL_INTERVAL],
+			),
+			self::KEY_RENEWAL_INTERVAL => $this->buildDelegableNonNegativeIntPolicy(
+				self::KEY_RENEWAL_INTERVAL,
+				self::DEFAULT_RENEWAL_INTERVAL,
+				helper: true,
+				parentPolicyKey: self::KEY_MAXIMUM_VALIDITY,
+			),
+			self::KEY_EXPIRY_IN_DAYS => $this->buildDelegablePositiveIntPolicy(
+				self::KEY_EXPIRY_IN_DAYS,
+				self::DEFAULT_EXPIRY_IN_DAYS,
+			),
+			default => throw new \InvalidArgumentException('Unknown policy key: ' . $normalizedKey),
+		};
+	}
+
+	private function buildDelegableNonNegativeIntPolicy(
+		string $key,
+		int $defaultValue,
+		array $compositeChildren = [],
+		bool $helper = false,
+		?string $parentPolicyKey = null,
+	): PolicySpec {
+		return $this->buildDelegableIntPolicy(
+			key: $key,
+			defaultValue: $defaultValue,
+			normalizer: static fn (mixed $rawValue): int => self::normalizeNonNegativeInt($rawValue, $defaultValue),
+			supportsUserPreference: false,
+			compositeChildren: $compositeChildren,
+			helper: $helper,
+			parentPolicyKey: $parentPolicyKey,
+		);
+	}
+
+	private function buildDelegablePositiveIntPolicy(
+		string $key,
+		int $defaultValue,
+		array $compositeChildren = [],
+		bool $helper = false,
+		?string $parentPolicyKey = null,
+	): PolicySpec {
+		return $this->buildDelegableIntPolicy(
+			key: $key,
+			defaultValue: $defaultValue,
+			normalizer: static fn (mixed $rawValue): int => self::normalizePositiveInt($rawValue, $defaultValue),
+			supportsUserPreference: false,
+			compositeChildren: $compositeChildren,
+			helper: $helper,
+			parentPolicyKey: $parentPolicyKey,
+		);
+	}
+
+	private function buildDelegableIntPolicy(
+		string $key,
+		int $defaultValue,
+		\Closure $normalizer,
+		bool $supportsUserPreference = true,
+		array $compositeChildren = [],
+		bool $helper = false,
+		?string $parentPolicyKey = null,
+	): PolicySpec {
+		return new PolicySpec(
+			key: $key,
+			defaultSystemValue: $defaultValue,
+			allowedValues: [],
+			normalizer: $normalizer,
+			appConfigKey: $key,
+			supportsUserPreference: $supportsUserPreference,
+			groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
+				$actorRole = $context->getActorRole();
+				if ($actorRole->canManageSystemPolicies) {
+					return true;
+				}
+
+				if (!$actorRole->canManageGroupPolicies) {
+					return false;
+				}
+
+				if ($actorRole->manageableGroupCount < 1) {
+					return false;
+				}
+
+				return DelegationLayerHelper::hasExplicitGlobalDelegation($systemPolicy)
+					|| DelegationLayerHelper::hasSystemCreatedGroupDelegation($groupLayers);
+			},
+			systemCreatedGroupRuleEditor: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, PolicyLayer $existingPolicy): bool {
+				$actorRole = $context->getActorRole();
+				if ($actorRole->canManageSystemPolicies) {
+					return true;
+				}
+
+				if (!$actorRole->canManageGroupPolicies) {
+					return false;
+				}
+
+				if (!$existingPolicy->isVisibleToChild() || !$existingPolicy->isAllowChildOverride() || $existingPolicy->getValue() === null) {
+					return false;
+				}
+
+				if (DelegationLayerHelper::hasExplicitGlobalDelegation($systemPolicy)) {
+					return true;
+				}
+
+				return $existingPolicy->isCreatedBySystemAdmin();
+			},
+			supportsGroupAdminDelegation: true,
+			compositeChildren: $compositeChildren,
+			helper: $helper,
+			parentPolicyKey: $parentPolicyKey,
+		);
+	}
+
+	private static function normalizeNonNegativeInt(mixed $rawValue, int $fallback): int {
+		$parsed = self::parseInt($rawValue);
+		if ($parsed === null) {
+			return $fallback;
+		}
+
+		return max(0, $parsed);
+	}
+
+	private static function normalizePositiveInt(mixed $rawValue, int $fallback): int {
+		$parsed = self::parseInt($rawValue);
+		if ($parsed === null || $parsed <= 0) {
+			return $fallback;
+		}
+
+		return $parsed;
+	}
+
+	private static function parseInt(mixed $rawValue): ?int {
+		if (is_int($rawValue)) {
+			return $rawValue;
+		}
+
+		if (is_float($rawValue) && is_finite($rawValue)) {
+			return (int)$rawValue;
+		}
+
+		if (is_string($rawValue)) {
+			$trimmed = trim($rawValue);
+			if ($trimmed === '' || !is_numeric($trimmed)) {
+				return null;
+			}
+
+			return (int)$trimmed;
+		}
+
+		return null;
+	}
+
+}

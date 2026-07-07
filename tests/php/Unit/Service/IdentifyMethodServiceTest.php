@@ -17,6 +17,7 @@ use OCA\Libresign\Service\IdentifyMethod\Signal;
 use OCA\Libresign\Service\IdentifyMethod\Sms;
 use OCA\Libresign\Service\IdentifyMethod\Telegram;
 use OCA\Libresign\Service\IdentifyMethod\Whatsapp;
+use OCA\Libresign\Service\IdentifyMethod\Whatsappbusiness;
 use OCA\Libresign\Service\IdentifyMethod\Xmpp;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
@@ -39,6 +40,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 	private Sms&MockObject $sms;
 	private Telegram&MockObject $telegram;
 	private Whatsapp&MockObject $whatsapp;
+	private Whatsappbusiness&MockObject $whatsappbusiness;
 	private Xmpp&MockObject $xmpp;
 	private SubjectAlternativeNameService&MockObject $subjectAlternativeNameService;
 
@@ -54,6 +56,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		$this->sms = $this->createMock(Sms::class);
 		$this->telegram = $this->createMock(Telegram::class);
 		$this->whatsapp = $this->createMock(Whatsapp::class);
+		$this->whatsappbusiness = $this->createMock(Whatsappbusiness::class);
 		$this->xmpp = $this->createMock(Xmpp::class);
 		$this->subjectAlternativeNameService = $this->createMock(SubjectAlternativeNameService::class);
 
@@ -67,6 +70,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 			$this->sms,
 			$this->telegram,
 			$this->whatsapp,
+			$this->whatsappbusiness,
 			$this->xmpp,
 			$this->subjectAlternativeNameService,
 		);
@@ -181,6 +185,113 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		];
 	}
 
+	public function testGetDefaultIdentifyMethodsPolicy(): void {
+		$this->account->method('getDefaultSettings')->willReturn([
+			'name' => 'account',
+			'enabled' => true,
+			'requirement' => 'required',
+			'signatureMethods' => [
+				'clickToSign' => ['enabled' => false, 'name' => 'clickToSign', 'label' => 'clickToSign'],
+				'password' => ['enabled' => true, 'name' => 'password', 'label' => 'password'],
+			],
+		]);
+		$this->email->method('getDefaultSettings')->willReturn([
+			'name' => 'email',
+			'enabled' => false,
+			'requirement' => 'optional',
+			'signatureMethods' => [
+				'emailToken' => ['enabled' => true, 'name' => 'emailToken', 'label' => 'emailToken'],
+			],
+		]);
+
+		$result = $this->service->getDefaultIdentifyMethodsPolicy();
+
+		self::assertSame([
+			[
+				'name' => 'account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'clickToSign' => ['enabled' => false, 'name' => 'clickToSign', 'label' => 'clickToSign'],
+					'password' => ['enabled' => true, 'name' => 'password', 'label' => 'password'],
+				],
+				'signatureMethodEnabled' => 'password',
+			],
+			[
+				'name' => 'email',
+				'enabled' => false,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true, 'name' => 'emailToken', 'label' => 'emailToken'],
+				],
+				'signatureMethodEnabled' => 'emailToken',
+			],
+		], $result);
+	}
+
+	public function testGetIdentifyMethodsCatalogSettingsUsesDefaultSettings(): void {
+		$accountDefaultSettings = [
+			'name' => 'account',
+			'friendly_name' => 'Account',
+			'enabled' => true,
+			'requirement' => 'required',
+			'signatureMethods' => [
+				'password' => ['enabled' => true],
+			],
+		];
+		$emailDefaultSettings = [
+			'name' => 'email',
+			'friendly_name' => 'Email',
+			'enabled' => false,
+			'requirement' => 'optional',
+			'signatureMethods' => [
+				'emailToken' => ['enabled' => true],
+			],
+			'can_create_account' => false,
+		];
+		$smsDefaultSettings = [
+			'name' => 'sms',
+			'friendly_name' => 'SMS',
+			'enabled' => true,
+			'requirement' => 'required',
+			'signatureMethods' => [
+				'smsToken' => ['enabled' => true],
+			],
+		];
+
+		$this->account->expects($this->once())
+			->method('getDefaultSettings')
+			->willReturn($accountDefaultSettings);
+		$this->account->expects($this->never())
+			->method('getSettings');
+		$this->email->expects($this->once())
+			->method('getDefaultSettings')
+			->willReturn($emailDefaultSettings);
+		$this->email->expects($this->never())
+			->method('getSettings');
+		$this->signal->method('isTwofactorGatewayEnabled')->willReturn(false);
+		$this->telegram->method('isTwofactorGatewayEnabled')->willReturn(false);
+		$this->whatsapp->method('isTwofactorGatewayEnabled')->willReturn(false);
+		$this->whatsappbusiness->method('isTwofactorGatewayEnabled')->willReturn(false);
+		$this->xmpp->method('isTwofactorGatewayEnabled')->willReturn(false);
+		$this->sms->expects($this->once())
+			->method('isTwofactorGatewayEnabled')
+			->willReturn(true);
+		$this->sms->expects($this->once())
+			->method('getDefaultSettings')
+			->willReturn($smsDefaultSettings);
+		$this->sms->expects($this->never())
+			->method('getSettings');
+
+		$result = $this->service->getIdentifyMethodsCatalogSettings();
+
+		self::assertSame([
+			$accountDefaultSettings,
+			$emailDefaultSettings,
+			$smsDefaultSettings,
+		], $result);
+	}
+
 	#[DataProvider('providerGetFirstAvailableMethod')]
 	public function testGetFirstAvailableMethod(?string $expectedKey, array $methodsData): void {
 		$matrix = $this->buildMatrix($methodsData);
@@ -241,6 +352,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 				$this->sms,
 				$this->telegram,
 				$this->whatsapp,
+				$this->whatsappbusiness,
 				$this->xmpp,
 				$this->subjectAlternativeNameService,
 			])
@@ -314,6 +426,19 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 			'signatureMethodEnabled' => 'smsToken',
 		];
 
+		$whatsappBusinessSettingsData = [
+			'name' => 'whatsappbusiness',
+			'friendly_name' => 'WhatsApp Business',
+			'enabled' => true,
+			'mandatory' => true,
+			'signatureMethods' => [
+				'clickToSign' => ['name' => 'clickToSign', 'enabled' => false],
+				'whatsappToken' => ['name' => 'whatsappToken', 'enabled' => true],
+			],
+			'test_url' => '/settings/user/security',
+			'signatureMethodEnabled' => 'whatsappToken',
+		];
+
 		return [
 			'whatsapp twofactor enabled' => [
 				$whatsappSettingsData,
@@ -322,6 +447,16 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 			],
 			'whatsapp twofactor disabled' => [
 				$whatsappSettingsData,
+				false,
+				null,
+			],
+			'whatsappbusiness twofactor enabled' => [
+				$whatsappBusinessSettingsData,
+				true,
+				$whatsappBusinessSettingsData,
+			],
+			'whatsappbusiness twofactor disabled' => [
+				$whatsappBusinessSettingsData,
 				false,
 				null,
 			],
@@ -355,6 +490,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 				$this->sms,
 				$this->telegram,
 				$this->whatsapp,
+				$this->whatsappbusiness,
 				$this->xmpp,
 				$this->subjectAlternativeNameService,
 			])
@@ -399,6 +535,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 				$this->sms,
 				$this->telegram,
 				$this->whatsapp,
+				$this->whatsappbusiness,
 				$this->xmpp,
 				$this->subjectAlternativeNameService,
 			])
