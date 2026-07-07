@@ -3,7 +3,7 @@
 declare(strict_types=1);
 /**
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
-	* SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Handler\SignEngine;
@@ -18,6 +18,7 @@ use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Exception\UnsignedPdfException;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationReason;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationResult;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationState;
@@ -111,12 +112,13 @@ class Pkcs12Handler extends SignEngineHandler {
 		$certificates = [];
 		$certificateEngine = $this->getCertificateEngine();
 		$certificateEngine->setPolicyUserIdForValidation($this->policyUserIdForValidation);
-		$nativeMetadata = array_values($this->extractNativeSignatureMetadata($resource));
-		rewind($resource);
-		$nativeValidation = array_values($this->pdfSignatureValidationService->validateFromResource($resource));
-		$index = 0;
 
 		try {
+			$nativeMetadata = array_values($this->extractNativeSignatureMetadata($resource));
+			rewind($resource);
+			$nativeValidation = array_values($this->pdfSignatureValidationService->validateFromResource($resource));
+			$index = 0;
+
 			foreach ($this->getSignatures($resource) as $signature) {
 				$metadata = $nativeMetadata[$index] ?? [];
 				$validation = $nativeValidation[$index] ?? [];
@@ -379,8 +381,8 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		try {
-			$signatures = $this->pdfSignatureExtractor->extractFromString($content);
-		} catch (\Throwable) {
+			$signatures = $this->extractNativeSignaturesFromContent($content);
+		} catch (UnsignedPdfException) {
 			return [];
 		}
 		$metadata = [];
@@ -395,6 +397,10 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		return $metadata;
+	}
+
+	protected function extractNativeSignaturesFromContent(string $content): array {
+		return $this->pdfSignatureExtractor->extractFromString($content);
 	}
 
 	private function der2pem($derData) {
