@@ -958,7 +958,6 @@ OC.L10N.register(
     "Last 7 days" : "۷ روز گذشته",
     "Last 30 days" : "۳۰ روز گذشته",
     "This year ({year})" : "امسال ({year})",
-    "Last year ({year})" : "سال گذشته ({year})",
-    "This document is not yours. Log out and use the sign link again." : "این سند متعلق به شما نیست. از حساب خارج شده و دوباره از لینک امضا استفاده کنید"
+    "Last year ({year})" : "سال گذشته ({year})"
 },
 "nplurals=2; plural=(n > 1);");

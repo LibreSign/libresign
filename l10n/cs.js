@@ -938,7 +938,6 @@ OC.L10N.register(
     "Last 7 days" : "Uplynulých 7 dnů",
     "Last 30 days" : "Uplynulých 30 dnů",
     "This year ({year})" : "Tento rok ({year})",
-    "Last year ({year})" : "Minulý rok ({year})",
-    "This document is not yours. Log out and use the sign link again." : "Tento dokument není váš. Odhlaste se a znovu použijte odkaz pro podepsání."
+    "Last year ({year})" : "Minulý rok ({year})"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

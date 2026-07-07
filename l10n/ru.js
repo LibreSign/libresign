@@ -958,7 +958,6 @@ OC.L10N.register(
     "Last 7 days" : "Последние 7 дней",
     "Last 30 days" : "Последние 30 дней",
     "This year ({year})" : "Этот год ({year})",
-    "Last year ({year})" : "Последний год ({year})",
-    "This document is not yours. Log out and use the sign link again." : "Этот документ не ваш. Выйдите из системы и снова перейдите по ссылке для подписания."
+    "Last year ({year})" : "Последний год ({year})"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

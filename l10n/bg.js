@@ -109,6 +109,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Трябва да създадете профил, за да подпишете този файл.",
     "User already exists. Please login." : "Вече съществува потребител. Моля влезте.",
     "This is not your file" : "Това не е вашият файл",
+    "Authentication required" : "Нужно е удостоверяване",
     "User already exists" : "Вече съществува потребител",
     "%s is your LibreSign verification code." : "%sе вашият код за потвърждение на LibreSign. ",
     "Gateway %s not configured on Two-Factor Gateway." : "Шлюз %s не е конфигуриран на двустепенен шлюз.",
