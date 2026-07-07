@@ -1005,7 +1005,6 @@ OC.L10N.register(
     "Last 7 days" : "Die letzten 7 Tage",
     "Last 30 days" : "Die letzten 30 Tage",
     "This year ({year})" : "Dieses Jahr ({year})",
-    "Last year ({year})" : "Letztes Jahr ({year})",
-    "This document is not yours. Log out and use the sign link again." : "Dieses Dokument gehört nicht Ihnen. Bitte erneut anmelden und den Signatur-Link erneut verwenden."
+    "Last year ({year})" : "Letztes Jahr ({year})"
 },
 "nplurals=2; plural=(n != 1);");

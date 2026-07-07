@@ -16,6 +16,7 @@ OC.L10N.register(
     "Pending" : "O c'hortoz",
     "Account" : "Kont",
     "Email" : "Postel",
+    "Authentication required" : "Eus un dilesa ez eus ezhomp",
     "Cancel" : "Nullañ",
     "Save" : "Enrollañ",
     "Text" : "Testenn",

@@ -10,6 +10,7 @@ OC.L10N.register(
     "Pending" : "Na čekanju",
     "Invalid user" : "Nevažeči korisnik",
     "Email" : "E-pošta",
+    "Authentication required" : "Potrebna autentifikacija",
     "Cancel" : "Otkaži",
     "Save" : "Spremi",
     "Upload" : "Učitaj",

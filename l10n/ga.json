@@ -1003,7 +1003,6 @@
     "Last 7 days" : "7 lá seo caite",
     "Last 30 days" : "30 lá anuas",
     "This year ({year})" : "i mbliana ({year})",
-    "Last year ({year})" : "An bhliain seo caite {year}",
-    "This document is not yours. Log out and use the sign link again." : "Ní leatsa an doiciméad seo. Logáil amach agus bain úsáid as an nasc sínithe arís."
+    "Last year ({year})" : "An bhliain seo caite {year}"
 },"pluralForm" :"nplurals=5; plural=(n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4);"
 }
