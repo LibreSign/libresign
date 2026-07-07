@@ -45,17 +45,25 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private PdfSignatureValidationService&MockObject $pdfSignatureValidationService;
 	private PdfSignatureExtractor $pdfSignatureExtractor;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->certificateEngine = $this->createMock(IEngineHandler::class);
+		$this->certificateEngine->method('setPolicyUserIdForValidation')->willReturnSelf();
+		$this->certificateEngine->method('isSetupOk')->willReturn(true);
+		$this->certificateEngine->method('validateRootCertificate')->willReturnCallback(static function (): void {
+		});
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
 		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
 		$this->crlService = $this->createMock(CrlService::class);
+		$this->pdfSignatureValidationService = $this->createMock(PdfSignatureValidationService::class);
+		$this->pdfSignatureValidationService->method('validateFromResource')->willReturn([]);
+		$this->pdfSignatureExtractor = new PdfSignatureExtractor();
 
 		$this->certificateEngineFactory->method('getEngine')
 			->willReturn($this->certificateEngine);
