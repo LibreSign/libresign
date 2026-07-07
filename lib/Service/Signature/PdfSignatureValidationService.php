@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Signature;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Exception\UnsignedPdfException;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationResult;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationState;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureValidator;
@@ -76,15 +77,12 @@ class PdfSignatureValidationService {
 	 */
 	public function validateFromResource($resource): array {
 		try {
-			$results = $this->validator->validateFromResource($resource);
-			return $this->mapValidationResults($results);
-		} catch (\Throwable $e) {
-			$this->logger->warning('PDF signature validation failed', [
-				'error' => $e->getMessage(),
-				'trace' => $e->getTraceAsString(),
-			]);
+			$results = $this->validateNativeFromResource($resource);
+		} catch (UnsignedPdfException) {
 			return [];
 		}
+
+		return $this->mapValidationResults($results);
 	}
 
 	/**
@@ -95,15 +93,27 @@ class PdfSignatureValidationService {
 	 */
 	public function validateFromString(string $pdfContent): array {
 		try {
-			$results = $this->validator->validateFromString($pdfContent);
-			return $this->mapValidationResults($results);
-		} catch (\Throwable $e) {
-			$this->logger->warning('PDF signature validation failed', [
-				'error' => $e->getMessage(),
-				'trace' => $e->getTraceAsString(),
-			]);
+			$results = $this->validateNativeFromString($pdfContent);
+		} catch (UnsignedPdfException) {
 			return [];
 		}
+
+		return $this->mapValidationResults($results);
+	}
+
+	/**
+	 * @param resource $resource
+	 * @return list<array{signature: mixed, signatureValidation: ValidationResult, certificates: list<string>, certificateValidation: ValidationResult}>
+	 */
+	protected function validateNativeFromResource($resource): array {
+		return $this->validator->validateFromResource($resource);
+	}
+
+	/**
+	 * @return list<array{signature: mixed, signatureValidation: ValidationResult, certificates: list<string>, certificateValidation: ValidationResult}>
+	 */
+	protected function validateNativeFromString(string $pdfContent): array {
+		return $this->validator->validateFromString($pdfContent);
 	}
 
 	/**
