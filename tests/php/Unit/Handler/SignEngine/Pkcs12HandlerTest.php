@@ -467,4 +467,58 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame('Signature is valid.', $result[0]['chain'][0]['signature_validation']['label']);
 	}
 
+	public function testGetCertificateChainPropagatesUnexpectedNativeMetadataExtractionFailureAndResetsPolicyValidationContext(): void {
+		$this->logger->expects($this->never())->method('warning');
+
+		$policyCalls = [];
+		$certificateEngine = $this->createMock(IEngineHandler::class);
+		$certificateEngine->method('setPolicyUserIdForValidation')
+			->willReturnCallback(function (?string $userId) use (&$policyCalls, $certificateEngine) {
+				$policyCalls[] = $userId;
+				return $certificateEngine;
+			});
+
+		$certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
+		$certificateEngineFactory->method('getEngine')->willReturn($certificateEngine);
+
+		$handler = new class(
+			$this->folderService,
+			$this->appConfig,
+			$certificateEngineFactory,
+			$this->l10n,
+			$this->footerHandler,
+			$this->logger,
+			$this->caIdentifierService,
+			$this->docMdpHandler,
+			$this->crlService,
+			$this->pdfSignatureValidationService,
+			$this->pdfSignatureExtractor,
+		) extends Pkcs12Handler {
+			protected function extractNativeSignaturesFromContent(string $content): array {
+				throw new \RuntimeException('metadata boom');
+			}
+		};
+
+		$handler->setPolicyUserIdForValidation('requester');
+		$resource = fopen(__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf', 'r');
+		$this->assertIsResource($resource);
+
+		$thrown = null;
+		try {
+			$handler->getCertificateChain($resource);
+			$this->fail('Expected RuntimeException to be propagated.');
+		} catch (\RuntimeException $exception) {
+			$thrown = $exception;
+		} finally {
+			fclose($resource);
+		}
+
+		$this->assertInstanceOf(\RuntimeException::class, $thrown);
+		$this->assertSame('metadata boom', $thrown->getMessage());
+		$this->assertSame(['requester', null], $policyCalls);
+
+		$reflection = new \ReflectionProperty(Pkcs12Handler::class, 'policyUserIdForValidation');
+		$this->assertNull($reflection->getValue($handler));
+	}
+
 }
