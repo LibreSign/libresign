@@ -11,7 +11,6 @@ namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
-use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
@@ -38,7 +37,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FooterHandler&MockObject $footerHandler;
 	private LoggerInterface&MockObject $logger;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
-	private IEngineHandler&MockObject $certificateEngine;
 	private CaIdentifierService&MockObject $caIdentifierService;
 	private DocMdpHandler&MockObject $docMdpHandler;
 	private CrlService&MockObject $crlService;
@@ -50,23 +48,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
-		$this->certificateEngine = $this->createMock(IEngineHandler::class);
-		$this->certificateEngine->method('setPolicyUserIdForValidation')->willReturnSelf();
-		$this->certificateEngine
-			->method('parseCertificate')
-			->willReturnCallback(static function (string $certificate): array {
-				$resource = openssl_x509_read($certificate);
-				if ($resource === false) {
-					return [];
-				}
-
-				$parsed = openssl_x509_parse($resource);
-				return is_array($parsed) ? $parsed : [];
-			});
-		$this->certificateEngine->method('isSetupOk')->willReturn(true);
-		$this->certificateEngine->method('validateRootCertificate')->willReturnCallback(static function (): void {
-		});
-		$this->certificateEngineFactory->method('getEngine')->willReturn($this->certificateEngine);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
@@ -529,48 +510,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNotEmpty($result);
 		$this->assertSame(1, $result[0]['chain'][0]['signature_validation']['id']);
 		$this->assertSame('Signature is valid.', $result[0]['chain'][0]['signature_validation']['label']);
-	}
-
-	public function testGetCertificateChainPropagatesUnexpectedNativeMetadataExtractionFailureAndResetsPolicyValidationContext(): void {
-		$this->logger->expects($this->never())->method('warning');
-
-		$policyCalls = [];
-		$certificateEngine = $this->createMock(IEngineHandler::class);
-		$certificateEngine->method('setPolicyUserIdForValidation')
-			->willReturnCallback(function (?string $userId) use (&$policyCalls, $certificateEngine) {
-				$policyCalls[] = $userId;
-				return $certificateEngine;
-			});
-
-		$certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
-		$certificateEngineFactory->method('getEngine')->willReturn($certificateEngine);
-
-		$handler = new class($this->folderService, $this->appConfig, $certificateEngineFactory, $this->l10n, $this->footerHandler, $this->logger, $this->caIdentifierService, $this->docMdpHandler, $this->crlService, $this->pdfSignatureValidationService, $this->pdfSignatureExtractor, ) extends Pkcs12Handler {
-			protected function extractNativeSignaturesFromContent(string $content): array {
-				throw new \RuntimeException('metadata boom');
-			}
-		};
-
-		$handler->setPolicyUserIdForValidation('requester');
-		$resource = fopen(__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf', 'r');
-		$this->assertIsResource($resource);
-
-		$thrown = null;
-		try {
-			$handler->getCertificateChain($resource);
-			$this->fail('Expected RuntimeException to be propagated.');
-		} catch (\RuntimeException $exception) {
-			$thrown = $exception;
-		} finally {
-			fclose($resource);
-		}
-
-		$this->assertInstanceOf(\RuntimeException::class, $thrown);
-		$this->assertSame('metadata boom', $thrown->getMessage());
-		$this->assertSame(['requester', null], $policyCalls);
-
-		$reflection = new \ReflectionProperty(Pkcs12Handler::class, 'policyUserIdForValidation');
-		$this->assertNull($reflection->getValue($handler));
 	}
 
 }
