@@ -958,7 +958,6 @@ OC.L10N.register(
     "Last 7 days" : "Son 7 gün",
     "Last 30 days" : "Son 30 gün",
     "This year ({year})" : "Bu yıl ({year})",
-    "Last year ({year})" : "Son yıl ({year})",
-    "This document is not yours. Log out and use the sign link again." : "Bu belge sizin değil. Oturumu kapatın ve yeniden oturum açma bağlantısını kullanın."
+    "Last year ({year})" : "Son yıl ({year})"
 },
 "nplurals=2; plural=(n > 1);");

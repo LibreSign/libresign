@@ -1005,7 +1005,6 @@ OC.L10N.register(
     "Last 7 days" : "Paskutinės 7 dienos",
     "Last 30 days" : "Paskutinės 30 dienų",
     "This year ({year})" : "Šie metai ({year})",
-    "Last year ({year})" : "Praėję metai ({year})",
-    "This document is not yours. Log out and use the sign link again." : "Šis dokumentas ne jūsų. Atsijunkite ir dar kartą naudokite pasirašymo nuorodą."
+    "Last year ({year})" : "Praėję metai ({year})"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

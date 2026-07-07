@@ -202,6 +202,7 @@ OC.L10N.register(
     "Signer name" : "Meno podpisujúceho",
     "Select your file" : "Vyberte váš súbor",
     "Choose" : "Vybrať",
+    "Upload failed" : "Nahrávanie zlyhalo",
     "Upload from URL" : "Nahrať z URL",
     "Choose from Files" : "Vybrať zo Súborov",
     "URL of a PDF file" : "URL pre PDF súbor",

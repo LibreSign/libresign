@@ -957,7 +957,6 @@ OC.L10N.register(
     "Last 7 days" : "過去7日",
     "Last 30 days" : "過去30日",
     "This year ({year})" : "今年 ({year})",
-    "Last year ({year})" : "去年 ({year})",
-    "This document is not yours. Log out and use the sign link again." : "此文件不是您的。請登出並重新使用簽署連結。"
+    "Last year ({year})" : "去年 ({year})"
 },
 "nplurals=1; plural=0;");
