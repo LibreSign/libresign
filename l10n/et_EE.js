@@ -775,7 +775,6 @@ OC.L10N.register(
     "Last 7 days" : "Viimase 7 päeva jooksul",
     "Last 30 days" : "Viimase 30 päeva jooksul",
     "This year ({year})" : "Sel aastal ({year})",
-    "Last year ({year})" : "Eelmisel aastal ({year})",
-    "This document is not yours. Log out and use the sign link again." : "See pole sinu dokument. Logi välja ja kasuta allkirjastamise linki uuesti."
+    "Last year ({year})" : "Eelmisel aastal ({year})"
 },
 "nplurals=2; plural=(n != 1);");
