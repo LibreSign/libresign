@@ -10,20 +10,28 @@ namespace OCA\Libresign\Tests\Unit\Service\Signature;
 
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Tests\Unit\TestCase;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Exception\UnsignedPdfException;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationResult;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationState;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 final class PdfSignatureValidationServiceTest extends TestCase {
+	private IAppConfig&MockObject $appConfig;
 	private IL10N&MockObject $l10n;
+	private LoggerInterface&MockObject $logger;
 
 	public function setUp(): void {
 		parent::setUp();
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->appConfig->method('getValueString')->willReturn('');
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
 			->willReturnCallback(static fn (string $text): string => $text);
+		$this->logger = $this->createMock(LoggerInterface::class);
 	}
 
 	public function testMapSignatureValidationWithEnumState(): void {
@@ -73,6 +81,32 @@ final class PdfSignatureValidationServiceTest extends TestCase {
 		);
 
 		$this->assertSame('custom runtime detail', $result['reason']);
+	}
+
+	public function testValidateFromStringReturnsEmptyListForUnsignedPdfException(): void {
+		$this->logger->expects($this->never())->method('warning');
+
+		$service = new class($this->appConfig, $this->l10n, $this->logger) extends PdfSignatureValidationService {
+			protected function validateNativeFromString(string $pdfContent): array {
+				throw new UnsignedPdfException('Unsigned file.');
+			}
+		};
+
+		$this->assertSame([], $service->validateFromString('%PDF-1.7'));
+	}
+
+	public function testValidateFromStringPropagatesUnexpectedRuntimeException(): void {
+		$this->logger->expects($this->never())->method('warning');
+
+		$service = new class($this->appConfig, $this->l10n, $this->logger) extends PdfSignatureValidationService {
+			protected function validateNativeFromString(string $pdfContent): array {
+				throw new \RuntimeException('validator boom');
+			}
+		};
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('validator boom');
+		$service->validateFromString('%PDF-1.7');
 	}
 
 	private function newServiceWithoutConstructor(): PdfSignatureValidationService {
