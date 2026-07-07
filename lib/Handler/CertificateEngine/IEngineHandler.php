@@ -78,8 +78,6 @@ interface IEngineHandler {
 	 */
 	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation, int $crlNumber): string;
 
-	public function setPolicyUserIdForValidation(?string $userId): self;
-
 	/**
 	 * Parse an X.509 certificate and return its details with CRL validation
 	 * @param string $certificate PEM-encoded certificate
