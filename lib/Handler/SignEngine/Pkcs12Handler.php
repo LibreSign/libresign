@@ -36,7 +36,6 @@ class Pkcs12Handler extends SignEngineHandler {
 	private ?JSignPdfHandler $jSignPdfHandler = null;
 	private string $rootCertificatePem = '';
 	private bool $isLibreSignFile = false;
-	private ?string $policyUserIdForValidation = null;
 
 	public function __construct(
 		private FolderService $folderService,
@@ -52,11 +51,6 @@ class Pkcs12Handler extends SignEngineHandler {
 		private PdfSignatureExtractor $pdfSignatureExtractor,
 	) {
 		parent::__construct($l10n, $folderService, $logger);
-	}
-
-	#[\Override]
-	protected function getCertificateEngineFactory(): CertificateEngineFactory {
-		return $this->certificateEngineFactory;
 	}
 
 	/**
@@ -94,14 +88,6 @@ class Pkcs12Handler extends SignEngineHandler {
 		$this->isLibreSignFile = true;
 	}
 
-	public function setPolicyUserIdForValidation(?string $userId): self {
-		$this->policyUserIdForValidation = is_string($userId) && trim($userId) !== ''
-			? trim($userId)
-			: null;
-
-		return $this;
-	}
-
 	/**
 	 * @param resource $resource
 	 * @throws LibresignException When is not a signed file
@@ -110,40 +96,32 @@ class Pkcs12Handler extends SignEngineHandler {
 	#[\Override]
 	public function getCertificateChain($resource): array {
 		$certificates = [];
-		$certificateEngine = $this->getCertificateEngine();
-		$certificateEngine->setPolicyUserIdForValidation($this->policyUserIdForValidation);
+		$nativeMetadata = array_values($this->extractNativeSignatureMetadata($resource));
+		rewind($resource);
+		$nativeValidation = array_values($this->pdfSignatureValidationService->validateFromResource($resource));
+		$index = 0;
 
-		try {
-			$nativeMetadata = array_values($this->extractNativeSignatureMetadata($resource));
-			rewind($resource);
-			$nativeValidation = array_values($this->pdfSignatureValidationService->validateFromResource($resource));
-			$index = 0;
+		foreach ($this->getSignatures($resource) as $signature) {
+			$metadata = $nativeMetadata[$index] ?? [];
+			$validation = $nativeValidation[$index] ?? [];
+			$index++;
 
-			foreach ($this->getSignatures($resource) as $signature) {
-				$metadata = $nativeMetadata[$index] ?? [];
-				$validation = $nativeValidation[$index] ?? [];
-				$index++;
-
-				if (!$signature) {
-					continue;
-				}
-
-				$result = $this->processSignature(
-					$resource,
-					$signature,
-					$metadata,
-					$validation
-				);
-
-				if (empty($result['chain'])) {
-					continue;
-				}
-
-				$certificates[] = $result;
+			if (!$signature) {
+				continue;
 			}
-		} finally {
-			$certificateEngine->setPolicyUserIdForValidation(null);
-			$this->policyUserIdForValidation = null;
+
+			$result = $this->processSignature(
+				$resource,
+				$signature,
+				$metadata,
+				$validation
+			);
+
+			if (empty($result['chain'])) {
+				continue;
+			}
+
+			$certificates[] = $result;
 		}
 
 		return $certificates;
