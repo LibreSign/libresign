@@ -44,7 +44,6 @@ OC.L10N.register(
     "Type" : "Typo",
     "Comment" : "Commentario",
     "Actions" : "Actiones",
-    "User" : "User",
     "Revoke" : "Revocar",
     "Type:" : "Typo:",
     "Rename" : "Renominar",
@@ -55,12 +54,14 @@ OC.L10N.register(
     "New password" : "Nove contrasigno",
     "Refresh" : "Refrescar",
     "Resource" : "Ressource",
-    "Reminders" : "Memento",
+    "Enabled" : "Activate",
+    "Optional" : "Optional",
+    "Username" : "Nomine de usator",
     "Yes" : "Si",
     "No" : "No",
-    "Username" : "Nomine de usator",
-    "Optional" : "Optional",
     "_{count} file_::_{count} files_" : ["{count} file","{count} files"],
-    "Today" : "Hodie"
+    "Today" : "Hodie",
+    "User" : "User",
+    "Reminders" : "Memento"
 },
 "nplurals=2; plural=(n != 1);");
