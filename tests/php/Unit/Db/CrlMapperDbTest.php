@@ -21,12 +21,10 @@ use PHPUnit\Framework\Attributes\DataProvider;
  */
 final class CrlMapperDbTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CrlMapper $crlMapper;
-	private IDBConnection $connection;
 
 	public function setUp(): void {
 		parent::setUp();
 		$this->crlMapper = Server::get(CrlMapper::class);
-		$this->connection = Server::get(IDBConnection::class);
 		$this->cleanupCrlTable();
 	}
 
@@ -85,7 +83,11 @@ final class CrlMapperDbTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	private function cleanupCrlTable(): void {
-		$this->connection->getQueryBuilder()
+		$connection = Server::get(IDBConnection::class);
+		if ($connection === null) {
+			return;
+		}
+		$connection->getQueryBuilder()
 			->delete('libresign_crl')
 			->executeStatement();
 	}
