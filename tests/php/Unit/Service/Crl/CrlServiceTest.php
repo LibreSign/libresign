@@ -347,7 +347,7 @@ class CrlServiceTest extends TestCase {
 		$this->assertFalse($result);
 	}
 
-	public function testRevokeCertificateCatchesThrowable(): void {
+	public function testRevokeCertificateDoesNotSwallowErrors(): void {
 		$serialNumber = '999999';
 
 		$this->generatedCrlStorage->expects($this->never())->method('markStale');
@@ -357,17 +357,13 @@ class CrlServiceTest extends TestCase {
 			->with($serialNumber)
 			->willThrowException(new \Error('boom'));
 
-		$this->logger->expects($this->once())
-			->method('warning')
-			->with(
-				'Failed to revoke certificate {serial}',
-				$this->callback(fn (array $context): bool => $context['serial'] === $serialNumber
-					&& isset($context['error']))
-			);
+		$this->logger->expects($this->never())
+			->method('warning');
 
-		$result = $this->service->revokeCertificate($serialNumber);
+		$this->expectException(\Error::class);
+		$this->expectExceptionMessage('boom');
 
-		$this->assertFalse($result);
+		$this->service->revokeCertificate($serialNumber);
 	}
 
 	public function testRevokeCertificateReturnsTrueEvenWhenMarkStaleFails(): void {
