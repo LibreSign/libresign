@@ -164,7 +164,7 @@ class GeneratedCrlStorageService {
 		$meta['refreshDate'] = '1970-01-01';
 		try {
 			$this->writeFileWithSimpleFolder($scopeFolder, self::METADATA_FILE, json_encode($meta, JSON_THROW_ON_ERROR));
-		} catch (\Throwable) {
+		} catch (\Exception) {
 			// Write failure is non-critical: the CRL DER is still available for
 			// concurrent requests and will be fully refreshed on the next request
 			// that sees isFresh=false (by mtime fallback) or on the next daily cron.
