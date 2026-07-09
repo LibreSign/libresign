@@ -18,6 +18,11 @@
       <directory suffix="Test.php">Unit</directory>
     </testsuite>
   </testsuites>
+  <groups>
+    <exclude>
+      <group>DB</group>
+    </exclude>
+  </groups>
   <coverage>
     <report>
       <clover outputFile="../../build/logs/clover.xml"/>

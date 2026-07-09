@@ -25,12 +25,8 @@ final class CrlMapperDbTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		parent::setUp();
-		$connection = Server::get(IDBConnection::class);
-		if ($connection === null) {
-			$this->markTestSkipped('Database connection not available');
-		}
-		$this->connection = $connection;
 		$this->crlMapper = Server::get(CrlMapper::class);
+		$this->connection = Server::get(IDBConnection::class);
 		$this->cleanupCrlTable();
 	}
 
