@@ -12,6 +12,7 @@ namespace OCA\Libresign\Tests\Unit\Db;
 use OCA\Libresign\Db\Crl;
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Enum\CRLStatus;
+use OCP\IDBConnection;
 use OCP\Server;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -82,9 +83,13 @@ final class CrlMapperDbTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	private function cleanupCrlTable(): void {
-		foreach ($this->crlMapper->findIssuedByOwner('scope-tester') as $cert) {
-			$this->crlMapper->delete($cert);
+		$connection = Server::get(IDBConnection::class);
+		if ($connection === null) {
+			return;
 		}
+		$connection->getQueryBuilder()
+			->delete('libresign_crl')
+			->executeStatement();
 	}
 
 	private function buildCertificate(
