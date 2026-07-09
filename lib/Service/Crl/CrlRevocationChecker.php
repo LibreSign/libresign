@@ -32,10 +32,18 @@ class CrlRevocationChecker {
 	/** @var array<string, string|null> */
 	private array $localCrlRequestCache = [];
 
+	/** @var array<string, string|null> */
+	private array $parsedCrlTextRequestCache = [];
+
+	/** @var array<string, array{status: CrlValidationStatus, revoked_at?: string}> */
+	private array $validationResultRequestCache = [];
+
 	/** Distributed cache for externally downloaded CRL content (TTL: 24 h). */
 	private ICache $cache;
 
 	private const BINARY_CACHE_PREFIX = 'base64:';
+	private const PARSED_TEXT_CACHE_PREFIX = 'parsed_text:';
+	private const PARSED_TEXT_CACHE_TTL = 86400;
 
 	public function __construct(
 		private IConfig $config,
@@ -177,6 +185,10 @@ class CrlRevocationChecker {
 				$this->logger->debug('Skipping local CRL generation because source PKI config path is missing', [
 					'reason' => $e->getMessage(),
 				]);
+			} elseif ($e instanceof \RuntimeException && str_contains($e->getMessage(), 'already in progress')) {
+				$this->logger->debug('Local CRL generation is already in progress', [
+					'reason' => $e->getMessage(),
+				]);
 			} else {
 				$this->logger->warning('Failed to generate local CRL: ' . $e->getMessage());
 			}
@@ -299,42 +311,68 @@ class CrlRevocationChecker {
 				return ['status' => CrlValidationStatus::VALIDATION_ERROR];
 			}
 
-			$tempCrlFile = $this->tempManager->getTemporaryFile('.crl');
-			file_put_contents($tempCrlFile, $crlContent);
+			$serialCandidates = [$certData['serialNumber']];
+			if (!empty($certData['serialNumberHex'])) {
+				$serialCandidates[] = $certData['serialNumberHex'];
+			}
 
-			try {
-				[$output, $exitCode] = $this->execOpenSslCrl($tempCrlFile);
+			$validationCacheKey = $this->buildValidationCacheKey($serialCandidates, $crlContent);
+			if (array_key_exists($validationCacheKey, $this->validationResultRequestCache)) {
+				return $this->validationResultRequestCache[$validationCacheKey];
+			}
 
-				if ($exitCode !== 0) {
-					return ['status' => CrlValidationStatus::VALIDATION_ERROR];
-				}
+			$crlText = $this->getParsedCrlText($crlContent);
+			if ($crlText === null) {
+				return $this->validationResultRequestCache[$validationCacheKey] = ['status' => CrlValidationStatus::VALIDATION_ERROR];
+			}
 
-				$crlText = implode("\n", $output);
-				$serialCandidates = [$certData['serialNumber']];
-				if (!empty($certData['serialNumberHex'])) {
-					$serialCandidates[] = $certData['serialNumberHex'];
-				}
-
-				foreach ($serialCandidates as $serial) {
-					if ($this->isSerialNumberInCrl($crlText, $serial)) {
-						$revokedAt = $this->extractRevocationDateFromCrlText($crlText, $serialCandidates);
-						return array_filter([
-							'status' => CrlValidationStatus::REVOKED,
-							'revoked_at' => $revokedAt,
-						]);
-					}
-				}
-
-				return ['status' => CrlValidationStatus::VALID];
-			} finally {
-				if (file_exists($tempCrlFile)) {
-					unlink($tempCrlFile);
+			foreach ($serialCandidates as $serial) {
+				if ($this->isSerialNumberInCrl($crlText, $serial)) {
+					$revokedAt = $this->extractRevocationDateFromCrlText($crlText, $serialCandidates);
+					return $this->validationResultRequestCache[$validationCacheKey] = array_filter([
+						'status' => CrlValidationStatus::REVOKED,
+						'revoked_at' => $revokedAt,
+					]);
 				}
 			}
 
+			return $this->validationResultRequestCache[$validationCacheKey] = ['status' => CrlValidationStatus::VALID];
 		} catch (\Exception) {
 			return ['status' => CrlValidationStatus::VALIDATION_ERROR];
 		}
+	}
+
+	protected function getParsedCrlText(string $crlContent): ?string {
+		$contentHash = sha1($crlContent);
+
+		if (array_key_exists($contentHash, $this->parsedCrlTextRequestCache)) {
+			return $this->parsedCrlTextRequestCache[$contentHash];
+		}
+
+		$cacheKey = self::PARSED_TEXT_CACHE_PREFIX . $contentHash;
+		$cached = $this->cache->get($cacheKey);
+		if ($cached !== null) {
+			return $this->parsedCrlTextRequestCache[$contentHash] = is_string($cached) ? $cached : null;
+		}
+
+		$tempFile = $this->tempManager->getTemporaryFile('.der');
+		if (!file_put_contents($tempFile, $crlContent)) {
+			return $this->parsedCrlTextRequestCache[$contentHash] = null;
+		}
+
+		[$output, $exitCode] = $this->execOpenSslCrl($tempFile);
+
+		if ($exitCode !== 0 || empty($output)) {
+			return $this->parsedCrlTextRequestCache[$contentHash] = null;
+		}
+
+		$crlText = implode("\n", $output);
+		$this->cache->set($cacheKey, $crlText, self::PARSED_TEXT_CACHE_TTL);
+		return $this->parsedCrlTextRequestCache[$contentHash] = $crlText;
+	}
+
+	protected function buildValidationCacheKey(array $serialCandidates, string $crlContent): string {
+		return sha1(implode(',', $serialCandidates) . ':' . sha1($crlContent));
 	}
 
 	/**

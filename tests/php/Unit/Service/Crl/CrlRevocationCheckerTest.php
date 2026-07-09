@@ -32,6 +32,7 @@ use Psr\Log\LoggerInterface;
 class CrlRevocationCheckerTestable extends CrlRevocationChecker {
 	private ?CrlService $crlService = null;
 	private string|false|null $remoteCrlContent = null;
+	private ?array $execOpenSslCrlResult = null;
 
 	public function publicIsSerialNumberInCrl(string $crlText, string $serialNumber): bool {
 		return $this->isSerialNumberInCrl($crlText, $serialNumber);
@@ -53,12 +54,24 @@ class CrlRevocationCheckerTestable extends CrlRevocationChecker {
 		return $this->downloadCrlContent($url);
 	}
 
+	public function publicGetParsedCrlText(string $crlContent): ?string {
+		return $this->getParsedCrlText($crlContent);
+	}
+
+	public function publicBuildValidationCacheKey(array $serialCandidates, string $crlContent): string {
+		return $this->buildValidationCacheKey($serialCandidates, $crlContent);
+	}
+
 	public function setCrlService(CrlService $crlService): void {
 		$this->crlService = $crlService;
 	}
 
 	public function setRemoteCrlContent(string|false|null $remoteCrlContent): void {
 		$this->remoteCrlContent = $remoteCrlContent;
+	}
+
+	public function setExecOpenSslCrlResult(array $result): void {
+		$this->execOpenSslCrlResult = $result;
 	}
 
 	#[\Override]
@@ -77,6 +90,15 @@ class CrlRevocationCheckerTestable extends CrlRevocationChecker {
 		}
 
 		return parent::fetchRemoteCrlContent($url, $context);
+	}
+
+	#[\Override]
+	protected function execOpenSslCrl(string $tempCrlFile): array {
+		if ($this->execOpenSslCrlResult !== null) {
+			return $this->execOpenSslCrlResult;
+		}
+
+		return parent::execOpenSslCrl($tempCrlFile);
 	}
 }
 
