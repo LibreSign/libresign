@@ -251,18 +251,7 @@ class PageController extends AEnvironmentPageAwareController {
 				$this->fileService->setSignRequest($signRequest);
 			}
 
-			$this->initialState->provideInitialState('file_info',
-				$this->fileService
-					->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
-					->setHost($this->request->getServerHost())
-					->setMe($this->userSession->getUser())
-					->showVisibleElements()
-					->showSigners()
-					->showSettings()
-					->showMessages()
-					->showValidateFile()
-					->toArray()
-			);
+			$this->provideDeferredValidationFileInfo($matches['uuid']);
 		} elseif (preg_match('/sign\/(?<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/', $path, $matches)) {
 			try {
 				$signRequest = $this->signFileService->getSignRequestByUuid($matches['uuid']);
@@ -684,30 +673,11 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->fileService->setSignRequest($signRequest);
 		}
 
-		$fileInfo = $this->fileService
-			->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
-			->setHost($this->request->getServerHost())
-			->showVisibleElements()
-			->showSigners()
-			->showSettings()
-			->showMessages()
-			->showValidateFile()
-			->toArray();
-
-		$requesterUserId = null;
-		$requestedBy = $fileInfo['requested_by'] ?? null;
-		if (is_array($requestedBy) && is_string($requestedBy['userId'] ?? null)) {
-			$requestedByUserId = trim($requestedBy['userId']);
-			$requesterUserId = $requestedByUserId !== '' ? $requestedByUserId : null;
-		}
-
 		$this->initialState->provideInitialState('effective_policies', [
-			'policies' => $requesterUserId !== null
-				? $this->policyService->resolveKnownPolicyStatesForUserIdWithoutUserScope($requesterUserId)
-				: $this->policyService->resolveKnownPolicyStates(),
+			'policies' => $this->policyService->resolveKnownPolicyStates(),
 		]);
 
-		$this->initialState->provideInitialState('file_info', $fileInfo);
+		$this->provideDeferredValidationFileInfo($uuid);
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
 		if (class_exists(LoadViewer::class)) {
@@ -716,5 +686,23 @@ class PageController extends AEnvironmentPageAwareController {
 		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
 
 		return $response;
+	}
+
+	/**
+	 * Provide a lightweight placeholder for file_info initial state.
+	 *
+	 * The validation page SPA fetches fresh data via the validate API on mount,
+	 * so the heavy server-side preload is redundant. This method provides only
+	 * the UUID so the frontend can issue its API call with the correct identifier.
+	 */
+	private function provideDeferredValidationFileInfo(string $uuid): void {
+		$this->initialState->provideInitialState('file_info', [
+			'uuid' => $uuid,
+			'name' => '',
+			'files' => [],
+			'filesCount' => 0,
+			'signers' => [],
+			'messages' => [],
+		]);
 	}
 }
