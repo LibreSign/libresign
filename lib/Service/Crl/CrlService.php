@@ -101,7 +101,7 @@ class CrlService {
 				$crlNumber,
 				$revokedAt,
 			);
-		} catch (\Throwable $exception) {
+		} catch (\Exception $exception) {
 			$this->logger->warning('Failed to revoke certificate {serial}', [
 				'serial' => $serialNumber,
 				'error' => $exception->getMessage(),
@@ -114,7 +114,7 @@ class CrlService {
 		// too so an unexpected exception never rolls back a successful revocation.
 		try {
 			$this->invalidateGeneratedCrlCache($instanceId, $generation, $engineType);
-		} catch (\Throwable $exception) {
+		} catch (\Exception $exception) {
 			$this->logger->debug('Failed to invalidate CRL cache after revocation (non-critical)', [
 				'serial' => $serialNumber,
 				'error' => $exception->getMessage(),
