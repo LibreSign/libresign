@@ -306,7 +306,7 @@ class GeneratedCrlStorageService {
 
 	private function replaceFileAtomicallyOnLocalStorage(Folder $folder, File $tmpFile, string $fileName): bool {
 		$storage = $folder->getStorage();
-		if (!$storage->isLocal() || !$storage instanceof \OC\Files\Storage\Local) {
+		if (!$storage->isLocal() || !($storage instanceof \OC\Files\Storage\Local)) {
 			return false;
 		}
 
