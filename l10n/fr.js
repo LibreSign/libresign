@@ -316,6 +316,7 @@ OC.L10N.register(
     "Unordered list" : "Liste non triée",
     "Ordered list" : "Liste triée",
     "Blockquote" : "Citation",
+    "Inline code" : "Code inséré",
     "Code block" : "Bloc de code",
     "Link" : "Lien",
     "Undo" : "Annuler",
