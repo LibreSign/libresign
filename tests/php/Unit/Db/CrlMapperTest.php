@@ -50,4 +50,34 @@ class CrlMapperTest extends TestCase {
 		$this->assertTrue($certificate->isExpired());
 		$this->assertFalse($certificate->isValid());
 	}
+
+	/**
+	 * Verifies the entity-level properties that the getRevokedCertificates()
+	 * expiry filter relies upon: a revoked-but-expired certificate has both
+	 * isRevoked() and isExpired() truthy. The SQL filter (valid_to IS NULL OR
+	 * valid_to >= NOW) is the DB-side enforcement; this test documents the
+	 * domain invariant at the entity level.
+	 */
+	public function testRevokedExpiredCertificateHasBothFlags(): void {
+		$certificate = new Crl();
+		$certificate->setStatus(CRLStatus::REVOKED);
+		$certificate->setValidTo(new DateTime('-1 day'));
+		$certificate->setRevokedAt(new DateTime('-2 days'));
+
+		$this->assertTrue($certificate->isRevoked(), 'Certificate should still be marked revoked');
+		$this->assertTrue($certificate->isExpired(), 'Certificate should be expired');
+	}
+
+	/**
+	 * A revoked certificate without an expiry date (valid_to IS NULL) must
+	 * always appear in CRL output — the SQL filter passes NULL rows through.
+	 */
+	public function testRevokedCertificateWithNullValidToIsNotExpired(): void {
+		$certificate = new Crl();
+		$certificate->setStatus(CRLStatus::REVOKED);
+		$certificate->setValidTo(null);
+
+		$this->assertTrue($certificate->isRevoked());
+		$this->assertFalse($certificate->isExpired(), 'No valid_to means never expires');
+	}
 }

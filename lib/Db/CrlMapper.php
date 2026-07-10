@@ -136,6 +136,15 @@ class CrlMapper extends QBMapper {
 		$qb->select('*')
 			->from($this->getTableName())
 			->where($qb->expr()->eq('status', $qb->createNamedParameter(CRLStatus::REVOKED->value)))
+			// Omit expired certificates from the CRL. Per RFC 5280, certificate
+			// consumers already reject expired certs on expiry grounds; omitting
+			// them keeps the CRL compact and generation fast.
+			->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->isNull('valid_to'),
+					$qb->expr()->gte('valid_to', $qb->createNamedParameter(new \DateTime(), IQueryBuilder::PARAM_DATE)),
+				)
+			)
 			->orderBy('revoked_at', 'DESC');
 
 		if ($instanceId !== '') {

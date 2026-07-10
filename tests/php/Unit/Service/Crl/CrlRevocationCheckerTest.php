@@ -32,6 +32,7 @@ use Psr\Log\LoggerInterface;
 class CrlRevocationCheckerTestable extends CrlRevocationChecker {
 	private ?CrlService $crlService = null;
 	private string|false|null $remoteCrlContent = null;
+	private ?array $execOpenSslCrlResult = null;
 
 	public function publicIsSerialNumberInCrl(string $crlText, string $serialNumber): bool {
 		return $this->isSerialNumberInCrl($crlText, $serialNumber);
@@ -53,12 +54,24 @@ class CrlRevocationCheckerTestable extends CrlRevocationChecker {
 		return $this->downloadCrlContent($url);
 	}
 
+	public function publicGetParsedCrlText(string $crlContent): ?string {
+		return $this->getParsedCrlText($crlContent);
+	}
+
+	public function publicBuildValidationCacheKey(array $serialCandidates, string $crlContent): string {
+		return $this->buildValidationCacheKey($serialCandidates, $crlContent);
+	}
+
 	public function setCrlService(CrlService $crlService): void {
 		$this->crlService = $crlService;
 	}
 
 	public function setRemoteCrlContent(string|false|null $remoteCrlContent): void {
 		$this->remoteCrlContent = $remoteCrlContent;
+	}
+
+	public function setExecOpenSslCrlResult(array $result): void {
+		$this->execOpenSslCrlResult = $result;
 	}
 
 	#[\Override]
@@ -77,6 +90,15 @@ class CrlRevocationCheckerTestable extends CrlRevocationChecker {
 		}
 
 		return parent::fetchRemoteCrlContent($url, $context);
+	}
+
+	#[\Override]
+	protected function execOpenSslCrl(string $tempCrlFile): array {
+		if ($this->execOpenSslCrlResult !== null) {
+			return $this->execOpenSslCrlResult;
+		}
+
+		return parent::execOpenSslCrl($tempCrlFile);
 	}
 }
 
@@ -421,6 +443,98 @@ class CrlRevocationCheckerTest extends TestCase {
 				'Serial absent from CRL text should not match',
 			],
 		];
+	}
+
+	public function testGetParsedCrlTextCachesResultPerRequest(): void {
+		$crlContent = 'FAKE-DER-CONTENT';
+		$crlText = "Revoked Certificates:\n    Serial Number: 0A\n        Revocation Date: Jan 28 12:34:56 2026 GMT";
+
+		$this->tempManager->expects($this->once())
+			->method('getTemporaryFile')
+			->willReturn(tempnam(sys_get_temp_dir(), 'crl_test_'));
+
+		$this->checker->setExecOpenSslCrlResult([explode("\n", $crlText), 0]);
+
+		$this->crlCache->expects($this->once())
+			->method('get')
+			->willReturn(null);
+		$this->crlCache->expects($this->once())
+			->method('set');
+
+		$first = $this->checker->publicGetParsedCrlText($crlContent);
+		$second = $this->checker->publicGetParsedCrlText($crlContent);
+
+		$this->assertSame($first, $second, 'Second call must return cached result');
+	}
+
+	public function testGetParsedCrlTextReturnsDistributedCacheHit(): void {
+		$crlContent = 'FAKE-DER-CONTENT';
+		$cachedText = 'already-parsed-text';
+
+		$this->crlCache->expects($this->once())
+			->method('get')
+			->with('parsed_text:' . sha1($crlContent))
+			->willReturn($cachedText);
+
+		$this->tempManager->expects($this->never())
+			->method('getTemporaryFile');
+
+		$result = $this->checker->publicGetParsedCrlText($crlContent);
+
+		$this->assertSame($cachedText, $result);
+	}
+
+	public function testBuildValidationCacheKeyIsDeterministic(): void {
+		$serials = ['AB', 'ab'];
+		$crlContent = 'SOME-DER-CONTENT';
+
+		$key1 = $this->checker->publicBuildValidationCacheKey($serials, $crlContent);
+		$key2 = $this->checker->publicBuildValidationCacheKey($serials, $crlContent);
+
+		$this->assertSame($key1, $key2, 'Same inputs must produce same cache key');
+	}
+
+	public function testBuildValidationCacheKeyDiffersForDifferentSerials(): void {
+		$crlContent = 'SOME-DER-CONTENT';
+
+		$key1 = $this->checker->publicBuildValidationCacheKey(['AA'], $crlContent);
+		$key2 = $this->checker->publicBuildValidationCacheKey(['BB'], $crlContent);
+
+		$this->assertNotSame($key1, $key2, 'Different serials must produce different cache keys');
+	}
+
+	public function testBuildValidationCacheKeyDiffersForDifferentCrlContent(): void {
+		$serials = ['AB'];
+
+		$key1 = $this->checker->publicBuildValidationCacheKey($serials, 'CONTENT-A');
+		$key2 = $this->checker->publicBuildValidationCacheKey($serials, 'CONTENT-B');
+
+		$this->assertNotSame($key1, $key2, 'Different CRL content must produce different cache keys');
+	}
+
+	public function testGenerateLocalCrlLogsDebugWhenAlreadyInProgress(): void {
+		$this->mockCrlRouteUrlGenerator();
+
+		$crlService = $this->createMock(CrlService::class);
+		$crlService->expects($this->once())
+			->method('generateCrlDer')
+			->willThrowException(new \RuntimeException('CRL generation is already in progress for abc123/4/o'));
+
+		$this->checker->setCrlService($crlService);
+
+		$this->logger->expects($this->never())->method('warning');
+		$this->logger->expects($this->once())
+			->method('debug')
+			->with(
+				'Local CRL generation is already in progress',
+				$this->callback(fn (array $context): bool => isset($context['reason'])
+					&& str_contains($context['reason'], 'already in progress'))
+			);
+
+		$url = 'https://cloud.example.com/apps/libresign/crl/libresign_abc123_4_o.crl';
+		$result = $this->checker->publicGenerateLocalCrl($url);
+
+		$this->assertNull($result);
 	}
 
 }
