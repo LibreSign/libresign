@@ -138,7 +138,7 @@ final class GeneratedCrlStorageServiceTest extends TestCase {
 	}
 
 	#[DataProvider('simpleFsWriteFallbackProvider')]
-	public function testWriteFallsBackToSimpleFsWhenRichAppDataNodesCannotBeResolved(bool $filesAlreadyExist): void {
+	public function testWriteAlwaysUsesSimpleFsDirectly(bool $filesAlreadyExist): void {
 		$folder = $this->createMock(ISimpleFolder::class);
 		$createdFiles = [];
 		$updatedFiles = [];
@@ -156,12 +156,9 @@ final class GeneratedCrlStorageServiceTest extends TestCase {
 			->method('newFolder')
 			->willReturn($folder);
 
-		$this->rootFolder->method('getAppDataDirectoryName')
-			->willReturn('appdata_test');
-
-		$this->rootFolder->expects($this->exactly(2))
-			->method('get')
-			->willThrowException(new \TypeError('Cannot assign null to property OC\\Files\\Cache\\Scanner::$connection of type OCP\\IDBConnection'));
+		// rootFolder->get() must never be called: write() uses SimpleFS directly.
+		$this->rootFolder->expects($this->never())
+			->method('get');
 
 		$folder->expects($this->exactly(2))
 			->method('fileExists')
@@ -211,6 +208,78 @@ final class GeneratedCrlStorageServiceTest extends TestCase {
 			'refreshDate' => '2026-06-14',
 			'engineType' => 'o',
 		], json_decode($createdFiles['meta.json'] ?? '', true));
+	}
+
+	public function testMarkStaleUpdatesRefreshDateToEpoch(): void {
+		$rootFolder = $this->createMock(ISimpleFolder::class);
+		$generatedFolder = $this->createMock(ISimpleFolder::class);
+		$instanceFolder = $this->createMock(ISimpleFolder::class);
+		$generationFolder = $this->createMock(ISimpleFolder::class);
+		$scopeFolder = $this->createMock(ISimpleFolder::class);
+
+		$this->appData->method('getFolder')
+			->with('/')
+			->willReturn($rootFolder);
+		$rootFolder->method('getFolder')->with('generated_crl')->willReturn($generatedFolder);
+		$generatedFolder->method('getFolder')->with('instance-a')->willReturn($instanceFolder);
+		$instanceFolder->method('getFolder')->with('1')->willReturn($generationFolder);
+		$generationFolder->method('getFolder')->with('o')->willReturn($scopeFolder);
+
+		$existingMetaContent = '{"refreshDate":"2026-06-14","engineType":"o"}';
+		$existingMetaFile = $this->createMock(ISimpleFile::class);
+		$existingMetaFile->method('getContent')->willReturn($existingMetaContent);
+
+		$writtenContent = null;
+		$existingMetaFile->expects($this->once())
+			->method('putContent')
+			->willReturnCallback(function (string $content) use (&$writtenContent): void {
+				$writtenContent = $content;
+			});
+
+		$scopeFolder->method('fileExists')->willReturn(true);
+		$scopeFolder->method('getFile')->willReturn($existingMetaFile);
+
+		$this->service->markStale('instance-a', 1, 'o');
+
+		$writtenMeta = json_decode($writtenContent ?? '', true);
+		$this->assertSame('1970-01-01', $writtenMeta['refreshDate'] ?? null);
+		$this->assertSame('o', $writtenMeta['engineType'] ?? null);
+	}
+
+	public function testMarkStaleIgnoresMissingScopes(): void {
+		$this->mockScopeLookup(null, null);
+
+		$this->service->markStale('instance-a', 1, 'o');
+
+		$this->addToAssertionCount(1);
+	}
+
+	public function testMarkStaleSwallowsWriteFailures(): void {
+		$rootFolder = $this->createMock(ISimpleFolder::class);
+		$generatedFolder = $this->createMock(ISimpleFolder::class);
+		$instanceFolder = $this->createMock(ISimpleFolder::class);
+		$generationFolder = $this->createMock(ISimpleFolder::class);
+		$scopeFolder = $this->createMock(ISimpleFolder::class);
+
+		$this->appData->method('getFolder')
+			->with('/')
+			->willReturn($rootFolder);
+		$rootFolder->method('getFolder')->with('generated_crl')->willReturn($generatedFolder);
+		$generatedFolder->method('getFolder')->with('instance-a')->willReturn($instanceFolder);
+		$instanceFolder->method('getFolder')->with('1')->willReturn($generationFolder);
+		$generationFolder->method('getFolder')->with('o')->willReturn($scopeFolder);
+
+		$metaFile = $this->createMock(ISimpleFile::class);
+		$metaFile->method('getContent')->willReturn('{"refreshDate":"2026-06-14"}');
+		$metaFile->method('putContent')->willThrowException(new \RuntimeException('disk full'));
+
+		$scopeFolder->method('fileExists')->willReturn(true);
+		$scopeFolder->method('getFile')->willReturn($metaFile);
+
+		// Must not throw
+		$this->service->markStale('instance-a', 1, 'o');
+
+		$this->addToAssertionCount(1);
 	}
 
 	public function testWriteSkipsPersistenceWhenSimpleAppDataRootCannotBeResolved(): void {

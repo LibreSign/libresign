@@ -100,9 +100,6 @@ class CrlService {
 				$crlNumber,
 				$revokedAt,
 			);
-			$this->invalidateGeneratedCrlCache($instanceId, $generation, $engineType);
-
-			return true;
 		} catch (\Exception $exception) {
 			$this->logger->warning('Failed to revoke certificate {serial}', [
 				'serial' => $serialNumber,
@@ -110,6 +107,20 @@ class CrlService {
 			]);
 			return false;
 		}
+
+		// DB revocation succeeded. Invalidating the CRL cache is best-effort:
+		// markStale() handles its own write errors internally, but guard here
+		// too so an unexpected exception never rolls back a successful revocation.
+		try {
+			$this->invalidateGeneratedCrlCache($instanceId, $generation, $engineType);
+		} catch (\Exception $exception) {
+			$this->logger->debug('Failed to invalidate CRL cache after revocation (non-critical)', [
+				'serial' => $serialNumber,
+				'error' => $exception->getMessage(),
+			]);
+		}
+
+		return true;
 	}
 
 	/**
@@ -316,7 +327,10 @@ class CrlService {
 	}
 
 	private function invalidateGeneratedCrlCache(string $instanceId, int $generation, string $engineType): void {
-		$this->generatedCrlStorage->delete($instanceId, $generation, $engineType);
+		// Mark as stale rather than deleting: the CRL DER stays available for
+		// concurrent requests (isReusable = true) while one request regenerates.
+		// Deleting would force every concurrent validation to wait cold-start.
+		$this->generatedCrlStorage->markStale($instanceId, $generation, $engineType);
 	}
 
 	private function normalizeEngineType(string $engineType): CertificateEngineType {
