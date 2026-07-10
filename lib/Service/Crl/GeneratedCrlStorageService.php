@@ -112,14 +112,16 @@ class GeneratedCrlStorageService {
 			return;
 		}
 
-		$this->writeScopeFile($relativePath, $scopeFolder, self::GENERATED_CRL_FILE, $crlDer);
+		// Use the SimpleFS API directly: it is the correct abstraction for AppData
+		// writes and avoids low-level Nextcloud VFS cache inconsistencies that can
+		// occur with wrapped storages (e.g. Files_Trashbin) on atomic rename paths.
+		$this->writeFileWithSimpleFolder($scopeFolder, self::GENERATED_CRL_FILE, $crlDer);
 
 		if ($metadata !== []) {
-			$this->writeScopeFile(
-				$relativePath,
+			$this->writeFileWithSimpleFolder(
 				$scopeFolder,
 				self::METADATA_FILE,
-				json_encode($metadata, JSON_THROW_ON_ERROR)
+				json_encode($metadata, JSON_THROW_ON_ERROR),
 			);
 		}
 	}
@@ -137,6 +139,36 @@ class GeneratedCrlStorageService {
 		}
 
 		$scopeFolder->delete();
+	}
+
+	/**
+	 * Mark the persisted CRL as stale without deleting the DER content.
+	 *
+	 * Sets refreshDate to a past value so `isPersistedGeneratedCrlFresh()` returns
+	 * false, triggering a background regeneration on the next request that needs the
+	 * CRL. Concurrent requests can still read the existing (slightly outdated) DER
+	 * via the `isReusable` path, preventing cold-start delays after each revocation.
+	 */
+	public function markStale(string $instanceId, int $generation, string $engineType): void {
+		try {
+			$scopeFolder = $this->getScopeFolder($this->getScopeRelativePath($instanceId, $generation, $engineType));
+		} catch (NotFoundException) {
+			return;
+		}
+
+		if ($scopeFolder === null) {
+			return;
+		}
+
+		$meta = $this->readMetadata($instanceId, $generation, $engineType) ?? [];
+		$meta['refreshDate'] = '1970-01-01';
+		try {
+			$this->writeFileWithSimpleFolder($scopeFolder, self::METADATA_FILE, json_encode($meta, JSON_THROW_ON_ERROR));
+		} catch (\Exception) {
+			// Write failure is non-critical: the CRL DER is still available for
+			// concurrent requests and will be fully refreshed on the next request
+			// that sees isFresh=false (by mtime fallback) or on the next daily cron.
+		}
 	}
 
 	private function getScopeRelativePath(string $instanceId, int $generation, string $engineType): string {
@@ -234,6 +266,11 @@ class GeneratedCrlStorageService {
 			// Some unit-test/bootstrap environments cannot resolve AppData root nodes,
 			// so fall back to the SimpleFS handle we already created for this scope.
 			$this->writeFileWithSimpleFolder($simpleFolder, $fileName, $content);
+		} catch (\Exception) {
+			// The atomic write path can fail in environments where AppData is exposed
+			// through a wrapped storage (e.g. Files_Trashbin) whose file-cache does
+			// not track the temporary file created here. Fall back to a simple write.
+			$this->writeFileWithSimpleFolder($simpleFolder, $fileName, $content);
 		}
 	}
 
@@ -255,6 +292,10 @@ class GeneratedCrlStorageService {
 				return;
 			}
 
+			if ($folder->nodeExists($fileName)) {
+				$folder->get($fileName)->delete();
+			}
+
 			$tmpFile->move($folder->getFullPath($fileName));
 		} finally {
 			if ($folder->nodeExists($tmpName)) {
@@ -265,7 +306,7 @@ class GeneratedCrlStorageService {
 
 	private function replaceFileAtomicallyOnLocalStorage(Folder $folder, File $tmpFile, string $fileName): bool {
 		$storage = $folder->getStorage();
-		if (!$storage->isLocal()) {
+		if (!$storage->isLocal() || !($storage instanceof \OC\Files\Storage\Local)) {
 			return false;
 		}
 

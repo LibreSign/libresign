@@ -245,9 +245,9 @@ class CrlServiceTest extends TestCase {
 				});
 		}
 
-		$expectedDeleteCalls = $expectedRevoked > 0 ? 1 : 0;
-		$this->generatedCrlStorage->expects($this->exactly($expectedDeleteCalls))
-			->method('delete')
+		$expectedMarkStaleCalls = $expectedRevoked > 0 ? 1 : 0;
+		$this->generatedCrlStorage->expects($this->exactly($expectedMarkStaleCalls))
+			->method('markStale')
 			->with('test-instance', 1, 'openssl');
 
 		if ($expectWarning) {
@@ -306,7 +306,7 @@ class CrlServiceTest extends TestCase {
 			);
 
 		$this->generatedCrlStorage->expects($this->once())
-			->method('delete')
+			->method('markStale')
 			->with('test-instance', 1, 'openssl');
 
 		$result = $this->service->revokeCertificate($serialNumber, $reason, $reasonText, $revokedBy);
@@ -320,7 +320,7 @@ class CrlServiceTest extends TestCase {
 		$certificate->setSerialNumber($serialNumber);
 		$certificate->setEngine('openssl');
 
-		$this->generatedCrlStorage->expects($this->never())->method('delete');
+		$this->generatedCrlStorage->expects($this->never())->method('markStale');
 
 		$this->crlMapper->expects($this->once())
 			->method('findBySerialNumber')
@@ -350,7 +350,7 @@ class CrlServiceTest extends TestCase {
 	public function testRevokeCertificateDoesNotSwallowErrors(): void {
 		$serialNumber = '999999';
 
-		$this->generatedCrlStorage->expects($this->never())->method('delete');
+		$this->generatedCrlStorage->expects($this->never())->method('markStale');
 
 		$this->crlMapper->expects($this->once())
 			->method('findBySerialNumber')
@@ -364,6 +364,45 @@ class CrlServiceTest extends TestCase {
 		$this->expectExceptionMessage('boom');
 
 		$this->service->revokeCertificate($serialNumber);
+	}
+
+	public function testRevokeCertificateReturnsTrueEvenWhenMarkStaleFails(): void {
+		$serialNumber = '123456';
+
+		$certificate = new Crl();
+		$certificate->setInstanceId('test-instance');
+		$certificate->setGeneration(1);
+		$certificate->setEngine('openssl');
+
+		$this->crlMapper->expects($this->once())
+			->method('findBySerialNumber')
+			->with($serialNumber)
+			->willReturn($certificate);
+
+		$this->crlMapper->expects($this->once())
+			->method('getLastCrlNumber')
+			->willReturn(0);
+
+		$this->crlMapper->expects($this->once())
+			->method('revokeCertificateEntity')
+			->willReturn($certificate);
+
+		$this->generatedCrlStorage->expects($this->once())
+			->method('markStale')
+			->willThrowException(new \RuntimeException('storage unavailable'));
+
+		// Cache failure logged at debug, not warning
+		$this->logger->expects($this->never())->method('warning');
+		$this->logger->expects($this->once())
+			->method('debug')
+			->with(
+				'Failed to invalidate CRL cache after revocation (non-critical)',
+				$this->callback(fn (array $context): bool => isset($context['serial']) && isset($context['error']))
+			);
+
+		$result = $this->service->revokeCertificate($serialNumber);
+
+		$this->assertTrue($result);
 	}
 
 	public static function freshPersistedCrlProvider(): array {
