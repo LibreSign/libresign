@@ -909,6 +909,7 @@ OC.L10N.register(
     "You cannot request signature for this document, please contact your administrator" : "Você não pode solicitar assinatura para este documento, por favor, entre em contato com o administrador",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: Alterações em um arquivo para você assinar",
     "File to sign" : "Arquivo para assinar",
+    "LibreSign: There is a file for you to sign" : "LibreSign: Há um documento para assinar",
     "View signed file »%s«" : "Ver arquivo assinado »%s«",
     "LibreSign: Code to sign file" : "LibreSign: Código para assinar arquivo",
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "Data em que o signatário enviou a solicitação de assinatura (sem hora, no fuso horário local dele).",
