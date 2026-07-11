@@ -12,14 +12,10 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SessionService;
-use OCA\TwoFactorGateway\Provider\Gateway\Factory;
-use OCP\App\IAppManager;
+use OCA\Libresign\Service\TwofactorGatewayService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\IRootFolder;
 use OCP\IUserSession;
-use OCP\Server;
-use Psr\Log\LoggerInterface;
-use Throwable;
 
 class TwofactorGateway extends AbstractIdentifyMethod {
 	public function __construct(
@@ -30,8 +26,7 @@ class TwofactorGateway extends AbstractIdentifyMethod {
 		private SessionService $sessionService,
 		private FileElementMapper $fileElementMapper,
 		private IUserSession $userSession,
-		private LoggerInterface $logger,
-		private IAppManager $appManager,
+		private TwofactorGatewayService $twofactorGatewayService,
 	) {
 		parent::__construct(
 			$identifyService,
@@ -60,26 +55,7 @@ class TwofactorGateway extends AbstractIdentifyMethod {
 	}
 
 	public function isTwofactorGatewayEnabled(): bool {
-		$isAppEnabled = $this->appManager->isEnabledForAnyone('twofactor_gateway');
-		if (!$isAppEnabled) {
-			return false;
-		}
-		/** @var Factory */
-		$gatewayFactory = Server::get(Factory::class);
-
-		$gatewayName = $this->getGatewayName();
-
-		try {
-			$gateway = $gatewayFactory->get($gatewayName);
-			return $gateway->isComplete();
-		} catch (Throwable $exception) {
-			$this->logger->warning('Unable to load twofactor gateway provider.', [
-				'gateway' => $gatewayName,
-				'identifyMethod' => $this->getId(),
-				'exception' => $exception,
-			]);
-			return false;
-		}
+		return $this->twofactorGatewayService->isGatewayComplete($this->getGatewayName());
 	}
 
 	private function getGatewayName(): string {

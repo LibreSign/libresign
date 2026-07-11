@@ -8,14 +8,12 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
-use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\MailService;
+use OCA\Libresign\Service\TwofactorGatewayService;
 use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\IL10N;
 use OCP\Security\IHasher;
 use OCP\Security\ISecureRandom;
-use OCP\Server;
-use Psr\Container\NotFoundExceptionInterface;
 
 class TokenService {
 	public const TOKEN_LENGTH = 6;
@@ -25,32 +23,23 @@ class TokenService {
 		private IHasher $hasher,
 		private MailService $mail,
 		private IL10N $l10n,
+		private TwofactorGatewayService $twofactorGatewayService,
 	) {
 	}
 
 	public function sendCodeByGateway(string $identifier, string $gatewayName): string {
-		$gateway = $this->getGateway($gatewayName);
-
-		$code = $this->secureRandom->generate(self::TOKEN_LENGTH, ISecureRandom::CHAR_DIGITS);
-		$gateway->send($identifier, $this->l10n->t('%s is your LibreSign verification code.', $code));
-		return $this->hasher->hash($code);
-	}
-
-	/**
-	 * @throws OCSForbiddenException
-	 * @return \OCA\TwoFactorGateway\Provider\Gateway\IGateway
-	 */
-	private function getGateway(string $gatewayName) {
-		try {
-			$factory = Server::get(\OCA\TwoFactorGateway\Provider\Gateway\Factory::class);
-		} catch (NotFoundExceptionInterface) {
-			throw new LibresignException('App Two-Factor Gateway is not installed.');
-		}
-		$gateway = $factory->get($gatewayName);
-		if (!$gateway->isComplete()) {
+		$this->twofactorGatewayService->ensureAvailable($gatewayName);
+		if (!$this->twofactorGatewayService->isGatewayComplete($gatewayName)) {
 			throw new OCSForbiddenException($this->l10n->t('Gateway %s not configured on Two-Factor Gateway.', $gatewayName));
 		}
-		return $gateway;
+
+		$code = $this->secureRandom->generate(self::TOKEN_LENGTH, ISecureRandom::CHAR_DIGITS);
+		$this->twofactorGatewayService->send(
+			$gatewayName,
+			$identifier,
+			$this->l10n->t('%s is your LibreSign verification code.', $code)
+		);
+		return $this->hasher->hash($code);
 	}
 
 	public function sendCodeByEmail(string $email, string $displayName): string {
