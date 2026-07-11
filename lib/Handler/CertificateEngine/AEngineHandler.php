@@ -896,9 +896,8 @@ abstract class AEngineHandler implements IEngineHandler {
 			$dateFormat = 'D, d M Y H:i:s O';
 			foreach ($revokedCertificates as $cert) {
 				$serialNumber = $cert->getSerialNumber();
-				$normalizedSerial = ltrim((string)$serialNumber, '0') ?: '0';
 				$crlToSign->revoke(
-					new \OCA\Libresign\Vendor\phpseclib3\Math\BigInteger($normalizedSerial, 16),
+					$this->normalizeRevokedCertificateSerialForCrl((string)$serialNumber),
 					$cert->getRevokedAt()->format($dateFormat)
 				);
 			}
@@ -918,6 +917,16 @@ abstract class AEngineHandler implements IEngineHandler {
 		}
 
 		return $signedCrl;
+	}
+
+	private function normalizeRevokedCertificateSerialForCrl(string $serialNumber): string {
+		$normalizedSerial = ltrim($serialNumber, '0') ?: '0';
+
+		if (ctype_digit($normalizedSerial)) {
+			return $normalizedSerial;
+		}
+
+		return (new \OCA\Libresign\Vendor\phpseclib3\Math\BigInteger($normalizedSerial, 16))->toString();
 	}
 
 	private function saveCrlToDer(array $signedCrl, string $configPath): string {
