@@ -36,7 +36,7 @@ final class IdentifyMethodsPolicyValue {
 					}
 				}
 			}
-			$normalization = self::normalizeFactors($defaultFactors, null, null);
+			$normalization = self::normalizeFactors($defaultFactors, null);
 			$normalized = $normalization['factors'];
 			if ($catalogFactors !== []) {
 				$normalized = self::mergeFactorsWithCatalog($normalized, $catalogFactors);

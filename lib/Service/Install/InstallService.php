@@ -95,7 +95,7 @@ class InstallService {
 		return $this;
 	}
 
-	private function getFolder(string $path = '', ?ISimpleFolder $folder = null, $needToBeEmpty = false): ISimpleFolder {
+	private function getFolder(string $path = '', ?ISimpleFolder $folder = null, bool $needToBeEmpty = false): ISimpleFolder {
 		if (!$folder) {
 			$folder = $this->appData->getFolder('/');
 			if (!$path) {
@@ -112,7 +112,7 @@ class InstallService {
 			return $folder;
 		}
 		try {
-			$folder = $folder->getFolder($path, $folder);
+			$folder = $folder->getFolder($path);
 			if ($needToBeEmpty && $path !== $this->architecture) {
 				$folder->delete();
 				$path = '';

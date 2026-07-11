@@ -18,20 +18,45 @@
             <directory name="lib/Handler/Templates" />
         </ignoreFiles>
     </projectFiles>
+    <!--
+        Load external Nextcloud server code only as type context.
+        Public OCP APIs already come from vendor/nextcloud/ocp; extraFiles are
+        limited to app/core internals that LibreSign uses directly.
+    -->
+    <extraFiles>
+        <file name="../../lib/OC.php" />
+        <directory name="../../lib/private" />
+        <directory name="../../apps/files/lib" />
+        <directory name="../../apps/files_sharing/lib" />
+        <directory name="../../apps/settings/lib/Mailer" />
+        <directory name="../../apps/dav/lib/Connector/Sabre" />
+        <directory name="../../3rdparty/sabre/dav/lib/DAV" />
+        <directory name="../../3rdparty/sabre/event/lib" />
+        <directory name="../../3rdparty/doctrine/dbal/src" />
+        <directory name="../../3rdparty/stecman/symfony-console-completion/src" />
+    </extraFiles>
+    <!--
+        Global level stays at 5, but these issue families are ratcheted to
+        error because they have been high-signal in LibreSign and help tighten
+        analysis without jumping wholesale to level 4.
+    -->
     <issueHandlers>
         <LessSpecificReturnStatement errorLevel="error"/>
         <LessSpecificReturnType errorLevel="error"/>
         <LessSpecificImplementedReturnType errorLevel="error"/>
         <MoreSpecificReturnType errorLevel="error"/>
+        <ImplementedParamTypeMismatch errorLevel="error"/>
+        <ImplicitToStringCast errorLevel="error"/>
+        <InvalidDocblock errorLevel="error"/>
+        <MismatchingDocblockParamType errorLevel="error"/>
+        <MismatchingDocblockReturnType errorLevel="error"/>
+        <TooManyArguments errorLevel="error"/>
+        <UndefinedMagicMethod errorLevel="error"/>
         <UndefinedClass>
             <errorLevel type="suppress">
-                <referencedClass name="Doctrine\DBAL\Types\Types" />
                 <referencedClass name="GuzzleHttp\*" />
                 <referencedClass name="OC" />
                 <referencedClass name="OC\*" />
-                <referencedClass name="OCA\Files\Event\LoadSidebar" />
-                <referencedClass name="OCA\TwoFactorGateway\Service\Gateway\IGateway" />
-                <referencedClass name="Sabre\DAV\UUIDUtil" />
             </errorLevel>
         </UndefinedClass>
         <UndefinedDocblockClass>
@@ -43,8 +68,17 @@
             </errorLevel>
         </UndefinedDocblockClass>
     </issueHandlers>
+    <!--
+        Local stubs are kept only for optional integrations absent from this
+        checkout, or for very small internal seams where a focused contract is
+        safer than loading and analyzing a large upstream implementation.
+        When possible, stub file paths mirror the represented namespace path.
+    -->
     <stubs>
-        <file name="tests/stubs/oc_hooks_emitter.php" />
-        <file name="tests/stubs/psr_http_client.php" />
+        <file name="tests/stubs/OC/Core/Command/Base.php" />
+        <file name="tests/stubs/OC/Hooks/Emitter.php" />
+        <file name="tests/stubs/OCA/TwoFactorGateway/Provider/Gateway/Factory.php" />
+        <file name="tests/stubs/OCA/TwoFactorGateway/Provider/Gateway/IGateway.php" />
+        <file name="tests/stubs/Psr/Http/Client/ClientInterface.php" />
     </stubs>
 </psalm>
