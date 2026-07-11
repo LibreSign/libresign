@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Listener;
 
-use OCA\Files\Event\LoadAdditionalScriptsEvent;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCP\App\IAppManager;
@@ -17,9 +16,11 @@ use OCP\EventDispatcher\IEventListener;
 use OCP\Util;
 
 /**
- * @template-implements IEventListener<LoadAdditionalScriptsEvent>
+ * @template-implements IEventListener<Event>
  */
 class LoadAdditionalListener implements IEventListener {
+	private const FILES_LOAD_ADDITIONAL_SCRIPTS_EVENT = 'OCA\\Files\\Event\\LoadAdditionalScriptsEvent';
+
 	public function __construct(
 		private IAppManager $appManager,
 		private CertificateEngineFactory $certificateEngineFactory,
@@ -27,7 +28,7 @@ class LoadAdditionalListener implements IEventListener {
 	}
 	#[\Override]
 	public function handle(Event $event): void {
-		if (!($event instanceof LoadAdditionalScriptsEvent)) {
+		if (!is_a($event, self::FILES_LOAD_ADDITIONAL_SCRIPTS_EVENT)) {
 			return;
 		}
 
