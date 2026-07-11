@@ -10,10 +10,9 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Controller\Traits\UploadValidator;
-use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
+use OCA\Libresign\Service\ActiveSigningsService;
 use OCA\Libresign\Service\Certificate\ValidateService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -67,7 +66,7 @@ class AdminController extends AEnvironmentAwareController {
 		private CertificatePolicyService $certificatePolicyService,
 		private ValidateService $validateService,
 		private IdentifyMethodService $identifyMethodService,
-		private FileMapper $fileMapper,
+		private ActiveSigningsService $activeSigningsService,
 		private SetupCheckResultService $setupCheckResultService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -461,22 +460,8 @@ class AdminController extends AEnvironmentAwareController {
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/active-signings', requirements: ['apiVersion' => '(v1)'])]
 	public function getActiveSignings(): DataResponse {
 		try {
-			$activeSignings = $this->fileMapper->findByStatus(FileStatus::SIGNING_IN_PROGRESS->value);
-
-			$result = [];
-			foreach ($activeSignings as $file) {
-				$result[] = [
-					'id' => $file->getId(),
-					'uuid' => $file->getUuid(),
-					'name' => $file->getName(),
-					'signerEmail' => $file->getSignerEmail() ?? '',
-					'signerDisplayName' => $file->getSignerName() ?? '',
-					'updatedAt' => $file->getUpdatedAt(),
-				];
-			}
-
 			return new DataResponse([
-				'data' => $result,
+				'data' => $this->activeSigningsService->getActiveSignings(),
 			]);
 		} catch (\Exception $e) {
 			return new DataResponse([
