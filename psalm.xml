@@ -20,25 +20,6 @@
         </ignoreFiles>
     </projectFiles>
     <!--
-        Load upstream Nextcloud server code as type context.
-        In local development these paths are provided by the adjacent server
-        checkout; in app-only environments the Psalm bootstrap script mirrors
-        that layout before analysis starts.
-    -->
-    <extraFiles>
-        <file name="../../lib/OC.php" />
-        <directory name="../../core/Command" />
-        <directory name="../../lib/private" />
-        <directory name="../../apps/files/lib" />
-        <directory name="../../apps/files_sharing/lib" />
-        <directory name="../../apps/settings/lib/Mailer" />
-        <directory name="../../apps/dav/lib/Connector/Sabre" />
-        <directory name="../../3rdparty/sabre/dav/lib/DAV" />
-        <directory name="../../3rdparty/sabre/event/lib" />
-        <directory name="../../3rdparty/doctrine/dbal/src" />
-        <directory name="../../3rdparty/stecman/symfony-console-completion/src" />
-    </extraFiles>
-    <!--
         Global level stays at 5, but these issue families are ratcheted to
         error because they have been high-signal in LibreSign and help tighten
         analysis without jumping wholesale to level 4.
@@ -71,4 +52,20 @@
             </errorLevel>
         </UndefinedDocblockClass>
     </issueHandlers>
+    <!--
+        Keep local stubs focused on small app/internal seams that are absent
+        from nextcloud/ocp in this repository checkout. For shared third-party
+        contracts, prefer real packages over widening the stub surface.
+    -->
+    <stubs>
+        <file name="tests/stubs/OC/Core/Command/Base.php" />
+        <file name="tests/stubs/OC/Hooks/Emitter.php" />
+        <file name="tests/stubs/OCA/DAV/Connector/Sabre/Directory.php" />
+        <file name="tests/stubs/OCA/DAV/Connector/Sabre/File.php" />
+        <file name="tests/stubs/OCA/Files/Command/ScanAppData.php" />
+        <file name="tests/stubs/OCA/Files/Controller/ViewController.php" />
+        <file name="tests/stubs/OCA/Files/Event/LoadSidebar.php" />
+        <file name="tests/stubs/OCA/Files_Sharing/SharedStorage.php" />
+        <file name="tests/stubs/OCA/Settings/Mailer/NewUserMailHelper.php" />
+    </stubs>
 </psalm>
