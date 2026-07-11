@@ -22,7 +22,8 @@
     <!--
         Load upstream Nextcloud server code as type context.
         In local development these paths are provided by the adjacent server
-        checkout; in CI the Psalm workflow mirrors that layout before running.
+        checkout; in app-only environments the Psalm bootstrap script mirrors
+        that layout before analysis starts.
     -->
     <extraFiles>
         <file name="../../lib/OC.php" />

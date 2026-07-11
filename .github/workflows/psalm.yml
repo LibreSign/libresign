@@ -33,34 +33,6 @@ jobs:
         id: versions
         uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2.3.1.3.2
 
-      - name: Checkout Nextcloud server for Psalm context
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          repository: nextcloud/server
-          ref: ${{ steps.versions.outputs.branches-max }}
-          path: nextcloud-server
-          persist-credentials: false
-          fetch-depth: 1
-          sparse-checkout: |
-            3rdparty/doctrine/dbal/src
-            3rdparty/sabre/dav/lib/DAV
-            3rdparty/sabre/event/lib
-            3rdparty/stecman/symfony-console-completion/src
-            apps/dav/lib/Connector/Sabre
-            apps/files/lib
-            apps/files_sharing/lib
-            apps/settings/lib/Mailer
-            core/Command
-            lib
-
-      - name: Mirror Nextcloud server tree for Psalm
-        run: |
-          shared_root="$(dirname "$(dirname "$GITHUB_WORKSPACE")")"
-          ln -sfn "$GITHUB_WORKSPACE/nextcloud-server/3rdparty" "$shared_root/3rdparty"
-          ln -sfn "$GITHUB_WORKSPACE/nextcloud-server/apps" "$shared_root/apps"
-          ln -sfn "$GITHUB_WORKSPACE/nextcloud-server/core" "$shared_root/core"
-          ln -sfn "$GITHUB_WORKSPACE/nextcloud-server/lib" "$shared_root/lib"
-
       - name: Check enforcement of minimum PHP version ${{ steps.versions.outputs.php-min }} in psalm.xml
         run: grep 'phpVersion="${{ steps.versions.outputs.php-min }}' psalm.xml
 
