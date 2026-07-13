@@ -35,7 +35,7 @@ final class TwofactorGatewayServiceTest extends TestCase {
 	public function testEnsureAvailableThrowsWhenFactoryServiceIsMissing(): void {
 		$this->appManager->method('isEnabledForAnyone')->with('twofactor_gateway')->willReturn(true);
 		$this->container->method('get')
-			->with('OCA\\TwoFactorGateway\\Provider\\Gateway\\Factory')
+			->with('OCA\\TwoFactorGateway\\Service\\GatewayDirectIntegrationService')
 			->willThrowException(new class extends \Exception implements NotFoundExceptionInterface {
 			});
 
@@ -57,8 +57,8 @@ final class TwofactorGatewayServiceTest extends TestCase {
 		$this->appManager->method('isEnabledForAnyone')->with('twofactor_gateway')->willReturn(true);
 		$this->logger->expects($this->never())->method('warning');
 		$this->container->method('get')
-			->with('OCA\\TwoFactorGateway\\Provider\\Gateway\\Factory')
-			->willReturn(new TwofactorGatewayFactoryStub(new TwofactorGatewayProviderStub($gatewayComplete)));
+			->with('OCA\\TwoFactorGateway\\Service\\GatewayDirectIntegrationService')
+			->willReturn(new TwofactorGatewayIntegrationStub($gatewayComplete));
 
 		self::assertSame($gatewayComplete, $this->createService()->isGatewayComplete('sms'));
 	}
@@ -70,36 +70,39 @@ final class TwofactorGatewayServiceTest extends TestCase {
 		];
 	}
 
-	public function testIsGatewayCompleteReturnsFalseWhenProviderContractChanges(): void {
+	public function testIsGatewayCompleteReturnsFalseWhenIntegrationContractChanges(): void {
 		$this->appManager->method('isEnabledForAnyone')->with('twofactor_gateway')->willReturn(true);
 		$this->logger->expects($this->once())
 			->method('warning')
 			->with(
-				'Twofactor gateway provider does not expose isComplete().',
+				'Unable to determine twofactor gateway completeness.',
 				$this->arrayHasKey('gateway')
 			);
 		$this->container->method('get')
-			->with('OCA\\TwoFactorGateway\\Provider\\Gateway\\Factory')
-			->willReturn(new TwofactorGatewayFactoryStub(new class {
-				public function send(string $identifier, string $message): void {
+			->with('OCA\\TwoFactorGateway\\Service\\GatewayDirectIntegrationService')
+			->willReturn(new class {
+				public function ensureAvailable(string $gatewayName): void {
 				}
-			}));
+
+				public function send(string $gatewayName, string $identifier, string $message): void {
+				}
+			});
 
 		self::assertFalse($this->createService()->isGatewayComplete('sms'));
 	}
 
 	public function testSendForwardsIdentifierAndMessage(): void {
 		$this->appManager->method('isEnabledForAnyone')->with('twofactor_gateway')->willReturn(true);
-		$provider = new TwofactorGatewayProviderStub(true);
+		$integrationService = new TwofactorGatewayIntegrationStub(true);
 		$this->container->method('get')
-			->with('OCA\\TwoFactorGateway\\Provider\\Gateway\\Factory')
-			->willReturn(new TwofactorGatewayFactoryStub($provider));
+			->with('OCA\\TwoFactorGateway\\Service\\GatewayDirectIntegrationService')
+			->willReturn($integrationService);
 
 		$this->createService()->send('sms', '+5511999999999', 'hello');
 
 		self::assertSame([
-			['identifier' => '+5511999999999', 'message' => 'hello'],
-		], $provider->sentMessages);
+			['gateway' => 'sms', 'identifier' => '+5511999999999', 'message' => 'hello'],
+		], $integrationService->sentMessages);
 	}
 
 	private function createService(): TwofactorGatewayService {
@@ -111,19 +114,8 @@ final class TwofactorGatewayServiceTest extends TestCase {
 	}
 }
 
-final class TwofactorGatewayFactoryStub {
-	public function __construct(
-		private object $gateway,
-	) {
-	}
-
-	public function get(string $name): object {
-		return $this->gateway;
-	}
-}
-
-final class TwofactorGatewayProviderStub {
-	/** @var list<array{identifier: string, message: string}> */
+final class TwofactorGatewayIntegrationStub {
+	/** @var list<array{gateway: string, identifier: string, message: string}> */
 	public array $sentMessages = [];
 
 	public function __construct(
@@ -131,12 +123,16 @@ final class TwofactorGatewayProviderStub {
 	) {
 	}
 
-	public function isComplete(): bool {
+	public function ensureAvailable(string $gatewayName): void {
+	}
+
+	public function isGatewayComplete(string $gatewayName): bool {
 		return $this->complete;
 	}
 
-	public function send(string $identifier, string $message): void {
+	public function send(string $gatewayName, string $identifier, string $message): void {
 		$this->sentMessages[] = [
+			'gateway' => $gatewayName,
 			'identifier' => $identifier,
 			'message' => $message,
 		];

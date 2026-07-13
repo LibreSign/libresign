@@ -46,8 +46,8 @@ final class TokenServiceTest extends TestCase {
 	public function testSendCodeByGatewayThrowsWhenGatewayIsIncomplete(): void {
 		$this->appManager->method('isEnabledForAnyone')->with('twofactor_gateway')->willReturn(true);
 		$this->container->method('get')
-			->with('OCA\\TwoFactorGateway\\Provider\\Gateway\\Factory')
-			->willReturn(new TokenServiceGatewayFactoryStub(new TokenServiceGatewayProviderStub(false)));
+			->with('OCA\\TwoFactorGateway\\Service\\GatewayDirectIntegrationService')
+			->willReturn(new TokenServiceGatewayIntegrationStub(false));
 		$this->secureRandom->expects($this->never())
 			->method('generate');
 		$this->l10n->method('t')
@@ -63,10 +63,10 @@ final class TokenServiceTest extends TestCase {
 
 	public function testSendCodeByGatewayUsesGatewayServiceAndReturnsHashedCode(): void {
 		$this->appManager->method('isEnabledForAnyone')->with('twofactor_gateway')->willReturn(true);
-		$provider = new TokenServiceGatewayProviderStub(true);
+		$integrationService = new TokenServiceGatewayIntegrationStub(true);
 		$this->container->method('get')
-			->with('OCA\\TwoFactorGateway\\Provider\\Gateway\\Factory')
-			->willReturn(new TokenServiceGatewayFactoryStub($provider));
+			->with('OCA\\TwoFactorGateway\\Service\\GatewayDirectIntegrationService')
+			->willReturn($integrationService);
 		$this->secureRandom->expects($this->once())
 			->method('generate')
 			->with(TokenService::TOKEN_LENGTH, ISecureRandom::CHAR_DIGITS)
@@ -82,8 +82,8 @@ final class TokenServiceTest extends TestCase {
 
 		self::assertSame('hashed-code', $this->createService()->sendCodeByGateway('+5511999999999', 'sms'));
 		self::assertSame([
-			['identifier' => '+5511999999999', 'message' => '123456 is your LibreSign verification code.'],
-		], $provider->sentMessages);
+			['gateway' => 'sms', 'identifier' => '+5511999999999', 'message' => '123456 is your LibreSign verification code.'],
+		], $integrationService->sentMessages);
 	}
 
 	private function createService(): TokenService {
@@ -101,19 +101,8 @@ final class TokenServiceTest extends TestCase {
 	}
 }
 
-final class TokenServiceGatewayFactoryStub {
-	public function __construct(
-		private object $gateway,
-	) {
-	}
-
-	public function get(string $name): object {
-		return $this->gateway;
-	}
-}
-
-final class TokenServiceGatewayProviderStub {
-	/** @var list<array{identifier: string, message: string}> */
+final class TokenServiceGatewayIntegrationStub {
+	/** @var list<array{gateway: string, identifier: string, message: string}> */
 	public array $sentMessages = [];
 
 	public function __construct(
@@ -121,12 +110,16 @@ final class TokenServiceGatewayProviderStub {
 	) {
 	}
 
-	public function isComplete(): bool {
+	public function ensureAvailable(string $gatewayName): void {
+	}
+
+	public function isGatewayComplete(string $gatewayName): bool {
 		return $this->complete;
 	}
 
-	public function send(string $identifier, string $message): void {
+	public function send(string $gatewayName, string $identifier, string $message): void {
 		$this->sentMessages[] = [
+			'gateway' => $gatewayName,
 			'identifier' => $identifier,
 			'message' => $message,
 		];
