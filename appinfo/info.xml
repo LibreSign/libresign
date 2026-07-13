@@ -64,7 +64,7 @@ https://libresign.coop
 	</background-jobs>
 	<repair-steps>
 		<pre-migration>
-			<step>OCA\Libresign\Migration\RefreshMigrationClassMap</step>
+			<step>OCA\Libresign\Migration\RefreshAutoloaderBeforeMigrations</step>
 		</pre-migration>
 		<post-migration>
 			<step>OCA\Libresign\Migration\DeleteOldBinaries</step>
