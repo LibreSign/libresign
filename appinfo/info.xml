@@ -63,6 +63,9 @@ https://libresign.coop
 		<job>OCA\Libresign\BackgroundJob\SignSingleFileJob</job>
 	</background-jobs>
 	<repair-steps>
+		<pre-migration>
+			<step>OCA\Libresign\Migration\RefreshAutoloaderBeforeMigrations</step>
+		</pre-migration>
 		<post-migration>
 			<step>OCA\Libresign\Migration\DeleteOldBinaries</step>
 			<step>OCA\Libresign\Migration\ResynchronizeDatabaseSequences</step>
