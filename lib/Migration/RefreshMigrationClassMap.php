@@ -17,15 +17,16 @@ use OCP\Migration\IRepairStep;
  *
  * Why this exists:
  * - Nextcloud can load enabled apps earlier in the same PHP process, especially during OCC bootstrap.
+ *   We verified this through the CLI path `console.php` -> `OC::init()` -> `AppManager::loadApps()`.
  * - When an update later drops a new `Version*.php` migration into place, Composer can keep a
  *   previous class miss cached and `MigrationService` reports `Migration step ... is unknown`.
  * - Keeping this logic in a `pre-migration` repair step is more reliable than relying on
- *   `composer/autoload.php`, because `registerAutoloading()` uses `require_once` and that entrypoint
- *   may already have been included before `AppManager::upgradeApp()` reaches the migration step.
+ *   `composer/autoload.php`, because `OC_App::registerAutoloading()` uses `require_once` and that
+ *   entrypoint may already have been included before `Installer::updateAppstoreApp()` hands control
+ *   to `AppManager::upgradeApp()` for the real migration execution.
  *
  * References:
  * - LibreSign/libresign#7892
- * - nextcloud/server#13547
  * - nextcloud/calendar_resource_management#238
  *
  * If this step is ever removed or changed, reproduce those upgrade scenarios first and confirm that
