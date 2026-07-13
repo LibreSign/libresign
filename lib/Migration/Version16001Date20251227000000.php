@@ -9,8 +9,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Migration;
 
 use Closure;
-use OCP\DB\ISchemaWrapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\DB\ISchemaWrapper;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
