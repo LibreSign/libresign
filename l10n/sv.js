@@ -234,6 +234,7 @@ OC.L10N.register(
     "Click on the place you want to add." : "Klicka på den plats du vill lägga till.",
     "Sign" : "Signera",
     "An error occurred" : "Ett fel uppstod",
+    "Failed to load files" : "Filinläsning misslyckades",
     "Upload cancelled" : "Uppladdning avbruten",
     "Saved" : "Sparat",
     "_{count} selected_::_{count} selected_" : ["{count} vald","{count} valda"],
