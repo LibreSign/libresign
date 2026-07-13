@@ -13,14 +13,14 @@ use PHPUnit\Framework\TestCase;
 
 final class UpgradeSafeAutoloaderTest extends TestCase {
 	private const MIGRATION_CLASS = 'OCA\\Libresign\\Migration\\Version99999Date20260713000000';
-	private const TEST_CLASS = 'OCA\\Libresign\\Tests\\Unit\\Bootstrap\\GeneratedExcludedClass';
-	private const VENDOR_CLASS = 'OCA\\Libresign\\Vendor\\GeneratedExcludedClass';
+	private const NON_MIGRATION_CLASS = 'OCA\\Libresign\\Service\\GeneratedNonMigrationClass';
 
 	/**
 	 * @runInSeparateProcess
 	 */
 	public function testLoadsMigrationClassAfterComposerCachedPreviousMiss(): void {
 		$appRoot = sys_get_temp_dir() . '/libresign-upgrade-autoload-' . uniqid('', true);
+		$loader = require __DIR__ . '/../../../../vendor/autoload.php';
 
 		try {
 			mkdir($appRoot . '/lib/Migration', 0755, true);
@@ -41,7 +41,7 @@ final class Version99999Date20260713000000 {
 PHP,
 			);
 
-			UpgradeSafeAutoloader::register($appRoot);
+			UpgradeSafeAutoloader::register($loader, $appRoot);
 
 			self::assertTrue(class_exists(self::MIGRATION_CLASS));
 		} finally {
@@ -52,45 +52,30 @@ PHP,
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testSkipsVendorAndTestsNamespaces(): void {
+	public function testRegistersOnlyMigrationClasses(): void {
 		$appRoot = sys_get_temp_dir() . '/libresign-upgrade-autoload-' . uniqid('', true);
+		$loader = require __DIR__ . '/../../../../vendor/autoload.php';
 
 		try {
-			mkdir($appRoot . '/lib/Tests/Unit/Bootstrap', 0755, true);
-			mkdir($appRoot . '/lib/Vendor', 0755, true);
+			mkdir($appRoot . '/lib/Service', 0755, true);
 
 			file_put_contents(
-				$appRoot . '/lib/Tests/Unit/Bootstrap/GeneratedExcludedClass.php',
+				$appRoot . '/lib/Service/GeneratedNonMigrationClass.php',
 				<<<'PHP'
 <?php
 
 declare(strict_types=1);
 
-namespace OCA\Libresign\Tests\Unit\Bootstrap;
+namespace OCA\Libresign\Service;
 
-final class GeneratedExcludedClass {
+final class GeneratedNonMigrationClass {
 }
 PHP,
 			);
 
-			file_put_contents(
-				$appRoot . '/lib/Vendor/GeneratedExcludedClass.php',
-				<<<'PHP'
-<?php
+			UpgradeSafeAutoloader::register($loader, $appRoot);
 
-declare(strict_types=1);
-
-namespace OCA\Libresign\Vendor;
-
-final class GeneratedExcludedClass {
-}
-PHP,
-			);
-
-			UpgradeSafeAutoloader::register($appRoot);
-
-			self::assertFalse(class_exists(self::TEST_CLASS));
-			self::assertFalse(class_exists(self::VENDOR_CLASS));
+			self::assertFalse(class_exists(self::NON_MIGRATION_CLASS));
 		} finally {
 			self::removeDirectoryRecursively($appRoot);
 		}
