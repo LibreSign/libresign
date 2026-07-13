@@ -12,6 +12,25 @@ use OCA\Libresign\Bootstrap\UpgradeSafeAutoloader;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
 
+/**
+ * Refresh the Composer class map for migrations immediately before Nextcloud executes them.
+ *
+ * Why this exists:
+ * - Nextcloud can load enabled apps earlier in the same PHP process, especially during OCC bootstrap.
+ * - When an update later drops a new `Version*.php` migration into place, Composer can keep a
+ *   previous class miss cached and `MigrationService` reports `Migration step ... is unknown`.
+ * - Keeping this logic in a `pre-migration` repair step is more reliable than relying on
+ *   `composer/autoload.php`, because `registerAutoloading()` uses `require_once` and that entrypoint
+ *   may already have been included before `AppManager::upgradeApp()` reaches the migration step.
+ *
+ * References:
+ * - LibreSign/libresign#7892
+ * - nextcloud/server#13547
+ * - nextcloud/calendar_resource_management#238
+ *
+ * If this step is ever removed or changed, reproduce those upgrade scenarios first and confirm that
+ * new LibreSign migrations still load correctly in both web- and OCC-driven upgrades.
+ */
 final class RefreshMigrationClassMap implements IRepairStep {
 	#[\Override]
 	public function getName(): string {
