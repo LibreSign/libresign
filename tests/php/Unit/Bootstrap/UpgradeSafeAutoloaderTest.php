@@ -8,19 +8,23 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Bootstrap;
 
+use Composer\Autoload\ClassLoader;
 use OCA\Libresign\Bootstrap\UpgradeSafeAutoloader;
 use PHPUnit\Framework\TestCase;
 
 final class UpgradeSafeAutoloaderTest extends TestCase {
 	private const MIGRATION_CLASS = 'OCA\\Libresign\\Migration\\Version99999Date20260713000000';
 	private const NON_MIGRATION_CLASS = 'OCA\\Libresign\\Service\\GeneratedNonMigrationClass';
+	private const MIGRATION_FILE = '/lib/Migration/Version99999Date20260713000000.php';
 
 	/**
 	 * @runInSeparateProcess
 	 */
 	public function testLoadsMigrationClassAfterComposerCachedPreviousMiss(): void {
 		$appRoot = sys_get_temp_dir() . '/libresign-upgrade-autoload-' . uniqid('', true);
-		$loader = require __DIR__ . '/../../../../vendor/autoload.php';
+		$loader = new ClassLoader($appRoot . '/vendor');
+		$loader->addPsr4('OCA\\Libresign\\', [$appRoot . '/lib'], true);
+		$loader->register(true);
 
 		try {
 			mkdir($appRoot . '/lib/Migration', 0755, true);
@@ -28,7 +32,7 @@ final class UpgradeSafeAutoloaderTest extends TestCase {
 			self::assertFalse(class_exists(self::MIGRATION_CLASS));
 
 			file_put_contents(
-				$appRoot . '/lib/Migration/Version99999Date20260713000000.php',
+				$appRoot . self::MIGRATION_FILE,
 				<<<'PHP'
 <?php
 
@@ -45,6 +49,44 @@ PHP,
 
 			self::assertTrue(class_exists(self::MIGRATION_CLASS));
 		} finally {
+			$loader->unregister();
+			self::removeDirectoryRecursively($appRoot);
+		}
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testFindsRegisteredLoaderForCurrentAppRoot(): void {
+		$appRoot = sys_get_temp_dir() . '/libresign-upgrade-autoload-' . uniqid('', true);
+		$loader = new ClassLoader($appRoot . '/vendor');
+		$loader->addPsr4('OCA\\Libresign\\', [$appRoot . '/lib'], true);
+		$loader->register(true);
+
+		try {
+			mkdir($appRoot . '/lib/Migration', 0755, true);
+
+			self::assertFalse(class_exists(self::MIGRATION_CLASS));
+
+			file_put_contents(
+				$appRoot . self::MIGRATION_FILE,
+				<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace OCA\Libresign\Migration;
+
+final class Version99999Date20260713000000 {
+}
+PHP,
+			);
+
+			UpgradeSafeAutoloader::registerCurrentAppLoader($appRoot);
+
+			self::assertTrue(class_exists(self::MIGRATION_CLASS));
+		} finally {
+			$loader->unregister();
 			self::removeDirectoryRecursively($appRoot);
 		}
 	}
@@ -54,7 +96,8 @@ PHP,
 	 */
 	public function testRegistersOnlyMigrationClasses(): void {
 		$appRoot = sys_get_temp_dir() . '/libresign-upgrade-autoload-' . uniqid('', true);
-		$loader = require __DIR__ . '/../../../../vendor/autoload.php';
+		$loader = new ClassLoader($appRoot . '/vendor');
+		$loader->register(true);
 
 		try {
 			mkdir($appRoot . '/lib/Service', 0755, true);
@@ -77,6 +120,7 @@ PHP,
 
 			self::assertFalse(class_exists(self::NON_MIGRATION_CLASS));
 		} finally {
+			$loader->unregister();
 			self::removeDirectoryRecursively($appRoot);
 		}
 	}
