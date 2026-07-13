@@ -4,6 +4,7 @@
     errorLevel="5"
     findUnusedBaselineEntry="true"
     findUnusedCode="false"
+    hideExternalErrors="true"
     resolveFromConfigFile="true"
     phpVersion="8.3"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -67,5 +68,6 @@
         <file name="tests/stubs/OCA/Files/Event/LoadSidebar.php" />
         <file name="tests/stubs/OCA/Files_Sharing/SharedStorage.php" />
         <file name="tests/stubs/OCA/Settings/Mailer/NewUserMailHelper.php" />
+        <file name="tests/stubs/twofactor_gateway.php" />
     </stubs>
 </psalm>
