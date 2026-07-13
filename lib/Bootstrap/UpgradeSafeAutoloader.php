@@ -36,6 +36,15 @@ final class UpgradeSafeAutoloader {
 		self::$registeredRoots[$normalizedRoot] = true;
 	}
 
+	public static function registerCurrentAppLoader(string $appRoot): void {
+		$loader = self::findRegisteredLoader(rtrim($appRoot, DIRECTORY_SEPARATOR));
+		if (!$loader instanceof ClassLoader) {
+			return;
+		}
+
+		self::register($loader, $appRoot);
+	}
+
 	/**
 	 * @return array<string, string>
 	 */
@@ -51,5 +60,11 @@ final class UpgradeSafeAutoloader {
 		}
 
 		return $classMap;
+	}
+
+	private static function findRegisteredLoader(string $appRoot): ?ClassLoader {
+		$vendorDir = $appRoot . '/vendor';
+
+		return ClassLoader::getRegisteredLoaders()[$vendorDir] ?? null;
 	}
 }
