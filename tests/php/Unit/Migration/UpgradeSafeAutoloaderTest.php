@@ -84,9 +84,6 @@ PHP,
 				$appRoot . '/vendor/autoload.php',
 				"<?php\n"
 				. "declare(strict_types=1);\n"
-				. 'if (!class_exists(\\Composer\\Autoload\\ClassLoader::class, false)) {' . "\n"
-				. '    require_once ' . var_export(__DIR__ . '/../../../../vendor/composer/ClassLoader.php', true) . ';' . "\n"
-				. "}\n"
 				. "static \$loader = null;\n"
 				. "if (\$loader === null) {\n"
 				. "    \$loader = new \\Composer\\Autoload\\ClassLoader(__DIR__);\n"
