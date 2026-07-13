@@ -8,13 +8,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Bootstrap;
 
+use Composer\Autoload\ClassLoader;
+
 final class UpgradeSafeAutoloader {
-	private const APP_NAMESPACE = 'OCA\\Libresign\\';
-	private const EXCLUDED_PREFIXES = [
-		self::APP_NAMESPACE . '3rdparty\\',
-		self::APP_NAMESPACE . 'Tests\\',
-		self::APP_NAMESPACE . 'Vendor\\',
-	];
+	private const MIGRATION_NAMESPACE = 'OCA\\Libresign\\Migration\\';
+	private const MIGRATION_GLOB = '/lib/Migration/Version*.php';
 
 	/**
 	 * @var array<string, true>
@@ -24,48 +22,34 @@ final class UpgradeSafeAutoloader {
 	private function __construct() {
 	}
 
-	public static function register(string $appRoot): void {
+	public static function register(ClassLoader $loader, string $appRoot): void {
 		$normalizedRoot = rtrim($appRoot, DIRECTORY_SEPARATOR);
 		if ($normalizedRoot === '' || isset(self::$registeredRoots[$normalizedRoot])) {
 			return;
 		}
 
-		spl_autoload_register(
-			static function (string $class) use ($normalizedRoot): void {
-				$file = self::resolveFile($normalizedRoot, $class);
-				if ($file !== null) {
-					require_once $file;
-				}
-			},
-			true,
-			true,
-		);
+		$classMap = self::buildMigrationClassMap($normalizedRoot);
+		if ($classMap !== []) {
+			$loader->addClassMap($classMap);
+		}
 
 		self::$registeredRoots[$normalizedRoot] = true;
 	}
 
-	private static function resolveFile(string $appRoot, string $class): ?string {
-		if (!str_starts_with($class, self::APP_NAMESPACE) || self::isExcludedNamespace($class)) {
-			return null;
+	/**
+	 * @return array<string, string>
+	 */
+	private static function buildMigrationClassMap(string $appRoot): array {
+		$migrationFiles = glob($appRoot . self::MIGRATION_GLOB);
+		if (!is_array($migrationFiles)) {
+			return [];
 		}
 
-		$relativeClass = substr($class, strlen(self::APP_NAMESPACE));
-		$path = $appRoot . '/lib/' . str_replace('\\', '/', $relativeClass) . '.php';
-
-		if (!is_file($path)) {
-			return null;
+		$classMap = [];
+		foreach ($migrationFiles as $migrationFile) {
+			$classMap[self::MIGRATION_NAMESPACE . basename($migrationFile, '.php')] = $migrationFile;
 		}
 
-		return $path;
-	}
-
-	private static function isExcludedNamespace(string $class): bool {
-		foreach (self::EXCLUDED_PREFIXES as $prefix) {
-			if (str_starts_with($class, $prefix)) {
-				return true;
-			}
-		}
-
-		return false;
+		return $classMap;
 	}
 }
