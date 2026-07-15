@@ -50,7 +50,7 @@ Types of changes:
 - improve CRL generation performance and reliability [#7889](https://github.com/LibreSign/libresign/pull/7889)
 - avoid stale autoload misses during upgrades [#7898](https://github.com/LibreSign/libresign/pull/7898)
 
-## 12.5.0 - 2026-07-15
+## 12.4.8 - 2026-07-15
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
 
