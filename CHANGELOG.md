@@ -18,6 +18,19 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 12.4.8 - 2026-07-15
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help upgrading or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- update translations
+
+### Fixed
+- improve CRL generation performance and reliability [#7888](https://github.com/LibreSign/libresign/pull/7888)
+- avoid stale autoload misses during upgrades [#7897](https://github.com/LibreSign/libresign/pull/7897)
+
 ## 12.4.7 - 2026-07-06
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
