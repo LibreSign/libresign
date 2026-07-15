@@ -18,6 +18,22 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 14.1.0 - 2026-07-15
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Added
+- validate PDF signatures without requiring Java [#7874](https://github.com/LibreSign/libresign/pull/7874)
+
+### Changed
+- update translations
+
+### Fixed
+- improve CRL generation performance and reliability [#7890](https://github.com/LibreSign/libresign/pull/7890)
+- avoid stale autoload misses during upgrades [#7899](https://github.com/LibreSign/libresign/pull/7899)
+
 ## 14.0.2 - 2026-07-06
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
