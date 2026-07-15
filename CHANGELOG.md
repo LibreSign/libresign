@@ -14,10 +14,55 @@ Types of changes:
 - *Deprecated* for soon-to-be removed features.
 - *Removed* for now removed features.
 - *Fixed* for any bug fixes.
-- *Security* in case of vulnerabilities. 
+- *Security* in case of vulnerabilities.
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 14.1.0 - 2026-07-15
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Added
+- validate PDF signatures without requiring Java [#7874](https://github.com/LibreSign/libresign/pull/7874)
+
+### Changed
+- update translations
+
+### Fixed
+- improve CRL generation performance and reliability [#7890](https://github.com/LibreSign/libresign/pull/7890)
+- avoid stale autoload misses during upgrades [#7899](https://github.com/LibreSign/libresign/pull/7899)
+
+## 13.3.0 - 2026-07-15
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Added
+- validate PDF signatures without requiring Java [#7872](https://github.com/LibreSign/libresign/pull/7872)
+
+### Changed
+- update translations
+
+### Fixed
+- improve CRL generation performance and reliability [#7889](https://github.com/LibreSign/libresign/pull/7889)
+- avoid stale autoload misses during upgrades [#7898](https://github.com/LibreSign/libresign/pull/7898)
+
+## 12.5.0 - 2026-07-15
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help upgrading or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- update translations
+
+### Fixed
+- improve CRL generation performance and reliability [#7888](https://github.com/LibreSign/libresign/pull/7888)
+- avoid stale autoload misses during upgrades [#7897](https://github.com/LibreSign/libresign/pull/7897)
+
 ## 14.0.2 - 2026-07-06
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
@@ -2103,7 +2148,7 @@ fix: setup at alpine [3354](https://github.com/LibreSign/libresign/pull/3354)
 ### Fixed
 * Fix composer autoload bug
 * Show progress bar when havent memcache
-* Minor bugfixes and translation fix 
+* Minor bugfixes and translation fix
 
 ## 6.2.5 - 2023-01-23
 ### Fixed
