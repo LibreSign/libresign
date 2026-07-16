@@ -542,6 +542,8 @@
     "Public" : "Јавно",
     "System default" : "Системски подразумевано",
     "{from} made changes on {file}" : "{from} је направио измене у {file}",
+    "Document isn't signed or corrupted data." : "Документ није потписан или су подаци оштећени.",
+    "Unknown issue with Certificate or corrupted data." : "Непознати проблем са сертификатом или оштећени подаци.",
     "visible element" : "видљиви елемент",
     "You are not allowed to request signing" : "Немате права да захтевате потписивање",
     "Changes have been made in a file that you have to sign." : "Дошло је до измена у фајло који треба да потпишете.",

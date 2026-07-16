@@ -457,6 +457,8 @@
     "Public" : "Verejné",
     "System default" : "Predvolené systémom",
     "{from} made changes on {file}" : "{from} urobil zmeny v {file}",
+    "Document isn't signed or corrupted data." : "Dokument nie je podpísaný alebo sú dáta poškodené.",
+    "Unknown issue with Certificate or corrupted data." : "Neznáma chyba certifikátu alebo sú dáta poškodené.",
     "Cannot read file" : "Nemožno čítať súbor.",
     "visible element" : "viditeľný prvok",
     "You are not allowed to request signing" : "Nemáte oprávnenie k žiadosti o podpis",

@@ -1322,6 +1322,8 @@
     "Invalid DocMDP level" : "Leibhéal DocMDP neamhbhailí",
     "Invalid id-doc request" : "Iarratas aitheantais-dhoiciméid neamhbhailí",
     "From: %s • Date: %s" : "Ó: %s • Dáta: %s",
+    "Document isn't signed or corrupted data." : "Níl an doiciméad sínithe nó truaillithe.",
+    "Unknown issue with Certificate or corrupted data." : "Fadhb anaithnid le Teastas nó sonraí truaillithe.",
     "Cannot read file" : "Ní féidir an comhad a léamh",
     "visible element" : "eilimint infheicthe",
     "You are not allowed to request signing" : "Níl cead agat síniú a iarraidh",

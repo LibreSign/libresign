@@ -906,6 +906,8 @@
     "Invalid DocMDP level" : "DocMDP düzeyi geçersiz",
     "Invalid id-doc request" : "id-doc isteği geçersiz",
     "From: %s • Date: %s" : "Gönderen: %s • Tarih: %s",
+    "Document isn't signed or corrupted data." : "Belge imzalanmamış ya da verileri bozulmuş.",
+    "Unknown issue with Certificate or corrupted data." : "Sertifika ile ilgili bilinmeyen bir sorun çıktı ya da verileri bozulmuş.",
     "Cannot read file" : "Dosya okunamadı",
     "visible element" : "görülebilir bileşen",
     "You are not allowed to request signing" : "İmzalama isteğinde bulunma izniniz yok",
