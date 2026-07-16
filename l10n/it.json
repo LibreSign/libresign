@@ -491,6 +491,8 @@
     "Public" : "Pubblica",
     "System default" : "Predefinito del sistema",
     "{from} made changes on {file}" : "{from} apportato modifiche su {file}",
+    "Document isn't signed or corrupted data." : "Il documento non è firmato o contiene dati danneggiati.",
+    "Unknown issue with Certificate or corrupted data." : "Problema sconosciuto con il certificato o dati danneggiati.",
     "Cannot read file" : "Impossibile leggere il file",
     "visible element" : "elemento visibile",
     "You are not allowed to request signing" : "Non ti è consentito richiedere la firma",

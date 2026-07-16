@@ -649,6 +649,8 @@
     "Mode is required when signature flow is enabled." : "Mode is required when signature flow is enabled.",
     "Invalid signature flow mode. Use \"parallel\" or \"ordered_numeric\"." : "Invalid signature flow mode. Use \"parallel\" or \"ordered_numeric\".",
     "Invalid DocMDP level" : "Invalid DocMDP level",
+    "Document isn't signed or corrupted data." : "Document isn't signed or corrupted data.",
+    "Unknown issue with Certificate or corrupted data." : "Unknown issue with Certificate or corrupted data.",
     "visible element" : "visible element",
     "You are not allowed to request signing" : "You are not allowed to request signing",
     "Changes have been made in a file that you have to sign." : "Changes have been made in a file that you have to sign.",

@@ -904,6 +904,8 @@
     "Invalid DocMDP level" : "سطح DocMDP نامعتبر است",
     "Invalid id-doc request" : "درخواست id-doc نامعتبر است",
     "From: %s • Date: %s" : "از: %s • تاریخ: %s",
+    "Document isn't signed or corrupted data." : "سند امضا نشده یا داده خراب است.",
+    "Unknown issue with Certificate or corrupted data." : "مشکل ناشناخته با گواهی یا داده خراب.",
     "Cannot read file" : "امکان خواندن فایل وجود ندارد",
     "visible element" : "عنصر قابل مشاهده",
     "You are not allowed to request signing" : "شما مجاز به درخواست امضا نیستید",

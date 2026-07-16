@@ -900,6 +900,8 @@
     "Invalid DocMDP level" : "Недопустимый уровень DocMDP",
     "Invalid id-doc request" : "Недопустимый запрос id-doc",
     "From: %s • Date: %s" : "От: %s • Дата: %s",
+    "Document isn't signed or corrupted data." : "Документ не подписан или данные повреждены.",
+    "Unknown issue with Certificate or corrupted data." : "Неизвестная проблема с сертификатом или повреждённые данные.",
     "Cannot read file" : "Не удается прочитать файл",
     "visible element" : "видимый элемент",
     "You are not allowed to request signing" : "Вы не можете запрашивать подпись",
