@@ -902,6 +902,8 @@
     "Invalid DocMDP level" : "Nivel DocMDP no válido",
     "Invalid id-doc request" : "Solicitud de id-doc no válida",
     "From: %s • Date: %s" : "De: %s • Fecha: %s",
+    "Document isn't signed or corrupted data." : "El documento no está firmado o los datos están corruptos.",
+    "Unknown issue with Certificate or corrupted data." : "Problema desconocido con el certificado o los datos están corruptos.",
     "Cannot read file" : "No se puede leer archivo",
     "visible element" : "elemento visible",
     "You are not allowed to request signing" : "Usted no está autorizado a solicitar la firma",

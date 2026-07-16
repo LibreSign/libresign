@@ -490,6 +490,8 @@
     "Public" : "Offentlig",
     "System default" : "Standardinställning",
     "{from} made changes on {file}" : "{from} gjorde ändringar på {file}",
+    "Document isn't signed or corrupted data." : "Dokumentet är inte signerat eller skadad data.",
+    "Unknown issue with Certificate or corrupted data." : "Okänt problem med certifikat eller skadad data.",
     "Cannot read file" : "Kan inte läsa fil",
     "visible element" : "synligt element",
     "You are not allowed to request signing" : "Du får inte begära signering",

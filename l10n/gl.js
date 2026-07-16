@@ -906,6 +906,8 @@ OC.L10N.register(
     "Invalid DocMDP level" : "Nivel DocMDP incorrecto",
     "Invalid id-doc request" : "Solicitude de ID do documento incorrecta",
     "From: %s • Date: %s" : "De: %s • Data: %s",
+    "Document isn't signed or corrupted data." : "O documento non está asinado ou está estragado.",
+    "Unknown issue with Certificate or corrupted data." : "Problema descoñecido co certificado ou datos estragados.",
     "Cannot read file" : "Non é posíbel ler o ficheiro",
     "visible element" : "elemento visíbel",
     "You are not allowed to request signing" : "Vde. non ten permiso para solicitar a sinatura",

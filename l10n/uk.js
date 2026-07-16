@@ -507,6 +507,8 @@ OC.L10N.register(
     "Public" : "Публічна",
     "System default" : "Система за замовчуванням",
     "{from} made changes on {file}" : "{from} внесено зміни до {file}",
+    "Document isn't signed or corrupted data." : "Документ не підписаний або містить пошкоджені дані.",
+    "Unknown issue with Certificate or corrupted data." : "Невідома проблема з сертифікатом або пошкоджені дані.",
     "Cannot read file" : "Неможливо прочитати файл",
     "visible element" : "видимий елемент",
     "You are not allowed to request signing" : "Ви не маєте права вимагати підписання",

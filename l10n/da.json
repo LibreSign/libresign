@@ -938,6 +938,8 @@
     "Invalid DocMDP level" : "Ugyldigt DocMDP-niveau",
     "Invalid id-doc request" : "Ugyldig id- doc anmodning",
     "From: %s • Date: %s" : "Fra: %s • Dato: %s",
+    "Document isn't signed or corrupted data." : "Dokument er ikke underskrevet eller beskadiget data.",
+    "Unknown issue with Certificate or corrupted data." : "Ukendt problem med certifikat eller beskadigede data.",
     "Cannot read file" : "Kan ikke læse filen",
     "visible element" : "synligt element",
     "You are not allowed to request signing" : "Du må ikke anmode om underskrift",
