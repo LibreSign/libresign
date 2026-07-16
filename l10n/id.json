@@ -766,6 +766,8 @@
     "Mode is required when signature flow is enabled." : "Mode diperlukan saat alur tanda tangan diaktifkan.",
     "Invalid signature flow mode. Use \"parallel\" or \"ordered_numeric\"." : "Mode alur tanda tangan tidak valid. Gunakan \"parallel\" atau \"ordered_numeric\".",
     "Invalid DocMDP level" : "Level DocMDP tidak valid",
+    "Document isn't signed or corrupted data." : "Dokumen tidak ditandatangani atau data rusak.",
+    "Unknown issue with Certificate or corrupted data." : "Masalah tidak diketahui pada Sertifikat atau data rusak.",
     "Cannot read file" : "Tidak dapat membaca file",
     "visible element" : "elemen terlihat",
     "You are not allowed to request signing" : "Anda tidak diizinkan untuk meminta penandatanganan",

@@ -804,6 +804,8 @@
     "Invalid DocMDP level" : "Vigane DocMDP tase",
     "Invalid id-doc request" : "Vigane id-doc päring",
     "From: %s • Date: %s" : "Saatja: %s • Kuupäev: %s",
+    "Document isn't signed or corrupted data." : "Dokument kas pole allkirjastatud või on andmed vigased.",
+    "Unknown issue with Certificate or corrupted data." : "Andmed on kas rikutud või sertifikaadiga on seotud mõni teadmata viga.",
     "Cannot read file" : "Faili lugemine ei õnnestu",
     "visible element" : "nähtav element",
     "You cannot request signature for this document, please contact your administrator" : "Sa ei saa paluda selle dokumendi allkirjastamist, palun küsi abi serveri haldajalt või peakasutajalt",

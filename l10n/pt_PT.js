@@ -902,6 +902,8 @@ OC.L10N.register(
     "Invalid signature flow mode. Use \"parallel\" or \"ordered_numeric\"." : "Modo de fluxo de assinatura inválido. Use \"parallel\" ou \"ordered_numeric\".",
     "Invalid id-doc request" : "Solicitação id-doc inválida",
     "From: %s • Date: %s" : "De: %s • Data: %s",
+    "Document isn't signed or corrupted data." : "O documento não está assinado ou tem dados corrompidos.",
+    "Unknown issue with Certificate or corrupted data." : "Problema desconhecido com o certificado ou dados corrompidos.",
     "Cannot read file" : "Não é possível ler o ficheiro",
     "visible element" : "elemento visível",
     "You are not allowed to request signing" : "Você não tem permissão para solicitar assinaturas",

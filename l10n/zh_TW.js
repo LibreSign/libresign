@@ -953,6 +953,8 @@ OC.L10N.register(
     "Invalid DocMDP level" : "無效的 DocMDP 層級",
     "Invalid id-doc request" : "無效的 id-doc 請求",
     "From: %s • Date: %s" : "從：%s • 日期：%s",
+    "Document isn't signed or corrupted data." : "文件未簽署或資料已損毀。",
+    "Unknown issue with Certificate or corrupted data." : "憑證有未知的問題或資料已損毀。",
     "Cannot read file" : "無法讀取檔案",
     "visible element" : "可見文件",
     "You are not allowed to request signing" : "您無權要求簽署",

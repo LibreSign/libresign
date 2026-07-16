@@ -533,6 +533,8 @@
     "Custom background" : "Custom background",
     "Public" : "ສາທາລະນະ",
     "{from} made changes on {file}" : "{from} ໄດ້ປ່ຽນແປງໃນ {file}",
+    "Document isn't signed or corrupted data." : "ເອກະສານບໍ່ໄດ້ຖືກເຊັນ ຫຼື ຂໍ້ມູນເສຍຫາຍ.",
+    "Unknown issue with Certificate or corrupted data." : "ມີບັນຫາທີ່ບໍ່ຮູ້ຈັກກັບໃບຢັ້ງຢືນ ຫຼື ຂໍ້ມູນເສຍຫາຍ.",
     "visible element" : "ອົງປະກອບທີ່ເບິ່ງເຫັນ",
     "You are not allowed to request signing" : "ທ່ານບໍ່ໄດ້ຮັບອະນຸຍາດໃຫ້ຮ້ອງຂໍການເຊັນ",
     "Changes have been made in a file that you have to sign." : "ມີການປ່ຽນແປງໃນໄຟລ໌ທີ່ທ່ານຕ້ອງເຊັນ.",

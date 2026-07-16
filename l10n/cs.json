@@ -886,6 +886,8 @@
     "Invalid DocMDP level" : "Neplatná úroveň DocMDP",
     "Invalid id-doc request" : "Neplatný id-doc požadavek",
     "From: %s • Date: %s" : "Od: %s • Datum: %s",
+    "Document isn't signed or corrupted data." : "Dokument není podepsán nebo poškozená data.",
+    "Unknown issue with Certificate or corrupted data." : "Neznámý problém s certifikátem nebo poškozená data.",
     "Cannot read file" : "Nelze přečíst soubor",
     "visible element" : "viditelný prvek",
     "You are not allowed to request signing" : "Nemáte oprávnění požadovat podepsání",

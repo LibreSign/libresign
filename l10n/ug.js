@@ -700,6 +700,8 @@ OC.L10N.register(
     "Mode is required when signature flow is enabled." : "ئىمزا ئېقىمى قوزغىتىلغاندا ھالەت تەلەپ قىلىنىدۇ.",
     "Invalid signature flow mode. Use \"parallel\" or \"ordered_numeric\"." : "ئىمزا ئېقىمى ھالىتى خاتا. «parallel» ياكى «ordered_numeric» ئىشلىتىڭ.",
     "Invalid DocMDP level" : "DocMDP دەرىجىسى خاتا",
+    "Document isn't signed or corrupted data." : "ھۆججەت ئىمزالانمىغان ياكى سانلىق مەلۇمات بۇزۇلغان ئەمەس.",
+    "Unknown issue with Certificate or corrupted data." : "گۇۋاھنامە ياكى بۇزۇلغان سانلىق مەلۇماتلار بىلەن مۇناسىۋەتلىك نامەلۇم مەسىلە.",
     "visible element" : "كۆرۈنگەن ئېلېمېنت",
     "You are not allowed to request signing" : "ئىمزا قويۇشنى تەلەپ قىلىشىڭىزغا رۇخسەت قىلىنمايدۇ",
     "Changes have been made in a file that you have to sign." : "سىز ئىمزا قويماقچى بولغان ھۆججەتتە ئۆزگەرتىش ئېلىپ بېرىلدى.",

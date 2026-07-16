@@ -902,6 +902,8 @@ OC.L10N.register(
     "Invalid DocMDP level" : "Invalid DocMDP level",
     "Invalid id-doc request" : "Invalid id-doc request",
     "From: %s • Date: %s" : "From: %s • Date: %s",
+    "Document isn't signed or corrupted data." : "Document isn't signed or corrupted data.",
+    "Unknown issue with Certificate or corrupted data." : "Unknown issue with Certificate or corrupted data.",
     "Cannot read file" : "Cannot read file",
     "visible element" : "visible element",
     "You are not allowed to request signing" : "You are not allowed to request signing",

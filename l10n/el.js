@@ -505,6 +505,8 @@ OC.L10N.register(
     "Public" : "Δημόσιο",
     "System default" : "Προεπιλογή συστήματος",
     "{from} made changes on {file}" : "{from} έκανε αλλαγές στο {file}",
+    "Document isn't signed or corrupted data." : "Το έγγραφο δεν είναι υπογεγραμμένο ή τα δεδομένα είναι κατεστραμμένα.",
+    "Unknown issue with Certificate or corrupted data." : "Άγνωστο πρόβλημα με το πιστοποιητικό ή κατεστραμμένα δεδομένα.",
     "Cannot read file" : "Δεν είναι δυνατή η ανάγνωση του αρχείου",
     "visible element" : "ορατό στοιχείο",
     "You are not allowed to request signing" : "Δεν επιτρέπεται να ζητήσετε υπογραφή",

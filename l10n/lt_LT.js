@@ -1066,6 +1066,8 @@ OC.L10N.register(
     "Invalid DocMDP level" : "Neteisingas DocMDP lygis",
     "Invalid id-doc request" : "Neteisinga ID-doc užklausa",
     "From: %s • Date: %s" : "Nuo: %s • Data: %s",
+    "Document isn't signed or corrupted data." : "Dokumentas nėra pasirašytas arba duomenys sugadinti.",
+    "Unknown issue with Certificate or corrupted data." : "Nežinoma sertifikato arba sugadintų duomenų problema.",
     "Cannot read file" : "Negalima nuskaityti failo",
     "visible element" : "matomas elementas",
     "You are not allowed to request signing" : "Jums neleidžiama prašyti pasirašymo",
