@@ -46,6 +46,7 @@ path = [
     "tests/php/phpunit.xml",
     "psalm.xml",
 	"funding.json",
+	".well-known/funding-manifest-urls",
     "src/types/openapi/openapi-administration.ts",
     "src/types/openapi/openapi-full.ts",
     "src/types/openapi/openapi.ts",
