@@ -11,7 +11,7 @@
     "description": "LibreCode is a cooperative founded by software developers and technology professionals with the vision of making open-source solutions more accessible while highlighting their value in fostering innovation, security, and technological freedom without borders.\n\nBeyond our cooperative principles, we are committed to providing open-source software and professional support so that the entire community can benefit from what we build. For more than seven years, we have been creating and maintaining open-source solutions while helping more people discover and adopt free and open-source software.",
     "webpageUrl": {
       "url": "https://librecode.coop",
-      "wellKnown": "https://github.com/LibreCodeCoop"
+      "wellKnown": "https://raw.githubusercontent.com/LibreSign/libresign/refs/heads/main/.well-known/funding-manifest-urls"
     }
   },
 
@@ -22,7 +22,7 @@
       "description": "LibreSign was developed by LibreCode, accumulating over 100,000 downloads across multiple countries. In 2025, it was recognized as a Digital Public Good.\n\nLibreSign is a digital signature platform with legal validity, designed for both individuals and organizations. It provides an API for ERP integrations and supports complete end-to-end implementation.\n\nThe platform is already used by municipalities to sign documents within their own systems. It also integrates with WhatsApp and other communication channels to simplify and accelerate signature collection.\n\nLibreSign supports multiple authentication methods, providing greater security throughout the signing process, and receives continuous improvements and updates.",
       "webpageUrl": {
         "url": "https://libresign.coop",
-        "wellKnown": "https://github.com/LibreSign/libresign"
+        "wellKnown": "https://raw.githubusercontent.com/LibreSign/libresign/refs/heads/main/.well-known/funding-manifest-urls"
       },
       "repositoryUrl": {
         "url": "https://github.com/LibreSign/libresign"
