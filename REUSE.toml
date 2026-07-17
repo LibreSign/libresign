@@ -45,6 +45,7 @@ path = [
     "patches.lock.json",
     "tests/php/phpunit.xml",
     "psalm.xml",
+	"funding.json",
     "src/types/openapi/openapi-administration.ts",
     "src/types/openapi/openapi-full.ts",
     "src/types/openapi/openapi.ts",
