@@ -448,6 +448,8 @@ OC.L10N.register(
     "Public" : "عام",
     "System default" : "القيمة التلقائية للنظام",
     "{from} made changes on {file}" : "{from} قام بإحداث تغييرات على {file}",
+    "Document isn't signed or corrupted data." : "المستند لم يتم توقيعه أو أن بياناته تالفة. ",
+    "Unknown issue with Certificate or corrupted data." : "إشكالية غير معروفة تتعلق بشهادة أو بيانات تالفة.",
     "visible element" : "عنصر مرئي",
     "You are not allowed to request signing" : "لا يسمح لك بطلب التوقيع",
     "Changes have been made in a file that you have to sign." : "الملف الذي يستلزم توقيعه تمّ إجراء تعديلات عليه",
