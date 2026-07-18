@@ -401,6 +401,31 @@ function cancelUpload() {
 	uploadAbortController.value?.abort()
 }
 
+async function handleFilesSelected(files: UploadFile[]) {
+	if (files.length === 0) {
+		return
+	}
+
+	if (!validateMaxFileUploads(files.length)) {
+		return
+	}
+
+	if (files.length > 1 && !envelopeEnabled.value) {
+		// TRANSLATORS Shown when more than one file is selected/dropped but envelopes (multi-file requests) are not enabled.
+		showError(t('libresign', 'Only one file can be uploaded at a time.'))
+		return
+	}
+
+	if (files.length > 1 && envelopeEnabled.value) {
+		pendingFiles.value = files
+		envelopeNameInput.value = ''
+		showEnvelopeNameDialog.value = true
+		return
+	}
+
+	await upload(files)
+}
+
 function uploadFile() {
 	openedMenu.value = false
 	const input = document.createElement('input')
@@ -411,23 +436,7 @@ function uploadFile() {
 	input.onchange = async (event) => {
 		const target = event.target as HTMLInputElement | null
 		const files = Array.from(target?.files ?? []) as unknown as UploadFile[]
-		if (!validateMaxFileUploads(files.length)) {
-			input.remove()
-			return
-		}
-
-		if (files.length > 1 && envelopeEnabled.value) {
-			pendingFiles.value = files
-			envelopeNameInput.value = ''
-			showEnvelopeNameDialog.value = true
-			input.remove()
-			return
-		}
-
-		if (files.length > 0) {
-			await upload(files)
-		}
-
+		await handleFilesSelected(files)
 		input.remove()
 	}
 
@@ -544,6 +553,7 @@ defineExpose({
 	closeModalUploadFromUrl,
 	upload,
 	cancelUpload,
+	handleFilesSelected,
 	uploadFile,
 	uploadUrl,
 	handleFileChoose,
