@@ -24,23 +24,32 @@
 						{{ validationErrorMessage }}
 					</NcNoteCard>
 					<!-- TRANSLATORS: Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
-					<NcActions :menu-name="t('libresign', 'Validate signature')" :inline="3" :force-name="true">
-						<NcActionButton :wide="true" :disabled="loading" @click="openUuidDialog()">
-							<!-- TRANSLATORS: "UUID" is a unique technical identifier for a document (a code like '550e8400-e29b-41d4-a716-446655440000'). Keep "UUID" untranslated. -->
-							{{ t('libresign', 'From UUID') }}
-							<template #icon>
-								<NcLoadingIcon v-if="loading" :size="20" />
-								<NcIconSvgWrapper v-else :path="mdiKey" />
-							</template>
-						</NcActionButton>
-						<NcActionButton :wide="true" :disabled="loading" @click="uploadFile">
-							{{ t('libresign', 'Upload') }}
-							<template #icon>
-								<NcLoadingIcon v-if="loading" :size="20" />
-								<NcIconSvgWrapper v-else :path="mdiUpload" />
-							</template>
-						</NcActionButton>
-					</NcActions>
+					<div class="upload-dropzone"
+						:class="{ 'upload-dropzone--dragover': isDraggingOver }"
+						@dragover.prevent="handleDragOver"
+						@dragleave.prevent="handleDragLeave"
+						@drop.prevent="handleFileDrop">
+						<p class="upload-dropzone__hint">
+							{{ t('libresign', 'Drag and drop a PDF here, or use the buttons below.') }}
+						</p>
+						<NcActions :menu-name="t('libresign', 'Validate signature')" :inline="3" :force-name="true">
+							<NcActionButton :wide="true" :disabled="loading" @click="openUuidDialog()">
+								<!-- TRANSLATORS: "UUID" is a unique technical identifier for a document (a code like '550e8400-e29b-41d4-a716-446655440000'). Keep "UUID" untranslated. -->
+								{{ t('libresign', 'From UUID') }}
+								<template #icon>
+									<NcLoadingIcon v-if="loading" :size="20" />
+									<NcIconSvgWrapper v-else :path="mdiKey" />
+								</template>
+							</NcActionButton>
+							<NcActionButton :wide="true" :disabled="loading" @click="uploadFile">
+								{{ t('libresign', 'Upload') }}
+								<template #icon>
+									<NcLoadingIcon v-if="loading" :size="20" />
+									<NcIconSvgWrapper v-else :path="mdiUpload" />
+								</template>
+							</NcActionButton>
+						</NcActions>
+					</div>
 					<!-- TRANSLATORS: Same meaning as the first string in this section: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
 					<NcDialog v-if="getUUID" :name="t('libresign', 'Validate signature')" is-form
 						@closing="getUUID = false">
@@ -302,6 +311,7 @@ const legalInformation = computed(() => {
 })
 const clickedValidate = ref(false)
 const getUUID = ref(false)
+const isDraggingOver = ref(false)
 const validationStatusOpenState = ref<ToggleOpenState>({})
 const extensionsOpenState = ref<ToggleOpenState>({})
 const tsaOpenState = ref<ToggleOpenState>({})
@@ -409,6 +419,42 @@ async function uploadFile() {
 	}
 
 	input.click()
+}
+
+function isPdfFile(file: File) {
+	return file.type === 'application/pdf' || /\.pdf$/i.test(file.name)
+}
+
+function handleDragOver() {
+	if (loading.value) {
+		return
+	}
+	isDraggingOver.value = true
+}
+
+function handleDragLeave() {
+	isDraggingOver.value = false
+}
+
+async function handleFileDrop(event: DragEvent) {
+	isDraggingOver.value = false
+	if (loading.value) {
+		return
+	}
+
+	const file = event.dataTransfer?.files?.[0]
+	if (!file) {
+		return
+	}
+
+	if (!isPdfFile(file)) {
+		setValidationError(t('libresign', 'Please upload a PDF file'))
+		return
+	}
+
+	loading.value = true
+	await upload(file)
+	loading.value = false
 }
 
 function dateFromSqlAnsi(date: string) {
@@ -923,6 +969,7 @@ defineExpose({
 	legalInformation,
 	clickedValidate,
 	getUUID,
+	isDraggingOver,
 	EXPIRATION_WARNING_DAYS,
 	validationStatusOpenState,
 	extensionsOpenState,
@@ -947,6 +994,10 @@ defineExpose({
 	crlStatusMap,
 	upload,
 	uploadFile,
+	isPdfFile,
+	handleDragOver,
+	handleDragLeave,
+	handleFileDrop,
 	dateFromSqlAnsi,
 	getSignerStatus,
 	validate,
@@ -1058,6 +1109,23 @@ defineExpose({
 		button {
 			float: inline-end;
 			align-self: flex-end;
+		}
+		.upload-dropzone {
+			border: 2px dashed var(--color-border-dark);
+			border-radius: var(--border-radius-large);
+			padding: 20px;
+			transition: border-color 0.2s ease, background-color 0.2s ease;
+
+			&--dragover {
+				border-color: var(--color-primary-element);
+				background-color: var(--color-primary-element-light);
+			}
+
+			&__hint {
+				margin: 0 0 12px;
+				text-align: center;
+				color: var(--color-text-maxcontrast);
+			}
 		}
 		.infor-container {
 			width: 100%;
