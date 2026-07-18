@@ -4,55 +4,95 @@
 -->
 <template>
 	<NcAppContent :page-heading="t('libresign', 'Files')">
-		<div class="files-list__header">
-			<!-- Request picker -->
-			<RequestPicker variant="primary" />
+		<div class="files-list__dropzone"
+			@dragenter="onDragEnter"
+			@dragover="onDragOver"
+			@dragleave="onDragLeave"
+			@drop="onDrop">
+			<div v-if="isDraggingFiles" class="files-list__drop-overlay" aria-hidden="true">
+				<NcIconSvgWrapper :path="mdiUpload" :size="48" />
+				<p>{{ t('libresign', 'Drop files here to upload') }}</p>
+			</div>
+			<div class="files-list__header">
+				<!-- Request picker -->
+				<RequestPicker ref="requestPickerRef" variant="primary" />
 
-			<!-- Current folder breadcrumbs -->
-			<NcBreadcrumbs class="files-list__breadcrumbs">
-				<NcBreadcrumb :name="t('libresign', 'Files')"
-					:title="t('libresign', 'Files')"
-					:force-icon-text="true"
-					:to="{ name: 'fileslist' }"
-					:aria-description="t('libresign', 'Files')"
-					:disable-drop="true"
-					force-menu
-					v-model:open="isMenuOpen">
-					<template #icon>
-						<NcIconSvgWrapper :size="20"
-							:svg="viewIcon" />
-					</template>
-					<template #menu-icon>
-						<NcIconSvgWrapper :path="isMenuOpen ? mdiChevronUp : mdiChevronDown" />
-					</template>
-					<!-- Reload button -->
-					<NcActionButton close-after-click @click="refresh()">
+				<!-- Current folder breadcrumbs -->
+				<NcBreadcrumbs class="files-list__breadcrumbs">
+					<NcBreadcrumb :name="t('libresign', 'Files')"
+						:title="t('libresign', 'Files')"
+						:force-icon-text="true"
+						:to="{ name: 'fileslist' }"
+						:aria-description="t('libresign', 'Files')"
+						:disable-drop="true"
+						force-menu
+						v-model:open="isMenuOpen">
 						<template #icon>
-							<NcIconSvgWrapper :path="mdiReload" />
+							<NcIconSvgWrapper :size="20"
+								:svg="viewIcon" />
 						</template>
-						<!-- TRANSLATORS Button inside the breadcrumb dropdown menu that reloads the file list -->
-						{{ t('libresign', 'Reload content') }}
-					</NcActionButton>
-				</NcBreadcrumb>
-			</NcBreadcrumbs>
+						<template #menu-icon>
+							<NcIconSvgWrapper :path="isMenuOpen ? mdiChevronUp : mdiChevronDown" />
+						</template>
+						<!-- Reload button -->
+						<NcActionButton close-after-click @click="refresh()">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiReload" />
+							</template>
+							<!-- TRANSLATORS Button inside the breadcrumb dropdown menu that reloads the file list -->
+							{{ t('libresign', 'Reload content') }}
+						</NcActionButton>
+					</NcBreadcrumb>
+				</NcBreadcrumbs>
 
-			<NcLoadingIcon v-if="isRefreshing"
-				class="files-list__refresh-icon"
-				:name="t('libresign', 'File list is reloading')" />
+				<NcLoadingIcon v-if="isRefreshing"
+					class="files-list__refresh-icon"
+					:name="t('libresign', 'File list is reloading')" />
 
-			<!-- Filters that can be applied to the file list -->
-			<FileListFilters />
+				<!-- Filters that can be applied to the file list -->
+				<FileListFilters />
 
-			<NcButton :aria-label="gridViewButtonLabel"
-				:title="gridViewButtonLabel"
-				class="files-list__header-grid-button"
-				variant="tertiary"
-				@click="toggleGridView">
-				<template #icon>
-					<NcIconSvgWrapper v-if="isGridView" :path="mdiFormatListBulletedSquare" />
-					<NcIconSvgWrapper v-else :path="mdiViewGridOutline" />
+				<NcButton :aria-label="gridViewButtonLabel"
+					:title="gridViewButtonLabel"
+					class="files-list__header-grid-button"
+					variant="tertiary"
+					@click="toggleGridView">
+					<template #icon>
+						<NcIconSvgWrapper v-if="isGridView" :path="mdiFormatListBulletedSquare" />
+						<NcIconSvgWrapper v-else :path="mdiViewGridOutline" />
+					</template>
+				</NcButton>
+			</div>
+			<FilesListVirtual :nodes="dirContentsSorted"
+				:loading="loading">
+				<template #empty>
+					<NcLoadingIcon
+						v-if="loading && !isRefreshing"
+						class="files-list__loading-icon"
+						:size="38"
+						:name="t('libresign', 'Loading …')" />
+
+					<NcEmptyContent
+						v-else-if="!loading && isEmptyDir && filtersStore.activeChips.length === 0"
+						:name="t('libresign', 'There are no documents')"
+						:description="canRequestSign ? t('libresign', 'Choose a file to create a signature request.') : ''">
+						<template v-if="canRequestSign" #action>
+							<RequestPicker variant="primary" />
+						</template>
+						<template #icon>
+							<NcIconSvgWrapper :path="mdiFolder" />
+						</template>
+					</NcEmptyContent>
+
+					<NcEmptyContent
+						v-else-if="!loading && isEmptyDir && filtersStore.activeChips.length > 0"
+						:name="t('libresign', 'No documents found')">
+						<template #icon>
+							<NcIconSvgWrapper :path="mdiFolder" />
+						</template>
+					</NcEmptyContent>
 				</template>
-			</NcButton>
+			</FilesListVirtual>
 		</div>
 		<FilesListVirtual :nodes="dirContentsSorted"
 			:loading="loading">
@@ -100,6 +140,7 @@ import {
 	mdiFolder,
 	mdiFormatListBulletedSquare,
 	mdiReload,
+	mdiUpload,
 	mdiViewGridOutline,
 } from '@mdi/js'
 
@@ -133,6 +174,9 @@ const route = useRoute()
 
 const isMenuOpen = ref(false)
 const loading = ref(true)
+const requestPickerRef = ref<InstanceType<typeof RequestPicker> | null>(null)
+const isDraggingFiles = ref(false)
+const dragDepth = ref(0)
 
 const canRequestSign = computed(() => filesStore.canRequestSign)
 const viewIcon = computed(() => HomeSvg)
@@ -181,12 +225,18 @@ onBeforeUnmount(() => {
 
 defineExpose({
 	isMenuOpen,
+	isDraggingFiles,
 	mdiChevronDown,
 	mdiChevronUp,
 	mdiFolder,
 	mdiFormatListBulletedSquare,
 	mdiReload,
+	mdiUpload,
 	mdiViewGridOutline,
+	onDragEnter,
+	onDragOver,
+	onDragLeave,
+	onDrop,
 })
 </script>
 
@@ -198,6 +248,39 @@ defineExpose({
 	flex-direction: column;
 	max-height: 100%;
 	position: relative !important;
+}
+
+.files-list__dropzone {
+	display: flex;
+	overflow: hidden;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 0;
+	max-height: 100%;
+	position: relative;
+}
+
+.files-list__drop-overlay {
+	position: absolute;
+	inset: 8px;
+	z-index: 100;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	border: 2px dashed var(--color-primary-element);
+	border-radius: var(--border-radius-large);
+	background-color: var(--color-main-background);
+	opacity: 0.95;
+	color: var(--color-primary-element);
+	pointer-events: none;
+
+	p {
+		margin: 0;
+		font-size: 16px;
+		font-weight: bold;
+	}
 }
 
 .files-list__breadcrumbs {
