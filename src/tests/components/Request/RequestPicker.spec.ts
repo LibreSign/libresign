@@ -458,6 +458,77 @@ describe('RequestPicker component rules', () => {
 		})
 	})
 
+	describe('handleFilesSelected (shared entry point for click-upload and drag-and-drop)', () => {
+		it('does nothing when no files are provided', async () => {
+			await wrapper.vm.handleFilesSelected([])
+			expect(filesStore.upload).not.toHaveBeenCalled()
+		})
+
+		it('shows error and does not upload when exceeding max file uploads limit', async () => {
+			getCapabilitiesMock.mockReturnValue({
+				libresign: {
+					config: {
+						envelope: { 'is-available': true },
+						upload: { 'max-file-uploads': 1 },
+					},
+				},
+			})
+			const files = [
+				{ name: 'document1.pdf', size: 1000 },
+				{ name: 'document2.pdf', size: 1000 },
+			]
+			await wrapper.vm.handleFilesSelected(files)
+			expect(showError).toHaveBeenCalled()
+			expect(filesStore.upload).not.toHaveBeenCalled()
+		})
+
+		it('shows error and does not upload when multiple files provided while envelope is disabled', async () => {
+			getCapabilitiesMock.mockReturnValue({
+				libresign: {
+					config: {
+						envelope: { 'is-available': false },
+						upload: { 'max-file-uploads': 20 },
+					},
+				},
+			})
+			const files = [
+				{ name: 'document1.pdf', size: 1000 },
+				{ name: 'document2.pdf', size: 1000 },
+			]
+			await wrapper.vm.handleFilesSelected(files)
+			expect(showError).toHaveBeenCalledWith('Only one file can be uploaded at a time.')
+			expect(filesStore.upload).not.toHaveBeenCalled()
+			expect(wrapper.vm.showEnvelopeNameDialog).toBe(false)
+		})
+
+		it('opens envelope name dialog for multiple files when envelope is enabled', async () => {
+			getCapabilitiesMock.mockReturnValue({
+				libresign: {
+					config: {
+						envelope: { 'is-available': true },
+						upload: { 'max-file-uploads': 20 },
+					},
+				},
+			})
+			const files = [
+				{ name: 'document1.pdf', size: 1000 },
+				{ name: 'document2.pdf', size: 1000 },
+			]
+			await wrapper.vm.handleFilesSelected(files)
+			expect(wrapper.vm.showEnvelopeNameDialog).toBe(true)
+			expect(wrapper.vm.pendingFiles).toEqual(files)
+			expect(filesStore.upload).not.toHaveBeenCalled()
+		})
+
+		it('uploads directly when a single file is provided', async () => {
+			filesStore.upload.mockResolvedValue(42)
+			const files = [{ name: 'document.pdf', size: 1000 }]
+			await wrapper.vm.handleFilesSelected(files)
+			expect(filesStore.upload).toHaveBeenCalled()
+			expect(filesStore.selectFile).toHaveBeenCalledWith(42)
+		})
+	})
+
 	describe('envelope name dialog submission', () => {
 		it('creates envelope with trimmed name when minimum length met', async () => {
 			filesStore.upload.mockResolvedValue(1)
