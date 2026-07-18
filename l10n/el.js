@@ -302,6 +302,7 @@ OC.L10N.register(
     "Delete certificate" : "Διαγραφή πιστοποιητικού",
     "Create certificate" : "Δημιουργία πιστοποιητικού",
     "Change password" : "Αλλαγή συνθηματικού",
+    "Delete {type}" : "Διαγραφή {type}",
     "Your signatures" : "Οι υπογραφές σας",
     "Signature" : "Υπογραφή",
     "No signature, click here to create a new one" : "Καμία υπογραφή, κάντε κλικ εδώ για δημιουργία νέας",
