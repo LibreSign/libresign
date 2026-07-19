@@ -145,6 +145,7 @@ OC.L10N.register(
     "Name" : "名称",
     "Select your file" : "选择你的文件",
     "Choose" : "选择",
+    "Upload failed" : "上传失败",
     "Choose from Files" : "从文件选择",
     "Send" : "发送",
     "Create" : "创建",
