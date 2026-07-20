@@ -4,7 +4,7 @@
         "mikey179/vfsstream": "dev-master",
         "byjg/swagger-test": "^6.0",
         "cweagans/composer-patches": "^2.0",
-        "guzzlehttp/psr7": "^2.4",
+        "guzzlehttp/psr7": "^3.0",
         "symfony/yaml": "7.4.x-dev",
         "smalot/pdfparser": "dev-master",
         "phpunit/phpunit": "10.5.x-dev"
