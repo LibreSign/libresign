@@ -35,7 +35,7 @@
 						</p>
 						<NcActions :menu-name="t('libresign', 'Validate signature')" :inline="3" :force-name="true">
 							<NcActionButton :wide="true" :disabled="loading" @click="openUuidDialog()">
-								<!-- TRANSLATORS: "UUID" is a unique technical identifier for a document (a code like '550e8400-e29b-41d4-a716-446655440000'). Keep "UUID" untranslated. -->
+								<!-- TRANSLATORS "UUID" is a unique technical identifier for a document (a code like '550e8400-e29b-41d4-a716-446655440000'). Keep "UUID" untranslated. -->
 								{{ t('libresign', 'From UUID') }}
 								<template #icon>
 									<NcLoadingIcon v-if="loading" :size="20" />
