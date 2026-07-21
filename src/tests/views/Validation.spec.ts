@@ -24,7 +24,12 @@ type ValidationVm = {
 	isAsyncSigning: boolean
 	shouldFireAsyncConfetti: boolean
 	isActiveView: boolean
+	isDraggingOver: boolean
 	EXPIRATION_WARNING_DAYS: number
+	isPdfFile: (file: File) => boolean
+	handleDragOver: () => void
+	handleDragLeave: () => void
+	handleFileDrop: (event: Partial<DragEvent>) => Promise<void>
 	isAfterSigned: boolean
 	isEnvelope: boolean
 	validationComponent: unknown
@@ -63,6 +68,7 @@ vi.mock('@nextcloud/axios', () => ({
 	default: {
 		get: vi.fn(),
 		post: vi.fn(),
+		postForm: vi.fn(),
 		put: vi.fn(),
 		delete: vi.fn(),
 	},
@@ -1074,6 +1080,71 @@ describe('Validation.vue - Business Logic', () => {
 			await wrapper.vm.validateByUUID(VALID_UUID)
 
 			expect(wrapper.vm.validationErrorMessage).toBe('You are not logged in. Please log in.')
+		})
+	})
+
+	describe('drag-and-drop upload on the Validation page', () => {
+		const buildDropEvent = (files: File[]): Partial<DragEvent> => ({
+			dataTransfer: { files } as unknown as DataTransfer,
+		})
+
+		it('accepts a file whose mime type is application/pdf', () => {
+			const file = new File(['%PDF-1.7'], 'contract.pdf', { type: 'application/pdf' })
+			expect(wrapper.vm.isPdfFile(file)).toBe(true)
+		})
+
+		it('accepts a .pdf file even when the browser reports no mime type', () => {
+			const file = new File(['%PDF-1.7'], 'contract.pdf', { type: '' })
+			expect(wrapper.vm.isPdfFile(file)).toBe(true)
+		})
+
+		it('rejects a non-PDF file', () => {
+			const file = new File(['plain'], 'notes.txt', { type: 'text/plain' })
+			expect(wrapper.vm.isPdfFile(file)).toBe(false)
+		})
+
+		it('marks the dropzone as active while a file is dragged over it', () => {
+			wrapper.vm.handleDragOver()
+			expect(wrapper.vm.isDraggingOver).toBe(true)
+		})
+
+		it('does not activate the dropzone while an upload is already in progress', async () => {
+			await setVmState({ loading: true })
+			wrapper.vm.handleDragOver()
+			expect(wrapper.vm.isDraggingOver).toBe(false)
+		})
+
+		it('clears the active state when the drag leaves the dropzone', async () => {
+			await setVmState({ isDraggingOver: true })
+			wrapper.vm.handleDragLeave()
+			expect(wrapper.vm.isDraggingOver).toBe(false)
+		})
+
+		it('validates a dropped PDF through the same endpoint as the upload button', async () => {
+			vi.mocked(axios.postForm).mockResolvedValueOnce({ data: { ocs: { data: {} } } })
+			const file = new File(['%PDF-1.7'], 'contract.pdf', { type: 'application/pdf' })
+
+			await wrapper.vm.handleFileDrop(buildDropEvent([file]))
+
+			expect(axios.postForm).toHaveBeenCalledOnce()
+			const formData = vi.mocked(axios.postForm).mock.calls[0][1] as FormData
+			expect(formData.get('file')).toBe(file)
+			expect(wrapper.vm.isDraggingOver).toBe(false)
+			expect(wrapper.vm.loading).toBe(false)
+		})
+
+		it('rejects a dropped non-PDF file without calling the validate endpoint', async () => {
+			const file = new File(['plain'], 'notes.txt', { type: 'text/plain' })
+
+			await wrapper.vm.handleFileDrop(buildDropEvent([file]))
+
+			expect(axios.postForm).not.toHaveBeenCalled()
+			expect(wrapper.vm.validationErrorMessage).toBe('Please upload a PDF file')
+		})
+
+		it('ignores a drop that carries no file', async () => {
+			await wrapper.vm.handleFileDrop(buildDropEvent([]))
+			expect(axios.postForm).not.toHaveBeenCalled()
 		})
 	})
 
