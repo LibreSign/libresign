@@ -43,7 +43,7 @@
 								</template>
 							</NcActionButton>
 							<NcActionButton :wide="true" :disabled="loading" @click="uploadFile">
-								<!-- TRANSLATORS: Label of the button that lets the user pick a PDF file from their device to validate its signatures. -->
+								<!-- TRANSLATORS Label of the button that lets the user pick a PDF file from their device to validate its signatures. -->
 								{{ t('libresign', 'Upload') }}
 								<template #icon>
 									<NcLoadingIcon v-if="loading" :size="20" />
