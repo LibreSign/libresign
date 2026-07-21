@@ -30,7 +30,7 @@
 						@dragleave.prevent="handleDragLeave"
 						@drop.prevent="handleFileDrop">
 						<p class="upload-dropzone__hint">
-							<!-- TRANSLATORS: Hint shown inside the drag-and-drop area on the signature validation page. It tells the user they can either drop a PDF file here or use the "From UUID"/"Upload" buttons below. -->
+							<!-- TRANSLATORS Hint shown inside the drag-and-drop area on the signature validation page. It tells the user they can either drop a PDF file here or use the "From UUID"/"Upload" buttons below. -->
 							{{ t('libresign', 'Drag and drop a PDF here, or use the buttons below.') }}
 						</p>
 						<NcActions :menu-name="t('libresign', 'Validate signature')" :inline="3" :force-name="true">
