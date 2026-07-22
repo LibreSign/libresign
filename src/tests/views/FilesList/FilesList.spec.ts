@@ -122,10 +122,17 @@ vi.mock('../../../views/FilesList/FileListFilters.vue', () => ({
 	},
 }))
 
+const handleFilesSelectedMock = vi.fn()
+
 vi.mock('../../../components/Request/RequestPicker.vue', () => ({
 	default: {
 		name: 'RequestPicker',
 		template: '<div class="request-picker-stub" />',
+		methods: {
+			handleFilesSelected(files: File[]) {
+				return handleFilesSelectedMock(files)
+			},
+		},
 	},
 }))
 
@@ -312,5 +319,117 @@ describe('FilesList.vue rendering rules', () => {
 		wrapper.unmount()
 
 		expect(selectSpy).toHaveBeenCalledWith()
+	})
+
+	describe('drag-and-drop upload', () => {
+		function createDragEvent(files: File[] = [], types: string[] = ['Files']) {
+			return {
+				preventDefault: vi.fn(),
+				dataTransfer: {
+					types,
+					files,
+					dropEffect: '',
+				},
+			} as unknown as DragEvent
+		}
+
+		it('shows the drop overlay when a file is dragged over and user can request sign', async () => {
+			const filesStore = useFilesStore()
+			filesStore.canRequestSign = true
+			vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+
+			const wrapper = mountComponent()
+			await flushPromises()
+
+			expect(wrapper.vm.isDraggingFiles).toBe(false)
+			wrapper.vm.onDragEnter(createDragEvent())
+			expect(wrapper.vm.isDraggingFiles).toBe(true)
+		})
+
+		it('does not show the drop overlay when user cannot request sign', async () => {
+			const filesStore = useFilesStore()
+			filesStore.canRequestSign = false
+			vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+
+			const wrapper = mountComponent()
+			await flushPromises()
+
+			wrapper.vm.onDragEnter(createDragEvent())
+			expect(wrapper.vm.isDraggingFiles).toBe(false)
+		})
+
+		it('ignores drags that do not carry files', async () => {
+			const filesStore = useFilesStore()
+			filesStore.canRequestSign = true
+			vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+
+			const wrapper = mountComponent()
+			await flushPromises()
+
+			wrapper.vm.onDragEnter(createDragEvent([], ['text/plain']))
+			expect(wrapper.vm.isDraggingFiles).toBe(false)
+		})
+
+		it('hides the overlay only after the last dragleave of nested elements', async () => {
+			const filesStore = useFilesStore()
+			filesStore.canRequestSign = true
+			vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+
+			const wrapper = mountComponent()
+			await flushPromises()
+
+			wrapper.vm.onDragEnter(createDragEvent())
+			wrapper.vm.onDragEnter(createDragEvent())
+			expect(wrapper.vm.isDraggingFiles).toBe(true)
+
+			wrapper.vm.onDragLeave(createDragEvent())
+			expect(wrapper.vm.isDraggingFiles).toBe(true)
+
+			wrapper.vm.onDragLeave(createDragEvent())
+			expect(wrapper.vm.isDraggingFiles).toBe(false)
+		})
+
+		it('delegates dropped files to RequestPicker.handleFilesSelected and hides the overlay', async () => {
+			const filesStore = useFilesStore()
+			filesStore.canRequestSign = true
+			vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+
+			const wrapper = mountComponent()
+			await flushPromises()
+
+			const file = new File(['content'], 'document.pdf', { type: 'application/pdf' })
+			wrapper.vm.onDragEnter(createDragEvent([file]))
+			await wrapper.vm.onDrop(createDragEvent([file]))
+
+			expect(handleFilesSelectedMock).toHaveBeenCalledWith([file])
+			expect(wrapper.vm.isDraggingFiles).toBe(false)
+		})
+
+		it('does not upload dropped files when user cannot request sign', async () => {
+			const filesStore = useFilesStore()
+			filesStore.canRequestSign = false
+			vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+
+			const wrapper = mountComponent()
+			await flushPromises()
+
+			const file = new File(['content'], 'document.pdf', { type: 'application/pdf' })
+			await wrapper.vm.onDrop(createDragEvent([file]))
+
+			expect(handleFilesSelectedMock).not.toHaveBeenCalled()
+		})
+
+		it('does not call handleFilesSelected when no files are dropped', async () => {
+			const filesStore = useFilesStore()
+			filesStore.canRequestSign = true
+			vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+
+			const wrapper = mountComponent()
+			await flushPromises()
+
+			await wrapper.vm.onDrop(createDragEvent([]))
+
+			expect(handleFilesSelectedMock).not.toHaveBeenCalled()
+		})
 	})
 })
