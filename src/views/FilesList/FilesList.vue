@@ -11,6 +11,7 @@
 			@drop="onDrop">
 			<div v-if="isDraggingFiles" class="files-list__drop-overlay" aria-hidden="true">
 				<NcIconSvgWrapper :path="mdiUpload" :size="48" />
+				<!-- TRANSLATORS Instruction shown while dragging files over the file list. Dropping files here uploads them so they can be sent for signature. -->
 				<p>{{ t('libresign', 'Drop files here to upload') }}</p>
 			</div>
 			<div class="files-list__header">
@@ -94,36 +95,6 @@
 				</template>
 			</FilesListVirtual>
 		</div>
-		<FilesListVirtual :nodes="dirContentsSorted"
-			:loading="loading">
-			<template #empty>
-				<NcLoadingIcon
-					v-if="loading && !isRefreshing"
-					class="files-list__loading-icon"
-					:size="38"
-					:name="t('libresign', 'Loading …')" />
-
-				<NcEmptyContent
-					v-else-if="!loading && isEmptyDir && filtersStore.activeChips.length === 0"
-					:name="t('libresign', 'There are no documents')"
-					:description="canRequestSign ? t('libresign', 'Choose the file to request signatures.') : ''">
-					<template v-if="canRequestSign" #action>
-						<RequestPicker variant="primary" />
-					</template>
-					<template #icon>
-						<NcIconSvgWrapper :path="mdiFolder" />
-					</template>
-				</NcEmptyContent>
-
-				<NcEmptyContent
-					v-else-if="!loading && isEmptyDir && filtersStore.activeChips.length > 0"
-					:name="t('libresign', 'No documents found')">
-					<template #icon>
-						<NcIconSvgWrapper :path="mdiFolder" />
-					</template>
-				</NcEmptyContent>
-			</template>
-		</FilesListVirtual>
 	</NcAppContent>
 </template>
 
@@ -196,6 +167,57 @@ function refresh() {
 
 function toggleGridView() {
 	userConfigStore.update('files_list_grid_view', !isGridView.value)
+}
+
+function isFileDrag(event: DragEvent) {
+	return Array.from(event.dataTransfer?.types ?? []).includes('Files')
+}
+
+function onDragEnter(event: DragEvent) {
+	if (!canRequestSign.value || !isFileDrag(event)) {
+		return
+	}
+	event.preventDefault()
+	dragDepth.value++
+	isDraggingFiles.value = true
+}
+
+function onDragOver(event: DragEvent) {
+	if (!canRequestSign.value || !isFileDrag(event)) {
+		return
+	}
+	event.preventDefault()
+	if (event.dataTransfer) {
+		event.dataTransfer.dropEffect = 'copy'
+	}
+}
+
+function onDragLeave(event: DragEvent) {
+	if (!canRequestSign.value || !isFileDrag(event)) {
+		return
+	}
+	event.preventDefault()
+	dragDepth.value = Math.max(0, dragDepth.value - 1)
+	if (dragDepth.value === 0) {
+		isDraggingFiles.value = false
+	}
+}
+
+async function onDrop(event: DragEvent) {
+	event.preventDefault()
+	dragDepth.value = 0
+	isDraggingFiles.value = false
+
+	if (!canRequestSign.value) {
+		return
+	}
+
+	const files = Array.from(event.dataTransfer?.files ?? [])
+	if (files.length === 0) {
+		return
+	}
+
+	await requestPickerRef.value?.handleFilesSelected?.(files)
 }
 
 function checkAndOpenFileFromUri() {
