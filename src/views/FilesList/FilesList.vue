@@ -11,6 +11,7 @@
 			@drop="onDrop">
 			<div v-if="isDraggingFiles" class="files-list__drop-overlay" aria-hidden="true">
 				<NcIconSvgWrapper :path="mdiUpload" :size="48" />
+				<!-- TRANSLATORS Instruction shown while dragging files over the file list. Dropping files here uploads them so they can be sent for signature. -->
 				<p>{{ t('libresign', 'Drop files here to upload') }}</p>
 			</div>
 			<div class="files-list__header">
