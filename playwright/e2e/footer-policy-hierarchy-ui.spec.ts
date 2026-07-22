@@ -20,6 +20,7 @@ import {
 	setGroupPolicyEntry,
 	setSystemPolicyEntry,
 } from '../support/policy-api'
+import { clickVisibleOptionOrFallback } from '../support/select-option'
 
 const test = base.extend<{
 	adminRequestContext: APIRequestContext
@@ -212,13 +213,18 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 	if (await searchInput.isVisible({ timeout: 1000 }).catch(() => false)) {
 		for (let attempt = 0; attempt < 3; attempt += 1) {
 			await searchInput.fill(target)
+			const targetPattern = new RegExp(escapeRegExp(target), 'i')
 
-			const matchingOption = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
+			const matchingOption = page.getByRole('option', { name: targetPattern }).first()
 			const matchingVisible = await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)
 			if (matchingVisible) {
-				await matchingOption.click()
+				const clicked = await clickVisibleOptionOrFallback(page, matchingOption, targetPattern)
+				if (!clicked) {
+					await searchInput.press('ArrowDown')
+					await searchInput.press('Enter')
+				}
 			} else {
-				const floatingOption = page.locator('ul[role="listbox"] li, .vs__dropdown-menu--floating li').filter({ hasText: new RegExp(escapeRegExp(target), 'i') }).first()
+				const floatingOption = page.locator('ul[role="listbox"] li, .vs__dropdown-menu--floating li').filter({ hasText: targetPattern }).first()
 				if (await floatingOption.isVisible({ timeout: 2000 }).catch(() => false)) {
 					await floatingOption.click()
 				} else {
@@ -236,9 +242,14 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
 	} else {
 		await page.keyboard.type(target)
-		const matchingOption = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
+		const targetPattern = new RegExp(escapeRegExp(target), 'i')
+		const matchingOption = page.getByRole('option', { name: targetPattern }).first()
 		if (await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)) {
-			await matchingOption.click()
+			const clicked = await clickVisibleOptionOrFallback(page, matchingOption, targetPattern)
+			if (!clicked) {
+				await page.keyboard.press('ArrowDown')
+				await page.keyboard.press('Enter')
+			}
 		} else {
 			await page.keyboard.press('ArrowDown')
 			await page.keyboard.press('Enter')
