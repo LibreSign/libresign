@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createTestingPinia } from '@pinia/testing'
 import { mount } from '@vue/test-utils'
-import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import FilesListTableHeader from '../../../views/FilesList/FilesListTableHeader.vue'
-import { useFilesStore } from '../../../store/files.js'
+
 import { useFilesSortingStore } from '../../../store/filesSorting.js'
 import { useSelectionStore } from '../../../store/selection.js'
 
@@ -95,14 +95,23 @@ const NcCheckboxRadioSwitchStub = {
 }
 
 function createWrapper(filesCount = 2) {
-	const filesStore = useFilesStore()
-	filesStore.ordered = Array.from({ length: filesCount }, (_, index) => index + 1) as typeof filesStore.ordered
+	const ordered = Array.from({ length: filesCount }, (_, index) => index + 1)
+	const pinia = createTestingPinia({
+		createSpy: vi.fn,
+		stubActions: (action, store) => !(store.$id === 'selection' && ['set', 'reset'].includes(action)),
+		initialState: {
+			files: {
+				ordered,
+			},
+		},
+	})
 
 	return mount(FilesListTableHeader, {
 		props: {
 			nodes: Array.from({ length: filesCount }, (_, index) => ({ id: index + 1, basename: `file${index + 1}.pdf` })),
 		},
 		global: {
+			plugins: [pinia],
 			stubs: {
 				NcCheckboxRadioSwitch: NcCheckboxRadioSwitchStub,
 				FilesListTableHeaderButton: {
@@ -116,7 +125,6 @@ function createWrapper(filesCount = 2) {
 
 describe('FilesListTableHeader.vue', () => {
 	beforeEach(() => {
-		setActivePinia(createPinia())
 		vi.clearAllMocks()
 	})
 
