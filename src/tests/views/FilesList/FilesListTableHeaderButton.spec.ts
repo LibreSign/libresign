@@ -5,7 +5,6 @@
 
 import { createTestingPinia } from '@pinia/testing'
 import { mount } from '@vue/test-utils'
-import { setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import FilesListTableHeaderButton from '../../../views/FilesList/FilesListTableHeaderButton.vue'
@@ -59,26 +58,13 @@ const NcButtonStub = {
 	template: '<button :class="$attrs.class" @click="$emit(\'click\')"><slot /><slot name="icon" /></button>',
 }
 
-type FilesSortingState = {
-	sortingMode?: string
-	sortingDirection?: string
-}
-
-/**
- * Mount the header button with isolated sorting-store state.
- *
- * @param mode Sort key represented by the button.
- * @param name Visible label for the button.
- * @param sortingState Initial state for the sorting store.
- */
-function createWrapper(mode = 'size', name = 'Size', sortingState: FilesSortingState = {}) {
+function createWrapper(mode = 'size', name = 'Size', sortingState: { sortingMode?: string, sortingDirection?: string } = {}) {
 	const pinia = createTestingPinia({
 		createSpy: vi.fn,
 		initialState: {
 			filesSorting: sortingState,
 		},
 	})
-	setActivePinia(pinia)
 
 	return mount(FilesListTableHeaderButton, {
 		props: { name, mode },
