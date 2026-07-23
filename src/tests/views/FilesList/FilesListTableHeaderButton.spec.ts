@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createTestingPinia } from '@pinia/testing'
 import { mount } from '@vue/test-utils'
-import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import FilesListTableHeaderButton from '../../../views/FilesList/FilesListTableHeaderButton.vue'
+
 import { useFilesSortingStore } from '../../../store/filesSorting.js'
 
 vi.mock('@nextcloud/event-bus', () => ({
@@ -57,10 +58,18 @@ const NcButtonStub = {
 	template: '<button :class="$attrs.class" @click="$emit(\'click\')"><slot /><slot name="icon" /></button>',
 }
 
-function createWrapper(mode = 'size', name = 'Size') {
+function createWrapper(mode = 'size', name = 'Size', sortingState: { sortingMode?: string, sortingDirection?: string } = {}) {
+	const pinia = createTestingPinia({
+		createSpy: vi.fn,
+		initialState: {
+			filesSorting: sortingState,
+		},
+	})
+
 	return mount(FilesListTableHeaderButton, {
 		props: { name, mode },
 		global: {
+			plugins: [pinia],
 			stubs: {
 				NcButton: NcButtonStub,
 				NcIconSvgWrapper: true,
@@ -71,7 +80,6 @@ function createWrapper(mode = 'size', name = 'Size') {
 
 describe('FilesListTableHeaderButton.vue', () => {
 	beforeEach(() => {
-		setActivePinia(createPinia())
 		vi.clearAllMocks()
 	})
 
@@ -82,11 +90,10 @@ describe('FilesListTableHeaderButton.vue', () => {
 	})
 
 	it('computes descending state when the same column is sorted descending', () => {
-		const sortingStore = useFilesSortingStore()
-		sortingStore.sortingMode = 'size'
-		sortingStore.sortingDirection = 'desc'
-
-		const wrapper = createWrapper('size')
+		const wrapper = createWrapper('size', 'Size', {
+			sortingMode: 'size',
+			sortingDirection: 'desc',
+		})
 		expect(wrapper.vm.isAscending).toBe(false)
 	})
 
@@ -97,31 +104,29 @@ describe('FilesListTableHeaderButton.vue', () => {
 	})
 
 	it('triggers the store sort toggle for the current mode', async () => {
-		const sortingStore = useFilesSortingStore()
-		const spy = vi.spyOn(sortingStore, 'toggleSortBy')
 		const wrapper = createWrapper('size')
+		const sortingStore = useFilesSortingStore()
 
 		await wrapper.find('button').trigger('click')
 
-		expect(spy).toHaveBeenCalledWith('size')
+		expect(sortingStore.toggleSortBy).toHaveBeenCalledWith('size')
 	})
 
 	describe('Vue 3 sorting interactions', () => {
 		it('is true when the column is active and direction is asc', () => {
-			const sortingStore = useFilesSortingStore()
-			sortingStore.sortingMode = 'created_at'
-			sortingStore.sortingDirection = 'asc'
-
-			const wrapper = createWrapper('created_at', 'Created at')
+			const wrapper = createWrapper('created_at', 'Created at', {
+				sortingMode: 'created_at',
+				sortingDirection: 'asc',
+			})
 			expect(wrapper.vm.isAscending).toBe(true)
 		})
 
 		it('reacts when direction changes from asc to desc', async () => {
+			const wrapper = createWrapper('created_at', 'Created at', {
+				sortingMode: 'created_at',
+				sortingDirection: 'asc',
+			})
 			const sortingStore = useFilesSortingStore()
-			sortingStore.sortingMode = 'created_at'
-			sortingStore.sortingDirection = 'asc'
-
-			const wrapper = createWrapper('created_at', 'Created at')
 			expect(wrapper.vm.isAscending).toBe(true)
 
 			sortingStore.sortingDirection = 'desc'
@@ -131,10 +136,9 @@ describe('FilesListTableHeaderButton.vue', () => {
 		})
 
 		it('adds the active class when the column is the active sort mode', () => {
-			const sortingStore = useFilesSortingStore()
-			sortingStore.sortingMode = 'created_at'
-
-			const wrapper = createWrapper('created_at', 'Created at')
+			const wrapper = createWrapper('created_at', 'Created at', {
+				sortingMode: 'created_at',
+			})
 			expect(wrapper.find('button').classes()).toContain('files-list__column-sort-button--active')
 		})
 
@@ -145,10 +149,10 @@ describe('FilesListTableHeaderButton.vue', () => {
 		})
 
 		it('removes the active class when the active mode changes', async () => {
+			const wrapper = createWrapper('created_at', 'Created at', {
+				sortingMode: 'created_at',
+			})
 			const sortingStore = useFilesSortingStore()
-			sortingStore.sortingMode = 'created_at'
-
-			const wrapper = createWrapper('created_at', 'Created at')
 			expect(wrapper.find('button').classes()).toContain('files-list__column-sort-button--active')
 
 			sortingStore.sortingMode = 'status'
@@ -158,13 +162,12 @@ describe('FilesListTableHeaderButton.vue', () => {
 		})
 
 		it('delegates click to toggleSortBy for the provided mode', async () => {
-			const sortingStore = useFilesSortingStore()
-			const spy = vi.spyOn(sortingStore, 'toggleSortBy')
 			const wrapper = createWrapper('created_at', 'Created at')
+			const sortingStore = useFilesSortingStore()
 
 			await wrapper.find('button').trigger('click')
 
-			expect(spy).toHaveBeenCalledWith('created_at')
+			expect(sortingStore.toggleSortBy).toHaveBeenCalledWith('created_at')
 		})
 	})
 })
