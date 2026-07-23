@@ -98,6 +98,6 @@
     "vite": "^8.1.5",
     "vite-plugin-node-polyfills": "^0.28.0",
     "vitest": "^4.1.4",
-    "vue-tsc": "^3.3.7"
+    "vue-tsc": "^3.3.8"
   }
 }
