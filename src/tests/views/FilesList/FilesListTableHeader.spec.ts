@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createTestingPinia } from '@pinia/testing'
 import { mount } from '@vue/test-utils'
-import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import FilesListTableHeader from '../../../views/FilesList/FilesListTableHeader.vue'
+
 import { useFilesStore } from '../../../store/files.js'
 import { useFilesSortingStore } from '../../../store/filesSorting.js'
 import { useSelectionStore } from '../../../store/selection.js'
@@ -94,22 +95,29 @@ const NcCheckboxRadioSwitchStub = {
 	template: '<input type="checkbox" :checked="modelValue" :data-indeterminate="indeterminate" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
 }
 
-function createWrapper(filesCount = 2, options: { resetFiles?: boolean, canRequestSign?: boolean } = {}) {
-	const filesStore = useFilesStore()
-	filesStore.ordered = Array.from({ length: filesCount }, (_, index) => index + 1) as typeof filesStore.ordered
-	if (options.resetFiles !== false) {
-		filesStore.files = Object.fromEntries(Array.from({ length: filesCount }, (_, index) => {
-			const id = index + 1
-			return [id, { id }]
-		})) as typeof filesStore.files
-	}
-	filesStore.canRequestSign = options.canRequestSign ?? true
+function createWrapper(filesCount = 2, options: { canRequestSign?: boolean } = {}) {
+	const ordered = Array.from({ length: filesCount }, (_, index) => index + 1)
+	const pinia = createTestingPinia({
+		createSpy: vi.fn,
+		stubActions: (action, store) => !(
+			(store.$id === 'files' && action === 'canDelete')
+			|| (store.$id === 'selection' && ['set', 'reset'].includes(action))
+		),
+		initialState: {
+			files: {
+				ordered,
+				files: Object.fromEntries(ordered.map(id => [id, { id }])),
+				canRequestSign: options.canRequestSign ?? true,
+			},
+		},
+	})
 
 	return mount(FilesListTableHeader, {
 		props: {
 			nodes: Array.from({ length: filesCount }, (_, index) => ({ id: index + 1, basename: `file${index + 1}.pdf` })),
 		},
 		global: {
+			plugins: [pinia],
 			stubs: {
 				NcCheckboxRadioSwitch: NcCheckboxRadioSwitchStub,
 				FilesListTableHeaderButton: {
@@ -123,7 +131,6 @@ function createWrapper(filesCount = 2, options: { resetFiles?: boolean, canReque
 
 describe('FilesListTableHeader.vue', () => {
 	beforeEach(() => {
-		setActivePinia(createPinia())
 		vi.clearAllMocks()
 	})
 
@@ -245,13 +252,13 @@ describe('FilesListTableHeader.vue', () => {
 		})
 
 		it('selects only deletable files when using select all', async () => {
+			const wrapper = createWrapper(3)
 			const filesStore = useFilesStore()
 			filesStore.files = {
 				1: { id: 1 },
 				2: { id: 2, requested_by: { userId: 'someone-else' } },
 				3: { id: 3 },
 			}
-			const wrapper = createWrapper(3, { resetFiles: false })
 			const stub = wrapper.findComponent(NcCheckboxRadioSwitchStub)
 			const selectionStore = useSelectionStore()
 
