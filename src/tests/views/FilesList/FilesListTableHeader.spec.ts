@@ -5,11 +5,11 @@
 
 import { createTestingPinia } from '@pinia/testing'
 import { mount } from '@vue/test-utils'
-import { setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import FilesListTableHeader from '../../../views/FilesList/FilesListTableHeader.vue'
 
+import { useFilesSortingStore } from '../../../store/filesSorting.js'
 import { useSelectionStore } from '../../../store/selection.js'
 
 type Column = {
@@ -95,8 +95,16 @@ const NcCheckboxRadioSwitchStub = {
 }
 
 function createWrapper(filesCount = 2) {
-	const filesStore = useFilesStore()
-	filesStore.ordered = Array.from({ length: filesCount }, (_, index) => index + 1) as typeof filesStore.ordered
+	const ordered = Array.from({ length: filesCount }, (_, index) => index + 1)
+	const pinia = createTestingPinia({
+		createSpy: vi.fn,
+		stubActions: (action, store) => !(store.$id === 'selection' && ['set', 'reset'].includes(action)),
+		initialState: {
+			files: {
+				ordered,
+			},
+		},
+	})
 
 	return mount(FilesListTableHeader, {
 		props: {
@@ -230,14 +238,20 @@ describe('FilesListTableHeader.vue', () => {
 		})
 
 		it('sets modelValue to true when all files are selected', async () => {
-			const wrapper = createWrapper(2, { selected: [1, 2] })
+			const wrapper = createWrapper(2)
+			const selectionStore = useSelectionStore()
+
+			selectionStore.set([1, 2])
 			await wrapper.vm.$nextTick()
 
 			expect(wrapper.findComponent(NcCheckboxRadioSwitchStub).props('modelValue')).toBe(true)
 		})
 
 		it('sets indeterminate when only some files are selected', async () => {
-			const wrapper = createWrapper(2, { selected: [1] })
+			const wrapper = createWrapper(2)
+			const selectionStore = useSelectionStore()
+
+			selectionStore.set([1])
 			await wrapper.vm.$nextTick()
 
 			const stub = wrapper.findComponent(NcCheckboxRadioSwitchStub)
@@ -262,22 +276,24 @@ describe('FilesListTableHeader.vue', () => {
 			expect(vm.ariaSortForMode('actions', false)).toBeNull()
 		})
 
-		it('returns descending when the active mode is descending', () => {
-			const wrapper = createWrapper(2, {
-				sortingMode: 'created_at',
-				sortingDirection: 'desc',
-			})
+		it('returns descending when the active mode is descending', async () => {
+			const wrapper = createWrapper()
 			const vm = wrapper.vm as FilesListTableHeaderVm
+			const sortingStore = useFilesSortingStore()
+			sortingStore.sortingMode = 'created_at'
+			sortingStore.sortingDirection = 'desc'
+			await wrapper.vm.$nextTick()
 
 			expect(vm.ariaSortForMode('created_at')).toBe('descending')
 		})
 
-		it('returns ascending when the active mode is ascending', () => {
-			const wrapper = createWrapper(2, {
-				sortingMode: 'status',
-				sortingDirection: 'asc',
-			})
+		it('returns ascending when the active mode is ascending', async () => {
+			const wrapper = createWrapper()
 			const vm = wrapper.vm as FilesListTableHeaderVm
+			const sortingStore = useFilesSortingStore()
+			sortingStore.sortingMode = 'status'
+			sortingStore.sortingDirection = 'asc'
+			await wrapper.vm.$nextTick()
 
 			expect(vm.ariaSortForMode('status')).toBe('ascending')
 		})
