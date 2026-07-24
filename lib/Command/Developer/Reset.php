@@ -28,10 +28,12 @@ class Reset extends Base {
 		parent::__construct();
 	}
 
+	#[\Override]
 	public function isEnabled(): bool {
 		return $this->config->getSystemValue('debug', false) === true;
 	}
 
+	#[\Override]
 	protected function configure(): void {
 		$this
 			->setName('libresign:developer:reset')
@@ -105,6 +107,7 @@ class Reset extends Base {
 		;
 	}
 
+	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		$ok = false;
 

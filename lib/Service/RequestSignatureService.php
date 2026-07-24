@@ -328,7 +328,20 @@ class RequestSignatureService {
 	/**
 	 * Save file data
 	 *
-	 * @param array{?userManager: IUser, ?signRequest: SignRequestEntity, name: string, callback: string, uuid?: ?string, status: int, file?: array{fileId?: int, fileNode?: Node}} $data
+	 * @param array{
+	 *     userManager?: IUser,
+	 *     signRequest?: SignRequestEntity,
+	 *     name?: string,
+	 *     callback?: string,
+	 *     uuid?: ?string,
+	 *     status?: int,
+	 *     parentFileId?: int,
+	 *     file?: array{fileId?: int, nodeId?: int, fileNode?: Node},
+	 *     settings?: array<string, mixed>,
+	 *     policyOverrides?: array<string, mixed>,
+	 *     policyActiveContext?: ?array<string, mixed>,
+	 *     uploadedFile?: array<string, mixed>
+	 * } $data
 	 */
 	public function saveFile(array $data): FileEntity {
 		if (!empty($data['uuid'])) {

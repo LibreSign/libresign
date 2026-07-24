@@ -79,9 +79,10 @@ interface IEngineHandler {
 	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation, int $crlNumber): string;
 
 	/**
-	 * Parse an X.509 certificate and return its details with CRL validation
-	 * @param string $certificate PEM-encoded certificate
-	 * @return array Parsed certificate data including CRL validation information
+	 * Scope certificate validation policy resolution to a specific user.
+	 *
+	 * @param string|null $userId User identifier used to resolve validation policies
+	 * @return self
 	 */
 	public function setPolicyUserIdForValidation(?string $userId): self;
 
