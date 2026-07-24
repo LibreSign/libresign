@@ -201,9 +201,46 @@ Prefer focused Vitest runs while developing. Use broader runs only when the chan
 
 ## Testing Conventions
 
+### Mirrored Unit Test Structure
+
+Unit tests must mirror the source tree so that their location can be derived directly from the source file being tested. This applies to both PHP and frontend unit tests.
+
+```text
+lib/Service/CrlService.php
+  -> tests/php/Unit/Service/CrlServiceTest.php
+
+src/components/Request/RequestPicker.vue
+  -> src/tests/components/Request/RequestPicker.spec.ts
+
+src/helpers/selectOption.ts
+  -> src/tests/helpers/selectOption.spec.ts
+```
+
+Rules:
+
+- Preserve the source file's relative path under the corresponding test root.
+- Keep the source file's base name, using the test suffix adopted by that stack.
+- Do not flatten tests into generic directories or introduce alternative test roots when a mirrored path exists.
+- Prefer one test file per source file.
+- When a test requires file-specific fixtures, mocks, or helpers, create a directory named after the source file's base name and place the primary test and its supporting files inside it:
+
+```text
+src/components/Request/RequestPicker.vue
+  -> src/tests/components/Request/RequestPicker/
+       RequestPicker.spec.ts
+       fixtures.ts
+       mocks.ts
+```
+
+- Do not keep both a standalone test file and a same-base-name test directory for the same source file.
+- Keep reusable test utilities in the existing shared test support locations.
+- A unit test without a clearly identifiable primary source file does not belong in this mirrored unit test tree. Place it in the appropriate existing non-unit test suite instead.
+
+This convention does not require every source file to have a test. It requires every file-specific unit test to have a predictable location.
+
 ### PHPUnit Structure
 
-Unit tests mirror the source tree under `tests/php/Unit/`:
+PHP unit tests mirror the source tree under `tests/php/Unit/`:
 
 ```text
 lib/Service/CrlService.php
