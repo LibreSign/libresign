@@ -157,6 +157,7 @@ OC.L10N.register(
     "No recommendations. Start typing." : "Brak rekomendacji. Możesz napisać.",
     "Sign" : "Podpisz",
     "An error occurred" : "Wystąpił błąd",
+    "Failed to load files" : "Nie udało się załadować pliku",
     "Upload cancelled" : "Anulowano przesyłanie",
     "Saved" : "Zapisano",
     "_{count} selected_::_{count} selected_" : ["wybrano {count}","wybrano {count}","wybrano {count}","wybrano {count}"],
