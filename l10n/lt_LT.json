@@ -21,7 +21,7 @@
     "Envelope not found" : "Vokas nerastas",
     "Failed to add file to envelope" : "Nepavyko įdėti failo į voką",
     "File name is required" : "Reikalingas failo pavadinimas",
-    "File or files parameter is required" : "Būtinas parametras „Failas“ arba „Failai“",
+    "File or files parameter is required" : "„Failas“ arba „failai“ yra būtinas parametras ",
     "Invalid UUID" : "Neteisingas UUID",
     "Invalid identification document request" : "Neteisinga tapatybės nustatymo dokumento užklausa",
     "Invalid file" : "Neteisingas failas",
