@@ -68,7 +68,7 @@ jobs:
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: Draft release for this branch
-        uses: release-drafter/release-drafter@v7
+        uses: release-drafter/release-drafter@v7.6.0
         with:
           config-name: release-drafter.yml
           commitish: ${{ steps.resolve-version.outputs.branch }}
