@@ -28,6 +28,7 @@ OC.L10N.register(
     "in %s" : "%sの中で",
     "UUID not found" : "UUIDが見つかりません",
     "Empty file" : "空白のファイル",
+    "Pending" : "保留中",
     "Invalid file provided" : "無効なファイルが提供されました",
     "Invalid code." : "無効なコード。",
     "Account" : "アカウント",
