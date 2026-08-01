@@ -209,6 +209,7 @@ OC.L10N.register(
     "Click on the place you want to add." : "أنقُر على المكان الذي تريد إضافته",
     "Sign" : "وقع",
     "An error occurred" : "حدث خطأ",
+    "Failed to load files" : "تعذّر تحميل الملفات",
     "Upload cancelled" : "تمّ إلغاء الرفع",
     "Saved" : "تمّ الحفظ",
     "_{count} selected_::_{count} selected_" : ["{count} تمّ تحديده","{count} تمّ تحديده","{count} تمّ تحديده","{count} تمّ تحديده","{count} تمّ تحديده","{count} تمّ تحديده"],
