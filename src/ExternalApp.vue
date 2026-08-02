@@ -32,6 +32,7 @@ html body #content {
 	margin: 0;
 	width: 100vw;
 	height: 100vh;
+	height: 100dvh;
 	border-radius: 0;
 }
 
@@ -44,6 +45,7 @@ html body #content {
 		width: 100vw !important;
 		max-width: 100vw !important;
 		height: 100vh;
+		height: 100dvh;
 		z-index: 2000;
 	}
 }
