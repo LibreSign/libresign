@@ -154,6 +154,7 @@ OC.L10N.register(
     "Link" : "Enllaç",
     "Undo" : "Desfés",
     "Redo" : "Refés",
+    "{currentPage} of {totalPages}" : "{currentPage} de {totalPages}",
     "Duplicate" : "Duplica",
     "Loading …" : "Carregant …",
     "Update" : "Actualitza",
