@@ -747,7 +747,7 @@
     "Days between reminders" : "Anımsatıcılar arasındaki gün sayısı",
     "Max reminders per signer" : "Her imzalayana gönderilecek en fazla anımsatıcı",
     "Send time (HH:mm)" : "Gönderim zamanı (HH:mm)",
-    "Search groups" : "Grup arama",
+    "Search groups" : "Grup ara",
     "All signers receive the document at the same time and can sign in any order." : "Tüm imzalayanlar belgeyi aynı anda alır ve istedikleri sırayla imzalayabilirler.",
     "Sequential" : "Sıralı",
     "Validation URL" : "Doğrulama adresi",
