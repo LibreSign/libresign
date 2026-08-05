@@ -176,7 +176,7 @@ class SignSetupService {
 					try {
 						$folder = $this->appData->getFolder('/');
 						$path = $this->architecture . '/' . $this->getLinuxDistributionToDownloadJava() . '/java';
-						$folder = $folder->getFolder($path, $folder);
+						$folder = $folder->getFolder($path);
 						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
 						if (is_dir($path)) {
 							return $path;
@@ -204,7 +204,7 @@ class SignSetupService {
 					try {
 						$folder = $this->appData->getFolder('/');
 						$path = $this->architecture . '/jsignpdf';
-						$folder = $folder->getFolder($path, $folder);
+						$folder = $folder->getFolder($path);
 						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
 						if (is_dir($path)) {
 							return $path;
@@ -223,7 +223,7 @@ class SignSetupService {
 					try {
 						$folder = $this->appData->getFolder('/');
 						$path = $this->architecture . '/pdftk';
-						$folder = $folder->getFolder($path, $folder);
+						$folder = $folder->getFolder($path);
 						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
 						if (is_dir($path)) {
 							return $path;
@@ -242,7 +242,7 @@ class SignSetupService {
 					try {
 						$folder = $this->appData->getFolder('/');
 						$path = $this->architecture . '/cfssl';
-						$folder = $folder->getFolder($path, $folder);
+						$folder = $folder->getFolder($path);
 						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
 						if (is_dir($path)) {
 							return $path;
@@ -559,7 +559,15 @@ class SignSetupService {
 				return (string)file_get_contents($localCert);
 			}
 		}
-		return $this->fileAccessHelper->file_get_contents($this->environmentHelper->getServerRoot() . '/resources/codesigning/root.crt');
+
+		$rootCertificatePath = $this->environmentHelper->getServerRoot() . '/resources/codesigning/root.crt';
+		$rootCertificate = $this->fileAccessHelper->file_get_contents($rootCertificatePath);
+
+		if (!is_string($rootCertificate)) {
+			throw new LibresignException('Root certificate not found at ' . $rootCertificatePath);
+		}
+
+		return $rootCertificate;
 	}
 
 	public function getDevelopCert(): array {

@@ -22,7 +22,7 @@ use function json_encode;
  * @method ?string getDescription()
  * @method void setScopeType(string $scopeType)
  * @method string getScopeType()
- * @method void setEnabled(int $enabled)
+ * @method void setEnabled(bool $enabled)
  * @method void setPriority(int $priority)
  * @method int getPriority()
  * @method void setCreatedAt(\DateTime|string $createdAt)

@@ -17,6 +17,7 @@ use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 class PostgreSQLJsonType extends JsonType {
+	#[\Override]
 	public function getSQLDeclaration(array $column, AbstractPlatform $platform) {
 		$return = parent::getSQLDeclaration($column, $platform);
 		$backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
@@ -43,6 +44,7 @@ class Version8000Date20240405142042 extends SimpleMigrationStep {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 		$table = $schema->getTable('libresign_file');
+		$changed = false;
 
 		$newOptions = [];
 		if ($schema->getDatabasePlatform() instanceof PostgreSQLPlatform) {

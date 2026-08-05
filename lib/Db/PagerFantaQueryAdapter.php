@@ -15,6 +15,8 @@ use OCP\DB\QueryBuilder\IQueryBuilder;
 
 /**
  * Adapter which calculates pagination from a Doctrine DBAL QueryBuilder.
+ *
+ * @implements AdapterInterface<array<string, mixed>>
  */
 class PagerFantaQueryAdapter implements AdapterInterface {
 	/**
@@ -41,7 +43,7 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 *
-	 * @return array
+	 * @return array<int, array<string, mixed>>
 	 */
 	#[\Override]
 	public function getSlice(int $offset, int $length): iterable {

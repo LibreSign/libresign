@@ -1132,7 +1132,7 @@ class SignFileService {
 
 		$userId = $this->libreSignFile->getUserId()
 			?? $this->user?->getUID()
-			?? ($this->signRequest?->getUserId() ?? null);
+			?? null;
 		$nodeId = $this->libreSignFile->getNodeId();
 
 		if ($userId === null) {

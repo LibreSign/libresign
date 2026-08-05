@@ -15,6 +15,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class OpenSsl extends Base {
+	#[\Override]
 	protected function configure(): void {
 		$this
 			->setName('libresign:configure:openssl')
@@ -63,6 +64,7 @@ class OpenSsl extends Base {
 			);
 	}
 
+	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		$names = [];
 		if (!$commonName = $input->getOption('cn')) {

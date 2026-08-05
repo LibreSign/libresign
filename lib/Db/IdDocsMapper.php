@@ -12,7 +12,6 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Helper\Pagination;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
-use OCP\DB\Types;
 use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -210,7 +209,7 @@ class IdDocsMapper extends QBMapper {
 
 		if (!empty($filter['approved']) && $filter['approved'] === 'yes') {
 			$qb->andWhere(
-				$qb->expr()->eq('f.status', $qb->createNamedParameter(FileStatus::SIGNED->value, Types::INTEGER))
+				$qb->expr()->eq('f.status', $qb->createNamedParameter(FileStatus::SIGNED->value, IQueryBuilder::PARAM_INT))
 			);
 		}
 

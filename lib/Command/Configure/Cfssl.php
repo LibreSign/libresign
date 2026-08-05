@@ -15,6 +15,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Cfssl extends Base {
+	#[\Override]
 	protected function configure(): void {
 		$this
 			->setName('libresign:configure:cfssl')
@@ -69,6 +70,7 @@ class Cfssl extends Base {
 			);
 	}
 
+	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		if (!$this->installService->isCfsslBinInstalled()) {
 			throw new InvalidArgumentException('CFSSL binary not found! run libresign:istall --cfssl first.');

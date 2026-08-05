@@ -26,6 +26,7 @@ class Check extends Base {
 		parent::__construct();
 	}
 
+	#[\Override]
 	protected function configure(): void {
 		$this
 			->setName('libresign:configure:check')
@@ -44,6 +45,7 @@ class Check extends Base {
 			);
 	}
 
+	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		$sign = $input->getOption('sign');
 		$certificate = $input->getOption('certificate');

@@ -6,10 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace Psr\Http\Client {
-	/**
-	 * Minimal Psalm stub to satisfy OCP\Http\Client\IClient dependency.
-	 */
-	interface ClientInterface {
+namespace OC\Core\Command {
+	abstract class Base extends \Symfony\Component\Console\Command\Command {
 	}
 }

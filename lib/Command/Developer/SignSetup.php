@@ -29,10 +29,12 @@ class SignSetup extends Base {
 		parent::__construct();
 	}
 
+	#[\Override]
 	public function isEnabled(): bool {
 		return $this->config->getSystemValue('debug', false) === true;
 	}
 
+	#[\Override]
 	protected function configure(): void {
 		$this
 			->setName('libresign:developer:sign-setup')
@@ -42,6 +44,7 @@ class SignSetup extends Base {
 		;
 	}
 
+	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		$privateKeyPath = $input->getOption('privateKey');
 		$keyBundlePath = $input->getOption('certificate');

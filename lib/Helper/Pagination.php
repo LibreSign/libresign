@@ -15,6 +15,7 @@ use OCP\IURLGenerator;
 
 /**
  * @psalm-import-type LibresignPagination from \OCA\Libresign\ResponseDefinitions
+ * @extends Pagerfanta<array<string, mixed>>
  */
 class Pagination extends Pagerfanta {
 	private string $routeName;

@@ -647,6 +647,10 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public static function dataCrlSerialNumberNormalization(): array {
 		return [
+			'Decimal serial stays decimal semantically and is rendered as hex in CRL' => [
+				'serialNumber' => '1234',
+				'expectedInCrl' => '04D2'
+			],
 			'Serial with leading zeros (20 chars)' => [
 				'serialNumber' => '00e7a0b277a1008f5fe3',
 				'expectedInCrl' => 'E7A0B277A1008F5FE3'

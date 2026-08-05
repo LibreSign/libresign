@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\AppInfo;
 
-use OCA\Files\Event\LoadAdditionalScriptsEvent;
 use OCA\Files\Event\LoadSidebar;
 use OCA\Libresign\Activity\Listener as ActivityListener;
 use OCA\Libresign\Capabilities;
@@ -66,7 +65,7 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(SignedEvent::class, SignedCallbackListener::class);
 
 		// Files newFile listener
-		$context->registerEventListener(LoadAdditionalScriptsEvent::class, LoadAdditionalListener::class);
+		$context->registerEventListener('OCA\\Files\\Event\\LoadAdditionalScriptsEvent', LoadAdditionalListener::class);
 
 		// Activity listeners
 		$context->registerEventListener(SendSignNotificationEvent::class, ActivityListener::class);

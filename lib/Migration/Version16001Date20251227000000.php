@@ -10,6 +10,7 @@ namespace OCA\Libresign\Migration;
 
 use Closure;
 use OCP\DB\ISchemaWrapper;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
@@ -82,7 +83,7 @@ class Version16001Date20251227000000 extends SimpleMigrationStep {
 
 				$updateQb->update('libresign_file')
 					->set('name', $updateQb->createNamedParameter($file['newName']))
-					->where($updateQb->expr()->eq('id', $updateQb->createNamedParameter($file['id'], \OCP\DB\Types::INTEGER)))
+					->where($updateQb->expr()->eq('id', $updateQb->createNamedParameter($file['id'], IQueryBuilder::PARAM_INT)))
 					->executeStatement();
 			}
 

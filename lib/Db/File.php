@@ -24,7 +24,7 @@ use OCP\DB\Types;
  * @method void setSignedHash(?string $hash)
  * @method ?string getSignedHash()
  * @method void setUserId(?string $userId)
- * @method ?string getUserId()
+ * @method string getUserId()
  * @method void setUuid(string $uuid)
  * @method string getUuid()
  * @method void setCreatedAt(\DateTime $createdAt)

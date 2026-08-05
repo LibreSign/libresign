@@ -21,7 +21,7 @@ final class ValidationMetadataNormalizer {
 
 	/**
 	 * @param array<string, mixed> $metadata
-	 * @psalm-return array<string, mixed>&LibresignValidateMetadata
+	 * @psalm-return LibresignValidateMetadata
 	 */
 	public static function normalize(array $metadata, string $fileName, int $totalPages): array {
 		$normalized = $metadata;
@@ -31,6 +31,9 @@ final class ValidationMetadataNormalizer {
 		self::normalizeOptionalScalarFields($normalized);
 		self::normalizeDimensionsField($normalized);
 
+		/**
+		 * @var LibresignValidateMetadata $normalized
+		 */
 		return $normalized;
 	}
 

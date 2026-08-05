@@ -120,7 +120,7 @@ class IdentifyMethodMapper extends QBMapper {
 		$latestQb = $this->db->getQueryBuilder();
 		$latestQb->select('im2.identifier_key')
 			->addSelect('im2.identifier_value')
-			->addSelect($latestQb->func()->max('sr2.created_at', 'created_at'))
+			->selectAlias($latestQb->func()->max('sr2.created_at'), 'created_at')
 			->from('libresign_identify_method', 'im2')
 			->join('im2', 'libresign_sign_request', 'sr2',
 				$latestQb->expr()->eq('sr2.id', 'im2.sign_request_id')

@@ -26,6 +26,7 @@ class Install extends Base {
 		parent::__construct($installService, $logger);
 	}
 
+	#[\Override]
 	protected function configure(): void {
 		$this
 			->setName('libresign:install')
@@ -82,6 +83,7 @@ class Install extends Base {
 		}
 	}
 
+	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		$ok = false;
 		$this->installService->setOutput($output);

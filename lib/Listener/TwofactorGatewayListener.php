@@ -17,15 +17,13 @@ use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\TwoFactorGateway\Provider\Gateway\Factory;
-use OCP\App\IAppManager;
+use OCA\Libresign\Service\TwofactorGatewayService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
 use OCP\IUserSession;
-use OCP\Server;
 use Psr\Log\LoggerInterface;
 
 /** @template-implements IEventListener<Event> */
@@ -35,8 +33,8 @@ class TwofactorGatewayListener implements IEventListener {
 		protected IUserManager $userManager,
 		protected IdentifyService $identifyService,
 		private SignRequestMapper $signRequestMapper,
+		private TwofactorGatewayService $twofactorGatewayService,
 		private LoggerInterface $logger,
-		protected IAppManager $appManager,
 		protected IL10N $l10n,
 		protected IURLGenerator $urlGenerator,
 	) {
@@ -72,7 +70,7 @@ class TwofactorGatewayListener implements IEventListener {
 			if (!in_array($entity->getIdentifierKey(), IdentifyMethodService::IDENTIFY_TWOFACTOR_GATEWAY_METHODS, true)) {
 				return;
 			}
-			if (!$this->appManager->isEnabledForAnyone('twofactor_gateway')) {
+			if (!$this->twofactorGatewayService->isEnabled()) {
 				$this->logger->info('Twofactor Gateway app is not enabled');
 				return;
 			}
@@ -97,12 +95,9 @@ class TwofactorGatewayListener implements IEventListener {
 			$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]);
 			$message .= $libreSignFile->getName() . ': ' . $link;
 
-			/** @var Factory */
-			$gatewayFactory = Server::get(Factory::class);
 			$gatewayName = IdentifyMethodService::resolveTwofactorGatewayName($entity->getIdentifierKey());
-			$gateway = $gatewayFactory->get($gatewayName);
 			try {
-				$gateway->send($identifier, $message);
+				$this->twofactorGatewayService->send($gatewayName, $identifier, $message);
 			} catch (Exception $e) {
 				$this->logger->error('Could not send 2FA message', [
 					'identifier' => $identifier,
@@ -129,7 +124,7 @@ class TwofactorGatewayListener implements IEventListener {
 			if (!in_array($entity->getIdentifierKey(), IdentifyMethodService::IDENTIFY_TWOFACTOR_GATEWAY_METHODS, true)) {
 				return;
 			}
-			if (!$this->appManager->isEnabledForAnyone('twofactor_gateway')) {
+			if (!$this->twofactorGatewayService->isEnabled()) {
 				$this->logger->info('Twofactor Gateway app is not enabled');
 				return;
 			}
@@ -148,12 +143,9 @@ class TwofactorGatewayListener implements IEventListener {
 			$message .= "\n";
 			$message .= $libreSignFile->getName() . ': ' . $link;
 
-			/** @var Factory */
-			$gatewayFactory = Server::get(Factory::class);
 			$gatewayName = IdentifyMethodService::resolveTwofactorGatewayName($entity->getIdentifierKey());
-			$gateway = $gatewayFactory->get($gatewayName);
 			try {
-				$gateway->send($identifier, $message);
+				$this->twofactorGatewayService->send($gatewayName, $identifier, $message);
 			} catch (Exception $e) {
 				$this->logger->error('Could not send 2FA message', [
 					'identifier' => $identifier,

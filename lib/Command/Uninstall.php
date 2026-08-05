@@ -13,6 +13,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Uninstall extends Base {
+	#[\Override]
 	protected function configure(): void {
 		$this
 			->setName('libresign:uninstall')
@@ -55,6 +56,7 @@ class Uninstall extends Base {
 			);
 	}
 
+	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		$ok = false;
 
