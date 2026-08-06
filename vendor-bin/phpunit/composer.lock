@@ -9,16 +9,16 @@
     "packages-dev": [
         {
             "name": "byjg/swagger-test",
-            "version": "6.0.x-dev",
+            "version": "6.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-swagger-test.git",
-                "reference": "93e0eaf911d70c4a2366211876710f4f2b2c7703"
+                "reference": "da419b7abfd4b55f5a6ec5bc3398b9d8cf20c611"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/93e0eaf911d70c4a2366211876710f4f2b2c7703",
-                "reference": "93e0eaf911d70c4a2366211876710f4f2b2c7703",
+                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/da419b7abfd4b55f5a6ec5bc3398b9d8cf20c611",
+                "reference": "da419b7abfd4b55f5a6ec5bc3398b9d8cf20c611",
                 "shasum": ""
             },
             "require": {
@@ -44,7 +44,7 @@
             "description": "A set of tools for testing your REST calls based on the OpenApi specification using PHPUnit. Currently, this library supports the OpenApi specifications 2.0 (formerly swagger) and 3.0.",
             "support": {
                 "issues": "https://github.com/byjg/php-swagger-test/issues",
-                "source": "https://github.com/byjg/php-swagger-test/tree/6.0"
+                "source": "https://github.com/byjg/php-swagger-test/tree/6.1.0"
             },
             "funding": [
                 {
@@ -52,7 +52,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-02-17T20:27:45+00:00"
+            "time": "2026-08-02T18:21:14+00:00"
         },
         {
             "name": "byjg/uri",
