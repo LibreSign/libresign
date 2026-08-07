@@ -214,6 +214,7 @@ OC.L10N.register(
     "Enter a password" : "Voer een wachtwoord in",
     "Expired" : "Vervallen",
     "Unspecified" : "Ongedefinieerd",
+    "Filters ({count})" : "Filters ({count})",
     "Filters" : "Filters",
     "Owner" : "Eigenaar",
     "Clear filters" : "Wis filters",
