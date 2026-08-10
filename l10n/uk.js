@@ -304,6 +304,7 @@ OC.L10N.register(
     "Delete certificate" : "Видалити сертифікат",
     "Create certificate" : "Створити сертифікат",
     "Change password" : "Змінити пароль",
+    "Delete {type}" : "Вилучити {type}",
     "Your signatures" : "Ваші підписи",
     "Signature" : "Підпис",
     "No signature, click here to create a new one" : "Немає підпису, натисніть тут, щоб створити новий",
