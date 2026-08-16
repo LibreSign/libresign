@@ -8,16 +8,17 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Migration;
 
-use OCA\Files\Command\ScanAppData;
+use OC\Files\SetupManager;
+use OC\Files\Utils\Scanner;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\Folder;
 use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
+use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
-use Symfony\Component\Console\Application;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\NullOutput;
+use Psr\Log\LoggerInterface;
 
 class DeleteOldBinaries implements IRepairStep {
 	protected IAppData $appData;
@@ -71,15 +72,16 @@ class DeleteOldBinaries implements IRepairStep {
 	}
 
 	private function scan(): void {
-		$application = \OCP\Server::get(Application::class);
-		$input = new ArrayInput([
-			'command' => 'files:scan-app-data',
-			'folder' => 'libresign',
-		]);
-		$application->add(\OCP\Server::get(ScanAppData::class));
-		$application->setAutoExit(false);
-		$output = new NullOutput();
-		$application->run($input, $output);
+		// Matches OCA\Files\BackgroundJob\ScanFiles: trigger a scan directly via the Scanner
+		// utility instead of the console command, since we're not running in a CLI context.
+		$scanner = new Scanner(
+			null,
+			\OCP\Server::get(IDBConnection::class),
+			\OCP\Server::get(IEventDispatcher::class),
+			\OCP\Server::get(LoggerInterface::class),
+			\OCP\Server::get(SetupManager::class),
+		);
+		$scanner->scan($this->getInternalFolder($this->appData->getFolder('/'))->getPath());
 	}
 
 	private function deleteInvalidFolder(ISimpleFolder $folder, array $allowedFiles): void {
@@ -109,10 +111,14 @@ class DeleteOldBinaries implements IRepairStep {
 	}
 
 	private function getSimpleFolderList(ISimpleFolder $node): array {
-		$reflection = new \ReflectionClass($node);
-		$reflectionProperty = $reflection->getProperty('folder');
-		$folder = $reflectionProperty->getValue($node);
+		$folder = $this->getInternalFolder($node);
 		$list = $folder->getDirectoryListing();
 		return $list;
+	}
+
+	private function getInternalFolder(ISimpleFolder $node): Folder {
+		$reflection = new \ReflectionClass($node);
+		$reflectionProperty = $reflection->getProperty('folder');
+		return $reflectionProperty->getValue($node);
 	}
 }
