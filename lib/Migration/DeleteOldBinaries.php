@@ -72,8 +72,6 @@ class DeleteOldBinaries implements IRepairStep {
 	}
 
 	private function scan(): void {
-		// Matches OCA\Files\BackgroundJob\ScanFiles: trigger a scan directly via the Scanner
-		// utility instead of the console command, since we're not running in a CLI context.
 		$scanner = new Scanner(
 			null,
 			\OCP\Server::get(IDBConnection::class),
