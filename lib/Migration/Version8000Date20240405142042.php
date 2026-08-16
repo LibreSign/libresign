@@ -9,30 +9,21 @@ declare(strict_types=1);
 namespace OCA\Libresign\Migration;
 
 use Closure;
-use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
-use Doctrine\DBAL\Types\JsonType;
 use OCP\DB\ISchemaWrapper;
+use OCP\DB\Schema\ColumnType;
+use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
-class PostgreSQLJsonType extends JsonType {
-	#[\Override]
-	public function getSQLDeclaration(array $column, AbstractPlatform $platform) {
-		$return = parent::getSQLDeclaration($column, $platform);
-		$backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
-		$isCreateTable = array_filter($backtrace, fn ($step) => in_array($step['function'], ['_getCreateTableSQL', 'getCreateTablesSQL']));
-		if ($isCreateTable) {
-			return $return;
-		}
-		return implode(' ', [
-			$return,
-			$column['comment'],
-		]);
-	}
-}
-
 class Version8000Date20240405142042 extends SimpleMigrationStep {
+	private const TABLES = ['libresign_file', 'libresign_file_element'];
+
+	public function __construct(
+		private IDBConnection $connection,
+	) {
+	}
+
 	/**
 	 * @param IOutput $output
 	 * @param Closure(): ISchemaWrapper $schemaClosure
@@ -43,42 +34,42 @@ class Version8000Date20240405142042 extends SimpleMigrationStep {
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
-		$table = $schema->getTable('libresign_file');
-		$changed = false;
 
-		$newOptions = [];
+		// Postgres can't auto-cast an existing column to json, that cast is done with raw SQL in postSchemaChange()
 		if ($schema->getDatabasePlatform() instanceof PostgreSQLPlatform) {
-			$newOptions = [
-				'Type' => new PostgreSQLJsonType(),
-				'comment' => 'USING metadata::json',
-			];
-		} else {
-			$newOptions = [
-				'Type' => new JsonType(),
-			];
+			return null;
 		}
 
-		if ($table->hasColumn('metadata')) {
-			$currentOptions = $table->getColumn('metadata');
-			if (!$currentOptions->getType() instanceof JsonType) {
-				$table->modifyColumn('metadata', $newOptions);
+		$changed = false;
+		foreach (self::TABLES as $tableName) {
+			$table = $schema->getTable($tableName);
+			if ($table->hasColumn('metadata') && $table->getColumn('metadata')->getType() !== ColumnType::Json) {
+				$table->modifyColumn('metadata', ['type' => 'json']);
 				$changed = true;
 			}
 		}
 
-		$table = $schema->getTable('libresign_file_element');
-		if ($table->hasColumn('metadata')) {
-			$currentOptions = $table->getColumn('metadata');
-			if (!$currentOptions->getType() instanceof JsonType) {
-				$table->modifyColumn('metadata', $newOptions);
-				$changed = true;
+		return $changed ? $schema : null;
+	}
+
+	/**
+	 * @param IOutput $output
+	 * @param Closure(): ISchemaWrapper $schemaClosure
+	 * @param array $options
+	 */
+	#[\Override]
+	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
+		/** @var ISchemaWrapper $schema */
+		$schema = $schemaClosure();
+		if (!$schema->getDatabasePlatform() instanceof PostgreSQLPlatform) {
+			return;
+		}
+
+		foreach (self::TABLES as $tableName) {
+			$table = $schema->getTable($tableName);
+			if ($table->hasColumn('metadata') && $table->getColumn('metadata')->getType() !== ColumnType::Json) {
+				$this->connection->executeStatement('ALTER TABLE *PREFIX*' . $tableName . ' ALTER COLUMN metadata TYPE json USING metadata::json');
 			}
 		}
-
-		if ($changed) {
-			return $schema;
-		}
-
-		return null;
 	}
 }
