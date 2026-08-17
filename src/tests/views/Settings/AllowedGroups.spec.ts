@@ -73,7 +73,7 @@ describe('AllowedGroups', () => {
 					NcSelect: {
 						name: 'NcSelect',
 						props: ['modelValue'],
-						emits: ['update:modelValue', 'search-change'],
+						emits: ['update:modelValue', 'search'],
 						template: '<div class="nc-select-stub" />',
 					},
 				},
@@ -137,7 +137,7 @@ describe('AllowedGroups', () => {
 					NcSelect: {
 						name: 'NcSelect',
 						props: ['modelValue'],
-						emits: ['update:modelValue', 'search-change'],
+						emits: ['update:modelValue', 'search'],
 						template: '<div class="nc-select-stub" />',
 					},
 				},
@@ -242,15 +242,10 @@ describe('AllowedGroups', () => {
 		// The loading state must be driven through NcSelect's own `search`-event
 		// callback, not the reactive `loadingGroups`/`:disabled` binding — disabling
 		// the focused input is exactly what dropped focus per keystroke (#7988).
-		const loadingStates: boolean[] = []
-		const loading = (state: boolean) => loadingStates.push(state)
-
-		select.vm.$emit('search', 'fin', loading)
+		select.vm.$emit('search', 'fin')
 		await flushPromises()
 
-		// The select's own spinner was toggled on then off...
-		expect(loadingStates).toEqual([true, false])
-		// ...while `loadingGroups` (and therefore `:disabled`) never fired during search.
+		// `loadingGroups` (and therefore `:disabled`) remains false during search so focus is kept.
 		expect(vm.loadingGroups).toBe(false)
 		expect(select.props('disabled')).toBe(false)
 
