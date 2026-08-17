@@ -15,12 +15,12 @@
 			:aria-label-combobox="t('libresign', 'Select authorized groups that can request to sign documents. Admin group is the default group and don\'t need to be defined.')"
 			:close-on-select="false"
 			:disabled="loadingGroups"
-			:loading="loadingGroups"
+			:loading="isSearching"
 			:multiple="true"
 			:options="groups"
 			:searchable="true"
 			:show-no-options="false"
-			@search="searchGroupEvent"
+			@search="searchGroup"
 			@update:modelValue="saveGroups" />
 	</NcSettingsSection>
 </template>
@@ -51,6 +51,7 @@ type GroupRow = {
 const groupsSelected = ref<Array<GroupRow | string>>([])
 const groups = ref<GroupRow[]>([])
 const loadingGroups = ref(false)
+const isSearching = ref(false)
 const idKey = ref(0)
 
 async function getData() {
@@ -90,35 +91,26 @@ async function saveGroups(value: Array<GroupRow | string>) {
 	idKey.value += 1
 }
 
-// NcSelect re-exposes vue-select's native `search` event as (query, loading),
-// where `loading` toggles the select's own spinner. Driving the spinner through
-// that callback — instead of the reactive `loadingGroups`/`:disabled` binding —
-// keeps the text input enabled while searching, so it never loses focus (#7988).
-async function searchGroupEvent(query: string, loading: (state: boolean) => void) {
-	loading(true)
-	await searchGroup(query)
-	loading(false)
-}
-
 async function searchGroup(query: string) {
-	await axios.get(generateOcsUrl('cloud/groups/details'), {
-		params: {
-			search: query,
-			limit: 20,
-			offset: 0,
-		},
-	})
-		.then(({ data }) => {
-			groups.value = data.ocs.data.groups.sort((a: GroupRow, b: GroupRow) => a.displayname.localeCompare(b.displayname))
+	isSearching.value = true
+	try {
+		const { data } = await axios.get(generateOcsUrl('cloud/groups/details'), {
+			params: {
+				search: query,
+				limit: 20,
+				offset: 0,
+			},
 		})
-		.catch((error) => logger.debug('Could not search by groups', { error }))
-	loadingGroups.value = false
+		groups.value = data.ocs.data.groups.sort((a: GroupRow, b: GroupRow) => a.displayname.localeCompare(b.displayname))
+	} catch (error) {
+		logger.debug('Could not search by groups', { error })
+	} finally {
+		isSearching.value = false
+	}
 }
 
 onMounted(async () => {
-	loadingGroups.value = true
 	await searchGroup('')
-	loadingGroups.value = false
 	await getData()
 })
 
@@ -126,10 +118,10 @@ defineExpose({
 	groupsSelected,
 	groups,
 	loadingGroups,
+	isSearching,
 	idKey,
 	getData,
 	saveGroups,
 	searchGroup,
-	searchGroupEvent,
 })
 </script>
