@@ -20,7 +20,7 @@
 			:options="groups"
 			:searchable="true"
 			:show-no-options="false"
-			@search="searchGroup"
+			@search="searchGroupEvent"
 			@update:modelValue="saveGroups" />
 	</NcSettingsSection>
 </template>
@@ -103,8 +103,17 @@ async function saveGroups(value: Array<GroupRow | string>) {
 	idKey.value += 1
 }
 
+// NcSelect re-exposes vue-select's native `search` event as (query, loading),
+// where `loading` toggles the select's own spinner. Driving the spinner through
+// that callback — instead of the reactive `loadingGroups`/`:disabled` binding —
+// keeps the text input enabled while searching, so it never loses focus (#7988).
+async function searchGroupEvent(query: string, loading: (state: boolean) => void) {
+	loading(true)
+	await searchGroup(query)
+	loading(false)
+}
+
 async function searchGroup(query: string) {
-	loadingGroups.value = true
 	await axios.get(generateOcsUrl('cloud/groups/details'), {
 		params: {
 			search: query,
@@ -116,11 +125,12 @@ async function searchGroup(query: string) {
 			groups.value = data.ocs.data.groups.sort((a: GroupRow, b: GroupRow) => a.displayname.localeCompare(b.displayname))
 		})
 		.catch((error: unknown) => logger.debug('Could not search by groups', { error }))
-	loadingGroups.value = false
 }
 
 onMounted(async () => {
+	loadingGroups.value = true
 	await searchGroup('')
+	loadingGroups.value = false
 	await getData()
 })
 
@@ -132,5 +142,6 @@ defineExpose({
 	getData,
 	saveGroups,
 	searchGroup,
+	searchGroupEvent,
 })
 </script>
