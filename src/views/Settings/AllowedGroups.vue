@@ -19,7 +19,7 @@
 			:options="groups"
 			:searchable="true"
 			:show-no-options="false"
-			@search-change="searchGroup"
+			@search="searchGroup"
 			@update:modelValue="saveGroups" />
 	</NcSettingsSection>
 </template>

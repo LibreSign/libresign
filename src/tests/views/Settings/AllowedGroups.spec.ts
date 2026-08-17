@@ -247,4 +247,52 @@ describe('AllowedGroups', () => {
 		const lastCall = saveSystemPolicyMock.mock.calls.at(-1) as [string, string, boolean] | undefined
 		expect(lastCall?.[1]).toBe('{"allowGroups":["admin","finance"],"denyGroups":["legal"]}')
 	})
+
+	it('queries the backend when the user types in the group selector (issue #7988)', async () => {
+		axiosGetMock.mockImplementation((url: string) => {
+			if (url.includes('cloud/groups/details')) {
+				return Promise.resolve({
+					data: {
+						ocs: {
+							data: {
+								groups: [
+									{ id: 'finance', displayname: 'finance' },
+								],
+							},
+						},
+					},
+				})
+			}
+
+			return Promise.resolve({ data: { ocs: { data: {} } } })
+		})
+
+		const wrapper = mount(AllowedGroups as never, {
+			global: {
+				stubs: {
+					NcSettingsSection: { template: '<div><slot /></div>' },
+					NcSelect: {
+						name: 'NcSelect',
+						props: ['modelValue'],
+						// NcSelect re-exposes vue-select's native `search` event (see @nextcloud/vue).
+						emits: ['update:modelValue', 'search'],
+						template: '<div class="nc-select-stub" />',
+					},
+				},
+			},
+		})
+		await flushPromises()
+
+		// Ignore the initial onMounted load; observe only what typing triggers.
+		axiosGetMock.mockClear()
+
+		const select = wrapper.findComponent({ name: 'NcSelect' })
+		select.vm.$emit('search', 'fin')
+		await flushPromises()
+
+		const searchCalls = axiosGetMock.mock.calls.filter((call: unknown[]) => String(call[0]).includes('cloud/groups/details'))
+		expect(searchCalls.length).toBeGreaterThan(0)
+		const lastSearch = searchCalls.at(-1) as [string, { params: { search: string } }] | undefined
+		expect(lastSearch?.[1].params.search).toBe('fin')
+	})
 })
