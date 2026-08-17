@@ -103,17 +103,10 @@ async function saveGroups(value: Array<GroupRow | string>) {
 	idKey.value += 1
 }
 
-// NcSelect re-exposes vue-select's native `search` event as (query, loading),
-// where `loading` toggles the select's own spinner. Driving the spinner through
-// that callback — instead of the reactive `loadingGroups`/`:disabled` binding —
-// keeps the text input enabled while searching, so it never loses focus (#7988).
-async function searchGroupEvent(query: string, loading: (state: boolean) => void) {
-	loading(true)
-	await searchGroup(query)
-	loading(false)
-}
-
-async function searchGroup(query: string) {
+// Performs the actual group search against the backend. Kept private so each
+// caller decides how to surface the loading state (see searchGroup and
+// searchGroupEvent below).
+async function searchGroupApi(query: string) {
 	await axios.get(generateOcsUrl('cloud/groups/details'), {
 		params: {
 			search: query,
@@ -127,10 +120,26 @@ async function searchGroup(query: string) {
 		.catch((error: unknown) => logger.debug('Could not search by groups', { error }))
 }
 
-onMounted(async () => {
+// Exposed search entry point: drives the reactive `loadingGroups`/`:disabled`
+// binding so any parent component that calls it gets a visible loading state.
+async function searchGroup(query: string) {
 	loadingGroups.value = true
-	await searchGroup('')
+	await searchGroupApi(query)
 	loadingGroups.value = false
+}
+
+// NcSelect re-exposes vue-select's native `search` event as (query, loading),
+// where `loading` toggles the select's own spinner. Driving the spinner through
+// that callback — instead of the reactive `loadingGroups`/`:disabled` binding —
+// keeps the text input enabled while searching, so it never loses focus (#7988).
+async function searchGroupEvent(query: string, loading: (state: boolean) => void) {
+	loading(true)
+	await searchGroupApi(query)
+	loading(false)
+}
+
+onMounted(async () => {
+	await searchGroup('')
 	await getData()
 })
 
