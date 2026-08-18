@@ -397,6 +397,34 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(wrapper.vm.showRequestButton).toBe(true)
 		})
 
+		it('keeps the positioning step reachable to review elements placed before the capability was disabled', async () => {
+			capabilitiesState.signElementsAvailable = false
+			wrapper = mountComponent()
+			await flushPromises()
+			await updateFile({
+				...draftWithSigner,
+				visibleElements: [{
+					elementId: 7,
+					signRequestId: 3,
+					coordinates: { page: 1, width: 10, height: 10, left: 0, top: 0 },
+				}],
+			})
+
+			expect(wrapper.vm.showSaveButton).toBe(true)
+		})
+
+		it('labels the button after the action it performs', async () => {
+			await updateFile(draftWithSigner)
+			expect(wrapper.vm.saveButtonLabel).toBe('Setup signature positions')
+
+			capabilitiesState.signElementsAvailable = false
+			wrapper = mountComponent()
+			await flushPromises()
+			await updateFile(draftWithSigner)
+
+			expect(wrapper.vm.saveButtonLabel).toBe('Save')
+		})
+
 		it('opens the visible elements editor after saving the draft', async () => {
 			await updateFile(draftWithSigner)
 			vi.spyOn(filesStore, 'saveOrUpdateSignatureRequest').mockResolvedValue({ message: 'ok' })
