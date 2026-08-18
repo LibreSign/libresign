@@ -58,6 +58,10 @@ final class FakeFolder implements ISimpleFolder {
 	public function newFolder(string $path): ISimpleFolder {
 		throw new Exception('fake class');
 	}
+
+	public function getOrCreateFolder(string $path, int $maxRetries = 5): ISimpleFolder {
+		throw new Exception('fake class');
+	}
 }
 
 final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
