@@ -522,7 +522,10 @@ const pdfEditorSigners = computed<SignerSummaryRecord[]>(() => (Array.isArray(do
 	.filter((signer): signer is SignerSummaryRecord => signer !== null))
 const status = computed(() => Number(document.value.status))
 const isDraft = computed(() => status.value === FILE_STATUS.DRAFT)
-const canSave = computed(() => ([FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED] as number[]).includes(status.value))
+const signElementsAvailable = computed(() => signElementsConfig?.['is-available'] !== false)
+const hasVisibleElements = computed(() => getVisibleElementsFromDocument(document.value as DocumentLike).length > 0)
+const canSave = computed(() => signElementsAvailable.value
+	&& ([FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED] as number[]).includes(status.value))
 const canSign = computed(() => status.value === FILE_STATUS.ABLE_TO_SIGN && !!getSigningRouteUuid(document.value))
 const variantOfSaveButton = computed(() => canSave.value ? 'primary' : 'secondary')
 const variantOfSignButton = computed(() => canSave.value ? 'secondary' : 'primary')
@@ -785,6 +788,9 @@ function onSelectSigner(signer: SignerSummaryRecord) {
 }
 
 function handleSignerSelect(signer: unknown) {
+	if (!signElementsAvailable.value) {
+		return
+	}
 	const normalizedSigner = normalizeEditableRequestSigner(signer)
 	const pdfEditorSigner = toSignerSummaryRecord(normalizedSigner)
 	if (!pdfEditorSigner) {
