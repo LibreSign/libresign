@@ -8,13 +8,15 @@ import { shallowMount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
+import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import type { useFilesStore as useFilesStoreType } from '../../../store/files.js'
 import RequestSignatureTab from '../../../components/RightSidebar/RequestSignatureTab.vue'
 import { useFilesStore } from '../../../store/files.js'
 import { FILE_STATUS } from '../../../constants.js'
 
-const { generateUrlMock } = vi.hoisted(() => ({
+const { capabilitiesState, generateUrlMock } = vi.hoisted(() => ({
+	capabilitiesState: { signElementsAvailable: true },
 	generateUrlMock: vi.fn((path: string, params?: Record<string, string | number>) => {
 		if (!params) {
 			return path
@@ -46,7 +48,7 @@ vi.mock('@nextcloud/capabilities', () => ({
 	getCapabilities: vi.fn(() => ({
 		libresign: {
 			config: {
-				'sign-elements': { 'is-available': true },
+				'sign-elements': { 'is-available': capabilitiesState.signElementsAvailable },
 			},
 		},
 	})),
@@ -102,8 +104,39 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		await setVmState({ methods })
 	}
 
+	const mountComponent = () => shallowMount(RequestSignatureTab, {
+		mocks: {
+			t: (_app: string, text: string) => text,
+		},
+		global: {
+			stubs: {
+				EnvelopeFilesList: { name: 'EnvelopeFilesList', template: '<div><slot /></div>' },
+				NcButton: true,
+				NcCheckboxRadioSwitch: true,
+				NcNoteCard: true,
+				NcActionInput: true,
+				NcActionButton: true,
+				NcFormBox: true,
+				NcLoadingIcon: true,
+				Signers: true,
+				SigningProgress: true,
+				AccountPlus: true,
+				ChartGantt: true,
+				FileMultiple: true,
+				Send: true,
+				Delete: true,
+				Bell: true,
+				Draw: true,
+				Pencil: true,
+				MessageText: true,
+				OrderNumericAscending: true,
+			},
+		},
+	}) as VueWrapper<any>
+
 	beforeEach(async () => {
 		setActivePinia(createPinia())
+		capabilitiesState.signElementsAvailable = true
 		generateUrlMock.mockClear()
 		vi.mocked(loadState).mockImplementation((app, key, defaultValue) => {
 			if (key === 'config') {
@@ -337,6 +370,40 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			await updateFile({ status: FILE_STATUS.DRAFT, signers: [] })
 
 			expect(wrapper.vm.showSaveButton).toBe(false)
+		})
+	})
+
+	describe('RULE: signature positioning entry point follows sign-elements capability', () => {
+		const draftWithSigner = {
+			status: FILE_STATUS.DRAFT,
+			signatureFlow: 'parallel',
+			signers: [{ email: 'test@example.com', signed: [], status: 0 }],
+		}
+
+		it('offers the positioning step while the capability is available', async () => {
+			await updateFile(draftWithSigner)
+
+			expect(wrapper.vm.isSignElementsAvailable()).toBe(true)
+			expect(wrapper.vm.showSaveButton).toBe(true)
+		})
+
+		it('hides only the positioning step when the capability is unavailable', async () => {
+			capabilitiesState.signElementsAvailable = false
+			wrapper = mountComponent()
+			await flushPromises()
+			await updateFile(draftWithSigner)
+
+			expect(wrapper.vm.showSaveButton).toBe(false)
+			expect(wrapper.vm.showRequestButton).toBe(true)
+		})
+
+		it('opens the visible elements editor after saving the draft', async () => {
+			await updateFile(draftWithSigner)
+			vi.spyOn(filesStore, 'saveOrUpdateSignatureRequest').mockResolvedValue({ message: 'ok' })
+
+			await wrapper.vm.save()
+
+			expect(vi.mocked(emit)).toHaveBeenCalledWith('libresign:show-visible-elements', expect.anything())
 		})
 	})
 
