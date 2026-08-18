@@ -136,7 +136,9 @@ class SignerElementsService {
 	}
 
 	public function isSignElementsAvailable(): bool {
-		return $this->signatureBackgroundService->isEnabled() || $this->signatureTextService->isEnabled();
+		return $this->signatureBackgroundService->isEnabled()
+			|| $this->signatureTextService->isEnabled()
+			|| $this->signatureTextService->getRenderMode() !== self::RENDER_MODE_DESCRIPTION_ONLY;
 	}
 
 	public function canCreateSignature(): bool {
