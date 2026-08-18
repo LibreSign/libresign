@@ -742,6 +742,58 @@ describe('VisibleElements Component - Business Rules', () => {
 			expect(wrapper.vm.modal).toBe(false)
 		})
 
+		it('opens modal to review elements placed before the capability was disabled', async () => {
+			vi.mocked(getCapabilities).mockReturnValueOnce({
+				libresign: {
+					config: {
+						'sign-elements': {
+							'is-available': false,
+							'full-signature-width': 200,
+							'full-signature-height': 100,
+						},
+					},
+				},
+			})
+			filesStore.files[1].visibleElements = [{
+				elementId: 7,
+				fileId: 1,
+				signRequestId: 3,
+				coordinates: { page: 1, width: 10, height: 10, left: 0, top: 0 },
+			}]
+			filesStore.files[1].uuid = 'uuid-123'
+			filesStore.files[1].metadata = { extension: 'pdf', p: 1 }
+			wrapper.unmount()
+			wrapper = createWrapper()
+
+			await wrapper.vm.showModal()
+
+			expect(wrapper.vm.modal).toBe(true)
+		})
+
+		it('does not allow saving while reviewing with the capability disabled', async () => {
+			vi.mocked(getCapabilities).mockReturnValueOnce({
+				libresign: {
+					config: {
+						'sign-elements': {
+							'is-available': false,
+							'full-signature-width': 200,
+							'full-signature-height': 100,
+						},
+					},
+				},
+			})
+			filesStore.files[1].visibleElements = [{
+				elementId: 7,
+				fileId: 1,
+				signRequestId: 3,
+				coordinates: { page: 1, width: 10, height: 10, left: 0, top: 0 },
+			}]
+			wrapper.unmount()
+			wrapper = createWrapper()
+
+			expect(wrapper.vm.canSave).toBe(false)
+		})
+
 		it('loads files when opening modal with empty file list', async () => {
 			filesStore.files[1].files = []
 			;(vi.mocked(axios).get as ReturnType<typeof vi.fn>).mockResolvedValue({
