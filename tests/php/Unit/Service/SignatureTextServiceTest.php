@@ -162,6 +162,31 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		$this->assertStringContainsString('{{SignerUserAgent}}', $template);
 	}
 
+	#[DataProvider('providerIsEnabled')]
+	public function testIsEnabled(string $template, bool $expected): void {
+		$this->policyValues[SignatureTextPolicyProvider::KEY] = SignatureTextPolicyValue::encode([
+			'template' => $template,
+			'template_font_size' => SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+			'signature_font_size' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+			'signature_width' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+			'signature_height' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
+			'background_type' => 'default',
+			'render_mode' => SignerElementsService::RENDER_MODE_DEFAULT,
+		]);
+
+		$this->assertSame($expected, $this->getClass()->isEnabled());
+	}
+
+	/**
+	 * @return array<string, array{string, bool}>
+	 */
+	public static function providerIsEnabled(): array {
+		return [
+			'empty template disables the signature stamp' => ['', false],
+			'defined template enables the signature stamp' => ['Signed by {{SignerCommonName}}', true],
+		];
+	}
+
 	#[DataProvider('providerSave')]
 	public function testSave($template, $context, $parsed): void {
 		$fromSave = $this->getClass()->save($template);
