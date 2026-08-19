@@ -3,21 +3,59 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { expect, test, type Locator, type Page } from '@playwright/test'
 import { mkdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
-import { login } from '../support/nc-login'
+import { expect, test, type APIRequestContext, type Locator, type Page } from '@playwright/test'
 
+import { login } from '../support/nc-login'
+import {
+	createAuthenticatedRequestContext,
+	getSystemPolicySnapshot,
+	policyRequest,
+	restoreSystemPolicySnapshot,
+	type SystemPolicySnapshot,
+} from '../support/policy-api'
+
+const POLICY_KEY = 'identification_documents'
 const SCREENSHOT_DIR = resolve(process.cwd(), 'playwright/.visual-output')
 
 test.describe.configure({ mode: 'serial', timeout: 180000 })
 
-async function shot(page: Page, name: string): Promise<string> {
+let adminContext: APIRequestContext
+let originalPolicy: SystemPolicySnapshot
+
+test.beforeEach(async () => {
+	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+	adminContext = await createAuthenticatedRequestContext(adminUser, adminPassword)
+	originalPolicy = await getSystemPolicySnapshot(adminContext, POLICY_KEY)
+
+	const response = await policyRequest(
+		adminContext,
+		'POST',
+		`/apps/libresign/api/v1/policies/system/${POLICY_KEY}`,
+		{
+			value: { enabled: true, approvers: [adminUser] },
+			allowChildOverride: true,
+		},
+	)
+	expect(response.httpStatus, response.message).toBe(200)
+})
+
+test.afterEach(async () => {
+	try {
+		if (adminContext && originalPolicy) {
+			await restoreSystemPolicySnapshot(adminContext, POLICY_KEY, originalPolicy)
+		}
+	} finally {
+		await adminContext?.dispose()
+	}
+})
+
+async function shot(page: Page, name: string): Promise<void> {
 	await mkdir(SCREENSHOT_DIR, { recursive: true })
-	const path = resolve(SCREENSHOT_DIR, `${name}.png`)
-	await page.screenshot({ path, fullPage: true })
-	return path
+	await page.screenshot({ path: resolve(SCREENSHOT_DIR, `${name}.png`), fullPage: true })
 }
 
 function emptyStatus(page: Page): Locator {
@@ -59,25 +97,9 @@ test('identification documents appear on the account page after upload', async (
 		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
 	)
 
-	const policyResponse = await page.request.post(
-		'./ocs/v2.php/apps/libresign/api/v1/policies/system/identification_documents?format=json',
-		{
-			headers: {
-				'OCS-ApiRequest': 'true',
-				Accept: 'application/json',
-				Authorization: 'Basic ' + Buffer.from('admin:admin').toString('base64'),
-				'Content-Type': 'application/json',
-			},
-			data: {
-				value: { enabled: true, approvers: ['admin'] },
-			},
-		},
-	)
-	expect(policyResponse.ok(), await policyResponse.text()).toBeTruthy()
-
 	await page.goto('./apps/libresign')
 	await expect(page.getByRole('button', { name: /Upload from URL|Carregar do URL/i })).toBeVisible({ timeout: 20_000 })
-	await expect(page.getByText(/Document Validation|Validação de Documentos/i).first()).toBeVisible()
+	await expect(page.getByRole('link', { name: /Documents Validation|Validação de Documentos/i })).toBeVisible({ timeout: 20_000 })
 	await shot(page, '01-libresign-home')
 
 	await page.goto('./apps/libresign/f/account')
