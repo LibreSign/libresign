@@ -54,6 +54,8 @@ class Pdf extends BasePdf {
 		}
 
 		if (!file_exists($this->javaPath) || !file_exists($this->pdftkPath)) {
+			// TRANSLATORS Error shown to signers when LibreSign cannot stamp the PDF footer because
+			// the admin has not finished installing Java or PDFtk used in the signing pipeline.
 			throw new FooterStampUnavailableException($this->l10n->t('The admin hasn\'t set up LibreSign yet, please wait.'));
 		}
 
