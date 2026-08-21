@@ -66,7 +66,9 @@ class JavaSetupCheck implements ISetupCheck {
 
 		if (!$javaPath) {
 			return SetupResult::error(
+				// TRANSLATORS Nextcloud administration overview warning. LibreSign needs a Java runtime to run optional signing backends such as PDFtk (PDF footer) and JSignPdf.
 				$this->l10n->t('Java not installed'),
+				// TRANSLATORS Tip under a Nextcloud administration overview error. Instructs the server administrator to install Java for LibreSign via the Nextcloud occ CLI.
 				$this->l10n->t('Run occ libresign:install --java')
 			);
 		}
@@ -79,7 +81,9 @@ class JavaSetupCheck implements ISetupCheck {
 
 		if (!file_exists($javaPath)) {
 			return SetupResult::error(
+				// TRANSLATORS Nextcloud administration overview warning. %s is the configured Java executable path that LibreSign could not find on disk.
 				$this->l10n->t('Java binary not found: %s', [$javaPath]),
+				// TRANSLATORS Tip under a Nextcloud administration overview error. Instructs the server administrator to reinstall Java for LibreSign via the Nextcloud occ CLI.
 				$this->l10n->t('Run occ libresign:install --java')
 			);
 		}
@@ -88,13 +92,16 @@ class JavaSetupCheck implements ISetupCheck {
 		exec($javaPath . ' -version 2>&1', $output, $returnCode);
 		if (empty($output)) {
 			return SetupResult::error(
+				// TRANSLATORS Nextcloud administration overview warning. LibreSign tried to run Java for PDF signing helpers but the OS returned no version output, often due to security restrictions on the JVM.
 				$this->l10n->t('Failed to execute Java. Sounds that your operational system is blocking the JVM.'),
 				'https://github.com/LibreSign/libresign/issues/2327#issuecomment-1961988790'
 			);
 		}
 		if ($returnCode !== 0) {
 			return SetupResult::error(
+				// TRANSLATORS Nextcloud administration overview warning. LibreSign could not read the Java version required by its PDF signing helper tools.
 				$this->l10n->t('Failure to check Java version.'),
+				// TRANSLATORS Tip under a Nextcloud administration overview error. Instructs the server administrator to reinstall Java for LibreSign via the Nextcloud occ CLI.
 				$this->l10n->t('Run occ libresign:install --java')
 			);
 		}
@@ -102,7 +109,9 @@ class JavaSetupCheck implements ISetupCheck {
 		$javaVersion = trim($output[0] ?? '');
 		if ($javaVersion !== InstallService::JAVA_VERSION) {
 			return SetupResult::error(
+				// TRANSLATORS Nextcloud administration overview warning. LibreSign pins a specific Java build for signing helpers; %1$s is what was found and %2$s is the required version string.
 				$this->l10n->t('Invalid java version. Found: %s expected: %s', [$javaVersion, InstallService::JAVA_VERSION]),
+				// TRANSLATORS Tip under a Nextcloud administration overview error. Instructs the server administrator to install the supported Java version for LibreSign via the Nextcloud occ CLI.
 				$this->l10n->t('Run occ libresign:install --java')
 			);
 		}
@@ -114,6 +123,7 @@ class JavaSetupCheck implements ISetupCheck {
 
 		if (!$encoding) {
 			return SetupResult::error(
+				// TRANSLATORS Nextcloud administration overview warning. LibreSign could not detect Java's native character encoding, which is needed so signed PDF text (names, accents) is written correctly.
 				$this->l10n->t('Java encoding not found.'),
 				sprintf('The command %s need to have native.encoding', $javaPath . ' -XshowSettings:properties -version')
 			);
@@ -142,12 +152,15 @@ class JavaSetupCheck implements ISetupCheck {
 				$phpLang
 			);
 			return SetupResult::info(
+				// TRANSLATORS Nextcloud administration overview info. LibreSign needs UTF-8 so signer names and PDF footer text keep accents; %s is the non-UTF-8 encoding Java reported.
 				$this->l10n->t('Non-UTF-8 encoding detected: %s. This may cause issues with accented or special characters', [$detectedEncoding]),
 				$tip
 			);
 		}
 
+		// TRANSLATORS Success line in Nextcloud administration overview for LibreSign. %s is the detected Java version used by PDF signing helpers.
 		$message = $this->l10n->t('Java version: %s', [$javaVersion]) . "\n"
+		  // TRANSLATORS Success line in Nextcloud administration overview for LibreSign. %s is the filesystem path of the Java binary.
 		  . $this->l10n->t('Java binary: %s', [$javaPath]);
 		return SetupResult::success($message);
 	}
