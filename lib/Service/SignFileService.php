@@ -1124,7 +1124,7 @@ class SignFileService {
 
 		try {
 			$idDocs = $this->idDocsMapper->getByFileId($fileId);
-		} catch (\Throwable) {
+		} catch (DoesNotExistException) {
 			return null;
 		}
 

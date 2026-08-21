@@ -24,4 +24,3 @@ node_modules/
 /coverage
 /dist/
 /test-results/
-/playwright/.visual-output/
