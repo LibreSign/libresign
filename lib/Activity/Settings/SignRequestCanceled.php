@@ -34,6 +34,8 @@ class SignRequestCanceled extends LibresignActivitySettings {
 	 */
 	#[\Override]
 	public function getName(): string {
+		// TRANSLATORS Activity setting label in Nextcloud Personal settings → Activity.
+		// Shown when users choose which LibreSign events notify them that a signature request was canceled.
 		return $this->l->t('A signature request has been <strong>canceled</strong>');
 	}
 
