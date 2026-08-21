@@ -36,6 +36,8 @@ class FileSigned extends LibresignActivitySettings {
 	 */
 	#[\Override]
 	public function getName(): string {
+		// TRANSLATORS Activity setting label in Nextcloud Personal settings → Activity.
+		// Shown when users choose which LibreSign signing events trigger activity or email notifications.
 		return $this->l->t('A document has been <strong>signed</strong>');
 	}
 
