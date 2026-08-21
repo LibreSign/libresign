@@ -74,4 +74,26 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 				=> [2000, 1600, 200.7, 100.5, 376, 301],
 		];
 	}
+
+	#[DataProvider('providerIsEnabled')]
+	public function testIsEnabled(?string $backgroundType, bool $expected): void {
+		if ($backgroundType !== null) {
+			$this->appConfig->setValueString('libresign', 'signature_background_type', $backgroundType);
+		}
+
+		$this->assertSame($expected, $this->getClass()->isEnabled());
+	}
+
+	/**
+	 * @return array<string, array{?string, bool}>
+	 */
+	public static function providerIsEnabled(): array {
+		return [
+			'default background is enabled' => ['default', true],
+			'custom background is enabled' => ['custom', true],
+			'deleted background is disabled' => ['deleted', false],
+			'unknown value remains enabled' => ['whatever', true],
+			'missing configuration uses default background' => [null, true],
+		];
+	}
 }
