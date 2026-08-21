@@ -606,7 +606,7 @@ async function showModal() {
 	if (!canRequestSign.value) {
 		return
 	}
-	if (signElementsConfig['is-available'] === false) {
+	if (!signElementsAvailable.value && !hasVisibleElements.value) {
 		return
 	}
 	modal.value = true
