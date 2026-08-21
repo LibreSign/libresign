@@ -1079,7 +1079,7 @@ class SignFileService {
 	}
 
 	private function evaluateStatusFromSigners(): ?int {
-		$signers = $this->getSigners();
+		$signers = $this->excludeIdDocUploaderPlaceholder($this->getSigners());
 
 		$total = count($signers);
 
@@ -1098,6 +1098,41 @@ class SignFileService {
 		}
 
 		return null;
+	}
+
+	/**
+	 * @param SignRequestEntity[] $signers
+	 * @return SignRequestEntity[]
+	 */
+	private function excludeIdDocUploaderPlaceholder(array $signers): array {
+		$placeholderId = $this->getIdDocUploaderSignRequestId();
+		if ($placeholderId === null) {
+			return $signers;
+		}
+
+		return array_values(array_filter(
+			$signers,
+			static fn (SignRequestEntity $signer): bool => $signer->getId() !== $placeholderId,
+		));
+	}
+
+	private function getIdDocUploaderSignRequestId(): ?int {
+		$fileId = $this->signRequest->getFileId();
+		if ($fileId === null) {
+			return null;
+		}
+
+		try {
+			$idDocs = $this->idDocsMapper->getByFileId($fileId);
+		} catch (\Throwable) {
+			return null;
+		}
+
+		if (!$idDocs instanceof IdDocs) {
+			return null;
+		}
+
+		return $idDocs->getSignRequestId();
 	}
 
 	private function getOrGeneratePfxContent(SignEngineHandler $engine): string {
