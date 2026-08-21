@@ -59,6 +59,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		preg_match_all('/\/Contents\s*<([0-9a-fA-F]+)>/', $content, $contents, PREG_OFFSET_CAPTURE);
 
 		if (empty($contents[1])) {
+			// TRANSLATORS Error while LibreSign reads a PDF for signature validation: the file has no embedded PKCS#12/PDF signature bytes yet.
 			throw new LibresignException($this->l10n->t('Unsigned file.'));
 		}
 
@@ -144,6 +145,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			) {
 				$signer['chain'][$key]['certificate_validation'] = [
 					'id' => 1,
+					// TRANSLATORS Status label on LibreSign signature validation when the signer certificate chains to LibreSign's own root CA and is accepted.
 					'label' => $this->l10n->t('Certificate is trusted.'),
 				];
 			}
@@ -196,6 +198,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			if ($parsed) {
 				$parsed['signature_validation'] = [
 					'id' => 1,
+					// TRANSLATORS Status label on LibreSign signature validation when the cryptographic PDF signature checks out successfully.
 					'label' => $this->l10n->t('Signature is valid.'),
 				];
 				if (!$isLibreSignRootCA) {
