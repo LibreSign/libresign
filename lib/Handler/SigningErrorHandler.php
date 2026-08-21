@@ -106,6 +106,7 @@ class SigningErrorHandler {
 					$message,
 				],
 			),
+			// TRANSLATORS Dialog title shown to the signer when LibreSign fails unexpectedly while applying a digital signature.
 			'title' => $this->l10n->t('Internal Server Error'),
 		]];
 	}
