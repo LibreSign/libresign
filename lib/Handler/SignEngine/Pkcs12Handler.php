@@ -63,6 +63,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		preg_match_all('/\/Contents\s*<([0-9a-fA-F]+)>/', $content, $contents, PREG_OFFSET_CAPTURE);
 
 		if (empty($contents[1])) {
+			// TRANSLATORS Error while LibreSign reads a PDF for signature validation: the file has no embedded PKCS#12/PDF signature bytes yet.
 			throw new LibresignException($this->l10n->t('Unsigned file.'));
 		}
 
@@ -133,6 +134,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		if (!$signature) {
 			$result['chain'][0]['signature_validation'] = [
 				'id' => 3,
+				// TRANSLATORS Status label on LibreSign's public/document validation UI when the PDF signature hash does not match the document bytes (tamper or corrupt signature).
 				'label' => $this->l10n->t('Digest mismatch.'),
 			];
 			return $result;
@@ -165,6 +167,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			) {
 				$signer['chain'][$key]['certificate_validation'] = [
 					'id' => 1,
+					// TRANSLATORS Status label on LibreSign signature validation when the signer certificate chains to LibreSign's own root CA and is accepted.
 					'label' => $this->l10n->t('Certificate is trusted.'),
 				];
 			}
@@ -217,6 +220,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			if ($parsed) {
 				$parsed['signature_validation'] = [
 					'id' => 1,
+					// TRANSLATORS Status label on LibreSign signature validation when the cryptographic PDF signature checks out successfully.
 					'label' => $this->l10n->t('Signature is valid.'),
 				];
 				if (!$isLibreSignRootCA) {
@@ -325,6 +329,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		if (!isset($leaf['certificate_validation'])) {
 			$leaf['certificate_validation'] = [
 				'id' => 3,
+				// TRANSLATORS Status label on LibreSign signature validation when the signer certificate's issuing CA is not in the trusted store.
 				'label' => $this->l10n->t('Certificate issuer is unknown.'),
 			];
 		}
@@ -391,6 +396,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		$sign_engine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf');
 		$property = lcfirst($sign_engine) . 'Handler';
 		if (!property_exists($this, $property)) {
+			// TRANSLATORS API/config error when LibreSign's signature_engine setting names a backend that is not available (for example a mistyped JSignPdf/native engine).
 			throw new LibresignException($this->l10n->t('Invalid Sign engine.'), 400);
 		}
 		$classHandler = 'OCA\\Libresign\\Handler\\SignEngine\\' . ucfirst($property);
