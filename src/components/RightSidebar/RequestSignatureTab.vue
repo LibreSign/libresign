@@ -113,7 +113,7 @@
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
 					<NcIconSvgWrapper v-else-if="showsPositionEditor" :path="mdiPencil" :size="20" />
 				</template>
-				{{ isSignElementsAvailable() ? t('libresign', 'Setup signature positions') : t('libresign', 'Save') }}
+				{{ saveButtonLabel }}
 			</NcButton>
 			<NcButton v-if="showRequestButton"
 				wide
