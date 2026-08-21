@@ -4,7 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { shallowMount } from '@vue/test-utils'
+import { flushPromises, shallowMount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
@@ -138,6 +138,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		setActivePinia(createPinia())
 		capabilitiesState.signElementsAvailable = true
 		generateUrlMock.mockClear()
+		vi.mocked(emit).mockClear()
 		vi.mocked(loadState).mockImplementation((app, key, defaultValue) => {
 			if (key === 'config') {
 				return {
