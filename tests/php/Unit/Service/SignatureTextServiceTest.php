@@ -88,6 +88,23 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		$this->assertStringNotContainsString('IP', $template);
 	}
 
+	#[DataProvider('providerIsEnabled')]
+	public function testIsEnabled(string $template, bool $expected): void {
+		$this->appConfig->setValueString(Application::APP_ID, 'signature_text_template', $template);
+
+		$this->assertSame($expected, $this->getClass()->isEnabled());
+	}
+
+	/**
+	 * @return array<string, array{string, bool}>
+	 */
+	public static function providerIsEnabled(): array {
+		return [
+			'empty template disables signature text' => ['', false],
+			'defined template enables signature text' => ['Signed by {{SignerCommonName}}', true],
+		];
+	}
+
 	#[DataProvider('providerSave')]
 	public function testSave($template, $context, $parsed): void {
 		$fromSave = $this->getClass()->save($template);
