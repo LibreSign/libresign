@@ -144,13 +144,17 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		} catch (LibresignException $e) {
 			throw $e;
 		} catch (EmptyCertificateException) {
+			// TRANSLATORS Error while LibreSign creates a user's signing certificate (PFX): the instance root CA material is missing or empty.
 			throw new LibresignException($this->l10n->t('Empty root certificate data'));
 		} catch (InvalidArgumentException) {
+			// TRANSLATORS Error while LibreSign creates a user's signing certificate: the identity fields or password payload sent to the certificate engine are invalid.
 			throw new LibresignException($this->l10n->t('Invalid data to generate certificate'));
 		} catch (\Throwable) {
+			// TRANSLATORS Error while LibreSign creates a user's signing certificate: the certificate engine failed unexpectedly during generation.
 			throw new LibresignException($this->l10n->t('Failure on generate certificate'));
 		}
 		if (!$content) {
+			// TRANSLATORS Error while LibreSign creates a user's signing certificate: generation finished without returning a PFX/certificate payload.
 			throw new LibresignException($this->l10n->t('Failure to generate certificate'));
 		}
 		$this->setCertificate($content);
@@ -164,6 +168,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		try {
 			$folder->newFile($this->pfxFilename, $content);
 		} catch (NotPermittedException) {
+			// TRANSLATORS Permission error when LibreSign tries to store the user's signing certificate (PFX) in their Nextcloud home folder.
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		}
 
@@ -177,6 +182,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 			$file = $folder->get($this->pfxFilename);
 			$file->delete();
 		} catch (NotPermittedException) {
+			// TRANSLATORS Permission error when LibreSign tries to delete the user's signing certificate (PFX) from their Nextcloud home folder.
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		} catch (NotFoundException|InvalidPathException) {
 		}
@@ -196,16 +202,19 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 			$node = $folder->get($this->pfxFilename);
 			$this->certificate = $node->getContent();
 		} catch (GenericFileException|NotFoundException) {
+			// TRANSLATORS Error shown to the signer when LibreSign has no stored signing certificate/password yet; they must create a signing password before signing.
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		} catch (\Throwable) {
 		}
 		if (empty($this->certificate)) {
+			// TRANSLATORS Error shown to the signer when LibreSign has no stored signing certificate/password yet; they must create a signing password before signing.
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
 		if ($this->getPassword()) {
 			try {
 				$this->getCertificateEngine()->readCertificate($this->certificate, $this->getPassword());
 			} catch (InvalidPasswordException) {
+				// TRANSLATORS Error shown to the signer when the password entered to unlock their LibreSign signing certificate (PFX) is wrong.
 				throw new LibresignException($this->l10n->t('Invalid password'));
 			}
 		}
