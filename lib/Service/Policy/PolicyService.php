@@ -333,6 +333,7 @@ class PolicyService {
 			return;
 		}
 
+		// TRANSLATORS Error shown in the Policy Workbench when a group admin tries to delete a group rule that was created by a system administrator.
 		throw new \DomainException($this->l10n->t('Only system administrators can delete group rules created by a system administrator'));
 	}
 
@@ -360,6 +361,7 @@ class PolicyService {
 			return;
 		}
 
+		// TRANSLATORS Error shown in the Policy Workbench when a group admin tries to edit a group access rule that was created by a system administrator.
 		throw new \DomainException($this->l10n->t('Only system administrators can edit group access rules created by a system administrator'));
 	}
 
@@ -383,6 +385,7 @@ class PolicyService {
 
 		$definition = $this->registry->get($policyKey);
 		if (!$this->canCurrentActorManageGroupPolicy($definition, $context)) {
+			// TRANSLATORS Error shown when a group admin tries to manage group policies without system-admin delegation for that policy.
 			throw new \DomainException($this->l10n->t('Group policy management requires explicit delegation from the system administrator'));
 		}
 	}
@@ -407,6 +410,7 @@ class PolicyService {
 			default => ucfirst($scope),
 		};
 
+		// TRANSLATORS Error when saving a policy at an unsupported scope. %s is the scope label such as System, Group, or User.
 		throw new \InvalidArgumentException($this->l10n->t('%s-level scope is not supported for this policy', [$scopeLabel]));
 	}
 
@@ -418,6 +422,7 @@ class PolicyService {
 		$definition->validateValue($normalizedValue, $context);
 		$resolved = $this->resolver->resolve($definition, $context);
 		if (!$resolved->canSaveAsUserDefault()) {
+			// TRANSLATORS Error when a signer or end user tries to save a personal preference for a policy that does not allow user defaults. {policyKey} is the policy identifier.
 			throw new \InvalidArgumentException($this->l10n->t('Saving a user preference is not allowed for {policyKey}', [
 				'policyKey' => $definition->key(),
 			]));
