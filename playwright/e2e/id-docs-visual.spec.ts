@@ -18,7 +18,7 @@ import {
 } from '../support/policy-api'
 
 const POLICY_KEY = 'identification_documents'
-const SCREENSHOT_DIR = resolve(process.cwd(), 'playwright/.visual-output')
+const SCREENSHOT_DIR = resolve(process.cwd(), 'build/playwright/visual-output')
 
 test.describe.configure({ mode: 'serial', timeout: 180000 })
 
@@ -59,15 +59,15 @@ async function shot(page: Page, name: string): Promise<void> {
 }
 
 function emptyStatus(page: Page): Locator {
-	return page.getByText(/Not sent yet|Ainda não enviado/i)
+	return page.getByText(/Not sent yet/i)
 }
 
 function deleteButton(page: Page): Locator {
-	return page.getByRole('button', { name: /Delete file|Excluir arquivo/i })
+	return page.getByRole('button', { name: /Delete file/i })
 }
 
 function uploadButton(page: Page): Locator {
-	return page.getByRole('button', { name: /Upload file|Enviar arquivo/i })
+	return page.getByRole('button', { name: /Upload file/i })
 }
 
 async function waitForIdDocsCard(page: Page): Promise<void> {
@@ -81,7 +81,7 @@ async function clearExistingIdDocument(page: Page): Promise<void> {
 			break
 		}
 		await deleteButton(page).click()
-		await expect(page.getByText(/File was deleted\.|Arquivo foi apagado\./i)).toBeVisible({ timeout: 20_000 })
+		await expect(page.getByText(/File was deleted\./i)).toBeVisible({ timeout: 20_000 })
 		await waitForIdDocsCard(page)
 	}
 	await expect(emptyStatus(page)).toBeVisible({ timeout: 20_000 })
@@ -98,12 +98,12 @@ test('identification documents appear on the account page after upload', async (
 	)
 
 	await page.goto('./apps/libresign')
-	await expect(page.getByRole('button', { name: /Upload from URL|Carregar do URL/i })).toBeVisible({ timeout: 20_000 })
-	await expect(page.getByRole('link', { name: /Documents Validation|Validação de Documentos/i })).toBeVisible({ timeout: 20_000 })
+	await expect(page.getByRole('button', { name: /Upload from URL/i })).toBeVisible({ timeout: 20_000 })
+	await expect(page.getByRole('link', { name: /Documents Validation/i })).toBeVisible({ timeout: 20_000 })
 	await shot(page, '01-libresign-home')
 
 	await page.goto('./apps/libresign/f/account')
-	await expect(page.getByRole('heading', { name: /Identification documents|Documentos de identificação/i })).toBeVisible({ timeout: 20_000 })
+	await expect(page.getByRole('heading', { name: /Identification documents/i })).toBeVisible({ timeout: 20_000 })
 	await clearExistingIdDocument(page)
 	await shot(page, '02-account-id-docs-empty')
 
@@ -113,16 +113,16 @@ test('identification documents appear on the account page after upload', async (
 	])
 	await fileChooser.setFiles(resolve(process.cwd(), 'tests/php/fixtures/pdfs/small_valid.pdf'))
 
-	await expect(page.getByText(/File was sent\.|Arquivo foi enviado\./i)).toBeVisible({ timeout: 20_000 })
+	await expect(page.getByText(/File was sent\./i)).toBeVisible({ timeout: 20_000 })
 	await expect(deleteButton(page)).toBeVisible({ timeout: 20_000 })
 	await expect(emptyStatus(page)).toHaveCount(0)
 	await shot(page, '03-account-id-doc-uploaded')
 
 	await page.goto('./apps/libresign/f/docs/id-docs/validation')
-	await expect(page.getByRole('columnheader', { name: /Owner|Proprietário/i })).toBeVisible({ timeout: 20_000 })
+	await expect(page.getByRole('columnheader', { name: /Owner/i })).toBeVisible({ timeout: 20_000 })
 	await expect(page.getByRole('cell', { name: /^admin$/i }).first()).toBeVisible({ timeout: 20_000 })
-	await expect(page.getByText(/waiting for approval|aguardando aprovação/i).first()).toBeVisible()
-	await expect(page.getByRole('button', { name: /Sign|Assinar/i }).first()).toBeVisible()
+	await expect(page.getByText(/waiting for approval/i).first()).toBeVisible()
+	await expect(page.getByRole('button', { name: /Sign/i }).first()).toBeVisible()
 	await shot(page, '04-id-docs-approval-list')
 
 	await page.goto('./settings/admin/libresign')
@@ -130,15 +130,15 @@ test('identification documents appear on the account page after upload', async (
 	await expect(catalogSearch).toBeVisible({ timeout: 20_000 })
 
 	const collapseButton = page.getByRole('button', {
-		name: /Collapse settings categories|Recolher categorias de configurações|Expand settings categories|Expandir categorias de configurações/i,
+		name: /Collapse settings categories|Expand settings categories/i,
 	}).first()
-	if (/Expand|Expandir/i.test((await collapseButton.getAttribute('aria-label')) ?? '')) {
+	if (/Expand/i.test((await collapseButton.getAttribute('aria-label')) ?? '')) {
 		await collapseButton.click()
 	}
 
 	await catalogSearch.fill('identifica')
 	await expect(page.getByRole('button', {
-		name: /Identification documents flow|Fluxo de documentos de identificação/i,
+		name: /Identification documents flow/i,
 	}).first()).toBeVisible({ timeout: 20_000 })
 	await shot(page, '05-settings-identification-documents')
 })
