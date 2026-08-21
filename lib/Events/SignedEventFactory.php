@@ -53,6 +53,8 @@ class SignedEventFactory {
 	protected function getUser(FileEntity $libreSignFile): IUser {
 		$user = $this->userManager->get($libreSignFile->getUserId());
 		if (!$user instanceof IUser) {
+			// TRANSLATORS Error thrown when building the signed-document event if the file owner
+			// account no longer exists. Surfaces to the signing workflow after a signature is applied.
 			throw new LibresignException($this->l10n->t('User not found.'));
 		}
 		return $user;
