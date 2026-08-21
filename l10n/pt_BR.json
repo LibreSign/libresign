@@ -127,6 +127,7 @@
     "File is too big" : "Arquivo é muito grande",
     "Already asked to sign this document" : "Já foi solicitado a assinar este documento",
     "Visible elements need to be an array" : "Os elementos visíveis precisam ser um arranjo",
+    "Visible elements are disabled." : "Os elementos visíveis estão desativados.",
     "Element must be associated with a user" : "O elemento deve ser associado a um usuário",
     "User not found for element." : "Usuário não encontrado para o elemento. ",
     "Coordinate %s must be an integer" : "A coordenada %s deve ser um número inteiro",
