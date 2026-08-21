@@ -129,6 +129,7 @@ OC.L10N.register(
     "File is too big" : "檔案太大",
     "Already asked to sign this document" : "已要求簽署此文件",
     "Visible elements need to be an array" : "可見元素必須是數組",
+    "Visible elements are disabled." : "已停用可見元素。",
     "Element must be associated with a user" : "元素必須與用戶相關",
     "User not found for element." : "找不到元素的用戶。",
     "Coordinate %s must be an integer" : "座標 %s 必須為整數",

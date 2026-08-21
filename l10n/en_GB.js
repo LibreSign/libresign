@@ -129,6 +129,7 @@ OC.L10N.register(
     "File is too big" : "File is too big",
     "Already asked to sign this document" : "Already asked to sign this document",
     "Visible elements need to be an array" : "Visible elements need to be an array",
+    "Visible elements are disabled." : "Visible elements are disabled.",
     "Element must be associated with a user" : "Element must be associated with a user",
     "User not found for element." : "User not found for element.",
     "Coordinate %s must be an integer" : "Coordinate %s must be an integer",
