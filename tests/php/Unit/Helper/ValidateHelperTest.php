@@ -633,21 +633,66 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getValidateHelper()->validateIsSignerOfFile(1, 1);
 	}
 
-	public function testValidateVisibleElementsWithInvalidElementType():void {
-		$this->expectExceptionMessage('Visible elements need to be an array');
-		$actual = $this->getValidateHelper()->validateVisibleElements(null, ValidateHelper::TYPE_TO_SIGN);
-		$this->assertNull($actual);
+	#[DataProvider('providerValidateVisibleElements')]
+	public function testValidateVisibleElements(bool $isSignElementsAvailable, ?array $elements, int $type, string $expectedException):void {
+		$this->signerElementsService->method('isSignElementsAvailable')->willReturn($isSignElementsAvailable);
+		if ($expectedException) {
+			$this->expectExceptionMessage($expectedException);
+		}
+		$this->assertNull($this->getValidateHelper()->validateVisibleElements($elements, $type));
 	}
 
-	public function testValidateVisibleElementsWithSuccess():void {
-		$elements = [[
+	public static function providerValidateVisibleElements(): array {
+		$validElement = [
 			'type' => 'signature',
 			'file' => [
 				'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))
 			]
-		]];
-		$actual = $this->getValidateHelper()->validateVisibleElements($elements, ValidateHelper::TYPE_TO_SIGN);
-		$this->assertNull($actual);
+		];
+		return [
+			'rejects a non array value' => [
+				true,
+				null,
+				ValidateHelper::TYPE_TO_SIGN,
+				'Visible elements need to be an array',
+			],
+			'accepts a valid element' => [
+				true,
+				[$validElement],
+				ValidateHelper::TYPE_TO_SIGN,
+				'',
+			],
+			'validates every element of the list' => [
+				true,
+				[$validElement, ['type' => 'INVALID']],
+				ValidateHelper::TYPE_TO_SIGN,
+				'Invalid element type',
+			],
+			'accepts an empty list when available' => [
+				true,
+				[],
+				ValidateHelper::TYPE_TO_SIGN,
+				'',
+			],
+			'rejects document elements when the feature is unavailable' => [
+				false,
+				[['type' => 'signature']],
+				ValidateHelper::TYPE_VISIBLE_ELEMENT_PDF,
+				'Visible elements are disabled.',
+			],
+			'rejects profile elements when the feature is unavailable' => [
+				false,
+				[['type' => 'signature']],
+				ValidateHelper::TYPE_VISIBLE_ELEMENT_USER,
+				'Visible elements are disabled.',
+			],
+			'accepts an empty list when the feature is unavailable' => [
+				false,
+				[],
+				ValidateHelper::TYPE_VISIBLE_ELEMENT_PDF,
+				'',
+			],
+		];
 	}
 
 	public function testValidateElementSignRequestIdRequiresAssociation(): void {

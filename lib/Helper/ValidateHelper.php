@@ -225,6 +225,10 @@ class ValidateHelper {
 		if (!is_array($visibleElements)) {
 			throw new LibresignException($this->l10n->t('Visible elements need to be an array'));
 		}
+		if ($visibleElements && !$this->signerElementsService->isSignElementsAvailable()) {
+			// TRANSLATORS Validation error shown when visible signature elements are sent while the feature is disabled by the administrator.
+			throw new LibresignException($this->l10n->t('Visible elements are disabled.'));
+		}
 		foreach ($visibleElements as $element) {
 			$this->validateVisibleElement($element, $type);
 		}
