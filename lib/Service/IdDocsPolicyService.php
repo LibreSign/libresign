@@ -102,6 +102,8 @@ class IdDocsPolicyService {
 		$userGroups = $this->groupManager->getUserGroupIds($user);
 		if (!array_intersect($userGroups, $authorized)) {
 			if ($throw) {
+				// TRANSLATORS Error shown when a user tries to approve identification documents
+				// but is not in the LibreSign approval groups configured for the ID docs policy.
 				throw new LibresignException($this->l10n->t('You are not allowed to approve user profile documents.'));
 			}
 			return false;
