@@ -34,6 +34,7 @@ class SignRequestCanceled extends LibresignActivitySettings {
 	 */
 	#[\Override]
 	public function getName(): string {
+		// TRANSLATORS Activity app setting label for LibreSign events when a signature request is canceled before completion. Keep the <strong> markup.
 		return $this->l->t('A signature request has been <strong>canceled</strong>');
 	}
 

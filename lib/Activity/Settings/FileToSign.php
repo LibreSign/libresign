@@ -32,6 +32,7 @@ class FileToSign extends LibresignActivitySettings {
 	 */
 	#[\Override]
 	public function getName(): string {
+		// TRANSLATORS Activity app setting label for LibreSign events when the current user has a pending document to sign. Keep the <strong> markup.
 		return $this->l->t('You have a <strong>file to sign</strong>');
 	}
 }
