@@ -27,6 +27,7 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\FileStatus as FileStatusEnum;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Exception\LibresignException;
@@ -985,6 +986,58 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$signers[$i]->setSigned(new DateTime());
 		}
 		return $signers;
+	}
+
+	public function testIdDocApprovalReachesSignedWhenUploaderPlaceholderIsUnsigned(): void {
+		$uploader = new SignRequest();
+		$uploader->setId(10);
+		$uploader->setStatus(SignRequestStatus::DRAFT->value);
+
+		$approver = new SignRequest();
+		$approver->setId(20);
+		$approver->setSigned(new DateTime());
+		$approver->setStatus(SignRequestStatus::SIGNED->value);
+
+		$idDocs = new IdDocs();
+		$idDocs->setSignRequestId(10);
+		$this->idDocsMapper
+			->method('getByFileId')
+			->with(1)
+			->willReturn($idDocs);
+
+		$service = $this->getService(['getSigners']);
+		$service->method('getSigners')->willReturn([$uploader, $approver]);
+
+		$signRequest = new SignRequest();
+		$signRequest->setFileId(1);
+		$service->setSignRequest($signRequest);
+
+		$status = self::invokePrivate($service, 'evaluateStatusFromSigners');
+		$this->assertSame(FileStatus::SIGNED->value, $status);
+	}
+
+	public function testDraftSignersStillCountWhenFileIsNotAnIdentificationDocument(): void {
+		$this->idDocsMapper
+			->method('getByFileId')
+			->willThrowException(new DoesNotExistException('no identification document'));
+
+		$signed = new SignRequest();
+		$signed->setId(1);
+		$signed->setSigned(new DateTime());
+
+		$draft = new SignRequest();
+		$draft->setId(2);
+		$draft->setStatus(SignRequestStatus::DRAFT->value);
+
+		$service = $this->getService(['getSigners']);
+		$service->method('getSigners')->willReturn([$signed, $draft]);
+
+		$signRequest = new SignRequest();
+		$signRequest->setFileId(99);
+		$service->setSignRequest($signRequest);
+
+		$status = self::invokePrivate($service, 'evaluateStatusFromSigners');
+		$this->assertSame(FileStatus::PARTIAL_SIGNED->value, $status);
 	}
 
 	#[DataProvider('providerGetEngineWillWorkWithLazyLoadedEngine')]
