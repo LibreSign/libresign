@@ -45,49 +45,60 @@ class TemplateVariables {
 		$this->variablesMetadata = [
 			'direction' => [
 				'type' => 'string',
+				// TRANSLATORS Shown in the footer template variable picker (LibreSign settings). Helps authors lay out the stamp that LibreSign prints at the bottom of a signed PDF for left-to-right or right-to-left languages.
 				'description' => $this->l10n->t('Text direction for the footer (ltr or rtl based on language)'),
 				'example' => 'ltr',
 			],
 			'linkToSite' => [
 				'type' => 'string',
+				// TRANSLATORS Shown in the footer template variable picker (LibreSign settings). Points readers of the signed PDF to the LibreSign product site or another site configured by the administrator.
 				'description' => $this->l10n->t('Link to LibreSign or custom website'),
 				'example' => 'https://libresign.coop',
 				'default' => 'https://libresign.coop',
 			],
 			'qrcode' => [
 				'type' => 'string',
+				// TRANSLATORS Shown in the footer template variable picker (LibreSign settings). After signing, the PDF footer can show this QR so anyone can open LibreSign's public signature-check page for that document.
 				'description' => $this->l10n->t('QR Code image in base64 format for document validation'),
 				'example' => 'iVBORw0KGgoAAAANSUhEUgAA...',
 			],
 			'qrcodeSize' => [
 				'type' => 'integer',
+				// TRANSLATORS Shown in the footer template variable picker (LibreSign settings). Controls how large the validation QR appears in the signed PDF footer stamp.
 				'description' => $this->l10n->t('QR Code size in pixels (includes margin)'),
 				'example' => 108,
 			],
 			'signedBy' => [
 				'type' => 'string',
+				// TRANSLATORS Shown in the footer template variable picker (LibreSign settings). Label for the short notice LibreSign can print on the PDF after cryptographic signing finishes.
 				'description' => $this->l10n->t('Message indicating the document was digitally signed'),
 				'example' => 'Digitally signed by LibreSign.',
+				// TRANSLATORS Default text stamped on the signed PDF footer. LibreSign is the Nextcloud signing app that applied the digital signature; readers see this on the finished document.
 				'default' => $this->l10n->t('Digitally signed by LibreSign.'),
 			],
 			'signers' => [
 				'type' => 'array',
+				// TRANSLATORS Shown in the footer template variable picker (LibreSign settings). Lists people who completed signing this request so the footer can show their names and when each signature was applied.
 				'description' => $this->l10n->t('Array of signers with "displayName" and "signed" timestamp'),
 				'example' => '[{"displayName": "John Doe", "signed": "2025-01-01T10:00:00Z"}]',
 			],
 			'uuid' => [
 				'type' => 'string',
+				// TRANSLATORS Shown in the footer template variable picker (LibreSign settings). LibreSign assigns this ID to the signing request; it is used in validation URLs and QR codes, not as a human display name.
 				'description' => $this->l10n->t('Document unique identifier (UUID format)'),
 				'example' => 'de0a18d4-fe65-4abc-bdd1-84e819700260',
 			],
 			'validateIn' => [
 				'type' => 'string',
+				// TRANSLATORS Shown in the footer template variable picker (LibreSign settings). Template for the short invitation on the PDF footer that tells readers where to verify the signature; %s is filled with the validation site.
 				'description' => $this->l10n->t('Validation message template with placeholder'),
 				'example' => 'Validate in %s.',
+				// TRANSLATORS Default PDF footer line after signing. "Validate" means check that the digital signature is authentic (LibreSign public validation page), not approve a document. %s is the validation site URL or name.
 				'default' => $this->l10n->t('Validate in %s.', ['%s']),
 			],
 			'validationSite' => [
 				'type' => 'string',
+				// TRANSLATORS Shown in the footer template variable picker (LibreSign settings). Absolute link to LibreSign's public page where anyone can verify this signed document without logging in.
 				'description' => $this->l10n->t('Complete URL for document validation with UUID'),
 				'example' => 'https://example.com/validation/de0a18d4-fe65-4abc-bdd1-84e819700260',
 			],
