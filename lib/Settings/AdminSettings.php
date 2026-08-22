@@ -33,6 +33,7 @@ class AdminSettings implements IIconSection {
 	 */
 	#[\Override]
 	public function getName(): string {
+		// TRANSLATORS Nextcloud Administration settings section name for the LibreSign digital signature app.
 		return $this->l->t('LibreSign');
 	}
 
