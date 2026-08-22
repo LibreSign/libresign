@@ -9,20 +9,6 @@
 
 )
 
-set -Eeo pipefail
-
-reportFailure() {
-	local exitCode=$1
-	local failedLine=$2
-	local failedCommand=$3
-	echo >&2
-	echo "❌ LibreSign setup failed at ${BASH_SOURCE[0]}:${failedLine} (exit ${exitCode})" >&2
-	echo "   Failed command: ${failedCommand}" >&2
-	echo "   The environment is NOT ready to use. Fix the error above and run this script again." >&2
-	exit "${exitCode}"
-}
-trap 'reportFailure "$?" "${LINENO}" "${BASH_COMMAND}"' ERR
-
 git config --global --add safe.directory /var/www/html
 git config --global --add safe.directory /var/www/html/apps-extra/libresign
 cd /var/www/html/apps-extra/libresign
