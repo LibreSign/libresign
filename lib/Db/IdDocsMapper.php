@@ -192,8 +192,7 @@ class IdDocsMapper extends QBMapper {
 			->leftJoin('id', 'libresign_sign_request', 'sr', 'id.sign_request_id = sr.id');
 
 		if ($needsUserJoin) {
-			$joinType = !empty($filter['userId']) ? 'join' : 'leftJoin';
-			$qb->$joinType('id', 'users', 'u', 'id.user_id = u.uid');
+			$qb->leftJoin('id', 'users', 'u', 'id.user_id = u.uid');
 		}
 
 		if (!empty($filter['userId'])) {
