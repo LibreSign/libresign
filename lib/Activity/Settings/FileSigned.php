@@ -36,6 +36,7 @@ class FileSigned extends LibresignActivitySettings {
 	 */
 	#[\Override]
 	public function getName(): string {
+		// TRANSLATORS Activity app setting label for LibreSign events when a document finishes being digitally signed. Keep the <strong> markup.
 		return $this->l->t('A document has been <strong>signed</strong>');
 	}
 
