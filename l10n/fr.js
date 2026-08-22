@@ -129,6 +129,7 @@ OC.L10N.register(
     "File is too big" : "Le fichier est trop gros",
     "Already asked to sign this document" : "Demande de signature de ce document déjà adressée",
     "Visible elements need to be an array" : "Les éléments visibles ont besoin d'être un tableau.",
+    "Visible elements are disabled." : "Les éléments visibles sont désactivés.",
     "Element must be associated with a user" : "L'élément doit être associé à un utilisateur",
     "User not found for element." : "Utilisateur non trouvé pour cet élément.",
     "Coordinate %s must be an integer" : "La coordonnée %s doit être un entier",
