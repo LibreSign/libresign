@@ -528,10 +528,12 @@ final class SignersLoaderTest extends TestCase {
 		$this->assertSame('2026-01-28T23:58:51+00:00', $signer->chain[0]['valid_from']);
 		$this->assertSame('2026-01-29T23:58:51+00:00', $signer->chain[0]['valid_to']);
 
-		// Root level should NOT have the formatted dates from backend
-		// These fields should only exist in the chain, not duplicated at root level
-		$this->assertObjectNotHasProperty('valid_from', $signer, 'valid_from should not be copied to root level');
-		$this->assertObjectNotHasProperty('valid_to', $signer, 'valid_to should not be copied to root level');
+		// Root level should expose the ISO UTC validity dates (from validFrom/validTo_time_t) so the
+		// validation UI and the SignerDetail API contract can read them from a stable location. The
+		// locale-formatted backend strings (e.g. 'January 28, 2026, 11:58:51 PM') must NOT leak here,
+		// but the ISO form IS promoted.
+		$this->assertSame('2026-01-28T23:58:51+00:00', $signer->valid_from);
+		$this->assertSame('2026-01-29T23:58:51+00:00', $signer->valid_to);
 
 		// Also verify other technical fields are not duplicated
 		$this->assertObjectNotHasProperty('validFrom_time_t', $signer);
