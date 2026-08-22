@@ -727,6 +727,66 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertStringNotContainsString(' -cl ' . DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name, $paramsSeen[0]);
 	}
 
+	public function testMergeBackgroundWithSignatureFitsOversizedSignatureInsideStampBox(): void {
+		if (!extension_loaded('imagick')) {
+			$this->markTestSkipped('Extension imagick is not loaded');
+		}
+
+		$this->persistSignatureStampPolicy('', signatureWidth: 350, signatureHeight: 100);
+
+		$backgroundPath = $this->createTransparentPng(10, 10);
+		$signaturePath = $this->createPngWithOpaqueCorners(1400, 400);
+
+		$mergedPath = self::invokePrivate($this->getInstance(), 'mergeBackgroundWithSignature', [
+			$backgroundPath,
+			$signaturePath,
+			5.0,
+		]);
+
+		$merged = new \Imagick((string)$mergedPath);
+		$this->assertSame(1750, $merged->getImageWidth());
+		$this->assertSame(500, $merged->getImageHeight());
+		$this->assertGreaterThan(
+			0,
+			$merged->getImagePixelColor(5, 5)->getColorValue(\Imagick::COLOR_ALPHA),
+			'Top left corner of the signature must remain inside the stamp box'
+		);
+		$this->assertGreaterThan(
+			0,
+			$merged->getImagePixelColor(1744, 494)->getColorValue(\Imagick::COLOR_ALPHA),
+			'Bottom right corner of the signature must remain inside the stamp box'
+		);
+		$merged->clear();
+	}
+
+	private function createTransparentPng(int $width, int $height): string {
+		$image = new \Imagick();
+		$image->newImage($width, $height, new \ImagickPixel('transparent'));
+		$image->setImageFormat('png32');
+		$path = (string)$this->tempManager->getTemporaryFile('.png');
+		$image->writeImage($path);
+		$image->clear();
+		return $path;
+	}
+
+	private function createPngWithOpaqueCorners(int $width, int $height): string {
+		$image = new \Imagick();
+		$image->newImage($width, $height, new \ImagickPixel('transparent'));
+		$image->setImageFormat('png32');
+		$cornerSize = 40;
+		$draw = new \ImagickDraw();
+		$draw->setFillColor(new \ImagickPixel('black'));
+		$draw->rectangle(0, 0, $cornerSize, $cornerSize);
+		$draw->rectangle($width - $cornerSize, 0, $width, $cornerSize);
+		$draw->rectangle(0, $height - $cornerSize, $cornerSize, $height);
+		$draw->rectangle($width - $cornerSize, $height - $cornerSize, $width, $height);
+		$image->drawImage($draw);
+		$path = (string)$this->tempManager->getTemporaryFile('.png');
+		$image->writeImage($path);
+		$image->clear();
+		return $path;
+	}
+
 	private static function getElement(array $attributes = [], string $imagePath = ''): VisibleElementAssoc {
 		$element = new FileElement();
 		foreach ($attributes as $attribute => $value) {
