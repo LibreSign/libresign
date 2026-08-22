@@ -153,6 +153,7 @@ class FooterHandler {
 
 		if (!$this->templateVars->getSignedBy()) {
 			$this->templateVars->setSignedBy(
+				// TRANSLATORS Default PDF footer sentence stamped after LibreSign applies a digital signature; readers see this on the finished document.
 				$this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digitally signed by LibreSign.'))
 			);
 		}
@@ -187,6 +188,7 @@ class FooterHandler {
 		if (!$this->templateVars->getValidateIn()) {
 			$validateIn = $this->appConfig->getValueString(Application::APP_ID, 'footer_validate_in', 'Validate in %s.');
 			if ($validateIn === 'Validate in %s.') {
+				// TRANSLATORS Default PDF footer line after signing. "Validate" means check that the digital signature is authentic on LibreSign's public validation page, not approve a document. %s is the validation site URL or name.
 				$this->templateVars->setValidateIn($this->l10n->t('Validate in %s.', ['%s']));
 			} else {
 				$this->templateVars->setValidateIn($validateIn);
