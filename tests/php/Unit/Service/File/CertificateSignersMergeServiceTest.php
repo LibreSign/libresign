@@ -154,6 +154,37 @@ final class CertificateSignersMergeServiceTest extends TestCase {
 		];
 	}
 
+	public function testMergePromotesLeafCertValidityDatesToSignerRoot(): void {
+		$fileData = new \stdClass();
+		$fileData->signers = [];
+
+		$certData = [[
+			'uid' => 'email:signer@example.com',
+			'chain' => [[
+				'subject' => ['CN' => 'Signer User'],
+				'validFrom_time_t' => 1769644731,
+				'validTo_time_t' => 1769731131,
+			]],
+		]];
+
+		$this->getService()->merge(
+			$fileData,
+			$certData,
+			'example.com',
+			'Signed',
+			fn (array $cert, string $host): ?string => $cert['subject']['UID'] ?? null,
+			fn (string $method, string $value): string => $method . ':' . $value,
+			fn (string $accountId): ?string => null,
+		);
+
+		$this->assertCount(1, $fileData->signers);
+		$signer = $fileData->signers[0];
+		$this->assertSame('2026-01-28T23:58:51+00:00', $signer->valid_from);
+		$this->assertSame('2026-01-29T23:58:51+00:00', $signer->valid_to);
+		$this->assertSame('2026-01-28T23:58:51+00:00', $signer->chain[0]['valid_from']);
+		$this->assertSame('2026-01-29T23:58:51+00:00', $signer->chain[0]['valid_to']);
+	}
+
 	public function testMergeDoesNotExportTopLevelTsaWithTimestampData(): void {
 		$fileData = new \stdClass();
 		$fileData->signers = [];
