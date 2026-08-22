@@ -88,8 +88,10 @@ class TwofactorGatewayListener implements IEventListener {
 			}
 
 			if ($isFirstNotification) {
+				// TRANSLATORS SMS/gateway body sent via Nextcloud Twofactor Gateway when LibreSign first asks someone to sign a document; a signing link follows this sentence.
 				$message .= $this->l10n->t('There is a document for you to sign. Access the link below:');
 			} else {
+				// TRANSLATORS SMS/gateway body sent via Nextcloud Twofactor Gateway when a pending LibreSign signing request was updated and the signer must open the link again.
 				$message .= $this->l10n->t('Changes have been made in a file that you have to sign. Access the link below:');
 			}
 			$message .= "\n";
@@ -147,6 +149,7 @@ class TwofactorGatewayListener implements IEventListener {
 				return;
 			}
 
+			// TRANSLATORS SMS/gateway subject line sent via Nextcloud Twofactor Gateway after a LibreSign document was signed; details and a validation link follow.
 			$message = $this->l10n->t('LibreSign: A file has been signed');
 			$message .= "\n";
 			// TRANSLATORS The text in the message that is sent after a document has been signed by a user. %s will be replaced with the name of the user who signed the document.
