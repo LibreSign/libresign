@@ -1,0 +1,23 @@
+// SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+{
+	"$schema": "https://raw.githubusercontent.com/infection/infection/0.35.2/resources/schema.json",
+	"source": {
+		"directories": [
+			"lib"
+		],
+		"excludes": [
+			"Migration"
+		]
+	},
+	"bootstrap": "tests/php/infection-bootstrap.php",
+	"phpUnit": {
+		"configDir": "tests/php"
+	},
+	"minMsi": 80,
+	"minCoveredMsi": 80,
+	"mutators": {
+		"@default": true
+	}
+}
