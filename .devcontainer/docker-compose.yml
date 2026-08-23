@@ -29,7 +29,7 @@ services:
       - MYSQL_USER=${MYSQL_USER:-nextcloud}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-nextcloud}
   nextcloud:
-    image: ghcr.io/librecodecoop/nextcloud-dev-php${PHP_VERSION:-83}:latest
+    image: ghcr.io/librecodecoop/nextcloud-dev:8.3
     volumes:
       - ~/.composer:/var/www/.composer/
       - ~/.npm:/var/www/.npm/
