@@ -23,9 +23,33 @@ class ProcessSignalerTest extends TestCase {
 
 	#[DataProvider('provideInvalidPids')]
 	public function testStopPidReturnsFalseForInvalidPid(int $pid): void {
-		$signaler = new ProcessSignaler($this->createMock(LoggerInterface::class));
+		$signaler = new class($this->createMock(LoggerInterface::class)) extends ProcessSignaler {
+			/** @var array<int, array{pid: int, signal: int}> */
+			public array $signals = [];
+
+			protected function sendSignal(int $pid, int $signal): bool {
+				$this->signals[] = ['pid' => $pid, 'signal' => $signal];
+				return true;
+			}
+		};
 
 		$this->assertFalse($signaler->stopPid($pid));
+		$this->assertSame([], $signaler->signals);
+	}
+
+	public function testStopPidDelegatesValidPidToSignalBoundary(): void {
+		$signaler = new class($this->createMock(LoggerInterface::class)) extends ProcessSignaler {
+			/** @var array<int, array{pid: int, signal: int}> */
+			public array $signals = [];
+
+			protected function sendSignal(int $pid, int $signal): bool {
+				$this->signals[] = ['pid' => $pid, 'signal' => $signal];
+				return true;
+			}
+		};
+
+		$this->assertTrue($signaler->stopPid(123, SIGKILL));
+		$this->assertSame([['pid' => 123, 'signal' => SIGKILL]], $signaler->signals);
 	}
 
 	/**
