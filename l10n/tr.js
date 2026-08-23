@@ -129,6 +129,7 @@ OC.L10N.register(
     "File is too big" : "Dosya çok büyük",
     "Already asked to sign this document" : "Bu belgenin imzalanması zaten istenmiş",
     "Visible elements need to be an array" : "Görülebilir bileşenler bir dizi olmalıdır",
+    "Visible elements are disabled." : "Görülebilir bileşen etkisizleştirildi.",
     "Element must be associated with a user" : "Bileşen bir kullanıcı ile ilişkilendirilmelidir",
     "User not found for element." : "Bileşen için bir kullanıcı bulunamadı.",
     "Coordinate %s must be an integer" : "%s koordinatı bir tam sayı olmalıdır",

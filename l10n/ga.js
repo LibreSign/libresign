@@ -129,6 +129,7 @@ OC.L10N.register(
     "File is too big" : "Tá an comhad ró-mhór.",
     "Already asked to sign this document" : "Iarradh cheana an doiciméad seo a shíniú",
     "Visible elements need to be an array" : "Ní mór eilimintí infheicthe a bheith ina sraith",
+    "Visible elements are disabled." : "Tá eilimintí infheicthe díchumasaithe.",
     "Element must be associated with a user" : "Caithfidh an eilimint a bheith bainteach le húsáideoir",
     "User not found for element." : "Níor aimsíodh an t-úsáideoir don eilimint.",
     "Coordinate %s must be an integer" : "Caithfidh comhordanáid %s a bheith ina shlánuimhir",
