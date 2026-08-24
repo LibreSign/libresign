@@ -91,19 +91,23 @@ class AccountService {
 
 	public function validateCreateToSign(array $data): void {
 		if (!UUIDUtil::validateUUID($data['uuid'])) {
+			// TRANSLATORS Account setup error when the signature-request UUID used to create a guest account is invalid.
 			throw new LibresignException($this->l10n->t('Invalid UUID'), 1);
 		}
 		try {
 			$signRequest = $this->getSignRequestByUuid($data['uuid']);
 		} catch (\Throwable) {
+			// TRANSLATORS Account setup error when the signature-request UUID used to create a guest account cannot be found.
 			throw new LibresignException($this->l10n->t('UUID not found'), 1);
 		}
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 		if (!array_key_exists('identify', $data['user'])) {
+			// TRANSLATORS Account setup error when the identification method linked to the signature request is invalid for account creation.
 			throw new LibresignException($this->l10n->t('Invalid identification method'), 1);
 		}
 		foreach ($data['user']['identify'] as $method => $value) {
 			if (!array_key_exists($method, $identifyMethods)) {
+				// TRANSLATORS Account setup error when the identification method linked to the signature request is invalid for account creation.
 				throw new LibresignException($this->l10n->t('Invalid identification method'), 1);
 			}
 			foreach ($identifyMethods[$method] as $identifyMethod) {
@@ -111,10 +115,12 @@ class AccountService {
 			}
 		}
 		if (empty($data['password'])) {
+			// TRANSLATORS Account setup error when creating a guest account to sign and the Nextcloud password is missing.
 			throw new LibresignException($this->l10n->t('Password is mandatory'), 1);
 		}
 		$file = $this->getFileByUuid($data['uuid']);
 		if (empty($file['fileToSign'])) {
+			// TRANSLATORS Account setup error when the document linked to the signature-request UUID cannot be found.
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
 	}
@@ -139,12 +145,15 @@ class AccountService {
 
 	public function validateCertificateData(array $data): void {
 		if (array_key_exists('email', $data['user']) && empty($data['user']['email'])) {
+			// TRANSLATORS Account setup error when the user must have an email address in their Nextcloud profile before continuing.
 			throw new LibresignException($this->l10n->t('You must have an email. You can define the email in your profile.'), 1);
 		}
 		if (!empty($data['user']['email']) && !filter_var($data['user']['email'], FILTER_VALIDATE_EMAIL)) {
+			// TRANSLATORS Account setup error when the email provided to create or update a signing account is invalid.
 			throw new LibresignException($this->l10n->t('Invalid email'), 1);
 		}
 		if (empty($data['signPassword'])) {
+			// TRANSLATORS Account setup error when the dedicated password used to unlock the signing certificate is missing.
 			throw new LibresignException($this->l10n->t('Password to sign is mandatory'), 1);
 		}
 	}
@@ -461,6 +470,7 @@ class AccountService {
 		$element = array_filter($fileList, fn (File $element) => $element->getId() === $data['nodeId']);
 		$element = current($element);
 		if (!$element instanceof File) {
+			// TRANSLATORS Error when loading a LibreSign file for the account flow and the file cannot be found.
 			throw new \Exception($this->l10n->t('File not found'));
 		}
 		$element->putContent($this->getFileRaw($data));
@@ -494,15 +504,18 @@ class AccountService {
 	private function getFileRaw(array $data): string {
 		if (!empty($data['file']['url'])) {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
+				// TRANSLATORS Error when a visible signature element is provided via URL and the URL is invalid.
 				throw new \Exception($this->l10n->t('Invalid URL file'));
 			}
 			$response = $this->clientService->newClient()->get($data['file']['url']);
 			$contentType = $response->getHeader('Content-Type');
 			if ($contentType !== 'image/png') {
+				// TRANSLATORS Error when uploading a visible signature or initials image that is not a PNG file.
 				throw new \Exception($this->l10n->t('Visible element file must be png.'));
 			}
 			$content = (string)$response->getBody();
 			if (empty($content)) {
+				// TRANSLATORS Error when uploading a visible signature element file that is empty.
 				throw new \Exception($this->l10n->t('Empty file'));
 			}
 			$this->validateHelper->validateBase64($content, ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
@@ -545,11 +558,13 @@ class AccountService {
 			/** @var \OCP\Files\Folder $sessionFolder */
 			$sessionFolder = $rootSignatureFolder->get($sessionId);
 		} catch (NotFoundException) {
+			// TRANSLATORS Error when a visible signature element linked to the user account cannot be found.
 			throw new DoesNotExistException($this->l10n->t('Element not found'));
 		}
 
 		$element = $sessionFolder->getFirstNodeById($nodeId);
 		if (!$element instanceof File) {
+			// TRANSLATORS Error when a visible signature element linked to the user account cannot be found.
 			throw new DoesNotExistException($this->l10n->t('Element not found'));
 		}
 		$element->delete();
@@ -611,6 +626,7 @@ class AccountService {
 		try {
 			$pfx = $this->pkcs12Handler->updatePassword($user->getUID(), $current, $new);
 		} catch (InvalidPasswordException) {
+			// TRANSLATORS Authentication error when the account credentials used for LibreSign API access are invalid.
 			throw new LibresignException($this->l10n->t('Invalid user or password'));
 		}
 	}
@@ -625,6 +641,7 @@ class AccountService {
 				->setPassword($password)
 				->readCertificate();
 		} catch (InvalidPasswordException) {
+			// TRANSLATORS Authentication error when the account credentials used for LibreSign API access are invalid.
 			throw new LibresignException($this->l10n->t('Invalid user or password'));
 		}
 	}

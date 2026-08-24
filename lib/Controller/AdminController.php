@@ -275,6 +275,7 @@ class AdminController extends AEnvironmentAwareController {
 			}
 		} catch (\Exception $exception) {
 			$this->eventSource->send('errors', json_encode([
+				// TRANSLATORS Admin SSE error while downloading LibreSign signing binaries (Java, JSignPdf, PDFtk) during setup.
 				$this->l10n->t('Could not download binaries.'),
 				$exception->getMessage(),
 			]));

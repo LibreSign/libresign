@@ -53,6 +53,7 @@ class SignedEventFactory {
 	protected function getUser(FileEntity $libreSignFile): IUser {
 		$user = $this->userManager->get($libreSignFile->getUserId());
 		if (!$user instanceof IUser) {
+			// TRANSLATORS Error when building the post-signature event and the Nextcloud user linked to the signer cannot be found.
 			throw new LibresignException($this->l10n->t('User not found.'));
 		}
 		return $user;

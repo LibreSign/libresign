@@ -42,6 +42,7 @@ trait LibresignTrait {
 		} catch (DoesNotExistException|LibresignException) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
+				// TRANSLATORS API error when a signing or validation request uses a malformed or unknown document UUID.
 				'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
 			]), AppFrameworkHttp::STATUS_NOT_FOUND);
 		}
@@ -81,6 +82,7 @@ trait LibresignTrait {
 		if ($resolution['type'] !== 'id_doc') {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
+				// TRANSLATORS API error when loading an identification-document approval request with an invalid identifier.
 				'errors' => [['message' => $this->l10n->t('Invalid identification document request')]],
 			]), AppFrameworkHttp::STATUS_BAD_REQUEST);
 		}
@@ -88,6 +90,7 @@ trait LibresignTrait {
 		if (!$resolution['file'] instanceof FileEntity) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
+				// TRANSLATORS API error when the requested LibreSign file cannot be loaded for the current action.
 				'errors' => [['message' => $this->l10n->t('Invalid file')]],
 			]), AppFrameworkHttp::STATUS_NOT_FOUND);
 		}

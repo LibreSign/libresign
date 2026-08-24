@@ -66,6 +66,7 @@ class NotifyController extends AEnvironmentAwareController {
 			);
 		}
 		return new DataResponse([
+			// TRANSLATORS API success message after manually notifying a signer about a pending signature request.
 			'message' => $this->l10n->t('Notification sent with success.')
 		], Http::STATUS_OK);
 	}
@@ -102,6 +103,7 @@ class NotifyController extends AEnvironmentAwareController {
 			);
 		}
 		return new DataResponse([
+			// TRANSLATORS API success message after manually notifying signers about a pending signature request.
 			'message' => $this->l10n->t('Notification sent with success.')
 		], Http::STATUS_OK);
 	}

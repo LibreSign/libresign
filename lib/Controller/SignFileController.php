@@ -235,6 +235,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		return new DataResponse(
 			[
 				'action' => JSActions::ACTION_SIGNED,
+				// TRANSLATORS API success message returned to the signer after the digital signature is applied to the document.
 				'message' => $this->l10n->t('File signed'),
 				'file' => [
 					'uuid' => $validationUuid
@@ -293,6 +294,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		try {
 			$signRequest = $this->signRequestMapper->getBySignerUuidAndUserId($uuid);
 		} catch (\Throwable) {
+			// TRANSLATORS API error when the payload required to apply a digital signature is missing or malformed.
 			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 		}
 		return $this->getCode($signRequest);
@@ -320,6 +322,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		try {
 			$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId);
 		} catch (\Throwable) {
+			// TRANSLATORS API error when the payload required to apply a digital signature is missing or malformed.
 			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 		}
 		return $this->getCode($signRequest);
@@ -339,6 +342,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				signMethodName: $this->request->getParam('signMethod', ''),
 				identify: $this->request->getParam('identify', ''),
 			);
+			// TRANSLATORS API success message after sending a one-time verification code used to confirm the signer identity before signing.
 			$message = $this->l10n->t('Verification code sent.');
 			$statusCode = Http::STATUS_OK;
 		} catch (\Throwable $th) {

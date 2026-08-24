@@ -105,6 +105,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 
 			$this->accountService->createToSign($uuid, $email, $password, $signPassword);
 			$data = [
+				// TRANSLATORS API success message returned after a guest creates an account and is redirected to sign a pending document.
 				'message' => $this->l10n->t('Success'),
 				'action' => JSActions::ACTION_SIGN,
 				'pdf' => [
@@ -266,7 +267,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 				'data' => [
 					'userId' => $user->getUID(),
 					'phone' => $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue(),
-					// This messages indicates the user's settings saved with sucess
+					// TRANSLATORS API success message shown after the signed-in user saves account settings such as phone number.
 					'message' => $this->l10n->t('Settings saved'),
 				],
 			],
@@ -310,6 +311,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		$file = $this->request->getUploadedFile('file');
 		try {
 			if (empty($file)) {
+				// TRANSLATORS API error when uploading a PFX/P12 certificate used to digitally sign documents and no file was sent.
 				throw new LibresignException($this->l10n->t('No certificate file provided'));
 			}
 			$this->accountService->uploadPfx($file, $this->userSession->getUser());

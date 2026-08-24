@@ -41,6 +41,7 @@ class FileSearchProvider implements IProvider {
 
 	#[\Override]
 	public function getName(): string {
+		// TRANSLATORS Nextcloud unified search provider name for finding LibreSign documents.
 		return $this->l10n->t('LibreSign documents');
 	}
 
@@ -55,6 +56,7 @@ class FileSearchProvider implements IProvider {
 	#[\Override]
 	public function search(IUser $user, ISearchQuery $query): SearchResult {
 		if (!$this->appManager->isEnabledForUser(Application::APP_ID, $user)) {
+			// TRANSLATORS Nextcloud unified search provider name for finding LibreSign documents.
 			return SearchResult::complete($this->l10n->t('LibreSign documents'), []);
 		}
 
@@ -65,12 +67,14 @@ class FileSearchProvider implements IProvider {
 		try {
 			$files = $this->fileMapper->getFilesToSearchProvider($user, $term, $limit, (int)$offset);
 		} catch (\Exception) {
+			// TRANSLATORS Nextcloud unified search provider name for finding LibreSign documents.
 			return SearchResult::complete($this->l10n->t('LibreSign documents'), []);
 		}
 
 		$results = array_map(fn (File $file) => $this->formatResult($file, $user), $files);
 
 		return SearchResult::paginated(
+			// TRANSLATORS Nextcloud unified search provider name for finding LibreSign documents.
 			$this->l10n->t('LibreSign documents'),
 			$results,
 			$offset + $limit
