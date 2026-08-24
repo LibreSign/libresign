@@ -52,6 +52,8 @@ Feature: validate
       | (jq).ocs.data.signers[0].subject.O            | Organization                                                                             |
       | (jq).ocs.data.signers[0].signature_validation | {"id":1,"label":"Signature is valid."}                                                   |
       | (jq).ocs.data.signers[0].signatureTypeSN      | RSA-SHA256                                                                               |
+      | (jq)(.ocs.data.signers[0].valid_from \| test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[+-][0-9]{2}:[0-9]{2}$")) | true   |
+      | (jq)(.ocs.data.signers[0].valid_to \| test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[+-][0-9]{2}:[0-9]{2}$"))   | true   |
 
   Scenario Outline: Unauthenticated user can fetch the validation ednpoint
     Given as user "admin"
