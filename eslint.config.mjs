@@ -133,7 +133,6 @@ export default [
 			'vue/no-undef-components': 'off',
 			'vue/no-unused-properties': 'off',
 			'vue/no-unused-refs': 'off',
-			'vue/no-use-v-if-with-v-for': 'off',
 			'vue/no-v-html': 'off',
 			'vue/padding-line-between-blocks': 'off',
 			'vue/prefer-prop-type-boolean-first': 'off',

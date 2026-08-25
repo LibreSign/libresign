@@ -43,16 +43,17 @@
 			@update:modelValue="onRememberSignatureFlowChange">
 			{{ t('libresign', 'Use this as my default signing order') }}
 		</NcCheckboxRadioSwitch>
-		<NcCheckboxRadioSwitch v-for="option in footerTemplateSourceOptions"
-			v-if="showFooterTemplateSelector && !isOriginalFileDeleted"
-			:key="option.value"
-			v-model="selectedFooterTemplateSource"
-			type="radio"
-			name="footer-template-source"
-			:value="option.value"
-			@update:modelValue="onFooterTemplateSourceChange">
-			{{ option.label }}
-		</NcCheckboxRadioSwitch>
+		<template v-if="showFooterTemplateSelector && !isOriginalFileDeleted">
+			<NcCheckboxRadioSwitch v-for="option in footerTemplateSourceOptions"
+				:key="option.value"
+				v-model="selectedFooterTemplateSource"
+				type="radio"
+				name="footer-template-source"
+				:value="option.value"
+				@update:modelValue="onFooterTemplateSourceChange">
+				{{ option.label }}
+			</NcCheckboxRadioSwitch>
+		</template>
 		<NcCheckboxRadioSwitch v-if="showRememberFooterTemplate && !isOriginalFileDeleted"
 			v-model="rememberFooterTemplate"
 			type="switch"
