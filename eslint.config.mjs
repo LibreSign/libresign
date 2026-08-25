@@ -97,7 +97,6 @@ export default [
 			camelcase: 'off',
 			'import-extensions/ban-inline-type-imports': 'off',
 			'import-extensions/extensions': 'off',
-			'jsdoc/no-types': 'off',
 			'jsdoc/require-jsdoc': 'off',
 			'jsdoc/require-param': 'off',
 			'jsdoc/require-param-description': 'off',

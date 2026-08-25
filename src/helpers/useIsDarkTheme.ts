@@ -13,8 +13,8 @@ import { checkIfDarkTheme } from '../utils/isDarkTheme'
  * If you need to check an entire page, use `useIsDarkTheme` instead.
  * Reacts on element attributes changes and system theme changes.
  *
- * @param {HTMLElement} el - The element to check for the dark theme enabled on
- * @return {Ref<boolean>} - computed boolean whether the dark theme is enabled
+ * @param el - The element to check for the dark theme enabled on
+ * @return - computed boolean whether the dark theme is enabled
  */
 export function useIsDarkThemeElement(el: HTMLElement = document.body): Ref<boolean> {
 	const isDarkTheme = ref<boolean>(checkIfDarkTheme(el))
