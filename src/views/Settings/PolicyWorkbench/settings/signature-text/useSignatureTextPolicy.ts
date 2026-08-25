@@ -13,8 +13,7 @@ import {
 
 const SIGNATURE_TEXT_DEFAULTS = getDefaultSignatureTextPolicyConfig()
 
-interface SignatureTextValues extends SignatureTextPolicyConfig {
-}
+type SignatureTextValues = SignatureTextPolicyConfig
 
 export type SignatureTextUiDefaults = SignatureTextPolicyConfig
 
