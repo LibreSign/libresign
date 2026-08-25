@@ -210,7 +210,7 @@ describe('validationDocument', () => {
 		}))
 
 		expect(normalized).not.toBeNull()
-		expect(Object.prototype.hasOwnProperty.call(normalized?.signers[0] ?? {}, 'email')).toBe(false)
+		expect(Object.hasOwn(normalized?.signers[0] ?? {}, 'email')).toBe(false)
 	})
 
 	it('rejects payload when technical timestamp entry is mixed into signers array', () => {

@@ -688,7 +688,7 @@ describe('useSignStore', () => {
 					status: FILE_STATUS.ABLE_TO_SIGN,
 					signers: [{ me: true }],
 				}
-				if (Object.prototype.hasOwnProperty.call(values, key)) {
+				if (Object.hasOwn(values, key)) {
 					return values[key] as T
 				}
 				return defaultValue

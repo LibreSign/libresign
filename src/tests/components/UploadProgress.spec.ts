@@ -15,7 +15,7 @@ const interpolate = (template: string, vars?: L10nVars) => {
 		return template
 	}
 	return template.replace(/{(\w+)}/g, (match: string, key: string) => {
-		if (Object.prototype.hasOwnProperty.call(vars, key)) {
+		if (Object.hasOwn(vars, key)) {
 			return String(vars[key])
 		}
 		return match

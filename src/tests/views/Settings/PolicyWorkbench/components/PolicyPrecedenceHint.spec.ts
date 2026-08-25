@@ -20,7 +20,7 @@ function escapeHtml(value: string) {
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n({
 	t: (_app: string, message: string, params?: Record<string, unknown>) => {
 		return message.replace(/{(\w+)}/g, (match, key) => {
-			if (!params || !Object.prototype.hasOwnProperty.call(params, key)) {
+			if (!params || !Object.hasOwn(params, key)) {
 				return match
 			}
 

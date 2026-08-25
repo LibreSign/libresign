@@ -118,7 +118,6 @@ export default [
 			'no-useless-assignment': 'off',
 			'perfectionist/sort-imports': 'off',
 			'perfectionist/sort-named-imports': 'off',
-			'prefer-object-has-own': 'off',
 			'vue/attribute-hyphenation': 'off',
 			'vue/attributes-order': 'off',
 			'vue/custom-event-name-casing': 'off',

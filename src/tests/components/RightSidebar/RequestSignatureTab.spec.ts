@@ -176,7 +176,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 	const updateFile = async (patch: Record<string, unknown>) => {
 		const current = filesStore.files[1] || { id: 1 }
-		const hasSigners = Object.prototype.hasOwnProperty.call(patch, 'signers')
+		const hasSigners = Object.hasOwn(patch, 'signers')
 		await filesStore.addFile({
 			...current,
 			...patch,
