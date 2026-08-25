@@ -83,6 +83,7 @@ class ValidateHelper {
 			try {
 				$node = $userFolder->get($data['file']['path']);
 			} catch (NotFoundException) {
+				// TRANSLATORS Validation error when LibreSign cannot validate the uploaded or referenced file payload for signing.
 				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 			}
 			$this->validateNotRequestedSign($node->getId());
@@ -128,6 +129,7 @@ class ValidateHelper {
 			}
 			if (!is_a($user, IUser::class)) {
 				if (!isset($data['userManager']) || !is_a($data['userManager'], IUser::class)) {
+					// TRANSLATORS Validation error when the Nextcloud user associated with a file or signature request cannot be found.
 					throw new LibresignException($this->l10n->t('User not found.'));
 				}
 			}
@@ -135,6 +137,7 @@ class ValidateHelper {
 			$this->validateMimeTypeAcceptedByNodeId((int)$data['file']['nodeId'], $data['userManager']->getUID(), $type);
 		} elseif (!empty($data['file']['fileId']) && $type === self::TYPE_VISIBLE_ELEMENT_PDF) {
 			if (!is_numeric($data['file']['fileId'])) {
+				// TRANSLATORS Validation error when a Nextcloud fileID used for a LibreSign file role is invalid. %s is the localized file-role label.
 				throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 			}
 			$this->validateLibreSignFileId((int)$data['file']['fileId']);
@@ -143,6 +146,7 @@ class ValidateHelper {
 		} elseif (!empty($data['file']['path'])) {
 			if (!is_a($user, IUser::class)) {
 				if (!is_a($data['userManager'], IUser::class)) {
+					// TRANSLATORS Validation error when the Nextcloud user associated with a file or signature request cannot be found.
 					throw new LibresignException($this->l10n->t('User not found.'));
 				}
 			}
@@ -150,9 +154,11 @@ class ValidateHelper {
 			try {
 				$userFolder->get($data['file']['path']);
 			} catch (NotFoundException) {
+				// TRANSLATORS Validation error when LibreSign cannot validate the uploaded or referenced file payload for signing.
 				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 			}
 		} else {
+			// TRANSLATORS Validation error listing accepted ways to provide a file for a signature request. %s is the localized file-role label.
 			throw new LibresignException($this->l10n->t('File type: %s. Specify a URL, Base64 string, path or a fileID.', [$this->getTypeOfFile($type)]));
 		}
 	}
@@ -175,14 +181,17 @@ class ValidateHelper {
 		if (count($withMime) === 2) {
 			$withMime[0] = explode(';', $withMime[0]);
 			if (count($withMime[0]) !== 2) {
+				// TRANSLATORS Validation error when a Base64-encoded file payload for a signature request is invalid. %s is the localized file-role label.
 				throw new LibresignException($this->l10n->t('File type: %s. Invalid Base64 file.', [$this->getTypeOfFile($type)]));
 			}
 			if ($withMime[0][1] !== 'base64') {
+				// TRANSLATORS Validation error when a Base64-encoded file payload for a signature request is invalid. %s is the localized file-role label.
 				throw new LibresignException($this->l10n->t('File type: %s. Invalid Base64 file.', [$this->getTypeOfFile($type)]));
 			}
 
 			if ($type === self::TYPE_TO_SIGN) {
 				if ($withMime[0][0] !== 'data:application/pdf') {
+					// TRANSLATORS Validation error when a Base64-encoded file payload for a signature request is invalid. %s is the localized file-role label.
 					throw new LibresignException($this->l10n->t('File type: %s. Invalid Base64 file.', [$this->getTypeOfFile($type)]));
 				}
 			}
@@ -204,10 +213,12 @@ class ValidateHelper {
 
 		if ($type === self::TYPE_TO_SIGN) {
 			if ($mimeType !== 'application/pdf') {
+				// TRANSLATORS Validation error when a Base64-encoded file payload for a signature request is invalid. %s is the localized file-role label.
 				throw new LibresignException($this->l10n->t('File type: %s. Invalid Base64 file.', [$this->getTypeOfFile($type)]));
 			}
 		} elseif ($mimeType !== 'image/png') {
 			if (in_array($type, [self::TYPE_VISIBLE_ELEMENT_USER, self::TYPE_VISIBLE_ELEMENT_PDF])) {
+				// TRANSLATORS Validation error when a Base64-encoded file payload for a signature request is invalid. %s is the localized file-role label.
 				throw new LibresignException($this->l10n->t('File type: %s. Invalid Base64 file.', [$this->getTypeOfFile($type)]));
 			}
 		}
@@ -219,12 +230,14 @@ class ValidateHelper {
 		} catch (\Throwable) {
 		}
 		if (!empty($fileMapper)) {
+			// TRANSLATORS Validation error when a signature was already requested for this document and a duplicate request is blocked.
 			throw new LibresignException($this->l10n->t('Already asked to sign this document'));
 		}
 	}
 
 	public function validateVisibleElements(?array $visibleElements, int $type): void {
 		if (!is_array($visibleElements)) {
+			// TRANSLATORS Validation error when visible signature elements must be sent as a JSON array and another type was provided.
 			throw new LibresignException($this->l10n->t('Visible elements need to be an array'));
 		}
 		if ($visibleElements && !$this->signerElementsService->isSignElementsAvailable()) {
@@ -259,6 +272,7 @@ class ValidateHelper {
 		try {
 			$getter();
 		} catch (\Throwable) {
+			// TRANSLATORS Validation error when a visible signature element references a signer user that does not exist.
 			throw new LibresignException($this->l10n->t('User not found for element.'));
 		}
 	}
@@ -275,6 +289,7 @@ class ValidateHelper {
 		foreach ($element['coordinates'] as $type => $value) {
 			if (in_array($type, ['llx', 'lly', 'urx', 'ury', 'width', 'height', 'left', 'top'])) {
 				if (!is_int($value)) {
+					// TRANSLATORS Validation error for visible signature element placement. %s is the coordinate name such as urx, ury, llx, or lly.
 					throw new LibresignException($this->l10n->t('Coordinate %s must be an integer', [$type]));
 				}
 				if ($value < 0) {
@@ -290,9 +305,11 @@ class ValidateHelper {
 			return;
 		}
 		if (!is_int($element['coordinates']['page'])) {
+			// TRANSLATORS Validation error when the PDF page number for a visible signature element is not an integer.
 			throw new LibresignException($this->l10n->t('Page number must be an integer'));
 		}
 		if ($element['coordinates']['page'] < 1) {
+			// TRANSLATORS Validation error when the PDF page number for a visible signature element is less than 1.
 			throw new LibresignException($this->l10n->t('Page must be equal to or greater than 1'));
 		}
 	}
@@ -300,11 +317,13 @@ class ValidateHelper {
 	public function validateElementType(array $element): void {
 		if (!array_key_exists('type', $element)) {
 			if (!array_key_exists('elementId', $element)) {
+				// TRANSLATORS Validation error when a visible signature element is missing its type (signature, initials, or similar).
 				throw new LibresignException($this->l10n->t('Element needs a type'));
 			}
 			return;
 		}
 		if (!in_array($element['type'], ['signature', 'initial', 'date', 'datetime', 'text'])) {
+			// TRANSLATORS Validation error when a visible signature element uses an unsupported type.
 			throw new LibresignException($this->l10n->t('Invalid element type'));
 		}
 	}
@@ -315,9 +334,11 @@ class ValidateHelper {
 		$childSignRequestIds = array_map(fn (SignRequest $sr) => $sr->getId(), $childSignRequests);
 		foreach ($list as $elements) {
 			if (!array_key_exists('documentElementId', $elements)) {
+				// TRANSLATORS Validation error when a required field is missing from the visible element payload. %s is the field name documentElementId.
 				throw new LibresignException($this->l10n->t('Field %s not found', ['documentElementId']));
 			}
 			if ($canCreateSignature && !array_key_exists('profileNodeId', $elements)) {
+				// TRANSLATORS Validation error when a required field is missing from the visible element payload. %s is the field name profileNodeId.
 				throw new LibresignException($this->l10n->t('Field %s not found', ['profileNodeId']));
 			}
 			$this->validateSignerIsOwnerOfPdfVisibleElement($elements['documentElementId'], $signRequest, $childSignRequestIds);
@@ -325,6 +346,7 @@ class ValidateHelper {
 				try {
 					$this->userElementMapper->findOne(['node_id' => $elements['profileNodeId'], 'user_id' => $user->getUID()]);
 				} catch (\Throwable) {
+					// TRANSLATORS Validation error when a visible element profile file does not belong to the current user. %s is the profile node id.
 					throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileNodeId']));
 				}
 			}
@@ -380,12 +402,14 @@ class ValidateHelper {
 					]);
 					return true;
 				} catch (\Throwable) {
+					// TRANSLATORS Validation error when signing requires a visible signature or initials image and the signer has not defined one yet.
 					throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 				}
 			}
 			return true;
 		});
 		if (count($total) !== count($fileElements)) {
+			// TRANSLATORS Validation error when signing requires a visible signature or initials image and the signer has not defined one yet.
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
 	}
@@ -401,6 +425,7 @@ class ValidateHelper {
 		if (!empty($childSignRequestIds) && in_array($documentElement->getSignRequestId(), $childSignRequestIds, true)) {
 			return;
 		}
+		// TRANSLATORS Validation error when the data required to apply a digital signature is incomplete or invalid.
 		throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 	}
 
@@ -410,9 +435,11 @@ class ValidateHelper {
 			$signRequest = $this->signRequestMapper->getById($documentElement->getSignRequestId());
 			$file = $this->fileMapper->getById($signRequest->getFileId());
 			if ($file->getUserId() !== $uid) {
+				// TRANSLATORS Validation error when a visible document element does not belong to the current user. %s is the element id.
 				throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string)$documentElementId));
 			}
 		} catch (\Throwable) {
+			// TRANSLATORS Validation error when a visible document element does not belong to the current user. %s is the element id.
 			throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string)$documentElementId));
 		}
 	}
@@ -421,6 +448,7 @@ class ValidateHelper {
 		try {
 			$this->idDocsMapper->getByUserIdAndNodeId($uid, $nodeId);
 		} catch (\Throwable) {
+			// TRANSLATORS Validation error when the user tries to manage a LibreSign file they do not own.
 			throw new LibresignException($this->l10n->t('This file is not yours'));
 		}
 	}
@@ -429,6 +457,7 @@ class ValidateHelper {
 		try {
 			$this->idDocsMapper->getBySignRequestIdAndNodeId($signRequestId, $nodeId);
 		} catch (\Throwable) {
+			// TRANSLATORS Generic permission error when the current user cannot perform the requested LibreSign action.
 			throw new LibresignException($this->l10n->t('Not allowed'));
 		}
 	}
@@ -440,6 +469,7 @@ class ValidateHelper {
 		];
 		if (!in_array($file->getStatus(), $statusList)) {
 			$statusText = $this->fileMapper->getTextOfStatus($file->getStatus());
+			// TRANSLATORS Validation error when a document cannot be signed because its LibreSign status is not signable. %s is the status label.
 			throw new LibresignException($this->l10n->t('This file cannot be signed. Invalid status: %s', $statusText));
 		}
 	}
@@ -452,11 +482,14 @@ class ValidateHelper {
 		try {
 			$file = $this->root->getUserFolder($userId)->getFirstNodeById($nodeId);
 		} catch (NoUserException) {
+			// TRANSLATORS Validation error when the Nextcloud user associated with a file or signature request cannot be found.
 			throw new LibresignException($this->l10n->t('User not found.'));
 		} catch (NotPermittedException) {
+			// TRANSLATORS Permission error when the current user cannot perform the requested LibreSign file action.
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		}
 		if (!$file) {
+			// TRANSLATORS Validation error when a Nextcloud fileID used for a LibreSign file role is invalid. %s is the localized file-role label.
 			throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 		}
 	}
@@ -474,12 +507,14 @@ class ValidateHelper {
 		switch ($type) {
 			case self::TYPE_TO_SIGN:
 				if ($mimetype !== 'application/pdf') {
+					// TRANSLATORS Validation error when a fileID must point to a PDF for the given LibreSign file role. First %s is the role label; second %s is the expected format.
 					throw new LibresignException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'PDF']));
 				}
 				break;
 			case self::TYPE_VISIBLE_ELEMENT_PDF:
 			case self::TYPE_VISIBLE_ELEMENT_USER:
 				if ($mimetype !== 'image/png') {
+					// TRANSLATORS Validation error when a fileID must point to a PNG for the given LibreSign file role. First %s is the role label; second %s is the expected format.
 					throw new LibresignException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'png']));
 				}
 				break;
@@ -490,6 +525,7 @@ class ValidateHelper {
 		try {
 			$this->fileMapper->getById($fileId);
 		} catch (\Throwable) {
+			// TRANSLATORS Validation error when the provided Nextcloud fileID is invalid for LibreSign.
 			throw new LibresignException($this->l10n->t('Invalid fileID'));
 		}
 	}
@@ -514,6 +550,7 @@ class ValidateHelper {
 			throw new LibresignException(
 				json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
+					// TRANSLATORS Permission error when the user is not allowed to create new signature requests.
 					'errors' => [['message' => $this->l10n->t('You are not allowed to create signature requests')]],
 				]),
 				Http::STATUS_UNPROCESSABLE_ENTITY,
@@ -524,6 +561,7 @@ class ValidateHelper {
 	public function iRequestedSignThisFile(IUser $user, int $fileId): void {
 		$libresignFile = $this->fileMapper->getById($fileId);
 		if ($libresignFile->getUserId() !== $user->getUID()) {
+			// TRANSLATORS Permission error when the current user cannot perform the requested LibreSign action.
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		}
 	}
@@ -536,6 +574,7 @@ class ValidateHelper {
 				FileStatus::DELETED->value
 			];
 			if (!in_array($data['status'], $validStatusList)) {
+				// TRANSLATORS Validation error when an unsupported LibreSign file status code is provided.
 				throw new LibresignException($this->l10n->t('Invalid status code for file.'));
 			}
 			if (!empty($data['uuid'])) {
@@ -550,11 +589,13 @@ class ValidateHelper {
 				if ($data['status'] > $file->getStatus()) {
 					if ($file->getStatus() >= FileStatus::ABLE_TO_SIGN->value) {
 						if ($data['status'] !== FileStatus::DELETED->value) {
+							// TRANSLATORS Validation error when changing a document status after signers have already been invited or signing has started.
 							throw new LibresignException($this->l10n->t('Sign process already started. Unable to change status.'));
 						}
 					}
 				}
 			} elseif ($data['status'] === FileStatus::DELETED->value) {
+				// TRANSLATORS Validation error when an unsupported LibreSign file status code is provided.
 				throw new LibresignException($this->l10n->t('Invalid status code for file.'));
 			}
 		}
@@ -576,12 +617,14 @@ class ValidateHelper {
 
 	private function validateSignersDataStructure(array $data): void {
 		if (empty($data) || !array_key_exists('signers', $data) || !is_array($data['signers']) || empty($data['signers'])) {
+			// TRANSLATORS Validation error when a signature request is submitted without any signers.
 			throw new LibresignException($this->l10n->t('No signers'));
 		}
 	}
 
 	private function validateSignerData(mixed $signer): void {
 		if (!is_array($signer) || empty($signer)) {
+			// TRANSLATORS Validation error when a signature request is submitted without any signers.
 			throw new LibresignException($this->l10n->t('No signers'));
 		}
 
@@ -629,6 +672,7 @@ class ValidateHelper {
 
 		foreach ($signers as $signer) {
 			if (!is_array($signer)) {
+				// TRANSLATORS Validation error when a signature request is submitted without any signers.
 				throw new LibresignException($this->l10n->t('No signers'));
 			}
 
@@ -678,6 +722,7 @@ class ValidateHelper {
 			$this->iRequestedSignThisFile($data['userManager'], $file->getId());
 		} elseif (isset($data['file'])) {
 			if (!isset($data['file']['fileId'])) {
+				// TRANSLATORS Validation error when the provided Nextcloud fileID is invalid for LibreSign.
 				throw new LibresignException($this->l10n->t('Invalid fileID'));
 			}
 			$this->validateLibreSignFileId($data['file']['fileId']);
@@ -697,12 +742,14 @@ class ValidateHelper {
 			return;
 		}
 		if (empty($data)) {
+			// TRANSLATORS Validation error when signer user data is missing from the signature request payload.
 			throw new LibresignException($this->l10n->t('No user data'));
 		}
 		if (empty($data['email'])) {
 			if (!empty($data['uid'])) {
 				$user = $this->userManager->get($data['uid']);
 				if (!$user) {
+					// TRANSLATORS Validation error when the Nextcloud user associated with a signer cannot be found.
 					throw new LibresignException($this->l10n->t('User not found.'));
 				}
 				if (!$user->getEMailAddress()) {
@@ -721,6 +768,7 @@ class ValidateHelper {
 		try {
 			$this->fileMapper->getByUuid($data['uuid']);
 		} catch (\Throwable) {
+			// TRANSLATORS Validation error when a file UUID used in a signature request is invalid.
 			throw new LibresignException($this->l10n->t('Invalid UUID file'));
 		}
 	}
@@ -756,6 +804,7 @@ class ValidateHelper {
 
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
+				// TRANSLATORS Validation error when the signer tries to sign before they are allowed to (for example, earlier steps are incomplete).
 				'errors' => [['message' => $this->l10n->t('You are not allowed to sign this document yet')]],
 			]));
 		}
@@ -763,6 +812,7 @@ class ValidateHelper {
 		if ($status === \OCA\Libresign\Enum\SignRequestStatus::SIGNED) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
+				// TRANSLATORS Validation error when the signer tries to sign a document that is already fully signed.
 				'errors' => [['message' => $this->l10n->t('Document already signed')]],
 			]));
 		}
@@ -776,6 +826,7 @@ class ValidateHelper {
 		) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
+				// TRANSLATORS Validation error when the signer tries to sign before they are allowed to (for example, earlier steps are incomplete).
 				'errors' => [['message' => $this->l10n->t('You are not allowed to sign this document yet')]],
 			]));
 		}
@@ -810,6 +861,7 @@ class ValidateHelper {
 		} catch (DoesNotExistException) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
+				// TRANSLATORS Validation error when a UUID used to identify a signature request or document is invalid.
 				'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
 			]));
 		}
@@ -822,6 +874,7 @@ class ValidateHelper {
 		if (!$uuid || !preg_match('/^[a-f\d]{8}(-[a-f\d]{4}){4}[a-f\d]{8}$/i', $uuid)) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
+				// TRANSLATORS Validation error when a UUID used to identify a signature request or document is invalid.
 				'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
 			]), Http::STATUS_NOT_FOUND);
 		}
@@ -831,6 +884,7 @@ class ValidateHelper {
 		try {
 			$this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 		} catch (\Throwable) {
+			// TRANSLATORS Validation error when the person is not listed as a signer on this document.
 			throw new LibresignException($this->l10n->t('Signer not associated to this file'));
 		}
 	}
@@ -838,6 +892,7 @@ class ValidateHelper {
 	public function validateUserHasNoFileWithThisType(string $uid, string $type): void {
 		$exists = $this->idDocsMapper->getByUserAndType($uid, $type);
 		if ($exists !== null) {
+			// TRANSLATORS Validation error when another file of the same LibreSign type (for example an identity document) is already linked.
 			throw new LibresignException($this->l10n->t('A file of this type has been associated.'));
 		}
 	}
@@ -853,6 +908,7 @@ class ValidateHelper {
 		];
 		if (!in_array($status, $allowedStatus)) {
 			throw new LibresignException(
+				// TRANSLATORS Validation error when signing is blocked until the signer has an approved identity document.
 				$this->l10n->t('You need to have an approved identification document to sign.'),
 				JSActions::ACTION_SIGN_ID_DOC,
 			);
@@ -861,10 +917,12 @@ class ValidateHelper {
 
 	public function validateCredentials(SignRequest $signRequest, string $identifyMethodName, string $identifyValue, string $token): void {
 		if ($identifyMethodName === IdentifyMethodService::IDENTIFY_PASSWORD && $token === '') {
+			// TRANSLATORS Validation error when the password required to unlock the signing certificate is incorrect.
 			throw new LibresignException($this->l10n->t('libresign', 'Invalid password'));
 		}
 		$this->validateIfIdentifyMethodExists($identifyMethodName);
 		if ($signRequest->getSigned()) {
+			// TRANSLATORS Validation error when the document was already signed and cannot be signed again.
 			throw new LibresignException($this->l10n->t('File already signed.'));
 		}
 		$identifyMethod = $this->resolveIdentifyMethod($signRequest, $identifyMethodName, $identifyValue);
@@ -900,6 +958,7 @@ class ValidateHelper {
 			return $this->getFirstAvailableMethod($signMethods);
 		}
 
+		// TRANSLATORS Validation error when the chosen method to identify the signer (account, email, SMS, etc.) is invalid.
 		throw new LibresignException($this->l10n->t('Invalid identification method'));
 	}
 
@@ -938,6 +997,7 @@ class ValidateHelper {
 				return current($methodGroup);
 			}
 		}
+		// TRANSLATORS Validation error when the chosen method to identify the signer (account, email, SMS, etc.) is invalid.
 		throw new LibresignException($this->l10n->t('Invalid identification method'));
 	}
 
@@ -954,6 +1014,7 @@ class ValidateHelper {
 	public function validateFileTypeExists(string $type): void {
 		$profileFileTypes = $this->fileTypeMapper->getTypes();
 		if (!array_key_exists($type, $profileFileTypes)) {
+			// TRANSLATORS Validation error when the LibreSign file type is not accepted for this action.
 			throw new LibresignException($this->l10n->t('Invalid file type.'));
 		}
 	}

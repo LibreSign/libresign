@@ -67,11 +67,17 @@ class RulesService {
 
 	public function getHelperText(string $fieldName): ?string {
 		return match ($fieldName) {
+			// TRANSLATORS Label for the X.509 certificate subject Common Name (CN) field shown when generating a signing certificate.
 			'CN' => $this->l10n->t('Common Name (CN)'),
+			// TRANSLATORS Help text for the X.509 certificate subject country (C) field; value must be a two-letter ISO 3166 code.
 			'C' => $this->l10n->t('Two-letter ISO 3166 country code'),
+			// TRANSLATORS Help text for the X.509 certificate subject state or province (ST) field.
 			'ST' => $this->l10n->t('Full name of states or provinces'),
+			// TRANSLATORS Help text for the X.509 certificate subject locality (L) field such as city or region.
 			'L' => $this->l10n->t('Name of a locality or place, such as a city, county, or other geographic region'),
+			// TRANSLATORS Help text for the X.509 certificate subject organization (O) field.
 			'O' => $this->l10n->t('Name of an organization'),
+			// TRANSLATORS Help text for the X.509 certificate subject organizational unit (OU) field.
 			'OU' => $this->l10n->t('Name of an organizational unit'),
 			default => null,
 		};

@@ -275,6 +275,7 @@ class AdminController extends AEnvironmentAwareController {
 			}
 		} catch (\Exception $exception) {
 			$this->eventSource->send('errors', json_encode([
+				// TRANSLATORS Error shown to an administrator when LibreSign cannot download required components.
 				$this->l10n->t('Could not download binaries.'),
 				$exception->getMessage(),
 			]));

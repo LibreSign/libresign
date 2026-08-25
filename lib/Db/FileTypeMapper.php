@@ -51,7 +51,9 @@ class FileTypeMapper extends QBMapper {
 
 			$this->types['IDENTIFICATION'] = [
 				'type' => 'IDENTIFICATION',
+				// TRANSLATORS Display name of the LibreSign file type used for identity documents that signers upload for approval before signing.
 				'name' => $this->l->t('Identification Document'),
+				// TRANSLATORS Description of the LibreSign file type used for identity documents that signers upload for approval before signing.
 				'description' => $this->l->t('Identification Document'),
 			];
 			while ($row = $cursor->fetch()) {
