@@ -26,7 +26,7 @@
 				</div>
 
 				<div class="file-status">
-					<div :class="['status-badge', `status-${getStatusClass(file.status)}`]">
+					<div class="status-badge" :class="[`status-${getStatusClass(file.status)}`]">
 						<NcIconSvgWrapper
 							:path="getStatusIcon(file.status)"
 							:size="20"

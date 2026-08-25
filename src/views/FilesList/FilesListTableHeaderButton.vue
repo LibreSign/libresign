@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcButton :class="['files-list__column-sort-button', {
+	<NcButton class="files-list__column-sort-button" :class="[{
 			'files-list__column-sort-button--active': filesSortingStore.sortingMode === mode,
 			'files-list__column-sort-button--size': filesSortingStore.sortingMode === 'size',
 		}]"
