@@ -6,9 +6,9 @@
 	<NcAppSidebar v-if="hasVisibleTab"
 		ref="rightAppSidebar"
 		v-model:open="opened"
+		v-model:active="sidebarStore.activeTab"
 		:name="fileName"
 		:subtitle="subTitle"
-		v-model:active="sidebarStore.activeTab"
 		@update:active="handleUpdateActive"
 		@close="closeSidebar">
 		<NcAppSidebarTab v-if="showSign"

@@ -25,8 +25,8 @@
 			</button>
 		</h3>
 		<div
-			:id="`policy-category-content-${category.key}`"
 			v-show="isExpanded"
+			:id="`policy-category-content-${category.key}`"
 			class="policy-workbench__category-content">
 			<div v-if="layout === 'cards'" class="policy-workbench__settings-grid">
 				<article

@@ -75,9 +75,9 @@
 			</div>
 			<CertificateCustonOptions v-model:names="certificate.rootCert.names" />
 			<div>
-				<NcCheckboxRadioSwitch :disabled="formDisabled"
-					type="switch"
-					v-model="toggleCertificatePolicy">
+				<NcCheckboxRadioSwitch v-model="toggleCertificatePolicy"
+					:disabled="formDisabled"
+					type="switch">
 					{{ t('libresign', 'Include certificate policy') }}
 				</NcCheckboxRadioSwitch>
 			</div>
@@ -85,9 +85,9 @@
 				:disabled="formDisabled"
 				@certificate-policy-valid="handleCertificatePolicyValid" />
 			<div>
-				<NcCheckboxRadioSwitch :disabled="formDisabled"
-					type="switch"
-					v-model="customData">
+				<NcCheckboxRadioSwitch v-model="customData"
+					:disabled="formDisabled"
+					type="switch">
 					{{ t('libresign', 'Define custom values to use {engine}', {engine: 'OpenSSL'}) }}
 				</NcCheckboxRadioSwitch>
 			</div>

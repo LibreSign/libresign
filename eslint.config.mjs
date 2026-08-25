@@ -113,7 +113,6 @@ export default [
 			'perfectionist/sort-imports': 'off',
 			'perfectionist/sort-named-imports': 'off',
 			'vue/attribute-hyphenation': 'off',
-			'vue/attributes-order': 'off',
 			'vue/custom-event-name-casing': 'off',
 			'vue/first-attribute-linebreak': 'off',
 			'vue/html-indent': 'off',

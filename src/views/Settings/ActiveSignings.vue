@@ -9,8 +9,8 @@
 		<div class="active-signings-content">
 			<!-- Auto-refresh toggle -->
 			<div class="active-signings__controls">
-				<NcCheckboxRadioSwitch type="switch"
-					v-model="autoRefresh"
+				<NcCheckboxRadioSwitch v-model="autoRefresh"
+					type="switch"
 					:disabled="loading">
 					{{ t('libresign', 'Auto-refresh') }}
 				</NcCheckboxRadioSwitch>

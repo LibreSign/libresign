@@ -55,13 +55,13 @@
 				</NcButton>
 				<label class="zoom-level">
 					<NcTextField
+						v-model="zoomPercentValue"
 						class="zoom-field"
 						type="number"
 						min="10"
 						max="800"
 						step="5"
 						:label="zoomLevelLabel"
-						v-model="zoomPercentValue"
 						:disabled="!hasImage" />
 					<span class="zoom-suffix">%</span>
 				</label>

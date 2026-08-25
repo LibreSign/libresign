@@ -111,17 +111,17 @@
 			</NcButton>
 		</div>
 		<CodeMirror
-			ref="codeMirror"
 			:id="editorId"
+			ref="codeMirror"
 			v-model="internalValue"
 			:aria-describedby="describedBy"
 			:tab-size="4"
 			:tab="true"
 			:placeholder="placeholder"
 			:extensions="extensions"
+			:style="{ height: 'auto' }"
 			@update="onEditorUpdate"
-			@ready="onEditorReady"
-			:style="{ height: 'auto' }" />
+			@ready="onEditorReady" />
 	</div>
 </template>
 
