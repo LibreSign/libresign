@@ -169,6 +169,8 @@ const props = withDefaults(defineProps<{
 	showTemplateResetButton?: boolean
 	showPreview?: boolean
 }>(), {
+	inheritedTemplate: '',
+	editorScope: 'system',
 	showTemplateResetButton: true,
 	showPreview: true,
 })

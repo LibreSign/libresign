@@ -133,7 +133,6 @@ export default [
 			'vue/padding-line-between-blocks': 'off',
 			'vue/prefer-prop-type-boolean-first': 'off',
 			'vue/prefer-separate-static-class': 'off',
-			'vue/require-default-prop': 'off',
 			'vue/singleline-html-element-content-newline': 'off',
 			'vue/slot-name-casing': 'off',
 			'vue/v-on-event-hyphenation': 'off',
