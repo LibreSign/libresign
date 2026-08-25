@@ -127,6 +127,7 @@
     "File is too big" : "Failas yra per didelis",
     "Already asked to sign this document" : "Jau paprašyta pasirašyti šį dokumentą",
     "Visible elements need to be an array" : "Matomi elementai turi būti masyvas",
+    "Visible elements are disabled." : "Matomas elementas išjungtas.",
     "Element must be associated with a user" : "Elementas privalo būti susietas su naudotoju",
     "User not found for element." : "Vartotojas pagal elementą nerastas.",
     "Coordinate %s must be an integer" : "Koordintė %s turi būti sveikasis skaičius",
