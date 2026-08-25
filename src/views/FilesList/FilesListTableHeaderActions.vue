@@ -4,7 +4,7 @@
 -->
 <template>
 	<div class="files-list__column files-list__row-actions-batch" data-cy-files-list-selection-actions>
-		<NcActions ref="actionsMenu"
+		<NcActions
 			container="#app-content-vue"
 			:disabled="!!loading || areFilesLoading"
 			:force-name="true">

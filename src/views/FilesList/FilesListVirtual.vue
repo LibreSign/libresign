@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<VirtualList ref="table"
+	<VirtualList
 		:data-component="userConfigStore.files_list_grid_view ? FileEntryGrid : FileEntry"
 		:loading="loading"
 		:caption="caption">
@@ -18,7 +18,7 @@
 		</template>
 		<template #header>
 			<!-- Table header and sort buttons -->
-			<FilesListTableHeader ref="thead"
+			<FilesListTableHeader
 				:nodes="nodes" />
 		</template>
 		<template #empty>

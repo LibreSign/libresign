@@ -5,7 +5,7 @@
 <template>
 	<td ref="rootElement" class="files-list__row-actions">
 		<!-- Menu actions -->
-		<NcActions ref="actionsMenu"
+		<NcActions
 			v-model:open="openedMenu"
 			:boundaries-element="boundariesElement"
 			:container="boundariesElement"

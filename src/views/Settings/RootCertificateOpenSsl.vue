@@ -65,7 +65,6 @@
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Common Name (CN)') }}</label>
 				<!-- TRANSLATORS Helper text for certificate subject Common Name (CN) field. -->
 				<NcTextField id="commonName"
-					ref="commonName"
 					v-model="certificate.rootCert.commonName"
 					:helper-text="t('libresign', 'Full name of the main company or main person of this instance')"
 					:minlength="1"
