@@ -139,7 +139,6 @@ export default [
 			'vue/multiline-html-element-content-newline': 'off',
 			'vue/new-line-between-multi-line-property': 'off',
 			'vue/no-boolean-default': 'off',
-			'vue/no-dupe-keys': 'off',
 			'vue/no-template-shadow': 'off',
 			'vue/no-undef-components': 'off',
 			'vue/no-unused-properties': 'off',
