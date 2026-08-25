@@ -49,6 +49,8 @@ describe('Document Validation Flow Business Logic', () => {
 
 	afterEach(() => {
 		if (wrapper) {
+			wrapper.unmount()
+			wrapper = undefined
 		}
 		vi.clearAllMocks()
 	})

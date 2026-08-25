@@ -52,6 +52,8 @@ describe('UploadProgress', () => {
 
 	beforeEach(() => {
 		if (wrapper) {
+			wrapper.unmount()
+			wrapper = undefined
 		}
 		vi.clearAllMocks()
 	})

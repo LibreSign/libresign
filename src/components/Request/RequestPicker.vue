@@ -282,6 +282,7 @@ async function openFilePicker() {
 		const nodes = await filePicker.pick()
 		await handleFileChoose(nodes as FilePickerNode[])
 	} catch (error) {
+		// intentionally empty — file picker cancel
 	}
 }
 

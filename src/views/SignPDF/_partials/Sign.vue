@@ -533,6 +533,7 @@ async function loadUser() {
 			const { data } = await axios.get<OcsResponseData<UserInfo>>(generateOcsUrl('/apps/libresign/api/v1/account/me'))
 			user.value = data.ocs.data
 		} catch {
+			// intentionally empty — leave user unset when account fetch fails
 		}
 	}
 }
