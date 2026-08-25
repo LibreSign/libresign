@@ -37,6 +37,7 @@ class Password extends AbstractSignatureMethod {
 				->setPassword($this->codeSentByUser)
 				->readCertificate();
 		} catch (InvalidPasswordException) {
+			// TRANSLATORS Error shown when the password used to unlock the signing certificate is incorrect.
 			throw new LibresignException($this->identifyService->getL10n()->t('Invalid user or password'));
 		}
 
@@ -53,6 +54,7 @@ class Password extends AbstractSignatureMethod {
 			return;
 		}
 		if ($status === CrlValidationStatus::REVOKED) {
+			// TRANSLATORS Error shown when signing is blocked because the signer certificate was revoked.
 			throw new LibresignException($this->identifyService->getL10n()->t('Certificate has been revoked'), 422);
 		}
 		// Admin explicitly disabled external CRL validation – allow signing.
@@ -90,10 +92,12 @@ class Password extends AbstractSignatureMethod {
 		if (array_key_exists('validTo_time_t', $certificateData)) {
 			$validTo = $certificateData['validTo_time_t'];
 			if (!is_int($validTo)) {
+				// TRANSLATORS Error shown when the signing certificate data is invalid.
 				throw new LibresignException($this->identifyService->getL10n()->t('Invalid certificate'), 422);
 			}
 			$now = (new \DateTime())->getTimestamp();
 			if ($validTo <= $now) {
+				// TRANSLATORS Error shown when signing is blocked because the signer certificate has expired.
 				throw new LibresignException($this->identifyService->getL10n()->t('Certificate has expired'), 422);
 			}
 		}
@@ -104,6 +108,7 @@ class Password extends AbstractSignatureMethod {
 		$this->pkcs12Handler->setPassword($this->codeSentByUser);
 		$pfx = $this->pkcs12Handler->getPfxOfCurrentSigner($this->userSession->getUser()?->getUID());
 		if (empty($pfx)) {
+			// TRANSLATORS Error shown when the signing certificate file for the current user is missing or invalid.
 			throw new LibresignException($this->identifyService->getL10n()->t('Invalid certificate'));
 		}
 	}

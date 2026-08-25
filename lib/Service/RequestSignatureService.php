@@ -165,6 +165,7 @@ class RequestSignatureService {
 	public function saveEnvelope(array $data): array {
 		$this->envelopeService->validateEnvelopeConstraints(count($data['files']));
 
+		// TRANSLATORS Default name for a new multi-document envelope when the requester did not provide one. %s is the creation date and time.
 		$envelopeName = $data['name'] ?: $this->l10n->t('Envelope %s', [date('Y-m-d H:i:s')]);
 		$userManager = $data['userManager'] ?? null;
 		$userId = $userManager instanceof IUser ? $userManager->getUID() : null;
@@ -248,6 +249,7 @@ class RequestSignatureService {
 	private function requireFileName(array $fileData): string {
 		$name = trim((string)($fileData['name'] ?? ''));
 		if ($name === '') {
+			// TRANSLATORS Error shown when creating a signature request without a document file name.
 			throw new LibresignException($this->l10n->t('File name is required'));
 		}
 		return $name;
@@ -543,6 +545,7 @@ class RequestSignatureService {
 
 	public function validateNewFile(array $data): void {
 		if (empty($data['name'])) {
+			// TRANSLATORS Error shown when creating a signature request without a document file name.
 			throw new \Exception($this->l10n->t('File name is required'));
 		}
 		$this->validateHelper->validateNewFile($data);
@@ -553,10 +556,12 @@ class RequestSignatureService {
 			if (($data['status'] ?? FileStatus::ABLE_TO_SIGN->value) === FileStatus::DRAFT->value) {
 				return;
 			}
+			// TRANSLATORS Error shown when creating a signature request without any signers.
 			throw new \Exception($this->l10n->t('Empty signers list'));
 		}
 		if (!is_array($data['signers'])) {
 			// TRANSLATION This message will be displayed when the request to API with the key signers has a value that is not an array
+			// TRANSLATORS Error shown when the signers list in a signature request is not provided as a list.
 			throw new \Exception($this->l10n->t('Signers list needs to be an array'));
 		}
 
@@ -664,6 +669,7 @@ class RequestSignatureService {
 			$fileData = $this->fileMapper->getById($data['file']['fileId']);
 			$signatures = $this->signRequestMapper->getByFileId($fileData->getId());
 		} else {
+			// TRANSLATORS Error shown when a signature-request action is missing both the document identifier and the file object.
 			throw new \Exception($this->l10n->t('Please provide either UUID or File object'));
 		}
 		foreach ($signatures as $signRequest) {

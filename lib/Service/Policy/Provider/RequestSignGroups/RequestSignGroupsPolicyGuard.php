@@ -31,6 +31,7 @@ final class RequestSignGroupsPolicyGuard {
 			return;
 		}
 
+		// TRANSLATORS Error shown when trying to save the request-sign-groups policy at user scope, which is not supported.
 		throw new \InvalidArgumentException($this->l10n->t('User-level scope is not supported for this policy'));
 	}
 
@@ -45,6 +46,7 @@ final class RequestSignGroupsPolicyGuard {
 
 		$user = $this->userSession->getUser();
 		if (!$user instanceof IUser) {
+			// TRANSLATORS Permission error shown when the current user is not allowed to manage the request-sign-groups policy.
 			throw new \InvalidArgumentException($this->l10n->t('Not allowed to manage this policy'));
 		}
 
@@ -53,6 +55,7 @@ final class RequestSignGroupsPolicyGuard {
 		$denyGroupIds = $decodedPolicy['denyGroups'];
 
 		if ($allowGroupIds === []) {
+			// TRANSLATORS Validation error shown when saving the request-sign-groups policy without any authorized group.
 			throw new \InvalidArgumentException($this->l10n->t('At least one authorized group is required'));
 		}
 
@@ -61,6 +64,7 @@ final class RequestSignGroupsPolicyGuard {
 			&& is_string($requiredGroupId)
 			&& trim($requiredGroupId) !== ''
 			&& !in_array($requiredGroupId, $allowGroupIds, true)) {
+			// TRANSLATORS Validation error shown when a group administrator tries to remove their own managed group from the request-sign-groups rule.
 			throw new \InvalidArgumentException($this->l10n->t('You cannot remove your managed group from this rule'));
 		}
 
@@ -68,6 +72,7 @@ final class RequestSignGroupsPolicyGuard {
 		$groupsToValidate = array_values(array_unique(array_merge($allowGroupIds, $denyGroupIds)));
 		$unknownGroupIds = array_values(array_diff($groupsToValidate, $allowedGroupIds));
 		if ($unknownGroupIds !== []) {
+			// TRANSLATORS Permission error shown when selected groups are outside the current administrator scope for the request-sign-groups policy.
 			throw new \InvalidArgumentException($this->l10n->t('One or more selected groups are not allowed for your administration scope'));
 		}
 

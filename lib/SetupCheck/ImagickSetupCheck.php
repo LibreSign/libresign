@@ -21,6 +21,7 @@ class ImagickSetupCheck implements ISetupCheck {
 
 	#[\Override]
 	public function getName(): string {
+		// TRANSLATORS Name of the Nextcloud administration overview check for the Imagick library used to render visible signatures.
 		return $this->l10n->t('Imagick PHP extension');
 	}
 
@@ -33,10 +34,13 @@ class ImagickSetupCheck implements ISetupCheck {
 	public function run(): SetupResult {
 		if (!extension_loaded('imagick')) {
 			return SetupResult::info(
+				// TRANSLATORS Warning shown in Nextcloud administration overview when the Imagick library is not available.
 				$this->l10n->t('Imagick extension is not loaded'),
+				// TRANSLATORS Tip under a Nextcloud administration overview warning. Explains installing Imagick to enable visible signatures and related image rendering.
 				$this->l10n->t('Install php-imagick to enable visible signatures, background images, and signature element rendering.')
 			);
 		}
+		// TRANSLATORS Success message in Nextcloud administration overview when the Imagick library is available.
 		return SetupResult::success($this->l10n->t('Imagick extension is loaded'));
 	}
 }

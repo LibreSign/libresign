@@ -186,6 +186,7 @@ class FolderService {
 		if (isset($data['settings']['envelopeFolderId'])) {
 			$envelopeFolder = $userFolder->getFirstNodeById($data['settings']['envelopeFolderId']);
 			if ($envelopeFolder === null || !$envelopeFolder instanceof Folder) {
+				// TRANSLATORS Error shown when the Nextcloud folder that stores envelope documents cannot be found.
 				throw new LibresignException($this->l10n->t('Envelope folder not found'));
 			}
 			return $envelopeFolder;
@@ -246,6 +247,7 @@ class FolderService {
 		try {
 			return $userFolder->get($path);
 		} catch (NotFoundException) {
+			// TRANSLATORS Error shown when LibreSign cannot validate the uploaded or referenced document for signing.
 			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 		}
 	}
@@ -286,6 +288,7 @@ class FolderService {
 				if ($isLastSegment) {
 					$contents = $folder->getDirectoryListing();
 					if (count($contents) > 0) {
+						// TRANSLATORS Error shown when creating a folder for LibreSign documents and the path already exists with content. %s is the folder path.
 						throw new LibresignException($this->l10n->t('Folder already exists and is not empty: %s', [$path]));
 					}
 				}

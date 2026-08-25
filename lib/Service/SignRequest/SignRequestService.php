@@ -53,6 +53,7 @@ class SignRequestService {
 	): SignRequestEntity {
 		$identifyMethodsInstances = $this->identifyMethodService->getByUserData($identifyMethods);
 		if (empty($identifyMethodsInstances)) {
+			// TRANSLATORS Error shown when the chosen method to identify the signer (account, email, SMS, etc.) is invalid.
 			throw new \Exception($this->l10n->t('Invalid identification method'));
 		}
 

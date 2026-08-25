@@ -32,18 +32,21 @@ class FileContentProvider {
 	 */
 	public function getContentFromUrl(string $url): string {
 		if (!filter_var($url, FILTER_VALIDATE_URL)) {
+			// TRANSLATORS Error shown when a document URL provided for signing is invalid.
 			throw new LibresignException($this->l10n->t('Invalid URL file'), 422);
 		}
 
 		try {
 			$response = $this->client->newClient()->get($url);
 		} catch (\Throwable) {
+			// TRANSLATORS Error shown when a document URL provided for signing is invalid.
 			throw new LibresignException($this->l10n->t('Invalid URL file'), 422);
 		}
 
 		$content = (string)$response->getBody();
 
 		if (!$content) {
+			// TRANSLATORS Error shown when the downloaded or provided document content is empty.
 			throw new LibresignException($this->l10n->t('Empty file'), 422);
 		}
 
@@ -57,6 +60,7 @@ class FileContentProvider {
 
 		// application/octet-stream is a generic fallback — trust content detection
 		if ($mimetypeFromHeader !== 'application/octet-stream' && $mimetypeFromHeader !== $mimeTypeFromContent) {
+			// TRANSLATORS Error shown when a document URL provided for signing is invalid.
 			throw new LibresignException($this->l10n->t('Invalid URL file'), 422);
 		}
 
@@ -82,6 +86,7 @@ class FileContentProvider {
 			$mimeTypeFromContent = $this->mimeService->getMimeType($content);
 
 			if ($mimeTypeFromType !== $mimeTypeFromContent) {
+				// TRANSLATORS Error shown when a document URL provided for signing is invalid.
 				throw new LibresignException($this->l10n->t('Invalid URL file'), 422);
 			}
 
@@ -110,6 +115,7 @@ class FileContentProvider {
 			return $this->getContentFromBase64($data['file']['base64']);
 		}
 
+		// TRANSLATORS Error shown when creating a signature request without any document source (upload, path, URL, or file id).
 		throw new LibresignException($this->l10n->t('No file source provided'), 422);
 	}
 
@@ -129,6 +135,7 @@ class FileContentProvider {
 			$fileNode = $this->root->getUserFolder($file->getUserId())->getFirstNodeById($nodeId);
 
 			if (!$fileNode instanceof \OCP\Files\File) {
+				// TRANSLATORS Error shown when the requested document cannot be found.
 				throw new LibresignException($this->l10n->t('File not found'), 404);
 			}
 
@@ -140,6 +147,7 @@ class FileContentProvider {
 				'fileId' => $file->getId(),
 				'exception' => $e,
 			]);
+			// TRANSLATORS Error shown when LibreSign cannot validate the uploaded or referenced document for signing.
 			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404, $e);
 		}
 	}

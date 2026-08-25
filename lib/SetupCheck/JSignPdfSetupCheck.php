@@ -75,6 +75,7 @@ class JSignPdfSetupCheck implements ISetupCheck {
 
 		if (!$jsignpdfJarPath) {
 			return SetupResult::error(
+				// TRANSLATORS Warning shown in Nextcloud administration overview when the optional JSignPdf signing backend is not found.
 				$this->l10n->t('JSignPdf not found'),
 				// TRANSLATORS Command to run into terminal using Nextcloud occ to configure LibreSign using CLI when the sysadmin want to do this by CLI.
 				$this->l10n->t('Run %s', ['occ libresign:install --jsignpdf'])
