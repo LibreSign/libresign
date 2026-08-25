@@ -116,7 +116,6 @@ export default [
 			'no-unused-vars': 'off',
 			'no-use-before-define': 'off',
 			'no-useless-assignment': 'off',
-			'package-json/sort-package-json': 'off',
 			'perfectionist/sort-imports': 'off',
 			'perfectionist/sort-named-imports': 'off',
 			'prefer-object-has-own': 'off',

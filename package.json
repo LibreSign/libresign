@@ -1,27 +1,30 @@
 {
   "name": "libresign",
-  "description": "A app for signing documents",
   "version": "15.0.0-dev.1",
-  "license": "agpl",
   "private": true,
+  "description": "A app for signing documents",
+  "license": "agpl",
   "scripts": {
     "build": "vite build",
     "dev": "vite build --mode development",
-    "watch": "CHOKIDAR_USEPOLLING=1 CHOKIDAR_INTERVAL=1000 vite build --mode development --watch",
-    "serve": "vite dev",
-    "ts:check": "vue-tsc --noEmit",
-    "typescript:generate": "npx openapi-typescript -t",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
+    "serve": "vite dev",
     "stylelint": "stylelint src/**/*.scss src/**/*.vue",
     "stylelint:fix": "stylelint src/**/*.scss src/**/*.vue --fix",
     "test": "vitest run",
-    "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:report": "playwright show-report",
     "test:e2e:ui": "playwright test --ui --ui-host=0.0.0.0 --ui-port=9323",
-    "test:e2e:report": "playwright show-report"
+    "test:watch": "vitest",
+    "ts:check": "vue-tsc --noEmit",
+    "typescript:generate": "npx openapi-typescript -t",
+    "watch": "CHOKIDAR_USEPOLLING=1 CHOKIDAR_INTERVAL=1000 vite build --mode development --watch"
   },
+  "browserslist": [
+    "extends @nextcloud/browserslist-config"
+  ],
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.1",
     "@codemirror/commands": "^6.11.0",
@@ -51,9 +54,9 @@
     "@nextcloud/vue": "^9.9.0",
     "@ssddanbrown/codemirror-lang-twig": "^1.0.0",
     "@uiw/codemirror-theme-material": "^4.25.11",
+    "@vue/devtools-api": "^8.2.1",
     "@vuelidate/core": "^2.0.3",
     "@vuelidate/validators": "^2.0.4",
-    "@vue/devtools-api": "^8.2.1",
     "@vueuse/core": "^14.4.0",
     "@vueuse/integrations": "^14.4.0",
     "blueimp-md5": "^2.19.0",
@@ -68,13 +71,6 @@
     "vue-codemirror6": "^1.6.1",
     "vue-router": "^5.2.0",
     "vuedraggable": "^4.1.0"
-  },
-  "browserslist": [
-    "extends @nextcloud/browserslist-config"
-  ],
-  "engines": {
-    "node": "^24.0.0",
-    "npm": "^11.3.0"
   },
   "devDependencies": {
     "@nextcloud/babel-config": "^1.3.0",
@@ -99,5 +95,9 @@
     "vite-plugin-node-polyfills": "^0.28.0",
     "vitest": "^4.1.4",
     "vue-tsc": "^3.3.11"
+  },
+  "engines": {
+    "node": "^24.0.0",
+    "npm": "^11.3.0"
   }
 }
