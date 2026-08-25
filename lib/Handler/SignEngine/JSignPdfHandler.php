@@ -504,10 +504,11 @@ class JSignPdfHandler extends Pkcs12Handler {
 		);
 
 		$signature->resizeImage(
-			(int)round($signature->getImageWidth() * $scaleFactor),
-			(int)round($signature->getImageHeight() * $scaleFactor),
+			(int)$canvasWidth,
+			(int)$canvasHeight,
 			Imagick::FILTER_LANCZOS,
-			1
+			1,
+			true
 		);
 
 		$canvas = new Imagick();
