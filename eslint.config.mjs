@@ -112,7 +112,6 @@ export default [
 			'jsdoc/valid-types': 'off',
 			'no-empty': 'off',
 			'no-empty-pattern': 'off',
-			'no-extra-boolean-cast': 'off',
 			'no-unassigned-vars': 'off',
 			'no-undef': 'off',
 			'no-unused-vars': 'off',
