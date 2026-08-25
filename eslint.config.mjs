@@ -120,7 +120,6 @@ export default [
 			'vue/multi-word-component-names': 'off',
 			'vue/multiline-html-element-content-newline': 'off',
 			'vue/no-unused-properties': 'off',
-			'vue/no-unused-refs': 'off',
 			'vue/no-v-html': 'off',
 			'vue/singleline-html-element-content-newline': 'off',
 			'vue/slot-name-casing': 'off',

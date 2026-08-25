@@ -33,7 +33,7 @@
 			</caption>
 
 			<!-- Header -->
-			<thead ref="thead" class="files-list__thead" data-cy-files-list-thead>
+			<thead class="files-list__thead" data-cy-files-list-thead>
 				<slot name="header" />
 			</thead>
 			<!-- Body -->

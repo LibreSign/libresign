@@ -6,7 +6,6 @@
 	<!-- Rename input -->
 	<form
 		v-if="isRenaming"
-		ref="renameForm"
 		class="files-list__row-rename"
 		@submit.prevent.stop="onRename"
 		@click.stop>
@@ -26,7 +25,6 @@
 	<!-- Display name -->
 	<component :is="linkTo.is"
 		v-else
-		ref="basename"
 		class="files-list__row-name-link"
 		v-bind="linkTo.params"
 		dir="auto">

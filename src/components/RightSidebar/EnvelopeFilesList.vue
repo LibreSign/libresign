@@ -45,7 +45,7 @@
 				<NcIconSvgWrapper :path="mdiFilePdfBox" :size="64" />
 				</template>
 			</NcEmptyContent>
-			<div v-else ref="scrollContainer" class="files-list" @scroll="onScroll">
+			<div v-else class="files-list" @scroll="onScroll">
 				<div v-if="canDelete" class="files-list__header">
 					<NcCheckboxRadioSwitch :modelValue="allSelected"
 						@update:modelValue="toggleSelectAll">
