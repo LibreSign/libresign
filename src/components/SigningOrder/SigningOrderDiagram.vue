@@ -100,6 +100,7 @@
 		</div>
 	</div>
 </template>
+
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
@@ -228,6 +229,7 @@ defineExpose({
 	formatDate,
 })
 </script>
+
 <style lang="scss" scoped>
 .signing-order-diagram {
 	padding: 20px 16px;

@@ -46,6 +46,7 @@
 		</template>
 	</NcListItem>
 </template>
+
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
@@ -281,6 +282,7 @@ defineExpose({
 	filesStore,
 })
 </script>
+
 <style lang="scss" scoped>
 .signer-subname {
 	display: flex;

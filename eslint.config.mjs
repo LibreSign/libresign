@@ -129,7 +129,6 @@ export default [
 			'vue/no-unused-properties': 'off',
 			'vue/no-unused-refs': 'off',
 			'vue/no-v-html': 'off',
-			'vue/padding-line-between-blocks': 'off',
 			'vue/singleline-html-element-content-newline': 'off',
 			'vue/slot-name-casing': 'off',
 			'vue/v-on-event-hyphenation': 'off',

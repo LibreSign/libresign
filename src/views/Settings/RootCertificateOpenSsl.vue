@@ -356,6 +356,7 @@ defineExpose({
 	afterCertificateGenerated,
 })
 </script>
+
 <style lang="scss" scoped>
 #formRootCertificateOpenSsl{
 	text-align: left;

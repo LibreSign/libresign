@@ -123,6 +123,7 @@
 		</NcDialog>
 	</div>
 </template>
+
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'

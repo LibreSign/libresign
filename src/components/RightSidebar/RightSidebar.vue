@@ -112,6 +112,7 @@ defineExpose({
 	closeSidebar,
 })
 </script>
+
 <style lang="scss" scoped>
 .app-sidebar__tab  {
 	box-shadow: none !important;

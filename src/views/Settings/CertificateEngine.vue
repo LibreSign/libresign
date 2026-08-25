@@ -16,6 +16,7 @@
 		</div>
 	</NcSettingsSection>
 </template>
+
 <script setup lang="ts">
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
