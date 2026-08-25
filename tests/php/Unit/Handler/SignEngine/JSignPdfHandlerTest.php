@@ -727,6 +727,89 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertStringNotContainsString(' -cl ' . DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name, $paramsSeen[0]);
 	}
 
+	#[DataProvider('providerSignatureDimensions')]
+	public function testMergeBackgroundWithSignatureFitsOversizedSignatureInsideStampBox(int $signatureWidth, int $signatureHeight): void {
+		if (!extension_loaded('imagick')) {
+			$this->markTestSkipped('Extension imagick is not loaded');
+		}
+
+		$stampWidth = SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH;
+		$stampHeight = SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT;
+		$scaleFactor = (float)(new \ReflectionClass(JSignPdfHandler::class))->getConstant('SCALE_FACTOR_MIN');
+		$this->persistSignatureStampPolicy('', signatureWidth: $stampWidth, signatureHeight: $stampHeight);
+
+		$backgroundPath = $this->createTransparentPng(10, 10);
+		$signaturePath = $this->createPngWithOpaqueCorners($signatureWidth, $signatureHeight);
+
+		$mergedPath = self::invokePrivate($this->getInstance(), 'mergeBackgroundWithSignature', [
+			$backgroundPath,
+			$signaturePath,
+			$scaleFactor,
+		]);
+
+		$canvasWidth = (int)round($stampWidth * $scaleFactor);
+		$canvasHeight = (int)round($stampHeight * $scaleFactor);
+		$fitRatio = min($canvasWidth / $signatureWidth, $canvasHeight / $signatureHeight);
+		$fittedWidth = (int)round($signatureWidth * $fitRatio);
+		$fittedHeight = (int)round($signatureHeight * $fitRatio);
+		$offsetX = intdiv($canvasWidth - $fittedWidth, 2);
+		$offsetY = intdiv($canvasHeight - $fittedHeight, 2);
+		$probeInset = 10;
+
+		$merged = new \Imagick((string)$mergedPath);
+		$this->assertSame($canvasWidth, $merged->getImageWidth());
+		$this->assertSame($canvasHeight, $merged->getImageHeight());
+		$this->assertGreaterThan(
+			0,
+			$merged->getImagePixelColor($offsetX + $probeInset, $offsetY + $probeInset)
+				->getColorValue(\Imagick::COLOR_ALPHA),
+			'Top left corner of the signature must remain inside the stamp box'
+		);
+		$this->assertGreaterThan(
+			0,
+			$merged->getImagePixelColor($offsetX + $fittedWidth - $probeInset, $offsetY + $fittedHeight - $probeInset)
+				->getColorValue(\Imagick::COLOR_ALPHA),
+			'Bottom right corner of the signature must remain inside the stamp box'
+		);
+		$merged->clear();
+	}
+
+	public static function providerSignatureDimensions(): array {
+		return [
+			'same aspect ratio' => [1400, 400],
+			'wider signature' => [1400, 200],
+			'taller signature' => [700, 800],
+		];
+	}
+
+	private function createTransparentPng(int $width, int $height): string {
+		$image = new \Imagick();
+		$image->newImage($width, $height, new \ImagickPixel('transparent'));
+		$image->setImageFormat('png32');
+		$path = (string)$this->tempManager->getTemporaryFile('.png');
+		$image->writeImage($path);
+		$image->clear();
+		return $path;
+	}
+
+	private function createPngWithOpaqueCorners(int $width, int $height): string {
+		$image = new \Imagick();
+		$image->newImage($width, $height, new \ImagickPixel('transparent'));
+		$image->setImageFormat('png32');
+		$cornerSize = 40;
+		$draw = new \ImagickDraw();
+		$draw->setFillColor(new \ImagickPixel('black'));
+		$draw->rectangle(0, 0, $cornerSize, $cornerSize);
+		$draw->rectangle($width - $cornerSize, 0, $width, $cornerSize);
+		$draw->rectangle(0, $height - $cornerSize, $cornerSize, $height);
+		$draw->rectangle($width - $cornerSize, $height - $cornerSize, $width, $height);
+		$image->drawImage($draw);
+		$path = (string)$this->tempManager->getTemporaryFile('.png');
+		$image->writeImage($path);
+		$image->clear();
+		return $path;
+	}
+
 	private static function getElement(array $attributes = [], string $imagePath = ''): VisibleElementAssoc {
 		$element = new FileElement();
 		foreach ($attributes as $attribute => $value) {
