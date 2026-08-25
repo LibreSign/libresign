@@ -55,16 +55,16 @@ const previewUrl = computed(() => {
 		return null
 	}
 
-	let filePreviewUrl = ''
-	if (currentFile.value.id) {
-		filePreviewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
+	const filePreviewUrl = currentFile.value.id
+		? generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
 			fileId: currentFile.value.id,
 		})
-	} else if (currentFile.value.nodeId) {
-		filePreviewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
-			nodeId: currentFile.value.nodeId,
-		})
-	} else {
+		: currentFile.value.nodeId
+			? generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
+				nodeId: currentFile.value.nodeId,
+			})
+			: null
+	if (!filePreviewUrl) {
 		return null
 	}
 

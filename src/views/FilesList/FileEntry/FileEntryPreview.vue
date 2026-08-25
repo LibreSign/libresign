@@ -66,16 +66,16 @@ const iconPath = computed(() => {
 })
 
 const previewUrl = computed(() => {
-	let nextPreviewUrl = ''
-	if (props.source?.id) {
-		nextPreviewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
+	const nextPreviewUrl = props.source?.id
+		? generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
 			fileId: props.source.id,
 		})
-	} else if (props.source?.nodeId) {
-		nextPreviewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
-			nodeId: props.source.nodeId,
-		})
-	} else {
+		: props.source?.nodeId
+			? generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
+				nodeId: props.source.nodeId,
+			})
+			: null
+	if (!nextPreviewUrl) {
 		return null
 	}
 
