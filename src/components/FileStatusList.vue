@@ -29,8 +29,7 @@
 					<div class="status-badge" :class="[`status-${getStatusClass(file.status)}`]">
 						<NcIconSvgWrapper
 							:path="getStatusIcon(file.status)"
-							:size="20"
-						/>
+							:size="20" />
 						<span>{{ getStatusLabel(file.status) }}</span>
 					</div>
 					<p v-if="file.signedAt" class="signed-date">
