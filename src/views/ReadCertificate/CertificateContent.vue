@@ -155,6 +155,13 @@ defineOptions({
 	name: 'CertificateContent',
 })
 
+const props = withDefaults(defineProps<{
+	certificate?: CertificateData
+	index?: string
+}>(), {
+	certificate: () => ({}),
+	index: '0',
+})
 type ChipVariant = 'primary' | 'secondary' | 'tertiary' | 'error' | 'warning' | 'success'
 type StatusChip = {
 	text: string
@@ -181,14 +188,6 @@ type CertificateData = {
 	extensions?: Record<string, unknown>
 	crl_validation?: string
 }
-
-const props = withDefaults(defineProps<{
-	certificate?: CertificateData
-	index?: string
-}>(), {
-	certificate: () => ({}),
-	index: '0',
-})
 
 const EXPIRATION_WARNING_DAYS = 30
 

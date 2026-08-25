@@ -104,9 +104,6 @@ import {
 type BackgroundType = 'default' | 'custom' | 'deleted'
 type DisplayMode = 'default' | 'graphic' | 'text' | 'description_only'
 
-const STAMP_PREVIEW_PATH = '/apps/libresign/api/v1/signature-stamp/preview-pdf'
-const STAMP_PREVIEW_ZOOM_STORAGE_KEY = 'libresign.policy.signatureStamp.previewZoom'
-
 const props = defineProps({
 	modelValue: {
 		type: [Boolean, String, Number, Object, Array],
@@ -121,8 +118,9 @@ const props = defineProps({
 		default: false,
 	},
 })
-
 const emit = defineEmits(['update:modelValue'])
+const STAMP_PREVIEW_PATH = '/apps/libresign/api/v1/signature-stamp/preview-pdf'
+const STAMP_PREVIEW_ZOOM_STORAGE_KEY = 'libresign.policy.signatureStamp.previewZoom'
 
 ensurePdfWorker()
 

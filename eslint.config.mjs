@@ -115,7 +115,6 @@ export default [
 			'vue/attribute-hyphenation': 'off',
 			'vue/attributes-order': 'off',
 			'vue/custom-event-name-casing': 'off',
-			'vue/define-macros-order': 'off',
 			'vue/first-attribute-linebreak': 'off',
 			'vue/html-indent': 'off',
 			'vue/max-attributes-per-line': 'off',

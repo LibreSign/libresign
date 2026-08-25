@@ -233,6 +233,9 @@ type UserConfigStore = {
 	update: (key: 'id_docs_filters' | 'id_docs_sort', value: UserConfigFilters | UserConfigSort) => Promise<unknown> | unknown
 }
 
+defineOptions({
+	name: 'IdDocsValidation',
+})
 const SORT_FIELDS: readonly SortField[] = ['owner', 'file_type', 'status']
 const STATUS_OPTIONS: StatusOption[] = [
 	// TRANSLATORS Filter status label meaning the document already has the required signature approval result.
@@ -240,10 +243,6 @@ const STATUS_OPTIONS: StatusOption[] = [
 	// TRANSLATORS Filter status label meaning the document is still waiting for validation or approval.
 	{ value: 'pending', label: t('libresign', 'Pending') },
 ]
-
-defineOptions({
-	name: 'IdDocsValidation',
-})
 
 const router = useRouter()
 const userConfigStore = useUserConfigStore() as UserConfigStore

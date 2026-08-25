@@ -132,15 +132,6 @@ defineOptions({
 	name: 'CatalogCategorySection',
 })
 
-const emit = defineEmits<{
-	'toggle-category': [category: RealPolicySettingCategory]
-	'track-press': [payload: { layout: CatalogLayout, key: string, event: PointerEvent }]
-	'mark-selection': [payload: { layout: CatalogLayout, key: string }]
-	'open-from-pointer': [payload: { layout: CatalogLayout, key: string, event: MouseEvent }]
-	'open-from-keyboard': [key: string]
-	'open-from-action': [payload: { key: string, event: MouseEvent }]
-}>()
-
 const props = defineProps<{
 	category: CatalogCategorySectionModel
 	layout: CatalogLayout
@@ -152,6 +143,15 @@ const props = defineProps<{
 	resolveDefaultStatLabel: (policyKey: string) => string
 	resolveOverridesStatLabel: (policyKey: string) => string
 	formatOverrideSummary: (groupCount?: number, userCount?: number, policyKey?: string, everyoneCount?: number) => string
+}>()
+
+const emit = defineEmits<{
+	'toggle-category': [category: RealPolicySettingCategory]
+	'track-press': [payload: { layout: CatalogLayout, key: string, event: PointerEvent }]
+	'mark-selection': [payload: { layout: CatalogLayout, key: string }]
+	'open-from-pointer': [payload: { layout: CatalogLayout, key: string, event: MouseEvent }]
+	'open-from-keyboard': [key: string]
+	'open-from-action': [payload: { key: string, event: MouseEvent }]
 }>()
 
 // TRANSLATORS Badge text indicating a setting has one or more custom policy overrides.

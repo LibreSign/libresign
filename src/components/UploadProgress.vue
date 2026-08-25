@@ -38,10 +38,6 @@ defineOptions({
 	name: 'UploadProgress',
 })
 
-defineEmits<{
-	(e: 'cancel'): void
-}>()
-
 const props = withDefaults(defineProps<{
 	isUploading: boolean
 	uploadProgress?: number
@@ -54,6 +50,10 @@ const props = withDefaults(defineProps<{
 	totalBytes: 0,
 	uploadStartTime: null,
 })
+
+defineEmits<{
+	(e: 'cancel'): void
+}>()
 
 const uploadEta = computed(() => {
 	if (!props.isUploading || !props.uploadStartTime || props.uploadedBytes === 0) {

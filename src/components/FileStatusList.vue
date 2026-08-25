@@ -60,15 +60,6 @@ defineOptions({
 	name: 'FileStatusList',
 })
 
-type FileEntry = {
-	id: number
-	uuid?: string
-	name: string
-	status?: string | number
-	size: number
-	signedAt?: string
-}
-
 const props = withDefaults(defineProps<{
 	fileIds?: number[]
 	updateInterval?: number
@@ -81,6 +72,15 @@ const emit = defineEmits<{
 	(event: 'file-signed', file: FileEntry): void
 	(event: 'files-updated', files: FileEntry[]): void
 }>()
+
+type FileEntry = {
+	id: number
+	uuid?: string
+	name: string
+	status?: string | number
+	size: number
+	signedAt?: string
+}
 
 const files = ref<FileEntry[]>([])
 const isLoading = ref(false)

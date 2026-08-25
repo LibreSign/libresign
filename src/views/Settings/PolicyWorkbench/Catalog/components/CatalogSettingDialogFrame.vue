@@ -50,10 +50,6 @@ defineOptions({
 	name: 'CatalogSettingDialogFrame',
 })
 
-const emit = defineEmits<{
-	'change-default': []
-}>()
-
 defineProps<{
 	dialogDescription: string
 	priorityNoteScopes: string[]
@@ -63,6 +59,10 @@ defineProps<{
 	currentBaseValue: string
 	defaultSourceLabel: string
 	showChangeDefaultAction: boolean
+}>()
+
+const emit = defineEmits<{
+	'change-default': []
 }>()
 
 // TRANSLATORS Small action button opening the editor to change the default/system policy value.

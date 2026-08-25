@@ -42,6 +42,17 @@ defineOptions({
 	name: 'UploadCertificate',
 })
 
+const props = withDefaults(defineProps<{
+	useModal?: boolean
+	errors?: UploadError[]
+}>(), {
+	errors: () => [],
+})
+
+const emit = defineEmits<{
+	'certificate:uploaded': []
+}>()
+
 type UploadError = {
 	title?: string
 	message: string
@@ -54,17 +65,6 @@ type SignMethodsStore = {
 	closeModal: (modalName: string) => void
 	setHasSignatureFile: (value: boolean) => void
 }
-
-const props = withDefaults(defineProps<{
-	useModal?: boolean
-	errors?: UploadError[]
-}>(), {
-	errors: () => [],
-})
-
-const emit = defineEmits<{
-	'certificate:uploaded': []
-}>()
 
 const signMethodsStore = useSignMethodsStore() as SignMethodsStore
 const localErrors = ref<UploadError[]>([])

@@ -27,11 +27,6 @@ defineOptions({
 	},
 })
 
-type Signer = {
-	displayName?: string
-	email?: string
-}
-
 const props = withDefaults(defineProps<{
 	signersCount?: number
 	signers?: Signer[]
@@ -39,6 +34,11 @@ const props = withDefaults(defineProps<{
 	signersCount: 0,
 	signers: () => [],
 })
+
+type Signer = {
+	displayName?: string
+	email?: string
+}
 
 const tooltipContent = computed(() => {
 	if (props.signersCount === 0 || props.signers.length === 0) {

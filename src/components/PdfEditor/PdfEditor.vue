@@ -137,8 +137,6 @@ defineOptions({
 	name: 'PdfEditor',
 })
 
-ensurePdfWorker()
-
 const props = withDefaults(defineProps<{
 	files?: PdfInput[]
 	fileNames?: string[]
@@ -157,6 +155,8 @@ const emit = defineEmits<{
 	(event: 'pdf-editor:object-click', payload: Record<string, unknown>): void
 	(event: 'pdf-editor:adding-ended', payload: { reason?: string }): void
 }>()
+
+ensurePdfWorker()
 
 const pdfElements = ref<PdfElementsInstance | null>(null)
 

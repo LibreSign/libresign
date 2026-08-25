@@ -50,12 +50,6 @@ defineOptions({
 	name: 'FileEntryName',
 })
 
-type RenameInputRef = {
-	$el?: {
-		querySelector: (selector: string) => HTMLInputElement | null
-	}
-}
-
 const props = defineProps<{
 	basename: string
 	extension: string
@@ -66,6 +60,12 @@ const emit = defineEmits<{
 	'update:basename': [name: string]
 	renaming: [value: boolean]
 }>()
+
+type RenameInputRef = {
+	$el?: {
+		querySelector: (selector: string) => HTMLInputElement | null
+	}
+}
 
 const renameInput = ref<RenameInputRef | null>(null)
 const isRenaming = ref(false)

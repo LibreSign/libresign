@@ -75,6 +75,18 @@ defineOptions({
 	name: 'Signer',
 })
 
+const props = withDefaults(defineProps<{
+	signer: SignerViewModel
+	event?: string
+	draggable?: boolean
+	requireRequestPermission?: boolean
+}>(), {
+	event: '',
+	draggable: false,
+})
+const emit = defineEmits<{
+	(event: 'select', signer: SignerViewModel): void
+}>()
 type FilesStoreContract = ReturnType<typeof useFilesStore>
 type SelectedFile = ReturnType<FilesStoreContract['getFile']>
 type SignerViewModel = {
@@ -85,20 +97,6 @@ type SignerViewModel = {
 	displayName?: string
 	signingOrder?: number
 }
-
-const props = withDefaults(defineProps<{
-	signer: SignerViewModel
-	event?: string
-	draggable?: boolean
-	requireRequestPermission?: boolean
-}>(), {
-	event: '',
-	draggable: false,
-})
-
-const emit = defineEmits<{
-	(event: 'select', signer: SignerViewModel): void
-}>()
 
 const filesStore = useFilesStore()
 const policiesStore = usePoliciesStore()
