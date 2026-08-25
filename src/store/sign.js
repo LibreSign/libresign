@@ -32,7 +32,7 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
  */
 
 /**
- * @typedef {{
+ * @typedef {Record<string, unknown> & {
  * 	canSign?: boolean
  * 	canRequestSign?: boolean
  * 	phoneNumber?: string
@@ -41,7 +41,6 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
  * 	needIdentificationDocuments?: boolean
  * 	identificationDocumentsWaitingApproval?: boolean
  * 	signatureMethods?: SignatureMethodsRecord
- * 	[key: string]: unknown
  * }} SignDocumentSettings
  */
 
@@ -94,10 +93,9 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
  */
 
 /**
- * @typedef {{
+ * @typedef {Record<string, unknown> & {
  * 	message?: string
  * 	code?: number | string
- * 	[key: string]: unknown
  * }} SignError
  */
 const defaultState = {
