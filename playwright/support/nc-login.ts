@@ -9,7 +9,7 @@ import { ensureLibresignAppEnabled } from './nc-provisioning'
 /**
  * Login to Nextcloud via API (no browser form involved).
  *
- * This mirrors the approach used by @nextcloud/e2e-test-server:
+ * This mirrors the approach used by `@nextcloud/e2e-test-server`:
  * 1. GET /csrftoken  → obtain a CSRF token
  * 2. POST /login     → authenticate using form data + Origin header
  * 3. GET /apps/files → validate the session is active
