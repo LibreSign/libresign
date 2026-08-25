@@ -109,7 +109,6 @@ export default [
 			'jsdoc/require-param-description': 'off',
 			'jsdoc/tag-lines': 'off',
 			'jsdoc/valid-types': 'off',
-			'no-empty-pattern': 'off',
 			'no-unassigned-vars': 'off',
 			'no-undef': 'off',
 			'no-unused-vars': 'off',
