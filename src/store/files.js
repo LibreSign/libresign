@@ -511,7 +511,7 @@ const _filesStore = defineStore('files', () => {
 		}
 	}
 
-	/** @returns {EditableFileDraft} */
+	/** @return {EditableFileDraft} */
 	function getEditableFile(fileId = selectedFileId.value) {
 		return ensureRequestDraft(fileId) || cloneEditableFile(emptyFile)
 	}
@@ -525,7 +525,7 @@ const _filesStore = defineStore('files', () => {
 
 	/**
 	 * @param {{ fileId?: number | null, uuid?: string | null, force?: boolean }} [options]
-	 * @returns {Promise<PublicFileState | null>}
+	 * @return {Promise<PublicFileState | null>}
 	 */
 	async function fetchFileDetail({ fileId = null, uuid = null, force = false } = {}) {
 		const store = getStore()
@@ -1199,7 +1199,7 @@ const _filesStore = defineStore('files', () => {
 
 	/**
 	 * @param {SaveSignatureRequestOptions} [payload]
-	 * @returns {Promise<SaveSignatureRequestResponse>}
+	 * @return {Promise<SaveSignatureRequestResponse>}
 	 */
 	async function saveOrUpdateSignatureRequest({ visibleElements = [], signers = null, uuid = null, status = 0, policy = null } = {}) {
 		const store = getStore()
