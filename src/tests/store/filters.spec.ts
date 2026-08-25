@@ -476,7 +476,7 @@ describe('Filter store chip payload rules', () => {
 		]
 
 		modifiedChips.forEach((chip) => {
-			if (Object.prototype.hasOwnProperty.call(chip, 'icon')) {
+			if (Object.hasOwn(chip, 'icon')) {
 				expect(chip.icon).toContain('<svg')
 			}
 		})

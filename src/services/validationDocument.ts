@@ -58,7 +58,7 @@ function isRecord(value: unknown): value is UnknownRecord {
 }
 
 function hasOwn(record: UnknownRecord, key: string): boolean {
-	return Object.prototype.hasOwnProperty.call(record, key)
+	return Object.hasOwn(record, key)
 }
 
 function isOptionalField(record: UnknownRecord, key: string, guard: (value: unknown) => boolean): boolean {

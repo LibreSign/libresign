@@ -70,7 +70,7 @@ export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 	editorProps: {},
 	resolveEditorProps: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => {
 		const policyWithInherited = policy as SignatureTextPolicyState | null
-		if (!policyWithInherited || !Object.prototype.hasOwnProperty.call(policyWithInherited, 'inheritedValue')) {
+		if (!policyWithInherited || !Object.hasOwn(policyWithInherited, 'inheritedValue')) {
 			return baseEditorProps
 		}
 
