@@ -135,7 +135,6 @@ defineProps({
 	},
 	showResetDefaultsButton: {
 		type: Boolean,
-		default: true,
 	},
 })
 

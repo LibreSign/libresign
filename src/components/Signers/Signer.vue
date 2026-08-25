@@ -94,7 +94,6 @@ const props = withDefaults(defineProps<{
 }>(), {
 	event: '',
 	draggable: false,
-	requireRequestPermission: true,
 })
 
 const emit = defineEmits<{
@@ -240,7 +239,7 @@ const statusIconPath = computed(() => {
 })
 
 function signerClickAction() {
-	if (props.requireRequestPermission && !canRequestSign) {
+	if (props.requireRequestPermission !== false && !canRequestSign) {
 		return
 	}
 	if (filesStore.isOriginalFileDeleted()) {
