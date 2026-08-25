@@ -77,8 +77,7 @@
 				:signers="pdfEditorSigners"
 				@pdf-editor:end-init="updateSigners"
 				@pdf-editor:adding-ended="handleAddingEnded"
-				@pdf-editor:on-delete-signer="handleDeleteSigner">
-			</PdfEditor>
+				@pdf-editor:on-delete-signer="handleDeleteSigner" />
 		</div>
 	</NcModal>
 </template>
