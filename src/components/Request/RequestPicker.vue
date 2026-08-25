@@ -254,7 +254,6 @@ const canUploadFronUrl = computed(() => {
 		return false
 	}
 	try {
-		// eslint-disable-next-line no-new
 		new URL(pdfUrl.value)
 		return true
 	} catch (error) {
