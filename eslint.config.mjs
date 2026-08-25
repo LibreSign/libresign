@@ -103,7 +103,6 @@ export default [
 			'jsdoc/require-param': 'off',
 			'jsdoc/require-param-description': 'off',
 			'jsdoc/tag-lines': 'off',
-			'jsdoc/valid-types': 'off',
 			'no-unused-vars': 'off',
 			'no-use-before-define': 'off',
 			'perfectionist/sort-imports': 'off',
