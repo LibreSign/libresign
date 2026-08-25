@@ -119,7 +119,6 @@ export default [
 			'no-use-before-define': 'off',
 			'no-useless-assignment': 'off',
 			'no-useless-escape': 'off',
-			'object-shorthand': 'off',
 			'package-json/sort-package-json': 'off',
 			'perfectionist/sort-imports': 'off',
 			'perfectionist/sort-named-imports': 'off',
