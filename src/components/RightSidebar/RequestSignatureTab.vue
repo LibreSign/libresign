@@ -315,6 +315,7 @@ import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
 import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
 
 import axios from '@nextcloud/axios'
+import { getCurrentUser } from '@nextcloud/auth'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
@@ -517,7 +518,7 @@ const showRememberFooterTemplate = computed(() => showFooterTemplateSelector.val
 const showViewOrderButton = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && isOrderedNumeric.value && totalSigners.value > 1 && hasSigners.value && filesStore.canRequestSign)
 const shouldShowOrderedOptions = computed(() => isOrderedNumeric.value && totalSigners.value > 1)
 const showSignatureFlowPreferenceClearedNotice = computed(() => signatureFlowPolicy.value?.preferenceWasCleared ?? false)
-const currentUserDisplayName = computed(() => OC.getCurrentUser()?.displayName || '')
+const currentUserDisplayName = computed(() => getCurrentUser()?.displayName || '')
 const showDocMdpWarning = computed(() => filesStore.isDocMdpNoChangesAllowed() && !filesStore.canAddSigner())
 const fileName = computed(() => filesStore.getSelectedFileView()?.name ?? '')
 const isEnvelope = computed(() => filesStore.getFile()?.nodeType === 'envelope')

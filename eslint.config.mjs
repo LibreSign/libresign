@@ -63,7 +63,6 @@ export default [
 		rules: {
 			'@nextcloud/l10n-enforce-ellipsis': 'off',
 			'@nextcloud/l10n-non-breaking-space': 'off',
-			'@nextcloud/no-deprecated-globals': 'off',
 			'@nextcloud/no-deprecated-library-props': 'off',
 			'@stylistic/arrow-parens': 'off',
 			'@stylistic/comma-dangle': 'off',
