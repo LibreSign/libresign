@@ -991,7 +991,7 @@ function buildVisibleElements() {
 	for (let docIndex = 0; docIndex < numDocuments; docIndex++) {
 		const objects = getPdfObjectsForDocument(docIndex)
 		objects.forEach((object: PdfObject) => {
-			if (!object.signer) return
+			if (!object.signer) { return }
 
 			if (object.visibleElement?.fileId !== undefined
 				&& object.visibleElement?.signRequestId !== undefined

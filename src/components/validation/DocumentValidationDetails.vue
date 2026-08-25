@@ -91,8 +91,8 @@ const props = withDefaults(defineProps<{
 const { document } = toRefs(props)
 
 const size = computed(() => {
-	if (document.value.size < 1024) return document.value.size + ' B'
-	if (document.value.size < 1048576) return (document.value.size / 1024).toFixed(2) + ' KB'
+	if (document.value.size < 1024) { return document.value.size + ' B' }
+	if (document.value.size < 1048576) { return (document.value.size / 1024).toFixed(2) + ' KB' }
 	return (document.value.size / 1048576).toFixed(2) + ' MB'
 })
 

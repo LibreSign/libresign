@@ -30,7 +30,7 @@ vi.mock('@nextcloud/capabilities', () => ({
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app, key, defaultValue) => {
-		if (key === 'can_request_sign') return true
+		if (key === 'can_request_sign') { return true }
 		return defaultValue
 	}),
 }))

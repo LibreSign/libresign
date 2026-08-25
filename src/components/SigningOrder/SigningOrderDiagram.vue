@@ -182,31 +182,31 @@ function getIdentifyMethods(signer: Signer) {
 }
 
 function getStatusLabel(signer: Signer) {
-	if (signer.signed) return statusSignedLabel
-	if (signer.me?.status === 0) return statusDraftLabel
+	if (signer.signed) { return statusSignedLabel }
+	if (signer.me?.status === 0) { return statusDraftLabel }
 	return statusPendingLabel
 }
 
 function getStatusIconPath(signer: Signer) {
-	if (signer.signed) return mdiCheckCircle
-	if (signer.me?.status === 0) return mdiCircleOutline
+	if (signer.signed) { return mdiCheckCircle }
+	if (signer.me?.status === 0) { return mdiCircleOutline }
 	return mdiClockOutline
 }
 
 function getChipType(signer: Signer) {
-	if (signer.signed) return 'success'
-	if (signer.me?.status === 0) return 'secondary'
+	if (signer.signed) { return 'success' }
+	if (signer.me?.status === 0) { return 'secondary' }
 	return 'warning'
 }
 
 function getStatusClass(signer: Signer) {
-	if (signer.signed) return 'signed'
-	if (signer.me?.status === 0) return 'draft'
+	if (signer.signed) { return 'signed' }
+	if (signer.me?.status === 0) { return 'draft' }
 	return 'pending'
 }
 
 function formatDate(timestamp?: number | null) {
-	if (!timestamp) return ''
+	if (!timestamp) { return '' }
 	const date = new Date(timestamp * 1000)
 	return date.toLocaleString()
 }

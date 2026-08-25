@@ -646,9 +646,9 @@ function getCrlValidationIconClass(signer: ValidationDisplaySigner) {
 		return 'icon-default'
 	}
 	const variant = crlStatusMap.value[signer.crl_validation]?.variant
-	if (variant === 'success') return 'icon-success'
-	if (variant === 'error') return 'icon-error'
-	if (variant === 'warning') return 'icon-warning'
+	if (variant === 'success') { return 'icon-success' }
+	if (variant === 'error') { return 'icon-error' }
+	if (variant === 'warning') { return 'icon-warning' }
 	return 'icon-default'
 }
 
@@ -709,15 +709,15 @@ function getModificationStatusVariant(signer: ValidationDisplaySigner): 'success
 
 function getModificationStatusIcon(signer: ValidationDisplaySigner) {
 	const variant = getModificationStatusVariant(signer)
-	if (variant === 'success') return mdiCheckCircle
-	if (variant === 'error') return mdiCancel
+	if (variant === 'success') { return mdiCheckCircle }
+	if (variant === 'error') { return mdiCancel }
 	return signer.modification_validation ? mdiHelpCircle : null
 }
 
 function getModificationStatusClass(signer: ValidationDisplaySigner) {
 	const variant = getModificationStatusVariant(signer)
-	if (variant === 'success') return 'icon-success'
-	if (variant === 'error') return 'icon-error'
+	if (variant === 'success') { return 'icon-success' }
+	if (variant === 'error') { return 'icon-error' }
 	return ''
 }
 

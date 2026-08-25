@@ -96,7 +96,6 @@ export default [
 			'@typescript-eslint/no-use-before-define': 'off',
 			'antfu/top-level-function': 'off',
 			camelcase: 'off',
-			curly: 'off',
 			'import-extensions/ban-inline-type-imports': 'off',
 			'import-extensions/extensions': 'off',
 			'jsdoc/check-tag-names': 'off',

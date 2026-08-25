@@ -428,9 +428,9 @@ const reasonCodeOptions: ReasonOption[] = [
 const hasActiveFilters = computed(() => !!(filters.serialNumber || filters.status || filters.owner))
 const activeFilterCount = computed(() => {
 	let count = 0
-	if (filters.serialNumber) count++
-	if (filters.status) count++
-	if (filters.owner) count++
+	if (filters.serialNumber) { count++ }
+	if (filters.status) { count++ }
+	if (filters.owner) { count++ }
 	return count
 })
 

@@ -50,7 +50,7 @@ describe('SignatureEngine.vue', () => {
 
 	it('maps the initial state to the selected option', () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'signature_engine') return 'PhpNative'
+			if (key === 'signature_engine') { return 'PhpNative' }
 			return fallback
 		})
 
