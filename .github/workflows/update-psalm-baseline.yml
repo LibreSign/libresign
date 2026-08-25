@@ -85,7 +85,7 @@ jobs:
         with:
           path: apps/${{ env.APP_NAME }}
           token: ${{ secrets.COMMAND_BOT_PAT }}
-          commit-message: Update psalm baseline
+          commit-message: "chore: Update psalm baseline"
           committer: GitHub <noreply@github.com>
           author: nextcloud-command <nextcloud-command@users.noreply.github.com>
           signoff: true
