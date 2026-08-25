@@ -131,7 +131,6 @@ export default [
 			'vue/no-unused-refs': 'off',
 			'vue/no-v-html': 'off',
 			'vue/padding-line-between-blocks': 'off',
-			'vue/prefer-prop-type-boolean-first': 'off',
 			'vue/prefer-separate-static-class': 'off',
 			'vue/singleline-html-element-content-newline': 'off',
 			'vue/slot-name-casing': 'off',
