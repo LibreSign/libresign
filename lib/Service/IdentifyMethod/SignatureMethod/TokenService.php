@@ -30,6 +30,7 @@ class TokenService {
 	public function sendCodeByGateway(string $identifier, string $gatewayName): string {
 		$this->twofactorGatewayService->ensureAvailable($gatewayName);
 		if (!$this->twofactorGatewayService->isGatewayComplete($gatewayName)) {
+			// TRANSLATORS Error shown to the administrator when a two-factor gateway needed to send signing codes is not configured. %s is the gateway name.
 			throw new OCSForbiddenException($this->l10n->t('Gateway %s not configured on Two-Factor Gateway.', $gatewayName));
 		}
 
@@ -37,6 +38,7 @@ class TokenService {
 		$this->twofactorGatewayService->send(
 			$gatewayName,
 			$identifier,
+			// TRANSLATORS Text of the verification code message sent to the signer. %s is the one-time code.
 			$this->l10n->t('%s is your LibreSign verification code.', $code)
 		);
 		return $this->hasher->hash($code);

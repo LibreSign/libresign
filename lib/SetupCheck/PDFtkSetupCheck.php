@@ -135,7 +135,9 @@ class PDFtkSetupCheck implements ISetupCheck {
 		}
 
 		$messages = [
+			// TRANSLATORS Success detail in Nextcloud administration overview showing the detected PDFtk version. %s is the version string.
 			$this->l10n->t('PDFtk version: %s', [$version]),
+			// TRANSLATORS Success detail in Nextcloud administration overview showing the PDFtk path. %s is the filesystem path.
 			$this->l10n->t('PDFtk path: %s', [$pdftkPath]),
 		];
 		return SetupResult::success(implode("\n", $messages));

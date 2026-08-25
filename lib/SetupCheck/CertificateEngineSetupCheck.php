@@ -29,6 +29,7 @@ class CertificateEngineSetupCheck implements ISetupCheck {
 
 	#[\Override]
 	public function getName(): string {
+		// TRANSLATORS Name of the Nextcloud administration overview check for the LibreSign certificate engine used to issue signing certificates.
 		return $this->l10n->t('Certificate engine');
 	}
 
@@ -45,7 +46,9 @@ class CertificateEngineSetupCheck implements ISetupCheck {
 		} catch (LibresignException $e) {
 			$engineName = $this->certificateEngineFactory->getEngine()->getName() ?? 'unknown';
 			return SetupResult::error(
+				// TRANSLATORS Warning shown in Nextcloud administration overview when LibreSign has no certificate engine configured.
 				$this->l10n->t('Define the certificate engine to use'),
+				// TRANSLATORS Tip under a Nextcloud administration overview error. Instructs the administrator to configure the certificate engine with occ. %s is the engine name.
 				$this->l10n->t('Run occ libresign:configure:%s --help', [$engineName])
 			);
 		}
@@ -87,6 +90,7 @@ class CertificateEngineSetupCheck implements ISetupCheck {
 		} elseif ($hasWarning) {
 			return SetupResult::warning(implode("\n", $messages), $tip);
 		} else {
+			// TRANSLATORS Success message in Nextcloud administration overview when the LibreSign certificate engine is configured correctly.
 			return SetupResult::success(implode("\n", $messages) ?: $this->l10n->t('Certificate engine is configured correctly'));
 		}
 	}

@@ -140,10 +140,12 @@ class SignFileService {
 		} elseif (!empty($data['file']['nodeId'])) {
 			$signatures = $this->signRequestMapper->getByNodeId($data['file']['nodeId']);
 		} else {
+			// TRANSLATORS Error shown when a signing action is missing both the document identifier and the file object.
 			throw new \Exception($this->l10n->t('Please provide either UUID or File object'));
 		}
 		$signed = array_filter($signatures, fn ($s) => $s->getSigned());
 		if ($signed) {
+			// TRANSLATORS Error shown when trying to sign a document that is already fully signed.
 			throw new \Exception($this->l10n->t('Document already signed'));
 		}
 		array_walk($data['signers'], function ($signer) use ($signatures): void {
@@ -155,6 +157,7 @@ class SignFileService {
 				return false;
 			});
 			if (!$exists) {
+				// TRANSLATORS Error shown when notifying or signing for a person who was never asked to sign. %s is their email.
 				throw new \Exception($this->l10n->t('No signature was requested to %s', $signer['email']));
 			}
 		});
@@ -278,6 +281,7 @@ class SignFileService {
 		}
 
 		if ($fileId === null || $signRequestId === null) {
+			// TRANSLATORS Error shown when the document to sign cannot be found.
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
 
@@ -333,6 +337,7 @@ class SignFileService {
 			return true;
 		}
 		$this->logger->error('Invalid data provided for signing file.', ['element' => $element]);
+		// TRANSLATORS Error shown when the data required to apply a digital signature is missing or invalid.
 		throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 	}
 
@@ -346,6 +351,7 @@ class SignFileService {
 				'type' => $fileElement->getType(),
 			]);
 		} catch (MultipleObjectsReturnedException|DoesNotExistException|Exception) {
+			// TRANSLATORS Error shown when signing requires a visible signature or initials image and the signer has not defined one yet.
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
 		return $userElement->getNodeId();
@@ -358,6 +364,7 @@ class SignFileService {
 				throw new \Exception('Node content is empty or unavailable.');
 			}
 		} catch (\Throwable) {
+			// TRANSLATORS Error shown when signing requires a visible signature or initials image and the signer has not defined one yet.
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
 
@@ -365,6 +372,7 @@ class SignFileService {
 		$content = $node->getContent();
 		if (empty($content)) {
 			$this->logger->error('Failed to retrieve content for node.', ['nodeId' => $nodeId, 'fileElement' => $fileElement]);
+			// TRANSLATORS Error shown when signing requires a visible signature or initials image and the signer has not defined one yet.
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
 		file_put_contents($tempFile, $content);
@@ -826,6 +834,7 @@ class SignFileService {
 		try {
 			if (!$this->docMdpHandler->allowsAdditionalSignatures($resource)) {
 				throw new LibresignException(
+					// TRANSLATORS Error shown when trying to add more signers to a document certified with DocMDP level that forbids further changes.
 					$this->l10n->t('This document has been certified with no changes allowed. You cannot add more signers to this document.'),
 					AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY
 				);
@@ -1171,6 +1180,7 @@ class SignFileService {
 		$nodeId = $this->libreSignFile->getNodeId();
 
 		if ($userId === null) {
+			// TRANSLATORS Error shown when the data required to apply a digital signature is missing or invalid.
 			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 		}
 
@@ -1236,6 +1246,7 @@ class SignFileService {
 
 			throw new \Exception('Invalid arguments');
 		} catch (DoesNotExistException) {
+			// TRANSLATORS Error shown when the document to sign cannot be found.
 			throw new LibresignException($this->l10n->t('File not found'), 1);
 		}
 	}
@@ -1243,6 +1254,7 @@ class SignFileService {
 	public function renew(SignRequestEntity $signRequest, string $method): void {
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 		if (empty($identifyMethods[$method])) {
+			// TRANSLATORS Error shown when the chosen method to identify the signer (account, email, SMS, etc.) is invalid.
 			throw new LibresignException($this->l10n->t('Invalid identification method'));
 		}
 
@@ -1265,6 +1277,7 @@ class SignFileService {
 	): void {
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 		if (empty($identifyMethods[$identifyMethodName])) {
+			// TRANSLATORS Error shown when the chosen method to identify the signer (account, email, SMS, etc.) is invalid.
 			throw new LibresignException($this->l10n->t('Invalid identification method'));
 		}
 		foreach ($identifyMethods[$identifyMethodName] as $identifyMethod) {
@@ -1279,6 +1292,7 @@ class SignFileService {
 			$signatureMethod->requestCode($identifier, $identifyMethod->getEntity()->getIdentifierKey());
 			return;
 		}
+		// TRANSLATORS Error shown when sending a signing verification code is disabled by configuration.
 		throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
 	}
 
@@ -1383,14 +1397,17 @@ class SignFileService {
 			) {
 				throw new LibresignException(json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
+					// TRANSLATORS Error shown when the signer tries to sign before they are allowed to (for example, earlier steps are incomplete).
 					'errors' => [['message' => $this->l10n->t('You are not allowed to sign this document yet')]],
 				]));
 			}
 			if ($signRequest->getSigned()) {
+				// TRANSLATORS Error shown when the current user already signed this document.
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
 			return $signRequest;
 		} catch (DoesNotExistException) {
+			// TRANSLATORS Error shown when the data required to apply a digital signature is missing or invalid.
 			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 		}
 	}
@@ -1486,9 +1503,11 @@ class SignFileService {
 			$userFolder = $this->root->getUserFolder($uid);
 		} catch (NoUserException $e) {
 			$this->logger->error('[file-access] NoUserException for uid={uid}', ['uid' => $uid]);
+			// TRANSLATORS Error shown when the Nextcloud user linked to the signer cannot be found.
 			throw new LibresignException($this->l10n->t('User not found.'));
 		} catch (NotPermittedException $e) {
 			$this->logger->error('[file-access] NotPermittedException for uid={uid}', ['uid' => $uid]);
+			// TRANSLATORS Permission error shown when the current user cannot perform the requested signing action.
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		}
 
@@ -1507,6 +1526,7 @@ class SignFileService {
 				'nodeId' => $nodeId,
 				'type' => $fileToSign ? $fileToSign::class : 'NULL',
 			]);
+			// TRANSLATORS Error shown when the document to sign cannot be found.
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
 		return $fileToSign;
@@ -1555,6 +1575,7 @@ class SignFileService {
 	private function createSignedFile(File $originalFile, string $content): File {
 		$filename = preg_replace(
 			'/' . $originalFile->getExtension() . '$/',
+			// TRANSLATORS Filename suffix used when saving the signed document copy. Appears before the original file extension.
 			$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
 			basename($originalFile->getPath())
 		);
@@ -1576,6 +1597,7 @@ class SignFileService {
 
 			return $this->createdSignedFile;
 		} catch (NotPermittedException) {
+			// TRANSLATORS Permission error shown when the current user cannot perform the requested signing action.
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		} catch (\Exception $e) {
 			throw $e;
@@ -1620,6 +1642,7 @@ class SignFileService {
 				if ($nodeId === null) {
 					throw new LibresignException(json_encode([
 						'action' => JSActions::ACTION_DO_NOTHING,
+						// TRANSLATORS Error shown when the document to sign cannot be found.
 						'errors' => [['message' => $this->l10n->t('File not found')]],
 					]), AppFrameworkHttp::STATUS_NOT_FOUND);
 				}
@@ -1635,6 +1658,7 @@ class SignFileService {
 		if ($nodeId === null) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
+				// TRANSLATORS Error shown when the document to sign cannot be found.
 				'errors' => [['message' => $this->l10n->t('File not found')]],
 			]), AppFrameworkHttp::STATUS_NOT_FOUND);
 		}
@@ -1644,6 +1668,7 @@ class SignFileService {
 		if (!$fileToSign instanceof File) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
+				// TRANSLATORS Error shown when the document to sign cannot be found.
 				'errors' => [['message' => $this->l10n->t('File not found')]],
 			]), AppFrameworkHttp::STATUS_NOT_FOUND);
 		}

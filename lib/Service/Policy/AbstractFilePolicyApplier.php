@@ -69,6 +69,7 @@ abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
 
 		$blockedBy = $resolvedPolicy->getBlockedBy() ?? $resolvedPolicy->getSourceScope();
 		$translatedMessage = $this->l10n instanceof IL10N
+			// TRANSLATORS Error shown when a signature-request setting is blocked by a higher-level LibreSign policy. The placeholder receives the scope that blocked the override.
 			? $this->l10n->t($message, [$blockedBy])
 			: vsprintf($message, [$blockedBy]);
 

@@ -631,6 +631,7 @@ class FileListService {
 
 		/** @var LibresignDetailedFileResponse */
 		$response = [
+			// TRANSLATORS Success message shown after a LibreSign file action completes successfully.
 			'message' => $this->l10n->t('Success'),
 			'id' => $mainEntity->getId(),
 			'nodeId' => $mainEntity->getNodeId(),
@@ -884,6 +885,7 @@ class FileListService {
 					], array_values($identifyMethodsOfSigner)),
 					'signed' => $signer->getSigned()?->format(\DateTimeInterface::ATOM),
 					'status' => $signer->getSigned() ? 1 : 0,
+					// TRANSLATORS Signer status labels on a document list: "Signed" when the person finished signing, "Pending" when their signature is still awaited.
 					'statusText' => $signer->getSigned() ? $this->l10n->t('Signed') : $this->l10n->t('Pending'),
 				];
 			}, $signers);

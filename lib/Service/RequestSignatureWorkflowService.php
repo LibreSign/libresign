@@ -58,6 +58,7 @@ final class RequestSignatureWorkflowService {
 		?array $visibleElements = null,
 	): array {
 		if ($file === [] && $files === []) {
+			// TRANSLATORS Error shown when starting a signature request without providing any documents.
 			throw new LibresignException($this->l10n->t('File or files parameter is required'));
 		}
 

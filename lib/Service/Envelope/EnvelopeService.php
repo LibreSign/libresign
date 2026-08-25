@@ -42,12 +42,14 @@ class EnvelopeService {
 	 */
 	public function validateEnvelopeConstraints(int $fileCount): void {
 		if (!$this->isEnabled()) {
+			// TRANSLATORS Error shown when the multi-document envelope feature is disabled by the administrator.
 			throw new LibresignException($this->l10n->t('Envelope feature is disabled'));
 		}
 
 		$maxFiles = $this->getMaxFilesPerEnvelope();
 		if ($fileCount > $maxFiles) {
 			throw new LibresignException(
+				// TRANSLATORS Error shown when adding documents would exceed the configured envelope size limit. %s is the maximum number of files allowed.
 				$this->l10n->t('Maximum number of files per envelope (%s) exceeded', [$maxFiles])
 			);
 		}
@@ -91,10 +93,12 @@ class EnvelopeService {
 		$envelope = $this->fileMapper->getById($envelopeId);
 
 		if (!$envelope->isEnvelope()) {
+			// TRANSLATORS Error shown when the given identifier does not refer to a signature envelope.
 			throw new LibresignException($this->l10n->t('The specified ID is not an envelope'));
 		}
 
 		if ($envelope->getStatus() > FileStatus::DRAFT->value) {
+			// TRANSLATORS Error shown when trying to add documents to an envelope that already started the signing process.
 			throw new LibresignException($this->l10n->t('Cannot add files to an envelope that is already in signing process'));
 		}
 
@@ -102,6 +106,7 @@ class EnvelopeService {
 		$currentCount = $this->fileMapper->countChildrenFiles($envelopeId);
 		if ($currentCount >= $maxFiles) {
 			throw new LibresignException(
+				// TRANSLATORS Error shown when adding documents would exceed the configured envelope size limit. %s is the maximum number of files allowed.
 				$this->l10n->t('Maximum number of files per envelope (%s) exceeded', [$maxFiles])
 			);
 		}

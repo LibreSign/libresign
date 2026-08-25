@@ -73,6 +73,7 @@ class Account extends AbstractIdentifyMethod {
 		$email = $signer->getEMailAddress();
 		if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException(
+				// TRANSLATORS Error shown when a signer identified by Nextcloud account has no valid email address for notifications.
 				$this->identifyService->getL10n()->t('Signer without valid email address')
 			);
 		}
@@ -113,6 +114,7 @@ class Account extends AbstractIdentifyMethod {
 			if (empty($signer) || count($signer) > 1) {
 				throw new LibresignException(json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
+					// TRANSLATORS Error shown when the Nextcloud account used to identify the signer is invalid.
 					'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid user')]],
 				]));
 			}
@@ -125,6 +127,7 @@ class Account extends AbstractIdentifyMethod {
 		if ($this->userSession->getUser() !== $signer) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
+				// TRANSLATORS Error shown when the Nextcloud account used to identify the signer is invalid.
 				'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid user')]],
 			]));
 		}
@@ -135,6 +138,7 @@ class Account extends AbstractIdentifyMethod {
 			$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_REDIRECT,
+				// TRANSLATORS Error shown when signing requires a logged-in Nextcloud account and the visitor is anonymous.
 				'errors' => [$this->identifyService->getL10n()->t('You are not logged in. Please log in.')],
 				'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
 					'redirect_url' => $this->urlGenerator->linkToRoute(

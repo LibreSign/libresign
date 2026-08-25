@@ -102,6 +102,7 @@ class IdDocsPolicyService {
 		$userGroups = $this->groupManager->getUserGroupIds($user);
 		if (!array_intersect($userGroups, $authorized)) {
 			if ($throw) {
+				// TRANSLATORS Permission error shown when the current user is not allowed to approve identity documents uploaded for signing.
 				throw new LibresignException($this->l10n->t('You are not allowed to approve user profile documents.'));
 			}
 			return false;
