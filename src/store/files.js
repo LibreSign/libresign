@@ -1261,7 +1261,7 @@ const _filesStore = defineStore('files', () => {
 			}
 		}
 
-		let response = await axios(config)
+		const response = await axios(config)
 			.catch((error) => {
 				const message = error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to save or update signature request')
 				return {

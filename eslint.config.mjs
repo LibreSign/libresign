@@ -123,7 +123,6 @@ export default [
 			'package-json/sort-package-json': 'off',
 			'perfectionist/sort-imports': 'off',
 			'perfectionist/sort-named-imports': 'off',
-			'prefer-const': 'off',
 			'prefer-object-has-own': 'off',
 			'vue/attribute-hyphenation': 'off',
 			'vue/attributes-order': 'off',

@@ -623,7 +623,7 @@ async function signWithEmailToken() {
 	})
 }
 
-let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
+const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 	loading.value = true
 	signStore.clearSigningErrors()
 
