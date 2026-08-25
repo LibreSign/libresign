@@ -59,7 +59,6 @@ const props = withDefaults(defineProps<{
 	useModal?: boolean
 	errors?: UploadError[]
 }>(), {
-	useModal: true,
 	errors: () => [],
 })
 
@@ -77,12 +76,12 @@ const uploadCertificateActionLabel = t('libresign', 'Upload certificate')
 // TRANSLATORS Secondary action label used to close upload certificate dialog.
 const closeLabel = t('libresign', 'Close')
 
-const showModal = computed(() => props.useModal && signMethodsStore.modal.uploadCertificate)
+const showModal = computed(() => props.useModal !== false && signMethodsStore.modal.uploadCertificate)
 const displayErrors = computed(() => [...props.errors, ...localErrors.value])
 
 function closeDialog() {
 	localErrors.value = []
-	if (props.useModal) {
+	if (props.useModal !== false) {
 		signMethodsStore.closeModal('uploadCertificate')
 	}
 }
@@ -98,7 +97,7 @@ function triggerUpload() {
 
 		if (file) {
 			await doUpload(file)
-		} else if (props.useModal) {
+		} else if (props.useModal !== false) {
 			signMethodsStore.closeModal('uploadCertificate')
 		}
 
@@ -106,7 +105,7 @@ function triggerUpload() {
 	}
 
 	input.oncancel = () => {
-		if (props.useModal) {
+		if (props.useModal !== false) {
 			signMethodsStore.closeModal('uploadCertificate')
 		}
 		input.remove()
@@ -124,7 +123,7 @@ async function doUpload(file: File) {
 		showSuccess(data.ocs.data.message)
 		signMethodsStore.setHasSignatureFile(true)
 		localErrors.value = []
-		if (props.useModal) {
+		if (props.useModal !== false) {
 			signMethodsStore.closeModal('uploadCertificate')
 		}
 		emit('certificate:uploaded')

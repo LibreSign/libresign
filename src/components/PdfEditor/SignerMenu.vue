@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcActions v-if="show"
+	<NcActions v-if="show !== false"
 		class="signer-menu"
 		:force-menu="true"
 		menu-name=""
@@ -62,7 +62,6 @@ const props = withDefaults(defineProps<{
 	signers: () => [],
 	currentSigner: null,
 	getSignerLabel: null,
-	show: true,
 })
 
 const emit = defineEmits<{

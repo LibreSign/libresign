@@ -44,13 +44,13 @@
 			</div>
 
 			<div
-				v-if="showAllowOverrideSwitch && allowOverrideMutable"
+				v-if="showAllowOverrideSwitch !== false && allowOverrideMutable !== false"
 				class="policy-workbench__global-behavior"
 				:class="{ 'policy-workbench__global-behavior--identify-methods': isIdentifyMethodsEditor }">
 				<NcCheckboxRadioSwitch
 					type="switch"
 					:model-value="editorDraft.allowChildOverride"
-					:disabled="saveStatus === 'saving' || !allowOverrideMutable"
+					:disabled="saveStatus === 'saving' || allowOverrideMutable === false"
 					@update:modelValue="$emit('update-allow-override', $event)">
 					<div class="policy-workbench__switch-copy">
 						<span>{{ allowOverrideTitle }}</span>
@@ -65,7 +65,7 @@
 				{{ duplicateMessage }}
 			</NcNoteCard>
 
-			<div v-if="showInlineActions" class="policy-workbench__editor-actions" :class="{ 'policy-workbench__editor-actions--sticky-mobile': stickyActions }">
+			<div v-if="showInlineActions !== false" class="policy-workbench__editor-actions" :class="{ 'policy-workbench__editor-actions--sticky-mobile': stickyActions }">
 				<NcButton v-if="showBackButton" variant="tertiary" :aria-label="goBackToRuleTypeSelectionLabel" :disabled="saveStatus === 'saving'" @click="$emit('back')">
 					<!-- TRANSLATORS Secondary button label that returns to the previous step in the policy rule creation flow. -->
 					{{ t('libresign', '← Back') }}
@@ -134,11 +134,8 @@ const props = withDefaults(defineProps<{
 	allowOverrideMutable?: boolean
 	hideTargetSelector?: boolean
 }>(), {
-	showInlineActions: true,
 	stickyActions: false,
 	showBackButton: false,
-	showAllowOverrideSwitch: true,
-	allowOverrideMutable: true,
 	hideTargetSelector: false,
 	editorProps: () => ({}),
 	precedenceScopes: () => [],

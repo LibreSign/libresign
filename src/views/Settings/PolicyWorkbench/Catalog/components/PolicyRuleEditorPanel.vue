@@ -41,10 +41,10 @@
 			</div>
 
 			<NcCheckboxRadioSwitch
-				v-if="showAllowOverrideSwitch && allowOverrideMutable"
+				v-if="showAllowOverrideSwitch !== false && allowOverrideMutable !== false"
 				type="switch"
 				:model-value="editorDraft.allowChildOverride"
-				:disabled="saveStatus === 'saving' || !allowOverrideMutable"
+				:disabled="saveStatus === 'saving' || allowOverrideMutable === false"
 				@update:modelValue="$emit('update-allow-override', $event)">
 				<div class="policy-workbench__switch-copy">
 					<span>{{ allowOverrideTitle }}</span>
@@ -58,7 +58,7 @@
 				{{ duplicateMessage }}
 			</NcNoteCard>
 
-			<div v-if="showInlineActions" class="policy-workbench__editor-actions" :class="{ 'policy-workbench__editor-actions--sticky-mobile': stickyActions }">
+			<div v-if="showInlineActions !== false" class="policy-workbench__editor-actions" :class="{ 'policy-workbench__editor-actions--sticky-mobile': stickyActions }">
 				<NcButton v-if="showBackButton" variant="tertiary" :aria-label="goBackToRuleTypeSelectionLabel" :disabled="saveStatus === 'saving'" @click="$emit('back')">
 					{{ backButtonLabel }}
 				</NcButton>
@@ -123,11 +123,8 @@ const props = withDefaults(defineProps<{
 	showAllowOverrideSwitch?: boolean
 	allowOverrideMutable?: boolean
 }>(), {
-	showInlineActions: true,
 	stickyActions: false,
 	showBackButton: false,
-	showAllowOverrideSwitch: true,
-	allowOverrideMutable: true,
 	editorProps: () => ({}),
 	precedenceScopes: () => [],
 })
