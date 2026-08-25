@@ -22,11 +22,11 @@ interface SigningAction {
 /**
  * Determine the primary action to execute based on current signing state
  *
- * @param {SignStore} signStore - Sign store instance
- * @param {SignMethodsStore} signMethodsStore - SignMethods store instance
- * @param {boolean} needCreateSignature - Whether signature needs to be created
- * @param {boolean} needIdentificationDocuments - Whether identification documents are needed
- * @return {SigningAction|null} - Action object with action name and callback or null if unable to sign
+ * @param signStore - Sign store instance
+ * @param signMethodsStore - SignMethods store instance
+ * @param needCreateSignature - Whether signature needs to be created
+ * @param needIdentificationDocuments - Whether identification documents are needed
+ * @return - Action object with action name and callback or null if unable to sign
  */
 export function getPrimarySigningAction(
 	signStore: SignStore,
