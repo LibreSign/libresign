@@ -123,7 +123,6 @@ export default [
 			'vue/max-attributes-per-line': 'off',
 			'vue/multi-word-component-names': 'off',
 			'vue/multiline-html-element-content-newline': 'off',
-			'vue/new-line-between-multi-line-property': 'off',
 			'vue/no-boolean-default': 'off',
 			'vue/no-unused-properties': 'off',
 			'vue/no-unused-refs': 'off',
