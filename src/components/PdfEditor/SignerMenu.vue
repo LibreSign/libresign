@@ -6,7 +6,7 @@
 	<NcActions v-if="show"
 		class="signer-menu"
 		:force-menu="true"
-		:menu-name="''"
+		menu-name=""
 		variant="tertiary-no-background">
 		<template #icon>
 			<span class="signer-trigger">
