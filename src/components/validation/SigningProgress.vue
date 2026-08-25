@@ -159,6 +159,7 @@ async function fetchProgressFromValidation() {
 			progress.value = derived
 		}
 	} catch (error) {
+		// intentionally empty — keep current progress when validation fetch fails
 	}
 }
 

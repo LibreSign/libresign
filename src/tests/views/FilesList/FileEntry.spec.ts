@@ -346,7 +346,9 @@ describe('FileEntry.vue - Individual File Entry', () => {
 		vi.spyOn(vm.actions!, 'doRename').mockRejectedValueOnce(new Error('Rename failed'))
 		try {
 			await vm.onRename('newname.pdf')
-		} catch (e) {}
+		} catch (e) {
+			// intentionally empty — onRename rejects and clearing renamingSaving is asserted below
+		}
 		expect(vm.renamingSaving).toBe(false)
 	})
 

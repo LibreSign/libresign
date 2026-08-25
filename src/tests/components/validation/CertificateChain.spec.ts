@@ -73,6 +73,7 @@ describe('CertificateChain', () => {
 
 	beforeEach(() => {
 		if (wrapper) {
+			wrapper.unmount()
 		}
 		vi.clearAllMocks()
 	})
