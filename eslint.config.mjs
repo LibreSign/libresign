@@ -111,7 +111,6 @@ export default [
 			'jsdoc/valid-types': 'off',
 			'no-unused-vars': 'off',
 			'no-use-before-define': 'off',
-			'no-useless-assignment': 'off',
 			'perfectionist/sort-imports': 'off',
 			'perfectionist/sort-named-imports': 'off',
 			'vue/attribute-hyphenation': 'off',

@@ -276,7 +276,7 @@ test('footer template reset reverts to inherited default after save and reload',
 	const customTemplate = `<div>CUSTOM_${Date.now()}</div>`
 	let dialog = await openFooterPolicyEditor(page)
 	let ruleDialog = await openSystemRuleEditor(dialog)
-	let editorContext = await getFooterEditorContext(ruleDialog)
+	const editorContext = await getFooterEditorContext(ruleDialog)
 
 	const savePreviewRequest = captureNextPreviewRequest(page)
 	await replaceCodeMirrorContent(editorContext.editorField, customTemplate)
@@ -288,7 +288,7 @@ test('footer template reset reverts to inherited default after save and reload',
 
 	dialog = await openFooterPolicyEditor(page)
 	ruleDialog = await openSystemRuleEditor(dialog)
-	editorContext = await getFooterEditorContext(ruleDialog)
+	await getFooterEditorContext(ruleDialog)
 	const persistedBeforeReset = await getPersistedSystemFooterPolicy(page)
 	expect(persistedBeforeReset.customizeFooterTemplate).toBe(true)
 	expect(persistedBeforeReset.footerTemplate).toBe(customTemplate)
