@@ -99,7 +99,6 @@ export default [
 			'import-extensions/extensions': 'off',
 			'jsdoc/check-tag-names': 'off',
 			'jsdoc/no-types': 'off',
-			'jsdoc/reject-any-type': 'off',
 			'jsdoc/require-jsdoc': 'off',
 			'jsdoc/require-param': 'off',
 			'jsdoc/require-param-description': 'off',
