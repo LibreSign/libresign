@@ -18,6 +18,7 @@ defineProps<{
 	}
 }>()
 </script>
+
 <template>
 	<div class="user-image">
 		<div class="user-image-label">

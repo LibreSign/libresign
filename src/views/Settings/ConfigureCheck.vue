@@ -30,6 +30,7 @@
 		</table>
 	</NcSettingsSection>
 </template>
+
 <script setup lang="ts">
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
@@ -54,6 +55,7 @@ defineOptions({
 
 const configureCheckStore = useConfigureCheckStore() as unknown as ConfigureCheckStore
 </script>
+
 <style lang="scss" scoped>
 table {
 	white-space: inherit;

@@ -48,6 +48,7 @@
 		</p>
 	</div>
 </template>
+
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
@@ -257,6 +258,7 @@ defineExpose({
 	focusInput,
 })
 </script>
+
 <style lang="scss" scoped>
 .account-or-email {
 	display: flex;

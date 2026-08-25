@@ -285,6 +285,7 @@
 			@close="showEnvelopeFilesDialog = false" />
 	</div>
 </template>
+
 <script setup lang="ts">
 
 import { t } from '@nextcloud/l10n'
@@ -1594,6 +1595,7 @@ defineExpose({
 	normalizeSigningOrders,
 })
 </script>
+
 <style lang="scss" scoped>
 
 :deep(.checkbox-radio-switch) {

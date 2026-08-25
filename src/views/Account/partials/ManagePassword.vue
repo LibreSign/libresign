@@ -127,6 +127,7 @@ defineExpose({
 	mdiFileReplace,
 })
 </script>
+
 <style lang="scss" scoped>
 
 .user-display-password {
