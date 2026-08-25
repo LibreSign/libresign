@@ -130,7 +130,6 @@ export default [
 			'vue/new-line-between-multi-line-property': 'off',
 			'vue/no-boolean-default': 'off',
 			'vue/no-template-shadow': 'off',
-			'vue/no-undef-components': 'off',
 			'vue/no-unused-properties': 'off',
 			'vue/no-unused-refs': 'off',
 			'vue/no-v-html': 'off',
