@@ -6,7 +6,7 @@
 	<div class="signing-order-diagram">
 		<div class="diagram-content">
 		<div class="stage">
-			<div class="stage-number-placeholder"></div>
+			<div class="stage-number-placeholder" />
 			<div class="stage-label">{{ senderStageLabel }}</div>
 				<div class="stage-items">
 					<div class="signer-node sender">
@@ -21,7 +21,7 @@
 			</div>
 			<div v-for="order in uniqueOrders" :key="order" class="stage">
 			<div class="stage-number">{{ order }}</div>
-			<div class="stage-label-placeholder"></div>
+			<div class="stage-label-placeholder" />
 			<div class="stage-items">
 					<div v-for="(signer, index) in getSignersByOrder(order)"
 						:key="`${order}-${index}`"
@@ -87,7 +87,7 @@
 				</div>
 			</div>
 		<div class="stage">
-			<div class="stage-number-placeholder"></div>
+			<div class="stage-number-placeholder" />
 			<div class="stage-label">{{ completedStageLabel }}</div>
 				<div class="stage-items">
 					<div class="signer-node completed">

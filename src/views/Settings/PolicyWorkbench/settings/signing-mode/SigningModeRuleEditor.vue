@@ -75,7 +75,7 @@
 								:value="localParallelValue"
 								aria-describedby="signing-mode-parallel-helper"
 								@input="onParallelChange($event.target.value)"
-								@blur="emitNormalizedParallel" />
+								@blur="emitNormalizedParallel">
 						</div>
 						<p id="signing-mode-parallel-helper" class="signing-mode-rule-editor__parallel-helper">
 							<!-- TRANSLATORS Helper text explaining the concurrent jobs limit. -->

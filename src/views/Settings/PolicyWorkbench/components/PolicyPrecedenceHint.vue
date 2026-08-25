@@ -12,7 +12,7 @@
 		<NcIconSvgWrapper :path="mdiInformationOutline" :size="16" />
 		<span class="policy-workbench__priority-content">
 			<span class="policy-workbench__priority-label">{{ priorityLabel }}</span>
-			<span class="policy-workbench__priority-spacer"> </span>
+			<span class="policy-workbench__priority-spacer" />
 			<span class="policy-workbench__priority-scopes" dir="ltr">
 				<template v-for="(scope, index) in normalizedScopes" :key="`${variant}-${scope}-${index}`">
 					<bdi class="policy-workbench__priority-scope">{{ scope }}</bdi>
@@ -24,7 +24,7 @@
 	<p v-else-if="hasPriorityScopes" class="policy-workbench__precedence-hint">
 		<span class="policy-workbench__priority-content">
 			<span class="policy-workbench__priority-label">{{ priorityLabel }}</span>
-			<span class="policy-workbench__priority-spacer"> </span>
+			<span class="policy-workbench__priority-spacer" />
 			<span class="policy-workbench__priority-scopes" dir="ltr">
 				<template v-for="(scope, index) in normalizedScopes" :key="`${variant}-${scope}-${index}`">
 					<bdi class="policy-workbench__priority-scope">{{ scope }}</bdi>

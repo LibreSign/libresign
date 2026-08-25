@@ -81,7 +81,7 @@
 		</div>
 
 		<div v-if="saveStatus === 'saving'" class="policy-workbench__saving-overlay" aria-live="polite" aria-busy="true">
-			<div class="policy-workbench__saving-spinner" aria-hidden="true"></div>
+			<div class="policy-workbench__saving-spinner" aria-hidden="true" />
 		</div>
 	</section>
 </template>
