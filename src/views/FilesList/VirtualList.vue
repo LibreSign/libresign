@@ -128,7 +128,7 @@ export default {
 
 		updateObserver() {
 			const endOfListElement = this.$refs?.endOfList
-			if (!endOfListElement) return
+			if (!endOfListElement) { return }
 			this.observer.disconnect()
 			this.observer.observe(endOfListElement)
 		},

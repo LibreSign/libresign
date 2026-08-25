@@ -34,7 +34,7 @@ const mockRegisterFileAction = vi.fn()
 const mockAxiosPost = vi.fn(() => Promise.resolve({ data: {} }))
 
 const mockLoadState = vi.fn((app: string, key: string, defaultValue?: unknown) => {
-	if (app === 'libresign' && key === 'certificate_ok') return true
+	if (app === 'libresign' && key === 'certificate_ok') { return true }
 	return defaultValue
 })
 

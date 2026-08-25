@@ -78,7 +78,7 @@ vi.mock('@nextcloud/capabilities', () => ({
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app, key, defaultValue) => {
-		if (key === 'certificate_ok') return true
+		if (key === 'certificate_ok') { return true }
 		return defaultValue
 	}),
 }))

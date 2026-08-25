@@ -47,7 +47,7 @@ describe('CertificateEngine.vue', () => {
 
 	it('maps the initial state to the selected option', () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'certificate_engine') return 'openssl'
+			if (key === 'certificate_engine') { return 'openssl' }
 			return fallback
 		})
 

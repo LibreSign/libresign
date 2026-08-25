@@ -484,7 +484,7 @@ onUnmounted(() => {
 })
 
 function clampZoom(value: number): number {
-	if (!Number.isFinite(value)) return 100
+	if (!Number.isFinite(value)) { return 100 }
 	return Math.max(25, Math.min(400, Math.round(value)))
 }
 

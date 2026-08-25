@@ -272,8 +272,8 @@ const filters = reactive({
 const hasActiveFilters = computed(() => !!(filters.owner || filters.status))
 const activeFilterCount = computed(() => {
 	let count = 0
-	if (filters.owner) count++
-	if (filters.status) count++
+	if (filters.owner) { count++ }
+	if (filters.status) { count++ }
 	return count
 })
 const filteredDocuments = computed(() => {
