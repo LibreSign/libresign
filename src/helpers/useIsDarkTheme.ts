@@ -12,6 +12,7 @@ import { checkIfDarkTheme } from '../utils/isDarkTheme'
  * Check whether the dark theme is enabled on a specific element.
  * If you need to check an entire page, use `useIsDarkTheme` instead.
  * Reacts on element attributes changes and system theme changes.
+ *
  * @param {HTMLElement} el - The element to check for the dark theme enabled on
  * @return {Ref<boolean>} - computed boolean whether the dark theme is enabled
  */
@@ -35,6 +36,7 @@ export function useIsDarkThemeElement(el: HTMLElement = document.body): Ref<bool
 /**
  * Shared composable to check whether the dark theme is enabled on the page.
  * Reacts on body data-theme-* attributes changes and system theme changes.
+ *
  * @return {Ref<boolean>} - computed boolean whether the dark theme is enabled
  */
 export const useIsDarkTheme = createSharedComposable(() => useIsDarkThemeElement())
