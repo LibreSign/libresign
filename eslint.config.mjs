@@ -90,7 +90,6 @@ export default [
 			'@stylistic/space-before-function-paren': 'off',
 			'@stylistic/space-in-parens': 'off',
 			'@typescript-eslint/consistent-type-imports': 'off',
-			'@typescript-eslint/no-empty-object-type': 'off',
 			'@typescript-eslint/no-explicit-any': 'off',
 			'@typescript-eslint/no-unused-expressions': 'off',
 			'@typescript-eslint/no-unused-vars': 'off',
