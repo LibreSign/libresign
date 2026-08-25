@@ -25,7 +25,7 @@ interface SigningAction {
  * @param {SignMethodsStore} signMethodsStore - SignMethods store instance
  * @param {boolean} needCreateSignature - Whether signature needs to be created
  * @param {boolean} needIdentificationDocuments - Whether identification documents are needed
- * @returns {SigningAction|null} - Action object with action name and callback or null if unable to sign
+ * @return {SigningAction|null} - Action object with action name and callback or null if unable to sign
  */
 export function getPrimarySigningAction(
 	signStore: SignStore,
