@@ -32,9 +32,9 @@
 			</NcButton>
 		</div>
 		<NcActions v-else
+			v-model:open="openedMenu"
 			:menu-name="requestMenuName"
-			:variant="variant"
-			v-model:open="openedMenu">
+			:variant="variant">
 			<template #icon>
 				<NcIconSvgWrapper :path="mdiPlus" :size="20" />
 			</template>

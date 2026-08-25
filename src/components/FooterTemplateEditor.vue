@@ -96,8 +96,8 @@
 			</div>
 		</div>
 
-		<NcDialog :name="availableTemplateVariablesDialogTitle"
-			v-model:open="showVariablesDialog"
+		<NcDialog v-model:open="showVariablesDialog"
+			:name="availableTemplateVariablesDialogTitle"
 			size="normal">
 			<div class="variables-dialog">
 				<p class="variables-dialog__description">

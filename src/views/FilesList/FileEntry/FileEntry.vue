@@ -21,8 +21,8 @@
 
 		<!-- Actions -->
 		<FileEntryActions ref="actions"
-			:class="`files-list__row-actions-${source.id}`"
 			v-model:opened="openedMenu"
+			:class="`files-list__row-actions-${source.id}`"
 			:source="source"
 			:loading="loading"
 			@start-rename="onStartRename" />

@@ -6,11 +6,11 @@
 	<td ref="rootElement" class="files-list__row-actions">
 		<!-- Menu actions -->
 		<NcActions ref="actionsMenu"
+			v-model:open="openedMenu"
 			:boundaries-element="boundariesElement"
 			:container="boundariesElement"
 			:force-name="true"
 			variant="tertiary"
-			v-model:open="openedMenu"
 			@close="openedMenu = false"
 			@closed="onMenuClosed">
 			<!-- Default actions list-->
@@ -31,12 +31,12 @@
 			</NcActionButton>
 		</NcActions>
 		<NcDialog v-if="confirmDelete"
+			v-model:open="confirmDelete"
 			:name="confirmDialogTitle"
-			:no-close="deleting"
-			v-model:open="confirmDelete">
+			:no-close="deleting">
 			{{ deleteConfirmationMessage }}
-			<NcCheckboxRadioSwitch type="switch"
-				v-model="deleteFile"
+			<NcCheckboxRadioSwitch v-model="deleteFile"
+				type="switch"
 				:disabled="deleting">
 				{{ alsoDeleteFileLabel }}
 			</NcCheckboxRadioSwitch>

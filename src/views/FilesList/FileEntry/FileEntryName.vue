@@ -24,8 +24,8 @@
 	</form>
 
 	<!-- Display name -->
-	<component v-else
-		:is="linkTo.is"
+	<component :is="linkTo.is"
+		v-else
 		ref="basename"
 		class="files-list__row-name-link"
 		v-bind="linkTo.params"
