@@ -55,7 +55,7 @@ describe('signature-text personalPreferenceBehavior', () => {
 		})
 
 		expect(signatureStampPersonalPreferenceBehavior.resolveSelectedValue?.(null, context as never)).toEqual({
-			signatureStampValue: signatureStampValue,
+			signatureStampValue,
 			collectMetadataEnabled: true,
 		})
 	})
@@ -68,7 +68,7 @@ describe('signature-text personalPreferenceBehavior', () => {
 		})
 
 		await signatureStampPersonalPreferenceBehavior.savePreference?.({
-			signatureStampValue: signatureStampValue,
+			signatureStampValue,
 			collectMetadataEnabled: false,
 		}, context as never)
 
