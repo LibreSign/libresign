@@ -3,23 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import js from '@eslint/js'
-import { FlatCompat } from '@eslint/eslintrc'
-import nextcloudConfig from '@nextcloud/eslint-config'
-import { dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-const compat = new FlatCompat({
-	baseDirectory: dirname(fileURLToPath(import.meta.url)),
-	recommendedConfig: js.configs.recommended,
-	allConfig: js.configs.all,
-})
-
-const compatConfigs = (Array.isArray(nextcloudConfig) ? nextcloudConfig : [nextcloudConfig])
-	.flatMap((config) => compat.config(config))
+import { recommended } from '@nextcloud/eslint-config'
 
 export default [
-	...compatConfigs,
+	...recommended,
 
 	{
 		name: 'libresign/ignores',
