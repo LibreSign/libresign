@@ -669,10 +669,11 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->markTestSkipped('Extension imagick is not loaded');
 		}
 
-		$stampWidth = SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH;
-		$stampHeight = SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT;
+		$stampWidth = SignatureTextService::DEFAULT_SIGNATURE_WIDTH;
+		$stampHeight = SignatureTextService::DEFAULT_SIGNATURE_HEIGHT;
 		$scaleFactor = (float)(new \ReflectionClass(JSignPdfHandler::class))->getConstant('SCALE_FACTOR_MIN');
-		$this->persistSignatureStampPolicy('', signatureWidth: $stampWidth, signatureHeight: $stampHeight);
+		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_width', $stampWidth);
+		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_height', $stampHeight);
 
 		$backgroundPath = $this->createTransparentPng(10, 10);
 		$signaturePath = $this->createPngWithOpaqueCorners($signatureWidth, $signatureHeight);
