@@ -33,8 +33,7 @@
 				label="displayName"
 				:clearable="false"
 				:loading="groupsLoading"
-				@update:modelValue="updateApprovers"
-			/>
+				@update:modelValue="updateApprovers" />
 		</div>
 	</div>
 </template>

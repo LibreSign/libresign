@@ -89,8 +89,7 @@
 					</NcListItem>
 					<div v-if="isFileOpen(fileIndex)" class="file-signers">
 						<DocumentValidationDetails
-							:document="file"
-						/>
+							:document="file" />
 					</div>
 				</li>
 			</ul>
