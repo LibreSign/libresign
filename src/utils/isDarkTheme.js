@@ -5,6 +5,7 @@
 
 /**
  * Check if dark theme is used on a specific element
+ *
  * @param {HTMLElement} el - Element to check for dark theme, default is document.body, which is used for data-theme-* settings
  * @return {boolean} - Whether the dark theme is enabled via Nextcloud theme
  */

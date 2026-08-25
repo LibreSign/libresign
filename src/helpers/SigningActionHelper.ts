@@ -21,6 +21,7 @@ interface SigningAction {
 
 /**
  * Determine the primary action to execute based on current signing state
+ *
  * @param {SignStore} signStore - Sign store instance
  * @param {SignMethodsStore} signMethodsStore - SignMethods store instance
  * @param {boolean} needCreateSignature - Whether signature needs to be created

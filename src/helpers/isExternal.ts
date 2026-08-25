@@ -11,6 +11,7 @@ export type RouteLocationLike = {
 
 /**
  * Check if route is external (shared signature flow)
+ *
  * @param {RouteLocationLike} to Destination route
  * @param {RouteLocationLike} from Source route
  */

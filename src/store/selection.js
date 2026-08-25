@@ -14,6 +14,7 @@ const _selectionStore = defineStore('selection', () => {
 
 	/**
 	 * Set the selection of fileIds
+	 *
 	 * @param {Array} selection Selected files
 	 */
 	const set = (selection = []) => {
@@ -22,6 +23,7 @@ const _selectionStore = defineStore('selection', () => {
 
 	/**
 	 * Set the last selected index
+	 *
 	 * @param {number | null} index Position of last selected file
 	 */
 	const setLastIndex = (index = null) => {
