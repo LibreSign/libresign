@@ -13,6 +13,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      php-version: ${{ steps.versions.outputs.php-available-list }}
+      server-max: ${{ steps.versions.outputs.branches-max-list }}
+    steps:
+      - name: Checkout app
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Get version matrix
+        id: versions
+        uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2.3.1.3.2
+
   changes:
     runs-on: ubuntu-latest
     permissions:
@@ -42,10 +57,15 @@ jobs:
 
   infection:
     runs-on: ubuntu-latest
-    needs: changes
+    needs: [changes, matrix]
     if: needs.changes.outputs.src != 'false'
     env:
       APP_NAME: libresign
+
+    strategy:
+      matrix:
+        php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
+        server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
 
     steps:
       - name: Checkout server
@@ -54,7 +74,7 @@ jobs:
           persist-credentials: false
           submodules: true
           repository: nextcloud/server
-          ref: stable35
+          ref: ${{ matrix.server-versions }}
 
       - name: Checkout app
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -63,16 +83,10 @@ jobs:
           submodules: true
           path: apps/${{ env.APP_NAME }}
 
-      - name: Get php version
-        id: php-versions
-        uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2
-        with:
-          filename: apps/${{ env.APP_NAME }}/appinfo/info.xml
-
-      - name: Set up PHP ${{ steps.php-versions.outputs.php-min }}
+      - name: Set up PHP ${{ matrix.php-versions }}
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
-          php-version: ${{ steps.php-versions.outputs.php-min }}
+          php-version: ${{ matrix.php-versions }}
           extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite, imagick
           coverage: xdebug
           ini-file: development
