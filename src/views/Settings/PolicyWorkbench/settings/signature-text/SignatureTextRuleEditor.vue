@@ -109,11 +109,11 @@ const STAMP_PREVIEW_ZOOM_STORAGE_KEY = 'libresign.policy.signatureStamp.previewZ
 
 const props = defineProps({
 	modelValue: {
-		type: [String, Number, Boolean, Object, Array],
+		type: [Boolean, String, Number, Object, Array],
 		default: '',
 	},
 	inheritedValue: {
-		type: [String, Number, Boolean, Object, Array],
+		type: [Boolean, String, Number, Object, Array],
 		default: null,
 	},
 	collectMetadataEnabled: {
