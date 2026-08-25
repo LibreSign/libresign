@@ -181,7 +181,7 @@ const showDragHandle = computed(() => {
 	const totalSigners = file.signers.length
 	return signatureFlow.value === 'ordered_numeric'
 		&& totalSigners > 1
-		&& !Boolean(signer.value.signed)
+		&& !signer.value.signed
 		&& filesStore.canSave()
 })
 
@@ -218,7 +218,7 @@ const chipType = computed(() => {
 })
 
 const signerLinkAriaLabel = computed(() => {
-	if (Boolean(signer.value.signed)) {
+	if (signer.value.signed) {
 		// TRANSLATORS Accessible label for signed signer list item.
 		return t('libresign', 'Signer {name} (already signed)', { name: signerName.value })
 	}
@@ -245,7 +245,7 @@ function signerClickAction() {
 	if (filesStore.isOriginalFileDeleted()) {
 		return
 	}
-	if (Boolean(signer.value.signed)) {
+	if (signer.value.signed) {
 		return
 	}
 	if (isMethodDisabled.value) {
