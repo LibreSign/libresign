@@ -98,7 +98,6 @@ export default [
 			'import-extensions/ban-inline-type-imports': 'off',
 			'import-extensions/extensions': 'off',
 			'jsdoc/check-tag-names': 'off',
-			'jsdoc/no-defaults': 'off',
 			'jsdoc/no-types': 'off',
 			'jsdoc/reject-any-type': 'off',
 			'jsdoc/require-jsdoc': 'off',
