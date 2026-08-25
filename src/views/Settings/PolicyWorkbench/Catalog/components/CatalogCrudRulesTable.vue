@@ -214,21 +214,6 @@ defineOptions({
 	name: 'CatalogCrudRulesTable',
 })
 
-const emit = defineEmits<{
-	'crud-search-change': [value: string]
-	'update:scopeFilterOpen': [open: boolean]
-	'crud-scope-filter': [payload: { value: 'all' | CatalogCrudScope, selected: boolean }]
-	'visible-selection-change': [selected: boolean]
-	'row-selection-change': [payload: { ruleId: string, selected: boolean }]
-	'update-rule-actions-open': [payload: { ruleKey: string, open: boolean }]
-	'edit-rule': [payload: { scope: CatalogCrudScope, ruleId: string }]
-	'prompt-rule-removal': [payload: { ruleId: string, scope: CatalogCrudScope, targetLabel: string }]
-	'prompt-bulk-rule-removal': []
-	'clear-selection': []
-	'request-create-rule': []
-	'table-scroll': [event: Event]
-}>()
-
 const props = defineProps<{
 	crudSearch: string
 	crudScopeFilter: 'all' | CatalogCrudScope
@@ -251,6 +236,21 @@ const props = defineProps<{
 	openRuleActionsKey: string | null
 	crudScopeLabel: (scope: CatalogCrudScope) => string
 	isCrudRowSelected: (ruleId: string) => boolean
+}>()
+
+const emit = defineEmits<{
+	'crud-search-change': [value: string]
+	'update:scopeFilterOpen': [open: boolean]
+	'crud-scope-filter': [payload: { value: 'all' | CatalogCrudScope, selected: boolean }]
+	'visible-selection-change': [selected: boolean]
+	'row-selection-change': [payload: { ruleId: string, selected: boolean }]
+	'update-rule-actions-open': [payload: { ruleKey: string, open: boolean }]
+	'edit-rule': [payload: { scope: CatalogCrudScope, ruleId: string }]
+	'prompt-rule-removal': [payload: { ruleId: string, scope: CatalogCrudScope, targetLabel: string }]
+	'prompt-bulk-rule-removal': []
+	'clear-selection': []
+	'request-create-rule': []
+	'table-scroll': [event: Event]
 }>()
 
 // TRANSLATORS Label and placeholder for the CRUD table search field used to filter policy rules.

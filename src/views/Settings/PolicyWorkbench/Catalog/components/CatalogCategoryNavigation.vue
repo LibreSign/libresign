@@ -40,10 +40,6 @@ defineOptions({
 	name: 'CatalogCategoryNavigation',
 })
 
-const emit = defineEmits<{
-	navigate: [category: RealPolicySettingCategory, event?: MouseEvent]
-}>()
-
 withDefaults(defineProps<{
 	sections: CatalogCategorySection[]
 	activeCategory: RealPolicySettingCategory | null
@@ -52,6 +48,10 @@ withDefaults(defineProps<{
 }>(), {
 	chipsScrollerRef: null,
 })
+
+const emit = defineEmits<{
+	navigate: [category: RealPolicySettingCategory, event?: MouseEvent]
+}>()
 
 // TRANSLATORS Aria label for the navigation region used to jump between settings categories.
 const jumpToSettingsCategoryAriaLabel = t('libresign', 'Jump to settings category')

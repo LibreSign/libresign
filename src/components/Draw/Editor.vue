@@ -86,6 +86,11 @@ defineOptions({
 	name: 'Editor',
 })
 
+const emit = defineEmits<{
+	(event: 'close'): void
+	(event: 'save', value: string): void
+}>()
+
 type SignaturePadCanvas = HTMLCanvasElement & {
 	signaturePad?: InstanceType<typeof SignaturePad>
 }
@@ -93,11 +98,6 @@ type SignaturePadCanvas = HTMLCanvasElement & {
 type ColorPickerRef = {
 	$el?: HTMLElement
 }
-
-const emit = defineEmits<{
-	(event: 'close'): void
-	(event: 'save', value: string): void
-}>()
 
 const capabilities = getCapabilities() as LibresignCapabilities
 const signElementsConfig = capabilities.libresign?.config['sign-elements']

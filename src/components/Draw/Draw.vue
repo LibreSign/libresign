@@ -55,12 +55,6 @@ defineOptions({
 	name: 'Draw',
 })
 
-type AvailableTab = {
-	id: string
-	label: string
-	icon: string
-}
-
 const props = withDefaults(defineProps<{
 	drawEditor?: boolean
 	textEditor?: boolean
@@ -75,6 +69,12 @@ const emit = defineEmits<{
 	(event: 'close'): void
 	(event: 'save'): void
 }>()
+
+type AvailableTab = {
+	id: string
+	label: string
+	icon: string
+}
 
 const signatureElementsStore = useSignatureElementsStore()
 const mounted = ref(false)

@@ -30,6 +30,13 @@ defineOptions({
 	name: 'FileEntryCheckbox',
 })
 
+const props = withDefaults(defineProps<{
+	isLoading?: boolean
+	source: Source
+}>(), {
+	isLoading: false,
+})
+
 type Source = {
 	id: number | string
 	basename?: string
@@ -54,13 +61,6 @@ type SelectionStore = {
 	setLastIndex: (index: number) => void
 	reset: () => void
 }
-
-const props = withDefaults(defineProps<{
-	isLoading?: boolean
-	source: Source
-}>(), {
-	isLoading: false,
-})
 
 const filesStore = useFilesStore() as FilesStore
 const keyboardStore = useKeyboardStore() as KeyboardStore

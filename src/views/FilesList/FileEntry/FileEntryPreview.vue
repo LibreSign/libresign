@@ -33,6 +33,10 @@ defineOptions({
 	name: 'FileEntryPreview',
 })
 
+const props = defineProps<{
+	source: Source
+}>()
+
 type Source = {
 	attributes?: {
 		favorite?: number
@@ -46,10 +50,6 @@ type Source = {
 	name?: string
 	mime?: string
 }
-
-const props = defineProps<{
-	source: Source
-}>()
 
 const userConfigStore = useUserConfigStore()
 const cropPreviews = false

@@ -192,6 +192,17 @@ defineOptions({
 	name: 'EnvelopeValidation',
 })
 
+const props = withDefaults(defineProps<{
+	document: EnvelopeDocument
+	legalInformation?: string
+	documentValidMessage?: string | null
+	isAfterSigned?: boolean
+}>(), {
+	legalInformation: '',
+	documentValidMessage: null,
+	isAfterSigned: false,
+})
+
 type EnvelopeFile = NonNullable<LoadedValidationEnvelopeDocument['files']>[number]
 
 type EnvelopeSigner = Partial<Pick<SignerDetailRecord, 'displayName' | 'email' | 'userId' | 'request_sign_date' | 'remote_address' | 'user_agent'>> & {
@@ -204,17 +215,6 @@ type EnvelopeDocument = LoadedValidationEnvelopeDocument & {
 	signers?: EnvelopeSigner[]
 	signedDate?: string
 }
-
-const props = withDefaults(defineProps<{
-	document: EnvelopeDocument
-	legalInformation?: string
-	documentValidMessage?: string | null
-	isAfterSigned?: boolean
-}>(), {
-	legalInformation: '',
-	documentValidMessage: null,
-	isAfterSigned: false,
-})
 
 const { isTouchDevice } = useIsTouchDevice()
 const fileOpenState = ref<Record<number, boolean>>({})

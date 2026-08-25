@@ -94,6 +94,19 @@ defineOptions({
 	name: 'FileEntryActions',
 })
 
+const props = withDefaults(defineProps<{
+	opened?: boolean
+	source: SourceFile
+	loading: boolean | string
+}>(), {
+	opened: false,
+})
+
+const emit = defineEmits<{
+	(e: 'rename'): void
+	(e: 'start-rename'): void
+}>()
+
 type SourceFile = FileEntrySource & {
 	settings?: {
 		isApprover?: boolean
@@ -109,19 +122,6 @@ type MenuAction = {
 	title: string
 	iconSvgInline: string
 }
-
-const props = withDefaults(defineProps<{
-	opened?: boolean
-	source: SourceFile
-	loading: boolean | string
-}>(), {
-	opened: false,
-})
-
-const emit = defineEmits<{
-	(e: 'rename'): void
-	(e: 'start-rename'): void
-}>()
 
 const router = useRouter()
 const actionsMenuStore = useActionsMenuStore()

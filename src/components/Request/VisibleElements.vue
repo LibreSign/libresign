@@ -180,6 +180,10 @@ type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' |
 	saveOrUpdateSignatureRequest: (payload: { visibleElements: EditableVisibleElementPayload[] }) => Promise<{ message: string }>
 }
 
+defineOptions({
+	name: 'VisibleElements',
+})
+
 function isIdentifyMethodRecord(value: unknown): value is IdentifyMethodRecord {
 	const candidate = toRecord(value)
 	return candidate !== null
@@ -453,10 +457,6 @@ const normalizeVisibleElements = (elements: VisibleElementRecord[]): VisibleElem
 			},
 		} satisfies VisibleElementRecord]
 	})
-
-defineOptions({
-	name: 'VisibleElements',
-})
 
 const filesStore = useFilesStore() as FilesStore
 const instance = getCurrentInstance()

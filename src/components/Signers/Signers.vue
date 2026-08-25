@@ -47,19 +47,17 @@ defineOptions({
 	name: 'Signers',
 })
 
-type FilesStoreContract = ReturnType<typeof useFilesStore>
-type SelectedFile = ReturnType<FilesStoreContract['getFile']>
-type SignerListItem = NonNullable<NonNullable<SelectedFile['signers']>[number]>
-
 const props = withDefaults(defineProps<{
 	event?: string
 }>(), {
 	event: '',
 })
-
 const emit = defineEmits<{
 	(e: 'signing-order-changed'): void
 }>()
+type FilesStoreContract = ReturnType<typeof useFilesStore>
+type SelectedFile = ReturnType<FilesStoreContract['getFile']>
+type SignerListItem = NonNullable<NonNullable<SelectedFile['signers']>[number]>
 
 const filesStore = useFilesStore()
 

@@ -51,8 +51,6 @@ defineOptions({
 	name: 'SignerMenu',
 })
 
-type Signer = SignerSummaryRecord | SignerDetailRecord
-
 const props = withDefaults(defineProps<{
 	signers?: Signer[]
 	currentSigner?: Signer | null
@@ -67,6 +65,8 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
 	change: [signer: Signer]
 }>()
+
+type Signer = SignerSummaryRecord | SignerDetailRecord
 
 function label(signer: Signer | null | undefined) {
 	if (props.getSignerLabel) {

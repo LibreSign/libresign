@@ -119,6 +119,13 @@ defineOptions({
 	name: 'SigningOrderDiagram',
 })
 
+const props = withDefaults(defineProps<{
+	signers: Signer[]
+	senderName?: string
+}>(), {
+	senderName: '',
+})
+
 type IdentifyMethod = Pick<IdentifyMethodRecord, 'method' | 'value'>
 
 type Signer = {
@@ -131,13 +138,6 @@ type Signer = {
 		status?: number
 	}
 }
-
-const props = withDefaults(defineProps<{
-	signers: Signer[]
-	senderName?: string
-}>(), {
-	senderName: '',
-})
 
 // TRANSLATORS Stage title for sender/source of signature request flow.
 const senderStageLabel = t('libresign', 'SENDER')

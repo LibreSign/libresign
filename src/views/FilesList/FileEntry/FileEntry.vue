@@ -73,6 +73,11 @@ defineOptions({
 	name: 'FileEntry',
 })
 
+const props = defineProps<{
+	source: FileEntrySource
+	loading: boolean
+}>()
+
 type FileEntryActionsRef = {
 	doRename: (newName: string) => Promise<void>
 }
@@ -81,11 +86,6 @@ type FileEntryNameRef = {
 	startRenaming?: () => void
 	stopRenaming?: () => void
 }
-
-const props = defineProps<{
-	source: FileEntrySource
-	loading: boolean
-}>()
 
 const actionsMenuStore = useActionsMenuStore()
 const filesStore = useFilesStore()

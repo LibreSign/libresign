@@ -44,18 +44,9 @@
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { ref } from 'vue'
 
-const DRAG_EDIT_THRESHOLD_PX = 6
-const SELECTION_GUARD_WINDOW_MS = 250
-
 defineOptions({
 	name: 'PolicyRuleCard',
 })
-
-const emit = defineEmits<{
-	edit: []
-	remove: []
-}>()
-
 const props = withDefaults(defineProps<{
 	eyebrow: string
 	title: string
@@ -78,6 +69,12 @@ const props = withDefaults(defineProps<{
 	editText: '',
 	removeText: '',
 })
+const emit = defineEmits<{
+	edit: []
+	remove: []
+}>()
+const DRAG_EDIT_THRESHOLD_PX = 6
+const SELECTION_GUARD_WINDOW_MS = 250
 
 const lastPress = ref<{ x: number, y: number } | null>(null)
 const recentSelectionAt = ref(0)

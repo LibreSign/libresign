@@ -36,16 +36,16 @@ defineOptions({
 	name: 'FilesListTableHeaderButton',
 })
 
+const props = defineProps<{
+	name: string
+	mode: string
+}>()
+
 type FilesSortingStore = {
 	sortingMode: string
 	sortingDirection: string
 	toggleSortBy: (mode: string) => void
 }
-
-const props = defineProps<{
-	name: string
-	mode: string
-}>()
 
 const filesSortingStore = useFilesSortingStore() as FilesSortingStore
 

@@ -112,11 +112,15 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import { options, selectCustonOption } from '../../helpers/certification'
 
-const MAX_ARRAY_ITEMS = 10
-
 defineOptions({
 	name: 'CertificateCustonOptions',
 })
+
+const props = defineProps<{
+	names: CertificateOption[]
+}>()
+
+const MAX_ARRAY_ITEMS = 10
 
 interface CertificateOption {
 	id: string
@@ -127,10 +131,6 @@ interface CertificateOption {
 	value: string | string[]
 	error?: boolean
 }
-
-const props = defineProps<{
-	names: CertificateOption[]
-}>()
 
 const certificateList = ref<CertificateOption[]>([])
 

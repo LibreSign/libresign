@@ -51,11 +51,6 @@ defineOptions({
 	name: 'FileStatusList',
 })
 
-const emit = defineEmits<{
-	(event: 'file-signed', file: ValidationFileRecord): void
-	(event: 'files-updated', files: ValidationFileRecord[]): void
-}>()
-
 const props = withDefaults(defineProps<{
 	fileIds?: number[]
 	updateInterval?: number
@@ -63,6 +58,11 @@ const props = withDefaults(defineProps<{
 	fileIds: () => [],
 	updateInterval: 2000,
 })
+
+const emit = defineEmits<{
+	(event: 'file-signed', file: ValidationFileRecord): void
+	(event: 'files-updated', files: ValidationFileRecord[]): void
+}>()
 
 const { fileIds, updateInterval } = toRefs(props)
 const files = ref<ValidationFileRecord[]>([])

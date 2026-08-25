@@ -50,6 +50,12 @@ defineOptions({
 	name: 'IdentificationDocumentsRuleEditor',
 })
 
+const props = defineProps<Props>()
+
+const emit = defineEmits<{
+	'update:modelValue': [value: IdentificationDocumentsPayload]
+}>()
+
 interface Props {
 	modelValue: IdentificationDocumentsPayload
 	scope?: 'system' | 'group' | 'user'
@@ -62,12 +68,6 @@ interface GroupOption {
 }
 
 type ApproverSelection = Array<GroupOption | string>
-
-const props = defineProps<Props>()
-
-const emit = defineEmits<{
-	'update:modelValue': [value: IdentificationDocumentsPayload]
-}>()
 
 // TRANSLATORS Toggle label for enabling the workflow that asks signers to upload identification documents.
 const identificationDocumentsFlowTitle = t('libresign', 'Enable identification documents flow')

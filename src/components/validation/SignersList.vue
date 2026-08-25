@@ -49,19 +49,19 @@ defineOptions({
 	name: 'SignersList',
 })
 
-type SignerListEntry = {
-	displayName?: string
-	email?: string
-	userId?: string
-	signed?: string | null
-}
-
 const props = withDefaults(defineProps<{
 	signers: SignerListEntry[]
 	compact?: boolean
 }>(), {
 	compact: false,
 })
+
+type SignerListEntry = {
+	displayName?: string
+	email?: string
+	userId?: string
+	signed?: string | null
+}
 
 const { signers, compact } = toRefs(props)
 

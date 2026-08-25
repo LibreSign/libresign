@@ -45,9 +45,6 @@ defineOptions({
 	name: 'PreviewSignature',
 })
 
-// TRANSLATORS Accessible loading label shown while signature preview image is being fetched.
-const loadingLabel = t('libresign', 'Loading …')
-
 const props = withDefaults(defineProps<{
 	src: string
 	signRequestUuid?: string
@@ -61,6 +58,9 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
 	(e: 'loaded', status: boolean): void
 }>()
+
+// TRANSLATORS Accessible loading label shown while signature preview image is being fetched.
+const loadingLabel = t('libresign', 'Loading …')
 
 const loading = ref(true)
 const isLoaded = ref(false)
