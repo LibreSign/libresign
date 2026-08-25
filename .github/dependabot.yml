@@ -28,3 +28,9 @@ updates:
     directory: "/"
     schedule:
       interval: daily
+
+  # Maintain the Nextcloud image used by the devcontainer
+  - package-ecosystem: "docker"
+    directory: "/.devcontainer"
+    schedule:
+      interval: "daily"
