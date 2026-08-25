@@ -626,7 +626,7 @@ class AccountService {
 		try {
 			$pfx = $this->pkcs12Handler->updatePassword($user->getUID(), $current, $new);
 		} catch (InvalidPasswordException) {
-			// TRANSLATORS Authentication error when the account credentials used for LibreSign API access are invalid.
+			// TRANSLATORS Authentication error shown when the account credentials used to access LibreSign are invalid.
 			throw new LibresignException($this->l10n->t('Invalid user or password'));
 		}
 	}
@@ -641,7 +641,7 @@ class AccountService {
 				->setPassword($password)
 				->readCertificate();
 		} catch (InvalidPasswordException) {
-			// TRANSLATORS Authentication error when the account credentials used for LibreSign API access are invalid.
+			// TRANSLATORS Authentication error shown when the account credentials used to access LibreSign are invalid.
 			throw new LibresignException($this->l10n->t('Invalid user or password'));
 		}
 	}

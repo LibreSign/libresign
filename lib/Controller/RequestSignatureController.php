@@ -247,7 +247,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		}
 		return new DataResponse(
 			[
-				// TRANSLATORS API success message after creating or updating a signature request for one or more documents.
+				// TRANSLATORS Success message shown after creating or updating a signature request for one or more documents.
 				'message' => $this->l10n->t('Success')
 			],
 			Http::STATUS_OK
@@ -291,7 +291,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		}
 		return new DataResponse(
 			[
-				// TRANSLATORS API success message after creating or updating a signature request for one or more documents.
+				// TRANSLATORS Success message shown after creating or updating a signature request for one or more documents.
 				'message' => $this->l10n->t('Success')
 			],
 			Http::STATUS_OK

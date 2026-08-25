@@ -91,10 +91,10 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 			);
 		}
 		if (count($elements) === 1) {
-			// TRANSLATORS API success message after creating one visible signature element (signature image, initials, or text) on a document.
+			// TRANSLATORS Success message shown after creating one visible signature element (signature image, initials, or text) on a document.
 			$message = $this->l10n->t('Element created with success');
 		} else {
-			// TRANSLATORS API success message after creating multiple visible signature elements on a document in one request.
+			// TRANSLATORS Success message shown after creating multiple visible signature elements on a document in one request.
 			$message = $this->l10n->t('Elements created with success');
 		}
 		return new DataResponse(
@@ -142,7 +142,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		} catch (\Throwable) {
 			return new DataResponse(
 				[
-					// TRANSLATORS API error when requested visible signature elements cannot be found for the document.
+					// TRANSLATORS Error shown when requested visible signature elements cannot be found for the document.
 					'message' => $this->l10n->t('Elements not found')
 				],
 				Http::STATUS_NOT_FOUND
@@ -219,7 +219,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		} catch (\Throwable) {
 			return new DataResponse(
 				[
-					// TRANSLATORS API error when a visible signature element cannot be found for update or inspection.
+					// TRANSLATORS Error shown when a visible signature element cannot be found for update or inspection.
 					'message' => $this->l10n->t('Element not found')
 				],
 				Http::STATUS_NOT_FOUND
@@ -270,7 +270,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 			);
 			return new DataResponse(
 				[
-					// TRANSLATORS API success message after updating the position or content of a visible signature element on the document.
+					// TRANSLATORS Success message shown after updating the position or content of a visible signature element on the document.
 					'message' => $this->l10n->t('Element updated with success'),
 					'elements' => $elements,
 				],
@@ -310,7 +310,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		} catch (\Throwable) {
 			return new DataResponse(
 				[
-					// TRANSLATORS API error when deleting a visible signature element that cannot be found.
+					// TRANSLATORS Error shown when deleting a visible signature element that cannot be found.
 					'message' => $this->l10n->t('Element not found')
 				],
 				Http::STATUS_NOT_FOUND
@@ -318,7 +318,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		}
 		return new DataResponse(
 			[
-				// TRANSLATORS API success message after removing a visible signature or initials element from the document.
+				// TRANSLATORS Success message shown after removing a visible signature or initials element from the document.
 				'message' => $this->l10n->t('Visible element deleted')
 			],
 			Http::STATUS_OK

@@ -105,7 +105,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 
 			$this->accountService->createToSign($uuid, $email, $password, $signPassword);
 			$data = [
-				// TRANSLATORS API success message returned after a guest creates an account and is redirected to sign a pending document.
+				// TRANSLATORS Success message shown after a guest creates an account and is redirected to sign a pending document.
 				'message' => $this->l10n->t('Success'),
 				'action' => JSActions::ACTION_SIGN,
 				'pdf' => [
@@ -208,7 +208,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		if (!$user) {
 			return new DataResponse(
 				[
-					// TRANSLATORS error message when user that wants to access the API does not exists or used an invalid password
+					// TRANSLATORS Error shown when the user credentials are invalid or the account does not exist.
 					'message' => $this->l10n->t('Invalid user or password')
 				],
 				Http::STATUS_NOT_FOUND
@@ -267,7 +267,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 				'data' => [
 					'userId' => $user->getUID(),
 					'phone' => $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue(),
-					// TRANSLATORS API success message shown after the signed-in user saves account settings such as phone number.
+					// TRANSLATORS Success message shown after the signed-in user saves account settings such as phone number.
 					'message' => $this->l10n->t('Settings saved'),
 				],
 			],
@@ -311,7 +311,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		$file = $this->request->getUploadedFile('file');
 		try {
 			if (empty($file)) {
-				// TRANSLATORS API error when uploading a PFX/P12 certificate used to digitally sign documents and no file was sent.
+				// TRANSLATORS Error shown when uploading a certificate used to digitally sign documents and no file was sent.
 				throw new LibresignException($this->l10n->t('No certificate file provided'));
 			}
 			$this->accountService->uploadPfx($file, $this->userSession->getUser());

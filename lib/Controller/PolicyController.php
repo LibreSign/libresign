@@ -258,7 +258,7 @@ final class PolicyController extends AEnvironmentAwareController {
 			$policy = $this->policyService->saveSystem($policyKey, $value, $allowChildOverride);
 			/** @var LibresignSystemPolicyWriteResponse $data */
 			$data = [
-				// TRANSLATORS API success message after saving LibreSign policy settings in the Policy Workbench.
+				// TRANSLATORS Success message shown after saving LibreSign policy settings in the Policy Workbench.
 				'message' => $this->l10n->t('Settings saved'),
 				'policy' => $policy->toArray(),
 			];
@@ -302,7 +302,7 @@ final class PolicyController extends AEnvironmentAwareController {
 			$policy = $this->policyService->saveGroupPolicy($policyKey, $groupId, $value, $allowChildOverride);
 			/** @var LibresignGroupPolicyWriteResponse $data */
 			$data = [
-				// TRANSLATORS API success message after saving LibreSign policy settings in the Policy Workbench.
+				// TRANSLATORS Success message shown after saving LibreSign policy settings in the Policy Workbench.
 				'message' => $this->l10n->t('Settings saved'),
 				'policy' => $this->serializeGroupWritePolicy($groupId, $policyKey, $policy),
 			];
@@ -347,7 +347,7 @@ final class PolicyController extends AEnvironmentAwareController {
 			$policy = $this->policyService->clearGroupPolicy($policyKey, $groupId);
 			/** @var LibresignGroupPolicyWriteResponse $data */
 			$data = [
-				// TRANSLATORS API success message after saving LibreSign policy settings in the Policy Workbench.
+				// TRANSLATORS Success message shown after saving LibreSign policy settings in the Policy Workbench.
 				'message' => $this->l10n->t('Settings saved'),
 				'policy' => $this->serializeGroupWritePolicy($groupId, $policyKey, $policy),
 			];
@@ -390,7 +390,7 @@ final class PolicyController extends AEnvironmentAwareController {
 			$policy = $this->policyService->saveUserPreference($policyKey, $value);
 			/** @var LibresignSystemPolicyWriteResponse $data */
 			$data = [
-				// TRANSLATORS API success message after saving LibreSign policy settings in the Policy Workbench.
+				// TRANSLATORS Success message shown after saving LibreSign policy settings in the Policy Workbench.
 				'message' => $this->l10n->t('Settings saved'),
 				'policy' => $policy->toArray(),
 			];
@@ -437,7 +437,7 @@ final class PolicyController extends AEnvironmentAwareController {
 			$policy = $this->policyService->saveUserPolicyForUserId($policyKey, $userId, $value, $allowChildOverride);
 			/** @var LibresignUserPolicyWriteResponse $data */
 			$data = [
-				// TRANSLATORS API success message after saving LibreSign policy settings in the Policy Workbench.
+				// TRANSLATORS Success message shown after saving LibreSign policy settings in the Policy Workbench.
 				'message' => $this->l10n->t('Settings saved'),
 				'policy' => $this->serializeUserPolicy($userId, $policyKey, $policy),
 			];
@@ -470,7 +470,7 @@ final class PolicyController extends AEnvironmentAwareController {
 			$policy = $this->policyService->clearUserPreference($policyKey);
 			/** @var LibresignSystemPolicyWriteResponse $data */
 			$data = [
-				// TRANSLATORS API success message after saving LibreSign policy settings in the Policy Workbench.
+				// TRANSLATORS Success message shown after saving LibreSign policy settings in the Policy Workbench.
 				'message' => $this->l10n->t('Settings saved'),
 				'policy' => $policy->toArray(),
 			];
@@ -512,7 +512,7 @@ final class PolicyController extends AEnvironmentAwareController {
 			$policy = $this->policyService->clearUserPolicyForUserId($policyKey, $userId);
 			/** @var LibresignUserPolicyWriteResponse $data */
 			$data = [
-				// TRANSLATORS API success message after saving LibreSign policy settings in the Policy Workbench.
+				// TRANSLATORS Success message shown after saving LibreSign policy settings in the Policy Workbench.
 				'message' => $this->l10n->t('Settings saved'),
 				'policy' => $this->serializeUserPolicy($userId, $policyKey, $policy),
 			];
@@ -579,7 +579,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	private function forbiddenGroupPolicyResponse(): DataResponse {
 		/** @var LibresignErrorResponse $data */
 		$data = [
-			// TRANSLATORS API permission error when a non-admin tries to manage policy settings scoped to a Nextcloud group.
+			// TRANSLATORS Permission error shown when a non-admin tries to manage policy settings scoped to a Nextcloud group.
 			'error' => $this->l10n->t('Not allowed to manage this group policy'),
 		];
 
@@ -590,7 +590,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	private function forbiddenUserPolicyResponse(): DataResponse {
 		/** @var LibresignErrorResponse $data */
 		$data = [
-			// TRANSLATORS API permission error when a non-admin tries to manage policy settings scoped to another user.
+			// TRANSLATORS Permission error shown when a non-admin tries to manage policy settings scoped to another user.
 			'error' => $this->l10n->t('Not allowed to manage this user policy'),
 		];
 

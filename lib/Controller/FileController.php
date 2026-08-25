@@ -208,7 +208,7 @@ class FileController extends AEnvironmentAwareController {
 			/** @var LibresignActionErrorResponse $response */
 			$response = [
 				'action' => JSActions::ACTION_DO_NOTHING,
-				// TRANSLATORS API error shown when validating a signed document fails unexpectedly; ask the user to contact the server administrator.
+				// TRANSLATORS Error shown when validating a signed document fails unexpectedly; ask the user to contact the server administrator.
 				'errors' => [['message' => $this->l10n->t('Internal error. Contact admin.')]],
 			];
 
@@ -286,7 +286,7 @@ class FileController extends AEnvironmentAwareController {
 			return new DataResponse($response, Http::STATUS_NOT_FOUND);
 		} catch (\Throwable $th) {
 			$this->logger->error($th->getMessage(), ['exception' => $th]);
-			// TRANSLATORS API error shown when validating a signed document fails unexpectedly; ask the user to contact the server administrator.
+			// TRANSLATORS Error shown when validating a signed document fails unexpectedly; ask the user to contact the server administrator.
 			$message = $this->l10n->t('Internal error. Contact admin.');
 			/** @var LibresignActionErrorResponse $response */
 			$response = [
@@ -624,12 +624,12 @@ class FileController extends AEnvironmentAwareController {
 			$envelope = $this->fileMapper->getByUuid($uuid);
 
 			if ($envelope->getNodeType() !== 'envelope') {
-				// TRANSLATORS API error when adding files to a signature envelope but the given UUID is not an envelope container.
+				// TRANSLATORS Error shown when adding files to a signature envelope but the given UUID is not an envelope container.
 				throw new LibresignException($this->l10n->t('This is not an envelope'));
 			}
 
 			if ($envelope->getStatus() !== FileStatus::DRAFT->value) {
-				// TRANSLATORS API error when trying to add documents to a signature envelope that is no longer in draft and already in the signing flow.
+				// TRANSLATORS Error shown when trying to add documents to a signature envelope that is no longer in draft and already in the signing flow.
 				throw new LibresignException($this->l10n->t('Cannot add files to an envelope that is not in draft status'));
 			}
 
@@ -637,7 +637,7 @@ class FileController extends AEnvironmentAwareController {
 
 			$uploadedFiles = $this->request->getUploadedFile('files');
 			if (!$uploadedFiles) {
-				// TRANSLATORS API error when adding documents to a signature envelope and the request contains no uploaded files.
+				// TRANSLATORS Error shown when adding documents to a signature envelope and the request contains no uploaded files.
 				throw new LibresignException($this->l10n->t('No files uploaded'));
 			}
 
@@ -665,7 +665,7 @@ class FileController extends AEnvironmentAwareController {
 			return new DataResponse($response, Http::STATUS_OK);
 		} catch (DoesNotExistException) {
 			return new DataResponse(
-				// TRANSLATORS API error when the signature envelope UUID cannot be found.
+				// TRANSLATORS Error shown when the signature envelope cannot be found.
 				['message' => $this->l10n->t('Envelope not found')],
 				Http::STATUS_NOT_FOUND,
 			);
@@ -679,7 +679,7 @@ class FileController extends AEnvironmentAwareController {
 				'exception' => $e,
 			]);
 			return new DataResponse(
-				// TRANSLATORS API error when adding a document into a signature envelope fails for an unexpected reason.
+				// TRANSLATORS Error shown when adding a document into a signature envelope fails for an unexpected reason.
 				['message' => $this->l10n->t('Failed to add file to envelope')],
 				Http::STATUS_BAD_REQUEST,
 			);
@@ -694,7 +694,7 @@ class FileController extends AEnvironmentAwareController {
 			$name = $this->extractFileName($fileData);
 		}
 		if (empty($name)) {
-			// TRANSLATORS API validation error when saving a document for signing without a file name.
+			// TRANSLATORS Error shown when saving a document for signing without a file name.
 			throw new LibresignException($this->l10n->t('File name is required'));
 		}
 
@@ -749,7 +749,7 @@ class FileController extends AEnvironmentAwareController {
 			return [$file];
 		}
 
-		// TRANSLATORS API validation error when creating or updating a signature request without a file payload.
+		// TRANSLATORS Error shown when creating or updating a signature request without a file.
 		throw new LibresignException($this->l10n->t('File or files parameter is required'));
 	}
 
@@ -786,7 +786,7 @@ class FileController extends AEnvironmentAwareController {
 		}
 
 		if (empty($filesArray)) {
-			// TRANSLATORS API error when processing multipart uploads for a signature request and no usable files were received.
+			// TRANSLATORS Error shown when uploading files for a signature request and no usable files were received.
 			throw new LibresignException($this->l10n->t('No files uploaded'));
 		}
 
@@ -798,7 +798,7 @@ class FileController extends AEnvironmentAwareController {
 	 */
 	private function saveFiles(array $files, string $name, array $settings): DataResponse {
 		if (empty($files)) {
-			// TRANSLATORS API validation error when saving documents for a signature request and the files list is empty.
+			// TRANSLATORS Error shown when saving documents for a signature request and no files were provided.
 			throw new LibresignException($this->l10n->t('File or files parameter is required'));
 		}
 
@@ -860,7 +860,7 @@ class FileController extends AEnvironmentAwareController {
 		}
 		return new DataResponse(
 			[
-				// TRANSLATORS API success message after a manager deletes a LibreSign document and its related signing data.
+				// TRANSLATORS Success message shown after a manager deletes a LibreSign document and its related signing data.
 				'message' => $this->l10n->t('Success')
 			],
 			Http::STATUS_OK
