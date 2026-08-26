@@ -31,7 +31,7 @@ jobs:
 
       - name: Get version matrix
         id: versions
-        uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2.3.1.3.2
+        uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2
 
   changes:
     runs-on: ubuntu-latest
@@ -43,13 +43,13 @@ jobs:
       src: ${{ steps.changes.outputs.src}}
 
     steps:
-      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+      - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
         id: changes
         continue-on-error: true
         with:
           filters: |
             src:
-              - '.github/workflows/phpunit*'
+              - '.github/workflows/**'
               - 'appinfo/**'
               - 'lib/**'
               - 'templates/**'
@@ -67,20 +67,14 @@ jobs:
     if: needs.changes.outputs.src != 'false'
 
     strategy:
+      fail-fast: false
       matrix:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
-        xdebug_mode: [debug, coverage]
 
-    name: SQLite PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }} ${{ matrix.xdebug_mode }}
+    name: SQLite PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
 
     steps:
-      - name: Abort if not PR to main with coverage
-        if: ${{ matrix.xdebug_mode == 'coverage' && github.event.pull_request.base.ref != 'main' }}
-        run: |
-          echo "Coverage only runs on PRs to main"
-          exit 0
-
       - name: Set app env
         if: ${{ env.APP_NAME == '' }}
         run: |
@@ -124,34 +118,24 @@ jobs:
         with:
           files: apps/${{ env.APP_NAME }}/composer.json
 
-      - name: Set up dependencies
+      - name: Remove nextcloud/ocp
         # Only run if phpunit config file exists
         if: steps.check_composer.outputs.files_exists == 'true'
         working-directory: apps/${{ env.APP_NAME }}
         run: |
           composer remove nextcloud/ocp --dev --no-scripts
-          composer i
 
-      - name: Prevent Nextcloud OCP outdated
-        working-directory: apps/${{ env.APP_NAME }}
-        run: make updateocp
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        with:
+          working-directory: apps/${{ env.APP_NAME }}
 
       - name: Set up Nextcloud
         env:
           DB_PORT: 4444
         run: |
           mkdir data
-          ./occ maintenance:install \
-            --verbose \
-            --database=sqlite \
-            --database-name=nextcloud \
-            --database-host=127.0.0.1 \
-            --database-port=$DB_PORT \
-            --database-user=root \
-            --database-pass=rootpassword \
-            --admin-user admin \
-            --admin-pass admin
-          ./occ --version
+          ./occ maintenance:install --verbose --database=sqlite --database-name=nextcloud --database-host=127.0.0.1 --database-port=$DB_PORT --database-user=root --database-pass=rootpassword --admin-user admin --admin-pass admin
           ./occ app:enable --force ${{ env.APP_NAME }}
           ./occ config:app:set dav enableDefaultContact --value false --type boolean
 
