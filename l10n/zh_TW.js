@@ -932,6 +932,7 @@ OC.L10N.register(
     "Last year ({year})" : "去年 ({year})",
     "Other" : "其他",
     "default" : "預設",
+    "{value} seconds" : "{value} 秒",
     "Expiration in days" : "到期天數",
     "Identification factors" : "身份證明因子",
     "Ways to identify a person who will sign a document." : "識別將簽署文件人員的方法。",
