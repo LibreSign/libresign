@@ -27,7 +27,7 @@ jobs:
     if: github.actor == 'nextcloud-command'
     runs-on: ubuntu-latest
     permissions:
-      # for hmarr/auto-approve-action to approve PRs
+      # for auto-approve-action to approve PRs
       pull-requests: write
       # for alexwilson/enable-github-automerge-action to approve PRs
       contents: write
@@ -44,11 +44,12 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # GitHub actions bot approve
-      - uses: hmarr/auto-approve-action@f0939ea97e9205ef24d872e76833fa908a770363 # v4.0.0
+      - name: GitHub actions bot approve
         if: startsWith(steps.branchname.outputs.branch, 'automated/noid/') && endsWith(steps.branchname.outputs.branch, 'update-nextcloud-ocp')
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Enable GitHub auto merge
       - name: Auto merge
