@@ -104,9 +104,8 @@ final class PolicyAuthorizationServiceTest extends TestCase {
 			->with('instance-admin')
 			->willReturn(true);
 
-		// Instance admins don't need a restricted group list, so getUserGroupIds should never be called
-		$this->groupManager->expects($this->never())
-			->method('getUserGroupIds');
+		$this->subAdmin->expects($this->never())
+			->method('isSubAdmin');
 
 		$result = $this->service->getManageablePolicyGroupIds($user);
 
@@ -144,6 +143,40 @@ final class PolicyAuthorizationServiceTest extends TestCase {
 		$this->assertSame(['finance', 'legal'], $result);
 	}
 
+	public function testGetManageablePolicyGroupIdsNormalizesManagedGroupIds(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('subadmin-user');
+
+		$this->groupManager->method('isAdmin')
+			->with('subadmin-user')
+			->willReturn(false);
+		$this->subAdmin->method('isSubAdmin')
+			->with($user)
+			->willReturn(true);
+
+		$financeWithWhitespace = $this->createMock(IGroup::class);
+		$financeWithWhitespace->method('getGID')->willReturn(' finance ');
+		$emptyGroup = $this->createMock(IGroup::class);
+		$emptyGroup->method('getGID')->willReturn('');
+		$finance = $this->createMock(IGroup::class);
+		$finance->method('getGID')->willReturn('finance');
+		$legal = $this->createMock(IGroup::class);
+		$legal->method('getGID')->willReturn('legal');
+
+		$this->subAdmin->method('getSubAdminsGroups')
+			->with($user)
+			->willReturn([$financeWithWhitespace, $emptyGroup, $finance, $legal]);
+
+		$resolved = (new ResolvedPolicy())
+			->setEditableByCurrentActor(true);
+		$this->policyService->method('resolveForUser')
+			->willReturn($resolved);
+
+		$result = $this->service->getManageablePolicyGroupIds($user);
+
+		$this->assertSame(['finance', 'legal'], $result);
+	}
+
 	public function testGetManageablePolicyGroupIdsReturnsEmptyForRegularUser(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('regular-user');
@@ -154,6 +187,8 @@ final class PolicyAuthorizationServiceTest extends TestCase {
 		$this->subAdmin->method('isSubAdmin')
 			->with($user)
 			->willReturn(false);
+		$this->subAdmin->expects($this->never())
+			->method('getSubAdminsGroups');
 
 		$result = $this->service->getManageablePolicyGroupIds($user);
 
