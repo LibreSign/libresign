@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2025 Nextcloud GmbH and Nextcloud contributors
+# SPDX-License-Identifier: MIT
+fe1239ed98a163abbdea3e0490c85458 appstore-build-publish.yml
+19ab9c47c8d96de93f37fab242c398cc block-unconventional-commits.yml
+e6351c608939c31ae1e32923aa82aa10 dependabot-approve-merge.yml
+985f3ac7d51405c1601c742832a14120 lint-eslint.yml
+43fd0c5fb704cabc5f11cdfaf513236d lint-info-xml.yml
+4b40dd0073e16f74dd04e6d49dcc043d lint-php-cs.yml
+cfb31e47b6e9ab65e76c89b028754a4e lint-php.yml
+ab3a506506b1d7c1cea9593ecfd84366 lint-stylelint.yml
+97773e8d73758d9f1af50f7c8b82aef3 lint-typescript.yml
+3b1f38e378f8e764b0b3c560a8cfe1cd node-test.yml
+03759c9dc0fa748cb927b9f9cadf2925 node.yml
+0dc931ec237a235370e224282608b20e npm-audit-fix.yml
+65678bf15deefb099dea5410459a7c17 openapi.yml
+076e72a19e7bdf35ac5b2abee0198c43 phpunit-mariadb.yml
+8fab08ac7da700ee304af0bf3c18b3a3 phpunit-mysql.yml
+256bf1dead4ef8479e9ce7433f871548 phpunit-pgsql.yml
+4ca2c2c4b1a73182667bab908e57c185 phpunit-sqlite.yml
+6dc046dfbca5dc65d938265c518fcac4 psalm.yml
+2dbec18233063b42f4d8e03bbb43671c reuse.yml
+b47a9fe981a7435caea92db33f5ad121 sync-workflow-templates.yml
+a3440826636c0fd7c2d20b1de50363da update-nextcloud-ocp-approve-merge.yml
+1919e2ff468e875aeeae5fd088d4ce1f update-nextcloud-ocp.yml
+22604c31b526de270a080eb19967a638 update-stable-titles.yml
