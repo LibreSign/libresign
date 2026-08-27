@@ -59,6 +59,69 @@ class FileServiceTest extends TestCase {
 		$this->assertEquals('', $result);
 	}
 
+	#[DataProvider('certificateContentScenarios')]
+	public function testReturnsContentOfExistingCertificateFile(
+		string $methodName,
+		string $expectedContent,
+	): void {
+		$root = vfsStream::setup('libresign', null, [
+			'instance-1' => [
+				'1' => [
+					'ca.pem' => 'root certificate content',
+					'ca-key.pem' => 'private key content',
+				],
+			],
+		]);
+		$mockEngine = $this->createMock(IEngineHandler::class);
+		$configPath = vfsStream::url('libresign/instance-1/1');
+
+		$this->engineFactory
+			->expects($this->once())
+			->method('getEngine')
+			->with(CertificateEngineType::OpenSSL->getEngineName())
+			->willReturn($mockEngine);
+
+		$mockEngine->expects($this->once())
+			->method('getConfigPathByParams')
+			->with('instance-1', 1)
+			->willReturn($configPath);
+
+		$this->logger
+			->expects($this->never())
+			->method('debug');
+
+		$result = $this->service->$methodName('instance-1', 1, CertificateEngineType::OpenSSL);
+		$this->assertSame($expectedContent, $result);
+	}
+
+	public function testReturnsEmptyStringWhenCertificateFileIsNotReadable(): void {
+		$root = vfsStream::setup('libresign', null, [
+			'instance-1' => [
+				'1' => [
+					'ca.pem' => 'root certificate content',
+				],
+			],
+		]);
+		$root->getChild('instance-1/1/ca.pem')->chmod(0o000);
+		$mockEngine = $this->createMock(IEngineHandler::class);
+
+		$this->engineFactory
+			->expects($this->once())
+			->method('getEngine')
+			->willReturn($mockEngine);
+
+		$mockEngine->expects($this->once())
+			->method('getConfigPathByParams')
+			->willReturn(vfsStream::url('libresign/instance-1/1'));
+
+		$this->logger
+			->expects($this->never())
+			->method('debug');
+
+		$result = $this->service->getRootCertificateByGeneration('instance-1', 1, CertificateEngineType::OpenSSL);
+		$this->assertSame('', $result);
+	}
+
 	#[DataProvider('engineExceptionScenarios')]
 	public function testHandlesEngineExceptionGracefully(
 		CertificateEngineType $engineType,
@@ -137,6 +200,19 @@ class FileServiceTest extends TestCase {
 				'generation' => 5,
 				'engineType' => CertificateEngineType::OpenSSL,
 				'methodName' => 'getRootCertificateByGeneration',
+			],
+		];
+	}
+
+	public static function certificateContentScenarios(): array {
+		return [
+			'Root certificate is read from ca.pem' => [
+				'methodName' => 'getRootCertificateByGeneration',
+				'expectedContent' => 'root certificate content',
+			],
+			'Private key is read from ca-key.pem' => [
+				'methodName' => 'getPrivateKeyByGeneration',
+				'expectedContent' => 'private key content',
 			],
 		];
 	}
