@@ -44,4 +44,23 @@ final class SignerGeolocationPolicyTest extends TestCase {
 		$this->assertTrue($definition->supportsGroupAdminDelegation());
 		$this->assertSame([], $definition->allowedValues(new PolicyContext()));
 	}
+
+	public function testProviderRejectsInvalidMode(): void {
+		$provider = new SignerGeolocationPolicy();
+		$definition = $provider->get(SignerGeolocationPolicy::KEY);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$definition->validateValue([
+			'mode' => 'invalid',
+			'allowRequesterOverride' => false,
+		], new PolicyContext());
+	}
+
+	public function testProviderRejectsMissingKeys(): void {
+		$provider = new SignerGeolocationPolicy();
+		$definition = $provider->get(SignerGeolocationPolicy::KEY);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$definition->validateValue(['allowRequesterOverride' => false], new PolicyContext());
+	}
 }
