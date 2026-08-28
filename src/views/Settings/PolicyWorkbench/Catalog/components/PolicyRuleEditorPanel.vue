@@ -44,7 +44,7 @@
 				v-if="showAllowOverrideSwitch !== false && allowOverrideMutable !== false"
 				type="switch"
 				:model-value="editorDraft.allowChildOverride"
-				:disabled="saveStatus === 'saving' || allowOverrideMutable === false"
+				:disabled="saveStatus === 'saving'"
 				@update:modelValue="$emit('update-allow-override', $event)">
 				<div class="policy-workbench__switch-copy">
 					<span>{{ allowOverrideTitle }}</span>
