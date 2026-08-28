@@ -68,6 +68,8 @@ const props = withDefaults(defineProps<{
 	cardAriaLabel: '',
 	editText: '',
 	removeText: '',
+	showEditAction: undefined,
+	showRemoveAction: undefined,
 })
 const emit = defineEmits<{
 	edit: []

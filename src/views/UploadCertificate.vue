@@ -46,6 +46,7 @@ const props = withDefaults(defineProps<{
 	useModal?: boolean
 	errors?: UploadError[]
 }>(), {
+	useModal: undefined,
 	errors: () => [],
 })
 
