@@ -16,6 +16,7 @@ import {
 import { identificationDocumentsRealDefinition } from './identification-documents/realDefinition'
 import { identifyMethodsRealDefinition } from './identify-methods/realDefinition'
 import { legalInformationRealDefinition } from './legal-information/realDefinition'
+import { mailSenderStrategyRealDefinition } from './mail-sender-strategy/realDefinition'
 import type { RealPolicySettingDefinition } from './realTypes'
 import { reminderRealDefinition } from './reminder/realDefinition'
 import { requestSignGroupsRealDefinition } from './request-sign-groups/realDefinition'
@@ -63,4 +64,5 @@ export const realDefinitions = {
 	default_user_folder: { ...defaultUserFolderRealDefinition, category: 'system-behavior' },
 	make_validation_url_private: { ...validationAccessRealDefinition, category: 'system-behavior' },
 	signing_mode: { ...signingModeRealDefinition, category: 'system-behavior' },
+	mail_sender_strategy: { ...mailSenderStrategyRealDefinition, category: 'system-behavior' },
 } satisfies Record<string, RealPolicySettingDefinition>
