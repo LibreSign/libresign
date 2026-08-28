@@ -355,6 +355,7 @@ import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 import { startLongPolling } from '../../services/longPolling'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
+import logger from '../../logger.js'
 import {
 	normalizeIdentifyMethodsPolicy,
 	type IdentifyMethodPolicyEntry,
@@ -1423,7 +1424,7 @@ function startSigningProgressPolling() {
 		},
 		() => !filesStore.getFile() || filesStore.getFile().id !== file.id,
 		(error: unknown) => {
-			console.error('Error during signing progress polling:', error)
+			logger.error('Error during signing progress polling', { error })
 			showError(t('libresign', 'Error monitoring signing progress'))
 		},
 	)

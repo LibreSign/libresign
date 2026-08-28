@@ -86,7 +86,6 @@ export default [
 			'@stylistic/implicit-arrow-linebreak',
 			'@typescript-eslint/no-use-before-define',
 			'@stylistic/exp-list-style',
-			'no-console',
 			'vue/attributes-order',
 			'@stylistic/quote-props',
 			'vue/padding-line-between-blocks',
@@ -154,5 +153,19 @@ export default [
 			'@stylistic/function-call-spacing',
 			'vue/no-dupe-keys',
 		].map(rule => [rule, 'off'])),
+	},
+		{
+		name: 'libresign/tests-console-override',
+		files: [
+			'src/tests/setup.js',
+			'src/tests/store/filters.spec.ts',
+		],
+		rules: {
+			// These files intentionally intercept console.error/console.warn
+			// to fail tests on unexpected console output, or to silence
+			// expected console output during a specific assertion. This is
+			// test tooling, not application logging.
+			'no-console': 'off',
+		},
 	},
 ]

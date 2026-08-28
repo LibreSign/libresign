@@ -313,6 +313,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 
 import { useUserConfigStore } from '../../store/userconfig.js'
+import logger from '../../logger.js'
 
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
@@ -481,8 +482,7 @@ async function loadEntries(append = false) {
 		total.value = data.total
 		hasMore.value = entries.value.length < total.value
 	} catch (error: any) {
-		console.error('Failed to load CRL entries:', error)
-		console.error('Error response:', error.response)
+		logger.error('Failed to load CRL entries', { error, response: error.response })
 		// TRANSLATORS Error shown when CRL records cannot be fetched from server.
 		showError(t('libresign', 'Failed to load CRL entries'))
 	} finally {
@@ -507,7 +507,7 @@ async function saveFilters() {
 			owner: filters.owner,
 		})
 	} catch (error) {
-		console.error('Failed to save filters:', error)
+		logger.error('Failed to save filters', { error })
 	}
 }
 
@@ -518,7 +518,7 @@ async function saveSort() {
 			sortOrder: sortOrder.value,
 		})
 	} catch (error) {
-		console.error('Failed to save sort:', error)
+		logger.error('Failed to save sort', { error })
 	}
 }
 
@@ -653,7 +653,7 @@ async function confirmRevoke() {
 			showError(response.data.ocs.data.message || t('libresign', 'Failed to revoke certificate'))
 		}
 	} catch (error: any) {
-		console.error('Failed to revoke certificate:', error)
+		logger.error('Failed to revoke certificate', { error })
 		// TRANSLATORS Error fallback shown when revocation request fails unexpectedly.
 		const message = error.response?.data?.ocs?.data?.message || t('libresign', 'An error occurred while revoking the certificate')
 		showError(message)

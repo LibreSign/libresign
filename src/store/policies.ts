@@ -9,6 +9,7 @@ import { computed, ref } from 'vue'
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
+import logger from '../logger.js'
 
 import type {
 	EffectivePolicyState,
@@ -132,7 +133,7 @@ const _policiesStore = defineStore('policies', () => {
 			const response = await axios.get<{ ocs?: { data?: EffectivePoliciesResponse } }>(generateOcsUrl('/apps/libresign/api/v1/policies/effective'))
 			setPolicies(response.data?.ocs?.data?.policies ?? {})
 		} catch (error: unknown) {
-			console.error('Failed to load effective policies', error)
+			logger.error('Failed to load effective policies', { error })
 		}
 	}
 

@@ -56,6 +56,7 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { FILE_STATUS } from '../constants.js'
 import { getStatusLabel, getStatusIcon } from '../utils/fileStatus.js'
+import logger from '../logger.js'
 
 defineOptions({
 	name: 'FileStatusList',
@@ -121,7 +122,7 @@ async function loadFiles() {
 			.filter(file => file.status === FILE_STATUS.SIGNED)
 			.map(file => file.id)
 	} catch (error) {
-		console.error('[libresign][FileStatusList] Error loading files:', error)
+		logger.error('[libresign][FileStatusList] Error loading files', { error })
 	} finally {
 		isLoading.value = false
 	}

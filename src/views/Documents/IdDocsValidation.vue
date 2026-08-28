@@ -194,6 +194,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { FILE_STATUS } from '../../constants.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
+import logger from '../../logger.js'
 import type { operations, components } from '../../types/openapi/openapi'
 
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -452,7 +453,7 @@ async function saveFilters() {
 			status: filters.status?.value ?? null,
 		})
 	} catch (error) {
-		console.error('Failed to save filters:', error)
+		logger.error('Failed to save filters', { error })
 	}
 }
 
@@ -494,7 +495,7 @@ async function saveSort() {
 			sortOrder: sortOrder.value,
 		})
 	} catch (error) {
-		console.error('Failed to save sort:', error)
+		logger.error('Failed to save sort', { error })
 	}
 }
 

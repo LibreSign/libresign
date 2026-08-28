@@ -8,6 +8,7 @@ import { ref } from 'vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
+import logger from '../logger.js'
 import { emit, subscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
@@ -1059,7 +1060,7 @@ const _filesStore = defineStore('files', () => {
 				return false
 			})
 			.catch((error) => {
-				console.error('Failed to rename file:', error)
+				logger.error('Failed to rename file', { error })
 				return false
 			})
 	}

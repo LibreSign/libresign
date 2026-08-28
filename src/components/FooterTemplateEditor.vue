@@ -157,6 +157,7 @@ import '@libresign/pdf-elements/dist/index.css'
 
 import CodeEditor from './CodeEditor.vue'
 import { ensurePdfWorker } from '../helpers/pdfWorker'
+import logger from '../logger.js'
 
 import {
 	mdiCheck,
@@ -303,7 +304,7 @@ function resetTemplateToDefault() {
 		emit('template-reset')
 		setPdfPreview(response.data)
 	}).catch(error => {
-		console.error('Error resetting footer template:', error)
+		logger.error('Error resetting footer template', { error })
 	})
 }
 
@@ -334,7 +335,7 @@ function saveFooterTemplate() {
 	).then(response => {
 		setPdfPreview(response.data)
 	}).catch(error => {
-		console.error('Error saving footer template:', error)
+		logger.error('Error saving footer template', { error })
 	})
 }
 
@@ -353,7 +354,7 @@ function setPdfPreview(blob: Blob) {
 		// Timeout to prevent infinite loading if PDFElements doesn't emit end-init
 		const loadingTimeout = setTimeout(() => {
 			if (loadingPreview.value) {
-				console.warn('PDF loading timeout - forcing preview ready state')
+				logger.warn('PDF loading timeout - forcing preview ready state')
 				loadingPreview.value = false
 				containerHeight.value = null
 			}
