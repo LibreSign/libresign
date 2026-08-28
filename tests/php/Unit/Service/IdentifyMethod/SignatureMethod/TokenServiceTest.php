@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod\SignatureMethod;
 
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\TwofactorGatewayService;
@@ -41,6 +42,19 @@ final class TokenServiceTest extends TestCase {
 		$this->container = $this->createMock(ContainerInterface::class);
 		$this->appManager = $this->createMock(IAppManager::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+	}
+
+	public function testSendCodeByGatewayThrowsWhenGatewayAppIsNotEnabled(): void {
+		$this->appManager->method('isEnabledForAnyone')->with('twofactor_gateway')->willReturn(false);
+		$this->container->expects($this->never())
+			->method('get');
+		$this->secureRandom->expects($this->never())
+			->method('generate');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('App Two-Factor Gateway is not enabled.');
+
+		$this->createService()->sendCodeByGateway('+5511999999999', 'sms');
 	}
 
 	public function testSendCodeByGatewayThrowsWhenGatewayIsIncomplete(): void {
@@ -84,6 +98,22 @@ final class TokenServiceTest extends TestCase {
 		self::assertSame([
 			['gateway' => 'sms', 'identifier' => '+5511999999999', 'message' => '123456 is your LibreSign verification code.'],
 		], $integrationService->sentMessages);
+	}
+
+	public function testSendCodeByEmailSendsCodeAndReturnsHashedCode(): void {
+		$this->secureRandom->expects($this->once())
+			->method('generate')
+			->with(TokenService::TOKEN_LENGTH, ISecureRandom::CHAR_DIGITS)
+			->willReturn('123456');
+		$this->mailService->expects($this->once())
+			->method('sendCodeToSign')
+			->with('signer@domain.coop', 'John Doe', '123456');
+		$this->hasher->expects($this->once())
+			->method('hash')
+			->with('123456')
+			->willReturn('hashed-code');
+
+		self::assertSame('hashed-code', $this->createService()->sendCodeByEmail('signer@domain.coop', 'John Doe'));
 	}
 
 	private function createService(): TokenService {
