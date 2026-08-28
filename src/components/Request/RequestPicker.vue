@@ -279,7 +279,7 @@ async function openFilePicker() {
 		})
 		.build()
 
-	const nodes = await filePicker.pick().catch(() => null)
+	const nodes = await Promise.resolve(filePicker.pick()).catch(() => null)
 	if (nodes) {
 		await handleFileChoose(nodes as FilePickerNode[])
 	}

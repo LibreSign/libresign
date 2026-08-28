@@ -149,9 +149,9 @@ async function fetchProgressFromValidation() {
 	if (hasFileErrors || errorCount > 0) {
 		return
 	}
-	const response = await axios.get(
+	const response = await Promise.resolve(axios.get(
 		generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${props.signRequestUuid}`)
-	).catch(() => null)
+	)).catch(() => null)
 	if (!response) {
 		return
 	}
