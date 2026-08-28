@@ -1638,6 +1638,10 @@ export type components = {
             /** Format: int64 */
             preview_zoom: number;
         };
+        /** @enum {string} */
+        GeolocationCollectionStatus: "collected" | "denied" | "unavailable" | "skipped";
+        /** @enum {string} */
+        GeolocationRequirement: "disabled" | "optional" | "required";
         GroupPolicyResponse: {
             policy: components["schemas"]["GroupPolicyState"];
         };
@@ -1760,6 +1764,7 @@ export type components = {
             signingOrder?: number;
             /** Format: int64 */
             status?: number;
+            geolocationRequired?: boolean;
         };
         Notify: {
             /** Format: int64 */
@@ -1991,9 +1996,22 @@ export type components = {
             uid?: string;
             metadata?: components["schemas"]["SignerMetadata"];
         };
+        SignerGeolocation: {
+            status: components["schemas"]["GeolocationCollectionStatus"];
+            /** Format: double */
+            latitude?: number;
+            /** Format: double */
+            longitude?: number;
+            /** Format: double */
+            accuracy?: number;
+            /** Format: int64 */
+            timestamp?: number;
+        };
         SignerMetadata: {
             "remote-address"?: string;
             "user-agent"?: string;
+            geolocationRequirement?: components["schemas"]["GeolocationRequirement"];
+            geolocation?: components["schemas"]["SignerGeolocation"];
             notify?: components["schemas"]["Notify"][];
             certificate_info?: components["schemas"]["SignerCertificateInfo"];
         };
@@ -4763,7 +4781,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status
+                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, geolocationRequired
                      * @default []
                      */
                     signers?: components["schemas"]["NewSigner"][];
@@ -5017,6 +5035,11 @@ export interface operations {
                      * @default false
                      */
                     async?: boolean;
+                    /**
+                     * @description Device-reported geolocation metadata submitted by the signing client
+                     * @default []
+                     */
+                    geolocation?: components["schemas"]["SignerGeolocation"];
                 };
             };
         };
@@ -5152,6 +5175,11 @@ export interface operations {
                      * @default false
                      */
                     async?: boolean;
+                    /**
+                     * @description Device-reported geolocation metadata submitted by the signing client
+                     * @default []
+                     */
+                    geolocation?: components["schemas"]["SignerGeolocation"];
                 };
             };
         };

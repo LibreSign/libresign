@@ -15,6 +15,13 @@ final class SignerGeolocationPolicyValue {
 	 * @return array{mode: string, allowRequesterOverride: bool}
 	 */
 	public static function normalize(mixed $rawValue): array {
+		if (is_string($rawValue)) {
+			$decoded = json_decode($rawValue, true);
+			if (is_array($decoded)) {
+				$rawValue = $decoded;
+			}
+		}
+
 		if (!is_array($rawValue)) {
 			return self::defaults();
 		}

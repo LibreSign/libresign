@@ -44,6 +44,11 @@ final class SignerGeolocationPolicyValueTest extends TestCase {
 			['mode' => 'unknown', 'allowRequesterOverride' => false],
 			['mode' => 'disabled', 'allowRequesterOverride' => false],
 		];
+
+		yield 'json string payload' => [
+			'{"mode":"optional","allowRequesterOverride":true}',
+			['mode' => 'optional', 'allowRequesterOverride' => true],
+		];
 	}
 
 	public function testResolveEffectiveRequirementFromPolicy(): void {
