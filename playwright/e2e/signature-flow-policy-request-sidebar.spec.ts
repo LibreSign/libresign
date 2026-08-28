@@ -33,12 +33,12 @@ const test = base.extend<{
 	adminRequestContext: APIRequestContext
 	groupAdminRequestContext: APIRequestContext
 }>({
-	adminRequestContext: async (_, use) => {
+	adminRequestContext: async ({}, use) => {
 		const ctx = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
 		await use(ctx)
 		await ctx.dispose()
 	},
-	groupAdminRequestContext: async (_, use) => {
+	groupAdminRequestContext: async ({}, use) => {
 		const ctx = await createAuthenticatedRequestContext(GROUP_ADMIN_USER, GROUP_ADMIN_PASSWORD)
 		await use(ctx)
 		await ctx.dispose()
