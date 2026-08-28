@@ -31,7 +31,7 @@ jobs:
 
       - name: Get version matrix
         id: versions
-        uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2.3.1.3.2
+        uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2
 
   changes:
     runs-on: ubuntu-latest
@@ -43,13 +43,13 @@ jobs:
       src: ${{ steps.changes.outputs.src }}
 
     steps:
-      - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: changes
         continue-on-error: true
         with:
           filters: |
             src:
-              - '.github/workflows/phpunit*'
+              - '.github/workflows/**'
               - 'appinfo/**'
               - 'lib/**'
               - 'templates/**'
@@ -67,6 +67,7 @@ jobs:
     if: needs.changes.outputs.src != 'false'
 
     strategy:
+      fail-fast: false
       matrix:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
@@ -117,7 +118,7 @@ jobs:
           extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, pgsql, pdo_pgsql, imagick
           coverage: xdebug
           ini-file: development
-          # Required: re-enable pcntl_* functions that may be disabled via disable_functions
+          # Temporary workaround for missing pcntl_* in PHP 8.3
           ini-values: disable_functions=
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -128,30 +129,24 @@ jobs:
         with:
           files: apps/${{ env.APP_NAME }}/composer.json
 
-      - name: Set up dependencies
+      - name: Remove nextcloud/ocp
         # Only run if phpunit config file exists
         if: steps.check_composer.outputs.files_exists == 'true'
         working-directory: apps/${{ env.APP_NAME }}
         run: |
           composer remove nextcloud/ocp --dev --no-scripts
-          composer i
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        with:
+          working-directory: apps/${{ env.APP_NAME }}
 
       - name: Set up Nextcloud
         env:
           DB_PORT: 4444
         run: |
           mkdir data
-          ./occ maintenance:install \
-            --verbose \
-            --database=pgsql \
-            --database-name=nextcloud \
-            --database-host=127.0.0.1 \
-            --database-port=$DB_PORT \
-            --database-user=root \
-            --database-pass=rootpassword \
-            --admin-user admin \
-            --admin-pass admin
-          ./occ --version
+          ./occ maintenance:install --verbose --database=pgsql --database-name=nextcloud --database-host=127.0.0.1 --database-port=$DB_PORT --database-user=root --database-pass=rootpassword --admin-user admin --admin-pass admin
           ./occ app:enable --force ${{ env.APP_NAME }}
           ./occ config:app:set dav enableDefaultContact --value false --type boolean
 

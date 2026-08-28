@@ -103,12 +103,15 @@ class Email extends AbstractIdentifyMethod {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_CREATE_ACCOUNT,
 				'settings' => ['accountHash' => md5($email)],
+				// TRANSLATORS Message inviting a guest signer identified by email to create a Nextcloud account before signing.
 				'message' => $this->identifyService->getL10n()->t('You need to create an account to sign this file.'),
 			]));
 		}
 		$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
+		// TRANSLATORS Error shown when the email already belongs to an existing account and the guest must log in to sign.
 		$errors = [$this->identifyService->getL10n()->t('User already exists. Please login.')];
 		if ($this->userSession->isLoggedIn()) {
+			// TRANSLATORS Error shown when the logged-in user tries to sign a document that was not requested for them.
 			$errors[] = $this->identifyService->getL10n()->t('This is not your file');
 			$this->userSession->logout();
 		}
@@ -170,8 +173,10 @@ class Email extends AbstractIdentifyMethod {
 			}
 		}
 		$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
+		// TRANSLATORS Error shown when the email already belongs to an existing account and the guest must log in to sign.
 		$errors = [$this->identifyService->getL10n()->t('User already exists. Please login.')];
 		if ($this->userSession->isLoggedIn()) {
+			// TRANSLATORS Error shown when the logged-in user tries to sign a document that was not requested for them.
 			$errors[] = $this->identifyService->getL10n()->t('This is not your file');
 			$this->userSession->logout();
 		}
@@ -192,9 +197,11 @@ class Email extends AbstractIdentifyMethod {
 		$this->throwIfInvalidEmail();
 		$this->throwIfNotAllowedToCreateAccount();
 		if ($this->identifyService->getUserManager()->userExists($value)) {
+			// TRANSLATORS Error shown when creating a guest account for signing and that email is already registered.
 			throw new LibresignException($this->identifyService->getL10n()->t('User already exists'));
 		}
 		if ($this->getEntity()->getIdentifierValue() !== $value) {
+			// TRANSLATORS Error shown when the logged-in user tries to sign a document that was not requested for them.
 			throw new LibresignException($this->identifyService->getL10n()->t('This is not your file'));
 		}
 	}
@@ -204,6 +211,7 @@ class Email extends AbstractIdentifyMethod {
 		if (!$settings['can_create_account']) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_SHOW_ERROR,
+				// TRANSLATORS Error shown when guest account creation is disabled and the signer cannot register to sign.
 				'errors' => [['message' => $this->identifyService->getL10n()->t('It is not possible to create new accounts.')]],
 			]));
 		}
@@ -211,6 +219,7 @@ class Email extends AbstractIdentifyMethod {
 
 	private function throwIfInvalidEmail(): void {
 		if (!filter_var($this->entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
+			// TRANSLATORS Error shown when the email address used to identify the signer is invalid.
 			throw new LibresignException($this->identifyService->getL10n()->t('Invalid email'));
 		}
 	}

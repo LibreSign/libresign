@@ -33,6 +33,7 @@
 		"post-update-cmd": [
 			"composer dump-autoload"
 		],
+		"mutation:test": "vendor/bin/infection --configuration=infection.json5",
 		"test:unit": "vendor/bin/phpunit -c tests/php/phpunit.xml --no-coverage --colors=always --fail-on-warning --fail-on-risky --display-deprecations --display-phpunit-deprecations",
 		"test:coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit -c tests/php/phpunit.xml"
 	},

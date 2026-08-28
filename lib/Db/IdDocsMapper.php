@@ -191,8 +191,7 @@ class IdDocsMapper extends QBMapper {
 			->leftJoin('id', 'libresign_sign_request', 'sr', 'id.sign_request_id = sr.id');
 
 		if ($needsUserJoin) {
-			$joinType = !empty($filter['userId']) ? 'join' : 'leftJoin';
-			$qb->$joinType('id', 'users', 'u', 'id.user_id = u.uid');
+			$qb->leftJoin('id', 'users', 'u', 'id.user_id = u.uid');
 		}
 
 		if (!empty($filter['userId'])) {
@@ -414,7 +413,9 @@ class IdDocsMapper extends QBMapper {
 
 	private function getIdDocStatusText(int $status): string {
 		return match ($status) {
+			// TRANSLATORS Status label for an identity document that a signer uploaded and that is waiting for an authorized reviewer to approve.
 			FileStatus::ABLE_TO_SIGN->value => $this->l10n->t('waiting for approval'),
+			// TRANSLATORS Status label for an identity document that was approved and can unlock signing when identity documents are required.
 			FileStatus::SIGNED->value => $this->l10n->t('approved'),
 			default => $this->fileMapper->getTextOfStatus($status),
 		};

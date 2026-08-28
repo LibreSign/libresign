@@ -142,10 +142,9 @@
 				@click="save()">
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
-					<NcIconSvgWrapper v-else-if="isSignElementsAvailable()" :path="mdiPencil" :size="20" />
+					<NcIconSvgWrapper v-else-if="showsPositionEditor" :path="mdiPencil" :size="20" />
 				</template>
-				<!-- TRANSLATORS Button label used to enter visual signature position editor before sending requests. -->
-				{{ isSignElementsAvailable() ? t('libresign', 'Setup signature positions') : t('libresign', 'Save') }}
+				{{ saveButtonLabel }}
 			</NcButton>
 			<NcButton v-if="showRequestButton"
 				wide
@@ -357,6 +356,7 @@ import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 import { startLongPolling } from '../../services/longPolling'
+import { getVisibleElementsFromDocument, type DocumentLike } from '../../services/visibleElementsService'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
 import {
 	normalizeIdentifyMethodsPolicy,
@@ -849,7 +849,7 @@ const showSaveButton = computed(() => {
 	if (shouldLoadDetail.value && !isCurrentFileDetailed.value) {
 		return false
 	}
-	if (isOriginalFileDeleted.value || !filesStore.canSave() || !isSignElementsAvailable()) {
+	if (isOriginalFileDeleted.value || !filesStore.canSave() || !showsPositionEditor.value) {
 		return false
 	}
 	const file = filesStore.getFile()
@@ -1075,8 +1075,20 @@ function getSvgIcon(name: string) {
 }
 
 function isSignElementsAvailable() {
-	return capabilities.libresign?.config['sign-elements']['is-available'] === true
+	return capabilities.libresign?.config['sign-elements']?.['is-available'] === true
 }
+
+const showsPositionEditor = computed(() => isSignElementsAvailable()
+	|| getVisibleElementsFromDocument(filesStore.getFile() as DocumentLike).length > 0)
+
+const saveButtonLabel = computed(() => {
+	if (showsPositionEditor.value) {
+		// TRANSLATORS Button label used to enter the visual signature position editor before sending requests.
+		return t('libresign', 'Setup signature positions')
+	}
+	// TRANSLATORS Button label used to store the signature request without sending it to the signers.
+	return t('libresign', 'Save')
+})
 
 function closeModal() {
 	modalSrc.value = ''
@@ -1571,6 +1583,7 @@ defineExpose({
 	getCurrentSigningOrder,
 	hasOrderDraftSigners,
 	isSignElementsAvailable,
+	saveButtonLabel,
 	closeModal,
 	getValidationFileUuid,
 	getSignRouteUuid,

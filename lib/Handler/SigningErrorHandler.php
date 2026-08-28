@@ -106,6 +106,7 @@ class SigningErrorHandler {
 					$message,
 				],
 			),
+			// TRANSLATORS Dialog title shown to the signer when applying the digital signature fails with an unexpected server error.
 			'title' => $this->l10n->t('Internal Server Error'),
 		]];
 	}

@@ -1,0 +1,139 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Infection
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+concurrency:
+  group: infection-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      php-version: ${{ steps.versions.outputs.php-available-list }}
+      server-max: ${{ steps.versions.outputs.branches-max-list }}
+    steps:
+      - name: Checkout app
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Get version matrix
+        id: versions
+        uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2
+
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+
+    outputs:
+      src: ${{ steps.changes.outputs.src}}
+
+    steps:
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: changes
+        continue-on-error: true
+        with:
+          filters: |
+            src:
+              - '.github/workflows/infection.yml'
+              - 'appinfo/**'
+              - 'lib/**'
+              - 'templates/**'
+              - 'tests/**'
+              - '3rdparty/**'
+              - 'vendor-bin/**'
+              - 'infection.json5'
+              - 'composer.json'
+              - 'composer.lock'
+
+  infection:
+    runs-on: ubuntu-latest
+    needs: [changes, matrix]
+    if: needs.changes.outputs.src != 'false'
+    env:
+      APP_NAME: libresign
+
+    strategy:
+      matrix:
+        php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
+        server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
+
+    steps:
+      - name: Checkout server
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: true
+          repository: nextcloud/server
+          ref: ${{ matrix.server-versions }}
+
+      - name: Checkout app
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: true
+          path: apps/${{ env.APP_NAME }}
+
+      - name: Set up PHP ${{ matrix.php-versions }}
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite, imagick
+          coverage: xdebug
+          ini-file: development
+          ini-values: disable_functions=, memory_limit=2G
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install system dependencies
+        run: sudo apt update && sudo apt install poppler-utils
+
+      - name: Install dependencies
+        working-directory: apps/${{ env.APP_NAME }}
+        run: |
+          composer remove nextcloud/ocp --dev --no-scripts
+          composer install
+
+      - name: Set up Nextcloud
+        env:
+          DB_PORT: 4444
+        run: |
+          mkdir data
+          ./occ maintenance:install \
+            --verbose \
+            --database=sqlite \
+            --database-name=nextcloud \
+            --database-host=127.0.0.1 \
+            --database-port=$DB_PORT \
+            --database-user=root \
+            --database-pass=rootpassword \
+            --admin-user admin \
+            --admin-pass admin
+          ./occ app:enable --force ${{ env.APP_NAME }}
+
+      - name: Infection
+        working-directory: apps/${{ env.APP_NAME }}
+        env:
+          COMPOSER_PROCESS_TIMEOUT: 0
+          XDEBUG_MODE: coverage
+        run: |
+          set -o pipefail
+          composer mutation:test -- --no-progress --no-interaction 2>&1 | tee infection.log
+
+      - name: Upload Infection log
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: infection-log
+          path: apps/${{ env.APP_NAME }}/infection.log
+          if-no-files-found: ignore
+          retention-days: 7

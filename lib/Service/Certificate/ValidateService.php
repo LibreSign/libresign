@@ -26,12 +26,14 @@ class ValidateService {
 
 		if ($expectedType === 'array' && !is_array($value)) {
 			throw new InvalidArgumentException(
+				// TRANSLATORS Error shown when generating a signing certificate and a required subject field has the wrong type. %s is the field name such as CN or O.
 				$this->l10n->t("Parameter '%s' is required!", [$fieldName])
 			);
 		}
 
 		if ($expectedType === 'string' && !is_string($value)) {
 			throw new InvalidArgumentException(
+				// TRANSLATORS Error shown when generating a signing certificate and a required subject field has the wrong type. %s is the field name such as CN or O.
 				$this->l10n->t("Parameter '%s' is required!", [$fieldName])
 			);
 		}
@@ -48,11 +50,13 @@ class ValidateService {
 		$length = strlen($value);
 		if (!$length && isset($rule['required']) && $rule['required']) {
 			throw new InvalidArgumentException(
+				// TRANSLATORS Error shown when generating a signing certificate and a required subject field is empty. %s is the field name such as CN or O.
 				$this->l10n->t("Parameter '%s' is required!", [$fieldName])
 			);
 		}
 		if ($length > $rule['max'] || $length < $rule['min']) {
 			throw new InvalidArgumentException(
+				// TRANSLATORS Error shown when a certificate subject field length is outside the allowed range. %s is the field name; the next values are the minimum and maximum length.
 				$this->l10n->t("Parameter '%s' should be betweeen %s and %s.", [$fieldName, $rule['min'], $rule['max']])
 			);
 		}
@@ -62,11 +66,13 @@ class ValidateService {
 		$arrayLength = count($values);
 		if (isset($rule['minItems']) && $arrayLength < $rule['minItems']) {
 			throw new InvalidArgumentException(
+				// TRANSLATORS Error shown when a certificate subject field has too few values. %s is the field name with "items"; the next values are the allowed minimum and maximum counts.
 				$this->l10n->t("Parameter '%s' should be betweeen %s and %s.", [$fieldName . ' items', $rule['minItems'], $rule['maxItems'] ?? '∞'])
 			);
 		}
 		if (isset($rule['maxItems']) && $arrayLength > $rule['maxItems']) {
 			throw new InvalidArgumentException(
+				// TRANSLATORS Error shown when a certificate subject field has too many values. %s is the field name with "items"; the next values are the allowed minimum and maximum counts.
 				$this->l10n->t("Parameter '%s' should be betweeen %s and %s.", [$fieldName . ' items', $rule['minItems'] ?? 0, $rule['maxItems']])
 			);
 		}
@@ -75,6 +81,7 @@ class ValidateService {
 
 		if (empty($nonEmptyValues) && isset($rule['required']) && $rule['required']) {
 			throw new InvalidArgumentException(
+				// TRANSLATORS Error shown when generating a signing certificate and a required subject field list is empty. %s is the field name.
 				$this->l10n->t("Parameter '%s' is required!", [$fieldName])
 			);
 		}
@@ -82,6 +89,7 @@ class ValidateService {
 		foreach ($values as $index => $value) {
 			if (!is_string($value)) {
 				throw new InvalidArgumentException(
+					// TRANSLATORS Error shown when generating a signing certificate and a required subject field value is invalid. %s is the field name.
 					$this->l10n->t("Parameter '%s' is required!", [$fieldName])
 				);
 			}

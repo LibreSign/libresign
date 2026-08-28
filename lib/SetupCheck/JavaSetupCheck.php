@@ -66,7 +66,9 @@ class JavaSetupCheck implements ISetupCheck {
 
 		if (!$javaPath) {
 			return SetupResult::error(
+				// TRANSLATORS Warning shown in Nextcloud administration overview when Java required by LibreSign is not installed.
 				$this->l10n->t('Java not installed'),
+				// TRANSLATORS Tip under a Nextcloud administration overview error. Instructs the administrator to install Java for LibreSign via occ.
 				$this->l10n->t('Run occ libresign:install --java')
 			);
 		}
@@ -79,7 +81,9 @@ class JavaSetupCheck implements ISetupCheck {
 
 		if (!file_exists($javaPath)) {
 			return SetupResult::error(
+				// TRANSLATORS Warning shown in Nextcloud administration overview when the configured Java path does not exist. %s is the path.
 				$this->l10n->t('Java binary not found: %s', [$javaPath]),
+				// TRANSLATORS Tip under a Nextcloud administration overview error. Instructs the administrator to install Java for LibreSign via occ.
 				$this->l10n->t('Run occ libresign:install --java')
 			);
 		}
@@ -88,13 +92,16 @@ class JavaSetupCheck implements ISetupCheck {
 		exec($javaPath . ' -version 2>&1', $output, $returnCode);
 		if (empty($output)) {
 			return SetupResult::error(
+				// TRANSLATORS Warning shown in Nextcloud administration overview when Java cannot be executed, often because the operating system blocks it.
 				$this->l10n->t('Failed to execute Java. Sounds that your operational system is blocking the JVM.'),
 				'https://github.com/LibreSign/libresign/issues/2327#issuecomment-1961988790'
 			);
 		}
 		if ($returnCode !== 0) {
 			return SetupResult::error(
+				// TRANSLATORS Warning shown in Nextcloud administration overview when LibreSign cannot read the installed Java version.
 				$this->l10n->t('Failure to check Java version.'),
+				// TRANSLATORS Tip under a Nextcloud administration overview error. Instructs the administrator to install Java for LibreSign via occ.
 				$this->l10n->t('Run occ libresign:install --java')
 			);
 		}
@@ -102,7 +109,9 @@ class JavaSetupCheck implements ISetupCheck {
 		$javaVersion = trim($output[0] ?? '');
 		if ($javaVersion !== InstallService::JAVA_VERSION) {
 			return SetupResult::error(
+				// TRANSLATORS Warning shown in Nextcloud administration overview when the installed Java version does not match the required one. First %s is found; second %s is expected.
 				$this->l10n->t('Invalid java version. Found: %s expected: %s', [$javaVersion, InstallService::JAVA_VERSION]),
+				// TRANSLATORS Tip under a Nextcloud administration overview error. Instructs the administrator to install Java for LibreSign via occ.
 				$this->l10n->t('Run occ libresign:install --java')
 			);
 		}
@@ -114,6 +123,7 @@ class JavaSetupCheck implements ISetupCheck {
 
 		if (!$encoding) {
 			return SetupResult::error(
+				// TRANSLATORS Warning shown in Nextcloud administration overview when LibreSign cannot detect the Java character encoding.
 				$this->l10n->t('Java encoding not found.'),
 				sprintf('The command %s need to have native.encoding', $javaPath . ' -XshowSettings:properties -version')
 			);
@@ -142,12 +152,15 @@ class JavaSetupCheck implements ISetupCheck {
 				$phpLang
 			);
 			return SetupResult::info(
+				// TRANSLATORS Info shown in Nextcloud administration overview when Java is not using UTF-8, which can break accented characters. %s is the detected encoding.
 				$this->l10n->t('Non-UTF-8 encoding detected: %s. This may cause issues with accented or special characters', [$detectedEncoding]),
 				$tip
 			);
 		}
 
+		// TRANSLATORS Success detail in Nextcloud administration overview showing the detected Java version. %s is the version string.
 		$message = $this->l10n->t('Java version: %s', [$javaVersion]) . "\n"
+		  // TRANSLATORS Success detail in Nextcloud administration overview showing the Java executable path. %s is the filesystem path.
 		  . $this->l10n->t('Java binary: %s', [$javaPath]);
 		return SetupResult::success($message);
 	}

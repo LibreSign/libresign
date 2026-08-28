@@ -1067,6 +1067,7 @@ class PolicySource implements IPolicySource {
 	public function saveUserPreference(string $policyKey, PolicyContext $context, mixed $value): void {
 		$userId = $context->getUserId();
 		if ($userId === null || $userId === '') {
+			// TRANSLATORS Error shown when saving a LibreSign policy preference without a signed-in user.
 			throw new \InvalidArgumentException($this->l10n->t('A signed-in user is required to save a policy preference.'));
 		}
 
@@ -1079,6 +1080,7 @@ class PolicySource implements IPolicySource {
 	public function saveUserPolicy(string $policyKey, PolicyContext $context, mixed $value, bool $allowChildOverride): void {
 		$userId = $context->getUserId();
 		if ($userId === null || $userId === '') {
+			// TRANSLATORS Error shown when saving a user-scoped LibreSign policy without a target user.
 			throw new \InvalidArgumentException($this->l10n->t('A target user is required to save a user policy.'));
 		}
 

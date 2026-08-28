@@ -64,6 +64,7 @@ final class ValidateServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public static function providerInvalidStringFields(): array {
 		return [
 			['CN', '', "Parameter 'CN' is required!"],
+			['CN', '   ', "Parameter 'CN' is required!"],
 			['C', 'BRA', "Parameter 'C' should be betweeen 2 and 2."],
 			['C', 'B', "Parameter 'C' should be betweeen 2 and 2."],
 			['ST', str_repeat('a', 129), "Parameter 'ST' should be betweeen 1 and 128."],
@@ -86,7 +87,9 @@ final class ValidateServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['OU', ['LibreCode', 'LibreSign']],
 			['OU', ['LibreCode', 'LibreSign', '']],
 			['OU', ['']],
+			['OU', ['   ']],
 			['OU', []],
+			['OU', array_fill(0, 10, 'test')],
 		];
 	}
 
@@ -105,6 +108,7 @@ final class ValidateServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['OU', array_fill(0, 11, 'test'), "Parameter 'OU items' should be betweeen 0 and 10."],
 			['OU', [str_repeat('a', 65)], "Parameter 'OU' should be betweeen 1 and 64."],
 			['OU', ['valid', str_repeat('a', 65)], "Parameter 'OU' should be betweeen 1 and 64."],
+			['OU', ['valid', []], "Parameter 'OU' is required!"],
 		];
 	}
 

@@ -46,6 +46,10 @@ class ProcessSignaler {
 			return false;
 		}
 
+		return $this->sendSignal($pid, $signal);
+	}
+
+	protected function sendSignal(int $pid, int $signal): bool {
 		if (function_exists('posix_kill')) {
 			return @posix_kill($pid, $signal);
 		}

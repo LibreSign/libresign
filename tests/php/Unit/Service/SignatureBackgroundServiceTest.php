@@ -9,9 +9,13 @@ namespace OCA\Libresign\Tests\Unit\Service;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
+use OCA\Libresign\Service\SignerElementsService;
 use OCP\Files\IAppData;
 use OCP\IAppConfig;
 use OCP\IConfig;
@@ -107,6 +111,38 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 				=> [2000, 1600, 200, 100, 375, 300],
 			'every return integer'
 				=> [2000, 1600, 200.7, 100.5, 376, 301],
+		];
+	}
+
+	#[DataProvider('providerIsEnabled')]
+	public function testIsEnabled(mixed $backgroundType, bool $expected): void {
+		$this->policyService
+			->method('resolve')
+			->willReturn((new ResolvedPolicy())
+				->setPolicyKey(SignatureTextPolicy::KEY)
+				->setEffectiveValue(SignatureTextPolicyValue::encode([
+					'template' => '',
+					'template_font_size' => SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+					'signature_font_size' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+					'signature_width' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+					'signature_height' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
+					'background_type' => $backgroundType,
+					'render_mode' => SignerElementsService::RENDER_MODE_DEFAULT,
+				])));
+
+		$this->assertSame($expected, $this->getClass()->isEnabled());
+	}
+
+	/**
+	 * @return array<string, array{mixed, bool}>
+	 */
+	public static function providerIsEnabled(): array {
+		return [
+			'default background is enabled' => ['default', true],
+			'custom background is enabled' => ['custom', true],
+			'deleted background is disabled' => ['deleted', false],
+			'unknown value falls back to default' => ['whatever', true],
+			'non string value falls back to default' => [null, true],
 		];
 	}
 

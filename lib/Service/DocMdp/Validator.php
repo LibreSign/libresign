@@ -38,12 +38,14 @@ class Validator {
 		if ($docMdpLevel === 1) {
 			if ($file && $file->getSignedHash()) {
 				throw new LibresignException(
+					// TRANSLATORS Error shown when trying to add more signers to a document certified with DocMDP level that forbids further changes.
 					$this->l10n->t('This document has been certified with no changes allowed. You cannot add more signers to this document.')
 				);
 			}
 
 			if (count($data['signers']) > 1) {
 				throw new LibresignException(
+					// TRANSLATORS Error shown when trying to add more signers to a document certified with DocMDP level that forbids further changes.
 					$this->l10n->t('This document has been certified with no changes allowed. You cannot add more signers to this document.')
 				);
 			}
@@ -57,11 +59,13 @@ class Validator {
 
 		$node = $this->root->getById($file->getNodeId());
 		if (empty($node)) {
+			// TRANSLATORS Error shown when validating DocMDP certification and the document file cannot be found.
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
 
 		$firstNode = current($node);
 		if (!$firstNode instanceof \OCP\Files\File) {
+			// TRANSLATORS Error shown when validating DocMDP certification and the file is not a supported document type.
 			throw new LibresignException($this->l10n->t('Invalid file type'));
 		}
 

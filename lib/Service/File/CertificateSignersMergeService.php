@@ -352,6 +352,16 @@ class CertificateSignersMergeService {
 		if (isset($chain[0])) {
 			$this->enrichSignerWithCertificateValidation($signer, $chain[0]);
 		}
+
+		// Promote the end-entity (leaf) certificate validity dates to the signer root so the
+		// validation UI and the SignerDetail API contract can read them from a stable location.
+		// The chain still carries the full per-certificate dates for the certificate-chain view.
+		if (isset($signer->chain[0]['valid_from']) && !isset($signer->valid_from)) {
+			$signer->valid_from = $signer->chain[0]['valid_from'];
+		}
+		if (isset($signer->chain[0]['valid_to']) && !isset($signer->valid_to)) {
+			$signer->valid_to = $signer->chain[0]['valid_to'];
+		}
 	}
 
 	private function enrichSignerWithCertificateValidation(\stdClass $signer, array $endEntityCert): void {

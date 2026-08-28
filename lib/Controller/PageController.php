@@ -242,6 +242,7 @@ class PageController extends AEnvironmentPageAwareController {
 				} catch (LibresignException) {
 					throw new LibresignException(json_encode([
 						'action' => JSActions::ACTION_DO_NOTHING,
+						// TRANSLATORS Error shown on the signing page when the document identifier in the URL is invalid.
 						'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
 					]), Http::STATUS_NOT_FOUND);
 				}
@@ -278,6 +279,7 @@ class PageController extends AEnvironmentPageAwareController {
 			} catch (\Throwable) {
 				throw new LibresignException(json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
+					// TRANSLATORS Error shown on the signing page when the document identifier in the URL is invalid.
 					'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
 				]), Http::STATUS_NOT_FOUND);
 			}
@@ -531,6 +533,7 @@ class PageController extends AEnvironmentPageAwareController {
 		if (empty($files)) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
+				// TRANSLATORS Error shown on the LibreSign page when the requested document cannot be found.
 				'errors' => [['message' => $this->l10n->t('File not found')]],
 			]), Http::STATUS_NOT_FOUND);
 		}
@@ -655,6 +658,7 @@ class PageController extends AEnvironmentPageAwareController {
 				$this->fileService->setFile($libresignFile);
 			} catch (DoesNotExistException) {
 				$this->initialState->provideInitialState('action', JSActions::ACTION_DO_NOTHING);
+				// TRANSLATORS Error shown when the identification-document request identifier is invalid.
 				$this->initialState->provideInitialState('errors', [['message' => $this->l10n->t('Invalid UUID')]]);
 			}
 		}

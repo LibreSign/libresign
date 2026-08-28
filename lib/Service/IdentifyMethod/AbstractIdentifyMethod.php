@@ -210,6 +210,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			if (!is_int($fileInfo['nodeId'])) {
 				throw new LibresignException(json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
+					// TRANSLATORS Error shown during signer identification when the related document cannot be found.
 					'errors' => [['message' => $this->identifyService->getL10n()->t('File not found')]],
 				]), AppFrameworkHttp::STATUS_NOT_FOUND);
 			}
@@ -224,6 +225,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			} catch (NotFoundException) {
 				throw new LibresignException(json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
+					// TRANSLATORS Error shown during signer identification when the related document cannot be found.
 					'errors' => [['message' => $this->identifyService->getL10n()->t('File not found')]],
 				]), AppFrameworkHttp::STATUS_NOT_FOUND);
 			} finally {
@@ -244,6 +246,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		if ($expirationDate < $now) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
+				// TRANSLATORS Error shown when the one-time signing link has expired and can no longer be used.
 				'errors' => [['message' => $this->identifyService->getL10n()->t('Link expired.')]],
 			]));
 		}
@@ -253,11 +256,13 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$code = $this->getEntity()->getCode();
 		if ($code === null || $code === '') {
 			if ($this->codeSentByUser !== null) {
+				// TRANSLATORS Error shown when the verification code entered by the signer is incorrect.
 				throw new LibresignException($this->identifyService->getL10n()->t('Invalid code.'));
 			}
 			return;
 		}
 		if (empty($this->codeSentByUser) || !$this->identifyService->getHasher()->verify($this->codeSentByUser, $code)) {
+			// TRANSLATORS Error shown when the verification code entered by the signer is incorrect.
 			throw new LibresignException($this->identifyService->getL10n()->t('Invalid code.'));
 		}
 	}
@@ -348,6 +353,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_REDIRECT,
+				// TRANSLATORS Error shown when the signer tries to sign a document that is already signed.
 				'errors' => [['message' => $this->identifyService->getL10n()->t('File already signed.')]],
 				'redirect' => $this->identifyService->getUrlGenerator()->linkToRoute(
 					'libresign.page.validationFilePublic',

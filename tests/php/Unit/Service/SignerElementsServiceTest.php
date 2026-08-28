@@ -51,19 +51,26 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 	}
 
 	#[DataProvider('providerIsSignElementsAvailable')]
-	public function testIsSignElementsAvailable(bool $background, bool $text, bool $expected): void {
+	public function testIsSignElementsAvailable(bool $background, bool $text, string $renderMode, bool $expected): void {
 		$this->signatureBackgroundService->method('isEnabled')->willReturn($background);
 		$this->signatureTextService->method('isEnabled')->willReturn($text);
+		$this->signatureTextService->method('getRenderMode')->willReturn($renderMode);
 		$available = $this->getClass()->isSignElementsAvailable();
 		$this->assertEquals($expected, $available);
 	}
 
+	/**
+	 * @return array<string, array{bool, bool, string, bool}>
+	 */
 	public static function providerIsSignElementsAvailable(): array {
 		return [
-			[false, false, false],
-			[false, true, true],
-			[true, true, true],
-			[true, false, true],
+			'background only' => [true, false, SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY, true],
+			'text only' => [false, true, SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY, true],
+			'background and text' => [true, true, SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY, true],
+			'drawn signature and description' => [false, false, SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION, true],
+			'drawn signature only' => [false, false, SignerElementsService::RENDER_MODE_GRAPHIC_ONLY, true],
+			'signer name rendered as image' => [false, false, SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION, true],
+			'nothing to render' => [false, false, SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY, false],
 		];
 	}
 }

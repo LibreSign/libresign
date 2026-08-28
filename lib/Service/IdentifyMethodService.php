@@ -302,6 +302,7 @@ class IdentifyMethodService {
 			return $firstMethod;
 		}
 
+		// TRANSLATORS Error shown when the chosen method to identify the signer (account, email, SMS, etc.) is invalid.
 		throw new LibresignException($this->l10n->t('Invalid identification method'), 1);
 	}
 

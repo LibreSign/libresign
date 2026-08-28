@@ -291,10 +291,12 @@ class FileService {
 		try {
 			$file = $resolver();
 		} catch (\Throwable) {
+			// TRANSLATORS Error shown when LibreSign cannot validate the uploaded or referenced document for signing.
 			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 		}
 
 		if (!$file instanceof File) {
+			// TRANSLATORS Error shown when the document identifier used in a signing flow is invalid.
 			throw new LibresignException($this->l10n->t('Invalid file identifier'), 404);
 		}
 
@@ -323,6 +325,7 @@ class FileService {
 
 	public function setFileFromRequest(?array $file): self {
 		if ($file === null) {
+			// TRANSLATORS Error shown when an action expected an uploaded document and none was provided.
 			throw new InvalidArgumentException($this->l10n->t('No file provided'));
 		}
 		$this->initializeFileData();
@@ -333,6 +336,7 @@ class FileService {
 		if ($mimeType !== 'application/pdf') {
 			$this->fileContent = '';
 			unlink($file['tmp_name']);
+			// TRANSLATORS Error shown when the uploaded document is invalid for LibreSign.
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
 		}
 		$this->fileData->size = $file['size'];
@@ -364,6 +368,7 @@ class FileService {
 		}
 		$fileToValidate = $this->root->getUserFolder($this->file->getUserId())->getFirstNodeById($nodeId);
 		if (!$fileToValidate instanceof \OCP\Files\File) {
+			// TRANSLATORS Error shown when the requested document cannot be found.
 			throw new LibresignException($this->l10n->t('File not found'), 404);
 		}
 		return $fileToValidate;

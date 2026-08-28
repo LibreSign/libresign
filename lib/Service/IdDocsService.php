@@ -48,6 +48,7 @@ class IdDocsService {
 			throw new LibresignException(json_encode([
 				'type' => 'danger',
 				'file' => $fileIndex,
+				// TRANSLATORS Error shown when an uploaded identity document has an unsupported file type.
 				'message' => $this->l10n->t('Invalid file type.')
 			]));
 		}
@@ -59,6 +60,7 @@ class IdDocsService {
 			throw new LibresignException(json_encode([
 				'type' => 'danger',
 				'file' => $fileIndex,
+				// TRANSLATORS Error shown when an uploaded identity document has an unsupported file type.
 				'message' => $this->l10n->t('Invalid file type.')
 			]));
 		}
