@@ -77,7 +77,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
 	 * @param bool $async Execute signing asynchronously when possible
-	 * @param LibresignSignerGeolocation $geolocation Device-reported geolocation metadata submitted by the signing client
+	 * @param array<string, mixed> $geolocation Device-reported geolocation metadata submitted by the signing client
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
@@ -103,7 +103,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
 	 * @param bool $async Execute signing asynchronously when possible
-	 * @param LibresignSignerGeolocation $geolocation Device-reported geolocation metadata submitted by the signing client
+	 * @param array<string, mixed> $geolocation Device-reported geolocation metadata submitted by the signing client
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
