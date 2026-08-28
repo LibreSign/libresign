@@ -5,6 +5,7 @@
 
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import logger from '../logger.js'
 
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
@@ -27,7 +28,7 @@ export const useFilesSortingStore = defineStore('filesSorting', () => {
 				value: sortingDirection.value,
 			})
 		} catch (error) {
-			console.error('Failed to save sorting:', error)
+			logger.error('Failed to save sorting', { error })
 		}
 	}
 
