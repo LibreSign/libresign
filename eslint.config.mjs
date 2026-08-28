@@ -135,19 +135,4 @@ export default [
 			'vue/no-unused-properties': 'off', // ~11 hits; public API / shared editor props
 		},
 	},
-
-	{
-		name: 'libresign/tests-console-override',
-		files: [
-			'src/tests/setup.js',
-			'src/tests/store/filters.spec.ts',
-		],
-		rules: {
-			// These files intentionally intercept console.error/console.warn
-			// to fail tests on unexpected console output, or to silence
-			// expected console output during a specific assertion. This is
-			// test tooling, not application logging.
-			'no-console': 'off',
-		},
-	},
 ]
