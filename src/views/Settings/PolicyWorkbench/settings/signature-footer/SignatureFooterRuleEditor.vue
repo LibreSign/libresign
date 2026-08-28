@@ -171,6 +171,8 @@ const props = withDefaults(defineProps<{
 }>(), {
 	inheritedTemplate: '',
 	editorScope: 'system',
+	showTemplateResetButton: undefined,
+	showPreview: undefined,
 })
 
 const emit = defineEmits<{

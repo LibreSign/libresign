@@ -60,6 +60,7 @@ const props = withDefaults(defineProps<{
 	signers: () => [],
 	currentSigner: null,
 	getSignerLabel: null,
+	show: undefined,
 })
 
 const emit = defineEmits<{

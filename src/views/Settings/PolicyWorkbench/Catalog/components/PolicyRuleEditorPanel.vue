@@ -125,6 +125,9 @@ const props = withDefaults(defineProps<{
 }>(), {
 	stickyActions: false,
 	showBackButton: false,
+	showInlineActions: undefined,
+	showAllowOverrideSwitch: undefined,
+	allowOverrideMutable: undefined,
 	editorProps: () => ({}),
 	precedenceScopes: () => [],
 })

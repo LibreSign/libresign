@@ -83,6 +83,7 @@ const props = withDefaults(defineProps<{
 }>(), {
 	event: '',
 	draggable: false,
+	requireRequestPermission: undefined,
 })
 const emit = defineEmits<{
 	(event: 'select', signer: SignerViewModel): void

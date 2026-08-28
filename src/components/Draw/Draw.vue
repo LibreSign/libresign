@@ -63,6 +63,7 @@ const props = withDefaults(defineProps<{
 }>(), {
 	textEditor: false,
 	fileEditor: false,
+	drawEditor: undefined,
 })
 
 const emit = defineEmits<{
