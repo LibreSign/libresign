@@ -9,10 +9,14 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
 use OCP\L10N\IFactory as IL10NFactory;
+use OCP\Security\IHasher;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -22,10 +26,9 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[\Override]
 	public function setUp(): void {
-		$identifyService = $this->createMock(IdentifyService::class);
 		$identifyService = $this->getMockBuilder(IdentifyService::class)
 			->disableOriginalConstructor()
-			->onlyMethods(['getL10n'])
+			->onlyMethods(['getL10n', 'getSignRequestMapper', 'getHasher', 'save'])
 			->getMock();
 		$identifyService->method('getL10n')->willReturn(
 			\OCP\Server::get(IL10NFactory::class)->get(\OCA\Libresign\AppInfo\Application::APP_ID)
@@ -41,8 +44,8 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	#[DataProvider('providerVaidateEmail')]
-	public function testVaidateEmail(string $email, string $blurred, string $hash): void {
+	#[DataProvider('providerValidateEmail')]
+	public function testValidateEmail(string $email, string $blurred, string $hash): void {
 		$instance = $this->getClass();
 		$identifyMethod = new IdentifyMethod();
 		$entity['identifierKey'] = 'email';
@@ -60,7 +63,7 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertEquals($hash, $actual['hashOfEmail']);
 	}
 
-	public static function providerVaidateEmail(): array {
+	public static function providerValidateEmail(): array {
 		return [
 			['valid@domain.coop', 'val***@***.coop', md5('valid@domain.coop')],
 			['valiD@Domain.coop', 'val***@***.coop', md5('valid@domain.coop')],
@@ -153,5 +156,118 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'case_47' => [['code' => '123456', 'identifiedAtDate' => '2025-08-11'], '0',   ['needCode' => true,  'hasConfirmCode' => true]],
 			'case_48' => [['code' => '123456', 'identifiedAtDate' => '2025-08-11'], 'abc', ['needCode' => false, 'hasConfirmCode' => true]],
 		];
+	}
+
+	public function testRequestCodeSendsCodeAndPersistsHash(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setDisplayName('John Doe');
+		$signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$signRequestMapper->method('getById')
+			->with(171)
+			->willReturn($signRequest);
+		$this->identifyService->method('getSignRequestMapper')->willReturn($signRequestMapper);
+		$this->tokenService->expects($this->once())
+			->method('sendCodeByEmail')
+			->with('valid@domain.coop', 'John Doe')
+			->willReturn('hashed-code');
+
+		$instance = $this->getClass();
+		$identifyMethod = (new IdentifyMethod())->fromParams([
+			'identifierKey' => 'email',
+			'identifierValue' => 'valid@domain.coop',
+			'signRequestId' => 171,
+		]);
+		$instance->setEntity($identifyMethod);
+		$this->identifyService->expects($this->once())
+			->method('save')
+			->with($identifyMethod);
+
+		$instance->requestCode('valid@domain.coop', 'email');
+
+		$this->assertSame('hashed-code', $identifyMethod->getCode());
+	}
+
+	public function testRequestCodeOmitsDisplayNameWhenEqualToIdentifier(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setDisplayName('valid@domain.coop');
+		$signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$signRequestMapper->method('getById')
+			->with(171)
+			->willReturn($signRequest);
+		$this->identifyService->method('getSignRequestMapper')->willReturn($signRequestMapper);
+		$this->tokenService->expects($this->once())
+			->method('sendCodeByEmail')
+			->with('valid@domain.coop', '')
+			->willReturn('hashed-code');
+
+		$instance = $this->getClass();
+		$identifyMethod = (new IdentifyMethod())->fromParams([
+			'identifierKey' => 'email',
+			'identifierValue' => 'valid@domain.coop',
+			'signRequestId' => 171,
+		]);
+		$instance->setEntity($identifyMethod);
+
+		$instance->requestCode('valid@domain.coop', 'email');
+
+		$this->assertSame('hashed-code', $identifyMethod->getCode());
+	}
+
+	public function testValidateToSignWithValidCodeDoesNotThrow(): void {
+		$hasher = $this->createMock(IHasher::class);
+		$hasher->method('verify')
+			->with('123456', 'hashed-code')
+			->willReturn(true);
+		$this->identifyService->method('getHasher')->willReturn($hasher);
+
+		$instance = $this->getClass();
+		$identifyMethod = (new IdentifyMethod())->fromParams([
+			'identifierKey' => 'email',
+			'identifierValue' => 'valid@domain.coop',
+			'code' => 'hashed-code',
+		]);
+		$instance->setEntity($identifyMethod);
+		$instance->setCodeSentByUser('123456');
+
+		$instance->validateToSign();
+
+		$this->addToAssertionCount(1);
+	}
+
+	public function testValidateToSignWithWrongCodeThrows(): void {
+		$hasher = $this->createMock(IHasher::class);
+		$hasher->method('verify')
+			->with('654321', 'hashed-code')
+			->willReturn(false);
+		$this->identifyService->method('getHasher')->willReturn($hasher);
+
+		$instance = $this->getClass();
+		$identifyMethod = (new IdentifyMethod())->fromParams([
+			'identifierKey' => 'email',
+			'identifierValue' => 'valid@domain.coop',
+			'code' => 'hashed-code',
+		]);
+		$instance->setEntity($identifyMethod);
+		$instance->setCodeSentByUser('654321');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Invalid code.');
+
+		$instance->validateToSign();
+	}
+
+	public function testValidateToSignThrowsWhenCodeWasSentWithoutBeingRequested(): void {
+		$instance = $this->getClass();
+		$identifyMethod = (new IdentifyMethod())->fromParams([
+			'identifierKey' => 'email',
+			'identifierValue' => 'valid@domain.coop',
+		]);
+		$instance->setEntity($identifyMethod);
+		$instance->setCodeSentByUser('123456');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Invalid code.');
+
+		$instance->validateToSign();
 	}
 }
