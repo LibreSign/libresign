@@ -21,8 +21,6 @@ defineOptions({
 	name: 'SignatureBox',
 })
 
-type Signer = SignerSummaryRecord | SignerDetailRecord | null
-
 const props = withDefaults(defineProps<{
 	label?: string
 	signer?: Signer
@@ -30,6 +28,8 @@ const props = withDefaults(defineProps<{
 	label: '',
 	signer: null,
 })
+
+type Signer = SignerSummaryRecord | SignerDetailRecord | null
 
 const signatureBoxAriaLabel = computed(() => {
 	return t('libresign', 'Signature position for {name}', { name: props.label })

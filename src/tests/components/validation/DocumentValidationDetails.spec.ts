@@ -589,8 +589,7 @@ describe('DocumentValidationDetails', () => {
 				},
 			})
 
-			wrapper.vm.documentStatus
-
+			expect(wrapper.vm.documentStatus).toBeDefined()
 			expect(fileStatus.getStatusLabel).toHaveBeenCalled()
 		})
 	})

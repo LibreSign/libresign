@@ -6,8 +6,7 @@
 <template>
 	<NcSettingsSection
 		:name="signatureRequestAccessTitle"
-		:description="signatureRequestAccessDescription"
-	>
+		:description="signatureRequestAccessDescription">
 		<NcSelect :key="idKey"
 			v-model="groupsSelected"
 			label="displayname"

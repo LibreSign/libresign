@@ -8,6 +8,7 @@ import { computed, ref } from 'vue'
 
 import axios from '@nextcloud/axios'
 import { subscribe } from '@nextcloud/event-bus'
+import logger from '../logger.js'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -72,7 +73,7 @@ const _configureCheckStore = defineStore('configureCheck', () => {
 				updateItems(data.ocs?.data || [])
 			})
 			.catch((error) => {
-				console.error('Failed to check setup:', error)
+				logger.error('Failed to check setup', { error })
 				state.value = 'error'
 				downloadInProgress.value = false
 			})
@@ -91,7 +92,7 @@ const _configureCheckStore = defineStore('configureCheck', () => {
 				return checkSetup().then(() => ({ success: true, engine }))
 			})
 			.catch((error) => {
-				console.error('Failed to save certificate engine:', error)
+				logger.error('Failed to save certificate engine', { error })
 				return { success: false, error }
 			})
 	}

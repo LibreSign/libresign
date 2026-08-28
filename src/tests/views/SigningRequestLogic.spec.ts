@@ -93,7 +93,7 @@ describe('Signing Request Creation Business Logic', () => {
 			]
 
 			const isOrdered = signers.every((s, i) => {
-				if (i === 0) return true
+				if (i === 0) { return true }
 				return s.order > signers[i - 1].order
 			})
 

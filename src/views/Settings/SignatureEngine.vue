@@ -7,15 +7,16 @@
 		:name="t('libresign', 'Signature engine')"
 		:description="t('libresign', 'Select the signature engine to sign the documents')">
 		<div class="signature-engine-content">
-			<NcSelect input-id="signatureEngine"
+			<NcSelect v-model="selectedOption"
+				input-id="signatureEngine"
 				:aria-label-combobox="t('libresign', 'Select the signature engine to sign the documents')"
 				:clearable="false"
-				v-model="selectedOption"
 				:options="options"
 				@update:modelValue="saveEngine" />
 		</div>
 	</NcSettingsSection>
 </template>
+
 <script setup lang="ts">
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
@@ -85,6 +86,7 @@ defineExpose({
 	saveEngine,
 })
 </script>
+
 <style scoped>
 .signature-engine-content {
 	display: flex;

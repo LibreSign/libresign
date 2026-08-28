@@ -3,10 +3,10 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcActions v-if="show"
+	<NcActions v-if="show !== false"
 		class="signer-menu"
 		:force-menu="true"
-		:menu-name="''"
+		menu-name=""
 		variant="tertiary-no-background">
 		<template #icon>
 			<span class="signer-trigger">
@@ -51,8 +51,6 @@ defineOptions({
 	name: 'SignerMenu',
 })
 
-type Signer = SignerSummaryRecord | SignerDetailRecord
-
 const props = withDefaults(defineProps<{
 	signers?: Signer[]
 	currentSigner?: Signer | null
@@ -62,12 +60,14 @@ const props = withDefaults(defineProps<{
 	signers: () => [],
 	currentSigner: null,
 	getSignerLabel: null,
-	show: true,
+	show: undefined,
 })
 
 const emit = defineEmits<{
 	change: [signer: Signer]
 }>()
+
+type Signer = SignerSummaryRecord | SignerDetailRecord
 
 function label(signer: Signer | null | undefined) {
 	if (props.getSignerLabel) {

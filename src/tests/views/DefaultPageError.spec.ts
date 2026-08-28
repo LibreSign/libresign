@@ -91,8 +91,8 @@ describe('DefaultPageError', () => {
 
 	it('shows error message from "error" key when "errors" array is empty', () => {
 		loadState.mockImplementation((app, key, defaultValue) => {
-			if (app === 'libresign' && key === 'errors') return []
-			if (app === 'libresign' && key === 'error') return { message: 'Something went wrong' }
+			if (app === 'libresign' && key === 'errors') { return [] }
+			if (app === 'libresign' && key === 'error') { return { message: 'Something went wrong' } }
 			return defaultValue
 		})
 

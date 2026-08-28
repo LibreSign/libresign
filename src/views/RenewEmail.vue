@@ -31,7 +31,7 @@
 				{{ renewButton }}
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
-					<NcIconSvgWrapper :path="mdiArrowRight" v-else />
+					<NcIconSvgWrapper v-else :path="mdiArrowRight" />
 				</template>
 			</NcButton>
 		</div>

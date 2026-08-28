@@ -63,8 +63,8 @@
 	</div>
 
 	<NcDialog
-		:name="availableTemplateVariablesDialogTitle"
 		v-model:open="showVariablesDialog"
+		:name="availableTemplateVariablesDialogTitle"
 		size="normal">
 		<div class="ste__vars-dialog">
 			<p class="ste__vars-description">

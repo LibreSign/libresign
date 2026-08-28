@@ -47,7 +47,10 @@
 		<CreatePassword v-if="mounted" />
 		<ReadCertificate v-if="mounted" />
 		<ResetPassword v-if="mounted" />
-		<UploadCertificate ref="uploadCertificate" v-if="mounted" :use-modal="false"
+		<UploadCertificate
+			v-if="mounted"
+			ref="uploadCertificate"
+			:use-modal="false"
 			@certificate:uploaded="onCertificateUploaded" />
 	</div>
 </template>
@@ -127,6 +130,7 @@ defineExpose({
 	mdiFileReplace,
 })
 </script>
+
 <style lang="scss" scoped>
 
 .user-display-password {

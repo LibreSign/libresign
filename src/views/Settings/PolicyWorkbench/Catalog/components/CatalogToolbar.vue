@@ -73,13 +73,6 @@ defineOptions({
 	name: 'CatalogToolbar',
 })
 
-const emit = defineEmits<{
-	'update:modelValue': [value: string]
-	'clear-filter': []
-	'toggle-layout': []
-	'toggle-collapsed': []
-}>()
-
 withDefaults(defineProps<{
 	modelValue: string
 	hasActiveFilter: boolean
@@ -93,6 +86,13 @@ withDefaults(defineProps<{
 }>(), {
 	toolbarRef: null,
 })
+
+const emit = defineEmits<{
+	'update:modelValue': [value: string]
+	'clear-filter': []
+	'toggle-layout': []
+	'toggle-collapsed': []
+}>()
 
 // TRANSLATORS Label for the settings catalog search field.
 const searchSettingsLabel = t('libresign', 'Search settings')

@@ -6,9 +6,9 @@
 	<NcAppSidebar v-if="hasVisibleTab"
 		ref="rightAppSidebar"
 		v-model:open="opened"
+		v-model:active="sidebarStore.activeTab"
 		:name="fileName"
 		:subtitle="subTitle"
-		v-model:active="sidebarStore.activeTab"
 		@update:active="handleUpdateActive"
 		@close="closeSidebar">
 		<NcAppSidebarTab v-if="showSign"
@@ -112,6 +112,7 @@ defineExpose({
 	closeSidebar,
 })
 </script>
+
 <style lang="scss" scoped>
 .app-sidebar__tab  {
 	box-shadow: none !important;

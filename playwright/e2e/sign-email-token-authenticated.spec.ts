@@ -73,7 +73,7 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 	// The admin is intentionally NOT logged out — this tests the authenticated path.
 	const notificationEmail = await waitForEmailTo(mailpit, 'admin@email.tld', 'LibreSign: A document is ready for your signature')
 	const signLink = extractSignLink(notificationEmail.Text)
-	if (!signLink) throw new Error('Sign link not found in notification email')
+	if (!signLink) { throw new Error('Sign link not found in notification email') }
 
 	// Navigate to the sign link while still logged in as admin.
 	// throwIfIsAuthenticatedWithDifferentAccount allows this because
@@ -96,7 +96,7 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 
 	const tokenEmail = await waitForEmailTo(mailpit, 'admin@email.tld', 'LibreSign: Verification code to sign a document', { timeout: 60_000 })
 	const token = extractTokenFromEmail(tokenEmail.Text)
-	if (!token) throw new Error('Token not found in email')
+	if (!token) { throw new Error('Token not found in email') }
 	await page.getByRole('textbox', { name: 'Enter your code' }).fill(token)
 	await page.getByRole('button', { name: 'Validate code' }).click()
 

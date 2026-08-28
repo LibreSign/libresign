@@ -48,6 +48,7 @@
 		</p>
 	</div>
 </template>
+
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
@@ -68,6 +69,22 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
 import type { IdentifyAccountRecord } from '../../types'
+defineOptions({
+	name: 'SignerSelect',
+})
+
+const props = withDefaults(defineProps<{
+	method?: string
+	placeholder?: string
+}>(), {
+	method: 'all',
+	placeholder: t('libresign', 'Name'),
+})
+
+const emit = defineEmits<{
+	(event: 'update:signer', signer: IdentifyAccountRecord | null): void
+}>()
+
 const iconMap = {
 	svgAccount,
 	svgEmail,
@@ -84,22 +101,6 @@ type OptionSlotProps = {
 	option: IdentifyAccountRecord
 }
 type OptionPayload = IdentifyAccountRecord | OptionSlotProps | undefined
-
-defineOptions({
-	name: 'SignerSelect',
-})
-
-const emit = defineEmits<{
-	(event: 'update:signer', signer: IdentifyAccountRecord | null): void
-}>()
-
-const props = withDefaults(defineProps<{
-	method?: string
-	placeholder?: string
-}>(), {
-	method: 'all',
-	placeholder: t('libresign', 'Name'),
-})
 
 const select = ref<{ $el?: HTMLElement } | null>(null)
 const loading = ref(false)
@@ -257,6 +258,7 @@ defineExpose({
 	focusInput,
 })
 </script>
+
 <style lang="scss" scoped>
 .account-or-email {
 	display: flex;

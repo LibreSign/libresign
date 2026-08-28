@@ -64,7 +64,7 @@ function setPreset(presets?: number[]) {
 	if (presets && presets.length > 0) {
 		for (const id of presets) {
 			const status = fileStatus.value.find((item) => item.id === id)
-			if (!status) continue
+			if (!status) { continue }
 
 			chips.push({
 				id: status.id,
@@ -102,7 +102,7 @@ function setMarkedFilter() {
 	if (selectedOptions.value.length > 0) {
 		for (const id of selectedOptions.value) {
 			const status = fileStatus.value.find((item) => item.id === id)
-			if (!status) continue
+			if (!status) { continue }
 
 			chips.push({
 				id: status.id,

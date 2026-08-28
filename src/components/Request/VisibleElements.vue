@@ -77,8 +77,7 @@
 				:signers="pdfEditorSigners"
 				@pdf-editor:end-init="updateSigners"
 				@pdf-editor:adding-ended="handleAddingEnded"
-				@pdf-editor:on-delete-signer="handleDeleteSigner">
-			</PdfEditor>
+				@pdf-editor:on-delete-signer="handleDeleteSigner" />
 		</div>
 	</NcModal>
 </template>
@@ -95,6 +94,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcChip from '@nextcloud/vue/components/NcChip'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcModal from '@nextcloud/vue/components/NcModal'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref, type ComponentPublicInstance } from 'vue'
 
 import PdfEditor from '../PdfEditor/PdfEditor.vue'
@@ -179,6 +179,10 @@ type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' |
 	getEditableFile: ReturnType<typeof useFilesStore>['getEditableFile']
 	saveOrUpdateSignatureRequest: (payload: { visibleElements: EditableVisibleElementPayload[] }) => Promise<{ message: string }>
 }
+
+defineOptions({
+	name: 'VisibleElements',
+})
 
 function isIdentifyMethodRecord(value: unknown): value is IdentifyMethodRecord {
 	const candidate = toRecord(value)
@@ -453,10 +457,6 @@ const normalizeVisibleElements = (elements: VisibleElementRecord[]): VisibleElem
 			},
 		} satisfies VisibleElementRecord]
 	})
-
-defineOptions({
-	name: 'VisibleElements',
-})
 
 const filesStore = useFilesStore() as FilesStore
 const instance = getCurrentInstance()
@@ -997,7 +997,7 @@ function buildVisibleElements() {
 	for (let docIndex = 0; docIndex < numDocuments; docIndex++) {
 		const objects = getPdfObjectsForDocument(docIndex)
 		objects.forEach((object: PdfObject) => {
-			if (!object.signer) return
+			if (!object.signer) { return }
 
 			if (object.visibleElement?.fileId !== undefined
 				&& object.visibleElement?.signRequestId !== undefined

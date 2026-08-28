@@ -94,6 +94,7 @@ describe('FileValidation', () => {
 
 	beforeEach(() => {
 		if (wrapper) {
+			wrapper.unmount()
 		}
 		vi.clearAllMocks()
 	})

@@ -8,6 +8,7 @@ import { ref } from 'vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
+import logger from '../logger.js'
 import { emit, subscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
@@ -511,7 +512,7 @@ const _filesStore = defineStore('files', () => {
 		}
 	}
 
-	/** @returns {EditableFileDraft} */
+	/** @return {EditableFileDraft} */
 	function getEditableFile(fileId = selectedFileId.value) {
 		return ensureRequestDraft(fileId) || cloneEditableFile(emptyFile)
 	}
@@ -525,7 +526,7 @@ const _filesStore = defineStore('files', () => {
 
 	/**
 	 * @param {{ fileId?: number | null, uuid?: string | null, force?: boolean }} [options]
-	 * @returns {Promise<PublicFileState | null>}
+	 * @return {Promise<PublicFileState | null>}
 	 */
 	async function fetchFileDetail({ fileId = null, uuid = null, force = false } = {}) {
 		const store = getStore()
@@ -1059,7 +1060,7 @@ const _filesStore = defineStore('files', () => {
 				return false
 			})
 			.catch((error) => {
-				console.error('Failed to rename file:', error)
+				logger.error('Failed to rename file', { error })
 				return false
 			})
 	}
@@ -1199,7 +1200,7 @@ const _filesStore = defineStore('files', () => {
 
 	/**
 	 * @param {SaveSignatureRequestOptions} [payload]
-	 * @returns {Promise<SaveSignatureRequestResponse>}
+	 * @return {Promise<SaveSignatureRequestResponse>}
 	 */
 	async function saveOrUpdateSignatureRequest({ visibleElements = [], signers = null, uuid = null, status = 0, policy = null } = {}) {
 		const store = getStore()
@@ -1261,7 +1262,7 @@ const _filesStore = defineStore('files', () => {
 			}
 		}
 
-		let response = await axios(config)
+		const response = await axios(config)
 			.catch((error) => {
 				const message = error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to save or update signature request')
 				return {

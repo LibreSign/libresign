@@ -292,6 +292,7 @@ body {
 	}
 }
 </style>
+
 <style lang="scss" scoped>
 .wrapper {
 	max-width: 700px;

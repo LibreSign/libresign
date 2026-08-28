@@ -45,7 +45,7 @@
 				<NcIconSvgWrapper :path="mdiFilePdfBox" :size="64" />
 				</template>
 			</NcEmptyContent>
-			<div v-else ref="scrollContainer" class="files-list" @scroll="onScroll">
+			<div v-else class="files-list" @scroll="onScroll">
 				<div v-if="canDelete" class="files-list__header">
 					<NcCheckboxRadioSwitch :modelValue="allSelected"
 						@update:modelValue="toggleSelectAll">
@@ -415,7 +415,7 @@ function validateMaxFileUploads(filesCount: number) {
 }
 
 function getPreviewUrl(file: Partial<EnvelopeFile> & { id?: number; nodeId?: number }) {
-	if (!file.id && !file.nodeId) return null
+	if (!file.id && !file.nodeId) { return null }
 
 	const previewUrl = file.id
 		? generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
@@ -500,7 +500,7 @@ function addFileToEnvelope() {
 	input.onchange = async (event) => {
 		const target = event.target as HTMLInputElement | null
 		const selectedFileList = target?.files
-		if (!selectedFileList || selectedFileList.length === 0) return
+		if (!selectedFileList || selectedFileList.length === 0) { return }
 		if (!validateMaxFileUploads(selectedFileList.length)) {
 			return
 		}

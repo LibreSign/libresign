@@ -88,7 +88,7 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 
 	const email = await waitForEmailTo(mailpit, signerEmail, 'LibreSign: A document is ready for your signature')
 	const signLink = extractSignLink(email.Text)
-	if (!signLink) throw new Error('Sign link not found in email')
+	if (!signLink) { throw new Error('Sign link not found in email') }
 	const signLinkCandidates = signLink.startsWith('/index.php/')
 		? [signLink, signLink.replace(/^\/index\.php/, '')]
 		: [signLink, `/index.php${signLink.startsWith('/') ? '' : '/'}${signLink}`]
@@ -134,7 +134,7 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 
 	const tokenEmail = await waitForEmailTo(mailpit, signerEmail, 'LibreSign: Verification code to sign a document', { timeout: 60_000 })
 	const token = extractTokenFromEmail(tokenEmail.Text)
-	if (!token) throw new Error('Token not found in email')
+	if (!token) { throw new Error('Token not found in email') }
 	await codeTextbox.click();
 	await codeTextbox.fill(token);
 	await page.getByRole('button', { name: 'Validate code' }).click();

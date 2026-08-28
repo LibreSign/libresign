@@ -6,7 +6,7 @@
 	<div class="signing-order-diagram">
 		<div class="diagram-content">
 		<div class="stage">
-			<div class="stage-number-placeholder"></div>
+			<div class="stage-number-placeholder" />
 			<div class="stage-label">{{ senderStageLabel }}</div>
 				<div class="stage-items">
 					<div class="signer-node sender">
@@ -21,7 +21,7 @@
 			</div>
 			<div v-for="order in uniqueOrders" :key="order" class="stage">
 			<div class="stage-number">{{ order }}</div>
-			<div class="stage-label-placeholder"></div>
+			<div class="stage-label-placeholder" />
 			<div class="stage-items">
 					<div v-for="(signer, index) in getSignersByOrder(order)"
 						:key="`${order}-${index}`"
@@ -87,7 +87,7 @@
 				</div>
 			</div>
 		<div class="stage">
-			<div class="stage-number-placeholder"></div>
+			<div class="stage-number-placeholder" />
 			<div class="stage-label">{{ completedStageLabel }}</div>
 				<div class="stage-items">
 					<div class="signer-node completed">
@@ -100,6 +100,7 @@
 		</div>
 	</div>
 </template>
+
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
@@ -118,6 +119,13 @@ defineOptions({
 	name: 'SigningOrderDiagram',
 })
 
+const props = withDefaults(defineProps<{
+	signers: Signer[]
+	senderName?: string
+}>(), {
+	senderName: '',
+})
+
 type IdentifyMethod = Pick<IdentifyMethodRecord, 'method' | 'value'>
 
 type Signer = {
@@ -130,13 +138,6 @@ type Signer = {
 		status?: number
 	}
 }
-
-const props = withDefaults(defineProps<{
-	signers: Signer[]
-	senderName?: string
-}>(), {
-	senderName: '',
-})
 
 // TRANSLATORS Stage title for sender/source of signature request flow.
 const senderStageLabel = t('libresign', 'SENDER')
@@ -181,31 +182,31 @@ function getIdentifyMethods(signer: Signer) {
 }
 
 function getStatusLabel(signer: Signer) {
-	if (signer.signed) return statusSignedLabel
-	if (signer.me?.status === 0) return statusDraftLabel
+	if (signer.signed) { return statusSignedLabel }
+	if (signer.me?.status === 0) { return statusDraftLabel }
 	return statusPendingLabel
 }
 
 function getStatusIconPath(signer: Signer) {
-	if (signer.signed) return mdiCheckCircle
-	if (signer.me?.status === 0) return mdiCircleOutline
+	if (signer.signed) { return mdiCheckCircle }
+	if (signer.me?.status === 0) { return mdiCircleOutline }
 	return mdiClockOutline
 }
 
 function getChipType(signer: Signer) {
-	if (signer.signed) return 'success'
-	if (signer.me?.status === 0) return 'secondary'
+	if (signer.signed) { return 'success' }
+	if (signer.me?.status === 0) { return 'secondary' }
 	return 'warning'
 }
 
 function getStatusClass(signer: Signer) {
-	if (signer.signed) return 'signed'
-	if (signer.me?.status === 0) return 'draft'
+	if (signer.signed) { return 'signed' }
+	if (signer.me?.status === 0) { return 'draft' }
 	return 'pending'
 }
 
 function formatDate(timestamp?: number | null) {
-	if (!timestamp) return ''
+	if (!timestamp) { return '' }
 	const date = new Date(timestamp * 1000)
 	return date.toLocaleString()
 }
@@ -228,6 +229,7 @@ defineExpose({
 	formatDate,
 })
 </script>
+
 <style lang="scss" scoped>
 .signing-order-diagram {
 	padding: 20px 16px;

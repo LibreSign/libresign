@@ -62,6 +62,7 @@
 		</div>
 	</div>
 </template>
+
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { computed, onBeforeMount, ref } from 'vue'
@@ -89,6 +90,28 @@ import { useFilesStore } from '../../store/files.js'
 import { getSignRequestStatusText } from '../../utils/getSignRequestStatusText.ts'
 import type { IdentifyAccountRecord } from '../../types'
 
+defineOptions({
+	name: 'IdentifySigner',
+})
+
+const props = withDefaults(defineProps<{
+	signerToEdit?: SignerToEdit
+	method?: string
+	placeholder?: string
+	methods?: IdentifyMethodConfig[]
+	disabled?: boolean
+}>(), {
+	signerToEdit: () => ({
+		displayName: '',
+		identifyMethods: [],
+	}),
+	method: 'all',
+	// TRANSLATORS Default placeholder in signer picker input field.
+	placeholder: t('libresign', 'Name'),
+	methods: () => [],
+	disabled: false,
+})
+
 const iconMap = {
 	svgAccount,
 	svgEmail,
@@ -109,10 +132,6 @@ const methodIconMap: Record<string, keyof typeof iconMap> = {
 	whatsappbusiness: 'svgWhatsapp',
 	xmpp: 'svgXmpp',
 }
-
-defineOptions({
-	name: 'IdentifySigner',
-})
 
 type IdentifyMethodConfig = {
 	name: string
@@ -143,24 +162,6 @@ const customMessagePlaceholder = t('libresign', 'Add a personal message for this
 const saveSignerButtonLabel = t('libresign', 'Save')
 // TRANSLATORS Primary button label to update an existing signer.
 const updateSignerButtonLabel = t('libresign', 'Update')
-
-const props = withDefaults(defineProps<{
-	signerToEdit?: SignerToEdit
-	method?: string
-	placeholder?: string
-	methods?: IdentifyMethodConfig[]
-	disabled?: boolean
-}>(), {
-	signerToEdit: () => ({
-		displayName: '',
-		identifyMethods: [],
-	}),
-	method: 'all',
-	// TRANSLATORS Default placeholder in signer picker input field.
-	placeholder: t('libresign', 'Name'),
-	methods: () => [],
-	disabled: false,
-})
 
 const filesStore = useFilesStore()
 

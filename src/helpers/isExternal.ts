@@ -11,8 +11,9 @@ export type RouteLocationLike = {
 
 /**
  * Check if route is external (shared signature flow)
- * @param {RouteLocationLike} to Destination route
- * @param {RouteLocationLike} from Source route
+ *
+ * @param to Destination route
+ * @param from Source route
  */
 export const isExternal = (to: RouteLocationLike, from: RouteLocationLike): boolean => {
 	if (from.path === '/') {

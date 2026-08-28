@@ -65,7 +65,7 @@ describe('Documents', () => {
 
 	it('registers icon wrapper and exposes mdi icon paths used in template', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'config') return { identificationDocumentsFlow: true }
+			if (key === 'config') { return { identificationDocumentsFlow: true } }
 			return fallback
 		})
 		getCurrentUserMock.mockReturnValue({ uid: 'user' })

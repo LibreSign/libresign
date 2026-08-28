@@ -46,6 +46,7 @@
 		</template>
 	</NcListItem>
 </template>
+
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
@@ -74,6 +75,19 @@ defineOptions({
 	name: 'Signer',
 })
 
+const props = withDefaults(defineProps<{
+	signer: SignerViewModel
+	event?: string
+	draggable?: boolean
+	requireRequestPermission?: boolean
+}>(), {
+	event: '',
+	draggable: false,
+	requireRequestPermission: undefined,
+})
+const emit = defineEmits<{
+	(event: 'select', signer: SignerViewModel): void
+}>()
 type FilesStoreContract = ReturnType<typeof useFilesStore>
 type SelectedFile = ReturnType<FilesStoreContract['getFile']>
 type SignerViewModel = {
@@ -84,21 +98,6 @@ type SignerViewModel = {
 	displayName?: string
 	signingOrder?: number
 }
-
-const props = withDefaults(defineProps<{
-	signer: SignerViewModel
-	event?: string
-	draggable?: boolean
-	requireRequestPermission?: boolean
-}>(), {
-	event: '',
-	draggable: false,
-	requireRequestPermission: true,
-})
-
-const emit = defineEmits<{
-	(event: 'select', signer: SignerViewModel): void
-}>()
 
 const filesStore = useFilesStore()
 const policiesStore = usePoliciesStore()
@@ -181,7 +180,7 @@ const showDragHandle = computed(() => {
 	const totalSigners = file.signers.length
 	return signatureFlow.value === 'ordered_numeric'
 		&& totalSigners > 1
-		&& !Boolean(signer.value.signed)
+		&& !signer.value.signed
 		&& filesStore.canSave()
 })
 
@@ -218,7 +217,7 @@ const chipType = computed(() => {
 })
 
 const signerLinkAriaLabel = computed(() => {
-	if (Boolean(signer.value.signed)) {
+	if (signer.value.signed) {
 		// TRANSLATORS Accessible label for signed signer list item.
 		return t('libresign', 'Signer {name} (already signed)', { name: signerName.value })
 	}
@@ -239,13 +238,13 @@ const statusIconPath = computed(() => {
 })
 
 function signerClickAction() {
-	if (props.requireRequestPermission && !canRequestSign) {
+	if (props.requireRequestPermission !== false && !canRequestSign) {
 		return
 	}
 	if (filesStore.isOriginalFileDeleted()) {
 		return
 	}
-	if (Boolean(signer.value.signed)) {
+	if (signer.value.signed) {
 		return
 	}
 	if (isMethodDisabled.value) {
@@ -281,6 +280,7 @@ defineExpose({
 	filesStore,
 })
 </script>
+
 <style lang="scss" scoped>
 .signer-subname {
 	display: flex;

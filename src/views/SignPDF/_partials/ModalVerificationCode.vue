@@ -163,6 +163,23 @@ import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { getCurrentSignerSignRequestUuid } from '../../../utils/signRequestUuid.ts'
 import { validateEmail } from '../../../utils/validators.js'
 
+defineOptions({
+	name: 'ModalVerificationCode',
+})
+
+const props = withDefaults(defineProps<{
+	mode: Mode
+	phoneNumber?: string
+}>(), {
+	phoneNumber: '',
+})
+
+const emit = defineEmits<{
+	(e: 'change', token: string): void
+	(e: 'close'): void
+	(e: 'update:phone', value: string): void
+}>()
+
 const sanitizePhoneNumber = (val: string) => {
 	val = val.replace(/\D/g, '')
 	return `+${val}`
@@ -220,23 +237,6 @@ type RequestCodeError = {
 	}
 	message?: string
 }
-
-defineOptions({
-	name: 'ModalVerificationCode',
-})
-
-const props = withDefaults(defineProps<{
-	mode: Mode
-	phoneNumber?: string
-}>(), {
-	phoneNumber: '',
-})
-
-const emit = defineEmits<{
-	(e: 'change', token: string): void
-	(e: 'close'): void
-	(e: 'update:phone', value: string): void
-}>()
 
 const signStore = useSignStore() as SignStore
 const signMethodsStore = useSignMethodsStore() as SignMethodsStore

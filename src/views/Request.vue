@@ -21,6 +21,7 @@
 		</div>
 	</div>
 </template>
+
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { onBeforeUnmount, onMounted } from 'vue'

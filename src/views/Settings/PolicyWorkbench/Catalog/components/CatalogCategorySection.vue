@@ -25,8 +25,8 @@
 			</button>
 		</h3>
 		<div
-			:id="`policy-category-content-${category.key}`"
 			v-show="isExpanded"
+			:id="`policy-category-content-${category.key}`"
 			class="policy-workbench__category-content">
 			<div v-if="layout === 'cards'" class="policy-workbench__settings-grid">
 				<article
@@ -44,10 +44,10 @@
 						<div class="policy-workbench__setting-header">
 							<div>
 								<h3 class="policy-workbench__setting-title">
-									<span v-html="highlightText(summary.title)"></span>
-									<span v-if="summary.context" class="policy-workbench__setting-context">(<span v-html="highlightText(summary.context)"></span>)</span>
+									<span v-html="highlightText(summary.title)" />
+									<span v-if="summary.context" class="policy-workbench__setting-context">(<span v-html="highlightText(summary.context)" />)</span>
 								</h3>
-								<p class="policy-workbench__setting-description" v-html="highlightText(summary.description)"></p>
+								<p class="policy-workbench__setting-description" v-html="highlightText(summary.description)" />
 							</div>
 						</div>
 
@@ -58,7 +58,7 @@
 						<ul class="policy-workbench__setting-stats">
 							<li>
 								<strong>{{ resolveDefaultStatLabel(summary.key) }}:</strong>
-								<span :title="summary.defaultSummary" v-html="highlightText(summary.defaultSummary)"></span>
+								<span :title="summary.defaultSummary" v-html="highlightText(summary.defaultSummary)" />
 							</li>
 							<li>
 								<strong>{{ resolveOverridesStatLabel(summary.key) }}:</strong>
@@ -89,10 +89,10 @@
 					@keydown.space.prevent="emit('open-from-keyboard', summary.key)">
 					<div class="policy-workbench__settings-row-main">
 						<h3 class="policy-workbench__setting-title">
-							<span v-html="highlightText(summary.title)"></span>
-							<span v-if="summary.context" class="policy-workbench__setting-context">(<span v-html="highlightText(summary.context)"></span>)</span>
+							<span v-html="highlightText(summary.title)" />
+							<span v-if="summary.context" class="policy-workbench__setting-context">(<span v-html="highlightText(summary.context)" />)</span>
 						</h3>
-						<p v-html="highlightText(summary.description)"></p>
+						<p v-html="highlightText(summary.description)" />
 						<p v-if="hasActiveOverrides(summary.groupCount, summary.userCount, summary.everyoneCount)" class="policy-workbench__origin-badge policy-workbench__origin-badge--inline">
 							{{ customRulesActiveLabel }}
 						</p>
@@ -101,7 +101,7 @@
 					<div class="policy-workbench__settings-row-stats">
 						<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--default" :title="summary.defaultSummary">
 							<strong>{{ resolveDefaultStatLabel(summary.key) }}:</strong>
-							<span v-html="highlightText(summary.defaultSummary)"></span>
+							<span v-html="highlightText(summary.defaultSummary)" />
 						</span>
 						<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--count"><strong>{{ resolveOverridesStatLabel(summary.key) }}:</strong> {{ formatOverrideSummary(summary.groupCount, summary.userCount, summary.key, summary.everyoneCount) }}</span>
 					</div>
@@ -132,15 +132,6 @@ defineOptions({
 	name: 'CatalogCategorySection',
 })
 
-const emit = defineEmits<{
-	'toggle-category': [category: RealPolicySettingCategory]
-	'track-press': [payload: { layout: CatalogLayout, key: string, event: PointerEvent }]
-	'mark-selection': [payload: { layout: CatalogLayout, key: string }]
-	'open-from-pointer': [payload: { layout: CatalogLayout, key: string, event: MouseEvent }]
-	'open-from-keyboard': [key: string]
-	'open-from-action': [payload: { key: string, event: MouseEvent }]
-}>()
-
 const props = defineProps<{
 	category: CatalogCategorySectionModel
 	layout: CatalogLayout
@@ -152,6 +143,15 @@ const props = defineProps<{
 	resolveDefaultStatLabel: (policyKey: string) => string
 	resolveOverridesStatLabel: (policyKey: string) => string
 	formatOverrideSummary: (groupCount?: number, userCount?: number, policyKey?: string, everyoneCount?: number) => string
+}>()
+
+const emit = defineEmits<{
+	'toggle-category': [category: RealPolicySettingCategory]
+	'track-press': [payload: { layout: CatalogLayout, key: string, event: PointerEvent }]
+	'mark-selection': [payload: { layout: CatalogLayout, key: string }]
+	'open-from-pointer': [payload: { layout: CatalogLayout, key: string, event: MouseEvent }]
+	'open-from-keyboard': [key: string]
+	'open-from-action': [payload: { key: string, event: MouseEvent }]
 }>()
 
 // TRANSLATORS Badge text indicating a setting has one or more custom policy overrides.

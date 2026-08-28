@@ -70,7 +70,7 @@ describe('RequestExpirationRuleEditor.vue', () => {
 				stubs: {
 					NcTextField: {
 						props: ['modelValue', 'label', 'error'],
-						template: '<label><span>{{ label }}</span><input class="field-input" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" /><span class="error-state">{{ error ? \"error\" : \"ok\" }}</span></label>',
+						template: '<label><span>{{ label }}</span><input class="field-input" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" /><span class="error-state">{{ error ? "error" : "ok" }}</span></label>',
 					},
 				},
 			},

@@ -86,6 +86,7 @@ import type { EffectivePolicyValue, SignatureFlowMode } from '../../types/index'
 import { realDefinitions } from '../Settings/PolicyWorkbench/settings/realDefinitions'
 import type { RealPolicyPersonalPreferenceContext } from '../Settings/PolicyWorkbench/settings/realTypes'
 import { canRenderPersonalPreferencePolicy } from './personalPreferenceVisibility'
+import logger from '../../logger.js'
 
 defineOptions({
 	name: 'Preferences',
@@ -339,7 +340,7 @@ async function savePreferenceValue(policyKey: string, value: EffectivePolicyValu
 		await persistPreferenceValue(policyKey, value)
 		return true
 	} catch (error) {
-		console.error(`Failed to save ${policyKey} preference`, error)
+		logger.error(`Failed to save ${policyKey} preference`, { error })
 		errorMessage.value = errorText
 		return false
 	} finally {
@@ -363,7 +364,7 @@ async function clearPreferenceValue(policyKey: string, errorText: string): Promi
 	try {
 		await clearPersistedPreferenceValue(policyKey)
 	} catch (error) {
-		console.error(`Failed to clear ${policyKey} preference`, error)
+		logger.error(`Failed to clear ${policyKey} preference`, { error })
 		errorMessage.value = errorText
 	} finally {
 		saving.value = false

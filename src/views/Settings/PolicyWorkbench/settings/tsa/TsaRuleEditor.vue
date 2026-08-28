@@ -54,11 +54,6 @@ defineOptions({
 	name: 'TsaRuleEditor',
 })
 
-type AuthOption = {
-	id: TsaSettingsConfig['auth_type']
-	label: string
-}
-
 const props = defineProps<{
 	modelValue: EffectivePolicyValue
 }>()
@@ -66,6 +61,11 @@ const props = defineProps<{
 const emit = defineEmits<{
 	'update:modelValue': [value: string]
 }>()
+
+type AuthOption = {
+	id: TsaSettingsConfig['auth_type']
+	label: string
+}
 
 const config = computed(() => normalizeTsaSettings(props.modelValue))
 const enabled = computed(() => config.value.url.length > 0)

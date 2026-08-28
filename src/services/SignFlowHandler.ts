@@ -4,6 +4,7 @@
  */
 
 import { REQUIREMENT_TO_MODAL } from '../helpers/ActionMapping.ts'
+import logger from '../logger.js'
 
 interface SignMethodsStore {
 	showModal(modalCode: string): void
@@ -32,7 +33,7 @@ export class SignFlowHandler {
 
 		const handler = actionMap[action]
 		if (!handler) {
-			console.warn(`Unknown action: ${action}`)
+			logger.warn('Unknown action', { action })
 			return null
 		}
 

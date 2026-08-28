@@ -6,8 +6,8 @@
 	<div v-if="Object.keys(certificate).length" class="certificate-content">
 		<NcSettingsSection :name="t('libresign', 'Owner of certificate')">
 			<div class="certificate-fields">
-				<div v-for="(value, customName, index) in orderList(certificate.subject)"
-					:key="`subject-${customName}-${index}`"
+				<div v-for="(value, customName, fieldIndex) in orderList(certificate.subject)"
+					:key="`subject-${customName}-${fieldIndex}`"
 					class="certificate-field">
 					<span class="field-label">{{ getLabelFromId(customName) }}</span>
 					<span class="field-value">{{ Array.isArray(value) ? value.join(', ') : value }}</span>
@@ -18,8 +18,8 @@
 		<NcSettingsSection v-if="index !== '0'"
 			:name="t('libresign', 'Issuer of certificate')">
 			<div class="certificate-fields">
-				<div v-for="(value, customName, index) in orderList(certificate.issuer)"
-					:key="`issuer-${customName}-${index}`"
+				<div v-for="(value, customName, fieldIndex) in orderList(certificate.issuer)"
+					:key="`issuer-${customName}-${fieldIndex}`"
 					class="certificate-field">
 					<span class="field-label">{{ getLabelFromId(customName) }}</span>
 					<span class="field-value">{{ Array.isArray(value) ? value.join(', ') : value }}</span>
@@ -91,8 +91,8 @@
 					<span class="field-label">{{ t('libresign', 'Name') }}</span>
 					<span class="field-value">{{ certificate.name }}</span>
 				</div>
-				<div v-for="(value, name, index) in certificate.extensions"
-					:key="`extension-${name}-${index}`"
+				<div v-for="(value, name, fieldIndex) in certificate.extensions"
+					:key="`extension-${name}-${fieldIndex}`"
 					class="certificate-field">
 					<span class="field-label">{{ camelCaseToTitleCase(name) }}</span>
 					<span class="field-value">{{ value }}</span>
@@ -155,6 +155,13 @@ defineOptions({
 	name: 'CertificateContent',
 })
 
+const props = withDefaults(defineProps<{
+	certificate?: CertificateData
+	index?: string
+}>(), {
+	certificate: () => ({}),
+	index: '0',
+})
 type ChipVariant = 'primary' | 'secondary' | 'tertiary' | 'error' | 'warning' | 'success'
 type StatusChip = {
 	text: string
@@ -181,14 +188,6 @@ type CertificateData = {
 	extensions?: Record<string, unknown>
 	crl_validation?: string
 }
-
-const props = withDefaults(defineProps<{
-	certificate?: CertificateData
-	index?: string
-}>(), {
-	certificate: () => ({}),
-	index: '0',
-})
 
 const EXPIRATION_WARNING_DAYS = 30
 

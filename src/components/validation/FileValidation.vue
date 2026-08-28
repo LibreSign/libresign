@@ -17,8 +17,7 @@
 			</NcNoteCard>
 			<DocumentValidationDetails
 				:document="document"
-				:legalInformation="legalInformation"
-			/>
+				:legalInformation="legalInformation" />
 		</div>
 	</div>
 </template>

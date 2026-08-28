@@ -82,10 +82,6 @@ defineOptions({
 	name: 'RequestSigningProgress',
 })
 
-type SigningProgress = components['schemas']['ProgressPayload']
-type ProgressFile = components['schemas']['ProgressFile']
-type ProgressSigner = components['schemas']['ProgressSigner']
-
 const props = withDefaults(defineProps<{
 	status: number
 	statusText?: string
@@ -96,6 +92,9 @@ const props = withDefaults(defineProps<{
 	progress: null,
 	isLoading: false,
 })
+type SigningProgress = components['schemas']['ProgressPayload']
+type ProgressFile = components['schemas']['ProgressFile']
+type ProgressSigner = components['schemas']['ProgressSigner']
 
 const isInProgress = computed(() => props.status === FILE_STATUS.SIGNING_IN_PROGRESS)
 

@@ -76,6 +76,10 @@ defineOptions({
 	name: 'Signature',
 })
 
+const props = defineProps<{
+	type: SignatureType
+}>()
+
 type SignatureType = 'signature' | 'initial'
 
 type SignatureElement = {
@@ -87,10 +91,6 @@ type SignatureElement = {
 }
 
 type SignatureError = string | { message?: string } | null
-
-const props = defineProps<{
-	type: SignatureType
-}>()
 
 const signatureElementsStore = useSignatureElementsStore()
 

@@ -55,13 +55,13 @@
 				</NcButton>
 				<label class="zoom-level">
 					<NcTextField
+						v-model="zoomPercentValue"
 						class="zoom-field"
 						type="number"
 						min="10"
 						max="800"
 						step="5"
 						:label="zoomLevelLabel"
-						v-model="zoomPercentValue"
 						:disabled="!hasImage" />
 					<span class="zoom-suffix">%</span>
 				</label>
@@ -121,6 +121,7 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import 'vue-advanced-cropper/dist/style.css'
 import type { LibresignCapabilities } from '../../types/index'
+import logger from '../../logger.js'
 
 type CropperResult = {
 	canvas?: {
@@ -328,7 +329,7 @@ function fileSelect(event: Event) {
 	})
 
 	fileReader.addEventListener('error', error => {
-		console.error(error)
+		logger.error('Failed to read file', { error })
 	})
 
 	fileReader.readAsDataURL(selectedFile)

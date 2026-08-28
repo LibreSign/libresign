@@ -169,6 +169,10 @@ type RouterLike = {
 	}) => Promise<unknown> | unknown
 }
 
+defineOptions({
+	name: 'SignPDF',
+})
+
 function isRouteLike(value: unknown): value is RouteLike {
 	return typeof value === 'object' && value !== null && 'params' in value && 'query' in value
 }
@@ -205,10 +209,6 @@ function createReadonlySignerObject(signer: SignerDetailRecord | SignerSummaryRe
 		...(Array.isArray(signer.identifyMethods) ? { identifyMethods: signer.identifyMethods } : {}),
 	}
 }
-
-defineOptions({
-	name: 'SignPDF',
-})
 
 const signStore = useSignStore() as unknown as SignStore
 const filesStore = useFilesStore() as FilesStore
@@ -614,6 +614,7 @@ defineExpose({
 	all: unset;
 }
 </style>
+
 <style lang="scss" scoped>
 .main-view {
 	height: 100%;

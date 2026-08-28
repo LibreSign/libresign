@@ -17,7 +17,7 @@ const logger = getLoggerBuilder()
  *
  * @param value - The value to normalize (typically from route.params or route.query)
  * @param source - The source type for logging ('params' or 'query')
- * @returns Record with only string values, or empty object for invalid input
+ * @return Record with only string values, or empty object for invalid input
  */
 export function normalizeRouteRecord(
 	value: unknown,

@@ -40,13 +40,13 @@ defineOptions({
 	name: 'FileListFilter',
 })
 
-defineEmits<{
-	(event: 'reset-filter'): void
-}>()
-
 defineProps<{
 	isActive: boolean
 	filterName: string
+}>()
+
+defineEmits<{
+	(event: 'reset-filter'): void
 }>()
 
 const boundary = document.getElementById('app-content-vue') ?? document.body

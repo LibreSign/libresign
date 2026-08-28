@@ -128,7 +128,7 @@ describe('RootCertificateOpenSsl.vue', () => {
 
 	it('loads the OpenSSL engine state and root certificate on mount', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'certificate_engine') return 'openssl'
+			if (key === 'certificate_engine') { return 'openssl' }
 			return fallback
 		})
 

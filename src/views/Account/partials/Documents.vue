@@ -83,6 +83,16 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { IDENTIFICATION_DOCUMENTS_STATUS } from '../../../constants.js'
+defineOptions({
+	name: 'Documents',
+})
+
+const props = withDefaults(defineProps<{
+	signRequestUuid?: string
+}>(), {
+	signRequestUuid: '',
+})
+
 const loadFileToBase64 = (file: File): Promise<string | ArrayBuffer | null> => {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader()
@@ -91,10 +101,6 @@ const loadFileToBase64 = (file: File): Promise<string | ArrayBuffer | null> => {
 		reader.onerror = (error) => reject(error)
 	})
 }
-
-defineOptions({
-	name: 'Documents',
-})
 
 type DocumentTypeInfo = {
 	key: string
@@ -124,12 +130,6 @@ type DocumentsConfig = {
 type FilePickerNode = {
 	path?: string
 }
-
-const props = withDefaults(defineProps<{
-	signRequestUuid?: string
-}>(), {
-	signRequestUuid: '',
-})
 
 const documentList = ref<IdentificationDocument[]>([])
 const loading = ref(true)

@@ -19,7 +19,7 @@
 					</div>
 				</div>
 				<div class="file-status">
-					<div :class="['status-badge', `status-${getStatusClass(file.status)}`]">
+					<div class="status-badge" :class="[`status-${getStatusClass(file.status)}`]">
 						<NcIconSvgWrapper :path="getStatusIcon(file.status)" />
 						<span>{{ getStatusLabel(file.status) }}</span>
 					</div>
@@ -46,15 +46,11 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import { FILE_STATUS } from '../../constants.js'
 import type { ValidationFileRecord } from '../../types'
 import { getStatusLabel, getStatusIcon } from '../../utils/fileStatus.js'
+import logger from '../../logger.js'
 
 defineOptions({
 	name: 'FileStatusList',
 })
-
-const emit = defineEmits<{
-	(event: 'file-signed', file: ValidationFileRecord): void
-	(event: 'files-updated', files: ValidationFileRecord[]): void
-}>()
 
 const props = withDefaults(defineProps<{
 	fileIds?: number[]
@@ -63,6 +59,11 @@ const props = withDefaults(defineProps<{
 	fileIds: () => [],
 	updateInterval: 2000,
 })
+
+const emit = defineEmits<{
+	(event: 'file-signed', file: ValidationFileRecord): void
+	(event: 'files-updated', files: ValidationFileRecord[]): void
+}>()
 
 const { fileIds, updateInterval } = toRefs(props)
 const files = ref<ValidationFileRecord[]>([])
@@ -75,7 +76,7 @@ async function loadFiles() {
 		files.value = responses.map((response) => response.data.ocs.data)
 		emit('files-updated', files.value)
 	} catch (error) {
-		console.error('[libresign][front] Failed to load files', error)
+		logger.error('[libresign][front] Failed to load files', { error })
 	}
 }
 

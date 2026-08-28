@@ -194,6 +194,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { FILE_STATUS } from '../../constants.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
+import logger from '../../logger.js'
 import type { operations, components } from '../../types/openapi/openapi'
 
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -233,6 +234,9 @@ type UserConfigStore = {
 	update: (key: 'id_docs_filters' | 'id_docs_sort', value: UserConfigFilters | UserConfigSort) => Promise<unknown> | unknown
 }
 
+defineOptions({
+	name: 'IdDocsValidation',
+})
 const SORT_FIELDS: readonly SortField[] = ['owner', 'file_type', 'status']
 const STATUS_OPTIONS: StatusOption[] = [
 	// TRANSLATORS Filter status label meaning the document already has the required signature approval result.
@@ -240,10 +244,6 @@ const STATUS_OPTIONS: StatusOption[] = [
 	// TRANSLATORS Filter status label meaning the document is still waiting for validation or approval.
 	{ value: 'pending', label: t('libresign', 'Pending') },
 ]
-
-defineOptions({
-	name: 'IdDocsValidation',
-})
 
 const router = useRouter()
 const userConfigStore = useUserConfigStore() as UserConfigStore
@@ -272,8 +272,8 @@ const filters = reactive({
 const hasActiveFilters = computed(() => !!(filters.owner || filters.status))
 const activeFilterCount = computed(() => {
 	let count = 0
-	if (filters.owner) count++
-	if (filters.status) count++
+	if (filters.owner) { count++ }
+	if (filters.status) { count++ }
 	return count
 })
 const filteredDocuments = computed(() => {
@@ -452,7 +452,7 @@ async function saveFilters() {
 			status: filters.status?.value ?? null,
 		})
 	} catch (error) {
-		console.error('Failed to save filters:', error)
+		logger.error('Failed to save filters', { error })
 	}
 }
 
@@ -494,7 +494,7 @@ async function saveSort() {
 			sortOrder: sortOrder.value,
 		})
 	} catch (error) {
-		console.error('Failed to save sort:', error)
+		logger.error('Failed to save sort', { error })
 	}
 }
 

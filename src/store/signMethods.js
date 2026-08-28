@@ -8,13 +8,12 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 /**
- * @typedef {{
+ * @typedef {Record<string, unknown> & {
  * 	needCode?: boolean
  * 	blurredEmail?: string
  * 	hasConfirmCode?: boolean
  * 	token?: string
  * 	hasSignatureFile?: boolean
- * 	[key: string]: unknown
  * }} SignMethodSettings
  */
 
