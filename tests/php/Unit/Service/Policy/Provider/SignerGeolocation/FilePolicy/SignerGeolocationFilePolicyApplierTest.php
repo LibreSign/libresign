@@ -68,14 +68,43 @@ final class SignerGeolocationFilePolicyApplierTest extends \OCA\Libresign\Tests\
 		], $file->getMetadata());
 	}
 
+	public function testApplyThrowsWhenRequestOverrideIsBlocked(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$policyValue = [
+			'mode' => 'required',
+			'allowRequesterOverride' => false,
+		];
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUser')
+			->with(SignerGeolocationPolicy::KEY, null, [SignerGeolocationPolicy::KEY => $policyValue])
+			->willReturn($this->createResolvedPolicy(
+				$policyValue,
+				sourceScope: 'system',
+				canUseAsRequestOverride: false,
+				blockedBy: 'system',
+			));
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionCode(422);
+
+		$this->getApplier()->apply($file, [
+			'policyOverrides' => [SignerGeolocationPolicy::KEY => $policyValue],
+		]);
+	}
+
 	private function createResolvedPolicy(
 		array $effectiveValue,
 		string $sourceScope = 'system',
+		bool $canUseAsRequestOverride = true,
+		?string $blockedBy = null,
 	): ResolvedPolicy {
 		return (new ResolvedPolicy())
 			->setPolicyKey(SignerGeolocationPolicy::KEY)
 			->setEffectiveValue($effectiveValue)
 			->setSourceScope($sourceScope)
-			->setCanUseAsRequestOverride(true);
+			->setCanUseAsRequestOverride($canUseAsRequestOverride)
+			->setBlockedBy($blockedBy);
 	}
 }

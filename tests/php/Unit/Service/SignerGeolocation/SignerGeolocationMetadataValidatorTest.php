@@ -8,16 +8,14 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\SignerGeolocation;
 
-use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\SignerGeolocationCollectionStatus;
 use OCA\Libresign\Enum\SignerGeolocationMode;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicy;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
 use OCP\IL10N;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -80,5 +78,53 @@ final class SignerGeolocationMetadataValidatorTest extends TestCase {
 
 		$this->getValidator()->validateSubmission($signRequest, null);
 		$this->addToAssertionCount(1);
+	}
+
+	public function testValidateSubmissionRejectsGeolocationWhenDisabled(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setMetadata([
+			SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY => SignerGeolocationMode::DISABLED->value,
+		]);
+
+		$this->policyService
+			->method('getFrozenRequirement')
+			->willReturn(SignerGeolocationMode::DISABLED);
+
+		$this->expectException(LibresignException::class);
+		$this->getValidator()->validateSubmission($signRequest, [
+			'status' => SignerGeolocationCollectionStatus::COLLECTED->value,
+			'latitude' => 1.0,
+			'longitude' => 2.0,
+		]);
+	}
+
+	public function testValidateSubmissionRejectsNonCollectedWhenRequired(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setMetadata([
+			SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY => SignerGeolocationMode::REQUIRED->value,
+		]);
+
+		$this->policyService
+			->method('getFrozenRequirement')
+			->willReturn(SignerGeolocationMode::REQUIRED);
+
+		$this->expectException(LibresignException::class);
+		$this->getValidator()->validateSubmission($signRequest, [
+			'status' => SignerGeolocationCollectionStatus::DENIED->value,
+		]);
+	}
+
+	#[DataProvider('invalidGeolocationPayloadProvider')]
+	public function testNormalizeRejectsInvalidPayload(mixed $payload): void {
+		$this->expectException(LibresignException::class);
+		$this->getValidator()->normalize($payload);
+	}
+
+	/** @return iterable<string, array{0: mixed}> */
+	public static function invalidGeolocationPayloadProvider(): iterable {
+		yield 'non array payload' => ['invalid'];
+		yield 'missing status' => [['latitude' => 1.0, 'longitude' => 2.0]];
+		yield 'collected without coordinates' => [['status' => 'collected']];
+		yield 'out of range latitude' => [['status' => 'collected', 'latitude' => 91.0, 'longitude' => 0.0]];
 	}
 }
