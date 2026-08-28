@@ -74,7 +74,7 @@ test('authenticated user sees authentication guidance when accessing another sig
 		timeout: 60_000,
 	})
 	const signLink = extractSignLink(email.Text)
-	if (!signLink) throw new Error('Sign link not found in email')
+	if (!signLink) { throw new Error('Sign link not found in email') }
 
 	// Admin is still logged in (admin@email.tld) but navigates to a link
 	// that belongs to signer01@libresign.coop — the emails do NOT match.

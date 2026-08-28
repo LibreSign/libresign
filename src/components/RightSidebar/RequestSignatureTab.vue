@@ -43,16 +43,17 @@
 			@update:modelValue="onRememberSignatureFlowChange">
 			{{ t('libresign', 'Use this as my default signing order') }}
 		</NcCheckboxRadioSwitch>
-		<NcCheckboxRadioSwitch v-for="option in footerTemplateSourceOptions"
-			v-if="showFooterTemplateSelector && !isOriginalFileDeleted"
-			:key="option.value"
-			v-model="selectedFooterTemplateSource"
-			type="radio"
-			name="footer-template-source"
-			:value="option.value"
-			@update:modelValue="onFooterTemplateSourceChange">
-			{{ option.label }}
-		</NcCheckboxRadioSwitch>
+		<template v-if="showFooterTemplateSelector && !isOriginalFileDeleted">
+			<NcCheckboxRadioSwitch v-for="option in footerTemplateSourceOptions"
+				:key="option.value"
+				v-model="selectedFooterTemplateSource"
+				type="radio"
+				name="footer-template-source"
+				:value="option.value"
+				@update:modelValue="onFooterTemplateSourceChange">
+				{{ option.label }}
+			</NcCheckboxRadioSwitch>
+		</template>
 		<NcCheckboxRadioSwitch v-if="showRememberFooterTemplate && !isOriginalFileDeleted"
 			v-model="rememberFooterTemplate"
 			type="switch"
@@ -283,6 +284,7 @@
 			@close="showEnvelopeFilesDialog = false" />
 	</div>
 </template>
+
 <script setup lang="ts">
 
 import { t } from '@nextcloud/l10n'
@@ -312,6 +314,7 @@ import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
 import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
 
 import axios from '@nextcloud/axios'
+import { getCurrentUser } from '@nextcloud/auth'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
@@ -355,6 +358,7 @@ import { useUserConfigStore } from '../../store/userconfig.js'
 import { startLongPolling } from '../../services/longPolling'
 import { getVisibleElementsFromDocument, type DocumentLike } from '../../services/visibleElementsService'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
+import logger from '../../logger.js'
 import {
 	normalizeIdentifyMethodsPolicy,
 	type IdentifyMethodPolicyEntry,
@@ -515,7 +519,7 @@ const showRememberFooterTemplate = computed(() => showFooterTemplateSelector.val
 const showViewOrderButton = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && isOrderedNumeric.value && totalSigners.value > 1 && hasSigners.value && filesStore.canRequestSign)
 const shouldShowOrderedOptions = computed(() => isOrderedNumeric.value && totalSigners.value > 1)
 const showSignatureFlowPreferenceClearedNotice = computed(() => signatureFlowPolicy.value?.preferenceWasCleared ?? false)
-const currentUserDisplayName = computed(() => OC.getCurrentUser()?.displayName || '')
+const currentUserDisplayName = computed(() => getCurrentUser()?.displayName || '')
 const showDocMdpWarning = computed(() => filesStore.isDocMdpNoChangesAllowed() && !filesStore.canAddSigner())
 const fileName = computed(() => filesStore.getSelectedFileView()?.name ?? '')
 const isEnvelope = computed(() => filesStore.getFile()?.nodeType === 'envelope')
@@ -1201,7 +1205,7 @@ function confirmSigningOrder(signer: EditableRequestSigner) {
 	}
 
 	for (let index = 0; index < file.signers.length; index++) {
-		if (index === currentIndex) continue
+		if (index === currentIndex) { continue }
 		const currentItem = file.signers[index]
 		const currentItemOrder = currentItem?.signingOrder
 		if (!currentItem || currentItemOrder === undefined) {
@@ -1435,7 +1439,7 @@ function startSigningProgressPolling() {
 		},
 		() => !filesStore.getFile() || filesStore.getFile().id !== file.id,
 		(error: unknown) => {
-			console.error('Error during signing progress polling:', error)
+			logger.error('Error during signing progress polling', { error })
 			showError(t('libresign', 'Error monitoring signing progress'))
 		},
 	)
@@ -1606,6 +1610,7 @@ defineExpose({
 	normalizeSigningOrders,
 })
 </script>
+
 <style lang="scss" scoped>
 
 :deep(.checkbox-radio-switch) {

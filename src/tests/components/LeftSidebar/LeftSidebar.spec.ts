@@ -42,7 +42,7 @@ describe('LeftSidebar', () => {
 
 	it('renders sidebar menu icons with valid mdi paths', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'can_request_sign') return true
+			if (key === 'can_request_sign') { return true }
 			if (key === 'config') {
 				return {
 					identificationDocumentsFlow: false,
@@ -88,7 +88,7 @@ describe('LeftSidebar', () => {
 	describe('RULE: LeftSidebar config loading', () => {
 		it('loads config with optional properties', async () => {
 			loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-				if (key === 'can_request_sign') return true
+				if (key === 'can_request_sign') { return true }
 				if (key === 'config') {
 					return {
 						identificationDocumentsFlow: false,
@@ -117,7 +117,7 @@ describe('LeftSidebar', () => {
 
 		it('renders without requiring can_manage_group_policies in config', async () => {
 			loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-				if (key === 'can_request_sign') return true
+				if (key === 'can_request_sign') { return true }
 				if (key === 'config') {
 					return {
 						identificationDocumentsFlow: false,

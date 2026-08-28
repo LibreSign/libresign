@@ -68,7 +68,7 @@ const { t, n } = vi.hoisted(() => {
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app, key, defaultValue) => {
-		if (key === 'can_request_sign') return true
+		if (key === 'can_request_sign') { return true }
 		if (key === 'effective_policies') {
 			return {
 				policies: {

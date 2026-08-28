@@ -8,7 +8,7 @@
 		<td class="files-list__row-name"
 			@click="openDetailsIfAvailable">
 			<FileEntryPreview :source="source" />
-			<FileEntryName ref="name"
+			<FileEntryName
 				:basename="source.name"
 				:extension="fileExtension" />
 		</td>
@@ -40,9 +40,9 @@
 		</td>
 
 		<!-- Actions -->
-		<FileEntryActions ref="actions"
-			:class="`files-list__row-actions-${source.id}`"
+		<FileEntryActions
 			v-model:opened="openedMenu"
+			:class="`files-list__row-actions-${source.id}`"
 			:source="source"
 			:loading="loading" />
 	</tr>

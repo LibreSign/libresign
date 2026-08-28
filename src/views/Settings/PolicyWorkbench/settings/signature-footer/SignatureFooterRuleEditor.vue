@@ -169,8 +169,10 @@ const props = withDefaults(defineProps<{
 	showTemplateResetButton?: boolean
 	showPreview?: boolean
 }>(), {
-	showTemplateResetButton: true,
-	showPreview: true,
+	inheritedTemplate: '',
+	editorScope: 'system',
+	showTemplateResetButton: undefined,
+	showPreview: undefined,
 })
 
 const emit = defineEmits<{

@@ -35,7 +35,7 @@
 					@update:modelValue="onAllowGroupsChange" />
 			</template>
 
-			<section :class="['request-sign-groups-editor__deny-section', { 'request-sign-groups-editor__deny-section--standalone': hideAllowGroups }]">
+			<section class="request-sign-groups-editor__deny-section" :class="[{ 'request-sign-groups-editor__deny-section--standalone': hideAllowGroups }]">
 				<h4 class="request-sign-groups-editor__title">
 					<!-- TRANSLATORS Section title for explicitly denied groups in signature-request access policy. -->
 					{{ t('libresign', 'Denied requester groups') }}

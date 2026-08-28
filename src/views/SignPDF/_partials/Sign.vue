@@ -351,6 +351,12 @@ defineOptions({
 	},
 })
 
+const emit = defineEmits<{
+	(e: 'update:phone', value: string): void
+	(e: 'signing-started', payload: { signRequestUuid: string; async: boolean }): void
+	(e: 'signed', payload: Record<string, unknown> & { signRequestUuid: string }): void
+}>()
+
 type UserInfo = LibreSignAccountMe
 
 type SignError = {
@@ -436,12 +442,6 @@ function getSignatureMethodSetting(
 ): SignatureMethodSetting | undefined {
 	return settings[method]
 }
-
-const emit = defineEmits<{
-	(e: 'update:phone', value: string): void
-	(e: 'signing-started', payload: { signRequestUuid: string; async: boolean }): void
-	(e: 'signed', payload: Record<string, unknown> & { signRequestUuid: string }): void
-}>()
 
 // TRANSLATORS Dialog title for signing the current document.
 const signDocumentDialogTitle = t('libresign', 'Sign document')
@@ -529,10 +529,9 @@ function ensureServices() {
 
 async function loadUser() {
 	if (getCurrentUser()) {
-		try {
-			const { data } = await axios.get<OcsResponseData<UserInfo>>(generateOcsUrl('/apps/libresign/api/v1/account/me'))
-			user.value = data.ocs.data
-		} catch {
+		const response = await Promise.resolve(axios.get<OcsResponseData<UserInfo>>(generateOcsUrl('/apps/libresign/api/v1/account/me'))).catch(() => null)
+		if (response) {
+			user.value = response.data.ocs.data
 		}
 	}
 }
@@ -623,7 +622,7 @@ async function signWithEmailToken() {
 	})
 }
 
-let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
+const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 	loading.value = true
 	signStore.clearSigningErrors()
 

@@ -31,6 +31,7 @@
 		</div>
 	</NcSettingsSection>
 </template>
+
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'

@@ -111,17 +111,17 @@
 			</NcButton>
 		</div>
 		<CodeMirror
-			ref="codeMirror"
 			:id="editorId"
+			ref="codeMirror"
 			v-model="internalValue"
 			:aria-describedby="describedBy"
 			:tab-size="4"
 			:tab="true"
 			:placeholder="placeholder"
 			:extensions="extensions"
+			:style="{ height: 'auto' }"
 			@update="onEditorUpdate"
-			@ready="onEditorReady"
-			:style="{ height: 'auto' }" />
+			@ready="onEditorReady" />
 	</div>
 </template>
 
@@ -155,6 +155,27 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import HeadingMenu from './markdown-editor/HeadingMenu.vue'
 
+defineOptions({
+	name: 'MarkdownEditor',
+})
+const props = withDefaults(defineProps<{
+	modelValue?: string
+	label?: string
+	description?: string
+	placeholder?: string
+	minHeight?: string
+	maxHeight?: string
+}>(), {
+	modelValue: '',
+	label: '',
+	description: '',
+	placeholder: '',
+	minHeight: '80px',
+	maxHeight: 'none',
+})
+const emit = defineEmits<{
+	(event: 'update:modelValue', value: string): void
+}>()
 // TRANSLATORS Accessible label for markdown toolbar containing formatting shortcut actions.
 const markdownFormattingShortcutsLabel = t('libresign', 'Markdown formatting shortcuts')
 // TRANSLATORS Toolbar button label applying bold markdown formatting.
@@ -410,30 +431,6 @@ const insertHorizontalRule = (view: EditorView) => {
 
 	return true
 }
-
-defineOptions({
-	name: 'MarkdownEditor',
-})
-
-const props = withDefaults(defineProps<{
-	modelValue?: string
-	label?: string
-	description?: string
-	placeholder?: string
-	minHeight?: string
-	maxHeight?: string
-}>(), {
-	modelValue: '',
-	label: '',
-	description: '',
-	placeholder: '',
-	minHeight: '80px',
-	maxHeight: 'none',
-})
-
-const emit = defineEmits<{
-	(event: 'update:modelValue', value: string): void
-}>()
 
 const codeMirror = ref<{ view?: EditorView | { value: EditorView } | unknown } | null>(null)
 const editorId = `markdown-editor-${Math.random().toString(36).substr(2, 9)}`

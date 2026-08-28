@@ -7,7 +7,7 @@
 		<section class="ste__metadata-policy">
 			<NcCheckboxRadioSwitch
 				type="switch"
-				:model-value="collectMetadataEnabled"
+				:model-value="draftCollectMetadataEnabled"
 				@update:modelValue="onCollectMetadataToggle">
 				<div>
 					<!-- TRANSLATORS Toggle label that enables storing signer technical metadata (IP and user agent) in signature text. -->
@@ -104,16 +104,13 @@ import {
 type BackgroundType = 'default' | 'custom' | 'deleted'
 type DisplayMode = 'default' | 'graphic' | 'text' | 'description_only'
 
-const STAMP_PREVIEW_PATH = '/apps/libresign/api/v1/signature-stamp/preview-pdf'
-const STAMP_PREVIEW_ZOOM_STORAGE_KEY = 'libresign.policy.signatureStamp.previewZoom'
-
 const props = defineProps({
 	modelValue: {
-		type: [String, Number, Boolean, Object, Array],
+		type: [Boolean, String, Number, Object, Array],
 		default: '',
 	},
 	inheritedValue: {
-		type: [String, Number, Boolean, Object, Array],
+		type: [Boolean, String, Number, Object, Array],
 		default: null,
 	},
 	collectMetadataEnabled: {
@@ -121,8 +118,9 @@ const props = defineProps({
 		default: false,
 	},
 })
-
 const emit = defineEmits(['update:modelValue'])
+const STAMP_PREVIEW_PATH = '/apps/libresign/api/v1/signature-stamp/preview-pdf'
+const STAMP_PREVIEW_ZOOM_STORAGE_KEY = 'libresign.policy.signatureStamp.previewZoom'
 
 ensurePdfWorker()
 
@@ -241,7 +239,7 @@ const config = reactive({
 	renderMode: normalized.renderMode as DisplayMode,
 })
 
-const collectMetadataEnabled = ref(initialDraftValue.collectMetadataEnabled)
+const draftCollectMetadataEnabled = ref(initialDraftValue.collectMetadataEnabled)
 // TRANSLATORS Template line inserted when metadata collection is enabled; keeps literal {{SignerIP}} variable placeholder.
 const signerIpTemplateLine = t('libresign', 'IP: {{SignerIP}}')
 // TRANSLATORS Template line inserted when metadata collection is enabled; keeps literal {{SignerUserAgent}} variable placeholder.
@@ -283,7 +281,7 @@ function syncCanonicalDefaultTemplateVariant(template: string, enabled: boolean)
 }
 
 function applyCollectMetadataEnabled(nextValue: boolean): void {
-	collectMetadataEnabled.value = nextValue
+	draftCollectMetadataEnabled.value = nextValue
 	const syncedTemplate = syncTemplateWithCollectMetadata(config.template, nextValue)
 	if (syncedTemplate !== config.template) {
 		config.template = syncedTemplate
@@ -292,7 +290,7 @@ function applyCollectMetadataEnabled(nextValue: boolean): void {
 
 function applyNormalizedConfig(
 	nextConfig: ReturnType<typeof normalizeSignatureTextPolicyConfig>,
-	metadataEnabled = collectMetadataEnabled.value,
+	metadataEnabled = draftCollectMetadataEnabled.value,
 ): void {
 	config.template = syncCanonicalDefaultTemplateVariant(nextConfig.template, metadataEnabled)
 	config.templateFontSize = nextConfig.templateFontSize
@@ -303,12 +301,12 @@ function applyNormalizedConfig(
 	config.renderMode = nextConfig.renderMode as DisplayMode
 }
 
-config.template = syncCanonicalDefaultTemplateVariant(config.template, collectMetadataEnabled.value)
+config.template = syncCanonicalDefaultTemplateVariant(config.template, draftCollectMetadataEnabled.value)
 
 const effectiveInheritedConfig = computed(() => {
 	return {
 		...inheritedConfig.value,
-		template: syncCanonicalDefaultTemplateVariant(inheritedConfig.value.template, collectMetadataEnabled.value),
+		template: syncCanonicalDefaultTemplateVariant(inheritedConfig.value.template, draftCollectMetadataEnabled.value),
 	}
 })
 
@@ -338,7 +336,7 @@ const showResetDefaultsButton = computed(() => (
 const emitUpdate = () => {
 	emit('update:modelValue', {
 		signatureStampValue: serializeSignatureTextPolicyConfig(config),
-		collectMetadataEnabled: collectMetadataEnabled.value,
+		collectMetadataEnabled: draftCollectMetadataEnabled.value,
 	})
 }
 
@@ -353,26 +351,26 @@ watch(() => config.renderMode, emitUpdate)
 watch(() => props.modelValue, (nextValue: unknown) => {
 	const normalizedDraftValue = normalizeSignatureStampDraftValue(
 		nextValue,
-		collectMetadataEnabled.value,
+		draftCollectMetadataEnabled.value,
 	)
 	const nextConfig = normalizeSignatureTextPolicyConfig(normalizedDraftValue.signatureStampValue)
 	if (serializeSignatureTextPolicyConfig(config) === serializeSignatureTextPolicyConfig(nextConfig)) {
-		collectMetadataEnabled.value = normalizedDraftValue.collectMetadataEnabled
+		draftCollectMetadataEnabled.value = normalizedDraftValue.collectMetadataEnabled
 		return
 	}
-	collectMetadataEnabled.value = normalizedDraftValue.collectMetadataEnabled
+	draftCollectMetadataEnabled.value = normalizedDraftValue.collectMetadataEnabled
 	applyNormalizedConfig(nextConfig, normalizedDraftValue.collectMetadataEnabled)
 })
 
 watch(() => props.collectMetadataEnabled, (nextValue: boolean) => {
-	const normalizedValue = resolveCollectMetadataValue(nextValue, collectMetadataEnabled.value)
-	if (collectMetadataEnabled.value === normalizedValue) {
+	const normalizedValue = resolveCollectMetadataValue(nextValue, draftCollectMetadataEnabled.value)
+	if (draftCollectMetadataEnabled.value === normalizedValue) {
 		return
 	}
 	applyCollectMetadataEnabled(normalizedValue)
 })
 
-watch(collectMetadataEnabled, emitUpdate)
+watch(draftCollectMetadataEnabled, emitUpdate)
 
 function clearPreviewLoadingTimeout(): void {
 	if (previewLoadingTimeout) {
@@ -484,7 +482,7 @@ onUnmounted(() => {
 })
 
 function clampZoom(value: number): number {
-	if (!Number.isFinite(value)) return 100
+	if (!Number.isFinite(value)) { return 100 }
 	return Math.max(25, Math.min(400, Math.round(value)))
 }
 
@@ -540,11 +538,11 @@ function setBackgroundType(value: BackgroundType): void {
 }
 
 function onCollectMetadataToggle(value: boolean | unknown): void {
-	applyCollectMetadataEnabled(resolveCollectMetadataValue(value, collectMetadataEnabled.value))
+	applyCollectMetadataEnabled(resolveCollectMetadataValue(value, draftCollectMetadataEnabled.value))
 }
 
 function resetToDefaults(): void {
-	applyNormalizedConfig(effectiveInheritedConfig.value, collectMetadataEnabled.value)
+	applyNormalizedConfig(effectiveInheritedConfig.value, draftCollectMetadataEnabled.value)
 	previewZoom.value = 100
 	errorMessage.value = ''
 }

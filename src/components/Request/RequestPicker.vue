@@ -32,9 +32,9 @@
 			</NcButton>
 		</div>
 		<NcActions v-else
+			v-model:open="openedMenu"
 			:menu-name="requestMenuName"
-			:variant="variant"
-			v-model:open="openedMenu">
+			:variant="variant">
 			<template #icon>
 				<NcIconSvgWrapper :path="mdiPlus" :size="20" />
 			</template>
@@ -123,6 +123,7 @@
 		</NcDialog>
 	</div>
 </template>
+
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
@@ -254,7 +255,6 @@ const canUploadFronUrl = computed(() => {
 		return false
 	}
 	try {
-		// eslint-disable-next-line no-new
 		new URL(pdfUrl.value)
 		return true
 	} catch (error) {
@@ -279,10 +279,9 @@ async function openFilePicker() {
 		})
 		.build()
 
-	try {
-		const nodes = await filePicker.pick()
+	const nodes = await Promise.resolve(filePicker.pick()).catch(() => null)
+	if (nodes) {
 		await handleFileChoose(nodes as FilePickerNode[])
-	} catch (error) {
 	}
 }
 

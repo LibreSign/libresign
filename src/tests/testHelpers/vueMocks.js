@@ -10,7 +10,7 @@ import { config } from '@vue/test-utils'
  * Replaces variables in strings like "Hello {name}" with actual values
  */
 const translateMock = (app, str, vars) => {
-	if (!vars) return str
+	if (!vars) { return str }
 	return str.replace(/\{(\w+)\}/g, (match, key) => vars[key] || match)
 }
 

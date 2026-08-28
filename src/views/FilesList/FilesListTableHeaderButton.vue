@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcButton :class="['files-list__column-sort-button', {
+	<NcButton class="files-list__column-sort-button" :class="[{
 			'files-list__column-sort-button--active': filesSortingStore.sortingMode === mode,
 			'files-list__column-sort-button--size': filesSortingStore.sortingMode === 'size',
 		}]"
@@ -36,16 +36,16 @@ defineOptions({
 	name: 'FilesListTableHeaderButton',
 })
 
+const props = defineProps<{
+	name: string
+	mode: string
+}>()
+
 type FilesSortingStore = {
 	sortingMode: string
 	sortingDirection: string
 	toggleSortBy: (mode: string) => void
 }
-
-const props = defineProps<{
-	name: string
-	mode: string
-}>()
 
 const filesSortingStore = useFilesSortingStore() as FilesSortingStore
 

@@ -2,7 +2,6 @@
   - SPDX-FileCopyrightText: 2024 LibreCode coop and LibreCode contributors
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
-/* eslint-disable no-new */
 <template>
 	<NcDialog v-if="signMethodsStore.modal.resetPassword"
 		:name="t('libresign', 'Password reset')"
@@ -12,14 +11,14 @@
 		@keydown.enter.prevent="handleEnter"
 		@closing="onClose">
 		<p>{{ t('libresign', 'Enter new password and then repeat it') }}</p>
-		<NcPasswordField v-model="currentPassword"
-			ref="currentPasswordField"
+		<NcPasswordField ref="currentPasswordField"
+			v-model="currentPassword"
 			:label="t('libresign', 'Current password')" />
-		<NcPasswordField v-model="newPassword"
-			ref="newPasswordField"
+		<NcPasswordField ref="newPasswordField"
+			v-model="newPassword"
 			:label="t('libresign', 'New password')" />
-		<NcPasswordField v-model="rPassword"
-			ref="repeatPasswordField"
+		<NcPasswordField ref="repeatPasswordField"
+			v-model="rPassword"
 			:has-error="!validNewPassord"
 			:label="t('libresign', 'Repeat password')" />
 		<template #actions>

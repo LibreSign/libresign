@@ -42,7 +42,7 @@
 					<div v-for="file in progress.files" :key="file.id" class="file-item">
 						<div class="file-row">
 							<span class="file-name">{{ file.name }}</span>
-							<span :class="['status-pill', `status-${getFileStatusMeta(file).class}`]">
+							<span class="status-pill" :class="[`status-${getFileStatusMeta(file).class}`]">
 								<NcIconSvgWrapper :path="getFileStatusMeta(file).icon" />
 								{{ getFileStatusMeta(file).label }}
 							</span>
@@ -145,20 +145,20 @@ function stopPolling() {
 }
 
 async function fetchProgressFromValidation() {
-	try {
-		const { errorCount, hasFileErrors } = getProgressState()
-		if (hasFileErrors || errorCount > 0) {
-			return
-		}
-		const { data } = await axios.get(
-			generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${props.signRequestUuid}`)
-		)
-		const doc = data.ocs?.data || data
-		const derived = buildProgressFromValidation(doc)
-		if (derived && !hasFileErrors && errorCount === 0) {
-			progress.value = derived
-		}
-	} catch (error) {
+	const { errorCount, hasFileErrors } = getProgressState()
+	if (hasFileErrors || errorCount > 0) {
+		return
+	}
+	const response = await Promise.resolve(axios.get(
+		generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${props.signRequestUuid}`)
+	)).catch(() => null)
+	if (!response) {
+		return
+	}
+	const doc = response.data.ocs?.data || response.data
+	const derived = buildProgressFromValidation(doc)
+	if (derived && !hasFileErrors && errorCount === 0) {
+		progress.value = derived
 	}
 }
 

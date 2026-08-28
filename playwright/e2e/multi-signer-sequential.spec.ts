@@ -208,7 +208,7 @@ test('request signatures from two signers in sequential order', async ({ page, a
 
 	// Signer01 signs via the link received in the email
 	const signLink = extractSignLink(email01.Text)
-	if (!signLink) throw new Error('Sign link not found in email')
+	if (!signLink) { throw new Error('Sign link not found in email') }
 	await openInvitationAsExternalSigner(page, signLink)
 	await openSignDocument(page)
 	const firstSignResponsePromise = page.waitForResponse((response) =>
@@ -243,7 +243,7 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	// Signer02 signs via their email link.
 	// The admin is still logged out from the signer01 step, so this is unauthenticated.
 	const signLink02 = extractSignLink(email02.Text)
-	if (!signLink02) throw new Error('Sign link for signer02 not found in email')
+	if (!signLink02) { throw new Error('Sign link for signer02 not found in email') }
 	await openInvitationAsExternalSigner(page, signLink02)
 	await openSignDocument(page)
 	const secondSignResponsePromise = page.waitForResponse((response) =>

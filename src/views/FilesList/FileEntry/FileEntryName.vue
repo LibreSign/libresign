@@ -6,7 +6,6 @@
 	<!-- Rename input -->
 	<form
 		v-if="isRenaming"
-		ref="renameForm"
 		class="files-list__row-rename"
 		@submit.prevent.stop="onRename"
 		@click.stop>
@@ -24,9 +23,8 @@
 	</form>
 
 	<!-- Display name -->
-	<component v-else
-		:is="linkTo.is"
-		ref="basename"
+	<component :is="linkTo.is"
+		v-else
 		class="files-list__row-name-link"
 		v-bind="linkTo.params"
 		dir="auto">
@@ -50,12 +48,6 @@ defineOptions({
 	name: 'FileEntryName',
 })
 
-type RenameInputRef = {
-	$el?: {
-		querySelector: (selector: string) => HTMLInputElement | null
-	}
-}
-
 const props = defineProps<{
 	basename: string
 	extension: string
@@ -66,6 +58,12 @@ const emit = defineEmits<{
 	'update:basename': [name: string]
 	renaming: [value: boolean]
 }>()
+
+type RenameInputRef = {
+	$el?: {
+		querySelector: (selector: string) => HTMLInputElement | null
+	}
+}
 
 const renameInput = ref<RenameInputRef | null>(null)
 const isRenaming = ref(false)

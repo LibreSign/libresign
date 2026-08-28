@@ -14,7 +14,7 @@ export const useIdentificationDocumentStore = defineStore('identificationDocumen
 	const waitingApproval = ref(loadState('libresign', 'identificationDocumentsWaitingApproval', false))
 
 	const isDocumentPending = () => {
-		if (!enabled.value) return false
+		if (!enabled.value) { return false }
 		return true
 	}
 

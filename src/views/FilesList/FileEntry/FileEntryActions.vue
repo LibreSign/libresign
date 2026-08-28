@@ -5,12 +5,12 @@
 <template>
 	<td ref="rootElement" class="files-list__row-actions">
 		<!-- Menu actions -->
-		<NcActions ref="actionsMenu"
+		<NcActions
+			v-model:open="openedMenu"
 			:boundaries-element="boundariesElement"
 			:container="boundariesElement"
 			:force-name="true"
 			variant="tertiary"
-			v-model:open="openedMenu"
 			@close="openedMenu = false"
 			@closed="onMenuClosed">
 			<!-- Default actions list-->
@@ -31,12 +31,12 @@
 			</NcActionButton>
 		</NcActions>
 		<NcDialog v-if="confirmDelete"
+			v-model:open="confirmDelete"
 			:name="confirmDialogTitle"
-			:no-close="deleting"
-			v-model:open="confirmDelete">
+			:no-close="deleting">
 			{{ deleteConfirmationMessage }}
-			<NcCheckboxRadioSwitch type="switch"
-				v-model="deleteFile"
+			<NcCheckboxRadioSwitch v-model="deleteFile"
+				type="switch"
 				:disabled="deleting">
 				{{ alsoDeleteFileLabel }}
 			</NcCheckboxRadioSwitch>
@@ -94,6 +94,19 @@ defineOptions({
 	name: 'FileEntryActions',
 })
 
+const props = withDefaults(defineProps<{
+	opened?: boolean
+	source: SourceFile
+	loading: boolean | string
+}>(), {
+	opened: false,
+})
+
+const emit = defineEmits<{
+	(e: 'rename'): void
+	(e: 'start-rename'): void
+}>()
+
 type SourceFile = FileEntrySource & {
 	settings?: {
 		isApprover?: boolean
@@ -109,19 +122,6 @@ type MenuAction = {
 	title: string
 	iconSvgInline: string
 }
-
-const props = withDefaults(defineProps<{
-	opened?: boolean
-	source: SourceFile
-	loading: boolean | string
-}>(), {
-	opened: false,
-})
-
-const emit = defineEmits<{
-	(e: 'rename'): void
-	(e: 'start-rename'): void
-}>()
 
 const router = useRouter()
 const actionsMenuStore = useActionsMenuStore()

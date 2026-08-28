@@ -23,7 +23,7 @@
 			</NcButton>
 		</div>
 
-		<Editor v-if="activeTab === 'draw' && drawEditor" @close="close" @save="save" />
+		<Editor v-if="activeTab === 'draw' && drawEditor !== false" @close="close" @save="save" />
 		<TextInput v-if="activeTab === 'text' && textEditor" @save="save" @close="close" />
 		<FileUpload v-if="activeTab === 'file' && fileEditor" @save="save" @close="close" />
 
@@ -55,27 +55,27 @@ defineOptions({
 	name: 'Draw',
 })
 
-type AvailableTab = {
-	id: string
-	label: string
-	icon: string
-}
-
 const props = withDefaults(defineProps<{
 	drawEditor?: boolean
 	textEditor?: boolean
 	fileEditor?: boolean
 	type: string
 }>(), {
-	drawEditor: true,
 	textEditor: false,
 	fileEditor: false,
+	drawEditor: undefined,
 })
 
 const emit = defineEmits<{
 	(event: 'close'): void
 	(event: 'save'): void
 }>()
+
+type AvailableTab = {
+	id: string
+	label: string
+	icon: string
+}
 
 const signatureElementsStore = useSignatureElementsStore()
 const mounted = ref(false)
@@ -87,7 +87,7 @@ const size = computed(() => {
 
 const availableTabs = computed<AvailableTab[]>(() => {
 	const tabs: AvailableTab[] = []
-	if (props.drawEditor) {
+	if (props.drawEditor !== false) {
 		tabs.push({
 			id: 'draw',
 			label: t('libresign', 'Draw'),

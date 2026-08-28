@@ -6,7 +6,7 @@
 <template>
 	<article
 		class="policy-rule-card"
-		:class="{ 'policy-rule-card--highlighted': highlighted, 'policy-rule-card--editable': showEditAction }"
+		:class="{ 'policy-rule-card--highlighted': highlighted, 'policy-rule-card--editable': showEditAction !== false }"
 		:aria-label="cardAriaLabel || `${eyebrow}: ${title}`"
 		@pointerdown="trackPress"
 		@mouseup="markSelectionGesture"
@@ -30,10 +30,10 @@
 		</ul>
 
 		<div class="policy-rule-card__actions">
-			<NcButton v-if="showEditAction" variant="tertiary" class="policy-rule-card__action policy-rule-card__action--edit" :aria-label="editLabel" @click.stop="$emit('edit')">
+			<NcButton v-if="showEditAction !== false" variant="tertiary" class="policy-rule-card__action policy-rule-card__action--edit" :aria-label="editLabel" @click.stop="$emit('edit')">
 				{{ editText || editLabel }}
 			</NcButton>
-			<NcButton v-if="showRemoveAction" variant="error" class="policy-rule-card__action policy-rule-card__action--remove" :aria-label="removeLabel" @click.stop="$emit('remove')">
+			<NcButton v-if="showRemoveAction !== false" variant="error" class="policy-rule-card__action policy-rule-card__action--remove" :aria-label="removeLabel" @click.stop="$emit('remove')">
 				{{ removeText || removeLabel }}
 			</NcButton>
 		</div>
@@ -44,18 +44,9 @@
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { ref } from 'vue'
 
-const DRAG_EDIT_THRESHOLD_PX = 6
-const SELECTION_GUARD_WINDOW_MS = 250
-
 defineOptions({
 	name: 'PolicyRuleCard',
 })
-
-const emit = defineEmits<{
-	edit: []
-	remove: []
-}>()
-
 const props = withDefaults(defineProps<{
 	eyebrow: string
 	title: string
@@ -77,9 +68,15 @@ const props = withDefaults(defineProps<{
 	cardAriaLabel: '',
 	editText: '',
 	removeText: '',
-	showEditAction: true,
-	showRemoveAction: true,
+	showEditAction: undefined,
+	showRemoveAction: undefined,
 })
+const emit = defineEmits<{
+	edit: []
+	remove: []
+}>()
+const DRAG_EDIT_THRESHOLD_PX = 6
+const SELECTION_GUARD_WINDOW_MS = 250
 
 const lastPress = ref<{ x: number, y: number } | null>(null)
 const recentSelectionAt = ref(0)
@@ -118,7 +115,7 @@ function shouldIgnoreDueToRecentSelection() {
 }
 
 function handleCardClick(event: MouseEvent) {
-	if (!props.showEditAction) {
+	if (props.showEditAction === false) {
 		return
 	}
 

@@ -30,7 +30,7 @@
 						:get-signer-label="getSignerLabel"
 						@change="onSignerChange(slotProps.object, $event)" />
 					<NcButton
-						:class="['action-btn', slotProps.actionClass]"
+						class="action-btn" :class="[slotProps.actionClass]"
 						v-bind="slotProps.actionAttrs"
 						type="button"
 						variant="tertiary"
@@ -42,7 +42,7 @@
 						</template>
 					</NcButton>
 					<NcButton
-						:class="['action-btn', slotProps.actionClass]"
+						class="action-btn" :class="[slotProps.actionClass]"
 						v-bind="slotProps.actionAttrs"
 						type="button"
 						variant="tertiary"
@@ -137,8 +137,6 @@ defineOptions({
 	name: 'PdfEditor',
 })
 
-ensurePdfWorker()
-
 const props = withDefaults(defineProps<{
 	files?: PdfInput[]
 	fileNames?: string[]
@@ -157,6 +155,8 @@ const emit = defineEmits<{
 	(event: 'pdf-editor:object-click', payload: Record<string, unknown>): void
 	(event: 'pdf-editor:adding-ended', payload: { reason?: string }): void
 }>()
+
+ensurePdfWorker()
 
 const pdfElements = ref<PdfElementsInstance | null>(null)
 

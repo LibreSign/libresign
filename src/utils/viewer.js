@@ -28,7 +28,7 @@ const extractRelativePath = (url) => {
  * @param {string} options.fileUrl - The URL of the file to open
  * @param {string} options.filename - The name of the file
  * @param {number} options.nodeId - The Nextcloud node ID
- * @param {string} [options.mime='application/pdf'] - The MIME type
+ * @param {string} [options.mime] - The MIME type (defaults to 'application/pdf')
  */
 export const openDocument = ({ fileUrl, filename, nodeId, mime = 'application/pdf' }) => {
 	const source = extractRelativePath(fileUrl)

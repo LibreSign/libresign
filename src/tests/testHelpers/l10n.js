@@ -39,7 +39,7 @@ import { vi } from 'vitest'
  */
 export const interpolateL10n = (message, params = {}) => {
 	return message.replace(/{(\w+)}/g, (match, key) => {
-		if (Object.prototype.hasOwnProperty.call(params, key)) {
+		if (Object.hasOwn(params, key)) {
 			return String(params[key])
 		}
 

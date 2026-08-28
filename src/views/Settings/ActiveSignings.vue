@@ -9,8 +9,8 @@
 		<div class="active-signings-content">
 			<!-- Auto-refresh toggle -->
 			<div class="active-signings__controls">
-				<NcCheckboxRadioSwitch type="switch"
-					v-model="autoRefresh"
+				<NcCheckboxRadioSwitch v-model="autoRefresh"
+					type="switch"
 					:disabled="loading">
 					{{ t('libresign', 'Auto-refresh') }}
 				</NcCheckboxRadioSwitch>
@@ -81,6 +81,7 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import type { operations } from '../../types/openapi/openapi-administration'
+import logger from '../../logger.js'
 
 type ActiveSigningsResponse = operations['admin-get-active-signings']['responses'][200]['content']['application/json']
 type SigningItem = ActiveSigningsResponse['ocs']['data']['data'][number]
@@ -106,7 +107,7 @@ async function refresh() {
 		signings.value = response.data.ocs.data.data
 		updateLastRefreshTime()
 	} catch (error: unknown) {
-		console.error('Failed to fetch active signings:', error)
+		logger.error('Failed to fetch active signings', { error })
 		signings.value = []
 	} finally {
 		loading.value = false

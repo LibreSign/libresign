@@ -145,7 +145,7 @@ const toggleAriaLabel = computed(() =>
 )
 
 function dateFromSqlAnsi(date?: string | number | null) {
-	if (!date) return ''
+	if (!date) { return '' }
 	return Moment(String(date)).format('LLL')
 }
 

@@ -4,7 +4,7 @@
 -->
 <template>
 	<div class="files-list__column files-list__row-actions-batch" data-cy-files-list-selection-actions>
-		<NcActions ref="actionsMenu"
+		<NcActions
 			container="#app-content-vue"
 			:disabled="!!loading || areFilesLoading"
 			:force-name="true">
@@ -21,12 +21,12 @@
 			</NcActionButton>
 		</NcActions>
 		<NcDialog v-if="confirmDelete"
+			v-model:open="confirmDelete"
 			:name="t('libresign', 'Confirm')"
-			:no-close="deleting"
-			v-model:open="confirmDelete">
+			:no-close="deleting">
 			{{ t('libresign', 'The signature request will be deleted. Do you confirm this action?') }}
-			<NcCheckboxRadioSwitch type="switch"
-				v-model="deleteFile"
+			<NcCheckboxRadioSwitch v-model="deleteFile"
+				type="switch"
 				:disabled="deleting">
 				{{ t('libresign', 'Also delete the file.') }}
 			</NcCheckboxRadioSwitch>

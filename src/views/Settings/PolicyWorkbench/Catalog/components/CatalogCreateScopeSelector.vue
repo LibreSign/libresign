@@ -57,14 +57,14 @@ defineOptions({
 	name: 'CatalogCreateScopeSelector',
 })
 
-const emit = defineEmits<{
-	'select-scope': [scope: CreateRuleScope]
-}>()
-
 defineProps<{
 	options: CreateScopeOption[]
 	selectedScope: CreateRuleScope | null
 	notes: CreateScopeNote[]
+}>()
+
+const emit = defineEmits<{
+	'select-scope': [scope: CreateRuleScope]
 }>()
 
 // TRANSLATORS Hint shown above the rule type selector before creating a new scoped policy rule.

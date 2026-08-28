@@ -7,15 +7,16 @@
 		:name="t('libresign', 'Certificate engine')"
 		:description="t('libresign', 'Select the certificate engine to generate the root certificate')">
 		<div class="certificate-engine-content">
-			<NcSelect input-id="certificateEngine"
+			<NcSelect v-model="selectedOption"
+				input-id="certificateEngine"
 				:aria-label-combobox="t('libresign', 'Select the certificate engine to generate the root certificate')"
 				:clearable="false"
-				v-model="selectedOption"
 				:options="options"
 				@update:modelValue="saveEngine" />
 		</div>
 	</NcSettingsSection>
 </template>
+
 <script setup lang="ts">
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'

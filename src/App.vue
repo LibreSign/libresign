@@ -6,7 +6,7 @@
 <template>
 	<NcContent app-name="libresign" :class="{'sign-external-page': isSignExternalPage}">
 		<LeftSidebar v-if="showLeftSidebar" />
-		<NcAppContent :class="{'icon-loading' : loading }">
+		<NcAppContent :class="{'icon-loading': loading }">
 			<DefaultPageError v-if="isDoNothingError" />
 			<router-view
 				v-else-if="!loading"

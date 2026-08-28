@@ -76,7 +76,7 @@ export const signatureFooterRealDefinition: RealPolicySettingDefinition = {
 			(baseEditorProps.inheritedTemplate as string | undefined) ?? '',
 		)
 
-		if (policyWithInherited && Object.prototype.hasOwnProperty.call(policyWithInherited, 'inheritedValue')) {
+		if (policyWithInherited && Object.hasOwn(policyWithInherited, 'inheritedValue')) {
 			if (policyWithInherited.sourceScope === 'global' || policyWithInherited.sourceScope === 'system') {
 				return {
 					...baseEditorProps,

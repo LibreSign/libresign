@@ -135,10 +135,11 @@ defineProps({
 	},
 	showResetDefaultsButton: {
 		type: Boolean,
-		default: true,
+		default: undefined,
 	},
 })
 
+defineEmits(['reset-defaults', 'change-zoom', 'zoom-input', 'commit-zoom-input', 'preview-ready'])
 // TRANSLATORS Section heading for the live signature-stamp preview.
 const previewLabel = t('libresign', 'Preview')
 // TRANSLATORS Accessible label for the button that restores all signature-stamp preview settings to their default values.
@@ -154,7 +155,6 @@ const increaseZoomLabel = t('libresign', 'Increase zoom')
 // TRANSLATORS Placeholder text shown before the signature-stamp preview PDF is available.
 const previewWillAppearHereLabel = t('libresign', 'Preview will appear here')
 
-defineEmits(['reset-defaults', 'change-zoom', 'zoom-input', 'commit-zoom-input', 'preview-ready'])
 </script>
 
 <style scoped>

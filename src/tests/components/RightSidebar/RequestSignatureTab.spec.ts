@@ -40,7 +40,7 @@ vi.mock('@nextcloud/initial-state', () => ({
 				'identification_documents': { enabled: false },
 			}
 		}
-		if (key === 'can_request_sign') return true
+		if (key === 'can_request_sign') { return true }
 		if (key === 'effective_policies') {
 			return {
 				policies: {
@@ -176,7 +176,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 	const updateFile = async (patch: Record<string, unknown>) => {
 		const current = filesStore.files[1] || { id: 1 }
-		const hasSigners = Object.prototype.hasOwnProperty.call(patch, 'signers')
+		const hasSigners = Object.hasOwn(patch, 'signers')
 		await filesStore.addFile({
 			...current,
 			...patch,
@@ -805,7 +805,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 						'identification_documents': { enabled: false },
 					}
 				}
-				if (key === 'can_request_sign') return true
+				if (key === 'can_request_sign') { return true }
 				return defaultValue
 			})
 

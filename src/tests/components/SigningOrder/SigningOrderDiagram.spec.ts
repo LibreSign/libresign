@@ -94,6 +94,8 @@ describe('SigningOrderDiagram', () => {
 
 	beforeEach(() => {
 		if (wrapper) {
+			wrapper.unmount()
+			wrapper = undefined
 		}
 	})
 

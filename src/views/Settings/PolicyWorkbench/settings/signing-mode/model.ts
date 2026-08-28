@@ -50,8 +50,8 @@ export function resolveParallelWorkers(value: EffectivePolicyValue): number {
 	return 4
 }
 export function clampParallelWorkers(value: number): number {
-	if (value < 1) return 1
-	if (value > 32) return 32
+	if (value < 1) { return 1 }
+	if (value > 32) { return 32 }
 	return value
 }
 

@@ -20,14 +20,14 @@
 
 				<!-- Current folder breadcrumbs -->
 				<NcBreadcrumbs class="files-list__breadcrumbs">
-					<NcBreadcrumb :name="t('libresign', 'Files')"
+					<NcBreadcrumb v-model:open="isMenuOpen"
+						:name="t('libresign', 'Files')"
 						:title="t('libresign', 'Files')"
 						:force-icon-text="true"
 						:to="{ name: 'fileslist' }"
 						:aria-description="t('libresign', 'Files')"
 						:disable-drop="true"
-						force-menu
-						v-model:open="isMenuOpen">
+						force-menu>
 						<template #icon>
 							<NcIconSvgWrapper :size="20"
 								:svg="viewIcon" />

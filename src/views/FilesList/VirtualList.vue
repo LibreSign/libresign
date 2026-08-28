@@ -33,7 +33,7 @@
 			</caption>
 
 			<!-- Header -->
-			<thead ref="thead" class="files-list__thead" data-cy-files-list-thead>
+			<thead class="files-list__thead" data-cy-files-list-thead>
 				<slot name="header" />
 			</thead>
 			<!-- Body -->
@@ -72,10 +72,12 @@ export default {
 			type: [Object, Function],
 			required: true,
 		},
+
 		loading: {
 			type: Boolean,
 			required: true,
 		},
+
 		/**
 		 * Visually hidden caption for the table accessibility
 		 */
@@ -84,6 +86,7 @@ export default {
 			default: '',
 		},
 	},
+
 	setup() {
 		const filesStore = useFilesStore()
 		const userConfigStore = useUserConfigStore()
@@ -93,11 +96,13 @@ export default {
 			userConfigStore,
 		}
 	},
+
 	data() {
 		return {
 			observer: null,
 		}
 	},
+
 	mounted() {
 		this.observer = new IntersectionObserver(debounce(([entry]) => {
 			if (entry && entry.isIntersecting) {
@@ -106,10 +111,12 @@ export default {
 		}, 100))
 		subscribe('libresign:files:updated', this.updateObserver)
 	},
+
 	beforeUnmount() {
 		this.observer.disconnect()
 		unsubscribe('libresign:files:updated')
 	},
+
 	methods: {
 		getFilesIfNotLoading() {
 			if (this.filesStore.loading) {
@@ -118,9 +125,10 @@ export default {
 				this.filesStore.getAllFiles()
 			}
 		},
+
 		updateObserver() {
 			const endOfListElement = this.$refs?.endOfList
-			if (!endOfListElement) return
+			if (!endOfListElement) { return }
 			this.observer.disconnect()
 			this.observer.observe(endOfListElement)
 		},
