@@ -6,6 +6,8 @@
 import axios, { type AxiosResponse } from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
+import logger from '../logger.js'
+
 interface FileStatusData {
 	status: number
 	[key: string]: unknown
@@ -76,7 +78,7 @@ export const createLongPolling = (options: LongPollingOptions = {}) => {
 					}
 
 					if (errorCount >= MAX_ERRORS) {
-						console.error('Long polling stopped after', MAX_ERRORS, 'consecutive errors')
+						logger.error('Long polling stopped after consecutive errors', { maxErrors: MAX_ERRORS })
 						break
 					}
 

@@ -46,6 +46,7 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import { FILE_STATUS } from '../../constants.js'
 import type { ValidationFileRecord } from '../../types'
 import { getStatusLabel, getStatusIcon } from '../../utils/fileStatus.js'
+import logger from '../../logger.js'
 
 defineOptions({
 	name: 'FileStatusList',
@@ -75,7 +76,7 @@ async function loadFiles() {
 		files.value = responses.map((response) => response.data.ocs.data)
 		emit('files-updated', files.value)
 	} catch (error) {
-		console.error('[libresign][front] Failed to load files', error)
+		logger.error('[libresign][front] Failed to load files', { error })
 	}
 }
 

@@ -121,6 +121,7 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import 'vue-advanced-cropper/dist/style.css'
 import type { LibresignCapabilities } from '../../types/index'
+import logger from '../../logger.js'
 
 type CropperResult = {
 	canvas?: {
@@ -328,7 +329,7 @@ function fileSelect(event: Event) {
 	})
 
 	fileReader.addEventListener('error', error => {
-		console.error(error)
+		logger.error('Failed to read file', { error })
 	})
 
 	fileReader.readAsDataURL(selectedFile)
