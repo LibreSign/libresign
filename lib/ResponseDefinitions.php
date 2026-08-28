@@ -47,6 +47,15 @@ namespace OCA\Libresign;
  *     },
  *     envelopeFolderId?: int,
  * }
+ * @psalm-type LibresignGeolocationCollectionStatus = 'collected'|'denied'|'unavailable'|'skipped'
+ * @psalm-type LibresignGeolocationRequirement = 'disabled'|'optional'|'required'
+ * @psalm-type LibresignSignerGeolocation = array{
+ *     status: LibresignGeolocationCollectionStatus,
+ *     latitude?: float,
+ *     longitude?: float,
+ *     accuracy?: float,
+ *     timestamp?: int,
+ * }
  * @psalm-type LibresignNewSigner = array{
  *     identifyMethods: list<array{
  *         method: string,
@@ -58,6 +67,7 @@ namespace OCA\Libresign;
  *     notify?: non-negative-int,
  *     signingOrder?: non-negative-int,
  *     status?: int,
+ *     geolocationRequired?: bool,
  * }
  * @psalm-type LibresignNewFile = array{
  *     base64?: string,
@@ -184,6 +194,8 @@ namespace OCA\Libresign;
  * @psalm-type LibresignSignerMetadata = array{
  *     remote-address?: string,
  *     user-agent?: string,
+ *     geolocationRequirement?: LibresignGeolocationRequirement,
+ *     geolocation?: LibresignSignerGeolocation,
  *     notify?: LibresignNotify[],
  *     certificate_info?: LibresignSignerCertificateInfo,
  * }

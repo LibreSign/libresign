@@ -27,6 +27,7 @@ use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\Policy\FilePolicyApplier;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
+use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
@@ -67,6 +68,7 @@ class RequestSignatureService {
 		protected FileUploadHelper $uploadHelper,
 		protected SignRequestService $signRequestService,
 		protected FilePolicyApplier $filePolicyApplier,
+		protected SignerGeolocationPolicyService $signerGeolocationPolicyService,
 	) {
 	}
 
@@ -486,15 +488,17 @@ class RequestSignatureService {
 
 			$this->sequentialSigningService->resetOrderCounter();
 			$fileStatus = $data['status'] ?? null;
+			$requester = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
 
 			foreach ($normalizedSigners as $signer) {
 				$userProvidedOrder = isset($signer['signingOrder']) ? (int)$signer['signingOrder'] : null;
 				$signingOrder = $this->sequentialSigningService->determineSigningOrder($userProvidedOrder);
 				$signerStatus = $signer['status'] ?? null;
 				$shouldNotify = !isset($signer['notify']) || $signer['notify'] !== 0;
+				$lastSignRequest = null;
 
 				foreach ($signer['identifyMethods'] as $identifyMethod) {
-					$return[] = $this->signRequestService->createOrUpdateSignRequest(
+					$lastSignRequest = $this->signRequestService->createOrUpdateSignRequest(
 						identifyMethods: [
 							$identifyMethod['method'] => $identifyMethod['value'],
 						],
@@ -506,6 +510,22 @@ class RequestSignatureService {
 						fileStatus: $fileStatus,
 						signerStatus: $signerStatus,
 					);
+					$return[] = $lastSignRequest;
+				}
+
+				if ($lastSignRequest instanceof SignRequestEntity) {
+					$requesterRequiresGeolocation = filter_var(
+						$signer['geolocationRequired'] ?? false,
+						FILTER_VALIDATE_BOOLEAN,
+						FILTER_NULL_ON_FAILURE,
+					) ?? false;
+					$this->signerGeolocationPolicyService->persistEffectiveRequirement(
+						$lastSignRequest,
+						$file,
+						$requesterRequiresGeolocation,
+						$requester,
+					);
+					$this->signRequestService->insertOrUpdateSignRequest($lastSignRequest);
 				}
 			}
 		}
