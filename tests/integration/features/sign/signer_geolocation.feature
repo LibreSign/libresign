@@ -39,10 +39,13 @@ Feature: sign/signer_geolocation
       | geolocation | {"status":"collected","latitude":-23.5505,"longitude":-46.6333,"accuracy":25,"timestamp":1700000000000} |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                                                   | value        |
-      | (jq).ocs.data.message                                 | File signed  |
-      | (jq).ocs.data.file.signers[0].metadata.geolocation.status | collected |
-      | (jq).ocs.data.file.signers[0].metadata.geolocation.latitude | -23.5505 |
+      | key                     | value       |
+      | (jq).ocs.data.message   | File signed |
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    Then the response should be a JSON array with the following mandatory values
+      | key                                                              | value     |
+      | (jq).ocs.data.data[0].signers[0].metadata.geolocation.status      | collected |
+      | (jq).ocs.data.data[0].signers[0].metadata.geolocation.latitude   | -23.5505  |
 
   Scenario: Requester may require geolocation for selected signers when policy allows override
     Given as user "admin"
@@ -69,8 +72,9 @@ Feature: sign/signer_geolocation
       | key                                                                  | value    |
       | (jq).ocs.data.data[0].signers[0].metadata.geolocationRequirement     | required |
       | (jq).ocs.data.data[0].signers[1].metadata.geolocationRequirement     | optional |
-    And fetch field "(SIGN_REQUEST_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
     And as user "signer1"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(SIGN_REQUEST_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
     When sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_REQUEST_UUID>"
       | method | clickToSign |
     Then the response should have a status code 422
