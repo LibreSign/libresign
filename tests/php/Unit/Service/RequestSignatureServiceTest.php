@@ -36,6 +36,7 @@ use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\SignRequest\StatusUpdatePolicy;
+use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
@@ -78,6 +79,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private FileUploadHelper&MockObject $uploadHelper;
 	private SignRequestService&MockObject $signRequestService;
 	private FilePolicyApplier&MockObject $filePolicyApplier;
+	private SignerGeolocationPolicyService&MockObject $signerGeolocationPolicyService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -113,6 +115,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->uploadHelper = $this->createMock(FileUploadHelper::class);
 		$this->signRequestService = $this->createMock(SignRequestService::class);
 		$this->filePolicyApplier = $this->createMock(FilePolicyApplier::class);
+		$this->signerGeolocationPolicyService = $this->createMock(SignerGeolocationPolicyService::class);
 	}
 
 	private function getService(array $methods = []): RequestSignatureService|MockObject {
@@ -145,6 +148,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->uploadHelper,
 					$this->signRequestService,
 					$this->filePolicyApplier,
+					$this->signerGeolocationPolicyService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -177,6 +181,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->uploadHelper,
 			$this->signRequestService,
 			$this->filePolicyApplier,
+			$this->signerGeolocationPolicyService,
 		);
 	}
 
