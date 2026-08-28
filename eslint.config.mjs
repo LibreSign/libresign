@@ -53,6 +53,15 @@ export default [
 		},
 	},
 
+	{
+		name: 'libresign/playwright-overrides',
+		files: ['playwright/**/*.ts'],
+		rules: {
+			// Playwright fixture callbacks require object destructuring even when unused.
+			'no-empty-pattern': 'off',
+		},
+	},
+
 	/**
 	 * Remaining rules intentionally deferred with per-rule reasons (issue #8051 follow-ups).
 	 * Enable one rule at a time: remove it here, fix violations, commit separately.
