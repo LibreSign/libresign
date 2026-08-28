@@ -55,7 +55,7 @@ Thanks to all the people who contribute to LibreSign:
 ## Screenshots
 
 <p align="center">
-  <img src="img/LibreSign.png" alt="LibreSign interface screenshot" width="900"/>
+  <img src="img/screenshot/request-signature.png" alt="LibreSign interface screenshot" width="900"/>
 </p>
 
 ## Documentation
