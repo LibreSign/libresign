@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+/* eslint-disable no-console -- test harness intercepts console output */
+
 import { vi, afterEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { cleanup } from '@testing-library/vue'

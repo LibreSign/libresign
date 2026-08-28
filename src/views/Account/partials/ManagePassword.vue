@@ -47,7 +47,10 @@
 		<CreatePassword v-if="mounted" />
 		<ReadCertificate v-if="mounted" />
 		<ResetPassword v-if="mounted" />
-		<UploadCertificate v-if="mounted" ref="uploadCertificate" :use-modal="false"
+		<UploadCertificate
+			v-if="mounted"
+			ref="uploadCertificate"
+			:use-modal="false"
 			@certificate:uploaded="onCertificateUploaded" />
 	</div>
 </template>

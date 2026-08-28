@@ -529,11 +529,9 @@ function ensureServices() {
 
 async function loadUser() {
 	if (getCurrentUser()) {
-		try {
-			const { data } = await axios.get<OcsResponseData<UserInfo>>(generateOcsUrl('/apps/libresign/api/v1/account/me'))
-			user.value = data.ocs.data
-		} catch {
-			// intentionally empty — leave user unset when account fetch fails
+		const response = await axios.get<OcsResponseData<UserInfo>>(generateOcsUrl('/apps/libresign/api/v1/account/me')).catch(() => null)
+		if (response) {
+			user.value = response.data.ocs.data
 		}
 	}
 }

@@ -145,21 +145,20 @@ function stopPolling() {
 }
 
 async function fetchProgressFromValidation() {
-	try {
-		const { errorCount, hasFileErrors } = getProgressState()
-		if (hasFileErrors || errorCount > 0) {
-			return
-		}
-		const { data } = await axios.get(
-			generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${props.signRequestUuid}`)
-		)
-		const doc = data.ocs?.data || data
-		const derived = buildProgressFromValidation(doc)
-		if (derived && !hasFileErrors && errorCount === 0) {
-			progress.value = derived
-		}
-	} catch (error) {
-		// intentionally empty — keep current progress when validation fetch fails
+	const { errorCount, hasFileErrors } = getProgressState()
+	if (hasFileErrors || errorCount > 0) {
+		return
+	}
+	const response = await axios.get(
+		generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${props.signRequestUuid}`)
+	).catch(() => null)
+	if (!response) {
+		return
+	}
+	const doc = response.data.ocs?.data || response.data
+	const derived = buildProgressFromValidation(doc)
+	if (derived && !hasFileErrors && errorCount === 0) {
+		progress.value = derived
 	}
 }
 
