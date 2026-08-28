@@ -463,6 +463,12 @@ class FileListService {
 		if ($signer->getSigned()) {
 			$data['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
 		}
+
+		$signerMetadata = $signer->getMetadata();
+		if (is_array($signerMetadata) && $signerMetadata !== []) {
+			$data['metadata'] = $signerMetadata;
+		}
+
 		ksort($data);
 		return $data;
 	}

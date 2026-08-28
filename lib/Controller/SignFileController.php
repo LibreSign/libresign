@@ -25,8 +25,8 @@ use OCA\Libresign\Service\File\SettingsLoader;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestMetadataService;
-use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
+use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\Worker\WorkerHealthService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
@@ -44,6 +44,7 @@ use OCP\IUserSession;
  * @psalm-import-type LibresignMessageResponse from ResponseDefinitions
  * @psalm-import-type LibresignSignActionErrorResponse from ResponseDefinitions
  * @psalm-import-type LibresignSignActionResponse from ResponseDefinitions
+ * @psalm-import-type LibresignSignerGeolocation from ResponseDefinitions
  */
 
 class SignFileController extends AEnvironmentAwareController implements ISignatureUuid {
@@ -76,6 +77,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
 	 * @param bool $async Execute signing asynchronously when possible
+	 * @param LibresignSignerGeolocation $geolocation Device-reported geolocation metadata submitted by the signing client
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
@@ -101,6 +103,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
 	 * @param bool $async Execute signing asynchronously when possible
+	 * @param LibresignSignerGeolocation $geolocation Device-reported geolocation metadata submitted by the signing client
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
