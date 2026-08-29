@@ -10,6 +10,8 @@ namespace OCA\Libresign\Tests\Unit\Service\SignerGeolocation;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignerGeolocationMode;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
@@ -23,12 +25,14 @@ use PHPUnit\Framework\TestCase;
 final class SignerGeolocationPolicyServiceTest extends TestCase {
 	private PolicyService&MockObject $policyService;
 	private FileMapper&MockObject $fileMapper;
+	private SignRequestMapper&MockObject $signRequestMapper;
 	private IL10N&MockObject $l10n;
 
 	protected function setUp(): void {
 		parent::setUp();
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
+		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n->method('t')->willReturnArgument(0);
 	}
@@ -37,6 +41,7 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 		return new SignerGeolocationPolicyService(
 			$this->policyService,
 			$this->fileMapper,
+			$this->signRequestMapper,
 			$this->l10n,
 		);
 	}
@@ -162,8 +167,8 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 		]);
 		$service = $this->getService();
 
-		$requiredSigner = new \OCA\Libresign\Db\SignRequest();
-		$optionalSigner = new \OCA\Libresign\Db\SignRequest();
+		$requiredSigner = new SignRequest();
+		$optionalSigner = new SignRequest();
 
 		$service->persistEffectiveRequirement($requiredSigner, $file, true);
 		$service->persistEffectiveRequirement($optionalSigner, $file, false);
@@ -176,6 +181,45 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 			SignerGeolocationMode::OPTIONAL->value,
 			($optionalSigner->getMetadata() ?? [])[SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY],
 		);
+	}
+
+	public function testPersistEffectiveRequirementToStoragePreservesExistingMetadata(): void {
+		$file = $this->createFileWithSnapshot([
+			'mode' => 'optional',
+			'allowRequesterOverride' => false,
+		]);
+		$signRequest = new SignRequest();
+		$signRequest->setId(42);
+		$signRequest->setMetadata([]);
+
+		$storedSignRequest = new SignRequest();
+		$storedSignRequest->setId(42);
+		$storedSignRequest->setMetadata([
+			'notify' => [
+				[
+					'method' => 'mail',
+					'date' => 1_700_000_000,
+				],
+			],
+		]);
+
+		$this->signRequestMapper
+			->expects($this->once())
+			->method('getById')
+			->with(42)
+			->willReturn($storedSignRequest);
+
+		$this->signRequestMapper
+			->expects($this->once())
+			->method('update')
+			->with($this->callback(function (SignRequest $updated): bool {
+				$metadata = $updated->getMetadata() ?? [];
+
+				return isset($metadata['notify'])
+					&& $metadata[SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY] === SignerGeolocationMode::OPTIONAL->value;
+			}));
+
+		$this->getService()->persistEffectiveRequirementToStorage($signRequest, $file, false);
 	}
 
 	/**

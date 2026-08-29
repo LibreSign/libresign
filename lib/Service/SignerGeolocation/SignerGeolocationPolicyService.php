@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service\SignerGeolocation;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignerGeolocationMode;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Policy\PolicyService;
@@ -25,6 +26,7 @@ class SignerGeolocationPolicyService {
 	public function __construct(
 		private PolicyService $policyService,
 		private FileMapper $fileMapper,
+		private SignRequestMapper $signRequestMapper,
 		private IL10N $l10n,
 	) {
 	}
@@ -115,6 +117,27 @@ class SignerGeolocationPolicyService {
 		$metadata = $signRequest->getMetadata() ?? [];
 		$metadata[self::METADATA_REQUIREMENT_KEY] = $effective->value;
 		$signRequest->setMetadata($metadata);
+	}
+
+	public function persistEffectiveRequirementToStorage(
+		SignRequest $signRequest,
+		FileEntity $file,
+		bool $requesterRequiresGeolocation,
+		?IUser $requester = null,
+	): void {
+		$this->validateRequesterConfiguration($file, $requesterRequiresGeolocation, $requester);
+		$effective = $this->resolveEffectiveRequirement($file, $requesterRequiresGeolocation, $requester);
+
+		$signRequestId = $signRequest->getId();
+		if ($signRequestId === null) {
+			throw new \InvalidArgumentException('Sign request must be persisted before storing geolocation requirement');
+		}
+
+		$fromDatabase = $this->signRequestMapper->getById($signRequestId);
+		$metadata = $fromDatabase->getMetadata() ?? [];
+		$metadata[self::METADATA_REQUIREMENT_KEY] = $effective->value;
+		$fromDatabase->setMetadata($metadata);
+		$this->signRequestMapper->update($fromDatabase);
 	}
 
 	/** @return array{mode: string, allowRequesterOverride: bool}|null */

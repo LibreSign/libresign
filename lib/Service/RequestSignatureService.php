@@ -519,13 +519,12 @@ class RequestSignatureService {
 						FILTER_VALIDATE_BOOLEAN,
 						FILTER_NULL_ON_FAILURE,
 					) ?? false;
-					$this->signerGeolocationPolicyService->persistEffectiveRequirement(
+					$this->signerGeolocationPolicyService->persistEffectiveRequirementToStorage(
 						$lastSignRequest,
 						$file,
 						$requesterRequiresGeolocation,
 						$requester,
 					);
-					$this->signRequestService->insertOrUpdateSignRequest($lastSignRequest);
 				}
 			}
 		}
