@@ -12,6 +12,7 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
+use OCP\Mail\Provider\IManager as IMailProviderManager;
 
 /**
  * Controls which mail account LibreSign uses to send signature request
@@ -28,6 +29,11 @@ final class MailSenderStrategyPolicy implements IPolicyDefinitionProvider {
 		self::STRATEGY_SYSTEM,
 		self::STRATEGY_REQUESTER,
 	];
+
+	public function __construct(
+		private IMailProviderManager $mailProviderManager,
+	) {
+	}
 
 	#[\Override]
 	public function keys(): array {
@@ -51,7 +57,19 @@ final class MailSenderStrategyPolicy implements IPolicyDefinitionProvider {
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 				supportsUserPreference: false,
+				resolvedStateMeta: fn (): array => [
+					'mailProviderAvailable' => $this->mailProviderManager->has(),
+				],
 				supportedScopes: [PolicySpec::SCOPE_SYSTEM],
+				// The requester strategy can only be configured while a mail provider
+				// is available. Once stored, runtime resolution keeps the value and
+				// MailService falls back to the system mailer when the environment
+				// changes later (provider removed, account deleted, sending failure).
+				persistenceValidator: function (mixed $value): void {
+					if ($value === self::STRATEGY_REQUESTER && !$this->mailProviderManager->has()) {
+						throw new \InvalidArgumentException('The requester strategy requires an available mail provider');
+					}
+				},
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . PolicyKeyNormalizer::normalize($policyKey)),
 		};

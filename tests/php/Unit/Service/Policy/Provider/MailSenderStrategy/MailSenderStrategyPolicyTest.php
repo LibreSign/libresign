@@ -10,12 +10,19 @@ namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\MailSenderStrategy;
 
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Provider\MailSenderStrategy\MailSenderStrategyPolicy;
+use OCP\Mail\Provider\IManager as IMailProviderManager;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class MailSenderStrategyPolicyTest extends TestCase {
+	private function createProvider(bool $mailProviderAvailable = true): MailSenderStrategyPolicy {
+		$mailProviderManager = $this->createMock(IMailProviderManager::class);
+		$mailProviderManager->method('has')->willReturn($mailProviderAvailable);
+		return new MailSenderStrategyPolicy($mailProviderManager);
+	}
+
 	public function testProviderBuildsDefinition(): void {
-		$provider = new MailSenderStrategyPolicy();
+		$provider = $this->createProvider();
 		$this->assertSame([MailSenderStrategyPolicy::KEY], $provider->keys());
 
 		$definition = $provider->get(MailSenderStrategyPolicy::KEY);
@@ -26,7 +33,7 @@ final class MailSenderStrategyPolicyTest extends TestCase {
 	}
 
 	public function testProviderIsRestrictedToSystemScope(): void {
-		$provider = new MailSenderStrategyPolicy();
+		$provider = $this->createProvider();
 		$definition = $provider->get(MailSenderStrategyPolicy::KEY);
 
 		$this->assertSame(['system'], $definition->supportedScopes());
@@ -39,7 +46,7 @@ final class MailSenderStrategyPolicyTest extends TestCase {
 
 	#[DataProvider('provideRawValues')]
 	public function testNormalizeValueTrimsAndLowercases(mixed $rawValue, string $expected): void {
-		$provider = new MailSenderStrategyPolicy();
+		$provider = $this->createProvider();
 		$definition = $provider->get(MailSenderStrategyPolicy::KEY);
 
 		$this->assertSame($expected, $definition->normalizeValue($rawValue));
@@ -58,7 +65,7 @@ final class MailSenderStrategyPolicyTest extends TestCase {
 
 	#[DataProvider('provideValidStrategies')]
 	public function testValidateValueAcceptsKnownStrategies(string $strategy): void {
-		$provider = new MailSenderStrategyPolicy();
+		$provider = $this->createProvider();
 		$definition = $provider->get(MailSenderStrategyPolicy::KEY);
 
 		$definition->validateValue($definition->normalizeValue($strategy), new PolicyContext());
@@ -76,7 +83,7 @@ final class MailSenderStrategyPolicyTest extends TestCase {
 
 	#[DataProvider('provideInvalidValues')]
 	public function testValidateValueRejectsUnknownStrategies(mixed $value): void {
-		$provider = new MailSenderStrategyPolicy();
+		$provider = $this->createProvider();
 		$definition = $provider->get(MailSenderStrategyPolicy::KEY);
 
 		$this->expectException(\InvalidArgumentException::class);
@@ -96,11 +103,49 @@ final class MailSenderStrategyPolicyTest extends TestCase {
 	}
 
 	public function testThrowsOnUnknownPolicyKey(): void {
-		$provider = new MailSenderStrategyPolicy();
+		$provider = $this->createProvider();
 
 		$this->expectException(\InvalidArgumentException::class);
 		$this->expectExceptionMessage('Unknown policy key: unknown_policy_key');
 
 		$provider->get('unknown_policy_key');
+	}
+
+	public function testExposesMailProviderAvailabilityInResolvedStateMeta(): void {
+		$withProvider = $this->createProvider(true)->get(MailSenderStrategyPolicy::KEY);
+		$this->assertSame(['mailProviderAvailable' => true], $withProvider->resolvedStateMeta(new PolicyContext()));
+
+		$withoutProvider = $this->createProvider(false)->get(MailSenderStrategyPolicy::KEY);
+		$this->assertSame(['mailProviderAvailable' => false], $withoutProvider->resolvedStateMeta(new PolicyContext()));
+	}
+
+	public function testRequesterCannotBeSavedWithoutMailProvider(): void {
+		$definition = $this->createProvider(false)->get(MailSenderStrategyPolicy::KEY);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('The requester strategy requires an available mail provider');
+
+		$definition->validateValueForPersistence('requester', new PolicyContext());
+	}
+
+	public function testSystemCanBeSavedWithoutMailProvider(): void {
+		$definition = $this->createProvider(false)->get(MailSenderStrategyPolicy::KEY);
+
+		$definition->validateValueForPersistence('system', new PolicyContext());
+		$this->addToAssertionCount(1);
+	}
+
+	public function testRequesterCanBeSavedWithMailProvider(): void {
+		$definition = $this->createProvider(true)->get(MailSenderStrategyPolicy::KEY);
+
+		$definition->validateValueForPersistence('requester', new PolicyContext());
+		$this->addToAssertionCount(1);
+	}
+
+	public function testStoredRequesterValueStaysValidAtRuntimeWithoutMailProvider(): void {
+		$definition = $this->createProvider(false)->get(MailSenderStrategyPolicy::KEY);
+
+		$definition->validateValue('requester', new PolicyContext());
+		$this->addToAssertionCount(1);
 	}
 }

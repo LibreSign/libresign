@@ -10,12 +10,16 @@
 			:key="option.value"
 			type="radio"
 			:model-value="selected === option.value"
+			:disabled="option.disabled"
 			name="mail-sender-strategy-rule-editor"
 			class="mail-sender-strategy-rule-editor__option"
 			@update:modelValue="onChange(option.value, $event)">
 			<div class="mail-sender-strategy-rule-editor__copy">
 				<strong>{{ option.label }}</strong>
 				<p>{{ option.description }}</p>
+				<p v-if="option.disabled" class="mail-sender-strategy-rule-editor__hint">
+					{{ unavailableHint }}
+				</p>
 			</div>
 		</NcCheckboxRadioSwitch>
 	</div>
@@ -34,9 +38,12 @@ defineOptions({
 	name: 'MailSenderStrategyRuleEditor',
 })
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	modelValue: EffectivePolicyValue
-}>()
+	mailProviderAvailable?: boolean
+}>(), {
+	mailProviderAvailable: true,
+})
 
 const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
@@ -44,9 +51,13 @@ const emit = defineEmits<{
 
 const selected = computed(() => normalizeMailSenderStrategy(props.modelValue))
 
-const options: Array<{ value: MailSenderStrategy, label: string, description: string }> = [
+// TRANSLATORS Hint shown under the requester option when no mail provider (for example the Mail app) is available on the instance.
+const unavailableHint = t('libresign', 'No mail provider is available on this instance, so this option cannot be selected.')
+
+const options = computed((): Array<{ value: MailSenderStrategy, label: string, description: string, disabled: boolean }> => [
 	{
 		value: 'system',
+		disabled: false,
 		// TRANSLATORS Option label meaning notification emails are sent by the Nextcloud system mailer.
 		label: t('libresign', 'System mailer'),
 		// TRANSLATORS Option description for sending notification emails from the address configured for the Nextcloud instance.
@@ -54,12 +65,13 @@ const options: Array<{ value: MailSenderStrategy, label: string, description: st
 	},
 	{
 		value: 'requester',
+		disabled: !props.mailProviderAvailable,
 		// TRANSLATORS Option label meaning notification emails are sent from the mail account of the person who requested the signature.
 		label: t('libresign', 'Requester mail account'),
 		// TRANSLATORS Option description for sending notification emails through the requester mail account, with automatic fallback to the system mailer.
 		description: t('libresign', 'Try to send notifications from the mail account of the person who requested the signature. This requires a mail provider such as the Mail app; when the account cannot be used, the system mailer is used instead.'),
 	},
-]
+])
 
 function onChange(nextValue: MailSenderStrategy, selectedOption?: unknown): void {
 	if (selectedOption === false) {
@@ -79,6 +91,10 @@ function onChange(nextValue: MailSenderStrategy, selectedOption?: unknown): void
 	&__copy p {
 		margin: 0.35rem 0 0;
 		color: var(--color-text-maxcontrast);
+	}
+
+	&__hint {
+		font-weight: bold;
 	}
 
 	:deep(.mail-sender-strategy-rule-editor__option.checkbox-radio-switch) {

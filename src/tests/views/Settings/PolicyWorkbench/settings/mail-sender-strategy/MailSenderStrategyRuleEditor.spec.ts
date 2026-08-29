@@ -13,8 +13,8 @@ vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 const NcCheckboxRadioSwitchStub = {
 	name: 'NcCheckboxRadioSwitch',
-	props: ['modelValue', 'type', 'name'],
-	template: '<button class="radio-stub" :data-checked="modelValue" @click="$emit(\'update:modelValue\', true)"><slot /></button>',
+	props: ['modelValue', 'type', 'name', 'disabled'],
+	template: '<button class="radio-stub" :data-checked="modelValue" :data-disabled="disabled" @click="$emit(\'update:modelValue\', true)"><slot /></button>',
 	emits: ['update:modelValue'],
 }
 
@@ -24,10 +24,11 @@ const NcCheckboxRadioSwitchStub = {
  * @param modelValue Effective policy value passed to the editor
  * @param stub Stub used for NcCheckboxRadioSwitch
  */
-function mountEditor(modelValue: unknown, stub = NcCheckboxRadioSwitchStub) {
+function mountEditor(modelValue: unknown, stub = NcCheckboxRadioSwitchStub, extraProps: Record<string, unknown> = {}) {
 	return mount(MailSenderStrategyRuleEditor, {
 		props: {
 			modelValue: modelValue as never,
+			...extraProps,
 		},
 		global: {
 			stubs: {
@@ -49,6 +50,18 @@ describe('MailSenderStrategyRuleEditor.vue', () => {
 		expect(wrapper.text()).toContain('when the account cannot be used, the system mailer is used instead')
 		expect(options[0]?.attributes('data-checked')).toBe('true')
 		expect(options[1]?.attributes('data-checked')).toBe('false')
+		expect(options[0]?.attributes('data-disabled')).toBe('false')
+		expect(options[1]?.attributes('data-disabled')).toBe('false')
+		expect(wrapper.text()).not.toContain('No mail provider is available on this instance')
+	})
+
+	it('disables the requester option with a hint when no mail provider is available', () => {
+		const wrapper = mountEditor('system', NcCheckboxRadioSwitchStub, { mailProviderAvailable: false })
+
+		const options = wrapper.findAll('.radio-stub')
+		expect(options[0]?.attributes('data-disabled')).toBe('false')
+		expect(options[1]?.attributes('data-disabled')).toBe('true')
+		expect(wrapper.text()).toContain('No mail provider is available on this instance, so this option cannot be selected.')
 	})
 
 	it('marks the requester option when the model value is requester, even with different casing', () => {

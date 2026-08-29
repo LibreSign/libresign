@@ -8,7 +8,7 @@ import { t } from '@nextcloud/l10n'
 import MailSenderStrategyRuleEditor from './MailSenderStrategyRuleEditor.vue'
 
 import type { EffectivePolicyValue } from '../../../../../types/index'
-import type { RealPolicySettingDefinition } from '../realTypes'
+import type { EffectivePolicyState, RealPolicySettingDefinition } from '../realTypes'
 import { DEFAULT_MAIL_SENDER_STRATEGY, normalizeMailSenderStrategy } from './model'
 
 export const mailSenderStrategyRealDefinition: RealPolicySettingDefinition = {
@@ -22,6 +22,10 @@ export const mailSenderStrategyRealDefinition: RealPolicySettingDefinition = {
 		canRenderPolicy: () => false,
 	},
 	editor: MailSenderStrategyRuleEditor,
+	resolveEditorProps: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => ({
+		...baseEditorProps,
+		mailProviderAvailable: policy?.meta?.mailProviderAvailable !== false,
+	}),
 	createEmptyValue: () => DEFAULT_MAIL_SENDER_STRATEGY,
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeMailSenderStrategy(value),
 	hasSelectableDraftValue: () => true,
