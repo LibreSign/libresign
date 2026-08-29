@@ -127,12 +127,32 @@ class MailService {
 	 */
 	private function sendSignRequestNotification(IEMailTemplate $emailTemplate, SignRequest $data, string $email): void {
 		$requesterId = $this->getFileById($data->getFileId())->getUserId();
-		if ($this->resolveMailSenderStrategy($requesterId) === MailSenderStrategyPolicy::STRATEGY_REQUESTER
-			&& $this->sendAsRequester($emailTemplate, $data, $email, $requesterId)
-		) {
+		if ($this->resolveMailSenderStrategy($requesterId) !== MailSenderStrategyPolicy::STRATEGY_REQUESTER) {
+			$this->sendAsSystem($emailTemplate, $data, $email);
 			return;
 		}
-		$this->sendAsSystem($emailTemplate, $data, $email);
+
+		$requester = $requesterId !== '' ? $this->userManager->get($requesterId) : null;
+		if ($this->sendAsRequester($emailTemplate, $data, $email, $requesterId, $requester)) {
+			return;
+		}
+		// Keep replies going to the person who requested the signature even
+		// when the message could not leave their own mail account.
+		$this->sendAsSystem($emailTemplate, $data, $email, $this->replyToAddress($requester));
+	}
+
+	/**
+	 * @return array<string, string>|null
+	 */
+	private function replyToAddress(?IUser $requester): ?array {
+		if (!$requester instanceof IUser) {
+			return null;
+		}
+		$address = (string)$requester->getEMailAddress();
+		if ($address === '') {
+			return null;
+		}
+		return [$address => $requester->getDisplayName()];
 	}
 
 	private function resolveMailSenderStrategy(string $requesterId): string {
@@ -141,12 +161,18 @@ class MailService {
 			->getEffectiveValue();
 	}
 
-	private function sendAsSystem(IEMailTemplate $emailTemplate, SignRequest $data, string $email): void {
+	/**
+	 * @param array<string, string>|null $replyTo
+	 */
+	private function sendAsSystem(IEMailTemplate $emailTemplate, SignRequest $data, string $email, ?array $replyTo = null): void {
 		$message = $this->mailer->createMessage();
 		if ($data->getDisplayName()) {
 			$message->setTo([$email => $data->getDisplayName()]);
 		} else {
 			$message->setTo([$email]);
+		}
+		if ($replyTo !== null) {
+			$message->setReplyTo($replyTo);
 		}
 		$message->useTemplate($emailTemplate);
 		$this->mailer->send($message);
@@ -155,9 +181,9 @@ class MailService {
 	/**
 	 * @return bool true when the message was sent through the requester mail account
 	 */
-	private function sendAsRequester(IEMailTemplate $emailTemplate, SignRequest $data, string $email, string $requesterId): bool {
+	private function sendAsRequester(IEMailTemplate $emailTemplate, SignRequest $data, string $email, string $requesterId, ?IUser $requester): bool {
 		try {
-			$service = $this->findRequesterMailService($requesterId);
+			$service = $this->findRequesterMailService($requesterId, $requester);
 			if ($service === null) {
 				return false;
 			}
@@ -178,21 +204,20 @@ class MailService {
 		}
 	}
 
-	private function findRequesterMailService(string $requesterId): (IService&IMessageSend)|null {
+	private function findRequesterMailService(string $requesterId, ?IUser $requester): (IService&IMessageSend)|null {
 		if ($requesterId === '' || !$this->mailProviderManager->has()) {
 			$this->logger->info('No mail provider is available to send the notification as the requester, falling back to the system mailer.', [
 				'requester' => $requesterId,
 			]);
 			return null;
 		}
-		$user = $this->userManager->get($requesterId);
-		if (!$user instanceof IUser) {
+		if (!$requester instanceof IUser) {
 			$this->logger->info('Requester account not found, falling back to the system mailer.', [
 				'requester' => $requesterId,
 			]);
 			return null;
 		}
-		$address = (string)$user->getEMailAddress();
+		$address = (string)$requester->getEMailAddress();
 		$service = $address !== '' ? $this->mailProviderManager->findServiceByAddress($requesterId, $address) : null;
 		if ($service instanceof IMessageSend) {
 			return $service;
