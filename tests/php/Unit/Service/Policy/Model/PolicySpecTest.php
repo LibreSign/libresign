@@ -384,4 +384,58 @@ final class PolicySpecTest extends TestCase {
 			'disallowed value' => ['unsupported_mode', true],
 		];
 	}
+
+	public function testValidateValueForPersistenceRunsRegularValidationByDefault(): void {
+		$spec = new PolicySpec(
+			key: 'signature_flow',
+			defaultSystemValue: 'none',
+			allowedValues: ['none', 'parallel'],
+		);
+
+		$spec->validateValueForPersistence('parallel', new PolicyContext());
+		$this->addToAssertionCount(1);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Invalid value for signature_flow');
+		$spec->validateValueForPersistence('invalid', new PolicyContext());
+	}
+
+	public function testPersistenceValidatorRunsOnlyWhenSavingAValue(): void {
+		$persistenceChecks = [];
+		$spec = new PolicySpec(
+			key: 'mail_sender_strategy',
+			defaultSystemValue: 'system',
+			allowedValues: ['system', 'requester'],
+			persistenceValidator: static function (mixed $value, PolicyContext $context) use (&$persistenceChecks): void {
+				$persistenceChecks[] = [$value, $context->getUserId()];
+				if ($value === 'requester') {
+					throw new \InvalidArgumentException('No mail provider available');
+				}
+			},
+		);
+
+		// Runtime validation ignores persistence-only constraints.
+		$spec->validateValue('requester', new PolicyContext());
+		$this->assertSame([], $persistenceChecks);
+
+		$spec->validateValueForPersistence('system', PolicyContext::fromUserId('john'));
+		$this->assertSame([['system', 'john']], $persistenceChecks);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('No mail provider available');
+		$spec->validateValueForPersistence('requester', new PolicyContext());
+	}
+
+	public function testPersistenceValidatorDoesNotBypassRegularValidation(): void {
+		$spec = new PolicySpec(
+			key: 'mail_sender_strategy',
+			defaultSystemValue: 'system',
+			allowedValues: ['system', 'requester'],
+			persistenceValidator: static fn (mixed $value, PolicyContext $context): null => null,
+		);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Invalid value for mail_sender_strategy');
+		$spec->validateValueForPersistence('invalid', new PolicyContext());
+	}
 }
