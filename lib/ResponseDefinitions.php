@@ -523,6 +523,14 @@ namespace OCA\Libresign;
  *     effectiveValue: list<LibresignPolicySnapshotIdentifyMethodFactor>,
  *     sourceScope: string,
  * }
+ * @psalm-type LibresignPolicySnapshotSignerGeolocationValue = array{
+ *     mode: LibresignGeolocationRequirement,
+ *     allowRequesterOverride: bool,
+ * }
+ * @psalm-type LibresignPolicySnapshotSignerGeolocationEntry = array{
+ *     effectiveValue: LibresignPolicySnapshotSignerGeolocationValue,
+ *     sourceScope: string,
+ * }
  * @psalm-type LibresignValidatePolicySnapshot = array{
  *     docmdp?: LibresignPolicySnapshotNumericEntry,
  *     signature_flow?: LibresignPolicySnapshotEntry,
@@ -530,6 +538,7 @@ namespace OCA\Libresign;
  *     legal_information?: LibresignPolicySnapshotLegalInformationEntry,
  *     identification_documents?: LibresignPolicySnapshotIdentificationDocumentsEntry,
  *     identify_methods?: LibresignPolicySnapshotIdentifyMethodsEntry,
+ *     signer_geolocation?: LibresignPolicySnapshotSignerGeolocationEntry,
  * }
  * @psalm-type LibresignValidateMetadata = array{
  *     extension: string,

@@ -21,6 +21,7 @@ use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\Identification
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicy;
 use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -62,7 +63,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 
 		$this->policyService
-			->expects($this->exactly(6))
+			->expects($this->exactly(7))
 			->method('resolveForUser')
 			->willReturnCallback(function (string $policyKey) use ($identificationDocumentsValue, $identifyMethodsPolicyValue): ResolvedPolicy {
 				return match ($policyKey) {
@@ -95,6 +96,14 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						IdentifyMethodsPolicy::KEY,
 						$identifyMethodsPolicyValue,
 						'group',
+					),
+					SignerGeolocationPolicy::KEY => $this->createResolvedPolicy(
+						SignerGeolocationPolicy::KEY,
+						[
+							'mode' => 'disabled',
+							'allowRequesterOverride' => false,
+						],
+						'system',
 					),
 					default => throw new \RuntimeException('Unexpected policy key: ' . $policyKey),
 				};
@@ -139,7 +148,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->setDocmdpLevelEnum(DocMdpLevel::NOT_CERTIFIED);
 
 		$this->policyService
-			->expects($this->exactly(3))
+			->expects($this->exactly(4))
 			->method('resolveForUserId')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				return match ($policyKey) {
@@ -158,12 +167,20 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						['enabled' => true, 'approvers' => ['legal']],
 						'request',
 					),
+					SignerGeolocationPolicy::KEY => $this->createResolvedPolicy(
+						SignerGeolocationPolicy::KEY,
+						[
+							'mode' => 'disabled',
+							'allowRequesterOverride' => false,
+						],
+						'system',
+					),
 					default => throw new \RuntimeException('Unexpected policy key: ' . $policyKey),
 				};
 			});
 
 		$this->fileService
-			->expects($this->exactly(3))
+			->expects($this->exactly(4))
 			->method('update')
 			->with($this->identicalTo($file));
 
@@ -216,7 +233,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 
 		$this->policyService
-			->expects($this->exactly(6))
+			->expects($this->exactly(7))
 			->method('resolveForUserId')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				return match ($policyKey) {
@@ -260,12 +277,20 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						],
 						'system',
 					),
+					SignerGeolocationPolicy::KEY => $this->createResolvedPolicy(
+						SignerGeolocationPolicy::KEY,
+						[
+							'mode' => 'disabled',
+							'allowRequesterOverride' => false,
+						],
+						'system',
+					),
 					default => throw new \RuntimeException('Unexpected policy key: ' . $policyKey),
 				};
 			});
 
 		$this->fileService
-			->expects($this->once())
+			->expects($this->exactly(2))
 			->method('update');
 
 		$this->getApplier()->syncAllPolicies($file, []);

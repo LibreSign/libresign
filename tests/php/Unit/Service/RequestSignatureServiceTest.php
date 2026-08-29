@@ -496,6 +496,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->uploadHelper,
 				$this->signRequestService,
 				$this->filePolicyApplier,
+				$this->signerGeolocationPolicyService,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
@@ -569,6 +570,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->uploadHelper,
 				$this->signRequestService,
 				$this->filePolicyApplier,
+				$this->signerGeolocationPolicyService,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();

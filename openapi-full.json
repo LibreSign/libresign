@@ -2463,6 +2463,36 @@
                     }
                 ]
             },
+            "PolicySnapshotSignerGeolocationEntry": {
+                "type": "object",
+                "required": [
+                    "effectiveValue",
+                    "sourceScope"
+                ],
+                "properties": {
+                    "effectiveValue": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignerGeolocationValue"
+                    },
+                    "sourceScope": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PolicySnapshotSignerGeolocationValue": {
+                "type": "object",
+                "required": [
+                    "mode",
+                    "allowRequesterOverride"
+                ],
+                "properties": {
+                    "mode": {
+                        "$ref": "#/components/schemas/GeolocationRequirement"
+                    },
+                    "allowRequesterOverride": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "ProgressError": {
                 "type": "object",
                 "required": [
@@ -3415,6 +3445,9 @@
                     },
                     "identify_methods": {
                         "$ref": "#/components/schemas/PolicySnapshotIdentifyMethodsEntry"
+                    },
+                    "signer_geolocation": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignerGeolocationEntry"
                     }
                 }
             },
