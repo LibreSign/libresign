@@ -1418,6 +1418,14 @@ export type components = {
             hashOfIdentifier?: string;
             hasSignatureFile?: boolean;
         };
+        PolicySnapshotSignerGeolocationEntry: {
+            effectiveValue: components["schemas"]["PolicySnapshotSignerGeolocationValue"];
+            sourceScope: string;
+        };
+        PolicySnapshotSignerGeolocationValue: {
+            mode: components["schemas"]["GeolocationRequirement"];
+            allowRequesterOverride: boolean;
+        };
         ProgressError: {
             message: string;
             /** Format: int64 */
@@ -1651,6 +1659,7 @@ export type components = {
             legal_information?: components["schemas"]["PolicySnapshotLegalInformationEntry"];
             identification_documents?: components["schemas"]["PolicySnapshotIdentificationDocumentsEntry"];
             identify_methods?: components["schemas"]["PolicySnapshotIdentifyMethodsEntry"];
+            signer_geolocation?: components["schemas"]["PolicySnapshotSignerGeolocationEntry"];
         };
         ValidatedChildFile: {
             /** Format: int64 */
