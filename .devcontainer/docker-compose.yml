@@ -14,7 +14,7 @@ services:
   #     - 127.0.0.1:5432:5432
   #   command: postgres -c log_statement=all
   mysql:
-    image: mariadb:10.6
+    image: mariadb:12.3
     volumes:
       - ./.docker/config/mysql:/etc/mysql/conf.d
       - mysql-init:/docker-entrypoint-initdb.d
