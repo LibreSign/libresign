@@ -45,24 +45,3 @@ docker logs libresign_devcontainer-nginx-1 -f --tail 100
   ```bash
   tail -f data/database.log
   ```
-
-## Behat integration tests
-
-The PhpBuiltin server used by Behat does not load APCu the same way as php-fpm. Configure ArrayCache before running scenarios locally:
-
-```bash
-occ config:system:set memcache.local --value '\OC\Memcache\ArrayCache'
-occ config:system:set memcache.distributed --value '\OC\Memcache\ArrayCache'
-occ config:system:set memcache.locking --value '\OC\Memcache\ArrayCache'
-```
-
-Run Behat as `www-data` so the built-in server, cache directories, and test users stay aligned:
-
-```bash
-mkdir -p /tmp/behat_gherkin_cache /tmp/behat_rerun_cache
-chown -R www-data:$(id -gn www-data) /tmp/behat_gherkin_cache /tmp/behat_rerun_cache
-cd apps-extra/libresign/tests/integration
-runuser -u www-data -- env BEHAT_ROOT_DIR=/var/www/html BEHAT_RUN_AS=www-data vendor/bin/behat features/policies/signer_geolocation_policy.feature
-```
-
-If a previous manual `occ user:add` left test users with the wrong password, delete them first (`occ user:delete signer1`) so Behat can recreate users with the default test password.
