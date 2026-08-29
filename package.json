@@ -51,7 +51,7 @@
     "@nextcloud/paths": "^3.1.0",
     "@nextcloud/router": "^3.1.0",
     "@nextcloud/upload": "^2.0.0-rc.0",
-    "@nextcloud/vue": "^9.9.0",
+    "@nextcloud/vue": "^9.10.0",
     "@ssddanbrown/codemirror-lang-twig": "^1.0.0",
     "@uiw/codemirror-theme-material": "^4.25.11",
     "@vue/devtools-api": "^8.2.1",
