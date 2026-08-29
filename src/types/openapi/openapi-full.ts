@@ -5037,9 +5037,11 @@ export interface operations {
                     async?: boolean;
                     /**
                      * @description Device-reported geolocation metadata submitted by the signing client
-                     * @default []
+                     * @default {}
                      */
-                    geolocation?: components["schemas"]["SignerGeolocation"];
+                    geolocation?: {
+                        [key: string]: Record<string, never>;
+                    };
                 };
             };
         };
@@ -5177,9 +5179,11 @@ export interface operations {
                     async?: boolean;
                     /**
                      * @description Device-reported geolocation metadata submitted by the signing client
-                     * @default []
+                     * @default {}
                      */
-                    geolocation?: components["schemas"]["SignerGeolocation"];
+                    geolocation?: {
+                        [key: string]: Record<string, never>;
+                    };
                 };
             };
         };

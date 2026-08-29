@@ -10625,9 +10625,12 @@
                                         "description": "Execute signing asynchronously when possible"
                                     },
                                     "geolocation": {
-                                        "$ref": "#/components/schemas/SignerGeolocation",
-                                        "default": [],
-                                        "description": "Device-reported geolocation metadata submitted by the signing client"
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Device-reported geolocation metadata submitted by the signing client",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
                                     }
                                 }
                             }
@@ -10786,9 +10789,12 @@
                                         "description": "Execute signing asynchronously when possible"
                                     },
                                     "geolocation": {
-                                        "$ref": "#/components/schemas/SignerGeolocation",
-                                        "default": [],
-                                        "description": "Device-reported geolocation metadata submitted by the signing client"
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Device-reported geolocation metadata submitted by the signing client",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
                                     }
                                 }
                             }
