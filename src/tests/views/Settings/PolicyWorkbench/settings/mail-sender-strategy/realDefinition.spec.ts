@@ -66,4 +66,12 @@ describe('mailSenderStrategyRealDefinition', () => {
 		expect(mailSenderStrategyRealDefinition.formatAllowOverride(true)).toBe('Lower-level customization is disabled for this setting')
 		expect(mailSenderStrategyRealDefinition.formatAllowOverride(false)).toBe('Lower-level customization is disabled for this setting')
 	})
+
+	it('passes the mail provider availability from the policy meta to the editor', () => {
+		const resolve = mailSenderStrategyRealDefinition.resolveEditorProps!
+		expect(resolve({ meta: { mailProviderAvailable: false } } as never, { foo: 'bar' })).toEqual({ foo: 'bar', mailProviderAvailable: false })
+		expect(resolve({ meta: { mailProviderAvailable: true } } as never, {})).toEqual({ mailProviderAvailable: true })
+		expect(resolve({ meta: {} } as never, {})).toEqual({ mailProviderAvailable: true })
+		expect(resolve(null, {})).toEqual({ mailProviderAvailable: true })
+	})
 })
