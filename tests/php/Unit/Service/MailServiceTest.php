@@ -23,6 +23,7 @@ use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Mail\IEMailTemplate;
 use OCP\Mail\IMailer;
+use OCP\Mail\IMessage as ISystemMessage;
 use OCP\Mail\Provider\Address;
 use OCP\Mail\Provider\IManager as IMailProviderManager;
 use OCP\Mail\Provider\IMessage;
@@ -276,6 +277,55 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willThrowException(new \RuntimeException('SMTP unavailable'));
 		$this->logger->expects($this->once())
 			->method('warning');
+		$systemMessage = $this->mockSystemMessage();
+		$systemMessage->expects($this->once())
+			->method('setReplyTo')
+			->with(['requester@domain.coop' => 'Requester Name']);
+		$this->mailer->expects($this->once())
+			->method('send')
+			->with($systemMessage);
+
+		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
+	}
+
+	public function testRequesterStrategyFallbackSetsReplyToRequesterWhenNoProviderIsAvailable(): void {
+		$this->mockRequest();
+		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_REQUESTER);
+		$this->mockRequesterAccount('requester@domain.coop', 'Requester Name');
+		$this->mailProviderManager->method('has')->willReturn(false);
+		$systemMessage = $this->mockSystemMessage();
+		$systemMessage->expects($this->once())
+			->method('setReplyTo')
+			->with(['requester@domain.coop' => 'Requester Name']);
+		$this->mailer->expects($this->once())
+			->method('send')
+			->with($systemMessage);
+
+		$this->service->notifySignDataUpdated($this->mockSignRequest(), 'a@b.coop');
+	}
+
+	public function testRequesterStrategyFallbackWithoutRequesterEmailDoesNotSetReplyTo(): void {
+		$this->mockRequest();
+		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_REQUESTER);
+		$this->mockRequesterAccount('');
+		$this->mailProviderManager->method('has')->willReturn(true);
+		$this->mailProviderManager->method('services')->willReturn([]);
+		$systemMessage = $this->mockSystemMessage();
+		$systemMessage->expects($this->never())
+			->method('setReplyTo');
+		$this->mailer->expects($this->once())
+			->method('send');
+
+		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
+	}
+
+	public function testSystemStrategyDoesNotSetReplyTo(): void {
+		$this->mockRequest();
+		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_SYSTEM);
+		$this->mockRequesterAccount('requester@domain.coop');
+		$systemMessage = $this->mockSystemMessage();
+		$systemMessage->expects($this->never())
+			->method('setReplyTo');
 		$this->mailer->expects($this->once())
 			->method('send');
 
@@ -340,10 +390,17 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mailer->method('createEMailTemplate')->willReturn($template);
 	}
 
-	private function mockRequesterAccount(string $email): void {
+	private function mockRequesterAccount(string $email, string $displayName = 'Requester Name'): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getEMailAddress')->willReturn($email);
+		$user->method('getDisplayName')->willReturn($displayName);
 		$this->userManager->method('get')->with('requester')->willReturn($user);
+	}
+
+	private function mockSystemMessage(): ISystemMessage&MockObject {
+		$message = $this->createMock(ISystemMessage::class);
+		$this->mailer->method('createMessage')->willReturn($message);
+		return $message;
 	}
 
 	/**
