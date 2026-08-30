@@ -926,6 +926,7 @@ const _filesStore = defineStore('files', () => {
 					...(typeof signer.notify === 'number' ? { notify: signer.notify } : {}),
 					...(typeof signer.signingOrder === 'number' ? { signingOrder: signer.signingOrder } : {}),
 					...(typeof signer.status === 'number' ? { status: signer.status } : {}),
+					...(typeof signer.participantRole === 'string' ? { participantRole: signer.participantRole } : {}),
 				}
 			})
 			.filter((signer) => signer && signer.identifyMethods?.length)
@@ -979,8 +980,10 @@ const _filesStore = defineStore('files', () => {
 				break
 			}
 		}
-		if (!signer.signingOrder && editableFile.signatureFlow === 'ordered_numeric') {
-			const maxOrder = editableFile.signers.reduce((max, s) => Math.max(max, s.signingOrder || 0), 0)
+		if (!signer.signingOrder && editableFile.signatureFlow === 'ordered_numeric' && (!signer.participantRole || signer.participantRole === 'signer')) {
+			const maxOrder = editableFile.signers
+				.filter((currentSigner) => !currentSigner.participantRole || currentSigner.participantRole === 'signer')
+				.reduce((max, currentSigner) => Math.max(max, currentSigner.signingOrder || 0), 0)
 			signer.signingOrder = maxOrder + 1
 		}
 		editableFile.signers.push(signer)
@@ -1006,9 +1009,9 @@ const _filesStore = defineStore('files', () => {
 			.filter((currentSigner) => currentSigner.localKey !== signer.localKey)
 		selectedFile.signersCount = selectedFile.signers.length
 
-		if (selectedFile.signatureFlow === 'ordered_numeric' && signer.signingOrder) {
+		if (selectedFile.signatureFlow === 'ordered_numeric' && signer.signingOrder && (!signer.participantRole || signer.participantRole === 'signer')) {
 			selectedFile.signers.forEach((s) => {
-				if (s.signingOrder && s.signingOrder > signer.signingOrder) {
+				if (s.signingOrder && s.signingOrder > signer.signingOrder && (!s.participantRole || s.participantRole === 'signer')) {
 					s.signingOrder -= 1
 				}
 			})

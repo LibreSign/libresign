@@ -423,6 +423,18 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 			expect(wrapper.vm.showPreserveOrder).toBe(false)
 		})
+
+		it('hides when document has one signer and observers', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signers: [
+					{ email: 'test@example.com', signed: [], participantRole: 'signer' },
+					{ email: 'observer@example.com', signed: [], participantRole: 'observer' },
+				],
+			})
+
+			expect(wrapper.vm.showPreserveOrder).toBe(false)
+		})
 	})
 
 	describe('RULE: showRememberSignatureFlow only when signing order is meaningful', () => {
