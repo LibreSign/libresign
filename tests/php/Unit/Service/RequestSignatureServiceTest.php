@@ -436,6 +436,65 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertSame([], $expectedCalls);
 	}
 
+	public function testAssociateToSignersPersistsGeolocationRequirementForEachIdentifyMethod(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(77);
+
+		$data = [
+			'status' => 9,
+			'signers' => [[
+				'displayName' => 'John Doe',
+				'geolocationRequired' => true,
+				'identifyMethods' => [
+					['method' => 'email', 'value' => 'john@example.com'],
+					['method' => 'account', 'value' => 'john'],
+				],
+			]],
+		];
+
+		$this->validateHelper
+			->method('normalizeRequestSigners')
+			->willReturnCallback(static fn (array $signers): array => $signers);
+
+		$this->signRequestMapper
+			->method('getByFileId')
+			->with(77)
+			->willReturn([]);
+
+		$this->identifyMethodService
+			->method('clearCache');
+
+		$this->sequentialSigningService
+			->method('resetOrderCounter');
+
+		$this->sequentialSigningService
+			->method('determineSigningOrder')
+			->willReturn(1);
+
+		$signRequestCounter = 0;
+		$this->signRequestService
+			->method('createOrUpdateSignRequest')
+			->willReturnCallback(function () use (&$signRequestCounter): SignRequest {
+				$signRequest = new SignRequest();
+				$signRequest->setId(500 + ++$signRequestCounter);
+				return $signRequest;
+			});
+
+		$this->signerGeolocationPolicyService
+			->expects($this->exactly(2))
+			->method('persistEffectiveRequirementToStorage')
+			->with(
+				$this->callback(static fn (SignRequest $signRequest): bool => in_array($signRequest->getId(), [501, 502], true)),
+				$file,
+				true,
+				null,
+			);
+
+		$actual = self::invokePrivate($this->getService(), 'associateToSigners', [$data, $file]);
+
+		$this->assertCount(2, $actual);
+	}
+
 	public function testDeleteIdentifyMethodIfNotExitsKeepsMatchingIdentifyMethods(): void {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setId(77);
