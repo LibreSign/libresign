@@ -497,6 +497,12 @@ class RequestSignatureService {
 				$shouldNotify = !isset($signer['notify']) || $signer['notify'] !== 0;
 				$lastSignRequest = null;
 
+				$requesterRequiresGeolocation = filter_var(
+					$signer['geolocationRequired'] ?? false,
+					FILTER_VALIDATE_BOOLEAN,
+					FILTER_NULL_ON_FAILURE,
+				) ?? false;
+
 				foreach ($signer['identifyMethods'] as $identifyMethod) {
 					$lastSignRequest = $this->signRequestService->createOrUpdateSignRequest(
 						identifyMethods: [
@@ -511,20 +517,15 @@ class RequestSignatureService {
 						signerStatus: $signerStatus,
 					);
 					$return[] = $lastSignRequest;
-				}
 
-				if ($lastSignRequest instanceof SignRequestEntity) {
-					$requesterRequiresGeolocation = filter_var(
-						$signer['geolocationRequired'] ?? false,
-						FILTER_VALIDATE_BOOLEAN,
-						FILTER_NULL_ON_FAILURE,
-					) ?? false;
-					$this->signerGeolocationPolicyService->persistEffectiveRequirementToStorage(
-						$lastSignRequest,
-						$file,
-						$requesterRequiresGeolocation,
-						$requester,
-					);
+					if ($lastSignRequest instanceof SignRequestEntity) {
+						$this->signerGeolocationPolicyService->persistEffectiveRequirementToStorage(
+							$lastSignRequest,
+							$file,
+							$requesterRequiresGeolocation,
+							$requester,
+						);
+					}
 				}
 			}
 		}
