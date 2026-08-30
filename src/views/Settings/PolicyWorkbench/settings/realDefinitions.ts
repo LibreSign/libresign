@@ -16,6 +16,7 @@ import {
 import { identificationDocumentsRealDefinition } from './identification-documents/realDefinition'
 import { identifyMethodsRealDefinition } from './identify-methods/realDefinition'
 import { legalInformationRealDefinition } from './legal-information/realDefinition'
+import { observerProfileRealDefinition } from './observer-profile/realDefinition'
 import type { RealPolicySettingDefinition } from './realTypes'
 import { reminderRealDefinition } from './reminder/realDefinition'
 import { requestSignGroupsRealDefinition } from './request-sign-groups/realDefinition'
@@ -34,6 +35,7 @@ export const realDefinitions = {
 	groups_request_sign: { ...requestSignGroupsRealDefinition, category: 'who-can-sign' },
 	identification_documents: { ...identificationDocumentsRealDefinition, category: 'who-can-sign' },
 	identify_methods: { ...identifyMethodsRealDefinition, category: 'who-can-sign' },
+	enable_observer_profile: { ...observerProfileRealDefinition, category: 'who-can-sign' },
 
 	// 2. How signing works
 	signature_flow: { ...signatureFlowRealDefinition, category: 'how-signing-works' },

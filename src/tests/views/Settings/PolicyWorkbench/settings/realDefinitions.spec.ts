@@ -17,6 +17,7 @@ const expectedTopLevelKeys = [
 	'groups_request_sign',
 	'identification_documents',
 	'identify_methods',
+	'enable_observer_profile',
 	'signature_flow',
 	'envelope_enabled',
 	'add_footer',
