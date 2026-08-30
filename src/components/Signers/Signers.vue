@@ -42,6 +42,7 @@ import draggable from 'vuedraggable'
 
 import Signer from './Signer.vue'
 import { useFilesStore } from '../../store/files.js'
+import { filterParticipantsByRole, type ParticipantRole } from '../../utils/participantRole.ts'
 
 defineOptions({
 	name: 'Signers',
@@ -49,8 +50,10 @@ defineOptions({
 
 const props = withDefaults(defineProps<{
 	event?: string
+	roleFilter?: ParticipantRole | null
 }>(), {
 	event: '',
+	roleFilter: null,
 })
 const emit = defineEmits<{
 	(e: 'signing-order-changed'): void
@@ -63,7 +66,12 @@ const filesStore = useFilesStore()
 
 const signers = computed<SignerListItem[] | undefined>(() => {
 	const file = filesStore.getFile()
-	return file?.signers ?? undefined
+	const allSigners = file?.signers ?? undefined
+	if (!allSigners || !props.roleFilter) {
+		return allSigners
+	}
+
+	return filterParticipantsByRole(allSigners, props.roleFilter)
 })
 
 const sortableSigners = computed<SignerListItem[] | undefined>({
@@ -82,7 +90,13 @@ const isOrderedNumeric = computed(() => {
 	return filesStore.getFile()?.signatureFlow === 'ordered_numeric'
 })
 
-const canReorder = computed(() => filesStore.canSave() && (signers.value?.length || 0) > 1)
+const canReorder = computed(() => {
+	if (props.roleFilter === 'observer') {
+		return false
+	}
+
+	return filesStore.canSave() && (signers.value?.length || 0) > 1
+})
 
 function onDragEnd(evt: { oldIndex: number; newIndex: number }) {
 	const { oldIndex, newIndex } = evt

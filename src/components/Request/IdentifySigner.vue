@@ -98,6 +98,7 @@ import { useFilesStore } from '../../store/files.js'
 import { usePoliciesStore } from '../../store/policies.ts'
 import { resolveSignerGeolocationMode } from '../../views/Settings/PolicyWorkbench/settings/signer-geolocation/model.ts'
 import { getSignRequestStatusText } from '../../utils/getSignRequestStatusText.ts'
+import { isObserverParticipant, PARTICIPANT_ROLE, type ParticipantRole } from '../../utils/participantRole.ts'
 import type { IdentifyAccountRecord } from '../../types'
 
 defineOptions({
@@ -110,6 +111,7 @@ const props = withDefaults(defineProps<{
 	placeholder?: string
 	methods?: IdentifyMethodConfig[]
 	disabled?: boolean
+	participantRole?: ParticipantRole
 }>(), {
 	signerToEdit: () => ({
 		displayName: '',
@@ -120,6 +122,7 @@ const props = withDefaults(defineProps<{
 	placeholder: t('libresign', 'Name'),
 	methods: () => [],
 	disabled: false,
+	participantRole: PARTICIPANT_ROLE.SIGNER,
 })
 
 const iconMap = {
@@ -156,6 +159,7 @@ type SignerMethodValue = {
 type SignerToEdit = {
 	displayName?: string
 	description?: string
+	participantRole?: ParticipantRole
 	identifyMethods?: SignerMethodValue[]
 	geolocationRequired?: boolean
 	metadata?: {
@@ -166,12 +170,25 @@ type SignerToEdit = {
 type FilesStore = ReturnType<typeof useFilesStore>
 type StoredSigner = NonNullable<ReturnType<FilesStore['getFile']>['signers']>[number]
 
-// TRANSLATORS Field label for signer display name.
-const signerNameLabel = t('libresign', 'Signer name')
+const isObserver = computed(() => {
+	if (isObserverParticipant(props.signerToEdit)) {
+		return true
+	}
+
+	return props.participantRole === PARTICIPANT_ROLE.OBSERVER
+})
+const signerNameLabel = computed(() => isObserver.value
+	// TRANSLATORS Field label for observer display name.
+	? t('libresign', 'Observer name')
+	// TRANSLATORS Field label for signer display name.
+	: t('libresign', 'Signer name'))
+const customMessagePlaceholder = computed(() => isObserver.value
+	// TRANSLATORS Placeholder inviting user to write a personalized message for observer.
+	? t('libresign', 'Add a personal message for this observer')
+	// TRANSLATORS Placeholder inviting user to write a personalized message for signer.
+	: t('libresign', 'Add a personal message for this signer'))
 // TRANSLATORS Field label for optional personalized message sent to signer.
 const customMessageLabel = t('libresign', 'Custom message')
-// TRANSLATORS Placeholder inviting user to write a personalized message for signer.
-const customMessagePlaceholder = t('libresign', 'Add a personal message for this signer')
 // TRANSLATORS Primary button label to save a newly added signer.
 const saveSignerButtonLabel = t('libresign', 'Save')
 // TRANSLATORS Primary button label to update an existing signer.
@@ -276,9 +293,11 @@ async function saveSigner() {
 	}
 	const file = filesStore.getFile()
 	const signers: StoredSigner[] = Array.isArray(file?.signers) ? [...file.signers] : []
+	const participantRole = isObserver.value ? PARTICIPANT_ROLE.OBSERVER : PARTICIPANT_ROLE.SIGNER
 	signers.push({
 		displayName: displayName.value,
 		description: description.value.trim() || undefined,
+		participantRole,
 		...(identifyMethod.value === 'email' ? { email: identify.value } : {}),
 		...(showGeolocationRequirementToggle.value
 			? { geolocationRequired: geolocationRequired.value }

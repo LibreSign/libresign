@@ -15,6 +15,9 @@ export function getSignRequestStatusText(status: number | null | undefined): str
 	case SIGN_REQUEST_STATUS.ABLE_TO_SIGN:
 		// TRANSLATORS Workflow status meaning this signer is currently allowed to sign.
 		return t('libresign', 'Able to sign')
+	case SIGN_REQUEST_STATUS.OBSERVING:
+		// TRANSLATORS Workflow status meaning this observer can view the document but cannot sign it.
+		return t('libresign', 'Observing')
 	case SIGN_REQUEST_STATUS.DRAFT:
 	default:
 		// TRANSLATORS Workflow status meaning the sign request is still being prepared and not ready for signing.
