@@ -306,6 +306,16 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					],
 				],
 				'Invalid email'
+			],
+			'emptySignPassword' => [
+				[
+					'uuid' => '12345678-1234-1234-1234-123456789012',
+					'user' => [
+						'email' => 'valid@test.coop',
+					],
+					'signPassword' => '',
+				],
+				'Password to sign is mandatory'
 			]
 		];
 	}
@@ -537,6 +547,35 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public static function provideValidateCreateToSignCases():array {
 		return [
+			'missingIdentify' => [
+				function ($self): array {
+					$signRequest = $self->createMock(SignRequest::class);
+					$signRequest->method('getId')->willReturn(10);
+					$self->signRequestMapper->method('getByUuid')->willReturn($signRequest);
+					return [
+						'uuid' => '12345678-1234-1234-1234-123456789012',
+						'user' => [],
+					];
+				},
+				'Invalid identification method'
+			],
+			'invalidIdentifyMethod' => [
+				function ($self): array {
+					$signRequest = $self->createMock(SignRequest::class);
+					$signRequest->method('getId')->willReturn(10);
+					$self->signRequestMapper->method('getByUuid')->willReturn($signRequest);
+					$self->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->willReturn(['email' => []]);
+					return [
+						'uuid' => '12345678-1234-1234-1234-123456789012',
+						'user' => [
+							'identify' => [
+								'phone' => '123456',
+							],
+						],
+					];
+				},
+				'Invalid identification method'
+			],
 			'invalidUuid' => [
 				[
 					'uuid' => 'invalid uuid'
@@ -1046,5 +1085,916 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertArrayHasKey('can_manage_group_policies', $config);
 		$this->assertTrue($config['can_manage_group_policies']);
+	}
+
+	public function testGetFileByUuidWithSuccess(): void {
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('getFileId')->willReturn(123);
+		$this->signRequestMapper->expects($this->once())
+			->method('getByUuid')
+			->with('test-uuid')
+			->willReturn($signRequest);
+
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$file->method('getNodeId')->willReturn(456);
+		$file->method('getUserId')->willReturn('testuser');
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with(123)
+			->willReturn($file);
+
+		$userFolder = $this->createMock(Folder::class);
+		$fileToSign = $this->createMock(File::class);
+		$userFolder->expects($this->once())
+			->method('getFirstNodeById')
+			->with(456)
+			->willReturn($fileToSign);
+
+		$this->root->expects($this->once())
+			->method('getUserFolder')
+			->with('testuser')
+			->willReturn($userFolder);
+
+		$result = $this->getService()->getFileByUuid('test-uuid');
+		$this->assertSame($file, $result['fileData']);
+		$this->assertSame($fileToSign, $result['fileToSign']);
+	}
+
+	public function testGetFileByUuidUsesCache(): void {
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('getFileId')->willReturn(123);
+		$this->signRequestMapper->expects($this->once())
+			->method('getByUuid')
+			->with('test-uuid')
+			->willReturn($signRequest);
+
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$file->method('getNodeId')->willReturn(456);
+		$file->method('getUserId')->willReturn('testuser');
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with(123)
+			->willReturn($file);
+
+		$userFolder = $this->createMock(Folder::class);
+		$fileToSign = $this->createMock(File::class);
+		$userFolder->expects($this->once())
+			->method('getFirstNodeById')
+			->with(456)
+			->willReturn($fileToSign);
+
+		$this->root->expects($this->once())
+			->method('getUserFolder')
+			->with('testuser')
+			->willReturn($userFolder);
+
+		$service = $this->getService();
+		// Call first time (populates cache)
+		$service->getFileByUuid('test-uuid');
+		// Call second time (uses cache)
+		$result = $service->getFileByUuid('test-uuid');
+		
+		$this->assertSame($file, $result['fileData']);
+		$this->assertSame($fileToSign, $result['fileToSign']);
+	}
+
+	public function testCreateToSignWithSuccessAndEmailAndSignPassword(): void {
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('getId')->willReturn(123);
+		$signRequest->method('getDisplayName')->willReturn('John Doe');
+		$this->signRequestMapper->method('getByUuid')
+			->with('uuid-123')
+			->willReturn($signRequest);
+
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('john_doe_uid');
+		$user->method('getDisplayName')->willReturn('John Doe');
+		$user->method('getPrimaryEMailAddress')->willReturn('john@example.com');
+		$this->userManager->expects($this->once())
+			->method('createUser')
+			->with('john@example.com', 'pass123')
+			->willReturn($user);
+
+		$user->expects($this->once())->method('setDisplayName')->with('John Doe');
+		$user->expects($this->once())->method('setSystemEMailAddress')->with('john@example.com');
+
+		// Stub identifyMethodService
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$entity = $this->createMock(\OCA\Libresign\Db\IdentifyMethod::class);
+		$entity->method('getIdentifierValue')->willReturn('john@example.com');
+		$identifyMethod->method('getEntity')->willReturn($entity);
+		
+		$this->identifyMethodService->expects($this->once())
+			->method('getIdentifyMethodsFromSignRequestId')
+			->with(123)
+			->willReturn([
+				IdentifyMethodService::IDENTIFY_EMAIL => [$identifyMethod]
+			]);
+
+		// updateIdentifyMethodToAccount assertions
+		$entity->expects($this->once())->method('setIdentifierKey')->with(IdentifyMethodService::IDENTIFY_ACCOUNT);
+		$entity->expects($this->once())->method('setIdentifierValue')->with('john_doe_uid');
+		$this->identifyMethodMapper->expects($this->once())
+			->method('update')
+			->with($entity);
+
+		// new user email config sendEmail = yes
+		$this->appConfig->method('getValueString')->with('core', 'newUser.sendEmail', 'yes')->willReturn('yes');
+		$template = $this->createMock(\OCP\Mail\IEMailTemplate::class);
+		$this->newUserMail->expects($this->once())->method('generateTemplate')->with($user, false)->willReturn($template);
+		$this->newUserMail->expects($this->once())->method('sendMail')->with($user, $template);
+
+		// certificate creation assertions
+		$this->pkcs12Handler->expects($this->once())
+			->method('generateCertificate')
+			->with(
+				[
+					'host' => 'john@example.com',
+					'uid' => 'account:john_doe_uid',
+					'name' => 'John Doe'
+				],
+				'signPass123',
+				'John Doe'
+			)
+			->willReturn('cert_content');
+
+		$this->pkcs12Handler->expects($this->once())
+			->method('savePfx')
+			->with('john@example.com', 'cert_content');
+
+		$this->getService()->createToSign('uuid-123', 'john@example.com', 'pass123', 'signPass123');
+	}
+
+	public function testCreateToSignWhenSendEmailIsNo(): void {
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('getId')->willReturn(123);
+		$signRequest->method('getDisplayName')->willReturn('John Doe');
+		$this->signRequestMapper->method('getByUuid')->willReturn($signRequest);
+
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('john_doe_uid');
+		$user->method('getDisplayName')->willReturn('John Doe');
+		$user->method('getPrimaryEMailAddress')->willReturn('john@example.com');
+		$this->userManager->method('createUser')->willReturn($user);
+
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->willReturn([]);
+
+		$this->appConfig->method('getValueString')->with('core', 'newUser.sendEmail', 'yes')->willReturn('no');
+		$this->newUserMail->expects($this->never())->method('generateTemplate');
+		$this->newUserMail->expects($this->never())->method('sendMail');
+
+		$this->getService()->createToSign('uuid-123', 'john@example.com', 'pass123', null);
+	}
+
+	public function testCreateToSignDoesNotUpdateIdentifyMethodWhenEmailDoesNotMatch(): void {
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('getId')->willReturn(123);
+		$signRequest->method('getDisplayName')->willReturn('John Doe');
+		$this->signRequestMapper->method('getByUuid')->willReturn($signRequest);
+
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('john_doe_uid');
+		$user->method('getDisplayName')->willReturn('John Doe');
+		$user->method('getPrimaryEMailAddress')->willReturn('john@example.com');
+		$this->userManager->method('createUser')->willReturn($user);
+
+		// Email does not match target email
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$entity = $this->createMock(\OCA\Libresign\Db\IdentifyMethod::class);
+		$entity->method('getIdentifierValue')->willReturn('different@example.com');
+		$identifyMethod->method('getEntity')->willReturn($entity);
+
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willReturn([
+				IdentifyMethodService::IDENTIFY_EMAIL => [$identifyMethod]
+			]);
+
+		$entity->expects($this->never())->method('setIdentifierKey');
+		$this->identifyMethodMapper->expects($this->never())->method('update');
+		$this->appConfig->method('getValueString')->willReturn('no');
+
+		$this->getService()->createToSign('uuid-123', 'john@example.com', 'pass123', null);
+	}
+
+	public function testCreateToSignDoesNotUpdateIdentifyMethodWhenMethodIsNotEmail(): void {
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('getId')->willReturn(123);
+		$signRequest->method('getDisplayName')->willReturn('John Doe');
+		$this->signRequestMapper->method('getByUuid')->willReturn($signRequest);
+
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('john_doe_uid');
+		$user->method('getDisplayName')->willReturn('John Doe');
+		$user->method('getPrimaryEMailAddress')->willReturn('john@example.com');
+		$this->userManager->method('createUser')->willReturn($user);
+
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willReturn([
+				'phone' => [$identifyMethod] // Method type is phone, not email
+			]);
+
+		$identifyMethod->expects($this->never())->method('getEntity');
+		$this->identifyMethodMapper->expects($this->never())->method('update');
+		$this->appConfig->method('getValueString')->willReturn('no');
+
+		$this->getService()->createToSign('uuid-123', 'john@example.com', 'pass123', null);
+	}
+
+	public function testGetCertificateEngineName(): void {
+		$engine = $this->createMock(\OCA\Libresign\Handler\CertificateEngine\ICertificateEngine::class);
+		$engine->method('getName')->willReturn('CFSSL_TEST');
+		$this->certificateEngineFactory->method('getEngine')->willReturn($engine);
+
+		$this->assertSame('CFSSL_TEST', $this->getService()->getCertificateEngineName());
+	}
+
+	public function testIsSetupOk(): void {
+		$engine = $this->createMock(\OCA\Libresign\Handler\CertificateEngine\ICertificateEngine::class);
+		$engine->method('isSetupOk')->willReturn(true);
+		$this->certificateEngineFactory->method('getEngine')->willReturn($engine);
+
+		$this->assertTrue($this->getService()->isSetupOk());
+	}
+
+	public function testGetConfigWithNullUser(): void {
+		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->with(null)->willReturn(false);
+		$this->validateHelper->method('userCanApproveValidationDocuments')->with(null, false)->willReturn(false);
+		$this->policyAuthorizationService->method('canUserManageGroupPolicies')->with(null)->willReturn(false);
+		$this->policyAuthorizationService->method('getManageablePolicyGroupIds')->with(null)->willReturn([]);
+
+		$config = $this->getService()->getConfig(null);
+
+		// null/empty string values should be filtered out by array_filter
+		$this->assertFalse($config['identificationDocumentsFlow']);
+		$this->assertFalse($config['hasSignatureFile']);
+		$this->assertArrayNotHasKey('phoneNumber', $config);
+		$this->assertArrayHasKey('id_docs_filters', $config);
+		$this->assertSame([], $config['id_docs_filters']);
+		$this->assertArrayHasKey('crl_filters', $config);
+		$this->assertSame([], $config['crl_filters']);
+	}
+
+	public function testGetConfigFiltersWithUser(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		$this->userConfig->method('getValueString')
+			->willReturnCallback(fn (string $uid, string $appId, string $key) => match ($key) {
+				'files_list_filter_modified' => '1',
+				'files_list_filter_status' => 'signed',
+				default => '',
+			});
+
+		$filters = $this->getService()->getConfigFilters($user);
+		$this->assertSame('1', $filters['files_list_filter_modified']);
+		$this->assertSame('signed', $filters['files_list_filter_status']);
+	}
+
+	public function testGetConfigFiltersWithNullUser(): void {
+		$filters = $this->getService()->getConfigFilters(null);
+		$this->assertSame('', $filters['files_list_filter_modified']);
+		$this->assertSame('', $filters['files_list_filter_status']);
+	}
+
+	public function testGetConfigSortingWithUser(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		$this->userConfig->method('getValueString')
+			->willReturnCallback(fn (string $uid, string $appId, string $key) => match ($key) {
+				'files_list_sorting_mode' => 'date',
+				'files_list_sorting_direction' => 'desc',
+				default => '',
+			});
+
+		$sorting = $this->getService()->getConfigSorting($user);
+		$this->assertSame('date', $sorting['files_list_sorting_mode']);
+		$this->assertSame('desc', $sorting['files_list_sorting_direction']);
+	}
+
+	public function testGetConfigSortingWithNullUser(): void {
+		$sorting = $this->getService()->getConfigSorting(null);
+		$this->assertSame('name', $sorting['files_list_sorting_mode']);
+		$this->assertSame('asc', $sorting['files_list_sorting_direction']);
+	}
+
+	public function testGetConfigDecodesJsonConfigs(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		$this->userConfig->method('getValueString')
+			->willReturnCallback(fn (string $uid, string $appId, string $key) => match ($key) {
+				'id_docs_filters' => '{"status":"pending"}',
+				'crl_filters' => '{"reason":"cessation"}',
+				'crl_sort' => '{"sortBy":"serial","sortOrder":"ASC"}',
+				'id_docs_sort' => '{"sortBy":"name","sortOrder":"DESC"}',
+				default => '',
+			});
+
+		$this->groupManager->method('isAdmin')->with('testuser')->willReturn(true);
+		$this->validateHelper->method('userCanApproveValidationDocuments')->with($user, false)->willReturn(true);
+
+		$config = $this->getService()->getConfig($user);
+		$this->assertSame(['status' => 'pending'], $config['id_docs_filters']);
+		$this->assertSame(['reason' => 'cessation'], $config['crl_filters']);
+		$this->assertSame(['sortBy' => 'serial', 'sortOrder' => 'ASC'], $config['crl_sort']);
+		$this->assertSame(['sortBy' => 'name', 'sortOrder' => 'DESC'], $config['id_docs_sort']);
+	}
+
+	public function testGetConfigFallbackForInvalidJsonConfigs(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		$this->userConfig->method('getValueString')
+			->willReturnCallback(fn (string $uid, string $appId, string $key) => match ($key) {
+				'id_docs_filters' => 'invalid-json',
+				'crl_filters' => 'invalid-json',
+				'crl_sort' => 'invalid-json',
+				'id_docs_sort' => 'invalid-json',
+				default => '',
+			});
+
+		$this->groupManager->method('isAdmin')->with('testuser')->willReturn(true);
+		$this->validateHelper->method('userCanApproveValidationDocuments')->with($user, false)->willReturn(true);
+
+		$config = $this->getService()->getConfig($user);
+		$this->assertSame([], $config['id_docs_filters']);
+		$this->assertSame([], $config['crl_filters']);
+		$this->assertSame(['sortBy' => 'revoked_at', 'sortOrder' => 'DESC'], $config['crl_sort']);
+		$this->assertSame(['sortBy' => null, 'sortOrder' => null], $config['id_docs_sort']);
+	}
+
+	public function testGetFileByNodeIdWithSuccess(): void {
+		$file = $this->createMock(File::class);
+		$this->folderService->expects($this->once())
+			->method('getFileByNodeId')
+			->with(123)
+			->willReturn($file);
+
+		$this->assertSame($file, $this->getService()->getFileByNodeId(123));
+	}
+
+	public function testGetFileByNodeIdThrowsDoesNotExistException(): void {
+		$this->folderService->expects($this->once())
+			->method('getFileByNodeId')
+			->with(123)
+			->willThrowException(new NotFoundException());
+
+		$this->expectException(DoesNotExistException::class);
+		$this->expectExceptionMessage('Not found');
+
+		$this->getService()->getFileByNodeId(123);
+	}
+
+	public function testAddFilesToAccount(): void {
+		$user = $this->createMock(IUser::class);
+		$files = [];
+		$this->idDocsService->expects($this->once())
+			->method('addIdDocs')
+			->with($files, $user);
+
+		$this->getService()->addFilesToAccount($files, $user);
+	}
+
+	public function testDeleteFileFromAccount(): void {
+		$user = $this->createMock(IUser::class);
+		$this->idDocsService->expects($this->once())
+			->method('deleteIdDoc')
+			->with(123, $user);
+
+		$this->getService()->deleteFileFromAccount(123, $user);
+	}
+
+	public function testSaveVisibleElements(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		$elements = [
+			['elementId' => 456, 'starred' => true],
+			['elementId' => 789, 'starred' => false]
+		];
+
+		$userElement1 = new UserElement();
+		$userElement1->setNodeId(111);
+		$userElement2 = new UserElement();
+		$userElement2->setNodeId(222);
+
+		$this->userElementMapper->expects($this->exactly(2))
+			->method('findOne')
+			->willReturnCallback(fn (array $criteria) => match ($criteria['id']) {
+				456 => $userElement1,
+				789 => $userElement2,
+			});
+
+		$file1 = $this->createMock(File::class);
+		$file2 = $this->createMock(File::class);
+		$this->folderService->expects($this->exactly(2))
+			->method('getFileByNodeId')
+			->willReturnCallback(fn (int $nodeId) => match ($nodeId) {
+				111 => $file1,
+				222 => $file2,
+			});
+
+		$this->userElementMapper->expects($this->exactly(2))
+			->method('update')
+			->willReturnCallback(function (UserElement $element) {
+				return $element;
+			});
+
+		$this->getService()->saveVisibleElements($elements, 'session123', $user);
+	}
+
+	public function testSaveVisibleElementUpdateFileAndStarred(): void {
+		$user = $this->createMock(IUser::class);
+
+		$data = [
+			'elementId' => 123,
+			'starred' => true,
+			'file' => [
+				'base64' => 'data:image/png;base64,ZmFrZV9wbmc='
+			]
+		];
+
+		$userElement = new UserElement();
+		$userElement->setNodeId(456);
+
+		$this->userElementMapper->expects($this->once())
+			->method('findOne')
+			->with(['id' => 123])
+			->willReturn($userElement);
+
+		$file = $this->createMock(File::class);
+		$this->folderService->expects($this->once())
+			->method('getFileByNodeId')
+			->with(456)
+			->willReturn($file);
+
+		$file->expects($this->once())
+			->method('putContent')
+			->with('fake_png');
+
+		$this->userElementMapper->expects($this->once())
+			->method('update')
+			->willReturnCallback(function (UserElement $elem) {
+				$this->assertEquals(1, $elem->getStarred());
+				return $elem;
+			});
+
+		$this->getService()->saveVisibleElement($data, 'session123', $user);
+	}
+
+	public function testSaveVisibleElementWithUserCreatesNew(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		$data = [
+			'type' => 'signature',
+			'starred' => true,
+			'file' => [
+				'base64' => 'ZmFrZV9wbmc='
+			]
+		];
+
+		$rootFolder = $this->createMock(Folder::class);
+		$this->folderService->method('getFolder')->willReturn($rootFolder);
+		$this->folderService->method('getFolderName')->willReturn('testuser_folder');
+
+		$userFolder = $this->createMock(Folder::class);
+		$rootFolder->expects($this->once())
+			->method('newFolder')
+			->with('testuser_folder')
+			->willReturn($userFolder);
+
+		$newFile = $this->createMock(File::class);
+		$newFile->method('getId')->willReturn(789);
+		$userFolder->expects($this->once())
+			->method('newFile')
+			->with($this->stringEndsWith('.png'), 'fake_png')
+			->willReturn($newFile);
+
+		$this->timeFactory->method('getDateTime')->willReturn(new \DateTime('2026-08-30 12:00:00'));
+
+		$this->userElementMapper->expects($this->once())
+			->method('insert')
+			->willReturnCallback(function (UserElement $elem) {
+				$this->assertSame('signature', $elem->getType());
+				$this->assertSame(789, $elem->getNodeId());
+				$this->assertSame('testuser', $elem->getUserId());
+				$this->assertSame(1, $elem->getStarred());
+				return $elem;
+			});
+
+		$this->getService()->saveVisibleElement($data, 'session123', $user);
+	}
+
+	public function testSaveVisibleElementWithSessionUpdatesExisting(): void {
+		$data = [
+			'nodeId' => 456,
+			'file' => [
+				'base64' => 'ZmFrZV9wbmc='
+			]
+		];
+
+		$file1 = $this->createMock(File::class);
+		$file1->method('getId')->willReturn(123);
+		$file2 = $this->createMock(File::class);
+		$file2->method('getId')->willReturn(456);
+
+		$this->signerElementsService->expects($this->once())
+			->method('getElementsFromSession')
+			->willReturn([$file1, $file2]);
+
+		$file2->expects($this->once())
+			->method('putContent')
+			->with('fake_png');
+
+		$this->getService()->saveVisibleElement($data, 'session123', null);
+	}
+
+	public function testSaveVisibleElementWithSessionUpdatesExistingThrowsWhenNotFound(): void {
+		$data = [
+			'nodeId' => 999,
+			'file' => [
+				'base64' => 'ZmFrZV9wbmc='
+			]
+		];
+
+		$this->signerElementsService->expects($this->once())
+			->method('getElementsFromSession')
+			->willReturn([]);
+
+		$this->expectException(\Exception::class);
+		$this->expectExceptionMessage('File not found');
+
+		$this->getService()->saveVisibleElement($data, 'session123', null);
+	}
+
+	public function testSaveVisibleElementWithSessionCreatesNew(): void {
+		$data = [
+			'type' => 'initials',
+			'file' => [
+				'base64' => 'ZmFrZV9wbmc='
+			]
+		];
+
+		$rootFolder = $this->createMock(Folder::class);
+		$this->folderService->method('getFolder')->willReturn($rootFolder);
+
+		$sessionFolder = $this->createMock(Folder::class);
+		$rootFolder->expects($this->once())
+			->method('newFolder')
+			->with('session123')
+			->willReturn($sessionFolder);
+
+		$dt = new \DateTime();
+		$this->timeFactory->method('getDateTime')->willReturn($dt);
+
+		$newFile = $this->createMock(File::class);
+		$sessionFolder->expects($this->once())
+			->method('newFile')
+			->with('initials_' . $dt->getTimestamp() . '.png', 'fake_png')
+			->willReturn($newFile);
+
+		$this->getService()->saveVisibleElement($data, 'session123', null);
+	}
+
+	public function testGetFileRawWithUrlSuccess(): void {
+		$data = [
+			'file' => [
+				'url' => 'https://example.com/image.png'
+			]
+		];
+
+		$client = $this->createMock(\OCP\Http\Client\IClient::class);
+		$response = $this->createMock(\OCP\Http\Client\IResponse::class);
+
+		$this->clientService->method('newClient')->willReturn($client);
+		$client->expects($this->once())
+			->method('get')
+			->with('https://example.com/image.png')
+			->willReturn($response);
+
+		$response->method('getHeader')->with('Content-Type')->willReturn('image/png');
+		$response->method('getBody')->willReturn('fake_png_data');
+
+		$this->validateHelper->expects($this->once())
+			->method('validateBase64')
+			->with('fake_png_data', ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
+
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		$rootFolder = $this->createMock(Folder::class);
+		$this->folderService->method('getFolder')->willReturn($rootFolder);
+		$this->folderService->method('getFolderName')->willReturn('testuser_folder');
+		$userFolder = $this->createMock(Folder::class);
+		$rootFolder->method('newFolder')->willReturn($userFolder);
+		$newFile = $this->createMock(File::class);
+		$userFolder->method('newFile')->willReturn($newFile);
+
+		$dataCreate = [
+			'type' => 'signature',
+			'file' => [
+				'url' => 'https://example.com/image.png'
+			]
+		];
+		$this->getService()->saveVisibleElement($dataCreate, 'session123', $user);
+	}
+
+	public function testGetFileRawWithUrlSuccessDecode(): void {
+		$data = [
+			'file' => [
+				'url' => 'https://example.com/image.png'
+			]
+		];
+
+		$client = $this->createMock(\OCP\Http\Client\IClient::class);
+		$response = $this->createMock(\OCP\Http\Client\IResponse::class);
+
+		$this->clientService->method('newClient')->willReturn($client);
+		$client->expects($this->once())
+			->method('get')
+			->with('https://example.com/image.png')
+			->willReturn($response);
+
+		$response->method('getHeader')->with('Content-Type')->willReturn('image/png');
+		$response->method('getBody')->willReturn('fake_png_data');
+
+		$this->validateHelper->expects($this->once())
+			->method('validateBase64')
+			->with('fake_png_data', ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
+
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		$rootFolder = $this->createMock(Folder::class);
+		$this->folderService->method('getFolder')->willReturn($rootFolder);
+		$this->folderService->method('getFolderName')->willReturn('testuser_folder');
+		$userFolder = $this->createMock(Folder::class);
+		$rootFolder->method('newFolder')->willReturn($userFolder);
+		$newFile = $this->createMock(File::class);
+		$userFolder->method('newFile')->willReturn($newFile);
+
+		$dataCreate = [
+			'type' => 'signature',
+			'file' => [
+				'url' => 'https://example.com/image.png'
+			]
+		];
+		$this->getService()->saveVisibleElement($dataCreate, 'session123', $user);
+	}
+
+	public function testGetFileRawWithInvalidUrlThrows(): void {
+		$data = [
+			'type' => 'signature',
+			'file' => [
+				'url' => 'invalid-url'
+			]
+		];
+
+		$this->expectException(\Exception::class);
+		$this->expectExceptionMessage('Invalid URL file');
+
+		$this->getService()->saveVisibleElement($data, 'session123', null);
+	}
+
+	public function testGetFileRawWithNonPngUrlThrows(): void {
+		$data = [
+			'type' => 'signature',
+			'file' => [
+				'url' => 'https://example.com/image.jpg'
+			]
+		];
+
+		$client = $this->createMock(\OCP\Http\Client\IClient::class);
+		$response = $this->createMock(\OCP\Http\Client\IResponse::class);
+
+		$this->clientService->method('newClient')->willReturn($client);
+		$client->method('get')->willReturn($response);
+		$response->method('getHeader')->with('Content-Type')->willReturn('image/jpeg');
+
+		$this->expectException(\Exception::class);
+		$this->expectExceptionMessage('Visible element file must be png.');
+
+		$this->getService()->saveVisibleElement($data, 'session123', null);
+	}
+
+	public function testGetFileRawWithEmptyUrlBodyThrows(): void {
+		$data = [
+			'type' => 'signature',
+			'file' => [
+				'url' => 'https://example.com/image.png'
+			]
+		];
+
+		$client = $this->createMock(\OCP\Http\Client\IClient::class);
+		$response = $this->createMock(\OCP\Http\Client\IResponse::class);
+
+		$this->clientService->method('newClient')->willReturn($client);
+		$client->method('get')->willReturn($response);
+		$response->method('getHeader')->with('Content-Type')->willReturn('image/png');
+		$response->method('getBody')->willReturn('');
+
+		$this->expectException(\Exception::class);
+		$this->expectExceptionMessage('Empty file');
+
+		$this->getService()->saveVisibleElement($data, 'session123', null);
+	}
+
+	public function testUploadPfxSuccess(): void {
+		$tmpName = tempnam(sys_get_temp_dir(), 'libresign_pfx_test');
+		file_put_contents($tmpName, 'fake_pfx_content');
+
+		$file = [
+			'tmp_name' => $tmpName,
+			'size' => 100,
+			'name' => 'cert.pfx',
+		];
+
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		$this->uploadHelper->expects($this->once())
+			->method('validateUploadedFile')
+			->with($file);
+
+		$this->mimeTypeDetector->expects($this->once())
+			->method('detectString')
+			->with('fake_pfx_content')
+			->willReturn('application/octet-stream');
+
+		$this->pkcs12Handler->expects($this->once())
+			->method('savePfx')
+			->with('testuser', 'fake_pfx_content');
+
+		try {
+			$this->getService()->uploadPfx($file, $user);
+		} finally {
+			if (file_exists($tmpName)) {
+				unlink($tmpName);
+			}
+		}
+
+		$this->assertFileDoesNotExist($tmpName);
+	}
+
+	public function testUploadPfxInvalidFileThrows(): void {
+		$file = [
+			'tmp_name' => 'nonexistent',
+			'size' => 100,
+			'name' => 'cert.pfx',
+		];
+
+		$user = $this->createMock(IUser::class);
+
+		$this->uploadHelper->expects($this->once())
+			->method('validateUploadedFile')
+			->willThrowException(new \InvalidArgumentException('Invalid file'));
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Invalid file provided. Need to be a .pfx file.');
+
+		$this->getService()->uploadPfx($file, $user);
+	}
+
+	public function testUploadPfxTooBigThrows(): void {
+		$file = [
+			'tmp_name' => 'tmp',
+			'size' => 11 * 1024,
+			'name' => 'cert.pfx',
+		];
+
+		$user = $this->createMock(IUser::class);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('File is too big');
+
+		$this->getService()->uploadPfx($file, $user);
+	}
+
+	public function testUploadPfxInvalidMimeThrows(): void {
+		$tmpName = tempnam(sys_get_temp_dir(), 'libresign_pfx_test');
+		file_put_contents($tmpName, 'plain text content');
+
+		$file = [
+			'tmp_name' => $tmpName,
+			'size' => 100,
+			'name' => 'cert.pfx',
+		];
+
+		$user = $this->createMock(IUser::class);
+
+		$this->mimeTypeDetector->method('detectString')->willReturn('text/plain');
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Invalid file provided. Need to be a .pfx file.');
+
+		try {
+			$this->getService()->uploadPfx($file, $user);
+		} finally {
+			if (file_exists($tmpName)) {
+				unlink($tmpName);
+			}
+		}
+	}
+
+	public function testUploadPfxInvalidExtensionThrows(): void {
+		$tmpName = tempnam(sys_get_temp_dir(), 'libresign_pfx_test');
+		file_put_contents($tmpName, 'fake_pfx_content');
+
+		$file = [
+			'tmp_name' => $tmpName,
+			'size' => 100,
+			'name' => 'cert.crt',
+		];
+
+		$user = $this->createMock(IUser::class);
+
+		$this->mimeTypeDetector->method('detectString')->willReturn('application/octet-stream');
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Invalid file provided. Need to be a .pfx file.');
+
+		try {
+			$this->getService()->uploadPfx($file, $user);
+		} finally {
+			if (file_exists($tmpName)) {
+				unlink($tmpName);
+			}
+		}
+	}
+
+	public function testUpdatePfxPasswordSuccess(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		$this->pkcs12Handler->expects($this->once())
+			->method('updatePassword')
+			->with('testuser', 'currentPass', 'newPass')
+			->willReturn('updated_pfx');
+
+		$this->getService()->updatePfxPassword($user, 'currentPass', 'newPass');
+	}
+
+	public function testUpdatePfxPasswordThrowsLibresignExceptionOnInvalidPassword(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		$this->pkcs12Handler->expects($this->once())
+			->method('updatePassword')
+			->willThrowException(new InvalidPasswordException());
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionMessage('Invalid user or password');
+
+		$this->getService()->updatePfxPassword($user, 'currentPass', 'newPass');
+	}
+
+	public function testReadPfxDataSuccess(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		$this->pkcs12Handler->expects($this->once())
+			->method('getPfxOfCurrentSigner')
+			->with('testuser')
+			->willReturn('pfx_data');
+
+		$this->pkcs12Handler->expects($this->once())
+			->method('setCertificate')
+			->with('pfx_data')
+			->willReturn($this->pkcs12Handler);
+
+		$this->pkcs12Handler->expects($this->once())
+			->method('setPassword')
+			->with('pass123')
+			->willReturn($this->pkcs12Handler);
+
+		$this->pkcs12Handler->expects($this->once())
+			->method('readCertificate')
+			->willReturn(['subject' => 'John Doe']);
+
+		$result = $this->getService()->readPfxData($user, 'pass123');
+		$this->assertSame(['subject' => 'John Doe'], $result);
+	}
+
+	public function testReadPfxDataThrowsLibresignExceptionOnInvalidPassword(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		$this->pkcs12Handler->method('getPfxOfCurrentSigner')->willReturn('pfx_data');
+		$this->pkcs12Handler->method('setCertificate')->willReturn($this->pkcs12Handler);
+		$this->pkcs12Handler->method('setPassword')->willReturn($this->pkcs12Handler);
+		$this->pkcs12Handler->method('readCertificate')
+			->willThrowException(new InvalidPasswordException());
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionMessage('Invalid user or password');
+
+		$this->readPfxDataThrowsInvalidPasswordException($user);
+	}
+
+	private function readPfxDataThrowsInvalidPasswordException(IUser $user): void {
+		$this->getService()->readPfxData($user, 'wrongPass');
 	}
 }
