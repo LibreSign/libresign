@@ -27,6 +27,9 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\RuntimeRequirementValidator;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -58,6 +61,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private DocMdpValidator&MockObject $docMdpValidator;
 	private RequestSignAuthorizationService&MockObject $requestSignAuthorizationService;
 	private RuntimeRequirementValidator&MockObject $runtimeRequirementValidator;
+	private PolicyService&MockObject $policyService;
 
 	#[\Override]
 	public function setUp(): void {
@@ -81,6 +85,10 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->docMdpValidator = $this->createMock(DocMdpValidator::class);
 		$this->requestSignAuthorizationService = $this->createMock(RequestSignAuthorizationService::class);
 		$this->runtimeRequirementValidator = $this->createMock(RuntimeRequirementValidator::class);
+		$this->policyService = $this->createMock(PolicyService::class);
+		$resolvedPolicy = $this->createMock(ResolvedPolicy::class);
+		$resolvedPolicy->method('getEffectiveValueAsBool')->willReturn(true);
+		$this->policyService->method('resolve')->with(ObserverProfilePolicy::KEY)->willReturn($resolvedPolicy);
 	}
 
 	private function getValidateHelper(): ValidateHelper {
@@ -102,6 +110,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->docMdpValidator,
 			$this->requestSignAuthorizationService,
 			$this->runtimeRequirementValidator,
+			$this->policyService,
 		);
 		return $validateHelper;
 	}

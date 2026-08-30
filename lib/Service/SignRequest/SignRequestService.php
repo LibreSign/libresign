@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service\SignRequest;
 
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -39,6 +40,7 @@ class SignRequestService {
 	 * @param int $signingOrder Signing order
 	 * @param int|null $fileStatus File status
 	 * @param int|null $signerStatus Signer status
+	 * @param ParticipantRole $participantRole Participant role (signer or observer)
 	 * @return SignRequestEntity
 	 */
 	public function createOrUpdateSignRequest(
@@ -50,6 +52,7 @@ class SignRequestService {
 		int $signingOrder = 0,
 		?int $fileStatus = null,
 		?int $signerStatus = null,
+		ParticipantRole $participantRole = ParticipantRole::SIGNER,
 	): SignRequestEntity {
 		$identifyMethodsInstances = $this->identifyMethodService->getByUserData($identifyMethods);
 		if (empty($identifyMethodsInstances)) {
@@ -63,7 +66,7 @@ class SignRequestService {
 		);
 
 		$displayName = $this->getDisplayNameFromIdentifyMethodIfEmpty($identifyMethodsInstances, $displayName);
-		$this->populateSignRequest($signRequest, $displayName, $signingOrder, $description, $fileId);
+		$this->populateSignRequest($signRequest, $displayName, $signingOrder, $description, $fileId, $participantRole);
 
 		$isNewSignRequest = !$signRequest->getId();
 		$currentStatus = $signRequest->getStatusEnum();
@@ -71,13 +74,15 @@ class SignRequestService {
 		if ($isNewSignRequest
 			|| $currentStatus === SignRequestStatus::DRAFT
 			|| $currentStatus === SignRequestStatus::ABLE_TO_SIGN
+			|| $currentStatus === SignRequestStatus::OBSERVING
 		) {
 			$desiredStatus = $this->signRequestStatusService->determineInitialStatus(
 				$signingOrder,
 				$fileId,
 				$fileStatus,
 				$signerStatus,
-				$currentStatus
+				$currentStatus,
+				$participantRole,
 			);
 			$this->signRequestStatusService->updateStatusIfAllowed($signRequest, $currentStatus, $desiredStatus, $isNewSignRequest);
 		}
@@ -113,9 +118,11 @@ class SignRequestService {
 		int $signingOrder,
 		string $description,
 		int $fileId,
+		ParticipantRole $participantRole,
 	): void {
 		$signRequest->setFileId($fileId);
 		$signRequest->setSigningOrder($signingOrder);
+		$signRequest->setParticipantRoleEnum($participantRole);
 		if (!$signRequest->getUuid()) {
 			$signRequest->setUuid(UUIDUtil::getUUID());
 		}

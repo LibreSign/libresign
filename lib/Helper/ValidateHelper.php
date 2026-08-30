@@ -21,6 +21,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\DocMdp\Validator as DocMdpValidator;
 use OCA\Libresign\Service\FileService;
@@ -29,6 +30,8 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\RuntimeRequirementValidator;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -71,6 +74,7 @@ class ValidateHelper {
 		private DocMdpValidator $docMdpValidator,
 		private RequestSignAuthorizationService $requestSignAuthorizationService,
 		private RuntimeRequirementValidator $runtimeRequirementValidator,
+		private PolicyService $policyService,
 	) {
 	}
 
@@ -630,6 +634,27 @@ class ValidateHelper {
 
 		$this->validateSignerDisplayName($signer);
 		$this->validateSignerIdentifyMethods($signer);
+		$this->validateParticipantRole($signer);
+	}
+
+	private function validateParticipantRole(array $signer): void {
+		$roleValue = $signer['participantRole'] ?? ParticipantRole::SIGNER->value;
+		if (!is_string($roleValue)) {
+			throw new LibresignException('Invalid participant role');
+		}
+
+		try {
+			$role = ParticipantRole::from($roleValue);
+		} catch (\ValueError) {
+			throw new LibresignException('Invalid participant role');
+		}
+
+		if ($role === ParticipantRole::OBSERVER
+			&& !$this->policyService->resolve(ObserverProfilePolicy::KEY)->getEffectiveValueAsBool(false)
+		) {
+			// TRANSLATORS Validation error when observer participants are submitted while the feature is disabled by policy.
+			throw new LibresignException($this->l10n->t('Observer participants are not enabled'));
+		}
 	}
 
 	private function validateSignerDisplayName(array $signer): void {
@@ -788,6 +813,15 @@ class ValidateHelper {
 	 */
 	private function validateSignerStatus(string $uuid): void {
 		$signRequest = $this->signRequestMapper->getByUuid($uuid);
+
+		if (!$signRequest->getParticipantRoleEnum()->canSign()) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				// TRANSLATORS Validation error when an observer tries to sign a document.
+				'errors' => [['message' => $this->l10n->t('Observers cannot sign this document')]],
+			]));
+		}
+
 		$status = $signRequest->getStatusEnum();
 
 		$file = $this->fileMapper->getById($signRequest->getFileId());

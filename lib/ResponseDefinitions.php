@@ -47,6 +47,7 @@ namespace OCA\Libresign;
  *     },
  *     envelopeFolderId?: int,
  * }
+ * @psalm-type LibresignParticipantRole = 'signer'|'observer'
  * @psalm-type LibresignNewSigner = array{
  *     identifyMethods: list<array{
  *         method: string,
@@ -58,6 +59,7 @@ namespace OCA\Libresign;
  *     notify?: non-negative-int,
  *     signingOrder?: non-negative-int,
  *     status?: int,
+ *     participantRole?: LibresignParticipantRole,
  * }
  * @psalm-type LibresignNewFile = array{
  *     base64?: string,
@@ -193,8 +195,9 @@ namespace OCA\Libresign;
  *     email?: ?string,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     signed: ?string,
- *     status: 0|1|2,
+ *     status: 0|1|2|3,
  *     statusText: string,
+ *     participantRole?: LibresignParticipantRole,
  * }
  * @psalm-type LibresignSignerDetail = LibresignSignerSummary&array{
  *     description: ?string,
