@@ -29,8 +29,8 @@ updates:
     schedule:
       interval: daily
 
-  # Maintain the Nextcloud image used by the devcontainer
-  - package-ecosystem: "docker"
+  # Maintain the images used by the devcontainer (docker-compose.yml)
+  - package-ecosystem: "docker-compose"
     directory: "/.devcontainer"
     schedule:
       interval: "daily"
