@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   matrix:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-low
     outputs:
       php-version: ${{ steps.versions.outputs.php-available-list }}
       server-max: ${{ steps.versions.outputs.branches-max-list }}
@@ -34,7 +34,7 @@ jobs:
         uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2
 
   changes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-low
     permissions:
       contents: read
       pull-requests: read
@@ -54,7 +54,7 @@ jobs:
               - 'lib/**'
               - 'templates/**'
               - 'tests/**'
-              - '3rdparty/**'
+              - 'vendor/**'
               - 'vendor-bin/**'
               - '.php-cs-fixer.dist.php'
               - 'composer.json'
@@ -81,9 +81,6 @@ jobs:
           # Split and keep last
           echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
 
-      - name: Install system dependencies
-        run: sudo apt update && sudo apt install poppler-utils
-
       - name: Checkout server
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -96,7 +93,6 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          submodules: true
           path: apps/${{ env.APP_NAME }}
 
       - name: Set up php ${{ matrix.php-versions }}
@@ -104,8 +100,8 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           # https://docs.nextcloud.com/server/stable/admin_manual/installation/source_installation.html#prerequisites-for-manual-installation
-          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite, imagick
-          coverage: xdebug
+          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite
+          coverage: none
           ini-file: development
           # Temporary workaround for missing pcntl_* in PHP 8.3
           ini-values: disable_functions=
@@ -137,7 +133,6 @@ jobs:
           mkdir data
           ./occ maintenance:install --verbose --database=sqlite --database-name=nextcloud --database-host=127.0.0.1 --database-port=$DB_PORT --database-user=root --database-pass=rootpassword --admin-user admin --admin-pass admin
           ./occ app:enable --force ${{ env.APP_NAME }}
-          ./occ config:app:set dav enableDefaultContact --value false --type boolean
 
       - name: Check PHPUnit script is defined
         id: check_phpunit
@@ -150,18 +145,7 @@ jobs:
         # Only run if phpunit config file exists
         if: steps.check_phpunit.outcome == 'success'
         working-directory: apps/${{ env.APP_NAME }}
-        env:
-          XDEBUG_MODE: ${{ matrix.xdebug_mode }}
-        run: composer run test:coverage
-
-      - name: Upload coverage results to Coveralls
-        if: matrix.xdebug_mode == 'coverage'
-        working-directory: apps/${{ env.APP_NAME }}
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_PARALLEL: true
-          COVERALLS_FLAG_NAME: php-${{ matrix.php-versions }}
-        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -v
+        run: composer run test:unit
 
       - name: Check PHPUnit integration script is defined
         id: check_integration
@@ -196,7 +180,7 @@ jobs:
   summary:
     permissions:
       contents: none
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-low
     needs: [changes, phpunit-sqlite]
 
     if: always()
@@ -206,14 +190,3 @@ jobs:
     steps:
       - name: Summary status
         run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-sqlite.result != 'success' }}; then exit 1; fi
-
-  finish-coverage:
-    if: ${{ github.event.pull_request.base.ref == 'main' }}
-    needs: phpunit-sqlite
-    runs-on: ubuntu-latest
-    steps:
-      - name: Let Coveralls know that all tests have finished
-        uses: coverallsapp/github-action@v2.3.8
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          parallel-finished: true
