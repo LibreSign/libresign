@@ -429,6 +429,7 @@ class FileListService {
 			'signingOrder' => $signer->getSigningOrder(),
 			'status' => $signer->getStatus(),
 			'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus()),
+			'participantRole' => $signer->getParticipantRoleEnum()->value,
 			'me' => $me,
 			'visibleElements' => isset($visibleElements[$signer->getId()])
 				? $this->fileElementService->formatVisibleElements(
@@ -575,6 +576,7 @@ class FileListService {
 			'signingOrder' => $signer->getSigningOrder(),
 			'status' => $signer->getStatus(),
 			'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus()),
+			'participantRole' => $signer->getParticipantRoleEnum()->value,
 			'me' => false,
 			'visibleElements' => isset($visibleElements[$signer->getId()])
 				? $this->fileElementService->formatVisibleElements(

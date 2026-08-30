@@ -85,6 +85,7 @@ class SignersLoader {
 			$fileData->signers[$index]->status = $signer->getStatus();
 			$fileData->signers[$index]->statusText = $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus());
 			$fileData->signers[$index]->signingOrder = $signer->getSigningOrder();
+			$fileData->signers[$index]->participantRole = $signer->getParticipantRoleEnum()->value;
 			$fileData->signers[$index]->description = $signer->getDescription();
 			$fileData->signers[$index]->displayName = $signer->getDisplayName();
 			$fileData->signers[$index]->request_sign_date = $signer->getCreatedAt()->format(DateTimeInterface::ATOM);
@@ -179,7 +180,10 @@ class SignersLoader {
 
 			if ($fileData->signers[$index]->me) {
 				$fileData->signers[$index]->sign_request_uuid = $signer->getUuid();
-				if (!$signer->getSigned() && isset($fileData->settings)) {
+				if (!$signer->getSigned()
+					&& $signer->getParticipantRoleEnum()->canSign()
+					&& isset($fileData->settings)
+				) {
 					$fileData->settings['canSign'] = true;
 				}
 				$fileData->signers[$index]->signatureMethods = [];
