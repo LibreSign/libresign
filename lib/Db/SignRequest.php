@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCP\AppFramework\Db\Entity;
 use OCP\DB\Types;
@@ -37,6 +38,8 @@ use OCP\DB\Types;
  * @method int getSigningOrder()
  * @method void setStatus(int $status)
  * @method int getStatus()
+ * @method void setParticipantRole(string $participantRole)
+ * @method string getParticipantRole()
  */
 class SignRequest extends Entity {
 	protected ?int $fileId = null;
@@ -50,6 +53,7 @@ class SignRequest extends Entity {
 	protected int $docmdpLevel = 0;
 	protected int $signingOrder = 1;
 	protected int $status = 0;
+	protected string $participantRole = 'signer';
 
 	public function __construct() {
 		$this->addType('id', Types::INTEGER);
@@ -64,6 +68,19 @@ class SignRequest extends Entity {
 		$this->addType('docmdpLevel', Types::SMALLINT);
 		$this->addType('signingOrder', Types::INTEGER);
 		$this->addType('status', Types::SMALLINT);
+		$this->addType('participantRole', Types::STRING);
+	}
+
+	public function getParticipantRoleEnum(): ParticipantRole {
+		return ParticipantRole::fromNullable($this->participantRole);
+	}
+
+	public function setParticipantRoleEnum(ParticipantRole $role): void {
+		$this->setParticipantRole($role->value);
+	}
+
+	public function isObserver(): bool {
+		return $this->getParticipantRoleEnum() === ParticipantRole::OBSERVER;
 	}
 
 	public function getStatusEnum(): SignRequestStatus {
