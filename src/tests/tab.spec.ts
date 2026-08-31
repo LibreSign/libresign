@@ -121,16 +121,68 @@ describe('tab.ts', () => {
 		})
 	})
 
+	it('enabled() accepts raw nodes and maps values exposed through get()', () => {
+		mockLoadState.mockReturnValue(true)
+		const tabConfig = mockRegisterSidebarTab.mock.calls[0][0] as {
+			enabled: (node: Record<string, unknown>) => boolean
+		}
+		const values: Record<string, unknown> = {
+			id: 'legacy-id',
+			displayname: 'Contract.pdf',
+			path: '/Documents/Contract.pdf',
+			type: 'file',
+			mimetype: 'application/pdf',
+			attributes: { custom: true },
+		}
+
+		expect(tabConfig.enabled({
+			get: (key: string) => values[key],
+			isDirectory: () => false,
+		})).toBe(true)
+		expect(window.OCA.Libresign.fileInfo).toMatchObject({
+			id: 'legacy-id',
+			name: 'Contract.pdf',
+			path: '/Documents',
+			attributes: { custom: true },
+		})
+		const fileInfo = window.OCA.Libresign.fileInfo as { get: (key: string) => unknown }
+		expect(fileInfo.get('unknown')).toBeUndefined()
+	})
+
+	it('mounts, updates, and destroys the registered sidebar tab', async () => {
+		const tabConfig = mockRegisterSidebarTab.mock.calls[0][0] as {
+			mount: (element: Element, node: Record<string, unknown>) => Promise<void>
+			update: (node: Record<string, unknown>) => void
+			destroy: () => void
+		}
+		const host = document.createElement('div')
+		document.body.appendChild(host)
+
+		await tabConfig.mount(host, { fileid: 1, path: '/first.pdf', mime: 'application/pdf' })
+		await vi.waitFor(() => expect(mockVueApp.mount).toHaveBeenCalledOnce())
+		tabConfig.update({ fileid: 2, path: '/second.pdf', mime: 'application/pdf' })
+
+		expect(host.querySelector('libresign-files-sidebar-tab')).not.toBeNull()
+		expect(mockMountedInstance.update).toHaveBeenLastCalledWith(expect.objectContaining({
+			id: 2,
+			name: '',
+			path: '',
+		}))
+
+		tabConfig.destroy()
+		expect(host.querySelector('libresign-files-sidebar-tab')).toBeNull()
+		expect(mockVueApp.unmount).toHaveBeenCalledOnce()
+	})
+
 	it('lazy mounts Vue only when custom element is connected and unmounts on disconnect', async () => {
 		const TabElement = window.customElements.get('libresign-files-sidebar-tab')
 		expect(TabElement).toBeDefined()
 		expect(mockCreateApp).not.toHaveBeenCalled()
-		expect(appFilesTabModuleLoaded).not.toHaveBeenCalled()
 
 		const element = document.createElement('libresign-files-sidebar-tab')
 		document.body.appendChild(element)
 
-		await vi.waitFor(() => expect(appFilesTabModuleLoaded).toHaveBeenCalledOnce())
+		await vi.waitFor(() => expect(mockCreateApp).toHaveBeenCalledOnce())
 		expect(mockCreateApp).toHaveBeenCalledOnce()
 		expect(mockVueApp.mount).toHaveBeenCalledOnce()
 

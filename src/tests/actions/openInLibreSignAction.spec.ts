@@ -350,6 +350,15 @@ describe('openInLibreSignAction rules', () => {
 
 			expect(result).toBeNull()
 		})
+
+		it('accepts a raw node as the action input', async () => {
+			const node = { type: 'file', mime: 'application/pdf', path: '/raw.pdf' }
+
+			await action.exec(node as unknown as { nodes: unknown })
+
+			expect(mockSidebar.close).toHaveBeenCalled()
+			expect(mockSidebar.open).toHaveBeenCalledWith('/raw.pdf')
+		})
 	})
 
 	describe('execBatch execution for multiple files', () => {
@@ -412,6 +421,15 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 
 			expect(mockSidebar.open).toHaveBeenCalled()
 			expect(mockSidebar.setActiveTab).toHaveBeenCalledWith('libresign')
+		})
+
+		it('delegates a single-node batch to exec', async () => {
+			const node = { type: 'file', mime: 'application/pdf', path: '/single.pdf' }
+
+			const result = await action.execBatch([node] as unknown as { nodes: unknown })
+
+			expect(result).toEqual([null])
+			expect(mockSidebar.open).toHaveBeenCalledWith('/single.pdf')
 		})
 
 		it('creates correct pending envelope structure', async () => {
@@ -512,10 +530,12 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 
 		it('has displayName function', () => {
 			expect(typeof action.displayName).toBe('function')
+			expect((action.displayName as () => string)()).toBe('Open in LibreSign')
 		})
 
 		it('has iconSvgInline function', () => {
 			expect(typeof action.iconSvgInline).toBe('function')
+			expect((action.iconSvgInline as () => string)()).toContain('<svg')
 		})
 	})
 })
