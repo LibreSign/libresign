@@ -5,8 +5,10 @@
 <template>
 	<div class="identifySigner">
 		<SignerSelect v-if="isNewSigner"
+			:key="participantRole"
 			:placeholder="placeholder"
 			:method="method"
+			:participant-role="props.participantRole"
 			@update:signer="applySelectedSigner" />
 		<NcNoteCard v-else type="info">
 			<template #icon>

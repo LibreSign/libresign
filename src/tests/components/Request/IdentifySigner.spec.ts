@@ -13,7 +13,7 @@ import type { IdentifyAccountRecord } from '../../../types'
 
 const signerSelectStub = {
 	name: 'SignerSelect',
-	props: ['placeholder', 'method'],
+	props: ['placeholder', 'method', 'participantRole'],
 	template: '<div class="signer-select-stub" />',
 }
 

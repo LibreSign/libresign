@@ -4,8 +4,8 @@
 -->
 <template>
 	<div id="account-or-email">
-		<label for="account-or-email-input">{{ t('libresign', 'Search signer') }}</label>
 		<NcSelect ref="select"
+			:key="participantRole"
 			:model-value="selectedSigner"
 			input-id="account-or-email-input"
 			class="account-or-email__input"
@@ -13,8 +13,8 @@
 			:filterable="false"
 			label="displayName"
 			:get-option-key="getOptionKey"
-			:aria-label-combobox="placeholder"
-			:placeholder="placeholder"
+			:input-label="searchLabel"
+			:placeholder="selectPlaceholder"
 			:options="options"
 			@search="asyncFind"
 			@update:modelValue="onSelectedSignerChange">
@@ -44,7 +44,7 @@
 			id="account-or-email-field"
 			class="account-or-email__helper-text-message account-or-email__helper-text-message--error">
 			<NcIconSvgWrapper :path="mdiAlertCircle" class="account-or-email__helper-text-message__icon" :size="18" />
-			{{ t('libresign', 'Signer is mandatory') }}
+			{{ mandatoryErrorText }}
 		</p>
 	</div>
 </template>
@@ -68,6 +68,7 @@ import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
+import { PARTICIPANT_ROLE, type ParticipantRole } from '../../utils/participantRole.ts'
 import type { IdentifyAccountRecord } from '../../types'
 defineOptions({
 	name: 'SignerSelect',
@@ -76,9 +77,11 @@ defineOptions({
 const props = withDefaults(defineProps<{
 	method?: string
 	placeholder?: string
+	participantRole?: ParticipantRole
 }>(), {
 	method: 'all',
 	placeholder: t('libresign', 'Name'),
+	participantRole: PARTICIPANT_ROLE.SIGNER,
 })
 
 const emit = defineEmits<{
@@ -109,7 +112,30 @@ const selectedSigner = ref<IdentifyAccountRecord | null>(null)
 const haveError = ref(false)
 const activeRequestId = ref(0)
 
-const noResultText = computed(() => loading.value ? t('libresign', 'Searching …') : t('libresign', 'No signers.'))
+const isObserver = computed(() => props.participantRole === PARTICIPANT_ROLE.OBSERVER)
+const searchLabel = computed(() => isObserver.value
+	// TRANSLATORS Label for the observer search field in the add-participant modal.
+	? t('libresign', 'Search observer')
+	// TRANSLATORS Label for the signer search field in the add-participant modal.
+	: t('libresign', 'Search signer'))
+const selectPlaceholder = computed(() => isObserver.value ? searchLabel.value : props.placeholder)
+const mandatoryErrorText = computed(() => isObserver.value
+	// TRANSLATORS Validation error when no observer was selected.
+	? t('libresign', 'Observer is mandatory')
+	// TRANSLATORS Validation error when no signer was selected.
+	: t('libresign', 'Signer is mandatory'))
+
+const noResultText = computed(() => {
+	if (loading.value) {
+		return t('libresign', 'Searching …')
+	}
+
+	return isObserver.value
+		// TRANSLATORS Empty-state message when observer search returns no matches.
+		? t('libresign', 'No observers.')
+		// TRANSLATORS Empty-state message when signer search returns no matches.
+		: t('libresign', 'No signers.')
+})
 
 function handleMethodChange() {
 	options.value = []
@@ -245,6 +271,9 @@ defineExpose({
 	haveError,
 	activeRequestId,
 	noResultText,
+	searchLabel,
+	selectPlaceholder,
+	mandatoryErrorText,
 	handleMethodChange,
 	injectIcons,
 	onSelectedSignerChange,
