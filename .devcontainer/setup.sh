@@ -9,6 +9,19 @@
 
 )
 
+# Root-owned appdata breaks occ/libresign:install when agents run docker exec as root.
+if [[ "$(id -u)" -eq 0 ]]; then
+	chown -R www-data:www-data /var/www/html/data/appdata_* 2>/dev/null || true
+fi
+
+run_occ() {
+	if [[ "$(id -u)" -eq 0 ]]; then
+		runuser -u www-data -- occ "$@"
+	else
+		occ "$@"
+	fi
+}
+
 git config --global --add safe.directory /var/www/html
 git config --global --add safe.directory /var/www/html/apps-extra/libresign
 cd /var/www/html/apps-extra/libresign
@@ -16,18 +29,17 @@ git submodule update --init --recursive
 if [[ ! -d "vendor" ]]; then
 	composer install
 fi
-occ app:enable libresign
-occ libresign:install --use-local-cert --java
-occ libresign:install --use-local-cert --pdftk
-occ libresign:install --use-local-cert --jsignpdf
-occ libresign:configure:openssl --cn=CommonName --c=BR --ou=OrganizationUnit --st=RioDeJaneiro --o=LibreSign --l=RioDeJaneiro
+run_occ app:enable libresign
+run_occ libresign:install --use-local-cert --all
+run_occ libresign:configure:openssl --cn=CommonName --c=BR --ou=OrganizationUnit --st=RioDeJaneiro --o=LibreSign --l=RioDeJaneiro
+run_occ libresign:configure:check
 if [[ ! -d "node_modules" ]]; then
-	occ theming:config name "LibreSign"
-	occ theming:config url "https://libresign.coop"
-	occ theming:config primary_color "#144042"
-	occ config:app:set libresign extra_settings --value=1
-	occ config:system:set defaultapp --value libresign
-	occ maintenance:theme:update
+	run_occ theming:config name "LibreSign"
+	run_occ theming:config url "https://libresign.coop"
+	run_occ theming:config primary_color "#144042"
+	run_occ config:app:set libresign extra_settings --value=1
+	run_occ config:system:set defaultapp --value libresign
+	run_occ maintenance:theme:update
 	npm ci
 	npm run dev
 fi
