@@ -418,6 +418,7 @@
     "Edit signer" : "Editar signatário",
     "Add new observer" : "Adicionar nova testemunha",
     "Add new signer" : "Adicionar novo signatário",
+    "Add participant" : "Adicionar participante",
     "Failed to save signature request" : "Falha ao salvar a solicitação de assinatura",
     "Failed to load signer details" : "Não foi possível carregar os detalhes do signatário",
     "Setup signature positions" : "Configurar posições de assinatura",
@@ -1002,6 +1003,7 @@
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Configurações da Autoridade de Marca Temporal (TSA) para assinatura digital de documentos.",
     "Make validation URL acessible only by authenticated users" : "Tornar o URL de validação acessível apenas para usuários autenticados",
     "Sign the document." : "Assinar o documento.",
+    "Add" : "Adicionar",
     "Add a personal message for this observer" : "Adicione uma mensagem pessoal para esta testemunha",
     "Allow assigning observer role to participants who can view documents without signing." : "Permitir atribuir o papel de testemunha a participantes que podem visualizar documentos sem assinar.",
     "When enabled, document owners can add observers who track progress without signing." : "Quando ativado, os proprietários do documento podem adicionar testemunhas que acompanham o progresso sem assinar."
