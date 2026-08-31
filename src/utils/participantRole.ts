@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { SIGN_REQUEST_STATUS } from '../constants.js'
+
 export const PARTICIPANT_ROLE = Object.freeze({
 	SIGNER: 'signer',
 	OBSERVER: 'observer',
@@ -12,6 +14,19 @@ export type ParticipantRole = typeof PARTICIPANT_ROLE[keyof typeof PARTICIPANT_R
 
 type ParticipantLike = {
 	participantRole?: string | null
+	status?: number | null
+}
+
+export function isObserverParticipant(participant?: ParticipantLike | null): boolean {
+	if (!participant) {
+		return false
+	}
+
+	if (participant.participantRole === PARTICIPANT_ROLE.OBSERVER) {
+		return true
+	}
+
+	return participant.status === SIGN_REQUEST_STATUS.OBSERVING
 }
 
 export function isSigningParticipant(participant?: ParticipantLike | null): boolean {
@@ -19,11 +34,7 @@ export function isSigningParticipant(participant?: ParticipantLike | null): bool
 		return false
 	}
 
-	return !participant.participantRole || participant.participantRole === PARTICIPANT_ROLE.SIGNER
-}
-
-export function isObserverParticipant(participant?: ParticipantLike | null): boolean {
-	return participant?.participantRole === PARTICIPANT_ROLE.OBSERVER
+	return !isObserverParticipant(participant)
 }
 
 export function countSigningParticipants<T extends ParticipantLike>(participants: T[] | null | undefined): number {

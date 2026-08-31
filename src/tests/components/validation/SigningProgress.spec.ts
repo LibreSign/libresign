@@ -474,6 +474,24 @@ describe('SigningProgress', () => {
 			})
 		})
 
+		it('ignores observers when building signer progress', () => {
+			wrapper = createWrapper()
+
+			const progress = wrapper.vm.buildProgressFromValidation({
+				signers: [
+					{ signed: true, participantRole: 'signer' },
+					{ signed: false, participantRole: 'observer', status: 3 },
+				],
+			})
+
+			expect(progress).toEqual({
+				total: 1,
+				signed: 1,
+				inProgress: 0,
+				pending: 0,
+			})
+		})
+
 		it('uses signer progress for single-file documents even when files array exists', () => {
 			wrapper = createWrapper()
 
