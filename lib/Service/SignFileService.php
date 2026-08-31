@@ -1089,6 +1089,10 @@ class SignFileService {
 
 	private function evaluateStatusFromSigners(): ?int {
 		$signers = $this->excludeIdDocUploaderPlaceholder($this->getSigners());
+		$signers = array_values(array_filter(
+			$signers,
+			static fn (SignRequestEntity $signer): bool => !$signer->isObserver(),
+		));
 
 		$total = count($signers);
 

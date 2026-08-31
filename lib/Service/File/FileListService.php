@@ -330,7 +330,10 @@ class FileListService {
 		$mySigners = array_values(array_filter($signers, fn (SignRequest $signer)
 			=> $this->isCurrentUserSigner($identifyMethods[$signer->getId()] ?? [], $user),
 		));
-		$pendingSigners = array_values(array_filter($signers, fn (SignRequest $signer) => $signer->getSigned() === null));
+		$pendingSigners = array_values(array_filter(
+			$signers,
+			fn (SignRequest $signer) => $signer->getSigned() === null && $signer->getParticipantRoleEnum()->canSign(),
+		));
 		$isOrderedNumeric = SignatureFlow::fromNumeric($fileEntity->getSignatureFlow())->value === SignatureFlow::ORDERED_NUMERIC->value;
 		$minOrder = empty($pendingSigners)
 			? null
