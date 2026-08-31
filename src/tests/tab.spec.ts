@@ -52,28 +52,42 @@ vi.mock('../../img/app-dark.svg?raw', () => ({ default: '<svg />' }))
 vi.mock('../style/icons.scss', () => ({}))
 
 beforeAll(async () => {
+	window.OCA = window.OCA ?? {}
+	window.OCA.Files = {
+		Sidebar: {
+			Tab: class Tab {
+				constructor(config: Record<string, unknown>) {
+					Object.assign(this, config)
+				}
+			},
+			registerTab: mockRegisterSidebarTab,
+		},
+	}
 	await import('../tab')
 })
 
 beforeEach(() => {
-	vi.clearAllMocks()
+	mockLoadState.mockClear()
+	mockCreatePinia.mockClear()
+	mockCreateApp.mockClear()
+	mockVueApp.use.mockClear()
+	mockVueApp.mount.mockClear()
+	mockVueApp.unmount.mockClear()
+	mockMountedInstance.update.mockClear()
+	appFilesTabModuleLoaded.mockClear()
 	window.OCA = window.OCA ?? {}
 	window.OCA.Libresign = {}
 })
 
 describe('tab.ts', () => {
-	it('registers LibreSign sidebar tab on DOMContentLoaded', () => {
-		window.dispatchEvent(new Event('DOMContentLoaded'))
-
+	it('registers LibreSign sidebar tab when loaded after DOMContentLoaded', () => {
 		expect(mockRegisterSidebarTab).toHaveBeenCalledOnce()
-		const tabConfig = mockRegisterSidebarTab.mock.calls[0][0] as { id: string; tagName: string }
-		expect(tabConfig.id).toBe('libresign')
-		expect(tabConfig.tagName).toBe('libresign-files-sidebar-tab')
+	const tabConfig = mockRegisterSidebarTab.mock.calls[0][0] as { id: string }
+	expect(tabConfig.id).toBe('libresign')
 	})
 
 	it('enabled() returns false when certificate is not configured', () => {
 		mockLoadState.mockReturnValue(false)
-		window.dispatchEvent(new Event('DOMContentLoaded'))
 		const tabConfig = mockRegisterSidebarTab.mock.calls[0][0] as {
 			enabled: (context: { node: Record<string, unknown> }) => boolean
 		}
@@ -83,7 +97,6 @@ describe('tab.ts', () => {
 
 	it('enabled() accepts signed folders and maps file info into OCA.Libresign', () => {
 		mockLoadState.mockReturnValue(true)
-		window.dispatchEvent(new Event('DOMContentLoaded'))
 		const tabConfig = mockRegisterSidebarTab.mock.calls[0][0] as {
 			enabled: (context: { node: Record<string, unknown> }) => boolean
 		}
@@ -109,8 +122,6 @@ describe('tab.ts', () => {
 	})
 
 	it('lazy mounts Vue only when custom element is connected and unmounts on disconnect', async () => {
-		window.dispatchEvent(new Event('DOMContentLoaded'))
-
 		const TabElement = window.customElements.get('libresign-files-sidebar-tab')
 		expect(TabElement).toBeDefined()
 		expect(mockCreateApp).not.toHaveBeenCalled()

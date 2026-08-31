@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { registerFileAction, getSidebar } from '@nextcloud/files'
+import { FileAction, registerFileAction } from '@nextcloud/files'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
@@ -11,6 +11,9 @@ import EditNameDialog from '../components/Common/EditNameDialog.vue'
 
 // eslint-disable-next-line import/no-unresolved
 import SvgIcon from '../../img/app-dark.svg?raw'
+
+const getNodes = input => Array.isArray(input) ? input : input?.nodes ?? []
+const getNode = input => Array.isArray(input) ? input[0] : input?.nodes?.[0] ?? input
 
 /**
  * Prompts user for envelope name via dialog
@@ -27,12 +30,13 @@ async function promptEnvelopeName() {
 	return envelopeName
 }
 
-export const action = {
+export const action = new FileAction({
 	id: 'open-in-libresign',
 	displayName: () => t('libresign', 'Open in LibreSign'),
 	iconSvgInline: () => SvgIcon,
 
-	enabled({ nodes }) {
+	enabled(input) {
+		const nodes = getNodes(input)
 		const getNodeMime = (node) => node?.mime || node?.mimetype || ''
 
 		if (!loadState('libresign', 'certificate_ok', false)) {
@@ -62,10 +66,11 @@ export const action = {
 	/**
 	 * Single file or folder: open in sidebar
 	 */
-	async exec({ nodes }) {
-		const sidebar = getSidebar()
-		const node = nodes[0]
-		await sidebar.open(node, 'libresign')
+	async exec(input) {
+		const node = getNode(input)
+		const sidebar = window.OCA.Files.Sidebar
+		sidebar.close()
+		await sidebar.open(node.path)
 		sidebar.setActiveTab('libresign')
 		return null
 	},
@@ -74,11 +79,12 @@ export const action = {
 	 * Multiple files: prepare envelope data and delegate to sidebar
 	 * Similar to exec, but passes multiple files to the sidebar for processing
 	 */
-	async execBatch({ nodes }) {
+	async execBatch(input) {
+		const nodes = getNodes(input)
 		const getNodeFileId = (node) => node?.fileid ?? node?.id
 
 		if (nodes.length === 1) {
-			await this.exec({ nodes })
+			await this.exec(nodes[0])
 			return [null]
 		}
 
@@ -106,15 +112,16 @@ export const action = {
 			uuid: null,
 		}
 
-		const sidebar = getSidebar()
+		const sidebar = window.OCA.Files.Sidebar
 		const firstNode = nodes[0]
-		await sidebar.open(firstNode, 'libresign')
+		sidebar.close()
+		await sidebar.open(firstNode.path)
 		sidebar.setActiveTab('libresign')
 
 		return new Array(nodes.length).fill(null)
 	},
 
 	order: -1000,
-}
+})
 
 registerFileAction(action)

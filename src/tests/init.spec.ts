@@ -159,6 +159,8 @@ function setupFileInputInterception(fileName: string, mimeType = 'application/pd
 describe('init.ts', () => {
 	beforeEach(async () => {
 		vi.clearAllMocks()
+		window.OCA = window.OCA ?? {}
+		window.OCA.Files = { Sidebar: mockSidebar }
 
 		// Reset stat mock to return valid data for resultToNode
 		mockStat.mockResolvedValue({ data: { filename: '/files/testuser/Documents/test.pdf' } })
