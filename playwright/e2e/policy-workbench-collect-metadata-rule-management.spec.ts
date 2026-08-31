@@ -6,7 +6,7 @@
 import { expect, test } from '@playwright/test'
 
 import { bootstrapLibreSignAdmin, ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
-import { waitForPolicyWorkbenchIdle } from '../support/policy-workbench-rules'
+import { clearPolicyWorkbenchRules, openPolicyWorkbenchSystemRuleEditor, waitForPolicyWorkbenchIdle } from '../support/policy-workbench-rules'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 120000 })
 
@@ -20,24 +20,20 @@ test('collect_metadata allows creating and persisting a system rule from workben
 	const dialog = page.getByRole('dialog').filter({ hasText: /Collect signer metadata/i }).first()
 	await expect(dialog).toBeVisible({ timeout: 10000 })
 	await page.getByText(/Loading rules/i).waitFor({ state: 'hidden', timeout: 20000 }).catch(() => {})
+	await clearPolicyWorkbenchRules(dialog)
 
-	const createRuleButton = page.getByRole('button', { name: /Create rule/i }).first()
-	await expect(createRuleButton).toBeVisible({ timeout: 10000 })
-	await createRuleButton.click()
-
-	const createScopeDialog = page.getByRole('dialog').filter({ hasText: /What do you want to create\?/i }).last()
-	if (await createScopeDialog.isVisible().catch(() => false)) {
-		await createScopeDialog.getByRole('option', { name: /^Everyone\b/i }).first().click()
-	}
-
-	const createDialog = page.getByRole('dialog', { name: /Create rule/i }).last()
+	const createDialog = await openPolicyWorkbenchSystemRuleEditor(dialog)
 	await expect(createDialog).toBeVisible({ timeout: 10000 })
 
-	const enableOption = createDialog.getByRole('radio', { name: /Collect signer metadata/i }).first()
-	if (await enableOption.isVisible().catch(() => false)) {
-		await enableOption.click({ force: true })
-		await expect(enableOption).toBeChecked({ timeout: 5000 })
+	const selectMetadataOption = async (enabled: boolean) => {
+		const label = enabled ? /Collect signer metadata/i : /Disable metadata collection/i
+		const option = createDialog.locator('.checkbox-radio-switch').filter({ hasText: label }).first()
+		await expect(option).toBeVisible({ timeout: 10_000 })
+		await option.locator('.checkbox-radio-switch__content').click()
 	}
+
+	await selectMetadataOption(false)
+	await selectMetadataOption(true)
 
 	const saveResponse = page.waitForResponse((response) => {
 		return ['POST', 'PUT', 'PATCH'].includes(response.request().method())
