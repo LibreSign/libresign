@@ -472,6 +472,7 @@ OC.L10N.register(
     "Update" : "Update",
     "Failed to save or update signature request" : "Failed to save or update signature request",
     "Please enter signer name." : "Please enter signer name.",
+    "Please enter observer name." : "Please enter observer name.",
     "This signer cannot be used because the identification method \"{method}\" has been disabled by the administrator." : "This signer cannot be used because the identification method \"{method}\" has been disabled by the administrator.",
     "Add custom message" : "Add custom message",
     "URL of a PDF file" : "URL of a PDF file",

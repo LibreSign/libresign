@@ -929,7 +929,8 @@ function getSigningParticipantsFromFile(file: EditableRequestFile | null | undef
 }
 
 function ensureHasSigningParticipants(): boolean {
-	const participants = Array.isArray(filesStore.getFile()?.signers) ? filesStore.getFile()?.signers : []
+	const fileSigners = filesStore.getFile()?.signers
+	const participants = Array.isArray(fileSigners) ? fileSigners : []
 	const hasSigningParticipant = participants.some((participant) => !isObserverParticipant(participant))
 
 	if (hasSigningParticipant) {

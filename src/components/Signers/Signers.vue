@@ -42,7 +42,13 @@ import draggable from 'vuedraggable'
 
 import Signer from './Signer.vue'
 import { useFilesStore } from '../../store/files.js'
-import { filterParticipantsByRole, type ParticipantRole } from '../../utils/participantRole.ts'
+import {
+	filterParticipantsByRole,
+	isObserverParticipant,
+	isSigningParticipant,
+	PARTICIPANT_ROLE,
+	type ParticipantRole,
+} from '../../utils/participantRole.ts'
 
 defineOptions({
 	name: 'Signers',
@@ -74,15 +80,37 @@ const signers = computed<SignerListItem[] | undefined>(() => {
 	return filterParticipantsByRole(allSigners, props.roleFilter)
 })
 
+function mergeReorderedParticipants(reordered: SignerListItem[]) {
+	const file = filesStore.getFile()
+	if (!file?.signers) {
+		return
+	}
+
+	if (props.roleFilter === PARTICIPANT_ROLE.SIGNER) {
+		const observers = file.signers.filter(isObserverParticipant)
+		file.signers = [...reordered, ...observers]
+		return
+	}
+
+	if (props.roleFilter === PARTICIPANT_ROLE.OBSERVER) {
+		const signingParticipants = file.signers.filter(isSigningParticipant)
+		file.signers = [...signingParticipants, ...reordered]
+		return
+	}
+
+	file.signers = reordered
+}
+
 const sortableSigners = computed<SignerListItem[] | undefined>({
 	get() {
 		return signers.value
 	},
 	set(value) {
-		const file = filesStore.getFile()
-		if (file) {
-			file.signers = value
+		if (!value) {
+			return
 		}
+
+		mergeReorderedParticipants(value)
 	},
 })
 
@@ -91,7 +119,7 @@ const isOrderedNumeric = computed(() => {
 })
 
 const canReorder = computed(() => {
-	if (props.roleFilter === 'observer') {
+	if (props.roleFilter === PARTICIPANT_ROLE.OBSERVER) {
 		return false
 	}
 
@@ -105,8 +133,11 @@ function onDragEnd(evt: { oldIndex: number; newIndex: number }) {
 	}
 
 	const file = filesStore.getFile()
-	file?.signers?.forEach((signer, index) => {
-		signer.signingOrder = index + 1
+	let order = 1
+	file?.signers?.forEach((signer) => {
+		if (isSigningParticipant(signer)) {
+			signer.signingOrder = order++
+		}
 	})
 
 	emit('signing-order-changed')
