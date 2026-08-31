@@ -187,6 +187,7 @@
     "Invalid signer data" : "Dados de signatário inválidos",
     "Envelope %s" : "Envelope %s",
     "Empty signers list" : "Lista de signatários vazia",
+    "At least one signer is required" : "É necessário ao menos um signatário",
     "Signers list needs to be an array" : "A lista de signatários precisa ser um arranjo",
     "Please provide either UUID or File object" : "Por favor, forneça ou um UUID ou um objeto de Arquivo",
     "You need to define a visible signature or initials to sign this document." : "Você precisa definir uma assinatura ou iniciais visíveis para assinar este documento.",

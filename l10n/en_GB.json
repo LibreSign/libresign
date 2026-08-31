@@ -247,6 +247,7 @@
     "A target user is required to save a user policy." : "A target user is required to save a user policy.",
     "Envelope %s" : "Envelope %s",
     "Empty signers list" : "Empty signers list",
+    "At least one signer is required" : "At least one signer is required",
     "Signers list needs to be an array" : "Signers list needs to be an array",
     "Please provide either UUID or File object" : "Please provide either UUID or File object",
     "Document already signed" : "Document already signed",
