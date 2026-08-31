@@ -62,6 +62,8 @@ jobs:
           extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite
           coverage: none
           ini-file: development
+          # Required: re-enable pcntl_* functions that may be disabled via disable_functions
+          ini-values: disable_functions=
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -84,6 +86,7 @@ jobs:
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           path: apps/${{ env.APP_NAME }}
+          add-paths: tests/psalm-baseline.xml
           token: ${{ secrets.COMMAND_BOT_PAT }}
           commit-message: "chore: Update psalm baseline"
           committer: GitHub <noreply@github.com>
