@@ -6,7 +6,7 @@
 import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, deleteUserPfx, setSystemPolicy } from '../support/nc-provisioning'
-import { clickAddSigner } from '../support/request-signature'
+import { clickAddSigner, selectAccountSigner } from '../support/request-signature'
 import { useRequestSignPolicyGuard } from '../support/system-policies'
 
 useRequestSignPolicyGuard()
@@ -18,8 +18,7 @@ async function prepareSignFlow(page: Parameters<typeof test>[1] extends (args: i
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
 	await page.getByRole('button', { name: 'Send' }).click()
 	await clickAddSigner(page)
-	await page.getByPlaceholder('Account').fill(adminUser)
-	await page.getByText('admin@email.tld').click()
+	await selectAccountSigner(page, adminUser)
 	await page.getByRole('button', { name: 'Save' }).click()
 	await page.getByRole('button', { name: 'Request signatures' }).click()
 	await page.getByRole('button', { name: 'Send' }).click()

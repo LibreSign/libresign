@@ -7,7 +7,7 @@ import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo } from '../support/mailpit'
-import { clickAddSigner } from '../support/request-signature'
+import { clickAddSigner, selectEmailSigner } from '../support/request-signature'
 import { useRequestSignPolicyGuard } from '../support/system-policies'
 
 useRequestSignPolicyGuard()
@@ -55,9 +55,7 @@ test('admin can send a reminder to a pending signer', async ({ page }) => {
 
 	// Only the email method is active — no tabs in the Add signer dialog
 	await clickAddSigner(page)
-	await page.getByPlaceholder('Email').click()
-	await page.getByPlaceholder('Email').pressSequentially('signer01@libresign.coop', { delay: 50 })
-	await page.getByRole('option', { name: 'signer01@libresign.coop' }).click()
+	await selectEmailSigner(page, 'signer01@libresign.coop')
 	await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 01')
 	await page.getByRole('button', { name: 'Save' }).click()
 
