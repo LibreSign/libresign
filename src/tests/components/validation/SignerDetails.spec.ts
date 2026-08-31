@@ -132,6 +132,14 @@ describe('SignerDetails.vue - Business Logic', () => {
 			}
 			expect(wrapper.vm.hasValidationIssues(signer)).toBe(false)
 		})
+
+		it('returns false for observers without signature validation data', () => {
+			const signer = {
+				participantRole: 'observer',
+				signed: null,
+			}
+			expect(wrapper.vm.hasValidationIssues(signer)).toBe(false)
+		})
 	})
 
 	describe('isRevokedBeforeSigning method', () => {

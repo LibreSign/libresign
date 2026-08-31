@@ -95,64 +95,70 @@
 			</ul>
 		</div>
 
-		<!-- Consolidated Signers -->
-		<div v-if="document.signers && document.signers.length > 0" class="section card-list-context">
+		<!-- Consolidated Signers and Observers -->
+		<div v-if="hasParticipants" class="section card-list-context">
 			<div class="header">
 				<NcIconSvgWrapper :path="mdiAccountMultiple" :size="30" />
-				<h1>{{ t('libresign', 'Signers summary') }}</h1>
+				<h1>{{ participantsSummaryTitle }}</h1>
 			</div>
-			<p class="section-help">
-					{{ t('libresign', 'Overall progress of each signer across all documents') }}
+			<p v-if="signingParticipants.length > 0" class="section-help">
+				{{ t('libresign', 'Overall progress of each signer across all documents') }}
 			</p>
-			<ul class="signers-list">
-				<li v-for="(signer, signerIndex) in document.signers" :key="signerIndex">
-					<NcListItem :name="getName(signer)" :active="isSignerOpen(signerIndex)" @click="toggleDetail(signerIndex)">
-						<template #icon>
-							<NcAvatar disable-menu :is-no-user="!signer.userId" :size="44" :user="signer.userId ? signer.userId : getName(signer)" :display-name="getName(signer)" />
-						</template>
-						<template #subname>
+			<template v-for="section in participantSections" :key="section.role">
+				<h2 class="participants-subheading">
+					{{ section.title }}
+				</h2>
+				<ul class="signers-list">
+					<li v-for="(signer, signerIndex) in section.participants" :key="`${section.role}-${signerIndex}`">
+						<NcListItem :name="getName(signer)" :active="isParticipantOpen(section.role, signerIndex)" @click="toggleParticipantDetail(section.role, signerIndex)">
+							<template #icon>
+								<NcAvatar disable-menu :is-no-user="!signer.userId" :size="44" :user="signer.userId ? signer.userId : getName(signer)" :display-name="getName(signer)" />
+							</template>
+							<template #subname>
 								<span class="signer-progress">
 									{{ getSignerProgressText(signer) }}
 								</span>
-						</template>
-						<template #extra-actions>
-							<NcButton variant="tertiary" :aria-label="isSignerOpen(signerIndex) ? t('libresign', 'Hide details') : t('libresign', 'Show details')" @click.stop="toggleDetail(signerIndex)">
-								<template #icon>
-									<NcIconSvgWrapper v-if="isSignerOpen(signerIndex)" :path="mdiChevronUp" :size="20" />
-									<NcIconSvgWrapper v-else :path="mdiChevronDown" :size="20" />
+							</template>
+							<template #extra-actions>
+								<NcButton variant="tertiary" :aria-label="isParticipantOpen(section.role, signerIndex) ? t('libresign', 'Hide details') : t('libresign', 'Show details')" @click.stop="toggleParticipantDetail(section.role, signerIndex)">
+									<template #icon>
+										<NcIconSvgWrapper v-if="isParticipantOpen(section.role, signerIndex)" :path="mdiChevronUp" :size="20" />
+										<NcIconSvgWrapper v-else :path="mdiChevronDown" :size="20" />
+									</template>
+								</NcButton>
+							</template>
+						</NcListItem>
+						<div v-if="isParticipantOpen(section.role, signerIndex)" class="signer-details">
+							<NcListItem v-if="signer.request_sign_date" class="detail-item" compact>
+								<template #name>
+									<strong>{{ t('libresign', 'Requested on:') }}</strong>
+									{{ dateFromSqlAnsi(signer.request_sign_date) }}
 								</template>
-							</NcButton>
-						</template>
-					</NcListItem>
-					<div v-if="isSignerOpen(signerIndex)" class="signer-details">
-						<NcListItem v-if="signer.request_sign_date" class="detail-item" compact>
-							<template #name>
-								<strong>{{ t('libresign', 'Requested on:') }}</strong>
-								{{ dateFromSqlAnsi(signer.request_sign_date) }}
-							</template>
-						</NcListItem>
-						<NcListItem class="detail-item" compact>
-							<template #name>
-								<strong>{{ t('libresign', 'Date signed:') }}</strong>
-								<span v-if="signer.signed">{{ dateFromSqlAnsi(signer.signed) }}</span>
-								<span v-else>{{ t('libresign', 'Not signed yet') }}</span>
-							</template>
-						</NcListItem>
-						<NcListItem v-if="signer.remote_address" class="detail-item" compact>
-							<template #name>
-								<strong>{{ t('libresign', 'Remote address:') }}</strong>
-								{{ signer.remote_address }}
-							</template>
-						</NcListItem>
-						<NcListItem v-if="signer.user_agent" class="detail-item" compact>
-							<template #name>
-								<strong>{{ t('libresign', 'User agent:') }}</strong>
-								{{ signer.user_agent }}
-							</template>
-						</NcListItem>
-					</div>
-				</li>
-			</ul>
+							</NcListItem>
+							<NcListItem class="detail-item" compact>
+								<template #name>
+									<strong>{{ t('libresign', 'Date signed:') }}</strong>
+									<span v-if="isObserverParticipant(signer)">{{ t('libresign', 'Observing') }}</span>
+									<span v-else-if="signer.signed">{{ dateFromSqlAnsi(signer.signed) }}</span>
+									<span v-else>{{ t('libresign', 'Not signed yet') }}</span>
+								</template>
+							</NcListItem>
+							<NcListItem v-if="signer.remote_address" class="detail-item" compact>
+								<template #name>
+									<strong>{{ t('libresign', 'Remote address:') }}</strong>
+									{{ signer.remote_address }}
+								</template>
+							</NcListItem>
+							<NcListItem v-if="signer.user_agent" class="detail-item" compact>
+								<template #name>
+									<strong>{{ t('libresign', 'User agent:') }}</strong>
+									{{ signer.user_agent }}
+								</template>
+							</NcListItem>
+						</div>
+					</li>
+				</ul>
+			</template>
 		</div>
 	</div>
 </template>
@@ -183,6 +189,7 @@ import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
+import { isObserverParticipant, filterParticipantsByRole, PARTICIPANT_ROLE } from '../../utils/participantRole.ts'
 import type {
 	LoadedValidationEnvelopeDocument,
 	SignerDetailRecord,
@@ -205,7 +212,7 @@ const props = withDefaults(defineProps<{
 
 type EnvelopeFile = NonNullable<LoadedValidationEnvelopeDocument['files']>[number]
 
-type EnvelopeSigner = Partial<Pick<SignerDetailRecord, 'displayName' | 'email' | 'userId' | 'request_sign_date' | 'remote_address' | 'user_agent'>> & {
+type EnvelopeSigner = Partial<Pick<SignerDetailRecord, 'displayName' | 'email' | 'userId' | 'request_sign_date' | 'remote_address' | 'user_agent' | 'participantRole' | 'status'>> & {
 	signed?: string | null
 	documentsSignedCount?: number
 	totalDocuments?: number
@@ -216,9 +223,45 @@ type EnvelopeDocument = LoadedValidationEnvelopeDocument & {
 	signedDate?: string
 }
 
+type ParticipantSectionRole = typeof PARTICIPANT_ROLE.SIGNER | typeof PARTICIPANT_ROLE.OBSERVER
+
+type ParticipantSection = {
+	role: ParticipantSectionRole
+	title: string
+	participants: EnvelopeSigner[]
+}
+
 const { isTouchDevice } = useIsTouchDevice()
 const fileOpenState = ref<Record<number, boolean>>({})
-const signerOpenState = ref<Record<number, boolean>>({})
+const participantOpenState = ref<Record<string, boolean>>({})
+
+const signingParticipants = computed(() => filterParticipantsByRole(props.document.signers, PARTICIPANT_ROLE.SIGNER))
+const observerParticipants = computed(() => filterParticipantsByRole(props.document.signers, PARTICIPANT_ROLE.OBSERVER))
+const hasParticipants = computed(() => signingParticipants.value.length > 0 || observerParticipants.value.length > 0)
+const participantsSummaryTitle = computed(() => {
+	if (signingParticipants.value.length > 0) {
+		return t('libresign', 'Signers summary')
+	}
+	return t('libresign', 'Observers')
+})
+const participantSections = computed<ParticipantSection[]>(() => {
+	const sections: ParticipantSection[] = []
+	if (signingParticipants.value.length > 0) {
+		sections.push({
+			role: PARTICIPANT_ROLE.SIGNER,
+			title: t('libresign', 'Signers'),
+			participants: signingParticipants.value,
+		})
+	}
+	if (observerParticipants.value.length > 0) {
+		sections.push({
+			role: PARTICIPANT_ROLE.OBSERVER,
+			title: t('libresign', 'Observers'),
+			participants: observerParticipants.value,
+		})
+	}
+	return sections
+})
 
 const documentStatus = computed(() => getStatusLabel(props.document.status))
 const envelopeFilesCount = computed(() => {
@@ -233,19 +276,32 @@ const envelopeFilesCount = computed(() => {
 
 function resetDisclosureState() {
 	fileOpenState.value = {}
-	signerOpenState.value = {}
+	participantOpenState.value = {}
+}
+
+function getParticipantStateKey(role: ParticipantSectionRole, participantIndex: number) {
+	return `${role}-${participantIndex}`
+}
+
+function isParticipantOpen(role: ParticipantSectionRole, participantIndex: number) {
+	return !!participantOpenState.value[getParticipantStateKey(role, participantIndex)]
+}
+
+function toggleParticipantDetail(role: ParticipantSectionRole, participantIndex: number) {
+	const key = getParticipantStateKey(role, participantIndex)
+	participantOpenState.value[key] = !isParticipantOpen(role, participantIndex)
 }
 
 function dateFromSqlAnsi(date: string) {
 	return Moment(Date.parse(date)).format('LL LTS')
 }
 
-function isSignerOpen(signerIndex: number) {
-	return !!signerOpenState.value[signerIndex]
+function toggleDetail(signerIndex: number) {
+	toggleParticipantDetail(PARTICIPANT_ROLE.SIGNER, signerIndex)
 }
 
-function toggleDetail(signerIndex: number) {
-	signerOpenState.value[signerIndex] = !isSignerOpen(signerIndex)
+function isSignerOpen(signerIndex: number) {
+	return isParticipantOpen(PARTICIPANT_ROLE.SIGNER, signerIndex)
 }
 
 function isFileOpen(fileIndex: number) {
@@ -266,6 +322,10 @@ function getName(signer: EnvelopeSigner) {
 }
 
 function getSignerProgressText(signer: EnvelopeSigner) {
+	if (isObserverParticipant(signer)) {
+		return t('libresign', 'Observing')
+	}
+
 	const progress = signer.documentsSignedCount || 0
 	const total = signer.totalDocuments || 0
 	// TRANSLATORS {progress} is how many envelope documents this signer has already signed. {total} is total documents assigned to this signer.
@@ -292,11 +352,16 @@ defineExpose({
 	isTouchDevice,
 	documentStatus,
 	envelopeFilesCount,
+	hasParticipants,
+	participantsSummaryTitle,
+	participantSections,
 	isSignerOpen,
+	isParticipantOpen,
 	isFileOpen,
 	getFileStatusText,
 	dateFromSqlAnsi,
 	toggleDetail,
+	toggleParticipantDetail,
 	toggleFileDetail,
 	getName,
 	getSignerProgressText,
@@ -342,6 +407,17 @@ defineExpose({
 		color: var(--color-text-maxcontrast);
 		margin: -8px 0 16px 0;
 		font-size: 0.95rem;
+	}
+
+	.participants-subheading {
+		font-size: 1.1rem;
+		font-weight: 600;
+		margin: 0 0 12px 0;
+		color: var(--color-main-text);
+
+		&:not(:first-of-type) {
+			margin-top: 24px;
+		}
 	}
 
 	.info-document {

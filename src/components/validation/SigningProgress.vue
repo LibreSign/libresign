@@ -72,6 +72,7 @@ import {
 	mdiHelpCircle,
 } from '@mdi/js'
 import { buildStatusMap } from '../../utils/fileStatus.js'
+import { isSigningParticipant } from '../../utils/participantRole.ts'
 import type { components } from '../../types/openapi/openapi'
 import type { ValidationFileRecord } from '../../types/index'
 
@@ -298,8 +299,9 @@ function buildProgressFromValidation(doc: ValidationDocument | null | undefined)
 	}
 
 	if (Array.isArray(doc.signers)) {
-		const total = doc.signers.length
-		const signed = doc.signers.filter(signer => !!signer.signed).length
+		const signingParticipants = doc.signers.filter(isSigningParticipant)
+		const total = signingParticipants.length
+		const signed = signingParticipants.filter(signer => !!signer.signed).length
 		return {
 			total,
 			signed,

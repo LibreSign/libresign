@@ -17,7 +17,11 @@
 					:size="44" />
 			</template>
 			<template #subname>
-				<template v-if="!signer.signed">
+				<template v-if="isObserverParticipant(signer)">
+					<strong>{{ t('libresign', 'Status:') }}</strong>
+					<span>{{ t('libresign', 'Observing') }}</span>
+				</template>
+				<template v-else-if="!signer.signed">
 					<strong>{{ t('libresign', 'Status:') }}</strong>
 					<span>{{ t('libresign', 'Not signed yet') }}</span>
 				</template>
@@ -247,6 +251,7 @@ import { computed, ref } from 'vue'
 
 import CertificateChain from './CertificateChain.vue'
 import SignerTimestamp from './SignerTimestamp.vue'
+import { isObserverParticipant } from '../../utils/participantRole.ts'
 
 import {
 	mdiAlertCircle,
@@ -305,6 +310,8 @@ type SignerModel = {
 	displayName?: string
 	email?: string | null
 	name?: string
+	participantRole?: string | null
+	status?: number | null
 	remote_address?: string
 	user_agent?: string
 	valid_from?: string | number
@@ -402,6 +409,10 @@ function isRevokedBeforeSigning(signer: SignerModel) {
 }
 
 function hasValidationIssues(signer: SignerModel) {
+	if (isObserverParticipant(signer)) {
+		return false
+	}
+
 	return signer.signature_validation?.id !== 1
 		|| signer.certificate_validation?.id !== 1
 		|| isRevokedBeforeSigning(signer)
@@ -427,6 +438,10 @@ function getValidityStatus(signer: SignerModel) {
 }
 
 function hasValidationStatus(signer: SignerModel) {
+	if (isObserverParticipant(signer)) {
+		return false
+	}
+
 	return !!(signer.signature_validation || signer.certificate_validation || signer.crl_validation
 		|| (signer.valid_from && signer.valid_to && signer.signed))
 }

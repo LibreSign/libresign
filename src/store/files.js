@@ -22,6 +22,7 @@ import { usePoliciesStore } from './policies'
 import { useSidebarStore } from './sidebar.js'
 import { FILE_STATUS } from '../constants.js'
 import { getSigningRouteUuid } from '../utils/signRequestUuid.ts'
+import { isSigningParticipant } from '../utils/participantRole.ts'
 
 /** @typedef {import('../types/index').IdentifyMethodRecord} SignerMethodRecord */
 /** @typedef {import('../types/index').FileSettings} FileSettings */
@@ -687,6 +688,7 @@ const _filesStore = defineStore('files', () => {
 			return false
 		}
 		return selectedFile.signers
+			.filter(isSigningParticipant)
 			.filter(signer => signer.signed?.length > 0).length > 0
 	}
 
@@ -701,9 +703,10 @@ const _filesStore = defineStore('files', () => {
 		if (!Array.isArray(selectedFile.signers)) {
 			return false
 		}
-		return selectedFile.signers.length > 0
-			&& selectedFile.signers
-				.filter(signer => signer.signed?.length > 0).length === selectedFile.signers.length
+		const signingParticipants = selectedFile.signers.filter(isSigningParticipant)
+		return signingParticipants.length > 0
+			&& signingParticipants
+				.filter(signer => signer.signed?.length > 0).length === signingParticipants.length
 	}
 
 	function canSign(file) {

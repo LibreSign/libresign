@@ -12,6 +12,7 @@ import {
 	isSigningParticipant,
 	PARTICIPANT_ROLE,
 } from '../../utils/participantRole.ts'
+import { SIGN_REQUEST_STATUS } from '../../constants.js'
 
 describe('participantRole utils', () => {
 	it('treats missing role as signer', () => {
@@ -28,5 +29,16 @@ describe('participantRole utils', () => {
 		expect(filterParticipantsByRole(participants, PARTICIPANT_ROLE.SIGNER)).toHaveLength(1)
 		expect(filterParticipantsByRole(participants, PARTICIPANT_ROLE.OBSERVER)).toHaveLength(1)
 		expect(countSigningParticipants(participants)).toBe(1)
+	})
+
+	it('treats observing status as observer even when role is signer', () => {
+		const participant = {
+			displayName: 'Observer',
+			participantRole: PARTICIPANT_ROLE.SIGNER,
+			status: SIGN_REQUEST_STATUS.OBSERVING,
+		}
+
+		expect(isObserverParticipant(participant)).toBe(true)
+		expect(isSigningParticipant(participant)).toBe(false)
 	})
 })
