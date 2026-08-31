@@ -11,11 +11,11 @@ namespace OCA\Libresign\Tests\Unit\Service\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignRequestStatus;
+use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\SignRequest\StatusUpdatePolicy;
-use OCA\Libresign\Service\FileStatusService;
 use PHPUnit\Framework\TestCase;
 
 final class StatusServiceObserverTest extends TestCase {

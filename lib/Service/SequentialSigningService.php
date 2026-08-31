@@ -10,7 +10,6 @@ namespace OCA\Libresign\Service;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Enum\SignRequestStatus;
 
