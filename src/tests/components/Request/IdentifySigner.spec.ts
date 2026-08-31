@@ -260,6 +260,15 @@ describe('IdentifySigner rules', () => {
 
 			expect(wrapper.vm.nameHaveError).toBe(false)
 		})
+
+		it('shows observer-specific validation message', async () => {
+			await wrapper.setProps({ participantRole: 'observer' })
+			wrapper.vm.displayName = 'Jo'
+			wrapper.vm.onNameChange()
+
+			expect(wrapper.vm.nameHaveError).toBe(true)
+			expect(wrapper.vm.nameHelperText).toBe('Please enter observer name.')
+		})
 	})
 
 	describe('signer update handling', () => {

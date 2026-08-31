@@ -55,6 +55,7 @@ import { isSigningParticipant } from '../utils/participantRole.ts'
  * 	status?: number
  * 	statusText?: string
  * 	signingOrder?: number
+ * 	participantRole?: string
  * 	localKey?: string
  * 	acceptsEmailNotifications?: boolean
  * 	identifyMethods?: SignerMethodRecord[]
@@ -983,9 +984,9 @@ const _filesStore = defineStore('files', () => {
 				break
 			}
 		}
-		if (!signer.signingOrder && editableFile.signatureFlow === 'ordered_numeric' && (!signer.participantRole || signer.participantRole === 'signer')) {
+		if (!signer.signingOrder && editableFile.signatureFlow === 'ordered_numeric' && isSigningParticipant(signer)) {
 			const maxOrder = editableFile.signers
-				.filter((currentSigner) => !currentSigner.participantRole || currentSigner.participantRole === 'signer')
+				.filter(isSigningParticipant)
 				.reduce((max, currentSigner) => Math.max(max, currentSigner.signingOrder || 0), 0)
 			signer.signingOrder = maxOrder + 1
 		}
@@ -1012,9 +1013,9 @@ const _filesStore = defineStore('files', () => {
 			.filter((currentSigner) => currentSigner.localKey !== signer.localKey)
 		selectedFile.signersCount = selectedFile.signers.length
 
-		if (selectedFile.signatureFlow === 'ordered_numeric' && signer.signingOrder && (!signer.participantRole || signer.participantRole === 'signer')) {
+		if (selectedFile.signatureFlow === 'ordered_numeric' && signer.signingOrder && isSigningParticipant(signer)) {
 			selectedFile.signers.forEach((s) => {
-				if (s.signingOrder && s.signingOrder > signer.signingOrder && (!s.participantRole || s.participantRole === 'signer')) {
+				if (s.signingOrder && s.signingOrder > signer.signingOrder && isSigningParticipant(s)) {
 					s.signingOrder -= 1
 				}
 			})

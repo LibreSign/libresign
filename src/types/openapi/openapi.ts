@@ -1340,6 +1340,7 @@ export type components = {
             signingOrder?: number;
             /** Format: int64 */
             status?: number;
+            participantRole?: components["schemas"]["ParticipantRole"];
         };
         Notify: {
             /** Format: int64 */
@@ -1364,6 +1365,8 @@ export type components = {
             last: string | null;
             first: string | null;
         };
+        /** @enum {string} */
+        ParticipantRole: "signer" | "observer";
         /** @enum {string} */
         PolicyScope: "system" | "group" | "user";
         PolicySnapshotEntry: {
@@ -1566,8 +1569,9 @@ export type components = {
              * Format: int64
              * @enum {integer}
              */
-            status: 0 | 1 | 2;
+            status: 0 | 1 | 2 | 3;
             statusText: string;
+            participantRole?: components["schemas"]["ParticipantRole"];
         };
         SigningJob: {
             /** @enum {string} */

@@ -10,6 +10,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import type { Pinia } from 'pinia'
 import Signers from '../../../components/Signers/Signers.vue'
 import { useFilesStore } from '../../../store/files.js'
+import { PARTICIPANT_ROLE } from '../../../utils/participantRole.ts'
 import type { SignatureFlowValue } from '../../../types/index'
 
 type FilesStore = ReturnType<typeof useFilesStore>
@@ -20,6 +21,7 @@ type SignerRecord = {
 	displayName?: string
 	signed?: string | null | boolean | unknown[]
 	signingOrder?: number
+	participantRole?: string
 	[key: string]: unknown
 }
 
@@ -54,7 +56,7 @@ describe('Signers', () => {
 	let filesStore: FilesStoreMock
 	let pinia: Pinia
 
-	const createWrapper = (props: Partial<{ event: string }> = {}): SignersWrapper => {
+	const createWrapper = (props: Partial<{ event: string, roleFilter: typeof PARTICIPANT_ROLE[keyof typeof PARTICIPANT_ROLE] | null }> = {}): SignersWrapper => {
 		return shallowMount(Signers, {
 			props: {
 				event: '',
@@ -139,6 +141,28 @@ describe('Signers', () => {
 
 			expect(filesStore.selectedFile.signers).toEqual([{ localKey: 'signer:2' }, { localKey: 'signer:3' }])
 		})
+
+		it('setter preserves observers when reordering signers', async () => {
+			filesStore.selectedFile = {
+				signers: [
+					{ localKey: 'signer:1', participantRole: PARTICIPANT_ROLE.SIGNER, signingOrder: 1 },
+					{ localKey: 'signer:2', participantRole: PARTICIPANT_ROLE.SIGNER, signingOrder: 2 },
+					{ localKey: 'observer:1', participantRole: PARTICIPANT_ROLE.OBSERVER },
+				],
+			}
+			wrapper = createWrapper({ roleFilter: PARTICIPANT_ROLE.SIGNER })
+
+			wrapper.vm.sortableSigners = [
+				{ localKey: 'signer:2', participantRole: PARTICIPANT_ROLE.SIGNER, signingOrder: 2 },
+				{ localKey: 'signer:1', participantRole: PARTICIPANT_ROLE.SIGNER, signingOrder: 1 },
+			]
+
+			expect(filesStore.selectedFile.signers).toEqual([
+				{ localKey: 'signer:2', participantRole: PARTICIPANT_ROLE.SIGNER, signingOrder: 2 },
+				{ localKey: 'signer:1', participantRole: PARTICIPANT_ROLE.SIGNER, signingOrder: 1 },
+				{ localKey: 'observer:1', participantRole: PARTICIPANT_ROLE.OBSERVER },
+			])
+		})
 	})
 
 	describe('RULE: isOrderedNumeric checks if signatureFlow is ordered_numeric', () => {
@@ -219,6 +243,19 @@ describe('Signers', () => {
 			}
 			filesStore.canSave = vi.fn().mockReturnValue(true)
 			wrapper = createWrapper()
+
+			expect(wrapper.vm.canReorder).toBe(false)
+		})
+
+		it('returns false when filtering observers', () => {
+			filesStore.selectedFile = {
+				signers: [
+					{ localKey: 'observer:1', participantRole: PARTICIPANT_ROLE.OBSERVER },
+					{ localKey: 'observer:2', participantRole: PARTICIPANT_ROLE.OBSERVER },
+				],
+			}
+			filesStore.canSave = vi.fn().mockReturnValue(true)
+			wrapper = createWrapper({ roleFilter: PARTICIPANT_ROLE.OBSERVER })
 
 			expect(wrapper.vm.canReorder).toBe(false)
 		})
@@ -304,6 +341,23 @@ describe('Signers', () => {
 			for (let i = 0; i < 5; i++) {
 				expect(filesStore.selectedFile.signers![i].signingOrder).toBe(i + 1)
 			}
+		})
+
+		it('does not renumber observers when recalculating signing order', () => {
+			filesStore.selectedFile = {
+				signers: [
+					{ signingOrder: 1, participantRole: PARTICIPANT_ROLE.SIGNER },
+					{ signingOrder: 2, participantRole: PARTICIPANT_ROLE.SIGNER },
+					{ signingOrder: 99, participantRole: PARTICIPANT_ROLE.OBSERVER },
+				],
+			}
+			wrapper = createWrapper({ roleFilter: PARTICIPANT_ROLE.SIGNER })
+
+			wrapper.vm.onDragEnd({ oldIndex: 0, newIndex: 1 })
+
+			expect(filesStore.selectedFile.signers![0].signingOrder).toBe(1)
+			expect(filesStore.selectedFile.signers![1].signingOrder).toBe(2)
+			expect(filesStore.selectedFile.signers![2].signingOrder).toBe(99)
 		})
 	})
 

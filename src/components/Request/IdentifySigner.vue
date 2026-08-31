@@ -310,8 +310,13 @@ function onNameChange() {
 		nameHaveError.value = false
 		return
 	}
-	// TRANSLATORS Validation helper text requesting a valid signer name.
-	nameHelperText.value = t('libresign', 'Please enter signer name.')
+	if (isObserver.value) {
+		// TRANSLATORS Validation helper text requesting a valid observer name.
+		nameHelperText.value = t('libresign', 'Please enter observer name.')
+	} else {
+		// TRANSLATORS Validation helper text requesting a valid signer name.
+		nameHelperText.value = t('libresign', 'Please enter signer name.')
+	}
 	nameHaveError.value = true
 }
 

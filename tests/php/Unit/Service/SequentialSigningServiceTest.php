@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -381,6 +382,11 @@ final class SequentialSigningServiceTest extends TestCase {
 				[[1, SignRequestStatus::SIGNED, 1], [2, SignRequestStatus::DRAFT, 3]],
 				false,
 			],
+			'ignores observers with lower pending order' => [
+				3,
+				[[1, SignRequestStatus::DRAFT, 1, ParticipantRole::OBSERVER], [2, SignRequestStatus::SIGNED, 2]],
+				false,
+			],
 		];
 	}
 
@@ -436,16 +442,23 @@ final class SequentialSigningServiceTest extends TestCase {
 				$definition[0],
 				$definition[1],
 				$definition[2],
+				$definition[3] ?? ParticipantRole::SIGNER,
 			),
 			$definitions,
 		);
 	}
 
-	private function makeSignRequest(int $id, SignRequestStatus $status, int $order): SignRequest {
+	private function makeSignRequest(
+		int $id,
+		SignRequestStatus $status,
+		int $order,
+		ParticipantRole $participantRole = ParticipantRole::SIGNER,
+	): SignRequest {
 		$request = new SignRequest();
 		$request->setId($id);
 		$request->setStatusEnum($status);
 		$request->setSigningOrder($order);
+		$request->setParticipantRole($participantRole->value);
 		return $request;
 	}
 }

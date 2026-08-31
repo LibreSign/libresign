@@ -33,6 +33,6 @@ enum ParticipantRole: string {
 			return self::SIGNER;
 		}
 
-		return self::from($value);
+		return self::tryFrom($value) ?? self::SIGNER;
 	}
 }

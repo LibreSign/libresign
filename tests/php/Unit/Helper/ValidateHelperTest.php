@@ -17,6 +17,7 @@ use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
@@ -87,8 +88,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->requestSignAuthorizationService = $this->createMock(RequestSignAuthorizationService::class);
 		$this->runtimeRequirementValidator = $this->createMock(RuntimeRequirementValidator::class);
 		$this->policyService = $this->createMock(PolicyService::class);
-		$resolvedPolicy = $this->createMock(ResolvedPolicy::class);
-		$resolvedPolicy->method('getEffectiveValueAsBool')->willReturn(true);
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setEffectiveValue(true);
 		$this->policyService->method('resolve')->with(ObserverProfilePolicy::KEY)->willReturn($resolvedPolicy);
 	}
 
@@ -328,6 +329,51 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectException(LibresignException::class);
 
 		$this->getValidateHelper()->validateSigner($uuid);
+	}
+
+	public function testValidateSignerBlocksObserverParticipants(): void {
+		$uuid = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+		$signRequest = $this->createSignRequestEntity(12, 22, SignRequestStatus::OBSERVING);
+		$signRequest->setParticipantRole(ParticipantRole::OBSERVER->value);
+		$file = $this->createLibresignFile();
+
+		$this->mockSignRequestByUuid($uuid, $signRequest, $file);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Observers cannot sign this document');
+
+		$this->getValidateHelper()->validateSigner($uuid);
+	}
+
+	public function testValidateIdentifySignersRejectsObserverWhenPolicyDisabled(): void {
+		$signatureMethod = $this->createMock(ISignatureMethod::class);
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
+		$identifyMethod->method('validateToRequest');
+
+		$this->identifyMethodService
+			->method('getInstanceOfIdentifyMethod')
+			->willReturn($identifyMethod);
+
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setEffectiveValue(false);
+		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyService->method('resolve')->with(ObserverProfilePolicy::KEY)->willReturn($resolvedPolicy);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Observer participants are not enabled');
+
+		$this->getValidateHelper()->validateIdentifySigners([
+			'status' => FileStatus::DRAFT->value,
+			'signers' => [
+				[
+					'participantRole' => 'observer',
+					'identifyMethods' => [
+						['method' => 'email', 'value' => 'witness@example.com'],
+					],
+				],
+			],
+		]);
 	}
 
 	public function testValidateFileWithoutAllNecessaryData():void {

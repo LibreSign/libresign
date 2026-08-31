@@ -470,6 +470,7 @@
     "Update" : "Atualizar",
     "Failed to save or update signature request" : "Falha ao salvar ou atualizar a solicitação de assinatura",
     "Please enter signer name." : "Por favor, insira o nome do signatário.",
+    "Please enter observer name." : "Por favor, insira o nome da testemunha.",
     "This signer cannot be used because the identification method \"{method}\" has been disabled by the administrator." : "Este signatário não pode ser utilizado porque o método de identificação \"{method}\" foi desativado pela administração.",
     "Add custom message" : "Adicionar mensagem personalizada",
     "URL of a PDF file" : "URL de um arquivo PDF",
