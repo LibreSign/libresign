@@ -33,7 +33,13 @@
 				{{ t('libresign', 'Add') }}
 			</NcButton>
 			<NcActions v-else
-				:aria-label="t('libresign', 'Add participant')">
+				:aria-label="t('libresign', 'Add participant')"
+				:menu-name="t('libresign', 'Add')"
+				:force-name="true"
+				:variant="hasSigners ? 'secondary' : 'primary'">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiPlus" :size="20" />
+				</template>
 				<NcActionButton :close-after-click="true"
 					@click="addParticipant(PARTICIPANT_ROLE.SIGNER)">
 					<template #icon>
@@ -48,10 +54,6 @@
 					</template>
 					{{ t('libresign', 'Observer') }}
 				</NcActionButton>
-				<template #icon>
-					<NcIconSvgWrapper :path="mdiPlus" :size="20" />
-				</template>
-				{{ t('libresign', 'Add') }}
 			</NcActions>
 		</template>
 		<NcCheckboxRadioSwitch v-if="showPreserveOrder && !isOriginalFileDeleted"
