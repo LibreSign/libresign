@@ -340,7 +340,7 @@ class InjectionMiddleware extends Middleware {
 
 		try {
 			$signRequest = $this->signRequestMapper->getByUuid($uuid);
-			if ($signRequest->getStatusEnum() !== SignRequestStatus::SIGNED) {
+			if ($signRequest->getStatusEnum() !== SignRequestStatus::SIGNED && !$signRequest->isObserver()) {
 				return;
 			}
 			$file = $this->fileMapper->getById($signRequest->getFileId());

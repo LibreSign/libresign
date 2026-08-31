@@ -64,6 +64,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'getDisplayName' => 'John Doe'
 				}
 			);
+		$signRequest->method('isObserver')->willReturn(false);
 
 		$file = $this->createMock(File::class);
 		$file
@@ -80,6 +81,46 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
+	public function testSuccessNotifyUnsignedObserverUsesValidationLink(): void {
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest
+			->method('__call')
+			->willReturnCallback(fn (string $method)
+				=> match ($method) {
+					'getUuid' => 'observer-uuid',
+					'getFileId' => 1,
+					'getDisplayName' => 'Jane Observer',
+				}
+			);
+		$signRequest->method('isObserver')->willReturn(true);
+
+		$file = $this->createMock(File::class);
+		$file
+			->method('__call')
+			->willReturnCallback(fn (string $method)
+				=> match ($method) {
+					'getName' => 'Filename',
+					'getUuid' => 'file-uuid',
+				}
+			);
+		$this->fileMapper
+			->method('getById')
+			->willReturn($file);
+		$this->appConfig
+			->method('getValueBool')
+			->willReturn(true);
+		$this->urlGenerator
+			->expects($this->once())
+			->method('linkToRouteAbsolute')
+			->with(
+				'libresign.page.validationFilePublic',
+				['uuid' => 'file-uuid'],
+			)
+			->willReturn('https://example.com/validation/file-uuid');
+
+		$this->service->notifyUnsignedUser($signRequest, 'observer@example.com');
+	}
+
 	public function testFailToSendMailToUnsignedUser():void {
 		$this->expectExceptionMessage('Notify unsigned notification mail could not be sent');
 
@@ -93,6 +134,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'getDisplayName' => 'John doe',
 				}
 			);
+		$signRequest->method('isObserver')->willReturn(false);
 
 		$file = $this->createMock(File::class);
 		$file
