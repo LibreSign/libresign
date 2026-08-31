@@ -10,6 +10,7 @@ import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support
 import { login } from '../support/nc-login'
 import { configureOpenSsl, deleteAppConfig, getAppConfig, setAppConfig, setCertificateEngine, getSystemPolicyValue, setSystemPolicy } from '../support/nc-provisioning'
 import { setSystemPolicyEntry } from '../support/policy-api'
+import { clickAddSigner } from '../support/request-signature'
 import { makeAdminContext, useRequestSignPolicyGuard } from '../support/system-policies'
 
 useRequestSignPolicyGuard()
@@ -80,7 +81,7 @@ async function addEmailSigner(
 	email: string,
 	name: string,
 ) {
-	await page.getByRole('button', { name: 'Add signer' }).click()
+	await clickAddSigner(page)
 	const emailInput = page.getByPlaceholder('Email')
 	await emailInput.click()
 	await emailInput.pressSequentially(email, { delay: 50 })

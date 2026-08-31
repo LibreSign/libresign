@@ -8,6 +8,7 @@ import { expect, test } from '@playwright/test'
 import { createMailpitClient, waitForEmailTo } from '../support/mailpit'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
+import { clickAddSigner } from '../support/request-signature'
 import { useRequestSignPolicyGuard } from '../support/system-policies'
 
 useRequestSignPolicyGuard()
@@ -48,7 +49,7 @@ test('request signatures from two signers in parallel', async ({ page }) => {
 	await page.getByRole('button', { name: 'Send' }).click()
 
 	// Add first signer — only email method is active, so the field appears directly (no tabs)
-	await page.getByRole('button', { name: 'Add signer' }).click()
+	await clickAddSigner(page)
 	await page.getByPlaceholder('Email').click()
 	await page.getByPlaceholder('Email').pressSequentially('signer01@libresign.coop', { delay: 50 })
 	await page.getByRole('option', { name: 'signer01@libresign.coop' }).click()
@@ -56,7 +57,7 @@ test('request signatures from two signers in parallel', async ({ page }) => {
 	await page.getByRole('button', { name: 'Save' }).click()
 
 	// Add second signer
-	await page.getByRole('button', { name: 'Add signer' }).click()
+	await clickAddSigner(page)
 	await page.getByPlaceholder('Email').click()
 	await page.getByPlaceholder('Email').pressSequentially('signer02@libresign.coop', { delay: 50 })
 	await page.getByRole('option', { name: 'signer02@libresign.coop' }).click()
