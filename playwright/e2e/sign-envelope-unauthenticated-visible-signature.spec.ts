@@ -9,6 +9,7 @@ import type { APIRequestContext, Locator, Page } from '@playwright/test'
 import { createMailpitClient, extractSignLink, waitForEmailTo } from '../support/mailpit'
 import { configureOpenSsl, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
 import { getSmallValidPdfBase64 } from '../support/pdf-fixtures'
+import { clickSignDocumentButton } from '../support/sign-flow'
 import { useFooterPolicyGuard, useRequestSignPolicyGuard } from '../support/system-policies'
 
 useFooterPolicyGuard()
@@ -100,6 +101,15 @@ async function enableEnvelopeScenario(request: APIRequestContext) {
 			],
 		}),
 	)
+	await setSystemPolicy(request, 'signature_stamp', JSON.stringify({
+		template: '{{SignerCommonName}}',
+		template_font_size: 9.8,
+		signature_font_size: 20,
+		signature_width: 350,
+		signature_height: 100,
+		render_mode: 'default',
+		background_type: 'default',
+	}))
 }
 
 function findSigner(files: OcsEnvelopeChildFile[] | undefined, scenario: EnvelopeSigningScenario) {
@@ -209,21 +219,21 @@ async function drawSignatureOnCanvas(signatureDialog: Locator, page: Page) {
 }
 
 async function defineVisibleSignature(page: Page) {
-	const openSignButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
-	const defineSignatureButton = page.locator('.button-wrapper').getByRole('button', { name: /Define your signature\.?/i }).first()
-	if (!await defineSignatureButton.isVisible().catch(() => false)) {
-		if (await openSignButton.isVisible().catch(() => false)) {
-			await openSignButton.click({ force: true })
-		}
-	}
+	const defineSignatureButton = page.getByRole('button', { name: /Define your signature\.?/i }).first()
+	const deleteSignatureButton = page.getByRole('button', { name: /Delete signature/i }).first()
+	const createSignatureLink = page.getByText(/No signature, click here to create a new one/i).first()
 
-	const deleteSignatureButton = page.getByRole('button', { name: 'Delete signature' })
 	if (await deleteSignatureButton.isVisible().catch(() => false)) {
 		await deleteSignatureButton.click()
+		await expect(defineSignatureButton.or(createSignatureLink)).toBeVisible({ timeout: 15_000 })
 	}
 
-	await expect(defineSignatureButton).toBeVisible({ timeout: 15_000 })
-	await defineSignatureButton.click({ force: true })
+	if (await createSignatureLink.isVisible().catch(() => false)) {
+		await createSignatureLink.click()
+	} else {
+		await expect(defineSignatureButton).toBeVisible({ timeout: 15_000 })
+		await defineSignatureButton.click()
+	}
 
 	const signatureDialog = page.getByRole('dialog', { name: 'Customize your signatures' })
 	await expect(signatureDialog).toBeVisible()
@@ -234,15 +244,11 @@ async function defineVisibleSignature(page: Page) {
 	await expect(confirmDialog).toBeVisible()
 	await confirmDialog.getByRole('button', { name: 'Save' }).click()
 
-	const signDocumentCta = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
-	await expect(signDocumentCta).toBeVisible({ timeout: 15_000 })
+	await expect(page.getByRole('button', { name: 'Sign document' }).first()).toBeVisible({ timeout: 15_000 })
 }
 
 async function finishSigning(page: Page) {
-	const openSignButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
-	if (await openSignButton.isVisible().catch(() => false)) {
-		await openSignButton.click({ force: true })
-	}
+	await clickSignDocumentButton(page)
 	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
 }
 

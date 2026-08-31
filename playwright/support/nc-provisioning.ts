@@ -491,6 +491,18 @@ export async function deleteUserPfx(
 }
 
 /**
+ * Clears a user's stored signing certificate so the next signing attempt can
+ * regenerate credentials from the current engine configuration.
+ */
+export async function resetUserSigningCertificate(
+	request: APIRequestContext,
+	userId: string,
+	password: string,
+): Promise<void> {
+	await deleteUserPfx(request, userId, password).catch(() => {})
+}
+
+/**
  * Configures the OpenSSL certificate engine.
  * Equivalent to: `occ libresign:configure:openssl --cn=... --c=... ...`
  */
