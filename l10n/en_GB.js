@@ -294,6 +294,7 @@ OC.L10N.register(
     "A target user is required to save a user policy." : "A target user is required to save a user policy.",
     "Envelope %s" : "Envelope %s",
     "Empty signers list" : "Empty signers list",
+    "At least one signer is required" : "At least one signer is required",
     "Signers list needs to be an array" : "Signers list needs to be an array",
     "Sending authorization code not enabled." : "Sending authorization code not enabled.",
     "File already signed by you" : "File already signed by you",

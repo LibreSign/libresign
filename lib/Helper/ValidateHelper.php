@@ -611,12 +611,37 @@ class ValidateHelper {
 		}
 
 		$this->validateSignersDataStructure($data);
+		$this->validateSigningParticipantsRequired($data);
 		$this->docMdpValidator->validateSignersCount($data);
 		$this->validateDocMdpPdfRestrictions($data);
 
 		foreach ($data['signers'] as $signer) {
 			$this->validateSignerData($signer);
 		}
+	}
+
+	private function validateSigningParticipantsRequired(array $data): void {
+		if (($data['status'] ?? FileStatus::DRAFT->value) === FileStatus::DRAFT->value) {
+			return;
+		}
+
+		if (!is_array($data['signers'])) {
+			return;
+		}
+
+		foreach ($data['signers'] as $signer) {
+			if (!is_array($signer)) {
+				continue;
+			}
+
+			$role = ParticipantRole::fromNullable($signer['participantRole'] ?? null);
+			if ($role->canSign()) {
+				return;
+			}
+		}
+
+		// TRANSLATORS Validation error when requesting signatures without any signing participants.
+		throw new LibresignException($this->l10n->t('At least one signer is required'));
 	}
 
 	private function validateSignersDataStructure(array $data): void {

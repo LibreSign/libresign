@@ -773,6 +773,28 @@ function showRequestError(error: unknown, fallbackMessage: string): void {
 	showError(fallbackMessage)
 }
 
+function showSaveSignatureRequestFailure(response: unknown, fallbackMessage: string): void {
+	if (typeof response === 'object'
+		&& response !== null
+		&& 'success' in response
+		&& response.success === false) {
+		const message = 'message' in response && typeof response.message === 'string' && response.message.length > 0
+			? response.message
+			: fallbackMessage
+		showError(message)
+		return
+	}
+
+	showError(fallbackMessage)
+}
+
+function isSaveSignatureRequestFailure(response: unknown): response is { success: false; message?: string } {
+	return typeof response === 'object'
+		&& response !== null
+		&& 'success' in response
+		&& response.success === false
+}
+
 function isSignerSigned(signer: Partial<EditableRequestSigner>) {
 	if (Array.isArray(signer?.signed)) {
 		return signer.signed.length > 0
@@ -895,7 +917,28 @@ const hasSignersWithDisabledMethods = computed(() => {
 function hasAnyDraftSigner(file: EditableRequestFile | null | undefined) {
 	const fileSigners = file?.signers
 	const signers: EditableRequestSigner[] = Array.isArray(fileSigners) ? fileSigners : []
-	return signers.some((signer: EditableRequestSigner) => signer.status === SIGN_REQUEST_STATUS.DRAFT)
+	return signers
+		.filter(isSigningParticipant)
+		.some((signer: EditableRequestSigner) => signer.status === SIGN_REQUEST_STATUS.DRAFT)
+}
+
+function getSigningParticipantsFromFile(file: EditableRequestFile | null | undefined) {
+	const fileSigners = file?.signers
+	const signers: EditableRequestSigner[] = Array.isArray(fileSigners) ? fileSigners : []
+	return signers.filter(isSigningParticipant)
+}
+
+function ensureHasSigningParticipants(): boolean {
+	const participants = Array.isArray(filesStore.getFile()?.signers) ? filesStore.getFile()?.signers : []
+	const hasSigningParticipant = participants.some((participant) => !isObserverParticipant(participant))
+
+	if (hasSigningParticipant) {
+		return true
+	}
+
+	// TRANSLATORS Error toast shown when requesting signatures with only observers and no signers.
+	showError(t('libresign', 'At least one signer is required'))
+	return false
 }
 
 function getCurrentSigningOrder(signersNotSigned: EditableRequestSigner[]) {
@@ -905,15 +948,16 @@ function getCurrentSigningOrder(signersNotSigned: EditableRequestSigner[]) {
 function hasOrderDraftSigners(file: EditableRequestFile | null | undefined, order: number) {
 	const fileSigners = file?.signers
 	const signers: EditableRequestSigner[] = Array.isArray(fileSigners) ? fileSigners : []
-	return signers.some((signer: EditableRequestSigner) => {
-		const signerOrder = signer.signingOrder || 1
-		return signerOrder === order && signer.status === SIGN_REQUEST_STATUS.DRAFT
-	})
+	return signers
+		.filter(isSigningParticipant)
+		.some((signer: EditableRequestSigner) => {
+			const signerOrder = signer.signingOrder || 1
+			return signerOrder === order && signer.status === SIGN_REQUEST_STATUS.DRAFT
+		})
 }
 
 function hasSequentialDraftSigners(file: EditableRequestFile | null | undefined) {
-	const fileSigners = file?.signers
-	const signers: EditableRequestSigner[] = Array.isArray(fileSigners) ? fileSigners : []
+	const signers = getSigningParticipantsFromFile(file)
 	const signersNotSigned = signers.filter((signer: EditableRequestSigner) => !isSignerSigned(signer))
 	if (signersNotSigned.length === 0) {
 		return false
@@ -1376,11 +1420,15 @@ async function confirmRequestSigner() {
 			return signer
 		})
 		const policy = getPolicyPayloadForSave()
-		await filesStore.saveOrUpdateSignatureRequest({
+		const response = await filesStore.saveOrUpdateSignatureRequest({
 			signers: signers as never,
 			status: 1,
 			...(policy ? { policy } : {}),
 		})
+		if (isSaveSignatureRequestFailure(response)) {
+			showSaveSignatureRequestFailure(response, t('libresign', 'Failed to create signature request'))
+			return
+		}
 		showSuccess(t('libresign', 'Signature requested'))
 		showConfirmRequestSigner.value = false
 		selectedSigner.value = null
@@ -1429,11 +1477,22 @@ async function save() {
 }
 
 async function request() {
+	await ensureCurrentFileDetail()
+
+	if (!ensureHasSigningParticipants()) {
+		return
+	}
+
 	showConfirmRequest.value = true
 }
 
 async function confirmRequest() {
 	await ensureCurrentFileDetail()
+
+	if (!ensureHasSigningParticipants()) {
+		return
+	}
+
 	hasLoading.value = true
 	try {
 		const policy = getPolicyPayloadForSave()
@@ -1441,7 +1500,11 @@ async function confirmRequest() {
 			status: 1,
 			...(policy ? { policy } : {}),
 		})
-		showSuccess(t('libresign', response.message || 'Signature requested'))
+		if (isSaveSignatureRequestFailure(response)) {
+			showSaveSignatureRequestFailure(response, t('libresign', 'Failed to create signature requests'))
+			return
+		}
+		showSuccess(t('libresign', 'Signature requested'))
 		showConfirmRequest.value = false
 	} catch (error: unknown) {
 		showRequestError(error, t('libresign', 'Failed to create signature requests'))

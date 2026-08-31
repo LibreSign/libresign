@@ -16,6 +16,7 @@ use OCA\Libresign\Db\IdDocs;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
@@ -1156,6 +1157,61 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$result = $validateHelper->validateIdentifySigners($data);
 
 		$this->assertNull($result);
+	}
+
+	public function testValidateIdentifySignersRequiresSigningParticipantWhenRequesting(): void {
+		$signatureMethod = $this->createMock(ISignatureMethod::class);
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
+		$identifyMethod->method('validateToRequest');
+
+		$this->identifyMethodService
+			->method('getInstanceOfIdentifyMethod')
+			->willReturn($identifyMethod);
+
+		$validateHelper = $this->getValidateHelper();
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('At least one signer is required');
+
+		$validateHelper->validateIdentifySigners([
+			'status' => FileStatus::ABLE_TO_SIGN->value,
+			'signers' => [
+				[
+					'participantRole' => 'observer',
+					'identifyMethods' => [
+						['method' => 'email', 'value' => 'witness@example.com'],
+					],
+				],
+			],
+		]);
+	}
+
+	public function testValidateIdentifySignersAllowsObserverOnlyDraft(): void {
+		$signatureMethod = $this->createMock(ISignatureMethod::class);
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
+		$identifyMethod->method('validateToRequest');
+
+		$this->identifyMethodService
+			->method('getInstanceOfIdentifyMethod')
+			->willReturn($identifyMethod);
+
+		$validateHelper = $this->getValidateHelper();
+
+		$validateHelper->validateIdentifySigners([
+			'status' => FileStatus::DRAFT->value,
+			'signers' => [
+				[
+					'participantRole' => 'observer',
+					'identifyMethods' => [
+						['method' => 'email', 'value' => 'witness@example.com'],
+					],
+				],
+			],
+		]);
+
+		$this->addToAssertionCount(1);
 	}
 
 	public function testNormalizeRequestSignersReturnsCanonicalIdentifyMethods(): void {
