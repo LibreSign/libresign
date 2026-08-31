@@ -5,6 +5,9 @@
 
 import { expect, type Page } from '@playwright/test'
 
+/** Accessible name of the admin option in the account signer search list. */
+export const ADMIN_SIGNER_OPTION = /admin.*admin@email\.tld/i
+
 /**
  * Opens the add-signer dialog from the request-signature sidebar.
  *
@@ -21,7 +24,7 @@ export async function clickAddSigner(page: Page): Promise<void> {
 		await signerMenuItem.click()
 	}
 
-	await expect(page.getByRole('dialog', { name: 'Add new signer' })).toBeVisible({ timeout: 10_000 })
+	await expect(getAddSignerDialog(page)).toBeVisible({ timeout: 10_000 })
 }
 
 /**
@@ -29,4 +32,63 @@ export async function clickAddSigner(page: Page): Promise<void> {
  */
 export async function expectAddSignerControlVisible(page: Page): Promise<void> {
 	await expect(page.getByRole('button', { name: 'Add', exact: true })).toBeVisible({ timeout: 15_000 })
+}
+
+function getAddSignerDialog(page: Page) {
+	return page.getByRole('dialog').filter({ hasText: /Add new signer/i }).last()
+}
+
+function getSignerSearchCombobox(page: Page) {
+	return getAddSignerDialog(page).getByRole('combobox', { name: 'Search signer' })
+}
+
+/**
+ * Selects an account-backed signer from the add-signer dialog search list.
+ */
+export async function selectAccountSigner(
+	page: Page,
+	query: string,
+	optionName: string | RegExp = ADMIN_SIGNER_OPTION,
+): Promise<void> {
+	const dialog = getAddSignerDialog(page)
+	const search = getSignerSearchCombobox(page)
+	await expect(search).toBeVisible({ timeout: 10_000 })
+	await search.click()
+	await search.fill('')
+	await search.pressSequentially(query, { delay: 50 })
+
+	await expect.poll(async () => page.getByRole('option').count(), {
+		timeout: 15_000,
+		message: `Expected account search results for query "${query}"`,
+	}).toBeGreaterThan(0)
+
+	const namedOption = page.getByRole('option', { name: optionName }).first()
+	if (await namedOption.isVisible({ timeout: 2000 }).catch(() => false)) {
+		await namedOption.click()
+		return
+	}
+
+	const emailOption = page.getByRole('option').filter({ hasText: /admin@email\.tld/i }).first()
+	await expect(emailOption).toBeVisible({ timeout: 10_000 })
+	await emailOption.click()
+}
+
+/**
+ * Selects an email-backed signer from the add-signer dialog search list.
+ */
+export async function selectEmailSigner(page: Page, email: string): Promise<void> {
+	const dialog = getAddSignerDialog(page)
+	const search = getSignerSearchCombobox(page)
+	await expect(search).toBeVisible({ timeout: 10_000 })
+	await search.click()
+	await search.pressSequentially(email, { delay: 50 })
+
+	await expect.poll(async () => page.getByRole('option').count(), {
+		timeout: 15_000,
+		message: `Expected email search results for "${email}"`,
+	}).toBeGreaterThan(0)
+
+	const option = page.getByRole('option', { name: email }).first()
+	await expect(option).toBeVisible({ timeout: 10_000 })
+	await option.click()
 }
