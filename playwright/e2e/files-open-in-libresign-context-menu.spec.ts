@@ -9,6 +9,7 @@ import { login } from '../support/nc-login'
 import { ensureFilesHomeInitialized, uploadFileToFilesApp, waitForFilesAction } from '../support/nc-files'
 import { configureOpenSsl } from '../support/nc-provisioning'
 import { getSmallValidPdfBuffer } from '../support/pdf-fixtures'
+import { expectAddSignerControlVisible } from '../support/request-signature'
 import { useRequestSignPolicyGuard } from '../support/system-policies'
 
 useRequestSignPolicyGuard()
@@ -64,6 +65,6 @@ test('open PDF in LibreSign from Files context menu', async ({ page }) => {
 
 	const libresignTab = page.getByRole('tab', { name: 'LibreSign' })
 	await expect(libresignTab).toHaveAttribute('aria-selected', 'true', { timeout: 15000 })
-	await expect(page.getByRole('button', { name: 'Add signer' })).toBeVisible({ timeout: 15000 })
+	await expectAddSignerControlVisible(page)
 	await expect(page.locator('.app-sidebar-header__mainname')).toHaveText(fileName, { timeout: 15000 })
 })

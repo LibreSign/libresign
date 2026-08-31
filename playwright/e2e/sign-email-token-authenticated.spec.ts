@@ -7,6 +7,7 @@ import { test, expect } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, deleteAppConfig, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromEmail } from '../support/mailpit'
+import { clickAddSigner } from '../support/request-signature'
 import { useFooterPolicyGuard, useRequestSignPolicyGuard } from '../support/system-policies'
 
 useFooterPolicyGuard()
@@ -59,7 +60,7 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 	await page.getByRole('button', { name: 'Send' }).click()
 
 	// Add signer by email to exercise the email-token flow deterministically.
-	await page.getByRole('button', { name: 'Add signer' }).click()
+	await clickAddSigner(page)
 	await page.getByPlaceholder('Email').click()
 	await page.getByPlaceholder('Email').pressSequentially('admin@email.tld', { delay: 50 })
 	await page.getByRole('option', { name: 'admin@email.tld' }).first().click()

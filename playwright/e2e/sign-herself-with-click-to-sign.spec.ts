@@ -7,6 +7,7 @@ import { expect, test } from '@playwright/test'
 
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
+import { clickAddSigner } from '../support/request-signature'
 import { useRequestSignPolicyGuard } from '../support/system-policies'
 
 useRequestSignPolicyGuard()
@@ -41,7 +42,7 @@ test('sign herself with click to sign', async ({ page }) => {
 	await page.getByRole('button', { name: 'Upload from URL' }).click()
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
 	await page.getByRole('button', { name: 'Send' }).click()
-	await page.getByRole('button', { name: 'Add signer' }).click()
+	await clickAddSigner(page)
 	await page.getByPlaceholder('Account').click()
 	await page.getByPlaceholder('Account').fill('a')
 	await page.locator('.account-or-email__option__title').filter({ hasText: /^admin$/ }).click()
