@@ -257,13 +257,13 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		if ($code === null || $code === '') {
 			if ($this->codeSentByUser !== null) {
 				// TRANSLATORS Error shown when the verification code entered by the signer is incorrect.
-				throw new LibresignException($this->identifyService->getL10n()->t('Invalid code.'));
+				throw new LibresignException($this->identifyService->getL10n()->t('Invalid code.'), LibresignException::CODE_INVALID_TOKEN);
 			}
 			return;
 		}
 		if (empty($this->codeSentByUser) || !$this->identifyService->getHasher()->verify($this->codeSentByUser, $code)) {
 			// TRANSLATORS Error shown when the verification code entered by the signer is incorrect.
-			throw new LibresignException($this->identifyService->getL10n()->t('Invalid code.'));
+			throw new LibresignException($this->identifyService->getL10n()->t('Invalid code.'), LibresignException::CODE_INVALID_TOKEN);
 		}
 	}
 
