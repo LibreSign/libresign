@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2025 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { registerFileAction, getSidebar } from '@nextcloud/files'
+import { FileAction, registerFileAction } from '@nextcloud/files'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 
@@ -11,11 +11,14 @@ import { getStatusLabel, getStatusSvgInline } from '../utils/fileStatus.js'
 
 const getNodeId = (node) => node?.fileid ?? node?.id
 const getNodeMime = (node) => node?.mime || node?.mimetype || ''
+const getNodes = input => Array.isArray(input) ? input : input?.nodes ?? []
+const getNode = input => Array.isArray(input) ? input[0] : input?.nodes?.[0] ?? input
 
-const action = {
+const action = new FileAction({
 	id: 'show-status-inline',
 	displayName: () => '',
-	title: ({ nodes }) => {
+	title: (input) => {
+		const nodes = getNodes(input)
 		const node = nodes?.[0]
 		if (!node || !node.attributes) return ''
 
@@ -28,15 +31,16 @@ const action = {
 
 		return t('libresign', 'original file')
 	},
-	exec: async ({ nodes }) => {
-		const sidebar = getSidebar()
-		const node = nodes?.[0]
+	exec: async (input) => {
+		const node = getNode(input)
 		if (!node) return null
-		sidebar.open(node, 'libresign')
+		const sidebar = window.OCA.Files.Sidebar
+		await sidebar.open(node.path)
 		sidebar.setActiveTab('libresign')
 		return null
 	},
-	iconSvgInline: ({ nodes }) => {
+	iconSvgInline: (input) => {
+		const nodes = getNodes(input)
 		const node = nodes?.[0]
 		if (!node || !node.attributes) return ''
 
@@ -50,7 +54,8 @@ const action = {
 		return getStatusSvgInline(FILE_STATUS.DRAFT) || ''
 	},
 	inline: () => true,
-	enabled: ({ nodes }) => {
+	enabled: (input) => {
+		const nodes = getNodes(input)
 		const certificateOk = loadState('libresign', 'certificate_ok')
 		const allHaveStatus = nodes?.every(node => node.attributes?.['libresign-signature-status'] !== undefined)
 
@@ -65,6 +70,6 @@ const action = {
 		return allPdfOrFolder
 	},
 	order: -1,
-}
+})
 
 registerFileAction(action)

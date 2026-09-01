@@ -43,6 +43,13 @@ describe('showStatusInlineAction', () => {
 		mockRegisterFileAction = vi.fn()
 		mockGetSidebar = vi.fn()
 		mockLoadState = vi.fn(() => true)
+		window.OCA = window.OCA ?? {}
+		window.OCA.Files = {
+			Sidebar: {
+				open: vi.fn(),
+				setActiveTab: vi.fn(),
+			},
+		}
 
 		// Setup mocks with fresh state
 		vi.doMock('@nextcloud/files', () => ({
@@ -219,12 +226,12 @@ describe('showStatusInlineAction', () => {
 				open: vi.fn(),
 				setActiveTab: vi.fn(),
 			}
-			mockGetSidebar.mockReturnValue(mockSidebar)
+			window.OCA.Files = { Sidebar: mockSidebar }
 
-			const node = { fileid: 123, name: 'test.pdf' }
+			const node = { fileid: 123, name: 'test.pdf', path: '/test.pdf' }
 			const result = await action.exec({ nodes: [node] })
 
-			expect(mockSidebar.open).toHaveBeenCalledWith(node, 'libresign')
+			expect(mockSidebar.open).toHaveBeenCalledWith(node.path)
 			expect(mockSidebar.setActiveTab).toHaveBeenCalledWith('libresign')
 			expect(result).toBe(null)
 		})
@@ -358,4 +365,3 @@ describe('showStatusInlineAction', () => {
 		})
 	})
 })
-

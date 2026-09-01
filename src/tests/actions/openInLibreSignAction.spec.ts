@@ -26,6 +26,7 @@ vi.mock('@nextcloud/logger', () => ({
 }))
 
 const mockSidebar = {
+	close: vi.fn(),
 	open: vi.fn(),
 	setActiveTab: vi.fn(),
 }
@@ -92,7 +93,7 @@ vi.mock('@nextcloud/vue/functions/dialog', () => ({
 describe('openInLibreSignAction rules', () => {
 	let action: {
 		id: string
-		order: number
+		order?: number
 		displayName: unknown
 		iconSvgInline: unknown
 		enabled: (context: { nodes: unknown }) => boolean
@@ -121,6 +122,8 @@ describe('openInLibreSignAction rules', () => {
 
 	beforeEach(async () => {
 		vi.clearAllMocks()
+		window.OCA = window.OCA ?? {}
+		window.OCA.Files = { Sidebar: mockSidebar }
 		mockSidebar.open.mockClear()
 		mockSidebar.setActiveTab.mockClear()
 
@@ -134,7 +137,7 @@ describe('openInLibreSignAction rules', () => {
 		getCapabilities.mockReturnValue(mockCapabilities)
 
 		const module = await import('../../actions/openInLibreSignAction.js')
-		action = module.action
+		action = module.action as unknown as typeof action
 	})
 
 	afterEach(() => {
@@ -283,7 +286,7 @@ describe('openInLibreSignAction rules', () => {
 				{ type: 'file', mime: 'application/pdf', id: 1000, dirname: '/Test' },
 			]
 
-			window.OCA = { Libresign: {} }
+			window.OCA = { ...window.OCA, Libresign: {} }
 
 			await action.execBatch({ nodes })
 
@@ -320,11 +323,11 @@ describe('openInLibreSignAction rules', () => {
 		})
 
 		it('opens sidebar with file', async () => {
-			const node = { type: 'file', mime: 'application/pdf', fileid: 123 }
+			const node = { type: 'file', mime: 'application/pdf', fileid: 123, path: '/test.pdf' }
 
 			await action.exec({ nodes: [node] })
 
-			expect(mockSidebar.open).toHaveBeenCalledWith(node, 'libresign')
+			expect(mockSidebar.open).toHaveBeenCalledWith(node.path)
 			expect(mockSidebar.setActiveTab).toHaveBeenCalledWith('libresign')
 		})
 
@@ -333,11 +336,12 @@ describe('openInLibreSignAction rules', () => {
 				type: 'folder',
 				attributes: { 'libresign-signature-status': 'signed' },
 				fileid: 456,
+				path: '/signed',
 			}
 
 			await action.exec({ nodes: [node] })
 
-			expect(mockSidebar.open).toHaveBeenCalledWith(node, 'libresign')
+			expect(mockSidebar.open).toHaveBeenCalledWith(node.path)
 		})
 
 		it('returns null after execution', async () => {
@@ -345,6 +349,15 @@ describe('openInLibreSignAction rules', () => {
 			const result = await action.exec({ nodes: [node] })
 
 			expect(result).toBeNull()
+		})
+
+		it('accepts a raw node as the action input', async () => {
+			const node = { type: 'file', mime: 'application/pdf', path: '/raw.pdf' }
+
+			await action.exec(node as unknown as { nodes: unknown })
+
+			expect(mockSidebar.close).toHaveBeenCalled()
+			expect(mockSidebar.open).toHaveBeenCalledWith('/raw.pdf')
 		})
 	})
 
@@ -402,12 +415,21 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Docs' },
 			]
 
-			window.OCA = { Libresign: {} }
+			window.OCA = { ...window.OCA, Libresign: {} }
 
 			await action.execBatch({ nodes })
 
 			expect(mockSidebar.open).toHaveBeenCalled()
 			expect(mockSidebar.setActiveTab).toHaveBeenCalledWith('libresign')
+		})
+
+		it('delegates a single-node batch to exec', async () => {
+			const node = { type: 'file', mime: 'application/pdf', path: '/single.pdf' }
+
+			const result = await action.execBatch([node] as unknown as { nodes: unknown })
+
+			expect(result).toEqual([null])
+			expect(mockSidebar.open).toHaveBeenCalledWith('/single.pdf')
 		})
 
 		it('creates correct pending envelope structure', async () => {
@@ -416,7 +438,7 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Docs' },
 			]
 
-			window.OCA = { Libresign: {} }
+			window.OCA = { ...window.OCA, Libresign: {} }
 
 			await action.execBatch({ nodes })
 
@@ -433,7 +455,7 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Documents/Contracts' },
 			]
 
-			window.OCA = { Libresign: {} }
+			window.OCA = { ...window.OCA, Libresign: {} }
 
 			await action.execBatch({ nodes })
 
@@ -447,7 +469,7 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/' },
 			]
 
-			window.OCA = { Libresign: {} }
+			window.OCA = { ...window.OCA, Libresign: {} }
 
 			await action.execBatch({ nodes })
 
@@ -461,7 +483,7 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Docs/' },
 			]
 
-			window.OCA = { Libresign: {} }
+			window.OCA = { ...window.OCA, Libresign: {} }
 
 			await action.execBatch({ nodes })
 
@@ -487,7 +509,7 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 				},
 			]
 
-			window.OCA = { Libresign: {} }
+			window.OCA = { ...window.OCA, Libresign: {} }
 
 			await action.execBatch({ nodes })
 
@@ -508,10 +530,12 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 
 		it('has displayName function', () => {
 			expect(typeof action.displayName).toBe('function')
+			expect((action.displayName as () => string)()).toBe('Open in LibreSign')
 		})
 
 		it('has iconSvgInline function', () => {
 			expect(typeof action.iconSvgInline).toBe('function')
+			expect((action.iconSvgInline as () => string)()).toContain('<svg')
 		})
 	})
 })

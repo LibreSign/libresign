@@ -4,7 +4,7 @@
  */
 
 import axios from '@nextcloud/axios'
-import { addNewFileMenuEntry, Permission, getSidebar } from '@nextcloud/files'
+import { addNewFileMenuEntry, Permission } from '@nextcloud/files'
 import type { NewMenuEntry, IFolder, INode } from '@nextcloud/files'
 import { registerDavProperty } from '@nextcloud/files/dav'
 import { getClient, getDefaultPropfind, getRootPath, resultToNode } from '@nextcloud/files/dav'
@@ -78,8 +78,8 @@ addNewFileMenuEntry({
 			const node = resultToNode(result.data)
 
 			// Open sidebar with LibreSign tab
-			const sidebar = getSidebar()
-			await sidebar.open(node, 'libresign')
+			const sidebar = (window.OCA.Files as { Sidebar: { open: (path: string) => Promise<void>; setActiveTab: (tabId: string) => void } }).Sidebar
+			await sidebar.open(node.path)
 			sidebar.setActiveTab('libresign')
 		}
 
