@@ -261,19 +261,19 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 	await expect(page.locator('ul[role="listbox"].vs__dropdown-menu--floating')).toHaveCount(0)
 }
 
-async function ensureCheckboxEnabled(scope: Page | Locator, checkboxLabel: string): Promise<void> {
-	const checkbox = scope.getByRole('checkbox', { name: checkboxLabel }).first()
-	await expect(checkbox).toBeVisible({ timeout: 10000 })
-	const checked = await checkbox.isChecked().catch(() => false)
+async function ensureSwitchEnabled(scope: Page | Locator, switchLabel: string): Promise<void> {
+	const toggle = scope.getByRole('switch', { name: switchLabel }).first()
+	await expect(toggle).toBeVisible({ timeout: 10000 })
+	const checked = await toggle.isChecked().catch(() => false)
 	if (!checked) {
-		await checkbox.setChecked(true, { force: true })
+		await toggle.setChecked(true, { force: true })
 	}
-	await expect(checkbox).toBeChecked()
+	await expect(toggle).toBeChecked()
 }
 
 async function ensureFooterTemplateEditorVisible(scope: Page | Locator): Promise<Locator> {
-	await ensureCheckboxEnabled(scope, 'Add visible footer with signature details')
-	await ensureCheckboxEnabled(scope, 'Customize footer template')
+	await ensureSwitchEnabled(scope, 'Add visible footer with signature details')
+	await ensureSwitchEnabled(scope, 'Customize footer template')
 
 	const editorContainer = scope.locator('.code-editor').first()
 	const footerTemplateField = editorContainer.locator('.cm-content[contenteditable="true"]').first()

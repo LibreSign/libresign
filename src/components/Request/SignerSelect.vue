@@ -4,7 +4,6 @@
 -->
 <template>
 	<div id="account-or-email">
-		<label for="account-or-email-input">{{ t('libresign', 'Search signer') }}</label>
 		<NcSelect ref="select"
 			:model-value="selectedSigner"
 			input-id="account-or-email-input"
@@ -13,6 +12,9 @@
 			:filterable="false"
 			label="displayName"
 			:get-option-key="getOptionKey"
+			:input-label="t('libresign', 'Search signer')"
+			:helper-text="haveError ? t('libresign', 'Signer is mandatory') : ''"
+			:error="haveError"
 			:aria-label-combobox="placeholder"
 			:placeholder="placeholder"
 			:options="options"
@@ -40,21 +42,12 @@
 				{{ search ? noResultText : t('libresign', 'No recommendations. Start typing.') }}
 			</template>
 		</NcSelect>
-		<p v-if="haveError"
-			id="account-or-email-field"
-			class="account-or-email__helper-text-message account-or-email__helper-text-message--error">
-			<NcIconSvgWrapper :path="mdiAlertCircle" class="account-or-email__helper-text-message__icon" :size="18" />
-			{{ t('libresign', 'Signer is mandatory') }}
-		</p>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import {
-	mdiAlertCircle,
-} from '@mdi/js'
 import svgAccount from '@mdi/svg/svg/account.svg?raw'
 import svgEmail from '@mdi/svg/svg/email.svg?raw'
 import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
@@ -276,20 +269,6 @@ defineExpose({
 		width: 100%;
 		position: relative;
 	}
-	&__helper-text-message {
-		padding: 4px 0;
-		display: flex;
-		align-items: center;
-		&__icon {
-			margin-right: 8px;
-			align-self: start;
-			margin-top: 4px;
-		}
-		&--error {
-			color: var(--color-error);
-		}
-	}
-
 	&__option {
 		display: flex;
 		align-items: center;
