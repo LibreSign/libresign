@@ -51,7 +51,7 @@ class SignerGeolocationFilePolicyApplier extends AbstractFilePolicyApplier {
 		return true;
 	}
 
-	/** @return array<string, array{mode: string, allowRequesterOverride: bool}> */
+	/** @return array<string, array{mode: string}> */
 	private function getOverrides(array $data): array {
 		return $this->extractSinglePolicyOverride(
 			$data,

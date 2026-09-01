@@ -495,6 +495,9 @@ class FileListService {
 
 		$storedRequirement = $signerMetadata[SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY] ?? null;
 		$requirement = is_string($storedRequirement) ? SignerGeolocationMode::tryFrom($storedRequirement) : null;
+		if ($requirement === SignerGeolocationMode::OPTIONAL) {
+			$requirement = SignerGeolocationMode::DISABLED;
+		}
 		if ($requirement !== null) {
 			$geolocationMetadata[SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY] = $requirement->value;
 		}

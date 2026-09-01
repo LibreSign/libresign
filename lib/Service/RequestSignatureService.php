@@ -519,7 +519,7 @@ class RequestSignatureService {
 					$return[] = $lastSignRequest;
 
 					if ($lastSignRequest instanceof SignRequestEntity) {
-						$this->signerGeolocationPolicyService->persistEffectiveRequirementToStorage(
+						$this->signerGeolocationPolicyService->persistEffectiveRequirement(
 							$lastSignRequest,
 							$file,
 							$requesterRequiresGeolocation,

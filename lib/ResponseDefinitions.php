@@ -48,7 +48,8 @@ namespace OCA\Libresign;
  *     envelopeFolderId?: int,
  * }
  * @psalm-type LibresignGeolocationCollectionStatus = 'collected'|'denied'|'unavailable'|'skipped'
- * @psalm-type LibresignGeolocationRequirement = 'disabled'|'optional'|'required'
+ * @psalm-type LibresignSignerGeolocationPolicyMode = 'disabled'|'optional'|'required'
+ * @psalm-type LibresignGeolocationRequirement = 'disabled'|'required'
  * @psalm-type LibresignSignerGeolocation = array{
  *     status: LibresignGeolocationCollectionStatus,
  *     latitude?: float,
@@ -523,8 +524,7 @@ namespace OCA\Libresign;
  *     sourceScope: string,
  * }
  * @psalm-type LibresignPolicySnapshotSignerGeolocationValue = array{
- *     mode: LibresignGeolocationRequirement,
- *     allowRequesterOverride: bool,
+ *     mode: LibresignSignerGeolocationPolicyMode,
  * }
  * @psalm-type LibresignPolicySnapshotSignerGeolocationEntry = array{
  *     effectiveValue: LibresignPolicySnapshotSignerGeolocationValue,
