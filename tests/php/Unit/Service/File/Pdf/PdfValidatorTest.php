@@ -63,7 +63,7 @@ final class PdfValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$validator = $this->getService();
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('doc.pdf');
+		$this->expectExceptionCode(PdfValidator::CODE_DOCMDP_RESTRICTED);
 		$validator->validate($content, 'doc.pdf');
 	}
 }
