@@ -414,6 +414,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				int $signingOrder,
 				?int $fileStatus,
 				?int $signerStatus,
+				?callable $afterPersist = null,
 			) use (&$expectedCalls): SignRequest {
 				$expectedCall = array_shift($expectedCalls);
 				$this->assertNotNull($expectedCall);
@@ -474,9 +475,24 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$signRequestCounter = 0;
 		$this->signRequestService
 			->method('createOrUpdateSignRequest')
-			->willReturnCallback(function () use (&$signRequestCounter): SignRequest {
+			->willReturnCallback(function (
+				array $identifyMethods,
+				string $displayName,
+				string $description,
+				bool $notify,
+				int $fileId,
+				int $signingOrder = 0,
+				?int $fileStatus = null,
+				?int $signerStatus = null,
+				?callable $afterPersist = null,
+			) use (&$signRequestCounter): SignRequest {
 				$signRequest = new SignRequest();
 				$signRequest->setId(500 + ++$signRequestCounter);
+
+				if ($afterPersist !== null) {
+					$afterPersist($signRequest);
+				}
+
 				return $signRequest;
 			});
 
