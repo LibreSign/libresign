@@ -46,9 +46,6 @@ final class SignerGeolocationPolicy implements IPolicyDefinitionProvider {
 					if (SignerGeolocationMode::tryFrom((string)$value['mode']) === null) {
 						throw new \InvalidArgumentException('Invalid mode in ' . self::KEY);
 					}
-					if (!array_key_exists('allowRequesterOverride', $value)) {
-						throw new \InvalidArgumentException('Missing "allowRequesterOverride" key in ' . self::KEY);
-					}
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 				supportedScopes: [

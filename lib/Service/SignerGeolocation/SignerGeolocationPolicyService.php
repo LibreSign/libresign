@@ -32,7 +32,7 @@ class SignerGeolocationPolicyService {
 	}
 
 	/**
-	 * @return array{mode: string, allowRequesterOverride: bool}
+	 * @return array{mode: string}
 	 */
 	public function getPolicyValue(?FileEntity $file = null, ?IUser $user = null): array {
 		$snapshotValue = $this->getSnapshotValue($file);
@@ -54,7 +54,12 @@ class SignerGeolocationPolicyService {
 			return null;
 		}
 
-		return SignerGeolocationMode::tryFrom($stored);
+		$requirement = SignerGeolocationMode::tryFrom($stored);
+		if ($requirement === SignerGeolocationMode::OPTIONAL) {
+			return SignerGeolocationMode::DISABLED;
+		}
+
+		return $requirement;
 	}
 
 	public function resolveEffectiveRequirement(
@@ -73,11 +78,9 @@ class SignerGeolocationPolicyService {
 			return SignerGeolocationMode::REQUIRED;
 		}
 
-		if ($policy['allowRequesterOverride'] && $requesterRequiresGeolocation) {
-			return SignerGeolocationMode::REQUIRED;
-		}
-
-		return SignerGeolocationMode::OPTIONAL;
+		return $requesterRequiresGeolocation
+			? SignerGeolocationMode::REQUIRED
+			: SignerGeolocationMode::DISABLED;
 	}
 
 	public function validateRequesterConfiguration(
@@ -95,31 +98,9 @@ class SignerGeolocationPolicyService {
 		if ($mode === SignerGeolocationMode::DISABLED) {
 			throw new LibresignException($this->l10n->t('Geolocation is disabled by policy.'));
 		}
-
-		if ($mode === SignerGeolocationMode::REQUIRED) {
-			return;
-		}
-
-		if (!$policy['allowRequesterOverride']) {
-			throw new LibresignException($this->l10n->t('Requester geolocation configuration is not allowed by policy.'));
-		}
 	}
 
 	public function persistEffectiveRequirement(
-		SignRequest $signRequest,
-		FileEntity $file,
-		bool $requesterRequiresGeolocation,
-		?IUser $requester = null,
-	): void {
-		$this->validateRequesterConfiguration($file, $requesterRequiresGeolocation, $requester);
-		$effective = $this->resolveEffectiveRequirement($file, $requesterRequiresGeolocation, $requester);
-
-		$metadata = $signRequest->getMetadata() ?? [];
-		$metadata[self::METADATA_REQUIREMENT_KEY] = $effective->value;
-		$signRequest->setMetadata($metadata);
-	}
-
-	public function persistEffectiveRequirementToStorage(
 		SignRequest $signRequest,
 		FileEntity $file,
 		bool $requesterRequiresGeolocation,
@@ -133,6 +114,7 @@ class SignerGeolocationPolicyService {
 			throw new \InvalidArgumentException('Sign request must be persisted before storing geolocation requirement');
 		}
 
+		// Reload from storage to preserve metadata written by identify method notification flow.
 		$fromDatabase = $this->signRequestMapper->getById($signRequestId);
 		$metadata = $fromDatabase->getMetadata() ?? [];
 		$metadata[self::METADATA_REQUIREMENT_KEY] = $effective->value;
@@ -140,7 +122,7 @@ class SignerGeolocationPolicyService {
 		$this->signRequestMapper->update($fromDatabase);
 	}
 
-	/** @return array{mode: string, allowRequesterOverride: bool}|null */
+	/** @return array{mode: string}|null */
 	private function getSnapshotValue(?FileEntity $file): ?array {
 		if (!$file instanceof FileEntity) {
 			return null;
