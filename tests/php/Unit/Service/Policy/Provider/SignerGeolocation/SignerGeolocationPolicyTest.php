@@ -30,10 +30,8 @@ final class SignerGeolocationPolicyTest extends TestCase {
 
 		$this->assertSame([
 			'mode' => SignerGeolocationMode::REQUIRED->value,
-			'allowRequesterOverride' => true,
 		], $definition->normalizeValue([
 			'mode' => 'required',
-			'allowRequesterOverride' => '1',
 		]));
 	}
 
@@ -52,15 +50,14 @@ final class SignerGeolocationPolicyTest extends TestCase {
 		$this->expectException(\InvalidArgumentException::class);
 		$definition->validateValue([
 			'mode' => 'invalid',
-			'allowRequesterOverride' => false,
 		], new PolicyContext());
 	}
 
-	public function testProviderRejectsMissingKeys(): void {
+	public function testProviderRejectsMissingMode(): void {
 		$provider = new SignerGeolocationPolicy();
 		$definition = $provider->get(SignerGeolocationPolicy::KEY);
 
 		$this->expectException(\InvalidArgumentException::class);
-		$definition->validateValue(['allowRequesterOverride' => false], new PolicyContext());
+		$definition->validateValue([], new PolicyContext());
 	}
 }

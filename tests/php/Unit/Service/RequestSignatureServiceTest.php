@@ -482,7 +482,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 
 		$this->signerGeolocationPolicyService
 			->expects($this->exactly(2))
-			->method('persistEffectiveRequirementToStorage')
+			->method('persistEffectiveRequirement')
 			->with(
 				$this->callback(static fn (SignRequest $signRequest): bool => in_array($signRequest->getId(), [501, 502], true)),
 				$file,

@@ -41,7 +41,6 @@ final class SignerGeolocationFilePolicyApplierTest extends \OCA\Libresign\Tests\
 		$file = new \OCA\Libresign\Db\File();
 		$policyValue = [
 			'mode' => 'optional',
-			'allowRequesterOverride' => true,
 		];
 
 		$this->policyService
@@ -72,7 +71,6 @@ final class SignerGeolocationFilePolicyApplierTest extends \OCA\Libresign\Tests\
 		$file = new \OCA\Libresign\Db\File();
 		$policyValue = [
 			'mode' => 'required',
-			'allowRequesterOverride' => false,
 		];
 
 		$this->policyService

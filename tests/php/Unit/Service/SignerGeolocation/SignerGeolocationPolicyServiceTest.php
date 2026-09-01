@@ -19,6 +19,7 @@ use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicy;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
 use OCP\IL10N;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -46,46 +47,49 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 		);
 	}
 
-	public function testResolveEffectiveRequirementUsesRequesterOverride(): void {
-		$file = new File();
-		$file->setMetadata([
-			'policy_snapshot' => [
-				SignerGeolocationPolicy::KEY => [
-					'effectiveValue' => [
-						'mode' => 'optional',
-						'allowRequesterOverride' => true,
-					],
-					'sourceScope' => 'system',
-				],
-			],
-		]);
+	#[DataProvider('provideEffectiveRequirementMatrix')]
+	public function testResolveEffectiveRequirement(
+		string $policyMode,
+		bool $requesterRequiresGeolocation,
+		SignerGeolocationMode $expected,
+	): void {
+		$file = $this->createFileWithSnapshot(['mode' => $policyMode]);
 
 		$this->assertSame(
-			SignerGeolocationMode::REQUIRED,
-			$this->getService()->resolveEffectiveRequirement($file, true),
-		);
-		$this->assertSame(
-			SignerGeolocationMode::OPTIONAL,
-			$this->getService()->resolveEffectiveRequirement($file, false),
+			$expected,
+			$this->getService()->resolveEffectiveRequirement($file, $requesterRequiresGeolocation),
 		);
 	}
 
+	/** @return iterable<string, array{0: string, 1: bool, 2: SignerGeolocationMode}> */
+	public static function provideEffectiveRequirementMatrix(): iterable {
+		yield 'disabled policy ignores requester choice' => ['disabled', false, SignerGeolocationMode::DISABLED];
+		yield 'disabled policy rejects requester requirement' => ['disabled', true, SignerGeolocationMode::DISABLED];
+		yield 'optional policy without requester requirement' => ['optional', false, SignerGeolocationMode::DISABLED];
+		yield 'optional policy with requester requirement' => ['optional', true, SignerGeolocationMode::REQUIRED];
+		yield 'required policy without requester requirement' => ['required', false, SignerGeolocationMode::REQUIRED];
+		yield 'required policy with requester requirement' => ['required', true, SignerGeolocationMode::REQUIRED];
+	}
+
 	public function testValidateRequesterConfigurationRejectsWhenDisabled(): void {
-		$file = new File();
-		$file->setMetadata([
-			'policy_snapshot' => [
-				SignerGeolocationPolicy::KEY => [
-					'effectiveValue' => [
-						'mode' => 'disabled',
-						'allowRequesterOverride' => false,
-					],
-					'sourceScope' => 'system',
-				],
-			],
-		]);
+		$file = $this->createFileWithSnapshot(['mode' => 'disabled']);
 
 		$this->expectException(LibresignException::class);
 		$this->getService()->validateRequesterConfiguration($file, true);
+	}
+
+	public function testValidateRequesterConfigurationAllowsOptionalMode(): void {
+		$file = $this->createFileWithSnapshot(['mode' => 'optional']);
+
+		$this->getService()->validateRequesterConfiguration($file, true);
+		$this->addToAssertionCount(1);
+	}
+
+	public function testValidateRequesterConfigurationAllowsRequiredMode(): void {
+		$file = $this->createFileWithSnapshot(['mode' => 'required']);
+
+		$this->getService()->validateRequesterConfiguration($file, true);
+		$this->addToAssertionCount(1);
 	}
 
 	public function testGetPolicyValueFallsBackToLivePolicy(): void {
@@ -96,53 +100,16 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 			->with(SignerGeolocationPolicy::KEY)
 			->willReturn((new ResolvedPolicy())
 				->setPolicyKey(SignerGeolocationPolicy::KEY)
-				->setEffectiveValue(['mode' => 'required', 'allowRequesterOverride' => false])
+				->setEffectiveValue(['mode' => 'required'])
 				->setSourceScope('system'));
 
 		$this->assertSame([
 			'mode' => 'required',
-			'allowRequesterOverride' => false,
 		], $this->getService()->getPolicyValue($file));
 	}
 
-	public function testRequiredModeCannotBeWeakenedByRequester(): void {
-		$file = $this->createFileWithSnapshot([
-			'mode' => 'required',
-			'allowRequesterOverride' => true,
-		]);
-
-		$this->assertSame(
-			SignerGeolocationMode::REQUIRED,
-			$this->getService()->resolveEffectiveRequirement($file, false),
-		);
-		$this->assertSame(
-			SignerGeolocationMode::REQUIRED,
-			$this->getService()->resolveEffectiveRequirement($file, true),
-		);
-	}
-
-	public function testValidateRequesterConfigurationRejectsWhenOverrideDisabled(): void {
-		$file = $this->createFileWithSnapshot([
-			'mode' => 'optional',
-			'allowRequesterOverride' => false,
-		]);
-
-		$this->expectException(LibresignException::class);
-		$this->getService()->validateRequesterConfiguration($file, true);
-	}
-
-	public function testValidateRequesterConfigurationAllowsRequiredWithoutOverride(): void {
-		$file = $this->createFileWithSnapshot([
-			'mode' => 'required',
-			'allowRequesterOverride' => false,
-		]);
-
-		$this->getService()->validateRequesterConfiguration($file, true);
-		$this->addToAssertionCount(1);
-	}
-
 	public function testGetFrozenRequirementIgnoresLivePolicyChanges(): void {
-		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest = new SignRequest();
 		$signRequest->setMetadata([
 			SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY => SignerGeolocationMode::REQUIRED->value,
 		]);
@@ -151,7 +118,7 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 			->method('resolve')
 			->willReturn((new ResolvedPolicy())
 				->setPolicyKey(SignerGeolocationPolicy::KEY)
-				->setEffectiveValue(['mode' => 'disabled', 'allowRequesterOverride' => false])
+				->setEffectiveValue(['mode' => 'disabled'])
 				->setSourceScope('system'));
 
 		$this->assertSame(
@@ -160,37 +127,57 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 		);
 	}
 
-	public function testPersistEffectiveRequirementStoresPerSignerRequirement(): void {
-		$file = $this->createFileWithSnapshot([
-			'mode' => 'optional',
-			'allowRequesterOverride' => true,
+	public function testGetFrozenRequirementNormalizesLegacyOptionalToDisabled(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setMetadata([
+			SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY => SignerGeolocationMode::OPTIONAL->value,
 		]);
-		$service = $this->getService();
-
-		$requiredSigner = new SignRequest();
-		$optionalSigner = new SignRequest();
-
-		$service->persistEffectiveRequirement($requiredSigner, $file, true);
-		$service->persistEffectiveRequirement($optionalSigner, $file, false);
 
 		$this->assertSame(
-			SignerGeolocationMode::REQUIRED->value,
-			($requiredSigner->getMetadata() ?? [])[SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY],
-		);
-		$this->assertSame(
-			SignerGeolocationMode::OPTIONAL->value,
-			($optionalSigner->getMetadata() ?? [])[SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY],
+			SignerGeolocationMode::DISABLED,
+			$this->getService()->getFrozenRequirement($signRequest),
 		);
 	}
 
-	public function testPersistEffectiveRequirementToStoragePreservesExistingMetadata(): void {
-		$file = $this->createFileWithSnapshot([
-			'mode' => 'optional',
-			'allowRequesterOverride' => false,
-		]);
+	public function testPersistEffectiveRequirementStoresPerSignerRequirement(): void {
+		$file = $this->createFileWithSnapshot(['mode' => 'optional']);
+		$service = $this->getService();
+
+		$requiredSigner = new SignRequest();
+		$requiredSigner->setId(10);
+		$optionalSigner = new SignRequest();
+		$optionalSigner->setId(11);
+
+		$this->signRequestMapper
+			->method('getById')
+			->willReturnCallback(static function (int $id): SignRequest {
+				$signRequest = new SignRequest();
+				$signRequest->setId($id);
+				return $signRequest;
+			});
+
+		$this->signRequestMapper
+			->expects($this->exactly(2))
+			->method('update')
+			->with($this->callback(static function (SignRequest $updated): bool {
+				$metadata = $updated->getMetadata() ?? [];
+				$requirement = $metadata[SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY] ?? null;
+
+				return in_array($requirement, [
+					SignerGeolocationMode::REQUIRED->value,
+					SignerGeolocationMode::DISABLED->value,
+				], true);
+			}));
+
+		$service->persistEffectiveRequirement($requiredSigner, $file, true);
+		$service->persistEffectiveRequirement($optionalSigner, $file, false);
+		$this->addToAssertionCount(1);
+	}
+
+	public function testPersistEffectiveRequirementPreservesExistingMetadata(): void {
+		$file = $this->createFileWithSnapshot(['mode' => 'optional']);
 		$signRequest = new SignRequest();
 		$signRequest->setId(42);
-		$signRequest->setMetadata([]);
 
 		$storedSignRequest = new SignRequest();
 		$storedSignRequest->setId(42);
@@ -216,15 +203,13 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 				$metadata = $updated->getMetadata() ?? [];
 
 				return isset($metadata['notify'])
-					&& $metadata[SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY] === SignerGeolocationMode::OPTIONAL->value;
+					&& $metadata[SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY] === SignerGeolocationMode::DISABLED->value;
 			}));
 
-		$this->getService()->persistEffectiveRequirementToStorage($signRequest, $file, false);
+		$this->getService()->persistEffectiveRequirement($signRequest, $file, false);
 	}
 
-	/**
-	 * @return array{mode: string, allowRequesterOverride: bool}
-	 */
+	/** @param array{mode: string} $policyValue */
 	private function createFileWithSnapshot(array $policyValue): File {
 		$file = new File();
 		$file->setMetadata([

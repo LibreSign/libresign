@@ -101,7 +101,6 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						SignerGeolocationPolicy::KEY,
 						[
 							'mode' => 'disabled',
-							'allowRequesterOverride' => false,
 						],
 						'system',
 					),
@@ -171,7 +170,6 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						SignerGeolocationPolicy::KEY,
 						[
 							'mode' => 'disabled',
-							'allowRequesterOverride' => false,
 						],
 						'system',
 					),
@@ -281,7 +279,6 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						SignerGeolocationPolicy::KEY,
 						[
 							'mode' => 'disabled',
-							'allowRequesterOverride' => false,
 						],
 						'system',
 					),
