@@ -515,17 +515,16 @@ class RequestSignatureService {
 						signingOrder: $signingOrder,
 						fileStatus: $fileStatus,
 						signerStatus: $signerStatus,
+						afterPersist: function (SignRequestEntity $signRequest) use ($file, $requesterRequiresGeolocation, $requester): void {
+							$this->signerGeolocationPolicyService->persistEffectiveRequirement(
+								$signRequest,
+								$file,
+								$requesterRequiresGeolocation,
+								$requester,
+							);
+						},
 					);
 					$return[] = $lastSignRequest;
-
-					if ($lastSignRequest instanceof SignRequestEntity) {
-						$this->signerGeolocationPolicyService->persistEffectiveRequirement(
-							$lastSignRequest,
-							$file,
-							$requesterRequiresGeolocation,
-							$requester,
-						);
-					}
 				}
 			}
 		}

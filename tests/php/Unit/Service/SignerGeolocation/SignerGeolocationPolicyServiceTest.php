@@ -149,14 +149,6 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 		$optionalSigner->setId(11);
 
 		$this->signRequestMapper
-			->method('getById')
-			->willReturnCallback(static function (int $id): SignRequest {
-				$signRequest = new SignRequest();
-				$signRequest->setId($id);
-				return $signRequest;
-			});
-
-		$this->signRequestMapper
 			->expects($this->exactly(2))
 			->method('update')
 			->with($this->callback(static function (SignRequest $updated): bool {
@@ -178,10 +170,7 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 		$file = $this->createFileWithSnapshot(['mode' => 'optional']);
 		$signRequest = new SignRequest();
 		$signRequest->setId(42);
-
-		$storedSignRequest = new SignRequest();
-		$storedSignRequest->setId(42);
-		$storedSignRequest->setMetadata([
+		$signRequest->setMetadata([
 			'notify' => [
 				[
 					'method' => 'mail',
@@ -191,10 +180,8 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 		]);
 
 		$this->signRequestMapper
-			->expects($this->once())
-			->method('getById')
-			->with(42)
-			->willReturn($storedSignRequest);
+			->expects($this->never())
+			->method('getById');
 
 		$this->signRequestMapper
 			->expects($this->once())

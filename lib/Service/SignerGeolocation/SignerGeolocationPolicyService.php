@@ -114,12 +114,10 @@ class SignerGeolocationPolicyService {
 			throw new \InvalidArgumentException('Sign request must be persisted before storing geolocation requirement');
 		}
 
-		// Reload from storage to preserve metadata written by identify method notification flow.
-		$fromDatabase = $this->signRequestMapper->getById($signRequestId);
-		$metadata = $fromDatabase->getMetadata() ?? [];
+		$metadata = $signRequest->getMetadata() ?? [];
 		$metadata[self::METADATA_REQUIREMENT_KEY] = $effective->value;
-		$fromDatabase->setMetadata($metadata);
-		$this->signRequestMapper->update($fromDatabase);
+		$signRequest->setMetadata($metadata);
+		$this->signRequestMapper->update($signRequest);
 	}
 
 	/** @return array{mode: string}|null */
