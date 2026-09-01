@@ -42,6 +42,18 @@ class FakeCollaboratorSearch implements ISearch {
 		return [['exact' => [], 'wide' => []], false];
 	}
 
+	public function filteredSearch(
+		string $search,
+		array $shareTypes,
+		bool $lookup,
+		?string $itemType,
+		?string $itemId,
+		int $limit,
+		int $offset,
+	): array {
+		return $this->search($search, $shareTypes, $lookup, $limit, $offset);
+	}
+
 	public function registerPlugin(array $pluginInfo): void {
 	}
 }
