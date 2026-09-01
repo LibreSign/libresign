@@ -26,13 +26,28 @@ final class CertificateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame($content, file_get_contents($filename));
 	}
 
-	public function testSaveFileWithError(): void {
-		$this->expectException(LibresignException::class);
-
+	#[DataProvider('dataSaveFileWithError')]
+	public function testSaveFileWithError(string $basename): void {
 		vfsStream::setup('home', 0444);
-		$filename = vfsStream::url('home/test.txt');
+		$filename = vfsStream::url('home/' . $basename);
 
-		@CertificateHelper::saveFile($filename, '');
+		try {
+			@CertificateHelper::saveFile($filename, '');
+			$this->fail('saveFile() must throw when the file cannot be written');
+		} catch (LibresignException $e) {
+			// The failure must describe the problem and end with the file that could not be written
+			$this->assertStringEndsWith(': ' . $filename, $e->getMessage());
+		}
+	}
+
+	public static function dataSaveFileWithError(): array {
+		return [
+			'plain name' => ['test.txt'],
+			'spaces' => ['my certificate.pem'],
+			'dots, dashes and underscores' => ['root-ca.v2_backup.crt'],
+			'regex metacharacters' => ['cert (copy) [1]+$.txt'],
+			'non-ascii' => ['certificado-ção.txt'],
+		];
 	}
 
 	#[DataProvider('dataProviderArrayToIni')]
