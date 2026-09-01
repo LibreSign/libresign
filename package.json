@@ -90,7 +90,7 @@
     "happy-dom": "^20.11.15",
     "mailpit-api": "^2.1.0",
     "openapi-typescript": "^7.13.0",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vite": "^8.2.2",
     "vite-plugin-node-polyfills": "^0.28.0",
     "vitest": "^4.1.4",
