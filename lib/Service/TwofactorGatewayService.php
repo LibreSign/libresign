@@ -89,7 +89,7 @@ final class TwofactorGatewayService {
 	 */
 	private function resolveIntegrationService(): object {
 		if (!$this->isEnabled()) {
-			throw new LibresignException('App Two-Factor Gateway is not enabled.');
+			throw new LibresignException('App Two-Factor Gateway is not enabled.', LibresignException::CODE_TWOFACTOR_GATEWAY_NOT_ENABLED);
 		}
 
 		try {

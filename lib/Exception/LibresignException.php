@@ -14,6 +14,13 @@ use JsonSerializable;
  * @codeCoverageIgnore
  */
 class LibresignException extends \Exception implements JsonSerializable {
+	/**
+	 * Error codes follow the closest HTTP status with one extra digit
+	 * (401 -> 4010), so they are not mistaken for HTTP status codes.
+	 */
+	public const int CODE_INVALID_TOKEN = 4010;
+	public const int CODE_TWOFACTOR_GATEWAY_NOT_ENABLED = 5030;
+
 	#[\Override]
 	public function jsonSerialize(): mixed {
 		return ['message' => $this->getMessage()];
