@@ -9,10 +9,12 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
 use OCP\L10N\IFactory as IL10NFactory;
+use OCP\Security\IHasher;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -24,7 +26,7 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$identifyService = $this->createMock(IdentifyService::class);
 		$identifyService = $this->getMockBuilder(IdentifyService::class)
 			->disableOriginalConstructor()
-			->onlyMethods(['getL10n'])
+			->onlyMethods(['getHasher', 'getL10n'])
 			->getMock();
 		$identifyService->method('getL10n')->willReturn(
 			\OCP\Server::get(IL10NFactory::class)->get(\OCA\Libresign\AppInfo\Application::APP_ID)
@@ -65,6 +67,42 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['valiD@Domain.coop', 'val***@***.coop', md5('valid@domain.coop')],
 			['VALID@DOMAIN.COOP', 'val***@***.coop', md5('valid@domain.coop')],
 		];
+	}
+
+	public function testValidateToSignWithWrongCodeThrows(): void {
+		$hasher = $this->createMock(IHasher::class);
+		$hasher->method('verify')
+			->with('654321', 'stored-code')
+			->willReturn(false);
+		$this->identifyService->method('getHasher')->willReturn($hasher);
+
+		$instance = $this->getClass();
+		$instance->setEntity((new IdentifyMethod())->fromParams([
+			'identifierKey' => 'email',
+			'identifierValue' => 'valid@domain.coop',
+			'code' => 'stored-code',
+		]));
+		$instance->setCodeSentByUser('654321');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(LibresignException::CODE_INVALID_TOKEN);
+
+		$instance->validateToSign();
+	}
+
+	public function testValidateToSignThrowsWhenCodeWasSentWithoutBeingRequested(): void {
+		$instance = $this->getClass();
+		$instance->setEntity((new IdentifyMethod())->fromParams([
+			'identifierKey' => 'email',
+			'identifierValue' => 'valid@domain.coop',
+			'code' => null,
+		]));
+		$instance->setCodeSentByUser('123456');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(LibresignException::CODE_INVALID_TOKEN);
+
+		$instance->validateToSign();
 	}
 
 	#[DataProvider('providerToArrayWithValidData')]
