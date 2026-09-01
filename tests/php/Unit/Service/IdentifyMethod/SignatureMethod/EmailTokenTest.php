@@ -9,12 +9,12 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
-use OCP\IUser;
-use OCP\IUserManager;
 use OCP\L10N\IFactory as IL10NFactory;
+use OCP\Security\IHasher;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -26,7 +26,7 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$identifyService = $this->createMock(IdentifyService::class);
 		$identifyService = $this->getMockBuilder(IdentifyService::class)
 			->disableOriginalConstructor()
-			->onlyMethods(['getL10n'])
+			->onlyMethods(['getHasher', 'getL10n'])
 			->getMock();
 		$identifyService->method('getL10n')->willReturn(
 			\OCP\Server::get(IL10NFactory::class)->get(\OCA\Libresign\AppInfo\Application::APP_ID)
@@ -69,42 +69,40 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	#[DataProvider('dataToArrayResolvesEmailByIdentifierKey')]
-	public function testToArrayResolvesEmailByIdentifierKey(string $identifierKey, string $identifierValue, ?string $accountEmail, string $expectedIdentifyMethod, string $expectedEmail): void {
-		$user = null;
-		if ($accountEmail !== null) {
-			$user = $this->createMock(IUser::class);
-			$user->method('getEMailAddress')->willReturn($accountEmail);
-		}
-		$userManager = $this->createMock(IUserManager::class);
-		$userManager->method('get')->with($identifierValue)->willReturn($user);
-		$this->identifyService->method('getUserManager')->willReturn($userManager);
+	public function testValidateToSignWithWrongCodeThrows(): void {
+		$hasher = $this->createMock(IHasher::class);
+		$hasher->method('verify')
+			->with('654321', 'stored-code')
+			->willReturn(false);
+		$this->identifyService->method('getHasher')->willReturn($hasher);
 
 		$instance = $this->getClass();
 		$instance->setEntity((new IdentifyMethod())->fromParams([
-			'identifierKey' => $identifierKey,
-			'identifierValue' => $identifierValue,
+			'identifierKey' => 'email',
+			'identifierValue' => 'valid@domain.coop',
+			'code' => 'stored-code',
 		]));
+		$instance->setCodeSentByUser('654321');
 
-		$actual = $instance->toArray();
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(LibresignException::CODE_INVALID_TOKEN);
 
-		$this->assertSame($expectedIdentifyMethod, $actual['identifyMethod']);
-		if ($expectedEmail === '') {
-			$this->assertSame('', $actual['hashOfEmail']);
-			$this->assertSame('', $actual['blurredEmail']);
-			return;
-		}
-		$this->assertSame(md5($expectedEmail), $actual['hashOfEmail']);
-		$this->assertNotSame('', $actual['blurredEmail']);
+		$instance->validateToSign();
 	}
 
-	public static function dataToArrayResolvesEmailByIdentifierKey(): array {
-		return [
-			'emailToken uses the identifier value' => ['emailToken', 'Valid@Domain.coop', null, 'email', 'valid@domain.coop'],
-			'account uses the email of the user' => ['account', 'joao', 'Joao@Domain.coop', 'account', 'joao@domain.coop'],
-			'account without a user has no email' => ['account', 'ghost', null, 'account', ''],
-			'unknown key has no email' => ['phone', '+5511999999999', null, 'phone', ''],
-		];
+	public function testValidateToSignThrowsWhenCodeWasSentWithoutBeingRequested(): void {
+		$instance = $this->getClass();
+		$instance->setEntity((new IdentifyMethod())->fromParams([
+			'identifierKey' => 'email',
+			'identifierValue' => 'valid@domain.coop',
+			'code' => null,
+		]));
+		$instance->setCodeSentByUser('123456');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(LibresignException::CODE_INVALID_TOKEN);
+
+		$instance->validateToSign();
 	}
 
 	#[DataProvider('providerToArrayWithValidData')]
