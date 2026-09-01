@@ -11,10 +11,14 @@ namespace OCA\Libresign\Service\File\Pdf;
 
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
-use OCP\AppFramework\Http;
 use OCP\IL10N;
 
 class PdfValidator {
+	/**
+	 * Semantic error code for a document whose DocMDP certification disallows additional signatures.
+	 */
+	public const int CODE_DOCMDP_RESTRICTED = 4221;
+
 	public function __construct(
 		private PdfParser $pdfParser,
 		private DocMdpHandler $docMdpHandler,
@@ -46,7 +50,7 @@ class PdfValidator {
 
 			if (!$this->docMdpHandler->allowsAdditionalSignatures($resource)) {
 				// TRANSLATORS %s is the file name of the PDF with DocMDP restrictions
-				throw new LibresignException($this->l10n->t('This document has been certified with no changes allowed, so no additional signatures can be added: %s', [$fileName]), Http::STATUS_UNPROCESSABLE_ENTITY);
+				throw new LibresignException($this->l10n->t('This document has been certified with no changes allowed, so no additional signatures can be added: %s', [$fileName]), self::CODE_DOCMDP_RESTRICTED);
 			}
 		} finally {
 			fclose($resource);
