@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service\File\Pdf;
 
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
+use OCP\AppFramework\Http;
 use OCP\IL10N;
 
 class PdfValidator {
@@ -45,7 +46,7 @@ class PdfValidator {
 
 			if (!$this->docMdpHandler->allowsAdditionalSignatures($resource)) {
 				// TRANSLATORS %s is the file name of the PDF with DocMDP restrictions
-				throw new LibresignException($this->l10n->t('This document has been certified with no changes allowed, so no additional signatures can be added: %s', [$fileName]));
+				throw new LibresignException($this->l10n->t('This document has been certified with no changes allowed, so no additional signatures can be added: %s', [$fileName]), Http::STATUS_UNPROCESSABLE_ENTITY);
 			}
 		} finally {
 			fclose($resource);
