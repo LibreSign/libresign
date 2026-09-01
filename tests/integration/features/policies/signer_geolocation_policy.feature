@@ -6,18 +6,17 @@ Feature: policies/signer_geolocation_policy
     And the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/signer_geolocation"
-      | value              | {"mode":"disabled","allowRequesterOverride":false} |
-      | allowChildOverride | true                                               |
+      | value              | {"mode":"disabled"} |
+      | allowChildOverride | true                |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                                              | value              |
       | (jq).ocs.data.policy.policyKey                   | signer_geolocation |
       | (jq).ocs.data.policy.effectiveValue.mode         | disabled           |
-      | (jq).ocs.data.policy.effectiveValue.allowRequesterOverride | false    |
 
     When sending "put" to ocs "/apps/libresign/api/v1/policies/group/admin/signer_geolocation"
-      | value              | {"mode":"optional","allowRequesterOverride":true} |
-      | allowChildOverride | true                                              |
+      | value              | {"mode":"optional"} |
+      | allowChildOverride | true                |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                                              | value              |
@@ -30,7 +29,6 @@ Feature: policies/signer_geolocation_policy
     And the response should be a JSON array with the following mandatory values
       | key                                                                    | value    |
       | (jq).ocs.data.policies.signer_geolocation.effectiveValue.mode            | optional |
-      | (jq).ocs.data.policies.signer_geolocation.effectiveValue.allowRequesterOverride | true |
 
     Given as user "signer1"
     When sending "get" to ocs "/apps/libresign/api/v1/policies/effective"
@@ -41,7 +39,7 @@ Feature: policies/signer_geolocation_policy
 
     Given as user "admin"
     When sending "put" to ocs "/apps/libresign/api/v1/policies/user/signer1/signer_geolocation"
-      | value | {"mode":"required","allowRequesterOverride":false} |
+      | value | {"mode":"required"} |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                                 | value              |

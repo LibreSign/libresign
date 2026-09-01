@@ -11,7 +11,7 @@ Feature: sign/signer_geolocation
       | value | false |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signer_geolocation"
-      | value | {"mode":"required","allowRequesterOverride":false} |
+      | value | {"mode":"required"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
@@ -47,7 +47,7 @@ Feature: sign/signer_geolocation
       | (jq).ocs.data.data[0].signers[0].metadata.geolocation.status      | collected |
       | (jq).ocs.data.data[0].signers[0].metadata.geolocation.latitude   | -23.5505  |
 
-  Scenario: Requester may require geolocation for selected signers when policy allows override
+  Scenario: Requester may require geolocation for selected signers when policy is optional
     Given as user "admin"
     And user "signer1" exists
     And user "signer2" exists
@@ -57,7 +57,7 @@ Feature: sign/signer_geolocation
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
     And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signer_geolocation"
-      | value | {"mode":"optional","allowRequesterOverride":true} |
+      | value | {"mode":"optional"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
@@ -71,7 +71,7 @@ Feature: sign/signer_geolocation
     Then the response should be a JSON array with the following mandatory values
       | key                                                                  | value    |
       | (jq).ocs.data.data[0].signers[0].metadata.geolocationRequirement     | required |
-      | (jq).ocs.data.data[0].signers[1].metadata.geolocationRequirement     | optional |
+      | (jq).ocs.data.data[0].signers[1].metadata.geolocationRequirement     | disabled |
     And as user "signer1"
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(SIGN_REQUEST_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
@@ -94,7 +94,7 @@ Feature: sign/signer_geolocation
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
     And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signer_geolocation"
-      | value | {"mode":"required","allowRequesterOverride":false} |
+      | value | {"mode":"required"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
@@ -105,7 +105,7 @@ Feature: sign/signer_geolocation
       | name | Frozen geolocation document |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signer_geolocation"
-      | value | {"mode":"disabled","allowRequesterOverride":false} |
+      | value | {"mode":"disabled"} |
     And the response should have a status code 200
     And as user "signer1"
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"

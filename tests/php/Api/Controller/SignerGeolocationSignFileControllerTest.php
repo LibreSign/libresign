@@ -79,7 +79,6 @@ final class SignerGeolocationSignFileControllerTest extends ApiTestCase {
 			SignerGeolocationPolicy::KEY,
 			[
 				'mode' => 'required',
-				'allowRequesterOverride' => false,
 			],
 			false,
 		);

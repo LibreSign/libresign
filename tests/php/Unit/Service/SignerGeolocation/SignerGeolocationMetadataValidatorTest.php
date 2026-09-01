@@ -66,15 +66,15 @@ final class SignerGeolocationMetadataValidatorTest extends TestCase {
 		$this->getValidator()->validateSubmission($signRequest, null);
 	}
 
-	public function testValidateSubmissionAllowsOptionalMissingGeolocation(): void {
+	public function testValidateSubmissionAllowsDisabledMissingGeolocation(): void {
 		$signRequest = new SignRequest();
 		$signRequest->setMetadata([
-			SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY => SignerGeolocationMode::OPTIONAL->value,
+			SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY => SignerGeolocationMode::DISABLED->value,
 		]);
 
 		$this->policyService
 			->method('getFrozenRequirement')
-			->willReturn(SignerGeolocationMode::OPTIONAL);
+			->willReturn(SignerGeolocationMode::DISABLED);
 
 		$this->getValidator()->validateSubmission($signRequest, null);
 		$this->addToAssertionCount(1);
@@ -125,6 +125,15 @@ final class SignerGeolocationMetadataValidatorTest extends TestCase {
 		yield 'non array payload' => ['invalid'];
 		yield 'missing status' => [['latitude' => 1.0, 'longitude' => 2.0]];
 		yield 'collected without coordinates' => [['status' => 'collected']];
-		yield 'out of range latitude' => [['status' => 'collected', 'latitude' => 91.0, 'longitude' => 0.0]];
+		yield 'latitude above range' => [['status' => 'collected', 'latitude' => 91.0, 'longitude' => 0.0]];
+		yield 'latitude below range' => [['status' => 'collected', 'latitude' => -91.0, 'longitude' => 0.0]];
+		yield 'longitude above range' => [['status' => 'collected', 'latitude' => 0.0, 'longitude' => 181.0]];
+		yield 'longitude below range' => [['status' => 'collected', 'latitude' => 0.0, 'longitude' => -181.0]];
+		yield 'invalid latitude type' => [['status' => 'collected', 'latitude' => 'invalid', 'longitude' => 0.0]];
+		yield 'invalid longitude type' => [['status' => 'collected', 'latitude' => 0.0, 'longitude' => 'invalid']];
+		yield 'negative accuracy' => [['status' => 'collected', 'latitude' => 0.0, 'longitude' => 0.0, 'accuracy' => -1.0]];
+		yield 'invalid accuracy type' => [['status' => 'collected', 'latitude' => 0.0, 'longitude' => 0.0, 'accuracy' => 'invalid']];
+		yield 'negative timestamp' => [['status' => 'collected', 'latitude' => 0.0, 'longitude' => 0.0, 'timestamp' => -1]];
+		yield 'invalid timestamp type' => [['status' => 'collected', 'latitude' => 0.0, 'longitude' => 0.0, 'timestamp' => 'invalid']];
 	}
 }

@@ -17,7 +17,6 @@ final class SignerGeolocationPolicyValueTest extends TestCase {
 	public function testDefaults(): void {
 		$this->assertSame([
 			'mode' => SignerGeolocationMode::DISABLED->value,
-			'allowRequesterOverride' => false,
 		], SignerGeolocationPolicyValue::defaults());
 	}
 
@@ -27,7 +26,7 @@ final class SignerGeolocationPolicyValueTest extends TestCase {
 	}
 
 	/**
-	 * @return iterable<string, array{0: mixed, 1: array{mode: string, allowRequesterOverride: bool}}>
+	 * @return iterable<string, array{0: mixed, 1: array{mode: string}}>
 	 */
 	public static function provideNormalizeCases(): iterable {
 		yield 'invalid input falls back to defaults' => [
@@ -35,28 +34,33 @@ final class SignerGeolocationPolicyValueTest extends TestCase {
 			SignerGeolocationPolicyValue::defaults(),
 		];
 
-		yield 'optional with requester override' => [
-			['mode' => 'optional', 'allowRequesterOverride' => true],
-			['mode' => 'optional', 'allowRequesterOverride' => true],
+		yield 'optional mode' => [
+			['mode' => 'optional'],
+			['mode' => 'optional'],
 		];
 
 		yield 'invalid mode falls back to disabled' => [
-			['mode' => 'unknown', 'allowRequesterOverride' => false],
-			['mode' => 'disabled', 'allowRequesterOverride' => false],
+			['mode' => 'unknown'],
+			['mode' => 'disabled'],
 		];
 
 		yield 'json string payload' => [
-			'{"mode":"optional","allowRequesterOverride":true}',
+			'{"mode":"optional"}',
+			['mode' => 'optional'],
+		];
+
+		yield 'legacy allowRequesterOverride is ignored' => [
 			['mode' => 'optional', 'allowRequesterOverride' => true],
+			['mode' => 'optional'],
 		];
 	}
 
 	public function testResolveEffectiveRequirementFromPolicy(): void {
 		$this->assertSame(
 			SignerGeolocationMode::REQUIRED,
-			SignerGeolocationPolicyValue::getMode(['mode' => 'required', 'allowRequesterOverride' => false]),
+			SignerGeolocationPolicyValue::getMode(['mode' => 'required']),
 		);
-		$this->assertTrue(SignerGeolocationPolicyValue::isEnabled(['mode' => 'optional', 'allowRequesterOverride' => false]));
-		$this->assertFalse(SignerGeolocationPolicyValue::isEnabled(['mode' => 'disabled', 'allowRequesterOverride' => false]));
+		$this->assertTrue(SignerGeolocationPolicyValue::isEnabled(['mode' => 'optional']));
+		$this->assertFalse(SignerGeolocationPolicyValue::isEnabled(['mode' => 'disabled']));
 	}
 }
