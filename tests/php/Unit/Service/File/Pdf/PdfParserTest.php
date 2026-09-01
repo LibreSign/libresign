@@ -11,7 +11,6 @@ namespace OCA\Libresign\Tests\Unit\Service\File\Pdf;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\Pdf\PdfParser;
 use OCA\Libresign\Tests\Fixtures\PdfGenerator;
-use OCP\AppFramework\Http;
 use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
@@ -47,7 +46,7 @@ final class PdfParserTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$parser = $this->getService();
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionCode(Http::STATUS_UNPROCESSABLE_ENTITY);
+		$this->expectExceptionCode(PdfParser::CODE_INVALID_PDF);
 		$parser->parse('not a pdf', 'invalid.pdf');
 	}
 }
