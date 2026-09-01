@@ -6,7 +6,8 @@
 # SPDX-FileCopyrightText: 2025 Nextcloud GmbH and Nextcloud contributors
 # SPDX-License-Identifier: MIT
 
-# This workflow will update all workflow templates
+# This workflow updates selected workflow templates from nextcloud/.github
+# LibreSign-specific changes are kept in `workflow.yml.patch` files and reapplied after syncing
 # Additionally it will reapply `workflow.yml.patch` files after syncing and only then commit the result
 name: Update workflows
 on:
