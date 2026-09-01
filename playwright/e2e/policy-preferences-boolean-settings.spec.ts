@@ -220,7 +220,7 @@ function escapeRegExp(value: string): string {
  * @param enabled Whether metadata collection should remain enabled.
  */
 async function saveSignatureTextCollectMetadataPreference(section: Locator, enabled: boolean): Promise<void> {
-	const toggle = section.getByRole('checkbox', { name: /Collect signer metadata/i }).first()
+	const toggle = section.getByRole('switch', { name: /Collect signer metadata/i }).first()
 	await expect(toggle).toBeVisible()
 	const checked = await toggle.isChecked()
 	if (checked !== enabled) {
