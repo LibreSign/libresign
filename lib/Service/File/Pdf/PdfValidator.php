@@ -17,7 +17,7 @@ class PdfValidator {
 	/**
 	 * Semantic error code for a document whose DocMDP certification disallows additional signatures.
 	 */
-	public const int CODE_DOCMDP_RESTRICTED = 4221;
+	public const CODE_DOCMDP_RESTRICTED = 4221;
 
 	public function __construct(
 		private PdfParser $pdfParser,
