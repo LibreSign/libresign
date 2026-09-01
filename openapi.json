@@ -1276,7 +1276,6 @@
                 "type": "string",
                 "enum": [
                     "disabled",
-                    "optional",
                     "required"
                 ]
             },
@@ -1930,15 +1929,11 @@
             "PolicySnapshotSignerGeolocationValue": {
                 "type": "object",
                 "required": [
-                    "mode",
-                    "allowRequesterOverride"
+                    "mode"
                 ],
                 "properties": {
                     "mode": {
-                        "$ref": "#/components/schemas/GeolocationRequirement"
-                    },
-                    "allowRequesterOverride": {
-                        "type": "boolean"
+                        "$ref": "#/components/schemas/SignerGeolocationPolicyMode"
                     }
                 }
             },
@@ -2431,6 +2426,14 @@
                         "format": "int64"
                     }
                 }
+            },
+            "SignerGeolocationPolicyMode": {
+                "type": "string",
+                "enum": [
+                    "disabled",
+                    "optional",
+                    "required"
+                ]
             },
             "SignerMetadata": {
                 "type": "object",

@@ -1642,7 +1642,7 @@ export type components = {
         /** @enum {string} */
         GeolocationCollectionStatus: "collected" | "denied" | "unavailable" | "skipped";
         /** @enum {string} */
-        GeolocationRequirement: "disabled" | "optional" | "required";
+        GeolocationRequirement: "disabled" | "required";
         GroupPolicyResponse: {
             policy: components["schemas"]["GroupPolicyState"];
         };
@@ -1848,8 +1848,7 @@ export type components = {
             sourceScope: string;
         };
         PolicySnapshotSignerGeolocationValue: {
-            mode: components["schemas"]["GeolocationRequirement"];
-            allowRequesterOverride: boolean;
+            mode: components["schemas"]["SignerGeolocationPolicyMode"];
         };
         ProgressError: {
             message: string;
@@ -2016,6 +2015,8 @@ export type components = {
             /** Format: int64 */
             timestamp?: number;
         };
+        /** @enum {string} */
+        SignerGeolocationPolicyMode: "disabled" | "optional" | "required";
         SignerMetadata: {
             "remote-address"?: string;
             "user-agent"?: string;
