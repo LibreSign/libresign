@@ -52,7 +52,7 @@ final class TokenServiceTest extends TestCase {
 			->method('generate');
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('App Two-Factor Gateway is not enabled.');
+		$this->expectExceptionCode(LibresignException::CODE_TWOFACTOR_GATEWAY_NOT_ENABLED);
 
 		$this->createService()->sendCodeByGateway('+5511999999999', 'sms');
 	}
