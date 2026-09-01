@@ -12,6 +12,7 @@ namespace OCA\Libresign\Service\File\Pdf;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Vendor\Smalot\PdfParser\Document;
 use OCA\Libresign\Vendor\Smalot\PdfParser\Parser;
+use OCP\AppFramework\Http;
 use OCP\IL10N;
 use Psr\Log\LoggerInterface;
 
@@ -40,7 +41,7 @@ class PdfParser {
 			$this->logger->error('PDF parsing failed: ' . $th->getMessage());
 
 			// TRANSLATORS %s is the file name that could not be processed as PDF
-			throw new LibresignException($this->l10n->t('Unable to process the file as a PDF document: %s', [$fileName]));
+			throw new LibresignException($this->l10n->t('Unable to process the file as a PDF document: %s', [$fileName]), Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
 	}
 

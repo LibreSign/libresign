@@ -13,6 +13,7 @@ use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Service\File\Pdf\PdfParser;
 use OCA\Libresign\Service\File\Pdf\PdfValidator;
 use OCA\Libresign\Tests\Fixtures\PdfGenerator;
+use OCP\AppFramework\Http;
 use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -63,7 +64,7 @@ final class PdfValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$validator = $this->getService();
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('doc.pdf');
+		$this->expectExceptionCode(Http::STATUS_UNPROCESSABLE_ENTITY);
 		$validator->validate($content, 'doc.pdf');
 	}
 }
