@@ -25,6 +25,11 @@
   "browserslist": [
     "extends @nextcloud/browserslist-config"
   ],
+  "overrides": {
+    "openapi-typescript": {
+      "typescript": "$typescript"
+    }
+  },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.1",
     "@codemirror/commands": "^6.11.0",
@@ -99,10 +104,5 @@
   "engines": {
     "node": "^24.0.0",
     "npm": "^11.3.0"
-  },
-  "overrides": {
-    "openapi-typescript": {
-      "typescript": "$typescript"
-    }
   }
 }
