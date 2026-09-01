@@ -19,7 +19,7 @@ class PdfParser {
 	/**
 	 * Semantic error code for a file that could not be parsed as a valid PDF document.
 	 */
-	public const int CODE_INVALID_PDF = 4220;
+	public const CODE_INVALID_PDF = 4220;
 
 	public function __construct(
 		private LoggerInterface $logger,
