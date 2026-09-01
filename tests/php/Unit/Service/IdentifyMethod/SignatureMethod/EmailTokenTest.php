@@ -251,7 +251,7 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$instance->setCodeSentByUser('654321');
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Invalid code.');
+		$this->expectExceptionCode(LibresignException::CODE_INVALID_TOKEN);
 
 		$instance->validateToSign();
 	}
@@ -266,7 +266,7 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$instance->setCodeSentByUser('123456');
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Invalid code.');
+		$this->expectExceptionCode(LibresignException::CODE_INVALID_TOKEN);
 
 		$instance->validateToSign();
 	}
