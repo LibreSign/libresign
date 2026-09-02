@@ -97,6 +97,116 @@ class AccountPhonePluginTest extends TestCase {
 		$this->assertCount($expectedCount, $items);
 	}
 
+	#[DataProvider('providerSearchScenariosWithMultipleInputs')]
+	public function testSearchRespectsEnumerationRulesWithMultipleInputs(
+		string $method,
+		array $config,
+		array $currentUser,
+		array $users,
+		array $searchQuery,
+		array $excludeGroups,
+		array $pagination,
+		bool $shouldHaveMore,
+		int $expectedCount
+	): void {
+		$appConfig = $this->applyAppConfig($config);
+
+		$usersByUid = array_column($users, null, 'uid');
+		$userStubs = [];
+		$groupsByUid = [];
+		$searchedUsers = [];
+		foreach ($users as $userData) {
+			$uid = $userData['uid'];
+			$stub = $this->createStub(IUser::class);
+			$stub->method('getUID')->willReturn($uid);
+			$stub->method('isEnabled')->willReturn($userData['isEnabled']);
+			$stub->method('getDisplayName')->willReturn($userData['displayName']);
+
+			$userStubs[$uid] = $stub;
+			$groupsByUid[$uid] = $userData['groups'];
+			$searchedUsers[$userData['numberMap']['number']] = $uid;
+		}
+
+		$accountManager = $this->createStub(IAccountManager::class);
+		$accountManager->method('searchUsers')
+			->willReturn($searchedUsers);
+
+		$currentUserStub = $this->createStub(IUser::class);
+		$currentUserStub->method('getUID')->willReturn($currentUser['uid']);
+		$currentUserStub->method('isEnabled')->willReturn($currentUser['isEnabled']);
+		$currentUserStub->method('getDisplayName')->willReturn($currentUser['displayName']);
+
+		$userSession = $this->createStub(IUserSession::class);
+		$userSession->method('getUser')->willReturn($currentUserStub);
+
+		$userManager = $this->createStub(IUserManager::class);
+		$userManager->method('get')
+			->willReturnCallback(function (string $uid) use ($currentUser, $currentUserStub, $userStubs): IUser {
+				if ($uid === $currentUser['uid']) {
+					return $currentUserStub;
+				}
+
+				return $userStubs[$uid] ?? null;
+			});
+
+		$groupManager = $this->createStub(IGroupManager::class);
+		$groupManager->method('getUserGroupIds')
+			->willReturnCallback(function ($subject) use ($currentUserStub, $userStubs, $currentUser, $groupsByUid): array {
+				if ($subject === $currentUserStub) {
+					return $currentUser['groups'];
+				}
+				foreach ($userStubs as $uid => $stub) {
+					if ($subject === $stub) {
+						return $groupsByUid[$uid];
+					}
+				}
+				return [];
+			});
+
+		$knownUserService = $this->createStub(KnownUserService::class);
+		$knownUserService->method('isKnownToUser')
+			->willReturnCallback(function (string $current, string $target) use ($usersByUid): bool {
+				return $usersByUid[$target]['isKnown'];
+			});
+
+		$context = new SignerSearchContext();
+		$context->set($method, $searchQuery['number'], $searchQuery['normalized']);
+
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->willReturnCallback(function (string $number) use ($currentUser, $users) {
+				if ($number === $currentUser['numberMap']['number']) {
+					return $currentUser['numberMap']['normalized'];
+				}
+				foreach($users as $userData) {
+					if($number === $userData['numberMap']['number']) {
+						return $userData['numberMap']['normalized'];
+					}
+				}
+				return null;
+			});			
+
+		$plugin = new AccountPhonePlugin(
+			$appConfig,
+			$accountManager,
+			$groupManager,
+			$userSession,
+			$knownUserService,
+			$userManager,
+			$context,
+			$searchNormalizer,
+		);
+
+		$searchResult = new SearchResult();
+		$hasMore = $plugin->search($searchQuery['normalized'], $pagination['limit'], $pagination['offset'], $searchResult);
+
+		$results = $searchResult->asArray();
+		$items = array_merge($results['account-phone'] ?? [], $results['exact']['account-phone'] ?? []);
+
+		$this->assertSame($shouldHaveMore, $hasMore);
+		$this->assertCount($expectedCount, $items);
+	}
+
 	public function testSearchAppliesPagination(): void {
 		$appConfig = $this->applyAppConfig([
 			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
@@ -428,6 +538,74 @@ class AccountPhonePluginTest extends TestCase {
 				'targetGroups' => ['sales'],
 				'userEnabled' => true,
 				'expectedCount' => 0,
+			],
+		];
+	}
+
+	public static function providerSearchScenariosWithMultipleInputs(): array {
+		return [
+			'disabled user filtered' => [
+				'method' => 'sms',
+				'config' => [
+					'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+				],
+				'currentUser' => [
+					'uid' => 'current',
+					'displayName' => 'Current User',
+					'isEnabled' => true,
+					'isKnown' => true,
+					'groups' => ['sales'],
+					'numberMap' => [
+						'number' => '',
+						'normalized' => null,
+					],
+				],
+				'users' => [
+					[
+						'uid' => 'target1',
+						'displayName' => 'Target User 1',
+						'numberMap' => [
+							'number' => '+12025550001',
+							'normalized' => '+12025550001',
+						],
+						'isEnabled' => true,
+						'isKnown' => true,
+						'groups' => ['sales'],
+					],
+					[
+						'uid' => 'excluded1',
+						'displayName' => 'Excluded User 1',
+						'numberMap' => [
+							'number' => '+12025550003',
+							'normalized' => '+12025550003',
+						],
+						'isEnabled' => false,
+						'isKnown' => true,
+						'groups' => ['sales'],
+					],
+					[
+						'uid' => 'target2',
+						'displayName' => 'Target User 2',
+						'numberMap' => [
+							'number' => '+12025550002',
+							'normalized' => '+12025550002',
+						],
+						'isEnabled' => true,
+						'isKnown' => true,
+						'groups' => ['sales'],
+					],
+				],
+				'searchQuery' => [
+					'number' => '+12025550001',
+					'normalized' => '+12025550001'
+				],
+				'excludeGroups' => [],
+				'pagination' => [
+					'limit' => 2,
+					'offset' => 0,
+				],
+				'shouldHaveMore' => false,
+				'expectedCount' => 2,
 			],
 		];
 	}
