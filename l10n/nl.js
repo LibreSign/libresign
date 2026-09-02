@@ -343,6 +343,7 @@ OC.L10N.register(
     "No background" : "Geen achtergrond",
     "Public" : "Openbaar",
     "System default" : "Systeem Standaard",
+    "{count} members" : "{count} leden",
     "Cannot read file" : "Kan bestand niet lezen",
     "visible element" : "zichtbaar element",
     "You are not allowed to request signing" : "Je bent niet bevoegd om ondertekening aan te vragen.",
