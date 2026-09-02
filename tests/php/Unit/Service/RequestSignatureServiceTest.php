@@ -32,6 +32,7 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\FilePolicyApplier;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SequentialSigningService;
+use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCA\Libresign\Service\SignRequest\StatusService;
@@ -78,6 +79,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private FileUploadHelper&MockObject $uploadHelper;
 	private SignRequestService&MockObject $signRequestService;
 	private FilePolicyApplier&MockObject $filePolicyApplier;
+	private SignerGeolocationPolicyService&MockObject $signerGeolocationPolicyService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -113,6 +115,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->uploadHelper = $this->createMock(FileUploadHelper::class);
 		$this->signRequestService = $this->createMock(SignRequestService::class);
 		$this->filePolicyApplier = $this->createMock(FilePolicyApplier::class);
+		$this->signerGeolocationPolicyService = $this->createMock(SignerGeolocationPolicyService::class);
 	}
 
 	private function getService(array $methods = []): RequestSignatureService|MockObject {
@@ -145,6 +148,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->uploadHelper,
 					$this->signRequestService,
 					$this->filePolicyApplier,
+					$this->signerGeolocationPolicyService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -177,6 +181,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->uploadHelper,
 			$this->signRequestService,
 			$this->filePolicyApplier,
+			$this->signerGeolocationPolicyService,
 		);
 	}
 
@@ -409,6 +414,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				int $signingOrder,
 				?int $fileStatus,
 				?int $signerStatus,
+				?callable $afterPersist = null,
 			) use (&$expectedCalls): SignRequest {
 				$expectedCall = array_shift($expectedCalls);
 				$this->assertNotNull($expectedCall);
@@ -429,6 +435,80 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 
 		$this->assertCount(2, $actual);
 		$this->assertSame([], $expectedCalls);
+	}
+
+	public function testAssociateToSignersPersistsGeolocationRequirementForEachIdentifyMethod(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(77);
+
+		$data = [
+			'status' => 9,
+			'signers' => [[
+				'displayName' => 'John Doe',
+				'geolocationRequired' => true,
+				'identifyMethods' => [
+					['method' => 'email', 'value' => 'john@example.com'],
+					['method' => 'account', 'value' => 'john'],
+				],
+			]],
+		];
+
+		$this->validateHelper
+			->method('normalizeRequestSigners')
+			->willReturnCallback(static fn (array $signers): array => $signers);
+
+		$this->signRequestMapper
+			->method('getByFileId')
+			->with(77)
+			->willReturn([]);
+
+		$this->identifyMethodService
+			->method('clearCache');
+
+		$this->sequentialSigningService
+			->method('resetOrderCounter');
+
+		$this->sequentialSigningService
+			->method('determineSigningOrder')
+			->willReturn(1);
+
+		$signRequestCounter = 0;
+		$this->signRequestService
+			->method('createOrUpdateSignRequest')
+			->willReturnCallback(function (
+				array $identifyMethods,
+				string $displayName,
+				string $description,
+				bool $notify,
+				int $fileId,
+				int $signingOrder = 0,
+				?int $fileStatus = null,
+				?int $signerStatus = null,
+				?callable $afterPersist = null,
+			) use (&$signRequestCounter): SignRequest {
+				$signRequest = new SignRequest();
+				$signRequest->setId(500 + ++$signRequestCounter);
+
+				if ($afterPersist !== null) {
+					$afterPersist($signRequest);
+				}
+
+				return $signRequest;
+			});
+
+		$this->signerGeolocationPolicyService
+			->expects($this->exactly(2))
+			->method('persistEffectiveRequirement')
+			->with(
+				$this->callback(static fn (SignRequest $signRequest): bool => in_array($signRequest->getId(), [501, 502], true)),
+				$file,
+				true,
+				null,
+			);
+
+		$actual = self::invokePrivate($this->getService(), 'associateToSigners', [$data, $file]);
+
+		$this->assertCount(2, $actual);
 	}
 
 	public function testDeleteIdentifyMethodIfNotExitsKeepsMatchingIdentifyMethods(): void {
@@ -491,6 +571,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->uploadHelper,
 				$this->signRequestService,
 				$this->filePolicyApplier,
+				$this->signerGeolocationPolicyService,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
@@ -564,6 +645,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->uploadHelper,
 				$this->signRequestService,
 				$this->filePolicyApplier,
+				$this->signerGeolocationPolicyService,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();

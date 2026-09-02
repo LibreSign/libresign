@@ -1263,6 +1263,22 @@
                     }
                 }
             },
+            "GeolocationCollectionStatus": {
+                "type": "string",
+                "enum": [
+                    "collected",
+                    "denied",
+                    "unavailable",
+                    "skipped"
+                ]
+            },
+            "GeolocationRequirement": {
+                "type": "string",
+                "enum": [
+                    "disabled",
+                    "required"
+                ]
+            },
             "GroupPolicyResponse": {
                 "type": "object",
                 "required": [
@@ -1625,6 +1641,9 @@
                     "status": {
                         "type": "integer",
                         "format": "int64"
+                    },
+                    "geolocationRequired": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -1891,6 +1910,32 @@
                         }
                     }
                 ]
+            },
+            "PolicySnapshotSignerGeolocationEntry": {
+                "type": "object",
+                "required": [
+                    "effectiveValue",
+                    "sourceScope"
+                ],
+                "properties": {
+                    "effectiveValue": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignerGeolocationValue"
+                    },
+                    "sourceScope": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PolicySnapshotSignerGeolocationValue": {
+                "type": "object",
+                "required": [
+                    "mode"
+                ],
+                "properties": {
+                    "mode": {
+                        "$ref": "#/components/schemas/SignerGeolocationPolicyMode"
+                    }
+                }
             },
             "ProgressError": {
                 "type": "object",
@@ -2355,6 +2400,41 @@
                     }
                 ]
             },
+            "SignerGeolocation": {
+                "type": "object",
+                "required": [
+                    "status"
+                ],
+                "properties": {
+                    "status": {
+                        "$ref": "#/components/schemas/GeolocationCollectionStatus"
+                    },
+                    "latitude": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "longitude": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "accuracy": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "timestamp": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "SignerGeolocationPolicyMode": {
+                "type": "string",
+                "enum": [
+                    "disabled",
+                    "optional",
+                    "required"
+                ]
+            },
             "SignerMetadata": {
                 "type": "object",
                 "properties": {
@@ -2363,6 +2443,12 @@
                     },
                     "user-agent": {
                         "type": "string"
+                    },
+                    "geolocationRequirement": {
+                        "$ref": "#/components/schemas/GeolocationRequirement"
+                    },
+                    "geolocation": {
+                        "$ref": "#/components/schemas/SignerGeolocation"
                     },
                     "notify": {
                         "type": "array",
@@ -2660,6 +2746,9 @@
                     },
                     "identify_methods": {
                         "$ref": "#/components/schemas/PolicySnapshotIdentifyMethodsEntry"
+                    },
+                    "signer_geolocation": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignerGeolocationEntry"
                     }
                 }
             },
@@ -9195,7 +9284,7 @@
                                     "signers": {
                                         "type": "array",
                                         "default": [],
-                                        "description": "Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status",
+                                        "description": "Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, geolocationRequired",
                                         "items": {
                                             "$ref": "#/components/schemas/NewSigner"
                                         }
@@ -9871,6 +9960,14 @@
                                         "type": "boolean",
                                         "default": false,
                                         "description": "Execute signing asynchronously when possible"
+                                    },
+                                    "geolocation": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Device-reported geolocation metadata submitted by the signing client",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
                                     }
                                 }
                             }
@@ -10027,6 +10124,14 @@
                                         "type": "boolean",
                                         "default": false,
                                         "description": "Execute signing asynchronously when possible"
+                                    },
+                                    "geolocation": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Device-reported geolocation metadata submitted by the signing client",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
                                     }
                                 }
                             }

@@ -35,6 +35,7 @@ use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPol
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyManagedValue;
 use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
@@ -167,6 +168,7 @@ final class PolicySourceTest extends TestCase {
 			SignatureFlowPolicy::class,
 			SignatureHashAlgorithmPolicy::class,
 			SignatureTextPolicy::class,
+			SignerGeolocationPolicy::class,
 			TsaPolicy::class,
 			ValidationAccessPolicy::class,
 			SigningModePolicy::class,

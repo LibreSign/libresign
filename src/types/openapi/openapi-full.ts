@@ -1639,6 +1639,10 @@ export type components = {
             /** Format: int64 */
             preview_zoom: number;
         };
+        /** @enum {string} */
+        GeolocationCollectionStatus: "collected" | "denied" | "unavailable" | "skipped";
+        /** @enum {string} */
+        GeolocationRequirement: "disabled" | "required";
         GroupPolicyResponse: {
             policy: components["schemas"]["GroupPolicyState"];
         };
@@ -1761,6 +1765,7 @@ export type components = {
             signingOrder?: number;
             /** Format: int64 */
             status?: number;
+            geolocationRequired?: boolean;
         };
         Notify: {
             /** Format: int64 */
@@ -1837,6 +1842,13 @@ export type components = {
             blurredIdentifier?: string;
             hashOfIdentifier?: string;
             hasSignatureFile?: boolean;
+        };
+        PolicySnapshotSignerGeolocationEntry: {
+            effectiveValue: components["schemas"]["PolicySnapshotSignerGeolocationValue"];
+            sourceScope: string;
+        };
+        PolicySnapshotSignerGeolocationValue: {
+            mode: components["schemas"]["SignerGeolocationPolicyMode"];
         };
         ProgressError: {
             message: string;
@@ -1992,9 +2004,24 @@ export type components = {
             uid?: string;
             metadata?: components["schemas"]["SignerMetadata"];
         };
+        SignerGeolocation: {
+            status: components["schemas"]["GeolocationCollectionStatus"];
+            /** Format: double */
+            latitude?: number;
+            /** Format: double */
+            longitude?: number;
+            /** Format: double */
+            accuracy?: number;
+            /** Format: int64 */
+            timestamp?: number;
+        };
+        /** @enum {string} */
+        SignerGeolocationPolicyMode: "disabled" | "optional" | "required";
         SignerMetadata: {
             "remote-address"?: string;
             "user-agent"?: string;
+            geolocationRequirement?: components["schemas"]["GeolocationRequirement"];
+            geolocation?: components["schemas"]["SignerGeolocation"];
             notify?: components["schemas"]["Notify"][];
             certificate_info?: components["schemas"]["SignerCertificateInfo"];
         };
@@ -2095,6 +2122,7 @@ export type components = {
             legal_information?: components["schemas"]["PolicySnapshotLegalInformationEntry"];
             identification_documents?: components["schemas"]["PolicySnapshotIdentificationDocumentsEntry"];
             identify_methods?: components["schemas"]["PolicySnapshotIdentifyMethodsEntry"];
+            signer_geolocation?: components["schemas"]["PolicySnapshotSignerGeolocationEntry"];
         };
         ValidatedChildFile: {
             /** Format: int64 */
@@ -4764,7 +4792,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status
+                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, geolocationRequired
                      * @default []
                      */
                     signers?: components["schemas"]["NewSigner"][];
@@ -5018,6 +5046,13 @@ export interface operations {
                      * @default false
                      */
                     async?: boolean;
+                    /**
+                     * @description Device-reported geolocation metadata submitted by the signing client
+                     * @default {}
+                     */
+                    geolocation?: {
+                        [key: string]: Record<string, never>;
+                    };
                 };
             };
         };
@@ -5153,6 +5188,13 @@ export interface operations {
                      * @default false
                      */
                     async?: boolean;
+                    /**
+                     * @description Device-reported geolocation metadata submitted by the signing client
+                     * @default {}
+                     */
+                    geolocation?: {
+                        [key: string]: Record<string, never>;
+                    };
                 };
             };
         };
