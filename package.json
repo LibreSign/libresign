@@ -90,7 +90,7 @@
     "@types/blueimp-md5": "^2.18.2",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vitest/coverage-v8": "^4.1.11",
-    "@vue/test-utils": "^2.4.6",
+    "@vue/test-utils": "^2.5.0",
     "@vue/tsconfig": "^0.9.1",
     "happy-dom": "^20.11.15",
     "mailpit-api": "^2.1.0",
