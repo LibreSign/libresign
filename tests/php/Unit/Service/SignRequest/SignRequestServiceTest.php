@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service\SignRequest;
 use OCA\Libresign\Db\IdentifyMethod as IdentifyMethodEntity;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -183,6 +184,7 @@ final class SignRequestServiceTest extends TestCase {
 			1,
 			null,
 			null,
+			ParticipantRole::SIGNER,
 			$afterPersist,
 		);
 
