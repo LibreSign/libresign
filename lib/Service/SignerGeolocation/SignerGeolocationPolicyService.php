@@ -55,11 +55,11 @@ class SignerGeolocationPolicyService {
 		}
 
 		$requirement = SignerGeolocationMode::tryFrom($stored);
-		if ($requirement === SignerGeolocationMode::OPTIONAL) {
-			return SignerGeolocationMode::DISABLED;
+		if ($requirement === SignerGeolocationMode::DISABLED || $requirement === SignerGeolocationMode::REQUIRED) {
+			return $requirement;
 		}
 
-		return $requirement;
+		return null;
 	}
 
 	public function resolveEffectiveRequirement(

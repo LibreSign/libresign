@@ -127,16 +127,13 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 		);
 	}
 
-	public function testGetFrozenRequirementNormalizesLegacyOptionalToDisabled(): void {
+	public function testGetFrozenRequirementIgnoresInvalidOptionalSignerRequirement(): void {
 		$signRequest = new SignRequest();
 		$signRequest->setMetadata([
 			SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY => SignerGeolocationMode::OPTIONAL->value,
 		]);
 
-		$this->assertSame(
-			SignerGeolocationMode::DISABLED,
-			$this->getService()->getFrozenRequirement($signRequest),
-		);
+		$this->assertNull($this->getService()->getFrozenRequirement($signRequest));
 	}
 
 	public function testPersistEffectiveRequirementStoresPerSignerRequirement(): void {
