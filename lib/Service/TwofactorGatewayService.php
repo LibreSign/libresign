@@ -17,6 +17,12 @@ use Psr\Log\LoggerInterface;
 final class TwofactorGatewayService {
 	private const APP_ID = 'twofactor_gateway';
 	private const INTEGRATION_SERVICE_ID = 'OCA\\TwoFactorGateway\\Service\\GatewayDirectIntegrationService';
+	/**
+	 * Semantic error code of the "gateway app not enabled" error: the closest
+	 * HTTP status with one extra digit (503 -> 5030), so it is not mistaken
+	 * for an HTTP status code.
+	 */
+	public const int CODE_NOT_ENABLED = 5030;
 
 	public function __construct(
 		private ContainerInterface $container,
@@ -89,7 +95,7 @@ final class TwofactorGatewayService {
 	 */
 	private function resolveIntegrationService(): object {
 		if (!$this->isEnabled()) {
-			throw new LibresignException('App Two-Factor Gateway is not enabled.', LibresignException::CODE_TWOFACTOR_GATEWAY_NOT_ENABLED);
+			throw new LibresignException('App Two-Factor Gateway is not enabled.', self::CODE_NOT_ENABLED);
 		}
 
 		try {

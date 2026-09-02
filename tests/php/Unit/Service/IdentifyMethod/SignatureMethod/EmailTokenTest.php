@@ -12,6 +12,7 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\IdentifyMethod\AbstractIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
@@ -291,7 +292,7 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$instance->setCodeSentByUser('654321');
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionCode(LibresignException::CODE_INVALID_TOKEN);
+		$this->expectExceptionCode(AbstractIdentifyMethod::CODE_INVALID_TOKEN);
 
 		$instance->validateToSign();
 	}
@@ -306,7 +307,7 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$instance->setCodeSentByUser('123456');
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionCode(LibresignException::CODE_INVALID_TOKEN);
+		$this->expectExceptionCode(AbstractIdentifyMethod::CODE_INVALID_TOKEN);
 
 		$instance->validateToSign();
 	}
