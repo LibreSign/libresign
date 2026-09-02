@@ -411,10 +411,14 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file = $this->createMock(File::class);
 		$file
 			->method('__call')
-			->with($this->equalTo('getName'), $this->anything())
-			->willReturn('Filename');
+			->willReturnCallback(fn (string $method)
+				=> match ($method) {
+					'getName' => 'Filename',
+					'getUuid' => 'file-uuid',
+					default => null,
+				}
+			);
 		$file->method('getUserId')->willReturn($requesterId);
-		$file->method('getUuid')->willReturn('file-uuid');
 		$this->fileMapper
 			->method('getById')
 			->with(1)
