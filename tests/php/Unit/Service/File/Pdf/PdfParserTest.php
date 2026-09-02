@@ -42,11 +42,11 @@ final class PdfParserTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertInstanceOf(\OCA\Libresign\Vendor\Smalot\PdfParser\Document::class, $document);
 	}
 
-	public function testParseInvalidPdfThrowsExceptionWithFilename(): void {
+	public function testParseInvalidPdfThrowsException(): void {
 		$parser = $this->getService();
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('invalid.pdf');
+		$this->expectExceptionCode(PdfParser::CODE_INVALID_PDF);
 		$parser->parse('not a pdf', 'invalid.pdf');
 	}
 }
