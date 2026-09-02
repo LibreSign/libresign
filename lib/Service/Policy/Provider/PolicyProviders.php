@@ -26,6 +26,7 @@ use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPol
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
@@ -57,6 +58,7 @@ final class PolicyProviders {
 		IdentificationDocumentsPolicy::KEY => IdentificationDocumentsPolicy::class,
 		IdentifyMethodsPolicy::KEY => IdentifyMethodsPolicy::class,
 		SignatureTextPolicy::KEY => SignatureTextPolicy::class,
+		SignerGeolocationPolicy::KEY => SignerGeolocationPolicy::class,
 		TsaPolicy::KEY => TsaPolicy::class,
 	];
 }
