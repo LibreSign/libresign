@@ -14,6 +14,9 @@
 			label="displayName"
 			:get-option-key="getOptionKey"
 			:input-label="searchLabel"
+			:helper-text="haveError ? mandatoryErrorText : ''"
+			:error="haveError"
+			:aria-label-combobox="selectPlaceholder"
 			:placeholder="selectPlaceholder"
 			:options="options"
 			@search="asyncFind"
@@ -40,21 +43,12 @@
 				{{ search ? noResultText : t('libresign', 'No recommendations. Start typing.') }}
 			</template>
 		</NcSelect>
-		<p v-if="haveError"
-			id="account-or-email-field"
-			class="account-or-email__helper-text-message account-or-email__helper-text-message--error">
-			<NcIconSvgWrapper :path="mdiAlertCircle" class="account-or-email__helper-text-message__icon" :size="18" />
-			{{ mandatoryErrorText }}
-		</p>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import {
-	mdiAlertCircle,
-} from '@mdi/js'
 import svgAccount from '@mdi/svg/svg/account.svg?raw'
 import svgEmail from '@mdi/svg/svg/email.svg?raw'
 import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
@@ -305,20 +299,6 @@ defineExpose({
 		width: 100%;
 		position: relative;
 	}
-	&__helper-text-message {
-		padding: 4px 0;
-		display: flex;
-		align-items: center;
-		&__icon {
-			margin-right: 8px;
-			align-self: start;
-			margin-top: 4px;
-		}
-		&--error {
-			color: var(--color-error);
-		}
-	}
-
 	&__option {
 		display: flex;
 		align-items: center;

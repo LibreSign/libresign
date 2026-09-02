@@ -20,6 +20,7 @@ use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
+use OCA\Libresign\Service\Policy\Provider\MailSenderStrategy\MailSenderStrategyPolicy;
 use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
 use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
@@ -48,6 +49,7 @@ final class PolicyProviders {
 		ReminderPolicy::KEY => ReminderPolicy::class,
 		DefaultUserFolderPolicy::KEY => DefaultUserFolderPolicy::class,
 		LegalInformationPolicy::KEY => LegalInformationPolicy::class,
+		MailSenderStrategyPolicy::KEY => MailSenderStrategyPolicy::class,
 		SignatureHashAlgorithmPolicy::KEY => SignatureHashAlgorithmPolicy::class,
 		ValidationAccessPolicy::KEY => ValidationAccessPolicy::class,
 		SignatureFlowPolicy::KEY => SignatureFlowPolicy::class,

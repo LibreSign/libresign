@@ -144,7 +144,7 @@ class PolicyService {
 			? $definition->normalizeValue($definition->defaultSystemValue())
 			: $definition->normalizeValue($value);
 
-		$definition->validateValue($normalizedValue, $context);
+		$definition->validateValueForPersistence($normalizedValue, $context);
 		$this->source->saveSystemPolicy($definition->key(), $normalizedValue, $allowChildOverride);
 
 		return $this->resolver->resolve(
@@ -233,7 +233,7 @@ class PolicyService {
 		$this->assertCurrentActorCanManageGroupPolicy($definition->key(), $context);
 		$this->assertCurrentActorCanEditGroupPolicy($definition->key(), $groupId, $context);
 		$normalizedValue = $definition->normalizeValue($value);
-		$definition->validateValue($normalizedValue, $context);
+		$definition->validateValueForPersistence($normalizedValue, $context);
 		$createdBySystemAdmin = $context->getActorRole()->canManageSystemPolicies;
 		$this->source->saveGroupPolicy(
 			$definition->key(),
@@ -419,7 +419,7 @@ class PolicyService {
 		$definition = $this->registry->get($policyKey);
 		$this->assertScopeSupported($definition, PolicySpec::SCOPE_USER);
 		$normalizedValue = $definition->normalizeValue($value);
-		$definition->validateValue($normalizedValue, $context);
+		$definition->validateValueForPersistence($normalizedValue, $context);
 		$resolved = $this->resolver->resolve($definition, $context);
 		if (!$resolved->canSaveAsUserDefault()) {
 			// TRANSLATORS Error shown when saving a user preference for a policy that does not allow personal overrides. {policyKey} is the policy identifier.
@@ -447,7 +447,7 @@ class PolicyService {
 		$definition = $this->registry->get($policyKey);
 		$this->assertScopeSupported($definition, PolicySpec::SCOPE_USER);
 		$normalizedValue = $definition->normalizeValue($value);
-		$definition->validateValue($normalizedValue, $context);
+		$definition->validateValueForPersistence($normalizedValue, $context);
 		$this->source->saveUserPolicy($definition->key(), $context, $normalizedValue, $allowChildOverride);
 
 		return $this->source->loadUserPolicy($definition->key(), $context)

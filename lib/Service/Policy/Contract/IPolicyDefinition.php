@@ -38,6 +38,18 @@ interface IPolicyDefinition {
 
 	public function validateValue(mixed $value, PolicyContext $context): void;
 
+	/**
+	 * Validate a value that is about to be persisted (system, group or user
+	 * scope). Runs the regular validateValue() checks plus any constraint that
+	 * only makes sense at configuration time, such as requiring an external
+	 * capability to be available. Runtime resolution keeps using
+	 * validateValue() so already stored values are not silently discarded
+	 * when the environment changes later.
+	 *
+	 * @throws \InvalidArgumentException when the value must not be saved
+	 */
+	public function validateValueForPersistence(mixed $value, PolicyContext $context): void;
+
 	/** @return list<mixed> */
 	public function allowedValues(PolicyContext $context): array;
 

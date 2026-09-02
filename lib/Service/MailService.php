@@ -12,10 +12,19 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\MailSenderStrategy\MailSenderStrategyPolicy;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
+use OCP\IUser;
+use OCP\IUserManager;
+use OCP\Mail\IEMailTemplate;
 use OCP\Mail\IMailer;
+use OCP\Mail\Provider\Address;
+use OCP\Mail\Provider\IManager as IMailProviderManager;
+use OCP\Mail\Provider\IMessageSend;
+use OCP\Mail\Provider\IService;
 use Psr\Log\LoggerInterface;
 
 class MailService {
@@ -29,6 +38,9 @@ class MailService {
 		private IL10N $l10n,
 		private IURLGenerator $urlGenerator,
 		private IAppConfig $appConfig,
+		private PolicyService $policyService,
+		private IMailProviderManager $mailProviderManager,
+		private IUserManager $userManager,
 	) {
 	}
 
@@ -88,15 +100,8 @@ class MailService {
 				$link
 			);
 		}
-		$message = $this->mailer->createMessage();
-		if ($data->getDisplayName()) {
-			$message->setTo([$email => $data->getDisplayName()]);
-		} else {
-			$message->setTo([$email]);
-		}
-		$message->useTemplate($emailTemplate);
 		try {
-			$this->mailer->send($message);
+			$this->sendSignRequestNotification($emailTemplate, $data, $email);
 		} catch (\Exception $e) {
 			$this->logger->error('Notify changes in unsigned notification mail could not be sent: ' . $e->getMessage());
 			throw new LibresignException('Notify unsigned notification mail could not be sent', 1);
@@ -149,19 +154,120 @@ class MailService {
 				$link
 			);
 		}
+		try {
+			$this->sendSignRequestNotification($emailTemplate, $data, $email);
+		} catch (\Exception $e) {
+			$this->logger->error('Notify unsigned notification mail could not be sent: ' . $e->getMessage());
+			throw new LibresignException('Notify unsigned notification mail could not be sent', 1);
+		}
+	}
+
+	/**
+	 * Sends a signature request notification using the strategy configured in
+	 * the mail_sender_strategy policy, falling back to the system mailer when
+	 * the requester mail account cannot be used.
+	 */
+	private function sendSignRequestNotification(IEMailTemplate $emailTemplate, SignRequest $data, string $email): void {
+		$requesterId = $this->getFileById($data->getFileId())->getUserId();
+		if ($this->resolveMailSenderStrategy($requesterId) !== MailSenderStrategyPolicy::STRATEGY_REQUESTER) {
+			$this->sendAsSystem($emailTemplate, $data, $email);
+			return;
+		}
+
+		$requester = $requesterId !== '' ? $this->userManager->get($requesterId) : null;
+		if ($this->sendAsRequester($emailTemplate, $data, $email, $requesterId, $requester)) {
+			return;
+		}
+		// Keep replies going to the person who requested the signature even
+		// when the message could not leave their own mail account.
+		$this->sendAsSystem($emailTemplate, $data, $email, $this->replyToAddress($requester));
+	}
+
+	/**
+	 * @return array<string, string>|null
+	 */
+	private function replyToAddress(?IUser $requester): ?array {
+		if (!$requester instanceof IUser) {
+			return null;
+		}
+		$address = (string)$requester->getEMailAddress();
+		if ($address === '') {
+			return null;
+		}
+		return [$address => $requester->getDisplayName()];
+	}
+
+	private function resolveMailSenderStrategy(string $requesterId): string {
+		return (string)$this->policyService
+			->resolveForUserId(MailSenderStrategyPolicy::KEY, $requesterId !== '' ? $requesterId : null)
+			->getEffectiveValue();
+	}
+
+	/**
+	 * @param array<string, string>|null $replyTo
+	 */
+	private function sendAsSystem(IEMailTemplate $emailTemplate, SignRequest $data, string $email, ?array $replyTo = null): void {
 		$message = $this->mailer->createMessage();
 		if ($data->getDisplayName()) {
 			$message->setTo([$email => $data->getDisplayName()]);
 		} else {
 			$message->setTo([$email]);
 		}
-		$message->useTemplate($emailTemplate);
-		try {
-			$this->mailer->send($message);
-		} catch (\Exception $e) {
-			$this->logger->error('Notify unsigned notification mail could not be sent: ' . $e->getMessage());
-			throw new LibresignException('Notify unsigned notification mail could not be sent', 1);
+		if ($replyTo !== null) {
+			$message->setReplyTo($replyTo);
 		}
+		$message->useTemplate($emailTemplate);
+		$this->mailer->send($message);
+	}
+
+	/**
+	 * @return bool true when the message was sent through the requester mail account
+	 */
+	private function sendAsRequester(IEMailTemplate $emailTemplate, SignRequest $data, string $email, string $requesterId, ?IUser $requester): bool {
+		try {
+			$service = $this->findRequesterMailService($requesterId, $requester);
+			if ($service === null) {
+				return false;
+			}
+			$message = $service->initiateMessage()
+				->setFrom($service->getPrimaryAddress())
+				->setTo(new Address($email, $data->getDisplayName() ?: null))
+				->setSubject($emailTemplate->renderSubject())
+				->setBodyHtml($emailTemplate->renderHtml())
+				->setBodyPlain($emailTemplate->renderText());
+			$service->sendMessage($message);
+			return true;
+		} catch (\Throwable $e) {
+			$this->logger->warning('Unable to send the notification through the requester mail account, falling back to the system mailer.', [
+				'requester' => $requesterId,
+				'exception' => $e,
+			]);
+			return false;
+		}
+	}
+
+	private function findRequesterMailService(string $requesterId, ?IUser $requester): (IService&IMessageSend)|null {
+		if ($requesterId === '' || !$this->mailProviderManager->has()) {
+			$this->logger->info('No mail provider is available to send the notification as the requester, falling back to the system mailer.', [
+				'requester' => $requesterId,
+			]);
+			return null;
+		}
+		if (!$requester instanceof IUser) {
+			$this->logger->info('Requester account not found, falling back to the system mailer.', [
+				'requester' => $requesterId,
+			]);
+			return null;
+		}
+		$address = (string)$requester->getEMailAddress();
+		$service = $address !== '' ? $this->mailProviderManager->findServiceByAddress($requesterId, $address) : null;
+		if ($service instanceof IMessageSend) {
+			return $service;
+		}
+		$this->logger->info('No mail account matching the requester email address can send messages, falling back to the system mailer.', [
+			'requester' => $requesterId,
+		]);
+		return null;
 	}
 
 	public function notifySignedUser(SignRequest $signRequest, string $email, File $libreSignFile, string $displayName): void {

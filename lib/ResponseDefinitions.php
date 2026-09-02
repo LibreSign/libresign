@@ -412,6 +412,7 @@ namespace OCA\Libresign;
  *     helper?: bool,
  *     parentPolicyKey?: string,
  *     compositeChildren?: list<string>,
+ *     mailProviderAvailable?: bool,
  * }
  * @psalm-type LibresignEffectivePolicyState = array{
  *     policyKey: string,
