@@ -18,9 +18,13 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Enum\SignatureFlow;
+use OCA\Libresign\Enum\SignerGeolocationCollectionStatus;
+use OCA\Libresign\Enum\SignerGeolocationMode;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
+use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
 use OCP\AppFramework\Db\Entity;
 use OCP\Files\File as NodeFile;
 use OCP\Files\IRootFolder;
@@ -39,6 +43,8 @@ use OCP\IUserManager;
  * @psalm-import-type LibresignPagination from ResponseDefinitions
  * @psalm-import-type LibresignSignerDetail from ResponseDefinitions
  * @psalm-import-type LibresignSignerSummary from ResponseDefinitions
+ * @psalm-import-type LibresignGeolocationRequirement from ResponseDefinitions
+ * @psalm-import-type LibresignSignerGeolocation from ResponseDefinitions
  */
 class FileListService {
 	public function __construct(
@@ -467,8 +473,61 @@ class FileListService {
 		if ($signer->getSigned()) {
 			$data['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
 		}
+
+		$geolocationMetadata = $this->extractGeolocationMetadataFromSignRequest($signer);
+		if ($geolocationMetadata !== []) {
+			$data['metadata'] = $geolocationMetadata;
+		}
+
 		ksort($data);
 		return $data;
+	}
+
+	/**
+	 * @psalm-return array{
+	 *     geolocationRequirement?: LibresignGeolocationRequirement,
+	 *     geolocation?: LibresignSignerGeolocation,
+	 * }
+	 */
+	private function extractGeolocationMetadataFromSignRequest(SignRequest $signer): array {
+		$signerMetadata = $signer->getMetadata();
+		if (!is_array($signerMetadata) || $signerMetadata === []) {
+			return [];
+		}
+
+		$geolocationMetadata = [];
+
+		$storedRequirement = $signerMetadata[SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY] ?? null;
+		$requirement = is_string($storedRequirement) ? SignerGeolocationMode::tryFrom($storedRequirement) : null;
+		if ($requirement === SignerGeolocationMode::DISABLED || $requirement === SignerGeolocationMode::REQUIRED) {
+			$geolocationMetadata[SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY] = $requirement->value;
+		}
+
+		$storedGeolocation = $signerMetadata[SignerGeolocationMetadataValidator::METADATA_GEOLOCATION_KEY] ?? null;
+		if (is_array($storedGeolocation)) {
+			$status = SignerGeolocationCollectionStatus::tryFrom((string)($storedGeolocation['status'] ?? ''));
+			if ($status !== null) {
+				/** @var LibresignSignerGeolocation $geolocation */
+				$geolocation = [
+					'status' => $status->value,
+				];
+				if (array_key_exists('latitude', $storedGeolocation) && is_numeric($storedGeolocation['latitude'])) {
+					$geolocation['latitude'] = (float)$storedGeolocation['latitude'];
+				}
+				if (array_key_exists('longitude', $storedGeolocation) && is_numeric($storedGeolocation['longitude'])) {
+					$geolocation['longitude'] = (float)$storedGeolocation['longitude'];
+				}
+				if (array_key_exists('accuracy', $storedGeolocation) && is_numeric($storedGeolocation['accuracy'])) {
+					$geolocation['accuracy'] = (float)$storedGeolocation['accuracy'];
+				}
+				if (array_key_exists('timestamp', $storedGeolocation) && is_numeric($storedGeolocation['timestamp'])) {
+					$geolocation['timestamp'] = (int)$storedGeolocation['timestamp'];
+				}
+				$geolocationMetadata[SignerGeolocationMetadataValidator::METADATA_GEOLOCATION_KEY] = $geolocation;
+			}
+		}
+
+		return $geolocationMetadata;
 	}
 
 	/**

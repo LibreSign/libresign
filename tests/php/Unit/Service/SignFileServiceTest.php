@@ -1229,28 +1229,24 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public static function providerStoreUserMetadata(): array {
+		$geo = ['status' => 'collected', 'latitude' => 1.0, 'longitude' => 2.0];
+
 		return [
-			// don't collect metadata
-			[false, null, [],                  null],
-			[false, null, ['b' => 2],          null],
-			[false, null, ['b' => null],       null],
-			[false, null, ['b' => []],         null],
-			[false, null, ['b' => ['']],       null],
-			[false, null, ['b' => ['b' => 1]], null],
-			// collect metadata without previous value
-			[true, null, [],                  null],
-			[true, null, ['b' => 2],          ['b' => 2]],
-			[true, null, ['b' => null],       ['b' => null]],
-			[true, null, ['b' => []],         ['b' => []]],
-			[true, null, ['b' => ['']],       ['b' => ['']]],
-			[true, null, ['b' => ['b' => 1]], ['b' => ['b' => 1]]],
-			// collect metadata with previous value
-			[true, ['a' => 1], ['a' => 2],          ['a' => 2]],
-			[true, ['a' => 1], ['a' => null],       ['a' => null]],
-			[true, ['a' => 1], ['a' => []],         ['a' => []]],
-			[true, ['a' => 1], ['a' => ['']],       ['a' => ['']]],
-			[true, ['a' => 1], ['a' => ['b' => 1]], ['a' => ['b' => 1]]],
-			[true, ['a' => 1], ['b' => 2],          ['a' => 1, 'b' => 2]],
+			// collect_metadata disabled: audit fields are ignored
+			[false, null, [], null],
+			[false, null, ['user-agent' => 'Mozilla/5.0'], null],
+			[false, null, ['remote-address' => '127.0.0.1'], null],
+			// geolocation is stored independently of collect_metadata
+			[false, null, ['geolocation' => $geo], ['geolocation' => $geo]],
+			[false, null, ['user-agent' => 'Mozilla/5.0', 'geolocation' => $geo], ['geolocation' => $geo]],
+			// collect_metadata enabled: audit fields are stored
+			[true, null, [], null],
+			[true, null, ['user-agent' => 'Mozilla/5.0'], ['user-agent' => 'Mozilla/5.0']],
+			[true, null, ['remote-address' => '127.0.0.1'], ['remote-address' => '127.0.0.1']],
+			[true, ['user-agent' => 'OldAgent'], ['user-agent' => 'NewAgent'], ['user-agent' => 'NewAgent']],
+			[true, ['remote-address' => '10.0.0.1'], ['remote-address' => '127.0.0.1'], ['remote-address' => '127.0.0.1']],
+			[true, ['user-agent' => 'OldAgent'], ['user-agent' => 'NewAgent', 'remote-address' => '127.0.0.1'], ['user-agent' => 'NewAgent', 'remote-address' => '127.0.0.1']],
+			[true, null, ['user-agent' => 'Mozilla/5.0', 'geolocation' => $geo], ['user-agent' => 'Mozilla/5.0', 'geolocation' => $geo]],
 		];
 	}
 

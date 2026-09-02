@@ -1048,13 +1048,28 @@ class SignFileService {
 	}
 
 	public function storeUserMetadata(array $metadata = []): self {
-		$collectMetadata = $this->isCollectMetadataEnabled();
-		if (!$collectMetadata || !$metadata) {
+		$patch = [];
+
+		if ($this->isCollectMetadataEnabled()) {
+			if (isset($metadata['user-agent'])) {
+				$patch['user-agent'] = $metadata['user-agent'];
+			}
+			if (isset($metadata['remote-address'])) {
+				$patch['remote-address'] = $metadata['remote-address'];
+			}
+		}
+
+		if (isset($metadata['geolocation']) && is_array($metadata['geolocation'])) {
+			$patch['geolocation'] = $metadata['geolocation'];
+		}
+
+		if ($patch === []) {
 			return $this;
 		}
+
 		$this->signRequest->setMetadata(array_merge(
 			$this->signRequest->getMetadata() ?? [],
-			$metadata,
+			$patch,
 		));
 		$this->signRequestMapper->update($this->signRequest);
 		return $this;

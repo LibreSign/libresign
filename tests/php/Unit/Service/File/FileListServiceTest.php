@@ -643,6 +643,87 @@ final class FileListServiceTest extends TestCase {
 		$this->assertSame(4096, $result['files'][0]['size']);
 	}
 
+	public function testFormatSingleFileOmitsSignerMetadataWithoutGeolocationData(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+		$signer = $this->createSigner(100, 1);
+		$signer->setMetadata([
+			'remote-address' => '127.0.0.1',
+			'user-agent' => 'Mozilla/5.0',
+			'certificate_info' => ['serialNumber' => 'abc123'],
+		]);
+
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([$signer]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('pending');
+
+		$service = $this->getService();
+		$result = $service->formatSingleFile($this->user, $file);
+
+		$this->assertArrayNotHasKey('metadata', $result['signers'][0]);
+	}
+
+	public function testFormatSingleFileExposesOnlyGeolocationSignerMetadata(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+		$signer = $this->createSigner(100, 1);
+		$signer->setMetadata([
+			'remote-address' => '127.0.0.1',
+			'user-agent' => 'Mozilla/5.0',
+			'geolocationRequirement' => 'required',
+			'geolocation' => [
+				'status' => 'collected',
+				'latitude' => -23.5505,
+				'longitude' => -46.6333,
+			],
+		]);
+
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([$signer]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('signed');
+
+		$service = $this->getService();
+		$result = $service->formatSingleFile($this->user, $file);
+
+		$this->assertSame([
+			'geolocationRequirement' => 'required',
+			'geolocation' => [
+				'status' => 'collected',
+				'latitude' => -23.5505,
+				'longitude' => -46.6333,
+			],
+		], $result['signers'][0]['metadata']);
+	}
+
+	public function testFormatSingleFileIgnoresInvalidOptionalGeolocationRequirement(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+		$signer = $this->createSigner(100, 1);
+		$signer->setMetadata([
+			'geolocationRequirement' => 'optional',
+			'geolocation' => [
+				'status' => 'collected',
+				'latitude' => -23.5505,
+				'longitude' => -46.6333,
+			],
+		]);
+
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([$signer]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('signed');
+
+		$service = $this->getService();
+		$result = $service->formatSingleFile($this->user, $file);
+
+		$this->assertSame([
+			'geolocation' => [
+				'status' => 'collected',
+				'latitude' => -23.5505,
+				'longitude' => -46.6333,
+			],
+		], $result['signers'][0]['metadata']);
+	}
+
 	public function testEnvelopeDetailedFileIncludesAggregateSize(): void {
 		$main = self::createFileEntity(1, 'envelope', 'envelope.pdf', ['filesCount' => 2]);
 		$childA = self::createFileEntity(2, 'file', 'child-a.pdf');

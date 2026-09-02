@@ -143,6 +143,52 @@ final class SignRequestServiceTest extends TestCase {
 		$this->assertSame('John Doe', $signRequest->getDisplayName());
 	}
 
+	public function testCreateOrUpdateSignRequestRunsAfterPersistBeforeIdentifyMethodSave(): void {
+		$identifyMethod = $this->createIdentifyMethod('email', 'signer@example.com');
+		$this->identifyMethodService->method('getByUserData')
+			->willReturn([$identifyMethod]);
+
+		$this->signRequestMapper->method('getByIdentifyMethodAndFileId')
+			->willThrowException(new DoesNotExistException('not found'));
+
+		$this->statusService->method('determineInitialStatus')
+			->willReturn(SignRequestStatus::ABLE_TO_SIGN);
+		$this->statusService->method('shouldNotifySignRequest')->willReturn(true);
+
+		$this->signRequestMapper->expects($this->once())
+			->method('insert')
+			->willReturnCallback(function (SignRequestEntity $request): SignRequestEntity {
+				$request->setId(10);
+				return $request;
+			});
+
+		$callOrder = [];
+		$afterPersist = static function (SignRequestEntity $signRequest) use (&$callOrder): void {
+			$callOrder[] = 'afterPersist';
+			$signRequest->setMetadata(['geolocationRequirement' => 'required']);
+		};
+
+		$identifyMethod->expects($this->once())
+			->method('save')
+			->willReturnCallback(static function () use (&$callOrder): void {
+				$callOrder[] = 'identifyMethodSave';
+			});
+
+		$this->service->createOrUpdateSignRequest(
+			[['email' => 'signer@example.com']],
+			'Signer Name',
+			'Please sign',
+			true,
+			42,
+			1,
+			null,
+			null,
+			$afterPersist,
+		);
+
+		$this->assertSame(['afterPersist', 'identifyMethodSave'], $callOrder);
+	}
+
 	public function testCreateOrUpdateSignRequestUpdatesExisting(): void {
 		$identifyMethod = $this->createIdentifyMethod('email', 'signer@example.com');
 		$this->identifyMethodService->method('getByUserData')

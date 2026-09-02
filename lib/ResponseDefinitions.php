@@ -48,6 +48,16 @@ namespace OCA\Libresign;
  *     envelopeFolderId?: int,
  * }
  * @psalm-type LibresignParticipantRole = 'signer'|'observer'
+ * @psalm-type LibresignGeolocationCollectionStatus = 'collected'|'denied'|'unavailable'|'skipped'
+ * @psalm-type LibresignSignerGeolocationPolicyMode = 'disabled'|'optional'|'required'
+ * @psalm-type LibresignGeolocationRequirement = 'disabled'|'required'
+ * @psalm-type LibresignSignerGeolocation = array{
+ *     status: LibresignGeolocationCollectionStatus,
+ *     latitude?: float,
+ *     longitude?: float,
+ *     accuracy?: float,
+ *     timestamp?: int,
+ * }
  * @psalm-type LibresignNewSigner = array{
  *     identifyMethods: list<array{
  *         method: string,
@@ -60,6 +70,7 @@ namespace OCA\Libresign;
  *     signingOrder?: non-negative-int,
  *     status?: int,
  *     participantRole?: LibresignParticipantRole,
+ *     geolocationRequired?: bool,
  * }
  * @psalm-type LibresignNewFile = array{
  *     base64?: string,
@@ -186,6 +197,8 @@ namespace OCA\Libresign;
  * @psalm-type LibresignSignerMetadata = array{
  *     remote-address?: string,
  *     user-agent?: string,
+ *     geolocationRequirement?: LibresignGeolocationRequirement,
+ *     geolocation?: LibresignSignerGeolocation,
  *     notify?: LibresignNotify[],
  *     certificate_info?: LibresignSignerCertificateInfo,
  * }
@@ -514,6 +527,13 @@ namespace OCA\Libresign;
  *     effectiveValue: list<LibresignPolicySnapshotIdentifyMethodFactor>,
  *     sourceScope: string,
  * }
+ * @psalm-type LibresignPolicySnapshotSignerGeolocationValue = array{
+ *     mode: LibresignSignerGeolocationPolicyMode,
+ * }
+ * @psalm-type LibresignPolicySnapshotSignerGeolocationEntry = array{
+ *     effectiveValue: LibresignPolicySnapshotSignerGeolocationValue,
+ *     sourceScope: string,
+ * }
  * @psalm-type LibresignValidatePolicySnapshot = array{
  *     docmdp?: LibresignPolicySnapshotNumericEntry,
  *     signature_flow?: LibresignPolicySnapshotEntry,
@@ -521,6 +541,7 @@ namespace OCA\Libresign;
  *     legal_information?: LibresignPolicySnapshotLegalInformationEntry,
  *     identification_documents?: LibresignPolicySnapshotIdentificationDocumentsEntry,
  *     identify_methods?: LibresignPolicySnapshotIdentifyMethodsEntry,
+ *     signer_geolocation?: LibresignPolicySnapshotSignerGeolocationEntry,
  * }
  * @psalm-type LibresignValidateMetadata = array{
  *     extension: string,

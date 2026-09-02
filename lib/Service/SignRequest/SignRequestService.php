@@ -41,6 +41,7 @@ class SignRequestService {
 	 * @param int|null $fileStatus File status
 	 * @param int|null $signerStatus Signer status
 	 * @param ParticipantRole $participantRole Participant role (signer or observer)
+	 * @param callable(SignRequestEntity): void|null $afterPersist Callback invoked after the sign request is persisted and before identify methods are saved
 	 * @return SignRequestEntity
 	 */
 	public function createOrUpdateSignRequest(
@@ -53,6 +54,7 @@ class SignRequestService {
 		?int $fileStatus = null,
 		?int $signerStatus = null,
 		ParticipantRole $participantRole = ParticipantRole::SIGNER,
+		?callable $afterPersist = null,
 	): SignRequestEntity {
 		$identifyMethodsInstances = $this->identifyMethodService->getByUserData($identifyMethods);
 		if (empty($identifyMethodsInstances)) {
@@ -88,6 +90,10 @@ class SignRequestService {
 		}
 
 		$this->insertOrUpdateSignRequest($signRequest);
+
+		if ($afterPersist !== null) {
+			$afterPersist($signRequest);
+		}
 
 		$shouldNotify = $notify && $this->signRequestStatusService->shouldNotifySignRequest(
 			$signRequest->getStatusEnum(),
