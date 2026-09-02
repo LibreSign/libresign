@@ -20,8 +20,9 @@ export async function clickAddSigner(page: Page): Promise<void> {
 	await addButton.click()
 
 	const signerMenuItem = page.getByRole('menuitem', { name: 'Signer' })
-	if (await signerMenuItem.isVisible({ timeout: 1000 }).catch(() => false)) {
-		await signerMenuItem.click()
+		.or(page.getByRole('button', { name: 'Signer', exact: true }))
+	if (await signerMenuItem.first().isVisible({ timeout: 1000 }).catch(() => false)) {
+		await signerMenuItem.first().click()
 	}
 
 	await expect(getAddSignerDialog(page)).toBeVisible({ timeout: 10_000 })
@@ -35,11 +36,13 @@ export async function expectAddSignerControlVisible(page: Page): Promise<void> {
 }
 
 function getAddSignerDialog(page: Page) {
-	return page.getByRole('dialog').filter({ hasText: /Add new signer/i }).last()
+	return page.getByRole('dialog', { name: /Add new signer/i }).last()
 }
 
 function getSignerSearchCombobox(page: Page) {
-	return getAddSignerDialog(page).getByRole('combobox', { name: 'Search signer' })
+	// NcSelect exposes the method placeholder as combobox name (e.g. Account, Email),
+	// while input-label stays on the visible label. Target the stable input id instead.
+	return getAddSignerDialog(page).locator('#account-or-email-input')
 }
 
 /**
@@ -50,7 +53,6 @@ export async function selectAccountSigner(
 	query: string,
 	optionName: string | RegExp = ADMIN_SIGNER_OPTION,
 ): Promise<void> {
-	const dialog = getAddSignerDialog(page)
 	const search = getSignerSearchCombobox(page)
 	await expect(search).toBeVisible({ timeout: 10_000 })
 	await search.click()
@@ -77,7 +79,6 @@ export async function selectAccountSigner(
  * Selects an email-backed signer from the add-signer dialog search list.
  */
 export async function selectEmailSigner(page: Page, email: string): Promise<void> {
-	const dialog = getAddSignerDialog(page)
 	const search = getSignerSearchCombobox(page)
 	await expect(search).toBeVisible({ timeout: 10_000 })
 	await search.click()
