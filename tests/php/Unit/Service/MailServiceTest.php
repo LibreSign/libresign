@@ -227,36 +227,53 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
 	}
 
-	public function testRequesterStrategyUsesFirstSendableServiceWhenAddressDoesNotMatch(): void {
+	public function testRequesterStrategyFallsBackWhenNoAccountMatchesTheRequesterAddress(): void {
 		$this->mockRequest();
 		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_REQUESTER);
-		$this->mockEmailTemplate();
 		$this->mockRequesterAccount('requester@domain.coop');
-		$readOnly = $this->createMock(IService::class);
-		$sendable = $this->mockSendableService(new Address('other@domain.coop'));
 		$this->mailProviderManager->method('has')->willReturn(true);
-		$this->mailProviderManager->method('findServiceByAddress')->willReturn(null);
 		$this->mailProviderManager->expects($this->once())
-			->method('services')
-			->with('requester')
-			->willReturn(['mail' => ['read-only' => $readOnly, 'sendable' => $sendable]]);
-		$sendable->expects($this->once())
-			->method('sendMessage');
-		$this->mailer->expects($this->never())
+			->method('findServiceByAddress')
+			->with('requester', 'requester@domain.coop')
+			->willReturn(null);
+		$this->mailProviderManager->expects($this->never())
+			->method('services');
+		$this->logger->expects($this->once())
+			->method('info');
+		$this->mailer->expects($this->once())
 			->method('send');
 
 		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
 	}
 
-	public function testRequesterStrategyFallsBackWhenNoServiceCanSend(): void {
+	public function testRequesterStrategyFallsBackWhenTheMatchingAccountCannotSend(): void {
+		$this->mockRequest();
+		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_REQUESTER);
+		$this->mockRequesterAccount('requester@domain.coop');
+		$this->mailProviderManager->method('has')->willReturn(true);
+		$this->mailProviderManager->expects($this->once())
+			->method('findServiceByAddress')
+			->with('requester', 'requester@domain.coop')
+			->willReturn($this->createMock(IService::class));
+		$this->mailProviderManager->expects($this->never())
+			->method('services');
+		$this->logger->expects($this->once())
+			->method('info');
+		$this->mailer->expects($this->once())
+			->method('send');
+
+		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
+	}
+
+	public function testRequesterStrategyFallsBackWhenTheRequesterHasNoEmailAddress(): void {
 		$this->mockRequest();
 		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_REQUESTER);
 		$this->mockRequesterAccount('');
 		$this->mailProviderManager->method('has')->willReturn(true);
 		$this->mailProviderManager->expects($this->never())
 			->method('findServiceByAddress');
-		$this->mailProviderManager->method('services')
-			->willReturn(['mail' => ['read-only' => $this->createMock(IService::class)]]);
+		$this->mailProviderManager->expects($this->never())
+			->method('services');
 		$this->logger->expects($this->once())
 			->method('info');
 		$this->mailer->expects($this->once())

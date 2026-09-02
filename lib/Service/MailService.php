@@ -222,14 +222,7 @@ class MailService {
 		if ($service instanceof IMessageSend) {
 			return $service;
 		}
-		foreach ($this->mailProviderManager->services($requesterId) as $providerServices) {
-			foreach ($providerServices as $candidate) {
-				if ($candidate instanceof IMessageSend) {
-					return $candidate;
-				}
-			}
-		}
-		$this->logger->info('Requester has no mail account able to send messages, falling back to the system mailer.', [
+		$this->logger->info('No mail account matching the requester email address can send messages, falling back to the system mailer.', [
 			'requester' => $requesterId,
 		]);
 		return null;
