@@ -26,6 +26,8 @@ final class PolicySpec implements IPolicyDefinition {
 	private ?Closure $normalizer;
 	/** @var Closure(mixed, PolicyContext): void|null */
 	private ?Closure $validator;
+	/** @var Closure(mixed, PolicyContext): void|null */
+	private ?Closure $persistenceValidator;
 	/** @var array<string, mixed>|Closure(PolicyContext): array<string, mixed> */
 	private array|Closure $resolvedStateMetaResolver;
 	/** @var Closure(PolicyContext, ?PolicyLayer): bool|null */
@@ -41,6 +43,7 @@ final class PolicySpec implements IPolicyDefinition {
 	 * @param list<mixed>|Closure(PolicyContext): list<mixed> $allowedValues
 	 * @param Closure(mixed): mixed|null $normalizer
 	 * @param Closure(mixed, PolicyContext): void|null $validator
+	 * @param Closure(mixed, PolicyContext): void|null $persistenceValidator Extra checks applied only when a value is saved
 	 * @param array<string, mixed>|Closure(PolicyContext): array<string, mixed> $resolvedStateMeta
 	 * @param Closure(mixed, mixed, PolicyContext): void|null $delegatedValueValidator
 	 * @param Closure(PolicyContext, ?PolicyLayer): bool|null $visibleGroupCountFilter
@@ -69,10 +72,12 @@ final class PolicySpec implements IPolicyDefinition {
 		private bool $helper = false,
 		private ?string $parentPolicyKey = null,
 		private array $compositeChildren = [],
+		?Closure $persistenceValidator = null,
 	) {
 		$this->allowedValuesResolver = $allowedValues;
 		$this->normalizer = $normalizer;
 		$this->validator = $validator;
+		$this->persistenceValidator = $persistenceValidator;
 		$this->resolvedStateMetaResolver = $resolvedStateMeta;
 		$this->visibleGroupCountFilterResolver = $visibleGroupCountFilter;
 		$this->groupPolicyManagerResolver = $groupPolicyManager;
@@ -155,6 +160,14 @@ final class PolicySpec implements IPolicyDefinition {
 
 		if (!in_array($value, $this->allowedValues($context), true)) {
 			throw new \InvalidArgumentException(sprintf('Invalid value for %s', $this->key()));
+		}
+	}
+
+	#[\Override]
+	public function validateValueForPersistence(mixed $value, PolicyContext $context): void {
+		$this->validateValue($value, $context);
+		if ($this->persistenceValidator !== null) {
+			($this->persistenceValidator)($value, $context);
 		}
 	}
 

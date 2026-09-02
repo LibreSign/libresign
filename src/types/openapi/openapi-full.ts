@@ -1458,6 +1458,7 @@ export type components = {
             helper?: boolean;
             parentPolicyKey?: string;
             compositeChildren?: string[];
+            mailProviderAvailable?: boolean;
         };
         EffectivePolicyResponse: {
             policy: components["schemas"]["EffectivePolicyState"];
