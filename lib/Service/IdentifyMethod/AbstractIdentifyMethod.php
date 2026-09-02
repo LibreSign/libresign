@@ -24,6 +24,13 @@ use OCP\Files\NotFoundException;
 use OCP\IUser;
 
 abstract class AbstractIdentifyMethod implements IIdentifyMethod {
+	/**
+	 * Semantic error code of the invalid verification code error: the closest
+	 * HTTP status with one extra digit (401 -> 4010), so it is not mistaken
+	 * for an HTTP status code.
+	 */
+	public const CODE_INVALID_TOKEN = 4010;
+
 	protected IdentifyMethod $entity;
 	protected string $name;
 	protected string $friendlyName;
@@ -236,12 +243,12 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$code = $this->getEntity()->getCode();
 		if ($code === null || $code === '') {
 			if ($this->codeSentByUser !== null) {
-				throw new LibresignException($this->identifyService->getL10n()->t('Invalid code.'), LibresignException::CODE_INVALID_TOKEN);
+				throw new LibresignException($this->identifyService->getL10n()->t('Invalid code.'), self::CODE_INVALID_TOKEN);
 			}
 			return;
 		}
 		if (empty($this->codeSentByUser) || !$this->identifyService->getHasher()->verify($this->codeSentByUser, $code)) {
-			throw new LibresignException($this->identifyService->getL10n()->t('Invalid code.'), LibresignException::CODE_INVALID_TOKEN);
+			throw new LibresignException($this->identifyService->getL10n()->t('Invalid code.'), self::CODE_INVALID_TOKEN);
 		}
 	}
 
