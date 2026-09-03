@@ -167,7 +167,11 @@ class TSA {
 
 				$tst = null;
 				if ($tstNode && ($tstNode['type'] ?? null) === ASN1::TYPE_SEQUENCE) {
-					$tst = $this->parseTstInfoFallback($tstInfoOctets);
+					$mappedTst = ASN1::map($tstNode, self::$timestampInfoStructure ??= $this->buildTimestampInfoStructure());
+					$tst = $mappedTst instanceof Constructed ? $mappedTst->toArray(true) : null;
+					if (!is_array($tst)) {
+						$tst = $this->parseTstInfoFallback($tstInfoOctets);
+					}
 				}
 			} catch (\Throwable) {
 				$tst = $this->parseTstInfoFallback($tstInfoOctets);
