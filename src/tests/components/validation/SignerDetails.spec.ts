@@ -518,6 +518,14 @@ describe('SignerDetails.vue - Business Logic', () => {
 			wrapper.vm.toggleOpen()
 			expect(wrapper.vm.isOpen).toBe(false)
 		})
+
+		it('toggles when a certificate signer has signed status without a timestamp', () => {
+			wrapper = createWrapper({ signer: { signed: null, status: 2 } })
+
+			wrapper.vm.toggleOpen()
+
+			expect(wrapper.vm.isOpen).toBe(true)
+		})
 	})
 
 	describe('getSignatureValidationMessage method', () => {
@@ -536,6 +544,12 @@ describe('SignerDetails.vue - Business Logic', () => {
 		it('returns default message when no message provided', () => {
 			const signer = { signature_validation: { id: 2 } }
 			expect(wrapper.vm.getSignatureValidationMessage(signer)).toBe('Document integrity check failed')
+		})
+	})
+
+	describe('getSignatureCoverageMessage method', () => {
+		it('reports bytes outside the signed ByteRange', () => {
+			expect(wrapper.vm.getSignatureCoverageMessage()).toBe('The signature does not cover the entire document')
 		})
 	})
 
