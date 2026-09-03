@@ -175,7 +175,9 @@ class TSA {
 
 			if (is_array($tst)) {
 				$tsa['genTime'] = $tst['genTime'] ?? null;
-				$policyOid = $tst['policy'] ?? null;
+				$policyOid = isset($tst['policy']) && is_string($tst['policy'])
+					? ASN1::getOIDFromName($tst['policy'])
+					: null;
 				$tsa['policy'] = $policyOid;
 				$tsa['policyName'] = $this->resolveTsaPolicyName($policyOid);
 				$tsa['serialNumber'] = $this->bigToString($tst['serialNumber'] ?? null);
