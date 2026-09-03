@@ -28,11 +28,14 @@ enum ParticipantRole: string {
 		};
 	}
 
+	/**
+	 * @throws \ValueError When $value is not empty and is not a known participant role
+	 */
 	public static function fromNullable(?string $value): self {
 		if ($value === null || $value === '') {
 			return self::SIGNER;
 		}
 
-		return self::tryFrom($value) ?? self::SIGNER;
+		return self::from($value);
 	}
 }
