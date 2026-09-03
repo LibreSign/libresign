@@ -14,12 +14,12 @@
 			:aria-label-combobox="allowedGroupsAriaLabel"
 			:close-on-select="false"
 			:disabled="loadingGroups"
-			:loading="loadingGroups"
+			:loading="isSearching"
 			:multiple="true"
 			:options="groups"
 			:searchable="true"
 			:show-no-options="false"
-			@search-change="searchGroup"
+			@search="searchGroup"
 			@update:modelValue="saveGroups" />
 	</NcSettingsSection>
 </template>
@@ -58,6 +58,7 @@ type GroupRow = {
 const groupsSelected = ref<Array<GroupRow | string>>([])
 const groups = ref<GroupRow[]>([])
 const loadingGroups = ref(false)
+const isSearching = ref(false)
 const idKey = ref(0)
 const policiesStore = usePoliciesStore()
 
@@ -103,19 +104,21 @@ async function saveGroups(value: Array<GroupRow | string>) {
 }
 
 async function searchGroup(query: string) {
-	loadingGroups.value = true
-	await axios.get(generateOcsUrl('cloud/groups/details'), {
-		params: {
-			search: query,
-			limit: 20,
-			offset: 0,
-		},
-	})
-		.then(({ data }: { data: { ocs: { data: { groups: GroupRow[] } } } }) => {
-			groups.value = data.ocs.data.groups.sort((a: GroupRow, b: GroupRow) => a.displayname.localeCompare(b.displayname))
+	isSearching.value = true
+	try {
+		const { data } = await axios.get(generateOcsUrl('cloud/groups/details'), {
+			params: {
+				search: query,
+				limit: 20,
+				offset: 0,
+			},
 		})
-		.catch((error: unknown) => logger.debug('Could not search by groups', { error }))
-	loadingGroups.value = false
+		groups.value = data.ocs.data.groups.sort((a: GroupRow, b: GroupRow) => a.displayname.localeCompare(b.displayname))
+	} catch (error: unknown) {
+		logger.debug('Could not search by groups', { error })
+	} finally {
+		isSearching.value = false
+	}
 }
 
 onMounted(async () => {
@@ -127,6 +130,7 @@ defineExpose({
 	groupsSelected,
 	groups,
 	loadingGroups,
+	isSearching,
 	idKey,
 	getData,
 	saveGroups,
