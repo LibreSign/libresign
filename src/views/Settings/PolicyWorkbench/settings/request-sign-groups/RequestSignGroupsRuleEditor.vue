@@ -25,13 +25,13 @@
 					:aria-label-combobox="authorizedRequesterGroupsAriaLabel"
 					:close-on-select="false"
 					:disabled="loadingGroups"
-					:loading="loadingGroups"
+					:loading="isSearching"
 					:multiple="true"
 					:options="availableAllowGroups"
 					:placeholder="searchGroupsPlaceholder"
 					:searchable="true"
 					:show-no-options="false"
-					@search-change="searchGroup"
+					@search="searchGroup"
 					@update:modelValue="onAllowGroupsChange" />
 			</template>
 
@@ -52,13 +52,13 @@
 					:aria-label-combobox="deniedRequesterGroupsAriaLabel"
 					:close-on-select="false"
 					:disabled="loadingGroups"
-					:loading="loadingGroups"
+					:loading="isSearching"
 					:multiple="true"
 					:options="availableGroups"
 					:placeholder="searchGroupsPlaceholder"
 					:searchable="true"
 					:show-no-options="false"
-					@search-change="searchGroup"
+					@search="searchGroup"
 					@update:modelValue="onDenyGroupsChange" />
 
 				<p v-if="!hideAllowGroups && overlappingGroupIds.length > 0" class="request-sign-groups-editor__helper request-sign-groups-editor__helper--warning">
@@ -150,6 +150,7 @@ const selectedAllowGroupIds = ref<string[]>([])
 const selectedDenyGroupIds = ref<string[]>([])
 const availableGroups = ref<GroupRow[]>([])
 const loadingGroups = ref(false)
+const isSearching = ref(false)
 const currentUser = getCurrentUser()
 const isInstanceAdmin = currentUser?.isAdmin === true
 const isDelegatedGroupCreateFlow = computed(() => {
@@ -331,7 +332,7 @@ watch(() => props.modelValue, (nextValue) => {
 })
 
 async function searchGroup(query: string) {
-	loadingGroups.value = true
+	isSearching.value = true
 	try {
 		const params = {
 			search: query,
@@ -343,7 +344,7 @@ async function searchGroup(query: string) {
 			const response = await axios.get<GroupDetailsResponse>(generateOcsUrl('cloud/groups/details'), { params })
 			availableGroups.value = filterGroupsByManageableScope(
 				(response.data?.ocs?.data?.groups ?? [])
-					.map((group) => ({
+					.map((group: { id: string; displayname?: string }) => ({
 						id: group.id,
 						displayname: group.displayname || group.id,
 					})),
@@ -355,7 +356,7 @@ async function searchGroup(query: string) {
 		const response = await axios.get<GroupListResponse>(generateOcsUrl('cloud/groups'), { params })
 		availableGroups.value = filterGroupsByManageableScope(
 			(response.data?.ocs?.data?.groups ?? [])
-				.map((groupId) => ({
+				.map((groupId: string) => ({
 					id: groupId,
 					displayname: groupId,
 				})),
@@ -364,6 +365,7 @@ async function searchGroup(query: string) {
 	} catch (error) {
 		logger.debug('Could not search groups for request-sign policy editor', { error })
 	} finally {
+		isSearching.value = false
 		loadingGroups.value = false
 	}
 }
