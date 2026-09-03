@@ -402,6 +402,10 @@ class CertificateSignersMergeService {
 		if (isset($endEntityCert['isLibreSignRootCA']) && !isset($signer->isLibreSignRootCA)) {
 			$signer->isLibreSignRootCA = $endEntityCert['isLibreSignRootCA'];
 		}
+
+		if (isset($endEntityCert['covers_entire_document']) && !isset($signer->covers_entire_document)) {
+			$signer->covers_entire_document = $endEntityCert['covers_entire_document'];
+		}
 	}
 
 	/**
