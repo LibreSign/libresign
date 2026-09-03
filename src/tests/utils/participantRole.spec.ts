@@ -32,11 +32,9 @@ describe('participantRole utils', () => {
 
 	it('uses participantRole as the source of truth for observers', () => {
 		expect(isObserverParticipant({
-			displayName: 'Observer',
 			participantRole: PARTICIPANT_ROLE.OBSERVER,
 		})).toBe(true)
 		expect(isSigningParticipant({
-			displayName: 'Signer',
 			participantRole: PARTICIPANT_ROLE.SIGNER,
 		})).toBe(true)
 	})
