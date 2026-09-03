@@ -42,6 +42,8 @@ class TSA {
 		try {
 			if ($content instanceof Element && $content->value !== '') {
 				return $this->decodeWithCache($cmsDer = $content->value);
+			} elseif ($content instanceof Constructed) {
+				return $this->decodeWithCache($cmsDer = $content->getEncoded());
 			} elseif (is_string($content)) {
 				return $this->decodeWithCache($cmsDer = $content);
 			} elseif (is_array($content)) {
@@ -131,6 +133,10 @@ class TSA {
 	}
 
 	public function extract(array $root): array {
+		if (isset($root['type'])) {
+			$root = [$root];
+		}
+
 		$cmsDer = null;
 		$tstInfoOctets = null;
 		$cnHints = [];
@@ -307,12 +313,18 @@ class TSA {
 				$seenPolicy = true;
 				continue;
 			}
-			if (!$seenMsgImprint && $t === ASN1::TYPE_SEQUENCE && is_array($child['content'] ?? null)) {
+			$messageImprintParts = is_array($child['content'] ?? null)
+				? $child['content']
+				: (($child['content'] ?? null) instanceof Constructed ? $this->decodeConstructedChildren($child['content']) : []);
+			if (!$seenMsgImprint && $t === ASN1::TYPE_SEQUENCE && $messageImprintParts !== []) {
 				$hasOID = false;
 				$hasOctet = false;
-				foreach ($child['content'] as $miPart) {
+				foreach ($messageImprintParts as $miPart) {
 					if (($miPart['type'] ?? null) === ASN1::TYPE_SEQUENCE) {
-						foreach (($miPart['content'] ?? []) as $algPart) {
+						$algorithmParts = is_array($miPart['content'] ?? null)
+							? $miPart['content']
+							: (($miPart['content'] ?? null) instanceof Constructed ? $this->decodeConstructedChildren($miPart['content']) : []);
+						foreach ($algorithmParts as $algPart) {
 							if (($algPart['type'] ?? null) === ASN1::TYPE_OBJECT_IDENTIFIER) {
 								$hasOID = true;
 							}
@@ -359,8 +371,13 @@ class TSA {
 				$seen = true;
 				continue;
 			}
-			if ($seen && ($n['type'] ?? null) === ASN1::TYPE_SET && isset($n['content']) && is_array($n['content'])) {
-				return $n['content'];
+			if ($seen && ($n['type'] ?? null) === ASN1::TYPE_SET) {
+				if (is_array($n['content'] ?? null)) {
+					return $n['content'];
+				}
+				if (($n['content'] ?? null) instanceof Constructed) {
+					return $this->decodeConstructedChildren($n['content']);
+				}
 			}
 		}
 		return null;
@@ -396,9 +413,10 @@ class TSA {
 
 		foreach ($this->walkAsn1Tree($asn1Tree) as $node) {
 			$nodeContent = $this->getNodeContent($node);
+			$nodeOid = is_string($nodeContent) ? ASN1::getOIDFromName($nodeContent) : null;
 			if (($node['type'] ?? null) === ASN1::TYPE_OBJECT_IDENTIFIER
-				&& is_string($nodeContent) && isset(self::CERTIFICATE_ATTRIBUTE_OIDS[$nodeContent])) {
-				$currentAttributeOid = $nodeContent;
+				&& $nodeOid !== null && isset(self::CERTIFICATE_ATTRIBUTE_OIDS[$nodeOid])) {
+				$currentAttributeOid = $nodeOid;
 				continue;
 			}
 
