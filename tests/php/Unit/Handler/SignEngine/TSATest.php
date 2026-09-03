@@ -71,6 +71,33 @@ class TSATest extends TestCase {
 		$this->assertArrayHasKey('displayName', $result);
 	}
 
+	public function testExtractNormalizesNamedTsaPolicyToNumericOid(): void {
+		ASN1::loadOIDs(['testTsaPolicy' => '1.2.3.4.1']);
+		$tstInfo = ASN1::encodeDER([
+			'version' => 1,
+			'policy' => '1.2.3.4.1',
+			'messageImprint' => [
+				'hashAlgorithm' => ['algorithm' => 'id-sha256'],
+				'hashedMessage' => str_repeat("\x00", 32),
+			],
+			'serialNumber' => 1,
+			'genTime' => '2026-09-03 20:00:00',
+		], $this->getTstInfoMap());
+
+		$result = $this->tsa->extract([
+			[
+				'type' => ASN1::TYPE_OBJECT_IDENTIFIER,
+				'content' => '1.2.840.113549.1.9.16.1.4',
+			],
+			[
+				'type' => ASN1::TYPE_OCTET_STRING,
+				'content' => $tstInfo,
+			],
+		]);
+
+		$this->assertSame('1.2.3.4.1', $result['policy']);
+	}
+
 	public function testExtractWithMalformedData(): void {
 		$malformedData = [
 			[
@@ -115,6 +142,30 @@ class TSATest extends TestCase {
 					]
 				]
 			]
+		];
+	}
+
+	private function getTstInfoMap(): array {
+		return [
+			'type' => ASN1::TYPE_SEQUENCE,
+			'children' => [
+				'version' => ['type' => ASN1::TYPE_INTEGER],
+				'policy' => ['type' => ASN1::TYPE_OBJECT_IDENTIFIER],
+				'messageImprint' => [
+					'type' => ASN1::TYPE_SEQUENCE,
+					'children' => [
+						'hashAlgorithm' => [
+							'type' => ASN1::TYPE_SEQUENCE,
+							'children' => [
+								'algorithm' => ['type' => ASN1::TYPE_OBJECT_IDENTIFIER],
+							],
+						],
+						'hashedMessage' => ['type' => ASN1::TYPE_OCTET_STRING],
+					],
+				],
+				'serialNumber' => ['type' => ASN1::TYPE_INTEGER],
+				'genTime' => ['type' => ASN1::TYPE_GENERALIZED_TIME],
+			],
 		];
 	}
 
