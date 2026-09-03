@@ -16,11 +16,12 @@ export const ADMIN_SIGNER_OPTION = /admin.*admin@email\.tld/i
  */
 export async function clickAddSigner(page: Page): Promise<void> {
 	const addSignerButton = page.getByRole('button', { name: 'Add signer', exact: true })
-	if (await addSignerButton.isVisible({ timeout: 2_000 }).catch(() => false)) {
+	const addButton = page.getByRole('button', { name: 'Add', exact: true })
+	await expect(addSignerButton.or(addButton)).toBeVisible({ timeout: 15_000 })
+
+	if (await addSignerButton.isVisible()) {
 		await addSignerButton.click()
 	} else {
-		const addButton = page.getByRole('button', { name: 'Add', exact: true })
-		await expect(addButton).toBeVisible({ timeout: 15_000 })
 		await addButton.click()
 
 		const signerMenuItem = page.getByRole('menuitem', { name: 'Signer' })
