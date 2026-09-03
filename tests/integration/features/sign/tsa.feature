@@ -42,7 +42,7 @@ Feature: TSA Integration - End-to-End Workflow
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                                           | value                                  |
-      | (jq).ocs.data.signers[0].signature_validation | {"id":1,"label":"Signature is valid."} |
+      | (jq).ocs.data.signers[0].signature_validation | {"id":1,"label":"Signature is valid.","isValid":true} |
     And the response should be a JSON array with the following mandatory values
       | key                                       | value     |
       | (jq).ocs.data.signers[0].timestamp.policy | 1.2.3.4.1 |
