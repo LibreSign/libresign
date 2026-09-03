@@ -158,6 +158,38 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		self::assertArrayNotHasKey('file', $result['files'][0]);
 	}
 
+	public function testValidateExternalSignedPdfFromUploadLoadsCertificateSigners(): void {
+		$temporaryFile = tempnam(sys_get_temp_dir(), 'libresign-validation-');
+		self::assertNotFalse($temporaryFile);
+		file_put_contents($temporaryFile, file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid-signed.pdf'));
+		$certData = [['chain' => [['subject' => ['CN' => 'External signer']]]]];
+
+		$this->mimeService->method('getMimeType')->willReturn('application/pdf');
+		$this->pkcs12Handler->method('getCertificateChain')->willReturn($certData);
+		$this->fileMapper->method('getBySignedHash')
+			->willThrowException(new DoesNotExistException('Not a LibreSign file'));
+		$this->signersLoader->expects($this->once())
+			->method('loadSignersFromCertData')
+			->with($this->isInstanceOf(\stdClass::class), $certData, '');
+
+		try {
+			$result = $this->createFileService()
+				->setFileFromRequest([
+					'tmp_name' => $temporaryFile,
+					'name' => 'external-signed.pdf',
+					'size' => filesize($temporaryFile),
+				])
+				->showSigners()
+				->toArray();
+		} finally {
+			if (file_exists($temporaryFile)) {
+				unlink($temporaryFile);
+			}
+		}
+
+		self::assertSame(FileStatus::NOT_LIBRESIGN_FILE->value, $result['status']);
+	}
+
 	public function testValidateFileContentSkipsNonPdfFiles(): void {
 		$service = $this->createFileService();
 
