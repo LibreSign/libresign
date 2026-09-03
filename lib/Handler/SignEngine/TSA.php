@@ -348,7 +348,7 @@ class TSA {
 	private function getAttributeValuesSetAfterOID(array $tree, string $oid): ?array {
 		$seen = false;
 		foreach ($this->walkAsn1Tree($tree) as $n) {
-			if (($n['type'] ?? null) === ASN1::TYPE_OBJECT_IDENTIFIER && $this->getNodeContent($n) === $oid) {
+			if (($n['type'] ?? null) === ASN1::TYPE_OBJECT_IDENTIFIER && $this->matchesOid($this->getNodeContent($n), $oid)) {
 				$seen = true;
 				continue;
 			}
@@ -363,7 +363,7 @@ class TSA {
 		$seen = false;
 		foreach ($this->walkAsn1Tree($tree) as $n) {
 			if (($n['type'] ?? null) === ASN1::TYPE_OBJECT_IDENTIFIER
-				&& $this->getNodeContent($n) === $oid
+				&& $this->matchesOid($this->getNodeContent($n), $oid)
 			) {
 				$seen = true;
 				continue;
@@ -376,6 +376,11 @@ class TSA {
 			}
 		}
 		return null;
+	}
+
+	private function matchesOid(mixed $candidate, string $expected): bool {
+		return is_string($candidate)
+			&& ASN1::getOIDFromName($candidate) === ASN1::getOIDFromName($expected);
 	}
 
 	private function extractCertificateHints(array $asn1Tree): array {
