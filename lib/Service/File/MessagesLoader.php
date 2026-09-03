@@ -39,7 +39,11 @@ class MessagesLoader {
 			];
 		}
 
-		if (isset($fileData->settings['canRequestSign']) && $fileData->settings['canRequestSign']) {
+		if (
+			$file instanceof File
+			&& isset($fileData->settings['canRequestSign'])
+			&& $fileData->settings['canRequestSign']
+		) {
 			$this->signersLoader->loadLibreSignSigners($file, $fileData, $options, $certData);
 
 			if (empty($fileData->signers)) {
