@@ -87,7 +87,7 @@ class TSATest extends TestCase {
 		$result = $this->tsa->extract([
 			[
 				'type' => ASN1::TYPE_OBJECT_IDENTIFIER,
-				'content' => '1.2.840.113549.1.9.16.1.4',
+				'content' => 'tstInfo',
 			],
 			[
 				'type' => ASN1::TYPE_OCTET_STRING,
