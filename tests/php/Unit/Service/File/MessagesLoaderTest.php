@@ -165,6 +165,22 @@ final class MessagesLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertCount(1, $fileData->messages);
 	}
 
+	public function testLoadMessagesDoesNotSuggestRequestingSignaturesForExternalFile(): void {
+		$fileData = new stdClass();
+		$fileData->settings = ['canRequestSign' => true];
+		$fileData->signers = [];
+		$options = $this->createMock(FileResponseOptions::class);
+		$options->method('isShowMessages')->willReturn(true);
+
+		$this->signersLoader->expects($this->never())
+			->method('loadLibreSignSigners');
+
+		$service = $this->getService();
+		$service->loadMessages(null, $fileData, $options);
+
+		$this->assertFalse(property_exists($fileData, 'messages'));
+	}
+
 	public function testLoadMessagesCanSignFalse(): void {
 		$file = $this->createMock(File::class);
 		$fileData = new stdClass();

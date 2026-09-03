@@ -400,7 +400,7 @@ namespace OCA\Libresign;
  *     size: non-negative-int,
  *     pdfVersion?: string,
  *     signers: list<LibresignSignerSummary>,
- *     file: string,
+ *     file?: string,
  *     metadata: LibresignValidateMetadata,
  * }
  * @psalm-type LibresignValidatedFile = array{
