@@ -2769,7 +2769,6 @@
                     "nodeId",
                     "size",
                     "signers",
-                    "file",
                     "metadata"
                 ],
                 "properties": {
