@@ -12,10 +12,12 @@ use Exception;
 use OC\Core\Command\Base;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\SignSetupService;
-use OCA\Libresign\Vendor\phpseclib3\Crypt\RSA;
-use OCA\Libresign\Vendor\phpseclib3\Exception\NoKeyLoadedException;
-use OCA\Libresign\Vendor\phpseclib3\File\X509;
+use OCA\Libresign\Vendor\phpseclib4\Crypt\RSA;
+use OCA\Libresign\Vendor\phpseclib4\Exception\NoKeyLoadedException;
+use OCA\Libresign\Vendor\phpseclib4\Exception\UnexpectedValueException;
+use OCA\Libresign\Vendor\phpseclib4\File\X509;
 use OCP\IConfig;
+use SodiumException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -64,12 +66,12 @@ class SignSetup extends Base {
 			$output->writeln('Invalid private key');
 			return 1;
 		}
-		$x509 = new X509();
-		if ($x509->loadX509($keyBundle) === false) {
+		try {
+			$x509 = X509::load($keyBundle);
+		} catch (UnexpectedValueException|SodiumException) {
 			$output->writeln('Invalid certificate');
 			return 1;
 		}
-		$x509->setPrivateKey($rsa);
 		try {
 			$this->signSetupService->setCertificate($x509);
 			$this->signSetupService->setPrivateKey($rsa);
