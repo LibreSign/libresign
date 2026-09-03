@@ -162,6 +162,7 @@ final class CertificateSignersMergeServiceTest extends TestCase {
 			'uid' => 'email:signer@example.com',
 			'chain' => [[
 				'subject' => ['CN' => 'Signer User'],
+				'covers_entire_document' => false,
 				'validFrom_time_t' => 1769644731,
 				'validTo_time_t' => 1769731131,
 			]],
@@ -183,6 +184,7 @@ final class CertificateSignersMergeServiceTest extends TestCase {
 		$this->assertSame('2026-01-29T23:58:51+00:00', $signer->valid_to);
 		$this->assertSame('2026-01-28T23:58:51+00:00', $signer->chain[0]['valid_from']);
 		$this->assertSame('2026-01-29T23:58:51+00:00', $signer->chain[0]['valid_to']);
+		$this->assertFalse($signer->covers_entire_document);
 	}
 
 	public function testMergeDoesNotExportTopLevelTsaWithTimestampData(): void {
