@@ -279,9 +279,12 @@ class TSA {
 		try {
 			$nodes = $this->decodeWithCache($tstInfoOctets);
 			$root = $nodes[0] ?? null;
-			if (!$root || ($root['type'] ?? null) !== ASN1::TYPE_SEQUENCE || !is_array($root['content'] ?? null)) {
+			if (!$root || ($root['type'] ?? null) !== ASN1::TYPE_SEQUENCE) {
 				return null;
 			}
+			$children = is_array($root['content'] ?? null)
+				? $root['content']
+				: (($root['content'] ?? null) instanceof Constructed ? $this->decodeConstructedChildren($root['content']) : []);
 		} catch (\Throwable) {
 			return null;
 		}
@@ -291,7 +294,7 @@ class TSA {
 		$seenMsgImprint = false;
 		$seenSerial = false;
 
-		foreach ($root['content'] as $child) {
+		foreach ($children as $child) {
 			$t = $child['type'] ?? null;
 
 			$nodeContent = $this->getNodeContent($child);
