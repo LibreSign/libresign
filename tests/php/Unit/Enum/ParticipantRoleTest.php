@@ -22,8 +22,9 @@ final class ParticipantRoleTest extends TestCase {
 		$this->assertSame(ParticipantRole::OBSERVER, ParticipantRole::fromNullable('observer'));
 	}
 
-	public function testFromNullableFallsBackToSignerForInvalidValue(): void {
-		$this->assertSame(ParticipantRole::SIGNER, ParticipantRole::fromNullable('invalid-role'));
+	public function testFromNullableThrowsForInvalidValue(): void {
+		$this->expectException(\ValueError::class);
+		ParticipantRole::fromNullable('invalid-role');
 	}
 
 	public function testCanSign(): void {
