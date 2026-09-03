@@ -93,17 +93,11 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mailer->expects($this->once())
 			->method('send');
 
-		$signRequest = $this->createMock(SignRequest::class);
-		$signRequest
-			->method('__call')
-			->willReturnCallback(fn (string $method)
-				=> match ($method) {
-					'getUuid' => 'observer-uuid',
-					'getFileId' => 1,
-					'getDisplayName' => 'Jane Observer',
-				}
-			);
-		$signRequest->method('isObserver')->willReturn(true);
+		$signRequest = new SignRequest();
+		$signRequest->setUuid('observer-uuid');
+		$signRequest->setFileId(1);
+		$signRequest->setDisplayName('Jane Observer');
+		$signRequest->setParticipantRole('observer');
 
 		$this->urlGenerator
 			->expects($this->once())
@@ -392,33 +386,20 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
 	}
 
-	private function mockSignRequest(string $displayName = 'John Doe'): SignRequest&MockObject {
-		$signRequest = $this->createMock(SignRequest::class);
-		$signRequest
-			->method('__call')
-			->willReturnCallback(fn (string $method)
-				=> match ($method) {
-					'getUuid' => 'asdfg',
-					'getFileId' => 1,
-					'getDisplayName' => $displayName,
-				}
-			);
-		$signRequest->method('isObserver')->willReturn(false);
+	private function mockSignRequest(string $displayName = 'John Doe'): SignRequest {
+		$signRequest = new SignRequest();
+		$signRequest->setUuid('asdfg');
+		$signRequest->setFileId(1);
+		$signRequest->setDisplayName($displayName);
+		$signRequest->setParticipantRole('signer');
 		return $signRequest;
 	}
 
 	private function mockRequest(string $requesterId = 'requester'): void {
-		$file = $this->createMock(File::class);
-		$file
-			->method('__call')
-			->willReturnCallback(fn (string $method)
-				=> match ($method) {
-					'getName' => 'Filename',
-					'getUuid' => 'file-uuid',
-					default => null,
-				}
-			);
-		$file->method('getUserId')->willReturn($requesterId);
+		$file = new File();
+		$file->setName('Filename');
+		$file->setUuid('file-uuid');
+		$file->setUserId($requesterId);
 		$this->fileMapper
 			->method('getById')
 			->with(1)
