@@ -191,6 +191,43 @@ final class SignRequestServiceTest extends TestCase {
 		$this->assertSame(['afterPersist', 'identifyMethodSave'], $callOrder);
 	}
 
+	public function testCreateOrUpdateSignRequestRejectsRoleChangeAfterSigned(): void {
+		$identifyMethod = $this->createIdentifyMethod('email', 'signer@example.com');
+		$this->identifyMethodService->method('getByUserData')
+			->willReturn([$identifyMethod]);
+
+		$existing = new SignRequestEntity();
+		$existing->setId(77);
+		$existing->setStatusEnum(SignRequestStatus::SIGNED);
+		$existing->setParticipantRoleEnum(ParticipantRole::SIGNER);
+
+		$this->signRequestMapper->method('getByIdentifyMethodAndFileId')
+			->willReturn($existing);
+
+		$this->signRequestMapper->expects($this->never())
+			->method('update');
+		$this->signRequestMapper->expects($this->never())
+			->method('insert');
+
+		$this->expectExceptionMessage('Cannot change the participant role after the document has been signed');
+
+		try {
+			$this->service->createOrUpdateSignRequest(
+				[['email' => 'signer@example.com']],
+				'Existing',
+				'',
+				false,
+				101,
+				0,
+				null,
+				null,
+				ParticipantRole::OBSERVER,
+			);
+		} finally {
+			$this->assertSame(ParticipantRole::SIGNER, $existing->getParticipantRoleEnum());
+		}
+	}
+
 	public function testCreateOrUpdateSignRequestUpdatesExisting(): void {
 		$identifyMethod = $this->createIdentifyMethod('email', 'signer@example.com');
 		$this->identifyMethodService->method('getByUserData')

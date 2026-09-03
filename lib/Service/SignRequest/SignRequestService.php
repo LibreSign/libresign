@@ -12,6 +12,7 @@ use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignRequestStatus;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -67,6 +68,8 @@ class SignRequestService {
 			$fileId
 		);
 
+		$this->assertParticipantRoleCanBeUpdated($signRequest, $participantRole);
+
 		$displayName = $this->getDisplayNameFromIdentifyMethodIfEmpty($identifyMethodsInstances, $displayName);
 		$this->populateSignRequest($signRequest, $displayName, $signingOrder, $description, $fileId, $participantRole);
 
@@ -116,6 +119,26 @@ class SignRequestService {
 			$signRequest = new SignRequestEntity();
 		}
 		return $signRequest;
+	}
+
+	private function assertParticipantRoleCanBeUpdated(
+		SignRequestEntity $signRequest,
+		ParticipantRole $participantRole,
+	): void {
+		if (!$signRequest->getId()) {
+			return;
+		}
+
+		if ($signRequest->getStatusEnum() !== SignRequestStatus::SIGNED) {
+			return;
+		}
+
+		if ($signRequest->getParticipantRoleEnum() === $participantRole) {
+			return;
+		}
+
+		// TRANSLATORS Error shown when trying to change the participant role after the document was already signed.
+		throw new LibresignException($this->l10n->t('Cannot change the participant role after the document has been signed'));
 	}
 
 	private function populateSignRequest(
