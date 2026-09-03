@@ -82,7 +82,7 @@
     "@nextcloud/browserslist-config": "^3.1.2",
     "@nextcloud/eslint-config": "^9.0.1",
     "@nextcloud/stylelint-config": "^3.2.1",
-    "@nextcloud/vite-config": "^3.0.0-beta.0",
+    "@nextcloud/vite-config": "^3.0.0-beta.1",
     "@pinia/testing": "^2.0.1",
     "@playwright/test": "^1.62.1",
     "@testing-library/dom": "^10.4.1",
