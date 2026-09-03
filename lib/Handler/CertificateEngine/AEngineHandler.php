@@ -806,14 +806,12 @@ abstract class AEngineHandler implements IEngineHandler {
 	#[\Override]
 	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation, int $crlNumber): string {
 		$configPath = $this->getConfigPathByParams($instanceId, $generation);
-		$issuer = $this->loadCaIssuer($configPath);
-		$signedCrl = $this->createAndSignCrl($issuer, $revokedCertificates, $crlNumber);
-		$crlDerData = $this->saveCrlToDer($signedCrl, $configPath);
-
-		return $crlDerData;
+		[$issuer, $privateKey] = $this->loadCaIssuer($configPath);
+		return $this->createAndSignCrl($issuer, $privateKey, $revokedCertificates, $crlNumber);
 	}
 
-	private function loadCaIssuer(string $configPath): \OCA\Libresign\Vendor\phpseclib3\File\X509 {
+	/** @return array{0: \OCA\Libresign\Vendor\phpseclib4\File\X509, 1: \OCA\Libresign\Vendor\phpseclib4\Crypt\Common\PrivateKey} */
+	private function loadCaIssuer(string $configPath): array {
 		$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
 		$caKeyPath = $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem';
 
@@ -830,30 +828,31 @@ abstract class AEngineHandler implements IEngineHandler {
 			throw new \RuntimeException('Failed to read CA certificate or private key');
 		}
 
-		$issuer = new \OCA\Libresign\Vendor\phpseclib3\File\X509();
-		$issuer->loadX509($caCert);
-		$caPrivateKey = \OCA\Libresign\Vendor\phpseclib3\Crypt\PublicKeyLoader::load($caKey);
+		$issuer = \OCA\Libresign\Vendor\phpseclib4\File\X509::load($caCert);
+		$caPrivateKey = \OCA\Libresign\Vendor\phpseclib4\Crypt\PublicKeyLoader::load($caKey);
 
 		if (!$caPrivateKey instanceof \OCA\Libresign\Vendor\phpseclib3\Crypt\Common\PrivateKey) {
 			$this->logger->error('Loaded key is not a private key', ['keyType' => get_class($caPrivateKey)]);
 			throw new \RuntimeException('Loaded key is not a private key');
 		}
 
-		$issuer->setPrivateKey($caPrivateKey);
-		return $issuer;
+		return [$issuer, $caPrivateKey];
 	}
 
-	private function createAndSignCrl(\OCA\Libresign\Vendor\phpseclib3\File\X509 $issuer, array $revokedCertificates, int $crlNumber): array {
+	private function createAndSignCrl(\OCA\Libresign\Vendor\phpseclib4\File\X509 $issuer, \OCA\Libresign\Vendor\phpseclib4\Crypt\Common\PrivateKey $privateKey, array $revokedCertificates, int $crlNumber): string {
 		$utcZone = new \DateTimeZone('UTC');
-		$crlToSign = new \OCA\Libresign\Vendor\phpseclib3\File\X509();
-		$crlToSign->setSerialNumber((string)$crlNumber, 10);
-		$crlToSign->setStartDate(new \DateTime('now', $utcZone));
-		$crlToSign->setEndDate(new \DateTime('+7 days', $utcZone));
+		$crl = new \OCA\Libresign\Vendor\phpseclib4\File\CRL();
+		$crl->copySigningX509Attributes($issuer);
+		$crl->setThisDate(new \DateTime('now', $utcZone));
+		$crl->setNextDate(new \DateTime('+7 days', $utcZone));
+		$crl->setExtension('id-ce-cRLNumber', new \OCA\Libresign\Vendor\phpseclib4\Math\BigInteger((string)$crlNumber));
 
-		$initialCrl = $crlToSign->signCRL($issuer, $crlToSign);
-		if ($initialCrl === false) {
-			$this->logger->error('Failed to create initial CRL structure');
-			throw new \RuntimeException('Failed to create initial CRL structure');
+		foreach ($revokedCertificates as $cert) {
+			$crl->revoke(
+				$this->createRevokedCertificateSerial((string)$cert->getSerialNumber()),
+				null,
+				$cert->getRevokedAt(),
+			);
 		}
 
 		if (!empty($revokedCertificates)) {
@@ -884,12 +883,8 @@ abstract class AEngineHandler implements IEngineHandler {
 			$this->logger->error('Failed to sign CRL', ['crlNumber' => $crlNumber]);
 			throw new \RuntimeException('Failed to sign CRL');
 		}
-
-		if (!isset($signedCrl['signatureAlgorithm'])) {
-			$signedCrl['signatureAlgorithm'] = ['algorithm' => 'sha256WithRSAEncryption'];
-		}
-
-		return $signedCrl;
+		$crl->setSignature($signature);
+		return $crl->toString(['binary' => true]);
 	}
 
 	private function saveCrlToDer(array $signedCrl, string $configPath): string {
