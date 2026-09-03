@@ -19,11 +19,9 @@ use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Exception\UnsignedPdfException;
-use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationReason;
-use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationResult;
-use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationState;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
-use OCA\Libresign\Vendor\phpseclib3\File\ASN1;
+use OCA\Libresign\Vendor\phpseclib4\Exception\UnexpectedValueException;
+use OCA\Libresign\Vendor\phpseclib4\File\ASN1;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -140,7 +138,11 @@ class Pkcs12Handler extends SignEngineHandler {
 			return $result;
 		}
 
-		$decoded = ASN1::decodeBER($signature);
+		try {
+			$decoded = ASN1::decodeBER($signature);
+		} catch (UnexpectedValueException) {
+			return [];
+		}
 		$result = $this->extractTimestampData($decoded, $result);
 
 		$chain = $this->extractCertificateChain($signature);
@@ -314,12 +316,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		if (isset($validation['signatureValidation']) && is_array($validation['signatureValidation'])) {
-			$signatureValidation = $validation['signatureValidation'];
-
-			// Keep legacy OpenSSL result when native validator reports this known false-positive.
-			if (!$this->isDigestMismatchSignatureValidation($validation)) {
-				$leaf['signature_validation'] = $signatureValidation;
-			}
+			$leaf['signature_validation'] = $validation['signatureValidation'];
 		}
 
 		if (isset($validation['certificateValidation']) && is_array($validation['certificateValidation'])) {
@@ -335,21 +332,6 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		return $result;
-	}
-
-	/**
-	 * signer engines can produce signatures that the native validator currently flags as digest mismatch.
-	 * In this case we preserve the legacy validation computed from the PKCS#7 signature.
-	 */
-	private function isDigestMismatchSignatureValidation(array $validation): bool {
-		$rawSignatureValidation = $validation['raw']['signature'] ?? null;
-		if ($rawSignatureValidation instanceof ValidationResult) {
-			return $rawSignatureValidation->reasonCode === ValidationReason::DIGEST_MISMATCH
-				|| $rawSignatureValidation->state === ValidationState::DIGEST_MISMATCH;
-		}
-
-		$signatureValidation = $validation['signatureValidation'] ?? null;
-		return is_array($signatureValidation) && ($signatureValidation['id'] ?? null) === 3;
 	}
 
 	/**
