@@ -17,10 +17,10 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\SignatureDataNotFoundException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateHelper;
 use OCA\Libresign\Vendor\LibreSign\WhatOSAmI\OperatingSystem;
-use OCA\Libresign\Vendor\phpseclib3\Crypt\PublicKeyLoader;
-use OCA\Libresign\Vendor\phpseclib3\Crypt\RSA;
-use OCA\Libresign\Vendor\phpseclib3\Crypt\RSA\PrivateKey;
-use OCA\Libresign\Vendor\phpseclib3\File\X509;
+use OCA\Libresign\Vendor\phpseclib4\Crypt\PublicKeyLoader;
+use OCA\Libresign\Vendor\phpseclib4\Crypt\RSA;
+use OCA\Libresign\Vendor\phpseclib4\Crypt\RSA\PrivateKey;
+use OCA\Libresign\Vendor\phpseclib4\File\X509;
 use OCP\App\IAppManager;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
@@ -121,9 +121,7 @@ class SignSetupService {
 		if (!$this->x509 instanceof x509) {
 			if (file_exists(__DIR__ . '/../../../build/tools/certificates/local/libresign.crt')) {
 				$x509 = file_get_contents(__DIR__ . '/../../../build/tools/certificates/local/libresign.crt');
-				$this->x509 = new X509();
-				$this->x509->loadX509($x509);
-				$this->x509->setPrivateKey($this->getPrivateKey());
+				$this->x509 = X509::load($x509);
 			} else {
 				$this->getDevelopCert();
 			}
@@ -376,21 +374,29 @@ class SignSetupService {
 
 		// Check if certificate is signed by Nextcloud Root Authority
 		$rootCertificatePublicKey = $this->getRootCertificatePublicKey();
-		$this->x509 = new X509();
+		$this->x509 = X509::load($certificate);
 
 		$rootCerts = $this->splitCerts($rootCertificatePublicKey);
-		foreach ($rootCerts as $rootCert) {
-			$this->x509->loadCA($rootCert);
-		}
-		$this->x509->loadX509($certificate);
-		if (!$this->x509->validateSignature()) {
-			throw new InvalidSignatureException('Certificate is not valid.');
+		$previousCAs = X509::getCAs();
+		X509::clearCAStore();
+		try {
+			foreach ($rootCerts as $rootCert) {
+				X509::addCA($rootCert);
+			}
+			if (!$this->x509->validateSignature()) {
+				throw new InvalidSignatureException('Certificate is not valid.');
+			}
+		} finally {
+			X509::clearCAStore();
+			foreach ($previousCAs as $previousCA) {
+				X509::addCA($previousCA);
+			}
 		}
 
 		// Verify if certificate has proper CN. "core" CN is always trusted.
 		if ($this->x509->getDN(X509::DN_OPENSSL)['CN'] !== Application::APP_ID && $this->x509->getDN(X509::DN_OPENSSL)['CN'] !== 'core') {
 			throw new InvalidSignatureException(
-				sprintf('Certificate is not valid for required scope. (Requested: %s, current: CN=%s)', Application::APP_ID, $this->x509->getDN(true)['CN'])
+				sprintf('Certificate is not valid for required scope. (Requested: %s, current: CN=%s)', Application::APP_ID, $this->x509->getDN(X509::DN_OPENSSL)['CN'])
 			);
 		}
 
@@ -401,8 +407,11 @@ class SignSetupService {
 		$x509 = $this->getLibresignAppCertificate();
 
 		// Check if the signature of the files is valid
-		$rsa = $x509->getPublicKey()
-			->withPadding(RSA::SIGNATURE_PSS);
+		$publicKey = $x509->getPublicKey();
+		if (!$publicKey instanceof RSA) {
+			throw new InvalidSignatureException('Certificate public key is not RSA.');
+		}
+		$rsa = $publicKey->withPadding(RSA::SIGNATURE_PSS);
 
 		$signatureData = $this->getSignatureData();
 		$signature = base64_decode((string)$signatureData['signature']);
@@ -548,7 +557,7 @@ class SignSetupService {
 		return [
 			'hashes' => $hashes,
 			'signature' => base64_encode((string)$signature),
-			'certificate' => $this->getCertificate()->saveX509($this->getCertificate()->getCurrentCert()),
+			'certificate' => $this->getCertificate()->toString(),
 		];
 	}
 
@@ -597,9 +606,7 @@ class SignSetupService {
 		openssl_pkey_export($privateKey, $privateKeyCert);
 
 		$this->privateKey = RSA::loadPrivateKey($privateKeyCert);
-		$this->x509 = new X509();
-		$this->x509->loadX509($rootCertificate);
-		$this->x509->setPrivateKey($this->privateKey);
+		$this->x509 = X509::load($rootCertificate);
 
 		$rootCertPath = __DIR__ . '/../../../build/tools/certificates/local/';
 		if (!is_dir($rootCertPath)) {
