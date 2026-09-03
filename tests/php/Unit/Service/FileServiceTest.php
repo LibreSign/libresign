@@ -8,8 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -109,6 +111,51 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->messagesLoader,
 			$this->fileStatusService,
 		);
+	}
+
+	public function testValidateExternalPdfFromUpload(): void {
+		$temporaryFile = tempnam(sys_get_temp_dir(), 'libresign-validation-');
+		self::assertNotFalse($temporaryFile);
+		file_put_contents($temporaryFile, file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'));
+
+		$this->uploadHelper->expects($this->once())
+			->method('validateUploadedFile');
+		$this->mimeService->expects($this->once())
+			->method('getMimeType')
+			->willReturn('application/pdf');
+		$this->pkcs12Handler->expects($this->once())
+			->method('getCertificateChain')
+			->willThrowException(new LibresignException('Not signed'));
+		$this->fileMapper->expects($this->once())
+			->method('getBySignedHash')
+			->willThrowException(new DoesNotExistException('Not a LibreSign file'));
+		$this->envelopeService->expects($this->never())
+			->method('getEnvelopeByFileId');
+		$this->urlGenerator->expects($this->never())
+			->method('linkToRoute');
+
+		try {
+			$result = $this->createFileService()
+				->setFileFromRequest([
+					'tmp_name' => $temporaryFile,
+					'name' => 'external.pdf',
+					'size' => filesize($temporaryFile),
+				])
+				->showVisibleElements()
+				->showSigners()
+				->showSettings()
+				->showMessages()
+				->showValidateFile()
+				->toArray();
+		} finally {
+			if (file_exists($temporaryFile)) {
+				unlink($temporaryFile);
+			}
+		}
+
+		self::assertSame(FileStatus::NOT_LIBRESIGN_FILE->value, $result['status']);
+		self::assertSame('external.pdf', $result['name']);
+		self::assertArrayNotHasKey('file', $result['files'][0]);
 	}
 
 	public function testValidateFileContentSkipsNonPdfFiles(): void {
