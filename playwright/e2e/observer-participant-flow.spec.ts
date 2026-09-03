@@ -61,10 +61,14 @@ test('observer receives validation link and cannot enter signing flow', async ({
 		await page.getByRole('textbox', { name: 'Observer name' }).fill('Observer 01')
 		await page.getByRole('button', { name: 'Save' }).click()
 
-		await expect(page.getByRole('heading', { name: 'Signers', exact: true })).toBeVisible()
-		await expect(page.getByRole('heading', { name: 'Observers', exact: true })).toBeVisible()
-		await expect(page.getByText('Signer 01')).toBeVisible()
-		await expect(page.getByText('Observer 01')).toBeVisible()
+		const signersSection = page.locator('.participants-section').filter({
+			has: page.getByRole('heading', { name: 'Signers', exact: true }),
+		})
+		const observersSection = page.locator('.participants-section').filter({
+			has: page.getByRole('heading', { name: 'Observers', exact: true }),
+		})
+		await expect(signersSection.getByText('Signer 01', { exact: true })).toBeVisible()
+		await expect(observersSection.getByText('Observer 01', { exact: true })).toBeVisible()
 
 		await page.getByRole('button', { name: 'Request signatures' }).click()
 		await page.getByRole('button', { name: 'Send' }).click()
