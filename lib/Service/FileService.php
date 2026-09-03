@@ -496,6 +496,10 @@ class FileService {
 		}
 		$this->fileData->visibleElements = [];
 
+		if (!$this->file instanceof File) {
+			return;
+		}
+
 		$fileIds = [$this->file->getId()];
 		$childMetadataMap = [];
 		if ($this->file->getNodeType() === 'envelope') {
@@ -561,7 +565,7 @@ class FileService {
 	}
 
 	private function loadEnvelopeData(): void {
-		if (!$this->file->hasParent()) {
+		if (!$this->file instanceof File || !$this->file->hasParent()) {
 			return;
 		}
 
@@ -611,22 +615,23 @@ class FileService {
 		}
 
 		$this->fileData->filesCount = 1;
-		$this->fileData->files = [
-			(object)[
-				'id' => $this->fileData->id,
-				'uuid' => $this->fileData->uuid,
-				'name' => $this->fileData->name,
-				'status' => $this->fileData->status,
-				'statusText' => $this->fileData->statusText,
-				'nodeId' => $this->fileData->nodeId,
-				'metadata' => $this->fileData->metadata,
-				'totalPages' => $this->fileData->totalPages ?? 0,
-				'pdfVersion' => $this->fileData->pdfVersion ?? '',
-				'size' => $this->fileData->size ?? 0,
-				'signers' => $this->mapSignerDetailsToSummary($this->fileData->signers ?? []),
-				'file' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $this->fileData->uuid]),
-			],
+		$file = (object)[
+			'id' => $this->fileData->id,
+			'uuid' => $this->fileData->uuid,
+			'name' => $this->fileData->name,
+			'status' => $this->fileData->status,
+			'statusText' => $this->fileData->statusText,
+			'nodeId' => $this->fileData->nodeId,
+			'metadata' => $this->fileData->metadata,
+			'totalPages' => $this->fileData->totalPages ?? 0,
+			'pdfVersion' => $this->fileData->pdfVersion ?? '',
+			'size' => $this->fileData->size ?? 0,
+			'signers' => $this->mapSignerDetailsToSummary($this->fileData->signers ?? []),
 		];
+		if ($this->fileData->uuid !== '') {
+			$file->file = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $this->fileData->uuid]);
+		}
+		$this->fileData->files = [$file];
 	}
 
 	/**
