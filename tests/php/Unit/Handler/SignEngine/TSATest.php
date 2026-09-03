@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
 
 use OCA\Libresign\Handler\SignEngine\TSA;
-use OCA\Libresign\Vendor\phpseclib3\File\ASN1;
+use OCA\Libresign\Vendor\phpseclib4\File\ASN1;
 use PHPUnit\Framework\TestCase;
 
 class TSATest extends TestCase {
@@ -22,8 +22,8 @@ class TSATest extends TestCase {
 	public function testConstructorLoadsOIDs(): void {
 		$tsa = new TSA();
 
-		$this->assertEquals('2.16.840.1.101.3.4.2.1', ASN1::getOID('id-sha256'));
-		$this->assertEquals('1.3.14.3.2.26', ASN1::getOID('id-sha1'));
+		$this->assertEquals('2.16.840.1.101.3.4.2.1', ASN1::getOIDFromName('id-sha256'));
+		$this->assertEquals('1.3.14.3.2.26', ASN1::getOIDFromName('id-sha1'));
 	}
 
 	public function testExtractWithEmptyArray(): void {
