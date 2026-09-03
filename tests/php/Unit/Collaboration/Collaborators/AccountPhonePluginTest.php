@@ -115,7 +115,7 @@ class AccountPhonePluginTest extends TestCase {
 		$usersByUid = array_column($users, null, 'uid');
 		$userStubs = [];
 		$searchedUsers = [];
-		
+
 		$groupsByUid = array_column($users, 'groups', 'uid');
 		$groupsByUid[$currentUser['uid']] = $currentUser['groups'];
 
@@ -131,7 +131,7 @@ class AccountPhonePluginTest extends TestCase {
 			$stub->method('getUID')->willReturn($uid);
 			$stub->method('isEnabled')->willReturn($userData['isEnabled']);
 			$stub->method('getDisplayName')->willReturn($userData['displayName']);
-			
+
 			$userStubs[$uid] = $stub;
 			$searchedUsers[$userData['numberMap']['number']] = $uid;
 		}
@@ -155,7 +155,7 @@ class AccountPhonePluginTest extends TestCase {
 
 		$groupManager = $this->createStub(IGroupManager::class);
 		$groupManager->method('getUserGroupIds')
-			->willReturnCallback(fn(IUser $user) => $groupsByUid[$user->getUID()] ?? []);
+			->willReturnCallback(fn (IUser $user) => $groupsByUid[$user->getUID()] ?? []);
 
 		$knownUserService = $this->createStub(KnownUserService::class);
 		$knownUserService->method('isKnownToUser')
@@ -166,7 +166,7 @@ class AccountPhonePluginTest extends TestCase {
 
 		$searchNormalizer = $this->createMock(SearchNormalizer::class);
 		$searchNormalizer->method('tryNormalizePhoneNumber')
-    		->willReturnCallback(fn(string $number) => $numberMap[$number] ?? null);
+			->willReturnCallback(fn (string $number) => $numberMap[$number] ?? null);
 
 		$plugin = new AccountPhonePlugin(
 			$appConfig,
