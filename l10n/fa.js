@@ -263,7 +263,6 @@ OC.L10N.register(
     "LibreSign" : "LibreSign",
     "Certificate engine" : "موتور گواهی",
     "Control document signing workflows inside Nextcloud" : "کنترل گردش کار امضای اسناد در نکست‌کلود",
-    "**LibreSign helps organizations manage document signing inside Nextcloud.**\n\nIt is built for teams that need clear signing rules, traceable actions, and workflows that follow internal processes and legal requirements.\n\n**What LibreSign enables**\n\n- Define signing order and signer roles\n- Support internal and external signers\n- Keep a traceable record of requests and validations\n- Use digital certificates for compliant signing workflows\n- Validate documents using QR codes\n- Work directly with Nextcloud files and users\n- Integrate signing with other systems through APIs\n\n**Support LibreSign**\nIf your organization uses LibreSign, support its development:\n\n[![Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/libresign)\n\nFor enterprise support, contact LibreCode:\nhttps://libresign.coop" : "**LibreSign به سازمان‌ها در مدیریت امضای اسناد در نکست‌کلود کمک می‌کند.**",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign، برنامه امضای دیجیتال برای نکست‌کلود.",
     "Name cannot be empty" : "نام نمی‌تواند خالی باشد",
     "Name must be at least {min} characters" : "نام باید حداقل {min} کاراکتر باشد",
