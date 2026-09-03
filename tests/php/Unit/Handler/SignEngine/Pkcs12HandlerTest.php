@@ -454,10 +454,10 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetCertificateChainProvidesNativePackageShape(): void {
 		$this->nativeValidation = [
-				[
-					'signatureValidation' => ['id' => 1, 'label' => 'Signature is valid.'],
-					'certificateValidation' => ['id' => 3, 'label' => 'Certificate issuer is unknown.'],
-				],
+			[
+				'signatureValidation' => ['id' => 1, 'label' => 'Signature is valid.'],
+				'certificateValidation' => ['id' => 3, 'label' => 'Certificate issuer is unknown.'],
+			],
 		];
 
 		$handler = $this->getHandler();
@@ -512,13 +512,13 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetCertificateChainUsesNativeDigestMismatchValidation(): void {
 		$this->nativeValidation = [
-				[
-					'signatureValidation' => [
-						'id' => 3,
-						'label' => 'Digest mismatch.',
-						'reason' => 'PDF content hash does not match signed digest',
-					],
+			[
+				'signatureValidation' => [
+					'id' => 3,
+					'label' => 'Digest mismatch.',
+					'reason' => 'PDF content hash does not match signed digest',
 				],
+			],
 		];
 
 		$handler = $this->getHandler();

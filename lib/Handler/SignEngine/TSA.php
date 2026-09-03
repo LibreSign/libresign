@@ -249,7 +249,7 @@ class TSA {
 
 		foreach ($this->walkAsn1Tree(is_array($root) ? $root : []) as $node) {
 			if (($node['type'] ?? null) === ASN1::TYPE_OBJECT_IDENTIFIER
-				&& $this->getNodeContent($node) === self::TIMESTAMP_OIDS['SIGNING_TIME']) {
+				&& in_array($this->getNodeContent($node), [self::TIMESTAMP_OIDS['SIGNING_TIME'], 'signingTime', 'id-signingTime'], true)) {
 				$foundSigningTimeOid = true;
 				continue;
 			}
@@ -528,11 +528,7 @@ class TSA {
 			return $content;
 		}
 
-		if (($node['type'] ?? null) === ASN1::TYPE_OBJECT_IDENTIFIER) {
-			return ASN1::getOIDFromName((string)$content);
-		}
-
-		return (string)$content;
+		return ASN1::convertToPrimitive($content);
 	}
 
 	public static function clearCache(): void {
