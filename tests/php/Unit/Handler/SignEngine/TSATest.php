@@ -95,9 +95,10 @@ class TSATest extends TestCase {
 			],
 		]);
 
-		$result = $this->tsa->extract([ASN1::decodeBER($timestampToken)]);
+		$result = $this->tsa->extract(ASN1::decodeBER($timestampToken));
 
 		$this->assertSame('1.2.3.4.1', $result['policy']);
+		$this->assertSame('1', $result['serialNumber']);
 	}
 
 	public function testExtractWithMalformedData(): void {
@@ -122,6 +123,7 @@ class TSATest extends TestCase {
 		$this->assertIsArray($result);
 		$this->assertArrayHasKey('displayName', $result);
 		$this->assertIsString($result['displayName']);
+		$this->assertSame('Test CA', $result['cnHints']['commonName']);
 	}
 
 	private function createMockTstInfo(): array {
@@ -178,7 +180,7 @@ class TSATest extends TestCase {
 				'content' => [
 					[
 						'type' => ASN1::TYPE_OBJECT_IDENTIFIER,
-						'content' => '2.5.4.3' // commonName OID
+						'content' => 'id-at-commonName',
 					],
 					[
 						'type' => ASN1::TYPE_UTF8_STRING,
@@ -239,5 +241,7 @@ class TSATest extends TestCase {
 		$this->assertIsArray($result);
 		$this->assertArrayHasKey('cnHints', $result);
 		$this->assertIsArray($result['cnHints']);
+		$this->assertSame('US', $result['cnHints']['countryName']);
+		$this->assertSame('Test Organization', $result['cnHints']['organizationName']);
 	}
 }
