@@ -107,6 +107,42 @@ describe('validationDocument', () => {
 		}))
 	})
 
+	it('accepts the external PDF upload payload without a LibreSign UUID', () => {
+		const payload = createValidationPayload({
+			id: 0,
+			uuid: '',
+			status: FILE_STATUS.NOT_LIBRESIGN_FILE,
+			statusText: '',
+			nodeId: 0,
+			metadata: [],
+			files: [{
+				id: 0,
+				uuid: '',
+				name: 'external.pdf',
+				status: FILE_STATUS.NOT_LIBRESIGN_FILE,
+				statusText: '',
+				nodeId: 0,
+				totalPages: 0,
+				size: 1163,
+				pdfVersion: '',
+				signers: [],
+				metadata: [],
+			}],
+			totalPages: 0,
+			size: 1163,
+			pdfVersion: '',
+			created_at: '',
+			requested_by: { userId: '', displayName: '' },
+			signers: [],
+		})
+
+		const normalized = toValidationDocument(payload)
+
+		expect(normalized).not.toBeNull()
+		expect(normalized?.status).toBe(FILE_STATUS.NOT_LIBRESIGN_FILE)
+		expect(normalized?.files[0]).not.toHaveProperty('file')
+	})
+
 	it('rejects payload with string values in numeric contract fields', () => {
 		const normalized = toValidationDocument(createValidationPayload({
 			id: '100',
