@@ -130,9 +130,13 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 
 	// Save the now-empty element list
 	await page.getByLabel('Signature positions').getByRole('button', { name: 'Save' }).click()
+	await expect(page.getByLabel('Signature positions')).toBeHidden()
 
-	// Navigate away and back to force a fresh load from the server
-	await page.getByRole('link', { name: 'Request' }).click()
+	// Navigate away and back to force a fresh load from the server. Use direct
+	// navigation instead of the side-navigation link because the Nextcloud header
+	// can overlap the first navigation item in CI and intercept pointer events.
+	await page.goto('./apps/libresign/f/request')
+	await expect(page).toHaveURL(/\/apps\/libresign\/f\/request/)
 
 	// Re-open the document one last time and confirm the element is gone
 	await reopenFileFromUuid(requestUuid)
