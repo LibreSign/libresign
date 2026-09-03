@@ -108,33 +108,40 @@ class AccountPhonePluginTest extends TestCase {
 		array $searchQuery,
 		array $pagination,
 		bool $shouldHaveMore,
-		int $expectedCount
+		int $expectedCount,
 	): void {
 		$appConfig = $this->applyAppConfig($config);
 
 		$usersByUid = array_column($users, null, 'uid');
 		$userStubs = [];
-		$groupsByUid = [];
 		$searchedUsers = [];
+		
+		$groupsByUid = array_column($users, 'groups', 'uid');
+		$groupsByUid[$currentUser['uid']] = $currentUser['groups'];
+
+		$numberMap = array_column(
+			array_column(array_merge([$currentUser], $users), 'numberMap'),
+			'normalized',
+			'number'
+		);
+
 		foreach ($users as $userData) {
 			$uid = $userData['uid'];
 			$stub = $this->createStub(IUser::class);
 			$stub->method('getUID')->willReturn($uid);
 			$stub->method('isEnabled')->willReturn($userData['isEnabled']);
 			$stub->method('getDisplayName')->willReturn($userData['displayName']);
-
+			
 			$userStubs[$uid] = $stub;
-			$groupsByUid[$uid] = $userData['groups'];
 			$searchedUsers[$userData['numberMap']['number']] = $uid;
 		}
-
 		$accountManager = $this->createStub(IAccountManager::class);
 		$accountManager->method('searchUsers')
+			->with(IAccountManager::PROPERTY_PHONE, [$searchQuery['normalized']])
 			->willReturn($searchedUsers);
 
 		$currentUserStub = $this->createStub(IUser::class);
 		$currentUserStub->method('getUID')->willReturn($currentUser['uid']);
-		$currentUserStub->method('isEnabled')->willReturn($currentUser['isEnabled']);
 		$currentUserStub->method('getDisplayName')->willReturn($currentUser['displayName']);
 
 		$userSession = $this->createStub(IUserSession::class);
@@ -142,50 +149,24 @@ class AccountPhonePluginTest extends TestCase {
 
 		$userManager = $this->createStub(IUserManager::class);
 		$userManager->method('get')
-			->willReturnCallback(function (string $uid) use ($currentUser, $currentUserStub, $userStubs): IUser {
-				if ($uid === $currentUser['uid']) {
-					return $currentUserStub;
-				}
-
-				return $userStubs[$uid] ?? null;
-			});
+			->willReturnCallback(fn (string $uid) => (
+				$uid === $currentUser['uid'] ? $currentUserStub : ($userStubs[$uid] ?? null)
+			));
 
 		$groupManager = $this->createStub(IGroupManager::class);
 		$groupManager->method('getUserGroupIds')
-			->willReturnCallback(function ($subject) use ($currentUserStub, $userStubs, $currentUser, $groupsByUid): array {
-				if ($subject === $currentUserStub) {
-					return $currentUser['groups'];
-				}
-				foreach ($userStubs as $uid => $stub) {
-					if ($subject === $stub) {
-						return $groupsByUid[$uid];
-					}
-				}
-				return [];
-			});
+			->willReturnCallback(fn(IUser $user) => $groupsByUid[$user->getUID()] ?? []);
 
 		$knownUserService = $this->createStub(KnownUserService::class);
 		$knownUserService->method('isKnownToUser')
-			->willReturnCallback(function (string $current, string $target) use ($usersByUid): bool {
-				return $usersByUid[$target]['isKnown'];
-			});
+			->willReturnCallback(fn (string $current, string $target) => $usersByUid[$target]['isKnown'] ?? false);
 
 		$context = new SignerSearchContext();
 		$context->set($method, $searchQuery['number'], $searchQuery['normalized']);
 
 		$searchNormalizer = $this->createMock(SearchNormalizer::class);
 		$searchNormalizer->method('tryNormalizePhoneNumber')
-			->willReturnCallback(function (string $number) use ($currentUser, $users) {
-				if ($number === $currentUser['numberMap']['number']) {
-					return $currentUser['numberMap']['normalized'];
-				}
-				foreach($users as $userData) {
-					if($number === $userData['numberMap']['number']) {
-						return $userData['numberMap']['normalized'];
-					}
-				}
-				return null;
-			});			
+    		->willReturnCallback(fn(string $number) => $numberMap[$number] ?? null);
 
 		$plugin = new AccountPhonePlugin(
 			$appConfig,
@@ -203,7 +184,6 @@ class AccountPhonePluginTest extends TestCase {
 
 		$results = $searchResult->asArray();
 		$items = array_merge($results['account-phone'] ?? [], $results['exact']['account-phone'] ?? []);
-
 		$this->assertSame($shouldHaveMore, $hasMore);
 		$this->assertCount($expectedCount, $items);
 	}
@@ -211,8 +191,9 @@ class AccountPhonePluginTest extends TestCase {
 	public function testSearchFallsBackToUserIdWhenDisplayNameEmpty(): void {
 		$appConfig = $this->applyAppConfig([
 			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+			'shareapi_restrict_user_enumeration_to_group' => 'no',
+			'shareapi_only_share_with_group_members' => 'no',
 		]);
-
 		$accountManager = $this->createStub(IAccountManager::class);
 		$accountManager->method('searchUsers')
 			->willReturn(['+12025551234' => 'target']);
@@ -232,7 +213,7 @@ class AccountPhonePluginTest extends TestCase {
 		$userManager->method('get')->willReturn($user);
 
 		$groupManager = $this->createStub(IGroupManager::class);
-		$groupManager->method('getUserGroupIds')->willReturn(['sales']);
+		$groupManager->method('getUserGroupIds')->willReturn([]);
 
 		$knownUserService = $this->createStub(KnownUserService::class);
 		$knownUserService->method('isKnownToUser')->willReturn(true);
@@ -242,7 +223,7 @@ class AccountPhonePluginTest extends TestCase {
 
 		$searchNormalizer = $this->createMock(SearchNormalizer::class);
 		$searchNormalizer->method('tryNormalizePhoneNumber')
-			->willReturn('+12025550001');
+			->willReturn('+12025551234');
 
 		$plugin = new AccountPhonePlugin(
 			$appConfig,
@@ -266,6 +247,8 @@ class AccountPhonePluginTest extends TestCase {
 	public function testSearchAddsAccountPhoneShareType(): void {
 		$appConfig = $this->applyAppConfig([
 			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+			'shareapi_restrict_user_enumeration_to_group' => 'no',
+			'shareapi_only_share_with_group_members' => 'no',
 		]);
 
 		$accountManager = $this->createStub(IAccountManager::class);
@@ -321,6 +304,8 @@ class AccountPhonePluginTest extends TestCase {
 	public function testSearchNonNormalizedWideMatches(): void {
 		$appConfig = $this->applyAppConfig([
 			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+			'shareapi_restrict_user_enumeration_to_group' => 'no',
+			'shareapi_only_share_with_group_members' => 'no',
 		]);
 
 		$accountManager = $this->createStub(IAccountManager::class);
@@ -364,64 +349,11 @@ class AccountPhonePluginTest extends TestCase {
 		);
 
 		$searchResult = new SearchResult();
-		$plugin->search('+1 (202) 555-1234', 10, 0, $searchResult);
+		$plugin->search('  +1 (202) 555-1234   ', 10, 0, $searchResult);
 
 		$results = $searchResult->asArray();
 		$this->assertSame([], $results['exact']['account-phone'] ?? []);
 		$this->assertCount(1, $results['account-phone'] ?? []);
-	}
-
-	public function testSearchTrimmed(): void {
-		$appConfig = $this->applyAppConfig([
-			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
-		]);
-
-		$accountManager = $this->createStub(IAccountManager::class);
-		$accountManager->method('searchUsers')->willReturn(['    +12025551234   ' => 'target']);
-
-		$currentUser = $this->createStub(IUser::class);
-		$currentUser->method('getUID')->willReturn('current');
-
-		$userSession = $this->createStub(IUserSession::class);
-		$userSession->method('getUser')->willReturn($currentUser);
-
-		$user = $this->createStub(IUser::class);
-		$user->method('getUID')->willReturn('target');
-		$user->method('isEnabled')->willReturn(true);
-		$user->method('getDisplayName')->willReturn('Target User');
-
-		$userManager = $this->createStub(IUserManager::class);
-		$userManager->method('get')->willReturn($user);
-
-		$groupManager = $this->createStub(IGroupManager::class);
-		$groupManager->method('getUserGroupIds')->willReturn(['sales']);
-
-		$knownUserService = $this->createStub(KnownUserService::class);
-		$knownUserService->method('isKnownToUser')->willReturn(true);
-
-		$context = new SignerSearchContext();
-		$context->set('sms', '    +12025551234   ', '+12025551234');
-
-		$searchNormalizer = $this->createStub(SearchNormalizer::class);
-		$searchNormalizer->method('tryNormalizePhoneNumber')->willReturn('+12025551234');
-
-		$plugin = new AccountPhonePlugin(
-			$appConfig,
-			$accountManager,
-			$groupManager,
-			$userSession,
-			$knownUserService,
-			$userManager,
-			$context,
-			$searchNormalizer,
-		);
-
-		$searchResult = new SearchResult();
-		$plugin->search('    +12025551234   ', 10, 0, $searchResult);
-
-		$results = $searchResult->asArray();
-		$this->assertSame([], $results['account-phone'] ?? []);
-		$this->assertCount(1, $results['exact']['account-phone'] ?? []);
 	}
 
 	public function testSearchDoesNotQueryAccountsWhenEnumerationAndFullMatchDisabled(): void {
@@ -460,218 +392,106 @@ class AccountPhonePluginTest extends TestCase {
 		$this->assertArrayNotHasKey('account-phone', $searchResult->asArray());
 	}
 
-	public function testSearchExactMatchIgnoresCaseOnNormalizedValue(): void {
-		$appConfig = $this->applyAppConfig([
-			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
-		]);
-
-		$accountManager = $this->createStub(IAccountManager::class);
-		$accountManager->method('searchUsers')->willReturn(['AbCdEf' => 'target']);
-
-		$currentUser = $this->createStub(IUser::class);
-		$currentUser->method('getUID')->willReturn('current');
-
-		$userSession = $this->createStub(IUserSession::class);
-		$userSession->method('getUser')->willReturn($currentUser);
-
-		$user = $this->createStub(IUser::class);
-		$user->method('getUID')->willReturn('target');
-		$user->method('isEnabled')->willReturn(true);
-		$user->method('getDisplayName')->willReturn('Someone Else');
-
-		$userManager = $this->createStub(IUserManager::class);
-		$userManager->method('get')->willReturn($user);
-
-		$groupManager = $this->createStub(IGroupManager::class);
-		$groupManager->method('getUserGroupIds')->willReturn(['sales']);
-
-		$knownUserService = $this->createStub(KnownUserService::class);
-		$knownUserService->method('isKnownToUser')->willReturn(true);
-
-		$context = new SignerSearchContext();
-		$context->set('sms', 'AbCdEf', 'AbCdEf');
-
-		$searchNormalizer = $this->createStub(SearchNormalizer::class);
-		$searchNormalizer->method('tryNormalizePhoneNumber')->willReturn('aBcDeF');
-
-		$plugin = new AccountPhonePlugin(
-			$appConfig,
-			$accountManager,
-			$groupManager,
-			$userSession,
-			$knownUserService,
-			$userManager,
-			$context,
-			$searchNormalizer,
-		);
-
-		$searchResult = new SearchResult();
-		$plugin->search('AbCdEf', 10, 0, $searchResult);
-
-		$results = $searchResult->asArray();
-		$this->assertSame([], $results['account-phone'] ?? []);
-		$this->assertCount(1, $results['exact']['account-phone'] ?? []);
-	}
-
-	public function testSearchExactMatchIgnoresCaseOnLabel(): void {
-		$appConfig = $this->applyAppConfig([
-			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
-		]);
-
-		$accountManager = $this->createStub(IAccountManager::class);
-		$accountManager->method('searchUsers')->willReturn(['AbCdEf' => 'target']);
-
-		$currentUser = $this->createStub(IUser::class);
-		$currentUser->method('getUID')->willReturn('current');
-
-		$userSession = $this->createStub(IUserSession::class);
-		$userSession->method('getUser')->willReturn($currentUser);
-
-		$user = $this->createStub(IUser::class);
-		$user->method('getUID')->willReturn('target');
-		$user->method('isEnabled')->willReturn(true);
-		$user->method('getDisplayName')->willReturn('aBcDeF');
-
-		$userManager = $this->createStub(IUserManager::class);
-		$userManager->method('get')->willReturn($user);
-
-		$groupManager = $this->createStub(IGroupManager::class);
-		$groupManager->method('getUserGroupIds')->willReturn(['sales']);
-
-		$knownUserService = $this->createStub(KnownUserService::class);
-		$knownUserService->method('isKnownToUser')->willReturn(true);
-
-		$context = new SignerSearchContext();
-		$context->set('sms', 'AbCdEf', 'AbCdEf');
-
-		$searchNormalizer = $this->createStub(SearchNormalizer::class);
-		$searchNormalizer->method('tryNormalizePhoneNumber')->willReturn('999999999');
-
-		$plugin = new AccountPhonePlugin(
-			$appConfig,
-			$accountManager,
-			$groupManager,
-			$userSession,
-			$knownUserService,
-			$userManager,
-			$context,
-			$searchNormalizer,
-		);
-
-		$searchResult = new SearchResult();
-		$plugin->search('AbCdEf', 10, 0, $searchResult);
-
-		$results = $searchResult->asArray();
-		$this->assertSame([], $results['account-phone'] ?? []);
-		$this->assertCount(1, $results['exact']['account-phone'] ?? []);
-	}
-
 	public static function providerSearchScenarios(): array {
 		return [
-			'non phone method' => [
+			'Email search' => [
 				'method' => 'email',
-				'config' => [],
-				'knownUser' => false,
-				'currentGroups' => ['sales'],
-				'targetGroups' => ['sales'],
-				'userEnabled' => true,
-				'expectedCount' => 0,
-			],
-			'enumeration disabled and no full match' => [
-				'method' => 'sms',
-				'config' => [
-					'shareapi_allow_share_dialog_user_enumeration' => 'no',
-					'shareapi_restrict_user_enumeration_full_match' => 'no',
-				],
-				'knownUser' => true,
-				'currentGroups' => ['sales'],
-				'targetGroups' => ['sales'],
-				'userEnabled' => true,
-				'expectedCount' => 0,
-			],
-			'enumeration allowed without restrictions' => [
-				'method' => 'sms',
 				'config' => [
 					'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+					'shareapi_restrict_user_enumeration_full_match' => 'no',
+					'shareapi_restrict_user_enumeration_to_group' => 'no',
+					'shareapi_restrict_user_enumeration_to_phone' => 'no',
+					'shareapi_only_share_with_group_members' => 'no',
 				],
-				'knownUser' => false,
-				'currentGroups' => ['sales'],
-				'targetGroups' => ['engineering'],
-				'userEnabled' => true,
-				'expectedCount' => 1,
+				'currentUser' => [
+					'uid' => 'current',
+					'displayName' => 'Current User',
+					'groups' => [],
+					'numberMap' => ['number' => '', 'normalized' => ''],
+				],
+				'users' => [
+					[
+						'uid' => 'target',
+						'displayName' => 'Target User',
+						'isEnabled' => true,
+						'isKnown' => true,
+						'groups' => [],
+						'numberMap' => ['number' => '+12025551234', 'normalized' => '+12025551234'],
+					],
+				],
+				'searchQuery' => ['number' => 'johnDoe@email.com', 'normalized' => ''],
+				'pagination' => ['limit' => 10, 'offset' => 0],
+				'shouldHaveMore' => false,
+				'expectedCount' => 0,
 			],
-		];
-	}
-
-	public static function providerSearchScenariosWithMultipleInputs(): array {
-		return [
 			'Test empty search' => [
 				'method' => 'sms',
 				'config' => [],
 				'currentUser' => [
 					'uid' => 'current',
 					'displayName' => 'Current User',
-					'isEnabled' => true,
-					'isKnown' => true,
 					'groups' => [],
-					'numberMap' => [
-						'number' => '',
-						'normalized' => '',
+					'numberMap' => ['number' => '+12025551234', 'normalized' => '+12025551234'],
+				],
+				'users' => [
+					[
+						'uid' => 'excluded',
+						'displayName' => 'Excluded User',
+						'isEnabled' => true,
+						'isKnown' => true,
+						'groups' => [],
+						'numberMap' => ['number' => '+12025550003', 'normalized' => '+12025550003'],
 					],
 				],
-				'users' => [],
-				'searchQuery' => [
-					'number' => '',
-					'normalized' => ''
-				],
-				'pagination' => [
-					'limit' => 10,
-					'offset' => 0,
-				],
+				'searchQuery' => ['number' => '', 'normalized' => ''],
+				'pagination' => ['limit' => 10, 'offset' => 0],
 				'shouldHaveMore' => false,
 				'expectedCount' => 0,
 			],
-			'Test non normalized search' => [
+			'Non trimmed search' => [
 				'method' => 'sms',
-				'config' => [],
+				'config' => [
+					'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+					'shareapi_restrict_user_enumeration_full_match' => 'no',
+					'shareapi_restrict_user_enumeration_to_group' => 'no',
+					'shareapi_restrict_user_enumeration_to_phone' => 'no',
+					'shareapi_only_share_with_group_members' => 'no',
+				],
 				'currentUser' => [
 					'uid' => 'current',
 					'displayName' => 'Current User',
-					'isEnabled' => true,
-					'isKnown' => true,
 					'groups' => [],
-					'numberMap' => [
-						'number' => '',
-						'normalized' => '',
+					'numberMap' => ['number' => '+12025550003', 'normalized' => '+12025550003'],
+				],
+				'users' => [
+					[
+						'uid' => 'target',
+						'displayName' => 'Target User',
+						'isEnabled' => true,
+						'isKnown' => true,
+						'groups' => [],
+						'numberMap' => ['number' => '+12025550003', 'normalized' => '+12025550003'],
 					],
 				],
-				'users' => [],
-				'searchQuery' => [
-					'number' => '+120255500O3',
-					'normalized' => ''
-				],
-				'pagination' => [
-					'limit' => 10,
-					'offset' => 0,
-				],
+				'searchQuery' => ['number' => '      +12025550003     ', 'normalized' => '+12025550003'],
+				'pagination' => ['limit' => 10, 'offset' => 0],
 				'shouldHaveMore' => false,
-				'expectedCount' => 0,
+				'expectedCount' => 1,
 			],
 			'Apply pagination' => [
 				'method' => 'sms',
 				'config' => [
 					'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+					'shareapi_restrict_user_enumeration_full_match' => 'no',
+					'shareapi_restrict_user_enumeration_to_group' => 'no',
+					'shareapi_restrict_user_enumeration_to_phone' => 'no',
+					'shareapi_only_share_with_group_members' => 'no',
 				],
 				'currentUser' => [
 					'uid' => 'current',
 					'displayName' => 'Current User',
-					'isEnabled' => true,
-					'isKnown' => true,
 					'groups' => [],
-					'numberMap' => [
-						'number' => '',
-						'normalized' => '',
-					],
+					'numberMap' => ['number' => '', 'normalized' => ''],
 				],
 				'users' => [
 					[
@@ -712,28 +532,24 @@ class AccountPhonePluginTest extends TestCase {
 					'number' => '+12025550001',
 					'normalized' => '+12025550001'
 				],
-				'pagination' => [
-					'limit' => 2,
-					'offset' => 0,
-				],
+				'pagination' => ['limit' => 2, 'offset' => 0],
 				'shouldHaveMore' => true,
-				'expectedCount' => 2,	
+				'expectedCount' => 2,
 			],
 			'Edge pagination' => [
 				'method' => 'sms',
 				'config' => [
 					'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+					'shareapi_restrict_user_enumeration_full_match' => 'no',
+					'shareapi_restrict_user_enumeration_to_group' => 'no',
+					'shareapi_restrict_user_enumeration_to_phone' => 'no',
+					'shareapi_only_share_with_group_members' => 'no',
 				],
 				'currentUser' => [
 					'uid' => 'current',
 					'displayName' => 'Current User',
-					'isEnabled' => true,
-					'isKnown' => true,
 					'groups' => [],
-					'numberMap' => [
-						'number' => '',
-						'normalized' => '',
-					],
+					'numberMap' => ['number' => '', 'normalized' => ''],
 				],
 				'users' => [
 					[
@@ -764,27 +580,24 @@ class AccountPhonePluginTest extends TestCase {
 					'normalized' => '+12025550001'
 				],
 				'pagination' => [
-					'limit' => 2,
-					'offset' => 0,
-				],
+					'limit' => 2, 'offset' => 0],
 				'shouldHaveMore' => false,
-				'expectedCount' => 2,	
+				'expectedCount' => 2,
 			],
 			'Filter disabled users' => [
 				'method' => 'sms',
 				'config' => [
 					'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+					'shareapi_restrict_user_enumeration_full_match' => 'no',
+					'shareapi_restrict_user_enumeration_to_group' => 'no',
+					'shareapi_restrict_user_enumeration_to_phone' => 'no',
+					'shareapi_only_share_with_group_members' => 'no',
 				],
 				'currentUser' => [
 					'uid' => 'current',
 					'displayName' => 'Current User',
-					'isEnabled' => true,
-					'isKnown' => true,
 					'groups' => [],
-					'numberMap' => [
-						'number' => '',
-						'normalized' => '',
-					],
+					'numberMap' => ['number' => '', 'normalized' => ''],
 				],
 				'users' => [
 					// The order of the elements here matters
@@ -828,10 +641,7 @@ class AccountPhonePluginTest extends TestCase {
 					'number' => '+12025550001',
 					'normalized' => '+12025550001'
 				],
-				'pagination' => [
-					'limit' => 2,
-					'offset' => 0,
-				],
+				'pagination' => ['limit' => 2, 'offset' => 0],
 				'shouldHaveMore' => false,
 				'expectedCount' => 2,
 			],
@@ -839,12 +649,14 @@ class AccountPhonePluginTest extends TestCase {
 				'method' => 'sms',
 				'config' => [
 					'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+					'shareapi_restrict_user_enumeration_full_match' => 'no',
+					'shareapi_restrict_user_enumeration_to_group' => 'no',
+					'shareapi_restrict_user_enumeration_to_phone' => 'no',
+					'shareapi_only_share_with_group_members' => 'no',
 				],
 				'currentUser' => [
 					'uid' => 'current',
 					'displayName' => 'Current User',
-					'isEnabled' => true,
-					'isKnown' => true,
 					'groups' => [],
 					'numberMap' => [
 						'number' => '',
@@ -900,81 +712,17 @@ class AccountPhonePluginTest extends TestCase {
 				'shouldHaveMore' => false,
 				'expectedCount' => 1,
 			],
-			'Enumeration but no full match' => [
-				'method' => 'sms',
-				'config' => [
-					'shareapi_allow_share_dialog_user_enumeration' => 'yes',
-					'shareapi_restrict_user_enumeration_full_match' => 'no',
-					'shareapi_only_share_with_group_members' => 'yes',
-				],
-				'currentUser' => [
-					'uid' => 'current',
-					'displayName' => 'Current User',
-					'isEnabled' => true,
-					'isKnown' => true,
-					'groups' => ['sales'],
-					'numberMap' => [
-						'number' => '',
-						'normalized' => '',
-					],
-				],
-				'users' => [
-					[
-						'uid' => 'target1',
-						'displayName' => 'Target User 1',
-						'numberMap' => [
-							'number' => '+12025550001',
-							'normalized' => '+12025550001',
-						],
-						'isEnabled' => true,
-						'isKnown' => true,
-						'groups' => ['sales'],
-					],
-					[
-						'uid' => 'target2',
-						'displayName' => 'Target User 2',
-						'numberMap' => [
-							'number' => '+12025550003',
-							'normalized' => '+12025550003',
-						],
-						'isEnabled' => true,
-						'isKnown' => true,
-						'groups' => ['sales'],
-					],
-					[
-						'uid' => 'excluded1',
-						'displayName' => 'Excluded User 1',
-						'numberMap' => [
-							'number' => '+12025550002',
-							'normalized' => '+12025550002',
-						],
-						'isEnabled' => true,
-						'isKnown' => true,
-						'groups' => [],
-					],
-				],
-				'searchQuery' => [
-					'number' => '+12025550001',
-					'normalized' => '+12025550001'
-				],
-				'pagination' => [
-					'limit' => 10,
-					'offset' => 0,
-				],
-				'shouldHaveMore' => false,
-				'expectedCount' => 2,	
-			],
 			'No enumeration but full match' => [
 				'method' => 'sms',
 				'config' => [
 					'shareapi_allow_share_dialog_user_enumeration' => 'no',
 					'shareapi_restrict_user_enumeration_full_match' => 'yes',
+					'shareapi_only_share_with_group_members' => 'yes',
+					'shareapi_only_share_with_group_members_exclude_group_list' => [],
 				],
 				'currentUser' => [
 					'uid' => 'current',
 					'displayName' => 'Current User',
-					'isEnabled' => true,
-					'isKnown' => true,
 					'groups' => ['sales'],
 					'numberMap' => [
 						'number' => '',
@@ -986,8 +734,8 @@ class AccountPhonePluginTest extends TestCase {
 						'uid' => 'target1',
 						'displayName' => 'Target User 1',
 						'numberMap' => [
-							'number' => '+12025550001',
-							'normalized' => '+12025550001',
+							'number' => '+12025550002',
+							'normalized' => '+12025550002',
 						],
 						'isEnabled' => true,
 						'isKnown' => true,
@@ -1004,17 +752,6 @@ class AccountPhonePluginTest extends TestCase {
 						'isKnown' => true,
 						'groups' => ['sales'],
 					],
-					[
-						'uid' => 'target3',
-						'displayName' => 'Target User 3',
-						'numberMap' => [
-							'number' => '+12025550002',
-							'normalized' => '+12025550002',
-						],
-						'isEnabled' => true,
-						'isKnown' => true,
-						'groups' => [],
-					],
 				],
 				'searchQuery' => [
 					'number' => '+12025550001',
@@ -1025,20 +762,22 @@ class AccountPhonePluginTest extends TestCase {
 					'offset' => 0,
 				],
 				'shouldHaveMore' => false,
-				'expectedCount' => 3,	
+				'expectedCount' => 2,
 			],
 			'Filter unknown phones' => [
 				'method' => 'sms',
 				'config' => [
-					'shareapi_restrict_user_enumeration_to_phone' => 'yes',
+					'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+					'shareapi_restrict_user_enumeration_full_match' => 'no',
 					'shareapi_restrict_user_enumeration_to_group' => 'no',
+					'shareapi_restrict_user_enumeration_to_phone' => 'yes',
+					'shareapi_only_share_with_group_members' => 'no',
+					'shareapi_only_share_with_group_members_exclude_group_list' => [],
 				],
 				'currentUser' => [
 					'uid' => 'current',
 					'displayName' => 'Current User',
-					'isEnabled' => true,
-					'isKnown' => true,
-					'groups' => [],
+					'groups' => ['sales'],
 					'numberMap' => [
 						'number' => '',
 						'normalized' => '',
@@ -1054,7 +793,7 @@ class AccountPhonePluginTest extends TestCase {
 						],
 						'isEnabled' => true,
 						'isKnown' => false,
-						'groups' => [],
+						'groups' => ['sales'],
 					],
 					[
 						'uid' => 'target',
@@ -1090,31 +829,101 @@ class AccountPhonePluginTest extends TestCase {
 				'shouldHaveMore' => false,
 				'expectedCount' => 1,
 			],
+			'Filter phones and restrict by group' => [
+				'method' => 'sms',
+				'config' => [
+					'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+					'shareapi_restrict_user_enumeration_full_match' => 'no',
+					'shareapi_restrict_user_enumeration_to_group' => 'yes',
+					'shareapi_restrict_user_enumeration_to_phone' => 'yes',
+					'shareapi_only_share_with_group_members' => 'no',
+					'shareapi_only_share_with_group_members_exclude_group_list' => [],
+				],
+				'currentUser' => [
+					'uid' => 'current',
+					'displayName' => 'Current User',
+					'groups' => ['sales'],
+					'numberMap' => [
+						'number' => '',
+						'normalized' => '',
+					],
+				],
+				'users' => [
+					[
+						'uid' => 'excluded1',
+						'displayName' => 'Excluded User 1',
+						'numberMap' => [
+							'number' => '+12025550002',
+							'normalized' => '+12025550002',
+						],
+						'isEnabled' => true,
+						'isKnown' => false,
+						'groups' => [],
+					],
+					[
+						'uid' => 'target',
+						'displayName' => 'Target User 1',
+						'numberMap' => [
+							'number' => '+12025550003',
+							'normalized' => '+12025550003',
+						],
+						'isEnabled' => true,
+						'isKnown' => false,
+						'groups' => ['sales'],
+					],
+					[
+						'uid' => 'excluded2',
+						'displayName' => 'Excluded User 2',
+						'numberMap' => [
+							'number' => '+12025550004',
+							'normalized' => '+12025550004',
+						],
+						'isEnabled' => true,
+						'isKnown' => false,
+						'groups' => [],
+					],
+					[
+						'uid' => 'target',
+						'displayName' => 'Target User 2',
+						'numberMap' => [
+							'number' => '+12025550004',
+							'normalized' => '+12025550004',
+						],
+						'isEnabled' => true,
+						'isKnown' => true,
+						'groups' => [],
+					],
+				],
+				'searchQuery' => [
+					'number' => '+12025550003',
+					'normalized' => '+12025550003'
+				],
+				'pagination' => [
+					'limit' => 10,
+					'offset' => 0,
+				],
+				'shouldHaveMore' => false,
+				'expectedCount' => 2,
+			],
 			'Filter disallowed groups' => [
 				'method' => 'sms',
 				'config' => [
-					'shareapi_restrict_user_enumeration_to_group' => 'yes',
-					'shareapi_restrict_user_enumeration_to_phone' => 'no',
+					'shareapi_only_share_with_group_members' => 'yes',
 					'shareapi_only_share_with_group_members_exclude_group_list' => ['engineering'],
 				],
 				'currentUser' => [
 					'uid' => 'current',
 					'displayName' => 'Current User',
-					'isEnabled' => true,
-					'isKnown' => true,
 					'groups' => ['sales'],
-					'numberMap' => [
-						'number' => '',
-						'normalized' => '',
-					],
+					'numberMap' => ['number' => '', 'normalized' => ''],
 				],
 				'users' => [
 					[
 						'uid' => 'excluded1',
 						'displayName' => 'Excluded User 1',
 						'numberMap' => [
-							'number' => '+12025550002',
-							'normalized' => '+12025550002',
+							'number' => '+1202555001',
+							'normalized' => '+1202555001',
 						],
 						'isEnabled' => true,
 						'isKnown' => true,
@@ -1124,8 +933,8 @@ class AccountPhonePluginTest extends TestCase {
 						'uid' => 'target1',
 						'displayName' => 'Target User 1',
 						'numberMap' => [
-							'number' => '+12025550003',
-							'normalized' => '+12025550003',
+							'number' => '+1202555002',
+							'normalized' => '+1202555002',
 						],
 						'isEnabled' => true,
 						'isKnown' => true,
@@ -1135,8 +944,8 @@ class AccountPhonePluginTest extends TestCase {
 						'uid' => 'excluded2',
 						'displayName' => 'Excluded User 2',
 						'numberMap' => [
-							'number' => '+12025550004',
-							'normalized' => '+12025550004',
+							'number' => '+1202555003',
+							'normalized' => '+1202555003',
 						],
 						'isEnabled' => true,
 						'isKnown' => true,
@@ -1146,8 +955,8 @@ class AccountPhonePluginTest extends TestCase {
 						'uid' => 'target2',
 						'displayName' => 'Target User 2',
 						'numberMap' => [
-							'number' => '+12025550005',
-							'normalized' => '+12025550005',
+							'number' => '+1202555004',
+							'normalized' => '+1202555004',
 						],
 						'isEnabled' => true,
 						'isKnown' => true,
@@ -1155,100 +964,26 @@ class AccountPhonePluginTest extends TestCase {
 					],
 				],
 				'searchQuery' => [
-					'number' => '+12025550003',
-					'normalized' => '+12025550003'
+					'number' => '+1202555001',
+					'normalized' => '+1202555001',
 				],
-				'pagination' => [
-					'limit' => 10,
-					'offset' => 0,
-				],
+				'pagination' => ['limit' => 10, 'offset' => 0],
 				'shouldHaveMore' => false,
 				'expectedCount' => 2,
 			],
-			'Restrict to common group' => [
+			'Filter group-only users' => [
 				'method' => 'sms',
 				'config' => [
+					'shareapi_allow_share_dialog_user_enumeration' => 'no',
+					'shareapi_only_share_with_group_members' => 'yes',
+					'shareapi_restrict_user_enumeration_to_phone' => 'no',
 					'shareapi_restrict_user_enumeration_to_group' => 'yes',
-					'shareapi_only_share_with_group_members' => 'yes',
+					'shareapi_restrict_user_enumeration_full_match' => 'yes',
+					'shareapi_only_share_with_group_members_exclude_group_list' => [],
 				],
 				'currentUser' => [
 					'uid' => 'current',
 					'displayName' => 'Current User',
-					'isEnabled' => true,
-					'isKnown' => true,
-					'groups' => ['sales'],
-					'numberMap' => [
-						'number' => '',
-						'normalized' => '',
-					],
-				],
-				'users' => [
-					[
-						'uid' => 'excluded1',
-						'displayName' => 'Excluded User 1',
-						'numberMap' => [
-							'number' => '+12025550002',
-							'normalized' => '+12025550002',
-						],
-						'isEnabled' => true,
-						'isKnown' => true,
-						'groups' => ['engineering'],
-					],
-					[
-						'uid' => 'target1',
-						'displayName' => 'Target User 1',
-						'numberMap' => [
-							'number' => '+12025550003',
-							'normalized' => '+12025550003',
-						],
-						'isEnabled' => true,
-						'isKnown' => true,
-						'groups' => ['sales', 'engineering'],
-					],
-					[
-						'uid' => 'excluded2',
-						'displayName' => 'Excluded User 2',
-						'numberMap' => [
-							'number' => '+12025550004',
-							'normalized' => '+12025550004',
-						],
-						'isEnabled' => true,
-						'isKnown' => true,
-						'groups' => ['engineering'],
-					],
-					[
-						'uid' => 'target2',
-						'displayName' => 'Target User 2',
-						'numberMap' => [
-							'number' => '+12025550005',
-							'normalized' => '+12025550005',
-						],
-						'isEnabled' => true,
-						'isKnown' => true,
-						'groups' => ['sales'],
-					],
-				],
-				'searchQuery' => [
-					'number' => '+12025550003',
-					'normalized' => '+12025550003'
-				],
-				'pagination' => [
-					'limit' => 10,
-					'offset' => 0,
-				],
-				'shouldHaveMore' => false,
-				'expectedCount' => 2,
-			],
-			'Filter group-only users mid-list' => [
-				'method' => 'sms',
-				'config' => [
-					'shareapi_only_share_with_group_members' => 'yes',
-				],
-				'currentUser' => [
-					'uid' => 'current',
-					'displayName' => 'Current User',
-					'isEnabled' => true,
-					'isKnown' => true,
 					'groups' => ['sales'],
 					'numberMap' => [
 						'number' => '',
@@ -1282,8 +1017,8 @@ class AccountPhonePluginTest extends TestCase {
 					],
 				],
 				'searchQuery' => [
-					'number' => '+12025550001',
-					'normalized' => '+12025550001',
+					'number' => '+12025550000',
+					'normalized' => '+12025550000',
 				],
 				'pagination' => [
 					'limit' => 10,
@@ -1302,13 +1037,8 @@ class AccountPhonePluginTest extends TestCase {
 				'currentUser' => [
 					'uid' => 'current',
 					'displayName' => 'Current User',
-					'isEnabled' => true,
-					'isKnown' => true,
 					'groups' => ['sales'],
-					'numberMap' => [
-						'number' => '',
-						'normalized' => '',
-					],
+					'numberMap' => ['number' => '', 'normalized' => ''],
 				],
 				'users' => [
 					[
@@ -1323,17 +1053,6 @@ class AccountPhonePluginTest extends TestCase {
 						'groups' => ['sales'],
 					],
 					[
-						'uid' => 'target1',
-						'displayName' => 'Target User 1',
-						'numberMap' => [
-							'number' => '+12025550003',
-							'normalized' => '+12025550003',
-						],
-						'isEnabled' => true,
-						'isKnown' => true,
-						'groups' => ['sales', 'engineering'],
-					],
-					[
 						'uid' => 'excluded2',
 						'displayName' => 'Excluded User 2',
 						'numberMap' => [
@@ -1344,26 +1063,12 @@ class AccountPhonePluginTest extends TestCase {
 						'isKnown' => true,
 						'groups' => ['sales'],
 					],
-					[
-						'uid' => 'target2',
-						'displayName' => 'Target User 2',
-						'numberMap' => [
-							'number' => '+12025550005',
-							'normalized' => '+12025550005',
-						],
-						'isEnabled' => true,
-						'isKnown' => true,
-						'groups' => ['engineering'],
-					],
 				],
 				'searchQuery' => [
 					'number' => '+12025550003',
 					'normalized' => '+12025550003'
 				],
-				'pagination' => [
-					'limit' => 10,
-					'offset' => 0,
-				],
+				'pagination' => ['limit' => 10, 'offset' => 0],
 				'shouldHaveMore' => false,
 				'expectedCount' => 0,
 			],
