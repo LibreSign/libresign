@@ -1,4 +1,7 @@
 Feature: sign/observer_participant
+  Background: Make setup ok
+    Given run the command "libresign:configure:openssl --cn test" with result code 0
+
   Scenario: Observer participants are stored separately and cannot sign
     Given as user "admin"
     And user "signer1" exists
@@ -22,14 +25,14 @@ Feature: sign/observer_participant
       | key                                                        | value            |
       | (jq).ocs.data.data[0].name                                 | Observer document |
       | (jq).ocs.data.data[0].signers\|length                      | 2                |
-      | (jq).ocs.data.data[0].signers[0].displayName               | Signer Name      |
-      | (jq).ocs.data.data[0].signers[0].participantRole           | signer           |
-      | (jq).ocs.data.data[0].signers[1].displayName               | Observer Name    |
-      | (jq).ocs.data.data[0].signers[1].participantRole           | observer         |
+      | (jq).ocs.data.data[0].signers[0].displayName               | Observer Name    |
+      | (jq).ocs.data.data[0].signers[0].participantRole           | observer         |
+      | (jq).ocs.data.data[0].signers[1].displayName               | Signer Name      |
+      | (jq).ocs.data.data[0].signers[1].participantRole           | signer           |
     And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
-    And fetch field "(SIGNER_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
-    And fetch field "(OBSERVER_UUID)ocs.data.data.0.signers.1.sign_request_uuid" from previous JSON response
     And as user "observer1"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(OBSERVER_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
     When sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<OBSERVER_UUID>"
       | method | clickToSign |
     Then the response should have a status code 422
@@ -45,6 +48,8 @@ Feature: sign/observer_participant
     When sending "get" to "/apps/libresign/validation/<FILE_UUID>"
     Then the response should have a status code 200
     And as user "signer1"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(SIGNER_UUID)ocs.data.data.0.signers.1.sign_request_uuid" from previous JSON response
     When sending "get" to "/apps/libresign/p/sign/<SIGNER_UUID>"
     Then the response should have a status code 200
 
