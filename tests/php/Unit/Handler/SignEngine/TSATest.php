@@ -84,16 +84,18 @@ class TSATest extends TestCase {
 			'genTime' => '2026-09-03 20:00:00',
 		], $this->getTstInfoMap());
 
-		$result = $this->tsa->extract([
-			[
-				'type' => ASN1::TYPE_OBJECT_IDENTIFIER,
-				'content' => 'tstInfo',
-			],
-			[
-				'type' => ASN1::TYPE_OCTET_STRING,
-				'content' => $tstInfo,
+		$timestampToken = ASN1::encodeDER([
+			'contentType' => 'id-ct-TSTInfo',
+			'content' => $tstInfo,
+		], [
+			'type' => ASN1::TYPE_SEQUENCE,
+			'children' => [
+				'contentType' => ['type' => ASN1::TYPE_OBJECT_IDENTIFIER],
+				'content' => ['type' => ASN1::TYPE_OCTET_STRING],
 			],
 		]);
+
+		$result = $this->tsa->extract([ASN1::decodeBER($timestampToken)]);
 
 		$this->assertSame('1.2.3.4.1', $result['policy']);
 	}
