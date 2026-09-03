@@ -11,17 +11,21 @@ export const ADMIN_SIGNER_OPTION = /admin.*admin@email\.tld/i
 /**
  * Opens the add-signer dialog from the request-signature sidebar.
  *
- * When `enable_observer_profile` is disabled the UI exposes a single "Add"
- * button. When enabled, "Add" opens a menu with "Signer" and "Observer".
+ * When `enable_observer_profile` is disabled the UI exposes "Add signer".
+ * When enabled, "Add" opens a menu and this helper chooses "Signer".
  */
 export async function clickAddSigner(page: Page): Promise<void> {
-	const addButton = page.getByRole('button', { name: 'Add', exact: true })
-	await expect(addButton).toBeVisible({ timeout: 15_000 })
-	await addButton.click()
+	const addSignerButton = page.getByRole('button', { name: 'Add signer', exact: true })
+	if (await addSignerButton.isVisible({ timeout: 2_000 }).catch(() => false)) {
+		await addSignerButton.click()
+	} else {
+		const addButton = page.getByRole('button', { name: 'Add', exact: true })
+		await expect(addButton).toBeVisible({ timeout: 15_000 })
+		await addButton.click()
 
-	const signerMenuItem = page.getByRole('menuitem', { name: 'Signer' })
-		.or(page.getByRole('button', { name: 'Signer', exact: true }))
-	if (await signerMenuItem.first().isVisible({ timeout: 1000 }).catch(() => false)) {
+		const signerMenuItem = page.getByRole('menuitem', { name: 'Signer' })
+			.or(page.getByRole('button', { name: 'Signer', exact: true }))
+		await expect(signerMenuItem.first()).toBeVisible({ timeout: 5_000 })
 		await signerMenuItem.first().click()
 	}
 
@@ -29,20 +33,48 @@ export async function clickAddSigner(page: Page): Promise<void> {
 }
 
 /**
+ * Opens the add-observer dialog from the request-signature sidebar.
+ *
+ * Requires `enable_observer_profile` to be enabled so the Add menu is shown.
+ */
+export async function clickAddObserver(page: Page): Promise<void> {
+	const addButton = page.getByRole('button', { name: 'Add', exact: true })
+	await expect(addButton).toBeVisible({ timeout: 15_000 })
+	await addButton.click()
+
+	const observerMenuItem = page.getByRole('menuitem', { name: 'Observer' })
+		.or(page.getByRole('button', { name: 'Observer', exact: true }))
+	await expect(observerMenuItem.first()).toBeVisible({ timeout: 5_000 })
+	await observerMenuItem.first().click()
+
+	await expect(getAddObserverDialog(page)).toBeVisible({ timeout: 10_000 })
+}
+
+/**
  * Asserts that the request-signature sidebar exposes the add-participant control.
  */
 export async function expectAddSignerControlVisible(page: Page): Promise<void> {
-	await expect(page.getByRole('button', { name: 'Add', exact: true })).toBeVisible({ timeout: 15_000 })
+	const addSignerButton = page.getByRole('button', { name: 'Add signer', exact: true })
+	const addMenuButton = page.getByRole('button', { name: 'Add', exact: true })
+	await expect(addSignerButton.or(addMenuButton)).toBeVisible({ timeout: 15_000 })
 }
 
 function getAddSignerDialog(page: Page) {
 	return page.getByRole('dialog', { name: /Add new signer/i }).last()
 }
 
+function getAddObserverDialog(page: Page) {
+	return page.getByRole('dialog', { name: /Add new observer/i }).last()
+}
+
+function getParticipantDialog(page: Page) {
+	return page.getByRole('dialog', { name: /Add new (signer|observer)/i }).last()
+}
+
 function getSignerSearchCombobox(page: Page) {
 	// NcSelect exposes the method placeholder as combobox name (e.g. Account, Email),
 	// while input-label stays on the visible label. Target the stable input id instead.
-	return getAddSignerDialog(page).locator('#account-or-email-input')
+	return getParticipantDialog(page).locator('#account-or-email-input')
 }
 
 /**

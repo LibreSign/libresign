@@ -28,9 +28,9 @@
 				:variant="hasSigners ? 'secondary' : 'primary'"
 				@click="addParticipant(PARTICIPANT_ROLE.SIGNER)">
 				<template #icon>
-					<NcIconSvgWrapper :path="mdiPlus" :size="20" />
+					<NcIconSvgWrapper :path="mdiAccountPlus" :size="20" />
 				</template>
-				{{ t('libresign', 'Add') }}
+				{{ t('libresign', 'Add signer') }}
 			</NcButton>
 			<NcActions v-else
 				:aria-label="t('libresign', 'Add participant')"
