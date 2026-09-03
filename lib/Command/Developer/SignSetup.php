@@ -14,8 +14,10 @@ use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCA\Libresign\Vendor\phpseclib4\Crypt\RSA;
 use OCA\Libresign\Vendor\phpseclib4\Exception\NoKeyLoadedException;
+use OCA\Libresign\Vendor\phpseclib4\Exception\UnexpectedValueException;
 use OCA\Libresign\Vendor\phpseclib4\File\X509;
 use OCP\IConfig;
+use SodiumException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -69,7 +71,7 @@ class SignSetup extends Base {
 		}
 		try {
 			$x509 = X509::load($keyBundle);
-		} catch (\Throwable) {
+		} catch (UnexpectedValueException|SodiumException) {
 			$output->writeln('Invalid certificate');
 			return 1;
 		}
