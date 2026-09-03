@@ -143,6 +143,48 @@ describe('validationDocument', () => {
 		expect(normalized?.files[0]).not.toHaveProperty('file')
 	})
 
+	it('accepts certificate signers from an external signed PDF', () => {
+		const payload = createValidationPayload({
+			id: 0,
+			uuid: '',
+			status: FILE_STATUS.NOT_LIBRESIGN_FILE,
+			statusText: '',
+			nodeId: 0,
+			metadata: [],
+			files: [{
+				id: 0,
+				uuid: '',
+				name: 'external-signed.pdf',
+				status: FILE_STATUS.NOT_LIBRESIGN_FILE,
+				statusText: '',
+				nodeId: 0,
+				totalPages: 0,
+				size: 1163,
+				pdfVersion: '',
+				signers: [],
+				metadata: [],
+			}],
+			totalPages: 0,
+			size: 1163,
+			pdfVersion: '',
+			created_at: '',
+			requested_by: { userId: '', displayName: '' },
+			signers: [{
+				displayName: 'External signer',
+				status: SIGN_REQUEST_STATUS.SIGNED,
+				statusText: 'Signed',
+				signature_validation: { id: 1, label: 'Signature is valid.' },
+				certificate_validation: { id: 3, label: 'Certificate issuer is unknown.' },
+				chain: [{ subject: { CN: 'External signer' } }],
+			}],
+		})
+
+		const normalized = toValidationDocument(payload)
+
+		expect(normalized).not.toBeNull()
+		expect(normalized?.signers[0]?.displayName).toBe('External signer')
+	})
+
 	it('rejects payload with string values in numeric contract fields', () => {
 		const normalized = toValidationDocument(createValidationPayload({
 			id: '100',
