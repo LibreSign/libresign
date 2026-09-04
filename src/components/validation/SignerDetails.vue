@@ -91,7 +91,7 @@
 			<NcListItem v-if="signer.signature_validation" class="extra-chain" compact>
 				<template #icon>
 					<NcIconSvgWrapper :path="signer.signature_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
-						:class="signer.signature_validation?.id === 1 ? 'icon-success' : 'icon-error'" />
+						:class="signer.signature_validation?.id === 1 ? 'validation-icon--success' : 'validation-icon--error'" />
 				</template>
 				<template #name>
 					{{ getSignatureValidationMessage(signer) }}
@@ -108,7 +108,7 @@
 			<NcListItem v-if="signer.certificate_validation" class="extra-chain" compact>
 				<template #icon>
 					<NcIconSvgWrapper :path="signer.certificate_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
-						:class="signer.certificate_validation?.id === 1 ? 'icon-success' : 'icon-error'" />
+						:class="signer.certificate_validation?.id === 1 ? 'validation-icon--success' : 'validation-icon--error'" />
 				</template>
 				<template #name>
 					{{ getCertificateTrustMessage(signer) }}
@@ -117,7 +117,7 @@
 			<NcListItem v-if="signer.valid_from && signer.valid_to && signer.signed" class="extra-chain" compact>
 				<template #icon>
 					<NcIconSvgWrapper :path="getValidityStatusAtSigning(signer) === 'valid' ? mdiCheckCircle : mdiCancel"
-						:class="getValidityStatusAtSigning(signer) === 'valid' ? 'icon-success' : 'icon-error'" />
+						:class="getValidityStatusAtSigning(signer) === 'valid' ? 'validation-icon--success' : 'validation-icon--error'" />
 				</template>
 				<template #name>
 					{{ getValidityStatusAtSigning(signer) === 'valid' ? t('libresign', 'Valid at signing time') : t('libresign', 'NOT valid at signing time') }}
@@ -361,19 +361,19 @@ const MODIFICATION_ALLOWED = 2
 const MODIFICATION_VIOLATION = 3
 const crlStatusMap: Record<string, CrlStatusMeta> = {
 	// TRANSLATORS CRL status text indicating certificate was checked and is not revoked.
-	valid: { icon: mdiCheckCircle, text: t('libresign', 'CRL: Not revoked'), class: 'icon-success' },
+	valid: { icon: mdiCheckCircle, text: t('libresign', 'CRL: Not revoked'), class: 'validation-icon--success' },
 	// TRANSLATORS CRL status text indicating certificate is revoked.
-	revoked: { icon: mdiCloseCircle, text: t('libresign', 'CRL: Certificate revoked'), class: 'icon-error' },
+	revoked: { icon: mdiCloseCircle, text: t('libresign', 'CRL: Certificate revoked'), class: 'validation-icon--error' },
 	// TRANSLATORS CRL status text indicating revocation information is unavailable.
-	missing: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No information'), class: 'icon-warning' },
+	missing: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No information'), class: 'validation-icon--warning' },
 	// TRANSLATORS CRL status text indicating no CRL distribution URLs were found in certificate metadata.
-	no_urls: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No URLs found'), class: 'icon-warning' },
+	no_urls: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No URLs found'), class: 'validation-icon--warning' },
 	// TRANSLATORS CRL status text indicating CRL URLs exist but were unreachable.
-	urls_inaccessible: { icon: mdiHelpCircle, text: t('libresign', 'CRL: URLs inaccessible'), class: 'icon-warning' },
+	urls_inaccessible: { icon: mdiHelpCircle, text: t('libresign', 'CRL: URLs inaccessible'), class: 'validation-icon--warning' },
 	// TRANSLATORS CRL status text indicating CRL validation process failed.
-	validation_failed: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation failed'), class: 'icon-warning' },
+	validation_failed: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation failed'), class: 'validation-icon--warning' },
 	// TRANSLATORS CRL status text indicating unexpected error during CRL validation.
-	validation_error: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation error'), class: 'icon-warning' },
+	validation_error: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation error'), class: 'validation-icon--warning' },
 }
 
 function toggleOpen() {
@@ -432,7 +432,7 @@ function getIconValidityPath(signer: SignerModel) {
 	}
 	if (signer.modification_validation?.status === MODIFICATION_VIOLATION
 		|| isRevokedBeforeSigning(signer)) {
-		return mdiClose
+		return mdiShieldAlert
 	}
 	if (hasDocumentModificationWarning(signer)
 		|| (signer.certificate_validation !== undefined
@@ -447,14 +447,14 @@ function getSignerValidationClass(signer: SignerModel) {
 			&& signer.signature_validation.id !== 1)
 		|| signer.modification_validation?.status === MODIFICATION_VIOLATION
 		|| isRevokedBeforeSigning(signer)) {
-		return 'icon-error'
+		return 'validation-icon--error'
 	}
 	if (hasDocumentModificationWarning(signer)
 		|| (signer.certificate_validation !== undefined
 			&& signer.certificate_validation.id !== 1)) {
-		return 'icon-warning'
+		return 'validation-icon--warning'
 	}
-	return 'icon-success'
+	return 'validation-icon--success'
 }
 
 function getValidityStatus(signer: SignerModel) {
@@ -532,9 +532,9 @@ function getValidityStatusAtSigning(signer: SignerModel) {
 
 function getCrlValidationIconClass(signer: SignerModel) {
 	if (isRevokedStatus(signer.crl_validation)) {
-		return isRevokedBeforeSigning(signer) ? 'icon-error' : 'icon-success'
+		return isRevokedBeforeSigning(signer) ? 'validation-icon--error' : 'validation-icon--success'
 	}
-	return crlStatusMap[signer.crl_validation ?? '']?.class || 'icon-warning'
+	return crlStatusMap[signer.crl_validation ?? '']?.class || 'validation-icon--warning'
 }
 
 function getCrlValidationIconPath(signer: SignerModel) {
@@ -604,12 +604,12 @@ function getModificationStatusClass(signer: SignerModel) {
 
 	const status = signer.modification_validation.status
 	if (status === MODIFICATION_UNMODIFIED) {
-		return 'icon-success'
+		return 'validation-icon--success'
 	}
 	if (status === MODIFICATION_ALLOWED) {
-		return 'icon-warning'
+		return 'validation-icon--warning'
 	}
-	return 'icon-error'
+	return 'validation-icon--error'
 }
 
 function formatTimestamp(timestamp?: number | null) {
@@ -694,22 +694,22 @@ defineExpose({
 	word-break: break-word;
 	line-height: 1.4;
 }
-.icon-success {
-	color: var(--color-success);
+.validation-icon--success {
+	color: var(--color-element-success, var(--color-success));
 	:deep(svg) {
 		fill: currentColor;
 	}
 }
 
-.icon-error {
-	color: var(--color-error);
+.validation-icon--error {
+	color: var(--color-element-error, var(--color-error));
 	:deep(svg) {
 		fill: currentColor;
 	}
 }
 
-.icon-warning {
-	color: var(--color-warning);
+.validation-icon--warning {
+	color: var(--color-element-warning, var(--color-warning));
 	:deep(svg) {
 		fill: currentColor;
 	}
