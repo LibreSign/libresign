@@ -8,9 +8,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\SignEngine;
 
-use OCA\Libresign\Vendor\phpseclib3\File\ASN1;
-use OCA\Libresign\Vendor\phpseclib3\File\ASN1\Element;
-use OCA\Libresign\Vendor\phpseclib3\Math\BigInteger;
+use OCA\Libresign\Vendor\phpseclib4\File\ASN1;
+use OCA\Libresign\Vendor\phpseclib4\File\ASN1\Constructed;
+use OCA\Libresign\Vendor\phpseclib4\File\ASN1\Element;
+use OCA\Libresign\Vendor\phpseclib4\File\ASN1\Types\BaseType;
+use OCA\Libresign\Vendor\phpseclib4\Math\BigInteger;
 
 class TSA {
 	private static bool $areOidsInitialized = false;
@@ -38,8 +40,10 @@ class TSA {
 
 	private function processContentCandidate($content, ?string &$cmsDer): array {
 		try {
-			if ($content instanceof Element) {
-				return $this->decodeWithCache($cmsDer = $content->element);
+			if ($content instanceof Element && $content->value !== '') {
+				return $this->decodeWithCache($cmsDer = $content->value);
+			} elseif ($content instanceof Constructed) {
+				return $this->decodeWithCache($cmsDer = $content->getEncoded());
 			} elseif (is_string($content)) {
 				return $this->decodeWithCache($cmsDer = $content);
 			} elseif (is_array($content)) {
@@ -76,12 +80,12 @@ class TSA {
 	}
 
 	private function extractTimestampAuthorityName($timestampElement): array {
-		if (!$timestampElement instanceof Element || !is_string($timestampElement->element)) {
+		if (!$timestampElement instanceof Element || $timestampElement->value === '') {
 			return [];
 		}
 
 		try {
-			$decoded = $this->decodeWithCache($timestampElement->element);
+			$decoded = $this->decodeWithCache($timestampElement->value);
 			return ($decoded[0] ?? null) ? $this->extractCertificateHints([$decoded[0]]) : [];
 		} catch (\Throwable) {
 			return [];
@@ -129,6 +133,10 @@ class TSA {
 	}
 
 	public function extract(array $root): array {
+		if (isset($root['type'])) {
+			$root = [$root];
+		}
+
 		$cmsDer = null;
 		$tstInfoOctets = null;
 		$cnHints = [];
@@ -165,9 +173,8 @@ class TSA {
 
 				$tst = null;
 				if ($tstNode && ($tstNode['type'] ?? null) === ASN1::TYPE_SEQUENCE) {
-					ASN1::setTimeFormat('Y-m-d\TH:i:s\Z');
-					$tst = ASN1::asn1map($tstNode, self::$timestampInfoStructure ??= $this->buildTimestampInfoStructure());
-
+					$mappedTst = ASN1::map($tstNode, self::$timestampInfoStructure ??= $this->buildTimestampInfoStructure());
+					$tst = $mappedTst instanceof Constructed ? $mappedTst->toArray(true) : null;
 					if (!is_array($tst)) {
 						$tst = $this->parseTstInfoFallback($tstInfoOctets);
 					}
@@ -178,7 +185,9 @@ class TSA {
 
 			if (is_array($tst)) {
 				$tsa['genTime'] = $tst['genTime'] ?? null;
-				$policyOid = $tst['policy'] ?? null;
+				$policyOid = isset($tst['policy']) && is_string($tst['policy'])
+					? ASN1::getOIDFromName($tst['policy'])
+					: null;
 				$tsa['policy'] = $policyOid;
 				$tsa['policyName'] = $this->resolveTsaPolicyName($policyOid);
 				$tsa['serialNumber'] = $this->bigToString($tst['serialNumber'] ?? null);
@@ -245,28 +254,47 @@ class TSA {
 	}
 
 	public function getSigninTime($root): ?\DateTime {
-		$signingTime = null;
-		if ($values = $this->getAttributeValuesSetAfterOID($root, self::TIMESTAMP_OIDS['SIGNING_TIME'])) {
-			foreach ($values as $v) {
-				$t = $v['type'] ?? null;
-				if ($t === ASN1::TYPE_UTC_TIME || $t === ASN1::TYPE_GENERALIZED_TIME) {
-					$signingTime = $v['content'] ?? null;
-					if ($signingTime !== null) {
-						break;
-					}
-				}
+		$foundSigningTimeOid = false;
+		if (is_array($root) && isset($root['type'])) {
+			$root = [$root];
+		}
+
+		foreach ($this->walkAsn1Tree(is_array($root) ? $root : []) as $node) {
+			if (($node['type'] ?? null) === ASN1::TYPE_OBJECT_IDENTIFIER
+				&& in_array($this->getNodeContent($node), [self::TIMESTAMP_OIDS['SIGNING_TIME'], 'signingTime', 'id-signingTime'], true)) {
+				$foundSigningTimeOid = true;
+				continue;
+			}
+
+			if (!$foundSigningTimeOid || !in_array($node['type'] ?? null, [ASN1::TYPE_UTC_TIME, ASN1::TYPE_GENERALIZED_TIME], true)) {
+				continue;
+			}
+
+			$signingTime = $this->getNodeContent($node);
+			if (!is_string($signingTime) || $signingTime === '') {
+				return null;
+			}
+
+			try {
+				return new \DateTime($signingTime);
+			} catch (\Exception) {
+				return null;
 			}
 		}
-		return $signingTime;
+
+		return null;
 	}
 
 	private function parseTstInfoFallback(string $tstInfoOctets): ?array {
 		try {
 			$nodes = $this->decodeWithCache($tstInfoOctets);
 			$root = $nodes[0] ?? null;
-			if (!$root || ($root['type'] ?? null) !== ASN1::TYPE_SEQUENCE || !is_array($root['content'] ?? null)) {
+			if (!$root || ($root['type'] ?? null) !== ASN1::TYPE_SEQUENCE) {
 				return null;
 			}
+			$children = is_array($root['content'] ?? null)
+				? $root['content']
+				: (($root['content'] ?? null) instanceof Constructed ? $this->decodeConstructedChildren($root['content']) : []);
 		} catch (\Throwable) {
 			return null;
 		}
@@ -276,20 +304,27 @@ class TSA {
 		$seenMsgImprint = false;
 		$seenSerial = false;
 
-		foreach ($root['content'] as $child) {
+		foreach ($children as $child) {
 			$t = $child['type'] ?? null;
 
-			if (!$seenPolicy && $t === ASN1::TYPE_OBJECT_IDENTIFIER && is_string($child['content'] ?? null)) {
-				$out['policy'] = $child['content'];
+			$nodeContent = $this->getNodeContent($child);
+			if (!$seenPolicy && $t === ASN1::TYPE_OBJECT_IDENTIFIER && is_string($nodeContent)) {
+				$out['policy'] = $nodeContent;
 				$seenPolicy = true;
 				continue;
 			}
-			if (!$seenMsgImprint && $t === ASN1::TYPE_SEQUENCE && is_array($child['content'] ?? null)) {
+			$messageImprintParts = is_array($child['content'] ?? null)
+				? $child['content']
+				: (($child['content'] ?? null) instanceof Constructed ? $this->decodeConstructedChildren($child['content']) : []);
+			if (!$seenMsgImprint && $t === ASN1::TYPE_SEQUENCE && $messageImprintParts !== []) {
 				$hasOID = false;
 				$hasOctet = false;
-				foreach ($child['content'] as $miPart) {
+				foreach ($messageImprintParts as $miPart) {
 					if (($miPart['type'] ?? null) === ASN1::TYPE_SEQUENCE) {
-						foreach (($miPart['content'] ?? []) as $algPart) {
+						$algorithmParts = is_array($miPart['content'] ?? null)
+							? $miPart['content']
+							: (($miPart['content'] ?? null) instanceof Constructed ? $this->decodeConstructedChildren($miPart['content']) : []);
+						foreach ($algorithmParts as $algPart) {
 							if (($algPart['type'] ?? null) === ASN1::TYPE_OBJECT_IDENTIFIER) {
 								$hasOID = true;
 							}
@@ -310,8 +345,8 @@ class TSA {
 				continue;
 			}
 			if ($t === ASN1::TYPE_GENERALIZED_TIME || $t === ASN1::TYPE_UTC_TIME) {
-				if (is_string($child['content'] ?? null)) {
-					$out['genTime'] = $child['content'];
+				if (is_string($nodeContent)) {
+					$out['genTime'] = $nodeContent;
 				}
 			}
 		}
@@ -319,8 +354,9 @@ class TSA {
 		if (!$out['genTime']) {
 			foreach ($this->walkAsn1Tree([$root]) as $n) {
 				$tt = $n['type'] ?? null;
-				if (($tt === ASN1::TYPE_GENERALIZED_TIME || $tt === ASN1::TYPE_UTC_TIME) && is_string($n['content'] ?? null)) {
-					$out['genTime'] = $n['content'];
+				$nodeContent = $this->getNodeContent($n);
+				if (($tt === ASN1::TYPE_GENERALIZED_TIME || $tt === ASN1::TYPE_UTC_TIME) && is_string($nodeContent)) {
+					$out['genTime'] = $nodeContent;
 					break;
 				}
 			}
@@ -331,12 +367,17 @@ class TSA {
 	private function getAttributeValuesSetAfterOID(array $tree, string $oid): ?array {
 		$seen = false;
 		foreach ($this->walkAsn1Tree($tree) as $n) {
-			if (($n['type'] ?? null) === ASN1::TYPE_OBJECT_IDENTIFIER && ($n['content'] ?? null) === $oid) {
+			if (($n['type'] ?? null) === ASN1::TYPE_OBJECT_IDENTIFIER && $this->matchesOid($this->getNodeContent($n), $oid)) {
 				$seen = true;
 				continue;
 			}
-			if ($seen && ($n['type'] ?? null) === ASN1::TYPE_SET && isset($n['content']) && is_array($n['content'])) {
-				return $n['content'];
+			if ($seen && ($n['type'] ?? null) === ASN1::TYPE_SET) {
+				if (is_array($n['content'] ?? null)) {
+					return $n['content'];
+				}
+				if (($n['content'] ?? null) instanceof Constructed) {
+					return $this->decodeConstructedChildren($n['content']);
+				}
 			}
 		}
 		return null;
@@ -346,19 +387,24 @@ class TSA {
 		$seen = false;
 		foreach ($this->walkAsn1Tree($tree) as $n) {
 			if (($n['type'] ?? null) === ASN1::TYPE_OBJECT_IDENTIFIER
-				&& ($n['content'] ?? null) === $oid
+				&& $this->matchesOid($this->getNodeContent($n), $oid)
 			) {
 				$seen = true;
 				continue;
 			}
 			if ($seen
 				&& ($n['type'] ?? null) === $expectedType
-				&& is_string($n['content'] ?? null)
+				&& is_string($this->getNodeContent($n))
 			) {
-				return $n['content'];
+				return $this->getNodeContent($n);
 			}
 		}
 		return null;
+	}
+
+	private function matchesOid(mixed $candidate, string $expected): bool {
+		return is_string($candidate)
+			&& ASN1::getOIDFromName($candidate) === ASN1::getOIDFromName($expected);
 	}
 
 	private function extractCertificateHints(array $asn1Tree): array {
@@ -366,18 +412,19 @@ class TSA {
 		$currentAttributeOid = null;
 
 		foreach ($this->walkAsn1Tree($asn1Tree) as $node) {
+			$nodeContent = $this->getNodeContent($node);
+			$nodeOid = is_string($nodeContent) ? ASN1::getOIDFromName($nodeContent) : null;
 			if (($node['type'] ?? null) === ASN1::TYPE_OBJECT_IDENTIFIER
-				&& isset($node['content'], self::CERTIFICATE_ATTRIBUTE_OIDS[$node['content']])) {
-				$currentAttributeOid = $node['content'];
+				&& $nodeOid !== null && isset(self::CERTIFICATE_ATTRIBUTE_OIDS[$nodeOid])) {
+				$currentAttributeOid = $nodeOid;
 				continue;
 			}
 
 			if ($currentAttributeOid !== null
-				&& isset($node['content'])
-				&& is_string($node['content'])
-				&& $this->isStringValidUtf8($node['content'])
+				&& is_string($nodeContent)
+				&& $this->isStringValidUtf8($nodeContent)
 			) {
-				$certificateHints[self::CERTIFICATE_ATTRIBUTE_OIDS[$currentAttributeOid]] = $node['content'];
+				$certificateHints[self::CERTIFICATE_ATTRIBUTE_OIDS[$currentAttributeOid]] = $nodeContent;
 				$currentAttributeOid = null;
 			}
 		}
@@ -468,7 +515,7 @@ class TSA {
 			return null;
 		}
 
-		$resolved = ASN1::getOID($policyOid);
+		$resolved = ASN1::getNameFromOID($policyOid);
 		if ($resolved && $resolved !== $policyOid) {
 			return $resolved;
 		}
@@ -492,6 +539,9 @@ class TSA {
 		}
 
 		$decodedResult = ASN1::decodeBER($asn1Data);
+		if (isset($decodedResult['type'])) {
+			$decodedResult = [$decodedResult];
+		}
 		if ($decodedResult === null) {
 			$decodedResult = [];
 		}
@@ -504,6 +554,15 @@ class TSA {
 		return $decodedResult;
 	}
 
+	private function getNodeContent(array $node): mixed {
+		$content = $node['content'] ?? null;
+		if (!$content instanceof BaseType) {
+			return $content;
+		}
+
+		return ASN1::convertToPrimitive($content);
+	}
+
 	public static function clearCache(): void {
 		self::$asn1DecodingCache = [];
 	}
@@ -513,13 +572,44 @@ class TSA {
 
 		while (!empty($processingStack)) {
 			$currentNode = array_shift($processingStack);
+			if (!is_array($currentNode)) {
+				continue;
+			}
 			yield $currentNode;
 
 			foreach (['content', 'children'] as $childrenKey) {
 				if (isset($currentNode[$childrenKey]) && is_array($currentNode[$childrenKey])) {
 					array_unshift($processingStack, ...$currentNode[$childrenKey]);
+				} elseif ($childrenKey === 'content' && ($currentNode[$childrenKey] ?? null) instanceof Constructed) {
+					array_unshift($processingStack, ...$this->decodeConstructedChildren($currentNode[$childrenKey]));
 				}
 			}
 		}
+	}
+
+	/** @return list<array> */
+	private function decodeConstructedChildren(Constructed $node): array {
+		$encoded = $node->getEncodedWithoutHeader();
+		$children = [];
+		$offset = 0;
+
+		while ($offset < strlen($encoded)) {
+			try {
+				$child = ASN1::decodeBER(substr($encoded, $offset));
+			} catch (\Throwable) {
+				break;
+			}
+
+			$headerLength = $child['headerlength'] ?? null;
+			$length = $child['length'] ?? null;
+			if (!is_int($headerLength) || !is_int($length)) {
+				break;
+			}
+
+			$children[] = $child;
+			$offset += $headerLength + $length;
+		}
+
+		return $children;
 	}
 }

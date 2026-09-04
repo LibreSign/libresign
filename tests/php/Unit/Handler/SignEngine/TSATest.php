@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
 
 use OCA\Libresign\Handler\SignEngine\TSA;
-use OCA\Libresign\Vendor\phpseclib3\File\ASN1;
+use OCA\Libresign\Vendor\phpseclib4\File\ASN1;
 use PHPUnit\Framework\TestCase;
 
 class TSATest extends TestCase {
@@ -22,8 +22,8 @@ class TSATest extends TestCase {
 	public function testConstructorLoadsOIDs(): void {
 		$tsa = new TSA();
 
-		$this->assertEquals('2.16.840.1.101.3.4.2.1', ASN1::getOID('id-sha256'));
-		$this->assertEquals('1.3.14.3.2.26', ASN1::getOID('id-sha1'));
+		$this->assertEquals('2.16.840.1.101.3.4.2.1', ASN1::getOIDFromName('id-sha256'));
+		$this->assertEquals('1.3.14.3.2.26', ASN1::getOIDFromName('id-sha1'));
 	}
 
 	public function testExtractWithEmptyArray(): void {
@@ -71,6 +71,36 @@ class TSATest extends TestCase {
 		$this->assertArrayHasKey('displayName', $result);
 	}
 
+	public function testExtractNormalizesNamedTsaPolicyToNumericOid(): void {
+		ASN1::loadOIDs(['testTsaPolicy' => '1.2.3.4.1']);
+		$tstInfo = ASN1::encodeDER([
+			'version' => 1,
+			'policy' => '1.2.3.4.1',
+			'messageImprint' => [
+				'hashAlgorithm' => ['algorithm' => 'id-sha256'],
+				'hashedMessage' => str_repeat("\x00", 32),
+			],
+			'serialNumber' => 1,
+			'genTime' => '2026-09-03 20:00:00',
+		], $this->getTstInfoMap());
+
+		$timestampToken = ASN1::encodeDER([
+			'contentType' => 'id-ct-TSTInfo',
+			'content' => $tstInfo,
+		], [
+			'type' => ASN1::TYPE_SEQUENCE,
+			'children' => [
+				'contentType' => ['type' => ASN1::TYPE_OBJECT_IDENTIFIER],
+				'content' => ['type' => ASN1::TYPE_OCTET_STRING],
+			],
+		]);
+
+		$result = $this->tsa->extract(ASN1::decodeBER($timestampToken));
+
+		$this->assertSame('1.2.3.4.1', $result['policy']);
+		$this->assertSame('1', $result['serialNumber']);
+	}
+
 	public function testExtractWithMalformedData(): void {
 		$malformedData = [
 			[
@@ -93,6 +123,7 @@ class TSATest extends TestCase {
 		$this->assertIsArray($result);
 		$this->assertArrayHasKey('displayName', $result);
 		$this->assertIsString($result['displayName']);
+		$this->assertSame('Test CA', $result['cnHints']['commonName']);
 	}
 
 	private function createMockTstInfo(): array {
@@ -118,6 +149,30 @@ class TSATest extends TestCase {
 		];
 	}
 
+	private function getTstInfoMap(): array {
+		return [
+			'type' => ASN1::TYPE_SEQUENCE,
+			'children' => [
+				'version' => ['type' => ASN1::TYPE_INTEGER],
+				'policy' => ['type' => ASN1::TYPE_OBJECT_IDENTIFIER],
+				'messageImprint' => [
+					'type' => ASN1::TYPE_SEQUENCE,
+					'children' => [
+						'hashAlgorithm' => [
+							'type' => ASN1::TYPE_SEQUENCE,
+							'children' => [
+								'algorithm' => ['type' => ASN1::TYPE_OBJECT_IDENTIFIER],
+							],
+						],
+						'hashedMessage' => ['type' => ASN1::TYPE_OCTET_STRING],
+					],
+				],
+				'serialNumber' => ['type' => ASN1::TYPE_INTEGER],
+				'genTime' => ['type' => ASN1::TYPE_GENERALIZED_TIME],
+			],
+		];
+	}
+
 	private function createMockStructureWithCommonName(): array {
 		return [
 			[
@@ -125,7 +180,7 @@ class TSATest extends TestCase {
 				'content' => [
 					[
 						'type' => ASN1::TYPE_OBJECT_IDENTIFIER,
-						'content' => '2.5.4.3' // commonName OID
+						'content' => 'id-at-commonName',
 					],
 					[
 						'type' => ASN1::TYPE_UTF8_STRING,
@@ -186,5 +241,7 @@ class TSATest extends TestCase {
 		$this->assertIsArray($result);
 		$this->assertArrayHasKey('cnHints', $result);
 		$this->assertIsArray($result['cnHints']);
+		$this->assertSame('US', $result['cnHints']['countryName']);
+		$this->assertSame('Test Organization', $result['cnHints']['organizationName']);
 	}
 }
