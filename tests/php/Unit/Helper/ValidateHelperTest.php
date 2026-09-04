@@ -32,6 +32,7 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
+use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicyService;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -64,6 +65,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private RequestSignAuthorizationService&MockObject $requestSignAuthorizationService;
 	private RuntimeRequirementValidator&MockObject $runtimeRequirementValidator;
 	private PolicyService&MockObject $policyService;
+	private ObserverProfilePolicyService $observerProfilePolicyService;
 
 	#[\Override]
 	public function setUp(): void {
@@ -91,6 +93,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$resolvedPolicy = (new ResolvedPolicy())
 			->setEffectiveValue(true);
 		$this->policyService->method('resolve')->with(ObserverProfilePolicy::KEY)->willReturn($resolvedPolicy);
+		$this->observerProfilePolicyService = new ObserverProfilePolicyService($this->policyService);
 	}
 
 	private function getValidateHelper(): ValidateHelper {
@@ -112,7 +115,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->docMdpValidator,
 			$this->requestSignAuthorizationService,
 			$this->runtimeRequirementValidator,
-			$this->policyService,
+			$this->observerProfilePolicyService,
 		);
 		return $validateHelper;
 	}
@@ -359,6 +362,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->setEffectiveValue(false);
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->policyService->method('resolve')->with(ObserverProfilePolicy::KEY)->willReturn($resolvedPolicy);
+		$this->observerProfilePolicyService = new ObserverProfilePolicyService($this->policyService);
 
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('Observer participants are not enabled');
@@ -374,6 +378,46 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 			],
 		]);
+	}
+
+	public function testValidateIdentifySignersUsesObserverPolicySnapshotForExistingRequest(): void {
+		$signatureMethod = $this->createMock(ISignatureMethod::class);
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
+		$identifyMethod->method('validateToRequest');
+		$this->identifyMethodService
+			->method('getInstanceOfIdentifyMethod')
+			->willReturn($identifyMethod);
+
+		$file = $this->createLibresignFile();
+		$file->setMetadata([
+			'policy_snapshot' => [
+				ObserverProfilePolicy::KEY => [
+					'effectiveValue' => true,
+					'sourceScope' => 'system',
+				],
+			],
+		]);
+		$this->fileMapper
+			->method('getByUuid')
+			->with('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee')
+			->willReturn($file);
+		$this->policyService->expects($this->never())->method('resolve');
+
+		$this->getValidateHelper()->validateIdentifySigners([
+			'uuid' => 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+			'status' => FileStatus::DRAFT->value,
+			'signers' => [
+				[
+					'participantRole' => 'observer',
+					'identifyMethods' => [
+						['method' => 'email', 'value' => 'witness@example.com'],
+					],
+				],
+			],
+		]);
+
+		$this->addToAssertionCount(1);
 	}
 
 	public function testValidateFileWithoutAllNecessaryData():void {

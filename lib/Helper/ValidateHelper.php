@@ -29,8 +29,7 @@ use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\RuntimeRequirementValidator;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
+use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicyService;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -74,7 +73,7 @@ class ValidateHelper {
 		private DocMdpValidator $docMdpValidator,
 		private RequestSignAuthorizationService $requestSignAuthorizationService,
 		private RuntimeRequirementValidator $runtimeRequirementValidator,
-		private PolicyService $policyService,
+		private ObserverProfilePolicyService $observerProfilePolicyService,
 	) {
 	}
 
@@ -616,7 +615,7 @@ class ValidateHelper {
 		$this->validateDocMdpPdfRestrictions($data);
 
 		foreach ($data['signers'] as $signer) {
-			$this->validateSignerData($signer);
+			$this->validateSignerData($signer, $data);
 		}
 	}
 
@@ -651,7 +650,7 @@ class ValidateHelper {
 		}
 	}
 
-	private function validateSignerData(mixed $signer): void {
+	private function validateSignerData(mixed $signer, array $data): void {
 		if (!is_array($signer) || empty($signer)) {
 			// TRANSLATORS Validation error when a signature request is submitted without any signers.
 			throw new LibresignException($this->l10n->t('No signers'));
@@ -659,10 +658,10 @@ class ValidateHelper {
 
 		$this->validateSignerDisplayName($signer);
 		$this->validateSignerIdentifyMethods($signer);
-		$this->validateParticipantRole($signer);
+		$this->validateParticipantRole($signer, $data);
 	}
 
-	private function validateParticipantRole(array $signer): void {
+	private function validateParticipantRole(array $signer, array $data): void {
 		$roleValue = $signer['participantRole'] ?? ParticipantRole::SIGNER->value;
 		if (!is_string($roleValue)) {
 			throw new LibresignException('Invalid participant role');
@@ -675,10 +674,23 @@ class ValidateHelper {
 		}
 
 		if ($role === ParticipantRole::OBSERVER
-			&& !$this->policyService->resolve(ObserverProfilePolicy::KEY)->getEffectiveValueAsBool(false)
+			&& !$this->observerProfilePolicyService->isEnabled($this->getExistingRequestFile($data))
 		) {
 			// TRANSLATORS Validation error when observer participants are submitted while the feature is disabled by policy.
 			throw new LibresignException($this->l10n->t('Observer participants are not enabled'));
+		}
+	}
+
+	private function getExistingRequestFile(array $data): ?File {
+		$uuid = $data['uuid'] ?? null;
+		if (!is_string($uuid) || $uuid === '') {
+			return null;
+		}
+
+		try {
+			return $this->fileMapper->getByUuid($uuid);
+		} catch (DoesNotExistException) {
+			return null;
 		}
 	}
 
