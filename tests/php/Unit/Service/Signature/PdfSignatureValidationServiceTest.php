@@ -87,7 +87,7 @@ final class PdfSignatureValidationServiceTest extends TestCase {
 		);
 
 		$this->assertSame(
-			'PDF content hash does not match signed digest',
+			'The document content does not match the signed content',
 			$result['reason'],
 		);
 	}
