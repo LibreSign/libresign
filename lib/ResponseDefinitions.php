@@ -223,6 +223,7 @@ namespace OCA\Libresign;
  *     sign_request_uuid?: string,
  *     hash_algorithm?: string,
  *     covers_entire_document?: bool,
+ *     document_modification_state?: 'unchanged'|'unsigned_content'|'trailing_data'|'invalid_byte_range'|'invalid_eof_boundary',
  *     me: bool,
  *     signingOrder?: non-negative-int,
  *     visibleElements: LibresignVisibleElement[],
