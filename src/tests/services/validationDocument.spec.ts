@@ -143,6 +143,110 @@ describe('validationDocument', () => {
 		expect(normalized?.files[0]).not.toHaveProperty('file')
 	})
 
+	it('accepts unsigned external PDF without LibreSign-only metadata', () => {
+		const payload = createValidationPayload({
+			id: 0,
+			uuid: '',
+			status: FILE_STATUS.NOT_LIBRESIGN_FILE,
+			statusText: '',
+			nodeId: 0,
+			metadata: [],
+			files: [{
+				id: 0,
+				uuid: '',
+				name: 'unsigned-external.pdf',
+				status: FILE_STATUS.NOT_LIBRESIGN_FILE,
+				statusText: '',
+				nodeId: 0,
+				totalPages: 1,
+				size: 12345,
+				pdfVersion: '1.7',
+				signers: [],
+				metadata: [],
+			}],
+			size: 12345,
+			created_at: '',
+			requested_by: { userId: '', displayName: '' },
+			signers: [],
+		})
+
+		delete payload.docmdpLevel
+		delete payload.totalPages
+		delete payload.pdfVersion
+
+		const normalized = toValidationDocument(payload)
+
+		expect(normalized).not.toBeNull()
+		expect(normalized?.status).toBe(FILE_STATUS.NOT_LIBRESIGN_FILE)
+		expect(normalized?.docmdpLevel).toBe(0)
+		expect(normalized?.totalPages).toBe(1)
+		expect(normalized?.pdfVersion).toBe('1.7')
+		expect(normalized?.signers).toEqual([])
+	})
+	it('accepts external modified PDF payload without LibreSign-only metadata', () => {
+		const payload = createValidationPayload({
+			id: 0,
+			uuid: '',
+			status: FILE_STATUS.NOT_LIBRESIGN_FILE,
+			statusText: '',
+			nodeId: 0,
+			metadata: [],
+			files: [{
+				id: 0,
+				uuid: '',
+				name: 'external-modified.pdf',
+				status: FILE_STATUS.NOT_LIBRESIGN_FILE,
+				statusText: '',
+				nodeId: 0,
+				totalPages: 0,
+				size: 280163,
+				pdfVersion: '',
+				signers: [],
+				metadata: [],
+			}],
+			size: 280163,
+			created_at: '',
+			requested_by: { userId: '', displayName: '' },
+			signers: [{
+				displayName: 'admin',
+				status: SIGN_REQUEST_STATUS.SIGNED,
+				statusText: 'Signed',
+				signed: '2026-09-03T13:15:24+00:00',
+				signature_validation: {
+					id: 1,
+					label: 'Signature is valid.',
+				},
+				certificate_validation: {
+					id: 2,
+					label: "Certificate issuer isn't trusted.",
+				},
+				document_modification_state: 'trailing_data',
+				modification_validation: {
+					valid: true,
+					status: MODIFICATION_ALLOWED,
+				},
+				chain: [{
+					subject: { CN: 'admin' },
+					document_modification_state: 'trailing_data',
+				}],
+			}],
+		})
+
+		delete payload.docmdpLevel
+		delete payload.totalPages
+		delete payload.pdfVersion
+
+		const normalized = toValidationDocument(payload)
+
+		expect(normalized).not.toBeNull()
+		expect(normalized?.docmdpLevel).toBe(0)
+		expect(normalized?.totalPages).toBe(0)
+		expect(normalized?.pdfVersion).toBe('')
+		expect(normalized?.signers).toHaveLength(1)
+		expect(normalized?.signers[0]?.displayName).toBe('admin')
+		expect(normalized?.signers[0]?.document_modification_state).toBe('trailing_data')
+		expect(normalized?.signers[0]?.signature_validation?.id).toBe(1)
+	})
 	it('accepts certificate signers from an external signed PDF', () => {
 		const payload = createValidationPayload({
 			id: 0,
