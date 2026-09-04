@@ -21,6 +21,11 @@ type ValidationVm = {
 	getUUID: boolean
 	validationErrorMessage: string | null
 	documentValidMessage: string | null
+	documentValidType: 'success' | 'warning' | 'error' | 'info'
+	getDocumentValidationSummary: (document: Record<string, any>) => {
+		message: string
+		type: 'success' | 'warning' | 'error' | 'info'
+	}
 	isAsyncSigning: boolean
 	shouldFireAsyncConfetti: boolean
 	isActiveView: boolean
@@ -1148,6 +1153,55 @@ describe('Validation.vue - Business Logic', () => {
 		})
 	})
 
+	describe('document validation summary', () => {
+		it('shows info when there are no digital signatures', () => {
+			expect(wrapper.vm.getDocumentValidationSummary({ signers: [], files: [] })).toEqual({
+				message: 'No digital signatures were found in this document',
+				type: 'info',
+			})
+		})
+
+		it('shows warning when the document changed after signing', () => {
+			expect(wrapper.vm.getDocumentValidationSummary({
+				signers: [{
+					signature_validation: { id: 1 },
+					document_modification_state: 'trailing_data',
+					modification_validation: { valid: true, status: 2 },
+				}],
+				files: [],
+			})).toEqual({
+				message: 'The document was modified after signing',
+				type: 'warning',
+			})
+		})
+
+		it('shows error when changes invalidate the certification', () => {
+			expect(wrapper.vm.getDocumentValidationSummary({
+				signers: [{
+					signature_validation: { id: 1 },
+					document_modification_state: 'trailing_data',
+					modification_validation: { valid: false, status: 3 },
+				}],
+				files: [],
+			})).toEqual({
+				message: 'The document contains changes that invalidate its certification',
+				type: 'error',
+			})
+		})
+
+		it('shows success for an unchanged valid signature', () => {
+			expect(wrapper.vm.getDocumentValidationSummary({
+				signers: [{
+					signature_validation: { id: 1 },
+					document_modification_state: 'unchanged',
+				}],
+				files: [],
+			})).toEqual({
+				message: 'This document is valid',
+				type: 'success',
+			})
+		})
+	})
 	describe('status contract guards', () => {
 		const createLoadedValidationDocument = (patch: Record<string, unknown> = {}) => ({
 			id: 100,
