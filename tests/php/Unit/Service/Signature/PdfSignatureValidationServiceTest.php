@@ -102,6 +102,36 @@ final class PdfSignatureValidationServiceTest extends TestCase {
 		$this->assertSame('custom runtime detail', $result['reason']);
 	}
 
+	public function testValidateFromStringPreservesAllValidationResults(): void {
+		$pdfContent = file_get_contents(
+			__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf'
+		);
+		$this->assertIsString($pdfContent);
+
+		$service = new class($this->appConfig, $this->l10n, $this->logger) extends PdfSignatureValidationService {
+			protected function validateNativeFromString(string $pdfContent): array {
+				$results = parent::validateNativeFromString($pdfContent);
+				$this->assertNativeResultAvailable($results);
+
+				return [$results[0], $results[0]];
+			}
+
+			private function assertNativeResultAvailable(array $results): void {
+				if ($results === []) {
+					throw new \RuntimeException('Expected signed PDF fixture.');
+				}
+			}
+		};
+
+		$result = $service->validateFromString($pdfContent);
+
+		$this->assertCount(2, $result);
+		$this->assertSame(
+			$result[0]['signature'],
+			$result[1]['signature'],
+		);
+	}
+
 	public function testValidateFromStringReturnsEmptyListForUnsignedPdfException(): void {
 		$this->logger->expects($this->never())->method('warning');
 
