@@ -350,6 +350,71 @@ describe('Validation.vue - Business Logic', () => {
 		})
 	})
 
+	describe('document validation summary', () => {
+		it('shows info when no digital signatures are present', () => {
+			expect(wrapper.vm.getDocumentValidationSummary({
+				signers: [],
+				files: [],
+			})).toEqual({
+				message: 'No digital signatures were found in this document',
+				type: 'info',
+			})
+		})
+
+		it('shows warning when the document was modified after signing', () => {
+			expect(wrapper.vm.getDocumentValidationSummary({
+				signers: [{
+					signature_validation: { id: 1 },
+					document_modification_state: 'trailing_data',
+					modification_validation: { valid: true, status: 2 },
+				}],
+				files: [],
+			})).toEqual({
+				message: 'The document was modified after signing',
+				type: 'warning',
+			})
+		})
+
+		it('shows error when changes violate document certification', () => {
+			expect(wrapper.vm.getDocumentValidationSummary({
+				signers: [{
+					signature_validation: { id: 1 },
+					document_modification_state: 'trailing_data',
+					modification_validation: { valid: false, status: 3 },
+				}],
+				files: [],
+			})).toEqual({
+				message: 'The document contains changes that invalidate its certification',
+				type: 'error',
+			})
+		})
+
+		it('shows error when a digital signature is invalid', () => {
+			expect(wrapper.vm.getDocumentValidationSummary({
+				signers: [{
+					signature_validation: { id: 3 },
+					document_modification_state: 'unchanged',
+				}],
+				files: [],
+			})).toEqual({
+				message: 'One or more digital signatures are invalid',
+				type: 'error',
+			})
+		})
+
+		it('shows success when the signed document is unchanged', () => {
+			expect(wrapper.vm.getDocumentValidationSummary({
+				signers: [{
+					signature_validation: { id: 1 },
+					document_modification_state: 'unchanged',
+				}],
+				files: [],
+			})).toEqual({
+				message: 'This document is valid',
+				type: 'success',
+			})
+		})
+	})
 	describe('getValidityStatus method', () => {
 		it('returns unknown when valid_to is missing', () => {
 			const signer = {}
