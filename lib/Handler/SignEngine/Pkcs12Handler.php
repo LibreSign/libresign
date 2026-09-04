@@ -209,16 +209,19 @@ class Pkcs12Handler extends SignEngineHandler {
 			'genTime' => $timestamp->generatedAt,
 			'policy' => $timestamp->policyOid,
 			'serialNumber' => $timestamp->serialNumber,
+			'cnHints' => $timestamp->certificateSubject,
 		];
 
-		$commonName = $timestamp->certificateSubject['CN'] ?? null;
+		$commonName = $timestamp->certificateSubject['commonName'] ?? null;
 		if (is_string($commonName) && $commonName !== '') {
 			$result['tsaName'] = $commonName;
 		}
 
 		return array_filter(
 			$result,
-			static fn (mixed $value): bool => $value !== null && $value !== '',
+			static fn (mixed $value): bool => $value !== null
+				&& $value !== ''
+				&& $value !== [],
 		);
 	}
 
