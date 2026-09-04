@@ -217,7 +217,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 			}
 
 			expect(wrapper.vm.hasValidationIssues(signer)).toBe(false)
-			expect(wrapper.vm.getSignerValidationClass(signer)).toBe('icon-success')
+			expect(wrapper.vm.getSignerValidationClass(signer)).toBe('validation-icon--success')
 		})
 
 		it('shows warning for a valid signature with trailing data', () => {
@@ -228,7 +228,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 				modification_validation: { status: 2, valid: true },
 			}
 
-			expect(wrapper.vm.getSignerValidationClass(signer)).toBe('icon-warning')
+			expect(wrapper.vm.getSignerValidationClass(signer)).toBe('validation-icon--warning')
 		})
 
 		it('shows error when DocMDP certification is violated', () => {
@@ -239,7 +239,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 				modification_validation: { status: 3, valid: false },
 			}
 
-			expect(wrapper.vm.getSignerValidationClass(signer)).toBe('icon-error')
+			expect(wrapper.vm.getSignerValidationClass(signer)).toBe('validation-icon--error')
 		})
 
 		it('shows success when all validations pass', () => {
@@ -250,7 +250,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 				modification_validation: { status: 1, valid: true },
 			}
 
-			expect(wrapper.vm.getSignerValidationClass(signer)).toBe('icon-success')
+			expect(wrapper.vm.getSignerValidationClass(signer)).toBe('validation-icon--success')
 		})
 	})
 	describe('document modification presentation', () => {
@@ -261,7 +261,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 			}
 
 			expect(wrapper.vm.hasDocumentModificationWarning(signer)).toBe(false)
-			expect(wrapper.vm.getModificationStatusClass(signer)).toBe('icon-success')
+			expect(wrapper.vm.getModificationStatusClass(signer)).toBe('validation-icon--success')
 		})
 
 		it('shows allowed modification as warning instead of success', () => {
@@ -274,7 +274,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 			expect(wrapper.vm.getDocumentModificationMessage(signer)).toBe(
 				'Unexpected data was found after the final PDF end marker',
 			)
-			expect(wrapper.vm.getModificationStatusClass(signer)).toBe('icon-warning')
+			expect(wrapper.vm.getModificationStatusClass(signer)).toBe('validation-icon--warning')
 		})
 
 		it('shows forbidden modification as error', () => {
@@ -284,7 +284,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 			}
 
 			expect(wrapper.vm.hasDocumentModificationWarning(signer)).toBe(true)
-			expect(wrapper.vm.getModificationStatusClass(signer)).toBe('icon-error')
+			expect(wrapper.vm.getModificationStatusClass(signer)).toBe('validation-icon--error')
 		})
 	})
 	describe('getValidityStatus method', () => {
@@ -409,7 +409,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 				crl_revoked_at: '2024-05-01T00:00:00Z',
 				signed: '2024-06-01T00:00:00Z',
 			}
-			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('icon-error')
+			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('validation-icon--error')
 		})
 
 		it('returns icon-success when revoked after signing', () => {
@@ -418,22 +418,22 @@ describe('SignerDetails.vue - Business Logic', () => {
 				crl_revoked_at: '2024-07-01T00:00:00Z',
 				signed: '2024-06-01T00:00:00Z',
 			}
-			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('icon-success')
+			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('validation-icon--success')
 		})
 
 		it('returns icon-success for valid CRL', () => {
 			const signer = { crl_validation: 'valid' }
-			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('icon-success')
+			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('validation-icon--success')
 		})
 
 		it('returns icon-warning for missing CRL', () => {
 			const signer = { crl_validation: 'missing' }
-			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('icon-warning')
+			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('validation-icon--warning')
 		})
 
 		it('returns icon-warning for unknown status', () => {
 			const signer = { crl_validation: 'unknown_status' }
-			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('icon-warning')
+			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('validation-icon--warning')
 		})
 	})
 
@@ -709,7 +709,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 			wrapper = createWrapper({ signer })
 			expect(wrapper.vm.isRevokedBeforeSigning(signer)).toBe(false)
 			expect(wrapper.vm.hasValidationIssues(signer)).toBe(false)
-			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('icon-success')
+			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('validation-icon--success')
 		})
 
 		it('correctly identifies signature with revoked certificate before signing', () => {
@@ -725,7 +725,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 			wrapper = createWrapper({ signer })
 			expect(wrapper.vm.isRevokedBeforeSigning(signer)).toBe(true)
 			expect(wrapper.vm.hasValidationIssues(signer)).toBe(true)
-			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('icon-error')
+			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('validation-icon--error')
 		})
 	})
 })
