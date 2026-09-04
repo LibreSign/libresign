@@ -75,7 +75,17 @@ class PdfSignatureValidationService {
 	 * Validate PDF signatures from file resource.
 	 *
 	 * @param resource $resource PDF file resource
-	 * @return list<array{signatureValidation: array, certificateValidation: array, raw: array{signature: ValidationResult, certificate: ValidationResult}}>
+	 * @return list<array{
+	 *     signature: ExtractedSignature,
+	 *     certificates: list<string>,
+	 *     timestamp: ?TimestampToken,
+	 *     signatureValidation: array,
+	 *     certificateValidation: array,
+	 *     raw: array{
+	 *         signature: ValidationResult,
+	 *         certificate: ValidationResult,
+	 *     },
+	 * }>
 	 */
 	public function validateFromResource($resource): array {
 		try {
@@ -91,7 +101,17 @@ class PdfSignatureValidationService {
 	 * Validate PDF signatures from binary content.
 	 *
 	 * @param string $pdfContent Binary PDF content
-	 * @return list<array{signatureValidation: array, certificateValidation: array, raw: array{signature: ValidationResult, certificate: ValidationResult}}>
+	 * @return list<array{
+	 *     signature: ExtractedSignature,
+	 *     certificates: list<string>,
+	 *     timestamp: ?TimestampToken,
+	 *     signatureValidation: array,
+	 *     certificateValidation: array,
+	 *     raw: array{
+	 *         signature: ValidationResult,
+	 *         certificate: ValidationResult,
+	 *     },
+	 * }>
 	 */
 	public function validateFromString(string $pdfContent): array {
 		try {
@@ -121,8 +141,24 @@ class PdfSignatureValidationService {
 	/**
 	 * Map validation results from PdfSignatureValidator to LibreSign format.
 	 *
-	 * @param list<array> $results Results from PdfSignatureValidator
-	 * @return list<array{signatureValidation: array, certificateValidation: array, raw: array{signature: ValidationResult, certificate: ValidationResult}}>
+	 * @param list<array{
+	 *     signature: ExtractedSignature,
+	 *     signatureValidation: ValidationResult,
+	 *     certificates: list<string>,
+	 *     certificateValidation: ValidationResult,
+	 *     timestamp: ?TimestampToken,
+	 * }> $results Results from PdfSignatureValidator
+	 * @return list<array{
+	 *     signature: ExtractedSignature,
+	 *     certificates: list<string>,
+	 *     timestamp: ?TimestampToken,
+	 *     signatureValidation: array,
+	 *     certificateValidation: array,
+	 *     raw: array{
+	 *         signature: ValidationResult,
+	 *         certificate: ValidationResult,
+	 *     },
+	 * }>
 	 */
 	private function mapValidationResults(array $results): array {
 		$mapped = [];
@@ -140,15 +176,10 @@ class PdfSignatureValidationService {
 				continue;
 			}
 
-			$certificates = $result['certificates'] ?? [];
-			if (!is_array($certificates)) {
-				$certificates = [];
-			}
-
 			$mapped[] = [
 				'signature' => $signature,
-				'certificates' => array_values($certificates),
-				'timestamp' => $result['timestamp'] ?? null,
+				'certificates' => $result['certificates'],
+				'timestamp' => $result['timestamp'],
 				'signatureValidation' => $this->mapSignatureValidation($sigValidation),
 				'certificateValidation' => $this->mapCertificateValidation($certValidation),
 				'raw' => [
