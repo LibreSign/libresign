@@ -402,6 +402,26 @@ describe('Validation.vue - Business Logic', () => {
 			})
 		})
 
+		it('does not treat a previous signature revision as a document modification', () => {
+			expect(wrapper.vm.getDocumentValidationSummary({
+				signers: [
+					{
+						signature_validation: { id: 1 },
+						modifications: { modified: true },
+					},
+					{
+						signature_validation: { id: 1 },
+						document_modification_state: 'unchanged',
+						modifications: { modified: true },
+					},
+				],
+				files: [],
+			})).toEqual({
+				message: 'This document is valid',
+				type: 'success',
+			})
+		})
+
 		it('shows success when the signed document is unchanged', () => {
 			expect(wrapper.vm.getDocumentValidationSummary({
 				signers: [{

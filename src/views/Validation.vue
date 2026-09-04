@@ -809,13 +809,21 @@ function getDocumentValidationSummary(validationDocument: ValidationDocumentStat
 		}
 	}
 
-	if (signers.some((signer) => {
-		const modifications = signer.modifications as { modified?: boolean } | undefined
-		return (
+	const hasDocumentModificationState = signers.some(
+		signer => signer.document_modification_state !== undefined,
+	)
+
+	const hasDocumentModificationWarning = hasDocumentModificationState
+		? signers.some(signer =>
 			signer.document_modification_state !== undefined
-			&& signer.document_modification_state !== 'unchanged'
-		) || modifications?.modified === true
-	})) {
+			&& signer.document_modification_state !== 'unchanged',
+		)
+		: signers.some((signer) => {
+			const modifications = signer.modifications as { modified?: boolean } | undefined
+			return modifications?.modified === true
+		})
+
+	if (hasDocumentModificationWarning) {
 		return {
 			message: t('libresign', 'The document was modified after signing'),
 			type: 'warning',
