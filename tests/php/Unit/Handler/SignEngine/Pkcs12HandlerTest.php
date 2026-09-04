@@ -20,6 +20,7 @@ use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Tests\Fixtures\PdfFixtureCatalog;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\TimestampToken;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IAppConfig;
@@ -504,6 +505,57 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNotEmpty($leaf['signature_type']);
 		$this->assertArrayHasKey('covers_entire_document', $leaf);
 		$this->assertIsBool($leaf['covers_entire_document']);
+	}
+
+	public function testGetCertificateChainMapsNativeTimestampData(): void {
+		$fixtureResource = fopen(
+			__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf',
+			'r',
+		);
+		$this->assertIsResource($fixtureResource);
+
+		$service = new PdfSignatureValidationService(
+			$this->appConfig,
+			$this->l10n,
+			$this->logger,
+		);
+		$this->nativeValidation = $service->validateFromResource($fixtureResource);
+		fclose($fixtureResource);
+
+		$this->assertNotEmpty($this->nativeValidation);
+
+		$generatedAt = new \DateTimeImmutable('2026-09-04T12:00:00+00:00');
+		$this->nativeValidation[0]['timestamp'] = new TimestampToken(
+			$generatedAt,
+			'1.2.3.4',
+			'123456',
+			[
+				'commonName' => 'LibreSign Local TSA',
+				'organizationName' => 'LibreCode',
+			],
+		);
+
+		$resource = fopen(
+			__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf',
+			'r',
+		);
+		$this->assertIsResource($resource);
+
+		$result = $this->getHandler()->getCertificateChain($resource);
+		fclose($resource);
+
+		$this->assertNotEmpty($result);
+		$this->assertArrayHasKey('timestamp', $result[0]);
+
+		$timestamp = $result[0]['timestamp'];
+		$this->assertSame($generatedAt, $timestamp['genTime']);
+		$this->assertSame('1.2.3.4', $timestamp['policy']);
+		$this->assertSame('123456', $timestamp['serialNumber']);
+		$this->assertSame('LibreSign Local TSA', $timestamp['tsaName']);
+		$this->assertSame([
+			'commonName' => 'LibreSign Local TSA',
+			'organizationName' => 'LibreCode',
+		], $timestamp['cnHints']);
 	}
 
 	public function testGetCertificateChainUsesNativeValidationServiceForEachSignature(): void {
