@@ -547,9 +547,22 @@ describe('SignerDetails.vue - Business Logic', () => {
 		})
 	})
 
-	describe('getSignatureCoverageMessage method', () => {
-		it('reports bytes outside the signed ByteRange', () => {
-			expect(wrapper.vm.getSignatureCoverageMessage()).toBe('The signature does not cover the entire document')
+	describe('document modification messages', () => {
+		it.each([
+			['unsigned_content', 'The document contains unsigned content after the latest signature'],
+			['trailing_data', 'Unexpected data was found after the final PDF end marker'],
+			['invalid_byte_range', 'The signature ByteRange is invalid'],
+			['invalid_eof_boundary', 'The signed content does not end at a valid PDF end marker'],
+		])('maps %s to the expected warning', (state, expected) => {
+			expect(wrapper.vm.getDocumentModificationMessage({
+				document_modification_state: state,
+			})).toBe(expected)
+		})
+
+		it('does not warn when the document is unchanged', () => {
+			expect(wrapper.vm.hasDocumentModificationWarning({
+				document_modification_state: 'unchanged',
+			})).toBe(false)
 		})
 	})
 
