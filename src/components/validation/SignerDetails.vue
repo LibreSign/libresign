@@ -257,21 +257,7 @@ import { computed, ref } from 'vue'
 import CertificateChain from './CertificateChain.vue'
 import SignerTimestamp from './SignerTimestamp.vue'
 
-import {
-	mdiAlertCircle,
-	mdiAlertCircleOutline,
-	mdiCancel,
-	mdiCheckCircle,
-	mdiCloseCircle,
-	mdiHelpCircle,
-	mdiInformationOutline,
-	mdiKey,
-	mdiShieldAlert,
-	mdiShieldCheck,
-	mdiShieldOff,
-	mdiUnfoldLessHorizontal,
-	mdiUnfoldMoreHorizontal,
-} from '@mdi/js'
+import { mdiAlertCircleOutline, mdiHelpCircle, mdiInformationOutline, mdiKey, mdiShieldAlert, mdiShieldCheck, mdiShieldOff, mdiUnfoldLessHorizontal, mdiUnfoldMoreHorizontal, mdiCheck, mdiAlert, mdiClose } from '@mdi/js'
 
 
 type ValidationState = {
@@ -433,14 +419,14 @@ function getIconValidityPath(signer: SignerModel) {
 	}
 	if (signer.modification_validation?.status === MODIFICATION_VIOLATION
 		|| isRevokedBeforeSigning(signer)) {
-		return mdiCloseCircle
+		return mdiClose
 	}
 	if (hasDocumentModificationWarning(signer)
 		|| (signer.certificate_validation !== undefined
 			&& signer.certificate_validation.id !== 1)) {
-		return mdiAlertCircle
+		return mdiAlert
 	}
-	return mdiCheckCircle
+	return mdiCheck
 }
 
 function getSignerValidationClass(signer: SignerModel) {
@@ -592,12 +578,12 @@ function getModificationStatusIcon(signer: SignerModel) {
 
 	const status = signer.modification_validation.status
 	if (status === MODIFICATION_UNMODIFIED) {
-		return mdiCheckCircle
+		return mdiCheck
 	}
 	if (status === MODIFICATION_ALLOWED) {
-		return mdiAlertCircle
+		return mdiAlert
 	}
-	return mdiCancel
+	return mdiClose
 }
 
 function getModificationStatusClass(signer: SignerModel) {
@@ -696,12 +682,39 @@ defineExpose({
 	line-height: 1.4;
 }
 .signer-validation-icon {
-	display: flex;
+	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	width: 44px;
+	min-width: 44px;
 	height: 44px;
+	min-height: 44px;
 	flex: 0 0 44px;
+	border-radius: 50%;
+	box-sizing: border-box;
+	background-color: transparent;
+	color: inherit;
+}
+
+.signer-validation-icon :deep(.material-design-icon),
+.signer-validation-icon :deep(svg) {
+	color: inherit !important;
+	fill: currentColor !important;
+}
+
+.icon-success.signer-validation-icon {
+	background-color: rgba(var(--color-success-rgb), 0.18);
+	color: var(--color-success);
+}
+
+.icon-warning.signer-validation-icon {
+	background-color: rgba(var(--color-warning-rgb), 0.18);
+	color: var(--color-warning);
+}
+
+.icon-error.signer-validation-icon {
+	background-color: rgba(var(--color-error-rgb), 0.16);
+	color: var(--color-error);
 }
 
 .icon-success {
