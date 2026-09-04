@@ -22,7 +22,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Validate PDF signatures using the pdf-signature-validator package.
  *
- * @psalm-import-type NativePdfValidationResult from PdfSignatureValidationDefinitions
+ * @psalm-import-type PdfSignatureValidationResult from \OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureValidator
  * @psalm-import-type MappedPdfValidationResult from PdfSignatureValidationDefinitions
  */
 class PdfSignatureValidationService {
@@ -104,14 +104,14 @@ class PdfSignatureValidationService {
 
 	/**
 	 * @param resource $resource
-	 * @return list<NativePdfValidationResult>
+	 * @return list<PdfSignatureValidationResult>
 	 */
 	protected function validateNativeFromResource($resource): array {
 		return $this->validator->validateFromResource($resource);
 	}
 
 	/**
-	 * @return list<NativePdfValidationResult>
+	 * @return list<PdfSignatureValidationResult>
 	 */
 	protected function validateNativeFromString(string $pdfContent): array {
 		return $this->validator->validateFromString($pdfContent);
@@ -120,7 +120,7 @@ class PdfSignatureValidationService {
 	/**
 	 * Map validation results from PdfSignatureValidator to LibreSign format.
 	 *
-	 * @param list<NativePdfValidationResult> $results Results from PdfSignatureValidator
+	 * @param list<PdfSignatureValidationResult> $results Results from PdfSignatureValidator
 	 * @return list<MappedPdfValidationResult>
 	 */
 	private function mapValidationResults(array $results): array {
@@ -265,6 +265,18 @@ class PdfSignatureValidationService {
 				ValidationReason::SIGNATURE_CERTIFICATE_MISMATCH => (
 					// TRANSLATORS PDF digital signature validation. LibreSign verified the signature bytes against the signer's X.509 certificate, but the cryptographic verification failed. The certificate and the digital signature do not match as expected.
 					$this->l10n->t('The signature could not be verified with its certificate')
+				),
+				ValidationReason::INVALID_BYTE_RANGE => (
+					// TRANSLATORS PDF digital signature validation. ByteRange defines the exact PDF bytes protected by the cryptographic signature. LibreSign detected an invalid ByteRange layout, so the signature structure cannot be trusted. Keep "ByteRange" only in this translator note; the user-facing text should stay simple.
+					$this->l10n->t('The PDF signature structure is invalid')
+				),
+				ValidationReason::INVALID_EOF_BOUNDARY => (
+					// TRANSLATORS PDF digital signature validation. A signed PDF revision is expected to end at a valid %%EOF boundary. LibreSign detected that the signed revision does not end at that boundary, so the signature structure cannot be trusted.
+					$this->l10n->t('The signed PDF revision has an invalid structure')
+				),
+				ValidationReason::UNSUPPORTED_SUBFILTER => (
+					// TRANSLATORS PDF digital signature validation. SubFilter identifies the PDF signature encoding, for example adbe.pkcs7.detached, ETSI.CAdES.detached or ETSI.RFC3161. LibreSign recognized the PDF signature but does not currently implement cryptographic validation for this specific format.
+					$this->l10n->t('This PDF signature format is not supported yet')
 				),
 			};
 		}
