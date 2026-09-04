@@ -39,7 +39,7 @@
 					<template #icon>
 						<NcIconSvgWrapper v-if="isOpen"
 							:path="mdiUnfoldLessHorizontal"
-							:size="20" />
+							:size="24" />
 						<NcIconSvgWrapper v-else
 							:path="mdiUnfoldMoreHorizontal"
 							:size="20" />
@@ -724,4 +724,41 @@ defineExpose({
 		fill: currentColor;
 	}
 }
+
+.signer-status-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	min-width: 24px;
+	height: 24px;
+	min-height: 24px;
+	flex: 0 0 24px;
+	background: transparent !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	overflow: hidden;
+}
+
+.signer-status-icon :deep(*) {
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+.signer-status-icon :deep(svg) {
+	display: block;
+	width: 24px;
+	height: 24px;
+	background: transparent !important;
+}
+
+.signer-status-icon::before,
+.signer-status-icon::after,
+.signer-status-icon :deep(::before),
+.signer-status-icon :deep(::after) {
+	content: none !important;
+	display: none !important;
+}
+
 </style>
