@@ -23,24 +23,8 @@ use Psr\Log\LoggerInterface;
 /**
  * Validate PDF signatures using the pdf-signature-validator package.
  *
- * @psalm-type NativePdfValidationResult = array{
- *     signature: ExtractedSignature,
- *     signatureValidation: ValidationResult,
- *     certificates: list<string>,
- *     certificateValidation: ValidationResult,
- *     timestamp: ?TimestampToken,
- * }
- * @psalm-type MappedPdfValidationResult = array{
- *     signature: ExtractedSignature,
- *     certificates: list<string>,
- *     timestamp: ?TimestampToken,
- *     signatureValidation: array,
- *     certificateValidation: array,
- *     raw: array{
- *         signature: ValidationResult,
- *         certificate: ValidationResult,
- *     },
- * }
+ * @psalm-import-type NativePdfValidationResult from PdfSignatureValidationDefinitions
+ * @psalm-import-type MappedPdfValidationResult from PdfSignatureValidationDefinitions
  */
 class PdfSignatureValidationService {
 	private PdfSignatureValidator $validator;
