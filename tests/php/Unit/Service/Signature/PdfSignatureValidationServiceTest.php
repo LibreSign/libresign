@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Signature;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Exception\UnsignedPdfException;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationReason;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationResult;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationState;
 use OCP\IAppConfig;
@@ -70,6 +71,24 @@ final class PdfSignatureValidationServiceTest extends TestCase {
 		);
 
 		$this->assertSame('PDF content hash does not match signed digest', $result['reason']);
+	}
+
+	public function testMapReasonUsesStructuredReasonCode(): void {
+		$service = $this->newServiceWithoutConstructor();
+		$result = $this->invokePrivateMethod(
+			$service,
+			'mapSignatureValidation',
+			new ValidationResult(
+				ValidationState::DIGEST_MISMATCH,
+				'this text must not be used',
+				ValidationReason::DIGEST_MISMATCH,
+			)
+		);
+
+		$this->assertSame(
+			'PDF content hash does not match signed digest',
+			$result['reason'],
+		);
 	}
 
 	public function testMapReasonKeepsUnknownReasonUntouched(): void {
