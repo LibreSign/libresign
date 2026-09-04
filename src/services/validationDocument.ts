@@ -399,25 +399,12 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 		? data.settings
 		: DEFAULT_VALIDATION_SETTINGS
 
-	const signers = (Array.isArray(data.signers) ? data.signers : []).map((signer) => {
-		const signRequestId = toInteger(signer.signRequestId)
-		const status = toInteger(signer.status)
-
-		if (signRequestId === null || status === null) {
-			return null
-		}
-
-		return {
-			...signer,
-			signRequestId,
-			status,
-		}
-	})
+	const signers = (Array.isArray(data.signers) ? data.signers : []).map(normalizeSignerDetail)
 
 	if (signers.some(signer => signer === null)) {
 		return null
 	}
-	const normalizedSigners = signers.filter((signer): signer is SignerDetailRecord => signer !== null)
+	const normalizedSigners = signers.filter((signer): signer is NonNullable<typeof signer> => signer !== null)
 
 	return {
 		...data,
