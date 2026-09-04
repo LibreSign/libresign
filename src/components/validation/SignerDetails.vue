@@ -99,7 +99,7 @@
 			</NcListItem>
 			<NcListItem v-if="hasDocumentModificationWarning(signer)" class="extra-chain" compact>
 				<template #icon>
-					<NcIconSvgWrapper :path="mdiAlertCircle" class="icon-warning" />
+					<NcIconSvgWrapper :path="mdiAlertCircle" class="validation-icon--warning" />
 				</template>
 				<template #name>
 					{{ getDocumentModificationMessage(signer) }}
@@ -181,7 +181,7 @@
 			</div>
 			<NcListItem v-if="signer.docmdp_validation" class="extra-chain" compact>
 				<template #icon>
-					<NcIconSvgWrapper :path="mdiAlertCircle" class="icon-warning" />
+					<NcIconSvgWrapper :path="mdiAlertCircle" class="validation-icon--warning" />
 				</template>
 				<template #name>
 					{{ signer.docmdp_validation.message }}
@@ -270,6 +270,7 @@ import {
 
 import CertificateChain from './CertificateChain.vue'
 import SignerTimestamp from './SignerTimestamp.vue'
+import type { DocumentModificationState } from '../../services/validationDocument'
 
 
 type ValidationState = {
@@ -321,7 +322,7 @@ type SignerModel = {
 	signature_validation?: ValidationState
 	certificate_validation?: ValidationState
 	covers_entire_document?: boolean
-	document_modification_state?: 'unchanged' | 'unsigned_content' | 'trailing_data' | 'invalid_byte_range' | 'invalid_eof_boundary'
+	document_modification_state?: DocumentModificationState
 	crl_validation?: string
 	crl_revoked_at?: string
 	docmdp?: SignerDocMdp
