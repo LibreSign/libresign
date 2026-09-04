@@ -15,13 +15,6 @@ use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationResult;
 /**
  * Internal PDF signature validation contracts.
  *
- * @psalm-type NativePdfValidationResult = array{
- *     signature: ExtractedSignature,
- *     signatureValidation: ValidationResult,
- *     certificates: list<string>,
- *     certificateValidation: ValidationResult,
- *     timestamp: ?TimestampToken,
- * }
  * @psalm-type MappedPdfValidationResult = array{
  *     signature: ExtractedSignature,
  *     certificates: list<string>,
