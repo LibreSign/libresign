@@ -8,6 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign;
 
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ExtractedSignature;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\TimestampToken;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationResult;
+
 /**
  * Base contracts
  *
@@ -408,6 +412,25 @@ namespace OCA\Libresign;
  * }
  *
  * Validation and progress contracts
+ *
+ * @psalm-type LibresignNativePdfValidationResult = array{
+ *     signature: ExtractedSignature,
+ *     signatureValidation: ValidationResult,
+ *     certificates: list<string>,
+ *     certificateValidation: ValidationResult,
+ *     timestamp: ?TimestampToken,
+ * }
+ * @psalm-type LibresignMappedPdfValidationResult = array{
+ *     signature: ExtractedSignature,
+ *     certificates: list<string>,
+ *     timestamp: ?TimestampToken,
+ *     signatureValidation: array,
+ *     certificateValidation: array,
+ *     raw: array{
+ *         signature: ValidationResult,
+ *         certificate: ValidationResult,
+ *     },
+ * }
  *
  * @psalm-type LibresignPolicyScope = 'system'|'group'|'user'
  * @psalm-type LibresignEffectivePolicyValue = null|bool|int|float|string|array<string, mixed>
