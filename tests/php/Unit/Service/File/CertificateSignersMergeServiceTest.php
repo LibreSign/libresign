@@ -154,6 +154,36 @@ final class CertificateSignersMergeServiceTest extends TestCase {
 		];
 	}
 
+	public function testMergePrefersCertificateNameOverSubjectCommonName(): void {
+		$fileData = new \stdClass();
+		$fileData->signers = [];
+
+		$certData = [[
+			'uid' => 'email:signer@example.com',
+			'chain' => [[
+				'name' => 'Certificate Name',
+				'subject' => [
+					'CN' => 'Subject Common Name',
+				],
+			]],
+		]];
+
+		$this->getService()->merge(
+			$fileData,
+			$certData,
+			'example.com',
+			'Signed',
+			fn (array $cert, string $host): ?string => null,
+			fn (string $method, string $value): string => $method . ':' . $value,
+			fn (string $accountId): ?string => null,
+		);
+
+		$this->assertSame(
+			'Certificate Name',
+			$fileData->signers[0]->chain[0]['displayName'],
+		);
+	}
+
 	public function testMergePromotesLeafCertValidityDatesToSignerRoot(): void {
 		$fileData = new \stdClass();
 		$fileData->signers = [];
