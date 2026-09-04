@@ -553,7 +553,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 			['trailing_data', 'Unexpected data was found after the final PDF end marker'],
 			['invalid_byte_range', 'The signature ByteRange is invalid'],
 			['invalid_eof_boundary', 'The signed content does not end at a valid PDF end marker'],
-		])('maps %s to the expected warning', (state, expected) => {
+		] as const)('maps %s to the expected warning', (state, expected) => {
 			expect(wrapper.vm.getDocumentModificationMessage({
 				document_modification_state: state,
 			})).toBe(expected)
