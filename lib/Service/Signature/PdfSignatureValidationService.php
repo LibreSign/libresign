@@ -10,6 +10,8 @@ namespace OCA\Libresign\Service\Signature;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Exception\UnsignedPdfException;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ExtractedSignature;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationReason;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationResult;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationState;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureValidator;
@@ -126,14 +128,27 @@ class PdfSignatureValidationService {
 		$mapped = [];
 
 		foreach ($results as $result) {
+			$signature = $result['signature'] ?? null;
 			$sigValidation = $result['signatureValidation'] ?? null;
 			$certValidation = $result['certificateValidation'] ?? null;
 
-			if (!$sigValidation instanceof ValidationResult || !$certValidation instanceof ValidationResult) {
+			if (
+				!$signature instanceof ExtractedSignature
+				|| !$sigValidation instanceof ValidationResult
+				|| !$certValidation instanceof ValidationResult
+			) {
 				continue;
 			}
 
+			$certificates = $result['certificates'] ?? [];
+			if (!is_array($certificates)) {
+				$certificates = [];
+			}
+
 			$mapped[] = [
+				'signature' => $signature,
+				'certificates' => array_values($certificates),
+				'timestamp' => $result['timestamp'] ?? null,
 				'signatureValidation' => $this->mapSignatureValidation($sigValidation),
 				'certificateValidation' => $this->mapCertificateValidation($certValidation),
 				'raw' => [
@@ -158,28 +173,28 @@ class PdfSignatureValidationService {
 				'id' => 2,
 				// TRANSLATORS User-facing status when signature cryptographic validation fails.
 				'label' => $this->l10n->t('Signature is invalid.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			ValidationState::DIGEST_MISMATCH => [
 				'id' => 3,
 				// TRANSLATORS User-facing status when signed digest does not match PDF content.
 				'label' => $this->l10n->t('Digest mismatch.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			ValidationState::NOT_VERIFIED => [
 				'id' => 5,
 				// TRANSLATORS User-facing status when validation could not be fully completed.
 				'label' => $this->l10n->t('Signature has not yet been verified.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			default => [
 				'id' => 6,
 				// TRANSLATORS Generic fallback status for unexpected signature validation failures.
 				'label' => $this->l10n->t('Unknown validation failure.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 		};
@@ -197,45 +212,58 @@ class PdfSignatureValidationService {
 				'id' => 2,
 				// TRANSLATORS User-facing status when issuing CA is known but not trusted.
 				'label' => $this->l10n->t("Certificate issuer isn't trusted."),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			ValidationState::CERT_ISSUER_UNKNOWN => [
 				'id' => 3,
 				// TRANSLATORS User-facing status when certificate issuer cannot be identified/trusted.
 				'label' => $this->l10n->t('Certificate issuer is unknown.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			ValidationState::CERT_REVOKED => [
 				'id' => 4,
 				// TRANSLATORS User-facing status when certificate is revoked.
 				'label' => $this->l10n->t('Certificate has been revoked.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			ValidationState::CERT_EXPIRED => [
 				'id' => 5,
 				// TRANSLATORS User-facing status when certificate is expired.
 				'label' => $this->l10n->t('Certificate has expired.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			ValidationState::CERT_NOT_VERIFIED => [
 				'id' => 6,
 				// TRANSLATORS User-facing status when certificate validation could not be completed.
 				'label' => $this->l10n->t('Certificate has not yet been verified.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			default => [
 				'id' => 7,
 				// TRANSLATORS Generic fallback status for unexpected certificate validation failures.
 				'label' => $this->l10n->t('Unknown issue with certificate or corrupted data.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 		};
+	}
+
+	private function translateValidationReason(ValidationResult $result): ?string {
+		if ($result->reasonCode !== null) {
+			return match ($result->reasonCode) {
+				ValidationReason::NO_BYTE_RANGE => $this->l10n->t('No ByteRange in signature'),
+				ValidationReason::DIGEST_MISMATCH => $this->l10n->t('PDF content hash does not match signed digest'),
+				ValidationReason::NO_BINARY_SIGNATURE => $this->l10n->t('No binary signature'),
+				ValidationReason::SIGNATURE_CERTIFICATE_MISMATCH => $this->l10n->t('Signature does not match certificate'),
+			};
+		}
+
+		return $this->translateKnownReason($result->reason);
 	}
 
 	private function translateKnownReason(?string $reason): ?string {
