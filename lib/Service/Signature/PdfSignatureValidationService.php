@@ -252,19 +252,19 @@ class PdfSignatureValidationService {
 		if ($result->reasonCode !== null) {
 			return match ($result->reasonCode) {
 				ValidationReason::NO_BYTE_RANGE => (
-					// TRANSLATORS The PDF signature is missing information required to verify which parts of the document were signed.
+					// TRANSLATORS PDF digital signature validation. ByteRange is a PDF signature structure that defines exactly which byte ranges are protected by the cryptographic signature. This result means that structure is missing, so LibreSign cannot determine which document content was signed. Keep the user-facing text simple.
 					$this->l10n->t('The signature does not contain the information needed to verify the document')
 				),
 				ValidationReason::DIGEST_MISMATCH => (
-					// TRANSLATORS The document content no longer matches the content that was originally signed.
+					// TRANSLATORS PDF digital signature validation. LibreSign recalculated the cryptographic digest from the signed PDF byte ranges and it does not match the digest stored in the signature. This can indicate changed content or inconsistent signature data. Keep the user-facing text simple.
 					$this->l10n->t('The document content does not match the signed content')
 				),
 				ValidationReason::NO_BINARY_SIGNATURE => (
-					// TRANSLATORS The PDF contains a signature field, but the actual digital signature data is missing.
+					// TRANSLATORS PDF digital signature validation. The PDF contains signature metadata, but the CMS/PKCS#7 binary signature payload required for cryptographic verification is missing. CMS/PKCS#7 is the standard container commonly used for PDF digital signatures.
 					$this->l10n->t('The digital signature data is missing')
 				),
 				ValidationReason::SIGNATURE_CERTIFICATE_MISMATCH => (
-					// TRANSLATORS The digital signature could not be verified with the certificate stored in the PDF.
+					// TRANSLATORS PDF digital signature validation. LibreSign verified the signature bytes against the signer's X.509 certificate, but the cryptographic verification failed. The certificate and the digital signature do not match as expected.
 					$this->l10n->t('The signature could not be verified with its certificate')
 				),
 			};
