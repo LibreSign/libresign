@@ -8,6 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign;
 
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ExtractedSignature;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\TimestampToken;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationResult;
+
 /**
  * Base contracts
  *
