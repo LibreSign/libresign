@@ -13,7 +13,7 @@
 					:is-no-user="true" />
 				<NcIconSvgWrapper v-else
 					:path="getIconValidityPath(signer)"
-					:class="signer.signature_validation?.id === 1 ? 'icon-success' : 'icon-error'"
+					:class="getSignerValidationClass(signer)"
 					:size="44" />
 			</template>
 			<template #subname>
@@ -422,10 +422,30 @@ function hasValidationIssues(signer: SignerModel) {
 }
 
 function getIconValidityPath(signer: SignerModel) {
-	if (signer.signature_validation?.id === 1) {
-		return mdiCheckCircle
+	if (signer.signature_validation?.id !== 1) {
+		return mdiShieldAlert
 	}
-	return mdiShieldAlert
+	if (signer.modification_validation?.status === MODIFICATION_VIOLATION) {
+		return mdiCancel
+	}
+	if (hasDocumentModificationWarning(signer)
+		|| signer.certificate_validation?.id !== 1) {
+		return mdiAlertCircle
+	}
+	return mdiCheckCircle
+}
+
+function getSignerValidationClass(signer: SignerModel) {
+	if (signer.signature_validation?.id !== 1
+		|| signer.modification_validation?.status === MODIFICATION_VIOLATION
+		|| isRevokedBeforeSigning(signer)) {
+		return 'icon-error'
+	}
+	if (hasDocumentModificationWarning(signer)
+		|| signer.certificate_validation?.id !== 1) {
+		return 'icon-warning'
+	}
+	return 'icon-success'
 }
 
 function getValidityStatus(signer: SignerModel) {
@@ -615,6 +635,7 @@ defineExpose({
 	isRevokedStatus,
 	isRevokedBeforeSigning,
 	getIconValidityPath,
+	getSignerValidationClass,
 	getValidityStatus,
 	hasValidationStatus,
 	getSignatureValidationMessage,
