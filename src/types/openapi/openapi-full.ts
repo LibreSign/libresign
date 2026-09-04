@@ -2228,6 +2228,7 @@ export type components = {
             sign_date?: string | null;
             sign_request_uuid?: string;
             hash_algorithm?: string;
+            covers_entire_document?: boolean;
             me: boolean;
             /**
              * Format: int64

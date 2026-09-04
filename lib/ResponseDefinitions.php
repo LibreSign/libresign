@@ -177,6 +177,7 @@ namespace OCA\Libresign;
  *     sign_date?: ?string,
  *     sign_request_uuid?: string,
  *     hash_algorithm?: string,
+ *     covers_entire_document?: bool,
  *     me: bool,
  *     status: 0|1|2,
  *     signingOrder?: non-negative-int,
