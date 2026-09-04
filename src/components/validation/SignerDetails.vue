@@ -98,12 +98,12 @@
 					{{ getSignatureValidationMessage(signer) }}
 				</template>
 			</NcListItem>
-			<NcListItem v-if="signer.covers_entire_document === false" class="extra-chain" compact>
+			<NcListItem v-if="hasDocumentModificationWarning(signer)" class="extra-chain" compact>
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiAlertCircle" class="icon-warning" />
 				</template>
 				<template #name>
-					{{ getSignatureCoverageMessage() }}
+					{{ getDocumentModificationMessage(signer) }}
 				</template>
 			</NcListItem>
 			<NcListItem v-if="signer.certificate_validation" class="extra-chain" compact>
@@ -322,6 +322,7 @@ type SignerModel = {
 	signature_validation?: ValidationState
 	certificate_validation?: ValidationState
 	covers_entire_document?: boolean
+	document_modification_state?: 'unchanged' | 'unsigned_content' | 'trailing_data' | 'invalid_byte_range' | 'invalid_eof_boundary'
 	crl_validation?: string
 	crl_revoked_at?: string
 	docmdp?: SignerDocMdp
@@ -418,6 +419,7 @@ function isRevokedBeforeSigning(signer: SignerModel) {
 function hasValidationIssues(signer: SignerModel) {
 	return signer.signature_validation?.id !== 1
 		|| signer.certificate_validation?.id !== 1
+		|| hasDocumentModificationWarning(signer)
 		|| isRevokedBeforeSigning(signer)
 }
 
@@ -441,8 +443,10 @@ function getValidityStatus(signer: SignerModel) {
 }
 
 function hasValidationStatus(signer: SignerModel) {
-	return !!(signer.signature_validation || signer.certificate_validation || signer.crl_validation
-		|| signer.covers_entire_document === false
+	return !!(signer.signature_validation
+		|| signer.certificate_validation
+		|| signer.crl_validation
+		|| signer.document_modification_state
 		|| (signer.valid_from && signer.valid_to && signer.signed))
 }
 
@@ -455,9 +459,28 @@ function getSignatureValidationMessage(signer: SignerModel) {
 	return signer.signature_validation?.message || t('libresign', 'Document integrity check failed')
 }
 
-function getSignatureCoverageMessage() {
-	// TRANSLATORS Warning shown when extra bytes exist outside the PDF signature ByteRange.
-	return t('libresign', 'The signature does not cover the entire document')
+function hasDocumentModificationWarning(signer: SignerModel) {
+	return !!signer.document_modification_state
+		&& signer.document_modification_state !== 'unchanged'
+}
+
+function getDocumentModificationMessage(signer: SignerModel) {
+	switch (signer.document_modification_state) {
+	case 'unsigned_content':
+		// TRANSLATORS Warning shown when content exists after the latest PDF signature.
+		return t('libresign', 'The document contains unsigned content after the latest signature')
+	case 'trailing_data':
+		// TRANSLATORS Warning shown when unexpected bytes exist after the final PDF EOF marker.
+		return t('libresign', 'Unexpected data was found after the final PDF end marker')
+	case 'invalid_byte_range':
+		// TRANSLATORS Warning shown when a PDF signature ByteRange is structurally invalid.
+		return t('libresign', 'The signature ByteRange is invalid')
+	case 'invalid_eof_boundary':
+		// TRANSLATORS Warning shown when signed PDF data does not end at a valid EOF boundary.
+		return t('libresign', 'The signed content does not end at a valid PDF end marker')
+	default:
+		return ''
+	}
 }
 
 function getCertificateTrustMessage(signer: SignerModel) {
