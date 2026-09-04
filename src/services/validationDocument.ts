@@ -264,6 +264,10 @@ function isValidationDocumentRecord(data: unknown): data is ValidationFileRecord
 	if (!isRecord(data)) {
 		return false
 	}
+
+	const status = toInteger(data.status)
+	const isExternalPdf = status === FILE_STATUS.NOT_LIBRESIGN_FILE
+
 	if (
 		toInteger(data.id) === null
 		|| !isString(data.uuid)
@@ -273,12 +277,12 @@ function isValidationDocumentRecord(data: unknown): data is ValidationFileRecord
 		|| toInteger(data.nodeId) === null
 		|| (data.nodeType !== 'file' && data.nodeType !== 'envelope')
 		|| normalizeValidationSignatureFlow(data.signatureFlow) === null
-		|| toInteger(data.docmdpLevel) === null
+		|| (!isExternalPdf && toInteger(data.docmdpLevel) === null)
 		|| toInteger(data.filesCount) === null
 		|| !Array.isArray(data.files)
-		|| toInteger(data.totalPages) === null
+		|| (!isExternalPdf && toInteger(data.totalPages) === null)
 		|| toInteger(data.size) === null
-		|| !isString(data.pdfVersion)
+		|| (!isExternalPdf && !isString(data.pdfVersion))
 		|| !isString(data.created_at)
 		|| !isRequestedBy(data.requested_by)
 	) {
@@ -327,11 +331,27 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 
 	const id = toInteger(data.id)
 	const nodeId = toInteger(data.nodeId)
-	const docmdpLevel = toInteger(data.docmdpLevel)
+	const status = toInteger(data.status)
+	const isExternalPdf = status === FILE_STATUS.NOT_LIBRESIGN_FILE
 	const filesCount = toInteger(data.filesCount)
-	const totalPages = toInteger(data.totalPages)
 	const size = toInteger(data.size)
 	const signatureFlow = normalizeValidationSignatureFlow(data.signatureFlow)
+
+	const firstFile = Array.isArray(data.files) && isRecord(data.files[0])
+		? data.files[0]
+		: null
+
+	const docmdpLevel = toInteger(data.docmdpLevel) ?? (isExternalPdf ? 0 : null)
+	const totalPages = toInteger(data.totalPages)
+		?? (isExternalPdf && firstFile ? toInteger(firstFile.totalPages) : null)
+		?? (isExternalPdf ? 0 : null)
+	const pdfVersion = isString(data.pdfVersion)
+		? data.pdfVersion
+		: isExternalPdf && firstFile && isString(firstFile.pdfVersion)
+			? firstFile.pdfVersion
+			: isExternalPdf
+				? ''
+				: null
 
 	if (
 		id === null
@@ -341,6 +361,7 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 		|| totalPages === null
 		|| size === null
 		|| signatureFlow === null
+		|| pdfVersion === null
 	) {
 		return null
 	}
@@ -416,6 +437,7 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 		totalPages,
 		size,
 		files: normalizedFiles,
+		pdfVersion,
 		metadata: {
 			...metadata,
 			p: metadataPages,
