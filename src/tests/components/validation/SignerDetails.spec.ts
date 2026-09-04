@@ -207,6 +207,40 @@ describe('SignerDetails.vue - Business Logic', () => {
 		})
 	})
 
+	describe('document modification presentation', () => {
+		it('shows unchanged document as success', () => {
+			const signer = {
+				document_modification_state: 'unchanged',
+				modification_validation: { status: 1, valid: true },
+			}
+
+			expect(wrapper.vm.hasDocumentModificationWarning(signer)).toBe(false)
+			expect(wrapper.vm.getModificationStatusClass(signer)).toBe('icon-success')
+		})
+
+		it('shows allowed modification as warning instead of success', () => {
+			const signer = {
+				document_modification_state: 'trailing_data',
+				modification_validation: { status: 2, valid: true },
+			}
+
+			expect(wrapper.vm.hasDocumentModificationWarning(signer)).toBe(true)
+			expect(wrapper.vm.getDocumentModificationMessage(signer)).toBe(
+				'Unexpected data was found after the final PDF end marker',
+			)
+			expect(wrapper.vm.getModificationStatusClass(signer)).toBe('icon-warning')
+		})
+
+		it('shows forbidden modification as error', () => {
+			const signer = {
+				document_modification_state: 'invalid_byte_range',
+				modification_validation: { status: 3, valid: false },
+			}
+
+			expect(wrapper.vm.hasDocumentModificationWarning(signer)).toBe(true)
+			expect(wrapper.vm.getModificationStatusClass(signer)).toBe('icon-error')
+		})
+	})
 	describe('getValidityStatus method', () => {
 		it('returns valid when valid_to is missing', () => {
 			const signer = {}
