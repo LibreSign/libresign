@@ -383,22 +383,33 @@ const crlStatusMap = computed<Record<string, StatusPresentation>>(() => ({
 async function upload(file: File) {
 	const formData = new FormData()
 	formData.append('file', file)
-	await axios.postForm(generateOcsUrl('/apps/libresign/api/v1/file/validate'), formData, {
-		headers: {
-			'Content-Type': 'multipart/form-data',
-		},
-	})
-		.then(({ data }) => {
-			clickedValidate.value = true
-			handleValidationSuccess(data.ocs.data)
-		})
-		.catch((error: { response?: ValidationErrorResponse }) => {
-			if (handleValidationRedirect(error.response)) {
-				return
-			}
-			const errorMsg = getValidationErrorMessage(error.response, t('libresign', 'Failed to validate document'))
-			setValidationError(errorMsg)
-		})
+
+	let response
+	try {
+		response = await axios.postForm(
+			generateOcsUrl('/apps/libresign/api/v1/file/validate'),
+			formData,
+			{
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+			},
+		)
+	} catch (error) {
+		const validationError = error as { response?: ValidationErrorResponse }
+		if (handleValidationRedirect(validationError.response)) {
+			return
+		}
+		const errorMsg = getValidationErrorMessage(
+			validationError.response,
+			t('libresign', 'Failed to validate document'),
+		)
+		setValidationError(errorMsg)
+		return
+	}
+
+	clickedValidate.value = true
+	handleValidationSuccess(response.data.ocs.data)
 }
 
 async function uploadFile() {
@@ -810,12 +821,15 @@ function handleValidationSuccess(data: unknown) {
 	if (!isActiveView.value) {
 		return
 	}
-	documentValidMessage.value = t('libresign', 'This document is valid')
+
 	const normalizedDocument = toValidationDocument(data)
 	if (!normalizedDocument) {
+		logger.error('Validation API returned an unsupported payload', { data })
 		setValidationError(t('libresign', 'Failed to validate document'))
 		return
 	}
+
+	documentValidMessage.value = t('libresign', 'This document is valid')
 	const effectivePolicies = extractEffectivePolicies(data)
 	if (effectivePolicies) {
 		policiesStore.setPolicies(effectivePolicies)
