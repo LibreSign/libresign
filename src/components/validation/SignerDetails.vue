@@ -561,18 +561,26 @@ function hasDocMdpInfo(signer: SignerModel) {
 
 function getModificationStatusIcon(signer: SignerModel) {
 	if (!signer.modification_validation) { return undefined }
+
 	const status = signer.modification_validation.status
-	if (status === MODIFICATION_UNMODIFIED || status === MODIFICATION_ALLOWED) {
+	if (status === MODIFICATION_UNMODIFIED) {
 		return mdiCheckCircle
 	}
-	return mdiAlertCircle
+	if (status === MODIFICATION_ALLOWED) {
+		return mdiAlertCircle
+	}
+	return mdiCancel
 }
 
 function getModificationStatusClass(signer: SignerModel) {
 	if (!signer.modification_validation) { return '' }
+
 	const status = signer.modification_validation.status
-	if (status === MODIFICATION_UNMODIFIED || status === MODIFICATION_ALLOWED) {
+	if (status === MODIFICATION_UNMODIFIED) {
 		return 'icon-success'
+	}
+	if (status === MODIFICATION_ALLOWED) {
+		return 'icon-warning'
 	}
 	return 'icon-error'
 }
@@ -629,28 +637,39 @@ defineExpose({
 </script>
 
 <style scoped lang="scss">
-.extra {
-	padding-left: 44px;
-	background-color: var(--color-background-hover);
+.extra,
+.extra-chain {
+	:deep(.list-item) {
+		--list-item-height: auto;
+		height: auto;
+		min-height: var(--default-clickable-area);
+		align-items: flex-start;
+	}
 
-	:deep(.list-item-content__name) {
-		white-space: normal;
+	:deep(.list-item-content) {
+		min-width: 0;
+		overflow: visible;
+	}
+
+	:deep(.list-item-content__name),
+	:deep(.list-item-content__subname) {
+		display: block;
+		white-space: normal !important;
+		overflow: visible !important;
+		text-overflow: clip !important;
+		overflow-wrap: anywhere;
+		word-break: break-word;
 		line-height: 1.4;
 	}
 }
 
+.extra {
+	padding-left: 44px;
+	background-color: var(--color-background-hover);
+}
+
 .extra-chain {
 	padding-left: 48px;
-
-	:deep(.list-item) {
-		--list-item-height: auto;
-	}
-
-	:deep(.list-item-content__name) {
-		white-space: normal !important;
-		overflow: visible !important;
-		text-overflow: clip !important;
-	}
 }
 
 .icon-success {
