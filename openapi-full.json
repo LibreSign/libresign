@@ -3003,6 +3003,16 @@
                             "covers_entire_document": {
                                 "type": "boolean"
                             },
+                            "document_modification_state": {
+                                "type": "string",
+                                "enum": [
+                                    "unchanged",
+                                    "unsigned_content",
+                                    "trailing_data",
+                                    "invalid_byte_range",
+                                    "invalid_eof_boundary"
+                                ]
+                            },
                             "me": {
                                 "type": "boolean"
                             },
