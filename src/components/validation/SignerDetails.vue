@@ -11,13 +11,9 @@
 				<NcAvatar v-if="!hasValidationIssues(signer)"
 					:display-name="getName(signer)"
 					:is-no-user="true" />
-				<span v-else
-					class="signer-validation-icon"
-					:class="getSignerValidationClass(signer)">
-					<NcIconSvgWrapper
-						:path="getIconValidityPath(signer)"
-						:size="24" />
-				</span>
+				<NcIconSvgWrapper v-else
+					:path="getIconValidityPath(signer)"
+					:class="getSignerValidationClass(signer)" />
 			</template>
 			<template #subname>
 				<template v-if="!isSigned(signer)">
@@ -246,6 +242,14 @@
 </template>
 
 <script setup lang="ts">
+import { n, t } from '@nextcloud/l10n'
+import Moment from '@nextcloud/moment'
+import NcAvatar from '@nextcloud/vue/components/NcAvatar'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import NcListItem from '@nextcloud/vue/components/NcListItem'
+import { computed, ref } from 'vue'
+
 import {
 	mdiAlert,
 	mdiAlertCircle,
@@ -264,6 +268,9 @@ import {
 	mdiUnfoldLessHorizontal,
 	mdiUnfoldMoreHorizontal,
 } from '@mdi/js'
+
+import CertificateChain from './CertificateChain.vue'
+import SignerTimestamp from './SignerTimestamp.vue'
 
 
 type ValidationState = {
@@ -687,42 +694,6 @@ defineExpose({
 	word-break: break-word;
 	line-height: 1.4;
 }
-.signer-validation-icon {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 44px;
-	min-width: 44px;
-	height: 44px;
-	min-height: 44px;
-	flex: 0 0 44px;
-	border-radius: 50%;
-	box-sizing: border-box;
-	background-color: transparent;
-	color: inherit;
-}
-
-.signer-validation-icon :deep(.material-design-icon),
-.signer-validation-icon :deep(svg) {
-	color: inherit !important;
-	fill: currentColor !important;
-}
-
-.icon-success.signer-validation-icon {
-	background-color: rgba(var(--color-success-rgb), 0.18);
-	color: var(--color-success);
-}
-
-.icon-warning.signer-validation-icon {
-	background-color: rgba(var(--color-warning-rgb), 0.18);
-	color: var(--color-warning);
-}
-
-.icon-error.signer-validation-icon {
-	background-color: rgba(var(--color-error-rgb), 0.16);
-	color: var(--color-error);
-}
-
 .icon-success {
 	color: var(--color-success);
 	:deep(svg) {
@@ -743,41 +714,4 @@ defineExpose({
 		fill: currentColor;
 	}
 }
-
-.signer-status-icon {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 24px;
-	min-width: 24px;
-	height: 24px;
-	min-height: 24px;
-	flex: 0 0 24px;
-	background: transparent !important;
-	border: 0 !important;
-	border-radius: 0 !important;
-	box-shadow: none !important;
-	overflow: hidden;
-}
-
-.signer-status-icon :deep(*) {
-	background: transparent !important;
-	box-shadow: none !important;
-}
-
-.signer-status-icon :deep(svg) {
-	display: block;
-	width: 24px;
-	height: 24px;
-	background: transparent !important;
-}
-
-.signer-status-icon::before,
-.signer-status-icon::after,
-.signer-status-icon :deep(::before),
-.signer-status-icon :deep(::after) {
-	content: none !important;
-	display: none !important;
-}
-
 </style>
