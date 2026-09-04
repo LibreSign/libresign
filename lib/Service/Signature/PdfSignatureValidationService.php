@@ -135,18 +135,7 @@ class PdfSignatureValidationService {
 	 * }>
 	 */
 	protected function validateNativeFromResource($resource): array {
-		/** @psalm-suppress UndefinedDocblockClass Vendor PHPDoc is not rewritten by PHP-Scoper. */
-		$results = $this->validator->validateFromResource($resource);
-
-		/** @var list<array{
-		 *     signature: ExtractedSignature,
-		 *     signatureValidation: ValidationResult,
-		 *     certificates: list<string>,
-		 *     certificateValidation: ValidationResult,
-		 *     timestamp: ?TimestampToken,
-		 * }> $results
-		 */
-		return $results;
+		return $this->validator->validateFromResource($resource);
 	}
 
 	/**
@@ -159,18 +148,7 @@ class PdfSignatureValidationService {
 	 * }>
 	 */
 	protected function validateNativeFromString(string $pdfContent): array {
-		/** @psalm-suppress UndefinedDocblockClass Vendor PHPDoc is not rewritten by PHP-Scoper. */
-		$results = $this->validator->validateFromString($pdfContent);
-
-		/** @var list<array{
-		 *     signature: ExtractedSignature,
-		 *     signatureValidation: ValidationResult,
-		 *     certificates: list<string>,
-		 *     certificateValidation: ValidationResult,
-		 *     timestamp: ?TimestampToken,
-		 * }> $results
-		 */
-		return $results;
+		return $this->validator->validateFromString($pdfContent);
 	}
 
 	/**
