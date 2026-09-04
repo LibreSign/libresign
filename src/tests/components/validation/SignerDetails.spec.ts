@@ -210,7 +210,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 	describe('document modification presentation', () => {
 		it('shows unchanged document as success', () => {
 			const signer = {
-				document_modification_state: 'unchanged',
+				document_modification_state: 'unchanged' as const,
 				modification_validation: { status: 1, valid: true },
 			}
 
@@ -220,7 +220,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 
 		it('shows allowed modification as warning instead of success', () => {
 			const signer = {
-				document_modification_state: 'trailing_data',
+				document_modification_state: 'trailing_data' as const,
 				modification_validation: { status: 2, valid: true },
 			}
 
@@ -233,7 +233,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 
 		it('shows forbidden modification as error', () => {
 			const signer = {
-				document_modification_state: 'invalid_byte_range',
+				document_modification_state: 'invalid_byte_range' as const,
 				modification_validation: { status: 3, valid: false },
 			}
 
