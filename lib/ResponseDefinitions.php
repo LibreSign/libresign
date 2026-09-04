@@ -506,6 +506,10 @@ namespace OCA\Libresign;
  *     effectiveValue: int,
  *     sourceScope: string,
  * }
+ * @psalm-type LibresignPolicySnapshotBooleanEntry = array{
+ *     effectiveValue: bool,
+ *     sourceScope: string,
+ * }
  * @psalm-type LibresignPolicySnapshotIdentificationDocumentsValue = array{
  *     enabled: bool,
  *     approvers: list<string>,
@@ -542,6 +546,7 @@ namespace OCA\Libresign;
  *     identification_documents?: LibresignPolicySnapshotIdentificationDocumentsEntry,
  *     identify_methods?: LibresignPolicySnapshotIdentifyMethodsEntry,
  *     signer_geolocation?: LibresignPolicySnapshotSignerGeolocationEntry,
+ *     enable_observer_profile?: LibresignPolicySnapshotBooleanEntry,
  * }
  * @psalm-type LibresignValidateMetadata = array{
  *     extension: string,

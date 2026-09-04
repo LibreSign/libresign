@@ -2303,6 +2303,21 @@
                     }
                 }
             },
+            "PolicySnapshotBooleanEntry": {
+                "type": "object",
+                "required": [
+                    "effectiveValue",
+                    "sourceScope"
+                ],
+                "properties": {
+                    "effectiveValue": {
+                        "type": "boolean"
+                    },
+                    "sourceScope": {
+                        "type": "string"
+                    }
+                }
+            },
             "PolicySnapshotEntry": {
                 "type": "object",
                 "required": [
@@ -3465,6 +3480,9 @@
                     },
                     "signer_geolocation": {
                         "$ref": "#/components/schemas/PolicySnapshotSignerGeolocationEntry"
+                    },
+                    "enable_observer_profile": {
+                        "$ref": "#/components/schemas/PolicySnapshotBooleanEntry"
                     }
                 }
             },

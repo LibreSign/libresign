@@ -1375,6 +1375,10 @@ export type components = {
         ParticipantRole: "signer" | "observer";
         /** @enum {string} */
         PolicyScope: "system" | "group" | "user";
+        PolicySnapshotBooleanEntry: {
+            effectiveValue: boolean;
+            sourceScope: string;
+        };
         PolicySnapshotEntry: {
             effectiveValue: string;
             sourceScope: string;
@@ -1666,6 +1670,7 @@ export type components = {
             identification_documents?: components["schemas"]["PolicySnapshotIdentificationDocumentsEntry"];
             identify_methods?: components["schemas"]["PolicySnapshotIdentifyMethodsEntry"];
             signer_geolocation?: components["schemas"]["PolicySnapshotSignerGeolocationEntry"];
+            enable_observer_profile?: components["schemas"]["PolicySnapshotBooleanEntry"];
         };
         ValidatedChildFile: {
             /** Format: int64 */
