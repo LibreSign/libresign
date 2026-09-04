@@ -25,10 +25,25 @@ use Psr\Log\LoggerInterface;
  * This replaces shell calls to pdfsig with pure PHP validation.
  * Supports custom trusted roots (e.g., LibreSign CA) to recognize
  * certificates without requiring system-level CA registration.
- */
-/**
- * @psalm-import-type LibresignNativePdfValidationResult from \OCA\Libresign\ResponseDefinitions
- * @psalm-import-type LibresignMappedPdfValidationResult from \OCA\Libresign\ResponseDefinitions
+ *
+ * @psalm-type NativePdfValidationResult = array{
+ *     signature: ExtractedSignature,
+ *     signatureValidation: ValidationResult,
+ *     certificates: list<string>,
+ *     certificateValidation: ValidationResult,
+ *     timestamp: ?TimestampToken,
+ * }
+ * @psalm-type MappedPdfValidationResult = array{
+ *     signature: ExtractedSignature,
+ *     certificates: list<string>,
+ *     timestamp: ?TimestampToken,
+ *     signatureValidation: array,
+ *     certificateValidation: array,
+ *     raw: array{
+ *         signature: ValidationResult,
+ *         certificate: ValidationResult,
+ *     },
+ * }
  */
 class PdfSignatureValidationService {
 	private PdfSignatureValidator $validator;
@@ -79,7 +94,7 @@ class PdfSignatureValidationService {
 	 * Validate PDF signatures from file resource.
 	 *
 	 * @param resource $resource PDF file resource
-	 * @return list<LibresignMappedPdfValidationResult>
+	 * @return list<MappedPdfValidationResult>
 	 */
 	public function validateFromResource($resource): array {
 		try {
@@ -95,7 +110,7 @@ class PdfSignatureValidationService {
 	 * Validate PDF signatures from binary content.
 	 *
 	 * @param string $pdfContent Binary PDF content
-	 * @return list<LibresignMappedPdfValidationResult>
+	 * @return list<MappedPdfValidationResult>
 	 */
 	public function validateFromString(string $pdfContent): array {
 		try {
@@ -125,8 +140,8 @@ class PdfSignatureValidationService {
 	/**
 	 * Map validation results from PdfSignatureValidator to LibreSign format.
 	 *
-	 * @param list<LibresignNativePdfValidationResult> $results Results from PdfSignatureValidator
-	 * @return list<LibresignMappedPdfValidationResult>
+	 * @param list<NativePdfValidationResult> $results Results from PdfSignatureValidator
+	 * @return list<MappedPdfValidationResult>
 	 */
 	private function mapValidationResults(array $results): array {
 		$mapped = [];
