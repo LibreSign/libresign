@@ -39,17 +39,20 @@ type ValidationMetadataDimension = {
 	h: number
 }
 
+export type DocumentModificationState =
+	| 'unchanged'
+	| 'unsigned_content'
+	| 'trailing_data'
+	| 'invalid_byte_range'
+	| 'invalid_eof_boundary'
+
 export type ValidationSignerDetailRecord = SignerDetailRecord & {
 	signature_validation?: ValidationStatusInfo
 	certificate_validation?: ValidationStatusInfo
 	modification_validation?: ValidationModificationInfo
 	crl_validation?: string
 	isLibreSignRootCA?: boolean
-	document_modification_state?: 'unchanged'
-		| 'unsigned_content'
-		| 'trailing_data'
-		| 'invalid_byte_range'
-		| 'invalid_eof_boundary'
+	document_modification_state?: DocumentModificationState
 }
 
 export type ValidationDocumentState = ValidationFileRecord & {
@@ -139,6 +142,13 @@ function isModificationValidationStatus(value: unknown): value is ModificationVa
 		|| value === MODIFICATION_VIOLATION
 }
 
+function isDocumentModificationState(value: unknown): value is DocumentModificationState {
+	return value === 'unchanged'
+		|| value === 'unsigned_content'
+		|| value === 'trailing_data'
+		|| value === 'invalid_byte_range'
+		|| value === 'invalid_eof_boundary'
+}
 function isValidationModificationInfo(value: unknown): value is ValidationModificationInfo {
 	if (!isRecord(value)) {
 		return false
@@ -212,6 +222,7 @@ function isSignerDetailRecord(value: unknown): value is ValidationSignerDetailRe
 		&& isOptionalField(value, 'modification_validation', isValidationModificationInfo)
 		&& isOptionalField(value, 'crl_validation', isString)
 		&& isOptionalField(value, 'isLibreSignRootCA', fieldValue => typeof fieldValue === 'boolean')
+		&& isOptionalField(value, 'document_modification_state', isDocumentModificationState)
 }
 
 function isCertificateSignerRecord(value: unknown): value is UnknownRecord {
@@ -226,6 +237,10 @@ function isCertificateSignerRecord(value: unknown): value is UnknownRecord {
 		&& Array.isArray(value.chain)
 		&& isOptionalField(value, 'signature_validation', isValidationStatusInfo)
 		&& isOptionalField(value, 'certificate_validation', isValidationStatusInfo)
+		&& isOptionalField(value, 'modification_validation', isValidationModificationInfo)
+		&& isOptionalField(value, 'crl_validation', isString)
+		&& isOptionalField(value, 'isLibreSignRootCA', fieldValue => typeof fieldValue === 'boolean')
+		&& isOptionalField(value, 'document_modification_state', isDocumentModificationState)
 }
 
 function normalizeCertificateSigner(value: UnknownRecord): ValidationSignerDetailRecord {
