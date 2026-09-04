@@ -177,11 +177,9 @@
 					{{ signer.docmdp.label }}
 				</template>
 			</NcListItem>
-			<NcListItem v-if="signer.docmdp && signer.docmdp.description" class="extra-chain" compact>
-				<template #name>
-					{{ signer.docmdp.description }}
-				</template>
-			</NcListItem>
+			<div v-if="signer.docmdp && signer.docmdp.description" class="validation-description">
+				{{ signer.docmdp.description }}
+			</div>
 			<NcListItem v-if="signer.docmdp_validation" class="extra-chain" compact>
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiAlertCircle" class="icon-warning" />
@@ -697,6 +695,13 @@ defineExpose({
 	padding-left: 48px;
 }
 
+.validation-description {
+	padding: 8px 16px 8px 48px;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+	line-height: 1.4;
+}
 .icon-success {
 	color: var(--color-success);
 	:deep(svg) {
