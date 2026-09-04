@@ -307,13 +307,16 @@ class Pkcs12Handler extends SignEngineHandler {
 			return $this->rootCertificatePem;
 		}
 		$configPath = $this->appConfig->getValueString(Application::APP_ID, 'config_path');
+		$caPemPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
+
 		if (empty($configPath)
 			|| !is_dir($configPath)
-			|| !is_readable($configPath . DIRECTORY_SEPARATOR . 'ca.pem')
+			|| !is_readable($caPemPath)
 		) {
 			return '';
 		}
-		$rootCertificatePem = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
+
+		$rootCertificatePem = file_get_contents($caPemPath);
 		if ($rootCertificatePem === false) {
 			return '';
 		}
