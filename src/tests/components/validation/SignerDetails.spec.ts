@@ -207,6 +207,40 @@ describe('SignerDetails.vue - Business Logic', () => {
 		})
 	})
 
+	describe('signer validation severity', () => {
+		it('shows warning for a valid signature with trailing data', () => {
+			const signer = {
+				signature_validation: { id: 1 },
+				certificate_validation: { id: 1 },
+				document_modification_state: 'trailing_data' as const,
+				modification_validation: { status: 2, valid: true },
+			}
+
+			expect(wrapper.vm.getSignerValidationClass(signer)).toBe('icon-warning')
+		})
+
+		it('shows error when DocMDP certification is violated', () => {
+			const signer = {
+				signature_validation: { id: 1 },
+				certificate_validation: { id: 1 },
+				document_modification_state: 'trailing_data' as const,
+				modification_validation: { status: 3, valid: false },
+			}
+
+			expect(wrapper.vm.getSignerValidationClass(signer)).toBe('icon-error')
+		})
+
+		it('shows success when all validations pass', () => {
+			const signer = {
+				signature_validation: { id: 1 },
+				certificate_validation: { id: 1 },
+				document_modification_state: 'unchanged' as const,
+				modification_validation: { status: 1, valid: true },
+			}
+
+			expect(wrapper.vm.getSignerValidationClass(signer)).toBe('icon-success')
+		})
+	})
 	describe('document modification presentation', () => {
 		it('shows unchanged document as success', () => {
 			const signer = {
