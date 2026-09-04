@@ -184,6 +184,48 @@ final class CertificateSignersMergeServiceTest extends TestCase {
 		);
 	}
 
+	public function testSingleContractSignerRequiresNumericSignRequestId(): void {
+		$service = $this->getService();
+		$method = new \ReflectionMethod(
+			CertificateSignersMergeService::class,
+			'getSingleContractSignerIndex',
+		);
+
+		$signers = [
+			(object)[
+				'signRequestId' => 42,
+			],
+			(object)[
+				'signRequestId' => 'not-numeric',
+			],
+		];
+
+		$this->assertSame(
+			0,
+			$method->invoke($service, $signers),
+		);
+	}
+
+	public function testCertificateRootCaFlagIsPromotedToSigner(): void {
+		$service = $this->getService();
+		$method = new \ReflectionMethod(
+			CertificateSignersMergeService::class,
+			'enrichSignerWithCertificateValidation',
+		);
+
+		$signer = new \stdClass();
+
+		$method->invoke(
+			$service,
+			$signer,
+			[
+				'isLibreSignRootCA' => true,
+			],
+		);
+
+		$this->assertTrue($signer->isLibreSignRootCA);
+	}
+
 	public function testMergePromotesLeafCertValidityDatesToSignerRoot(): void {
 		$fileData = new \stdClass();
 		$fileData->signers = [];

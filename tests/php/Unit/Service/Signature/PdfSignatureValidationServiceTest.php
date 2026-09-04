@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Signature;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Exception\UnsignedPdfException;
@@ -130,6 +131,61 @@ final class PdfSignatureValidationServiceTest extends TestCase {
 			$result[0]['signature'],
 			$result[1]['signature'],
 		);
+	}
+
+	public function testLoadsLibreSignCaCertificateFromConfiguredDirectory(): void {
+		$configPath = sys_get_temp_dir()
+			. DIRECTORY_SEPARATOR
+			. 'libresign-validator-ca-'
+			. bin2hex(random_bytes(8));
+
+		mkdir($configPath, 0700, true);
+
+		$certificate = 'TEST_CA_CERTIFICATE';
+		$caPemPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
+		file_put_contents($caPemPath, $certificate);
+
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig
+			->method('getValueString')
+			->willReturnCallback(
+				static function (
+					string $appId,
+					string $key,
+					string $default = '',
+				) use ($configPath): string {
+					if ($appId !== Application::APP_ID) {
+						return $default;
+					}
+
+					return match ($key) {
+						'config_path' => $configPath,
+						'libresign_ca_certificate' => '',
+						default => $default,
+					};
+				},
+			);
+
+		try {
+			$service = new PdfSignatureValidationService(
+				$appConfig,
+				$this->l10n,
+				$this->logger,
+			);
+
+			$property = new \ReflectionProperty(
+				PdfSignatureValidationService::class,
+				'libresignCaCertificate',
+			);
+
+			$this->assertSame(
+				$certificate,
+				$property->getValue($service),
+			);
+		} finally {
+			@unlink($caPemPath);
+			@rmdir($configPath);
+		}
 	}
 
 	public function testValidateFromStringReturnsEmptyListForUnsignedPdfException(): void {
