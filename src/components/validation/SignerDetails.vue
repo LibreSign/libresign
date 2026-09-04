@@ -11,10 +11,13 @@
 				<NcAvatar v-if="!hasValidationIssues(signer)"
 					:display-name="getName(signer)"
 					:is-no-user="true" />
-				<NcIconSvgWrapper v-else
-					:path="getIconValidityPath(signer)"
-					:class="getSignerValidationClass(signer)"
-					:size="44" />
+				<span v-else
+					class="signer-validation-icon"
+					:class="getSignerValidationClass(signer)">
+					<NcIconSvgWrapper
+						:path="getIconValidityPath(signer)"
+						:size="24" />
+				</span>
 			</template>
 			<template #subname>
 				<template v-if="!isSigned(signer)">
@@ -430,7 +433,7 @@ function getIconValidityPath(signer: SignerModel) {
 	}
 	if (signer.modification_validation?.status === MODIFICATION_VIOLATION
 		|| isRevokedBeforeSigning(signer)) {
-		return mdiCancel
+		return mdiCloseCircle
 	}
 	if (hasDocumentModificationWarning(signer)
 		|| (signer.certificate_validation !== undefined
@@ -692,6 +695,15 @@ defineExpose({
 	word-break: break-word;
 	line-height: 1.4;
 }
+.signer-validation-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	flex: 0 0 44px;
+}
+
 .icon-success {
 	color: var(--color-success);
 	:deep(svg) {
