@@ -18,9 +18,8 @@ final class ObserverProfilePolicyService {
 	}
 
 	public function isEnabled(?FileEntity $file = null): bool {
-		$snapshotValue = $this->getSnapshotValue($file);
-		if ($snapshotValue !== null) {
-			return $snapshotValue;
+		if ($file instanceof FileEntity) {
+			return $this->getSnapshotValue($file) ?? false;
 		}
 
 		return ObserverProfilePolicyValue::normalize(
