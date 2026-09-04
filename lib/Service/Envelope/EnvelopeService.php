@@ -59,11 +59,7 @@ class EnvelopeService {
 	}
 
 	/**
-	 * @param array{
-	 *     userManager?: IUser,
-	 *     policyOverrides?: array<string, mixed>,
-	 *     policyActiveContext?: array<string, mixed>|null
-	 * } $policyData
+	 * @param array $policyData
 	 */
 	public function createEnvelope(
 		string $name,
@@ -156,11 +152,7 @@ class EnvelopeService {
 	}
 
 	/**
-	 * @param array{
-	 *     userManager?: IUser,
-	 *     policyOverrides?: array<string, mixed>,
-	 *     policyActiveContext?: array<string, mixed>|null
-	 * } $policyData
+	 * @param array $policyData
 	 */
 	private function storeObserverProfilePolicySnapshot(FileEntity $envelope, array $policyData): void {
 		$user = ($policyData['userManager'] ?? null) instanceof IUser ? $policyData['userManager'] : null;
@@ -189,7 +181,7 @@ class EnvelopeService {
 	}
 
 	/**
-	 * @param array{policyActiveContext?: array<string, mixed>|null} $policyData
+	 * @param array $policyData
 	 * @return array{type: string, id: string}|null
 	 */
 	private function extractPolicyActiveContext(array $policyData): ?array {
