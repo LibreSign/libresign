@@ -406,6 +406,14 @@ class CertificateSignersMergeService {
 		if (isset($endEntityCert['covers_entire_document']) && !isset($signer->covers_entire_document)) {
 			$signer->covers_entire_document = $endEntityCert['covers_entire_document'];
 		}
+
+		if (
+			isset($endEntityCert['document_modification_state'])
+			&& !isset($signer->document_modification_state)
+		) {
+			$signer->document_modification_state
+				= $endEntityCert['document_modification_state'];
+		}
 	}
 
 	/**
