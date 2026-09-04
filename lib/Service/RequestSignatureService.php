@@ -180,7 +180,7 @@ class RequestSignatureService {
 
 		try {
 			$envelopePath = $data['settings']['path'] ?? null;
-			$envelope = $this->envelopeService->createEnvelope($envelopeName, $userId, $filesCount, $envelopePath);
+			$envelope = $this->envelopeService->createEnvelope($envelopeName, $userId, $filesCount, $envelopePath, $data);
 
 			$envelopeFolder = $this->envelopeService->getEnvelopeFolder($envelope);
 			$envelopeSettings = array_merge($data['settings'] ?? [], [

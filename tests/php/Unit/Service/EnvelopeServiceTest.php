@@ -19,6 +19,7 @@ use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
+use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\Files\Folder;
 use OCP\IAppConfig;
@@ -33,6 +34,7 @@ final class EnvelopeServiceTest extends TestCase {
 	private IAppConfig $appConfig;
 	private FolderService&MockObject $folderService;
 	private EnvelopeService $service;
+	private mixed $observerPolicyEffectiveValue = false;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -45,6 +47,13 @@ final class EnvelopeServiceTest extends TestCase {
 		$this->policyService->method('resolve')
 			->with(EnvelopePolicy::KEY)
 			->willReturn($resolved);
+		$this->policyService->method('resolveForUser')
+			->willReturnCallback(function (): ResolvedPolicy {
+				return (new ResolvedPolicy())
+					->setPolicyKey(ObserverProfilePolicy::KEY)
+					->setEffectiveValue($this->observerPolicyEffectiveValue)
+					->setSourceScope('system');
+			});
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->folderService = $this->createMock(FolderService::class);
 
@@ -227,7 +236,8 @@ final class EnvelopeServiceTest extends TestCase {
 			$this->assertSame($expectedNodeId, $envelope->getNodeId());
 			$this->assertSame($name, $envelope->getName());
 			$this->assertSame($userId, $envelope->getUserId());
-			$this->assertSame(['filesCount' => $filesCount], $envelope->getMetadata());
+			$this->assertSame($filesCount, $envelope->getMetadata()['filesCount']);
+			$this->assertObserverPolicySnapshot($envelope, false);
 		} else {
 			$mockDefaultFolder = $this->createMock(Folder::class);
 			$mockEnvelopeFolder = $this->createMock(Folder::class);
@@ -251,6 +261,8 @@ final class EnvelopeServiceTest extends TestCase {
 			$this->assertStringContainsString($envelope->getUuid(), $capturedFolderName);
 			$this->assertSame($expectedNodeId, $envelope->getNodeId());
 			$this->assertSame($name, $envelope->getName());
+			$this->assertSame($filesCount, $envelope->getMetadata()['filesCount']);
+			$this->assertObserverPolicySnapshot($envelope, false);
 		}
 
 		$this->assertTrue($envelope->isEnvelope());
@@ -310,6 +322,29 @@ final class EnvelopeServiceTest extends TestCase {
 			->willThrowException(new LibresignException('Folder not empty'));
 
 		$this->service->createEnvelope('Test', 'user', 1, '/Documents/Existing');
+	}
+
+	public function testCreateEnvelopeStoresObserverPolicySnapshot(): void {
+		$this->observerPolicyEffectiveValue = true;
+		$this->fileMapper->method('insert')->willReturnArgument(0);
+
+		$mockFolder = $this->createMock(Folder::class);
+		$mockEnvelopeFolder = $this->createMock(Folder::class);
+		$mockEnvelopeFolder->method('getId')->willReturn(999);
+		$mockFolder->method('newFolder')->willReturn($mockEnvelopeFolder);
+		$this->folderService->method('getFolder')->willReturn($mockFolder);
+
+		$envelope = $this->service->createEnvelope('Contract Package', 'testuser', 2);
+
+		$this->assertSame(2, $envelope->getMetadata()['filesCount']);
+		$this->assertObserverPolicySnapshot($envelope, true);
+	}
+
+	private function assertObserverPolicySnapshot(FileEntity $envelope, bool $enabled): void {
+		$snapshot = $envelope->getMetadata()['policy_snapshot'][ObserverProfilePolicy::KEY] ?? null;
+		$this->assertIsArray($snapshot);
+		$this->assertSame($enabled, $snapshot['effectiveValue']);
+		$this->assertSame('system', $snapshot['sourceScope']);
 	}
 
 	#[DataProvider('envelopeConstraintsProvider')]
