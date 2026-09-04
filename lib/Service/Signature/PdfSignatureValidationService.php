@@ -27,6 +27,10 @@ use Psr\Log\LoggerInterface;
  * Supports custom trusted roots (e.g., LibreSign CA) to recognize
  * certificates without requiring system-level CA registration.
  */
+/**
+ * @psalm-import-type LibresignNativePdfValidationResult from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignMappedPdfValidationResult from \OCA\Libresign\ResponseDefinitions
+ */
 class PdfSignatureValidationService {
 	private PdfSignatureValidator $validator;
 	private string $libresignCaCertificate = '';
@@ -76,17 +80,7 @@ class PdfSignatureValidationService {
 	 * Validate PDF signatures from file resource.
 	 *
 	 * @param resource $resource PDF file resource
-	 * @return list<array{
-	 *     signature: ExtractedSignature,
-	 *     certificates: list<string>,
-	 *     timestamp: ?TimestampToken,
-	 *     signatureValidation: array,
-	 *     certificateValidation: array,
-	 *     raw: array{
-	 *         signature: ValidationResult,
-	 *         certificate: ValidationResult,
-	 *     },
-	 * }>
+	 * @return list<LibresignMappedPdfValidationResult>
 	 */
 	public function validateFromResource($resource): array {
 		try {
@@ -102,17 +96,7 @@ class PdfSignatureValidationService {
 	 * Validate PDF signatures from binary content.
 	 *
 	 * @param string $pdfContent Binary PDF content
-	 * @return list<array{
-	 *     signature: ExtractedSignature,
-	 *     certificates: list<string>,
-	 *     timestamp: ?TimestampToken,
-	 *     signatureValidation: array,
-	 *     certificateValidation: array,
-	 *     raw: array{
-	 *         signature: ValidationResult,
-	 *         certificate: ValidationResult,
-	 *     },
-	 * }>
+	 * @return list<LibresignMappedPdfValidationResult>
 	 */
 	public function validateFromString(string $pdfContent): array {
 		try {
@@ -126,26 +110,14 @@ class PdfSignatureValidationService {
 
 	/**
 	 * @param resource $resource
-	 * @return list<array{
-	 *     signature: ExtractedSignature,
-	 *     signatureValidation: ValidationResult,
-	 *     certificates: list<string>,
-	 *     certificateValidation: ValidationResult,
-	 *     timestamp: ?TimestampToken,
-	 * }>
+	 * @return list<LibresignNativePdfValidationResult>
 	 */
 	protected function validateNativeFromResource($resource): array {
 		return $this->validator->validateFromResource($resource);
 	}
 
 	/**
-	 * @return list<array{
-	 *     signature: ExtractedSignature,
-	 *     signatureValidation: ValidationResult,
-	 *     certificates: list<string>,
-	 *     certificateValidation: ValidationResult,
-	 *     timestamp: ?TimestampToken,
-	 * }>
+	 * @return list<LibresignNativePdfValidationResult>
 	 */
 	protected function validateNativeFromString(string $pdfContent): array {
 		return $this->validator->validateFromString($pdfContent);
@@ -154,24 +126,8 @@ class PdfSignatureValidationService {
 	/**
 	 * Map validation results from PdfSignatureValidator to LibreSign format.
 	 *
-	 * @param list<array{
-	 *     signature: ExtractedSignature,
-	 *     signatureValidation: ValidationResult,
-	 *     certificates: list<string>,
-	 *     certificateValidation: ValidationResult,
-	 *     timestamp: ?TimestampToken,
-	 * }> $results Results from PdfSignatureValidator
-	 * @return list<array{
-	 *     signature: ExtractedSignature,
-	 *     certificates: list<string>,
-	 *     timestamp: ?TimestampToken,
-	 *     signatureValidation: array,
-	 *     certificateValidation: array,
-	 *     raw: array{
-	 *         signature: ValidationResult,
-	 *         certificate: ValidationResult,
-	 *     },
-	 * }>
+	 * @param list<LibresignNativePdfValidationResult> $results Results from PdfSignatureValidator
+	 * @return list<LibresignMappedPdfValidationResult>
 	 */
 	private function mapValidationResults(array $results): array {
 		$mapped = [];
