@@ -646,19 +646,35 @@ defineExpose({
 		align-items: flex-start;
 	}
 
-	:deep(.list-item-content) {
+	:deep(.list-item__anchor) {
+		height: auto;
+		min-height: var(--default-clickable-area);
+		align-items: flex-start;
+	}
+
+	:deep(.list-item-content),
+	:deep(.list-item-content__main) {
 		min-width: 0;
-		overflow: visible;
+		height: auto;
+		overflow: visible !important;
 	}
 
 	:deep(.list-item-content__name),
-	:deep(.list-item-content__subname) {
+	:deep(.list-item-content__subname),
+	:deep(.list-item-content__name > *),
+	:deep(.list-item-content__subname > *) {
 		display: block;
+		width: 100%;
+		max-width: none;
+		height: auto;
+		max-height: none;
 		white-space: normal !important;
 		overflow: visible !important;
 		text-overflow: clip !important;
 		overflow-wrap: anywhere;
 		word-break: break-word;
+		-webkit-line-clamp: unset !important;
+		line-clamp: unset !important;
 		line-height: 1.4;
 	}
 }
