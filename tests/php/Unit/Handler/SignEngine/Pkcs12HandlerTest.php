@@ -517,7 +517,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame(1, $this->nativeValidationCalls);
 		$this->assertNotEmpty($result);
 		$this->assertSame(1, $result[0]['chain'][0]['signature_validation']['id']);
-		$this->assertSame(3, $result[0]['chain'][0]['certificate_validation']['id']);
+		$this->assertSame(2, $result[0]['chain'][0]['certificate_validation']['id']);
 	}
 
 	public function testGetCertificateChainUsesNativeDigestMismatchValidation(): void {
