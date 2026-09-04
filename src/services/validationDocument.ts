@@ -85,6 +85,7 @@ function isNullableString(value: unknown): value is string | null {
 function isValidationStatus(value: unknown): value is ValidationStatus {
 	const normalizedValue = toInteger(value)
 	return normalizedValue === FILE_STATUS.DRAFT
+		|| normalizedValue === FILE_STATUS.NOT_LIBRESIGN_FILE
 		|| normalizedValue === FILE_STATUS.ABLE_TO_SIGN
 		|| normalizedValue === FILE_STATUS.PARTIAL_SIGNED
 		|| normalizedValue === FILE_STATUS.SIGNED
@@ -214,8 +215,9 @@ function isValidatedChildFileRecord(value: unknown): value is ValidatedChildFile
 		&& toInteger(value.nodeId) !== null
 		&& toInteger(value.size) !== null
 		&& Array.isArray(value.signers)
-		&& isString(value.file)
-		&& isValidationMetadata(value.metadata)
+		&& isOptionalField(value, 'file', isString)
+		&& (isValidationMetadata(value.metadata)
+			|| (toInteger(value.status) === FILE_STATUS.NOT_LIBRESIGN_FILE && Array.isArray(value.metadata) && value.metadata.length === 0))
 }
 
 function isValidationDocumentRecord(data: unknown): data is ValidationFileRecord {
@@ -251,7 +253,9 @@ function isValidationDocumentRecord(data: unknown): data is ValidationFileRecord
 		return false
 	}
 
-	if (hasOwn(data, 'metadata') && !isValidationMetadata(data.metadata)) {
+	if (hasOwn(data, 'metadata')
+		&& !isValidationMetadata(data.metadata)
+		&& !(toInteger(data.status) === FILE_STATUS.NOT_LIBRESIGN_FILE && Array.isArray(data.metadata) && data.metadata.length === 0)) {
 		return false
 	}
 
@@ -306,7 +310,10 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 		const childNodeId = toInteger(file.nodeId)
 		const childSize = toInteger(file.size)
 		const childStatus = toInteger(file.status)
-		const metadataPages = toInteger(file.metadata.p)
+		const metadata = isValidationMetadata(file.metadata)
+			? file.metadata
+			: DEFAULT_VALIDATION_METADATA
+		const metadataPages = toInteger(metadata.p)
 
 		if (
 			childId === null
@@ -325,7 +332,7 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 			size: childSize,
 			status: childStatus,
 			metadata: {
-				...file.metadata,
+				...metadata,
 				p: metadataPages,
 			},
 		}

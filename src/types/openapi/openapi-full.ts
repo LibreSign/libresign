@@ -2144,7 +2144,7 @@ export type components = {
             size: number;
             pdfVersion?: string;
             signers: components["schemas"]["SignerSummary"][];
-            file: string;
+            file?: string;
             metadata: components["schemas"]["ValidateMetadata"];
         };
         ValidatedFile: {
