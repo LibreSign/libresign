@@ -15,12 +15,12 @@
 			:aria-label-combobox="t('libresign', 'Select authorized groups that can request to sign documents. Admin group is the default group and don\'t need to be defined.')"
 			:close-on-select="false"
 			:disabled="loadingGroups"
-			:loading="loadingGroups"
+			:loading="isSearching"
 			:multiple="true"
 			:options="groups"
 			:searchable="true"
 			:show-no-options="false"
-			@search-change="searchGroup"
+			@search="searchGroup"
 			@update:modelValue="saveGroups" />
 	</NcSettingsSection>
 </template>
@@ -51,6 +51,7 @@ type GroupRow = {
 const groupsSelected = ref<Array<GroupRow | string>>([])
 const groups = ref<GroupRow[]>([])
 const loadingGroups = ref(false)
+const isSearching = ref(false)
 const idKey = ref(0)
 
 async function getData() {
@@ -91,19 +92,21 @@ async function saveGroups(value: Array<GroupRow | string>) {
 }
 
 async function searchGroup(query: string) {
-	loadingGroups.value = true
-	await axios.get(generateOcsUrl('cloud/groups/details'), {
-		params: {
-			search: query,
-			limit: 20,
-			offset: 0,
-		},
-	})
-		.then(({ data }) => {
-			groups.value = data.ocs.data.groups.sort((a: GroupRow, b: GroupRow) => a.displayname.localeCompare(b.displayname))
+	isSearching.value = true
+	try {
+		const { data } = await axios.get(generateOcsUrl('cloud/groups/details'), {
+			params: {
+				search: query,
+				limit: 20,
+				offset: 0,
+			},
 		})
-		.catch((error) => logger.debug('Could not search by groups', { error }))
-	loadingGroups.value = false
+		groups.value = data.ocs.data.groups.sort((a: GroupRow, b: GroupRow) => a.displayname.localeCompare(b.displayname))
+	} catch (error) {
+		logger.debug('Could not search by groups', { error })
+	} finally {
+		isSearching.value = false
+	}
 }
 
 onMounted(async () => {
@@ -115,6 +118,7 @@ defineExpose({
 	groupsSelected,
 	groups,
 	loadingGroups,
+	isSearching,
 	idKey,
 	getData,
 	saveGroups,
