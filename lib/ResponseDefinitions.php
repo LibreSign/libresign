@@ -225,6 +225,7 @@ namespace OCA\Libresign;
  *     sign_date?: ?string,
  *     sign_request_uuid?: string,
  *     hash_algorithm?: string,
+ *     covers_entire_document?: bool,
  *     me: bool,
  *     signingOrder?: non-negative-int,
  *     visibleElements: LibresignVisibleElement[],

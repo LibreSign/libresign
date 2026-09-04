@@ -397,6 +397,9 @@ class FileService {
 		}
 
 		if (!$this->file instanceof File) {
+			if ($this->certData) {
+				$this->signersLoader->loadSignersFromCertData($this->fileData, $this->certData, $this->options->getHost());
+			}
 			return;
 		}
 

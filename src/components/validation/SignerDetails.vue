@@ -21,7 +21,7 @@
 					<strong>{{ t('libresign', 'Status:') }}</strong>
 					<span>{{ t('libresign', 'Observing') }}</span>
 				</template>
-				<template v-else-if="!signer.signed">
+				<template v-else-if="!isSigned(signer)">
 					<strong>{{ t('libresign', 'Status:') }}</strong>
 					<span>{{ t('libresign', 'Not signed yet') }}</span>
 				</template>
@@ -34,7 +34,7 @@
 				</template>
 			</template>
 			<template #extra-actions>
-				<NcButton v-if="signer.signed" variant="tertiary"
+				<NcButton v-if="isSigned(signer)" variant="tertiary"
 					:aria-label="toggleDetailsAriaLabel"
 					@click.stop="toggleOpen">
 					<template #icon>
@@ -100,6 +100,14 @@
 				</template>
 				<template #name>
 					{{ getSignatureValidationMessage(signer) }}
+				</template>
+			</NcListItem>
+			<NcListItem v-if="signer.covers_entire_document === false" class="extra-chain" compact>
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiAlertCircle" class="icon-warning" />
+				</template>
+				<template #name>
+					{{ getSignatureCoverageMessage() }}
 				</template>
 			</NcListItem>
 			<NcListItem v-if="signer.certificate_validation" class="extra-chain" compact>
@@ -319,6 +327,7 @@ type SignerModel = {
 	signed?: string | null
 	signature_validation?: ValidationState
 	certificate_validation?: ValidationState
+	covers_entire_document?: boolean
 	crl_validation?: string
 	crl_revoked_at?: string
 	docmdp?: SignerDocMdp
@@ -373,10 +382,14 @@ const crlStatusMap: Record<string, CrlStatusMeta> = {
 }
 
 function toggleOpen() {
-	if (!props.signer?.signed) {
+	if (!isSigned(props.signer)) {
 		return
 	}
 	isOpen.value = !isOpen.value
+}
+
+function isSigned(signer: SignerModel): boolean {
+	return !!signer.signed || signer.status === 2
 }
 
 function getName(signer: SignerModel) {
@@ -443,6 +456,7 @@ function hasValidationStatus(signer: SignerModel) {
 	}
 
 	return !!(signer.signature_validation || signer.certificate_validation || signer.crl_validation
+		|| signer.covers_entire_document === false
 		|| (signer.valid_from && signer.valid_to && signer.signed))
 }
 
@@ -453,6 +467,11 @@ function getSignatureValidationMessage(signer: SignerModel) {
 	}
 	// TRANSLATORS Fallback validation message when signature integrity check fails and backend does not provide custom detail.
 	return signer.signature_validation?.message || t('libresign', 'Document integrity check failed')
+}
+
+function getSignatureCoverageMessage() {
+	// TRANSLATORS Warning shown when extra bytes exist outside the PDF signature ByteRange.
+	return t('libresign', 'The signature does not cover the entire document')
 }
 
 function getCertificateTrustMessage(signer: SignerModel) {
@@ -575,6 +594,7 @@ defineExpose({
 	crlStatusMap,
 	toggleDetailsAriaLabel,
 	toggleOpen,
+	isSigned,
 	getName,
 	hasValidationIssues,
 	isRevokedStatus,
@@ -583,6 +603,7 @@ defineExpose({
 	getValidityStatus,
 	hasValidationStatus,
 	getSignatureValidationMessage,
+	getSignatureCoverageMessage,
 	getCertificateTrustMessage,
 	getValidityStatusAtSigning,
 	getCrlValidationIconPath,

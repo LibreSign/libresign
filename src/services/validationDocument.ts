@@ -202,6 +202,47 @@ function isSignerDetailRecord(value: unknown): value is SignerDetailRecord {
 		&& isOptionalField(value, 'isLibreSignRootCA', fieldValue => typeof fieldValue === 'boolean')
 }
 
+function isCertificateSignerRecord(value: unknown): value is UnknownRecord {
+	if (!isRecord(value)) {
+		return false
+	}
+
+	return isString(value.displayName)
+		&& isSignerStatus(value.status)
+		&& isString(value.statusText)
+		&& isOptionalField(value, 'signed', isNullableString)
+		&& Array.isArray(value.chain)
+		&& isOptionalField(value, 'signature_validation', isValidationStatusInfo)
+		&& isOptionalField(value, 'certificate_validation', isValidationStatusInfo)
+}
+
+function normalizeCertificateSigner(value: UnknownRecord): SignerDetailRecord {
+	return {
+		...value,
+		signRequestId: 0,
+		displayName: value.displayName as string,
+		signed: isNullableString(value.signed) ? value.signed : null,
+		status: value.status as SignerDetailRecord['status'],
+		statusText: value.statusText as string,
+		description: null,
+		request_sign_date: '',
+		me: false,
+		visibleElements: [],
+	}
+}
+
+function normalizeSignerDetail(value: unknown): SignerDetailRecord | null {
+	if (isSignerDetailRecord(value)) {
+		return value
+	}
+
+	if (isCertificateSignerRecord(value)) {
+		return normalizeCertificateSigner(value)
+	}
+
+	return null
+}
+
 function isValidatedChildFileRecord(value: unknown): value is ValidatedChildFileRecord {
 	if (!isRecord(value)) {
 		return false
@@ -249,7 +290,7 @@ function isValidationDocumentRecord(data: unknown): data is ValidationFileRecord
 		return false
 	}
 
-	if (hasOwn(data, 'signers') && (!Array.isArray(data.signers) || !data.signers.every(isSignerDetailRecord))) {
+	if (hasOwn(data, 'signers') && (!Array.isArray(data.signers) || !data.signers.every(signer => normalizeSignerDetail(signer) !== null))) {
 		return false
 	}
 
@@ -359,20 +400,7 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 		? data.settings
 		: DEFAULT_VALIDATION_SETTINGS
 
-	const signers = (Array.isArray(data.signers) ? data.signers : []).map((signer) => {
-		const signRequestId = toInteger(signer.signRequestId)
-		const status = toInteger(signer.status)
-
-		if (signRequestId === null || status === null || !isSignerStatus(status)) {
-			return null
-		}
-
-		return {
-			...signer,
-			signRequestId,
-			status,
-		}
-	})
+	const signers = (Array.isArray(data.signers) ? data.signers : []).map(normalizeSignerDetail)
 
 	if (signers.some(signer => signer === null)) {
 		return null

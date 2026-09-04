@@ -2398,6 +2398,9 @@
                             "hash_algorithm": {
                                 "type": "string"
                             },
+                            "covers_entire_document": {
+                                "type": "boolean"
+                            },
                             "me": {
                                 "type": "boolean"
                             },
