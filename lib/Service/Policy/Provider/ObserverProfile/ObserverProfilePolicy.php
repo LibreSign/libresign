@@ -37,7 +37,7 @@ final class ObserverProfilePolicy implements IPolicyDefinitionProvider {
 					false,
 					true,
 				],
-				normalizer: static fn (mixed $rawValue): bool => filter_var($rawValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
+				normalizer: ObserverProfilePolicyValue::normalize(...),
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 				supportedScopes: [
 					PolicySpec::SCOPE_SYSTEM,

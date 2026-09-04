@@ -68,3 +68,32 @@ Feature: sign/observer_participant
     And the response should be a JSON array with the following mandatory values
       | key                   | value                                  |
       | (jq).ocs.data.message | Observer participants are not enabled  |
+
+  Scenario: Existing observer requests keep the policy snapshot after the policy is disabled
+    Given as user "admin"
+    And user "signer1" exists
+    And user "observer1" exists
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/enable_observer_profile"
+      | value | true |
+    And the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
+      | name | Existing observer document |
+    Then the response should have a status code 200
+    And fetch field "(FILE_UUID)ocs.data.uuid" from previous JSON response
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/enable_observer_profile"
+      | value | false |
+    Then the response should have a status code 200
+    When sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
+      | uuid | <FILE_UUID> |
+      | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
+    Then the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
+      | name | New observer document |
+    Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key                   | value                                  |
+      | (jq).ocs.data.message | Observer participants are not enabled  |
