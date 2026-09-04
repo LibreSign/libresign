@@ -415,34 +415,41 @@ function isRevokedBeforeSigning(signer: SignerModel) {
 }
 
 function hasValidationIssues(signer: SignerModel) {
-	return signer.signature_validation?.id !== 1
-		|| signer.certificate_validation?.id !== 1
+	return (signer.signature_validation !== undefined
+			&& signer.signature_validation.id !== 1)
+		|| (signer.certificate_validation !== undefined
+			&& signer.certificate_validation.id !== 1)
 		|| hasDocumentModificationWarning(signer)
 		|| isRevokedBeforeSigning(signer)
 }
 
 function getIconValidityPath(signer: SignerModel) {
-	if (signer.signature_validation?.id !== 1) {
+	if (signer.signature_validation !== undefined
+		&& signer.signature_validation.id !== 1) {
 		return mdiShieldAlert
 	}
-	if (signer.modification_validation?.status === MODIFICATION_VIOLATION) {
+	if (signer.modification_validation?.status === MODIFICATION_VIOLATION
+		|| isRevokedBeforeSigning(signer)) {
 		return mdiCancel
 	}
 	if (hasDocumentModificationWarning(signer)
-		|| signer.certificate_validation?.id !== 1) {
+		|| (signer.certificate_validation !== undefined
+			&& signer.certificate_validation.id !== 1)) {
 		return mdiAlertCircle
 	}
 	return mdiCheckCircle
 }
 
 function getSignerValidationClass(signer: SignerModel) {
-	if (signer.signature_validation?.id !== 1
+	if ((signer.signature_validation !== undefined
+			&& signer.signature_validation.id !== 1)
 		|| signer.modification_validation?.status === MODIFICATION_VIOLATION
 		|| isRevokedBeforeSigning(signer)) {
 		return 'icon-error'
 	}
 	if (hasDocumentModificationWarning(signer)
-		|| signer.certificate_validation?.id !== 1) {
+		|| (signer.certificate_validation !== undefined
+			&& signer.certificate_validation.id !== 1)) {
 		return 'icon-warning'
 	}
 	return 'icon-success'
