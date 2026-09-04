@@ -524,6 +524,50 @@ describe('IdentifySigner rules', () => {
 			await expect(wrapper.vm.saveSigner()).resolves.not.toThrow()
 			expect(showError).toHaveBeenCalled()
 		})
+
+		it('shows the API error from a 422 OCS response and keeps the modal open', async () => {
+			const { showError } = await import('@nextcloud/dialogs')
+			filesStore.saveOrUpdateSignatureRequest.mockRejectedValue({
+				response: {
+					status: 422,
+					data: {
+						ocs: {
+							data: {
+								message: 'Observer participants are not enabled',
+							},
+						},
+					},
+				},
+			})
+
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = 'observer@example.com'
+			wrapper.vm.displayName = 'Observer'
+
+			await wrapper.vm.saveSigner()
+
+			expect(showError).toHaveBeenCalledWith('Observer participants are not enabled')
+			expect(filesStore.disableIdentifySigner).not.toHaveBeenCalled()
+			expect(wrapper.vm.identify).toBe('observer@example.com')
+		})
+
+		it('shows the API error from a failed save response and keeps the modal open', async () => {
+			const { showError } = await import('@nextcloud/dialogs')
+			filesStore.saveOrUpdateSignatureRequest.mockResolvedValue({
+				success: false,
+				message: 'Observer participants are not enabled',
+			})
+
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = 'observer@example.com'
+			wrapper.vm.displayName = 'Observer'
+
+			await wrapper.vm.saveSigner()
+
+			expect(showError).toHaveBeenCalledWith('Observer participants are not enabled')
+			expect(filesStore.disableIdentifySigner).not.toHaveBeenCalled()
+			expect(wrapper.vm.identify).toBe('observer@example.com')
+		})
 	})
 
 	describe('initialization from edit data', () => {

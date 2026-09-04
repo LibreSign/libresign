@@ -289,6 +289,68 @@ function getSignerToEditIdentify(signerToEdit: SignerToEdit | undefined): string
 	return signerToEdit.identifyMethods?.[0]?.value ?? ''
 }
 
+type FailedSaveResponse = {
+	success: false
+	message?: string
+	error?: unknown
+}
+
+function isFailedSaveResponse(response: unknown): response is FailedSaveResponse {
+	return typeof response === 'object'
+		&& response !== null
+		&& 'success' in response
+		&& response.success === false
+}
+
+function getOcsErrorMessage(error: unknown): string | null {
+	if (typeof error !== 'object' || error === null || !('response' in error)) {
+		return null
+	}
+
+	const response = error.response
+	if (typeof response !== 'object' || response === null || !('data' in response)) {
+		return null
+	}
+
+	const data = response.data
+	if (typeof data !== 'object' || data === null || !('ocs' in data)) {
+		return null
+	}
+
+	const ocs = data.ocs
+	if (typeof ocs !== 'object' || ocs === null || !('data' in ocs)) {
+		return null
+	}
+
+	const ocsData = ocs.data
+	if (typeof ocsData !== 'object' || ocsData === null) {
+		return null
+	}
+
+	if ('message' in ocsData && typeof ocsData.message === 'string' && ocsData.message.length > 0) {
+		return ocsData.message
+	}
+
+	if ('errors' in ocsData && Array.isArray(ocsData.errors) && ocsData.errors.length > 0) {
+		const firstError = ocsData.errors[0]
+		if (typeof firstError === 'object' && firstError !== null && 'message' in firstError && typeof firstError.message === 'string') {
+			return firstError.message
+		}
+	}
+
+	return null
+}
+
+function getParticipantSaveErrorMessage(error: unknown): string {
+	// TRANSLATORS Error shown when signer save/update operation fails.
+	const fallbackMessage = t('libresign', 'Failed to save or update signature request')
+	if (isFailedSaveResponse(error)) {
+		return getOcsErrorMessage(error.error) ?? (error.message || fallbackMessage)
+	}
+
+	return getOcsErrorMessage(error) ?? fallbackMessage
+}
+
 async function saveSigner() {
 	if (!identifyMethod.value || !identify.value) {
 		return
@@ -317,14 +379,12 @@ async function saveSigner() {
 
 	try {
 		const response = await filesStore.saveOrUpdateSignatureRequest({ signers })
-		if ('success' in response && response.success === false) {
-			// TRANSLATORS Error shown when signer save/update operation fails.
-			showError(response.message ?? t('libresign', 'Failed to save or update signature request'))
+		if (isFailedSaveResponse(response)) {
+			showError(getParticipantSaveErrorMessage(response))
 			return
 		}
-	} catch {
-		// TRANSLATORS Error shown when signer save/update operation fails.
-		showError(t('libresign', 'Failed to save or update signature request'))
+	} catch (error) {
+		showError(getParticipantSaveErrorMessage(error))
 		return
 	}
 
