@@ -39,14 +39,41 @@ final class ObserverProfilePolicyServiceTest extends TestCase {
 		$this->assertTrue($this->getService()->isEnabled($file));
 	}
 
-	public function testFallsBackToLivePolicyWithoutSnapshot(): void {
+	public function testFallsBackToLivePolicyWhenNoFileIsProvided(): void {
 		$this->policyService
 			->expects($this->once())
 			->method('resolve')
 			->with(ObserverProfilePolicy::KEY)
-			->willReturn((new ResolvedPolicy())->setEffectiveValue(false));
+			->willReturn((new ResolvedPolicy())->setEffectiveValue(true));
+
+		$this->assertTrue($this->getService()->isEnabled());
+	}
+
+	public function testExistingFileWithoutSnapshotDoesNotUseLivePolicy(): void {
+		$this->policyService
+			->method('resolve')
+			->with(ObserverProfilePolicy::KEY)
+			->willReturn((new ResolvedPolicy())->setEffectiveValue(true));
 
 		$this->assertFalse($this->getService()->isEnabled(new File()));
+	}
+
+	public function testExistingFileSnapshotWithoutObserverPolicyDoesNotUseLivePolicy(): void {
+		$file = new File();
+		$file->setMetadata([
+			'policy_snapshot' => [
+				'signature_flow' => [
+					'effectiveValue' => 'parallel',
+					'sourceScope' => 'system',
+				],
+			],
+		]);
+		$this->policyService
+			->method('resolve')
+			->with(ObserverProfilePolicy::KEY)
+			->willReturn((new ResolvedPolicy())->setEffectiveValue(true));
+
+		$this->assertFalse($this->getService()->isEnabled($file));
 	}
 
 	private function getService(): ObserverProfilePolicyService {
