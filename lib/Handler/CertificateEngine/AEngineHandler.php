@@ -831,8 +831,8 @@ abstract class AEngineHandler implements IEngineHandler {
 		$issuer = \OCA\Libresign\Vendor\phpseclib4\File\X509::load($caCert);
 		$caPrivateKey = \OCA\Libresign\Vendor\phpseclib4\Crypt\PublicKeyLoader::load($caKey);
 
-		if (!$caPrivateKey instanceof \OCA\Libresign\Vendor\phpseclib3\Crypt\Common\PrivateKey) {
-			$this->logger->error('Loaded key is not a private key', ['keyType' => get_class($caPrivateKey)]);
+		if (!$caPrivateKey instanceof \OCA\Libresign\Vendor\phpseclib4\Crypt\Common\PrivateKey) {
+			$this->logger->error('Loaded key is not a private key', ['keyType' => $caPrivateKey::class]);
 			throw new \RuntimeException('Loaded key is not a private key');
 		}
 
@@ -855,55 +855,23 @@ abstract class AEngineHandler implements IEngineHandler {
 			);
 		}
 
-		if (!empty($revokedCertificates)) {
-			$savedCrl = $crlToSign->saveCRL($initialCrl);
-			if ($savedCrl === false) {
-				$this->logger->error('Failed to save initial CRL structure');
-				throw new \RuntimeException('Failed to save initial CRL structure');
-			}
-
-			$crlToSign->loadCRL($savedCrl);
-
-			$dateFormat = 'D, d M Y H:i:s O';
-			foreach ($revokedCertificates as $cert) {
-				$serialNumber = $cert->getSerialNumber();
-				$normalizedSerial = ltrim($serialNumber, '0') ?: '0';
-				$crlToSign->revoke(
-					new \OCA\Libresign\Vendor\phpseclib3\Math\BigInteger($normalizedSerial, 16),
-					$cert->getRevokedAt()->format($dateFormat)
-				);
-			}
-
-			$signedCrl = $crlToSign->signCRL($issuer, $crlToSign);
-		} else {
-			$signedCrl = $initialCrl;
-		}
-
-		if ($signedCrl === false) {
-			$this->logger->error('Failed to sign CRL', ['crlNumber' => $crlNumber]);
+		$crl->identifySignatureAlgorithm($privateKey);
+		$signature = $privateKey->sign($crl);
+		if (!is_string($signature)) {
 			throw new \RuntimeException('Failed to sign CRL');
 		}
 		$crl->setSignature($signature);
 		return $crl->toString(['binary' => true]);
 	}
 
-	private function saveCrlToDer(array $signedCrl, string $configPath): string {
-		$crlDerPath = $configPath . DIRECTORY_SEPARATOR . 'crl.der';
-		$crlToSign = new \OCA\Libresign\Vendor\phpseclib3\File\X509();
+	private function createRevokedCertificateSerial(string $serialNumber): \OCA\Libresign\Vendor\phpseclib4\Math\BigInteger {
+		$normalizedSerial = ltrim($serialNumber, '0') ?: '0';
 
-		$crlDerData = $crlToSign->saveCRL($signedCrl, \OCA\Libresign\Vendor\phpseclib3\File\X509::FORMAT_DER);
-
-		if ($crlDerData === false) {
-			$this->logger->error('Failed to save CRL in DER format');
-			throw new \RuntimeException('Failed to save CRL in DER format');
+		if (ctype_digit($normalizedSerial)) {
+			return new \OCA\Libresign\Vendor\phpseclib4\Math\BigInteger($normalizedSerial);
 		}
 
-		if (file_put_contents($crlDerPath, $crlDerData) === false) {
-			$this->logger->error('Failed to write CRL DER file', ['path' => $crlDerPath]);
-			throw new \RuntimeException('Failed to write CRL DER file');
-		}
-
-		return $crlDerData;
+		return new \OCA\Libresign\Vendor\phpseclib4\Math\BigInteger($normalizedSerial, 16);
 	}
 
 	#[\Override]
