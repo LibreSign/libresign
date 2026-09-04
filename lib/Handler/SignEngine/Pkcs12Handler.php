@@ -210,12 +210,8 @@ class Pkcs12Handler extends SignEngineHandler {
 			'policy' => $timestamp->policyOid,
 			'serialNumber' => $timestamp->serialNumber,
 			'cnHints' => $timestamp->certificateSubject,
+			'tsaName' => $timestamp->certificateSubject['commonName'] ?? null,
 		];
-
-		$commonName = $timestamp->certificateSubject['commonName'] ?? null;
-		if (is_string($commonName) && $commonName !== '') {
-			$result['tsaName'] = $commonName;
-		}
 
 		return array_filter(
 			$result,
