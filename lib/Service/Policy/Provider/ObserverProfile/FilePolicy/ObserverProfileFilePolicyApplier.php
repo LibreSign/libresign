@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy\Provider\ObserverProfile\FilePolicy;
 
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Service\Policy\AbstractFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
@@ -34,12 +35,30 @@ final class ObserverProfileFilePolicyApplier extends AbstractFilePolicyApplier {
 
 	#[\Override]
 	public function sync(FileEntity $file, array $data): void {
-		// The value is frozen when the request is created.
+		if (!$this->requestContainsObserver($data)) {
+			return;
+		}
+
+		if ($this->getStoredSnapshotValue($file) === true) {
+			return;
+		}
+
+		$user = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
+		$resolvedPolicy = $this->policyService->resolveForUser(ObserverProfilePolicy::KEY, $user, []);
+		if (!ObserverProfilePolicyValue::normalize($resolvedPolicy->getEffectiveValue())) {
+			return;
+		}
+
+		$metadataBeforeUpdate = $file->getMetadata() ?? [];
+		$this->storeObserverProfilePolicySnapshot($file, $resolvedPolicy);
+		if (($file->getMetadata() ?? []) !== $metadataBeforeUpdate) {
+			$this->fileService->update($file);
+		}
 	}
 
 	#[\Override]
 	public function supportsCoreFlowSync(): bool {
-		return false;
+		return true;
 	}
 
 	/** @param array<string, mixed> $requestOverrides */
@@ -53,5 +72,41 @@ final class ObserverProfileFilePolicyApplier extends AbstractFilePolicyApplier {
 			$resolvedPolicy,
 			ObserverProfilePolicyValue::normalize($resolvedPolicy->getEffectiveValue()),
 		);
+	}
+
+	/** @param array<string, mixed> $data */
+	private function requestContainsObserver(array $data): bool {
+		$signers = $data['signers'] ?? null;
+		if (!is_array($signers)) {
+			return false;
+		}
+
+		foreach ($signers as $signer) {
+			if (!is_array($signer)) {
+				continue;
+			}
+
+			$roleValue = $signer['participantRole'] ?? ParticipantRole::SIGNER->value;
+			if ($roleValue === ParticipantRole::OBSERVER->value) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private function getStoredSnapshotValue(FileEntity $file): ?bool {
+		$metadata = $file->getMetadata() ?? [];
+		$policySnapshot = $metadata['policy_snapshot'] ?? null;
+		if (!is_array($policySnapshot)) {
+			return null;
+		}
+
+		$entry = $policySnapshot[ObserverProfilePolicy::KEY] ?? null;
+		if (!is_array($entry) || !array_key_exists('effectiveValue', $entry)) {
+			return null;
+		}
+
+		return ObserverProfilePolicyValue::normalize($entry['effectiveValue']);
 	}
 }

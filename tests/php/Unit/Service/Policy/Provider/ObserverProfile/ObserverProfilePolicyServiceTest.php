@@ -76,6 +76,44 @@ final class ObserverProfilePolicyServiceTest extends TestCase {
 		$this->assertFalse($this->getService()->isEnabled($file));
 	}
 
+	public function testDisabledSnapshotUsesLivePolicyWhenEnabled(): void {
+		$file = new File();
+		$file->setMetadata([
+			'policy_snapshot' => [
+				ObserverProfilePolicy::KEY => [
+					'effectiveValue' => false,
+					'sourceScope' => 'system',
+				],
+			],
+		]);
+		$this->policyService
+			->expects($this->once())
+			->method('resolve')
+			->with(ObserverProfilePolicy::KEY)
+			->willReturn((new ResolvedPolicy())->setEffectiveValue(true));
+
+		$this->assertTrue($this->getService()->isEnabled($file));
+	}
+
+	public function testDisabledSnapshotStaysDisabledWhenLivePolicyIsDisabled(): void {
+		$file = new File();
+		$file->setMetadata([
+			'policy_snapshot' => [
+				ObserverProfilePolicy::KEY => [
+					'effectiveValue' => false,
+					'sourceScope' => 'system',
+				],
+			],
+		]);
+		$this->policyService
+			->expects($this->once())
+			->method('resolve')
+			->with(ObserverProfilePolicy::KEY)
+			->willReturn((new ResolvedPolicy())->setEffectiveValue(false));
+
+		$this->assertFalse($this->getService()->isEnabled($file));
+	}
+
 	private function getService(): ObserverProfilePolicyService {
 		return new ObserverProfilePolicyService($this->policyService);
 	}

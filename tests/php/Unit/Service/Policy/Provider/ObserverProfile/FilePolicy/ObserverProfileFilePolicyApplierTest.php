@@ -55,7 +55,7 @@ final class ObserverProfileFilePolicyApplierTest extends TestCase {
 		], $file->getMetadata());
 	}
 
-	public function testSyncPreservesStoredSnapshot(): void {
+	public function testSyncPreservesStoredSnapshotWhenAlreadyEnabled(): void {
 		$file = new File();
 		$metadata = [
 			'policy_snapshot' => [
@@ -66,10 +66,108 @@ final class ObserverProfileFilePolicyApplierTest extends TestCase {
 			],
 		];
 		$file->setMetadata($metadata);
-		$this->policyService->expects($this->never())->method('resolveForUserId');
+		$this->policyService->expects($this->never())->method('resolveForUser');
 		$this->fileService->expects($this->never())->method('update');
 
-		$this->getApplier()->sync($file, []);
+		$this->getApplier()->sync($file, [
+			'signers' => [
+				['participantRole' => 'observer'],
+			],
+		]);
+
+		$this->assertSame($metadata, $file->getMetadata());
+	}
+
+	public function testSyncDoesNotChangeSnapshotWhenNoObserverIsPresent(): void {
+		$file = new File();
+		$metadata = [
+			'policy_snapshot' => [
+				ObserverProfilePolicy::KEY => [
+					'effectiveValue' => false,
+					'sourceScope' => 'system',
+				],
+			],
+		];
+		$file->setMetadata($metadata);
+		$this->policyService->expects($this->never())->method('resolveForUser');
+		$this->fileService->expects($this->never())->method('update');
+
+		$this->getApplier()->sync($file, [
+			'signers' => [
+				['participantRole' => 'signer'],
+			],
+		]);
+
+		$this->assertSame($metadata, $file->getMetadata());
+	}
+
+	public function testSyncUpgradesDisabledSnapshotWhenObserverIsAddedAndLivePolicyIsEnabled(): void {
+		$file = new File();
+		$file->setMetadata([
+			'policy_snapshot' => [
+				ObserverProfilePolicy::KEY => [
+					'effectiveValue' => false,
+					'sourceScope' => 'system',
+				],
+			],
+		]);
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUser')
+			->with(ObserverProfilePolicy::KEY, null, [])
+			->willReturn(
+				(new ResolvedPolicy())
+					->setPolicyKey(ObserverProfilePolicy::KEY)
+					->setEffectiveValue(true)
+					->setSourceScope('system'),
+			);
+		$this->fileService->expects($this->once())->method('update')->with($file);
+
+		$this->getApplier()->sync($file, [
+			'signers' => [
+				['participantRole' => 'signer'],
+				['participantRole' => 'observer'],
+			],
+		]);
+
+		$this->assertSame([
+			'policy_snapshot' => [
+				ObserverProfilePolicy::KEY => [
+					'effectiveValue' => true,
+					'sourceScope' => 'system',
+				],
+			],
+		], $file->getMetadata());
+	}
+
+	public function testSyncDoesNotUpgradeDisabledSnapshotWhenLivePolicyIsDisabled(): void {
+		$file = new File();
+		$metadata = [
+			'policy_snapshot' => [
+				ObserverProfilePolicy::KEY => [
+					'effectiveValue' => false,
+					'sourceScope' => 'system',
+				],
+			],
+		];
+		$file->setMetadata($metadata);
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUser')
+			->with(ObserverProfilePolicy::KEY, null, [])
+			->willReturn(
+				(new ResolvedPolicy())
+					->setPolicyKey(ObserverProfilePolicy::KEY)
+					->setEffectiveValue(false)
+					->setSourceScope('system'),
+			);
+		$this->fileService->expects($this->never())->method('update');
+
+		$this->getApplier()->sync($file, [
+			'signers' => [
+				['participantRole' => 'observer'],
+			],
+		]);
 
 		$this->assertSame($metadata, $file->getMetadata());
 	}
