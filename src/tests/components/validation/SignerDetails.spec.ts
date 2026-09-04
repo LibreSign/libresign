@@ -208,6 +208,18 @@ describe('SignerDetails.vue - Business Logic', () => {
 	})
 
 	describe('signer validation severity', () => {
+		it('does not treat missing certificate validation as an issue', () => {
+			const signer = {
+				signature_validation: { id: 1 },
+				document_modification_state: 'unchanged' as const,
+				modification_validation: { status: 1, valid: true },
+				crl_validation: 'valid',
+			}
+
+			expect(wrapper.vm.hasValidationIssues(signer)).toBe(false)
+			expect(wrapper.vm.getSignerValidationClass(signer)).toBe('icon-success')
+		})
+
 		it('shows warning for a valid signature with trailing data', () => {
 			const signer = {
 				signature_validation: { id: 1 },
