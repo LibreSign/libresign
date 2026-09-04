@@ -21,11 +21,7 @@ use OCP\IL10N;
 use Psr\Log\LoggerInterface;
 
 /**
- * Service to validate PDF signatures using the pdf-signature-validator package.
- *
- * This replaces shell calls to pdfsig with pure PHP validation.
- * Supports custom trusted roots (e.g., LibreSign CA) to recognize
- * certificates without requiring system-level CA registration.
+ * Validate PDF signatures using the pdf-signature-validator package.
  *
  * @psalm-type NativePdfValidationResult = array{
  *     signature: ExtractedSignature,
@@ -33,17 +29,6 @@ use Psr\Log\LoggerInterface;
  *     certificates: list<string>,
  *     certificateValidation: ValidationResult,
  *     timestamp: ?TimestampToken,
- * }
- * @psalm-type MappedPdfValidationResult = array{
- *     signature: ExtractedSignature,
- *     certificates: list<string>,
- *     timestamp: ?TimestampToken,
- *     signatureValidation: array,
- *     certificateValidation: array,
- *     raw: array{
- *         signature: ValidationResult,
- *         certificate: ValidationResult,
- *     },
  * }
  */
 class PdfSignatureValidationService {
@@ -95,7 +80,17 @@ class PdfSignatureValidationService {
 	 * Validate PDF signatures from file resource.
 	 *
 	 * @param resource $resource PDF file resource
-	 * @return list<MappedPdfValidationResult>
+	 * @return list<array{
+ *     signature: ExtractedSignature,
+ *     certificates: list<string>,
+ *     timestamp: ?TimestampToken,
+ *     signatureValidation: array,
+ *     certificateValidation: array,
+ *     raw: array{
+ *         signature: ValidationResult,
+ *         certificate: ValidationResult,
+ *     },
+ * }>
 	 */
 	public function validateFromResource($resource): array {
 		try {
@@ -111,7 +106,17 @@ class PdfSignatureValidationService {
 	 * Validate PDF signatures from binary content.
 	 *
 	 * @param string $pdfContent Binary PDF content
-	 * @return list<MappedPdfValidationResult>
+	 * @return list<array{
+ *     signature: ExtractedSignature,
+ *     certificates: list<string>,
+ *     timestamp: ?TimestampToken,
+ *     signatureValidation: array,
+ *     certificateValidation: array,
+ *     raw: array{
+ *         signature: ValidationResult,
+ *         certificate: ValidationResult,
+ *     },
+ * }>
 	 */
 	public function validateFromString(string $pdfContent): array {
 		try {
@@ -142,7 +147,17 @@ class PdfSignatureValidationService {
 	 * Map validation results from PdfSignatureValidator to LibreSign format.
 	 *
 	 * @param list<NativePdfValidationResult> $results Results from PdfSignatureValidator
-	 * @return list<MappedPdfValidationResult>
+	 * @return list<array{
+ *     signature: ExtractedSignature,
+ *     certificates: list<string>,
+ *     timestamp: ?TimestampToken,
+ *     signatureValidation: array,
+ *     certificateValidation: array,
+ *     raw: array{
+ *         signature: ValidationResult,
+ *         certificate: ValidationResult,
+ *     },
+ * }>
 	 */
 	private function mapValidationResults(array $results): array {
 		$mapped = [];
@@ -271,10 +286,22 @@ class PdfSignatureValidationService {
 	private function translateValidationReason(ValidationResult $result): ?string {
 		if ($result->reasonCode !== null) {
 			return match ($result->reasonCode) {
-				ValidationReason::NO_BYTE_RANGE => $this->l10n->t('No ByteRange in signature'),
-				ValidationReason::DIGEST_MISMATCH => $this->l10n->t('PDF content hash does not match signed digest'),
-				ValidationReason::NO_BINARY_SIGNATURE => $this->l10n->t('No binary signature'),
-				ValidationReason::SIGNATURE_CERTIFICATE_MISMATCH => $this->l10n->t('Signature does not match certificate'),
+				ValidationReason::NO_BYTE_RANGE => (
+					// TRANSLATORS The PDF signature is missing information required to verify which parts of the document were signed.
+					$this->l10n->t('The signature does not contain the information needed to verify the document')
+				),
+				ValidationReason::DIGEST_MISMATCH => (
+					// TRANSLATORS The document content no longer matches the content that was originally signed.
+					$this->l10n->t('The document content does not match the signed content')
+				),
+				ValidationReason::NO_BINARY_SIGNATURE => (
+					// TRANSLATORS The PDF contains a signature field, but the actual digital signature data is missing.
+					$this->l10n->t('The digital signature data is missing')
+				),
+				ValidationReason::SIGNATURE_CERTIFICATE_MISMATCH => (
+					// TRANSLATORS The digital signature could not be verified with the certificate stored in the PDF.
+					$this->l10n->t('The signature could not be verified with its certificate')
+				),
 			};
 		}
 
