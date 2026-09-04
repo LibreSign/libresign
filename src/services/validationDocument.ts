@@ -39,8 +39,21 @@ type ValidationMetadataDimension = {
 	h: number
 }
 
+export type ValidationSignerDetailRecord = SignerDetailRecord & {
+	signature_validation?: ValidationStatusInfo
+	certificate_validation?: ValidationStatusInfo
+	modification_validation?: ValidationModificationInfo
+	crl_validation?: string
+	isLibreSignRootCA?: boolean
+	document_modification_state?: 'unchanged'
+		| 'unsigned_content'
+		| 'trailing_data'
+		| 'invalid_byte_range'
+		| 'invalid_eof_boundary'
+}
+
 export type ValidationDocumentState = ValidationFileRecord & {
-	signers: SignerDetailRecord[]
+	signers: ValidationSignerDetailRecord[]
 	metadata: NonNullable<ValidationFileRecord['metadata']>
 	settings: NonNullable<ValidationFileRecord['settings']>
 }
@@ -179,7 +192,7 @@ function isValidationSettings(value: unknown): value is NonNullable<ValidationFi
 		&& isOptionalField(value, 'isApprover', fieldValue => typeof fieldValue === 'boolean')
 }
 
-function isSignerDetailRecord(value: unknown): value is SignerDetailRecord {
+function isSignerDetailRecord(value: unknown): value is ValidationSignerDetailRecord {
 	if (!isRecord(value)) {
 		return false
 	}
@@ -215,7 +228,7 @@ function isCertificateSignerRecord(value: unknown): value is UnknownRecord {
 		&& isOptionalField(value, 'certificate_validation', isValidationStatusInfo)
 }
 
-function normalizeCertificateSigner(value: UnknownRecord): SignerDetailRecord {
+function normalizeCertificateSigner(value: UnknownRecord): ValidationSignerDetailRecord {
 	return {
 		...value,
 		signRequestId: 0,
@@ -230,7 +243,7 @@ function normalizeCertificateSigner(value: UnknownRecord): SignerDetailRecord {
 	}
 }
 
-function normalizeSignerDetail(value: unknown): SignerDetailRecord | null {
+function normalizeSignerDetail(value: unknown): ValidationSignerDetailRecord | null {
 	if (isSignerDetailRecord(value)) {
 		return value
 	}
