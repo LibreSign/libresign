@@ -639,50 +639,12 @@ defineExpose({
 .extra-chain {
 	:deep(.list-item) {
 		--list-item-height: auto;
-		height: auto;
-		min-height: var(--default-clickable-area);
-		align-items: flex-start;
 	}
 
-	:deep(.list-item__anchor) {
-		height: auto;
-		min-height: var(--default-clickable-area);
-		align-items: flex-start;
-	}
-
-	:deep(.list-item-content),
-	:deep(.list-item-content__main) {
-		min-width: 0;
-		height: auto;
-		overflow: visible !important;
-	}
-
-	:deep(.list-item-content__name),
-	:deep(.list-item-content__subname) {
-		display: block;
-		width: 100%;
-		max-width: none;
-		height: auto;
-		max-height: none;
+	:deep(.list-item-content__name) {
 		white-space: normal !important;
 		overflow: visible !important;
 		text-overflow: clip !important;
-		overflow-wrap: anywhere;
-		word-break: break-word;
-		line-height: 1.4;
-	}
-
-	:deep(.list-item-content__name *),
-	:deep(.list-item-content__subname *) {
-		max-width: none !important;
-		max-height: none !important;
-		white-space: normal !important;
-		overflow: visible !important;
-		text-overflow: clip !important;
-		overflow-wrap: anywhere !important;
-		word-break: break-word !important;
-		-webkit-line-clamp: unset !important;
-		line-clamp: unset !important;
 	}
 }
 
