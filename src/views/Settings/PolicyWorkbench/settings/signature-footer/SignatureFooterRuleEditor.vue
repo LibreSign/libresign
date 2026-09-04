@@ -477,9 +477,13 @@ function resetPreviewSize() {
 
 	&__preview-frame {
 		width: 100%;
+		overflow-x: auto;
+		overflow-y: hidden;
+		touch-action: pan-x pan-y;
 		border: 1px solid var(--color-border);
 		border-radius: var(--border-radius-element, 8px);
 		background: #f7fafc;
+		-webkit-overflow-scrolling: touch;
 	}
 }
 </style>
