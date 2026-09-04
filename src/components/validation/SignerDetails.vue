@@ -39,7 +39,7 @@
 					<template #icon>
 						<NcIconSvgWrapper v-if="isOpen"
 							:path="mdiUnfoldLessHorizontal"
-							:size="24" />
+							:size="20" />
 						<NcIconSvgWrapper v-else
 							:path="mdiUnfoldMoreHorizontal"
 							:size="20" />
@@ -246,18 +246,24 @@
 </template>
 
 <script setup lang="ts">
-import { n, t } from '@nextcloud/l10n'
-import NcAvatar from '@nextcloud/vue/components/NcAvatar'
-import NcButton from '@nextcloud/vue/components/NcButton'
-import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
-import NcListItem from '@nextcloud/vue/components/NcListItem'
-import Moment from '@nextcloud/moment'
-import { computed, ref } from 'vue'
-
-import CertificateChain from './CertificateChain.vue'
-import SignerTimestamp from './SignerTimestamp.vue'
-
-import { mdiAlertCircleOutline, mdiHelpCircle, mdiInformationOutline, mdiKey, mdiShieldAlert, mdiShieldCheck, mdiShieldOff, mdiUnfoldLessHorizontal, mdiUnfoldMoreHorizontal, mdiCheck, mdiAlert, mdiClose } from '@mdi/js'
+import {
+	mdiAlert,
+	mdiAlertCircle,
+	mdiAlertCircleOutline,
+	mdiCancel,
+	mdiCheck,
+	mdiCheckCircle,
+	mdiClose,
+	mdiCloseCircle,
+	mdiHelpCircle,
+	mdiInformationOutline,
+	mdiKey,
+	mdiShieldAlert,
+	mdiShieldCheck,
+	mdiShieldOff,
+	mdiUnfoldLessHorizontal,
+	mdiUnfoldMoreHorizontal,
+} from '@mdi/js'
 
 
 type ValidationState = {
