@@ -18,8 +18,8 @@ use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
-use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Exception\UnsignedPdfException;
-use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ExtractedSignature;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\TimestampToken;
 use OCA\Libresign\Vendor\phpseclib4\Exception\UnexpectedValueException;
 use OCA\Libresign\Vendor\phpseclib4\File\ASN1;
 use OCP\Files\File;
@@ -46,7 +46,6 @@ class Pkcs12Handler extends SignEngineHandler {
 		private DocMdpHandler $docMdpHandler,
 		private CrlService $crlService,
 		private PdfSignatureValidationService $pdfSignatureValidationService,
-		private PdfSignatureExtractor $pdfSignatureExtractor,
 	) {
 		parent::__construct($l10n, $folderService, $logger);
 	}
@@ -126,35 +125,49 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $certificates;
 	}
 
-	private function processSignature($resource, ?string $signature, array $metadata = [], array $validation = []): array {
-		$result = [];
-
-		if (!$signature) {
-			$result['chain'][0]['signature_validation'] = [
-				'id' => 3,
-				// TRANSLATORS Status label on LibreSign's public/document validation UI when the PDF signature hash does not match the document bytes (tamper or corrupt signature).
-				'label' => $this->l10n->t('Digest mismatch.'),
-			];
-			return $result;
-		}
-
-		try {
-			$decoded = ASN1::decodeBER($signature);
-		} catch (UnexpectedValueException) {
+	private function processSignature(
+		$resource,
+		ExtractedSignature $signature,
+		array $validation = [],
+	): array {
+		$binarySignature = $signature->binarySignature;
+		if ($binarySignature === null || $binarySignature === '') {
 			return [];
 		}
-		$result = $this->extractTimestampData($decoded, $result);
 
-		$chain = $this->extractCertificateChain($signature);
+		$result = [];
+
+		try {
+			$decoded = ASN1::decodeBER($binarySignature);
+		} catch (UnexpectedValueException) {
+			$decoded = null;
+		}
+
+		$result = $this->extractSigningTime($decoded, $result);
+
+		$timestamp = $validation['timestamp'] ?? null;
+		if ($timestamp instanceof TimestampToken) {
+			$result['timestamp'] = $this->mapTimestampToken($timestamp);
+		}
+
+		$pemCertificates = $validation['certificates'] ?? [];
+		if (!is_array($pemCertificates)) {
+			$pemCertificates = [];
+		}
+
+		$chain = $this->extractCertificateChain($pemCertificates);
 		if (!empty($chain)) {
 			$result['chain'] = $this->orderCertificates($chain);
-			$result = $this->enrichLeafWithNativeData($result, $metadata, $validation);
+			$result = $this->enrichLeafWithNativeData(
+				$result,
+				$signature,
+				$validation,
+			);
 		}
 
 		$result = $this->extractDocMdpData($resource, $result);
 
-		$result = $this->applyLibreSignRootCAFlag($result);
-		return $result;
+		return $this->applyLibreSignRootCAFlag($result);
 	}
 
 	private function applyLibreSignRootCAFlag(array $signer): array {
@@ -187,55 +200,72 @@ class Pkcs12Handler extends SignEngineHandler {
 		return array_merge($result, $docMdpData);
 	}
 
-	private function extractTimestampData(?array $decoded, array $result): array {
+	private function extractSigningTime(?array $decoded, array $result): array {
 		if ($decoded === null) {
 			return $result;
 		}
 
 		$tsa = new TSA();
-
-		$timestampData = $tsa->extract($decoded);
-		if (!empty($timestampData['genTime']) || !empty($timestampData['policy']) || !empty($timestampData['serialNumber'])) {
-			$result['timestamp'] = $timestampData;
+		$signingTime = $tsa->getSigninTime($decoded);
+		if ($signingTime instanceof \DateTime) {
+			$result['signingTime'] = $signingTime;
 		}
 
-		if (!isset($result['signingTime']) || !$result['signingTime'] instanceof \DateTime) {
-			$result['signingTime'] = $tsa->getSigninTime($decoded);
-		}
 		return $result;
 	}
 
-	private function extractCertificateChain(string $signature): array {
-		$pkcs7PemSignature = $this->der2pem($signature);
-		$pemCertificates = [];
+	private function mapTimestampToken(TimestampToken $timestamp): array {
+		$result = [
+			'genTime' => $timestamp->generatedAt,
+			'policy' => $timestamp->policyOid,
+			'serialNumber' => $timestamp->serialNumber,
+		];
 
-		if (!openssl_pkcs7_read($pkcs7PemSignature, $pemCertificates)) {
-			return [];
+		$commonName = $timestamp->certificateSubject['CN'] ?? null;
+		if (is_string($commonName) && $commonName !== '') {
+			$result['tsaName'] = $commonName;
 		}
 
+		return array_filter(
+			$result,
+			static fn (mixed $value): bool => $value !== null && $value !== '',
+		);
+	}
+
+	/**
+	 * @param list<string> $pemCertificates
+	 */
+	private function extractCertificateChain(array $pemCertificates): array {
 		$chain = [];
 		$isLibreSignRootCA = false;
 		$certificateEngine = $this->getCertificateEngine();
 
 		foreach ($pemCertificates as $index => $pemCertificate) {
-			$parsed = $certificateEngine->parseCertificate($pemCertificate);
-			if ($parsed) {
-				$parsed['signature_validation'] = [
-					'id' => 1,
-					// TRANSLATORS Status label on LibreSign signature validation when the cryptographic PDF signature checks out successfully.
-					'label' => $this->l10n->t('Signature is valid.'),
-				];
-				if (!$isLibreSignRootCA) {
-					$isLibreSignRootCA = $this->isLibreSignRootCA($pemCertificate, $parsed);
-				}
-				$parsed['isLibreSignRootCA'] = $isLibreSignRootCA;
-				$chain[$index] = $parsed;
+			if (!is_string($pemCertificate) || $pemCertificate === '') {
+				continue;
 			}
+
+			$parsed = $certificateEngine->parseCertificate($pemCertificate);
+			if (!$parsed) {
+				continue;
+			}
+
+			if (!$isLibreSignRootCA) {
+				$isLibreSignRootCA = $this->isLibreSignRootCA(
+					$pemCertificate,
+					$parsed,
+				);
+			}
+
+			$parsed['isLibreSignRootCA'] = $isLibreSignRootCA;
+			$chain[$index] = $parsed;
 		}
+
 		if ($isLibreSignRootCA || $this->isLibreSignFile) {
 			foreach ($chain as &$cert) {
 				$cert['isLibreSignRootCA'] = true;
 			}
+			unset($cert);
 		}
 
 		return $chain;
@@ -302,24 +332,40 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $this->rootCertificatePem;
 	}
 
-	private function enrichLeafWithNativeData(array $result, array $metadata, array $validation): array {
+	private function enrichLeafWithNativeData(
+		array $result,
+		ExtractedSignature $signature,
+		array $validation,
+	): array {
 		if (empty($result['chain'])) {
 			return $result;
 		}
 
 		$leaf = &$result['chain'][0];
+		$metadata = $signature->metadata;
 
-		foreach (['field', 'range', 'signature_type', 'signing_hash_algorithm', 'covers_entire_document'] as $key) {
-			if (array_key_exists($key, $metadata)) {
-				$leaf[$key] = $metadata[$key];
-			}
+		$leaf['field'] = $metadata->field;
+		$leaf['range'] = $metadata->range;
+		$leaf['signature_type'] = $metadata->signatureType;
+		$leaf['signing_hash_algorithm'] = $signature->hashAlgorithm;
+		$leaf['covers_entire_document'] = $metadata->coversEntireDocument;
+
+		if ($metadata->documentModificationState !== null) {
+			$leaf['document_modification_state']
+				= $metadata->documentModificationState->value;
 		}
 
-		if (isset($validation['signatureValidation']) && is_array($validation['signatureValidation'])) {
+		if (
+			isset($validation['signatureValidation'])
+			&& is_array($validation['signatureValidation'])
+		) {
 			$leaf['signature_validation'] = $validation['signatureValidation'];
 		}
 
-		if (isset($validation['certificateValidation']) && is_array($validation['certificateValidation'])) {
+		if (
+			isset($validation['certificateValidation'])
+			&& is_array($validation['certificateValidation'])
+		) {
 			$leaf['certificate_validation'] = $validation['certificateValidation'];
 		}
 
@@ -332,46 +378,6 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		return $result;
-	}
-
-	/**
-	 * @param resource $resource
-	 * @return array<int, array{field: ?string, range: ?array{offset1: int, offset2: int, length1: int, length2: int}, signature_type: ?string, covers_entire_document: bool}>
-	 */
-	private function extractNativeSignatureMetadata($resource): array {
-		rewind($resource);
-		$content = stream_get_contents($resource);
-		if (!is_string($content) || $content === '') {
-			return [];
-		}
-
-		try {
-			$signatures = $this->extractNativeSignaturesFromContent($content);
-		} catch (UnsignedPdfException) {
-			return [];
-		}
-		$metadata = [];
-
-		foreach ($signatures as $index => $signature) {
-			$metadata[$index] = [
-				'field' => $signature->metadata->field,
-				'range' => $signature->metadata->range,
-				'signature_type' => $signature->metadata->signatureType,
-				'covers_entire_document' => $signature->metadata->coversEntireDocument,
-			];
-		}
-
-		return $metadata;
-	}
-
-	protected function extractNativeSignaturesFromContent(string $content): array {
-		return $this->pdfSignatureExtractor->extractFromString($content);
-	}
-
-	private function der2pem($derData) {
-		$pem = chunk_split(base64_encode((string)$derData), 64, "\n");
-		$pem = "-----BEGIN CERTIFICATE-----\n" . $pem . "-----END CERTIFICATE-----\n";
-		return $pem;
 	}
 
 	private function getHandler(): SignEngineHandler {
