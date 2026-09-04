@@ -800,6 +800,16 @@ function getDocumentValidationSummary(validationDocument: ValidationDocumentStat
 	}
 
 	if (signers.some(signer =>
+		signer.document_modification_state === 'invalid_byte_range'
+		|| signer.document_modification_state === 'invalid_eof_boundary',
+	)) {
+		return {
+			message: t('libresign', 'One or more digital signatures are invalid'),
+			type: 'error',
+		}
+	}
+
+	if (signers.some(signer =>
 		signer.signature_validation !== undefined
 		&& signer.signature_validation.id !== 1,
 	)) {
