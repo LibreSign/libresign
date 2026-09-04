@@ -29,6 +29,17 @@ use Psr\Log\LoggerInterface;
  *     certificateValidation: ValidationResult,
  *     timestamp: ?TimestampToken,
  * }
+ * @psalm-type MappedPdfValidationResult = array{
+ *     signature: ExtractedSignature,
+ *     certificates: list<string>,
+ *     timestamp: ?TimestampToken,
+ *     signatureValidation: array,
+ *     certificateValidation: array,
+ *     raw: array{
+ *         signature: ValidationResult,
+ *         certificate: ValidationResult,
+ *     },
+ * }
  */
 class PdfSignatureValidationService {
 	private PdfSignatureValidator $validator;
@@ -79,17 +90,7 @@ class PdfSignatureValidationService {
 	 * Validate PDF signatures from file resource.
 	 *
 	 * @param resource $resource PDF file resource
-	 * @return list<array{
- *     signature: ExtractedSignature,
- *     certificates: list<string>,
- *     timestamp: ?TimestampToken,
- *     signatureValidation: array,
- *     certificateValidation: array,
- *     raw: array{
- *         signature: ValidationResult,
- *         certificate: ValidationResult,
- *     },
- * }>
+	 * @return list<MappedPdfValidationResult>
 	 */
 	public function validateFromResource($resource): array {
 		try {
@@ -105,17 +106,7 @@ class PdfSignatureValidationService {
 	 * Validate PDF signatures from binary content.
 	 *
 	 * @param string $pdfContent Binary PDF content
-	 * @return list<array{
- *     signature: ExtractedSignature,
- *     certificates: list<string>,
- *     timestamp: ?TimestampToken,
- *     signatureValidation: array,
- *     certificateValidation: array,
- *     raw: array{
- *         signature: ValidationResult,
- *         certificate: ValidationResult,
- *     },
- * }>
+	 * @return list<MappedPdfValidationResult>
 	 */
 	public function validateFromString(string $pdfContent): array {
 		try {
@@ -146,17 +137,7 @@ class PdfSignatureValidationService {
 	 * Map validation results from PdfSignatureValidator to LibreSign format.
 	 *
 	 * @param list<NativePdfValidationResult> $results Results from PdfSignatureValidator
-	 * @return list<array{
- *     signature: ExtractedSignature,
- *     certificates: list<string>,
- *     timestamp: ?TimestampToken,
- *     signatureValidation: array,
- *     certificateValidation: array,
- *     raw: array{
- *         signature: ValidationResult,
- *         certificate: ValidationResult,
- *     },
- * }>
+	 * @return list<MappedPdfValidationResult>
 	 */
 	private function mapValidationResults(array $results): array {
 		$mapped = [];
