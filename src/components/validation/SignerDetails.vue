@@ -596,7 +596,7 @@ function getModificationStatusIcon(signer: SignerModel) {
 	if (status === MODIFICATION_ALLOWED) {
 		return mdiAlert
 	}
-	return mdiClose
+	return mdiShieldOff
 }
 
 function getModificationStatusClass(signer: SignerModel) {
