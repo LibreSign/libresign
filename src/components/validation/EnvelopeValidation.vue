@@ -10,7 +10,7 @@
 				<NcIconSvgWrapper :path="mdiPackageVariantClosed" :size="30" />
 				<h1>{{ t('libresign', 'Envelope information') }}</h1>
 			</div>
-			<NcNoteCard v-if="documentValidMessage" type="success">
+			<NcNoteCard v-if="documentValidMessage" :type="documentValidType">
 				{{ documentValidMessage }}
 			</NcNoteCard>
 			<NcNoteCard v-if="isAfterSigned" type="success">
