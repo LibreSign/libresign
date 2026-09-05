@@ -10,6 +10,8 @@ namespace OCA\Libresign\Service\Signature;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Exception\UnsignedPdfException;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ExtractedSignature;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\TimestampToken;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationResult;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationState;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureValidator;
@@ -103,14 +105,14 @@ class PdfSignatureValidationService {
 
 	/**
 	 * @param resource $resource
-	 * @return list<array{signature: mixed, signatureValidation: ValidationResult, certificates: list<string>, certificateValidation: ValidationResult}>
+	 * @return list<array{signature: ExtractedSignature, signatureValidation: ValidationResult, certificates: list<string>, certificateValidation: ValidationResult, timestamp: TimestampToken|null}>
 	 */
 	protected function validateNativeFromResource($resource): array {
 		return $this->validator->validateFromResource($resource);
 	}
 
 	/**
-	 * @return list<array{signature: mixed, signatureValidation: ValidationResult, certificates: list<string>, certificateValidation: ValidationResult}>
+	 * @return list<array{signature: ExtractedSignature, signatureValidation: ValidationResult, certificates: list<string>, certificateValidation: ValidationResult, timestamp: TimestampToken|null}>
 	 */
 	protected function validateNativeFromString(string $pdfContent): array {
 		return $this->validator->validateFromString($pdfContent);
