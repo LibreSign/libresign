@@ -655,7 +655,6 @@ class JSignPdfHandler extends Pkcs12Handler {
 		return $params;
 	}
 
-
 	private function getTsaPassword(): string {
 		$tsaUrl = $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', '');
 		if ($tsaUrl === '') {
