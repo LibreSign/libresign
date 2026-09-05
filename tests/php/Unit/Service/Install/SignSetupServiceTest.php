@@ -12,6 +12,7 @@ use bovigo\vfs\vfsStream;
 use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Service\Install\JSignPdfRelease;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\App\IAppManager;
 use OCP\Files\AppData\IAppDataFactory;
@@ -199,7 +200,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	#[DataProvider('dataGetInstallPath')]
 	public function testGetInstallPath(string $architecture, string $resource, string $distro, string $expected): void {
 		$this->appConfig->setValueString(Application::APP_ID, 'java_path', 'vfs://home/data/appdata_1/libresign/x86_64/linux/java/jdk-21.0.2+13-jre/bin/java');
-		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_path', 'vfs://home/data/appdata_1/libresign/x86_64/jsignpdf/jsignpdf-3.1.0');
+		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_path', 'vfs://home/data/appdata_1/libresign/x86_64/jsignpdf/jsignpdf-' . JSignPdfRelease::VERSION);
 		$this->appConfig->setValueString(Application::APP_ID, 'pdftk_path', 'vfs://home/data/appdata_1/libresign/x86_64/pdftk/pdftk.jar');
 		$this->appConfig->setValueString(Application::APP_ID, 'cfssl_bin', 'vfs://home/data/appdata_1/libresign/x86_64/cfssl/cfssl');
 		$actual = $this->getInstance()
