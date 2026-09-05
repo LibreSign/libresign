@@ -21,6 +21,8 @@ use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\Identification
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicy;
 use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -63,7 +65,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 
 		$this->policyService
-			->expects($this->exactly(7))
+			->expects($this->exactly(8))
 			->method('resolveForUser')
 			->willReturnCallback(function (string $policyKey) use ($identificationDocumentsValue, $identifyMethodsPolicyValue): ResolvedPolicy {
 				return match ($policyKey) {
@@ -104,6 +106,11 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						],
 						'system',
 					),
+					SignatureRejectionPolicy::KEY => $this->createResolvedPolicy(
+						SignatureRejectionPolicy::KEY,
+						SignatureRejectionPolicyValue::defaults(),
+						'system',
+					),
 					default => throw new \RuntimeException('Unexpected policy key: ' . $policyKey),
 				};
 			});
@@ -138,6 +145,12 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'effectiveValue' => 'Legal snapshot copy',
 			'sourceScope' => 'group',
 		], $metadata['policy_snapshot'][LegalInformationPolicy::KEY] ?? null);
+		// Signature rejection is opt-in, so a request that does not ask for it is
+		// frozen as disabled even while the policy allows it.
+		$this->assertSame([
+			'effectiveValue' => SignatureRejectionPolicyValue::defaults(),
+			'sourceScope' => 'system',
+		], $metadata['policy_snapshot'][SignatureRejectionPolicy::KEY] ?? null);
 	}
 
 	public function testSyncCoreFlowPoliciesSkipsNonCoreProviders(): void {
@@ -147,7 +160,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->setDocmdpLevelEnum(DocMdpLevel::NOT_CERTIFIED);
 
 		$this->policyService
-			->expects($this->exactly(4))
+			->expects($this->exactly(5))
 			->method('resolveForUserId')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				return match ($policyKey) {
@@ -173,12 +186,17 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						],
 						'system',
 					),
+					SignatureRejectionPolicy::KEY => $this->createResolvedPolicy(
+						SignatureRejectionPolicy::KEY,
+						SignatureRejectionPolicyValue::defaults(),
+						'system',
+					),
 					default => throw new \RuntimeException('Unexpected policy key: ' . $policyKey),
 				};
 			});
 
 		$this->fileService
-			->expects($this->exactly(4))
+			->expects($this->exactly(5))
 			->method('update')
 			->with($this->identicalTo($file));
 
@@ -186,6 +204,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertArrayNotHasKey(FooterPolicy::KEY, $file->getMetadata()['policy_snapshot']);
 		$this->assertArrayHasKey(IdentificationDocumentsPolicy::KEY, $file->getMetadata()['policy_snapshot']);
+		$this->assertArrayHasKey(SignatureRejectionPolicy::KEY, $file->getMetadata()['policy_snapshot']);
 		$this->assertSame(SignatureFlow::ORDERED_NUMERIC, $file->getSignatureFlowEnum());
 		$this->assertSame(DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS, $file->getDocmdpLevelEnum());
 	}
@@ -231,7 +250,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 
 		$this->policyService
-			->expects($this->exactly(7))
+			->expects($this->exactly(8))
 			->method('resolveForUserId')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				return match ($policyKey) {
@@ -282,12 +301,17 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						],
 						'system',
 					),
+					SignatureRejectionPolicy::KEY => $this->createResolvedPolicy(
+						SignatureRejectionPolicy::KEY,
+						SignatureRejectionPolicyValue::defaults(),
+						'system',
+					),
 					default => throw new \RuntimeException('Unexpected policy key: ' . $policyKey),
 				};
 			});
 
 		$this->fileService
-			->expects($this->exactly(2))
+			->expects($this->exactly(3))
 			->method('update');
 
 		$this->getApplier()->syncAllPolicies($file, []);
@@ -297,6 +321,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertArrayHasKey(FooterPolicy::KEY, $file->getMetadata()['policy_snapshot']);
 		$this->assertArrayHasKey(IdentificationDocumentsPolicy::KEY, $file->getMetadata()['policy_snapshot']);
 		$this->assertArrayHasKey(LegalInformationPolicy::KEY, $file->getMetadata()['policy_snapshot']);
+		$this->assertArrayHasKey(SignatureRejectionPolicy::KEY, $file->getMetadata()['policy_snapshot']);
 	}
 
 	private function createResolvedPolicy(

@@ -1340,7 +1340,8 @@
                                     1,
                                     2,
                                     3,
-                                    4
+                                    4,
+                                    6
                                 ]
                             },
                             "statusText": {
@@ -2462,6 +2463,48 @@
                     }
                 ]
             },
+            "PolicySnapshotSignatureRejectionEntry": {
+                "type": "object",
+                "required": [
+                    "effectiveValue",
+                    "sourceScope"
+                ],
+                "properties": {
+                    "effectiveValue": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionValue"
+                    },
+                    "sourceScope": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PolicySnapshotSignatureRejectionValue": {
+                "type": "object",
+                "required": [
+                    "enabled",
+                    "comment_mode",
+                    "cancel_workflow",
+                    "public_status",
+                    "show_comment_on_validation"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "comment_mode": {
+                        "$ref": "#/components/schemas/SignatureRejectionCommentMode"
+                    },
+                    "cancel_workflow": {
+                        "type": "boolean"
+                    },
+                    "public_status": {
+                        "type": "boolean"
+                    },
+                    "show_comment_on_validation": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "PolicySnapshotSignerGeolocationEntry": {
                 "type": "object",
                 "required": [
@@ -2924,6 +2967,47 @@
                     }
                 }
             },
+            "SignatureRejectionCommentMode": {
+                "type": "string",
+                "enum": [
+                    "disabled",
+                    "optional",
+                    "required"
+                ]
+            },
+            "SignatureRejectionResponse": {
+                "type": "object",
+                "required": [
+                    "message",
+                    "signRequestId",
+                    "status",
+                    "statusText",
+                    "rejectedAt",
+                    "workflowCanceled"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "signRequestId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "statusText": {
+                        "type": "string"
+                    },
+                    "rejectedAt": {
+                        "type": "string"
+                    },
+                    "workflowCanceled": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "SignerCertificateInfo": {
                 "type": "object",
                 "properties": {
@@ -3035,6 +3119,9 @@
                             },
                             "metadata": {
                                 "$ref": "#/components/schemas/SignerMetadata"
+                            },
+                            "rejection": {
+                                "$ref": "#/components/schemas/SignerRejection"
                             }
                         }
                     }
@@ -3101,6 +3188,23 @@
                     }
                 }
             },
+            "SignerRejection": {
+                "type": "object",
+                "required": [
+                    "rejectedAt"
+                ],
+                "properties": {
+                    "rejectedAt": {
+                        "type": "string"
+                    },
+                    "comment": {
+                        "type": "string"
+                    },
+                    "commentPrivate": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "SignerSummary": {
                 "type": "object",
                 "required": [
@@ -3138,7 +3242,8 @@
                         "enum": [
                             0,
                             1,
-                            2
+                            2,
+                            3
                         ]
                     },
                     "statusText": {
@@ -3464,6 +3569,9 @@
                     },
                     "signer_geolocation": {
                         "$ref": "#/components/schemas/PolicySnapshotSignerGeolocationEntry"
+                    },
+                    "signature_rejection": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionEntry"
                     }
                 }
             },
@@ -3568,7 +3676,8 @@
                             1,
                             2,
                             3,
-                            4
+                            4,
+                            6
                         ]
                     },
                     "statusText": {
@@ -10938,6 +11047,276 @@
                                                 },
                                                 "data": {
                                                     "$ref": "#/components/schemas/SignActionErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/file_id/{fileId}/reject": {
+            "post": {
+                "operationId": "sign_file-reject-by-file-id",
+                "summary": "Reject a signature request using file Id",
+                "tags": [
+                    "signing"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "comment": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Justification sent by the signer, when the document policy accepts comments"
+                                    },
+                                    "privateComment": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Keep the comment visible only to who requested the signature"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "fileId",
+                        "in": "path",
+                        "description": "Id of LibreSign file",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/SignatureRejectionResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/uuid/{uuid}/reject": {
+            "post": {
+                "operationId": "sign_file-reject-by-signer-uuid",
+                "summary": "Reject a signature request using the signer UUID",
+                "tags": [
+                    "signing"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "comment": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Justification sent by the signer, when the document policy accepts comments"
+                                    },
+                                    "privateComment": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Keep the comment visible only to who requested the signature"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "UUID of the signer",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/SignatureRejectionResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
                                                 }
                                             }
                                         }

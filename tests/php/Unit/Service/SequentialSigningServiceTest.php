@@ -381,6 +381,11 @@ final class SequentialSigningServiceTest extends TestCase {
 				[[1, SignRequestStatus::SIGNED, 1], [2, SignRequestStatus::DRAFT, 3]],
 				false,
 			],
+			'a rejected lower order signer does not block the remaining signers' => [
+				3,
+				[[1, SignRequestStatus::SIGNED, 1], [2, SignRequestStatus::REJECTED, 2]],
+				false,
+			],
 		];
 	}
 
