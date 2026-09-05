@@ -267,6 +267,18 @@ class PdfSignatureValidationService {
 					$this->l10n->t('The signature could not be verified with its certificate')
 				),
 				ValidationReason::INVALID_BYTE_RANGE => (
+					// TRANSLATORS PDF digital signature validation. ByteRange defines which byte ranges are protected by the digital signature. The structure exists but its offsets or lengths are invalid, so cryptographic verification cannot safely continue. Keep the user-facing text simple.
+					$this->l10n->t('The signature contains an invalid ByteRange')
+				),
+				ValidationReason::INVALID_EOF_BOUNDARY => (
+					// TRANSLATORS PDF digital signature validation. The signed PDF revision does not end at a valid PDF end-of-file boundary. This means the signed revision structure is invalid. Keep the user-facing text simple.
+					$this->l10n->t('The signed PDF revision has an invalid end-of-file boundary')
+				),
+				ValidationReason::UNSUPPORTED_SUBFILTER => (
+					// TRANSLATORS PDF digital signature validation. SubFilter identifies the PDF signature format. This result means LibreSign does not support cryptographic validation for that format.
+					$this->l10n->t('The PDF signature format is not supported')
+				),
+				ValidationReason::INVALID_BYTE_RANGE => (
 					// TRANSLATORS PDF digital signature validation. ByteRange defines the exact PDF bytes protected by the cryptographic signature. LibreSign detected an invalid ByteRange layout, so the signature structure cannot be trusted. Keep "ByteRange" only in this translator note; the user-facing text should stay simple.
 					$this->l10n->t('The PDF signature structure is invalid')
 				),
