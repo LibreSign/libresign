@@ -16,6 +16,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
+use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
@@ -61,6 +62,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		try {
 			$appConfig = self::getMockAppConfig();
 			$appConfig->setValueString(Application::APP_ID, 'certificate_engine', 'openssl');
+			// The CRL distribution point of the root certificate needs a CA identifier.
+			\OCP\Server::get(CaIdentifierService::class)->generateCaId('openssl');
 			self::$certificateEngineFactory = \OCP\Server::get(CertificateEngineFactory::class);
 			$certificateEngine = self::$certificateEngineFactory->getEngine();
 			$certificateEngine
