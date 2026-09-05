@@ -122,7 +122,11 @@ class Pkcs12Handler extends SignEngineHandler {
 	): array {
 		$binarySignature = $signature->binarySignature;
 		if ($binarySignature === null || $binarySignature === '') {
-			return [];
+			return $this->enrichLeafWithNativeData(
+				['chain' => [[]]],
+				$signature,
+				$validation,
+			);
 		}
 
 		$result = [];
