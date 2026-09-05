@@ -908,20 +908,22 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public static function providerGetSignatureText(): array {
 		return [
-			['FAKE_RENDER_MODE', '',     '""'],
-			['FAKE_RENDER_MODE', 'a',    '"a"'],
-			['FAKE_RENDER_MODE', "a\na", "\"a\na\""],
-			['FAKE_RENDER_MODE', 'a"a',  '"a\"a"'],
-			['FAKE_RENDER_MODE', 'a$a',  '"a\$a"'],
+			// The text reaches the wrapper as is; the wrapper escapes it for the shell.
+			['FAKE_RENDER_MODE', '',     ''],
+			['FAKE_RENDER_MODE', 'a',    'a'],
+			['FAKE_RENDER_MODE', "a\na", "a\na"],
+			['FAKE_RENDER_MODE', 'a"a',  'a"a'],
+			['FAKE_RENDER_MODE', "a'a",  "a'a"],
+			['FAKE_RENDER_MODE', 'a$a',  'a$a'],
 			// Plain {{ServerSignatureDate}} (no spaces) preserves JSign placeholder
-			['FAKE_RENDER_MODE', '{{ServerSignatureDate}}', '"\${timestamp}"'],
+			['FAKE_RENDER_MODE', '{{ServerSignatureDate}}', '${timestamp}'],
 			// Plain {{ ServerSignatureDate }} (with spaces) also preserves JSign placeholder
-			['FAKE_RENDER_MODE', '{{ ServerSignatureDate }}', '"\${timestamp}"'],
-			['GRAPHIC_ONLY',     '',     '""'],
-			['GRAPHIC_ONLY',     'a',    '""'],
-			['GRAPHIC_ONLY',     "a\na", '""'],
-			['GRAPHIC_ONLY',     'a"a',  '""'],
-			['GRAPHIC_ONLY',     'a$a',  '""'],
+			['FAKE_RENDER_MODE', '{{ ServerSignatureDate }}', '${timestamp}'],
+			['GRAPHIC_ONLY',     '',     ''],
+			['GRAPHIC_ONLY',     'a',    ''],
+			['GRAPHIC_ONLY',     "a\na", ''],
+			['GRAPHIC_ONLY',     'a"a',  ''],
+			['GRAPHIC_ONLY',     'a$a',  ''],
 		];
 	}
 
