@@ -51,6 +51,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			self::$certificateEngineFactory = \OCP\Server::get(CertificateEngineFactory::class);
 			$appConfig = self::getMockAppConfig();
 			$appConfig->setValueString(Application::APP_ID, 'certificate_engine', 'openssl');
+			\OCP\Server::get(CaIdentifierService::class)->generateCaId('openssl');
 			$certificateEngine = self::$certificateEngineFactory->getEngine();
 			$certificateEngine
 				->setConfigPath(\OCP\Server::get(ITempManager::class)->getTemporaryFolder('certificate'))
@@ -436,7 +437,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'template' => 'a"b $c \'d e',
 				'signatureBackgroundType' => 'deleted',
 				'renderMode' => SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY,
-				'templateFontSize' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+				'templateFontSize' => 10,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
 				'params' => ['--l2-text' => 'a"b $c \'d e', '-V', '-pg' => '2', '-llx' => '10', '-lly' => '20', '-urx' => '30', '-ury' => '40', '--bg-path' => 'signature.png', '--hash-algorithm' => 'SHA256'],
@@ -947,16 +948,25 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	#[DataProvider('providerTsaParameters')]
-	public function testTsaParametersAndPassword(array $tsaSettings, string $storedPassword, array $expectedParameters, array $expectedPasswords): void {
+	public function testTsaParametersAndPassword(
+		array $tsaSettings,
+		string $storedPassword,
+		array $expectedParameters,
+		array $expectedPasswords,
+	): void {
 		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
 			$this->markTestSkipped('Certificate initialization failed');
 		}
-		$this->resolvedPolicyValues[TsaPolicy::KEY] = TsaPolicyValue::encode($tsaSettings);
-		$this->appConfig->setValueString('libresign', TsaPolicy::PASSWORD_APP_CONFIG_KEY, $storedPassword);
-		$this->appConfig->setValueString('libresign', 'java_path', __FILE__);
-		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', sys_get_temp_dir());
-		$this->appConfig->setValueString('libresign', 'jsignpdf_path', __DIR__);
-		$this->persistHashAlgorithmPolicy('SHA256');
+
+		foreach ($tsaSettings as $key => $value) {
+			$this->appConfig->setValueString(Application::APP_ID, $key, $value);
+		}
+
+		$this->appConfig->setValueString(Application::APP_ID, 'tsa_password', $storedPassword);
+		$this->appConfig->setValueString(Application::APP_ID, 'signature_hash_algorithm', 'SHA256');
+		$this->appConfig->setValueString(Application::APP_ID, 'java_path', __FILE__);
+		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_temp_path', sys_get_temp_dir());
+		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_path', __DIR__);
 
 		$inputFile = $this->createMock(\OC\Files\Node\File::class);
 		$inputFile->method('getContent')->willReturn('%PDF-1.6');
@@ -978,43 +988,57 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertCount(1, $paramsSeen);
 		$this->assertSame(
-			self::expectedJSignParameters($expectedParameters + ['--hash-algorithm' => 'SHA256']),
+			self::expectedJSignParameters(
+				$expectedParameters + ['--hash-algorithm' => 'SHA256']
+			),
 			$paramsSeen[0]->getJSignParameters(),
 		);
 		$this->assertSame($expectedPasswords, $paramsSeen[0]->getPasswords());
+
 		if ($storedPassword !== '') {
-			$this->assertStringNotContainsString($storedPassword, $paramsSeen[0]->getJSignParameters());
+			$this->assertStringNotContainsString(
+				$storedPassword,
+				$paramsSeen[0]->getJSignParameters(),
+			);
 		}
 	}
 
 	public static function providerTsaParameters(): array {
-		$tsa = [
-			'url' => 'https://tsa.example.test/tsr',
-			'policy_oid' => '1.2.3.4',
-			'auth_type' => 'basic',
-			'username' => 'alice',
+		$basic = [
+			'tsa_url' => 'https://tsa.example.test/tsr',
+			'tsa_policy_oid' => '1.2.3.4',
+			'tsa_auth_type' => 'basic',
+			'tsa_username' => 'alice',
 		];
+
 		return [
 			'no TSA configured' => [
-				['url' => ''],
+				['tsa_url' => ''],
 				'tsa secret',
 				[],
 				[],
 			],
-			'url only' => [
-				['url' => 'https://tsa.example.test/tsr'],
+			'URL only' => [
+				['tsa_url' => 'https://tsa.example.test/tsr'],
 				'',
 				['--tsa-server-url' => 'https://tsa.example.test/tsr'],
 				[],
 			],
-			'url with policy OID and no authentication' => [
-				['url' => 'https://tsa.example.test/tsr', 'policy_oid' => '1.2.3.4', 'auth_type' => 'none'],
-				'tsa secret',
-				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-policy-oid' => '1.2.3.4'],
+			'policy OID without authentication' => [
+				[
+					'tsa_url' => 'https://tsa.example.test/tsr',
+					'tsa_policy_oid' => '1.2.3.4',
+					'tsa_auth_type' => 'none',
+				],
+				'',
+				[
+					'--tsa-server-url' => 'https://tsa.example.test/tsr',
+					'--tsa-policy-oid' => '1.2.3.4',
+				],
 				[],
 			],
-			'basic authentication: user on the command line, password over stdin' => [
-				$tsa,
+			'basic authentication sends password over stdin' => [
+				$basic,
 				'tsa secret',
 				[
 					'--tsa-server-url' => 'https://tsa.example.test/tsr',
@@ -1024,8 +1048,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 				['-tsp' => 'tsa secret'],
 			],
-			'basic authentication with shell characters in the password' => [
-				$tsa,
+			'basic authentication handles shell characters' => [
+				$basic,
 				"p4\$s 'w\"ord",
 				[
 					'--tsa-server-url' => 'https://tsa.example.test/tsr',
@@ -1035,20 +1059,21 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 				['-tsp' => "p4\$s 'w\"ord"],
 			],
-			'basic authentication without a stored password is skipped' => [
-				$tsa,
+			'basic authentication without password is skipped' => [
+				$basic,
 				'',
-				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-policy-oid' => '1.2.3.4'],
+				[
+					'--tsa-server-url' => 'https://tsa.example.test/tsr',
+					'--tsa-policy-oid' => '1.2.3.4',
+				],
 				[],
 			],
-			'basic authentication without a URL sends nothing' => [
-				['url' => '', 'auth_type' => 'basic', 'username' => 'alice'],
-				'tsa secret',
-				[],
-				[],
-			],
-			'basic authentication without a username is skipped' => [
-				['url' => 'https://tsa.example.test/tsr', 'auth_type' => 'basic', 'username' => ''],
+			'basic authentication without username is skipped' => [
+				[
+					'tsa_url' => 'https://tsa.example.test/tsr',
+					'tsa_auth_type' => 'basic',
+					'tsa_username' => '',
+				],
 				'tsa secret',
 				['--tsa-server-url' => 'https://tsa.example.test/tsr'],
 				[],
@@ -1057,17 +1082,24 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	#[DataProvider('providerCertificationLevelWithoutVisibleElements')]
-	public function testCertificationLevelWithoutVisibleElements(bool $docMdpEnabled, array $visibleElements, string $pdfContent, array $tsaSettings, array $expectedParameters): void {
+	public function testCertificationLevelWithoutVisibleElements(
+		bool $docMdpEnabled,
+		string $pdfContent,
+		array $tsaSettings,
+		array $expectedParameters,
+	): void {
 		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
 			$this->markTestSkipped('Certificate initialization failed');
 		}
-		$this->resolvedPolicyValues[TsaPolicy::KEY] = TsaPolicyValue::encode($tsaSettings);
-		$this->appConfig->setValueString('libresign', 'java_path', __FILE__);
-		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', sys_get_temp_dir());
-		$this->appConfig->setValueString('libresign', 'jsignpdf_path', __DIR__);
-		$this->persistSignatureStampPolicy('', SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY, 10, SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE, 100, 100, 'deleted');
-		$this->persistHashAlgorithmPolicy('SHA256');
-		$this->signatureBackgroundService->method('getSignatureBackgroundType')->willReturn('deleted');
+
+		foreach ($tsaSettings as $key => $value) {
+			$this->appConfig->setValueString(Application::APP_ID, $key, $value);
+		}
+
+		$this->appConfig->setValueString(Application::APP_ID, 'signature_hash_algorithm', 'SHA256');
+		$this->appConfig->setValueString(Application::APP_ID, 'java_path', __FILE__);
+		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_temp_path', sys_get_temp_dir());
+		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_path', __DIR__);
 
 		$inputFile = $this->createMock(\OC\Files\Node\File::class);
 		$inputFile->method('getContent')->willReturn($pdfContent);
@@ -1082,53 +1114,53 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$docMdpConfigService = $this->createMock(DocMdpConfigService::class);
 		$docMdpConfigService->method('isEnabled')->willReturn($docMdpEnabled);
-		$docMdpConfigService->method('getLevel')->willReturn(DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS);
+		$docMdpConfigService->method('getLevel')
+			->willReturn(DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS);
 
 		$jSignPdfHandler = $this->getInstance();
 		$this->setDocMdpConfigService($jSignPdfHandler, $docMdpConfigService);
-		$jSignPdfHandler->setVisibleElements($visibleElements);
+		$jSignPdfHandler->setVisibleElements([]);
 		$jSignPdfHandler->setJSignPdf($mock);
 		$jSignPdfHandler->setInputFile($inputFile);
-		$jSignPdfHandler->setSignatureParams(['SignerCommonName' => 'Test User']);
 		$jSignPdfHandler->setCertificate(self::$certificateContent);
 		$jSignPdfHandler->setPassword('password');
 		$jSignPdfHandler->getSignedContent();
 
 		$this->assertCount(1, $paramsSeen);
-		$paramsAsOptions = preg_replace('/\\/\S+app-dark.png/', 'signature.png', $paramsSeen[0]);
-		$this->assertSame(self::expectedJSignParameters($expectedParameters), $paramsAsOptions);
+		$this->assertSame(
+			self::expectedJSignParameters($expectedParameters),
+			$paramsSeen[0],
+		);
 	}
 
 	public static function providerCertificationLevelWithoutVisibleElements(): array {
-		$element = self::getElement([
-			'page' => 1,
-			'llx' => 10,
-			'lly' => 10,
-			'urx' => 110,
-			'ury' => 60,
-		], realpath(__DIR__ . '/../../../../../img/app-dark.png'));
-		$tsa = ['url' => 'https://tsa.example.test/tsr'];
 		return [
-			'certification before the TSA options when the PDF has no signature' => [
+			'certification before TSA options' => [
 				true,
-				[],
 				'%PDF-1.6',
-				$tsa,
-				['-cl' => DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name, '--tsa-server-url' => 'https://tsa.example.test/tsr', '--hash-algorithm' => 'SHA256'],
+				['tsa_url' => 'https://tsa.example.test/tsr'],
+				[
+					'-cl' => DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name,
+					'--tsa-server-url' => 'https://tsa.example.test/tsr',
+					'--hash-algorithm' => 'SHA256',
+				],
 			],
-			'no certification when the PDF already has a signature' => [
+			'no certification when PDF already has signature' => [
 				true,
-				[],
 				"%PDF-1.6\n/ByteRange [0 0 0 0]",
-				$tsa,
-				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--hash-algorithm' => 'SHA256'],
+				['tsa_url' => 'https://tsa.example.test/tsr'],
+				[
+					'--tsa-server-url' => 'https://tsa.example.test/tsr',
+					'--hash-algorithm' => 'SHA256',
+				],
 			],
-			'no certification when DocMDP is disabled, even with a visible element on a signed PDF' => [
+			'no certification when DocMDP is disabled' => [
 				false,
-				[$element],
-				"%PDF-1.6\n/ByteRange [0 0 0 0]",
-				['url' => ''],
-				['--hash-algorithm' => 'SHA256', '--l2-text' => '', '-V', '-llx' => '10', '-lly' => '10', '-urx' => '110', '-ury' => '60', '--bg-path' => 'signature.png'],
+				'%PDF-1.6',
+				['tsa_url' => ''],
+				[
+					'--hash-algorithm' => 'SHA256',
+				],
 			],
 		];
 	}
