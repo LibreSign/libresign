@@ -42,6 +42,13 @@ import draggable from 'vuedraggable'
 
 import Signer from './Signer.vue'
 import { useFilesStore } from '../../store/files.js'
+import {
+	filterParticipantsByRole,
+	isObserverParticipant,
+	isSigningParticipant,
+	PARTICIPANT_ROLE,
+	type ParticipantRole,
+} from '../../utils/participantRole.ts'
 
 defineOptions({
 	name: 'Signers',
@@ -49,8 +56,10 @@ defineOptions({
 
 const props = withDefaults(defineProps<{
 	event?: string
+	roleFilter?: ParticipantRole | null
 }>(), {
 	event: '',
+	roleFilter: null,
 })
 const emit = defineEmits<{
 	(e: 'signing-order-changed'): void
@@ -63,18 +72,45 @@ const filesStore = useFilesStore()
 
 const signers = computed<SignerListItem[] | undefined>(() => {
 	const file = filesStore.getFile()
-	return file?.signers ?? undefined
+	const allSigners = file?.signers ?? undefined
+	if (!allSigners || !props.roleFilter) {
+		return allSigners
+	}
+
+	return filterParticipantsByRole(allSigners, props.roleFilter)
 })
+
+function mergeReorderedParticipants(reordered: SignerListItem[]) {
+	const file = filesStore.getFile()
+	if (!file?.signers) {
+		return
+	}
+
+	if (props.roleFilter === PARTICIPANT_ROLE.SIGNER) {
+		const observers = file.signers.filter(isObserverParticipant)
+		file.signers = [...reordered, ...observers]
+		return
+	}
+
+	if (props.roleFilter === PARTICIPANT_ROLE.OBSERVER) {
+		const signingParticipants = file.signers.filter(isSigningParticipant)
+		file.signers = [...signingParticipants, ...reordered]
+		return
+	}
+
+	file.signers = reordered
+}
 
 const sortableSigners = computed<SignerListItem[] | undefined>({
 	get() {
 		return signers.value
 	},
 	set(value) {
-		const file = filesStore.getFile()
-		if (file) {
-			file.signers = value
+		if (!value) {
+			return
 		}
+
+		mergeReorderedParticipants(value)
 	},
 })
 
@@ -82,7 +118,13 @@ const isOrderedNumeric = computed(() => {
 	return filesStore.getFile()?.signatureFlow === 'ordered_numeric'
 })
 
-const canReorder = computed(() => filesStore.canSave() && (signers.value?.length || 0) > 1)
+const canReorder = computed(() => {
+	if (props.roleFilter === PARTICIPANT_ROLE.OBSERVER) {
+		return false
+	}
+
+	return filesStore.canSave() && (signers.value?.length || 0) > 1
+})
 
 function onDragEnd(evt: { oldIndex: number; newIndex: number }) {
 	const { oldIndex, newIndex } = evt
@@ -91,8 +133,11 @@ function onDragEnd(evt: { oldIndex: number; newIndex: number }) {
 	}
 
 	const file = filesStore.getFile()
-	file?.signers?.forEach((signer, index) => {
-		signer.signingOrder = index + 1
+	let order = 1
+	file?.signers?.forEach((signer) => {
+		if (isSigningParticipant(signer)) {
+			signer.signingOrder = order++
+		}
 	})
 
 	emit('signing-order-changed')

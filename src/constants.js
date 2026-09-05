@@ -25,6 +25,7 @@ export const SIGN_REQUEST_STATUS = Object.freeze({
 	DRAFT: 0,
 	ABLE_TO_SIGN: 1,
 	SIGNED: 2,
+	OBSERVING: 3,
 })
 
 /**

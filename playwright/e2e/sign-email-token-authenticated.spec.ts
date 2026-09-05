@@ -5,8 +5,9 @@
 
 import { test, expect } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, deleteAppConfig, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
+import { configureOpenSsl, deleteAppConfig, resetUserSigningCertificate, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromEmail } from '../support/mailpit'
+import { clickAddSigner, selectEmailSigner } from '../support/request-signature'
 import { useFooterPolicyGuard, useRequestSignPolicyGuard } from '../support/system-policies'
 
 useFooterPolicyGuard()
@@ -24,11 +25,11 @@ test.setTimeout(120_000)
  * email matches the signer email in throwIfIsAuthenticatedWithDifferentAccount).
  */
 test('sign document with email token as authenticated signer', async ({ page }) => {
-	await login(
-		page.request,
-		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
-		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
-	)
+	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+
+	await login(page.request, adminUser, adminPassword)
+	await resetUserSigningCertificate(page.request, adminUser, adminPassword)
 
 	await configureOpenSsl(page.request, 'LibreSign Test', {
 		C: 'BR',
@@ -59,10 +60,8 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 	await page.getByRole('button', { name: 'Send' }).click()
 
 	// Add signer by email to exercise the email-token flow deterministically.
-	await page.getByRole('button', { name: 'Add signer' }).click()
-	await page.getByPlaceholder('Email').click()
-	await page.getByPlaceholder('Email').pressSequentially('admin@email.tld', { delay: 50 })
-	await page.getByRole('option', { name: 'admin@email.tld' }).first().click()
+	await clickAddSigner(page)
+	await selectEmailSigner(page, 'admin@email.tld')
 	await page.getByRole('textbox', { name: 'Signer name' }).first().fill('Admin')
 	await page.getByRole('button', { name: 'Save' }).click()
 

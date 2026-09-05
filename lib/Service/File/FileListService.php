@@ -336,7 +336,10 @@ class FileListService {
 		$mySigners = array_values(array_filter($signers, fn (SignRequest $signer)
 			=> $this->isCurrentUserSigner($identifyMethods[$signer->getId()] ?? [], $user),
 		));
-		$pendingSigners = array_values(array_filter($signers, fn (SignRequest $signer) => $signer->getSigned() === null));
+		$pendingSigners = array_values(array_filter(
+			$signers,
+			fn (SignRequest $signer) => $signer->getSigned() === null && $signer->getParticipantRoleEnum()->canSign(),
+		));
 		$isOrderedNumeric = SignatureFlow::fromNumeric($fileEntity->getSignatureFlow())->value === SignatureFlow::ORDERED_NUMERIC->value;
 		$minOrder = empty($pendingSigners)
 			? null
@@ -425,6 +428,7 @@ class FileListService {
 			'signingOrder' => $signer->getSigningOrder(),
 			'status' => $signer->getStatus(),
 			'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus()),
+			'participantRole' => $signer->getParticipantRoleEnum()->value,
 			'me' => $me,
 			'visibleElements' => isset($visibleElements[$signer->getId()])
 				? $this->fileElementService->formatVisibleElements(
@@ -560,6 +564,7 @@ class FileListService {
 			'signingOrder' => $signer->getSigningOrder(),
 			'status' => $signer->getStatus(),
 			'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus()),
+			'participantRole' => $signer->getParticipantRoleEnum()->value,
 			'me' => false,
 			'visibleElements' => isset($visibleElements[$signer->getId()])
 				? $this->fileElementService->formatVisibleElements(

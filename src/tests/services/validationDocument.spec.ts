@@ -279,6 +279,32 @@ describe('validationDocument', () => {
 		expect(normalized?.signers[0]?.email).toBeNull()
 	})
 
+	it('accepts payload when a signer has observing status', () => {
+		const normalized = toValidationDocument(createValidationPayload({
+			signers: [
+				createSigner({
+					signRequestId: 62,
+					displayName: 'signer1',
+					status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+					statusText: 'Ready to sign',
+					participantRole: 'signer',
+				}),
+				createSigner({
+					signRequestId: 63,
+					displayName: 'observer1',
+					email: 'observer1@test.com',
+					status: SIGN_REQUEST_STATUS.OBSERVING,
+					statusText: 'Observing',
+					participantRole: 'observer',
+				}),
+			],
+		}))
+
+		expect(normalized).not.toBeNull()
+		expect(normalized?.signers).toHaveLength(2)
+		expect(normalized?.signers[1]?.status).toBe(SIGN_REQUEST_STATUS.OBSERVING)
+	})
+
 	it('accepts payload when signer email is omitted', () => {
 		const signerWithoutEmail = createSigner()
 		delete signerWithoutEmail.email

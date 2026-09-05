@@ -15,6 +15,7 @@ import { usePoliciesStore } from '../../../store/policies'
 import RequestSignatureTab from '../../../components/RightSidebar/RequestSignatureTab.vue'
 import { useFilesStore } from '../../../store/files.js'
 import { FILE_STATUS } from '../../../constants.js'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 
 const { capabilitiesState, generateUrlMock } = vi.hoisted(() => ({
 	capabilitiesState: { signElementsAvailable: true },
@@ -423,6 +424,18 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 			expect(wrapper.vm.showPreserveOrder).toBe(false)
 		})
+
+		it('hides when document has one signer and observers', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signers: [
+					{ email: 'test@example.com', signed: [], participantRole: 'signer' },
+					{ email: 'observer@example.com', signed: [], participantRole: 'observer' },
+				],
+			})
+
+			expect(wrapper.vm.showPreserveOrder).toBe(false)
+		})
 	})
 
 	describe('RULE: showRememberSignatureFlow only when signing order is meaningful', () => {
@@ -728,6 +741,64 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			})
 
 			expect(wrapper.vm.showRequestButton).toBe(false)
+		})
+
+		it('hides request action when only observers are present', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signatureFlow: 'parallel',
+				signers: [{
+					participantRole: 'observer',
+					email: 'witness@example.com',
+					signed: [],
+					status: 0,
+				}],
+			})
+
+			expect(wrapper.vm.showRequestButton).toBe(false)
+		})
+	})
+
+	describe('RULE: signature request requires signers', () => {
+		it('shows error toast when requesting signatures with only observers', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signatureFlow: 'parallel',
+				signers: [{
+					participantRole: 'observer',
+					email: 'witness@example.com',
+					signed: [],
+					status: 0,
+				}],
+			})
+
+			await wrapper.vm.request()
+
+			expect(showError).toHaveBeenCalledWith('At least one signer is required')
+			expect(wrapper.vm.showConfirmRequest).toBe(false)
+		})
+
+		it('shows error toast when confirm request API rejects observer-only payload', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signatureFlow: 'parallel',
+				signers: [{
+					participantRole: 'signer',
+					email: 'signer@example.com',
+					signed: [],
+					status: 0,
+				}],
+			})
+			vi.spyOn(filesStore, 'saveOrUpdateSignatureRequest').mockResolvedValue({
+				success: false,
+				message: 'At least one signer is required',
+			})
+
+			await wrapper.vm.confirmRequest()
+
+			expect(showError).toHaveBeenCalledWith('At least one signer is required')
+			expect(showSuccess).not.toHaveBeenCalled()
+			expect(wrapper.vm.showConfirmRequest).toBe(false)
 		})
 	})
 

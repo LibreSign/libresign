@@ -16,6 +16,8 @@ use OCA\Libresign\Db\IdDocs;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
@@ -27,6 +29,10 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\RuntimeRequirementValidator;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
+use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicyService;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -58,6 +64,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private DocMdpValidator&MockObject $docMdpValidator;
 	private RequestSignAuthorizationService&MockObject $requestSignAuthorizationService;
 	private RuntimeRequirementValidator&MockObject $runtimeRequirementValidator;
+	private PolicyService&MockObject $policyService;
+	private ObserverProfilePolicyService $observerProfilePolicyService;
 
 	#[\Override]
 	public function setUp(): void {
@@ -81,6 +89,11 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->docMdpValidator = $this->createMock(DocMdpValidator::class);
 		$this->requestSignAuthorizationService = $this->createMock(RequestSignAuthorizationService::class);
 		$this->runtimeRequirementValidator = $this->createMock(RuntimeRequirementValidator::class);
+		$this->policyService = $this->createMock(PolicyService::class);
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setEffectiveValue(true);
+		$this->policyService->method('resolve')->with(ObserverProfilePolicy::KEY)->willReturn($resolvedPolicy);
+		$this->observerProfilePolicyService = new ObserverProfilePolicyService($this->policyService);
 	}
 
 	private function getValidateHelper(): ValidateHelper {
@@ -102,6 +115,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->docMdpValidator,
 			$this->requestSignAuthorizationService,
 			$this->runtimeRequirementValidator,
+			$this->observerProfilePolicyService,
 		);
 		return $validateHelper;
 	}
@@ -318,6 +332,92 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectException(LibresignException::class);
 
 		$this->getValidateHelper()->validateSigner($uuid);
+	}
+
+	public function testValidateSignerBlocksObserverParticipants(): void {
+		$uuid = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+		$signRequest = $this->createSignRequestEntity(12, 22, SignRequestStatus::OBSERVING);
+		$signRequest->setParticipantRole(ParticipantRole::OBSERVER->value);
+		$file = $this->createLibresignFile();
+
+		$this->mockSignRequestByUuid($uuid, $signRequest, $file);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Observers cannot sign this document');
+
+		$this->getValidateHelper()->validateSigner($uuid);
+	}
+
+	public function testValidateIdentifySignersRejectsObserverWhenPolicyDisabled(): void {
+		$signatureMethod = $this->createMock(ISignatureMethod::class);
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
+		$identifyMethod->method('validateToRequest');
+
+		$this->identifyMethodService
+			->method('getInstanceOfIdentifyMethod')
+			->willReturn($identifyMethod);
+
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setEffectiveValue(false);
+		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyService->method('resolve')->with(ObserverProfilePolicy::KEY)->willReturn($resolvedPolicy);
+		$this->observerProfilePolicyService = new ObserverProfilePolicyService($this->policyService);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Observer participants are not enabled');
+
+		$this->getValidateHelper()->validateIdentifySigners([
+			'status' => FileStatus::DRAFT->value,
+			'signers' => [
+				[
+					'participantRole' => 'observer',
+					'identifyMethods' => [
+						['method' => 'email', 'value' => 'witness@example.com'],
+					],
+				],
+			],
+		]);
+	}
+
+	public function testValidateIdentifySignersUsesObserverPolicySnapshotForExistingRequest(): void {
+		$signatureMethod = $this->createMock(ISignatureMethod::class);
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
+		$identifyMethod->method('validateToRequest');
+		$this->identifyMethodService
+			->method('getInstanceOfIdentifyMethod')
+			->willReturn($identifyMethod);
+
+		$file = $this->createLibresignFile();
+		$file->setMetadata([
+			'policy_snapshot' => [
+				ObserverProfilePolicy::KEY => [
+					'effectiveValue' => true,
+					'sourceScope' => 'system',
+				],
+			],
+		]);
+		$this->fileMapper
+			->method('getByUuid')
+			->with('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee')
+			->willReturn($file);
+		$this->policyService->expects($this->never())->method('resolve');
+
+		$this->getValidateHelper()->validateIdentifySigners([
+			'uuid' => 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+			'status' => FileStatus::DRAFT->value,
+			'signers' => [
+				[
+					'participantRole' => 'observer',
+					'identifyMethods' => [
+						['method' => 'email', 'value' => 'witness@example.com'],
+					],
+				],
+			],
+		]);
+
+		$this->addToAssertionCount(1);
 	}
 
 	public function testValidateFileWithoutAllNecessaryData():void {
@@ -1147,6 +1247,61 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$result = $validateHelper->validateIdentifySigners($data);
 
 		$this->assertNull($result);
+	}
+
+	public function testValidateIdentifySignersRequiresSigningParticipantWhenRequesting(): void {
+		$signatureMethod = $this->createMock(ISignatureMethod::class);
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
+		$identifyMethod->method('validateToRequest');
+
+		$this->identifyMethodService
+			->method('getInstanceOfIdentifyMethod')
+			->willReturn($identifyMethod);
+
+		$validateHelper = $this->getValidateHelper();
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('At least one signer is required');
+
+		$validateHelper->validateIdentifySigners([
+			'status' => FileStatus::ABLE_TO_SIGN->value,
+			'signers' => [
+				[
+					'participantRole' => 'observer',
+					'identifyMethods' => [
+						['method' => 'email', 'value' => 'witness@example.com'],
+					],
+				],
+			],
+		]);
+	}
+
+	public function testValidateIdentifySignersAllowsObserverOnlyDraft(): void {
+		$signatureMethod = $this->createMock(ISignatureMethod::class);
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
+		$identifyMethod->method('validateToRequest');
+
+		$this->identifyMethodService
+			->method('getInstanceOfIdentifyMethod')
+			->willReturn($identifyMethod);
+
+		$validateHelper = $this->getValidateHelper();
+
+		$validateHelper->validateIdentifySigners([
+			'status' => FileStatus::DRAFT->value,
+			'signers' => [
+				[
+					'participantRole' => 'observer',
+					'identifyMethods' => [
+						['method' => 'email', 'value' => 'witness@example.com'],
+					],
+				],
+			],
+		]);
+
+		$this->addToAssertionCount(1);
 	}
 
 	public function testNormalizeRequestSignersReturnsCanonicalIdentifyMethods(): void {

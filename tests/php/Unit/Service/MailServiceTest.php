@@ -87,6 +87,30 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
+	public function testSuccessNotifyUnsignedObserverUsesValidationLink(): void {
+		$this->mockRequest();
+		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_SYSTEM);
+		$this->mailer->expects($this->once())
+			->method('send');
+
+		$signRequest = new SignRequest();
+		$signRequest->setUuid('observer-uuid');
+		$signRequest->setFileId(1);
+		$signRequest->setDisplayName('Jane Observer');
+		$signRequest->setParticipantRole('observer');
+
+		$this->urlGenerator
+			->expects($this->once())
+			->method('linkToRouteAbsolute')
+			->with(
+				'libresign.page.validationFilePublic',
+				['uuid' => 'file-uuid'],
+			)
+			->willReturn('https://example.com/validation/file-uuid');
+
+		$this->service->notifyUnsignedUser($signRequest, 'observer@example.com');
+	}
+
 	public function testFailToSendMailToUnsignedUser():void {
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('Notify unsigned notification mail could not be sent');
@@ -362,27 +386,20 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
 	}
 
-	private function mockSignRequest(string $displayName = 'John Doe'): SignRequest&MockObject {
-		$signRequest = $this->createMock(SignRequest::class);
-		$signRequest
-			->method('__call')
-			->willReturnCallback(fn (string $method)
-				=> match ($method) {
-					'getUuid' => 'asdfg',
-					'getFileId' => 1,
-					'getDisplayName' => $displayName,
-				}
-			);
+	private function mockSignRequest(string $displayName = 'John Doe'): SignRequest {
+		$signRequest = new SignRequest();
+		$signRequest->setUuid('asdfg');
+		$signRequest->setFileId(1);
+		$signRequest->setDisplayName($displayName);
+		$signRequest->setParticipantRole('signer');
 		return $signRequest;
 	}
 
 	private function mockRequest(string $requesterId = 'requester'): void {
-		$file = $this->createMock(File::class);
-		$file
-			->method('__call')
-			->with($this->equalTo('getName'), $this->anything())
-			->willReturn('Filename');
-		$file->method('getUserId')->willReturn($requesterId);
+		$file = new File();
+		$file->setName('Filename');
+		$file->setUuid('file-uuid');
+		$file->setUserId($requesterId);
 		$this->fileMapper
 			->method('getById')
 			->with(1)

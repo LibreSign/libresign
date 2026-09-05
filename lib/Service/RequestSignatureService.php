@@ -15,6 +15,7 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -179,7 +180,7 @@ class RequestSignatureService {
 
 		try {
 			$envelopePath = $data['settings']['path'] ?? null;
-			$envelope = $this->envelopeService->createEnvelope($envelopeName, $userId, $filesCount, $envelopePath);
+			$envelope = $this->envelopeService->createEnvelope($envelopeName, $userId, $filesCount, $envelopePath, $data);
 
 			$envelopeFolder = $this->envelopeService->getEnvelopeFolder($envelope);
 			$envelopeSettings = array_merge($data['settings'] ?? [], [
@@ -491,8 +492,11 @@ class RequestSignatureService {
 			$requester = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
 
 			foreach ($normalizedSigners as $signer) {
+				$participantRole = ParticipantRole::fromNullable($signer['participantRole'] ?? null);
 				$userProvidedOrder = isset($signer['signingOrder']) ? (int)$signer['signingOrder'] : null;
-				$signingOrder = $this->sequentialSigningService->determineSigningOrder($userProvidedOrder);
+				$signingOrder = $participantRole->canSign()
+					? $this->sequentialSigningService->determineSigningOrder($userProvidedOrder)
+					: 0;
 				$signerStatus = $signer['status'] ?? null;
 				$shouldNotify = !isset($signer['notify']) || $signer['notify'] !== 0;
 				$lastSignRequest = null;
@@ -515,6 +519,7 @@ class RequestSignatureService {
 						signingOrder: $signingOrder,
 						fileStatus: $fileStatus,
 						signerStatus: $signerStatus,
+						participantRole: $participantRole,
 						afterPersist: function (SignRequestEntity $signRequest) use ($file, $requesterRequiresGeolocation, $requester): void {
 							$this->signerGeolocationPolicyService->persistEffectiveRequirement(
 								$signRequest,

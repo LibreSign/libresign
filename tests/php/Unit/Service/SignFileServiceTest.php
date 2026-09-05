@@ -27,6 +27,7 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\FileStatus as FileStatusEnum;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignedEventFactory;
@@ -1038,6 +1039,30 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$status = self::invokePrivate($service, 'evaluateStatusFromSigners');
 		$this->assertSame(FileStatus::PARTIAL_SIGNED->value, $status);
+	}
+
+	public function testEvaluateStatusFromSignersIgnoresUnsignedObservers(): void {
+		$this->idDocsMapper
+			->method('getByFileId')
+			->willThrowException(new DoesNotExistException('no identification document'));
+
+		$signed = new SignRequest();
+		$signed->setId(1);
+		$signed->setSigned(new DateTime());
+
+		$observer = new SignRequest();
+		$observer->setId(2);
+		$observer->setParticipantRole(ParticipantRole::OBSERVER->value);
+
+		$service = $this->getService(['getSigners']);
+		$service->method('getSigners')->willReturn([$signed, $observer]);
+
+		$signRequest = new SignRequest();
+		$signRequest->setFileId(99);
+		$service->setSignRequest($signRequest);
+
+		$status = self::invokePrivate($service, 'evaluateStatusFromSigners');
+		$this->assertSame(FileStatus::SIGNED->value, $status);
 	}
 
 	#[DataProvider('providerGetEngineWillWorkWithLazyLoadedEngine')]

@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service\SignRequest;
 use OCA\Libresign\Db\IdentifyMethod as IdentifyMethodEntity;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -183,10 +184,48 @@ final class SignRequestServiceTest extends TestCase {
 			1,
 			null,
 			null,
+			ParticipantRole::SIGNER,
 			$afterPersist,
 		);
 
 		$this->assertSame(['afterPersist', 'identifyMethodSave'], $callOrder);
+	}
+
+	public function testCreateOrUpdateSignRequestRejectsRoleChangeAfterSigned(): void {
+		$identifyMethod = $this->createIdentifyMethod('email', 'signer@example.com');
+		$this->identifyMethodService->method('getByUserData')
+			->willReturn([$identifyMethod]);
+
+		$existing = new SignRequestEntity();
+		$existing->setId(77);
+		$existing->setStatusEnum(SignRequestStatus::SIGNED);
+		$existing->setParticipantRoleEnum(ParticipantRole::SIGNER);
+
+		$this->signRequestMapper->method('getByIdentifyMethodAndFileId')
+			->willReturn($existing);
+
+		$this->signRequestMapper->expects($this->never())
+			->method('update');
+		$this->signRequestMapper->expects($this->never())
+			->method('insert');
+
+		$this->expectExceptionMessage('Cannot change the participant role after the document has been signed');
+
+		try {
+			$this->service->createOrUpdateSignRequest(
+				[['email' => 'signer@example.com']],
+				'Existing',
+				'',
+				false,
+				101,
+				0,
+				null,
+				null,
+				ParticipantRole::OBSERVER,
+			);
+		} finally {
+			$this->assertSame(ParticipantRole::SIGNER, $existing->getParticipantRoleEnum());
+		}
 	}
 
 	public function testCreateOrUpdateSignRequestUpdatesExisting(): void {

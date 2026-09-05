@@ -120,7 +120,8 @@ class SequentialSigningService {
 	private function isOrderFullyCompleted(array $signRequests, int $order): bool {
 		$pendingSigners = array_filter(
 			$signRequests,
-			fn ($sr) => $sr->getSigningOrder() === $order
+			fn ($sr) => $this->isSigningParticipant($sr)
+				&& $sr->getSigningOrder() === $order
 				&& $sr->getStatusEnum() !== SignRequestStatus::SIGNED
 		);
 
@@ -128,7 +129,11 @@ class SequentialSigningService {
 	}
 
 	private function findNextOrder(array $signRequests, int $completedOrder): ?int {
-		$allOrders = array_unique(array_map(fn ($sr) => $sr->getSigningOrder(), $signRequests));
+		$allOrders = array_unique(array_map(
+			fn ($sr) => $this->isSigningParticipant($sr) ? $sr->getSigningOrder() : null,
+			$signRequests,
+		));
+		$allOrders = array_values(array_filter($allOrders, static fn (?int $order) => $order !== null && $order > 0));
 		sort($allOrders);
 
 		foreach ($allOrders as $order) {
@@ -143,7 +148,8 @@ class SequentialSigningService {
 	private function activateSignersForOrder(array $signRequests, int $order): void {
 		$signersToActivate = array_filter(
 			$signRequests,
-			fn ($sr) => $sr->getSigningOrder() === $order
+			fn ($sr) => $this->isSigningParticipant($sr)
+				&& $sr->getSigningOrder() === $order
 		);
 
 		foreach ($signersToActivate as $signer) {
@@ -176,6 +182,10 @@ class SequentialSigningService {
 		$signRequests = $this->signRequestMapper->getByFileId($fileId);
 
 		foreach ($signRequests as $signRequest) {
+			if (!$this->isSigningParticipant($signRequest)) {
+				continue;
+			}
+
 			$order = $signRequest->getSigningOrder();
 			$status = $signRequest->getStatusEnum();
 
@@ -186,6 +196,10 @@ class SequentialSigningService {
 		}
 
 		return false;
+	}
+
+	private function isSigningParticipant(\OCA\Libresign\Db\SignRequest $signRequest): bool {
+		return $signRequest->getParticipantRoleEnum()->canSign();
 	}
 
 	/**

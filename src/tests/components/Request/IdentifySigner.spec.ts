@@ -13,7 +13,7 @@ import type { IdentifyAccountRecord } from '../../../types'
 
 const signerSelectStub = {
 	name: 'SignerSelect',
-	props: ['placeholder', 'method'],
+	props: ['placeholder', 'method', 'participantRole'],
 	template: '<div class="signer-select-stub" />',
 }
 
@@ -260,6 +260,15 @@ describe('IdentifySigner rules', () => {
 
 			expect(wrapper.vm.nameHaveError).toBe(false)
 		})
+
+		it('shows observer-specific validation message', async () => {
+			await wrapper.setProps({ participantRole: 'observer' })
+			wrapper.vm.displayName = 'Jo'
+			wrapper.vm.onNameChange()
+
+			expect(wrapper.vm.nameHaveError).toBe(true)
+			expect(wrapper.vm.nameHelperText).toBe('Please enter observer name.')
+		})
 	})
 
 	describe('signer update handling', () => {
@@ -417,6 +426,7 @@ describe('IdentifySigner rules', () => {
 					{
 						displayName: 'John Doe',
 						description: undefined,
+						participantRole: 'signer',
 						email: 'john@example.com',
 						status: 0,
 						statusText: 'Draft',

@@ -16,6 +16,7 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
@@ -414,6 +415,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				int $signingOrder,
 				?int $fileStatus,
 				?int $signerStatus,
+				ParticipantRole $participantRole = ParticipantRole::SIGNER,
 				?callable $afterPersist = null,
 			) use (&$expectedCalls): SignRequest {
 				$expectedCall = array_shift($expectedCalls);
@@ -484,6 +486,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				int $signingOrder = 0,
 				?int $fileStatus = null,
 				?int $signerStatus = null,
+				ParticipantRole $participantRole = ParticipantRole::SIGNER,
 				?callable $afterPersist = null,
 			) use (&$signRequestCounter): SignRequest {
 				$signRequest = new SignRequest();

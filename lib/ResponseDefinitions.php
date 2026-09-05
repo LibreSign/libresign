@@ -47,6 +47,7 @@ namespace OCA\Libresign;
  *     },
  *     envelopeFolderId?: int,
  * }
+ * @psalm-type LibresignParticipantRole = 'signer'|'observer'
  * @psalm-type LibresignGeolocationCollectionStatus = 'collected'|'denied'|'unavailable'|'skipped'
  * @psalm-type LibresignSignerGeolocationPolicyMode = 'disabled'|'optional'|'required'
  * @psalm-type LibresignGeolocationRequirement = 'disabled'|'required'
@@ -68,6 +69,7 @@ namespace OCA\Libresign;
  *     notify?: non-negative-int,
  *     signingOrder?: non-negative-int,
  *     status?: int,
+ *     participantRole?: LibresignParticipantRole,
  *     geolocationRequired?: bool,
  * }
  * @psalm-type LibresignNewFile = array{
@@ -206,8 +208,9 @@ namespace OCA\Libresign;
  *     email?: ?string,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     signed: ?string,
- *     status: 0|1|2,
+ *     status: 0|1|2|3,
  *     statusText: string,
+ *     participantRole?: LibresignParticipantRole,
  * }
  * @psalm-type LibresignSignerDetail = LibresignSignerSummary&array{
  *     description: ?string,
@@ -504,6 +507,10 @@ namespace OCA\Libresign;
  *     effectiveValue: int,
  *     sourceScope: string,
  * }
+ * @psalm-type LibresignPolicySnapshotBooleanEntry = array{
+ *     effectiveValue: bool,
+ *     sourceScope: string,
+ * }
  * @psalm-type LibresignPolicySnapshotIdentificationDocumentsValue = array{
  *     enabled: bool,
  *     approvers: list<string>,
@@ -540,6 +547,7 @@ namespace OCA\Libresign;
  *     identification_documents?: LibresignPolicySnapshotIdentificationDocumentsEntry,
  *     identify_methods?: LibresignPolicySnapshotIdentifyMethodsEntry,
  *     signer_geolocation?: LibresignPolicySnapshotSignerGeolocationEntry,
+ *     enable_observer_profile?: LibresignPolicySnapshotBooleanEntry,
  * }
  * @psalm-type LibresignValidateMetadata = array{
  *     extension: string,

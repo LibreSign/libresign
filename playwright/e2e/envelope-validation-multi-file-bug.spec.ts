@@ -11,6 +11,7 @@ import type { APIRequestContext, Page } from '@playwright/test'
 import { createMailpitClient, extractSignLink, waitForEmailTo } from '../support/mailpit'
 import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 import { getSmallValidPdfBase64 } from '../support/pdf-fixtures'
+import { clickSignDocumentButton } from '../support/sign-flow'
 import { useRequestSignPolicyGuard } from '../support/system-policies'
 
 useRequestSignPolicyGuard()
@@ -111,6 +112,15 @@ async function enableEnvelopeScenario(request: APIRequestContext) {
 		}),
 	)
 	await setSystemPolicy(request, 'make_validation_url_private', '0')
+	await setSystemPolicy(request, 'signature_stamp', JSON.stringify({
+		template: '{{SignerCommonName}}',
+		template_font_size: 9.8,
+		signature_font_size: 20,
+		signature_width: 350,
+		signature_height: 100,
+		render_mode: 'default',
+		background_type: 'default',
+	}))
 }
 
 /**
@@ -215,19 +225,8 @@ async function openInvitationAsExternalSigner(page: Page, signLink: string) {
  *
  * @param page
  */
-async function defineClickToSignature(page: Page) {
-	// Wait for click-to-sign button
-	await expect(page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })).toBeVisible({ timeout: 15_000 })
-}
-
-/**
- *
- * @param page
- */
 async function finishSigning(page: Page) {
-	const signButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
-	await expect(signButton).toBeVisible({ timeout: 15_000 })
-	await signButton.click({ force: true })
+	await clickSignDocumentButton(page)
 	const confirmSignButton = page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' })
 	await expect(confirmSignButton).toBeVisible({ timeout: 15_000 })
 	await confirmSignButton.click()
@@ -250,7 +249,6 @@ test('validation screen should display all data correctly for envelope with 2 fi
 	})
 
 	await test.step('And completes the signing process with click-to-sign', async () => {
-		await defineClickToSignature(page)
 		await finishSigning(page)
 	})
 

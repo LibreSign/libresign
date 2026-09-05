@@ -42,6 +42,8 @@ type ValidationVm = {
 	getName: (signer: Record<string, any>) => string
 	handleValidationSuccess: (data: Record<string, any>) => void
 	handleSigningComplete: (file: Record<string, any> | null) => void
+	initializeValidationForRoute: (uuid: string | undefined) => void
+	startPostSignValidationRefresh: () => void
 	refreshAfterAsyncSigning: () => Promise<void>
 	validateByUUID: (uuid: string, options?: { suppressLoading?: boolean }) => Promise<void>
 	$nextTick: () => Promise<void>
@@ -658,6 +660,90 @@ describe('Validation.vue - Business Logic', () => {
 			}) as unknown as ValidationWrapper
 			expect(localWrapper.vm.isAsyncSigning).toBe(false)
 			expect(localWrapper.vm.shouldFireAsyncConfetti).toBe(false)
+		})
+	})
+
+	describe('post-sign redirect initialization', () => {
+		const UUID = '550e8400-e29b-41d4-a716-446655440000'
+		const SIGNED_STATUS = 3
+		const SIGNER_SIGNED_STATUS = 2
+
+		const createLoadedValidationDocument = (patch: Record<string, unknown> = {}) => ({
+			id: 100,
+			uuid: UUID,
+			name: 'contract.pdf',
+			statusText: 'Signed',
+			nodeId: 100,
+			nodeType: 'file',
+			signatureFlow: 'none',
+			docmdpLevel: 0,
+			filesCount: 1,
+			files: [],
+			totalPages: 1,
+			size: 10,
+			pdfVersion: '1.7',
+			created_at: '2026-01-01T00:00:00Z',
+			requested_by: { userId: 'creator-user', displayName: 'Creator User' },
+			status: SIGNED_STATUS,
+			signers: [{
+				signRequestId: 1,
+				displayName: 'Signer',
+				email: 'signer@example.com',
+				signed: '2025-01-01T00:00:00Z',
+				status: SIGNER_SIGNED_STATUS,
+				statusText: 'Signed',
+				description: null,
+				request_sign_date: '2026-01-01T00:00:00Z',
+				me: true,
+				visibleElements: [],
+			}],
+			...patch,
+		})
+
+		it('uses post-sign refresh with cache busting after a sync sign redirect', async () => {
+			history.replaceState({ isAfterSigned: true }, '')
+			vi.mocked(axios.get).mockResolvedValue({
+				data: {
+					ocs: {
+						data: createLoadedValidationDocument(),
+					},
+				},
+			})
+
+			wrapper.vm.initializeValidationForRoute(UUID)
+
+			await vi.waitFor(() => expect(wrapper.vm.hasInfo).toBe(true))
+			expect(vi.mocked(axios.get).mock.calls[0]?.[0]).toContain('_t=')
+		})
+
+		it('retries validation with force refresh after a sync sign redirect', async () => {
+			history.replaceState({ isAfterSigned: true }, '')
+
+			let callCount = 0
+			vi.mocked(axios.get).mockImplementation(() => {
+				callCount += 1
+				if (callCount === 1) {
+					return Promise.reject({
+						response: {
+							status: 500,
+							data: { ocs: { data: {} } },
+						},
+					})
+				}
+				return Promise.resolve({
+					data: {
+						ocs: {
+							data: createLoadedValidationDocument(),
+						},
+					},
+				})
+			})
+
+			wrapper.vm.initializeValidationForRoute(UUID)
+
+			await vi.waitFor(() => expect(callCount).toBeGreaterThan(1), { timeout: 5000 })
+			expect(wrapper.vm.hasInfo).toBe(true)
+			expect(wrapper.vm.validationErrorMessage).toBeNull()
 		})
 	})
 

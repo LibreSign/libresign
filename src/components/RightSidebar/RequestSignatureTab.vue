@@ -23,14 +23,39 @@
 			<!-- TRANSLATORS Informational message shown when saved user preference was reset because policy hierarchy changed. -->
 			{{ t('libresign', 'A previous signing order preference was removed because it is no longer compatible with higher-level policy.') }}
 		</NcNoteCard>
-		<NcButton v-if="filesStore.canAddSigner() && !isOriginalFileDeleted"
-			:variant="hasSigners ? 'secondary' : 'primary'"
-			@click="addSigner">
-			<template #icon>
-				<NcIconSvgWrapper :path="mdiAccountPlus" :size="20" />
-			</template>
-			{{ t('libresign', 'Add signer') }}
-		</NcButton>
+		<template v-if="filesStore.canAddSigner() && !isOriginalFileDeleted">
+			<NcButton v-if="!observerProfileEnabled"
+				:variant="hasSigners ? 'secondary' : 'primary'"
+				@click="addParticipant(PARTICIPANT_ROLE.SIGNER)">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiAccountPlus" :size="20" />
+				</template>
+				{{ t('libresign', 'Add signer') }}
+			</NcButton>
+			<NcActions v-else
+				:aria-label="t('libresign', 'Add participant')"
+				:menu-name="t('libresign', 'Add')"
+				:force-name="true"
+				:variant="hasSigners ? 'secondary' : 'primary'">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiPlus" :size="20" />
+				</template>
+				<NcActionButton :close-after-click="true"
+					@click="addParticipant(PARTICIPANT_ROLE.SIGNER)">
+					<template #icon>
+						<NcIconSvgWrapper :path="mdiAccountPlus" :size="20" />
+					</template>
+					{{ t('libresign', 'Signer') }}
+				</NcActionButton>
+				<NcActionButton :close-after-click="true"
+					@click="addParticipant(PARTICIPANT_ROLE.OBSERVER)">
+					<template #icon>
+						<NcIconSvgWrapper :path="mdiEyeOutline" :size="20" />
+					</template>
+					{{ t('libresign', 'Observer') }}
+				</NcActionButton>
+			</NcActions>
+		</template>
 		<NcCheckboxRadioSwitch v-if="showPreserveOrder && !isOriginalFileDeleted"
 			v-model="preserveOrder"
 			type="switch"
@@ -68,58 +93,94 @@
 			</template>
 			{{ t('libresign', 'View signing order') }}
 		</NcButton>
-		<Signers v-if="!shouldLoadDetail || isCurrentFileDetailed"
-			:event="isOriginalFileDeleted ? '' : 'libresign:edit-signer'"
-			@signing-order-changed="debouncedSave">
-			<template #actions="{signer, closeActions}">
-				<template v-if="!isOriginalFileDeleted">
-					<NcActionInput v-if="canEditSigningOrder(signer)"
-						:label="t('libresign', 'Signing order')"
-						type="number"
-						:value="signer.signingOrder || 1"
-						@update:modelValue="updateSigningOrder(signer, $event)"
-						@submit="confirmSigningOrder(signer); closeActions()"
-						@blur="confirmSigningOrder(signer)">
-						<template #icon>
-							<NcIconSvgWrapper :path="mdiOrderNumericAscending" :size="20" />
-						</template>
-					</NcActionInput>
-					<NcActionButton v-if="canCustomizeMessage(signer)"
-						:close-after-click="true"
-						@click="customizeMessage(signer); closeActions()">
-						<template #icon>
-							<NcIconSvgWrapper :path="mdiMessageText" :size="20" />
-						</template>
-						{{ t('libresign', 'Customize message') }}
-					</NcActionButton>
-					<NcActionButton v-if="canDelete(signer)"
-						aria-label="Delete"
-						:close-after-click="true"
-						@click="filesStore.deleteSigner(signer)">
-						<template #icon>
-							<NcIconSvgWrapper :path="mdiDelete" :size="20" />
-						</template>
-						{{ t('libresign', 'Delete') }}
-					</NcActionButton>
-					<NcActionButton v-if="canRequestSignature(signer)"
-						:close-after-click="true"
-						@click="requestSignatureForSigner(signer)">
-						<template #icon>
-							<NcIconSvgWrapper :path="mdiSend" :size="20" />
-						</template>
-						{{ t('libresign', 'Request signature') }}
-					</NcActionButton>
-					<NcActionButton v-if="canSendReminder(signer)"
-						:close-after-click="true"
-						@click="sendNotify(signer)">
-						<template #icon>
-							<NcIconSvgWrapper :path="mdiBell" :size="20" />
-						</template>
-						{{ t('libresign', 'Send reminder') }}
-					</NcActionButton>
+		<div v-if="(!shouldLoadDetail || isCurrentFileDetailed) && signingParticipants.length > 0"
+			class="participants-section">
+			<h3 class="participants-section__title">
+				{{ t('libresign', 'Signers') }}
+			</h3>
+			<Signers :event="isOriginalFileDeleted ? '' : 'libresign:edit-signer'"
+				:role-filter="PARTICIPANT_ROLE.SIGNER"
+				@signing-order-changed="debouncedSave">
+				<template #actions="{signer, closeActions}">
+					<template v-if="!isOriginalFileDeleted">
+						<NcActionInput v-if="canEditSigningOrder(signer)"
+							:label="t('libresign', 'Signing order')"
+							type="number"
+							:value="signer.signingOrder || 1"
+							@update:modelValue="updateSigningOrder(signer, $event)"
+							@submit="confirmSigningOrder(signer); closeActions()"
+							@blur="confirmSigningOrder(signer)">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiOrderNumericAscending" :size="20" />
+							</template>
+						</NcActionInput>
+						<NcActionButton v-if="canCustomizeMessage(signer)"
+							:close-after-click="true"
+							@click="customizeMessage(signer); closeActions()">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiMessageText" :size="20" />
+							</template>
+							{{ t('libresign', 'Customize message') }}
+						</NcActionButton>
+						<NcActionButton v-if="canDelete(signer)"
+							aria-label="Delete"
+							:close-after-click="true"
+							@click="filesStore.deleteSigner(signer)">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiDelete" :size="20" />
+							</template>
+							{{ t('libresign', 'Delete') }}
+						</NcActionButton>
+						<NcActionButton v-if="canRequestSignature(signer)"
+							:close-after-click="true"
+							@click="requestSignatureForSigner(signer)">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiSend" :size="20" />
+							</template>
+							{{ t('libresign', 'Request signature') }}
+						</NcActionButton>
+						<NcActionButton v-if="canSendReminder(signer)"
+							:close-after-click="true"
+							@click="sendNotify(signer)">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiBell" :size="20" />
+							</template>
+							{{ t('libresign', 'Send reminder') }}
+						</NcActionButton>
+					</template>
 				</template>
-			</template>
-		</Signers>
+			</Signers>
+		</div>
+		<div v-if="(!shouldLoadDetail || isCurrentFileDetailed) && observerParticipants.length > 0"
+			class="participants-section">
+			<h3 class="participants-section__title">
+				{{ t('libresign', 'Observers') }}
+			</h3>
+			<Signers :event="isOriginalFileDeleted ? '' : 'libresign:edit-signer'"
+				:role-filter="PARTICIPANT_ROLE.OBSERVER">
+				<template #actions="{signer, closeActions}">
+					<template v-if="!isOriginalFileDeleted">
+						<NcActionButton v-if="canCustomizeMessage(signer)"
+							:close-after-click="true"
+							@click="customizeMessage(signer); closeActions()">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiMessageText" :size="20" />
+							</template>
+							{{ t('libresign', 'Customize message') }}
+						</NcActionButton>
+						<NcActionButton v-if="canDelete(signer)"
+							aria-label="Delete"
+							:close-after-click="true"
+							@click="filesStore.deleteSigner(signer)">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiDelete" :size="20" />
+							</template>
+							{{ t('libresign', 'Delete') }}
+						</NcActionButton>
+					</template>
+				</template>
+			</Signers>
+		</div>
 		<NcFormBox v-if="isEnvelope" class="action-form-box">
 			<NcButton
 				wide
@@ -226,6 +287,7 @@
 						:placeholder="method.friendly_name"
 						:method="method.name"
 						:methods="methods"
+						:participant-role="participantRoleToAdd"
 						:disabled="isSignerMethodDisabled" />
 				</NcAppSidebarTab>
 			</NcAppSidebar>
@@ -297,6 +359,7 @@ import {
 	mdiBell,
 	mdiChartGantt,
 	mdiDelete,
+	mdiEyeOutline,
 	mdiFileDocument,
 	mdiFileMultiple,
 	mdiFilePlus,
@@ -304,6 +367,7 @@ import {
 	mdiMessageText,
 	mdiOrderNumericAscending,
 	mdiPencil,
+	mdiPlus,
 	mdiSend,
 } from '@mdi/js'
 
@@ -347,6 +411,14 @@ import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../constants.js'
 import { getSignRequestStatusText } from '../../utils/getSignRequestStatusText.ts'
+import {
+	countSigningParticipants,
+	filterParticipantsByRole,
+	isObserverParticipant,
+	isSigningParticipant,
+	PARTICIPANT_ROLE,
+	type ParticipantRole,
+} from '../../utils/participantRole.ts'
 import { getSigningRouteUuid, getValidationRouteUuid } from '../../utils/signRequestUuid.ts'
 import { openDocument } from '../../utils/viewer.js'
 import router from '../../router/router'
@@ -391,6 +463,7 @@ type IdentifySignerToEdit = {
 	localKey?: string
 	displayName?: string
 	description?: string
+	participantRole?: ParticipantRole
 	identifyMethods?: IdentifySignerMethod[]
 }
 type SigningOrderDiagramSigner = {
@@ -450,6 +523,7 @@ const rememberFooterTemplate = ref(false)
 const selectedFooterTemplateSource = ref<FooterTemplateSource>('effective')
 const showOrderDiagram = ref(false)
 const showEnvelopeFilesDialog = ref(false)
+const participantRoleToAdd = ref<ParticipantRole>(PARTICIPANT_ROLE.SIGNER)
 const signingProgress = ref<components['schemas']['ProgressPayload'] | null>(null)
 const signingProgressStatus = ref<number | null>(null)
 const signingProgressStatusText = ref('')
@@ -457,6 +531,8 @@ const stopPollingFunction = ref<null | (() => void)>(null)
 
 const signatureFlowPolicy = computed(() => policiesStore.getPolicy('signature_flow'))
 const footerPolicy = computed(() => policiesStore.getPolicy('add_footer'))
+const observerProfilePolicy = computed(() => policiesStore.getPolicy('enable_observer_profile'))
+const observerProfileEnabled = computed(() => observerProfilePolicy.value?.effectiveValue === true)
 const canChooseSigningOrderAtRequestLevel = computed(() => policiesStore.canUseRequestOverride('signature_flow'))
 const canChooseFooterTemplateAtRequestLevel = computed(() => policiesStore.canUseRequestOverride('add_footer'))
 const isAdminFlowForced = computed(() => !canChooseSigningOrderAtRequestLevel.value)
@@ -491,12 +567,15 @@ const canSaveFooterPreference = computed(() => footerPolicy.value?.canSaveAsUser
 const isOrderedNumeric = computed(() => signatureFlow.value === 'ordered_numeric')
 const hasSigners = computed(() => filesStore.hasSigners(filesStore.getFile()))
 const totalSigners = computed(() => Number(filesStore.getFile()?.signersCount || filesStore.getFile()?.signers?.length || 0))
+const signingParticipants = computed(() => filterParticipantsByRole(filesStore.getFile()?.signers, PARTICIPANT_ROLE.SIGNER))
+const observerParticipants = computed(() => filterParticipantsByRole(filesStore.getFile()?.signers, PARTICIPANT_ROLE.OBSERVER))
+const signingParticipantCount = computed(() => countSigningParticipants(filesStore.getFile()?.signers))
 const isOriginalFileDeleted = computed(() => filesStore.isOriginalFileDeleted())
 const currentFile = computed<EditableRequestFile | null>(() => (filesStore.getFile() as EditableRequestFile | null) ?? null)
 const isCurrentFileDetailed = computed(() => currentFile.value?.detailsLoaded === true)
 const shouldLoadDetail = computed(() => totalSigners.value > 0)
 const showSigningOrderOptions = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && hasSigners.value && filesStore.canSave() && canChooseSigningOrderAtRequestLevel.value)
-const showPreserveOrder = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && totalSigners.value > 1 && filesStore.canSave() && canChooseSigningOrderAtRequestLevel.value)
+const showPreserveOrder = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && signingParticipantCount.value > 1 && filesStore.canSave() && canChooseSigningOrderAtRequestLevel.value)
 const showRememberSignatureFlow = computed(() => showPreserveOrder.value && canSaveSignatureFlowPreference.value)
 const footerTemplateSourceOptions = computed<FooterTemplateSourceOption[]>(() => {
 	return buildFooterTemplateSourceOptions(footerPolicy.value, {
@@ -516,8 +595,8 @@ const showFooterTemplateSelector = computed(() => {
 		&& footerTemplateSourceOptions.value.length > 1
 })
 const showRememberFooterTemplate = computed(() => showFooterTemplateSelector.value && canSaveFooterPreference.value)
-const showViewOrderButton = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && isOrderedNumeric.value && totalSigners.value > 1 && hasSigners.value && filesStore.canRequestSign)
-const shouldShowOrderedOptions = computed(() => isOrderedNumeric.value && totalSigners.value > 1)
+const showViewOrderButton = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && isOrderedNumeric.value && signingParticipantCount.value > 1 && hasSigners.value && filesStore.canRequestSign)
+const shouldShowOrderedOptions = computed(() => isOrderedNumeric.value && signingParticipantCount.value > 1)
 const showSignatureFlowPreferenceClearedNotice = computed(() => signatureFlowPolicy.value?.preferenceWasCleared ?? false)
 const currentUserDisplayName = computed(() => getCurrentUser()?.displayName || '')
 const showDocMdpWarning = computed(() => filesStore.isDocMdpNoChangesAllowed() && !filesStore.canAddSigner())
@@ -528,13 +607,19 @@ const size = computed(() => window.matchMedia('(max-width: 512px)').matches ? 'f
 // TRANSLATORS Confirmation question shown before dispatching signature requests to signers.
 const confirmSendSignatureRequestMessage = t('libresign', 'Send signature request?')
 const modalTitle = computed(() => Object.keys(signerToEdit.value).length > 0
-	// TRANSLATORS Dialog title when editing an existing signer entry in the request.
-	? t('libresign', 'Edit signer')
-	// TRANSLATORS Dialog title when adding a new signer entry to the request.
-	: t('libresign', 'Add new signer'))
+	? (isObserverParticipant(signerToEdit.value)
+		// TRANSLATORS Dialog title when editing an existing observer entry in the request.
+		? t('libresign', 'Edit observer')
+		// TRANSLATORS Dialog title when editing an existing signer entry in the request.
+		: t('libresign', 'Edit signer'))
+	: (participantRoleToAdd.value === PARTICIPANT_ROLE.OBSERVER
+		// TRANSLATORS Dialog title when adding a new observer entry to the request.
+		? t('libresign', 'Add new observer')
+		// TRANSLATORS Dialog title when adding a new signer entry to the request.
+		: t('libresign', 'Add new signer')))
 const showSigningProgress = computed(() => signingProgressStatus.value === FILE_STATUS.SIGNING_IN_PROGRESS)
 const signingOrderDiagramSigners = computed<SigningOrderDiagramSigner[]>(() => {
-	const signers = filesStore.getFile()?.signers || []
+	const signers = signingParticipants.value || []
 	return signers.map((signer: EditableRequestSigner) => ({
 		displayName: signer.displayName,
 		signed: isSignerSigned(signer),
@@ -628,6 +713,7 @@ function toIdentifySignerToEdit(signer: EditableRequestSigner): IdentifySignerTo
 		localKey: signer.localKey,
 		displayName: signer.displayName,
 		description: signer.description ?? undefined,
+		participantRole: signer.participantRole as ParticipantRole | undefined,
 		...(identifyMethods?.length ? { identifyMethods } : {}),
 	}
 }
@@ -687,6 +773,28 @@ function showRequestError(error: unknown, fallbackMessage: string): void {
 	showError(fallbackMessage)
 }
 
+function showSaveSignatureRequestFailure(response: unknown, fallbackMessage: string): void {
+	if (typeof response === 'object'
+		&& response !== null
+		&& 'success' in response
+		&& response.success === false) {
+		const message = 'message' in response && typeof response.message === 'string' && response.message.length > 0
+			? response.message
+			: fallbackMessage
+		showError(message)
+		return
+	}
+
+	showError(fallbackMessage)
+}
+
+function isSaveSignatureRequestFailure(response: unknown): response is { success: false; message?: string } {
+	return typeof response === 'object'
+		&& response !== null
+		&& 'success' in response
+		&& response.success === false
+}
+
 function isSignerSigned(signer: Partial<EditableRequestSigner>) {
 	if (Array.isArray(signer?.signed)) {
 		return signer.signed.length > 0
@@ -695,11 +803,11 @@ function isSignerSigned(signer: Partial<EditableRequestSigner>) {
 }
 
 const canEditSigningOrder = computed(() => (signer: Partial<EditableRequestSigner>) => {
-	if (isOriginalFileDeleted.value) {
+	if (isOriginalFileDeleted.value || isObserverParticipant(signer)) {
 		return false
 	}
 	const minSigners = isAdminFlowForced.value ? 1 : 2
-	return isOrderedNumeric.value && totalSigners.value >= minSigners && filesStore.canSave() && !isSignerSigned(signer)
+	return isOrderedNumeric.value && signingParticipantCount.value >= minSigners && filesStore.canSave() && !isSignerSigned(signer)
 })
 
 const canDelete = computed(() => (signer: Partial<EditableRequestSigner>) => {
@@ -721,7 +829,7 @@ function canSignerActInOrder(signer: Partial<EditableRequestSigner>) {
 
 	const file = filesStore.getFile()
 	const signerOrder = signer.signingOrder || 1
-	const signers = Array.isArray(file?.signers) ? file.signers : []
+	const signers = Array.isArray(file?.signers) ? file.signers.filter(isSigningParticipant) : []
 	const hasPendingLowerOrder = signers.some((currentSigner: EditableRequestSigner) => {
 		const otherOrder = currentSigner.signingOrder || 1
 		return otherOrder < signerOrder && !isSignerSigned(currentSigner)
@@ -754,7 +862,7 @@ const canCustomizeMessage = computed(() => (signer: Partial<EditableRequestSigne
 })
 
 const canRequestSignature = computed(() => (signer: Partial<EditableRequestSigner>) => {
-	if (isOriginalFileDeleted.value) {
+	if (isOriginalFileDeleted.value || isObserverParticipant(signer)) {
 		return false
 	}
 	const file = filesStore.getFile()
@@ -771,7 +879,7 @@ const canRequestSignature = computed(() => (signer: Partial<EditableRequestSigne
 })
 
 const canSendReminder = computed(() => (signer: Partial<EditableRequestSigner>) => {
-	if (isOriginalFileDeleted.value) {
+	if (isOriginalFileDeleted.value || isObserverParticipant(signer)) {
 		return false
 	}
 	const file = filesStore.getFile()
@@ -809,7 +917,29 @@ const hasSignersWithDisabledMethods = computed(() => {
 function hasAnyDraftSigner(file: EditableRequestFile | null | undefined) {
 	const fileSigners = file?.signers
 	const signers: EditableRequestSigner[] = Array.isArray(fileSigners) ? fileSigners : []
-	return signers.some((signer: EditableRequestSigner) => signer.status === SIGN_REQUEST_STATUS.DRAFT)
+	return signers
+		.filter(isSigningParticipant)
+		.some((signer: EditableRequestSigner) => signer.status === SIGN_REQUEST_STATUS.DRAFT)
+}
+
+function getSigningParticipantsFromFile(file: EditableRequestFile | null | undefined) {
+	const fileSigners = file?.signers
+	const signers: EditableRequestSigner[] = Array.isArray(fileSigners) ? fileSigners : []
+	return signers.filter(isSigningParticipant)
+}
+
+function ensureHasSigningParticipants(): boolean {
+	const fileSigners = filesStore.getFile()?.signers
+	const participants = Array.isArray(fileSigners) ? fileSigners : []
+	const hasSigningParticipant = participants.some((participant) => !isObserverParticipant(participant))
+
+	if (hasSigningParticipant) {
+		return true
+	}
+
+	// TRANSLATORS Error toast shown when requesting signatures with only observers and no signers.
+	showError(t('libresign', 'At least one signer is required'))
+	return false
 }
 
 function getCurrentSigningOrder(signersNotSigned: EditableRequestSigner[]) {
@@ -819,15 +949,16 @@ function getCurrentSigningOrder(signersNotSigned: EditableRequestSigner[]) {
 function hasOrderDraftSigners(file: EditableRequestFile | null | undefined, order: number) {
 	const fileSigners = file?.signers
 	const signers: EditableRequestSigner[] = Array.isArray(fileSigners) ? fileSigners : []
-	return signers.some((signer: EditableRequestSigner) => {
-		const signerOrder = signer.signingOrder || 1
-		return signerOrder === order && signer.status === SIGN_REQUEST_STATUS.DRAFT
-	})
+	return signers
+		.filter(isSigningParticipant)
+		.some((signer: EditableRequestSigner) => {
+			const signerOrder = signer.signingOrder || 1
+			return signerOrder === order && signer.status === SIGN_REQUEST_STATUS.DRAFT
+		})
 }
 
 function hasSequentialDraftSigners(file: EditableRequestFile | null | undefined) {
-	const fileSigners = file?.signers
-	const signers: EditableRequestSigner[] = Array.isArray(fileSigners) ? fileSigners : []
+	const signers = getSigningParticipantsFromFile(file)
 	const signersNotSigned = signers.filter((signer: EditableRequestSigner) => !isSignerSigned(signer))
 	if (signersNotSigned.length === 0) {
 		return false
@@ -1122,7 +1253,8 @@ function validationFile() {
 	sidebarStore.hideSidebar()
 }
 
-function addSigner() {
+function addParticipant(role: ParticipantRole) {
+	participantRoleToAdd.value = role
 	signerToEdit.value = {}
 	activeTab.value = userConfigStore.files_list_signer_identify_tab || ''
 	filesStore.enableIdentifySigner()
@@ -1289,11 +1421,15 @@ async function confirmRequestSigner() {
 			return signer
 		})
 		const policy = getPolicyPayloadForSave()
-		await filesStore.saveOrUpdateSignatureRequest({
+		const response = await filesStore.saveOrUpdateSignatureRequest({
 			signers: signers as never,
 			status: 1,
 			...(policy ? { policy } : {}),
 		})
+		if (isSaveSignatureRequestFailure(response)) {
+			showSaveSignatureRequestFailure(response, t('libresign', 'Failed to create signature request'))
+			return
+		}
 		showSuccess(t('libresign', 'Signature requested'))
 		showConfirmRequestSigner.value = false
 		selectedSigner.value = null
@@ -1342,11 +1478,22 @@ async function save() {
 }
 
 async function request() {
+	await ensureCurrentFileDetail()
+
+	if (!ensureHasSigningParticipants()) {
+		return
+	}
+
 	showConfirmRequest.value = true
 }
 
 async function confirmRequest() {
 	await ensureCurrentFileDetail()
+
+	if (!ensureHasSigningParticipants()) {
+		return
+	}
+
 	hasLoading.value = true
 	try {
 		const policy = getPolicyPayloadForSave()
@@ -1354,7 +1501,11 @@ async function confirmRequest() {
 			status: 1,
 			...(policy ? { policy } : {}),
 		})
-		showSuccess(t('libresign', response.message || 'Signature requested'))
+		if (isSaveSignatureRequestFailure(response)) {
+			showSaveSignatureRequestFailure(response, t('libresign', 'Failed to create signature requests'))
+			return
+		}
+		showSuccess(t('libresign', 'Signature requested'))
 		showConfirmRequest.value = false
 	} catch (error: unknown) {
 		showRequestError(error, t('libresign', 'Failed to create signature requests'))
@@ -1589,7 +1740,7 @@ defineExpose({
 	getValidationFileUuid,
 	getSignRouteUuid,
 	validationFile,
-	addSigner,
+	addParticipant,
 	editSigner,
 	customizeMessage,
 	onTabChange,
@@ -1621,7 +1772,16 @@ defineExpose({
 	margin-top: 6px;
 }
 
+.participants-section {
+	margin-top: 12px;
 
+	&__title {
+		margin: 0 0 8px;
+		font-size: var(--font-size-small);
+		font-weight: bold;
+		color: var(--color-text-maxcontrast);
+	}
+}
 
 .iframe {
 	width: 100%;

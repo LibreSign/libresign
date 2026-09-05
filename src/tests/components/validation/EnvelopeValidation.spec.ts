@@ -27,6 +27,8 @@ type EnvelopeSigner = {
 	user_agent?: string
 	documentsSignedCount?: number
 	totalDocuments?: number
+	participantRole?: string
+	status?: number
 }
 
 type EnvelopeDocument = {
@@ -55,10 +57,15 @@ type EnvelopeValidationVm = {
 	isTouchDevice: boolean
 	documentStatus: string
 	envelopeFilesCount: number | null
+	hasParticipants: boolean
+	participantsSummaryTitle: string
+	participantSections: Array<{ role: string, title: string, participants: EnvelopeSigner[] }>
 	$nextTick: () => Promise<void>
 	toggleDetail: (signerIndex: number) => void
+	toggleParticipantDetail: (role: 'signer' | 'observer', participantIndex: number) => void
 	toggleFileDetail: (fileIndex: number) => void
 	isSignerOpen: (signerIndex: number) => boolean
+	isParticipantOpen: (role: 'signer' | 'observer', participantIndex: number) => boolean
 	isFileOpen: (fileIndex: number) => boolean
 	getFileStatusText: (file: Partial<EnvelopeFile>) => string
 	getName: (signer: Partial<EnvelopeSigner>) => string
@@ -238,6 +245,22 @@ describe('EnvelopeValidation', () => {
 			expect(wrapper.vm.isSignerOpen(0)).toBe(true)
 			expect('opened' in signer).toBe(false)
 		})
+
+		it('tracks observer open state separately from signers', () => {
+			wrapper = createWrapper({
+				document: {
+					signers: [
+						{ displayName: 'Signer One', participantRole: 'signer' },
+						{ displayName: 'Observer One', participantRole: 'observer' },
+					],
+				},
+			})
+
+			wrapper.vm.toggleParticipantDetail('observer', 0)
+
+			expect(wrapper.vm.isParticipantOpen('observer', 0)).toBe(true)
+			expect(wrapper.vm.isParticipantOpen('signer', 0)).toBe(false)
+		})
 	})
 
 	describe('RULE: toggleFileDetail toggles file details', () => {
@@ -319,6 +342,18 @@ describe('EnvelopeValidation', () => {
 			const text = wrapper.vm.getSignerProgressText({})
 
 			expect(text).toContain('0')
+		})
+
+		it('returns observing label for observer participants', () => {
+			wrapper = createWrapper()
+
+			const text = wrapper.vm.getSignerProgressText({
+				participantRole: 'observer',
+				documentsSignedCount: 0,
+				totalDocuments: 2,
+			})
+
+			expect(text).toBe('Observing')
 		})
 	})
 
@@ -492,6 +527,41 @@ describe('EnvelopeValidation', () => {
 			await wrapper.vm.$nextTick()
 
 			expect(wrapper.vm.isSignerOpen(0)).toBe(false)
+		})
+	})
+
+	describe('RULE: participants are grouped by role', () => {
+		it('renders separate Signers and Observers sections', async () => {
+			wrapper = createWrapper({
+				document: {
+					signers: [
+						{ displayName: 'Signer One', participantRole: 'signer' },
+						{ displayName: 'Observer One', participantRole: 'observer' },
+					],
+				},
+			})
+
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.text()).toContain('Signers')
+			expect(wrapper.text()).toContain('Observers')
+			expect(wrapper.vm.participantSections).toHaveLength(2)
+			expect(wrapper.vm.participantSections[0].participants[0].displayName).toBe('Signer One')
+			expect(wrapper.vm.participantSections[1].participants[0].displayName).toBe('Observer One')
+		})
+
+		it('uses Observers as summary title when only observers exist', async () => {
+			wrapper = createWrapper({
+				document: {
+					signers: [
+						{ displayName: 'Observer One', participantRole: 'observer' },
+					],
+				},
+			})
+
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.vm.participantsSummaryTitle).toBe('Observers')
 		})
 	})
 

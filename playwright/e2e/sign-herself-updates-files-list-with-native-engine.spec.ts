@@ -6,7 +6,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
+import { configureOpenSsl, resetUserSigningCertificate, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
 import { getSmallValidPdfBase64 } from '../support/pdf-fixtures.ts'
 import { useFooterPolicyGuard, useRequestSignPolicyGuard } from '../support/system-policies'
 
@@ -108,11 +108,13 @@ async function sortByCreatedAtDescending(page: Page) {
 
 test('updates files list status after signing with native engine', async ({ page }) => {
 	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
 	await login(
 		page.request,
 		adminUser,
-		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+		adminPassword,
 	)
+	await resetUserSigningCertificate(page.request, adminUser, adminPassword)
 
 	await configureOpenSsl(page.request, 'LibreSign Test', {
 		C: 'BR',

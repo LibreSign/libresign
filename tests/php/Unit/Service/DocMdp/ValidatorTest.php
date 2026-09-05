@@ -108,6 +108,18 @@ final class ValidatorTest extends TestCase {
 				],
 				false,
 			],
+			'no-changes allows single signer with observer before signing' => [
+				DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED,
+				'',
+				[
+					['identifyMethods' => [['method' => 'email', 'value' => 'one@example.com']]],
+					[
+						'participantRole' => 'observer',
+						'identifyMethods' => [['method' => 'email', 'value' => 'witness@example.com']],
+					],
+				],
+				false,
+			],
 			'docmdp level 2 allows multiple signers after signing' => [
 				DocMdpLevel::CERTIFIED_FORM_FILLING,
 				'hash',

@@ -18,9 +18,12 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
+use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
+use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicyValue;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IAppConfig;
 use OCP\IL10N;
+use OCP\IUser;
 use Sabre\DAV\UUIDUtil;
 
 class EnvelopeService {
@@ -55,11 +58,15 @@ class EnvelopeService {
 		}
 	}
 
+	/**
+	 * @param array $policyData
+	 */
 	public function createEnvelope(
 		string $name,
 		string $userId,
 		int $filesCount = 0,
 		?string $path = null,
+		array $policyData = [],
 	): FileEntity {
 		$this->folderService->setUserId($userId);
 
@@ -81,6 +88,7 @@ class EnvelopeService {
 		$envelope->setStatusEnum(FileStatus::DRAFT);
 
 		$envelope->setMetadata(['filesCount' => $filesCount]);
+		$this->storeObserverProfilePolicySnapshot($envelope, $policyData);
 
 		if ($userId) {
 			$envelope->setUserId($userId);
@@ -144,5 +152,55 @@ class EnvelopeService {
 
 	private function getMaxFilesPerEnvelope(): int {
 		return $this->appConfig->getValueInt(Application::APP_ID, 'envelope_max_files', 50);
+	}
+
+	/**
+	 * @param array $policyData
+	 */
+	private function storeObserverProfilePolicySnapshot(FileEntity $envelope, array $policyData): void {
+		$user = ($policyData['userManager'] ?? null) instanceof IUser ? $policyData['userManager'] : null;
+		$requestOverrides = [];
+		if (isset($policyData['policyOverrides']) && is_array($policyData['policyOverrides'])
+			&& array_key_exists(ObserverProfilePolicy::KEY, $policyData['policyOverrides'])
+		) {
+			$requestOverrides[ObserverProfilePolicy::KEY] = ObserverProfilePolicyValue::normalize(
+				$policyData['policyOverrides'][ObserverProfilePolicy::KEY],
+			);
+		}
+
+		$activeContext = $this->extractPolicyActiveContext($policyData);
+		$resolvedPolicy = $activeContext === null
+			? $this->policyService->resolveForUser(ObserverProfilePolicy::KEY, $user, $requestOverrides)
+			: $this->policyService->resolveForUser(ObserverProfilePolicy::KEY, $user, $requestOverrides, $activeContext);
+
+		$metadata = $envelope->getMetadata() ?? [];
+		$policySnapshot = $metadata['policy_snapshot'] ?? [];
+		$policySnapshot[ObserverProfilePolicy::KEY] = [
+			'effectiveValue' => ObserverProfilePolicyValue::normalize($resolvedPolicy->getEffectiveValue()),
+			'sourceScope' => $resolvedPolicy->getSourceScope(),
+		];
+		$metadata['policy_snapshot'] = $policySnapshot;
+		$envelope->setMetadata($metadata);
+	}
+
+	/**
+	 * @param array $policyData
+	 * @return array{type: string, id: string}|null
+	 */
+	private function extractPolicyActiveContext(array $policyData): ?array {
+		if (!isset($policyData['policyActiveContext']) || !is_array($policyData['policyActiveContext'])) {
+			return null;
+		}
+
+		$type = $policyData['policyActiveContext']['type'] ?? null;
+		$id = $policyData['policyActiveContext']['id'] ?? null;
+		if (!is_string($type) || !is_string($id) || $type === '' || $id === '') {
+			return null;
+		}
+
+		return [
+			'type' => $type,
+			'id' => $id,
+		];
 	}
 }

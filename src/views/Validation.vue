@@ -478,18 +478,18 @@ async function validate(id: string, { suppressLoading = false, forceRefresh = fa
 		documentValidMessage.value = t('libresign', 'This document is valid')
 		hasInfo.value = true
 	} else if (id.length === 36) {
-		await validateByUUID(id, { suppressLoading })
+		await validateByUUID(id, { suppressLoading, forceRefresh })
 	} else {
-		await validateByNodeID(id, { suppressLoading })
+		await validateByNodeID(id, { suppressLoading, forceRefresh })
 	}
 	getUUID.value = false
 }
 
-async function validateByUUID(uuid: string, { suppressLoading = false }: { suppressLoading?: boolean } = {}) {
+async function validateByUUID(uuid: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean; forceRefresh?: boolean } = {}) {
 	if (!suppressLoading) {
 		loading.value = true
 	}
-	const cacheBuster = suppressLoading ? `?_t=${Date.now()}` : ''
+	const cacheBuster = (suppressLoading || forceRefresh) ? `?_t=${Date.now()}` : ''
 	await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uuid}${cacheBuster}`))
 		.then(({ data }) => {
 			handleValidationSuccess(data.ocs.data)
@@ -510,11 +510,11 @@ async function validateByUUID(uuid: string, { suppressLoading = false }: { suppr
 	}
 }
 
-async function validateByNodeID(nodeId: string, { suppressLoading = false }: { suppressLoading?: boolean } = {}) {
+async function validateByNodeID(nodeId: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean; forceRefresh?: boolean } = {}) {
 	if (!suppressLoading) {
 		loading.value = true
 	}
-	const cacheBuster = suppressLoading ? `?_t=${Date.now()}` : ''
+	const cacheBuster = (suppressLoading || forceRefresh) ? `?_t=${Date.now()}` : ''
 	await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${nodeId}${cacheBuster}`))
 		.then(({ data }) => {
 			handleValidationSuccess(data.ocs.data)
@@ -852,6 +852,45 @@ function handleValidationSuccess(data: unknown) {
 	}
 }
 
+function startPostSignValidationRefresh() {
+	document.value = null
+	hasInfo.value = false
+	shouldFireAsyncConfetti.value = true
+	loading.value = true
+	void refreshAfterAsyncSigning().finally(() => {
+		loading.value = false
+	})
+}
+
+function initializeValidationForRoute(uuid: string | undefined) {
+	if (!uuid) {
+		document.value = null
+		hasInfo.value = false
+		return
+	}
+
+	uuidToValidate.value = uuid
+
+	if (isAsyncSigning.value) {
+		return
+	}
+
+	if (history.state?.isAfterSigned === true) {
+		startPostSignValidationRefresh()
+		return
+	}
+
+	hasInfo.value = !!document.value?.name
+
+	if (uuid !== document.value?.uuid) {
+		document.value = null
+		hasInfo.value = false
+		void validate(uuid)
+	} else {
+		void validate(uuid)
+	}
+}
+
 async function refreshAfterAsyncSigning() {
 	const maxAttempts = 8
 	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -913,34 +952,17 @@ watch(isAsyncSigning, (active) => {
 	}
 })
 
-watch(() => route.value.params?.uuid, (uuid) => {
-	if (uuid) {
-		validate(uuid)
-	}
-})
-
 document.value = toValidationDocument(loadState('libresign', 'file_info', {}))
-
-if (!uuidToValidate.value) {
-	document.value = null
-	hasInfo.value = false
-} else {
-	hasInfo.value = !!document.value?.name
-
-	if (uuidToValidate.value !== document.value?.uuid) {
-		document.value = null
-		hasInfo.value = false
-		void validate(uuidToValidate.value)
-	} else if (uuidToValidate.value.length > 0) {
-		void validate(uuidToValidate.value)
-	}
-}
 
 if (history.state?.isAsync === true) {
 	isAsyncSigning.value = true
 	shouldFireAsyncConfetti.value = true
 	loading.value = true
 }
+
+watch(() => route.value.params?.uuid, (uuid) => {
+	initializeValidationForRoute(uuid)
+}, { immediate: true })
 
 onBeforeUnmount(() => {
 	isActiveView.value = false
@@ -1025,6 +1047,8 @@ defineExpose({
 	setValidationError,
 	openUuidDialog,
 	handleValidationSuccess,
+	initializeValidationForRoute,
+	startPostSignValidationRefresh,
 	refreshAfterAsyncSigning,
 	handleSigningComplete,
 	handleSigningError,

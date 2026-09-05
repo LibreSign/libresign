@@ -10,6 +10,8 @@ import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support
 import { login } from '../support/nc-login'
 import { configureOpenSsl, deleteAppConfig, getAppConfig, setAppConfig, setCertificateEngine, getSystemPolicyValue, setSystemPolicy } from '../support/nc-provisioning'
 import { setSystemPolicyEntry } from '../support/policy-api'
+import { clickAddSigner, selectEmailSigner } from '../support/request-signature'
+import { clickSignDocumentButton } from '../support/sign-flow'
 import { makeAdminContext, useRequestSignPolicyGuard } from '../support/system-policies'
 
 useRequestSignPolicyGuard()
@@ -80,13 +82,8 @@ async function addEmailSigner(
 	email: string,
 	name: string,
 ) {
-	await page.getByRole('button', { name: 'Add signer' }).click()
-	const emailInput = page.getByPlaceholder('Email')
-	await emailInput.click()
-	await emailInput.pressSequentially(email, { delay: 50 })
-	const option = page.getByRole('option', { name: email })
-	await expect(option).toBeVisible({ timeout: 10_000 })
-	await option.click()
+	await clickAddSigner(page)
+	await selectEmailSigner(page, email)
 	const signerNameInput = page.getByRole('textbox', { name: 'Signer name' })
 	await expect(signerNameInput).toBeVisible()
 	await signerNameInput.fill(name)
@@ -127,11 +124,8 @@ async function openInvitationAsExternalSigner(page: Page, signLink: string) {
 }
 
 async function openSignDocument(page: Page) {
-	const signButton = page.locator('.button-wrapper').getByRole('button', { name: 'Sign document' })
-	await expect(signButton).toBeVisible({ timeout: 15_000 })
-	await signButton.click({ force: true })
-	const confirmSignButton = page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' })
-	await expect(confirmSignButton).toBeVisible({ timeout: 15_000 })
+	await clickSignDocumentButton(page)
+	await expect(page.getByRole('dialog', { name: 'Sign document' })).toBeVisible({ timeout: 15_000 })
 }
 
 test('request signatures from two signers in sequential order', async ({ page, adminContext }) => {

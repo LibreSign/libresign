@@ -20,6 +20,7 @@ use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
+use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicy;
 use OCP\IL10N;
@@ -63,7 +64,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 
 		$this->policyService
-			->expects($this->exactly(7))
+			->expects($this->exactly(8))
 			->method('resolveForUser')
 			->willReturnCallback(function (string $policyKey) use ($identificationDocumentsValue, $identifyMethodsPolicyValue): ResolvedPolicy {
 				return match ($policyKey) {
@@ -96,6 +97,11 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						IdentifyMethodsPolicy::KEY,
 						$identifyMethodsPolicyValue,
 						'group',
+					),
+					ObserverProfilePolicy::KEY => $this->createResolvedPolicy(
+						ObserverProfilePolicy::KEY,
+						true,
+						'system',
 					),
 					SignerGeolocationPolicy::KEY => $this->createResolvedPolicy(
 						SignerGeolocationPolicy::KEY,
@@ -138,6 +144,10 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'effectiveValue' => 'Legal snapshot copy',
 			'sourceScope' => 'group',
 		], $metadata['policy_snapshot'][LegalInformationPolicy::KEY] ?? null);
+		$this->assertSame([
+			'effectiveValue' => true,
+			'sourceScope' => 'system',
+		], $metadata['policy_snapshot'][ObserverProfilePolicy::KEY] ?? null);
 	}
 
 	public function testSyncCoreFlowPoliciesSkipsNonCoreProviders(): void {
