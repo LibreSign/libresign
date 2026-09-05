@@ -295,7 +295,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 			$params = [
 				'--l2-text' => $this->getSignatureText(),
-				'-V' => null,
+				'-V',
 			];
 
 			// When l2-text is empty, add hash-algorithm at the beginning
@@ -303,7 +303,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 				$params = [
 					'--hash-algorithm' => $hashAlgorithm,
 					'--l2-text' => $params['--l2-text'],
-					'-V' => null,
+					'-V',
 				];
 			}
 
