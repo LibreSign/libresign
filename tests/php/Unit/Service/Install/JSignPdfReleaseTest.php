@@ -13,23 +13,26 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class JSignPdfReleaseTest extends TestCase {
-	private const RELEASE_URL = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_3_1_0/';
+	private static function releaseUrl(): string {
+		return 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_'
+			. str_replace('.', '_', JSignPdfRelease::VERSION) . '/';
+	}
 
 	public function testArchiveIsTheMinimalPackageOfTheVersion(): void {
 		$this->assertSame('3.1.0', JSignPdfRelease::VERSION);
-		$this->assertSame('jsignpdf-3.1.0-minimal.zip', JSignPdfRelease::archiveName());
+		$this->assertSame('jsignpdf-' . JSignPdfRelease::VERSION . '-minimal.zip', JSignPdfRelease::archiveName());
 	}
 
 	public function testDownloadUrlPointsToTheArchiveOfTheReleaseTag(): void {
 		$this->assertSame(
-			self::RELEASE_URL . 'jsignpdf-3.1.0-minimal.zip',
+			self::releaseUrl() . 'jsignpdf-' . JSignPdfRelease::VERSION . '-minimal.zip',
 			JSignPdfRelease::downloadUrl(),
 		);
 	}
 
 	public function testChecksumUrlPointsToTheSha256SumsOfTheSameRelease(): void {
 		$this->assertSame(
-			self::RELEASE_URL . 'jsignpdf-3.1.0-SHA256SUMS.txt',
+			self::releaseUrl() . 'jsignpdf-' . JSignPdfRelease::VERSION . '-SHA256SUMS.txt',
 			JSignPdfRelease::checksumUrl(),
 		);
 	}
@@ -43,15 +46,15 @@ final class JSignPdfReleaseTest extends TestCase {
 		return [
 			'appdata folder' => [
 				'/var/www/html/data/appdata_abc/libresign/x86_64/jsignpdf',
-				'/var/www/html/data/appdata_abc/libresign/x86_64/jsignpdf/jsignpdf-3.1.0',
+				'/var/www/html/data/appdata_abc/libresign/x86_64/jsignpdf/jsignpdf-' . JSignPdfRelease::VERSION,
 			],
 			'path with spaces' => [
 				'/opt/libre sign/jsignpdf',
-				'/opt/libre sign/jsignpdf/jsignpdf-3.1.0',
+				'/opt/libre sign/jsignpdf/jsignpdf-' . JSignPdfRelease::VERSION,
 			],
 			'relative path' => [
 				'jsignpdf',
-				'jsignpdf/jsignpdf-3.1.0',
+				'jsignpdf/jsignpdf-' . JSignPdfRelease::VERSION,
 			],
 		];
 	}
