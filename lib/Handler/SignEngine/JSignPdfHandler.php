@@ -106,7 +106,6 @@ class JSignPdfHandler extends Pkcs12Handler {
 		return $this->jSignParam;
 	}
 
-
 	/**
 	 * It's a workaround to create the folder structure that JSignPdf needs. Without
 	 * this, the JSignPdf will return the follow message to all commands:
@@ -627,7 +626,6 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 		return $signatureText;
 	}
-
 
 	private function getTsaParameters(): array {
 		$tsaSettings = $this->getTsaSettings();
