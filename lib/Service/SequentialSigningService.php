@@ -179,8 +179,13 @@ class SequentialSigningService {
 			$order = $signRequest->getSigningOrder();
 			$status = $signRequest->getStatusEnum();
 
-			// If a signer with lower order hasn't signed yet, return true
-			if ($order < $currentOrder && $status !== SignRequestStatus::SIGNED) {
+			// If a signer with lower order hasn't signed yet, return true.
+			// A rejected signer will never sign, so it must not block the remaining
+			// signers when the workflow is configured to continue after a rejection.
+			if ($order < $currentOrder
+				&& $status !== SignRequestStatus::SIGNED
+				&& $status !== SignRequestStatus::REJECTED
+			) {
 				return true;
 			}
 		}

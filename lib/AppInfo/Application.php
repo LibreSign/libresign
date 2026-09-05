@@ -13,6 +13,7 @@ use OCA\Libresign\Activity\Listener as ActivityListener;
 use OCA\Libresign\Capabilities;
 use OCA\Libresign\Dashboard\PendingSignaturesWidget;
 use OCA\Libresign\Events\SendSignNotificationEvent;
+use OCA\Libresign\Events\SignatureRejectedEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Files\TemplateLoader;
@@ -71,6 +72,7 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(SendSignNotificationEvent::class, ActivityListener::class);
 		$context->registerEventListener(SignedEvent::class, ActivityListener::class);
 		$context->registerEventListener(SignRequestCanceledEvent::class, ActivityListener::class);
+		$context->registerEventListener(SignatureRejectedEvent::class, ActivityListener::class);
 
 		// Notification listeners
 		$context->registerEventListener(SendSignNotificationEvent::class, NotificationListener::class);

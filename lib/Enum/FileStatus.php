@@ -24,6 +24,7 @@ enum FileStatus: int {
 	case SIGNED = 3;
 	case DELETED = 4;
 	case SIGNING_IN_PROGRESS = 5;
+	case CANCELED = 6;
 
 	public function getLabel(IL10N $l10n): string {
 		return match($this) {
@@ -41,6 +42,8 @@ enum FileStatus: int {
 			self::DELETED => $l10n->t('Deleted'),
 			// TRANSLATORS File status shown during asynchronous background signing operations.
 			self::SIGNING_IN_PROGRESS => $l10n->t('Signing in progress'),
+			// TRANSLATORS File status shown when the signing workflow was closed because a signer rejected the signature request.
+			self::CANCELED => $l10n->t('Canceled'),
 		};
 	}
 }
