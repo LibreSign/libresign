@@ -140,6 +140,7 @@ final class RequestSignatureWorkflowService {
 		}
 
 		$this->validateHelper->validateExistingFile($data);
+		$this->validateHelper->validateWorkflowIsNotClosedByUuid($uuid);
 		$this->validateHelper->validateFileStatus($data);
 		$this->validateHelper->validateIdentifySigners($data);
 		if (!empty($visibleElements)) {
