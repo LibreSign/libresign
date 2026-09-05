@@ -14,11 +14,18 @@ if (!function_exists('OCA\Libresign\SetupCheck\file_exists')) {
 	}
 }
 
+if (!function_exists('OCA\Libresign\SetupCheck\is_dir')) {
+	function is_dir(string $filename): bool {
+		return \OCA\Libresign\Tests\Mock\FileSystemMock::fileExists($filename);
+	}
+}
+
 namespace OCA\Libresign\Tests\Unit\SetupCheck;
 
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Install\JSignPdfRelease;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCA\Libresign\SetupCheck\JSignPdfSetupCheck;
 use OCA\Libresign\Tests\Mock\FileSystemMock;
@@ -95,7 +102,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 	public function testRunNoPathConfigured(): void {
 		$this->mockTranslation();
 		$this->appConfig->method('getValueString')
-			->with('libresign', 'jsignpdf_jar_path')
+			->with('libresign', 'jsignpdf_path')
 			->willReturn('');
 
 		$result = $this->check->run();
@@ -134,9 +141,9 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 	public function testRunBinaryNotFound(): void {
 		$this->mockTranslation();
-		$jarPath = '/fake/path/jsignpdf.jar';
+		$jsignPdfPath = '/fake/path/jsignpdf-' . JSignPdfRelease::VERSION;
 		$this->appConfig->method('getValueString')
-			->willReturn($jarPath);
+			->willReturn($jsignPdfPath);
 		$this->systemConfig->method('getSystemValueBool')
 			->willReturn(false);
 
@@ -144,29 +151,52 @@ class JSignPdfSetupCheckTest extends TestCase {
 		$this->signSetupService->method('verify')
 			->willReturn([]);
 
-		FileSystemMock::$files[$jarPath] = false;
+		FileSystemMock::$files[$jsignPdfPath] = false;
 
 		$result = $this->check->run();
 
 		$this->assertInstanceOf(SetupResult::class, $result);
 		$this->assertSame('error', $result->getSeverity());
-		$this->assertStringContainsString('JSignPdf file not found', $result->getDescription());
+		$this->assertStringContainsString('JSignPdf path not found', $result->getDescription());
 	}
 
 	public function testRunJavaNotFound(): void {
 		$this->mockTranslation();
-		$jarPath = '/fake/path/jsignpdf.jar';
+		$jsignPdfPath = '/fake/path/jsignpdf-' . JSignPdfRelease::VERSION;
 		$this->appConfig->method('getValueString')
-			->willReturn($jarPath);
+			->willReturn($jsignPdfPath);
 		$this->systemConfig->method('getSystemValueBool')
 			->willReturn(false);
 		$this->signSetupService->method('verify')
 			->willReturn([]);
 
-		FileSystemMock::$files[$jarPath] = true;
+		FileSystemMock::$files[$jsignPdfPath] = true;
 
 		$this->javaHelper->method('getJavaPath')
 			->willReturn('');
+
+		$result = $this->check->run();
+
+		$this->assertInstanceOf(SetupResult::class, $result);
+		$this->assertSame('error', $result->getSeverity());
+		$this->assertStringContainsString('Necessary Java to run JSignPdf', $result->getDescription());
+	}
+
+	public function testRunJavaBinaryMissing(): void {
+		$this->mockTranslation();
+		$jsignPdfPath = '/fake/path/jsignpdf-' . JSignPdfRelease::VERSION;
+		$this->appConfig->method('getValueString')
+			->willReturn($jsignPdfPath);
+		$this->systemConfig->method('getSystemValueBool')
+			->willReturn(false);
+		$this->signSetupService->method('verify')
+			->willReturn([]);
+
+		FileSystemMock::$files[$jsignPdfPath] = true;
+		FileSystemMock::$files['/opt/java/bin/java'] = false;
+
+		$this->javaHelper->method('getJavaPath')
+			->willReturn('/opt/java/bin/java');
 
 		$result = $this->check->run();
 
@@ -183,14 +213,14 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 	public function testRunVersionEmpty(): void {
 		$this->mockTranslation();
-		$jarPath = '/fake/path/jsignpdf.jar';
+		$jsignPdfPath = '/fake/path/jsignpdf-' . JSignPdfRelease::VERSION;
 		$this->appConfig->method('getValueString')
-			->willReturn($jarPath);
+			->willReturn($jsignPdfPath);
 		$this->systemConfig->method('getSystemValueBool')
 			->willReturn(false);
 		$this->signSetupService->method('verify')->willReturn([]);
 		$this->javaHelper->method('getJavaPath')->willReturn('/usr/bin/java');
-		FileSystemMock::$files[$jarPath] = true;
+		FileSystemMock::$files[$jsignPdfPath] = true;
 		FileSystemMock::$files['/usr/bin/java'] = true;
 
 		$jsignPdfMock = $this->getMockBuilder(\OCA\Libresign\Vendor\Jeidison\JSignPDF\JSignPDF::class)
@@ -200,6 +230,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 		$jsignPdfMock->method('getVersion')->willReturn('');
 
 		$jsignParamMock = $this->createJSignParamMock();
+		$jsignPdfMock->expects($this->once())->method('setParam')->with($jsignParamMock);
 
 		$this->jSignPdfHandler->method('getJSignPdf')->willReturn($jsignPdfMock);
 		$this->jSignPdfHandler->method('getJSignParam')->willReturn($jsignParamMock);
@@ -213,14 +244,14 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 	public function testRunVersionTooLow(): void {
 		$this->mockTranslation();
-		$jarPath = '/fake/path/jsignpdf.jar';
+		$jsignPdfPath = '/fake/path/jsignpdf-' . JSignPdfRelease::VERSION;
 		$this->appConfig->method('getValueString')
-			->willReturn($jarPath);
+			->willReturn($jsignPdfPath);
 		$this->systemConfig->method('getSystemValueBool')
 			->willReturn(false);
 		$this->signSetupService->method('verify')->willReturn([]);
 		$this->javaHelper->method('getJavaPath')->willReturn('/usr/bin/java');
-		FileSystemMock::$files[$jarPath] = true;
+		FileSystemMock::$files[$jsignPdfPath] = true;
 		FileSystemMock::$files['/usr/bin/java'] = true;
 
 		$jsignPdfMock = $this->getMockBuilder(\OCA\Libresign\Vendor\Jeidison\JSignPDF\JSignPDF::class)
@@ -243,14 +274,14 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 	public function testRunVersionTooHigh(): void {
 		$this->mockTranslation();
-		$jarPath = '/fake/path/jsignpdf.jar';
+		$jsignPdfPath = '/fake/path/jsignpdf-' . JSignPdfRelease::VERSION;
 		$this->appConfig->method('getValueString')
-			->willReturn($jarPath);
+			->willReturn($jsignPdfPath);
 		$this->systemConfig->method('getSystemValueBool')
 			->willReturn(false);
 		$this->signSetupService->method('verify')->willReturn([]);
 		$this->javaHelper->method('getJavaPath')->willReturn('/usr/bin/java');
-		FileSystemMock::$files[$jarPath] = true;
+		FileSystemMock::$files[$jsignPdfPath] = true;
 		FileSystemMock::$files['/usr/bin/java'] = true;
 
 		$jsignPdfMock = $this->getMockBuilder(\OCA\Libresign\Vendor\Jeidison\JSignPDF\JSignPDF::class)
@@ -273,14 +304,14 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 	public function testRunSuccess(): void {
 		$this->mockTranslation();
-		$jarPath = '/fake/path/jsignpdf.jar';
+		$jsignPdfPath = '/fake/path/jsignpdf-' . JSignPdfRelease::VERSION;
 		$this->appConfig->method('getValueString')
-			->willReturn($jarPath);
+			->willReturn($jsignPdfPath);
 		$this->systemConfig->method('getSystemValueBool')
 			->willReturn(false);
 		$this->signSetupService->method('verify')->willReturn([]);
 		$this->javaHelper->method('getJavaPath')->willReturn('/usr/bin/java');
-		FileSystemMock::$files[$jarPath] = true;
+		FileSystemMock::$files[$jsignPdfPath] = true;
 		FileSystemMock::$files['/usr/bin/java'] = true;
 
 		$jsignPdfMock = $this->getMockBuilder(\OCA\Libresign\Vendor\Jeidison\JSignPDF\JSignPDF::class)
@@ -299,6 +330,6 @@ class JSignPdfSetupCheckTest extends TestCase {
 		$this->assertInstanceOf(SetupResult::class, $result);
 		$this->assertSame('success', $result->getSeverity());
 		$this->assertStringContainsString('JSignPdf version: ' . InstallService::JSIGNPDF_VERSION, $result->getDescription());
-		$this->assertStringContainsString('JSignPdf path: ' . $jarPath, $result->getDescription());
+		$this->assertStringContainsString('JSignPdf path: ' . $jsignPdfPath, $result->getDescription());
 	}
 }
