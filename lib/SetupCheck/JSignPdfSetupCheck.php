@@ -71,9 +71,9 @@ class JSignPdfSetupCheck implements ISetupCheck {
 	#[\Override]
 	public function run(): SetupResult {
 		$debugEnabled = $this->systemConfig->getSystemValueBool('debug', false);
-		$jsignpdfJarPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
+		$jsignpdfPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_path');
 
-		if (!$jsignpdfJarPath) {
+		if (!$jsignpdfPath) {
 			return SetupResult::error(
 				// TRANSLATORS Warning shown in Nextcloud administration overview when the optional JSignPdf signing backend is not found.
 				$this->l10n->t('JSignPdf not found'),
@@ -88,12 +88,12 @@ class JSignPdfSetupCheck implements ISetupCheck {
 			return SetupResult::error($errorMsg, $tip);
 		}
 
-		if (!file_exists($jsignpdfJarPath)) {
+		if (!is_dir($jsignpdfPath)) {
 			return SetupResult::error(
 				// TRANSLATORS JSignPdf is an optional external signing backend used by LibreSign.
 				// LibreSign also supports other signing methods, including its native PHP signer.
 				// %s is the configured JSignPdf path that could not be found.
-				$this->l10n->t('JSignPdf file not found: %s', [$jsignpdfJarPath]),
+				$this->l10n->t('JSignPdf path not found: %s', [$jsignpdfPath]),
 				// TRANSLATORS Command to run into terminal using Nextcloud occ to configure LibreSign using CLI when the sysadmin want to do this by CLI.
 				$this->l10n->t('Run %s', ['occ libresign:install --jsignpdf'])
 			);
@@ -149,8 +149,8 @@ class JSignPdfSetupCheck implements ISetupCheck {
 			// TRANSLATORS JSignPdf is an optional external signing backend. %s is the detected JSignPdf version.
 			$this->l10n->t('JSignPdf version: %s', [$currentVersion]),
 
-			// TRANSLATORS JSignPdf is an optional external signing backend. %s is the configured or detected path to the JSignPdf executable/JAR file.
-			$this->l10n->t('JSignPdf path: %s', [$jsignpdfJarPath]),
+			// TRANSLATORS JSignPdf is an optional external signing backend. %s is the configured or detected directory where JSignPdf is installed.
+			$this->l10n->t('JSignPdf path: %s', [$jsignpdfPath]),
 		];
 
 		return SetupResult::success(implode("\n", $messages));
