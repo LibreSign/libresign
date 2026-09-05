@@ -25,6 +25,7 @@ namespace OCA\Libresign\Tests\Unit\SetupCheck;
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Install\JSignPdfRelease;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCA\Libresign\SetupCheck\JSignPdfSetupCheck;
 use OCA\Libresign\Tests\Mock\FileSystemMock;
@@ -140,7 +141,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 	public function testRunBinaryNotFound(): void {
 		$this->mockTranslation();
-		$jsignPdfPath = '/fake/path/jsignpdf-3.1.0';
+		$jsignPdfPath = '/fake/path/jsignpdf-' . JSignPdfRelease::VERSION;
 		$this->appConfig->method('getValueString')
 			->willReturn($jsignPdfPath);
 		$this->systemConfig->method('getSystemValueBool')
@@ -161,7 +162,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 	public function testRunJavaNotFound(): void {
 		$this->mockTranslation();
-		$jsignPdfPath = '/fake/path/jsignpdf-3.1.0';
+		$jsignPdfPath = '/fake/path/jsignpdf-' . JSignPdfRelease::VERSION;
 		$this->appConfig->method('getValueString')
 			->willReturn($jsignPdfPath);
 		$this->systemConfig->method('getSystemValueBool')
@@ -183,7 +184,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 	public function testRunJavaBinaryMissing(): void {
 		$this->mockTranslation();
-		$jsignPdfPath = '/fake/path/jsignpdf-3.1.0';
+		$jsignPdfPath = '/fake/path/jsignpdf-' . JSignPdfRelease::VERSION;
 		$this->appConfig->method('getValueString')
 			->willReturn($jsignPdfPath);
 		$this->systemConfig->method('getSystemValueBool')
@@ -212,7 +213,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 	public function testRunVersionEmpty(): void {
 		$this->mockTranslation();
-		$jsignPdfPath = '/fake/path/jsignpdf-3.1.0';
+		$jsignPdfPath = '/fake/path/jsignpdf-' . JSignPdfRelease::VERSION;
 		$this->appConfig->method('getValueString')
 			->willReturn($jsignPdfPath);
 		$this->systemConfig->method('getSystemValueBool')
@@ -243,7 +244,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 	public function testRunVersionTooLow(): void {
 		$this->mockTranslation();
-		$jsignPdfPath = '/fake/path/jsignpdf-3.1.0';
+		$jsignPdfPath = '/fake/path/jsignpdf-' . JSignPdfRelease::VERSION;
 		$this->appConfig->method('getValueString')
 			->willReturn($jsignPdfPath);
 		$this->systemConfig->method('getSystemValueBool')
@@ -273,7 +274,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 	public function testRunVersionTooHigh(): void {
 		$this->mockTranslation();
-		$jsignPdfPath = '/fake/path/jsignpdf-3.1.0';
+		$jsignPdfPath = '/fake/path/jsignpdf-' . JSignPdfRelease::VERSION;
 		$this->appConfig->method('getValueString')
 			->willReturn($jsignPdfPath);
 		$this->systemConfig->method('getSystemValueBool')
@@ -303,7 +304,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 	public function testRunSuccess(): void {
 		$this->mockTranslation();
-		$jsignPdfPath = '/fake/path/jsignpdf-3.1.0';
+		$jsignPdfPath = '/fake/path/jsignpdf-' . JSignPdfRelease::VERSION;
 		$this->appConfig->method('getValueString')
 			->willReturn($jsignPdfPath);
 		$this->systemConfig->method('getSystemValueBool')
