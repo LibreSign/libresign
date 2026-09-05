@@ -256,7 +256,6 @@ import {
 	mdiCancel,
 	mdiCheck,
 	mdiCheckCircle,
-	mdiClose,
 	mdiCloseCircle,
 	mdiHelpCircle,
 	mdiInformationOutline,
