@@ -299,7 +299,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 			}
 
 			$fontSize = $this->parseSignatureText()['templateFontSize'];
-			if ($fontSize === self::SIGNATURE_DEFAULT_FONT_SIZE || !$fontSize || $params['--l2-text'] === '""') {
+			if ($fontSize === self::SIGNATURE_DEFAULT_FONT_SIZE || !$fontSize || $params['--l2-text'] === '') {
 				$fontSize = 0;
 			}
 
@@ -649,11 +649,32 @@ class JSignPdfHandler extends Pkcs12Handler {
 			if (!empty($tsaUsername) && !empty($tsaPassword)) {
 				$params['--tsa-authentication'] = 'PASSWORD';
 				$params['--tsa-user'] = $tsaUsername;
-				$params['--tsa-password'] = $tsaPassword;
 			}
 		}
 
 		return $params;
+	}
+
+
+	private function getTsaPassword(): string {
+		$tsaUrl = $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', '');
+		if ($tsaUrl === '') {
+			return '';
+		}
+
+		$tsaAuthType = $this->appConfig->getValueString(Application::APP_ID, 'tsa_auth_type', 'none');
+		if ($tsaAuthType !== 'basic') {
+			return '';
+		}
+
+		$tsaUsername = $this->appConfig->getValueString(Application::APP_ID, 'tsa_username', '');
+		$tsaPassword = $this->appConfig->getValueString(Application::APP_ID, 'tsa_password', '');
+
+		if ($tsaUsername === '' || $tsaPassword === '') {
+			return '';
+		}
+
+		return $tsaPassword;
 	}
 
 	private function signWrapper(JSignPDF $jSignPDF): string {
