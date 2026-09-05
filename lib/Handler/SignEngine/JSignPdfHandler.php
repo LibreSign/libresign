@@ -91,24 +91,21 @@ class JSignPdfHandler extends Pkcs12Handler {
 				->setIsUseJavaInstalled(empty($javaPath))
 				->setJavaDownloadUrl('')
 				->setJSignPdfDownloadUrl('')
-				->setjSignPdfJarPath($jSignPdfJarPath);
+				->setJSignPdfPath(dirname($jSignPdfJarPath));
 			if (!empty($javaPath)) {
 				if (!file_exists($javaPath)) {
 					throw new \Exception('Invalid Java binary. Run occ libresign:install --java');
 				}
-				$this->jSignParam->setJavaPath(
-					$this->getEnvironments()
-					. $javaPath
-					. ' -Duser.home=' . escapeshellarg($this->getHome()) . ' '
-				);
+				$home = $this->getHome();
+				$this->jSignParam
+					->setJavaPath($javaPath)
+					->setJavaOptions(['-Duser.home=' . $home])
+					->setEnvironmentVariables(['JSIGNPDF_HOME' => $home]);
 			}
 		}
 		return $this->jSignParam;
 	}
 
-	private function getEnvironments(): string {
-		return 'JSIGNPDF_HOME=' . escapeshellarg($this->getHome()) . ' ';
-	}
 
 	/**
 	 * It's a workaround to create the folder structure that JSignPdf needs. Without
@@ -265,19 +262,17 @@ class JSignPdfHandler extends Pkcs12Handler {
 		$hashAlgorithm = $this->getHashAlgorithm($normalizedPdf);
 		$param = $this->getJSignParam();
 
-		$tsaParams = $this->listParamsToString($this->getTsaParameters());
+		$tsaParams = $this->getTsaParameters();
 
 		$visibleElements = $this->getVisibleElements();
-		$certParams = '';
+		$certParams = [];
 		$certificationLevel = $this->getCertificationLevel();
 		if ($certificationLevel !== null && !$visibleElements && !$this->hasExistingSignatures($normalizedPdf)) {
-			$certParams = ' -cl ' . $certificationLevel;
+			$certParams = ['-cl' => $certificationLevel];
 		}
 
-		$param->setJSignParameters(
-			$param->getJSignParameters()
-			. $certParams
-			. $tsaParams
+		$param->addJSignParameters(
+			array_merge($certParams, $tsaParams)
 		);
 		$param->setCertificate($this->getCertificate())
 			->setPdf($normalizedPdf)
@@ -288,12 +283,9 @@ class JSignPdfHandler extends Pkcs12Handler {
 			return $signed;
 		}
 
-		$param->setJSignParameters(
-			$param->getJSignParameters()
-			. $this->listParamsToString([
-				'--hash-algorithm' => $hashAlgorithm,
-			])
-		);
+		$param->addJSignParameters([
+			'--hash-algorithm' => $hashAlgorithm,
+		]);
 		$jSignPdf = $this->getJSignPdf();
 		$jSignPdf->setParam($param);
 		return $this->signWrapper($jSignPdf);
@@ -309,7 +301,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 			$params = [
 				'--l2-text' => $this->getSignatureText(),
-				'-V' => null,
+				'-V',
 			];
 
 			// When l2-text is empty, add hash-algorithm at the beginning
@@ -317,7 +309,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 				$params = [
 					'--hash-algorithm' => $hashAlgorithm,
 					'--l2-text' => $params['--l2-text'],
-					'-V' => null,
+					'-V',
 				];
 			}
 
@@ -335,7 +327,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 			$certificationLevel = $this->getCertificationLevel();
 			$applyCertification = $certificationLevel !== null && !$this->hasExistingSignatures($normalizedPdf);
-			$certParams = $applyCertification ? ' -cl ' . $certificationLevel : '';
+			$certParams = $applyCertification ? ['-cl' => $certificationLevel] : [];
 			$elementIndex = 0;
 
 			$param = $this->getJSignParam();
@@ -413,12 +405,10 @@ class JSignPdfHandler extends Pkcs12Handler {
 					$params['--hash-algorithm'] = $hashAlgorithm;
 				}
 
-				$elementCertParams = ($applyCertification && $elementIndex === 1) ? $certParams : '';
-				$param->setJSignParameters(
-					$originalParam->getJSignParameters()
-					. $elementCertParams
-					. $this->listParamsToString($params)
-				);
+				$elementCertParams = ($applyCertification && $elementIndex === 1) ? $certParams : [];
+				$param = clone $originalParam;
+				$param->addJSignParameters(array_merge($elementCertParams, $params));
+				$this->jSignParam = $param;
 				$param->setPdf($normalizedPdf);
 				$jSignPdf->setParam($param);
 				$signed = $this->signWrapper($jSignPdf);
@@ -638,16 +628,6 @@ class JSignPdfHandler extends Pkcs12Handler {
 		return $signatureText;
 	}
 
-	private function listParamsToString(array $params): string {
-		$paramString = '';
-		foreach ($params as $flag => $value) {
-			$paramString .= ' ' . $flag;
-			if ($value !== null && $value !== '') {
-				$paramString .= ' ' . $value;
-			}
-		}
-		return $paramString;
-	}
 
 	private function getTsaParameters(): array {
 		$tsaSettings = $this->getTsaSettings();
