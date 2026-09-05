@@ -96,15 +96,21 @@ final class PdfSignatureValidationServiceTest extends TestCase {
 		$service = $this->newServiceWithoutConstructor();
 
 		$cases = [
-			ValidationReason::INVALID_BYTE_RANGE
-				=> 'The signature contains an invalid ByteRange',
-			ValidationReason::INVALID_EOF_BOUNDARY
-				=> 'The signed PDF revision has an invalid end-of-file boundary',
-			ValidationReason::UNSUPPORTED_SUBFILTER
-				=> 'The PDF signature format is not supported',
+			[
+				ValidationReason::INVALID_BYTE_RANGE,
+				'The signature contains an invalid ByteRange',
+			],
+			[
+				ValidationReason::INVALID_EOF_BOUNDARY,
+				'The signed PDF revision has an invalid end-of-file boundary',
+			],
+			[
+				ValidationReason::UNSUPPORTED_SUBFILTER,
+				'The PDF signature format is not supported',
+			],
 		];
 
-		foreach ($cases as $reasonCode => $expectedReason) {
+		foreach ($cases as [$reasonCode, $expectedReason]) {
 			$result = $this->invokePrivateMethod(
 				$service,
 				'mapSignatureValidation',
