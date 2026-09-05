@@ -187,7 +187,7 @@ class SignSetupService {
 				}
 				break;
 			case 'jsignpdf':
-				$path = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
+				$path = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_path');
 				if (!$path) {
 					// fallback
 					try {
@@ -203,7 +203,7 @@ class SignSetupService {
 						throw new InvalidSignatureException('JSignPdf path not found at app config.');
 					}
 				}
-				$installPath = substr($path, 0, strrpos($path, '/', -strlen('_/JSignPdf.jar')));
+				$installPath = dirname($path);
 				break;
 			case 'pdftk':
 				$path = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');

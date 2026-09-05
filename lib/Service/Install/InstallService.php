@@ -477,36 +477,34 @@ class InstallService {
 
 		if ($this->isDownloadedFilesOk()) {
 			// The binaries files could exists but not saved at database
-			$fullPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
+			$fullPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_path');
 			if (!$fullPath) {
 				$folder = $this->getFolder($this->resource);
-				$extractDir = $this->getInternalPathOfFolder($folder);
-				$fullPath = $extractDir . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '/JSignPdf.jar';
-				$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_jar_path', $fullPath);
+				$fullPath = JSignPdfRelease::installPath($this->getInternalPathOfFolder($folder));
+				$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_path', $fullPath);
 			}
 			$this->saveJsignPdfHome();
-			if (str_contains($fullPath, InstallService::JSIGNPDF_VERSION)) {
+			if (str_contains($fullPath, InstallService::JSIGNPDF_VERSION) && is_dir($fullPath)) {
 				return;
 			}
 		}
 		$folder = $this->getFolder($this->resource);
-		$compressedFileName = 'jsignpdf-' . InstallService::JSIGNPDF_VERSION . '.zip';
+		$compressedFileName = JSignPdfRelease::archiveName();
 		try {
 			$compressedFile = $folder->getFile($compressedFileName);
 		} catch (\Throwable) {
 			$compressedFile = $folder->newFile($compressedFileName);
 		}
 		$compressedInternalFileName = $this->getInternalPathOfFile($compressedFile);
-		$url = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_' . str_replace('.', '_', InstallService::JSIGNPDF_VERSION) . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '.zip';
-
-		$this->download($url, 'JSignPdf', $compressedInternalFileName, self::JSIGNPDF_HASH);
+		$hash = $this->getHash($compressedFileName, JSignPdfRelease::checksumUrl());
+		$this->download(JSignPdfRelease::downloadUrl(), 'JSignPdf', $compressedInternalFileName, $hash, 'sha256');
 
 		$extractDir = $this->getInternalPathOfFolder($folder);
 		$zip = new ZIP($extractDir . '/' . $compressedFileName);
 		$zip->extract($extractDir);
 		unlink($extractDir . '/' . $compressedFileName);
-		$fullPath = $extractDir . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '/JSignPdf.jar';
-		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_jar_path', $fullPath);
+		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_path', JSignPdfRelease::installPath($extractDir));
+		$this->appConfig->deleteKey(Application::APP_ID, 'jsignpdf_jar_path');
 		$this->saveJsignPdfHome();
 		$this->writeAppSignature();
 
@@ -536,8 +534,9 @@ class InstallService {
 	}
 
 	public function uninstallJSignPdf(): void {
-		$jsignpdJarPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
-		if (!$jsignpdJarPath) {
+		$jsignpdfPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_path')
+			?: $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
+		if (!$jsignpdfPath) {
 			return;
 		}
 		$this->setResource('jsignpdf');
@@ -546,6 +545,7 @@ class InstallService {
 			$folder->delete();
 		} catch (NotFoundException) {
 		}
+		$this->appConfig->deleteKey(Application::APP_ID, 'jsignpdf_path');
 		$this->appConfig->deleteKey(Application::APP_ID, 'jsignpdf_jar_path');
 		$this->appConfig->deleteKey(Application::APP_ID, 'jsignpdf_home');
 	}
