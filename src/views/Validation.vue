@@ -80,12 +80,14 @@
 					:document="validationEnvelopeDocument"
 					:legal-information="legalInformation"
 					:document-valid-message="documentValidMessage"
+					:document-valid-type="documentValidType"
 					:is-after-signed="isAfterSigned" />
 				<FileValidation
 					v-else-if="validationFileDocument"
 					:document="validationFileDocument"
 					:legal-information="legalInformation"
 					:document-valid-message="documentValidMessage"
+					:document-valid-type="documentValidType"
 					:is-after-signed="isAfterSigned" />
 				<NcButton v-if="clickedValidate" class="change" variant="primary" @click="goBack()">
 					<template #icon>
@@ -206,6 +208,11 @@ type StatusPresentation = {
 	variant: string
 	icon: string
 }
+type ValidationNoteType = 'success' | 'warning' | 'error' | 'info'
+type DocumentValidationSummary = {
+	message: string
+	type: ValidationNoteType
+}
 type ErrorMessageEntry = {
 	message?: string
 }
@@ -321,6 +328,7 @@ const notificationsOpenState = ref<ToggleOpenState>({})
 const docMdpOpenState = ref<ToggleOpenState>({})
 const validationErrorMessage = ref<string | null>(null)
 const documentValidMessage = ref<string | null>(null)
+const documentValidType = ref<ValidationNoteType>('success')
 const isAsyncSigning = ref(false)
 const shouldFireAsyncConfetti = ref(false)
 const isActiveView = ref(true)
@@ -383,22 +391,33 @@ const crlStatusMap = computed<Record<string, StatusPresentation>>(() => ({
 async function upload(file: File) {
 	const formData = new FormData()
 	formData.append('file', file)
-	await axios.postForm(generateOcsUrl('/apps/libresign/api/v1/file/validate'), formData, {
-		headers: {
-			'Content-Type': 'multipart/form-data',
-		},
-	})
-		.then(({ data }) => {
-			clickedValidate.value = true
-			handleValidationSuccess(data.ocs.data)
-		})
-		.catch((error: { response?: ValidationErrorResponse }) => {
-			if (handleValidationRedirect(error.response)) {
-				return
-			}
-			const errorMsg = getValidationErrorMessage(error.response, t('libresign', 'Failed to validate document'))
-			setValidationError(errorMsg)
-		})
+
+	let response
+	try {
+		response = await axios.postForm(
+			generateOcsUrl('/apps/libresign/api/v1/file/validate'),
+			formData,
+			{
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+			},
+		)
+	} catch (error) {
+		const validationError = error as { response?: ValidationErrorResponse }
+		if (handleValidationRedirect(validationError.response)) {
+			return
+		}
+		const errorMsg = getValidationErrorMessage(
+			validationError.response,
+			t('libresign', 'Failed to validate document'),
+		)
+		setValidationError(errorMsg)
+		return
+	}
+
+	clickedValidate.value = true
+	handleValidationSuccess(response.data.ocs.data)
 }
 
 async function uploadFile() {
@@ -475,7 +494,9 @@ async function validate(id: string, { suppressLoading = false, forceRefresh = fa
 	validationErrorMessage.value = null
 	documentValidMessage.value = null
 	if (id === document.value?.uuid && !forceRefresh) {
-		documentValidMessage.value = t('libresign', 'This document is valid')
+		const validationSummary = getDocumentValidationSummary(document.value)
+		documentValidMessage.value = validationSummary.message
+		documentValidType.value = validationSummary.type
 		hasInfo.value = true
 	} else if (id.length === 36) {
 		await validateByUUID(id, { suppressLoading })
@@ -576,6 +597,7 @@ function goBack() {
 	uuidToValidate.value = route.value.params.uuid ?? ''
 	validationErrorMessage.value = null
 	documentValidMessage.value = null
+	documentValidType.value = 'success'
 }
 
 function getValidityStatus(signer: ValidationDisplaySigner) {
@@ -741,6 +763,88 @@ function hasValidationStatus(signer: ValidationDisplaySigner) {
 		|| signer.crl_validation
 }
 
+function getValidationDocumentSigners(validationDocument: ValidationDocumentState): ValidationDisplaySigner[] {
+	const signers = Array.isArray(validationDocument.signers)
+		? [...validationDocument.signers] as ValidationDisplaySigner[]
+		: []
+
+	if (Array.isArray(validationDocument.files)) {
+		for (const file of validationDocument.files) {
+			if (Array.isArray(file.signers)) {
+				signers.push(...file.signers as ValidationDisplaySigner[])
+			}
+		}
+	}
+
+	return signers
+}
+
+function getDocumentValidationSummary(validationDocument: ValidationDocumentState): DocumentValidationSummary {
+	const signers = getValidationDocumentSigners(validationDocument)
+
+	if (signers.length === 0) {
+		return {
+			message: t('libresign', 'No digital signatures were found in this document'),
+			type: 'info',
+		}
+	}
+
+	if (signers.some(signer =>
+		signer.modification_validation?.valid === false
+		|| signer.modification_validation?.status === MODIFICATION_VIOLATION,
+	)) {
+		return {
+			message: t('libresign', 'The document contains changes that invalidate its certification'),
+			type: 'error',
+		}
+	}
+
+	if (signers.some(signer =>
+		signer.document_modification_state === 'invalid_byte_range'
+		|| signer.document_modification_state === 'invalid_eof_boundary',
+	)) {
+		return {
+			message: t('libresign', 'One or more digital signatures are invalid'),
+			type: 'error',
+		}
+	}
+
+	if (signers.some(signer =>
+		signer.signature_validation !== undefined
+		&& signer.signature_validation.id !== 1,
+	)) {
+		return {
+			message: t('libresign', 'One or more digital signatures are invalid'),
+			type: 'error',
+		}
+	}
+
+	const hasDocumentModificationState = signers.some(
+		signer => signer.document_modification_state !== undefined,
+	)
+
+	const hasDocumentModificationWarning = hasDocumentModificationState
+		? signers.some(signer =>
+			signer.document_modification_state !== undefined
+			&& signer.document_modification_state !== 'unchanged',
+		)
+		: signers.some((signer) => {
+			const modifications = signer.modifications as { modified?: boolean } | undefined
+			return modifications?.modified === true
+		})
+
+	if (hasDocumentModificationWarning) {
+		return {
+			message: t('libresign', 'The document was modified after signing'),
+			type: 'warning',
+		}
+	}
+
+	return {
+		message: t('libresign', 'This document is valid'),
+		type: 'success',
+	}
+}
 function setValidationError(message: string, timeout = 5000) {
 	validationErrorMessage.value = message
 	if (timeout > 0) {
@@ -810,12 +914,17 @@ function handleValidationSuccess(data: unknown) {
 	if (!isActiveView.value) {
 		return
 	}
-	documentValidMessage.value = t('libresign', 'This document is valid')
+
 	const normalizedDocument = toValidationDocument(data)
 	if (!normalizedDocument) {
+		logger.error('Validation API returned an unsupported payload', { data })
 		setValidationError(t('libresign', 'Failed to validate document'))
 		return
 	}
+
+	const validationSummary = getDocumentValidationSummary(normalizedDocument)
+	documentValidMessage.value = validationSummary.message
+	documentValidType.value = validationSummary.type
 	const effectivePolicies = extractEffectivePolicies(data)
 	if (effectivePolicies) {
 		policiesStore.setPolicies(effectivePolicies)
@@ -980,6 +1089,7 @@ defineExpose({
 	docMdpOpenState,
 	validationErrorMessage,
 	documentValidMessage,
+	documentValidType,
 	isAsyncSigning,
 	shouldFireAsyncConfetti,
 	isActiveView,
@@ -1022,6 +1132,7 @@ defineExpose({
 	validateAndProceed,
 	toggleState,
 	hasValidationStatus,
+	getDocumentValidationSummary,
 	setValidationError,
 	openUuidDialog,
 	handleValidationSuccess,

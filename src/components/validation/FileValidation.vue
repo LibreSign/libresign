@@ -9,7 +9,7 @@
 				<NcIconSvgWrapper :path="mdiInformationSlabCircle" :size="30" />
 				<h1>{{ t('libresign', 'Document information') }}</h1>
 			</div>
-			<NcNoteCard v-if="documentValidMessage" type="success">
+			<NcNoteCard v-if="documentValidMessage" :type="documentValidType ?? 'success'">
 				{{ documentValidMessage }}
 			</NcNoteCard>
 			<NcNoteCard v-if="isAfterSigned" type="success">
@@ -38,6 +38,7 @@ defineProps<{
 	document: LoadedValidationFileDocument
 	legalInformation?: string
 	documentValidMessage?: string | null
+	documentValidType?: 'success' | 'warning' | 'error' | 'info'
 	isAfterSigned?: boolean
 }>()
 </script>

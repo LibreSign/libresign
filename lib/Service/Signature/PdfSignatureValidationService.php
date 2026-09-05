@@ -10,6 +10,8 @@ namespace OCA\Libresign\Service\Signature;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Exception\UnsignedPdfException;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ExtractedSignature;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationReason;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationResult;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationState;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureValidator;
@@ -18,11 +20,10 @@ use OCP\IL10N;
 use Psr\Log\LoggerInterface;
 
 /**
- * Service to validate PDF signatures using the pdf-signature-validator package.
+ * Validate PDF signatures using the pdf-signature-validator package.
  *
- * This replaces shell calls to pdfsig with pure PHP validation.
- * Supports custom trusted roots (e.g., LibreSign CA) to recognize
- * certificates without requiring system-level CA registration.
+ * @psalm-import-type PdfSignatureValidationResult from \OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureValidator
+ * @psalm-import-type MappedPdfValidationResult from PdfSignatureValidationDefinitions
  */
 class PdfSignatureValidationService {
 	private PdfSignatureValidator $validator;
@@ -73,7 +74,7 @@ class PdfSignatureValidationService {
 	 * Validate PDF signatures from file resource.
 	 *
 	 * @param resource $resource PDF file resource
-	 * @return list<array{signatureValidation: array, certificateValidation: array, raw: array{signature: ValidationResult, certificate: ValidationResult}}>
+	 * @return list<MappedPdfValidationResult>
 	 */
 	public function validateFromResource($resource): array {
 		try {
@@ -89,7 +90,7 @@ class PdfSignatureValidationService {
 	 * Validate PDF signatures from binary content.
 	 *
 	 * @param string $pdfContent Binary PDF content
-	 * @return list<array{signatureValidation: array, certificateValidation: array, raw: array{signature: ValidationResult, certificate: ValidationResult}}>
+	 * @return list<MappedPdfValidationResult>
 	 */
 	public function validateFromString(string $pdfContent): array {
 		try {
@@ -103,14 +104,14 @@ class PdfSignatureValidationService {
 
 	/**
 	 * @param resource $resource
-	 * @return list<array{signature: mixed, signatureValidation: ValidationResult, certificates: list<string>, certificateValidation: ValidationResult}>
+	 * @return list<PdfSignatureValidationResult>
 	 */
 	protected function validateNativeFromResource($resource): array {
 		return $this->validator->validateFromResource($resource);
 	}
 
 	/**
-	 * @return list<array{signature: mixed, signatureValidation: ValidationResult, certificates: list<string>, certificateValidation: ValidationResult}>
+	 * @return list<PdfSignatureValidationResult>
 	 */
 	protected function validateNativeFromString(string $pdfContent): array {
 		return $this->validator->validateFromString($pdfContent);
@@ -119,21 +120,29 @@ class PdfSignatureValidationService {
 	/**
 	 * Map validation results from PdfSignatureValidator to LibreSign format.
 	 *
-	 * @param list<array> $results Results from PdfSignatureValidator
-	 * @return list<array{signatureValidation: array, certificateValidation: array, raw: array{signature: ValidationResult, certificate: ValidationResult}}>
+	 * @param list<PdfSignatureValidationResult> $results Results from PdfSignatureValidator
+	 * @return list<MappedPdfValidationResult>
 	 */
 	private function mapValidationResults(array $results): array {
 		$mapped = [];
 
 		foreach ($results as $result) {
+			$signature = $result['signature'] ?? null;
 			$sigValidation = $result['signatureValidation'] ?? null;
 			$certValidation = $result['certificateValidation'] ?? null;
 
-			if (!$sigValidation instanceof ValidationResult || !$certValidation instanceof ValidationResult) {
+			if (
+				!$signature instanceof ExtractedSignature
+				|| !$sigValidation instanceof ValidationResult
+				|| !$certValidation instanceof ValidationResult
+			) {
 				continue;
 			}
 
 			$mapped[] = [
+				'signature' => $signature,
+				'certificates' => $result['certificates'],
+				'timestamp' => $result['timestamp'],
 				'signatureValidation' => $this->mapSignatureValidation($sigValidation),
 				'certificateValidation' => $this->mapCertificateValidation($certValidation),
 				'raw' => [
@@ -158,28 +167,28 @@ class PdfSignatureValidationService {
 				'id' => 2,
 				// TRANSLATORS User-facing status when signature cryptographic validation fails.
 				'label' => $this->l10n->t('Signature is invalid.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			ValidationState::DIGEST_MISMATCH => [
 				'id' => 3,
 				// TRANSLATORS User-facing status when signed digest does not match PDF content.
 				'label' => $this->l10n->t('Digest mismatch.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			ValidationState::NOT_VERIFIED => [
 				'id' => 5,
 				// TRANSLATORS User-facing status when validation could not be fully completed.
 				'label' => $this->l10n->t('Signature has not yet been verified.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			default => [
 				'id' => 6,
 				// TRANSLATORS Generic fallback status for unexpected signature validation failures.
 				'label' => $this->l10n->t('Unknown validation failure.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 		};
@@ -197,45 +206,82 @@ class PdfSignatureValidationService {
 				'id' => 2,
 				// TRANSLATORS User-facing status when issuing CA is known but not trusted.
 				'label' => $this->l10n->t("Certificate issuer isn't trusted."),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			ValidationState::CERT_ISSUER_UNKNOWN => [
 				'id' => 3,
 				// TRANSLATORS User-facing status when certificate issuer cannot be identified/trusted.
 				'label' => $this->l10n->t('Certificate issuer is unknown.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			ValidationState::CERT_REVOKED => [
 				'id' => 4,
 				// TRANSLATORS User-facing status when certificate is revoked.
 				'label' => $this->l10n->t('Certificate has been revoked.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			ValidationState::CERT_EXPIRED => [
 				'id' => 5,
 				// TRANSLATORS User-facing status when certificate is expired.
 				'label' => $this->l10n->t('Certificate has expired.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			ValidationState::CERT_NOT_VERIFIED => [
 				'id' => 6,
 				// TRANSLATORS User-facing status when certificate validation could not be completed.
 				'label' => $this->l10n->t('Certificate has not yet been verified.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 			default => [
 				'id' => 7,
 				// TRANSLATORS Generic fallback status for unexpected certificate validation failures.
 				'label' => $this->l10n->t('Unknown issue with certificate or corrupted data.'),
-				'reason' => $this->translateKnownReason($result->reason),
+				'reason' => $this->translateValidationReason($result),
 				'isValid' => false,
 			],
 		};
+	}
+
+	private function translateValidationReason(ValidationResult $result): ?string {
+		if ($result->reasonCode !== null) {
+			return match ($result->reasonCode) {
+				ValidationReason::NO_BYTE_RANGE => (
+					// TRANSLATORS PDF digital signature validation. ByteRange is a PDF signature structure that defines exactly which byte ranges are protected by the cryptographic signature. This result means that structure is missing, so LibreSign cannot determine which document content was signed. Keep the user-facing text simple.
+					$this->l10n->t('The signature does not contain the information needed to verify the document')
+				),
+				ValidationReason::DIGEST_MISMATCH => (
+					// TRANSLATORS PDF digital signature validation. LibreSign recalculated the cryptographic digest from the signed PDF byte ranges and it does not match the digest stored in the signature. This can indicate changed content or inconsistent signature data. Keep the user-facing text simple.
+					$this->l10n->t('The document content does not match the signed content')
+				),
+				ValidationReason::NO_BINARY_SIGNATURE => (
+					// TRANSLATORS PDF digital signature validation. The PDF contains signature metadata, but the CMS/PKCS#7 binary signature payload required for cryptographic verification is missing. CMS/PKCS#7 is the standard container commonly used for PDF digital signatures.
+					$this->l10n->t('The digital signature data is missing')
+				),
+				ValidationReason::SIGNATURE_CERTIFICATE_MISMATCH => (
+					// TRANSLATORS PDF digital signature validation. LibreSign verified the signature bytes against the signer's X.509 certificate, but the cryptographic verification failed. The certificate and the digital signature do not match as expected.
+					$this->l10n->t('The signature could not be verified with its certificate')
+				),
+				ValidationReason::INVALID_BYTE_RANGE => (
+					// TRANSLATORS PDF digital signature validation. ByteRange defines which byte ranges are protected by the digital signature. The structure exists but its offsets or lengths are invalid, so cryptographic verification cannot safely continue. Keep the user-facing text simple.
+					$this->l10n->t('The signature contains an invalid ByteRange')
+				),
+				ValidationReason::INVALID_EOF_BOUNDARY => (
+					// TRANSLATORS PDF digital signature validation. The signed PDF revision does not end at a valid PDF end-of-file boundary. This means the signed revision structure is invalid. Keep the user-facing text simple.
+					$this->l10n->t('The signed PDF revision has an invalid end-of-file boundary')
+				),
+				ValidationReason::UNSUPPORTED_SUBFILTER => (
+					// TRANSLATORS PDF digital signature validation. SubFilter identifies the PDF signature format. This result means LibreSign does not support cryptographic validation for that format.
+					$this->l10n->t('The PDF signature format is not supported')
+				),
+			};
+		}
+
+		return $this->translateKnownReason($result->reason);
 	}
 
 	private function translateKnownReason(?string $reason): ?string {
