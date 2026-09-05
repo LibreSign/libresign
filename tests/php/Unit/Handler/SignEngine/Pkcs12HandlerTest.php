@@ -20,6 +20,8 @@ use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Tests\Fixtures\PdfFixtureCatalog;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ExtractedSignature;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\SignatureMetadata;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\TimestampToken;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -184,6 +186,64 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$handler->getCertificateChain($resource);
 		fclose($resource);
+	}
+
+	public function testGetCertificateChainPreservesSignatureWithoutBinaryPayload(): void {
+		$this->nativeValidation = [
+			[
+				'signature' => new ExtractedSignature(
+					null,
+					new SignatureMetadata(
+						'Signature1',
+						[
+							'offset1' => 0,
+							'length1' => 10,
+							'offset2' => 20,
+							'length2' => 10,
+						],
+						'adbe.pkcs7.detached',
+						false,
+					),
+					null,
+				),
+				'certificates' => [],
+				'timestamp' => null,
+				'signatureValidation' => [
+					'id' => 5,
+					'label' => 'Signature has not yet been verified.',
+					'reason' => 'The digital signature data is missing',
+					'isValid' => false,
+				],
+				'certificateValidation' => [
+					'id' => 6,
+					'label' => 'Certificate has not yet been verified.',
+					'reason' => 'The digital signature data is missing',
+					'isValid' => false,
+				],
+			],
+		];
+
+		$resource = fopen('php://memory', 'r+');
+		$this->assertIsResource($resource);
+		fwrite($resource, '%PDF-1.7');
+		rewind($resource);
+
+		$result = $this->getHandler()->getCertificateChain($resource);
+		fclose($resource);
+
+		$this->assertCount(1, $result);
+		$this->assertCount(1, $result[0]['chain']);
+
+		$signature = $result[0]['chain'][0];
+		$this->assertSame(5, $signature['signature_validation']['id']);
+		$this->assertSame(
+			'The digital signature data is missing',
+			$signature['signature_validation']['reason'],
+		);
+		$this->assertSame(6, $signature['certificate_validation']['id']);
+		$this->assertSame('Signature1', $signature['field']);
+		$this->assertSame('adbe.pkcs7.detached', $signature['signature_type']);
+		$this->assertFalse($signature['covers_entire_document']);
 	}
 
 	public function testIsHandlerOkReturnsBoolean(): void {
