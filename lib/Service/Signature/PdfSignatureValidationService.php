@@ -278,18 +278,6 @@ class PdfSignatureValidationService {
 					// TRANSLATORS PDF digital signature validation. SubFilter identifies the PDF signature format. This result means LibreSign does not support cryptographic validation for that format.
 					$this->l10n->t('The PDF signature format is not supported')
 				),
-				ValidationReason::INVALID_BYTE_RANGE => (
-					// TRANSLATORS PDF digital signature validation. ByteRange defines the exact PDF bytes protected by the cryptographic signature. LibreSign detected an invalid ByteRange layout, so the signature structure cannot be trusted. Keep "ByteRange" only in this translator note; the user-facing text should stay simple.
-					$this->l10n->t('The PDF signature structure is invalid')
-				),
-				ValidationReason::INVALID_EOF_BOUNDARY => (
-					// TRANSLATORS PDF digital signature validation. A signed PDF revision is expected to end at a valid %%EOF boundary. LibreSign detected that the signed revision does not end at that boundary, so the signature structure cannot be trusted.
-					$this->l10n->t('The signed PDF revision has an invalid structure')
-				),
-				ValidationReason::UNSUPPORTED_SUBFILTER => (
-					// TRANSLATORS PDF digital signature validation. SubFilter identifies the PDF signature encoding, for example adbe.pkcs7.detached, ETSI.CAdES.detached or ETSI.RFC3161. LibreSign recognized the PDF signature but does not currently implement cryptographic validation for this specific format.
-					$this->l10n->t('This PDF signature format is not supported yet')
-				),
 			};
 		}
 
