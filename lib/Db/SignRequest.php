@@ -37,6 +37,12 @@ use OCP\DB\Types;
  * @method int getSigningOrder()
  * @method void setStatus(int $status)
  * @method int getStatus()
+ * @method void setRejectedAt(\DateTime $rejectedAt)
+ * @method ?\DateTime getRejectedAt()
+ * @method void setRejectionComment(?string $rejectionComment)
+ * @method ?string getRejectionComment()
+ * @method void setRejectionCommentPrivate(bool $rejectionCommentPrivate)
+ * @method bool getRejectionCommentPrivate()
  */
 class SignRequest extends Entity {
 	protected ?int $fileId = null;
@@ -50,6 +56,9 @@ class SignRequest extends Entity {
 	protected int $docmdpLevel = 0;
 	protected int $signingOrder = 1;
 	protected int $status = 0;
+	protected ?\DateTime $rejectedAt = null;
+	protected ?string $rejectionComment = null;
+	protected bool $rejectionCommentPrivate = false;
 
 	public function __construct() {
 		$this->addType('id', Types::INTEGER);
@@ -64,6 +73,9 @@ class SignRequest extends Entity {
 		$this->addType('docmdpLevel', Types::SMALLINT);
 		$this->addType('signingOrder', Types::INTEGER);
 		$this->addType('status', Types::SMALLINT);
+		$this->addType('rejectedAt', Types::DATETIME);
+		$this->addType('rejectionComment', Types::STRING);
+		$this->addType('rejectionCommentPrivate', Types::BOOLEAN);
 	}
 
 	public function getStatusEnum(): SignRequestStatus {

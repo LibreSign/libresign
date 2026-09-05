@@ -95,6 +95,7 @@ https://libresign.coop
 			<setting>OCA\Libresign\Activity\Settings\FileToSign</setting>
 			<setting>OCA\Libresign\Activity\Settings\FileSigned</setting>
 			<setting>OCA\Libresign\Activity\Settings\SignRequestCanceled</setting>
+			<setting>OCA\Libresign\Activity\Settings\SignatureRejected</setting>
 		</settings>
 		<filters>
 			<filter>OCA\Libresign\Activity\Filter</filter>
@@ -103,6 +104,7 @@ https://libresign.coop
 			<provider>OCA\Libresign\Activity\Provider\SignRequest</provider>
 			<provider>OCA\Libresign\Activity\Provider\Signed</provider>
 			<provider>OCA\Libresign\Activity\Provider\SignRequestCanceled</provider>
+			<provider>OCA\Libresign\Activity\Provider\SignatureRejected</provider>
 		</providers>
 	</activity>
 	<navigations>

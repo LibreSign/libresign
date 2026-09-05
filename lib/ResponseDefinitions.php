@@ -206,8 +206,13 @@ namespace OCA\Libresign;
  *     email?: ?string,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     signed: ?string,
- *     status: 0|1|2,
+ *     status: 0|1|2|3,
  *     statusText: string,
+ * }
+ * @psalm-type LibresignSignerRejection = array{
+ *     rejectedAt: string,
+ *     comment?: string,
+ *     commentPrivate?: bool,
  * }
  * @psalm-type LibresignSignerDetail = LibresignSignerSummary&array{
  *     description: ?string,
@@ -229,6 +234,7 @@ namespace OCA\Libresign;
  *     signatureMethods?: LibresignSignatureMethods,
  *     uid?: string,
  *     metadata?: LibresignSignerMetadata,
+ *     rejection?: LibresignSignerRejection,
  * }
  *
  * Shared feedback and action contracts
@@ -305,6 +311,14 @@ namespace OCA\Libresign;
  *     action: int,
  *     errors: list<LibresignActionErrorWithCode>,
  *     redirect?: string,
+ * }
+ * @psalm-type LibresignSignatureRejectionResponse = array{
+ *     message: string,
+ *     signRequestId: int,
+ *     status: int,
+ *     statusText: string,
+ *     rejectedAt: string,
+ *     workflowCanceled: bool,
  * }
  *
  * Certificate and admin contracts
@@ -578,7 +592,7 @@ namespace OCA\Libresign;
  *     id: int,
  *     uuid: string,
  *     name: string,
- *     status: 0|1|2|3|4,
+ *     status: 0|1|2|3|4|6,
  *     statusText: string,
  *     nodeId: non-negative-int,
  *     nodeType: 'file'|'envelope',
@@ -724,7 +738,7 @@ namespace OCA\Libresign;
  *     created_at: string,
  *     file: array{
  *         name: string,
- *         status: 0|1|2|3|4,
+ *         status: 0|1|2|3|4|6,
  *         statusText: string,
  *         created_at: string,
  *         file: array{
