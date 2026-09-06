@@ -50,6 +50,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 		protected CertificateEngineFactory $certificateEngineFactory,
 		protected JavaHelper $javaHelper,
 		private DocMdpConfigService $docMdpConfigService,
+		private HashAlgorithmResolver $hashAlgorithmResolver,
 	) {
 	}
 
@@ -205,7 +206,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 		// Convert PDFs < 1.6 to 1.6 if using SHA-256 (the default hash algorithm)
 		// This prevents "The chosen hash algorithm (SHA-256) requires a newer PDF version" error
-		if ($this->requiresPdfVersionUpgradeForSha256($version)) {
+		if ($this->hashAlgorithmResolver->requiresPdfVersionUpgradeForSha256($version)) {
 			return $this->replacePdfVersion($content, self::TARGET_PDF_VERSION_SHA256);
 		}
 
@@ -248,7 +249,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 	#[\Override]
 	public function getSignedContent(): string {
 		$normalizedPdf = $this->normalizePdfVersion($this->getInputFile()->getContent());
-		$hashAlgorithm = $this->getHashAlgorithm($normalizedPdf);
+		$hashAlgorithm = $this->hashAlgorithmResolver->forSignature($this->extractPdfVersion($normalizedPdf));
 		$param = $this->getJSignParam();
 		$param->setCertificate($this->getCertificate())
 			->setPdf($normalizedPdf)

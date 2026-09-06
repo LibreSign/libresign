@@ -14,6 +14,7 @@ use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\SignEngine\HashAlgorithmResolver;
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\CaIdentifierService;
@@ -94,6 +95,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		// Create mock factory if initialization failed in setUpBeforeClass
 		$certificateEngineFactory = self::$certificateEngineFactory ?? $this->createMock(CertificateEngineFactory::class);
+		$hashAlgorithmResolver = new HashAlgorithmResolver($policyService);
 
 		if (empty($methods)) {
 			return new JSignPdfHandler(
@@ -105,6 +107,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$certificateEngineFactory,
 				$this->javaHelper,
 				$this->createMock(DocMdpConfigService::class),
+				$hashAlgorithmResolver,
 			);
 		}
 		return $this->getMockBuilder(JSignPdfHandler::class)
@@ -117,6 +120,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$certificateEngineFactory,
 				$this->javaHelper,
 				$this->createMock(DocMdpConfigService::class),
+				$hashAlgorithmResolver,
 			])
 			->onlyMethods($methods)
 			->getMock();
