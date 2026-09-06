@@ -11,7 +11,7 @@ namespace OCA\Libresign\Service\Signature;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Exception\UnsignedPdfException;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ExtractedSignature;
-use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\TimestampToken;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationReason;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationResult;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ValidationState;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureValidator;
