@@ -210,10 +210,12 @@ const props = withDefaults(defineProps<{
 	document: EnvelopeDocument
 	legalInformation?: string
 	documentValidMessage?: string | null
+	documentValidType?: 'success' | 'warning' | 'error' | 'info'
 	isAfterSigned?: boolean
 }>(), {
 	legalInformation: '',
 	documentValidMessage: null,
+	documentValidType: 'success',
 	isAfterSigned: false,
 })
 
