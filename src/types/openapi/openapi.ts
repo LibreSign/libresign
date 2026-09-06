@@ -1555,6 +1555,8 @@ export type components = {
             sign_request_uuid?: string;
             hash_algorithm?: string;
             covers_entire_document?: boolean;
+            /** @enum {string} */
+            document_modification_state?: "unchanged" | "unsigned_content" | "trailing_data" | "invalid_byte_range" | "invalid_eof_boundary";
             me: boolean;
             /** Format: int64 */
             signingOrder?: number;

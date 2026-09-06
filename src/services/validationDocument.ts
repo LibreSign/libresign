@@ -39,8 +39,24 @@ type ValidationMetadataDimension = {
 	h: number
 }
 
+export type DocumentModificationState =
+	| 'unchanged'
+	| 'unsigned_content'
+	| 'trailing_data'
+	| 'invalid_byte_range'
+	| 'invalid_eof_boundary'
+
+export type ValidationSignerDetailRecord = SignerDetailRecord & {
+	signature_validation?: ValidationStatusInfo
+	certificate_validation?: ValidationStatusInfo
+	modification_validation?: ValidationModificationInfo
+	crl_validation?: string
+	isLibreSignRootCA?: boolean
+	document_modification_state?: DocumentModificationState
+}
+
 export type ValidationDocumentState = ValidationFileRecord & {
-	signers: SignerDetailRecord[]
+	signers: ValidationSignerDetailRecord[]
 	metadata: NonNullable<ValidationFileRecord['metadata']>
 	settings: NonNullable<ValidationFileRecord['settings']>
 }
@@ -126,6 +142,13 @@ function isModificationValidationStatus(value: unknown): value is ModificationVa
 		|| value === MODIFICATION_VIOLATION
 }
 
+function isDocumentModificationState(value: unknown): value is DocumentModificationState {
+	return value === 'unchanged'
+		|| value === 'unsigned_content'
+		|| value === 'trailing_data'
+		|| value === 'invalid_byte_range'
+		|| value === 'invalid_eof_boundary'
+}
 function isValidationModificationInfo(value: unknown): value is ValidationModificationInfo {
 	if (!isRecord(value)) {
 		return false
@@ -179,7 +202,7 @@ function isValidationSettings(value: unknown): value is NonNullable<ValidationFi
 		&& isOptionalField(value, 'isApprover', fieldValue => typeof fieldValue === 'boolean')
 }
 
-function isSignerDetailRecord(value: unknown): value is SignerDetailRecord {
+function isSignerDetailRecord(value: unknown): value is ValidationSignerDetailRecord {
 	if (!isRecord(value)) {
 		return false
 	}
@@ -199,6 +222,7 @@ function isSignerDetailRecord(value: unknown): value is SignerDetailRecord {
 		&& isOptionalField(value, 'modification_validation', isValidationModificationInfo)
 		&& isOptionalField(value, 'crl_validation', isString)
 		&& isOptionalField(value, 'isLibreSignRootCA', fieldValue => typeof fieldValue === 'boolean')
+		&& isOptionalField(value, 'document_modification_state', isDocumentModificationState)
 }
 
 function isCertificateSignerRecord(value: unknown): value is UnknownRecord {
@@ -213,9 +237,13 @@ function isCertificateSignerRecord(value: unknown): value is UnknownRecord {
 		&& Array.isArray(value.chain)
 		&& isOptionalField(value, 'signature_validation', isValidationStatusInfo)
 		&& isOptionalField(value, 'certificate_validation', isValidationStatusInfo)
+		&& isOptionalField(value, 'modification_validation', isValidationModificationInfo)
+		&& isOptionalField(value, 'crl_validation', isString)
+		&& isOptionalField(value, 'isLibreSignRootCA', fieldValue => typeof fieldValue === 'boolean')
+		&& isOptionalField(value, 'document_modification_state', isDocumentModificationState)
 }
 
-function normalizeCertificateSigner(value: UnknownRecord): SignerDetailRecord {
+function normalizeCertificateSigner(value: UnknownRecord): ValidationSignerDetailRecord {
 	return {
 		...value,
 		signRequestId: 0,
@@ -230,7 +258,7 @@ function normalizeCertificateSigner(value: UnknownRecord): SignerDetailRecord {
 	}
 }
 
-function normalizeSignerDetail(value: unknown): SignerDetailRecord | null {
+function normalizeSignerDetail(value: unknown): ValidationSignerDetailRecord | null {
 	if (isSignerDetailRecord(value)) {
 		return value
 	}
@@ -264,6 +292,10 @@ function isValidationDocumentRecord(data: unknown): data is ValidationFileRecord
 	if (!isRecord(data)) {
 		return false
 	}
+
+	const status = toInteger(data.status)
+	const isExternalPdf = status === FILE_STATUS.NOT_LIBRESIGN_FILE
+
 	if (
 		toInteger(data.id) === null
 		|| !isString(data.uuid)
@@ -273,12 +305,12 @@ function isValidationDocumentRecord(data: unknown): data is ValidationFileRecord
 		|| toInteger(data.nodeId) === null
 		|| (data.nodeType !== 'file' && data.nodeType !== 'envelope')
 		|| normalizeValidationSignatureFlow(data.signatureFlow) === null
-		|| toInteger(data.docmdpLevel) === null
+		|| (!isExternalPdf && toInteger(data.docmdpLevel) === null)
 		|| toInteger(data.filesCount) === null
 		|| !Array.isArray(data.files)
-		|| toInteger(data.totalPages) === null
+		|| (!isExternalPdf && toInteger(data.totalPages) === null)
 		|| toInteger(data.size) === null
-		|| !isString(data.pdfVersion)
+		|| (!isExternalPdf && !isString(data.pdfVersion))
 		|| !isString(data.created_at)
 		|| !isRequestedBy(data.requested_by)
 	) {
@@ -327,11 +359,27 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 
 	const id = toInteger(data.id)
 	const nodeId = toInteger(data.nodeId)
-	const docmdpLevel = toInteger(data.docmdpLevel)
+	const status = toInteger(data.status)
+	const isExternalPdf = status === FILE_STATUS.NOT_LIBRESIGN_FILE
 	const filesCount = toInteger(data.filesCount)
-	const totalPages = toInteger(data.totalPages)
 	const size = toInteger(data.size)
 	const signatureFlow = normalizeValidationSignatureFlow(data.signatureFlow)
+
+	const firstFile = Array.isArray(data.files) && isRecord(data.files[0])
+		? data.files[0]
+		: null
+
+	const docmdpLevel = toInteger(data.docmdpLevel) ?? (isExternalPdf ? 0 : null)
+	const totalPages = toInteger(data.totalPages)
+		?? (isExternalPdf && firstFile ? toInteger(firstFile.totalPages) : null)
+		?? (isExternalPdf ? 0 : null)
+	const pdfVersion = isString(data.pdfVersion)
+		? data.pdfVersion
+		: isExternalPdf && firstFile && isString(firstFile.pdfVersion)
+			? firstFile.pdfVersion
+			: isExternalPdf
+				? ''
+				: null
 
 	if (
 		id === null
@@ -341,6 +389,7 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 		|| totalPages === null
 		|| size === null
 		|| signatureFlow === null
+		|| pdfVersion === null
 	) {
 		return null
 	}
@@ -416,6 +465,7 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 		totalPages,
 		size,
 		files: normalizedFiles,
+		pdfVersion,
 		metadata: {
 			...metadata,
 			p: metadataPages,

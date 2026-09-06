@@ -13,8 +13,7 @@
 					:is-no-user="true" />
 				<NcIconSvgWrapper v-else
 					:path="getIconValidityPath(signer)"
-					:class="signer.signature_validation?.id === 1 ? 'icon-success' : 'icon-error'"
-					:size="44" />
+					:class="getSignerValidationClass(signer)" />
 			</template>
 			<template #subname>
 				<template v-if="!isSigned(signer)">
@@ -92,24 +91,24 @@
 			<NcListItem v-if="signer.signature_validation" class="extra-chain" compact>
 				<template #icon>
 					<NcIconSvgWrapper :path="signer.signature_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
-						:class="signer.signature_validation?.id === 1 ? 'icon-success' : 'icon-error'" />
+						:class="signer.signature_validation?.id === 1 ? 'validation-icon--success' : 'validation-icon--error'" />
 				</template>
 				<template #name>
 					{{ getSignatureValidationMessage(signer) }}
 				</template>
 			</NcListItem>
-			<NcListItem v-if="signer.covers_entire_document === false" class="extra-chain" compact>
+			<NcListItem v-if="hasDocumentModificationWarning(signer)" class="extra-chain" compact>
 				<template #icon>
-					<NcIconSvgWrapper :path="mdiAlertCircle" class="icon-warning" />
+					<NcIconSvgWrapper :path="mdiAlertCircle" class="validation-icon--warning" />
 				</template>
 				<template #name>
-					{{ getSignatureCoverageMessage() }}
+					{{ getDocumentModificationMessage(signer) }}
 				</template>
 			</NcListItem>
 			<NcListItem v-if="signer.certificate_validation" class="extra-chain" compact>
 				<template #icon>
 					<NcIconSvgWrapper :path="signer.certificate_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
-						:class="signer.certificate_validation?.id === 1 ? 'icon-success' : 'icon-error'" />
+						:class="signer.certificate_validation?.id === 1 ? 'validation-icon--success' : 'validation-icon--error'" />
 				</template>
 				<template #name>
 					{{ getCertificateTrustMessage(signer) }}
@@ -118,7 +117,7 @@
 			<NcListItem v-if="signer.valid_from && signer.valid_to && signer.signed" class="extra-chain" compact>
 				<template #icon>
 					<NcIconSvgWrapper :path="getValidityStatusAtSigning(signer) === 'valid' ? mdiCheckCircle : mdiCancel"
-						:class="getValidityStatusAtSigning(signer) === 'valid' ? 'icon-success' : 'icon-error'" />
+						:class="getValidityStatusAtSigning(signer) === 'valid' ? 'validation-icon--success' : 'validation-icon--error'" />
 				</template>
 				<template #name>
 					{{ getValidityStatusAtSigning(signer) === 'valid' ? t('libresign', 'Valid at signing time') : t('libresign', 'NOT valid at signing time') }}
@@ -177,14 +176,12 @@
 					{{ signer.docmdp.label }}
 				</template>
 			</NcListItem>
-			<NcListItem v-if="signer.docmdp && signer.docmdp.description" class="extra-chain" compact>
-				<template #name>
-					{{ signer.docmdp.description }}
-				</template>
-			</NcListItem>
+			<div v-if="signer.docmdp && signer.docmdp.description" class="validation-description">
+				{{ signer.docmdp.description }}
+			</div>
 			<NcListItem v-if="signer.docmdp_validation" class="extra-chain" compact>
 				<template #icon>
-					<NcIconSvgWrapper :path="mdiAlertCircle" class="icon-warning" />
+					<NcIconSvgWrapper :path="mdiAlertCircle" class="validation-icon--warning" />
 				</template>
 				<template #name>
 					{{ signer.docmdp_validation.message }}
@@ -246,20 +243,19 @@
 
 <script setup lang="ts">
 import { n, t } from '@nextcloud/l10n'
+import Moment from '@nextcloud/moment'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
-import Moment from '@nextcloud/moment'
 import { computed, ref } from 'vue'
 
-import CertificateChain from './CertificateChain.vue'
-import SignerTimestamp from './SignerTimestamp.vue'
-
 import {
+	mdiAlert,
 	mdiAlertCircle,
 	mdiAlertCircleOutline,
 	mdiCancel,
+	mdiCheck,
 	mdiCheckCircle,
 	mdiCloseCircle,
 	mdiHelpCircle,
@@ -271,6 +267,10 @@ import {
 	mdiUnfoldLessHorizontal,
 	mdiUnfoldMoreHorizontal,
 } from '@mdi/js'
+
+import CertificateChain from './CertificateChain.vue'
+import SignerTimestamp from './SignerTimestamp.vue'
+import type { DocumentModificationState } from '../../services/validationDocument'
 
 
 type ValidationState = {
@@ -322,6 +322,7 @@ type SignerModel = {
 	signature_validation?: ValidationState
 	certificate_validation?: ValidationState
 	covers_entire_document?: boolean
+	document_modification_state?: DocumentModificationState
 	crl_validation?: string
 	crl_revoked_at?: string
 	docmdp?: SignerDocMdp
@@ -360,19 +361,19 @@ const MODIFICATION_ALLOWED = 2
 const MODIFICATION_VIOLATION = 3
 const crlStatusMap: Record<string, CrlStatusMeta> = {
 	// TRANSLATORS CRL status text indicating certificate was checked and is not revoked.
-	valid: { icon: mdiCheckCircle, text: t('libresign', 'CRL: Not revoked'), class: 'icon-success' },
+	valid: { icon: mdiCheckCircle, text: t('libresign', 'CRL: Not revoked'), class: 'validation-icon--success' },
 	// TRANSLATORS CRL status text indicating certificate is revoked.
-	revoked: { icon: mdiCloseCircle, text: t('libresign', 'CRL: Certificate revoked'), class: 'icon-error' },
+	revoked: { icon: mdiCloseCircle, text: t('libresign', 'CRL: Certificate revoked'), class: 'validation-icon--error' },
 	// TRANSLATORS CRL status text indicating revocation information is unavailable.
-	missing: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No information'), class: 'icon-warning' },
+	missing: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No information'), class: 'validation-icon--warning' },
 	// TRANSLATORS CRL status text indicating no CRL distribution URLs were found in certificate metadata.
-	no_urls: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No URLs found'), class: 'icon-warning' },
+	no_urls: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No URLs found'), class: 'validation-icon--warning' },
 	// TRANSLATORS CRL status text indicating CRL URLs exist but were unreachable.
-	urls_inaccessible: { icon: mdiHelpCircle, text: t('libresign', 'CRL: URLs inaccessible'), class: 'icon-warning' },
+	urls_inaccessible: { icon: mdiHelpCircle, text: t('libresign', 'CRL: URLs inaccessible'), class: 'validation-icon--warning' },
 	// TRANSLATORS CRL status text indicating CRL validation process failed.
-	validation_failed: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation failed'), class: 'icon-warning' },
+	validation_failed: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation failed'), class: 'validation-icon--warning' },
 	// TRANSLATORS CRL status text indicating unexpected error during CRL validation.
-	validation_error: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation error'), class: 'icon-warning' },
+	validation_error: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation error'), class: 'validation-icon--warning' },
 }
 
 function toggleOpen() {
@@ -416,16 +417,44 @@ function isRevokedBeforeSigning(signer: SignerModel) {
 }
 
 function hasValidationIssues(signer: SignerModel) {
-	return signer.signature_validation?.id !== 1
-		|| signer.certificate_validation?.id !== 1
+	return (signer.signature_validation !== undefined
+			&& signer.signature_validation.id !== 1)
+		|| (signer.certificate_validation !== undefined
+			&& signer.certificate_validation.id !== 1)
+		|| hasDocumentModificationWarning(signer)
 		|| isRevokedBeforeSigning(signer)
 }
 
 function getIconValidityPath(signer: SignerModel) {
-	if (signer.signature_validation?.id === 1) {
-		return mdiCheckCircle
+	if (signer.signature_validation !== undefined
+		&& signer.signature_validation.id !== 1) {
+		return mdiShieldAlert
 	}
-	return mdiShieldAlert
+	if (signer.modification_validation?.status === MODIFICATION_VIOLATION
+		|| isRevokedBeforeSigning(signer)) {
+		return mdiShieldAlert
+	}
+	if (hasDocumentModificationWarning(signer)
+		|| (signer.certificate_validation !== undefined
+			&& signer.certificate_validation.id !== 1)) {
+		return mdiAlert
+	}
+	return mdiCheck
+}
+
+function getSignerValidationClass(signer: SignerModel) {
+	if ((signer.signature_validation !== undefined
+			&& signer.signature_validation.id !== 1)
+		|| signer.modification_validation?.status === MODIFICATION_VIOLATION
+		|| isRevokedBeforeSigning(signer)) {
+		return 'validation-icon--error'
+	}
+	if (hasDocumentModificationWarning(signer)
+		|| (signer.certificate_validation !== undefined
+			&& signer.certificate_validation.id !== 1)) {
+		return 'validation-icon--warning'
+	}
+	return 'validation-icon--success'
 }
 
 function getValidityStatus(signer: SignerModel) {
@@ -441,8 +470,10 @@ function getValidityStatus(signer: SignerModel) {
 }
 
 function hasValidationStatus(signer: SignerModel) {
-	return !!(signer.signature_validation || signer.certificate_validation || signer.crl_validation
-		|| signer.covers_entire_document === false
+	return !!(signer.signature_validation
+		|| signer.certificate_validation
+		|| signer.crl_validation
+		|| signer.document_modification_state
 		|| (signer.valid_from && signer.valid_to && signer.signed))
 }
 
@@ -455,9 +486,28 @@ function getSignatureValidationMessage(signer: SignerModel) {
 	return signer.signature_validation?.message || t('libresign', 'Document integrity check failed')
 }
 
-function getSignatureCoverageMessage() {
-	// TRANSLATORS Warning shown when extra bytes exist outside the PDF signature ByteRange.
-	return t('libresign', 'The signature does not cover the entire document')
+function hasDocumentModificationWarning(signer: SignerModel) {
+	return !!signer.document_modification_state
+		&& signer.document_modification_state !== 'unchanged'
+}
+
+function getDocumentModificationMessage(signer: SignerModel) {
+	switch (signer.document_modification_state) {
+	case 'unsigned_content':
+		// TRANSLATORS Warning shown when content exists after the latest PDF signature.
+		return t('libresign', 'The document contains unsigned content after the latest signature')
+	case 'trailing_data':
+		// TRANSLATORS Warning shown when unexpected bytes exist after the final PDF EOF marker.
+		return t('libresign', 'Unexpected data was found after the final PDF end marker')
+	case 'invalid_byte_range':
+		// TRANSLATORS Warning shown when a PDF signature ByteRange is structurally invalid.
+		return t('libresign', 'The signature ByteRange is invalid')
+	case 'invalid_eof_boundary':
+		// TRANSLATORS Warning shown when signed PDF data does not end at a valid EOF boundary.
+		return t('libresign', 'The signed content does not end at a valid PDF end marker')
+	default:
+		return ''
+	}
 }
 
 function getCertificateTrustMessage(signer: SignerModel) {
@@ -482,9 +532,9 @@ function getValidityStatusAtSigning(signer: SignerModel) {
 
 function getCrlValidationIconClass(signer: SignerModel) {
 	if (isRevokedStatus(signer.crl_validation)) {
-		return isRevokedBeforeSigning(signer) ? 'icon-error' : 'icon-success'
+		return isRevokedBeforeSigning(signer) ? 'validation-icon--error' : 'validation-icon--success'
 	}
-	return crlStatusMap[signer.crl_validation ?? '']?.class || 'icon-warning'
+	return crlStatusMap[signer.crl_validation ?? '']?.class || 'validation-icon--warning'
 }
 
 function getCrlValidationIconPath(signer: SignerModel) {
@@ -538,20 +588,28 @@ function hasDocMdpInfo(signer: SignerModel) {
 
 function getModificationStatusIcon(signer: SignerModel) {
 	if (!signer.modification_validation) { return undefined }
+
 	const status = signer.modification_validation.status
-	if (status === MODIFICATION_UNMODIFIED || status === MODIFICATION_ALLOWED) {
-		return mdiCheckCircle
+	if (status === MODIFICATION_UNMODIFIED) {
+		return mdiCheck
 	}
-	return mdiAlertCircle
+	if (status === MODIFICATION_ALLOWED) {
+		return mdiAlert
+	}
+	return mdiShieldOff
 }
 
 function getModificationStatusClass(signer: SignerModel) {
 	if (!signer.modification_validation) { return '' }
+
 	const status = signer.modification_validation.status
-	if (status === MODIFICATION_UNMODIFIED || status === MODIFICATION_ALLOWED) {
-		return 'icon-success'
+	if (status === MODIFICATION_UNMODIFIED) {
+		return 'validation-icon--success'
 	}
-	return 'icon-error'
+	if (status === MODIFICATION_ALLOWED) {
+		return 'validation-icon--warning'
+	}
+	return 'validation-icon--error'
 }
 
 function formatTimestamp(timestamp?: number | null) {
@@ -586,10 +644,12 @@ defineExpose({
 	isRevokedStatus,
 	isRevokedBeforeSigning,
 	getIconValidityPath,
+	getSignerValidationClass,
 	getValidityStatus,
 	hasValidationStatus,
 	getSignatureValidationMessage,
-	getSignatureCoverageMessage,
+	hasDocumentModificationWarning,
+	getDocumentModificationMessage,
 	getCertificateTrustMessage,
 	getValidityStatusAtSigning,
 	getCrlValidationIconPath,
@@ -605,19 +665,8 @@ defineExpose({
 </script>
 
 <style scoped lang="scss">
-.extra {
-	padding-left: 44px;
-	background-color: var(--color-background-hover);
-
-	:deep(.list-item-content__name) {
-		white-space: normal;
-		line-height: 1.4;
-	}
-}
-
+.extra,
 .extra-chain {
-	padding-left: 48px;
-
 	:deep(.list-item) {
 		--list-item-height: auto;
 	}
@@ -629,22 +678,38 @@ defineExpose({
 	}
 }
 
-.icon-success {
-	color: var(--color-success);
+.extra {
+	padding-left: 44px;
+	background-color: var(--color-background-hover);
+}
+
+.extra-chain {
+	padding-left: 48px;
+}
+
+.validation-description {
+	padding: 8px 16px 8px 48px;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+	line-height: 1.4;
+}
+.validation-icon--success {
+	color: var(--color-element-success, var(--color-success));
 	:deep(svg) {
 		fill: currentColor;
 	}
 }
 
-.icon-error {
-	color: var(--color-error);
+.validation-icon--error {
+	color: var(--color-element-error, var(--color-error));
 	:deep(svg) {
 		fill: currentColor;
 	}
 }
 
-.icon-warning {
-	color: var(--color-warning);
+.validation-icon--warning {
+	color: var(--color-element-warning, var(--color-warning));
 	:deep(svg) {
 		fill: currentColor;
 	}
