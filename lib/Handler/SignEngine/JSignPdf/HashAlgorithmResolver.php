@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\SignEngine\JSignPdf;
 
-use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
+use OCA\Libresign\AppInfo\Application;
+use OCP\IAppConfig;
 
 /**
  * Resolves which hash algorithm JSignPdf has to use.
@@ -26,7 +26,7 @@ class HashAlgorithmResolver {
 	private const array SUPPORTED_ALGORITHMS = ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'];
 
 	public function __construct(
-		private PolicyService $policyService,
+		private IAppConfig $appConfig,
 	) {
 	}
 
@@ -81,6 +81,6 @@ class HashAlgorithmResolver {
 	}
 
 	private function getConfiguredAlgorithm(): string {
-		return (string)$this->policyService->resolve(SignatureHashAlgorithmPolicy::KEY)->getEffectiveValue();
+		return $this->appConfig->getValueString(Application::APP_ID, 'signature_hash_algorithm', self::DEFAULT_ALGORITHM);
 	}
 }
