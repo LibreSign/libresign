@@ -359,13 +359,13 @@ const MODIFICATION_UNMODIFIED = 1
 const MODIFICATION_ALLOWED = 2
 const MODIFICATION_VIOLATION = 3
 const crlStatusMap: Record<string, CrlStatusMeta> = {
-	valid: { icon: mdiCheckCircle, text: t('libresign', 'CRL: Not revoked'), class: 'icon-success' },
-	revoked: { icon: mdiCloseCircle, text: t('libresign', 'CRL: Certificate revoked'), class: 'icon-error' },
-	missing: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No information'), class: 'icon-warning' },
-	no_urls: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No URLs found'), class: 'icon-warning' },
-	urls_inaccessible: { icon: mdiHelpCircle, text: t('libresign', 'CRL: URLs inaccessible'), class: 'icon-warning' },
-	validation_failed: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation failed'), class: 'icon-warning' },
-	validation_error: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation error'), class: 'icon-warning' },
+	valid: { icon: mdiCheckCircle, text: t('libresign', 'CRL: Not revoked'), class: 'validation-icon--success' },
+	revoked: { icon: mdiCloseCircle, text: t('libresign', 'CRL: Certificate revoked'), class: 'validation-icon--error' },
+	missing: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No information'), class: 'validation-icon--warning' },
+	no_urls: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No URLs found'), class: 'validation-icon--warning' },
+	urls_inaccessible: { icon: mdiHelpCircle, text: t('libresign', 'CRL: URLs inaccessible'), class: 'validation-icon--warning' },
+	validation_failed: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation failed'), class: 'validation-icon--warning' },
+	validation_error: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation error'), class: 'validation-icon--warning' },
 }
 
 function toggleOpen() {
