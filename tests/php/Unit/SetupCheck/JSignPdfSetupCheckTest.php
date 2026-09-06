@@ -22,7 +22,7 @@ if (!function_exists('OCA\Libresign\SetupCheck\is_dir')) {
 
 namespace OCA\Libresign\Tests\Unit\SetupCheck;
 
-use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
+use OCA\Libresign\Handler\SignEngine\JSignPdf\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\JSignPdfRelease;
