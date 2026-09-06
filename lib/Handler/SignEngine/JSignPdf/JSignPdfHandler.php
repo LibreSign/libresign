@@ -6,17 +6,17 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Handler\SignEngine;
+namespace OCA\Libresign\Handler\SignEngine\JSignPdf;
 
 use Imagick;
 use ImagickPixel;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
@@ -33,9 +33,7 @@ use Psr\Log\LoggerInterface;
 class JSignPdfHandler extends Pkcs12Handler {
 	private const float MIN_PDF_VERSION = 1.2;
 	private const string TARGET_OLD_PDF_VERSION = '1.3';
-	private const float MIN_PDF_VERSION_SHA256 = 1.6;
 	private const string TARGET_PDF_VERSION_SHA256 = '1.6';
-	private const float MIN_PDF_VERSION_SHA1_REJECT = 1.7;
 	private const int PAGE_FIRST = 1;
 	private const int SCALE_FACTOR_MIN = 5;
 
@@ -55,6 +53,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 		protected CertificateEngineFactory $certificateEngineFactory,
 		protected JavaHelper $javaHelper,
 		private DocMdpConfigService $docMdpConfigService,
+		private HashAlgorithmResolver $hashAlgorithmResolver,
 	) {
 	}
 
@@ -151,47 +150,11 @@ class JSignPdfHandler extends Pkcs12Handler {
 		fclose($file);
 	}
 
-	private function getHashAlgorithm(string $pdfContent): string {
-		$configuredAlgorithm = (string)$this->policyService->resolve(SignatureHashAlgorithmPolicy::KEY)->getEffectiveValue();
-		/**
-		 * Need to respect the follow code:
-		 * https://github.com/intoolswetrust/jsignpdf/blob/JSignPdf_2_2_2/jsignpdf/src/main/java/net/sf/jsignpdf/types/HashAlgorithm.java#L46-L47
-		 */
-		$pdfVersion = $this->extractPdfVersion($pdfContent);
-
-		if ($pdfVersion === null) {
-			return $this->validateHashAlgorithm($configuredAlgorithm);
-		}
-
-		return $this->getHashAlgorithmForPdfVersion($pdfVersion, $configuredAlgorithm);
-	}
-
 	private function extractPdfVersion(string $content): ?float {
 		if (!preg_match('/^%PDF-(?<version>\d+(\.\d+)?)/', $content, $match)) {
 			return null;
 		}
 		return (float)$match['version'];
-	}
-
-	private function getHashAlgorithmForPdfVersion(float $pdfVersion, string $configuredAlgorithm): string {
-		// Legacy compatibility: JSignPdf still requires SHA1 for very old PDFs (< 1.6).
-		// The policy still exposes SHA1 for supported legacy workflows, and the runtime
-		// must continue enforcing this fallback for ancient PDFs that JSignPdf cannot sign otherwise.
-		if ($pdfVersion < 1.6) {
-			return 'SHA1';
-		}
-		if ($pdfVersion < self::MIN_PDF_VERSION_SHA1_REJECT) {
-			return 'SHA256';
-		}
-		if ($pdfVersion >= self::MIN_PDF_VERSION_SHA1_REJECT && $configuredAlgorithm === 'SHA1') {
-			return 'SHA256';
-		}
-		return $this->validateHashAlgorithm($configuredAlgorithm);
-	}
-
-	private function validateHashAlgorithm(string $algorithm): string {
-		$supportedAlgorithms = ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'];
-		return in_array($algorithm, $supportedAlgorithms) ? $algorithm : 'SHA256';
 	}
 
 	/**
@@ -213,7 +176,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 		// Convert PDFs < 1.6 to 1.6 if using SHA-256 (the default hash algorithm)
 		// This prevents "The chosen hash algorithm (SHA-256) requires a newer PDF version" error
-		if ($this->requiresPdfVersionUpgradeForSha256($version)) {
+		if ($this->hashAlgorithmResolver->requiresPdfVersionUpgradeForSha256($version)) {
 			return $this->replacePdfVersion($content, self::TARGET_PDF_VERSION_SHA256);
 		}
 
@@ -222,14 +185,6 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 	private function isVeryOldPdfVersion(float $version): bool {
 		return $version > 0 && $version < self::MIN_PDF_VERSION;
-	}
-
-	private function requiresPdfVersionUpgradeForSha256(float $version): bool {
-		if ($version >= self::MIN_PDF_VERSION_SHA256) {
-			return false;
-		}
-		$hashAlgorithm = (string)$this->policyService->resolve(SignatureHashAlgorithmPolicy::KEY)->getEffectiveValue();
-		return $hashAlgorithm === 'SHA256';
 	}
 
 	private function replacePdfVersion(string $content, string $newVersion): string {
@@ -256,7 +211,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 	#[\Override]
 	public function getSignedContent(): string {
 		$normalizedPdf = $this->normalizePdfVersion($this->getInputFile()->getContent());
-		$hashAlgorithm = $this->getHashAlgorithm($normalizedPdf);
+		$hashAlgorithm = $this->hashAlgorithmResolver->forSignature($this->extractPdfVersion($normalizedPdf));
 		$param = $this->getJSignParam();
 		$param->setCertificate($this->getCertificate())
 			->setPdf($normalizedPdf)

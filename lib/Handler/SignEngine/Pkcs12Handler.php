@@ -14,6 +14,7 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\OrderCertificatesTrait;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
+use OCA\Libresign\Handler\SignEngine\JSignPdf\JSignPdfHandler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
@@ -30,6 +31,11 @@ use Psr\Log\LoggerInterface;
 class Pkcs12Handler extends SignEngineHandler {
 	use OrderCertificatesTrait;
 	protected string $certificate = '';
+	/** @var array<string, class-string<SignEngineHandler>> */
+	private const ENGINE_HANDLERS = [
+		'jSignPdfHandler' => JSignPdfHandler::class,
+		'phpNativeHandler' => PhpNativeHandler::class,
+	];
 	private ?JSignPdfHandler $jSignPdfHandler = null;
 	private ?PhpNativeHandler $phpNativeHandler = null;
 	private string $rootCertificatePem = '';
@@ -379,11 +385,13 @@ class Pkcs12Handler extends SignEngineHandler {
 	private function getHandler(): SignEngineHandler {
 		$sign_engine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf');
 		$property = lcfirst($sign_engine) . 'Handler';
-		if (!property_exists($this, $property)) {
+		// Resolved through a class map instead of a name built at runtime, so
+		// moving a handler to another namespace cannot break this silently.
+		if (!isset(self::ENGINE_HANDLERS[$property])) {
 			// TRANSLATORS API/config error when LibreSign's signature_engine setting names a backend that is not available (for example a mistyped JSignPdf/native engine).
 			throw new LibresignException($this->l10n->t('Invalid Sign engine.'), 400);
 		}
-		$classHandler = 'OCA\\Libresign\\Handler\\SignEngine\\' . ucfirst($property);
+		$classHandler = self::ENGINE_HANDLERS[$property];
 		if (!$this->$property instanceof $classHandler) {
 			$this->$property = \OCP\Server::get($classHandler);
 		}
