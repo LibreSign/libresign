@@ -128,13 +128,6 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$reflection->setValue($handler, $docMdpConfigService);
 	}
 
-	private static function normalizeJSignParameters(JSignParam $param): string {
-		return implode(
-			' ',
-			str_getcsv($param->getJSignParameters(), ' ', "'", '\\'),
-		);
-	}
-
 	#[DataProvider('providerGetHashAlgorithm')]
 	public function testGetHashAlgorithm(string $setting, string $content, string $expected): void {
 		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
@@ -628,7 +621,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$mock->expects($this->exactly(2))
 			->method('setParam')
 			->willReturnCallback(function (JSignParam $param) use (&$paramsSeen): void {
-				$paramsSeen[] = self::normalizeJSignParameters($param);
+				$paramsSeen[] = $param->getJSignParameters();
 			});
 		$mock->method('sign')->willReturn('content');
 
@@ -695,7 +688,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$mock->expects($this->once())
 			->method('setParam')
 			->willReturnCallback(function (JSignParam $param) use (&$paramsSeen): void {
-				$paramsSeen[] = self::normalizeJSignParameters($param);
+				$paramsSeen[] = $param->getJSignParameters();
 			});
 		$mock->method('sign')->willReturn('content');
 
