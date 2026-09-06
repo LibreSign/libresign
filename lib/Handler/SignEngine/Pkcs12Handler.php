@@ -50,38 +50,6 @@ class Pkcs12Handler extends SignEngineHandler {
 		parent::__construct($l10n, $folderService, $logger);
 	}
 
-	/**
-	 * @throws LibresignException When is not a signed file
-	 */
-	private function getSignatures($resource): iterable {
-		rewind($resource);
-		$content = stream_get_contents($resource);
-
-		preg_match_all('/\/Contents\s*<([0-9a-fA-F]+)>/', $content, $contents, PREG_OFFSET_CAPTURE);
-
-		if (empty($contents[1])) {
-			// TRANSLATORS Error while LibreSign reads a PDF for signature validation: the file has no embedded PKCS#12/PDF signature bytes yet.
-			throw new LibresignException($this->l10n->t('Unsigned file.'));
-		}
-
-		$seenHexSignatures = [];
-		foreach ($contents[1] as $match) {
-			$signatureHex = $match[0];
-
-			if (isset($seenHexSignatures[$signatureHex])) {
-				continue;
-			}
-			$seenHexSignatures[$signatureHex] = true;
-
-			$decodedSignature = @hex2bin($signatureHex);
-			if ($decodedSignature === false) {
-				yield null;
-				continue;
-			}
-			yield $decodedSignature;
-		}
-	}
-
 	public function setIsLibreSignFile(): void {
 		$this->isLibreSignFile = true;
 	}
@@ -94,25 +62,26 @@ class Pkcs12Handler extends SignEngineHandler {
 	#[\Override]
 	public function getCertificateChain($resource): array {
 		$certificates = [];
-		$nativeMetadata = array_values($this->extractNativeSignatureMetadata($resource));
+
 		rewind($resource);
-		$nativeValidation = array_values($this->pdfSignatureValidationService->validateFromResource($resource));
-		$index = 0;
+		$validationResults = array_values(
+			$this->pdfSignatureValidationService->validateFromResource($resource)
+		);
 
-		foreach ($this->getSignatures($resource) as $signature) {
-			$metadata = $nativeMetadata[$index] ?? [];
-			$validation = $nativeValidation[$index] ?? [];
-			$index++;
+		if ($validationResults === []) {
+			throw new LibresignException($this->l10n->t('Unsigned file.'));
+		}
 
-			if (!$signature) {
+		foreach ($validationResults as $validation) {
+			$signature = $validation['signature'] ?? null;
+			if (!$signature instanceof ExtractedSignature) {
 				continue;
 			}
 
 			$result = $this->processSignature(
 				$resource,
 				$signature,
-				$metadata,
-				$validation
+				$validation,
 			);
 
 			if (empty($result['chain'])) {
