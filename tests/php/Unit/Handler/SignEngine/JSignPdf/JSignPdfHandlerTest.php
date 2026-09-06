@@ -1088,13 +1088,13 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'url only' => [
 				['url' => 'https://tsa.example.test/tsr'],
 				'',
-				['--tsa-server-url' => 'https://tsa.example.test/tsr'],
+				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256'],
 				[],
 			],
 			'url with policy OID and no authentication' => [
 				['url' => 'https://tsa.example.test/tsr', 'policy_oid' => '1.2.3.4', 'auth_type' => 'none'],
 				'tsa secret',
-				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-policy-oid' => '1.2.3.4'],
+				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256', '--tsa-policy-oid' => '1.2.3.4'],
 				[],
 			],
 			'basic authentication: user on the command line, password over stdin' => [
@@ -1102,6 +1102,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'tsa secret',
 				[
 					'--tsa-server-url' => 'https://tsa.example.test/tsr',
+					'--tsa-hash-algorithm' => 'SHA-256',
 					'--tsa-policy-oid' => '1.2.3.4',
 					'--tsa-authentication' => 'PASSWORD',
 					'--tsa-user' => 'alice',
@@ -1113,6 +1114,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				"p4\$s 'w\"ord",
 				[
 					'--tsa-server-url' => 'https://tsa.example.test/tsr',
+					'--tsa-hash-algorithm' => 'SHA-256',
 					'--tsa-policy-oid' => '1.2.3.4',
 					'--tsa-authentication' => 'PASSWORD',
 					'--tsa-user' => 'alice',
@@ -1122,7 +1124,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'basic authentication without a stored password is skipped' => [
 				$tsa,
 				'',
-				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-policy-oid' => '1.2.3.4'],
+				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256', '--tsa-policy-oid' => '1.2.3.4'],
 				[],
 			],
 			'basic authentication without a URL sends nothing' => [
@@ -1131,10 +1133,16 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[],
 				[],
 			],
+			'the configured hash algorithm is sent to the timestamp authority' => [
+				['url' => 'https://tsa.example.test/tsr', 'hash_algorithm' => 'SHA512'],
+				'',
+				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-512'],
+				[],
+			],
 			'basic authentication without a username is skipped' => [
 				['url' => 'https://tsa.example.test/tsr', 'auth_type' => 'basic', 'username' => ''],
 				'tsa secret',
-				['--tsa-server-url' => 'https://tsa.example.test/tsr'],
+				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256'],
 				[],
 			],
 		];
@@ -1198,14 +1206,14 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[],
 				'%PDF-1.6',
 				$tsa,
-				['-cl' => DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name, '--tsa-server-url' => 'https://tsa.example.test/tsr', '--hash-algorithm' => 'SHA256'],
+				['-cl' => DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name, '--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256', '--hash-algorithm' => 'SHA256'],
 			],
 			'no certification when the PDF already has a signature' => [
 				true,
 				[],
 				"%PDF-1.6\n/ByteRange [0 0 0 0]",
 				$tsa,
-				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--hash-algorithm' => 'SHA256'],
+				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256', '--hash-algorithm' => 'SHA256'],
 			],
 			'no certification when DocMDP is disabled, even with a visible element on a signed PDF' => [
 				false,
