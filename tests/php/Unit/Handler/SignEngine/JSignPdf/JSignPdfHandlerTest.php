@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
+namespace OCA\Libresign\Tests\Unit\Handler\SignEngine\JSignPdf;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
@@ -14,8 +14,8 @@ use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
-use OCA\Libresign\Handler\SignEngine\HashAlgorithmResolver;
-use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
+use OCA\Libresign\Handler\SignEngine\JSignPdf\HashAlgorithmResolver;
+use OCA\Libresign\Handler\SignEngine\JSignPdf\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
@@ -315,7 +315,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 
 		$this->signatureBackgroundService->method('getImagePath')->willReturn(
-			realpath(__DIR__ . '/../../../../../img/LibreSign.png')
+			realpath(__DIR__ . '/../../../../../../img/LibreSign.png')
 		);
 
 		$this->persistSignatureStampPolicy(
@@ -386,7 +386,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 0,
 					'urx' => 0,
 					'ury' => 0,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 100,
 				'signatureHeight' => 100,
 				'template' => '',
@@ -404,7 +404,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => '',
@@ -422,7 +422,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'aaaaa',
@@ -440,7 +440,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'aaaaa',
@@ -458,7 +458,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'aaaaa',
@@ -476,7 +476,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'a"b $c \'d e',
@@ -494,7 +494,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => '',
@@ -512,7 +512,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'aaaaa',
@@ -530,7 +530,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 100,
 					'urx' => 351,
 					'ury' => 200,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 350,
 				'signatureHeight' => 100,
 				'template' => 'aaaaa',
@@ -548,7 +548,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'aaaaa',
@@ -605,7 +605,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => '',
@@ -623,7 +623,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 0,
 				'signatureHeight' => 0,
 				'template' => '',
@@ -647,7 +647,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->signatureBackgroundService->method('getSignatureBackgroundType')->willReturn('deleted');
 		$this->signatureBackgroundService->method('getImagePath')->willReturn(
-			realpath(__DIR__ . '/../../../../../img/LibreSign.png')
+			realpath(__DIR__ . '/../../../../../../img/LibreSign.png')
 		);
 
 		$this->persistSignatureStampPolicy('', SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY, 10, SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE, 100, 100);
@@ -678,14 +678,14 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'lly' => 10,
 				'urx' => 110,
 				'ury' => 60,
-			], realpath(__DIR__ . '/../../../../../img/app-dark.png')),
+			], realpath(__DIR__ . '/../../../../../../img/app-dark.png')),
 			self::getElement([
 				'page' => 1,
 				'llx' => 120,
 				'lly' => 10,
 				'urx' => 220,
 				'ury' => 60,
-			], realpath(__DIR__ . '/../../../../../img/app-dark.png')),
+			], realpath(__DIR__ . '/../../../../../../img/app-dark.png')),
 		]);
 		$jSignPdfHandler->setJSignPdf($mock);
 		$jSignPdfHandler->setInputFile($inputFile);
@@ -710,7 +710,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->signatureBackgroundService->method('getSignatureBackgroundType')->willReturn('deleted');
 		$this->signatureBackgroundService->method('getImagePath')->willReturn(
-			realpath(__DIR__ . '/../../../../../img/LibreSign.png')
+			realpath(__DIR__ . '/../../../../../../img/LibreSign.png')
 		);
 
 		$this->persistSignatureStampPolicy('', SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY, 10, SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE, 100, 100);
@@ -741,7 +741,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'lly' => 10,
 				'urx' => 110,
 				'ury' => 60,
-			], realpath(__DIR__ . '/../../../../../img/app-dark.png')),
+			], realpath(__DIR__ . '/../../../../../../img/app-dark.png')),
 		]);
 		$jSignPdfHandler->setJSignPdf($mock);
 		$jSignPdfHandler->setInputFile($inputFile);
@@ -1190,7 +1190,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'lly' => 10,
 			'urx' => 110,
 			'ury' => 60,
-		], realpath(__DIR__ . '/../../../../../img/app-dark.png'));
+		], realpath(__DIR__ . '/../../../../../../img/app-dark.png'));
 		$tsa = ['url' => 'https://tsa.example.test/tsr'];
 		return [
 			'certification before the TSA options when the PDF has no signature' => [

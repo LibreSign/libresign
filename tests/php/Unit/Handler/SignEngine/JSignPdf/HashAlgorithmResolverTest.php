@@ -6,9 +6,9 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
+namespace OCA\Libresign\Tests\Unit\Handler\SignEngine\JSignPdf;
 
-use OCA\Libresign\Handler\SignEngine\HashAlgorithmResolver;
+use OCA\Libresign\Handler\SignEngine\JSignPdf\HashAlgorithmResolver;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
