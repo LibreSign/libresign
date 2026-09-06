@@ -12,6 +12,7 @@ use OCA\Libresign\Handler\SignEngine\JSignPdf\HashAlgorithmResolver;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -24,15 +25,20 @@ class HashAlgorithmResolverTest extends TestCase {
 		$this->policyService = $this->createMock(PolicyService::class);
 	}
 
-	private function getInstance(mixed $configuredAlgorithm): HashAlgorithmResolver {
+	private function getInstance(mixed $configuredAlgorithm, mixed $tsaSettings = null): HashAlgorithmResolver {
 		$this->policyService
 			->method('resolve')
-			->with(SignatureHashAlgorithmPolicy::KEY)
-			->willReturn(
-				(new ResolvedPolicy())
-					->setPolicyKey(SignatureHashAlgorithmPolicy::KEY)
-					->setEffectiveValue($configuredAlgorithm)
-			);
+			->willReturnCallback(function (string|\BackedEnum $policyKey) use ($configuredAlgorithm, $tsaSettings): ResolvedPolicy {
+				$key = $policyKey instanceof \BackedEnum ? (string)$policyKey->value : $policyKey;
+
+				return (new ResolvedPolicy())
+					->setPolicyKey($key)
+					->setEffectiveValue(match ($key) {
+						SignatureHashAlgorithmPolicy::KEY => $configuredAlgorithm,
+						TsaPolicy::KEY => $tsaSettings,
+						default => null,
+					});
+			});
 
 		return new HashAlgorithmResolver($this->policyService);
 	}
@@ -67,6 +73,35 @@ class HashAlgorithmResolverTest extends TestCase {
 			'PDF 2.0 falls back on an unsupported algorithm' => ['XYZ', 2.0, 'SHA256'],
 			'PDF 2.0 keeps the configured SHA512' => ['SHA512', 2.0, 'SHA512'],
 		];
+	}
+
+	#[DataProvider('providerTsaHashAlgorithm')]
+	public function testForTsa(mixed $tsaSettings, string $expected): void {
+		$resolver = $this->getInstance('SHA256', $tsaSettings);
+
+		$this->assertSame($expected, $resolver->forTsa());
+	}
+
+	public static function providerTsaHashAlgorithm(): array {
+		return [
+			// JSignPdf spells the TSA algorithm with a hyphen, unlike --hash-algorithm.
+			'SHA256 becomes SHA-256' => [['hash_algorithm' => 'SHA256'], 'SHA-256'],
+			'SHA384 becomes SHA-384' => [['hash_algorithm' => 'SHA384'], 'SHA-384'],
+			'SHA512 becomes SHA-512' => [['hash_algorithm' => 'SHA512'], 'SHA-512'],
+			'settings are read from json' => ['{"url":"https://tsa.example.test/tsr","hash_algorithm":"SHA512"}', 'SHA-512'],
+			'settings without the key use the default' => [['url' => 'https://tsa.example.test/tsr'], 'SHA-256'],
+			'an unset policy uses the default' => [null, 'SHA-256'],
+			'an algorithm the authorities reject is not used' => [['hash_algorithm' => 'SHA1'], 'SHA-256'],
+		];
+	}
+
+	public function testTheTsaAlgorithmIsNotDerivedFromTheSignatureOne(): void {
+		$resolver = $this->getInstance('SHA256', ['hash_algorithm' => 'SHA256']);
+
+		// JSignPdf signs a PDF older than 1.6 with SHA1; sending that same SHA1 to
+		// the timestamp authority is the failure reported in #8145.
+		$this->assertSame('SHA1', $resolver->forSignature(1.5));
+		$this->assertSame('SHA-256', $resolver->forTsa());
 	}
 
 	#[DataProvider('providerPdfVersionUpgrade')]

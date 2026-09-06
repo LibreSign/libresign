@@ -23,6 +23,11 @@
 				:placeholder="optionalPlaceholder"
 				@update:modelValue="onPolicyOidChange" />
 
+			<NcSelect v-model="selectedHashAlgorithm"
+				:options="hashAlgorithmOptions"
+				:input-label="tsaHashAlgorithmLabel"
+				:clearable="false" />
+
 			<NcSelect v-model="selectedAuthType"
 				:options="authOptions"
 				:input-label="tsaAuthenticationLabel"
@@ -47,8 +52,8 @@ import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import type { EffectivePolicyValue } from '../../../../../types/index'
-import { DEFAULT_TSA_SETTINGS, normalizeTsaSettings, serializeTsaSettings } from './model'
-import type { TsaSettingsConfig } from './model'
+import { DEFAULT_TSA_HASH_ALGORITHM, DEFAULT_TSA_SETTINGS, TSA_HASH_ALGORITHMS, normalizeTsaSettings, serializeTsaSettings } from './model'
+import type { TsaHashAlgorithm, TsaSettingsConfig } from './model'
 
 defineOptions({
 	name: 'TsaRuleEditor',
@@ -67,6 +72,11 @@ type AuthOption = {
 	label: string
 }
 
+type HashAlgorithmOption = {
+	id: TsaHashAlgorithm
+	label: string
+}
+
 const config = computed(() => normalizeTsaSettings(props.modelValue))
 const enabled = computed(() => config.value.url.length > 0)
 
@@ -80,6 +90,8 @@ const tsaPolicyOidLabel = t('libresign', 'TSA Policy OID')
 const optionalPlaceholder = t('libresign', 'Optional')
 // TRANSLATORS Select label for choosing authentication type when connecting to TSA (Time-Stamp Authority) service.
 const tsaAuthenticationLabel = t('libresign', 'TSA Authentication')
+// TRANSLATORS Select label for the hash algorithm sent in the request to the TSA (Time-Stamp Authority); the authority decides which ones it accepts.
+const tsaHashAlgorithmLabel = t('libresign', 'TSA hash algorithm')
 // TRANSLATORS Username field label for TSA (Time-Stamp Authority) basic authentication credentials.
 const usernameLabel = t('libresign', 'Username')
 // TRANSLATORS Helper text explaining that the TSA (Time-Stamp Authority) password is stored securely and is not edited in this form.
@@ -91,6 +103,20 @@ const authOptions: AuthOption[] = [
 	// TRANSLATORS Authentication option meaning TSA (Time-Stamp Authority) requests use HTTP Basic auth with username and password.
 	{ id: 'basic', label: t('libresign', 'Username / Password') },
 ]
+
+const hashAlgorithmOptions: HashAlgorithmOption[] = TSA_HASH_ALGORITHMS.map(algorithm => ({
+	id: algorithm,
+	label: algorithm.replace('SHA', 'SHA-'),
+}))
+
+const selectedHashAlgorithm = computed<HashAlgorithmOption>({
+	get() {
+		return hashAlgorithmOptions.find(option => option.id === config.value.hash_algorithm) ?? hashAlgorithmOptions[0]
+	},
+	set(value) {
+		emitConfig({ hash_algorithm: value?.id ?? DEFAULT_TSA_HASH_ALGORITHM })
+	},
+})
 
 const selectedAuthType = computed<AuthOption>({
 	get() {

@@ -10,6 +10,8 @@ namespace OCA\Libresign\Handler\SignEngine\JSignPdf;
 
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
 
 /**
  * Resolves which hash algorithm JSignPdf has to use.
@@ -46,6 +48,24 @@ class HashAlgorithmResolver {
 		}
 
 		return $this->forPdfVersion($pdfVersion, $configuredAlgorithm);
+	}
+
+	/**
+	 * Algorithm of the timestamp query, taken from the TSA policy.
+	 *
+	 * It is never derived from the signature: that one depends on the PDF
+	 * version and would ask the authority for SHA1 whenever the document is
+	 * older than PDF 1.6, which is the rejection reported in #8145.
+	 */
+	public function forTsa(): string {
+		$tsaSettings = TsaPolicyValue::decode($this->policyService->resolve(TsaPolicy::KEY)->getEffectiveValue());
+
+		// JSignPdf spells the TSA algorithm with a hyphen, unlike --hash-algorithm.
+		return match ($tsaSettings['hash_algorithm']) {
+			'SHA384' => 'SHA-384',
+			'SHA512' => 'SHA-512',
+			default => 'SHA-256',
+		};
 	}
 
 	/**

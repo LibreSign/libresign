@@ -596,7 +596,10 @@ class JSignPdfHandler extends Pkcs12Handler {
 			return [];
 		}
 
-		$params = ['--tsa-server-url' => $tsaSettings['url']];
+		$params = [
+			'--tsa-server-url' => $tsaSettings['url'],
+			'--tsa-hash-algorithm' => $this->hashAlgorithmResolver->forTsa(),
+		];
 		if ($tsaSettings['policy_oid']) {
 			$params['--tsa-policy-oid'] = $tsaSettings['policy_oid'];
 		}
@@ -621,7 +624,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 	}
 
 	/**
-	 * @return array{url: string, policy_oid: string, auth_type: string, username: string}
+	 * @return array{url: string, policy_oid: string, auth_type: string, username: string, hash_algorithm: string}
 	 */
 	private function getTsaSettings(): array {
 		$resolved = $this->policyService->resolve(TsaPolicy::KEY)->getEffectiveValue();

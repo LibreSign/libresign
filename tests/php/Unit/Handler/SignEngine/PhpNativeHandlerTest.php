@@ -27,6 +27,7 @@ use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use SignerPHP\Application\DTO\CertificationLevel;
+use SignerPHP\Application\DTO\HashAlgorithm;
 use SignerPHP\Application\DTO\SignatureAppearanceDto;
 use SignerPHP\Application\DTO\TimestampOptionsDto;
 
@@ -240,6 +241,32 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'http://tsa.example.com', 'basic', '', '',
 				false, 'http://tsa.example.com', null, null,
 			],
+		];
+	}
+
+	#[DataProvider('providerTimestampHashAlgorithm')]
+	public function testBuildTimestampOptionsUsesTheConfiguredHashAlgorithm(string $configured, HashAlgorithm $expected): void {
+		$this->appConfig->setValueString(
+			Application::APP_ID,
+			TsaPolicy::SYSTEM_APP_CONFIG_KEY,
+			TsaPolicyValue::encode([
+				'url' => 'http://tsa.example.com',
+				'hash_algorithm' => $configured,
+			]),
+		);
+
+		$result = $this->callPrivateMethod($this->getHandler(), 'buildTimestampOptions');
+
+		$this->assertInstanceOf(TimestampOptionsDto::class, $result);
+		$this->assertSame($expected, $result->hashAlgorithm);
+	}
+
+	public static function providerTimestampHashAlgorithm(): array {
+		return [
+			'SHA256 is the default' => ['SHA256', HashAlgorithm::Sha256],
+			'SHA384 is used when configured' => ['SHA384', HashAlgorithm::Sha384],
+			'SHA512 is used when configured' => ['SHA512', HashAlgorithm::Sha512],
+			'an algorithm the policy does not offer falls back' => ['SHA1', HashAlgorithm::Sha256],
 		];
 	}
 
