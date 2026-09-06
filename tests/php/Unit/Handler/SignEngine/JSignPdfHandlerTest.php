@@ -986,6 +986,51 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	#[DataProvider('providerTsaErrors')]
+	public function testCheckTsaError(string $errorMessage, string $expectedMessage): void {
+		$jSignPdfHandler = $this->getInstance();
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage($expectedMessage);
+
+		self::invokePrivate($jSignPdfHandler, 'checkTsaError', [$errorMessage]);
+	}
+
+	public static function providerTsaErrors(): array {
+		$rejected = 'The server was reached, so this is not a DNS/network/firewall problem.' . "\n"
+			. 'Check what the authority expects: hash algorithm, policy OID and authentication.';
+
+		return [
+			'invalid TSA blames DNS, network and firewall' => [
+				"Invalid TSA 'https://invalid-tsa.example.com/tsr'",
+				'Timestamp Authority (TSA) service is unavailable. Check DNS/network/firewall connectivity from this server: https://invalid-tsa.example.com/tsr',
+			],
+			'unknown host blames DNS, network and firewall' => [
+				'TSAClientBouncyCastle: java.net.UnknownHostException: invalid-tsa.example.com',
+				"Timestamp Authority (TSA) service error.\nCheck TSA endpoint and DNS/network/firewall connectivity from this server.",
+			],
+			'HTTP status reports a rejection and the endpoint that answered' => [
+				'ExceptionConverter: java.io.IOException: Server returned HTTP response code: 400 for URL: http://time.certum.pl' . "\n"
+					. "\tat com.lowagie.text.pdf.TSAClientBouncyCastle.getTSAResponse(TSAClientBouncyCastle.java:288)",
+				'Timestamp Authority (TSA) rejected the request with HTTP status 400: http://time.certum.pl' . "\n" . $rejected,
+			],
+			'HTTP status without an URL still reports a rejection' => [
+				'TSAClientBouncyCastle: java.io.IOException: Server returned HTTP response code: 503',
+				'Timestamp Authority (TSA) rejected the request with HTTP status 503.' . "\n" . $rejected,
+			],
+		];
+	}
+
+	public function testCheckTsaErrorIgnoresErrorsFromOtherSources(): void {
+		$jSignPdfHandler = $this->getInstance();
+
+		$this->expectNotToPerformAssertions();
+
+		self::invokePrivate($jSignPdfHandler, 'checkTsaError', [
+			'java.io.IOException: Server returned HTTP response code: 400 for URL: https://example.test/crl',
+		]);
+	}
+
 	#[DataProvider('providerErrorsLoggedBeforeBeingTranslated')]
 	public function testSignWrapperLogsTheOriginalErrorBeforeThrowing(string $errorMessage): void {
 		$jSignPdfHandler = $this->getInstance();
@@ -1013,28 +1058,6 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'INFO The chosen hash algorithm (SHA-256) requires a newer PDF version.',
 			],
 		];
-	}
-
-	public function testCheckTsaErrorInvalidTsaMentionsDnsNetworkFirewall(): void {
-		$jSignPdfHandler = $this->getInstance();
-
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Timestamp Authority (TSA) service is unavailable. Check DNS/network/firewall connectivity from this server: https://invalid-tsa.example.com/tsr');
-
-		self::invokePrivate($jSignPdfHandler, 'checkTsaError', [
-			"Invalid TSA 'https://invalid-tsa.example.com/tsr'",
-		]);
-	}
-
-	public function testCheckTsaErrorUnknownHostMentionsDnsNetworkFirewall(): void {
-		$jSignPdfHandler = $this->getInstance();
-
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage("Timestamp Authority (TSA) service error.\nCheck TSA endpoint and DNS/network/firewall connectivity from this server.");
-
-		self::invokePrivate($jSignPdfHandler, 'checkTsaError', [
-			'TSAClientBouncyCastle: java.net.UnknownHostException: invalid-tsa.example.com',
-		]);
 	}
 
 	#[DataProvider('providerTsaParameters')]
