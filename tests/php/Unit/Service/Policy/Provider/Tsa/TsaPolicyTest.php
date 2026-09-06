@@ -128,7 +128,7 @@ final class TsaPolicyTest extends TestCase {
 					'auth_type' => 'none',
 					'username' => ' admin ',
 				],
-				'{"url":"https://freetsa.org/tsr","policy_oid":"1.2.3.4","auth_type":"none","username":""}',
+				'{"url":"https://freetsa.org/tsr","policy_oid":"1.2.3.4","auth_type":"none","username":"","hash_algorithm":"SHA256"}',
 			],
 		];
 	}
@@ -144,7 +144,7 @@ final class TsaPolicyTest extends TestCase {
 					'username' => ' tsa-user ',
 					'password' => ' topsecret ',
 				],
-				'{"url":"https://tsa.example.test/tsr","policy_oid":"1.2.3.4.1","auth_type":"basic","username":"tsa-user"}',
+				'{"url":"https://tsa.example.test/tsr","policy_oid":"1.2.3.4.1","auth_type":"basic","username":"tsa-user","hash_algorithm":"SHA256"}',
 				'topsecret',
 			],
 		];
@@ -160,7 +160,7 @@ final class TsaPolicyTest extends TestCase {
 					'username' => 'tsa-user',
 					'password' => Admin::PASSWORD_PLACEHOLDER,
 				],
-				'{"url":"https://tsa.example.test/tsr","policy_oid":"","auth_type":"basic","username":"tsa-user"}',
+				'{"url":"https://tsa.example.test/tsr","policy_oid":"","auth_type":"basic","username":"tsa-user","hash_algorithm":"SHA256"}',
 				'already-stored-secret',
 			],
 		];
