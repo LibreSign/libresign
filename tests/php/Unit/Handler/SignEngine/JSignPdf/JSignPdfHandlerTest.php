@@ -132,7 +132,6 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$reflection->setValue($handler, $docMdpConfigService);
 	}
 
-
 	#[DataProvider('providerExtractPdfVersion')]
 	public function testExtractPdfVersion(string $content, ?float $expected): void {
 		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
