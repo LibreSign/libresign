@@ -154,6 +154,78 @@ final class CertificateSignersMergeServiceTest extends TestCase {
 		];
 	}
 
+	public function testMergePrefersCertificateNameOverSubjectCommonName(): void {
+		$fileData = new \stdClass();
+		$fileData->signers = [];
+
+		$certData = [[
+			'uid' => 'email:signer@example.com',
+			'chain' => [[
+				'name' => 'Certificate Name',
+				'subject' => [
+					'CN' => 'Subject Common Name',
+				],
+			]],
+		]];
+
+		$this->getService()->merge(
+			$fileData,
+			$certData,
+			'example.com',
+			'Signed',
+			fn (array $cert, string $host): ?string => null,
+			fn (string $method, string $value): string => $method . ':' . $value,
+			fn (string $accountId): ?string => null,
+		);
+
+		$this->assertSame(
+			'Certificate Name',
+			$fileData->signers[0]->chain[0]['displayName'],
+		);
+	}
+
+	public function testSingleContractSignerRequiresNumericSignRequestId(): void {
+		$service = $this->getService();
+		$method = new \ReflectionMethod(
+			CertificateSignersMergeService::class,
+			'getSingleContractSignerIndex',
+		);
+
+		$signers = [
+			(object)[
+				'signRequestId' => 42,
+			],
+			(object)[
+				'signRequestId' => 'not-numeric',
+			],
+		];
+
+		$this->assertSame(
+			0,
+			$method->invoke($service, $signers),
+		);
+	}
+
+	public function testCertificateRootCaFlagIsPromotedToSigner(): void {
+		$service = $this->getService();
+		$method = new \ReflectionMethod(
+			CertificateSignersMergeService::class,
+			'enrichSignerWithCertificateValidation',
+		);
+
+		$signer = new \stdClass();
+
+		$method->invoke(
+			$service,
+			$signer,
+			[
+				'isLibreSignRootCA' => true,
+			],
+		);
+
+		$this->assertTrue($signer->isLibreSignRootCA);
+	}
+
 	public function testMergePromotesLeafCertValidityDatesToSignerRoot(): void {
 		$fileData = new \stdClass();
 		$fileData->signers = [];
@@ -163,6 +235,7 @@ final class CertificateSignersMergeServiceTest extends TestCase {
 			'chain' => [[
 				'subject' => ['CN' => 'Signer User'],
 				'covers_entire_document' => false,
+				'document_modification_state' => 'unsigned_content',
 				'validFrom_time_t' => 1769644731,
 				'validTo_time_t' => 1769731131,
 			]],
@@ -185,6 +258,10 @@ final class CertificateSignersMergeServiceTest extends TestCase {
 		$this->assertSame('2026-01-28T23:58:51+00:00', $signer->chain[0]['valid_from']);
 		$this->assertSame('2026-01-29T23:58:51+00:00', $signer->chain[0]['valid_to']);
 		$this->assertFalse($signer->covers_entire_document);
+		$this->assertSame(
+			'unsigned_content',
+			$signer->document_modification_state,
+		);
 	}
 
 	public function testMergeDoesNotExportTopLevelTsaWithTimestampData(): void {
