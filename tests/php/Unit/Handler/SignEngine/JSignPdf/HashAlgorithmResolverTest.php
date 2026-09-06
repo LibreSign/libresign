@@ -8,37 +8,32 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Handler\SignEngine\JSignPdf;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\SignEngine\JSignPdf\HashAlgorithmResolver;
-use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
-use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
+use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class HashAlgorithmResolverTest extends TestCase {
-	private PolicyService&MockObject $policyService;
+	private IAppConfig&MockObject $appConfig;
 
 	#[\Override]
 	protected function setUp(): void {
-		$this->policyService = $this->createMock(PolicyService::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
 	}
 
-	private function getInstance(mixed $configuredAlgorithm): HashAlgorithmResolver {
-		$this->policyService
-			->method('resolve')
-			->with(SignatureHashAlgorithmPolicy::KEY)
-			->willReturn(
-				(new ResolvedPolicy())
-					->setPolicyKey(SignatureHashAlgorithmPolicy::KEY)
-					->setEffectiveValue($configuredAlgorithm)
-			);
+	private function getInstance(string $configuredAlgorithm): HashAlgorithmResolver {
+		$this->appConfig
+			->method('getValueString')
+			->with(Application::APP_ID, 'signature_hash_algorithm', 'SHA256')
+			->willReturn($configuredAlgorithm);
 
-		return new HashAlgorithmResolver($this->policyService);
+		return new HashAlgorithmResolver($this->appConfig);
 	}
 
 	#[DataProvider('providerSignatureHashAlgorithm')]
-	public function testForSignature(mixed $configuredAlgorithm, ?float $pdfVersion, string $expected): void {
+	public function testForSignature(string $configuredAlgorithm, ?float $pdfVersion, string $expected): void {
 		$resolver = $this->getInstance($configuredAlgorithm);
 
 		$this->assertSame($expected, $resolver->forSignature($pdfVersion));
@@ -51,7 +46,6 @@ class HashAlgorithmResolverTest extends TestCase {
 			'unknown version keeps RIPEMD160' => ['RIPEMD160', null, 'RIPEMD160'],
 			'unknown version falls back on an empty algorithm' => ['', null, 'SHA256'],
 			'unknown version falls back on an unsupported algorithm' => ['XYZ', null, 'SHA256'],
-			'unknown version falls back on an unset policy' => [null, null, 'SHA256'],
 			// JSignPdf only accepts SHA1 in PDFs older than 1.6.
 			'PDF 1.0 is signed with SHA1' => ['SHA256', 1.0, 'SHA1'],
 			'PDF 1.5 is signed with SHA1' => ['SHA512', 1.5, 'SHA1'],
@@ -70,7 +64,7 @@ class HashAlgorithmResolverTest extends TestCase {
 	}
 
 	#[DataProvider('providerPdfVersionUpgrade')]
-	public function testRequiresPdfVersionUpgradeForSha256(mixed $configuredAlgorithm, float $pdfVersion, bool $expected): void {
+	public function testRequiresPdfVersionUpgradeForSha256(string $configuredAlgorithm, float $pdfVersion, bool $expected): void {
 		$resolver = $this->getInstance($configuredAlgorithm);
 
 		$this->assertSame($expected, $resolver->requiresPdfVersionUpgradeForSha256($pdfVersion));
@@ -84,7 +78,6 @@ class HashAlgorithmResolverTest extends TestCase {
 			'SHA256 in a PDF 1.7 does not need the upgrade' => ['SHA256', 1.7, false],
 			'SHA1 in a PDF 1.5 does not need the upgrade' => ['SHA1', 1.5, false],
 			'SHA512 in a PDF 1.5 does not need the upgrade' => ['SHA512', 1.5, false],
-			'an unset policy in a PDF 1.5 does not need the upgrade' => [null, 1.5, false],
 		];
 	}
 }
