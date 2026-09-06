@@ -14,6 +14,7 @@ use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\SignEngine\HashAlgorithmResolver;
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\CaIdentifierService;
@@ -132,6 +133,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		// Create mock factory if initialization failed in setUpBeforeClass
 		$certificateEngineFactory = self::$certificateEngineFactory ?? $this->createMock(CertificateEngineFactory::class);
+		$hashAlgorithmResolver = new HashAlgorithmResolver($policyService);
 
 		if (empty($methods)) {
 			return new JSignPdfHandler(
@@ -144,6 +146,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$certificateEngineFactory,
 				$this->javaHelper,
 				$this->createMock(DocMdpConfigService::class),
+				$hashAlgorithmResolver,
 			);
 		}
 		return $this->getMockBuilder(JSignPdfHandler::class)
@@ -157,6 +160,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$certificateEngineFactory,
 				$this->javaHelper,
 				$this->createMock(DocMdpConfigService::class),
+				$hashAlgorithmResolver,
 			])
 			->onlyMethods($methods)
 			->getMock();
@@ -196,40 +200,6 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private function setDocMdpConfigService(JSignPdfHandler $handler, DocMdpConfigService $docMdpConfigService): void {
 		$reflection = new \ReflectionProperty(JSignPdfHandler::class, 'docMdpConfigService');
 		$reflection->setValue($handler, $docMdpConfigService);
-	}
-
-	#[DataProvider('providerGetHashAlgorithm')]
-	public function testGetHashAlgorithm(string $setting, string $content, string $expected): void {
-		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
-			$this->markTestSkipped('Certificate initialization failed');
-		}
-
-		$this->persistHashAlgorithmPolicy($setting);
-		$instance = $this->getInstance(['getInputFile']);
-		$file = $this->createMock(\OCP\Files\File::class);
-		$file->method('getContent')->willReturn($content);
-		$instance->method('getInputFile')->willReturn($file);
-		$actual = self::invokePrivate($instance, 'getHashAlgorithm', [$content]);
-		$this->assertEquals($expected, $actual);
-	}
-
-	public static function providerGetHashAlgorithm(): array {
-		return [
-			'empty setting, PDF 1.6' => ['', '%PDF-1.6', 'SHA256'],
-			'invalid PDF header' => ['', 'random data', 'SHA256'],
-			'invalid setting, fallback to SHA256 on PDF 1.7' => ['XYZ', '%PDF-1.7', 'SHA256'],
-			'null-like setting, PDF 1.5' => ['0', '%PDF-1.5', 'SHA1'],
-			'default with PDF 1.0' => ['', '%PDF-1', 'SHA1'],
-			'SHA1 with PDF 1.5' => ['', '%PDF-1.5', 'SHA1'],
-			'SHA1 with PDF 1.6' => ['', '%PDF-1.6', 'SHA256'],
-			'SHA1 with PDF 1.7' => ['', '%PDF-1.7', 'SHA256'],
-			'SHA1 with PDF 2.0' => ['', '%PDF-2.0', 'SHA256'],
-			'SHA384, PDF 1.6 (fallback)' => ['SHA384', '%PDF-1.6', 'SHA256'],
-			'SHA384, PDF 1.7' => ['SHA384', '%PDF-1.7', 'SHA384'],
-			'SHA512, PDF 1.6' => ['SHA512', '%PDF-1.6', 'SHA256'],
-			'RIPEMD160, PDF 1.6 (unsupported)' => ['RIPEMD160', '%PDF-1.6', 'SHA256'],
-			'RIPEMD160, PDF 1.7 (supported)' => ['RIPEMD160', '%PDF-1.7', 'RIPEMD160'],
-		];
 	}
 
 	#[DataProvider('providerExtractPdfVersion')]
