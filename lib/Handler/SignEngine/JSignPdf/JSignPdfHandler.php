@@ -146,15 +146,12 @@ class JSignPdfHandler extends Pkcs12Handler {
 		fclose($file);
 	}
 
-
 	private function extractPdfVersion(string $content): ?float {
 		if (!preg_match('/^%PDF-(?<version>\d+(\.\d+)?)/', $content, $match)) {
 			return null;
 		}
 		return (float)$match['version'];
 	}
-
-
 
 	/**
 	 * Normalizes very old PDFs (1.0/1.1) to 1.3.
@@ -185,7 +182,6 @@ class JSignPdfHandler extends Pkcs12Handler {
 	private function isVeryOldPdfVersion(float $version): bool {
 		return $version > 0 && $version < self::MIN_PDF_VERSION;
 	}
-
 
 	private function replacePdfVersion(string $content, string $newVersion): string {
 		return (string)preg_replace('/^%PDF-\d+(\.\d+)?/', '%PDF-' . $newVersion, $content, 1);
