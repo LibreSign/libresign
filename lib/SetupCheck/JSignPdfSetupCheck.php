@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\SetupCheck;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
+use OCA\Libresign\Handler\SignEngine\JSignPdf\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\SignSetupService;
