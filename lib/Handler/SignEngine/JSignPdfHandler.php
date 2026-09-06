@@ -680,10 +680,13 @@ class JSignPdfHandler extends Pkcs12Handler {
 		} catch (\Throwable $th) {
 			$errorMessage = $th->getMessage();
 
+			// Log before the checks below: they throw, and the original message
+			// from JSignPdf is the only place where the real cause is described.
+			$this->logger->error('Error at JSignPdf side. LibreSign can not do nothing. Follow the error message: ' . $errorMessage);
+
 			$this->checkTsaError($errorMessage);
 			$this->checkHashAlgorithmError($errorMessage);
 
-			$this->logger->error('Error at JSignPdf side. LibreSign can not do nothing. Follow the error message: ' . $errorMessage);
 			throw new \Exception($errorMessage);
 		}
 	}

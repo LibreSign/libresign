@@ -986,6 +986,35 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	#[DataProvider('providerErrorsLoggedBeforeBeingTranslated')]
+	public function testSignWrapperLogsTheOriginalErrorBeforeThrowing(string $errorMessage): void {
+		$jSignPdfHandler = $this->getInstance();
+
+		$jSignPdf = $this->createMock(JSignPDF::class);
+		$jSignPdf->method('sign')
+			->willThrowException(new \Exception($errorMessage));
+
+		$this->loggerInterface->expects($this->once())
+			->method('error')
+			->with($this->stringContains($errorMessage));
+
+		$this->expectException(LibresignException::class);
+
+		self::invokePrivate($jSignPdfHandler, 'signWrapper', [$jSignPdf]);
+	}
+
+	public static function providerErrorsLoggedBeforeBeingTranslated(): array {
+		return [
+			'TSA error' => [
+				'ExceptionConverter: java.io.IOException: Server returned HTTP response code: 400 for URL: http://time.certum.pl' . "\n"
+					. "\tat com.lowagie.text.pdf.TSAClientBouncyCastle.getTSAResponse(TSAClientBouncyCastle.java:288)",
+			],
+			'hash algorithm error' => [
+				'INFO The chosen hash algorithm (SHA-256) requires a newer PDF version.',
+			],
+		];
+	}
+
 	public function testCheckTsaErrorInvalidTsaMentionsDnsNetworkFirewall(): void {
 		$jSignPdfHandler = $this->getInstance();
 
