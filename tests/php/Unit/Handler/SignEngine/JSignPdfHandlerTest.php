@@ -986,26 +986,78 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	public function testCheckTsaErrorInvalidTsaMentionsDnsNetworkFirewall(): void {
+	#[DataProvider('providerTsaErrors')]
+	public function testCheckTsaError(string $errorMessage, string $expectedMessage): void {
 		$jSignPdfHandler = $this->getInstance();
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Timestamp Authority (TSA) service is unavailable. Check DNS/network/firewall connectivity from this server: https://invalid-tsa.example.com/tsr');
+		$this->expectExceptionMessage($expectedMessage);
+
+		self::invokePrivate($jSignPdfHandler, 'checkTsaError', [$errorMessage]);
+	}
+
+	public static function providerTsaErrors(): array {
+		$rejected = 'The server was reached, so this is not a DNS/network/firewall problem.' . "\n"
+			. 'Check what the authority expects: hash algorithm, policy OID and authentication.';
+
+		return [
+			'invalid TSA blames DNS, network and firewall' => [
+				"Invalid TSA 'https://invalid-tsa.example.com/tsr'",
+				'Timestamp Authority (TSA) service is unavailable. Check DNS/network/firewall connectivity from this server: https://invalid-tsa.example.com/tsr',
+			],
+			'unknown host blames DNS, network and firewall' => [
+				'TSAClientBouncyCastle: java.net.UnknownHostException: invalid-tsa.example.com',
+				"Timestamp Authority (TSA) service error.\nCheck TSA endpoint and DNS/network/firewall connectivity from this server.",
+			],
+			'HTTP status reports a rejection and the endpoint that answered' => [
+				'ExceptionConverter: java.io.IOException: Server returned HTTP response code: 400 for URL: http://time.certum.pl' . "\n"
+					. "\tat com.lowagie.text.pdf.TSAClientBouncyCastle.getTSAResponse(TSAClientBouncyCastle.java:288)",
+				'Timestamp Authority (TSA) rejected the request with HTTP status 400: http://time.certum.pl' . "\n" . $rejected,
+			],
+			'HTTP status without an URL still reports a rejection' => [
+				'TSAClientBouncyCastle: java.io.IOException: Server returned HTTP response code: 503',
+				'Timestamp Authority (TSA) rejected the request with HTTP status 503.' . "\n" . $rejected,
+			],
+		];
+	}
+
+	public function testCheckTsaErrorIgnoresErrorsFromOtherSources(): void {
+		$jSignPdfHandler = $this->getInstance();
+
+		$this->expectNotToPerformAssertions();
 
 		self::invokePrivate($jSignPdfHandler, 'checkTsaError', [
-			"Invalid TSA 'https://invalid-tsa.example.com/tsr'",
+			'java.io.IOException: Server returned HTTP response code: 400 for URL: https://example.test/crl',
 		]);
 	}
 
-	public function testCheckTsaErrorUnknownHostMentionsDnsNetworkFirewall(): void {
+	#[DataProvider('providerErrorsLoggedBeforeBeingTranslated')]
+	public function testSignWrapperLogsTheOriginalErrorBeforeThrowing(string $errorMessage): void {
 		$jSignPdfHandler = $this->getInstance();
 
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage("Timestamp Authority (TSA) service error.\nCheck TSA endpoint and DNS/network/firewall connectivity from this server.");
+		$jSignPdf = $this->createMock(JSignPDF::class);
+		$jSignPdf->method('sign')
+			->willThrowException(new \Exception($errorMessage));
 
-		self::invokePrivate($jSignPdfHandler, 'checkTsaError', [
-			'TSAClientBouncyCastle: java.net.UnknownHostException: invalid-tsa.example.com',
-		]);
+		$this->loggerInterface->expects($this->once())
+			->method('error')
+			->with($this->stringContains($errorMessage));
+
+		$this->expectException(LibresignException::class);
+
+		self::invokePrivate($jSignPdfHandler, 'signWrapper', [$jSignPdf]);
+	}
+
+	public static function providerErrorsLoggedBeforeBeingTranslated(): array {
+		return [
+			'TSA error' => [
+				'ExceptionConverter: java.io.IOException: Server returned HTTP response code: 400 for URL: http://time.certum.pl' . "\n"
+					. "\tat com.lowagie.text.pdf.TSAClientBouncyCastle.getTSAResponse(TSAClientBouncyCastle.java:288)",
+			],
+			'hash algorithm error' => [
+				'INFO The chosen hash algorithm (SHA-256) requires a newer PDF version.',
+			],
+		];
 	}
 
 	#[DataProvider('providerTsaParameters')]

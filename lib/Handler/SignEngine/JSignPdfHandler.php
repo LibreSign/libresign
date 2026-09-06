@@ -680,10 +680,13 @@ class JSignPdfHandler extends Pkcs12Handler {
 		} catch (\Throwable $th) {
 			$errorMessage = $th->getMessage();
 
+			// Log before the checks below: they throw, and the original message
+			// from JSignPdf is the only place where the real cause is described.
+			$this->logger->error('Error at JSignPdf side. LibreSign can not do nothing. Follow the error message: ' . $errorMessage);
+
 			$this->checkTsaError($errorMessage);
 			$this->checkHashAlgorithmError($errorMessage);
 
-			$this->logger->error('Error at JSignPdf side. LibreSign can not do nothing. Follow the error message: ' . $errorMessage);
 			throw new \Exception($errorMessage);
 		}
 	}
@@ -699,6 +702,11 @@ class JSignPdfHandler extends Pkcs12Handler {
 		}
 
 		if ($isTsaError) {
+			$rejectionMessage = $this->getTsaRejectionMessage($errorMessage);
+			if ($rejectionMessage !== null) {
+				throw new LibresignException($rejectionMessage);
+			}
+
 			if (str_contains($errorMessage, 'Invalid TSA') && preg_match("/Invalid TSA '([^']+)'/", $errorMessage, $matches)) {
 				$friendlyMessage = 'Timestamp Authority (TSA) service is unavailable. Check DNS/network/firewall connectivity from this server: ' . $matches[1];
 			} else {
@@ -707,6 +715,22 @@ class JSignPdfHandler extends Pkcs12Handler {
 			}
 			throw new LibresignException($friendlyMessage);
 		}
+	}
+
+	/**
+	 * An HTTP status in the JSignPdf output means that the TSA was reached and
+	 * answered: the request was rejected. Reporting DNS/network/firewall in this
+	 * case sends whoever is debugging to the wrong place.
+	 */
+	private function getTsaRejectionMessage(string $errorMessage): ?string {
+		if (!preg_match('/HTTP response code: (?<status>\d{3})(?: for URL: (?<url>[^\s"\',]+))?/', $errorMessage, $matches)) {
+			return null;
+		}
+
+		$endpoint = isset($matches['url']) && $matches['url'] !== '' ? ': ' . $matches['url'] : '.';
+		return 'Timestamp Authority (TSA) rejected the request with HTTP status ' . $matches['status'] . $endpoint . "\n"
+			. 'The server was reached, so this is not a DNS/network/firewall problem.' . "\n"
+			. 'Check what the authority expects: hash algorithm, policy OID and authentication.';
 	}
 
 	private function checkHashAlgorithmError(string $errorMessage): void {
