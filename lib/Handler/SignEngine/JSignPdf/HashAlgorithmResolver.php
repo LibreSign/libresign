@@ -19,11 +19,11 @@ use OCP\IAppConfig;
  * own method here.
  */
 class HashAlgorithmResolver {
-	private const float MIN_PDF_VERSION_SHA256 = 1.6;
-	private const float MIN_PDF_VERSION_SHA1_REJECT = 1.7;
-	private const string DEFAULT_ALGORITHM = 'SHA256';
+	private const MIN_PDF_VERSION_SHA256 = 1.6;
+	private const MIN_PDF_VERSION_SHA1_REJECT = 1.7;
+	private const DEFAULT_ALGORITHM = 'SHA256';
 	/** @var string[] */
-	private const array SUPPORTED_ALGORITHMS = ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'];
+	private const SUPPORTED_ALGORITHMS = ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'];
 
 	public function __construct(
 		private IAppConfig $appConfig,
