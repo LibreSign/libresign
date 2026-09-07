@@ -37,20 +37,18 @@ class SignerPlugin implements ISearchPlugin {
 		$user = $this->userSession->getUser()->getUID();
 		$method = $this->getMethod();
 
-		$limit++;
 		$identifiers = $this->identifyMethodMapper->searchByIdentifierValue(
 			$search,
 			$user,
 			$method,
-			$limit,
+			$limit + 1,
 			$offset,
 		);
 
 		$result = ['wide' => [], 'exact' => []];
 
-		$hasMore = false;
-		if (count($identifiers) > $limit) {
-			$hasMore = true;
+		$hasMore = count($identifiers) > $limit;
+		if ($hasMore) {
 			array_pop($identifiers);
 		}
 
@@ -69,10 +67,6 @@ class SignerPlugin implements ISearchPlugin {
 		$searchResult->addResultSet($type, $result['wide'], $result['exact']);
 
 		return $hasMore;
-	}
-
-	private function canValidateMethod(string $method): bool {
-		return in_array($method, ['email', 'account'], true);
 	}
 
 	private function rowToSearchResultItem(array $row): array {
