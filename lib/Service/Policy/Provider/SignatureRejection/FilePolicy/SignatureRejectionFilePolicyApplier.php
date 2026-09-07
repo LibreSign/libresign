@@ -15,6 +15,7 @@ use OCA\Libresign\Service\Policy\AbstractFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValue;
+use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
 use OCP\AppFramework\Http;
 use OCP\IUser;
 
@@ -28,8 +29,9 @@ use OCP\IUser;
  * The choice is stored with the request and is the effective value for the whole
  * signing flow. While the request is still a draft the requester may change it,
  * but only by sending a new value: an unrelated update never re-evaluates it.
- * Once the flow starts the stored value is frozen, so neither a later policy
- * change nor a later request can alter the rules the signers were shown.
+ * Once the flow starts the stored value is frozen: it can no longer change, but
+ * a client resending the value the request already has stays an idempotent
+ * update rather than an error.
  */
 class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 
@@ -47,16 +49,19 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 		$requestedChoice = $this->readRequestedChoice($data);
 
 		if ($this->hasSigningFlowStarted($file)) {
-			$this->assertValueIsNotChangedAfterTheFlowStarted($requestedChoice);
-		}
+			$this->assertFrozenValueIsKept($file, $requestedChoice);
 
-		if ($file->isEnvelope()) {
+			// The value is frozen: an identical resend or a value-less update
+			// changes nothing, and only a request that never recorded a value
+			// still gets the disabled default written for it.
+			if ($file->isEnvelope() || $this->readStoredValue($file) !== null) {
+				return;
+			}
+		} elseif ($file->isEnvelope()) {
 			$this->syncEnvelope($file, $requestedChoice, $data);
 			return;
-		}
-
-		// The update says nothing about rejection: keep what the request stores.
-		if ($requestedChoice === null && $this->readStoredValue($file) !== null) {
+		} elseif ($requestedChoice === null && $this->readStoredValue($file) !== null) {
+			// The update says nothing about rejection: keep what the request stores.
 			return;
 		}
 
@@ -176,14 +181,13 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 	}
 
 	/**
-	 * Once the flow starts the stored value is frozen, so the setting may no longer
-	 * be sent at all. Refusing it outright, instead of only refusing a different
-	 * value, keeps a single document and an envelope behaving the same way: the
-	 * value of an envelope lives on the documents it contains and is not reachable
-	 * from here, so a "same value" comparison is not possible for one of them.
+	 * Once the flow starts the stored value is frozen: it cannot change, but a
+	 * client resending the complete form state with the value the request already
+	 * has stays an idempotent update. The comparison uses the effective stored
+	 * value, which for an envelope lives on the documents it contains.
 	 */
-	private function assertValueIsNotChangedAfterTheFlowStarted(?bool $requestedChoice): void {
-		if ($requestedChoice === null) {
+	private function assertFrozenValueIsKept(FileEntity $file, ?bool $requestedChoice): void {
+		if ($requestedChoice === null || $requestedChoice === $this->frozenChoice($file)) {
 			return;
 		}
 
@@ -192,6 +196,19 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 			$this->translate('The signature rejection setting cannot be changed after the signing flow has started.'),
 			Http::STATUS_UNPROCESSABLE_ENTITY,
 		);
+	}
+
+	/**
+	 * The effective stored value of the request, read the same way the signing
+	 * flow reads it, so an envelope answers with the value stored on the
+	 * documents it contains.
+	 */
+	private function frozenChoice(FileEntity $file): bool {
+		if ($this->fileMapper !== null) {
+			return (new SignatureRejectionPolicyService($this->fileMapper))->isEnabled($file);
+		}
+
+		return ($this->readStoredValue($file) ?? [])['enabled'] ?? false;
 	}
 
 	private function translate(string $message): string {

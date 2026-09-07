@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy;
 
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\Policy\Contract\IFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Provider\PolicyProviders;
@@ -22,6 +23,7 @@ class FilePolicyApplier {
 		private readonly PolicyService $policyService,
 		private readonly FileService $fileService,
 		private readonly IL10N $l10n,
+		private readonly FileMapper $fileMapper,
 	) {
 		$this->appliers = $this->discoverAppliers();
 	}
@@ -67,7 +69,7 @@ class FilePolicyApplier {
 				continue;
 			}
 
-			$instance = new $applierClass($this->policyService, $this->fileService, $this->l10n);
+			$instance = new $applierClass($this->policyService, $this->fileService, $this->l10n, $this->fileMapper);
 			if (!$instance instanceof IFilePolicyApplier) {
 				continue;
 			}

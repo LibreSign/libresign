@@ -284,6 +284,10 @@ Feature: sign-signature-rejection
     And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
     When sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
+      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+    Then the response should have a status code 200
+    When sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
+      | uuid | <FILE_UUID> |
       | policy | {"overrides":{"signature_rejection":{"enabled":false}}} |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -451,6 +455,10 @@ Feature: sign-signature-rejection
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | status | 1 |
     And the response should have a status code 200
+    When sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
+      | uuid | <FILE_UUID> |
+      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+    Then the response should have a status code 200
     When sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
       | policy | {"overrides":{"signature_rejection":{"enabled":false}}} |

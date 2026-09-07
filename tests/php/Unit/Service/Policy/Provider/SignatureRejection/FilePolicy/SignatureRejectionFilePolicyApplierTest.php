@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\SignatureRejection\FilePolicy;
 
 use OCA\Libresign\Db\File;
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
@@ -26,6 +27,7 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 	private PolicyService&MockObject $policyService;
 	private FileService&MockObject $fileService;
 	private IL10N&MockObject $l10n;
+	private FileMapper&MockObject $fileMapper;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -33,6 +35,8 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		$this->fileService = $this->createMock(FileService::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n->method('t')->willReturnArgument(0);
+		$this->fileMapper = $this->createMock(FileMapper::class);
+		$this->fileMapper->method('getChildrenFiles')->willReturn([]);
 	}
 
 	private function getApplier(): SignatureRejectionFilePolicyApplier {
@@ -40,6 +44,7 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 			$this->policyService,
 			$this->fileService,
 			$this->l10n,
+			$this->fileMapper,
 		);
 	}
 
@@ -280,7 +285,7 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 	}
 
 	#[DataProvider('provideFrozenChangeAttempts')]
-	public function testSendingTheValueAfterTheFlowStartedIsRefused(?array $storedValue, bool $requestedChoice): void {
+	public function testChangingTheValueAfterTheFlowStartedIsRefused(?array $storedValue, bool $requestedChoice): void {
 		$file = $this->createFile(FileStatus::ABLE_TO_SIGN->value, $storedValue);
 
 		$this->expectException(LibresignException::class);
@@ -299,23 +304,33 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		yield 'turning it off' => [['enabled' => true, 'comment_mode' => 'optional'], false];
 		yield 'turning it on' => [SignatureRejectionPolicyValue::defaults(), true];
 		yield 'turning it on without any snapshot' => [null, true];
-		yield 'resending the value it already has' => [['enabled' => true, 'comment_mode' => 'optional'], true];
 	}
 
-	public function testTheSettingMayNotBeSentAtAllAfterTheFlowStarted(): void {
-		// Refusing any value, and not only a different one, keeps a single document
-		// and an envelope behaving the same way.
+	public function testResendingTheFrozenValueStaysAnIdempotentUpdate(): void {
+		// A client may resend the complete form state in an unrelated update;
+		// the unchanged value must not make the whole update fail.
 		$file = $this->createFile(FileStatus::ABLE_TO_SIGN->value, ['enabled' => true, 'comment_mode' => 'optional']);
 
 		$this->fileService->expects($this->never())->method('update');
-
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionCode(422);
-		$this->expectExceptionMessage('The signature rejection setting cannot be changed after the signing flow has started.');
+		$this->policyService->expects($this->never())->method('resolveForUserId');
 
 		$this->getApplier()->sync($file, [
 			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => true]],
 		]);
+
+		$this->assertTrue($this->storedValueOf($file)['enabled']);
+	}
+
+	public function testResendingDisabledOnARequestThatNeverOptedInIsAccepted(): void {
+		$file = $this->createFile(FileStatus::ABLE_TO_SIGN->value, SignatureRejectionPolicyValue::defaults());
+
+		$this->fileService->expects($this->never())->method('update');
+
+		$this->getApplier()->sync($file, [
+			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => false]],
+		]);
+
+		$this->assertFalse($this->storedValueOf($file)['enabled']);
 	}
 
 	public function testAStartedRequestWithoutASnapshotRecordsTheDisabledDefault(): void {
@@ -384,7 +399,9 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 	}
 
 	#[DataProvider('provideEnvelopeChangeAttempts')]
-	public function testChangingTheChoiceOnAStartedEnvelopeIsRefused(int $envelopeStatus, bool $requestedChoice): void {
+	public function testChangingTheChoiceOnAStartedEnvelopeIsRefused(int $envelopeStatus): void {
+		// The documents of the envelope carry the value the request was created
+		// with, so turning it on afterwards is a change and must be refused.
 		$envelope = $this->createEnvelope($envelopeStatus);
 
 		$this->fileService->expects($this->never())->method('update');
@@ -394,17 +411,53 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		$this->expectExceptionMessage('The signature rejection setting cannot be changed after the signing flow has started.');
 
 		$this->getApplier()->sync($envelope, [
-			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => $requestedChoice]],
+			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => true]],
 		]);
 	}
 
 	/**
-	 * @return iterable<string, array{0: int, 1: bool}>
+	 * @return iterable<string, array{0: int}>
 	 */
 	public static function provideEnvelopeChangeAttempts(): iterable {
-		yield 'turning it on once the flow started' => [FileStatus::ABLE_TO_SIGN->value, true];
-		yield 'turning it off once the flow started' => [FileStatus::ABLE_TO_SIGN->value, false];
-		yield 'turning it on once partially signed' => [FileStatus::PARTIAL_SIGNED->value, true];
+		yield 'once the flow started' => [FileStatus::ABLE_TO_SIGN->value];
+		yield 'once partially signed' => [FileStatus::PARTIAL_SIGNED->value];
+	}
+
+	public function testResendingTheFrozenValueOfAStartedEnvelopeIsAccepted(): void {
+		// The envelope has no snapshot of its own: the effective stored value is
+		// read from the documents it contains, so an identical resend is a no-op.
+		$envelope = $this->createEnvelope(FileStatus::ABLE_TO_SIGN->value);
+		$envelope->setId(1);
+		$child = $this->createFile(FileStatus::ABLE_TO_SIGN->value, ['enabled' => true, 'comment_mode' => 'optional']);
+		$child->setId(2);
+
+		$this->fileMapper = $this->createMock(FileMapper::class);
+		$this->fileMapper->method('getChildrenFiles')->with(1)->willReturn([$child]);
+		$this->fileService->expects($this->never())->method('update');
+
+		$this->getApplier()->sync($envelope, [
+			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => true]],
+		]);
+
+		$this->assertFalse($this->hasStoredValue($envelope));
+	}
+
+	public function testTurningAStartedEnvelopeOffIsRefusedAgainstTheEffectiveValue(): void {
+		$envelope = $this->createEnvelope(FileStatus::ABLE_TO_SIGN->value);
+		$envelope->setId(1);
+		$child = $this->createFile(FileStatus::ABLE_TO_SIGN->value, ['enabled' => true, 'comment_mode' => 'optional']);
+		$child->setId(2);
+
+		$this->fileMapper = $this->createMock(FileMapper::class);
+		$this->fileMapper->method('getChildrenFiles')->with(1)->willReturn([$child]);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(422);
+		$this->expectExceptionMessage('The signature rejection setting cannot be changed after the signing flow has started.');
+
+		$this->getApplier()->sync($envelope, [
+			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => false]],
+		]);
 	}
 
 	public function testApplierParticipatesInCoreFlowSync(): void {
