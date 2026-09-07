@@ -126,14 +126,11 @@ class SignerPluginTest extends TestCase {
 		$this->assertCount(2, $exactResults, 'Should have 2 exact results (matched by value and display name)');
 	}
 
-	public function testSearchIsCaseInsensitive(): void {
-		$identifiers = [
-			['identifier_value' => 'Test@Example.COM', 'identifier_key' => 'email', 'display_name' => 'Test User'],
-		];
-
+	#[DataProvider('providerCaseInsensitiveMatches')]
+	public function testSearchIsCaseInsensitive(string $search, array $row): void {
 		$mapper = $this->createMock(IdentifyMethodMapper::class);
 		$mapper->method('searchByIdentifierValue')
-			->willReturn($identifiers);
+			->willReturn([$row]);
 
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('current');
@@ -142,7 +139,7 @@ class SignerPluginTest extends TestCase {
 		$userSession->method('getUser')->willReturn($user);
 
 		$context = new SignerSearchContext();
-		$context->set('email', 'test@example.com');
+		$context->set('email', $search);
 
 		$plugin = new SignerPlugin(
 			$mapper,
@@ -151,7 +148,7 @@ class SignerPluginTest extends TestCase {
 		);
 
 		$searchResult = new SearchResult();
-		$plugin->search('test@example.com', 25, 0, $searchResult);
+		$plugin->search($search, 25, 0, $searchResult);
 
 		$results = $searchResult->asArray();
 		$exactResults = $results['exact']['signer'] ?? [];
@@ -278,7 +275,7 @@ class SignerPluginTest extends TestCase {
 		$this->assertSame('sms', $items[0]['method']);
 	}
 
-	public function testSearchReturnsCorrectShareType(): void {
+	public function testSearchDescribesTheSignerFoundInTheIdentifyMethods(): void {
 		$identifiers = [
 			['identifier_value' => 'test@example.com', 'identifier_key' => 'email', 'display_name' => 'Test User'],
 		];
@@ -309,6 +306,10 @@ class SignerPluginTest extends TestCase {
 		$items = array_merge($results['signer'] ?? [], $results['exact']['signer'] ?? []);
 
 		$this->assertCount(1, $items);
+		$this->assertSame('Test User', $items[0]['label']);
+		$this->assertSame('test@example.com', $items[0]['shareWithDisplayNameUnique']);
+		$this->assertSame('email', $items[0]['method']);
+		$this->assertSame('test@example.com', $items[0]['value']['shareWith']);
 		$this->assertSame(SignerPlugin::TYPE_SIGNER, $items[0]['value']['shareType']);
 	}
 
@@ -414,6 +415,24 @@ class SignerPluginTest extends TestCase {
 			],
 		];
 	}
+
+	public static function providerCaseInsensitiveMatches(): array {
+		return [
+			'stored identifier written in another case' => [
+				'search' => 'test@example.com',
+				'row' => ['identifier_value' => 'Test@Example.COM', 'identifier_key' => 'email', 'display_name' => 'Test User'],
+			],
+			'search typed in another case' => [
+				'search' => 'TEST@Example.com',
+				'row' => ['identifier_value' => 'test@example.com', 'identifier_key' => 'email', 'display_name' => 'Test User'],
+			],
+			'display name and search written in different cases' => [
+				'search' => 'MARIA SILVA',
+				'row' => ['identifier_value' => 'someone@example.com', 'identifier_key' => 'email', 'display_name' => 'Maria Silva'],
+			],
+		];
+	}
+
 	public static function providerPaginationScenarios(): array {
 		return [
 			'one row more than the page can show' => [
