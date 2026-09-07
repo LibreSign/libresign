@@ -69,10 +69,6 @@ class SignerPlugin implements ISearchPlugin {
 		return $hasMore;
 	}
 
-	private function canValidateMethod(string $method): bool {
-		return in_array($method, ['email', 'account'], true);
-	}
-
 	private function rowToSearchResultItem(array $row): array {
 		$item = [
 			'label' => $row['display_name'],
