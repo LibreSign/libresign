@@ -195,6 +195,7 @@ OC.L10N.register(
     "Last year ({year})" : "Síðasta ár ({year})",
     "Other" : "Annað",
     "default" : "sjálfgefið",
+    "{value} days" : "{value} dagar",
     "Default background" : "Sjálfgefinn bakgrunnur",
     "Custom background" : "Sérsniðinn bakgrunnur",
     "No background" : "Enginn bakgrunnur",
