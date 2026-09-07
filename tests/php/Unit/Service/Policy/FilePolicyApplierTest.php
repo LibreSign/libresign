@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Policy;
 
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Service\FileService;
@@ -31,6 +32,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private PolicyService&MockObject $policyService;
 	private FileService&MockObject $fileService;
 	private IL10N&MockObject $l10n;
+	private FileMapper&MockObject $fileMapper;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -38,6 +40,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileService = $this->createMock(FileService::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n->method('t')->willReturnArgument(0);
+		$this->fileMapper = $this->createMock(FileMapper::class);
 	}
 
 	private function getApplier(): FilePolicyApplier {
@@ -45,6 +48,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->policyService,
 			$this->fileService,
 			$this->l10n,
+			$this->fileMapper,
 		);
 	}
 
