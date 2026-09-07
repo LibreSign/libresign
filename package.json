@@ -92,7 +92,7 @@
     "@vitest/coverage-v8": "^4.1.11",
     "@vue/test-utils": "^2.5.0",
     "@vue/tsconfig": "^0.9.1",
-    "happy-dom": "^20.12.0",
+    "happy-dom": "^20.14.0",
     "mailpit-api": "^2.1.0",
     "openapi-typescript": "^7.13.0",
     "typescript": "^6.0.3",
