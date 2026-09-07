@@ -604,6 +604,9 @@ Feature: sign-signature-rejection
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
     And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
     And fetch field "(SIGN_REQUEST_ID)ocs.data.data.0.signers.1.signRequestId" from previous JSON response
+    And as user "signer2"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(SIGNER2_UUID)ocs.data.data.0.signers.1.sign_request_uuid" from previous JSON response
     When as user "signer1"
     And sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/reject"
     Then the response should have a status code 200
@@ -616,9 +619,8 @@ Feature: sign-signature-rejection
       | key                   | value                                                    |
       | (jq).ocs.data.message | The signing workflow of this document is already closed. |
     When as user "signer2"
-    And sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>"
-      | method | password |
-      | token  | password |
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGNER2_UUID>"
+      | method | clickToSign |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key                             | value                                                    |
@@ -677,10 +679,11 @@ Feature: sign-signature-rejection
     And the response should be a JSON array with the following mandatory values
       | key                            | value |
       | (jq).ocs.data.workflowCanceled | true  |
-    When sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>"
-      | method | password |
-      | token  | password |
+    When sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/reject"
     Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key                   | value                                                    |
+      | (jq).ocs.data.message | The signing workflow of this document is already closed. |
     When as user "admin"
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     Then the response should have a status code 200
