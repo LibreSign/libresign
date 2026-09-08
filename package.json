@@ -89,7 +89,7 @@
     "@testing-library/vue": "^8.1.0",
     "@types/blueimp-md5": "^2.18.2",
     "@vitejs/plugin-vue": "^6.0.8",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/coverage-v8": "^5.0.0",
     "@vue/test-utils": "^2.5.0",
     "@vue/tsconfig": "^0.9.1",
     "happy-dom": "^20.14.0",
@@ -98,7 +98,7 @@
     "typescript": "^6.0.3",
     "vite": "^8.2.2",
     "vite-plugin-node-polyfills": "^0.28.0",
-    "vitest": "^4.1.4",
+    "vitest": "^5.0.0",
     "vue-tsc": "^3.3.11"
   },
   "engines": {
