@@ -23,6 +23,11 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    groups:
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/coverage-*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
