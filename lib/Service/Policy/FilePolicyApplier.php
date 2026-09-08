@@ -69,6 +69,8 @@ class FilePolicyApplier {
 				continue;
 			}
 
+			// The file mapper is an optional extra: an applier that needs it declares
+			// a fourth constructor parameter, every other applier simply ignores it.
 			$instance = new $applierClass($this->policyService, $this->fileService, $this->l10n, $this->fileMapper);
 			if (!$instance instanceof IFilePolicyApplier) {
 				continue;
