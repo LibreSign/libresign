@@ -9,14 +9,18 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy\Provider\SignatureRejection\FilePolicy;
 
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\Policy\AbstractFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValue;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
 use OCP\AppFramework\Http;
+use OCP\IL10N;
 use OCP\IUser;
 
 /**
@@ -34,6 +38,19 @@ use OCP\IUser;
  * update rather than an error.
  */
 class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
+	private readonly ?SignatureRejectionPolicyService $storedValueReader;
+
+	public function __construct(
+		PolicyService $policyService,
+		FileService $fileService,
+		?IL10N $l10n = null,
+		?FileMapper $fileMapper = null,
+	) {
+		parent::__construct($policyService, $fileService, $l10n);
+		$this->storedValueReader = $fileMapper === null
+			? null
+			: new SignatureRejectionPolicyService($fileMapper);
+	}
 
 	#[\Override]
 	public function apply(FileEntity $file, array $data): void {
@@ -204,8 +221,8 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 	 * documents it contains.
 	 */
 	private function frozenChoice(FileEntity $file): bool {
-		if ($this->fileMapper !== null) {
-			return (new SignatureRejectionPolicyService($this->fileMapper))->isEnabled($file);
+		if ($this->storedValueReader !== null) {
+			return $this->storedValueReader->isEnabled($file);
 		}
 
 		return ($this->readStoredValue($file) ?? [])['enabled'] ?? false;

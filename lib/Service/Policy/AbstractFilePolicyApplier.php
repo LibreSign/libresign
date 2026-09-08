@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy;
 
 use OCA\Libresign\Db\File as FileEntity;
-use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\Policy\Contract\IFilePolicyApplier;
@@ -21,7 +20,6 @@ abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
 		protected readonly PolicyService $policyService,
 		protected readonly FileService $fileService,
 		protected readonly ?IL10N $l10n = null,
-		protected readonly ?FileMapper $fileMapper = null,
 	) {
 	}
 
