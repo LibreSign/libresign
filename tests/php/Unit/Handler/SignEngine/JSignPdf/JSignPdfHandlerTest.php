@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
+namespace OCA\Libresign\Tests\Unit\Handler\SignEngine\JSignPdf;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
@@ -14,7 +14,8 @@ use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
-use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
+use OCA\Libresign\Handler\SignEngine\JSignPdf\HashAlgorithmResolver;
+use OCA\Libresign\Handler\SignEngine\JSignPdf\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
@@ -132,6 +133,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		// Create mock factory if initialization failed in setUpBeforeClass
 		$certificateEngineFactory = self::$certificateEngineFactory ?? $this->createMock(CertificateEngineFactory::class);
+		$hashAlgorithmResolver = new HashAlgorithmResolver($policyService);
 
 		if (empty($methods)) {
 			return new JSignPdfHandler(
@@ -144,6 +146,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$certificateEngineFactory,
 				$this->javaHelper,
 				$this->createMock(DocMdpConfigService::class),
+				$hashAlgorithmResolver,
 			);
 		}
 		return $this->getMockBuilder(JSignPdfHandler::class)
@@ -157,6 +160,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$certificateEngineFactory,
 				$this->javaHelper,
 				$this->createMock(DocMdpConfigService::class),
+				$hashAlgorithmResolver,
 			])
 			->onlyMethods($methods)
 			->getMock();
@@ -196,40 +200,6 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private function setDocMdpConfigService(JSignPdfHandler $handler, DocMdpConfigService $docMdpConfigService): void {
 		$reflection = new \ReflectionProperty(JSignPdfHandler::class, 'docMdpConfigService');
 		$reflection->setValue($handler, $docMdpConfigService);
-	}
-
-	#[DataProvider('providerGetHashAlgorithm')]
-	public function testGetHashAlgorithm(string $setting, string $content, string $expected): void {
-		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
-			$this->markTestSkipped('Certificate initialization failed');
-		}
-
-		$this->persistHashAlgorithmPolicy($setting);
-		$instance = $this->getInstance(['getInputFile']);
-		$file = $this->createMock(\OCP\Files\File::class);
-		$file->method('getContent')->willReturn($content);
-		$instance->method('getInputFile')->willReturn($file);
-		$actual = self::invokePrivate($instance, 'getHashAlgorithm', [$content]);
-		$this->assertEquals($expected, $actual);
-	}
-
-	public static function providerGetHashAlgorithm(): array {
-		return [
-			'empty setting, PDF 1.6' => ['', '%PDF-1.6', 'SHA256'],
-			'invalid PDF header' => ['', 'random data', 'SHA256'],
-			'invalid setting, fallback to SHA256 on PDF 1.7' => ['XYZ', '%PDF-1.7', 'SHA256'],
-			'null-like setting, PDF 1.5' => ['0', '%PDF-1.5', 'SHA1'],
-			'default with PDF 1.0' => ['', '%PDF-1', 'SHA1'],
-			'SHA1 with PDF 1.5' => ['', '%PDF-1.5', 'SHA1'],
-			'SHA1 with PDF 1.6' => ['', '%PDF-1.6', 'SHA256'],
-			'SHA1 with PDF 1.7' => ['', '%PDF-1.7', 'SHA256'],
-			'SHA1 with PDF 2.0' => ['', '%PDF-2.0', 'SHA256'],
-			'SHA384, PDF 1.6 (fallback)' => ['SHA384', '%PDF-1.6', 'SHA256'],
-			'SHA384, PDF 1.7' => ['SHA384', '%PDF-1.7', 'SHA384'],
-			'SHA512, PDF 1.6' => ['SHA512', '%PDF-1.6', 'SHA256'],
-			'RIPEMD160, PDF 1.6 (unsupported)' => ['RIPEMD160', '%PDF-1.6', 'SHA256'],
-			'RIPEMD160, PDF 1.7 (supported)' => ['RIPEMD160', '%PDF-1.7', 'RIPEMD160'],
-		];
 	}
 
 	#[DataProvider('providerExtractPdfVersion')]
@@ -345,7 +315,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 
 		$this->signatureBackgroundService->method('getImagePath')->willReturn(
-			realpath(__DIR__ . '/../../../../../img/LibreSign.png')
+			realpath(__DIR__ . '/../../../../../../img/LibreSign.png')
 		);
 
 		$this->persistSignatureStampPolicy(
@@ -416,7 +386,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 0,
 					'urx' => 0,
 					'ury' => 0,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 100,
 				'signatureHeight' => 100,
 				'template' => '',
@@ -434,7 +404,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => '',
@@ -452,7 +422,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'aaaaa',
@@ -470,7 +440,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'aaaaa',
@@ -488,7 +458,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'aaaaa',
@@ -506,7 +476,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'a"b $c \'d e',
@@ -524,7 +494,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => '',
@@ -542,7 +512,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'aaaaa',
@@ -560,7 +530,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 100,
 					'urx' => 351,
 					'ury' => 200,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 350,
 				'signatureHeight' => 100,
 				'template' => 'aaaaa',
@@ -578,7 +548,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'aaaaa',
@@ -635,7 +605,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => '',
@@ -653,7 +623,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))],
 				'signatureWidth' => 0,
 				'signatureHeight' => 0,
 				'template' => '',
@@ -677,7 +647,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->signatureBackgroundService->method('getSignatureBackgroundType')->willReturn('deleted');
 		$this->signatureBackgroundService->method('getImagePath')->willReturn(
-			realpath(__DIR__ . '/../../../../../img/LibreSign.png')
+			realpath(__DIR__ . '/../../../../../../img/LibreSign.png')
 		);
 
 		$this->persistSignatureStampPolicy('', SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY, 10, SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE, 100, 100);
@@ -708,14 +678,14 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'lly' => 10,
 				'urx' => 110,
 				'ury' => 60,
-			], realpath(__DIR__ . '/../../../../../img/app-dark.png')),
+			], realpath(__DIR__ . '/../../../../../../img/app-dark.png')),
 			self::getElement([
 				'page' => 1,
 				'llx' => 120,
 				'lly' => 10,
 				'urx' => 220,
 				'ury' => 60,
-			], realpath(__DIR__ . '/../../../../../img/app-dark.png')),
+			], realpath(__DIR__ . '/../../../../../../img/app-dark.png')),
 		]);
 		$jSignPdfHandler->setJSignPdf($mock);
 		$jSignPdfHandler->setInputFile($inputFile);
@@ -740,7 +710,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->signatureBackgroundService->method('getSignatureBackgroundType')->willReturn('deleted');
 		$this->signatureBackgroundService->method('getImagePath')->willReturn(
-			realpath(__DIR__ . '/../../../../../img/LibreSign.png')
+			realpath(__DIR__ . '/../../../../../../img/LibreSign.png')
 		);
 
 		$this->persistSignatureStampPolicy('', SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY, 10, SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE, 100, 100);
@@ -771,7 +741,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'lly' => 10,
 				'urx' => 110,
 				'ury' => 60,
-			], realpath(__DIR__ . '/../../../../../img/app-dark.png')),
+			], realpath(__DIR__ . '/../../../../../../img/app-dark.png')),
 		]);
 		$jSignPdfHandler->setJSignPdf($mock);
 		$jSignPdfHandler->setInputFile($inputFile);
@@ -986,26 +956,78 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	public function testCheckTsaErrorInvalidTsaMentionsDnsNetworkFirewall(): void {
+	#[DataProvider('providerTsaErrors')]
+	public function testCheckTsaError(string $errorMessage, string $expectedMessage): void {
 		$jSignPdfHandler = $this->getInstance();
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Timestamp Authority (TSA) service is unavailable. Check DNS/network/firewall connectivity from this server: https://invalid-tsa.example.com/tsr');
+		$this->expectExceptionMessage($expectedMessage);
+
+		self::invokePrivate($jSignPdfHandler, 'checkTsaError', [$errorMessage]);
+	}
+
+	public static function providerTsaErrors(): array {
+		$rejected = 'The server was reached, so this is not a DNS/network/firewall problem.' . "\n"
+			. 'Check what the authority expects: hash algorithm, policy OID and authentication.';
+
+		return [
+			'invalid TSA blames DNS, network and firewall' => [
+				"Invalid TSA 'https://invalid-tsa.example.com/tsr'",
+				'Timestamp Authority (TSA) service is unavailable. Check DNS/network/firewall connectivity from this server: https://invalid-tsa.example.com/tsr',
+			],
+			'unknown host blames DNS, network and firewall' => [
+				'TSAClientBouncyCastle: java.net.UnknownHostException: invalid-tsa.example.com',
+				"Timestamp Authority (TSA) service error.\nCheck TSA endpoint and DNS/network/firewall connectivity from this server.",
+			],
+			'HTTP status reports a rejection and the endpoint that answered' => [
+				'ExceptionConverter: java.io.IOException: Server returned HTTP response code: 400 for URL: http://time.certum.pl' . "\n"
+					. "\tat com.lowagie.text.pdf.TSAClientBouncyCastle.getTSAResponse(TSAClientBouncyCastle.java:288)",
+				'Timestamp Authority (TSA) rejected the request with HTTP status 400: http://time.certum.pl' . "\n" . $rejected,
+			],
+			'HTTP status without an URL still reports a rejection' => [
+				'TSAClientBouncyCastle: java.io.IOException: Server returned HTTP response code: 503',
+				'Timestamp Authority (TSA) rejected the request with HTTP status 503.' . "\n" . $rejected,
+			],
+		];
+	}
+
+	public function testCheckTsaErrorIgnoresErrorsFromOtherSources(): void {
+		$jSignPdfHandler = $this->getInstance();
+
+		$this->expectNotToPerformAssertions();
 
 		self::invokePrivate($jSignPdfHandler, 'checkTsaError', [
-			"Invalid TSA 'https://invalid-tsa.example.com/tsr'",
+			'java.io.IOException: Server returned HTTP response code: 400 for URL: https://example.test/crl',
 		]);
 	}
 
-	public function testCheckTsaErrorUnknownHostMentionsDnsNetworkFirewall(): void {
+	#[DataProvider('providerErrorsLoggedBeforeBeingTranslated')]
+	public function testSignWrapperLogsTheOriginalErrorBeforeThrowing(string $errorMessage): void {
 		$jSignPdfHandler = $this->getInstance();
 
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage("Timestamp Authority (TSA) service error.\nCheck TSA endpoint and DNS/network/firewall connectivity from this server.");
+		$jSignPdf = $this->createMock(JSignPDF::class);
+		$jSignPdf->method('sign')
+			->willThrowException(new \Exception($errorMessage));
 
-		self::invokePrivate($jSignPdfHandler, 'checkTsaError', [
-			'TSAClientBouncyCastle: java.net.UnknownHostException: invalid-tsa.example.com',
-		]);
+		$this->loggerInterface->expects($this->once())
+			->method('error')
+			->with($this->stringContains($errorMessage));
+
+		$this->expectException(LibresignException::class);
+
+		self::invokePrivate($jSignPdfHandler, 'signWrapper', [$jSignPdf]);
+	}
+
+	public static function providerErrorsLoggedBeforeBeingTranslated(): array {
+		return [
+			'TSA error' => [
+				'ExceptionConverter: java.io.IOException: Server returned HTTP response code: 400 for URL: http://time.certum.pl' . "\n"
+					. "\tat com.lowagie.text.pdf.TSAClientBouncyCastle.getTSAResponse(TSAClientBouncyCastle.java:288)",
+			],
+			'hash algorithm error' => [
+				'INFO The chosen hash algorithm (SHA-256) requires a newer PDF version.',
+			],
+		];
 	}
 
 	#[DataProvider('providerTsaParameters')]
@@ -1066,13 +1088,13 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'url only' => [
 				['url' => 'https://tsa.example.test/tsr'],
 				'',
-				['--tsa-server-url' => 'https://tsa.example.test/tsr'],
+				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256'],
 				[],
 			],
 			'url with policy OID and no authentication' => [
 				['url' => 'https://tsa.example.test/tsr', 'policy_oid' => '1.2.3.4', 'auth_type' => 'none'],
 				'tsa secret',
-				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-policy-oid' => '1.2.3.4'],
+				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256', '--tsa-policy-oid' => '1.2.3.4'],
 				[],
 			],
 			'basic authentication: user on the command line, password over stdin' => [
@@ -1080,6 +1102,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'tsa secret',
 				[
 					'--tsa-server-url' => 'https://tsa.example.test/tsr',
+					'--tsa-hash-algorithm' => 'SHA-256',
 					'--tsa-policy-oid' => '1.2.3.4',
 					'--tsa-authentication' => 'PASSWORD',
 					'--tsa-user' => 'alice',
@@ -1091,6 +1114,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				"p4\$s 'w\"ord",
 				[
 					'--tsa-server-url' => 'https://tsa.example.test/tsr',
+					'--tsa-hash-algorithm' => 'SHA-256',
 					'--tsa-policy-oid' => '1.2.3.4',
 					'--tsa-authentication' => 'PASSWORD',
 					'--tsa-user' => 'alice',
@@ -1100,7 +1124,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'basic authentication without a stored password is skipped' => [
 				$tsa,
 				'',
-				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-policy-oid' => '1.2.3.4'],
+				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256', '--tsa-policy-oid' => '1.2.3.4'],
 				[],
 			],
 			'basic authentication without a URL sends nothing' => [
@@ -1109,10 +1133,16 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[],
 				[],
 			],
+			'the configured hash algorithm is sent to the timestamp authority' => [
+				['url' => 'https://tsa.example.test/tsr', 'hash_algorithm' => 'SHA512'],
+				'',
+				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-512'],
+				[],
+			],
 			'basic authentication without a username is skipped' => [
 				['url' => 'https://tsa.example.test/tsr', 'auth_type' => 'basic', 'username' => ''],
 				'tsa secret',
-				['--tsa-server-url' => 'https://tsa.example.test/tsr'],
+				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256'],
 				[],
 			],
 		];
@@ -1168,7 +1198,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'lly' => 10,
 			'urx' => 110,
 			'ury' => 60,
-		], realpath(__DIR__ . '/../../../../../img/app-dark.png'));
+		], realpath(__DIR__ . '/../../../../../../img/app-dark.png'));
 		$tsa = ['url' => 'https://tsa.example.test/tsr'];
 		return [
 			'certification before the TSA options when the PDF has no signature' => [
@@ -1176,14 +1206,14 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[],
 				'%PDF-1.6',
 				$tsa,
-				['-cl' => DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name, '--tsa-server-url' => 'https://tsa.example.test/tsr', '--hash-algorithm' => 'SHA256'],
+				['-cl' => DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name, '--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256', '--hash-algorithm' => 'SHA256'],
 			],
 			'no certification when the PDF already has a signature' => [
 				true,
 				[],
 				"%PDF-1.6\n/ByteRange [0 0 0 0]",
 				$tsa,
-				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--hash-algorithm' => 'SHA256'],
+				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256', '--hash-algorithm' => 'SHA256'],
 			],
 			'no certification when DocMDP is disabled, even with a visible element on a signed PDF' => [
 				false,

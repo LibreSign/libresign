@@ -48,7 +48,7 @@ final class TsaPolicyManagedValueTest extends TestCase {
 		]);
 
 		$this->assertSame(
-			'{"url":"https://tsa.example.test/tsr","policy_oid":"1.2.3.4.1","auth_type":"basic","username":"tsa-user"}',
+			'{"url":"https://tsa.example.test/tsr","policy_oid":"1.2.3.4.1","auth_type":"basic","username":"tsa-user","hash_algorithm":"SHA256"}',
 			$normalized,
 		);
 	}
@@ -72,9 +72,31 @@ final class TsaPolicyManagedValueTest extends TestCase {
 		]);
 
 		$this->assertSame(
-			'{"url":"https://tsa.example.test/tsr","policy_oid":"","auth_type":"basic","username":"tsa-user"}',
+			'{"url":"https://tsa.example.test/tsr","policy_oid":"","auth_type":"basic","username":"tsa-user","hash_algorithm":"SHA256"}',
 			$normalized,
 		);
+	}
+
+	public function testKeepsTheChosenHashAlgorithm(): void {
+		$normalized = $this->managedValue->normalizeForPersistence([
+			'url' => 'https://tsa.example.test/tsr',
+			'auth_type' => 'none',
+			'hash_algorithm' => 'SHA512',
+		]);
+
+		$this->assertSame(
+			'{"url":"https://tsa.example.test/tsr","policy_oid":"","auth_type":"none","username":"","hash_algorithm":"SHA512"}',
+			$normalized,
+		);
+	}
+
+	public function testDisablingTheTsaResetsTheHashAlgorithm(): void {
+		$normalized = $this->managedValue->normalizeForPersistence([
+			'url' => '',
+			'hash_algorithm' => 'SHA512',
+		]);
+
+		$this->assertSame(TsaPolicyValue::encode(TsaPolicyValue::defaults()), $normalized);
 	}
 
 	#[DataProvider('clearPasswordProvider')]
@@ -136,7 +158,7 @@ final class TsaPolicyManagedValueTest extends TestCase {
 		]);
 
 		$this->assertSame(
-			sprintf('{"url":"https://tsa.example.test/tsr","policy_oid":"%s","auth_type":"none","username":""}', $policyOid),
+			sprintf('{"url":"https://tsa.example.test/tsr","policy_oid":"%s","auth_type":"none","username":"","hash_algorithm":"SHA256"}', $policyOid),
 			$normalized,
 		);
 	}
@@ -182,7 +204,7 @@ final class TsaPolicyManagedValueTest extends TestCase {
 					'username' => 'tsa-user',
 					'password' => 'topsecret',
 				],
-				'{"url":"https://tsa.example.test/tsr","policy_oid":"","auth_type":"none","username":""}',
+				'{"url":"https://tsa.example.test/tsr","policy_oid":"","auth_type":"none","username":"","hash_algorithm":"SHA256"}',
 			],
 		];
 	}

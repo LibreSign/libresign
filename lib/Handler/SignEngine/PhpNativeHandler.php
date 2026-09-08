@@ -233,13 +233,14 @@ class PhpNativeHandler extends Pkcs12Handler {
 
 		return new TimestampOptionsDto(
 			tsaUrl: $tsaUrl,
+			hashAlgorithm: $tsaSettings['hash_algorithm'],
 			username: $username,
 			password: $password,
 		);
 	}
 
 	/**
-	 * @return array{url: string, policy_oid: string, auth_type: string, username: string}
+	 * @return array{url: string, policy_oid: string, auth_type: string, username: string, hash_algorithm: string}
 	 */
 	private function getTsaSettings(): array {
 		$resolved = $this->policyService->resolve(TsaPolicy::KEY)->getEffectiveValue();
