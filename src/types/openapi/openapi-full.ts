@@ -771,6 +771,40 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/file_id/{fileId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a signature request using file Id */
+        post: operations["sign_file-reject-by-file-id"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/uuid/{uuid}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a signature request using the signer UUID */
+        post: operations["sign_file-reject-by-signer-uuid"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/uuid/{uuid}/renew/{method}": {
         parameters: {
             query?: never;
@@ -1531,7 +1565,7 @@ export type components = {
                  * Format: int64
                  * @enum {integer}
                  */
-                status: 0 | 1 | 2 | 3 | 4;
+                status: 0 | 1 | 2 | 3 | 4 | 6;
                 statusText: string;
                 created_at: string;
                 file: {
@@ -1844,6 +1878,17 @@ export type components = {
             hashOfIdentifier?: string;
             hasSignatureFile?: boolean;
         };
+        PolicySnapshotSignatureRejectionEntry: {
+            effectiveValue: components["schemas"]["PolicySnapshotSignatureRejectionValue"];
+            sourceScope: string;
+        };
+        PolicySnapshotSignatureRejectionValue: {
+            enabled: boolean;
+            comment_mode: components["schemas"]["SignatureRejectionCommentMode"];
+            cancel_workflow: boolean;
+            public_status: boolean;
+            show_comment_on_validation: boolean;
+        };
         PolicySnapshotSignerGeolocationEntry: {
             effectiveValue: components["schemas"]["PolicySnapshotSignerGeolocationValue"];
             sourceScope: string;
@@ -1976,6 +2021,18 @@ export type components = {
             emailToken?: components["schemas"]["SignatureMethodEmailToken"];
             password?: components["schemas"]["SignatureMethodPassword"];
         };
+        /** @enum {string} */
+        SignatureRejectionCommentMode: "disabled" | "optional" | "required";
+        SignatureRejectionResponse: {
+            message: string;
+            /** Format: int64 */
+            signRequestId: number;
+            /** Format: int64 */
+            status: number;
+            statusText: string;
+            rejectedAt: string;
+            workflowCanceled: boolean;
+        };
         SignerCertificateInfo: {
             serialNumber?: string;
             serialNumberHex?: string;
@@ -2007,6 +2064,7 @@ export type components = {
             signatureMethods?: components["schemas"]["SignatureMethods"];
             uid?: string;
             metadata?: components["schemas"]["SignerMetadata"];
+            rejection?: components["schemas"]["SignerRejection"];
         };
         SignerGeolocation: {
             status: components["schemas"]["GeolocationCollectionStatus"];
@@ -2029,6 +2087,11 @@ export type components = {
             notify?: components["schemas"]["Notify"][];
             certificate_info?: components["schemas"]["SignerCertificateInfo"];
         };
+        SignerRejection: {
+            rejectedAt: string;
+            comment?: string;
+            commentPrivate?: boolean;
+        };
         SignerSummary: {
             /** Format: int64 */
             signRequestId: number;
@@ -2040,7 +2103,7 @@ export type components = {
              * Format: int64
              * @enum {integer}
              */
-            status: 0 | 1 | 2;
+            status: 0 | 1 | 2 | 3;
             statusText: string;
         };
         SigningJob: {
@@ -2127,6 +2190,7 @@ export type components = {
             identification_documents?: components["schemas"]["PolicySnapshotIdentificationDocumentsEntry"];
             identify_methods?: components["schemas"]["PolicySnapshotIdentifyMethodsEntry"];
             signer_geolocation?: components["schemas"]["PolicySnapshotSignerGeolocationEntry"];
+            signature_rejection?: components["schemas"]["PolicySnapshotSignatureRejectionEntry"];
         };
         ValidatedChildFile: {
             /** Format: int64 */
@@ -2156,7 +2220,7 @@ export type components = {
              * Format: int64
              * @enum {integer}
              */
-            status: 0 | 1 | 2 | 3 | 4;
+            status: 0 | 1 | 2 | 3 | 4 | 6;
             statusText: string;
             /** Format: int64 */
             nodeId: number;
@@ -5227,6 +5291,128 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["SignActionErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "sign_file-reject-by-file-id": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Id of LibreSign file */
+                fileId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description Justification sent by the signer, when the document policy accepts comments
+                     * @default
+                     */
+                    comment?: string;
+                    /**
+                     * @description Keep the comment visible only to who requested the signature
+                     * @default false
+                     */
+                    privateComment?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["SignatureRejectionResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "sign_file-reject-by-signer-uuid": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description UUID of the signer */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description Justification sent by the signer, when the document policy accepts comments
+                     * @default
+                     */
+                    comment?: string;
+                    /**
+                     * @description Keep the comment visible only to who requested the signature
+                     * @default false
+                     */
+                    privateComment?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["SignatureRejectionResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };

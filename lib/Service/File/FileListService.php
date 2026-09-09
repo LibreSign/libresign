@@ -23,6 +23,7 @@ use OCA\Libresign\Enum\SignerGeolocationMode;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
 use OCP\AppFramework\Db\Entity;
@@ -57,6 +58,7 @@ class FileListService {
 		private IL10N $l10n,
 		private IUserManager $userManager,
 		private IRootFolder $root,
+		private SignatureRejectionVisibilityService $signatureRejectionVisibilityService,
 	) {
 	}
 
@@ -283,6 +285,7 @@ class FileListService {
 				$file['metadata'],
 				$user,
 				$meSignRequestId,
+				$fileEntity,
 			);
 			$file['signers'][] = $signerData;
 			if (!empty($signerData['me']) && isset($signerData['sign_request_uuid']) && !isset($file['url'])) {
@@ -389,6 +392,7 @@ class FileListService {
 		array $metadata,
 		?IUser $user,
 		?int $meSignRequestId = null,
+		?File $fileEntity = null,
 	): array {
 		$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
 		$resolvedDisplayName = $this->resolveSignerDisplayName($signer, $identifyMethodsOfSigner);
@@ -475,6 +479,16 @@ class FileListService {
 			$data['metadata'] = $geolocationMetadata;
 		}
 
+		$requesterUserId = $fileEntity?->getUserId() ?? '';
+		$rejection = $this->signatureRejectionVisibilityService->buildSignerRejection(
+			$signer,
+			$fileEntity,
+			$data['me'] || ($requesterUserId !== '' && $user?->getUID() === $requesterUserId),
+		);
+		if ($rejection !== null) {
+			$data['rejection'] = $rejection;
+		}
+
 		ksort($data);
 		return $data;
 	}
@@ -538,6 +552,7 @@ class FileListService {
 		SignRequest $signer,
 		array $identifyMethods,
 		array $visibleElements,
+		?File $fileEntity = null,
 	): array {
 		$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
 		$resolvedDisplayName = $this->resolveSignerDisplayName($signer, $identifyMethodsOfSigner);
@@ -577,6 +592,16 @@ class FileListService {
 		if ($signer->getSigned()) {
 			$data['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
 		}
+
+		$rejection = $this->signatureRejectionVisibilityService->buildSignerRejection(
+			$signer,
+			$fileEntity,
+			false,
+		);
+		if ($rejection !== null) {
+			$data['rejection'] = $rejection;
+		}
+
 		ksort($data);
 		return $data;
 	}
@@ -673,14 +698,14 @@ class FileListService {
 		$currentSignerRequestUuid = null;
 		foreach ($signRequestEntities as $signer) {
 			if ($user) {
-				$signerData = $this->formatSignerData($signer, $identifyMethods, $visibleElementsData, $metadata, $user);
+				$signerData = $this->formatSignerData($signer, $identifyMethods, $visibleElementsData, $metadata, $user, null, $mainEntity);
 				$signers[] = $signerData;
 
 				if ($currentSignerRequestUuid === null && !empty($signerData['me']) && isset($signerData['sign_request_uuid'])) {
 					$currentSignerRequestUuid = $signerData['sign_request_uuid'];
 				}
 			} else {
-				$signers[] = $this->formatSignerDataBasic($signer, $identifyMethods, $visibleElementsData);
+				$signers[] = $this->formatSignerDataBasic($signer, $identifyMethods, $visibleElementsData, $mainEntity);
 			}
 		}
 

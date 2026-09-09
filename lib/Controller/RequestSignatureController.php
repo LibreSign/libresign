@@ -235,6 +235,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				]
 			];
 			$this->validateHelper->validateExistingFile($data);
+			$this->validateHelper->validateWorkflowIsNotClosedByFileId($fileId);
 			$this->validateHelper->validateIsSignerOfFile($signRequestId, $fileId);
 			$this->requestSignatureService->unassociateToUser($fileId, $signRequestId);
 		} catch (\Throwable $th) {
