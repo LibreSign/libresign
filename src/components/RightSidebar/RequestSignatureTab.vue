@@ -177,6 +177,14 @@
 							</template>
 							{{ t('libresign', 'Delete') }}
 						</NcActionButton>
+						<NcActionButton v-if="canSendObserverNotification(signer)"
+							:close-after-click="true"
+							@click="sendNotify(signer)">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiBell" :size="20" />
+							</template>
+							{{ t('libresign', 'Send notification') }}
+						</NcActionButton>
 					</template>
 				</template>
 			</Signers>
@@ -888,11 +896,23 @@ const canSendReminder = computed(() => (signer: Partial<EditableRequestSigner>) 
 		|| isSignerSigned(signer)
 		|| !signer.signRequestId
 		|| signer.me
-		|| signer.status !== 1) {
+		|| signer.status !== SIGN_REQUEST_STATUS.ABLE_TO_SIGN) {
 		return false
 	}
 
 	return canSignerActInOrder(signer)
+})
+
+const canSendObserverNotification = computed(() => (signer: Partial<EditableRequestSigner>) => {
+	if (isOriginalFileDeleted.value || !isObserverParticipant(signer)) {
+		return false
+	}
+	const file = filesStore.getFile()
+	return !!filesStore.canRequestSign
+		&& file?.status !== FILE_STATUS.DRAFT
+		&& !!signer.signRequestId
+		&& !signer.me
+		&& signer.status === SIGN_REQUEST_STATUS.OBSERVING
 })
 
 const hasSignersWithDisabledMethods = computed(() => {
@@ -1388,6 +1408,11 @@ async function sendNotify(signer: EditableRequestSigner) {
 			showSuccess(t('libresign', data.ocs.data.message))
 		})
 		.catch((error: unknown) => {
+			if (isObserverParticipant(signer)) {
+				// TRANSLATORS Error toast shown when resending an observer notification fails.
+				showRequestError(error, t('libresign', 'Failed to send notification'))
+				return
+			}
 			showRequestError(error, t('libresign', 'Failed to send reminder'))
 		})
 }
@@ -1705,6 +1730,7 @@ defineExpose({
 	canCustomizeMessage,
 	canRequestSignature,
 	canSendReminder,
+	canSendObserverNotification,
 	hasSignersWithDisabledMethods,
 	showSaveButton,
 	showRequestButton,

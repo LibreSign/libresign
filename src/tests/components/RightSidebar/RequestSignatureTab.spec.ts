@@ -14,8 +14,9 @@ import type { useFilesStore as useFilesStoreType } from '../../../store/files.js
 import { usePoliciesStore } from '../../../store/policies'
 import RequestSignatureTab from '../../../components/RightSidebar/RequestSignatureTab.vue'
 import { useFilesStore } from '../../../store/files.js'
-import { FILE_STATUS } from '../../../constants.js'
+import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../../constants.js'
 import { showError, showSuccess } from '@nextcloud/dialogs'
+import { PARTICIPANT_ROLE } from '../../../utils/participantRole.ts'
 
 const { capabilitiesState, generateUrlMock } = vi.hoisted(() => ({
 	capabilitiesState: { signElementsAvailable: true },
@@ -1076,6 +1077,94 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			const signer = { email: 'test@example.com', signed: [], status: 1, signRequestId: 10 }
 
 			expect(wrapper.vm.canSendReminder(signer)).toBe(false)
+		})
+
+		it('blocks reminder for observers', async () => {
+			filesStore.canRequestSign = true
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signatureFlow: 'parallel',
+				signers: [{
+					email: 'observer@example.com',
+					status: SIGN_REQUEST_STATUS.OBSERVING,
+					signRequestId: 10,
+					participantRole: PARTICIPANT_ROLE.OBSERVER,
+				}],
+			})
+			const observer = {
+				email: 'observer@example.com',
+				status: SIGN_REQUEST_STATUS.OBSERVING,
+				signRequestId: 10,
+				participantRole: PARTICIPANT_ROLE.OBSERVER,
+			}
+
+			expect(wrapper.vm.canSendReminder(observer)).toBe(false)
+		})
+	})
+
+	describe('RULE: canSendObserverNotification for observers', () => {
+		it('allows sending a notification when the observer is watching the request', async () => {
+			filesStore.canRequestSign = true
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signatureFlow: 'parallel',
+				signers: [{
+					email: 'observer@example.com',
+					status: SIGN_REQUEST_STATUS.OBSERVING,
+					signRequestId: 10,
+					participantRole: PARTICIPANT_ROLE.OBSERVER,
+				}],
+			})
+			const observer = {
+				email: 'observer@example.com',
+				status: SIGN_REQUEST_STATUS.OBSERVING,
+				signRequestId: 10,
+				participantRole: PARTICIPANT_ROLE.OBSERVER,
+			}
+
+			expect(wrapper.vm.canSendObserverNotification(observer)).toBe(true)
+		})
+
+		it('blocks observer notification while the document is still a draft', async () => {
+			filesStore.canRequestSign = true
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signatureFlow: 'parallel',
+				signers: [{
+					email: 'observer@example.com',
+					status: SIGN_REQUEST_STATUS.DRAFT,
+					signRequestId: 10,
+					participantRole: PARTICIPANT_ROLE.OBSERVER,
+				}],
+			})
+			const observer = {
+				email: 'observer@example.com',
+				status: SIGN_REQUEST_STATUS.DRAFT,
+				signRequestId: 10,
+				participantRole: PARTICIPANT_ROLE.OBSERVER,
+			}
+
+			expect(wrapper.vm.canSendObserverNotification(observer)).toBe(false)
+		})
+
+		it('blocks observer notification for signing participants', async () => {
+			filesStore.canRequestSign = true
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signatureFlow: 'parallel',
+				signers: [{
+					email: 'test@example.com',
+					status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+					signRequestId: 10,
+				}],
+			})
+			const signer = {
+				email: 'test@example.com',
+				status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+				signRequestId: 10,
+			}
+
+			expect(wrapper.vm.canSendObserverNotification(signer)).toBe(false)
 		})
 	})
 
