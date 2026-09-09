@@ -758,5 +758,66 @@ describe('SignerDetails.vue - Business Logic', () => {
 
 			expect(wrapper.vm.deviceReportedLocation).toBeNull()
 		})
+
+		it('exposes not-verified disclaimer copy for audit display', () => {
+			wrapper = createWrapper({
+				initiallyOpen: true,
+				signer: {
+					metadata: {
+						geolocation: {
+							status: 'collected',
+							latitude: -23.55,
+							longitude: -46.63,
+						},
+					},
+				},
+				global: {
+					stubs: {
+						NcAvatar: true,
+						NcButton: true,
+						NcIconSvgWrapper: true,
+						NcListItem: {
+							template: '<li><slot name="name" /></li>',
+						},
+						NcNoteCard: true,
+						CertificateChain: true,
+					},
+				},
+			})
+
+			// shallowMount createWrapper ignores nested global overrides; remount with slot-rendering stub
+			wrapper.unmount()
+			wrapper = shallowMount(SignerDetails, {
+				props: {
+					initiallyOpen: true,
+					signer: {
+						signed: '2024-06-01T12:00:00Z',
+						displayName: 'Test Signer',
+						metadata: {
+							geolocation: {
+								status: 'collected',
+								latitude: -23.55,
+								longitude: -46.63,
+							},
+						},
+					},
+				},
+				global: {
+					stubs: {
+						NcAvatar: true,
+						NcButton: true,
+						NcIconSvgWrapper: true,
+						NcListItem: {
+							template: '<li><slot name="name" /></li>',
+						},
+						NcNoteCard: true,
+						CertificateChain: true,
+					},
+				},
+			})
+
+			expect(wrapper.text()).toContain('Device-reported location:')
+			expect(wrapper.text()).toContain('Not verified physical presence.')
+		})
 	})
 })
