@@ -10,8 +10,7 @@
 		<div v-if="!loading" class="button-wrapper">
 			<NcNoteCard v-if="requiresDeviceGeolocation"
 				type="info">
-				<!-- TRANSLATORS Early notice that device location is required before the signature can be completed. -->
-				{{ t('libresign', 'Device location is required to sign this document.') }}
+				{{ geolocationRequiredBannerText }}
 			</NcNoteCard>
 			<NcNoteCard v-if="geolocationFailureMessage"
 				type="error">
@@ -26,7 +25,7 @@
 						variant="primary"
 						:disabled="loading || collectingGeolocation"
 						@click="retryGeolocationCollection">
-						<!-- TRANSLATORS Button that retries collecting device location after a failure. -->
+						<!-- TRANSLATORS Button that retries collecting device-reported location after a failure. -->
 						{{ t('libresign', 'Try again') }}
 					</NcButton>
 				</div>
@@ -296,6 +295,7 @@ import { FILE_STATUS } from '../../../constants.js'
 import {
 	collectDeviceGeolocation,
 	isGeolocationRequired,
+	resolveFrozenGeolocationRequirement,
 	type CollectedGeolocation,
 	type GeolocationCollectionFailureReason,
 } from '../../../helpers/signerGeolocation'
@@ -529,46 +529,34 @@ const currentDocument = computed<SignDocument>(() => signStore.document)
 const visibleElementsDocument = computed(() => normalizeDocumentForVisibleElements(currentDocument.value))
 const currentUserSignRequestIds = computed(() => new Set(getCurrentUserSignRequestIds(visibleElementsDocument.value)))
 
-const currentSignerGeolocationRequirement = computed(() => {
-	const document = signStore.document as {
-		signers?: Array<{ me?: boolean, metadata?: { geolocationRequirement?: string } }>
-		files?: Array<{ signers?: Array<{ me?: boolean, metadata?: { geolocationRequirement?: string } }> }>
-	} | undefined
-	const topLevel = document?.signers?.find((signer) => signer.me)
-	if (topLevel?.metadata?.geolocationRequirement) {
-		return topLevel.metadata.geolocationRequirement
-	}
-	for (const file of document?.files ?? []) {
-		const nested = file.signers?.find((signer) => signer.me)
-		if (nested?.metadata?.geolocationRequirement) {
-			return nested.metadata.geolocationRequirement
-		}
-	}
-	return undefined
-})
+const currentSignerGeolocationRequirement = computed(() =>
+	resolveFrozenGeolocationRequirement(signStore.document),
+)
 const requiresDeviceGeolocation = computed(() => isGeolocationRequired(currentSignerGeolocationRequirement.value))
+// TRANSLATORS Early notice shown on the signing screen when device-reported location is mandatory.
+const geolocationRequiredBannerText = t('libresign', 'Device-reported location is required to sign this document.')
 // TRANSLATORS Dialog title before requesting browser geolocation permission for signing.
-const geolocationPrivacyDialogTitle = t('libresign', 'Device location required')
+const geolocationPrivacyDialogTitle = t('libresign', 'Device-reported location required')
 // TRANSLATORS Privacy explanation shown before the browser asks for location permission.
-const geolocationPrivacyDialogBody = t('libresign', 'LibreSign will request your device location and store it as signing metadata. Providing location is required to complete this signature.')
+const geolocationPrivacyDialogBody = t('libresign', 'LibreSign will request your device-reported location and store it as signing metadata. Providing location is required to complete this signature.')
 
 const geolocationFailureMessage = computed(() => {
 	switch (geolocationFailureReason.value) {
 	case 'permission_denied':
 		// TRANSLATORS Error when the browser denied location permission and location is required to sign.
-		return t('libresign', 'Location permission was denied. Device location is required to sign this document.')
+		return t('libresign', 'Location permission was denied. Device-reported location is required to sign this document.')
 	case 'position_unavailable':
 		// TRANSLATORS Error when the device cannot determine its location and location is required to sign.
-		return t('libresign', 'Your device location is unavailable. Device location is required to sign this document.')
+		return t('libresign', 'Your device-reported location is unavailable. Device-reported location is required to sign this document.')
 	case 'timeout':
 		// TRANSLATORS Error when location collection timed out and location is required to sign.
-		return t('libresign', 'Getting your device location timed out. Device location is required to sign this document.')
+		return t('libresign', 'Getting your device-reported location timed out. Device-reported location is required to sign this document.')
 	case 'unsupported':
 		// TRANSLATORS Error when the browser cannot provide geolocation and location is required to sign.
-		return t('libresign', 'This browser cannot provide device location. Device location is required to sign this document.')
+		return t('libresign', 'This browser cannot provide device-reported location. Device-reported location is required to sign this document.')
 	case 'unknown':
 		// TRANSLATORS Generic error when location collection failed and location is required to sign.
-		return t('libresign', 'Could not get your device location. Device location is required to sign this document.')
+		return t('libresign', 'Could not get your device-reported location. Device-reported location is required to sign this document.')
 	default:
 		return ''
 	}
@@ -815,6 +803,7 @@ const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 		}
 
 		signStore.setSigningErrors(signError.errors || [])
+		collectedGeolocation.value = null
 	} finally {
 		loading.value = false
 	}
@@ -967,6 +956,7 @@ defineExpose({
 	submitSignature,
 	signWithTokenCode,
 	requiresDeviceGeolocation,
+	geolocationRequiredBannerText,
 	showGeolocationPrivacyDialog,
 	geolocationFailureMessage,
 	geolocationFailureReason,
