@@ -158,6 +158,9 @@ type SignerToEdit = {
 	description?: string
 	identifyMethods?: SignerMethodValue[]
 	geolocationRequired?: boolean
+	metadata?: {
+		geolocationRequirement?: string
+	}
 }
 
 type FilesStore = ReturnType<typeof useFilesStore>
@@ -330,6 +333,7 @@ onBeforeMount(() => {
 	description.value = props.signerToEdit.description ?? ''
 	enableCustomMessage.value = !!props.signerToEdit.description
 	geolocationRequired.value = props.signerToEdit.geolocationRequired === true
+		|| props.signerToEdit.metadata?.geolocationRequirement === 'required'
 	identify.value = getSignerToEditIdentify(props.signerToEdit)
 	if (Object.keys(props.signerToEdit).length > 0 && props.signerToEdit.identifyMethods?.length) {
 		const method = props.signerToEdit.identifyMethods[0]
