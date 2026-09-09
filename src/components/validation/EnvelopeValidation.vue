@@ -150,15 +150,8 @@
 								{{ signer.user_agent }}
 							</template>
 						</NcListItem>
-						<NcListItem v-if="deviceReportedLocationFor(signer)" class="detail-item" compact>
-							<template #name>
-								<!-- TRANSLATORS Label for coordinates reported by the signer's device at signing time. -->
-								<strong>{{ t('libresign', 'Device-reported location:') }}</strong>
-								{{ deviceReportedLocationFor(signer) }}
-								<!-- TRANSLATORS Disclaimer that stored coordinates are not verified proof of physical presence. -->
-								<span class="device-reported-location-disclaimer">{{ t('libresign', 'Not verified physical presence.') }}</span>
-							</template>
-						</NcListItem>
+						<DeviceReportedLocation v-if="signer.metadata?.geolocation"
+							:geolocation="signer.metadata?.geolocation" />
 					</div>
 				</li>
 			</ul>
@@ -176,7 +169,6 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcRichText from '@nextcloud/vue/components/NcRichText'
-import { formatDeviceReportedLocation } from '../../helpers/signerGeolocation'
 import { computed, ref, watch } from 'vue'
 
 import {
@@ -192,6 +184,7 @@ import Moment from '@nextcloud/moment'
 import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
+import DeviceReportedLocation from './DeviceReportedLocation.vue'
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
 import type {
 	LoadedValidationEnvelopeDocument,
@@ -252,10 +245,6 @@ function dateFromSqlAnsi(date: string) {
 	return Moment(Date.parse(date)).format('LL LTS')
 }
 
-function deviceReportedLocationFor(signer: EnvelopeSigner) {
-	return formatDeviceReportedLocation(signer.metadata?.geolocation)
-}
-
 function isSignerOpen(signerIndex: number) {
 	return !!signerOpenState.value[signerIndex]
 }
@@ -312,7 +301,6 @@ defineExpose({
 	isFileOpen,
 	getFileStatusText,
 	dateFromSqlAnsi,
-	deviceReportedLocationFor,
 	toggleDetail,
 	toggleFileDetail,
 	getName,
@@ -444,13 +432,6 @@ defineExpose({
 			line-height: 1.4;
 		}
 	}
-}
-
-.device-reported-location-disclaimer {
-	display: block;
-	margin-block-start: 0.25em;
-	color: var(--color-text-maxcontrast);
-	font-weight: normal;
 }
 
 .signer-progress {

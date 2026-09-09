@@ -62,6 +62,10 @@ import { getSigningRouteUuid } from '../utils/signRequestUuid.ts'
  * 	signed?: string | null | boolean | unknown[]
  * 	sign_request_uuid?: string | null
  * 	geolocationRequired?: boolean
+ * 	metadata?: {
+ * 		geolocationRequirement?: string
+ * 		geolocation?: Record<string, unknown>
+ * 	}
  * }} EditableSignerDraft
  */
 
