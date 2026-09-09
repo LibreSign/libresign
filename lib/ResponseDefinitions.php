@@ -58,6 +58,7 @@ namespace OCA\Libresign;
  *     nodeId?: non-negative-int,
  *     path?: string,
  *     url?: string,
+ *     name?: string,
  * }
  * @psalm-type LibresignIdDocs = array{
  *     file: LibresignNewFile,
