@@ -309,6 +309,7 @@ defineExpose({
 	isFileOpen,
 	getFileStatusText,
 	dateFromSqlAnsi,
+	deviceReportedLocationFor,
 	toggleDetail,
 	toggleFileDetail,
 	getName,
