@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Api\Controller;
 use DateTime;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
@@ -161,6 +162,31 @@ final class FileControllerTest extends ApiTestCase {
 			]);
 
 		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testAddFileToEnvelopeRejectsDifferentOwnerAndMatchesOpenApiContract(): void {
+		$owner = $this->createAccount('envelope-owner', 'password');
+		$this->createAccount('other-requester', 'password');
+		$this->getMockAppConfig()->setValueString(Application::APP_ID, 'groups_request_sign', '{"allowGroups":["admin","testGroup"],"denyGroups":[]}');
+
+		/** @var EnvelopeService $envelopeService */
+		$envelopeService = \OCP\Server::get(EnvelopeService::class);
+		$envelope = $envelopeService->createEnvelope('Owner Envelope', $owner->getUID(), 2);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('other-requester:password'),
+			])
+			->withPath('/api/v1/file/' . $envelope->getUuid() . '/add-file')
+			->withMethod('POST')
+			->expectStatus(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertSame('You do not have permission for this action.', $body['ocs']['data']['message']);
 	}
 
 	/**
