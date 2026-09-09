@@ -43,6 +43,10 @@ type SignerToEdit = {
 	displayName?: string
 	description?: string
 	identifyMethods?: Array<{ method: string; value: string }>
+	geolocationRequired?: boolean
+	metadata?: {
+		geolocationRequirement?: string
+	}
 }
 
 type IdentifySignerVm = {
@@ -670,6 +674,19 @@ describe('IdentifySigner rules', () => {
 				signers: Array<Record<string, unknown>>
 			}
 			expect(payload.signers[0]).not.toHaveProperty('geolocationRequired')
+		})
+
+		it('restores the toggle from frozen signer metadata when editing', () => {
+			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'optional' })
+			wrapper = createWrapper({
+				signerToEdit: {
+					displayName: 'John',
+					identifyMethods: [{ method: 'email', value: 'john@example.com' }],
+					metadata: { geolocationRequirement: 'required' },
+				},
+			})
+
+			expect(wrapper.vm.geolocationRequired).toBe(true)
 		})
 	})
 })
