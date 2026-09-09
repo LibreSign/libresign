@@ -1201,6 +1201,7 @@ describe('files store - critical business rules', () => {
 						description: 'Needs review',
 						notify: 0,
 						status: 1,
+						geolocationRequired: true,
 						localKey: 'draft-signer:1',
 						statusText: 'Draft',
 						me: true,
@@ -1221,6 +1222,7 @@ describe('files store - critical business rules', () => {
 					description: 'Needs review',
 					notify: 0,
 					status: 1,
+					geolocationRequired: true,
 				}])
 			})
 

@@ -47,6 +47,14 @@
 				resize="none" />
 		</div>
 
+		<div v-if="signerSelected && showGeolocationRequirementToggle && !disabled" class="geolocation-wrapper">
+			<NcCheckboxRadioSwitch v-model="geolocationRequired"
+				type="switch">
+				<!-- TRANSLATORS Switch label allowing the requester to require device location for this signer. -->
+				{{ t('libresign', 'Require device location to sign') }}
+			</NcCheckboxRadioSwitch>
+		</div>
+
 		<div v-if="!disabled" class="identifySigner__footer">
 			<div class="button-group">
 				<NcButton @click="filesStore.disableIdentifySigner()">
@@ -87,6 +95,8 @@ import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
 import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
+import { usePoliciesStore } from '../../store/policies.ts'
+import { resolveSignerGeolocationMode } from '../../views/Settings/PolicyWorkbench/settings/signer-geolocation/model.ts'
 import { getSignRequestStatusText } from '../../utils/getSignRequestStatusText.ts'
 import type { IdentifyAccountRecord } from '../../types'
 
@@ -147,6 +157,7 @@ type SignerToEdit = {
 	displayName?: string
 	description?: string
 	identifyMethods?: SignerMethodValue[]
+	geolocationRequired?: boolean
 }
 
 type FilesStore = ReturnType<typeof useFilesStore>
@@ -164,15 +175,22 @@ const saveSignerButtonLabel = t('libresign', 'Save')
 const updateSignerButtonLabel = t('libresign', 'Update')
 
 const filesStore = useFilesStore()
+const policiesStore = usePoliciesStore()
 
 const nameHelperText = ref('')
 const nameHaveError = ref(false)
 const displayName = ref('')
 const description = ref('')
 const enableCustomMessage = ref(false)
+const geolocationRequired = ref(false)
 const identify = ref('')
 const identifyMethod = ref<IdentifyAccountRecord['method'] | undefined>()
 const acceptsEmailNotifications = ref<boolean | undefined>()
+
+const signerGeolocationMode = computed(() =>
+	resolveSignerGeolocationMode(policiesStore.getEffectiveValue('signer_geolocation')),
+)
+const showGeolocationRequirementToggle = computed(() => signerGeolocationMode.value === 'optional')
 
 const signerSelected = computed(() => identify.value.length > 0)
 const isNewSigner = computed(() => !props.signerToEdit || Object.keys(props.signerToEdit).length === 0)
@@ -203,6 +221,7 @@ function resetSelectedSignerState() {
 	displayName.value = ''
 	description.value = ''
 	enableCustomMessage.value = false
+	geolocationRequired.value = false
 	identify.value = ''
 	identifyMethod.value = undefined
 	acceptsEmailNotifications.value = undefined
@@ -254,6 +273,9 @@ async function saveSigner() {
 		displayName: displayName.value,
 		description: description.value.trim() || undefined,
 		...(identifyMethod.value === 'email' ? { email: identify.value } : {}),
+		...(showGeolocationRequirementToggle.value
+			? { geolocationRequired: geolocationRequired.value }
+			: {}),
 		status: SIGN_REQUEST_STATUS.DRAFT,
 		statusText: getSignRequestStatusText(SIGN_REQUEST_STATUS.DRAFT),
 		identifyMethods: [
@@ -307,6 +329,7 @@ onBeforeMount(() => {
 	displayName.value = props.signerToEdit.displayName ?? ''
 	description.value = props.signerToEdit.description ?? ''
 	enableCustomMessage.value = !!props.signerToEdit.description
+	geolocationRequired.value = props.signerToEdit.geolocationRequired === true
 	identify.value = getSignerToEditIdentify(props.signerToEdit)
 	if (Object.keys(props.signerToEdit).length > 0 && props.signerToEdit.identifyMethods?.length) {
 		const method = props.signerToEdit.identifyMethods[0]
@@ -323,6 +346,8 @@ defineExpose({
 	displayName,
 	description,
 	enableCustomMessage,
+	geolocationRequired,
+	showGeolocationRequirementToggle,
 	identify,
 	identifyMethod,
 	acceptsEmailNotifications,
@@ -368,7 +393,8 @@ defineExpose({
 			gap: 0.5em;
 		}
 	}
-	.description-wrapper {
+	.description-wrapper,
+	.geolocation-wrapper {
 		width: 100%;
 		margin-bottom: 16px;
 
