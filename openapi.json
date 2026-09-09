@@ -1316,6 +1316,9 @@
                     },
                     "url": {
                         "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
                     }
                 }
             },
