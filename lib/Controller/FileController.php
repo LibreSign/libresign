@@ -598,6 +598,7 @@ class FileController extends AEnvironmentAwareController {
 			$this->validateHelper->canRequestSign($this->userSession->getUser());
 
 			$envelope = $this->fileMapper->getByUuid($uuid);
+			$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $envelope->getId());
 
 			if ($envelope->getNodeType() !== 'envelope') {
 				throw new LibresignException($this->l10n->t('This is not an envelope'));
