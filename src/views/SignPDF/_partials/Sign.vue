@@ -8,6 +8,29 @@
 			<Signatures v-if="hasSignatures" />
 		</div>
 		<div v-if="!loading" class="button-wrapper">
+			<NcNoteCard v-if="requiresDeviceGeolocation"
+				type="info">
+				<!-- TRANSLATORS Early notice that device location is required before the signature can be completed. -->
+				{{ t('libresign', 'Device location is required to sign this document.') }}
+			</NcNoteCard>
+			<NcNoteCard v-if="geolocationFailureMessage"
+				type="error">
+				<p>{{ geolocationFailureMessage }}</p>
+				<div class="geolocation-failure-actions">
+					<NcButton :disabled="loading || collectingGeolocation"
+						@click="dismissGeolocationFailure">
+						<!-- TRANSLATORS Button that closes the location-required failure state without signing. -->
+						{{ t('libresign', 'Cancel') }}
+					</NcButton>
+					<NcButton class="geolocation-retry"
+						variant="primary"
+						:disabled="loading || collectingGeolocation"
+						@click="retryGeolocationCollection">
+						<!-- TRANSLATORS Button that retries collecting device location after a failure. -->
+						{{ t('libresign', 'Try again') }}
+					</NcButton>
+				</div>
+			</NcNoteCard>
 			<NcNoteCard v-for="(error, index) in signStore.errors"
 				:key="index"
 				:heading="error.title || ''"
@@ -189,6 +212,32 @@
 			mode="email"
 			@change="signWithEmailToken"
 			@close="signMethodsStore.closeModal('emailToken')" />
+		<NcDialog v-if="showGeolocationPrivacyDialog"
+			:no-close="collectingGeolocation"
+			:name="geolocationPrivacyDialogTitle"
+			size="small"
+			dialog-classes="libresign-dialog"
+			@closing="cancelGeolocationPrivacyDialog">
+			<p class="confirmation-text">
+				{{ geolocationPrivacyDialogBody }}
+			</p>
+			<template #actions>
+				<NcButton :disabled="collectingGeolocation"
+					@click="cancelGeolocationPrivacyDialog">
+					<!-- TRANSLATORS Dialog action that cancels device location collection and aborts signing. -->
+					{{ t('libresign', 'Cancel') }}
+				</NcButton>
+				<NcButton variant="primary"
+					:disabled="collectingGeolocation"
+					@click="confirmGeolocationPrivacyDialog">
+					<template #icon>
+						<NcLoadingIcon v-if="collectingGeolocation" :size="20" />
+					</template>
+					<!-- TRANSLATORS Dialog action that continues and requests device location from the browser. -->
+					{{ t('libresign', 'Continue') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 	</div>
 </template>
 
@@ -244,6 +293,12 @@ import {
 	normalizeDocumentForVisibleElements,
 } from '../../../services/signingDocumentAdapter'
 import { FILE_STATUS } from '../../../constants.js'
+import {
+	collectDeviceGeolocation,
+	isGeolocationRequired,
+	type CollectedGeolocation,
+	type GeolocationCollectionFailureReason,
+} from '../../../helpers/signerGeolocation'
 import {
 	getCurrentUserSignRequestIds,
 	hasVisibleElementsForCurrentUser,
@@ -462,12 +517,62 @@ const user = ref<UserInfo>({
 const signPassword = ref('')
 const showManagePassword = ref(false)
 const isModal = window.self !== window.top
+const showGeolocationPrivacyDialog = ref(false)
+const collectingGeolocation = ref(false)
+const geolocationFailureReason = ref<GeolocationCollectionFailureReason | null>(null)
+const pendingSignMethodConfig = ref<SignatureMethodConfig | null>(null)
+const collectedGeolocation = ref<CollectedGeolocation | null>(null)
 let unwatchPendingAction: null | (() => void) = null
 let requirementValidator: SigningRequirementValidator | null = null
 let actionHandler: SignFlowHandler | null = null
 const currentDocument = computed<SignDocument>(() => signStore.document)
 const visibleElementsDocument = computed(() => normalizeDocumentForVisibleElements(currentDocument.value))
 const currentUserSignRequestIds = computed(() => new Set(getCurrentUserSignRequestIds(visibleElementsDocument.value)))
+
+const currentSignerGeolocationRequirement = computed(() => {
+	const document = signStore.document as {
+		signers?: Array<{ me?: boolean, metadata?: { geolocationRequirement?: string } }>
+		files?: Array<{ signers?: Array<{ me?: boolean, metadata?: { geolocationRequirement?: string } }> }>
+	} | undefined
+	const topLevel = document?.signers?.find((signer) => signer.me)
+	if (topLevel?.metadata?.geolocationRequirement) {
+		return topLevel.metadata.geolocationRequirement
+	}
+	for (const file of document?.files ?? []) {
+		const nested = file.signers?.find((signer) => signer.me)
+		if (nested?.metadata?.geolocationRequirement) {
+			return nested.metadata.geolocationRequirement
+		}
+	}
+	return undefined
+})
+const requiresDeviceGeolocation = computed(() => isGeolocationRequired(currentSignerGeolocationRequirement.value))
+// TRANSLATORS Dialog title before requesting browser geolocation permission for signing.
+const geolocationPrivacyDialogTitle = t('libresign', 'Device location required')
+// TRANSLATORS Privacy explanation shown before the browser asks for location permission.
+const geolocationPrivacyDialogBody = t('libresign', 'LibreSign will request your device location and store it as signing metadata. Providing location is required to complete this signature.')
+
+const geolocationFailureMessage = computed(() => {
+	switch (geolocationFailureReason.value) {
+	case 'permission_denied':
+		// TRANSLATORS Error when the browser denied location permission and location is required to sign.
+		return t('libresign', 'Location permission was denied. Device location is required to sign this document.')
+	case 'position_unavailable':
+		// TRANSLATORS Error when the device cannot determine its location and location is required to sign.
+		return t('libresign', 'Your device location is unavailable. Device location is required to sign this document.')
+	case 'timeout':
+		// TRANSLATORS Error when location collection timed out and location is required to sign.
+		return t('libresign', 'Getting your device location timed out. Device location is required to sign this document.')
+	case 'unsupported':
+		// TRANSLATORS Error when the browser cannot provide geolocation and location is required to sign.
+		return t('libresign', 'This browser cannot provide device location. Device location is required to sign this document.')
+	case 'unknown':
+		// TRANSLATORS Generic error when location collection failed and location is required to sign.
+		return t('libresign', 'Could not get your device location. Device location is required to sign this document.')
+	default:
+		return ''
+	}
+})
 
 const elements = computed(() => {
 	const signRequestIds = currentUserSignRequestIds.value
@@ -623,11 +728,22 @@ async function signWithEmailToken() {
 }
 
 const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
+	geolocationFailureReason.value = null
+
+	if (requiresDeviceGeolocation.value && !collectedGeolocation.value) {
+		pendingSignMethodConfig.value = methodConfig
+		showGeolocationPrivacyDialog.value = true
+		return
+	}
+
 	loading.value = true
 	signStore.clearSigningErrors()
 
 	try {
-		const basePayload = createBaseSubmitSignaturePayload(methodConfig)
+		const basePayload = {
+			...createBaseSubmitSignaturePayload(methodConfig),
+			...(collectedGeolocation.value ? { geolocation: collectedGeolocation.value } : {}),
+		}
 		const envelopeRequests = getEnvelopeSubmitRequests({
 			document: signStore.document,
 			basePayload,
@@ -677,9 +793,11 @@ const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 		if (outcome?.type === 'signed') {
 			actionHandler!.closeModal(modalCode)
 			sidebarStore.hideSidebar()
+			collectedGeolocation.value = null
 			emit('signed', outcome.payload)
 		} else if (outcome?.type === 'signing-started') {
 			actionHandler!.closeModal(modalCode)
+			collectedGeolocation.value = null
 			emit('signing-started', outcome.payload)
 		}
 	} catch (error: unknown) {
@@ -700,6 +818,43 @@ const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 	} finally {
 		loading.value = false
 	}
+}
+
+function cancelGeolocationPrivacyDialog() {
+	showGeolocationPrivacyDialog.value = false
+	pendingSignMethodConfig.value = null
+	collectingGeolocation.value = false
+}
+
+async function confirmGeolocationPrivacyDialog() {
+	collectingGeolocation.value = true
+	geolocationFailureReason.value = null
+	const result = await collectDeviceGeolocation()
+	collectingGeolocation.value = false
+
+	if (!result.ok) {
+		showGeolocationPrivacyDialog.value = false
+		geolocationFailureReason.value = result.reason
+		return
+	}
+
+	collectedGeolocation.value = result.geolocation
+	showGeolocationPrivacyDialog.value = false
+	const methodConfig = pendingSignMethodConfig.value ?? {}
+	pendingSignMethodConfig.value = null
+	await submitSignature(methodConfig)
+}
+
+function retryGeolocationCollection() {
+	geolocationFailureReason.value = null
+	collectedGeolocation.value = null
+	showGeolocationPrivacyDialog.value = true
+}
+
+function dismissGeolocationFailure() {
+	geolocationFailureReason.value = null
+	collectedGeolocation.value = null
+	pendingSignMethodConfig.value = null
 }
 
 function confirmSignDocument() {
@@ -851,6 +1006,21 @@ defineExpose({
 	color: var(--color-text-maxcontrast);
 	line-height: 1.5;
 	text-align: center;
+}
+
+.geolocation-failure-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin-block-start: 0.75rem;
+}
+
+.geolocation-retry {
+	margin-inline-start: 0;
+}
+
+.geolocation-retry {
+	margin-block-start: 0.75rem;
 }
 
 .no-signature-warning {
