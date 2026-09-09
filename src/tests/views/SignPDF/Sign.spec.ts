@@ -1995,3 +1995,179 @@ describe('Sign.vue - signWithTokenCode', () => {
 			)
 		})
 	})
+
+describe('Sign.vue - required device geolocation', () => {
+	beforeEach(() => {
+		setActivePinia(createPinia())
+		vi.resetModules()
+	})
+
+	async function mountSignWithRequiredGeolocation() {
+		vi.doMock('../../../helpers/signerGeolocation', async () => {
+			const actual = await vi.importActual<typeof import('../../../helpers/signerGeolocation')>('../../../helpers/signerGeolocation')
+			return {
+				...actual,
+				collectDeviceGeolocation: vi.fn(),
+			}
+		})
+
+		const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+		const geolocationHelper = await import('../../../helpers/signerGeolocation')
+		const { useSignStore } = await import('../../../store/sign.js')
+		const { useSignMethodsStore: useSignMethodsStoreModule } = await import('../../../store/signMethods.js')
+
+		const signStore = useSignStore()
+		const signMethodsStore = useSignMethodsStoreModule()
+		signMethodsStore.settings = {
+			clickToSign: { enabled: true },
+		}
+		signStore.document = createSignDocument({
+			id: 42,
+			signers: [{
+				me: true,
+				sign_request_uuid: 'geo-sign-uuid',
+				metadata: { geolocationRequirement: 'required' },
+			}],
+		})
+
+		const submitSignatureMock = vi.fn().mockResolvedValue({ status: 'signed', data: {} })
+		signStore.submitSignature = submitSignatureMock as SignStore['submitSignature']
+
+		const wrapper = mount(SignComponent.default, createSignMountOptions())
+		await flushPromises()
+
+		return {
+			wrapper,
+			submitSignatureMock,
+			collectDeviceGeolocation: geolocationHelper.collectDeviceGeolocation as MockedFunction<typeof geolocationHelper.collectDeviceGeolocation>,
+		}
+	}
+
+	it('shows the early banner when geolocationRequirement is required', async () => {
+		const { wrapper } = await mountSignWithRequiredGeolocation()
+		expect(wrapper.vm.requiresDeviceGeolocation).toBe(true)
+		expect(wrapper.vm.geolocationPrivacyDialogBody).toContain('store it as signing metadata')
+	})
+
+	it('opens the privacy dialog instead of submitting when location is still missing', async () => {
+		const { wrapper, submitSignatureMock } = await mountSignWithRequiredGeolocation()
+
+		await wrapper.vm.submitSignature({ method: 'clickToSign' })
+		await flushPromises()
+
+		expect(wrapper.vm.showGeolocationPrivacyDialog).toBe(true)
+		expect(submitSignatureMock).not.toHaveBeenCalled()
+	})
+
+	it('cancels the privacy dialog without collecting location or submitting', async () => {
+		const { wrapper, submitSignatureMock, collectDeviceGeolocation } = await mountSignWithRequiredGeolocation()
+
+		await wrapper.vm.submitSignature({ method: 'clickToSign' })
+		wrapper.vm.cancelGeolocationPrivacyDialog()
+		await flushPromises()
+
+		expect(wrapper.vm.showGeolocationPrivacyDialog).toBe(false)
+		expect(collectDeviceGeolocation).not.toHaveBeenCalled()
+		expect(submitSignatureMock).not.toHaveBeenCalled()
+	})
+
+	it('submits collected geolocation after privacy dialog continues successfully', async () => {
+		const { wrapper, submitSignatureMock, collectDeviceGeolocation } = await mountSignWithRequiredGeolocation()
+		collectDeviceGeolocation.mockResolvedValue({
+			ok: true,
+			geolocation: {
+				status: 'collected',
+				latitude: -23.55,
+				longitude: -46.63,
+				accuracy: 12,
+				timestamp: 1_700_000_000_000,
+			},
+		})
+
+		await wrapper.vm.submitSignature({ method: 'clickToSign' })
+		await wrapper.vm.confirmGeolocationPrivacyDialog()
+		await flushPromises()
+
+		expect(collectDeviceGeolocation).toHaveBeenCalled()
+		expect(submitSignatureMock).toHaveBeenCalledWith(
+			expect.objectContaining({
+				method: 'clickToSign',
+				geolocation: {
+					status: 'collected',
+					latitude: -23.55,
+					longitude: -46.63,
+					accuracy: 12,
+					timestamp: 1_700_000_000_000,
+				},
+			}),
+			'geo-sign-uuid',
+			{ documentId: 42 },
+		)
+	})
+
+	it('blocks submit on collection failure and allows retry then dismiss', async () => {
+		const { wrapper, submitSignatureMock, collectDeviceGeolocation } = await mountSignWithRequiredGeolocation()
+		collectDeviceGeolocation.mockResolvedValue({
+			ok: false,
+			reason: 'permission_denied',
+		})
+
+		await wrapper.vm.submitSignature({ method: 'clickToSign' })
+		await wrapper.vm.confirmGeolocationPrivacyDialog()
+		await flushPromises()
+
+		expect(submitSignatureMock).not.toHaveBeenCalled()
+		expect(wrapper.vm.geolocationFailureReason).toBe('permission_denied')
+		expect(wrapper.vm.geolocationFailureMessage).toContain('Location permission was denied')
+
+		wrapper.vm.retryGeolocationCollection()
+		expect(wrapper.vm.showGeolocationPrivacyDialog).toBe(true)
+		expect(wrapper.vm.geolocationFailureReason).toBeNull()
+
+		wrapper.vm.dismissGeolocationFailure()
+		expect(wrapper.vm.geolocationFailureReason).toBeNull()
+		expect(wrapper.vm.showGeolocationPrivacyDialog).toBe(false)
+		expect(submitSignatureMock).not.toHaveBeenCalled()
+	})
+
+	it('does not request geolocation when requirement is disabled', async () => {
+		vi.doMock('../../../helpers/signerGeolocation', async () => {
+			const actual = await vi.importActual<typeof import('../../../helpers/signerGeolocation')>('../../../helpers/signerGeolocation')
+			return {
+				...actual,
+				collectDeviceGeolocation: vi.fn(),
+			}
+		})
+
+		const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+		const geolocationHelper = await import('../../../helpers/signerGeolocation')
+		const { useSignStore } = await import('../../../store/sign.js')
+
+		const signStore = useSignStore()
+		signStore.document = createSignDocument({
+			id: 42,
+			signers: [{
+				me: true,
+				sign_request_uuid: 'geo-sign-uuid',
+				metadata: { geolocationRequirement: 'disabled' },
+			}],
+		})
+		const submitSignatureMock = vi.fn().mockResolvedValue({ status: 'signed', data: {} })
+		signStore.submitSignature = submitSignatureMock as SignStore['submitSignature']
+
+		const wrapper = mount(SignComponent.default, createSignMountOptions())
+		await flushPromises()
+		await wrapper.vm.submitSignature({ method: 'clickToSign' })
+		await flushPromises()
+
+		expect(wrapper.vm.requiresDeviceGeolocation).toBe(false)
+		expect(wrapper.vm.showGeolocationPrivacyDialog).toBe(false)
+		expect(geolocationHelper.collectDeviceGeolocation).not.toHaveBeenCalled()
+		expect(submitSignatureMock).toHaveBeenCalledWith(
+			expect.objectContaining({ method: 'clickToSign' }),
+			'geo-sign-uuid',
+			{ documentId: 42 },
+		)
+		expect(submitSignatureMock.mock.calls[0]?.[0]).not.toHaveProperty('geolocation')
+	})
+})
