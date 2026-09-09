@@ -45,3 +45,18 @@ See the respective sections below for further instructions.
 ### Front and backend development environment
 
 More information [here](https://docs.libresign.coop/developer_manual/getting-started/development-environment/setup), at the [official documentation](https://docs.libresign.coop/developer_manual/getting-started/development-environment/setup)
+
+After your first contribution
+-----------------------------
+
+When your first pull request is merged, a bot leaves a short note on it to say
+thank you and to point you at what to look at next. It is triggered by the
+first pull request of yours that is actually **merged**, so an earlier one that
+was closed without being accepted does not use it up.
+
+That note may include a link to a short contributor survey. Answering it is
+entirely optional and nothing about your contribution depends on it — we ask
+because the people best placed to tell us where the first contribution is
+harder than it should be are the ones who have just been through it.
+
+You are, of course, welcome to contribute again without any of that.

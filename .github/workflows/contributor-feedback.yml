@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Contributor feedback
+
+# A contributor's first *merged* pull request is the moment worth marking, not
+# their first opened one -- someone may have had an earlier pull request closed
+# without being accepted, and greeting that as a success reads wrong.
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions: {}
+
+concurrency:
+  group: contributor-feedback-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  first-merged-contribution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.user.type != 'Bot'
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: write
+
+    steps:
+      # Nothing from the pull request is checked out, downloaded or executed:
+      # pull_request_target runs with a writable token against the base
+      # repository, so the job only ever reads event metadata and posts a
+      # comment.
+      - name: Greet a first merged contribution
+        uses: zephyrproject-rtos/action-first-interaction@58853996b1ac504b8e0f6964301f369d2bb22e5c # v1.1.1+zephyr.6
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-merged-message: >
+            Hi @${{ github.event.pull_request.user.login }}, your first pull
+            request to LibreSign has been merged. 🎉
+
+
+            Your work is part of LibreSign now, and everyone who signs a
+            document with it benefits from the time and knowledge you shared.
+            Thank you.
+
+
+            You are very welcome to contribute again — the
+            [good first issue](https://github.com/LibreSign/libresign/labels/good%20first%20issue)
+            list is a good place to look next, and you no longer have to wonder
+            how the process works.
+
+
+            ${{ vars.CONTRIBUTOR_SURVEY_URL && format('If you have a few minutes and feel like it, we would love to hear how this went for you: {0}. It is entirely optional — nothing is expected of you in return for contributing.', vars.CONTRIBUTOR_SURVEY_URL) || '' }}
+
+
+            ${{ vars.COMMUNITY_URL && format('Come say hello in the LibreSign community: {0}', vars.COMMUNITY_URL) || '' }}
