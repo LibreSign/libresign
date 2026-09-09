@@ -27,6 +27,15 @@ type EnvelopeSigner = {
 	user_agent?: string
 	documentsSignedCount?: number
 	totalDocuments?: number
+	metadata?: {
+		geolocation?: {
+			status?: string
+			latitude?: number
+			longitude?: number
+			accuracy?: number
+			timestamp?: number
+		}
+	}
 }
 
 type EnvelopeDocument = {
@@ -580,6 +589,33 @@ describe('EnvelopeValidation', () => {
 			expect(wrapper.vm.deviceReportedLocationFor({
 				displayName: 'Signer',
 			})).toBeNull()
+		})
+
+		it('renders the not-verified disclaimer beside device-reported location', async () => {
+			wrapper = createWrapper({
+				document: {
+					signers: [{
+						displayName: 'Geo Signer',
+						signed: '2024-01-01T00:00:00Z',
+						metadata: {
+							geolocation: {
+								status: 'collected',
+								latitude: -23.55,
+								longitude: -46.63,
+								accuracy: 12,
+								timestamp: 0,
+							},
+						},
+					}],
+				},
+			})
+			wrapper.vm.toggleDetail(0)
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.vm.isSignerOpen(0)).toBe(true)
+			expect(wrapper.vm.deviceReportedLocationFor(wrapper.props('document').signers[0])).toContain('-23.55, -46.63')
+			expect(wrapper.html()).toContain('Device-reported location:')
+			expect(wrapper.html()).toContain('Not verified physical presence.')
 		})
 	})
 })

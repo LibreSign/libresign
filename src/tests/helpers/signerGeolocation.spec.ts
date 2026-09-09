@@ -11,6 +11,7 @@ import {
 	GEOLOCATION_POSITION_OPTIONS,
 	isGeolocationRequired,
 	mapGeolocationError,
+	resolveFrozenGeolocationRequirement,
 } from '../../helpers/signerGeolocation'
 
 describe('signerGeolocation helper', () => {
@@ -18,6 +19,22 @@ describe('signerGeolocation helper', () => {
 		expect(isGeolocationRequired('required')).toBe(true)
 		expect(isGeolocationRequired('disabled')).toBe(false)
 		expect(isGeolocationRequired(undefined)).toBe(false)
+	})
+
+	it('resolves frozen requirement from top-level and nested signers', () => {
+		expect(resolveFrozenGeolocationRequirement({
+			signers: [{ me: true, metadata: { geolocationRequirement: 'required' } }],
+		})).toBe('required')
+		expect(resolveFrozenGeolocationRequirement({
+			signers: [{ me: false, metadata: { geolocationRequirement: 'required' } }],
+			files: [{
+				signers: [{ me: true, metadata: { geolocationRequirement: 'disabled' } }],
+			}],
+		})).toBe('disabled')
+		expect(resolveFrozenGeolocationRequirement({
+			signers: [{ me: true, metadata: {} }],
+		})).toBeUndefined()
+		expect(resolveFrozenGeolocationRequirement(undefined)).toBeUndefined()
 	})
 
 	it('maps browser position error codes', () => {
