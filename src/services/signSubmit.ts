@@ -31,6 +31,13 @@ export type SubmitSignaturePayload = {
 		documentElementId: number
 		profileNodeId?: number
 	}>
+	geolocation?: {
+		status: 'collected'
+		latitude: number
+		longitude: number
+		accuracy?: number
+		timestamp?: number
+	}
 }
 
 export type SignatureMethodConfig = {
