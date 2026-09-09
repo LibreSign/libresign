@@ -254,6 +254,6 @@ Feature: sign/observer_participant
       | signRequestId | <OBSERVER_SIGN_REQUEST_ID> |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
-    When I open the latest email to "observer@domain.test"
+    When I open the latest email to "observer@domain.test" with subject "LibreSign: Changes were made to a document"
     Then I should see "Please review the annex" in the opened email
-    And I should see "A document is ready for signature" in the opened email
+    And I should see "Changes were made to a document. Open the link below:" in the opened email
