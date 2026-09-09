@@ -50,8 +50,8 @@
 		<div v-if="signerSelected && showGeolocationRequirementToggle && !disabled" class="geolocation-wrapper">
 			<NcCheckboxRadioSwitch v-model="geolocationRequired"
 				type="switch">
-				<!-- TRANSLATORS Switch label allowing the requester to require device location for this signer. -->
-				{{ t('libresign', 'Require device location to sign') }}
+				<!-- TRANSLATORS Switch label allowing the requester to require device-reported location for this signer. -->
+				{{ t('libresign', 'Require device-reported location to sign') }}
 			</NcCheckboxRadioSwitch>
 		</div>
 
@@ -396,10 +396,10 @@ defineExpose({
 	.description-wrapper,
 	.geolocation-wrapper {
 		width: 100%;
-		margin-bottom: 16px;
+		margin-block-end: 16px;
 
 		:deep(textarea) {
-			margin-top: 8px;
+			margin-block-start: 8px;
 		}
 	}
 
