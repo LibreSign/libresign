@@ -75,7 +75,9 @@ function getParticipantDialog(page: Page) {
 function getSignerSearchCombobox(page: Page) {
 	// NcSelect exposes the method placeholder as combobox name (e.g. Account, Email),
 	// while input-label stays on the visible label. Target the stable input id instead.
-	return getParticipantDialog(page).locator('#account-or-email-input')
+	// With multiple identify-method tabs, each tab mounts its own IdentifySigner, so
+	// the same id exists twice — only the active tab's input is visible.
+	return getParticipantDialog(page).locator('#account-or-email-input').locator('visible=true')
 }
 
 /**
@@ -133,7 +135,10 @@ export async function selectEmailSigner(page: Page, email: string): Promise<void
  * Visible when more than one identify method is enabled.
  */
 export async function selectIdentifyMethodTab(page: Page, methodName: string): Promise<void> {
-	const tab = getParticipantDialog(page).getByRole('tab', { name: methodName, exact: true })
+	const dialog = getParticipantDialog(page)
+	const tab = dialog.getByRole('tab', { name: methodName, exact: true })
 	await expect(tab).toBeVisible({ timeout: 10_000 })
 	await tab.click()
+	await expect(tab).toHaveAttribute('aria-selected', 'true')
+	await expect(getSignerSearchCombobox(page)).toBeVisible({ timeout: 10_000 })
 }
