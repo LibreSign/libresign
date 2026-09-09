@@ -2,10 +2,11 @@ Feature: envelope authorization
   Background:
     Given as user "admin"
     And user "requester" exists
-    And run the command "group:add requesters" with result code 0
-    And run the command "group:adduser requesters requester" with result code 0
+    And run the bash command "php <nextcloudRootDir>/console.php group:delete requesters-envelope-authorization >/dev/null 2>&1 || true" with result code 0
+    And run the command "group:add requesters-envelope-authorization" with result code 0
+    And run the command "group:adduser requesters-envelope-authorization requester" with result code 0
     And the following "libresign" app config is set
-      | groups_request_sign | {"allowGroups":["admin","requesters"],"denyGroups":[]} |
+      | groups_request_sign | {"allowGroups":["admin","requesters-envelope-authorization"],"denyGroups":[]} |
 
   Scenario: A requester cannot modify another requester's draft envelope
     Given sending "post" to ocs "/apps/libresign/api/v1/file"
@@ -17,8 +18,8 @@ Feature: envelope authorization
     And sending "post" to ocs "/apps/libresign/api/v1/file/<ENVELOPE_UUID>/add-file"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
-      | key                   | value                                           |
-      | (jq).ocs.data.message | You do not have permission for this action.     |
+      | key                   | value                                       |
+      | (jq).ocs.data.message | You do not have permission for this action. |
 
   Scenario: The envelope owner reaches upload validation
     Given sending "post" to ocs "/apps/libresign/api/v1/file"
