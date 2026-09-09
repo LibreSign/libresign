@@ -897,6 +897,27 @@ const _filesStore = defineStore('files', () => {
 	}
 
 	/** @param {EditableSignerDraft[] | null | undefined} signers */
+	/**
+	 * Prefer the explicit requester toggle; fall back to frozen metadata from the API
+	 * so later saves/notify do not drop a previously required freeze.
+	 *
+	 * @param {EditableSignerDraft | Record<string, unknown>} signer
+	 * @return {boolean|undefined}
+	 */
+	function resolveGeolocationRequiredForRequest(signer) {
+		if (typeof signer?.geolocationRequired === 'boolean') {
+			return signer.geolocationRequired
+		}
+		const frozenRequirement = signer?.metadata?.geolocationRequirement
+		if (frozenRequirement === 'required') {
+			return true
+		}
+		if (frozenRequirement === 'disabled') {
+			return false
+		}
+		return undefined
+	}
+
 	function serializeRequestSigners(signers) {
 		if (!Array.isArray(signers)) {
 			return []
@@ -920,6 +941,7 @@ const _filesStore = defineStore('files', () => {
 						})
 						.filter(Boolean)
 					: []
+				const geolocationRequired = resolveGeolocationRequiredForRequest(signer)
 				return {
 					...(identifyMethods?.length ? { identifyMethods } : {}),
 					...(typeof signer.displayName === 'string' ? { displayName: signer.displayName } : {}),
@@ -927,8 +949,8 @@ const _filesStore = defineStore('files', () => {
 					...(typeof signer.notify === 'number' ? { notify: signer.notify } : {}),
 					...(typeof signer.signingOrder === 'number' ? { signingOrder: signer.signingOrder } : {}),
 					...(typeof signer.status === 'number' ? { status: signer.status } : {}),
-					...(typeof signer.geolocationRequired === 'boolean'
-						? { geolocationRequired: signer.geolocationRequired }
+					...(typeof geolocationRequired === 'boolean'
+						? { geolocationRequired }
 						: {}),
 				}
 			})
