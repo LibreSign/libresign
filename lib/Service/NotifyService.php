@@ -36,6 +36,7 @@ class NotifyService {
 	public function signer(int $fileId, int $signRequestId): void {
 		$this->validateHelper->canRequestSign($this->userSession->getUser());
 		$this->validateHelper->validateLibreSignFileId($fileId);
+		$this->validateHelper->validateWorkflowIsNotClosedByFileId($fileId);
 		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 		$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $fileId);
 		$this->notify($signRequest);
@@ -44,6 +45,7 @@ class NotifyService {
 	public function signers(int $fileId, array $signers): void {
 		$this->validateHelper->canRequestSign($this->userSession->getUser());
 		$this->validateHelper->validateLibreSignFileId($fileId);
+		$this->validateHelper->validateWorkflowIsNotClosedByFileId($fileId);
 		$signRequests = $this->signRequestMapper->getByFileId($fileId);
 		if (!empty($signRequests)) {
 			$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $fileId);

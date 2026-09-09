@@ -1,0 +1,84 @@
+<?php
+
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+namespace OCA\Libresign\Activity\Provider;
+
+use OCA\Libresign\AppInfo\Application;
+use OCP\Activity\Exceptions\UnknownActivityException;
+use OCP\Activity\IEvent;
+use OCP\Activity\IManager;
+use OCP\Activity\IProvider;
+use OCP\IURLGenerator;
+use OCP\IUserManager;
+use OCP\L10N\IFactory;
+use OCP\RichObjectStrings\Definitions;
+
+class SignatureRejected implements IProvider {
+	public function __construct(
+		protected IFactory $languageFactory,
+		protected IURLGenerator $url,
+		protected Definitions $definitions,
+		protected IManager $activityManager,
+		protected IUserManager $userManager,
+	) {
+	}
+
+	#[\Override]
+	public function parse($language, IEvent $event, ?IEvent $previousEvent = null): IEvent {
+		if ($event->getApp() !== Application::APP_ID) {
+			throw new UnknownActivityException('app');
+		}
+
+		if ($event->getSubject() !== 'signature_rejected') {
+			throw new UnknownActivityException('subject');
+		}
+
+		$this->definitions->definitions['sign-request'] = [
+			'author' => 'LibreSign',
+			'since' => '28.0.0',
+			'parameters' => [
+				'id' => [
+					'since' => '28.0.0',
+					'required' => true,
+					'description' => 'The id of SignRequest object',
+					'example' => '12345',
+				],
+				'name' => [
+					'since' => '28.0.0',
+					'required' => true,
+					'description' => 'The display name of signer',
+					'example' => 'John Doe',
+				],
+			],
+		];
+
+		if ($this->activityManager->getRequirePNG()) {
+			$event->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.png')));
+		} else {
+			$event->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
+		}
+
+		$l = $this->languageFactory->get(Application::APP_ID, $language);
+		$parameters = $event->getSubjectParameters();
+
+		// TRANSLATORS Activity message shown when a signer refuses to sign a document. {signer} is the signer name and {file} is the document filename.
+		$subject = $l->t('{signer} rejected the signature request for {file}');
+		$event->setParsedSubject(
+			str_replace(
+				['{signer}', '{file}'],
+				[
+					$parameters['signer']['name'],
+					$parameters['file']['name'],
+				],
+				$subject
+			))
+			->setRichSubject($subject, $parameters);
+
+		return $event;
+	}
+}

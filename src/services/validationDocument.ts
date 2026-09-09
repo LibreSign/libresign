@@ -113,6 +113,7 @@ function isSignerStatus(value: unknown): value is SignerDetailRecord['status'] {
 	return normalizedValue === SIGN_REQUEST_STATUS.DRAFT
 		|| normalizedValue === SIGN_REQUEST_STATUS.ABLE_TO_SIGN
 		|| normalizedValue === SIGN_REQUEST_STATUS.SIGNED
+		|| normalizedValue === SIGN_REQUEST_STATUS.REJECTED
 		|| normalizedValue === SIGN_REQUEST_STATUS.OBSERVING
 }
 

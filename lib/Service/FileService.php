@@ -684,13 +684,14 @@ class FileService {
 	}
 
 	/**
-	 * @psalm-return 0|1|2|3
+	 * @psalm-return 0|1|2|3|4
 	 */
 	private function normalizeSignerSummaryStatus(mixed $status): int {
 		return match ((string)$status) {
 			'1' => SignRequestStatus::ABLE_TO_SIGN->value,
 			'2' => SignRequestStatus::SIGNED->value,
-			'3' => SignRequestStatus::OBSERVING->value,
+			'3' => SignRequestStatus::REJECTED->value,
+			'4' => SignRequestStatus::OBSERVING->value,
 			default => SignRequestStatus::DRAFT->value,
 		};
 	}

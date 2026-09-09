@@ -465,11 +465,49 @@ class ValidateHelper {
 		}
 	}
 
+	/**
+	 * A workflow closed by a signature rejection no longer accepts actions that
+	 * only make sense while the document can still be signed, such as reminding
+	 * signers or changing who still has to sign. The backend refuses them even
+	 * when the interface already hides them.
+	 */
+	public function validateWorkflowIsNotClosedByFileId(int $fileId): void {
+		try {
+			$file = $this->fileMapper->getById($fileId);
+		} catch (\Throwable) {
+			return;
+		}
+
+		$this->validateWorkflowIsNotClosed($file);
+	}
+
+	public function validateWorkflowIsNotClosedByUuid(string $uuid): void {
+		try {
+			$file = $this->fileMapper->getByUuid($uuid);
+		} catch (\Throwable) {
+			return;
+		}
+
+		$this->validateWorkflowIsNotClosed($file);
+	}
+
+	public function validateWorkflowIsNotClosed(File $file): void {
+		if ($file->getStatus() !== FileStatus::CANCELED->value) {
+			return;
+		}
+
+		// TRANSLATORS Error shown when an action is attempted on a document whose signing workflow was already closed by a rejection.
+		throw new LibresignException($this->l10n->t('The signing workflow of this document is already closed.'));
+	}
+
 	public function fileCanBeSigned(File $file): void {
 		$statusList = [
 			FileStatus::ABLE_TO_SIGN->value,
 			FileStatus::PARTIAL_SIGNED->value
 		];
+		// A workflow closed by a rejection is not merely in a non-signable status,
+		// and saying so is what tells the signer why nothing more can be done here.
+		$this->validateWorkflowIsNotClosed($file);
 		if (!in_array($file->getStatus(), $statusList)) {
 			$statusText = $this->fileMapper->getTextOfStatus($file->getStatus());
 			// TRANSLATORS Validation error when a document cannot be signed because its LibreSign status is not signable. %s is the status label.

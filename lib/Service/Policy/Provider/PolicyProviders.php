@@ -26,6 +26,7 @@ use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
@@ -52,6 +53,7 @@ final class PolicyProviders {
 		LegalInformationPolicy::KEY => LegalInformationPolicy::class,
 		MailSenderStrategyPolicy::KEY => MailSenderStrategyPolicy::class,
 		SignatureHashAlgorithmPolicy::KEY => SignatureHashAlgorithmPolicy::class,
+		SignatureRejectionPolicy::KEY => SignatureRejectionPolicy::class,
 		ValidationAccessPolicy::KEY => ValidationAccessPolicy::class,
 		SignatureFlowPolicy::KEY => SignatureFlowPolicy::class,
 		SigningModePolicy::KEY_SIGNING_MODE => SigningModePolicy::class,

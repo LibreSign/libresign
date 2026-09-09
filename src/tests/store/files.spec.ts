@@ -841,7 +841,7 @@ describe('files store - critical business rules', () => {
 				id: 1,
 				signers: [
 					{ signed: ['sig1'], participantRole: 'signer' },
-					{ signed: [], participantRole: 'observer', status: 3 },
+					{ signed: [], participantRole: 'observer', status: 4 },
 				],
 			}
 
