@@ -16,6 +16,7 @@ use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\Files\File as NodeFile;
 use OCP\Files\Folder;
@@ -39,6 +40,7 @@ final class FileListServiceTest extends TestCase {
 	private IUserManager&MockObject $userManager;
 	private IRootFolder&MockObject $rootFolder;
 	private Folder&MockObject $userFolder;
+	private SignatureRejectionVisibilityService&MockObject $signatureRejectionVisibilityService;
 	private IUser&MockObject $user;
 
 	public function setUp(): void {
@@ -54,6 +56,7 @@ final class FileListServiceTest extends TestCase {
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->rootFolder = $this->createMock(IRootFolder::class);
 		$this->userFolder = $this->createMock(Folder::class);
+		$this->signatureRejectionVisibilityService = $this->createMock(SignatureRejectionVisibilityService::class);
 
 		$this->user = $this->createMock(IUser::class);
 		$this->rootFolder->method('getUserFolder')->willReturn($this->userFolder);
@@ -70,6 +73,7 @@ final class FileListServiceTest extends TestCase {
 			$this->l10n,
 			$this->userManager,
 			$this->rootFolder,
+			$this->signatureRejectionVisibilityService,
 		);
 	}
 

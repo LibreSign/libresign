@@ -25,6 +25,7 @@ use OCA\Libresign\Service\File\SettingsLoader;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestMetadataService;
+use OCA\Libresign\Service\SignatureRejection\SignatureRejectionService;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\Worker\WorkerHealthService;
@@ -44,6 +45,7 @@ use OCP\IUserSession;
  * @psalm-import-type LibresignMessageResponse from ResponseDefinitions
  * @psalm-import-type LibresignSignActionErrorResponse from ResponseDefinitions
  * @psalm-import-type LibresignSignActionResponse from ResponseDefinitions
+ * @psalm-import-type LibresignSignatureRejectionResponse from ResponseDefinitions
  * @psalm-import-type LibresignSignerGeolocation from ResponseDefinitions
  */
 
@@ -64,6 +66,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		private RequestMetadataService $requestMetadataService,
 		private SignerGeolocationMetadataValidator $signerGeolocationMetadataValidator,
 		private SigningErrorHandler $errorHandler,
+		private SignatureRejectionService $signatureRejectionService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -257,6 +260,87 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				]
 			],
 			Http::STATUS_OK
+		);
+	}
+
+	/**
+	 * Reject a signature request using file Id
+	 *
+	 * @param int $fileId Id of LibreSign file
+	 * @param string $comment Justification sent by the signer, when the document policy accepts comments
+	 * @param bool $privateComment Keep the comment visible only to who requested the signature
+	 * @return DataResponse<Http::STATUS_OK, LibresignSignatureRejectionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
+	 *
+	 * 200: OK
+	 * 422: Error
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['signing'])]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}/reject', requirements: ['apiVersion' => '(v1)'])]
+	public function rejectByFileId(int $fileId, string $comment = '', bool $privateComment = false): DataResponse {
+		return $this->reject($comment, $privateComment, $fileId, null);
+	}
+
+	/**
+	 * Reject a signature request using the signer UUID
+	 *
+	 * @param string $uuid UUID of the signer
+	 * @param string $comment Justification sent by the signer, when the document policy accepts comments
+	 * @param bool $privateComment Keep the comment visible only to who requested the signature
+	 * @return DataResponse<Http::STATUS_OK, LibresignSignatureRejectionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
+	 *
+	 * 200: OK
+	 * 422: Error
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[RequireSigner]
+	#[PublicPage]
+	#[OpenAPI(tags: ['signing'])]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}/reject', requirements: ['apiVersion' => '(v1)'])]
+	public function rejectBySignerUuid(string $uuid, string $comment = '', bool $privateComment = false): DataResponse {
+		return $this->reject($comment, $privateComment, null, $uuid);
+	}
+
+	/**
+	 * @return DataResponse<Http::STATUS_OK, LibresignSignatureRejectionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
+	 */
+	private function reject(
+		string $comment,
+		bool $privateComment,
+		?int $fileId,
+		?string $signRequestUuid,
+	): DataResponse {
+		try {
+			$user = $this->userSession->getUser();
+			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $signRequestUuid);
+			$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, $signRequestUuid, $user);
+
+			$signRequest = $this->signatureRejectionService->reject(
+				$libreSignFile,
+				$signRequest,
+				$comment,
+				$privateComment,
+			);
+		} catch (\Throwable $th) {
+			return new DataResponse(
+				['message' => $th->getMessage()],
+				Http::STATUS_UNPROCESSABLE_ENTITY,
+			);
+		}
+
+		return new DataResponse(
+			[
+				// TRANSLATORS Success message shown to the signer after refusing to sign the document.
+				'message' => $this->l10n->t('Signature request rejected.'),
+				'signRequestId' => (int)$signRequest->getId(),
+				'status' => $signRequest->getStatus(),
+				'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signRequest->getStatus()),
+				'rejectedAt' => (string)$signRequest->getRejectedAt()?->format(\DateTimeInterface::ATOM),
+				'workflowCanceled' => $this->signatureRejectionService->isWorkflowCanceled($libreSignFile),
+			],
+			Http::STATUS_OK,
 		);
 	}
 
