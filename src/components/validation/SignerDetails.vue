@@ -234,6 +234,12 @@
 				{{ signer.user_agent }}
 			</template>
 		</NcListItem>
+		<NcListItem v-if="isOpen && deviceReportedLocation" class="extra" compact>
+			<template #name>
+				<strong>{{ t('libresign', 'Device-reported location:') }}</strong>
+				{{ deviceReportedLocation }}
+			</template>
+		</NcListItem>
 
 		<!-- Certificate Chain Section -->
 		<CertificateChain v-if="isOpen && signer.chain && signer.chain.length > 0"
@@ -271,6 +277,7 @@ import {
 import CertificateChain from './CertificateChain.vue'
 import SignerTimestamp from './SignerTimestamp.vue'
 import type { DocumentModificationState } from '../../services/validationDocument'
+import { formatDeviceReportedLocation } from '../../helpers/signerGeolocation'
 
 
 type ValidationState = {
@@ -315,6 +322,15 @@ type SignerModel = {
 	name?: string
 	remote_address?: string
 	user_agent?: string
+	metadata?: {
+		geolocation?: {
+			status?: string
+			latitude?: number
+			longitude?: number
+			accuracy?: number
+			timestamp?: number
+		}
+	}
 	valid_from?: string | number
 	valid_to?: string | number
 	signed?: string | null
@@ -356,6 +372,7 @@ const isOpen = ref(props.initiallyOpen)
 const validationStatusOpen = ref(false)
 const docMdpOpen = ref(false)
 const chainOpen = ref(false)
+const deviceReportedLocation = computed(() => formatDeviceReportedLocation(props.signer.metadata?.geolocation))
 const MODIFICATION_UNMODIFIED = 1
 const MODIFICATION_ALLOWED = 2
 const MODIFICATION_VIOLATION = 3
@@ -632,6 +649,7 @@ defineExpose({
 	validationStatusOpen,
 	docMdpOpen,
 	chainOpen,
+	deviceReportedLocation,
 	MODIFICATION_UNMODIFIED,
 	MODIFICATION_ALLOWED,
 	MODIFICATION_VIOLATION,
