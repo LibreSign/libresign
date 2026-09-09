@@ -126,3 +126,14 @@ export async function selectEmailSigner(page: Page, email: string): Promise<void
 	await expect(option).toBeVisible({ timeout: 10_000 })
 	await option.click()
 }
+
+/**
+ * Selects an identify-method tab in the add-participant dialog.
+ *
+ * Visible when more than one identify method is enabled.
+ */
+export async function selectIdentifyMethodTab(page: Page, methodName: string): Promise<void> {
+	const tab = getParticipantDialog(page).getByRole('tab', { name: methodName, exact: true })
+	await expect(tab).toBeVisible({ timeout: 10_000 })
+	await tab.click()
+}

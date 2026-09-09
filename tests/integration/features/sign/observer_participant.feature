@@ -162,3 +162,98 @@ Feature: sign/observer_participant
     And the response should be a JSON array with the following mandatory values
       | key                   | value                                  |
       | (jq).ocs.data.message | Observer participants are not enabled  |
+
+  Scenario: Mixed account signer and email observer creates the observer with a notification
+    Given as user "admin"
+    And user "signer1" exists
+    And set the email of user "signer1" to ""
+    And my inbox is empty
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/enable_observer_profile"
+      | value | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/make_validation_url_private"
+      | value | false |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"can_create_account":false,"factors":[{"name":"account","enabled":true,"requirement":"optional","signatureMethods":{"clickToSign":{"enabled":true}}},{"name":"email","enabled":true,"requirement":"optional","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
+    And the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"email","value":"observer@domain.test"}],"description":"Please review the annex."}] |
+      | name | Mixed identify methods observer |
+    Then the response should have a status code 200
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And the response should be a JSON array with the following mandatory values
+      | key                                              | value            |
+      | (jq).ocs.data.data[0].name                       | Mixed identify methods observer |
+      | (jq).ocs.data.data[0].signers\|length            | 2                |
+      | (jq).ocs.data.data[0].signers[0].displayName     | Observer Name    |
+      | (jq).ocs.data.data[0].signers[0].participantRole | observer         |
+      | (jq).ocs.data.data[0].signers[1].displayName     | Signer Name      |
+      | (jq).ocs.data.data[0].signers[1].participantRole | signer           |
+    And there should be 1 emails in my inbox
+    When I open the latest email to "observer@domain.test" with subject "LibreSign: A document is ready for signature"
+    Then I should see "Please review the annex" in the opened email
+    And I should see "A document is ready for signature" in the opened email
+
+  Scenario: Visible signature elements are rejected for observers and accepted for signers
+    Given as user "admin"
+    And user "signer1" exists
+    And user "observer1" exists
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/enable_observer_profile"
+      | value | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
+    And the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
+      | name | Visible element observer document |
+      | status | 0 |
+    Then the response should have a status code 200
+    And fetch field "(FILE_UUID)ocs.data.uuid" from previous JSON response
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(OBSERVER_SIGN_REQUEST_ID)ocs.data.data.0.signers.0.signRequestId" from previous JSON response
+    And fetch field "(SIGNER_SIGN_REQUEST_ID)ocs.data.data.0.signers.1.signRequestId" from previous JSON response
+    When sending "post" to ocs "/apps/libresign/api/v1/file-element/<FILE_UUID>"
+      | signRequestId | <OBSERVER_SIGN_REQUEST_ID> |
+      | type          | signature                  |
+    Then the response should have a status code 404
+    And the response should be a JSON array with the following mandatory values
+      | key                             | value                                         |
+      | (jq).ocs.data.errors[0].message | Observers cannot have visible signature elements |
+    When sending "post" to ocs "/apps/libresign/api/v1/file-element/<FILE_UUID>"
+      | signRequestId | <SIGNER_SIGN_REQUEST_ID> |
+      | type          | signature                |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                               | value  |
+      | (jq).ocs.meta.message             | OK     |
+      | (jq).ocs.data.fileElementId\|type | number |
+
+  Scenario: Sending a notification to an observer uses the validation email
+    Given as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/enable_observer_profile"
+      | value | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required"}]} |
+    And the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | name | Observer notification document |
+      | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"email","value":"signer@domain.test"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"email","value":"observer@domain.test"}],"description":"Please review the annex."}] |
+    Then the response should have a status code 200
+    And fetch field "(FILE_ID)ocs.data.id" from previous JSON response
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(OBSERVER_SIGN_REQUEST_ID)ocs.data.data.0.signers.0.signRequestId" from previous JSON response
+    And my inbox is empty
+    When sending "post" to ocs "/apps/libresign/api/v1/notify/signer"
+      | fileId | <FILE_ID> |
+      | signRequestId | <OBSERVER_SIGN_REQUEST_ID> |
+    Then the response should have a status code 200
+    And there should be 1 emails in my inbox
+    When I open the latest email to "observer@domain.test"
+    Then I should see "Please review the annex" in the opened email
+    And I should see "A document is ready for signature" in the opened email
