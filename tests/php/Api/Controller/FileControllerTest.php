@@ -180,7 +180,7 @@ final class FileControllerTest extends ApiTestCase {
 			])
 			->withPath('/api/v1/file/' . $envelope->getUuid() . '/add-file')
 			->withMethod('POST')
-			->expectStatus(422);
+			->assertResponseCode(422);
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
