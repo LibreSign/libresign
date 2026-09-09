@@ -234,15 +234,8 @@
 				{{ signer.user_agent }}
 			</template>
 		</NcListItem>
-		<NcListItem v-if="isOpen && deviceReportedLocation" class="extra" compact>
-			<template #name>
-				<!-- TRANSLATORS Label for coordinates reported by the signer's device at signing time. -->
-				<strong>{{ t('libresign', 'Device-reported location:') }}</strong>
-				{{ deviceReportedLocation }}
-				<!-- TRANSLATORS Disclaimer that stored coordinates are not verified proof of physical presence. -->
-				<span class="device-reported-location-disclaimer">{{ t('libresign', 'Not verified physical presence.') }}</span>
-			</template>
-		</NcListItem>
+		<DeviceReportedLocation v-if="isOpen && signer.metadata?.geolocation"
+			:geolocation="signer.metadata?.geolocation" />
 
 		<!-- Certificate Chain Section -->
 		<CertificateChain v-if="isOpen && signer.chain && signer.chain.length > 0"
@@ -278,10 +271,9 @@ import {
 } from '@mdi/js'
 
 import CertificateChain from './CertificateChain.vue'
+import DeviceReportedLocation from './DeviceReportedLocation.vue'
 import SignerTimestamp from './SignerTimestamp.vue'
 import type { DocumentModificationState } from '../../services/validationDocument'
-import { formatDeviceReportedLocation } from '../../helpers/signerGeolocation'
-
 
 type ValidationState = {
 	id?: number
@@ -375,7 +367,6 @@ const isOpen = ref(props.initiallyOpen)
 const validationStatusOpen = ref(false)
 const docMdpOpen = ref(false)
 const chainOpen = ref(false)
-const deviceReportedLocation = computed(() => formatDeviceReportedLocation(props.signer.metadata?.geolocation))
 const MODIFICATION_UNMODIFIED = 1
 const MODIFICATION_ALLOWED = 2
 const MODIFICATION_VIOLATION = 3
@@ -652,7 +643,6 @@ defineExpose({
 	validationStatusOpen,
 	docMdpOpen,
 	chainOpen,
-	deviceReportedLocation,
 	MODIFICATION_UNMODIFIED,
 	MODIFICATION_ALLOWED,
 	MODIFICATION_VIOLATION,
@@ -702,13 +692,6 @@ defineExpose({
 .extra {
 	padding-inline-start: 44px;
 	background-color: var(--color-background-hover);
-}
-
-.device-reported-location-disclaimer {
-	display: block;
-	margin-block-start: 0.25em;
-	color: var(--color-text-maxcontrast);
-	font-weight: normal;
 }
 
 .extra-chain {

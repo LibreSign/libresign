@@ -730,7 +730,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 	})
 
 	describe('device-reported location', () => {
-		it('formats device-reported location from signer metadata', () => {
+		it('renders the collapsible device-reported location section when metadata is present', () => {
 			wrapper = createWrapper({
 				initiallyOpen: true,
 				signer: {
@@ -746,78 +746,23 @@ describe('SignerDetails.vue - Business Logic', () => {
 				},
 			})
 
-			expect(wrapper.vm.deviceReportedLocation).toContain('-23.55, -46.63')
-			expect(wrapper.vm.deviceReportedLocation).toContain('±12 m')
+			expect(wrapper.findComponent({ name: 'DeviceReportedLocation' }).exists()).toBe(true)
+			expect(wrapper.findComponent({ name: 'DeviceReportedLocation' }).props('geolocation')).toEqual({
+				status: 'collected',
+				latitude: -23.55,
+				longitude: -46.63,
+				accuracy: 12,
+				timestamp: 0,
+			})
 		})
 
-		it('returns null when geolocation metadata is absent', () => {
+		it('does not render device-reported location when geolocation metadata is absent', () => {
 			wrapper = createWrapper({
 				initiallyOpen: true,
 				signer: { displayName: 'No Geo' },
 			})
 
-			expect(wrapper.vm.deviceReportedLocation).toBeNull()
-		})
-
-		it('exposes not-verified disclaimer copy for audit display', () => {
-			wrapper = createWrapper({
-				initiallyOpen: true,
-				signer: {
-					metadata: {
-						geolocation: {
-							status: 'collected',
-							latitude: -23.55,
-							longitude: -46.63,
-						},
-					},
-				},
-				global: {
-					stubs: {
-						NcAvatar: true,
-						NcButton: true,
-						NcIconSvgWrapper: true,
-						NcListItem: {
-							template: '<li><slot name="name" /></li>',
-						},
-						NcNoteCard: true,
-						CertificateChain: true,
-					},
-				},
-			})
-
-			// shallowMount createWrapper ignores nested global overrides; remount with slot-rendering stub
-			wrapper.unmount()
-			wrapper = shallowMount(SignerDetails, {
-				props: {
-					initiallyOpen: true,
-					signer: {
-						signed: '2024-06-01T12:00:00Z',
-						displayName: 'Test Signer',
-						metadata: {
-							geolocation: {
-								status: 'collected',
-								latitude: -23.55,
-								longitude: -46.63,
-							},
-						},
-					},
-				},
-				global: {
-					stubs: {
-						NcAvatar: true,
-						NcButton: true,
-						NcIconSvgWrapper: true,
-						NcListItem: {
-							template: '<li><slot name="name" /></li>',
-						},
-						NcNoteCard: true,
-						CertificateChain: true,
-					},
-				},
-			})
-
-			expect(wrapper.text()).toContain('Device-reported location:')
-			expect(wrapper.text()).toContain('Not verified physical presence.')
+			expect(wrapper.findComponent({ name: 'DeviceReportedLocation' }).exists()).toBe(false)
 		})
 	})
 })
