@@ -622,6 +622,7 @@ class FileController extends AEnvironmentAwareController {
 			$this->validateHelper->canRequestSign($this->userSession->getUser());
 
 			$envelope = $this->fileMapper->getByUuid($uuid);
+			$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $envelope->getId());
 
 			if ($envelope->getNodeType() !== 'envelope') {
 				// TRANSLATORS Error shown when adding files to a signature envelope but the given UUID is not an envelope container.
