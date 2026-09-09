@@ -152,8 +152,11 @@
 						</NcListItem>
 						<NcListItem v-if="deviceReportedLocationFor(signer)" class="detail-item" compact>
 							<template #name>
+								<!-- TRANSLATORS Label for coordinates reported by the signer's device at signing time. -->
 								<strong>{{ t('libresign', 'Device-reported location:') }}</strong>
 								{{ deviceReportedLocationFor(signer) }}
+								<!-- TRANSLATORS Disclaimer that stored coordinates are not verified proof of physical presence. -->
+								<span class="device-reported-location-disclaimer">{{ t('libresign', 'Not verified physical presence.') }}</span>
 							</template>
 						</NcListItem>
 					</div>
@@ -434,13 +437,20 @@ defineExpose({
 	}
 
 	.detail-item {
-		margin-bottom: 4px;
+		margin-block-end: 4px;
 
 		:deep(.list-item-content__name) {
 			white-space: normal;
 			line-height: 1.4;
 		}
 	}
+}
+
+.device-reported-location-disclaimer {
+	display: block;
+	margin-block-start: 0.25em;
+	color: var(--color-text-maxcontrast);
+	font-weight: normal;
 }
 
 .signer-progress {
