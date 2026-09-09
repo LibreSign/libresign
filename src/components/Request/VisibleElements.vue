@@ -101,6 +101,7 @@ import PdfEditor from '../PdfEditor/PdfEditor.vue'
 import Signer from '../Signers/Signer.vue'
 
 import { FILE_STATUS } from '../../constants.js'
+import { isSigningParticipant } from '../../utils/participantRole.ts'
 import { getSigningRouteUuid } from '../../utils/signRequestUuid.ts'
 import { useFilesStore } from '../../store/files.js'
 import {
@@ -547,9 +548,10 @@ const sidebarSigners = computed<Array<{ signer: EditableRequestSigner; index: nu
 	const signers: EditableRequestSigner[] = Array.isArray(document.value.signers) ? document.value.signers : []
 	return signers
 		.map((signer, index) => ({ signer, index }))
-		.filter(({ signer }) => !isSelectedSigner(signer))
+		.filter(({ signer }) => isSigningParticipant(signer) && !isSelectedSigner(signer))
 })
 const pdfEditorSigners = computed<SignerSummaryRecord[]>(() => (Array.isArray(document.value.signers) ? document.value.signers : [])
+	.filter(isSigningParticipant)
 	.map(toSignerSummaryRecord)
 	.filter((signer): signer is SignerSummaryRecord => signer !== null))
 const status = computed(() => Number(document.value.status))
@@ -1099,6 +1101,8 @@ defineExpose({
 	status,
 	statusLabel,
 	isDraft,
+	sidebarSigners,
+	pdfEditorSigners,
 	getPdfElements,
 	showModal,
 	fetchFiles,
