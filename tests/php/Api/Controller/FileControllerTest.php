@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Api\Controller;
 use DateTime;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Tests\Api\ApiRequester;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
@@ -161,6 +162,48 @@ final class FileControllerTest extends ApiTestCase {
 			]);
 
 		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testAddFileToEnvelopeRejectsDifferentOwnerAndMatchesOpenApiContract(): void {
+		$this->createAccount('envelope-owner', 'password');
+		$this->createAccount('other-requester', 'password');
+		$this->getMockAppConfig()->setValueString(Application::APP_ID, 'groups_request_sign', '{"allowGroups":["admin","testGroup"],"denyGroups":[]}');
+
+		$pdf = base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'));
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('envelope-owner:password'),
+				'Content-Type' => 'application/json',
+			])
+			->withPath('/api/v1/file')
+			->withMethod('POST')
+			->withRequestBody([
+				'name' => 'Owner Envelope',
+				'files' => [
+					['base64' => $pdf, 'name' => 'Contract.pdf'],
+					['base64' => $pdf, 'name' => 'Annex.pdf'],
+				],
+			]);
+
+		$createResponse = $this->assertRequest();
+		$createBody = json_decode($createResponse->getBody()->getContents(), true);
+		$uuid = $createBody['ocs']['data']['uuid'];
+
+		$this->request = new ApiRequester();
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('other-requester:password'),
+			])
+			->withPath('/api/v1/file/' . $uuid . '/add-file')
+			->withMethod('POST')
+			->expectStatus(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertSame('You do not have permission for this action.', $body['ocs']['data']['message']);
 	}
 
 	/**
