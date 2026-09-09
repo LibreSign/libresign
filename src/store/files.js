@@ -61,6 +61,7 @@ import { getSigningRouteUuid } from '../utils/signRequestUuid.ts'
  * 	me?: boolean
  * 	signed?: string | null | boolean | unknown[]
  * 	sign_request_uuid?: string | null
+ * 	geolocationRequired?: boolean
  * }} EditableSignerDraft
  */
 
@@ -926,6 +927,9 @@ const _filesStore = defineStore('files', () => {
 					...(typeof signer.notify === 'number' ? { notify: signer.notify } : {}),
 					...(typeof signer.signingOrder === 'number' ? { signingOrder: signer.signingOrder } : {}),
 					...(typeof signer.status === 'number' ? { status: signer.status } : {}),
+					...(typeof signer.geolocationRequired === 'boolean'
+						? { geolocationRequired: signer.geolocationRequired }
+						: {}),
 				}
 			})
 			.filter((signer) => signer && signer.identifyMethods?.length)
