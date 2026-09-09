@@ -11,6 +11,8 @@ export type CollectedGeolocation = {
 	timestamp?: number
 }
 
+export type GeolocationRequirement = 'disabled' | 'required'
+
 export type GeolocationCollectionFailureReason =
 	| 'permission_denied'
 	| 'position_unavailable'
@@ -22,14 +24,57 @@ export type GeolocationCollectionResult =
 	| { ok: true, geolocation: CollectedGeolocation }
 	| { ok: false, reason: GeolocationCollectionFailureReason }
 
+export type DeviceReportedLocation = {
+	status?: string
+	latitude?: number
+	longitude?: number
+	accuracy?: number
+	timestamp?: number
+}
+
+export type SignerWithGeolocationMetadata = {
+	me?: boolean
+	metadata?: {
+		geolocationRequirement?: GeolocationRequirement | string
+		geolocation?: DeviceReportedLocation
+	}
+}
+
+export type DocumentWithSignerGeolocation = {
+	signers?: SignerWithGeolocationMetadata[]
+	files?: Array<{
+		signers?: SignerWithGeolocationMetadata[]
+	}>
+}
+
 export const GEOLOCATION_POSITION_OPTIONS: PositionOptions = {
 	enableHighAccuracy: true,
 	timeout: 15_000,
 	maximumAge: 0,
 }
 
-export function isGeolocationRequired(requirement: unknown): boolean {
+export function isGeolocationRequired(requirement: GeolocationRequirement | string | null | undefined): boolean {
 	return requirement === 'required'
+}
+
+export function resolveFrozenGeolocationRequirement(
+	document: DocumentWithSignerGeolocation | null | undefined,
+): GeolocationRequirement | undefined {
+	const topLevel = document?.signers?.find((signer) => signer.me)
+	const topLevelRequirement = topLevel?.metadata?.geolocationRequirement
+	if (topLevelRequirement === 'disabled' || topLevelRequirement === 'required') {
+		return topLevelRequirement
+	}
+
+	for (const file of document?.files ?? []) {
+		const nested = file.signers?.find((signer) => signer.me)
+		const nestedRequirement = nested?.metadata?.geolocationRequirement
+		if (nestedRequirement === 'disabled' || nestedRequirement === 'required') {
+			return nestedRequirement
+		}
+	}
+
+	return undefined
 }
 
 export function mapGeolocationError(error: unknown): GeolocationCollectionFailureReason {
@@ -80,14 +125,6 @@ export async function collectDeviceGeolocation(
 	} catch (error) {
 		return { ok: false, reason: mapGeolocationError(error) }
 	}
-}
-
-export type DeviceReportedLocation = {
-	status?: string
-	latitude?: number
-	longitude?: number
-	accuracy?: number
-	timestamp?: number
 }
 
 export function formatDeviceReportedLocation(geolocation: DeviceReportedLocation | null | undefined): string | null {
