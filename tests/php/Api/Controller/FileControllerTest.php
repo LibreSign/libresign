@@ -168,7 +168,7 @@ final class FileControllerTest extends ApiTestCase {
 	public function testAddFileToEnvelopeRejectsDifferentOwnerAndMatchesOpenApiContract(): void {
 		$owner = $this->createAccount('envelope-owner', 'password');
 		$this->createAccount('other-requester', 'password');
-		$this->getMockAppConfig()->setValueString(Application::APP_ID, 'groups_request_sign', '{"allowGroups":["admin","testGroup"],"denyGroups":[]}');
+		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin', 'testGroup']);
 
 		/** @var EnvelopeService $envelopeService */
 		$envelopeService = \OCP\Server::get(EnvelopeService::class);
