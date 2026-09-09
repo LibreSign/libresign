@@ -273,10 +273,15 @@ class ValidateHelper {
 			: fn () => $this->signRequestMapper->getByUuid($element['uuid']);
 
 		try {
-			$getter();
+			$signRequest = $getter();
 		} catch (\Throwable) {
 			// TRANSLATORS Validation error when a visible signature element references a signer user that does not exist.
 			throw new LibresignException($this->l10n->t('User not found for element.'));
+		}
+
+		if (!$signRequest->getParticipantRoleEnum()->canSign()) {
+			// TRANSLATORS Validation error when a visible signature element is assigned to an observer, who cannot sign.
+			throw new LibresignException($this->l10n->t('Observers cannot have visible signature elements'));
 		}
 	}
 

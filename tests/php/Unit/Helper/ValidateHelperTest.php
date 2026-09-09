@@ -890,6 +890,32 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
+	public function testValidateElementSignRequestIdRejectsObservers(): void {
+		$signRequest = $this->createSignRequestEntity(45, 22, SignRequestStatus::OBSERVING);
+		$signRequest->setParticipantRole(ParticipantRole::OBSERVER->value);
+		$this->signRequestMapper->method('getById')->with(45)->willReturn($signRequest);
+
+		$this->expectExceptionMessage('Observers cannot have visible signature elements');
+
+		$this->getValidateHelper()->validateElementSignRequestId(
+			['signRequestId' => 45, 'type' => 'signature'],
+			ValidateHelper::TYPE_VISIBLE_ELEMENT_PDF,
+		);
+	}
+
+	public function testValidateElementSignRequestIdAcceptsSigners(): void {
+		$signRequest = $this->createSignRequestEntity(46, 22);
+		$signRequest->setParticipantRole(ParticipantRole::SIGNER->value);
+		$this->signRequestMapper->method('getById')->with(46)->willReturn($signRequest);
+
+		$actual = $this->getValidateHelper()->validateElementSignRequestId(
+			['signRequestId' => 46, 'type' => 'signature'],
+			ValidateHelper::TYPE_VISIBLE_ELEMENT_PDF,
+		);
+
+		$this->assertNull($actual);
+	}
+
 	public function testValidateFileWithPathNotFound(): void {
 		$this->expectExceptionMessage('Invalid data to validate file');
 
