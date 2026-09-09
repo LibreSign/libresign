@@ -5,8 +5,7 @@ Feature: envelope authorization
     And run the bash command "php <nextcloudRootDir>/console.php group:delete requesters-envelope-authorization >/dev/null 2>&1 || true" with result code 0
     And run the command "group:add requesters-envelope-authorization" with result code 0
     And run the command "group:adduser requesters-envelope-authorization requester" with result code 0
-    And the following "libresign" app config is set
-      | groups_request_sign | {"allowGroups":["admin","requesters-envelope-authorization"],"denyGroups":[]} |
+    And run the command "config:app:set libresign groups_request_sign --value='[\"admin\",\"requesters-envelope-authorization\"]' --type=array" with result code 0
 
   Scenario: A requester cannot modify another requester's draft envelope
     Given sending "post" to ocs "/apps/libresign/api/v1/file"
