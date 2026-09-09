@@ -112,6 +112,8 @@ describe('VisibleElements Component - Business Rules', () => {
 		canRequestSign: boolean
 		filePagesMap: Record<number, FilePageInfo>
 		document: Record<string, any>
+		sidebarSigners: Array<{ signer: Record<string, any>, index: number }>
+		pdfEditorSigners: Array<Record<string, any>>
 		buildFilePagesMap: () => void
 		stopAddSigner: () => void
 		closeModal: () => void
@@ -224,6 +226,21 @@ describe('VisibleElements Component - Business Rules', () => {
 			filesStore.files[1].status = FILE_STATUS.DELETED
 
 			expect(wrapper.vm.canSave).toBe(false)
+		})
+	})
+
+	describe('RULE: signature positions only list signing participants', () => {
+		it('hides observers from the sidebar and PDF editor signer lists', () => {
+			filesStore.files[1].signers = [
+				{ displayName: 'Alice Signer', participantRole: 'signer', signRequestId: 11, email: 'alice@example.com' },
+				{ displayName: 'Bob Observer', participantRole: 'observer', signRequestId: 22, email: 'bob@example.com' },
+			]
+
+			expect(wrapper.vm.sidebarSigners).toHaveLength(1)
+			expect(wrapper.vm.sidebarSigners[0].signer.displayName).toBe('Alice Signer')
+			expect(wrapper.vm.pdfEditorSigners).toHaveLength(1)
+			expect(wrapper.vm.pdfEditorSigners[0].displayName).toBe('Alice Signer')
+			expect(wrapper.vm.pdfEditorSigners[0].signRequestId).toBe(11)
 		})
 	})
 
