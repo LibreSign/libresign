@@ -150,6 +150,12 @@
 								{{ signer.user_agent }}
 							</template>
 						</NcListItem>
+						<NcListItem v-if="deviceReportedLocationFor(signer)" class="detail-item" compact>
+							<template #name>
+								<strong>{{ t('libresign', 'Device-reported location:') }}</strong>
+								{{ deviceReportedLocationFor(signer) }}
+							</template>
+						</NcListItem>
 					</div>
 				</li>
 			</ul>
@@ -167,6 +173,7 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcRichText from '@nextcloud/vue/components/NcRichText'
+import { formatDeviceReportedLocation } from '../../helpers/signerGeolocation'
 import { computed, ref, watch } from 'vue'
 
 import {
@@ -207,7 +214,7 @@ const props = withDefaults(defineProps<{
 
 type EnvelopeFile = NonNullable<LoadedValidationEnvelopeDocument['files']>[number]
 
-type EnvelopeSigner = Partial<Pick<SignerDetailRecord, 'displayName' | 'email' | 'userId' | 'request_sign_date' | 'remote_address' | 'user_agent'>> & {
+type EnvelopeSigner = Partial<Pick<SignerDetailRecord, 'displayName' | 'email' | 'userId' | 'request_sign_date' | 'remote_address' | 'user_agent' | 'metadata'>> & {
 	signed?: string | null
 	documentsSignedCount?: number
 	totalDocuments?: number
@@ -240,6 +247,10 @@ function resetDisclosureState() {
 
 function dateFromSqlAnsi(date: string) {
 	return Moment(Date.parse(date)).format('LL LTS')
+}
+
+function deviceReportedLocationFor(signer: EnvelopeSigner) {
+	return formatDeviceReportedLocation(signer.metadata?.geolocation)
 }
 
 function isSignerOpen(signerIndex: number) {
