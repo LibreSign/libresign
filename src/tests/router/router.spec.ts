@@ -246,7 +246,7 @@ describe('router business rules', () => {
 				expect(typeof component).toBe('function')
 		})
 
-		it('dynamic component returns thenable', () => {
+		it('dynamic component returns thenable', async () => {
 			const validationRoute = getRoutes().find(
 					(r: RouteRecordNormalized) => r.name === 'ValidationFileExternal'
 			)
@@ -255,6 +255,10 @@ describe('router business rules', () => {
 				expect(component).toBeDefined()
 				const componentImport = (component as () => Promise<unknown>)()
 			expect(componentImport).toHaveProperty('then')
+			// Awaited, not left floating: the loader really imports the view, and
+			// the module runner must not be torn down while that import is in
+			// flight.
+			await expect(componentImport).resolves.toBeDefined()
 		})
 	})
 

@@ -23,6 +23,13 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    groups:
+      # vitest and its coverage provider pin each other as peers, so a lone
+      # bump of either one cannot install (#8299).
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/coverage-*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
