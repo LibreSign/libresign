@@ -12,6 +12,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\IdentifyMethod as IdentifyMethodEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Listener\MailNotifyListener;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
@@ -30,6 +31,7 @@ use Psr\Log\LoggerInterface;
 class MailNotifyListenerTest extends TestCase {
 	private MailService&MockObject $mailService;
 	private IUserManager&MockObject $userManager;
+	private SignRequestMapper&MockObject $signRequestMapper;
 	private NotificationPreferenceResolver&MockObject $notificationPreferenceResolver;
 	private MailNotifyListener $listener;
 
@@ -39,7 +41,7 @@ class MailNotifyListenerTest extends TestCase {
 		$this->notificationPreferenceResolver = $this->createMock(NotificationPreferenceResolver::class);
 		$userSession = $this->createMock(IUserSession::class);
 		$identifyService = $this->createMock(IdentifyService::class);
-		$signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$logger = $this->createMock(LoggerInterface::class);
 
 		$this->listener = new MailNotifyListener(
@@ -47,7 +49,7 @@ class MailNotifyListenerTest extends TestCase {
 			$this->userManager,
 			$identifyService,
 			$this->mailService,
-			$signRequestMapper,
+			$this->signRequestMapper,
 			$logger,
 			$this->notificationPreferenceResolver,
 		);
@@ -79,6 +81,38 @@ class MailNotifyListenerTest extends TestCase {
 			->method('notifySignedUser');
 
 		$this->listener->handle($this->createSignedEvent($owner));
+	}
+
+	public function testEmailObserverReceivesUnsignedNotificationWithValidationLink(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(77);
+		$signRequest->setFileId(10);
+		$signRequest->setDisplayName('Jane Observer');
+		$signRequest->setParticipantRole('observer');
+		$signRequest->setDescription('Please review the annex');
+
+		$identifyEntity = new IdentifyMethodEntity();
+		$identifyEntity->setIdentifierKey('email');
+		$identifyEntity->setIdentifierValue('observer@example.com');
+
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getName')->willReturn('email');
+		$identifyMethod->method('getEntity')->willReturn($identifyEntity);
+
+		$this->userManager->method('getByEmail')->with('observer@example.com')->willReturn([]);
+		$this->signRequestMapper->expects($this->once())
+			->method('incrementNotificationCounter')
+			->with($signRequest, 'mail')
+			->willReturn(true);
+		$this->mailService->expects($this->once())
+			->method('notifyUnsignedUser')
+			->with($signRequest, 'observer@example.com', 'Please review the annex');
+
+		$this->listener->handle(new SendSignNotificationEvent(
+			$signRequest,
+			new FileEntity(),
+			$identifyMethod,
+		));
 	}
 
 	private function createSignedEvent(IUser $owner): SignedEvent {

@@ -144,6 +144,48 @@ final class SignRequestServiceTest extends TestCase {
 		$this->assertSame('John Doe', $signRequest->getDisplayName());
 	}
 
+	public function testCreateOrUpdateSignRequestNotifiesEmailObserver(): void {
+		$identifyMethod = $this->createIdentifyMethod('email', 'observer@example.com');
+		$this->identifyMethodService->method('getByUserData')
+			->willReturn([$identifyMethod]);
+
+		$this->signRequestMapper->method('getByIdentifyMethodAndFileId')
+			->willThrowException(new DoesNotExistException('not found'));
+
+		$this->statusService->expects($this->once())
+			->method('determineInitialStatus')
+			->willReturn(SignRequestStatus::OBSERVING);
+		$this->statusService->method('shouldNotifySignRequest')->willReturn(true);
+
+		$this->signRequestMapper->expects($this->once())
+			->method('insert')
+			->willReturnCallback(function (SignRequestEntity $request): SignRequestEntity {
+				$request->setId(33);
+				return $request;
+			});
+
+		$identifyMethod->expects($this->once())
+			->method('willNotifyUser')
+			->with(true);
+		$identifyMethod->expects($this->once())
+			->method('save');
+
+		$signRequest = $this->service->createOrUpdateSignRequest(
+			['email' => 'observer@example.com'],
+			'Observer Name',
+			'Please review this document',
+			true,
+			42,
+			0,
+			1,
+			null,
+			ParticipantRole::OBSERVER,
+		);
+
+		$this->assertSame(ParticipantRole::OBSERVER, $signRequest->getParticipantRoleEnum());
+		$this->assertSame('Please review this document', $signRequest->getDescription());
+	}
+
 	public function testCreateOrUpdateSignRequestRunsAfterPersistBeforeIdentifyMethodSave(): void {
 		$identifyMethod = $this->createIdentifyMethod('email', 'signer@example.com');
 		$this->identifyMethodService->method('getByUserData')

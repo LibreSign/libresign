@@ -85,6 +85,9 @@ class Listener implements IEventListener {
 		if (!$actor instanceof IUser) {
 			return;
 		}
+		if ($identifyMethod->getName() !== 'account') {
+			return;
+		}
 		$actorId = $actor->getUID();
 
 		$event = $this->activityManager->generateEvent();

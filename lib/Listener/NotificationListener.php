@@ -74,6 +74,9 @@ class NotificationListener implements IEventListener {
 		if ($identifyMethod->getEntity()->isDeletedAccount()) {
 			return;
 		}
+		if ($identifyMethod->getName() !== 'account') {
+			return;
+		}
 		$notificationDisabled = $this->notificationPreferenceResolver->isInAppNotificationDisabled(
 			$identifyMethod->getEntity()->getIdentifierValue(),
 			SendSignNotificationEvent::FILE_TO_SIGN,
