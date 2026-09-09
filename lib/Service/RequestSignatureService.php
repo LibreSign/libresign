@@ -497,11 +497,16 @@ class RequestSignatureService {
 				$shouldNotify = !isset($signer['notify']) || $signer['notify'] !== 0;
 				$lastSignRequest = null;
 
-				$requesterRequiresGeolocation = filter_var(
-					$signer['geolocationRequired'] ?? false,
-					FILTER_VALIDATE_BOOLEAN,
-					FILTER_NULL_ON_FAILURE,
-				) ?? false;
+				// Absent key means "leave frozen requirement unchanged" on updates.
+				// Only default to false when creating a sign request that has no freeze yet.
+				$requesterRequiresGeolocation = null;
+				if (array_key_exists('geolocationRequired', $signer)) {
+					$requesterRequiresGeolocation = filter_var(
+						$signer['geolocationRequired'],
+						FILTER_VALIDATE_BOOLEAN,
+						FILTER_NULL_ON_FAILURE,
+					) ?? false;
+				}
 
 				foreach ($signer['identifyMethods'] as $identifyMethod) {
 					$lastSignRequest = $this->signRequestService->createOrUpdateSignRequest(
@@ -516,10 +521,17 @@ class RequestSignatureService {
 						fileStatus: $fileStatus,
 						signerStatus: $signerStatus,
 						afterPersist: function (SignRequestEntity $signRequest) use ($file, $requesterRequiresGeolocation, $requester): void {
+							$requiresGeolocation = $requesterRequiresGeolocation;
+							if ($requiresGeolocation === null) {
+								if ($this->signerGeolocationPolicyService->getFrozenRequirement($signRequest) !== null) {
+									return;
+								}
+								$requiresGeolocation = false;
+							}
 							$this->signerGeolocationPolicyService->persistEffectiveRequirement(
 								$signRequest,
 								$file,
-								$requesterRequiresGeolocation,
+								$requiresGeolocation,
 								$requester,
 							);
 						},
