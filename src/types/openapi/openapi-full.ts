@@ -2020,6 +2020,7 @@ export type components = {
             nodeId?: number;
             path?: string;
             url?: string;
+            name?: string;
         };
         NewSigner: {
             identifyMethods: {
