@@ -64,6 +64,17 @@ type EnvelopeValidationVm = {
 	getName: (signer: Partial<EnvelopeSigner>) => string
 	getSignerProgressText: (signer: Partial<EnvelopeSigner>) => string
 	dateFromSqlAnsi: (date: string) => string
+	deviceReportedLocationFor: (signer: Partial<EnvelopeSigner> & {
+		metadata?: {
+			geolocation?: {
+				status?: string
+				latitude?: number
+				longitude?: number
+				accuracy?: number
+				timestamp?: number
+			}
+		}
+	}) => string | null
 	viewFile: (file: Partial<EnvelopeFile>) => void
 }
 
@@ -543,6 +554,32 @@ describe('EnvelopeValidation', () => {
 				filename: 'test.pdf',
 				nodeId: 123,
 			})
+		})
+	})
+
+	describe('device-reported location', () => {
+		it('formats device-reported location when geolocation metadata is present', () => {
+			wrapper = createWrapper()
+
+			expect(wrapper.vm.deviceReportedLocationFor({
+				metadata: {
+					geolocation: {
+						status: 'collected',
+						latitude: -23.55,
+						longitude: -46.63,
+						accuracy: 12,
+						timestamp: 0,
+					},
+				},
+			})).toContain('-23.55, -46.63')
+		})
+
+		it('returns null when geolocation metadata is absent', () => {
+			wrapper = createWrapper()
+
+			expect(wrapper.vm.deviceReportedLocationFor({
+				displayName: 'Signer',
+			})).toBeNull()
 		})
 	})
 })
