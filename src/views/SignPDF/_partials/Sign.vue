@@ -855,6 +855,8 @@ function dismissGeolocationFailure() {
 	geolocationFailureReason.value = null
 	collectedGeolocation.value = null
 	pendingSignMethodConfig.value = null
+	showGeolocationPrivacyDialog.value = false
+	collectingGeolocation.value = false
 }
 
 function confirmSignDocument() {
@@ -964,6 +966,17 @@ defineExpose({
 	canCreateSignature,
 	submitSignature,
 	signWithTokenCode,
+	requiresDeviceGeolocation,
+	showGeolocationPrivacyDialog,
+	geolocationFailureMessage,
+	geolocationFailureReason,
+	geolocationPrivacyDialogBody,
+	collectingGeolocation,
+	collectedGeolocation,
+	confirmGeolocationPrivacyDialog,
+	cancelGeolocationPrivacyDialog,
+	retryGeolocationCollection,
+	dismissGeolocationFailure,
 })
 </script>
 
@@ -1017,10 +1030,6 @@ defineExpose({
 
 .geolocation-retry {
 	margin-inline-start: 0;
-}
-
-.geolocation-retry {
-	margin-block-start: 0.75rem;
 }
 
 .no-signature-warning {
