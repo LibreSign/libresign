@@ -28,7 +28,7 @@ final class FolderServicePathTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FolderService $service;
 
 	#[\Override]
-	protected function setUp(): void {
+	public function setUp(): void {
 		parent::setUp();
 		$this->root = $this->createMock(IRootFolder::class);
 		$this->userFolder = $this->createMock(IUserFolder::class);
