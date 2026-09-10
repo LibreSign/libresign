@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Helper;
 
-use OC\User\NoUserException;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
@@ -38,6 +37,7 @@ use OCP\Files\NotPermittedException;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
+use OCP\User\Exceptions\UserNotFoundException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -585,7 +585,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testValidateIfNodeIdExistsWhenUserNotFound():void {
 		$this->expectExceptionMessage('User not found');
 		$userFolder = $this->createMock(IUserFolder::class);
-		$userFolder->method('getFirstNodeById')->willThrowException(new NoUserException());
+		$userFolder->method('getFirstNodeById')->willThrowException(new UserNotFoundException());
 		$this->root->method('getUserFolder')->willReturn($userFolder);
 		$this->getValidateHelper()->validateIfNodeIdExists(171);
 	}
