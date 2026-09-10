@@ -2927,7 +2927,7 @@
                     "signers": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/SignerSummary"
+                            "$ref": "#/components/schemas/ValidatedChildSigner"
                         }
                     },
                     "file": {
@@ -2937,6 +2937,24 @@
                         "$ref": "#/components/schemas/ValidateMetadata"
                     }
                 }
+            },
+            "ValidatedChildSigner": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/SignerSummary"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "visibleElements": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/VisibleElement"
+                                }
+                            }
+                        }
+                    }
+                ]
             },
             "ValidatedFile": {
                 "type": "object",
