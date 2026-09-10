@@ -29,7 +29,7 @@ final class FileInputValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FileInputValidator $validator;
 
 	#[\Override]
-	protected function setUp(): void {
+	public function setUp(): void {
 		parent::setUp();
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n->method('t')->willReturnArgument(0);
