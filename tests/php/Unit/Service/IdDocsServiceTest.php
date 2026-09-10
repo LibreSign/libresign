@@ -74,6 +74,30 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
+	public function testValidateIdDocsUsesFocusedValidators(): void {
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn('user1');
+		$file = [
+			'type' => 'IDENTIFICATION',
+			'file' => ['base64' => 'encoded'],
+		];
+
+		$this->fileTypeMapper->method('getTypes')->willReturn([
+			'IDENTIFICATION' => [],
+		]);
+		$this->identityDocumentValidator->expects($this->once())
+			->method('validateFileTypeExists')
+			->with('IDENTIFICATION');
+		$this->fileInputValidator->expects($this->once())
+			->method('validateNewFile')
+			->with($file, FileInputValidator::TYPE_ACCOUNT_DOCUMENT, $user);
+		$this->identityDocumentValidator->expects($this->once())
+			->method('validateUserHasNoFileWithThisType')
+			->with('user1', 'IDENTIFICATION');
+
+		$this->getIdDocsService()->validateIdDocs([$file], $user);
+	}
+
 	public function testDeleteIdDocAsApproverBypassesOwnershipCheck(): void {
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getUID')->willReturn('approver1');
