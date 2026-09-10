@@ -169,6 +169,36 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getInstance()->getReadableNodeById('alice', 42);
 	}
 
+	public function testWriteDoesNotReinitializePreparedUserFilesystem(): void {
+		$user = $this->createMock(IUser::class);
+		$this->userManager->method('get')->with('alice')->willReturn($user);
+		$this->setupManager->expects($this->once())->method('isSetupComplete')->with($user)->willReturn(true);
+		$this->setupManager->expects($this->never())->method('tearDown');
+		$this->setupManager->expects($this->never())->method('setupForUser');
+
+		$userFolder = $this->createMock(IUserFolder::class);
+		$userFolder->method('isUpdateable')->willReturn(true);
+		$this->root->method('getUserFolder')->with('alice')->willReturn($userFolder);
+		$this->groupManager->method('isInGroup')->willReturn(false);
+
+		$this->invokePrivate($this->getInstance('alice'), 'getContainerFolder');
+	}
+
+	public function testWritePreparesUserFilesystemWhenSetupIsIncomplete(): void {
+		$user = $this->createMock(IUser::class);
+		$this->userManager->method('get')->with('alice')->willReturn($user);
+		$this->setupManager->expects($this->once())->method('isSetupComplete')->with($user)->willReturn(false);
+		$this->setupManager->expects($this->once())->method('tearDown');
+		$this->setupManager->expects($this->once())->method('setupForUser')->with($user);
+
+		$userFolder = $this->createMock(IUserFolder::class);
+		$userFolder->method('isUpdateable')->willReturn(true);
+		$this->root->method('getUserFolder')->with('alice')->willReturn($userFolder);
+		$this->groupManager->method('isInGroup')->willReturn(false);
+
+		$this->invokePrivate($this->getInstance('alice'), 'getContainerFolder');
+	}
+
 	public function testGetContainerFolderAsUnauthenticatedWhenUserIdIsInvalid():void {
 		$folder = $this->createMock(\OCP\Files\Folder::class);
 		$fakeFolder = new FakeFolder();
@@ -488,10 +518,13 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$mockUserFolder = $this->createMock(Folder::class);
 		$mockEnvelopeFolder = $this->createMock(Folder::class);
 
+		$readOnlyFolder = $this->createMock(Folder::class);
+		$readOnlyFolder->method('isCreatable')->willReturn(false);
+		$mockEnvelopeFolder->method('isCreatable')->willReturn(true);
 		$mockUserFolder->expects($this->once())
-			->method('getFirstNodeById')
+			->method('getById')
 			->with($envelopeFolderId)
-			->willReturn($mockEnvelopeFolder);
+			->willReturn([$readOnlyFolder, $mockEnvelopeFolder]);
 
 		$this->appConfig->method('getUserValue')->willReturn('/LibreSign');
 		$this->groupManager->method('isInGroup')->willReturn(false);
@@ -505,6 +538,32 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$result = $service->getFolderForFile($data, 'testuser');
 
 		$this->assertInstanceOf(Folder::class, $result);
+	}
+
+	public function testGetFolderForFileRejectsEnvelopeFolderWithoutCreatePermission(): void {
+		$envelopeFolderId = 456;
+		$data = ['settings' => ['envelopeFolderId' => $envelopeFolderId]];
+
+		$mockUserFolder = $this->createMock(Folder::class);
+		$readOnlyFolder = $this->createMock(Folder::class);
+		$readOnlyFolder->method('isCreatable')->willReturn(false);
+		$mockUserFolder->method('getById')->with($envelopeFolderId)->willReturn([$readOnlyFolder]);
+
+		$this->appConfig->method('getUserValue')->willReturn('/LibreSign');
+		$this->groupManager->method('isInGroup')->willReturn(false);
+		$user = $this->createMock(IUser::class);
+		$this->userManager->method('get')->willReturn($user);
+		$this->setupManager->method('isSetupComplete')->willReturn(true);
+
+		$userFolder = $this->createMock(IUserFolder::class);
+		$userFolder->method('isUpdateable')->willReturn(true);
+		$userFolder->method('getOrCreateFolder')->willReturn($mockUserFolder);
+		$this->root->method('getUserFolder')->willReturn($userFolder);
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionMessage('Envelope folder not found');
+
+		$this->getInstance('testuser')->getFolderForFile($data, 'testuser');
 	}
 
 	public function testGetFolderForFileCreatesNewFolderWhenNoEnvelopeId(): void {
