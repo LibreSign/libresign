@@ -36,7 +36,6 @@ use OCP\Config\IUserConfig;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\File;
 use OCP\Files\IMimeTypeDetector;
-use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
@@ -58,7 +57,6 @@ class AccountService {
 		private SignRequestMapper $signRequestMapper,
 		private IUserManager $userManager,
 		private IAccountManager $accountManager,
-		private IRootFolder $root,
 		private IMimeTypeDetector $mimeTypeDetector,
 		private FileMapper $fileMapper,
 		private FileTypeMapper $fileTypeMapper,
@@ -132,8 +130,8 @@ class AccountService {
 
 			$nodeId = $this->fileData->getNodeId();
 
-			$fileToSign = $this->root->getUserFolder($this->fileData->getUserId())->getFirstNodeById($nodeId);
-			if ($fileToSign) {
+			$fileToSign = $this->folderService->getReadableNodeById($this->fileData->getUserId(), $nodeId);
+			if ($fileToSign instanceof File) {
 				$this->fileToSign = $fileToSign;
 			}
 		}

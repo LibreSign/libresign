@@ -33,11 +33,7 @@ class EnvelopeFileRelocatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$envelopeFolder = $this->createMock(Folder::class);
 		$envelopeFolder->method('getPath')->willReturn('/user/files/Envelope');
 
-		$rootFolder = $this->createMock(Folder::class);
-		$rootFolder->method('getFirstNodeById')->with(10)->willReturn($envelopeFolder);
-
-		$this->folderService->expects($this->once())->method('setUserId')->with('u1');
-		$this->folderService->method('getUserRootFolder')->willReturn($rootFolder);
+		$this->folderService->method('getCreatableFolderById')->with('u1', 10)->willReturn($envelopeFolder);
 
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('u1');
@@ -61,11 +57,7 @@ class EnvelopeFileRelocatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->with('doc.pdf', 'content')
 			->willReturn($copiedFile);
 
-		$rootFolder = $this->createMock(Folder::class);
-		$rootFolder->method('getFirstNodeById')->with(10)->willReturn($envelopeFolder);
-
-		$this->folderService->expects($this->once())->method('setUserId')->with('u1');
-		$this->folderService->method('getUserRootFolder')->willReturn($rootFolder);
+		$this->folderService->method('getCreatableFolderById')->with('u1', 10)->willReturn($envelopeFolder);
 
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('u1');
@@ -78,11 +70,7 @@ class EnvelopeFileRelocatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$sourceFile = $this->createMock(\OCP\Files\File::class);
 		$sourceFile->method('getPath')->willReturn('/user/files/doc.pdf');
 
-		$rootFolder = $this->createMock(Folder::class);
-		$rootFolder->method('getFirstNodeById')->with(10)->willReturn($this->createMock(Node::class));
-
-		$this->folderService->method('setUserId');
-		$this->folderService->method('getUserRootFolder')->willReturn($rootFolder);
+		$this->folderService->method('getCreatableFolderById')->with('u1', 10)->willReturn(null);
 
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('u1');
@@ -99,11 +87,7 @@ class EnvelopeFileRelocatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$envelopeFolder = $this->createMock(Folder::class);
 		$envelopeFolder->method('getPath')->willReturn('/user/files/Envelope');
 
-		$rootFolder = $this->createMock(Folder::class);
-		$rootFolder->method('getFirstNodeById')->with(10)->willReturn($envelopeFolder);
-
-		$this->folderService->method('setUserId');
-		$this->folderService->method('getUserRootFolder')->willReturn($rootFolder);
+		$this->folderService->method('getCreatableFolderById')->with('u1', 10)->willReturn($envelopeFolder);
 
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('u1');

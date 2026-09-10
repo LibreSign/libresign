@@ -15,12 +15,11 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileElementService;
+use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\Files\File as NodeFile;
-use OCP\Files\IRootFolder;
-use OCP\Files\IUserFolder;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -38,8 +37,7 @@ final class FileListServiceTest extends TestCase {
 	private IAppConfig&MockObject $appConfig;
 	private IL10N&MockObject $l10n;
 	private IUserManager&MockObject $userManager;
-	private IRootFolder&MockObject $rootFolder;
-	private IUserFolder&MockObject $userFolder;
+	private FolderService&MockObject $folderService;
 	private SignatureRejectionVisibilityService&MockObject $signatureRejectionVisibilityService;
 	private IUser&MockObject $user;
 
@@ -54,12 +52,10 @@ final class FileListServiceTest extends TestCase {
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->userManager = $this->createMock(IUserManager::class);
-		$this->rootFolder = $this->createMock(IRootFolder::class);
-		$this->userFolder = $this->createMock(IUserFolder::class);
+		$this->folderService = $this->createMock(FolderService::class);
 		$this->signatureRejectionVisibilityService = $this->createMock(SignatureRejectionVisibilityService::class);
 
 		$this->user = $this->createMock(IUser::class);
-		$this->rootFolder->method('getUserFolder')->willReturn($this->userFolder);
 	}
 
 	private function getService(): FileListService {
@@ -72,7 +68,7 @@ final class FileListServiceTest extends TestCase {
 			$this->appConfig,
 			$this->l10n,
 			$this->userManager,
-			$this->rootFolder,
+			$this->folderService,
 			$this->signatureRejectionVisibilityService,
 		);
 	}
@@ -638,7 +634,7 @@ final class FileListServiceTest extends TestCase {
 
 		$fileNode = $this->createMock(NodeFile::class);
 		$fileNode->method('getSize')->willReturn(4096);
-		$this->userFolder->method('getFirstNodeById')->with(100)->willReturn($fileNode);
+		$this->folderService->method('getReadableNodeById')->with('creator123', 100)->willReturn($fileNode);
 
 		$service = $this->getService();
 		$result = $service->formatSingleFile($this->user, $file);
@@ -742,9 +738,9 @@ final class FileListServiceTest extends TestCase {
 		$fileNodeA->method('getSize')->willReturn(1024);
 		$fileNodeB = $this->createMock(NodeFile::class);
 		$fileNodeB->method('getSize')->willReturn(2048);
-		$this->userFolder->method('getFirstNodeById')->willReturnMap([
-			[200, $fileNodeA],
-			[300, $fileNodeB],
+		$this->folderService->method('getReadableNodeById')->willReturnMap([
+			['creator123', 200, $fileNodeA],
+			['creator123', 300, $fileNodeB],
 		]);
 
 		$mockUser = $this->createMock(IUser::class);

@@ -12,9 +12,8 @@ namespace OCA\Libresign\Tests\Unit\Service\File;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Service\File\FileContentProvider;
 use OCA\Libresign\Service\File\MetadataLoader;
+use OCA\Libresign\Service\FolderService;
 use OCP\Files\IMimeTypeDetector;
-use OCP\Files\IRootFolder;
-use OCP\Files\IUserFolder;
 use OCP\IURLGenerator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -22,7 +21,7 @@ use Psr\Log\LoggerInterface;
 use stdClass;
 
 final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private IRootFolder|MockObject $root;
+	private FolderService|MockObject $folderService;
 	private IMimeTypeDetector|MockObject $mimeTypeDetector;
 	private IURLGenerator|MockObject $urlGenerator;
 	private FileContentProvider|MockObject $contentProvider;
@@ -30,7 +29,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->root = $this->createMock(IRootFolder::class);
+		$this->folderService = $this->createMock(FolderService::class);
 		$this->mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->contentProvider = $this->createMock(FileContentProvider::class);
@@ -39,7 +38,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	private function getService(): MetadataLoader {
 		return new MetadataLoader(
-			$this->root,
+			$this->folderService,
 			$this->mimeTypeDetector,
 			$this->urlGenerator,
 			$this->contentProvider,
@@ -69,10 +68,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode->method('getSize')->willReturn(5000);
 		$fileNode->method('getMimeType')->willReturn('application/pdf');
 
-		$userFolder = $this->createMock(IUserFolder::class);
-		$userFolder->method('getFirstNodeById')->with(123)->willReturn($fileNode);
-
-		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
+		$this->folderService->method('getReadableNodeById')->with('user123', 123)->willReturn($fileNode);
 
 		$this->urlGenerator->method('linkToRoute')->willReturn('http://example.com/page.pdf');
 
@@ -97,10 +93,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode->method('getSize')->willReturn(5000);
 		$fileNode->method('getMimeType')->willReturn('application/pdf');
 
-		$userFolder = $this->createMock(IUserFolder::class);
-		$userFolder->method('getFirstNodeById')->with(123)->willReturn($fileNode);
-
-		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
+		$this->folderService->method('getReadableNodeById')->with('user123', 123)->willReturn($fileNode);
 
 		$this->urlGenerator->method('linkToRoute')->willReturnCallback(
 			fn ($route, $params) => "http://example.com/page/{$params['page']}"
@@ -125,10 +118,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->setUserId('user123');
 		$file->setSignedNodeId(123);
 
-		$userFolder = $this->createMock(IUserFolder::class);
-		$userFolder->method('getFirstNodeById')->willThrowException(new \Exception('File not found'));
-
-		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
+		$this->folderService->method('getReadableNodeById')->with('user123', 123)->willThrowException(new \Exception('File not found'));
 
 		$this->logger
 			->expects($this->once())
@@ -158,14 +148,11 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode->method('getSize')->willReturn(5000);
 		$fileNode->method('getMimeType')->willReturn('application/pdf');
 
-		$userFolder = $this->createMock(IUserFolder::class);
-		$userFolder
+		$this->folderService
 			->expects($this->once())
-			->method('getFirstNodeById')
-			->with($expectedNodeId)
+			->method('getReadableNodeById')
+			->with('user123', $expectedNodeId)
 			->willReturn($fileNode);
-
-		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
 
 		$this->urlGenerator->method('linkToRoute')->willReturn('http://example.com/page.pdf');
 
@@ -201,10 +188,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode->method('getSize')->willReturn(5000);
 		$fileNode->method('getMimeType')->willReturn('application/pdf');
 
-		$userFolder = $this->createMock(IUserFolder::class);
-		$userFolder->method('getFirstNodeById')->with(123)->willReturn($fileNode);
-
-		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
+		$this->folderService->method('getReadableNodeById')->with('user123', 123)->willReturn($fileNode);
 
 		$this->urlGenerator->method('linkToRoute')->willReturn('http://example.com/page.pdf');
 
@@ -244,10 +228,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode->method('getSize')->willReturn(5000);
 		$fileNode->method('getMimeType')->willReturn('application/pdf');
 
-		$userFolder = $this->createMock(IUserFolder::class);
-		$userFolder->method('getFirstNodeById')->with(123)->willReturn($fileNode);
-
-		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
+		$this->folderService->method('getReadableNodeById')->with('user123', 123)->willReturn($fileNode);
 		$this->urlGenerator->method('linkToRoute')->willReturn('http://example.com/page.pdf');
 
 		$fileData = new stdClass();

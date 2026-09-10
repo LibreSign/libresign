@@ -28,7 +28,6 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $pkcs12Handler;
 	private $docMdpHandler;
 	private $pdfValidator;
-	private $rootFolder;
 	private $logger;
 	private $l10n;
 	private $envelopeService;
@@ -61,7 +60,6 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler = $this->createMock(\OCA\Libresign\Handler\SignEngine\Pkcs12Handler::class);
 		$this->docMdpHandler = $this->createMock(\OCA\Libresign\Handler\DocMdpHandler::class);
 		$this->pdfValidator = $this->createMock(\OCA\Libresign\Service\File\Pdf\PdfValidator::class);
-		$this->rootFolder = $this->createMock(\OCP\Files\IRootFolder::class);
 		$this->logger = $this->createMock(\Psr\Log\LoggerInterface::class);
 		$this->l10n = $this->createMock(\OCP\IL10N::class);
 		$this->envelopeService = $this->createMock(\OCA\Libresign\Service\Envelope\EnvelopeService::class);
@@ -94,7 +92,6 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->pkcs12Handler,
 			$this->docMdpHandler,
 			$this->pdfValidator,
-			$this->rootFolder,
 			$this->logger,
 			$this->l10n,
 			$this->envelopeService,

@@ -18,11 +18,10 @@ use OCA\Libresign\Service\File\EnvelopeAssembler;
 use OCA\Libresign\Service\File\FileResponseOptions;
 use OCA\Libresign\Service\File\SignersLoader;
 use OCA\Libresign\Service\FileElementService;
+use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\Files\File;
-use OCP\Files\IRootFolder;
-use OCP\Files\IUserFolder;
 use OCP\IURLGenerator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -32,7 +31,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private FileMapper&MockObject $fileMapper;
-	private IRootFolder&MockObject $root;
+	private FolderService&MockObject $folderService;
 	private IURLGenerator&MockObject $urlGenerator;
 	private SignersLoader&MockObject $signersLoader;
 	private Pkcs12Handler&MockObject $pkcs12Handler;
@@ -43,7 +42,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
-		$this->root = $this->createMock(IRootFolder::class);
+		$this->folderService = $this->createMock(FolderService::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->signersLoader = $this->createMock(SignersLoader::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
@@ -55,7 +54,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signRequestMapper,
 			$this->identifyMethodService,
 			$this->fileMapper,
-			$this->root,
+			$this->folderService,
 			$this->urlGenerator,
 			$this->signersLoader,
 			null,
@@ -66,10 +65,8 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	private function mockFileNode(): void {
-		$folder = $this->createMock(IUserFolder::class);
 		$fileNode = $this->createMock(File::class);
-		$folder->method('getFirstNodeById')->willReturn($fileNode);
-		$this->root->method('getUserFolder')->willReturn($folder);
+		$this->folderService->method('getReadableNodeById')->willReturn($fileNode);
 		$this->urlGenerator->method('linkToRoute')->willReturn('http://example.com/page.pdf');
 	}
 
