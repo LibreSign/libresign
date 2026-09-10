@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Validation;
 
-use OC\AppFramework\Http;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
@@ -16,6 +15,7 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
+use OCP\AppFramework\Http;
 use OCP\IL10N;
 use OCP\IUser;
 
