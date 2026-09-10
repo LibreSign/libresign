@@ -33,6 +33,7 @@ use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
+use OCP\Files\IUserFolder;
 use OCP\Files\NotPermittedException;
 use OCP\IL10N;
 use OCP\IUser;
@@ -352,10 +353,11 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file
 			->method('getMimeType')
 			->willReturn('application/pdf');
+		$userFolder = $this->createMock(IUserFolder::class);
 		$this->root
 			->method('getUserFolder')
-			->willReturn($this->root);
-		$this->root
+			->willReturn($userFolder);
+		$userFolder
 			->method('getFirstNodeById')
 			->willReturn($file);
 
@@ -410,10 +412,11 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file
 			->method('getMimeType')
 			->willReturn($mimetype);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$this->root
 			->method('getUserFolder')
-			->willReturn($this->root);
-		$this->root
+			->willReturn($userFolder);
+		$userFolder
 			->method('getFirstNodeById')
 			->willReturn($file);
 		if ($exception) {
@@ -444,7 +447,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file
 			->method('getMimeType')
 			->willReturn('application/pdf');
-		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder = $this->createMock(IUserFolder::class);
 		$folder
 			->method('getFirstNodeById')
 			->willReturn($file);
@@ -581,7 +584,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateIfNodeIdExistsWhenUserNotFound():void {
 		$this->expectExceptionMessage('User not found');
-		$userFolder = $this->createMock(\OCP\Files\Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('getFirstNodeById')->willThrowException(new NoUserException());
 		$this->root->method('getUserFolder')->willReturn($userFolder);
 		$this->getValidateHelper()->validateIfNodeIdExists(171);
@@ -589,7 +592,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateIfNodeIdExistsWhenNotPermission():void {
 		$this->expectExceptionMessage('You do not have permission');
-		$userFolder = $this->createMock(\OCP\Files\Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('getFirstNodeById')->willThrowException(new NotPermittedException());
 		$this->root->method('getUserFolder')->willReturn($userFolder);
 		$this->getValidateHelper()->validateIfNodeIdExists(171);
@@ -597,17 +600,18 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateIfNodeIdExistsWhenNotFound():void {
 		$this->expectExceptionMessage('Invalid fileID');
-		$userFolder = $this->createMock(\OCP\Files\Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('getFirstNodeById')->willReturn(null);
 		$this->root->method('getUserFolder')->willReturn($userFolder);
 		$this->getValidateHelper()->validateIfNodeIdExists(171);
 	}
 
 	public function testValidateIfNodeIdExistsWithSuccess():void {
+		$userFolder = $this->createMock(IUserFolder::class);
 		$this->root
 			->method('getUserFolder')
-			->willReturn($this->root);
-		$this->root
+			->willReturn($userFolder);
+		$userFolder
 			->method('getFirstNodeById')
 			->willReturn($this->createMock(\OCP\Files\File::class));
 		$actual = $this->getValidateHelper()->validateIfNodeIdExists(171);
@@ -753,7 +757,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('john.doe');
 
-		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder = $this->createMock(IUserFolder::class);
 		$folder->method('get')->willThrowException(new \OCP\Files\NotFoundException());
 		$this->root->method('getUserFolder')->willReturn($folder);
 
@@ -1050,7 +1054,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$file
 				->method('getMimeType')
 				->willReturn('application/pdf');
-			$folder = $this->createMock(\OCP\Files\Folder::class);
+			$folder = $this->createMock(IUserFolder::class);
 			$folder
 				->method('getById')
 				->willReturn([$file]);

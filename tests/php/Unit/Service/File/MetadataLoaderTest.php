@@ -12,9 +12,9 @@ namespace OCA\Libresign\Tests\Unit\Service\File;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Service\File\FileContentProvider;
 use OCA\Libresign\Service\File\MetadataLoader;
-use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
+use OCP\Files\IUserFolder;
 use OCP\IURLGenerator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -69,7 +69,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode->method('getSize')->willReturn(5000);
 		$fileNode->method('getMimeType')->willReturn('application/pdf');
 
-		$userFolder = $this->createMock(Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('getFirstNodeById')->with(123)->willReturn($fileNode);
 
 		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
@@ -97,7 +97,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode->method('getSize')->willReturn(5000);
 		$fileNode->method('getMimeType')->willReturn('application/pdf');
 
-		$userFolder = $this->createMock(Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('getFirstNodeById')->with(123)->willReturn($fileNode);
 
 		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
@@ -125,7 +125,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->setUserId('user123');
 		$file->setSignedNodeId(123);
 
-		$userFolder = $this->createMock(Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('getFirstNodeById')->willThrowException(new \Exception('File not found'));
 
 		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
@@ -158,7 +158,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode->method('getSize')->willReturn(5000);
 		$fileNode->method('getMimeType')->willReturn('application/pdf');
 
-		$userFolder = $this->createMock(Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder
 			->expects($this->once())
 			->method('getFirstNodeById')
@@ -201,7 +201,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode->method('getSize')->willReturn(5000);
 		$fileNode->method('getMimeType')->willReturn('application/pdf');
 
-		$userFolder = $this->createMock(Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('getFirstNodeById')->with(123)->willReturn($fileNode);
 
 		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
@@ -244,7 +244,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode->method('getSize')->willReturn(5000);
 		$fileNode->method('getMimeType')->willReturn('application/pdf');
 
-		$userFolder = $this->createMock(Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('getFirstNodeById')->with(123)->willReturn($fileNode);
 
 		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);

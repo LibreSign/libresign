@@ -21,8 +21,8 @@ use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\Files\File;
-use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\Files\IUserFolder;
 use OCP\IURLGenerator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -66,7 +66,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	private function mockFileNode(): void {
-		$folder = $this->createMock(Folder::class);
+		$folder = $this->createMock(IUserFolder::class);
 		$fileNode = $this->createMock(File::class);
 		$folder->method('getFirstNodeById')->willReturn($fileNode);
 		$this->root->method('getUserFolder')->willReturn($folder);

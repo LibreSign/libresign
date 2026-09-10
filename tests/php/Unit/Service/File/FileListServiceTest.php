@@ -19,8 +19,8 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\Files\File as NodeFile;
-use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\Files\IUserFolder;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -39,7 +39,7 @@ final class FileListServiceTest extends TestCase {
 	private IL10N&MockObject $l10n;
 	private IUserManager&MockObject $userManager;
 	private IRootFolder&MockObject $rootFolder;
-	private Folder&MockObject $userFolder;
+	private IUserFolder&MockObject $userFolder;
 	private SignatureRejectionVisibilityService&MockObject $signatureRejectionVisibilityService;
 	private IUser&MockObject $user;
 
@@ -55,7 +55,7 @@ final class FileListServiceTest extends TestCase {
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->rootFolder = $this->createMock(IRootFolder::class);
-		$this->userFolder = $this->createMock(Folder::class);
+		$this->userFolder = $this->createMock(IUserFolder::class);
 		$this->signatureRejectionVisibilityService = $this->createMock(SignatureRejectionVisibilityService::class);
 
 		$this->user = $this->createMock(IUser::class);
