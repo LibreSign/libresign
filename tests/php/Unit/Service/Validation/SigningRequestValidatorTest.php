@@ -92,6 +92,7 @@ final class SigningRequestValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$file->setId(15);
 		$file->setUserId('alice');
 		$this->fileMapper->method('getByUuid')->with('file-uuid')->willReturn($file);
+		$this->fileMapper->method('getById')->with(15)->willReturn($file);
 
 		$this->validator->validateExistingFile(['uuid' => 'file-uuid', 'userManager' => $user]);
 		$this->addToAssertionCount(1);
@@ -104,6 +105,7 @@ final class SigningRequestValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$file->setId(15);
 		$file->setUserId('alice');
 		$this->fileMapper->method('getByUuid')->with('file-uuid')->willReturn($file);
+		$this->fileMapper->method('getById')->with(15)->willReturn($file);
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('permission');
 		$this->validator->validateExistingFile(['uuid' => 'file-uuid', 'userManager' => $user]);
