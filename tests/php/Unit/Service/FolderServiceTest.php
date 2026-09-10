@@ -81,6 +81,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n->method('t')->willReturnArgument(0);
 		$this->setupManager = $this->createMock(ISetupManager::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 	}
