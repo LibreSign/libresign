@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Validation;
 
-use OC\AppFramework\Http;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequest;
@@ -22,6 +21,7 @@ use OCA\Libresign\Service\IdentifyMethod\RuntimeRequirementValidator;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Http;
 use OCP\IL10N;
 use OCP\IUser;
 
@@ -154,16 +154,16 @@ class SignerValidator {
 				}
 			} catch (\Throwable) {
 			}
-			$this->throwSignerActionError('You are not allowed to sign this document yet');
+			$this->throwSignerActionError($this->l10n->t('You are not allowed to sign this document yet'));
 		}
 		if ($status === SignRequestStatus::SIGNED) {
-			$this->throwSignerActionError('Document already signed');
+			$this->throwSignerActionError($this->l10n->t('Document already signed'));
 		}
 		if (
 			$this->sequentialSigningService->isOrderedNumericFlow()
 			&& $this->sequentialSigningService->hasPendingLowerOrderSigners($signRequest->getFileId(), $signRequest->getSigningOrder())
 		) {
-			$this->throwSignerActionError('You are not allowed to sign this document yet');
+			$this->throwSignerActionError($this->l10n->t('You are not allowed to sign this document yet'));
 		}
 	}
 
@@ -182,7 +182,7 @@ class SignerValidator {
 			$signRequest = $this->signRequestMapper->getByUuid($uuid);
 			$this->fileMapper->getById($signRequest->getFileId());
 		} catch (DoesNotExistException) {
-			$this->throwSignerActionError('Invalid UUID');
+			$this->throwSignerActionError($this->l10n->t('Invalid UUID'));
 		}
 	}
 
@@ -265,7 +265,7 @@ class SignerValidator {
 	private function throwSignerActionError(string $message): never {
 		throw new LibresignException(json_encode([
 			'action' => JSActions::ACTION_DO_NOTHING,
-			'errors' => [['message' => $this->l10n->t($message)]],
+			'errors' => [['message' => $message]],
 		]));
 	}
 }
