@@ -107,14 +107,14 @@ final class IdentityDocumentValidatorTest extends \OCA\Libresign\Tests\Unit\Test
 		return [
 			'disabled' => [FileService::IDENTIFICATION_DOCUMENTS_DISABLED, true],
 			'approved' => [FileService::IDENTIFICATION_DOCUMENTS_APPROVED, true],
-			'pending' => [FileService::IDENTIFICATION_DOCUMENTS_WAITING_APPROVAL, false],
+			'pending' => [FileService::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL, false],
 		];
 	}
 
 	public function testApproverBypassesIdentityDocumentStatus(): void {
 		$user = $this->createMock(IUser::class);
 		$this->policyService->method('userCanApproveValidationDocuments')->with($user, false)->willReturn(true);
-		$this->validator->canSignWithIdentificationDocumentStatus($user, FileService::IDENTIFICATION_DOCUMENTS_WAITING_APPROVAL);
+		$this->validator->canSignWithIdentificationDocumentStatus($user, FileService::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL);
 		$this->addToAssertionCount(1);
 	}
 }
