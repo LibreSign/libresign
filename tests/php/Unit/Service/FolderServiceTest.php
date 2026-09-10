@@ -15,6 +15,7 @@ use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\Folder;
 use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
+use OCP\Files\IUserFolder;
 use OCP\Files\ISetupManager;
 use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
@@ -429,7 +430,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig->method('getUserValue')->willReturn('/LibreSign');
 		$this->groupManager->method('isInGroup')->willReturn(false);
 
-		$userFolder = $this->createMock(Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('isUpdateable')->willReturn(true);
 		$userFolder->method('getOrCreateFolder')->willReturn($mockUserFolder);
 		$this->root->method('getUserFolder')->willReturn($userFolder);
@@ -459,7 +460,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig->method('getUserValue')->willReturn('/LibreSign');
 		$this->groupManager->method('isInGroup')->willReturn(false);
 
-		$userFolder = $this->createMock(Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('isUpdateable')->willReturn(true);
 		$userFolder->method('getOrCreateFolder')->willReturn($mockUserFolder);
 		$this->root->method('getUserFolder')->willReturn($userFolder);
@@ -471,7 +472,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetUserRootFolderReturnsUserFolder(): void {
-		$mockUserFolder = $this->createMock(Folder::class);
+		$mockUserFolder = $this->createMock(IUserFolder::class);
 		$this->root->expects($this->once())
 			->method('getUserFolder')
 			->with('171')
@@ -489,7 +490,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		array $existingFolders,
 		array $expectedNewFolders,
 	): void {
-		$mockUserFolder = $this->createMock(Folder::class);
+		$mockUserFolder = $this->createMock(IUserFolder::class);
 		$this->root->method('getUserFolder')->willReturn($mockUserFolder);
 
 		$currentFolder = $mockUserFolder;
@@ -549,7 +550,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetOrCreateFolderByAbsolutePathFailsWhenFolderNotEmpty(): void {
-		$mockUserFolder = $this->createMock(Folder::class);
+		$mockUserFolder = $this->createMock(IUserFolder::class);
 		$this->root->method('getUserFolder')->willReturn($mockUserFolder);
 
 		$existingFolder = $this->createMock(Folder::class);
