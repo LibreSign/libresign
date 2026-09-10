@@ -19,7 +19,8 @@ use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\Validation\FileInputValidator;
+use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -31,7 +32,8 @@ class IdDocsService {
 	public function __construct(
 		private IL10N $l10n,
 		private FileTypeMapper $fileTypeMapper,
-		private ValidateHelper $validateHelper,
+		private FileInputValidator $fileInputValidator,
+		private IdentityDocumentValidator $identityDocumentValidator,
 		private RequestSignatureService $requestSignatureService,
 		private IdDocsMapper $idDocsMapper,
 		private FileMapper $fileMapper,
@@ -66,9 +68,9 @@ class IdDocsService {
 		}
 
 		try {
-			$this->validateHelper->validateFileTypeExists($file['type']);
-			$this->validateHelper->validateNewFile($file, ValidateHelper::TYPE_ACCOUNT_DOCUMENT, $user);
-			$this->validateHelper->validateUserHasNoFileWithThisType($user->getUID(), $file['type']);
+			$this->identityDocumentValidator->validateFileTypeExists($file['type']);
+			$this->fileInputValidator->validateNewFile($file, FileInputValidator::TYPE_ACCOUNT_DOCUMENT, $user);
+			$this->identityDocumentValidator->validateUserHasNoFileWithThisType($user->getUID(), $file['type']);
 		} catch (\Exception $e) {
 			throw new LibresignException(json_encode([
 				'type' => 'danger',
@@ -141,10 +143,10 @@ class IdDocsService {
 	}
 
 	public function deleteIdDoc(int $nodeId, IUser $user): void {
-		if ($this->validateHelper->userCanApproveValidationDocuments($user, false)) {
+		if ($this->identityDocumentValidator->userCanApproveValidationDocuments($user, false)) {
 			$idDocs = $this->idDocsMapper->getByNodeId($nodeId);
 		} else {
-			$this->validateHelper->validateIdDocIsOwnedByUser($nodeId, $user->getUID());
+			$this->identityDocumentValidator->validateIdDocIsOwnedByUser($nodeId, $user->getUID());
 			$idDocs = $this->idDocsMapper->getByUserIdAndNodeId($user->getUID(), $nodeId);
 		}
 		$this->idDocsMapper->delete($idDocs);
@@ -153,7 +155,7 @@ class IdDocsService {
 	}
 
 	public function deleteIdDocBySignRequest(int $nodeId, SignRequest $signRequest): void {
-		$this->validateHelper->validateIdDocBelongsToSignRequest($nodeId, $signRequest->getId());
+		$this->identityDocumentValidator->validateIdDocBelongsToSignRequest($nodeId, $signRequest->getId());
 		$idDocs = $this->idDocsMapper->getBySignRequestIdAndNodeId($signRequest->getId(), $nodeId);
 		$this->idDocsMapper->delete($idDocs);
 		$file = $this->fileMapper->getById($idDocs->getFileId());
