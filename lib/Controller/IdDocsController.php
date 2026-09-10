@@ -10,10 +10,10 @@ namespace OCA\Libresign\Controller;
 
 use Exception;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
@@ -43,7 +43,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 		protected IL10N $l10n,
 		protected IdDocsService $idDocsService,
 		protected IUserSession $userSession,
-		protected ValidateHelper $validateHelper,
+		protected IdentityDocumentValidator $identityDocumentValidator,
 		protected LoggerInterface $logger,
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -210,7 +210,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 		?string $sortOrder = null,
 	): DataResponse {
 		try {
-			$this->validateHelper->userCanApproveValidationDocuments($this->userSession->getUser());
+			$this->identityDocumentValidator->userCanApproveValidationDocuments($this->userSession->getUser());
 			$filter = array_filter([
 				'userId' => $userId,
 				'signRequestId' => $signRequestId,
