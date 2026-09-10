@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Validation;
 
 use OCA\Libresign\Db\File as LibresignFile;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FolderService;
@@ -125,8 +126,15 @@ final class FileInputValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	public function testAllowsFileWithoutExistingSignRequests(): void {
+		$this->signRequestMapper->method('getByNodeId')->with(7)->willReturn([]);
+
+		$this->validator->validateNotRequestedSign(7);
+		$this->addToAssertionCount(1);
+	}
+
 	public function testRejectsDuplicateSignRequest(): void {
-		$this->signRequestMapper->method('getByNodeId')->with(7)->willReturn($this->createMock(\OCA\Libresign\Db\SignRequest::class));
+		$this->signRequestMapper->method('getByNodeId')->with(7)->willReturn([$this->createMock(SignRequest::class)]);
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('Already asked to sign this document');
 		$this->validator->validateNotRequestedSign(7);
