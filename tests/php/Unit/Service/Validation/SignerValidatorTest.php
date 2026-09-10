@@ -201,7 +201,7 @@ final class SignerValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = new SignRequest();
 		$signRequest->setId($id);
 		$signRequest->setFileId($fileId);
-		$signRequest->setStatusEnum($status);
+		$signRequest->setStatus($status->value);
 		if ($order !== null) {
 			$signRequest->setSigningOrder($order);
 		}
