@@ -119,19 +119,25 @@ class EnvelopeAssembler {
 			$signer->statusText = $this->signRequestMapper->getTextOfSignerStatus($signRequest->getStatus());
 			$signer->identifyMethods = $identifyMethodsArray;
 			$signer->metadata = $signRequest->getMetadata();
+			$signer->visibleElements = [];
 			$fileData->signers[] = $signer;
 		}
 
 		if ($options->isShowVisibleElements()) {
 			$childMetadata = $childFile->getMetadata();
-			foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signRequests) as $row) {
+			$formattedElementsBySigner = [];
+			foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signRequests) as $signRequestId => $row) {
 				if (empty($row)) {
 					continue;
 				}
+				$formattedElementsBySigner[$signRequestId] = $this->fileElementService->formatVisibleElements($row, $childMetadata);
 				$fileData->visibleElements = array_merge(
-					$this->fileElementService->formatVisibleElements($row, $childMetadata),
+					$formattedElementsBySigner[$signRequestId],
 					$fileData->visibleElements
 				);
+			}
+			foreach ($fileData->signers as $signer) {
+				$signer->visibleElements = $formattedElementsBySigner[$signer->signRequestId] ?? [];
 			}
 		}
 
