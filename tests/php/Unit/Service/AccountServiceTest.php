@@ -701,7 +701,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$self->root
 						->method('getById')
 						->will($self->returnValue([]));
-					$folder = $self->createMock(\OCP\Files\Folder::class);
+					$folder = $self->createMock(IUserFolder::class);
 					$folder
 						->method('getById')
 						->willReturn([]);
