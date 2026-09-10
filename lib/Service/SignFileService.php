@@ -13,7 +13,6 @@ use DateTimeInterface;
 use Exception;
 use InvalidArgumentException;
 use OC\AppFramework\Http as AppFrameworkHttp;
-use OC\User\NoUserException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\BackgroundJob\SignSingleFileJob;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
@@ -55,7 +54,6 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\File;
-use OCP\Files\IRootFolder;
 use OCP\Files\NotPermittedException;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
@@ -67,6 +65,7 @@ use OCP\IUser;
 use OCP\IUserSession;
 use OCP\Security\ICredentialsManager;
 use OCP\Security\ISecureRandom;
+use OCP\User\Exceptions\UserNotFoundException;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Sabre\DAV\UUIDUtil;
@@ -99,7 +98,6 @@ class SignFileService {
 		private IAppConfig $appConfig,
 		protected ValidateHelper $validateHelper,
 		private SignerElementsService $signerElementsService,
-		private IRootFolder $root,
 		private IUserSession $userSession,
 		private IDateTimeZone $dateTimeZone,
 		private FileElementMapper $fileElementMapper,
@@ -1515,21 +1513,17 @@ class SignFileService {
 
 	protected function getNodeByIdUsingUid(string $uid, int $nodeId): File {
 		try {
-			$userFolder = $this->root->getUserFolder($uid);
-		} catch (NoUserException $e) {
-			$this->logger->error('[file-access] NoUserException for uid={uid}', ['uid' => $uid]);
+			$fileToSign = $this->folderService->getReadableNodeById($uid, $nodeId);
+		} catch (UserNotFoundException) {
+			$this->logger->error('[file-access] UserNotFoundException for uid={uid}', ['uid' => $uid]);
 			// TRANSLATORS Error shown when the Nextcloud user linked to the signer cannot be found.
 			throw new LibresignException($this->l10n->t('User not found.'));
-		} catch (NotPermittedException $e) {
+		} catch (NotPermittedException) {
 			$this->logger->error('[file-access] NotPermittedException for uid={uid}', ['uid' => $uid]);
 			// TRANSLATORS Permission error shown when the current user cannot perform the requested signing action.
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
-		}
-
-		try {
-			$fileToSign = $userFolder->getFirstNodeById($nodeId);
 		} catch (\Throwable $e) {
-			$this->logger->error('[file-access] Failed getFirstNodeById - nodeId={nodeId} error={error}', [
+			$this->logger->error('[file-access] Failed to resolve node - nodeId={nodeId} error={error}', [
 				'nodeId' => $nodeId,
 				'error' => $e->getMessage(),
 			]);
@@ -1560,9 +1554,7 @@ class SignFileService {
 		}
 
 		try {
-			$userFolder = $this->root->getUserFolder($uid);
-			$node = $userFolder->getFirstNodeById($nodeId);
-			return $node instanceof File;
+			return $this->folderService->getReadableNodeById($uid, $nodeId) instanceof File;
 		} catch (\Throwable $e) {
 			$this->logger->warning('[verify-file] File not accessible - nodeId={nodeId} uid={uid} error={error}', [
 				'nodeId' => $nodeId,
@@ -1602,8 +1594,7 @@ class SignFileService {
 		$uniqueFilename = substr((string)$filename, 0, -strlen($extension) - 1) . '_' . $fileId . '.' . $extension;
 
 		try {
-			/** @var \OCP\Files\Folder */
-			$parentFolder = $this->root->getUserFolder($ownerUid)->getFirstNodeById($originalFile->getParentId());
+			$parentFolder = $originalFile->getParent();
 
 			$this->createdSignedFile = $this->runWithVolatileActiveUser(
 				$owner,
@@ -1661,7 +1652,7 @@ class SignFileService {
 						'errors' => [['message' => $this->l10n->t('File not found')]],
 					]), AppFrameworkHttp::STATUS_NOT_FOUND);
 				}
-				$file = $this->root->getUserFolder($child->getUserId())->getFirstNodeById($nodeId);
+				$file = $this->folderService->getReadableNodeById($child->getUserId(), $nodeId);
 				if ($file instanceof File) {
 					$files[] = $file;
 				}
