@@ -260,8 +260,8 @@ class FolderService {
 		return implode($data['settings']['separator'], $folderName);
 	}
 
-	public function getFileByPath(string $path): Node {
-		$userFolder = $this->getUserRootFolder();
+	public function getFileByPath(string $path, ?string $userId = null): Node {
+		$userFolder = $userId !== null ? $this->getUserFolder($userId) : $this->getUserRootFolder();
 		try {
 			return $userFolder->get($path);
 		} catch (NotFoundException) {
