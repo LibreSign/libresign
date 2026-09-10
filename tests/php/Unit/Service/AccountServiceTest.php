@@ -19,6 +19,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\CRLReason;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\FileUploadHelper;
@@ -358,13 +359,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		int $nodeId,
 		int $expectedNodeId,
 	): void {
-		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
-		$libresignFile->method('__call')
-			->willReturnCallback(fn ($method) => match ($method) {
-				'getSignedNodeId' => $signedNodeId,
-				'getNodeId' => $nodeId,
-				'getStatus' => $status,
-			});
+		$libresignFile = new \OCA\Libresign\Db\File();
+		$libresignFile->setSignedNodeId($signedNodeId);
+		$libresignFile->setNodeId($nodeId);
+		$libresignFile->setStatus($status);
 
 		$this->fileMapper->method('getByUuid')->with('uuid')->willReturn($libresignFile);
 		$this->fileMapper->method('getStorageUserIdByUuid')->with('uuid')->willReturn('storage-user');
@@ -658,15 +656,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 								'getUserId' => 'username',
 							}
 						);
-					$file = $self->createMock(\OCA\Libresign\Db\File::class);
-					$file
-						->method('__call')
-						->willReturnCallback(fn (string $method)
-							=> match ($method) {
-								'getNodeId' => 999,
-								'getUserId' => 'username',
-							}
-						);
+					$file = new \OCA\Libresign\Db\File();
+					$file->setNodeId(999);
+					$file->setUserId('username');
 					$self->fileMapper
 						->method('getById')
 						->will($self->returnValue($file));
