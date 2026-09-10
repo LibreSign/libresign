@@ -137,11 +137,11 @@ class FileInputValidator {
 
 	public function validateNotRequestedSign(int $nodeId): void {
 		try {
-			$signRequest = $this->signRequestMapper->getByNodeId($nodeId);
+			$signRequests = $this->signRequestMapper->getByNodeId($nodeId);
 		} catch (\Throwable) {
-			$signRequest = null;
+			$signRequests = [];
 		}
-		if ($signRequest !== null) {
+		if (!empty($signRequests)) {
 			throw new LibresignException($this->l10n->t('Already asked to sign this document'));
 		}
 	}
