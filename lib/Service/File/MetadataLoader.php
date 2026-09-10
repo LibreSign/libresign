@@ -10,15 +10,15 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\File;
 
 use OCA\Libresign\Db\File;
+use OCA\Libresign\Service\FolderService;
 use OCP\Files\IMimeTypeDetector;
-use OCP\Files\IRootFolder;
 use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
 use stdClass;
 
 class MetadataLoader {
 	public function __construct(
-		private IRootFolder $root,
+		private FolderService $folderService,
 		private IMimeTypeDetector $mimeTypeDetector,
 		private IURLGenerator $urlGenerator,
 		private FileContentProvider $contentProvider,
@@ -79,7 +79,7 @@ class MetadataLoader {
 			$nodeId = $file->getNodeId();
 		}
 
-		$fileNode = $this->root->getUserFolder($file->getUserId())->getFirstNodeById($nodeId);
+		$fileNode = $this->folderService->getReadableNodeById($file->getUserId(), $nodeId);
 
 		if (!$fileNode instanceof \OCP\Files\File && !$fileNode instanceof \OCP\Files\Folder) {
 			throw new \OCA\Libresign\Exception\LibresignException('File not found', 404);
