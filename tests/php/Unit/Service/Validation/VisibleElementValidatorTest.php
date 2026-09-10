@@ -26,7 +26,7 @@ final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private FileInputValidator $fileInputValidator;
 
 	#[\Override]
-	protected function setUp(): void {
+	public function setUp(): void {
 		parent::setUp();
 		$l10n = $this->createMock(IL10N::class);
 		$l10n->method('t')->willReturnArgument(0);
