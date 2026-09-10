@@ -14,7 +14,6 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\IMimeTypeDetector;
-use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IL10N;
 use OCP\IUser;
@@ -41,11 +40,7 @@ class FileInputValidator {
 			$this->validateNotRequestedSign((int)$data['file']['nodeId']);
 		} elseif (!empty($data['file']['path'])) {
 			$uid = $this->resolveUserId($data, $user);
-			try {
-				$node = $this->folderService->getUserFolder($uid)->get($data['file']['path']);
-			} catch (NotFoundException) {
-				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
-			}
+			$node = $this->folderService->getFileByPath($data['file']['path'], $uid);
 			$this->validateNotRequestedSign($node->getId());
 		}
 	}
@@ -103,11 +98,7 @@ class FileInputValidator {
 
 		if (!empty($data['file']['path'])) {
 			$uid = $this->resolveUserId($data, $user);
-			try {
-				$this->folderService->getUserFolder($uid)->get($data['file']['path']);
-			} catch (NotFoundException) {
-				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
-			}
+			$this->folderService->getFileByPath($data['file']['path'], $uid);
 			return;
 		}
 
