@@ -490,6 +490,53 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 	}
 
+	public function testVisibleElementsAreAssignedBySignRequestId(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(1);
+		$file->setUuid('test-uuid');
+		$file->setName('test.pdf');
+		$file->setStatus(1);
+		$file->setCreatedAt(new \DateTime());
+		$file->setNodeId(100);
+		$file->setSignatureFlow('');
+		$file->setDocmdpLevel('');
+		$file->setUserId('testuser');
+		$file->setMetadata([]);
+
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getDisplayName')->willReturn('Test User');
+		$this->userManager->method('get')->willReturn($user);
+		$this->fileMapper->method('getTextOfStatus')->willReturn('Pending');
+		$this->signersLoader->method('loadLibreSignSigners')->willReturnCallback(
+			static function ($file, \stdClass $fileData): void {
+				$fileData->signers = [
+					(object)['signRequestId' => 20, 'visibleElements' => []],
+					(object)['signRequestId' => 10, 'visibleElements' => []],
+					(object)['displayName' => 'Certificate-only signer'],
+				];
+			}
+		);
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest->setId(10);
+		$signRequest->setFileId(1);
+		$this->signRequestMapper->method('getByMultipleFileId')->with([1])->willReturn([$signRequest]);
+		$element = new \OCA\Libresign\Db\FileElement();
+		$element->setFileId(1);
+		$element->setSignRequestId(10);
+		$this->signRequestMapper->expects($this->once())->method('getVisibleElementsFromSigners')
+			->with([$signRequest])->willReturn([10 => [$element]]);
+		$formatted = [['elementId' => 5, 'signRequestId' => 10, 'fileId' => 1]];
+		$this->fileElementService->expects($this->once())->method('formatVisibleElements')
+			->with([$element], [])->willReturn($formatted);
+
+		$result = $this->createFileService()->setFile($file)->showSigners()->showVisibleElements()->toArray();
+
+		$this->assertSame($formatted, $result['visibleElements']);
+		$this->assertSame([], $result['signers'][0]['visibleElements']);
+		$this->assertSame($formatted, $result['signers'][1]['visibleElements']);
+		$this->assertSame([], $result['signers'][2]['visibleElements']);
+	}
+
 	public static function providerTestVisibleElements(): array {
 		return [
 			'visible elements included when showVisibleElements() called' => [true, true],

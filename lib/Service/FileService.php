@@ -520,16 +520,21 @@ class FileService {
 
 		$signers = $this->signRequestMapper->getByMultipleFileId($fileIds);
 		$fileMetadata = $this->file->getMetadata();
-		foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signers) as $visibleElements) {
+		$formattedElementsBySigner = [];
+		foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signers) as $signRequestId => $visibleElements) {
 			if (empty($visibleElements)) {
 				continue;
 			}
 			$elementFileId = $visibleElements[0]->getFileId();
 			$metadata = $childMetadataMap[$elementFileId] ?? $fileMetadata;
+			$formattedElementsBySigner[$signRequestId] = $this->fileElementService->formatVisibleElements($visibleElements, $metadata);
 			$this->fileData->visibleElements = array_merge(
-				$this->fileElementService->formatVisibleElements($visibleElements, $metadata),
+				$formattedElementsBySigner[$signRequestId],
 				$this->fileData->visibleElements
 			);
+		}
+		foreach ($this->fileData->signers as $signer) {
+			$signer->visibleElements = $formattedElementsBySigner[$signer->signRequestId ?? null] ?? [];
 		}
 	}
 
