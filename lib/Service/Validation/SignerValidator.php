@@ -42,6 +42,9 @@ class SignerValidator {
 		if (empty($data['signers'])) {
 			return;
 		}
+		if (!is_array($data['signers'])) {
+			throw new LibresignException($this->l10n->t('No signers'));
+		}
 		$this->docMdpValidator->validateSignersCount($data);
 		$this->validateDocMdpPdfRestrictions($data);
 		foreach ($data['signers'] as $signer) {
