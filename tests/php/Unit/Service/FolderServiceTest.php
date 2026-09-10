@@ -86,21 +86,87 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	private function getInstance(?string $userId = '171'): FolderService {
-		$service = $this->getMockBuilder(FolderService::class)
-			->setConstructorArgs([
-				$this->root,
-				$this->appDataFactory,
-				$this->groupManager,
-				$this->appConfig,
-				$this->l10n,
-				$this->setupManager,
-				$this->userManager,
-				$userId,
-			])
-			->onlyMethods(['initializeUserFilesystem'])
-			->getMock();
-		$service->method('initializeUserFilesystem');
-		return $service;
+		return new FolderService(
+			$this->root,
+			$this->appDataFactory,
+			$this->groupManager,
+			$this->appConfig,
+			$this->l10n,
+			$this->setupManager,
+			$this->userManager,
+			$userId,
+		);
+	}
+
+	public function testGetUserFolderReturnsNextcloudUserFolder(): void {
+		$userFolder = $this->createMock(IUserFolder::class);
+		$this->root
+			->expects($this->once())
+			->method('getUserFolder')
+			->with('alice')
+			->willReturn($userFolder);
+
+		$this->assertSame($userFolder, $this->getInstance()->getUserFolder('alice'));
+	}
+
+	public function testGetReadableNodeByIdSkipsUnreadableMount(): void {
+		$userFolder = $this->createMock(IUserFolder::class);
+		$unreadableNode = $this->createMock(\OCP\Files\Node::class);
+		$readableNode = $this->createMock(\OCP\Files\Node::class);
+		$unreadableNode->method('isReadable')->willReturn(false);
+		$readableNode->method('isReadable')->willReturn(true);
+
+		$this->root->method('getUserFolder')->with('alice')->willReturn($userFolder);
+		$userFolder
+			->expects($this->once())
+			->method('getById')
+			->with(42)
+			->willReturn([$unreadableNode, $readableNode]);
+
+		$this->assertSame($readableNode, $this->getInstance()->getReadableNodeById('alice', 42));
+	}
+
+	public function testGetReadableNodeByIdReturnsNullWhenNoReadableMountExists(): void {
+		$userFolder = $this->createMock(IUserFolder::class);
+		$unreadableNode = $this->createMock(\OCP\Files\Node::class);
+		$unreadableNode->method('isReadable')->willReturn(false);
+
+		$this->root->method('getUserFolder')->with('alice')->willReturn($userFolder);
+		$userFolder->method('getById')->with(42)->willReturn([$unreadableNode]);
+
+		$this->assertNull($this->getInstance()->getReadableNodeById('alice', 42));
+	}
+
+	public function testGetCreatableFolderByIdSkipsNonCreatableMounts(): void {
+		$userFolder = $this->createMock(IUserFolder::class);
+		$readOnlyFolder = $this->createMock(Folder::class);
+		$creatableFolder = $this->createMock(Folder::class);
+		$readOnlyFolder->method('isCreatable')->willReturn(false);
+		$creatableFolder->method('isCreatable')->willReturn(true);
+		$this->root->method('getUserFolder')->with('alice')->willReturn($userFolder);
+		$userFolder->method('getById')->with(42)->willReturn([$readOnlyFolder, $creatableFolder]);
+
+		$this->assertSame($creatableFolder, $this->getInstance()->getCreatableFolderById('alice', 42));
+	}
+
+	public function testGetCreatableFolderByIdReturnsNullWithoutCreatableFolder(): void {
+		$userFolder = $this->createMock(IUserFolder::class);
+		$file = $this->createMock(\OCP\Files\File::class);
+		$folder = $this->createMock(Folder::class);
+		$folder->method('isCreatable')->willReturn(false);
+		$this->root->method('getUserFolder')->with('alice')->willReturn($userFolder);
+		$userFolder->method('getById')->with(42)->willReturn([$file, $folder]);
+
+		$this->assertNull($this->getInstance()->getCreatableFolderById('alice', 42));
+	}
+
+	public function testReadLookupDoesNotForceFilesystemSetup(): void {
+		$userFolder = $this->createMock(IUserFolder::class);
+		$this->root->method('getUserFolder')->with('alice')->willReturn($userFolder);
+		$userFolder->method('getById')->willReturn([]);
+		$this->setupManager->expects($this->never())->method('setupForUser');
+
+		$this->getInstance()->getReadableNodeById('alice', 42);
 	}
 
 	public function testGetContainerFolderAsUnauthenticatedWhenUserIdIsInvalid():void {
