@@ -15,6 +15,7 @@ use OCA\Libresign\Service\File\FileContentProvider;
 use OCA\Libresign\Service\File\MimeService;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\Files\IUserFolder;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
@@ -277,7 +278,7 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode = $this->createMock(\OCP\Files\File::class);
 		$fileNode->method('getContent')->willReturn('PDF content');
 
-		$userFolder = $this->createMock(Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('getFirstNodeById')->with(123)->willReturn($fileNode);
 
 		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
@@ -298,7 +299,7 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode = $this->createMock(\OCP\Files\File::class);
 		$fileNode->method('getContent')->willReturn('PDF content');
 
-		$userFolder = $this->createMock(Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('getFirstNodeById')->with(456)->willReturn($fileNode);
 
 		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
@@ -316,7 +317,7 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->setSignedNodeId(null);
 		$file->setNodeId(456);
 
-		$userFolder = $this->createMock(Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('getFirstNodeById')->willReturn(null);
 
 		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
@@ -335,7 +336,7 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$folderNode = $this->createMock(Folder::class);
 
-		$userFolder = $this->createMock(Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('getFirstNodeById')->with(123)->willReturn($folderNode);
 
 		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
