@@ -19,7 +19,6 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\Files\File as NodeFile;
-use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\IUserFolder;
 use OCP\IAppConfig;

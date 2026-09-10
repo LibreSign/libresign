@@ -21,7 +21,6 @@ use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\Files\File;
-use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\IUserFolder;
 use OCP\IURLGenerator;

@@ -12,7 +12,6 @@ namespace OCA\Libresign\Tests\Unit\Service\File;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Service\File\FileContentProvider;
 use OCA\Libresign\Service\File\MetadataLoader;
-use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\IUserFolder;
