@@ -73,7 +73,7 @@ class FolderService {
 	}
 
 	/**
-	 * Get the user's root folder (full home), not the LibreSign container.
+	 * Get the root of the user's visible files, not the LibreSign container.
 	 *
 	 * @throws LibresignException
 	 */
@@ -201,12 +201,14 @@ class FolderService {
 		$userFolder = $this->getFolder();
 
 		if (isset($data['settings']['envelopeFolderId'])) {
-			$envelopeFolder = $userFolder->getFirstNodeById($data['settings']['envelopeFolderId']);
-			if ($envelopeFolder === null || !$envelopeFolder instanceof Folder) {
-				// TRANSLATORS Error shown when the Nextcloud folder that stores envelope documents cannot be found.
-				throw new LibresignException($this->l10n->t('Envelope folder not found'));
+			foreach ($userFolder->getById($data['settings']['envelopeFolderId']) as $node) {
+				if ($node instanceof Folder && $node->isCreatable()) {
+					return $node;
+				}
 			}
-			return $envelopeFolder;
+
+			// TRANSLATORS Error shown when the Nextcloud folder that stores envelope documents cannot be found or is not writable.
+			throw new LibresignException($this->l10n->t('Envelope folder not found'));
 		}
 
 		$folderName = $this->getFolderName($data, $identifier);
@@ -318,7 +320,7 @@ class FolderService {
 
 	private function prepareUserFilesystemForWrite(string $userId): void {
 		$user = $this->userManager->get($userId);
-		if (!$user instanceof IUser) {
+		if (!$user instanceof IUser || $this->setupManager->isSetupComplete($user)) {
 			return;
 		}
 
