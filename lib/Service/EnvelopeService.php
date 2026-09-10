@@ -130,10 +130,7 @@ class EnvelopeService {
 			throw new LibresignException('Envelope does not have a user');
 		}
 
-		$this->folderService->setUserId($userId);
-		$userRootFolder = $this->folderService->getUserRootFolder();
-
-		$envelopeFolderNode = $userRootFolder->getFirstNodeById($envelope->getNodeId());
+		$envelopeFolderNode = $this->folderService->getCreatableFolderById($userId, $envelope->getNodeId());
 		if (!$envelopeFolderNode instanceof \OCP\Files\Folder) {
 			throw new LibresignException('Envelope folder not found');
 		}
