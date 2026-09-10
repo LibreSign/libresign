@@ -28,7 +28,7 @@ final class SigningRequestValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private SigningRequestValidator $validator;
 
 	#[\Override]
-	protected function setUp(): void {
+	public function setUp(): void {
 		parent::setUp();
 		$l10n = $this->createMock(IL10N::class);
 		$l10n->method('t')->willReturnArgument(0);
