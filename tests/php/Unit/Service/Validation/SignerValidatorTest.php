@@ -23,6 +23,7 @@ use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\Validation\SignerValidator;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IL10N;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -100,6 +101,23 @@ final class SignerValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	public function testRejectsNonArraySignersPayload(): void {
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('No signers');
+		$this->validator->validateIdentifySigners(['signers' => 'invalid']);
+	}
+
+	public function testRejectsDisplayNameLongerThan64Characters(): void {
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Display name must not be longer than 64 characters');
+		$this->validator->validateIdentifySigners([
+			'signers' => [[
+				'displayName' => str_repeat('A', 65),
+				'identifyMethods' => [['method' => 'email', 'value' => 'alice@example.com']],
+			]],
+		]);
+	}
+
 	public function testIdentifySignerChecksDocMdpAndIdentifyMethod(): void {
 		$file = new File();
 		$this->fileMapper->method('getByUuid')->with('file-uuid')->willReturn($file);
@@ -154,6 +172,29 @@ final class SignerValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->validator->validateSigner($uuid);
 		$this->addToAssertionCount(1);
+	}
+
+	public function testDraftSignerIsBlockedWithoutIdentityDocument(): void {
+		$uuid = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+		$signRequest = $this->signRequest(12, 22, SignRequestStatus::DRAFT);
+		$this->signRequestMapper->method('getByUuid')->with($uuid)->willReturn($signRequest);
+		$this->fileMapper->method('getById')->with(22)->willReturn(new File());
+		$this->idDocsMapper->method('getByFileId')->with(22)->willThrowException(new DoesNotExistException('not found'));
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('not allowed to sign this document yet');
+		$this->validator->validateSigner($uuid);
+	}
+
+	public function testSignedSignerIsBlocked(): void {
+		$uuid = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+		$signRequest = $this->signRequest(13, 23, SignRequestStatus::SIGNED);
+		$this->signRequestMapper->method('getByUuid')->with($uuid)->willReturn($signRequest);
+		$this->fileMapper->method('getById')->with(23)->willReturn(new File());
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Document already signed');
+		$this->validator->validateSigner($uuid);
 	}
 
 	private function signRequest(int $id, int $fileId, SignRequestStatus $status, ?int $order = null): SignRequest {
