@@ -309,6 +309,7 @@ class FolderService {
 						// TRANSLATORS Error shown when creating a folder for LibreSign documents and the path already exists with content. %s is the folder path.
 						throw new LibresignException($this->l10n->t('Folder already exists and is not empty: %s', [$path]));
 					}
+				}
 			} catch (NotFoundException) {
 				$folder = $folder->newFolder($segment);
 			}
