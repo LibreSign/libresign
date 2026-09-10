@@ -10,7 +10,6 @@ namespace OCA\Libresign\Helper;
 
 use InvalidArgumentException;
 use OC\AppFramework\Http;
-use OC\User\NoUserException;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
@@ -39,6 +38,7 @@ use OCP\Files\NotPermittedException;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
+use OCP\User\Exceptions\UserNotFoundException;
 
 class ValidateHelper {
 	/** @var \OCP\Files\File[] */
@@ -519,7 +519,7 @@ class ValidateHelper {
 		}
 		try {
 			$file = $this->root->getUserFolder($userId)->getFirstNodeById($nodeId);
-		} catch (NoUserException) {
+		} catch (UserNotFoundException) {
 			// TRANSLATORS Validation error when the Nextcloud user associated with a file or signature request cannot be found.
 			throw new LibresignException($this->l10n->t('User not found.'));
 		} catch (NotPermittedException) {
