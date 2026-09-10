@@ -1,4 +1,62 @@
 Feature: validate
+  Scenario: Validation assigns visible elements only to their signer
+    Given as user "admin"
+    And user "signer1" exists
+    And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
+      | rootCert | {"commonName":"test"} |
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | signers | [{"identifyMethods":[{"method":"account","value":"admin"}]},{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
+      | status | 0 |
+      | name | Visible elements validation |
+    Then the response should have a status code 200
+    And fetch field "(FILE_UUID)ocs.data.uuid" from previous JSON response
+    When sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<FILE_UUID>"
+    Then the response should have a status code 200
+    And fetch field "(SIGN_REQUEST_ID)ocs.data.signers.0.signRequestId" from previous JSON response
+    When sending "post" to ocs "/apps/libresign/api/v1/file-element/<FILE_UUID>"
+      | signRequestId | <SIGN_REQUEST_ID> |
+      | type | signature |
+      | coordinates | {"page":1,"llx":10,"lly":10,"urx":110,"ury":60} |
+    Then the response should have a status code 200
+    When sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<FILE_UUID>"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key | value |
+      | (jq).ocs.data.visibleElements \| length | 1 |
+      | (jq)(.ocs.data.signers[0].visibleElements == .ocs.data.visibleElements) | true |
+      | (jq).ocs.data.signers[1].visibleElements | [] |
+
+  Scenario: Envelope validation keeps visible elements scoped to each document signer
+    Given as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
+      | rootCert | {"commonName":"test"} |
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | files | [{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"First.pdf"},{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"Second.pdf"}] |
+      | signers | [{"identifyMethods":[{"method":"account","value":"admin"}]}] |
+      | status | 0 |
+      | name | Envelope visible elements |
+    Then the response should have a status code 200
+    And fetch field "(ENVELOPE_UUID)ocs.data.uuid" from previous JSON response
+    When sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<ENVELOPE_UUID>"
+    Then the response should have a status code 200
+    And fetch field "(CHILD_UUID)ocs.data.files.0.uuid" from previous JSON response
+    And fetch field "(SIGN_REQUEST_ID)ocs.data.files.0.signers.0.signRequestId" from previous JSON response
+    When sending "post" to ocs "/apps/libresign/api/v1/file-element/<CHILD_UUID>"
+      | signRequestId | <SIGN_REQUEST_ID> |
+      | type | signature |
+      | coordinates | {"page":1,"llx":10,"lly":10,"urx":110,"ury":60} |
+    Then the response should have a status code 200
+    When sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<ENVELOPE_UUID>"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key | value |
+      | (jq).ocs.data.visibleElements \| length | 1 |
+      | (jq).ocs.data.files[0].visibleElements \| length | 1 |
+      | (jq)(.ocs.data.files[0].signers[0].visibleElements == .ocs.data.files[0].visibleElements) | true |
+      | (jq).ocs.data.files[1].visibleElements | [] |
+      | (jq).ocs.data.files[1].signers[0].visibleElements | [] |
+
   Scenario: Sign with account, delete the account and validate
     Given as user "admin"
     And run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0
