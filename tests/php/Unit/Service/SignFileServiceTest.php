@@ -1943,7 +1943,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->expectExceptionMessageMatches($exceptionMessage);
 		}
 		$leaf = $this->createMock($typeOfNode);
-		$userFolder = $this->createMock(\OCP\Files\Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('getFirstNodeById')->willReturn($leaf);
 		$this->root->method('getUserFolder')->willReturnCallback(function () use ($userFolder, $exceptionMessage) {
 			switch ($exceptionMessage) {
