@@ -116,4 +116,39 @@ describe('FilesList - sidebar opening business rules', () => {
 		expect(sidebarStore.activeRequestSignatureTab).not.toHaveBeenCalled()
 		expect(sidebarStore.setActiveTab).toHaveBeenCalledTimes(1)
 	})
+
+	it('opens the request sidebar in observer mode when the current user only observes the file', async () => {
+		const detailedFile = {
+			id: 42,
+			status: 1,
+			statusText: 'able to sign',
+			signers: [{ me: true, participantRole: 'observer', sign_request_uuid: 'observer-uuid' }],
+			visibleElements: [],
+		}
+		const filesStore = {
+			selectFile: vi.fn(),
+			fetchFileDetail: vi.fn().mockResolvedValue(detailedFile),
+			canSign: vi.fn().mockReturnValue(false),
+			canRequestSign: false,
+			isObservingOnly: vi.fn().mockReturnValue(true),
+		}
+		const sidebarStore = {
+			activeSignTab: vi.fn(),
+			activeRequestSignatureTab: vi.fn(),
+			setActiveTab: vi.fn(),
+		}
+		const signStore = {
+			setFileToSign: vi.fn(),
+		}
+
+		await openFilesListSidebarForFile(42, {
+			filesStore,
+			sidebarStore,
+			signStore,
+		})
+
+		expect(signStore.setFileToSign).not.toHaveBeenCalled()
+		expect(sidebarStore.activeSignTab).not.toHaveBeenCalled()
+		expect(sidebarStore.activeRequestSignatureTab).toHaveBeenCalledTimes(1)
+	})
 })

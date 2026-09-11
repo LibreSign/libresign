@@ -863,6 +863,23 @@ describe('files store - critical business rules', () => {
 
 			expect(store.canSign()).toBe(false)
 		})
+
+		it('blocks signing when the current user is only an observer', () => {
+			const store = useFilesStore()
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				status: 1,
+				canSign: true,
+				signers: [
+					{ me: true, signed: [], participantRole: 'observer', sign_request_uuid: 'observer-uuid' },
+					{ me: false, signed: [], participantRole: 'signer', sign_request_uuid: 'signer-uuid' },
+				],
+			}
+
+			expect(store.isObservingOnly()).toBe(true)
+			expect(store.canSign()).toBe(false)
+		})
 	})
 
 	describe('RULE: rename operations', () => {

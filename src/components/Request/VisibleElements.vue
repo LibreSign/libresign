@@ -25,9 +25,9 @@
 					aria-live="polite"
 					aria-atomic="true"
 					class="sr-only">
-					<template v-if="!signerSelected">{{ selectSignerPositionHint }}</template>
+					<template v-if="!isReadOnly && !signerSelected">{{ selectSignerPositionHint }}</template>
 				</span>
-				<p v-if="!signerSelected">
+				<p v-if="!isReadOnly && !signerSelected">
 					<NcNoteCard type="info"
 						:text="selectSignerPositionHint" />
 				</p>
@@ -44,7 +44,7 @@
 						:key="index"
 						:signer="signer"
 						:require-request-permission="false"
-						:class="{ disabled: signerSelected }"
+						:class="{ disabled: isReadOnly || signerSelected }"
 						@select="handleSignerSelect">
 						<template #actions>
 							<slot name="actions" v-bind="{ signer }" />
@@ -558,9 +558,15 @@ const status = computed(() => Number(document.value.status))
 const isDraft = computed(() => status.value === FILE_STATUS.DRAFT)
 const signElementsAvailable = computed(() => signElementsConfig?.['is-available'] !== false)
 const hasVisibleElements = computed(() => getVisibleElementsFromDocument(document.value as DocumentLike).length > 0)
-const canSave = computed(() => signElementsAvailable.value
+const canSave = computed(() => !filesStore.isObservingOnly()
+	&& filesStore.canRequestSign
+	&& signElementsAvailable.value
 	&& ([FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED] as number[]).includes(status.value))
-const canSign = computed(() => status.value === FILE_STATUS.ABLE_TO_SIGN && !!getSigningRouteUuid(document.value))
+const canSign = computed(() => !filesStore.isObservingOnly()
+	&& filesStore.canSign()
+	&& status.value === FILE_STATUS.ABLE_TO_SIGN
+	&& !!getSigningRouteUuid(document.value))
+const isReadOnly = computed(() => !canSave.value)
 const variantOfSaveButton = computed(() => canSave.value ? 'primary' : 'secondary')
 const variantOfSignButton = computed(() => canSave.value ? 'secondary' : 'primary')
 const statusLabel = computed(() => document.value.statusText || '')
@@ -838,7 +844,7 @@ function onSelectSigner(signer: SignerSummaryRecord) {
 }
 
 function handleSignerSelect(signer: unknown) {
-	if (!signElementsAvailable.value) {
+	if (!canSave.value || !signElementsAvailable.value) {
 		return
 	}
 	const normalizedSigner = normalizeEditableRequestSigner(signer)
@@ -859,7 +865,7 @@ function stopAddSigner() {
 }
 
 async function onDeleteSigner(visibleElement: VisibleElementRecord) {
-	if (!visibleElement?.elementId) {
+	if (!canSave.value || !visibleElement?.elementId) {
 		return
 	}
 	await axios.delete(generateOcsUrl('/apps/libresign/api/v1/file-element/{uuid}/{elementId}', {
@@ -869,6 +875,9 @@ async function onDeleteSigner(visibleElement: VisibleElementRecord) {
 }
 
 function handleDeleteSigner(object: unknown) {
+	if (!canSave.value) {
+		return
+	}
 	const visibleElement = normalizeVisibleElement(object)
 	if (!visibleElement) {
 		return
@@ -1098,6 +1107,7 @@ defineExpose({
 	documentNameWithExtension,
 	canSign,
 	canSave,
+	isReadOnly,
 	status,
 	statusLabel,
 	isDraft,

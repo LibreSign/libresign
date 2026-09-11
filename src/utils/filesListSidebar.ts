@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { isCurrentUserObserver } from './participantRole.ts'
+
 type FilesListSidebarFileId = number | string
 
 type FilesListSidebarFile = {
@@ -11,6 +13,7 @@ type FilesListSidebarFile = {
 	statusText?: string
 	signers?: Array<{
 		me?: boolean
+		participantRole?: string | null
 		sign_request_uuid?: string | null
 	}>
 	visibleElements?: Array<Record<string, unknown>>
@@ -22,6 +25,7 @@ type FilesListSidebarFilesStore<TFile extends FilesListSidebarFile> = {
 	fetchFileDetail: (options: { fileId: number, force?: boolean }) => Promise<TFile | null>
 	canSign: (file: TFile | null | undefined) => boolean
 	canRequestSign?: boolean
+	isObservingOnly?: (file: TFile | null | undefined) => boolean
 }
 
 type FilesListSidebarStore = {
@@ -44,6 +48,17 @@ function clearSidebar(sidebarStore: FilesListSidebarStore): void {
 	if (typeof sidebarStore.hideSidebar === 'function') {
 		sidebarStore.hideSidebar()
 	}
+}
+
+function isObserverView<TFile extends FilesListSidebarFile>(
+	file: TFile,
+	filesStore: FilesListSidebarFilesStore<TFile>,
+): boolean {
+	if (typeof filesStore.isObservingOnly === 'function') {
+		return filesStore.isObservingOnly(file)
+	}
+
+	return isCurrentUserObserver(file)
 }
 
 export async function openFilesListSidebarForFile<TFile extends FilesListSidebarFile>(
@@ -69,7 +84,10 @@ export async function openFilesListSidebarForFile<TFile extends FilesListSidebar
 		return detailedFile
 	}
 
-	if (detailedFile && options.filesStore.canRequestSign === true) {
+	if (detailedFile && (
+		options.filesStore.canRequestSign === true
+		|| isObserverView(detailedFile, options.filesStore)
+	)) {
 		options.sidebarStore.activeRequestSignatureTab()
 		return detailedFile
 	}

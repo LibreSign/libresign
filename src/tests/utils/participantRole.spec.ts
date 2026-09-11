@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	countSigningParticipants,
 	filterParticipantsByRole,
+	isCurrentUserObserver,
 	isObserverParticipant,
 	isSigningParticipant,
 	PARTICIPANT_ROLE,
@@ -37,5 +38,19 @@ describe('participantRole utils', () => {
 		expect(isSigningParticipant({
 			participantRole: PARTICIPANT_ROLE.SIGNER,
 		})).toBe(true)
+	})
+
+	it('detects when the current user only participates as an observer', () => {
+		expect(isCurrentUserObserver({
+			signers: [
+				{ me: true, participantRole: PARTICIPANT_ROLE.OBSERVER },
+				{ me: false, participantRole: PARTICIPANT_ROLE.SIGNER },
+			],
+		})).toBe(true)
+		expect(isCurrentUserObserver({
+			signers: [
+				{ me: true, participantRole: PARTICIPANT_ROLE.SIGNER },
+			],
+		})).toBe(false)
 	})
 })

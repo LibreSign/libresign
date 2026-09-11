@@ -22,7 +22,7 @@ import { usePoliciesStore } from './policies'
 import { useSidebarStore } from './sidebar.js'
 import { FILE_STATUS } from '../constants.js'
 import { getSigningRouteUuid } from '../utils/signRequestUuid.ts'
-import { isSigningParticipant } from '../utils/participantRole.ts'
+import { isCurrentUserObserver, isSigningParticipant } from '../utils/participantRole.ts'
 
 /** @typedef {import('../types/index').IdentifyMethodRecord} SignerMethodRecord */
 /** @typedef {import('../types/index').FileSettings} FileSettings */
@@ -712,6 +712,9 @@ const _filesStore = defineStore('files', () => {
 
 	function canSign(file) {
 		const selectedFile = getFile(file)
+		if (isCurrentUserObserver(selectedFile)) {
+			return false
+		}
 		if (typeof selectedFile?.canSign === 'boolean') {
 			return selectedFile.canSign
 		}
@@ -721,7 +724,8 @@ const _filesStore = defineStore('files', () => {
 		const isSigned = (signer) => Array.isArray(signer.signed)
 			? signer.signed.length > 0
 			: !!signer.signed
-		const mySigners = selectedFile?.signers?.filter(signer => signer.me) || []
+		const mySigners = (selectedFile?.signers?.filter(signer => signer.me) || [])
+			.filter(isSigningParticipant)
 		if (isFullSigned(selectedFile)
 			|| selectedFile.status <= 0
 			|| mySigners.some((signer) => isSigned(signer))) {
@@ -742,7 +746,7 @@ const _filesStore = defineStore('files', () => {
 			return true
 		}
 
-		const pendingSigners = selectedFile?.signers?.filter(signer => !isSigned(signer)) || []
+		const pendingSigners = selectedFile?.signers?.filter(signer => !isSigned(signer) && isSigningParticipant(signer)) || []
 		if (pendingSigners.length === 0) {
 			return false
 		}
@@ -756,6 +760,10 @@ const _filesStore = defineStore('files', () => {
 		return [2, 3].includes(Number(selectedFile?.status))
 			|| isPartialSigned(selectedFile)
 			|| isFullSigned(selectedFile)
+	}
+
+	function isObservingOnly(file) {
+		return isCurrentUserObserver(getFile(file))
 	}
 
 	function canDelete(file) {
@@ -1386,6 +1394,7 @@ const _filesStore = defineStore('files', () => {
 		isFullSigned,
 		canSign,
 		canValidate,
+		isObservingOnly,
 		canDelete,
 		canAddSigner,
 		isDocMdpNoChangesAllowed,
