@@ -558,6 +558,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				int $signingOrder = 0,
 				?int $fileStatus = null,
 				?int $signerStatus = null,
+				ParticipantRole $participantRole = ParticipantRole::SIGNER,
 				?callable $afterPersist = null,
 			): SignRequest {
 				$signRequest = new SignRequest();
