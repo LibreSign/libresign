@@ -14,10 +14,10 @@ use OCA\Libresign\Files\TemplateLoader;
 use OCA\Libresign\Files\TemplateLoaderAssets;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Services\IInitialState;
@@ -31,7 +31,7 @@ final class TemplateLoaderTest extends TestCase {
 	private IUserSession&MockObject $userSession;
 	private AccountService&MockObject $accountService;
 	private IInitialState&MockObject $initialState;
-	private ValidateHelper&MockObject $validateHelper;
+	private SigningRequestValidator&MockObject $signingRequestValidator;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private PolicyService&MockObject $policyService;
@@ -44,7 +44,7 @@ final class TemplateLoaderTest extends TestCase {
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->accountService = $this->createMock(AccountService::class);
 		$this->initialState = $this->createMock(IInitialState::class);
-		$this->validateHelper = $this->createMock(ValidateHelper::class);
+		$this->signingRequestValidator = $this->createMock(SigningRequestValidator::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->policyService = $this->createMock(PolicyService::class);
@@ -67,7 +67,7 @@ final class TemplateLoaderTest extends TestCase {
 			->method('getIdentifyMethodsSettings')
 			->willReturn([]);
 
-		$this->validateHelper
+		$this->signingRequestValidator
 			->method('canRequestSign');
 
 		$user = $this->createMock(IUser::class);
@@ -157,7 +157,7 @@ final class TemplateLoaderTest extends TestCase {
 			->method('getIdentifyMethodsSettings')
 			->willReturn([]);
 
-		$this->validateHelper
+		$this->signingRequestValidator
 			->method('canRequestSign')
 			->willThrowException(new \OCA\Libresign\Exception\LibresignException('no'));
 
@@ -217,7 +217,7 @@ final class TemplateLoaderTest extends TestCase {
 			$this->userSession,
 			$this->accountService,
 			$this->initialState,
-			$this->validateHelper,
+			$this->signingRequestValidator,
 			$this->identifyMethodService,
 			$this->certificateEngineFactory,
 			$this->policyService,
