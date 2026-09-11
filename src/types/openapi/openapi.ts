@@ -1746,9 +1746,12 @@ export type components = {
             /** Format: int64 */
             size: number;
             pdfVersion?: string;
-            signers: components["schemas"]["SignerSummary"][];
+            signers: components["schemas"]["ValidatedChildSigner"][];
             file?: string;
             metadata: components["schemas"]["ValidateMetadata"];
+        };
+        ValidatedChildSigner: components["schemas"]["SignerSummary"] & {
+            visibleElements?: components["schemas"]["VisibleElement"][];
         };
         ValidatedFile: {
             /** Format: int64 */
