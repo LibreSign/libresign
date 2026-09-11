@@ -29,6 +29,15 @@ type EnvelopeSigner = {
 	totalDocuments?: number
 	participantRole?: string
 	status?: number
+	metadata?: {
+		geolocation?: {
+			status?: string
+			latitude?: number
+			longitude?: number
+			accuracy?: number
+			timestamp?: number
+		}
+	}
 }
 
 type EnvelopeDocument = {
@@ -164,6 +173,7 @@ describe('EnvelopeValidation', () => {
 					NcRichText: true,
 					SignerDetails: true,
 					DocumentValidationDetails: true,
+					DeviceReportedLocation: true,
 				},
 				mocks: {
 					t,
@@ -613,6 +623,56 @@ describe('EnvelopeValidation', () => {
 				filename: 'test.pdf',
 				nodeId: 123,
 			})
+		})
+	})
+
+	describe('device-reported location', () => {
+		it('renders the collapsible device-reported location section when metadata is present', async () => {
+			wrapper = createWrapper({
+				document: {
+					signers: [{
+						displayName: 'Geo Signer',
+						signed: '2024-01-01T00:00:00Z',
+						metadata: {
+							geolocation: {
+								status: 'collected',
+								latitude: -23.55,
+								longitude: -46.63,
+								accuracy: 12,
+								timestamp: 0,
+							},
+						},
+					}],
+				},
+			})
+			wrapper.vm.toggleDetail(0)
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.vm.isSignerOpen(0)).toBe(true)
+			const location = wrapper.findComponent({ name: 'DeviceReportedLocation' })
+			expect(location.exists()).toBe(true)
+			expect(location.props('geolocation')).toEqual({
+				status: 'collected',
+				latitude: -23.55,
+				longitude: -46.63,
+				accuracy: 12,
+				timestamp: 0,
+			})
+		})
+
+		it('does not render device-reported location when geolocation metadata is absent', async () => {
+			wrapper = createWrapper({
+				document: {
+					signers: [{
+						displayName: 'Signer',
+						signed: '2024-01-01T00:00:00Z',
+					}],
+				},
+			})
+			wrapper.vm.toggleDetail(0)
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.findComponent({ name: 'DeviceReportedLocation' }).exists()).toBe(false)
 		})
 	})
 })

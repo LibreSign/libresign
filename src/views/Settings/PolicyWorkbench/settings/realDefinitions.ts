@@ -25,6 +25,7 @@ import { signatureFlowRealDefinition } from './signature-flow/realDefinition'
 import { signatureFooterRealDefinition } from './signature-footer/realDefinition'
 import { signatureHashAlgorithmRealDefinition } from './signature-hash-algorithm/realDefinition'
 import { signatureTextRealDefinition } from './signature-text/realDefinition'
+import { signerGeolocationRealDefinition } from './signer-geolocation/realDefinition'
 import {
 	signingModeRealDefinition,
 } from './signing-mode/realDefinitions'
@@ -49,6 +50,7 @@ export const realDefinitions = {
 
 	// 4. What gets recorded
 	collect_metadata: { ...collectMetadataRealDefinition, category: 'what-gets-recorded' },
+	signer_geolocation: { ...signerGeolocationRealDefinition, category: 'what-gets-recorded' },
 	legal_information: { ...legalInformationRealDefinition, category: 'what-gets-recorded' },
 
 	// 5. Time & limits

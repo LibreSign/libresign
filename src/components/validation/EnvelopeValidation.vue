@@ -155,6 +155,8 @@
 									{{ signer.user_agent }}
 								</template>
 							</NcListItem>
+							<DeviceReportedLocation v-if="signer.metadata?.geolocation"
+								:geolocation="signer.metadata?.geolocation" />
 						</div>
 					</li>
 				</ul>
@@ -188,6 +190,7 @@ import Moment from '@nextcloud/moment'
 import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
+import DeviceReportedLocation from './DeviceReportedLocation.vue'
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
 import { isObserverParticipant, filterParticipantsByRole, PARTICIPANT_ROLE } from '../../utils/participantRole.ts'
 import type {
@@ -214,7 +217,7 @@ const props = withDefaults(defineProps<{
 
 type EnvelopeFile = NonNullable<LoadedValidationEnvelopeDocument['files']>[number]
 
-type EnvelopeSigner = Partial<Pick<SignerDetailRecord, 'displayName' | 'email' | 'userId' | 'request_sign_date' | 'remote_address' | 'user_agent' | 'participantRole' | 'status'>> & {
+type EnvelopeSigner = Partial<Pick<SignerDetailRecord, 'displayName' | 'email' | 'userId' | 'request_sign_date' | 'remote_address' | 'user_agent' | 'participantRole' | 'status' | 'metadata'>> & {
 	signed?: string | null
 	documentsSignedCount?: number
 	totalDocuments?: number
@@ -498,7 +501,7 @@ defineExpose({
 	}
 
 	.detail-item {
-		margin-bottom: 4px;
+		margin-block-end: 4px;
 
 		:deep(.list-item-content__name) {
 			white-space: normal;

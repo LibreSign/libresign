@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
 
+use OCA\Libresign\Handler\SignEngine\ISignEngineHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -16,11 +18,11 @@ use Psr\Container\ContainerInterface;
  */
 
 final class SignEngineFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private ContainerInterface $container;
+	private ContainerInterface&MockObject $container;
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->container = \OCP\Server::get(ContainerInterface::class);
+		$this->container = $this->createMock(ContainerInterface::class);
 	}
 
 	private function getInstance(): SignEngineFactory {
@@ -31,17 +33,25 @@ final class SignEngineFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('providerResolve')]
 	public function testResolve(string $extension, string $instanceOf): void {
-		$instance = $this->getInstance();
+		$handler = $this->createMock($instanceOf);
+		$this->container->expects($this->once())
+			->method('get')
+			->with($instanceOf)
+			->willReturn($handler);
 
-		$signEngine = $instance->resolve($extension);
+		$signEngine = $this->getInstance()->resolve($extension);
 
+		$this->assertSame($handler, $signEngine);
 		$this->assertInstanceOf($instanceOf, $signEngine);
+		$this->assertInstanceOf(ISignEngineHandler::class, $signEngine);
 	}
 
 	public static function providerResolve(): array {
 		return [
 			['pdf', Pkcs12Handler::class],
 			['PDF', Pkcs12Handler::class],
+			['Pdf', Pkcs12Handler::class],
+			['docx', Pkcs7Handler::class],
 			['odt', Pkcs7Handler::class],
 			['ODT', Pkcs7Handler::class],
 			['jpg', Pkcs7Handler::class],

@@ -16,7 +16,7 @@ class SignEngineFactory {
 	) {
 	}
 
-	public function resolve(string $extension): Pkcs12Handler|Pkcs7Handler {
+	public function resolve(string $extension): ISignEngineHandler {
 		return match (strtolower($extension)) {
 			'pdf' => $this->container->get(Pkcs12Handler::class),
 			default => $this->container->get(Pkcs7Handler::class),
