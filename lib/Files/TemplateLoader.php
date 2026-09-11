@@ -12,10 +12,10 @@ use OCA\Files\Event\LoadSidebar;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\Event;
@@ -32,7 +32,7 @@ class TemplateLoader implements IEventListener {
 		private IUserSession $userSession,
 		private AccountService $accountService,
 		private IInitialState $initialState,
-		private ValidateHelper $validateHelper,
+		private SigningRequestValidator $signingRequestValidator,
 		private IdentifyMethodService $identifyMethodService,
 		private CertificateEngineFactory $certificateEngineFactory,
 		private PolicyService $policyService,
@@ -76,7 +76,7 @@ class TemplateLoader implements IEventListener {
 
 	private function canRequestSign(): bool {
 		try {
-			$this->validateHelper->canRequestSign($this->userSession->getUser());
+			$this->signingRequestValidator->canRequestSign($this->userSession->getUser());
 			return true;
 		} catch (LibresignException) {
 			return false;
