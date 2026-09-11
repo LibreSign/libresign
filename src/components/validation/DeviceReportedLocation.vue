@@ -44,7 +44,23 @@
 						<dt>{{ t('libresign', 'Longitude:') }}</dt>
 						<dd>{{ longitude }}</dd>
 					</div>
+					<div v-if="accuracy"
+						class="device-reported-location-field">
+						<!-- TRANSLATORS Label for the approximate accuracy radius of device-reported coordinates. -->
+						<dt>{{ t('libresign', 'Accuracy:') }}</dt>
+						<dd>{{ accuracy }}</dd>
+					</div>
 				</dl>
+				<div class="device-reported-location-actions">
+					<NcButton variant="tertiary"
+						:aria-label="copyCoordinatesAriaLabel"
+						@click="copyCoordinates">
+						<template #icon>
+							<NcIconSvgWrapper :path="copied ? mdiCheck : mdiContentCopy" :size="20" />
+						</template>
+						{{ copyCoordinatesLabel }}
+					</NcButton>
+				</div>
 				<!-- TRANSLATORS Disclaimer that stored coordinates are not verified proof of physical presence. -->
 				<p class="serial-hex">{{ physicalPresenceDisclaimer }}</p>
 			</div>
@@ -54,17 +70,24 @@
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { showSuccess } from '@nextcloud/dialogs'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import { computed, ref } from 'vue'
 
 import {
+	mdiCheck,
+	mdiContentCopy,
 	mdiUnfoldLessHorizontal,
 	mdiUnfoldMoreHorizontal,
 } from '@mdi/js'
 
-import type { DeviceReportedLocation as DeviceReportedLocationData } from '../../helpers/signerGeolocation'
+import {
+	formatDeviceReportedCoordinates,
+	formatDeviceReportedLocationAccuracy,
+	type DeviceReportedLocation as DeviceReportedLocationData,
+} from '../../helpers/signerGeolocation'
 
 defineOptions({
 	name: 'DeviceReportedLocation',
@@ -75,6 +98,8 @@ const props = defineProps<{
 }>()
 
 const open = ref(false)
+const copied = ref(false)
+let copiedResetTimer: ReturnType<typeof setTimeout> | null = null
 
 // TRANSLATORS Collapsible section title for coordinates reported by the signer's device at signing time.
 const deviceReportedLocationLabel = t('libresign', 'Device-reported location')
@@ -82,6 +107,10 @@ const deviceReportedLocationLabel = t('libresign', 'Device-reported location')
 const deviceReportedLocationDetailsAriaLabel = t('libresign', 'Device-reported location details')
 // TRANSLATORS Disclaimer that stored coordinates are not verified proof of physical presence.
 const physicalPresenceDisclaimer = t('libresign', 'Physical presence not verified')
+// TRANSLATORS Button label that copies latitude and longitude to the clipboard without opening an external map.
+const copyCoordinatesLabel = t('libresign', 'Copy coordinates')
+// TRANSLATORS Accessible label for the action that copies device-reported coordinates to the clipboard.
+const copyCoordinatesAriaLabel = t('libresign', 'Copy device-reported coordinates')
 
 const latitude = computed(() => {
 	const value = props.geolocation?.latitude
@@ -93,6 +122,16 @@ const longitude = computed(() => {
 	return typeof value === 'number' && Number.isFinite(value) ? String(value) : null
 })
 
+const accuracy = computed(() => {
+	const value = props.geolocation?.accuracy
+	if (typeof value !== 'number' || !Number.isFinite(value)) {
+		return null
+	}
+	return formatDeviceReportedLocationAccuracy(value)
+})
+
+const coordinatesText = computed(() => formatDeviceReportedCoordinates(props.geolocation))
+
 const hasContent = computed(() => latitude.value !== null && longitude.value !== null)
 
 const toggleAriaLabel = computed(() =>
@@ -103,13 +142,42 @@ const toggleAriaLabel = computed(() =>
 		: t('libresign', 'Expand device-reported location details'),
 )
 
+async function copyCoordinates() {
+	const text = coordinatesText.value
+	if (!text) {
+		return
+	}
+
+	try {
+		await navigator.clipboard.writeText(text)
+	} catch {
+		prompt('', text)
+	}
+
+	copied.value = true
+	if (copiedResetTimer) {
+		clearTimeout(copiedResetTimer)
+	}
+	copiedResetTimer = setTimeout(() => {
+		copied.value = false
+		copiedResetTimer = null
+	}, 2000)
+
+	// TRANSLATORS Toast confirming that latitude and longitude were copied to the clipboard.
+	showSuccess(t('libresign', 'Coordinates copied'))
+}
+
 defineExpose({
 	open,
 	hasContent,
 	latitude,
 	longitude,
+	accuracy,
+	copied,
+	copyCoordinates,
 	physicalPresenceDisclaimer,
 	deviceReportedLocationLabel,
+	copyCoordinatesLabel,
 	toggleAriaLabel,
 })
 </script>
@@ -154,6 +222,13 @@ defineExpose({
 		padding: 0;
 		word-break: break-all;
 	}
+}
+
+.device-reported-location-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin-block: 4px 0;
 }
 
 .serial-hex {

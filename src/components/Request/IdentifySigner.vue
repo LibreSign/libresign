@@ -190,9 +190,13 @@ const identify = ref('')
 const identifyMethod = ref<IdentifyAccountRecord['method'] | undefined>()
 const acceptsEmailNotifications = ref<boolean | undefined>()
 
-const signerGeolocationMode = computed(() =>
-	resolveSignerGeolocationMode(policiesStore.getEffectiveValue('signer_geolocation')),
-)
+const signerGeolocationMode = computed(() => {
+	const file = filesStore.getFile()
+	const snapshotValue = file?.metadata?.policy_snapshot?.signer_geolocation?.effectiveValue
+	// Prefer the policy frozen with this file so later admin changes do not diverge from backend enforcement.
+	return resolveSignerGeolocationMode(snapshotValue)
+		?? resolveSignerGeolocationMode(policiesStore.getEffectiveValue('signer_geolocation'))
+})
 const showGeolocationRequirementToggle = computed(() => signerGeolocationMode.value === 'optional')
 
 const signerSelected = computed(() => identify.value.length > 0)

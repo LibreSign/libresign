@@ -7,12 +7,17 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
 	collectDeviceGeolocation,
+	formatDeviceReportedCoordinates,
 	formatDeviceReportedLocation,
+	formatDeviceReportedLocationAccuracy,
+	formatLocationAccuracyMeters,
 	GEOLOCATION_POSITION_OPTIONS,
 	isGeolocationRequired,
 	mapGeolocationError,
 	resolveFrozenGeolocationRequirement,
 } from '../../helpers/signerGeolocation'
+
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 describe('signerGeolocation helper', () => {
 	it('treats only frozen required as a collection gate', () => {
@@ -136,10 +141,17 @@ describe('signerGeolocation helper', () => {
 	})
 
 	it('formats device-reported location for audit display', () => {
+		expect(formatDeviceReportedCoordinates(null)).toBeNull()
 		expect(formatDeviceReportedLocation(null)).toBeNull()
 		expect(formatDeviceReportedLocation({
 			status: 'denied',
 		})).toBeNull()
+		expect(formatDeviceReportedCoordinates({
+			latitude: -23.55,
+			longitude: -46.63,
+		})).toBe('-23.55, -46.63')
+		expect(formatLocationAccuracyMeters(12, 'en')).toMatch(/12/)
+		expect(formatDeviceReportedLocationAccuracy(12, 'en')).toMatch(/±.*12/)
 		expect(formatDeviceReportedLocation({
 			status: 'collected',
 			latitude: -23.55,
@@ -153,6 +165,6 @@ describe('signerGeolocation helper', () => {
 			longitude: -46.63,
 			accuracy: 12,
 			timestamp: 0,
-		})).toContain('±12 m')
+		})).toMatch(/±.*12/)
 	})
 })
