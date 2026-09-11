@@ -15,7 +15,6 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\SigningErrorHandler;
 use OCA\Libresign\Helper\JSActions;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
@@ -28,6 +27,10 @@ use OCA\Libresign\Service\RequestMetadataService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionService;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
+use OCA\Libresign\Service\Validation\SignerValidator;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
+use OCA\Libresign\Service\Validation\VisibleElementValidator;
 use OCA\Libresign\Service\Worker\WorkerHealthService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
@@ -56,7 +59,10 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		protected IL10N $l10n,
 		private SignRequestMapper $signRequestMapper,
 		protected IUserSession $userSession,
-		private ValidateHelper $validateHelper,
+		private IdentityDocumentValidator $identityDocumentValidator,
+		private VisibleElementValidator $visibleElementValidator,
+		private SignerValidator $signerValidator,
+		private SigningRequestValidator $signingRequestValidator,
 		protected SignFileService $signFileService,
 		private IdentifyMethodService $identifyMethodService,
 		private FileService $fileService,
@@ -150,13 +156,13 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, $signRequestUuid, $user);
 			}
 
-			$this->validateHelper->canSignWithIdentificationDocumentStatus(
+			$this->identityDocumentValidator->canSignWithIdentificationDocumentStatus(
 				$user,
 				$this->settingsLoader->getIdentificationDocumentsStatus($user, $signRequest)
 			);
 
-			$this->validateHelper->validateVisibleElementsRelation($elements, $signRequest, $user);
-			$this->validateHelper->validateCredentials($signRequest, $method, $identifyValue, $token);
+			$this->visibleElementValidator->validateVisibleElementsRelation($elements, $signRequest, $user);
+			$this->signerValidator->validateCredentials($signRequest, $method, $identifyValue, $token);
 
 			$userIdentifier = $this->identifyMethodService->getUserIdentifier($signRequest->getId());
 			$metadata = $this->requestMetadataService->collectMetadata();
@@ -434,7 +440,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	private function getCode(SignRequest $signRequest): DataResponse {
 		try {
 			$libreSignFile = $this->signFileService->getFile($signRequest->getFileId());
-			$this->validateHelper->fileCanBeSigned($libreSignFile);
+			$this->signingRequestValidator->fileCanBeSigned($libreSignFile);
 			$this->signFileService->requestCode(
 				signRequest: $signRequest,
 				identifyMethodName: $this->request->getParam('identifyMethod', ''),

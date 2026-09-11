@@ -24,6 +24,10 @@ class FileInputValidator {
 	public const TYPE_VISIBLE_ELEMENT_PDF = 2;
 	public const TYPE_VISIBLE_ELEMENT_USER = 3;
 	public const TYPE_ACCOUNT_DOCUMENT = 4;
+	public const VALID_MIMETIPE = [
+		'application/pdf',
+		'image/png',
+	];
 
 	public function __construct(
 		private IL10N $l10n,

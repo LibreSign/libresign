@@ -28,10 +28,7 @@ class ValidateHelper {
 	public const TYPE_VISIBLE_ELEMENT_PDF = FileInputValidator::TYPE_VISIBLE_ELEMENT_PDF;
 	public const TYPE_VISIBLE_ELEMENT_USER = FileInputValidator::TYPE_VISIBLE_ELEMENT_USER;
 	public const TYPE_ACCOUNT_DOCUMENT = FileInputValidator::TYPE_ACCOUNT_DOCUMENT;
-	public const VALID_MIMETIPE = [
-		'application/pdf',
-		'image/png',
-	];
+	public const VALID_MIMETIPE = FileInputValidator::VALID_MIMETIPE;
 
 	public function __construct(
 		private FileInputValidator $fileInputValidator,
