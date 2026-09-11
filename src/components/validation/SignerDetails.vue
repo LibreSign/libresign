@@ -282,6 +282,7 @@ import {
 import CertificateChain from './CertificateChain.vue'
 import SignerTimestamp from './SignerTimestamp.vue'
 import type { DocumentModificationState } from '../../services/validationDocument'
+import type { VisibleElementRecord } from '../../types'
 
 
 type ValidationState = {
@@ -329,7 +330,7 @@ type SignerModel = {
 	valid_from?: string | number
 	valid_to?: string | number
 	signed?: string | null
-	visibleElements?: unknown[]
+	visibleElements?: VisibleElementRecord[]
 	status?: number
 	signature_validation?: ValidationState
 	certificate_validation?: ValidationState
