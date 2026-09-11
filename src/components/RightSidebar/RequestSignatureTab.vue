@@ -1116,6 +1116,25 @@ const debouncedTabChange = debounce((tabId: string) => {
 	userConfigStore.update('files_list_signer_identify_tab', tabId)
 }, 500)
 
+function synchronizeOrderedSigningNumbers(participants: EditableRequestSigner[]): void {
+	const signingParticipants = participants.filter(isSigningParticipant)
+	const orders = signingParticipants.map((signer) => signer.signingOrder || 0)
+	const hasDuplicateOrders = orders.length !== new Set(orders).size
+
+	let nextOrder = 1
+	participants.forEach((participant) => {
+		if (isObserverParticipant(participant)) {
+			delete participant.signingOrder
+			return
+		}
+
+		if (!participant.signingOrder || hasDuplicateOrders) {
+			participant.signingOrder = nextOrder
+		}
+		nextOrder++
+	})
+}
+
 function onPreserveOrderChange(value: boolean) {
 	preserveOrder.value = value
 	const file = filesStore.getEditableFile()
@@ -1123,13 +1142,7 @@ function onPreserveOrderChange(value: boolean) {
 
 	if (value) {
 		if (file?.signers) {
-			const orders = file.signers.map((signer: EditableRequestSigner) => signer.signingOrder || 0)
-			const hasDuplicateOrders = orders.length !== new Set(orders).size
-			file.signers.forEach((signer: EditableRequestSigner, index: number) => {
-				if (!signer.signingOrder || hasDuplicateOrders) {
-					signer.signingOrder = index + 1
-				}
-			})
+			synchronizeOrderedSigningNumbers(file.signers)
 		}
 		if (file) {
 			file.signatureFlow = nextFlow
@@ -1137,6 +1150,10 @@ function onPreserveOrderChange(value: boolean) {
 	} else if (!isAdminFlowForced.value) {
 		if (file?.signers) {
 			file.signers.forEach((signer: EditableRequestSigner) => {
+				if (isObserverParticipant(signer)) {
+					delete signer.signingOrder
+					return
+				}
 				if (!isSignerSigned(signer)) {
 					signer.signingOrder = 1
 				}
@@ -1206,16 +1223,11 @@ function syncFileSignatureFlowWithPolicy() {
 		return
 	}
 
-	const orders = file.signers.map((signer: EditableRequestSigner) => signer.signingOrder || 0)
-	const hasDuplicateOrders = orders.length !== new Set(orders).size
-	file.signers.forEach((signer: EditableRequestSigner, index: number) => {
-		if (!signer.signingOrder || hasDuplicateOrders) {
-			signer.signingOrder = index + 1
-		}
-	})
+	synchronizeOrderedSigningNumbers(file.signers)
 
-	if (file.signers.every((signer: EditableRequestSigner) => typeof signer.signingOrder === 'number')) {
-		normalizeSigningOrders(file.signers as Array<{ signingOrder: number }>)
+	const signingParticipants = file.signers.filter(isSigningParticipant)
+	if (signingParticipants.every((signer: EditableRequestSigner) => typeof signer.signingOrder === 'number')) {
+		normalizeSigningOrders(signingParticipants as Array<{ signingOrder: number }>)
 	}
 }
 
@@ -1346,7 +1358,7 @@ function onTabChange(tabId: string) {
 function updateSigningOrder(signer: EditableRequestSigner, value: string) {
 	const order = parseInt(value, 10)
 	const file = filesStore.getEditableFile()
-	if (isNaN(order)) {
+	if (isNaN(order) || isObserverParticipant(signer)) {
 		return
 	}
 
@@ -1378,6 +1390,9 @@ function updateSigningOrder(signer: EditableRequestSigner, value: string) {
 
 function confirmSigningOrder(signer: EditableRequestSigner) {
 	const file = filesStore.getEditableFile()
+	if (isObserverParticipant(signer)) {
+		return
+	}
 	const signerLocalKey = signer.localKey
 	const currentIndex = file.signers?.findIndex((currentSigner: EditableRequestSigner) => currentSigner.localKey === signerLocalKey) ?? -1
 	if (currentIndex === -1) {
@@ -1401,8 +1416,11 @@ function confirmSigningOrder(signer: EditableRequestSigner) {
 	for (let index = 0; index < file.signers.length; index++) {
 		if (index === currentIndex) { continue }
 		const currentItem = file.signers[index]
-		const currentItemOrder = currentItem?.signingOrder
-		if (!currentItem || currentItemOrder === undefined) {
+		if (!currentItem || isObserverParticipant(currentItem)) {
+			continue
+		}
+		const currentItemOrder = currentItem.signingOrder
+		if (currentItemOrder === undefined) {
 			continue
 		}
 		if (order < oldOrder) {
@@ -1416,16 +1434,21 @@ function confirmSigningOrder(signer: EditableRequestSigner) {
 		}
 	}
 
-	const sortedSigners = [...file.signers].sort((left: EditableRequestSigner, right: EditableRequestSigner) => {
+	const signingParticipants = file.signers.filter(isSigningParticipant)
+	const sortedSigners = [...signingParticipants].sort((left: EditableRequestSigner, right: EditableRequestSigner) => {
 		const orderLeft = left.signingOrder || 999
 		const orderRight = right.signingOrder || 999
 		return orderLeft - orderRight
+	})
+	const observers = file.signers.filter(isObserverParticipant)
+	observers.forEach((observer) => {
+		delete observer.signingOrder
 	})
 
 	if (sortedSigners.every(currentSigner => typeof currentSigner.signingOrder === 'number')) {
 		normalizeSigningOrders(sortedSigners as Array<{ signingOrder: number }>)
 	}
-	file.signers = sortedSigners
+	file.signers = [...sortedSigners, ...observers]
 	debouncedSave()
 }
 

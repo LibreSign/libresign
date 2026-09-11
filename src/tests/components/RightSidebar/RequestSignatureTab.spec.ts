@@ -1655,6 +1655,22 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(filesStore.files[1]!.signers![1]!.signingOrder).toBe(2)
 		})
 
+		it('does not assign signing order numbers to observers when enabling', async () => {
+			await updateFile({
+				signatureFlow: 'parallel',
+				signers: [
+					{ email: 'signer1@example.com', signed: [], participantRole: 'signer' },
+					{ email: 'observer@example.com', signed: [], participantRole: 'observer', signingOrder: 2 },
+					{ email: 'signer2@example.com', signed: [], participantRole: 'signer' },
+				],
+			})
+			wrapper.vm.onPreserveOrderChange(true)
+			await wrapper.vm.$nextTick()
+			expect(filesStore.files[1]!.signers![0]!.signingOrder).toBe(1)
+			expect(filesStore.files[1]!.signers![1]!.signingOrder).toBeUndefined()
+			expect(filesStore.files[1]!.signers![2]!.signingOrder).toBe(2)
+		})
+
 		it('reassigns sequential orders when all signers share the same signingOrder', async () => {
 			// Signers saved via the API return signingOrder: 1 as default for all of them.
 			// The old check (!signer.signingOrder) would skip them because !1 === false,
