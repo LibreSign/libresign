@@ -98,11 +98,11 @@
 			<h3 class="participants-section__title">
 				{{ t('libresign', 'Signers') }}
 			</h3>
-			<Signers :event="isOriginalFileDeleted ? '' : 'libresign:edit-signer'"
+			<Signers :event="participantListEvent"
 				:role-filter="PARTICIPANT_ROLE.SIGNER"
 				@signing-order-changed="debouncedSave">
 				<template #actions="{signer, closeActions}">
-					<template v-if="!isOriginalFileDeleted">
+					<template v-if="!isReadOnlyObserver && !isOriginalFileDeleted">
 						<NcActionInput v-if="canEditSigningOrder(signer)"
 							:label="t('libresign', 'Signing order')"
 							type="number"
@@ -156,10 +156,10 @@
 			<h3 class="participants-section__title">
 				{{ t('libresign', 'Observers') }}
 			</h3>
-			<Signers :event="isOriginalFileDeleted ? '' : 'libresign:edit-signer'"
+			<Signers :event="participantListEvent"
 				:role-filter="PARTICIPANT_ROLE.OBSERVER">
 				<template #actions="{signer, closeActions}">
-					<template v-if="!isOriginalFileDeleted">
+					<template v-if="!isReadOnlyObserver && !isOriginalFileDeleted">
 						<NcActionButton v-if="canCustomizeMessage(signer)"
 							:close-after-click="true"
 							@click="customizeMessage(signer); closeActions()">
@@ -189,7 +189,7 @@
 				</template>
 			</Signers>
 		</div>
-		<NcFormBox v-if="isEnvelope" class="action-form-box">
+		<NcFormBox v-if="isEnvelope && !isReadOnlyObserver" class="action-form-box">
 			<NcButton
 				wide
 				variant="secondary"
@@ -203,7 +203,7 @@
 				{{ t('libresign', 'Manage files ({count})', { count: envelopeFilesCount }) }}
 			</NcButton>
 		</NcFormBox>
-		<NcFormBox v-if="showSaveButton || showRequestButton" class="action-form-box">
+		<NcFormBox v-if="showSaveButton || showRequestButton || showViewPositionsButton" class="action-form-box">
 			<NcButton v-if="showSaveButton"
 				wide
 				variant="secondary"
@@ -214,6 +214,17 @@
 					<NcIconSvgWrapper v-else-if="showsPositionEditor" :path="mdiPencil" :size="20" />
 				</template>
 				{{ saveButtonLabel }}
+			</NcButton>
+			<NcButton v-if="showViewPositionsButton"
+				wide
+				variant="secondary"
+				:disabled="hasLoading"
+				@click="viewSignaturePositions()">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiEyeOutline" :size="20" />
+				</template>
+				<!-- TRANSLATORS Button label for observers to open signature positions in read-only mode. -->
+				{{ t('libresign', 'View signature positions') }}
 			</NcButton>
 			<NcButton v-if="showRequestButton"
 				wide
@@ -603,7 +614,14 @@ const showFooterTemplateSelector = computed(() => {
 		&& footerTemplateSourceOptions.value.length > 1
 })
 const showRememberFooterTemplate = computed(() => showFooterTemplateSelector.value && canSaveFooterPreference.value)
-const showViewOrderButton = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && isOrderedNumeric.value && signingParticipantCount.value > 1 && hasSigners.value && filesStore.canRequestSign)
+const isReadOnlyObserver = computed(() => filesStore.isObservingOnly())
+const participantListEvent = computed(() => {
+	if (isReadOnlyObserver.value || isOriginalFileDeleted.value) {
+		return ''
+	}
+	return 'libresign:edit-signer'
+})
+const showViewOrderButton = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && isOrderedNumeric.value && signingParticipantCount.value > 1 && hasSigners.value && (filesStore.canRequestSign || isReadOnlyObserver.value))
 const shouldShowOrderedOptions = computed(() => isOrderedNumeric.value && signingParticipantCount.value > 1)
 const showSignatureFlowPreferenceClearedNotice = computed(() => signatureFlowPolicy.value?.preferenceWasCleared ?? false)
 const currentUserDisplayName = computed(() => getCurrentUser()?.displayName || '')
@@ -998,6 +1016,9 @@ const hasDraftSigners = computed(() => {
 })
 
 const showSaveButton = computed(() => {
+	if (isReadOnlyObserver.value) {
+		return false
+	}
 	if (shouldLoadDetail.value && !isCurrentFileDetailed.value) {
 		return false
 	}
@@ -1014,7 +1035,20 @@ const showSaveButton = computed(() => {
 	return true
 })
 
+const showViewPositionsButton = computed(() => {
+	if (!isReadOnlyObserver.value || isOriginalFileDeleted.value) {
+		return false
+	}
+	if (shouldLoadDetail.value && !isCurrentFileDetailed.value) {
+		return false
+	}
+	return showsPositionEditor.value
+})
+
 const showRequestButton = computed(() => {
+	if (isReadOnlyObserver.value) {
+		return false
+	}
 	if (shouldLoadDetail.value && !isCurrentFileDetailed.value) {
 		return false
 	}
@@ -1502,6 +1536,10 @@ async function save() {
 	hasLoading.value = false
 }
 
+function viewSignaturePositions() {
+	emit('libresign:show-visible-elements', new CustomEvent('libresign:show-visible-elements'))
+}
+
 async function request() {
 	await ensureCurrentFileDetail()
 
@@ -1733,7 +1771,10 @@ defineExpose({
 	canSendObserverNotification,
 	hasSignersWithDisabledMethods,
 	showSaveButton,
+	showViewPositionsButton,
 	showRequestButton,
+	isReadOnlyObserver,
+	participantListEvent,
 	hasDraftSigners,
 	hasSigners,
 	totalSigners,

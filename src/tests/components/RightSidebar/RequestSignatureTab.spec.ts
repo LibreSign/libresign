@@ -1102,6 +1102,43 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 	})
 
+	describe('RULE: authenticated observer uses a read-only request sidebar', () => {
+		it('hides edit and signing actions when the current user only observes', async () => {
+			filesStore.canRequestSign = false
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				detailsLoaded: true,
+				signatureFlow: 'parallel',
+				signers: [
+					{
+						displayName: 'Observer Me',
+						me: true,
+						status: SIGN_REQUEST_STATUS.OBSERVING,
+						signRequestId: 10,
+						participantRole: PARTICIPANT_ROLE.OBSERVER,
+						sign_request_uuid: 'observer-uuid',
+					},
+					{
+						displayName: 'Signer Name',
+						me: false,
+						status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+						signRequestId: 11,
+						participantRole: PARTICIPANT_ROLE.SIGNER,
+						sign_request_uuid: 'signer-uuid',
+					},
+				],
+			})
+
+			expect(filesStore.isObservingOnly()).toBe(true)
+			expect(wrapper.vm.isReadOnlyObserver).toBe(true)
+			expect(wrapper.vm.showSaveButton).toBe(false)
+			expect(wrapper.vm.showRequestButton).toBe(false)
+			expect(wrapper.vm.showViewPositionsButton).toBe(true)
+			expect(wrapper.vm.participantListEvent).toBe('')
+			expect(filesStore.canSign()).toBe(false)
+		})
+	})
+
 	describe('RULE: canSendObserverNotification for observers', () => {
 		it('allows sending a notification when the observer is watching the request', async () => {
 			filesStore.canRequestSign = true

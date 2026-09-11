@@ -30,6 +30,21 @@ export function isSigningParticipant(participant?: ParticipantLike | null): bool
 	return !isObserverParticipant(participant)
 }
 
+type FileWithParticipants = {
+	signers?: Array<ParticipantLike & { me?: boolean }> | null
+}
+
+/**
+ * True when the current user participates only as an observer on this file.
+ */
+export function isCurrentUserObserver(file?: FileWithParticipants | null): boolean {
+	const myParticipants = Array.isArray(file?.signers)
+		? file.signers.filter((participant) => participant?.me === true)
+		: []
+
+	return myParticipants.length > 0 && myParticipants.every(isObserverParticipant)
+}
+
 export function countSigningParticipants<T extends ParticipantLike>(participants: T[] | null | undefined): number {
 	if (!Array.isArray(participants)) {
 		return 0
