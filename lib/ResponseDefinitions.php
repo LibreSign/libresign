@@ -589,6 +589,9 @@ namespace OCA\Libresign;
  *     url: string,
  *     resolution: LibresignValidationPageResolution,
  * }
+ * @psalm-type LibresignValidatedChildSigner = LibresignSignerSummary&array{
+ *     visibleElements?: LibresignVisibleElement[],
+ * }
  * @psalm-type LibresignValidatedChildFile = array{
  *     id: int,
  *     uuid: string,
@@ -599,7 +602,7 @@ namespace OCA\Libresign;
  *     totalPages?: non-negative-int,
  *     size: non-negative-int,
  *     pdfVersion?: string,
- *     signers: list<LibresignSignerSummary>,
+ *     signers: list<LibresignValidatedChildSigner>,
  *     file?: string,
  *     metadata: LibresignValidateMetadata,
  * }

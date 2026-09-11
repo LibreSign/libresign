@@ -120,7 +120,11 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest->setDisplayName('Signer A');
 		$signRequest->setStatus(1);
 
-		$this->signRequestMapper->method('getByFileId')->willReturn([$signRequest]);
+		$otherSignRequest = new DbSignRequest();
+		$otherSignRequest->setId(101);
+		$otherSignRequest->setDisplayName('Signer without elements');
+		$otherSignRequest->setStatus(1);
+		$this->signRequestMapper->method('getByFileId')->willReturn([$otherSignRequest, $signRequest]);
 
 		$element = new \OCA\Libresign\Db\FileElement();
 		$element->setId(1);
@@ -132,7 +136,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$element->setUry(200);
 		$element->setMetadata([]);
 
-		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([
+		$this->signRequestMapper->expects($this->once())->method('getVisibleElementsFromSigners')->willReturn([
 			100 => [$element],
 		]);
 
@@ -164,6 +168,8 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertIsArray($result->visibleElements);
 		$this->assertNotEmpty($result->visibleElements);
 		$this->assertCount(1, $result->visibleElements);
+		$this->assertSame([], $result->signers[0]->visibleElements);
+		$this->assertSame($result->visibleElements, $result->signers[1]->visibleElements);
 	}
 
 	public function testBuildsChildDataWithoutVisibleElementsWhenNotRequested(): void {
@@ -200,6 +206,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertIsArray($result->visibleElements);
 		$this->assertEmpty($result->visibleElements);
+		$this->assertSame([], $result->signers[0]->visibleElements);
 	}
 
 	public function testBuildsChildDataWithMultipleSigners(): void {
