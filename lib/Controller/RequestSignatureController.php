@@ -10,11 +10,11 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\RequestSignatureWorkflowService;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -42,7 +42,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		protected IL10N $l10n,
 		protected IUserSession $userSession,
 		protected FileListService $fileListService,
-		protected ValidateHelper $validateHelper,
+		protected SigningRequestValidator $signingRequestValidator,
 		protected RequestSignatureService $requestSignatureService,
 		private RequestSignatureWorkflowService $requestSignatureWorkflowService,
 	) {
@@ -234,9 +234,9 @@ class RequestSignatureController extends AEnvironmentAwareController {
 					'fileId' => $fileId
 				]
 			];
-			$this->validateHelper->validateExistingFile($data);
-			$this->validateHelper->validateWorkflowIsNotClosedByFileId($fileId);
-			$this->validateHelper->validateIsSignerOfFile($signRequestId, $fileId);
+			$this->signingRequestValidator->validateExistingFile($data);
+			$this->signingRequestValidator->validateWorkflowIsNotClosedByFileId($fileId);
+			$this->signingRequestValidator->validateIsSignerOfFile($signRequestId, $fileId);
 			$this->requestSignatureService->unassociateToUser($fileId, $signRequestId);
 		} catch (\Throwable $th) {
 			return new DataResponse(
@@ -280,7 +280,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 					'fileId' => $fileId
 				]
 			];
-			$this->validateHelper->validateExistingFile($data);
+			$this->signingRequestValidator->validateExistingFile($data);
 			$this->requestSignatureService->deleteRequestSignature($data);
 		} catch (\Throwable $th) {
 			return new DataResponse(

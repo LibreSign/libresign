@@ -9,13 +9,14 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\Validation\FileInputValidator;
+use OCA\Libresign\Service\Validation\VisibleElementValidator;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
@@ -54,7 +55,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		private IPreview $preview,
 		protected IMimeIconProvider $mimeIconProvider,
 		protected IURLGenerator $urlGenerator,
-		private ValidateHelper $validateHelper,
+		private VisibleElementValidator $visibleElementValidator,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -76,7 +77,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/signature/elements', requirements: ['apiVersion' => '(v1)'])]
 	public function createSignatureElement(array $elements): DataResponse {
 		try {
-			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
+			$this->visibleElementValidator->validateVisibleElements($elements, FileInputValidator::TYPE_VISIBLE_ELEMENT_USER);
 			$this->accountService->saveVisibleElements(
 				elements: $elements,
 				sessionId: $this->sessionService->getSessionId(),
@@ -252,7 +253,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 			if ($file) {
 				$element['file'] = $file;
 			}
-			$this->validateHelper->validateVisibleElement($element, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
+			$this->visibleElementValidator->validateVisibleElement($element, FileInputValidator::TYPE_VISIBLE_ELEMENT_USER);
 			$user = $this->userSession->getUser();
 			if ($user instanceof IUser) {
 				$userElement = $this->signerElementsService->getUserElementByNodeId(
@@ -318,7 +319,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		}
 		return new DataResponse(
 			[
-				// TRANSLATORS Success message shown after removing a visible signature or initials element from the document.
+				// TRANSLATORS Message shown after deleting the stored visible signature element.
 				'message' => $this->l10n->t('Visible element deleted')
 			],
 			Http::STATUS_OK
