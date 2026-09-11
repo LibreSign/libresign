@@ -98,6 +98,7 @@ describe('VisibleElements Component - Business Rules', () => {
 		$nextTick: () => Promise<void>
 		canSign: boolean
 		canSave: boolean
+		isReadOnly: boolean
 		status: number
 		isDraft: boolean
 		variantOfSaveButton: string
@@ -737,6 +738,43 @@ describe('VisibleElements Component - Business Rules', () => {
 			await wrapper.vm.showModal()
 
 			expect(wrapper.vm.modal).toBe(false)
+		})
+
+		it('opens modal in read-only mode when the current user is only an observer', async () => {
+			wrapper.vm.canRequestSign = false
+			filesStore.canRequestSign = false
+			filesStore.files[1].status = FILE_STATUS.ABLE_TO_SIGN
+			filesStore.files[1].signers = [
+				{
+					displayName: 'Observer Me',
+					me: true,
+					participantRole: 'observer',
+					signRequestId: 10,
+				},
+				{
+					displayName: 'Signer Name',
+					me: false,
+					participantRole: 'signer',
+					signRequestId: 11,
+				},
+			]
+			filesStore.files[1].visibleElements = [{
+				elementId: 1,
+				fileId: 1,
+				signRequestId: 11,
+				type: 'signature',
+				coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 },
+			}]
+			filesStore.files[1].nodeId = 100
+			filesStore.files[1].uuid = 'file-uuid'
+
+			expect(filesStore.isObservingOnly()).toBe(true)
+
+			await wrapper.vm.showModal()
+
+			expect(wrapper.vm.modal).toBe(true)
+			expect(wrapper.vm.isReadOnly).toBe(true)
+			expect(wrapper.vm.canSave).toBe(false)
 		})
 
 		it('does not open modal when sign-elements capability disabled', async () => {
