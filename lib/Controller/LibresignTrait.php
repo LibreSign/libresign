@@ -53,6 +53,10 @@ trait LibresignTrait {
 	 */
 	public function validateSignRequestUuid(string $uuid): void {
 		$this->loadEntitiesFromUuid($uuid);
+		// Observers need PDF access for read-only viewing, but must not pass signing validation.
+		if ($this->signRequestEntity?->isObserver()) {
+			return;
+		}
 		$this->signFileService->validateSigner($uuid, $this->userSession->getUser());
 	}
 

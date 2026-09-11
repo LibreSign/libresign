@@ -289,6 +289,12 @@ test('authenticated observer opens the request in read-only mode', async ({ page
 		await expect(sidebar.getByRole('button', { name: 'Setup signature positions', exact: true })).toHaveCount(0)
 		await expect(sidebar.getByRole('button', { name: 'View signature positions', exact: true })).toBeVisible()
 		await expect(sidebar.getByRole('button', { name: 'Open file', exact: true })).toBeVisible()
+
+		await sidebar.getByRole('button', { name: 'View signature positions', exact: true }).click()
+		const positionsModal = page.getByRole('dialog').filter({ hasText: /Signature positions/i })
+		await expect(positionsModal).toBeVisible({ timeout: 15_000 })
+		await expect(positionsModal.locator('canvas, .pdfViewer, .page, [class*="pdf"]').first()).toBeVisible({ timeout: 20_000 })
+		await expect(page.getByText('UnknownErrorException')).toHaveCount(0)
 	} finally {
 		await login(page.request, adminUser, adminPassword)
 		await setSystemPolicy(page.request, 'enable_observer_profile', JSON.stringify(false))

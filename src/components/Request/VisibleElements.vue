@@ -694,7 +694,9 @@ async function loadPdfEditorFiles() {
 	for (const [index, url] of urls.entries()) {
 		const response = await fetch(url)
 		const contentType = response.headers.get('Content-Type') ?? ''
-		if (!response.ok || contentType.includes('application/json')) {
+		const isPdfContent = /application\/pdf/i.test(contentType)
+			|| /application\/octet-stream/i.test(contentType)
+		if (!response.ok || contentType.includes('application/json') || contentType.includes('text/html') || !isPdfContent) {
 			showError(t('libresign', 'Document not found'))
 			pdfEditorFiles.value = []
 			return
