@@ -32,7 +32,11 @@ describe('SignerDetails.vue - Business Logic', () => {
 						NcAvatar: true,
 						NcButton: true,
 						NcIconSvgWrapper: true,
-						NcListItem: true,
+						NcListItem: {
+							name: 'NcListItem',
+							props: ['name'],
+							template: '<li><slot name="icon" /><slot name="name" /><slot /></li>',
+						},
 						NcNoteCard: true,
 						CertificateChain: true,
 					},
@@ -52,6 +56,58 @@ describe('SignerDetails.vue - Business Logic', () => {
 
 	beforeEach(() => {
 		wrapper = createWrapper()
+	})
+
+	describe('visible signature metadata', () => {
+		it.each([
+			{ description: 'one element', visibleElements: [{}], expected: 'Yes' },
+			{ description: 'several elements', visibleElements: [{}, {}], expected: 'Yes' },
+			{ description: 'empty array', visibleElements: [], expected: 'No' },
+			{ description: 'missing elements', visibleElements: undefined, expected: 'No' },
+		])('shows $expected for $description without changing validation', async ({ visibleElements, expected }) => {
+			wrapper = createWrapper({
+				initiallyOpen: true,
+				signer: {
+					signed: '2024-06-01T12:00:00Z',
+					visibleElements,
+					signature_validation: { id: 1 },
+					signatureTypeSN: 'SHA256',
+				},
+			})
+			const field = wrapper.findAllComponents({ name: 'NcListItem' })
+				.find(item => item.props('name') === 'Visible signature:')
+			expect(field?.text()).toBe(`Visible signature: ${expected}`)
+			expect(wrapper.text()).toContain('Date signed:')
+			expect(wrapper.text()).toContain('Hash algorithm: SHA256')
+			expect(wrapper.text()).toContain('Validation status')
+			expect(wrapper.find('.validation-icon--warning, .validation-icon--error').exists()).toBe(false)
+
+			wrapper.vm.validationStatusOpen = true
+			await wrapper.vm.$nextTick()
+			expect(wrapper.get('[role="region"]').text()).toContain('Document integrity verified')
+			expect(wrapper.get('[role="region"]').text()).not.toContain('Visible signature:')
+		})
+
+		it('shows metadata for signed status without a timestamp', () => {
+			wrapper = createWrapper({ initiallyOpen: true, signer: { status: 2, visibleElements: [{}] } })
+			expect(wrapper.text()).toContain('Visible signature: Yes')
+		})
+
+		it('does not show metadata for an unsigned signer even when initially open', () => {
+			wrapper = createWrapper({ initiallyOpen: true, signer: { signed: null, status: 1, visibleElements: [{}] } })
+			expect(wrapper.text()).not.toContain('Visible signature:')
+		})
+
+		it('only shows metadata while signer details are expanded', async () => {
+			wrapper = createWrapper({ signer: { signed: '2024-06-01T12:00:00Z', visibleElements: [{}] } })
+			expect(wrapper.text()).not.toContain('Visible signature:')
+			wrapper.vm.toggleOpen()
+			await wrapper.vm.$nextTick()
+			expect(wrapper.text()).toContain('Visible signature: Yes')
+			wrapper.vm.toggleOpen()
+			await wrapper.vm.$nextTick()
+			expect(wrapper.text()).not.toContain('Visible signature:')
+		})
 	})
 
 	describe('getName method', () => {

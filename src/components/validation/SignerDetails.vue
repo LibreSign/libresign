@@ -58,6 +58,17 @@
 			</template>
 		</NcListItem>
 
+		<NcListItem v-if="isOpen && isSigned(signer)"
+			class="extra"
+			compact
+			:name="t('libresign', 'Visible signature:')">
+			<template #name>
+				<!-- TRANSLATORS Whether this signer has a visible signature on this document. -->
+				<strong>{{ t('libresign', 'Visible signature:') }}</strong>
+				{{ Array.isArray(signer.visibleElements) && signer.visibleElements.length > 0 ? t('libresign', 'Yes') : t('libresign', 'No') }}
+			</template>
+		</NcListItem>
+
 		<!-- Timestamp Authority (TSA) -->
 		<SignerTimestamp v-if="isOpen" :timestamp="signer.timestamp" />
 
@@ -318,6 +329,7 @@ type SignerModel = {
 	valid_from?: string | number
 	valid_to?: string | number
 	signed?: string | null
+	visibleElements?: unknown[]
 	status?: number
 	signature_validation?: ValidationState
 	certificate_validation?: ValidationState
