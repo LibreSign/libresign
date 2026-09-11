@@ -844,9 +844,8 @@ const canDelete = computed(() => (signer: Partial<EditableRequestSigner>) => {
 })
 
 function canSignerActInOrder(signer: Partial<EditableRequestSigner>) {
-	const methodConfig = getMethodConfig(getSignerMethod(signer))
-	if (methodConfig && !methodConfig.enabled) {
-			return false
+	if (isIdentifyMethodDisabled(getSignerMethod(signer))) {
+		return false
 	}
 
 	if (!isOrderedNumeric.value) {
@@ -933,7 +932,22 @@ const canSendObserverNotification = computed(() => (signer: Partial<EditableRequ
 		&& signer.status === SIGN_REQUEST_STATUS.OBSERVING
 })
 
+function isIdentifyMethodDisabled(methodName: string | undefined): boolean {
+	if (!methodName) {
+		return false
+	}
+
+	const methodConfig = getMethodConfig(methodName)
+	// Match Signer.vue: unknown/missing catalog entries are not treated as disabled.
+	// An empty methods list usually means the identify_methods policy is still loading.
+	return methodConfig ? !methodConfig.enabled : false
+}
+
 const hasSignersWithDisabledMethods = computed(() => {
+	if (isReadOnlyObserver.value) {
+		return false
+	}
+
 	const file = filesStore.getFile()
 	if (!file?.signers) {
 		return false
@@ -943,12 +957,7 @@ const hasSignersWithDisabledMethods = computed(() => {
 		if (isSignerSigned(signer)) {
 			return false
 		}
-		const method = getSignerMethod(signer)
-		if (!method) {
-			return false
-		}
-		const methodConfig = getMethodConfig(method)
-		return !methodConfig?.enabled
+		return isIdentifyMethodDisabled(getSignerMethod(signer))
 	})
 })
 
@@ -1071,9 +1080,7 @@ const enabledMethods = computed(() => {
 
 const isSignerMethodDisabled = computed(() => {
 	if (Object.keys(signerToEdit.value).length > 0 && signerToEdit.value.identifyMethods?.length) {
-		const signerMethod = getSignerMethod(signerToEdit.value)
-		const methodConfig = getMethodConfig(signerMethod)
-		return !methodConfig?.enabled
+		return isIdentifyMethodDisabled(getSignerMethod(signerToEdit.value))
 	}
 	return false
 })

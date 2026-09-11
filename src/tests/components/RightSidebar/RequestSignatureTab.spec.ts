@@ -1504,6 +1504,57 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(wrapper.vm.hasSignersWithDisabledMethods).toBe(false)
 		})
 
+		it('does not treat missing policy catalog as disabled methods', async () => {
+			await updateMethods([])
+			await updateFile({
+				signers: [
+					{ email: 'test1@example.com', signed: [], identifyMethods: [{ method: 'email' }] },
+				],
+			})
+			expect(wrapper.vm.hasSignersWithDisabledMethods).toBe(false)
+		})
+
+		it('does not treat unknown identify methods as disabled', async () => {
+			await updateMethods([{ name: 'email', enabled: true }])
+			await updateFile({
+				signers: [
+					{ email: 'test1@example.com', signed: [], identifyMethods: [{ method: 'account' }] },
+				],
+			})
+			expect(wrapper.vm.hasSignersWithDisabledMethods).toBe(false)
+		})
+
+		it('hides disabled-methods warning for read-only observers', async () => {
+			await updateMethods([{ name: 'sms', enabled: false }])
+			filesStore.canRequestSign = false
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [
+					{
+						displayName: 'Observer Me',
+						me: true,
+						status: SIGN_REQUEST_STATUS.OBSERVING,
+						signRequestId: 10,
+						participantRole: PARTICIPANT_ROLE.OBSERVER,
+						signed: [],
+						identifyMethods: [{ method: 'sms' }],
+					},
+					{
+						displayName: 'Signer Name',
+						me: false,
+						status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+						signRequestId: 11,
+						participantRole: PARTICIPANT_ROLE.SIGNER,
+						signed: [],
+						identifyMethods: [{ method: 'sms' }],
+					},
+				],
+			})
+			expect(filesStore.isObservingOnly()).toBe(true)
+			expect(wrapper.vm.isReadOnlyObserver).toBe(true)
+			expect(wrapper.vm.hasSignersWithDisabledMethods).toBe(false)
+		})
+
 		it('hides save button when has signers with disabled methods', async () => {
 			await updateMethods([{ name: 'sms', enabled: false }])
 			filesStore.canRequestSign = true

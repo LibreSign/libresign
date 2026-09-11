@@ -75,6 +75,7 @@
 				:files="pdfEditorFiles"
 				:file-names="pdfFileNames"
 				:signers="pdfEditorSigners"
+				:read-only="isReadOnly"
 				@pdf-editor:end-init="updateSigners"
 				@pdf-editor:adding-ended="handleAddingEnded"
 				@pdf-editor:on-delete-signer="handleDeleteSigner" />
@@ -659,7 +660,8 @@ function isSelectedSigner(signer: EditableRequestSigner): boolean {
 }
 
 async function showModal() {
-	if (!canRequestSign.value) {
+	// Observers cannot request signatures, but may open positions in read-only mode.
+	if (!canRequestSign.value && !filesStore.isObservingOnly()) {
 		return
 	}
 	if (!signElementsAvailable.value && !hasVisibleElements.value) {
