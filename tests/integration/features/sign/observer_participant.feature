@@ -31,6 +31,10 @@ Feature: sign/observer_participant
       | (jq).ocs.data.data[0].signers[1].participantRole           | signer           |
     And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
     And as user "observer1"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And the response should be a JSON array with the following mandatory values
+      | key                              | value |
+      | (jq).ocs.data.data[0].canSign    | false |
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(OBSERVER_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
     When sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<OBSERVER_UUID>"

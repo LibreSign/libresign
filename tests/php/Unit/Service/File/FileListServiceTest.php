@@ -759,6 +759,75 @@ final class FileListServiceTest extends TestCase {
 		$this->assertSame(2048, $result['files'][1]['size']);
 	}
 
+	public function testObserverCurrentUserCannotSignInSummary(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+
+		$observer = $this->createSigner(100, 1);
+		$observer->setParticipantRole('observer');
+		$observer->setStatus(4);
+
+		$signer = $this->createSigner(200, 1);
+		$signer->setParticipantRole('signer');
+		$signer->setStatus(1);
+
+		$observerMethod = $this->createIdentifyMethod(
+			IdentifyMethodService::IDENTIFY_ACCOUNT,
+			'observer-user'
+		);
+		$signerMethod = $this->createIdentifyMethod(
+			IdentifyMethodService::IDENTIFY_ACCOUNT,
+			'signer-user'
+		);
+
+		$this->user->method('getUID')->willReturn('observer-user');
+		$this->fileMapper->method('getTextOfStatus')->willReturn('able to sign');
+
+		$service = $this->getService();
+		$method = new \ReflectionMethod(FileListService::class, 'formatSingleFileSummary');
+		$result = $method->invoke(
+			$service,
+			$file,
+			[$observer, $signer],
+			[
+				100 => [$observerMethod],
+				200 => [$signerMethod],
+			],
+			$this->user,
+		);
+
+		$this->assertFalse($result['canSign']);
+	}
+
+	public function testSignerCurrentUserCanSignInSummary(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+
+		$signer = $this->createSigner(200, 1);
+		$signer->setParticipantRole('signer');
+		$signer->setStatus(1);
+
+		$signerMethod = $this->createIdentifyMethod(
+			IdentifyMethodService::IDENTIFY_ACCOUNT,
+			'signer-user'
+		);
+
+		$this->user->method('getUID')->willReturn('signer-user');
+		$this->fileMapper->method('getTextOfStatus')->willReturn('able to sign');
+
+		$service = $this->getService();
+		$method = new \ReflectionMethod(FileListService::class, 'formatSingleFileSummary');
+		$result = $method->invoke(
+			$service,
+			$file,
+			[$signer],
+			[
+				200 => [$signerMethod],
+			],
+			$this->user,
+		);
+
+		$this->assertTrue($result['canSign']);
+	}
+
 	private static function createFileEntity(
 		int $id,
 		string $nodeType,
