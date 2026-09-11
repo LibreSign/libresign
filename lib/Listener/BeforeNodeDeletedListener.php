@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Listener;
 
 use OCA\Libresign\Enum\FileStatus;
-use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -35,7 +35,7 @@ class BeforeNodeDeletedListener implements IEventListener {
 			if (!$node instanceof File && !$node instanceof Folder) {
 				return;
 			}
-			if ($node instanceof File && !in_array($node->getMimeType(), ValidateHelper::VALID_MIMETIPE)) {
+			if ($node instanceof File && !in_array($node->getMimeType(), FileInputValidator::VALID_MIMETIPE)) {
 				return;
 			}
 
