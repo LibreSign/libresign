@@ -93,6 +93,8 @@ test('observer receives validation link and cannot enter signing flow', async ({
 		expect(observerLink).toMatch(/validation\//)
 		expect(extractSignLink(observerEmail.Text || observerEmail.HTML || '')).toBeNull()
 
+		await page.context().clearCookies()
+		await page.goto('about:blank')
 		await page.goto(`.${observerLink}`)
 		await page.waitForURL('**/validation/**', { waitUntil: 'commit' })
 		await expect(page).not.toHaveURL(/\/p\/sign\//)
@@ -102,7 +104,24 @@ test('observer receives validation link and cannot enter signing flow', async ({
 		await expect(page.getByRole('heading', { name: 'Signers', exact: true })).toBeVisible()
 		await expect(page.getByRole('heading', { name: 'Observers', exact: true })).toBeVisible()
 		await expect(page.getByRole('button', { name: 'View document' })).toBeVisible()
+
+		const pdfResponsePromise = page.context().waitForEvent('response', (response) => (
+			response.url().includes('/apps/libresign/p/pdf/')
+			&& response.request().resourceType() !== 'preflight'
+		))
+		const popupPromise = page.waitForEvent('popup')
+		await page.getByRole('button', { name: 'View document' }).click()
+		const [popup, pdfResponse] = await Promise.all([popupPromise, pdfResponsePromise])
+		expect(pdfResponse.status()).toBe(200)
+		expect(pdfResponse.headers()['content-type'] ?? '').toMatch(/pdf/i)
+		await expect(popup).toHaveURL(/\/apps\/libresign\/p\/pdf\//)
+		await expect(popup).not.toHaveURL(/\/login/)
 	} finally {
+		await login(
+			page.request,
+			process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+			process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+		)
 		await setSystemPolicy(page.request, 'enable_observer_profile', JSON.stringify(false))
 	}
 })
@@ -183,6 +202,11 @@ test('email observer receives validation link when the signer uses account ident
 		await expect(page).not.toHaveURL(/\/login/)
 		await expect(page.getByRole('button', { name: 'Sign', exact: true })).toHaveCount(0)
 	} finally {
+		await login(
+			page.request,
+			process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+			process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+		)
 		await setSystemPolicy(page.request, 'enable_observer_profile', JSON.stringify(false))
 	}
 })
