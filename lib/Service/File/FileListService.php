@@ -339,6 +339,10 @@ class FileListService {
 		$mySigners = array_values(array_filter($signers, fn (SignRequest $signer)
 			=> $this->isCurrentUserSigner($identifyMethods[$signer->getId()] ?? [], $user),
 		));
+		$mySigningParticipants = array_values(array_filter(
+			$mySigners,
+			fn (SignRequest $signer) => $signer->getParticipantRoleEnum()->canSign(),
+		));
 		$pendingSigners = array_values(array_filter(
 			$signers,
 			fn (SignRequest $signer) => $signer->getSigned() === null && $signer->getParticipantRoleEnum()->canSign(),
@@ -349,10 +353,10 @@ class FileListService {
 			: min(array_map(fn (SignRequest $signer) => $signer->getSigningOrder() ?: 1, $pendingSigners));
 
 		$canSign = $fileEntity->getStatus() > 0
-			&& !empty($mySigners)
+			&& !empty($mySigningParticipants)
 			&& !empty($pendingSigners)
-			&& !array_filter($mySigners, fn (SignRequest $signer) => $signer->getSigned() !== null)
-			&& (!$isOrderedNumeric || array_filter($mySigners, fn (SignRequest $signer) => ($signer->getSigningOrder() ?: 1) === $minOrder));
+			&& !array_filter($mySigningParticipants, fn (SignRequest $signer) => $signer->getSigned() !== null)
+			&& (!$isOrderedNumeric || array_filter($mySigningParticipants, fn (SignRequest $signer) => ($signer->getSigningOrder() ?: 1) === $minOrder));
 
 		/** @var LibresignFileSummary */
 		return [
