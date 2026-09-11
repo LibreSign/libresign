@@ -11,9 +11,9 @@ namespace OCA\Libresign\Service\File;
 
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\FileUploadHelper;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\File\Pdf\PdfValidator;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCP\Files\Node;
 use OCP\IUser;
 use Psr\Log\LoggerInterface;
@@ -24,7 +24,7 @@ class UploadProcessor {
 		private FolderService $folderService,
 		private MimeService $mimeService,
 		private PdfValidator $pdfValidator,
-		private ValidateHelper $validateHelper,
+		private FileInputValidator $fileInputValidator,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -86,7 +86,7 @@ class UploadProcessor {
 
 				$createdNodes[] = $node;
 
-				$this->validateHelper->validateNewFile([
+				$this->fileInputValidator->validateNewFile([
 					'file' => ['fileId' => $node->getId()],
 					'userManager' => $user,
 				]);

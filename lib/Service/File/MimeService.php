@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\File;
 
-use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCP\Files\IMimeTypeDetector;
 
 class MimeService {
@@ -17,7 +17,7 @@ class MimeService {
 
 	public function __construct(
 		private IMimeTypeDetector $mimeTypeDetector,
-		private ValidateHelper $validateHelper,
+		private FileInputValidator $fileInputValidator,
 	) {
 	}
 
@@ -27,7 +27,7 @@ class MimeService {
 	 * @throws \Exception if MIME type is not accepted
 	 */
 	public function setMimeType(string $mimetype): void {
-		$this->validateHelper->validateMimeTypeAcceptedByMime($mimetype);
+		$this->fileInputValidator->validateMimeTypeAcceptedByMime($mimetype);
 		$this->mimetype = $mimetype;
 	}
 
