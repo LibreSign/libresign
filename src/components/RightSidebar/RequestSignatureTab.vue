@@ -1024,6 +1024,10 @@ const hasDraftSigners = computed(() => {
 	return isOrderedNumeric.value ? hasSequentialDraftSigners(file) : hasAnyDraftSigner(file)
 })
 
+const showsPositionEditor = computed(() => signingParticipantCount.value > 0
+	&& (isSignElementsAvailable()
+		|| getVisibleElementsFromDocument(filesStore.getFile() as DocumentLike).length > 0))
+
 const showSaveButton = computed(() => {
 	if (isReadOnlyObserver.value) {
 		return false
@@ -1270,9 +1274,6 @@ function getSvgIcon(name: string) {
 function isSignElementsAvailable() {
 	return capabilities.libresign?.config['sign-elements']?.['is-available'] === true
 }
-
-const showsPositionEditor = computed(() => isSignElementsAvailable()
-	|| getVisibleElementsFromDocument(filesStore.getFile() as DocumentLike).length > 0)
 
 const saveButtonLabel = computed(() => {
 	if (showsPositionEditor.value) {
@@ -1780,6 +1781,8 @@ defineExpose({
 	showSaveButton,
 	showViewPositionsButton,
 	showRequestButton,
+	showsPositionEditor,
+	signingParticipantCount,
 	isReadOnlyObserver,
 	participantListEvent,
 	hasDraftSigners,
