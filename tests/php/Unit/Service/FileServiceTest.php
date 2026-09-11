@@ -28,7 +28,6 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $pkcs12Handler;
 	private $docMdpHandler;
 	private $pdfValidator;
-	private $rootFolder;
 	private $logger;
 	private $l10n;
 	private $envelopeService;
@@ -61,7 +60,6 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler = $this->createMock(\OCA\Libresign\Handler\SignEngine\Pkcs12Handler::class);
 		$this->docMdpHandler = $this->createMock(\OCA\Libresign\Handler\DocMdpHandler::class);
 		$this->pdfValidator = $this->createMock(\OCA\Libresign\Service\File\Pdf\PdfValidator::class);
-		$this->rootFolder = $this->createMock(\OCP\Files\IRootFolder::class);
 		$this->logger = $this->createMock(\Psr\Log\LoggerInterface::class);
 		$this->l10n = $this->createMock(\OCP\IL10N::class);
 		$this->envelopeService = $this->createMock(\OCA\Libresign\Service\Envelope\EnvelopeService::class);
@@ -94,7 +92,6 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->pkcs12Handler,
 			$this->docMdpHandler,
 			$this->pdfValidator,
-			$this->rootFolder,
 			$this->logger,
 			$this->l10n,
 			$this->envelopeService,
@@ -487,6 +484,58 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->assertIsArray($result['visibleElements']);
 		} else {
 			$this->assertArrayNotHasKey('visibleElements', $result);
+		}
+	}
+
+	public function testVisibleElementsAreAssignedBySignRequestId(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(1);
+		$file->setUuid('test-uuid');
+		$file->setName('test.pdf');
+		$file->setStatus(1);
+		$file->setCreatedAt(new \DateTime());
+		$file->setNodeId(100);
+		$file->setSignatureFlow('');
+		$file->setDocmdpLevel('');
+		$file->setUserId('testuser');
+		$file->setMetadata([]);
+
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getDisplayName')->willReturn('Test User');
+		$this->userManager->method('get')->willReturn($user);
+		$this->fileMapper->method('getTextOfStatus')->willReturn('Pending');
+		$this->signersLoader->method('loadLibreSignSigners')->willReturnCallback(
+			static function ($file, \stdClass $fileData): void {
+				$fileData->signers = [
+					(object)['signRequestId' => 20, 'visibleElements' => []],
+					(object)['signRequestId' => 10, 'visibleElements' => []],
+					(object)['displayName' => 'Certificate-only signer'],
+				];
+			}
+		);
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest->setId(10);
+		$signRequest->setFileId(1);
+		$this->signRequestMapper->method('getByMultipleFileId')->with([1])->willReturn([$signRequest]);
+		$element = new \OCA\Libresign\Db\FileElement();
+		$element->setFileId(1);
+		$element->setSignRequestId(10);
+		$this->signRequestMapper->expects($this->once())->method('getVisibleElementsFromSigners')
+			->with([$signRequest])->willReturn([10 => [$element]]);
+		$formatted = [['elementId' => 5, 'signRequestId' => 10, 'fileId' => 1]];
+		$this->fileElementService->expects($this->once())->method('formatVisibleElements')
+			->with([$element], [])->willReturn($formatted);
+
+		$result = $this->createFileService()->setFile($file)->showSigners()->showVisibleElements()->toArray();
+
+		$this->assertSame($formatted, $result['visibleElements']);
+		$this->assertSame([], $result['signers'][0]['visibleElements']);
+		$this->assertSame($formatted, $result['signers'][1]['visibleElements']);
+		$this->assertSame([], $result['signers'][2]['visibleElements']);
+		$this->assertCount(2, $result['files'][0]['signers']);
+		foreach ($result['files'][0]['signers'] as $index => $signer) {
+			$this->assertSame($result['signers'][$index]['signRequestId'], $signer['signRequestId']);
+			$this->assertSame($result['signers'][$index]['visibleElements'], $signer['visibleElements']);
 		}
 	}
 

@@ -14,8 +14,8 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\FileElementService;
+use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCP\Files\IRootFolder;
 use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
 
@@ -24,7 +24,7 @@ class EnvelopeAssembler {
 		private SignRequestMapper $signRequestMapper,
 		private IdentifyMethodService $identifyMethodService,
 		private FileMapper $fileMapper,
-		private IRootFolder $root,
+		private FolderService $folderService,
 		private IURLGenerator $urlGenerator,
 		private SignersLoader $signersLoader,
 		private ?CertificateChainService $certificateChainService,
@@ -51,7 +51,7 @@ class EnvelopeAssembler {
 		$fileData->metadata = $childMetadata;
 
 		$nodeId = $childFile->getSignedNodeId() ?: $childFile->getNodeId();
-		$fileNode = $this->root->getUserFolder($childFile->getUserId())->getFirstNodeById($nodeId);
+		$fileNode = $this->folderService->getReadableNodeById($childFile->getUserId(), $nodeId);
 		if ($fileNode instanceof \OCP\Files\File) {
 			if (method_exists($fileNode, 'getSize')) {
 				$fileData->size = $fileNode->getSize();
@@ -119,25 +119,31 @@ class EnvelopeAssembler {
 			$signer->statusText = $this->signRequestMapper->getTextOfSignerStatus($signRequest->getStatus());
 			$signer->identifyMethods = $identifyMethodsArray;
 			$signer->metadata = $signRequest->getMetadata();
+			$signer->visibleElements = [];
 			$fileData->signers[] = $signer;
 		}
 
 		if ($options->isShowVisibleElements()) {
 			$childMetadata = $childFile->getMetadata();
-			foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signRequests) as $row) {
+			$formattedElementsBySigner = [];
+			foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signRequests) as $signRequestId => $row) {
 				if (empty($row)) {
 					continue;
 				}
+				$formattedElementsBySigner[$signRequestId] = $this->fileElementService->formatVisibleElements($row, $childMetadata);
 				$fileData->visibleElements = array_merge(
-					$this->fileElementService->formatVisibleElements($row, $childMetadata),
+					$formattedElementsBySigner[$signRequestId],
 					$fileData->visibleElements
 				);
+			}
+			foreach ($fileData->signers as $signer) {
+				$signer->visibleElements = $formattedElementsBySigner[$signer->signRequestId] ?? [];
 			}
 		}
 
 		if ($options->isValidateFile() && $childFile->getSignedNodeId()) {
 			try {
-				$fileNode = $this->root->getUserFolder($childFile->getUserId())->getFirstNodeById($childFile->getSignedNodeId());
+				$fileNode = $this->folderService->getReadableNodeById($childFile->getUserId(), $childFile->getSignedNodeId());
 				if ($fileNode instanceof \OCP\Files\File) {
 					if ($this->certificateChainService !== null) {
 						$certData = $this->certificateChainService->getCertificateChain($fileNode, $childFile, $options);

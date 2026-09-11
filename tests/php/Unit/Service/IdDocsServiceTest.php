@@ -15,9 +15,10 @@ use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\RequestSignatureService;
+use OCA\Libresign\Service\Validation\FileInputValidator;
+use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -33,7 +34,8 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FileMapper&MockObject $fileMapper;
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
-	private ValidateHelper&MockObject $validateHelper;
+	private FileInputValidator&MockObject $fileInputValidator;
+	private IdentityDocumentValidator&MockObject $identityDocumentValidator;
 	private RequestSignatureService&MockObject $requestSignatureService;
 	private TimeFactory&MockObject $timeFactory;
 	private IAppConfig&MockObject $appConfig;
@@ -49,7 +51,8 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
-		$this->validateHelper = $this->createMock(ValidateHelper::class);
+		$this->fileInputValidator = $this->createMock(FileInputValidator::class);
+		$this->identityDocumentValidator = $this->createMock(IdentityDocumentValidator::class);
 		$this->requestSignatureService = $this->createMock(RequestSignatureService::class);
 		$this->timeFactory = $this->createMock(TimeFactory::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
@@ -59,7 +62,8 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return new IdDocsService(
 			$this->l10n,
 			$this->fileTypeMapper,
-			$this->validateHelper,
+			$this->fileInputValidator,
+			$this->identityDocumentValidator,
 			$this->requestSignatureService,
 			$this->idDocsMapper,
 			$this->fileMapper,
@@ -70,11 +74,35 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
+	public function testValidateIdDocsUsesFocusedValidators(): void {
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn('user1');
+		$file = [
+			'type' => 'IDENTIFICATION',
+			'file' => ['base64' => 'encoded'],
+		];
+
+		$this->fileTypeMapper->method('getTypes')->willReturn([
+			'IDENTIFICATION' => [],
+		]);
+		$this->identityDocumentValidator->expects($this->once())
+			->method('validateFileTypeExists')
+			->with('IDENTIFICATION');
+		$this->fileInputValidator->expects($this->once())
+			->method('validateNewFile')
+			->with($file, FileInputValidator::TYPE_ACCOUNT_DOCUMENT, $user);
+		$this->identityDocumentValidator->expects($this->once())
+			->method('validateUserHasNoFileWithThisType')
+			->with('user1', 'IDENTIFICATION');
+
+		$this->getIdDocsService()->validateIdDocs([$file], $user);
+	}
+
 	public function testDeleteIdDocAsApproverBypassesOwnershipCheck(): void {
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getUID')->willReturn('approver1');
 
-		$this->validateHelper->method('userCanApproveValidationDocuments')
+		$this->identityDocumentValidator->method('userCanApproveValidationDocuments')
 			->with($user, false)
 			->willReturn(true);
 
@@ -101,11 +129,11 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getUID')->willReturn('user1');
 
-		$this->validateHelper->method('userCanApproveValidationDocuments')
+		$this->identityDocumentValidator->method('userCanApproveValidationDocuments')
 			->with($user, false)
 			->willReturn(false);
 
-		$this->validateHelper->expects($this->once())
+		$this->identityDocumentValidator->expects($this->once())
 			->method('validateIdDocIsOwnedByUser')
 			->with(123, 'user1');
 
@@ -129,7 +157,7 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = new SignRequest();
 		$signRequest->setId(55);
 
-		$this->validateHelper->expects($this->once())
+		$this->identityDocumentValidator->expects($this->once())
 			->method('validateIdDocBelongsToSignRequest')
 			->with(123, 55);
 
@@ -156,7 +184,7 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = new SignRequest();
 		$signRequest->setId(55);
 
-		$this->validateHelper->method('validateIdDocBelongsToSignRequest')
+		$this->identityDocumentValidator->method('validateIdDocBelongsToSignRequest')
 			->with(123, 55)
 			->willThrowException(new \OCA\Libresign\Exception\LibresignException('Not allowed'));
 

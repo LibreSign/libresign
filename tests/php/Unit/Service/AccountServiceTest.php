@@ -19,6 +19,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\CRLReason;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\FileUploadHelper;
@@ -47,7 +48,6 @@ use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
-use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Group\ISubAdmin;
 use OCP\IAppConfig;
@@ -69,7 +69,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private IUserManager&MockObject $userManager;
 	private IAccountManager&MockObject $accountManager;
-	private IRootFolder&MockObject $root;
 	private IMimeTypeDetector&MockObject $mimeTypeDetector;
 	private FileMapper&MockObject $fileMapper;
 	private FileTypeMapper&MockObject $fileTypeMapper;
@@ -109,7 +108,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->accountManager = $this->createMock(IAccountManager::class);
-		$this->root = $this->createMock(IRootFolder::class);
 		$this->mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->fileTypeMapper = $this->createMock(FileTypeMapper::class);
@@ -148,7 +146,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signRequestMapper,
 			$this->userManager,
 			$this->accountManager,
-			$this->root,
 			$this->mimeTypeDetector,
 			$this->fileMapper,
 			$this->fileTypeMapper,
@@ -355,54 +352,38 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getService()->createToSign('uuid', 'username', 'passwordOfUser', 'passwordToSign');
 	}
 
-	public function testGetPdfByUuidWithSuccessAndSignedFile():void {
-		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
-		$libresignFile->method('__call')
-			->willReturnCallback(fn ($method)
-				=> match ($method) {
-					'getSignedNodeId' => 1,
-					'getNodeId' => 1,
-					'getStatus' => \OCA\Libresign\Enum\FileStatus::SIGNED->value,
-				}
-			);
-		$this->fileMapper
-			->method('getByUuid')
-			->willReturn($libresignFile);
-		$node = $this->createMock(\OCP\Files\File::class);
-		$this->root
-			->method('getUserFolder')
-			->willReturn($this->root);
-		$this->root
-			->method('getFirstNodeById')
+	#[DataProvider('provideGetPdfByUuidNodeSelection')]
+	public function testGetPdfByUuidSelectsExpectedNode(
+		int $status,
+		?int $signedNodeId,
+		int $nodeId,
+		int $expectedNodeId,
+	): void {
+		$libresignFile = new \OCA\Libresign\Db\File();
+		$libresignFile->setSignedNodeId($signedNodeId);
+		$libresignFile->setNodeId($nodeId);
+		$libresignFile->setStatus($status);
+
+		$this->fileMapper->method('getByUuid')->with('uuid')->willReturn($libresignFile);
+		$this->fileMapper->method('getStorageUserIdByUuid')->with('uuid')->willReturn('storage-user');
+		$this->folderService->expects($this->once())->method('setUserId')->with('storage-user');
+
+		$node = $this->createMock(File::class);
+		$this->folderService
+			->expects($this->once())
+			->method('getFileByNodeId')
+			->with($expectedNodeId)
 			->willReturn($node);
 
-		$actual = $this->getService()->getPdfByUuid('uuid');
-		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
+		$this->assertSame($node, $this->getService()->getPdfByUuid('uuid'));
 	}
 
-	public function testGetPdfByUuidWithSuccessAndUnignedFile():void {
-		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
-		$libresignFile->method('__call')
-			->willReturnCallback(fn ($method)
-				=> match ($method) {
-					'getSignedNodeId' => 1,
-					'getNodeId' => 1,
-					'getStatus' => \OCA\Libresign\Enum\FileStatus::SIGNED->value,
-				}
-			);
-		$this->fileMapper
-			->method('getByUuid')
-			->willReturn($libresignFile);
-		$node = $this->createMock(\OCP\Files\File::class);
-		$this->root
-			->method('getUserFolder')
-			->willReturn($this->root);
-		$this->root
-			->method('getFirstNodeById')
-			->willReturn($node);
-
-		$actual = $this->getService()->getPdfByUuid('uuid');
-		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
+	public static function provideGetPdfByUuidNodeSelection(): array {
+		return [
+			'signed file uses signed node' => [FileStatus::SIGNED->value, 200, 100, 200],
+			'partially signed file uses signed node' => [FileStatus::PARTIAL_SIGNED->value, 201, 101, 201],
+			'draft file uses original node' => [FileStatus::DRAFT->value, null, 102, 102],
+		];
 	}
 
 	public function testGetPdfByUuidThrowsDoesNotExistWhenNodeNotFound(): void {
@@ -675,15 +656,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 								'getUserId' => 'username',
 							}
 						);
-					$file = $self->createMock(\OCA\Libresign\Db\File::class);
-					$file
-						->method('__call')
-						->willReturnCallback(fn (string $method)
-							=> match ($method) {
-								'getNodeId' => 999,
-								'getUserId' => 'username',
-							}
-						);
+					$file = new \OCA\Libresign\Db\File();
+					$file->setNodeId(999);
+					$file->setUserId('username');
 					$self->fileMapper
 						->method('getById')
 						->will($self->returnValue($file));
@@ -695,16 +670,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->method('getIdentifyMethodsFromSignRequestId')
 						->willReturn(['email' => [$identifyMethod]]);
 
-					$self->root
-						->method('getById')
-						->will($self->returnValue([]));
-					$folder = $self->createMock(\OCP\Files\Folder::class);
-					$folder
-						->method('getById')
-						->willReturn([]);
-					$self->root
-						->method('getUserFolder')
-						->willReturn($folder);
+					$self->folderService
+						->method('getReadableNodeById')
+						->with('username', 999)
+						->willReturn(null);
 					return [
 						'uuid' => '12345678-1234-1234-1234-123456789012',
 						'user' => [

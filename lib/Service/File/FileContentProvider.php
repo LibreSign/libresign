@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\File;
 
 use OCA\Libresign\Exception\LibresignException;
-use OCP\Files\IRootFolder;
+use OCA\Libresign\Service\FolderService;
 use OCP\Http\Client\IClientService;
 use OCP\IL10N;
 use Psr\Log\LoggerInterface;
@@ -19,7 +19,7 @@ class FileContentProvider {
 	public function __construct(
 		private IClientService $client,
 		private MimeService $mimeService,
-		private IRootFolder $root,
+		private FolderService $folderService,
 		private LoggerInterface $logger,
 		private IL10N $l10n,
 	) {
@@ -132,7 +132,7 @@ class FileContentProvider {
 				$nodeId = $file->getNodeId();
 			}
 
-			$fileNode = $this->root->getUserFolder($file->getUserId())->getFirstNodeById($nodeId);
+			$fileNode = $this->folderService->getReadableNodeById($file->getUserId(), $nodeId);
 
 			if (!$fileNode instanceof \OCP\Files\File) {
 				// TRANSLATORS Error shown when the requested document cannot be found.

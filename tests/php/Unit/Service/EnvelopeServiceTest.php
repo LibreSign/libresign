@@ -347,6 +347,33 @@ final class EnvelopeServiceTest extends TestCase {
 		$this->assertSame('system', $snapshot['sourceScope']);
 	}
 
+	public function testGetEnvelopeFolderReturnsCreatableFolderForStorageUser(): void {
+		$envelope = new FileEntity();
+		$envelope->setUserId('storage-user');
+		$envelope->setNodeId(321);
+		$folder = $this->createMock(Folder::class);
+
+		$this->folderService
+			->expects($this->once())
+			->method('getCreatableFolderById')
+			->with('storage-user', 321)
+			->willReturn($folder);
+
+		$this->assertSame($folder, $this->service->getEnvelopeFolder($envelope));
+	}
+
+	public function testGetEnvelopeFolderRejectsFolderWithoutCreatePermission(): void {
+		$envelope = new FileEntity();
+		$envelope->setUserId('storage-user');
+		$envelope->setNodeId(321);
+		$this->folderService->method('getCreatableFolderById')->with('storage-user', 321)->willReturn(null);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Envelope folder not found');
+
+		$this->service->getEnvelopeFolder($envelope);
+	}
+
 	#[DataProvider('envelopeConstraintsProvider')]
 	public function testValidateEnvelopeConstraints(
 		int $fileCount,

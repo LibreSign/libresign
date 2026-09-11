@@ -22,13 +22,13 @@ use OCA\Libresign\Enum\SignerGeolocationCollectionStatus;
 use OCA\Libresign\Enum\SignerGeolocationMode;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileElementService;
+use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
 use OCP\AppFramework\Db\Entity;
 use OCP\Files\File as NodeFile;
-use OCP\Files\IRootFolder;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -57,7 +57,7 @@ class FileListService {
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
 		private IUserManager $userManager,
-		private IRootFolder $root,
+		private FolderService $folderService,
 		private SignatureRejectionVisibilityService $signatureRejectionVisibilityService,
 	) {
 	}
@@ -1007,7 +1007,7 @@ class FileListService {
 			return 0;
 		}
 		try {
-			$fileNode = $this->root->getUserFolder($file->getUserId())->getFirstNodeById($nodeId);
+			$fileNode = $this->folderService->getReadableNodeById($file->getUserId(), $nodeId);
 			if ($fileNode instanceof NodeFile && method_exists($fileNode, 'getSize')) {
 				return max(0, (int)$fileNode->getSize());
 			}

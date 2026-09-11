@@ -16,6 +16,7 @@ use OCP\Files\Folder;
 use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
 use OCP\Files\ISetupManager;
+use OCP\Files\IUserFolder;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -27,7 +28,6 @@ use OCP\Lock\LockedException;
 
 class FolderService {
 	protected IAppData $appData;
-	private ?string $initializedFilesystemUser = null;
 	public function __construct(
 		private IRootFolder $root,
 		protected IAppDataFactory $appDataFactory,
@@ -43,9 +43,6 @@ class FolderService {
 	}
 
 	public function setUserId(?string $userId): void {
-		if ($this->userId !== $userId) {
-			$this->initializedFilesystemUser = null;
-		}
 		$this->userId = $userId;
 	}
 
@@ -53,18 +50,39 @@ class FolderService {
 		return $this->userId;
 	}
 
+	public function getUserFolder(string $userId): IUserFolder {
+		return $this->root->getUserFolder($userId);
+	}
+
+	public function getReadableNodeById(string $userId, int $nodeId): ?Node {
+		foreach ($this->getUserFolder($userId)->getById($nodeId) as $node) {
+			if ($node->isReadable()) {
+				return $node;
+			}
+		}
+		return null;
+	}
+
+	public function getCreatableFolderById(string $userId, int $nodeId): ?Folder {
+		foreach ($this->getUserFolder($userId)->getById($nodeId) as $node) {
+			if ($node instanceof Folder && $node->isCreatable()) {
+				return $node;
+			}
+		}
+		return null;
+	}
+
 	/**
-	 * Get the user's root folder (full home), not the LibreSign container.
+	 * Get the root of the user's visible files, not the LibreSign container.
 	 *
 	 * @throws LibresignException
 	 */
-	public function getUserRootFolder(): Folder {
+	public function getUserRootFolder(): IUserFolder {
 		if (!$this->userId) {
 			throw new LibresignException('Invalid user to resolve folder');
 		}
 
-		$this->initializeUserFilesystem($this->userId);
-		return $this->root->getUserFolder($this->userId);
+		return $this->getUserFolder($this->userId);
 	}
 
 	/**
@@ -93,8 +111,7 @@ class FolderService {
 		// For guests, files are stored in appdata, not in user folder
 		// Skip getUserFolder search for guests to avoid false positives
 		if ($this->getUserId() && !$this->groupManager->isInGroup($this->getUserId(), 'guest_app')) {
-			$this->initializeUserFilesystem($this->getUserId());
-			$file = $this->root->getUserFolder($this->getUserId())->getFirstNodeById($nodeId);
+			$file = $this->getReadableNodeById($this->getUserId(), $nodeId);
 			if ($file instanceof File) {
 				return $file;
 			}
@@ -116,9 +133,9 @@ class FolderService {
 
 	protected function getContainerFolder(): Folder {
 		if ($this->getUserId() && !$this->groupManager->isInGroup($this->getUserId(), 'guest_app')) {
-			$this->initializeUserFilesystem($this->getUserId());
+			$this->prepareUserFilesystemForWrite($this->getUserId());
 			try {
-				$containerFolder = $this->root->getUserFolder($this->getUserId());
+				$containerFolder = $this->getUserFolder($this->getUserId());
 				if ($containerFolder->isUpdateable()) {
 					return $containerFolder;
 				}
@@ -184,12 +201,14 @@ class FolderService {
 		$userFolder = $this->getFolder();
 
 		if (isset($data['settings']['envelopeFolderId'])) {
-			$envelopeFolder = $userFolder->getFirstNodeById($data['settings']['envelopeFolderId']);
-			if ($envelopeFolder === null || !$envelopeFolder instanceof Folder) {
-				// TRANSLATORS Error shown when the Nextcloud folder that stores envelope documents cannot be found.
-				throw new LibresignException($this->l10n->t('Envelope folder not found'));
+			foreach ($userFolder->getById($data['settings']['envelopeFolderId']) as $node) {
+				if ($node instanceof Folder && $node->isCreatable()) {
+					return $node;
+				}
 			}
-			return $envelopeFolder;
+
+			// TRANSLATORS Error shown when the Nextcloud folder that stores envelope documents cannot be found or is not writable.
+			throw new LibresignException($this->l10n->t('Envelope folder not found'));
 		}
 
 		$folderName = $this->getFolderName($data, $identifier);
@@ -241,9 +260,8 @@ class FolderService {
 		return implode($data['settings']['separator'], $folderName);
 	}
 
-	public function getFileByPath(string $path): Node {
-		$this->initializeUserFilesystem($this->getUserId());
-		$userFolder = $this->root->getUserFolder($this->getUserId());
+	public function getFileByPath(string $path, ?string $userId = null): Node {
+		$userFolder = $userId !== null ? $this->getUserFolder($userId) : $this->getUserRootFolder();
 		try {
 			return $userFolder->get($path);
 		} catch (NotFoundException) {
@@ -264,8 +282,8 @@ class FolderService {
 		}
 
 		$cleanPath = ltrim($path, '/');
-		$this->initializeUserFilesystem($this->userId);
-		$userFolder = $this->root->getUserFolder($this->userId);
+		$this->prepareUserFilesystemForWrite($this->userId);
+		$userFolder = $this->getUserFolder($this->userId);
 
 		if ($cleanPath === '') {
 			return $userFolder;
@@ -300,18 +318,14 @@ class FolderService {
 		return $folder;
 	}
 
-	protected function initializeUserFilesystem(string $userId): void {
-		if ($this->initializedFilesystemUser === $userId) {
+	private function prepareUserFilesystemForWrite(string $userId): void {
+		$user = $this->userManager->get($userId);
+		if (!$user instanceof IUser || $this->setupManager->isSetupComplete($user)) {
 			return;
 		}
 
 		$this->setupManager->tearDown();
-		$user = $this->userManager->get($userId);
-		if (!$user instanceof IUser) {
-			return;
-		}
-
 		$this->setupManager->setupForUser($user);
-		$this->initializedFilesystemUser = $userId;
 	}
+
 }

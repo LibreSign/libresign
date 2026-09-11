@@ -16,6 +16,7 @@ use OCP\Files\Folder;
 use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
 use OCP\Files\ISetupManager;
+use OCP\Files\IUserFolder;
 use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IGroupManager;
@@ -80,26 +81,123 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n->method('t')->willReturnArgument(0);
 		$this->setupManager = $this->createMock(ISetupManager::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 	}
 
 	private function getInstance(?string $userId = '171'): FolderService {
-		$service = $this->getMockBuilder(FolderService::class)
-			->setConstructorArgs([
-				$this->root,
-				$this->appDataFactory,
-				$this->groupManager,
-				$this->appConfig,
-				$this->l10n,
-				$this->setupManager,
-				$this->userManager,
-				$userId,
-			])
-			->onlyMethods(['initializeUserFilesystem'])
-			->getMock();
-		$service->method('initializeUserFilesystem');
-		return $service;
+		return new FolderService(
+			$this->root,
+			$this->appDataFactory,
+			$this->groupManager,
+			$this->appConfig,
+			$this->l10n,
+			$this->setupManager,
+			$this->userManager,
+			$userId,
+		);
+	}
+
+	public function testGetUserFolderReturnsNextcloudUserFolder(): void {
+		$userFolder = $this->createMock(IUserFolder::class);
+		$this->root
+			->expects($this->once())
+			->method('getUserFolder')
+			->with('alice')
+			->willReturn($userFolder);
+
+		$this->assertSame($userFolder, $this->getInstance()->getUserFolder('alice'));
+	}
+
+	public function testGetReadableNodeByIdSkipsUnreadableMount(): void {
+		$userFolder = $this->createMock(IUserFolder::class);
+		$unreadableNode = $this->createMock(\OCP\Files\Node::class);
+		$readableNode = $this->createMock(\OCP\Files\Node::class);
+		$unreadableNode->method('isReadable')->willReturn(false);
+		$readableNode->method('isReadable')->willReturn(true);
+
+		$this->root->method('getUserFolder')->with('alice')->willReturn($userFolder);
+		$userFolder
+			->expects($this->once())
+			->method('getById')
+			->with(42)
+			->willReturn([$unreadableNode, $readableNode]);
+
+		$this->assertSame($readableNode, $this->getInstance()->getReadableNodeById('alice', 42));
+	}
+
+	public function testGetReadableNodeByIdReturnsNullWhenNoReadableMountExists(): void {
+		$userFolder = $this->createMock(IUserFolder::class);
+		$unreadableNode = $this->createMock(\OCP\Files\Node::class);
+		$unreadableNode->method('isReadable')->willReturn(false);
+
+		$this->root->method('getUserFolder')->with('alice')->willReturn($userFolder);
+		$userFolder->method('getById')->with(42)->willReturn([$unreadableNode]);
+
+		$this->assertNull($this->getInstance()->getReadableNodeById('alice', 42));
+	}
+
+	public function testGetCreatableFolderByIdSkipsNonCreatableMounts(): void {
+		$userFolder = $this->createMock(IUserFolder::class);
+		$readOnlyFolder = $this->createMock(Folder::class);
+		$creatableFolder = $this->createMock(Folder::class);
+		$readOnlyFolder->method('isCreatable')->willReturn(false);
+		$creatableFolder->method('isCreatable')->willReturn(true);
+		$this->root->method('getUserFolder')->with('alice')->willReturn($userFolder);
+		$userFolder->method('getById')->with(42)->willReturn([$readOnlyFolder, $creatableFolder]);
+
+		$this->assertSame($creatableFolder, $this->getInstance()->getCreatableFolderById('alice', 42));
+	}
+
+	public function testGetCreatableFolderByIdReturnsNullWithoutCreatableFolder(): void {
+		$userFolder = $this->createMock(IUserFolder::class);
+		$file = $this->createMock(\OCP\Files\File::class);
+		$folder = $this->createMock(Folder::class);
+		$folder->method('isCreatable')->willReturn(false);
+		$this->root->method('getUserFolder')->with('alice')->willReturn($userFolder);
+		$userFolder->method('getById')->with(42)->willReturn([$file, $folder]);
+
+		$this->assertNull($this->getInstance()->getCreatableFolderById('alice', 42));
+	}
+
+	public function testReadLookupDoesNotForceFilesystemSetup(): void {
+		$userFolder = $this->createMock(IUserFolder::class);
+		$this->root->method('getUserFolder')->with('alice')->willReturn($userFolder);
+		$userFolder->method('getById')->willReturn([]);
+		$this->setupManager->expects($this->never())->method('setupForUser');
+
+		$this->getInstance()->getReadableNodeById('alice', 42);
+	}
+
+	public function testWriteDoesNotReinitializePreparedUserFilesystem(): void {
+		$user = $this->createMock(IUser::class);
+		$this->userManager->method('get')->with('alice')->willReturn($user);
+		$this->setupManager->expects($this->once())->method('isSetupComplete')->with($user)->willReturn(true);
+		$this->setupManager->expects($this->never())->method('tearDown');
+		$this->setupManager->expects($this->never())->method('setupForUser');
+
+		$userFolder = $this->createMock(IUserFolder::class);
+		$userFolder->method('isUpdateable')->willReturn(true);
+		$this->root->method('getUserFolder')->with('alice')->willReturn($userFolder);
+		$this->groupManager->method('isInGroup')->willReturn(false);
+
+		$this->invokePrivate($this->getInstance('alice'), 'getContainerFolder');
+	}
+
+	public function testWritePreparesUserFilesystemWhenSetupIsIncomplete(): void {
+		$user = $this->createMock(IUser::class);
+		$this->userManager->method('get')->with('alice')->willReturn($user);
+		$this->setupManager->expects($this->once())->method('isSetupComplete')->with($user)->willReturn(false);
+		$this->setupManager->expects($this->once())->method('tearDown');
+		$this->setupManager->expects($this->once())->method('setupForUser')->with($user);
+
+		$userFolder = $this->createMock(IUserFolder::class);
+		$userFolder->method('isUpdateable')->willReturn(true);
+		$this->root->method('getUserFolder')->with('alice')->willReturn($userFolder);
+		$this->groupManager->method('isInGroup')->willReturn(false);
+
+		$this->invokePrivate($this->getInstance('alice'), 'getContainerFolder');
 	}
 
 	public function testGetContainerFolderAsUnauthenticatedWhenUserIdIsInvalid():void {
@@ -421,15 +519,18 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$mockUserFolder = $this->createMock(Folder::class);
 		$mockEnvelopeFolder = $this->createMock(Folder::class);
 
+		$readOnlyFolder = $this->createMock(Folder::class);
+		$readOnlyFolder->method('isCreatable')->willReturn(false);
+		$mockEnvelopeFolder->method('isCreatable')->willReturn(true);
 		$mockUserFolder->expects($this->once())
-			->method('getFirstNodeById')
+			->method('getById')
 			->with($envelopeFolderId)
-			->willReturn($mockEnvelopeFolder);
+			->willReturn([$readOnlyFolder, $mockEnvelopeFolder]);
 
 		$this->appConfig->method('getUserValue')->willReturn('/LibreSign');
 		$this->groupManager->method('isInGroup')->willReturn(false);
 
-		$userFolder = $this->createMock(Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('isUpdateable')->willReturn(true);
 		$userFolder->method('getOrCreateFolder')->willReturn($mockUserFolder);
 		$this->root->method('getUserFolder')->willReturn($userFolder);
@@ -438,6 +539,32 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$result = $service->getFolderForFile($data, 'testuser');
 
 		$this->assertInstanceOf(Folder::class, $result);
+	}
+
+	public function testGetFolderForFileRejectsEnvelopeFolderWithoutCreatePermission(): void {
+		$envelopeFolderId = 456;
+		$data = ['settings' => ['envelopeFolderId' => $envelopeFolderId]];
+
+		$mockUserFolder = $this->createMock(Folder::class);
+		$readOnlyFolder = $this->createMock(Folder::class);
+		$readOnlyFolder->method('isCreatable')->willReturn(false);
+		$mockUserFolder->method('getById')->with($envelopeFolderId)->willReturn([$readOnlyFolder]);
+
+		$this->appConfig->method('getUserValue')->willReturn('/LibreSign');
+		$this->groupManager->method('isInGroup')->willReturn(false);
+		$user = $this->createMock(IUser::class);
+		$this->userManager->method('get')->willReturn($user);
+		$this->setupManager->method('isSetupComplete')->willReturn(true);
+
+		$userFolder = $this->createMock(IUserFolder::class);
+		$userFolder->method('isUpdateable')->willReturn(true);
+		$userFolder->method('getOrCreateFolder')->willReturn($mockUserFolder);
+		$this->root->method('getUserFolder')->willReturn($userFolder);
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionMessage('Envelope folder not found');
+
+		$this->getInstance('testuser')->getFolderForFile($data, 'testuser');
 	}
 
 	public function testGetFolderForFileCreatesNewFolderWhenNoEnvelopeId(): void {
@@ -459,7 +586,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig->method('getUserValue')->willReturn('/LibreSign');
 		$this->groupManager->method('isInGroup')->willReturn(false);
 
-		$userFolder = $this->createMock(Folder::class);
+		$userFolder = $this->createMock(IUserFolder::class);
 		$userFolder->method('isUpdateable')->willReturn(true);
 		$userFolder->method('getOrCreateFolder')->willReturn($mockUserFolder);
 		$this->root->method('getUserFolder')->willReturn($userFolder);
@@ -471,7 +598,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetUserRootFolderReturnsUserFolder(): void {
-		$mockUserFolder = $this->createMock(Folder::class);
+		$mockUserFolder = $this->createMock(IUserFolder::class);
 		$this->root->expects($this->once())
 			->method('getUserFolder')
 			->with('171')
@@ -489,7 +616,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		array $existingFolders,
 		array $expectedNewFolders,
 	): void {
-		$mockUserFolder = $this->createMock(Folder::class);
+		$mockUserFolder = $this->createMock(IUserFolder::class);
 		$this->root->method('getUserFolder')->willReturn($mockUserFolder);
 
 		$currentFolder = $mockUserFolder;
@@ -549,7 +676,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetOrCreateFolderByAbsolutePathFailsWhenFolderNotEmpty(): void {
-		$mockUserFolder = $this->createMock(Folder::class);
+		$mockUserFolder = $this->createMock(IUserFolder::class);
 		$this->root->method('getUserFolder')->willReturn($mockUserFolder);
 
 		$existingFolder = $this->createMock(Folder::class);

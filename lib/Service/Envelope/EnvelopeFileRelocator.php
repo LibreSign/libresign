@@ -20,9 +20,7 @@ class EnvelopeFileRelocator {
 	}
 
 	public function ensureFileInEnvelopeFolder(Node $sourceNode, int $envelopeFolderId, IUser $userManager): Node {
-		$this->folderService->setUserId($userManager->getUID());
-		$userRootFolder = $this->folderService->getUserRootFolder();
-		$envelopeFolder = $userRootFolder->getFirstNodeById($envelopeFolderId);
+		$envelopeFolder = $this->folderService->getCreatableFolderById($userManager->getUID(), $envelopeFolderId);
 
 		if (!$envelopeFolder instanceof \OCP\Files\Folder) {
 			throw new LibresignException('Envelope folder not found');

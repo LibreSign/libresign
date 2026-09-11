@@ -13,8 +13,8 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\FileContentProvider;
 use OCA\Libresign\Service\File\MimeService;
+use OCA\Libresign\Service\FolderService;
 use OCP\Files\Folder;
-use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
@@ -25,7 +25,7 @@ use Psr\Log\LoggerInterface;
 final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IClientService|MockObject $client;
 	private MimeService|MockObject $mimeService;
-	private IRootFolder|MockObject $root;
+	private FolderService|MockObject $folderService;
 	private LoggerInterface|MockObject $logger;
 	private IL10N|MockObject $l10n;
 
@@ -33,7 +33,7 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		parent::setUp();
 		$this->client = $this->createMock(IClientService::class);
 		$this->mimeService = $this->createMock(MimeService::class);
-		$this->root = $this->createMock(IRootFolder::class);
+		$this->folderService = $this->createMock(FolderService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n->method('t')->willReturnCallback(fn ($text) => $text);
@@ -43,7 +43,7 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return new FileContentProvider(
 			$this->client,
 			$this->mimeService,
-			$this->root,
+			$this->folderService,
 			$this->logger,
 			$this->l10n,
 		);
@@ -277,10 +277,7 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode = $this->createMock(\OCP\Files\File::class);
 		$fileNode->method('getContent')->willReturn('PDF content');
 
-		$userFolder = $this->createMock(Folder::class);
-		$userFolder->method('getFirstNodeById')->with(123)->willReturn($fileNode);
-
-		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
+		$this->folderService->method('getReadableNodeById')->with('user123', 123)->willReturn($fileNode);
 
 		$service = $this->getService();
 		$result = $service->getContentFromLibresignFile($file);
@@ -298,10 +295,7 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode = $this->createMock(\OCP\Files\File::class);
 		$fileNode->method('getContent')->willReturn('PDF content');
 
-		$userFolder = $this->createMock(Folder::class);
-		$userFolder->method('getFirstNodeById')->with(456)->willReturn($fileNode);
-
-		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
+		$this->folderService->method('getReadableNodeById')->with('user123', 456)->willReturn($fileNode);
 
 		$service = $this->getService();
 		$result = $service->getContentFromLibresignFile($file);
@@ -316,10 +310,7 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->setSignedNodeId(null);
 		$file->setNodeId(456);
 
-		$userFolder = $this->createMock(Folder::class);
-		$userFolder->method('getFirstNodeById')->willReturn(null);
-
-		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
+		$this->folderService->method('getReadableNodeById')->with('user123', 456)->willReturn(null);
 
 		$this->expectException(LibresignException::class);
 
@@ -335,10 +326,7 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$folderNode = $this->createMock(Folder::class);
 
-		$userFolder = $this->createMock(Folder::class);
-		$userFolder->method('getFirstNodeById')->with(123)->willReturn($folderNode);
-
-		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
+		$this->folderService->method('getReadableNodeById')->with('user123', 123)->willReturn($folderNode);
 
 		$this->expectException(LibresignException::class);
 

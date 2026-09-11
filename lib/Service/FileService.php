@@ -39,7 +39,6 @@ use OCA\Libresign\Service\File\SignersLoader;
 use OCA\Libresign\Service\File\UploadProcessor;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IMimeTypeDetector;
-use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\IL10N;
@@ -53,7 +52,7 @@ use TypeError;
 /**
  * @psalm-import-type LibresignValidatedFile from ResponseDefinitions
  * @psalm-import-type LibresignSignerDetail from ResponseDefinitions
- * @psalm-import-type LibresignSignerSummary from ResponseDefinitions
+ * @psalm-import-type LibresignValidatedChildSigner from ResponseDefinitions
  * @psalm-import-type LibresignIdentifyMethod from ResponseDefinitions
  */
 class FileService {
@@ -80,7 +79,6 @@ class FileService {
 		protected Pkcs12Handler $pkcs12Handler,
 		protected DocMdpHandler $docMdpHandler,
 		protected PdfValidator $pdfValidator,
-		private IRootFolder $root,
 		protected LoggerInterface $logger,
 		protected IL10N $l10n,
 		private EnvelopeService $envelopeService,
@@ -366,7 +364,7 @@ class FileService {
 		if (!$nodeId) {
 			$nodeId = $this->file->getNodeId();
 		}
-		$fileToValidate = $this->root->getUserFolder($this->file->getUserId())->getFirstNodeById($nodeId);
+		$fileToValidate = $this->folderService->getReadableNodeById($this->file->getUserId(), $nodeId);
 		if (!$fileToValidate instanceof \OCP\Files\File) {
 			// TRANSLATORS Error shown when the requested document cannot be found.
 			throw new LibresignException($this->l10n->t('File not found'), 404);
@@ -520,16 +518,21 @@ class FileService {
 
 		$signers = $this->signRequestMapper->getByMultipleFileId($fileIds);
 		$fileMetadata = $this->file->getMetadata();
-		foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signers) as $visibleElements) {
+		$formattedElementsBySigner = [];
+		foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signers) as $signRequestId => $visibleElements) {
 			if (empty($visibleElements)) {
 				continue;
 			}
 			$elementFileId = $visibleElements[0]->getFileId();
 			$metadata = $childMetadataMap[$elementFileId] ?? $fileMetadata;
+			$formattedElementsBySigner[$signRequestId] = $this->fileElementService->formatVisibleElements($visibleElements, $metadata);
 			$this->fileData->visibleElements = array_merge(
-				$this->fileElementService->formatVisibleElements($visibleElements, $metadata),
+				$formattedElementsBySigner[$signRequestId],
 				$this->fileData->visibleElements
 			);
+		}
+		foreach ($this->fileData->signers as $signer) {
+			$signer->visibleElements = $formattedElementsBySigner[$signer->signRequestId ?? null] ?? [];
 		}
 	}
 
@@ -643,7 +646,7 @@ class FileService {
 
 	/**
 	 * @param LibresignSignerDetail[] $signers
-	 * @return LibresignSignerSummary[]
+	 * @return LibresignValidatedChildSigner[]
 	 */
 	private function mapSignerDetailsToSummary(array $signers): array {
 		$summaries = [];
@@ -675,8 +678,11 @@ class FileService {
 			if ($identifyMethods !== null) {
 				$summary['identifyMethods'] = $identifyMethods;
 			}
+			if (isset($signerData['visibleElements'])) {
+				$summary['visibleElements'] = $signerData['visibleElements'];
+			}
 
-			/** @var LibresignSignerSummary $summary */
+			/** @var LibresignValidatedChildSigner $summary */
 			$summaries[] = $summary;
 		}
 
