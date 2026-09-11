@@ -26,6 +26,8 @@ Feature: validate
       | (jq).ocs.data.visibleElements \| length | 1 |
       | (jq)(.ocs.data.signers[0].visibleElements == .ocs.data.visibleElements) | true |
       | (jq).ocs.data.signers[1].visibleElements | [] |
+      | (jq)(.ocs.data.files[0].signers[0].visibleElements == .ocs.data.signers[0].visibleElements) | true |
+      | (jq)(.ocs.data.files[0].signers[1].visibleElements == .ocs.data.signers[1].visibleElements) | true |
 
   Scenario: Envelope validation keeps visible elements scoped to each document signer
     Given as user "admin"

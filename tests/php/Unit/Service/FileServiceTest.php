@@ -503,6 +503,11 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame([], $result['signers'][0]['visibleElements']);
 		$this->assertSame($formatted, $result['signers'][1]['visibleElements']);
 		$this->assertSame([], $result['signers'][2]['visibleElements']);
+		$this->assertCount(2, $result['files'][0]['signers']);
+		foreach ($result['files'][0]['signers'] as $index => $signer) {
+			$this->assertSame($result['signers'][$index]['signRequestId'], $signer['signRequestId']);
+			$this->assertSame($result['signers'][$index]['visibleElements'], $signer['visibleElements']);
+		}
 	}
 
 	public static function providerTestVisibleElements(): array {
