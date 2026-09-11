@@ -11,9 +11,12 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\RequestSignatureWorkflowService;
+use OCA\Libresign\Service\Validation\FileInputValidator;
+use OCA\Libresign\Service\Validation\SignerValidator;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
+use OCA\Libresign\Service\Validation\VisibleElementValidator;
 use OCP\IL10N;
 use OCP\IUser;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -23,7 +26,9 @@ use PHPUnit\Framework\TestCase;
 final class RequestSignatureWorkflowServiceTest extends TestCase {
 	private IL10N&MockObject $l10n;
 	private RequestSignatureService&MockObject $requestSignatureService;
-	private ValidateHelper&MockObject $validateHelper;
+	private SigningRequestValidator&MockObject $signingRequestValidator;
+	private SignerValidator&MockObject $signerValidator;
+	private VisibleElementValidator&MockObject $visibleElementValidator;
 	private FileMapper&MockObject $fileMapper;
 	private RequestSignatureWorkflowService $service;
 	private IUser&MockObject $user;
@@ -33,7 +38,9 @@ final class RequestSignatureWorkflowServiceTest extends TestCase {
 
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->requestSignatureService = $this->createMock(RequestSignatureService::class);
-		$this->validateHelper = $this->createMock(ValidateHelper::class);
+		$this->signingRequestValidator = $this->createMock(SigningRequestValidator::class);
+		$this->signerValidator = $this->createMock(SignerValidator::class);
+		$this->visibleElementValidator = $this->createMock(VisibleElementValidator::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->user = $this->createMock(IUser::class);
 		$this->l10n->method('t')->willReturnCallback(static fn (string $message): string => $message);
@@ -41,7 +48,9 @@ final class RequestSignatureWorkflowServiceTest extends TestCase {
 		$this->service = new RequestSignatureWorkflowService(
 			$this->l10n,
 			$this->requestSignatureService,
-			$this->validateHelper,
+			$this->signingRequestValidator,
+			$this->signerValidator,
+			$this->visibleElementValidator,
 			$this->fileMapper,
 		);
 	}
@@ -154,12 +163,13 @@ final class RequestSignatureWorkflowServiceTest extends TestCase {
 		$child = new FileEntity();
 		$child->setId(22);
 
-		$this->validateHelper->expects($this->once())->method('validateExistingFile');
-		$this->validateHelper->expects($this->once())->method('validateFileStatus');
-		$this->validateHelper->expects($this->once())->method('validateIdentifySigners');
-		$this->validateHelper->expects($this->once())
+		$this->signingRequestValidator->expects($this->once())->method('validateExistingFile');
+		$this->signingRequestValidator->expects($this->once())->method('validateWorkflowIsNotClosedByUuid')->with('uuid-1');
+		$this->signingRequestValidator->expects($this->once())->method('validateFileStatus');
+		$this->signerValidator->expects($this->once())->method('validateIdentifySigners');
+		$this->visibleElementValidator->expects($this->once())
 			->method('validateVisibleElements')
-			->with([['fileId' => 22]], ValidateHelper::TYPE_VISIBLE_ELEMENT_PDF);
+			->with([['fileId' => 22]], FileInputValidator::TYPE_VISIBLE_ELEMENT_PDF);
 
 		$this->requestSignatureService->expects($this->once())
 			->method('save')
@@ -196,10 +206,11 @@ final class RequestSignatureWorkflowServiceTest extends TestCase {
 		$fileEntity->setId(40);
 		$fileEntity->setParentFileId(99);
 
-		$this->validateHelper->expects($this->once())->method('validateExistingFile');
-		$this->validateHelper->expects($this->once())->method('validateFileStatus');
-		$this->validateHelper->expects($this->once())->method('validateIdentifySigners');
-		$this->validateHelper->expects($this->never())->method('validateVisibleElements');
+		$this->signingRequestValidator->expects($this->once())->method('validateExistingFile');
+		$this->signingRequestValidator->expects($this->once())->method('validateWorkflowIsNotClosedByUuid')->with('uuid-2');
+		$this->signingRequestValidator->expects($this->once())->method('validateFileStatus');
+		$this->signerValidator->expects($this->once())->method('validateIdentifySigners');
+		$this->visibleElementValidator->expects($this->never())->method('validateVisibleElements');
 
 		$this->requestSignatureService->expects($this->once())
 			->method('save')
