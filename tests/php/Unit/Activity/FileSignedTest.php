@@ -11,7 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Activity;
 use OCA\Libresign\Activity\Settings\FileSigned;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -19,19 +19,19 @@ use PHPUnit\Framework\TestCase;
 
 class FileSignedTest extends TestCase {
 	private $l10nMock;
-	private $validateHelperMock;
+	private $signingRequestValidatorMock;
 	private $userSessionMock;
 
 	protected function setUp(): void {
 		$this->l10nMock = $this->createMock(IL10N::class);
-		$this->validateHelperMock = $this->createMock(ValidateHelper::class);
+		$this->signingRequestValidatorMock = $this->createMock(SigningRequestValidator::class);
 		$this->userSessionMock = $this->createMock(IUserSession::class);
 	}
 
 	private function getClass(): FileSigned {
 		return new FileSigned(
 			$this->l10nMock,
-			$this->validateHelperMock,
+			$this->signingRequestValidatorMock,
 			$this->userSessionMock
 		);
 	}
@@ -43,7 +43,7 @@ class FileSignedTest extends TestCase {
 	public function testCanChangeNotificationSuccess(): void {
 		$userMock = $this->createMock(IUser::class);
 		$this->userSessionMock->method('getUser')->willReturn($userMock);
-		$this->validateHelperMock->method('canrequestSign')->with($userMock);
+		$this->signingRequestValidatorMock->method('canRequestSign')->with($userMock);
 
 		$this->assertTrue($this->getClass()->canChangeNotification());
 	}
@@ -51,7 +51,7 @@ class FileSignedTest extends TestCase {
 	public function testCanChangeNotificationFailure(): void {
 		$userMock = $this->createMock(IUser::class);
 		$this->userSessionMock->method('getUser')->willReturn($userMock);
-		$this->validateHelperMock->method('canrequestSign')
+		$this->signingRequestValidatorMock->method('canRequestSign')
 			->willThrowException(new LibresignException());
 
 		$this->assertFalse($this->getClass()->canChangeNotification());
@@ -60,7 +60,7 @@ class FileSignedTest extends TestCase {
 	public function testCanChangeMailSuccess(): void {
 		$userMock = $this->createMock(IUser::class);
 		$this->userSessionMock->method('getUser')->willReturn($userMock);
-		$this->validateHelperMock->method('canrequestSign')->with($userMock);
+		$this->signingRequestValidatorMock->method('canRequestSign')->with($userMock);
 
 		$this->assertTrue($this->getClass()->canChangeMail());
 	}
@@ -68,7 +68,7 @@ class FileSignedTest extends TestCase {
 	public function testCanChangeMailFailure(): void {
 		$userMock = $this->createMock(IUser::class);
 		$this->userSessionMock->method('getUser')->willReturn($userMock);
-		$this->validateHelperMock->method('canrequestSign')
+		$this->signingRequestValidatorMock->method('canRequestSign')
 			->willThrowException(new LibresignException());
 
 		$this->assertFalse($this->getClass()->canChangeMail());
