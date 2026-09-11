@@ -43,6 +43,10 @@ type SignerToEdit = {
 	displayName?: string
 	description?: string
 	identifyMethods?: Array<{ method: string; value: string }>
+	geolocationRequired?: boolean
+	metadata?: {
+		geolocationRequirement?: string
+	}
 }
 
 type IdentifySignerVm = {
@@ -58,6 +62,8 @@ type IdentifySignerVm = {
 	displayName: string
 	description: string
 	enableCustomMessage: boolean
+	geolocationRequired: boolean
+	showGeolocationRequirementToggle: boolean
 	identify: string
 	identifyMethod?: IdentifyAccountRecord['method']
 	acceptsEmailNotifications?: boolean
@@ -78,8 +84,12 @@ type IdentifySignerWrapper = VueWrapper<any> & {
 }
 
 let filesStore: FilesStoreMock
+let policiesStore: { getEffectiveValue: ReturnType<typeof vi.fn> }
 vi.mock('../../../store/files.js', () => ({
 	useFilesStore: vi.fn(() => filesStore),
+}))
+vi.mock('../../../store/policies.ts', () => ({
+	usePoliciesStore: vi.fn(() => policiesStore),
 }))
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
@@ -139,6 +149,9 @@ describe('IdentifySigner rules', () => {
 			saveOrUpdateSignatureRequest: vi.fn<(payload?: unknown) => Promise<Record<string, never>>>().mockResolvedValue({}),
 		}
 		;(useFilesStoreModule as unknown as { mockReturnValue: (store: FilesStoreMock) => void }).mockReturnValue(filesStore)
+		policiesStore = {
+			getEffectiveValue: vi.fn().mockReturnValue({ mode: 'disabled' }),
+		}
 
 		wrapper = createWrapper()
 	})
@@ -604,6 +617,112 @@ describe('IdentifySigner rules', () => {
 			const label = wrapper.vm.identifyMethodLabel
 
 			expect(label).toBe('')
+		})
+	})
+
+	describe('geolocation requirement toggle', () => {
+		it('hides the toggle when geolocation mode is disabled', () => {
+			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'disabled' })
+			wrapper = createWrapper()
+
+			expect(wrapper.vm.showGeolocationRequirementToggle).toBe(false)
+		})
+
+		it('hides the toggle when geolocation mode is required', () => {
+			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'required' })
+			wrapper = createWrapper()
+
+			expect(wrapper.vm.showGeolocationRequirementToggle).toBe(false)
+		})
+
+		it('shows the toggle when geolocation mode is optional', () => {
+			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'optional' })
+			wrapper = createWrapper()
+
+			expect(wrapper.vm.showGeolocationRequirementToggle).toBe(true)
+			expect(wrapper.vm.geolocationRequired).toBe(false)
+		})
+
+		it('prefers the file policy snapshot over the current effective policy', () => {
+			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'disabled' })
+			filesStore.getFile.mockReturnValue({
+				signers: [],
+				metadata: {
+					policy_snapshot: {
+						signer_geolocation: {
+							effectiveValue: { mode: 'optional' },
+							sourceScope: 'system',
+						},
+					},
+				},
+			})
+			wrapper = createWrapper()
+
+			expect(wrapper.vm.showGeolocationRequirementToggle).toBe(true)
+		})
+
+		it('keeps the toggle hidden when the file snapshot is disabled after a later optional policy change', () => {
+			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'optional' })
+			filesStore.getFile.mockReturnValue({
+				signers: [],
+				metadata: {
+					policy_snapshot: {
+						signer_geolocation: {
+							effectiveValue: { mode: 'disabled' },
+							sourceScope: 'system',
+						},
+					},
+				},
+			})
+			wrapper = createWrapper()
+
+			expect(wrapper.vm.showGeolocationRequirementToggle).toBe(false)
+		})
+
+		it('persists geolocationRequired when optional mode is active', async () => {
+			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'optional' })
+			wrapper = createWrapper()
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = 'john@example.com'
+			wrapper.vm.displayName = 'John'
+			wrapper.vm.geolocationRequired = true
+
+			await wrapper.vm.saveSigner()
+
+			expect(filesStore.saveOrUpdateSignatureRequest).toHaveBeenCalledWith({
+				signers: [expect.objectContaining({
+					geolocationRequired: true,
+				})],
+			})
+		})
+
+		it('does not send geolocationRequired when mode is not optional', async () => {
+			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'disabled' })
+			wrapper = createWrapper()
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = 'john@example.com'
+			wrapper.vm.displayName = 'John'
+			wrapper.vm.geolocationRequired = true
+
+			await wrapper.vm.saveSigner()
+
+			const payload = filesStore.saveOrUpdateSignatureRequest.mock.calls[0]?.[0] as {
+				signers: Array<Record<string, unknown>>
+			}
+			expect(payload.signers[0]).not.toHaveProperty('geolocationRequired')
+		})
+
+		it('restores the toggle from frozen signer metadata when editing', () => {
+			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'optional' })
+			wrapper = createWrapper({
+				signerToEdit: {
+					displayName: 'John',
+					identifyMethods: [{ method: 'email', value: 'john@example.com' }],
+					metadata: { geolocationRequirement: 'required' },
+				},
+			})
+
+			expect(wrapper.vm.geolocationRequired).toBe(true)
 		})
 	})
 })

@@ -728,4 +728,41 @@ describe('SignerDetails.vue - Business Logic', () => {
 			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('validation-icon--error')
 		})
 	})
+
+	describe('device-reported location', () => {
+		it('renders the collapsible device-reported location section when metadata is present', () => {
+			wrapper = createWrapper({
+				initiallyOpen: true,
+				signer: {
+					metadata: {
+						geolocation: {
+							status: 'collected',
+							latitude: -23.55,
+							longitude: -46.63,
+							accuracy: 12,
+							timestamp: 0,
+						},
+					},
+				},
+			})
+
+			expect(wrapper.findComponent({ name: 'DeviceReportedLocation' }).exists()).toBe(true)
+			expect(wrapper.findComponent({ name: 'DeviceReportedLocation' }).props('geolocation')).toEqual({
+				status: 'collected',
+				latitude: -23.55,
+				longitude: -46.63,
+				accuracy: 12,
+				timestamp: 0,
+			})
+		})
+
+		it('does not render device-reported location when geolocation metadata is absent', () => {
+			wrapper = createWrapper({
+				initiallyOpen: true,
+				signer: { displayName: 'No Geo' },
+			})
+
+			expect(wrapper.findComponent({ name: 'DeviceReportedLocation' }).exists()).toBe(false)
+		})
+	})
 })
