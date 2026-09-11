@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service\DocMdp;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\Pdf\PdfValidator;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -43,7 +44,7 @@ class Validator {
 				);
 			}
 
-			if (count($data['signers']) > 1) {
+			if ($this->countSigningParticipants($data['signers']) > 1) {
 				throw new LibresignException(
 					// TRANSLATORS Error shown when trying to add more signers to a document certified with DocMDP level that forbids further changes.
 					$this->l10n->t('This document has been certified with no changes allowed. You cannot add more signers to this document.')
@@ -73,6 +74,26 @@ class Validator {
 		$fileName = $firstNode->getName();
 
 		$this->pdfValidator->validate($content, $fileName);
+	}
+
+	/**
+	 * @param list<mixed> $signers
+	 */
+	private function countSigningParticipants(array $signers): int {
+		$count = 0;
+
+		foreach ($signers as $signer) {
+			if (!is_array($signer)) {
+				continue;
+			}
+
+			$role = ParticipantRole::fromNullable($signer['participantRole'] ?? null);
+			if ($role->canSign()) {
+				$count++;
+			}
+		}
+
+		return $count;
 	}
 
 	private function getDocMdpLevel(array $data, ?File &$file): int {

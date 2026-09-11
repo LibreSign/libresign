@@ -6,6 +6,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import SignerSelect from '../../../components/Request/SignerSelect.vue'
+import { PARTICIPANT_ROLE } from '../../../utils/participantRole.ts'
 
 const supportedIconNames = [
 	'account',
@@ -221,5 +222,29 @@ describe('SignerSelect.vue', () => {
 		expect(wrapper.vm.getOptionLabel(slotProps)).toBe('Admin')
 		expect(wrapper.vm.getOptionSubname(slotProps)).toBe('admin')
 		expect(wrapper.vm.getOptionIcon(slotProps)).toContain('<svg')
+	})
+
+	it('uses observer labels when participant role is observer', () => {
+		const wrapper = createWrapper({
+			participantRole: PARTICIPANT_ROLE.OBSERVER,
+			placeholder: 'Email',
+		})
+
+		expect(wrapper.vm.searchLabel).toBe('Search observer')
+		expect(wrapper.vm.selectPlaceholder).toBe('Search observer')
+		expect(wrapper.vm.noResultText).toBe('No observers.')
+		expect(wrapper.vm.mandatoryErrorText).toBe('Observer is mandatory')
+	})
+
+	it('keeps signer labels and method placeholder for signers', () => {
+		const wrapper = createWrapper({
+			participantRole: PARTICIPANT_ROLE.SIGNER,
+			placeholder: 'Email',
+		})
+
+		expect(wrapper.vm.searchLabel).toBe('Search signer')
+		expect(wrapper.vm.selectPlaceholder).toBe('Email')
+		expect(wrapper.vm.noResultText).toBe('No signers.')
+		expect(wrapper.vm.mandatoryErrorText).toBe('Signer is mandatory')
 	})
 })

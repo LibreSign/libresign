@@ -10,7 +10,9 @@ namespace OCA\Libresign\Service\SignRequest;
 
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignRequestStatus;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -39,6 +41,7 @@ class SignRequestService {
 	 * @param int $signingOrder Signing order
 	 * @param int|null $fileStatus File status
 	 * @param int|null $signerStatus Signer status
+	 * @param ParticipantRole $participantRole Participant role (signer or observer)
 	 * @param callable(SignRequestEntity): void|null $afterPersist Callback invoked after the sign request is persisted and before identify methods are saved
 	 * @return SignRequestEntity
 	 */
@@ -51,6 +54,7 @@ class SignRequestService {
 		int $signingOrder = 0,
 		?int $fileStatus = null,
 		?int $signerStatus = null,
+		ParticipantRole $participantRole = ParticipantRole::SIGNER,
 		?callable $afterPersist = null,
 	): SignRequestEntity {
 		$identifyMethodsInstances = $this->identifyMethodService->getByUserData($identifyMethods);
@@ -64,8 +68,10 @@ class SignRequestService {
 			$fileId
 		);
 
+		$this->assertParticipantRoleCanBeUpdated($signRequest, $participantRole);
+
 		$displayName = $this->getDisplayNameFromIdentifyMethodIfEmpty($identifyMethodsInstances, $displayName);
-		$this->populateSignRequest($signRequest, $displayName, $signingOrder, $description, $fileId);
+		$this->populateSignRequest($signRequest, $displayName, $signingOrder, $description, $fileId, $participantRole);
 
 		$isNewSignRequest = !$signRequest->getId();
 		$currentStatus = $signRequest->getStatusEnum();
@@ -73,13 +79,15 @@ class SignRequestService {
 		if ($isNewSignRequest
 			|| $currentStatus === SignRequestStatus::DRAFT
 			|| $currentStatus === SignRequestStatus::ABLE_TO_SIGN
+			|| $currentStatus === SignRequestStatus::OBSERVING
 		) {
 			$desiredStatus = $this->signRequestStatusService->determineInitialStatus(
 				$signingOrder,
 				$fileId,
 				$fileStatus,
 				$signerStatus,
-				$currentStatus
+				$currentStatus,
+				$participantRole,
 			);
 			$this->signRequestStatusService->updateStatusIfAllowed($signRequest, $currentStatus, $desiredStatus, $isNewSignRequest);
 		}
@@ -113,15 +121,37 @@ class SignRequestService {
 		return $signRequest;
 	}
 
+	private function assertParticipantRoleCanBeUpdated(
+		SignRequestEntity $signRequest,
+		ParticipantRole $participantRole,
+	): void {
+		if (!$signRequest->getId()) {
+			return;
+		}
+
+		if ($signRequest->getStatusEnum() !== SignRequestStatus::SIGNED) {
+			return;
+		}
+
+		if ($signRequest->getParticipantRoleEnum() === $participantRole) {
+			return;
+		}
+
+		// TRANSLATORS Error shown when trying to change the participant role after the document was already signed.
+		throw new LibresignException($this->l10n->t('Cannot change the participant role after the document has been signed'));
+	}
+
 	private function populateSignRequest(
 		SignRequestEntity $signRequest,
 		string $displayName,
 		int $signingOrder,
 		string $description,
 		int $fileId,
+		ParticipantRole $participantRole,
 	): void {
 		$signRequest->setFileId($fileId);
 		$signRequest->setSigningOrder($signingOrder);
+		$signRequest->setParticipantRoleEnum($participantRole);
 		if (!$signRequest->getUuid()) {
 			$signRequest->setUuid(UUIDUtil::getUUID());
 		}

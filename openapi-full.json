@@ -2182,6 +2182,9 @@
                         "type": "integer",
                         "format": "int64"
                     },
+                    "participantRole": {
+                        "$ref": "#/components/schemas/ParticipantRole"
+                    },
                     "geolocationRequired": {
                         "type": "boolean"
                     }
@@ -2274,6 +2277,13 @@
                     }
                 }
             },
+            "ParticipantRole": {
+                "type": "string",
+                "enum": [
+                    "signer",
+                    "observer"
+                ]
+            },
             "PolicyScope": {
                 "type": "string",
                 "enum": [
@@ -2293,6 +2303,21 @@
                         "type": "string"
                     },
                     "CPS": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PolicySnapshotBooleanEntry": {
+                "type": "object",
+                "required": [
+                    "effectiveValue",
+                    "sourceScope"
+                ],
+                "properties": {
+                    "effectiveValue": {
+                        "type": "boolean"
+                    },
+                    "sourceScope": {
                         "type": "string"
                     }
                 }
@@ -3251,6 +3276,9 @@
                     },
                     "statusText": {
                         "type": "string"
+                    },
+                    "participantRole": {
+                        "$ref": "#/components/schemas/ParticipantRole"
                     }
                 }
             },
@@ -3572,6 +3600,9 @@
                     },
                     "signer_geolocation": {
                         "$ref": "#/components/schemas/PolicySnapshotSignerGeolocationEntry"
+                    },
+                    "enable_observer_profile": {
+                        "$ref": "#/components/schemas/PolicySnapshotBooleanEntry"
                     },
                     "signature_rejection": {
                         "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionEntry"

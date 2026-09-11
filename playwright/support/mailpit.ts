@@ -89,6 +89,22 @@ export function extractSignLink(body: string): string | null {
 	return normalizedMatch.replace(/^\/index\.php/, '')
 }
 
+/** Extracts a LibreSign validation link from an email body matching /p/validation/{uuid} or /validation/{uuid}. */
+export function extractValidationLink(body: string): string | null {
+	const match = body.match(/(?:https?:\/\/[^\s"'<>)]*)?\/(?:index\.php\/)?(?:[^\s"'<>)]*\/)?(?:p\/)?validation\/[\w-]+(?:\?[^\s"'<>)]*)?(?:#[^\s"'<>)]*)?/)
+	if (!match?.[0]) {
+		return null
+	}
+
+	const normalizedMatch = match[0].replace(/[).,;]+$/, '')
+	if (normalizedMatch.startsWith('http://') || normalizedMatch.startsWith('https://')) {
+		const parsedUrl = new URL(normalizedMatch)
+		return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`.replace(/^\/index\.php/, '')
+	}
+
+	return normalizedMatch.replace(/^\/index\.php/, '')
+}
+
 /** Extracts a numeric token from an email body. Default pattern: 4-8 digit sequence. */
 export function extractTokenFromEmail(
 	body: string,

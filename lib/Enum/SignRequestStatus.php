@@ -16,6 +16,7 @@ enum SignRequestStatus: int {
 	case ABLE_TO_SIGN = 1;
 	case SIGNED = 2;
 	case REJECTED = 3;
+	case OBSERVING = 4;
 
 	public function getLabel(IL10N $l10n): string {
 		return match($this) {
@@ -27,6 +28,8 @@ enum SignRequestStatus: int {
 			self::SIGNED => $l10n->t('Signed'),
 			// TRANSLATORS Signer workflow status shown after this signer refused to sign the document.
 			self::REJECTED => $l10n->t('Rejected'),
+			// TRANSLATORS Workflow status shown when an observer can view the document but cannot sign it.
+			self::OBSERVING => $l10n->t('Observing'),
 		};
 	}
 }

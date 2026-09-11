@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Envelope;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Tests\Unit\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -127,6 +128,42 @@ final class EnvelopeStatusDeterminerTest extends TestCase {
 
 		// File ID not present in signRequestsMap - should be treated as no requests
 		$result = $this->determiner->determineStatus([$file], []);
+
+		$this->assertEquals(FileStatus::DRAFT->value, $result);
+	}
+
+	public function testDetermineStatusIgnoresUnsignedObservers(): void {
+		$file = new FileEntity();
+		$file->setId(1);
+
+		$signer = new SignRequest();
+		$signer->setFileId(1);
+		$signer->setSigned(new \DateTime());
+
+		$observer = new SignRequest();
+		$observer->setFileId(1);
+		$observer->setParticipantRole(ParticipantRole::OBSERVER->value);
+
+		$result = $this->determiner->determineStatus(
+			[$file],
+			[1 => [$signer, $observer]],
+		);
+
+		$this->assertEquals(FileStatus::SIGNED->value, $result);
+	}
+
+	public function testDetermineStatusWithOnlyObserversReturnsDraft(): void {
+		$file = new FileEntity();
+		$file->setId(1);
+
+		$observer = new SignRequest();
+		$observer->setFileId(1);
+		$observer->setParticipantRole(ParticipantRole::OBSERVER->value);
+
+		$result = $this->determiner->determineStatus(
+			[$file],
+			[1 => [$observer]],
+		);
 
 		$this->assertEquals(FileStatus::DRAFT->value, $result);
 	}

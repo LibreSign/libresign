@@ -473,8 +473,8 @@ describe('DocumentValidationDetails', () => {
 				},
 			})
 
-			const lists = wrapper.findAll('ul')
-			expect(lists.length).toBeGreaterThan(1)
+			expect(wrapper.find('.participants').exists()).toBe(true)
+			expect(wrapper.text()).toContain('Signers')
 		})
 
 		it('renders SignerDetails for each signer', () => {
@@ -491,24 +491,40 @@ describe('DocumentValidationDetails', () => {
 			expect(signerComponents.length).toBe(2)
 		})
 
-		it('hides signers list when empty', () => {
+		it('renders separate sections for signers and observers', () => {
+			wrapper = createWrapper({
+				document: {
+					signers: [
+						{ displayName: 'Signer 1', participantRole: 'signer' },
+						{ displayName: 'Observer 1', participantRole: 'observer' },
+					],
+				},
+			})
+
+			expect(wrapper.text()).toContain('Signers')
+			expect(wrapper.text()).toContain('Observers')
+			const signerComponents = wrapper.findAllComponents({ name: 'SignerDetails' })
+			expect(signerComponents.length).toBe(2)
+		})
+
+		it('hides participants list when empty', () => {
 			wrapper = createWrapper({
 				document: {
 					signers: [],
 				},
 			})
 
-			const signersList = wrapper.find('.signers')
-			expect(signersList.exists()).toBe(false)
+			const participantsList = wrapper.find('.participants')
+			expect(participantsList.exists()).toBe(false)
 		})
 
-		it('hides signers list when not present', () => {
+		it('hides participants list when not present', () => {
 			wrapper = createWrapper({
 				document: {},
 			})
 
-			const signersList = wrapper.find('.signers')
-			expect(signersList.exists()).toBe(false)
+			const participantsList = wrapper.find('.participants')
+			expect(participantsList.exists()).toBe(false)
 		})
 
 		it('passes signer data to SignerDetails component', () => {

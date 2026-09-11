@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service\SignRequest;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\SequentialSigningService;
@@ -30,7 +31,8 @@ class StatusService {
 	}
 
 	public function canNotifySignRequest(SignRequestStatus $status): bool {
-		return $status === SignRequestStatus::ABLE_TO_SIGN;
+		return $status === SignRequestStatus::ABLE_TO_SIGN
+			|| $status === SignRequestStatus::OBSERVING;
 	}
 
 	public function cacheFileStatus(FileEntity $file): void {
@@ -72,7 +74,16 @@ class StatusService {
 		?int $fileStatus = null,
 		?int $signerStatus = null,
 		?SignRequestStatus $currentStatus = null,
+		ParticipantRole $participantRole = ParticipantRole::SIGNER,
 	): SignRequestStatus {
+		if ($participantRole === ParticipantRole::OBSERVER) {
+			if ($fileStatus === FileStatus::DRAFT->value) {
+				return SignRequestStatus::DRAFT;
+			}
+
+			return SignRequestStatus::OBSERVING;
+		}
+
 		if ($fileStatus === FileStatus::DRAFT->value) {
 			return SignRequestStatus::DRAFT;
 		}

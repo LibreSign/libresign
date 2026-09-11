@@ -75,8 +75,9 @@ const subTitle = computed(() => {
 	return filesStore.getSubtitle()
 })
 
-const showRequestSignatureTab = computed(() => sidebarStore.activeTab === 'request-signature-tab' && filesStore.canRequestSign)
-const showSign = computed(() => sidebarStore.activeTab === 'sign-tab' && signStore.document !== undefined)
+const showRequestSignatureTab = computed(() => sidebarStore.activeTab === 'request-signature-tab'
+	&& (filesStore.canRequestSign || filesStore.isObservingOnly()))
+const showSign = computed(() => sidebarStore.activeTab === 'sign-tab' && signStore.document !== undefined && filesStore.canSign())
 const hasVisibleTab = computed(() => showRequestSignatureTab.value || showSign.value)
 
 watch(() => sidebarStore.activeTab, (newValue) => {

@@ -22,9 +22,14 @@ class EnvelopeStatusDeterminer {
 
 		foreach ($childFiles as $childFile) {
 			$signRequests = $signRequestsMap[$childFile->getId()] ?? [];
-			$totalSignRequests += count($signRequests);
 
 			foreach ($signRequests as $signRequest) {
+				if ($signRequest->isObserver()) {
+					continue;
+				}
+
+				$totalSignRequests++;
+
 				if ($signRequest->getSigned()) {
 					$signedSignRequests++;
 				}

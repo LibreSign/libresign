@@ -9,6 +9,7 @@ import { login } from '../support/nc-login'
 import { ensureFilesHomeInitialized, waitForFilesNewMenuEntry } from '../support/nc-files'
 import { configureOpenSsl } from '../support/nc-provisioning'
 import { getSmallValidPdfBuffer } from '../support/pdf-fixtures'
+import { expectAddSignerControlVisible } from '../support/request-signature'
 import { useRequestSignPolicyGuard } from '../support/system-policies'
 
 useRequestSignPolicyGuard()
@@ -57,7 +58,7 @@ test('new signature request opens LibreSign tab and does not duplicate file row'
 
 	const libresignTab = page.getByRole('tab', { name: 'LibreSign' })
 	await expect(libresignTab).toHaveAttribute('aria-selected', 'true', { timeout: 15000 })
-	await expect(page.getByRole('button', { name: 'Add signer' })).toBeVisible({ timeout: 15000 })
+	await expectAddSignerControlVisible(page)
 
 	const filesTable = page.getByRole('table', {
 		name: /List of your files and folders/i,

@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { getCurrentUser } from '@nextcloud/auth'
+
 /**
  * Extracts the relative path from a URL.
  * Handles absolute URLs (e.g., from localhost in dev/proxy environments)
@@ -22,7 +24,12 @@ const extractRelativePath = (url) => {
 }
 
 /**
- * Opens a document using Nextcloud Viewer or in a new window
+ * Opens a document using Nextcloud Viewer or in a new window.
+ *
+ * On public/unauthenticated pages the Viewer still probes authenticated Files
+ * APIs (for example `/apps/files/api/v1/views`), which return 401 and prevent
+ * the public LibreSign PDF URL from loading. Fall back to a direct window open
+ * in that case.
  *
  * @param {object} options - Options for opening the document
  * @param {string} options.fileUrl - The URL of the file to open
@@ -32,8 +39,9 @@ const extractRelativePath = (url) => {
  */
 export const openDocument = ({ fileUrl, filename, nodeId, mime = 'application/pdf' }) => {
 	const source = extractRelativePath(fileUrl)
+	const canUseViewer = OCA?.Viewer !== undefined && getCurrentUser() !== null
 
-	if (OCA?.Viewer !== undefined) {
+	if (canUseViewer) {
 		const fileInfo = {
 			source,
 			basename: filename,

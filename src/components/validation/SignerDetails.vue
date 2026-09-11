@@ -16,7 +16,11 @@
 					:class="getSignerValidationClass(signer)" />
 			</template>
 			<template #subname>
-				<template v-if="!isSigned(signer)">
+				<template v-if="isObserverParticipant(signer)">
+					<strong>{{ t('libresign', 'Status:') }}</strong>
+					<span>{{ t('libresign', 'Observing') }}</span>
+				</template>
+				<template v-else-if="!isSigned(signer)">
 					<strong>{{ t('libresign', 'Status:') }}</strong>
 					<span>{{ t('libresign', 'Not signed yet') }}</span>
 				</template>
@@ -273,6 +277,7 @@ import {
 import CertificateChain from './CertificateChain.vue'
 import DeviceReportedLocation from './DeviceReportedLocation.vue'
 import SignerTimestamp from './SignerTimestamp.vue'
+import { isObserverParticipant } from '../../utils/participantRole.ts'
 import type { DocumentModificationState } from '../../services/validationDocument'
 
 type ValidationState = {
@@ -315,6 +320,8 @@ type SignerModel = {
 	displayName?: string
 	email?: string | null
 	name?: string
+	participantRole?: string | null
+	status?: number | null
 	remote_address?: string
 	user_agent?: string
 	metadata?: {
@@ -329,7 +336,6 @@ type SignerModel = {
 	valid_from?: string | number
 	valid_to?: string | number
 	signed?: string | null
-	status?: number
 	signature_validation?: ValidationState
 	certificate_validation?: ValidationState
 	covers_entire_document?: boolean
@@ -428,6 +434,10 @@ function isRevokedBeforeSigning(signer: SignerModel) {
 }
 
 function hasValidationIssues(signer: SignerModel) {
+	if (isObserverParticipant(signer)) {
+		return false
+	}
+
 	return (signer.signature_validation !== undefined
 			&& signer.signature_validation.id !== 1)
 		|| (signer.certificate_validation !== undefined
@@ -481,6 +491,10 @@ function getValidityStatus(signer: SignerModel) {
 }
 
 function hasValidationStatus(signer: SignerModel) {
+	if (isObserverParticipant(signer)) {
+		return false
+	}
+
 	return !!(signer.signature_validation
 		|| signer.certificate_validation
 		|| signer.crl_validation

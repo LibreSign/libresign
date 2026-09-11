@@ -3,11 +3,22 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const getCurrentUserMock = vi.hoisted(() => vi.fn(() => ({ uid: 'admin' })))
+
+vi.mock('@nextcloud/auth', () => ({
+	getCurrentUser: getCurrentUserMock,
+}))
 
 import { openFilesListSidebarForFile } from '../../utils/filesListSidebar.ts'
 
 describe('FilesList - sidebar opening business rules', () => {
+	beforeEach(() => {
+		getCurrentUserMock.mockReset()
+		getCurrentUserMock.mockReturnValue({ uid: 'admin' })
+	})
+
 	it('opens the sign sidebar when the current user can sign the selected file', async () => {
 		const detailedFile = {
 			id: 42,
@@ -115,5 +126,112 @@ describe('FilesList - sidebar opening business rules', () => {
 		expect(sidebarStore.activeSignTab).not.toHaveBeenCalled()
 		expect(sidebarStore.activeRequestSignatureTab).not.toHaveBeenCalled()
 		expect(sidebarStore.setActiveTab).toHaveBeenCalledTimes(1)
+	})
+
+	it('opens the request sidebar in observer mode when the current user only observes the file', async () => {
+		const detailedFile = {
+			id: 42,
+			status: 1,
+			statusText: 'able to sign',
+			signers: [{ me: true, participantRole: 'observer', sign_request_uuid: 'observer-uuid' }],
+			visibleElements: [],
+		}
+		const filesStore = {
+			selectFile: vi.fn(),
+			fetchFileDetail: vi.fn().mockResolvedValue(detailedFile),
+			canSign: vi.fn().mockReturnValue(false),
+			canRequestSign: false,
+			isObservingOnly: vi.fn().mockReturnValue(true),
+		}
+		const sidebarStore = {
+			activeSignTab: vi.fn(),
+			activeRequestSignatureTab: vi.fn(),
+			setActiveTab: vi.fn(),
+		}
+		const signStore = {
+			setFileToSign: vi.fn(),
+		}
+
+		await openFilesListSidebarForFile(42, {
+			filesStore,
+			sidebarStore,
+			signStore,
+		})
+
+		expect(signStore.setFileToSign).not.toHaveBeenCalled()
+		expect(sidebarStore.activeSignTab).not.toHaveBeenCalled()
+		expect(sidebarStore.activeRequestSignatureTab).toHaveBeenCalledTimes(1)
+	})
+
+	it('keeps the request sidebar when the requester is also a signer on the same file', async () => {
+		const detailedFile = {
+			id: 42,
+			status: 1,
+			statusText: 'able to sign',
+			requested_by: { userId: 'admin' },
+			signers: [{ me: true, participantRole: 'signer', sign_request_uuid: 'signer-uuid' }],
+			visibleElements: [],
+		}
+		const filesStore = {
+			selectFile: vi.fn(),
+			fetchFileDetail: vi.fn().mockResolvedValue(detailedFile),
+			canSign: vi.fn().mockReturnValue(true),
+			canRequestSign: true,
+			isObservingOnly: vi.fn().mockReturnValue(false),
+		}
+		const sidebarStore = {
+			activeSignTab: vi.fn(),
+			activeRequestSignatureTab: vi.fn(),
+			setActiveTab: vi.fn(),
+		}
+		const signStore = {
+			setFileToSign: vi.fn(),
+		}
+
+		await openFilesListSidebarForFile(42, {
+			filesStore,
+			sidebarStore,
+			signStore,
+		})
+
+		expect(signStore.setFileToSign).not.toHaveBeenCalled()
+		expect(sidebarStore.activeSignTab).not.toHaveBeenCalled()
+		expect(sidebarStore.activeRequestSignatureTab).toHaveBeenCalledTimes(1)
+	})
+
+	it('opens the sign sidebar for a signer who does not own the request', async () => {
+		const detailedFile = {
+			id: 42,
+			status: 1,
+			statusText: 'able to sign',
+			requested_by: { userId: 'requester' },
+			signers: [{ me: true, participantRole: 'signer', sign_request_uuid: 'signer-uuid' }],
+			visibleElements: [],
+		}
+		const filesStore = {
+			selectFile: vi.fn(),
+			fetchFileDetail: vi.fn().mockResolvedValue(detailedFile),
+			canSign: vi.fn().mockReturnValue(true),
+			canRequestSign: true,
+			isObservingOnly: vi.fn().mockReturnValue(false),
+		}
+		const sidebarStore = {
+			activeSignTab: vi.fn(),
+			activeRequestSignatureTab: vi.fn(),
+			setActiveTab: vi.fn(),
+		}
+		const signStore = {
+			setFileToSign: vi.fn(),
+		}
+
+		await openFilesListSidebarForFile(42, {
+			filesStore,
+			sidebarStore,
+			signStore,
+		})
+
+		expect(signStore.setFileToSign).toHaveBeenCalledWith(detailedFile)
+		expect(sidebarStore.activeSignTab).toHaveBeenCalledTimes(1)
+		expect(sidebarStore.activeRequestSignatureTab).not.toHaveBeenCalled()
 	})
 })

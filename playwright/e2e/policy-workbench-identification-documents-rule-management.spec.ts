@@ -6,7 +6,7 @@
 import { expect, test } from '@playwright/test'
 
 import { bootstrapLibreSignAdmin, ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
-import { waitForPolicyWorkbenchIdle } from '../support/policy-workbench-rules'
+import { clearPolicyWorkbenchRules, openPolicyWorkbenchSystemRuleEditor, waitForPolicyWorkbenchIdle } from '../support/policy-workbench-rules'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 120000 })
 
@@ -20,19 +20,21 @@ test('identification_documents allows creating and persisting a system rule from
 	const dialog = page.getByRole('dialog').filter({ hasText: /Identification documents flow/i }).first()
 	await expect(dialog).toBeVisible({ timeout: 10000 })
 	await page.getByText(/Loading rules/i).waitFor({ state: 'hidden', timeout: 20000 }).catch(() => {})
+	await clearPolicyWorkbenchRules(dialog)
 
-	const createRuleButton = page.getByRole('button', { name: /Create rule/i }).first()
-	await expect(createRuleButton).toBeVisible({ timeout: 10000 })
-	await createRuleButton.click()
-
-	const createScopeDialog = page.getByRole('dialog').filter({ hasText: /What do you want to create\?/i }).last()
-	if (await createScopeDialog.isVisible().catch(() => false)) {
-		await createScopeDialog.getByRole('option', { name: /^Everyone\b/i }).first().click()
-	}
-
-	const createDialog = page.getByRole('dialog', { name: /Create rule/i }).last()
+	const createDialog = await openPolicyWorkbenchSystemRuleEditor(dialog)
 	await expect(createDialog).toBeVisible({ timeout: 10000 })
-	await createDialog.getByText('Enable identification documents flow', { exact: true }).first().click()
+
+	const enableOption = createDialog.locator('.checkbox-radio-switch').filter({ hasText: /Enable identification documents flow/i }).first()
+	const disableOption = createDialog.locator('.checkbox-radio-switch').filter({ hasText: /Disable identification documents flow/i }).first()
+	if (await enableOption.isVisible().catch(() => false)) {
+		if (await disableOption.isVisible().catch(() => false)) {
+			await disableOption.locator('.checkbox-radio-switch__content').click()
+		}
+		await enableOption.locator('.checkbox-radio-switch__content').click()
+	} else {
+		await createDialog.getByText('Enable identification documents flow', { exact: true }).first().click()
+	}
 
 	const submitButton = createDialog.getByRole('button', { name: /Create rule|Save changes/i }).first()
 	await expect(submitButton).toBeEnabled({ timeout: 10000 })

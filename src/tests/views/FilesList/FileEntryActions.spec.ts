@@ -13,6 +13,8 @@ type FileDetailMock = Partial<FileEntrySource> & {
 	id: number
 }
 
+const getCurrentUserMock = vi.hoisted(() => vi.fn(() => ({ uid: 'admin' })))
+
 const openDocumentMock = vi.fn()
 
 const actionsMenuStoreMock = {
@@ -68,6 +70,10 @@ vi.mock('vue-router', () => ({
 	useRouter: vi.fn(() => ({
 		push: routerPushMock,
 	})),
+}))
+
+vi.mock('@nextcloud/auth', () => ({
+	getCurrentUser: getCurrentUserMock,
 }))
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
@@ -173,6 +179,8 @@ describe('FileEntryActions.vue', () => {
 	})
 
 	beforeEach(() => {
+		getCurrentUserMock.mockReset()
+		getCurrentUserMock.mockReturnValue({ uid: 'admin' })
 		actionsMenuStoreMock.opened = null
 		filesStoreMock.files[1] = { ...source }
 		filesStoreMock.canRequestSign = true
@@ -262,7 +270,8 @@ describe('FileEntryActions.vue', () => {
 		expect(sidebarStoreMock.activeRequestSignatureTab).not.toHaveBeenCalled()
 	})
 
-	it('opens the sign sidebar from details when the current user can sign the file', async () => {
+	it('opens the sign sidebar from details when the current user can sign but cannot manage the request', async () => {
+		filesStoreMock.canRequestSign = false
 		const detailedFile = {
 			id: 1,
 			uuid: 'file-uuid',
@@ -289,6 +298,33 @@ describe('FileEntryActions.vue', () => {
 		expect(signStoreMock.setFileToSign).toHaveBeenCalledWith(detailedFile)
 		expect(sidebarStoreMock.activeSignTab).toHaveBeenCalledTimes(1)
 		expect(sidebarStoreMock.activeRequestSignatureTab).not.toHaveBeenCalled()
+		expect(routerPushMock).not.toHaveBeenCalled()
+	})
+
+	it('opens the request sidebar from details when the requester is also a signer', async () => {
+		const detailedFile = {
+			id: 1,
+			uuid: 'file-uuid',
+			name: 'contract.pdf',
+			nodeId: 17,
+			nodeType: 'file',
+			status: 1,
+			statusText: 'Ready to sign',
+			requested_by: { userId: 'admin' },
+			signers: [{ me: true, sign_request_uuid: 'sign-request-uuid' }],
+			visibleElements: [],
+			settings: { isApprover: false },
+		}
+		filesStoreMock.fetchFileDetail.mockResolvedValueOnce(detailedFile)
+
+		const wrapper = createWrapper()
+
+		await wrapper.vm.onActionClick({ id: 'details' })
+
+		expect(filesStoreMock.selectFile).toHaveBeenCalledWith(1)
+		expect(signStoreMock.setFileToSign).not.toHaveBeenCalled()
+		expect(sidebarStoreMock.activeSignTab).not.toHaveBeenCalled()
+		expect(sidebarStoreMock.activeRequestSignatureTab).toHaveBeenCalledTimes(1)
 		expect(routerPushMock).not.toHaveBeenCalled()
 	})
 

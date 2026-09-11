@@ -132,6 +132,14 @@ describe('SignerDetails.vue - Business Logic', () => {
 			}
 			expect(wrapper.vm.hasValidationIssues(signer)).toBe(false)
 		})
+
+		it('returns false for observers without signature validation data', () => {
+			const signer = {
+				participantRole: 'observer',
+				signed: null,
+			}
+			expect(wrapper.vm.hasValidationIssues(signer)).toBe(false)
+		})
 	})
 
 	describe('isRevokedBeforeSigning method', () => {
@@ -517,6 +525,15 @@ describe('SignerDetails.vue - Business Logic', () => {
 			const signer = {
 				valid_from: '2024-01-01T00:00:00Z',
 				valid_to: '2025-01-01T00:00:00Z',
+			}
+			expect(wrapper.vm.hasValidationStatus(signer)).toBe(false)
+		})
+
+		it('returns false for observers even when validation fields exist', () => {
+			const signer = {
+				participantRole: 'observer',
+				signature_validation: { id: 1 },
+				document_modification_state: 'trailing_data' as const,
 			}
 			expect(wrapper.vm.hasValidationStatus(signer)).toBe(false)
 		})

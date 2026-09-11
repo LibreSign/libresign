@@ -22,6 +22,7 @@ import { usePoliciesStore } from './policies'
 import { useSidebarStore } from './sidebar.js'
 import { FILE_STATUS } from '../constants.js'
 import { getSigningRouteUuid } from '../utils/signRequestUuid.ts'
+import { isCurrentUserObserver, isSigningParticipant } from '../utils/participantRole.ts'
 
 /** @typedef {import('../types/index').IdentifyMethodRecord} SignerMethodRecord */
 /** @typedef {import('../types/index').FileSettings} FileSettings */
@@ -54,6 +55,7 @@ import { getSigningRouteUuid } from '../utils/signRequestUuid.ts'
  * 	status?: number
  * 	statusText?: string
  * 	signingOrder?: number
+ * 	participantRole?: string
  * 	localKey?: string
  * 	acceptsEmailNotifications?: boolean
  * 	identifyMethods?: SignerMethodRecord[]
@@ -692,6 +694,7 @@ const _filesStore = defineStore('files', () => {
 			return false
 		}
 		return selectedFile.signers
+			.filter(isSigningParticipant)
 			.filter(signer => signer.signed?.length > 0).length > 0
 	}
 
@@ -706,13 +709,17 @@ const _filesStore = defineStore('files', () => {
 		if (!Array.isArray(selectedFile.signers)) {
 			return false
 		}
-		return selectedFile.signers.length > 0
-			&& selectedFile.signers
-				.filter(signer => signer.signed?.length > 0).length === selectedFile.signers.length
+		const signingParticipants = selectedFile.signers.filter(isSigningParticipant)
+		return signingParticipants.length > 0
+			&& signingParticipants
+				.filter(signer => signer.signed?.length > 0).length === signingParticipants.length
 	}
 
 	function canSign(file) {
 		const selectedFile = getFile(file)
+		if (isCurrentUserObserver(selectedFile)) {
+			return false
+		}
 		if (typeof selectedFile?.canSign === 'boolean') {
 			return selectedFile.canSign
 		}
@@ -722,7 +729,8 @@ const _filesStore = defineStore('files', () => {
 		const isSigned = (signer) => Array.isArray(signer.signed)
 			? signer.signed.length > 0
 			: !!signer.signed
-		const mySigners = selectedFile?.signers?.filter(signer => signer.me) || []
+		const mySigners = (selectedFile?.signers?.filter(signer => signer.me) || [])
+			.filter(isSigningParticipant)
 		if (isFullSigned(selectedFile)
 			|| selectedFile.status <= 0
 			|| mySigners.some((signer) => isSigned(signer))) {
@@ -743,7 +751,7 @@ const _filesStore = defineStore('files', () => {
 			return true
 		}
 
-		const pendingSigners = selectedFile?.signers?.filter(signer => !isSigned(signer)) || []
+		const pendingSigners = selectedFile?.signers?.filter(signer => !isSigned(signer) && isSigningParticipant(signer)) || []
 		if (pendingSigners.length === 0) {
 			return false
 		}
@@ -757,6 +765,10 @@ const _filesStore = defineStore('files', () => {
 		return [2, 3].includes(Number(selectedFile?.status))
 			|| isPartialSigned(selectedFile)
 			|| isFullSigned(selectedFile)
+	}
+
+	function isObservingOnly(file) {
+		return isCurrentUserObserver(getFile(file))
 	}
 
 	function canDelete(file) {
@@ -953,6 +965,7 @@ const _filesStore = defineStore('files', () => {
 					...(typeof signer.notify === 'number' ? { notify: signer.notify } : {}),
 					...(typeof signer.signingOrder === 'number' ? { signingOrder: signer.signingOrder } : {}),
 					...(typeof signer.status === 'number' ? { status: signer.status } : {}),
+					...(typeof signer.participantRole === 'string' ? { participantRole: signer.participantRole } : {}),
 					...(typeof geolocationRequired === 'boolean'
 						? { geolocationRequired }
 						: {}),
@@ -1009,8 +1022,10 @@ const _filesStore = defineStore('files', () => {
 				break
 			}
 		}
-		if (!signer.signingOrder && editableFile.signatureFlow === 'ordered_numeric') {
-			const maxOrder = editableFile.signers.reduce((max, s) => Math.max(max, s.signingOrder || 0), 0)
+		if (!signer.signingOrder && editableFile.signatureFlow === 'ordered_numeric' && isSigningParticipant(signer)) {
+			const maxOrder = editableFile.signers
+				.filter(isSigningParticipant)
+				.reduce((max, currentSigner) => Math.max(max, currentSigner.signingOrder || 0), 0)
 			signer.signingOrder = maxOrder + 1
 		}
 		editableFile.signers.push(signer)
@@ -1036,9 +1051,9 @@ const _filesStore = defineStore('files', () => {
 			.filter((currentSigner) => currentSigner.localKey !== signer.localKey)
 		selectedFile.signersCount = selectedFile.signers.length
 
-		if (selectedFile.signatureFlow === 'ordered_numeric' && signer.signingOrder) {
+		if (selectedFile.signatureFlow === 'ordered_numeric' && signer.signingOrder && isSigningParticipant(signer)) {
 			selectedFile.signers.forEach((s) => {
-				if (s.signingOrder && s.signingOrder > signer.signingOrder) {
+				if (s.signingOrder && s.signingOrder > signer.signingOrder && isSigningParticipant(s)) {
 					s.signingOrder -= 1
 				}
 			})
@@ -1409,6 +1424,7 @@ const _filesStore = defineStore('files', () => {
 		isFullSigned,
 		canSign,
 		canValidate,
+		isObservingOnly,
 		canDelete,
 		canAddSigner,
 		isDocMdpNoChangesAllowed,

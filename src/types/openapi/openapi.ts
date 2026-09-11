@@ -1380,6 +1380,7 @@ export type components = {
             signingOrder?: number;
             /** Format: int64 */
             status?: number;
+            participantRole?: components["schemas"]["ParticipantRole"];
             geolocationRequired?: boolean;
         };
         Notify: {
@@ -1406,7 +1407,13 @@ export type components = {
             first: string | null;
         };
         /** @enum {string} */
+        ParticipantRole: "signer" | "observer";
+        /** @enum {string} */
         PolicyScope: "system" | "group" | "user";
+        PolicySnapshotBooleanEntry: {
+            effectiveValue: boolean;
+            sourceScope: string;
+        };
         PolicySnapshotEntry: {
             effectiveValue: string;
             sourceScope: string;
@@ -1663,6 +1670,7 @@ export type components = {
              */
             status: 0 | 1 | 2 | 3;
             statusText: string;
+            participantRole?: components["schemas"]["ParticipantRole"];
         };
         SigningJob: {
             /** @enum {string} */
@@ -1729,6 +1737,7 @@ export type components = {
             identification_documents?: components["schemas"]["PolicySnapshotIdentificationDocumentsEntry"];
             identify_methods?: components["schemas"]["PolicySnapshotIdentifyMethodsEntry"];
             signer_geolocation?: components["schemas"]["PolicySnapshotSignerGeolocationEntry"];
+            enable_observer_profile?: components["schemas"]["PolicySnapshotBooleanEntry"];
             signature_rejection?: components["schemas"]["PolicySnapshotSignatureRejectionEntry"];
         };
         ValidatedChildFile: {

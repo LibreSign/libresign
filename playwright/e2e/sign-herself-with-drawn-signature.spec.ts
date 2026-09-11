@@ -7,10 +7,15 @@ import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
 
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
-import { useRequestSignPolicyGuard } from '../support/system-policies'
+import { configureOpenSsl, clearSignatureElements, resetUserSigningCertificate, setSystemPolicy } from '../support/nc-provisioning'
+import { clickAddSigner, selectAccountSigner } from '../support/request-signature'
+import { clickSignDocumentButton } from '../support/sign-flow'
+import { useFooterPolicyGuard, useRequestSignPolicyGuard } from '../support/system-policies'
 
+useFooterPolicyGuard()
 useRequestSignPolicyGuard()
+
+test.setTimeout(120_000)
 
 /**
  *
@@ -45,11 +50,21 @@ async function drawSignatureOnCanvas(signatureDialog: Locator, page: Page) {
 }
 
 test('sign herself with drawn signature', async ({ page }) => {
-	await login(
-		page.request,
-		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
-		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
-	)
+	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+
+	await login(page.request, adminUser, adminPassword)
+	await resetUserSigningCertificate(page.request, adminUser, adminPassword)
+	await clearSignatureElements(page.request, adminUser, adminPassword).catch(() => {})
+	await setSystemPolicy(page.request, 'signature_stamp', JSON.stringify({
+		template: '{{SignerCommonName}}',
+		template_font_size: 9.8,
+		signature_font_size: 20,
+		signature_width: 350,
+		signature_height: 100,
+		render_mode: 'default',
+		background_type: 'default',
+	}))
 
 	await configureOpenSsl(page.request, 'LibreSign Test', {
 		C: 'BR',
@@ -75,10 +90,8 @@ test('sign herself with drawn signature', async ({ page }) => {
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).click()
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
 	await page.getByRole('button', { name: 'Send' }).click()
-	await page.getByRole('button', { name: 'Add signer' }).click()
-	await page.getByPlaceholder('Account').click()
-	await page.getByPlaceholder('Account').fill('a')
-	await page.locator('.account-or-email__option__title').filter({ hasText: /^admin$/ }).click()
+	await clickAddSigner(page)
+	await selectAccountSigner(page, 'a')
 
 	await page.getByRole('textbox', { name: 'Signer name' }).click()
 	await page.getByRole('textbox', { name: 'Signer name' }).press('ControlOrMeta+a')
@@ -128,7 +141,9 @@ test('sign herself with drawn signature', async ({ page }) => {
 		page.getByLabel('PDF document to sign').getByRole('img', { name: 'Signature position for Admin Name' })
 	).toBeVisible({ timeout: 15000 })
 
-	await page.getByRole('button', { name: 'Define your signature.' }).click()
+	const defineSignatureButton = page.getByRole('button', { name: /Define your signature\.?/i }).first()
+	await expect(defineSignatureButton).toBeVisible({ timeout: 15_000 })
+	await defineSignatureButton.click()
 
 	const signatureDialog = page.getByRole('dialog', { name: 'Customize your signatures' })
 	await expect(signatureDialog).toBeVisible()
@@ -136,10 +151,9 @@ test('sign herself with drawn signature', async ({ page }) => {
 	await page.getByRole('button', { name: 'Save' }).click()
 	await expect(page.getByRole('heading', { name: 'Confirm your signature' })).toBeVisible()
 	await page.getByLabel('Confirm your signature').getByRole('button', { name: 'Save' }).click()
-	const signButton = page.locator('.sign-pdf-sidebar .button-wrapper').getByRole('button', { name: 'Sign document' })
-	await expect(signButton).toBeVisible({ timeout: 15_000 })
+	await expect(page.getByRole('button', { name: 'Sign document' }).first()).toBeVisible({ timeout: 15_000 })
 
-	await signButton.click({ force: true })
+	await clickSignDocumentButton(page)
 	const signResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'),

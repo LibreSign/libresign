@@ -103,6 +103,70 @@ export async function clearPolicyWorkbenchRules(
 	}
 }
 
+async function clickRuleMenuAction(page: Page, actionName: 'Edit'): Promise<boolean> {
+	const actionItem = page
+		.locator('.action-item:visible, [role="menuitem"]:visible, li.action:visible')
+		.filter({ hasText: /^Edit$/i })
+		.first()
+
+	if (!(await actionItem.isVisible().catch(() => false))) {
+		return false
+	}
+
+	return actionItem.click({ timeout: 1500 }).then(() => true).catch(() => false)
+}
+
+async function openExistingEveryoneRuleEditor(dialog: Locator): Promise<void> {
+	const page = dialog.page()
+	const changeButton = dialog.getByRole('button', { name: /^Change$/i }).first()
+	if (await changeButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+		await changeButton.click()
+		return
+	}
+
+	const everyoneRow = dialog.locator('tbody tr').filter({ hasText: /^Everyone\b/i }).first()
+	await expect(everyoneRow).toBeVisible({ timeout: 8000 })
+	await everyoneRow.getByRole('button', { name: 'Rule actions' }).first().click()
+	const edited = await clickRuleMenuAction(page, 'Edit')
+	expect(edited, 'Expected Edit action for existing Everyone rule').toBe(true)
+}
+
+async function confirmEveryoneScopeSelection(createScopeDialog: Locator): Promise<void> {
+	const confirmScopeButton = createScopeDialog.getByRole('button', { name: /Create rule|Continue|Next/i }).first()
+	if (await confirmScopeButton.isVisible().catch(() => false)) {
+		await confirmScopeButton.click()
+	}
+}
+
+async function selectEveryoneScopeOrEditExisting(
+	dialog: Locator,
+	createScopeDialog: Locator,
+): Promise<void> {
+	const page = dialog.page()
+	const everyoneOption = createScopeDialog.getByRole('option', { name: /^Everyone\b/i }).first()
+	const everyoneRadio = createScopeDialog.getByRole('radio', { name: /^Everyone\b/i }).first()
+
+	if (await everyoneOption.isVisible().catch(() => false)) {
+		await everyoneOption.click()
+		await confirmEveryoneScopeSelection(createScopeDialog)
+		return
+	}
+
+	if (await everyoneRadio.isVisible().catch(() => false)) {
+		await everyoneRadio.click()
+		await confirmEveryoneScopeSelection(createScopeDialog)
+		return
+	}
+
+	await page.keyboard.press('Escape').catch(() => {})
+	const cancelButton = createScopeDialog.getByRole('button', { name: /Cancel|Close/i }).first()
+	if (await cancelButton.isVisible().catch(() => false)) {
+		await cancelButton.click()
+	}
+	await createScopeDialog.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
+	await openExistingEveryoneRuleEditor(dialog)
+}
+
 export async function openPolicyWorkbenchSystemRuleEditor(
 	dialog: Locator,
 	options?: {
@@ -124,24 +188,7 @@ export async function openPolicyWorkbenchSystemRuleEditor(
 		const page = dialog.page()
 		const createScopeDialog = page.getByRole('dialog').filter({ hasText: /What do you want to create\?/i }).last()
 		if (await createScopeDialog.isVisible({ timeout: 3000 }).catch(() => false)) {
-			const everyoneOption = createScopeDialog.getByRole('option', { name: /^Everyone\b/i }).first()
-			const everyoneRadio = createScopeDialog.getByRole('radio', { name: /^Everyone\b/i }).first()
-			const everyoneButton = createScopeDialog.getByRole('button', { name: /^Everyone\b/i }).first()
-
-			if (await everyoneOption.isVisible().catch(() => false)) {
-				await everyoneOption.click()
-			} else if (await everyoneRadio.isVisible().catch(() => false)) {
-				await everyoneRadio.click({ force: true })
-			} else if (await everyoneButton.isVisible().catch(() => false)) {
-				await everyoneButton.click()
-			} else {
-				await createScopeDialog.getByText(/^Everyone\b/i).first().click({ force: true })
-			}
-
-			const confirmScopeButton = createScopeDialog.getByRole('button', { name: /Create rule|Continue|Next/i }).first()
-			if (await confirmScopeButton.isVisible().catch(() => false)) {
-				await confirmScopeButton.click()
-			}
+			await selectEveryoneScopeOrEditExisting(dialog, createScopeDialog)
 		}
 	}
 

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\File;
 
+use OCA\Libresign\Db\SignRequest;
 use stdClass;
 
 class EnvelopeProgressService {
@@ -54,6 +55,10 @@ class EnvelopeProgressService {
 		foreach ($childrenFiles as $childFile) {
 			$signRequests = $signRequestsByFileId[$childFile->getId()] ?? [];
 			foreach ($signRequests as $signRequest) {
+				if ($signRequest instanceof SignRequest && $signRequest->isObserver()) {
+					continue;
+				}
+
 				$signRequestId = $signRequest->getId();
 				$identifyMethods = $identifyMethodsBySignRequest[$signRequestId] ?? [];
 
