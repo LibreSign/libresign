@@ -95,6 +95,14 @@ Feature: settings/user-config
       | key                 | value                               |
       | (jq).ocs.data.key   | id_docs_sort                        |
 
+    And sending "put" to ocs "/apps/libresign/api/v1/account/config/warn_without_visible_signature_fields"
+      | value | 0 |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                 | value                                 |
+      | (jq).ocs.data.key   | warn_without_visible_signature_fields |
+      | (jq).ocs.data.value | 0                                     |
+
     # Update all configs and validate returned value
     And sending "put" to ocs "/apps/libresign/api/v1/account/config/files_list_grid_view"
       | value | 0 |
@@ -178,6 +186,14 @@ Feature: settings/user-config
     And the response should be a JSON array with the following mandatory values
       | key                 | value                              |
       | (jq).ocs.data.key   | id_docs_sort                       |
+
+    And sending "put" to ocs "/apps/libresign/api/v1/account/config/warn_without_visible_signature_fields"
+      | value | 1 |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                 | value                                 |
+      | (jq).ocs.data.key   | warn_without_visible_signature_fields |
+      | (jq).ocs.data.value | 1                                     |
 
     # Delete all configs (empty string) and validate returned value
     And sending "put" to ocs "/apps/libresign/api/v1/account/config/files_list_grid_view"
@@ -267,3 +283,11 @@ Feature: settings/user-config
       | key                 | value       |
       | (jq).ocs.data.key   | id_docs_sort |
       | (jq).ocs.data.value |             |
+
+    And sending "put" to ocs "/apps/libresign/api/v1/account/config/warn_without_visible_signature_fields"
+      | value | |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                 | value                                 |
+      | (jq).ocs.data.key   | warn_without_visible_signature_fields |
+      | (jq).ocs.data.value |                                       |

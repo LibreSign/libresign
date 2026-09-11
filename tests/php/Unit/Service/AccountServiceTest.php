@@ -274,6 +274,38 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame($storedCollapsedState, $config['policy_workbench_category_collapsed_state']);
 	}
 
+	#[DataProvider('provideWarnWithoutVisibleSignatureFieldsCases')]
+	public function testGetConfigIncludesWarnWithoutVisibleSignatureFieldsPreference(string $storedValue, bool $expected): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('preference-user');
+
+		$this->userConfig
+			->expects($this->atLeastOnce())
+			->method('getValueString')
+			->willReturnCallback(static function (string $uid, string $appId, string $key, string $default = '') use ($storedValue): string {
+				if ($uid === 'preference-user'
+					&& $appId === Application::APP_ID
+					&& $key === 'warn_without_visible_signature_fields') {
+					return $storedValue;
+				}
+
+				return $default;
+			});
+
+		$config = $this->getService()->getConfig($user);
+
+		$this->assertArrayHasKey('warn_without_visible_signature_fields', $config);
+		$this->assertSame($expected, $config['warn_without_visible_signature_fields']);
+	}
+
+	public static function provideWarnWithoutVisibleSignatureFieldsCases(): array {
+		return [
+			'stored 1 shows the warning' => ['1', true],
+			'stored 0 hides the warning' => ['0', false],
+			'no stored value falls back to the default' => ['', true],
+		];
+	}
+
 	#[DataProvider('provideValidateCertificateDataCases')]
 	public function testValidateCertificateDataUsingDataProvider($arguments, $expectedErrorMessage):void {
 		if (is_callable($arguments)) {
