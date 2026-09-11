@@ -5,7 +5,7 @@
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 
-const getCurrentUserMock = vi.hoisted(() => vi.fn(() => ({ uid: 'admin' })))
+const getCurrentUserMock = vi.hoisted(() => vi.fn((): { uid: string } | null => ({ uid: 'admin' })))
 
 vi.mock('@nextcloud/auth', () => ({
 	getCurrentUser: getCurrentUserMock,
