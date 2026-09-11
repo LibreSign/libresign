@@ -35,6 +35,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
+use OCA\Libresign\Handler\SignEngine\ISignEngineHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
@@ -85,7 +86,7 @@ class SignFileService {
 	private string $userUniqueIdentifier = '';
 	private string $friendlyName = '';
 	private ?IUser $user = null;
-	private ?SignEngineHandler $engine = null;
+	private ?ISignEngineHandler $engine = null;
 
 	public function __construct(
 		protected IL10N $l10n,
@@ -950,7 +951,7 @@ class SignFileService {
 		$this->eventDispatcher->dispatchTyped($event);
 	}
 
-	protected function identifyEngine(File $file): SignEngineHandler {
+	protected function identifyEngine(File $file): ISignEngineHandler {
 		return $this->signEngineFactory->resolve($file->getExtension());
 	}
 
@@ -1225,7 +1226,7 @@ class SignFileService {
 		return strcasecmp($file->getExtension(), 'pdf') === 0;
 	}
 
-	protected function getEngine(): SignEngineHandler {
+	protected function getEngine(): ISignEngineHandler {
 		if (!$this->engine) {
 			$originalFile = $this->getFileToSign();
 			$this->engine = $this->identifyEngine($originalFile);
