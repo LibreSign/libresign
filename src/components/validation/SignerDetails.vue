@@ -234,6 +234,8 @@
 				{{ signer.user_agent }}
 			</template>
 		</NcListItem>
+		<DeviceReportedLocation v-if="isOpen && signer.metadata?.geolocation"
+			:geolocation="signer.metadata?.geolocation" />
 
 		<!-- Certificate Chain Section -->
 		<CertificateChain v-if="isOpen && signer.chain && signer.chain.length > 0"
@@ -269,9 +271,9 @@ import {
 } from '@mdi/js'
 
 import CertificateChain from './CertificateChain.vue'
+import DeviceReportedLocation from './DeviceReportedLocation.vue'
 import SignerTimestamp from './SignerTimestamp.vue'
 import type { DocumentModificationState } from '../../services/validationDocument'
-
 
 type ValidationState = {
 	id?: number
@@ -315,6 +317,15 @@ type SignerModel = {
 	name?: string
 	remote_address?: string
 	user_agent?: string
+	metadata?: {
+		geolocation?: {
+			status?: string
+			latitude?: number
+			longitude?: number
+			accuracy?: number
+			timestamp?: number
+		}
+	}
 	valid_from?: string | number
 	valid_to?: string | number
 	signed?: string | null
@@ -679,7 +690,7 @@ defineExpose({
 }
 
 .extra {
-	padding-left: 44px;
+	padding-inline-start: 44px;
 	background-color: var(--color-background-hover);
 }
 

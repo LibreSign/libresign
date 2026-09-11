@@ -11,6 +11,7 @@ import type {
 	UserElementRecord,
 	VisibleElementRecord,
 } from '../types/index'
+import type { CollectedGeolocation } from '../helpers/signerGeolocation'
 
 export type SignResultData = Omit<Partial<SignActionResponseRecord>, 'file' | 'job'> & {
 	file?: Partial<FileUuidReferenceRecord>
@@ -31,6 +32,7 @@ export type SubmitSignaturePayload = {
 		documentElementId: number
 		profileNodeId?: number
 	}>
+	geolocation?: CollectedGeolocation
 }
 
 export type SignatureMethodConfig = {

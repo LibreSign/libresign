@@ -511,6 +511,77 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertCount(2, $actual);
 	}
 
+	public function testAssociateToSignersPreservesFrozenGeolocationWhenFlagOmitted(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(77);
+
+		$data = [
+			'status' => 9,
+			'signers' => [[
+				'displayName' => 'John Doe',
+				'identifyMethods' => [
+					['method' => 'email', 'value' => 'john@example.com'],
+				],
+			]],
+		];
+
+		$this->validateHelper
+			->method('normalizeRequestSigners')
+			->willReturnCallback(static fn (array $signers): array => $signers);
+
+		$this->signRequestMapper
+			->method('getByFileId')
+			->with(77)
+			->willReturn([]);
+
+		$this->identifyMethodService
+			->method('clearCache');
+
+		$this->sequentialSigningService
+			->method('resetOrderCounter');
+
+		$this->sequentialSigningService
+			->method('determineSigningOrder')
+			->willReturn(1);
+
+		$this->signRequestService
+			->method('createOrUpdateSignRequest')
+			->willReturnCallback(function (
+				array $identifyMethods,
+				string $displayName,
+				string $description,
+				bool $notify,
+				int $fileId,
+				int $signingOrder = 0,
+				?int $fileStatus = null,
+				?int $signerStatus = null,
+				?callable $afterPersist = null,
+			): SignRequest {
+				$signRequest = new SignRequest();
+				$signRequest->setId(601);
+				$signRequest->setMetadata(['geolocationRequirement' => 'required']);
+
+				if ($afterPersist !== null) {
+					$afterPersist($signRequest);
+				}
+
+				return $signRequest;
+			});
+
+		$this->signerGeolocationPolicyService
+			->expects($this->once())
+			->method('getFrozenRequirement')
+			->willReturn(\OCA\Libresign\Enum\SignerGeolocationMode::REQUIRED);
+
+		$this->signerGeolocationPolicyService
+			->expects($this->never())
+			->method('persistEffectiveRequirement');
+
+		$actual = self::invokePrivate($this->getService(), 'associateToSigners', [$data, $file]);
+
+		$this->assertCount(1, $actual);
+	}
+
 	public function testDeleteIdentifyMethodIfNotExitsKeepsMatchingIdentifyMethods(): void {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setId(77);
