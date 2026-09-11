@@ -114,7 +114,8 @@ test('observer receives validation link and cannot enter signing flow', async ({
 		const [popup, pdfResponse] = await Promise.all([popupPromise, pdfResponsePromise])
 		expect(pdfResponse.status()).toBe(200)
 		expect(pdfResponse.headers()['content-type'] ?? '').toMatch(/pdf/i)
-		await expect(popup).toHaveURL(/\/apps\/libresign\/p\/pdf\//)
+		expect(pdfResponse.url()).toMatch(/\/apps\/libresign\/p\/pdf\//)
+		// Chromium may keep the popup on about:blank while rendering/downloading the PDF body.
 		await expect(popup).not.toHaveURL(/\/login/)
 	} finally {
 		await login(
@@ -286,7 +287,8 @@ test('authenticated observer opens the request in read-only mode', async ({ page
 		await expect(sidebar.getByRole('button', { name: 'Send reminder', exact: true })).toHaveCount(0)
 		await expect(sidebar.getByRole('button', { name: 'Send notification', exact: true })).toHaveCount(0)
 		await expect(sidebar.getByRole('button', { name: 'Setup signature positions', exact: true })).toHaveCount(0)
-		await expect(sidebar.getByRole('button', { name: 'View signature positions', exact: true }).or(sidebar.getByRole('button', { name: 'Open file', exact: true }))).toBeVisible()
+		await expect(sidebar.getByRole('button', { name: 'View signature positions', exact: true })).toBeVisible()
+		await expect(sidebar.getByRole('button', { name: 'Open file', exact: true })).toBeVisible()
 	} finally {
 		await login(page.request, adminUser, adminPassword)
 		await setSystemPolicy(page.request, 'enable_observer_profile', JSON.stringify(false))
