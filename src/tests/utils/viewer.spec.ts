@@ -4,6 +4,13 @@
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+
+const getCurrentUserMock = vi.hoisted(() => vi.fn(() => ({ uid: 'admin' })))
+
+vi.mock('@nextcloud/auth', () => ({
+	getCurrentUser: getCurrentUserMock,
+}))
+
 import { openDocument } from '../../utils/viewer.js'
 
 type GlobalWithOCA = typeof globalThis & {
@@ -22,6 +29,8 @@ describe('openDocument', () => {
 	beforeEach(() => {
 		originalOCA = (global as GlobalWithOCA).OCA
 		openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+		getCurrentUserMock.mockReset()
+		getCurrentUserMock.mockReturnValue({ uid: 'admin' })
 	})
 
 	afterEach(() => {
@@ -29,7 +38,7 @@ describe('openDocument', () => {
 		;(global as GlobalWithOCA).OCA = originalOCA
 	})
 
-	it('uses Nextcloud Viewer when available', () => {
+	it('uses Nextcloud Viewer when available for authenticated users', () => {
 		const viewerOpen = vi.fn()
 		;(global as GlobalWithOCA).OCA = {
 			Viewer: {
@@ -57,6 +66,7 @@ describe('openDocument', () => {
 			expect(payload.fileInfo.mime).toBe('application/pdf')
 			expect(payload.fileInfo.source).toContain('/index.php/apps/files/')
 		}
+		expect(openSpy).not.toHaveBeenCalled()
 	})
 
 	it('opens new window when Viewer is not available', () => {
@@ -80,5 +90,27 @@ describe('openDocument', () => {
 			expect(openedUrl).toContain('/apps/files/?file=/doc.pdf')
 			expect(openedUrl).toMatch(/_t=\d+$/)
 		}
+	})
+
+	it('opens public PDF URL directly when Viewer is available but user is anonymous', () => {
+		getCurrentUserMock.mockReturnValue(null)
+		const viewerOpen = vi.fn()
+		;(global as GlobalWithOCA).OCA = {
+			Viewer: {
+				open: viewerOpen,
+			},
+		}
+
+		openDocument({
+			fileUrl: '/apps/libresign/p/pdf/file-uuid',
+			filename: 'observer.pdf',
+			nodeId: 66,
+		})
+
+		expect(viewerOpen).not.toHaveBeenCalled()
+		expect(openSpy).toHaveBeenCalledTimes(1)
+		const openedUrl = openSpy.mock.calls[0]?.[0]
+		expect(openedUrl).toContain('/apps/libresign/p/pdf/file-uuid')
+		expect(openedUrl).toMatch(/_t=\d+$/)
 	})
 })
