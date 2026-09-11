@@ -511,11 +511,14 @@ describe('DocumentValidationDetails', () => {
 			expect(signersList.exists()).toBe(false)
 		})
 
-		it('passes signer data to SignerDetails component', () => {
+		it.each([
+			{ visibleElements: [{}] },
+			{ visibleElements: [] },
+		])('passes document-specific visible elements to SignerDetails: $visibleElements', ({ visibleElements }) => {
 			wrapper = createWrapper({
 				document: {
 					signers: [
-						{ displayName: 'John Doe', email: 'john@example.com' },
+						{ displayName: 'John Doe', email: 'john@example.com', visibleElements },
 					],
 				},
 			})
@@ -524,6 +527,7 @@ describe('DocumentValidationDetails', () => {
 			expect(signerComponent.props('signer')).toEqual(
 				expect.objectContaining({
 					displayName: 'John Doe',
+					visibleElements,
 				})
 			)
 		})
