@@ -11,8 +11,10 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\Validation\FileInputValidator;
+use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IL10N;
 use OCP\IUser;
@@ -21,7 +23,9 @@ use OCP\Notification\IManager;
 
 class NotifyService {
 	public function __construct(
-		private ValidateHelper $validateHelper,
+		private SigningRequestValidator $signingRequestValidator,
+		private FileInputValidator $fileInputValidator,
+		private IdentityDocumentValidator $identityDocumentValidator,
 		private IUserSession $userSession,
 		private SignRequestMapper $signRequestMapper,
 		private IdentifyMethodService $identifyMethodService,
@@ -34,25 +38,25 @@ class NotifyService {
 	}
 
 	public function signer(int $fileId, int $signRequestId): void {
-		$this->validateHelper->canRequestSign($this->userSession->getUser());
-		$this->validateHelper->validateLibreSignFileId($fileId);
-		$this->validateHelper->validateWorkflowIsNotClosedByFileId($fileId);
+		$this->signingRequestValidator->canRequestSign($this->userSession->getUser());
+		$this->fileInputValidator->validateLibreSignFileId($fileId);
+		$this->signingRequestValidator->validateWorkflowIsNotClosedByFileId($fileId);
 		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
-		$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $fileId);
+		$this->signingRequestValidator->iRequestedSignThisFile($this->userSession->getUser(), $fileId);
 		$this->notify($signRequest);
 	}
 
 	public function signers(int $fileId, array $signers): void {
-		$this->validateHelper->canRequestSign($this->userSession->getUser());
-		$this->validateHelper->validateLibreSignFileId($fileId);
-		$this->validateHelper->validateWorkflowIsNotClosedByFileId($fileId);
+		$this->signingRequestValidator->canRequestSign($this->userSession->getUser());
+		$this->fileInputValidator->validateLibreSignFileId($fileId);
+		$this->signingRequestValidator->validateWorkflowIsNotClosedByFileId($fileId);
 		$signRequests = $this->signRequestMapper->getByFileId($fileId);
 		if (!empty($signRequests)) {
-			$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $fileId);
+			$this->signingRequestValidator->iRequestedSignThisFile($this->userSession->getUser(), $fileId);
 		}
 		$signRequestIndex = $this->signerIndexProvider->build($signRequests);
 		foreach ($signers as $signer) {
-			$this->validateHelper->haveValidMail($signer);
+			$this->identityDocumentValidator->haveValidMail($signer);
 			$this->validateSignerForNotification($signer, $signRequestIndex);
 		}
 		// @todo refactor this code

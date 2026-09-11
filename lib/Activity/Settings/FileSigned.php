@@ -10,7 +10,7 @@ namespace OCA\Libresign\Activity\Settings;
 
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -18,7 +18,7 @@ use OCP\IUserSession;
 class FileSigned extends LibresignActivitySettings {
 	public function __construct(
 		protected IL10N $l,
-		protected ValidateHelper $validateHelper,
+		protected SigningRequestValidator $signingRequestValidator,
 		protected IUserSession $userSession,
 	) {
 	}
@@ -57,7 +57,7 @@ class FileSigned extends LibresignActivitySettings {
 			return true;
 		}
 		try {
-			$this->validateHelper->canrequestSign($this->userSession->getUser());
+			$this->signingRequestValidator->canRequestSign($this->userSession->getUser());
 		} catch (LibresignException) {
 			return false;
 		}
@@ -73,7 +73,7 @@ class FileSigned extends LibresignActivitySettings {
 			return true;
 		}
 		try {
-			$this->validateHelper->canrequestSign($this->userSession->getUser());
+			$this->signingRequestValidator->canRequestSign($this->userSession->getUser());
 		} catch (LibresignException) {
 			return false;
 		}

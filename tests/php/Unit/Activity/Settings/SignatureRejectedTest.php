@@ -10,9 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Activity\Settings;
 
 use OCA\Libresign\Activity\Settings\SignatureRejected;
 use OCA\Libresign\Events\SignatureRejectedEvent;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCP\IL10N;
-use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 
 final class SignatureRejectedTest extends TestCase {
@@ -20,11 +18,7 @@ final class SignatureRejectedTest extends TestCase {
 		$l10n = $this->createMock(IL10N::class);
 		$l10n->method('t')->willReturnArgument(0);
 
-		return new SignatureRejected(
-			$l10n,
-			$this->createMock(ValidateHelper::class),
-			$this->createMock(IUserSession::class),
-		);
+		return new SignatureRejected($l10n);
 	}
 
 	public function testGetIdentifier(): void {
