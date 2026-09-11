@@ -175,11 +175,14 @@ type PdfEditorRef = ComponentPublicInstance & {
 	addSigner?: (signer: SignerSummaryRecord, visibleElement: VisibleElementRecord, options?: { documentIndex?: number }) => Promise<void>
 }
 
-type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' | 'getEditableFile' | 'saveOrUpdateSignatureRequest'> & {
+type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' | 'getEditableFile' | 'saveOrUpdateSignatureRequest' | 'canRequestSign' | 'canSign' | 'isObservingOnly'> & {
 	loading: boolean
 	getFile: ReturnType<typeof useFilesStore>['getFile']
 	getEditableFile: ReturnType<typeof useFilesStore>['getEditableFile']
 	saveOrUpdateSignatureRequest: (payload: { visibleElements: EditableVisibleElementPayload[] }) => Promise<{ message: string }>
+	canRequestSign: boolean
+	canSign: ReturnType<typeof useFilesStore>['canSign']
+	isObservingOnly: ReturnType<typeof useFilesStore>['isObservingOnly']
 }
 
 defineOptions({
