@@ -11,11 +11,11 @@ namespace OCA\Libresign\Tests\Unit\Service\File;
 
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\FileUploadHelper;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\File\MimeService;
 use OCA\Libresign\Service\File\Pdf\PdfValidator;
 use OCA\Libresign\Service\File\UploadProcessor;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCP\Files\Folder;
 use OCP\Files\Node;
 use OCP\IUser;
@@ -27,7 +27,7 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FolderService|MockObject $folderService;
 	private MimeService|MockObject $mimeService;
 	private PdfValidator|MockObject $pdfValidator;
-	private ValidateHelper|MockObject $validateHelper;
+	private FileInputValidator|MockObject $fileInputValidator;
 	private LoggerInterface|MockObject $logger;
 
 	public function setUp(): void {
@@ -36,7 +36,7 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->mimeService = $this->createMock(MimeService::class);
 		$this->pdfValidator = $this->createMock(PdfValidator::class);
-		$this->validateHelper = $this->createMock(ValidateHelper::class);
+		$this->fileInputValidator = $this->createMock(FileInputValidator::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 	}
 
@@ -46,7 +46,7 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->folderService,
 			$this->mimeService,
 			$this->pdfValidator,
-			$this->validateHelper,
+			$this->fileInputValidator,
 			$this->logger,
 		);
 	}
@@ -173,7 +173,7 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->uploadHelper->method('readUploadedFile')->willReturn('content');
 		$this->mimeService->method('getExtension')->willReturn('pdf');
 		$this->pdfValidator->method('validate');
-		$this->validateHelper->method('validateNewFile');
+		$this->fileInputValidator->method('validateNewFile');
 
 		$targetFolder = $this->createMock(Folder::class);
 		$this->folderService->method('getFolderForFile')->willReturn($targetFolder);
@@ -205,7 +205,7 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mimeService->method('getExtension')->willReturn('pdf');
 		$this->pdfValidator->method('validate');
 
-		$this->validateHelper
+		$this->fileInputValidator
 			->expects($this->once())
 			->method('validateNewFile')
 			->with([
@@ -237,7 +237,7 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mimeService->method('getExtension')->willReturn('pdf');
 		$this->pdfValidator->method('validate');
 
-		$this->validateHelper
+		$this->fileInputValidator
 			->method('validateNewFile')
 			->willThrowException(new LibresignException('Invalid file'));
 
@@ -271,7 +271,7 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mimeService->method('getExtension')->willReturn('pdf');
 		$this->pdfValidator->method('validate');
 
-		$this->validateHelper
+		$this->fileInputValidator
 			->method('validateNewFile')
 			->willThrowException(new LibresignException('Invalid file'));
 
@@ -312,7 +312,7 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->uploadHelper->method('readUploadedFile')->willReturn('content');
 		$this->mimeService->method('getExtension')->willReturn('pdf');
 		$this->pdfValidator->method('validate');
-		$this->validateHelper->method('validateNewFile');
+		$this->fileInputValidator->method('validateNewFile');
 
 		$targetFolder = $this->createMock(Folder::class);
 		$this->folderService->method('getFolderForFile')->willReturn($targetFolder);
