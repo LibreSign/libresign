@@ -1137,6 +1137,29 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(wrapper.vm.participantListEvent).toBe('')
 			expect(filesStore.canSign()).toBe(false)
 		})
+
+		it('hides signature position actions when the request has only observers', async () => {
+			filesStore.canRequestSign = true
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				detailsLoaded: true,
+				signatureFlow: 'parallel',
+				signers: [
+					{
+						displayName: 'Only Observer',
+						me: false,
+						status: SIGN_REQUEST_STATUS.DRAFT,
+						signRequestId: 10,
+						participantRole: PARTICIPANT_ROLE.OBSERVER,
+					},
+				],
+			})
+
+			expect(wrapper.vm.signingParticipantCount).toBe(0)
+			expect(wrapper.vm.showsPositionEditor).toBe(false)
+			expect(wrapper.vm.showSaveButton).toBe(false)
+			expect(wrapper.vm.showViewPositionsButton).toBe(false)
+		})
 	})
 
 	describe('RULE: canSendObserverNotification for observers', () => {
