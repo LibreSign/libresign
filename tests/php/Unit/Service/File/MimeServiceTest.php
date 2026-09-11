@@ -9,25 +9,25 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\File;
 
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\File\MimeService;
+use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCP\Files\IMimeTypeDetector;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class MimeServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IMimeTypeDetector|MockObject $mimeTypeDetector;
-	private ValidateHelper|MockObject $validateHelper;
+	private FileInputValidator|MockObject $fileInputValidator;
 
 	public function setUp(): void {
 		parent::setUp();
 		$this->mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
-		$this->validateHelper = $this->createMock(ValidateHelper::class);
+		$this->fileInputValidator = $this->createMock(FileInputValidator::class);
 	}
 
 	private function getService(): MimeService {
 		return new MimeService(
 			$this->mimeTypeDetector,
-			$this->validateHelper,
+			$this->fileInputValidator,
 		);
 	}
 
@@ -41,7 +41,7 @@ final class MimeServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->with($content)
 			->willReturn($expectedMime);
 
-		$this->validateHelper
+		$this->fileInputValidator
 			->expects($this->once())
 			->method('validateMimeTypeAcceptedByMime')
 			->with($expectedMime);
@@ -61,7 +61,7 @@ final class MimeServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('detectString')
 			->willReturn($expectedMime);
 
-		$this->validateHelper
+		$this->fileInputValidator
 			->expects($this->once())
 			->method('validateMimeTypeAcceptedByMime');
 
@@ -91,7 +91,7 @@ final class MimeServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'txt' => ['text/plain'],
 			]);
 
-		$this->validateHelper
+		$this->fileInputValidator
 			->method('validateMimeTypeAcceptedByMime');
 
 		$service = $this->getService();
@@ -115,7 +115,7 @@ final class MimeServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'pdf' => ['application/pdf'],
 			]);
 
-		$this->validateHelper
+		$this->fileInputValidator
 			->method('validateMimeTypeAcceptedByMime');
 
 		$service = $this->getService();
@@ -139,7 +139,7 @@ final class MimeServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'txt' => ['text/plain'],
 			]);
 
-		$this->validateHelper
+		$this->fileInputValidator
 			->method('validateMimeTypeAcceptedByMime');
 
 		$service = $this->getService();
@@ -151,7 +151,7 @@ final class MimeServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testSetMimeTypeValidatesAndSets(): void {
 		$mime = 'application/pdf';
 
-		$this->validateHelper
+		$this->fileInputValidator
 			->expects($this->once())
 			->method('validateMimeTypeAcceptedByMime')
 			->with($mime);
@@ -170,7 +170,7 @@ final class MimeServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('detectString')
 			->willReturn($mime);
 
-		$this->validateHelper
+		$this->fileInputValidator
 			->method('validateMimeTypeAcceptedByMime');
 
 		$service = $this->getService();
