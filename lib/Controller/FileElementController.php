@@ -9,9 +9,11 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileElementService;
+use OCA\Libresign\Service\Validation\FileInputValidator;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
+use OCA\Libresign\Service\Validation\VisibleElementValidator;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -31,7 +33,8 @@ class FileElementController extends AEnvironmentAwareController {
 		IRequest $request,
 		private FileElementService $fileElementService,
 		private IUserSession $userSession,
-		private ValidateHelper $validateHelper,
+		private VisibleElementValidator $visibleElementValidator,
+		private SigningRequestValidator $signingRequestValidator,
 		private LoggerInterface $logger,
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -68,8 +71,8 @@ class FileElementController extends AEnvironmentAwareController {
 			'fileId' => $fileId,
 		];
 		try {
-			$this->validateHelper->validateVisibleElement($visibleElement, ValidateHelper::TYPE_VISIBLE_ELEMENT_PDF);
-			$this->validateHelper->validateExistingFile([
+			$this->visibleElementValidator->validateVisibleElement($visibleElement, FileInputValidator::TYPE_VISIBLE_ELEMENT_PDF);
+			$this->signingRequestValidator->validateExistingFile([
 				'uuid' => $uuid,
 				'userManager' => $this->userSession->getUser()
 			]);
@@ -129,11 +132,11 @@ class FileElementController extends AEnvironmentAwareController {
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/file-element/{uuid}/{elementId}', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteVisibleElement(string $uuid, int $elementId): DataResponse {
 		try {
-			$this->validateHelper->validateExistingFile([
+			$this->signingRequestValidator->validateExistingFile([
 				'uuid' => $uuid,
 				'userManager' => $this->userSession->getUser()
 			]);
-			$this->validateHelper->validateAuthenticatedUserIsOwnerOfPdfVisibleElement($elementId, $this->userSession->getUser()->getUID());
+			$this->visibleElementValidator->validateAuthenticatedUserIsOwnerOfPdfVisibleElement($elementId, $this->userSession->getUser()->getUID());
 			$this->fileElementService->deleteVisibleElement($elementId);
 			return new DataResponse();
 		} catch (\Throwable $th) {
