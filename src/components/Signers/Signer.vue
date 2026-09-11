@@ -67,6 +67,10 @@ import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
 import { usePoliciesStore } from '../../store/policies'
 import {
+	countSigningParticipants,
+	isObserverParticipant,
+} from '../../utils/participantRole.ts'
+import {
 	normalizeIdentifyMethodsPolicy,
 	type IdentifyMethodPolicyEntry,
 } from '../../views/Settings/PolicyWorkbench/settings/identify-methods/model'
@@ -97,6 +101,7 @@ type SignerViewModel = {
 	statusText?: string
 	displayName?: string
 	signingOrder?: number
+	participantRole?: string | null
 }
 
 const filesStore = useFilesStore()
@@ -125,8 +130,12 @@ const signerName = computed(() => signer.value.displayName || '')
 const signerStatusText = computed<string>(() => signer.value.statusText || '')
 
 const counterNumber = computed(() => {
+	if (isObserverParticipant(signer.value)) {
+		return 0
+	}
+
 	const file = filesStore.getFile()
-	const totalSigners = file?.signers?.length || 0
+	const totalSigners = countSigningParticipants(file?.signers)
 	if (signatureFlow.value === 'ordered_numeric' && totalSigners > 1 && signer.value.signingOrder) {
 		return signer.value.signingOrder
 	}
@@ -170,6 +179,9 @@ const showDragHandle = computed(() => {
 	if (!props.draggable) {
 		return false
 	}
+	if (isObserverParticipant(signer.value)) {
+		return false
+	}
 	if (filesStore.isOriginalFileDeleted()) {
 		return false
 	}
@@ -177,7 +189,7 @@ const showDragHandle = computed(() => {
 	if (!file || !file.signers) {
 		return false
 	}
-	const totalSigners = file.signers.length
+	const totalSigners = countSigningParticipants(file.signers)
 	return signatureFlow.value === 'ordered_numeric'
 		&& totalSigners > 1
 		&& !signer.value.signed

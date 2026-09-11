@@ -357,7 +357,7 @@ describe('Signers', () => {
 
 			expect(filesStore.selectedFile.signers![0].signingOrder).toBe(1)
 			expect(filesStore.selectedFile.signers![1].signingOrder).toBe(2)
-			expect(filesStore.selectedFile.signers![2].signingOrder).toBe(99)
+			expect(filesStore.selectedFile.signers![2].signingOrder).toBeUndefined()
 		})
 	})
 

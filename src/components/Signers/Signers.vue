@@ -135,6 +135,10 @@ function onDragEnd(evt: { oldIndex: number; newIndex: number }) {
 	const file = filesStore.getFile()
 	let order = 1
 	file?.signers?.forEach((signer) => {
+		if (isObserverParticipant(signer)) {
+			delete signer.signingOrder
+			return
+		}
 		if (isSigningParticipant(signer)) {
 			signer.signingOrder = order++
 		}
