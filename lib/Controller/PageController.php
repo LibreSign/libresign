@@ -703,6 +703,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('file_info', $fileInfo);
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
+		Util::addStyle(Application::APP_ID, 'libresign-validation');
 		if (class_exists(LoadViewer::class)) {
 			$this->eventDispatcher->dispatchTyped(new LoadViewer());
 		}
