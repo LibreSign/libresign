@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { t } from '@nextcloud/l10n'
+
 export type CollectedGeolocation = {
 	status: 'collected'
 	latitude: number
@@ -127,7 +129,27 @@ export async function collectDeviceGeolocation(
 	}
 }
 
-export function formatDeviceReportedLocation(geolocation: DeviceReportedLocation | null | undefined): string | null {
+export function formatLocationAccuracyMeters(accuracy: number, locale?: string): string {
+	return new Intl.NumberFormat(locale, {
+		style: 'unit',
+		unit: 'meter',
+		unitDisplay: 'short',
+		maximumFractionDigits: 0,
+	}).format(accuracy)
+}
+
+export function formatDeviceReportedLocationAccuracy(
+	accuracy: number,
+	locale?: string,
+): string {
+	const formattedAccuracy = formatLocationAccuracyMeters(accuracy, locale)
+	// TRANSLATORS Approximate device-reported location accuracy radius. {accuracy} is a locale-formatted length such as "12 m".
+	return t('libresign', '±{accuracy}', { accuracy: formattedAccuracy })
+}
+
+export function formatDeviceReportedCoordinates(
+	geolocation: Pick<DeviceReportedLocation, 'latitude' | 'longitude'> | null | undefined,
+): string | null {
 	if (!geolocation || typeof geolocation !== 'object') {
 		return null
 	}
@@ -136,12 +158,23 @@ export function formatDeviceReportedLocation(geolocation: DeviceReportedLocation
 		return null
 	}
 
-	const parts = [
-		`${geolocation.latitude}, ${geolocation.longitude}`,
-	]
+	if (!Number.isFinite(geolocation.latitude) || !Number.isFinite(geolocation.longitude)) {
+		return null
+	}
+
+	return `${geolocation.latitude}, ${geolocation.longitude}`
+}
+
+export function formatDeviceReportedLocation(geolocation: DeviceReportedLocation | null | undefined): string | null {
+	const coordinates = formatDeviceReportedCoordinates(geolocation)
+	if (coordinates === null || !geolocation) {
+		return null
+	}
+
+	const parts = [coordinates]
 
 	if (typeof geolocation.accuracy === 'number' && Number.isFinite(geolocation.accuracy)) {
-		parts.push(`±${geolocation.accuracy} m`)
+		parts.push(formatDeviceReportedLocationAccuracy(geolocation.accuracy))
 	}
 
 	if (typeof geolocation.timestamp === 'number' && Number.isFinite(geolocation.timestamp)) {

@@ -643,6 +643,42 @@ describe('IdentifySigner rules', () => {
 			expect(wrapper.vm.geolocationRequired).toBe(false)
 		})
 
+		it('prefers the file policy snapshot over the current effective policy', () => {
+			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'disabled' })
+			filesStore.getFile.mockReturnValue({
+				signers: [],
+				metadata: {
+					policy_snapshot: {
+						signer_geolocation: {
+							effectiveValue: { mode: 'optional' },
+							sourceScope: 'system',
+						},
+					},
+				},
+			})
+			wrapper = createWrapper()
+
+			expect(wrapper.vm.showGeolocationRequirementToggle).toBe(true)
+		})
+
+		it('keeps the toggle hidden when the file snapshot is disabled after a later optional policy change', () => {
+			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'optional' })
+			filesStore.getFile.mockReturnValue({
+				signers: [],
+				metadata: {
+					policy_snapshot: {
+						signer_geolocation: {
+							effectiveValue: { mode: 'disabled' },
+							sourceScope: 'system',
+						},
+					},
+				},
+			})
+			wrapper = createWrapper()
+
+			expect(wrapper.vm.showGeolocationRequirementToggle).toBe(false)
+		})
+
 		it('persists geolocationRequired when optional mode is active', async () => {
 			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'optional' })
 			wrapper = createWrapper()
