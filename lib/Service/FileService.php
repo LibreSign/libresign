@@ -53,7 +53,7 @@ use TypeError;
 /**
  * @psalm-import-type LibresignValidatedFile from ResponseDefinitions
  * @psalm-import-type LibresignSignerDetail from ResponseDefinitions
- * @psalm-import-type LibresignSignerSummary from ResponseDefinitions
+ * @psalm-import-type LibresignValidatedChildSigner from ResponseDefinitions
  * @psalm-import-type LibresignIdentifyMethod from ResponseDefinitions
  */
 class FileService {
@@ -648,7 +648,7 @@ class FileService {
 
 	/**
 	 * @param LibresignSignerDetail[] $signers
-	 * @return LibresignSignerSummary[]
+	 * @return LibresignValidatedChildSigner[]
 	 */
 	private function mapSignerDetailsToSummary(array $signers): array {
 		$summaries = [];
@@ -680,8 +680,11 @@ class FileService {
 			if ($identifyMethods !== null) {
 				$summary['identifyMethods'] = $identifyMethods;
 			}
+			if (isset($signerData['visibleElements'])) {
+				$summary['visibleElements'] = $signerData['visibleElements'];
+			}
 
-			/** @var LibresignSignerSummary $summary */
+			/** @var LibresignValidatedChildSigner $summary */
 			$summaries[] = $summary;
 		}
 
