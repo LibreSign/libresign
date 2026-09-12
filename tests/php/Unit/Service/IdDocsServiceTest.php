@@ -20,6 +20,8 @@ use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCP\IAppConfig;
 use OCP\IL10N;
+use OCP\IUser;
+use OCP\IUserManager;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -37,6 +39,7 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private RequestSignatureService&MockObject $requestSignatureService;
 	private TimeFactory&MockObject $timeFactory;
 	private IAppConfig&MockObject $appConfig;
+	private IUserManager&MockObject $userManager;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -53,6 +56,7 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->requestSignatureService = $this->createMock(RequestSignatureService::class);
 		$this->timeFactory = $this->createMock(TimeFactory::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->userManager = $this->createMock(IUserManager::class);
 	}
 
 	private function getIdDocsService(): IdDocsService {
@@ -67,6 +71,7 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->identifyMethodMapper,
 			$this->timeFactory,
 			$this->appConfig,
+			$this->userManager,
 		);
 	}
 
@@ -165,5 +170,85 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$service = $this->getIdDocsService();
 		$service->deleteIdDocBySignRequest(123, $signRequest);
+	}
+	public function testAddFilesToDocumentFolderStoresFilesUnderTheOwnerOfTheSignedFile(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(55);
+		$signRequest->setFileId(10);
+
+		$signedFile = new \OCA\Libresign\Db\File();
+		$signedFile->setUserId('owner');
+		$this->fileMapper->method('getById')
+			->with(10)
+			->willReturn($signedFile);
+
+		$owner = $this->createMock(IUser::class);
+		$this->userManager->method('get')
+			->with('owner')
+			->willReturn($owner);
+
+		$this->fileTypeMapper->method('getTypes')
+			->willReturn(['IDENTIFICATION' => ['type' => 'IDENTIFICATION']]);
+
+		$savedFile = new \OCA\Libresign\Db\File();
+		$savedFile->setId(77);
+		$this->requestSignatureService->expects($this->once())
+			->method('saveFile')
+			->with($this->callback(function (array $data) use ($owner, $signRequest): bool {
+				$this->assertSame($owner, $data['userManager']);
+				$this->assertSame($signRequest, $data['signRequest']);
+				$this->assertSame('id-front.pdf', $data['name']);
+				return true;
+			}))
+			->willReturn($savedFile);
+
+		$this->idDocsMapper->expects($this->once())
+			->method('save')
+			->with(77, 55, null, 'IDENTIFICATION');
+
+		$service = $this->getIdDocsService();
+		$service->addFilesToDocumentFolder(
+			[['type' => 'IDENTIFICATION', 'name' => 'id-front.pdf', 'base64' => 'ZmFrZQ==']],
+			$signRequest,
+		);
+	}
+
+	public function testAddFilesToDocumentFolderWithoutResolvableOwnerKeepsCurrentBehaviour(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(55);
+		$signRequest->setFileId(10);
+
+		$signedFile = new \OCA\Libresign\Db\File();
+		$signedFile->setUserId('deleted-owner');
+		$this->fileMapper->method('getById')
+			->with(10)
+			->willReturn($signedFile);
+
+		$this->userManager->method('get')
+			->with('deleted-owner')
+			->willReturn(null);
+
+		$this->fileTypeMapper->method('getTypes')
+			->willReturn(['IDENTIFICATION' => ['type' => 'IDENTIFICATION']]);
+
+		$savedFile = new \OCA\Libresign\Db\File();
+		$savedFile->setId(77);
+		$this->requestSignatureService->expects($this->once())
+			->method('saveFile')
+			->with($this->callback(function (array $data): bool {
+				$this->assertArrayNotHasKey('userManager', $data);
+				return true;
+			}))
+			->willReturn($savedFile);
+
+		$this->idDocsMapper->expects($this->once())
+			->method('save')
+			->with(77, 55, null, 'IDENTIFICATION');
+
+		$service = $this->getIdDocsService();
+		$service->addFilesToDocumentFolder(
+			[['type' => 'IDENTIFICATION', 'base64' => 'ZmFrZQ==']],
+			$signRequest,
+		);
 	}
 }
