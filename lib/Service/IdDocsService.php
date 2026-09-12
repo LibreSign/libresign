@@ -141,7 +141,7 @@ class IdDocsService {
 		}
 		try {
 			$signedFile = $this->fileMapper->getById($signedFileId);
-		} catch (\Throwable) {
+		} catch (\OCP\AppFramework\Db\DoesNotExistException) {
 			return null;
 		}
 		return $this->userManager->get($signedFile->getUserId());
