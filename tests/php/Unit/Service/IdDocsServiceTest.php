@@ -251,4 +251,59 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$signRequest,
 		);
 	}
+
+	public function testAddFilesToDocumentFolderWithoutSignedFileRowKeepsCurrentBehaviour(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(55);
+		$signRequest->setFileId(10);
+
+		$this->fileMapper->method('getById')
+			->with(10)
+			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('missing'));
+
+		$this->userManager->expects($this->never())
+			->method('get');
+
+		$this->fileTypeMapper->method('getTypes')
+			->willReturn(['IDENTIFICATION' => ['type' => 'IDENTIFICATION']]);
+
+		$savedFile = new \OCA\Libresign\Db\File();
+		$savedFile->setId(77);
+		$this->requestSignatureService->expects($this->once())
+			->method('saveFile')
+			->with($this->callback(function (array $data): bool {
+				$this->assertArrayNotHasKey('userManager', $data);
+				return true;
+			}))
+			->willReturn($savedFile);
+
+		$service = $this->getIdDocsService();
+		$service->addFilesToDocumentFolder(
+			[['type' => 'IDENTIFICATION', 'base64' => 'ZmFrZQ==']],
+			$signRequest,
+		);
+	}
+
+	public function testAddFilesToDocumentFolderDoesNotHideUnexpectedFailuresWhenResolvingTheOwner(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(55);
+		$signRequest->setFileId(10);
+
+		$this->fileMapper->method('getById')
+			->with(10)
+			->willThrowException(new \RuntimeException('database unavailable'));
+
+		$this->fileTypeMapper->method('getTypes')
+			->willReturn(['IDENTIFICATION' => ['type' => 'IDENTIFICATION']]);
+
+		$this->requestSignatureService->expects($this->never())
+			->method('saveFile');
+
+		$service = $this->getIdDocsService();
+		$this->expectException(\RuntimeException::class);
+		$service->addFilesToDocumentFolder(
+			[['type' => 'IDENTIFICATION', 'base64' => 'ZmFrZQ==']],
+			$signRequest,
+		);
+	}
 }
