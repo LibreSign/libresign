@@ -59,6 +59,21 @@ export function getSigningRouteUuid(
 	return null
 }
 
+/**
+ * In the identification document approval context the route uuid is the
+ * file uuid, not a sign request uuid, and the backend needs
+ * `idDocApproval=true` to resolve it.
+ */
+export function isIdDocApprovalContext(
+	document: DocumentLike | null | undefined,
+	routeUuid: string | null | undefined,
+): boolean {
+	return document?.settings?.isApprover === true
+		&& isNonEmptyString(routeUuid)
+		&& isNonEmptyString(document?.uuid)
+		&& routeUuid === document.uuid
+}
+
 export function getValidationRouteUuid(document: DocumentLike | null | undefined): string | number | null {
 	if (isNonEmptyString(document?.uuid)) {
 		return document.uuid
