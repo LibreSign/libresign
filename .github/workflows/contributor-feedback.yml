@@ -28,6 +28,19 @@ jobs:
       pull-requests: read
       issues: write
 
+    # Built here rather than inside the message, so the separator logic is
+    # readable and the message stays prose. The survey base URL is a
+    # repository variable the LibreCode team sets; only the two context
+    # values #8292 allows are appended, and `?` becomes `&` if the
+    # configured URL already carries a query string -- a LimeSurvey link
+    # often does (`/index.php?r=survey/index&sid=...`).
+    env:
+      SURVEY_LINK: >-
+        ${{ vars.CONTRIBUTOR_SURVEY_URL && format('{0}{1}source=github-first-merged-pr&repository={2}',
+        vars.CONTRIBUTOR_SURVEY_URL,
+        contains(vars.CONTRIBUTOR_SURVEY_URL, '?') && '&' || '?',
+        github.event.repository.name) || '' }}
+
     steps:
       # Nothing from the pull request is checked out, downloaded or executed:
       # pull_request_target runs with a writable token against the base
@@ -53,7 +66,7 @@ jobs:
             how the process works.
 
 
-            ${{ vars.CONTRIBUTOR_SURVEY_URL && format('If you have a few minutes and feel like it, we would love to hear how this went for you: {0}. It is entirely optional — nothing is expected of you in return for contributing.', vars.CONTRIBUTOR_SURVEY_URL) || '' }}
+            ${{ env.SURVEY_LINK && format('If you have a few minutes and feel like it, we would love to hear how this went for you: {0}. It is entirely optional — nothing is expected of you in return for contributing.', env.SURVEY_LINK) || '' }}
 
 
             ${{ vars.COMMUNITY_URL && format('Come say hello in the LibreSign community: {0}', vars.COMMUNITY_URL) || '' }}
