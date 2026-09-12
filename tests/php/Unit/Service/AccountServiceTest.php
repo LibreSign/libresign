@@ -23,7 +23,6 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\FileUploadHelper;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
@@ -38,6 +37,8 @@ use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\Validation\FileInputValidator;
+use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccount;
 use OCP\Accounts\IAccountManager;
@@ -80,7 +81,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private NewUserMailHelper&MockObject $newUserMail;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
-	private ValidateHelper&MockObject $validateHelper;
+	private IdentityDocumentValidator&MockObject $identityDocumentValidator;
+	private FileInputValidator&MockObject $fileInputValidator;
 	private IURLGenerator&MockObject $urlGenerator;
 	private IGroupManager&MockObject $groupManager;
 	private ISubAdmin&MockObject $subAdmin;
@@ -120,7 +122,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
-		$this->validateHelper = $this->createMock(ValidateHelper::class);
+		$this->identityDocumentValidator = $this->createMock(IdentityDocumentValidator::class);
+		$this->fileInputValidator = $this->createMock(FileInputValidator::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
@@ -158,7 +161,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->newUserMail,
 			$this->identifyMethodService,
 			$this->identifyMethodMapper,
-			$this->validateHelper,
+			$this->identityDocumentValidator,
+			$this->fileInputValidator,
 			$this->urlGenerator,
 			$this->pkcs12Handler,
 			$this->groupManager,
