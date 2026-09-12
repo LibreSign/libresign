@@ -45,3 +45,35 @@ See the respective sections below for further instructions.
 ### Front and backend development environment
 
 More information [here](https://docs.libresign.coop/developer_manual/getting-started/development-environment/setup), at the [official documentation](https://docs.libresign.coop/developer_manual/getting-started/development-environment/setup)
+
+After your first contribution
+-----------------------------
+
+When your first pull request is merged, a bot leaves a short note on it to say
+thank you and to point you at what to look at next. It is triggered by the
+first pull request of yours that is actually **merged**, so an earlier one that
+was closed without being accepted does not use it up.
+
+That note may include a link to a short contributor survey. Answering it is
+entirely optional and nothing about your contribution depends on it — we ask
+because the people best placed to tell us where the first contribution is
+harder than it should be are the ones who have just been through it.
+
+You are, of course, welcome to contribute again without any of that.
+
+Contributor feedback
+--------------------
+
+Have you contributed, or tried to contribute, to LibreSign? We would like to
+hear about your experience, whether or not your work was merged — the setup
+step or the issue description that stopped you is the one we most need to hear
+about, and the post-merge note never reaches you.
+
+[Contributor experience survey][contributor-survey]
+
+<!-- The base URL is the CONTRIBUTOR_SURVEY_URL repository variable that the
+     workflow reads; markdown cannot read it, so it is written out once here.
+     Replace the .invalid placeholder with the LimeSurvey URL and keep the two
+     query parameters -- they are the only context values #8292 allows. -->
+
+[contributor-survey]: https://replace-me.invalid/?source=contributing-guide&repository=libresign
