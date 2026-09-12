@@ -1522,6 +1522,77 @@ describe('files store - critical business rules', () => {
 				expect(config.data.file).toEqual({ nodeId })
 			})
 
+			/**
+			 * Regression #8363: the Files sidebar can hand AppFilesTab a node whose id
+			 * is a numeric string (e.g. a file copied in the Files app and opened in the
+			 * sidebar before the list is refreshed). AppFilesTab stores it as nodeId
+			 * unchanged, and serializeRequestFile() used to accept only numbers, so the
+			 * request went out without "file" and the API answered 422.
+			 */
+			it('includes file.nodeId when the temporary file carries a numeric string nodeId', async () => {
+				const store = useFilesStore()
+				const tempId = -12345
+				store.files[tempId] = {
+					id: tempId,
+					nodeId: '12345',
+					name: 'copy of test.pdf',
+					signers: [{ email: 'signer@example.com', identifyMethods: [{ method: 'email', value: 'signer@example.com', requirement: 'optional' }] }],
+					signatureFlow: 'parallel',
+				}
+				store.selectedFileId = tempId
+
+				axiosMock.mockResolvedValue({
+					data: { ocs: { data: { id: 12345, nodeId: 12345, signatureFlow: 'parallel', signers: [] } } },
+				})
+
+				await store.saveOrUpdateSignatureRequest({})
+
+				const config = axiosMock.mock.calls[0][0]
+				expect(config.data.file).toEqual({ nodeId: 12345 })
+			})
+
+			it('serializes envelope files whose nodeId is a numeric string', async () => {
+				const store = useFilesStore()
+				store.selectedFileId = -1
+				store.files[-1] = {
+					id: -1,
+					name: 'Envelope',
+					files: [
+						{ id: -7, nodeId: '7', name: 'first.pdf' },
+						{ id: -22, nodeId: 22, name: 'second.pdf' },
+					],
+					signers: [{ email: 'signer@example.com' }],
+					signatureFlow: 'parallel',
+				}
+				axiosMock.mockResolvedValue({
+					data: { ocs: { data: { id: 12, nodeId: 'real-node', signatureFlow: 'parallel', signers: [] } } },
+				})
+
+				await store.saveOrUpdateSignatureRequest({})
+
+				const config = axiosMock.mock.calls[0][0]
+				expect(config.data.files).toEqual([{ nodeId: 7 }, { nodeId: 22 }])
+			})
+
+			it('does not turn a non-numeric envelope nodeId into a file reference', async () => {
+				const store = useFilesStore()
+				store.selectedFileId = 10
+				store.files[10] = {
+					id: 10,
+					nodeType: 'envelope',
+					nodeId: 'temp-node',
+					signers: [],
+				}
+				axiosMock.mockResolvedValue({
+					data: { ocs: { data: { id: 12, nodeId: 'real-node', signers: [] } } },
+				})
+
+				await store.saveOrUpdateSignatureRequest({})
+
+				const config = axiosMock.mock.calls[0][0]
+				expect(config.data.file).toBeNull()
+			})
+
 			it('serializes envelope files with nodeId-based references for creation flows', async () => {
 				const store = useFilesStore()
 				store.selectedFileId = -1

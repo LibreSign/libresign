@@ -961,6 +961,24 @@ const _filesStore = defineStore('files', () => {
 			.filter((signer) => signer && signer.identifyMethods?.length)
 	}
 
+	/**
+	 * Positive integer id from a number or a numeric string, or null.
+	 * Ids reach the store as strings when the Files sidebar node has no
+	 * fileid yet (#8363); envelope placeholders such as 'temp-node' stay out.
+	 *
+	 * @param {unknown} value
+	 * @return {number | null}
+	 */
+	function toPositiveIntegerId(value) {
+		if (typeof value === 'string' && /^\d+$/.test(value)) {
+			value = Number(value)
+		}
+		if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {
+			return null
+		}
+		return value
+	}
+
 	/** @param {EditableFileReferenceDraft | ApiFileRecord | EditableFileDraft | string | null | undefined} file */
 	function serializeRequestFile(file, { preferNodeId = false } = {}) {
 		if (typeof file === 'string') {
@@ -972,19 +990,20 @@ const _filesStore = defineStore('files', () => {
 		if (typeof file.path === 'string' && file.path.length > 0) {
 			return { path: file.path }
 		}
-		if (preferNodeId && typeof file.nodeId === 'number' && file.nodeId > 0) {
-			return { nodeId: file.nodeId }
+		const nodeId = toPositiveIntegerId(file.nodeId)
+		const fileId = toPositiveIntegerId(file.fileId)
+		const id = toPositiveIntegerId(file.id)
+		if (preferNodeId && nodeId) {
+			return { nodeId }
 		}
-		if (typeof file.fileId === 'number' && file.fileId > 0) {
-			return { fileId: file.fileId }
+		if (fileId) {
+			return { fileId }
 		}
-		if (typeof file.id === 'number' && file.id > 0) {
-			if (!preferNodeId) {
-				return { fileId: file.id }
-			}
+		if (id && !preferNodeId) {
+			return { fileId: id }
 		}
-		if (typeof file.nodeId === 'number' && file.nodeId > 0) {
-			return { nodeId: file.nodeId }
+		if (nodeId) {
+			return { nodeId }
 		}
 		if (typeof file.url === 'string' && file.url.length > 0) {
 			return { url: file.url }
