@@ -24,6 +24,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IUser;
+use OCP\IUserManager;
 use Sabre\DAV\UUIDUtil;
 
 class IdDocsService {
@@ -39,6 +40,7 @@ class IdDocsService {
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private ITimeFactory $timeFactory,
 		private IAppConfig $appConfig,
+		private IUserManager $userManager,
 	) {
 	}
 
@@ -118,14 +120,34 @@ class IdDocsService {
 		foreach ($files as $fileIndex => $file) {
 			$this->validateTypeOfFile($fileIndex, $file);
 		}
+		// Store the documents under the owner of the file being signed, where
+		// later lookups by the stored user_id expect them; without an IUser the
+		// node would be written to the unauthenticated appdata folder instead.
+		$owner = $this->getOwnerOfSignedFile($signRequest);
 		foreach ($files as $fileData) {
 			$dataToSave = $fileData;
 			$dataToSave['signRequest'] = $signRequest;
 			$dataToSave['name'] = $fileData['name'] ?? $fileData['type'];
+			if ($owner instanceof IUser) {
+				$dataToSave['userManager'] = $owner;
+			}
 			$file = $this->requestSignatureService->saveFile($dataToSave);
 
 			$this->idDocsMapper->save($file->getId(), $signRequest->getId(), null, $fileData['type']);
 		}
+	}
+
+	private function getOwnerOfSignedFile(SignRequest $signRequest): ?IUser {
+		$signedFileId = $signRequest->getFileId();
+		if (!$signedFileId) {
+			return null;
+		}
+		try {
+			$signedFile = $this->fileMapper->getById($signedFileId);
+		} catch (\OCP\AppFramework\Db\DoesNotExistException) {
+			return null;
+		}
+		return $this->userManager->get($signedFile->getUserId());
 	}
 
 	public function list(array $filter, ?int $page = null, ?int $length = null, array $sort = []): array {
