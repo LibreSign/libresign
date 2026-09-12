@@ -884,7 +884,8 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 			expect(wrapper.text()).toContain('Try signing again')
 			expect(wrapper.text()).not.toContain('Sign document')
-			expect(wrapper.findAll('.nc-note-card-stub')).toHaveLength(1)
+			// One card for the blocking error, one for the missing visible signature field.
+			expect(wrapper.findAll('.nc-note-card-stub')).toHaveLength(2)
 		})
 	})
 
@@ -2265,5 +2266,41 @@ describe('Sign.vue - required device geolocation', () => {
 		expect(wrapper.vm.requiresDeviceGeolocation).toBe(false)
 		expect(geolocationHelper.collectDeviceGeolocation).not.toHaveBeenCalled()
 		expect(submitSignatureMock.mock.calls[0]?.[0]).not.toHaveProperty('geolocation')
+	})
+})
+
+describe('Sign.vue - no visible signature notice', () => {
+	it('detects a visible signature field when the signer has one', async () => {
+		setActivePinia(createPinia())
+		const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+		const { useSignStore } = await import('../../../store/sign.js')
+		const signStore = useSignStore()
+		signStore.document = createSignDocument({
+			nodeType: 'file',
+			signers: [
+				{ signRequestId: 501, me: true },
+			],
+			visibleElements: [
+				{ elementId: 201, fileId: 1, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+			],
+		})
+		const wrapper = mount(SignComponent.default, createSignMountOptions())
+		expect(wrapper.vm.hasVisibleSignatureField).toBe(true)
+	})
+
+	it('detects no visible signature field when the signer has none', async () => {
+		setActivePinia(createPinia())
+		const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+		const { useSignStore } = await import('../../../store/sign.js')
+		const signStore = useSignStore()
+		signStore.document = createSignDocument({
+			nodeType: 'file',
+			signers: [
+				{ signRequestId: 501, me: true },
+			],
+			visibleElements: [],
+		})
+		const wrapper = mount(SignComponent.default, createSignMountOptions())
+		expect(wrapper.vm.hasVisibleSignatureField).toBe(false)
 	})
 })

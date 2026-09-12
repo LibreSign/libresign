@@ -37,6 +37,14 @@
 				<NcRichText :text="error.message"
 					:use-markdown="true" />
 			</NcNoteCard>
+			<NcNoteCard v-if="!hasVisibleSignatureField"
+					:heading="t('libresign', 'No visible signature is required')"
+					type="info">
+				<p>
+					<!-- TRANSLATORS Informational message shown when the current signer has no visible signature field in the document. -->
+					{{ t('libresign', 'Your digital signature will still be added to the PDF and can be validated after signing.') }}
+				</p>
+			</NcNoteCard>
 			<div v-if="needCreateSignature" class="no-signature-warning">
 				<p>
 					<!-- TRANSLATORS Warning shown when the signer has not created any reusable signature yet. -->
@@ -587,6 +595,7 @@ const needCreateSignature = computed(() => {
 	}
 	return hasVisibleElementsForCurrentUser(visibleElementsDocument.value)
 })
+const hasVisibleSignatureField = computed(() => hasVisibleElementsForCurrentUser(visibleElementsDocument.value))
 const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
 const canCreateSignature = computed(() => {
 	const capabilities = getCapabilities() as LibresignCapabilities
@@ -953,6 +962,7 @@ defineExpose({
 	hasSignatures,
 	needCreateSignature,
 	canCreateSignature,
+	hasVisibleSignatureField,
 	submitSignature,
 	signWithTokenCode,
 	requiresDeviceGeolocation,
