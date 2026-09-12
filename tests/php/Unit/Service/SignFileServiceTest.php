@@ -38,7 +38,6 @@ use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
 use OCA\Libresign\Helper\JavaHelper;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\CertificateValidityPolicy;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\FileStatusService;
@@ -60,6 +59,9 @@ use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCA\Libresign\Service\TsaValidationService;
+use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
+use OCA\Libresign\Service\Validation\SignerValidator;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
@@ -93,7 +95,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FolderService&MockObject $folderService;
 	private LoggerInterface&MockObject $logger;
 	private IAppConfig $appConfig;
-	private ValidateHelper&MockObject $validateHelper;
+	private IdentityDocumentValidator&MockObject $identityDocumentValidator;
+	private SigningRequestValidator&MockObject $signingRequestValidator;
+	private SignerValidator&MockObject $signerValidator;
 	private SignerElementsService&MockObject $signerElementsService;
 	private IUserSession&MockObject $userSession;
 	private IDateTimeZone $dateTimeZone;
@@ -142,7 +146,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
-		$this->validateHelper = $this->createMock(\OCA\Libresign\Helper\ValidateHelper::class);
+		$this->identityDocumentValidator = $this->createMock(IdentityDocumentValidator::class);
+		$this->signingRequestValidator = $this->createMock(SigningRequestValidator::class);
+		$this->signerValidator = $this->createMock(SignerValidator::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->dateTimeZone = \OCP\Server::get(IDateTimeZone::class);
@@ -447,7 +453,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->clientService,
 					$this->logger,
 					$this->appConfig,
-					$this->validateHelper,
+					$this->identityDocumentValidator,
+					$this->signingRequestValidator,
+					$this->signerValidator,
 					$this->signerElementsService,
 					$this->userSession,
 					$this->dateTimeZone,
@@ -491,7 +499,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->clientService,
 			$this->logger,
 			$this->appConfig,
-			$this->validateHelper,
+			$this->identityDocumentValidator,
+			$this->signingRequestValidator,
+			$this->signerValidator,
 			$this->signerElementsService,
 			$this->userSession,
 			$this->dateTimeZone,
@@ -2092,10 +2102,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest->setFileId(10);
 		$signRequest->setSigningOrder(0);
 
-		$this->validateHelper->expects($this->once())
+		$this->signingRequestValidator->expects($this->once())
 			->method('fileCanBeSigned')
 			->with($file);
-		$this->validateHelper->expects($this->once())
+		$this->signerValidator->expects($this->once())
 			->method('validateUuidFormat')
 			->with($uuid);
 		$this->signRequestMapper->expects($this->once())
@@ -2130,10 +2140,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest->setFileId(10);
 		$signRequest->setSigningOrder(0);
 
-		$this->validateHelper->expects($this->once())
+		$this->signingRequestValidator->expects($this->once())
 			->method('fileCanBeSigned')
 			->with($file);
-		$this->validateHelper->expects($this->once())
+		$this->identityDocumentValidator->expects($this->once())
 			->method('userCanApproveValidationDocuments')
 			->with($user, false)
 			->willReturn(true);
@@ -2234,10 +2244,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$identifyMethodB->setIdentifierKey(IdentifyMethodService::IDENTIFY_EMAIL);
 		$identifyMethodB->setIdentifierValue('other@example.test');
 
-		$this->validateHelper->expects($this->once())
+		$this->signingRequestValidator->expects($this->once())
 			->method('fileCanBeSigned')
 			->with($file);
-		$this->validateHelper->method('userCanApproveValidationDocuments')
+		$this->identityDocumentValidator->method('userCanApproveValidationDocuments')
 			->willReturn(false);
 		$this->signRequestMapper->expects($this->once())
 			->method('getByFileId')
@@ -2290,10 +2300,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$identifyMethod->setIdentifierKey(IdentifyMethodService::IDENTIFY_ACCOUNT);
 		$identifyMethod->setIdentifierValue('approver');
 
-		$this->validateHelper->expects($this->once())
+		$this->signingRequestValidator->expects($this->once())
 			->method('fileCanBeSigned')
 			->with($file);
-		$this->validateHelper->expects($this->once())
+		$this->identityDocumentValidator->expects($this->once())
 			->method('userCanApproveValidationDocuments')
 			->with($user, false)
 			->willReturn(true);
