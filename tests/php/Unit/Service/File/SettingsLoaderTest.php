@@ -48,7 +48,7 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->appConfig,
 			$this->groupManager,
 			$this->idDocsMapper,
-			$this->createMock(\OCA\Libresign\Service\IdentifyMethodService::class),
+			$this->identifyMethodService,
 		);
 	}
 
@@ -143,6 +143,54 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->loadSettings($fileData, $options);
 
 		$this->assertTrue($fileData->settings['canSign']);
+	}
+
+	/**
+	 * Regression for #8365: the document was uploaded by an external signer
+	 * identified by email; the approver must be offered the signature methods
+	 * of their own account, never the ones bound to the uploader.
+	 */
+	public function testLoadSettingsApproverGetsSignatureMethodsOfTheirOwnAccount(): void {
+		$approver = $this->createMock(IUser::class);
+		$approver->method('getUID')->willReturn('approver');
+
+		$fileData = new \stdClass();
+		$fileData->id = 10;
+		$fileData->status = FileStatus::ABLE_TO_SIGN->value;
+
+		$options = $this->createMock(FileResponseOptions::class);
+		$options->method('isShowSettings')->willReturn(true);
+		$options->method('getMe')->willReturn($approver);
+		$options->method('isSignerIdentified')->willReturn(false);
+
+		$this->accountSettingsProvider->method('getSettings')->with($approver)->willReturn([]);
+		$this->accountSettingsProvider->method('getPhoneNumber')->with($approver)->willReturn('');
+		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->willReturn(false);
+		$this->idDocsPolicyService->method('canApproverSignIdDoc')
+			->with($approver, 10, FileStatus::ABLE_TO_SIGN->value)
+			->willReturn(true);
+
+		$approverMethods = [
+			'password' => ['label' => 'Certificate with password', 'name' => 'password', 'enabled' => true],
+			'emailToken' => ['identifyMethod' => 'account', 'blurredEmail' => 'a*****@example.coop', 'needCode' => true, 'hasConfirmCode' => false],
+		];
+		$this->identifyMethodService->expects($this->once())
+			->method('getSignMethodsOfAccount')
+			->with('approver')
+			->willReturn($approverMethods);
+		// The uploader's sign request (id docs row) must not be consulted:
+		// its methods belong to external@example.com, not to the approver.
+		$this->identifyMethodService->expects($this->never())
+			->method('getSignMethodsOfIdentifiedFactors');
+		$this->idDocsMapper->expects($this->never())
+			->method('getByFileId');
+
+		$service = $this->getService();
+		$service->loadSettings($fileData, $options);
+
+		$this->assertTrue($fileData->settings['isApprover']);
+		$this->assertSame($approverMethods, $fileData->settings['signatureMethods']);
+		$this->assertStringNotContainsString('external', json_encode($fileData->settings['signatureMethods']));
 	}
 
 	public static function providerGetIdentificationDocumentsStatus(): array {
