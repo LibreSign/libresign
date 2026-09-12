@@ -15,6 +15,7 @@ import { useSidebarStore } from './sidebar.js'
 import { useSignMethodsStore } from './signMethods.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
+import { isIdDocApprovalContext } from '../utils/signRequestUuid.ts'
 
 /** @typedef {import('../types/index').SignatureMethodsRecord} SignatureMethodsRecord */
 
@@ -210,15 +211,6 @@ export const useSignStore = defineStore('sign', () => {
 
 	const buildSignUrl = (signRequestUuid, options = {}) => {
 		const { documentId } = options
-		const isApprover = document.value?.settings?.isApprover
-		const documentUuid = typeof document.value?.uuid === 'string' && document.value.uuid.length > 0
-			? document.value.uuid
-			: null
-		const isApproverFileSigning = isApprover === true
-			&& typeof signRequestUuid === 'string'
-			&& signRequestUuid.length > 0
-			&& documentUuid !== null
-			&& signRequestUuid === documentUuid
 
 		let url
 		if (signRequestUuid) {
@@ -227,10 +219,24 @@ export const useSignStore = defineStore('sign', () => {
 			url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{id}', { id: documentId }) + '?async=true'
 		}
 
-		if (isApproverFileSigning) {
+		if (isIdDocApprovalContext(document.value, signRequestUuid)) {
 			url += '&idDocApproval=true'
 		}
 
+		return url
+	}
+
+	/**
+	 * Same route/context decision as buildSignUrl().
+	 *
+	 * @param {string} signRequestUuid
+	 * @return {string}
+	 */
+	const buildRequestCodeUrl = (signRequestUuid) => {
+		let url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', { uuid: signRequestUuid })
+		if (isIdDocApprovalContext(document.value, signRequestUuid)) {
+			url += '?idDocApproval=true'
+		}
 		return url
 	}
 
@@ -298,6 +304,7 @@ export const useSignStore = defineStore('sign', () => {
 		clearPendingAction,
 		submitSignature,
 		buildSignUrl,
+		buildRequestCodeUrl,
 		parseSignResponse,
 		parseSignError,
 		clearSigningErrors,
