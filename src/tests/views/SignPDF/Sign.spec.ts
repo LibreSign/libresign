@@ -884,8 +884,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 			expect(wrapper.text()).toContain('Try signing again')
 			expect(wrapper.text()).not.toContain('Sign document')
-			// One card for the blocking error, one for the missing visible signature field.
-			expect(wrapper.findAll('.nc-note-card-stub')).toHaveLength(2)
+			expect(wrapper.findAll('.nc-note-card-stub')).toHaveLength(1)
 		})
 	})
 
@@ -2270,37 +2269,59 @@ describe('Sign.vue - required device geolocation', () => {
 })
 
 describe('Sign.vue - no visible signature notice', () => {
-	it('detects a visible signature field when the signer has one', async () => {
+	const mountWithVisibleElementFor = async (signRequestId: number) => {
 		setActivePinia(createPinia())
+
 		const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
 		const { useSignStore } = await import('../../../store/sign.js')
 		const signStore = useSignStore()
+
 		signStore.document = createSignDocument({
-			nodeType: 'file',
+			status: FILE_STATUS.ABLE_TO_SIGN,
 			signers: [
-				{ signRequestId: 501, me: true },
+				{ signRequestId: 501, me: true, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN },
+				{ signRequestId: 502 },
 			],
 			visibleElements: [
-				{ elementId: 201, fileId: 1, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+				{ elementId: 201, fileId: 1, signRequestId, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
 			],
 		})
-		const wrapper = mount(SignComponent.default, createSignMountOptions())
-		expect(wrapper.vm.hasVisibleSignatureField).toBe(true)
+
+		const base = createSignMountOptions()
+		const options = {
+			...base,
+			global: {
+				...base.global,
+				stubs: {
+					...base.global.stubs,
+					NcNoteCard: { template: '<div class="nc-note-card-stub"><slot /></div>' },
+					NcButton: { template: '<button><slot /></button>' },
+				},
+			},
+		}
+
+		const wrapper = mount(SignComponent.default, options)
+		await flushPromises()
+
+		return wrapper
+	}
+
+	it('shows the notice when only another signer has a visible element', async () => {
+		const wrapper = await mountWithVisibleElementFor(502)
+
+		expect(wrapper.text()).toContain('Your digital signature will still be added')
 	})
 
-	it('detects no visible signature field when the signer has none', async () => {
-		setActivePinia(createPinia())
-		const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
-		const { useSignStore } = await import('../../../store/sign.js')
-		const signStore = useSignStore()
-		signStore.document = createSignDocument({
-			nodeType: 'file',
-			signers: [
-				{ signRequestId: 501, me: true },
-			],
-			visibleElements: [],
-		})
-		const wrapper = mount(SignComponent.default, createSignMountOptions())
-		expect(wrapper.vm.hasVisibleSignatureField).toBe(false)
+	it('does not show the notice when the current signer has a visible element', async () => {
+		const wrapper = await mountWithVisibleElementFor(501)
+
+		expect(wrapper.text()).not.toContain('Your digital signature will still be added')
+	})
+
+	it('keeps Sign document available while the notice is shown', async () => {
+		const wrapper = await mountWithVisibleElementFor(502)
+
+		expect(wrapper.text()).toContain('Your digital signature will still be added')
+		expect(wrapper.text()).toContain('Sign document')
 	})
 })

@@ -37,7 +37,7 @@
 				<NcRichText :text="error.message"
 					:use-markdown="true" />
 			</NcNoteCard>
-			<NcNoteCard v-if="!hasVisibleSignatureField"
+			<NcNoteCard v-if="!hasVisibleSignatureField && !hasBlockingSignError"
 					:heading="t('libresign', 'No visible signature is required')"
 					type="info">
 				<p>
@@ -962,7 +962,6 @@ defineExpose({
 	hasSignatures,
 	needCreateSignature,
 	canCreateSignature,
-	hasVisibleSignatureField,
 	submitSignature,
 	signWithTokenCode,
 	requiresDeviceGeolocation,
