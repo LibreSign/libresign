@@ -8,24 +8,36 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy\Provider\Helper;
 
-use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Contract\IPolicySource;
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
+use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 
 /**
- * Reads a sibling policy's effective boolean without recursively nesting meta
- * resolution when two policies inspect each other.
+ * Reads a sibling policy's effective boolean in the same PolicyContext used to
+ * build the current resolved state, without recursively nesting meta resolution
+ * when two policies inspect each other.
  */
 class SiblingPolicyEffectiveBoolReader {
 	private int $depth = 0;
+	private DefaultPolicyResolver $resolver;
 
-	public function getEffectiveBool(string $policyKey): bool {
+	public function __construct(
+		private PolicyRegistry $registry,
+		IPolicySource $source,
+	) {
+		$this->resolver = new DefaultPolicyResolver($source);
+	}
+
+	public function getEffectiveBool(string $policyKey, PolicyContext $context): bool {
 		if ($this->depth > 0) {
 			return false;
 		}
 
 		$this->depth++;
 		try {
-			return \OCP\Server::get(PolicyService::class)
-				->resolve($policyKey)
+			return $this->resolver
+				->resolve($this->registry->get($policyKey), $context)
 				->getEffectiveValueAsBool();
 		} finally {
 			$this->depth--;
