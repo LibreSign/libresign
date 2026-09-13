@@ -17,6 +17,7 @@ use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\PrivateValidation;
 use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
+use OCA\Libresign\Middleware\Attribute\RequireParticipantUuid;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\FileListService;
@@ -523,7 +524,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PrivateValidation(allowValidSignRequestUuid: true)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	#[RequireSignRequestUuid(allowIdDocs: true)]
+	#[RequireParticipantUuid(allowIdDocs: true)]
 	#[PublicPage]
 	#[RequireSetupOk]
 	#[AnonRateLimit(limit: 300, period: 60)]

@@ -49,15 +49,24 @@ trait LibresignTrait {
 	}
 
 	/**
+	 * Authorize a signer UUID for signing and other write operations.
+	 *
+	 * Observers are rejected by signer validation.
+	 *
 	 * @throws LibresignException
 	 */
 	public function validateSignRequestUuid(string $uuid): void {
 		$this->loadEntitiesFromUuid($uuid);
-		// Observers need PDF access for read-only viewing, but must not pass signing validation.
-		if ($this->signRequestEntity?->isObserver()) {
-			return;
-		}
 		$this->signFileService->validateSigner($uuid, $this->userSession->getUser());
+	}
+
+	/**
+	 * Authorize any participant UUID (signer or observer) for read-only access.
+	 *
+	 * @throws LibresignException
+	 */
+	public function validateParticipantUuid(string $uuid): void {
+		$this->loadEntitiesFromUuid($uuid);
 	}
 
 	/**
