@@ -53,6 +53,7 @@ test('sign herself with click to sign', async ({ page }) => {
 	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15_000 })
 	const signButton = page.locator('.sign-pdf-sidebar .button-wrapper').getByRole('button', { name: 'Sign document' })
 	await expect(signButton).toBeVisible({ timeout: 15_000 })
+	await expect(page.getByText('No visible signature is required')).toBeVisible()
 	await signButton.click({ force: true })
 	const signResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
