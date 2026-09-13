@@ -69,18 +69,12 @@ class SettingsLoader {
 		}
 	}
 
-	private function loadApproverSignatureMethods(stdClass $fileData): void {
-		try {
-			$idDocs = $this->idDocsMapper->getByFileId($fileData->id);
-			$signRequestId = $idDocs->getSignRequestId();
-			if (!$signRequestId) {
-				return;
-			}
-
-			$signatureMethods = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($signRequestId);
-			$fileData->settings['signatureMethods'] = $signatureMethods;
-		} catch (\Throwable) {
-		}
+	/**
+	 * Loading the settings must not create or persist the approver's sign
+	 * request; that only happens when they sign.
+	 */
+	private function loadApproverSignatureMethods(stdClass $fileData, IUser $approver): void {
+		$fileData->settings['signatureMethods'] = $this->identifyMethodService->getSignMethodsOfAccount($approver->getUID());
 	}
 
 	public function getIdentificationDocumentsStatus(?IUser $user = null, ?SignRequest $signRequest = null): int {
