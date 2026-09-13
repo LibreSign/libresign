@@ -14,6 +14,11 @@
 				<p>{{ description }}</p>
 			</div>
 		</NcCheckboxRadioSwitch>
+		<NcNoteCard v-if="showPrivateValidationWarning"
+			type="warning"
+			:show-alert="true">
+			{{ privateValidationWarning }}
+		</NcNoteCard>
 	</div>
 </template>
 
@@ -22,7 +27,14 @@ import { computed } from 'vue'
 import { t } from '@nextcloud/l10n'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import type { EffectivePolicyValue } from '../../../../../types/index'
+import { usePoliciesStore } from '../../../../../store/policies'
+import {
+	VALIDATION_ACCESS_POLICY_KEY,
+	getObserverPrivateValidationWarningMessage,
+	isEnabledPolicyValue,
+} from '../observerValidationAccessConflict'
 
 defineOptions({
 	name: 'ObserverProfileRuleEditor',
@@ -36,10 +48,13 @@ const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
 
+const policiesStore = usePoliciesStore()
+
 // TRANSLATORS Toggle title for the policy that enables observer participants on signature requests.
 const title = t('libresign', 'Enable observer profile')
 // TRANSLATORS Toggle description explaining that document owners can add view-only participants.
 const description = t('libresign', 'When enabled, document owners can add observers who track progress without signing.')
+const privateValidationWarning = getObserverPrivateValidationWarningMessage()
 
 const normalizedValue = computed<boolean | null>(() => {
 	if (typeof props.modelValue === 'boolean') {
@@ -55,6 +70,11 @@ const normalizedValue = computed<boolean | null>(() => {
 	}
 
 	return null
+})
+
+const showPrivateValidationWarning = computed(() => {
+	return normalizedValue.value === true
+		&& isEnabledPolicyValue(policiesStore.getEffectiveValue(VALIDATION_ACCESS_POLICY_KEY))
 })
 
 function onChange(enabled: boolean) {

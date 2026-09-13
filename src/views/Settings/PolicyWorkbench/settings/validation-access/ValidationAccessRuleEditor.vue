@@ -18,6 +18,11 @@
 				<p>{{ option.description }}</p>
 			</div>
 		</NcCheckboxRadioSwitch>
+		<NcNoteCard v-if="showObserverWarning"
+			type="warning"
+			:show-alert="true">
+			{{ observerWarning }}
+		</NcNoteCard>
 	</div>
 </template>
 
@@ -26,7 +31,14 @@ import { computed } from 'vue'
 import { t } from '@nextcloud/l10n'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import type { EffectivePolicyValue } from '../../../../../types/index'
+import { usePoliciesStore } from '../../../../../store/policies'
+import {
+	OBSERVER_PROFILE_POLICY_KEY,
+	getObserverPrivateValidationWarningMessage,
+	isEnabledPolicyValue,
+} from '../observerValidationAccessConflict'
 
 defineOptions({
 	name: 'ValidationAccessRuleEditor',
@@ -39,6 +51,8 @@ const props = defineProps<{
 const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
+
+const policiesStore = usePoliciesStore()
 
 const options = [
 	{
@@ -57,6 +71,8 @@ const options = [
 	},
 ]
 
+const observerWarning = getObserverPrivateValidationWarningMessage()
+
 const normalizedValue = computed<boolean | null>(() => {
 	if (typeof props.modelValue === 'boolean') {
 		return props.modelValue
@@ -71,6 +87,11 @@ const normalizedValue = computed<boolean | null>(() => {
 	}
 
 	return null
+})
+
+const showObserverWarning = computed(() => {
+	return normalizedValue.value === true
+		&& isEnabledPolicyValue(policiesStore.getEffectiveValue(OBSERVER_PROFILE_POLICY_KEY))
 })
 
 function onChange(value: boolean, selected?: unknown) {
