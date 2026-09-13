@@ -331,6 +331,34 @@ describe('useSignStore', () => {
 		})
 	})
 
+	describe('buildRequestCodeUrl', () => {
+		it('takes the same id-doc approval decision as buildSignUrl for an approver', () => {
+			const store = useSignStore()
+			store.document = createDocument({
+				uuid: 'approver-file-uuid',
+				settings: { isApprover: true },
+			})
+
+			const url = store.buildRequestCodeUrl('approver-file-uuid')
+
+			expect(url).toContain('/sign/uuid/approver-file-uuid/code')
+			expect(url).toContain('?idDocApproval=true')
+		})
+
+		it('does not add the id-doc approval context for a signer uuid', () => {
+			const store = useSignStore()
+			store.document = createDocument({
+				uuid: 'file-uuid',
+				settings: { isApprover: true },
+			})
+
+			const url = store.buildRequestCodeUrl('sign-request-uuid')
+
+			expect(url).toContain('/sign/uuid/sign-request-uuid/code')
+			expect(url).not.toContain('idDocApproval')
+		})
+	})
+
 	describe('getSignatureMethodsForFile', () => {
 		it('returns signatureMethods from current user signer', () => {
 			const store = useSignStore()

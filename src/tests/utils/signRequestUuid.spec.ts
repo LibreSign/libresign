@@ -10,6 +10,7 @@ import {
 	getCurrentSignerSignRequestUuid,
 	getSigningRouteUuid,
 	getValidationRouteUuid,
+	isIdDocApprovalContext,
 } from '../../utils/signRequestUuid.ts'
 
 describe('signRequestUuid utils', () => {
@@ -64,5 +65,31 @@ describe('signRequestUuid utils', () => {
 
 	it('falls back to numeric id for validation routes when uuid is unavailable', () => {
 		expect(getValidationRouteUuid({ id: 42 })).toBe(42)
+	})
+
+	describe('isIdDocApprovalContext', () => {
+		const idDoc = {
+			uuid: 'id-doc-file-uuid',
+			signers: [{ me: false, sign_request_uuid: 'external-signer-uuid' }],
+			settings: { isApprover: true },
+		}
+
+		it('is true when an approver uses the file uuid of the identification document', () => {
+			expect(isIdDocApprovalContext(idDoc, getSigningRouteUuid(idDoc))).toBe(true)
+		})
+
+		it('is false when the route uuid is a signer uuid, even for an approver', () => {
+			const document = { ...idDoc, signers: [{ me: true, sign_request_uuid: 'my-signer-uuid' }] }
+			expect(isIdDocApprovalContext(document, getSigningRouteUuid(document))).toBe(false)
+		})
+
+		it('is false when the user is not an approver', () => {
+			expect(isIdDocApprovalContext({ ...idDoc, settings: { isApprover: false } }, 'id-doc-file-uuid')).toBe(false)
+		})
+
+		it('is false without a route uuid or document uuid', () => {
+			expect(isIdDocApprovalContext(idDoc, null)).toBe(false)
+			expect(isIdDocApprovalContext({ ...idDoc, uuid: null }, 'id-doc-file-uuid')).toBe(false)
+		})
 	})
 })
