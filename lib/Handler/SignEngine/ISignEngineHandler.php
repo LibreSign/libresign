@@ -13,11 +13,6 @@ use OCP\Files\File;
 interface ISignEngineHandler {
 	public function setInputFile(File $inputFile): self;
 	public function getInputFile(): File;
-	public function setCertificate(string $certificate): self;
-	public function getCertificate(): string;
-	public function readCertificate(): array;
-	public function setPassword(string $password): self;
-	public function getPassword(): string;
 	public function sign(): File;
 	public function getSignedContent(): string;
 	public function getSignatureParams(): array;
