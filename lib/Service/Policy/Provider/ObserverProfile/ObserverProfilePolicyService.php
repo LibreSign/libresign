@@ -19,7 +19,7 @@ final class ObserverProfilePolicyService {
 
 	public function isEnabled(?FileEntity $file = null): bool {
 		if ($file instanceof FileEntity) {
-			$snapshotValue = $this->getSnapshotValue($file);
+			$snapshotValue = ObserverProfilePolicyValue::getSnapshotEffectiveValue($file);
 			if ($snapshotValue === true) {
 				return true;
 			}
@@ -37,24 +37,5 @@ final class ObserverProfilePolicyService {
 		return ObserverProfilePolicyValue::normalize(
 			$this->policyService->resolve(ObserverProfilePolicy::KEY)->getEffectiveValue(),
 		);
-	}
-
-	private function getSnapshotValue(?FileEntity $file): ?bool {
-		if (!$file instanceof FileEntity) {
-			return null;
-		}
-
-		$metadata = $file->getMetadata() ?? [];
-		$policySnapshot = $metadata['policy_snapshot'] ?? null;
-		if (!is_array($policySnapshot)) {
-			return null;
-		}
-
-		$entry = $policySnapshot[ObserverProfilePolicy::KEY] ?? null;
-		if (!is_array($entry) || !array_key_exists('effectiveValue', $entry)) {
-			return null;
-		}
-
-		return ObserverProfilePolicyValue::normalize($entry['effectiveValue']);
 	}
 }

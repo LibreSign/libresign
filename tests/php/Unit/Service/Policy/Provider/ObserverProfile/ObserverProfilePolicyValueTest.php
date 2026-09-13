@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\ObserverProfile;
 
+use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
 use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicyValue;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -25,5 +27,25 @@ final class ObserverProfilePolicyValueTest extends TestCase {
 		yield 'false boolean' => [false, false];
 		yield 'false string' => ['false', false];
 		yield 'invalid value' => ['invalid', false];
+	}
+
+	public function testGetSnapshotEffectiveValueReturnsNullWithoutSnapshot(): void {
+		$file = new FileEntity();
+		$file->setMetadata([]);
+
+		$this->assertNull(ObserverProfilePolicyValue::getSnapshotEffectiveValue($file));
+	}
+
+	public function testGetSnapshotEffectiveValueReadsNormalizedEffectiveValue(): void {
+		$file = new FileEntity();
+		$file->setMetadata([
+			'policy_snapshot' => [
+				ObserverProfilePolicy::KEY => [
+					'effectiveValue' => '1',
+				],
+			],
+		]);
+
+		$this->assertTrue(ObserverProfilePolicyValue::getSnapshotEffectiveValue($file));
 	}
 }
