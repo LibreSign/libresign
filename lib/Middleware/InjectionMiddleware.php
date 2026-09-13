@@ -18,7 +18,6 @@ use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\JSActions;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\PrivateValidation;
 use OCA\Libresign\Middleware\Attribute\RequireFileAccess;
@@ -32,6 +31,8 @@ use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\UuidResolverService;
+use OCA\Libresign\Service\Validation\SignerValidator;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
@@ -59,7 +60,8 @@ class InjectionMiddleware extends Middleware {
 		private IRequest $request,
 		private ISession $session,
 		private IUserSession $userSession,
-		private ValidateHelper $validateHelper,
+		private SigningRequestValidator $signingRequestValidator,
+		private SignerValidator $signerValidator,
 		private SignRequestMapper $signRequestMapper,
 		private CertificateEngineFactory $certificateEngineFactory,
 		private FileMapper $fileMapper,
@@ -278,7 +280,7 @@ class InjectionMiddleware extends Middleware {
 			// TRANSLATORS: Error shown when an anonymous user tries to create a signature request, an action allowed only for authenticated users with permission.
 			throw new \Exception($this->l10n->t('You are not allowed to create signature requests'), Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
-		$this->validateHelper->canRequestSign($user);
+		$this->signingRequestValidator->canRequestSign($user);
 	}
 
 	private function requireSigner(): void {
@@ -291,7 +293,7 @@ class InjectionMiddleware extends Middleware {
 			if ($isIdDocApproval) {
 				$this->uuidResolverService->resolveUuidForUser($uuid, $user);
 			} else {
-				$this->validateHelper->validateSigner($uuid, $user);
+				$this->signerValidator->validateSigner($uuid, $user);
 			}
 		} catch (LibresignException $e) {
 			throw new LibresignException($e->getMessage());
@@ -302,7 +304,7 @@ class InjectionMiddleware extends Middleware {
 		$uuid = $this->getUuidFromRequest();
 
 		try {
-			$this->validateHelper->validateSignerUuid($uuid);
+			$this->signerValidator->validateSignerUuid($uuid);
 		} catch (LibresignException $e) {
 			throw new LibresignException($e->getMessage());
 		}

@@ -20,7 +20,6 @@ use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\Envelope\EnvelopeFileRelocator;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
@@ -29,6 +28,9 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\Policy\FilePolicyApplier;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
+use OCA\Libresign\Service\Validation\FileInputValidator;
+use OCA\Libresign\Service\Validation\SignerValidator;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
@@ -55,7 +57,9 @@ class RequestSignatureService {
 		protected FileElementMapper $fileElementMapper,
 		protected FolderService $folderService,
 		protected IMimeTypeDetector $mimeTypeDetector,
-		protected ValidateHelper $validateHelper,
+		protected FileInputValidator $fileInputValidator,
+		protected SigningRequestValidator $signingRequestValidator,
+		protected SignerValidator $signerValidator,
 		protected IClientService $client,
 		protected DocMdpHandler $docMdpHandler,
 		protected LoggerInterface $logger,
@@ -442,7 +446,7 @@ class RequestSignatureService {
 	}
 
 	private function deleteIdentifyMethodIfNotExits(array $signers, FileEntity $file): void {
-		$normalizedSigners = $this->validateHelper->normalizeRequestSigners($signers);
+		$normalizedSigners = $this->signerValidator->normalizeRequestSigners($signers);
 		$signRequests = $this->signRequestMapper->getByFileId($file->getId());
 		foreach ($signRequests as $key => $signRequest) {
 			$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequest->getId());
@@ -483,7 +487,7 @@ class RequestSignatureService {
 	private function associateToSigners(array $data, FileEntity $file): array {
 		$return = [];
 		if (!empty($data['signers'])) {
-			$normalizedSigners = $this->validateHelper->normalizeRequestSigners($data['signers']);
+			$normalizedSigners = $this->signerValidator->normalizeRequestSigners($data['signers']);
 			$this->deleteIdentifyMethodIfNotExits($normalizedSigners, $file);
 			$this->identifyMethod->clearCache();
 
@@ -576,7 +580,7 @@ class RequestSignatureService {
 	public function validateNewRequestToFile(array $data): void {
 		$this->validateNewFile($data);
 		$this->validateSigners($data);
-		$this->validateHelper->validateFileStatus($data);
+		$this->signingRequestValidator->validateFileStatus($data);
 	}
 
 	public function validateNewFile(array $data): void {
@@ -584,7 +588,7 @@ class RequestSignatureService {
 			// TRANSLATORS Error shown when creating a signature request without a document file name.
 			throw new \Exception($this->l10n->t('File name is required'));
 		}
-		$this->validateHelper->validateNewFile($data);
+		$this->fileInputValidator->validateNewFile($data);
 	}
 
 	public function validateSigners(array $data): void {
@@ -601,8 +605,8 @@ class RequestSignatureService {
 			throw new \Exception($this->l10n->t('Signers list needs to be an array'));
 		}
 
-		$this->validateHelper->validateIdentifySigners($data);
-		$normalizedSigners = $this->validateHelper->normalizeRequestSigners($data['signers']);
+		$this->signerValidator->validateIdentifySigners($data);
+		$normalizedSigners = $this->signerValidator->normalizeRequestSigners($data['signers']);
 
 		foreach ($normalizedSigners as $signer) {
 			$this->identifyMethod->setAllEntityData($signer);
