@@ -176,6 +176,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				);
 			}
 
+			$file = $this->normalizeNodeId($file);
 			$data = [
 				'uuid' => $uuid,
 				'file' => $file,
@@ -217,6 +218,38 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>
 	 * @throws LibresignException
 	 */
+	/**
+	 * Normalize a Nextcloud node id at the HTTP boundary.
+	 *
+	 * The Files app sends node ids as strings (`Node.id` of `@nextcloud/files`,
+	 * 64-bit since Nextcloud 33); the services expect the int of the Nextcloud
+	 * Files API. A non-negative int or its canonical decimal string becomes an
+	 * int here; anything else is rejected before it can reach a later cast.
+	 *
+	 * @param array<string, mixed> $file
+	 * @return array<string, mixed>
+	 * @throws LibresignException
+	 */
+	private function normalizeNodeId(array $file): array {
+		$nodeId = $file['nodeId'] ?? null;
+		if ($nodeId === null) {
+			return $file;
+		}
+
+		if (is_string($nodeId) && ctype_digit($nodeId)) {
+			$nodeId = filter_var($nodeId, FILTER_VALIDATE_INT);
+		}
+
+		if (is_int($nodeId) && $nodeId >= 0) {
+			$file['nodeId'] = $nodeId;
+			return $file;
+		}
+
+		throw new LibresignException(
+			$this->l10n->t('File type: %s. Invalid fileID.', [$this->l10n->t('document to sign')]),
+		);
+	}
+
 	private function createSignatureRequest(
 		$user,
 		array $file,
@@ -236,6 +269,9 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		if (empty($file) && empty($files)) {
 			throw new LibresignException($this->l10n->t('File or files parameter is required'));
 		}
+
+		$file = $this->normalizeNodeId($file);
+		$filesToSave = $filesToSave === null ? null : array_map(fn (array $item): array => $this->normalizeNodeId($item), $filesToSave);
 
 		$data = [
 			'file' => $file,
