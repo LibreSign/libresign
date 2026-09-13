@@ -108,11 +108,12 @@ describe('tab.ts', () => {
 		})
 	})
 
-	it('enabled() keeps the string node id of a PDF whose node has no numeric fileid', async () => {
-		await loadTabModule('complete')
-		const tabConfig = getRegisteredTabConfig<{
+	it('enabled() keeps the string node id of a PDF whose node has no numeric fileid', () => {
+		mockLoadState.mockReturnValue(true)
+		window.dispatchEvent(new Event('DOMContentLoaded'))
+		const tabConfig = mockRegisterSidebarTab.mock.calls[0][0] as {
 			enabled: (context: { node: Record<string, unknown> }) => boolean
-		}>()
+		}
 
 		// `@nextcloud/files` Node: `id` is always a string and `fileid` is
 		// undefined when the id does not fit a JavaScript number (#8363).

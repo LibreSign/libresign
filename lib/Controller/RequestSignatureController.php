@@ -250,6 +250,9 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		);
 	}
 
+	/**
+	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>
+	 */
 	private function createSignatureRequest(
 		$user,
 		array $file,

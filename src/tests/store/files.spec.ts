@@ -1365,7 +1365,7 @@ describe('files store - critical business rules', () => {
 					id: tempId,
 					nodeId,
 					name: 'copy of contract.pdf',
-					signers: [{ email: 'signer@example.com', identifyMethods: [{ method: 'email', value: 'signer@example.com', requirement: 'optional' }] }],
+					signers: [{ email: 'signer@example.com', identifyMethods: [{ method: 'email', value: 'signer@example.com', mandatory: 0 }] }],
 					signatureFlow: 'parallel',
 				}
 				store.selectedFileId = tempId
