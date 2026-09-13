@@ -64,7 +64,7 @@ class SettingsLoader {
 			)) {
 				$fileData->settings['canSign'] = true;
 				$fileData->settings['isApprover'] = true;
-				$this->loadApproverSignatureMethods($fileData);
+				$this->loadApproverSignatureMethods($fileData, $options->getMe());
 			}
 		}
 	}
