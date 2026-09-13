@@ -82,6 +82,28 @@ class IdDocsService {
 		}
 	}
 
+	/**
+	 * `file` of each entry is the HTTP `LibresignNewFile` payload; its node
+	 * id is normalized once here, the same boundary the signature request has.
+	 */
+	private function normalizeNodeIds(array $files): array {
+		foreach ($files as $fileIndex => $fileData) {
+			if (!is_array($fileData) || !is_array($fileData['file'] ?? null)) {
+				continue;
+			}
+			try {
+				$files[$fileIndex]['file'] = $this->fileInputValidator->normalizeNodeId($fileData['file'], FileInputValidator::TYPE_ACCOUNT_DOCUMENT);
+			} catch (LibresignException $e) {
+				throw new LibresignException(json_encode([
+					'type' => 'danger',
+					'file' => $fileIndex,
+					'message' => $e->getMessage(),
+				]));
+			}
+		}
+		return $files;
+	}
+
 	public function validateIdDocs(array $files, IUser $user): void {
 		foreach ($files as $fileIndex => $file) {
 			$this->validateTypeOfFile($fileIndex, $file);
@@ -90,6 +112,7 @@ class IdDocsService {
 	}
 
 	public function addIdDocs(array $files, IUser $user): void {
+		$files = $this->normalizeNodeIds($files);
 		$this->validateIdDocs($files, $user);
 		foreach ($files as $fileData) {
 			$dataToSave = $fileData;
@@ -119,6 +142,7 @@ class IdDocsService {
 		array $files,
 		SignRequest $signRequest,
 	): void {
+		$files = $this->normalizeNodeIds($files);
 		foreach ($files as $fileIndex => $file) {
 			$this->validateTypeOfFile($fileIndex, $file);
 		}

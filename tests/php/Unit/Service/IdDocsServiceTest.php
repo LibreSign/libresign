@@ -15,6 +15,7 @@ use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
@@ -239,6 +240,71 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[['type' => 'IDENTIFICATION', 'name' => 'id-front.pdf', 'base64' => 'ZmFrZQ==']],
 			$signRequest,
 		);
+	}
+
+	/**
+	 * The `file` entry is the same HTTP payload as the signature request's,
+	 * so its node id is normalized at this boundary too and reaches
+	 * saveFile() as an int.
+	 */
+	public function testAddFilesToDocumentFolderNormalizesTheNodeIdOfEachFile(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(55);
+		$signRequest->setFileId(10);
+		$this->fileMapper->method('getById')->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('no'));
+		$this->fileTypeMapper->method('getTypes')
+			->willReturn(['IDENTIFICATION' => ['type' => 'IDENTIFICATION']]);
+		$this->fileInputValidator->expects($this->once())
+			->method('normalizeNodeId')
+			->with(['nodeId' => '9007199254740993'], FileInputValidator::TYPE_ACCOUNT_DOCUMENT)
+			->willReturn(['nodeId' => 9007199254740993]);
+
+		$savedFile = new \OCA\Libresign\Db\File();
+		$savedFile->setId(77);
+		$this->requestSignatureService->expects($this->once())
+			->method('saveFile')
+			->with($this->callback(function (array $data): bool {
+				$this->assertSame(9007199254740993, $data['file']['nodeId']);
+				return true;
+			}))
+			->willReturn($savedFile);
+
+		$service = $this->getIdDocsService();
+		$service->addFilesToDocumentFolder(
+			[['type' => 'IDENTIFICATION', 'name' => 'id-front.pdf', 'file' => ['nodeId' => '9007199254740993']]],
+			$signRequest,
+		);
+	}
+
+	public function testAddIdDocsReportsAnInvalidNodeIdWithTheIndexOfTheFile(): void {
+		$user = $this->createMock(IUser::class);
+		$this->fileInputValidator->expects($this->exactly(2))
+			->method('normalizeNodeId')
+			->with($this->anything(), FileInputValidator::TYPE_ACCOUNT_DOCUMENT)
+			->willReturnCallback(static function (array $file): array {
+				if (($file['nodeId'] ?? null) === 'temp-node') {
+					throw new LibresignException('File type: Account document. Invalid fileID.');
+				}
+				return $file;
+			});
+		$this->requestSignatureService->expects($this->never())->method('saveFile');
+
+		$service = $this->getIdDocsService();
+		try {
+			$service->addIdDocs(
+				[
+					['type' => 'IDENTIFICATION', 'file' => ['base64' => 'ZmFrZQ==']],
+					['type' => 'IDENTIFICATION', 'file' => ['nodeId' => 'temp-node']],
+				],
+				$user,
+			);
+			$this->fail('An invalid node id must be rejected');
+		} catch (LibresignException $e) {
+			$this->assertSame(
+				['type' => 'danger', 'file' => 1, 'message' => 'File type: Account document. Invalid fileID.'],
+				json_decode($e->getMessage(), true),
+			);
+		}
 	}
 
 	public function testAddFilesToDocumentFolderWithoutResolvableOwnerKeepsCurrentBehaviour(): void {

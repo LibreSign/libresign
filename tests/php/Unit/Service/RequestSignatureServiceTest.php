@@ -195,6 +195,39 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		);
 	}
 
+	/**
+	 * saveFile() receives the node id already normalized to int by the
+	 * workflow boundary and looks the existing LibreSign file up with it.
+	 */
+	public function testSaveFileReusesTheFileRegisteredForTheNodeId(): void {
+		$service = $this->getService();
+
+		$existing = new \OCA\Libresign\Db\File();
+		$existing->setId(7);
+		$existing->setNodeId(9007199254740993);
+		$this->fileMapper->expects($this->once())
+			->method('getByNodeId')
+			->with(9007199254740993)
+			->willReturn($existing);
+		$this->filePolicyApplier->expects($this->once())
+			->method('syncAllPolicies')
+			->with($existing, $this->anything());
+		$this->fileStatusService->expects($this->once())
+			->method('updateFileStatusIfUpgrade')
+			->with($existing, 1)
+			->willReturn($existing);
+		$this->fileService->expects($this->never())->method('getNodeFromData');
+
+		$result = $service->saveFile([
+			'file' => ['nodeId' => 9007199254740993],
+			'name' => 'contract',
+			'status' => 1,
+			'userManager' => $this->user,
+		]);
+
+		$this->assertSame($existing, $result);
+	}
+
 	public function testSaveFilesUsesSaveForSingleFile(): void {
 		$service = $this->getService(['save']);
 

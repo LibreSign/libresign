@@ -361,15 +361,15 @@ class RequestSignatureService {
 			}
 			return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 		}
-		$fileId = null;
+		$nodeId = null;
 		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
-			$fileId = $data['file']['fileNode']->getId();
+			$nodeId = $data['file']['fileNode']->getId();
 		} elseif (!empty($data['file']['nodeId'])) {
-			$fileId = $data['file']['nodeId'];
+			$nodeId = $data['file']['nodeId'];
 		}
-		if (!is_null($fileId)) {
+		if (!is_null($nodeId)) {
 			try {
-				$file = $this->fileMapper->getByNodeId($fileId);
+				$file = $this->fileMapper->getByNodeId($nodeId);
 				$this->filePolicyApplier->syncAllPolicies($file, $data);
 				return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 			} catch (\Throwable) {

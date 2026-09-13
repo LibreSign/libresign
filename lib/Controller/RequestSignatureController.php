@@ -62,7 +62,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param LibresignNewSigner[] $signers Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, geolocationRequired
 	 * @param string $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
-	 * @param LibresignNewFile $file File object. Supports nodeId, url, base64 or path.
+	 * @param LibresignNewFile $file File object. Supports nodeId (a non-negative integer or its canonical decimal string, as Nextcloud node ids can exceed a JavaScript number), url, base64 or path.
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
 	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
@@ -134,7 +134,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param LibresignNewSigner[]|null $signers Collection of signers who must sign the document. Use identifyMethods as the canonical format.
 	 * @param string|null $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
 	 * @param LibresignVisibleElement[]|null $visibleElements Visible elements on document
-	 * @param LibresignNewFile|null $file File object. Supports nodeId, url, base64 or path when creating a new request.
+	 * @param LibresignNewFile|null $file File object. Supports nodeId (a non-negative integer or its canonical decimal string), url, base64 or path when creating a new request.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param array<string, mixed>|null $policy Structured policy payload with request-level overrides and active context.
 	 * @param string|null $name The name of file to sign

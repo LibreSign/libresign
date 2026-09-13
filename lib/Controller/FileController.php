@@ -27,6 +27,7 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\Policy\ValidationEffectivePolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
+use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
@@ -84,6 +85,7 @@ class FileController extends AEnvironmentAwareController {
 		private ValidateHelper $validateHelper,
 		private SettingsLoader $settingsLoader,
 		private IURLGenerator $urlGenerator,
+		private FileInputValidator $fileInputValidator,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -742,12 +744,18 @@ class FileController extends AEnvironmentAwareController {
 		}
 
 		if (!empty($files)) {
-			/** @var list<array{fileNode?: Node, name?: string}> $files */
-			return $files;
+			/** @var list<array{fileNode?: Node, name?: string}> $normalizedFiles */
+			$normalizedFiles = array_map(
+				fn (mixed $each): mixed => is_array($each) ? $this->fileInputValidator->normalizeNodeId($each) : $each,
+				$files,
+			);
+			return $normalizedFiles;
 		}
 
 		if (!empty($file)) {
-			return [$file];
+			/** @var array{fileNode?: Node, name?: string} $normalizedFile */
+			$normalizedFile = $this->fileInputValidator->normalizeNodeId($file);
+			return [$normalizedFile];
 		}
 
 		// TRANSLATORS Error shown when creating or updating a signature request without a file.

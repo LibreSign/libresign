@@ -47,6 +47,57 @@ final class FileInputValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
+	/**
+	 * The Files app sends node ids as strings (`Node.id` of `@nextcloud/files`)
+	 * and, since Nextcloud 33, they can exceed a JavaScript number. The API
+	 * accepts an int or a string of digits and the services only see an int.
+	 */
+	#[DataProvider('nodeIdNormalizationCases')]
+	public function testNormalizeNodeId(array $file, array $expected): void {
+		$this->assertSame($expected, $this->validator->normalizeNodeId($file));
+	}
+
+	public static function nodeIdNormalizationCases(): array {
+		return [
+			'int stays int' => [['nodeId' => 42, 'name' => 'a.pdf'], ['nodeId' => 42, 'name' => 'a.pdf']],
+			'zero stays int' => [['nodeId' => 0], ['nodeId' => 0]],
+			'canonical decimal string becomes int' => [['nodeId' => '42'], ['nodeId' => 42]],
+			'zero as string' => [['nodeId' => '0'], ['nodeId' => 0]],
+			'node id above Number.MAX_SAFE_INTEGER' => [['nodeId' => '9007199254740993'], ['nodeId' => 9007199254740993]],
+			'64-bit node id' => [['nodeId' => '9223372036854775807'], ['nodeId' => PHP_INT_MAX]],
+			'null is absent' => [['nodeId' => null], ['nodeId' => null]],
+			'without nodeId' => [['base64' => 'abc'], ['base64' => 'abc']],
+		];
+	}
+
+	/**
+	 * The boundary either hands an int to the services or stops here: an
+	 * invalid value must not reach a later cast that could read it differently.
+	 */
+	#[DataProvider('invalidNodeIdCases')]
+	public function testNormalizeNodeIdRejectsAnythingElse(mixed $nodeId): void {
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Invalid fileID');
+
+		$this->validator->normalizeNodeId(['nodeId' => $nodeId]);
+	}
+
+	public static function invalidNodeIdCases(): array {
+		return [
+			'negative int' => [-1],
+			'string above PHP_INT_MAX' => ['9223372036854775808'],
+			'non numeric string' => ['temp-node'],
+			'signed string' => ['-42'],
+			'leading zeros' => ['0042'],
+			'decimal separator' => ['42.0'],
+			'surrounding spaces' => [' 42 '],
+			'empty string' => [''],
+			'float' => [42.0],
+			'bool' => [true],
+			'array' => [['42']],
+		];
+	}
+
 	#[DataProvider('mimeTypeCases')]
 	public function testValidatesMimeTypeForFileRole(string $mimeType, int $type, bool $valid): void {
 		if (!$valid) {
