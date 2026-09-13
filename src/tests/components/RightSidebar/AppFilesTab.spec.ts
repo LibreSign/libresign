@@ -72,7 +72,7 @@ type TitleObserver = {
 }
 
 type FileInfo = {
-	id: number
+	id: number | string
 	type?: string
 	name?: string
 	path?: string
@@ -283,6 +283,28 @@ describe('AppFilesTab', () => {
 				signers: [],
 			})
 			expect(filesStore.selectFile).toHaveBeenCalledWith(-456)
+			expect(sidebarStore.activeRequestSignatureTab).toHaveBeenCalled()
+		})
+
+		it('passes a string node id through unchanged when adding the file (#8363)', async () => {
+			filesStore.selectFileByNodeId = vi.fn().mockResolvedValue(null)
+			filesStore.addFile = vi.fn()
+			filesStore.selectFile = vi.fn()
+			sidebarStore.activeRequestSignatureTab = vi.fn()
+			wrapper = createWrapper()
+
+			// tab.ts sends `Node.id` (a string) when the node has no numeric fileid
+			await wrapper.vm.update({
+				id: '9007199254740993',
+				name: 'copy of contract.pdf',
+				path: '/Documents',
+			})
+
+			expect(filesStore.selectFileByNodeId).toHaveBeenCalledWith('9007199254740993')
+			expect(filesStore.addFile).toHaveBeenCalledWith(expect.objectContaining({
+				nodeId: '9007199254740993',
+				name: 'copy of contract.pdf',
+			}))
 			expect(sidebarStore.activeRequestSignatureTab).toHaveBeenCalled()
 		})
 

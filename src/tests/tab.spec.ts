@@ -108,6 +108,33 @@ describe('tab.ts', () => {
 		})
 	})
 
+	it('enabled() keeps the string node id of a PDF whose node has no numeric fileid', async () => {
+		await loadTabModule('complete')
+		const tabConfig = getRegisteredTabConfig<{
+			enabled: (context: { node: Record<string, unknown> }) => boolean
+		}>()
+
+		// `@nextcloud/files` Node: `id` is always a string and `fileid` is
+		// undefined when the id does not fit a JavaScript number (#8363).
+		const enabled = tabConfig.enabled({
+			node: {
+				id: '9007199254740993',
+				fileid: undefined,
+				basename: 'copy of contract.pdf',
+				dirname: '/Documents',
+				type: 'file',
+				mime: 'application/pdf',
+			},
+		})
+
+		expect(enabled).toBe(true)
+		expect(window.OCA.Libresign.fileInfo).toMatchObject({
+			id: '9007199254740993',
+			name: 'copy of contract.pdf',
+			path: '/Documents',
+		})
+	})
+
 	it('lazy mounts Vue only when custom element is connected and unmounts on disconnect', async () => {
 		window.dispatchEvent(new Event('DOMContentLoaded'))
 
