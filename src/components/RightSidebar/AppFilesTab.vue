@@ -47,7 +47,9 @@ type PendingEnvelope = {
 }
 
 type FileInfo = {
-	id: number
+	// Nextcloud node id as tab.ts sends it: the numeric `fileid` when the node
+	// has one, otherwise the string `Node.id` of `@nextcloud/files`.
+	id: number | string
 	type?: string
 	name?: string
 	path?: string

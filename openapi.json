@@ -1583,9 +1583,16 @@
                         "type": "string"
                     },
                     "nodeId": {
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "format": "int64",
+                                "minimum": 0
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
                     },
                     "path": {
                         "type": "string"
@@ -9444,7 +9451,7 @@
                                     "file": {
                                         "$ref": "#/components/schemas/NewFile",
                                         "default": [],
-                                        "description": "File object. Supports nodeId, url, base64 or path."
+                                        "description": "File object. Supports nodeId (a non-negative integer or its canonical decimal string, as Nextcloud node ids can exceed a JavaScript number), url, base64 or path."
                                     },
                                     "files": {
                                         "type": "array",
@@ -9620,7 +9627,7 @@
                                     "file": {
                                         "$ref": "#/components/schemas/NewFile",
                                         "nullable": true,
-                                        "description": "File object. Supports nodeId, url, base64 or path when creating a new request."
+                                        "description": "File object. Supports nodeId (a non-negative integer or its canonical decimal string), url, base64 or path when creating a new request."
                                     },
                                     "status": {
                                         "type": "integer",

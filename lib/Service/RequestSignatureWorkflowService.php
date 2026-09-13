@@ -26,6 +26,7 @@ final class RequestSignatureWorkflowService {
 		private SignerValidator $signerValidator,
 		private VisibleElementValidator $visibleElementValidator,
 		private FileMapper $fileMapper,
+		private FileInputValidator $fileInputValidator,
 	) {
 	}
 
@@ -67,6 +68,8 @@ final class RequestSignatureWorkflowService {
 			throw new LibresignException($this->l10n->t('File or files parameter is required'));
 		}
 
+		$file = $this->fileInputValidator->normalizeNodeId($file);
+		$files = $this->normalizeNodeIds($files);
 		$resolvedPolicy = $this->resolvePolicyPayload($policy);
 		$data = [
 			'file' => $file,
@@ -128,6 +131,7 @@ final class RequestSignatureWorkflowService {
 		?string $name = null,
 		array $settings = [],
 	): array {
+		$file = $this->fileInputValidator->normalizeNodeId($file);
 		$resolvedPolicy = $this->resolvePolicyPayload($policy);
 		$data = [
 			'uuid' => $uuid,
@@ -157,6 +161,17 @@ final class RequestSignatureWorkflowService {
 			'file' => $fileEntity,
 			'children' => $this->loadChildFilesIfEnvelope($fileEntity),
 		];
+	}
+
+	/**
+	 * @param list<array<string, mixed>> $files
+	 * @return list<array<string, mixed>>
+	 */
+	private function normalizeNodeIds(array $files): array {
+		return array_map(
+			fn (mixed $file): mixed => is_array($file) ? $this->fileInputValidator->normalizeNodeId($file) : $file,
+			$files,
+		);
 	}
 
 	/** @return list<FileEntity> */

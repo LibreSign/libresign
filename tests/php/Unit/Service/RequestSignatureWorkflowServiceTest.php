@@ -10,13 +10,16 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\RequestSignatureWorkflowService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Service\Validation\VisibleElementValidator;
+use OCP\Files\IMimeTypeDetector;
 use OCP\IL10N;
 use OCP\IUser;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -52,6 +55,13 @@ final class RequestSignatureWorkflowServiceTest extends TestCase {
 			$this->signerValidator,
 			$this->visibleElementValidator,
 			$this->fileMapper,
+			new FileInputValidator(
+				$this->l10n,
+				$this->createMock(SignRequestMapper::class),
+				$this->fileMapper,
+				$this->createMock(IMimeTypeDetector::class),
+				$this->createMock(FolderService::class),
+			),
 		);
 	}
 
@@ -153,6 +163,137 @@ final class RequestSignatureWorkflowServiceTest extends TestCase {
 
 		$this->assertSame($envelope, $result['file']);
 		$this->assertSame([$child], $result['children']);
+	}
+
+	/**
+	 * Regression #8363: the Files sidebar sends the node id as a string. The
+	 * workflow is the boundary between the HTTP payload and the services, so
+	 * everything after it must already see an int.
+	 */
+	public function testCreateRequestNormalizesTheStringNodeIdOnceAtTheBoundary(): void {
+		$fileEntity = new FileEntity();
+		$fileEntity->setId(9);
+
+		$this->requestSignatureService->expects($this->once())
+			->method('validateNewRequestToFile')
+			->with($this->callback(static fn (array $payload): bool => $payload['file']['nodeId'] === 9007199254740993));
+		$this->requestSignatureService->expects($this->once())
+			->method('save')
+			->with($this->callback(static fn (array $payload): bool => $payload['file']['nodeId'] === 9007199254740993))
+			->willReturn($fileEntity);
+
+		$result = $this->service->createRequest(
+			$this->user,
+			['nodeId' => '9007199254740993'],
+			[],
+			'copy of contract.pdf',
+			[],
+			[['identifyMethods' => [['method' => 'email', 'value' => 'user@example.test']]]],
+			1,
+			null,
+		);
+
+		$this->assertSame($fileEntity, $result['file']);
+	}
+
+	public function testCreateRequestKeepsAnIntegerNodeIdAsItIs(): void {
+		$fileEntity = new FileEntity();
+		$fileEntity->setId(9);
+
+		$this->requestSignatureService->expects($this->once())
+			->method('validateNewRequestToFile')
+			->with($this->callback(static fn (array $payload): bool => $payload['file']['nodeId'] === 11));
+		$this->requestSignatureService->expects($this->once())
+			->method('save')
+			->with($this->callback(static fn (array $payload): bool => $payload['file']['nodeId'] === 11))
+			->willReturn($fileEntity);
+
+		$this->service->createRequest(
+			$this->user,
+			['nodeId' => 11],
+			[],
+			'contract.pdf',
+			[],
+			[['identifyMethods' => [['method' => 'email', 'value' => 'user@example.test']]]],
+			1,
+			null,
+		);
+	}
+
+	public function testCreateRequestNormalizesTheNodeIdOfEachEnvelopeFile(): void {
+		$envelope = new FileEntity();
+		$envelope->setId(30);
+		$envelope->setNodeType('envelope');
+
+		$this->requestSignatureService->expects($this->once())
+			->method('validateNewRequestToFile')
+			->with($this->callback(static fn (array $payload): bool => $payload['files'][0]['nodeId'] === 9007199254740993
+				&& $payload['files'][1]['nodeId'] === 22
+				&& $payload['files'][2] === ['base64' => 'abc', 'name' => 'part-c.pdf']));
+		$this->requestSignatureService->expects($this->once())
+			->method('saveFiles')
+			->with($this->callback(static fn (array $payload): bool => $payload['files'][0]['nodeId'] === 9007199254740993
+				&& $payload['files'][1]['nodeId'] === 22))
+			->willReturn(['file' => $envelope, 'children' => []]);
+
+		$this->service->createRequest(
+			$this->user,
+			[],
+			[
+				['nodeId' => '9007199254740993', 'name' => 'part-a.pdf'],
+				['nodeId' => 22, 'name' => 'part-b.pdf'],
+				['base64' => 'abc', 'name' => 'part-c.pdf'],
+			],
+			'Envelope',
+			[],
+			[['identifyMethods' => [['method' => 'email', 'value' => 'user@example.test']]]],
+			0,
+			null,
+		);
+	}
+
+	public function testCreateRequestRejectsAnInvalidNodeIdBeforeAnyService(): void {
+		$this->requestSignatureService->expects($this->never())->method('validateNewRequestToFile');
+		$this->requestSignatureService->expects($this->never())->method('save');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Invalid fileID');
+
+		$this->service->createRequest(
+			$this->user,
+			['nodeId' => 'temp-node'],
+			[],
+			'contract.pdf',
+			[],
+			[['identifyMethods' => [['method' => 'email', 'value' => 'user@example.test']]]],
+			1,
+			null,
+		);
+	}
+
+	public function testUpdateExistingRequestNormalizesTheStringNodeId(): void {
+		$fileEntity = new FileEntity();
+		$fileEntity->setId(21);
+		$fileEntity->setParentFileId(20);
+
+		$this->signingRequestValidator->expects($this->once())
+			->method('validateExistingFile')
+			->with($this->callback(static fn (array $payload): bool => $payload['file']['nodeId'] === 9007199254740993));
+		$this->requestSignatureService->expects($this->once())
+			->method('save')
+			->with($this->callback(static fn (array $payload): bool => $payload['file']['nodeId'] === 9007199254740993))
+			->willReturn($fileEntity);
+
+		$result = $this->service->updateExistingRequest(
+			$this->user,
+			[['identifyMethods' => [['method' => 'email', 'value' => 'user@example.test']]]],
+			'uuid-21',
+			null,
+			['nodeId' => '9007199254740993'],
+			null,
+		);
+
+		$this->assertSame($fileEntity, $result['file']);
 	}
 
 	public function testUpdateExistingRequestValidatesAndLoadsEnvelopeChildren(): void {
