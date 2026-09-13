@@ -209,7 +209,7 @@ namespace OCA\Libresign;
  *     email?: ?string,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     signed: ?string,
- *     status: 0|1|2|3,
+ *     status: 0|1|2|3|4,
  *     statusText: string,
  *     participantRole?: LibresignParticipantRole,
  * }

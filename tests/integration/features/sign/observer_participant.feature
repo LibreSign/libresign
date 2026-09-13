@@ -196,9 +196,9 @@ Feature: sign/observer_participant
       | (jq).ocs.data.data[0].signers[1].displayName     | Signer Name      |
       | (jq).ocs.data.data[0].signers[1].participantRole | signer           |
     And there should be 1 emails in my inbox
-    When I open the latest email to "observer@domain.test" with subject "LibreSign: A document is ready for signature"
+    When I open the latest email to "observer@domain.test" with subject "LibreSign: A document is ready to view"
     Then I should see "Please review the annex" in the opened email
-    And I should see "A document is ready for signature" in the opened email
+    And I should see "A document is ready to view" in the opened email
 
   Scenario: Visible signature elements are rejected for observers and accepted for signers
     Given as user "admin"

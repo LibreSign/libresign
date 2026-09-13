@@ -1668,7 +1668,7 @@ export type components = {
              * Format: int64
              * @enum {integer}
              */
-            status: 0 | 1 | 2 | 3;
+            status: 0 | 1 | 2 | 3 | 4;
             statusText: string;
             participantRole?: components["schemas"]["ParticipantRole"];
         };

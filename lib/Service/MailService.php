@@ -118,7 +118,7 @@ class MailService {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		if ($isObserver) {
 			// TRANSLATORS Email subject notifying an observer that a document is available to view.
-			$emailTemplate->setSubject($this->l10n->t('LibreSign: A document is ready for signature'));
+			$emailTemplate->setSubject($this->l10n->t('LibreSign: A document is ready to view'));
 			$emailTemplate->addHeader();
 			// TRANSLATORS Email heading shown above a document available for viewing.
 			$emailTemplate->addHeading($this->l10n->t('Document to view'), false);
@@ -137,7 +137,7 @@ class MailService {
 
 		if ($isObserver) {
 			// TRANSLATORS Email body inviting an observer to open the document and view it.
-			$emailTemplate->addBodyText($this->l10n->t('A document is ready for signature. Open the link below:'));
+			$emailTemplate->addBodyText($this->l10n->t('A document is ready to view. Open the link below:'));
 			$link = $this->buildValidationLink($file);
 			$emailTemplate->addBodyButton(
 				// TRANSLATORS Email button label that opens the document validation view. %s is the document filename.

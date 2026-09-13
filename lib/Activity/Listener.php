@@ -277,9 +277,11 @@ class Listener implements IEventListener {
 	 */
 	protected function getFileParameter(SignRequest $signRequest, FileEntity $libreSignFile): array {
 		if ($signRequest->isObserver()) {
-			$link = $this->url->linkToRouteAbsolute('libresign.page.validationFilePublic', [
-				'uuid' => $libreSignFile->getUuid(),
-			]);
+			$link = $this->url->linkToRouteAbsolute(
+				'libresign.page.indexFPath',
+				['path' => 'filelist/sign'],
+			);
+			$link .= '?uuid=' . urlencode($libreSignFile->getUuid());
 		} else {
 			$link = $this->url->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]);
 		}

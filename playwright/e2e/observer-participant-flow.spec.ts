@@ -81,7 +81,7 @@ test('observer receives validation link and cannot enter signing flow', async ({
 		const observerEmail = await waitForEmailTo(
 			mailpit,
 			'observer01@libresign.coop',
-			'LibreSign: A document is ready for signature',
+			'LibreSign: A document is ready to view',
 		)
 
 		const signerLink = extractSignLink(signerEmail.Text || signerEmail.HTML || '')
@@ -187,7 +187,7 @@ test('email observer receives validation link when the signer uses account ident
 		const observerEmail = await waitForEmailTo(
 			mailpit,
 			'observer01@libresign.coop',
-			'LibreSign: A document is ready for signature',
+			'LibreSign: A document is ready to view',
 		)
 
 		const observerLink = extractValidationLink(observerEmail.Text || observerEmail.HTML || '')

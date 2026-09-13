@@ -90,6 +90,34 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testSuccessNotifyUnsignedObserverUsesValidationLink(): void {
 		$this->mockRequest();
 		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_SYSTEM);
+
+		$emailTemplate = $this->createMock(IEMailTemplate::class);
+		$emailTemplate->expects($this->once())
+			->method('setSubject')
+			->with('LibreSign: A document is ready to view')
+			->willReturnSelf();
+		$emailTemplate->expects($this->once())
+			->method('addHeader')
+			->willReturnSelf();
+		$emailTemplate->expects($this->once())
+			->method('addHeading')
+			->with('Document to view', false)
+			->willReturnSelf();
+		$emailTemplate->expects($this->once())
+			->method('addBodyText')
+			->with('A document is ready to view. Open the link below:')
+			->willReturnSelf();
+		$emailTemplate->expects($this->once())
+			->method('addBodyButton')
+			->with('View "%s"', 'https://example.com/validation/file-uuid')
+			->willReturnSelf();
+
+		$this->mailer->expects($this->once())
+			->method('createEMailTemplate')
+			->willReturn($emailTemplate);
+		$message = $this->mockSystemMessage();
+		$message->expects($this->once())->method('setTo')->willReturnSelf();
+		$message->expects($this->once())->method('useTemplate')->with($emailTemplate)->willReturnSelf();
 		$this->mailer->expects($this->once())
 			->method('send');
 
