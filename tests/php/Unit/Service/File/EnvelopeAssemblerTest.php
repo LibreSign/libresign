@@ -13,6 +13,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest as DbSignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\File\EnvelopeAssembler;
 use OCA\Libresign\Service\File\FileResponseOptions;
@@ -21,7 +22,11 @@ use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValue;
+use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
+use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCP\Files\File;
+use OCP\IL10N;
 use OCP\IURLGenerator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -60,8 +65,20 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			null,
 			$this->pkcs12Handler,
 			new NullLogger(),
-			$this->fileElementService
+			$this->fileElementService,
+			$this->realVisibilityService(),
 		);
+	}
+
+	/** @var array<string, mixed> */
+	private array $rejectionPolicy = [];
+
+	private function realVisibilityService(): SignatureRejectionVisibilityService {
+		$policyService = $this->createMock(SignatureRejectionPolicyService::class);
+		$policyService->method('getPolicyValue')->willReturn(SignatureRejectionPolicyValue::normalize($this->rejectionPolicy));
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnCallback(static fn (string $text, array $params = []): string => vsprintf($text, $params));
+		return new SignatureRejectionVisibilityService($policyService, $l10n);
 	}
 
 	private function mockFileNode(): void {
@@ -207,6 +224,85 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertIsArray($result->visibleElements);
 		$this->assertEmpty($result->visibleElements);
 		$this->assertSame([], $result->signers[0]->visibleElements);
+	}
+
+	/**
+	 * Regression #8388: a child document of an envelope follows the same
+	 * rejection visibility rules as a single file.
+	 */
+	#[DataProvider('childRejectionViewers')]
+	public function testAHiddenRejectionRedactsEveryUnsignedSignerOfTheChild(?string $viewerUid, array $expectedByIndex): void {
+		$this->rejectionPolicy = ['enabled' => true, 'comment_mode' => 'optional', 'public_status' => false];
+		$this->mockFileNode();
+
+		$signers = [];
+		$identifyMethods = [];
+		foreach ([[1, 'rejecter', SignRequestStatus::REJECTED], [2, 'pending', SignRequestStatus::ABLE_TO_SIGN], [3, 'done', SignRequestStatus::SIGNED]] as [$id, $uid, $status]) {
+			$signer = new DbSignRequest();
+			$signer->setId($id);
+			$signer->setDisplayName($uid);
+			$signer->setStatusEnum($status);
+			$signer->setSigningOrder($id);
+			if ($status === SignRequestStatus::REJECTED) {
+				$signer->setRejectedAt(new \DateTime('2026-09-13T12:00:00Z'));
+			}
+			if ($status === SignRequestStatus::SIGNED) {
+				$signer->setSigned(new \DateTime('2026-09-12T12:00:00Z'));
+			}
+			$signers[] = $signer;
+			$entity = new IdentifyMethod();
+			$entity->setId($id + 100);
+			$entity->setIdentifierKey(IdentifyMethodService::IDENTIFY_ACCOUNT);
+			$entity->setIdentifierValue($uid);
+			$identifyMethod = $this->createMock(IIdentifyMethod::class);
+			$identifyMethod->method('getEntity')->willReturn($entity);
+			$identifyMethods[$id] = [IdentifyMethodService::IDENTIFY_ACCOUNT => [$identifyMethod]];
+		}
+		$this->signRequestMapper->method('getByFileId')->willReturn($signers);
+		$this->identifyMethodService->method('setIsRequest')->willReturnSelf();
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestIds')->willReturn($identifyMethods);
+		$this->fileMapper->method('getTextOfStatus')->willReturn('partial');
+
+		$childFile = new DbFile();
+		$childFile->setId(30);
+		$childFile->setUuid('uuid-30');
+		$childFile->setName('contract.pdf');
+		$childFile->setStatus(1);
+		$childFile->setNodeId(400);
+		$childFile->setMetadata(['p' => 2]);
+		$childFile->setUserId('requester');
+
+		$options = new FileResponseOptions();
+		if ($viewerUid !== null) {
+			$viewer = $this->createMock(\OCP\IUser::class);
+			$viewer->method('getUID')->willReturn($viewerUid);
+			$viewer->method('getEMailAddress')->willReturn($viewerUid . '@example.com');
+			$options->setMe($viewer);
+		}
+
+		$result = $this->getService()->buildEnvelopeChildData($childFile, $options);
+
+		$presented = array_map(static fn (\stdClass $signer): array => [
+			'displayStatus' => $signer->displayStatus,
+			'status' => $signer->status ?? null,
+			'statusText' => $signer->statusText,
+			'rejection' => $signer->rejection ?? null,
+		], $result->signers);
+		$this->assertSame($expectedByIndex, $presented);
+	}
+
+	public static function childRejectionViewers(): array {
+		$redacted = ['displayStatus' => 'not_signed', 'status' => null, 'statusText' => 'Not signed', 'rejection' => null];
+		$signed = ['displayStatus' => 'signed', 'status' => 2, 'statusText' => 'Signed', 'rejection' => null];
+		$pending = ['displayStatus' => 'ready_to_sign', 'status' => 1, 'statusText' => 'Ready to sign', 'rejection' => null];
+		$rejected = ['displayStatus' => 'rejected', 'status' => 3, 'statusText' => 'Rejected', 'rejection' => ['rejectedAt' => '2026-09-13T12:00:00+00:00']];
+		return [
+			'anonymous' => [null, [$redacted, $redacted, $signed]],
+			'another user' => ['someone', [$redacted, $redacted, $signed]],
+			'the pending signer keeps their own entry' => ['pending', [$redacted, $pending, $signed]],
+			'the requester' => ['requester', [$rejected, $pending, $signed]],
+			'the rejecter' => ['rejecter', [$rejected, $pending, $signed]],
+		];
 	}
 
 	public function testBuildsChildDataWithMultipleSigners(): void {
