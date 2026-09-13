@@ -70,6 +70,38 @@ final class RequestSignatureWorkflowServiceTest extends TestCase {
 		);
 	}
 
+	public function testCreateRequestNormalizesStringNodeIdBeforeServices(): void {
+		$fileEntity = new FileEntity();
+		$fileEntity->setId(9);
+		$fileEntity->setParentFileId(99);
+
+		$this->requestSignatureService->expects($this->once())
+			->method('validateNewRequestToFile')
+			->with($this->callback(static function (array $payload): bool {
+				return $payload['file']['nodeId'] === 9007199254740993;
+			}));
+
+		$this->requestSignatureService->expects($this->once())
+			->method('save')
+			->with($this->callback(static function (array $payload): bool {
+				return $payload['file']['nodeId'] === 9007199254740993;
+			}))
+			->willReturn($fileEntity);
+
+		$result = $this->service->createRequest(
+			$this->user,
+			['nodeId' => '9007199254740993'],
+			[],
+			'contract.pdf',
+			[],
+			[],
+			1,
+			null,
+		);
+
+		$this->assertSame($fileEntity, $result['file']);
+	}
+
 	public function testCreateRequestMapsPolicyAndFallsBackToFileSettings(): void {
 		$fileEntity = new FileEntity();
 		$fileEntity->setId(9);
