@@ -5,14 +5,8 @@
 
 import { t } from '@nextcloud/l10n'
 
-import type { EffectivePolicyValue } from '../../../../types/index'
-
 export const OBSERVER_PROFILE_POLICY_KEY = 'enable_observer_profile'
 export const VALIDATION_ACCESS_POLICY_KEY = 'make_validation_url_private'
-
-export function isEnabledPolicyValue(value: EffectivePolicyValue | null | undefined): boolean {
-	return value === true
-}
 
 export function getObserverPrivateValidationWarningMessage(): string {
 	// TRANSLATORS Warning shown when Observer and authenticated-only validation are both enabled: email observers get a public validation link they cannot open without a Nextcloud account.

@@ -65,6 +65,9 @@ export type EffectivePolicyMeta = OpenApiEffectivePolicyMeta & {
 	helper?: boolean
 	parentPolicyKey?: string
 	compositeChildren?: string[]
+	mailProviderAvailable?: boolean
+	validationUrlIsPrivate?: boolean
+	observerProfileEnabled?: boolean
 }
 export type EffectivePolicyState = Omit<OpenApiEffectivePolicyState, 'meta'> & {
 	meta?: EffectivePolicyMeta

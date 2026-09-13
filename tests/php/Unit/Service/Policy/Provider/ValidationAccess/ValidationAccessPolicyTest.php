@@ -11,13 +11,23 @@ namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\ValidationAccess;
 use OCA\Libresign\Service\Policy\Model\ActorRole;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+use OCA\Libresign\Service\Policy\Provider\Helper\SiblingPolicyEffectiveBoolReader;
 use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class ValidationAccessPolicyTest extends TestCase {
+	private SiblingPolicyEffectiveBoolReader&MockObject $siblingReader;
+
+	#[\Override]
+	protected function setUp(): void {
+		parent::setUp();
+		$this->siblingReader = $this->createMock(SiblingPolicyEffectiveBoolReader::class);
+	}
+
 	public function testProviderBuildsValidationAccessDefinition(): void {
-		$provider = new ValidationAccessPolicy();
+		$provider = new ValidationAccessPolicy($this->siblingReader);
 		$this->assertSame([ValidationAccessPolicy::KEY], $provider->keys());
 		$definition = $provider->get(ValidationAccessPolicy::KEY);
 
@@ -26,8 +36,21 @@ final class ValidationAccessPolicyTest extends TestCase {
 		$this->assertSame([false, true], $definition->allowedValues(new PolicyContext()));
 	}
 
+	public function testResolvedStateMetaExposesObserverProfileSibling(): void {
+		$this->siblingReader
+			->expects($this->once())
+			->method('getEffectiveBool')
+			->with('enable_observer_profile')
+			->willReturn(true);
+
+		$provider = new ValidationAccessPolicy($this->siblingReader);
+		$meta = $provider->get(ValidationAccessPolicy::KEY)->resolvedStateMeta(new PolicyContext());
+
+		$this->assertSame(['observerProfileEnabled' => true], $meta);
+	}
+
 	public function testProviderNormalizesValidationAccessBooleanInputs(): void {
-		$provider = new ValidationAccessPolicy();
+		$provider = new ValidationAccessPolicy($this->siblingReader);
 		$definition = $provider->get(ValidationAccessPolicy::KEY);
 
 		$this->assertTrue($definition->normalizeValue('1'));
@@ -38,7 +61,7 @@ final class ValidationAccessPolicyTest extends TestCase {
 	}
 
 	public function testProviderSupportsDelegatedGroupAdminOverlays(): void {
-		$provider = new ValidationAccessPolicy();
+		$provider = new ValidationAccessPolicy($this->siblingReader);
 		$definition = $provider->get(ValidationAccessPolicy::KEY);
 
 		$this->assertTrue($definition->supportsGroupAdminDelegation());
@@ -51,7 +74,7 @@ final class ValidationAccessPolicyTest extends TestCase {
 		array $groupLayers,
 		bool $expected,
 	): void {
-		$provider = new ValidationAccessPolicy();
+		$provider = new ValidationAccessPolicy($this->siblingReader);
 		$definition = $provider->get(ValidationAccessPolicy::KEY);
 		$context = (new PolicyContext())->setActorRole($actorRole);
 
@@ -68,7 +91,7 @@ final class ValidationAccessPolicyTest extends TestCase {
 		PolicyLayer $existingPolicy,
 		bool $expected,
 	): void {
-		$provider = new ValidationAccessPolicy();
+		$provider = new ValidationAccessPolicy($this->siblingReader);
 		$definition = $provider->get(ValidationAccessPolicy::KEY);
 		$context = (new PolicyContext())->setActorRole($actorRole);
 

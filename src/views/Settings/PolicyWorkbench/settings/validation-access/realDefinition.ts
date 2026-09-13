@@ -6,7 +6,7 @@
 import { t } from '@nextcloud/l10n'
 
 import type { EffectivePolicyValue } from '../../../../../types/index'
-import type { RealPolicySettingDefinition } from '../realTypes'
+import type { EffectivePolicyState, RealPolicySettingDefinition } from '../realTypes'
 import ValidationAccessRuleEditor from './ValidationAccessRuleEditor.vue'
 
 function resolveValidationAccess(value: EffectivePolicyValue): boolean | null {
@@ -51,6 +51,10 @@ export const validationAccessRealDefinition: RealPolicySettingDefinition = {
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
 	},
 	editor: ValidationAccessRuleEditor,
+	resolveEditorProps: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => ({
+		...baseEditorProps,
+		observerProfileEnabled: policy?.meta?.observerProfileEnabled === true,
+	}),
 	createEmptyValue: () => false,
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
 		const resolved = resolveValidationAccess(value)

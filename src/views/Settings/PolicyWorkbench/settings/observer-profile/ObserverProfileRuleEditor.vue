@@ -29,26 +29,22 @@ import { t } from '@nextcloud/l10n'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import type { EffectivePolicyValue } from '../../../../../types/index'
-import { usePoliciesStore } from '../../../../../store/policies'
-import {
-	VALIDATION_ACCESS_POLICY_KEY,
-	getObserverPrivateValidationWarningMessage,
-	isEnabledPolicyValue,
-} from '../observerValidationAccessConflict'
+import { getObserverPrivateValidationWarningMessage } from '../observerValidationAccessConflict'
 
 defineOptions({
 	name: 'ObserverProfileRuleEditor',
 })
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	modelValue: EffectivePolicyValue
-}>()
+	validationUrlIsPrivate?: boolean
+}>(), {
+	validationUrlIsPrivate: false,
+})
 
 const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
-
-const policiesStore = usePoliciesStore()
 
 // TRANSLATORS Toggle title for the policy that enables observer participants on signature requests.
 const title = t('libresign', 'Enable observer profile')
@@ -73,8 +69,7 @@ const normalizedValue = computed<boolean | null>(() => {
 })
 
 const showPrivateValidationWarning = computed(() => {
-	return normalizedValue.value === true
-		&& isEnabledPolicyValue(policiesStore.getEffectiveValue(VALIDATION_ACCESS_POLICY_KEY))
+	return normalizedValue.value === true && props.validationUrlIsPrivate === true
 })
 
 function onChange(enabled: boolean) {
