@@ -98,7 +98,7 @@ final class SignFileControllerTest extends TestCase {
 			->method('requestCode')
 			->with($approverSignRequest, 'account', 'emailToken', '');
 
-		$response = $this->getController()->getCodeUsingUuid('file-uuid', 'account', 'emailToken', null);
+		$response = $this->getController()->requestCodeBySignerUuid('file-uuid', 'account', 'emailToken', null);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('Verification code sent.', $response->getData()['message']);
@@ -130,7 +130,7 @@ final class SignFileControllerTest extends TestCase {
 			->method('requestCode')
 			->with($signRequest, 'email', 'emailToken', '');
 
-		$response = $this->getController()->getCodeUsingUuid('signer-uuid', 'email', 'emailToken', null);
+		$response = $this->getController()->requestCodeBySignerUuid('signer-uuid', 'email', 'emailToken', null);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
