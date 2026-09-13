@@ -14,6 +14,7 @@ use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\Signal;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\AbstractSignatureMethod;
 use OCA\Libresign\Service\IdentifyMethod\Sms;
 use OCA\Libresign\Service\IdentifyMethod\Telegram;
 use OCA\Libresign\Service\IdentifyMethod\Whatsapp;
@@ -453,5 +454,37 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		}
 
 		return $entity;
+	}
+
+	public function testGetSignMethodsOfAccountBuildsTheApproverIdentityInMemory(): void {
+		$entity = new IdentifyMethod();
+		$entity->setIdentifierKey('account');
+
+		$password = $this->createMock(AbstractSignatureMethod::class);
+		$password->method('isEnabled')->willReturn(true);
+		$password->method('getName')->willReturn('password');
+		$password->method('toArray')->willReturn(['label' => 'Certificate with password', 'name' => 'password', 'enabled' => true]);
+		$password->expects($this->once())->method('setEntity')->with($entity);
+
+		$clickToSign = $this->createMock(AbstractSignatureMethod::class);
+		$clickToSign->method('isEnabled')->willReturn(false);
+		$clickToSign->expects($this->never())->method('toArray');
+
+		$this->account->method('getEntity')->willReturn($entity);
+		$this->account->method('getSignatureMethods')->willReturn([$password, $clickToSign]);
+		$this->identifyMethodMapper->expects($this->never())->method('insert');
+		$this->identifyMethodMapper->expects($this->never())->method('update');
+
+		$this->overwriteService(Account::class, $this->account);
+		try {
+			$result = $this->service->getSignMethodsOfAccount('approver');
+		} finally {
+			$this->restoreService(Account::class);
+		}
+
+		$this->assertSame(['password'], array_keys($result));
+		$this->assertSame('approver', $entity->getIdentifierValue());
+		$this->assertEmpty($entity->getSignRequestId());
+		$this->assertSame([], self::invokePrivate($this->service, 'identifyMethods'), 'in-memory identity must not be registered for save()');
 	}
 }
