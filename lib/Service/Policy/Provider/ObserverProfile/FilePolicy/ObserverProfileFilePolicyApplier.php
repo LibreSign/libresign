@@ -39,7 +39,7 @@ final class ObserverProfileFilePolicyApplier extends AbstractFilePolicyApplier {
 			return;
 		}
 
-		if ($this->getStoredSnapshotValue($file) === true) {
+		if (ObserverProfilePolicyValue::getSnapshotEffectiveValue($file) === true) {
 			return;
 		}
 
@@ -93,20 +93,5 @@ final class ObserverProfileFilePolicyApplier extends AbstractFilePolicyApplier {
 		}
 
 		return false;
-	}
-
-	private function getStoredSnapshotValue(FileEntity $file): ?bool {
-		$metadata = $file->getMetadata() ?? [];
-		$policySnapshot = $metadata['policy_snapshot'] ?? null;
-		if (!is_array($policySnapshot)) {
-			return null;
-		}
-
-		$entry = $policySnapshot[ObserverProfilePolicy::KEY] ?? null;
-		if (!is_array($entry) || !array_key_exists('effectiveValue', $entry)) {
-			return null;
-		}
-
-		return ObserverProfilePolicyValue::normalize($entry['effectiveValue']);
 	}
 }
