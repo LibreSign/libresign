@@ -203,13 +203,15 @@ namespace OCA\Libresign;
  *     notify?: LibresignNotify[],
  *     certificate_info?: LibresignSignerCertificateInfo,
  * }
+ * @psalm-type LibresignSignerDisplayStatus = 'draft'|'ready_to_sign'|'signed'|'rejected'|'observing'|'not_signed'
  * @psalm-type LibresignSignerSummary = array{
  *     signRequestId: int,
  *     displayName: string,
  *     email?: ?string,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     signed: ?string,
- *     status: 0|1|2|3|4,
+ *     displayStatus: LibresignSignerDisplayStatus,
+ *     status?: 0|1|2|3|4,
  *     statusText: string,
  *     participantRole?: LibresignParticipantRole,
  * }

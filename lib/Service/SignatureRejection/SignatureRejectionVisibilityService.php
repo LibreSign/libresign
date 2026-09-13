@@ -11,7 +11,9 @@ namespace OCA\Libresign\Service\SignatureRejection;
 use DateTimeInterface;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
+use OCA\Libresign\Enum\SignerDisplayStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
+use OCP\IL10N;
 
 /**
  * Decides how much of a rejection is disclosed to whoever is reading the API.
@@ -27,7 +29,70 @@ use OCA\Libresign\Enum\SignRequestStatus;
 class SignatureRejectionVisibilityService {
 	public function __construct(
 		private SignatureRejectionPolicyService $rejectionPolicyService,
+		private IL10N $l10n,
 	) {
+	}
+
+	/**
+	 * Whether the file holds a rejection the viewer may not know about.
+	 *
+	 * A rejection is visible to the requester of the file and to the signer
+	 * who rejected; everybody else only sees it when the policy makes the
+	 * status public. When one is hidden, redacting that signer alone would
+	 * still point at them by comparison with the others, so the callers
+	 * present every unsigned signer of the file the same way.
+	 *
+	 * @param SignRequestEntity[] $signers every sign request of the file
+	 * @param list<int> $privilegedSignRequestIds sign requests the viewer is privileged for (the requester is privileged for all of them)
+	 */
+	public function hasHiddenRejection(?FileEntity $libreSignFile, array $signers, array $privilegedSignRequestIds): bool {
+		$policy = null;
+		foreach ($signers as $signer) {
+			if ($signer->getStatusEnum() !== SignRequestStatus::REJECTED) {
+				continue;
+			}
+			if (in_array($signer->getId(), $privilegedSignRequestIds, true)) {
+				continue;
+			}
+			$policy ??= $this->rejectionPolicyService->getPolicyValue($libreSignFile);
+			if (!$policy['public_status']) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * How one signer is presented to the viewer.
+	 *
+	 * @param bool $privileged whether the viewer is the requester of the file or this very signer
+	 * @param bool $hiddenRejectionInFile the result of hasHiddenRejection() for the file
+	 */
+	public function presentSigner(
+		SignRequestEntity $signer,
+		?FileEntity $libreSignFile,
+		bool $privileged,
+		bool $hiddenRejectionInFile,
+	): SignerPresentation {
+		$status = $signer->getStatusEnum();
+		// Only a participant who could have rejected is redacted: a signed
+		// signer and an observer say nothing about who rejected.
+		$couldHaveRejected = $status !== SignRequestStatus::SIGNED && $status !== SignRequestStatus::OBSERVING;
+		if ($hiddenRejectionInFile && $couldHaveRejected && !$privileged) {
+			return new SignerPresentation(
+				SignerDisplayStatus::NOT_SIGNED,
+				null,
+				SignerDisplayStatus::NOT_SIGNED->getLabel($this->l10n),
+				null,
+			);
+		}
+
+		return new SignerPresentation(
+			SignerDisplayStatus::fromSignRequestStatus($status),
+			$status->value,
+			$status->getLabel($this->l10n),
+			$this->buildSignerRejection($signer, $libreSignFile, $privileged),
+		);
 	}
 
 	/**
@@ -59,18 +124,12 @@ class SignatureRejectionVisibilityService {
 		}
 
 		$commentIsPrivate = $signRequest->getRejectionCommentPrivate();
-		if ($privileged) {
-			$rejection['comment'] = $comment;
-			$rejection['commentPrivate'] = $commentIsPrivate;
-			return $rejection;
-		}
-
-		if ($commentIsPrivate || !$policy['show_comment_on_validation']) {
+		if (!$privileged && ($commentIsPrivate || !$policy['show_comment_on_validation'])) {
 			return $rejection;
 		}
 
 		$rejection['comment'] = $comment;
-		$rejection['commentPrivate'] = false;
+		$rejection['commentPrivate'] = $commentIsPrivate;
 
 		return $rejection;
 	}

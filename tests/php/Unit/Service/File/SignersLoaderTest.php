@@ -15,13 +15,18 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\CrlValidationStatus;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\File\FileResponseOptions;
 use OCA\Libresign\Service\File\SignersLoader;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValue;
+use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
+use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\Accounts\IAccountManager;
+use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -50,7 +55,19 @@ final class SignersLoaderTest extends TestCase {
 			$this->subjectAlternativeNameService,
 			$this->accountManager,
 			$this->userManager,
+			$this->realVisibilityService(),
 		);
+	}
+
+	/** @var array<string, mixed> */
+	private array $rejectionPolicy = [];
+
+	private function realVisibilityService(): SignatureRejectionVisibilityService {
+		$policyService = $this->createMock(SignatureRejectionPolicyService::class);
+		$policyService->method('getPolicyValue')->willReturn(SignatureRejectionPolicyValue::normalize($this->rejectionPolicy));
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnCallback(static fn (string $text, array $params = []): string => vsprintf($text, $params));
+		return new SignatureRejectionVisibilityService($policyService, $l10n);
 	}
 
 	public function testLoadLibreSignSignersUsesCanonicalSignerUuidWithoutSettingsLeak(): void {
@@ -108,6 +125,143 @@ final class SignersLoaderTest extends TestCase {
 		$this->assertObjectNotHasProperty('sign_uuid', $fileData->signers[0]);
 		$this->assertTrue($fileData->settings['canSign']);
 		$this->assertArrayNotHasKey('signerFileUuid', $fileData->settings);
+	}
+
+	/**
+	 * @return array{0: File, 1: array<int, array<string, array<IIdentifyMethod>>>}
+	 */
+	private function fileWithRejectedPendingAndSignedSigners(): array {
+		$file = new File();
+		$file->setId(10);
+		$file->setUserId('requester');
+
+		$signers = [];
+		foreach ([[71, 'rejecter', SignRequestStatus::REJECTED], [72, 'pending', SignRequestStatus::ABLE_TO_SIGN], [73, 'done', SignRequestStatus::SIGNED]] as [$id, $uid, $status]) {
+			$signRequest = new SignRequest();
+			$signRequest->setId($id);
+			$signRequest->setFileId(10);
+			$signRequest->setUuid('uuid-' . $id);
+			$signRequest->setDisplayName($uid);
+			$signRequest->setCreatedAt(new DateTime('2026-01-01T00:00:00Z'));
+			$signRequest->setStatusEnum($status);
+			if ($status === SignRequestStatus::REJECTED) {
+				$signRequest->setRejectedAt(new DateTime('2026-09-13T12:00:00Z'));
+				$signRequest->setRejectionComment('Not for me');
+			}
+			if ($status === SignRequestStatus::SIGNED) {
+				$signRequest->setSigned(new DateTime('2026-09-12T12:00:00Z'));
+			}
+			$signers[] = $signRequest;
+		}
+
+		$identifyMethods = [];
+		foreach ($signers as $signRequest) {
+			$entity = new IdentifyMethod();
+			$entity->setId($signRequest->getId() + 100);
+			$entity->setIdentifierKey(IdentifyMethodService::IDENTIFY_ACCOUNT);
+			$entity->setIdentifierValue($signRequest->getDisplayName());
+			$identifyMethod = $this->createMock(IIdentifyMethod::class);
+			$identifyMethod->method('getEntity')->willReturn($entity);
+			$identifyMethods[$signRequest->getId()] = [IdentifyMethodService::IDENTIFY_ACCOUNT => [$identifyMethod]];
+		}
+
+		$this->signRequestMapper->method('getByFileId')->with(10)->willReturn($signers);
+		$this->identifyMethodService->method('setIsRequest')->willReturnSelf();
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestIds')->willReturn($identifyMethods);
+		$this->identifyMethodService->method('setCurrentIdentifyMethod')->willReturnSelf();
+		$currentIdentifyMethod = $this->createMock(IIdentifyMethod::class);
+		$currentIdentifyMethod->method('getSignatureMethods')->willReturn([]);
+		$this->identifyMethodService->method('getInstanceOfIdentifyMethod')->willReturn($currentIdentifyMethod);
+		$this->userManager->method('get')->willReturn(null);
+
+		return [$file, $identifyMethods];
+	}
+
+	private function userNamed(string $uid): IUser {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn($uid);
+		$user->method('getEMailAddress')->willReturn($uid . '@example.com');
+		return $user;
+	}
+
+	/** @return array<int, array{displayStatus: string, status: int|null, statusText: string, rejection: array|null}> */
+	private function presentedByIdAfterLoad(?IUser $viewer): array {
+		[$file] = $this->fileWithRejectedPendingAndSignedSigners();
+		$options = (new FileResponseOptions())->setMe($viewer);
+		$fileData = new \stdClass();
+		$fileData->settings = ['canSign' => false];
+
+		$this->getService()->loadLibreSignSigners($file, $fileData, $options);
+
+		$byId = [];
+		foreach ($fileData->signers as $signer) {
+			$byId[$signer->signRequestId] = [
+				'displayStatus' => $signer->displayStatus,
+				'status' => $signer->status ?? null,
+				'statusText' => $signer->statusText,
+				'rejection' => $signer->rejection ?? null,
+			];
+		}
+		return $byId;
+	}
+
+	/**
+	 * Regression #8388: with a private rejection status, an anonymous viewer
+	 * or another signer sees every unsigned signer the same way, without the
+	 * real status, so the rejecter cannot be told apart. Signed signers keep
+	 * their state.
+	 */
+	#[DataProvider('viewersWhoMayNotSeeTheRejection')]
+	public function testAHiddenRejectionRedactsEveryUnsignedSignerForTheViewer(?string $viewerUid): void {
+		$this->rejectionPolicy = ['enabled' => true, 'comment_mode' => 'optional', 'public_status' => false];
+
+		$byId = $this->presentedByIdAfterLoad($viewerUid === null ? null : $this->userNamed($viewerUid));
+
+		$this->assertSame(['displayStatus' => 'not_signed', 'status' => null, 'statusText' => 'Not signed', 'rejection' => null], $byId[71]);
+		if ($viewerUid === 'pending') {
+			// The viewer's own entry is theirs to know.
+			$this->assertSame(['displayStatus' => 'ready_to_sign', 'status' => 1, 'statusText' => 'Ready to sign', 'rejection' => null], $byId[72]);
+		} else {
+			$this->assertSame(['displayStatus' => 'not_signed', 'status' => null, 'statusText' => 'Not signed', 'rejection' => null], $byId[72]);
+		}
+		$this->assertSame(['displayStatus' => 'signed', 'status' => 2, 'statusText' => 'Signed', 'rejection' => null], $byId[73]);
+	}
+
+	public static function viewersWhoMayNotSeeTheRejection(): array {
+		return [
+			'anonymous' => [null],
+			'another authenticated user' => ['someone'],
+			'the pending signer' => ['pending'],
+		];
+	}
+
+	public function testTheRequesterSeesTheRealStateAndTheRejection(): void {
+		$this->rejectionPolicy = ['enabled' => true, 'comment_mode' => 'optional', 'public_status' => false];
+
+		$byId = $this->presentedByIdAfterLoad($this->userNamed('requester'));
+
+		$this->assertSame(['displayStatus' => 'rejected', 'status' => 3, 'statusText' => 'Rejected', 'rejection' => ['rejectedAt' => '2026-09-13T12:00:00+00:00', 'comment' => 'Not for me', 'commentPrivate' => false]], $byId[71]);
+		$this->assertSame(['displayStatus' => 'ready_to_sign', 'status' => 1, 'statusText' => 'Ready to sign', 'rejection' => null], $byId[72]);
+		$this->assertSame(['displayStatus' => 'signed', 'status' => 2, 'statusText' => 'Signed', 'rejection' => null], $byId[73]);
+	}
+
+	public function testTheRejecterSeesTheirOwnRejectionAndNothingIsRedacted(): void {
+		$this->rejectionPolicy = ['enabled' => true, 'comment_mode' => 'optional', 'public_status' => false];
+
+		$byId = $this->presentedByIdAfterLoad($this->userNamed('rejecter'));
+
+		$this->assertSame('rejected', $byId[71]['displayStatus']);
+		$this->assertSame(['rejectedAt' => '2026-09-13T12:00:00+00:00', 'comment' => 'Not for me', 'commentPrivate' => false], $byId[71]['rejection']);
+		$this->assertSame(['displayStatus' => 'ready_to_sign', 'status' => 1, 'statusText' => 'Ready to sign', 'rejection' => null], $byId[72]);
+	}
+
+	public function testAPublicRejectionStatusIsPresentedAsRejectedToEverybody(): void {
+		$this->rejectionPolicy = ['enabled' => true, 'comment_mode' => 'optional', 'public_status' => true, 'show_comment_on_validation' => false];
+
+		$byId = $this->presentedByIdAfterLoad(null);
+
+		$this->assertSame(['displayStatus' => 'rejected', 'status' => 3, 'statusText' => 'Rejected', 'rejection' => ['rejectedAt' => '2026-09-13T12:00:00+00:00']], $byId[71]);
+		$this->assertSame(['displayStatus' => 'ready_to_sign', 'status' => 1, 'statusText' => 'Ready to sign', 'rejection' => null], $byId[72]);
 	}
 
 	#[DataProvider('dataLoadSignersFromCertData')]

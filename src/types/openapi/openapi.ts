@@ -1632,6 +1632,8 @@ export type components = {
             metadata?: components["schemas"]["SignerMetadata"];
             rejection?: components["schemas"]["SignerRejection"];
         };
+        /** @enum {string} */
+        SignerDisplayStatus: "draft" | "ready_to_sign" | "signed" | "rejected" | "observing" | "not_signed";
         SignerGeolocation: {
             status: components["schemas"]["GeolocationCollectionStatus"];
             /** Format: double */
@@ -1665,11 +1667,12 @@ export type components = {
             email?: string | null;
             identifyMethods?: components["schemas"]["IdentifyMethod"][];
             signed: string | null;
+            displayStatus: components["schemas"]["SignerDisplayStatus"];
             /**
              * Format: int64
              * @enum {integer}
              */
-            status: 0 | 1 | 2 | 3 | 4;
+            status?: 0 | 1 | 2 | 3 | 4;
             statusText: string;
             participantRole?: components["schemas"]["ParticipantRole"];
         };

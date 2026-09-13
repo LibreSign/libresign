@@ -8,8 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\File;
 
+use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Service\File\FileResponseOptions;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\IUser;
 use PHPUnit\Framework\TestCase;
 
@@ -97,5 +99,38 @@ class FileResponseOptionsTest extends TestCase {
 		$this->options->setSignRequest($signRequest);
 		$this->options->setSignRequest(null);
 		$this->assertNull($this->options->getSignRequest());
+	}
+
+	private function identifyMethodsOf(int $entityId, string $key, string $value): array {
+		$entity = new IdentifyMethod();
+		$entity->setId($entityId);
+		$entity->setIdentifierKey($key);
+		$entity->setIdentifierValue($value);
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getEntity')->willReturn($entity);
+		return [$key => [$identifyMethod]];
+	}
+
+	public function testAnAnonymousViewerIsNobody(): void {
+		$this->assertFalse($this->options->isViewerOfSigner($this->identifyMethodsOf(5, 'account', 'joao')));
+	}
+
+	public function testTheAuthenticatedUserIsTheSignerBehindTheirAccountOrEmail(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('joao');
+		$user->method('getEMailAddress')->willReturn('joao@example.com');
+		$this->options->setMe($user);
+
+		$this->assertTrue($this->options->isViewerOfSigner($this->identifyMethodsOf(5, 'account', 'joao')));
+		$this->assertTrue($this->options->isViewerOfSigner($this->identifyMethodsOf(6, 'email', 'joao@example.com')));
+		$this->assertFalse($this->options->isViewerOfSigner($this->identifyMethodsOf(7, 'account', 'maria')));
+		$this->assertFalse($this->options->isViewerOfSigner([]));
+	}
+
+	public function testTheIdentifiedSignerIsRecognizedByTheIdentifyMethodOfTheSession(): void {
+		$this->options->setIdentifyMethodId(6);
+
+		$this->assertTrue($this->options->isViewerOfSigner($this->identifyMethodsOf(6, 'email', 'external@example.com')));
+		$this->assertFalse($this->options->isViewerOfSigner($this->identifyMethodsOf(7, 'email', 'other@example.com')));
 	}
 }
