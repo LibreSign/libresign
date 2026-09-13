@@ -239,6 +239,37 @@ Feature: sign/observer_participant
     Then I should see "Please review the annex" in the opened email
     And I should see "A document is ready to view" in the opened email
 
+  Scenario: Email observer receives a validation link but cannot open it when validation is private
+    Given as user "admin"
+    And user "signer1" exists
+    And set the email of user "signer1" to ""
+    And my inbox is empty
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/enable_observer_profile"
+      | value | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/make_validation_url_private"
+      | value | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"can_create_account":false,"factors":[{"name":"account","enabled":true,"requirement":"optional","signatureMethods":{"clickToSign":{"enabled":true}}},{"name":"email","enabled":true,"requirement":"optional","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
+    And the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"email","value":"observer-private@domain.test"}],"description":"Please review privately."}] |
+      | name | Private validation email observer |
+    Then the response should have a status code 200
+    And fetch field "(FILE_UUID)ocs.data.uuid" from previous JSON response
+    And there should be 1 emails in my inbox
+    When I open the latest email to "observer-private@domain.test" with subject "LibreSign: A document is ready to view"
+    Then I should see "A document is ready to view" in the opened email
+    And as user ""
+    When sending "get" to "/apps/libresign/p/validation/<FILE_UUID>"
+    Then the response should be a JSON array with the following mandatory values
+      | key      | value                                                                  |
+      | errors   | ["You are not logged in. Please log in."]                              |
+      | action   | 1000                                                                   |
+      | redirect | /index.php/login?redirect_url=/apps/libresign/p/validation/<FILE_UUID> |
+
   Scenario: Visible signature elements are rejected for observers and accepted for signers
     Given as user "admin"
     And user "signer1" exists
