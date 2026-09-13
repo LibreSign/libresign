@@ -37,14 +37,15 @@ final class ValidationAccessPolicyTest extends TestCase {
 	}
 
 	public function testResolvedStateMetaExposesObserverProfileSibling(): void {
+		$context = new PolicyContext();
 		$this->siblingReader
 			->expects($this->once())
 			->method('getEffectiveBool')
-			->with('enable_observer_profile')
+			->with('enable_observer_profile', $context)
 			->willReturn(true);
 
 		$provider = new ValidationAccessPolicy($this->siblingReader);
-		$meta = $provider->get(ValidationAccessPolicy::KEY)->resolvedStateMeta(new PolicyContext());
+		$meta = $provider->get(ValidationAccessPolicy::KEY)->resolvedStateMeta($context);
 
 		$this->assertSame(['observerProfileEnabled' => true], $meta);
 	}

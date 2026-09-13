@@ -34,14 +34,15 @@ final class ObserverProfilePolicyTest extends TestCase {
 	}
 
 	public function testResolvedStateMetaExposesPrivateValidationSibling(): void {
+		$context = new PolicyContext();
 		$this->siblingReader
 			->expects($this->once())
 			->method('getEffectiveBool')
-			->with('make_validation_url_private')
+			->with('make_validation_url_private', $context)
 			->willReturn(true);
 
 		$provider = new ObserverProfilePolicy($this->siblingReader);
-		$meta = $provider->get(ObserverProfilePolicy::KEY)->resolvedStateMeta(new PolicyContext());
+		$meta = $provider->get(ObserverProfilePolicy::KEY)->resolvedStateMeta($context);
 
 		$this->assertSame(['validationUrlIsPrivate' => true], $meta);
 	}
