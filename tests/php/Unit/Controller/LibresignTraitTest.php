@@ -23,9 +23,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class LibresignTraitControllerStub extends AEnvironmentPageAwareController {
 }
 
-/**
- * @covers \OCA\Libresign\Controller\LibresignTrait
- */
 final class LibresignTraitTest extends TestCase {
 	private IRequest&MockObject $request;
 	private SignFileService&MockObject $signFileService;
