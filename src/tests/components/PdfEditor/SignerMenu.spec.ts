@@ -16,6 +16,7 @@ describe('SignerMenu.vue', () => {
 		email: '',
 		signed: null,
 		status: 0,
+		displayStatus: 'draft',
 		statusText: '',
 		...overrides,
 	})

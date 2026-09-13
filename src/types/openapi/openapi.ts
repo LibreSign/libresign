@@ -1716,6 +1716,8 @@ export type components = {
             /** Format: int64 */
             timestamp?: number;
         };
+        /** @enum {string} */
+        SignerDisplayStatus: "draft" | "ready_to_sign" | "signed" | "rejected" | "observing" | "not_signed";
         SignerGeolocation: {
             device?: components["schemas"]["SignerDeviceGeolocation"];
             ip?: components["schemas"]["SignerIpGeolocation"];
@@ -1764,11 +1766,12 @@ export type components = {
             email?: string | null;
             identifyMethods?: components["schemas"]["IdentifyMethod"][];
             signed: string | null;
+            displayStatus: components["schemas"]["SignerDisplayStatus"];
             /**
              * Format: int64
              * @enum {integer}
              */
-            status: 0 | 1 | 2 | 3 | 4;
+            status?: 0 | 1 | 2 | 3 | 4;
             statusText: string;
             participantRole?: components["schemas"]["ParticipantRole"];
         };
