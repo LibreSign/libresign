@@ -14,18 +14,13 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Handler\SigningErrorHandler;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AsyncSigningService;
 use OCA\Libresign\Service\File\SettingsLoader;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestMetadataService;
-use OCA\Libresign\Service\SignatureRejection\SignatureRejectionService;
-use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
-use OCA\Libresign\Service\Validation\SignerValidator;
-use OCA\Libresign\Service\Validation\SigningRequestValidator;
-use OCA\Libresign\Service\Validation\VisibleElementValidator;
 use OCA\Libresign\Service\Worker\WorkerHealthService;
 use OCP\AppFramework\Http;
 use OCP\IL10N;
@@ -40,7 +35,7 @@ final class SignFileControllerTest extends TestCase {
 	private IL10N&MockObject $l10n;
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private IUserSession&MockObject $userSession;
-	private SigningRequestValidator&MockObject $signingRequestValidator;
+	private ValidateHelper&MockObject $validateHelper;
 	private SignFileService&MockObject $signFileService;
 
 	protected function setUp(): void {
@@ -49,7 +44,7 @@ final class SignFileControllerTest extends TestCase {
 		$this->l10n->method('t')->willReturnArgument(0);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->userSession = $this->createMock(IUserSession::class);
-		$this->signingRequestValidator = $this->createMock(SigningRequestValidator::class);
+		$this->validateHelper = $this->createMock(ValidateHelper::class);
 		$this->signFileService = $this->createMock(SignFileService::class);
 	}
 
@@ -59,10 +54,7 @@ final class SignFileControllerTest extends TestCase {
 			$this->l10n,
 			$this->signRequestMapper,
 			$this->userSession,
-			$this->createMock(IdentityDocumentValidator::class),
-			$this->createMock(VisibleElementValidator::class),
-			$this->createMock(SignerValidator::class),
-			$this->signingRequestValidator,
+			$this->validateHelper,
 			$this->signFileService,
 			$this->createMock(IdentifyMethodService::class),
 			$this->createMock(FileService::class),
@@ -70,18 +62,11 @@ final class SignFileControllerTest extends TestCase {
 			$this->createMock(WorkerHealthService::class),
 			$this->createMock(AsyncSigningService::class),
 			$this->createMock(RequestMetadataService::class),
-			$this->createMock(SignerGeolocationMetadataValidator::class),
 			$this->createMock(SigningErrorHandler::class),
-			$this->createMock(SignatureRejectionService::class),
 		);
 	}
 
-	/**
-	 * Regression for #8365: the approver requests the code with the uuid of
-	 * the identification document, not with a signer uuid. The code must go
-	 * to the approver's own sign request, resolved the same way sign() does.
-	 */
-	public function testRequestCodeBySignerUuidInIdDocApprovalContextUsesTheApproverSignRequest(): void {
+	public function testGetCodeUsingUuidInIdDocApprovalContextUsesApproverSignRequest(): void {
 		$approver = $this->createMock(IUser::class);
 		$this->userSession->method('getUser')->willReturn($approver);
 		$this->request->method('getParam')->willReturnMap([
@@ -105,21 +90,21 @@ final class SignFileControllerTest extends TestCase {
 			->method('getSignRequestToSign')
 			->with($idDoc, null, $approver)
 			->willReturn($approverSignRequest);
-		// The uploader's sign request is never used to pick where the code goes.
 		$this->signRequestMapper->expects($this->never())
 			->method('getBySignerUuidAndUserId');
 		$this->signFileService->method('getFile')->with(10)->willReturn($idDoc);
+		$this->validateHelper->expects($this->once())->method('fileCanBeSigned')->with($idDoc);
 		$this->signFileService->expects($this->once())
 			->method('requestCode')
 			->with($approverSignRequest, 'account', 'emailToken', '');
 
-		$response = $this->getController()->requestCodeBySignerUuid('file-uuid', 'account', 'emailToken', null);
+		$response = $this->getController()->getCodeUsingUuid('file-uuid', 'account', 'emailToken', null);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('Verification code sent.', $response->getData()['message']);
 	}
 
-	public function testRequestCodeBySignerUuidWithoutIdDocApprovalKeepsTheSignerLookup(): void {
+	public function testGetCodeUsingUuidWithoutIdDocApprovalKeepsSignerLookup(): void {
 		$this->request->method('getParam')->willReturnMap([
 			['idDocApproval', null, null],
 			['identifyMethod', '', 'email'],
@@ -140,11 +125,12 @@ final class SignFileControllerTest extends TestCase {
 		$this->signFileService->expects($this->never())->method('getFileByUuid');
 		$this->signFileService->expects($this->never())->method('getSignRequestToSign');
 		$this->signFileService->method('getFile')->with(3)->willReturn($file);
+		$this->validateHelper->expects($this->once())->method('fileCanBeSigned')->with($file);
 		$this->signFileService->expects($this->once())
 			->method('requestCode')
 			->with($signRequest, 'email', 'emailToken', '');
 
-		$response = $this->getController()->requestCodeBySignerUuid('signer-uuid', 'email', 'emailToken', null);
+		$response = $this->getController()->getCodeUsingUuid('signer-uuid', 'email', 'emailToken', null);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
