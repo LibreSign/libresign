@@ -57,6 +57,45 @@ Feature: sign/observer_participant
     When sending "get" to "/apps/libresign/p/sign/<SIGNER_UUID>"
     Then the response should have a status code 200
 
+  Scenario: Anonymous observer UUID can view the PDF but cannot upload identification documents
+    Given as user "admin"
+    And user "signer1" exists
+    And user "observer1" exists
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/enable_observer_profile"
+      | value | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/make_validation_url_private"
+      | value | false |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
+    And the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
+      | name | Observer authorization boundary |
+    And the response should have a status code 200
+    And as user "observer1"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(OBSERVER_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
+    And as user ""
+    When sending "get" to "/apps/libresign/pdf/<OBSERVER_UUID>"
+    Then the response should have a status code 200
+    And set the custom http header "libresign-sign-request-uuid" with "<OBSERVER_UUID>" as value to next request
+    When sending "post" to ocs "/apps/libresign/api/v1/id-docs"
+      | files | [{"file":{"url":"<BASE_URL>/apps/libresign/develop/pdf"},"type":"IDENTIFICATION"}] |
+    Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key                             | value                               |
+      | (jq).ocs.data.errors[0].message | Observers cannot sign this document |
+    And set the custom http header "libresign-sign-request-uuid" with "<OBSERVER_UUID>" as value to next request
+    When sending "post" to ocs "/apps/libresign/api/v1/signature/elements"
+      | elements | [{"type":"signature","file":{"base64":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="}}] |
+    Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key                             | value                               |
+      | (jq).ocs.data.errors[0].message | Observers cannot sign this document |
+
   Scenario: Observer participants are rejected when the feature is disabled
     Given as user "admin"
     And user "signer1" exists
