@@ -142,6 +142,7 @@ describe('IdDocsValidation.vue', () => {
 				me: false,
 				signRequestId: 1,
 				status: 2,
+				displayStatus: 'signed',
 				statusText: 'Signed',
 				visibleElements: [],
 				uid: 'approver',

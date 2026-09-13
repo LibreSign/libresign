@@ -12,6 +12,7 @@ use DateTimeInterface;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\Accounts\IAccountManager;
 use OCP\IUserManager;
@@ -29,6 +30,7 @@ class SignersLoader {
 		private SubjectAlternativeNameService $subjectAlternativeNameService,
 		private IAccountManager $accountManager,
 		private IUserManager $userManager,
+		private SignatureRejectionVisibilityService $signatureRejectionVisibilityService,
 	) {
 		$this->certificateSignersMergeService = new CertificateSignersMergeService();
 	}
@@ -50,6 +52,17 @@ class SignersLoader {
 		$identifyMethodsBatch = $this->identifyMethodService
 			->setIsRequest(false)
 			->getIdentifyMethodsFromSignRequestIds($signRequestIds);
+
+		// Who the viewer is has to be known for every signer before any of
+		// them is presented: a hidden rejection redacts all unsigned signers.
+		$isRequester = $options->getMe() !== null && $options->getMe()->getUID() === $file->getUserId();
+		$viewerSignRequestIds = [];
+		foreach ($signers as $signer) {
+			if ($isRequester || $options->isViewerOfSigner($identifyMethodsBatch[$signer->getId()] ?? [])) {
+				$viewerSignRequestIds[] = $signer->getId();
+			}
+		}
+		$hiddenRejection = $this->signatureRejectionVisibilityService->hasHiddenRejection($file, $signers, $viewerSignRequestIds);
 
 		foreach ($signers as $signer) {
 			$identifyMethods = $identifyMethodsBatch[$signer->getId()] ?? [];
@@ -82,8 +95,12 @@ class SignersLoader {
 			}
 			$fileData->signers[$index]->signRequestId = $signer->getId();
 			$fileData->signers[$index]->signed = $signer->getSigned()?->format(DateTimeInterface::ATOM);
-			$fileData->signers[$index]->status = $signer->getStatus();
-			$fileData->signers[$index]->statusText = $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus());
+			$this->signatureRejectionVisibilityService->presentSigner(
+				$signer,
+				$file,
+				in_array($signer->getId(), $viewerSignRequestIds, true),
+				$hiddenRejection,
+			)->applyToObject($fileData->signers[$index]);
 			$fileData->signers[$index]->signingOrder = $signer->getSigningOrder();
 			$fileData->signers[$index]->participantRole = $signer->getParticipantRoleEnum()->value;
 			$fileData->signers[$index]->description = $signer->getDescription();
@@ -159,24 +176,7 @@ class SignersLoader {
 					$fileData->signers[$index]->uid = 'account:' . $uid;
 				}
 			}
-			$fileData->signers[$index]->me = false;
-			if ($options->getMe() || $options->getIdentifyMethodId()) {
-				$currentUserData = new \stdClass();
-				$currentUserData->me = false;
-				foreach ($identifyMethods as $methods) {
-					foreach ($methods as $identifyMethod) {
-						$entity = $identifyMethod->getEntity();
-						if ($options->getIdentifyMethodId() === $entity->getId()
-							|| $options->getMe()?->getUID() === $entity->getIdentifierValue()
-							|| $options->getMe()?->getEMailAddress() === $entity->getIdentifierValue()
-						) {
-							$currentUserData->me = true;
-							break 2;
-						}
-					}
-				}
-				$fileData->signers[$index]->me = $currentUserData->me;
-			}
+			$fileData->signers[$index]->me = $options->isViewerOfSigner($identifyMethods);
 
 			if ($fileData->signers[$index]->me) {
 				$fileData->signers[$index]->sign_request_uuid = $signer->getUuid();

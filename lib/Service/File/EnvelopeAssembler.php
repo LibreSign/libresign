@@ -16,6 +16,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
 
@@ -31,6 +32,7 @@ class EnvelopeAssembler {
 		private \OCA\Libresign\Handler\SignEngine\Pkcs12Handler $pkcs12Handler,
 		private LoggerInterface $logger,
 		private FileElementService $fileElementService,
+		private SignatureRejectionVisibilityService $signatureRejectionVisibilityService,
 	) {
 	}
 
@@ -74,6 +76,17 @@ class EnvelopeAssembler {
 			->setIsRequest(false)
 			->getIdentifyMethodsFromSignRequestIds($signRequestIds);
 
+		// A child document follows the same rejection visibility rules as a
+		// single file: the viewer must be known for every signer first.
+		$isRequester = $options->getMe() !== null && $options->getMe()->getUID() === $childFile->getUserId();
+		$viewerSignRequestIds = [];
+		foreach ($signRequests as $signRequest) {
+			if ($isRequester || $options->isViewerOfSigner($identifyMethodsBatch[$signRequest->getId()] ?? [])) {
+				$viewerSignRequestIds[] = $signRequest->getId();
+			}
+		}
+		$hiddenRejection = $this->signatureRejectionVisibilityService->hasHiddenRejection($childFile, $signRequests, $viewerSignRequestIds);
+
 		foreach ($signRequests as $signRequest) {
 			$identifyMethods = $identifyMethodsBatch[$signRequest->getId()] ?? [];
 			$identifyMethodsArray = [];
@@ -115,8 +128,12 @@ class EnvelopeAssembler {
 			$signer->email = $email;
 			$signer->uid = $signerUid;
 			$signer->signed = $signed;
-			$signer->status = $signRequest->getStatus();
-			$signer->statusText = $this->signRequestMapper->getTextOfSignerStatus($signRequest->getStatus());
+			$this->signatureRejectionVisibilityService->presentSigner(
+				$signRequest,
+				$childFile,
+				in_array($signRequest->getId(), $viewerSignRequestIds, true),
+				$hiddenRejection,
+			)->applyToObject($signer);
 			$signer->identifyMethods = $identifyMethodsArray;
 			$signer->metadata = $signRequest->getMetadata();
 			$signer->visibleElements = [];

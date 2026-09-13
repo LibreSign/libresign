@@ -23,6 +23,7 @@ const createSigner = (overrides: Partial<SignerSummaryRecord> = {}): SignerSumma
 	email: '',
 	signed: null,
 	status: 0,
+	displayStatus: 'draft',
 	statusText: '',
 	...overrides,
 })
@@ -104,6 +105,7 @@ describe('pdfEditorModel', () => {
 					displayName: '2',
 					signed: null,
 					status: 0,
+					displayStatus: 'draft',
 					statusText: '',
 				},
 			})
