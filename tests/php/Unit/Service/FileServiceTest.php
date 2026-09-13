@@ -758,14 +758,14 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					],
 				],
 			],
-			'maps observing status to enum value 3' => [
+			'maps observing status to enum value 4' => [
 				'signers' => [
 					[
 						'signRequestId' => 7,
 						'displayName' => 'Witness',
 						'email' => 'witness@example.com',
 						'signed' => null,
-						'status' => 3,
+						'status' => 4,
 						'statusText' => 'Observing',
 					],
 				],
@@ -775,7 +775,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'displayName' => 'Witness',
 						'email' => 'witness@example.com',
 						'signed' => null,
-						'status' => 3,
+						'status' => 4,
 						'statusText' => 'Observing',
 					],
 				],
