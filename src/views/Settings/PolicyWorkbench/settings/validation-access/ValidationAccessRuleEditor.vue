@@ -33,26 +33,22 @@ import { t } from '@nextcloud/l10n'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import type { EffectivePolicyValue } from '../../../../../types/index'
-import { usePoliciesStore } from '../../../../../store/policies'
-import {
-	OBSERVER_PROFILE_POLICY_KEY,
-	getObserverPrivateValidationWarningMessage,
-	isEnabledPolicyValue,
-} from '../observerValidationAccessConflict'
+import { getObserverPrivateValidationWarningMessage } from '../observerValidationAccessConflict'
 
 defineOptions({
 	name: 'ValidationAccessRuleEditor',
 })
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	modelValue: EffectivePolicyValue
-}>()
+	observerProfileEnabled?: boolean
+}>(), {
+	observerProfileEnabled: false,
+})
 
 const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
-
-const policiesStore = usePoliciesStore()
 
 const options = [
 	{
@@ -90,8 +86,7 @@ const normalizedValue = computed<boolean | null>(() => {
 })
 
 const showObserverWarning = computed(() => {
-	return normalizedValue.value === true
-		&& isEnabledPolicyValue(policiesStore.getEffectiveValue(OBSERVER_PROFILE_POLICY_KEY))
+	return normalizedValue.value === true && props.observerProfileEnabled === true
 })
 
 function onChange(value: boolean, selected?: unknown) {

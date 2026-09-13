@@ -1047,6 +1047,12 @@
                     },
                     "mailProviderAvailable": {
                         "type": "boolean"
+                    },
+                    "validationUrlIsPrivate": {
+                        "type": "boolean"
+                    },
+                    "observerProfileEnabled": {
+                        "type": "boolean"
                     }
                 }
             },

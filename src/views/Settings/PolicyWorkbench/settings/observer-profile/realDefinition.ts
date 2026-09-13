@@ -6,7 +6,7 @@
 import { t } from '@nextcloud/l10n'
 
 import type { EffectivePolicyValue } from '../../../../../types/index'
-import type { RealPolicySettingDefinition } from '../realTypes'
+import type { EffectivePolicyState, RealPolicySettingDefinition } from '../realTypes'
 import ObserverProfileRuleEditor from './ObserverProfileRuleEditor.vue'
 
 function resolveObserverProfile(value: EffectivePolicyValue): boolean | null {
@@ -51,6 +51,10 @@ export const observerProfileRealDefinition: RealPolicySettingDefinition = {
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && policy?.canSaveAsUserDefault === true,
 	},
 	editor: ObserverProfileRuleEditor,
+	resolveEditorProps: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => ({
+		...baseEditorProps,
+		validationUrlIsPrivate: policy?.meta?.validationUrlIsPrivate === true,
+	}),
 	createEmptyValue: () => false,
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
 		const resolved = resolveObserverProfile(value)

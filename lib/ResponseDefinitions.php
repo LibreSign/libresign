@@ -443,6 +443,8 @@ namespace OCA\Libresign;
  *     parentPolicyKey?: string,
  *     compositeChildren?: list<string>,
  *     mailProviderAvailable?: bool,
+ *     validationUrlIsPrivate?: bool,
+ *     observerProfileEnabled?: bool,
  * }
  * @psalm-type LibresignEffectivePolicyState = array{
  *     policyKey: string,

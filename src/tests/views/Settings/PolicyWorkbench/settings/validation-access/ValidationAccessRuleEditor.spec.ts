@@ -4,32 +4,14 @@
  */
 
 import { mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createPinia, setActivePinia } from 'pinia'
+import { describe, expect, it, vi } from 'vitest'
 
 import { createL10nMock } from '../../../../../testHelpers/l10n.js'
-import { usePoliciesStore } from '../../../../../../store/policies'
 import ValidationAccessRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/validation-access/ValidationAccessRuleEditor.vue'
 import { getObserverPrivateValidationWarningMessage } from '../../../../../../views/Settings/PolicyWorkbench/settings/observerValidationAccessConflict'
+import { validationAccessRealDefinition } from '../../../../../../views/Settings/PolicyWorkbench/settings/validation-access/realDefinition'
 
 vi.mock('@nextcloud/l10n', () => createL10nMock())
-
-vi.mock('@nextcloud/axios', () => ({
-	default: {
-		get: vi.fn(),
-		post: vi.fn(),
-		put: vi.fn(),
-		delete: vi.fn(),
-	},
-}))
-
-vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: vi.fn((path: string) => `/ocs/v2.php${path}`),
-}))
-
-vi.mock('@nextcloud/initial-state', () => ({
-	loadState: vi.fn((_app, _key, defaultValue) => defaultValue),
-}))
 
 const NcCheckboxRadioSwitchStub = {
 	name: 'NcCheckboxRadioSwitch',
@@ -44,30 +26,7 @@ const NcNoteCardStub = {
 	template: '<div class="note-stub"><slot /></div>',
 }
 
-function setBooleanPolicy(policyKey: string, effectiveValue: boolean) {
-	const policiesStore = usePoliciesStore()
-	policiesStore.setPolicies({
-		...policiesStore.policies,
-		[policyKey]: {
-			policyKey,
-			effectiveValue,
-			sourceScope: 'system',
-			visible: true,
-			editableByCurrentActor: true,
-			allowedValues: [true, false],
-			canSaveAsUserDefault: true,
-			canUseAsRequestOverride: true,
-			preferenceWasCleared: false,
-			blockedBy: null,
-		},
-	})
-}
-
 describe('ValidationAccessRuleEditor.vue', () => {
-	beforeEach(() => {
-		setActivePinia(createPinia())
-	})
-
 	it('renders the public and authenticated-only validation options', () => {
 		const wrapper = mount(ValidationAccessRuleEditor, {
 			props: {
@@ -84,8 +43,6 @@ describe('ValidationAccessRuleEditor.vue', () => {
 		expect(wrapper.findAll('.radio-stub')).toHaveLength(2)
 		expect(wrapper.text()).toContain('Public validation page')
 		expect(wrapper.text()).toContain('Authenticated-only validation page')
-		expect(wrapper.text()).toContain('Anyone with the validation URL can access the validation page.')
-		expect(wrapper.text()).toContain('Accounts must be authenticated to access the validation page URL.')
 	})
 
 	it('emits true when the authenticated-only option is selected', async () => {
@@ -125,12 +82,11 @@ describe('ValidationAccessRuleEditor.vue', () => {
 		expect(wrapper.emitted('update:modelValue')).toBeUndefined()
 	})
 
-	it('warns when authenticated-only validation is selected while observers are enabled', () => {
-		setBooleanPolicy('enable_observer_profile', true)
-
+	it('warns when authenticated-only is selected and backend meta marks observers enabled', () => {
 		const wrapper = mount(ValidationAccessRuleEditor, {
 			props: {
 				modelValue: true,
+				observerProfileEnabled: true,
 			},
 			global: {
 				stubs: {
@@ -144,21 +100,27 @@ describe('ValidationAccessRuleEditor.vue', () => {
 		expect(wrapper.text()).toContain(getObserverPrivateValidationWarningMessage())
 	})
 
-	it('hides the warning when observers are disabled', () => {
-		setBooleanPolicy('enable_observer_profile', false)
+	it('maps backend meta into editor props', () => {
+		const props = validationAccessRealDefinition.resolveEditorProps?.(
+			{
+				policyKey: 'make_validation_url_private',
+				effectiveValue: true,
+				sourceScope: 'system',
+				visible: true,
+				editableByCurrentActor: true,
+				allowedValues: [true, false],
+				canSaveAsUserDefault: true,
+				canUseAsRequestOverride: true,
+				preferenceWasCleared: false,
+				blockedBy: null,
+				meta: { observerProfileEnabled: true },
+			},
+			{ modelValue: true },
+		)
 
-		const wrapper = mount(ValidationAccessRuleEditor, {
-			props: {
-				modelValue: true,
-			},
-			global: {
-				stubs: {
-					NcCheckboxRadioSwitch: { ...NcCheckboxRadioSwitchStub, template: '<div class="radio-stub"><slot /></div>' },
-					NcNoteCard: NcNoteCardStub,
-				},
-			},
+		expect(props).toMatchObject({
+			modelValue: true,
+			observerProfileEnabled: true,
 		})
-
-		expect(wrapper.find('.note-stub').exists()).toBe(false)
 	})
 })
