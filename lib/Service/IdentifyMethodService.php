@@ -294,6 +294,24 @@ class IdentifyMethodService {
 
 	public function getSignMethodsOfIdentifiedFactors(int $signRequestId): array {
 		$matrix = $this->getIdentifyMethodsFromSignRequestId($signRequestId);
+		return $this->getSignMethodsOfIdentifyMethods($matrix);
+	}
+
+	/**
+	 * Built in memory: nothing is persisted and the instance is not
+	 * registered in the list that save() iterates.
+	 */
+	public function getSignMethodsOfAccount(string $uid): array {
+		$identifyMethod = $this->getNewInstanceOfMethod(self::IDENTIFY_ACCOUNT);
+		$identifyMethod->cleanEntity();
+		$identifyMethod->getEntity()->setIdentifierValue($uid);
+		return $this->getSignMethodsOfIdentifyMethods([self::IDENTIFY_ACCOUNT => [$identifyMethod]]);
+	}
+
+	/**
+	 * @param array<string,array<IIdentifyMethod>> $matrix
+	 */
+	private function getSignMethodsOfIdentifyMethods(array $matrix): array {
 		$return = [];
 		foreach ($matrix as $identifyMethods) {
 			foreach ($identifyMethods as $identifyMethod) {
