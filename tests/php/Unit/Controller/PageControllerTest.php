@@ -179,7 +179,7 @@ final class PageControllerTest extends TestCase {
 		$signRequestEntity->setDescription('');
 		$this->signFileService->method('getSignRequestByUuid')->willReturn($signRequestEntity);
 		$this->signFileService->method('getFile')->willReturn($fileEntity);
-		$this->controller->loadNextcloudFileFromSignRequestUuid('sign-uuid');
+		$this->controller->loadNextcloudFileFromUuid('sign-uuid');
 
 		$response = $this->controller->sign('sign-uuid');
 

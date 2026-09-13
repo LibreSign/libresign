@@ -16,7 +16,7 @@ interface ISignatureUuid {
 	public function validateSignRequestUuid(string $uuid): void;
 	public function validateParticipantUuid(string $uuid): void;
 	public function validateRenewSigner(string $uuid): void;
-	public function loadNextcloudFileFromSignRequestUuid(string $uuid): void;
+	public function loadNextcloudFileFromUuid(string $uuid): void;
 	public function getSignRequestEntity(): ?SignRequestEntity;
 	public function getFileEntity(): ?FileEntity;
 

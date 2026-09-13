@@ -78,9 +78,11 @@ trait LibresignTrait {
 	}
 
 	/**
+	 * Load LibreSign file/sign-request entities for any participant UUID.
+	 *
 	 * @throws LibresignException
 	 */
-	public function loadNextcloudFileFromSignRequestUuid(string $uuid): void {
+	public function loadNextcloudFileFromUuid(string $uuid): void {
 		$this->loadEntitiesFromUuid($uuid);
 	}
 
