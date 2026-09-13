@@ -56,10 +56,12 @@ test('sign herself with drawn signature', async ({ page }) => {
 	await page.getByRole('button', { name: 'Setup signature positions' }).click();
 	const signaturePositionsDialog = page.getByLabel('Signature positions')
 	const pageOverlay = getVisiblePdfOverlay(signaturePositionsDialog)
+	const pdfPage = signaturePositionsDialog.locator('.page-canvas').first()
 	const addInstruction = signaturePositionsDialog.getByText('Click on the place you want to add.')
 	const cancelPlacementButton = signaturePositionsDialog.getByRole('button', { name: 'Cancel' })
 	const editSignerLink = signaturePositionsDialog.getByRole('link', { name: 'Edit signer Admin Name' })
 	await expect(signaturePositionsDialog).toBeVisible()
+	await expect(pdfPage).toBeVisible()
 	await expect(pageOverlay).toBeVisible()
 	await editSignerLink.click();
 
