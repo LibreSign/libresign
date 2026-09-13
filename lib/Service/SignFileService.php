@@ -40,7 +40,6 @@ use OCP\Libresign\Handler\SignEngine\IPkcs12SignEngineHandler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
 use OCA\Libresign\Helper\JSActions;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\IToken;
@@ -50,6 +49,9 @@ use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusService;
+use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
+use OCA\Libresign\Service\Validation\SignerValidator;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -98,7 +100,9 @@ class SignFileService {
 		private IClientService $client,
 		protected LoggerInterface $logger,
 		private IAppConfig $appConfig,
-		protected ValidateHelper $validateHelper,
+		protected IdentityDocumentValidator $identityDocumentValidator,
+		protected SigningRequestValidator $signingRequestValidator,
+		protected SignerValidator $signerValidator,
 		private SignerElementsService $signerElementsService,
 		private IUserSession $userSession,
 		private IDateTimeZone $dateTimeZone,
@@ -1312,7 +1316,7 @@ class SignFileService {
 	}
 
 	private function getOrCreateApproverSignRequest(FileEntity $file, IUser $user): ?SignRequestEntity {
-		if (!$this->validateHelper->userCanApproveValidationDocuments($user, false)) {
+		if (!$this->identityDocumentValidator->userCanApproveValidationDocuments($user, false)) {
 			return null;
 		}
 
@@ -1371,7 +1375,7 @@ class SignFileService {
 	}
 
 	public function getSignRequestToSign(FileEntity $libresignFile, ?string $signRequestUuid, ?IUser $user): SignRequestEntity {
-		$this->validateHelper->fileCanBeSigned($libresignFile);
+		$this->signingRequestValidator->fileCanBeSigned($libresignFile);
 		try {
 			if (!empty($signRequestUuid)) {
 				$signRequest = $this->getSignRequestByUuid($signRequestUuid);
@@ -1616,7 +1620,7 @@ class SignFileService {
 	 * @throws DoesNotExistException
 	 */
 	public function getSignRequestByUuid(string $uuid): SignRequestEntity {
-		$this->validateHelper->validateUuidFormat($uuid);
+		$this->signerValidator->validateUuidFormat($uuid);
 		return $this->signRequestMapper->getByUuid($uuid);
 	}
 
@@ -1684,11 +1688,11 @@ class SignFileService {
 	}
 
 	public function validateSigner(string $uuid, ?IUser $user = null): void {
-		$this->validateHelper->validateSigner($uuid, $user);
+		$this->signerValidator->validateSigner($uuid, $user);
 	}
 
 	public function validateRenewSigner(string $uuid, ?IUser $user = null): void {
-		$this->validateHelper->validateRenewSigner($uuid, $user);
+		$this->signerValidator->validateRenewSigner($uuid, $user);
 	}
 
 	public function getSignerData(?IUser $user, ?SignRequestEntity $signRequest = null): array {

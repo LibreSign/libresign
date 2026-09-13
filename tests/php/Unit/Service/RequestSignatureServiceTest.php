@@ -19,7 +19,6 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\Envelope\EnvelopeFileRelocator;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
@@ -37,6 +36,9 @@ use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\SignRequest\StatusUpdatePolicy;
+use OCA\Libresign\Service\Validation\FileInputValidator;
+use OCA\Libresign\Service\Validation\SignerValidator;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
@@ -60,7 +62,9 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private IClientService&MockObject $clientService;
 	private IUserManager&MockObject $userManager;
 	private FolderService&MockObject $folderService;
-	private ValidateHelper&MockObject $validateHelper;
+	private FileInputValidator&MockObject $fileInputValidator;
+	private SigningRequestValidator&MockObject $signingRequestValidator;
+	private SignerValidator&MockObject $signerValidator;
 	private FileElementMapper&MockObject $fileElementMapper;
 	private FileElementService&MockObject $fileElementService;
 	private IdentifyMethodService&MockObject $identifyMethodService;
@@ -96,7 +100,9 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->clientService = $this->createMock(IClientService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->folderService = $this->createMock(FolderService::class);
-		$this->validateHelper = $this->createMock(ValidateHelper::class);
+		$this->fileInputValidator = $this->createMock(FileInputValidator::class);
+		$this->signingRequestValidator = $this->createMock(SigningRequestValidator::class);
+		$this->signerValidator = $this->createMock(SignerValidator::class);
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->fileElementService = $this->createMock(FileElementService::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
@@ -134,7 +140,9 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->fileElementMapper,
 					$this->folderService,
 					$this->mimeTypeDetector,
-					$this->validateHelper,
+					$this->fileInputValidator,
+					$this->signingRequestValidator,
+					$this->signerValidator,
 					$this->client,
 					$this->docMdpHandler,
 					$this->loggerInterface,
@@ -167,7 +175,9 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->fileElementMapper,
 			$this->folderService,
 			$this->mimeTypeDetector,
-			$this->validateHelper,
+			$this->fileInputValidator,
+			$this->signingRequestValidator,
+			$this->signerValidator,
 			$this->client,
 			$this->docMdpHandler,
 			$this->loggerInterface,
@@ -343,7 +353,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 
 	public function testValidateSignersRejectsLegacyIdentifyPayload(): void {
 		$this->expectExceptionMessage('No identify methods for signer');
-		$this->validateHelper
+		$this->signerValidator
 			->method('validateIdentifySigners')
 			->willThrowException(new LibresignException('No identify methods for signer'));
 
@@ -374,7 +384,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			]],
 		];
 
-		$this->validateHelper
+		$this->signerValidator
 			->method('normalizeRequestSigners')
 			->willReturnCallback(static fn (array $signers): array => $signers);
 
@@ -453,7 +463,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			]],
 		];
 
-		$this->validateHelper
+		$this->signerValidator
 			->method('normalizeRequestSigners')
 			->willReturnCallback(static fn (array $signers): array => $signers);
 
@@ -525,7 +535,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			]],
 		];
 
-		$this->validateHelper
+		$this->signerValidator
 			->method('normalizeRequestSigners')
 			->willReturnCallback(static fn (array $signers): array => $signers);
 
@@ -596,7 +606,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$identifyMethod = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
 		$identifyMethod->method('getEntity')->willReturn($entity);
 
-		$this->validateHelper
+		$this->signerValidator
 			->expects($this->once())
 			->method('normalizeRequestSigners')
 			->with([['identifyMethods' => [['method' => 'email', 'value' => 'john@example.com']]]])
@@ -628,7 +638,9 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->fileElementMapper,
 				$this->folderService,
 				$this->mimeTypeDetector,
-				$this->validateHelper,
+				$this->fileInputValidator,
+				$this->signingRequestValidator,
+				$this->signerValidator,
 				$this->client,
 				$this->docMdpHandler,
 				$this->loggerInterface,
@@ -670,7 +682,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$identifyMethod = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
 		$identifyMethod->method('getEntity')->willReturn($entity);
 
-		$this->validateHelper
+		$this->signerValidator
 			->expects($this->once())
 			->method('normalizeRequestSigners')
 			->with([['identifyMethods' => [['method' => 'email', 'value' => 'john@example.com']]]])
@@ -702,7 +714,9 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->fileElementMapper,
 				$this->folderService,
 				$this->mimeTypeDetector,
-				$this->validateHelper,
+				$this->fileInputValidator,
+				$this->signingRequestValidator,
+				$this->signerValidator,
 				$this->client,
 				$this->docMdpHandler,
 				$this->loggerInterface,

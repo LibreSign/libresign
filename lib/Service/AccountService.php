@@ -24,10 +24,11 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\FileUploadHelper;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
+use OCA\Libresign\Service\Validation\FileInputValidator;
+use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -69,7 +70,8 @@ class AccountService {
 		private NewUserMailHelper $newUserMail,
 		private IdentifyMethodService $identifyMethodService,
 		private IdentifyMethodMapper $identifyMethodMapper,
-		private ValidateHelper $validateHelper,
+		private IdentityDocumentValidator $identityDocumentValidator,
+		private FileInputValidator $fileInputValidator,
 		private IURLGenerator $urlGenerator,
 		private Pkcs12Handler $pkcs12Handler,
 		private IGroupManager $groupManager,
@@ -213,7 +215,7 @@ class AccountService {
 		$info['identificationDocumentsFlow'] = $this->idDocsPolicyService->isIdentificationDocumentsEnabled($user);
 		$info['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['phoneNumber'] = $this->getPhoneNumber($user);
-		$info['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
+		$info['isApprover'] = $this->identityDocumentValidator->userCanApproveValidationDocuments($user, false);
 		$info['id_docs_filters'] = $this->getUserConfigIdDocsFilters($user);
 		$info['id_docs_sort'] = $this->getUserConfigIdDocsSort($user);
 		$info['crl_filters'] = $this->getUserConfigCrlFilters($user);
@@ -349,7 +351,7 @@ class AccountService {
 	}
 
 	private function getUserConfigIdDocsSort(?IUser $user): array {
-		if (!$user || !$this->validateHelper->userCanApproveValidationDocuments($user, false)) {
+		if (!$user || !$this->identityDocumentValidator->userCanApproveValidationDocuments($user, false)) {
 			return ['sortBy' => null, 'sortOrder' => null];
 		}
 
@@ -517,10 +519,10 @@ class AccountService {
 				// TRANSLATORS Error when uploading a visible signature element file that is empty.
 				throw new \Exception($this->l10n->t('Empty file'));
 			}
-			$this->validateHelper->validateBase64($content, ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
+			$this->fileInputValidator->validateBase64($content, FileInputValidator::TYPE_VISIBLE_ELEMENT_USER);
 			return $content;
 		}
-		$this->validateHelper->validateBase64($data['file']['base64'], ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
+		$this->fileInputValidator->validateBase64($data['file']['base64'], FileInputValidator::TYPE_VISIBLE_ELEMENT_USER);
 		$withMime = explode(',', (string)$data['file']['base64']);
 		if (count($withMime) === 2) {
 			$content = base64_decode($withMime[1]);
