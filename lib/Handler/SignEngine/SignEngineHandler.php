@@ -24,7 +24,7 @@ use OCP\Files\NotPermittedException;
 use OCP\IL10N;
 use Psr\Log\LoggerInterface;
 
-abstract class SignEngineHandler implements ISignEngineHandler {
+abstract class SignEngineHandler implements IPkcs12SignEngineHandler {
 	private File $inputFile;
 	protected string $certificate = '';
 	private string $pfxFilename = 'signature.pfx';

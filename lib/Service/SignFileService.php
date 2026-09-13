@@ -36,6 +36,7 @@ use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\SignEngine\ISignEngineHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
+use OCP\Libresign\Handler\SignEngine\IPkcs12SignEngineHandler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
 use OCA\Libresign\Helper\JSActions;
@@ -87,7 +88,7 @@ class SignFileService {
 	private string $userUniqueIdentifier = '';
 	private string $friendlyName = '';
 	private ?IUser $user = null;
-	private ?ISignEngineHandler $engine = null;
+	private ?IPkcs12SignEngineHandler $engine = null;
 
 	public function __construct(
 		protected IL10N $l10n,
