@@ -62,6 +62,9 @@ final class RequestSignatureWorkflowService {
 			throw new LibresignException($this->l10n->t('File or files parameter is required'));
 		}
 
+		$file = $this->normalizeNodeId($file);
+		$files = array_map(fn (array $item): array => $this->normalizeNodeId($item), $files);
+
 		$resolvedPolicy = $this->resolvePolicyPayload($policy);
 		$data = [
 			'file' => $file,
@@ -123,6 +126,7 @@ final class RequestSignatureWorkflowService {
 		?string $name = null,
 		array $settings = [],
 	): array {
+		$file = $this->normalizeNodeId($file);
 		$resolvedPolicy = $this->resolvePolicyPayload($policy);
 		$data = [
 			'uuid' => $uuid,
@@ -152,6 +156,33 @@ final class RequestSignatureWorkflowService {
 			'file' => $fileEntity,
 			'children' => $this->loadChildFilesIfEnvelope($fileEntity),
 		];
+	}
+
+	/**
+	 * Normalize a Nextcloud node id at the HTTP workflow boundary.
+	 *
+	 * @param array<string, mixed> $file
+	 * @return array<string, mixed>
+	 * @throws LibresignException
+	 */
+	private function normalizeNodeId(array $file): array {
+		$nodeId = $file['nodeId'] ?? null;
+		if ($nodeId === null) {
+			return $file;
+		}
+
+		if (is_string($nodeId) && ctype_digit($nodeId)) {
+			$nodeId = filter_var($nodeId, FILTER_VALIDATE_INT);
+		}
+
+		if (is_int($nodeId) && $nodeId >= 0) {
+			$file['nodeId'] = $nodeId;
+			return $file;
+		}
+
+		throw new LibresignException(
+			$this->l10n->t('File type: %s. Invalid fileID.', [$this->l10n->t('document to sign')]),
+		);
 	}
 
 	/** @return list<FileEntity> */
