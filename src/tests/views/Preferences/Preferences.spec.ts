@@ -18,6 +18,15 @@ const loadStateMock = vi.fn()
 
 vi.mock('@nextcloud/l10n', () => createL10nMock())
 
+vi.mock('../../../logger.js', () => ({
+	default: {
+		error: vi.fn(),
+		warn: vi.fn(),
+		info: vi.fn(),
+		debug: vi.fn(),
+	},
+}))
+
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: (...args: unknown[]) => loadStateMock(...args),
 }))
@@ -28,6 +37,20 @@ vi.mock('../../../store/policies', () => ({
 		saveUserPreference: saveUserPreferenceMock,
 		clearUserPreference: clearUserPreferenceMock,
 		getPolicy: getPolicyMock,
+	}),
+}))
+
+const userConfigUpdateMock = vi.fn()
+const userConfigOnUpdateMock = vi.fn()
+const userConfigState: { warn_without_visible_signature_fields?: boolean } = {}
+
+vi.mock('../../../store/userconfig.js', () => ({
+	useUserConfigStore: () => ({
+		get warn_without_visible_signature_fields() {
+			return userConfigState.warn_without_visible_signature_fields
+		},
+		update: userConfigUpdateMock,
+		onUpdate: userConfigOnUpdateMock,
 	}),
 }))
 
@@ -153,6 +176,9 @@ describe('Preferences view', () => {
 			return fallback
 		})
 		fetchEffectivePoliciesMock.mockReset().mockResolvedValue(undefined)
+		userConfigUpdateMock.mockReset().mockResolvedValue(undefined)
+		userConfigOnUpdateMock.mockReset()
+		delete userConfigState.warn_without_visible_signature_fields
 		saveUserPreferenceMock.mockReset().mockResolvedValue(undefined)
 		clearUserPreferenceMock.mockReset().mockResolvedValue(undefined)
 		getPolicyMock.mockReset().mockReturnValue({
@@ -815,5 +841,122 @@ describe('Preferences view', () => {
 
 		expect(wrapper.vm.canUndoAutoSaveFor('add_footer')).toBe(true)
 		expect(wrapper.vm.undoLabelFor('add_footer')).toBe('Reset to default')
+	})
+
+	it('shows a failed policy save only in the section of that policy', async () => {
+		saveUserPreferenceMock.mockRejectedValueOnce(new Error('network'))
+
+		const wrapper = await createWrapper()
+		await nextTick()
+
+		await wrapper.vm.savePreference('ordered_numeric' as SignatureFlowMode)
+		await nextTick()
+
+		expect(wrapper.vm.errorMessageFor('signature_flow')).toBe('Could not save your preference. Try again.')
+		expect(wrapper.vm.errorMessageFor('warn_without_visible_signature_fields')).toBe('')
+		const notes = wrapper.findAll('.note-card').filter((note) => note.text().includes('Could not save your preference. Try again.'))
+		expect(notes).toHaveLength(1)
+	})
+
+	describe('warning about signers without visible signature fields (#8324)', () => {
+		const WARN_KEY = 'warn_without_visible_signature_fields'
+
+		function findWarnSwitch(wrapper: Awaited<ReturnType<typeof createWrapper>>) {
+			return wrapper.findAllComponents(NcCheckboxRadioSwitch)
+				.find((component) => component.attributes('id') === 'preferences-warn-without-visible-signature-fields')
+		}
+
+		it('renders the setting in its own section with the switch and its description', async () => {
+			const wrapper = await createWrapper()
+			await nextTick()
+
+			const warnSwitch = findWarnSwitch(wrapper)
+			expect(warnSwitch?.exists()).toBe(true)
+			expect(warnSwitch?.props('type')).toBe('switch')
+			expect(warnSwitch?.text()).toContain('Warn me when requesting signatures without visible fields')
+			expect(wrapper.text()).toContain('Show a warning when one or more signers will sign without a visible signature on the PDF.')
+		})
+
+		it('renders the switch enabled by default when no value was saved', async () => {
+			const wrapper = await createWrapper()
+			await nextTick()
+
+			expect(findWarnSwitch(wrapper)?.props('modelValue')).toBe(true)
+		})
+
+		it('renders the switch disabled when the saved value is false', async () => {
+			userConfigState.warn_without_visible_signature_fields = false
+
+			const wrapper = await createWrapper()
+			await nextTick()
+
+			expect(findWarnSwitch(wrapper)?.props('modelValue')).toBe(false)
+		})
+
+		it('saves the preference disabled through the user config API', async () => {
+			const wrapper = await createWrapper()
+			await nextTick()
+
+			await findWarnSwitch(wrapper)?.vm.$emit('update:modelValue', false)
+			await nextTick()
+
+			expect(userConfigUpdateMock).toHaveBeenCalledWith(WARN_KEY, false)
+			expect(findWarnSwitch(wrapper)?.props('modelValue')).toBe(false)
+			expect(wrapper.vm.isAutoSaveSavedFor(WARN_KEY)).toBe(true)
+		})
+
+		it('saves the preference enabled again, restoring the warning', async () => {
+			userConfigState.warn_without_visible_signature_fields = false
+
+			const wrapper = await createWrapper()
+			await nextTick()
+
+			await findWarnSwitch(wrapper)?.vm.$emit('update:modelValue', true)
+			await nextTick()
+
+			expect(userConfigUpdateMock).toHaveBeenCalledWith(WARN_KEY, true)
+			expect(findWarnSwitch(wrapper)?.props('modelValue')).toBe(true)
+		})
+
+		it('restores the previous value when saving fails', async () => {
+			userConfigUpdateMock.mockRejectedValueOnce(new Error('network'))
+
+			const wrapper = await createWrapper()
+			await nextTick()
+
+			await findWarnSwitch(wrapper)?.vm.$emit('update:modelValue', false)
+			await nextTick()
+			await nextTick()
+
+			expect(findWarnSwitch(wrapper)?.props('modelValue')).toBe(true)
+			expect(userConfigOnUpdateMock).toHaveBeenCalledWith(WARN_KEY, true)
+			expect(wrapper.vm.isAutoSaveSavedFor(WARN_KEY)).toBe(false)
+		})
+
+		it('shows the preferences error feedback in its own section when saving fails', async () => {
+			userConfigUpdateMock.mockRejectedValueOnce(new Error('network'))
+
+			const wrapper = await createWrapper()
+			await nextTick()
+
+			await findWarnSwitch(wrapper)?.vm.$emit('update:modelValue', false)
+			await nextTick()
+			await nextTick()
+
+			expect(wrapper.vm.errorMessageFor(WARN_KEY)).toBe('Could not save your preference. Try again.')
+			expect(wrapper.vm.errorMessageFor('signature_flow')).toBe('')
+			const notes = wrapper.findAll('.note-card').filter((note) => note.text().includes('Could not save your preference. Try again.'))
+			expect(notes).toHaveLength(1)
+		})
+
+		it('does not save when the emitted value equals the current one', async () => {
+			const wrapper = await createWrapper()
+			await nextTick()
+
+			await findWarnSwitch(wrapper)?.vm.$emit('update:modelValue', true)
+			await nextTick()
+
+			expect(userConfigUpdateMock).not.toHaveBeenCalled()
+		})
 	})
 })

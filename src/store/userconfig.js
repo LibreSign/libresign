@@ -30,6 +30,7 @@ import { generateOcsUrl } from '@nextcloud/router'
  * 	crl_sort?: { sortBy?: string | null, sortOrder?: 'ASC' | 'DESC' | null }
  * 	id_docs_filters?: { owner?: string, status?: string | null }
  * 	id_docs_sort?: { sortBy?: string | null, sortOrder?: string | null }
+ * 	warn_without_visible_signature_fields?: boolean
  * }} UserConfigState
  */
 
