@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy\Provider\Helper;
 
-use OCA\Libresign\Service\Policy\Contract\IPolicySource;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
+use OCA\Libresign\Service\Policy\Runtime\PolicySource;
 
 /**
  * Reads a sibling policy's effective boolean in the same PolicyContext used to
@@ -24,7 +24,7 @@ class SiblingPolicyEffectiveBoolReader {
 
 	public function __construct(
 		private PolicyRegistry $registry,
-		IPolicySource $source,
+		PolicySource $source,
 	) {
 		$this->resolver = new DefaultPolicyResolver($source);
 	}

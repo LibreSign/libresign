@@ -260,8 +260,10 @@ final class SiblingPolicyEffectiveBoolReaderTest extends TestCase {
 					throw new \InvalidArgumentException('Unknown policy key: ' . $key);
 				}
 
-				return new class ($definition) implements \OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider {
-					public function __construct(private IPolicyDefinition $definition) {
+				return new class($definition) implements \OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider {
+					public function __construct(
+						private IPolicyDefinition $definition,
+					) {
 					}
 
 					public function keys(): array {
