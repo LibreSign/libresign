@@ -16,8 +16,6 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
-use OCA\Libresign\Service\Validation\SigningRequestValidator;
-use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Middleware\Attribute\PrivateValidation;
 use OCA\Libresign\Middleware\Attribute\RequireFileAccess;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
@@ -29,6 +27,7 @@ use OCA\Libresign\Service\Policy\ValidationEffectivePolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
@@ -87,7 +86,6 @@ class FileController extends AEnvironmentAwareController {
 		private FileInputValidator $fileInputValidator,
 		private SettingsLoader $settingsLoader,
 		private IURLGenerator $urlGenerator,
-		private FileInputValidator $fileInputValidator,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
