@@ -160,6 +160,15 @@ describe('useSignStore', () => {
 			expect(store.ableToSign).toBe(true)
 		})
 
+		it('returns true when the own entry is redacted while a rejection is hidden (#8388)', () => {
+			const store = useSignStore()
+			store.document = createDocument({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ me: true, displayStatus: 'not_signed', statusText: 'Not signed' }],
+			})
+			expect(store.ableToSign).toBe(true)
+		})
+
 		it('returns true when document status is PARTIAL_SIGNED and signer can sign', () => {
 			const store = useSignStore()
 			store.document = createDocument({

@@ -853,18 +853,19 @@ final class FileListServiceTest extends TestCase {
 		$this->assertSame($expected, self::presentedById($withChildren['signers']));
 	}
 
-	public function testThePendingSignerKeepsTheirOwnEntryWhileTheRejectionStaysHidden(): void {
+	/**
+	 * The pending signer is still marked as `me`, but their own status is
+	 * redacted like the others: a real status there would tell them who
+	 * rejected by comparison.
+	 */
+	public function testThePendingSignerIsRedactedLikeTheOthersWhileTheRejectionStaysHidden(): void {
 		$this->rejectionPolicy = ['enabled' => true, 'comment_mode' => 'optional', 'public_status' => false];
 		[$file] = $this->fileWithRejectedPendingAndSignedSigners();
 		$this->user->method('getUID')->willReturn('pending');
 
 		$detailed = $this->getService()->formatSingleFile($this->user, $file);
 
-		$this->assertSame([
-			71 => self::REDACTED,
-			72 => ['displayStatus' => 'ready_to_sign', 'status' => 1, 'statusText' => 'Ready to sign', 'rejection' => null],
-			73 => self::SIGNED,
-		], self::presentedById($detailed['signers']));
+		$this->assertSame([71 => self::REDACTED, 72 => self::REDACTED, 73 => self::SIGNED], self::presentedById($detailed['signers']));
 		$this->assertTrue($detailed['signers'][array_search(72, array_column($detailed['signers'], 'signRequestId'), true)]['me']);
 	}
 
