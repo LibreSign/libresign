@@ -62,6 +62,90 @@ final class RequestSignatureControllerTest extends TestCase {
 		);
 	}
 
+	/**
+	 * Regression #8363: the Files sidebar sends the node id as a string. The
+	 * controller is the boundary between the HTTP payload and the services,
+	 * so everything after it must already see an int.
+	 */
+	public function testRequestNormalizesTheStringNodeIdBeforeServices(): void {
+		$file = new FileEntity();
+		$file->setId(10);
+
+		$this->requestSignatureService->expects($this->once())
+			->method('validateNewRequestToFile')
+			->with($this->callback(static fn (array $payload): bool => $payload['file']['nodeId'] === 9007199254740993));
+		$this->requestSignatureService->expects($this->once())
+			->method('save')
+			->with($this->callback(static fn (array $payload): bool => $payload['file']['nodeId'] === 9007199254740993))
+			->willReturn($file);
+		$this->fileListService->method('formatFileWithChildren')->willReturn(['ok' => true]);
+
+		$response = $this->controller->requestSignature(
+			signers: [['identifyMethods' => [['method' => 'email', 'value' => 'user@test.coop', 'mandatory' => 0]]]],
+			name: 'copy of contract.pdf',
+			settings: [],
+			file: ['nodeId' => '9007199254740993'],
+			files: [],
+			callback: null,
+			status: 1,
+			signatureFlow: null,
+		);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
+	public function testRequestNormalizesTheNodeIdOfEachEnvelopeFile(): void {
+		$envelope = new FileEntity();
+		$envelope->setId(30);
+
+		$this->requestSignatureService->expects($this->once())
+			->method('validateNewRequestToFile')
+			->with($this->callback(static fn (array $payload): bool => $payload['files'][0]['nodeId'] === 9007199254740993
+				&& $payload['files'][1]['nodeId'] === 22));
+		$this->requestSignatureService->expects($this->once())
+			->method('saveFiles')
+			->with($this->callback(static fn (array $payload): bool => $payload['files'][0]['nodeId'] === 9007199254740993
+				&& $payload['files'][1]['nodeId'] === 22))
+			->willReturn(['file' => $envelope, 'children' => []]);
+		$this->fileListService->method('formatFileWithChildren')->willReturn(['ok' => true]);
+
+		$response = $this->controller->requestSignature(
+			signers: [['identifyMethods' => [['method' => 'email', 'value' => 'user@test.coop', 'mandatory' => 0]]]],
+			name: 'Envelope',
+			settings: [],
+			file: [],
+			files: [
+				['nodeId' => '9007199254740993', 'name' => 'part-a.pdf'],
+				['nodeId' => 22, 'name' => 'part-b.pdf'],
+			],
+			callback: null,
+			status: 0,
+			signatureFlow: null,
+		);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
+	public function testRequestRejectsAnInvalidNodeIdBeforeAnyService(): void {
+		$this->l10n->method('t')->willReturnCallback(static fn (string $text, array $params = []): string => vsprintf($text, $params));
+		$this->requestSignatureService->expects($this->never())->method('validateNewRequestToFile');
+		$this->requestSignatureService->expects($this->never())->method('save');
+
+		$response = $this->controller->requestSignature(
+			signers: [['identifyMethods' => [['method' => 'email', 'value' => 'user@test.coop', 'mandatory' => 0]]]],
+			name: 'contract.pdf',
+			settings: [],
+			file: ['nodeId' => 'temp-node'],
+			files: [],
+			callback: null,
+			status: 1,
+			signatureFlow: null,
+		);
+
+		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
+		$this->assertSame('File type: document to sign. Invalid fileID.', $response->getData()['message']);
+	}
+
 	#[DataProvider('statusPayloadScenarios')]
 	public function testRequestStatusPropagation(?int $status, bool $expectStatusKey): void {
 		$file = new FileEntity();
