@@ -743,7 +743,7 @@ Feature: sign-signature-rejection
       | (jq).ocs.data.signers[] \| select(.displayStatus == "rejected") \| .statusText          | Rejected                    |
       | (jq).ocs.data.signers[] \| select(.displayStatus == "rejected") \| .rejection.comment   | This document is not for me |
       | (jq).ocs.data.signers[] \| select(.displayStatus == "ready_to_sign") \| .status         | 1                           |
-    # The signer who rejected sees their own entry; the pending signer stays as they are for them too
+    # Nothing is hidden from the signer who rejected: their own entry and the pending signer keep the real state
     When as user "signer1"
     And sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<FILE_UUID>"
     Then the response should be a JSON array with the following mandatory values
@@ -751,24 +751,27 @@ Feature: sign-signature-rejection
       | (jq).ocs.data.signers[] \| select(.me == true) \| .displayStatus                  | rejected                    |
       | (jq).ocs.data.signers[] \| select(.me == true) \| .rejection.comment              | This document is not for me |
       | (jq).ocs.data.signers[] \| select(.me == false) \| .displayStatus                 | ready_to_sign               |
-    # The other signer: every unsigned signer except themselves is redacted, without the real status
+    # The other signer: every unsigned signer is redacted, their own pending entry included, so they
+    # cannot find who rejected by comparing the entries
     When as user "signer2"
     And sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<FILE_UUID>"
     Then the response should be a JSON array with the following mandatory values
-      | key                                                                                     | value         |
-      | (jq).ocs.data.signers[] \| select(.me == false) \| .displayStatus                        | not_signed    |
-      | (jq).ocs.data.signers[] \| select(.me == false) \| .statusText                           | Not signed    |
-      | (jq).ocs.data.signers[] \| select(.me == false) \| has("status")                         | false         |
-      | (jq).ocs.data.signers[] \| select(.me == false) \| has("rejection")                      | false         |
-      | (jq).ocs.data.signers[] \| select(.me == true) \| .displayStatus                         | ready_to_sign |
-      | (jq)[.ocs.data.signers[] \| select(.displayStatus == "rejected")] \| length              | 0             |
+      | key                                                                                     | value      |
+      | (jq).ocs.data.signers[] \| select(.me == false) \| .displayStatus                        | not_signed |
+      | (jq).ocs.data.signers[] \| select(.me == false) \| .statusText                           | Not signed |
+      | (jq).ocs.data.signers[] \| select(.me == false) \| has("status")                         | false      |
+      | (jq).ocs.data.signers[] \| select(.me == false) \| has("rejection")                      | false      |
+      | (jq).ocs.data.signers[] \| select(.me == true) \| .displayStatus                         | not_signed |
+      | (jq).ocs.data.signers[] \| select(.me == true) \| has("status")                          | false      |
+      | (jq)[.ocs.data.signers[] \| select(.displayStatus != "not_signed")] \| length            | 0          |
     When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     Then the response should be a JSON array with the following mandatory values
       | key                                                                                              | value      |
       | (jq).ocs.data.data[0].signers[] \| select(.me == false) \| .displayStatus                         | not_signed |
       | (jq).ocs.data.data[0].signers[] \| select(.me == false) \| has("status")                          | false      |
-      | (jq)[.ocs.data.data[0].signers[] \| select(.displayStatus == "rejected")] \| length               | 0          |
-      | (jq).ocs.data.data[0].files[0].signers[] \| select(.displayStatus == "not_signed") \| has("status") | false    |
+      | (jq).ocs.data.data[0].signers[] \| select(.me == true) \| .displayStatus                          | not_signed |
+      | (jq)[.ocs.data.data[0].signers[] \| select(.displayStatus != "not_signed")] \| length            | 0          |
+      | (jq)[.ocs.data.data[0].files[0].signers[] \| select(.displayStatus != "not_signed")] \| length   | 0          |
     # An authenticated bystander and an anonymous reader cannot tell who rejected: both unsigned signers look the same
     When as user "bystander"
     And sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<FILE_UUID>"
