@@ -26,7 +26,9 @@ import { isIdDocApprovalContext } from '../utils/signRequestUuid.ts'
  * 	email?: string
  * 	sign_request_uuid?: string | null
  * 	me?: boolean
+ * 	displayStatus?: string
  * 	status?: number
+ * 	statusText?: string
  * 	signed?: string | null | boolean | unknown[]
  * 	signatureMethods?: SignatureMethodsRecord
  * }} SignDocumentSigner
@@ -125,7 +127,10 @@ export const useSignStore = defineStore('sign', () => {
 			return false
 		}
 
-		if (mySigner && mySigner.status !== SIGN_REQUEST_STATUS.ABLE_TO_SIGN) {
+		// While a rejection is hidden the viewer's own unsigned entry comes
+		// redacted, without the real status (#8388). Signing stays open then;
+		// the backend enforces the signing order either way.
+		if (mySigner && mySigner.status !== undefined && mySigner.status !== SIGN_REQUEST_STATUS.ABLE_TO_SIGN) {
 			return false
 		}
 

@@ -299,7 +299,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			'anonymous' => [null, [$redacted, $redacted, $signed]],
 			'another user' => ['someone', [$redacted, $redacted, $signed]],
-			'the pending signer keeps their own entry' => ['pending', [$redacted, $pending, $signed]],
+			'the pending signer is redacted like the others' => ['pending', [$redacted, $redacted, $signed]],
 			'the requester' => ['requester', [$rejected, $pending, $signed]],
 			'the rejecter' => ['rejecter', [$rejected, $pending, $signed]],
 		];
