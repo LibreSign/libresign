@@ -16,7 +16,8 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
-use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
+use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Middleware\Attribute\PrivateValidation;
 use OCA\Libresign\Middleware\Attribute\RequireFileAccess;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
@@ -82,7 +83,8 @@ class FileController extends AEnvironmentAwareController {
 		private IMimeIconProvider $mimeIconProvider,
 		private FileService $fileService,
 		private FileListService $fileListService,
-		private ValidateHelper $validateHelper,
+		private SigningRequestValidator $signingRequestValidator,
+		private FileInputValidator $fileInputValidator,
 		private SettingsLoader $settingsLoader,
 		private IURLGenerator $urlGenerator,
 		private FileInputValidator $fileInputValidator,
@@ -586,7 +588,7 @@ class FileController extends AEnvironmentAwareController {
 		array $files = [],
 	): DataResponse {
 		try {
-			$this->validateHelper->canRequestSign($this->userSession->getUser());
+			$this->signingRequestValidator->canRequestSign($this->userSession->getUser());
 
 			$normalizedFiles = $this->prepareFilesForSaving($file, $files, $settings);
 
@@ -621,10 +623,10 @@ class FileController extends AEnvironmentAwareController {
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file/{uuid}/add-file', requirements: ['apiVersion' => '(v1)'])]
 	public function addFileToEnvelope(string $uuid): DataResponse {
 		try {
-			$this->validateHelper->canRequestSign($this->userSession->getUser());
+			$this->signingRequestValidator->canRequestSign($this->userSession->getUser());
 
 			$envelope = $this->fileMapper->getByUuid($uuid);
-			$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $envelope->getId());
+			$this->signingRequestValidator->iRequestedSignThisFile($this->userSession->getUser(), $envelope->getId());
 
 			if ($envelope->getNodeType() !== 'envelope') {
 				// TRANSLATORS Error shown when adding files to a signature envelope but the given UUID is not an envelope container.
@@ -714,7 +716,7 @@ class FileController extends AEnvironmentAwareController {
 				'settings' => $settings
 			]);
 		} else {
-			$this->validateHelper->validateNewFile([
+			$this->fileInputValidator->validateNewFile([
 				'file' => $fileData,
 				'userManager' => $this->userSession->getUser(),
 			]);
@@ -857,7 +859,7 @@ class FileController extends AEnvironmentAwareController {
 					'fileId' => $fileId
 				]
 			];
-			$this->validateHelper->validateExistingFile($data);
+			$this->signingRequestValidator->validateExistingFile($data);
 			$this->fileService->delete($fileId, $deleteFile);
 		} catch (\Throwable $th) {
 			return new DataResponse(

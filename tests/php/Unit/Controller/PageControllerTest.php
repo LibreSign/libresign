@@ -13,7 +13,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
-use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
@@ -154,7 +154,7 @@ final class PageControllerTest extends TestCase {
 			fileMapper: \OCP\Server::get(\OCA\Libresign\Db\FileMapper::class),
 			signRequestMapper: \OCP\Server::get(\OCA\Libresign\Db\SignRequestMapper::class),
 			logger: \OCP\Server::get(LoggerInterface::class),
-			validateHelper: $this->createMock(ValidateHelper::class),
+			signingRequestValidator: $this->createMock(SigningRequestValidator::class),
 			eventDispatcher: $this->createMock(IEventDispatcher::class),
 			urlGenerator: $this->urlGenerator,
 		);
@@ -293,7 +293,7 @@ final class PageControllerTest extends TestCase {
 			fileMapper: \OCP\Server::get(\OCA\Libresign\Db\FileMapper::class),
 			signRequestMapper: \OCP\Server::get(\OCA\Libresign\Db\SignRequestMapper::class),
 			logger: \OCP\Server::get(LoggerInterface::class),
-			validateHelper: $this->createMock(ValidateHelper::class),
+			signingRequestValidator: $this->createMock(SigningRequestValidator::class),
 			eventDispatcher: $this->createMock(IEventDispatcher::class),
 			urlGenerator: $this->urlGenerator,
 		);
