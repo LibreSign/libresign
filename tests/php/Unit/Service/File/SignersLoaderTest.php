@@ -208,8 +208,9 @@ final class SignersLoaderTest extends TestCase {
 	/**
 	 * Regression #8388: with a private rejection status, an anonymous viewer
 	 * or another signer sees every unsigned signer the same way, without the
-	 * real status, so the rejecter cannot be told apart. Signed signers keep
-	 * their state.
+	 * real status, so the rejecter cannot be told apart. That includes the
+	 * pending signer's own entry: knowing they did not reject, a real status
+	 * there would tell them who did. Signed signers keep their state.
 	 */
 	#[DataProvider('viewersWhoMayNotSeeTheRejection')]
 	public function testAHiddenRejectionRedactsEveryUnsignedSignerForTheViewer(?string $viewerUid): void {
@@ -218,12 +219,7 @@ final class SignersLoaderTest extends TestCase {
 		$byId = $this->presentedByIdAfterLoad($viewerUid === null ? null : $this->userNamed($viewerUid));
 
 		$this->assertSame(['displayStatus' => 'not_signed', 'status' => null, 'statusText' => 'Not signed', 'rejection' => null], $byId[71]);
-		if ($viewerUid === 'pending') {
-			// The viewer's own entry is theirs to know.
-			$this->assertSame(['displayStatus' => 'ready_to_sign', 'status' => 1, 'statusText' => 'Ready to sign', 'rejection' => null], $byId[72]);
-		} else {
-			$this->assertSame(['displayStatus' => 'not_signed', 'status' => null, 'statusText' => 'Not signed', 'rejection' => null], $byId[72]);
-		}
+		$this->assertSame(['displayStatus' => 'not_signed', 'status' => null, 'statusText' => 'Not signed', 'rejection' => null], $byId[72]);
 		$this->assertSame(['displayStatus' => 'signed', 'status' => 2, 'statusText' => 'Signed', 'rejection' => null], $byId[73]);
 	}
 

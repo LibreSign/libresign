@@ -65,6 +65,11 @@ class SignatureRejectionVisibilityService {
 	/**
 	 * How one signer is presented to the viewer.
 	 *
+	 * While a rejection is hidden, every unsigned signer is redacted, the
+	 * viewer's own pending entry included: if they kept their real status
+	 * they could tell who rejected by comparison. The only entry the viewer
+	 * keeps is their own rejection, which they already know about.
+	 *
 	 * @param bool $privileged whether the viewer is the requester of the file or this very signer
 	 * @param bool $hiddenRejectionInFile the result of hasHiddenRejection() for the file
 	 */
@@ -76,9 +81,11 @@ class SignatureRejectionVisibilityService {
 	): SignerPresentation {
 		$status = $signer->getStatusEnum();
 		// Only a participant who could have rejected is redacted: a signed
-		// signer and an observer say nothing about who rejected.
+		// signer and an observer say nothing about who rejected, and the
+		// viewer keeps their own rejection.
 		$couldHaveRejected = $status !== SignRequestStatus::SIGNED && $status !== SignRequestStatus::OBSERVING;
-		if ($hiddenRejectionInFile && $couldHaveRejected && !$privileged) {
+		$ownRejection = $privileged && $status === SignRequestStatus::REJECTED;
+		if ($hiddenRejectionInFile && $couldHaveRejected && !$ownRejection) {
 			return new SignerPresentation(
 				SignerDisplayStatus::NOT_SIGNED,
 				null,

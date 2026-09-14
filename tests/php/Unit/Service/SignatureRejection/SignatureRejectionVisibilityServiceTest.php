@@ -216,7 +216,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 		];
 	}
 
-	public function testThePrivilegedViewerKeepsTheirOwnEntryWhenAnotherRejectionIsHidden(): void {
+	public function testTheViewerKeepsTheirOwnRejectionWhenAnotherRejectionIsHidden(): void {
 		$this->withPolicy(['enabled' => true, 'public_status' => false]);
 
 		$presentation = $this->getService()->presentSigner($this->rejectedSignRequest('My reason', true), null, true, true);
@@ -224,6 +224,30 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 		$this->assertSame(SignerDisplayStatus::REJECTED, $presentation->displayStatus);
 		$this->assertSame(SignRequestStatus::REJECTED->value, $presentation->status);
 		$this->assertSame(['rejectedAt' => self::REJECTED_AT, 'comment' => 'My reason', 'commentPrivate' => true], $presentation->rejection);
+	}
+
+	/**
+	 * A pending viewer who kept their real status could tell who rejected by
+	 * comparing their own entry with the redacted ones, so being the signer
+	 * does not lift the redaction of a pending entry.
+	 */
+	#[DataProvider('pendingStates')]
+	public function testTheViewersOwnPendingEntryIsRedactedLikeTheOthers(SignRequestStatus $status): void {
+		$this->withPolicy(['enabled' => true, 'public_status' => false]);
+
+		$presentation = $this->getService()->presentSigner($this->signRequest(1, $status), null, true, true);
+
+		$this->assertSame(SignerDisplayStatus::NOT_SIGNED, $presentation->displayStatus);
+		$this->assertNull($presentation->status);
+		$this->assertSame('Not signed', $presentation->statusText);
+		$this->assertNull($presentation->rejection);
+	}
+
+	public static function pendingStates(): array {
+		return [
+			'draft' => [SignRequestStatus::DRAFT],
+			'ready to sign' => [SignRequestStatus::ABLE_TO_SIGN],
+		];
 	}
 
 	public function testPresentSignerCarriesTheRejectionObjectOfAVisibleRejection(): void {
