@@ -1350,6 +1350,79 @@ describe('files store - critical business rules', () => {
 				expect(config.data.file).toEqual({ nodeId })
 			})
 
+			/**
+			 * Regression #8363: `@nextcloud/files` exposes `Node.id` as a string and
+			 * the Files sidebar hands it to AppFilesTab as is (a file copied in the
+			 * Files app, or any node id above Number.MAX_SAFE_INTEGER). The store
+			 * keeps it as nodeId; the request must carry it unchanged instead of
+			 * dropping the whole "file" (422 "File or files parameter is required").
+			 */
+			it('includes file.nodeId as the string the Files sidebar provided', async () => {
+				const store = useFilesStore()
+				const nodeId = '9007199254740993'
+				const tempId = -Number(nodeId)
+				store.files[tempId] = {
+					id: tempId,
+					nodeId,
+					name: 'copy of contract.pdf',
+					signers: [{ email: 'signer@example.com', identifyMethods: [{ method: 'email', value: 'signer@example.com', mandatory: 0 }] }],
+					signatureFlow: 'parallel',
+				}
+				store.selectedFileId = tempId
+
+				axiosMock.mockResolvedValue({
+					data: { ocs: { data: { id: 77, nodeId: 77, signatureFlow: 'parallel', signers: [] } } },
+				})
+
+				await store.saveOrUpdateSignatureRequest({})
+
+				const config = axiosMock.mock.calls[0][0]
+				expect(config.data.file).toEqual({ nodeId: '9007199254740993' })
+			})
+
+			it('serializes envelope files with string and number node ids as they are', async () => {
+				const store = useFilesStore()
+				store.selectedFileId = -1
+				store.files[-1] = {
+					id: -1,
+					name: 'Envelope',
+					files: [
+						{ id: -7, nodeId: '9007199254740993', name: 'first.pdf' },
+						{ id: -22, nodeId: 22, name: 'second.pdf' },
+					],
+					signers: [{ email: 'signer@example.com' }],
+					signatureFlow: 'parallel',
+				}
+				axiosMock.mockResolvedValue({
+					data: { ocs: { data: { id: 12, nodeId: 'real-node', signatureFlow: 'parallel', signers: [] } } },
+				})
+
+				await store.saveOrUpdateSignatureRequest({})
+
+				const config = axiosMock.mock.calls[0][0]
+				expect(config.data.files).toEqual([{ nodeId: '9007199254740993' }, { nodeId: 22 }])
+			})
+
+			it('does not send the empty node id tab.ts falls back to when the node has none', async () => {
+				const store = useFilesStore()
+				store.files[-1] = {
+					id: -1,
+					nodeId: '',
+					name: 'unknown.pdf',
+					signers: [{ email: 'signer@example.com' }],
+					signatureFlow: 'parallel',
+				}
+				store.selectedFileId = -1
+				axiosMock.mockResolvedValue({
+					data: { ocs: { data: { id: 12, nodeId: 12, signatureFlow: 'parallel', signers: [] } } },
+				})
+
+				await store.saveOrUpdateSignatureRequest({})
+
+				const config = axiosMock.mock.calls[0][0]
+				expect(config.data.file).toBeNull()
+			})
+
 			it('serializes envelope files with nodeId-based references for creation flows', async () => {
 				const store = useFilesStore()
 				store.selectedFileId = -1
