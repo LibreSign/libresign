@@ -43,8 +43,10 @@ final class ObserverProfileFilePolicyApplier extends AbstractFilePolicyApplier {
 			return;
 		}
 
-		$user = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
-		$resolvedPolicy = $this->policyService->resolveForUser(ObserverProfilePolicy::KEY, $user, []);
+		$activeContext = $this->extractActiveContext($data);
+		$resolvedPolicy = $activeContext === null
+			? $this->policyService->resolveForUserId(ObserverProfilePolicy::KEY, $file->getUserId(), [])
+			: $this->policyService->resolveForUserId(ObserverProfilePolicy::KEY, $file->getUserId(), [], $activeContext);
 		if (!ObserverProfilePolicyValue::normalize($resolvedPolicy->getEffectiveValue())) {
 			return;
 		}

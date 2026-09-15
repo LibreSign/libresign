@@ -26,6 +26,7 @@ final class ObserverProfilePolicyServiceTest extends TestCase {
 
 	public function testUsesFileSnapshotBeforeLivePolicy(): void {
 		$file = new File();
+		$file->setUserId('owner');
 		$file->setMetadata([
 			'policy_snapshot' => [
 				ObserverProfilePolicy::KEY => [
@@ -35,6 +36,7 @@ final class ObserverProfilePolicyServiceTest extends TestCase {
 			],
 		]);
 		$this->policyService->expects($this->never())->method('resolve');
+		$this->policyService->expects($this->never())->method('resolveForUserId');
 
 		$this->assertTrue($this->getService()->isEnabled($file));
 	}
@@ -45,21 +47,23 @@ final class ObserverProfilePolicyServiceTest extends TestCase {
 			->method('resolve')
 			->with(ObserverProfilePolicy::KEY)
 			->willReturn((new ResolvedPolicy())->setEffectiveValue(true));
+		$this->policyService->expects($this->never())->method('resolveForUserId');
 
 		$this->assertTrue($this->getService()->isEnabled());
 	}
 
 	public function testExistingFileWithoutSnapshotDoesNotUseLivePolicy(): void {
-		$this->policyService
-			->method('resolve')
-			->with(ObserverProfilePolicy::KEY)
-			->willReturn((new ResolvedPolicy())->setEffectiveValue(true));
+		$file = new File();
+		$file->setUserId('owner');
+		$this->policyService->expects($this->never())->method('resolve');
+		$this->policyService->expects($this->never())->method('resolveForUserId');
 
-		$this->assertFalse($this->getService()->isEnabled(new File()));
+		$this->assertFalse($this->getService()->isEnabled($file));
 	}
 
 	public function testExistingFileSnapshotWithoutObserverPolicyDoesNotUseLivePolicy(): void {
 		$file = new File();
+		$file->setUserId('owner');
 		$file->setMetadata([
 			'policy_snapshot' => [
 				'signature_flow' => [
@@ -68,16 +72,15 @@ final class ObserverProfilePolicyServiceTest extends TestCase {
 				],
 			],
 		]);
-		$this->policyService
-			->method('resolve')
-			->with(ObserverProfilePolicy::KEY)
-			->willReturn((new ResolvedPolicy())->setEffectiveValue(true));
+		$this->policyService->expects($this->never())->method('resolve');
+		$this->policyService->expects($this->never())->method('resolveForUserId');
 
 		$this->assertFalse($this->getService()->isEnabled($file));
 	}
 
-	public function testDisabledSnapshotUsesLivePolicyWhenEnabled(): void {
+	public function testDisabledSnapshotUsesTargetOwnerLivePolicyWhenEnabled(): void {
 		$file = new File();
+		$file->setUserId('target-owner');
 		$file->setMetadata([
 			'policy_snapshot' => [
 				ObserverProfilePolicy::KEY => [
@@ -86,17 +89,45 @@ final class ObserverProfilePolicyServiceTest extends TestCase {
 				],
 			],
 		]);
+		$this->policyService->expects($this->never())->method('resolve');
 		$this->policyService
 			->expects($this->once())
-			->method('resolve')
-			->with(ObserverProfilePolicy::KEY)
+			->method('resolveForUserId')
+			->with(ObserverProfilePolicy::KEY, 'target-owner')
 			->willReturn((new ResolvedPolicy())->setEffectiveValue(true));
 
 		$this->assertTrue($this->getService()->isEnabled($file));
 	}
 
-	public function testDisabledSnapshotStaysDisabledWhenLivePolicyIsDisabled(): void {
+	public function testDisabledSnapshotFollowsTargetOwnerWhenManagerWouldDiffer(): void {
 		$file = new File();
+		$file->setUserId('target-owner');
+		$file->setMetadata([
+			'policy_snapshot' => [
+				ObserverProfilePolicy::KEY => [
+					'effectiveValue' => false,
+					'sourceScope' => 'system',
+				],
+			],
+		]);
+		$this->policyService
+			->method('resolve')
+			->willReturn((new ResolvedPolicy())->setEffectiveValue(true));
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUserId')
+			->with(ObserverProfilePolicy::KEY, 'target-owner')
+			->willReturn((new ResolvedPolicy())->setEffectiveValue(false));
+
+		$this->assertFalse(
+			$this->getService()->isEnabled($file),
+			'Live fallback must follow the request owner, not the acting manager resolve()',
+		);
+	}
+
+	public function testDisabledSnapshotStaysDisabledWhenTargetOwnerLivePolicyIsDisabled(): void {
+		$file = new File();
+		$file->setUserId('target-owner');
 		$file->setMetadata([
 			'policy_snapshot' => [
 				ObserverProfilePolicy::KEY => [
@@ -107,8 +138,8 @@ final class ObserverProfilePolicyServiceTest extends TestCase {
 		]);
 		$this->policyService
 			->expects($this->once())
-			->method('resolve')
-			->with(ObserverProfilePolicy::KEY)
+			->method('resolveForUserId')
+			->with(ObserverProfilePolicy::KEY, 'target-owner')
 			->willReturn((new ResolvedPolicy())->setEffectiveValue(false));
 
 		$this->assertFalse($this->getService()->isEnabled($file));
