@@ -8,10 +8,13 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Validation;
 
+use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
@@ -19,6 +22,7 @@ use OCA\Libresign\Service\DocMdp\Validator as DocMdpValidator;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\RuntimeRequirementValidator;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicyService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -35,6 +39,7 @@ class SignerValidator {
 		private SequentialSigningService $sequentialSigningService,
 		private DocMdpValidator $docMdpValidator,
 		private RuntimeRequirementValidator $runtimeRequirementValidator,
+		private ObserverProfilePolicyService $observerProfilePolicyService,
 	) {
 	}
 
@@ -45,6 +50,7 @@ class SignerValidator {
 		if (!is_array($data['signers'])) {
 			throw new LibresignException($this->l10n->t('No signers'));
 		}
+		$this->validateSigningParticipantsRequired($data);
 		$this->docMdpValidator->validateSignersCount($data);
 		$this->validateDocMdpPdfRestrictions($data);
 		foreach ($data['signers'] as $signer) {
@@ -54,6 +60,7 @@ class SignerValidator {
 			if (isset($signer['displayName']) && strlen($signer['displayName']) > 64) {
 				throw new LibresignException('Display name must not be longer than 64 characters');
 			}
+			$this->validateParticipantRole($signer, $data);
 			foreach ($this->normalizeSignerIdentifyMethods($signer) as $method) {
 				$this->validateIdentifyMethodForRequest($method['name'], $method['value']);
 			}
@@ -146,6 +153,12 @@ class SignerValidator {
 
 	private function validateSignerStatus(string $uuid): void {
 		$signRequest = $this->signRequestMapper->getByUuid($uuid);
+
+		if (!$signRequest->getParticipantRoleEnum()->canSign()) {
+			// TRANSLATORS Validation error when an observer tries to sign a document.
+			$this->throwSignerActionError($this->l10n->t('Observers cannot sign this document'));
+		}
+
 		$status = $signRequest->getStatusEnum();
 		$file = $this->fileMapper->getById($signRequest->getFileId());
 		$this->sequentialSigningService->setFile($file);
@@ -194,6 +207,63 @@ class SignerValidator {
 		$identifyMethod->validateToRequest();
 		if (empty($identifyMethod->getSignatureMethods())) {
 			throw new LibresignException('No signature methods for identify method ' . $name);
+		}
+	}
+
+	private function validateSigningParticipantsRequired(array $data): void {
+		if (($data['status'] ?? FileStatus::DRAFT->value) === FileStatus::DRAFT->value) {
+			return;
+		}
+
+		if (!is_array($data['signers'])) {
+			return;
+		}
+
+		foreach ($data['signers'] as $signer) {
+			if (!is_array($signer)) {
+				continue;
+			}
+
+			$role = ParticipantRole::fromNullable($signer['participantRole'] ?? null);
+			if ($role->canSign()) {
+				return;
+			}
+		}
+
+		// TRANSLATORS Validation error when requesting signatures without any signing participants.
+		throw new LibresignException($this->l10n->t('At least one signer is required'));
+	}
+
+	private function validateParticipantRole(array $signer, array $data): void {
+		$roleValue = $signer['participantRole'] ?? ParticipantRole::SIGNER->value;
+		if (!is_string($roleValue)) {
+			throw new LibresignException('Invalid participant role');
+		}
+
+		try {
+			$role = ParticipantRole::from($roleValue);
+		} catch (\ValueError) {
+			throw new LibresignException('Invalid participant role');
+		}
+
+		if ($role === ParticipantRole::OBSERVER
+			&& !$this->observerProfilePolicyService->isEnabled($this->getExistingRequestFile($data))
+		) {
+			// TRANSLATORS Validation error when observer participants are submitted while the feature is disabled by policy.
+			throw new LibresignException($this->l10n->t('Observer participants are not enabled'));
+		}
+	}
+
+	private function getExistingRequestFile(array $data): ?File {
+		$uuid = $data['uuid'] ?? null;
+		if (!is_string($uuid) || $uuid === '') {
+			return null;
+		}
+
+		try {
+			return $this->fileMapper->getByUuid($uuid);
+		} catch (DoesNotExistException) {
+			return null;
 		}
 	}
 

@@ -480,7 +480,7 @@ describe('SigningProgress', () => {
 			const progress = wrapper.vm.buildProgressFromValidation({
 				signers: [
 					{ signed: true, participantRole: 'signer' },
-					{ signed: false, participantRole: 'observer', status: 3 },
+					{ signed: false, participantRole: 'observer', status: 4 },
 				],
 			})
 

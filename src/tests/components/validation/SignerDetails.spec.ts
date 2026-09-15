@@ -584,6 +584,15 @@ describe('SignerDetails.vue - Business Logic', () => {
 			}
 			expect(wrapper.vm.hasValidationStatus(signer)).toBe(false)
 		})
+
+		it('returns false for observers even when validation fields exist', () => {
+			const signer = {
+				participantRole: 'observer',
+				signature_validation: { id: 1 },
+				document_modification_state: 'trailing_data' as const,
+			}
+			expect(wrapper.vm.hasValidationStatus(signer)).toBe(false)
+		})
 	})
 
 	describe('toggleDetailsAriaLabel computed', () => {
