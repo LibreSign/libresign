@@ -322,6 +322,7 @@ function toSignerSummaryRecord(signer: SignerLike | EditableRequestSigner | Retu
 		email: signer.email ?? '',
 		signed: null,
 		status: 0,
+		displayStatus: 'draft',
 		statusText: '',
 		...(Array.isArray(signer.identifyMethods) ? { identifyMethods: signer.identifyMethods } : {}),
 	}

@@ -250,6 +250,7 @@ function normalizeCertificateSigner(value: UnknownRecord): ValidationSignerDetai
 		displayName: value.displayName as string,
 		signed: isNullableString(value.signed) ? value.signed : null,
 		status: value.status as SignerDetailRecord['status'],
+		displayStatus: value.status === SIGN_REQUEST_STATUS.SIGNED ? 'signed' : 'draft',
 		statusText: value.statusText as string,
 		description: null,
 		request_sign_date: '',
