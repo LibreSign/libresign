@@ -32,11 +32,11 @@ use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IL10N;
 use OCP\IRequest;
-use OCP\IServerContainer;
 use OCP\ISession;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -101,7 +101,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->initialStateService = new InitialStateService(
 			$this->createMock(LoggerInterface::class),
 			$this->createMock(Coordinator::class),
-			$this->createMock(IServerContainer::class)
+			$this->createMock(ContainerInterface::class)
 		);
 		$this->initialState = new InitialState($this->initialStateService, 'libresign');
 		$this->fileAccessService = $this->createMock(FileAccessService::class);
