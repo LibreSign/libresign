@@ -28,7 +28,10 @@ class SignedCallbackListener implements IEventListener {
 		}
 
 		$updatedFields = $event->getLibreSignFile()->getUpdatedFields();
-		if (isset($updatedFields['signed']) && $updatedFields['signed'] === true) {
+		// The signature is tracked by signedNodeId/signedHash (set in
+		// SignFileService::updateLibreSignFile). There is no 'signed' field
+		// in the File entity, so the previous check never fired the callback.
+		if (!empty($updatedFields['signedNodeId']) || !empty($updatedFields['signedHash'])) {
 			$this->signFileService->notifyCallback($event->getSignedFile());
 		}
 	}
