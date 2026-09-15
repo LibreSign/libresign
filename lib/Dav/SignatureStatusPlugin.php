@@ -16,6 +16,11 @@ use Sabre\DAV\Server;
 use Sabre\DAV\ServerPlugin;
 
 class SignatureStatusPlugin extends ServerPlugin {
+	public function __construct(
+		private readonly FileService $fileService,
+	) {
+	}
+
 	#[\Override]
 	public function initialize(Server $server): void {
 		$server->on('propFind', $this->propFind(...));
@@ -26,21 +31,20 @@ class SignatureStatusPlugin extends ServerPlugin {
 			return;
 		}
 
-		$fileService = \OCP\Server::get(FileService::class);
 		$nodeId = $node->getId();
 
-		if (!$fileService->isLibresignFile($nodeId)) {
+		if (!$this->fileService->isLibresignFile($nodeId)) {
 			return;
 		}
 
 		try {
-			$fileService->setFileByNodeId($nodeId);
+			$this->fileService->setFileByNodeId($nodeId);
 		} catch (\Throwable) {
 			// Avoid breaking WebDAV property lookup when the node mapping is invalid.
 			return;
 		}
 
-		$propFind->handle('{http://nextcloud.org/ns}libresign-signature-status', $fileService->getStatus());
-		$propFind->handle('{http://nextcloud.org/ns}libresign-signed-node-id', $fileService->getSignedNodeId());
+		$propFind->handle('{http://nextcloud.org/ns}libresign-signature-status', $this->fileService->getStatus());
+		$propFind->handle('{http://nextcloud.org/ns}libresign-signed-node-id', $this->fileService->getSignedNodeId());
 	}
 }
