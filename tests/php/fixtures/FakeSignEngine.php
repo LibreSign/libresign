@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Fixtures;
 
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
 use OCP\Files\File;
 
@@ -27,6 +28,11 @@ class FakeSignEngine extends SignEngineHandler {
 
 	public function __construct() {
 		// No infrastructure dependencies needed
+	}
+
+	#[\Override]
+	protected function getCertificateEngineFactory(): CertificateEngineFactory {
+		throw new \LogicException('Not used by FakeSignEngine');
 	}
 
 	#[\Override]

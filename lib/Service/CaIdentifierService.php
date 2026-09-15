@@ -20,6 +20,7 @@ class CaIdentifierService {
 
 	public function __construct(
 		private IAppConfig $appConfig,
+		private ISecureRandom $secureRandom,
 	) {
 	}
 
@@ -28,7 +29,7 @@ class CaIdentifierService {
 		if (strlen($instanceId) === 10) {
 			return $instanceId;
 		}
-		$instanceId = \OCP\Server::get(ISecureRandom::class)->generate(10, ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
+		$instanceId = $this->secureRandom->generate(10, ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
 		$this->appConfig->setValueString(Application::APP_ID, 'instance_id', $instanceId);
 		return $instanceId;
 	}

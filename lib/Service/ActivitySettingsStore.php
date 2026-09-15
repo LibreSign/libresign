@@ -8,11 +8,18 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCP\Activity\IManager;
+
 class ActivitySettingsStore {
 	private const USER_SETTINGS_CLASS = 'OCA\\Activity\\UserSettings';
 
 	private bool $resolved = false;
 	private ?object $activityUserSettings = null;
+
+	public function __construct(
+		private IManager $activityManager,
+	) {
+	}
 
 	public function isAvailable(): bool {
 		return $this->getActivityUserSettings() !== null;
@@ -24,8 +31,7 @@ class ActivitySettingsStore {
 		}
 
 		try {
-			$manager = \OCP\Server::get(\OCP\Activity\IManager::class);
-			$manager->getSettingById($type);
+			$this->activityManager->getSettingById($type);
 			return true;
 		} catch (\Throwable) {
 			return false;
