@@ -40,29 +40,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->openedEmailStorage = $storage;
 	}
 
-	/**
-	 * Retry transient PHP built-in server disconnects that show up in CI as
-	 * cURL error 52 (Empty reply from server) during long Behat runs.
-	 *
-	 * @param TableNode|\Behat\Gherkin\Node\PyStringNode|array|null $body
-	 */
-	public function sendRequest(string $verb, string $url, $body = null, array $headers = [], array $options = []): void {
-		$attempts = 0;
-		$maxAttempts = 3;
-		while (true) {
-			try {
-				parent::sendRequest($verb, $url, $body, $headers, $options);
-				return;
-			} catch (\GuzzleHttp\Exception\ConnectException $exception) {
-				$attempts++;
-				if ($attempts >= $maxAttempts) {
-					throw $exception;
-				}
-				usleep(250000 * $attempts);
-			}
-		}
-	}
-
 	protected function beforeRequest(string $fullUrl, array $options): array {
 		[$fullUrl, $options] = parent::beforeRequest($fullUrl, $options);
 		$options = $this->parseFormParams($options);
