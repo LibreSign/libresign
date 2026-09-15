@@ -15,8 +15,8 @@
 				{{ t('libresign', 'A previously saved preference was cleared because it is no longer compatible with a higher-level policy.') }}
 			</NcNoteCard>
 
-			<NcNoteCard v-if="errorMessage" type="error">
-				{{ errorMessage }}
+			<NcNoteCard v-if="errorMessageFor(entry.definition.key)" type="error">
+				{{ errorMessageFor(entry.definition.key) }}
 			</NcNoteCard>
 
 			<NcNoteCard v-if="!canSavePreferenceFor(entry.definition.key)" type="info">
@@ -66,6 +66,51 @@
 				</div>
 			</div>
 		</NcSettingsSection>
+
+		<!-- TRANSLATORS Title and description of the preferences section with personal options that apply when the user requests signatures. -->
+		<NcSettingsSection
+			:name="t('libresign', 'Signature requests')"
+			:description="t('libresign', 'Options that apply when you request signatures.')">
+			<NcNoteCard v-if="errorMessageFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)" type="error">
+				{{ errorMessageFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY) }}
+			</NcNoteCard>
+
+			<div class="preferences-view__options">
+				<div class="preferences-view__editor-shell" :class="{ 'preferences-view__editor-shell--saved': isAutoSaveSavedFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY) }">
+					<div
+						v-if="isAutoSaveSavingFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY) || isAutoSaveSavedFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)"
+						class="preferences-view__autosave-status"
+						:class="{ 'preferences-view__autosave-status--saved': isAutoSaveSavedFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY) }"
+						role="status"
+						aria-live="polite">
+						<NcLoadingIcon v-if="isAutoSaveSavingFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)" :size="16" />
+						<NcIconSvgWrapper v-else :path="mdiCheckCircleOutline" :size="16" />
+						<span v-if="isAutoSaveSavingFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)">
+							<!-- TRANSLATORS Status text shown while the preferences screen is automatically saving the user's personal default value. -->
+							{{ t('libresign', 'Saving your preference...') }}
+						</span>
+						<span v-else>
+							<!-- TRANSLATORS Status text shown after the preferences screen successfully saves the user's personal default value. -->
+							{{ t('libresign', 'Preference saved') }}
+						</span>
+					</div>
+
+					<NcCheckboxRadioSwitch
+						id="preferences-warn-without-visible-signature-fields"
+						type="switch"
+						:model-value="warnWithoutVisibleSignatureFields"
+						:disabled="isAutoSaveSavingFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)"
+						@update:model-value="onWarnWithoutVisibleSignatureFieldsChange">
+						<!-- TRANSLATORS Label of the user preference switch that controls the warning shown when a signature request has signers without a visible signature field. -->
+						{{ t('libresign', 'Warn me when requesting signatures without visible fields') }}
+					</NcCheckboxRadioSwitch>
+					<div class="preferences-view__option-copy">
+						<!-- TRANSLATORS Description of the user preference switch that controls the warning shown when a signature request has signers without a visible signature field. -->
+						<p>{{ t('libresign', 'Show a warning when one or more signers will sign without a visible signature on the PDF.') }}</p>
+					</div>
+				</div>
+			</div>
+		</NcSettingsSection>
 	</div>
 </template>
 
@@ -76,12 +121,14 @@ import { t } from '@nextcloud/l10n'
 import { mdiCheckCircleOutline, mdiUndoVariant } from '@mdi/js'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import { usePoliciesStore } from '../../store/policies'
+import { useUserConfigStore } from '../../store/userconfig.js'
 import type { EffectivePolicyValue, SignatureFlowMode } from '../../types/index'
 import { realDefinitions } from '../Settings/PolicyWorkbench/settings/realDefinitions'
 import type { RealPolicyPersonalPreferenceContext } from '../Settings/PolicyWorkbench/settings/realTypes'
@@ -93,9 +140,10 @@ defineOptions({
 })
 
 const policiesStore = usePoliciesStore()
+const userConfigStore = useUserConfigStore()
 const preferencesReady = ref(false)
 const saving = ref(false)
-const errorMessage = ref('')
+const errorMessageByKey = reactive<Record<string, string>>({})
 const selectedPreferenceValues = reactive<Record<string, EffectivePolicyValue>>({})
 const autoSaveSavingByKey = reactive<Record<string, boolean>>({})
 const autoSaveSavedByKey = reactive<Record<string, boolean>>({})
@@ -194,6 +242,10 @@ function editorPropsFor(policyKey: string): Record<string, unknown> {
 		editorScope: 'user',
 		editorMode: 'edit',
 	}
+}
+
+function errorMessageFor(key: string): string {
+	return errorMessageByKey[key] ?? ''
 }
 
 function isAutoSaveSavingFor(policyKey: string): boolean {
@@ -320,6 +372,33 @@ async function undoAutoSaveByKey(policyKey: string): Promise<void> {
 	}
 }
 
+// This is a plain user preference, not a policy, so it uses the user config store.
+const WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY = 'warn_without_visible_signature_fields'
+const warnWithoutVisibleSignatureFields = ref(userConfigStore.warn_without_visible_signature_fields !== false)
+
+async function onWarnWithoutVisibleSignatureFieldsChange(enabled: boolean): Promise<void> {
+	const previous = warnWithoutVisibleSignatureFields.value
+	if (enabled === previous) {
+		return
+	}
+
+	warnWithoutVisibleSignatureFields.value = enabled
+	autoSaveSavingByKey[WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY] = true
+	autoSaveSavedByKey[WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY] = false
+	errorMessageByKey[WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY] = ''
+	try {
+		await userConfigStore.update(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY, enabled)
+		setAutoSaveSavedFeedback(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)
+	} catch (error) {
+		logger.error(`Failed to save ${WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY} preference`, { error })
+		warnWithoutVisibleSignatureFields.value = previous
+		userConfigStore.onUpdate(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY, previous)
+		errorMessageByKey[WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY] = savePreferenceErrorText()
+	} finally {
+		autoSaveSavingByKey[WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY] = false
+	}
+}
+
 // Backward-compatible helpers used by existing tests.
 async function savePreference(flow: SignatureFlowMode): Promise<void> {
 	await savePreferenceByKey('signature_flow', flow)
@@ -335,13 +414,13 @@ async function savePreferenceValue(policyKey: string, value: EffectivePolicyValu
 	}
 
 	saving.value = true
-	errorMessage.value = ''
+	errorMessageByKey[policyKey] = ''
 	try {
 		await persistPreferenceValue(policyKey, value)
 		return true
 	} catch (error) {
 		logger.error(`Failed to save ${policyKey} preference`, { error })
-		errorMessage.value = errorText
+		errorMessageByKey[policyKey] = errorText
 		return false
 	} finally {
 		saving.value = false
@@ -360,12 +439,12 @@ async function persistPreferenceValue(policyKey: string, value: EffectivePolicyV
 
 async function clearPreferenceValue(policyKey: string, errorText: string): Promise<void> {
 	saving.value = true
-	errorMessage.value = ''
+	errorMessageByKey[policyKey] = ''
 	try {
 		await clearPersistedPreferenceValue(policyKey)
 	} catch (error) {
 		logger.error(`Failed to clear ${policyKey} preference`, { error })
-		errorMessage.value = errorText
+		errorMessageByKey[policyKey] = errorText
 	} finally {
 		saving.value = false
 	}
@@ -403,7 +482,7 @@ onBeforeUnmount(() => {
 defineExpose({
 	canSavePreferenceFor,
 	clearPreference,
-	errorMessage,
+	errorMessageFor,
 	onPreferenceChange,
 	savePreference,
 	selectedPreferenceValues,
@@ -416,6 +495,8 @@ defineExpose({
 	syncSelectedPreference,
 	syncAllSelectedPreferences,
 	undoAutoSaveByKey,
+	warnWithoutVisibleSignatureFields,
+	onWarnWithoutVisibleSignatureFieldsChange,
 })
 </script>
 

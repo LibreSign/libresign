@@ -974,6 +974,24 @@ const _filesStore = defineStore('files', () => {
 			.filter((signer) => signer && signer.identifyMethods?.length)
 	}
 
+	/**
+	 * Whether a value identifies a Nextcloud node. Besides the historical
+	 * positive number, `@nextcloud/files` exposes `Node.id` as a string and
+	 * that is what the Files sidebar hands to AppFilesTab (#8363). The string
+	 * is kept as is: node ids are 64-bit and converting them with Number()
+	 * could change the value above Number.MAX_SAFE_INTEGER. The API accepts
+	 * both representations.
+	 *
+	 * @param {unknown} value
+	 * @return {value is number | string}
+	 */
+	function isNodeId(value) {
+		if (typeof value === 'number') {
+			return Number.isInteger(value) && value > 0
+		}
+		return typeof value === 'string' && /^[1-9][0-9]*$/.test(value)
+	}
+
 	/** @param {EditableFileReferenceDraft | ApiFileRecord | EditableFileDraft | string | null | undefined} file */
 	function serializeRequestFile(file, { preferNodeId = false } = {}) {
 		if (typeof file === 'string') {
@@ -985,7 +1003,7 @@ const _filesStore = defineStore('files', () => {
 		if (typeof file.path === 'string' && file.path.length > 0) {
 			return { path: file.path }
 		}
-		if (preferNodeId && typeof file.nodeId === 'number' && file.nodeId > 0) {
+		if (preferNodeId && isNodeId(file.nodeId)) {
 			return { nodeId: file.nodeId }
 		}
 		if (typeof file.fileId === 'number' && file.fileId > 0) {
@@ -996,7 +1014,7 @@ const _filesStore = defineStore('files', () => {
 				return { fileId: file.id }
 			}
 		}
-		if (typeof file.nodeId === 'number' && file.nodeId > 0) {
+		if (isNodeId(file.nodeId)) {
 			return { nodeId: file.nodeId }
 		}
 		if (typeof file.url === 'string' && file.url.length > 0) {

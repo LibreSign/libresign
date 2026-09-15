@@ -6,18 +6,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const ensureWorkerReadyMock = vi.fn()
-const setWorkerPathMock = vi.fn()
 
 vi.mock('@libresign/pdf-elements', () => ({
 	ensureWorkerReady: vi.fn(() => ensureWorkerReadyMock()),
-	setWorkerPath: vi.fn((path: string) => setWorkerPathMock(path)),
 }))
 
 describe('pdfWorker helper', () => {
 	beforeEach(() => {
 		vi.resetModules()
 		ensureWorkerReadyMock.mockReset()
-		setWorkerPathMock.mockReset()
 	})
 
 	it('patches URL.parse to support Location input before worker bootstrap', async () => {
@@ -38,8 +35,6 @@ describe('pdfWorker helper', () => {
 		ensurePdfWorker()
 
 		expect(ensureWorkerReadyMock).toHaveBeenCalledTimes(1)
-		expect(setWorkerPathMock).toHaveBeenCalledTimes(1)
-		expect(setWorkerPathMock.mock.calls[0]?.[0]).toContain('pdf.worker')
 		if (typeof Location !== 'undefined') {
 			expect(URL.parse(window.location as unknown as string)).toBeInstanceOf(URL)
 		}
@@ -51,6 +46,5 @@ describe('pdfWorker helper', () => {
 		ensurePdfWorker()
 
 		expect(ensureWorkerReadyMock).toHaveBeenCalledTimes(1)
-		expect(setWorkerPathMock).toHaveBeenCalledTimes(1)
 	})
 })

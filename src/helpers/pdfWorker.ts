@@ -2,8 +2,7 @@
  * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { ensureWorkerReady, setWorkerPath } from '@libresign/pdf-elements'
-import pdfWorkerPath from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+import { ensureWorkerReady } from '@libresign/pdf-elements'
 
 let configured = false
 
@@ -46,7 +45,6 @@ export const ensurePdfWorker = (): void => {
 		return
 	}
 	ensureUrlParseLocationSupport()
-	setWorkerPath(resolveWorkerPath(pdfWorkerPath))
 	configured = true
 	void Promise.resolve(ensureWorkerReady()).catch((error) => {
 		throw error

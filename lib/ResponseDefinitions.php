@@ -74,7 +74,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignNewFile = array{
  *     base64?: string,
- *     nodeId?: non-negative-int,
+ *     nodeId?: non-negative-int|numeric-string,
  *     path?: string,
  *     url?: string,
  *     name?: string,

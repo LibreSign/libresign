@@ -38,6 +38,38 @@ class FileInputValidator {
 	) {
 	}
 
+	/**
+	 * Normalize the node id of a file payload received over HTTP.
+	 *
+	 * The API accepts `nodeId` as a non-negative int or as its canonical
+	 * decimal string (digits only, no sign, no leading zeros, within the int
+	 * range): the Files app exposes node ids as strings (`Node.id` of
+	 * `@nextcloud/files`) and, since Nextcloud 33, they can exceed what a
+	 * JavaScript number holds. Call it once at the boundary: past it,
+	 * `nodeId` is either absent or the non-negative `int` the Nextcloud Files
+	 * API works with, and anything else is rejected here instead of reaching
+	 * a later cast.
+	 *
+	 * @param array<string, mixed> $file
+	 * @return array<string, mixed>
+	 * @throws LibresignException when `nodeId` is present and is neither a non-negative int nor its canonical decimal string
+	 */
+	public function normalizeNodeId(array $file, int $type = self::TYPE_TO_SIGN): array {
+		$nodeId = $file['nodeId'] ?? null;
+		if ($nodeId === null) {
+			return $file;
+		}
+		if (is_string($nodeId) && ctype_digit($nodeId)) {
+			// FILTER_VALIDATE_INT also rejects leading zeros and overflow.
+			$nodeId = filter_var($nodeId, FILTER_VALIDATE_INT);
+		}
+		if (is_int($nodeId) && $nodeId >= 0) {
+			$file['nodeId'] = $nodeId;
+			return $file;
+		}
+		throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
+	}
+
 	public function validateNewFile(array $data, int $type = self::TYPE_TO_SIGN, ?IUser $user = null): void {
 		$this->validateFile($data, $type, $user);
 		if (!empty($data['file']['nodeId'])) {

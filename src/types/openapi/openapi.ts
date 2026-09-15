@@ -1362,8 +1362,7 @@ export type components = {
         };
         NewFile: {
             base64?: string;
-            /** Format: int64 */
-            nodeId?: number;
+            nodeId?: number | string;
             path?: string;
             url?: string;
             name?: string;
@@ -4428,7 +4427,7 @@ export interface operations {
                      */
                     settings?: components["schemas"]["FolderSettings"];
                     /**
-                     * @description File object. Supports nodeId, url, base64 or path.
+                     * @description File object. Supports nodeId (a non-negative integer or its canonical decimal string, as Nextcloud node ids can exceed a JavaScript number), url, base64 or path.
                      * @default []
                      */
                     file?: components["schemas"]["NewFile"];
@@ -4507,7 +4506,7 @@ export interface operations {
                     uuid?: string | null;
                     /** @description Visible elements on document */
                     visibleElements?: components["schemas"]["VisibleElement"][] | null;
-                    /** @description File object. Supports nodeId, url, base64 or path when creating a new request. */
+                    /** @description File object. Supports nodeId (a non-negative integer or its canonical decimal string), url, base64 or path when creating a new request. */
                     file?: components["schemas"]["NewFile"];
                     /**
                      * Format: int64

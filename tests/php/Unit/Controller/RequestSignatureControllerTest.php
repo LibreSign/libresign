@@ -12,14 +12,18 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 use OCA\Libresign\Controller\RequestSignatureController;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\FileListService;
+use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\RequestSignatureWorkflowService;
+use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Service\Validation\VisibleElementValidator;
 use OCP\AppFramework\Http;
+use OCP\Files\IMimeTypeDetector;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
@@ -63,6 +67,13 @@ final class RequestSignatureControllerTest extends TestCase {
 			$this->signerValidator,
 			$this->visibleElementValidator,
 			$this->fileMapper,
+			new FileInputValidator(
+				$this->l10n,
+				$this->createMock(SignRequestMapper::class),
+				$this->fileMapper,
+				$this->createMock(IMimeTypeDetector::class),
+				$this->createMock(FolderService::class),
+			),
 		);
 
 		$this->controller = new RequestSignatureController(
