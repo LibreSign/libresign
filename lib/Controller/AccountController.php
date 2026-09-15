@@ -15,7 +15,6 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -62,7 +61,6 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		private LoggerInterface $logger,
 		protected IUserSession $userSession,
 		protected SessionService $sessionService,
-		private ValidateHelper $validateHelper,
 		private IUserConfig $userConfig,
 	) {
 		parent::__construct(Application::APP_ID, $request);
