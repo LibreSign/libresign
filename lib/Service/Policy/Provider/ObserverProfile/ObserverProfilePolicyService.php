@@ -24,13 +24,21 @@ final class ObserverProfilePolicyService {
 				return true;
 			}
 			if ($snapshotValue === false) {
-				return $this->isLivePolicyEnabled();
+				return $this->isLivePolicyEnabledForFile($file);
 			}
 
 			return false;
 		}
 
 		return $this->isLivePolicyEnabled();
+	}
+
+	private function isLivePolicyEnabledForFile(FileEntity $file): bool {
+		return ObserverProfilePolicyValue::normalize(
+			$this->policyService
+				->resolveForUserId(ObserverProfilePolicy::KEY, $file->getUserId())
+				->getEffectiveValue(),
+		);
 	}
 
 	private function isLivePolicyEnabled(): bool {

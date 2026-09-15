@@ -15,6 +15,7 @@ use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\ObserverProfile\FilePolicy\ObserverProfileFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
 use OCP\IL10N;
+use OCP\IUser;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -57,6 +58,7 @@ final class ObserverProfileFilePolicyApplierTest extends TestCase {
 
 	public function testSyncPreservesStoredSnapshotWhenAlreadyEnabled(): void {
 		$file = new File();
+		$file->setUserId('target-owner');
 		$metadata = [
 			'policy_snapshot' => [
 				ObserverProfilePolicy::KEY => [
@@ -67,6 +69,7 @@ final class ObserverProfileFilePolicyApplierTest extends TestCase {
 		];
 		$file->setMetadata($metadata);
 		$this->policyService->expects($this->never())->method('resolveForUser');
+		$this->policyService->expects($this->never())->method('resolveForUserId');
 		$this->fileService->expects($this->never())->method('update');
 
 		$this->getApplier()->sync($file, [
@@ -80,6 +83,7 @@ final class ObserverProfileFilePolicyApplierTest extends TestCase {
 
 	public function testSyncDoesNotChangeSnapshotWhenNoObserverIsPresent(): void {
 		$file = new File();
+		$file->setUserId('target-owner');
 		$metadata = [
 			'policy_snapshot' => [
 				ObserverProfilePolicy::KEY => [
@@ -89,7 +93,7 @@ final class ObserverProfileFilePolicyApplierTest extends TestCase {
 			],
 		];
 		$file->setMetadata($metadata);
-		$this->policyService->expects($this->never())->method('resolveForUser');
+		$this->policyService->expects($this->never())->method('resolveForUserId');
 		$this->fileService->expects($this->never())->method('update');
 
 		$this->getApplier()->sync($file, [
@@ -101,8 +105,9 @@ final class ObserverProfileFilePolicyApplierTest extends TestCase {
 		$this->assertSame($metadata, $file->getMetadata());
 	}
 
-	public function testSyncUpgradesDisabledSnapshotWhenObserverIsAddedAndLivePolicyIsEnabled(): void {
+	public function testSyncUpgradesDisabledSnapshotUsingFileOwnerNotActingManager(): void {
 		$file = new File();
+		$file->setUserId('target-owner');
 		$file->setMetadata([
 			'policy_snapshot' => [
 				ObserverProfilePolicy::KEY => [
@@ -111,19 +116,24 @@ final class ObserverProfileFilePolicyApplierTest extends TestCase {
 				],
 			],
 		]);
+		$actingManager = $this->createMock(IUser::class);
+		$actingManager->method('getUID')->willReturn('acting-manager');
+
+		$this->policyService->expects($this->never())->method('resolveForUser');
 		$this->policyService
 			->expects($this->once())
-			->method('resolveForUser')
-			->with(ObserverProfilePolicy::KEY, null, [])
+			->method('resolveForUserId')
+			->with(ObserverProfilePolicy::KEY, 'target-owner', [])
 			->willReturn(
 				(new ResolvedPolicy())
 					->setPolicyKey(ObserverProfilePolicy::KEY)
 					->setEffectiveValue(true)
-					->setSourceScope('system'),
+					->setSourceScope('group'),
 			);
 		$this->fileService->expects($this->once())->method('update')->with($file);
 
 		$this->getApplier()->sync($file, [
+			'userManager' => $actingManager,
 			'signers' => [
 				['participantRole' => 'signer'],
 				['participantRole' => 'observer'],
@@ -134,14 +144,15 @@ final class ObserverProfileFilePolicyApplierTest extends TestCase {
 			'policy_snapshot' => [
 				ObserverProfilePolicy::KEY => [
 					'effectiveValue' => true,
-					'sourceScope' => 'system',
+					'sourceScope' => 'group',
 				],
 			],
 		], $file->getMetadata());
 	}
 
-	public function testSyncDoesNotUpgradeDisabledSnapshotWhenLivePolicyIsDisabled(): void {
+	public function testSyncDoesNotUpgradeWhenFileOwnerLivePolicyIsDisabledEvenIfManagerWouldAllow(): void {
 		$file = new File();
+		$file->setUserId('target-owner');
 		$metadata = [
 			'policy_snapshot' => [
 				ObserverProfilePolicy::KEY => [
@@ -151,10 +162,21 @@ final class ObserverProfileFilePolicyApplierTest extends TestCase {
 			],
 		];
 		$file->setMetadata($metadata);
+		$actingManager = $this->createMock(IUser::class);
+		$actingManager->method('getUID')->willReturn('acting-manager');
+
+		$this->policyService
+			->method('resolveForUser')
+			->willReturn(
+				(new ResolvedPolicy())
+					->setPolicyKey(ObserverProfilePolicy::KEY)
+					->setEffectiveValue(true)
+					->setSourceScope('system'),
+			);
 		$this->policyService
 			->expects($this->once())
-			->method('resolveForUser')
-			->with(ObserverProfilePolicy::KEY, null, [])
+			->method('resolveForUserId')
+			->with(ObserverProfilePolicy::KEY, 'target-owner', [])
 			->willReturn(
 				(new ResolvedPolicy())
 					->setPolicyKey(ObserverProfilePolicy::KEY)
@@ -164,6 +186,7 @@ final class ObserverProfileFilePolicyApplierTest extends TestCase {
 		$this->fileService->expects($this->never())->method('update');
 
 		$this->getApplier()->sync($file, [
+			'userManager' => $actingManager,
 			'signers' => [
 				['participantRole' => 'observer'],
 			],

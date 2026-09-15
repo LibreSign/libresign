@@ -302,6 +302,7 @@ final class SignerValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn($identifyMethod);
 
 		$file = new File();
+		$file->setUserId('target-owner');
 		$file->setMetadata([
 			'policy_snapshot' => [
 				ObserverProfilePolicy::KEY => [
@@ -314,9 +315,11 @@ final class SignerValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getByUuid')
 			->with('ffffffff-ffff-ffff-ffff-ffffffffffff')
 			->willReturn($file);
+		$this->policyService->expects($this->never())->method('resolve');
 		$this->policyService
-			->method('resolve')
-			->with(ObserverProfilePolicy::KEY)
+			->expects($this->once())
+			->method('resolveForUserId')
+			->with(ObserverProfilePolicy::KEY, 'target-owner')
 			->willReturn((new ResolvedPolicy())->setEffectiveValue(true));
 
 		$this->validator->validateIdentifySigners([
