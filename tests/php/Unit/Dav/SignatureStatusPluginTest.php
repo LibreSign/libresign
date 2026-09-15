@@ -60,7 +60,7 @@ final class SignatureStatusPluginTest extends TestCase {
 			->expects($this->never())
 			->method('handle');
 
-		$plugin = $this->getPlugin($fileService);
+		$plugin = new SignatureStatusPlugin($fileService);
 		$plugin->propFind($propFind, $node);
 	}
 
@@ -108,12 +108,7 @@ final class SignatureStatusPluginTest extends TestCase {
 				$callIndex++;
 			});
 
-		$plugin = $this->getPlugin($fileService);
+		$plugin = new SignatureStatusPlugin($fileService);
 		$plugin->propFind($propFind, $node);
-	}
-
-	private function getPlugin(FileService $fileService): SignatureStatusPlugin {
-		\OC::$server->registerService(FileService::class, fn (): FileService => $fileService);
-		return new SignatureStatusPlugin();
 	}
 }
