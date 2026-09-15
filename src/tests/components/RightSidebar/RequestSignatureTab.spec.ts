@@ -196,37 +196,49 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	const updateMethods = async (methods: unknown[]) => {
 		await setVmState({ methods })
 	}
+	const mockEffectivePoliciesAxios = (policyOverrides: Record<string, unknown> = {}) => {
+		const response = createEffectivePoliciesResponse(policyOverrides)
+		vi.mocked(axios.get).mockImplementation(async (url: string) => {
+			if (url.includes('/apps/libresign/api/v1/policies/effective')) {
+				return response as Awaited<ReturnType<typeof axios.get>>
+			}
+
+			return { data: { ocs: { data: null } } } as Awaited<ReturnType<typeof axios.get>>
+		})
+		return response.data.ocs.data.policies
+	}
 	const updateIdentifyMethodsPolicy = async (effectiveValue: unknown) => {
 		const policiesStore = usePoliciesStore()
+		const policies = mockEffectivePoliciesAxios()
 		policiesStore.setPolicies({
-			signature_flow: createSignatureFlowPolicy(),
-			add_footer: createEffectivePoliciesResponse().data.ocs.data.policies.add_footer,
+			signature_flow: policies.signature_flow,
+			add_footer: policies.add_footer,
 			identify_methods: {
-				...createEffectivePoliciesResponse().data.ocs.data.policies.identify_methods,
+				...policies.identify_methods,
 				effectiveValue,
 			},
 		})
+		await flushPromises()
 		await wrapper.vm.$nextTick()
 	}
 	const updatePolicies = async (policyOverrides: Record<string, unknown>) => {
 		const policiesStore = usePoliciesStore()
-		policiesStore.setPolicies({
-			signature_flow: createSignatureFlowPolicy(policyOverrides),
-			add_footer: createEffectivePoliciesResponse().data.ocs.data.policies.add_footer,
-			identify_methods: createEffectivePoliciesResponse().data.ocs.data.policies.identify_methods,
-		})
+		policiesStore.setPolicies(mockEffectivePoliciesAxios(policyOverrides))
+		await flushPromises()
 		await wrapper.vm.$nextTick()
 	}
 	const updateFooterPolicy = async (policyOverrides: Record<string, unknown>) => {
 		const policiesStore = usePoliciesStore()
+		const policies = mockEffectivePoliciesAxios()
 		policiesStore.setPolicies({
-			signature_flow: createSignatureFlowPolicy(),
+			signature_flow: policies.signature_flow,
 			add_footer: {
-				...createEffectivePoliciesResponse().data.ocs.data.policies.add_footer,
+				...policies.add_footer,
 				...policyOverrides,
 			},
-			identify_methods: createEffectivePoliciesResponse().data.ocs.data.policies.identify_methods,
+			identify_methods: policies.identify_methods,
 		})
+		await flushPromises()
 		await wrapper.vm.$nextTick()
 	}
 
@@ -265,16 +277,9 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		capabilitiesState.signElementsAvailable = true
 		generateUrlMock.mockClear()
 		vi.mocked(emit).mockClear()
-		vi.mocked(axios.get).mockImplementation(async (url: string) => {
-			if (url.includes('/apps/libresign/api/v1/policies/effective')) {
-				return createEffectivePoliciesResponse() as Awaited<ReturnType<typeof axios.get>>
-			}
-
-			return { data: { ocs: { data: null } } } as Awaited<ReturnType<typeof axios.get>>
-		})
 		filesStore = useFilesStore()
 		const policiesStore = usePoliciesStore()
-		policiesStore.setPolicies(createEffectivePoliciesResponse().data.ocs.data.policies)
+		policiesStore.setPolicies(mockEffectivePoliciesAxios())
 
 		await filesStore.addFile({
 			id: 1,
@@ -1746,7 +1751,9 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 				canUseAsRequestOverride: false,
 			})
 			await updateFile({ signatureFlow: 'ordered_numeric' })
+			await flushPromises()
 			wrapper.vm.syncPreserveOrderWithFile()
+			expect(wrapper.vm.isAdminFlowForced).toBe(true)
 			expect(wrapper.vm.preserveOrder).toBe(false)
 		})
 
