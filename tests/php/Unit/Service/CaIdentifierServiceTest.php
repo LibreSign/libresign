@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Service\CaIdentifierService;
 use OCP\IAppConfig;
+use OCP\Security\ISecureRandom;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -19,13 +20,16 @@ use PHPUnit\Framework\TestCase;
  */
 final class CaIdentifierServiceTest extends TestCase {
 	private CaIdentifierService $service;
-	private MockObject $appConfig;
+	private IAppConfig&MockObject $appConfig;
+	private ISecureRandom&MockObject $secureRandom;
 
 	protected function setUp(): void {
 		$this->appConfig = $this->createMock(IAppConfig::class);
-		/** @var IAppConfig $appConfig */
-		$appConfig = $this->appConfig;
-		$this->service = new CaIdentifierService($appConfig);
+		$this->secureRandom = $this->createMock(ISecureRandom::class);
+		$this->secureRandom
+			->method('generate')
+			->willReturn('abc1234567');
+		$this->service = new CaIdentifierService($this->appConfig, $this->secureRandom);
 	}
 
 	public function testGenerateCaIdWithOpenSSL(): void {
