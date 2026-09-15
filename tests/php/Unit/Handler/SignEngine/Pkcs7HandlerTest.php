@@ -9,6 +9,7 @@ namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Service\FolderService;
 use OCP\IL10N;
@@ -20,11 +21,14 @@ final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N $l10n;
 	private FolderService&MockObject $folderService;
 	private LoggerInterface&MockObject $logger;
+	private CertificateEngineFactory&MockObject $certificateEngineFactory;
+
 	public function setUp(): void {
 		parent::setUp();
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(\OCA\Libresign\AppInfo\Application::APP_ID);
 		$this->folderService = $this->createMock(\OCA\Libresign\Service\FolderService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 	}
 
 	protected function getInstance(array $methods = []): Pkcs7Handler|MockObject {
@@ -33,6 +37,7 @@ final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->l10n,
 				$this->folderService,
 				$this->logger,
+				$this->certificateEngineFactory,
 			);
 		}
 		return $this->getMockBuilder(Pkcs7Handler::class)
@@ -40,6 +45,7 @@ final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->l10n,
 				$this->folderService,
 				$this->logger,
+				$this->certificateEngineFactory,
 			])
 			->onlyMethods($methods)
 			->getMock();
