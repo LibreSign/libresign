@@ -7,6 +7,7 @@ import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support/mailpit'
+import { clickAddSigner } from '../support/request-signature'
 import { useRequestSignPolicyGuard } from '../support/system-policies'
 
 useRequestSignPolicyGuard()
@@ -59,7 +60,7 @@ test('authenticated user sees authentication guidance when accessing another sig
 	await page.getByRole('button', { name: 'Send' }).click()
 
 	// Email signer — only the email method is active so there are no tabs in the Add signer dialog.
-	await page.getByRole('button', { name: 'Add signer' }).click()
+	await clickAddSigner(page)
 	await page.getByPlaceholder('Email').fill('signer01@libresign.coop')
 	await page.getByRole('option', { name: 'signer01@libresign.coop' }).click()
 	await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 01')

@@ -21,6 +21,7 @@ use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
+use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValue;
@@ -69,7 +70,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 
 		$this->policyService
-			->expects($this->exactly(8))
+			->expects($this->exactly(9))
 			->method('resolveForUser')
 			->willReturnCallback(function (string $policyKey) use ($identificationDocumentsValue, $identifyMethodsPolicyValue): ResolvedPolicy {
 				return match ($policyKey) {
@@ -102,6 +103,11 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						IdentifyMethodsPolicy::KEY,
 						$identifyMethodsPolicyValue,
 						'group',
+					),
+					ObserverProfilePolicy::KEY => $this->createResolvedPolicy(
+						ObserverProfilePolicy::KEY,
+						true,
+						'system',
 					),
 					SignerGeolocationPolicy::KEY => $this->createResolvedPolicy(
 						SignerGeolocationPolicy::KEY,
@@ -149,6 +155,10 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'effectiveValue' => 'Legal snapshot copy',
 			'sourceScope' => 'group',
 		], $metadata['policy_snapshot'][LegalInformationPolicy::KEY] ?? null);
+		$this->assertSame([
+			'effectiveValue' => true,
+			'sourceScope' => 'system',
+		], $metadata['policy_snapshot'][ObserverProfilePolicy::KEY] ?? null);
 		// Signature rejection is opt-in, so a request that does not ask for it is
 		// frozen as disabled even while the policy allows it.
 		$this->assertSame([

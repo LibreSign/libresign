@@ -15,6 +15,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Middleware\Attribute\PrivateValidation;
+use OCA\Libresign\Middleware\Attribute\RequireParticipantUuid;
 use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountService;
@@ -523,7 +524,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PrivateValidation(allowValidSignRequestUuid: true)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	#[RequireSignRequestUuid(allowIdDocs: true)]
+	#[RequireParticipantUuid(allowIdDocs: true)]
 	#[PublicPage]
 	#[RequireSetupOk]
 	#[AnonRateLimit(limit: 300, period: 60)]
@@ -703,6 +704,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('file_info', $fileInfo);
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
+		Util::addStyle(Application::APP_ID, 'libresign-validation');
 		if (class_exists(LoadViewer::class)) {
 			$this->eventDispatcher->dispatchTyped(new LoadViewer());
 		}

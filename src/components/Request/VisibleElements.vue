@@ -25,9 +25,9 @@
 					aria-live="polite"
 					aria-atomic="true"
 					class="sr-only">
-					<template v-if="!signerSelected">{{ selectSignerPositionHint }}</template>
+					<template v-if="!isReadOnly && !signerSelected">{{ selectSignerPositionHint }}</template>
 				</span>
-				<p v-if="!signerSelected">
+				<p v-if="!isReadOnly && !signerSelected">
 					<NcNoteCard type="info"
 						:text="selectSignerPositionHint" />
 				</p>
@@ -44,7 +44,7 @@
 						:key="index"
 						:signer="signer"
 						:require-request-permission="false"
-						:class="{ disabled: signerSelected }"
+						:class="{ disabled: isReadOnly || signerSelected }"
 						@select="handleSignerSelect">
 						<template #actions>
 							<slot name="actions" v-bind="{ signer }" />
@@ -75,6 +75,7 @@
 				:files="pdfEditorFiles"
 				:file-names="pdfFileNames"
 				:signers="pdfEditorSigners"
+				:read-only="isReadOnly"
 				@pdf-editor:end-init="updateSigners"
 				@pdf-editor:adding-ended="handleAddingEnded"
 				@pdf-editor:on-delete-signer="handleDeleteSigner" />
@@ -101,6 +102,7 @@ import PdfEditor from '../PdfEditor/PdfEditor.vue'
 import Signer from '../Signers/Signer.vue'
 
 import { FILE_STATUS } from '../../constants.js'
+import { isSigningParticipant } from '../../utils/participantRole.ts'
 import { getSigningRouteUuid } from '../../utils/signRequestUuid.ts'
 import { useFilesStore } from '../../store/files.js'
 import {
@@ -173,11 +175,14 @@ type PdfEditorRef = ComponentPublicInstance & {
 	addSigner?: (signer: SignerSummaryRecord, visibleElement: VisibleElementRecord, options?: { documentIndex?: number }) => Promise<void>
 }
 
-type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' | 'getEditableFile' | 'saveOrUpdateSignatureRequest'> & {
+type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' | 'getEditableFile' | 'saveOrUpdateSignatureRequest' | 'canRequestSign' | 'canSign' | 'isObservingOnly'> & {
 	loading: boolean
 	getFile: ReturnType<typeof useFilesStore>['getFile']
 	getEditableFile: ReturnType<typeof useFilesStore>['getEditableFile']
 	saveOrUpdateSignatureRequest: (payload: { visibleElements: EditableVisibleElementPayload[] }) => Promise<{ message: string }>
+	canRequestSign: boolean
+	canSign: ReturnType<typeof useFilesStore>['canSign']
+	isObservingOnly: ReturnType<typeof useFilesStore>['isObservingOnly']
 }
 
 defineOptions({
@@ -547,18 +552,25 @@ const sidebarSigners = computed<Array<{ signer: EditableRequestSigner; index: nu
 	const signers: EditableRequestSigner[] = Array.isArray(document.value.signers) ? document.value.signers : []
 	return signers
 		.map((signer, index) => ({ signer, index }))
-		.filter(({ signer }) => !isSelectedSigner(signer))
+		.filter(({ signer }) => isSigningParticipant(signer) && !isSelectedSigner(signer))
 })
 const pdfEditorSigners = computed<SignerSummaryRecord[]>(() => (Array.isArray(document.value.signers) ? document.value.signers : [])
+	.filter(isSigningParticipant)
 	.map(toSignerSummaryRecord)
 	.filter((signer): signer is SignerSummaryRecord => signer !== null))
 const status = computed(() => Number(document.value.status))
 const isDraft = computed(() => status.value === FILE_STATUS.DRAFT)
 const signElementsAvailable = computed(() => signElementsConfig?.['is-available'] !== false)
 const hasVisibleElements = computed(() => getVisibleElementsFromDocument(document.value as DocumentLike).length > 0)
-const canSave = computed(() => signElementsAvailable.value
+const canSave = computed(() => !filesStore.isObservingOnly()
+	&& filesStore.canRequestSign
+	&& signElementsAvailable.value
 	&& ([FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED] as number[]).includes(status.value))
-const canSign = computed(() => status.value === FILE_STATUS.ABLE_TO_SIGN && !!getSigningRouteUuid(document.value))
+const canSign = computed(() => !filesStore.isObservingOnly()
+	&& filesStore.canSign()
+	&& status.value === FILE_STATUS.ABLE_TO_SIGN
+	&& !!getSigningRouteUuid(document.value))
+const isReadOnly = computed(() => !canSave.value)
 const variantOfSaveButton = computed(() => canSave.value ? 'primary' : 'secondary')
 const variantOfSignButton = computed(() => canSave.value ? 'secondary' : 'primary')
 const statusLabel = computed(() => document.value.statusText || '')
@@ -651,7 +663,8 @@ function isSelectedSigner(signer: EditableRequestSigner): boolean {
 }
 
 async function showModal() {
-	if (!canRequestSign.value) {
+	// Observers cannot request signatures, but may open positions in read-only mode.
+	if (!canRequestSign.value && !filesStore.isObservingOnly()) {
 		return
 	}
 	if (!signElementsAvailable.value && !hasVisibleElements.value) {
@@ -681,7 +694,9 @@ async function loadPdfEditorFiles() {
 	for (const [index, url] of urls.entries()) {
 		const response = await fetch(url)
 		const contentType = response.headers.get('Content-Type') ?? ''
-		if (!response.ok || contentType.includes('application/json')) {
+		const isPdfContent = /application\/pdf/i.test(contentType)
+			|| /application\/octet-stream/i.test(contentType)
+		if (!response.ok || contentType.includes('application/json') || contentType.includes('text/html') || !isPdfContent) {
 			showError(t('libresign', 'Document not found'))
 			pdfEditorFiles.value = []
 			return
@@ -836,7 +851,7 @@ function onSelectSigner(signer: SignerSummaryRecord) {
 }
 
 function handleSignerSelect(signer: unknown) {
-	if (!signElementsAvailable.value) {
+	if (!canSave.value || !signElementsAvailable.value) {
 		return
 	}
 	const normalizedSigner = normalizeEditableRequestSigner(signer)
@@ -857,7 +872,7 @@ function stopAddSigner() {
 }
 
 async function onDeleteSigner(visibleElement: VisibleElementRecord) {
-	if (!visibleElement?.elementId) {
+	if (!canSave.value || !visibleElement?.elementId) {
 		return
 	}
 	await axios.delete(generateOcsUrl('/apps/libresign/api/v1/file-element/{uuid}/{elementId}', {
@@ -867,6 +882,9 @@ async function onDeleteSigner(visibleElement: VisibleElementRecord) {
 }
 
 function handleDeleteSigner(object: unknown) {
+	if (!canSave.value) {
+		return
+	}
 	const visibleElement = normalizeVisibleElement(object)
 	if (!visibleElement) {
 		return
@@ -1096,9 +1114,12 @@ defineExpose({
 	documentNameWithExtension,
 	canSign,
 	canSave,
+	isReadOnly,
 	status,
 	statusLabel,
 	isDraft,
+	sidebarSigners,
+	pdfEditorSigners,
 	getPdfElements,
 	showModal,
 	fetchFiles,

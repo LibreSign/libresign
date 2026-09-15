@@ -6,17 +6,19 @@
 import { expect, test } from '@playwright/test'
 
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
-import { useRequestSignPolicyGuard } from '../support/system-policies'
+import { configureOpenSsl, resetUserSigningCertificate, setSystemPolicy } from '../support/nc-provisioning'
+import { clickAddSigner, selectAccountSigner } from '../support/request-signature'
+import { useFooterPolicyGuard, useRequestSignPolicyGuard } from '../support/system-policies'
 
+useFooterPolicyGuard()
 useRequestSignPolicyGuard()
 
 test('sign herself with click to sign', async ({ page }) => {
-	await login(
-		page.request,
-		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
-		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
-	)
+	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+
+	await login(page.request, adminUser, adminPassword)
+	await resetUserSigningCertificate(page.request, adminUser, adminPassword)
 
 	await configureOpenSsl(page.request, 'LibreSign Test', {
 		C: 'BR',
@@ -41,10 +43,8 @@ test('sign herself with click to sign', async ({ page }) => {
 	await page.getByRole('button', { name: 'Upload from URL' }).click()
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
 	await page.getByRole('button', { name: 'Send' }).click()
-	await page.getByRole('button', { name: 'Add signer' }).click()
-	await page.getByPlaceholder('Account').click()
-	await page.getByPlaceholder('Account').fill('a')
-	await page.locator('.account-or-email__option__title').filter({ hasText: /^admin$/ }).click()
+	await clickAddSigner(page)
+	await selectAccountSigner(page, 'a')
 	await page.getByRole('button', { name: 'Save' }).click()
 	await page.getByRole('button', { name: 'Request signatures' }).click()
 	await page.getByRole('button', { name: 'Send' }).click()

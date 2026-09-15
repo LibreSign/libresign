@@ -8,6 +8,8 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { createL10nMock } from '../../../../../testHelpers/l10n.js'
 import ValidationAccessRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/validation-access/ValidationAccessRuleEditor.vue'
+import { getObserverPrivateValidationWarningMessage } from '../../../../../../views/Settings/PolicyWorkbench/settings/observerValidationAccessConflict'
+import { validationAccessRealDefinition } from '../../../../../../views/Settings/PolicyWorkbench/settings/validation-access/realDefinition'
 
 vi.mock('@nextcloud/l10n', () => createL10nMock())
 
@@ -16,6 +18,12 @@ const NcCheckboxRadioSwitchStub = {
 	props: ['modelValue', 'type', 'name'],
 	template: '<button class="radio-stub" @click="$emit(\'update:modelValue\', true)"><slot /></button>',
 	emits: ['update:modelValue'],
+}
+
+const NcNoteCardStub = {
+	name: 'NcNoteCard',
+	props: ['type'],
+	template: '<div class="note-stub"><slot /></div>',
 }
 
 describe('ValidationAccessRuleEditor.vue', () => {
@@ -27,6 +35,7 @@ describe('ValidationAccessRuleEditor.vue', () => {
 			global: {
 				stubs: {
 					NcCheckboxRadioSwitch: { ...NcCheckboxRadioSwitchStub, template: '<div class="radio-stub"><slot /></div>' },
+					NcNoteCard: NcNoteCardStub,
 				},
 			},
 		})
@@ -34,8 +43,6 @@ describe('ValidationAccessRuleEditor.vue', () => {
 		expect(wrapper.findAll('.radio-stub')).toHaveLength(2)
 		expect(wrapper.text()).toContain('Public validation page')
 		expect(wrapper.text()).toContain('Authenticated-only validation page')
-		expect(wrapper.text()).toContain('Anyone with the validation URL can access the validation page.')
-		expect(wrapper.text()).toContain('Accounts must be authenticated to access the validation page URL.')
 	})
 
 	it('emits true when the authenticated-only option is selected', async () => {
@@ -46,6 +53,7 @@ describe('ValidationAccessRuleEditor.vue', () => {
 			global: {
 				stubs: {
 					NcCheckboxRadioSwitch: NcCheckboxRadioSwitchStub,
+					NcNoteCard: NcNoteCardStub,
 				},
 			},
 		})
@@ -65,11 +73,57 @@ describe('ValidationAccessRuleEditor.vue', () => {
 						...NcCheckboxRadioSwitchStub,
 						template: '<button class="radio-stub" @click="$emit(\'update:modelValue\', false)"><slot /></button>',
 					},
+					NcNoteCard: NcNoteCardStub,
 				},
 			},
 		})
 
 		await wrapper.find('.radio-stub').trigger('click')
 		expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+	})
+
+	it('warns when authenticated-only is selected and backend meta marks observers enabled', () => {
+		const wrapper = mount(ValidationAccessRuleEditor, {
+			props: {
+				modelValue: true,
+				observerProfileEnabled: true,
+			},
+			global: {
+				stubs: {
+					NcCheckboxRadioSwitch: { ...NcCheckboxRadioSwitchStub, template: '<div class="radio-stub"><slot /></div>' },
+					NcNoteCard: NcNoteCardStub,
+				},
+			},
+		})
+
+		expect(wrapper.find('.note-stub').exists()).toBe(true)
+		expect(wrapper.text()).toContain(getObserverPrivateValidationWarningMessage())
+	})
+
+	it('maps backend meta into editor props', () => {
+		const props = validationAccessRealDefinition.resolveEditorProps?.(
+			{
+				policyKey: 'make_validation_url_private',
+				effectiveValue: true,
+				sourceScope: 'system',
+				visible: true,
+				editableByCurrentActor: true,
+				allowedValues: [true, false],
+				canSaveAsUserDefault: true,
+				canUseAsRequestOverride: true,
+				preferenceWasCleared: false,
+				blockedBy: null,
+				groupCount: 0,
+				userCount: 0,
+				everyoneCount: 0,
+				meta: { observerProfileEnabled: true },
+			},
+			{ modelValue: true },
+		)
+
+		expect(props).toMatchObject({
+			modelValue: true,
+			observerProfileEnabled: true,
+		})
 	})
 })

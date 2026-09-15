@@ -10,8 +10,11 @@ namespace OCA\Libresign\Tests\Unit\Service\Validation;
 
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Enum\ParticipantRole;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
@@ -106,5 +109,37 @@ final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('Element must be associated with a user');
 		$this->validator->validateElementSignRequestId([], FileInputValidator::TYPE_VISIBLE_ELEMENT_PDF);
+	}
+
+	public function testValidateElementSignRequestIdRejectsObservers(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(45);
+		$signRequest->setFileId(22);
+		$signRequest->setStatus(SignRequestStatus::OBSERVING->value);
+		$signRequest->setParticipantRole(ParticipantRole::OBSERVER->value);
+		$this->signRequestMapper->method('getById')->with(45)->willReturn($signRequest);
+
+		$this->expectExceptionMessage('Observers cannot have visible signature elements');
+
+		$this->validator->validateElementSignRequestId(
+			['signRequestId' => 45, 'type' => 'signature'],
+			FileInputValidator::TYPE_VISIBLE_ELEMENT_PDF,
+		);
+	}
+
+	public function testValidateElementSignRequestIdAcceptsSigners(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(46);
+		$signRequest->setFileId(22);
+		$signRequest->setStatus(SignRequestStatus::ABLE_TO_SIGN->value);
+		$signRequest->setParticipantRole(ParticipantRole::SIGNER->value);
+		$this->signRequestMapper->method('getById')->with(46)->willReturn($signRequest);
+
+		$actual = $this->validator->validateElementSignRequestId(
+			['signRequestId' => 46, 'type' => 'signature'],
+			FileInputValidator::TYPE_VISIBLE_ELEMENT_PDF,
+		);
+
+		$this->assertNull($actual);
 	}
 }

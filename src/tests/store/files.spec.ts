@@ -833,6 +833,21 @@ describe('files store - critical business rules', () => {
 			expect(store.isPartialSigned()).toBe(true)
 			expect(store.isFullSigned()).toBe(false)
 		})
+
+		it('treats fully signed signers as complete even with unsigned observers', () => {
+			const store = useFilesStore()
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				signers: [
+					{ signed: ['sig1'], participantRole: 'signer' },
+					{ signed: [], participantRole: 'observer', status: 4 },
+				],
+			}
+
+			expect(store.isFullSigned()).toBe(true)
+			expect(store.isPartialSigned()).toBe(true)
+		})
 	})
 
 	describe('RULE: signing permission with deleted file', () => {
@@ -846,6 +861,23 @@ describe('files store - critical business rules', () => {
 				metadata: { original_file_deleted: true },
 			}
 
+			expect(store.canSign()).toBe(false)
+		})
+
+		it('blocks signing when the current user is only an observer', () => {
+			const store = useFilesStore()
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				status: 1,
+				canSign: true,
+				signers: [
+					{ me: true, signed: [], participantRole: 'observer', sign_request_uuid: 'observer-uuid' },
+					{ me: false, signed: [], participantRole: 'signer', sign_request_uuid: 'signer-uuid' },
+				],
+			}
+
+			expect(store.isObservingOnly()).toBe(true)
 			expect(store.canSign()).toBe(false)
 		})
 	})

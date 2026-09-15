@@ -15,10 +15,17 @@ use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Provider\Helper\DelegationLayerHelper;
 use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
+use OCA\Libresign\Service\Policy\Provider\Helper\SiblingPolicyEffectiveBoolReader;
+use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
 
 final class ValidationAccessPolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'make_validation_url_private';
 	public const SYSTEM_APP_CONFIG_KEY = 'make_validation_url_private';
+
+	public function __construct(
+		private SiblingPolicyEffectiveBoolReader $siblingPolicyEffectiveBoolReader,
+	) {
+	}
 
 	#[\Override]
 	public function keys(): array {
@@ -39,6 +46,12 @@ final class ValidationAccessPolicy implements IPolicyDefinitionProvider {
 				],
 				normalizer: static fn (mixed $rawValue): bool => filter_var($rawValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
+				resolvedStateMeta: fn (PolicyContext $context): array => [
+					'observerProfileEnabled' => $this->siblingPolicyEffectiveBoolReader->getEffectiveBool(
+						ObserverProfilePolicy::KEY,
+						$context,
+					),
+				],
 				supportedScopes: [
 					PolicySpec::SCOPE_SYSTEM,
 					PolicySpec::SCOPE_GROUP,

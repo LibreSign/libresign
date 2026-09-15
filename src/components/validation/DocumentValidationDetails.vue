@@ -46,9 +46,16 @@
 			</NcButton>
 		</div>
 
-		<ul v-if="document.signers && document.signers.length > 0" class="signers">
-			<SignerDetails v-for="(signer, signerIndex) in document.signers" :key="signerIndex" :signer="signer" />
-		</ul>
+		<div v-if="hasParticipants" class="participants">
+			<template v-for="section in participantSections" :key="section.role">
+				<h3 class="participants-subheading">
+					{{ section.title }}
+				</h3>
+				<ul class="signers">
+					<SignerDetails v-for="(signer, signerIndex) in section.participants" :key="`${section.role}-${signerIndex}`" :signer="signer" />
+				</ul>
+			</template>
+		</div>
 	</div>
 </template>
 
@@ -68,6 +75,7 @@ import {
 import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import SignerDetails from './SignerDetails.vue'
+import { filterParticipantsByRole, PARTICIPANT_ROLE } from '../../utils/participantRole.ts'
 import type {
 	LoadedValidationFileDocument,
 	ValidatedChildFileRecord,
@@ -89,6 +97,36 @@ const props = withDefaults(defineProps<{
 })
 
 const { document } = toRefs(props)
+
+type ParticipantSectionRole = typeof PARTICIPANT_ROLE.SIGNER | typeof PARTICIPANT_ROLE.OBSERVER
+
+type ParticipantSection = {
+	role: ParticipantSectionRole
+	title: string
+	participants: NonNullable<typeof document.value.signers>
+}
+
+const signingParticipants = computed(() => filterParticipantsByRole(document.value.signers, PARTICIPANT_ROLE.SIGNER))
+const observerParticipants = computed(() => filterParticipantsByRole(document.value.signers, PARTICIPANT_ROLE.OBSERVER))
+const hasParticipants = computed(() => signingParticipants.value.length > 0 || observerParticipants.value.length > 0)
+const participantSections = computed<ParticipantSection[]>(() => {
+	const sections: ParticipantSection[] = []
+	if (signingParticipants.value.length > 0) {
+		sections.push({
+			role: PARTICIPANT_ROLE.SIGNER,
+			title: t('libresign', 'Signers'),
+			participants: signingParticipants.value,
+		})
+	}
+	if (observerParticipants.value.length > 0) {
+		sections.push({
+			role: PARTICIPANT_ROLE.OBSERVER,
+			title: t('libresign', 'Observers'),
+			participants: observerParticipants.value,
+		})
+	}
+	return sections
+})
 
 const size = computed(() => {
 	if (document.value.size < 1024) { return document.value.size + ' B' }
@@ -113,6 +151,8 @@ async function viewDocument() {
 defineExpose({
 	documentStatus,
 	size,
+	hasParticipants,
+	participantSections,
 	viewDocument,
 })
 </script>
@@ -126,6 +166,21 @@ defineExpose({
 
 		&.signers > li {
 			margin-bottom: 12px;
+		}
+	}
+
+	.participants {
+		margin-top: 16px;
+	}
+
+	.participants-subheading {
+		font-size: 1rem;
+		font-weight: 600;
+		margin: 0 0 12px 0;
+		color: var(--color-main-text);
+
+		&:not(:first-child) {
+			margin-top: 20px;
 		}
 	}
 

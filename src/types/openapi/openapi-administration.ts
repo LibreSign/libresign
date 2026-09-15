@@ -402,6 +402,8 @@ export type components = {
             parentPolicyKey?: string;
             compositeChildren?: string[];
             mailProviderAvailable?: boolean;
+            validationUrlIsPrivate?: boolean;
+            observerProfileEnabled?: boolean;
         };
         EffectivePolicyResponse: {
             policy: components["schemas"]["EffectivePolicyState"];
