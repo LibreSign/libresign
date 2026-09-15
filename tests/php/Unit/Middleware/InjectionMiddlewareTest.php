@@ -327,8 +327,8 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->request
 			->expects($this->once())
 			->method('getHeader')
-				->with('libresign-sign-request-uuid')
-				->willReturn('');
+			->with('libresign-sign-request-uuid')
+			->willReturn('');
 
 		$this->signRequestMapper
 			->expects($this->once())
