@@ -9,9 +9,27 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler\SignEngine;
 
 use DateTime;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
+use OCP\IL10N;
+use Psr\Log\LoggerInterface;
 
 class Pkcs7Handler extends SignEngineHandler {
+	public function __construct(
+		IL10N $l10n,
+		FolderService $folderService,
+		LoggerInterface $logger,
+		private CertificateEngineFactory $certificateEngineFactory,
+	) {
+		parent::__construct($l10n, $folderService, $logger);
+	}
+
+	#[\Override]
+	protected function getCertificateEngineFactory(): CertificateEngineFactory {
+		return $this->certificateEngineFactory;
+	}
+
 	#[\Override]
 	public function sign(): File {
 		$this->beforeSign();
