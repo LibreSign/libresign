@@ -37,8 +37,10 @@ export type DeviceReportedLocation = {
 export type SignerWithGeolocationMetadata = {
 	me?: boolean
 	metadata?: {
-		geolocationRequirement?: GeolocationRequirement | string
-		geolocation?: DeviceReportedLocation
+		deviceGeolocationRequirement?: GeolocationRequirement | string
+		geolocation?: {
+			device?: DeviceReportedLocation
+		}
 	}
 }
 
@@ -63,14 +65,14 @@ export function resolveFrozenGeolocationRequirement(
 	document: DocumentWithSignerGeolocation | null | undefined,
 ): GeolocationRequirement | undefined {
 	const topLevel = document?.signers?.find((signer) => signer.me)
-	const topLevelRequirement = topLevel?.metadata?.geolocationRequirement
+	const topLevelRequirement = topLevel?.metadata?.deviceGeolocationRequirement
 	if (topLevelRequirement === 'disabled' || topLevelRequirement === 'required') {
 		return topLevelRequirement
 	}
 
 	for (const file of document?.files ?? []) {
 		const nested = file.signers?.find((signer) => signer.me)
-		const nestedRequirement = nested?.metadata?.geolocationRequirement
+		const nestedRequirement = nested?.metadata?.deviceGeolocationRequirement
 		if (nestedRequirement === 'disabled' || nestedRequirement === 'required') {
 			return nestedRequirement
 		}

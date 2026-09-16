@@ -739,7 +739,7 @@ const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 	try {
 		const basePayload = {
 			...createBaseSubmitSignaturePayload(methodConfig),
-			...(collectedGeolocation.value ? { geolocation: collectedGeolocation.value } : {}),
+			...(collectedGeolocation.value ? { deviceGeolocation: collectedGeolocation.value } : {}),
 		}
 		const envelopeRequests = getEnvelopeSubmitRequests({
 			document: signStore.document,

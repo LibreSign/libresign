@@ -31,11 +31,13 @@ type EnvelopeSigner = {
 	status?: number
 	metadata?: {
 		geolocation?: {
-			status?: string
-			latitude?: number
-			longitude?: number
-			accuracy?: number
-			timestamp?: number
+			device?: {
+				status?: string
+				latitude?: number
+				longitude?: number
+				accuracy?: number
+				timestamp?: number
+			}
 		}
 	}
 }
@@ -635,11 +637,13 @@ describe('EnvelopeValidation', () => {
 						signed: '2024-01-01T00:00:00Z',
 						metadata: {
 							geolocation: {
-								status: 'collected',
-								latitude: -23.55,
-								longitude: -46.63,
-								accuracy: 12,
-								timestamp: 0,
+								device: {
+									status: 'collected',
+									latitude: -23.55,
+									longitude: -46.63,
+									accuracy: 12,
+									timestamp: 0,
+								},
 							},
 						},
 					}],
