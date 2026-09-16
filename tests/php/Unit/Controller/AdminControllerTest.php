@@ -13,6 +13,8 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\ActiveSigningsService;
 use OCA\Libresign\Service\Certificate\ValidateService;
 use OCA\Libresign\Service\CertificatePolicyService;
+use OCA\Libresign\Service\GeoIp\GeoIpConfigService;
+use OCA\Libresign\Service\GeoIp\GeoIpDatabaseStatusService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\SetupCheckResultService;
@@ -46,6 +48,8 @@ class AdminControllerTest extends TestCase {
 		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->activeSigningsService = $this->createMock(ActiveSigningsService::class);
 		$setupCheckResultService = $this->createMock(SetupCheckResultService::class);
+		$geoIpConfigService = $this->createMock(GeoIpConfigService::class);
+		$geoIpDatabaseStatusService = $this->createMock(GeoIpDatabaseStatusService::class);
 		$eventSource = $this->createMock(IEventSource::class);
 
 		$eventSourceFactory
@@ -66,6 +70,8 @@ class AdminControllerTest extends TestCase {
 			$identifyMethodService,
 			$this->activeSigningsService,
 			$setupCheckResultService,
+			$geoIpConfigService,
+			$geoIpDatabaseStatusService,
 		);
 	}
 
