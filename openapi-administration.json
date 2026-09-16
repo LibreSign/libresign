@@ -632,6 +632,43 @@
                     }
                 }
             },
+            "GeoIpConfig": {
+                "type": "object",
+                "required": [
+                    "path",
+                    "status"
+                ],
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/GeoIpDatabaseStatus"
+                    },
+                    "databaseType": {
+                        "type": "string"
+                    },
+                    "buildEpoch": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "modifiedAt": {
+                        "type": "string"
+                    }
+                }
+            },
+            "GeoIpDatabaseStatus": {
+                "type": "string",
+                "enum": [
+                    "not_configured",
+                    "not_found",
+                    "not_readable",
+                    "invalid_database",
+                    "unsupported_database",
+                    "ready"
+                ]
+            },
             "HasRootCertResponse": {
                 "type": "object",
                 "required": [
@@ -2137,6 +2174,169 @@
                                                 },
                                                 "data": {
                                                     "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/geoip": {
+            "get": {
+                "operationId": "admin-get-geo-ip-config",
+                "summary": "Get GeoIP database configuration and status",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GeoIP configuration",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/GeoIpConfig"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "operationId": "admin-save-geo-ip-config",
+                "summary": "Save GeoIP database path",
+                "description": "An empty path clears the configuration. The path may be saved even when the database file is not available yet; the returned status describes the current filesystem state.\nThis endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "path": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Absolute path to a MaxMind City database, or empty to clear"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GeoIP configuration saved",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/GeoIpConfig"
                                                 }
                                             }
                                         }

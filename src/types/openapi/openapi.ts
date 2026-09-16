@@ -1382,7 +1382,7 @@ export type components = {
             /** Format: int64 */
             status?: number;
             participantRole?: components["schemas"]["ParticipantRole"];
-            geolocationRequired?: boolean;
+            deviceGeolocationRequired?: boolean;
         };
         Notify: {
             /** Format: int64 */
@@ -1479,6 +1479,13 @@ export type components = {
         };
         PolicySnapshotSignerGeolocationValue: {
             mode: components["schemas"]["SignerGeolocationPolicyMode"];
+        };
+        PolicySnapshotSignerIpGeolocationEntry: {
+            effectiveValue: components["schemas"]["PolicySnapshotSignerIpGeolocationValue"];
+            sourceScope: string;
+        };
+        PolicySnapshotSignerIpGeolocationValue: {
+            mode: components["schemas"]["SignerIpGeolocationPolicyMode"];
         };
         ProgressError: {
             message: string;
@@ -1632,7 +1639,7 @@ export type components = {
             metadata?: components["schemas"]["SignerMetadata"];
             rejection?: components["schemas"]["SignerRejection"];
         };
-        SignerGeolocation: {
+        SignerDeviceGeolocation: {
             status: components["schemas"]["GeolocationCollectionStatus"];
             /** Format: double */
             latitude?: number;
@@ -1643,12 +1650,38 @@ export type components = {
             /** Format: int64 */
             timestamp?: number;
         };
+        SignerGeolocation: {
+            device?: components["schemas"]["SignerDeviceGeolocation"];
+            ip?: components["schemas"]["SignerIpGeolocation"];
+        };
         /** @enum {string} */
         SignerGeolocationPolicyMode: "disabled" | "optional" | "required";
+        SignerIpGeolocation: {
+            status: components["schemas"]["SignerIpGeolocationStatus"];
+            sourceIp?: string;
+            countryCode?: string;
+            country?: string;
+            regionCode?: string;
+            region?: string;
+            city?: string;
+            /** Format: double */
+            latitude?: number;
+            /** Format: double */
+            longitude?: number;
+            /** Format: int64 */
+            accuracyRadius?: number;
+            reason?: components["schemas"]["SignerIpGeolocationUnavailableReason"];
+        };
+        /** @enum {string} */
+        SignerIpGeolocationPolicyMode: "disabled" | "enabled";
+        /** @enum {string} */
+        SignerIpGeolocationStatus: "resolved" | "not_found" | "unavailable";
+        /** @enum {string} */
+        SignerIpGeolocationUnavailableReason: "database_not_ready" | "address_unavailable" | "lookup_failed";
         SignerMetadata: {
             "remote-address"?: string;
             "user-agent"?: string;
-            geolocationRequirement?: components["schemas"]["GeolocationRequirement"];
+            deviceGeolocationRequirement?: components["schemas"]["GeolocationRequirement"];
             geolocation?: components["schemas"]["SignerGeolocation"];
             notify?: components["schemas"]["Notify"][];
             certificate_info?: components["schemas"]["SignerCertificateInfo"];
@@ -1737,7 +1770,8 @@ export type components = {
             legal_information?: components["schemas"]["PolicySnapshotLegalInformationEntry"];
             identification_documents?: components["schemas"]["PolicySnapshotIdentificationDocumentsEntry"];
             identify_methods?: components["schemas"]["PolicySnapshotIdentifyMethodsEntry"];
-            signer_geolocation?: components["schemas"]["PolicySnapshotSignerGeolocationEntry"];
+            signer_device_geolocation?: components["schemas"]["PolicySnapshotSignerGeolocationEntry"];
+            signer_ip_geolocation?: components["schemas"]["PolicySnapshotSignerIpGeolocationEntry"];
             enable_observer_profile?: components["schemas"]["PolicySnapshotBooleanEntry"];
             signature_rejection?: components["schemas"]["PolicySnapshotSignatureRejectionEntry"];
         };
@@ -4412,7 +4446,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, geolocationRequired
+                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired
                      * @default []
                      */
                     signers?: components["schemas"]["NewSigner"][];
@@ -4670,7 +4704,7 @@ export interface operations {
                      * @description Device-reported geolocation metadata submitted by the signing client
                      * @default {}
                      */
-                    geolocation?: {
+                    deviceGeolocation?: {
                         [key: string]: Record<string, never>;
                     };
                 };
@@ -4812,7 +4846,7 @@ export interface operations {
                      * @description Device-reported geolocation metadata submitted by the signing client
                      * @default {}
                      */
-                    geolocation?: {
+                    deviceGeolocation?: {
                         [key: string]: Record<string, never>;
                     };
                 };

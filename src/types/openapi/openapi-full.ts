@@ -1122,6 +1122,31 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/geoip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get GeoIP database configuration and status
+         * @description This endpoint requires admin access
+         */
+        get: operations["admin-get-geo-ip-config"];
+        put?: never;
+        /**
+         * Save GeoIP database path
+         * @description An empty path clears the configuration. The path may be saved even when the database file is not available yet; the returned status describes the current filesystem state.
+         *     This endpoint requires admin access
+         */
+        post: operations["admin-save-geo-ip-config"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/crl/list": {
         parameters: {
             query?: never;
@@ -1675,6 +1700,16 @@ export type components = {
             /** Format: int64 */
             preview_zoom: number;
         };
+        GeoIpConfig: {
+            path: string | null;
+            status: components["schemas"]["GeoIpDatabaseStatus"];
+            databaseType?: string;
+            /** Format: int64 */
+            buildEpoch?: number;
+            modifiedAt?: string;
+        };
+        /** @enum {string} */
+        GeoIpDatabaseStatus: "not_configured" | "not_found" | "not_readable" | "invalid_database" | "unsupported_database" | "ready";
         /** @enum {string} */
         GeolocationCollectionStatus: "collected" | "denied" | "unavailable" | "skipped";
         /** @enum {string} */
@@ -1802,7 +1837,7 @@ export type components = {
             /** Format: int64 */
             status?: number;
             participantRole?: components["schemas"]["ParticipantRole"];
-            geolocationRequired?: boolean;
+            deviceGeolocationRequired?: boolean;
         };
         Notify: {
             /** Format: int64 */
@@ -1903,6 +1938,13 @@ export type components = {
         };
         PolicySnapshotSignerGeolocationValue: {
             mode: components["schemas"]["SignerGeolocationPolicyMode"];
+        };
+        PolicySnapshotSignerIpGeolocationEntry: {
+            effectiveValue: components["schemas"]["PolicySnapshotSignerIpGeolocationValue"];
+            sourceScope: string;
+        };
+        PolicySnapshotSignerIpGeolocationValue: {
+            mode: components["schemas"]["SignerIpGeolocationPolicyMode"];
         };
         ProgressError: {
             message: string;
@@ -2074,7 +2116,7 @@ export type components = {
             metadata?: components["schemas"]["SignerMetadata"];
             rejection?: components["schemas"]["SignerRejection"];
         };
-        SignerGeolocation: {
+        SignerDeviceGeolocation: {
             status: components["schemas"]["GeolocationCollectionStatus"];
             /** Format: double */
             latitude?: number;
@@ -2085,12 +2127,38 @@ export type components = {
             /** Format: int64 */
             timestamp?: number;
         };
+        SignerGeolocation: {
+            device?: components["schemas"]["SignerDeviceGeolocation"];
+            ip?: components["schemas"]["SignerIpGeolocation"];
+        };
         /** @enum {string} */
         SignerGeolocationPolicyMode: "disabled" | "optional" | "required";
+        SignerIpGeolocation: {
+            status: components["schemas"]["SignerIpGeolocationStatus"];
+            sourceIp?: string;
+            countryCode?: string;
+            country?: string;
+            regionCode?: string;
+            region?: string;
+            city?: string;
+            /** Format: double */
+            latitude?: number;
+            /** Format: double */
+            longitude?: number;
+            /** Format: int64 */
+            accuracyRadius?: number;
+            reason?: components["schemas"]["SignerIpGeolocationUnavailableReason"];
+        };
+        /** @enum {string} */
+        SignerIpGeolocationPolicyMode: "disabled" | "enabled";
+        /** @enum {string} */
+        SignerIpGeolocationStatus: "resolved" | "not_found" | "unavailable";
+        /** @enum {string} */
+        SignerIpGeolocationUnavailableReason: "database_not_ready" | "address_unavailable" | "lookup_failed";
         SignerMetadata: {
             "remote-address"?: string;
             "user-agent"?: string;
-            geolocationRequirement?: components["schemas"]["GeolocationRequirement"];
+            deviceGeolocationRequirement?: components["schemas"]["GeolocationRequirement"];
             geolocation?: components["schemas"]["SignerGeolocation"];
             notify?: components["schemas"]["Notify"][];
             certificate_info?: components["schemas"]["SignerCertificateInfo"];
@@ -2198,7 +2266,8 @@ export type components = {
             legal_information?: components["schemas"]["PolicySnapshotLegalInformationEntry"];
             identification_documents?: components["schemas"]["PolicySnapshotIdentificationDocumentsEntry"];
             identify_methods?: components["schemas"]["PolicySnapshotIdentifyMethodsEntry"];
-            signer_geolocation?: components["schemas"]["PolicySnapshotSignerGeolocationEntry"];
+            signer_device_geolocation?: components["schemas"]["PolicySnapshotSignerGeolocationEntry"];
+            signer_ip_geolocation?: components["schemas"]["PolicySnapshotSignerIpGeolocationEntry"];
             enable_observer_profile?: components["schemas"]["PolicySnapshotBooleanEntry"];
             signature_rejection?: components["schemas"]["PolicySnapshotSignatureRejectionEntry"];
         };
@@ -4873,7 +4942,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, geolocationRequired
+                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired
                      * @default []
                      */
                     signers?: components["schemas"]["NewSigner"][];
@@ -5131,7 +5200,7 @@ export interface operations {
                      * @description Device-reported geolocation metadata submitted by the signing client
                      * @default {}
                      */
-                    geolocation?: {
+                    deviceGeolocation?: {
                         [key: string]: Record<string, never>;
                     };
                 };
@@ -5273,7 +5342,7 @@ export interface operations {
                      * @description Device-reported geolocation metadata submitted by the signing client
                      * @default {}
                      */
-                    geolocation?: {
+                    deviceGeolocation?: {
                         [key: string]: Record<string, never>;
                     };
                 };
@@ -6485,6 +6554,76 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-get-geo-ip-config": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description GeoIP configuration */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["GeoIpConfig"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-save-geo-ip-config": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description Absolute path to a MaxMind City database, or empty to clear
+                     * @default
+                     */
+                    path?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description GeoIP configuration saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["GeoIpConfig"];
                         };
                     };
                 };
