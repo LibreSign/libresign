@@ -62,7 +62,7 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 			'action' => 2000,
 			'errors' => [['message' => 'Invalid UUID']],
 		]));
-		$this->controller->loadNextcloudFileFromSignRequestUuid('');
+		$this->controller->loadNextcloudFileFromUuid('');
 	}
 
 	/**

@@ -14,7 +14,9 @@ import type { useFilesStore as useFilesStoreType } from '../../../store/files.js
 import { usePoliciesStore } from '../../../store/policies'
 import RequestSignatureTab from '../../../components/RightSidebar/RequestSignatureTab.vue'
 import { useFilesStore } from '../../../store/files.js'
-import { FILE_STATUS } from '../../../constants.js'
+import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../../constants.js'
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { PARTICIPANT_ROLE } from '../../../utils/participantRole.ts'
 
 const { capabilitiesState, generateUrlMock } = vi.hoisted(() => ({
 	capabilitiesState: { signElementsAvailable: true },
@@ -194,37 +196,49 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	const updateMethods = async (methods: unknown[]) => {
 		await setVmState({ methods })
 	}
+	const mockEffectivePoliciesAxios = (policyOverrides: Record<string, unknown> = {}) => {
+		const response = createEffectivePoliciesResponse(policyOverrides)
+		vi.mocked(axios.get).mockImplementation(async (url: string) => {
+			if (url.includes('/apps/libresign/api/v1/policies/effective')) {
+				return response as Awaited<ReturnType<typeof axios.get>>
+			}
+
+			return { data: { ocs: { data: null } } } as Awaited<ReturnType<typeof axios.get>>
+		})
+		return response.data.ocs.data.policies
+	}
 	const updateIdentifyMethodsPolicy = async (effectiveValue: unknown) => {
 		const policiesStore = usePoliciesStore()
+		const policies = mockEffectivePoliciesAxios()
 		policiesStore.setPolicies({
-			signature_flow: createSignatureFlowPolicy(),
-			add_footer: createEffectivePoliciesResponse().data.ocs.data.policies.add_footer,
+			signature_flow: policies.signature_flow,
+			add_footer: policies.add_footer,
 			identify_methods: {
-				...createEffectivePoliciesResponse().data.ocs.data.policies.identify_methods,
+				...policies.identify_methods,
 				effectiveValue,
 			},
 		})
+		await flushPromises()
 		await wrapper.vm.$nextTick()
 	}
 	const updatePolicies = async (policyOverrides: Record<string, unknown>) => {
 		const policiesStore = usePoliciesStore()
-		policiesStore.setPolicies({
-			signature_flow: createSignatureFlowPolicy(policyOverrides),
-			add_footer: createEffectivePoliciesResponse().data.ocs.data.policies.add_footer,
-			identify_methods: createEffectivePoliciesResponse().data.ocs.data.policies.identify_methods,
-		})
+		policiesStore.setPolicies(mockEffectivePoliciesAxios(policyOverrides))
+		await flushPromises()
 		await wrapper.vm.$nextTick()
 	}
 	const updateFooterPolicy = async (policyOverrides: Record<string, unknown>) => {
 		const policiesStore = usePoliciesStore()
+		const policies = mockEffectivePoliciesAxios()
 		policiesStore.setPolicies({
-			signature_flow: createSignatureFlowPolicy(),
+			signature_flow: policies.signature_flow,
 			add_footer: {
-				...createEffectivePoliciesResponse().data.ocs.data.policies.add_footer,
+				...policies.add_footer,
 				...policyOverrides,
 			},
-			identify_methods: createEffectivePoliciesResponse().data.ocs.data.policies.identify_methods,
+			identify_methods: policies.identify_methods,
 		})
+		await flushPromises()
 		await wrapper.vm.$nextTick()
 	}
 
@@ -263,16 +277,9 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		capabilitiesState.signElementsAvailable = true
 		generateUrlMock.mockClear()
 		vi.mocked(emit).mockClear()
-		vi.mocked(axios.get).mockImplementation(async (url: string) => {
-			if (url.includes('/apps/libresign/api/v1/policies/effective')) {
-				return createEffectivePoliciesResponse() as Awaited<ReturnType<typeof axios.get>>
-			}
-
-			return { data: { ocs: { data: null } } } as Awaited<ReturnType<typeof axios.get>>
-		})
 		filesStore = useFilesStore()
 		const policiesStore = usePoliciesStore()
-		policiesStore.setPolicies(createEffectivePoliciesResponse().data.ocs.data.policies)
+		policiesStore.setPolicies(mockEffectivePoliciesAxios())
 
 		await filesStore.addFile({
 			id: 1,
@@ -420,6 +427,18 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 		it('hides when document has only one signer', async () => {
 			await updateFile({ signers: [{ email: 'test@example.com', signed: [] }] })
+
+			expect(wrapper.vm.showPreserveOrder).toBe(false)
+		})
+
+		it('hides when document has one signer and observers', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signers: [
+					{ email: 'test@example.com', signed: [], participantRole: 'signer' },
+					{ email: 'observer@example.com', signed: [], participantRole: 'observer' },
+				],
+			})
 
 			expect(wrapper.vm.showPreserveOrder).toBe(false)
 		})
@@ -729,6 +748,64 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 			expect(wrapper.vm.showRequestButton).toBe(false)
 		})
+
+		it('hides request action when only observers are present', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signatureFlow: 'parallel',
+				signers: [{
+					participantRole: 'observer',
+					email: 'witness@example.com',
+					signed: [],
+					status: 0,
+				}],
+			})
+
+			expect(wrapper.vm.showRequestButton).toBe(false)
+		})
+	})
+
+	describe('RULE: signature request requires signers', () => {
+		it('shows error toast when requesting signatures with only observers', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signatureFlow: 'parallel',
+				signers: [{
+					participantRole: 'observer',
+					email: 'witness@example.com',
+					signed: [],
+					status: 0,
+				}],
+			})
+
+			await wrapper.vm.request()
+
+			expect(showError).toHaveBeenCalledWith('At least one signer is required')
+			expect(wrapper.vm.showConfirmRequest).toBe(false)
+		})
+
+		it('shows error toast when confirm request API rejects observer-only payload', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signatureFlow: 'parallel',
+				signers: [{
+					participantRole: 'signer',
+					email: 'signer@example.com',
+					signed: [],
+					status: 0,
+				}],
+			})
+			vi.spyOn(filesStore, 'saveOrUpdateSignatureRequest').mockResolvedValue({
+				success: false,
+				message: 'At least one signer is required',
+			})
+
+			await wrapper.vm.confirmRequest()
+
+			expect(showError).toHaveBeenCalledWith('At least one signer is required')
+			expect(showSuccess).not.toHaveBeenCalled()
+			expect(wrapper.vm.showConfirmRequest).toBe(false)
+		})
 	})
 
 	describe('RULE: showSigningProgress when document active', () => {
@@ -1005,6 +1082,154 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			const signer = { email: 'test@example.com', signed: [], status: 1, signRequestId: 10 }
 
 			expect(wrapper.vm.canSendReminder(signer)).toBe(false)
+		})
+
+		it('blocks reminder for observers', async () => {
+			filesStore.canRequestSign = true
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signatureFlow: 'parallel',
+				signers: [{
+					email: 'observer@example.com',
+					status: SIGN_REQUEST_STATUS.OBSERVING,
+					signRequestId: 10,
+					participantRole: PARTICIPANT_ROLE.OBSERVER,
+				}],
+			})
+			const observer = {
+				email: 'observer@example.com',
+				status: SIGN_REQUEST_STATUS.OBSERVING,
+				signRequestId: 10,
+				participantRole: PARTICIPANT_ROLE.OBSERVER,
+			}
+
+			expect(wrapper.vm.canSendReminder(observer)).toBe(false)
+		})
+	})
+
+	describe('RULE: authenticated observer uses a read-only request sidebar', () => {
+		it('hides edit and signing actions when the current user only observes', async () => {
+			filesStore.canRequestSign = false
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				detailsLoaded: true,
+				signatureFlow: 'parallel',
+				signers: [
+					{
+						displayName: 'Observer Me',
+						me: true,
+						status: SIGN_REQUEST_STATUS.OBSERVING,
+						signRequestId: 10,
+						participantRole: PARTICIPANT_ROLE.OBSERVER,
+						sign_request_uuid: 'observer-uuid',
+					},
+					{
+						displayName: 'Signer Name',
+						me: false,
+						status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+						signRequestId: 11,
+						participantRole: PARTICIPANT_ROLE.SIGNER,
+						sign_request_uuid: 'signer-uuid',
+					},
+				],
+			})
+
+			expect(filesStore.isObservingOnly()).toBe(true)
+			expect(wrapper.vm.isReadOnlyObserver).toBe(true)
+			expect(wrapper.vm.showSaveButton).toBe(false)
+			expect(wrapper.vm.showRequestButton).toBe(false)
+			expect(wrapper.vm.showViewPositionsButton).toBe(true)
+			expect(wrapper.vm.participantListEvent).toBe('')
+			expect(filesStore.canSign()).toBe(false)
+		})
+
+		it('hides signature position actions when the request has only observers', async () => {
+			filesStore.canRequestSign = true
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				detailsLoaded: true,
+				signatureFlow: 'parallel',
+				signers: [
+					{
+						displayName: 'Only Observer',
+						me: false,
+						status: SIGN_REQUEST_STATUS.DRAFT,
+						signRequestId: 10,
+						participantRole: PARTICIPANT_ROLE.OBSERVER,
+					},
+				],
+			})
+
+			expect(wrapper.vm.signingParticipantCount).toBe(0)
+			expect(wrapper.vm.showsPositionEditor).toBe(false)
+			expect(wrapper.vm.showSaveButton).toBe(false)
+			expect(wrapper.vm.showViewPositionsButton).toBe(false)
+		})
+	})
+
+	describe('RULE: canSendObserverNotification for observers', () => {
+		it('allows sending a notification when the observer is watching the request', async () => {
+			filesStore.canRequestSign = true
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signatureFlow: 'parallel',
+				signers: [{
+					email: 'observer@example.com',
+					status: SIGN_REQUEST_STATUS.OBSERVING,
+					signRequestId: 10,
+					participantRole: PARTICIPANT_ROLE.OBSERVER,
+				}],
+			})
+			const observer = {
+				email: 'observer@example.com',
+				status: SIGN_REQUEST_STATUS.OBSERVING,
+				signRequestId: 10,
+				participantRole: PARTICIPANT_ROLE.OBSERVER,
+			}
+
+			expect(wrapper.vm.canSendObserverNotification(observer)).toBe(true)
+		})
+
+		it('blocks observer notification while the document is still a draft', async () => {
+			filesStore.canRequestSign = true
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signatureFlow: 'parallel',
+				signers: [{
+					email: 'observer@example.com',
+					status: SIGN_REQUEST_STATUS.DRAFT,
+					signRequestId: 10,
+					participantRole: PARTICIPANT_ROLE.OBSERVER,
+				}],
+			})
+			const observer = {
+				email: 'observer@example.com',
+				status: SIGN_REQUEST_STATUS.DRAFT,
+				signRequestId: 10,
+				participantRole: PARTICIPANT_ROLE.OBSERVER,
+			}
+
+			expect(wrapper.vm.canSendObserverNotification(observer)).toBe(false)
+		})
+
+		it('blocks observer notification for signing participants', async () => {
+			filesStore.canRequestSign = true
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signatureFlow: 'parallel',
+				signers: [{
+					email: 'test@example.com',
+					status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+					signRequestId: 10,
+				}],
+			})
+			const signer = {
+				email: 'test@example.com',
+				status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+				signRequestId: 10,
+			}
+
+			expect(wrapper.vm.canSendObserverNotification(signer)).toBe(false)
 		})
 	})
 
@@ -1307,6 +1532,57 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(wrapper.vm.hasSignersWithDisabledMethods).toBe(false)
 		})
 
+		it('does not treat missing policy catalog as disabled methods', async () => {
+			await updateMethods([])
+			await updateFile({
+				signers: [
+					{ email: 'test1@example.com', signed: [], identifyMethods: [{ method: 'email' }] },
+				],
+			})
+			expect(wrapper.vm.hasSignersWithDisabledMethods).toBe(false)
+		})
+
+		it('does not treat unknown identify methods as disabled', async () => {
+			await updateMethods([{ name: 'email', enabled: true }])
+			await updateFile({
+				signers: [
+					{ email: 'test1@example.com', signed: [], identifyMethods: [{ method: 'account' }] },
+				],
+			})
+			expect(wrapper.vm.hasSignersWithDisabledMethods).toBe(false)
+		})
+
+		it('hides disabled-methods warning for read-only observers', async () => {
+			await updateMethods([{ name: 'sms', enabled: false }])
+			filesStore.canRequestSign = false
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [
+					{
+						displayName: 'Observer Me',
+						me: true,
+						status: SIGN_REQUEST_STATUS.OBSERVING,
+						signRequestId: 10,
+						participantRole: PARTICIPANT_ROLE.OBSERVER,
+						signed: [],
+						identifyMethods: [{ method: 'sms' }],
+					},
+					{
+						displayName: 'Signer Name',
+						me: false,
+						status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+						signRequestId: 11,
+						participantRole: PARTICIPANT_ROLE.SIGNER,
+						signed: [],
+						identifyMethods: [{ method: 'sms' }],
+					},
+				],
+			})
+			expect(filesStore.isObservingOnly()).toBe(true)
+			expect(wrapper.vm.isReadOnlyObserver).toBe(true)
+			expect(wrapper.vm.hasSignersWithDisabledMethods).toBe(false)
+		})
+
 		it('hides save button when has signers with disabled methods', async () => {
 			await updateMethods([{ name: 'sms', enabled: false }])
 			filesStore.canRequestSign = true
@@ -1384,6 +1660,22 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(filesStore.files[1]!.signers![1]!.signingOrder).toBe(2)
 		})
 
+		it('does not assign signing order numbers to observers when enabling', async () => {
+			await updateFile({
+				signatureFlow: 'parallel',
+				signers: [
+					{ email: 'signer1@example.com', signed: [], participantRole: 'signer' },
+					{ email: 'observer@example.com', signed: [], participantRole: 'observer', signingOrder: 2 },
+					{ email: 'signer2@example.com', signed: [], participantRole: 'signer' },
+				],
+			})
+			wrapper.vm.onPreserveOrderChange(true)
+			await wrapper.vm.$nextTick()
+			expect(filesStore.files[1]!.signers![0]!.signingOrder).toBe(1)
+			expect(filesStore.files[1]!.signers![1]!.signingOrder).toBeUndefined()
+			expect(filesStore.files[1]!.signers![2]!.signingOrder).toBe(2)
+		})
+
 		it('reassigns sequential orders when all signers share the same signingOrder', async () => {
 			// Signers saved via the API return signingOrder: 1 as default for all of them.
 			// The old check (!signer.signingOrder) would skip them because !1 === false,
@@ -1459,7 +1751,9 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 				canUseAsRequestOverride: false,
 			})
 			await updateFile({ signatureFlow: 'ordered_numeric' })
+			await flushPromises()
 			wrapper.vm.syncPreserveOrderWithFile()
+			expect(wrapper.vm.isAdminFlowForced).toBe(true)
 			expect(wrapper.vm.preserveOrder).toBe(false)
 		})
 

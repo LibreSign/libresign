@@ -15,6 +15,7 @@ export const FILE_STATUS = Object.freeze({
 	SIGNED: 3,
 	DELETED: 4,
 	SIGNING_IN_PROGRESS: 5,
+	CANCELED: 6,
 })
 
 /**
@@ -25,6 +26,8 @@ export const SIGN_REQUEST_STATUS = Object.freeze({
 	DRAFT: 0,
 	ABLE_TO_SIGN: 1,
 	SIGNED: 2,
+	REJECTED: 3,
+	OBSERVING: 4,
 })
 
 /**

@@ -131,8 +131,9 @@ async function getFooterEditorContext(scope: Locator): Promise<{
 
 async function replaceCodeMirrorContent(editorField: Locator, value: string): Promise<void> {
 	await editorField.click()
-	await editorField.press('Control+a')
-	await editorField.fill(value)
+	await editorField.selectText()
+	await editorField.page().keyboard.insertText(value)
+	await expect(editorField).toHaveText(value)
 }
 
 async function saveRule(ruleDialog: Locator): Promise<{ request: Request, response: Response }> {

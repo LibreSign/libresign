@@ -758,6 +758,28 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					],
 				],
 			],
+			'maps observing status to enum value 4' => [
+				'signers' => [
+					[
+						'signRequestId' => 7,
+						'displayName' => 'Witness',
+						'email' => 'witness@example.com',
+						'signed' => null,
+						'status' => 4,
+						'statusText' => 'Observing',
+					],
+				],
+				'expectedSummaries' => [
+					[
+						'signRequestId' => 7,
+						'displayName' => 'Witness',
+						'email' => 'witness@example.com',
+						'signed' => null,
+						'status' => 4,
+						'statusText' => 'Observing',
+					],
+				],
+			],
 			'filters signer with non-numeric string signRequestId' => [
 				'signers' => [
 					[

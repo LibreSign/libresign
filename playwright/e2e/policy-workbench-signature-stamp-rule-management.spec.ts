@@ -38,12 +38,23 @@ test.describe('P06: signature_stamp persists a system rule from the workbench UI
 		// Wait for the workbench editor to be ready
 		await waitForPolicyWorkbenchIdle(page)
 
-		// Change render mode to a different option (e.g., "text only")
-		// The signature stamp has radio options for different render modes
-		const textOnlyOption = ruleDialog.getByText('Signature only', { exact: true }).first()
-		if (await textOnlyOption.isVisible()) {
-			await textOnlyOption.click()
-			await page.waitForTimeout(500) // Allow UI update
+		// Pick a render mode different from the current selection so save becomes enabled.
+		const renderModeLabels = [
+			'Description only',
+			'Signer name and description',
+			'Signature and description',
+			'Signature only',
+		]
+		for (const label of renderModeLabels) {
+			const option = ruleDialog.getByText(label, { exact: true }).first()
+			if (!(await option.isVisible().catch(() => false))) {
+				continue
+			}
+			await option.click()
+			const saveButton = ruleDialog.getByRole('button', { name: /Save|Create rule|Save changes/i }).first()
+			if (await saveButton.isEnabled().catch(() => false)) {
+				break
+			}
 		}
 
 		// Save the change via the Save button

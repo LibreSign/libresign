@@ -22,6 +22,7 @@ use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\PrivateValidation;
 use OCA\Libresign\Middleware\Attribute\RequireFileAccess;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
+use OCA\Libresign\Middleware\Attribute\RequireParticipantUuid;
 use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Middleware\Attribute\RequireSignerUuid;
@@ -195,46 +196,76 @@ class InjectionMiddleware extends Middleware {
 				uuid: $uuid,
 			);
 			/** @var AEnvironmentPageAwareController $controller */
-			$controller->loadNextcloudFileFromSignRequestUuid(
+			$controller->loadNextcloudFileFromUuid(
 				uuid: $uuid,
 			);
 		}
 
-		if (!empty($attribute = $reflectionMethod->getAttributes(RequireSignRequestUuid::class))) {
-			if ($this->shouldForcePrivateValidationRedirect($reflectionMethod)) {
-				$this->throwPrivateValidationRedirect($this->request->getRawPathInfo());
-			}
-
-			$attribute = $reflectionMethod->getAttributes(RequireSignRequestUuid::class);
-			$attribute = current($attribute);
-			/** @var RequireSignRequestUuid $intance */
-			$intance = $attribute->newInstance();
-			$user = $this->userSession->getUser();
-			$this->redirectSignedToValidationIfNeeded($intance);
-
-			$isIdDocApproval = $intance->allowIdDocs() && $this->request->getParam('idDocApproval') === 'true';
-
-			if (!($intance->skipIfAuthenticated() && $user instanceof IUser)) {
-				if ($isIdDocApproval) {
-					try {
-						$resolution = $this->uuidResolverService->resolveUuidForUser($uuid, $user);
-						/** @var AEnvironmentPageAwareController $controller */
-						$controller->loadIdDocApprovalFromResolution($resolution);
-					} catch (LibresignException $e) {
-						throw $e;
-					}
-				} else {
-					/** @var AEnvironmentPageAwareController $controller */
-					$controller->validateSignRequestUuid(
-						uuid: $uuid,
-					);
-					/** @var AEnvironmentPageAwareController $controller */
-					$controller->loadNextcloudFileFromSignRequestUuid(
-						uuid: $uuid,
-					);
-				}
-			}
+		if (!empty($reflectionMethod->getAttributes(RequireSignRequestUuid::class))) {
+			$attribute = current($reflectionMethod->getAttributes(RequireSignRequestUuid::class));
+			/** @var RequireSignRequestUuid $requirement */
+			$requirement = $attribute->newInstance();
+			$this->redirectSignedToValidationIfNeeded($requirement);
+			$this->authorizeRequiredUuid(
+				controller: $controller,
+				reflectionMethod: $reflectionMethod,
+				uuid: $uuid,
+				skipIfAuthenticated: $requirement->skipIfAuthenticated(),
+				allowIdDocs: $requirement->allowIdDocs(),
+				validateUuid: static function (string $uuid) use ($controller): void {
+					$controller->validateSignRequestUuid(uuid: $uuid);
+				},
+			);
 		}
+
+		if (!empty($reflectionMethod->getAttributes(RequireParticipantUuid::class))) {
+			$attribute = current($reflectionMethod->getAttributes(RequireParticipantUuid::class));
+			/** @var RequireParticipantUuid $requirement */
+			$requirement = $attribute->newInstance();
+			$this->authorizeRequiredUuid(
+				controller: $controller,
+				reflectionMethod: $reflectionMethod,
+				uuid: $uuid,
+				skipIfAuthenticated: $requirement->skipIfAuthenticated(),
+				allowIdDocs: $requirement->allowIdDocs(),
+				validateUuid: static function (string $uuid) use ($controller): void {
+					$controller->validateParticipantUuid(uuid: $uuid);
+				},
+			);
+		}
+	}
+
+	/**
+	 * @param callable(string): void $validateUuid
+	 */
+	private function authorizeRequiredUuid(
+		ISignatureUuid $controller,
+		\ReflectionMethod $reflectionMethod,
+		string $uuid,
+		bool $skipIfAuthenticated,
+		bool $allowIdDocs,
+		callable $validateUuid,
+	): void {
+		if ($this->shouldForcePrivateValidationRedirect($reflectionMethod)) {
+			$this->throwPrivateValidationRedirect($this->request->getRawPathInfo());
+		}
+
+		$user = $this->userSession->getUser();
+		$isIdDocApproval = $allowIdDocs && $this->request->getParam('idDocApproval') === 'true';
+
+		if ($skipIfAuthenticated && $user instanceof IUser) {
+			return;
+		}
+
+		if ($isIdDocApproval) {
+			$resolution = $this->uuidResolverService->resolveUuidForUser($uuid, $user);
+			/** @var AEnvironmentPageAwareController $controller */
+			$controller->loadIdDocApprovalFromResolution($resolution);
+			return;
+		}
+
+		$validateUuid($uuid);
+		$controller->loadNextcloudFileFromUuid(uuid: $uuid);
 	}
 
 	private function shouldForcePrivateValidationRedirect(\ReflectionMethod $reflectionMethod): bool {
@@ -342,7 +373,7 @@ class InjectionMiddleware extends Middleware {
 
 		try {
 			$signRequest = $this->signRequestMapper->getByUuid($uuid);
-			if ($signRequest->getStatusEnum() !== SignRequestStatus::SIGNED) {
+			if ($signRequest->getStatusEnum() !== SignRequestStatus::SIGNED && !$signRequest->isObserver()) {
 				return;
 			}
 			$file = $this->fileMapper->getById($signRequest->getFileId());

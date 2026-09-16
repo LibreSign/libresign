@@ -21,6 +21,7 @@ type FileSigner = {
 	statusText?: string
 	displayName?: string
 	signingOrder?: number
+	participantRole?: string | null
 }
 
 type SelectedFile = {
@@ -250,6 +251,32 @@ describe('Signer', () => {
 			filesStore.selectedFile = {
 				signatureFlow: 'ordered_numeric',
 				signers: [{}, {}],
+			}
+			wrapper = createWrapper({ signerIndex: 0 })
+
+			expect(wrapper.vm.counterNumber).toBe(0)
+		})
+
+		it('returns 0 for observers even when signingOrder is set', () => {
+			filesStore.selectedFile = {
+				signatureFlow: 'ordered_numeric',
+				signers: [
+					{ signingOrder: 1, participantRole: 'signer' },
+					{ signingOrder: 2, participantRole: 'observer', displayName: 'Observer' },
+				],
+			}
+			wrapper = createWrapper({ signerIndex: 1 })
+
+			expect(wrapper.vm.counterNumber).toBe(0)
+		})
+
+		it('ignores observers when deciding if multiple signers exist', () => {
+			filesStore.selectedFile = {
+				signatureFlow: 'ordered_numeric',
+				signers: [
+					{ signingOrder: 1, participantRole: 'signer' },
+					{ signingOrder: 2, participantRole: 'observer' },
+				],
 			}
 			wrapper = createWrapper({ signerIndex: 0 })
 

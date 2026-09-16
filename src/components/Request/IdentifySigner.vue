@@ -5,8 +5,10 @@
 <template>
 	<div class="identifySigner">
 		<SignerSelect v-if="isNewSigner"
+			:key="participantRole"
 			:placeholder="placeholder"
 			:method="method"
+			:participant-role="props.participantRole"
 			@update:signer="applySelectedSigner" />
 		<NcNoteCard v-else type="info">
 			<template #icon>
@@ -98,6 +100,7 @@ import { useFilesStore } from '../../store/files.js'
 import { usePoliciesStore } from '../../store/policies.ts'
 import { resolveSignerGeolocationMode } from '../../views/Settings/PolicyWorkbench/settings/signer-geolocation/model.ts'
 import { getSignRequestStatusText } from '../../utils/getSignRequestStatusText.ts'
+import { isObserverParticipant, PARTICIPANT_ROLE, type ParticipantRole } from '../../utils/participantRole.ts'
 import type { IdentifyAccountRecord } from '../../types'
 
 defineOptions({
@@ -110,6 +113,7 @@ const props = withDefaults(defineProps<{
 	placeholder?: string
 	methods?: IdentifyMethodConfig[]
 	disabled?: boolean
+	participantRole?: ParticipantRole
 }>(), {
 	signerToEdit: () => ({
 		displayName: '',
@@ -120,6 +124,7 @@ const props = withDefaults(defineProps<{
 	placeholder: t('libresign', 'Name'),
 	methods: () => [],
 	disabled: false,
+	participantRole: PARTICIPANT_ROLE.SIGNER,
 })
 
 const iconMap = {
@@ -156,6 +161,7 @@ type SignerMethodValue = {
 type SignerToEdit = {
 	displayName?: string
 	description?: string
+	participantRole?: ParticipantRole
 	identifyMethods?: SignerMethodValue[]
 	geolocationRequired?: boolean
 	metadata?: {
@@ -166,12 +172,25 @@ type SignerToEdit = {
 type FilesStore = ReturnType<typeof useFilesStore>
 type StoredSigner = NonNullable<ReturnType<FilesStore['getFile']>['signers']>[number]
 
-// TRANSLATORS Field label for signer display name.
-const signerNameLabel = t('libresign', 'Signer name')
+const isObserver = computed(() => {
+	if (isObserverParticipant(props.signerToEdit)) {
+		return true
+	}
+
+	return props.participantRole === PARTICIPANT_ROLE.OBSERVER
+})
+const signerNameLabel = computed(() => isObserver.value
+	// TRANSLATORS Field label for observer display name.
+	? t('libresign', 'Observer name')
+	// TRANSLATORS Field label for signer display name.
+	: t('libresign', 'Signer name'))
+const customMessagePlaceholder = computed(() => isObserver.value
+	// TRANSLATORS Placeholder inviting user to write a personalized message for observer.
+	? t('libresign', 'Add a personal message for this observer')
+	// TRANSLATORS Placeholder inviting user to write a personalized message for signer.
+	: t('libresign', 'Add a personal message for this signer'))
 // TRANSLATORS Field label for optional personalized message sent to signer.
 const customMessageLabel = t('libresign', 'Custom message')
-// TRANSLATORS Placeholder inviting user to write a personalized message for signer.
-const customMessagePlaceholder = t('libresign', 'Add a personal message for this signer')
 // TRANSLATORS Primary button label to save a newly added signer.
 const saveSignerButtonLabel = t('libresign', 'Save')
 // TRANSLATORS Primary button label to update an existing signer.
@@ -270,15 +289,79 @@ function getSignerToEditIdentify(signerToEdit: SignerToEdit | undefined): string
 	return signerToEdit.identifyMethods?.[0]?.value ?? ''
 }
 
+type FailedSaveResponse = {
+	success: false
+	message?: string
+	error?: unknown
+}
+
+function isFailedSaveResponse(response: unknown): response is FailedSaveResponse {
+	return typeof response === 'object'
+		&& response !== null
+		&& 'success' in response
+		&& response.success === false
+}
+
+function getOcsErrorMessage(error: unknown): string | null {
+	if (typeof error !== 'object' || error === null || !('response' in error)) {
+		return null
+	}
+
+	const response = error.response
+	if (typeof response !== 'object' || response === null || !('data' in response)) {
+		return null
+	}
+
+	const data = response.data
+	if (typeof data !== 'object' || data === null || !('ocs' in data)) {
+		return null
+	}
+
+	const ocs = data.ocs
+	if (typeof ocs !== 'object' || ocs === null || !('data' in ocs)) {
+		return null
+	}
+
+	const ocsData = ocs.data
+	if (typeof ocsData !== 'object' || ocsData === null) {
+		return null
+	}
+
+	if ('message' in ocsData && typeof ocsData.message === 'string' && ocsData.message.length > 0) {
+		return ocsData.message
+	}
+
+	if ('errors' in ocsData && Array.isArray(ocsData.errors) && ocsData.errors.length > 0) {
+		const firstError = ocsData.errors[0]
+		if (typeof firstError === 'object' && firstError !== null && 'message' in firstError && typeof firstError.message === 'string') {
+			return firstError.message
+		}
+	}
+
+	return null
+}
+
+function getParticipantSaveErrorMessage(error: unknown): string {
+	// TRANSLATORS Error shown when signer save/update operation fails.
+	const fallbackMessage = t('libresign', 'Failed to save or update signature request')
+	if (isFailedSaveResponse(error)) {
+		return getOcsErrorMessage(error.error) ?? (error.message || fallbackMessage)
+	}
+
+	return getOcsErrorMessage(error) ?? fallbackMessage
+}
+
 async function saveSigner() {
 	if (!identifyMethod.value || !identify.value) {
 		return
 	}
 	const file = filesStore.getFile()
 	const signers: StoredSigner[] = Array.isArray(file?.signers) ? [...file.signers] : []
+	const participantRole = isObserver.value ? PARTICIPANT_ROLE.OBSERVER : PARTICIPANT_ROLE.SIGNER
 	signers.push({
 		displayName: displayName.value,
 		description: description.value.trim() || undefined,
+		participantRole,
 		...(identifyMethod.value === 'email' ? { email: identify.value } : {}),
 		...(showGeolocationRequirementToggle.value
 			? { geolocationRequired: geolocationRequired.value }
@@ -296,14 +379,12 @@ async function saveSigner() {
 
 	try {
 		const response = await filesStore.saveOrUpdateSignatureRequest({ signers })
-		if ('success' in response && response.success === false) {
-			// TRANSLATORS Error shown when signer save/update operation fails.
-			showError(response.message ?? t('libresign', 'Failed to save or update signature request'))
+		if (isFailedSaveResponse(response)) {
+			showError(getParticipantSaveErrorMessage(response))
 			return
 		}
-	} catch {
-		// TRANSLATORS Error shown when signer save/update operation fails.
-		showError(t('libresign', 'Failed to save or update signature request'))
+	} catch (error) {
+		showError(getParticipantSaveErrorMessage(error))
 		return
 	}
 
@@ -318,8 +399,13 @@ function onNameChange() {
 		nameHaveError.value = false
 		return
 	}
-	// TRANSLATORS Validation helper text requesting a valid signer name.
-	nameHelperText.value = t('libresign', 'Please enter signer name.')
+	if (isObserver.value) {
+		// TRANSLATORS Validation helper text requesting a valid observer name.
+		nameHelperText.value = t('libresign', 'Please enter observer name.')
+	} else {
+		// TRANSLATORS Validation helper text requesting a valid signer name.
+		nameHelperText.value = t('libresign', 'Please enter signer name.')
+	}
 	nameHaveError.value = true
 }
 

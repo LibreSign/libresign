@@ -85,6 +85,9 @@ class Listener implements IEventListener {
 		if (!$actor instanceof IUser) {
 			return;
 		}
+		if ($identifyMethod->getName() !== 'account') {
+			return;
+		}
 		$actorId = $actor->getUID();
 
 		$event = $this->activityManager->generateEvent();
@@ -273,12 +276,22 @@ class Listener implements IEventListener {
 	 * @return array{type: 'file', id: string, name: string, path: string, link: string}
 	 */
 	protected function getFileParameter(SignRequest $signRequest, FileEntity $libreSignFile): array {
+		if ($signRequest->isObserver()) {
+			$link = $this->url->linkToRouteAbsolute(
+				'libresign.page.indexFPath',
+				['path' => 'filelist/sign'],
+			);
+			$link .= '?uuid=' . urlencode($libreSignFile->getUuid());
+		} else {
+			$link = $this->url->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]);
+		}
+
 		return [
 			'type' => 'file',
 			'id' => (string)$libreSignFile->getNodeId(),
 			'name' => $libreSignFile->getName(),
 			'path' => $libreSignFile->getName(),
-			'link' => $this->url->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]),
+			'link' => $link,
 		];
 	}
 

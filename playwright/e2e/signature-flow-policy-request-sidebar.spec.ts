@@ -18,6 +18,7 @@ import {
 	createAuthenticatedRequestContext,
 	setSystemPolicyEntry,
 } from '../support/policy-api'
+import { clickAddSigner, selectEmailSigner } from '../support/request-signature'
 import { useRequestSignPolicyGuard } from '../support/system-policies'
 
 useRequestSignPolicyGuard()
@@ -51,12 +52,9 @@ test.describe.configure({ mode: 'serial' })
 
 
 async function addEmailSigner(page: Page, email: string, name: string) {
+	await clickAddSigner(page)
+	await selectEmailSigner(page, email)
 	const dialog = page.getByRole('dialog', { name: 'Add new signer' })
-	await page.getByRole('button', { name: 'Add signer' }).click()
-	await dialog.getByPlaceholder('Email').click()
-	await dialog.getByPlaceholder('Email').pressSequentially(email, { delay: 50 })
-	await expect(page.getByRole('option', { name: email })).toBeVisible({ timeout: 10_000 })
-	await page.getByRole('option', { name: email }).click()
 	await dialog.getByRole('textbox', { name: 'Signer name' }).fill(name)
 
 	const saveSignerResponsePromise = page.waitForResponse((response) => {

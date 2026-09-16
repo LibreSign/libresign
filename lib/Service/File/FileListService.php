@@ -339,17 +339,24 @@ class FileListService {
 		$mySigners = array_values(array_filter($signers, fn (SignRequest $signer)
 			=> $this->isCurrentUserSigner($identifyMethods[$signer->getId()] ?? [], $user),
 		));
-		$pendingSigners = array_values(array_filter($signers, fn (SignRequest $signer) => $signer->getSigned() === null));
+		$mySigningParticipants = array_values(array_filter(
+			$mySigners,
+			fn (SignRequest $signer) => $signer->getParticipantRoleEnum()->canSign(),
+		));
+		$pendingSigners = array_values(array_filter(
+			$signers,
+			fn (SignRequest $signer) => $signer->getSigned() === null && $signer->getParticipantRoleEnum()->canSign(),
+		));
 		$isOrderedNumeric = SignatureFlow::fromNumeric($fileEntity->getSignatureFlow())->value === SignatureFlow::ORDERED_NUMERIC->value;
 		$minOrder = empty($pendingSigners)
 			? null
 			: min(array_map(fn (SignRequest $signer) => $signer->getSigningOrder() ?: 1, $pendingSigners));
 
 		$canSign = $fileEntity->getStatus() > 0
-			&& !empty($mySigners)
+			&& !empty($mySigningParticipants)
 			&& !empty($pendingSigners)
-			&& !array_filter($mySigners, fn (SignRequest $signer) => $signer->getSigned() !== null)
-			&& (!$isOrderedNumeric || array_filter($mySigners, fn (SignRequest $signer) => ($signer->getSigningOrder() ?: 1) === $minOrder));
+			&& !array_filter($mySigningParticipants, fn (SignRequest $signer) => $signer->getSigned() !== null)
+			&& (!$isOrderedNumeric || array_filter($mySigningParticipants, fn (SignRequest $signer) => ($signer->getSigningOrder() ?: 1) === $minOrder));
 
 		/** @var LibresignFileSummary */
 		return [
@@ -429,6 +436,7 @@ class FileListService {
 			'signingOrder' => $signer->getSigningOrder(),
 			'status' => $signer->getStatus(),
 			'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus()),
+			'participantRole' => $signer->getParticipantRoleEnum()->value,
 			'me' => $me,
 			'visibleElements' => isset($visibleElements[$signer->getId()])
 				? $this->fileElementService->formatVisibleElements(
@@ -575,6 +583,7 @@ class FileListService {
 			'signingOrder' => $signer->getSigningOrder(),
 			'status' => $signer->getStatus(),
 			'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus()),
+			'participantRole' => $signer->getParticipantRoleEnum()->value,
 			'me' => false,
 			'visibleElements' => isset($visibleElements[$signer->getId()])
 				? $this->fileElementService->formatVisibleElements(

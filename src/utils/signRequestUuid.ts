@@ -3,8 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { isObserverParticipant } from './participantRole.ts'
+
 type SignerLike = {
 	me?: boolean
+	participantRole?: string | null
 	sign_request_uuid?: string | null
 }
 
@@ -47,6 +50,11 @@ export function getSigningRouteUuid(
 	document: DocumentLike | null | undefined,
 	fallbackUuid: string | null = null,
 ): string | null {
+	const currentSigner = getCurrentSigner(document)
+	if (isObserverParticipant(currentSigner)) {
+		return null
+	}
+
 	const signerUuid = getCurrentSignerSignRequestUuid(document, fallbackUuid)
 	if (isNonEmptyString(signerUuid)) {
 		return signerUuid
