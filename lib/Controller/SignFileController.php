@@ -26,6 +26,7 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestMetadataService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionService;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
+use OCA\Libresign\Service\SignerIpGeolocation\SignerIpGeolocationPolicyService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
@@ -50,7 +51,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignSignActionErrorResponse from ResponseDefinitions
  * @psalm-import-type LibresignSignActionResponse from ResponseDefinitions
  * @psalm-import-type LibresignSignatureRejectionResponse from ResponseDefinitions
- * @psalm-import-type LibresignSignerGeolocation from ResponseDefinitions
+ * @psalm-import-type LibresignSignerDeviceGeolocation from ResponseDefinitions
  */
 
 class SignFileController extends AEnvironmentAwareController implements ISignatureUuid {
@@ -72,6 +73,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		private AsyncSigningService $asyncSigningService,
 		private RequestMetadataService $requestMetadataService,
 		private SignerGeolocationMetadataValidator $signerGeolocationMetadataValidator,
+		private SignerIpGeolocationPolicyService $signerIpGeolocationPolicyService,
 		private SigningErrorHandler $errorHandler,
 		private SignatureRejectionService $signatureRejectionService,
 		private LoggerInterface $logger,
@@ -88,8 +90,8 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
 	 * @param bool $async Execute signing asynchronously when possible
-	 * @param LibresignSignerGeolocation $geolocation Device-reported geolocation metadata submitted by the signing client
-	 * @psalm-param array<string, mixed> $geolocation
+	 * @param LibresignSignerDeviceGeolocation $deviceGeolocation Device-reported geolocation metadata submitted by the signing client
+	 * @psalm-param array<string, mixed> $deviceGeolocation
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
@@ -102,8 +104,8 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
-	public function signByFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false, array $geolocation = []): DataResponse {
-		return $this->sign($method, $elements, $identifyValue, $token, $fileId, null, $async, $geolocation);
+	public function signByFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false, array $deviceGeolocation = []): DataResponse {
+		return $this->sign($method, $elements, $identifyValue, $token, $fileId, null, $async, $deviceGeolocation);
 	}
 
 	/**
@@ -115,8 +117,8 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
 	 * @param bool $async Execute signing asynchronously when possible
-	 * @param LibresignSignerGeolocation $geolocation Device-reported geolocation metadata submitted by the signing client
-	 * @psalm-param array<string, mixed> $geolocation
+	 * @param LibresignSignerDeviceGeolocation $deviceGeolocation Device-reported geolocation metadata submitted by the signing client
+	 * @psalm-param array<string, mixed> $deviceGeolocation
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
@@ -129,8 +131,8 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}', requirements: ['apiVersion' => '(v1)'])]
-	public function signBySignerUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false, array $geolocation = []): DataResponse {
-		return $this->sign($method, $elements, $identifyValue, $token, null, $uuid, $async, $geolocation);
+	public function signBySignerUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false, array $deviceGeolocation = []): DataResponse {
+		return $this->sign($method, $elements, $identifyValue, $token, null, $uuid, $async, $deviceGeolocation);
 	}
 
 	/**
@@ -144,7 +146,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		?int $fileId = null,
 		?string $signRequestUuid = null,
 		bool $async = false,
-		array $geolocation = [],
+		array $deviceGeolocation = [],
 	): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
@@ -168,12 +170,28 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 
 			$userIdentifier = $this->identifyMethodService->getUserIdentifier($signRequest->getId());
 			$metadata = $this->requestMetadataService->collectMetadata();
-			$normalizedGeolocation = $this->signerGeolocationMetadataValidator->normalize(
-				$geolocation === [] ? null : $geolocation,
+			$normalizedDeviceGeolocation = $this->signerGeolocationMetadataValidator->normalize(
+				$deviceGeolocation === [] ? null : $deviceGeolocation,
 			);
-			$this->signerGeolocationMetadataValidator->validateSubmission($signRequest, $normalizedGeolocation);
-			if ($normalizedGeolocation !== null) {
-				$metadata[SignerGeolocationMetadataValidator::METADATA_GEOLOCATION_KEY] = $normalizedGeolocation;
+			$this->signerGeolocationMetadataValidator->validateSubmission($signRequest, $normalizedDeviceGeolocation);
+			if ($normalizedDeviceGeolocation !== null) {
+				$metadata = $this->signerGeolocationMetadataValidator->mergeDeviceIntoMetadata(
+					$metadata,
+					$normalizedDeviceGeolocation,
+				);
+			}
+
+			// GeoIP must run before the async/sync split so background workers never
+			// resolve location from a non-signer connection.
+			$ipGeolocation = $this->signerIpGeolocationPolicyService->collectMetadata(
+				$libreSignFile,
+				$this->request,
+			);
+			if ($ipGeolocation !== null) {
+				$metadata = $this->signerIpGeolocationPolicyService->mergeIntoMetadata(
+					$metadata,
+					$ipGeolocation,
+				);
 			}
 
 			$this->signFileService->prepareForSigning(

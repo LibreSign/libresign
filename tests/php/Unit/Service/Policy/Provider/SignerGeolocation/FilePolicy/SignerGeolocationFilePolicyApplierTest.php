@@ -92,6 +92,29 @@ final class SignerGeolocationFilePolicyApplierTest extends \OCA\Libresign\Tests\
 		]);
 	}
 
+	public function testSyncDoesNotOverwriteExistingSnapshot(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUserId('admin');
+		$file->setMetadata([
+			'policy_snapshot' => [
+				SignerGeolocationPolicy::KEY => [
+					'effectiveValue' => ['mode' => 'optional'],
+					'sourceScope' => 'system',
+				],
+			],
+		]);
+
+		$this->policyService->expects($this->never())->method('resolveForUserId');
+		$this->fileService->expects($this->never())->method('update');
+
+		$this->getApplier()->sync($file, []);
+
+		$this->assertSame(
+			'optional',
+			$file->getMetadata()['policy_snapshot'][SignerGeolocationPolicy::KEY]['effectiveValue']['mode'],
+		);
+	}
+
 	private function createResolvedPolicy(
 		array $effectiveValue,
 		string $sourceScope = 'system',

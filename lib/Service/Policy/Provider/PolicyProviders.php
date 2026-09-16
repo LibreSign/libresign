@@ -29,6 +29,7 @@ use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAl
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignerIpGeolocation\SignerIpGeolocationPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
@@ -67,6 +68,7 @@ final class PolicyProviders {
 		ObserverProfilePolicy::KEY => ObserverProfilePolicy::class,
 		SignatureTextPolicy::KEY => SignatureTextPolicy::class,
 		SignerGeolocationPolicy::KEY => SignerGeolocationPolicy::class,
+		SignerIpGeolocationPolicy::KEY => SignerIpGeolocationPolicy::class,
 		TsaPolicy::KEY => TsaPolicy::class,
 	];
 }

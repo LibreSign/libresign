@@ -490,7 +490,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			'status' => 9,
 			'signers' => [[
 				'displayName' => 'John Doe',
-				'geolocationRequired' => true,
+				'deviceGeolocationRequired' => true,
 				'identifyMethods' => [
 					['method' => 'email', 'value' => 'john@example.com'],
 					['method' => 'account', 'value' => 'john'],
@@ -549,7 +549,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->callback(static fn (SignRequest $signRequest): bool => in_array($signRequest->getId(), [501, 502], true)),
 				$file,
 				true,
-				null,
 			);
 
 		$actual = self::invokePrivate($this->getService(), 'associateToSigners', [$data, $file]);
@@ -606,7 +605,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			): SignRequest {
 				$signRequest = new SignRequest();
 				$signRequest->setId(601);
-				$signRequest->setMetadata(['geolocationRequirement' => 'required']);
+				$signRequest->setMetadata(['deviceGeolocationRequirement' => 'required']);
 
 				if ($afterPersist !== null) {
 					$afterPersist($signRequest);

@@ -14,17 +14,22 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignerGeolocationMode;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicyValue;
 use OCP\IL10N;
-use OCP\IUser;
 
+/**
+ * Reads the device geolocation rules that a signature request was created with.
+ *
+ * The value frozen on the request is the only source of truth for the signing
+ * flow: the live policy is never consulted here, so a later policy change cannot
+ * alter an existing request, and a request that never stored a snapshot keeps
+ * device geolocation disabled.
+ */
 class SignerGeolocationPolicyService {
-	public const METADATA_REQUIREMENT_KEY = 'geolocationRequirement';
+	public const METADATA_REQUIREMENT_KEY = 'deviceGeolocationRequirement';
 
 	public function __construct(
-		private PolicyService $policyService,
 		private FileMapper $fileMapper,
 		private SignRequestMapper $signRequestMapper,
 		private IL10N $l10n,
@@ -34,17 +39,8 @@ class SignerGeolocationPolicyService {
 	/**
 	 * @return array{mode: string}
 	 */
-	public function getPolicyValue(?FileEntity $file = null, ?IUser $user = null): array {
-		$snapshotValue = $this->getSnapshotValue($file);
-		if ($snapshotValue !== null) {
-			return $snapshotValue;
-		}
-
-		$resolved = $user instanceof IUser
-			? $this->policyService->resolveForUser(SignerGeolocationPolicy::KEY, $user)
-			: $this->policyService->resolve(SignerGeolocationPolicy::KEY);
-
-		return SignerGeolocationPolicyValue::normalize($resolved->getEffectiveValue());
+	public function getPolicyValue(?FileEntity $file = null): array {
+		return $this->findSnapshot($file) ?? SignerGeolocationPolicyValue::defaults();
 	}
 
 	public function getFrozenRequirement(SignRequest $signRequest): ?SignerGeolocationMode {
@@ -65,9 +61,8 @@ class SignerGeolocationPolicyService {
 	public function resolveEffectiveRequirement(
 		FileEntity $file,
 		bool $requesterRequiresGeolocation,
-		?IUser $requester = null,
 	): SignerGeolocationMode {
-		$policy = $this->getPolicyValue($file, $requester);
+		$policy = $this->getPolicyValue($file);
 		$mode = SignerGeolocationMode::from($policy['mode']);
 
 		if ($mode === SignerGeolocationMode::DISABLED) {
@@ -86,13 +81,12 @@ class SignerGeolocationPolicyService {
 	public function validateRequesterConfiguration(
 		FileEntity $file,
 		bool $requesterRequiresGeolocation,
-		?IUser $requester = null,
 	): void {
 		if (!$requesterRequiresGeolocation) {
 			return;
 		}
 
-		$policy = $this->getPolicyValue($file, $requester);
+		$policy = $this->getPolicyValue($file);
 		$mode = SignerGeolocationMode::from($policy['mode']);
 
 		if ($mode === SignerGeolocationMode::DISABLED) {
@@ -104,10 +98,9 @@ class SignerGeolocationPolicyService {
 		SignRequest $signRequest,
 		FileEntity $file,
 		bool $requesterRequiresGeolocation,
-		?IUser $requester = null,
 	): void {
-		$this->validateRequesterConfiguration($file, $requesterRequiresGeolocation, $requester);
-		$effective = $this->resolveEffectiveRequirement($file, $requesterRequiresGeolocation, $requester);
+		$this->validateRequesterConfiguration($file, $requesterRequiresGeolocation);
+		$effective = $this->resolveEffectiveRequirement($file, $requesterRequiresGeolocation);
 
 		$signRequestId = $signRequest->getId();
 		if ($signRequestId === null) {
@@ -121,13 +114,61 @@ class SignerGeolocationPolicyService {
 	}
 
 	/** @return array{mode: string}|null */
-	private function getSnapshotValue(?FileEntity $file): ?array {
+	private function findSnapshot(?FileEntity $file): ?array {
 		if (!$file instanceof FileEntity) {
 			return null;
 		}
 
-		$metadata = $file->getMetadata() ?? [];
-		$policySnapshot = $metadata['policy_snapshot'] ?? null;
+		$ownSnapshot = $this->extractSnapshot($file->getMetadata() ?? []);
+
+		if ($file->isEnvelope()) {
+			return $ownSnapshot ?? $this->findSnapshotOnChildren($file);
+		}
+
+		if ($file->hasParent()) {
+			return $this->findSnapshotOnEnvelope($file) ?? $ownSnapshot;
+		}
+
+		return $ownSnapshot;
+	}
+
+	/** @return array{mode: string}|null */
+	private function findSnapshotOnChildren(FileEntity $envelope): ?array {
+		$envelopeId = $envelope->getId();
+		if ($envelopeId === null) {
+			return null;
+		}
+
+		$children = $this->fileMapper->getChildrenFiles($envelopeId);
+		usort($children, static fn (FileEntity $a, FileEntity $b): int => ($a->getId() ?? 0) <=> ($b->getId() ?? 0));
+
+		foreach ($children as $child) {
+			$childSnapshot = $this->extractSnapshot($child->getMetadata() ?? []);
+			if ($childSnapshot !== null) {
+				return $childSnapshot;
+			}
+		}
+
+		return null;
+	}
+
+	/** @return array{mode: string}|null */
+	private function findSnapshotOnEnvelope(FileEntity $file): ?array {
+		try {
+			$envelope = $this->fileMapper->getById($file->getParentFileId());
+		} catch (\Throwable) {
+			return null;
+		}
+
+		return $this->findSnapshot($envelope);
+	}
+
+	/**
+	 * @param array<string, mixed> $fileMetadata
+	 * @return array{mode: string}|null
+	 */
+	private function extractSnapshot(array $fileMetadata): ?array {
+		$policySnapshot = $fileMetadata['policy_snapshot'] ?? null;
 		if (!is_array($policySnapshot)) {
 			return null;
 		}

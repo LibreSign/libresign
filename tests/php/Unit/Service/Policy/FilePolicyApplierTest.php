@@ -27,6 +27,7 @@ use OCA\Libresign\Service\Policy\Provider\SignatureRejection\FilePolicy\Signatur
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyConfig;
 use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignerIpGeolocation\SignerIpGeolocationPolicy;
 use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -82,7 +83,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 
 		$this->policyService
-			->expects($this->exactly(13))
+			->expects($this->exactly(14))
 			->method('resolveForUser')
 			->willReturnCallback(function (string $policyKey) use ($identificationDocumentsValue, $identifyMethodsPolicyValue): ResolvedPolicy {
 				return match ($policyKey) {
@@ -123,6 +124,13 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					),
 					SignerGeolocationPolicy::KEY => $this->createResolvedPolicy(
 						SignerGeolocationPolicy::KEY,
+						[
+							'mode' => 'disabled',
+						],
+						'system',
+					),
+					SignerIpGeolocationPolicy::KEY => $this->createResolvedPolicy(
+						SignerIpGeolocationPolicy::KEY,
 						[
 							'mode' => 'disabled',
 						],
@@ -191,7 +199,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->setDocmdpLevelEnum(DocMdpLevel::NOT_CERTIFIED);
 
 		$this->policyService
-			->expects($this->exactly(9))
+			->expects($this->exactly(10))
 			->method('resolveForUserId')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				return match ($policyKey) {
@@ -217,6 +225,13 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						],
 						'system',
 					),
+					SignerIpGeolocationPolicy::KEY => $this->createResolvedPolicy(
+						SignerIpGeolocationPolicy::KEY,
+						[
+							'mode' => 'disabled',
+						],
+						'system',
+					),
 					SignatureRejectionPolicy::KEY_ENABLED,
 					SignatureRejectionPolicy::KEY_BEHAVIOR,
 					SignatureRejectionPolicy::KEY_COMMENT_MODE,
@@ -231,7 +246,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			});
 
 		$this->fileService
-			->expects($this->exactly(5))
+			->expects($this->exactly(6))
 			->method('update')
 			->with($this->identicalTo($file));
 
@@ -285,7 +300,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 
 		$this->policyService
-			->expects($this->exactly(12))
+			->expects($this->exactly(13))
 			->method('resolveForUserId')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				return match ($policyKey) {
@@ -336,6 +351,13 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						],
 						'system',
 					),
+					SignerIpGeolocationPolicy::KEY => $this->createResolvedPolicy(
+						SignerIpGeolocationPolicy::KEY,
+						[
+							'mode' => 'disabled',
+						],
+						'system',
+					),
 					SignatureRejectionPolicy::KEY_ENABLED,
 					SignatureRejectionPolicy::KEY_BEHAVIOR,
 					SignatureRejectionPolicy::KEY_COMMENT_MODE,
@@ -350,7 +372,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			});
 
 		$this->fileService
-			->expects($this->exactly(3))
+			->expects($this->exactly(4))
 			->method('update');
 
 		$this->getApplier()->syncAllPolicies($file, []);
