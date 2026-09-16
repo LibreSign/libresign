@@ -809,11 +809,13 @@ describe('SignerDetails.vue - Business Logic', () => {
 				signer: {
 					metadata: {
 						geolocation: {
-							status: 'collected',
-							latitude: -23.55,
-							longitude: -46.63,
-							accuracy: 12,
-							timestamp: 0,
+							device: {
+								status: 'collected',
+								latitude: -23.55,
+								longitude: -46.63,
+								accuracy: 12,
+								timestamp: 0,
+							},
 						},
 					},
 				},

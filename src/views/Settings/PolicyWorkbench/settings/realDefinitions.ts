@@ -50,7 +50,7 @@ export const realDefinitions = {
 
 	// 4. What gets recorded
 	collect_metadata: { ...collectMetadataRealDefinition, category: 'what-gets-recorded' },
-	signer_geolocation: { ...signerGeolocationRealDefinition, category: 'what-gets-recorded' },
+	signer_device_geolocation: { ...signerGeolocationRealDefinition, category: 'what-gets-recorded' },
 	legal_information: { ...legalInformationRealDefinition, category: 'what-gets-recorded' },
 
 	// 5. Time & limits

@@ -63,9 +63,9 @@ import { isCurrentUserObserver, isSigningParticipant } from '../utils/participan
  * 	me?: boolean
  * 	signed?: string | null | boolean | unknown[]
  * 	sign_request_uuid?: string | null
- * 	geolocationRequired?: boolean
+ * 	deviceGeolocationRequired?: boolean
  * 	metadata?: {
- * 		geolocationRequirement?: string
+ * 		deviceGeolocationRequirement?: string
  * 		geolocation?: Record<string, unknown>
  * 	}
  * }} EditableSignerDraft
@@ -921,10 +921,10 @@ const _filesStore = defineStore('files', () => {
 	 * @return {boolean|undefined}
 	 */
 	function resolveGeolocationRequiredForRequest(signer) {
-		if (typeof signer?.geolocationRequired === 'boolean') {
-			return signer.geolocationRequired
+		if (typeof signer?.deviceGeolocationRequired === 'boolean') {
+			return signer.deviceGeolocationRequired
 		}
-		const frozenRequirement = signer?.metadata?.geolocationRequirement
+		const frozenRequirement = signer?.metadata?.deviceGeolocationRequirement
 		if (frozenRequirement === 'required') {
 			return true
 		}
@@ -957,7 +957,7 @@ const _filesStore = defineStore('files', () => {
 						})
 						.filter(Boolean)
 					: []
-				const geolocationRequired = resolveGeolocationRequiredForRequest(signer)
+				const deviceGeolocationRequired = resolveGeolocationRequiredForRequest(signer)
 				return {
 					...(identifyMethods?.length ? { identifyMethods } : {}),
 					...(typeof signer.displayName === 'string' ? { displayName: signer.displayName } : {}),
@@ -966,8 +966,8 @@ const _filesStore = defineStore('files', () => {
 					...(typeof signer.signingOrder === 'number' ? { signingOrder: signer.signingOrder } : {}),
 					...(typeof signer.status === 'number' ? { status: signer.status } : {}),
 					...(typeof signer.participantRole === 'string' ? { participantRole: signer.participantRole } : {}),
-					...(typeof geolocationRequired === 'boolean'
-						? { geolocationRequired }
+					...(typeof deviceGeolocationRequired === 'boolean'
+						? { deviceGeolocationRequired }
 						: {}),
 				}
 			})
