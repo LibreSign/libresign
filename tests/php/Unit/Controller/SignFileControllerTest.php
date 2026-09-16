@@ -21,6 +21,7 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestMetadataService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionService;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
+use OCA\Libresign\Service\SignerIpGeolocation\SignerIpGeolocationPolicyService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
@@ -71,6 +72,7 @@ final class SignFileControllerTest extends TestCase {
 			$this->createMock(AsyncSigningService::class),
 			$this->createMock(RequestMetadataService::class),
 			$this->createMock(SignerGeolocationMetadataValidator::class),
+			$this->createMock(SignerIpGeolocationPolicyService::class),
 			$this->createMock(SigningErrorHandler::class),
 			$this->createMock(SignatureRejectionService::class),
 		);

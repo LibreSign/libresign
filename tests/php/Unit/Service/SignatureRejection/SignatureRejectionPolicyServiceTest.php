@@ -68,7 +68,7 @@ final class SignatureRejectionPolicyServiceTest extends TestCase {
 	}
 
 	public function testASnapshotOfAnotherPolicyKeepsRejectionDisabled(): void {
-		$file = $this->file(['policy_snapshot' => ['signer_geolocation' => ['effectiveValue' => ['mode' => 'required']]]]);
+		$file = $this->file(['policy_snapshot' => ['signer_device_geolocation' => ['effectiveValue' => ['mode' => 'required']]]]);
 
 		$this->assertFalse($this->getService()->isEnabled($file));
 	}

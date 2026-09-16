@@ -14,8 +14,6 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignerGeolocationMode;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
-use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicy;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
 use OCP\IL10N;
@@ -24,14 +22,12 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class SignerGeolocationPolicyServiceTest extends TestCase {
-	private PolicyService&MockObject $policyService;
 	private FileMapper&MockObject $fileMapper;
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private IL10N&MockObject $l10n;
 
 	protected function setUp(): void {
 		parent::setUp();
-		$this->policyService = $this->createMock(PolicyService::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->l10n = $this->createMock(IL10N::class);
@@ -40,7 +36,6 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 
 	private function getService(): SignerGeolocationPolicyService {
 		return new SignerGeolocationPolicyService(
-			$this->policyService,
 			$this->fileMapper,
 			$this->signRequestMapper,
 			$this->l10n,
@@ -92,39 +87,12 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 		$this->addToAssertionCount(1);
 	}
 
-	public function testGetPolicyValueFallsBackToLivePolicy(): void {
+	public function testGetPolicyValueDefaultsDisabledWhenSnapshotAbsent(): void {
 		$file = new File();
-		$this->policyService
-			->expects($this->once())
-			->method('resolve')
-			->with(SignerGeolocationPolicy::KEY)
-			->willReturn((new ResolvedPolicy())
-				->setPolicyKey(SignerGeolocationPolicy::KEY)
-				->setEffectiveValue(['mode' => 'required'])
-				->setSourceScope('system'));
 
 		$this->assertSame([
-			'mode' => 'required',
+			'mode' => 'disabled',
 		], $this->getService()->getPolicyValue($file));
-	}
-
-	public function testGetFrozenRequirementIgnoresLivePolicyChanges(): void {
-		$signRequest = new SignRequest();
-		$signRequest->setMetadata([
-			SignerGeolocationPolicyService::METADATA_REQUIREMENT_KEY => SignerGeolocationMode::REQUIRED->value,
-		]);
-
-		$this->policyService
-			->method('resolve')
-			->willReturn((new ResolvedPolicy())
-				->setPolicyKey(SignerGeolocationPolicy::KEY)
-				->setEffectiveValue(['mode' => 'disabled'])
-				->setSourceScope('system'));
-
-		$this->assertSame(
-			SignerGeolocationMode::REQUIRED,
-			$this->getService()->getFrozenRequirement($signRequest),
-		);
 	}
 
 	public function testGetFrozenRequirementIgnoresInvalidOptionalSignerRequirement(): void {
@@ -134,6 +102,18 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 		]);
 
 		$this->assertNull($this->getService()->getFrozenRequirement($signRequest));
+	}
+
+	public function testGetFrozenRequirementReadsDeviceRequirementKey(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setMetadata([
+			'deviceGeolocationRequirement' => SignerGeolocationMode::REQUIRED->value,
+		]);
+
+		$this->assertSame(
+			SignerGeolocationMode::REQUIRED,
+			$this->getService()->getFrozenRequirement($signRequest),
+		);
 	}
 
 	public function testPersistEffectiveRequirementStoresPerSignerRequirement(): void {
@@ -191,6 +171,35 @@ final class SignerGeolocationPolicyServiceTest extends TestCase {
 			}));
 
 		$this->getService()->persistEffectiveRequirement($signRequest, $file, false);
+	}
+
+	public function testGetPolicyValueReadsSnapshotFromEnvelopeChild(): void {
+		$child = new File();
+		$child->setId(2);
+		$child->setParentFileId(1);
+		$child->setMetadata([]);
+
+		$envelope = new File();
+		$envelope->setId(1);
+		$envelope->setMetadata([
+			'policy_snapshot' => [
+				SignerGeolocationPolicy::KEY => [
+					'effectiveValue' => ['mode' => 'required'],
+					'sourceScope' => 'system',
+				],
+			],
+		]);
+
+		$this->fileMapper
+			->expects($this->once())
+			->method('getById')
+			->with(1)
+			->willReturn($envelope);
+
+		$this->assertSame(
+			['mode' => 'required'],
+			$this->getService()->getPolicyValue($child),
+		);
 	}
 
 	/** @param array{mode: string} $policyValue */

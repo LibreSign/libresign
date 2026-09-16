@@ -1063,7 +1063,11 @@ class SignFileService {
 		}
 
 		if (isset($metadata['geolocation']) && is_array($metadata['geolocation'])) {
-			$patch['geolocation'] = $metadata['geolocation'];
+			$existingMetadata = $this->signRequest->getMetadata() ?? [];
+			$existingGeolocation = is_array($existingMetadata['geolocation'] ?? null)
+				? $existingMetadata['geolocation']
+				: [];
+			$patch['geolocation'] = array_merge($existingGeolocation, $metadata['geolocation']);
 		}
 
 		if ($patch === []) {

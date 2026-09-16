@@ -122,7 +122,7 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 	public static function provideRequestsWithoutAChoice(): iterable {
 		yield 'no policy payload at all' => [[]];
 		yield 'policy payload without overrides' => [['policyOverrides' => []]];
-		yield 'overrides for another policy' => [['policyOverrides' => ['signer_geolocation' => ['mode' => 'required']]]];
+		yield 'overrides for another policy' => [['policyOverrides' => ['signer_device_geolocation' => ['mode' => 'required']]]];
 		yield 'override without the enabled flag' => [['policyOverrides' => [SignatureRejectionPolicy::KEY => ['comment_mode' => 'required']]]];
 		yield 'explicitly declined' => [['policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => false]]]];
 	}
