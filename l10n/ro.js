@@ -63,6 +63,7 @@ OC.L10N.register(
     "Select all" : "Selectează tot",
     "Open file" : "Deschide fișier",
     "Close" : "Închide",
+    "Add" : "Adaugă",
     "Confirm" : "Confirmă",
     "Status" : "Stare",
     "Preferences" : "Preferințe",

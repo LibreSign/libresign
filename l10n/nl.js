@@ -165,6 +165,8 @@ OC.L10N.register(
     "Open file" : "Openen bestand",
     "Add file" : "Toevoegen bestand",
     "Close" : "Sluiten",
+    "Add participant" : "Deelnemer toevoegen",
+    "Add" : "Toevoegen",
     "Request signature" : "Aanvragen ondertekening",
     "Send reminder" : "Versturen herinnering",
     "Confirm" : "Bevestigen",

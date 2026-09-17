@@ -50,6 +50,7 @@ OC.L10N.register(
     "Select all" : "Zgjidhi të gjitha",
     "Open file" : "Hap skedarin",
     "Close" : "Mbylleni",
+    "Add" : "Shto ",
     "Confirm" : "Konfirmo",
     "Status" : "Statusi",
     "Preferences" : "Preferencat",

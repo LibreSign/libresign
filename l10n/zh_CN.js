@@ -165,6 +165,8 @@ OC.L10N.register(
     "Open file" : "打开文件 ",
     "Add file" : "添加文件",
     "Close" : "关闭",
+    "Add participant" : "添加参与者",
+    "Add" : "添加",
     "Request signature" : "请求签名",
     "Send reminder" : "发送提醒",
     "Confirm" : "确认",
