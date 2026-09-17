@@ -40,6 +40,7 @@ OC.L10N.register(
     "Select all" : "Merk alt",
     "Open file" : "Opne fil",
     "Close" : "Lat att",
+    "Add" : "Legg til",
     "Status" : "Status",
     "Administration" : "Administrasjon",
     "Drag to reorder" : "Dra for å endre rekkefylgje",
