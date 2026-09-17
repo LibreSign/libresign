@@ -101,8 +101,8 @@ describe('Request.vue - File Request Business Logic', () => {
 						template: '<div class="file-stub" v-bind="$attrs"></div>',
 						props: ['status', 'statusText'],
 					},
-					ReqestPicker: {
-						name: 'ReqestPicker',
+					RequestPicker: {
+						name: 'RequestPicker',
 						template: '<div class="request-picker-stub"></div>',
 						props: ['inline'],
 					},
@@ -147,14 +147,14 @@ describe('Request.vue - File Request Business Logic', () => {
 	describe('Sidebar visibility', () => {
 		it('shows request picker when sidebar is hidden', () => {
 			wrapper = createWrapper({ sidebarVisible: false })
-			const picker = wrapper.findComponent({ name: 'ReqestPicker' })
+			const picker = wrapper.findComponent({ name: 'RequestPicker' })
 			expect(picker.exists()).toBe(true)
 		})
 
 		it('hides request picker when sidebar is visible', async () => {
 			wrapper = createWrapper({ sidebarVisible: true })
 			await wrapper.vm.$nextTick()
-			const picker = wrapper.findComponent({ name: 'ReqestPicker' })
+			const picker = wrapper.findComponent({ name: 'RequestPicker' })
 			expect(picker.exists()).toBe(false)
 		})
 	})
