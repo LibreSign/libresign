@@ -10,7 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service\SignatureRejection;
 
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\SignRequestStatus;
-use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyConfig;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -31,11 +31,16 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 		return new SignatureRejectionVisibilityService($this->rejectionPolicyService);
 	}
 
-	/** @param array<string, mixed> $policy */
-	private function withPolicy(array $policy): void {
+	private function withPolicy(string $visibility, string $commentVisibility = 'requester'): void {
 		$this->rejectionPolicyService
-			->method('getPolicyValue')
-			->willReturn(SignatureRejectionPolicyValue::normalize($policy));
+			->method('getConfig')
+			->willReturn(SignatureRejectionPolicyConfig::fromValues(
+				enabled: true,
+				behavior: 'cancel',
+				commentMode: 'optional',
+				visibility: $visibility,
+				commentVisibility: $commentVisibility,
+			));
 	}
 
 	private function rejectedSignRequest(?string $comment = null, bool $commentPrivate = false): SignRequest {
@@ -50,7 +55,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 
 	#[DataProvider('provideNonRejectedSigners')]
 	public function testNothingIsExposedForASignerThatDidNotReject(SignRequest $signRequest): void {
-		$this->rejectionPolicyService->expects($this->never())->method('getPolicyValue');
+		$this->rejectionPolicyService->expects($this->never())->method('getConfig');
 
 		$this->assertNull($this->getService()->buildSignerRejection($signRequest, null, true));
 	}
@@ -73,7 +78,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 	}
 
 	public function testRejectionIsHiddenFromOtherReadersWhileTheStatusIsPrivate(): void {
-		$this->withPolicy(['enabled' => true, 'public_status' => false]);
+		$this->withPolicy(visibility: 'requester');
 
 		$this->assertNull(
 			$this->getService()->buildSignerRejection($this->rejectedSignRequest('Nope'), null, false),
@@ -81,7 +86,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 	}
 
 	public function testRequesterAndSignerAlwaysSeeTheWholeRecord(): void {
-		$this->withPolicy(['enabled' => true, 'public_status' => false]);
+		$this->withPolicy(visibility: 'requester');
 
 		$this->assertSame(
 			[
@@ -98,7 +103,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 	}
 
 	public function testOnlyTheTimestampIsExposedWhenThereIsNoComment(): void {
-		$this->withPolicy(['enabled' => true, 'public_status' => true, 'show_comment_on_validation' => true]);
+		$this->withPolicy(visibility: 'public', commentVisibility: 'public');
 
 		$this->assertSame(
 			['rejectedAt' => self::REJECTED_AT],
@@ -108,12 +113,13 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 
 	#[DataProvider('provideOtherReaderCases')]
 	public function testCommentDisclosureToOtherReaders(
-		array $policy,
+		string $visibility,
+		string $commentVisibility,
 		?string $comment,
 		bool $commentPrivate,
 		array $expected,
 	): void {
-		$this->withPolicy($policy);
+		$this->withPolicy($visibility, $commentVisibility);
 
 		$this->assertSame(
 			$expected,
@@ -126,37 +132,36 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 	}
 
 	/**
-	 * @return iterable<string, array{0: array<string, mixed>, 1: ?string, 2: bool, 3: array<string, mixed>}>
+	 * @return iterable<string, array{0: string, 1: string, 2: ?string, 3: bool, 4: array<string, mixed>}>
 	 */
 	public static function provideOtherReaderCases(): iterable {
-		yield 'public status without comment disclosure' => [
-			['enabled' => true, 'comment_mode' => 'optional', 'public_status' => true, 'show_comment_on_validation' => false],
+		yield 'public rejection with a comment kept private' => [
+			'public',
+			'requester',
 			'Nope',
 			false,
 			['rejectedAt' => self::REJECTED_AT],
 		];
 
-		yield 'public status with comment disclosure' => [
-			['enabled' => true, 'comment_mode' => 'optional', 'public_status' => true, 'show_comment_on_validation' => true],
+		yield 'public rejection and public comment' => [
+			'public',
+			'public',
 			'Nope',
 			false,
 			['rejectedAt' => self::REJECTED_AT, 'comment' => 'Nope', 'commentPrivate' => false],
 		];
 
-		yield 'a private comment is never disclosed' => [
-			[
-				'enabled' => true,
-				'comment_mode' => 'optional',
-				'public_status' => true,
-				'show_comment_on_validation' => true,
-			],
+		yield 'a comment the signer made private is never disclosed' => [
+			'public',
+			'public',
 			'Nope',
 			true,
 			['rejectedAt' => self::REJECTED_AT],
 		];
 
 		yield 'empty comment is treated as no comment' => [
-			['enabled' => true, 'comment_mode' => 'optional', 'public_status' => true, 'show_comment_on_validation' => true],
+			'public',
+			'public',
 			'',
 			false,
 			['rejectedAt' => self::REJECTED_AT],
