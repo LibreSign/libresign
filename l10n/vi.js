@@ -65,6 +65,7 @@ OC.L10N.register(
     "Select all" : "Chọn tất cả",
     "Open file" : "Mở tệp",
     "Close" : "Đóng",
+    "Add" : "Thêm",
     "Confirm" : "Xác nhận",
     "Status" : "Trạng thái",
     "Preferences" : "Cài đặt",

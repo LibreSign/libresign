@@ -97,6 +97,7 @@ OC.L10N.register(
     "Saved" : "Enregistrat",
     "Open file" : "Dobrir fichièr",
     "Close" : "Plegar",
+    "Add" : "Apondre",
     "Confirm" : "Confirmar",
     "Status" : "Estat",
     "Administration" : "Administracion",

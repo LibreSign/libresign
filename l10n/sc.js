@@ -109,6 +109,7 @@ OC.L10N.register(
     "Open file" : "Aberi archìviu",
     "Add file" : "Agiunghe archìviu",
     "Close" : "Serra",
+    "Add" : "Agiunghe",
     "Request signature" : "Rechede firma",
     "Send reminder" : "Imbia promemòria",
     "Confirm" : "Cunfirma",
