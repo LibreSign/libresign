@@ -3,8 +3,9 @@ Feature: sign-signature-rejection
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":false} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | false |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
@@ -20,12 +21,17 @@ Feature: sign-signature-rejection
       | key                   | value                                                 |
       | (jq).ocs.data.message | Signature rejection is not enabled for this document. |
 
-  Scenario: An enabled policy alone does not offer rejection on a request
+  Scenario: The policy default applies to a request that says nothing about rejection
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional"} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
@@ -36,17 +42,49 @@ Feature: sign-signature-rejection
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
     When as user "signer1"
     And sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/reject"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                  | value |
+      | (jq).ocs.data.status | 3     |
+
+  Scenario: A requester keeps rejection off their own document
+    Given as user "admin"
+    And user "signer1" exists
+    And run the command "libresign:configure:openssl --cn test" with result code 0
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
+      | name | document |
+      | policy | {"overrides":{"rejection_enabled":false}} |
+    And the response should have a status code 200
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
+    When as user "signer1"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/reject"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key                   | value                                                 |
       | (jq).ocs.data.message | Signature rejection is not enabled for this document. |
 
-  Scenario: An enabled policy alone does not offer rejection on an envelope
+  Scenario: The policy default applies to an envelope that says nothing about rejection
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional"} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
@@ -64,41 +102,106 @@ Feature: sign-signature-rejection
     And the response should have a status code 200
     When as user "signer1"
     And sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/reject"
-    Then the response should have a status code 422
+    Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                   | value                                                 |
-      | (jq).ocs.data.message | Signature rejection is not enabled for this document. |
+      | key                  | value |
+      | (jq).ocs.data.status | 3     |
 
-  Scenario: Requester cannot enable rejection when the policy disables it
+  Scenario: Requester cannot enable rejection where a policy keeps it disabled
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":false} |
+    And sending "put" to ocs "/apps/libresign/api/v1/policies/user/admin/rejection_enabled"
+      | value | false |
+      | allowChildOverride | false |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key                   | value                                                                              |
       | (jq).ocs.data.message | Signature rejection is disabled by policy and cannot be enabled for this document. |
+
+  Scenario: Requester cannot change a setting the administrator enforces
+    Given as user "admin"
+    And user "signer1" exists
+    And run the command "libresign:configure:openssl --cn test" with result code 0
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_behavior"
+      | value | continue |
+      | allowChildOverride | false |
+    And the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
+      | name | document |
+      | policy | {"overrides":{"rejection_behavior":"cancel"}} |
+    Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key                   | value                                                                                 |
+      | (jq).ocs.data.message | The rejection setting rejection_behavior cannot be used on this document: it is defined by global. |
+
+  Scenario: The rejection comment cannot reach further than the rejection itself
+    Given as user "admin"
+    And user "signer1" exists
+    And run the command "libresign:configure:openssl --cn test" with result code 0
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_visibility"
+      | value | participants |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_visibility"
+      | value | public |
+      | allowChildOverride | true |
+    Then the response should have a status code 400
+    And the response should be a JSON array with the following mandatory values
+      | key                 | value                                                                             |
+      | (jq).ocs.data.error | The rejection comment cannot be visible to a wider audience than the rejection itself. |
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
+      | name | document |
+      | policy | {"overrides":{"rejection_comment_visibility":"public"}} |
+    Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key                   | value                                                                             |
+      | (jq).ocs.data.message | The rejection comment cannot be visible to a wider audience than the rejection itself. |
 
   Scenario: Requester offers rejection and the signer rejects with an optional comment
     Given as user "admin"
     And user "signer1" exists
     And user "signer2" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional","cancel_workflow":false} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_behavior"
+      | value | continue |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]},{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
       | name | document |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
@@ -123,14 +226,19 @@ Feature: sign-signature-rejection
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"required"} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | required |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
@@ -148,19 +256,25 @@ Feature: sign-signature-rejection
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional"} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
-    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":false} |
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | false |
+      | allowChildOverride | true |
     Then the response should have a status code 200
     When as user "signer1"
     And sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/reject"
@@ -170,18 +284,24 @@ Feature: sign-signature-rejection
       | key                  | value |
       | (jq).ocs.data.status | 3     |
 
-  Scenario: A draft that did not offer rejection keeps it disabled through unrelated updates
+  Scenario: A draft that opted out of rejection keeps it disabled through unrelated updates
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional"} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
       | status | 0 |
+      | policy | {"overrides":{"rejection_enabled":false}} |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
@@ -205,15 +325,20 @@ Feature: sign-signature-rejection
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional"} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
       | status | 0 |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
@@ -238,8 +363,13 @@ Feature: sign-signature-rejection
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional"} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
@@ -252,7 +382,7 @@ Feature: sign-signature-rejection
     And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
     When sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     Then the response should have a status code 200
     When sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
@@ -270,29 +400,34 @@ Feature: sign-signature-rejection
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional"} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
     And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
     When sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     Then the response should have a status code 200
     When sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
-      | policy | {"overrides":{"signature_rejection":{"enabled":false}}} |
+      | policy | {"overrides":{"rejection_enabled":false}} |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key                   | value                                                                             |
-      | (jq).ocs.data.message | The signature rejection setting cannot be changed after the signing flow has started. |
+      | (jq).ocs.data.message | The signature rejection settings cannot be changed after the signing flow has started. |
     When as user "signer1"
     And sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/reject"
       | comment | The stored value is still the one the request was created with |
@@ -305,15 +440,20 @@ Feature: sign-signature-rejection
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional"} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Package |
       | status | 0 |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
@@ -323,8 +463,9 @@ Feature: sign-signature-rejection
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | status | 1 |
     And the response should have a status code 200
-    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":false} |
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | false |
+      | allowChildOverride | true |
     Then the response should have a status code 200
     When as user "signer1"
     And sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/reject"
@@ -338,15 +479,20 @@ Feature: sign-signature-rejection
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional"} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Package |
       | status | 0 |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
@@ -368,18 +514,24 @@ Feature: sign-signature-rejection
       | key                  | value |
       | (jq).ocs.data.status | 3     |
 
-  Scenario: An envelope draft that did not offer rejection keeps it disabled through unrelated updates
+  Scenario: An envelope draft that opted out of rejection keeps it disabled through unrelated updates
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional"} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Package |
       | status | 0 |
+      | policy | {"overrides":{"rejection_enabled":false}} |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
@@ -404,8 +556,13 @@ Feature: sign-signature-rejection
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional"} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
@@ -418,7 +575,7 @@ Feature: sign-signature-rejection
     And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
     When sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     Then the response should have a status code 200
     And sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
@@ -437,15 +594,20 @@ Feature: sign-signature-rejection
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional"} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Package |
       | status | 0 |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
@@ -457,15 +619,15 @@ Feature: sign-signature-rejection
     And the response should have a status code 200
     When sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     Then the response should have a status code 200
     When sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
-      | policy | {"overrides":{"signature_rejection":{"enabled":false}}} |
+      | policy | {"overrides":{"rejection_enabled":false}} |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key                   | value                                                                                 |
-      | (jq).ocs.data.message | The signature rejection setting cannot be changed after the signing flow has started. |
+      | (jq).ocs.data.message | The signature rejection settings cannot be changed after the signing flow has started. |
     When as user "signer1"
     And sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/reject"
       | comment | The envelope still offers rejection |
@@ -479,14 +641,27 @@ Feature: sign-signature-rejection
     And user "signer1" exists
     And user "signer2" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional","public_status":true,"show_comment_on_validation":true} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_visibility"
+      | value | public |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_visibility"
+      | value | public |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]},{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
       | name | document |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
@@ -522,14 +697,27 @@ Feature: sign-signature-rejection
     And user "signer1" exists
     And user "signer2" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional","public_status":true,"show_comment_on_validation":true} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_visibility"
+      | value | public |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_visibility"
+      | value | public |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]},{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
       | name | document |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
@@ -548,14 +736,19 @@ Feature: sign-signature-rejection
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional"} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     And the response should have a status code 200
     And as user "signer1"
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
@@ -572,14 +765,19 @@ Feature: sign-signature-rejection
     And user "signer1" exists
     And user "signer2" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional"} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}],"signingOrder":1},{"identifyMethods":[{"method":"account","value":"signer2"}],"signingOrder":2}] |
       | name | document |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     And the response should have a status code 200
     And as user "signer1"
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
@@ -599,14 +797,23 @@ Feature: sign-signature-rejection
     And user "signer1" exists
     And user "signer2" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional","cancel_workflow":true} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_behavior"
+      | value | cancel |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]},{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
       | name | document |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
@@ -662,15 +869,24 @@ Feature: sign-signature-rejection
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_rejection"
-      | value | {"enabled":true,"comment_mode":"optional","cancel_workflow":true} |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_behavior"
+      | value | cancel |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Package |
       | status | 0 |
-      | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
+      | policy | {"overrides":{"rejection_enabled":true}} |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
@@ -700,3 +916,44 @@ Feature: sign-signature-rejection
       | (jq).ocs.data.data[0].nodeType                                               | envelope                         |
       | (jq).ocs.data.data[0].status                                                 | 6                                |
       | (jq).ocs.data.data[0].signers[] \| select(.status == 3) \| .rejection.comment | I do not agree with this package |
+
+  Scenario: A draft is revalidated against the current administrator policy
+    Given as user "admin"
+    And user "signer1" exists
+    And run the command "libresign:configure:openssl --cn test" with result code 0
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
+      | name | document |
+      | status | 0 |
+      | policy | {"overrides":{"rejection_comment_mode":"required"}} |
+    And the response should have a status code 200
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
+    And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | false |
+    Then the response should have a status code 200
+    When sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
+      | uuid | <FILE_UUID> |
+      | name | renamed document |
+    Then the response should have a status code 200
+    When sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
+      | uuid | <FILE_UUID> |
+      | status | 1 |
+    Then the response should have a status code 200
+    When as user "signer1"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/reject"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                  | value |
+      | (jq).ocs.data.status | 3     |

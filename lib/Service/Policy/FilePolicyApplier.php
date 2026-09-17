@@ -62,12 +62,22 @@ class FilePolicyApplier {
 	/** @return list<IFilePolicyApplier> */
 	private function discoverAppliers(): array {
 		$appliers = [];
+		$discoveredApplierClasses = [];
 
 		foreach (PolicyProviders::BY_KEY as $providerClass) {
 			$applierClass = $this->buildFileApplierClassFromProvider($providerClass);
 			if ($applierClass === null || !class_exists($applierClass)) {
 				continue;
 			}
+
+			// A provider that answers for several policy keys is listed once per
+			// key, and one applier owns all of them: building it again per key
+			// would run the same file policy several times on every request.
+			if (isset($discoveredApplierClasses[$applierClass])) {
+				continue;
+			}
+
+			$discoveredApplierClasses[$applierClass] = true;
 
 			// The file mapper is an optional extra: an applier that needs it declares
 			// a fourth constructor parameter, every other applier simply ignores it.

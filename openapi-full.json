@@ -2504,7 +2504,7 @@
                     }
                 ]
             },
-            "PolicySnapshotSignatureRejectionEntry": {
+            "PolicySnapshotSignatureRejectionBehaviorEntry": {
                 "type": "object",
                 "required": [
                     "effectiveValue",
@@ -2512,37 +2512,40 @@
                 ],
                 "properties": {
                     "effectiveValue": {
-                        "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionValue"
+                        "$ref": "#/components/schemas/SignatureRejectionBehavior"
                     },
                     "sourceScope": {
                         "type": "string"
                     }
                 }
             },
-            "PolicySnapshotSignatureRejectionValue": {
+            "PolicySnapshotSignatureRejectionCommentModeEntry": {
                 "type": "object",
                 "required": [
-                    "enabled",
-                    "comment_mode",
-                    "cancel_workflow",
-                    "public_status",
-                    "show_comment_on_validation"
+                    "effectiveValue",
+                    "sourceScope"
                 ],
                 "properties": {
-                    "enabled": {
-                        "type": "boolean"
-                    },
-                    "comment_mode": {
+                    "effectiveValue": {
                         "$ref": "#/components/schemas/SignatureRejectionCommentMode"
                     },
-                    "cancel_workflow": {
-                        "type": "boolean"
+                    "sourceScope": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PolicySnapshotSignatureRejectionVisibilityEntry": {
+                "type": "object",
+                "required": [
+                    "effectiveValue",
+                    "sourceScope"
+                ],
+                "properties": {
+                    "effectiveValue": {
+                        "$ref": "#/components/schemas/SignatureRejectionVisibility"
                     },
-                    "public_status": {
-                        "type": "boolean"
-                    },
-                    "show_comment_on_validation": {
-                        "type": "boolean"
+                    "sourceScope": {
+                        "type": "string"
                     }
                 }
             },
@@ -3008,6 +3011,13 @@
                     }
                 }
             },
+            "SignatureRejectionBehavior": {
+                "type": "string",
+                "enum": [
+                    "cancel",
+                    "continue"
+                ]
+            },
             "SignatureRejectionCommentMode": {
                 "type": "string",
                 "enum": [
@@ -3048,6 +3058,14 @@
                         "type": "boolean"
                     }
                 }
+            },
+            "SignatureRejectionVisibility": {
+                "type": "string",
+                "enum": [
+                    "requester",
+                    "participants",
+                    "public"
+                ]
             },
             "SignerCertificateInfo": {
                 "type": "object",
@@ -3618,8 +3636,20 @@
                     "enable_observer_profile": {
                         "$ref": "#/components/schemas/PolicySnapshotBooleanEntry"
                     },
-                    "signature_rejection": {
-                        "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionEntry"
+                    "rejection_enabled": {
+                        "$ref": "#/components/schemas/PolicySnapshotBooleanEntry"
+                    },
+                    "rejection_behavior": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionBehaviorEntry"
+                    },
+                    "rejection_comment_mode": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionCommentModeEntry"
+                    },
+                    "rejection_visibility": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionVisibilityEntry"
+                    },
+                    "rejection_comment_visibility": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionVisibilityEntry"
                     }
                 }
             },

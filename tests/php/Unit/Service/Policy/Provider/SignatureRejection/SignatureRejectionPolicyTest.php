@@ -13,110 +13,210 @@ use OCA\Libresign\Service\Policy\Model\ActorRole;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Provider\Helper\SiblingPolicyEffectiveValueReader;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
-use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValidator;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class SignatureRejectionPolicyTest extends TestCase {
-	private function getDefinition(): IPolicyDefinition {
-		return (new SignatureRejectionPolicy())->get(SignatureRejectionPolicy::KEY);
+	private SiblingPolicyEffectiveValueReader&MockObject $siblingPolicyEffectiveValueReader;
+
+	protected function setUp(): void {
+		parent::setUp();
+		$this->siblingPolicyEffectiveValueReader = $this->createMock(SiblingPolicyEffectiveValueReader::class);
+		$this->siblingPolicyEffectiveValueReader->method('getEffectiveValues')->willReturn([]);
 	}
 
-	public function testProviderBuildsSignatureRejectionDefinition(): void {
-		$provider = new SignatureRejectionPolicy();
+	private function getProvider(): SignatureRejectionPolicy {
+		return new SignatureRejectionPolicy(
+			$this->siblingPolicyEffectiveValueReader,
+			new SignatureRejectionPolicyValidator(),
+		);
+	}
 
-		$this->assertSame([SignatureRejectionPolicy::KEY], $provider->keys());
+	private function getDefinition(string $policyKey): IPolicyDefinition {
+		return $this->getProvider()->get($policyKey);
+	}
 
-		$definition = $provider->get(SignatureRejectionPolicy::KEY);
-		$this->assertSame(SignatureRejectionPolicy::KEY, $definition->key());
-		$this->assertSame(SignatureRejectionPolicy::SYSTEM_APP_CONFIG_KEY, $definition->getAppConfigKey());
-		$this->assertSame(SignatureRejectionPolicyValue::defaults(), $definition->defaultSystemValue());
+	public function testEverySettingIsItsOwnScalarPolicyKey(): void {
+		$provider = $this->getProvider();
+
+		$this->assertSame([
+			SignatureRejectionPolicy::KEY_ENABLED,
+			SignatureRejectionPolicy::KEY_BEHAVIOR,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE,
+			SignatureRejectionPolicy::KEY_VISIBILITY,
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY,
+		], $provider->keys());
+
+		foreach ($provider->keys() as $policyKey) {
+			$definition = $provider->get($policyKey);
+			$this->assertSame($policyKey, $definition->key());
+			$this->assertSame($policyKey, $definition->getAppConfigKey());
+			$this->assertSame(PolicySpec::RESOLUTION_MODE_VALUE_CHOICE, $definition->resolutionMode());
+		}
+	}
+
+	#[DataProvider('provideAllowedValues')]
+	public function testTheAdministratorChoosesAmongTheValuesOfEachSetting(string $policyKey, array $allowedValues, mixed $defaultValue): void {
+		$definition = $this->getDefinition($policyKey);
+
+		$this->assertSame($allowedValues, $definition->allowedValues(new PolicyContext()));
+		$this->assertSame($defaultValue, $definition->defaultSystemValue());
+	}
+
+	/**
+	 * @return iterable<string, array{0: string, 1: list<mixed>, 2: mixed}>
+	 */
+	public static function provideAllowedValues(): iterable {
+		yield 'enabled' => [SignatureRejectionPolicy::KEY_ENABLED, [false, true], false];
+		yield 'behavior' => [SignatureRejectionPolicy::KEY_BEHAVIOR, ['cancel', 'continue'], 'cancel'];
+		yield 'comment mode' => [SignatureRejectionPolicy::KEY_COMMENT_MODE, ['disabled', 'optional', 'required'], 'disabled'];
+		yield 'visibility' => [SignatureRejectionPolicy::KEY_VISIBILITY, ['requester', 'participants', 'public'], 'requester'];
+		yield 'comment visibility' => [SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY, ['requester', 'participants', 'public'], 'requester'];
+	}
+
+	public function testTheSettingsAreGroupedUnderTheOneTheyDependOn(): void {
+		$enabled = $this->getDefinition(SignatureRejectionPolicy::KEY_ENABLED);
+
+		$this->assertNull($enabled->parentPolicyKey());
+		$this->assertSame(SignatureRejectionPolicy::DEPENDENT_KEYS, $enabled->compositeChildren());
+		$this->assertFalse($enabled->isHelper());
+
+		foreach (SignatureRejectionPolicy::DEPENDENT_KEYS as $policyKey) {
+			$definition = $this->getDefinition($policyKey);
+			$this->assertSame(SignatureRejectionPolicy::KEY_ENABLED, $definition->parentPolicyKey());
+			$this->assertSame([], $definition->compositeChildren());
+			$this->assertTrue($definition->isHelper());
+		}
+	}
+
+	public function testTheRequesterCanDecidePerSignatureRequest(): void {
+		foreach (SignatureRejectionPolicy::ALL_KEYS as $policyKey) {
+			$definition = $this->getDefinition($policyKey);
+
+			// The user scope is what makes a per-request override possible at all.
+			$this->assertTrue($definition->supportsUserPreference());
+			$this->assertTrue($definition->supportsScope(PolicySpec::SCOPE_USER));
+			$this->assertTrue($definition->supportsScope(PolicySpec::SCOPE_SYSTEM));
+			$this->assertTrue($definition->supportsScope(PolicySpec::SCOPE_GROUP));
+			$this->assertTrue($definition->supportsGroupAdminDelegation());
+		}
+	}
+
+	#[DataProvider('provideNormalizedValues')]
+	public function testEachSettingNormalizesItsOwnValue(string $policyKey, mixed $rawValue, mixed $expected): void {
+		$this->assertSame($expected, $this->getDefinition($policyKey)->normalizeValue($rawValue));
+	}
+
+	/**
+	 * @return iterable<string, array{0: string, 1: mixed, 2: mixed}>
+	 */
+	public static function provideNormalizedValues(): iterable {
+		yield 'enabled from a string' => [SignatureRejectionPolicy::KEY_ENABLED, 'true', true];
+		yield 'unknown behavior' => [SignatureRejectionPolicy::KEY_BEHAVIOR, 'postpone', 'cancel'];
+		yield 'comment mode' => [SignatureRejectionPolicy::KEY_COMMENT_MODE, 'required', 'required'];
+		yield 'visibility' => [SignatureRejectionPolicy::KEY_VISIBILITY, 'public', 'public'];
+		yield 'unknown comment visibility' => [SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY, 'everyone', 'requester'];
+	}
+
+	#[DataProvider('provideInvalidValues')]
+	public function testASettingOnlyAcceptsItsOwnValues(string $policyKey, mixed $value): void {
+		$this->expectException(\InvalidArgumentException::class);
+		$this->getDefinition($policyKey)->validateValue($value, new PolicyContext());
+	}
+
+	/**
+	 * @return iterable<string, array{0: string, 1: mixed}>
+	 */
+	public static function provideInvalidValues(): iterable {
+		yield 'behavior' => [SignatureRejectionPolicy::KEY_BEHAVIOR, 'postpone'];
+		yield 'comment mode' => [SignatureRejectionPolicy::KEY_COMMENT_MODE, 'sometimes'];
+		yield 'visibility' => [SignatureRejectionPolicy::KEY_VISIBILITY, 'everyone'];
+		yield 'enabled' => [SignatureRejectionPolicy::KEY_ENABLED, 'true'];
 	}
 
 	public function testUnknownKeyIsRejected(): void {
 		$this->expectException(\InvalidArgumentException::class);
-		(new SignatureRejectionPolicy())->get('not_a_signature_rejection_key');
+		$this->getProvider()->get('not_a_signature_rejection_key');
 	}
 
-	public function testRequesterCanDecidePerSignatureRequest(): void {
-		$definition = $this->getDefinition();
+	public function testSavingALayerIsValidatedAgainstTheOtherSettings(): void {
+		$context = new PolicyContext();
+		$this->siblingPolicyEffectiveValueReader = $this->createMock(SiblingPolicyEffectiveValueReader::class);
+		$this->siblingPolicyEffectiveValueReader
+			->expects($this->once())
+			->method('getEffectiveValues')
+			->with(
+				[
+					SignatureRejectionPolicy::KEY_ENABLED,
+					SignatureRejectionPolicy::KEY_BEHAVIOR,
+					SignatureRejectionPolicy::KEY_COMMENT_MODE,
+					SignatureRejectionPolicy::KEY_VISIBILITY,
+				],
+				$context,
+			)
+			->willReturn([
+				SignatureRejectionPolicy::KEY_ENABLED => true,
+				SignatureRejectionPolicy::KEY_BEHAVIOR => 'cancel',
+				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+				SignatureRejectionPolicy::KEY_VISIBILITY => 'participants',
+			]);
 
-		// The user scope is what makes a per-request override possible at all.
-		$this->assertTrue($definition->supportsUserPreference());
-		$this->assertTrue($definition->supportsScope(PolicySpec::SCOPE_USER));
-		$this->assertTrue($definition->supportsScope(PolicySpec::SCOPE_SYSTEM));
-		$this->assertTrue($definition->supportsScope(PolicySpec::SCOPE_GROUP));
-		$this->assertTrue($definition->supportsGroupAdminDelegation());
-		$this->assertSame([], $definition->allowedValues(new PolicyContext()));
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('The rejection comment cannot be visible to a wider audience than the rejection itself.');
+
+		$this->getDefinition(SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY)
+			->validateValueForPersistence('public', $context);
 	}
 
-	public function testNormalizeValueDelegatesToTheValueObject(): void {
-		$this->assertSame(
-			SignatureRejectionPolicyValue::normalize(['enabled' => true, 'comment_mode' => 'required']),
-			$this->getDefinition()->normalizeValue(['enabled' => true, 'comment_mode' => 'required']),
-		);
-	}
-
-	public function testValidateValueAcceptsANormalizedValue(): void {
+	public function testSavingALayerThatFitsTheOtherSettingsIsAccepted(): void {
 		$this->expectNotToPerformAssertions();
 
-		$this->getDefinition()->validateValue(
-			SignatureRejectionPolicyValue::normalize(['enabled' => true, 'comment_mode' => 'optional']),
-			new PolicyContext(),
-		);
-	}
+		$this->siblingPolicyEffectiveValueReader = $this->createMock(SiblingPolicyEffectiveValueReader::class);
+		$this->siblingPolicyEffectiveValueReader->method('getEffectiveValues')->willReturn([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_BEHAVIOR => 'continue',
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'public',
+		]);
 
-	#[DataProvider('provideInvalidValues')]
-	public function testValidateValueRejectsMalformedValues(mixed $value): void {
-		$this->expectException(\InvalidArgumentException::class);
-		$this->getDefinition()->validateValue($value, new PolicyContext());
-	}
-
-	/**
-	 * @return iterable<string, array{0: mixed}>
-	 */
-	public static function provideInvalidValues(): iterable {
-		yield 'not an array' => ['enabled'];
-		yield 'missing enabled' => [['comment_mode' => 'optional']];
-		yield 'enabled is not a boolean' => [['enabled' => 1, 'comment_mode' => 'optional']];
-		yield 'missing comment mode' => [['enabled' => true]];
-		yield 'unknown comment mode' => [['enabled' => true, 'comment_mode' => 'sometimes']];
+		$this->getDefinition(SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY)
+			->validateValueForPersistence('participants', new PolicyContext());
 	}
 
 	public function testDelegatedRuleCannotDropAParentRequiredComment(): void {
 		$this->expectException(\InvalidArgumentException::class);
 
-		$this->getDefinition()->validateGroupAdminDelegatedValue(
-			['enabled' => true, 'comment_mode' => 'optional'],
-			['enabled' => true, 'comment_mode' => 'required'],
-			new PolicyContext(),
-		);
+		$this->getDefinition(SignatureRejectionPolicy::KEY_COMMENT_MODE)
+			->validateGroupAdminDelegatedValue('optional', 'required', new PolicyContext());
+	}
+
+	public function testDelegatedRuleCannotWidenTheAudienceOfTheParent(): void {
+		$this->expectException(\InvalidArgumentException::class);
+
+		$this->getDefinition(SignatureRejectionPolicy::KEY_VISIBILITY)
+			->validateGroupAdminDelegatedValue('public', 'participants', new PolicyContext());
 	}
 
 	#[DataProvider('provideAcceptedDelegatedValues')]
-	public function testDelegatedRuleAcceptsValuesThatDoNotWeakenTheParent(array $proposed, array $parent): void {
+	public function testDelegatedRuleAcceptsValuesThatDoNotWeakenTheParent(string $policyKey, string $proposed, string $parent): void {
 		$this->expectNotToPerformAssertions();
 
-		$this->getDefinition()->validateGroupAdminDelegatedValue($proposed, $parent, new PolicyContext());
+		$this->getDefinition($policyKey)->validateGroupAdminDelegatedValue($proposed, $parent, new PolicyContext());
 	}
 
 	/**
-	 * @return iterable<string, array{0: array<string, mixed>, 1: array<string, mixed>}>
+	 * @return iterable<string, array{0: string, 1: string, 2: string}>
 	 */
 	public static function provideAcceptedDelegatedValues(): iterable {
-		yield 'parent does not require a comment' => [
-			['enabled' => true, 'comment_mode' => 'disabled'],
-			['enabled' => true, 'comment_mode' => 'optional'],
-		];
-		yield 'required comment is kept' => [
-			['enabled' => true, 'comment_mode' => 'required'],
-			['enabled' => true, 'comment_mode' => 'required'],
-		];
-		yield 'parent is disabled entirely' => [
-			['enabled' => true, 'comment_mode' => 'optional'],
-			['enabled' => false, 'comment_mode' => 'required'],
-		];
+		yield 'parent does not require a comment' => [SignatureRejectionPolicy::KEY_COMMENT_MODE, 'disabled', 'optional'];
+		yield 'required comment is kept' => [SignatureRejectionPolicy::KEY_COMMENT_MODE, 'required', 'required'];
+		yield 'the audience is narrowed' => [SignatureRejectionPolicy::KEY_VISIBILITY, 'requester', 'participants'];
+		yield 'the audience is kept' => [SignatureRejectionPolicy::KEY_VISIBILITY, 'public', 'public'];
+		yield 'the comment audience is narrowed' => [SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY, 'participants', 'public'];
 	}
 
 	#[DataProvider('provideGroupPolicyManagerCases')]
@@ -131,7 +231,8 @@ final class SignatureRejectionPolicyTest extends TestCase {
 
 		$this->assertSame(
 			$expected,
-			$this->getDefinition()->canCurrentActorManageGroupPolicy($context, $systemPolicy, $groupLayers),
+			$this->getDefinition(SignatureRejectionPolicy::KEY_ENABLED)
+				->canCurrentActorManageGroupPolicy($context, $systemPolicy, $groupLayers),
 		);
 	}
 
@@ -148,7 +249,7 @@ final class SignatureRejectionPolicyTest extends TestCase {
 			(new PolicyLayer())
 				->setScope('global')
 				->setAllowChildOverride(true)
-				->setValue(SignatureRejectionPolicyValue::defaults()),
+				->setValue(true),
 			[],
 			true,
 		];
