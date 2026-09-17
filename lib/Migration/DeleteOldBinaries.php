@@ -22,7 +22,18 @@ use Symfony\Component\Console\Output\NullOutput;
 class DeleteOldBinaries implements IRepairStep {
 	protected IAppData $appData;
 	protected IOutput $output;
+	/**
+	 * Everything that LibreSign is expected to keep inside its appdata folder.
+	 *
+	 * This repair step runs on every update and deletes each node that isn't
+	 * listed here, so a new entry stored in appdata MUST also be added to this
+	 * list, otherwise it is silently removed when the admin updates the app.
+	 *
+	 * A string is the name of a node to keep as is, an array is a folder whose
+	 * content is filtered by the same rules.
+	 */
 	protected array $allowedFiles = [
+		// Binaries downloaded by InstallService, one folder per architecture
 		'x86_64' => [
 			'alpine-linux' => [
 				'java',
@@ -45,10 +56,19 @@ class DeleteOldBinaries implements IRepairStep {
 			'jsignpdf',
 			'pdftk',
 		],
+		// Certificate engine data and configuration
 		'pki',
 		'openssl_config',
 		'cfssl_config',
+		'generated_crl',
+		// JSignPdf home, pointed by the jsignpdf_home app config
+		'jsignpdf_home',
+		// Admin customizations
+		'signature',
+		'certificate-policy.pdf',
+		// Files of signers that have no home folder
 		'unauthenticated',
+		'guest_app',
 	];
 	public function __construct(
 		protected IAppDataFactory $appDataFactory,
@@ -65,9 +85,9 @@ class DeleteOldBinaries implements IRepairStep {
 	public function run(IOutput $output): void {
 		$this->scan();
 		$this->output = $output;
-		$folder = $this->appData->getFolder('/');
+		$folder = $this->getInternalFolder($this->appData->getFolder('/'));
 
-		$this->deleteInvalidFolder($folder, $this->allowedFiles);
+		$this->deleteRecursive($folder, $this->allowedFiles);
 	}
 
 	private function scan(): void {
@@ -82,29 +102,17 @@ class DeleteOldBinaries implements IRepairStep {
 		$application->run($input, $output);
 	}
 
-	private function deleteInvalidFolder(ISimpleFolder $folder, array $allowedFiles): void {
-		$list = $this->getSimpleFolderList($folder);
-		foreach ($list as $node) {
-			if (!in_array($node->getName(), $allowedFiles)) {
-				if (in_array($node->getName(), array_keys($allowedFiles))) {
-					$this->deleteRecursive($node, $allowedFiles[$node->getName()]);
-					continue;
-				}
-				$node->delete();
-			}
-		}
-	}
-
-	private function deleteRecursive(Folder $folder, array $allowedFiles): void {
+	protected function deleteRecursive(Folder $folder, array $allowedFiles): void {
 		$list = $folder->getDirectoryListing();
 		foreach ($list as $node) {
-			if (!in_array($node->getName(), $allowedFiles)) {
-				if (in_array($node->getName(), array_keys($allowedFiles))) {
-					$this->deleteRecursive($node, $allowedFiles[$node->getName()]);
-					continue;
-				}
-				$node->delete();
+			if (in_array($node->getName(), $allowedFiles, true)) {
+				continue;
 			}
+			if (array_key_exists($node->getName(), $allowedFiles) && $node instanceof Folder) {
+				$this->deleteRecursive($node, $allowedFiles[$node->getName()]);
+				continue;
+			}
+			$node->delete();
 		}
 	}
 
