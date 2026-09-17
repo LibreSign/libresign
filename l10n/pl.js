@@ -167,6 +167,8 @@ OC.L10N.register(
     "Open file" : "Otwórz plik",
     "Add file" : "Dodaj plik",
     "Close" : "Zamknij",
+    "Add participant" : "Dodaj uczestnika",
+    "Add" : "Dodaj",
     "Request signature" : "Prośba o podpis",
     "Send reminder" : "Wyślij przypomnienie",
     "Confirm" : "Potwierdź",

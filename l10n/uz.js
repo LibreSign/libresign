@@ -52,6 +52,7 @@ OC.L10N.register(
     "_{count} selected_::_{count} selected_" : ["{count} tanlangan"],
     "Select all" : "Barchasini tanash",
     "Close" : "Yopish",
+    "Add" : "Qo'shish",
     "Confirm" : "Confirm",
     "Status" : "Status",
     "Preferences" : "Afzalliklar",
