@@ -6,6 +6,7 @@
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 
+import { login } from '../support/nc-login'
 import { configureOpenSsl } from '../support/nc-provisioning'
 
 type LayoutMetrics = {
@@ -113,4 +114,29 @@ test('external validation page fills a small viewport', async ({ page }) => {
 	await expect(page.locator('.container')).toBeVisible()
 
 	expectFullViewportLayout(await getExternalLayoutMetrics(page))
+})
+
+
+test('external page styles do not affect authenticated LibreSign pages', async ({ page }) => {
+	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+
+	await login(page.request, adminUser, adminPassword)
+	await page.goto('./apps/libresign/f/preferences')
+
+	await expect(page.locator('#content')).toBeVisible()
+
+	const layout = await page.locator('#content').evaluate((element) => {
+		const style = getComputedStyle(element)
+
+		return {
+			position: style.position,
+			htmlHasExternalClass: document.documentElement.classList.contains('libresign-external-page'),
+			bodyHasExternalClass: document.body.classList.contains('libresign-external-page'),
+		}
+	})
+
+	expect(layout.position).not.toBe('fixed')
+	expect(layout.htmlHasExternalClass).toBe(false)
+	expect(layout.bodyHasExternalClass).toBe(false)
 })
