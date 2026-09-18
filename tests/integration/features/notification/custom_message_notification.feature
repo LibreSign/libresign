@@ -15,7 +15,7 @@ Feature: Custom message for signers
 
   Scenario: Account method - default message without custom description
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | name | Document without custom message |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
     Then the response should have a status code 200
@@ -25,7 +25,7 @@ Feature: Custom message for signers
 
   Scenario: Account method - custom description in email
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | name | Document with custom message |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}],"description":"Please review section 3 and the appendix before signing."}] |
     Then the response should have a status code 200
@@ -36,14 +36,14 @@ Feature: Custom message for signers
 
   Scenario: Email method - default notification
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | name | Document for email method |
       | signers | [{"identifyMethods":[{"method":"email","value":"external@domain.test"}],"displayName":"External Signer"}] |
     Then the response should have a status code 200
 
   Scenario: Email method - custom description via reminder
     Given sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | name | Document for email with description |
       | signers | [{"identifyMethods":[{"method":"email","value":"external@domain.test"}],"displayName":"External Signer","description":"Urgent: Please sign by end of day."}] |
     And the response should have a status code 200

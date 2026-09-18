@@ -9,7 +9,7 @@ Feature: page/validate
     And the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"admin"}]}] |
       | name | document |
     And the response should have a status code 200
@@ -78,7 +78,7 @@ Feature: page/validate
       | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file    | {"base64":"<PDF_BASE64>"} |
       | signers | [{"displayName":"External Signer","identifyMethods":[{"method":"email","value":"external@domain.test"}]}] |
       | name    | external-email-pdf |
       | settings | {"folderName":"rm-target-folder"} |

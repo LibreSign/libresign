@@ -101,7 +101,7 @@ Feature: policies/groups_request_sign_policy
       | (jq).ocs.data.policies | (jq)length == 0 |
 
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file    | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"ceo-request-access-policy"}]}] |
       | name    | group-admin-without-policy |
       | status  | 0 |
@@ -114,7 +114,7 @@ Feature: policies/groups_request_sign_policy
     # VALIDATION: A regular member of the same group also cannot request signatures without an allow policy
     Given as user "member-request-access-policy"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file    | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"member-request-access-policy"}]}] |
       | name    | member-without-policy |
       | status  | 0 |
@@ -152,7 +152,7 @@ Feature: policies/groups_request_sign_policy
     # VALIDATION: The regular member now inherits the sysadmin allow rule and can request signatures
     Given as user "member-request-access-policy"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file    | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"member-request-access-policy"}]}] |
       | name    | member-with-system-allow |
       | status  | 0 |
@@ -183,7 +183,7 @@ Feature: policies/groups_request_sign_policy
     # VALIDATION: After the deny override, the regular member loses the ability to request signatures
     Given as user "member-request-access-policy"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file    | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"member-request-access-policy"}]}] |
       | name    | member-with-group-deny |
       | status  | 0 |
@@ -206,7 +206,7 @@ Feature: policies/groups_request_sign_policy
       | (jq).ocs.data.policies | (jq)length == 0 |
 
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file    | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"ceo-request-access-policy"}]}] |
       | name    | group-admin-after-delete |
       | status  | 0 |
@@ -215,7 +215,7 @@ Feature: policies/groups_request_sign_policy
     # VALIDATION: The regular member also regains inherited request access after the deny override is deleted
     Given as user "member-request-access-policy"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file    | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"member-request-access-policy"}]}] |
       | name    | member-after-delete |
       | status  | 0 |
@@ -248,14 +248,14 @@ Feature: policies/groups_request_sign_policy
 
     Given as user "allow-only-requester"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file    | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"allow-only-requester"}]}] |
       | name    | document |
     Then the response should have a status code 200
 
     Given as user "deny-precedence-requester"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file    | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"deny-precedence-requester"}]}] |
       | name    | document |
     Then the response should have a status code 422
@@ -310,7 +310,7 @@ Feature: policies/groups_request_sign_policy
     # VALIDATION: A company-only member still cannot request signatures before the delegated admin extends access.
     Given as user "company-member-request-access-extension"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file    | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"company-member-request-access-extension"}]}] |
       | name    | company-member-before-extension |
       | status  | 0 |
@@ -334,7 +334,7 @@ Feature: policies/groups_request_sign_policy
     # VALIDATION: After the delegated extension, the company-only member can request signatures.
     Given as user "company-member-request-access-extension"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file    | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"company-member-request-access-extension"}]}] |
       | name    | company-member-after-extension |
       | status  | 0 |

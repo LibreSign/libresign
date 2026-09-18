@@ -42,7 +42,7 @@ Feature: request-signature
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
     And the response should have a status code 200
@@ -79,7 +79,7 @@ Feature: request-signature
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
     And the response should have a status code 200
@@ -109,7 +109,7 @@ Feature: request-signature
     And reset notifications of user "signer1"
     And my inbox is empty
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
     Then the response should have a status code 200
@@ -132,7 +132,7 @@ Feature: request-signature
     And set the email of user "signer1" to "signer1@domain.test"
     And my inbox is empty
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer1@domain.test"}]}] |
       | name | document |
     Then the response should have a status code 200
@@ -156,7 +156,7 @@ Feature: request-signature
       | rootCert | {"commonName":"test"} |
     And run the command "config:app:set libresign maximum_validity --value=1 --type=integer" with result code 0
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer2@domain.test"}]}] |
       | name | document |
     Then the response should have a status code 200
@@ -180,7 +180,7 @@ Feature: request-signature
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required"}]} |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer2@domain.test"}]}] |
       | name | document |
     And the response should have a status code 200
@@ -232,7 +232,7 @@ Feature: request-signature
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string){"factors":[{"name":"account","enabled":true}]} |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
       | name | document |
     Then the response should be a JSON array with the following mandatory values
@@ -248,7 +248,7 @@ Feature: request-signature
     And reset notifications of user "signer1"
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
     Then the response should have a status code 200
@@ -271,7 +271,7 @@ Feature: request-signature
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"}  |
+      | file | {"base64":"<PDF_BASE64>"}  |
       | signers | [{"identifyMethods":[{"method":"account","value":"invaliddomain.test"}]}] |
       | name | document |
     Then the response should have a status code 422
@@ -284,7 +284,7 @@ Feature: request-signature
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer3@domain.test"}]}] |
       | name | document |
     Then the response should have a status code 422
@@ -299,7 +299,7 @@ Feature: request-signature
       | rootCert | {"commonName":"test"} |
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer2@domain.test"}]}] |
       | name | document |
     Then the response should have a status code 200
@@ -315,7 +315,7 @@ Feature: request-signature
     And reset notifications of user "signer1"
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
     Then the response should have a status code 200
@@ -328,7 +328,7 @@ Feature: request-signature
     And set the email of user "signer1" to "signer1@domain.test"
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer1@domain.test"}]}] |
       | name | document |
     Then the response should have a status code 200
@@ -342,7 +342,7 @@ Feature: request-signature
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required"}]} |
     And I send a file to be signed
-      | file   | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file   | {"base64":"<PDF_BASE64>"} |
       | signers  | [{"identifyMethods":[{"method":"email","value":"signer1@domain.test"}]}]  |
       | status | 0                                               |
       | name   | document                                        |
@@ -372,7 +372,7 @@ Feature: request-signature
     And set the email of user "signer1" to ""
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer1@domain.test"}]},{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
     Then the response should have a status code 200
@@ -391,7 +391,7 @@ Feature: request-signature
       | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}}}]} |
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"11111@domain.test"}]},{"identifyMethods":[{"method":"email","value":"22222@domain.test"}]}] |
       | name | document |
     Then the response should have a status code 200
@@ -433,7 +433,7 @@ Feature: request-signature
       | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}}}]} |
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"11111@domain.test"}]}] |
       | name | document |
     Then the response should have a status code 200
@@ -478,7 +478,7 @@ Feature: request-signature
       | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}}}]} |
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"11111@domain.test"}]}] |
       | name | document |
     Then the response should have a status code 200
@@ -517,7 +517,7 @@ Feature: request-signature
     And user "signer1" exists
     And as user "admin"
     When I send a file to be signed
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer1@domain.test"}]},{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
     And fetch field "(FILE_UUID)ocs.data.uuid" from previous JSON response
@@ -558,13 +558,13 @@ Feature: request-signature
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string){"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"emailToken":{"enabled":true}}}]} |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer1@domain.test"}]}] |
       | name | document |
       | status | 0 |
     And there should be 0 emails in my inbox
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer1@domain.test"}]}] |
       | name | document |
       | status | 1 |

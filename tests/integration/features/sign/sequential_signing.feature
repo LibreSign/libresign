@@ -14,7 +14,7 @@ Feature: sequential-signing
     Given user "signer1" exists
     And user "signer2" exists
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]},{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
       | name | Parallel Document |
     Then the response should have a status code 200
@@ -40,7 +40,7 @@ Feature: sequential-signing
       | value | ordered_numeric |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}],"signingOrder":1},{"identifyMethods":[{"method":"account","value":"signer2"}],"signingOrder":2}] |
       | name | Sequential Document |
     Then the response should have a status code 200
