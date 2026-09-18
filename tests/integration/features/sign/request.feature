@@ -28,6 +28,19 @@ Feature: request-signature
       | key                   | value                 |
       | (jq).ocs.data.message | File name is required |
 
+  Scenario: Create signature request from a remote PDF URL
+    Given as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
+      | rootCert | {"commonName":"test"} |
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<PDF_URL>"} |
+      | signers | [{"identifyMethods":[{"method":"email","value":"signer-url@domain.test"}]}] |
+      | name | document-from-url |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                | value              |
+      | (jq).ocs.data.name | document-from-url  |
+
   Scenario: Create signature request with error using different authenticated account
     Given as user "admin"
     And user "signer1" exists
