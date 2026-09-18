@@ -16,10 +16,11 @@ default:
       base_url: http://mailpit:8025
     PhpBuiltin\Server:
       runAs: www-data
-      # Keep single-process built-in server. Multi-worker (PHP_CLI_SERVER_WORKERS)
-      # is experimental and flakes with cURL 52 under Behat load. Fixtures use
-      # inline <PDF_BASE64> instead of nested HTTP to /develop/pdf.
-      workers: 0
+      # Keep the minimum workers needed for occasional nested HTTP to the same
+      # PHP built-in server (single-process deadlocks on self-requests). Prefer
+      # inline <PDF_BASE64> fixtures over url→/develop/pdf to avoid load-driven
+      # cURL 52 flakes from higher PHP_CLI_SERVER_WORKERS values.
+      workers: 2
     jarnaiz\JUnitFormatter\JUnitFormatterExtension:
       filename: report.xml
       outputDir: '%paths.base%/../output/'
