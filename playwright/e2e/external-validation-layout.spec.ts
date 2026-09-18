@@ -6,8 +6,6 @@
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 
-import { login } from '../support/nc-login'
-import { configureOpenSsl } from '../support/nc-provisioning'
 
 type LayoutMetrics = {
 	viewportHeight: number
@@ -85,17 +83,6 @@ function expectFullViewportLayout(metrics: LayoutMetrics): void {
 	expect(metrics.container.bottom).toBe(metrics.viewportHeight)
 	expect(metrics.container.height).toBe(metrics.viewportHeight)
 }
-
-test.beforeEach(async ({ page }) => {
-	await configureOpenSsl(page.request, 'LibreSign Test', {
-		C: 'BR',
-		OU: ['Organization Unit'],
-		ST: 'Rio de Janeiro',
-		O: 'LibreSign',
-		L: 'Rio de Janeiro',
-	})
-})
-
 test('external validation page fills the desktop viewport', async ({ page }) => {
 	await page.setViewportSize({ width: 1440, height: 900 })
 	await page.goto('./index.php/apps/libresign/p/validation')
@@ -121,22 +108,52 @@ test('external page styles do not affect authenticated LibreSign pages', async (
 	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
 	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
 
-	await login(page.request, adminUser, adminPassword)
+	const tokenResponse = await page.request.get('./csrftoken', {
+		failOnStatusCode: true,
+	})
+	const { token: requesttoken } = await tokenResponse.json() as { token: string }
+	const origin = tokenResponse.url().replace(/index\.php.*/, '')
+
+	const loginResponse = await page.request.post('./login', {
+		form: {
+			user: adminUser,
+			password: adminPassword,
+			requesttoken,
+		},
+		headers: {
+			Origin: origin,
+		},
+		maxRedirects: 0,
+		failOnStatusCode: false,
+	})
+
+	expect(loginResponse.headers()['x-user-id']).toBe(adminUser)
+
 	await page.goto('./apps/libresign/f/preferences')
 
-	await expect(page.locator('#content')).toBeVisible()
+	const content = page.locator('#content')
+	await expect(content).toBeVisible()
 
-	const layout = await page.locator('#content').evaluate((element) => {
+	const layout = await content.evaluate((element) => {
+		const rect = element.getBoundingClientRect()
 		const style = getComputedStyle(element)
 
 		return {
-			position: style.position,
+			top: rect.top,
+			height: rect.height,
+			viewportHeight: window.innerHeight,
+			marginTop: style.marginTop,
 			htmlHasExternalClass: document.documentElement.classList.contains('libresign-external-page'),
 			bodyHasExternalClass: document.body.classList.contains('libresign-external-page'),
 		}
 	})
 
-	expect(layout.position).not.toBe('fixed')
 	expect(layout.htmlHasExternalClass).toBe(false)
 	expect(layout.bodyHasExternalClass).toBe(false)
+
+	// Authenticated pages must keep Nextcloud's normal page geometry.
+	// The regression made #content start at 0 and fill the complete viewport.
+	expect(layout.top).toBeGreaterThan(0)
+	expect(layout.height).toBeLessThan(layout.viewportHeight)
+	expect(layout.marginTop).not.toBe('0px')
 })
