@@ -153,6 +153,7 @@ OC.L10N.register(
     "Open file" : "Otvori datoteku",
     "Add file" : "Dodaj datoteku",
     "Close" : "Zatvori",
+    "Add" : "Dodaj",
     "Request signature" : "Zatraži potpis",
     "Send reminder" : "Pošalji podsjetnik",
     "Confirm" : "Potvrdi",

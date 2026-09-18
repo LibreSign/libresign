@@ -183,6 +183,8 @@ OC.L10N.register(
     "Add file" : "Gehitu fitxategia",
     "Close" : "Itxi",
     "Add signer" : "Gehitu sinatzailea",
+    "Add participant" : "Partehartzailea gehitu",
+    "Add" : "Gehitu",
     "Request signature" : "Eskatu sinadura",
     "Send reminder" : "Bidali gogorarazpena",
     "Confirm" : "Berretsi",

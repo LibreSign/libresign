@@ -186,6 +186,8 @@ OC.L10N.register(
     "Add file" : "Fájl hozzáadása",
     "Close" : "Bezárás",
     "Add signer" : "Aláíró hozzáadása",
+    "Add participant" : "Résztvevő hozzáadása",
+    "Add" : "Hozzáadás",
     "Request signature" : "Aláírás kérése",
     "Send reminder" : "Emlékeztető küldése",
     "Confirm" : "Megerősítés",
