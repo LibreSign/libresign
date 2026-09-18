@@ -6,6 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Hook\AfterSuite;
 use Behat\Hook\BeforeScenario;
@@ -53,6 +54,20 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$options = $this->parseFormParams($options);
 		$fullUrl = $this->parseText($fullUrl);
 		return [$fullUrl, $options];
+	}
+
+	/**
+	 * Retry transient connection drops from the PHP built-in server (cURL 52).
+	 *
+	 * Intentionally has no #[Given] attribute: Behat keeps the parent step
+	 * definition, and PHP dispatches to this override on the FeatureContext instance.
+	 *
+	 * @param TableNode|PyStringNode|array|null $body
+	 */
+	public function sendRequest(string $verb, string $url, $body = null, array $headers = [], array $options = []): void {
+		TransientConnectionRetry::run(
+			fn () => parent::sendRequest($verb, $url, $body, $headers, $options)
+		);
 	}
 
 	protected function parseText(string $text): string {
@@ -235,16 +250,18 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	private function davRequest(string $user, string $method, string $path, ?string $body = null, array $headers = []): void {
-		$client = new \GuzzleHttp\Client();
-		try {
-			$this->response = $client->request($method, $this->baseUrl . '/remote.php/dav/files/' . $user . '/' . $path, [
-				'auth' => [$user === 'admin' ? 'admin' : $user, $user === 'admin' ? $this->adminPassword : $this->testPassword],
-				'headers' => $headers,
-				'body' => $body,
-			]);
-		} catch (\GuzzleHttp\Exception\ClientException $ex) {
-			$this->response = $ex->getResponse();
-		}
+		TransientConnectionRetry::run(function () use ($user, $method, $path, $body, $headers): void {
+			$client = new \GuzzleHttp\Client();
+			try {
+				$this->response = $client->request($method, $this->baseUrl . '/remote.php/dav/files/' . $user . '/' . $path, [
+					'auth' => [$user === 'admin' ? 'admin' : $user, $user === 'admin' ? $this->adminPassword : $this->testPassword],
+					'headers' => $headers,
+					'body' => $body,
+				]);
+			} catch (\GuzzleHttp\Exception\ClientException $ex) {
+				$this->response = $ex->getResponse();
+			}
+		});
 	}
 
 	private function parseXml(): \SimpleXMLElement {
