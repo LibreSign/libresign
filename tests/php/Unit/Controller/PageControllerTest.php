@@ -23,8 +23,10 @@ use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Tests\Unit\TestCase;
+use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -227,6 +229,22 @@ final class PageControllerTest extends TestCase {
 		self::assertStringNotContainsString('/apps/libresign/f/', $response->getRedirectURL());
 	}
 
+	public function testValidationUsesExternalTemplate(): void {
+		$response = $this->controller->validation();
+
+		self::assertSame('external', $response->getTemplateName());
+		self::assertSame(TemplateResponse::RENDER_AS_BASE, $response->getRenderAs());
+	}
+
+	public function testValidationRequireSetupOkUsesExternalTemplate(): void {
+		$method = new \ReflectionMethod(PageController::class, 'validation');
+		$attributes = $method->getAttributes(RequireSetupOk::class);
+
+		self::assertCount(1, $attributes);
+		self::assertSame('external', $attributes[0]->newInstance()->getTemplate());
+	}
+
+
 	public function testValidationFilePublicBootstrapsRequesterPoliciesWithoutUserScope(): void {
 		$fileEntity = new FileEntity();
 		$fileEntity->setId(7);
@@ -298,9 +316,11 @@ final class PageControllerTest extends TestCase {
 			urlGenerator: $this->urlGenerator,
 		);
 
-		$controller->validationFilePublic('validation-file-uuid');
+		$response = $controller->validationFilePublic('validation-file-uuid');
 
 		self::assertArrayHasKey('effective_policies', $capturedInitialState);
+		self::assertSame('external', $response->getTemplateName());
+		self::assertSame(TemplateResponse::RENDER_AS_BASE, $response->getRenderAs());
 	}
 
 }
