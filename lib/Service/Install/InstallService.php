@@ -47,7 +47,7 @@ class InstallService {
 	}
 
 	public const JAVA_VERSION = 'openjdk version "21.0.8" 2025-07-15 LTS';
-	private const string JAVA_URL_PATH_NAME = '21.0.8+9';
+	public const string JAVA_URL_PATH_NAME = '21.0.8+9';
 	public const PDFTK_VERSION = '3.3.3'; /** @todo When update, verify the hash **/
 	private const string PDFTK_HASH = '59a28bed53b428595d165d52988bf4cf';
 	public const JSIGNPDF_VERSION = JSignPdfRelease::VERSION;
