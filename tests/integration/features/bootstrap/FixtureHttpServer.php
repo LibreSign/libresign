@@ -36,7 +36,7 @@ final class FixtureHttpServer {
 			escapeshellarg(self::$documentRoot)
 		);
 
-		self::$pid = trim((string) shell_exec($cmd));
+		self::$pid = trim((string)shell_exec($cmd));
 		if (self::$pid === '' || !ctype_digit(self::$pid)) {
 			throw new RuntimeException('Failed to start fixture HTTP server process.');
 		}
@@ -78,7 +78,7 @@ final class FixtureHttpServer {
 			return false;
 		}
 
-		exec(sprintf('ps %d', (int) self::$pid), $result);
+		exec(sprintf('ps %d', (int)self::$pid), $result);
 
 		return count($result) > 1;
 	}
@@ -97,7 +97,7 @@ final class FixtureHttpServer {
 		}
 
 		$parts = explode(':', $name);
-		$port = (int) end($parts);
+		$port = (int)end($parts);
 		if ($port <= 0) {
 			throw new RuntimeException('Invalid allocated port for fixture HTTP server.');
 		}
