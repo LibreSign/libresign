@@ -89,6 +89,7 @@ OC.L10N.register(
     "Select all" : "Fren-iten akk",
     "Open file" : "Ldi afaylu",
     "Close" : "Mdel",
+    "Add" : "Rnu",
     "Confirm" : "Serggeg",
     "Status" : "État",
     "Preferences" : "Tiwelhiwin",

@@ -175,6 +175,7 @@ OC.L10N.register(
     "Open file" : "Отваряне на файл",
     "Add file" : "Добавяне на файл",
     "Close" : "Затваряне",
+    "Add" : "Добавяне",
     "Request signature" : "Искане на подпис",
     "Send reminder" : "Изпрашане на напомняне",
     "Confirm" : "Потвърди",

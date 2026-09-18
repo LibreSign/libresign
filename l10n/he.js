@@ -68,6 +68,7 @@ OC.L10N.register(
     "Select all" : "בחר הכל",
     "Open file" : "פתיחת קובץ",
     "Close" : "סגירה",
+    "Add" : "הוספה",
     "Confirm" : "אימות",
     "Status" : "מצב",
     "Preferences" : "העדפות",

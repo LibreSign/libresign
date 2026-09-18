@@ -401,6 +401,8 @@ OC.L10N.register(
     "The original file was deleted. You can no longer add signers or open it." : "El archivo original fue eliminado. Ya no puedes añadir firmantes ni abrirlo.",
     "Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures." : "Algunos firmantes utilizan métodos de identificación que han sido deshabilitados. Por favor, elimínalos o actualízalos antes de solicitar las firmas.",
     "Add signer" : "Añadir firmante",
+    "Add participant" : "Añadir participante",
+    "Add" : "Añadir",
     "Sign in order" : "Firmar en orden",
     "View signing order" : "Ver orden de las firmas",
     "Signing order" : "Orden de las firmas",

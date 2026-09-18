@@ -78,6 +78,8 @@ OC.L10N.register(
     "Open file" : "Opna skrá",
     "Add file" : "Bæta við skrá",
     "Close" : "Loka",
+    "Add participant" : "Bæta við þátttakanda",
+    "Add" : "Bæta við",
     "Confirm" : "Staðfesta",
     "Status" : "Staða",
     "Preferences" : "Kjörstillingar",
