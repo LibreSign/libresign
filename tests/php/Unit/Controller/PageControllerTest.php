@@ -13,6 +13,7 @@ use OCA\Libresign\Controller\PageController;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\File\FileListService;
@@ -23,6 +24,7 @@ use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Tests\Unit\TestCase;
+use OCP\AppFramework\Http\TemplateResponse;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IAppConfig;
 use OCP\IInitialStateService;
@@ -67,6 +69,8 @@ final class PageControllerTest extends TestCase {
 		$this->fileService->method('showVisibleElements')->willReturnSelf();
 		$this->fileService->method('showSigners')->willReturnSelf();
 		$this->fileService->method('showSettings')->willReturnSelf();
+		$this->fileService->method('showMessages')->willReturnSelf();
+		$this->fileService->method('showValidateFile')->willReturnSelf();
 		$this->fileService->method('toArray')->willReturn([
 			'id' => 5,
 			'nodeId' => 50,
@@ -143,4 +147,35 @@ final class PageControllerTest extends TestCase {
 
 		self::assertStringContainsString("worker-src 'self'", $response->getContentSecurityPolicy()->buildPolicy());
 	}
+
+	public function testValidationUsesExternalTemplate(): void {
+		$response = $this->controller->validation();
+
+		self::assertSame('external', $response->getTemplateName());
+		self::assertSame(TemplateResponse::RENDER_AS_BASE, $response->getRenderAs());
+	}
+
+	public function testValidationRequireSetupOkUsesExternalTemplate(): void {
+		$method = new \ReflectionMethod(PageController::class, 'validation');
+		$attributes = $method->getAttributes(RequireSetupOk::class);
+
+		self::assertCount(1, $attributes);
+		self::assertSame('external', $attributes[0]->newInstance()->getTemplate());
+	}
+
+	public function testValidationFilePublicUsesExternalTemplate(): void {
+		$response = $this->controller->validationFilePublic('validation-file-uuid');
+
+		self::assertSame('external', $response->getTemplateName());
+		self::assertSame(TemplateResponse::RENDER_AS_BASE, $response->getRenderAs());
+	}
+
+	public function testValidationFilePublicRequireSetupOkUsesExternalTemplate(): void {
+		$method = new \ReflectionMethod(PageController::class, 'validationFilePublic');
+		$attributes = $method->getAttributes(RequireSetupOk::class);
+
+		self::assertCount(1, $attributes);
+		self::assertSame('external', $attributes[0]->newInstance()->getTemplate());
+	}
+
 }
