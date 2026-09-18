@@ -246,6 +246,8 @@ OC.L10N.register(
     "Add file" : "Aggiungi file",
     "Close" : "Chiudi",
     "Add signer" : "Aggiungi firmatario",
+    "Add participant" : "Aggiungi partecipante",
+    "Add" : "Aggiungi",
     "Request signature" : "Richiedi firma",
     "Send reminder" : "Invia promemoria",
     "Confirm" : "Conferma",

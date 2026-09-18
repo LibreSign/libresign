@@ -60,6 +60,7 @@ OC.L10N.register(
     "Select all" : "Select all",
     "Add file" : "Add file",
     "Close" : "Close",
+    "Add" : "დამატება",
     "Confirm" : "Confirm",
     "Status" : "Status",
     "Preferences" : "Preferences",
