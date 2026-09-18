@@ -9,6 +9,7 @@ import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 
 import Validation from './views/Validation.vue'
 import router from './router/router'
+import { prepareExternalPage } from './utils/externalPage'
 
 const app = createApp(Validation)
 
@@ -19,5 +20,7 @@ app.config.globalProperties.OCA = OCA
 
 app.use(createPinia())
 app.use(router)
+
+prepareExternalPage()
 
 app.mount('#content')
