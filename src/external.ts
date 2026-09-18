@@ -9,6 +9,7 @@ import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 
 import App from './ExternalApp.vue'
 import router from './router/router'
+import { prepareExternalPage } from './utils/externalPage'
 
 if (window.OCA && !window.OCA.LibreSign) {
 	Object.assign(window.OCA, { LibreSign: {} })
@@ -23,5 +24,7 @@ app.config.globalProperties.OCA = OCA
 
 app.use(createPinia())
 app.use(router)
+
+prepareExternalPage()
 
 app.mount('#content')

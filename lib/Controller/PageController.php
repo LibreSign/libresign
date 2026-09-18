@@ -552,7 +552,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PrivateValidation(allowValidSignRequestUuid: false)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	#[RequireSetupOk(template: 'validation')]
+	#[RequireSetupOk(template: 'external')]
 	#[PublicPage]
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[FrontpageRoute(verb: 'GET', url: '/p/validation')]
@@ -577,7 +577,7 @@ class PageController extends AEnvironmentPageAwareController {
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
 		Util::addStyle(Application::APP_ID, 'libresign-validation');
-		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
+		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
 
 		return $response;
 	}
@@ -706,7 +706,7 @@ class PageController extends AEnvironmentPageAwareController {
 		if (class_exists(LoadViewer::class)) {
 			$this->eventDispatcher->dispatchTyped(new LoadViewer());
 		}
-		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
+		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
 
 		return $response;
 	}
