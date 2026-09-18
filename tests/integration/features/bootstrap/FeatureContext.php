@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 
 use Behat\Gherkin\Node\TableNode;
+use Behat\Hook\AfterSuite;
 use Behat\Hook\BeforeScenario;
 use Behat\Hook\BeforeSuite;
 use Behat\Step\Given;
@@ -25,9 +26,16 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	#[BeforeSuite()]
 	public static function beforeSuite(BeforeSuiteScope $scope):void {
 		parent::beforeSuite($scope);
+		FixtureHttpServer::start();
 		self::runCommand('config:system:set debug --value true --type boolean');
+		self::runCommand('config:system:set allow_local_remote_servers --value true --type boolean');
 		self::runCommand('app:enable --force libresign');
 		self::runCommand('app:enable --force notifications');
+	}
+
+	#[AfterSuite()]
+	public static function afterSuite(): void {
+		FixtureHttpServer::stop();
 	}
 
 	#[BeforeScenario()]
@@ -52,6 +60,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$fields['BASE_URL'] = $this->baseUrl . '/index.php';
 		$fields['TSA_URL'] = getenv('LIBRESIGN_TSA_URL') ?: 'https://freetsa.org/tsr';
 		$fields['PDF_BASE64'] = $this->getDemoPdfBase64();
+		$fields['PDF_URL'] = FixtureHttpServer::getPdfUrl();
 		$patterns = [];
 		$replacements = [];
 		foreach ($fields as $key => $value) {
@@ -64,11 +73,10 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	/**
-	 * Inline PDF fixture for Behat requests.
+	 * Inline PDF fixture for Behat requests that do not need to exercise url download.
 	 *
-	 * Prefer this over {"url":".../develop/pdf"} so request-signature does not
-	 * HTTP-call the same PHP built-in server (which requires PHP_CLI_SERVER_WORKERS
-	 * and is a known source of cURL 52 Empty reply flakes).
+	 * Prefer this over url→the Behat Nextcloud server. For url coverage use <PDF_URL>,
+	 * which is served by FixtureHttpServer on a separate local port.
 	 */
 	private function getDemoPdfBase64(): string {
 		$pdfPath = __DIR__ . '/../../../php/fixtures/pdfs/small_valid.pdf';
