@@ -42,6 +42,7 @@ OC.L10N.register(
     "Select all" : "ყველას არჩევა",
     "Open file" : "ფაილის გახსნა",
     "Close" : "დახურვა",
+    "Add participant" : "მონაწილის დამატება",
     "Confirm" : "დადასტურება",
     "Status" : "სტატუსი",
     "Administration" : "ადმინისტრაცია",

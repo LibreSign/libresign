@@ -44,6 +44,7 @@ OC.L10N.register(
     "Select all" : "All auswielen",
     "Open file" : "Fichier opmaachen",
     "Close" : "Zoumaachen",
+    "Add" : "Bäisetzen",
     "Confirm" : "Bestätegen",
     "Status" : "Status",
     "Administration" : "Administratioun",

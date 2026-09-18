@@ -86,6 +86,7 @@ OC.L10N.register(
     "Open file" : "ファイルを開く",
     "Add file" : "ファイルを追加",
     "Close" : "閉じる",
+    "Add" : "追加",
     "Confirm" : "承認",
     "Status" : "ステータス",
     "Preferences" : "環境設定",
