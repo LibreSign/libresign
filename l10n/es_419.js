@@ -63,6 +63,8 @@ OC.L10N.register(
     "Select all" : "Seleccionar todo",
     "Open file" : "Abrir archivo",
     "Close" : "Cerrar",
+    "Add participant" : "Agregar participante",
+    "Add" : "Guardar",
     "Confirm" : "Confirmar",
     "Status" : "Estatus",
     "Administration" : "Administración",

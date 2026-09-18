@@ -220,6 +220,7 @@ OC.L10N.register(
     "Add file" : "إضافة ملف",
     "Close" : "إغلاق",
     "Add signer" : "أضِف صاحب توقيع",
+    "Add" : "إضافة ",
     "Request signature" : "طلب توقيع",
     "Send reminder" : "إرسال تذكير",
     "Confirm" : "تأكيد",
