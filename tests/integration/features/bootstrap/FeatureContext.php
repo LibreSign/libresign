@@ -59,6 +59,20 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		return $text;
 	}
 
+	/**
+	 * Inline PDF fixture for Behat requests.
+	 *
+	 * Prefer this over {"url":".../develop/pdf"} so request-signature does not
+	 * HTTP-call the same PHP built-in server (which requires PHP_CLI_SERVER_WORKERS
+	 * and is a known source of cURL 52 Empty reply flakes).
+	 */
+	private function getDemoPdfBase64(): string {
+		$pdfPath = __DIR__ . '/../../../php/fixtures/pdfs/small_valid.pdf';
+		$contents = file_get_contents($pdfPath);
+		Assert::assertNotFalse($contents, 'Demo PDF fixture missing: ' . $pdfPath);
+		return 'data:application/pdf;base64,' . base64_encode($contents);
+	}
+
 	#[Given('I fetch the signer UUID from opened email')]
 	public function iFetchTheLinkOnOpenedEmail(): void {
 		if (!$this->openedEmailStorage->hasOpenedEmail()) {
