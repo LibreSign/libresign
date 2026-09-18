@@ -10,47 +10,54 @@ namespace OCA\Libresign\Migration;
 
 use OC\Files\SetupManager;
 use OC\Files\Utils\Scanner;
+use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Install\JSignPdfRelease;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\Folder;
 use OCP\Files\IAppData;
+use OCP\Files\Node;
+use OCP\Files\NotFoundException;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Removes the binaries of previous LibreSign versions from the AppData folder.
+ *
+ * This step only deletes what it explicitly knows to be obsolete. Everything
+ * else stays untouched: the AppData folder also holds data that belongs to the
+ * admin and to the signers, and it is not the job of this step to know about
+ * it.
+ */
 class DeleteOldBinaries implements IRepairStep {
 	protected IAppData $appData;
 	protected IOutput $output;
-	protected array $allowedFiles = [
-		'x86_64' => [
-			'alpine-linux' => [
-				'java',
-			],
-			'linux' => [
-				'java',
-			],
-			'cfssl',
-			'jsignpdf',
-			'pdftk',
-		],
-		'aarch64' => [
-			'alpine-linux' => [
-				'java',
-			],
-			'linux' => [
-				'java',
-			],
-			'cfssl',
-			'jsignpdf',
-			'pdftk',
-		],
-		'pki',
-		'openssl_config',
-		'cfssl_config',
-		'unauthenticated',
+
+	/**
+	 * Binary folders of the layout used before the binaries were split by
+	 * architecture.
+	 */
+	private const OBSOLETE_ROOT_NODES = [
+		'libresign-cli',
+		'java',
+		'jsignpdf',
+		'pdftk',
+		'cfssl',
 	];
+
+	private const ARCHITECTURES = [
+		'x86_64',
+		'aarch64',
+	];
+
+	private const LINUX_DISTRIBUTIONS = [
+		'linux',
+		'alpine-linux',
+	];
+
 	public function __construct(
 		protected IAppDataFactory $appDataFactory,
 	) {
@@ -66,9 +73,8 @@ class DeleteOldBinaries implements IRepairStep {
 	public function run(IOutput $output): void {
 		$this->scan();
 		$this->output = $output;
-		$folder = $this->appData->getFolder('/');
 
-		$this->deleteInvalidFolder($folder, $this->allowedFiles);
+		$this->deleteObsoleteBinaries($this->getInternalFolder($this->appData->getFolder('/')));
 	}
 
 	private function scan(): void {
@@ -82,36 +88,58 @@ class DeleteOldBinaries implements IRepairStep {
 		$scanner->scan($this->getInternalFolder($this->appData->getFolder('/'))->getPath());
 	}
 
-	private function deleteInvalidFolder(ISimpleFolder $folder, array $allowedFiles): void {
-		$list = $this->getSimpleFolderList($folder);
-		foreach ($list as $node) {
-			if (!in_array($node->getName(), $allowedFiles)) {
-				if (in_array($node->getName(), array_keys($allowedFiles))) {
-					$this->deleteRecursive($node, $allowedFiles[$node->getName()]);
-					continue;
-				}
-				$node->delete();
+	protected function deleteObsoleteBinaries(Folder $root): void {
+		foreach (self::OBSOLETE_ROOT_NODES as $name) {
+			$this->getNode($root, $name)?->delete();
+		}
+
+		foreach (self::ARCHITECTURES as $architecture) {
+			$this->deleteOutdatedReleases(
+				$root,
+				$architecture . '/jsignpdf',
+				'jsignpdf-',
+				'jsignpdf-' . JSignPdfRelease::VERSION,
+			);
+
+			foreach (self::LINUX_DISTRIBUTIONS as $distribution) {
+				$this->deleteOutdatedReleases(
+					$root,
+					$architecture . '/' . $distribution . '/java',
+					'jdk-',
+					'jdk-' . InstallService::JAVA_URL_PATH_NAME . '-jre',
+				);
 			}
 		}
 	}
 
-	private function deleteRecursive(Folder $folder, array $allowedFiles): void {
-		$list = $folder->getDirectoryListing();
-		foreach ($list as $node) {
-			if (!in_array($node->getName(), $allowedFiles)) {
-				if (in_array($node->getName(), array_keys($allowedFiles))) {
-					$this->deleteRecursive($node, $allowedFiles[$node->getName()]);
-					continue;
-				}
-				$node->delete();
+	/**
+	 * Deletes the releases of a dependency that are no longer the one installed
+	 * by InstallService.
+	 *
+	 * Only nodes named like a release of that dependency are considered, so
+	 * anything else living in the folder is never touched.
+	 */
+	private function deleteOutdatedReleases(Folder $root, string $path, string $prefix, string $current): void {
+		$folder = $this->getNode($root, $path);
+		if (!$folder instanceof Folder) {
+			return;
+		}
+
+		foreach ($folder->getDirectoryListing() as $node) {
+			$name = $node->getName();
+			if ($name === $current || !str_starts_with($name, $prefix)) {
+				continue;
 			}
+			$node->delete();
 		}
 	}
 
-	private function getSimpleFolderList(ISimpleFolder $node): array {
-		$folder = $this->getInternalFolder($node);
-		$list = $folder->getDirectoryListing();
-		return $list;
+	private function getNode(Folder $root, string $path): ?Node {
+		try {
+			return $root->get($path);
+		} catch (NotFoundException) {
+			return null;
+		}
 	}
 
 	private function getInternalFolder(ISimpleFolder $node): Folder {
