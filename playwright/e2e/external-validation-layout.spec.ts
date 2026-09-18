@@ -4,6 +4,7 @@
  */
 
 import { expect, test } from '@playwright/test'
+import type { Page } from '@playwright/test'
 
 import { configureOpenSsl } from '../support/nc-provisioning'
 
@@ -31,7 +32,7 @@ type LayoutMetrics = {
  *
  * @param page Playwright page
  */
-async function getExternalLayoutMetrics(page: Parameters<typeof test>[0] extends never ? never : any): Promise<LayoutMetrics> {
+async function getExternalLayoutMetrics(page: Page): Promise<LayoutMetrics> {
 	return page.evaluate(() => {
 		const content = document.querySelector<HTMLElement>('#content')
 		const container = document.querySelector<HTMLElement>('.container')
