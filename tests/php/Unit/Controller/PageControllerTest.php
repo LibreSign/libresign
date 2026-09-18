@@ -13,6 +13,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
+use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
@@ -23,11 +24,10 @@ use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Tests\Unit\TestCase;
-use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\RedirectResponse;
+use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Group\ISubAdmin;
@@ -243,7 +243,6 @@ final class PageControllerTest extends TestCase {
 		self::assertCount(1, $attributes);
 		self::assertSame('external', $attributes[0]->newInstance()->getTemplate());
 	}
-
 
 	public function testValidationFilePublicBootstrapsRequesterPoliciesWithoutUserScope(): void {
 		$fileEntity = new FileEntity();
