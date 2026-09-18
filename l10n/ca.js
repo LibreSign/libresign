@@ -180,6 +180,7 @@ OC.L10N.register(
     "Open file" : "Obre un fitxer",
     "Add file" : "Afegeix un fitxer",
     "Close" : "Tanca",
+    "Add" : "Afegeix",
     "Request signature" : "Sol·licitar signatura",
     "Send reminder" : "Envia un recordatori",
     "Confirm" : "Confirma",

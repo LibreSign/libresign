@@ -80,6 +80,7 @@ OC.L10N.register(
     "Open file" : "Адкрыць файл",
     "Add file" : "Дадаць файл",
     "Close" : "Закрыць",
+    "Add" : "Дадаць",
     "Sign document" : "Падпісаць дакумент",
     "Confirm" : "Пацвердзіць",
     "Status" : "Статус",

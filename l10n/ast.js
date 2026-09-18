@@ -72,6 +72,7 @@ OC.L10N.register(
     "Select all" : "Seleicionar too",
     "Open file" : "Abrir ficheru",
     "Close" : "Zarrar",
+    "Add" : "Amestar",
     "Confirm" : "Confirmar",
     "Status" : "Estáu",
     "Preferences" : "Preferencies",
