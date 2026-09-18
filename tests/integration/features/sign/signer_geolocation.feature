@@ -17,7 +17,7 @@ Feature: sign/signer_geolocation
       | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName":"Signer Name","identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Geolocation document |
     And the response should have a status code 200
@@ -63,7 +63,7 @@ Feature: sign/signer_geolocation
       | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName":"Required signer","geolocationRequired":true,"identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Optional signer","geolocationRequired":false,"identifyMethods":[{"method":"account","value":"signer2"}]}] |
       | name | Mixed geolocation document |
     And the response should have a status code 200
@@ -100,7 +100,7 @@ Feature: sign/signer_geolocation
       | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName":"Signer Name","identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Frozen geolocation document |
     And the response should have a status code 200

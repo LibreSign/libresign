@@ -10,7 +10,7 @@ Feature: envelope authorization
 
   Scenario: A requester cannot modify another requester's draft envelope
     Given sending "post" to ocs "/apps/libresign/api/v1/file"
-      | files | [{"base64":"<PDF_BASE64>","name":"Contract.pdf"},{"base64":"<PDF_BASE64>","name":"Annex.pdf"}] |
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Contract.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Annex.pdf"}] |
       | name | Owner Envelope |
     And the response should have a status code 200
     And fetch field "(ENVELOPE_UUID)ocs.data.uuid" from previous JSON response
@@ -23,7 +23,7 @@ Feature: envelope authorization
 
   Scenario: The envelope owner reaches upload validation
     Given sending "post" to ocs "/apps/libresign/api/v1/file"
-      | files | [{"base64":"<PDF_BASE64>","name":"Contract.pdf"},{"base64":"<PDF_BASE64>","name":"Annex.pdf"}] |
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Contract.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Annex.pdf"}] |
       | name | Owner Envelope |
     And the response should have a status code 200
     And fetch field "(ENVELOPE_UUID)ocs.data.uuid" from previous JSON response

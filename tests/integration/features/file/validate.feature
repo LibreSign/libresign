@@ -5,7 +5,7 @@ Feature: validate
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"admin"}]},{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | status | 0 |
       | name | Visible elements validation |
@@ -34,7 +34,7 @@ Feature: validate
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | files | [{"base64":"<PDF_BASE64>","name":"First.pdf"},{"base64":"<PDF_BASE64>","name":"Second.pdf"}] |
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"First.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Second.pdf"}] |
       | signers | [{"identifyMethods":[{"method":"account","value":"admin"}]}] |
       | status | 0 |
       | name | Envelope visible elements |
@@ -76,7 +76,7 @@ Feature: validate
       | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And user "signer1" exists
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Document Name |
     Then the response should have a status code 200
@@ -122,7 +122,7 @@ Feature: validate
     And the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"admin"}]}] |
       | name | document |
     And the response should have a status code 200
@@ -144,7 +144,7 @@ Feature: validate
     And the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"admin"}]}] |
       | name | Requester legal information |
     Then the response should have a status code 200
@@ -168,7 +168,7 @@ Feature: validate
     And the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"admin"}]}] |
       | name | Validation page requester legal information |
     Then the response should have a status code 200

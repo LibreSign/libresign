@@ -16,7 +16,7 @@ Feature: sign/observer_participant
       | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
       | name | Observer document |
     And the response should have a status code 200
@@ -71,7 +71,7 @@ Feature: sign/observer_participant
       | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
       | name | Observer authorization boundary |
     And the response should have a status code 200
@@ -83,7 +83,7 @@ Feature: sign/observer_participant
     Then the response should have a status code 200
     And set the custom http header "libresign-sign-request-uuid" with "<OBSERVER_UUID>" as value to next request
     When sending "post" to ocs "/apps/libresign/api/v1/id-docs"
-      | files | [{"file":{"base64":"<PDF_BASE64>"},"type":"IDENTIFICATION"}] |
+      | files | [{"file":{"base64":"<SMALL_VALID_PDF_BASE64>"},"type":"IDENTIFICATION"}] |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key                             | value                               |
@@ -104,7 +104,7 @@ Feature: sign/observer_participant
       | value | false |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
       | name | Observer disabled document |
     Then the response should have a status code 422
@@ -120,7 +120,7 @@ Feature: sign/observer_participant
       | value | true |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
       | name | Existing observer document |
     Then the response should have a status code 200
@@ -133,7 +133,7 @@ Feature: sign/observer_participant
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
     Then the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
       | name | New observer document |
     Then the response should have a status code 422
@@ -149,7 +149,7 @@ Feature: sign/observer_participant
       | value | true |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | files | [{"base64":"<PDF_BASE64>","name":"Contract.pdf"},{"base64":"<PDF_BASE64>","name":"Annex.pdf"}] |
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Contract.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Annex.pdf"}] |
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
       | name | Existing observer envelope |
     Then the response should have a status code 200
@@ -162,7 +162,7 @@ Feature: sign/observer_participant
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
     Then the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | files | [{"base64":"<PDF_BASE64>","name":"Contract.pdf"},{"base64":"<PDF_BASE64>","name":"Annex.pdf"}] |
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Contract.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Annex.pdf"}] |
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
       | name | New observer envelope |
     Then the response should have a status code 422
@@ -178,7 +178,7 @@ Feature: sign/observer_participant
       | value | false |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Request created without observers |
     Then the response should have a status code 200
@@ -198,7 +198,7 @@ Feature: sign/observer_participant
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
     Then the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
       | name | New observer after disable |
     Then the response should have a status code 422
@@ -221,7 +221,7 @@ Feature: sign/observer_participant
       | value | (string){"can_create_account":false,"factors":[{"name":"account","enabled":true,"requirement":"optional","signatureMethods":{"clickToSign":{"enabled":true}}},{"name":"email","enabled":true,"requirement":"optional","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"email","value":"observer@domain.test"}],"description":"Please review the annex."}] |
       | name | Mixed identify methods observer |
     Then the response should have a status code 200
@@ -254,7 +254,7 @@ Feature: sign/observer_participant
       | value | (string){"can_create_account":false,"factors":[{"name":"account","enabled":true,"requirement":"optional","signatureMethods":{"clickToSign":{"enabled":true}}},{"name":"email","enabled":true,"requirement":"optional","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"email","value":"observer-private@domain.test"}],"description":"Please review privately."}] |
       | name | Private validation email observer |
     Then the response should have a status code 200
@@ -281,7 +281,7 @@ Feature: sign/observer_participant
       | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"account","value":"signer1"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"account","value":"observer1"}]}] |
       | name | Visible element observer document |
       | status | 0 |
@@ -315,7 +315,7 @@ Feature: sign/observer_participant
       | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required"}]} |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"base64":"<PDF_BASE64>"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | name | Observer notification document |
       | signers | [{"displayName":"Signer Name","participantRole":"signer","identifyMethods":[{"method":"email","value":"signer@domain.test"}]},{"displayName":"Observer Name","participantRole":"observer","identifyMethods":[{"method":"email","value":"observer@domain.test"}],"description":"Please review the annex."}] |
     Then the response should have a status code 200
