@@ -23,8 +23,8 @@ final class MilestoneManagerTest extends TestCase {
 			'[{"number":7,"title":"💚 Next Patch (35)","state":"open"}]',
 		);
 		$runner->expect(
-			['gh', 'api', '--paginate', 'repos/LibreSign/libresign/issues?state=open&milestone=7&per_page=100'],
-			'[{"number":99,"title":"Still open"}]',
+			['gh', 'api', '--paginate', '--slurp', 'repos/LibreSign/libresign/issues?state=open&milestone=7&per_page=100'],
+			'[[{"number":99,"title":"Still open"}]]',
 		);
 
 		$this->expectException(RuntimeException::class);
@@ -45,8 +45,8 @@ final class MilestoneManagerTest extends TestCase {
 			'[{"number":7,"title":"💚 Next Patch (35)","state":"open"}]',
 		);
 		$runner->expect(
-			['gh', 'api', '--paginate', 'repos/LibreSign/libresign/issues?state=open&milestone=7&per_page=100'],
-			'[{"number":99,"title":"Move me"}]',
+			['gh', 'api', '--paginate', '--slurp', 'repos/LibreSign/libresign/issues?state=open&milestone=7&per_page=100'],
+			'[[{"number":99,"title":"Move me"}]]',
 		);
 		$runner->expect(
 			['gh', 'api', '--method', 'PATCH', 'repos/LibreSign/libresign/milestones/7', '-f', 'title=v15.0.1'],
