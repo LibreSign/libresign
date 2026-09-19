@@ -537,6 +537,7 @@ OC.L10N.register(
     "Loading signer details …" : "Įkeliami pasirašiusiojo duomenys …",
     "A previous signing order preference was removed because it is no longer compatible with higher-level policy." : "Ankstesnė pasirašymo eiliškumo nuostata buvo pašalinta, nes ji nebeatitinka aukštesnio lygio politikos.",
     "Add signer" : "Pridėti pasirašantįjį",
+    "Add" : "Pridėti",
     "Sign in order" : "Pasirašyti eilės tvarka",
     "Use this as my default signing order" : "Naudoti tai kaip mano numatytąją pasirašymo tvarką",
     "Use this as my default footer template" : "Naudoti tai kaip mano numatytąjį poraštės šabloną",
