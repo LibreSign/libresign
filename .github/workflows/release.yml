@@ -181,31 +181,16 @@ jobs:
           printf '%s\n' "$APP_PRIVATE_KEY" > build/tools/certificates/libresign.key
           make appstore verify-appstore-package
 
-      - name: Sign packaged app
+      - name: Create GitHub release
         env:
-          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
-        run: |
-          set -eu
-          cd libresign/build/artifacts
-          tar -xf libresign.tar.gz
-          cd ../../..
-          printf '%s\n' "$APP_PRIVATE_KEY" > libresign.key
-          wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/libresign/libresign.crt"
-          php nextcloud/occ integrity:sign-app             --privateKey=../libresign.key             --certificate=../libresign.crt             --path=../libresign/build/artifacts/libresign
-          cd libresign/build/artifacts
-          tar -czf libresign.tar.gz libresign
-
-      - name: Prepare release notes
-        env:
-          VERSION: ${{ steps.release.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.release.outputs.tag }}
-          PREVIOUS_TAG: ${{ steps.release.outputs.previous_tag }}
-          REPOSITORY: ${{ github.repository }}
+          STABLE_BRANCH: ${{ inputs.stable_branch }}
         run: |
           set -eu
-          cd libresign
 
-          awk -v version="$VERSION" '
+          cd libresign
+          awk -v version="${{ steps.release.outputs.version }}" '
             $0 ~ "^## " version " - " { capture=1; next }
             capture && /^## / { exit }
             capture { print }
@@ -213,31 +198,13 @@ jobs:
 
           {
             echo
-            echo "**Full Changelog:** https://github.com/$REPOSITORY/compare/$PREVIOUS_TAG...$TAG"
+            echo "**Full Changelog:** https://github.com/${{ github.repository }}/compare/${{ steps.release.outputs.previous_tag }}...${{ steps.release.outputs.tag }}"
           } >> ../release-notes.md
 
-      - name: Create GitHub release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ steps.release.outputs.tag }}
-          STABLE_BRANCH: ${{ inputs.stable_branch }}
-        run: |
-          gh release create "$TAG"             --repo "${{ github.repository }}"             --target "$STABLE_BRANCH"             --title "$TAG"             --notes-file release-notes.md
+          cd ..
 
-      - name: Upload release package
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ steps.release.outputs.tag }}
-        run: |
-          set -eu
-          asset="libresign-$TAG.tar.gz"
-          cp libresign/build/artifacts/libresign.tar.gz "$asset"
-          gh release upload "$TAG" "$asset" --repo "${{ github.repository }}"
-
-      - name: Upload app to Nextcloud App Store
-        uses: nextcloud-releases/nextcloud-appstore-push-action@a011fe619bcf6e77ddebc96f9908e1af4071b9c1 # v1.0.3
-        with:
-          app_name: libresign
-          appstore_token: ${{ secrets.APPSTORE_TOKEN }}
-          download_url: https://github.com/${{ github.repository }}/releases/download/${{ steps.release.outputs.tag }}/libresign-${{ steps.release.outputs.tag }}.tar.gz
-          app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
+          gh release create "$TAG" \
+            --repo "${{ github.repository }}" \
+            --target "$STABLE_BRANCH" \
+            --title "$TAG" \
+            --notes-file release-notes.md
