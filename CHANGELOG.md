@@ -19,6 +19,15 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 15.0.1 - 2026-09-19
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Fixed
+- fix binary integrity validation for CA-signed setup certificates [#8449](https://github.com/LibreSign/libresign/pull/8449)
+
 ## 15.0.0 - 2026-09-19
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
