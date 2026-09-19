@@ -8,6 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod\SignatureMethod;
 
+use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\SignalToken;
@@ -28,7 +32,7 @@ final class TokenClassesTest extends TestCase {
 	public function setUp(): void {
 		$identifyService = $this->getMockBuilder(IdentifyService::class)
 			->disableOriginalConstructor()
-			->onlyMethods(['getL10n'])
+			->onlyMethods(['getL10n', 'getSignRequestMapper', 'save'])
 			->getMock();
 		$identifyService->method('getL10n')->willReturn(
 			\OCP\Server::get(IL10NFactory::class)->get(\OCA\Libresign\AppInfo\Application::APP_ID)
@@ -100,6 +104,123 @@ final class TokenClassesTest extends TestCase {
 
 	public function testXmppTokenConstant(): void {
 		$this->assertEquals('xmppToken', ISignatureMethod::SIGNATURE_METHOD_XMPP);
+	}
+
+	#[DataProvider('providerGatewayRequestCode')]
+	public function testRequestCodeUsesPersistedGatewayDestination(
+		string $className,
+		string $identifyMethodName,
+		string $gatewayName,
+	): void {
+		$signRequest = new SignRequest();
+		$signRequest->setDisplayName('Signer');
+
+		$signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$signRequestMapper->method('getById')
+			->with(171)
+			->willReturn($signRequest);
+
+		$this->identifyService
+			->method('getSignRequestMapper')
+			->willReturn($signRequestMapper);
+
+		$this->tokenService->expects($this->once())
+			->method('sendCodeByGateway')
+			->with('+5511999999999', $gatewayName)
+			->willReturn('hashed-code');
+
+		$token = new $className(
+			$this->identifyService,
+			$this->tokenService,
+		);
+
+		$identifyMethod = (new IdentifyMethod())->fromParams([
+			'identifierKey' => $identifyMethodName,
+			'identifierValue' => '+5511999999999',
+			'signRequestId' => 171,
+		]);
+
+		$token->setEntity($identifyMethod);
+
+		$this->identifyService->expects($this->once())
+			->method('save')
+			->with($identifyMethod);
+
+		$token->requestCode();
+
+		$this->assertSame('hashed-code', $identifyMethod->getCode());
+	}
+
+	public static function providerGatewayRequestCode(): array {
+		return [
+			'sms' => [SmsToken::class, 'sms', 'sms'],
+			'signal' => [SignalToken::class, 'signal', 'signal'],
+			'telegram' => [TelegramToken::class, 'telegram', 'telegram'],
+			'whatsapp' => [WhatsappToken::class, 'whatsapp', 'gowhatsapp'],
+			'whatsapp business' => [WhatsappToken::class, 'whatsappbusiness', 'whatsappbusiness'],
+			'xmpp' => [XmppToken::class, 'xmpp', 'xmpp'],
+		];
+	}
+
+	public function testRequestCodeFailsClosedWithEmptyGatewayDestination(): void {
+		$this->tokenService->expects($this->never())
+			->method('sendCodeByGateway');
+
+		$token = new SmsToken(
+			$this->identifyService,
+			$this->tokenService,
+		);
+
+		$token->setEntity(
+			(new IdentifyMethod())->fromParams([
+				'identifierKey' => 'sms',
+				'identifierValue' => '',
+				'signRequestId' => 171,
+			])
+		);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Unable to send verification code.');
+
+		$token->requestCode();
+	}
+
+	public function testRequestCodeFailsClosedWithWhitespaceOnlyGatewayDestination(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setDisplayName('Signer');
+
+		$signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$signRequestMapper->method('getById')
+			->with(171)
+			->willReturn($signRequest);
+
+		$this->identifyService
+			->method('getSignRequestMapper')
+			->willReturn($signRequestMapper);
+
+		$this->tokenService->expects($this->never())
+			->method('sendCodeByGateway');
+
+		$this->identifyService->expects($this->never())
+			->method('save');
+
+		$token = new SmsToken(
+			$this->identifyService,
+			$this->tokenService,
+		);
+
+		$token->setEntity(
+			(new IdentifyMethod())->fromParams([
+				'identifierKey' => 'sms',
+				'identifierValue' => " \t ",
+				'signRequestId' => 171,
+			])
+		);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Unable to send verification code.');
+
+		$token->requestCode();
 	}
 
 	#[DataProvider('providerTokenClasses')]

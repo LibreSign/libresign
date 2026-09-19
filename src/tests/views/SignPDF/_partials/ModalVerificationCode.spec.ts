@@ -19,12 +19,15 @@ type ModalVerificationCodeVm = {
 	tokenRequested: boolean
 	token: string
 	loading: boolean
+	sendTo: string
+	emailIsValid: boolean
 	signMethodsStore: {
 		settings: {
 			emailToken?: {
 				hasConfirmCode?: boolean
 				hashOfEmail?: string
 				blurredEmail?: string
+			identifyMethod?: string
 			}
 		}
 	}
@@ -45,6 +48,7 @@ type SignMethodsStoreWithSettings = ReturnType<typeof useSignMethodsStore> & {
 			hasConfirmCode?: boolean
 			hashOfEmail?: string
 			blurredEmail?: string
+			identifyMethod?: string
 		}
 		smsToken?: {
 			identifyMethod?: string
@@ -122,6 +126,41 @@ describe('ModalVerificationCode (email mode)', () => {
 			hashOfEmail: '5d41402abc4b2a76b9719d911017c592',
 			blurredEmail: 'u***@email.com',
 		}
+	})
+
+
+	it('does not send the entered email as a verification-code destination', async () => {
+		vi.mocked(axios.post).mockClear()
+
+		const signStore = useSignStore()
+		signStore.document = {
+			...signStore.document,
+			fileId: 42,
+		} as typeof signStore.document
+
+		signMethodsStore.settings.emailToken = {
+			hasConfirmCode: false,
+			hashOfEmail: '86d912b85700794cef9540e274bc07fe',
+			blurredEmail: 's*****@example.com',
+			identifyMethod: 'email',
+		}
+
+		wrapper = mountEmail()
+		wrapper.vm.sendTo = 'signer@example.com'
+
+		expect(wrapper.vm.emailIsValid).toBe(true)
+
+		await wrapper.vm.requestCode()
+
+		expect(axios.post).toHaveBeenCalledTimes(1)
+
+		const [, body] = vi.mocked(axios.post).mock.calls[0]
+
+		expect(body).toEqual({
+			identifyMethod: 'email',
+			signMethod: 'emailToken',
+		})
+		expect(body).not.toHaveProperty('identify')
 	})
 
 	it('displays progress indicator on step 1 in email mode', async () => {

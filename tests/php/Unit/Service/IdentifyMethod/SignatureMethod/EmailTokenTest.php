@@ -199,6 +199,95 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	public function testRequestCodeDoesNotAcceptCallerControlledDestination(): void {
+		$method = new \ReflectionMethod(EmailToken::class, 'requestCode');
+
+		$this->assertCount(0, $method->getParameters());
+	}
+
+	public function testRequestCodeUsesServerSideAccountEmail(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getEMailAddress')->willReturn('account@example.test');
+
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->expects($this->once())
+			->method('get')
+			->with('joao')
+			->willReturn($user);
+
+		$this->identifyService
+			->method('getUserManager')
+			->willReturn($userManager);
+
+		$signRequest = new SignRequest();
+		$signRequest->setDisplayName('John Doe');
+
+		$signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$signRequestMapper->method('getById')
+			->with(171)
+			->willReturn($signRequest);
+
+		$this->identifyService
+			->method('getSignRequestMapper')
+			->willReturn($signRequestMapper);
+
+		$this->tokenService->expects($this->once())
+			->method('sendCodeByEmail')
+			->with('account@example.test', 'John Doe')
+			->willReturn('hashed-code');
+
+		$instance = $this->getClass();
+
+		$identifyMethod = (new IdentifyMethod())->fromParams([
+			'identifierKey' => 'account',
+			'identifierValue' => 'joao',
+			'signRequestId' => 171,
+		]);
+
+		$instance->setEntity($identifyMethod);
+
+		$this->identifyService->expects($this->once())
+			->method('save')
+			->with($identifyMethod);
+
+		$instance->requestCode();
+
+		$this->assertSame('hashed-code', $identifyMethod->getCode());
+	}
+
+	public function testRequestCodeFailsClosedWhenAccountHasNoEmail(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getEMailAddress')->willReturn(null);
+
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->expects($this->once())
+			->method('get')
+			->with('joao')
+			->willReturn($user);
+
+		$this->identifyService
+			->method('getUserManager')
+			->willReturn($userManager);
+
+		$this->tokenService->expects($this->never())
+			->method('sendCodeByEmail');
+
+		$instance = $this->getClass();
+
+		$instance->setEntity(
+			(new IdentifyMethod())->fromParams([
+				'identifierKey' => 'account',
+				'identifierValue' => 'joao',
+				'signRequestId' => 171,
+			])
+		);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Unable to send verification code.');
+
+		$instance->requestCode();
+	}
+
 	public function testRequestCodeSendsCodeAndPersistsHash(): void {
 		$signRequest = new SignRequest();
 		$signRequest->setDisplayName('John Doe');
@@ -223,7 +312,7 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('save')
 			->with($identifyMethod);
 
-		$instance->requestCode('valid@domain.coop', 'email');
+		$instance->requestCode();
 
 		$this->assertSame('hashed-code', $identifyMethod->getCode());
 	}
@@ -249,7 +338,7 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 		$instance->setEntity($identifyMethod);
 
-		$instance->requestCode('valid@domain.coop', 'email');
+		$instance->requestCode();
 
 		$this->assertSame('hashed-code', $identifyMethod->getCode());
 	}

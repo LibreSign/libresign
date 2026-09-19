@@ -381,7 +381,6 @@ async function requestCode() {
 	try {
 		const params = props.mode === 'email'
 			? {
-				identify: sendTo.value,
 				identifyMethod: signMethodsStore.settings.emailToken?.identifyMethod,
 				signMethod: 'emailToken',
 			}
@@ -415,12 +414,7 @@ async function requestCode() {
 	} catch (error) {
 		const err = error as RequestCodeError
 		const msg = err.response?.data?.ocs?.data?.message || err.response?.data?.message || err.message
-		if (props.mode === 'token' && msg?.includes('Invalid configuration') && activeTokenMethod.value) {
-			const method = activeTokenMethod.value.charAt(0).toUpperCase() + activeTokenMethod.value.slice(1)
-			showError(t('libresign', '{method} is not configured. Please contact your administrator.', { method }))
-		} else {
-			showError(msg || t('libresign', 'Unable to send verification code.'))
-		}
+		showError(msg || t('libresign', 'Unable to send verification code.'))
 	} finally {
 		loading.value = false
 	}

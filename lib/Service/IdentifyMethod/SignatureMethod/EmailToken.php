@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Vendor\Wobeto\EmailBlur\Blur;
 
@@ -32,12 +33,7 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 	public function toArray(): array {
 		$entity = $this->getEntity();
 
-		$email = match ($entity->getIdentifierKey()) {
-			'email', 'emailToken' => $entity->getIdentifierValue(),
-			'account' => $this->identifyService->getUserManager()->get($entity->getIdentifierValue())
-				?->getEMailAddress() ?? '',
-			default => '',
-		};
+		$email = $this->getEmail();
 
 		$emailLowercase = strtolower($email);
 
@@ -63,13 +59,30 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 		];
 	}
 
+	private function getEmail(): string {
+		$entity = $this->getEntity();
+
+		return match ($entity->getIdentifierKey()) {
+			'email', 'emailToken' => $entity->getIdentifierValue(),
+			'account' => $this->identifyService->getUserManager()->get($entity->getIdentifierValue())
+				?->getEMailAddress() ?? '',
+			default => '',
+		};
+	}
+
 	private function blurEmail(string $email): string {
 		$blur = new Blur($email);
 		return $blur->make();
 	}
 
 	#[\Override]
-	public function requestCode(string $identifier, string $method): void {
+	public function requestCode(): void {
+		$identifier = $this->getEmail();
+		if (!filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+			// TRANSLATORS Generic error shown when a verification code cannot be delivered.
+			throw new LibresignException($this->identifyService->getL10n()->t('Unable to send verification code.'));
+		}
+
 		$signRequestMapper = $this->identifyService->getSignRequestMapper();
 		$signRequest = $signRequestMapper->getById($this->getEntity()->getSignRequestId());
 		$displayName = $signRequest->getDisplayName();
