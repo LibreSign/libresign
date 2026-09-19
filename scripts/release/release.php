@@ -36,6 +36,7 @@ try {
 		'plan' => plan($args),
 		'apply' => apply($args),
 		'validate-files' => validateFiles($args),
+		'nextcloud-min-version' => nextcloudMinVersion($args),
 		'release-notes' => releaseNotes($args),
 		'check-pr-scope' => checkPullRequestScope($args),
 		'draft' => createOrUpdateDraft($args),
@@ -147,6 +148,14 @@ function validateFiles(array $args): never {
 	$files = new ReleaseFiles();
 	$files->assertVersions($root, $version);
 	$files->changelogSection($root, $version);
+	exit(0);
+}
+
+/** @param list<string> $args */
+function nextcloudMinVersion(array $args): never {
+	$options = parseOptions($args);
+	$root = $options['root'] ?? '.';
+	echo (new ReleaseFiles())->readNextcloudMinVersion($root) . "\n";
 	exit(0);
 }
 
@@ -339,6 +348,7 @@ function usage(int $exitCode): never {
 	echo "  plan --current-version X.Y.Z --prs prs.json [--date YYYY-MM-DD]\n";
 	echo "  apply --plan release-plan.json [--root PATH]\n";
 	echo "  validate-files --version X.Y.Z [--root PATH]\n";
+	echo "  nextcloud-min-version [--root PATH]\n";
 	echo "  release-notes --version X.Y.Z --previous TAG --target SHA --repository OWNER/REPO [--root PATH]\n";
 	echo "  check-pr-scope --repository OWNER/REPO --pr NUMBER\n";
 	echo "  draft --repository OWNER/REPO --tag TAG --target SHA --notes-file FILE\n";
