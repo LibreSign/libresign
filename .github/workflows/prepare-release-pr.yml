@@ -279,6 +279,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: automation/release-${{ inputs.stable_branch }}
+          STABLE_BRANCH: ${{ inputs.stable_branch }}
           NEXT_VERSION: ${{ needs.analyze.outputs.next_version }}
           BUMP: ${{ needs.analyze.outputs.bump }}
           PREVIOUS_TAG: ${{ needs.analyze.outputs.previous_tag }}
@@ -303,7 +304,8 @@ jobs:
 
           existing=$(gh pr list             --repo "${{ github.repository }}"             --base "${{ inputs.stable_branch }}"             --head "$BRANCH"             --state open             --json number             --jq '.[0].number // empty')
 
-          milestone_title=$(gh api "repos/${{ github.repository }}/milestones?state=open&per_page=100"             --jq --arg suffix "Next Patch (${{ inputs.stable_branch#stable }})" '.[] | select(.title | endswith($suffix)) | .title'             | head -n1)
+          stable_number=${STABLE_BRANCH#stable}
+          milestone_title=$(gh api "repos/${{ github.repository }}/milestones?state=open&per_page=100"             --jq --arg suffix "Next Patch ($stable_number)" '.[] | select(.title | endswith($suffix)) | .title'             | head -n1)
 
           if [ -n "$existing" ]; then
             gh pr edit "$existing"               --repo "${{ github.repository }}"               --title "chore(release): prepare $NEXT_VERSION"               --body-file "$body_file"               --milestone "$milestone_title"
