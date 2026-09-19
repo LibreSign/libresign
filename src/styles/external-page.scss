@@ -1,0 +1,64 @@
+/**
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and LibreCode contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/*
+ * External LibreSign pages own the complete viewport.
+ *
+ * Nextcloud's base/public layout reserves space for its header, body margins
+ * and footer. These pages intentionally do not expose that layout.
+ */
+html.libresign-external-page {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+html.libresign-external-page body#body-public.libresign-external-page {
+	--header-height: 0px;
+	--body-container-margin: 0px;
+	--body-container-radius: 0px;
+	--body-height: 100%;
+	--footer-height: 0px;
+	position: fixed;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+html.libresign-external-page body#body-public.libresign-external-page #content {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	min-height: 100%;
+	margin: 0;
+	padding: 0;
+	padding-block-end: 0;
+	overflow: hidden;
+	border-radius: 0;
+	box-sizing: border-box;
+}
+
+/*
+ * On mobile, NcAppSidebar normally relies on NcContent for its overlay.
+ * External pages do not use NcContent, so keep the sidebar viewport-sized.
+ */
+@media (max-width: 512px) {
+	html.libresign-external-page #app-sidebar {
+		position: fixed;
+		inset: 0;
+		width: 100vw !important;
+		max-width: 100vw !important;
+		height: 100vh;
+		height: 100dvh;
+		z-index: 2000;
+	}
+}
