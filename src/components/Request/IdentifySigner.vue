@@ -219,7 +219,7 @@ const signerGeolocationMode = computed(() => {
 	if (
 		policySnapshot
 		&& typeof policySnapshot === 'object'
-		&& Object.prototype.hasOwnProperty.call(policySnapshot, 'signer_device_geolocation')
+		&& Object.hasOwn(policySnapshot, 'signer_device_geolocation')
 	) {
 		return resolveSignerGeolocationMode(policySnapshot.signer_device_geolocation?.effectiveValue)
 			?? 'disabled'
