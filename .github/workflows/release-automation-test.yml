@@ -52,7 +52,7 @@ jobs:
           coverage: none
 
       - name: Install PHPUnit test suite
-        run: composer bin phpunit install --no-interaction
+        run: composer install --working-dir=vendor-bin/phpunit --no-interaction --no-progress
 
       - name: Check release scripts syntax
         run: find scripts/release -name '*.php' -print0 | xargs -0 -n1 php -l
