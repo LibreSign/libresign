@@ -64,6 +64,7 @@ OC.L10N.register(
     "Select all" : "Atzīmēt visu",
     "Open file" : "Atvērt datni",
     "Close" : "Aizvērt",
+    "Add" : "Pievienot",
     "Customize message" : "Pielāgot ziņojumu",
     "Confirm" : "Apstiprināt",
     "Status" : "Status",
