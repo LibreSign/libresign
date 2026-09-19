@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  issues: read
 
 concurrency:
   group: release-${{ inputs.stable_branch }}
@@ -107,6 +108,28 @@ jobs:
             echo "::error::CHANGELOG.md has no release section for $VERSION"
             exit 1
           }
+
+      - name: Verify release milestone is finalized
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          milestone=$(gh api "repos/${{ github.repository }}/milestones?state=all&per_page=100" |
+            jq -r --arg title "v$VERSION" '.[] | select(.title == $title) | [.number, .state] | @tsv' |
+            head -n1)
+
+          if [ -z "$milestone" ]; then
+            echo "::error::Milestone v$VERSION was not found. Finalize release preparation before creating the draft."
+            exit 1
+          fi
+
+          state=$(printf '%s\n' "$milestone" | cut -f2)
+          if [ "$state" != "closed" ]; then
+            echo "::error::Milestone v$VERSION is not closed. Finalize release preparation before creating the draft."
+            exit 1
+          fi
 
       - name: Read package engines
         uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
