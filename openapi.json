@@ -10819,11 +10819,6 @@
                                         "type": "string",
                                         "nullable": true,
                                         "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken"
-                                    },
-                                    "identify": {
-                                        "type": "string",
-                                        "nullable": true,
-                                        "description": "Identify value, i.e. the signer email, account or phone number"
                                     }
                                 }
                             }
@@ -10963,11 +10958,6 @@
                                         "type": "string",
                                         "nullable": true,
                                         "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken"
-                                    },
-                                    "identify": {
-                                        "type": "string",
-                                        "nullable": true,
-                                        "description": "Identify value, i.e. the signer email, account or phone number"
                                     }
                                 }
                             }
