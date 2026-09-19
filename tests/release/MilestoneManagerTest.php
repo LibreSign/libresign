@@ -38,6 +38,42 @@ final class MilestoneManagerTest extends TestCase {
 		);
 	}
 
+	public function testSupportedStableCreatesNextMilestoneWithSameTitleConvention(): void {
+		$runner = new FakeCommandRunner();
+		$runner->expect(
+			['gh', 'api', 'repos/LibreSign/libresign/milestones?state=all&per_page=100'],
+			'[{"number":7,"title":"💚 Next Patch (35)","state":"open"}]',
+		);
+		$runner->expect(
+			['gh', 'api', '--paginate', '--slurp', 'repos/LibreSign/libresign/issues?state=open&milestone=7&per_page=100'],
+			'[[]]',
+		);
+		$runner->expect(
+			['gh', 'api', '--method', 'PATCH', 'repos/LibreSign/libresign/milestones/7', '-f', 'title=v15.0.1'],
+		);
+		$runner->expect(
+			['gh', 'api', 'repos/LibreSign/libresign/milestones?state=open&per_page=100'],
+			'[]',
+		);
+		$runner->expect(
+			['gh', 'api', '--method', 'POST', 'repos/LibreSign/libresign/milestones', '-f', 'title=💚 Next Patch (35)'],
+			'{"number":8,"title":"💚 Next Patch (35)","state":"open"}',
+		);
+		$runner->expect(
+			['gh', 'api', '--method', 'PATCH', 'repos/LibreSign/libresign/milestones/7', '-f', 'state=closed'],
+		);
+
+		(new MilestoneManager($runner))->finalize(
+			'LibreSign/libresign',
+			35,
+			'15.0.1',
+			false,
+		);
+
+		$runner->assertComplete();
+		self::addToAssertionCount(1);
+	}
+
 	public function testSupportedStableReusesExistingNextMilestone(): void {
 		$runner = new FakeCommandRunner();
 		$runner->expect(
