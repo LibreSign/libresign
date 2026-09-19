@@ -14,8 +14,10 @@ require_once __DIR__ . '/ReleasePlanner.php';
 require_once __DIR__ . '/ReleaseFiles.php';
 require_once __DIR__ . '/ReleaseRepository.php';
 require_once __DIR__ . '/GitHubReleaseManager.php';
+require_once __DIR__ . '/MilestoneManager.php';
 
 use LibreSign\Release\GitHubReleaseManager;
+use LibreSign\Release\MilestoneManager;
 use LibreSign\Release\NativeCommandRunner;
 use LibreSign\Release\ReleaseFiles;
 use LibreSign\Release\ReleasePlanner;
@@ -36,6 +38,7 @@ try {
 		'release-notes' => releaseNotes($args),
 		'check-pr-scope' => checkPullRequestScope($args),
 		'draft' => createOrUpdateDraft($args),
+		'finalize-milestone' => finalizeMilestone($args),
 		'summary' => summary($args),
 		'outputs' => outputs($args),
 		default => usage($command === 'help' ? 0 : 2),
@@ -207,6 +210,28 @@ function outputs(array $args): never {
 }
 
 /** @param list<string> $args */
+function finalizeMilestone(array $args): never {
+	$options = parseOptions($args);
+	$root = $options['root'] ?? '.';
+	$repositoryName = required($options, 'repository');
+	$branch = required($options, 'branch');
+	$final = required($options, 'final');
+
+	if (!in_array($final, ['true', 'false'], true)) {
+		throw new InvalidArgumentException('--final must be true or false');
+	}
+
+	$version = (new ReleaseFiles())->readVersion($root);
+	(new MilestoneManager(new NativeCommandRunner()))->finalize(
+		$repositoryName,
+		stableNumber($branch),
+		$version,
+		$final === 'true',
+	);
+	exit(0);
+}
+
+/** @param list<string> $args */
 function summary(array $args): never {
 	$options = parseOptions($args);
 	$state = readJsonFile(required($options, 'state'));
@@ -298,6 +323,7 @@ function usage(int $exitCode): never {
 	echo "  release-notes --version X.Y.Z --previous TAG --target SHA --repository OWNER/REPO [--root PATH]\n";
 	echo "  check-pr-scope --repository OWNER/REPO --pr NUMBER\n";
 	echo "  draft --repository OWNER/REPO --tag TAG --target SHA --notes-file FILE\n";
+	echo "  finalize-milestone --repository OWNER/REPO --branch stableNN --final true|false [--root PATH]\n";
 	echo "  summary --state state.json --plan release-plan.json --milestone milestone.json --branch stableNN\n";
 	echo "  outputs --json FILE --map source:target[,source:target...]\n";
 	exit($exitCode);
