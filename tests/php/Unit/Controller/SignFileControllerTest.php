@@ -29,6 +29,7 @@ use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 final class SignFileControllerTest extends TestCase {
 	private IRequest&MockObject $request;
@@ -37,6 +38,7 @@ final class SignFileControllerTest extends TestCase {
 	private IUserSession&MockObject $userSession;
 	private ValidateHelper&MockObject $validateHelper;
 	private SignFileService&MockObject $signFileService;
+	private LoggerInterface&MockObject $logger;
 
 	protected function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
@@ -46,6 +48,7 @@ final class SignFileControllerTest extends TestCase {
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->validateHelper = $this->createMock(ValidateHelper::class);
 		$this->signFileService = $this->createMock(SignFileService::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 	}
 
 	private function getController(): SignFileController {
@@ -63,6 +66,7 @@ final class SignFileControllerTest extends TestCase {
 			$this->createMock(AsyncSigningService::class),
 			$this->createMock(RequestMetadataService::class),
 			$this->createMock(SigningErrorHandler::class),
+			$this->logger,
 		);
 	}
 
@@ -96,7 +100,7 @@ final class SignFileControllerTest extends TestCase {
 		$this->validateHelper->expects($this->once())->method('fileCanBeSigned')->with($idDoc);
 		$this->signFileService->expects($this->once())
 			->method('requestCode')
-			->with($approverSignRequest, 'account', 'emailToken', '');
+			->with($approverSignRequest, 'account', 'emailToken');
 
 		$response = $this->getController()->requestCodeBySignerUuid('file-uuid', 'account', 'emailToken', null);
 
@@ -128,10 +132,72 @@ final class SignFileControllerTest extends TestCase {
 		$this->validateHelper->expects($this->once())->method('fileCanBeSigned')->with($file);
 		$this->signFileService->expects($this->once())
 			->method('requestCode')
-			->with($signRequest, 'email', 'emailToken', '');
+			->with($signRequest, 'email', 'emailToken');
 
-		$response = $this->getController()->requestCodeBySignerUuid('signer-uuid', 'email', 'emailToken', null);
+		$response = $this->getController()->requestCodeBySignerUuid('signer-uuid', 'email', 'emailToken', 'attacker@example.test');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
+
+	public function testRequestCodeDoesNotExposeInternalExceptionMessage(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(5);
+		$signRequest->setFileId(3);
+
+		$file = new FileEntity();
+		$file->setId(3);
+
+		$this->signRequestMapper
+			->method('getByFileIdAndUserId')
+			->with(3)
+			->willReturn($signRequest);
+
+		$this->signFileService
+			->method('getFile')
+			->with(3)
+			->willReturn($file);
+
+		$this->validateHelper
+			->method('fileCanBeSigned')
+			->with($file);
+
+		$internalException = new \RuntimeException(
+			'SMTP authentication failed: password=super-secret'
+		);
+
+		$this->signFileService
+			->expects($this->once())
+			->method('requestCode')
+			->with($signRequest, 'email', 'emailToken')
+			->willThrowException($internalException);
+
+		$this->logger
+			->expects($this->once())
+			->method('error')
+			->with(
+				'Unable to send verification code.',
+				['exception' => $internalException],
+			);
+
+		$response = $this->getController()->requestCodeByFileId(
+			3,
+			'email',
+			'emailToken',
+			'attacker@example.test',
+		);
+
+		$this->assertSame(
+			Http::STATUS_UNPROCESSABLE_ENTITY,
+			$response->getStatus(),
+		);
+		$this->assertSame(
+			'Unable to send verification code.',
+			$response->getData()['message'],
+		);
+		$this->assertStringNotContainsString(
+			'super-secret',
+			$response->getData()['message'],
+		);
+	}
+
 }
