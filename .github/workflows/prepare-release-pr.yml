@@ -68,6 +68,8 @@ jobs:
           current_version=${previous_tag#v}
           head_sha=$(git rev-parse HEAD)
 
+          # shellcheck disable=SC2016
+          # shellcheck disable=SC2016
           info_version=$(php -r '$xml = simplexml_load_file("appinfo/info.xml"); echo (string)$xml->version;')
           package_version=$(node -p "require('./package.json').version")
           lock_version=$(node -p "require('./package-lock.json').version")
@@ -77,9 +79,11 @@ jobs:
             exit 1
           fi
 
-          echo "previous_tag=$previous_tag" >> "$GITHUB_OUTPUT"
-          echo "current_version=$current_version" >> "$GITHUB_OUTPUT"
-          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+          {
+            echo "previous_tag=$previous_tag"
+            echo "current_version=$current_version"
+            echo "head_sha=$head_sha"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Check pending backports
         env:
@@ -117,8 +121,10 @@ jobs:
             exit 1
           fi
 
-          echo "number=$number" >> "$GITHUB_OUTPUT"
-          echo "title=$title" >> "$GITHUB_OUTPUT"
+          {
+            echo "number=$number"
+            echo "title=$title"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Collect pull requests in release range
         env:
@@ -165,8 +171,10 @@ jobs:
 
           cat release-plan.json
 
-          echo "next_version=$(jq -r '.nextVersion' release-plan.json)" >> "$GITHUB_OUTPUT"
-          echo "bump=$(jq -r '.bump' release-plan.json)" >> "$GITHUB_OUTPUT"
+          {
+            echo "next_version=$(jq -r '.nextVersion' release-plan.json)"
+            echo "bump=$(jq -r '.bump' release-plan.json)"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Write dry-run summary
         run: |
@@ -218,6 +226,7 @@ jobs:
         run: |
           set -euo pipefail
 
+          # shellcheck disable=SC2016
           php -r '
             $path = "appinfo/info.xml";
             $xml = file_get_contents($path);
