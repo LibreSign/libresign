@@ -256,6 +256,23 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testGetFolderReplacesStaleResourceContents(): void {
+		$installService = \OCP\Server::get(InstallService::class);
+		$folder = self::invokePrivate($installService, 'getFolder', ['installer-stale-test']);
+		$folder->newFile('old-file', 'old');
+
+		$cleanFolder = self::invokePrivate(
+			$installService,
+			'getFolder',
+			['installer-stale-test', null, true],
+		);
+
+		$this->assertSame([], $cleanFolder->getDirectoryListing());
+	}
+
 	public function testIsDownloadWipChecksResourcesAfterEmptyProgress(): void {
 		$cache = $this->createMock(ICache::class);
 		$this->cacheFactory = $this->createMock(ICacheFactory::class);
