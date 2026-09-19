@@ -204,6 +204,10 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 		} elseif ($currentPayload !== null) {
 			$consolidatedValue = $currentPayload;
 		} else {
+			if (!$this->isSupportedLegacyIdentificationDocumentsValue($currentValue)) {
+				throw new \UnexpectedValueException('Cannot safely migrate identification_documents with an unexpected value type or format');
+			}
+
 			$legacyApprovalGroup = $this->normalizeLegacyApprovalGroup($values['approval_group'] ?? null);
 			$consolidatedValue = [
 				'enabled' => $this->toBool($currentValue, false),
@@ -248,6 +252,18 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 			'enabled' => $value['enabled'],
 			'approvers' => array_values($value['approvers']),
 		];
+	}
+
+	private function isSupportedLegacyIdentificationDocumentsValue(mixed $value): bool {
+		if ($value === null || is_bool($value)) {
+			return true;
+		}
+
+		if (!is_string($value)) {
+			return false;
+		}
+
+		return in_array(strtolower(trim($value)), ['', '0', '1', 'false', 'true', 'no', 'yes', 'off', 'on'], true);
 	}
 
 	/**

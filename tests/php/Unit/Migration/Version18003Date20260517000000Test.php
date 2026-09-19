@@ -1166,6 +1166,26 @@ final class Version18003Date20260517000000Test extends TestCase {
 		self::assertArrayNotHasKey('migration_18003_identification_documents_backup', $config);
 	}
 
+	public function testDoesNotOverwriteUnexpectedIdentificationDocumentsValue(): void {
+		$config = [
+			'identification_documents' => ['legacy' => 'unexpected'],
+			'approval_group' => ['legal'],
+		];
+
+		$this->configureTypedAppConfigState($config);
+
+		$migration = new Version18003Date20260517000000($this->appConfig);
+
+		try {
+			$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
+			self::fail('Expected migration to reject an unknown identification_documents format');
+		} catch (\UnexpectedValueException) {
+			self::assertSame(['legacy' => 'unexpected'], $config['identification_documents']);
+			self::assertSame(['legal'], $config['approval_group']);
+			self::assertArrayNotHasKey('migration_18003_identification_documents_backup', $config);
+		}
+	}
+
 	public function testIdentificationDocumentsConversionIsIdempotent(): void {
 		$config = [
 			'identification_documents' => [
