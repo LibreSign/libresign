@@ -27,16 +27,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check release PR scope
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: php scripts/release/release.php check-pr-scope --repository "${{ github.repository }}" --pr "${{ github.event.pull_request.number }}"
-
       - name: Checkout merged release commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
           persist-credentials: false
+
+      - name: Check release PR scope
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: php scripts/release/release.php check-pr-scope --repository "${{ github.repository }}" --pr "${{ github.event.pull_request.number }}"
 
       - name: Finalize release milestone
         env:
