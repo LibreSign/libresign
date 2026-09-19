@@ -205,6 +205,7 @@ function createReadonlySignerObject(signer: SignerDetailRecord | SignerSummaryRe
 		email: typeof signer.email === 'string' ? signer.email : '',
 		signed: null,
 		status: 0,
+		displayStatus: 'draft',
 		statusText: '',
 		...(Array.isArray(signer.identifyMethods) ? { identifyMethods: signer.identifyMethods } : {}),
 	}

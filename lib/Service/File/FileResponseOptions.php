@@ -77,6 +77,31 @@ class FileResponseOptions {
 		return $this->signerIdentified;
 	}
 
+	/**
+	 * Whether the viewer this context was resolved for is the signer behind
+	 * these identify methods: the identify method the signer identified with
+	 * in this session, or the authenticated user's uid or e-mail.
+	 *
+	 * @param array<string, array<\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod>> $identifyMethodsOfSigner
+	 */
+	public function isViewerOfSigner(array $identifyMethodsOfSigner): bool {
+		if ($this->me === null && $this->identifyMethodId === null) {
+			return false;
+		}
+		foreach ($identifyMethodsOfSigner as $methods) {
+			foreach ($methods as $identifyMethod) {
+				$entity = $identifyMethod->getEntity();
+				if ($this->identifyMethodId === $entity->getId()
+					|| $this->me?->getUID() === $entity->getIdentifierValue()
+					|| $this->me?->getEMailAddress() === $entity->getIdentifierValue()
+				) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	public function setMe(?IUser $user): self {
 		$this->me = $user;
 		return $this;

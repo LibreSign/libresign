@@ -2541,6 +2541,17 @@
                     }
                 ]
             },
+            "SignerDisplayStatus": {
+                "type": "string",
+                "enum": [
+                    "draft",
+                    "ready_to_sign",
+                    "signed",
+                    "rejected",
+                    "observing",
+                    "not_signed"
+                ]
+            },
             "SignerGeolocation": {
                 "type": "object",
                 "required": [
@@ -2625,7 +2636,7 @@
                     "signRequestId",
                     "displayName",
                     "signed",
-                    "status",
+                    "displayStatus",
                     "statusText"
                 ],
                 "properties": {
@@ -2649,6 +2660,9 @@
                     "signed": {
                         "type": "string",
                         "nullable": true
+                    },
+                    "displayStatus": {
+                        "$ref": "#/components/schemas/SignerDisplayStatus"
                     },
                     "status": {
                         "type": "integer",
