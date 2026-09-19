@@ -1105,4 +1105,146 @@ final class Version18003Date20260517000000Test extends TestCase {
 		);
 		self::assertContains([Application::APP_ID, 'policy.worker_config.system'], $deleted);
 	}
+
+	public function testMigratesTypedBooleanIdentificationDocumentsWithoutLosingConfiguration(): void {
+		$config = [
+			'identification_documents' => true,
+			'approval_group' => ['legal', 'admin'],
+		];
+
+		$this->configureTypedAppConfigState($config);
+
+		$migration = new Version18003Date20260517000000($this->appConfig);
+		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
+
+		self::assertSame([
+			'enabled' => true,
+			'approvers' => ['legal', 'admin'],
+		], $config['identification_documents']);
+		self::assertArrayNotHasKey('approval_group', $config);
+		self::assertArrayNotHasKey('migration_18003_identification_documents_backup', $config);
+	}
+
+	public function testResumesIdentificationDocumentsConversionFromBackup(): void {
+		$config = [
+			'migration_18003_identification_documents_backup' => [
+				'enabled' => true,
+				'approvers' => ['legal'],
+			],
+			'approval_group' => ['legal'],
+		];
+
+		$this->configureTypedAppConfigState($config);
+
+		$migration = new Version18003Date20260517000000($this->appConfig);
+		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
+
+		self::assertSame([
+			'enabled' => true,
+			'approvers' => ['legal'],
+		], $config['identification_documents']);
+		self::assertArrayNotHasKey('approval_group', $config);
+		self::assertArrayNotHasKey('migration_18003_identification_documents_backup', $config);
+	}
+
+	public function testIdentificationDocumentsConversionIsIdempotent(): void {
+		$config = [
+			'identification_documents' => [
+				'enabled' => false,
+				'approvers' => ['reviewers'],
+			],
+			'approval_group' => ['legacy'],
+			'migration_18003_identification_documents_backup' => [
+				'enabled' => true,
+				'approvers' => ['stale'],
+			],
+		];
+
+		$this->configureTypedAppConfigState($config);
+
+		$migration = new Version18003Date20260517000000($this->appConfig);
+		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
+
+		self::assertSame([
+			'enabled' => false,
+			'approvers' => ['reviewers'],
+		], $config['identification_documents']);
+		self::assertArrayNotHasKey('approval_group', $config);
+		self::assertArrayNotHasKey('migration_18003_identification_documents_backup', $config);
+	}
+
+	/**
+	 * @param array<string, mixed> $config
+	 */
+	private function configureTypedAppConfigState(array &$config): void {
+		$this->appConfig
+			->method('getAllValues')
+			->willReturnCallback(static fn (string $app): array => $app === Application::APP_ID ? $config : []);
+
+		$this->appConfig
+			->method('getValueString')
+			->willReturnCallback(static function (string $app, string $key, string $default) use (&$config): string {
+				if ($app !== Application::APP_ID || !array_key_exists($key, $config)) {
+					return $default;
+				}
+
+				if (!is_string($config[$key])) {
+					throw new AppConfigTypeConflictException('value is not stored as string');
+				}
+
+				return $config[$key];
+			});
+
+		$this->appConfig
+			->method('getValueBool')
+			->willReturnCallback(static function (string $app, string $key, bool $default) use (&$config): bool {
+				if ($app !== Application::APP_ID || !array_key_exists($key, $config)) {
+					return $default;
+				}
+
+				if (!is_bool($config[$key])) {
+					throw new AppConfigTypeConflictException('value is not stored as bool');
+				}
+
+				return $config[$key];
+			});
+
+		$this->appConfig
+			->method('getValueArray')
+			->willReturnCallback(static function (string $app, string $key, array $default) use (&$config): array {
+				if ($app !== Application::APP_ID || !array_key_exists($key, $config)) {
+					return $default;
+				}
+
+				if (!is_array($config[$key])) {
+					throw new AppConfigTypeConflictException('value is not stored as array');
+				}
+
+				return $config[$key];
+			});
+
+		$this->appConfig
+			->method('setValueArray')
+			->willReturnCallback(static function (string $app, string $key, array $value) use (&$config): bool {
+				if ($app !== Application::APP_ID) {
+					return false;
+				}
+
+				if (array_key_exists($key, $config) && !is_array($config[$key])) {
+					throw new AppConfigTypeConflictException('conflict between array and existing type');
+				}
+
+				$config[$key] = $value;
+				return true;
+			});
+
+		$this->appConfig
+			->method('deleteKey')
+			->willReturnCallback(static function (string $app, string $key) use (&$config): void {
+				if ($app === Application::APP_ID) {
+					unset($config[$key]);
+				}
+			});
+	}
+
 }

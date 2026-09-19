@@ -45,6 +45,7 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 	private const LEGACY_SIGNATURE_TEXT_SIGNATURE_FONT_SIZE_KEY = 'signature_font_size';
 	private const LEGACY_SIGNATURE_TEXT_BACKGROUND_TYPE_KEY = 'signature_background_type';
 	private const LEGACY_SIGNATURE_TEXT_RENDER_MODE_KEY = 'signature_render_mode';
+	private const IDENTIFICATION_DOCUMENTS_MIGRATION_BACKUP_KEY = 'migration_18003_identification_documents_backup';
 
 	public function __construct(
 		private IAppConfig $appConfig,
@@ -185,63 +186,72 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 	}
 
 	private function migrateIdentificationDocumentsType(): void {
-		/**
-		 * Consolidate legacy identification_documents (bool) and approval_group (array)
-		 * into unified payload {enabled: bool, approvers: string[]}
-		 */
-		$existingConsolidated = $this->readLegacyString(IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY);
+		$key = IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY;
+		$values = $this->appConfig->getAllValues(Application::APP_ID);
+		$currentValue = $values[$key] ?? null;
+		$backupValue = $values[self::IDENTIFICATION_DOCUMENTS_MIGRATION_BACKUP_KEY] ?? null;
 
-		// Try to parse existing consolidated value
-		if ($existingConsolidated !== null && trim($existingConsolidated) !== '') {
-			$decoded = json_decode($existingConsolidated, true);
-			if (is_array($decoded) && isset($decoded['enabled'], $decoded['approvers'])) {
-				// Already consolidated, just clean up legacy approval_group
-				$this->appConfig->deleteKey(Application::APP_ID, 'approval_group');
-				return;
-			}
+		// A previous attempt may already have completed this conversion before a
+		// later step in the same migration failed. Keep the operation idempotent.
+		if ($this->isIdentificationDocumentsPayload($currentValue)) {
+			$this->appConfig->deleteKey(Application::APP_ID, self::IDENTIFICATION_DOCUMENTS_MIGRATION_BACKUP_KEY);
+			$this->appConfig->deleteKey(Application::APP_ID, 'approval_group');
+			return;
 		}
 
-		// Read legacy values
-		$legacyIdDocs = $this->readLegacyBool(IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY, false);
-		$legacyApprovalGroup = $this->readLegacyApprovalGroup();
+		if ($this->isIdentificationDocumentsPayload($backupValue)) {
+			$consolidatedValue = $backupValue;
+		} else {
+			$legacyApprovalGroup = $this->normalizeLegacyApprovalGroup($values['approval_group'] ?? null);
+			$consolidatedValue = [
+				'enabled' => $this->toBool($currentValue, false),
+				'approvers' => $legacyApprovalGroup !== [] ? $legacyApprovalGroup : ['admin'],
+			];
 
-		// Build unified payload
-		$consolidatedValue = [
-			'enabled' => $legacyIdDocs,
-			'approvers' => !empty($legacyApprovalGroup) ? $legacyApprovalGroup : ['admin'],
-		];
+			// Persist the complete replacement before deleting the typed legacy
+			// value. If the process stops between deleteKey() and setValueArray(),
+			// the next migration attempt can recover from this backup.
+			$this->appConfig->setValueArray(
+				Application::APP_ID,
+				self::IDENTIFICATION_DOCUMENTS_MIGRATION_BACKUP_KEY,
+				$consolidatedValue,
+			);
+		}
 
-		// Save unified payload
-		$this->appConfig->setValueArray(
-			Application::APP_ID,
-			IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY,
-			$consolidatedValue
-		);
+		$this->appConfig->deleteKey(Application::APP_ID, $key);
+		$this->appConfig->setValueArray(Application::APP_ID, $key, $consolidatedValue);
 
-		// Clean up legacy approval_group
+		$this->appConfig->deleteKey(Application::APP_ID, self::IDENTIFICATION_DOCUMENTS_MIGRATION_BACKUP_KEY);
 		$this->appConfig->deleteKey(Application::APP_ID, 'approval_group');
 	}
 
-	private function readLegacyApprovalGroup(): array {
-		try {
-			$rawValue = $this->appConfig->getValueString(Application::APP_ID, 'approval_group', '');
-			if ($rawValue === '' || $rawValue === '[]') {
-				return [];
-			}
+	private function isIdentificationDocumentsPayload(mixed $value): bool {
+		return is_array($value)
+			&& array_key_exists('enabled', $value)
+			&& is_bool($value['enabled'])
+			&& array_key_exists('approvers', $value)
+			&& is_array($value['approvers']);
+	}
 
-			$decoded = json_decode($rawValue, true);
-			if (is_array($decoded)) {
-				return array_filter(
-					array_map('strval', $decoded),
-					static fn (string $v): bool => $v !== ''
-				) ?: [];
-			}
-
-			return [];
-		} catch (AppConfigTypeConflictException) {
-			// Try as array directly
-			return $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', []);
+	/**
+	 * @return list<string>
+	 */
+	private function normalizeLegacyApprovalGroup(mixed $value): array {
+		if (is_string($value)) {
+			$decoded = json_decode($value, true);
+			$value = is_array($decoded) ? $decoded : [];
 		}
+
+		if (!is_array($value)) {
+			return [];
+		}
+
+		$normalized = array_values(array_filter(
+			array_map('strval', $value),
+			static fn (string $group): bool => $group !== '',
+		));
+
+		return $normalized;
 	}
 
 	private function migrateEnvelopeType(): void {
