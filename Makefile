@@ -178,7 +178,10 @@ appstore:
 verify-appstore-package:
 	test -d $(appstore_sign_dir)/$(app_name)/css
 	test -d $(appstore_sign_dir)/$(app_name)/js
-	find $(appstore_sign_dir)/$(app_name)/js -maxdepth 1 -name 'pdf.worker.min-*.mjs' | grep -q .
+	find \
+		$(appstore_sign_dir)/$(app_name)/js \
+		$(appstore_sign_dir)/$(app_name)/dist \
+		-maxdepth 1 -name 'pdf.worker.min-*.mjs' 2>/dev/null | grep -q .
 	if [ -d dist ]; then \
 		test -d $(appstore_sign_dir)/$(app_name)/dist; \
 	fi
