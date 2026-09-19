@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 LibreCode coop and contributors
+# SPDX-FileCopyrightText: 2025-2026 LibreCode coop and contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 name: Release Drafter
@@ -11,69 +11,16 @@ on:
   push:
     branches:
       - stable*
-  pull_request_target:
-    branches:
-      - stable*
-    types: [closed]
 
 jobs:
   update_release_draft:
-    if: >
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/stable')) ||
-      (
-        github.event_name == 'pull_request_target' &&
-        github.event.pull_request.merged == true &&
-        startsWith(github.event.pull_request.base.ref, 'stable')
-      )
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Resolve release draft version
-        id: resolve-version
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          PUSH_REF_NAME: ${{ github.ref_name }}
-          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
-        run: |
-          set -eu
-
-          branch="$PUSH_REF_NAME"
-          if [ "$EVENT_NAME" = "pull_request_target" ]; then
-            branch="$PR_BASE_REF"
-          fi
-
-          previous_tag=$(git describe --tags --abbrev=0 "origin/$branch")
-          current_version=${previous_tag#v}
-          major=${current_version%%.*}
-          version_tail=${current_version#*.}
-          minor=${version_tail%%.*}
-          patch=${version_tail##*.}
-
-          release_messages=$(git log --format='%s%n%b' "${previous_tag}..origin/${branch}")
-          if printf '%s\n' "$release_messages" | grep -Eiq '(^|\])\s*feat:|vue3 phase|migration to vue3|script setup ts|typescript'; then
-            minor=$((minor + 1))
-            patch=0
-          else
-            patch=$((patch + 1))
-          fi
-
-          version="${major}.${minor}.${patch}"
-          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
-          echo "previous_tag=${previous_tag}" >> "$GITHUB_OUTPUT"
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
-
-      - name: Draft release for this branch
+      - name: Update release draft
         uses: release-drafter/release-drafter@v7.7.0
         with:
           config-name: release-drafter.yml
-          commitish: ${{ steps.resolve-version.outputs.branch }}
-          version: ${{ steps.resolve-version.outputs.version }}
-          name: v${{ steps.resolve-version.outputs.version }}
-          tag: v${{ steps.resolve-version.outputs.version }}
+          commitish: ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
