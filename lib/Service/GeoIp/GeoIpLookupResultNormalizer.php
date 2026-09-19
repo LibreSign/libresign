@@ -10,7 +10,6 @@ namespace OCA\Libresign\Service\GeoIp;
 
 use OCA\Libresign\Enum\SignerIpGeolocationStatus;
 use OCA\Libresign\Enum\SignerIpGeolocationUnavailableReason;
-use OCA\Libresign\Vendor\GeoIp2\Exception\AddressNotFoundException;
 use OCA\Libresign\Vendor\GeoIp2\Model\City;
 
 /**
@@ -111,9 +110,5 @@ class GeoIpLookupResultNormalizer {
 			$result['sourceIp'] = $sourceIp;
 		}
 		return $result;
-	}
-
-	public function isAddressNotFound(\Throwable $exception): bool {
-		return $exception instanceof AddressNotFoundException;
 	}
 }
