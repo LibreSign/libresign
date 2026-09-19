@@ -74,6 +74,7 @@ OC.L10N.register(
     "Select all" : "Избери се",
     "Open file" : "Отвори датотека",
     "Close" : "Затвори",
+    "Add" : "Додади",
     "Send reminder" : "Испрати потсетник",
     "Confirm" : "Потврди",
     "Status" : "Статус",
