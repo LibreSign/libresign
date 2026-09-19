@@ -207,7 +207,7 @@ jobs:
             echo "## What's Changed"
             cat ../release-notes.md
             echo
-            echo "**Full Changelog:** https://github.com/${{ github.repository }}/compare/${{ steps.release.outputs.previous_tag }}...${{ steps.release.outputs.tag }}"
+            echo "**Full Changelog:** https://github.com/${{ github.repository }}/compare/${{ steps.release.outputs.previous_tag }}...${{ steps.release.outputs.target_sha }}"
           } > ../release-notes.final.md
 
           cd ..
