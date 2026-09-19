@@ -17,7 +17,7 @@ use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\FilePolicy\SignatureRejectionFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
-use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyConfig;
 use OCP\IL10N;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -34,7 +34,11 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->fileService = $this->createMock(FileService::class);
 		$this->l10n = $this->createMock(IL10N::class);
-		$this->l10n->method('t')->willReturnArgument(0);
+		$this->l10n->method('t')->willReturnCallback(
+			static fn (string $message, array $parameters = []): string => $parameters === []
+				? $message
+				: vsprintf($message, $parameters),
+		);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->fileMapper->method('getChildrenFiles')->willReturn([]);
 	}
@@ -48,93 +52,216 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		);
 	}
 
-	private function createResolvedPolicy(
-		mixed $effectiveValue,
-		string $sourceScope = 'system',
-		bool $canUseAsRequestOverride = true,
-		?string $blockedBy = null,
-	): ResolvedPolicy {
-		return (new ResolvedPolicy())
-			->setPolicyKey(SignatureRejectionPolicy::KEY)
-			->setEffectiveValue($effectiveValue)
-			->setSourceScope($sourceScope)
-			->setCanUseAsRequestOverride($canUseAsRequestOverride)
-			->setBlockedBy($blockedBy);
-	}
-
 	/**
-	 * Answer the administrative resolution; the requester choice is layered on top
-	 * of it by the applier itself, not by the policy resolver.
+	 * Answer like the policy resolver does: the administrative value of each
+	 * setting, replaced by the requested one when the layers above allow that
+	 * setting to be chosen per request.
 	 *
 	 * @param array<string, mixed> $administrative
+	 * @param list<string> $choosableKeys
 	 */
-	private function stubResolution(string $method, array $administrative): void {
+	private function stubResolution(string $method, array $administrative, array $choosableKeys = SignatureRejectionPolicy::ALL_KEYS): void {
+		$defaults = SignatureRejectionPolicyConfig::defaults()->toKeyedValues();
+
 		$this->policyService
 			->method($method)
-			->willReturnCallback(fn (): ResolvedPolicy => $this->createResolvedPolicy($administrative));
+			->willReturnCallback(static function (
+				string $policyKey,
+				mixed $owner = null,
+				array $requestOverrides = [],
+				?array $activeContext = null,
+			) use ($administrative, $choosableKeys, $defaults): ResolvedPolicy {
+				$value = $administrative[$policyKey] ?? $defaults[$policyKey];
+				$sourceScope = $activeContext === null ? 'system' : 'group';
+
+				if (array_key_exists($policyKey, $requestOverrides) && in_array($policyKey, $choosableKeys, true)) {
+					$value = $requestOverrides[$policyKey];
+					$sourceScope = 'request';
+				}
+
+				return (new ResolvedPolicy())
+					->setPolicyKey($policyKey)
+					->setEffectiveValue(SignatureRejectionPolicyConfig::normalizeKeyedValue($policyKey, $value))
+					->setSourceScope($sourceScope)
+					->setCanUseAsRequestOverride(in_array($policyKey, $choosableKeys, true))
+					->setBlockedBy(in_array($policyKey, $choosableKeys, true) ? null : 'system');
+			});
 	}
 
-	private function createFile(int $status = FileStatus::DRAFT->value, ?array $storedValue = null): File {
+	/** @param array<string, mixed> $storedValues */
+	private function createFile(int $status = FileStatus::DRAFT->value, ?array $storedValues = null, string $storedSourceScope = 'system'): File {
 		$file = new File();
 		$file->setUserId('requester');
 		$file->setStatus($status);
-		if ($storedValue !== null) {
-			$file->setMetadata([
-				'policy_snapshot' => [
-					SignatureRejectionPolicy::KEY => [
-						'effectiveValue' => SignatureRejectionPolicyValue::normalize($storedValue),
-						'sourceScope' => 'system',
-					],
-				],
-			]);
+		if ($storedValues !== null) {
+			$policySnapshot = [];
+			foreach (SignatureRejectionPolicyConfig::fromKeyedValues($storedValues)->toKeyedValues() as $policyKey => $effectiveValue) {
+				$policySnapshot[$policyKey] = [
+					'effectiveValue' => $effectiveValue,
+					'sourceScope' => $storedSourceScope,
+				];
+			}
+			$file->setMetadata(['policy_snapshot' => $policySnapshot]);
 		}
 		return $file;
 	}
 
-	private function createEnvelope(int $status = FileStatus::DRAFT->value, ?array $storedValue = null): File {
-		$envelope = $this->createFile($status, $storedValue);
+	/** @param array<string, mixed> $storedValues */
+	private function createEnvelope(int $status = FileStatus::DRAFT->value, ?array $storedValues = null): File {
+		$envelope = $this->createFile($status, $storedValues);
 		$envelope->setNodeType('envelope');
 		return $envelope;
 	}
 
 	/** @return array<string, mixed> */
-	private function storedValueOf(File $file): array {
-		return $file->getMetadata()['policy_snapshot'][SignatureRejectionPolicy::KEY]['effectiveValue'];
+	private function storedValuesOf(File $file): array {
+		$storedValues = [];
+		foreach (SignatureRejectionPolicy::ALL_KEYS as $policyKey) {
+			$storedValues[$policyKey] = $file->getMetadata()['policy_snapshot'][$policyKey]['effectiveValue'];
+		}
+
+		return $storedValues;
 	}
 
-	private function hasStoredValue(File $file): bool {
-		return isset($file->getMetadata()['policy_snapshot'][SignatureRejectionPolicy::KEY]);
+	private function hasStoredValues(File $file): bool {
+		return isset($file->getMetadata()['policy_snapshot'][SignatureRejectionPolicy::KEY_ENABLED]);
 	}
 
-	#[DataProvider('provideRequestsWithoutAChoice')]
-	public function testAnEnabledPolicyDoesNotEnableRejectionByItself(array $data): void {
+	public function testADocumentRecordsOneSnapshotEntryPerSetting(): void {
 		$file = $this->createFile();
-		$this->stubResolution('resolveForUser', ['enabled' => true, 'comment_mode' => 'required', 'cancel_workflow' => true]);
+		$this->stubResolution('resolveForUser', [
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_BEHAVIOR => 'continue',
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'participants',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'requester',
+		]);
 
-		$this->getApplier()->apply($file, $data);
+		$this->getApplier()->apply($file, []);
 
-		$this->assertSame(SignatureRejectionPolicyValue::defaults(), $this->storedValueOf($file));
+		$this->assertSame([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_BEHAVIOR => 'continue',
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'participants',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'requester',
+		], $this->storedValuesOf($file));
 	}
 
-	/**
-	 * @return iterable<string, array{0: array<string, mixed>}>
-	 */
-	public static function provideRequestsWithoutAChoice(): iterable {
-		yield 'no policy payload at all' => [[]];
-		yield 'policy payload without overrides' => [['policyOverrides' => []]];
-		yield 'overrides for another policy' => [['policyOverrides' => ['signer_geolocation' => ['mode' => 'required']]]];
-		yield 'override without the enabled flag' => [['policyOverrides' => [SignatureRejectionPolicy::KEY => ['comment_mode' => 'required']]]];
-		yield 'explicitly declined' => [['policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => false]]]];
+	public function testADocumentWithoutAnyPolicyKeepsRejectionDisabled(): void {
+		$file = $this->createFile();
+		$this->stubResolution('resolveForUser', []);
+
+		$this->getApplier()->apply($file, ['policyOverrides' => ['signer_geolocation' => ['mode' => 'required']]]);
+
+		$this->assertSame(
+			SignatureRejectionPolicyConfig::defaults()->toKeyedValues(),
+			$this->storedValuesOf($file),
+		);
+	}
+
+	public function testTheRequesterChoosesInsideWhatThePolicyAllows(): void {
+		$file = $this->createFile();
+		$this->stubResolution('resolveForUser', [
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+		]);
+
+		$this->getApplier()->apply($file, [
+			'policyOverrides' => [
+				SignatureRejectionPolicy::KEY_BEHAVIOR => 'continue',
+				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+			],
+		]);
+
+		$storedValues = $this->storedValuesOf($file);
+		$this->assertSame('continue', $storedValues[SignatureRejectionPolicy::KEY_BEHAVIOR]);
+		$this->assertSame('required', $storedValues[SignatureRejectionPolicy::KEY_COMMENT_MODE]);
+		$this->assertSame(
+			'request',
+			$file->getMetadata()['policy_snapshot'][SignatureRejectionPolicy::KEY_BEHAVIOR]['sourceScope'],
+		);
+	}
+
+	public function testRequesterCannotEnableRejectionWhenThePolicyDisablesIt(): void {
+		$file = $this->createFile();
+		$this->stubResolution('resolveForUser', [], []);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(422);
+		$this->expectExceptionMessage('Signature rejection is disabled by policy and cannot be enabled for this document.');
+
+		$this->getApplier()->apply($file, [
+			'policyOverrides' => [SignatureRejectionPolicy::KEY_ENABLED => true],
+		]);
+	}
+
+	public function testRequesterCannotAskForASettingThePolicyEnforces(): void {
+		$file = $this->createFile();
+		$this->stubResolution(
+			'resolveForUser',
+			[
+				SignatureRejectionPolicy::KEY_ENABLED => true,
+				SignatureRejectionPolicy::KEY_BEHAVIOR => 'cancel',
+			],
+			[SignatureRejectionPolicy::KEY_ENABLED],
+		);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(422);
+		$this->expectExceptionMessage('The rejection setting rejection_behavior cannot be used on this document: it is defined by system.');
+
+		$this->getApplier()->apply($file, [
+			'policyOverrides' => [SignatureRejectionPolicy::KEY_BEHAVIOR => 'continue'],
+		]);
+	}
+
+	public function testTheCommentAudienceCannotBeWiderThanTheRejectionAudience(): void {
+		$file = $this->createFile();
+		$this->stubResolution('resolveForUser', [
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'participants',
+		]);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(422);
+		$this->expectExceptionMessage('The rejection comment cannot be visible to a wider audience than the rejection itself.');
+
+		$this->getApplier()->apply($file, [
+			'policyOverrides' => [SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public'],
+		]);
+	}
+
+	public function testASettingThatCannotApplyIsFrozenAtItsDefault(): void {
+		$file = $this->createFile();
+		$this->stubResolution('resolveForUser', [
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'disabled',
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'public',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public',
+		]);
+
+		$this->getApplier()->apply($file, []);
+
+		$storedValues = $this->storedValuesOf($file);
+		$this->assertSame('public', $storedValues[SignatureRejectionPolicy::KEY_VISIBILITY]);
+		$this->assertSame('requester', $storedValues[SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY]);
 	}
 
 	public function testApplyUsesTheActivePolicyContextWhenGiven(): void {
 		$file = $this->createFile();
-
 		$this->policyService
-			->expects($this->once())
+			->expects($this->exactly(count(SignatureRejectionPolicy::ALL_KEYS)))
 			->method('resolveForUser')
-			->with(SignatureRejectionPolicy::KEY, null, [], ['type' => 'group', 'id' => 'legal'])
-			->willReturn($this->createResolvedPolicy(['enabled' => true], 'group'));
+			->willReturnCallback(function (string $policyKey, mixed $user, array $overrides, array $activeContext): ResolvedPolicy {
+				$this->assertSame(['type' => 'group', 'id' => 'legal'], $activeContext);
+
+				return (new ResolvedPolicy())
+					->setPolicyKey($policyKey)
+					->setEffectiveValue(SignatureRejectionPolicyConfig::defaults()->toKeyedValues()[$policyKey])
+					->setSourceScope('group');
+			});
 
 		$this->getApplier()->apply($file, [
 			'policyActiveContext' => ['type' => 'group', 'id' => 'legal'],
@@ -142,126 +269,124 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 
 		$this->assertSame(
 			'group',
-			$file->getMetadata()['policy_snapshot'][SignatureRejectionPolicy::KEY]['sourceScope'],
+			$file->getMetadata()['policy_snapshot'][SignatureRejectionPolicy::KEY_ENABLED]['sourceScope'],
 		);
 	}
 
-	public function testRequesterOptingInKeepsTheAdministrativeRules(): void {
-		$file = $this->createFile();
-		$administrative = ['enabled' => true, 'comment_mode' => 'required', 'cancel_workflow' => true];
-		$this->stubResolution('resolveForUser', $administrative);
-
-		$this->getApplier()->apply($file, [
-			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => true]],
-		]);
-
-		$this->assertSame(
-			SignatureRejectionPolicyValue::normalize($administrative),
-			$this->storedValueOf($file),
+	public function testADraftKeepsTheChoicesTheRequesterAlreadyMade(): void {
+		$file = $this->createFile(
+			FileStatus::DRAFT->value,
+			[
+				SignatureRejectionPolicy::KEY_ENABLED => true,
+				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+			],
+			'request',
 		);
-	}
+		$this->stubResolution('resolveForUserId', [SignatureRejectionPolicy::KEY_ENABLED => true]);
 
-	public function testRequesterCanOptInWithABareBoolean(): void {
-		$file = $this->createFile();
-		$this->stubResolution('resolveForUser', ['enabled' => true, 'comment_mode' => 'optional']);
-
-		$this->getApplier()->apply($file, [
-			'policyOverrides' => [SignatureRejectionPolicy::KEY => true],
-		]);
-
-		$this->assertTrue($this->storedValueOf($file)['enabled']);
-	}
-
-	public function testRequesterCannotEnableRejectionWhenThePolicyDisablesIt(): void {
-		$file = $this->createFile();
-
-		$this->policyService
-			->method('resolveForUser')
-			->willReturn($this->createResolvedPolicy(SignatureRejectionPolicyValue::defaults()));
-
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionCode(422);
-		$this->expectExceptionMessage('Signature rejection is disabled by policy and cannot be enabled for this document.');
-
-		$this->getApplier()->apply($file, [
-			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => true]],
-		]);
-	}
-
-	public function testAnUnrelatedDraftUpdateKeepsTheStoredValue(): void {
-		$file = $this->createFile(FileStatus::DRAFT->value, SignatureRejectionPolicyValue::defaults());
-
-		$this->policyService->expects($this->never())->method('resolveForUserId');
 		$this->fileService->expects($this->never())->method('update');
 
 		$this->getApplier()->sync($file, ['name' => 'a new name']);
 
-		$this->assertFalse($this->storedValueOf($file)['enabled']);
+		$storedValues = $this->storedValuesOf($file);
+		$this->assertTrue($storedValues[SignatureRejectionPolicy::KEY_ENABLED]);
+		$this->assertSame('required', $storedValues[SignatureRejectionPolicy::KEY_COMMENT_MODE]);
 	}
 
-	public function testAnUnrelatedDraftUpdateKeepsAnEnabledStoredValue(): void {
-		$file = $this->createFile(FileStatus::DRAFT->value, ['enabled' => true, 'comment_mode' => 'required']);
+	public function testADraftIsRevalidatedAgainstTheCurrentAdministratorPolicy(): void {
+		// The requester asked for a required comment while the draft was created;
+		// the administrator has since taken that choice away.
+		$file = $this->createFile(
+			FileStatus::DRAFT->value,
+			[
+				SignatureRejectionPolicy::KEY_ENABLED => true,
+				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+			],
+			'request',
+		);
+		$this->stubResolution(
+			'resolveForUserId',
+			[
+				SignatureRejectionPolicy::KEY_ENABLED => true,
+				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+			],
+			[SignatureRejectionPolicy::KEY_ENABLED],
+		);
 
-		$this->policyService->expects($this->never())->method('resolveForUserId');
-		$this->fileService->expects($this->never())->method('update');
+		$this->fileService->expects($this->once())->method('update')->with($file);
 
 		$this->getApplier()->sync($file, []);
 
-		$this->assertTrue($this->storedValueOf($file)['enabled']);
-		$this->assertSame('required', $this->storedValueOf($file)['comment_mode']);
+		$this->assertSame('optional', $this->storedValuesOf($file)[SignatureRejectionPolicy::KEY_COMMENT_MODE]);
 	}
 
-	public function testRequesterCanOptInWhileTheRequestIsADraft(): void {
-		$file = $this->createFile(FileStatus::DRAFT->value, SignatureRejectionPolicyValue::defaults());
-		$administrative = ['enabled' => true, 'comment_mode' => 'optional'];
-		$this->stubResolution('resolveForUserId', $administrative);
+	public function testRequesterCanChangeTheirChoiceWhileTheRequestIsADraft(): void {
+		$file = $this->createFile(FileStatus::DRAFT->value, [SignatureRejectionPolicy::KEY_ENABLED => false]);
+		$this->stubResolution('resolveForUserId', [
+			SignatureRejectionPolicy::KEY_ENABLED => false,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+		]);
 
 		$this->fileService->expects($this->once())->method('update')->with($file);
 
 		$this->getApplier()->sync($file, [
-			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => true]],
+			'policyOverrides' => [
+				SignatureRejectionPolicy::KEY_ENABLED => true,
+				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+			],
 		]);
 
-		$this->assertSame(
-			SignatureRejectionPolicyValue::normalize($administrative),
-			$this->storedValueOf($file),
-		);
+		$this->assertTrue($this->storedValuesOf($file)[SignatureRejectionPolicy::KEY_ENABLED]);
 	}
 
 	public function testRequesterCanOptOutAgainWhileTheRequestIsADraft(): void {
-		$file = $this->createFile(FileStatus::DRAFT->value, ['enabled' => true, 'comment_mode' => 'optional']);
-		$this->stubResolution('resolveForUserId', ['enabled' => true, 'comment_mode' => 'optional']);
+		$file = $this->createFile(
+			FileStatus::DRAFT->value,
+			[
+				SignatureRejectionPolicy::KEY_ENABLED => true,
+				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+			],
+			'request',
+		);
+		$this->stubResolution('resolveForUserId', [SignatureRejectionPolicy::KEY_ENABLED => true]);
 
 		$this->fileService->expects($this->once())->method('update')->with($file);
 
 		$this->getApplier()->sync($file, [
-			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => false]],
+			'policyOverrides' => [SignatureRejectionPolicy::KEY_ENABLED => false],
 		]);
 
-		$this->assertSame(SignatureRejectionPolicyValue::defaults(), $this->storedValueOf($file));
+		$this->assertSame(
+			SignatureRejectionPolicyConfig::defaults()->toKeyedValues(),
+			$this->storedValuesOf($file),
+		);
 	}
 
-	public function testADraftWithoutASnapshotRecordsTheDisabledDefault(): void {
+	public function testADraftWithoutASnapshotRecordsTheResolvedConfiguration(): void {
 		$file = $this->createFile();
-		$this->stubResolution('resolveForUserId', ['enabled' => true]);
+		$this->stubResolution('resolveForUserId', [SignatureRejectionPolicy::KEY_ENABLED => true]);
 
 		$this->fileService->expects($this->once())->method('update')->with($file);
 
 		$this->getApplier()->sync($file, []);
 
-		$this->assertSame(SignatureRejectionPolicyValue::defaults(), $this->storedValueOf($file));
+		$this->assertTrue($this->storedValuesOf($file)[SignatureRejectionPolicy::KEY_ENABLED]);
 	}
 
 	#[DataProvider('provideStartedFlowStatuses')]
-	public function testStoredValueIsFrozenOnceTheSigningFlowStarted(int $fileStatus): void {
-		$file = $this->createFile($fileStatus, ['enabled' => true, 'comment_mode' => 'optional']);
+	public function testTheConfigurationIsFrozenOnceTheSigningFlowStarted(int $fileStatus): void {
+		$file = $this->createFile($fileStatus, [
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+		]);
 
 		$this->policyService->expects($this->never())->method('resolveForUserId');
 		$this->fileService->expects($this->never())->method('update');
 
 		$this->getApplier()->sync($file, []);
 
-		$this->assertTrue($this->storedValueOf($file)['enabled']);
+		$this->assertTrue($this->storedValuesOf($file)[SignatureRejectionPolicy::KEY_ENABLED]);
+		$this->assertSame('optional', $this->storedValuesOf($file)[SignatureRejectionPolicy::KEY_COMMENT_MODE]);
 	}
 
 	/**
@@ -273,81 +398,86 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		yield 'signed' => [FileStatus::SIGNED->value];
 	}
 
-	public function testALaterPolicyChangeDoesNotAlterAStartedRequest(): void {
-		$file = $this->createFile(FileStatus::ABLE_TO_SIGN->value, ['enabled' => true, 'comment_mode' => 'required']);
-
-		$this->policyService->expects($this->never())->method('resolveForUserId');
-
-		$this->getApplier()->sync($file, []);
-
-		$this->assertTrue($this->storedValueOf($file)['enabled']);
-		$this->assertSame('required', $this->storedValueOf($file)['comment_mode']);
-	}
-
 	#[DataProvider('provideFrozenChangeAttempts')]
-	public function testChangingTheValueAfterTheFlowStartedIsRefused(?array $storedValue, bool $requestedChoice): void {
-		$file = $this->createFile(FileStatus::ABLE_TO_SIGN->value, $storedValue);
+	public function testChangingASettingAfterTheFlowStartedIsRefused(?array $storedValues, array $overrides): void {
+		$file = $this->createFile(FileStatus::ABLE_TO_SIGN->value, $storedValues);
 
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionCode(422);
-		$this->expectExceptionMessage('The signature rejection setting cannot be changed after the signing flow has started.');
+		$this->expectExceptionMessage('The signature rejection settings cannot be changed after the signing flow has started.');
 
-		$this->getApplier()->sync($file, [
-			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => $requestedChoice]],
-		]);
+		$this->getApplier()->sync($file, ['policyOverrides' => $overrides]);
 	}
 
 	/**
-	 * @return iterable<string, array{0: ?array<string, mixed>, 1: bool}>
+	 * @return iterable<string, array{0: ?array<string, mixed>, 1: array<string, mixed>}>
 	 */
 	public static function provideFrozenChangeAttempts(): iterable {
-		yield 'turning it off' => [['enabled' => true, 'comment_mode' => 'optional'], false];
-		yield 'turning it on' => [SignatureRejectionPolicyValue::defaults(), true];
-		yield 'turning it on without any snapshot' => [null, true];
+		yield 'turning it off' => [
+			[SignatureRejectionPolicy::KEY_ENABLED => true, SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional'],
+			[SignatureRejectionPolicy::KEY_ENABLED => false],
+		];
+		yield 'turning it on' => [
+			[SignatureRejectionPolicy::KEY_ENABLED => false],
+			[SignatureRejectionPolicy::KEY_ENABLED => true],
+		];
+		yield 'turning it on without any snapshot' => [
+			null,
+			[SignatureRejectionPolicy::KEY_ENABLED => true],
+		];
+		yield 'changing the comment mode' => [
+			[SignatureRejectionPolicy::KEY_ENABLED => true, SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional'],
+			[SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required'],
+		];
+		yield 'widening the audience' => [
+			[
+				SignatureRejectionPolicy::KEY_ENABLED => true,
+				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+				SignatureRejectionPolicy::KEY_VISIBILITY => 'requester',
+			],
+			[SignatureRejectionPolicy::KEY_VISIBILITY => 'public'],
+		];
 	}
 
-	public function testResendingTheFrozenValueStaysAnIdempotentUpdate(): void {
+	public function testResendingTheFrozenConfigurationStaysAnIdempotentUpdate(): void {
 		// A client may resend the complete form state in an unrelated update;
-		// the unchanged value must not make the whole update fail.
-		$file = $this->createFile(FileStatus::ABLE_TO_SIGN->value, ['enabled' => true, 'comment_mode' => 'optional']);
+		// the unchanged values must not make the whole update fail.
+		$file = $this->createFile(FileStatus::ABLE_TO_SIGN->value, [
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'participants',
+		]);
 
 		$this->fileService->expects($this->never())->method('update');
 		$this->policyService->expects($this->never())->method('resolveForUserId');
 
 		$this->getApplier()->sync($file, [
-			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => true]],
+			'policyOverrides' => [
+				SignatureRejectionPolicy::KEY_ENABLED => true,
+				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+				SignatureRejectionPolicy::KEY_VISIBILITY => 'participants',
+			],
 		]);
 
-		$this->assertTrue($this->storedValueOf($file)['enabled']);
+		$this->assertTrue($this->storedValuesOf($file)[SignatureRejectionPolicy::KEY_ENABLED]);
 	}
 
-	public function testResendingDisabledOnARequestThatNeverOptedInIsAccepted(): void {
-		$file = $this->createFile(FileStatus::ABLE_TO_SIGN->value, SignatureRejectionPolicyValue::defaults());
-
-		$this->fileService->expects($this->never())->method('update');
-
-		$this->getApplier()->sync($file, [
-			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => false]],
-		]);
-
-		$this->assertFalse($this->storedValueOf($file)['enabled']);
-	}
-
-	public function testAStartedRequestWithoutASnapshotRecordsTheDisabledDefault(): void {
+	public function testAStartedRequestWithoutASnapshotRecordsTheResolvedConfiguration(): void {
 		$file = $this->createFile(FileStatus::ABLE_TO_SIGN->value);
-		$this->stubResolution('resolveForUserId', ['enabled' => true]);
+		$this->stubResolution('resolveForUserId', [SignatureRejectionPolicy::KEY_ENABLED => true]);
 
 		$this->fileService->expects($this->once())->method('update')->with($file);
 
 		$this->getApplier()->sync($file, []);
 
-		$this->assertSame(SignatureRejectionPolicyValue::defaults(), $this->storedValueOf($file));
+		$this->assertTrue($this->hasStoredValues($file));
 	}
 
 	#[DataProvider('provideEnvelopeStatusesWithoutAChoice')]
-	public function testAnUnrelatedEnvelopeUpdateNeverTouchesTheStoredValue(int $envelopeStatus): void {
-		// The value of an envelope lives on the documents it contains, and updating
-		// an envelope never re-synchronizes them, so nothing may be written here.
+	public function testAnUnrelatedEnvelopeUpdateNeverTouchesTheStoredConfiguration(int $envelopeStatus): void {
+		// The configuration of an envelope lives on the documents it contains, and
+		// updating an envelope never re-synchronizes them, so nothing may be
+		// written here.
 		$envelope = $this->createEnvelope($envelopeStatus);
 
 		$this->policyService->expects($this->never())->method('resolveForUserId');
@@ -356,7 +486,7 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 
 		$this->getApplier()->sync($envelope, ['name' => 'a new name']);
 
-		$this->assertFalse($this->hasStoredValue($envelope));
+		$this->assertFalse($this->hasStoredValues($envelope));
 	}
 
 	/**
@@ -368,84 +498,33 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		yield 'partially signed envelope' => [FileStatus::PARTIAL_SIGNED->value];
 	}
 
-	public function testRequesterCanChangeTheChoiceOnAnEnvelopeDraft(): void {
+	public function testRequesterCanChangeTheConfigurationOnAnEnvelopeDraft(): void {
 		$envelope = $this->createEnvelope();
-		$administrative = ['enabled' => true, 'comment_mode' => 'required'];
-		$this->stubResolution('resolveForUserId', $administrative);
+		$this->stubResolution('resolveForUserId', [
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+		]);
 
 		$this->fileService->expects($this->once())->method('update')->with($envelope);
 
 		$this->getApplier()->sync($envelope, [
-			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => true]],
+			'policyOverrides' => [SignatureRejectionPolicy::KEY_ENABLED => true],
 		]);
 
-		$this->assertSame(
-			SignatureRejectionPolicyValue::normalize($administrative),
-			$this->storedValueOf($envelope),
-		);
+		$storedValues = $this->storedValuesOf($envelope);
+		$this->assertTrue($storedValues[SignatureRejectionPolicy::KEY_ENABLED]);
+		$this->assertSame('required', $storedValues[SignatureRejectionPolicy::KEY_COMMENT_MODE]);
 	}
 
-	public function testRequesterCanTurnTheChoiceOffOnAnEnvelopeDraft(): void {
-		$envelope = $this->createEnvelope();
-		$this->stubResolution('resolveForUserId', ['enabled' => true, 'comment_mode' => 'optional']);
-
-		$this->fileService->expects($this->once())->method('update')->with($envelope);
-
-		$this->getApplier()->sync($envelope, [
-			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => false]],
-		]);
-
-		$this->assertSame(SignatureRejectionPolicyValue::defaults(), $this->storedValueOf($envelope));
-	}
-
-	#[DataProvider('provideEnvelopeChangeAttempts')]
-	public function testChangingTheChoiceOnAStartedEnvelopeIsRefused(int $envelopeStatus): void {
-		// The documents of the envelope carry the value the request was created
-		// with, so turning it on afterwards is a change and must be refused.
-		$envelope = $this->createEnvelope($envelopeStatus);
-
-		$this->fileService->expects($this->never())->method('update');
-
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionCode(422);
-		$this->expectExceptionMessage('The signature rejection setting cannot be changed after the signing flow has started.');
-
-		$this->getApplier()->sync($envelope, [
-			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => true]],
-		]);
-	}
-
-	/**
-	 * @return iterable<string, array{0: int}>
-	 */
-	public static function provideEnvelopeChangeAttempts(): iterable {
-		yield 'once the flow started' => [FileStatus::ABLE_TO_SIGN->value];
-		yield 'once partially signed' => [FileStatus::PARTIAL_SIGNED->value];
-	}
-
-	public function testResendingTheFrozenValueOfAStartedEnvelopeIsAccepted(): void {
-		// The envelope has no snapshot of its own: the effective stored value is
-		// read from the documents it contains, so an identical resend is a no-op.
+	public function testChangingTheConfigurationOnAStartedEnvelopeIsRefusedAgainstItsDocuments(): void {
+		// The envelope has no snapshot of its own: the effective configuration is
+		// read from the documents it contains.
 		$envelope = $this->createEnvelope(FileStatus::ABLE_TO_SIGN->value);
 		$envelope->setId(1);
-		$child = $this->createFile(FileStatus::ABLE_TO_SIGN->value, ['enabled' => true, 'comment_mode' => 'optional']);
-		$child->setId(2);
-
-		$this->fileMapper = $this->createMock(FileMapper::class);
-		$this->fileMapper->method('getChildrenFiles')->with(1)->willReturn([$child]);
-		$this->fileService->expects($this->never())->method('update');
-
-		$this->getApplier()->sync($envelope, [
-			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => true]],
+		$child = $this->createFile(FileStatus::ABLE_TO_SIGN->value, [
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
 		]);
-
-		$this->assertFalse($this->hasStoredValue($envelope));
-	}
-
-	public function testTurningAStartedEnvelopeOffIsRefusedAgainstTheEffectiveValue(): void {
-		$envelope = $this->createEnvelope(FileStatus::ABLE_TO_SIGN->value);
-		$envelope->setId(1);
-		$child = $this->createFile(FileStatus::ABLE_TO_SIGN->value, ['enabled' => true, 'comment_mode' => 'optional']);
 		$child->setId(2);
 
 		$this->fileMapper = $this->createMock(FileMapper::class);
@@ -453,11 +532,31 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionCode(422);
-		$this->expectExceptionMessage('The signature rejection setting cannot be changed after the signing flow has started.');
+		$this->expectExceptionMessage('The signature rejection settings cannot be changed after the signing flow has started.');
 
 		$this->getApplier()->sync($envelope, [
-			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => false]],
+			'policyOverrides' => [SignatureRejectionPolicy::KEY_ENABLED => false],
 		]);
+	}
+
+	public function testResendingTheFrozenConfigurationOfAStartedEnvelopeIsAccepted(): void {
+		$envelope = $this->createEnvelope(FileStatus::ABLE_TO_SIGN->value);
+		$envelope->setId(1);
+		$child = $this->createFile(FileStatus::ABLE_TO_SIGN->value, [
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+		]);
+		$child->setId(2);
+
+		$this->fileMapper = $this->createMock(FileMapper::class);
+		$this->fileMapper->method('getChildrenFiles')->with(1)->willReturn([$child]);
+		$this->fileService->expects($this->never())->method('update');
+
+		$this->getApplier()->sync($envelope, [
+			'policyOverrides' => [SignatureRejectionPolicy::KEY_ENABLED => true],
+		]);
+
+		$this->assertFalse($this->hasStoredValues($envelope));
 	}
 
 	public function testApplierParticipatesInCoreFlowSync(): void {

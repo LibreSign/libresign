@@ -58,9 +58,9 @@ class SignatureRejectionService {
 		?string $comment = null,
 		bool $privateComment = false,
 	): SignRequestEntity {
-		$policy = $this->rejectionPolicyService->getPolicyValue($libreSignFile);
+		$config = $this->rejectionPolicyService->getConfig($libreSignFile);
 
-		if (!$policy['enabled']) {
+		if (!$config->isEnabled()) {
 			// TRANSLATORS Error shown when a signer tries to reject a document whose policy does not allow rejections.
 			throw new LibresignException($this->l10n->t('Signature rejection is not enabled for this document.'));
 		}
@@ -68,12 +68,12 @@ class SignatureRejectionService {
 		$this->assertWorkflowIsOpen($libreSignFile);
 		$this->assertSignerCanReject($signRequest);
 
-		$normalizedComment = $this->normalizeComment($comment, $policy['comment_mode']);
+		$normalizedComment = $this->normalizeComment($comment, $config->getCommentMode());
 		// A comment can carry personal or legal information, so keeping it private is
 		// always the signer's call and no policy can take that choice away.
 		$commentIsPrivate = $normalizedComment !== null && $privateComment;
 
-		$workflowCanceled = $policy['cancel_workflow'];
+		$workflowCanceled = $config->cancelsWorkflow();
 		$this->persistRejection($libreSignFile, $signRequest, $normalizedComment, $commentIsPrivate, $workflowCanceled);
 		$this->dispatchRejectedEvent($signRequest, $libreSignFile, $workflowCanceled);
 
@@ -249,8 +249,7 @@ class SignatureRejectionService {
 		}
 	}
 
-	private function normalizeComment(?string $comment, string $commentMode): ?string {
-		$mode = SignatureRejectionCommentMode::from($commentMode);
+	private function normalizeComment(?string $comment, SignatureRejectionCommentMode $mode): ?string {
 		$trimmed = $comment === null ? '' : trim($comment);
 
 		if ($mode === SignatureRejectionCommentMode::DISABLED) {

@@ -1886,16 +1886,17 @@ export type components = {
             hashOfIdentifier?: string;
             hasSignatureFile?: boolean;
         };
-        PolicySnapshotSignatureRejectionEntry: {
-            effectiveValue: components["schemas"]["PolicySnapshotSignatureRejectionValue"];
+        PolicySnapshotSignatureRejectionBehaviorEntry: {
+            effectiveValue: components["schemas"]["SignatureRejectionBehavior"];
             sourceScope: string;
         };
-        PolicySnapshotSignatureRejectionValue: {
-            enabled: boolean;
-            comment_mode: components["schemas"]["SignatureRejectionCommentMode"];
-            cancel_workflow: boolean;
-            public_status: boolean;
-            show_comment_on_validation: boolean;
+        PolicySnapshotSignatureRejectionCommentModeEntry: {
+            effectiveValue: components["schemas"]["SignatureRejectionCommentMode"];
+            sourceScope: string;
+        };
+        PolicySnapshotSignatureRejectionVisibilityEntry: {
+            effectiveValue: components["schemas"]["SignatureRejectionVisibility"];
+            sourceScope: string;
         };
         PolicySnapshotSignerGeolocationEntry: {
             effectiveValue: components["schemas"]["PolicySnapshotSignerGeolocationValue"];
@@ -2030,6 +2031,8 @@ export type components = {
             password?: components["schemas"]["SignatureMethodPassword"];
         };
         /** @enum {string} */
+        SignatureRejectionBehavior: "cancel" | "continue";
+        /** @enum {string} */
         SignatureRejectionCommentMode: "disabled" | "optional" | "required";
         SignatureRejectionResponse: {
             message: string;
@@ -2041,6 +2044,8 @@ export type components = {
             rejectedAt: string;
             workflowCanceled: boolean;
         };
+        /** @enum {string} */
+        SignatureRejectionVisibility: "requester" | "participants" | "public";
         SignerCertificateInfo: {
             serialNumber?: string;
             serialNumberHex?: string;
@@ -2200,7 +2205,11 @@ export type components = {
             identify_methods?: components["schemas"]["PolicySnapshotIdentifyMethodsEntry"];
             signer_geolocation?: components["schemas"]["PolicySnapshotSignerGeolocationEntry"];
             enable_observer_profile?: components["schemas"]["PolicySnapshotBooleanEntry"];
-            signature_rejection?: components["schemas"]["PolicySnapshotSignatureRejectionEntry"];
+            rejection_enabled?: components["schemas"]["PolicySnapshotBooleanEntry"];
+            rejection_behavior?: components["schemas"]["PolicySnapshotSignatureRejectionBehaviorEntry"];
+            rejection_comment_mode?: components["schemas"]["PolicySnapshotSignatureRejectionCommentModeEntry"];
+            rejection_visibility?: components["schemas"]["PolicySnapshotSignatureRejectionVisibilityEntry"];
+            rejection_comment_visibility?: components["schemas"]["PolicySnapshotSignatureRejectionVisibilityEntry"];
         };
         ValidatedChildFile: {
             /** Format: int64 */
