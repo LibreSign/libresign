@@ -79,7 +79,7 @@ jobs:
         run: php scripts/release/release.php collect-prs --repository "${{ github.repository }}" --branch "${{ inputs.stable_branch }}" --previous-tag "${{ steps.state.outputs.previous_tag }}" > prs.json
 
       - name: Plan release
-        run: php scripts/release/release.php plan --current-version "${{ steps.state.outputs.current_version }}" --date "$(date -u +%F)" --prs prs.json > release-plan.json
+        run: php scripts/release/release.php plan --current-version "${{ steps.state.outputs.current_version }}" --prs prs.json > release-plan.json
 
       - name: Export release plan
         id: plan
