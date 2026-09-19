@@ -14,6 +14,7 @@ use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Install\JSignPdfRelease;
 use OCA\Libresign\Service\Install\SignSetupService;
+use OCA\Libresign\Vendor\phpseclib4\File\X509;
 use OCP\App\IAppManager;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
@@ -195,6 +196,140 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$actual = $signSetupService->verify($architecture, 'java');
 		$actual = json_encode($actual);
 		$this->assertJsonStringEqualsJsonString($expected, $actual);
+	}
+
+	public function testValidateCaSignedCertificateScope(): void {
+		$configFile = $this->tempManager->getTemporaryFile('.cnf');
+
+		file_put_contents($configFile, <<<'CONFIG'
+[ req ]
+distinguished_name = req_distinguished_name
+prompt = no
+
+[ req_distinguished_name ]
+CN = LibreSign Test
+
+[ v3_ca ]
+basicConstraints = critical, CA:true
+keyUsage = critical, keyCertSign, cRLSign
+subjectKeyIdentifier = hash
+
+[ v3_leaf ]
+basicConstraints = critical, CA:false
+keyUsage = critical, digitalSignature
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+CONFIG);
+
+		$rootKey = openssl_pkey_new([
+			'private_key_bits' => 2048,
+			'private_key_type' => OPENSSL_KEYTYPE_RSA,
+		]);
+
+		$rootCsr = openssl_csr_new(
+			['commonName' => 'LibreSign Test Root'],
+			$rootKey,
+			[
+				'config' => $configFile,
+				'digest_alg' => 'sha256',
+			],
+		);
+
+		$rootCertificateResource = openssl_csr_sign(
+			$rootCsr,
+			null,
+			$rootKey,
+			1,
+			[
+				'config' => $configFile,
+				'digest_alg' => 'sha256',
+				'x509_extensions' => 'v3_ca',
+			],
+		);
+
+		$this->assertNotFalse($rootCertificateResource);
+
+		openssl_x509_export($rootCertificateResource, $rootCertificate);
+
+		$leafKey = openssl_pkey_new([
+			'private_key_bits' => 2048,
+			'private_key_type' => OPENSSL_KEYTYPE_RSA,
+		]);
+
+		$leafCsr = openssl_csr_new(
+			['commonName' => Application::APP_ID],
+			$leafKey,
+			[
+				'config' => $configFile,
+				'digest_alg' => 'sha256',
+			],
+		);
+
+		$leafCertificateResource = openssl_csr_sign(
+			$leafCsr,
+			$rootCertificateResource,
+			$rootKey,
+			1,
+			[
+				'config' => $configFile,
+				'digest_alg' => 'sha256',
+				'x509_extensions' => 'v3_leaf',
+			],
+		);
+
+		$this->assertNotFalse($leafCertificateResource);
+
+		openssl_x509_export($leafCertificateResource, $leafCertificate);
+
+		vfsStream::setup('home', null, [
+			'resources' => [
+				'codesigning' => [
+					'root.crt' => $rootCertificate,
+				],
+			],
+		]);
+
+		$this->environmentHelper
+			->method('getServerRoot')
+			->willReturn('vfs://home');
+
+		$signSetupService = $this->getInstance();
+
+		$signatureData = new \ReflectionProperty(
+			SignSetupService::class,
+			'signatureData',
+		);
+		$signatureData->setValue($signSetupService, [
+			'hashes' => [],
+			'signature' => '',
+			'certificate' => $leafCertificate,
+		]);
+
+		$getCertificate = new \ReflectionMethod(
+			SignSetupService::class,
+			'getLibresignAppCertificate',
+		);
+
+		$certificate = $getCertificate->invoke($signSetupService);
+
+		$this->assertInstanceOf(X509::class, $certificate);
+
+		$subject = $certificate->getSubjectDN(X509::DN_OPENSSL);
+
+		$this->assertIsArray($subject);
+		$this->assertSame(Application::APP_ID, $subject['CN']);
+	}
+
+	public function testChangingCertificateModeClearsCachedCertificate(): void {
+		$signSetupService = $this->writeAppSignature('x86_64', 'java');
+
+		$x509 = new \ReflectionProperty(SignSetupService::class, 'x509');
+
+		$this->assertNotNull($x509->getValue($signSetupService));
+
+		$signSetupService->willUseLocalCert(true);
+
+		$this->assertNull($x509->getValue($signSetupService));
 	}
 
 	#[DataProvider('dataGetInstallPath')]

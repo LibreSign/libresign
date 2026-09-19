@@ -99,6 +99,9 @@ class SignSetupService {
 	}
 
 	public function willUseLocalCert(bool $willUseLocalCert): void {
+		if ($this->willUseLocalCert !== $willUseLocalCert) {
+			$this->x509 = null;
+		}
 		$this->willUseLocalCert = $willUseLocalCert;
 	}
 
@@ -394,9 +397,11 @@ class SignSetupService {
 		}
 
 		// Verify if certificate has proper CN. "core" CN is always trusted.
-		if ($this->x509->getDN(X509::DN_OPENSSL)['CN'] !== Application::APP_ID && $this->x509->getDN(X509::DN_OPENSSL)['CN'] !== 'core') {
+		$subject = $this->x509->getSubjectDN(X509::DN_OPENSSL);
+		$commonName = is_array($subject) ? ($subject['CN'] ?? '') : '';
+		if ($commonName !== Application::APP_ID && $commonName !== 'core') {
 			throw new InvalidSignatureException(
-				sprintf('Certificate is not valid for required scope. (Requested: %s, current: CN=%s)', Application::APP_ID, $this->x509->getDN(X509::DN_OPENSSL)['CN'])
+				sprintf('Certificate is not valid for required scope. (Requested: %s, current: CN=%s)', Application::APP_ID, $commonName)
 			);
 		}
 
