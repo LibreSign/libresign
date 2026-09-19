@@ -2026,7 +2026,7 @@ describe('Sign.vue - required device geolocation', () => {
 			signers: [{
 				me: true,
 				sign_request_uuid: 'geo-sign-uuid',
-				metadata: { geolocationRequirement: 'required' },
+				metadata: { deviceGeolocationRequirement: 'required' },
 			}],
 		})
 
@@ -2043,7 +2043,7 @@ describe('Sign.vue - required device geolocation', () => {
 		}
 	}
 
-	it('shows the early banner when geolocationRequirement is required', async () => {
+	it('shows the early banner when deviceGeolocationRequirement is required', async () => {
 		const { wrapper } = await mountSignWithRequiredGeolocation()
 		expect(wrapper.vm.requiresDeviceGeolocation).toBe(true)
 		expect(wrapper.vm.geolocationRequiredBannerText).toContain('Device-reported location is required')
@@ -2093,7 +2093,7 @@ describe('Sign.vue - required device geolocation', () => {
 		expect(submitSignatureMock).toHaveBeenCalledWith(
 			expect.objectContaining({
 				method: 'clickToSign',
-				geolocation: {
+				deviceGeolocation: {
 					status: 'collected',
 					latitude: -23.55,
 					longitude: -46.63,
@@ -2210,7 +2210,7 @@ describe('Sign.vue - required device geolocation', () => {
 			signers: [{
 				me: true,
 				sign_request_uuid: 'geo-sign-uuid',
-				metadata: { geolocationRequirement: 'disabled' },
+				metadata: { deviceGeolocationRequirement: 'disabled' },
 			}],
 		})
 		const submitSignatureMock = vi.fn().mockResolvedValue({ status: 'signed', data: {} })

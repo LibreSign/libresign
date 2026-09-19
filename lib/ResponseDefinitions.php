@@ -50,13 +50,41 @@ namespace OCA\Libresign;
  * @psalm-type LibresignParticipantRole = 'signer'|'observer'
  * @psalm-type LibresignGeolocationCollectionStatus = 'collected'|'denied'|'unavailable'|'skipped'
  * @psalm-type LibresignSignerGeolocationPolicyMode = 'disabled'|'optional'|'required'
+ * @psalm-type LibresignSignerIpGeolocationPolicyMode = 'disabled'|'enabled'
  * @psalm-type LibresignGeolocationRequirement = 'disabled'|'required'
- * @psalm-type LibresignSignerGeolocation = array{
+ * @psalm-type LibresignSignerIpGeolocationStatus = 'resolved'|'not_found'|'unavailable'
+ * @psalm-type LibresignSignerIpGeolocationUnavailableReason = 'database_not_ready'|'address_unavailable'|'lookup_failed'
+ * @psalm-type LibresignGeoIpDatabaseStatus = 'not_configured'|'not_found'|'not_readable'|'invalid_database'|'unsupported_database'|'ready'
+ * @psalm-type LibresignSignerDeviceGeolocation = array{
  *     status: LibresignGeolocationCollectionStatus,
  *     latitude?: float,
  *     longitude?: float,
  *     accuracy?: float,
  *     timestamp?: int,
+ * }
+ * @psalm-type LibresignSignerIpGeolocation = array{
+ *     status: LibresignSignerIpGeolocationStatus,
+ *     sourceIp?: string,
+ *     countryCode?: string,
+ *     country?: string,
+ *     regionCode?: string,
+ *     region?: string,
+ *     city?: string,
+ *     latitude?: float,
+ *     longitude?: float,
+ *     accuracyRadius?: int,
+ *     reason?: LibresignSignerIpGeolocationUnavailableReason,
+ * }
+ * @psalm-type LibresignSignerGeolocation = array{
+ *     device?: LibresignSignerDeviceGeolocation,
+ *     ip?: LibresignSignerIpGeolocation,
+ * }
+ * @psalm-type LibresignGeoIpConfig = array{
+ *     path: ?string,
+ *     status: LibresignGeoIpDatabaseStatus,
+ *     databaseType?: string,
+ *     buildEpoch?: int,
+ *     modifiedAt?: string,
  * }
  * @psalm-type LibresignNewSigner = array{
  *     identifyMethods: list<array{
@@ -70,7 +98,7 @@ namespace OCA\Libresign;
  *     signingOrder?: non-negative-int,
  *     status?: int,
  *     participantRole?: LibresignParticipantRole,
- *     geolocationRequired?: bool,
+ *     deviceGeolocationRequired?: bool,
  * }
  * @psalm-type LibresignNewFile = array{
  *     base64?: string,
@@ -198,7 +226,7 @@ namespace OCA\Libresign;
  * @psalm-type LibresignSignerMetadata = array{
  *     remote-address?: string,
  *     user-agent?: string,
- *     geolocationRequirement?: LibresignGeolocationRequirement,
+ *     deviceGeolocationRequirement?: LibresignGeolocationRequirement,
  *     geolocation?: LibresignSignerGeolocation,
  *     notify?: LibresignNotify[],
  *     certificate_info?: LibresignSignerCertificateInfo,
@@ -557,6 +585,13 @@ namespace OCA\Libresign;
  *     effectiveValue: LibresignPolicySnapshotSignerGeolocationValue,
  *     sourceScope: string,
  * }
+ * @psalm-type LibresignPolicySnapshotSignerIpGeolocationValue = array{
+ *     mode: LibresignSignerIpGeolocationPolicyMode,
+ * }
+ * @psalm-type LibresignPolicySnapshotSignerIpGeolocationEntry = array{
+ *     effectiveValue: LibresignPolicySnapshotSignerIpGeolocationValue,
+ *     sourceScope: string,
+ * }
  * @psalm-type LibresignSignatureRejectionCommentMode = 'disabled'|'optional'|'required'
  * @psalm-type LibresignPolicySnapshotSignatureRejectionValue = array{
  *     enabled: bool,
@@ -576,7 +611,8 @@ namespace OCA\Libresign;
  *     legal_information?: LibresignPolicySnapshotLegalInformationEntry,
  *     identification_documents?: LibresignPolicySnapshotIdentificationDocumentsEntry,
  *     identify_methods?: LibresignPolicySnapshotIdentifyMethodsEntry,
- *     signer_geolocation?: LibresignPolicySnapshotSignerGeolocationEntry,
+ *     signer_device_geolocation?: LibresignPolicySnapshotSignerGeolocationEntry,
+ *     signer_ip_geolocation?: LibresignPolicySnapshotSignerIpGeolocationEntry,
  *     enable_observer_profile?: LibresignPolicySnapshotBooleanEntry,
  *     signature_rejection?: LibresignPolicySnapshotSignatureRejectionEntry,
  * }

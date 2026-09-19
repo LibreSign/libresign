@@ -199,6 +199,31 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/geoip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get GeoIP database configuration and status
+         * @description This endpoint requires admin access
+         */
+        get: operations["admin-get-geo-ip-config"];
+        put?: never;
+        /**
+         * Save GeoIP database path
+         * @description An empty path clears the configuration. The path may be saved even when the database file is not available yet; the returned status describes the current filesystem state.
+         *     This endpoint requires admin access
+         */
+        post: operations["admin-save-geo-ip-config"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/crl/list": {
         parameters: {
             query?: never;
@@ -447,6 +472,16 @@ export type components = {
             status: "failure";
             message: string;
         };
+        GeoIpConfig: {
+            path: string | null;
+            status: components["schemas"]["GeoIpDatabaseStatus"];
+            databaseType?: string;
+            /** Format: int64 */
+            buildEpoch?: number;
+            modifiedAt?: string;
+        };
+        /** @enum {string} */
+        GeoIpDatabaseStatus: "not_configured" | "not_found" | "not_readable" | "invalid_database" | "unsupported_database" | "ready";
         HasRootCertResponse: {
             hasRootCert: boolean;
         };
@@ -1038,6 +1073,76 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-get-geo-ip-config": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description GeoIP configuration */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["GeoIpConfig"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-save-geo-ip-config": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description Absolute path to a MaxMind City database, or empty to clear
+                     * @default
+                     */
+                    path?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description GeoIP configuration saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["GeoIpConfig"];
                         };
                     };
                 };

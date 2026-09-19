@@ -15,6 +15,8 @@ use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\ActiveSigningsService;
 use OCA\Libresign\Service\Certificate\ValidateService;
 use OCA\Libresign\Service\CertificatePolicyService;
+use OCA\Libresign\Service\GeoIp\GeoIpConfigService;
+use OCA\Libresign\Service\GeoIp\GeoIpDatabaseStatusService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\SetupCheckResultService;
@@ -49,6 +51,7 @@ use UnexpectedValueException;
  * @psalm-import-type LibresignFailureStatusResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignActiveSigningsResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignRootCertificate from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignGeoIpConfig from \OCA\Libresign\ResponseDefinitions
  */
 class AdminController extends AEnvironmentAwareController {
 	use UploadValidator;
@@ -68,6 +71,8 @@ class AdminController extends AEnvironmentAwareController {
 		private IdentifyMethodService $identifyMethodService,
 		private ActiveSigningsService $activeSigningsService,
 		private SetupCheckResultService $setupCheckResultService,
+		private GeoIpConfigService $geoIpConfigService,
+		private GeoIpDatabaseStatusService $geoIpDatabaseStatusService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->eventSource = $this->eventSourceFactory->create();
@@ -469,5 +474,36 @@ class AdminController extends AEnvironmentAwareController {
 				'error' => $e->getMessage(),
 			], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	/**
+	 * Get GeoIP database configuration and status
+	 *
+	 * @return DataResponse<Http::STATUS_OK, LibresignGeoIpConfig, array{}>
+	 *
+	 * 200: GeoIP configuration
+	 */
+	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/geoip', requirements: ['apiVersion' => '(v1)'])]
+	public function getGeoIpConfig(): DataResponse {
+		return new DataResponse($this->geoIpDatabaseStatusService->getStatus());
+	}
+
+	/**
+	 * Save GeoIP database path
+	 *
+	 * An empty path clears the configuration. The path may be saved even when the
+	 * database file is not available yet; the returned status describes the current
+	 * filesystem state.
+	 *
+	 * @param string $path Absolute path to a MaxMind City database, or empty to clear
+	 * @return DataResponse<Http::STATUS_OK, LibresignGeoIpConfig, array{}>
+	 *
+	 * 200: GeoIP configuration saved
+	 */
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/geoip', requirements: ['apiVersion' => '(v1)'])]
+	public function saveGeoIpConfig(string $path = ''): DataResponse {
+		$this->geoIpConfigService->setDatabasePath($path === '' ? null : $path);
+		return new DataResponse($this->geoIpDatabaseStatusService->getStatus());
 	}
 }

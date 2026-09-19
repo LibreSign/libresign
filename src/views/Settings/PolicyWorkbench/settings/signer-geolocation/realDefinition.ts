@@ -13,7 +13,7 @@ import type { RealPolicySettingDefinition } from '../realTypes'
 export { normalizeSignerGeolocationValue, resolveSignerGeolocationMode } from './model'
 
 export const signerGeolocationRealDefinition: RealPolicySettingDefinition = {
-	key: 'signer_geolocation',
+	key: 'signer_device_geolocation',
 	// TRANSLATORS Policy title for device-reported location during signing.
 	title: t('libresign', 'Signer geolocation'),
 	// TRANSLATORS Policy description: optional lets requesters require device location per signer; it is not automatic soft collection.

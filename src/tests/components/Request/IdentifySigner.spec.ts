@@ -43,9 +43,9 @@ type SignerToEdit = {
 	displayName?: string
 	description?: string
 	identifyMethods?: Array<{ method: string; value: string }>
-	geolocationRequired?: boolean
+	deviceGeolocationRequired?: boolean
 	metadata?: {
-		geolocationRequirement?: string
+		deviceGeolocationRequirement?: string
 	}
 }
 
@@ -62,7 +62,7 @@ type IdentifySignerVm = {
 	displayName: string
 	description: string
 	enableCustomMessage: boolean
-	geolocationRequired: boolean
+	deviceGeolocationRequired: boolean
 	showGeolocationRequirementToggle: boolean
 	identify: string
 	identifyMethod?: IdentifyAccountRecord['method']
@@ -694,7 +694,7 @@ describe('IdentifySigner rules', () => {
 			wrapper = createWrapper()
 
 			expect(wrapper.vm.showGeolocationRequirementToggle).toBe(true)
-			expect(wrapper.vm.geolocationRequired).toBe(false)
+			expect(wrapper.vm.deviceGeolocationRequired).toBe(false)
 		})
 
 		it('prefers the file policy snapshot over the current effective policy', () => {
@@ -703,8 +703,26 @@ describe('IdentifySigner rules', () => {
 				signers: [],
 				metadata: {
 					policy_snapshot: {
-						signer_geolocation: {
+						signer_device_geolocation: {
 							effectiveValue: { mode: 'optional' },
+							sourceScope: 'system',
+						},
+					},
+				},
+			})
+			wrapper = createWrapper()
+
+			expect(wrapper.vm.showGeolocationRequirementToggle).toBe(true)
+		})
+
+		it('falls back to the live policy when snapshot exists but device geolocation is absent', () => {
+			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'optional' })
+			filesStore.getFile.mockReturnValue({
+				signers: [],
+				metadata: {
+					policy_snapshot: {
+						enable_observer_profile: {
+							effectiveValue: { enabled: true },
 							sourceScope: 'system',
 						},
 					},
@@ -721,7 +739,7 @@ describe('IdentifySigner rules', () => {
 				signers: [],
 				metadata: {
 					policy_snapshot: {
-						signer_geolocation: {
+						signer_device_geolocation: {
 							effectiveValue: { mode: 'disabled' },
 							sourceScope: 'system',
 						},
@@ -733,37 +751,37 @@ describe('IdentifySigner rules', () => {
 			expect(wrapper.vm.showGeolocationRequirementToggle).toBe(false)
 		})
 
-		it('persists geolocationRequired when optional mode is active', async () => {
+		it('persists deviceGeolocationRequired when optional mode is active', async () => {
 			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'optional' })
 			wrapper = createWrapper()
 			wrapper.vm.identifyMethod = 'email'
 			wrapper.vm.identify = 'john@example.com'
 			wrapper.vm.displayName = 'John'
-			wrapper.vm.geolocationRequired = true
+			wrapper.vm.deviceGeolocationRequired = true
 
 			await wrapper.vm.saveSigner()
 
 			expect(filesStore.saveOrUpdateSignatureRequest).toHaveBeenCalledWith({
 				signers: [expect.objectContaining({
-					geolocationRequired: true,
+					deviceGeolocationRequired: true,
 				})],
 			})
 		})
 
-		it('does not send geolocationRequired when mode is not optional', async () => {
+		it('does not send deviceGeolocationRequired when mode is not optional', async () => {
 			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'disabled' })
 			wrapper = createWrapper()
 			wrapper.vm.identifyMethod = 'email'
 			wrapper.vm.identify = 'john@example.com'
 			wrapper.vm.displayName = 'John'
-			wrapper.vm.geolocationRequired = true
+			wrapper.vm.deviceGeolocationRequired = true
 
 			await wrapper.vm.saveSigner()
 
 			const payload = filesStore.saveOrUpdateSignatureRequest.mock.calls[0]?.[0] as {
 				signers: Array<Record<string, unknown>>
 			}
-			expect(payload.signers[0]).not.toHaveProperty('geolocationRequired')
+			expect(payload.signers[0]).not.toHaveProperty('deviceGeolocationRequired')
 		})
 
 		it('restores the toggle from frozen signer metadata when editing', () => {
@@ -772,11 +790,11 @@ describe('IdentifySigner rules', () => {
 				signerToEdit: {
 					displayName: 'John',
 					identifyMethods: [{ method: 'email', value: 'john@example.com' }],
-					metadata: { geolocationRequirement: 'required' },
+					metadata: { deviceGeolocationRequirement: 'required' },
 				},
 			})
 
-			expect(wrapper.vm.geolocationRequired).toBe(true)
+			expect(wrapper.vm.deviceGeolocationRequired).toBe(true)
 		})
 	})
 })

@@ -32,7 +32,7 @@ export type SubmitSignaturePayload = {
 		documentElementId: number
 		profileNodeId?: number
 	}>
-	geolocation?: CollectedGeolocation
+	deviceGeolocation?: CollectedGeolocation
 }
 
 export type SignatureMethodConfig = {

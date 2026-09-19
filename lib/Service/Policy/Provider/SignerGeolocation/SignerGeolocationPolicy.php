@@ -18,8 +18,8 @@ use OCA\Libresign\Service\Policy\Provider\Helper\DelegationLayerHelper;
 use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
 
 final class SignerGeolocationPolicy implements IPolicyDefinitionProvider {
-	public const KEY = 'signer_geolocation';
-	public const SYSTEM_APP_CONFIG_KEY = 'signer_geolocation';
+	public const KEY = 'signer_device_geolocation';
+	public const SYSTEM_APP_CONFIG_KEY = 'signer_device_geolocation';
 
 	#[\Override]
 	public function keys(): array {

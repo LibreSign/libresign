@@ -208,7 +208,7 @@ final class SignRequestServiceTest extends TestCase {
 		$callOrder = [];
 		$afterPersist = static function (SignRequestEntity $signRequest) use (&$callOrder): void {
 			$callOrder[] = 'afterPersist';
-			$signRequest->setMetadata(['geolocationRequirement' => 'required']);
+			$signRequest->setMetadata(['deviceGeolocationRequirement' => 'required']);
 		};
 
 		$identifyMethod->expects($this->once())

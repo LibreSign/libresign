@@ -1662,7 +1662,7 @@
                     "participantRole": {
                         "$ref": "#/components/schemas/ParticipantRole"
                     },
-                    "geolocationRequired": {
+                    "deviceGeolocationRequired": {
                         "type": "boolean"
                     }
                 }
@@ -2018,6 +2018,32 @@
                 "properties": {
                     "mode": {
                         "$ref": "#/components/schemas/SignerGeolocationPolicyMode"
+                    }
+                }
+            },
+            "PolicySnapshotSignerIpGeolocationEntry": {
+                "type": "object",
+                "required": [
+                    "effectiveValue",
+                    "sourceScope"
+                ],
+                "properties": {
+                    "effectiveValue": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignerIpGeolocationValue"
+                    },
+                    "sourceScope": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PolicySnapshotSignerIpGeolocationValue": {
+                "type": "object",
+                "required": [
+                    "mode"
+                ],
+                "properties": {
+                    "mode": {
+                        "$ref": "#/components/schemas/SignerIpGeolocationPolicyMode"
                     }
                 }
             },
@@ -2541,7 +2567,7 @@
                     }
                 ]
             },
-            "SignerGeolocation": {
+            "SignerDeviceGeolocation": {
                 "type": "object",
                 "required": [
                     "status"
@@ -2568,12 +2594,90 @@
                     }
                 }
             },
+            "SignerGeolocation": {
+                "type": "object",
+                "properties": {
+                    "device": {
+                        "$ref": "#/components/schemas/SignerDeviceGeolocation"
+                    },
+                    "ip": {
+                        "$ref": "#/components/schemas/SignerIpGeolocation"
+                    }
+                }
+            },
             "SignerGeolocationPolicyMode": {
                 "type": "string",
                 "enum": [
                     "disabled",
                     "optional",
                     "required"
+                ]
+            },
+            "SignerIpGeolocation": {
+                "type": "object",
+                "required": [
+                    "status"
+                ],
+                "properties": {
+                    "status": {
+                        "$ref": "#/components/schemas/SignerIpGeolocationStatus"
+                    },
+                    "sourceIp": {
+                        "type": "string"
+                    },
+                    "countryCode": {
+                        "type": "string"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "regionCode": {
+                        "type": "string"
+                    },
+                    "region": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "longitude": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "accuracyRadius": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "reason": {
+                        "$ref": "#/components/schemas/SignerIpGeolocationUnavailableReason"
+                    }
+                }
+            },
+            "SignerIpGeolocationPolicyMode": {
+                "type": "string",
+                "enum": [
+                    "disabled",
+                    "enabled"
+                ]
+            },
+            "SignerIpGeolocationStatus": {
+                "type": "string",
+                "enum": [
+                    "resolved",
+                    "not_found",
+                    "unavailable"
+                ]
+            },
+            "SignerIpGeolocationUnavailableReason": {
+                "type": "string",
+                "enum": [
+                    "database_not_ready",
+                    "address_unavailable",
+                    "lookup_failed"
                 ]
             },
             "SignerMetadata": {
@@ -2585,7 +2689,7 @@
                     "user-agent": {
                         "type": "string"
                     },
-                    "geolocationRequirement": {
+                    "deviceGeolocationRequirement": {
                         "$ref": "#/components/schemas/GeolocationRequirement"
                     },
                     "geolocation": {
@@ -2910,8 +3014,11 @@
                     "identify_methods": {
                         "$ref": "#/components/schemas/PolicySnapshotIdentifyMethodsEntry"
                     },
-                    "signer_geolocation": {
+                    "signer_device_geolocation": {
                         "$ref": "#/components/schemas/PolicySnapshotSignerGeolocationEntry"
+                    },
+                    "signer_ip_geolocation": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignerIpGeolocationEntry"
                     },
                     "enable_observer_profile": {
                         "$ref": "#/components/schemas/PolicySnapshotBooleanEntry"
@@ -9471,7 +9578,7 @@
                                     "signers": {
                                         "type": "array",
                                         "default": [],
-                                        "description": "Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, geolocationRequired",
+                                        "description": "Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired",
                                         "items": {
                                             "$ref": "#/components/schemas/NewSigner"
                                         }
@@ -10148,7 +10255,7 @@
                                         "default": false,
                                         "description": "Execute signing asynchronously when possible"
                                     },
-                                    "geolocation": {
+                                    "deviceGeolocation": {
                                         "type": "object",
                                         "default": {},
                                         "description": "Device-reported geolocation metadata submitted by the signing client",
@@ -10312,7 +10419,7 @@
                                         "default": false,
                                         "description": "Execute signing asynchronously when possible"
                                     },
-                                    "geolocation": {
+                                    "deviceGeolocation": {
                                         "type": "object",
                                         "default": {},
                                         "description": "Device-reported geolocation metadata submitted by the signing client",
