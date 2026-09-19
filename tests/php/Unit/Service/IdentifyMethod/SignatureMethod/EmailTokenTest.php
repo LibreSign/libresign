@@ -9,11 +9,15 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\AbstractIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
+use OCP\IUser;
+use OCP\IUserManager;
 use OCP\L10N\IFactory as IL10NFactory;
 use OCP\Security\IHasher;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -27,7 +31,7 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$identifyService = $this->createMock(IdentifyService::class);
 		$identifyService = $this->getMockBuilder(IdentifyService::class)
 			->disableOriginalConstructor()
-			->onlyMethods(['getHasher', 'getL10n'])
+			->onlyMethods(['getHasher', 'getL10n', 'getSignRequestMapper', 'getUserManager', 'save'])
 			->getMock();
 		$identifyService->method('getL10n')->willReturn(
 			\OCP\Server::get(IL10NFactory::class)->get(\OCA\Libresign\AppInfo\Application::APP_ID)
@@ -68,6 +72,131 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['valiD@Domain.coop', 'val***@***.coop', md5('valid@domain.coop')],
 			['VALID@DOMAIN.COOP', 'val***@***.coop', md5('valid@domain.coop')],
 		];
+	}
+
+	public function testRequestCodeDoesNotAcceptCallerControlledDestination(): void {
+		$method = new \ReflectionMethod(EmailToken::class, 'requestCode');
+
+		$this->assertCount(0, $method->getParameters());
+	}
+
+	public function testRequestCodeUsesPersistedEmail(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setDisplayName('John Doe');
+
+		$signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$signRequestMapper->method('getById')
+			->with(171)
+			->willReturn($signRequest);
+
+		$this->identifyService
+			->method('getSignRequestMapper')
+			->willReturn($signRequestMapper);
+
+		$this->tokenService->expects($this->once())
+			->method('sendCodeByEmail')
+			->with('victim@example.test', 'John Doe')
+			->willReturn('hashed-code');
+
+		$instance = $this->getClass();
+
+		$identifyMethod = (new IdentifyMethod())->fromParams([
+			'identifierKey' => 'email',
+			'identifierValue' => 'victim@example.test',
+			'signRequestId' => 171,
+		]);
+
+		$instance->setEntity($identifyMethod);
+
+		$this->identifyService->expects($this->once())
+			->method('save')
+			->with($identifyMethod);
+
+		$instance->requestCode();
+
+		$this->assertSame('hashed-code', $identifyMethod->getCode());
+	}
+
+	public function testRequestCodeUsesServerSideAccountEmail(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getEMailAddress')->willReturn('account@example.test');
+
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->expects($this->once())
+			->method('get')
+			->with('joao')
+			->willReturn($user);
+
+		$this->identifyService
+			->method('getUserManager')
+			->willReturn($userManager);
+
+		$signRequest = new SignRequest();
+		$signRequest->setDisplayName('John Doe');
+
+		$signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$signRequestMapper->method('getById')
+			->with(171)
+			->willReturn($signRequest);
+
+		$this->identifyService
+			->method('getSignRequestMapper')
+			->willReturn($signRequestMapper);
+
+		$this->tokenService->expects($this->once())
+			->method('sendCodeByEmail')
+			->with('account@example.test', 'John Doe')
+			->willReturn('hashed-code');
+
+		$instance = $this->getClass();
+
+		$identifyMethod = (new IdentifyMethod())->fromParams([
+			'identifierKey' => 'account',
+			'identifierValue' => 'joao',
+			'signRequestId' => 171,
+		]);
+
+		$instance->setEntity($identifyMethod);
+
+		$this->identifyService->expects($this->once())
+			->method('save')
+			->with($identifyMethod);
+
+		$instance->requestCode();
+
+		$this->assertSame('hashed-code', $identifyMethod->getCode());
+	}
+
+	public function testRequestCodeFailsClosedWhenAccountHasNoEmail(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getEMailAddress')->willReturn(null);
+
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->expects($this->once())
+			->method('get')
+			->with('joao')
+			->willReturn($user);
+
+		$this->identifyService
+			->method('getUserManager')
+			->willReturn($userManager);
+
+		$this->tokenService->expects($this->never())
+			->method('sendCodeByEmail');
+
+		$instance = $this->getClass();
+		$instance->setEntity(
+			(new IdentifyMethod())->fromParams([
+				'identifierKey' => 'account',
+				'identifierValue' => 'joao',
+				'signRequestId' => 171,
+			])
+		);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Unable to send verification code.');
+
+		$instance->requestCode();
 	}
 
 	public function testValidateToSignWithWrongCodeThrows(): void {
