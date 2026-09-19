@@ -8,26 +8,92 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/CommandRunner.php';
+require_once __DIR__ . '/NativeCommandRunner.php';
 require_once __DIR__ . '/ReleasePlanner.php';
 require_once __DIR__ . '/ReleaseFiles.php';
+require_once __DIR__ . '/ReleaseRepository.php';
+require_once __DIR__ . '/GitHubReleaseManager.php';
 
+use LibreSign\Release\GitHubReleaseManager;
+use LibreSign\Release\NativeCommandRunner;
 use LibreSign\Release\ReleaseFiles;
 use LibreSign\Release\ReleasePlanner;
+use LibreSign\Release\ReleaseRepository;
 
 $command = $argv[1] ?? 'help';
 $args = array_slice($argv, 2);
 
 try {
 	match ($command) {
+		'inspect' => inspectRepository($args),
+		'pending-backports' => pendingBackports($args),
+		'milestone' => resolveMilestone($args),
+		'collect-prs' => collectPullRequests($args),
 		'plan' => plan($args),
 		'apply' => apply($args),
 		'validate-files' => validateFiles($args),
 		'release-notes' => releaseNotes($args),
+		'check-pr-scope' => checkPullRequestScope($args),
+		'draft' => createOrUpdateDraft($args),
+		'summary' => summary($args),
 		default => usage($command === 'help' ? 0 : 2),
 	};
 } catch (Throwable $e) {
 	fwrite(STDERR, $e->getMessage() . "\n");
 	exit(1);
+}
+
+/** @param list<string> $args */
+function inspectRepository(array $args): never {
+	$options = parseOptions($args);
+	$root = $options['root'] ?? '.';
+	$result = repository()->inspect($root);
+	writeJson($result);
+}
+
+/** @param list<string> $args */
+function pendingBackports(array $args): never {
+	$options = parseOptions($args);
+	$repository = required($options, 'repository');
+	$items = repository()->pendingBackports($repository);
+
+	if ($items !== []) {
+		$lines = array_map(
+			static fn (array $item): string => sprintf('#%d %s', $item['number'], $item['title']),
+			$items,
+		);
+		throw new RuntimeException(
+			"Pending backport requests must be resolved before preparing a release:\n" . implode("\n", $lines),
+		);
+	}
+
+	writeJson([]);
+}
+
+/** @param list<string> $args */
+function resolveMilestone(array $args): never {
+	$options = parseOptions($args);
+	$repositoryName = required($options, 'repository');
+	$branch = required($options, 'branch');
+	$stableNumber = stableNumber($branch);
+	writeJson(repository()->nextPatchMilestone($repositoryName, $stableNumber));
+}
+
+/** @param list<string> $args */
+function collectPullRequests(array $args): never {
+	$options = parseOptions($args);
+	$root = $options['root'] ?? '.';
+	$repositoryName = required($options, 'repository');
+	$branch = required($options, 'branch');
+	$previousTag = required($options, 'previous-tag');
+
+	writeJson(repository()->collectPullRequests(
+		$root,
+		$repositoryName,
+		$branch,
+		$previousTag,
+	));
 }
 
 /** @param list<string> $args */
@@ -37,23 +103,21 @@ function plan(array $args): never {
 	$prsFile = required($options, 'prs');
 	$date = $options['date'] ?? gmdate('Y-m-d');
 
-	$pullRequests = json_decode((string)file_get_contents($prsFile), true, flags: JSON_THROW_ON_ERROR);
-	if (!is_array($pullRequests)) {
+	$pullRequests = readJsonFile($prsFile);
+	if (!array_is_list($pullRequests)) {
 		throw new RuntimeException('Pull request input must be a JSON array');
 	}
 
 	$result = (new ReleasePlanner())->plan($currentVersion, $pullRequests, $date);
-	echo json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
-	exit(0);
+	writeJson($result);
 }
 
 /** @param list<string> $args */
 function apply(array $args): never {
 	$options = parseOptions($args);
 	$root = $options['root'] ?? '.';
-	$planFile = required($options, 'plan');
-	$plan = json_decode((string)file_get_contents($planFile), true, flags: JSON_THROW_ON_ERROR);
-	if (!is_array($plan) || !isset($plan['nextVersion'], $plan['changelog'])) {
+	$plan = readJsonFile(required($options, 'plan'));
+	if (!isset($plan['nextVersion'], $plan['changelog'])) {
 		throw new RuntimeException('Invalid release plan');
 	}
 
@@ -80,13 +144,66 @@ function releaseNotes(array $args): never {
 	$version = required($options, 'version');
 	$previous = required($options, 'previous');
 	$target = required($options, 'target');
-	$repository = required($options, 'repository');
+	$repositoryName = required($options, 'repository');
 
 	$section = (new ReleaseFiles())->changelogSection($root, $version);
 	echo "## What's Changed\n";
 	echo $section . "\n\n";
-	echo "**Full Changelog:** https://github.com/{$repository}/compare/{$previous}...{$target}\n";
+	echo "**Full Changelog:** https://github.com/{$repositoryName}/compare/{$previous}...{$target}\n";
 	exit(0);
+}
+
+/** @param list<string> $args */
+function checkPullRequestScope(array $args): never {
+	$options = parseOptions($args);
+	$repositoryName = required($options, 'repository');
+	$pullRequest = (int)required($options, 'pr');
+	if ($pullRequest <= 0) {
+		throw new InvalidArgumentException('--pr must be a positive integer');
+	}
+
+	manager()->assertPullRequestScope($repositoryName, $pullRequest);
+	exit(0);
+}
+
+/** @param list<string> $args */
+function createOrUpdateDraft(array $args): never {
+	$options = parseOptions($args);
+	manager()->createOrUpdateDraft(
+		required($options, 'repository'),
+		required($options, 'tag'),
+		required($options, 'target'),
+		required($options, 'notes-file'),
+	);
+	exit(0);
+}
+
+/** @param list<string> $args */
+function summary(array $args): never {
+	$options = parseOptions($args);
+	$state = readJsonFile(required($options, 'state'));
+	$plan = readJsonFile(required($options, 'plan'));
+	$milestone = readJsonFile(required($options, 'milestone'));
+	$branch = required($options, 'branch');
+
+	printf("## Release preparation plan\n\n");
+	printf("- Branch: %s\n", $branch);
+	printf("- Previous release: %s\n", $state['previousTag'] ?? '');
+	printf("- Proposed version: %s\n", $plan['nextVersion'] ?? '');
+	printf("- Bump: %s\n", $plan['bump'] ?? '');
+	printf("- Target commit: %s\n", $state['headSha'] ?? '');
+	printf("- Milestone: %s\n\n", $milestone['title'] ?? '');
+	printf("### Generated changelog\n\n%s", $plan['changelog'] ?? '');
+	exit(0);
+}
+
+function repository(): ReleaseRepository {
+	$runner = new NativeCommandRunner();
+	return new ReleaseRepository($runner);
+}
+
+function manager(): GitHubReleaseManager {
+	return new GitHubReleaseManager(new NativeCommandRunner());
 }
 
 /**
@@ -118,12 +235,41 @@ function required(array $options, string $name): string {
 	return $options[$name];
 }
 
+/** @return array<mixed> */
+function readJsonFile(string $path): array {
+	$data = json_decode((string)file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
+	if (!is_array($data)) {
+		throw new RuntimeException("Invalid JSON file: {$path}");
+	}
+	return $data;
+}
+
+/** @param array<mixed> $value */
+function writeJson(array $value): never {
+	echo json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
+	exit(0);
+}
+
+function stableNumber(string $branch): int {
+	if (!preg_match('/^stable(?<number>\d+)$/', $branch, $matches)) {
+		throw new InvalidArgumentException('Branch must match stableNN');
+	}
+	return (int)$matches['number'];
+}
+
 function usage(int $exitCode): never {
 	echo "LibreSign release CLI\n\n";
 	echo "Commands:\n";
+	echo "  inspect [--root PATH]\n";
+	echo "  pending-backports --repository OWNER/REPO\n";
+	echo "  milestone --repository OWNER/REPO --branch stableNN\n";
+	echo "  collect-prs --repository OWNER/REPO --branch stableNN --previous-tag TAG [--root PATH]\n";
 	echo "  plan --current-version X.Y.Z --prs prs.json [--date YYYY-MM-DD]\n";
 	echo "  apply --plan release-plan.json [--root PATH]\n";
 	echo "  validate-files --version X.Y.Z [--root PATH]\n";
 	echo "  release-notes --version X.Y.Z --previous TAG --target SHA --repository OWNER/REPO [--root PATH]\n";
+	echo "  check-pr-scope --repository OWNER/REPO --pr NUMBER\n";
+	echo "  draft --repository OWNER/REPO --tag TAG --target SHA --notes-file FILE\n";
+	echo "  summary --state state.json --plan release-plan.json --milestone milestone.json --branch stableNN\n";
 	exit($exitCode);
 }
