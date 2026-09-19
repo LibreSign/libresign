@@ -157,17 +157,20 @@ final class MilestoneManager {
 			'gh',
 			'api',
 			'--paginate',
+			'--slurp',
 			sprintf('repos/%s/issues?state=open&milestone=%d&per_page=100', $repository, $milestone),
 		]);
-		$data = json_decode($json === '' ? '[]' : $json, true, flags: JSON_THROW_ON_ERROR);
+		$pages = json_decode($json === '' ? '[]' : $json, true, flags: JSON_THROW_ON_ERROR);
 
 		$result = [];
-		foreach (is_array($data) ? $data : [] as $item) {
-			if (is_array($item)) {
-				$result[] = [
-					'number' => (int)($item['number'] ?? 0),
-					'title' => (string)($item['title'] ?? ''),
-				];
+		foreach (is_array($pages) ? $pages : [] as $page) {
+			foreach (is_array($page) ? $page : [] as $item) {
+				if (is_array($item)) {
+					$result[] = [
+						'number' => (int)($item['number'] ?? 0),
+						'title' => (string)($item['title'] ?? ''),
+					];
+				}
 			}
 		}
 		return $result;
