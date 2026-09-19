@@ -32,14 +32,10 @@ final class MilestoneManager {
 		$milestones = $this->milestones($repository, 'all');
 		$releaseMilestone = $this->findByTitle($milestones, 'v' . $version);
 
+		$needsRename = false;
 		if ($releaseMilestone === null) {
 			$releaseMilestone = $this->findOpenNextPatch($milestones, $stableNumber);
-			$this->patchMilestone(
-				$repository,
-				(int)$releaseMilestone['number'],
-				['title' => 'v' . $version],
-			);
-			$releaseMilestone['title'] = 'v' . $version;
+			$needsRename = true;
 		}
 
 		$releaseNumber = (int)$releaseMilestone['number'];
@@ -53,6 +49,15 @@ final class MilestoneManager {
 					$openItems,
 				)),
 			));
+		}
+
+		if ($needsRename) {
+			$this->patchMilestone(
+				$repository,
+				$releaseNumber,
+				['title' => 'v' . $version],
+			);
+			$releaseMilestone['title'] = 'v' . $version;
 		}
 
 		if (!$finalStableRelease) {
