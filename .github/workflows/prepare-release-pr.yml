@@ -1,0 +1,253 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Prepare release PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      stable_branch:
+        description: Stable branch to prepare (for example stable35)
+        required: true
+        type: string
+      dry_run:
+        description: Analyze only, without creating or updating a pull request
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: prepare-release-pr-${{ inputs.stable_branch }}
+  cancel-in-progress: false
+
+jobs:
+  analyze:
+    name: Analyze release
+    runs-on: ubuntu-latest
+    outputs:
+      current_version: ${{ steps.release.outputs.current_version }}
+      next_version: ${{ steps.plan.outputs.next_version }}
+      bump: ${{ steps.plan.outputs.bump }}
+      previous_tag: ${{ steps.release.outputs.previous_tag }}
+      head_sha: ${{ steps.release.outputs.head_sha }}
+
+    steps:
+      - name: Validate stable branch
+        env:
+          STABLE_BRANCH: ${{ inputs.stable_branch }}
+        run: |
+          if ! [[ "$STABLE_BRANCH" =~ ^stable[0-9]+$ ]]; then
+            echo "::error::stable_branch must match stableNN"
+            exit 1
+          fi
+
+      - name: Checkout stable branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.stable_branch }}
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Resolve release range
+        id: release
+        run: |
+          set -eu
+
+          previous_tag=$(git describe --tags --match 'v[0-9]*' --abbrev=0 HEAD)
+          current_version=${previous_tag#v}
+          head_sha=$(git rev-parse HEAD)
+
+          echo "previous_tag=$previous_tag" >> "$GITHUB_OUTPUT"
+          echo "current_version=$current_version" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Collect pull requests in release range
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PREVIOUS_TAG: ${{ steps.release.outputs.previous_tag }}
+          STABLE_BRANCH: ${{ inputs.stable_branch }}
+        run: |
+          set -euo pipefail
+
+          : > prs.ndjson
+
+          for commit in $(git rev-list --reverse "$PREVIOUS_TAG..HEAD"); do
+            gh api               -H "Accept: application/vnd.github+json"               "repos/${{ github.repository }}/commits/$commit/pulls"               --jq '.[] | select(.merged_at != null) | {
+                number,
+                title,
+                url: .html_url,
+                author: .user.login,
+                base: .base.ref,
+                labels: [.labels[].name]
+              } | @json' >> prs.ndjson
+          done
+
+          if [ -s prs.ndjson ]; then
+            jq -s --arg branch "$STABLE_BRANCH" '
+              map(fromjson)
+              | map(select(.base == $branch))
+              | unique_by(.number)
+              | map(del(.base))
+            ' prs.ndjson > prs.json
+          else
+            echo '[]' > prs.json
+          fi
+
+          echo "Collected $(jq length prs.json) pull requests for $STABLE_BRANCH"
+
+      - name: Plan release
+        id: plan
+        env:
+          CURRENT_VERSION: ${{ steps.release.outputs.current_version }}
+        run: |
+          set -eu
+
+          php scripts/release/plan.php             --current-version "$CURRENT_VERSION"             --date "$(date -u +%F)"             --prs prs.json > release-plan.json
+
+          cat release-plan.json
+
+          echo "next_version=$(jq -r '.nextVersion' release-plan.json)" >> "$GITHUB_OUTPUT"
+          echo "bump=$(jq -r '.bump' release-plan.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Write dry-run summary
+        run: |
+          {
+            echo "## Release preparation plan"
+            echo
+            echo "- Branch: `${{ inputs.stable_branch }}`"
+            echo "- Previous release: `${{ steps.release.outputs.previous_tag }}`"
+            echo "- Proposed version: `${{ steps.plan.outputs.next_version }}`"
+            echo "- Bump: `${{ steps.plan.outputs.bump }}`"
+            echo "- Target commit: `${{ steps.release.outputs.head_sha }}`"
+            echo
+            echo "### Generated changelog"
+            echo
+            jq -r '.changelog' release-plan.json
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload release plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-plan-${{ inputs.stable_branch }}
+          path: |
+            release-plan.json
+            prs.json
+
+  create_pull_request:
+    name: Create or update release PR
+    needs: analyze
+    if: ${{ inputs.dry_run == false }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout stable branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.stable_branch }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Download release plan
+        uses: actions/download-artifact@v4
+        with:
+          name: release-plan-${{ inputs.stable_branch }}
+
+      - name: Apply release files
+        env:
+          NEXT_VERSION: ${{ needs.analyze.outputs.next_version }}
+        run: |
+          set -euo pipefail
+
+          php -r '
+            $path = "appinfo/info.xml";
+            $xml = file_get_contents($path);
+            $version = getenv("NEXT_VERSION");
+            $updated = preg_replace("#<version>[^<]+</version>#", "<version>{$version}</version>", $xml, 1, $count);
+            if ($count !== 1) {
+              fwrite(STDERR, "Unable to update appinfo/info.xml version\n");
+              exit(1);
+            }
+            file_put_contents($path, $updated);
+          '
+
+          npm version --no-git-tag-version "$NEXT_VERSION"
+
+          changelog=$(jq -r '.changelog' release-plan.json)
+          {
+            printf '%s\n\n' "$changelog"
+            cat CHANGELOG.md
+          } > CHANGELOG.md.new
+          mv CHANGELOG.md.new CHANGELOG.md
+
+      - name: Validate generated release files
+        env:
+          NEXT_VERSION: ${{ needs.analyze.outputs.next_version }}
+        run: |
+          set -euo pipefail
+
+          info_version=$(php -r '$xml = simplexml_load_file("appinfo/info.xml"); echo (string)$xml->version;')
+          package_version=$(node -p "require('./package.json').version")
+          lock_version=$(node -p "require('./package-lock.json').version")
+
+          test "$info_version" = "$NEXT_VERSION"
+          test "$package_version" = "$NEXT_VERSION"
+          test "$lock_version" = "$NEXT_VERSION"
+          grep -q "^## $NEXT_VERSION -" CHANGELOG.md
+          git diff --check
+
+      - name: Create or update branch
+        env:
+          BRANCH: automation/release-${{ inputs.stable_branch }}
+          NEXT_VERSION: ${{ needs.analyze.outputs.next_version }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -B "$BRANCH"
+          git add CHANGELOG.md appinfo/info.xml package.json package-lock.json
+
+          if git diff --cached --quiet; then
+            echo "No release file changes to commit"
+            exit 0
+          fi
+
+          git commit -m "chore(release): prepare $NEXT_VERSION [skip ci]"
+          git push --force-with-lease origin "$BRANCH"
+
+      - name: Create or update pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: automation/release-${{ inputs.stable_branch }}
+          NEXT_VERSION: ${{ needs.analyze.outputs.next_version }}
+          BUMP: ${{ needs.analyze.outputs.bump }}
+          PREVIOUS_TAG: ${{ needs.analyze.outputs.previous_tag }}
+        run: |
+          set -euo pipefail
+
+          body_file=$(mktemp)
+          cat > "$body_file" <<EOF
+          ## Summary
+
+          Automated release preparation for `$NEXT_VERSION`.
+
+          - Stable branch: `${{ inputs.stable_branch }}`
+          - Previous release: `$PREVIOUS_TAG`
+          - Version bump: `$BUMP`
+
+          This PR is generated by **Prepare release PR** and is limited to the changelog and release version files.
+          EOF
+
+          existing=$(gh pr list             --repo "${{ github.repository }}"             --base "${{ inputs.stable_branch }}"             --head "$BRANCH"             --state open             --json number             --jq '.[0].number // empty')
+
+          if [ -n "$existing" ]; then
+            gh pr edit "$existing"               --repo "${{ github.repository }}"               --title "chore(release): prepare $NEXT_VERSION"               --body-file "$body_file"
+          else
+            gh pr create               --repo "${{ github.repository }}"               --base "${{ inputs.stable_branch }}"               --head "$BRANCH"               --title "chore(release): prepare $NEXT_VERSION"               --body-file "$body_file"
+          fi
