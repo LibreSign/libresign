@@ -367,7 +367,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'templateFontSize' => 10,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
-				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path background.png --hash-algorithm SHA256'
+				'params' => '-a -kst PKCS12 --l2-text \'aaaaa\' -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path background.png --hash-algorithm SHA256'
 			],
 			'font size != 10' => [
 				'visibleElements' => [self::getElement([
@@ -385,7 +385,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'templateFontSize' => 11,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
-				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --font-size 11 --bg-path background.png --hash-algorithm SHA256'
+				'params' => '-a -kst PKCS12 --l2-text \'aaaaa\' -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --font-size 11 --bg-path background.png --hash-algorithm SHA256'
 			],
 			'background = deleted: bg-path = signature' => [
 				'visibleElements' => [self::getElement([
@@ -403,7 +403,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'templateFontSize' => 10,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
-				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path signature.png --hash-algorithm SHA256'
+				'params' => '-a -kst PKCS12 --l2-text \'aaaaa\' -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path signature.png --hash-algorithm SHA256'
 			],
 			'background and template, bg-path = background, img-path = signature' => [
 				'visibleElements' => [self::getElement([
@@ -421,7 +421,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'templateFontSize' => 10,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
-				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --img-path signature.png --hash-algorithm SHA256'
+				'params' => '-a -kst PKCS12 --l2-text \'aaaaa\' -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --img-path signature.png --hash-algorithm SHA256'
 			],
 			'background and template, render mode equals to SIGNAME_AND_DESCRIPTION: bg-path = background, img-path = text_image' => [
 				'visibleElements' => [self::getElement([
@@ -439,7 +439,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'templateFontSize' => 10,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
-				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 1 -lly 100 -urx 351 -ury 200 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --img-path text_image.png --hash-algorithm SHA256'
+				'params' => '-a -kst PKCS12 --l2-text \'aaaaa\' -V -pg 2 -llx 1 -lly 100 -urx 351 -ury 200 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --img-path text_image.png --hash-algorithm SHA256'
 			],
 			'template without background; with signature image; render-mode: SIGNAME_AND_DESCRIPTION' => [
 				'visibleElements' => [self::getElement([
@@ -457,7 +457,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'templateFontSize' => 10,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
-				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --img-path text_image.png --hash-algorithm SHA256'
+				'params' => '-a -kst PKCS12 --l2-text \'aaaaa\' -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --img-path text_image.png --hash-algorithm SHA256'
 			],
 			'template without background; without signature image; render-mode: SIGNAME_AND_DESCRIPTION' => [
 				'visibleElements' => [self::getElement([
@@ -475,7 +475,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'templateFontSize' => 10,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
-				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --img-path text_image.png --hash-algorithm SHA256'
+				'params' => '-a -kst PKCS12 --l2-text \'aaaaa\' -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --img-path text_image.png --hash-algorithm SHA256'
 			],
 			// Regression: background with GRAPHIC_AND_DESCRIPTION but NO user signature image.
 			// Before the fix, mergeBackgroundWithSignature('...', '') crashed with new Imagick('').
@@ -496,7 +496,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'templateFontSize' => 10,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
-				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --hash-algorithm SHA256'
+				'params' => '-a -kst PKCS12 --l2-text \'aaaaa\' -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --hash-algorithm SHA256'
 			],
 			'background without template: bg-path = merged with signature, without img-path' => [
 				'visibleElements' => [self::getElement([
@@ -821,7 +821,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$jSignPdfHandler = $this->getInstance();
 		$actual = $jSignPdfHandler->getSignatureText();
 
-		$this->assertMatchesRegularExpression('/^"\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2} [A-Z]{3,4}"$/', $actual);
+		$this->assertMatchesRegularExpression("/^'\\d{2}\\/\\d{2}\\/\\d{4} \\d{2}:\\d{2}:\\d{2} [A-Z]{3,4}'$/", $actual);
 	}
 
 	public function testGetSignatureTextWithTwigDateFilterWithoutTimezone(): void {
@@ -835,7 +835,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$jSignPdfHandler = $this->getInstance();
 		$actual = $jSignPdfHandler->getSignatureText();
 
-		$this->assertMatchesRegularExpression('/^"\d{2}\/\d{2}\/\d{4}"$/', $actual);
+		$this->assertMatchesRegularExpression("/^'\\d{2}\\/\\d{2}\\/\\d{4}'$/", $actual);
 	}
 
 	public function testGetSignatureTextGraphicOnlyWithTwigDateFilterAlwaysReturnsEmpty(): void {
@@ -855,14 +855,15 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public static function providerGetSignatureText(): array {
 		return [
 			['FAKE_RENDER_MODE', '',     '""'],
-			['FAKE_RENDER_MODE', 'a',    '"a"'],
-			['FAKE_RENDER_MODE', "a\na", "\"a\na\""],
-			['FAKE_RENDER_MODE', 'a"a',  '"a\"a"'],
-			['FAKE_RENDER_MODE', 'a$a',  '"a\$a"'],
-			// Plain {{ServerSignatureDate}} (no spaces) preserves JSign placeholder
-			['FAKE_RENDER_MODE', '{{ServerSignatureDate}}', '"\${timestamp}"'],
-			// Plain {{ ServerSignatureDate }} (with spaces) also preserves JSign placeholder
-			['FAKE_RENDER_MODE', '{{ ServerSignatureDate }}', '"\${timestamp}"'],
+			['FAKE_RENDER_MODE', 'a',    "'a'"],
+			['FAKE_RENDER_MODE', "a\na", "'a\na'"],
+			['FAKE_RENDER_MODE', 'a"a',  "'a\"a'"],
+			['FAKE_RENDER_MODE', 'a$a',  '\'a$a\''],
+			['FAKE_RENDER_MODE', 'a`id`a', "'a`id`a'"],
+			['FAKE_RENDER_MODE', 'a$(id)a', '\'a$(id)a\''],
+			['FAKE_RENDER_MODE', "a'b", "'a'\\''b'"],
+			['FAKE_RENDER_MODE', '{{ServerSignatureDate}}', '\'${timestamp}\''],
+			['FAKE_RENDER_MODE', '{{ ServerSignatureDate }}', '\'${timestamp}\''],
 			['GRAPHIC_ONLY',     '',     '""'],
 			['GRAPHIC_ONLY',     'a',    '""'],
 			['GRAPHIC_ONLY',     "a\na", '""'],

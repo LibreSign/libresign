@@ -615,18 +615,16 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 	public function getSignatureText(): string {
 		$renderMode = $this->signatureTextService->getRenderMode();
-		if ($renderMode !== SignerElementsService::RENDER_MODE_GRAPHIC_ONLY) {
-			$data = $this->parseSignatureText();
-			$signatureText = '"' . str_replace(
-				['"', '$'],
-				['\"', '\$'],
-				$data['parsed']
-			) . '"';
-		} else {
-			$signatureText = '""';
+		if ($renderMode === SignerElementsService::RENDER_MODE_GRAPHIC_ONLY) {
+			return '""';
 		}
 
-		return $signatureText;
+		$data = $this->parseSignatureText();
+		if ($data['parsed'] === '') {
+			return '""';
+		}
+
+		return escapeshellarg($data['parsed']);
 	}
 
 	private function listParamsToString(array $params): string {
