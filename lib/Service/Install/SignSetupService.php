@@ -251,7 +251,7 @@ class SignSetupService {
 			if (is_dir($path)) {
 				return $path;
 			}
-		} catch (\Throwable) {
+		} catch (NotFoundException) {
 		}
 		throw new InvalidSignatureException($displayName . ' path not found at app config.');
 	}
@@ -364,9 +364,9 @@ class SignSetupService {
 			return [
 				'SIGNATURE_DATA_NOT_FOUND' => $th->getMessage(),
 			];
-		} catch (\Throwable $th) {
+		} catch (\Exception $e) {
 			return [
-				'HASH_FILE_ERROR' => $th->getMessage(),
+				'HASH_FILE_ERROR' => $e->getMessage(),
 			];
 		}
 
