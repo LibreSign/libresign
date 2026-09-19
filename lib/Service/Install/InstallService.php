@@ -22,7 +22,6 @@ use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Process\ProcessManager;
-use OCA\Libresign\Vendor\LibreSign\WhatOSAmI\OperatingSystem;
 use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
@@ -64,8 +63,7 @@ class InstallService {
 		'pdftk',
 		'cfssl',
 	];
-	private string $distro = '';
-	private string $architecture;
+	private InstallTarget $target;
 	private bool $willUseLocalCert = false;
 
 	public function __construct(
@@ -82,7 +80,7 @@ class InstallService {
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign-setup');
 		$this->appData = $appDataFactory->get('libresign');
-		$this->setArchitecture(php_uname('m'));
+		$this->target = InstallTarget::current();
 	}
 
 	public function setOutput(OutputInterface $output): void {
@@ -90,19 +88,23 @@ class InstallService {
 	}
 
 	public function setArchitecture(string $architecture): self {
-		$this->architecture = $architecture;
+		$this->target = $this->target->withArchitecture($architecture);
 		return $this;
+	}
+
+	public function getArchitecture(): string {
+		return $this->target->architecture();
 	}
 
 	private function getFolder(string $path = '', ?ISimpleFolder $folder = null, bool $needToBeEmpty = false): ISimpleFolder {
 		if (!$folder) {
 			$folder = $this->appData->getFolder('/');
 			if (!$path) {
-				$path = $this->architecture;
+				$path = $this->target->architecture();
 			} elseif ($path === 'java') {
-				$path = $this->architecture . '/' . $this->getLinuxDistributionToDownloadJava() . '/java';
+				$path = $this->target->architecture() . '/' . $this->getLinuxDistributionToDownloadJava() . '/java';
 			} else {
-				$path = $this->architecture . '/' . $path;
+				$path = $this->target->architecture() . '/' . $path;
 			}
 			$path = explode('/', $path);
 			foreach ($path as $snippet) {
@@ -112,7 +114,7 @@ class InstallService {
 		}
 		try {
 			$folder = $folder->getFolder($path);
-			if ($needToBeEmpty && $path !== $this->architecture) {
+			if ($needToBeEmpty && $path !== $this->target->architecture()) {
 				$folder->delete();
 				$path = '';
 				throw new \Exception('Need to be empty');
@@ -147,7 +149,16 @@ class InstallService {
 
 	private function runAsync(): void {
 		$resource = $this->resource;
-		$process = $this->createProcess([OC::$SERVERROOT . '/occ', 'libresign:install', '--' . $resource]);
+		$command = [
+			OC::$SERVERROOT . '/occ',
+			'libresign:install',
+			'--' . $resource,
+			'--architecture=' . $this->target->architecture(),
+		];
+		if ($resource === 'java') {
+			$command[] = '--distro=' . $this->target->distro();
+		}
+		$process = $this->createProcess($command);
 		$process->setOptions(['create_new_console' => true]);
 		$process->setTimeout(null);
 		$process->start();
@@ -155,10 +166,15 @@ class InstallService {
 		if ($data['pid']) {
 			$this->processManager->register(self::PROCESS_SOURCE, (int)$data['pid'], [
 				'resource' => $resource,
+				'architecture' => $this->target->architecture(),
+				'distro' => $this->target->distro(),
 			]);
 			$this->setCache($resource, $data);
 		} else {
-			$this->logger->error('Error to get PID of background install proccess. Command: ' . OC::$SERVERROOT . '/occ libresign:install --' . $resource);
+			$message = 'Error to get PID of background install process. Command: '
+				. OC::$SERVERROOT . '/occ libresign:install --' . $resource;
+			$this->logger->error($message);
+			$this->saveErrorMessage($message);
 		}
 	}
 
@@ -292,7 +308,7 @@ class InstallService {
 			$this->setResource($resource);
 			$progressData = $this->getProressData();
 			if (empty($progressData)) {
-				return false;
+				continue;
 			}
 			$pid = $progressData['pid'] ?? 0;
 			if ($this->getInstallPid($pid) === 0) {
@@ -307,13 +323,15 @@ class InstallService {
 	}
 
 	private function getInstallPid(int $pid = 0): int {
-		$resource = $this->resource;
+		$matchesCurrentTarget = fn (array $entry): bool
+			=> ($entry['context']['resource'] ?? '') === $this->resource
+			&& ($entry['context']['architecture'] ?? $this->target->architecture()) === $this->target->architecture()
+			&& ($entry['context']['distro'] ?? $this->target->distro()) === $this->target->distro();
+
 		if ($pid > 0) {
 			$registeredPid = $this->processManager->findRunningPid(
 				self::PROCESS_SOURCE,
-				fn (array $entry): bool
-					=> $entry['pid'] === $pid
-					&& ($entry['context']['resource'] ?? '') === $resource,
+				fn (array $entry): bool => $entry['pid'] === $pid && $matchesCurrentTarget($entry),
 			);
 
 			if ($registeredPid > 0) {
@@ -326,19 +344,48 @@ class InstallService {
 
 		return $this->processManager->findRunningPid(
 			self::PROCESS_SOURCE,
-			fn (array $entry): bool => ($entry['context']['resource'] ?? '') === $resource,
+			$matchesCurrentTarget,
 		);
 	}
 
 	public function setResource(string $resource): self {
+		if (!in_array($resource, $this->availableResources, true)) {
+			throw new InvalidArgumentException(sprintf('Unsupported install resource "%s".', $resource));
+		}
 		$this->resource = $resource;
 		return $this;
 	}
 
+	public function install(string $resource, bool $async = false): void {
+		match ($resource) {
+			'java' => $this->installJava($async),
+			'jsignpdf' => $this->installJSignPdf($async),
+			'pdftk' => $this->installPdftk($async),
+			'cfssl' => $this->installCfssl($async),
+			default => throw new InvalidArgumentException(sprintf('Unsupported install resource "%s".', $resource)),
+		};
+	}
+
+	public function uninstall(string $resource): void {
+		match ($resource) {
+			'java' => $this->uninstallJava(),
+			'jsignpdf' => $this->uninstallJSignPdf(),
+			'pdftk' => $this->uninstallPdftk(),
+			'cfssl' => $this->uninstallCfssl(),
+			default => throw new InvalidArgumentException(sprintf('Unsupported install resource "%s".', $resource)),
+		};
+	}
+
 	public function isDownloadedFilesOk(): bool {
-		$this->signSetupService->willUseLocalCert($this->willUseLocalCert);
 		$this->signSetupService->setDistro($this->getLinuxDistributionToDownloadJava());
-		return count($this->signSetupService->verify($this->architecture, $this->resource)) === 0;
+		$trustMode = $this->willUseLocalCert
+			? SetupTrustMode::Development
+			: SetupTrustMode::Production;
+		return count($this->signSetupService->verify(
+			$this->target->architecture(),
+			$this->resource,
+			$trustMode,
+		)) === 0;
 	}
 
 	public function willUseLocalCert(): void {
@@ -352,7 +399,7 @@ class InstallService {
 
 		$this->signSetupService
 			->setDistro($this->getLinuxDistributionToDownloadJava())
-			->setArchitecture($this->architecture)
+			->setArchitecture($this->target->architecture())
 			->setResource($this->resource)
 			->writeAppSignature();
 	}
@@ -395,10 +442,10 @@ class InstallService {
 		 */
 		$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
 		$slugfyVersionNumber = str_replace('+', '_', self::JAVA_URL_PATH_NAME);
-		if ($this->architecture === 'x86_64') {
+		if ($this->target->architecture() === 'x86_64') {
 			$compressedFileName = 'OpenJDK21U-jre_x64_' . $linuxDistribution . '_hotspot_' . $slugfyVersionNumber . '.tar.gz';
 			$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
-		} elseif ($this->architecture === 'aarch64') {
+		} elseif ($this->target->architecture() === 'aarch64') {
 			$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . $slugfyVersionNumber . '.tar.gz';
 			$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
 		}
@@ -410,7 +457,7 @@ class InstallService {
 		}
 
 		$compressedInternalFileName = $this->getInternalPathOfFile($compressedFile);
-		$dependencyName = 'java ' . $this->architecture . ' ' . $linuxDistribution;
+		$dependencyName = 'java ' . $this->target->architecture() . ' ' . $linuxDistribution;
 		$checksumUrl = $url . '.sha256.txt';
 		$hash = $this->getHash($compressedFileName, $checksumUrl);
 		$this->download($url, $dependencyName, $compressedInternalFileName, $hash, 'sha256');
@@ -425,24 +472,11 @@ class InstallService {
 	}
 
 	public function setDistro(string $distro): void {
-		$this->distro = $distro;
+		$this->target = $this->target->withDistro($distro);
 	}
 
-	/**
-	 * Return linux or alpine-linux
-	 */
 	public function getLinuxDistributionToDownloadJava(): string {
-		if ($this->distro) {
-			return $this->distro;
-		}
-		$operatingSystem = new OperatingSystem();
-		$distribution = $operatingSystem->getLinuxDistribution();
-		if (strtolower($distribution) === 'alpine') {
-			$this->setDistro('alpine-linux');
-		} else {
-			$this->setDistro('linux');
-		}
-		return $this->distro;
+		return $this->target->distro();
 	}
 
 	public function uninstallJava(): void {
@@ -604,9 +638,9 @@ class InstallService {
 		if (PHP_OS_FAMILY !== 'Linux') {
 			throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
 		}
-		if ($this->architecture === 'x86_64') {
+		if ($this->target->architecture() === 'x86_64') {
 			$this->installCfsslByArchitecture('amd64');
-		} elseif ($this->architecture === 'aarch64') {
+		} elseif ($this->target->architecture() === 'aarch64') {
 			$this->installCfsslByArchitecture('arm64');
 		} else {
 			throw new InvalidArgumentException('Invalid architecture to download cfssl');
@@ -635,7 +669,9 @@ class InstallService {
 		$dependencyName = 'cfssl ' . $architecture;
 		$this->download($baseUrl . $file, $dependencyName, $fullPath, $hash, 'sha256');
 
-		chmod($fullPath, 0700);
+		if (!@chmod($fullPath, 0700) && !is_executable($fullPath)) {
+			throw new LibresignException('Unable to make CFSSL executable at ' . $fullPath);
+		}
 		$cfsslBinPath = $this->getInternalPathOfFolder($folder) . '/cfssl';
 		$this->appConfig->setValueString(Application::APP_ID, 'cfssl_bin', $cfsslBinPath);
 		$this->writeAppSignature();
@@ -682,10 +718,16 @@ class InstallService {
 					$this->progressToDatabase($downloadSize, $downloaded);
 				},
 			]);
-		} catch (\Exception $e) {
-			throw new LibresignException('Failure on download ' . $dependencyName . " try again.\n" . $e->getMessage());
+		} catch (\Throwable $e) {
+			throw new LibresignException(
+				'Failure on download ' . $dependencyName . " try again.\n" . $e->getMessage(),
+				previous: $e,
+			);
 		}
-		if ($hash && file_exists($path) && hash_file($hash_algo, $path) !== $hash) {
+		if (!file_exists($path)) {
+			throw new LibresignException('Failure on download ' . $dependencyName . ', empty file, try again.');
+		}
+		if ($hash !== '' && hash_file($hash_algo, $path) !== $hash) {
 			throw new LibresignException('Failure on download ' . $dependencyName . ' try again. Invalid ' . $hash_algo . '.');
 		}
 	}
@@ -695,6 +737,7 @@ class InstallService {
 		$progressBar = new ProgressBar($this->output);
 		$this->output->writeln('Downloading ' . $dependencyName . '...');
 		$progressBar->start();
+
 		try {
 			$client->get($url, [
 				'sink' => $path,
@@ -705,24 +748,30 @@ class InstallService {
 					$this->progressToDatabase($downloadSize, $downloaded);
 				},
 			]);
-		} catch (\Exception $e) {
-			$progressBar->finish();
-			$this->output->writeln('');
-			$this->output->writeln('<error>Failure on download ' . $dependencyName . ' try again.</error>');
-			$this->output->writeln('<error>' . $e->getMessage() . '</error>');
-			$this->logger->error('Failure on download ' . $dependencyName . '. ' . $e->getMessage());
+		} catch (\Throwable $e) {
+			$this->logger->error('Failure on download ' . $dependencyName, [
+				'exception' => $e,
+				'url' => $url,
+			]);
+			throw new LibresignException(
+				'Failure on download ' . $dependencyName . " try again.\n" . $e->getMessage(),
+				previous: $e,
+			);
 		} finally {
 			$progressBar->finish();
 			$this->output->writeln('');
 		}
-		if ($hash && file_exists($path) && hash_file($hash_algo, $path) !== $hash) {
-			$this->output->writeln('<error>Failure on download ' . $dependencyName . ' try again</error>');
-			$this->output->writeln('<error>Invalid ' . $hash_algo . '</error>');
-			$this->logger->error('Failure on download ' . $dependencyName . '. Invalid ' . $hash_algo . '.');
-		}
+
 		if (!file_exists($path)) {
-			$this->output->writeln('<error>Failure on download ' . $dependencyName . ', empty file, try again</error>');
-			$this->logger->error('Failure on download ' . $dependencyName . ', empty file.');
+			$message = 'Failure on download ' . $dependencyName . ', empty file, try again.';
+			$this->logger->error($message);
+			throw new LibresignException($message);
+		}
+
+		if ($hash !== '' && hash_file($hash_algo, $path) !== $hash) {
+			$message = 'Failure on download ' . $dependencyName . ' try again. Invalid ' . $hash_algo . '.';
+			$this->logger->error($message);
+			throw new LibresignException($message);
 		}
 	}
 

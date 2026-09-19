@@ -24,6 +24,7 @@ namespace OCA\Libresign\Tests\Unit\SetupCheck;
 
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Install\SetupTrustMode;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCA\Libresign\SetupCheck\PDFtkSetupCheck;
 use OCA\Libresign\Tests\Mock\ExecMock;
@@ -125,11 +126,8 @@ class PDFtkSetupCheckTest extends TestCase {
 		$verifyResult = ['SIGNATURE_DATA_NOT_FOUND' => true];
 
 		$this->signSetupService->expects($this->once())
-			->method('willUseLocalCert')
-			->with($debugEnabled);
-		$this->signSetupService->expects($this->once())
 			->method('verify')
-			->with(php_uname('m'), 'pdftk')
+			->with(php_uname('m'), 'pdftk', SetupTrustMode::Production)
 			->willReturn($verifyResult);
 
 		$check = $this->getInstance();
@@ -150,7 +148,6 @@ class PDFtkSetupCheckTest extends TestCase {
 			->with('debug', false)
 			->willReturn(false);
 
-		$this->signSetupService->method('willUseLocalCert');
 		$this->signSetupService->method('verify')
 			->willReturn([]);
 
@@ -174,7 +171,6 @@ class PDFtkSetupCheckTest extends TestCase {
 			->with('debug', false)
 			->willReturn(false);
 
-		$this->signSetupService->method('willUseLocalCert');
 		$this->signSetupService->method('verify')->willReturn([]);
 
 		FileSystemMock::$files[$pdftkPath] = true;
@@ -200,7 +196,6 @@ class PDFtkSetupCheckTest extends TestCase {
 			->with('debug', false)
 			->willReturn(false);
 
-		$this->signSetupService->method('willUseLocalCert');
 		$this->signSetupService->method('verify')->willReturn([]);
 
 		FileSystemMock::$files[$pdftkPath] = true;
@@ -227,7 +222,6 @@ class PDFtkSetupCheckTest extends TestCase {
 			->with('debug', false)
 			->willReturn(false);
 
-		$this->signSetupService->method('willUseLocalCert');
 		$this->signSetupService->method('verify')->willReturn([]);
 
 		FileSystemMock::$files[$pdftkPath] = true;
@@ -260,7 +254,6 @@ class PDFtkSetupCheckTest extends TestCase {
 			->with('debug', false)
 			->willReturn(false);
 
-		$this->signSetupService->method('willUseLocalCert');
 		$this->signSetupService->method('verify')->willReturn([]);
 
 		FileSystemMock::$files[$pdftkPath] = true;
@@ -294,7 +287,6 @@ class PDFtkSetupCheckTest extends TestCase {
 			->with('debug', false)
 			->willReturn(false);
 
-		$this->signSetupService->method('willUseLocalCert');
 		$this->signSetupService->method('verify')->willReturn([]);
 
 		FileSystemMock::$files[$pdftkPath] = true;
@@ -329,7 +321,6 @@ class PDFtkSetupCheckTest extends TestCase {
 			->with('debug', false)
 			->willReturn(false);
 
-		$this->signSetupService->method('willUseLocalCert');
 		$this->signSetupService->method('verify')->willReturn([]);
 
 		FileSystemMock::$files[$pdftkPath] = true;
@@ -366,11 +357,8 @@ class PDFtkSetupCheckTest extends TestCase {
 			->willReturn(true);
 
 		$verifyResult = ['SIGNATURE_DATA_NOT_FOUND' => true];
-		$this->signSetupService->expects($this->once())
-			->method('willUseLocalCert')
-			->with(false);
 		$this->signSetupService->method('verify')
-			->with(php_uname('m'), 'pdftk')
+			->with(php_uname('m'), 'pdftk', SetupTrustMode::Production)
 			->willReturn($verifyResult);
 
 		FileSystemMock::$files[$pdftkPath] = true;
@@ -402,7 +390,6 @@ class PDFtkSetupCheckTest extends TestCase {
 			->with('debug', false)
 			->willReturn(false);
 
-		$this->signSetupService->method('willUseLocalCert');
 		$this->signSetupService->method('verify')->willReturn([]);
 
 		FileSystemMock::$files[$pdftkPath] = true;

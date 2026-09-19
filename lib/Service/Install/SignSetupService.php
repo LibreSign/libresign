@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Install;
 
-use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\EmptySignatureDataException;
@@ -16,7 +15,6 @@ use OCA\Libresign\Exception\InvalidSignatureException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\SignatureDataNotFoundException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateHelper;
-use OCA\Libresign\Vendor\LibreSign\WhatOSAmI\OperatingSystem;
 use OCA\Libresign\Vendor\phpseclib4\Crypt\PublicKeyLoader;
 use OCA\Libresign\Vendor\phpseclib4\Crypt\RSA;
 use OCA\Libresign\Vendor\phpseclib4\Crypt\RSA\PrivateKey;
@@ -36,18 +34,17 @@ class SignSetupService {
 		'cfssl_config',
 		'unauthetnicated',
 	];
-	private string $architecture;
+	private InstallTarget $target;
 	private string $resource;
 	private array $signatureData = [];
-	private bool $willUseLocalCert = false;
-	private string $distro = '';
-	private ?X509 $x509 = null;
+	private SetupTrustMode $defaultTrustMode = SetupTrustMode::Production;
+	private ?X509 $signingCertificate = null;
 	private ?PrivateKey $privateKey = null;
 	private string $instanceId;
 	private IAppData $appData;
 	public function __construct(
-		private EnvironmentHelper $environmentHelper,
 		private FileAccessHelper $fileAccessHelper,
+		private SetupSignatureVerifier $setupSignatureVerifier,
 		private IConfig $config,
 		private IAppConfig $appConfig,
 		private IAppManager $appManager,
@@ -56,10 +53,11 @@ class SignSetupService {
 	) {
 		$this->instanceId = $this->config->getSystemValue('instanceid');
 		$this->appData = $appDataFactory->get('libresign');
+		$this->target = InstallTarget::current();
 	}
 
 	public function setArchitecture(string $architecture): self {
-		$this->architecture = $architecture;
+		$this->target = $this->target->withArchitecture($architecture);
 		return $this;
 	}
 
@@ -94,15 +92,17 @@ class SignSetupService {
 		$this->privateKey = $privateKey;
 	}
 
-	public function setCertificate(x509 $x509): void {
-		$this->x509 = $x509;
+	public function setCertificate(X509 $x509): void {
+		$this->signingCertificate = $x509;
 	}
 
+	/**
+	 * Compatibility shim for callers not yet passing SetupTrustMode explicitly.
+	 */
 	public function willUseLocalCert(bool $willUseLocalCert): void {
-		if ($this->willUseLocalCert !== $willUseLocalCert) {
-			$this->x509 = null;
-		}
-		$this->willUseLocalCert = $willUseLocalCert;
+		$this->defaultTrustMode = $willUseLocalCert
+			? SetupTrustMode::Development
+			: SetupTrustMode::Production;
 	}
 
 	private function getPrivateKey(): PrivateKey {
@@ -121,18 +121,18 @@ class SignSetupService {
 	}
 
 	private function getCertificate(): X509 {
-		if (!$this->x509 instanceof x509) {
+		if (!$this->signingCertificate instanceof x509) {
 			if (file_exists(__DIR__ . '/../../../build/tools/certificates/local/libresign.crt')) {
 				$x509 = file_get_contents(__DIR__ . '/../../../build/tools/certificates/local/libresign.crt');
-				$this->x509 = X509::load($x509);
+				$this->signingCertificate = X509::load($x509);
 			} else {
 				$this->getDevelopCert();
 			}
 		}
-		if (!$this->x509 instanceof x509) {
+		if (!$this->signingCertificate instanceof x509) {
 			throw new LibresignException('Certificate not found');
 		}
-		return $this->x509;
+		return $this->signingCertificate;
 	}
 
 	/**
@@ -157,7 +157,7 @@ class SignSetupService {
 				"Folder %s not found.\nIs necessary to run this command first: occ libresign:install --%s --architecture=%s",
 				$e->getMessage(),
 				$this->resource,
-				$this->architecture,
+				$this->target->architecture(),
 			));
 		} catch (\Exception $e) {
 			$appInfoDir = $this->getAppInfoDirectory();
@@ -169,103 +169,105 @@ class SignSetupService {
 	}
 
 	public function getInstallPath(): string {
-		switch ($this->resource) {
-			case 'java':
-				$path = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
-				if (!$path) {
-					// fallback
-					try {
-						$folder = $this->appData->getFolder('/');
-						$path = $this->architecture . '/' . $this->getLinuxDistributionToDownloadJava() . '/java';
-						$folder = $folder->getFolder($path);
-						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
-						if (is_dir($path)) {
-							return $path;
-						}
-						throw new InvalidSignatureException('Java path not found at app config.');
-					} catch (\Throwable) {
-						throw new InvalidSignatureException('Java path not found at app config.');
-					}
-				}
-				$installPath = substr($path, 0, -strlen('/bin/java'));
-				$distro = $this->getLinuxDistributionToDownloadJava();
-				$expected = "{$this->instanceId}/libresign/{$this->architecture}/{$distro}/java";
-				if (!str_contains($installPath, $expected)) {
-					$installPath = preg_replace(
-						"/{$this->instanceId}\/libresign\/(\w+)\/(\w+)\/java/i",
-						$expected,
-						$installPath
-					);
-				}
-				break;
-			case 'jsignpdf':
-				$path = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_path');
-				if (!$path) {
-					// fallback
-					try {
-						$folder = $this->appData->getFolder('/');
-						$path = $this->architecture . '/jsignpdf';
-						$folder = $folder->getFolder($path);
-						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
-						if (is_dir($path)) {
-							return $path;
-						}
-						throw new InvalidSignatureException('JSignPdf path not found at app config.');
-					} catch (\Throwable) {
-						throw new InvalidSignatureException('JSignPdf path not found at app config.');
-					}
-				}
-				$installPath = dirname($path);
-				break;
-			case 'pdftk':
-				$path = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
-				if (!$path) {
-					// fallback
-					try {
-						$folder = $this->appData->getFolder('/');
-						$path = $this->architecture . '/pdftk';
-						$folder = $folder->getFolder($path);
-						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
-						if (is_dir($path)) {
-							return $path;
-						}
-						throw new InvalidSignatureException('pdftk path not found at app config.');
-					} catch (\Throwable) {
-						throw new InvalidSignatureException('pdftk path not found at app config.');
-					}
-				}
-				$installPath = substr($path, 0, -strlen('/pdftk.jar'));
-				break;
-			case 'cfssl':
-				$path = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_bin');
-				if (!$path) {
-					// fallback
-					try {
-						$folder = $this->appData->getFolder('/');
-						$path = $this->architecture . '/cfssl';
-						$folder = $folder->getFolder($path);
-						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
-						if (is_dir($path)) {
-							return $path;
-						}
-						throw new InvalidSignatureException('cfssl path not found at app config.');
-					} catch (\Throwable) {
-						throw new InvalidSignatureException('cfssl path not found at app config.');
-					}
-				}
-				$installPath = substr($path, 0, -strlen('/cfssl'));
-				break;
-			default:
-				$installPath = '';
-		}
-		if (!str_contains((string)$installPath, $this->architecture)) {
-			$installPath = preg_replace(
-				"/{$this->instanceId}\/libresign\/(\w+)/i",
-				"{$this->instanceId}/libresign/{$this->architecture}",
-				(string)$installPath
+		$installPath = match ($this->resource) {
+			'java' => $this->resolveJavaInstallPath(),
+			'jsignpdf' => $this->resolveDirectoryResourcePath(
+				'jsignpdf_path',
+				'jsignpdf',
+				static fn (string $path): string => dirname($path),
+				'JSignPdf',
+			),
+			'pdftk' => $this->resolveDirectoryResourcePath(
+				'pdftk_path',
+				'pdftk',
+				static fn (string $path): string => substr($path, 0, -strlen('/pdftk.jar')),
+				'PDFtk',
+			),
+			'cfssl' => $this->resolveDirectoryResourcePath(
+				'cfssl_bin',
+				'cfssl',
+				static fn (string $path): string => substr($path, 0, -strlen('/cfssl')),
+				'CFSSL',
+			),
+			default => throw new InvalidSignatureException(sprintf('Unsupported setup resource "%s".', $this->resource)),
+		};
+
+		return $this->normalizeArchitectureInPath($installPath);
+	}
+
+	private function resolveJavaInstallPath(): string {
+		$path = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
+		if ($path === '') {
+			return $this->resolveAppDataFolder(
+				$this->target->architecture() . '/' . $this->target->distro() . '/java',
+				'Java',
 			);
 		}
-		return (string)$installPath;
+
+		$installPath = substr($path, 0, -strlen('/bin/java'));
+		$expected = $this->instanceId
+			. '/libresign/'
+			. $this->target->architecture()
+			. '/'
+			. $this->target->distro()
+			. '/java';
+
+		if (str_contains($installPath, $expected)) {
+			return $installPath;
+		}
+
+		return (string)preg_replace(
+			'/'
+			. preg_quote($this->instanceId, '/')
+			. '\/libresign\/([^\/]+)\/([^\/]+)\/java/i',
+			$expected,
+			$installPath,
+		);
+	}
+
+	/**
+	 * @param callable(string): string $configuredPathToDirectory
+	 */
+	private function resolveDirectoryResourcePath(
+		string $configKey,
+		string $resource,
+		callable $configuredPathToDirectory,
+		string $displayName,
+	): string {
+		$path = $this->appConfig->getValueString(Application::APP_ID, $configKey);
+		if ($path === '') {
+			return $this->resolveAppDataFolder(
+				$this->target->architecture() . '/' . $resource,
+				$displayName,
+			);
+		}
+		return $configuredPathToDirectory($path);
+	}
+
+	private function resolveAppDataFolder(string $relativePath, string $displayName): string {
+		try {
+			$folder = $this->appData->getFolder('/')->getFolder($relativePath);
+			$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
+			if (is_dir($path)) {
+				return $path;
+			}
+		} catch (\Throwable) {
+		}
+		throw new InvalidSignatureException($displayName . ' path not found at app config.');
+	}
+
+	private function normalizeArchitectureInPath(string $installPath): string {
+		if (str_contains($installPath, $this->target->architecture())) {
+			return $installPath;
+		}
+
+		return (string)preg_replace(
+			'/'
+			. preg_quote($this->instanceId, '/')
+			. '\/libresign\/([^\/]+)/i',
+			$this->instanceId . '/libresign/' . $this->target->architecture(),
+			$installPath,
+		);
 	}
 
 	private function getDataDir(): string {
@@ -290,7 +292,7 @@ class SignSetupService {
 	}
 
 	public function getSignatureFileName(): string {
-		$path[] = 'install-' . $this->architecture;
+		$path[] = 'install-' . $this->target->architecture();
 		if ($this->resource === 'java') {
 			$path[] = $this->getLinuxDistributionToDownloadJava();
 		}
@@ -299,23 +301,12 @@ class SignSetupService {
 	}
 
 	public function setDistro(string $distro): self {
-		$this->distro = $distro;
+		$this->target = $this->target->withDistro($distro);
 		return $this;
 	}
 
-	/**
-	 * Return linux or alpine-linux
-	 */
 	public function getLinuxDistributionToDownloadJava(): string {
-		if ($this->distro) {
-			return $this->distro;
-		}
-		$operatingSystem = new OperatingSystem();
-		$distribution = $operatingSystem->getLinuxDistribution();
-		if (strtolower($distribution) === 'alpine') {
-			return 'alpine-linux';
-		}
-		return 'linux';
+		return $this->target->distro();
 	}
 
 	protected function getAppInfoDirectory(): string {
@@ -324,19 +315,7 @@ class SignSetupService {
 		return $appInfoDir;
 	}
 
-	/**
-	 * Split the certificate file in individual certs
-	 *
-	 * @param string $cert
-	 * @return string[]
-	 */
-	private function splitCerts(string $cert): array {
-		preg_match_all('([\-]{3,}[\S\ ]+?[\-]{3,}[\S\s]+?[\-]{3,}[\S\ ]+?[\-]{3,})', $cert, $matches);
-
-		return $matches[0];
-	}
-
-	private function getSignatureData(): array {
+	private function getSignatureData(SetupTrustMode $trustMode): array {
 		if (!empty($this->signatureData)) {
 			return $this->signatureData;
 		}
@@ -354,84 +333,27 @@ class SignSetupService {
 			throw new SignatureDataNotFoundException('Signature data not found.');
 		}
 		$this->signatureData = $signatureData;
-
-		$this->validateIfIssignedByLibresignAppCertificate($signatureData['hashes']);
+		$this->setupSignatureVerifier->verify($signatureData, $trustMode);
 
 		return $this->signatureData;
 	}
 
-	private function getHashesOfResource(): array {
-		$signatureData = $this->getSignatureData();
+	private function getHashesOfResource(SetupTrustMode $trustMode): array {
+		$signatureData = $this->getSignatureData($trustMode);
 		if (count($signatureData['hashes']) === 0) {
 			throw new EmptySignatureDataException('No signature files to ' . $this->resource);
 		}
 		return $signatureData;
 	}
 
-	private function getLibresignAppCertificate(): X509 {
-		if ($this->x509 instanceof X509) {
-			return $this->x509;
-		}
-		$signatureData = $this->getSignatureData();
-		$certificate = $signatureData['certificate'];
-
-		// Check if certificate is signed by Nextcloud Root Authority
-		$rootCertificatePublicKey = $this->getRootCertificatePublicKey();
-		$this->x509 = X509::load($certificate);
-
-		$rootCerts = $this->splitCerts($rootCertificatePublicKey);
-		$previousCAs = X509::getCAs();
-		X509::clearCAStore();
-		try {
-			foreach ($rootCerts as $rootCert) {
-				X509::addCA($rootCert);
-			}
-			if (!$this->x509->validateSignature()) {
-				throw new InvalidSignatureException('Certificate is not valid.');
-			}
-		} finally {
-			X509::clearCAStore();
-			foreach ($previousCAs as $previousCA) {
-				X509::addCA($previousCA);
-			}
-		}
-
-		// Verify if certificate has proper CN. "core" CN is always trusted.
-		$subject = $this->x509->getSubjectDN(X509::DN_OPENSSL);
-		$commonName = is_array($subject) ? ($subject['CN'] ?? '') : '';
-		if ($commonName !== Application::APP_ID && $commonName !== 'core') {
-			throw new InvalidSignatureException(
-				sprintf('Certificate is not valid for required scope. (Requested: %s, current: CN=%s)', Application::APP_ID, $commonName)
-			);
-		}
-
-		return $this->x509;
-	}
-
-	private function validateIfIssignedByLibresignAppCertificate(array $expectedHashes): void {
-		$x509 = $this->getLibresignAppCertificate();
-
-		// Check if the signature of the files is valid
-		$publicKey = $x509->getPublicKey();
-		if (!$publicKey instanceof RSA) {
-			throw new InvalidSignatureException('Certificate public key is not RSA.');
-		}
-		$rsa = $publicKey->withPadding(RSA::SIGNATURE_PSS);
-
-		$signatureData = $this->getSignatureData();
-		$signature = base64_decode((string)$signatureData['signature']);
-		if (!$rsa->verify(json_encode($expectedHashes), $signature)) {
-			throw new InvalidSignatureException('Signature could not get verified.');
-		}
-	}
-
-	public function verify(string $architecture, $resource): array {
+	public function verify(string $architecture, string $resource, ?SetupTrustMode $trustMode = null): array {
 		$this->signatureData = [];
-		$this->architecture = $architecture;
+		$trustMode ??= $this->defaultTrustMode;
+		$this->target = $this->target->withArchitecture($architecture);
 		$this->resource = $resource;
 
 		try {
-			$expectedHashes = $this->getHashesOfResource();
+			$expectedHashes = $this->getHashesOfResource($trustMode);
 			// Compare the list of files which are not identical
 			$currentInstanceHashes = $this->generateHashes($this->getFolderIterator($this->getInstallPath()));
 		} catch (EmptySignatureDataException $th) {
@@ -448,8 +370,8 @@ class SignSetupService {
 			];
 		}
 
-		$differencesA = array_diff($expectedHashes['hashes'], $currentInstanceHashes);
-		$differencesB = array_diff($currentInstanceHashes, $expectedHashes['hashes']);
+		$differencesA = array_diff_assoc($expectedHashes['hashes'], $currentInstanceHashes);
+		$differencesB = array_diff_assoc($currentInstanceHashes, $expectedHashes['hashes']);
 		$differences = array_merge($differencesA, $differencesB);
 		$differenceArray = [];
 		foreach ($differences as $filename => $hash) {
@@ -566,24 +488,6 @@ class SignSetupService {
 		];
 	}
 
-	private function getRootCertificatePublicKey(): string {
-		if ($this->willUseLocalCert) {
-			$localCert = __DIR__ . '/../../../build/tools/certificates/local/root.crt';
-			if (file_exists($localCert)) {
-				return (string)file_get_contents($localCert);
-			}
-		}
-
-		$rootCertificatePath = $this->environmentHelper->getServerRoot() . '/resources/codesigning/root.crt';
-		$rootCertificate = $this->fileAccessHelper->file_get_contents($rootCertificatePath);
-
-		if (!is_string($rootCertificate)) {
-			throw new LibresignException('Root certificate not found at ' . $rootCertificatePath);
-		}
-
-		return $rootCertificate;
-	}
-
 	public function getDevelopCert(): array {
 		$privateKey = openssl_pkey_new([
 			'private_key_bits' => 2048,
@@ -611,7 +515,7 @@ class SignSetupService {
 		openssl_pkey_export($privateKey, $privateKeyCert);
 
 		$this->privateKey = RSA::loadPrivateKey($privateKeyCert);
-		$this->x509 = X509::load($rootCertificate);
+		$this->signingCertificate = X509::load($rootCertificate);
 
 		$rootCertPath = __DIR__ . '/../../../build/tools/certificates/local/';
 		if (!is_dir($rootCertPath)) {

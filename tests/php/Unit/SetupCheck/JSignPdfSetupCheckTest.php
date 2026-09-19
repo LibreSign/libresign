@@ -26,6 +26,7 @@ use OCA\Libresign\Handler\SignEngine\JSignPdf\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\JSignPdfRelease;
+use OCA\Libresign\Service\Install\SetupTrustMode;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCA\Libresign\SetupCheck\JSignPdfSetupCheck;
 use OCA\Libresign\Tests\Mock\FileSystemMock;
@@ -121,11 +122,8 @@ class JSignPdfSetupCheckTest extends TestCase {
 			->willReturn(false);
 
 		$this->signSetupService->expects($this->once())
-			->method('willUseLocalCert')
-			->with(false);
-		$this->signSetupService->expects($this->once())
 			->method('verify')
-			->with($this->anything(), 'jsignpdf')
+			->with($this->anything(), 'jsignpdf', SetupTrustMode::Production)
 			->willReturn(['SOME_ERROR' => 'details']);
 
 		$this->logger->expects($this->once())
@@ -147,7 +145,6 @@ class JSignPdfSetupCheckTest extends TestCase {
 		$this->systemConfig->method('getSystemValueBool')
 			->willReturn(false);
 
-		$this->signSetupService->method('willUseLocalCert');
 		$this->signSetupService->method('verify')
 			->willReturn([]);
 

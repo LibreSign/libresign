@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use bovigo\vfs\vfsStream;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Install\InstallService;
@@ -16,8 +17,11 @@ use OCA\Libresign\Service\Install\SignSetupService;
 use OCA\Libresign\Service\Process\ProcessManager;
 use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\Files\AppData\IAppDataFactory;
+use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
+use OCP\Http\Client\IResponse;
 use OCP\IAppConfig;
+use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IConfig;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -65,83 +69,161 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	/**
-	 * @dataProvider providerDownloadCli
-	 */
-	public function testDownloadCli(string $url, string $filename, string $content, string $hash, string $algorithm, string $expectedOutput): void {
+	public function testGetHashUsesHttpClientAndFindsRequestedFile(): void {
+		$installService = $this->getInstallService();
+
+		$response = $this->createMock(IResponse::class);
+		$response->method('getBody')
+			->willReturn("abc123  other-file\ndef456  dependency.tar.gz\n");
+		$client = $this->createMock(IClient::class);
+		$client->expects($this->once())
+			->method('get')
+			->with('https://example.invalid/checksums.txt')
+			->willReturn($response);
+		$this->clientService->method('newClient')->willReturn($client);
+
+		$hash = self::invokePrivate(
+			$installService,
+			'getHash',
+			['dependency.tar.gz', 'https://example.invalid/checksums.txt'],
+		);
+
+		$this->assertSame('def456', $hash);
+	}
+
+	public function testGetHashFailsWhenRequestedFileIsMissing(): void {
+		$installService = $this->getInstallService();
+
+		$response = $this->createMock(IResponse::class);
+		$response->method('getBody')->willReturn("abc123  another-file\n");
+		$client = $this->createMock(IClient::class);
+		$client->method('get')->willReturn($response);
+		$this->clientService->method('newClient')->willReturn($client);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Hash for dependency.tar.gz not found');
+
+		self::invokePrivate(
+			$installService,
+			'getHash',
+			['dependency.tar.gz', 'https://example.invalid/checksums.txt'],
+		);
+	}
+
+	public function testAsyncDownloadFailsWhenSinkFileIsMissing(): void {
+		$installService = $this->getInstallService();
+
+		vfsStream::setup('download');
+		$path = 'vfs://download/missing.bin';
+
+		$client = $this->createMock(IClient::class);
+		$client->expects($this->once())
+			->method('get')
+			->willReturn($this->createMock(IResponse::class));
+		$this->clientService->method('newClient')->willReturn($client);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('empty file');
+
+		self::invokePrivate(
+			$installService,
+			'download',
+			['https://example.invalid/dependency.bin', 'dependency', $path, '', 'sha256'],
+		);
+	}
+
+	public function testDownloadCliSucceedsWithValidHash(): void {
 		$installService = $this->getInstallService();
 		$output = new BufferedOutput();
 		$installService->setOutput($output);
 
-		if ($content) {
-			vfsStream::setup('download');
-			$path = 'vfs://download/dummy.svg';
-			file_put_contents($path, $content);
-		} else {
-			$path = '';
-		}
+		vfsStream::setup('download');
+		$path = 'vfs://download/dependency.bin';
+		file_put_contents($path, 'content');
 
-		self::invokePrivate($installService, 'downloadCli', [$url, $filename, $path, $hash, $algorithm]);
-		$actual = $output->fetch();
-		$this->assertEquals($expectedOutput, $actual);
+		$client = $this->createMock(IClient::class);
+		$client->expects($this->once())
+			->method('get')
+			->willReturn($this->createMock(IResponse::class));
+		$this->clientService->method('newClient')->willReturn($client);
+
+		self::invokePrivate(
+			$installService,
+			'downloadCli',
+			['https://example.invalid/dependency.bin', 'dependency', $path, hash('sha256', 'content'), 'sha256'],
+		);
+
+		$this->assertStringContainsString('Downloading dependency...', $output->fetch());
 	}
 
-	public static function providerDownloadCli(): array {
-		return [
-			[
-				'url' => 'http://localhost/apps/libresign/img/app.svg',
-				'filename' => 'app.svg',
-				'content' => '',
-				'hash' => '',
-				'algorithm' => 'md5',
-				'expectedOutput' => <<<EXPECTEDOUTPUT
-					Downloading app.svg...
-					    0 [>---------------------------]
-					Failure on download app.svg, empty file, try again
+	public function testDownloadCliFailsOnTransportError(): void {
+		$installService = $this->getInstallService();
+		$installService->setOutput(new BufferedOutput());
 
-					EXPECTEDOUTPUT
-			],
-			[
-				'url' => 'http://localhost/apps/libresign/img/appInvalid.svg',
-				'filename' => 'appInvalid.svg',
-				'content' => 'content',
-				'hash' => 'invalidContent',
-				'algorithm' => 'md5',
-				'expectedOutput' => <<<EXPECTEDOUTPUT
-					Downloading appInvalid.svg...
-					    0 [>---------------------------]
-					Failure on download appInvalid.svg try again
-					Invalid md5
+		vfsStream::setup('download');
+		$path = 'vfs://download/dependency.bin';
 
-					EXPECTEDOUTPUT
-			],
-			[
-				'url' => 'http://localhost/apps/libresign/img/appInvalid.svg',
-				'filename' => 'appInvalid.svg',
-				'content' => 'content',
-				'hash' => 'invalidContent',
-				'algorithm' => 'sha256',
-				'expectedOutput' => <<<EXPECTEDOUTPUT
-					Downloading appInvalid.svg...
-					    0 [>---------------------------]
-					Failure on download appInvalid.svg try again
-					Invalid sha256
+		$client = $this->createMock(IClient::class);
+		$client->expects($this->once())
+			->method('get')
+			->willThrowException(new \RuntimeException('network unavailable'));
+		$this->clientService->method('newClient')->willReturn($client);
 
-					EXPECTEDOUTPUT
-			],
-			[
-				'url' => 'http://localhost/apps/libresign/img/validContent.svg',
-				'filename' => 'validContent.svg',
-				'content' => 'content',
-				'hash' => hash('sha256', 'content'),
-				'algorithm' => 'sha256',
-				'expectedOutput' => <<<EXPECTEDOUTPUT
-					Downloading validContent.svg...
-					    0 [>---------------------------]
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Failure on download dependency try again.');
 
-					EXPECTEDOUTPUT
-			],
-		];
+		self::invokePrivate(
+			$installService,
+			'downloadCli',
+			['https://example.invalid/dependency.bin', 'dependency', $path, '', 'sha256'],
+		);
+	}
+
+	public function testDownloadCliFailsWhenFileIsMissing(): void {
+		$installService = $this->getInstallService();
+		$installService->setOutput(new BufferedOutput());
+
+		vfsStream::setup('download');
+		$path = 'vfs://download/missing.bin';
+
+		$client = $this->createMock(IClient::class);
+		$client->expects($this->once())
+			->method('get')
+			->willReturn($this->createMock(IResponse::class));
+		$this->clientService->method('newClient')->willReturn($client);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('empty file');
+
+		self::invokePrivate(
+			$installService,
+			'downloadCli',
+			['https://example.invalid/dependency.bin', 'dependency', $path, '', 'sha256'],
+		);
+	}
+
+	public function testDownloadCliFailsOnHashMismatch(): void {
+		$installService = $this->getInstallService();
+		$installService->setOutput(new BufferedOutput());
+
+		vfsStream::setup('download');
+		$path = 'vfs://download/dependency.bin';
+		file_put_contents($path, 'content');
+
+		$client = $this->createMock(IClient::class);
+		$client->expects($this->once())
+			->method('get')
+			->willReturn($this->createMock(IResponse::class));
+		$this->clientService->method('newClient')->willReturn($client);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Invalid sha256');
+
+		self::invokePrivate(
+			$installService,
+			'downloadCli',
+			['https://example.invalid/dependency.bin', 'dependency', $path, 'invalid', 'sha256'],
+		);
 	}
 
 	/**
@@ -174,6 +256,44 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	public function testIsDownloadWipChecksResourcesAfterEmptyProgress(): void {
+		$cache = $this->createMock(ICache::class);
+		$this->cacheFactory = $this->createMock(ICacheFactory::class);
+		$this->cacheFactory->method('createDistributed')->willReturn($cache);
+		$this->clientService = $this->createMock(IClientService::class);
+		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
+		$this->config = $this->createMock(IConfig::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->ignSetupService = $this->createMock(SignSetupService::class);
+		$this->appDataFactory = $this->createMock(IAppDataFactory::class);
+		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
+		$this->processManager = $this->createMock(ProcessManager::class);
+
+		$cache->method('get')
+			->willReturnCallback(static fn (string $key): ?array => match ($key) {
+				'libresign-asyncDownloadProgress-java' => null,
+				'libresign-asyncDownloadProgress-jsignpdf' => ['pid' => 123],
+				default => null,
+			});
+		$this->processManager->method('findRunningPid')->willReturn(123);
+
+		$installService = new InstallService(
+			$this->cacheFactory,
+			$this->clientService,
+			$this->certificateEngineFactory,
+			$this->config,
+			$this->appConfig,
+			$this->logger,
+			$this->ignSetupService,
+			$this->appDataFactory,
+			$this->caIdentifierService,
+			$this->processManager,
+		);
+
+		$this->assertTrue($installService->isDownloadWip());
+	}
+
 	public function testGetInstallPidReadsMatchingPidFromRegistry(): void {
 		$installService = $this->getInstallService();
 		$installService->setResource('cfssl');
@@ -190,6 +310,29 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$actual = self::invokePrivate($installService, 'getInstallPid');
 
 		$this->assertSame(123, $actual);
+	}
+
+	public function testGetInstallPidIgnoresSameResourceFromAnotherArchitecture(): void {
+		$installService = $this->getInstallService();
+		$installService->setArchitecture('x86_64');
+		$installService->setResource('cfssl');
+
+		$this->processManager->expects($this->once())
+			->method('findRunningPid')
+			->with('install', $this->callback('is_callable'))
+			->willReturnCallback(fn (string $_source, callable $filter): int => $filter([
+				'pid' => 123,
+				'context' => [
+					'resource' => 'cfssl',
+					'architecture' => 'aarch64',
+					'distro' => $installService->getLinuxDistributionToDownloadJava(),
+				],
+				'createdAt' => 123,
+			]) ? 123 : 0);
+
+		$actual = self::invokePrivate($installService, 'getInstallPid');
+
+		$this->assertSame(0, $actual);
 	}
 
 	public function testGetInstallPidValidatesRequestedPidAgainstResource(): void {
@@ -245,12 +388,26 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getPid')
 			->willReturn(321);
 
-		$installService = $this->getInstallServiceWithProcess($process);
+		$installService = $this->getInstallServiceWithProcess();
+		$installService->setArchitecture('amd64');
 		$installService->setResource('cfssl');
+		$installService->expects($this->once())
+			->method('createProcess')
+			->with([
+				\OC::$SERVERROOT . '/occ',
+				'libresign:install',
+				'--cfssl',
+				'--architecture=x86_64',
+			])
+			->willReturn($process);
 
 		$this->processManager->expects($this->once())
 			->method('register')
-			->with('install', 321, ['resource' => 'cfssl']);
+			->with('install', 321, [
+				'resource' => 'cfssl',
+				'architecture' => $installService->getArchitecture(),
+				'distro' => $installService->getLinuxDistributionToDownloadJava(),
+			]);
 
 		self::invokePrivate($installService, 'runAsync');
 	}
@@ -269,19 +426,52 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getPid')
 			->willReturn(null);
 
-		$installService = $this->getInstallServiceWithProcess($process);
+		$installService = $this->getInstallServiceWithProcess();
 		$installService->setResource('cfssl');
+		$installService->expects($this->once())
+			->method('createProcess')
+			->willReturn($process);
 
 		$this->processManager->expects($this->never())
 			->method('register');
 		$this->logger->expects($this->once())
 			->method('error')
-			->with($this->stringContains('Error to get PID of background install proccess'));
+			->with($this->stringContains('Error to get PID of background install process'));
 
 		self::invokePrivate($installService, 'runAsync');
 	}
 
-	private function getInstallServiceWithProcess(Process $process): InstallService&MockObject {
+	public function testRunAsyncPreservesJavaArchitectureAndDistro(): void {
+		$process = $this->createMock(Process::class);
+		$process->method('getPid')->willReturn(456);
+
+		$installService = $this->getInstallServiceWithProcess();
+		$installService->setArchitecture('arm64');
+		$installService->setDistro('alpine-linux');
+		$installService->setResource('java');
+		$installService->expects($this->once())
+			->method('createProcess')
+			->with([
+				\OC::$SERVERROOT . '/occ',
+				'libresign:install',
+				'--java',
+				'--architecture=aarch64',
+				'--distro=alpine-linux',
+			])
+			->willReturn($process);
+
+		$this->processManager->expects($this->once())
+			->method('register')
+			->with('install', 456, [
+				'resource' => 'java',
+				'architecture' => 'aarch64',
+				'distro' => 'alpine-linux',
+			]);
+
+		self::invokePrivate($installService, 'runAsync');
+	}
+
+	private function getInstallServiceWithProcess(): InstallService&MockObject {
 		$this->cacheFactory = $this->createMock(ICacheFactory::class);
 		$this->clientService = $this->createMock(IClientService::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
@@ -308,9 +498,6 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			])
 			->onlyMethods(['createProcess'])
 			->getMock();
-
-		$installService->method('createProcess')
-			->willReturn($process);
 
 		return $installService;
 	}
