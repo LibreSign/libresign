@@ -449,7 +449,7 @@ class InstallService {
 			$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . $slugfyVersionNumber . '.tar.gz';
 			$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
 		}
-		$folder = $this->getFolder('/' . $linuxDistribution . '/' . $this->resource);
+		$folder = $this->getFolder($this->resource, needToBeEmpty: true);
 		try {
 			$compressedFile = $folder->getFile($compressedFileName);
 		} catch (NotFoundException) {
@@ -521,7 +521,7 @@ class InstallService {
 				return;
 			}
 		}
-		$folder = $this->getFolder($this->resource);
+		$folder = $this->getFolder($this->resource, needToBeEmpty: true);
 		$compressedFileName = JSignPdfRelease::archiveName();
 		try {
 			$compressedFile = $folder->getFile($compressedFileName);
@@ -600,7 +600,7 @@ class InstallService {
 			}
 			return;
 		}
-		$folder = $this->getFolder($this->resource);
+		$folder = $this->getFolder($this->resource, needToBeEmpty: true);
 		try {
 			$file = $folder->getFile('pdftk.jar');
 		} catch (\Throwable) {
@@ -658,7 +658,7 @@ class InstallService {
 			}
 			return;
 		}
-		$folder = $this->getFolder($this->resource);
+		$folder = $this->getFolder($this->resource, needToBeEmpty: true);
 		$file = 'cfssl_' . self::CFSSL_VERSION . '_linux_' . $architecture;
 		$baseUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/';
 		$checksumUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/cfssl_' . self::CFSSL_VERSION . '_checksums.txt';
