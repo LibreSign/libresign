@@ -13,6 +13,16 @@ final class MilestoneManager {
 	public function __construct(private readonly CommandRunner $runner) {
 	}
 
+	public function assertClosed(string $repository, string $title): void {
+		$milestone = $this->findByTitle($this->milestones($repository, 'all'), $title);
+		if ($milestone === null) {
+			throw new \RuntimeException("Milestone {$title} was not found");
+		}
+		if (($milestone['state'] ?? null) !== 'closed') {
+			throw new \RuntimeException("Milestone {$title} is not closed");
+		}
+	}
+
 	public function finalize(
 		string $repository,
 		int $stableNumber,
