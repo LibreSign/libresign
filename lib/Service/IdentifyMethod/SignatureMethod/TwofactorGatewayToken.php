@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethodService;
 
@@ -78,7 +79,16 @@ class TwofactorGatewayToken extends AbstractSignatureMethod implements IToken {
 	}
 
 	#[\Override]
-	public function requestCode(string $identifier, string $method): void {
+	public function requestCode(): void {
+		$entity = $this->getEntity();
+		$identifier = $entity->getIdentifierValue();
+		$method = $entity->getIdentifierKey();
+
+		if (trim($identifier) === '') {
+			// TRANSLATORS Generic error shown when a verification code cannot be delivered.
+			throw new LibresignException($this->identifyService->getL10n()->t('Unable to send verification code.'));
+		}
+
 		$signRequestMapper = $this->identifyService->getSignRequestMapper();
 		$signRequest = $signRequestMapper->getById($this->getEntity()->getSignRequestId());
 		$displayName = $signRequest->getDisplayName();
