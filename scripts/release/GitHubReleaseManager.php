@@ -10,7 +10,9 @@ declare(strict_types=1);
 namespace LibreSign\Release;
 
 final class GitHubReleaseManager {
-	public function __construct(private readonly CommandRunner $runner) {
+	public function __construct(
+		private readonly CommandRunner $runner,
+	) {
 	}
 
 	public function assertPullRequestScope(string $repository, int $pullRequest): void {
