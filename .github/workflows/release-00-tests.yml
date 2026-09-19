@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-name: Release automation tests
+name: Release 00 - Automation tests
 
 on:
   pull_request:
@@ -36,7 +36,7 @@ jobs:
         with:
           version: 1.7.12
           shellcheck: true
-          files: '.github/workflows/*release*.yml'
+          files: '.github/workflows/release-00-tests.yml, .github/workflows/release-10-prepare-pr.yml, .github/workflows/release-20-finalize-preparation.yml, .github/workflows/release-30-prepare-draft.yml'
 
   planner-tests:
     name: Test release planner
@@ -58,5 +58,5 @@ jobs:
       - name: Check release scripts syntax
         run: find scripts/release -name '*.php' -print0 | xargs -0 -n1 php -l
 
-      - name: Run release planner tests
-        run: vendor-bin/phpunit/vendor/bin/phpunit -c tests/release/phpunit.xml
+      - name: Run release automation tests
+        run: composer test:release
