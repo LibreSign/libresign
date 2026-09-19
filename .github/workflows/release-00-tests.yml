@@ -38,8 +38,8 @@ jobs:
           shellcheck: true
           files: '.github/workflows/release-00-tests.yml, .github/workflows/release-10-prepare-pr.yml, .github/workflows/release-20-finalize-preparation.yml, .github/workflows/release-30-prepare-draft.yml'
 
-  planner-tests:
-    name: Test release planner
+  cli-tests:
+    name: Test release CLI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
