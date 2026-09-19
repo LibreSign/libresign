@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-name: Create stable release
+name: Prepare stable release
 
 on:
   workflow_dispatch:
@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
+  prepare_release:
     runs-on: ubuntu-latest
 
     steps:
@@ -207,4 +207,5 @@ jobs:
             --repo "${{ github.repository }}" \
             --target "$STABLE_BRANCH" \
             --title "$TAG" \
-            --notes-file release-notes.md
+            --notes-file release-notes.md \
+            --draft
