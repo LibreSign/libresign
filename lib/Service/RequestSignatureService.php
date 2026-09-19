@@ -493,7 +493,6 @@ class RequestSignatureService {
 
 			$this->sequentialSigningService->resetOrderCounter();
 			$fileStatus = $data['status'] ?? null;
-			$requester = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
 
 			foreach ($normalizedSigners as $signer) {
 				$participantRole = ParticipantRole::fromNullable($signer['participantRole'] ?? null);
