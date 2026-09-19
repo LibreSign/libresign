@@ -37,6 +37,44 @@ final class ReleaseRepository {
 	}
 
 	/**
+	 * @return array{version:string,tag:string,previousTag:string,targetSha:string}
+	 */
+	public function draftState(string $root): array {
+		$version = $this->files->readVersion($root);
+		if (preg_match('/-(?:dev|alpha|beta|rc)/i', $version)) {
+			throw new \RuntimeException("Development or prerelease version cannot be released: {$version}");
+		}
+		$this->files->assertVersions($root, $version);
+
+		$tag = 'v' . $version;
+		if ($this->runner->run(['git', 'tag', '--list', $tag], $root) !== '') {
+			throw new \RuntimeException("Tag {$tag} already exists");
+		}
+
+		$previousTag = $this->runner->run(
+			['git', 'describe', '--tags', '--match', 'v[0-9]*', '--abbrev=0', 'HEAD'],
+			$root,
+		);
+		$previousVersion = ltrim($previousTag, 'v');
+		$currentMajor = explode('.', $version)[0] ?? '';
+		$previousMajor = explode('.', $previousVersion)[0] ?? '';
+		if ($currentMajor === '' || $currentMajor !== $previousMajor) {
+			throw new \RuntimeException(
+				"Previous tag {$previousTag} does not match release major {$currentMajor}",
+			);
+		}
+
+		$targetSha = $this->runner->run(['git', 'rev-parse', 'HEAD'], $root);
+
+		return [
+			'version' => $version,
+			'tag' => $tag,
+			'previousTag' => $previousTag,
+			'targetSha' => $targetSha,
+		];
+	}
+
+	/**
 	 * @return list<array{number:int,title:string,url:string,author:string,labels:list<string>}>
 	 */
 	public function collectPullRequests(string $root, string $repository, string $branch, string $previousTag): array {
