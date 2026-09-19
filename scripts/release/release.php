@@ -37,6 +37,7 @@ try {
 		'check-pr-scope' => checkPullRequestScope($args),
 		'draft' => createOrUpdateDraft($args),
 		'summary' => summary($args),
+		'outputs' => outputs($args),
 		default => usage($command === 'help' ? 0 : 2),
 	};
 } catch (Throwable $e) {
@@ -179,6 +180,33 @@ function createOrUpdateDraft(array $args): never {
 }
 
 /** @param list<string> $args */
+function outputs(array $args): never {
+	$options = parseOptions($args);
+	$data = readJsonFile(required($options, 'json'));
+	$mapping = required($options, 'map');
+	$outputFile = getenv('GITHUB_OUTPUT');
+
+	if (!is_string($outputFile) || $outputFile === '') {
+		throw new RuntimeException('GITHUB_OUTPUT is not available');
+	}
+
+	$lines = [];
+	foreach (explode(',', $mapping) as $entry) {
+		[$source, $target] = array_pad(explode(':', $entry, 2), 2, null);
+		if ($source === null || $source === '' || $target === null || $target === '') {
+			throw new InvalidArgumentException('Output mapping must use source:target');
+		}
+		if (!array_key_exists($source, $data) || !is_scalar($data[$source])) {
+			throw new RuntimeException("Missing scalar JSON key: {$source}");
+		}
+		$lines[] = $target . '=' . (string)$data[$source];
+	}
+
+	file_put_contents($outputFile, implode("\n", $lines) . "\n", FILE_APPEND);
+	exit(0);
+}
+
+/** @param list<string> $args */
 function summary(array $args): never {
 	$options = parseOptions($args);
 	$state = readJsonFile(required($options, 'state'));
@@ -271,5 +299,6 @@ function usage(int $exitCode): never {
 	echo "  check-pr-scope --repository OWNER/REPO --pr NUMBER\n";
 	echo "  draft --repository OWNER/REPO --tag TAG --target SHA --notes-file FILE\n";
 	echo "  summary --state state.json --plan release-plan.json --milestone milestone.json --branch stableNN\n";
+	echo "  outputs --json FILE --map source:target[,source:target...]\n";
 	exit($exitCode);
 }
