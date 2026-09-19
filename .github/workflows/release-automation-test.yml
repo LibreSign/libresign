@@ -36,6 +36,7 @@ jobs:
         with:
           version: 1.7.12
           shellcheck: true
+          files: '.github/workflows/*release*.yml'
 
   planner-tests:
     name: Test release planner
