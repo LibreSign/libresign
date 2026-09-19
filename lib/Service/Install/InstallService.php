@@ -726,7 +726,7 @@ class InstallService {
 					$this->progressToDatabase($downloadSize, $downloaded);
 				},
 			]);
-		} catch (\Throwable $e) {
+		} catch (\Exception $e) {
 			throw new LibresignException(
 				'Failure on download ' . $dependencyName . " try again.\n" . $e->getMessage(),
 				previous: $e,
@@ -756,7 +756,7 @@ class InstallService {
 					$this->progressToDatabase($downloadSize, $downloaded);
 				},
 			]);
-		} catch (\Throwable $e) {
+		} catch (\Exception $e) {
 			$this->logger->error('Failure on download ' . $dependencyName, [
 				'exception' => $e,
 				'url' => $url,
@@ -787,7 +787,7 @@ class InstallService {
 		try {
 			$response = $this->clientService->newClient()->get($checksumUrl);
 			$hashes = $response->getBody();
-		} catch (\Throwable $e) {
+		} catch (\Exception $e) {
 			throw new LibresignException(
 				'Failure to download hash file. URL: ' . $checksumUrl,
 				previous: $e,
