@@ -40,13 +40,13 @@ final class ReleasePlannerTest extends TestCase {
 		self::assertStringContainsString('### Added', $plan['changelog']);
 	}
 
-	public function testBreakingChangeBumpsMajor(): void {
-		$plan = $this->planner->plan('15.4.2', [
+	public function testBreakingChangeIsRejectedOnStableRelease(): void {
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage('Major version bumps are not allowed');
+
+		$this->planner->plan('15.4.2', [
 			$this->pr(1, 'feat!: change signing API'),
 		], '2026-09-19');
-
-		self::assertSame('major', $plan['bump']);
-		self::assertSame('16.0.0', $plan['nextVersion']);
 	}
 
 	public function testSkippedAndBotPullRequestsAreIgnored(): void {
