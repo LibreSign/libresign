@@ -1,0 +1,62 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Release automation tests
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/*release*.yml'
+      - 'scripts/release/**'
+      - 'tests/release/**'
+      - 'composer.json'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/*release*.yml'
+      - 'scripts/release/**'
+      - 'tests/release/**'
+      - 'composer.json'
+
+permissions:
+  contents: read
+
+jobs:
+  workflow-lint:
+    name: Validate release workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run actionlint and ShellCheck
+        uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
+        with:
+          version: 1.7.12
+          shellcheck: true
+          files: '.github/workflows/*release*.yml'
+
+  planner-tests:
+    name: Test release planner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Install PHPUnit test suite
+        run: composer install --working-dir=vendor-bin/phpunit --no-interaction --no-progress
+
+      - name: Check release scripts syntax
+        run: find scripts/release -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Run release planner tests
+        run: vendor-bin/phpunit/vendor/bin/phpunit -c tests/release/phpunit.xml
