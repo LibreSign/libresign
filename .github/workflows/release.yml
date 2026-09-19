@@ -27,13 +27,10 @@ jobs:
         env:
           STABLE_BRANCH: ${{ inputs.stable_branch }}
         run: |
-          case "$STABLE_BRANCH" in
-            stable[0-9]*) ;;
-            *)
-              echo "::error::stable_branch must match stableNN"
-              exit 1
-              ;;
-          esac
+          if ! [[ "$STABLE_BRANCH" =~ ^stable[0-9]+$ ]]; then
+            echo "::error::stable_branch must match stableNN"
+            exit 1
+          fi
 
       - name: Check actor permission
         uses: skjnldsv/check-actor-permission@69e92a3c4711150929bca9fcf34448c5bf5526e7 # v3.0
@@ -75,21 +72,31 @@ jobs:
           fi
 
           tag="v$version"
+          target_sha=$(git rev-parse HEAD)
 
           if git rev-parse "$tag" >/dev/null 2>&1; then
             echo "::error::Tag $tag already exists"
             exit 1
           fi
 
-          previous_tag=$(git describe --tags --abbrev=0 HEAD 2>/dev/null || true)
+          previous_tag=$(git describe --tags --match 'v[0-9]*' --abbrev=0 HEAD 2>/dev/null || true)
           if [ -z "$previous_tag" ]; then
-            echo "::error::Could not resolve previous release tag"
+            echo "::error::Could not resolve previous stable release tag"
+            exit 1
+          fi
+
+          previous_version=${previous_tag#v}
+          current_major=${version%%.*}
+          previous_major=${previous_version%%.*}
+          if [ "$current_major" != "$previous_major" ]; then
+            echo "::error::Previous tag $previous_tag does not match release major $current_major"
             exit 1
           fi
 
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "previous_tag=$previous_tag" >> "$GITHUB_OUTPUT"
+          echo "target_sha=$target_sha" >> "$GITHUB_OUTPUT"
 
       - name: Verify changelog contains release
         env:
@@ -181,11 +188,11 @@ jobs:
           printf '%s\n' "$APP_PRIVATE_KEY" > build/tools/certificates/libresign.key
           make appstore verify-appstore-package
 
-      - name: Create GitHub release
+      - name: Create or update GitHub release draft
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.release.outputs.tag }}
-          STABLE_BRANCH: ${{ inputs.stable_branch }}
+          TARGET_SHA: ${{ steps.release.outputs.target_sha }}
         run: |
           set -eu
 
@@ -197,15 +204,42 @@ jobs:
           ' CHANGELOG.md > ../release-notes.md
 
           {
+            echo "## What's Changed"
+            cat ../release-notes.md
             echo
             echo "**Full Changelog:** https://github.com/${{ github.repository }}/compare/${{ steps.release.outputs.previous_tag }}...${{ steps.release.outputs.tag }}"
-          } >> ../release-notes.md
+          } > ../release-notes.final.md
 
           cd ..
 
-          gh release create "$TAG" \
-            --repo "${{ github.repository }}" \
-            --target "$STABLE_BRANCH" \
-            --title "$TAG" \
-            --notes-file release-notes.md \
-            --draft
+          release_json=$(gh api "repos/${{ github.repository }}/releases" --paginate)
+          release_id=$(printf '%s' "$release_json" | jq -r --arg tag "$TAG" '.[] | select(.tag_name == $tag) | .id' | head -n1)
+          release_draft=$(printf '%s' "$release_json" | jq -r --arg tag "$TAG" '.[] | select(.tag_name == $tag) | .draft' | head -n1)
+
+          if [ -n "$release_id" ]; then
+            if [ "$release_draft" != "true" ]; then
+              echo "::error::Release $TAG already exists and is not a draft"
+              exit 1
+            fi
+
+            gh api \
+              --method PATCH \
+              "repos/${{ github.repository }}/releases/$release_id" \
+              -f tag_name="$TAG" \
+              -f target_commitish="$TARGET_SHA" \
+              -f name="$TAG" \
+              -F draft=true \
+              -F prerelease=false \
+              -f body=@release-notes.final.md >/dev/null
+
+            echo "Updated existing draft $TAG"
+          else
+            gh release create "$TAG" \
+              --repo "${{ github.repository }}" \
+              --target "$TARGET_SHA" \
+              --title "$TAG" \
+              --notes-file release-notes.final.md \
+              --draft
+
+            echo "Created draft $TAG"
+          fi
