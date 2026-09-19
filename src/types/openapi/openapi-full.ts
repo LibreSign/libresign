@@ -5479,7 +5479,7 @@ export interface operations {
                     identifyMethod?: "account" | "email" | null;
                     /** @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken */
                     signMethod?: string | null;
-                    /** @description Identify value, i.e. the signer email, account or phone number */
+                    /** @description Legacy identify value retained for API compatibility; ignored for verification-code delivery */
                     identify?: string | null;
                 };
             };
@@ -5539,7 +5539,7 @@ export interface operations {
                     identifyMethod?: "account" | "email" | null;
                     /** @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken */
                     signMethod?: string | null;
-                    /** @description Identify value, i.e. the signer email, account or phone number */
+                    /** @description Legacy identify value retained for API compatibility; ignored for verification-code delivery */
                     identify?: string | null;
                 };
             };
