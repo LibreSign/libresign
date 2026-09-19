@@ -45,13 +45,6 @@ class GeoIpLookupService {
 			);
 		}
 
-		if (!$this->geoIpDatabaseStatusService->isReady()) {
-			return $this->normalizer->normalizeUnavailable(
-				SignerIpGeolocationUnavailableReason::DATABASE_NOT_READY,
-				$sourceIp,
-			);
-		}
-
 		try {
 			$reader = $this->getReader();
 			if ($reader === null) {
@@ -90,7 +83,14 @@ class GeoIpLookupService {
 		$this->closeReader();
 
 		try {
-			$this->reader = new Reader($path);
+			$reader = new Reader($path);
+			$databaseType = $reader->metadata()->databaseType;
+			if (!$this->geoIpDatabaseStatusService->isSupportedDatabaseType($databaseType)) {
+				$reader->close();
+				return null;
+			}
+
+			$this->reader = $reader;
 			$this->openedPath = $path;
 			return $this->reader;
 		} catch (\Throwable $exception) {

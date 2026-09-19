@@ -47,7 +47,7 @@ final class GeoIpLookupServiceTest extends TestCase {
 	}
 
 	public function testUnavailableWhenDatabaseNotReady(): void {
-		$this->statusService->method('isReady')->willReturn(false);
+		$this->configService->method('getDatabasePath')->willReturn(null);
 
 		$result = $this->getService()->lookup('81.2.69.160');
 		$this->assertSame(SignerIpGeolocationStatus::UNAVAILABLE->value, $result['status']);
@@ -59,7 +59,7 @@ final class GeoIpLookupServiceTest extends TestCase {
 		$path = __DIR__ . '/../../../fixtures/geoip/GeoIP2-City-Test.mmdb';
 		$this->assertFileExists($path);
 
-		$this->statusService->method('isReady')->willReturn(true);
+		$this->statusService->method('isSupportedDatabaseType')->willReturn(true);
 		$this->configService->method('getDatabasePath')->willReturn($path);
 
 		$result = $this->getService()->lookup('81.2.69.160');
@@ -74,7 +74,7 @@ final class GeoIpLookupServiceTest extends TestCase {
 		$path = __DIR__ . '/../../../fixtures/geoip/GeoIP2-City-Test.mmdb';
 		$this->assertFileExists($path);
 
-		$this->statusService->method('isReady')->willReturn(true);
+		$this->statusService->method('isSupportedDatabaseType')->willReturn(true);
 		$this->configService->method('getDatabasePath')->willReturn($path);
 
 		$result = $this->getService()->lookup('127.0.0.1');
@@ -86,7 +86,7 @@ final class GeoIpLookupServiceTest extends TestCase {
 		$path = __DIR__ . '/../../../fixtures/geoip/GeoIP2-City-Test.mmdb';
 		$this->assertFileExists($path);
 
-		$this->statusService->method('isReady')->willReturn(true);
+		$this->statusService->method('isSupportedDatabaseType')->willReturn(true);
 		$this->configService->method('getDatabasePath')->willReturn($path);
 
 		// Documented MaxMind test network present in GeoIP2-City-Test.mmdb.
