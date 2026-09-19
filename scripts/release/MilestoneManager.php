@@ -33,8 +33,10 @@ final class MilestoneManager {
 		$releaseMilestone = $this->findByTitle($milestones, 'v' . $version);
 
 		$needsRename = false;
+		$nextPatchTitle = sprintf('💚 Next Patch (%d)', $stableNumber);
 		if ($releaseMilestone === null) {
 			$releaseMilestone = $this->findOpenNextPatch($milestones, $stableNumber);
+			$nextPatchTitle = (string)$releaseMilestone['title'];
 			$needsRename = true;
 		}
 
@@ -68,7 +70,7 @@ final class MilestoneManager {
 			);
 
 			if ($nextMilestone === null) {
-				$nextMilestone = $this->createNextPatchMilestone($repository, $stableNumber);
+				$nextMilestone = $this->createNextPatchMilestone($repository, $nextPatchTitle);
 			}
 
 			$nextNumber = (int)$nextMilestone['number'];
@@ -179,12 +181,7 @@ final class MilestoneManager {
 	/**
 	 * @return array<string,mixed>
 	 */
-	private function createNextPatchMilestone(string $repository, int $stableNumber): array {
-		$title = sprintf('💚 Next Patch (%d)', $stableNumber);
-		$dueOn = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))
-			->modify('+28 days')
-			->format('Y-m-d\TH:i:s\Z');
-
+	private function createNextPatchMilestone(string $repository, string $title): array {
 		$json = $this->runner->run([
 			'gh',
 			'api',
@@ -193,8 +190,6 @@ final class MilestoneManager {
 			sprintf('repos/%s/milestones', $repository),
 			'-f',
 			'title=' . $title,
-			'-f',
-			'due_on=' . $dueOn,
 		]);
 		$data = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
 		if (!is_array($data)) {
