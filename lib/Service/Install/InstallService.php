@@ -218,7 +218,7 @@ class InstallService {
 			$appFolder = $this->getFolder();
 			try {
 				$file = $appFolder->getFile('setup-cache.json');
-			} catch (\Throwable) {
+			} catch (NotFoundException) {
 				$file = $appFolder->newFile('setup-cache.json', '[]');
 			}
 			$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
@@ -240,10 +240,10 @@ class InstallService {
 				$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
 				return $json[$key] ?? null;
 			} catch (NotFoundException) {
-			} catch (\Throwable $th) {
+			} catch (\Exception $e) {
 				$this->logger->error('Unexpected error when get setup-cache.json file', [
 					'app' => Application::APP_ID,
-					'exception' => $th,
+					'exception' => $e,
 				]);
 			}
 			return;
@@ -265,7 +265,11 @@ class InstallService {
 				} else {
 					$file->putContent(json_encode($json));
 				}
-			} catch (\Throwable) {
+			} catch (\Exception $e) {
+				$this->logger->warning('Could not update setup-cache.json', [
+					'app' => Application::APP_ID,
+					'exception' => $e,
+				]);
 			}
 			return;
 		}
@@ -533,7 +537,7 @@ class InstallService {
 		$compressedFileName = JSignPdfRelease::archiveName();
 		try {
 			$compressedFile = $folder->getFile($compressedFileName);
-		} catch (\Throwable) {
+		} catch (NotFoundException) {
 			$compressedFile = $folder->newFile($compressedFileName);
 		}
 		$compressedInternalFileName = $this->getInternalPathOfFile($compressedFile);
@@ -611,7 +615,7 @@ class InstallService {
 		$folder = $this->getFolder($this->resource, needToBeEmpty: true);
 		try {
 			$file = $folder->getFile('pdftk.jar');
-		} catch (\Throwable) {
+		} catch (NotFoundException) {
 			$file = $folder->newFile('pdftk.jar');
 		}
 		$fullPath = $this->getInternalPathOfFile($file);
