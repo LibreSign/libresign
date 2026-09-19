@@ -47,6 +47,7 @@ use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\PdfSignatureDetectionService;
@@ -429,6 +430,46 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$service->setLibreSignFile($libreSignFile),
 			'getPdfToSign',
 			[$originalFile],
+		);
+	}
+
+	public function testRequestCodeDoesNotPassDestinationToToken(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(171);
+
+		$entity = (new IdentifyMethod())->fromParams([
+			'identifierKey' => 'email',
+			'identifierValue' => 'victim@example.test',
+			'signRequestId' => 171,
+		]);
+
+		$token = $this->createMock(EmailToken::class);
+		$token->expects($this->once())
+			->method('setEntity')
+			->with($entity);
+		$token->expects($this->once())
+			->method('requestCode')
+			->with();
+
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getEntity')->willReturn($entity);
+		$identifyMethod->expects($this->once())
+			->method('getEmptyInstanceOfSignatureMethodByName')
+			->with(ISignatureMethod::SIGNATURE_METHOD_EMAIL_TOKEN)
+			->willReturn($token);
+
+		$this->identifyMethodService
+			->expects($this->once())
+			->method('getIdentifyMethodsFromSignRequestId')
+			->with(171)
+			->willReturn([
+				'email' => [$identifyMethod],
+			]);
+
+		$this->getService()->requestCode(
+			$signRequest,
+			'email',
+			ISignatureMethod::SIGNATURE_METHOD_EMAIL_TOKEN,
 		);
 	}
 
