@@ -83,7 +83,7 @@ final readonly class InstallTarget {
 			if (is_string($distribution) && strtolower($distribution) === 'alpine') {
 				return 'alpine-linux';
 			}
-		} catch (\Throwable) {
+		} catch (\Exception) {
 		}
 
 		if (file_exists('/etc/alpine-release')) {
