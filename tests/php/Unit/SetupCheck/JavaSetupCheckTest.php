@@ -389,6 +389,166 @@ class JavaSetupCheckTest extends TestCase {
 		$this->assertEquals('success', $result->getSeverity());
 	}
 
+	public function testDebugModeUsesProductionSignatureWhenValid(): void {
+		$javaPath = '/fake/java';
+		$this->javaHelper->method('getJavaPath')->willReturn($javaPath);
+		$this->systemConfig->method('getSystemValueBool')
+			->with('debug', false)
+			->willReturn(true);
+
+		FileSystemMock::$files[$javaPath] = true;
+		ExecMock::$commands[$javaPath . ' -version 2>&1'] = [
+			'output' => [InstallService::JAVA_VERSION],
+			'result_code' => 0,
+		];
+		ExecMock::$commands[$javaPath . ' -XshowSettings:properties -version 2>&1'] = [
+			'output' => ['native.encoding = UTF-8'],
+			'result_code' => 0,
+		];
+
+		$certificateModes = [];
+		$this->signSetupService->expects($this->once())
+			->method('willUseLocalCert')
+			->willReturnCallback(
+				static function (bool $useLocalCert) use (&$certificateModes): void {
+					$certificateModes[] = $useLocalCert;
+				}
+			);
+
+		$this->signSetupService->expects($this->once())
+			->method('verify')
+			->with(php_uname('m'), 'java')
+			->willReturn([]);
+
+		$this->l10n->method('t')
+			->willReturnCallback(fn ($string, $params = []) => vsprintf($string, $params));
+
+		$result = $this->getInstance()->run();
+
+		$this->assertSame([false], $certificateModes);
+		$this->assertEquals('success', $result->getSeverity());
+	}
+
+	public function testDebugModeFallsBackToLocalCertificate(): void {
+		$javaPath = '/fake/java';
+		$this->javaHelper->method('getJavaPath')->willReturn($javaPath);
+		$this->systemConfig->method('getSystemValueBool')
+			->with('debug', false)
+			->willReturn(true);
+
+		FileSystemMock::$files[$javaPath] = true;
+		ExecMock::$commands[$javaPath . ' -version 2>&1'] = [
+			'output' => [InstallService::JAVA_VERSION],
+			'result_code' => 0,
+		];
+		ExecMock::$commands[$javaPath . ' -XshowSettings:properties -version 2>&1'] = [
+			'output' => ['native.encoding = UTF-8'],
+			'result_code' => 0,
+		];
+
+		$certificateModes = [];
+		$this->signSetupService->expects($this->exactly(2))
+			->method('willUseLocalCert')
+			->willReturnCallback(
+				static function (bool $useLocalCert) use (&$certificateModes): void {
+					$certificateModes[] = $useLocalCert;
+				}
+			);
+
+		$this->signSetupService->expects($this->exactly(2))
+			->method('verify')
+			->with(php_uname('m'), 'java')
+			->willReturnOnConsecutiveCalls(
+				['HASH_FILE_ERROR' => 'Production certificate validation failed'],
+				[],
+			);
+
+		$this->l10n->method('t')
+			->willReturnCallback(fn ($string, $params = []) => vsprintf($string, $params));
+
+		$result = $this->getInstance()->run();
+
+		$this->assertSame([false, true], $certificateModes);
+		$this->assertEquals('success', $result->getSeverity());
+	}
+
+	public function testDebugModeDoesNotFallbackForInvalidHash(): void {
+		$javaPath = '/fake/java';
+		$this->javaHelper->method('getJavaPath')->willReturn($javaPath);
+		$this->systemConfig->method('getSystemValueBool')
+			->with('debug', false)
+			->willReturn(true);
+
+		FileSystemMock::$files[$javaPath] = true;
+
+		$verifyResult = [
+			'INVALID_HASH' => [
+				'java' => [
+					'expected' => 'expected',
+					'current' => 'current',
+				],
+			],
+		];
+
+		$this->signSetupService->expects($this->once())
+			->method('willUseLocalCert')
+			->with(false);
+
+		$this->signSetupService->expects($this->once())
+			->method('verify')
+			->with(php_uname('m'), 'java')
+			->willReturn($verifyResult);
+
+		$this->l10n->method('t')
+			->willReturnCallback(fn ($string, $params = []) => vsprintf($string, $params));
+
+		$result = $this->getInstance()->run();
+
+		$this->assertEquals('error', $result->getSeverity());
+	}
+
+	public function testDebugModeReturnsLocalIntegrityFailureAfterFallback(): void {
+		$javaPath = '/fake/java';
+		$this->javaHelper->method('getJavaPath')->willReturn($javaPath);
+		$this->systemConfig->method('getSystemValueBool')
+			->with('debug', false)
+			->willReturn(true);
+
+		FileSystemMock::$files[$javaPath] = true;
+
+		$certificateModes = [];
+		$this->signSetupService->expects($this->exactly(2))
+			->method('willUseLocalCert')
+			->willReturnCallback(
+				static function (bool $useLocalCert) use (&$certificateModes): void {
+					$certificateModes[] = $useLocalCert;
+				}
+			);
+
+		$this->signSetupService->expects($this->exactly(2))
+			->method('verify')
+			->with(php_uname('m'), 'java')
+			->willReturnOnConsecutiveCalls(
+				['HASH_FILE_ERROR' => 'Production certificate validation failed'],
+				[
+					'INVALID_HASH' => [
+						'java' => [
+							'expected' => 'expected',
+							'current' => 'current',
+						],
+					],
+				],
+			);
+
+		$this->l10n->method('t')
+			->willReturnCallback(fn ($string, $params = []) => vsprintf($string, $params));
+
+		$result = $this->getInstance()->run();
+
+		$this->assertSame([false, true], $certificateModes);
+		$this->assertEquals('error', $result->getSeverity());
+	}
+
 	public function testVerifyResourceIntegrityHashFileErrorWithDebug(): void {
 		$javaPath = '/fake/java';
 		$this->javaHelper->method('getJavaPath')->willReturn($javaPath);
