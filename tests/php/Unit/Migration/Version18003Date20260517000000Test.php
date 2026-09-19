@@ -1125,6 +1125,25 @@ final class Version18003Date20260517000000Test extends TestCase {
 		self::assertArrayNotHasKey('migration_18003_identification_documents_backup', $config);
 	}
 
+	public function testPreservesStructuredIdentificationDocumentsStoredAsString(): void {
+		$config = [
+			'identification_documents' => '{"enabled":true,"approvers":["legal","admin"]}',
+			'approval_group' => ['legacy'],
+		];
+
+		$this->configureTypedAppConfigState($config);
+
+		$migration = new Version18003Date20260517000000($this->appConfig);
+		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
+
+		self::assertSame([
+			'enabled' => true,
+			'approvers' => ['legal', 'admin'],
+		], $config['identification_documents']);
+		self::assertArrayNotHasKey('approval_group', $config);
+		self::assertArrayNotHasKey('migration_18003_identification_documents_backup', $config);
+	}
+
 	public function testResumesIdentificationDocumentsConversionFromBackup(): void {
 		$config = [
 			'migration_18003_identification_documents_backup' => [
@@ -1179,7 +1198,9 @@ final class Version18003Date20260517000000Test extends TestCase {
 	private function configureTypedAppConfigState(array &$config): void {
 		$this->appConfig
 			->method('getAllValues')
-			->willReturnCallback(static fn (string $app): array => $app === Application::APP_ID ? $config : []);
+			->willReturnCallback(static function (string $app) use (&$config): array {
+				return $app === Application::APP_ID ? $config : [];
+			});
 
 		$this->appConfig
 			->method('getValueString')

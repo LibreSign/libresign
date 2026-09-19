@@ -190,27 +190,28 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 		$values = $this->appConfig->getAllValues(Application::APP_ID);
 		$currentValue = $values[$key] ?? null;
 		$backupValue = $values[self::IDENTIFICATION_DOCUMENTS_MIGRATION_BACKUP_KEY] ?? null;
+		$currentPayload = $this->normalizeIdentificationDocumentsPayload($currentValue);
+		$backupPayload = $this->normalizeIdentificationDocumentsPayload($backupValue);
 
-		// A previous attempt may already have completed this conversion before a
-		// later step in the same migration failed. Keep the operation idempotent.
-		if ($this->isIdentificationDocumentsPayload($currentValue)) {
+		if (is_array($currentValue) && $currentPayload !== null) {
 			$this->appConfig->deleteKey(Application::APP_ID, self::IDENTIFICATION_DOCUMENTS_MIGRATION_BACKUP_KEY);
 			$this->appConfig->deleteKey(Application::APP_ID, 'approval_group');
 			return;
 		}
 
-		if ($this->isIdentificationDocumentsPayload($backupValue)) {
-			$consolidatedValue = $backupValue;
+		if ($backupPayload !== null) {
+			$consolidatedValue = $backupPayload;
+		} elseif ($currentPayload !== null) {
+			$consolidatedValue = $currentPayload;
 		} else {
 			$legacyApprovalGroup = $this->normalizeLegacyApprovalGroup($values['approval_group'] ?? null);
 			$consolidatedValue = [
 				'enabled' => $this->toBool($currentValue, false),
 				'approvers' => $legacyApprovalGroup !== [] ? $legacyApprovalGroup : ['admin'],
 			];
+		}
 
-			// Persist the complete replacement before deleting the typed legacy
-			// value. If the process stops between deleteKey() and setValueArray(),
-			// the next migration attempt can recover from this backup.
+		if ($backupPayload === null) {
 			$this->appConfig->setValueArray(
 				Application::APP_ID,
 				self::IDENTIFICATION_DOCUMENTS_MIGRATION_BACKUP_KEY,
@@ -225,12 +226,28 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 		$this->appConfig->deleteKey(Application::APP_ID, 'approval_group');
 	}
 
-	private function isIdentificationDocumentsPayload(mixed $value): bool {
-		return is_array($value)
-			&& array_key_exists('enabled', $value)
-			&& is_bool($value['enabled'])
-			&& array_key_exists('approvers', $value)
-			&& is_array($value['approvers']);
+	/**
+	 * @return null|array{enabled: bool, approvers: array}
+	 */
+	private function normalizeIdentificationDocumentsPayload(mixed $value): ?array {
+		if (is_string($value)) {
+			$decoded = json_decode($value, true);
+			$value = is_array($decoded) ? $decoded : null;
+		}
+
+		if (!is_array($value)
+			|| !array_key_exists('enabled', $value)
+			|| !is_bool($value['enabled'])
+			|| !array_key_exists('approvers', $value)
+			|| !is_array($value['approvers'])
+		) {
+			return null;
+		}
+
+		return [
+			'enabled' => $value['enabled'],
+			'approvers' => array_values($value['approvers']),
+		];
 	}
 
 	/**
@@ -246,12 +263,10 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 			return [];
 		}
 
-		$normalized = array_values(array_filter(
+		return array_values(array_filter(
 			array_map('strval', $value),
 			static fn (string $group): bool => $group !== '',
 		));
-
-		return $normalized;
 	}
 
 	private function migrateEnvelopeType(): void {
