@@ -13,11 +13,10 @@ use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Install\JSignPdfRelease;
-use OCA\Libresign\Service\Install\SetupTrustMode;
+use OCA\Libresign\Service\Install\SetupSignatureVerifier;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\App\IAppManager;
 use OCP\Files\AppData\IAppDataFactory;
-use OCA\Libresign\Service\Install\SetupSignatureVerifier;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\ITempManager;
@@ -212,7 +211,6 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertArrayHasKey('FILE_MISSING', $result);
 		$this->assertArrayHasKey('fakeFile01', $result['FILE_MISSING']);
 	}
-
 
 	#[DataProvider('dataGetInstallPath')]
 	public function testGetInstallPath(string $architecture, string $resource, string $distro, string $expected): void {
