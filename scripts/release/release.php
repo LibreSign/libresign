@@ -29,6 +29,7 @@ $args = array_slice($argv, 2);
 try {
 	match ($command) {
 		'inspect' => inspectRepository($args),
+		'draft-state' => draftState($args),
 		'pending-backports' => pendingBackports($args),
 		'milestone' => resolveMilestone($args),
 		'collect-prs' => collectPullRequests($args),
@@ -39,6 +40,7 @@ try {
 		'check-pr-scope' => checkPullRequestScope($args),
 		'draft' => createOrUpdateDraft($args),
 		'finalize-milestone' => finalizeMilestone($args),
+		'assert-milestone-closed' => assertMilestoneClosed($args),
 		'summary' => summary($args),
 		'outputs' => outputs($args),
 		default => usage($command === 'help' ? 0 : 2),
@@ -54,6 +56,13 @@ function inspectRepository(array $args): never {
 	$root = $options['root'] ?? '.';
 	$result = repository()->inspect($root);
 	writeJson($result);
+}
+
+/** @param list<string> $args */
+function draftState(array $args): never {
+	$options = parseOptions($args);
+	$root = $options['root'] ?? '.';
+	writeJson(repository()->draftState($root));
 }
 
 /** @param list<string> $args */
@@ -232,6 +241,15 @@ function finalizeMilestone(array $args): never {
 }
 
 /** @param list<string> $args */
+function assertMilestoneClosed(array $args): never {
+	$options = parseOptions($args);
+	$repositoryName = required($options, 'repository');
+	$title = required($options, 'title');
+	(new MilestoneManager(new NativeCommandRunner()))->assertClosed($repositoryName, $title);
+	exit(0);
+}
+
+/** @param list<string> $args */
 function summary(array $args): never {
 	$options = parseOptions($args);
 	$state = readJsonFile(required($options, 'state'));
@@ -314,6 +332,7 @@ function usage(int $exitCode): never {
 	echo "LibreSign release CLI\n\n";
 	echo "Commands:\n";
 	echo "  inspect [--root PATH]\n";
+	echo "  draft-state [--root PATH]\n";
 	echo "  pending-backports --repository OWNER/REPO\n";
 	echo "  milestone --repository OWNER/REPO --branch stableNN\n";
 	echo "  collect-prs --repository OWNER/REPO --branch stableNN --previous-tag TAG [--root PATH]\n";
@@ -324,6 +343,7 @@ function usage(int $exitCode): never {
 	echo "  check-pr-scope --repository OWNER/REPO --pr NUMBER\n";
 	echo "  draft --repository OWNER/REPO --tag TAG --target SHA --notes-file FILE\n";
 	echo "  finalize-milestone --repository OWNER/REPO --branch stableNN --final true|false [--root PATH]\n";
+	echo "  assert-milestone-closed --repository OWNER/REPO --title TITLE\n";
 	echo "  summary --state state.json --plan release-plan.json --milestone milestone.json --branch stableNN\n";
 	echo "  outputs --json FILE --map source:target[,source:target...]\n";
 	exit($exitCode);
