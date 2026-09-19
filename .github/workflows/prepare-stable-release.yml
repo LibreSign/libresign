@@ -56,6 +56,7 @@ jobs:
           set -eu
           cd libresign
 
+          # shellcheck disable=SC2016
           version=$(php -r '$xml = simplexml_load_file("appinfo/info.xml"); echo (string) $xml->version;')
           package_version=$(node -p "require('./package.json').version")
           lock_version=$(node -p "require('./package-lock.json').version")
@@ -94,10 +95,12 @@ jobs:
             exit 1
           fi
 
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          echo "previous_tag=$previous_tag" >> "$GITHUB_OUTPUT"
-          echo "target_sha=$target_sha" >> "$GITHUB_OUTPUT"
+          {
+            echo "version=$version"
+            echo "tag=$tag"
+            echo "previous_tag=$previous_tag"
+            echo "target_sha=$target_sha"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Verify changelog contains release
         env:
@@ -181,10 +184,13 @@ jobs:
         id: nextcloud
         run: |
           set -eu
+          # shellcheck disable=SC2016
           ncversion=$(php -r '$xml = simplexml_load_file("libresign/appinfo/info.xml"); echo (string) $xml->dependencies->nextcloud["min-version"];')
           url=$(curl -fsSL "https://updates.nextcloud.com/updater_server/latest?channel=beta&version=$ncversion" | jq -r '.downloads.zip[0]')
-          echo "version=$ncversion" >> "$GITHUB_OUTPUT"
-          echo "url=$url" >> "$GITHUB_OUTPUT"
+          {
+            echo "version=$ncversion"
+            echo "url=$url"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Download Nextcloud server
         if: ${{ steps.nextcloud.outputs.url != 'null' }}
