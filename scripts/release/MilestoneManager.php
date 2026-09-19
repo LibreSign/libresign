@@ -10,7 +10,9 @@ declare(strict_types=1);
 namespace LibreSign\Release;
 
 final class MilestoneManager {
-	public function __construct(private readonly CommandRunner $runner) {
+	public function __construct(
+		private readonly CommandRunner $runner,
+	) {
 	}
 
 	public function assertClosed(string $repository, string $title): void {
