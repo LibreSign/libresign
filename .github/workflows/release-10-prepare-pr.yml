@@ -22,9 +22,9 @@ on:
         type: boolean
 
 permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+  contents: read
+  issues: read
+  pull-requests: read
 
 concurrency:
   group: release-10-${{ inputs.stable_branch }}
@@ -130,11 +130,13 @@ jobs:
         id: release_pr
         uses: peter-evans/create-pull-request@5f6978faf089d4b20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.COMMAND_BOT_PAT }}
           branch: automation/release-${{ inputs.stable_branch }}
           base: ${{ inputs.stable_branch }}
           title: 'chore(release): prepare ${{ needs.analyze.outputs.next_version }}'
           commit-message: 'chore(release): prepare ${{ needs.analyze.outputs.next_version }} [skip ci]'
+          committer: GitHub <noreply@github.com>
+          author: nextcloud-command <nextcloud-command@users.noreply.github.com>
           signoff: true
           delete-branch: true
           milestone: ${{ needs.analyze.outputs.milestone_number }}
