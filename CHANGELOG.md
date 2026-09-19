@@ -18,6 +18,42 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+
+## 13.4.0 - 2026-09-19
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Added
+- support drag-and-drop PDF upload on the Validation page [#7933](https://github.com/LibreSign/libresign/pull/7933)
+- add drag-and-drop document upload to the Files page [#7943](https://github.com/LibreSign/libresign/pull/7943)
+- update JSignPdf to 3.1.0 with jsignpdf-php 3.0.0 [#8258](https://github.com/LibreSign/libresign/pull/8258)
+
+### Changed
+- update translations
+- bump dependencies
+
+### Fixed
+- correct iOS Safari viewport height on sign requests [#7968](https://github.com/LibreSign/libresign/pull/7968)
+- keep the signature-position step visible when the stamp still renders [#7997](https://github.com/LibreSign/libresign/pull/7997)
+- improve identification-document LDAP join and approval status handling [#8021](https://github.com/LibreSign/libresign/pull/8021)
+- promote certificate validity dates to the signer root [#8041](https://github.com/LibreSign/libresign/pull/8041)
+- fix uploaded signature scaling [#8060](https://github.com/LibreSign/libresign/pull/8060)
+- expose semantic PDF parser and validator error codes [#8188](https://github.com/LibreSign/libresign/pull/8188)
+- improve external PDF validation [#8225](https://github.com/LibreSign/libresign/pull/8225) [#8250](https://github.com/LibreSign/libresign/pull/8250)
+- trigger group search on the correct select event [#8243](https://github.com/LibreSign/libresign/pull/8243)
+- improve TSA failure diagnostics [#8277](https://github.com/LibreSign/libresign/pull/8277)
+- detect when signer search has more results [#8288](https://github.com/LibreSign/libresign/pull/8288)
+- enforce envelope ownership when adding files [#8316](https://github.com/LibreSign/libresign/pull/8316)
+- populate signer visible elements in validation responses [#8350](https://github.com/LibreSign/libresign/pull/8350)
+- store identification documents of external signers under the file owner [#8370](https://github.com/LibreSign/libresign/pull/8370)
+- stop overriding the pdf-elements worker [#8385](https://github.com/LibreSign/libresign/pull/8385)
+- use the approver's own identity when signing an identification document [#8390](https://github.com/LibreSign/libresign/pull/8390)
+- accept string node IDs from the Files sidebar when requesting a signature [#8397](https://github.com/LibreSign/libresign/pull/8397)
+- stop deleting LibreSign appdata on every update [#8426](https://github.com/LibreSign/libresign/pull/8426)
+- fix external page layout [#8435](https://github.com/LibreSign/libresign/pull/8435)
+
 ## 13.3.0 - 2026-07-15
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
