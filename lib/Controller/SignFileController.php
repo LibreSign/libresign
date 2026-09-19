@@ -43,6 +43,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
+use Psr\Log\LoggerInterface;
 
 /**
  * @psalm-import-type LibresignMessageResponse from ResponseDefinitions
@@ -73,6 +74,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		private SignerGeolocationMetadataValidator $signerGeolocationMetadataValidator,
 		private SigningErrorHandler $errorHandler,
 		private SignatureRejectionService $signatureRejectionService,
+		private LoggerInterface $logger,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -383,7 +385,6 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param string $uuid UUID of LibreSign file
 	 * @param 'account'|'email'|null $identifyMethod Identify signer method
 	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
-	 * @param string|null $identify Identify value, i.e. the signer email, account or phone number
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
@@ -395,7 +396,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}/code', requirements: ['apiVersion' => '(v1)'])]
-	public function requestCodeBySignerUuid(string $uuid, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
+	public function requestCodeBySignerUuid(string $uuid, ?string $identifyMethod, ?string $signMethod): DataResponse {
 		try {
 			if ($this->request->getParam('idDocApproval') === 'true') {
 				// In this context the uuid is the one of the file, not of a sign request.
@@ -408,7 +409,11 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			// TRANSLATORS Error shown when the data required to apply a digital signature is missing or invalid.
 			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 		}
-		return $this->getCode($signRequest);
+		return $this->getCode(
+			$signRequest,
+			$identifyMethod ?? '',
+			$signMethod ?? '',
+		);
 	}
 
 	/**
@@ -417,7 +422,6 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param int $fileId Id of LibreSign file
 	 * @param 'account'|'email'|null $identifyMethod Identify signer method
 	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
-	 * @param string|null $identify Identify value, i.e. the signer email, account or phone number
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
@@ -429,35 +433,46 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}/code', requirements: ['apiVersion' => '(v1)'])]
-	public function requestCodeByFileId(int $fileId, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
+	public function requestCodeByFileId(int $fileId, ?string $identifyMethod, ?string $signMethod): DataResponse {
 		try {
 			$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId);
 		} catch (\Throwable) {
 			// TRANSLATORS Error shown when the data required to apply a digital signature is missing or invalid.
 			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 		}
-		return $this->getCode($signRequest);
+		return $this->getCode(
+			$signRequest,
+			$identifyMethod ?? '',
+			$signMethod ?? '',
+		);
 	}
 
 	/**
 	 * @todo validate if can request code
 	 * @return DataResponse<Http::STATUS_OK|Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 */
-	private function getCode(SignRequest $signRequest): DataResponse {
+	private function getCode(
+		SignRequest $signRequest,
+		string $identifyMethodName,
+		string $signMethodName,
+	): DataResponse {
 		try {
 			$libreSignFile = $this->signFileService->getFile($signRequest->getFileId());
 			$this->signingRequestValidator->fileCanBeSigned($libreSignFile);
 			$this->signFileService->requestCode(
 				signRequest: $signRequest,
-				identifyMethodName: $this->request->getParam('identifyMethod', ''),
-				signMethodName: $this->request->getParam('signMethod', ''),
-				identify: $this->request->getParam('identify', ''),
+				identifyMethodName: $identifyMethodName,
+				signMethodName: $signMethodName,
 			);
 			// TRANSLATORS Success message shown after sending a one-time verification code used to confirm the signer identity before signing.
 			$message = $this->l10n->t('Verification code sent.');
 			$statusCode = Http::STATUS_OK;
 		} catch (\Throwable $th) {
-			$message = $th->getMessage();
+			$this->logger->error('Unable to send verification code.', [
+				'exception' => $th,
+			]);
+			// TRANSLATORS Generic error shown when a verification code cannot be delivered.
+			$message = $this->l10n->t('Unable to send verification code.');
 			$statusCode = Http::STATUS_UNPROCESSABLE_ENTITY;
 		}
 		return new DataResponse(
