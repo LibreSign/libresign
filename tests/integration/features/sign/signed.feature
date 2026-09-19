@@ -17,7 +17,7 @@ Feature: signed
       | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"password":{"name":"password","enabled":true}},"signatureMethodEnabled":"password"}]} |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName": "Signer Name","description": "Please, sign this document","identifyMethods": [{"method": "account", "value": "signer1"}]}] |
       | name | Document Name |
     And the response should have a status code 200
@@ -70,7 +70,7 @@ Feature: signed
     And reset notifications of user "admin"
     And reset activity of user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName": "Signer Name","identifyMethods": [{"method": "account", "value": "signer1"}]},{"displayName": "Admin","identifyMethods": [{"method": "account", "value": "admin"}]}] |
       | name | Document Name |
     And the response should have a status code 200
@@ -135,7 +135,7 @@ Feature: signed
     And reset notifications of user "admin"
     And reset activity of user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName": "Signer Name","identifyMethods": [{"method": "account", "value": "signer1"}]},{"displayName": "Admin","identifyMethods": [{"method": "account", "value": "admin"}]}] |
       | name | Document Name |
     And the response should have a status code 200
@@ -190,7 +190,7 @@ Feature: signed
     And reset notifications of user "admin"
     And reset activity of user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName": "Signer Name","identifyMethods": [{"method": "email", "value": "unauthenticated@email.tld"}]}] |
       | name | Document Name |
     And the response should have a status code 200

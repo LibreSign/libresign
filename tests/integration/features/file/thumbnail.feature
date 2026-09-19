@@ -6,7 +6,7 @@ Feature: file-thumbnail
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required"}]} |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
     And the response should have a status code 200
