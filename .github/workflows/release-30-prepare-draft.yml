@@ -105,7 +105,7 @@ jobs:
       - name: Resolve Nextcloud download
         id: nextcloud
         run: |
-          ncversion=$(php -r '$xml = simplexml_load_file("libresign/appinfo/info.xml"); echo (string) $xml->dependencies->nextcloud["min-version"];')
+          ncversion=$(php libresign/scripts/release/release.php nextcloud-min-version --root libresign)
           url=$(curl -fsSL "https://updates.nextcloud.com/updater_server/latest?channel=beta&version=$ncversion" | jq -r '.downloads.zip[0]')
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
