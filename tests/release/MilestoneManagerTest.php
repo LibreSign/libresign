@@ -70,5 +70,6 @@ final class MilestoneManagerTest extends TestCase {
 		);
 
 		$runner->assertComplete();
+		self::addToAssertionCount(1);
 	}
 }
