@@ -56,6 +56,7 @@ jobs:
         run: |
           set -euo pipefail
 
+          # shellcheck disable=SC2016
           version=$(php -r '$xml = simplexml_load_file("appinfo/info.xml"); echo (string)$xml->version;')
           stable_number=${STABLE_BRANCH#stable}
 
@@ -65,9 +66,11 @@ jobs:
             final_stable_release=false
           fi
 
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "stable_number=$stable_number" >> "$GITHUB_OUTPUT"
-          echo "final_stable_release=$final_stable_release" >> "$GITHUB_OUTPUT"
+          {
+            echo "version=$version"
+            echo "stable_number=$stable_number"
+            echo "final_stable_release=$final_stable_release"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Resolve current milestone
         id: milestone
@@ -88,9 +91,11 @@ jobs:
             state=$(printf '%s' "$milestones" | jq -r --argjson number "$release_number" '
               .[] | select(.number == $number) | .state
             ')
-            echo "number=$release_number" >> "$GITHUB_OUTPUT"
-            echo "already_named=true" >> "$GITHUB_OUTPUT"
-            echo "state=$state" >> "$GITHUB_OUTPUT"
+            {
+              echo "number=$release_number"
+              echo "already_named=true"
+              echo "state=$state"
+            } >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -103,9 +108,11 @@ jobs:
             exit 1
           fi
 
-          echo "number=$next_patch_number" >> "$GITHUB_OUTPUT"
-          echo "already_named=false" >> "$GITHUB_OUTPUT"
-          echo "state=open" >> "$GITHUB_OUTPUT"
+          {
+            echo "number=$next_patch_number"
+            echo "already_named=false"
+            echo "state=open"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Check final stable milestone is empty
         if: ${{ steps.release.outputs.final_stable_release == 'true' }}
