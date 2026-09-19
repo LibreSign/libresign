@@ -366,7 +366,9 @@ class PDFtkSetupCheckTest extends TestCase {
 			->willReturn(true);
 
 		$verifyResult = ['SIGNATURE_DATA_NOT_FOUND' => true];
-		$this->signSetupService->method('willUseLocalCert')->with(true);
+		$this->signSetupService->expects($this->once())
+			->method('willUseLocalCert')
+			->with(false);
 		$this->signSetupService->method('verify')
 			->with(php_uname('m'), 'pdftk')
 			->willReturn($verifyResult);

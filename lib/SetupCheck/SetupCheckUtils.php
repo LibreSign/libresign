@@ -21,13 +21,44 @@ trait SetupCheckUtils {
 	private LoggerInterface $logger;
 
 	private function verifyResourceIntegrity(string $resource, bool $debugEnabled): array {
-		$this->signSetupService->willUseLocalCert($debugEnabled);
+		// Debug mode does not imply that setup metadata was signed with the
+		// local development certificate. Official releases can also run with
+		// debug enabled, so always try the production trust chain first.
+		$this->signSetupService->willUseLocalCert(false);
 		$result = $this->signSetupService->verify(php_uname('m'), $resource);
-		if (count($result) === 1 && $debugEnabled) {
-			if (isset($result['SIGNATURE_DATA_NOT_FOUND']) || isset($result['EMPTY_SIGNATURE_DATA'])) {
-				return [];
-			}
+
+		if (!$debugEnabled || $result === []) {
+			return $result;
 		}
+
+		if (count($result) === 1
+			&& (isset($result['SIGNATURE_DATA_NOT_FOUND']) || isset($result['EMPTY_SIGNATURE_DATA']))
+		) {
+			return [];
+		}
+
+		if (!isset($result['HASH_FILE_ERROR'])) {
+			return $result;
+		}
+
+		// Development checkouts can have metadata signed with the local
+		// certificate. Only use that trust chain as a debug-mode fallback
+		// when verification with the production certificate could not
+		// validate the signed metadata.
+		$this->signSetupService->willUseLocalCert(true);
+		$localResult = $this->signSetupService->verify(php_uname('m'), $resource);
+
+		if ($localResult === []) {
+			return [];
+		}
+
+		if (isset($localResult['INVALID_HASH'])
+			|| isset($localResult['FILE_MISSING'])
+			|| isset($localResult['EXTRA_FILE'])
+		) {
+			return $localResult;
+		}
+
 		return $result;
 	}
 
