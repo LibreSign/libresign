@@ -50,6 +50,7 @@ final class GitHubReleaseManagerTest extends TestCase {
 		);
 
 		$runner->assertComplete();
+		self::addToAssertionCount(1);
 	}
 
 	public function testRejectsExistingPublishedRelease(): void {
