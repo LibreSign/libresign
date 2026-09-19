@@ -1288,7 +1288,6 @@ class SignFileService {
 		SignRequestEntity $signRequest,
 		string $identifyMethodName,
 		string $signMethodName,
-		string $identify = '',
 	): void {
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 		if (empty($identifyMethods[$identifyMethodName])) {
@@ -1303,8 +1302,7 @@ class SignFileService {
 				continue;
 			}
 			/** @var IToken $signatureMethod */
-			$identifier = $identify ?: $identifyMethod->getEntity()->getIdentifierValue();
-			$signatureMethod->requestCode($identifier, $identifyMethod->getEntity()->getIdentifierKey());
+			$signatureMethod->requestCode();
 			return;
 		}
 		// TRANSLATORS Error shown when sending a signing verification code is disabled by configuration.
