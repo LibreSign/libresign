@@ -98,9 +98,9 @@ final class ReleaseFiles {
 
 	private function writePackageVersion(string $path, string $version): void {
 		$contents = (string)file_get_contents($path);
-		$updated = preg_replace(
+		$updated = preg_replace_callback(
 			'/(^\s*"version"\s*:\s*")[^"]+(")/m',
-			'$1' . $version . '$2',
+			static fn (array $matches): string => $matches[1] . $version . $matches[2],
 			$contents,
 			1,
 			$count,
@@ -114,9 +114,9 @@ final class ReleaseFiles {
 	private function writePackageLockVersion(string $path, string $version): void {
 		$contents = (string)file_get_contents($path);
 
-		$updated = preg_replace(
+		$updated = preg_replace_callback(
 			'/(^\s{2}"version"\s*:\s*")[^"]+(")/m',
-			'$1' . $version . '$2',
+			static fn (array $matches): string => $matches[1] . $version . $matches[2],
 			$contents,
 			1,
 			$topLevelCount,
@@ -125,9 +125,9 @@ final class ReleaseFiles {
 			throw new \RuntimeException("Unable to update top-level version in {$path}");
 		}
 
-		$updated = preg_replace(
+		$updated = preg_replace_callback(
 			'/(^\s{6}"version"\s*:\s*")[^"]+(")/m',
-			'$1' . $version . '$2',
+			static fn (array $matches): string => $matches[1] . $version . $matches[2],
 			$updated,
 			1,
 			$rootPackageCount,
