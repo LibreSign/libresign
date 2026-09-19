@@ -6,7 +6,7 @@
 # SPDX-FileCopyrightText: 2021-2024 Nextcloud GmbH and Nextcloud contributors
 # SPDX-License-Identifier: MIT
 
-name: Build, sign and publish App Store release
+name: Release 40 - Build, sign and publish App Store
 
 on:
   release:
