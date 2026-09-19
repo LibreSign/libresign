@@ -47,8 +47,8 @@ final class ReleaseFiles {
 
 	public function apply(string $root, string $version, string $changelog): void {
 		$this->writeInfoVersion($root . '/appinfo/info.xml', $version);
-		$this->writeJsonVersion($root . '/package.json', $version);
-		$this->writeJsonVersion($root . '/package-lock.json', $version);
+		$this->writePackageVersion($root . '/package.json', $version);
+		$this->writePackageLockVersion($root . '/package-lock.json', $version);
 
 		$path = $root . '/CHANGELOG.md';
 		$current = (string)file_get_contents($path);
@@ -84,15 +84,46 @@ final class ReleaseFiles {
 		file_put_contents($path, $updated);
 	}
 
-	private function writeJsonVersion(string $path, string $version): void {
-		$data = json_decode((string)file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
-		if (!is_array($data)) {
-			throw new \RuntimeException("Invalid JSON in {$path}");
-		}
-		$data['version'] = $version;
-		file_put_contents(
-			$path,
-			json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n",
+	private function writePackageVersion(string $path, string $version): void {
+		$contents = (string)file_get_contents($path);
+		$updated = preg_replace(
+			'/(^\s*"version"\s*:\s*")[^"]+(")/m',
+			'$1' . $version . '$2',
+			$contents,
+			1,
+			$count,
 		);
+		if ($updated === null || $count !== 1) {
+			throw new \RuntimeException("Unable to update version in {$path}");
+		}
+		file_put_contents($path, $updated);
+	}
+
+	private function writePackageLockVersion(string $path, string $version): void {
+		$contents = (string)file_get_contents($path);
+
+		$updated = preg_replace(
+			'/(^\s{2}"version"\s*:\s*")[^"]+(")/m',
+			'$1' . $version . '$2',
+			$contents,
+			1,
+			$topLevelCount,
+		);
+		if ($updated === null || $topLevelCount !== 1) {
+			throw new \RuntimeException("Unable to update top-level version in {$path}");
+		}
+
+		$updated = preg_replace(
+			'/(^\s{6}"version"\s*:\s*")[^"]+(")/m',
+			'$1' . $version . '$2',
+			$updated,
+			1,
+			$rootPackageCount,
+		);
+		if ($updated === null || $rootPackageCount !== 1) {
+			throw new \RuntimeException("Unable to update root package version in {$path}");
+		}
+
+		file_put_contents($path, $updated);
 	}
 }
