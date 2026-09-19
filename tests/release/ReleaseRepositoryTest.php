@@ -50,6 +50,8 @@ final class ReleaseRepositoryTest extends TestCase {
 			[
 				'gh',
 				'api',
+				'--method',
+				'GET',
 				'-H',
 				'Accept: application/vnd.github+json',
 				'/search/issues',
