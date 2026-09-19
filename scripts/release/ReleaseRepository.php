@@ -141,6 +141,8 @@ final class ReleaseRepository {
 		$json = $this->runner->run([
 			'gh',
 			'api',
+			'--method',
+			'GET',
 			'-H',
 			'Accept: application/vnd.github+json',
 			'/search/issues',
