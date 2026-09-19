@@ -106,32 +106,40 @@ class InstallService {
 			} else {
 				$path = $this->target->architecture() . '/' . $path;
 			}
-			$path = explode('/', $path);
-			foreach ($path as $snippet) {
+			foreach (explode('/', $path) as $snippet) {
 				$folder = $this->getFolder($snippet, $folder, $needToBeEmpty);
 			}
 			return $folder;
 		}
+
+		$parentFolder = $folder;
 		try {
-			$folder = $folder->getFolder($path);
-			if ($needToBeEmpty && $path !== $this->target->architecture()) {
-				$folder->delete();
-				$path = '';
-				throw new \Exception('Need to be empty');
+			$existingFolder = $parentFolder->getFolder($path);
+			if (!$needToBeEmpty || $path === $this->target->architecture()) {
+				return $existingFolder;
 			}
-		} catch (\Throwable) {
+
+			$existingFolder->delete();
+			return $parentFolder->newFolder($path);
+		} catch (NotFoundException) {
 			try {
-				$folder = $folder->newFolder($path);
+				return $parentFolder->newFolder($path);
 			} catch (NotPermittedException $e) {
 				$user = posix_getpwuid(posix_getuid());
 				throw new LibresignException(
 					$e->getMessage() . '. '
 					. 'Permission problems. '
-					. 'Maybe this could fix: chown -R ' . $user['name'] . ' ' . $this->getInternalPathOfFolder($folder)
+					. 'Maybe this could fix: chown -R ' . $user['name'] . ' ' . $this->getInternalPathOfFolder($parentFolder)
 				);
 			}
+		} catch (NotPermittedException $e) {
+			$user = posix_getpwuid(posix_getuid());
+			throw new LibresignException(
+				$e->getMessage() . '. '
+				. 'Permission problems. '
+				. 'Maybe this could fix: chown -R ' . $user['name'] . ' ' . $this->getInternalPathOfFolder($parentFolder)
+			);
 		}
-		return $folder;
 	}
 
 	private function getInternalPathOfFolder(ISimpleFolder $node): string {
@@ -776,11 +784,29 @@ class InstallService {
 	}
 
 	private function getHash(string $file, string $checksumUrl): string {
-		$hashes = file_get_contents($checksumUrl);
-		if (!$hashes) {
-			throw new LibresignException('Failute to download hash file. URL: ' . $checksumUrl);
+		try {
+			$response = $this->clientService->newClient()->get($checksumUrl);
+			$hashes = $response->getBody();
+		} catch (\Throwable $e) {
+			throw new LibresignException(
+				'Failure to download hash file. URL: ' . $checksumUrl,
+				previous: $e,
+			);
 		}
-		preg_match('/(?<hash>\w*) +' . $file . '/', $hashes, $matches);
+
+		if (!is_string($hashes) || $hashes === '') {
+			throw new LibresignException('Failure to download hash file. URL: ' . $checksumUrl);
+		}
+
+		$matched = preg_match(
+			'/(?<hash>[A-Fa-f0-9]+) +' . preg_quote($file, '/') . '(?:\\s|$)/',
+			$hashes,
+			$matches,
+		);
+		if ($matched !== 1 || empty($matches['hash'])) {
+			throw new LibresignException('Hash for ' . $file . ' not found at ' . $checksumUrl);
+		}
+
 		return $matches['hash'];
 	}
 
