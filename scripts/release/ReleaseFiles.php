@@ -18,6 +18,18 @@ final class ReleaseFiles {
 		return (string)$xml->version;
 	}
 
+	public function readNextcloudMinVersion(string $root): string {
+		$xml = simplexml_load_file($root . '/appinfo/info.xml');
+		if ($xml === false) {
+			throw new \RuntimeException('Unable to read appinfo/info.xml');
+		}
+		$version = (string)($xml->dependencies->nextcloud['min-version'] ?? '');
+		if ($version === '') {
+			throw new \RuntimeException('Missing Nextcloud min-version in appinfo/info.xml');
+		}
+		return $version;
+	}
+
 	public function readPackageVersion(string $root): string {
 		return $this->readJsonVersion($root . '/package.json');
 	}
