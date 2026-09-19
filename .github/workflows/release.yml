@@ -229,7 +229,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.release.outputs.tag }}
         run: |
-          gh release upload "$TAG"             "libresign/build/artifacts/libresign.tar.gz#libresign-$TAG.tar.gz"             --repo "${{ github.repository }}"
+          set -eu
+          asset="libresign-$TAG.tar.gz"
+          cp libresign/build/artifacts/libresign.tar.gz "$asset"
+          gh release upload "$TAG" "$asset" --repo "${{ github.repository }}"
 
       - name: Upload app to Nextcloud App Store
         uses: nextcloud-releases/nextcloud-appstore-push-action@a011fe619bcf6e77ddebc96f9908e1af4071b9c1 # v1.0.3
