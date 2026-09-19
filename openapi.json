@@ -10778,7 +10778,7 @@
                                     "identify": {
                                         "type": "string",
                                         "nullable": true,
-                                        "description": "Identify value, i.e. the signer email, account or phone number"
+                                        "description": "Legacy identify value retained for API compatibility; ignored for verification-code delivery"
                                     }
                                 }
                             }
@@ -10922,7 +10922,7 @@
                                     "identify": {
                                         "type": "string",
                                         "nullable": true,
-                                        "description": "Identify value, i.e. the signer email, account or phone number"
+                                        "description": "Legacy identify value retained for API compatibility; ignored for verification-code delivery"
                                     }
                                 }
                             }
