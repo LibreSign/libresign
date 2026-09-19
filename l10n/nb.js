@@ -204,6 +204,8 @@ OC.L10N.register(
     "Add file" : "Legg til fil",
     "Close" : "Lukk",
     "Add signer" : "Legg til underskriver",
+    "Add participant" : "Legg til deltager",
+    "Add" : "Legg til",
     "Request signature" : "Forespør signatur",
     "Send reminder" : "Send påminnelse",
     "Confirm" : "Bekreft",
