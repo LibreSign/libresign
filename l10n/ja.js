@@ -220,6 +220,7 @@ OC.L10N.register(
     "Last year ({year})" : "去年 ({year})",
     "Other" : "その他",
     "default" : "デフォルト",
+    "{value} seconds" : "{value} 秒",
     "Custom URL" : "カスタムURL",
     "Custom template" : "カスタムテンプレート",
     "Default background" : "デフォルト背景",
