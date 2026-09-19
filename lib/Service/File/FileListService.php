@@ -486,16 +486,22 @@ class FileListService {
 			$data['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
 		}
 
-		$geolocationMetadata = $this->extractGeolocationMetadataFromSignRequest($signer);
+		$requesterUserId = $fileEntity?->getUserId() ?? '';
+		$canViewSensitiveSignerMetadata = $data['me']
+			|| ($requesterUserId !== '' && $user?->getUID() === $requesterUserId);
+
+		$geolocationMetadata = $this->extractGeolocationMetadataFromSignRequest(
+			$signer,
+			$canViewSensitiveSignerMetadata,
+		);
 		if ($geolocationMetadata !== []) {
 			$data['metadata'] = $geolocationMetadata;
 		}
 
-		$requesterUserId = $fileEntity?->getUserId() ?? '';
 		$rejection = $this->signatureRejectionVisibilityService->buildSignerRejection(
 			$signer,
 			$fileEntity,
-			$data['me'] || ($requesterUserId !== '' && $user?->getUID() === $requesterUserId),
+			$canViewSensitiveSignerMetadata,
 		);
 		if ($rejection !== null) {
 			$data['rejection'] = $rejection;
@@ -511,7 +517,10 @@ class FileListService {
 	 *     geolocation?: LibresignSignerGeolocation,
 	 * }
 	 */
-	private function extractGeolocationMetadataFromSignRequest(SignRequest $signer): array {
+	private function extractGeolocationMetadataFromSignRequest(
+		SignRequest $signer,
+		bool $includeSourceIp = false,
+	): array {
 		$signerMetadata = $signer->getMetadata();
 		if (!is_array($signerMetadata) || $signerMetadata === []) {
 			return [];
@@ -564,7 +573,11 @@ class FileListService {
 				$ip = [
 					'status' => $status->value,
 				];
-				foreach (['sourceIp', 'countryCode', 'country', 'regionCode', 'region', 'city'] as $stringKey) {
+				$stringKeys = ['countryCode', 'country', 'regionCode', 'region', 'city'];
+				if ($includeSourceIp) {
+					array_unshift($stringKeys, 'sourceIp');
+				}
+				foreach ($stringKeys as $stringKey) {
 					if (array_key_exists($stringKey, $storedIp) && is_string($storedIp[$stringKey]) && $storedIp[$stringKey] !== '') {
 						$ip[$stringKey] = $storedIp[$stringKey];
 					}
