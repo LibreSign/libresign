@@ -46,7 +46,7 @@ final class ReleasePlanner {
 	public function resolveBump(array $pullRequests): string {
 		foreach ($pullRequests as $pullRequest) {
 			if ($this->hasAnyLabel($pullRequest, ['major']) || preg_match('/^[a-z]+(?:\([^)]*\))?!:/i', $this->cleanTitle($pullRequest['title']))) {
-				return 'major';
+				throw new \InvalidArgumentException('Major version bumps are not allowed on stable release preparation');
 			}
 		}
 
