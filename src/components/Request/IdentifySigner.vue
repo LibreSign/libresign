@@ -212,9 +212,15 @@ const acceptsEmailNotifications = ref<boolean | undefined>()
 const signerGeolocationMode = computed(() => {
 	const file = filesStore.getFile()
 	const policySnapshot = file?.metadata?.policy_snapshot
-	// Once a request has a policy_snapshot, absent device geolocation means disabled —
-	// never fall back to the live effective policy for an existing request.
-	if (policySnapshot && typeof policySnapshot === 'object') {
+	// Only the frozen device-geolocation entry is authoritative. An envelope may
+	// already carry a policy_snapshot that only has enable_observer_profile, while
+	// signer_device_geolocation still lives on child files (backend falls back) or
+	// the live effective policy during request creation.
+	if (
+		policySnapshot
+		&& typeof policySnapshot === 'object'
+		&& Object.prototype.hasOwnProperty.call(policySnapshot, 'signer_device_geolocation')
+	) {
 		return resolveSignerGeolocationMode(policySnapshot.signer_device_geolocation?.effectiveValue)
 			?? 'disabled'
 	}
