@@ -34,6 +34,7 @@
 			"composer dump-autoload"
 		],
 		"mutation:test": "vendor/bin/infection --configuration=infection.json5",
+		"test:release": "vendor-bin/phpunit/vendor/bin/phpunit -c tests/release/phpunit.xml",
 		"test:unit": "vendor/bin/phpunit -c tests/php/phpunit.xml --no-coverage --colors=always --fail-on-warning --fail-on-risky --display-deprecations --display-phpunit-deprecations",
 		"test:coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit -c tests/php/phpunit.xml"
 	},
