@@ -56,8 +56,8 @@ final class SetupInstallPathResolverTest extends TestCase {
 		];
 		$this->appConfig->method('getValueString')
 			->willReturnCallback(
-				static fn (string $app, string $key): string
-					=> $app === Application::APP_ID ? ($paths[$key] ?? '') : '',
+				static fn (string $app, string $key, string $default = ''): string
+					=> $app === Application::APP_ID ? ($paths[$key] ?? $default) : $default,
 			);
 
 		$actual = $this->resolver->resolve(
