@@ -14,32 +14,21 @@ use OC\Archive\ZIP;
 use OC\Memcache\NullCache;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Files\TSimpleFile;
 use OCA\Libresign\Handler\CertificateEngine\AEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\CaIdentifierService;
-use OCP\Files\AppData\IAppDataFactory;
-use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
-use OCP\Files\NotPermittedException;
-use OCP\Files\SimpleFS\ISimpleFile;
-use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IAppConfig;
 use OCP\ICache;
 use OCP\ICacheFactory;
-use OCP\IConfig;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class InstallService {
-	use TSimpleFile {
-		getInternalPathOfFile as getInternalPathOfFileTrait;
-		getInternalPathOfFolder as getInternalPathOfFolderTrait;
-	}
 
 	public const JAVA_VERSION = 'openjdk version "21.0.8" 2025-07-15 LTS';
 	public const string JAVA_URL_PATH_NAME = '21.0.8+9';
@@ -51,7 +40,6 @@ class InstallService {
 	private ICache $cache;
 	private ?OutputInterface $output = null;
 	private string $resource = '';
-	protected IAppData $appData;
 	private array $availableResources = [
 		'java',
 		'jsignpdf',
@@ -65,16 +53,14 @@ class InstallService {
 		ICacheFactory $cacheFactory,
 		private DependencyDownloader $dependencyDownloader,
 		private CertificateEngineFactory $certificateEngineFactory,
-		private IConfig $config,
 		private IAppConfig $appConfig,
 		private LoggerInterface $logger,
 		private SignSetupService $signSetupService,
-		protected IAppDataFactory $appDataFactory,
+		private DependencyStorage $dependencyStorage,
 		private CaIdentifierService $caIdentifierService,
 		private InstallProcessManager $installProcessManager,
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign-setup');
-		$this->appData = $appDataFactory->get('libresign');
 		$this->target = InstallTarget::current();
 	}
 
@@ -91,68 +77,6 @@ class InstallService {
 		return $this->target->architecture();
 	}
 
-	private function getFolder(string $path = '', ?ISimpleFolder $folder = null, bool $needToBeEmpty = false): ISimpleFolder {
-		if (!$folder) {
-			$folder = $this->appData->getFolder('/');
-			if (!$path) {
-				$path = $this->target->architecture();
-			} elseif ($path === 'java') {
-				$path = $this->target->architecture() . '/' . $this->getLinuxDistributionToDownloadJava() . '/java';
-			} else {
-				$path = $this->target->architecture() . '/' . $path;
-			}
-			foreach (explode('/', $path) as $snippet) {
-				$folder = $this->getFolder($snippet, $folder, $needToBeEmpty);
-			}
-			return $folder;
-		}
-
-		$parentFolder = $folder;
-		try {
-			$existingFolder = $parentFolder->getFolder($path);
-			if (!$needToBeEmpty || $path === $this->target->architecture()) {
-				return $existingFolder;
-			}
-
-			$existingFolder->delete();
-			return $parentFolder->newFolder($path);
-		} catch (NotFoundException) {
-			try {
-				return $parentFolder->newFolder($path);
-			} catch (NotPermittedException $e) {
-				$user = posix_getpwuid(posix_getuid());
-				throw new LibresignException(
-					'LibreSign cannot create its dependency directory in app data. '
-					. 'Check that the Nextcloud web server user (' . $user['name'] . ') can write to '
-					. $this->getInternalPathOfFolder($parentFolder)
-					. ' and review the Nextcloud server log for the original permission error.',
-					previous: $e,
-				);
-			}
-		} catch (NotPermittedException $e) {
-			$user = posix_getpwuid(posix_getuid());
-			throw new LibresignException(
-				'LibreSign cannot access its dependency directory in app data. '
-				. 'Check that the Nextcloud web server user (' . $user['name'] . ') can write to '
-				. $this->getInternalPathOfFolder($parentFolder)
-				. ' and review the Nextcloud server log for the original permission error.',
-				previous: $e,
-			);
-		}
-	}
-
-	private function getInternalPathOfFolder(ISimpleFolder $node): string {
-		return $this->getDataDir() . '/' . $this->getInternalPathOfFolderTrait($node);
-	}
-
-	private function getInternalPathOfFile(ISimpleFile $node): string {
-		return $this->getDataDir() . '/' . $this->getInternalPathOfFileTrait($node);
-	}
-
-	private function getDataDir(): string {
-		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
-		return $dataDir;
-	}
 
 	private function runAsync(): void {
 		$pid = $this->installProcessManager->start($this->resource, $this->target);
@@ -193,7 +117,7 @@ class InstallService {
 	 */
 	private function setCache(string $key, $value): void {
 		if ($this->cache instanceof NullCache) {
-			$appFolder = $this->getFolder();
+			$appFolder = $this->dependencyStorage->resourceFolder($this->target);
 			try {
 				$file = $appFolder->getFile('setup-cache.json');
 			} catch (NotFoundException) {
@@ -212,7 +136,7 @@ class InstallService {
 	 */
 	private function getCache(string $key) {
 		if ($this->cache instanceof NullCache) {
-			$appFolder = $this->getFolder();
+			$appFolder = $this->dependencyStorage->resourceFolder($this->target);
 			try {
 				$file = $appFolder->getFile('setup-cache.json');
 				$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
@@ -231,7 +155,7 @@ class InstallService {
 
 	private function removeCache(string $key): void {
 		if ($this->cache instanceof NullCache) {
-			$appFolder = $this->getFolder();
+			$appFolder = $this->dependencyStorage->resourceFolder($this->target);
 			try {
 				$file = $appFolder->getFile('setup-cache.json');
 				$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
@@ -395,8 +319,8 @@ class InstallService {
 			$javaPath = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
 			if (!$javaPath) {
 				$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
-				$folder = $this->getFolder('/' . $linuxDistribution . '/' . $this->resource);
-				$extractDir = $this->getInternalPathOfFolder($folder);
+				$folder = $this->dependencyStorage->resourceFolder($this->target, $linuxDistribution . '/' . $this->resource);
+				$extractDir = $this->dependencyStorage->pathOfFolder($folder);
 				$javaPath = $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java';
 				$this->appConfig->setValueString(Application::APP_ID, 'java_path', $javaPath);
 			}
@@ -421,21 +345,21 @@ class InstallService {
 			$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . $slugfyVersionNumber . '.tar.gz';
 			$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
 		}
-		$folder = $this->getFolder($this->resource, needToBeEmpty: true);
+		$folder = $this->dependencyStorage->resourceFolder($this->target, $this->resource, empty: true);
 		try {
 			$compressedFile = $folder->getFile($compressedFileName);
 		} catch (NotFoundException) {
 			$compressedFile = $folder->newFile($compressedFileName);
 		}
 
-		$compressedInternalFileName = $this->getInternalPathOfFile($compressedFile);
+		$compressedInternalFileName = $this->dependencyStorage->pathOfFile($compressedFile);
 		$dependencyName = 'java ' . $this->target->architecture() . ' ' . $linuxDistribution;
 		$checksumUrl = $url . '.sha256.txt';
 		$hash = $this->dependencyDownloader->fetchChecksum($compressedFileName, $checksumUrl);
 		$this->download($url, $dependencyName, $compressedInternalFileName, $hash, 'sha256');
 
 		$extractor = new TAR($compressedInternalFileName);
-		$extractDir = $this->getInternalPathOfFolder($folder);
+		$extractDir = $this->dependencyStorage->pathOfFolder($folder);
 		$extractor->extract($extractDir);
 		unlink($compressedInternalFileName);
 		$this->appConfig->setValueString(Application::APP_ID, 'java_path', $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java');
@@ -457,7 +381,7 @@ class InstallService {
 			return;
 		}
 		$this->setResource('java');
-		$folder = $this->getFolder($this->resource);
+		$folder = $this->dependencyStorage->resourceFolder($this->target, $this->resource);
 		try {
 			$folder->delete();
 		} catch (NotFoundException) {
@@ -484,8 +408,8 @@ class InstallService {
 			// The binaries files could exists but not saved at database
 			$fullPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_path');
 			if (!$fullPath) {
-				$folder = $this->getFolder($this->resource);
-				$fullPath = JSignPdfRelease::installPath($this->getInternalPathOfFolder($folder));
+				$folder = $this->dependencyStorage->resourceFolder($this->target, $this->resource);
+				$fullPath = JSignPdfRelease::installPath($this->dependencyStorage->pathOfFolder($folder));
 				$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_path', $fullPath);
 			}
 			$this->saveJsignPdfHome();
@@ -493,18 +417,18 @@ class InstallService {
 				return;
 			}
 		}
-		$folder = $this->getFolder($this->resource, needToBeEmpty: true);
+		$folder = $this->dependencyStorage->resourceFolder($this->target, $this->resource, empty: true);
 		$compressedFileName = JSignPdfRelease::archiveName();
 		try {
 			$compressedFile = $folder->getFile($compressedFileName);
 		} catch (NotFoundException) {
 			$compressedFile = $folder->newFile($compressedFileName);
 		}
-		$compressedInternalFileName = $this->getInternalPathOfFile($compressedFile);
+		$compressedInternalFileName = $this->dependencyStorage->pathOfFile($compressedFile);
 		$hash = $this->dependencyDownloader->fetchChecksum($compressedFileName, JSignPdfRelease::checksumUrl());
 		$this->download(JSignPdfRelease::downloadUrl(), 'JSignPdf', $compressedInternalFileName, $hash, 'sha256');
 
-		$extractDir = $this->getInternalPathOfFolder($folder);
+		$extractDir = $this->dependencyStorage->pathOfFolder($folder);
 		$zip = new ZIP($extractDir . '/' . $compressedFileName);
 		$zip->extract($extractDir);
 		unlink($extractDir . '/' . $compressedFileName);
@@ -530,12 +454,12 @@ class InstallService {
 		) {
 			return;
 		}
-		$libresignFolder = $this->appData->getFolder('/');
+		$libresignFolder = $this->dependencyStorage->rootFolder();
 		$homeFolder = $libresignFolder->newFolder('jsignpdf_home');
 		$homeFolder->newFile('.JSignPdf', '');
-		$configFolder = $this->getFolder('conf', $homeFolder);
+		$configFolder = $this->dependencyStorage->childFolder($homeFolder, 'conf');
 		$configFolder->newFile('conf.properties', '');
-		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_home', $this->getInternalPathOfFolder($homeFolder));
+		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_home', $this->dependencyStorage->pathOfFolder($homeFolder));
 	}
 
 	public function uninstallJSignPdf(): void {
@@ -545,7 +469,7 @@ class InstallService {
 			return;
 		}
 		$this->setResource('jsignpdf');
-		$folder = $this->getFolder($this->resource);
+		$folder = $this->dependencyStorage->resourceFolder($this->target, $this->resource);
 		try {
 			$folder->delete();
 		} catch (NotFoundException) {
@@ -565,20 +489,20 @@ class InstallService {
 		if ($this->isDownloadedFilesOk()) {
 			// The binaries files could exists but not saved at database
 			if (!$this->appConfig->getValueString(Application::APP_ID, 'pdftk_path')) {
-				$folder = $this->getFolder($this->resource);
+				$folder = $this->dependencyStorage->resourceFolder($this->target, $this->resource);
 				$file = $folder->getFile('pdftk.jar');
-				$fullPath = $this->getInternalPathOfFile($file);
+				$fullPath = $this->dependencyStorage->pathOfFile($file);
 				$this->appConfig->setValueString(Application::APP_ID, 'pdftk_path', $fullPath);
 			}
 			return;
 		}
-		$folder = $this->getFolder($this->resource, needToBeEmpty: true);
+		$folder = $this->dependencyStorage->resourceFolder($this->target, $this->resource, empty: true);
 		try {
 			$file = $folder->getFile('pdftk.jar');
 		} catch (NotFoundException) {
 			$file = $folder->newFile('pdftk.jar');
 		}
-		$fullPath = $this->getInternalPathOfFile($file);
+		$fullPath = $this->dependencyStorage->pathOfFile($file);
 		$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/v' . self::PDFTK_VERSION . '/pdftk-all.jar';
 
 		$this->download($url, 'pdftk', $fullPath, self::PDFTK_HASH);
@@ -593,7 +517,7 @@ class InstallService {
 			return;
 		}
 		$this->setResource('pdftk');
-		$folder = $this->getFolder($this->resource);
+		$folder = $this->dependencyStorage->resourceFolder($this->target, $this->resource);
 		try {
 			$folder->delete();
 		} catch (NotFoundException) {
@@ -624,19 +548,19 @@ class InstallService {
 		if ($this->isDownloadedFilesOk()) {
 			// The binaries files could exists but not saved at database
 			if (!$this->isCfsslBinInstalled()) {
-				$folder = $this->getFolder($this->resource);
-				$cfsslBinPath = $this->getInternalPathOfFolder($folder) . '/cfssl';
+				$folder = $this->dependencyStorage->resourceFolder($this->target, $this->resource);
+				$cfsslBinPath = $this->dependencyStorage->pathOfFolder($folder) . '/cfssl';
 				$this->appConfig->setValueString(Application::APP_ID, 'cfssl_bin', $cfsslBinPath);
 			}
 			return;
 		}
-		$folder = $this->getFolder($this->resource, needToBeEmpty: true);
+		$folder = $this->dependencyStorage->resourceFolder($this->target, $this->resource, empty: true);
 		$file = 'cfssl_' . self::CFSSL_VERSION . '_linux_' . $architecture;
 		$baseUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/';
 		$checksumUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/cfssl_' . self::CFSSL_VERSION . '_checksums.txt';
 		$hash = $this->dependencyDownloader->fetchChecksum($file, $checksumUrl);
 
-		$fullPath = $this->getInternalPathOfFile($folder->newFile('cfssl'));
+		$fullPath = $this->dependencyStorage->pathOfFile($folder->newFile('cfssl'));
 
 		$dependencyName = 'cfssl ' . $architecture;
 		$this->download($baseUrl . $file, $dependencyName, $fullPath, $hash, 'sha256');
@@ -644,7 +568,7 @@ class InstallService {
 		if (!@chmod($fullPath, 0700) && !is_executable($fullPath)) {
 			throw new LibresignException('CFSSL was downloaded but LibreSign could not make it executable. Check filesystem permissions and mount options for the Nextcloud app data directory, then retry.');
 		}
-		$cfsslBinPath = $this->getInternalPathOfFolder($folder) . '/cfssl';
+		$cfsslBinPath = $this->dependencyStorage->pathOfFolder($folder) . '/cfssl';
 		$this->appConfig->setValueString(Application::APP_ID, 'cfssl_bin', $cfsslBinPath);
 		$this->writeAppSignature();
 	}
@@ -655,7 +579,7 @@ class InstallService {
 			return;
 		}
 		$this->setResource('cfssl');
-		$folder = $this->getFolder($this->resource);
+		$folder = $this->dependencyStorage->resourceFolder($this->target, $this->resource);
 		try {
 			$folder->delete();
 		} catch (NotFoundException) {
