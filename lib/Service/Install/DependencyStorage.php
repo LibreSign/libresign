@@ -18,7 +18,7 @@ use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IConfig;
 
-final class DependencyStorage {
+class DependencyStorage {
 	use TSimpleFile {
 		getInternalPathOfFile as getInternalPathOfFileTrait;
 		getInternalPathOfFolder as getInternalPathOfFolderTrait;
