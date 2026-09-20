@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Install;
 
 use InvalidArgumentException;
-use OC;
 use OC\Archive\TAR;
 use OC\Archive\ZIP;
 use OC\Memcache\NullCache;
@@ -21,8 +20,6 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\CaIdentifierService;
-use OCA\Libresign\Service\Process\ProcessManager;
-use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
@@ -50,7 +47,6 @@ class InstallService {
 	private const string PDFTK_HASH = '59a28bed53b428595d165d52988bf4cf';
 	public const JSIGNPDF_VERSION = JSignPdfRelease::VERSION;
 	public const CFSSL_VERSION = '1.6.5';
-	private const string PROCESS_SOURCE = 'install';
 
 	private ICache $cache;
 	private ?OutputInterface $output = null;
@@ -75,7 +71,7 @@ class InstallService {
 		private SignSetupService $signSetupService,
 		protected IAppDataFactory $appDataFactory,
 		private CaIdentifierService $caIdentifierService,
-		private ProcessManager $processManager,
+		private InstallProcessManager $installProcessManager,
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign-setup');
 		$this->appData = $appDataFactory->get('libresign');
@@ -159,41 +155,20 @@ class InstallService {
 	}
 
 	private function runAsync(): void {
-		$resource = $this->resource;
-		$command = [
-			OC::$SERVERROOT . '/occ',
-			'libresign:install',
-			'--' . $resource,
-			'--architecture=' . $this->target->architecture(),
-		];
-		if ($resource === 'java') {
-			$command[] = '--distro=' . $this->target->distro();
+		$pid = $this->installProcessManager->start($this->resource, $this->target);
+		if ($pid !== null) {
+			$this->setCache($this->resource, ['pid' => $pid]);
+			return;
 		}
-		$process = $this->createProcess($command);
-		$process->setOptions(['create_new_console' => true]);
-		$process->setTimeout(null);
-		$process->start();
-		$data['pid'] = $process->getPid();
-		if ($data['pid']) {
-			$this->processManager->register(self::PROCESS_SOURCE, (int)$data['pid'], [
-				'resource' => $resource,
-				'architecture' => $this->target->architecture(),
-				'distro' => $this->target->distro(),
-			]);
-			$this->setCache($resource, $data);
-		} else {
-			$message = 'Error to get PID of background install process. Command: '
-				. OC::$SERVERROOT . '/occ libresign:install --' . $resource;
-			$this->logger->error($message);
-			$this->saveErrorMessage($message);
-		}
-	}
 
-	/**
-	 * @param string[] $command
-	 */
-	protected function createProcess(array $command): Process {
-		return new Process($command);
+		$message = 'LibreSign could not start the background installer for ' . $this->resource . '. '
+			. 'Check the Nextcloud server log and run the corresponding occ libresign:install command manually.';
+		$this->logger->error('Unable to start background dependency installer', [
+			'resource' => $this->resource,
+			'architecture' => $this->target->architecture(),
+			'distro' => $this->target->distro(),
+		]);
+		$this->saveErrorMessage($message);
 	}
 
 	private function progressToDatabase(int $downloadSize, int $downloaded): void {
@@ -338,28 +313,10 @@ class InstallService {
 	}
 
 	private function getInstallPid(int $pid = 0): int {
-		$matchesCurrentTarget = fn (array $entry): bool
-			=> ($entry['context']['resource'] ?? '') === $this->resource
-			&& ($entry['context']['architecture'] ?? $this->target->architecture()) === $this->target->architecture()
-			&& ($entry['context']['distro'] ?? $this->target->distro()) === $this->target->distro();
-
-		if ($pid > 0) {
-			$registeredPid = $this->processManager->findRunningPid(
-				self::PROCESS_SOURCE,
-				fn (array $entry): bool => $entry['pid'] === $pid && $matchesCurrentTarget($entry),
-			);
-
-			if ($registeredPid > 0) {
-				return $registeredPid;
-			}
-
-			$this->processManager->unregister(self::PROCESS_SOURCE, $pid);
-			return 0;
-		}
-
-		return $this->processManager->findRunningPid(
-			self::PROCESS_SOURCE,
-			$matchesCurrentTarget,
+		return $this->installProcessManager->findRunningPid(
+			$this->resource,
+			$this->target,
+			$pid,
 		);
 	}
 
