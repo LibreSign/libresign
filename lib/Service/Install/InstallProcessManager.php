@@ -13,7 +13,7 @@ use OC;
 use OCA\Libresign\Service\Process\ProcessManager;
 use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 
-final class InstallProcessManager {
+class InstallProcessManager {
 	private const string PROCESS_SOURCE = 'install';
 
 	/**
