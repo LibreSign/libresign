@@ -24,7 +24,6 @@ namespace OCA\Libresign\Tests\Unit\SetupCheck;
 
 use OCA\Libresign\Handler\SignEngine\JSignPdf\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
-use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\JSignPdfRelease;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCA\Libresign\SetupCheck\JSignPdfSetupCheck;
@@ -318,7 +317,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 			->disableOriginalConstructor()
 			->onlyMethods(['setParam', 'getVersion'])
 			->getMock();
-		$jsignPdfMock->method('getVersion')->willReturn(InstallService::JSIGNPDF_VERSION);
+		$jsignPdfMock->method('getVersion')->willReturn(JSignPdfRelease::VERSION);
 
 		$jsignParamMock = $this->createJSignParamMock();
 
@@ -329,7 +328,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 		$this->assertInstanceOf(SetupResult::class, $result);
 		$this->assertSame('success', $result->getSeverity());
-		$this->assertStringContainsString('JSignPdf version: ' . InstallService::JSIGNPDF_VERSION, $result->getDescription());
+		$this->assertStringContainsString('JSignPdf version: ' . JSignPdfRelease::VERSION, $result->getDescription());
 		$this->assertStringContainsString('JSignPdf path: ' . $jsignPdfPath, $result->getDescription());
 	}
 }
