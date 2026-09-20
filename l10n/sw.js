@@ -594,7 +594,6 @@ OC.L10N.register(
     "Donate via Stripe" : "Donate via Stripe",
     "Learn more" : "Learn more",
     "Email verification" : "Email verification",
-    "{method} is not configured. Please contact your administrator." : "{method} is not configured. Please contact your administrator.",
     "Enter your code" : "Enter your code",
     "Request new code" : "Request new code",
     "Try again" : "Jaribu tena",
@@ -733,6 +732,7 @@ OC.L10N.register(
     "Name is mandatory" : "Name is mandatory",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Timestamp Authority (TSA) settings for digitally signing documents.",
     "Make validation URL acessible only by authenticated users" : "Make validation URL acessible only by authenticated users",
+    "{method} is not configured. Please contact your administrator." : "{method} is not configured. Please contact your administrator.",
     "Sign the document." : "Sign the document."
 },
 "nplurals=2; plural=(n != 1);");

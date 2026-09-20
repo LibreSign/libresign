@@ -29,6 +29,7 @@
     "Renewed with success. Access the link again." : "با موفقیت تمدید شد. دوباره به لینک دسترسی پیدا کنید",
     "Invalid data to sign file" : "داده‌های نامعتبر برای امضای فایل",
     "Verification code sent." : "کد تأیید ارسال شد",
+    "Unable to send verification code." : "امکان ارسال کد تأیید وجود ندارد.",
     "Element created with success" : "عنصر با موفقیت ایجاد شد",
     "Elements created with success" : "عناصر با موفقیت ایجاد شدند",
     "Elements not found" : "عناصر پیدا نشدند",
@@ -815,8 +816,6 @@
     "Step 3 of 3 - Signature confirmation" : "مرحله ۳ از ۳ - تأیید امضا",
     "A verification code has been sent to: {contact}. Check your email and enter the 6-digit verification code." : "یک کد تأیید به {contact} ارسال شده است. ایمیل خود را بررسی کنید و کد تأیید ۶ رقمی را وارد کنید.",
     "A verification code has been sent to: {contact}. Please enter the code to continue." : "یک کد تأیید به {contact} ارسال شده است. لطفاً کد را برای ادامه وارد کنید.",
-    "{method} is not configured. Please contact your administrator." : "{method} پیکربندی نشده است. لطفاً با مدیر خود تماس بگیرید.",
-    "Unable to send verification code." : "امکان ارسال کد تأیید وجود ندارد.",
     "To verify your identity, enter the same email address where you received the signature request. We will send a verification code to this address." : "برای تأیید هویت خود، همان آدرس ایمیلی را وارد کنید که درخواست امضا را دریافت کرده‌اید. ما یک کد تأیید به این آدرس ارسال خواهیم کرد.",
     "To sign this document, we must verify your identity. Enter your contact information to receive a verification code." : "برای امضای این سند، باید هویت شما را تأیید کنیم. اطلاعات تماس خود را برای دریافت کد تأیید وارد کنید.",
     "Contact information" : "اطلاعات تماس",
@@ -1010,6 +1009,7 @@
     "Name is mandatory" : "نام الزامی است",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "تنظیمات مرجع زمان‌سنج (TSA) برای امضای دیجیتال اسناد.",
     "Make validation URL acessible only by authenticated users" : "دسترسی به آدرس URL اعتبارسنجی فقط برای کاربران احراز هویت شده",
+    "{method} is not configured. Please contact your administrator." : "{method} پیکربندی نشده است. لطفاً با مدیر خود تماس بگیرید.",
     "Sign the document." : "سند را امضا کنید."
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }
