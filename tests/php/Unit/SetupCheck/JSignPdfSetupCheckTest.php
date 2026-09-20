@@ -318,7 +318,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 			->disableOriginalConstructor()
 			->onlyMethods(['setParam', 'getVersion'])
 			->getMock();
-		$jsignPdfMock->method('getVersion')->willReturn(InstallService::JSIGNPDF_VERSION);
+		$jsignPdfMock->method('getVersion')->willReturn(JSignPdfRelease::VERSION);
 
 		$jsignParamMock = $this->createJSignParamMock();
 
@@ -329,7 +329,7 @@ class JSignPdfSetupCheckTest extends TestCase {
 
 		$this->assertInstanceOf(SetupResult::class, $result);
 		$this->assertSame('success', $result->getSeverity());
-		$this->assertStringContainsString('JSignPdf version: ' . InstallService::JSIGNPDF_VERSION, $result->getDescription());
+		$this->assertStringContainsString('JSignPdf version: ' . JSignPdfRelease::VERSION, $result->getDescription());
 		$this->assertStringContainsString('JSignPdf path: ' . $jsignPdfPath, $result->getDescription());
 	}
 }
