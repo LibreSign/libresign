@@ -19,6 +19,20 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 13.4.1 - 2026-09-20
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- update translations
+
+### Fixed
+- use the installed JSignPdf release version as the single source of truth [#8472](https://github.com/LibreSign/libresign/pull/8472)
+- validate setup signatures with CA-signed certificates [#8474](https://github.com/LibreSign/libresign/pull/8474)
+
+
 ## 14.2.1 - 2026-09-20
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
