@@ -292,7 +292,6 @@ OC.L10N.register(
     "Binary integrity signature data not found." : "Não foram encontrados dados de assinatura de integridade binária.",
     "It looks like this LibreSign instance is running from source code.\nEnable debug mode by running %s" : "Parece que esta instância do LibreSign está sendo executada a partir do código-fonte.\nAtive o modo de depuração executando %s",
     "Invalid hash of binaries files." : "Hash inválido dos arquivos binários",
-    "Debug mode is enabled at your config.php and your LibreSign app was signed using a production signature. If you are not working at development of LibreSign, disable your debug mode or run the command: occ libresign install --%s --use-local-cert" : "O modo de depuração está ativado no seu arquivo config.php e seu aplicativo LibreSign foi assinado com uma assinatura de produção. Se você não estiver trabalhando no desenvolvimento do LibreSign, desative o modo de depuração ou execute o comando: occ libresign install --%s --use-local-cert",
     "Check your nextcloud.log file on %s and run occ libresign:install --all" : "Verifique seu arquivo nextcloud.log em %s e execute o comando occ libresign:install --all",
     "Check your nextcloud.log file and run occ libresign:install --all" : "Verifique seu arquivo nextcloud.log e execute o comando occ libresign:install --all",
     "Control document signing workflows inside Nextcloud" : "Controle os fluxos de trabalho de assinatura de documentos no Nextcloud",
@@ -819,7 +818,6 @@ OC.L10N.register(
     "Step 3 of 3 - Signature confirmation" : "Etapa 3 de 3 - Confirmação da assinatura",
     "A verification code has been sent to: {contact}. Check your email and enter the 6-digit verification code." : "Um código de verificação foi enviado para: {contact}. Verifique seu e-mail e insira o código de verificação de 6 dígitos.",
     "A verification code has been sent to: {contact}. Please enter the code to continue." : "Um código de verificação foi enviado para: {contact}. Digite o código para continuar.",
-    "{method} is not configured. Please contact your administrator." : "{method} não está configurado. Por favor, entre em contato com a sua administração.",
     "To verify your identity, enter the same email address where you received the signature request. We will send a verification code to this address." : "Para verificar sua identidade, insira o mesmo endereço de e-mail em que você recebeu a solicitação de assinatura. Enviaremos um código de verificação para esse endereço.",
     "To sign this document, we must verify your identity. Enter your contact information to receive a verification code." : "Para assinar este documento, precisamos verificar sua identidade. Insira suas informações de contato para receber um código de verificação.",
     "Contact information" : "Informações de contato",
@@ -926,6 +924,7 @@ OC.L10N.register(
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Data e hora em que o signatário enviou a solicitação de assinatura (no fuso horário local dele).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Fuso horário do signatário quando enviou a solicitação de assinatura (no fuso horário local dele).",
     "JSignPdf file not found: %s" : "Arquivo JSignPdf não encontrado: %s",
+    "Debug mode is enabled at your config.php and your LibreSign app was signed using a production signature. If you are not working at development of LibreSign, disable your debug mode or run the command: occ libresign install --%s --use-local-cert" : "O modo de depuração está ativado no seu arquivo config.php e seu aplicativo LibreSign foi assinado com uma assinatura de produção. Se você não estiver trabalhando no desenvolvimento do LibreSign, desative o modo de depuração ou execute o comando: occ libresign install --%s --use-local-cert",
     "Underline" : "Sublinhado",
     "Failed to request signature" : "Falha ao solicitar a assinatura",
     "Failed to request signatures" : "Falha ao solicitar assinaturas",
@@ -1002,6 +1001,7 @@ OC.L10N.register(
     "Name is mandatory" : "Nome é obrigatório",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Configurações da Autoridade de Marca Temporal (TSA) para assinatura digital de documentos.",
     "Make validation URL acessible only by authenticated users" : "Tornar o URL de validação acessível apenas para usuários autenticados",
+    "{method} is not configured. Please contact your administrator." : "{method} não está configurado. Por favor, entre em contato com a sua administração.",
     "Sign the document." : "Assinar o documento."
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
