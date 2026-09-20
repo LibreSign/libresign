@@ -11,7 +11,6 @@ namespace OCA\Libresign\Service\Install;
 use InvalidArgumentException;
 use OC\Archive\TAR;
 use OC\Archive\ZIP;
-use OC\Memcache\NullCache;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\AEngineHandler;
@@ -21,8 +20,6 @@ use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCP\Files\NotFoundException;
 use OCP\IAppConfig;
-use OCP\ICache;
-use OCP\ICacheFactory;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -37,7 +34,6 @@ class InstallService {
 	public const JSIGNPDF_VERSION = JSignPdfRelease::VERSION;
 	public const CFSSL_VERSION = '1.6.5';
 
-	private ICache $cache;
 	private ?OutputInterface $output = null;
 	private string $resource = '';
 	private array $availableResources = [
@@ -50,7 +46,7 @@ class InstallService {
 	private bool $willUseLocalCert = false;
 
 	public function __construct(
-		ICacheFactory $cacheFactory,
+		private InstallProgressStore $progressStore,
 		private DependencyDownloader $dependencyDownloader,
 		private CertificateEngineFactory $certificateEngineFactory,
 		private IAppConfig $appConfig,
@@ -60,7 +56,6 @@ class InstallService {
 		private CaIdentifierService $caIdentifierService,
 		private InstallProcessManager $installProcessManager,
 	) {
-		$this->cache = $cacheFactory->createDistributed('libresign-setup');
 		$this->target = InstallTarget::current();
 	}
 
@@ -81,7 +76,7 @@ class InstallService {
 	private function runAsync(): void {
 		$pid = $this->installProcessManager->start($this->resource, $this->target);
 		if ($pid !== null) {
-			$this->setCache($this->resource, ['pid' => $pid]);
+			$this->progressStore->set($this->target, $this->resource, ['pid' => $pid]);
 			return;
 		}
 
@@ -96,85 +91,18 @@ class InstallService {
 	}
 
 	private function progressToDatabase(string $resource, int $downloadSize, int $downloaded): void {
-		$data = $this->getProgressData($resource);
+		$data = $this->progressStore->get($this->target, $resource);
 		$data['download_size'] = $downloadSize;
 		$data['downloaded'] = $downloaded;
-		$this->setCache($resource, $data);
+		$this->progressStore->set($this->target, $resource, $data);
 	}
 
 	private function getProgressData(string $resource): array {
-		return $this->getCache($resource) ?? [];
+		return $this->progressStore->get($this->target, $resource);
 	}
 
 	private function removeDownloadProgress(string $resource): void {
-		$this->removeCache($resource);
-	}
-
-	/**
-	 * @param string $key
-	 * @param mixed $value
-	 */
-	private function setCache(string $key, $value): void {
-		if ($this->cache instanceof NullCache) {
-			$appFolder = $this->dependencyStorage->resourceFolder($this->target);
-			try {
-				$file = $appFolder->getFile('setup-cache.json');
-			} catch (NotFoundException) {
-				$file = $appFolder->newFile('setup-cache.json', '[]');
-			}
-			$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
-			$json[$key] = $value;
-			$file->putContent(json_encode($json));
-			return;
-		}
-		$this->cache->set(Application::APP_ID . '-asyncDownloadProgress-' . $this->target->cacheKey($key), $value);
-	}
-
-	/**
-	 * @return mixed
-	 */
-	private function getCache(string $key) {
-		if ($this->cache instanceof NullCache) {
-			$appFolder = $this->dependencyStorage->resourceFolder($this->target);
-			try {
-				$file = $appFolder->getFile('setup-cache.json');
-				$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
-				return $json[$key] ?? null;
-			} catch (NotFoundException) {
-			} catch (\Exception $e) {
-				$this->logger->error('Unexpected error when get setup-cache.json file', [
-					'app' => Application::APP_ID,
-					'exception' => $e,
-				]);
-			}
-			return;
-		}
-		return $this->cache->get(Application::APP_ID . '-asyncDownloadProgress-' . $this->target->cacheKey($key));
-	}
-
-	private function removeCache(string $key): void {
-		if ($this->cache instanceof NullCache) {
-			$appFolder = $this->dependencyStorage->resourceFolder($this->target);
-			try {
-				$file = $appFolder->getFile('setup-cache.json');
-				$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
-				if (isset($json[$key])) {
-					unset($json[$key]);
-				}
-				if (!$json) {
-					$file->delete();
-				} else {
-					$file->putContent(json_encode($json));
-				}
-			} catch (\Exception $e) {
-				$this->logger->warning('Could not update setup-cache.json', [
-					'app' => Application::APP_ID,
-					'exception' => $e,
-				]);
-			}
-			return;
-		}
-		$this->cache->remove(Application::APP_ID . '-asyncDownloadProgress-' . $this->target->cacheKey($key));
+		$this->progressStore->remove($this->target, $resource);
 	}
 
 	public function getAvailableResources(): array {
@@ -202,7 +130,7 @@ class InstallService {
 		}
 		$data = $this->getProgressData($this->resource);
 		$data['error'] = $message;
-		$this->setCache($this->resource, $data);
+		$this->progressStore->set($this->target, $this->resource, $data);
 	}
 
 	public function getErrorMessages(): array {
