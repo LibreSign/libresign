@@ -36,9 +36,8 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	protected function getInstallService(?ICache $cache = null): InstallService {
 		$this->cacheFactory = $this->createMock(ICacheFactory::class);
-		if ($cache !== null) {
-			$this->cacheFactory->method('createDistributed')->willReturn($cache);
-		}
+		$cache ??= $this->createMock(ICache::class);
+		$this->cacheFactory->method('createDistributed')->willReturn($cache);
 		$this->dependencyDownloader = $this->createMock(DependencyDownloader::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
