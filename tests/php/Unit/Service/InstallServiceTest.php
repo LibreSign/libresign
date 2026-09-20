@@ -101,7 +101,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->clientService->method('newClient')->willReturn($client);
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Hash for dependency.tar.gz not found');
+		$this->expectExceptionMessage('checksum list does not contain an entry for dependency.tar.gz');
 
 		self::invokePrivate(
 			$installService,
@@ -123,7 +123,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->clientService->method('newClient')->willReturn($client);
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('empty file');
+		$this->expectExceptionMessage('did not produce the expected file');
 
 		self::invokePrivate(
 			$installService,
@@ -170,7 +170,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->clientService->method('newClient')->willReturn($client);
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Failure on download dependency try again.');
+		$this->expectExceptionMessage('Could not download dependency.');
 
 		self::invokePrivate(
 			$installService,
@@ -217,7 +217,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->clientService->method('newClient')->willReturn($client);
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Invalid sha256');
+		$this->expectExceptionMessage('Checksum verification failed for dependency.');
 
 		self::invokePrivate(
 			$installService,
