@@ -90,6 +90,16 @@ trait SetupCheckUtils {
 		}
 		if (isset($result['HASH_FILE_ERROR'])) {
 			$this->logger->error('Unable to verify binary integrity', ['result' => $result]);
+			if ($this->appManager->isEnabledForUser('logreader')) {
+				return [
+					// TRANSLATORS LibreSign could not complete verification of the maintainer-signed binary integrity metadata. This does not necessarily mean that a downloaded binary has a wrong hash.
+					$l10n->t('Unable to verify binary integrity.'),
+					// TRANSLATORS %s is a link to the Nextcloud logging settings, where the technical cause of the integrity-verification failure can be inspected.
+					$l10n->t('Check your nextcloud.log file on %s for the verification error before reinstalling the binaries.', [
+						$this->urlGenerator->linkToRouteAbsolute('settings.adminsettings.form', ['section' => 'logging'])
+					]),
+				];
+			}
 			return [
 				// TRANSLATORS LibreSign could not complete verification of the maintainer-signed binary integrity metadata. This does not necessarily mean that a downloaded binary has a wrong hash.
 				$l10n->t('Unable to verify binary integrity.'),
