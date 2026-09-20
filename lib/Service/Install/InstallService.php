@@ -127,17 +127,21 @@ class InstallService {
 			} catch (NotPermittedException $e) {
 				$user = posix_getpwuid(posix_getuid());
 				throw new LibresignException(
-					$e->getMessage() . '. '
-					. 'Permission problems. '
-					. 'Maybe this could fix: chown -R ' . $user['name'] . ' ' . $this->getInternalPathOfFolder($parentFolder)
+					'LibreSign cannot create its dependency directory in app data. '
+					. 'Check that the Nextcloud web server user (' . $user['name'] . ') can write to '
+					. $this->getInternalPathOfFolder($parentFolder)
+					. ' and review the Nextcloud server log for the original permission error.',
+					previous: $e,
 				);
 			}
 		} catch (NotPermittedException $e) {
 			$user = posix_getpwuid(posix_getuid());
 			throw new LibresignException(
-				$e->getMessage() . '. '
-				. 'Permission problems. '
-				. 'Maybe this could fix: chown -R ' . $user['name'] . ' ' . $this->getInternalPathOfFolder($parentFolder)
+				'LibreSign cannot access its dependency directory in app data. '
+				. 'Check that the Nextcloud web server user (' . $user['name'] . ') can write to '
+				. $this->getInternalPathOfFolder($parentFolder)
+				. ' and review the Nextcloud server log for the original permission error.',
+				previous: $e,
 			);
 		}
 	}
@@ -427,7 +431,7 @@ class InstallService {
 			return;
 		}
 		if (PHP_OS_FAMILY !== 'Linux') {
-			throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
+			throw new RuntimeException(sprintf('LibreSign managed dependencies are supported on Linux. Detected operating system family: %s.', PHP_OS_FAMILY));
 		}
 
 		if ($this->isDownloadedFilesOk()) {
@@ -512,7 +516,7 @@ class InstallService {
 		}
 
 		if (!extension_loaded('zip')) {
-			throw new RuntimeException('Zip extension is not available');
+			throw new RuntimeException('The PHP ZIP extension is required to install JSignPdf. Enable it for the PHP runtime used by Nextcloud and retry.');
 		}
 		$this->setResource('jsignpdf');
 		if ($async) {
@@ -655,7 +659,7 @@ class InstallService {
 		} elseif ($this->target->architecture() === 'aarch64') {
 			$this->installCfsslByArchitecture('arm64');
 		} else {
-			throw new InvalidArgumentException('Invalid architecture to download cfssl');
+			throw new InvalidArgumentException('CFSSL is available only for x86_64/amd64 and aarch64/arm64 architectures.');
 		}
 		$this->removeDownloadProgress();
 	}
@@ -682,7 +686,7 @@ class InstallService {
 		$this->download($baseUrl . $file, $dependencyName, $fullPath, $hash, 'sha256');
 
 		if (!@chmod($fullPath, 0700) && !is_executable($fullPath)) {
-			throw new LibresignException('Unable to make CFSSL executable at ' . $fullPath);
+			throw new LibresignException('CFSSL was downloaded but LibreSign could not make it executable. Check filesystem permissions and mount options for the Nextcloud app data directory, then retry.');
 		}
 		$cfsslBinPath = $this->getInternalPathOfFolder($folder) . '/cfssl';
 		$this->appConfig->setValueString(Application::APP_ID, 'cfssl_bin', $cfsslBinPath);
