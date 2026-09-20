@@ -12,10 +12,10 @@ use bovigo\vfs\vfsStream;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Install\DependencyDownloader;
+use OCA\Libresign\Service\Install\InstallProcessManager;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Install\InstallTarget;
 use OCA\Libresign\Service\Install\SignSetupService;
-use OCA\Libresign\Service\Process\ProcessManager;
-use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
 use OCP\ICache;
@@ -34,7 +34,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignSetupService&MockObject $ignSetupService;
 	private IAppDataFactory&MockObject $appDataFactory;
 	private CaIdentifierService&MockObject $caIdentifierService;
-	private ProcessManager&MockObject $processManager;
+	private InstallProcessManager&MockObject $installProcessManager;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -50,7 +50,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->ignSetupService = $this->createMock(SignSetupService::class);
 		$this->appDataFactory = $this->createMock(IAppDataFactory::class);
 		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
-		$this->processManager = $this->createMock(ProcessManager::class);
+		$this->installProcessManager = $this->createMock(InstallProcessManager::class);
 		return new InstallService(
 			$this->cacheFactory,
 			$this->dependencyDownloader,
@@ -61,7 +61,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->ignSetupService,
 			$this->appDataFactory,
 			$this->caIdentifierService,
-			$this->processManager,
+			$this->installProcessManager,
 		);
 	}
 
@@ -125,7 +125,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->ignSetupService = $this->createMock(SignSetupService::class);
 		$this->appDataFactory = $this->createMock(IAppDataFactory::class);
 		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
-		$this->processManager = $this->createMock(ProcessManager::class);
+		$this->installProcessManager = $this->createMock(InstallProcessManager::class);
 
 		$cache->method('get')
 			->willReturnCallback(static fn (string $key): ?array => match ($key) {
@@ -133,7 +133,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'libresign-asyncDownloadProgress-jsignpdf' => ['pid' => 123],
 				default => null,
 			});
-		$this->processManager->method('findRunningPid')->willReturn(123);
+		$this->installProcessManager->method('findRunningPid')->willReturn(123);
 
 		$installService = new InstallService(
 			$this->cacheFactory,
@@ -145,217 +145,32 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->ignSetupService,
 			$this->appDataFactory,
 			$this->caIdentifierService,
-			$this->processManager,
+			$this->installProcessManager,
 		);
 
 		$this->assertTrue($installService->isDownloadWip());
 	}
 
-	public function testGetInstallPidReadsMatchingPidFromRegistry(): void {
+
+	public function testAsyncJavaInstallDelegatesToProcessManager(): void {
 		$installService = $this->getInstallService();
-		$installService->setResource('cfssl');
+		$this->appConfig->method('getValueString')
+			->with('libresign', 'signature_engine', 'JSignPdf')
+			->willReturn('JSignPdf');
 
-		$this->processManager->expects($this->once())
-			->method('findRunningPid')
-			->with('install', $this->callback('is_callable'))
-			->willReturnCallback(fn (string $_source, callable $filter): int => $filter([
-				'pid' => 123,
-				'context' => ['resource' => 'cfssl'],
-				'createdAt' => 123,
-			]) ? 123 : 0);
+		$this->installProcessManager->expects($this->once())
+			->method('start')
+			->with(
+				'java',
+				$this->callback(
+					static fn ($target): bool
+						=> $target->architecture() === InstallTarget::normalizeArchitecture(php_uname('m')),
+				),
+			)
+			->willReturn(123);
 
-		$actual = self::invokePrivate($installService, 'getInstallPid');
-
-		$this->assertSame(123, $actual);
+		$installService->installJava(true);
 	}
 
-	public function testGetInstallPidIgnoresSameResourceFromAnotherArchitecture(): void {
-		$installService = $this->getInstallService();
-		$installService->setArchitecture('x86_64');
-		$installService->setResource('cfssl');
 
-		$this->processManager->expects($this->once())
-			->method('findRunningPid')
-			->with('install', $this->callback('is_callable'))
-			->willReturnCallback(fn (string $_source, callable $filter): int => $filter([
-				'pid' => 123,
-				'context' => [
-					'resource' => 'cfssl',
-					'architecture' => 'aarch64',
-					'distro' => $installService->getLinuxDistributionToDownloadJava(),
-				],
-				'createdAt' => 123,
-			]) ? 123 : 0);
-
-		$actual = self::invokePrivate($installService, 'getInstallPid');
-
-		$this->assertSame(0, $actual);
-	}
-
-	public function testGetInstallPidValidatesRequestedPidAgainstResource(): void {
-		$installService = $this->getInstallService();
-		$installService->setResource('cfssl');
-
-		$this->processManager->expects($this->once())
-			->method('findRunningPid')
-			->with('install', $this->callback('is_callable'))
-			->willReturn(0);
-
-		$this->processManager->expects($this->once())
-			->method('unregister')
-			->with('install', 123);
-
-		$actual = self::invokePrivate($installService, 'getInstallPid', [123]);
-
-		$this->assertSame(0, $actual);
-	}
-
-	public function testGetInstallPidKeepsRequestedPidWhenResourceMatches(): void {
-		$installService = $this->getInstallService();
-		$installService->setResource('cfssl');
-
-		$this->processManager->expects($this->once())
-			->method('findRunningPid')
-			->with('install', $this->callback('is_callable'))
-			->willReturnCallback(fn (string $_source, callable $filter): int => $filter([
-				'pid' => 321,
-				'context' => ['resource' => 'cfssl'],
-				'createdAt' => 123,
-			]) ? 321 : 0);
-
-		$this->processManager->expects($this->never())
-			->method('unregister');
-
-		$actual = self::invokePrivate($installService, 'getInstallPid', [321]);
-
-		$this->assertSame(321, $actual);
-	}
-
-	public function testRunAsyncRegistersPidWhenProcessStarts(): void {
-		$process = $this->createMock(Process::class);
-		$process->expects($this->once())
-			->method('setOptions')
-			->with(['create_new_console' => true]);
-		$process->expects($this->once())
-			->method('setTimeout')
-			->with(null);
-		$process->expects($this->once())
-			->method('start');
-		$process->expects($this->once())
-			->method('getPid')
-			->willReturn(321);
-
-		$installService = $this->getInstallServiceWithProcess();
-		$installService->setArchitecture('amd64');
-		$installService->setResource('cfssl');
-		$installService->expects($this->once())
-			->method('createProcess')
-			->with([
-				\OC::$SERVERROOT . '/occ',
-				'libresign:install',
-				'--cfssl',
-				'--architecture=x86_64',
-			])
-			->willReturn($process);
-
-		$this->processManager->expects($this->once())
-			->method('register')
-			->with('install', 321, [
-				'resource' => 'cfssl',
-				'architecture' => $installService->getArchitecture(),
-				'distro' => $installService->getLinuxDistributionToDownloadJava(),
-			]);
-
-		self::invokePrivate($installService, 'runAsync');
-	}
-
-	public function testRunAsyncLogsErrorWhenPidIsMissing(): void {
-		$process = $this->createMock(Process::class);
-		$process->expects($this->once())
-			->method('setOptions')
-			->with(['create_new_console' => true]);
-		$process->expects($this->once())
-			->method('setTimeout')
-			->with(null);
-		$process->expects($this->once())
-			->method('start');
-		$process->expects($this->once())
-			->method('getPid')
-			->willReturn(null);
-
-		$installService = $this->getInstallServiceWithProcess();
-		$installService->setResource('cfssl');
-		$installService->expects($this->once())
-			->method('createProcess')
-			->willReturn($process);
-
-		$this->processManager->expects($this->never())
-			->method('register');
-		$this->logger->expects($this->once())
-			->method('error')
-			->with($this->stringContains('Error to get PID of background install process'));
-
-		self::invokePrivate($installService, 'runAsync');
-	}
-
-	public function testRunAsyncPreservesJavaArchitectureAndDistro(): void {
-		$process = $this->createMock(Process::class);
-		$process->method('getPid')->willReturn(456);
-
-		$installService = $this->getInstallServiceWithProcess();
-		$installService->setArchitecture('arm64');
-		$installService->setDistro('alpine-linux');
-		$installService->setResource('java');
-		$installService->expects($this->once())
-			->method('createProcess')
-			->with([
-				\OC::$SERVERROOT . '/occ',
-				'libresign:install',
-				'--java',
-				'--architecture=aarch64',
-				'--distro=alpine-linux',
-			])
-			->willReturn($process);
-
-		$this->processManager->expects($this->once())
-			->method('register')
-			->with('install', 456, [
-				'resource' => 'java',
-				'architecture' => 'aarch64',
-				'distro' => 'alpine-linux',
-			]);
-
-		self::invokePrivate($installService, 'runAsync');
-	}
-
-	private function getInstallServiceWithProcess(): InstallService&MockObject {
-		$this->cacheFactory = $this->createMock(ICacheFactory::class);
-		$this->clientService = $this->createMock(IClientService::class);
-		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
-		$this->config = $this->createMock(IConfig::class);
-		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->logger = $this->createMock(LoggerInterface::class);
-		$this->ignSetupService = $this->createMock(SignSetupService::class);
-		$this->appDataFactory = $this->createMock(IAppDataFactory::class);
-		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
-		$this->processManager = $this->createMock(ProcessManager::class);
-
-		$installService = $this->getMockBuilder(InstallService::class)
-			->setConstructorArgs([
-				$this->cacheFactory,
-				$this->dependencyDownloader,
-				$this->certificateEngineFactory,
-				$this->config,
-				$this->appConfig,
-				$this->logger,
-				$this->ignSetupService,
-				$this->appDataFactory,
-				$this->caIdentifierService,
-				$this->processManager,
-			])
-			->onlyMethods(['createProcess'])
-			->getMock();
-
-		return $installService;
-	}
 }
