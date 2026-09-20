@@ -69,7 +69,7 @@ class Uninstall extends Base {
 
 			$resources = $this->getRequestedResources($input);
 			if ($resources === []) {
-				$output->writeln('<error>Please inform what you want to install</error>');
+				$output->writeln('<error>Please inform what you want to uninstall</error>');
 				$output->writeln('<error>--all to all</error>');
 				$output->writeln('<error>--help to check the available options</error>');
 				return 1;
