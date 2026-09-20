@@ -949,16 +949,16 @@
         },
         {
             "name": "libresign/behat-builtin-extension",
-            "version": "v0.6.3",
+            "version": "v0.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/behat-builtin-extension.git",
-                "reference": "d9ddb309bbf36826f47318ca74d67c9e6c5714f9"
+                "reference": "fbb27f1573ab646f774daab8f4a6c5d5e2c25102"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/behat-builtin-extension/zipball/d9ddb309bbf36826f47318ca74d67c9e6c5714f9",
-                "reference": "d9ddb309bbf36826f47318ca74d67c9e6c5714f9",
+                "url": "https://api.github.com/repos/LibreSign/behat-builtin-extension/zipball/fbb27f1573ab646f774daab8f4a6c5d5e2c25102",
+                "reference": "fbb27f1573ab646f774daab8f4a6c5d5e2c25102",
                 "shasum": ""
             },
             "require": {
@@ -989,9 +989,9 @@
             "description": "Behat extension to run php built-in web server",
             "support": {
                 "issues": "https://github.com/LibreSign/behat-builtin-extension/issues",
-                "source": "https://github.com/LibreSign/behat-builtin-extension/tree/v0.6.3"
+                "source": "https://github.com/LibreSign/behat-builtin-extension/tree/v0.7.0"
             },
-            "time": "2024-10-31T18:50:11+00:00"
+            "time": "2026-09-19T19:17:52+00:00"
         },
         {
             "name": "libresign/behat-tsa-extension",
@@ -1172,24 +1172,24 @@
         },
         {
             "name": "libresign/nextcloud-behat",
-            "version": "v1.6.0",
+            "version": "v1.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/nextcloud-behat.git",
-                "reference": "617ffaae34ebf0e3794a09123a376c2598008f48"
+                "reference": "c650035f5e61d19110b8d62ca4a8a073ad7fad12"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/617ffaae34ebf0e3794a09123a376c2598008f48",
-                "reference": "617ffaae34ebf0e3794a09123a376c2598008f48",
+                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/c650035f5e61d19110b8d62ca4a8a073ad7fad12",
+                "reference": "c650035f5e61d19110b8d62ca4a8a073ad7fad12",
                 "shasum": ""
             },
             "require": {
                 "behat/behat": "^3.29",
                 "estahn/json-query-wrapper": "*",
                 "guzzlehttp/guzzle": "^7.10",
-                "libresign/behat-builtin-extension": "^0.6.3",
-                "php": ">=8.1",
+                "libresign/behat-builtin-extension": "^0.7.0",
+                "php": ">=8.2",
                 "phpunit/phpunit": "*"
             },
             "require-dev": {
@@ -1226,9 +1226,9 @@
             ],
             "support": {
                 "issues": "https://github.com/LibreSign/nextcloud-behat/issues",
-                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v1.6.0"
+                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v1.6.1"
             },
-            "time": "2026-04-11T00:33:49+00:00"
+            "time": "2026-09-20T16:52:51+00:00"
         },
         {
             "name": "myclabs/deep-copy",
