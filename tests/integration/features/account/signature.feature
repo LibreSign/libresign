@@ -257,7 +257,7 @@ Feature: account/signature
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":false}] |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"email","value":"signer@test.coop"}]}] |
       | name | document |
     When as user ""
