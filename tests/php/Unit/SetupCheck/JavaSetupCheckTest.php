@@ -24,6 +24,7 @@ namespace OCA\Libresign\Tests\Unit\SetupCheck;
 
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Install\SetupTrustMode;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCA\Libresign\SetupCheck\JavaSetupCheck;
 use OCA\Libresign\Tests\Mock\ExecMock;
@@ -124,7 +125,6 @@ class JavaSetupCheckTest extends TestCase {
 		];
 
 		$this->signSetupService->method('verify')->willReturn([]);
-		$this->signSetupService->method('willUseLocalCert');
 
 		$this->l10n->expects($this->any())
 			->method('t')
@@ -152,7 +152,6 @@ class JavaSetupCheckTest extends TestCase {
 		];
 
 		$this->signSetupService->method('verify')->willReturn([]);
-		$this->signSetupService->method('willUseLocalCert');
 
 		$this->l10n->expects($this->any())
 			->method('t')
@@ -176,11 +175,10 @@ class JavaSetupCheckTest extends TestCase {
 		$this->signSetupService->method('verify')
 			->with($this->anything(), 'java')
 			->willReturn($verifyResult);
-		$this->signSetupService->method('willUseLocalCert');
 
 		$this->logger->expects($this->once())
 			->method('error')
-			->with('Invalid hash of binaries files', ['result' => $verifyResult]);
+			->with('Unable to verify binary integrity', ['result' => $verifyResult]);
 
 		$this->appManager->method('isEnabledForUser')->with('logreader')->willReturn(false);
 
@@ -192,7 +190,7 @@ class JavaSetupCheckTest extends TestCase {
 		$result = $instance->run();
 
 		$this->assertEquals('error', $result->getSeverity());
-		$this->assertStringContainsString('Invalid hash of binaries files', $result->getDescription());
+		$this->assertStringContainsString('Unable to verify binary integrity', $result->getDescription());
 	}
 
 	public function testJavaExecutionFails(): void {
@@ -202,7 +200,6 @@ class JavaSetupCheckTest extends TestCase {
 		FileSystemMock::$files[$javaPath] = true;
 
 		$this->signSetupService->method('verify')->willReturn([]);
-		$this->signSetupService->method('willUseLocalCert');
 
 		ExecMock::$commands[$javaPath . ' -version 2>&1'] = [
 			'output' => ['some error output'],
@@ -227,7 +224,6 @@ class JavaSetupCheckTest extends TestCase {
 		FileSystemMock::$files[$javaPath] = true;
 
 		$this->signSetupService->method('verify')->willReturn([]);
-		$this->signSetupService->method('willUseLocalCert');
 
 		ExecMock::$commands[$javaPath . ' -version 2>&1'] = [
 			'output' => [],
@@ -252,7 +248,6 @@ class JavaSetupCheckTest extends TestCase {
 		FileSystemMock::$files[$javaPath] = true;
 
 		$this->signSetupService->method('verify')->willReturn([]);
-		$this->signSetupService->method('willUseLocalCert');
 
 		ExecMock::$commands[$javaPath . ' -version 2>&1'] = [
 			'output' => [InstallService::JAVA_VERSION],
@@ -282,7 +277,6 @@ class JavaSetupCheckTest extends TestCase {
 		FileSystemMock::$files[$javaPath] = true;
 
 		$this->signSetupService->method('verify')->willReturn([]);
-		$this->signSetupService->method('willUseLocalCert');
 
 		ExecMock::$commands[$javaPath . ' -version 2>&1'] = [
 			'output' => [InstallService::JAVA_VERSION],
@@ -324,10 +318,8 @@ class JavaSetupCheckTest extends TestCase {
 
 		$verifyResult = ['SIGNATURE_DATA_NOT_FOUND' => true];
 		$this->signSetupService->method('verify')
-			->with(php_uname('m'), 'java')
+			->with(php_uname('m'), 'java', SetupTrustMode::Production)
 			->willReturn($verifyResult);
-
-		$this->signSetupService->method('willUseLocalCert');
 
 		$this->l10n->method('t')->willReturnCallback(fn ($string, $params = []) => vsprintf($string, $params));
 
@@ -347,10 +339,8 @@ class JavaSetupCheckTest extends TestCase {
 
 		$verifyResult = ['EMPTY_SIGNATURE_DATA' => true];
 		$this->signSetupService->method('verify')
-			->with(php_uname('m'), 'java')
+			->with(php_uname('m'), 'java', SetupTrustMode::Production)
 			->willReturn($verifyResult);
-
-		$this->signSetupService->method('willUseLocalCert');
 
 		$this->l10n->method('t')->willReturnCallback(fn ($string, $params = []) => vsprintf($string, $params));
 
@@ -369,7 +359,7 @@ class JavaSetupCheckTest extends TestCase {
 
 		$verifyResult = ['SIGNATURE_DATA_NOT_FOUND' => true];
 		$this->signSetupService->method('verify')
-			->with(php_uname('m'), 'java')
+			->with(php_uname('m'), 'java', SetupTrustMode::Production)
 			->willReturn($verifyResult);
 
 		ExecMock::$commands[$javaPath . ' -version 2>&1'] = [
@@ -406,18 +396,9 @@ class JavaSetupCheckTest extends TestCase {
 			'result_code' => 0,
 		];
 
-		$certificateModes = [];
-		$this->signSetupService->expects($this->once())
-			->method('willUseLocalCert')
-			->willReturnCallback(
-				static function (bool $useLocalCert) use (&$certificateModes): void {
-					$certificateModes[] = $useLocalCert;
-				}
-			);
-
 		$this->signSetupService->expects($this->once())
 			->method('verify')
-			->with(php_uname('m'), 'java')
+			->with(php_uname('m'), 'java', SetupTrustMode::Production)
 			->willReturn([]);
 
 		$this->l10n->method('t')
@@ -425,7 +406,6 @@ class JavaSetupCheckTest extends TestCase {
 
 		$result = $this->getInstance()->run();
 
-		$this->assertSame([false], $certificateModes);
 		$this->assertEquals('success', $result->getSeverity());
 	}
 
@@ -446,21 +426,16 @@ class JavaSetupCheckTest extends TestCase {
 			'result_code' => 0,
 		];
 
-		$certificateModes = [];
-		$this->signSetupService->expects($this->exactly(2))
-			->method('willUseLocalCert')
-			->willReturnCallback(
-				static function (bool $useLocalCert) use (&$certificateModes): void {
-					$certificateModes[] = $useLocalCert;
-				}
-			);
-
 		$this->signSetupService->expects($this->exactly(2))
 			->method('verify')
-			->with(php_uname('m'), 'java')
-			->willReturnOnConsecutiveCalls(
-				['HASH_FILE_ERROR' => 'Production certificate validation failed'],
-				[],
+			->willReturnCallback(
+				static function (string $architecture, string $resource, SetupTrustMode $mode): array {
+					self::assertSame(php_uname('m'), $architecture);
+					self::assertSame('java', $resource);
+					return $mode === SetupTrustMode::Production
+						? ['HASH_FILE_ERROR' => 'Production certificate validation failed']
+						: [];
+				}
 			);
 
 		$this->l10n->method('t')
@@ -468,7 +443,6 @@ class JavaSetupCheckTest extends TestCase {
 
 		$result = $this->getInstance()->run();
 
-		$this->assertSame([false, true], $certificateModes);
 		$this->assertEquals('success', $result->getSeverity());
 	}
 
@@ -491,12 +465,8 @@ class JavaSetupCheckTest extends TestCase {
 		];
 
 		$this->signSetupService->expects($this->once())
-			->method('willUseLocalCert')
-			->with(false);
-
-		$this->signSetupService->expects($this->once())
 			->method('verify')
-			->with(php_uname('m'), 'java')
+			->with(php_uname('m'), 'java', SetupTrustMode::Production)
 			->willReturn($verifyResult);
 
 		$this->l10n->method('t')
@@ -516,28 +486,24 @@ class JavaSetupCheckTest extends TestCase {
 
 		FileSystemMock::$files[$javaPath] = true;
 
-		$certificateModes = [];
-		$this->signSetupService->expects($this->exactly(2))
-			->method('willUseLocalCert')
-			->willReturnCallback(
-				static function (bool $useLocalCert) use (&$certificateModes): void {
-					$certificateModes[] = $useLocalCert;
-				}
-			);
-
 		$this->signSetupService->expects($this->exactly(2))
 			->method('verify')
-			->with(php_uname('m'), 'java')
-			->willReturnOnConsecutiveCalls(
-				['HASH_FILE_ERROR' => 'Production certificate validation failed'],
-				[
-					'INVALID_HASH' => [
-						'java' => [
-							'expected' => 'expected',
-							'current' => 'current',
+			->willReturnCallback(
+				static function (string $architecture, string $resource, SetupTrustMode $mode): array {
+					self::assertSame(php_uname('m'), $architecture);
+					self::assertSame('java', $resource);
+					if ($mode === SetupTrustMode::Production) {
+						return ['HASH_FILE_ERROR' => 'Production certificate validation failed'];
+					}
+					return [
+						'INVALID_HASH' => [
+							'java' => [
+								'expected' => 'expected',
+								'current' => 'current',
+							],
 						],
-					],
-				],
+					];
+				}
 			);
 
 		$this->l10n->method('t')
@@ -545,7 +511,6 @@ class JavaSetupCheckTest extends TestCase {
 
 		$result = $this->getInstance()->run();
 
-		$this->assertSame([false, true], $certificateModes);
 		$this->assertEquals('error', $result->getSeverity());
 	}
 
@@ -556,18 +521,27 @@ class JavaSetupCheckTest extends TestCase {
 		FileSystemMock::$files[$javaPath] = true;
 
 		$verifyResult = ['HASH_FILE_ERROR' => true];
-		$this->signSetupService->method('verify')
-			->with(php_uname('m'), 'java')
-			->willReturn($verifyResult);
+		$modes = [];
+		$this->signSetupService->expects($this->exactly(2))
+			->method('verify')
+			->willReturnCallback(
+				static function (string $architecture, string $resource, SetupTrustMode $mode) use (&$modes, $verifyResult): array {
+					self::assertSame(php_uname('m'), $architecture);
+					self::assertSame('java', $resource);
+					$modes[] = $mode;
+					return $verifyResult;
+				}
+			);
 
 		$this->l10n->method('t')->willReturnCallback(fn ($string, $params = []) => vsprintf($string, $params));
 
 		$instance = $this->getInstance();
 		$result = $instance->run();
 
+		$this->assertSame([SetupTrustMode::Production, SetupTrustMode::Development], $modes);
 		$this->assertEquals('error', $result->getSeverity());
-		$this->assertStringContainsString('Invalid hash of binaries files', $result->getDescription());
-		$this->assertStringContainsString('Debug mode is enabled', $result->getLinkToDoc());
+		$this->assertStringContainsString('Unable to verify binary integrity', $result->getDescription());
+		$this->assertStringContainsString('Check your nextcloud.log file', $result->getLinkToDoc());
 	}
 
 	public function testVerifyResourceIntegrityHashFileErrorWithoutDebugWithLogReader(): void {
@@ -578,7 +552,7 @@ class JavaSetupCheckTest extends TestCase {
 
 		$verifyResult = ['HASH_FILE_ERROR' => true];
 		$this->signSetupService->method('verify')
-			->with(php_uname('m'), 'java')
+			->with(php_uname('m'), 'java', SetupTrustMode::Production)
 			->willReturn($verifyResult);
 
 		$this->appManager->method('isEnabledForUser')->with('logreader')->willReturn(true);
@@ -589,7 +563,7 @@ class JavaSetupCheckTest extends TestCase {
 
 		$this->logger->expects($this->once())
 			->method('error')
-			->with('Invalid hash of binaries files', $this->anything());
+			->with('Unable to verify binary integrity', $this->anything());
 
 		$this->l10n->method('t')->willReturnCallback(fn ($string, $params = []) => vsprintf($string, $params));
 
@@ -597,7 +571,7 @@ class JavaSetupCheckTest extends TestCase {
 		$result = $instance->run();
 
 		$this->assertEquals('error', $result->getSeverity());
-		$this->assertStringContainsString('Invalid hash of binaries files', $result->getDescription());
+		$this->assertStringContainsString('Unable to verify binary integrity', $result->getDescription());
 		$this->assertStringContainsString('Check your nextcloud.log file on', $result->getLinkToDoc());
 	}
 
@@ -609,14 +583,14 @@ class JavaSetupCheckTest extends TestCase {
 
 		$verifyResult = ['HASH_FILE_ERROR' => true];
 		$this->signSetupService->method('verify')
-			->with(php_uname('m'), 'java')
+			->with(php_uname('m'), 'java', SetupTrustMode::Production)
 			->willReturn($verifyResult);
 
 		$this->appManager->method('isEnabledForUser')->with('logreader')->willReturn(false);
 
 		$this->logger->expects($this->once())
 			->method('error')
-			->with('Invalid hash of binaries files', $this->anything());
+			->with('Unable to verify binary integrity', $this->anything());
 
 		$this->l10n->method('t')->willReturnCallback(fn ($string, $params = []) => vsprintf($string, $params));
 
@@ -624,7 +598,7 @@ class JavaSetupCheckTest extends TestCase {
 		$result = $instance->run();
 
 		$this->assertEquals('error', $result->getSeverity());
-		$this->assertStringContainsString('Invalid hash of binaries files', $result->getDescription());
+		$this->assertStringContainsString('Unable to verify binary integrity', $result->getDescription());
 		$this->assertStringContainsString('Check your nextcloud.log file', $result->getLinkToDoc());
 	}
 }

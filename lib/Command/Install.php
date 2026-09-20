@@ -8,7 +8,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Command;
 
+use InvalidArgumentException;
+use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Install\InstallTarget;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use Psr\Log\LoggerInterface;
@@ -65,7 +69,13 @@ class Install extends Base {
 				name: 'architecture',
 				shortcut: null,
 				mode: InputOption::VALUE_REQUIRED,
-				description: 'x86_64 or aarch64'
+				description: 'x86_64/amd64 or aarch64/arm64'
+			)
+			->addOption(
+				name: 'distro',
+				shortcut: null,
+				mode: InputOption::VALUE_REQUIRED,
+				description: 'linux or alpine-linux'
 			)
 			->addOption(
 				name: 'all-distros',
@@ -85,65 +95,107 @@ class Install extends Base {
 
 	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
-		$ok = false;
 		$this->installService->setOutput($output);
 
 		try {
-			$architecture = (string)$input->getOption('architecture');
-			if (in_array($architecture, ['x86_64', 'aarch64'])) {
-				$this->installService->setArchitecture($architecture);
-			}
+			$this->configureTarget($input);
+
 			if ($input->hasOption('use-local-cert') && $input->getOption('use-local-cert')) {
-				$this->installService->willUseLocalCert();
+				$this->installService->useDevelopmentTrust();
 			}
-			$all = $input->getOption('all');
-			if ($input->getOption('java') || $all) {
-				if ($input->getOption('all-distros')) {
-					$currentDistro = $this->installService->getLinuxDistributionToDownloadJava();
-					if ($currentDistro === 'linux') {
-						$distros = ['alpine-linux', 'linux'];
-					} else {
-						$distros = ['linux', 'alpine-linux'];
-					}
-					foreach ($distros as $distro) {
-						$this->installService->setDistro($distro);
-						$this->installService->installJava();
-					}
-				} else {
-					$this->installService->installJava();
-				}
-				$ok = true;
+
+			$resources = $this->getRequestedResources($input);
+			if ($resources === []) {
+				$output->writeln('<error>Please inform what you want to install</error>');
+				$output->writeln('<error>--all to all</error>');
+				$output->writeln('<error>--help to check the available options</error>');
+				return 1;
 			}
-			if ($input->getOption('jsignpdf') || $all) {
-				$this->installService->installJSignPdf();
-				$ok = true;
-			}
-			if ($input->getOption('pdftk') || $all) {
-				$this->installService->installPdftk();
-				$ok = true;
-			}
-			if ($input->getOption('cfssl') || $all) {
-				$currentEngine = $this->appConfig->getValueString('certificate_engine', 'openssl');
-				$this->installService->installCfssl();
+
+			$this->installResources($resources, $input);
+
+			if (in_array('cfssl', $resources, true)) {
+				$currentEngine = $this->appConfig->getValueString(
+					Application::APP_ID,
+					'certificate_engine',
+					'openssl',
+				);
 				if ($currentEngine !== 'cfssl') {
 					$output->writeln('<comment>To use CFSSL, set the engine to cfssl with:</comment> config:app:set libresign certificate_engine --value=cfssl');
 				}
-				$ok = true;
 			}
-		} catch (\Exception $e) {
+		} catch (LibresignException $e) {
 			$this->installService->saveErrorMessage($e->getMessage());
-			$this->logger->error($e->getMessage());
+			$this->logger->error('LibreSign dependency installation failed', [
+				'exception' => $e,
+			]);
+			throw $e;
+		} catch (\Exception $e) {
+			$this->logger->error('Unexpected error while installing LibreSign dependencies', [
+				'exception' => $e,
+			]);
 			throw $e;
 		}
 
-		if (!$ok) {
-			$output->writeln('<error>Please inform what you want to install</error>');
-			$output->writeln('<error>--all to all</error>');
-			$output->writeln('<error>--help to check the available options</error>');
-			return 1;
-		}
 		$output->writeln('Finished with success.');
 
 		return 0;
+	}
+
+	private function configureTarget(InputInterface $input): void {
+		$architecture = (string)$input->getOption('architecture');
+		if ($architecture !== '') {
+			$this->installService->setArchitecture(
+				InstallTarget::normalizeArchitecture($architecture),
+			);
+		}
+
+		$distro = (string)$input->getOption('distro');
+		if ($distro !== '') {
+			if ($input->getOption('all-distros')) {
+				throw new InvalidArgumentException('--distro and --all-distros cannot be used together.');
+			}
+			$this->installService->setDistro($distro);
+		}
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private function getRequestedResources(InputInterface $input): array {
+		if ($input->getOption('all')) {
+			return array_values($this->installService->getAvailableResources());
+		}
+
+		$resources = [];
+		foreach ($this->installService->getAvailableResources() as $resource) {
+			if ($input->getOption($resource)) {
+				$resources[] = $resource;
+			}
+		}
+		return $resources;
+	}
+
+	/**
+	 * @param list<string> $resources
+	 */
+	private function installResources(array $resources, InputInterface $input): void {
+		foreach ($resources as $resource) {
+			if ($resource === 'java' && $input->getOption('all-distros')) {
+				$currentDistro = $this->installService->getLinuxDistributionToDownloadJava();
+				if ($currentDistro === 'linux') {
+					$distros = ['alpine-linux', 'linux'];
+				} else {
+					$distros = ['linux', 'alpine-linux'];
+				}
+				foreach ($distros as $distro) {
+					$this->installService->setDistro($distro);
+					$this->installService->install($resource);
+				}
+				continue;
+			}
+
+			$this->installService->install($resource);
+		}
 	}
 }

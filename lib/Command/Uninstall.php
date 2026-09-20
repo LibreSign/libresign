@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Command;
 
+use OCA\Libresign\Service\Install\InstallTarget;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -52,48 +53,54 @@ class Uninstall extends Base {
 				name: 'architecture',
 				shortcut: null,
 				mode: InputOption::VALUE_REQUIRED,
-				description: 'x86_64 or aarch64'
+				description: 'x86_64/amd64 or aarch64/arm64'
 			);
 	}
 
 	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
-		$ok = false;
-
 		try {
 			$architecture = (string)$input->getOption('architecture');
-			if (in_array($architecture, ['x86_64', 'aarch64'])) {
-				$this->installService->setArchitecture($architecture);
+			if ($architecture !== '') {
+				$this->installService->setArchitecture(
+					InstallTarget::normalizeArchitecture($architecture),
+				);
 			}
-			$all = $input->getOption('all');
-			if ($input->getOption('java') || $all) {
-				$this->installService->uninstallJava();
-				$ok = true;
+
+			$resources = $this->getRequestedResources($input);
+			if ($resources === []) {
+				$output->writeln('<error>Please inform what you want to uninstall</error>');
+				$output->writeln('<error>--all to all</error>');
+				$output->writeln('<error>--help to check the available options</error>');
+				return 1;
 			}
-			if ($input->getOption('jsignpdf') || $all) {
-				$this->installService->uninstallJSignPdf();
-				$ok = true;
-			}
-			if ($input->getOption('pdftk') || $all) {
-				$this->installService->uninstallPdftk();
-				$ok = true;
-			}
-			if ($input->getOption('cfssl') || $all) {
-				$this->installService->uninstallCfssl();
-				$ok = true;
+
+			foreach ($resources as $resource) {
+				$this->installService->uninstall($resource);
 			}
 		} catch (\Exception $e) {
 			$this->logger->error($e->getMessage());
 			throw $e;
 		}
 
-		if (!$ok) {
-			$output->writeln('<error>Please inform what you want to install</error>');
-			$output->writeln('<error>--all to all</error>');
-			$output->writeln('<error>--help to check the available options</error>');
-			return 1;
-		}
 		$output->writeln('Finished with success.');
 		return 0;
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private function getRequestedResources(InputInterface $input): array {
+		if ($input->getOption('all')) {
+			return array_values($this->installService->getAvailableResources());
+		}
+
+		$resources = [];
+		foreach ($this->installService->getAvailableResources() as $resource) {
+			if ($input->getOption($resource)) {
+				$resources[] = $resource;
+			}
+		}
+		return $resources;
 	}
 }
