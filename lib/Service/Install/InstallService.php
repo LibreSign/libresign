@@ -306,6 +306,7 @@ class InstallService {
 	}
 
 	public function installJSignPdf(?bool $async = false): void {
+		$this->setResource('jsignpdf');
 		$signatureEngine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf');
 		if ($signatureEngine !== 'JSignPdf') {
 			return;
@@ -314,7 +315,6 @@ class InstallService {
 		if (!extension_loaded('zip')) {
 			throw new LibresignException('The PHP ZIP extension is required to install JSignPdf. Enable it for the PHP runtime used by Nextcloud and retry.');
 		}
-		$this->setResource('jsignpdf');
 		if ($async) {
 			$this->runAsync();
 			return;
