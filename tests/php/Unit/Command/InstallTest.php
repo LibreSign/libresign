@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Command;
 use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Command\Install;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Install\InstallService;
 use OCP\IAppConfig;
 use OCP\IConfig;
@@ -196,6 +197,31 @@ final class InstallTest extends TestCase {
 		]);
 
 		$this->assertSame(Command::SUCCESS, $status);
+	}
+
+	public function testKnownInstallFailureIsStoredForUser(): void {
+		$this->installService->method('install')
+			->willThrowException(new LibresignException('Actionable install error'));
+		$this->installService->expects($this->once())
+			->method('saveErrorMessage')
+			->with('Actionable install error');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Actionable install error');
+
+		$this->tester->execute(['--java' => true]);
+	}
+
+	public function testUnexpectedInstallFailureIsNotStoredForUser(): void {
+		$this->installService->method('install')
+			->willThrowException(new \RuntimeException('internal technical error'));
+		$this->installService->expects($this->never())
+			->method('saveErrorMessage');
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('internal technical error');
+
+		$this->tester->execute(['--java' => true]);
 	}
 
 }
