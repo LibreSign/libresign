@@ -71,7 +71,6 @@ class InstallService {
 		return $this->target->architecture();
 	}
 
-
 	private function runAsync(): void {
 		$pid = $this->installProcessManager->start($this->resource, $this->target);
 		if ($pid !== null) {
@@ -550,8 +549,9 @@ class InstallService {
 			$path,
 			$hash,
 			$hash_algo,
-			fn (int $downloadSize, int $downloaded): void
-				=> $this->progressToDatabase($this->resource, $downloadSize, $downloaded),
+			function (int $downloadSize, int $downloaded): void {
+				$this->progressToDatabase($this->resource, $downloadSize, $downloaded);
+			},
 		);
 	}
 

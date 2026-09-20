@@ -73,7 +73,6 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertTrue($installService->isDownloadWip());
 	}
 
-
 	public function testAsyncJavaInstallDelegatesResourceAndNormalizedTarget(): void {
 		$installService = $this->getInstallService();
 		$this->appConfig->method('getValueString')

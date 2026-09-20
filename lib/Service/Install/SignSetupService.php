@@ -11,7 +11,6 @@ namespace OCA\Libresign\Service\Install;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\EmptySignatureDataException;
-use OCA\Libresign\Exception\InvalidSignatureException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\SignatureDataNotFoundException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateHelper;

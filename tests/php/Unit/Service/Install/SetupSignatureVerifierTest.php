@@ -14,10 +14,11 @@ use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\InvalidSignatureException;
 use OCA\Libresign\Service\Install\SetupSignatureVerifier;
-use OCA\Libresign\Tests\Mock\CertificateChainFixture;
 use OCA\Libresign\Service\Install\SetupTrustMode;
+use OCA\Libresign\Tests\Mock\CertificateChainFixture;
 use OCA\Libresign\Vendor\phpseclib4\Crypt\RSA;
 use OCA\Libresign\Vendor\phpseclib4\File\X509;
+use OCP\ITempManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
