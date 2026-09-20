@@ -29,7 +29,6 @@ use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
-use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\ICache;
 use OCP\ICacheFactory;
@@ -68,7 +67,7 @@ class InstallService {
 
 	public function __construct(
 		ICacheFactory $cacheFactory,
-		private IClientService $clientService,
+		private DependencyDownloader $dependencyDownloader,
 		private CertificateEngineFactory $certificateEngineFactory,
 		private IConfig $config,
 		private IAppConfig $appConfig,
@@ -475,7 +474,7 @@ class InstallService {
 		$compressedInternalFileName = $this->getInternalPathOfFile($compressedFile);
 		$dependencyName = 'java ' . $this->target->architecture() . ' ' . $linuxDistribution;
 		$checksumUrl = $url . '.sha256.txt';
-		$hash = $this->getHash($compressedFileName, $checksumUrl);
+		$hash = $this->dependencyDownloader->fetchChecksum($compressedFileName, $checksumUrl);
 		$this->download($url, $dependencyName, $compressedInternalFileName, $hash, 'sha256');
 
 		$extractor = new TAR($compressedInternalFileName);
@@ -545,7 +544,7 @@ class InstallService {
 			$compressedFile = $folder->newFile($compressedFileName);
 		}
 		$compressedInternalFileName = $this->getInternalPathOfFile($compressedFile);
-		$hash = $this->getHash($compressedFileName, JSignPdfRelease::checksumUrl());
+		$hash = $this->dependencyDownloader->fetchChecksum($compressedFileName, JSignPdfRelease::checksumUrl());
 		$this->download(JSignPdfRelease::downloadUrl(), 'JSignPdf', $compressedInternalFileName, $hash, 'sha256');
 
 		$extractDir = $this->getInternalPathOfFolder($folder);
@@ -678,7 +677,7 @@ class InstallService {
 		$file = 'cfssl_' . self::CFSSL_VERSION . '_linux_' . $architecture;
 		$baseUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/';
 		$checksumUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/cfssl_' . self::CFSSL_VERSION . '_checksums.txt';
-		$hash = $this->getHash($file, $checksumUrl);
+		$hash = $this->dependencyDownloader->fetchChecksum($file, $checksumUrl);
 
 		$fullPath = $this->getInternalPathOfFile($folder->newFile('cfssl'));
 
@@ -714,172 +713,49 @@ class InstallService {
 		return false;
 	}
 
-	protected function download(string $url, string $dependencyName, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
-		if (file_exists($path)) {
-			$this->progressToDatabase((int)filesize($path), 0);
-			if (hash_file($hash_algo, $path) === $hash) {
-				return;
-			}
-		}
+	protected function download(
+		string $url,
+		string $dependencyName,
+		string $path,
+		?string $hash = '',
+		?string $hash_algo = 'md5',
+	): void {
+		$hash ??= '';
+		$hash_algo ??= 'md5';
+
 		if (php_sapi_name() === 'cli' && $this->output instanceof OutputInterface) {
-			$this->downloadCli($url, $dependencyName, $path, $hash, $hash_algo);
+			$progressBar = new ProgressBar($this->output);
+			$this->output->writeln('Downloading ' . $dependencyName . '...');
+			$progressBar->start();
+			try {
+				$this->dependencyDownloader->download(
+					$url,
+					$dependencyName,
+					$path,
+					$hash,
+					$hash_algo,
+					function (int $downloadSize, int $downloaded) use ($progressBar): void {
+						$progressBar->setMaxSteps($downloadSize);
+						$progressBar->setProgress($downloaded);
+						$this->progressToDatabase($downloadSize, $downloaded);
+					},
+				);
+			} finally {
+				$progressBar->finish();
+				$this->output->writeln('');
+			}
 			return;
 		}
-		$client = $this->clientService->newClient();
-		try {
-			$client->get($url, [
-				'sink' => $path,
-				'timeout' => 0,
-				'progress' => function ($downloadSize, $downloaded): void {
-					$this->progressToDatabase($downloadSize, $downloaded);
-				},
-			]);
-		} catch (\Exception $e) {
-			$this->logger->error('Dependency download failed', [
-				'resource' => $dependencyName,
-				'url' => $url,
-				'exception' => $e,
-			]);
-			throw new LibresignException(
-				$this->getDownloadFailureMessage($dependencyName),
-				previous: $e,
-			);
-		}
-		if (!file_exists($path)) {
-			$this->logger->error('Dependency download completed without creating the expected file', [
-				'resource' => $dependencyName,
-				'url' => $url,
-				'path' => $path,
-			]);
-			throw new LibresignException(
-				'Download of ' . $dependencyName . ' did not produce the expected file. '
-				. 'Please retry the installation. If the problem persists, check the Nextcloud server log for details.',
-			);
-		}
-		if ($hash !== '' && hash_file($hash_algo, $path) !== $hash) {
-			$this->logger->error('Dependency checksum verification failed', [
-				'resource' => $dependencyName,
-				'url' => $url,
-				'path' => $path,
-				'algorithm' => $hash_algo,
-			]);
-			throw new LibresignException(
-				'Checksum verification failed for ' . $dependencyName . '. The downloaded file was not accepted. '
-				. 'Please retry the installation. If it fails again, check whether a proxy or cache is modifying downloads and review the Nextcloud server log.',
-			);
-		}
-	}
 
-	protected function downloadCli(string $url, string $dependencyName, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
-		$client = $this->clientService->newClient();
-		$progressBar = new ProgressBar($this->output);
-		$this->output->writeln('Downloading ' . $dependencyName . '...');
-		$progressBar->start();
-
-		try {
-			$client->get($url, [
-				'sink' => $path,
-				'timeout' => 0,
-				'progress' => function ($downloadSize, $downloaded) use ($progressBar): void {
-					$progressBar->setMaxSteps($downloadSize);
-					$progressBar->setProgress($downloaded);
-					$this->progressToDatabase($downloadSize, $downloaded);
-				},
-			]);
-		} catch (\Exception $e) {
-			$this->logger->error('Dependency download failed', [
-				'resource' => $dependencyName,
-				'url' => $url,
-				'exception' => $e,
-			]);
-			throw new LibresignException(
-				$this->getDownloadFailureMessage($dependencyName),
-				previous: $e,
-			);
-		} finally {
-			$progressBar->finish();
-			$this->output->writeln('');
-		}
-
-		if (!file_exists($path)) {
-			$this->logger->error('Dependency download completed without creating the expected file', [
-				'resource' => $dependencyName,
-				'url' => $url,
-				'path' => $path,
-			]);
-			throw new LibresignException(
-				'Download of ' . $dependencyName . ' did not produce the expected file. '
-				. 'Please retry the installation. If the problem persists, check the Nextcloud server log for details.',
-			);
-		}
-
-		if ($hash !== '' && hash_file($hash_algo, $path) !== $hash) {
-			$this->logger->error('Dependency checksum verification failed', [
-				'resource' => $dependencyName,
-				'url' => $url,
-				'path' => $path,
-				'algorithm' => $hash_algo,
-			]);
-			throw new LibresignException(
-				'Checksum verification failed for ' . $dependencyName . '. The downloaded file was not accepted. '
-				. 'Please retry the installation. If it fails again, check whether a proxy or cache is modifying downloads and review the Nextcloud server log.',
-			);
-		}
-	}
-
-	private function getHash(string $file, string $checksumUrl): string {
-		try {
-			$response = $this->clientService->newClient()->get($checksumUrl);
-			$hashes = $response->getBody();
-		} catch (\Exception $e) {
-			$this->logger->error('Dependency checksum file download failed', [
-				'url' => $checksumUrl,
-				'file' => $file,
-				'exception' => $e,
-			]);
-			throw new LibresignException(
-				'Could not download the checksum information required to verify ' . $file . '. '
-				. 'Please check the server network, DNS and proxy configuration, then retry. '
-				. 'See the Nextcloud server log for the technical error.',
-				previous: $e,
-			);
-		}
-
-		if (!is_string($hashes) || $hashes === '') {
-			$this->logger->error('Dependency checksum file is empty', [
-				'url' => $checksumUrl,
-				'file' => $file,
-			]);
-			throw new LibresignException(
-				'The checksum information for ' . $file . ' was empty. '
-				. 'Please retry later. If the problem persists, check the Nextcloud server log before reporting it.',
-			);
-		}
-
-		$matched = preg_match(
-			'/(?<hash>[A-Fa-f0-9]+) +' . preg_quote($file, '/') . '(?:\\s|$)/',
-			$hashes,
-			$matches,
+		$this->dependencyDownloader->download(
+			$url,
+			$dependencyName,
+			$path,
+			$hash,
+			$hash_algo,
+			fn (int $downloadSize, int $downloaded): void
+				=> $this->progressToDatabase($downloadSize, $downloaded),
 		);
-		if ($matched !== 1 || empty($matches['hash'])) {
-			$this->logger->error('Checksum entry not found for dependency artifact', [
-				'url' => $checksumUrl,
-				'file' => $file,
-			]);
-			throw new LibresignException(
-				'The checksum list does not contain an entry for ' . $file . '. '
-				. 'This usually indicates that the upstream release metadata changed or is temporarily incomplete. '
-				. 'Please retry later and check the Nextcloud server log if it persists.',
-			);
-		}
-
-		return $matches['hash'];
-	}
-
-	private function getDownloadFailureMessage(string $dependencyName): string {
-		return 'Could not download ' . $dependencyName . '. '
-			. 'Please check the Nextcloud server network, DNS and proxy configuration, then retry. '
-			. 'See the Nextcloud server log for the technical error.';
 	}
 
 	private function populateNamesWithInstanceId(array $names, string $engineName): array {
