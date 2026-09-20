@@ -19,7 +19,7 @@ Feature: TSA Integration - End-to-End Workflow
       | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}] |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file  | {"url":"<BASE_URL>/apps/libresign/develop/pdf"}                    |
+      | file  | {"base64":"<SMALL_VALID_PDF_BASE64>"}                    |
       | signers | [{"displayName": "TSA Signer","identifyMethods": [{"method": "account", "value": "signer1"}]}] |
       | name  | TSA Document Test                                                  |
     Then the response should have a status code 200
@@ -61,7 +61,7 @@ Feature: TSA Integration - End-to-End Workflow
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}] |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file  | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file  | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods": [{"method": "account", "value": "signer1"}]}] |
       | name  | TSA Error Test                                  |
     And as user "signer1"
