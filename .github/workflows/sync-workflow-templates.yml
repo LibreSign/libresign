@@ -26,6 +26,9 @@ jobs:
       matrix:
         branches:
           - ${{ github.event.repository.default_branch }}
+          - 'stable35'
+          - 'stable34'
+          - 'stable33'
 
     name: Update workflows in ${{ matrix.branches }}
 
@@ -45,7 +48,7 @@ jobs:
         with:
           app-id: ${{ vars.LIBRECODE_WORKFLOW_APP_ID }}
           private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
-          owner: LibreCodeCoop
+          owner: ${{ github.repository_owner }}
           repositories: ${{ github.event.repository.name }}
           permission-contents: write
           permission-pull-requests: write
@@ -67,7 +70,7 @@ jobs:
 
       - name: Synchronize workflow templates
         id: sync
-        uses: LibreCodeCoop/github-workflows/actions/sync-workflows@5006416b915ee2d0f10f6349b4762f588a899bcd
+        uses: LibreCodeCoop/github-workflows/actions/sync-workflows@713dffc9b743babb3f3d73c730a689b0c3f96880
         with:
           source: source/workflow-templates
           target: target
