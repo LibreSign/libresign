@@ -21,7 +21,6 @@ use OCA\Libresign\Service\CaIdentifierService;
 use OCP\Files\NotFoundException;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -228,7 +227,7 @@ class InstallService {
 			return;
 		}
 		if (PHP_OS_FAMILY !== 'Linux') {
-			throw new RuntimeException(sprintf('LibreSign managed dependencies are supported on Linux. Detected operating system family: %s.', PHP_OS_FAMILY));
+			throw new LibresignException(sprintf('LibreSign managed dependencies are supported on Linux. Detected operating system family: %s.', PHP_OS_FAMILY));
 		}
 
 		if ($this->isDownloadedFilesOk()) {
@@ -313,7 +312,7 @@ class InstallService {
 		}
 
 		if (!extension_loaded('zip')) {
-			throw new RuntimeException('The PHP ZIP extension is required to install JSignPdf. Enable it for the PHP runtime used by Nextcloud and retry.');
+			throw new LibresignException('The PHP ZIP extension is required to install JSignPdf. Enable it for the PHP runtime used by Nextcloud and retry.');
 		}
 		$this->setResource('jsignpdf');
 		if ($async) {
@@ -449,7 +448,7 @@ class InstallService {
 			return;
 		}
 		if (PHP_OS_FAMILY !== 'Linux') {
-			throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
+			throw new LibresignException(sprintf('LibreSign managed dependencies are supported on Linux. Detected operating system family: %s.', PHP_OS_FAMILY));
 		}
 		if ($this->target->architecture() === 'x86_64') {
 			$this->installCfsslByArchitecture('amd64');
