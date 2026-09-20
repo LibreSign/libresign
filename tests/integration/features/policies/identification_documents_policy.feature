@@ -68,7 +68,7 @@ Feature: policies/identification_documents_policy
     And the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Identification flow document |
     Then the response should have a status code 200
@@ -82,7 +82,7 @@ Feature: policies/identification_documents_policy
       | (jq).ocs.data.settings.identificationDocumentsWaitingApproval | false |
 
     When sending "post" to ocs "/apps/libresign/api/v1/id-docs"
-      | files | [{"file":{"url":"<BASE_URL>/apps/libresign/develop/pdf"},"type":"IDENTIFICATION"}] |
+      | files | [{"file":{"base64":"<SMALL_VALID_PDF_BASE64>"},"type":"IDENTIFICATION"}] |
 
     When sending "get" to ocs "/apps/libresign/api/v1/id-docs/approval/list"
     Then the response should have a status code 404

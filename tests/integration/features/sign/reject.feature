@@ -7,7 +7,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":false} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
     And the response should have a status code 200
@@ -28,7 +28,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
     And the response should have a status code 200
@@ -49,7 +49,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | files | [{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"Doc1.pdf"},{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"Doc2.pdf"}] |
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Package |
       | status | 0 |
@@ -77,7 +77,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":false} |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
       | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
@@ -95,7 +95,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional","cancel_workflow":false} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]},{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
       | name | document |
       | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
@@ -127,7 +127,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"required"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
       | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
@@ -152,7 +152,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
       | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
@@ -178,7 +178,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
       | status | 0 |
@@ -209,7 +209,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
       | status | 0 |
@@ -242,7 +242,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
       | status | 0 |
@@ -274,7 +274,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
       | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
@@ -309,7 +309,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | files | [{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"Doc1.pdf"},{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"Doc2.pdf"}] |
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Package |
       | status | 0 |
@@ -342,7 +342,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | files | [{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"Doc1.pdf"},{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"Doc2.pdf"}] |
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Package |
       | status | 0 |
@@ -376,7 +376,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | files | [{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"Doc1.pdf"},{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"Doc2.pdf"}] |
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Package |
       | status | 0 |
@@ -408,7 +408,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | files | [{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"Doc1.pdf"},{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"Doc2.pdf"}] |
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Package |
       | status | 0 |
@@ -441,7 +441,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | files | [{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"Doc1.pdf"},{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"Doc2.pdf"}] |
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Package |
       | status | 0 |
@@ -483,7 +483,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional","public_status":true,"show_comment_on_validation":true} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]},{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
       | name | document |
       | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
@@ -526,7 +526,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional","public_status":true,"show_comment_on_validation":true} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]},{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
       | name | document |
       | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
@@ -552,7 +552,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
       | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
@@ -576,7 +576,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}],"signingOrder":1},{"identifyMethods":[{"method":"account","value":"signer2"}],"signingOrder":2}] |
       | name | document |
       | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
@@ -603,7 +603,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional","cancel_workflow":true} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]},{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
       | name | document |
       | policy | {"overrides":{"signature_rejection":{"enabled":true}}} |
@@ -666,7 +666,7 @@ Feature: sign-signature-rejection
       | value | {"enabled":true,"comment_mode":"optional","cancel_workflow":true} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | files | [{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"Doc1.pdf"},{"url":"<BASE_URL>/apps/libresign/develop/pdf","name":"Doc2.pdf"}] |
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Package |
       | status | 0 |

@@ -5,7 +5,7 @@ Feature: sign-request-cancel
     And reset notifications of user "signer1"
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
     And the response should have a status code 200
@@ -26,7 +26,7 @@ Feature: sign-request-cancel
     And reset notifications of user "signer1"
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}],"notify":false}] |
       | name | document |
       | status | 0 |
@@ -47,7 +47,7 @@ Feature: sign-request-cancel
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
     When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
@@ -63,7 +63,7 @@ Feature: sign-request-cancel
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | document |
     And the response should have a status code 200
