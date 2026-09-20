@@ -20,10 +20,7 @@ use OCA\Libresign\Vendor\phpseclib4\Crypt\RSA;
 use OCA\Libresign\Vendor\phpseclib4\Crypt\RSA\PrivateKey;
 use OCA\Libresign\Vendor\phpseclib4\File\X509;
 use OCP\App\IAppManager;
-use OCP\Files\AppData\IAppDataFactory;
-use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
-use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\ITempManager;
@@ -41,18 +38,16 @@ class SignSetupService {
 	private ?X509 $signingCertificate = null;
 	private ?PrivateKey $privateKey = null;
 	private string $instanceId;
-	private IAppData $appData;
 	public function __construct(
 		private FileAccessHelper $fileAccessHelper,
 		private SetupSignatureVerifier $setupSignatureVerifier,
 		private IConfig $config,
 		private IAppConfig $appConfig,
 		private IAppManager $appManager,
-		private IAppDataFactory $appDataFactory,
+		private DependencyStorage $dependencyStorage,
 		protected ITempManager $tempManager,
 	) {
 		$this->instanceId = $this->config->getSystemValue('instanceid');
-		$this->appData = $appDataFactory->get('libresign');
 		$this->target = InstallTarget::current();
 	}
 
@@ -246,8 +241,8 @@ class SignSetupService {
 
 	private function resolveAppDataFolder(string $relativePath, string $displayName): string {
 		try {
-			$folder = $this->appData->getFolder('/')->getFolder($relativePath);
-			$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
+			$folder = $this->dependencyStorage->rootFolder()->getFolder($relativePath);
+			$path = $this->dependencyStorage->pathOfFolder($folder);
 			if (is_dir($path)) {
 				return $path;
 			}
@@ -270,21 +265,6 @@ class SignSetupService {
 		);
 	}
 
-	private function getDataDir(): string {
-		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
-		return $dataDir;
-	}
-
-	/**
-	 * @todo check a best solution to don't use reflection
-	 */
-	private function getInternalPathOfFolder(ISimpleFolder $node): string {
-		$reflection = new \ReflectionClass($node);
-		$reflectionProperty = $reflection->getProperty('folder');
-		$folder = $reflectionProperty->getValue($node);
-		$path = $folder->getInternalPath();
-		return $path;
-	}
 
 	private function getFileName(): string {
 		$appInfoDir = $this->getAppInfoDirectory();
