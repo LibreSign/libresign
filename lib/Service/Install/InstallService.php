@@ -43,7 +43,7 @@ class InstallService {
 		'cfssl',
 	];
 	private InstallTarget $target;
-	private bool $willUseLocalCert = false;
+	private SetupTrustMode $trustMode = SetupTrustMode::Production;
 
 	public function __construct(
 		private InstallProgressStore $progressStore,
@@ -194,22 +194,19 @@ class InstallService {
 
 	public function isDownloadedFilesOk(): bool {
 		$this->signSetupService->setDistro($this->getLinuxDistributionToDownloadJava());
-		$trustMode = $this->willUseLocalCert
-			? SetupTrustMode::Development
-			: SetupTrustMode::Production;
 		return count($this->signSetupService->verify(
 			$this->target->architecture(),
 			$this->resource,
-			$trustMode,
+			$this->trustMode,
 		)) === 0;
 	}
 
-	public function willUseLocalCert(): void {
-		$this->willUseLocalCert = true;
+	public function useDevelopmentTrust(): void {
+		$this->trustMode = SetupTrustMode::Development;
 	}
 
 	private function writeAppSignature(): void {
-		if (!$this->willUseLocalCert) {
+		if ($this->trustMode !== SetupTrustMode::Development) {
 			return;
 		}
 
