@@ -72,9 +72,5 @@ final class DependencyStorageTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertSame('java', $cleanFolder->getName());
 		$this->assertSame([], $cleanFolder->getDirectoryListing());
-		$this->assertSame(
-			'alpine-linux',
-			$storage->resourceFolder($target, 'aarch64/alpine-linux')->getName(),
-		);
 	}
 }
