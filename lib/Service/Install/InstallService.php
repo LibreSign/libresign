@@ -127,7 +127,7 @@ class InstallService {
 			$file->putContent(json_encode($json));
 			return;
 		}
-		$this->cache->set(Application::APP_ID . '-asyncDownloadProgress-' . $key, $value);
+		$this->cache->set(Application::APP_ID . '-asyncDownloadProgress-' . $this->target->cacheKey($key), $value);
 	}
 
 	/**
@@ -149,7 +149,7 @@ class InstallService {
 			}
 			return;
 		}
-		return $this->cache->get(Application::APP_ID . '-asyncDownloadProgress-' . $key);
+		return $this->cache->get(Application::APP_ID . '-asyncDownloadProgress-' . $this->target->cacheKey($key));
 	}
 
 	private function removeCache(string $key): void {
@@ -174,7 +174,7 @@ class InstallService {
 			}
 			return;
 		}
-		$this->cache->remove(Application::APP_ID . '-asyncDownloadProgress-' . $key);
+		$this->cache->remove(Application::APP_ID . '-asyncDownloadProgress-' . $this->target->cacheKey($key));
 	}
 
 	public function getAvailableResources(): array {
@@ -197,6 +197,9 @@ class InstallService {
 	}
 
 	public function saveErrorMessage(string $message): void {
+		if ($this->resource === '') {
+			return;
+		}
 		$data = $this->getProgressData($this->resource);
 		$data['error'] = $message;
 		$this->setCache($this->resource, $data);
