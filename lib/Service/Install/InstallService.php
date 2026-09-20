@@ -731,16 +731,38 @@ class InstallService {
 				},
 			]);
 		} catch (\Exception $e) {
+			$this->logger->error('Dependency download failed', [
+				'resource' => $dependencyName,
+				'url' => $url,
+				'exception' => $e,
+			]);
 			throw new LibresignException(
-				'Failure on download ' . $dependencyName . " try again.\n" . $e->getMessage(),
+				$this->getDownloadFailureMessage($dependencyName),
 				previous: $e,
 			);
 		}
 		if (!file_exists($path)) {
-			throw new LibresignException('Failure on download ' . $dependencyName . ', empty file, try again.');
+			$this->logger->error('Dependency download completed without creating the expected file', [
+				'resource' => $dependencyName,
+				'url' => $url,
+				'path' => $path,
+			]);
+			throw new LibresignException(
+				'Download of ' . $dependencyName . ' did not produce the expected file. '
+				. 'Please retry the installation. If the problem persists, check the Nextcloud server log for details.',
+			);
 		}
 		if ($hash !== '' && hash_file($hash_algo, $path) !== $hash) {
-			throw new LibresignException('Failure on download ' . $dependencyName . ' try again. Invalid ' . $hash_algo . '.');
+			$this->logger->error('Dependency checksum verification failed', [
+				'resource' => $dependencyName,
+				'url' => $url,
+				'path' => $path,
+				'algorithm' => $hash_algo,
+			]);
+			throw new LibresignException(
+				'Checksum verification failed for ' . $dependencyName . '. The downloaded file was not accepted. '
+				. 'Please retry the installation. If it fails again, check whether a proxy or cache is modifying downloads and review the Nextcloud server log.',
+			);
 		}
 	}
 
@@ -761,12 +783,13 @@ class InstallService {
 				},
 			]);
 		} catch (\Exception $e) {
-			$this->logger->error('Failure on download ' . $dependencyName, [
-				'exception' => $e,
+			$this->logger->error('Dependency download failed', [
+				'resource' => $dependencyName,
 				'url' => $url,
+				'exception' => $e,
 			]);
 			throw new LibresignException(
-				'Failure on download ' . $dependencyName . " try again.\n" . $e->getMessage(),
+				$this->getDownloadFailureMessage($dependencyName),
 				previous: $e,
 			);
 		} finally {
@@ -775,15 +798,28 @@ class InstallService {
 		}
 
 		if (!file_exists($path)) {
-			$message = 'Failure on download ' . $dependencyName . ', empty file, try again.';
-			$this->logger->error($message);
-			throw new LibresignException($message);
+			$this->logger->error('Dependency download completed without creating the expected file', [
+				'resource' => $dependencyName,
+				'url' => $url,
+				'path' => $path,
+			]);
+			throw new LibresignException(
+				'Download of ' . $dependencyName . ' did not produce the expected file. '
+				. 'Please retry the installation. If the problem persists, check the Nextcloud server log for details.',
+			);
 		}
 
 		if ($hash !== '' && hash_file($hash_algo, $path) !== $hash) {
-			$message = 'Failure on download ' . $dependencyName . ' try again. Invalid ' . $hash_algo . '.';
-			$this->logger->error($message);
-			throw new LibresignException($message);
+			$this->logger->error('Dependency checksum verification failed', [
+				'resource' => $dependencyName,
+				'url' => $url,
+				'path' => $path,
+				'algorithm' => $hash_algo,
+			]);
+			throw new LibresignException(
+				'Checksum verification failed for ' . $dependencyName . '. The downloaded file was not accepted. '
+				. 'Please retry the installation. If it fails again, check whether a proxy or cache is modifying downloads and review the Nextcloud server log.',
+			);
 		}
 	}
 
@@ -792,14 +828,28 @@ class InstallService {
 			$response = $this->clientService->newClient()->get($checksumUrl);
 			$hashes = $response->getBody();
 		} catch (\Exception $e) {
+			$this->logger->error('Dependency checksum file download failed', [
+				'url' => $checksumUrl,
+				'file' => $file,
+				'exception' => $e,
+			]);
 			throw new LibresignException(
-				'Failure to download hash file. URL: ' . $checksumUrl,
+				'Could not download the checksum information required to verify ' . $file . '. '
+				. 'Please check the server network, DNS and proxy configuration, then retry. '
+				. 'See the Nextcloud server log for the technical error.',
 				previous: $e,
 			);
 		}
 
 		if (!is_string($hashes) || $hashes === '') {
-			throw new LibresignException('Failure to download hash file. URL: ' . $checksumUrl);
+			$this->logger->error('Dependency checksum file is empty', [
+				'url' => $checksumUrl,
+				'file' => $file,
+			]);
+			throw new LibresignException(
+				'The checksum information for ' . $file . ' was empty. '
+				. 'Please retry later. If the problem persists, check the Nextcloud server log before reporting it.',
+			);
 		}
 
 		$matched = preg_match(
@@ -808,10 +858,24 @@ class InstallService {
 			$matches,
 		);
 		if ($matched !== 1 || empty($matches['hash'])) {
-			throw new LibresignException('Hash for ' . $file . ' not found at ' . $checksumUrl);
+			$this->logger->error('Checksum entry not found for dependency artifact', [
+				'url' => $checksumUrl,
+				'file' => $file,
+			]);
+			throw new LibresignException(
+				'The checksum list does not contain an entry for ' . $file . '. '
+				. 'This usually indicates that the upstream release metadata changed or is temporarily incomplete. '
+				. 'Please retry later and check the Nextcloud server log if it persists.',
+			);
 		}
 
 		return $matches['hash'];
+	}
+
+	private function getDownloadFailureMessage(string $dependencyName): string {
+		return 'Could not download ' . $dependencyName . '. '
+			. 'Please check the Nextcloud server network, DNS and proxy configuration, then retry. '
+			. 'See the Nextcloud server log for the technical error.';
 	}
 
 	private function populateNamesWithInstanceId(array $names, string $engineName): array {
