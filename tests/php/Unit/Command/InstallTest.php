@@ -168,4 +168,34 @@ final class InstallTest extends TestCase {
 		$this->assertSame(Command::FAILURE, $status);
 		$this->assertStringContainsString('Please inform what you want to install', $this->tester->getDisplay());
 	}
+	public function testUseLocalCertOptionSelectsDevelopmentTrustInDebugMode(): void {
+		$installService = $this->createMock(InstallService::class);
+		$installService->method('getAvailableResources')
+			->willReturn(['java', 'jsignpdf', 'pdftk', 'cfssl']);
+		$installService->expects($this->once())
+			->method('useDevelopmentTrust');
+		$installService->expects($this->once())
+			->method('install')
+			->with('java');
+
+		$config = $this->createMock(IConfig::class);
+		$config->method('getSystemValue')
+			->with('debug', false)
+			->willReturn(true);
+
+		$tester = new CommandTester(new Install(
+			$installService,
+			$this->createMock(LoggerInterface::class),
+			$this->createMock(IAppConfig::class),
+			$config,
+		));
+
+		$status = $tester->execute([
+			'--java' => true,
+			'--use-local-cert' => true,
+		]);
+
+		$this->assertSame(Command::SUCCESS, $status);
+	}
+
 }
