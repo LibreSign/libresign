@@ -14,17 +14,16 @@ use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Install\DependencyDownloader;
 use OCA\Libresign\Service\Install\DependencyStorage;
 use OCA\Libresign\Service\Install\InstallProcessManager;
+use OCA\Libresign\Service\Install\InstallProgressStore;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\InstallTarget;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\IAppConfig;
-use OCP\ICache;
-use OCP\ICacheFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private ICacheFactory&MockObject $cacheFactory;
+	private InstallProgressStore&MockObject $progressStore;
 	private DependencyDownloader&MockObject $dependencyDownloader;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private IAppConfig&MockObject $appConfig;
@@ -34,10 +33,8 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CaIdentifierService&MockObject $caIdentifierService;
 	private InstallProcessManager&MockObject $installProcessManager;
 
-	protected function getInstallService(?ICache $cache = null): InstallService {
-		$this->cacheFactory = $this->createMock(ICacheFactory::class);
-		$cache ??= $this->createMock(ICache::class);
-		$this->cacheFactory->method('createDistributed')->willReturn($cache);
+	protected function getInstallService(): InstallService {
+		$this->progressStore = $this->createMock(InstallProgressStore::class);
 		$this->dependencyDownloader = $this->createMock(DependencyDownloader::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
@@ -48,7 +45,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->installProcessManager = $this->createMock(InstallProcessManager::class);
 
 		return new InstallService(
-			$this->cacheFactory,
+			$this->progressStore,
 			$this->dependencyDownloader,
 			$this->certificateEngineFactory,
 			$this->appConfig,
@@ -61,20 +58,21 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testIsDownloadWipChecksResourcesAfterEmptyProgress(): void {
-		$cache = $this->createMock(ICache::class);
-		$cache->method('get')
-			->willReturnCallback(static function (string $key): ?array {
-				if (str_contains($key, 'asyncDownloadProgress-jsignpdf:')) {
-					return ['pid' => 123];
-				}
-				return null;
-			});
+		$installService = $this->getInstallService();
 
-		$installService = $this->getInstallService($cache);
-		$this->installProcessManager->method('findRunningPid')->willReturn(123);
+		$this->progressStore->method('get')
+			->willReturnCallback(
+				static fn (InstallTarget $_target, string $resource): array
+					=> $resource === 'jsignpdf' ? ['pid' => 123] : [],
+			);
+		$this->installProcessManager->method('findRunningPid')
+			->willReturnCallback(
+				static fn (string $resource): int => $resource === 'jsignpdf' ? 123 : 0,
+			);
 
 		$this->assertTrue($installService->isDownloadWip());
 	}
+
 
 	public function testAsyncJavaInstallDelegatesResourceAndNormalizedTarget(): void {
 		$installService = $this->getInstallService();
@@ -97,19 +95,19 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testAsyncInstallStoresActionableErrorWhenProcessDoesNotStart(): void {
-		$cache = $this->createMock(ICache::class);
-		$cache->method('get')->willReturn([]);
-		$installService = $this->getInstallService($cache);
+		$installService = $this->getInstallService();
+		$this->progressStore->method('get')->willReturn([]);
 
 		$this->appConfig->method('getValueString')
 			->with(Application::APP_ID, 'signature_engine', 'JSignPdf')
 			->willReturn('JSignPdf');
 		$this->installProcessManager->method('start')->willReturn(null);
 
-		$cache->expects($this->once())
+		$this->progressStore->expects($this->once())
 			->method('set')
 			->with(
-				$this->stringContains('asyncDownloadProgress-java'),
+				$this->isInstanceOf(InstallTarget::class),
+				'java',
 				$this->callback(
 					static fn (array $data): bool
 						=> str_contains($data['error'] ?? '', 'could not start the background installer'),
