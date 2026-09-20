@@ -104,4 +104,11 @@ final readonly class InstallTarget {
 	public function withDistro(string $distro): self {
 		return new self($this->architecture, $distro);
 	}
+	public function cacheKey(string $resource): string {
+		if ($resource === 'java') {
+			return $resource . ':' . $this->architecture . ':' . $this->distro;
+		}
+		return $resource . ':' . $this->architecture;
+	}
+
 }
