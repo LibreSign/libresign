@@ -10,6 +10,7 @@ namespace OCA\Libresign\Command;
 
 use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\InstallTarget;
 use OCP\IAppConfig;
@@ -123,9 +124,16 @@ class Install extends Base {
 					$output->writeln('<comment>To use CFSSL, set the engine to cfssl with:</comment> config:app:set libresign certificate_engine --value=cfssl');
 				}
 			}
-		} catch (\Exception $e) {
+		} catch (LibresignException $e) {
 			$this->installService->saveErrorMessage($e->getMessage());
-			$this->logger->error($e->getMessage());
+			$this->logger->error('LibreSign dependency installation failed', [
+				'exception' => $e,
+			]);
+			throw $e;
+		} catch (\Exception $e) {
+			$this->logger->error('Unexpected error while installing LibreSign dependencies', [
+				'exception' => $e,
+			]);
 			throw $e;
 		}
 
