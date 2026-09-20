@@ -65,7 +65,7 @@ final class FixtureHttpServer {
 		self::$port = 0;
 	}
 
-	public static function getPdfUrl(): string {
+	public static function getSmallValidPdfUrl(): string {
 		if (!self::isRunning() || self::$port <= 0) {
 			throw new RuntimeException('Fixture HTTP server is not running.');
 		}

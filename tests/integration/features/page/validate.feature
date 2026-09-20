@@ -7,7 +7,7 @@ Feature: page/validate
     And sending "delete" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/make_validation_url_private"
 
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"admin"}]}] |
       | name | document |
     And the response should have a status code 200
@@ -75,7 +75,7 @@ Feature: page/validate
       | value | (string)[{"name":"email","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}},"can_create_account":false}] |
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file    | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"displayName":"External Signer","identifyMethods":[{"method":"email","value":"external@domain.test"}]}] |
       | name    | external-email-pdf |
       | settings | {"folderName":"rm-target-folder"} |

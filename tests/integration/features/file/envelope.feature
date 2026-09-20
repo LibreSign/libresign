@@ -6,7 +6,7 @@ Feature: envelope
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
     When sending "post" to ocs "/apps/libresign/api/v1/file"
-      | files | [{"url":"<BASE_URL>/apps/libresign/develop/pdf"},{"url":"<BASE_URL>/apps/libresign/develop/pdf"}] |
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>"},{"base64":"<SMALL_VALID_PDF_BASE64>"}] |
       | name | Contract Package |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -43,7 +43,7 @@ Feature: envelope
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
     When sending "post" to ocs "/apps/libresign/api/v1/file"
-      | files | [{"url":"<BASE_URL>/apps/libresign/develop/pdf"},{"url":"<BASE_URL>/apps/libresign/develop/pdf"},{"url":"<BASE_URL>/apps/libresign/develop/pdf"}] |
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>"},{"base64":"<SMALL_VALID_PDF_BASE64>"},{"base64":"<SMALL_VALID_PDF_BASE64>"}] |
       | name | Too Many Files |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -55,7 +55,7 @@ Feature: envelope
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
     When sending "post" to ocs "/apps/libresign/api/v1/file"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | name | Single Document |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
