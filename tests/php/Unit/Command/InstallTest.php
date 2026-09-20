@@ -124,9 +124,8 @@ final class InstallTest extends TestCase {
 		$distros = [];
 		$this->installService->expects($this->exactly(2))
 			->method('setDistro')
-			->willReturnCallback(function (string $distro) use (&$distros): InstallService {
+			->willReturnCallback(static function (string $distro) use (&$distros): void {
 				$distros[] = $distro;
-				return $this->installService;
 			});
 		$this->installService->expects($this->exactly(2))
 			->method('install')
