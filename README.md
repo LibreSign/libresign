@@ -41,6 +41,7 @@ LibreSign is for teams where signing is part of a controlled business process.
 
 Contributions are welcome from developers, implementers, and teams that use LibreSign in production.
 
+- See the current product direction: [LibreSign Roadmap](https://github.com/orgs/LibreSign/projects/2)
 - Report bugs or suggest improvements: [Open an issue](https://github.com/LibreSign/libresign/issues)
 - Start with simple tasks: [Good first issues](https://github.com/LibreSign/libresign/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 - Help with translations: [Transifex](https://app.transifex.com/nextcloud/nextcloud/libresign)
