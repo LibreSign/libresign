@@ -22,6 +22,7 @@ final class DependencyStorageTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		string $distro,
 		string $path,
 		string $expectedFolderName,
+		string $expectedPathSuffix,
 	): void {
 		$storage = \OCP\Server::get(DependencyStorage::class);
 		$target = InstallTarget::from($architecture, $distro);
@@ -29,15 +30,21 @@ final class DependencyStorageTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$folder = $storage->resourceFolder($target, $path);
 
 		$this->assertSame($expectedFolderName, $folder->getName());
+		$this->assertStringEndsWith($expectedPathSuffix, $storage->pathOfFolder($folder));
 	}
 
 	public static function resourceFolderProvider(): array {
 		return [
-			'architecture root' => ['x86_64', 'linux', '', 'x86_64'],
-			'generic resource' => ['aarch64', 'linux', 'jsignpdf', 'jsignpdf'],
-			'nested path' => ['x86_64', 'linux', 'test/folder1/folder2', 'folder2'],
-			'java linux' => ['x86_64', 'linux', 'java', 'java'],
-			'java alpine' => ['aarch64', 'alpine-linux', 'java', 'java'],
+			'x86 root' => ['x86_64', 'linux', '', 'x86_64', '/libresign/x86_64'],
+			'arm root' => ['aarch64', 'linux', '', 'aarch64', '/libresign/aarch64'],
+			'x86 generic resource' => ['x86_64', 'linux', 'jsignpdf', 'jsignpdf', '/libresign/x86_64/jsignpdf'],
+			'arm generic resource' => ['aarch64', 'linux', 'jsignpdf', 'jsignpdf', '/libresign/aarch64/jsignpdf'],
+			'x86 nested path' => ['x86_64', 'linux', 'test/folder1/folder2', 'folder2', '/libresign/x86_64/test/folder1/folder2'],
+			'arm nested path' => ['aarch64', 'linux', 'test/folder1/folder2', 'folder2', '/libresign/aarch64/test/folder1/folder2'],
+			'x86 java linux' => ['x86_64', 'linux', 'java', 'java', '/libresign/x86_64/linux/java'],
+			'x86 java alpine' => ['x86_64', 'alpine-linux', 'java', 'java', '/libresign/x86_64/alpine-linux/java'],
+			'arm java linux' => ['aarch64', 'linux', 'java', 'java', '/libresign/aarch64/linux/java'],
+			'arm java alpine' => ['aarch64', 'alpine-linux', 'java', 'java', '/libresign/aarch64/alpine-linux/java'],
 		];
 	}
 
