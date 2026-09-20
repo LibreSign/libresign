@@ -100,7 +100,7 @@ class Install extends Base {
 			$this->configureTarget($input);
 
 			if ($input->hasOption('use-local-cert') && $input->getOption('use-local-cert')) {
-				$this->installService->willUseLocalCert();
+				$this->installService->useDevelopmentTrust();
 			}
 
 			$resources = $this->getRequestedResources($input);
