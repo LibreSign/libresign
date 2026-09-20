@@ -21,8 +21,6 @@ use OCA\Libresign\Vendor\phpseclib4\Crypt\RSA\PrivateKey;
 use OCA\Libresign\Vendor\phpseclib4\File\X509;
 use OCP\App\IAppManager;
 use OCP\Files\NotFoundException;
-use OCP\IAppConfig;
-use OCP\IConfig;
 use OCP\ITempManager;
 
 class SignSetupService {
@@ -37,17 +35,13 @@ class SignSetupService {
 	private SetupTrustMode $defaultTrustMode = SetupTrustMode::Production;
 	private ?X509 $signingCertificate = null;
 	private ?PrivateKey $privateKey = null;
-	private string $instanceId;
 	public function __construct(
 		private FileAccessHelper $fileAccessHelper,
 		private SetupSignatureVerifier $setupSignatureVerifier,
-		private IConfig $config,
-		private IAppConfig $appConfig,
+		private SetupInstallPathResolver $installPathResolver,
 		private IAppManager $appManager,
-		private DependencyStorage $dependencyStorage,
 		protected ITempManager $tempManager,
 	) {
-		$this->instanceId = $this->config->getSystemValue('instanceid');
 		$this->target = InstallTarget::current();
 	}
 
@@ -164,107 +158,8 @@ class SignSetupService {
 	}
 
 	public function getInstallPath(): string {
-		$installPath = match ($this->resource) {
-			'java' => $this->resolveJavaInstallPath(),
-			'jsignpdf' => $this->resolveDirectoryResourcePath(
-				'jsignpdf_path',
-				'jsignpdf',
-				static fn (string $path): string => dirname($path),
-				'JSignPdf',
-			),
-			'pdftk' => $this->resolveDirectoryResourcePath(
-				'pdftk_path',
-				'pdftk',
-				static fn (string $path): string => substr($path, 0, -strlen('/pdftk.jar')),
-				'PDFtk',
-			),
-			'cfssl' => $this->resolveDirectoryResourcePath(
-				'cfssl_bin',
-				'cfssl',
-				static fn (string $path): string => substr($path, 0, -strlen('/cfssl')),
-				'CFSSL',
-			),
-			default => throw new InvalidSignatureException(sprintf('Unsupported setup resource "%s".', $this->resource)),
-		};
-
-		return $this->normalizeArchitectureInPath($installPath);
+		return $this->installPathResolver->resolve($this->target, $this->resource);
 	}
-
-	private function resolveJavaInstallPath(): string {
-		$path = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
-		if ($path === '') {
-			return $this->resolveAppDataFolder(
-				$this->target->architecture() . '/' . $this->target->distro() . '/java',
-				'Java',
-			);
-		}
-
-		$installPath = substr($path, 0, -strlen('/bin/java'));
-		$expected = $this->instanceId
-			. '/libresign/'
-			. $this->target->architecture()
-			. '/'
-			. $this->target->distro()
-			. '/java';
-
-		if (str_contains($installPath, $expected)) {
-			return $installPath;
-		}
-
-		return (string)preg_replace(
-			'/'
-			. preg_quote($this->instanceId, '/')
-			. '\/libresign\/([^\/]+)\/([^\/]+)\/java/i',
-			$expected,
-			$installPath,
-		);
-	}
-
-	/**
-	 * @param callable(string): string $configuredPathToDirectory
-	 */
-	private function resolveDirectoryResourcePath(
-		string $configKey,
-		string $resource,
-		callable $configuredPathToDirectory,
-		string $displayName,
-	): string {
-		$path = $this->appConfig->getValueString(Application::APP_ID, $configKey);
-		if ($path === '') {
-			return $this->resolveAppDataFolder(
-				$this->target->architecture() . '/' . $resource,
-				$displayName,
-			);
-		}
-		return $configuredPathToDirectory($path);
-	}
-
-	private function resolveAppDataFolder(string $relativePath, string $displayName): string {
-		try {
-			$folder = $this->dependencyStorage->rootFolder()->getFolder($relativePath);
-			$path = $this->dependencyStorage->pathOfFolder($folder);
-			if (is_dir($path)) {
-				return $path;
-			}
-		} catch (NotFoundException) {
-		}
-		throw new InvalidSignatureException($displayName . ' path not found at app config.');
-	}
-
-	private function normalizeArchitectureInPath(string $installPath): string {
-		if (str_contains($installPath, $this->target->architecture())) {
-			return $installPath;
-		}
-
-		return (string)preg_replace(
-			'/'
-			. preg_quote($this->instanceId, '/')
-			. '\/libresign\/([^\/]+)/i',
-			$this->instanceId . '/libresign/' . $this->target->architecture(),
-			$installPath,
-		);
-	}
-
 
 	private function getFileName(): string {
 		$appInfoDir = $this->getAppInfoDirectory();
