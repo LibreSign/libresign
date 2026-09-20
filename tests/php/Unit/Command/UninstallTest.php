@@ -101,6 +101,6 @@ final class UninstallTest extends TestCase {
 		$status = $this->tester->execute([]);
 
 		$this->assertSame(Command::FAILURE, $status);
-		$this->assertStringContainsString('Please inform what you want to install', $this->tester->getDisplay());
+		$this->assertStringContainsString('Please inform what you want to uninstall', $this->tester->getDisplay());
 	}
 }
