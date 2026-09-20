@@ -635,7 +635,6 @@ OC.L10N.register(
     "Donate via Stripe" : "Stripe ئارقىلىق ئىئانە قىلىڭ",
     "Learn more" : "تېخىمۇ كۆپ بىلىڭ",
     "Email verification" : "ئېلېكترونلۇق خەت دەلىللەش",
-    "{method} is not configured. Please contact your administrator." : "{method} تەڭشىلىنمىگەن. باشقۇرغۇچىڭىز بىلەن ئالاقىلىشىڭ.",
     "Contact information" : "ئالاقىلىشىش ئۇچۇرلىرى",
     "Enter your code" : "كودىڭىزنى كىرگۈزۈڭ",
     "Request new code" : "يېڭى كود تەلەپ قىلىڭ",
@@ -783,6 +782,7 @@ OC.L10N.register(
     "Name is mandatory" : "ئىسىم مەجبۇرى",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "ھۆججەتلەرگە رەقەملىك ئىمزا قويۇش ئۈچۈن ۋاقىت بەلگىسى ئورگىنى (TSA) تەڭشەكلىرى.",
     "Make validation URL acessible only by authenticated users" : "دەلىللەش تور ئادرېسىنى پەقەت دەلىللەنگەن ئىشلەتكۈچىلەرلا قوبۇل قىلالايدۇ",
+    "{method} is not configured. Please contact your administrator." : "{method} تەڭشىلىنمىگەن. باشقۇرغۇچىڭىز بىلەن ئالاقىلىشىڭ.",
     "Sign the document." : "ھۆججەتكە ئىمزا قويۇڭ."
 },
 "nplurals=2; plural=(n != 1);");

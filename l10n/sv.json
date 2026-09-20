@@ -33,6 +33,7 @@
     "Renewed with success. Access the link again." : "Förnyad med framgång. Öppna länken igen.",
     "Invalid data to sign file" : "Ogiltiga data för att signera filen",
     "Verification code sent." : "Verifieringskoden har skickats.",
+    "Unable to send verification code." : "Kunde inte skicka verifieringskoden.",
     "Element created with success" : "Element skapades",
     "Elements created with success" : "Element skapades",
     "Elements not found" : "Element hittades inte",
@@ -381,7 +382,6 @@
     "It looks like this LibreSign instance is running from source code.\nEnable debug mode by running %s" : "LibreSign-instansen verkar köras från källkod.\nAktivera felsökningsläget genom att köra %s",
     "Binary integrity signature data is empty." : "Signaturdata för binär integritet är tomma.",
     "Invalid hash of binaries files." : "Ogiltigt hashvärde för binärfiler.",
-    "Debug mode is enabled at your config.php and your LibreSign app was signed using a production signature. If you are not working at development of LibreSign, disable your debug mode or run the command: occ libresign install --%s --use-local-cert" : "Felsökningsläget är aktiverat i config.php och LibreSign-appen signerades med en produktionssignatur. Om du inte arbetar med utveckling av LibreSign ska du inaktivera felsökningsläget eller köra kommandot: occ libresign install --%s --use-local-cert",
     "Check your nextcloud.log file on %s and run occ libresign:install --all" : "Kontrollera filen nextcloud.log i %s och kör occ libresign:install --all",
     "Check your nextcloud.log file and run occ libresign:install --all" : "Kontrollera filen nextcloud.log och kör occ libresign:install --all",
     "Control document signing workflows inside Nextcloud" : "Hantera arbetsflöden för dokumentsignering i Nextcloud",
@@ -1151,8 +1151,6 @@
     "Step 3 of 3 - Signature confirmation" : "Steg 3 av 3 – signaturbekräftelse",
     "A verification code has been sent to: {contact}. Check your email and enter the 6-digit verification code." : "En verifieringskod har skickats till: {contact}. Kontrollera din e-post och ange den sexsiffriga verifieringskoden.",
     "A verification code has been sent to: {contact}. Please enter the code to continue." : "En verifieringskod har skickats till: {contact}. Ange koden för att fortsätta.",
-    "{method} is not configured. Please contact your administrator." : "{method} är inte konfigurerad. Kontakta administratören.",
-    "Unable to send verification code." : "Kunde inte skicka verifieringskoden.",
     "To verify your identity, enter the same email address where you received the signature request. We will send a verification code to this address." : "Ange samma e-postadress som signeringsbegäran skickades till för att verifiera din identitet. Vi skickar en verifieringskod till adressen.",
     "To sign this document, we must verify your identity. Enter your contact information to receive a verification code." : "Vi måste verifiera din identitet för att du ska kunna signera dokumentet. Ange dina kontaktuppgifter för att få en verifieringskod.",
     "Contact information" : "Kontaktinformation",
@@ -1352,6 +1350,7 @@
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Datum och tid då undertecknaren skickade begäran om signering (i deras lokala tidszon).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Undertecknarens tidszon vid tidpunkten för begäran om signering (i deras lokala tidszon).",
     "JSignPdf file not found: %s" : "JSignPdf-filen hittades inte: %s",
+    "Debug mode is enabled at your config.php and your LibreSign app was signed using a production signature. If you are not working at development of LibreSign, disable your debug mode or run the command: occ libresign install --%s --use-local-cert" : "Felsökningsläget är aktiverat i config.php och LibreSign-appen signerades med en produktionssignatur. Om du inte arbetar med utveckling av LibreSign ska du inaktivera felsökningsläget eller köra kommandot: occ libresign install --%s --use-local-cert",
     "Underline" : "Understrykning",
     "Failed to request signature" : "Kunde inte begära underskrift",
     "Failed to request signatures" : "Kunde inte begära underskrifter",
@@ -1434,6 +1433,7 @@
     "Name is mandatory" : "Namn är obligatoriskt",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Inställningar för tidsstämpelutfärdare (TSA) vid digital signering av dokument.",
     "Make validation URL acessible only by authenticated users" : "Gör validerings-URL tillgänglig endast för autentiserade användare",
+    "{method} is not configured. Please contact your administrator." : "{method} är inte konfigurerad. Kontakta administratören.",
     "Sign the document." : "Signera dokumentet."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

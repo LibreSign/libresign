@@ -36,6 +36,7 @@
     "Renewed with success. Access the link again." : "Yenilendi. Bağlantıya yeniden erişin.",
     "Invalid data to sign file" : "Dosyayı imzalamak için veriler geçersiz",
     "Verification code sent." : "Doğrulama kodu gönderildi.",
+    "Unable to send verification code." : "Doğrulama kodu gönderilemedi.",
     "Element created with success" : "Bileşen oluşturuldu",
     "Elements created with success" : "Bileşenler oluşturuldu",
     "Elements not found" : "Bileşen bulunamadı",
@@ -423,7 +424,6 @@
     "It looks like this LibreSign instance is running from source code.\nEnable debug mode by running %s" : "Bu LibreSign kopyası kaynak kodundan çalışıyor gibi görünüyor.\n%s komutunu yürüterek hata ayıklama kipini açın",
     "Binary integrity signature data is empty." : "Binary dosyası bütünlük imza verileri boş.",
     "Invalid hash of binaries files." : "Binary dosyaların karması geçersiz.",
-    "Debug mode is enabled at your config.php and your LibreSign app was signed using a production signature. If you are not working at development of LibreSign, disable your debug mode or run the command: occ libresign install --%s --use-local-cert" : "Config.php dosyanızda hata ayıklama kipi açık ve LibreSign uygulamanız bir üretim imzası kullanılarak imzalanmış. LibreSign geliştirilmesinde çalışmıyorsanız, hata ayıklama kipini kapatın ya da şu komutu yürütün: occ libresign install --%s --use-local-cert",
     "Check your nextcloud.log file on %s and run occ libresign:install --all" : "%s üzerindeki nextcloud.log dosyanıza bakın ve occ libresign:install --all komutunu yürütün",
     "Check your nextcloud.log file and run occ libresign:install --all" : "nextcloud.log dosyanıza bakın ve run occ libresign:install --all komutunu yürütün",
     "Control document signing workflows inside Nextcloud" : "Nextcloud içindeki belge imzalama iş akışlarını kontrol edin",
@@ -1235,8 +1235,6 @@
     "Step 3 of 3 - Signature confirmation" : "3/3. adım - İmza doğrulama",
     "A verification code has been sent to: {contact}. Check your email and enter the 6-digit verification code." : "Şuraya bir doğrulama kodu gönderildi: {contact}. E-postanızı denetleyin ve 6 haneli doğrulama kodunu yazın.",
     "A verification code has been sent to: {contact}. Please enter the code to continue." : "Şuraya bir doğrulama kodu gönderildi: {contact}. İlerlemek için lütfen kodu yazın.",
-    "{method} is not configured. Please contact your administrator." : "{method} yapılandırılmamış. Lütfen yöneticiniz ile görüşün.",
-    "Unable to send verification code." : "Doğrulama kodu gönderilemedi.",
     "To verify your identity, enter the same email address where you received the signature request. We will send a verification code to this address." : "Kimliğinizi doğrulamak için imzalama isteğini aldığınız e-posta adresini yazın. Bu adrese bir doğrulama kodu göndereceğiz.",
     "To sign this document, we must verify your identity. Enter your contact information to receive a verification code." : "Bu belgeyi imzalamak için kimliğinizi doğrulamamız gerekiyor. Doğrulama kodu almak için iletişim bilgilerinizi yazın.",
     "Contact information" : "Kişi bilgileri",
@@ -1458,6 +1456,7 @@
     "Date and time when the signer sent the request to sign (in their local time zone)." : "İmzalayanın isteği imzalanmak üzere gönderdiği tarih ve saat (kendi yerel saat diliminde).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "İmzalama iisteği gönderildiğinde imzalayanın saat dilimi (kendi yerel saat diliminde).",
     "JSignPdf file not found: %s" : "JSignPdf dosyası bulunamadı: %s",
+    "Debug mode is enabled at your config.php and your LibreSign app was signed using a production signature. If you are not working at development of LibreSign, disable your debug mode or run the command: occ libresign install --%s --use-local-cert" : "Config.php dosyanızda hata ayıklama kipi açık ve LibreSign uygulamanız bir üretim imzası kullanılarak imzalanmış. LibreSign geliştirilmesinde çalışmıyorsanız, hata ayıklama kipini kapatın ya da şu komutu yürütün: occ libresign install --%s --use-local-cert",
     "Underline" : "Altı çizili",
     "Failed to request signature" : "İmzalama isteğinde bulunulamadı",
     "Failed to request signatures" : "İmzalama isteklerinde bulunulamadı",
@@ -1540,6 +1539,7 @@
     "Name is mandatory" : "Adın yazılması zorunludur",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Dijital belge imzalama için zaman damgası yetkilisi (TSA) ayarları.",
     "Make validation URL acessible only by authenticated users" : "Doğrulama adresine yalnızca kimliği doğrulanmış kullanıcılar erişebilsin",
+    "{method} is not configured. Please contact your administrator." : "{method} yapılandırılmamış. Lütfen yöneticiniz ile görüşün.",
     "Sign the document." : "Belgeyi imzala."
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

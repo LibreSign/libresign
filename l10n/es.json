@@ -29,6 +29,7 @@
     "Renewed with success. Access the link again." : "Renovado exitosamente. Acceda al enlace nuevamente.",
     "Invalid data to sign file" : "Datos no válidos para firmar el archivo",
     "Verification code sent." : "Código de verificación enviado.",
+    "Unable to send verification code." : "No se ha podido enviar el código de verificación.",
     "Element created with success" : "Elemento creado con éxito",
     "Elements created with success" : "Elementos creados con éxito",
     "Elements not found" : "Elementos no encontrados",
@@ -812,8 +813,6 @@
     "Step 3 of 3 - Signature confirmation" : "Paso 3 de 3 - Confirmación de firma",
     "A verification code has been sent to: {contact}. Check your email and enter the 6-digit verification code." : "Se ha enviado un código de verificación a: {contact}. Comprueba tu correo e introduce el código de verificación de 6 dígitos.",
     "A verification code has been sent to: {contact}. Please enter the code to continue." : "Se ha enviado un código de verificación a: {contact}. Introduce el código para continuar.",
-    "{method} is not configured. Please contact your administrator." : "{method} no está configurado. Contacta con tu administrador.",
-    "Unable to send verification code." : "No se ha podido enviar el código de verificación.",
     "To verify your identity, enter the same email address where you received the signature request. We will send a verification code to this address." : "Para verificar tu identidad, introduce la misma dirección de correo electrónico donde recibiste la solicitud de firma. Enviaremos un código de verificación a esa dirección.",
     "To sign this document, we must verify your identity. Enter your contact information to receive a verification code." : "Para firmar este documento, debemos verificar tu identidad. Introduce tu información de contacto para recibir un código de verificación.",
     "Contact information" : "Información de contacto",
@@ -1008,6 +1007,7 @@
     "Name is mandatory" : "El nombre es obligatorio",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Configuración de la Autoridad de Marca de Tiempo (TSA) para la firma digital de documentos.",
     "Make validation URL acessible only by authenticated users" : "Hacer que la URL de validación solo sea accesible a usuarios autenticados",
+    "{method} is not configured. Please contact your administrator." : "{method} no está configurado. Contacta con tu administrador.",
     "Sign the document." : "Firma el documento."
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }
