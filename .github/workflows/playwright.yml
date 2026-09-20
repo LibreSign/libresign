@@ -232,10 +232,16 @@ jobs:
       - name: Start PHP built-in server
         run: |
           # front_controller_active tells Nextcloud to generate clean URLs (without index.php prefix)
-          # This mirrors what Apache mod_rewrite does via .htaccess RewriteRule
-          front_controller_active=true php -S localhost:8080 -t . apps/${{ env.APP_NAME }}/playwright/router.php &
-          # Wait for server to become available
-          timeout 30 bash -c 'until curl -s http://localhost:8080/status.php > /dev/null; do sleep 1; done'
+          # This mirrors what Apache mod_rewrite does via .htaccess RewriteRule.
+          # Detach the server from this step and redirect its output so closing the
+          # runner step pipe cannot terminate a long-running Playwright server.
+          nohup env front_controller_active=true \
+            php -S 0.0.0.0:8080 -t . apps/${{ env.APP_NAME }}/playwright/router.php \
+            > /tmp/libresign-php-server.log 2>&1 &
+          echo $! > /tmp/libresign-php-server.pid
+
+          timeout 30 bash -c 'until curl --fail --silent http://localhost:8080/status.php > /dev/null; do sleep 1; done'
+          kill -0 "$(cat /tmp/libresign-php-server.pid)"
           echo "Nextcloud is ready at http://localhost:8080"
 
       - name: Run Playwright tests
@@ -261,6 +267,10 @@ jobs:
           name: playwright-test-results
           path: apps/${{ env.APP_NAME }}/test-results/
           retention-days: 30
+
+      - name: Print PHP server logs
+        if: always()
+        run: cat /tmp/libresign-php-server.log 2>/dev/null || echo "No PHP server logs found"
 
       - name: Print Nextcloud logs
         if: always()
