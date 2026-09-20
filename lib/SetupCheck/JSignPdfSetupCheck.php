@@ -11,7 +11,7 @@ namespace OCA\Libresign\SetupCheck;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\SignEngine\JSignPdf\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
-use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Install\JSignPdfRelease;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
@@ -117,28 +117,28 @@ class JSignPdfSetupCheck implements ISetupCheck {
 		if (!$currentVersion) {
 			// TRANSLATORS JSignPdf is an optional external signing backend.
 			// LibreSign is tested/validated with a specific JSignPdf version. %s is the supported JSignPdf version.
-			$msg = $this->l10n->t('Necessary install the version %s', [InstallService::JSIGNPDF_VERSION]);
+			$msg = $this->l10n->t('Necessary install the version %s', [JSignPdfRelease::VERSION]);
 			// TRANSLATORS Command to run into terminal using Nextcloud occ to configure LibreSign using CLI when the sysadmin want to do this by CLI.
 			return SetupResult::error($msg, $this->l10n->t('Run %s', ['occ libresign:install --jsignpdf']));
 		}
 
-		if (version_compare($currentVersion, InstallService::JSIGNPDF_VERSION, '<')) {
+		if (version_compare($currentVersion, JSignPdfRelease::VERSION, '<')) {
 			// TRANSLATORS JSignPdf is an optional external signing backend.
 			// LibreSign is tested/validated with a specific JSignPdf version.
 			// The first %s is the currently installed JSignPdf version; the second %s is the required supported version.
-			$msg = $this->l10n->t('JSignPdf must be updated from version %s to %s', [$currentVersion, InstallService::JSIGNPDF_VERSION]);
+			$msg = $this->l10n->t('JSignPdf must be updated from version %s to %s', [$currentVersion, JSignPdfRelease::VERSION]);
 			// TRANSLATORS Command to run into terminal using Nextcloud occ to configure LibreSign using CLI when the sysadmin want to do this by CLI.
 			return SetupResult::error($msg, $this->l10n->t('Run %s', ['occ libresign:install --jsignpdf']));
 		}
 
-		if (version_compare($currentVersion, InstallService::JSIGNPDF_VERSION, '>')) {
+		if (version_compare($currentVersion, JSignPdfRelease::VERSION, '>')) {
 			return SetupResult::error(
 				// TRANSLATORS JSignPdf is an optional external signing backend.
 				// LibreSign is tested/validated with a specific JSignPdf version.
 				// The first %s is the currently installed JSignPdf version; the second %s is the required supported version.
 				$this->l10n->t(
 					'JSignPdf must be downgraded from version %s to %s',
-					[$currentVersion, InstallService::JSIGNPDF_VERSION],
+					[$currentVersion, JSignPdfRelease::VERSION],
 				),
 				// TRANSLATORS Command to run into terminal using Nextcloud occ to configure LibreSign using CLI when the sysadmin want to do this by CLI.
 				$this->l10n->t('Run %s', ['occ libresign:install --jsignpdf'])
