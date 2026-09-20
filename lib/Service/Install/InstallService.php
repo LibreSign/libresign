@@ -95,20 +95,19 @@ class InstallService {
 		$this->saveErrorMessage($message);
 	}
 
-	private function progressToDatabase(int $downloadSize, int $downloaded): void {
-		$data = $this->getProressData();
+	private function progressToDatabase(string $resource, int $downloadSize, int $downloaded): void {
+		$data = $this->getProgressData($resource);
 		$data['download_size'] = $downloadSize;
 		$data['downloaded'] = $downloaded;
-		$this->setCache($this->resource, $data);
+		$this->setCache($resource, $data);
 	}
 
-	public function getProressData(): array {
-		$data = $this->getCache($this->resource) ?? [];
-		return $data;
+	private function getProgressData(string $resource): array {
+		return $this->getCache($resource) ?? [];
 	}
 
-	private function removeDownloadProgress(): void {
-		$this->removeCache($this->resource);
+	private function removeDownloadProgress(string $resource): void {
+		$this->removeCache($resource);
 	}
 
 	/**
@@ -185,8 +184,7 @@ class InstallService {
 	public function getTotalSize(): array {
 		$return = [];
 		foreach ($this->availableResources as $resource) {
-			$this->setResource($resource);
-			$progressData = $this->getProressData();
+			$progressData = $this->getProgressData($resource);
 			if (array_key_exists('download_size', $progressData)) {
 				if ($progressData['download_size']) {
 					$return[$resource] = $progressData['downloaded'] * 100 / $progressData['download_size'];
@@ -199,7 +197,7 @@ class InstallService {
 	}
 
 	public function saveErrorMessage(string $message): void {
-		$data = $this->getProressData();
+		$data = $this->getProgressData($this->resource);
 		$data['error'] = $message;
 		$this->setCache($this->resource, $data);
 	}
@@ -207,11 +205,10 @@ class InstallService {
 	public function getErrorMessages(): array {
 		$return = [];
 		foreach ($this->availableResources as $resource) {
-			$this->setResource($resource);
-			$progressData = $this->getProressData();
+			$progressData = $this->getProgressData($resource);
 			if (array_key_exists('error', $progressData)) {
 				$return[] = $progressData['error'];
-				$this->removeDownloadProgress();
+				$this->removeDownloadProgress($resource);
 			}
 		}
 		return $return;
@@ -219,29 +216,21 @@ class InstallService {
 
 	public function isDownloadWip(): bool {
 		foreach ($this->availableResources as $resource) {
-			$this->setResource($resource);
-			$progressData = $this->getProressData();
+			$progressData = $this->getProgressData($resource);
 			if (empty($progressData)) {
 				continue;
 			}
+
 			$pid = $progressData['pid'] ?? 0;
-			if ($this->getInstallPid($pid) === 0) {
+			if ($this->installProcessManager->findRunningPid($resource, $this->target, $pid) === 0) {
 				if (!array_key_exists('error', $progressData)) {
-					$this->removeDownloadProgress();
+					$this->removeDownloadProgress($resource);
 				}
 				continue;
 			}
 			return true;
 		}
 		return false;
-	}
-
-	private function getInstallPid(int $pid = 0): int {
-		return $this->installProcessManager->findRunningPid(
-			$this->resource,
-			$this->target,
-			$pid,
-		);
 	}
 
 	public function setResource(string $resource): self {
@@ -364,7 +353,7 @@ class InstallService {
 		unlink($compressedInternalFileName);
 		$this->appConfig->setValueString(Application::APP_ID, 'java_path', $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java');
 		$this->writeAppSignature();
-		$this->removeDownloadProgress();
+		$this->removeDownloadProgress($this->resource);
 	}
 
 	public function setDistro(string $distro): void {
@@ -437,7 +426,7 @@ class InstallService {
 		$this->saveJsignPdfHome();
 		$this->writeAppSignature();
 
-		$this->removeDownloadProgress();
+		$this->removeDownloadProgress($this->resource);
 	}
 
 	/**
@@ -508,7 +497,7 @@ class InstallService {
 		$this->download($url, 'pdftk', $fullPath, self::PDFTK_HASH);
 		$this->appConfig->setValueString(Application::APP_ID, 'pdftk_path', $fullPath);
 		$this->writeAppSignature();
-		$this->removeDownloadProgress();
+		$this->removeDownloadProgress($this->resource);
 	}
 
 	public function uninstallPdftk(): void {
@@ -541,7 +530,7 @@ class InstallService {
 		} else {
 			throw new InvalidArgumentException('CFSSL is available only for x86_64/amd64 and aarch64/arm64 architectures.');
 		}
-		$this->removeDownloadProgress();
+		$this->removeDownloadProgress($this->resource);
 	}
 
 	private function installCfsslByArchitecture(string $architecture): void {
@@ -618,7 +607,7 @@ class InstallService {
 					function (int $downloadSize, int $downloaded) use ($progressBar): void {
 						$progressBar->setMaxSteps($downloadSize);
 						$progressBar->setProgress($downloaded);
-						$this->progressToDatabase($downloadSize, $downloaded);
+						$this->progressToDatabase($this->resource, $downloadSize, $downloaded);
 					},
 				);
 			} finally {
@@ -635,7 +624,7 @@ class InstallService {
 			$hash,
 			$hash_algo,
 			fn (int $downloadSize, int $downloaded): void
-				=> $this->progressToDatabase($downloadSize, $downloaded),
+				=> $this->progressToDatabase($this->resource, $downloadSize, $downloaded),
 		);
 	}
 
