@@ -50,7 +50,6 @@ class InstallService {
 	public const JAVA_URL_PATH_NAME = '21.0.8+9';
 	public const PDFTK_VERSION = '3.3.3'; /** @todo When update, verify the hash **/
 	private const PDFTK_HASH = '59a28bed53b428595d165d52988bf4cf';
-	private const JSIGNPDF_HASH = 'd239658ea50a39eb35169d8392feaffb';
 	public const CFSSL_VERSION = '1.6.5';
 	private const PROCESS_SOURCE = 'install';
 
