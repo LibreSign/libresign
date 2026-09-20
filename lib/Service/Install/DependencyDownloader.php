@@ -31,7 +31,10 @@ class DependencyDownloader {
 		?callable $progress = null,
 	): void {
 		if (file_exists($path) && $hash !== '' && hash_file($hashAlgorithm, $path) === $hash) {
-			$progress?->__invoke((int)filesize($path), (int)filesize($path));
+			if ($progress !== null) {
+				$size = (int)filesize($path);
+				$progress($size, $size);
+			}
 			return;
 		}
 
@@ -40,7 +43,9 @@ class DependencyDownloader {
 				'sink' => $path,
 				'timeout' => 0,
 				'progress' => static function ($downloadSize, $downloaded) use ($progress): void {
-					$progress?->__invoke((int)$downloadSize, (int)$downloaded);
+					if ($progress !== null) {
+						$progress((int)$downloadSize, (int)$downloaded);
+					}
 				},
 			]);
 		} catch (\Exception $e) {
