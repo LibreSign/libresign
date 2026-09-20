@@ -32,7 +32,6 @@ class SignSetupService {
 	private InstallTarget $target;
 	private string $resource;
 	private array $signatureData = [];
-	private SetupTrustMode $defaultTrustMode = SetupTrustMode::Production;
 	private ?X509 $signingCertificate = null;
 	private ?PrivateKey $privateKey = null;
 	public function __construct(
@@ -83,15 +82,6 @@ class SignSetupService {
 
 	public function setCertificate(X509 $x509): void {
 		$this->signingCertificate = $x509;
-	}
-
-	/**
-	 * Compatibility shim for callers not yet passing SetupTrustMode explicitly.
-	 */
-	public function willUseLocalCert(bool $willUseLocalCert): void {
-		$this->defaultTrustMode = $willUseLocalCert
-			? SetupTrustMode::Development
-			: SetupTrustMode::Production;
 	}
 
 	private function getPrivateKey(): PrivateKey {
@@ -221,9 +211,12 @@ class SignSetupService {
 		return $signatureData;
 	}
 
-	public function verify(string $architecture, string $resource, ?SetupTrustMode $trustMode = null): array {
+	public function verify(
+		string $architecture,
+		string $resource,
+		SetupTrustMode $trustMode = SetupTrustMode::Production,
+	): array {
 		$this->signatureData = [];
-		$trustMode ??= $this->defaultTrustMode;
 		$this->target = $this->target->withArchitecture($architecture);
 		$this->resource = $resource;
 
