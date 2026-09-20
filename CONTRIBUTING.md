@@ -40,6 +40,7 @@ Developing for LibreSign
 **NOTE**: If the project does not have an issue for what you want to do, create an issue first.
 
 If you would prefer to write code, you may wish to start with our list of good first issues for [LibreSign](https://github.com/LibreSign/libresign/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22).
+For larger product initiatives and current development direction, see the [LibreSign Roadmap](https://github.com/orgs/LibreSign/projects/2).
 See the respective sections below for further instructions.
 
 ### Front and backend development environment
