@@ -9,28 +9,24 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use bovigo\vfs\vfsStream;
-use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\CaIdentifierService;
+use OCA\Libresign\Service\Install\DependencyDownloader;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCA\Libresign\Service\Process\ProcessManager;
 use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\Files\AppData\IAppDataFactory;
-use OCP\Http\Client\IClient;
-use OCP\Http\Client\IClientService;
-use OCP\Http\Client\IResponse;
 use OCP\IAppConfig;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IConfig;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Console\Output\BufferedOutput;
 
 final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ICacheFactory&MockObject $cacheFactory;
-	private IClientService&MockObject $clientService;
+	private DependencyDownloader&MockObject $dependencyDownloader;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private IConfig&MockObject $config;
 	private IAppConfig&MockObject $appConfig;
@@ -46,7 +42,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	protected function getInstallService(): InstallService {
 		$this->cacheFactory = $this->createMock(ICacheFactory::class);
-		$this->clientService = $this->createMock(IClientService::class);
+		$this->dependencyDownloader = $this->createMock(DependencyDownloader::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
@@ -57,7 +53,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->processManager = $this->createMock(ProcessManager::class);
 		return new InstallService(
 			$this->cacheFactory,
-			$this->clientService,
+			$this->dependencyDownloader,
 			$this->certificateEngineFactory,
 			$this->config,
 			$this->appConfig,
@@ -69,162 +65,6 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	public function testGetHashUsesHttpClientAndFindsRequestedFile(): void {
-		$installService = $this->getInstallService();
-
-		$response = $this->createMock(IResponse::class);
-		$response->method('getBody')
-			->willReturn("abc123  other-file\ndef456  dependency.tar.gz\n");
-		$client = $this->createMock(IClient::class);
-		$client->expects($this->once())
-			->method('get')
-			->with('https://example.invalid/checksums.txt')
-			->willReturn($response);
-		$this->clientService->method('newClient')->willReturn($client);
-
-		$hash = self::invokePrivate(
-			$installService,
-			'getHash',
-			['dependency.tar.gz', 'https://example.invalid/checksums.txt'],
-		);
-
-		$this->assertSame('def456', $hash);
-	}
-
-	public function testGetHashFailsWhenRequestedFileIsMissing(): void {
-		$installService = $this->getInstallService();
-
-		$response = $this->createMock(IResponse::class);
-		$response->method('getBody')->willReturn("abc123  another-file\n");
-		$client = $this->createMock(IClient::class);
-		$client->method('get')->willReturn($response);
-		$this->clientService->method('newClient')->willReturn($client);
-
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('checksum list does not contain an entry for dependency.tar.gz');
-
-		self::invokePrivate(
-			$installService,
-			'getHash',
-			['dependency.tar.gz', 'https://example.invalid/checksums.txt'],
-		);
-	}
-
-	public function testAsyncDownloadFailsWhenSinkFileIsMissing(): void {
-		$installService = $this->getInstallService();
-
-		vfsStream::setup('download');
-		$path = 'vfs://download/missing.bin';
-
-		$client = $this->createMock(IClient::class);
-		$client->expects($this->once())
-			->method('get')
-			->willReturn($this->createMock(IResponse::class));
-		$this->clientService->method('newClient')->willReturn($client);
-
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('did not produce the expected file');
-
-		self::invokePrivate(
-			$installService,
-			'download',
-			['https://example.invalid/dependency.bin', 'dependency', $path, '', 'sha256'],
-		);
-	}
-
-	public function testDownloadCliSucceedsWithValidHash(): void {
-		$installService = $this->getInstallService();
-		$output = new BufferedOutput();
-		$installService->setOutput($output);
-
-		vfsStream::setup('download');
-		$path = 'vfs://download/dependency.bin';
-		file_put_contents($path, 'content');
-
-		$client = $this->createMock(IClient::class);
-		$client->expects($this->once())
-			->method('get')
-			->willReturn($this->createMock(IResponse::class));
-		$this->clientService->method('newClient')->willReturn($client);
-
-		self::invokePrivate(
-			$installService,
-			'downloadCli',
-			['https://example.invalid/dependency.bin', 'dependency', $path, hash('sha256', 'content'), 'sha256'],
-		);
-
-		$this->assertStringContainsString('Downloading dependency...', $output->fetch());
-	}
-
-	public function testDownloadCliFailsOnTransportError(): void {
-		$installService = $this->getInstallService();
-		$installService->setOutput(new BufferedOutput());
-
-		vfsStream::setup('download');
-		$path = 'vfs://download/dependency.bin';
-
-		$client = $this->createMock(IClient::class);
-		$client->expects($this->once())
-			->method('get')
-			->willThrowException(new \RuntimeException('network unavailable'));
-		$this->clientService->method('newClient')->willReturn($client);
-
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Could not download dependency.');
-
-		self::invokePrivate(
-			$installService,
-			'downloadCli',
-			['https://example.invalid/dependency.bin', 'dependency', $path, '', 'sha256'],
-		);
-	}
-
-	public function testDownloadCliFailsWhenFileIsMissing(): void {
-		$installService = $this->getInstallService();
-		$installService->setOutput(new BufferedOutput());
-
-		vfsStream::setup('download');
-		$path = 'vfs://download/missing.bin';
-
-		$client = $this->createMock(IClient::class);
-		$client->expects($this->once())
-			->method('get')
-			->willReturn($this->createMock(IResponse::class));
-		$this->clientService->method('newClient')->willReturn($client);
-
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('empty file');
-
-		self::invokePrivate(
-			$installService,
-			'downloadCli',
-			['https://example.invalid/dependency.bin', 'dependency', $path, '', 'sha256'],
-		);
-	}
-
-	public function testDownloadCliFailsOnHashMismatch(): void {
-		$installService = $this->getInstallService();
-		$installService->setOutput(new BufferedOutput());
-
-		vfsStream::setup('download');
-		$path = 'vfs://download/dependency.bin';
-		file_put_contents($path, 'content');
-
-		$client = $this->createMock(IClient::class);
-		$client->expects($this->once())
-			->method('get')
-			->willReturn($this->createMock(IResponse::class));
-		$this->clientService->method('newClient')->willReturn($client);
-
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Checksum verification failed for dependency.');
-
-		self::invokePrivate(
-			$installService,
-			'downloadCli',
-			['https://example.invalid/dependency.bin', 'dependency', $path, 'invalid', 'sha256'],
-		);
-	}
 
 	/**
 	 * @dataProvider providerGetFolder
@@ -297,7 +137,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$installService = new InstallService(
 			$this->cacheFactory,
-			$this->clientService,
+			$this->dependencyDownloader,
 			$this->certificateEngineFactory,
 			$this->config,
 			$this->appConfig,
@@ -503,7 +343,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$installService = $this->getMockBuilder(InstallService::class)
 			->setConstructorArgs([
 				$this->cacheFactory,
-				$this->clientService,
+				$this->dependencyDownloader,
 				$this->certificateEngineFactory,
 				$this->config,
 				$this->appConfig,
