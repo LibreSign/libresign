@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service\Install;
 use OC\Memcache\NullCache;
 use OCA\Libresign\AppInfo\Application;
 use OCP\Files\NotFoundException;
+use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use Psr\Log\LoggerInterface;
@@ -100,7 +101,7 @@ class InstallProgressStore {
 		}
 	}
 
-	private function getFallbackFile(InstallTarget $target, bool $create) {
+	private function getFallbackFile(InstallTarget $target, bool $create): ?ISimpleFile {
 		$folder = $this->dependencyStorage->resourceFolder($target);
 		try {
 			return $folder->getFile('setup-cache.json');
