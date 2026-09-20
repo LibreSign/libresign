@@ -43,7 +43,7 @@ class SignerGeolocationPolicyService {
 	 * @return array{mode: string}
 	 */
 	public function getPolicyValue(?FileEntity $file = null): array {
-		return $this->findSnapshot($file) ?? SignerGeolocationPolicyValue::defaults();
+		return SignerGeolocationPolicyValue::normalize($this->findSnapshot($file));
 	}
 
 	public function getFrozenRequirement(SignRequest $signRequest): ?SignerGeolocationMode {
@@ -116,6 +116,7 @@ class SignerGeolocationPolicyService {
 		$this->signRequestMapper->update($signRequest);
 	}
 
+	#[\Override]
 	protected function getFrozenPolicyKey(): string {
 		return SignerGeolocationPolicy::KEY;
 	}
@@ -123,6 +124,7 @@ class SignerGeolocationPolicyService {
 	/**
 	 * @return array{mode: string}|null
 	 */
+	#[\Override]
 	protected function normalizeFrozenPolicyEffectiveValue(mixed $value): ?array {
 		return SignerGeolocationPolicyValue::normalize($value);
 	}

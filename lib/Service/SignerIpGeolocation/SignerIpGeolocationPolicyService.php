@@ -34,7 +34,7 @@ class SignerIpGeolocationPolicyService {
 	 * @return array{mode: string}
 	 */
 	public function getPolicyValue(?FileEntity $file = null): array {
-		return $this->findSnapshot($file) ?? SignerIpGeolocationPolicyValue::defaults();
+		return SignerIpGeolocationPolicyValue::normalize($this->findSnapshot($file));
 	}
 
 	public function isEnabled(?FileEntity $file = null): bool {
@@ -75,6 +75,7 @@ class SignerIpGeolocationPolicyService {
 		return $metadata;
 	}
 
+	#[\Override]
 	protected function getFrozenPolicyKey(): string {
 		return SignerIpGeolocationPolicy::KEY;
 	}
@@ -82,6 +83,7 @@ class SignerIpGeolocationPolicyService {
 	/**
 	 * @return array{mode: string}|null
 	 */
+	#[\Override]
 	protected function normalizeFrozenPolicyEffectiveValue(mixed $value): ?array {
 		return SignerIpGeolocationPolicyValue::normalize($value);
 	}
