@@ -1,6 +1,6 @@
 {
   "name": "libresign",
-  "version": "15.0.2",
+  "version": "15.0.3",
   "private": true,
   "description": "A app for signing documents",
   "license": "agpl",
