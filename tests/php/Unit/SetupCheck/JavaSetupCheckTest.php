@@ -178,7 +178,7 @@ class JavaSetupCheckTest extends TestCase {
 
 		$this->logger->expects($this->once())
 			->method('error')
-			->with('Invalid hash of binaries files', ['result' => $verifyResult]);
+			->with('Unable to verify binary integrity', ['result' => $verifyResult]);
 
 		$this->appManager->method('isEnabledForUser')->with('logreader')->willReturn(false);
 
@@ -190,7 +190,7 @@ class JavaSetupCheckTest extends TestCase {
 		$result = $instance->run();
 
 		$this->assertEquals('error', $result->getSeverity());
-		$this->assertStringContainsString('Invalid hash of binaries files', $result->getDescription());
+		$this->assertStringContainsString('Unable to verify binary integrity', $result->getDescription());
 	}
 
 	public function testJavaExecutionFails(): void {
@@ -540,8 +540,8 @@ class JavaSetupCheckTest extends TestCase {
 
 		$this->assertSame([SetupTrustMode::Production, SetupTrustMode::Development], $modes);
 		$this->assertEquals('error', $result->getSeverity());
-		$this->assertStringContainsString('Invalid hash of binaries files', $result->getDescription());
-		$this->assertStringContainsString('Debug mode is enabled', $result->getLinkToDoc());
+		$this->assertStringContainsString('Unable to verify binary integrity', $result->getDescription());
+		$this->assertStringContainsString('Check your nextcloud.log file', $result->getLinkToDoc());
 	}
 
 	public function testVerifyResourceIntegrityHashFileErrorWithoutDebugWithLogReader(): void {
@@ -563,7 +563,7 @@ class JavaSetupCheckTest extends TestCase {
 
 		$this->logger->expects($this->once())
 			->method('error')
-			->with('Invalid hash of binaries files', $this->anything());
+			->with('Unable to verify binary integrity', $this->anything());
 
 		$this->l10n->method('t')->willReturnCallback(fn ($string, $params = []) => vsprintf($string, $params));
 
@@ -571,7 +571,7 @@ class JavaSetupCheckTest extends TestCase {
 		$result = $instance->run();
 
 		$this->assertEquals('error', $result->getSeverity());
-		$this->assertStringContainsString('Invalid hash of binaries files', $result->getDescription());
+		$this->assertStringContainsString('Unable to verify binary integrity', $result->getDescription());
 		$this->assertStringContainsString('Check your nextcloud.log file on', $result->getLinkToDoc());
 	}
 
@@ -590,7 +590,7 @@ class JavaSetupCheckTest extends TestCase {
 
 		$this->logger->expects($this->once())
 			->method('error')
-			->with('Invalid hash of binaries files', $this->anything());
+			->with('Unable to verify binary integrity', $this->anything());
 
 		$this->l10n->method('t')->willReturnCallback(fn ($string, $params = []) => vsprintf($string, $params));
 
@@ -598,7 +598,7 @@ class JavaSetupCheckTest extends TestCase {
 		$result = $instance->run();
 
 		$this->assertEquals('error', $result->getSeverity());
-		$this->assertStringContainsString('Invalid hash of binaries files', $result->getDescription());
+		$this->assertStringContainsString('Unable to verify binary integrity', $result->getDescription());
 		$this->assertStringContainsString('Check your nextcloud.log file', $result->getLinkToDoc());
 	}
 }

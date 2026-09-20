@@ -89,13 +89,13 @@ trait SetupCheckUtils {
 			}
 		}
 		if (isset($result['HASH_FILE_ERROR'])) {
-			if ($debugEnabled) {
-				return [
-					// TRANSLATORS This is a security/integrity check failure. LibreSign only accepts approved signing binaries whose hashes match maintainer-signed metadata shipped with the app. Even a one-bit change makes the binary invalid.
-					$l10n->t('Invalid hash of binaries files.'),
-					$l10n->t('Debug mode is enabled at your config.php and your LibreSign app was signed using a production signature. If you are not working at development of LibreSign, disable your debug mode or run the command: occ libresign:install --%s --use-local-cert', [$resource]),
-				];
-			}
+			$this->logger->error('Unable to verify binary integrity', ['result' => $result]);
+			return [
+				// TRANSLATORS LibreSign could not complete verification of the maintainer-signed binary integrity metadata. This does not necessarily mean that a downloaded binary has a wrong hash.
+				$l10n->t('Unable to verify binary integrity.'),
+				// TRANSLATORS The technical cause of an integrity-verification failure is written to the Nextcloud server log.
+				$l10n->t('Check your nextcloud.log file for the verification error before reinstalling the binaries.'),
+			];
 		}
 		$this->logger->error('Invalid hash of binaries files', ['result' => $result]);
 		if ($this->appManager->isEnabledForUser('logreader')) {
