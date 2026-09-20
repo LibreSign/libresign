@@ -43,4 +43,23 @@ final class InstallTargetTest extends TestCase {
 		$this->assertSame('aarch64', $other->architecture());
 		$this->assertSame('alpine-linux', $other->distro());
 	}
+	#[DataProvider('cacheKeyProvider')]
+	public function testCacheKeyIncludesRelevantTargetDimensions(
+		string $resource,
+		string $expected,
+	): void {
+		$target = InstallTarget::from('arm64', 'alpine-linux');
+
+		$this->assertSame($expected, $target->cacheKey($resource));
+	}
+
+	public static function cacheKeyProvider(): array {
+		return [
+			'java includes distro' => ['java', 'java:aarch64:alpine-linux'],
+			'jsignpdf ignores distro' => ['jsignpdf', 'jsignpdf:aarch64'],
+			'pdftk ignores distro' => ['pdftk', 'pdftk:aarch64'],
+			'cfssl ignores distro' => ['cfssl', 'cfssl:aarch64'],
+		];
+	}
+
 }
