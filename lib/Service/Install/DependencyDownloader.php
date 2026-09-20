@@ -20,7 +20,7 @@ class DependencyDownloader {
 	}
 
 	/**
-	 * @param callable(int, int): void|null $progress
+	 * @param (callable(int, int): void)|null $progress
 	 */
 	public function download(
 		string $url,
