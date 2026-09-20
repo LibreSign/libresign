@@ -11,9 +11,9 @@ namespace OCA\Libresign\Service\SignerIpGeolocation;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Service\GeoIp\GeoIpLookupService;
+use OCA\Libresign\Service\Policy\FrozenFilePolicySnapshotResolver;
 use OCA\Libresign\Service\Policy\Provider\SignerIpGeolocation\SignerIpGeolocationPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignerIpGeolocation\SignerIpGeolocationPolicyValue;
-use OCA\Libresign\Service\Policy\ResolvesFrozenFilePolicySnapshot;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
 use OCP\IRequest;
 
@@ -22,19 +22,26 @@ use OCP\IRequest;
  * metadata at signing time. The live PolicyService is never consulted.
  */
 class SignerIpGeolocationPolicyService {
-	use ResolvesFrozenFilePolicySnapshot;
+	/** @var FrozenFilePolicySnapshotResolver<array{mode: string}> */
+	private FrozenFilePolicySnapshotResolver $frozenSnapshotResolver;
 
 	public function __construct(
-		private FileMapper $fileMapper,
+		FileMapper $fileMapper,
 		private GeoIpLookupService $geoIpLookupService,
 	) {
+		$this->frozenSnapshotResolver = new FrozenFilePolicySnapshotResolver(
+			$fileMapper,
+			SignerIpGeolocationPolicy::KEY,
+			SignerIpGeolocationPolicyValue::normalize(...),
+		);
 	}
 
 	/**
 	 * @return array{mode: string}
 	 */
 	public function getPolicyValue(?FileEntity $file = null): array {
-		return SignerIpGeolocationPolicyValue::normalize($this->findSnapshot($file));
+		return $this->frozenSnapshotResolver->findSnapshot($file)
+			?? SignerIpGeolocationPolicyValue::defaults();
 	}
 
 	public function isEnabled(?FileEntity $file = null): bool {
@@ -73,18 +80,5 @@ class SignerIpGeolocationPolicyService {
 		$geolocation[SignerGeolocationMetadataValidator::METADATA_IP_KEY] = $ipGeolocation;
 		$metadata[SignerGeolocationMetadataValidator::METADATA_GEOLOCATION_KEY] = $geolocation;
 		return $metadata;
-	}
-
-	#[\Override]
-	protected function getFrozenPolicyKey(): string {
-		return SignerIpGeolocationPolicy::KEY;
-	}
-
-	/**
-	 * @return array{mode: string}|null
-	 */
-	#[\Override]
-	protected function normalizeFrozenPolicyEffectiveValue(mixed $value): ?array {
-		return SignerIpGeolocationPolicyValue::normalize($value);
 	}
 }

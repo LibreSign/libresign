@@ -14,9 +14,9 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignerGeolocationMode;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\Policy\FrozenFilePolicySnapshotResolver;
 use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicyValue;
-use OCA\Libresign\Service\Policy\ResolvesFrozenFilePolicySnapshot;
 use OCP\IL10N;
 
 /**
@@ -28,22 +28,29 @@ use OCP\IL10N;
  * device geolocation disabled.
  */
 class SignerGeolocationPolicyService {
-	use ResolvesFrozenFilePolicySnapshot;
-
 	public const METADATA_REQUIREMENT_KEY = 'deviceGeolocationRequirement';
+
+	/** @var FrozenFilePolicySnapshotResolver<array{mode: string}> */
+	private FrozenFilePolicySnapshotResolver $frozenSnapshotResolver;
 
 	public function __construct(
 		private FileMapper $fileMapper,
 		private SignRequestMapper $signRequestMapper,
 		private IL10N $l10n,
 	) {
+		$this->frozenSnapshotResolver = new FrozenFilePolicySnapshotResolver(
+			$fileMapper,
+			SignerGeolocationPolicy::KEY,
+			SignerGeolocationPolicyValue::normalize(...),
+		);
 	}
 
 	/**
 	 * @return array{mode: string}
 	 */
 	public function getPolicyValue(?FileEntity $file = null): array {
-		return SignerGeolocationPolicyValue::normalize($this->findSnapshot($file));
+		return $this->frozenSnapshotResolver->findSnapshot($file)
+			?? SignerGeolocationPolicyValue::defaults();
 	}
 
 	public function getFrozenRequirement(SignRequest $signRequest): ?SignerGeolocationMode {
@@ -114,19 +121,6 @@ class SignerGeolocationPolicyService {
 		$metadata[self::METADATA_REQUIREMENT_KEY] = $effective->value;
 		$signRequest->setMetadata($metadata);
 		$this->signRequestMapper->update($signRequest);
-	}
-
-	#[\Override]
-	protected function getFrozenPolicyKey(): string {
-		return SignerGeolocationPolicy::KEY;
-	}
-
-	/**
-	 * @return array{mode: string}|null
-	 */
-	#[\Override]
-	protected function normalizeFrozenPolicyEffectiveValue(mixed $value): ?array {
-		return SignerGeolocationPolicyValue::normalize($value);
 	}
 
 	public function getFileFromSignRequest(SignRequest $signRequest): ?FileEntity {

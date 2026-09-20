@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy;
 
+use Closure;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 
@@ -23,20 +24,23 @@ use OCA\Libresign\Db\FileMapper;
  * envelope, so that documents added to an envelope after it was created cannot
  * end up governed by different rules than the ones already in it.
  *
- * Classes using this trait must expose `$this->fileMapper` as a {@see FileMapper}.
+ * @template T of array<string, mixed>
  */
-trait ResolvesFrozenFilePolicySnapshot {
-	abstract protected function getFrozenPolicyKey(): string;
+final class FrozenFilePolicySnapshotResolver {
+	/**
+	 * @param Closure(mixed): T $normalizeEffectiveValue
+	 */
+	public function __construct(
+		private FileMapper $fileMapper,
+		private string $policyKey,
+		private Closure $normalizeEffectiveValue,
+	) {
+	}
 
 	/**
-	 * @return array<string, mixed>|null
+	 * @return T|null
 	 */
-	abstract protected function normalizeFrozenPolicyEffectiveValue(mixed $value): ?array;
-
-	/**
-	 * @return array<string, mixed>|null
-	 */
-	private function findSnapshot(?FileEntity $file): ?array {
+	public function findSnapshot(?FileEntity $file): ?array {
 		if (!$file instanceof FileEntity) {
 			return null;
 		}
@@ -58,7 +62,7 @@ trait ResolvesFrozenFilePolicySnapshot {
 	 * The oldest document of the envelope carries the value the request was
 	 * created with, so it is the one that answers for the whole envelope.
 	 *
-	 * @return array<string, mixed>|null
+	 * @return T|null
 	 */
 	private function findSnapshotOnChildren(FileEntity $envelope): ?array {
 		$envelopeId = $envelope->getId();
@@ -66,9 +70,7 @@ trait ResolvesFrozenFilePolicySnapshot {
 			return null;
 		}
 
-		/** @var FileMapper $fileMapper */
-		$fileMapper = $this->fileMapper;
-		$children = $fileMapper->getChildrenFiles($envelopeId);
+		$children = $this->fileMapper->getChildrenFiles($envelopeId);
 		usort($children, static fn (FileEntity $a, FileEntity $b): int => ($a->getId() ?? 0) <=> ($b->getId() ?? 0));
 
 		foreach ($children as $child) {
@@ -81,12 +83,17 @@ trait ResolvesFrozenFilePolicySnapshot {
 		return null;
 	}
 
-	/** @return array<string, mixed>|null */
+	/**
+	 * @return T|null
+	 */
 	private function findSnapshotOnEnvelope(FileEntity $file): ?array {
+		$parentId = $file->getParentFileId();
+		if ($parentId === null) {
+			return null;
+		}
+
 		try {
-			/** @var FileMapper $fileMapper */
-			$fileMapper = $this->fileMapper;
-			$envelope = $fileMapper->getById($file->getParentFileId());
+			$envelope = $this->fileMapper->getById($parentId);
 		} catch (\Throwable) {
 			return null;
 		}
@@ -96,7 +103,7 @@ trait ResolvesFrozenFilePolicySnapshot {
 
 	/**
 	 * @param array<string, mixed> $fileMetadata
-	 * @return array<string, mixed>|null
+	 * @return T|null
 	 */
 	private function extractSnapshot(array $fileMetadata): ?array {
 		$policySnapshot = $fileMetadata['policy_snapshot'] ?? null;
@@ -104,11 +111,11 @@ trait ResolvesFrozenFilePolicySnapshot {
 			return null;
 		}
 
-		$entry = $policySnapshot[$this->getFrozenPolicyKey()] ?? null;
+		$entry = $policySnapshot[$this->policyKey] ?? null;
 		if (!is_array($entry) || !array_key_exists('effectiveValue', $entry)) {
 			return null;
 		}
 
-		return $this->normalizeFrozenPolicyEffectiveValue($entry['effectiveValue']);
+		return ($this->normalizeEffectiveValue)($entry['effectiveValue']);
 	}
 }
