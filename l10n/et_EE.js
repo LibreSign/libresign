@@ -889,7 +889,6 @@ OC.L10N.register(
     "Learn more" : "Lisateave",
     "Failed to load envelope files" : "Ümbrikufailide laadimine ei õnnestunud",
     "Email verification" : "E-postiaadressi kinnitamine",
-    "{method} is not configured. Please contact your administrator." : "{method} pole seadistatud. Palun võta ühendust oma serveri haldajaga.",
     "Contact information" : "Kontaktteave",
     "Enter your code" : "Sisesta oma kood",
     "Request new code" : "Küsi uut koodi",
@@ -1042,6 +1041,7 @@ OC.L10N.register(
     "Example: 1.2.3.4.1 or leave empty for default" : "Näide: 1.2.3.4.1 või jäta tühjaks vaikimisi väärtuse jaoks",
     "Name is mandatory" : "Nimi on kohustuslik",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Ajatempliallika (TSA) seadistused dokumentide digitaalseks allkirjastamiseks.",
+    "{method} is not configured. Please contact your administrator." : "{method} pole seadistatud. Palun võta ühendust oma serveri haldajaga.",
     "Sign the document." : "Allkirjasta dokument."
 },
 "nplurals=2; plural=(n != 1);");

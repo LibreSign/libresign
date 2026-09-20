@@ -31,6 +31,7 @@ OC.L10N.register(
     "Renewed with success. Access the link again." : "Успешно обновлено. Перейдите по ссылке еще раз.",
     "Invalid data to sign file" : "Некорректные данные подписания файла",
     "Verification code sent." : "Код подтверждения отправлен.",
+    "Unable to send verification code." : "Не удалось отправить код подтверждения.",
     "Element created with success" : "Элемент создан успешно",
     "Elements created with success" : "Элементы созданы успешно",
     "Elements not found" : "Элементы не найдены",
@@ -811,8 +812,6 @@ OC.L10N.register(
     "Step 3 of 3 - Signature confirmation" : "Шаг 3 из 3 — Подтверждение подписи",
     "A verification code has been sent to: {contact}. Check your email and enter the 6-digit verification code." : "Код подтверждения отправлен на: {contact}. Проверьте электронную почту и введите 6-значный код подтверждения.",
     "A verification code has been sent to: {contact}. Please enter the code to continue." : "Код подтверждения отправлен на: {contact}. Введите код для продолжения.",
-    "{method} is not configured. Please contact your administrator." : "{method} не настроен. Обратитесь к администратору.",
-    "Unable to send verification code." : "Не удалось отправить код подтверждения.",
     "To verify your identity, enter the same email address where you received the signature request. We will send a verification code to this address." : "Для подтверждения личности введите тот же адрес электронной почты, на который вы получили запрос на подпись. Мы отправим код подтверждения на этот адрес.",
     "To sign this document, we must verify your identity. Enter your contact information to receive a verification code." : "Для подписания этого документа необходимо подтвердить вашу личность. Введите контактную информацию для получения кода подтверждения.",
     "Contact information" : "Контактная информация",
@@ -1006,6 +1005,7 @@ OC.L10N.register(
     "Name is mandatory" : "Необходимо указать имя",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Настройки Службы меток времени (TSA) для цифровой подписи документов.",
     "Make validation URL acessible only by authenticated users" : "Сделать URL-адрес проверки доступным только для авторизованных пользователей",
+    "{method} is not configured. Please contact your administrator." : "{method} не настроен. Обратитесь к администратору.",
     "Sign the document." : "Подписать документ"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

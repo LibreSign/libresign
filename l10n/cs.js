@@ -31,6 +31,7 @@ OC.L10N.register(
     "Renewed with success. Access the link again." : "Úspěšně obnoveno. Přistupte k odkazu znovu.",
     "Invalid data to sign file" : "Neplatná data pro podepsání souboru",
     "Verification code sent." : "Ověřovací kód zaslán.",
+    "Unable to send verification code." : "Nebylo možné odeslat kód potvrzení",
     "Element created with success" : "Prvek úspěšně vytvořen",
     "Elements created with success" : "Prvky úspěšně vytvořeny",
     "Elements not found" : "Prvky nenelezeny",
@@ -809,8 +810,6 @@ OC.L10N.register(
     "Step 3 of 3 - Signature confirmation" : "Krok 3 ze 3 – ověření podpisu",
     "A verification code has been sent to: {contact}. Check your email and enter the 6-digit verification code." : "Ověřovací kód byl odeslán na: {contact}. Zkontrolujte svůj e-mail a zadejte 6 číslicový ověřovací kód.",
     "A verification code has been sent to: {contact}. Please enter the code to continue." : "Ověřovací kód byl odeslán na: {contact}. Pro pokračování zadejte kód.",
-    "{method} is not configured. Please contact your administrator." : "{method} není nastaveno. Obraťte se na svého správce.",
-    "Unable to send verification code." : "Nebylo možné odeslat kód potvrzení",
     "To verify your identity, enter the same email address where you received the signature request. We will send a verification code to this address." : "Pro ověření vaší identity zadejte stejnou e-mailovou adresu na kterou jste obdrželi žádost o podepsání. Na tuto adresu vám bude zaslán ověřovací kód.",
     "To sign this document, we must verify your identity. Enter your contact information to receive a verification code." : "Pro podepsání tohoto dokumentu je třeba ověřit svou identitu. Zadejte své kontaktní údaje a obdržíte ověřovací kód.",
     "Contact information" : "Kontaktní údaje",
@@ -1006,6 +1005,7 @@ OC.L10N.register(
     "Name is mandatory" : "Název je třeba zadat",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Nastavení autority časových razítek (TSA) pro elektronické podepisování dokumentů.",
     "Make validation URL acessible only by authenticated users" : "Zpřístupnit URL ověřování pouze přihlášeným uživatelům",
+    "{method} is not configured. Please contact your administrator." : "{method} není nastaveno. Obraťte se na svého správce.",
     "Sign the document." : "Podepsat dokument."
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

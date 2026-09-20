@@ -31,6 +31,7 @@ OC.L10N.register(
     "Renewed with success. Access the link again." : "Renovada correctamente. Acceda de novo á ligazón.",
     "Invalid data to sign file" : "Os datos non son válidos para asinar o ficheiro",
     "Verification code sent." : "Código de verificación enviado.",
+    "Unable to send verification code." : "Non foi posible enviar o código de verificación.",
     "Element created with success" : "Elemento creado satisfactoriamente",
     "Elements created with success" : "Elementos creados satisfactoriamente",
     "Elements not found" : "Non se atopou ningún elemento",
@@ -816,8 +817,6 @@ OC.L10N.register(
     "Step 3 of 3 - Signature confirmation" : "Paso 3 de 3 - Confirmación da sinatura",
     "A verification code has been sent to: {contact}. Check your email and enter the 6-digit verification code." : "Enviouse un código de verificación a: {contact}. Comproba o teu correo e introduce o código de verificación de 6 díxitos.",
     "A verification code has been sent to: {contact}. Please enter the code to continue." : "Enviouse un código de verificación a: {contact}. Introduce o código para continuar.",
-    "{method} is not configured. Please contact your administrator." : "{method} non está configurado. Póñase en contacto coa administración do sitio.",
-    "Unable to send verification code." : "Non foi posible enviar o código de verificación.",
     "To verify your identity, enter the same email address where you received the signature request. We will send a verification code to this address." : "Para verificar a túa identidade, introduce o mesmo enderezo de correo electrónico onde recibiches a solicitude de sinatura. Enviaremos un código de verificación a ese enderezo.",
     "To sign this document, we must verify your identity. Enter your contact information to receive a verification code." : "Para asinar este documento, debemos verificar a túa identidade. Introduce a túa información de contacto para recibir un código de verificación.",
     "Contact information" : "Información de contacto",
@@ -1012,6 +1011,7 @@ OC.L10N.register(
     "Name is mandatory" : "O nome é obrigatorio",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Configuración da Autoridade de Datado Dixital (TSA polas siglas en inglés) para a sinatura dixital de documentos.",
     "Make validation URL acessible only by authenticated users" : "Facer que o URL de validación só sexa accesíbel aos usuarios autenticados",
+    "{method} is not configured. Please contact your administrator." : "{method} non está configurado. Póñase en contacto coa administración do sitio.",
     "Sign the document." : "Asinar o documento."
 },
 "nplurals=2; plural=(n != 1);");
