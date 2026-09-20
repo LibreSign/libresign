@@ -12,6 +12,7 @@ use bovigo\vfs\vfsStream;
 use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Service\Install\DependencyStorage;
 use OCA\Libresign\Service\Install\JSignPdfRelease;
 use OCA\Libresign\Service\Install\SetupSignatureVerifier;
 use OCA\Libresign\Service\Install\SignSetupService;
@@ -30,6 +31,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
 	private IAppManager&MockObject $appManager;
 	private IAppDataFactory $appDataFactory;
+	private DependencyStorage $dependencyStorage;
 	private ITempManager $tempManager;
 
 	#[\Override]
@@ -40,6 +42,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config = $this->createMock(IConfig::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
+		$this->dependencyStorage = new DependencyStorage($this->appDataFactory, $this->config);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
 	}
 
@@ -59,7 +62,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->config,
 				$this->appConfig,
 				$this->appManager,
-				$this->appDataFactory,
+				$this->dependencyStorage,
 				$this->tempManager,
 			])
 			->onlyMethods($methods)
