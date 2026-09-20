@@ -64,10 +64,11 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testIsDownloadWipChecksResourcesAfterEmptyProgress(): void {
 		$cache = $this->createMock(ICache::class);
 		$cache->method('get')
-			->willReturnCallback(static fn (string $key): ?array => match ($key) {
-				'libresign-asyncDownloadProgress-java' => null,
-				'libresign-asyncDownloadProgress-jsignpdf' => ['pid' => 123],
-				default => null,
+			->willReturnCallback(static function (string $key): ?array {
+				if (str_contains($key, 'asyncDownloadProgress-jsignpdf:')) {
+					return ['pid' => 123];
+				}
+				return null;
 			});
 
 		$installService = $this->getInstallService($cache);
