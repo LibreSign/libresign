@@ -28,6 +28,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		parent::beforeSuite($scope);
 		FixtureHttpServer::start();
 		self::runCommand('config:system:set debug --value true --type boolean');
+		self::runCommand('config:system:set allow_local_remote_servers --value true --type boolean');
 		self::runCommand('app:enable --force notifications');
 	}
 
@@ -57,6 +58,8 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$fields = $this->fields;
 		$fields['BASE_URL'] = $this->baseUrl . '/index.php';
 		$fields['TSA_URL'] = getenv('LIBRESIGN_TSA_URL') ?: 'https://freetsa.org/tsr';
+		$fields['SMALL_VALID_PDF_BASE64'] = $this->getSmallValidPdfBase64();
+		$fields['SMALL_VALID_PDF_URL'] = FixtureHttpServer::getSmallValidPdfUrl();
 		foreach ($fields as $key => $value) {
 			$patterns[] = '/<' . $key . '>/';
 			$replacements[] = $value;
@@ -69,10 +72,10 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	/**
 	 * Inline PDF fixture for Behat requests that do not need to exercise url download.
 	 *
-	 * Prefer this over url→the Behat Nextcloud server. For url coverage use <PDF_URL>,
+	 * Prefer this over url→the Behat Nextcloud server. For url coverage use <SMALL_VALID_PDF_URL>,
 	 * which is served by FixtureHttpServer on a separate local port.
 	 */
-	private function getDemoPdfBase64(): string {
+	private function getSmallValidPdfBase64(): string {
 		$pdfPath = __DIR__ . '/../../../php/fixtures/pdfs/small_valid.pdf';
 		$contents = file_get_contents($pdfPath);
 		Assert::assertNotFalse($contents, 'Demo PDF fixture missing: ' . $pdfPath);

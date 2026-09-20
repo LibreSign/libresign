@@ -5,7 +5,7 @@ Feature: validate
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"admin"}]},{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | status | 0 |
       | name | Visible elements validation |
@@ -71,7 +71,7 @@ Feature: validate
       | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}}}] |
     And user "signer1" exists
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Document Name |
     Then the response should have a status code 200
@@ -115,7 +115,7 @@ Feature: validate
     And sending "delete" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/make_validation_url_private"
 
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"admin"}]}] |
       | name | document |
     And the response should have a status code 200
