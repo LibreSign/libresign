@@ -24,7 +24,6 @@ namespace OCA\Libresign\Tests\Unit\SetupCheck;
 
 use OCA\Libresign\Handler\SignEngine\JSignPdf\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
-use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\JSignPdfRelease;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCA\Libresign\SetupCheck\JSignPdfSetupCheck;
