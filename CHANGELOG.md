@@ -19,6 +19,18 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 15.0.3 - 2026-09-20
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- update translations
+
+### Fixed
+- use the installed JSignPdf release version as the single source of truth [#8470](https://github.com/LibreSign/libresign/pull/8470)
+
 ## 15.0.2 - 2026-09-19
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
