@@ -86,10 +86,6 @@ final readonly class InstallTarget {
 		} catch (\Exception) {
 		}
 
-		if (file_exists('/etc/alpine-release')) {
-			return 'alpine-linux';
-		}
-
 		return 'linux';
 	}
 
