@@ -12,7 +12,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCP\Http\Client\IClientService;
 use Psr\Log\LoggerInterface;
 
-final class DependencyDownloader {
+class DependencyDownloader {
 	public function __construct(
 		private IClientService $clientService,
 		private LoggerInterface $logger,
