@@ -1,5 +1,5 @@
 <!--
- - SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ - SPDX-FileCopyrightText: 2020-2026 LibreCode coop and contributors
  - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 # Changelog
@@ -21,9 +21,28 @@ Types of changes:
 
 ## 7.1.1 - 2023-04-12
 ### Changed
+* Update translations
+* Drop libresign cli
+* Add identify method
+* Add more tests
+* Bump packages
+### Fixed
+* fix: style preview signatur modal like canva style
 
 ## 7.1.0 - 2023-04-01
 ### Changed
+* Make possible change the default user folder
+* Hide initial and fix save signature modal
+* Hide generate passowrd when cert handler isn't ok
+* Remove sidebar marging
+* Change validate page image
+* Make the text more clear
+* Increase PDF validation
+
+### Fixed
+* Fix save signature as image
+* Fix generate root certificate at the first time
 
 ## 7.0.0 - 2023-03-21
 ### Changed
+* Compatibility with Nextcloud Hub 4 (26)
