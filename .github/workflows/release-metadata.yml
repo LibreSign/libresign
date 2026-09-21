@@ -40,6 +40,15 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
+      - id: release-tool
+        name: Setup release-tool
+        uses: LibreCodeCoop/github-workflows/actions/setup-release-tool@fa74ed806d12ce2013a3d141c91282825bf3e083
+        with:
+          version: '0.3.0'
+      - name: Validate release-tool consumer configuration
+        env:
+          RELEASE_TOOL_PATH: ${{ steps.release-tool.outputs.path }}
+        run: php "${RELEASE_TOOL_PATH}" config:validate --config .nextcloud-release.yml --root .
       - name: Test release metadata mapping
         run: node --test tests/release-metadata.test.mjs
       - name: Verify current release metadata
