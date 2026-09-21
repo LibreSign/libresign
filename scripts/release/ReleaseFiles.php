@@ -62,21 +62,35 @@ final class ReleaseFiles {
 		$this->writePackageVersion($root . '/package.json', $version);
 		$this->writePackageLockVersion($root . '/package-lock.json', $version);
 
-		$path = $root . '/CHANGELOG.md';
+		$path = $this->changelogPath($root, $version);
 		$current = (string)file_get_contents($path);
 		if (preg_match('/^## ' . preg_quote($version, '/') . ' - /m', $current)) {
-			throw new \RuntimeException("CHANGELOG.md already contains {$version}");
+			throw new \RuntimeException(basename($path) . " already contains {$version}");
 		}
 		file_put_contents($path, rtrim($changelog) . "\n\n" . $current);
 	}
 
 	public function changelogSection(string $root, string $version): string {
-		$contents = (string)file_get_contents($root . '/CHANGELOG.md');
+		$path = $this->changelogPath($root, $version);
+		$contents = (string)file_get_contents($path);
 		$pattern = '/^## ' . preg_quote($version, '/') . ' - [^\n]+\n(?<body>.*?)(?=^## |\z)/ms';
 		if (!preg_match($pattern, $contents, $matches)) {
-			throw new \RuntimeException("CHANGELOG.md has no release section for {$version}");
+			throw new \RuntimeException(basename($path) . " has no release section for {$version}");
 		}
 		return trim((string)$matches['body']);
+	}
+
+
+	public function changelogPath(string $root, string $version): string {
+		if (!preg_match('/^(?<major>\\d+)\\./', $version, $matches)) {
+			throw new \InvalidArgumentException("Invalid release version: {$version}");
+		}
+
+		$path = sprintf('%s/docs/changelogs/changelog-%s.md', $root, $matches['major']);
+		if (!is_file($path)) {
+			throw new \RuntimeException("Missing changelog for LibreSign {$matches['major']}: {$path}");
+		}
+		return $path;
 	}
 
 	private function readJsonVersion(string $path): string {
