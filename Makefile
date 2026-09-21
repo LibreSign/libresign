@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+# SPDX-FileCopyrightText: 2020-2026 LibreCode coop and contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Dependencies:
@@ -14,6 +14,9 @@ appstore_build_directory=$(CURDIR)/build/artifacts
 appstore_package_name=$(appstore_build_directory)/$(app_name)
 appstore_sign_dir=$(appstore_build_directory)/sign
 cert_dir=$(build_tools_directory)/certificates
+release_version=$(shell sed -n 's:.*<version>\([^<]*\)</version>.*:\1:p' appinfo/info.xml)
+release_major=$(word 1,$(subst ., ,$(release_version)))
+release_changelog=$(CURDIR)/docs/changelogs/changelog-$(release_major).md
 npm=$(shell which npm 2> /dev/null)
 composer=$(shell which composer 2> /dev/null)
 ifneq (,$(wildcard $(CURDIR)/../nextcloud/occ))
@@ -98,9 +101,18 @@ update-workflows:
 updateocp:
 	php -r 'if (shell_exec("diff -qr ../../lib/public/ vendor/nextcloud/ocp/OCP/")) {\exec("rm -rf vendor/nextcloud/ocp/OCP/");\exec("cp -r ../../lib/public vendor/nextcloud/ocp/OCP/");}'
 
+.PHONY: verify-release-metadata
+verify-release-metadata:
+	@test -n "$(release_version)" || (echo "Unable to read app version from appinfo/info.xml" >&2; exit 1)
+	@test -f "$(release_changelog)" || (echo "Missing changelog for app major $(release_major): $(release_changelog)" >&2; exit 1)
+
+.PHONY: print-release-changelog
+print-release-changelog: verify-release-metadata
+	@printf '%s\n' "docs/changelogs/changelog-$(release_major).md"
+
 # Builds the source package for the app store, ignores php and js tests
 .PHONY: appstore
-appstore:
+appstore: verify-release-metadata
 	rm -rf $(appstore_build_directory)
 	mkdir -p $(appstore_sign_dir)/$(app_name)
 	cp -r \
@@ -114,9 +126,9 @@ appstore:
 		templates \
 		vendor \
 		3rdparty \
-		CHANGELOG.md \
 		openapi*.json \
 		$(appstore_sign_dir)/$(app_name)
+	cp $(release_changelog) $(appstore_sign_dir)/$(app_name)/CHANGELOG.md
 	if [ -d dist ]; then \
 		cp -r dist $(appstore_sign_dir)/$(app_name)/; \
 	fi
@@ -175,7 +187,9 @@ appstore:
 	fi
 
 .PHONY: verify-appstore-package
-verify-appstore-package:
+verify-appstore-package: verify-release-metadata
+	test -f $(appstore_sign_dir)/$(app_name)/CHANGELOG.md
+	cmp $(release_changelog) $(appstore_sign_dir)/$(app_name)/CHANGELOG.md
 	test -d $(appstore_sign_dir)/$(app_name)/css
 	test -d $(appstore_sign_dir)/$(app_name)/js
 	find \
