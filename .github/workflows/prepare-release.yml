@@ -144,7 +144,8 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.release.tag_name }}
 
-      - name: Verify publication
+      - id: publication
+        name: Verify publication
         uses: LibreCodeCoop/github-workflows/actions/release-publication@622599cc128ec55007b443d2908f78da930b8a21 # v0.5.0
         with:
           github-release-id: ${{ github.event.release.id }}
