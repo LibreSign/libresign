@@ -1,0 +1,153 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Prepare release
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Stable branch to release (for example stable35)
+        required: true
+        type: string
+      ref:
+        description: Optional exact commit/ref override
+        required: false
+        type: string
+      version:
+        description: Optional explicit version override
+        required: false
+        type: string
+      channel:
+        description: Release channel
+        required: true
+        default: final
+        type: choice
+        options:
+          - alpha
+          - beta
+          - rc
+          - final
+      ignore_open_backport:
+        description: Ignore an open backport blocker for this stable
+        required: true
+        default: false
+        type: boolean
+      create_follow_up_milestone:
+        description: Create the next configured milestone
+        required: true
+        default: true
+        type: boolean
+      mode:
+        description: Release mode
+        required: true
+        default: normal
+        type: choice
+        options:
+          - normal
+          - security
+      safe_public_text:
+        description: Public-safe release text for security mode
+        required: false
+        type: string
+  pull_request:
+    types: [closed]
+  release:
+    types: [published]
+
+permissions: {}
+
+concurrency:
+  group: release-automation-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare release PR
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    steps:
+      - name: Checkout selected release state
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ inputs.ref != '' && inputs.ref || inputs.branch }}
+
+      - name: Prepare release
+        uses: LibreCodeCoop/github-workflows/actions/release-prepare@9f09a2891fd11d8476d37a7d1ce3c8d614e85b56
+        with:
+          branch: ${{ inputs.branch }}
+          ref: ${{ inputs.ref }}
+          version: ${{ inputs.version }}
+          channel: ${{ inputs.channel }}
+          mode: ${{ inputs.mode }}
+          safe-public-text: ${{ inputs.safe_public_text }}
+          ignore-open-backport: ${{ inputs.ignore_open_backport }}
+          create-follow-up-milestone: ${{ inputs.create_follow_up_milestone }}
+          config-path: .nextcloud-release.yml
+          actor: ${{ github.actor }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          app-id: ${{ vars.LIBRECODE_WORKFLOW_APP_ID }}
+          app-private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
+
+  post_merge:
+    name: Finalize release and prepare draft
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'release-tool/') &&
+      contains(github.event.pull_request.body, '<!-- release-tool:preparation ')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout merged release branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.base.ref }}
+
+      - name: Finalize merged release
+        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@9f09a2891fd11d8476d37a7d1ce3c8d614e85b56
+        with:
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merger: ${{ github.event.pull_request.merged_by.login }}
+          config-path: .nextcloud-release.yml
+          prepare-workflow-path: .github/workflows/prepare-release.yml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          app-id: ${{ vars.LIBRECODE_WORKFLOW_APP_ID }}
+          app-private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
+
+  verify_publication:
+    name: Verify published release
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout published release
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Verify publication
+        uses: LibreCodeCoop/github-workflows/actions/release-publication@9f09a2891fd11d8476d37a7d1ce3c8d614e85b56
+        with:
+          github-release-id: ${{ github.event.release.id }}
+          config-path: .nextcloud-release.yml
+          post-merge-workflow-path: .github/workflows/prepare-release.yml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
