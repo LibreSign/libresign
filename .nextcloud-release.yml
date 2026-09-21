@@ -39,3 +39,40 @@ package:
     - make
     - appstore
     - verify-appstore-package
+  required_paths:
+    - appinfo
+    - composer
+    - css
+    - img
+    - js
+    - l10n
+    - lib
+    - templates
+    - vendor
+    - 3rdparty
+    - openapi.json
+    - openapi-administration.json
+    - openapi-full.json
+    - tests/php/fixtures/pdfs/small_valid.pdf
+  forbidden_paths:
+    - .git
+    - .github
+    - .devcontainer
+    - .patches
+    - build
+    - docs
+    - node_modules
+    - playwright
+    - src
+    - vendor-bin
+    - img/screenshot
+    - 3rdparty/.git
+    - 3rdparty/.github
+    - 3rdparty/vendor
+    - 3rdparty/vendor-bin
+    - 3rdparty/scoper.inc.php
+
+publication:
+  publisher_workflow: appstore-build-publish.yml
+  asset_name: '{app}-{tag}.tar.gz'
+  appstore_api: https://apps.nextcloud.com/api/v1/apps.json
