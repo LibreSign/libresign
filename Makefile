@@ -103,13 +103,11 @@ updateocp:
 
 .PHONY: verify-release-metadata
 verify-release-metadata:
-	@test -n "$(release_version)" || (echo "Unable to read app version from appinfo/info.xml" >&2; exit 1)
-	@test -f "$(release_changelog)" || (echo "Missing changelog for app major $(release_major): $(release_changelog)" >&2; exit 1)
-	@node -e 'const fs=require("fs"); const p=require("./package.json").version; const l=require("./package-lock.json").version; const xml=fs.readFileSync("appinfo/info.xml","utf8").match(/<version>([^<]+)<\/version>/)?.[1]; if (!xml || p !== xml || l !== xml) { console.error(`Release version mismatch: info.xml=${xml} package.json=${p} package-lock.json=${l}`); process.exit(1); }'
+	@node scripts/release-metadata.mjs verify >/dev/null
 
 .PHONY: print-release-changelog
 print-release-changelog: verify-release-metadata
-	@printf '%s\n' "$(release_changelog)"
+	@node scripts/release-metadata.mjs changelog
 
 # Builds the source package for the app store, ignores php and js tests
 .PHONY: appstore
@@ -188,7 +186,9 @@ appstore: verify-release-metadata
 	fi
 
 .PHONY: verify-appstore-package
-verify-appstore-package:
+verify-appstore-package: verify-release-metadata
+	test -f $(appstore_sign_dir)/$(app_name)/CHANGELOG.md
+	cmp $(release_changelog) $(appstore_sign_dir)/$(app_name)/CHANGELOG.md
 	test -d $(appstore_sign_dir)/$(app_name)/css
 	test -d $(appstore_sign_dir)/$(app_name)/js
 	find $(appstore_sign_dir)/$(app_name)/js -maxdepth 1 -name 'pdf.worker.min-*.mjs' | grep -q .
