@@ -37,7 +37,7 @@ jobs:
 
       - id: release
         name: Validate release consumer
-        uses: LibreCodeCoop/github-workflows/actions/validate-release-consumer@b0f1a51911ed5424a0dfa1ff0cb732cbd57c3d4c
+        uses: LibreCodeCoop/github-workflows/actions/validate-release-consumer@83fdddeb3efe9b9e464e1f5c2e2772322af94fc8
 
       - name: Verify packaging changelog mapping
         env:
