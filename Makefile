@@ -103,11 +103,12 @@ updateocp:
 
 .PHONY: verify-release-metadata
 verify-release-metadata:
-	@node scripts/release-metadata.mjs verify >/dev/null
+	@test -n "$(release_version)" || (echo "Unable to read app version from appinfo/info.xml" >&2; exit 1)
+	@test -f "$(release_changelog)" || (echo "Missing changelog for app major $(release_major): $(release_changelog)" >&2; exit 1)
 
 .PHONY: print-release-changelog
 print-release-changelog: verify-release-metadata
-	@node scripts/release-metadata.mjs changelog
+	@printf '%s\n' "docs/changelogs/changelog-$(release_major).md"
 
 # Builds the source package for the app store, ignores php and js tests
 .PHONY: appstore
