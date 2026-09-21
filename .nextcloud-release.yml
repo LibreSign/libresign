@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+schema: 1
+repository: LibreSign/libresign
+
+app:
+  id: libresign
+  main_branch: main
+
+branches:
+  stable_pattern: '^stable(?<nextcloud>\d+)$'
+
+version:
+  source: appinfo/info.xml
+  mirrors:
+    - package.json
+    - package-lock.json
+  tag_prefix: v
+
+history:
+  previous_release: reachable-tag
+
+changelog:
+  strategy: per-major
+  path: 'docs/changelogs/changelog-{major}.md'
+  package_root: CHANGELOG.md
+
+milestones:
+  patch: 'Next Patch ({nextcloud})'
+  rc: 'Next RC ({nextcloud})'
+
+authorization:
+  prepare_min_permission: maintain
+  merge_min_permission: maintain
+
+package:
+  command:
+    - make
+    - appstore
+    - verify-appstore-package
