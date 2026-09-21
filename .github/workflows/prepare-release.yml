@@ -7,19 +7,19 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: Stable branch to release (for example stable35)
+        description: 'Stable branch to release, e.g. stable33. One branch per run. Guide: https://github.com/LibreSign/documentation/blob/main/developer_manual/release-process/preparing.rst'
         required: true
         type: string
       ref:
-        description: Optional exact commit/ref override
+        description: Exact commit or tag to plan instead of branch HEAD. Leave blank to use the latest branch state.
         required: false
         type: string
       version:
-        description: Optional explicit version override
+        description: Force a version instead of the calculated one. Branch and version rules are still validated.
         required: false
         type: string
       channel:
-        description: Release channel
+        description: final for a normal release; alpha, beta or rc for a prerelease.
         required: true
         default: final
         type: choice
@@ -29,17 +29,17 @@ on:
           - rc
           - final
       ignore_open_backport:
-        description: Ignore an open backport blocker for this stable
+        description: Allow release with a matching backport PR still open. Use only after reviewing the blocker.
         required: true
         default: false
         type: boolean
       create_follow_up_milestone:
-        description: Create the next configured milestone
+        description: After release, create the next milestone and move remaining open items to it.
         required: true
         default: true
         type: boolean
       mode:
-        description: Release mode
+        description: normal for regular releases; security keeps advisory-private details out of public release text.
         required: true
         default: normal
         type: choice
@@ -47,7 +47,7 @@ on:
           - normal
           - security
       safe_public_text:
-        description: Public-safe release text for security mode
+        description: Public wording used only in security mode. Never include private advisory details.
         required: false
         type: string
   pull_request:
@@ -144,8 +144,7 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.release.tag_name }}
 
-      - id: publication
-        name: Verify publication
+      - name: Verify publication
         uses: LibreCodeCoop/github-workflows/actions/release-publication@622599cc128ec55007b443d2908f78da930b8a21 # v0.5.0
         with:
           github-release-id: ${{ github.event.release.id }}
