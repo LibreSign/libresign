@@ -10,6 +10,10 @@ on:
       - 'scripts/release/**'
       - 'tests/release/**'
       - 'composer.json'
+      - 'Makefile'
+      - 'docs/changelogs/**'
+      - 'Makefile'
+      - 'docs/changelogs/**'
   push:
     branches:
       - main
