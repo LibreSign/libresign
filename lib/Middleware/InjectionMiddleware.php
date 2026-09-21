@@ -104,12 +104,12 @@ class InjectionMiddleware extends Middleware {
 		if (!empty($reflectionMethod->getAttributes(RequireSignerUuid::class))) {
 			$this->requireSignerUuid();
 		}
+		$this->requireSetupOk($reflectionMethod);
+		$this->privateValidation($reflectionMethod);
+
 		if (!empty($reflectionMethod->getAttributes(RequireFileAccess::class))) {
 			$this->requireFileAccess($reflectionMethod);
 		}
-
-		$this->requireSetupOk($reflectionMethod);
-		$this->privateValidation($reflectionMethod);
 
 		$this->handleUuid($controller, $reflectionMethod);
 	}
@@ -315,11 +315,16 @@ class InjectionMiddleware extends Middleware {
 		$requirement = $attribute->newInstance();
 
 		$identifier = $requirement->getIdentifier();
-		$hasAccess = match ($identifier) {
-			'nodeId' => $this->fileAccessService->userCanAccessFileByNodeId((int)$this->request->getParam('nodeId', -1)),
-			'fileId' => $this->fileAccessService->userCanAccessFileById((int)$this->request->getParam('fileId', -1)),
-			default => throw new \InvalidArgumentException('Unsupported file access identifier: ' . $identifier),
-		};
+
+		try {
+			$hasAccess = match ($identifier) {
+				'nodeId' => $this->fileAccessService->userCanAccessFileByNodeId((int)$this->request->getParam('nodeId', -1)),
+				'fileId' => $this->fileAccessService->userCanAccessFileById((int)$this->request->getParam('fileId', -1)),
+				default => throw new \InvalidArgumentException('Unsupported file access identifier: ' . $identifier),
+			};
+		} catch (\OCP\AppFramework\Db\DoesNotExistException) {
+			throw new LibresignException(json_encode([]), Http::STATUS_NOT_FOUND);
+		}
 
 		if ($hasAccess) {
 			return;
