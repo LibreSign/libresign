@@ -80,7 +80,7 @@ jobs:
           ref: ${{ inputs.ref != '' && inputs.ref || inputs.branch }}
 
       - name: Prepare release
-        uses: LibreCodeCoop/github-workflows/actions/release-prepare@8cfcd2f724e5134e30ef88ea6af2e6c2ef3b4734
+        uses: LibreCodeCoop/github-workflows/actions/release-prepare@002f17274ba1eade3351ba81890bf53674b37c43 # v0.4.0
         with:
           branch: ${{ inputs.branch }}
           ref: ${{ inputs.ref }}
@@ -118,7 +118,7 @@ jobs:
           ref: ${{ github.event.pull_request.base.ref }}
 
       - name: Finalize merged release
-        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@8cfcd2f724e5134e30ef88ea6af2e6c2ef3b4734
+        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@002f17274ba1eade3351ba81890bf53674b37c43 # v0.4.0
         with:
           pull-request-number: ${{ github.event.pull_request.number }}
           merger: ${{ github.event.pull_request.merged_by.login }}
@@ -146,7 +146,7 @@ jobs:
 
       - id: publication
         name: Verify publication
-        uses: LibreCodeCoop/github-workflows/actions/release-publication@8cfcd2f724e5134e30ef88ea6af2e6c2ef3b4734
+        uses: LibreCodeCoop/github-workflows/actions/release-publication@002f17274ba1eade3351ba81890bf53674b37c43 # v0.4.0
         with:
           github-release-id: ${{ github.event.release.id }}
           config-path: .nextcloud-release.yml
