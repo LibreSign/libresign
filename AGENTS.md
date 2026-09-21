@@ -389,8 +389,8 @@ For outward-facing GitHub text such as PR titles, PR descriptions, issue comment
 - Use the published LibreSign release process documentation as the release source of truth: https://docs.libresign.coop/developer_manual/release-process.html
 - When changing the release or deployment process, update the source documentation in https://github.com/LibreSign/documentation/ so the published docs remain the source of truth.
 - Important behavior and workflows for users, administrators, and developers should be documented in https://github.com/LibreSign/documentation/ and kept current for the active LibreSign major release, following the same living-documentation model used by Nextcloud Server. Avoid creating parallel legacy notes or local workaround documents when the official documentation should be updated instead.
-- Keep release PRs scoped to release files such as `CHANGELOG.md`, `appinfo/info.xml`, `package.json`, and `package-lock.json` unless the documented process says otherwise.
-- Patch releases generally update the changelog on `main`, backport to stable branches, and publish oldest stable first.
+- Keep release PRs scoped to the matching `docs/changelogs/changelog-<major>.md`, `appinfo/info.xml`, `package.json`, and `package-lock.json` unless the documented process says otherwise.
+- Release changelogs are maintained per LibreSign major under `docs/changelogs/`; App Store packaging copies the matching major file to the package root as `CHANGELOG.md`. Publish multiple stable releases oldest stable first.
 - Before release PRs or backports, fetch current `main`, active `stable*` branches, and tags; stale refs can hide merged backports.
 - Use local notes files for multiline GitHub release text instead of inline shell heredocs when possible.
 
