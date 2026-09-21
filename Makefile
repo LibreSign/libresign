@@ -119,14 +119,14 @@ appstore:
 	if [ -d dist ]; then \
 		cp -r dist $(appstore_sign_dir)/$(app_name)/; \
 	fi
-	@release_version=$(php -r '$xml = simplexml_load_file("appinfo/info.xml"); if ($xml === false) { exit(1); } echo (string)$xml->version;'); \
-		release_major=${release_version%%.*}; \
-		changelog="docs/changelogs/changelog-$release_major.md"; \
-		if [ ! -f "$changelog" ]; then \
-			echo "Error: $changelog not found for LibreSign $release_version"; \
+	@release_version=$$(php -r '$$xml = simplexml_load_file("appinfo/info.xml"); if ($$xml === false) { exit(1); } echo (string)$$xml->version;'); \
+		release_major=$${release_version%%.*}; \
+		changelog="docs/changelogs/changelog-$$release_major.md"; \
+		if [ ! -f "$$changelog" ]; then \
+			echo "Error: $$changelog not found for LibreSign $$release_version"; \
 			exit 1; \
 		fi; \
-		cp "$changelog" "$(appstore_sign_dir)/$(app_name)/CHANGELOG.md"
+		cp "$$changelog" "$(appstore_sign_dir)/$(app_name)/CHANGELOG.md"
 	rm -rf $(appstore_sign_dir)/$(app_name)/img/screenshot/
 	rm -rf $(appstore_sign_dir)/$(app_name)/3rdparty/.git
 	rm -rf $(appstore_sign_dir)/$(app_name)/3rdparty/.github
@@ -185,11 +185,14 @@ appstore:
 verify-appstore-package:
 	test -d $(appstore_sign_dir)/$(app_name)/css
 	test -f $(appstore_sign_dir)/$(app_name)/CHANGELOG.md
-	@release_version=$(php -r '$xml = simplexml_load_file("appinfo/info.xml"); if ($xml === false) { exit(1); } echo (string)$xml->version;'); \
-		grep -Fq "## $release_version " $(appstore_sign_dir)/$(app_name)/CHANGELOG.md || { \
-			echo "Error: packaged CHANGELOG.md has no section for $release_version"; \
-			exit 1; \
-		}
+	@release_version=$$(php -r '$$xml = simplexml_load_file("appinfo/info.xml"); if ($$xml === false) { exit(1); } echo (string)$$xml->version;'); \
+		case "$$release_version" in \
+			*-dev*) ;; \
+			*) grep -Fq "## $$release_version " $(appstore_sign_dir)/$(app_name)/CHANGELOG.md || { \
+				echo "Error: packaged CHANGELOG.md has no section for $$release_version"; \
+				exit 1; \
+			} ;; \
+		esac
 	test -d $(appstore_sign_dir)/$(app_name)/js
 	find \
 		$(appstore_sign_dir)/$(app_name)/js \
