@@ -323,7 +323,10 @@ class InjectionMiddleware extends Middleware {
 				default => throw new \InvalidArgumentException('Unsupported file access identifier: ' . $identifier),
 			};
 		} catch (\OCP\AppFramework\Db\DoesNotExistException) {
-			throw new LibresignException(json_encode([]), Http::STATUS_NOT_FOUND);
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [],
+			]), Http::STATUS_NOT_FOUND);
 		}
 
 		if ($hasAccess) {
