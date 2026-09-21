@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Api\Controller;
 
+use OCA\Libresign\Helper\JSActions;
 use DateTime;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\SignRequestMapper;
@@ -59,7 +60,10 @@ final class FileControllerTest extends ApiTestCase {
 			->withPath('/api/v1/file/validate/file_id/171')
 			->expectStatus(404);
 
-		$this->assertRequest();
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertSame(JSActions::ACTION_DO_NOTHING, $body['ocs']['data']['action']);
+		$this->assertSame([], $body['ocs']['data']['errors']);
 	}
 
 	/**
