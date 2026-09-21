@@ -54,13 +54,13 @@ function main() {
 
 	switch (command) {
 	case 'verify':
-		console.log(metadata.changelog)
+		process.stdout.write(`${metadata.changelog}\n`)
 		break
 	case 'version':
-		console.log(metadata.version)
+		process.stdout.write(`${metadata.version}\n`)
 		break
 	case 'changelog':
-		console.log(metadata.changelog)
+		process.stdout.write(`${metadata.changelog}\n`)
 		break
 	default:
 		throw new Error(`Unknown release metadata command: ${command}`)
@@ -71,7 +71,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
 	try {
 		main()
 	} catch (error) {
-		console.error(error instanceof Error ? error.message : error)
+		process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`)
 		process.exit(1)
 	}
 }
