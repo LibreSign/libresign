@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Api\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
@@ -37,16 +38,30 @@ final class FileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testValidateUsignFileIdWithInvalidData():void {
+	public function testValidateUsignFileIdWithInvalidDataWithoutAuthentication():void {
 		$this->request
+			->withPath('/api/v1/file/validate/file_id/171')
+			->assertResponseCode(403);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testValidateUsignFileIdWithInvalidDataAsAuthenticatedUser():void {
+		$this->createAccount('username', 'password');
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			])
 			->withPath('/api/v1/file/validate/file_id/171')
 			->assertResponseCode(404);
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertCount(1, $body['ocs']['data']['errors']);
-		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
-		$this->assertEquals('Invalid data to validate file', $body['ocs']['data']['errors'][0]['message']);
+		$this->assertSame(JSActions::ACTION_DO_NOTHING, $body['ocs']['data']['action']);
+		$this->assertSame([], $body['ocs']['data']['errors']);
 	}
 
 	/**
