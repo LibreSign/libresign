@@ -23,7 +23,6 @@ final class GitHubReleaseManager {
 		]);
 		$files = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
 		$allowed = [
-			'CHANGELOG.md',
 			'appinfo/info.xml',
 			'package.json',
 			'package-lock.json',
@@ -32,7 +31,8 @@ final class GitHubReleaseManager {
 		$unexpected = [];
 		foreach (is_array($files) ? $files : [] as $file) {
 			$name = is_array($file) ? (string)($file['filename'] ?? '') : '';
-			if ($name !== '' && !in_array($name, $allowed, true)) {
+			$isChangelog = preg_match('#^docs/changelogs/changelog-\\d+\\.md$#', $name) === 1;
+			if ($name !== '' && !$isChangelog && !in_array($name, $allowed, true)) {
 				$unexpected[] = $name;
 			}
 		}
