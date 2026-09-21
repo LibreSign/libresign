@@ -10,8 +10,6 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'docs/changelogs/**'
-      - 'scripts/release-metadata.mjs'
-      - 'tests/release-metadata.test.mjs'
       - 'Makefile'
   push:
     branches:
@@ -23,8 +21,6 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'docs/changelogs/**'
-      - 'scripts/release-metadata.mjs'
-      - 'tests/release-metadata.test.mjs'
       - 'Makefile'
 permissions:
   contents: read
@@ -44,14 +40,16 @@ jobs:
         name: Setup release-tool
         uses: LibreCodeCoop/github-workflows/actions/setup-release-tool@fa74ed806d12ce2013a3d141c91282825bf3e083
         with:
-          version: '0.3.0'
+          version: '0.4.0'
       - name: Validate release-tool consumer configuration
         env:
           RELEASE_TOOL_PATH: ${{ steps.release-tool.outputs.path }}
         run: php "${RELEASE_TOOL_PATH}" config:validate --config .nextcloud-release.yml --root .
-      - name: Test release metadata mapping
-        run: node --test tests/release-metadata.test.mjs
-      - name: Verify current release metadata
-        run: make verify-release-metadata
-      - name: Verify changelog selection
-        run: test "$(make -s print-release-changelog)" = "docs/changelogs/changelog-16.md"
+      - name: Validate current release metadata
+        env:
+          RELEASE_TOOL_PATH: ${{ steps.release-tool.outputs.path }}
+        run: php "${RELEASE_TOOL_PATH}" metadata:inspect --config .nextcloud-release.yml --root . --ref HEAD --json
+      - name: Verify packaging changelog mapping
+        run: |
+          make verify-release-metadata
+          test "$(make -s print-release-changelog)" = "docs/changelogs/changelog-16.md"
