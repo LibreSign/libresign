@@ -38,9 +38,7 @@ jobs:
           package-manager-cache: false
       - id: release-tool
         name: Setup release-tool
-        uses: LibreCodeCoop/github-workflows/actions/setup-release-tool@fa74ed806d12ce2013a3d141c91282825bf3e083
-        with:
-          version: '0.4.0'
+        uses: LibreCodeCoop/github-workflows/actions/setup-release-tool@487d9a999c576df09fe292092cee5c8efe2abb05
       - name: Validate release-tool consumer configuration
         env:
           RELEASE_TOOL_PATH: ${{ steps.release-tool.outputs.path }}
