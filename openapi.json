@@ -4667,13 +4667,20 @@
                             "application/json": {
                                 "schema": {
                                     "type": "object",
-                                    "required": ["ocs"],
+                                    "required": [
+                                        "ocs"
+                                    ],
                                     "properties": {
                                         "ocs": {
                                             "type": "object",
-                                            "required": ["meta", "data"],
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
                                             "properties": {
-                                                "meta": {"$ref": "#/components/schemas/OCSMeta"},
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
                                                 "data": {}
                                             }
                                         }
