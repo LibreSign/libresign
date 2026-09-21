@@ -1,5 +1,5 @@
 <!--
- - SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ - SPDX-FileCopyrightText: 2020-2026 LibreCode coop and contributors
  - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 # Changelog
@@ -21,3 +21,7 @@ Types of changes:
 
 ## 4.2.0 - 2022-10-23
 ### Changed
+* Easy setup without necessity to run commands in server
+* Updated translations
+* Bump JSignPdf
+* Prevent delete signed file when original file was deleted
