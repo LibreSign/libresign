@@ -17,6 +17,11 @@ Feature: file id authorization
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
     And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
 
+  Scenario: Unauthenticated user cannot validate a document by internal file id
+    Given as user ""
+    When sending "get" to ocs "/apps/libresign/api/v1/file/validate/file_id/<FILE_ID>?showVisibleElements=false&showMessages=false&showValidateFile=false"
+    Then the response should have a status code 403
+
   Scenario: An unrelated authenticated user cannot validate a document by internal file id
     Given as user "attacker"
     When sending "get" to ocs "/apps/libresign/api/v1/file/validate/file_id/<FILE_ID>?showVisibleElements=false&showMessages=false&showValidateFile=false"
