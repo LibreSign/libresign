@@ -138,6 +138,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[RequireFileAccess('fileId')]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/validate/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
 	public function validateFileId(
 		int $fileId,
