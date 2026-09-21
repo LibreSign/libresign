@@ -80,7 +80,7 @@ jobs:
           ref: ${{ inputs.ref != '' && inputs.ref || inputs.branch }}
 
       - name: Prepare release
-        uses: LibreCodeCoop/github-workflows/actions/release-prepare@9f09a2891fd11d8476d37a7d1ce3c8d614e85b56
+        uses: LibreCodeCoop/github-workflows/actions/release-prepare@5716bcb361540643dedadafef579f542cb298b85
         with:
           branch: ${{ inputs.branch }}
           ref: ${{ inputs.ref }}
@@ -118,7 +118,7 @@ jobs:
           ref: ${{ github.event.pull_request.base.ref }}
 
       - name: Finalize merged release
-        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@9f09a2891fd11d8476d37a7d1ce3c8d614e85b56
+        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@5716bcb361540643dedadafef579f542cb298b85
         with:
           pull-request-number: ${{ github.event.pull_request.number }}
           merger: ${{ github.event.pull_request.merged_by.login }}
@@ -144,10 +144,19 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.release.tag_name }}
 
-      - name: Verify publication
-        uses: LibreCodeCoop/github-workflows/actions/release-publication@9f09a2891fd11d8476d37a7d1ce3c8d614e85b56
+      - id: publication
+        name: Verify publication
+        uses: LibreCodeCoop/github-workflows/actions/release-publication@5716bcb361540643dedadafef579f542cb298b85
         with:
           github-release-id: ${{ github.event.release.id }}
           config-path: .nextcloud-release.yml
           post-merge-workflow-path: .github/workflows/prepare-release.yml
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Synchronize public release history
+        uses: LibreCodeCoop/github-workflows/actions/sync-release-history@5716bcb361540643dedadafef579f542cb298b85
+        with:
+          prepared-path: ${{ steps.publication.outputs.prepared-path }}
+          verification-path: ${{ steps.publication.outputs.verification-path }}
+          documentation-repository: LibreSign/documentation
+          app-id: ${{ vars.LIBRECODE_WORKFLOW_APP_ID }}
+          app-private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
