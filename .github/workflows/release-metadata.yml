@@ -22,8 +22,10 @@ on:
       - 'package-lock.json'
       - 'docs/changelogs/**'
       - 'Makefile'
+
 permissions:
   contents: read
+
 jobs:
   metadata:
     runs-on: ubuntu-latest
@@ -32,30 +34,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: '24'
-          package-manager-cache: false
-      - id: release-tool
-        name: Setup release-tool
-        uses: LibreCodeCoop/github-workflows/actions/setup-release-tool@487d9a999c576df09fe292092cee5c8efe2abb05
-      - name: Validate release-tool consumer configuration
-        env:
-          RELEASE_TOOL_PATH: ${{ steps.release-tool.outputs.path }}
-        run: php "${RELEASE_TOOL_PATH}" config:validate --config .nextcloud-release.yml --root .
-      - name: Validate current release metadata
-        id: metadata
-        env:
-          RELEASE_TOOL_PATH: ${{ steps.release-tool.outputs.path }}
-        run: |
-          php "${RELEASE_TOOL_PATH}" metadata:inspect --config .nextcloud-release.yml --root . --ref HEAD --json > "${RUNNER_TEMP}/release-metadata.json"
-          cat "${RUNNER_TEMP}/release-metadata.json"
+
+      - id: release
+        name: Validate release consumer
+        uses: LibreCodeCoop/github-workflows/actions/validate-release-consumer@b0f1a51911ed5424a0dfa1ff0cb732cbd57c3d4c
+
       - name: Verify packaging changelog mapping
-        run: |
-          make verify-release-metadata
-          expected="$(php -r '
-            $metadata = json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR);
-            echo $metadata["changelog_path"];
-          ' "${RUNNER_TEMP}/release-metadata.json")"
-          actual="$(make -s print-release-changelog)"
-          test "${actual}" = "${expected}"
+        env:
+          EXPECTED_CHANGELOG: ${{ steps.release.outputs.changelog-path }}
+        run: test "$(make -s print-release-changelog)" = "${EXPECTED_CHANGELOG}"
