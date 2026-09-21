@@ -3458,8 +3458,17 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
-                headers: { [name: string]: unknown; };
-                content: { "application/json": { ocs: { meta: components["schemas"]["OCSMeta"]; data: unknown; }; }; };
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
             };
             /** @description Request failed */
             404: {
