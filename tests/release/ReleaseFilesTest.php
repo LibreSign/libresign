@@ -18,11 +18,12 @@ final class ReleaseFilesTest extends TestCase {
 	protected function setUp(): void {
 		$this->root = sys_get_temp_dir() . '/libresign-release-' . bin2hex(random_bytes(6));
 		mkdir($this->root . '/appinfo', 0777, true);
+		mkdir($this->root . '/docs/changelogs', 0777, true);
 
 		file_put_contents($this->root . '/appinfo/info.xml', "<info>\n  <version>15.0.0</version>\n</info>\n");
 		file_put_contents($this->root . '/package.json', "{\n  \"name\": \"libresign\",\n  \"version\": \"15.0.0\"\n}\n");
 		file_put_contents($this->root . '/package-lock.json', "{\n  \"name\": \"libresign\",\n  \"version\": \"15.0.0\",\n  \"lockfileVersion\": 3,\n  \"packages\": {\n    \"\": {\n      \"name\": \"libresign\",\n      \"version\": \"15.0.0\"\n    }\n  }\n}\n");
-		file_put_contents($this->root . '/CHANGELOG.md', "## 15.0.0 - 2026-09-19\n\n### Fixed\n\n- old fix\n");
+		file_put_contents($this->root . '/docs/changelogs/changelog-15.md', "## 15.0.0 - 2026-09-19\n\n### Fixed\n\n- old fix\n");
 	}
 
 	protected function tearDown(): void {
@@ -49,7 +50,24 @@ final class ReleaseFilesTest extends TestCase {
 
 		self::assertSame(2, substr_count((string)$lock, '"version": "15.0.1"'));
 		self::assertStringContainsString('  "name": "libresign"', (string)$lock);
-		self::assertStringStartsWith('## 15.0.1 - 2026-09-20', file_get_contents($this->root . '/CHANGELOG.md'));
+		self::assertStringStartsWith('## 15.0.1 - 2026-09-20', file_get_contents($this->root . '/docs/changelogs/changelog-15.md'));
+	}
+
+
+	public function testChangelogPathUsesReleaseMajor(): void {
+		$files = new ReleaseFiles();
+
+		self::assertSame(
+			$this->root . '/docs/changelogs/changelog-15.md',
+			$files->changelogPath($this->root, '15.4.2'),
+		);
+	}
+
+	public function testChangelogPathFailsWhenMajorFileIsMissing(): void {
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('Missing changelog for LibreSign 16');
+
+		(new ReleaseFiles())->changelogPath($this->root, '16.0.0');
 	}
 
 	public function testApplyRejectsDuplicateChangelogVersion(): void {
