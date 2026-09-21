@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Release metadata
+on:
+  pull_request:
+    paths:
+      - '.nextcloud-release.yml'
+      - 'appinfo/info.xml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'docs/changelogs/**'
+      - 'Makefile'
+  push:
+    branches:
+      - main
+      - 'stable*'
+    paths:
+      - '.nextcloud-release.yml'
+      - 'appinfo/info.xml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'docs/changelogs/**'
+      - 'Makefile'
+permissions:
+  contents: read
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify version mirrors and changelog mapping
+        run: make verify-release-metadata
