@@ -1,0 +1,39 @@
+--- a/.github/workflows/appstore-build-publish.yml
++++ b/.github/workflows/appstore-build-publish.yml
+@@ -6,7 +6,7 @@
+ # SPDX-FileCopyrightText: 2021-2024 Nextcloud GmbH and Nextcloud contributors
+ # SPDX-License-Identifier: MIT
+ 
+-name: Build and publish app release
++name: Release 40 - Build, sign and publish App Store
+ 
+ on:
+   release:
+@@ -35,6 +35,7 @@
+         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+         with:
+           persist-credentials: false
++          submodules: true
+           path: ${{ env.APP_NAME }}
+ 
+       - name: Get app version number
+@@ -138,16 +139,10 @@
+         if: steps.krankerl.outputs.files_exists != 'true'
+         run: |
+           cd ${{ env.APP_NAME }}
++          mkdir -p build/tools/certificates/
++          echo '${{ secrets.APP_PRIVATE_KEY }}' > build/tools/certificates/${{ env.APP_NAME }}.key
++          make appstore verify-appstore-package
+-          make appstore
+ 
+-      - name: Verify app store package
+-        if: steps.krankerl.outputs.files_exists != 'true'
+-        working-directory: ${{ env.APP_NAME }}
+-        run: |
+-          if make -qp 2>/dev/null | grep -q '^verify-appstore-package:'; then
+-            make verify-appstore-package
+-          fi
+-
+       - name: Check server download link for ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
+         run: |
+           NCVERSION='${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}'
