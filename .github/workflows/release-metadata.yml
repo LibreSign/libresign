@@ -44,10 +44,18 @@ jobs:
           RELEASE_TOOL_PATH: ${{ steps.release-tool.outputs.path }}
         run: php "${RELEASE_TOOL_PATH}" config:validate --config .nextcloud-release.yml --root .
       - name: Validate current release metadata
+        id: metadata
         env:
           RELEASE_TOOL_PATH: ${{ steps.release-tool.outputs.path }}
-        run: php "${RELEASE_TOOL_PATH}" metadata:inspect --config .nextcloud-release.yml --root . --ref HEAD --json
+        run: |
+          php "${RELEASE_TOOL_PATH}" metadata:inspect --config .nextcloud-release.yml --root . --ref HEAD --json > "${RUNNER_TEMP}/release-metadata.json"
+          cat "${RUNNER_TEMP}/release-metadata.json"
       - name: Verify packaging changelog mapping
         run: |
           make verify-release-metadata
-          test "$(make -s print-release-changelog)" = "docs/changelogs/changelog-16.md"
+          expected="$(php -r '
+            $metadata = json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR);
+            echo $metadata["changelog_path"];
+          ' "${RUNNER_TEMP}/release-metadata.json")"
+          actual="$(make -s print-release-changelog)"
+          test "${actual}" = "${expected}"
