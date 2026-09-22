@@ -232,8 +232,55 @@ jobs:
         shell: bash
         env:
           NIGHTLY_BRANCH: ${{ steps.nightly.outputs.branch }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          last_tag="$(git tag --list --sort=-version:refname | grep -v '^nightly            echo
+          last_tag="$(git tag --list --sort=-version:refname | grep -v '^nightly$' | head -1 || true)"
+          if [ -n "${last_tag}" ]; then
+            mapfile -t commit_shas < <(git rev-list --reverse "${last_tag}..HEAD")
+          else
+            mapfile -t commit_shas < <(git rev-list --reverse --max-count=10 HEAD)
+          fi
+
+          : > nightly-changes.md
+          declare -A seen_prs=()
+          for sha in "${commit_shas[@]}"; do
+            pr_json="$(gh api \
+              -H 'Accept: application/vnd.github+json' \
+              "repos/${GITHUB_REPOSITORY}/commits/${sha}/pulls" 2>/dev/null || printf '[]')"
+            pr_line="$(jq -r --arg branch "${NIGHTLY_BRANCH}" '
+              map(select(.merged_at != null))
+              | (map(select(.base.ref == $branch)) + .)
+              | unique_by(.number)
+              | first
+              | if . == null then empty
+                else "\(.number)\t\(.title)\t\(.html_url)"
+                end
+            ' <<<"${pr_json}")"
+
+            if [ -n "${pr_line}" ]; then
+              IFS=$'\t' read -r pr_number pr_title pr_url <<<"${pr_line}"
+              if [ -z "${seen_prs[${pr_number}]+x}" ]; then
+                printf -- '- %s ([#%s](%s))\n' "${pr_title}" "${pr_number}" "${pr_url}" >> nightly-changes.md
+                seen_prs["${pr_number}"]=1
+              fi
+              continue
+            fi
+
+            subject="$(git show -s --format='%s' "${sha}")"
+            printf -- '- %s (`%s`)\n' "${subject}" "${sha:0:7}" >> nightly-changes.md
+          done
+
+          {
+            echo "## 🌙 Nightly Build - ${APP_VERSION}"
+            echo
+            printf 'Automated nightly build from `%s`.\n' "${NIGHTLY_BRANCH}"
+            echo
+            echo "⚠️ **Development version** - may contain bugs or unstable features."
+            echo
+            echo "### Recent Changes"
+            echo
+            cat nightly-changes.md
+            echo
             echo "---"
             printf 'Generated from commit `%s`.\n' "${GITHUB_SHA:0:7}"
           } > release-notes.md
