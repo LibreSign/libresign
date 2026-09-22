@@ -38,18 +38,6 @@ on:
         required: true
         default: true
         type: boolean
-      mode:
-        description: normal for regular releases; security keeps advisory-private details out of public release text.
-        required: true
-        default: normal
-        type: choice
-        options:
-          - normal
-          - security
-      safe_public_text:
-        description: Public wording used only in security mode. Never include private advisory details.
-        required: false
-        type: string
   pull_request:
     types: [closed]
   release:
@@ -88,14 +76,12 @@ jobs:
           git fetch --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
 
       - name: Prepare release
-        uses: LibreCodeCoop/github-workflows/actions/release-prepare@fee9ffcd453330ba98f146a678269452d608280c # v0.6.18
+        uses: LibreCodeCoop/github-workflows/actions/release-prepare@40e8abdf748a5171d034b38f745e0270712937ed # v0.6.19
         with:
           branch: ${{ inputs.branch }}
           ref: ${{ inputs.ref }}
           version: ${{ inputs.version }}
           channel: ${{ inputs.channel }}
-          mode: ${{ inputs.mode }}
-          safe-public-text: ${{ inputs.safe_public_text }}
           ignore-open-backport: ${{ inputs.ignore_open_backport }}
           create-follow-up-milestone: ${{ inputs.create_follow_up_milestone }}
           config-path: .nextcloud-release.yml
@@ -135,7 +121,7 @@ jobs:
           git fetch --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
 
       - name: Finalize merged release
-        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@fee9ffcd453330ba98f146a678269452d608280c # v0.6.18
+        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@40e8abdf748a5171d034b38f745e0270712937ed # v0.6.19
         with:
           pull-request-number: ${{ github.event.pull_request.number }}
           merger: ${{ github.event.pull_request.merged_by.login }}
@@ -162,7 +148,7 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
 
       - name: Verify publication
-        uses: LibreCodeCoop/github-workflows/actions/release-publication@fee9ffcd453330ba98f146a678269452d608280c # v0.6.18
+        uses: LibreCodeCoop/github-workflows/actions/release-publication@40e8abdf748a5171d034b38f745e0270712937ed # v0.6.19
         with:
           github-release-id: ${{ github.event.release.id }}
           config-path: .nextcloud-release.yml
