@@ -38,18 +38,6 @@ on:
         required: true
         default: true
         type: boolean
-      mode:
-        description: normal for regular releases; security keeps advisory-private details out of public release text.
-        required: true
-        default: normal
-        type: choice
-        options:
-          - normal
-          - security
-      safe_public_text:
-        description: Public wording used only in security mode. Never include private advisory details.
-        required: false
-        type: string
   pull_request:
     types: [closed]
   release:
@@ -94,8 +82,6 @@ jobs:
           ref: ${{ inputs.ref }}
           version: ${{ inputs.version }}
           channel: ${{ inputs.channel }}
-          mode: ${{ inputs.mode }}
-          safe-public-text: ${{ inputs.safe_public_text }}
           ignore-open-backport: ${{ inputs.ignore_open_backport }}
           create-follow-up-milestone: ${{ inputs.create_follow_up_milestone }}
           config-path: .nextcloud-release.yml
