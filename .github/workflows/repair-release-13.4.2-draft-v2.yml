@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Repair release 13.4.2 draft
+
+on:
+  push:
+    branches:
+      - stable33
+    paths:
+      - '.github/workflows/repair-release-13.4.2-draft-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Repair draft identity and body
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_ID: '393844549'
+          TARGET_SHA: '12cb3fc4c87d4657dc1bffec0f61853f7dc1dbb2'
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(printf '%s\n' \
+            '## 13.4.2 - 2026-09-22' \
+            '' \
+            '### Security' \
+            '- Security fixes and other improvements' \
+            '' \
+            'Milestone: [v13.4.2](https://github.com/LibreSign/libresign/milestone/152?closed=1)' \
+            '' \
+            '**Full Changelog**: https://github.com/LibreSign/libresign/compare/v13.4.1...v13.4.2')"
+
+          gh api --method PATCH "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
+            -f tag_name='v13.4.2' \
+            -f target_commitish="${TARGET_SHA}" \
+            -f name='13.4.2' \
+            -f body="${body}" \
+            -F draft=true \
+            -F prerelease=false
+
+          gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
+            --jq '{tag_name,target_commitish,name,draft,prerelease,body}'
