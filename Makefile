@@ -142,7 +142,8 @@ appstore: verify-release-metadata
 	cp tests/php/fixtures/pdfs/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/php/fixtures
 
 	mkdir -p $(cert_dir)
-	if [ -n "$$GITHUB_ACTION" ]; then \
+	if [ -n "$GITHUB_ACTION" ]; then \
+		set -e; \
 		echo "⌛️ Starting Nextcloud setup..."; \
 		mkdir $(CURDIR)/../nextcloud/data; \
 		ln -s $(CURDIR) $(CURDIR)/../nextcloud/apps/libresign; \
@@ -161,6 +162,7 @@ appstore: verify-release-metadata
 	fi
 
 	if [ -f $(cert_dir)/$(app_name).key ]; then \
+		set -e; \
 		curl -o $(cert_dir)/$(app_name).crt \
 			"https://raw.githubusercontent.com/nextcloud/app-certificate-requests/master/$(app_name)/$(app_name).crt"; \
 		$(occ) libresign:install --all --all-distros --architecture=aarch64; \
