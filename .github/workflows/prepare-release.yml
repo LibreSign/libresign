@@ -145,6 +145,173 @@ jobs:
           app-id: ${{ vars.LIBRECODE_WORKFLOW_APP_ID }}
           app-private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
 
+
+  reseal_13_4_2:
+    name: Reseal release 13.4.2 state
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.ref == 'release-tool/finalize-13.4.2-state'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Checkout final stable33 state
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          ref: stable33
+
+      - name: Restore existing release state
+        uses: LibreCodeCoop/github-workflows/actions/release-artifact-restore@6f2a0d45c1de3a5705f7f203a647d3a43d221267 # v0.6.13
+        with:
+          repository: ${{ github.repository }}
+          artifact-name: release-state-393844549
+          destination: ${{ runner.temp }}/release-13.4.2-state
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          expected-event: pull_request
+          expected-workflow-path: .github/workflows/prepare-release.yml
+
+      - name: Reseal deterministic release state
+        env:
+          RELEASE_STATE_DIR: ${{ runner.temp }}/release-13.4.2-state
+          RELEASE_ID: '393844549'
+          RELEASE_TAG: 'v13.4.2'
+          RELEASE_VERSION: '13.4.2'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import re
+          import subprocess
+          from pathlib import Path
+
+          state_dir = Path(os.environ["RELEASE_STATE_DIR"])
+          prepared_path = state_dir / "prepared-release.json"
+          draft_path = state_dir / "release-draft.json"
+
+          prepared = json.loads(prepared_path.read_text())
+          draft = json.loads(draft_path.read_text())
+
+          final_sha = subprocess.check_output(
+              ["git", "rev-parse", "HEAD"], text=True
+          ).strip()
+
+          changelog_path = prepared["changelog"]["target"]
+          changelog = Path(changelog_path).read_text()
+          version = prepared["version"]
+          match = re.search(
+              rf"^## (?:\[)?{re.escape(version)}(?:\])?(?:\s|$)[\s\S]*?(?=^## (?:\[)?\d+\.\d+\.\d+|\Z)",
+              changelog,
+              re.MULTILINE,
+          )
+          if match is None:
+              raise SystemExit(f"release section {version} not found in {changelog_path}")
+          section = match.group(0).rstrip()
+          section_sha = hashlib.sha256(section.encode()).hexdigest()
+
+          release_files = {}
+          for path in prepared["release_files"]:
+              release_files[path] = hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+          prepared["final_sha"] = final_sha
+          prepared["changelog"]["section"] = section
+          prepared["changelog"]["sha256"] = section_sha
+          prepared["release_files"] = release_files
+
+          identity = {
+              "release_plan_id": prepared["release_plan_id"],
+              "release_preparation_id": prepared["release_preparation_id"],
+              "repository": prepared["repository"],
+              "branch": prepared["branch"],
+              "pull_request": prepared["release_pull_request"]["number"],
+              "final_sha": final_sha,
+              "version": prepared["version"],
+              "tag_name": prepared["tag_name"],
+              "channel": prepared["channel"],
+              "mode": prepared["mode"],
+              "changelog_sha256": section_sha,
+              "release_files": release_files,
+          }
+          prepared_id = hashlib.sha256(
+              json.dumps(identity, separators=(",", ":"), ensure_ascii=False).encode()
+          ).hexdigest()
+          prepared["id"] = prepared_id
+
+          body = """## 13.4.2 - 2026-09-22
+
+          ### Security
+          - Security fixes and other improvements
+
+          Milestone: [v13.4.2](https://github.com/LibreSign/libresign/milestone/152?closed=1)
+
+          **Full Changelog**: https://github.com/LibreSign/libresign/compare/v13.4.1...v13.4.2"""
+          body = "\n".join(line[10:] if line.startswith("          ") else line for line in body.splitlines())
+          body_sha = hashlib.sha256(body.encode()).hexdigest()
+
+          draft["prepared_release_id"] = prepared_id
+          draft["target_sha"] = final_sha
+          draft["body_sha256"] = body_sha
+          draft_identity = [
+              prepared_id,
+              draft["milestone_transition_id"],
+              draft["github_release"]["id"],
+              draft["github_release"]["url"],
+              draft["tag_name"],
+              final_sha,
+              draft["prerelease"],
+              body_sha,
+          ]
+          draft["id"] = hashlib.sha256(
+              json.dumps(draft_identity, separators=(",", ":"), ensure_ascii=False).encode()
+          ).hexdigest()
+
+          prepared_path.write_text(json.dumps(prepared, indent=4, ensure_ascii=False) + "\n")
+          draft_path.write_text(json.dumps(draft, indent=4, ensure_ascii=False) + "\n")
+
+          Path(os.environ["RUNNER_TEMP"], "release-13.4.2-body.txt").write_text(body)
+          Path(os.environ["RUNNER_TEMP"], "release-13.4.2-sha.txt").write_text(final_sha)
+          PY
+
+      - name: Update GitHub release draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_ID: '393844549'
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(cat "${RUNNER_TEMP}/release-13.4.2-body.txt")"
+          final_sha="$(cat "${RUNNER_TEMP}/release-13.4.2-sha.txt")"
+
+          current_head="$(git rev-parse HEAD)"
+          if [[ "${current_head}" != "${final_sha}" ]]; then
+            echo "::error::Final stable33 SHA changed while resealing release state."
+            exit 1
+          fi
+
+          gh api --method PATCH "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
+            -f tag_name='v13.4.2' \
+            -f target_commitish='stable33' \
+            -f name='13.4.2' \
+            -f body="${body}" \
+            -F draft=true \
+            -F prerelease=false
+
+          echo "Resealed v13.4.2 at ${final_sha} (target stable33)."
+
+      - name: Persist resealed release state
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-state-393844549
+          path: ${{ runner.temp }}/release-13.4.2-state
+          if-no-files-found: error
+
   verify_publication:
     name: Verify published release
     if: github.event_name == 'release'
