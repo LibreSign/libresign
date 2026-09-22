@@ -19,6 +19,11 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 14.2.2 - 2026-09-22
+
+### Security
+- Security fixes and other improvements
+
 ## 14.2.1 - 2026-09-20
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
