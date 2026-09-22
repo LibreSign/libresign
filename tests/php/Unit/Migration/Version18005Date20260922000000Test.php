@@ -120,11 +120,14 @@ final class Version18005Date20260922000000Test extends \OCA\Libresign\Tests\Unit
 
 		$this->runMigration();
 
-		$this->assertSame([
-			'enable_observer_profile' => ['defaultValue' => true],
-			'signer_device_geolocation' => ['defaultValue' => ['mode' => 'optional'], 'allowChildOverride' => true],
-			'signer_device_geolocation__delegated_override' => ['defaultValue' => ['mode' => 'required'], 'allowChildOverride' => false],
-		], $this->sortedKeys($this->readPermissionSetPolicyJson($permissionSet->getId())));
+		$this->assertSame(
+			$this->sortedKeys([
+				'enable_observer_profile' => ['defaultValue' => true],
+				'signer_device_geolocation' => ['defaultValue' => ['mode' => 'optional'], 'allowChildOverride' => true],
+				'signer_device_geolocation__delegated_override' => ['defaultValue' => ['mode' => 'required'], 'allowChildOverride' => false],
+			]),
+			$this->sortedKeys($this->readPermissionSetPolicyJson($permissionSet->getId())),
+		);
 	}
 
 	public function testRenamesFrozenFilePolicySnapshot(): void {
@@ -138,10 +141,13 @@ final class Version18005Date20260922000000Test extends \OCA\Libresign\Tests\Unit
 		$this->runMigration();
 
 		$metadata = $this->readMetadata('libresign_file', $file->getId());
-		$this->assertSame([
-			'enable_observer_profile' => ['effectiveValue' => true, 'sourceScope' => 'system'],
-			'signer_device_geolocation' => ['effectiveValue' => ['mode' => 'required'], 'sourceScope' => 'system'],
-		], $this->sortedKeys($metadata['policy_snapshot']));
+		$this->assertSame(
+			$this->sortedKeys([
+				'enable_observer_profile' => ['effectiveValue' => true, 'sourceScope' => 'system'],
+				'signer_device_geolocation' => ['effectiveValue' => ['mode' => 'required'], 'sourceScope' => 'system'],
+			]),
+			$this->sortedKeys($metadata['policy_snapshot']),
+		);
 	}
 
 	public function testRenamesSignerRequirementAndNestsFlatDeviceGeolocation(): void {
@@ -154,13 +160,16 @@ final class Version18005Date20260922000000Test extends \OCA\Libresign\Tests\Unit
 		$this->runMigration();
 		$this->runMigration();
 
-		$this->assertSame([
-			'deviceGeolocationRequirement' => 'required',
-			'geolocation' => [
-				'device' => ['status' => 'collected', 'latitude' => -23.5, 'longitude' => -46.6],
-			],
-			'user-agent' => 'test',
-		], $this->sortedKeys($this->readMetadata('libresign_sign_request', $signRequest->getId())));
+		$this->assertSame(
+			$this->sortedKeys([
+				'deviceGeolocationRequirement' => 'required',
+				'geolocation' => [
+					'device' => ['status' => 'collected', 'latitude' => -23.5, 'longitude' => -46.6],
+				],
+				'user-agent' => 'test',
+			]),
+			$this->sortedKeys($this->readMetadata('libresign_sign_request', $signRequest->getId())),
+		);
 	}
 
 	/** @return array<string, mixed> */
@@ -271,6 +280,11 @@ final class Version18005Date20260922000000Test extends \OCA\Libresign\Tests\Unit
 	 * @return array<string, mixed>
 	 */
 	private function sortedKeys(array $values): array {
+		foreach ($values as $key => $value) {
+			if (is_array($value)) {
+				$values[$key] = $this->sortedKeys($value);
+			}
+		}
 		ksort($values);
 		return $values;
 	}
