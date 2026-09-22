@@ -251,7 +251,7 @@ jobs:
           {
             echo "## 🌙 Nightly Build - ${APP_VERSION}"
             echo
-            echo "Automated nightly build from `${NIGHTLY_BRANCH}`."
+            printf 'Automated nightly build from `%s`.\\n' "${NIGHTLY_BRANCH}"
             echo
             echo "⚠️ **Development version** - may contain bugs or unstable features."
             echo
@@ -260,7 +260,7 @@ jobs:
             printf '%s\n' "${commits}"
             echo
             echo "---"
-            echo "Generated from commit `${GITHUB_SHA:0:7}`."
+            printf 'Generated from commit `%s`.\\n' "${GITHUB_SHA:0:7}"
           } > release-notes.md
 
       - name: Create or update GitHub release
