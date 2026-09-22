@@ -18,7 +18,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: nightly-release-${{ github.repository }}
+  group: nightly-release-${{ github.repository }}-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
