@@ -52,6 +52,11 @@ on:
         type: string
   pull_request:
     types: [closed]
+  push:
+    branches:
+      - stable33
+    paths:
+      - '.github/workflows/prepare-release.yml'
   release:
     types: [published]
 
@@ -149,9 +154,8 @@ jobs:
   reseal_13_4_2:
     name: Reseal release 13.4.2 state
     if: >-
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.merged == true &&
-      github.event.pull_request.head.ref == 'release-tool/finalize-13.4.2-state'
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/stable33'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
