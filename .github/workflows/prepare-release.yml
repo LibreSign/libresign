@@ -177,7 +177,7 @@ jobs:
           destination: ${{ runner.temp }}/release-13.4.2-state
           github-token: ${{ secrets.GITHUB_TOKEN }}
           expected-event: push
-          expected-workflow-path: .github/workflows/prepare-release.yml
+          expected-workflow-path: .github/workflows/refresh-release-13.4.2-draft.yml
 
       - name: Reseal deterministic release state
         env:
