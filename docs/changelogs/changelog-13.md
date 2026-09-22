@@ -22,7 +22,6 @@ Types of changes:
 ## 13.4.2 - 2026-09-21
 
 ### Security
-
 - Security fixes and other improvements
 
 ## 13.4.1 - 2026-09-20
