@@ -19,7 +19,7 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
-## 13.4.2 - 2026-09-21
+## 13.4.2 - 2026-09-22
 
 ### Security
 
