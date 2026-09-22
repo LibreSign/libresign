@@ -19,6 +19,157 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 14.3.0 - 2026-09-22
+
+### Added
+- integrate reusable release tooling (#8507)
+- add release-tool consumer configuration
+- integrate per-major release metadata
+- integrate per-major release metadata
+- integrate per-major release metadata
+
+### Changed
+- Merge commit from fork
+- complete release artifact and publication contract (#8511)
+- add production release orchestration (#8519)
+- pin release orchestration to github-workflows v0.4.0 (#8523)
+- update release workflows to github-workflows v0.5.0 (#8527)
+- improve Prepare release workflow help (#8531)
+- adopt managed nightly release workflow (#8536)
+- keep nightly signing in LibreSign packaging (#8541)
+- fix release automation app credentials (#8545)
+- fix nightly release note line breaks (#8549)
+- use organization release credentials and targeted fetch (#8553)
+- pin release workflows to v0.6.5 (#8558)
+- propagate 13.4.2 changelog history (#8560)
+- fix 13.4.2 changelog spacing (#8564)
+- fix 13.4.2 changelog spacing [skip ci] (#8570)
+- pin release workflows to v0.6.8 (#8578)
+- pin release workflows to v0.6.10 (#8593)
+- pin release workflows to v0.6.12 (#8598)
+- correct 13.4.2 release date (#8604)
+- pin release workflows to v0.6.17 (#8621)
+- use release workflows v0.6.18 (#8625)
+- use release workflows v0.6.19 (#8629)
+- keep only stable34 changelog history
+- keep only stable34 changelog history
+- keep only stable34 changelog history
+- keep only stable34 changelog history
+- keep only stable34 changelog history
+- keep only stable34 changelog history
+- keep only stable34 changelog history
+- keep only stable34 changelog history
+- keep only stable34 changelog history
+- keep only stable34 changelog history
+- keep only stable34 changelog history
+- keep only stable34 changelog history
+- keep only stable34 changelog history
+- keep root changelog as release history index
+- restore changelog history through app 14
+- restore changelog history through app 14
+- restore changelog history through app 14
+- restore changelog history through app 14
+- restore changelog history through app 14
+- restore changelog history through app 14
+- restore changelog history through app 14
+- restore changelog history through app 14
+- restore changelog history through app 14
+- restore changelog history through app 14
+- restore changelog history through app 14
+- validate and verify per-major release changelog packaging
+- bump nextcloud-behat to 1.6.1 for builtin 0.7.0
+- complete release artifact and publication contract
+- pin release workflows to v0.6.12
+- pin release workflows to v0.6.5
+- update Makefile SPDX years
+- add production release orchestration (stable34)
+- adopt managed nightly release workflow
+- consume centrally pinned release-tool
+- fix nightly release note line breaks
+- fix release automation app credentials
+- improve Prepare release workflow help
+- keep nightly signing in LibreSign packaging
+- pin release orchestration to v0.4.0
+- preserve publication step identity
+- remove legacy release drafter config
+- remove legacy release drafter workflow
+- simplify release metadata validation workflow
+- sync final managed nightly workflow
+- sync final managed nightly workflow
+- test per-major release metadata integration
+- update release consumer validator
+- update release workflows to github-workflows v0.5.0
+- use organization release credentials and targeted fetch
+- validate consumer config with pinned release-tool
+- validate release metadata mapping
+- verify changelog mapping dynamically across stable lines
+- correct 13.4.2 release date [skip ci]
+- fix 13.4.2 changelog spacing
+- initialize app major 16 changelog
+- migrate changelog history for app major 10
+- migrate changelog history for app major 11
+- migrate changelog history for app major 12
+- migrate changelog history for app major 13
+- migrate changelog history for app major 14
+- migrate changelog history for app major 15
+- migrate changelog history for app major 2
+- migrate changelog history for app major 4
+- migrate changelog history for app major 5
+- migrate changelog history for app major 6
+- migrate changelog history for app major 7
+- migrate changelog history for app major 8
+- migrate changelog history for app major 9
+- point root changelog to per-major history
+- preserve complete changelog history for app major 10
+- preserve complete changelog history for app major 11
+- preserve complete changelog history for app major 12
+- preserve complete changelog history for app major 13
+- preserve complete changelog history for app major 14
+- preserve complete changelog history for app major 15
+- preserve complete changelog history for app major 2
+- preserve complete changelog history for app major 4
+- preserve complete changelog history for app major 5
+- preserve complete changelog history for app major 6
+- preserve complete changelog history for app major 7
+- preserve complete changelog history for app major 8
+- preserve complete changelog history for app major 9
+- propagate 13.4.2 changelog history
+- Translation updates.
+- delegate release metadata validation to release-tool
+- delegate release metadata validation to release-tool
+- remove duplicated release metadata logic
+- remove duplicated release metadata logic
+- revert(behat): remove TransientConnectionRetry workaround
+- style(behat): apply php-cs-fixer to FixtureHttpServer
+- style: fix import order in file controller test
+- add PDF_BASE64 placeholder for demo fixtures
+- cover request-signature url via separate fixture server
+- disable PHP built-in server workers
+- retry ConnectException against PHP built-in server
+- add deterministic release metadata validation
+- add deterministic release metadata validation
+- align file id validation with authorization boundary
+- assert file access 404 response shape
+- complete file id authorization contract
+- complete file id authorization contract
+- complete file id authorization contract
+- complete file id authorization contract
+- complete file id authorization contract
+- complete file id authorization contract
+- use legacy identify methods setup on stable branch
+
+### Fixed
+- stop nested develop/pdf fetches causing cURL 52 flakes (#8488)
+- align file id authorization contract (#8516)
+- complete #8430 backport for stable34
+- complete envelope fixture backport for stable34
+- keep two PHP built-in server workers
+- restrict validation by internal file id
+- keep file access 404 response contract
+- preserve access for associated signers
+- read release version portably in Makefile
+- satisfy release metadata lint rules
+
 ## 14.2.1 - 2026-09-20
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
