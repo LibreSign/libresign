@@ -13,25 +13,14 @@ use OCA\Libresign\Service\Policy\Model\ActorRole;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
-use OCA\Libresign\Service\Policy\Provider\Helper\SiblingPolicyEffectiveValueReader;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValidator;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class SignatureRejectionPolicyTest extends TestCase {
-	private SiblingPolicyEffectiveValueReader&MockObject $siblingPolicyEffectiveValueReader;
-
-	protected function setUp(): void {
-		parent::setUp();
-		$this->siblingPolicyEffectiveValueReader = $this->createMock(SiblingPolicyEffectiveValueReader::class);
-		$this->siblingPolicyEffectiveValueReader->method('getEffectiveValues')->willReturn([]);
-	}
-
 	private function getProvider(): SignatureRejectionPolicy {
 		return new SignatureRejectionPolicy(
-			$this->siblingPolicyEffectiveValueReader,
 			new SignatureRejectionPolicyValidator(),
 		);
 	}
@@ -143,48 +132,90 @@ final class SignatureRejectionPolicyTest extends TestCase {
 		$this->getProvider()->get('not_a_signature_rejection_key');
 	}
 
-	public function testSavingALayerIsValidatedAgainstTheOtherSettings(): void {
-		$context = new PolicyContext();
-		$this->siblingPolicyEffectiveValueReader = $this->createMock(SiblingPolicyEffectiveValueReader::class);
-		$this->siblingPolicyEffectiveValueReader
-			->expects($this->once())
-			->method('getEffectiveValues')
-			->with(
-				[
-					SignatureRejectionPolicy::KEY_ENABLED,
-					SignatureRejectionPolicy::KEY_BEHAVIOR,
-					SignatureRejectionPolicy::KEY_COMMENT_MODE,
-					SignatureRejectionPolicy::KEY_VISIBILITY,
-				],
-				$context,
-			)
-			->willReturn([
+	public function testTheCombinedConfigurationIsValidatedBeforeAnyKeyIsSaved(): void {
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('The rejection comment cannot be visible to a wider audience than the rejection itself.');
+
+		$this->getDefinition(SignatureRejectionPolicy::KEY_ENABLED)->validateCompositeValuesForPersistence(
+			[
 				SignatureRejectionPolicy::KEY_ENABLED => true,
 				SignatureRejectionPolicy::KEY_BEHAVIOR => 'cancel',
 				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
 				SignatureRejectionPolicy::KEY_VISIBILITY => 'participants',
-			]);
-
-		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('The rejection comment cannot be visible to a wider audience than the rejection itself.');
-
-		$this->getDefinition(SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY)
-			->validateValueForPersistence('public', $context);
+				SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public',
+			],
+			[SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY],
+			new PolicyContext(),
+		);
 	}
 
-	public function testSavingALayerThatFitsTheOtherSettingsIsAccepted(): void {
+	#[DataProvider('provideAcceptedCombinations')]
+	public function testACombinationThatFitsTogetherIsAccepted(array $combinedValues, array $submittedKeys): void {
 		$this->expectNotToPerformAssertions();
 
-		$this->siblingPolicyEffectiveValueReader = $this->createMock(SiblingPolicyEffectiveValueReader::class);
-		$this->siblingPolicyEffectiveValueReader->method('getEffectiveValues')->willReturn([
+		$this->getDefinition(SignatureRejectionPolicy::KEY_ENABLED)
+			->validateCompositeValuesForPersistence($combinedValues, $submittedKeys, new PolicyContext());
+	}
+
+	/**
+	 * @return iterable<string, array{0: array<string, mixed>, 1: list<string>}>
+	 */
+	public static function provideAcceptedCombinations(): iterable {
+		$widened = [
 			SignatureRejectionPolicy::KEY_ENABLED => true,
-			SignatureRejectionPolicy::KEY_BEHAVIOR => 'continue',
-			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+			SignatureRejectionPolicy::KEY_BEHAVIOR => 'cancel',
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
 			SignatureRejectionPolicy::KEY_VISIBILITY => 'public',
-		]);
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public',
+		];
+
+		// The same change described in either order is the same configuration.
+		yield 'both audiences widened at once' => [
+			$widened,
+			[SignatureRejectionPolicy::KEY_VISIBILITY, SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY],
+		];
+		yield 'both audiences widened, the other way around' => [
+			$widened,
+			[SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY, SignatureRejectionPolicy::KEY_VISIBILITY],
+		];
+		yield 'the comment audience is narrower' => [
+			[
+				SignatureRejectionPolicy::KEY_ENABLED => true,
+				SignatureRejectionPolicy::KEY_BEHAVIOR => 'continue',
+				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+				SignatureRejectionPolicy::KEY_VISIBILITY => 'public',
+				SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'participants',
+			],
+			[SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY],
+		];
+	}
+
+	/**
+	 * A key written on its own says nothing about the other four, so refusing it
+	 * would only make the outcome depend on which key was saved first.
+	 */
+	public function testASingleKeyCarriesNoRuleAboutTheOtherSettings(): void {
+		$this->expectNotToPerformAssertions();
 
 		$this->getDefinition(SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY)
-			->validateValueForPersistence('participants', new PolicyContext());
+			->validateValueForPersistence('public', new PolicyContext());
+	}
+
+	public function testOnlyTheSettingTheOthersAreGroupedUnderOwnsTheCombinedRules(): void {
+		$this->expectNotToPerformAssertions();
+
+		foreach (SignatureRejectionPolicy::DEPENDENT_KEYS as $policyKey) {
+			$this->getDefinition($policyKey)->validateCompositeValuesForPersistence(
+				[
+					SignatureRejectionPolicy::KEY_ENABLED => true,
+					SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+					SignatureRejectionPolicy::KEY_VISIBILITY => 'requester',
+					SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public',
+				],
+				[SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY],
+				new PolicyContext(),
+			);
+		}
 	}
 
 	public function testDelegatedRuleCannotDropAParentRequiredComment(): void {

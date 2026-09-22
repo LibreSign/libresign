@@ -18,7 +18,6 @@ use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Provider\Helper\DelegationLayerHelper;
 use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
-use OCA\Libresign\Service\Policy\Provider\Helper\SiblingPolicyEffectiveValueReader;
 
 /**
  * The rules that govern how a signer may refuse to sign.
@@ -31,9 +30,12 @@ use OCA\Libresign\Service\Policy\Provider\Helper\SiblingPolicyEffectiveValueRead
  * grouped under the maximum validity.
  *
  * Rules that span more than one key cannot live in a single key's validator, so
- * every write also goes through {@see SignatureRejectionPolicyValidator} with
- * the final combined configuration. That keeps the outcome independent of the
- * order in which the keys are saved.
+ * the framework hands the whole family to {@see SignatureRejectionPolicyValidator}
+ * before any of it is written: the compound write path passes the final combined
+ * configuration to the parent key, and a signature request is validated the same
+ * way. The outcome therefore never depends on the order in which the keys are
+ * saved, and no part of the framework needs to know how the settings relate to
+ * each other.
  */
 final class SignatureRejectionPolicy implements IPolicyDefinitionProvider {
 	public const KEY_ENABLED = 'rejection_enabled';
@@ -59,7 +61,6 @@ final class SignatureRejectionPolicy implements IPolicyDefinitionProvider {
 	];
 
 	public function __construct(
-		private SiblingPolicyEffectiveValueReader $siblingPolicyEffectiveValueReader,
 		private SignatureRejectionPolicyValidator $rejectionPolicyValidator,
 	) {
 	}
@@ -80,6 +81,7 @@ final class SignatureRejectionPolicy implements IPolicyDefinitionProvider {
 				allowedValues: [false, true],
 				normalizer: static fn (mixed $rawValue): bool => SignatureRejectionPolicyConfig::normalizeEnabled($rawValue),
 				compositeChildren: self::DEPENDENT_KEYS,
+				compositeValidator: $this->combinedConfigurationValidator(),
 			),
 			self::KEY_BEHAVIOR => $this->buildSpec(
 				key: self::KEY_BEHAVIOR,
@@ -128,6 +130,7 @@ final class SignatureRejectionPolicy implements IPolicyDefinitionProvider {
 		array $compositeChildren = [],
 		?string $parentPolicyKey = null,
 		?\Closure $delegatedValueValidator = null,
+		?\Closure $compositeValidator = null,
 	): PolicySpec {
 		return new PolicySpec(
 			key: $key,
@@ -192,24 +195,17 @@ final class SignatureRejectionPolicy implements IPolicyDefinitionProvider {
 			helper: $parentPolicyKey !== null,
 			parentPolicyKey: $parentPolicyKey,
 			compositeChildren: $compositeChildren,
-			persistenceValidator: $this->combinedConfigurationValidator($key),
+			compositeValidator: $compositeValidator,
 		);
 	}
 
 	/**
-	 * Every saved layer is validated against the configuration it produces once
-	 * combined with the other four settings resolved in the same context, so the
-	 * result does not depend on which key was saved first.
+	 * The five settings are only meaningful together, so what is validated is
+	 * the configuration the write produces, never a single key.
 	 */
-	private function combinedConfigurationValidator(string $key): \Closure {
-		return function (mixed $value, PolicyContext $context) use ($key): void {
-			$combinedValues = $this->siblingPolicyEffectiveValueReader->getEffectiveValues(
-				array_values(array_filter(self::ALL_KEYS, static fn (string $siblingKey): bool => $siblingKey !== $key)),
-				$context,
-			);
-			$combinedValues[$key] = $value;
-
-			$this->rejectionPolicyValidator->validateLayer($combinedValues, $key);
+	private function combinedConfigurationValidator(): \Closure {
+		return function (array $normalizedValues, array $submittedKeys): void {
+			$this->rejectionPolicyValidator->validateLayer($normalizedValues, $submittedKeys);
 		};
 	}
 

@@ -510,6 +510,15 @@ namespace OCA\Libresign;
  * @psalm-type LibresignUserPolicyResponse = array{
  *     policy: LibresignUserPolicyState,
  * }
+ * @psalm-type LibresignEffectiveCompoundPolicyWriteResponse = LibresignMessageResponse&array{
+ *     policies: array<string, LibresignEffectivePolicyState>,
+ * }
+ * @psalm-type LibresignGroupCompoundPolicyWriteResponse = LibresignMessageResponse&array{
+ *     policies: array<string, LibresignGroupPolicyState>,
+ * }
+ * @psalm-type LibresignUserCompoundPolicyWriteResponse = LibresignMessageResponse&array{
+ *     policies: array<string, LibresignUserPolicyState>,
+ * }
  * @psalm-type LibresignGroupPolicyWriteResponse = LibresignMessageResponse&LibresignGroupPolicyResponse
  * @psalm-type LibresignSystemPolicyWriteResponse = LibresignMessageResponse&LibresignEffectivePolicyResponse
  * @psalm-type LibresignUserPolicyWriteResponse = LibresignMessageResponse&LibresignUserPolicyResponse

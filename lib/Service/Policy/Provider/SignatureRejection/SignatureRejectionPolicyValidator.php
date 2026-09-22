@@ -30,6 +30,14 @@ use OCP\IL10N;
  * that already resolved a wider comment audience. Only what the caller is
  * submitting right now is refused, so a client never gets a silent result other
  * than the one it asked for.
+ *
+ * A single key written on its own therefore carries no cross-setting rule: the
+ * caller is not stating what the other settings should be, and refusing it
+ * would make the outcome depend on which key was saved first. What a stored
+ * combination cannot do is disclose more than intended, and that is guaranteed
+ * elsewhere: {@see SignatureRejectionPolicyConfig::fromValues()} narrows the
+ * comment audience to the rejection audience whenever the configuration is
+ * built.
  */
 class SignatureRejectionPolicyValidator {
 	public function __construct(
@@ -51,17 +59,18 @@ class SignatureRejectionPolicyValidator {
 	}
 
 	/**
-	 * A policy layer is written one key at a time and describes a standing rule
-	 * rather than a document, so an administrator may configure the comment mode
-	 * before enabling rejection, in whichever order they like. What cannot be
-	 * allowed in any order is disclosing the comment to an audience that may not
-	 * see the rejection.
+	 * A policy layer describes a standing rule rather than a document, so an
+	 * administrator may configure the comment mode before enabling rejection,
+	 * in whichever order they like. What cannot be allowed in any order is
+	 * disclosing the comment to an audience that may not see the rejection, and
+	 * that is decided on the configuration the write produces as a whole.
 	 *
 	 * @param array<string, mixed> $combinedValues The five values, keyed by policy key
+	 * @param list<string> $submittedKeys The keys the administrator is writing right now
 	 * @throws \InvalidArgumentException when the resulting combination would widen a disclosure
 	 */
-	public function validateLayer(array $combinedValues, string $savedKey): void {
-		$this->validate($combinedValues, [$savedKey], false);
+	public function validateLayer(array $combinedValues, array $submittedKeys): void {
+		$this->validate($combinedValues, $submittedKeys, false);
 	}
 
 	/**

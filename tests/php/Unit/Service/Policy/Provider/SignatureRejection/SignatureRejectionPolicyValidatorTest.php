@@ -150,7 +150,7 @@ final class SignatureRejectionPolicyValidatorTest extends TestCase {
 				SignatureRejectionPolicy::KEY_ENABLED => false,
 				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
 			]),
-			SignatureRejectionPolicy::KEY_COMMENT_MODE,
+			[SignatureRejectionPolicy::KEY_COMMENT_MODE],
 		);
 	}
 
@@ -163,8 +163,41 @@ final class SignatureRejectionPolicyValidatorTest extends TestCase {
 				SignatureRejectionPolicy::KEY_VISIBILITY => 'participants',
 				SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public',
 			]),
-			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY,
+			[SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY],
 		);
+	}
+
+	/**
+	 * The same change described in either order is one configuration, so the
+	 * audiences may be widened together whichever way around they are written.
+	 */
+	#[DataProvider('provideMultiKeyWriteOrders')]
+	public function testWideningBothAudiencesAtOnceIsAcceptedInAnyOrder(array $submittedKeys): void {
+		$this->expectNotToPerformAssertions();
+
+		$this->getValidator()->validateLayer(
+			self::configuration([
+				SignatureRejectionPolicy::KEY_ENABLED => true,
+				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+				SignatureRejectionPolicy::KEY_VISIBILITY => 'public',
+				SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public',
+			]),
+			$submittedKeys,
+		);
+	}
+
+	/**
+	 * @return iterable<string, array{0: list<string>}>
+	 */
+	public static function provideMultiKeyWriteOrders(): iterable {
+		yield 'the rejection audience first' => [[
+			SignatureRejectionPolicy::KEY_VISIBILITY,
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY,
+		]];
+		yield 'the comment audience first' => [[
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY,
+			SignatureRejectionPolicy::KEY_VISIBILITY,
+		]];
 	}
 
 	public function testMissingValuesFallBackToTheDefaults(): void {

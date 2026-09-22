@@ -25,6 +25,9 @@ use OCP\IRequest;
  * @psalm-import-type LibresignErrorResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignEffectivePolicyState from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignEffectivePoliciesResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignEffectiveCompoundPolicyWriteResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignGroupCompoundPolicyWriteResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignUserCompoundPolicyWriteResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignGroupPolicyResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignGroupPolicyState from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignGroupPolicyWriteResponse from \OCA\Libresign\ResponseDefinitions
@@ -326,6 +329,214 @@ final class PolicyController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * Save several system-level values of the same composite policy at once
+	 *
+	 * Settings that only make sense together are written as one operation: the
+	 * policy they belong to validates the resulting configuration before any of
+	 * them is stored, so the result does not depend on the order of the values.
+	 *
+	 * @param string $parentPolicyKey Policy identifier the other settings are grouped under.
+	 * @param array<string, null|bool|int|float|string|array<string, mixed>> $values Values to persist, keyed by policy identifier. Null resets that policy to its default system value.
+	 * @param array<string, bool> $allowChildOverride Whether lower layers may override each saved value, keyed by policy identifier.
+	 * @return DataResponse<Http::STATUS_OK, LibresignEffectiveCompoundPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
+	 *
+	 * 200: OK
+	 * 400: Invalid policy value
+	 */
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/policies/compound/system/{parentPolicyKey}', requirements: ['apiVersion' => '(v1)', 'parentPolicyKey' => '[a-z0-9_]+'])]
+	public function setSystemCompound(string $parentPolicyKey, array $values = [], array $allowChildOverride = []): DataResponse {
+		$values = $this->readPolicyValueMapParam('values', $values);
+		$allowChildOverride = $this->readBoolMapParam('allowChildOverride', $allowChildOverride);
+
+		try {
+			foreach ($values as $policyKey => $value) {
+				$values[$policyKey] = $this->requestSignGroupsPolicyGuard->normalizeManagedValue($policyKey, $value, true);
+			}
+
+			$policies = [];
+			foreach ($this->policyService->saveSystemCompound($parentPolicyKey, $values, $allowChildOverride) as $policyKey => $policy) {
+				$policies[$policyKey] = $policy->toArray();
+			}
+
+			/** @var LibresignEffectiveCompoundPolicyWriteResponse $data */
+			$data = [
+				// TRANSLATORS Success message shown after saving LibreSign policy settings in the Policy Workbench.
+				'message' => $this->l10n->t('Settings saved'),
+				'policies' => $policies,
+			];
+
+			return new DataResponse($data);
+		} catch (\InvalidArgumentException $exception) {
+			/** @var LibresignErrorResponse $data */
+			$data = [
+				'error' => $exception->getMessage(),
+			];
+
+			return new DataResponse($data, Http::STATUS_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Save several group-level values of the same composite policy at once
+	 *
+	 * @param string $groupId Group identifier that receives the policy bindings.
+	 * @param string $parentPolicyKey Policy identifier the other settings are grouped under.
+	 * @param array<string, null|bool|int|float|string|array<string, mixed>> $values Values to persist for the group, keyed by policy identifier.
+	 * @param array<string, bool> $allowChildOverride Whether users and requests below this group may override each saved value, keyed by policy identifier.
+	 * @return DataResponse<Http::STATUS_OK, LibresignGroupCompoundPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
+	 *
+	 * 200: OK
+	 * 400: Invalid policy value
+	 * 403: Forbidden
+	 */
+	#[NoAdminRequired]
+	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/compound/group/{groupId}/{parentPolicyKey}', requirements: ['apiVersion' => '(v1)', 'groupId' => '[^/]+', 'parentPolicyKey' => '[a-z0-9_]+'])]
+	public function setGroupCompound(string $groupId, string $parentPolicyKey, array $values = [], array $allowChildOverride = []): DataResponse {
+		$values = $this->readPolicyValueMapParam('values', $values);
+		$allowChildOverride = $this->readBoolMapParam('allowChildOverride', $allowChildOverride);
+
+		foreach (array_keys($values) as $policyKey) {
+			if (!$this->policyManagementScopeService->canCurrentActorManageGroupPolicy($groupId, $policyKey)) {
+				return $this->forbiddenGroupPolicyResponse();
+			}
+		}
+
+		try {
+			foreach ($values as $policyKey => $value) {
+				$values[$policyKey] = $this->requestSignGroupsPolicyGuard->normalizeManagedValue($policyKey, $value, false, $groupId);
+			}
+
+			$policies = [];
+			foreach ($this->policyService->saveGroupPolicyCompound($parentPolicyKey, $groupId, $values, $allowChildOverride) as $policyKey => $policy) {
+				$policies[$policyKey] = $this->serializeGroupWritePolicy($groupId, $policyKey, $policy);
+			}
+
+			/** @var LibresignGroupCompoundPolicyWriteResponse $data */
+			$data = [
+				// TRANSLATORS Success message shown after saving LibreSign policy settings in the Policy Workbench.
+				'message' => $this->l10n->t('Settings saved'),
+				'policies' => $policies,
+			];
+
+			return new DataResponse($data);
+		} catch (\DomainException $exception) {
+			/** @var LibresignErrorResponse $data */
+			$data = [
+				'error' => $exception->getMessage(),
+			];
+
+			return new DataResponse($data, Http::STATUS_FORBIDDEN);
+		} catch (\InvalidArgumentException $exception) {
+			/** @var LibresignErrorResponse $data */
+			$data = [
+				'error' => $exception->getMessage(),
+			];
+
+			return new DataResponse($data, Http::STATUS_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Save several values of the same composite policy as user preferences
+	 *
+	 * @param string $parentPolicyKey Policy identifier the other settings are grouped under.
+	 * @param array<string, null|bool|int|float|string|array<string, mixed>> $values Values to persist as the current user's defaults, keyed by policy identifier.
+	 * @return DataResponse<Http::STATUS_OK, LibresignEffectiveCompoundPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
+	 *
+	 * 200: OK
+	 * 400: Invalid policy value
+	 */
+	#[NoAdminRequired]
+	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/compound/user/{parentPolicyKey}', requirements: ['apiVersion' => '(v1)', 'parentPolicyKey' => '[a-z0-9_]+'])]
+	public function setUserPreferenceCompound(string $parentPolicyKey, array $values = []): DataResponse {
+		$values = $this->readPolicyValueMapParam('values', $values);
+
+		try {
+			foreach (array_keys($values) as $policyKey) {
+				$this->requestSignGroupsPolicyGuard->assertUserScopeSupported($policyKey);
+			}
+
+			$policies = [];
+			foreach ($this->policyService->saveUserPreferenceCompound($parentPolicyKey, $values) as $policyKey => $policy) {
+				$policies[$policyKey] = $policy->toArray();
+			}
+
+			/** @var LibresignEffectiveCompoundPolicyWriteResponse $data */
+			$data = [
+				// TRANSLATORS Success message shown after saving LibreSign policy settings in the Policy Workbench.
+				'message' => $this->l10n->t('Settings saved'),
+				'policies' => $policies,
+			];
+
+			return new DataResponse($data);
+		} catch (\InvalidArgumentException $exception) {
+			/** @var LibresignErrorResponse $data */
+			$data = [
+				'error' => $exception->getMessage(),
+			];
+
+			return new DataResponse($data, Http::STATUS_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Save several values of the same composite policy for a target user (admin scope)
+	 *
+	 * @param string $userId Target user identifier that receives the policy assignments.
+	 * @param string $parentPolicyKey Policy identifier the other settings are grouped under.
+	 * @param array<string, null|bool|int|float|string|array<string, mixed>> $values Values to persist for the target user, keyed by policy identifier.
+	 * @param array<string, bool> $allowChildOverride Whether the target user may still override each assigned value, keyed by policy identifier.
+	 * @return DataResponse<Http::STATUS_OK, LibresignUserCompoundPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
+	 *
+	 * 200: OK
+	 * 400: Invalid policy value
+	 * 403: Forbidden
+	 */
+	#[NoAdminRequired]
+	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/compound/user/{userId}/{parentPolicyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'parentPolicyKey' => '[a-z0-9_]+'])]
+	public function setUserPolicyForUserCompound(string $userId, string $parentPolicyKey, array $values = [], array $allowChildOverride = []): DataResponse {
+		if (!$this->policyManagementScopeService->canCurrentActorManageUserPolicy($userId)) {
+			return $this->forbiddenUserPolicyResponse();
+		}
+
+		$values = $this->readPolicyValueMapParam('values', $values);
+		$allowChildOverride = $this->readBoolMapParam('allowChildOverride', $allowChildOverride);
+
+		foreach (array_keys($values) as $policyKey) {
+			if (!$this->policyManagementScopeService->canCurrentActorManageScopedUserPolicy($userId, $policyKey)) {
+				return $this->forbiddenUserPolicyResponse();
+			}
+		}
+
+		try {
+			foreach (array_keys($values) as $policyKey) {
+				$this->requestSignGroupsPolicyGuard->assertUserScopeSupported($policyKey);
+			}
+
+			$policies = [];
+			foreach ($this->policyService->saveUserPolicyForUserIdCompound($parentPolicyKey, $userId, $values, $allowChildOverride) as $policyKey => $policy) {
+				$policies[$policyKey] = $this->serializeUserPolicy($userId, $policyKey, $policy);
+			}
+
+			/** @var LibresignUserCompoundPolicyWriteResponse $data */
+			$data = [
+				// TRANSLATORS Success message shown after saving LibreSign policy settings in the Policy Workbench.
+				'message' => $this->l10n->t('Settings saved'),
+				'policies' => $policies,
+			];
+
+			return new DataResponse($data);
+		} catch (\InvalidArgumentException $exception) {
+			/** @var LibresignErrorResponse $data */
+			$data = [
+				'error' => $exception->getMessage(),
+			];
+
+			return new DataResponse($data, Http::STATUS_BAD_REQUEST);
+		}
+	}
+
+	/**
 	 * Clear a group-level policy value
 	 *
 	 * @param string $groupId Group identifier that receives the policy binding.
@@ -568,6 +779,50 @@ final class PolicyController extends AEnvironmentAwareController {
 		}
 
 		return $value;
+	}
+
+	/**
+	 * @param array<string, mixed> $default
+	 * @return array<string, mixed>
+	 */
+	private function readPolicyValueMapParam(string $key, array $default): array {
+		$values = $this->request->getParams()[$key] ?? $default;
+		if (!is_array($values)) {
+			return $default;
+		}
+
+		$policyValues = [];
+		foreach ($values as $policyKey => $value) {
+			if (!is_scalar($value) && !is_array($value) && $value !== null) {
+				continue;
+			}
+
+			$policyValues[(string)$policyKey] = $value;
+		}
+
+		return $policyValues;
+	}
+
+	/**
+	 * @param array<string, mixed> $default
+	 * @return array<string, bool>
+	 */
+	private function readBoolMapParam(string $key, array $default): array {
+		$values = $this->request->getParams()[$key] ?? $default;
+		if (!is_array($values)) {
+			return [];
+		}
+
+		$flags = [];
+		foreach ($values as $policyKey => $value) {
+			if (!is_bool($value)) {
+				continue;
+			}
+
+			$flags[(string)$policyKey] = $value;
+		}
+
+		return $flags;
 	}
 
 	private function readBoolParam(string $key, bool $default): bool {

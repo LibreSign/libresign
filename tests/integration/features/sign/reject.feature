@@ -163,9 +163,9 @@ Feature: sign-signature-rejection
       | value | participants |
       | allowChildOverride | true |
     And the response should have a status code 200
-    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_visibility"
-      | value | public |
-      | allowChildOverride | true |
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/compound/system/rejection_enabled"
+      | values | {"rejection_comment_visibility":"public"} |
+      | allowChildOverride | {"rejection_comment_visibility":true} |
     Then the response should have a status code 400
     And the response should be a JSON array with the following mandatory values
       | key                 | value                                                                             |
@@ -179,6 +179,41 @@ Feature: sign-signature-rejection
     And the response should be a JSON array with the following mandatory values
       | key                   | value                                                                             |
       | (jq).ocs.data.message | The rejection comment cannot be visible to a wider audience than the rejection itself. |
+
+  Scenario: Both rejection audiences are widened in one write, whatever the order of the values
+    Given as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_comment_mode"
+      | value | optional |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/compound/system/rejection_enabled"
+      | values | {"rejection_comment_visibility":"public","rejection_visibility":"public"} |
+      | allowChildOverride | {"rejection_comment_visibility":true,"rejection_visibility":true} |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                                                | value  |
+      | (jq).ocs.data.policies.rejection_visibility.effectiveValue         | public |
+      | (jq).ocs.data.policies.rejection_comment_visibility.effectiveValue | public |
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/compound/system/rejection_enabled"
+      | values | {"rejection_visibility":"requester","rejection_comment_visibility":"requester"} |
+      | allowChildOverride | {"rejection_visibility":true,"rejection_comment_visibility":true} |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                                                | value     |
+      | (jq).ocs.data.policies.rejection_visibility.effectiveValue         | requester |
+      | (jq).ocs.data.policies.rejection_comment_visibility.effectiveValue | requester |
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/compound/system/rejection_enabled"
+      | values | {"rejection_visibility":"public","rejection_comment_visibility":"public"} |
+      | allowChildOverride | {"rejection_visibility":true,"rejection_comment_visibility":true} |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                                                | value  |
+      | (jq).ocs.data.policies.rejection_visibility.effectiveValue         | public |
+      | (jq).ocs.data.policies.rejection_comment_visibility.effectiveValue | public |
 
   Scenario: Requester offers rejection and the signer rejects with an optional comment
     Given as user "admin"
