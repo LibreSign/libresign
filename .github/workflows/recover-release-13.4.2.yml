@@ -36,7 +36,7 @@ jobs:
             "+refs/tags/*:refs/tags/*"
 
       - name: Recover merged release 13.4.2
-        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@495bc0c0603ef996d08245a4cde192f675a2697b # v0.6.7
+        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@ae29adb04d3f0391286bf1303785ac8d31ff356a # v0.6.8
         with:
           pull-request-number: 8555
           merger: vitormattos
