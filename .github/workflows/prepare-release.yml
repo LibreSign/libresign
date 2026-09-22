@@ -76,11 +76,19 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          fetch-depth: 0
+          fetch-depth: 1
           ref: ${{ inputs.ref != '' && inputs.ref || inputs.branch }}
 
+      - name: Fetch selected release history
+        shell: bash
+        env:
+          RELEASE_BRANCH: ${{ inputs.branch }}
+        run: |
+          set -euo pipefail
+          git fetch --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
+
       - name: Prepare release
-        uses: LibreCodeCoop/github-workflows/actions/release-prepare@5a16fb0ae5b846117f70e1d86a1d25e46492c333 # v0.6.2
+        uses: LibreCodeCoop/github-workflows/actions/release-prepare@18e6c30c33a5d81b0248a7d865536965eaa93329 # v0.6.3
         with:
           branch: ${{ inputs.branch }}
           ref: ${{ inputs.ref }}
@@ -93,7 +101,7 @@ jobs:
           config-path: .nextcloud-release.yml
           actor: ${{ github.actor }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          app-id: ${{ secrets.LIBRECODE_WORKFLOW_APP_ID }}
+          app-id: ${{ vars.LIBRECODE_WORKFLOW_APP_ID }}
           app-private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
 
   post_merge:
@@ -114,18 +122,26 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          fetch-depth: 0
+          fetch-depth: 1
           ref: ${{ github.event.pull_request.base.ref }}
 
+      - name: Fetch merged release history
+        shell: bash
+        env:
+          RELEASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -euo pipefail
+          git fetch --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
+
       - name: Finalize merged release
-        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@5a16fb0ae5b846117f70e1d86a1d25e46492c333 # v0.6.2
+        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@18e6c30c33a5d81b0248a7d865536965eaa93329 # v0.6.3
         with:
           pull-request-number: ${{ github.event.pull_request.number }}
           merger: ${{ github.event.pull_request.merged_by.login }}
           config-path: .nextcloud-release.yml
           prepare-workflow-path: .github/workflows/prepare-release.yml
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          app-id: ${{ secrets.LIBRECODE_WORKFLOW_APP_ID }}
+          app-id: ${{ vars.LIBRECODE_WORKFLOW_APP_ID }}
           app-private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
 
   verify_publication:
@@ -141,11 +157,11 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          fetch-depth: 0
+          fetch-depth: 1
           ref: ${{ github.event.release.tag_name }}
 
       - name: Verify publication
-        uses: LibreCodeCoop/github-workflows/actions/release-publication@5a16fb0ae5b846117f70e1d86a1d25e46492c333 # v0.6.2
+        uses: LibreCodeCoop/github-workflows/actions/release-publication@18e6c30c33a5d81b0248a7d865536965eaa93329 # v0.6.3
         with:
           github-release-id: ${{ github.event.release.id }}
           config-path: .nextcloud-release.yml
