@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Refresh release 13.4.2 draft
+
+on:
+  push:
+    branches:
+      - stable33
+    paths:
+      - '.github/workflows/refresh-release-13.4.2-draft.yml'
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout stable33
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          ref: stable33
+
+      - name: Fetch release history
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --unshallow --prune origin \
+            "+refs/heads/stable33:refs/remotes/origin/stable33" \
+            "+refs/tags/*:refs/tags/*"
+
+      - name: Refresh merged release 13.4.2 draft
+        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@6f2a0d45c1de3a5705f7f203a647d3a43d221267 # v0.6.13
+        with:
+          pull-request-number: 8555
+          merger: vitormattos
+          config-path: .nextcloud-release.yml
+          prepare-workflow-path: .github/workflows/prepare-release.yml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          app-id: ${{ vars.LIBRECODE_WORKFLOW_APP_ID }}
+          app-private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
