@@ -115,6 +115,30 @@ final class SignerGeolocationFilePolicyApplierTest extends \OCA\Libresign\Tests\
 		);
 	}
 
+	public function testSyncDoesNotWriteCurrentPolicyOnEnvelopeWithoutOwnSnapshot(): void {
+		$envelope = new \OCA\Libresign\Db\File();
+		$envelope->setUserId('admin');
+		$envelope->setNodeType('envelope');
+		$envelope->setMetadata([
+			'policy_snapshot' => [
+				'enable_observer_profile' => [
+					'effectiveValue' => true,
+					'sourceScope' => 'system',
+				],
+			],
+		]);
+
+		$this->policyService->expects($this->never())->method('resolveForUserId');
+		$this->fileService->expects($this->never())->method('update');
+
+		$this->getApplier()->sync($envelope, []);
+
+		$this->assertArrayNotHasKey(
+			SignerGeolocationPolicy::KEY,
+			$envelope->getMetadata()['policy_snapshot'],
+		);
+	}
+
 	private function createResolvedPolicy(
 		array $effectiveValue,
 		string $sourceScope = 'system',

@@ -35,6 +35,10 @@ class SignerIpGeolocationFilePolicyApplier extends AbstractFilePolicyApplier {
 			return;
 		}
 
+		if ($file->isEnvelope()) {
+			return;
+		}
+
 		$requestOverrides = $this->getOverrides($data);
 		$activeContext = $this->extractActiveContext($data);
 		$resolvedPolicy = $activeContext === null
