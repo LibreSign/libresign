@@ -1,0 +1,39 @@
+diff --git a/.github/workflows/nightly-release.yml b/.github/workflows/nightly-release.yml
+--- a/.github/workflows/nightly-release.yml
++++ b/.github/workflows/nightly-release.yml
+@@ -181,11 +181,15 @@
+           repository: nextcloud/server
+           path: nextcloud
+ 
+-      - name: Package with Makefile
++      - name: Package and sign with Makefile
+         if: steps.krankerl.outputs.files_exists != 'true'
+         shell: bash
++        env:
++          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+         run: |
+           cd "${APP_NAME}"
++          mkdir -p build/tools/certificates
++          printf '%s' "${APP_PRIVATE_KEY}" > "build/tools/certificates/${APP_NAME}.key"
+           make appstore
+ 
+       - name: Verify app store package
+@@ -197,18 +201,4 @@
+             make verify-appstore-package
+           fi
+ 
+-      - name: Sign app
+-        shell: bash
+-        env:
+-          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+-        run: |
+-          cd "${APP_NAME}/build/artifacts"
+-          tar -xzf "${APP_NAME}.tar.gz"
+-          cd ../../../
+-          printf '%s' "${APP_PRIVATE_KEY}" > "${APP_NAME}.key"
+-          wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${APP_NAME}/${APP_NAME}.crt"
+-          php nextcloud/occ integrity:sign-app             --privateKey="../${APP_NAME}.key"             --certificate="../${APP_NAME}.crt"             --path="../${APP_NAME}/build/artifacts/${APP_NAME}"
+-          cd "${APP_NAME}/build/artifacts"
+-          tar -zcf "${APP_NAME}.tar.gz" "${APP_NAME}"
+-
+       - name: Validate release artifact
