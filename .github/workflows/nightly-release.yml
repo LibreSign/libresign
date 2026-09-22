@@ -1,50 +1,47 @@
 # SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-name: Nightly Release
+name: Nightly release
 
 on:
   push:
     branches:
-      - stable*
-    paths-ignore:
-      - '**.md'
-      - '.github/**'
-      - '!.github/workflows/nightly-release.yml'
-
+      - 'stable*'
+    paths:
+      - '**'
+      - '!**.md'
+      - '!.github/**'
+      - '.github/workflows/nightly-release.yml'
   workflow_dispatch:
 
 permissions:
   contents: write
-  actions: write
+
+concurrency:
+  group: nightly-release-${{ github.repository }}-${{ github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   check-latest-stable:
+    name: Check latest stable
     runs-on: ubuntu-latest
     outputs:
-      is_latest: ${{ steps.latest.outputs.is_latest }}
-      latest_branch: ${{ steps.latest.outputs.latest_branch }}
+      is-latest: ${{ steps.stable.outputs.is-latest }}
+      current-branch: ${{ steps.stable.outputs.current-branch }}
+      current-major: ${{ steps.stable.outputs.current-major }}
+      latest-branch: ${{ steps.stable.outputs.latest-branch }}
+      latest-major: ${{ steps.stable.outputs.latest-major }}
     steps:
-      - name: Determine latest stable branch
-        id: latest
-        run: |
-          latest_number=$(git ls-remote --heads https://github.com/${{ github.repository }}.git "stable*" | awk -F/ '{print $NF}' | sed 's/^stable//' | sort -n | tail -1)
-          if [ -z "$latest_number" ]; then
-            echo "is_latest=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          latest_branch="stable${latest_number}"
-          echo "latest_branch=${latest_branch}" >> $GITHUB_OUTPUT
-          if [ "${GITHUB_REF_NAME}" = "${latest_branch}" ]; then
-            echo "is_latest=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_latest=false" >> $GITHUB_OUTPUT
-          fi
+      - id: stable
+        name: Resolve stable release line
+        uses: LibreCodeCoop/github-workflows/actions/release-stable-select@0bac49723213a5aa8e779d365a7b684608cf6989 # v0.6.0
 
   nightly-release:
-    runs-on: ubuntu-latest
+    name: Build and publish nightly
     needs: check-latest-stable
-    if: ${{ needs.check-latest-stable.outputs.is_latest == 'true' }}
+    if: needs.check-latest-stable.outputs.is-latest == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Check actor permission
@@ -52,14 +49,15 @@ jobs:
         with:
           require: write
 
-      - name: Set app env
-        run: |
-          echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
+      - name: Set app environment
+        shell: bash
+        run: echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> "${GITHUB_ENV}"
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          persist-credentials: true
+          persist-credentials: false
+          fetch-depth: 0
           submodules: true
           path: ${{ env.APP_NAME }}
 
@@ -70,9 +68,11 @@ jobs:
           filename: ${{ env.APP_NAME }}/appinfo/info.xml
           expression: "//info//version/text()"
 
-      - name: Set APP_VERSION env
-        run: |
-          echo "APP_VERSION=${{ fromJSON(steps.app-version.outputs.result).version }}" >> $GITHUB_ENV
+      - name: Set app version
+        shell: bash
+        env:
+          APP_VERSION: ${{ fromJSON(steps.app-version.outputs.result).version }}
+        run: echo "APP_VERSION=${APP_VERSION}" >> "${GITHUB_ENV}"
 
       - name: Get appinfo data
         id: appinfo
@@ -82,34 +82,33 @@ jobs:
           expression: "//info//dependencies//nextcloud/@min-version"
 
       - name: Read package.json node and npm engines version
-        uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
         id: versions
-        # Continue if no package.json
+        uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
         continue-on-error: true
         with:
           path: ${{ env.APP_NAME }}
-          fallbackNode: '^20'
-          fallbackNpm: '^10'
+          fallbackNode: '^24'
+          fallbackNpm: '^11.3'
 
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
-        # Skip if no package.json
-        if: ${{ steps.versions.outputs.nodeVersion }}
+        if: steps.versions.outputs.nodeVersion
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
+          package-manager-cache: false
 
       - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
-        # Skip if no package.json
-        if: ${{ steps.versions.outputs.npmVersion }}
+        if: steps.versions.outputs.npmVersion
+        shell: bash
         run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
 
-      - name: Get php version
+      - name: Get PHP version
         id: php-versions
-        uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2.3.1.3.2
+        uses: nextcloud-libraries/nextcloud-version-matrix@cd0211ffcef1065e2020cd579e4843b8746e7a58 # v1.3.3
         with:
           filename: ${{ env.APP_NAME }}/appinfo/info.xml
 
-      - name: Set up php ${{ steps.php-versions.outputs.php-min }}
+      - name: Set up PHP ${{ steps.php-versions.outputs.php-min }}
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ steps.php-versions.outputs.php-min }}
@@ -118,24 +117,26 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check composer.json
-        id: check_composer
+        id: check-composer
         uses: andstor/file-existence-action@558493d6c74bf472d87c84eab196434afc2fa029 # v3.1.0
         with:
           files: "${{ env.APP_NAME }}/composer.json"
 
       - name: Install composer dependencies
-        if: steps.check_composer.outputs.files_exists == 'true'
-        run: |
-          cd ${{ env.APP_NAME }}
-          composer install --no-dev
+        if: steps.check-composer.outputs.files_exists == 'true'
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        with:
+          composer-options: '--no-dev'
+          working-directory: ${{ env.APP_NAME }}
+          ignore-cache: 'yes'
 
       - name: Build ${{ env.APP_NAME }}
-        # Skip if no package.json
-        if: ${{ steps.versions.outputs.nodeVersion }}
+        if: steps.versions.outputs.nodeVersion
         env:
           CYPRESS_INSTALL_BINARY: 0
+        shell: bash
         run: |
-          cd ${{ env.APP_NAME }}
+          cd "${APP_NAME}"
           npm ci
           npm run build --if-present
 
@@ -147,131 +148,150 @@ jobs:
 
       - name: Install Krankerl
         if: steps.krankerl.outputs.files_exists == 'true'
+        shell: bash
         run: |
           wget https://github.com/ChristophWurst/krankerl/releases/download/v0.14.0/krankerl_0.14.0_amd64.deb
           sudo dpkg -i krankerl_0.14.0_amd64.deb
 
-      - name: Package ${{ env.APP_NAME }} ${{ steps.version.outputs.version }} with krankerl
+      - name: Package with Krankerl
         if: steps.krankerl.outputs.files_exists == 'true'
+        shell: bash
         run: |
-          cd ${{ env.APP_NAME }}
+          cd "${APP_NAME}"
           krankerl package
 
-      - name: Checkout server ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
-        continue-on-error: true
-        id: server-checkout
+      - name: Package with Makefile
+        if: steps.krankerl.outputs.files_exists != 'true'
+        shell: bash
         run: |
-          NCVERSION='${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}'
-          wget --quiet https://download.nextcloud.com/server/releases/latest-$NCVERSION.zip
-          unzip latest-$NCVERSION.zip
+          cd "${APP_NAME}"
+          make appstore
+
+      - name: Verify app store package
+        if: steps.krankerl.outputs.files_exists != 'true'
+        working-directory: ${{ env.APP_NAME }}
+        shell: bash
+        run: |
+          if make -qp 2>/dev/null | grep -q '^verify-appstore-package:'; then
+            make verify-appstore-package
+          fi
+
+      - name: Resolve Nextcloud server download
+        id: server-download
+        continue-on-error: true
+        shell: bash
+        env:
+          NEXTCLOUD_VERSION: ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
+        run: |
+          download_url="$(curl -fsSL "https://updates.nextcloud.com/updater_server/latest?channel=beta&version=${NEXTCLOUD_VERSION}" | jq -r '.downloads.zip[0]')"
+          test -n "${download_url}" && test "${download_url}" != "null"
+          wget -q "${download_url}" -O nextcloud.zip
+          unzip -q nextcloud.zip
 
       - name: Checkout server master fallback
+        if: steps.server-download.outcome != 'success'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ steps.server-checkout.outcome != 'success' }}
         with:
           persist-credentials: false
           submodules: true
           repository: nextcloud/server
           path: nextcloud
 
-      - name: Package ${{ env.APP_NAME }} ${{ steps.version.outputs.version }} with makefile
-        if: steps.krankerl.outputs.files_exists != 'true'
+      - name: Sign app
+        shell: bash
+        env:
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
         run: |
-          cd ${{ env.APP_NAME }}
-          # Setting up keys
-          mkdir -p build/tools/certificates/
-          echo '${{ secrets.APP_PRIVATE_KEY }}' > build/tools/certificates/${{ env.APP_NAME }}.key
-          make appstore verify-appstore-package
+          cd "${APP_NAME}/build/artifacts"
+          tar -xzf "${APP_NAME}.tar.gz"
+          cd ../../../
+          printf '%s' "${APP_PRIVATE_KEY}" > "${APP_NAME}.key"
+          wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${APP_NAME}/${APP_NAME}.crt"
+          php nextcloud/occ integrity:sign-app             --privateKey="../${APP_NAME}.key"             --certificate="../${APP_NAME}.crt"             --path="../${APP_NAME}/build/artifacts/${APP_NAME}"
+          cd "${APP_NAME}/build/artifacts"
+          tar -zcf "${APP_NAME}.tar.gz" "${APP_NAME}"
+
+      - name: Validate release artifact
+        uses: LibreCodeCoop/github-workflows/actions/release-artifact-validate@0bac49723213a5aa8e779d365a7b684608cf6989 # v0.6.0
+        with:
+          artifact: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
+          app-name: ${{ env.APP_NAME }}
+          version: ${{ env.APP_VERSION }}
 
       - name: Define nightly metadata
-        id: version
+        id: nightly
+        shell: bash
         run: |
-          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
-          TAG="nightly"
+          echo "tag=nightly" >> "${GITHUB_OUTPUT}"
+          echo "branch=${{ needs.check-latest-stable.outputs.current-branch }}" >> "${GITHUB_OUTPUT}"
 
-          echo "version=${{ env.APP_VERSION }}" >> $GITHUB_OUTPUT
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
-          echo "branch=${BRANCH_NAME}" >> $GITHUB_OUTPUT
-
-      - name: Update nightly tag
+      - name: Move nightly tag to this commit
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          cd ${{ env.APP_NAME }}
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          TAG="${{ steps.version.outputs.tag }}"
-
-          git tag -f "$TAG" "${GITHUB_SHA}"
-          git push -f origin "$TAG"
-
-      - name: Get recent commits for release notes
-        id: release-notes
-        run: |
-          cd ${{ env.APP_NAME }}
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null | grep -v nightly || echo "")
-
-          if [ -z "$LAST_TAG" ]; then
-            COMMITS=$(git log -10 --pretty=format:"- %s (%h)" --no-merges)
+          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/nightly" >/dev/null 2>&1; then
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/tags/nightly"               -f sha="${GITHUB_SHA}"               -F force=true >/dev/null
           else
-            COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs"               -f ref='refs/tags/nightly'               -f sha="${GITHUB_SHA}" >/dev/null
           fi
 
-          cat << EOF > release-notes.md
-          ## 🌙 Nightly Build - ${{ steps.version.outputs.version }}
-
-          Automated nightly build from \`${{ steps.version.outputs.branch }}\` branch.
-
-          ⚠️ **Development version** - may contain bugs or unstable features.
-
-          ### Recent Changes
-
-          $COMMITS
-
-          ---
-          🤖 Generated from commit [\`${GITHUB_SHA:0:7}\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
-          EOF
-
-          echo "notes<<EOF" >> $GITHUB_OUTPUT
-          cat release-notes.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Build nightly release notes
+        working-directory: ${{ env.APP_NAME }}
+        shell: bash
+        env:
+          NIGHTLY_BRANCH: ${{ steps.nightly.outputs.branch }}
+        run: |
+          last_tag="$(git tag --list --sort=-version:refname | grep -v '^nightly$' | head -1 || true)"
+          if [ -n "${last_tag}" ]; then
+            commits="$(git log "${last_tag}..HEAD" --pretty=format:'- %s (%h)' --no-merges)"
+          else
+            commits="$(git log -10 --pretty=format:'- %s (%h)' --no-merges)"
+          fi
+          {
+            echo "## 🌙 Nightly Build - ${APP_VERSION}"
+            echo
+            printf 'Automated nightly build from `%s`.\\n' "${NIGHTLY_BRANCH}"
+            echo
+            echo "⚠️ **Development version** - may contain bugs or unstable features."
+            echo
+            echo "### Recent Changes"
+            echo
+            printf '%s\n' "${commits}"
+            echo
+            echo "---"
+            printf 'Generated from commit `%s`.\\n' "${GITHUB_SHA:0:7}"
+          } > release-notes.md
 
       - name: Create or update GitHub release
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          NIGHTLY_BRANCH: ${{ steps.nightly.outputs.branch }}
         run: |
-          TAG="${{ steps.version.outputs.tag }}"
-          TITLE="Nightly ${{ steps.version.outputs.version }} (${{ steps.version.outputs.branch }})"
-          NOTES_FILE="${{ env.APP_NAME }}/release-notes.md"
-
-          if gh release view "$TAG" --repo "${{ github.repository }}" > /dev/null 2>&1; then
-            gh release edit "$TAG" \
-              --repo "${{ github.repository }}" \
-              --title "$TITLE" \
-              --notes-file "$NOTES_FILE" \
-              --prerelease
+          title="Nightly ${APP_VERSION} (${NIGHTLY_BRANCH})"
+          notes="${APP_NAME}/release-notes.md"
+          if gh release view nightly --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release edit nightly               --repo "${GITHUB_REPOSITORY}"               --title "${title}"               --notes-file "${notes}"               --prerelease
           else
-            gh release create "$TAG" \
-              --repo "${{ github.repository }}" \
-              --title "$TITLE" \
-              --notes-file "$NOTES_FILE" \
-              --prerelease
+            gh release create nightly               --repo "${GITHUB_REPOSITORY}"               --title "${title}"               --notes-file "${notes}"               --prerelease
           fi
 
-      - name: Attach tarball to github release
+      - name: Attach tarball to GitHub release
+        id: attach-to-release
         uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # v2.11.5
-        id: attach_to_release
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
-          asset_name: ${{ env.APP_NAME }}-${{ steps.version.outputs.tag }}.tar.gz
-          tag: ${{ steps.version.outputs.tag }}
+          asset_name: ${{ env.APP_NAME }}-nightly.tar.gz
+          tag: nightly
           overwrite: true
 
-      - name: Upload app to Nextcloud appstore (nightly)
-        uses: nextcloud-releases/nextcloud-appstore-push-action@a011fe619bcf6e77ddebc96f9908e1af4071b9c1 # v1.0.3
+      - name: Upload nightly to Nextcloud App Store
+        uses: nextcloud-libraries/nextcloud-appstore-push-action@a011fe619bcf6e77ddebc96f9908e1af4071b9c1 # v1.0.3
         with:
           app_name: ${{ env.APP_NAME }}
           appstore_token: ${{ secrets.APPSTORE_TOKEN }}
-          download_url: ${{ steps.attach_to_release.outputs.browser_download_url }}
+          download_url: ${{ steps.attach-to-release.outputs.browser_download_url }}
           app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
           nightly: true
