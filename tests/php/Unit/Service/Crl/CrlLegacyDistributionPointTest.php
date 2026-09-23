@@ -62,6 +62,42 @@ final class CrlLegacyDistributionPointTest extends TestCase {
 		self::assertSame(CrlValidationStatus::LEGACY_DISTRIBUTION_POINT, $result['status']);
 	}
 
+	public function testSimilarLocalPathIsNotTreatedAsLegacyDistributionPoint(): void {
+		$config = $this->createMock(IConfig::class);
+		$config->method('getSystemValue')
+			->with('trusted_domains', [])
+			->willReturn(['cloud.example.com']);
+
+		$policyService = $this->createMock(PolicyService::class);
+		$policyService->method('resolve')
+			->with(CrlValidationPolicy::KEY)
+			->willReturn((new ResolvedPolicy())
+				->setPolicyKey(CrlValidationPolicy::KEY)
+				->setEffectiveValue(true));
+
+		$urlGenerator = $this->createMock(IURLGenerator::class);
+		$tempManager = $this->createMock(ITempManager::class);
+		$logger = $this->createMock(LoggerInterface::class);
+		$cache = $this->createMock(ICache::class);
+		$cacheFactory = $this->createMock(ICacheFactory::class);
+		$cacheFactory->method('createDistributed')->willReturn($cache);
+		$ldapDownloader = $this->createMock(LdapCrlDownloader::class);
+
+		$checker = new CrlRevocationChecker(
+			$config,
+			$policyService,
+			$urlGenerator,
+			$tempManager,
+			$logger,
+			$cacheFactory,
+			$ldapDownloader,
+		);
+
+		$result = $checker->validate(['https://cloud.example.com/prefix/index.php/apps/libresign/crl'], '');
+
+		self::assertSame(CrlValidationStatus::URLS_INACCESSIBLE, $result['status']);
+	}
+
 	public static function legacyLocalUrls(): array {
 		return [
 			'front controller disabled' => ['https://cloud.example.com/apps/libresign/crl'],
