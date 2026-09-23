@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service\File;
 use DateTimeInterface;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\Accounts\IAccountManager;
@@ -181,6 +182,7 @@ class SignersLoader {
 			if ($fileData->signers[$index]->me) {
 				$fileData->signers[$index]->sign_request_uuid = $signer->getUuid();
 				if (!$signer->getSigned()
+					&& $signer->getStatusEnum() !== SignRequestStatus::REJECTED
 					&& $signer->getParticipantRoleEnum()->canSign()
 					&& isset($fileData->settings)
 				) {

@@ -2257,6 +2257,29 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	public function testASignerWhoRejectedCannotSignThroughTheirUuid(): void {
+		$service = $this->getService();
+
+		$uuid = '123e4567-e89b-12d3-a456-426614174000';
+		$file = new File();
+		$file->setId(10);
+		$file->setNodeType('file');
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(20);
+		$signRequest->setFileId(10);
+		$signRequest->setSigningOrder(0);
+		$signRequest->setStatus(SignRequestStatus::REJECTED->value);
+
+		$this->signRequestMapper->method('getByUuid')->with($uuid)->willReturn($signRequest);
+		$this->sequentialSigningService->method('isOrderedNumericFlow')->willReturn(false);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('You rejected this document, so you cannot sign it.');
+
+		$service->getSignRequestToSign($file, $uuid, null);
+	}
+
 	public function testGetSignRequestToSignUsesUuid(): void {
 		$service = $this->getService();
 

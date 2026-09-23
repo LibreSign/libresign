@@ -1461,6 +1461,10 @@ class SignFileService {
 				// TRANSLATORS Error shown when the current user already signed this document.
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
+			if ($signRequest->getStatusEnum() === SignRequestStatus::REJECTED) {
+				// TRANSLATORS Error shown when someone who refused to sign a document tries to sign it anyway.
+				throw new LibresignException($this->l10n->t('You rejected this document, so you cannot sign it.'), 1);
+			}
 			return $signRequest;
 		} catch (DoesNotExistException) {
 			// TRANSLATORS Error shown when the data required to apply a digital signature is missing or invalid.
