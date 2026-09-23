@@ -65,6 +65,18 @@ final class Version17004Date20260421000000Test extends TestCase {
 		self::assertSame('openssl', $certificate->getEngine());
 	}
 
+	#[DataProvider('migrationClasses')]
+	public function testBackfillSkipsAmbiguousMetadataAfterCaRotation(string $migrationClass): void {
+		$this->insertLegacyCertificate('8665-ambiguous-generation', 'abc123', null, 'openssl');
+
+		$this->runMigration($migrationClass, 2);
+
+		$certificate = $this->crlMapper->findBySerialNumber('8665-ambiguous-generation');
+		self::assertSame('abc123', $certificate->getInstanceId());
+		self::assertNull($certificate->getGeneration());
+		self::assertSame('openssl', $certificate->getEngine());
+	}
+
 	public static function migrationClasses(): array {
 		return [
 			'original migration for fresh upgrades' => [Version17004Date20260421000000::class],
@@ -75,17 +87,17 @@ final class Version17004Date20260421000000Test extends TestCase {
 	/**
 	 * @param class-string $migrationClass
 	 */
-	private function runMigration(string $migrationClass): void {
+	private function runMigration(string $migrationClass, int $generation = 1): void {
 		$appConfig = $this->createMock(IAppConfig::class);
 		$appConfig->method('getValueString')
 			->willReturnCallback(static fn (string $app, string $key, string $default = ''): string => match ($key) {
 				'certificate_engine' => 'openssl',
 				'instance_id' => 'abc123',
-				'ca_id' => 'libresign-ca-id:abc123_g:1_e:o',
+				'ca_id' => 'libresign-ca-id:abc123_g:' . $generation . '_e:o',
 				default => $default,
 			});
 		$appConfig->method('getValueInt')
-			->willReturnCallback(static fn (string $app, string $key, int $default = 0): int => $key === 'ca_generation_counter' ? 1 : $default);
+			->willReturnCallback(static fn (string $app, string $key, int $default = 0): int => $key === 'ca_generation_counter' ? $generation : $default);
 
 		$config = $this->createMock(IConfig::class);
 		$schema = $this->createMock(ISchemaWrapper::class);
