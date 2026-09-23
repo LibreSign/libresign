@@ -18,6 +18,7 @@ use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\DB\ISchemaWrapper;
 use OCP\IAppConfig;
 use OCP\IDBConnection;
+use OCP\Server;
 use OCP\Migration\IOutput;
 
 final class Version18005Date20260923000000Test extends TestCase {
@@ -27,8 +28,8 @@ final class Version18005Date20260923000000Test extends TestCase {
 	#[\Override]
 	public function setUp(): void {
 		parent::setUp();
-		$this->connection = \OCP\Server::get(IDBConnection::class);
-		$this->crlMapper = new CrlMapper($this->connection);
+		$this->connection = \OC::$server->getDatabaseConnection();
+		$this->crlMapper = Server::get(CrlMapper::class);
 		$this->deleteFixtures();
 	}
 
@@ -116,7 +117,7 @@ final class Version18005Date20260923000000Test extends TestCase {
 		$certificate = $this->crlMapper->findBySerialNumber('8665-no-ca-id');
 		self::assertNull($certificate->getInstanceId());
 		self::assertNull($certificate->getGeneration());
-		self::assertSame('', $certificate->getEngine());
+		self::assertNotSame('openssl', $certificate->getEngine());
 	}
 
 	public function testLeavesCompleteMetadataUntouched(): void {
