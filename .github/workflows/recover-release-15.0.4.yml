@@ -9,13 +9,12 @@ on:
       - main
     paths:
       - '.github/workflows/recover-release-15.0.4.yml'
-  workflow_dispatch:
 
 permissions: {}
 
 jobs:
   recover:
-    name: Recover release 15.0.4
+    name: Finalize release 15.0.4 from PR 8656
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -24,14 +23,14 @@ jobs:
       issues: write
       pull-requests: read
     steps:
-      - name: Checkout stable35
+      - name: Checkout merged release branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 1
           ref: stable35
 
-      - name: Fetch stable35 history
+      - name: Fetch merged release history
         shell: bash
         run: |
           set -euo pipefail
