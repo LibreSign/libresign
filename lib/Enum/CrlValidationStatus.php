@@ -20,6 +20,8 @@ enum CrlValidationStatus: string {
 	case REVOKED = 'revoked';
 	/** Admin disabled external CRL validation; local CRLs were not checked. */
 	case DISABLED = 'disabled';
+	/** Certificate uses the legacy LibreSign CRL URL that lacks CA generation metadata. */
+	case LEGACY_DISTRIBUTION_POINT = 'legacy_distribution_point';
 	/** All CRL Distribution Point URLs were unreachable. */
 	case URLS_INACCESSIBLE = 'urls_inaccessible';
 	/** A download or parse error occurred while fetching the CRL. */
