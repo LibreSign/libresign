@@ -12,9 +12,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Crl;
 use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCA\Libresign\Service\Crl\Ldap\LdapCrlDownloader;
-use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
-use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\CrlValidation\CrlValidationPolicy;
+use OCP\IAppConfig;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IConfig;
@@ -32,12 +30,10 @@ final class CrlLegacyDistributionPointTest extends TestCase {
 			->with('trusted_domains', [])
 			->willReturn(['cloud.example.com']);
 
-		$policyService = $this->createMock(PolicyService::class);
-		$policyService->method('resolve')
-			->with(CrlValidationPolicy::KEY)
-			->willReturn((new ResolvedPolicy())
-				->setPolicyKey(CrlValidationPolicy::KEY)
-				->setEffectiveValue(true));
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig->method('getValueBool')
+			->with('libresign', 'crl_external_validation_enabled', true)
+			->willReturn(true);
 
 		$urlGenerator = $this->createMock(IURLGenerator::class);
 		$urlGenerator->method('linkToRouteAbsolute')->willReturn($templateUrl);
@@ -50,7 +46,7 @@ final class CrlLegacyDistributionPointTest extends TestCase {
 
 		$checker = new CrlRevocationChecker(
 			$config,
-			$policyService,
+			$appConfig,
 			$urlGenerator,
 			$tempManager,
 			$logger,
@@ -87,7 +83,7 @@ final class CrlLegacyDistributionPointTest extends TestCase {
 
 		$checker = new CrlRevocationChecker(
 			$config,
-			$policyService,
+			$appConfig,
 			$urlGenerator,
 			$tempManager,
 			$logger,
