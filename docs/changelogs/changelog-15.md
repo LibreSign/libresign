@@ -19,6 +19,20 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 15.0.4 - 2026-09-22
+
+### Changed
+- Update translations
+- Internal maintenance
+
+### Fixed
+- stop nested develop/pdf fetches causing cURL 52 flakes
+  [#8487](https://github.com/LibreSign/libresign/pull/8487)
+- align file id authorization contract
+  [#8515](https://github.com/LibreSign/libresign/pull/8515)
+- prefer pull requests in nightly release notes
+  [#8567](https://github.com/LibreSign/libresign/pull/8567)
+
 ## 15.0.3 - 2026-09-20
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
