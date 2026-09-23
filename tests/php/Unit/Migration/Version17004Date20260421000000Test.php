@@ -10,17 +10,18 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Migration;
 
 use DateTime;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\Crl;
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Enum\CRLStatus;
 use OCA\Libresign\Migration\Version17004Date20260421000000;
+use OCA\Libresign\Migration\Version18005Date20260923000000;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\DB\ISchemaWrapper;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class Version17004Date20260421000000Test extends TestCase {
 	private IDBConnection $connection;
@@ -40,10 +41,11 @@ final class Version17004Date20260421000000Test extends TestCase {
 		parent::tearDown();
 	}
 
-	public function testBackfillRepairsRowWithAllLegacyMetadataMissing(): void {
+	#[DataProvider('migrationClasses')]
+	public function testBackfillRepairsRowWithAllLegacyMetadataMissing(string $migrationClass): void {
 		$this->insertLegacyCertificate('8665-all-missing', null, null, '');
 
-		$this->runMigration();
+		$this->runMigration($migrationClass);
 
 		$certificate = $this->crlMapper->findBySerialNumber('8665-all-missing');
 		self::assertSame('abc123', $certificate->getInstanceId());
@@ -51,10 +53,11 @@ final class Version17004Date20260421000000Test extends TestCase {
 		self::assertSame('openssl', $certificate->getEngine());
 	}
 
-	public function testBackfillRepairsGenerationWhenItIsTheOnlyMissingField(): void {
+	#[DataProvider('migrationClasses')]
+	public function testBackfillRepairsGenerationWhenItIsTheOnlyMissingField(string $migrationClass): void {
 		$this->insertLegacyCertificate('8665-generation-missing', 'abc123', null, 'openssl');
 
-		$this->runMigration();
+		$this->runMigration($migrationClass);
 
 		$certificate = $this->crlMapper->findBySerialNumber('8665-generation-missing');
 		self::assertSame('abc123', $certificate->getInstanceId());
@@ -62,7 +65,17 @@ final class Version17004Date20260421000000Test extends TestCase {
 		self::assertSame('openssl', $certificate->getEngine());
 	}
 
-	private function runMigration(): void {
+	public static function migrationClasses(): array {
+		return [
+			'original migration for fresh upgrades' => [Version17004Date20260421000000::class],
+			'repair migration for already-upgraded instances' => [Version18005Date20260923000000::class],
+		];
+	}
+
+	/**
+	 * @param class-string $migrationClass
+	 */
+	private function runMigration(string $migrationClass): void {
 		$appConfig = $this->createMock(IAppConfig::class);
 		$appConfig->method('getValueString')
 			->willReturnCallback(static fn (string $app, string $key, string $default = ''): string => match ($key) {
@@ -79,7 +92,7 @@ final class Version17004Date20260421000000Test extends TestCase {
 		$schema->method('hasTable')->with('libresign_crl')->willReturn(true);
 		$output = $this->createMock(IOutput::class);
 
-		$migration = new Version17004Date20260421000000($config, $appConfig, $this->connection);
+		$migration = new $migrationClass($config, $appConfig, $this->connection);
 		$migration->preSchemaChange($output, static fn (): ISchemaWrapper => $schema, []);
 	}
 
