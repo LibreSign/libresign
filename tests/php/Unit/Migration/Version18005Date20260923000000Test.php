@@ -17,7 +17,6 @@ use OCA\Libresign\Migration\Version18005Date20260923000000;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\DB\ISchemaWrapper;
 use OCP\IAppConfig;
-use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 
@@ -109,6 +108,17 @@ final class Version18005Date20260923000000Test extends TestCase {
 		self::assertSame('openssl', $certificate->getEngine());
 	}
 
+	public function testSkipsRepairWithoutAuthoritativeCaId(): void {
+		$this->insertCertificate('8665-no-ca-id', CRLStatus::ISSUED, null, null, '');
+
+		$this->runMigration(1, 'invalid-ca-id');
+
+		$certificate = $this->crlMapper->findBySerialNumber('8665-no-ca-id');
+		self::assertNull($certificate->getInstanceId());
+		self::assertNull($certificate->getGeneration());
+		self::assertSame('', $certificate->getEngine());
+	}
+
 	public function testLeavesCompleteMetadataUntouched(): void {
 		$this->insertCertificate('8665-complete', CRLStatus::ISSUED, 'existing-instance', 7, 'cfssl');
 
@@ -120,24 +130,19 @@ final class Version18005Date20260923000000Test extends TestCase {
 		self::assertSame('cfssl', $certificate->getEngine());
 	}
 
-	private function runMigration(int $generation = 1): void {
+	private function runMigration(int $generation = 1, ?string $caId = null): void {
 		$appConfig = $this->createMock(IAppConfig::class);
 		$appConfig->method('getValueString')
 			->willReturnCallback(static fn (string $app, string $key, string $default = ''): string => match ($key) {
-				'certificate_engine' => 'openssl',
-				'instance_id' => 'abc123',
-				'ca_id' => 'libresign-ca-id:abc123_g:' . $generation . '_e:o',
+				'ca_id' => $caId ?? 'libresign-ca-id:abc123_g:' . $generation . '_e:o',
 				default => $default,
 			});
-		$appConfig->method('getValueInt')
-			->willReturnCallback(static fn (string $app, string $key, int $default = 0): int => $key === 'ca_generation_counter' ? $generation : $default);
 
-		$config = $this->createMock(IConfig::class);
 		$schema = $this->createMock(ISchemaWrapper::class);
 		$schema->method('hasTable')->with('libresign_crl')->willReturn(true);
 		$output = $this->createMock(IOutput::class);
 
-		$migration = new Version18005Date20260923000000($config, $appConfig, $this->connection);
+		$migration = new Version18005Date20260923000000($appConfig, $this->connection);
 		$migration->preSchemaChange($output, static fn (): ISchemaWrapper => $schema, []);
 	}
 
