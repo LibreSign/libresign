@@ -40,8 +40,6 @@ on:
         type: boolean
   pull_request_target:
     types: [closed]
-    paths:
-      - '.github/workflows/prepare-release.yml'
   release:
     types: [published]
 
