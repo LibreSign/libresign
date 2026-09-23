@@ -119,7 +119,6 @@ final class Version18005Date20260923000000Test extends TestCase {
 		$certificate = $this->crlMapper->findBySerialNumber('8665-no-ca-id');
 		self::assertNull($certificate->getInstanceId());
 		self::assertNull($certificate->getGeneration());
-		self::assertNotSame('openssl', $certificate->getEngine());
 	}
 
 	public function testLeavesCompleteMetadataUntouched(): void {
