@@ -16,8 +16,8 @@ default:
       base_url: http://mailpit:8025
     PhpBuiltin\Server:
       runAs: www-data
-      # Keep two workers because some maintained branches still exercise
-      # nested HTTP against the same PHP built-in server.
+      # Keep two workers while the intermittent PHP built-in server crash is
+      # investigated. Single-process mode did not eliminate the cURL 52 failure.
       workers: 2
     jarnaiz\JUnitFormatter\JUnitFormatterExtension:
       filename: report.xml
