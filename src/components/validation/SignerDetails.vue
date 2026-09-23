@@ -363,6 +363,7 @@ const crlStatusMap: Record<string, CrlStatusMeta> = {
 	revoked: { icon: mdiCloseCircle, text: t('libresign', 'CRL: Certificate revoked'), class: 'validation-icon--error' },
 	missing: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No information'), class: 'validation-icon--warning' },
 	no_urls: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No URLs found'), class: 'validation-icon--warning' },
+	legacy_distribution_point: { icon: mdiAlertCircle, text: t('libresign', 'CRL: Outdated URL; regenerate the signing certificate'), class: 'validation-icon--warning' },
 	urls_inaccessible: { icon: mdiHelpCircle, text: t('libresign', 'CRL: URLs inaccessible'), class: 'validation-icon--warning' },
 	validation_failed: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation failed'), class: 'validation-icon--warning' },
 	validation_error: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation error'), class: 'validation-icon--warning' },
