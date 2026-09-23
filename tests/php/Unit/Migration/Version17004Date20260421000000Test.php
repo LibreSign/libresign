@@ -28,7 +28,7 @@ final class Version17004Date20260421000000Test extends TestCase {
 	private CrlMapper $crlMapper;
 
 	#[\Override]
-	protected function setUp(): void {
+	public function setUp(): void {
 		parent::setUp();
 		$this->connection = \OCP\Server::get(IDBConnection::class);
 		$this->crlMapper = new CrlMapper($this->connection);
@@ -36,7 +36,7 @@ final class Version17004Date20260421000000Test extends TestCase {
 	}
 
 	#[\Override]
-	protected function tearDown(): void {
+	public function tearDown(): void {
 		$this->deleteFixtures();
 		parent::tearDown();
 	}
