@@ -22,6 +22,7 @@ use OCA\Libresign\Enum\SignerGeolocationCollectionStatus;
 use OCA\Libresign\Enum\SignerGeolocationMode;
 use OCA\Libresign\Enum\SignerIpGeolocationStatus;
 use OCA\Libresign\Enum\SignerIpGeolocationUnavailableReason;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
@@ -349,7 +350,9 @@ class FileListService {
 		));
 		$pendingSigners = array_values(array_filter(
 			$signers,
-			fn (SignRequest $signer) => $signer->getSigned() === null && $signer->getParticipantRoleEnum()->canSign(),
+			fn (SignRequest $signer) => $signer->getSigned() === null
+				&& $signer->getStatusEnum() !== SignRequestStatus::REJECTED
+				&& $signer->getParticipantRoleEnum()->canSign(),
 		));
 		$isOrderedNumeric = SignatureFlow::fromNumeric($fileEntity->getSignatureFlow())->value === SignatureFlow::ORDERED_NUMERIC->value;
 		$minOrder = empty($pendingSigners)
@@ -360,6 +363,7 @@ class FileListService {
 			&& !empty($mySigningParticipants)
 			&& !empty($pendingSigners)
 			&& !array_filter($mySigningParticipants, fn (SignRequest $signer) => $signer->getSigned() !== null)
+			&& !array_filter($mySigningParticipants, fn (SignRequest $signer) => $signer->getStatusEnum() === SignRequestStatus::REJECTED)
 			&& (!$isOrderedNumeric || array_filter($mySigningParticipants, fn (SignRequest $signer) => ($signer->getSigningOrder() ?: 1) === $minOrder));
 
 		/** @var LibresignFileSummary */
