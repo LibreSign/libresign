@@ -26,7 +26,7 @@ use Psr\Log\LoggerInterface;
 
 final class CrlLegacyDistributionPointTest extends TestCase {
 	#[DataProvider('legacyLocalUrls')]
-	public function testLegacyLocalDistributionPointReturnsActionableStatus(string $url): void {
+	public function testLegacyLocalDistributionPointReturnsActionableStatus(string $templateUrl, string $url): void {
 		$config = $this->createMock(IConfig::class);
 		$config->method('getSystemValue')
 			->with('trusted_domains', [])
@@ -40,6 +40,7 @@ final class CrlLegacyDistributionPointTest extends TestCase {
 				->setEffectiveValue(true));
 
 		$urlGenerator = $this->createMock(IURLGenerator::class);
+		$urlGenerator->method('linkToRouteAbsolute')->willReturn($templateUrl);
 		$tempManager = $this->createMock(ITempManager::class);
 		$logger = $this->createMock(LoggerInterface::class);
 		$cache = $this->createMock(ICache::class);
@@ -76,6 +77,7 @@ final class CrlLegacyDistributionPointTest extends TestCase {
 				->setEffectiveValue(true));
 
 		$urlGenerator = $this->createMock(IURLGenerator::class);
+		$urlGenerator->method('linkToRouteAbsolute')->willReturn('https://cloud.example.com/nextcloud/apps/libresign/crl/libresign_INSTANCEID_999999_ENGINETYPE.crl');
 		$tempManager = $this->createMock(ITempManager::class);
 		$logger = $this->createMock(LoggerInterface::class);
 		$cache = $this->createMock(ICache::class);
@@ -99,10 +101,16 @@ final class CrlLegacyDistributionPointTest extends TestCase {
 	}
 
 	public static function legacyLocalUrls(): array {
+		$rootTemplate = 'https://cloud.example.com/apps/libresign/crl/libresign_INSTANCEID_999999_ENGINETYPE.crl';
+		$subdirTemplate = 'https://cloud.example.com/nextcloud/apps/libresign/crl/libresign_INSTANCEID_999999_ENGINETYPE.crl';
+
 		return [
-			'front controller disabled' => ['https://cloud.example.com/apps/libresign/crl'],
-			'front controller enabled' => ['https://cloud.example.com/index.php/apps/libresign/crl'],
-			'trailing slash' => ['https://cloud.example.com/apps/libresign/crl/'],
+			'root webroot without front controller' => [$rootTemplate, 'https://cloud.example.com/apps/libresign/crl'],
+			'root webroot with front controller' => [$rootTemplate, 'https://cloud.example.com/index.php/apps/libresign/crl'],
+			'root webroot trailing slash' => [$rootTemplate, 'https://cloud.example.com/apps/libresign/crl/'],
+			'subdirectory without front controller' => [$subdirTemplate, 'https://cloud.example.com/nextcloud/apps/libresign/crl'],
+			'subdirectory with front controller' => [$subdirTemplate, 'https://cloud.example.com/nextcloud/index.php/apps/libresign/crl'],
+			'subdirectory trailing slash' => [$subdirTemplate, 'https://cloud.example.com/nextcloud/apps/libresign/crl/'],
 		];
 	}
 }
