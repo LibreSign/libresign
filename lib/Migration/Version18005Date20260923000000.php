@@ -14,7 +14,6 @@ use OCA\Libresign\AppInfo\Application;
 use OCP\DB\ISchemaWrapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IAppConfig;
-use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
@@ -25,7 +24,6 @@ use OCP\Migration\SimpleMigrationStep;
  */
 class Version18005Date20260923000000 extends SimpleMigrationStep {
 	public function __construct(
-		private IConfig $config,
 		private IAppConfig $appConfig,
 		private IDBConnection $connection,
 	) {
@@ -68,41 +66,24 @@ class Version18005Date20260923000000 extends SimpleMigrationStep {
 	 * @return array{instanceId: string, generation: int, engine: string}|null
 	 */
 	private function resolveMetadataDefaults(): ?array {
-		$engine = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
-		if ($engine === '' || $engine === 'none') {
-			$engine = 'openssl';
-		}
-
-		$instanceId = $this->appConfig->getValueString(Application::APP_ID, 'instance_id', '');
-		$generation = max(1, $this->appConfig->getValueInt(Application::APP_ID, 'ca_generation_counter', 1));
 		$caId = $this->appConfig->getValueString(Application::APP_ID, 'ca_id', '');
-
-		$pattern = '/^libresign-ca-id:(?P<instanceId>[a-z0-9]+)_g:(?P<generation>\d+)_e:(?P<engineType>[oc])$/';
-		if ($caId !== '' && preg_match($pattern, $caId, $matches)) {
-			$instanceId = $matches['instanceId'];
-			$generation = max(1, (int)$matches['generation']);
-			$engine = $matches['engineType'] === 'c' ? 'cfssl' : 'openssl';
-		}
-
-		if ($instanceId === '') {
-			$instanceId = $this->config->getSystemValueString('instanceid', '');
-		}
-
-		if ($instanceId === '' || !in_array($engine, ['openssl', 'cfssl'], true)) {
+		$pattern = '/^libresign-ca-id:(?P<instanceId>[a-z0-9]+)_g:(?P<generation>\\d+)_e:(?P<engineType>[oc])$/';
+		if ($caId === '' || preg_match($pattern, $caId, $matches) !== 1) {
 			return null;
 		}
 
-		// Legacy rows predate CA generations. Once a CA has rotated, assigning
-		// the current generation to an old certificate is ambiguous and could
-		// make revocation checks use the wrong CRL scope. Fail closed instead.
+		$generation = (int)$matches['generation'];
 		if ($generation !== 1) {
+			// Once a CA has rotated, assigning the current generation to an old
+			// incomplete row is ambiguous. Preserve the row rather than risk
+			// moving a certificate into the wrong CRL scope.
 			return null;
 		}
 
 		return [
-			'instanceId' => $instanceId,
+			'instanceId' => $matches['instanceId'],
 			'generation' => $generation,
-			'engine' => $engine,
+			'engine' => $matches['engineType'] === 'c' ? 'cfssl' : 'openssl',
 		];
 	}
 
