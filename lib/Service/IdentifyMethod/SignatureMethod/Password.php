@@ -72,6 +72,8 @@ class Password extends AbstractSignatureMethod {
 
 	private function getRevocationErrorMessage(CrlValidationStatus $status): string {
 		return match ($status) {
+			// TRANSLATORS Error when a certificate contains LibreSign's obsolete CRL URL, which cannot identify the CA generation safely.
+			CrlValidationStatus::LEGACY_DISTRIBUTION_POINT => $this->identifyService->getL10n()->t('This signing certificate uses an outdated revocation URL. Regenerate your signing certificate before signing.'),
 			// TRANSLATORS Error when the CRL distribution points (URLs) cannot be reached to check if certificate is revoked
 			CrlValidationStatus::URLS_INACCESSIBLE => $this->identifyService->getL10n()->t('Cannot reach the certificate revocation service. Signing is not allowed.'),
 			// TRANSLATORS Error when an error occurs during certificate revocation status validation
