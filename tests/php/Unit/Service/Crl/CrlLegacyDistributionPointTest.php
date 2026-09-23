@@ -11,10 +11,10 @@ namespace OCA\Libresign\Tests\Unit\Service\Crl;
 
 use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
-use OCA\Libresign\Service\Crl\LdapCrlDownloader;
+use OCA\Libresign\Service\Crl\Ldap\LdapCrlDownloader;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\CrlValidation\CrlValidationPolicy;
-use OCA\Libresign\Service\Policy\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IConfig;
