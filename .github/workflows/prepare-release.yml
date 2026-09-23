@@ -38,7 +38,7 @@ on:
         required: true
         default: true
         type: boolean
-  pull_request:
+  pull_request_target:
     types: [closed]
   release:
     types: [published]
@@ -76,7 +76,7 @@ jobs:
           git fetch --quiet --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
 
       - name: Prepare release
-        uses: LibreCodeCoop/github-workflows/actions/release-prepare@90cd667c241ebcd6982681ff82152c3a903e9341 # v0.6.27
+        uses: LibreCodeCoop/github-workflows/actions/release-prepare@f732578ab87c7bd7d85b60ac1612277149f1153e # v0.6.29
         with:
           branch: ${{ inputs.branch }}
           ref: ${{ inputs.ref }}
@@ -92,7 +92,7 @@ jobs:
   post_merge:
     name: Finalize release and prepare draft
     if: >-
-      github.event_name == 'pull_request' &&
+      github.event_name == 'pull_request_target' &&
       github.event.pull_request.merged == true &&
       startsWith(github.event.pull_request.head.ref, 'release-tool/') &&
       contains(github.event.pull_request.body, '<!-- release-tool:preparation ')
@@ -120,7 +120,7 @@ jobs:
           git fetch --quiet --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
 
       - name: Finalize merged release
-        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@90cd667c241ebcd6982681ff82152c3a903e9341 # v0.6.27
+        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@f732578ab87c7bd7d85b60ac1612277149f1153e # v0.6.29
         with:
           pull-request-number: ${{ github.event.pull_request.number }}
           merger: ${{ github.event.pull_request.merged_by.login }}
@@ -146,7 +146,7 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
 
       - name: Verify publication
-        uses: LibreCodeCoop/github-workflows/actions/release-publication@90cd667c241ebcd6982681ff82152c3a903e9341 # v0.6.27
+        uses: LibreCodeCoop/github-workflows/actions/release-publication@f732578ab87c7bd7d85b60ac1612277149f1153e # v0.6.29
         with:
           github-release-id: ${{ github.event.release.id }}
           config-path: .nextcloud-release.yml
