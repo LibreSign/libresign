@@ -167,7 +167,28 @@ class CrlRevocationChecker {
 			return false;
 		}
 
-		return preg_match('#^/(?:index\\.php/)?apps/libresign/crl/?$#', $path) === 1;
+		$templateUrl = $this->urlGenerator->linkToRouteAbsolute('libresign.crl.getRevocationList', [
+			'instanceId' => 'INSTANCEID',
+			'generation' => 999999,
+			'engineType' => 'ENGINETYPE',
+		]);
+		$templatePath = parse_url($templateUrl, PHP_URL_PATH);
+		if (!is_string($templatePath)) {
+			return false;
+		}
+
+		$appsPosition = strpos($templatePath, '/apps/');
+		if ($appsPosition === false) {
+			return false;
+		}
+
+		$webroot = substr($templatePath, 0, $appsPosition);
+		if (str_ends_with($webroot, '/index.php')) {
+			$webroot = substr($webroot, 0, -strlen('/index.php'));
+		}
+
+		$pattern = '#^' . preg_quote($webroot, '#') . '/(?:index\\.php/)?apps/libresign/crl/?$#';
+		return preg_match($pattern, $path) === 1;
 	}
 
 	private function isLocalCrlUrl(string $url): bool {
