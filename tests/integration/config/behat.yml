@@ -16,11 +16,9 @@ default:
       base_url: http://mailpit:8025
     PhpBuiltin\Server:
       runAs: www-data
-      # Keep the minimum workers needed for occasional nested HTTP to the same
-      # PHP built-in server (single-process deadlocks on self-requests). Prefer
-      # inline <SMALL_VALID_PDF_BASE64> fixtures over url→/develop/pdf to avoid load-driven
-      # cURL 52 flakes from higher PHP_CLI_SERVER_WORKERS values.
-      workers: 2
+      # URL fixtures are served by FixtureHttpServer, so the Nextcloud test
+      # server no longer needs experimental multi-worker mode.
+      workers: 0
     jarnaiz\JUnitFormatter\JUnitFormatterExtension:
       filename: report.xml
       outputDir: '%paths.base%/../output/'
