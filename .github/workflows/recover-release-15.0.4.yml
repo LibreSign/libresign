@@ -4,6 +4,11 @@
 name: Recover release 15.0.4
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/recover-release-15.0.4.yml'
   workflow_dispatch:
 
 permissions: {}
