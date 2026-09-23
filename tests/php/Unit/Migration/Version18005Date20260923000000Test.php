@@ -18,8 +18,8 @@ use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\DB\ISchemaWrapper;
 use OCP\IAppConfig;
 use OCP\IDBConnection;
-use OCP\Server;
 use OCP\Migration\IOutput;
+use OCP\Server;
 
 final class Version18005Date20260923000000Test extends TestCase {
 	private IDBConnection $connection;
