@@ -307,7 +307,7 @@
     "It was not possible to register the rejection. Nothing was changed." : "Die Ablehnung konnte nicht registriert werden. Es hat sich nichts geändert.",
     "The signing workflow of this document is already closed." : "Der Signiervorgang für dieses Dokument ist bereits abgeschlossen.",
     "This document is not open for signature rejection." : "Dieses Dokument kann nicht zurückgewiesen werden.",
-    "You already rejected this signature request." : "Diese Signaturanfrage wurde bereits abgelehnt.",
+    "You already rejected this signature request." : "Sie haben diese Signaturanfrage bereits abgelehnt.",
     "Rejection comments are not allowed for this document." : "Ablehnungskommentare sind für dieses Dokument nicht zulässig.",
     "A comment is required to reject this signature request." : "Um diese Signaturanfrage abzulehnen, ist ein Kommentar erforderlich.",
     "The rejection comment must have at most %s characters." : "Der Ablehnungskommentar darf höchstens %s Zeichen umfassen.",
