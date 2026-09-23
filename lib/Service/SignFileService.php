@@ -28,6 +28,8 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\IdentifyMethodRequirement;
+use OCA\Libresign\Enum\SignatureRejectionBehavior;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Exception\FooterStampUnavailableException;
 use OCA\Libresign\Exception\LibresignException;
@@ -46,6 +48,7 @@ use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
+use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
@@ -131,6 +134,7 @@ class SignFileService {
 		private SubjectAlternativeNameService $subjectAlternativeNameService,
 		private SignRequestService $signRequestService,
 		private PolicyService $policyService,
+		private SignatureRejectionPolicyService $signatureRejectionPolicyService,
 	) {
 	}
 
@@ -1090,7 +1094,7 @@ class SignFileService {
 	}
 
 	protected function setNewStatusIfNecessary(FileEntity $libreSignFile): bool {
-		$newStatus = $this->evaluateStatusFromSigners();
+		$newStatus = $this->evaluateStatusFromSigners($libreSignFile);
 
 		if ($newStatus === null || $newStatus === $libreSignFile->getStatus()) {
 			return false;
@@ -1105,7 +1109,7 @@ class SignFileService {
 		$this->statusService->cacheFileStatus($file);
 	}
 
-	private function evaluateStatusFromSigners(): ?int {
+	private function evaluateStatusFromSigners(FileEntity $libreSignFile): ?int {
 		$signers = $this->excludeIdDocUploaderPlaceholder($this->getSigners());
 		$signers = array_values(array_filter(
 			$signers,
@@ -1124,11 +1128,43 @@ class SignFileService {
 			return FileStatus::SIGNED->value;
 		}
 
+		if ($this->workflowCompletedDespiteRejections($libreSignFile, $signers, $totalSigned)) {
+			return FileStatus::SIGNED->value;
+		}
+
 		if ($totalSigned > 0) {
 			return FileStatus::PARTIAL_SIGNED->value;
 		}
 
 		return null;
+	}
+
+	/**
+	 * A rejection configured not to cancel the workflow leaves behind a signer
+	 * who will never sign, so counting signatures alone would keep the file
+	 * partially signed forever. The workflow is complete once nobody is expected
+	 * to act any more and at least one signature was actually applied.
+	 *
+	 * A rejected signer keeps its own status: only the file-level status says
+	 * that the configured workflow finished.
+	 *
+	 * @param SignRequestEntity[] $signers
+	 */
+	private function workflowCompletedDespiteRejections(FileEntity $libreSignFile, array $signers, int $totalSigned): bool {
+		if ($totalSigned === 0) {
+			return false;
+		}
+
+		if ($this->signatureRejectionPolicyService->getBehavior($libreSignFile) !== SignatureRejectionBehavior::CONTINUE) {
+			return false;
+		}
+
+		$totalRejected = count(array_filter(
+			$signers,
+			static fn (SignRequestEntity $signer): bool => $signer->getStatusEnum() === SignRequestStatus::REJECTED,
+		));
+
+		return $totalSigned + $totalRejected === count($signers);
 	}
 
 	/**
