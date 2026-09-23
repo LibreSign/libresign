@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Recover release 15.0.4
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  recover:
+    name: Recover release 15.0.4
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      - name: Checkout stable35
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          ref: stable35
+
+      - name: Fetch stable35 history
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --quiet --unshallow --prune origin \
+            "+refs/heads/stable35:refs/remotes/origin/stable35" \
+            "+refs/tags/*:refs/tags/*"
+
+      - name: Finalize merged release
+        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@90cd667c241ebcd6982681ff82152c3a903e9341 # v0.6.27
+        with:
+          pull-request-number: '8656'
+          merger: vitormattos
+          config-path: .nextcloud-release.yml
+          prepare-workflow-path: .github/workflows/prepare-release.yml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          app-private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
