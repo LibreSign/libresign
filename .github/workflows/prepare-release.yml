@@ -2,6 +2,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 name: Prepare release
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch' && format('Prepare release · {0}', inputs.branch)
+      || github.event_name == 'pull_request_target' && format('Finalize release · PR #{0}', github.event.pull_request.number)
+      || github.event_name == 'release' && format('Verify release · {0}', github.event.release.tag_name)
+      || 'Release automation' }}
 
 on:
   workflow_dispatch:
