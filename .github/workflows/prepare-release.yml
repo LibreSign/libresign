@@ -38,7 +38,7 @@ on:
         required: true
         default: true
         type: boolean
-  pull_request:
+  pull_request_target:
     types: [closed]
   release:
     types: [published]
@@ -92,7 +92,7 @@ jobs:
   post_merge:
     name: Finalize release and prepare draft
     if: >-
-      github.event_name == 'pull_request' &&
+      github.event_name == 'pull_request_target' &&
       github.event.pull_request.merged == true &&
       startsWith(github.event.pull_request.head.ref, 'release-tool/') &&
       contains(github.event.pull_request.body, '<!-- release-tool:preparation ')
