@@ -76,4 +76,4 @@ about, and the post-merge note never reaches you.
      Replace the .invalid placeholder with the LimeSurvey URL and keep the two
      query parameters -- they are the only context values #8292 allows. -->
 
-[contributor-survey]: https://replace-me.invalid/?source=contributing-guide&repository=libresign
+[contributor-survey]: https://ls.librecode.coop/index.php/645932?lang=en&source=contributing-guide&repository=libresign
