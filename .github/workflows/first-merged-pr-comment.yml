@@ -1,0 +1,62 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: First merged PR comment
+
+on:
+  pull_request_target:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: Pull request number to process or retry
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: >-
+    first-merged-pr-comment-${{
+      github.event.pull_request.number ||
+      inputs.pull_request_number ||
+      github.run_id
+    }}
+  cancel-in-progress: false
+
+jobs:
+  first-merged-pr-comment:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.pull_request.merged == true &&
+        github.event.pull_request.user.type != 'Bot'
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    permissions:
+      pull-requests: write
+
+    env:
+      FIRST_MERGED_PR_MESSAGE: |
+        Hi {contributor_mention}, your first pull request to LibreSign has been merged. 🎉
+
+        Your work is part of LibreSign now, and everyone who signs a document with it benefits from the time and knowledge you shared. Thank you.
+
+        You are very welcome to contribute again. The [good first issue]({repository_url}/labels/good%20first%20issue) list is a good place to look next, and you no longer have to wonder how the process works.
+
+        If you have a few minutes and feel like it, we would love to hear how this went for you: https://ls.librecode.coop/index.php/645932?lang=en&source=github-first-merged-pr&repository={repository_name|urlencode}. It is entirely optional; nothing is expected of you in return for contributing.
+
+        Come say hello in the LibreSign community: https://t.me/LibreSign
+
+    steps:
+      # pull_request_target is intentionally used without checkout. Nothing
+      # from the pull request head is downloaded or executed.
+      - name: Comment on first merged pull request
+        uses: LibreCodeCoop/github-workflows/actions/first-merged-pr-comment@6816f216b2b04d5dd63d01711f88c5ff1d1e0740
+        with:
+          github-token: ${{ github.token }}
+          pull-request-number: >-
+            ${{ github.event.pull_request.number || inputs.pull_request_number }}
+          message-template: ${{ env.FIRST_MERGED_PR_MESSAGE }}
