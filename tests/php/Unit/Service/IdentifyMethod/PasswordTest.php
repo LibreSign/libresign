@@ -144,6 +144,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		array $certificateData,
 		bool $shouldThrow,
 		?int $expectedCode = null,
+		?string $expectedMessage = null,
 	): void {
 		$this->pkcs12Handler = $this->getPkcs12Instance(['getPfxOfCurrentSigner', 'setCertificate', 'setPassword', 'readCertificate']);
 		$this->pkcs12Handler->method('getPfxOfCurrentSigner')->willReturn('mock-pfx');
@@ -161,6 +162,9 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->expectException(LibresignException::class);
 			if ($expectedCode !== null) {
 				$this->expectExceptionCode($expectedCode);
+			}
+			if ($expectedMessage !== null) {
+				$this->expectExceptionMessage($expectedMessage);
 			}
 		}
 
@@ -256,6 +260,15 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::DISABLED,
 				],
 				'shouldThrow' => false,
+			],
+			'invalid certificate - legacy crl distribution point' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => CrlValidationStatus::LEGACY_DISTRIBUTION_POINT,
+				],
+				'shouldThrow' => true,
+				'expectedCode' => 422,
+				'expectedMessage' => 'This signing certificate uses an outdated revocation URL. Regenerate your signing certificate before signing.',
 			],
 			'invalid certificate - crl urls_inaccessible' => [
 				'certificateData' => [
