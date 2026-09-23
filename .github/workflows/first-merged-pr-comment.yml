@@ -38,18 +38,6 @@ jobs:
     permissions:
       pull-requests: write
 
-    env:
-      FIRST_MERGED_PR_MESSAGE: |
-        Hi {contributor_mention}, your first pull request to LibreSign has been merged. 🎉
-
-        Your work is part of LibreSign now, and everyone who signs a document with it benefits from the time and knowledge you shared. Thank you.
-
-        You are very welcome to contribute again. The [good first issue]({repository_url}/labels/good%20first%20issue) list is a good place to look next, and you no longer have to wonder how the process works.
-
-        If you have a few minutes and feel like it, we would love to hear how this went for you: https://ls.librecode.coop/index.php/645932?lang=en&source=github-first-merged-pr&repository={repository_name|urlencode}. It is entirely optional; nothing is expected of you in return for contributing.
-
-        Come say hello in the LibreSign community: https://t.me/LibreSign
-
     steps:
       # pull_request_target is intentionally used without checkout. Nothing
       # from the pull request head is downloaded or executed.
@@ -59,4 +47,4 @@ jobs:
           github-token: ${{ github.token }}
           pull-request-number: >-
             ${{ github.event.pull_request.number || inputs.pull_request_number }}
-          message-template: ${{ env.FIRST_MERGED_PR_MESSAGE }}
+          message-template: ${{ vars.FIRST_MERGED_PR_MESSAGE }}
