@@ -66,6 +66,7 @@ OC.L10N.register(
     "Password" : "Wagwoord",
     "Confirm password" : "Bevestig wagwoord",
     "Enter a password" : "Gee ’n wagwoord",
+    "Clear filters" : "Maak filter skoon",
     "Type" : "Tipe",
     "Comment" : "Kommentaar",
     "Actions" : "Aksies",
@@ -93,6 +94,8 @@ OC.L10N.register(
     "Continue" : "Gaan voort",
     "Hello {name}" : "Hallo {name}",
     "_{count} file_::_{count} files_" : ["{count} lêer","{count} lêers"],
+    "Last 7 days" : "Laaste 7 dae",
+    "Last 30 days" : "Laaste 30 dae",
     "Other" : "Ander",
     "User" : "Gebruiker",
     "Reminders" : "Herinneringe"
