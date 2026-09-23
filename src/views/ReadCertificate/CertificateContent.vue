@@ -200,6 +200,7 @@ const crlStatusMap = computed<Record<string, StatusChip>>(() => ({
 	revoked: { text: t('libresign', 'Revoked'), variant: 'error', icon: mdiShieldOff },
 	missing: { text: t('libresign', 'No CRL Information'), variant: 'warning', icon: mdiShieldAlert },
 	no_urls: { text: t('libresign', 'No CRL URLs Found'), variant: 'warning', icon: mdiShieldAlert },
+	legacy_distribution_point: { text: t('libresign', 'Outdated CRL URL; regenerate the signing certificate'), variant: 'warning', icon: mdiShieldAlert },
 	urls_inaccessible: { text: t('libresign', 'CRL URLs Inaccessible'), variant: 'tertiary', icon: mdiHelpCircle },
 	validation_failed: { text: t('libresign', 'CRL Validation Failed'), variant: 'tertiary', icon: mdiHelpCircle },
 	validation_error: { text: t('libresign', 'CRL Validation Error'), variant: 'tertiary', icon: mdiHelpCircle },
