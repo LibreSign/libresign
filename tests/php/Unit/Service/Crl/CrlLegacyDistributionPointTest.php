@@ -103,6 +103,7 @@ final class CrlLegacyDistributionPointTest extends TestCase {
 	public static function legacyLocalUrls(): array {
 		$rootTemplate = 'https://cloud.example.com/apps/libresign/crl/libresign_INSTANCEID_999999_ENGINETYPE.crl';
 		$subdirTemplate = 'https://cloud.example.com/nextcloud/apps/libresign/crl/libresign_INSTANCEID_999999_ENGINETYPE.crl';
+		$appsInWebrootTemplate = 'https://cloud.example.com/apps/nextcloud/apps/libresign/crl/libresign_INSTANCEID_999999_ENGINETYPE.crl';
 
 		return [
 			'root webroot without front controller' => [$rootTemplate, 'https://cloud.example.com/apps/libresign/crl'],
@@ -111,6 +112,7 @@ final class CrlLegacyDistributionPointTest extends TestCase {
 			'subdirectory without front controller' => [$subdirTemplate, 'https://cloud.example.com/nextcloud/apps/libresign/crl'],
 			'subdirectory with front controller' => [$subdirTemplate, 'https://cloud.example.com/nextcloud/index.php/apps/libresign/crl'],
 			'subdirectory trailing slash' => [$subdirTemplate, 'https://cloud.example.com/nextcloud/apps/libresign/crl/'],
+			'webroot containing apps segment' => [$appsInWebrootTemplate, 'https://cloud.example.com/apps/nextcloud/apps/libresign/crl'],
 		];
 	}
 }
