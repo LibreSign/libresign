@@ -71,9 +71,9 @@ about, and the post-merge note never reaches you.
 
 [Contributor experience survey][contributor-survey]
 
-<!-- The base URL is the CONTRIBUTOR_SURVEY_URL repository variable that the
-     workflow reads; markdown cannot read it, so it is written out once here.
-     Replace the .invalid placeholder with the LimeSurvey URL and keep the two
-     query parameters -- they are the only context values #8292 allows. -->
+<!-- The workflow reads its base URL from the CONTRIBUTOR_SURVEY_URL repository
+     variable; markdown cannot read repository variables, so the survey URL is
+     written out once here. Keep the source and repository query parameters in
+     sync with the workflow context used for #8292. -->
 
 [contributor-survey]: https://ls.librecode.coop/index.php/645932?lang=en&source=contributing-guide&repository=libresign
