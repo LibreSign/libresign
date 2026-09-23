@@ -100,13 +100,6 @@ class Version17004Date20260421000000 extends SimpleMigrationStep {
 			return null;
 		}
 
-		// Legacy rows predate CA generations. Once a CA has rotated, assigning
-		// the current generation to an old certificate is ambiguous and could
-		// make revocation checks use the wrong CRL scope. Fail closed instead.
-		if ($generation !== 1) {
-			return null;
-		}
-
 		return [
 			'instanceId' => $instanceId,
 			'generation' => $generation,
@@ -122,6 +115,13 @@ class Version17004Date20260421000000 extends SimpleMigrationStep {
 			->where($qb->expr()->eq('status', $qb->createNamedParameter('issued')))
 			->andWhere(
 				$qb->expr()->orX(
+					$qb->expr()->isNull('generation'),
+					$qb->expr()->isNull('engine'),
+					$qb->expr()->eq('engine', $qb->createNamedParameter('')),
+				)
+			)
+			->andWhere(
+				$qb->expr()->orX(
 					$qb->expr()->isNull('instance_id'),
 					$qb->expr()->eq('instance_id', $qb->createNamedParameter('')),
 				)
@@ -135,6 +135,14 @@ class Version17004Date20260421000000 extends SimpleMigrationStep {
 		return $qb->update('libresign_crl')
 			->set('generation', $qb->createNamedParameter($generation, IQueryBuilder::PARAM_INT))
 			->where($qb->expr()->eq('status', $qb->createNamedParameter('issued')))
+			->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->isNull('instance_id'),
+					$qb->expr()->eq('instance_id', $qb->createNamedParameter('')),
+					$qb->expr()->isNull('engine'),
+					$qb->expr()->eq('engine', $qb->createNamedParameter('')),
+				)
+			)
 			->andWhere($qb->expr()->isNull('generation'))
 			->executeStatement();
 	}
@@ -145,6 +153,13 @@ class Version17004Date20260421000000 extends SimpleMigrationStep {
 		return $qb->update('libresign_crl')
 			->set('engine', $qb->createNamedParameter($engine))
 			->where($qb->expr()->eq('status', $qb->createNamedParameter('issued')))
+			->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->isNull('instance_id'),
+					$qb->expr()->eq('instance_id', $qb->createNamedParameter('')),
+					$qb->expr()->isNull('generation'),
+				)
+			)
 			->andWhere(
 				$qb->expr()->orX(
 					$qb->expr()->isNull('engine'),
