@@ -72,9 +72,10 @@ about, and the post-merge note never reaches you.
 
 [Contributor experience survey][contributor-survey]
 
-<!-- The workflow reads its base URL from the CONTRIBUTOR_SURVEY_URL repository
-     variable; markdown cannot read repository variables, so the survey URL is
-     written out once here. Keep the source and repository query parameters in
-     sync with the workflow context used for #8292. -->
+<!-- The post-merge workflow reads its complete message from the
+     FIRST_MERGED_PR_MESSAGE repository Actions variable. Markdown cannot read
+     repository variables, so the survey URL is written out once here. Keep the
+     source and repository query parameters aligned with the post-merge survey
+     context. -->
 
 [contributor-survey]: https://ls.librecode.coop/index.php/645932?lang=en&source=contributing-guide&repository=libresign
