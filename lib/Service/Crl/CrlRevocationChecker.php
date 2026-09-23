@@ -181,12 +181,12 @@ class CrlRevocationChecker {
 			return false;
 		}
 
-		$appsPosition = strpos($templatePath, '/apps/');
-		if ($appsPosition === false) {
+		$routePosition = strrpos($templatePath, '/apps/libresign/crl/');
+		if ($routePosition === false) {
 			return false;
 		}
 
-		$webroot = substr($templatePath, 0, $appsPosition);
+		$webroot = substr($templatePath, 0, $routePosition);
 		if (str_ends_with($webroot, '/index.php')) {
 			$webroot = substr($webroot, 0, -strlen('/index.php'));
 		}
