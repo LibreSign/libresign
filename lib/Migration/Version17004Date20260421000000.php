@@ -100,6 +100,13 @@ class Version17004Date20260421000000 extends SimpleMigrationStep {
 			return null;
 		}
 
+		// Legacy rows predate CA generations. Once a CA has rotated, assigning
+		// the current generation to an old certificate is ambiguous and could
+		// make revocation checks use the wrong CRL scope. Fail closed instead.
+		if ($generation !== 1) {
+			return null;
+		}
+
 		return [
 			'instanceId' => $instanceId,
 			'generation' => $generation,
