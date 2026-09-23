@@ -16,9 +16,9 @@ default:
       base_url: http://mailpit:8025
     PhpBuiltin\Server:
       runAs: www-data
-      # URL fixtures are served by FixtureHttpServer, so the Nextcloud test
-      # server no longer needs experimental multi-worker mode.
-      workers: 0
+      # Keep two workers because some maintained branches still exercise
+      # nested HTTP against the same PHP built-in server.
+      workers: 2
     jarnaiz\JUnitFormatter\JUnitFormatterExtension:
       filename: report.xml
       outputDir: '%paths.base%/../output/'
