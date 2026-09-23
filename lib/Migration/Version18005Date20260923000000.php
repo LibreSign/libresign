@@ -50,9 +50,9 @@ class Version18005Date20260923000000 extends SimpleMigrationStep {
 			return;
 		}
 
-		$updatedInstance = $this->backfillInstanceId($metadata['instanceId']);
-		$updatedGeneration = $this->backfillGeneration($metadata['generation']);
-		$updatedEngine = $this->backfillEngine($metadata['engine']);
+		$updatedInstance = $this->backfillInstanceId($metadata['instanceId'], $metadata['generation'], $metadata['engine']);
+		$updatedGeneration = $this->backfillGeneration($metadata['instanceId'], $metadata['generation'], $metadata['engine']);
+		$updatedEngine = $this->backfillEngine($metadata['instanceId'], $metadata['generation'], $metadata['engine']);
 
 		if ($updatedInstance > 0 || $updatedGeneration > 0 || $updatedEngine > 0) {
 			$output->warning(sprintf(
@@ -106,41 +106,78 @@ class Version18005Date20260923000000 extends SimpleMigrationStep {
 		];
 	}
 
-	private function backfillInstanceId(string $instanceId): int {
+	private function backfillInstanceId(string $instanceId, int $generation, string $engine): int {
 		$qb = $this->connection->getQueryBuilder();
 
 		return $qb->update('libresign_crl')
 			->set('instance_id', $qb->createNamedParameter($instanceId))
-			->where($qb->expr()->eq('status', $qb->createNamedParameter('issued')))
-			->andWhere(
+			->where(
 				$qb->expr()->orX(
 					$qb->expr()->isNull('instance_id'),
 					$qb->expr()->eq('instance_id', $qb->createNamedParameter('')),
 				)
 			)
-			->executeStatement();
-	}
-
-	private function backfillGeneration(int $generation): int {
-		$qb = $this->connection->getQueryBuilder();
-
-		return $qb->update('libresign_crl')
-			->set('generation', $qb->createNamedParameter($generation, IQueryBuilder::PARAM_INT))
-			->where($qb->expr()->eq('status', $qb->createNamedParameter('issued')))
-			->andWhere($qb->expr()->isNull('generation'))
-			->executeStatement();
-	}
-
-	private function backfillEngine(string $engine): int {
-		$qb = $this->connection->getQueryBuilder();
-
-		return $qb->update('libresign_crl')
-			->set('engine', $qb->createNamedParameter($engine))
-			->where($qb->expr()->eq('status', $qb->createNamedParameter('issued')))
+			->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->isNull('generation'),
+					$qb->expr()->eq('generation', $qb->createNamedParameter($generation, IQueryBuilder::PARAM_INT)),
+				)
+			)
 			->andWhere(
 				$qb->expr()->orX(
 					$qb->expr()->isNull('engine'),
 					$qb->expr()->eq('engine', $qb->createNamedParameter('')),
+					$qb->expr()->eq('engine', $qb->createNamedParameter($engine)),
+				)
+			)
+			->executeStatement();
+	}
+
+	private function backfillGeneration(string $instanceId, int $generation, string $engine): int {
+		$qb = $this->connection->getQueryBuilder();
+
+		return $qb->update('libresign_crl')
+			->set('generation', $qb->createNamedParameter($generation, IQueryBuilder::PARAM_INT))
+			->where($qb->expr()->isNull('generation'))
+			->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->isNull('instance_id'),
+					$qb->expr()->eq('instance_id', $qb->createNamedParameter('')),
+					$qb->expr()->eq('instance_id', $qb->createNamedParameter($instanceId)),
+				)
+			)
+			->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->isNull('engine'),
+					$qb->expr()->eq('engine', $qb->createNamedParameter('')),
+					$qb->expr()->eq('engine', $qb->createNamedParameter($engine)),
+				)
+			)
+			->executeStatement();
+	}
+
+	private function backfillEngine(string $instanceId, int $generation, string $engine): int {
+		$qb = $this->connection->getQueryBuilder();
+
+		return $qb->update('libresign_crl')
+			->set('engine', $qb->createNamedParameter($engine))
+			->where(
+				$qb->expr()->orX(
+					$qb->expr()->isNull('engine'),
+					$qb->expr()->eq('engine', $qb->createNamedParameter('')),
+				)
+			)
+			->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->isNull('instance_id'),
+					$qb->expr()->eq('instance_id', $qb->createNamedParameter('')),
+					$qb->expr()->eq('instance_id', $qb->createNamedParameter($instanceId)),
+				)
+			)
+			->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->isNull('generation'),
+					$qb->expr()->eq('generation', $qb->createNamedParameter($generation, IQueryBuilder::PARAM_INT)),
 				)
 			)
 			->executeStatement();
