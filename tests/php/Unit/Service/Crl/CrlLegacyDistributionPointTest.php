@@ -65,12 +65,10 @@ final class CrlLegacyDistributionPointTest extends TestCase {
 			->with('trusted_domains', [])
 			->willReturn(['cloud.example.com']);
 
-		$policyService = $this->createMock(PolicyService::class);
-		$policyService->method('resolve')
-			->with(CrlValidationPolicy::KEY)
-			->willReturn((new ResolvedPolicy())
-				->setPolicyKey(CrlValidationPolicy::KEY)
-				->setEffectiveValue(true));
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig->method('getValueBool')
+			->with('libresign', 'crl_external_validation_enabled', true)
+			->willReturn(true);
 
 		$urlGenerator = $this->createMock(IURLGenerator::class);
 		$urlGenerator->method('linkToRouteAbsolute')->willReturn('https://cloud.example.com/nextcloud/apps/libresign/crl/libresign_INSTANCEID_999999_ENGINETYPE.crl');
