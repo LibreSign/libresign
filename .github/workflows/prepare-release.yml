@@ -73,10 +73,10 @@ jobs:
           RELEASE_BRANCH: ${{ inputs.branch }}
         run: |
           set -euo pipefail
-          git fetch --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
+          git fetch --quiet --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
 
       - name: Prepare release
-        uses: LibreCodeCoop/github-workflows/actions/release-prepare@f23b180d967a5507a5857fa7760326f4dfbac7f6 # v0.6.25
+        uses: LibreCodeCoop/github-workflows/actions/release-prepare@f0b17f0d97a415a1aaa1d1b1ae3fc3500d188183 # v0.6.26
         with:
           branch: ${{ inputs.branch }}
           ref: ${{ inputs.ref }}
@@ -117,10 +117,10 @@ jobs:
           RELEASE_BRANCH: ${{ github.event.pull_request.base.ref }}
         run: |
           set -euo pipefail
-          git fetch --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
+          git fetch --quiet --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
 
       - name: Finalize merged release
-        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@f23b180d967a5507a5857fa7760326f4dfbac7f6 # v0.6.25
+        uses: LibreCodeCoop/github-workflows/actions/release-post-merge@f0b17f0d97a415a1aaa1d1b1ae3fc3500d188183 # v0.6.26
         with:
           pull-request-number: ${{ github.event.pull_request.number }}
           merger: ${{ github.event.pull_request.merged_by.login }}
@@ -146,7 +146,7 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
 
       - name: Verify publication
-        uses: LibreCodeCoop/github-workflows/actions/release-publication@f23b180d967a5507a5857fa7760326f4dfbac7f6 # v0.6.25
+        uses: LibreCodeCoop/github-workflows/actions/release-publication@f0b17f0d97a415a1aaa1d1b1ae3fc3500d188183 # v0.6.26
         with:
           github-release-id: ${{ github.event.release.id }}
           config-path: .nextcloud-release.yml
