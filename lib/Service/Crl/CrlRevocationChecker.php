@@ -167,7 +167,7 @@ class CrlRevocationChecker {
 			return false;
 		}
 
-		return preg_match('#/(?:index\\.php/)?apps/libresign/crl/?$#', $path) === 1;
+		return preg_match('#^/(?:index\\.php/)?apps/libresign/crl/?$#', $path) === 1;
 	}
 
 	private function isLocalCrlUrl(string $url): bool {
