@@ -35,38 +35,13 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up PHP 8.3 for release-tool
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
-        with:
-          php-version: '8.3'
-          coverage: none
-
-      - id: release-tool
-        name: Setup release-tool v0.11.0
-        shell: bash
-        run: |
-          set -euo pipefail
-          base="https://github.com/LibreCodeCoop/release-tool/releases/download/v0.11.0"
-          curl --fail --silent --show-error --location "${base}/release-tool.phar" -o "${RUNNER_TEMP}/release-tool.phar"
-          curl --fail --silent --show-error --location "${base}/release-tool.phar.sha256" -o "${RUNNER_TEMP}/release-tool.phar.sha256"
-          (cd "${RUNNER_TEMP}" && sha256sum --check release-tool.phar.sha256)
-          echo "path=${RUNNER_TEMP}/release-tool.phar" >> "${GITHUB_OUTPUT}"
-
       - id: release
         name: Validate release consumer
-        shell: bash
-        env:
-          RELEASE_TOOL_PATH: ${{ steps.release-tool.outputs.path }}
-        run: |
-          set -euo pipefail
-          metadata="${RUNNER_TEMP}/release-metadata.json"
-          php "${RELEASE_TOOL_PATH}" metadata:inspect \
-            --config .nextcloud-release.yml \
-            --root . \
-            --ref HEAD \
-            --json > "${metadata}"
-          changelog="$(php -r '$m=json_decode(file_get_contents($argv[1]),true,512,JSON_THROW_ON_ERROR); echo $m["changelog_path"];' "${metadata}")"
-          echo "changelog-path=${changelog}" >> "${GITHUB_OUTPUT}"
+        uses: LibreCodeCoop/release-tool/actions/metadata-inspect@710c4c83fba47bf01713f46e9c4cb4cf63debfba
+        with:
+          config-path: .nextcloud-release.yml
+          root: .
+          ref: HEAD
 
       - name: Verify packaging changelog mapping
         env:
