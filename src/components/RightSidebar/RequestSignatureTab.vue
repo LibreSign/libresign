@@ -324,7 +324,7 @@
 				</p>
 				<p>
 					<!-- TRANSLATORS Additional context explaining that digital signatures without visible fields are valid. -->
-					{{ t('libresign', 'A PDF can be digitally signed without showing a signature on the page. Their digital signatures will still be added to the PDF and can be validated.') }}
+					{{ t('libresign', 'A PDF can be digitally signed without showing a signature on the page. The digital signatures will still be added to the PDF and can be validated.') }}
 				</p>
 				<p>
 					<strong>
