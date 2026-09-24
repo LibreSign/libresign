@@ -7,6 +7,7 @@ import type {
 	IdentifyMethodRecord,
 	SignerDetailRecord,
 	SignerSummaryRecord,
+	VisibleElementDraft,
 	VisibleElementRecord,
 } from '../types/index'
 
@@ -20,7 +21,8 @@ export type SignerLike = {
 	statusText?: string
 	me?: boolean
 	localKey?: string
-	visibleElements?: VisibleElementRecord[] | null
+	participantRole?: string | null
+	visibleElements?: (VisibleElementRecord | VisibleElementDraft)[] | null
 }
 
 export type NestedFileLike = {
@@ -199,4 +201,35 @@ export const findFileById = (files: FileLike[], fileId: unknown): FileLike | nul
 		return null
 	}
 	return files.find((file) => idsMatch(file?.id, fileId)) || null
+}
+
+export const getSignersWithoutVisibleSignatureElements = <T extends SignerLike = SignerLike>(
+	document: DocumentLike | null | undefined,
+	signers: T[] | null | undefined,
+): T[] => {
+	if (!Array.isArray(signers) || signers.length === 0) {
+		return []
+	}
+
+	const visibleElements = document ? getVisibleElementsFromDocument(document) : []
+	const signatureSignRequestIds = new Set<string>()
+
+	for (const element of visibleElements) {
+		if (element?.type === 'signature' && element.signRequestId !== undefined && element.signRequestId !== null) {
+			signatureSignRequestIds.add(keyOf(element.signRequestId))
+		}
+	}
+
+	return signers.filter((signer) => {
+		if (!signer) {
+			return false
+		}
+		if (signer.participantRole === 'observer') {
+			return false
+		}
+		if (signer.signRequestId === undefined || signer.signRequestId === null) {
+			return true
+		}
+		return !signatureSignRequestIds.has(keyOf(signer.signRequestId))
+	})
 }

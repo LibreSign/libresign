@@ -313,10 +313,44 @@
 		</NcDialog>
 		<NcDialog v-if="showConfirmRequest"
 			:name="t('libresign', 'Confirm')"
-			:message="confirmSendSignatureRequestMessage"
-			@closing="showConfirmRequest = false">
+			@closing="closeConfirmRequestDialog">
+			<p>
+				{{ confirmSendSignatureRequestMessage }}
+			</p>
+			<template v-if="showMissingVisibleSignatureWarningForFullRequest">
+				<p>
+					<!-- TRANSLATORS Explanation in confirmation dialog when signers have no visible signature field. -->
+					{{ t('libresign', 'Some signers have no visible signature field.') }}
+				</p>
+				<p>
+					<!-- TRANSLATORS Additional context explaining that digital signatures without visible fields are valid. -->
+					{{ t('libresign', 'A PDF can be digitally signed without showing a signature on the page. The digital signatures will still be added to the PDF and can be validated.') }}
+				</p>
+				<p>
+					<strong>
+						<!-- TRANSLATORS Section header listing signers who do not have a visible signature field. -->
+						{{ t('libresign', 'No visible signature:') }}
+					</strong>
+				</p>
+				<ul>
+					<li v-for="(signer, index) in signersWithoutVisibleSignatureForFullRequest"
+						:key="signer.signRequestId ?? signer.email ?? signer.displayName ?? index">
+						{{ signer.displayName || signer.email }}
+					</li>
+				</ul>
+				<NcCheckboxRadioSwitch
+					v-model="disableMissingVisibleSignatureWarning"
+					type="checkbox">
+					<!-- TRANSLATORS Checkbox label to suppress future warnings about missing visible signature fields. -->
+					{{ t('libresign', 'Do not warn me again when signers have no visible signature field') }}
+				</NcCheckboxRadioSwitch>
+				<p class="missing-visible-signature-hint">
+					<!-- TRANSLATORS Helper text explaining where to re-enable the suppressed warning. -->
+					{{ t('libresign', 'You can enable this warning again in LibreSign preferences.') }}
+				</p>
+			</template>
 			<template #actions>
-				<NcButton @click="showConfirmRequest = false">
+				<NcButton @click="closeConfirmRequestDialog">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 				<NcButton variant="primary"
@@ -332,10 +366,44 @@
 		</NcDialog>
 		<NcDialog v-if="showConfirmRequestSigner"
 			:name="t('libresign', 'Confirm')"
-			:message="confirmSendSignatureRequestMessage"
-			@closing="showConfirmRequestSigner = false; selectedSigner = null">
+			@closing="closeConfirmRequestSignerDialog">
+			<p>
+				{{ confirmSendSignatureRequestMessage }}
+			</p>
+			<template v-if="showMissingVisibleSignatureWarningForSingleSigner">
+				<p>
+					<!-- TRANSLATORS Explanation in confirmation dialog when signers have no visible signature field. -->
+					{{ t('libresign', 'Some signers have no visible signature field.') }}
+				</p>
+				<p>
+					<!-- TRANSLATORS Additional context explaining that digital signatures without visible fields are valid. -->
+					{{ t('libresign', 'A PDF can be digitally signed without showing a signature on the page. Their digital signatures will still be added to the PDF and can be validated.') }}
+				</p>
+				<p>
+					<strong>
+						<!-- TRANSLATORS Section header listing signers who do not have a visible signature field. -->
+						{{ t('libresign', 'No visible signature:') }}
+					</strong>
+				</p>
+				<ul>
+					<li v-for="(signer, index) in signersWithoutVisibleSignatureForSingleSigner"
+						:key="signer.signRequestId ?? signer.email ?? signer.displayName ?? index">
+						{{ signer.displayName || signer.email }}
+					</li>
+				</ul>
+				<NcCheckboxRadioSwitch
+					v-model="disableMissingVisibleSignatureWarning"
+					type="checkbox">
+					<!-- TRANSLATORS Checkbox label to suppress future warnings about missing visible signature fields. -->
+					{{ t('libresign', 'Do not warn me again when signers have no visible signature field') }}
+				</NcCheckboxRadioSwitch>
+				<p class="missing-visible-signature-hint">
+					<!-- TRANSLATORS Helper text explaining where to re-enable the suppressed warning. -->
+					{{ t('libresign', 'You can enable this warning again in LibreSign preferences.') }}
+				</p>
+			</template>
 			<template #actions>
-				<NcButton @click="showConfirmRequestSigner = false; selectedSigner = null">
+				<NcButton @click="closeConfirmRequestSignerDialog">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 				<NcButton variant="primary"
@@ -369,7 +437,7 @@
 <script setup lang="ts">
 
 import { t } from '@nextcloud/l10n'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, unref, watch } from 'vue'
 
 import debounce from 'debounce'
 
@@ -447,7 +515,11 @@ import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 import { startLongPolling } from '../../services/longPolling'
-import { getVisibleElementsFromDocument, type DocumentLike } from '../../services/visibleElementsService'
+import {
+	getSignersWithoutVisibleSignatureElements,
+	getVisibleElementsFromDocument,
+	type DocumentLike,
+} from '../../services/visibleElementsService'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
 import logger from '../../logger.js'
 import {
@@ -534,6 +606,7 @@ const documentData = ref<LoadedDocumentState>(loadState<LoadedDocumentState>('li
 const methods = ref<IdentifyMethodPolicyEntry[]>(EMPTY_IDENTIFY_METHODS)
 const showConfirmRequest = ref(false)
 const showConfirmRequestSigner = ref(false)
+const disableMissingVisibleSignatureWarning = ref(false)
 const selectedSigner = ref<EditableRequestSigner | null>(null)
 const activeTab = ref('')
 const preserveOrder = ref(false)
@@ -589,6 +662,29 @@ const totalSigners = computed(() => Number(filesStore.getFile()?.signersCount ||
 const signingParticipants = computed(() => filterParticipantsByRole(filesStore.getFile()?.signers, PARTICIPANT_ROLE.SIGNER))
 const observerParticipants = computed(() => filterParticipantsByRole(filesStore.getFile()?.signers, PARTICIPANT_ROLE.OBSERVER))
 const signingParticipantCount = computed(() => countSigningParticipants(filesStore.getFile()?.signers))
+const isWarnWithoutVisibleSignatureEnabled = computed(() => {
+	const preferenceValue = unref(userConfigStore.warn_without_visible_signature_fields)
+	return preferenceValue !== false
+})
+const signersWithoutVisibleSignatureForFullRequest = computed(() => {
+	const file = filesStore.getFile() as DocumentLike | null
+	return getSignersWithoutVisibleSignatureElements(file, signingParticipants.value)
+})
+const showMissingVisibleSignatureWarningForFullRequest = computed(() => {
+	return isWarnWithoutVisibleSignatureEnabled.value
+		&& signersWithoutVisibleSignatureForFullRequest.value.length > 0
+})
+const signersWithoutVisibleSignatureForSingleSigner = computed(() => {
+	if (!selectedSigner.value) {
+		return []
+	}
+	const file = filesStore.getFile() as DocumentLike | null
+	return getSignersWithoutVisibleSignatureElements(file, [selectedSigner.value])
+})
+const showMissingVisibleSignatureWarningForSingleSigner = computed(() => {
+	return isWarnWithoutVisibleSignatureEnabled.value
+		&& signersWithoutVisibleSignatureForSingleSigner.value.length > 0
+})
 const isOriginalFileDeleted = computed(() => filesStore.isOriginalFileDeleted())
 const currentFile = computed<EditableRequestFile | null>(() => (filesStore.getFile() as EditableRequestFile | null) ?? null)
 const isCurrentFileDetailed = computed(() => currentFile.value?.detailsLoaded === true)
@@ -1482,9 +1578,30 @@ async function sendNotify(signer: EditableRequestSigner) {
 		})
 }
 
+function closeConfirmRequestSignerDialog() {
+	showConfirmRequestSigner.value = false
+	selectedSigner.value = null
+	disableMissingVisibleSignatureWarning.value = false
+}
+
 async function requestSignatureForSigner(signer: EditableRequestSigner) {
 	selectedSigner.value = signer
+	disableMissingVisibleSignatureWarning.value = false
 	showConfirmRequestSigner.value = true
+}
+
+async function saveMissingVisibleSignaturePreference(): Promise<void> {
+	if (!disableMissingVisibleSignatureWarning.value) {
+		return
+	}
+	const previous = userConfigStore.warn_without_visible_signature_fields
+	try {
+		await userConfigStore.update('warn_without_visible_signature_fields', false)
+	} catch (error: unknown) {
+		userConfigStore.onUpdate('warn_without_visible_signature_fields', previous)
+		logger.error('Failed to update warn_without_visible_signature_fields preference', { error })
+		showError(t('libresign', 'Could not save your preference. Try again.'))
+	}
 }
 
 async function confirmRequestSigner() {
@@ -1520,9 +1637,9 @@ async function confirmRequestSigner() {
 			showSaveSignatureRequestFailure(response, t('libresign', 'Failed to create signature request'))
 			return
 		}
+		await saveMissingVisibleSignaturePreference()
 		showSuccess(t('libresign', 'Signature requested'))
-		showConfirmRequestSigner.value = false
-		selectedSigner.value = null
+		closeConfirmRequestSignerDialog()
 	} catch (error: unknown) {
 		showRequestError(error, t('libresign', 'Failed to create signature request'))
 	}
@@ -1571,6 +1688,11 @@ function viewSignaturePositions() {
 	emit('libresign:show-visible-elements', new CustomEvent('libresign:show-visible-elements'))
 }
 
+function closeConfirmRequestDialog() {
+	showConfirmRequest.value = false
+	disableMissingVisibleSignatureWarning.value = false
+}
+
 async function request() {
 	await ensureCurrentFileDetail()
 
@@ -1578,6 +1700,7 @@ async function request() {
 		return
 	}
 
+	disableMissingVisibleSignatureWarning.value = false
 	showConfirmRequest.value = true
 }
 
@@ -1599,8 +1722,9 @@ async function confirmRequest() {
 			showSaveSignatureRequestFailure(response, t('libresign', 'Failed to create signature requests'))
 			return
 		}
+		await saveMissingVisibleSignaturePreference()
 		showSuccess(t('libresign', 'Signature requested'))
-		showConfirmRequest.value = false
+		closeConfirmRequestDialog()
 	} catch (error: unknown) {
 		showRequestError(error, t('libresign', 'Failed to create signature requests'))
 	}
@@ -1859,6 +1983,15 @@ defineExpose({
 	stopSigningProgressPolling,
 	recalculateSigningOrders,
 	normalizeSigningOrders,
+	disableMissingVisibleSignatureWarning,
+	signersWithoutVisibleSignatureForFullRequest,
+	showMissingVisibleSignatureWarningForFullRequest,
+	signersWithoutVisibleSignatureForSingleSigner,
+	showMissingVisibleSignatureWarningForSingleSigner,
+	isWarnWithoutVisibleSignatureEnabled,
+	closeConfirmRequestDialog,
+	closeConfirmRequestSignerDialog,
+	saveMissingVisibleSignaturePreference,
 })
 </script>
 
@@ -1866,6 +1999,12 @@ defineExpose({
 
 :deep(.checkbox-radio-switch) {
 	margin: 8px 0;
+}
+
+.missing-visible-signature-hint {
+	color: var(--color-text-maxcontrast);
+	font-size: var(--font-size-small);
+	margin-top: 4px;
 }
 
 .action-form-box {
