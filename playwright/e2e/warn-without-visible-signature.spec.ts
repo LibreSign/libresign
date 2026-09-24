@@ -250,8 +250,8 @@ test.describe('Warn requesters when signers have no visible signature field (#83
 		await bobRow.getByRole('button', { name: 'Actions' }).click()
 
 		const requestSignAction = page
-			.getByRole('menuitem', { name: 'Request signature' })
-			.or(page.getByRole('button', { name: 'Request signature' }))
+			.getByRole('menuitem', { name: 'Request signature', exact: true })
+			.or(page.getByRole('button', { name: 'Request signature', exact: true }))
 			.filter({ visible: true })
 
 		await expect(requestSignAction).toHaveCount(1)
