@@ -2,6 +2,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 name: Prepare release
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch' && format('Prepare release · {0}', inputs.branch)
+      || github.event_name == 'pull_request_target' && format('Finalize release · PR #{0}', github.event.pull_request.number)
+      || github.event_name == 'release' && format('Verify release · {0}', github.event.release.tag_name)
+      || 'Release automation' }}
 
 on:
   workflow_dispatch:
@@ -129,7 +134,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           app-private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
 
-
   verify_publication:
     name: Verify published release
     if: github.event_name == 'release'
@@ -152,5 +156,4 @@ jobs:
           github-release-id: ${{ github.event.release.id }}
           config-path: .nextcloud-release.yml
           post-merge-workflow-path: .github/workflows/prepare-release.yml
-          post-merge-event: push
           github-token: ${{ secrets.GITHUB_TOKEN }}
