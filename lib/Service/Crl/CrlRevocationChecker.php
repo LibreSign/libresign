@@ -88,9 +88,14 @@ class CrlRevocationChecker {
 
 		$accessibleUrls = 0;
 		$disabledUrls = 0;
+		$legacyDistributionPoints = 0;
 		foreach ($crlUrls as $crlUrl) {
 			try {
 				$isLocal = $this->isLocalCrlUrl($crlUrl);
+				if ($isLocal && $this->isLegacyLocalCrlUrl($crlUrl)) {
+					$legacyDistributionPoints++;
+					continue;
+				}
 				// Skip external CRL validation when disabled by admin, but always
 				// validate local LibreSign-managed CRLs.
 				if (!$externalValidationEnabled && !$isLocal) {
@@ -112,6 +117,10 @@ class CrlRevocationChecker {
 			} catch (\Exception) {
 				continue;
 			}
+		}
+
+		if ($legacyDistributionPoints > 0 && $accessibleUrls === 0) {
+			return ['status' => CrlValidationStatus::LEGACY_DISTRIBUTION_POINT];
 		}
 
 		// All distribution points were intentionally skipped because the admin
@@ -150,6 +159,36 @@ class CrlRevocationChecker {
 		} catch (\Exception) {
 			return ['status' => CrlValidationStatus::VALIDATION_ERROR];
 		}
+	}
+
+	private function isLegacyLocalCrlUrl(string $url): bool {
+		$path = parse_url($url, PHP_URL_PATH);
+		if (!is_string($path)) {
+			return false;
+		}
+
+		$templateUrl = $this->urlGenerator->linkToRouteAbsolute('libresign.crl.getRevocationList', [
+			'instanceId' => 'INSTANCEID',
+			'generation' => 999999,
+			'engineType' => 'ENGINETYPE',
+		]);
+		$templatePath = parse_url($templateUrl, PHP_URL_PATH);
+		if (!is_string($templatePath)) {
+			return false;
+		}
+
+		$routePosition = strrpos($templatePath, '/apps/libresign/crl/');
+		if ($routePosition === false) {
+			return false;
+		}
+
+		$webroot = substr($templatePath, 0, $routePosition);
+		if (str_ends_with($webroot, '/index.php')) {
+			$webroot = substr($webroot, 0, -strlen('/index.php'));
+		}
+
+		$pattern = '#^' . preg_quote($webroot, '#') . '/(?:index\\.php/)?apps/libresign/crl/?$#';
+		return preg_match($pattern, $path) === 1;
 	}
 
 	private function isLocalCrlUrl(string $url): bool {
