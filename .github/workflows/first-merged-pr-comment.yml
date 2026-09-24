@@ -42,7 +42,7 @@ jobs:
       # pull_request_target is intentionally used without checkout. Nothing
       # from the pull request head is downloaded or executed.
       - name: Comment on first merged pull request
-        uses: LibreCodeCoop/github-workflows/actions/first-merged-pr-comment@6816f216b2b04d5dd63d01711f88c5ff1d1e0740
+        uses: LibreCodeCoop/.github/actions/first-merged-pr-comment@492e6c7c5a9bb7642f39238583003d2cb93f3ba6 # organization helpers
         with:
           github-token: ${{ github.token }}
           pull-request-number: >-
