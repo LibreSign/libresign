@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: read
 
 concurrency:
   group: nightly-release-${{ github.repository }}-${{ github.ref_name }}
@@ -228,18 +229,22 @@ jobs:
             gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs"               -f ref='refs/tags/nightly'               -f sha="${GITHUB_SHA}" >/dev/null
           fi
 
+      - name: Build nightly change list
+        id: release-note-changes
+        uses: LibreCodeCoop/release-tool/actions/release-notes@710c4c83fba47bf01713f46e9c4cb4cf63debfba
+        with:
+          repository: ${{ github.repository }}
+          branch: ${{ steps.nightly.outputs.branch }}
+          working-directory: ${{ env.APP_NAME }}
+          github-token: ${{ github.token }}
+
       - name: Build nightly release notes
         working-directory: ${{ env.APP_NAME }}
         shell: bash
         env:
           NIGHTLY_BRANCH: ${{ steps.nightly.outputs.branch }}
+          CHANGES_FILE: ${{ steps.release-note-changes.outputs.changes-file }}
         run: |
-          last_tag="$(git tag --list --sort=-version:refname | grep -v '^nightly$' | head -1 || true)"
-          if [ -n "${last_tag}" ]; then
-            commits="$(git log "${last_tag}..HEAD" --pretty=format:'- %s (%h)' --no-merges)"
-          else
-            commits="$(git log -10 --pretty=format:'- %s (%h)' --no-merges)"
-          fi
           {
             echo "## 🌙 Nightly Build - ${APP_VERSION}"
             echo
@@ -249,7 +254,7 @@ jobs:
             echo
             echo "### Recent Changes"
             echo
-            printf '%s\n' "${commits}"
+            cat "${CHANGES_FILE}"
             echo
             echo "---"
             printf 'Generated from commit `%s`.\n' "${GITHUB_SHA:0:7}"
