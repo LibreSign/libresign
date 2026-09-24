@@ -13,10 +13,13 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignatureFlow;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValue;
+use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\Files\File as NodeFile;
@@ -38,7 +41,10 @@ final class FileListServiceTest extends TestCase {
 	private IL10N&MockObject $l10n;
 	private IUserManager&MockObject $userManager;
 	private FolderService&MockObject $folderService;
-	private SignatureRejectionVisibilityService&MockObject $signatureRejectionVisibilityService;
+	private SignatureRejectionVisibilityService $signatureRejectionVisibilityService;
+	private SignatureRejectionPolicyService&MockObject $signatureRejectionPolicyService;
+	/** @var array<string, mixed> */
+	private array $rejectionPolicy = [];
 	private IUser&MockObject $user;
 
 	public function setUp(): void {
@@ -53,7 +59,11 @@ final class FileListServiceTest extends TestCase {
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->folderService = $this->createMock(FolderService::class);
-		$this->signatureRejectionVisibilityService = $this->createMock(SignatureRejectionVisibilityService::class);
+		$this->signatureRejectionPolicyService = $this->createMock(SignatureRejectionPolicyService::class);
+		$this->signatureRejectionPolicyService->method('getPolicyValue')->willReturnCallback(fn (): array => SignatureRejectionPolicyValue::normalize($this->rejectionPolicy));
+		$visibilityL10n = $this->createMock(IL10N::class);
+		$visibilityL10n->method('t')->willReturnCallback(static fn (string $text, array $params = []): string => vsprintf($text, $params));
+		$this->signatureRejectionVisibilityService = new SignatureRejectionVisibilityService($this->signatureRejectionPolicyService, $visibilityL10n);
 
 		$this->user = $this->createMock(IUser::class);
 	}
@@ -822,6 +832,124 @@ final class FileListServiceTest extends TestCase {
 		);
 
 		$this->assertTrue($result['canSign']);
+	}
+
+	/**
+	 * A file of `creator123` with a rejected, a pending and a signed signer,
+	 * identified by account (`rejecter`, `pending`, `done`).
+	 *
+	 * @return array{0: File, 1: SignRequest[]}
+	 */
+	private function fileWithRejectedPendingAndSignedSigners(): array {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+		$signers = [];
+		$identifyMethods = [];
+		foreach ([[71, 'rejecter', SignRequestStatus::REJECTED], [72, 'pending', SignRequestStatus::ABLE_TO_SIGN], [73, 'done', SignRequestStatus::SIGNED]] as [$id, $uid, $status]) {
+			$signer = $this->createSigner($id, 1);
+			$signer->setStatusEnum($status);
+			if ($status === SignRequestStatus::REJECTED) {
+				$signer->setRejectedAt(new \DateTime('2026-09-13T12:00:00Z'));
+			}
+			if ($status === SignRequestStatus::SIGNED) {
+				$signer->setSigned(new \DateTime('2026-09-12T12:00:00Z'));
+			}
+			$signers[] = $signer;
+			$identifyMethods[$id] = [$this->createIdentifyMethod(IdentifyMethodService::IDENTIFY_ACCOUNT, $uid)];
+		}
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn($signers);
+		$this->signRequestMapper->method('getByFileId')->willReturn($signers);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn($identifyMethods);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$this->mockSignatureMethodsResolution();
+		return [$file, $signers];
+	}
+
+	/** @return array<int, array{displayStatus: string, status: int|null, statusText: string, rejection: array|null}> */
+	private static function presentedById(array $signers): array {
+		$byId = [];
+		foreach ($signers as $signer) {
+			$byId[$signer['signRequestId']] = [
+				'displayStatus' => $signer['displayStatus'],
+				'status' => $signer['status'] ?? null,
+				'statusText' => $signer['statusText'],
+				'rejection' => $signer['rejection'] ?? null,
+			];
+		}
+		return $byId;
+	}
+
+	private const REDACTED = ['displayStatus' => 'not_signed', 'status' => null, 'statusText' => 'Not signed', 'rejection' => null];
+	private const SIGNED = ['displayStatus' => 'signed', 'status' => 2, 'statusText' => 'Signed', 'rejection' => null];
+
+	/**
+	 * Regression #8388: the detailed file, the file with children and the
+	 * child summary all redact every unsigned signer for a viewer who may
+	 * not know about the rejection, so the rejecter cannot be told apart.
+	 */
+	public function testAHiddenRejectionRedactsEveryUnsignedSignerOnEveryPath(): void {
+		$this->rejectionPolicy = ['enabled' => true, 'comment_mode' => 'optional', 'public_status' => false];
+		[$file] = $this->fileWithRejectedPendingAndSignedSigners();
+		$this->user->method('getUID')->willReturn('someone-else');
+		$service = $this->getService();
+
+		$detailed = $service->formatSingleFile($this->user, $file);
+		$this->assertSame([71 => self::REDACTED, 72 => self::REDACTED, 73 => self::SIGNED], self::presentedById($detailed['signers']));
+		$this->assertSame([71 => self::REDACTED, 72 => self::REDACTED, 73 => self::SIGNED], self::presentedById($detailed['files'][0]['signers']));
+
+		$withChildren = $service->formatFileWithChildren($file, [], $this->user);
+		$this->assertSame([71 => self::REDACTED, 72 => self::REDACTED, 73 => self::SIGNED], self::presentedById($withChildren['signers']));
+		$this->assertSame([71 => self::REDACTED, 72 => self::REDACTED, 73 => self::SIGNED], self::presentedById($withChildren['files'][0]['signers']));
+
+		$anonymous = $service->formatFileWithChildren($file, [], null);
+		$this->assertSame([71 => self::REDACTED, 72 => self::REDACTED, 73 => self::SIGNED], self::presentedById($anonymous['signers']));
+	}
+
+	public function testTheRequesterSeesTheRealStateAndTheRejectionOnEveryPath(): void {
+		$this->rejectionPolicy = ['enabled' => true, 'comment_mode' => 'optional', 'public_status' => false];
+		[$file] = $this->fileWithRejectedPendingAndSignedSigners();
+		$this->user->method('getUID')->willReturn('creator123');
+		$service = $this->getService();
+
+		$expected = [
+			71 => ['displayStatus' => 'rejected', 'status' => 3, 'statusText' => 'Rejected', 'rejection' => ['rejectedAt' => '2026-09-13T12:00:00+00:00']],
+			72 => ['displayStatus' => 'ready_to_sign', 'status' => 1, 'statusText' => 'Ready to sign', 'rejection' => null],
+			73 => self::SIGNED,
+		];
+		$detailed = $service->formatSingleFile($this->user, $file);
+		$this->assertSame($expected, self::presentedById($detailed['signers']));
+		$this->assertSame($expected, self::presentedById($detailed['files'][0]['signers']));
+		$withChildren = $service->formatFileWithChildren($file, [], $this->user);
+		$this->assertSame($expected, self::presentedById($withChildren['signers']));
+	}
+
+	/**
+	 * The pending signer is still marked as `me`, but their own status is
+	 * redacted like the others: a real status there would tell them who
+	 * rejected by comparison.
+	 */
+	public function testThePendingSignerIsRedactedLikeTheOthersWhileTheRejectionStaysHidden(): void {
+		$this->rejectionPolicy = ['enabled' => true, 'comment_mode' => 'optional', 'public_status' => false];
+		[$file] = $this->fileWithRejectedPendingAndSignedSigners();
+		$this->user->method('getUID')->willReturn('pending');
+
+		$detailed = $this->getService()->formatSingleFile($this->user, $file);
+
+		$this->assertSame([71 => self::REDACTED, 72 => self::REDACTED, 73 => self::SIGNED], self::presentedById($detailed['signers']));
+		$this->assertTrue($detailed['signers'][array_search(72, array_column($detailed['signers'], 'signRequestId'), true)]['me']);
+	}
+
+	public function testAPublicRejectionStatusIsPresentedAsRejectedToAnotherViewer(): void {
+		$this->rejectionPolicy = ['enabled' => true, 'comment_mode' => 'optional', 'public_status' => true];
+		[$file] = $this->fileWithRejectedPendingAndSignedSigners();
+		$this->user->method('getUID')->willReturn('someone-else');
+
+		$detailed = $this->getService()->formatSingleFile($this->user, $file);
+
+		$this->assertSame([
+			71 => ['displayStatus' => 'rejected', 'status' => 3, 'statusText' => 'Rejected', 'rejection' => ['rejectedAt' => '2026-09-13T12:00:00+00:00']],
+			72 => ['displayStatus' => 'ready_to_sign', 'status' => 1, 'statusText' => 'Ready to sign', 'rejection' => null],
+			73 => self::SIGNED,
+		], self::presentedById($detailed['signers']));
 	}
 
 	private static function createFileEntity(
