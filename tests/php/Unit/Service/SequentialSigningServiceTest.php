@@ -152,6 +152,16 @@ final class SequentialSigningServiceTest extends TestCase {
 				1,
 				2,
 			],
+			'a rejected signer completes its order' => [
+				[[1, SignRequestStatus::REJECTED, 1], [2, SignRequestStatus::DRAFT, 2]],
+				1,
+				1,
+			],
+			'an order with one signature and one rejection is completed' => [
+				[[1, SignRequestStatus::SIGNED, 1], [2, SignRequestStatus::REJECTED, 1], [3, SignRequestStatus::DRAFT, 2]],
+				1,
+				1,
+			],
 			'skip gaps in order sequence' => [
 				[[1, SignRequestStatus::SIGNED, 1], [2, SignRequestStatus::DRAFT, 5]],
 				1,
