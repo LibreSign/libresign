@@ -1,9 +1,62 @@
 diff --git a/.github/workflows/psalm.yml b/.github/workflows/psalm.yml
 --- a/.github/workflows/psalm.yml
 +++ b/.github/workflows/psalm.yml
-@@ -28,6 +28,7 @@
+@@ -20,6 +20,8 @@
+ jobs:
+   static-analysis:
+     runs-on: ubuntu-latest
++    env:
++      APP_NAME: libresign
+ 
+     name: static-psalm-analysis
+     steps:
+@@ -27,12 +29,29 @@
          uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
          with:
            persist-credentials: false
 +          submodules: true
  
+       - name: Get php version
+         id: versions
+         uses: nextcloud-libraries/nextcloud-version-matrix@cd0211ffcef1065e2020cd579e4843b8746e7a58 # v1.3.3
+ 
++      - name: Checkout server
++        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
++        with:
++          persist-credentials: false
++          submodules: true
++          repository: nextcloud/server
++          ref: ${{ steps.versions.outputs.branches-max }}
++
++      - name: Checkout app
++        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
++        with:
++          persist-credentials: false
++          submodules: true
++          path: apps/${{ env.APP_NAME }}
++
+       - name: Check enforcement of minimum PHP version ${{ steps.versions.outputs.php-min }} in psalm.xml
++        working-directory: apps/${{ env.APP_NAME }}
+         run: grep 'phpVersion="${{ steps.versions.outputs.php-min }}' psalm.xml
+ 
+       - name: Set up php${{ steps.versions.outputs.php-available }}
+@@ -48,14 +67,19 @@
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+ 
+       - name: Remove nextcloud/ocp
++        working-directory: apps/${{ env.APP_NAME }}
+         run: |
+           composer remove nextcloud/ocp --dev --no-scripts
+ 
+       - name: Install composer dependencies
+         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
++        with:
++          working-directory: apps/${{ env.APP_NAME }}
+ 
+       - name: Install nextcloud/ocp:dev-${{ steps.versions.outputs.branches-max }}
++        working-directory: apps/${{ env.APP_NAME }}
+         run: composer require --dev nextcloud/ocp:dev-${{ steps.versions.outputs.branches-max }} --ignore-platform-reqs --with-dependencies
+ 
+       - name: Run coding standards check
++        working-directory: apps/${{ env.APP_NAME }}
+         run: composer run psalm -- --threads=1 --monochrome --no-progress --output-format=github
