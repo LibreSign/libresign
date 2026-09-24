@@ -37,7 +37,11 @@ jobs:
 
       - id: release
         name: Validate release consumer
-        uses: LibreCodeCoop/github-workflows/actions/release-consumer-validate@622599cc128ec55007b443d2908f78da930b8a21
+        uses: LibreCodeCoop/release-tool/actions/metadata-inspect@710c4c83fba47bf01713f46e9c4cb4cf63debfba
+        with:
+          config-path: .nextcloud-release.yml
+          root: .
+          ref: HEAD
 
       - name: Verify packaging changelog mapping
         env:
