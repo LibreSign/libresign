@@ -33,9 +33,24 @@ jobs:
       latest-branch: ${{ steps.stable.outputs.latest-branch }}
       latest-major: ${{ steps.stable.outputs.latest-major }}
     steps:
+      - id: release-tool
+        name: Setup release-tool v0.11.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://github.com/LibreCodeCoop/release-tool/releases/download/v0.11.0"
+          curl --fail --silent --show-error --location "${base}/release-tool.phar" -o "${RUNNER_TEMP}/release-tool.phar"
+          curl --fail --silent --show-error --location "${base}/release-tool.phar.sha256" -o "${RUNNER_TEMP}/release-tool.phar.sha256"
+          (cd "${RUNNER_TEMP}" && sha256sum --check release-tool.phar.sha256)
+          echo "path=${RUNNER_TEMP}/release-tool.phar" >> "${GITHUB_OUTPUT}"
+
       - id: stable
         name: Resolve stable release line
-        uses: LibreCodeCoop/github-workflows/actions/release-stable-select@0bac49723213a5aa8e779d365a7b684608cf6989 # v0.6.0
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_TOOL_PATH: ${{ steps.release-tool.outputs.path }}
+        run: php "${RELEASE_TOOL_PATH}" release:stable-select --repository "${GITHUB_REPOSITORY}" --branch "${GITHUB_REF_NAME}"
 
   nightly-release:
     name: Build and publish nightly
@@ -182,15 +197,11 @@ jobs:
           repository: nextcloud/server
           path: nextcloud
 
-      - name: Package and sign with Makefile
+      - name: Package with Makefile
         if: steps.krankerl.outputs.files_exists != 'true'
         shell: bash
-        env:
-          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
         run: |
           cd "${APP_NAME}"
-          mkdir -p build/tools/certificates
-          printf '%s' "${APP_PRIVATE_KEY}" > "build/tools/certificates/${APP_NAME}.key"
           make appstore
 
       - name: Verify app store package
@@ -202,12 +213,46 @@ jobs:
             make verify-appstore-package
           fi
 
-      - name: Validate release artifact
-        uses: LibreCodeCoop/github-workflows/actions/release-artifact-validate@0bac49723213a5aa8e779d365a7b684608cf6989 # v0.6.0
+      - name: Sign app
+        shell: bash
+        env:
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+        run: |
+          cd "${APP_NAME}/build/artifacts"
+          tar -xzf "${APP_NAME}.tar.gz"
+          cd ../../../
+          printf '%s' "${APP_PRIVATE_KEY}" > "${APP_NAME}.key"
+          wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${APP_NAME}/${APP_NAME}.crt"
+          php nextcloud/occ integrity:sign-app             --privateKey="../${APP_NAME}.key"             --certificate="../${APP_NAME}.crt"             --path="../${APP_NAME}/build/artifacts/${APP_NAME}"
+          cd "${APP_NAME}/build/artifacts"
+          tar -zcf "${APP_NAME}.tar.gz" "${APP_NAME}"
+
+      - name: Set up PHP 8.3 for release-tool
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
-          artifact: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
-          app-name: ${{ env.APP_NAME }}
-          version: ${{ env.APP_VERSION }}
+          php-version: '8.3'
+          coverage: none
+
+      - id: release-tool
+        name: Setup release-tool v0.11.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://github.com/LibreCodeCoop/release-tool/releases/download/v0.11.0"
+          curl --fail --silent --show-error --location "${base}/release-tool.phar" -o "${RUNNER_TEMP}/release-tool.phar"
+          curl --fail --silent --show-error --location "${base}/release-tool.phar.sha256" -o "${RUNNER_TEMP}/release-tool.phar.sha256"
+          (cd "${RUNNER_TEMP}" && sha256sum --check release-tool.phar.sha256)
+          echo "path=${RUNNER_TEMP}/release-tool.phar" >> "${GITHUB_OUTPUT}"
+
+      - name: Validate release artifact
+        shell: bash
+        env:
+          RELEASE_TOOL_PATH: ${{ steps.release-tool.outputs.path }}
+        run: >-
+          php "${RELEASE_TOOL_PATH}" artifact:validate-package
+          --artifact "${APP_NAME}/build/artifacts/${APP_NAME}.tar.gz"
+          --app-name "${APP_NAME}"
+          --expected-version "${APP_VERSION}"
 
       - name: Define nightly metadata
         id: nightly
@@ -227,49 +272,39 @@ jobs:
             gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs"               -f ref='refs/tags/nightly'               -f sha="${GITHUB_SHA}" >/dev/null
           fi
 
+      - name: Resolve nightly release note range
+        id: release-note-range
+        working-directory: ${{ env.APP_NAME }}
+        shell: bash
+        run: |
+          last_tag="$(git tag --list --sort=-version:refname | grep -v '^nightly$' | head -1 || true)"
+          echo "from-ref=${last_tag}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build nightly change list
+        id: release-note-changes
+        shell: bash
+        env:
+          RELEASE_NOTES_GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_TOOL_PATH: ${{ steps.release-tool.outputs.path }}
+          NIGHTLY_BRANCH: ${{ steps.nightly.outputs.branch }}
+          FROM_REF: ${{ steps.release-note-range.outputs.from-ref }}
+        run: |
+          set -euo pipefail
+          php "${RELEASE_TOOL_PATH}" release:notes \
+            --repository "${GITHUB_REPOSITORY}" \
+            --branch "${NIGHTLY_BRANCH}" \
+            --working-directory "${APP_NAME}" \
+            --from-ref "${FROM_REF}" \
+            --to-ref HEAD \
+            --fallback-limit 10
+
       - name: Build nightly release notes
         working-directory: ${{ env.APP_NAME }}
         shell: bash
         env:
           NIGHTLY_BRANCH: ${{ steps.nightly.outputs.branch }}
-          GH_TOKEN: ${{ github.token }}
+          CHANGES_FILE: ${{ steps.release-note-changes.outputs.changes-file }}
         run: |
-          last_tag="$(git tag --list --sort=-version:refname | grep -v '^nightly$' | head -1 || true)"
-          if [ -n "${last_tag}" ]; then
-            mapfile -t commit_shas < <(git rev-list --reverse "${last_tag}..HEAD")
-          else
-            mapfile -t commit_shas < <(git rev-list --reverse --max-count=10 HEAD)
-          fi
-
-          : > nightly-changes.md
-          declare -A seen_prs=()
-          for sha in "${commit_shas[@]}"; do
-            pr_json="$(gh api \
-              -H 'Accept: application/vnd.github+json' \
-              "repos/${GITHUB_REPOSITORY}/commits/${sha}/pulls" 2>/dev/null || printf '[]')"
-            pr_line="$(jq -r --arg branch "${NIGHTLY_BRANCH}" '
-              map(select(.merged_at != null))
-              | (map(select(.base.ref == $branch)) + .)
-              | unique_by(.number)
-              | first
-              | if . == null then empty
-                else "\(.number)\t\(.title)\t\(.html_url)"
-                end
-            ' <<<"${pr_json}")"
-
-            if [ -n "${pr_line}" ]; then
-              IFS=$'\t' read -r pr_number pr_title pr_url <<<"${pr_line}"
-              if [ -z "${seen_prs[${pr_number}]+x}" ]; then
-                printf -- '- %s ([#%s](%s))\n' "${pr_title}" "${pr_number}" "${pr_url}" >> nightly-changes.md
-                seen_prs["${pr_number}"]=1
-              fi
-              continue
-            fi
-
-            subject="$(git show -s --format='%s' "${sha}")"
-            printf -- '- %s (`%s`)\n' "${subject}" "${sha:0:7}" >> nightly-changes.md
-          done
-
           {
             echo "## 🌙 Nightly Build - ${APP_VERSION}"
             echo
@@ -279,7 +314,7 @@ jobs:
             echo
             echo "### Recent Changes"
             echo
-            cat nightly-changes.md
+            cat "${CHANGES_FILE}"
             echo
             echo "---"
             printf 'Generated from commit `%s`.\n' "${GITHUB_SHA:0:7}"
