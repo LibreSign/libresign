@@ -1,0 +1,9 @@
+diff --git a/.github/workflows/psalm.yml b/.github/workflows/psalm.yml
+--- a/.github/workflows/psalm.yml
++++ b/.github/workflows/psalm.yml
+@@ -28,6 +28,7 @@
+         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+         with:
+           persist-credentials: false
++          submodules: true
+ 
