@@ -1,0 +1,11 @@
+diff --git a/.github/workflows/openapi.yml b/.github/workflows/openapi.yml
+--- a/.github/workflows/openapi.yml
++++ b/.github/workflows/openapi.yml
+@@ -29,6 +29,7 @@
+         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+         with:
+           persist-credentials: false
++          submodules: true
+ 
+       - name: Get php version
+         id: php_versions
