@@ -246,13 +246,16 @@ test.describe('Warn requesters when signers have no visible signature field (#83
 		await addEmailSigner(page, 'signer03@example.com', 'Charlie Uncovered')
 
 		// Open action menu for Bob and trigger individual "Request signature"
-		const bobRow = page.locator('li').filter({ hasText: 'Bob Uncovered' })
+		const bobRow = page.locator('li').filter({ hasText: 'Bob Uncovered' }).first()
 		await bobRow.getByRole('button', { name: 'Actions' }).click()
 
-		const requestSignAction = page.getByRole('menuitem', { name: 'Request signature' })
+		const requestSignAction = page
+			.getByRole('menuitem', { name: 'Request signature' })
 			.or(page.getByRole('button', { name: 'Request signature' }))
-		await expect(requestSignAction.first()).toBeVisible({ timeout: 5000 })
-		await requestSignAction.first().click()
+			.filter({ visible: true })
+
+		await expect(requestSignAction).toHaveCount(1)
+		await requestSignAction.click()
 
 		const confirmDialog = page.getByRole('dialog', { name: 'Confirm' })
 		await expect(confirmDialog).toBeVisible()
