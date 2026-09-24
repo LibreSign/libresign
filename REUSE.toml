@@ -25,6 +25,7 @@ path = [
     ".github/ISSUE_TEMPLATE/2_feature_request.md",
     ".github/ISSUE_TEMPLATE/feature_request.md",
     ".github/pull_request_template.md",
+    ".github/workflows/*.patch",
     ".prettierrc",
     ".tx/config",
     "img/*.png",
