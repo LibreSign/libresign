@@ -117,12 +117,18 @@ class SequentialSigningService {
 		}
 	}
 
+	/**
+	 * A rejected signer will never sign, so like in hasPendingLowerOrderSigners()
+	 * it must not hold the next order back when the workflow continues after a
+	 * rejection.
+	 */
 	private function isOrderFullyCompleted(array $signRequests, int $order): bool {
 		$pendingSigners = array_filter(
 			$signRequests,
 			fn ($sr) => $this->isSigningParticipant($sr)
 				&& $sr->getSigningOrder() === $order
 				&& $sr->getStatusEnum() !== SignRequestStatus::SIGNED
+				&& $sr->getStatusEnum() !== SignRequestStatus::REJECTED
 		);
 
 		return empty($pendingSigners);

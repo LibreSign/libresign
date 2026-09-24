@@ -20,6 +20,7 @@ use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyConfig;
+use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -40,6 +41,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	private SignatureRejectionPolicyService&MockObject $rejectionPolicyService;
 	private FileStatusService&MockObject $fileStatusService;
 	private IdentifyMethodService&MockObject $identifyMethodService;
+	private SequentialSigningService&MockObject $sequentialSigningService;
 	private IEventDispatcher&MockObject $eventDispatcher;
 	private IDBConnection&MockObject $db;
 	private ITimeFactory&MockObject $timeFactory;
@@ -48,6 +50,8 @@ final class SignatureRejectionServiceTest extends TestCase {
 	/** @var list<SignRequest> */
 	private array $envelopeChildSignRequests = [];
 	private ?SignRequest $envelopeSignRequest = null;
+	/** @var array<int, File> */
+	private array $filesById = [];
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -56,6 +60,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$this->rejectionPolicyService = $this->createMock(SignatureRejectionPolicyService::class);
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->sequentialSigningService = $this->createMock(SequentialSigningService::class);
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->db = $this->createMock(IDBConnection::class);
 		$this->timeFactory = $this->createMock(ITimeFactory::class);
@@ -67,9 +72,19 @@ final class SignatureRejectionServiceTest extends TestCase {
 			->willReturn(new \DateTime(self::REJECTED_AT));
 		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
 			->willReturn(['account' => [$this->createMock(IIdentifyMethod::class)]]);
+		$this->sequentialSigningService->method('setFile')->willReturnSelf();
 
 		// Backed by mutable properties so a test can widen the envelope fan-out
 		// without the default stub masking it.
+		$this->fileMapper->method('getById')
+			->willReturnCallback(function (int $id): File {
+				if (isset($this->filesById[$id])) {
+					return $this->filesById[$id];
+				}
+				$file = $this->file();
+				$file->setId($id);
+				return $file;
+			});
 		$this->signRequestMapper->method('getByEnvelopeChildrenAndIdentifyMethod')
 			->willReturnCallback(fn (): array => $this->envelopeChildSignRequests);
 		$this->signRequestMapper->method('getByIdentifyMethodAndFileId')
@@ -88,6 +103,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 			$this->rejectionPolicyService,
 			$this->fileStatusService,
 			$this->identifyMethodService,
+			$this->sequentialSigningService,
 			$this->eventDispatcher,
 			$this->db,
 			$this->timeFactory,
@@ -296,6 +312,72 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $file->getStatus());
 	}
 
+	public function testAContinuingRejectionReleasesTheNextSigningOrder(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$file = $this->file();
+		$signRequest = $this->signRequest();
+		$signRequest->setSigningOrder(2);
+
+		$this->sequentialSigningService->expects($this->once())
+			->method('setFile')
+			->with($file)
+			->willReturnSelf();
+		$this->sequentialSigningService->expects($this->once())
+			->method('releaseNextOrder')
+			->with(10, 2);
+
+		$this->getService()->reject($file, $signRequest);
+	}
+
+	public function testACancellingRejectionReleasesNobody(): void {
+		$this->withPolicy(self::policy(behavior: 'cancel'));
+
+		$this->sequentialSigningService->expects($this->never())->method('releaseNextOrder');
+
+		$this->getService()->reject($this->file(), $this->signRequest());
+	}
+
+	public function testRejectingAnEnvelopeReleasesTheNextOrderOfEveryDocument(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$envelope = $this->envelope();
+		$onDoc1 = $this->signRequest(id: 11);
+		$onDoc1->setFileId(21);
+		$onDoc2 = $this->signRequest(id: 12);
+		$onDoc2->setFileId(22);
+		$onTheEnvelope = $this->signRequest(id: 13);
+		$onTheEnvelope->setFileId(1);
+
+		$this->envelopeChildSignRequests = [$onDoc1, $onDoc2];
+		$this->envelopeSignRequest = $onTheEnvelope;
+
+		$released = [];
+		$this->sequentialSigningService->method('releaseNextOrder')
+			->willReturnCallback(function (int $fileId) use (&$released): void {
+				$released[] = $fileId;
+			});
+
+		$this->getService()->reject($envelope, $onDoc1);
+
+		$this->assertSame([21, 22, 1], $released);
+	}
+
+	public function testAFailedReleaseOfTheNextOrderLeavesNoPartiallyUpdatedWorkflow(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$signRequest = $this->signRequest();
+
+		$this->sequentialSigningService->method('releaseNextOrder')
+			->willThrowException(new \RuntimeException('database is down'));
+		$this->db->expects($this->once())->method('rollBack');
+		$this->db->expects($this->never())->method('commit');
+
+		try {
+			$this->getService()->reject($this->file(), $signRequest);
+			$this->fail('The rejection must fail when the next order cannot be released.');
+		} catch (LibresignException) {
+			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $signRequest->getStatusEnum());
+		}
+	}
+
 	public function testWorkflowIsClosedWhenThePolicyCancelsIt(): void {
 		$this->withPolicy(self::policy(behavior: 'cancel'));
 		$file = $this->file(FileStatus::PARTIAL_SIGNED->value);
@@ -317,7 +399,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$child = $this->file(FileStatus::ABLE_TO_SIGN->value, parentFileId: 1);
 		$envelope = $this->envelope();
 
-		$this->fileMapper->method('getById')->with(1)->willReturn($envelope);
+		$this->filesById[1] = $envelope;
 		$this->fileStatusService
 			->expects($this->once())
 			->method('propagateStatusToChildren')
