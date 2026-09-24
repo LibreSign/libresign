@@ -72,19 +72,23 @@ async function placeVisibleSignatureForSigner(page: Page, signerName: string) {
 	await setupSignaturePositionsButton.click()
 	await expect(signaturePositionsDialog).toBeVisible({ timeout: 15_000 })
 
+	const overlay = getVisiblePdfOverlay(signaturePositionsDialog)
+	await expect(overlay).toBeVisible({ timeout: 30_000 })
+
 	const editSignerLink = signaturePositionsDialog.getByRole('link', { name: `Edit signer ${signerName}` })
 	await expect(editSignerLink).toBeVisible({ timeout: 10_000 })
 	await editSignerLink.click()
 
-	await expect(
-		signaturePositionsDialog.getByText('Click on the place you want to add.'),
-	).toBeVisible()
+	const addInstruction = signaturePositionsDialog.getByText('Click on the place you want to add.')
+	await expect(addInstruction).toBeVisible()
+	await expect(editSignerLink).toBeHidden()
 
-	const overlay = getVisiblePdfOverlay(signaturePositionsDialog)
-	await expect(overlay).toBeVisible()
 	await overlay.hover()
 	await signaturePositionsDialog.locator('.preview-element').first().waitFor({ state: 'visible' })
 	await overlay.click()
+
+	await expect(addInstruction).toBeHidden()
+	await expect(editSignerLink).toBeVisible()
 	await signaturePositionsDialog.getByRole('button', { name: 'Save' }).click()
 	await expect(signaturePositionsDialog).toBeHidden({ timeout: 10_000 })
 }
