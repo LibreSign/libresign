@@ -32,9 +32,24 @@ jobs:
       latest-branch: ${{ steps.stable.outputs.latest-branch }}
       latest-major: ${{ steps.stable.outputs.latest-major }}
     steps:
+      - id: release-tool
+        name: Setup release-tool v0.11.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://github.com/LibreCodeCoop/release-tool/releases/download/v0.11.0"
+          curl --fail --silent --show-error --location "${base}/release-tool.phar" -o "${RUNNER_TEMP}/release-tool.phar"
+          curl --fail --silent --show-error --location "${base}/release-tool.phar.sha256" -o "${RUNNER_TEMP}/release-tool.phar.sha256"
+          (cd "${RUNNER_TEMP}" && sha256sum --check release-tool.phar.sha256)
+          echo "path=${RUNNER_TEMP}/release-tool.phar" >> "${GITHUB_OUTPUT}"
+
       - id: stable
         name: Resolve stable release line
-        uses: LibreCodeCoop/github-workflows/actions/release-stable-select@0bac49723213a5aa8e779d365a7b684608cf6989 # v0.6.0
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_TOOL_PATH: ${{ steps.release-tool.outputs.path }}
+        run: php "${RELEASE_TOOL_PATH}" release:stable-select --repository "${GITHUB_REPOSITORY}" --branch "${GITHUB_REF_NAME}"
 
   nightly-release:
     name: Build and publish nightly
@@ -201,12 +216,32 @@ jobs:
             make verify-appstore-package
           fi
 
-      - name: Validate release artifact
-        uses: LibreCodeCoop/github-workflows/actions/release-artifact-validate@0bac49723213a5aa8e779d365a7b684608cf6989 # v0.6.0
+      - name: Set up PHP 8.3 for release-tool
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
-          artifact: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
-          app-name: ${{ env.APP_NAME }}
-          version: ${{ env.APP_VERSION }}
+          php-version: '8.3'
+          coverage: none
+
+      - id: release-tool
+        name: Setup release-tool v0.11.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://github.com/LibreCodeCoop/release-tool/releases/download/v0.11.0"
+          curl --fail --silent --show-error --location "${base}/release-tool.phar" -o "${RUNNER_TEMP}/release-tool.phar"
+          curl --fail --silent --show-error --location "${base}/release-tool.phar.sha256" -o "${RUNNER_TEMP}/release-tool.phar.sha256"
+          (cd "${RUNNER_TEMP}" && sha256sum --check release-tool.phar.sha256)
+          echo "path=${RUNNER_TEMP}/release-tool.phar" >> "${GITHUB_OUTPUT}"
+
+      - name: Validate release artifact
+        shell: bash
+        env:
+          RELEASE_TOOL_PATH: ${{ steps.release-tool.outputs.path }}
+        run: >-
+          php "${RELEASE_TOOL_PATH}" artifact:validate-package
+          --artifact "${APP_NAME}/build/artifacts/${APP_NAME}.tar.gz"
+          --app-name "${APP_NAME}"
+          --expected-version "${APP_VERSION}"
 
       - name: Define nightly metadata
         id: nightly
