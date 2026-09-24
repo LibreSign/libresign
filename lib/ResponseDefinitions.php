@@ -510,6 +510,15 @@ namespace OCA\Libresign;
  * @psalm-type LibresignUserPolicyResponse = array{
  *     policy: LibresignUserPolicyState,
  * }
+ * @psalm-type LibresignEffectiveCompoundPolicyWriteResponse = LibresignMessageResponse&array{
+ *     policies: array<string, LibresignEffectivePolicyState>,
+ * }
+ * @psalm-type LibresignGroupCompoundPolicyWriteResponse = LibresignMessageResponse&array{
+ *     policies: array<string, LibresignGroupPolicyState>,
+ * }
+ * @psalm-type LibresignUserCompoundPolicyWriteResponse = LibresignMessageResponse&array{
+ *     policies: array<string, LibresignUserPolicyState>,
+ * }
  * @psalm-type LibresignGroupPolicyWriteResponse = LibresignMessageResponse&LibresignGroupPolicyResponse
  * @psalm-type LibresignSystemPolicyWriteResponse = LibresignMessageResponse&LibresignEffectivePolicyResponse
  * @psalm-type LibresignUserPolicyWriteResponse = LibresignMessageResponse&LibresignUserPolicyResponse
@@ -558,15 +567,18 @@ namespace OCA\Libresign;
  *     sourceScope: string,
  * }
  * @psalm-type LibresignSignatureRejectionCommentMode = 'disabled'|'optional'|'required'
- * @psalm-type LibresignPolicySnapshotSignatureRejectionValue = array{
- *     enabled: bool,
- *     comment_mode: LibresignSignatureRejectionCommentMode,
- *     cancel_workflow: bool,
- *     public_status: bool,
- *     show_comment_on_validation: bool,
+ * @psalm-type LibresignSignatureRejectionBehavior = 'cancel'|'continue'
+ * @psalm-type LibresignSignatureRejectionVisibility = 'requester'|'participants'|'public'
+ * @psalm-type LibresignPolicySnapshotSignatureRejectionBehaviorEntry = array{
+ *     effectiveValue: LibresignSignatureRejectionBehavior,
+ *     sourceScope: string,
  * }
- * @psalm-type LibresignPolicySnapshotSignatureRejectionEntry = array{
- *     effectiveValue: LibresignPolicySnapshotSignatureRejectionValue,
+ * @psalm-type LibresignPolicySnapshotSignatureRejectionCommentModeEntry = array{
+ *     effectiveValue: LibresignSignatureRejectionCommentMode,
+ *     sourceScope: string,
+ * }
+ * @psalm-type LibresignPolicySnapshotSignatureRejectionVisibilityEntry = array{
+ *     effectiveValue: LibresignSignatureRejectionVisibility,
  *     sourceScope: string,
  * }
  * @psalm-type LibresignValidatePolicySnapshot = array{
@@ -578,7 +590,11 @@ namespace OCA\Libresign;
  *     identify_methods?: LibresignPolicySnapshotIdentifyMethodsEntry,
  *     signer_geolocation?: LibresignPolicySnapshotSignerGeolocationEntry,
  *     enable_observer_profile?: LibresignPolicySnapshotBooleanEntry,
- *     signature_rejection?: LibresignPolicySnapshotSignatureRejectionEntry,
+ *     rejection_enabled?: LibresignPolicySnapshotBooleanEntry,
+ *     rejection_behavior?: LibresignPolicySnapshotSignatureRejectionBehaviorEntry,
+ *     rejection_comment_mode?: LibresignPolicySnapshotSignatureRejectionCommentModeEntry,
+ *     rejection_visibility?: LibresignPolicySnapshotSignatureRejectionVisibilityEntry,
+ *     rejection_comment_visibility?: LibresignPolicySnapshotSignatureRejectionVisibilityEntry,
  * }
  * @psalm-type LibresignValidateMetadata = array{
  *     extension: string,

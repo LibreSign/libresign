@@ -10,9 +10,11 @@ namespace OCA\Libresign\Tests\Unit\Service\SignatureRejection;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Enum\SignatureRejectionBehavior;
 use OCA\Libresign\Enum\SignatureRejectionCommentMode;
+use OCA\Libresign\Enum\SignatureRejectionVisibility;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
-use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyConfig;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -40,26 +42,36 @@ final class SignatureRejectionPolicyServiceTest extends TestCase {
 		return $file;
 	}
 
-	/** @return array<string, mixed> */
-	private function snapshot(mixed $effectiveValue): array {
-		return [
-			'policy_snapshot' => [
-				SignatureRejectionPolicy::KEY => [
-					'effectiveValue' => $effectiveValue,
-					'sourceScope' => 'request',
-				],
-			],
-		];
+	/**
+	 * One snapshot entry per rejection setting, the way the file policy applier
+	 * freezes them on the document.
+	 *
+	 * @param array<string, mixed> $values
+	 * @return array<string, mixed>
+	 */
+	private function snapshot(array $values): array {
+		$policySnapshot = [];
+		foreach ($values as $policyKey => $effectiveValue) {
+			$policySnapshot[$policyKey] = [
+				'effectiveValue' => $effectiveValue,
+				'sourceScope' => 'request',
+			];
+		}
+
+		return ['policy_snapshot' => $policySnapshot];
 	}
 
 	public function testWithoutAFileRejectionIsDisabled(): void {
-		$this->assertSame(SignatureRejectionPolicyValue::defaults(), $this->getService()->getPolicyValue());
+		$this->assertSame(
+			SignatureRejectionPolicyConfig::defaults()->toKeyedValues(),
+			$this->getService()->getConfig()->toKeyedValues(),
+		);
 	}
 
 	public function testARequestThatNeverOptedInKeepsRejectionDisabled(): void {
 		$this->assertSame(
-			SignatureRejectionPolicyValue::defaults(),
-			$this->getService()->getPolicyValue($this->file()),
+			SignatureRejectionPolicyConfig::defaults()->toKeyedValues(),
+			$this->getService()->getConfig($this->file())->toKeyedValues(),
 		);
 	}
 
@@ -73,28 +85,55 @@ final class SignatureRejectionPolicyServiceTest extends TestCase {
 		$this->assertFalse($this->getService()->isEnabled($file));
 	}
 
-	public function testTheStoredValueIsTheEffectiveValue(): void {
-		$file = $this->file($this->snapshot(['enabled' => true, 'comment_mode' => 'required', 'cancel_workflow' => true]));
+	public function testTheStoredConfigurationIsTheEffectiveOne(): void {
+		$file = $this->file($this->snapshot([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_BEHAVIOR => 'cancel',
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'public',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'participants',
+		]));
 
 		$service = $this->getService();
 		$this->assertTrue($service->isEnabled($file));
+		$this->assertSame(SignatureRejectionBehavior::CANCEL, $service->getBehavior($file));
 		$this->assertSame(SignatureRejectionCommentMode::REQUIRED, $service->getCommentMode($file));
+		$this->assertSame(SignatureRejectionVisibility::PUBLIC, $service->getVisibility($file));
+		$this->assertSame(SignatureRejectionVisibility::PARTICIPANTS, $service->getCommentVisibility($file));
 		$this->assertTrue($service->cancelsWorkflow($file));
 	}
 
-	public function testTheStoredValueIsNormalizedBeforeBeingUsed(): void {
-		$file = $this->file($this->snapshot('{"enabled":true,"comment_mode":"optional","cancel_workflow":true}'));
+	public function testTheStoredValuesAreNormalizedBeforeBeingUsed(): void {
+		$file = $this->file($this->snapshot([
+			SignatureRejectionPolicy::KEY_ENABLED => 'true',
+			SignatureRejectionPolicy::KEY_BEHAVIOR => 'continue',
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => ' optional ',
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'everyone',
+		]));
 
 		$this->assertSame([
-			'enabled' => true,
-			'comment_mode' => 'optional',
-			'cancel_workflow' => true,
-			'public_status' => false,
-			'show_comment_on_validation' => false,
-		], $this->getService()->getPolicyValue($file));
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_BEHAVIOR => 'continue',
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'requester',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'requester',
+		], $this->getService()->getConfig($file)->toKeyedValues());
 	}
 
-	public function testEnvelopeReadsTheValueStoredOnTheDocumentsItContains(): void {
+	public function testAStoredCommentAudienceNeverOutgrowsTheRejectionAudience(): void {
+		// Even a hand-written or stale snapshot cannot make the comment reach
+		// further than the rejection it belongs to.
+		$file = $this->file($this->snapshot([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'requester',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public',
+		]));
+
+		$this->assertSame(SignatureRejectionVisibility::REQUESTER, $this->getService()->getCommentVisibility($file));
+	}
+
+	public function testEnvelopeReadsTheConfigurationStoredOnTheDocumentsItContains(): void {
 		$envelope = $this->file();
 		$envelope->setNodeType('envelope');
 
@@ -103,7 +142,10 @@ final class SignatureRejectionPolicyServiceTest extends TestCase {
 
 		$child = new File();
 		$child->setId(3);
-		$child->setMetadata($this->snapshot(['enabled' => true, 'comment_mode' => 'required']));
+		$child->setMetadata($this->snapshot([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+		]));
 
 		$this->fileMapper
 			->expects($this->once())
@@ -117,7 +159,7 @@ final class SignatureRejectionPolicyServiceTest extends TestCase {
 		);
 	}
 
-	public function testEnvelopeWithoutAnyStoredValueKeepsRejectionDisabled(): void {
+	public function testEnvelopeWithoutAnyStoredConfigurationKeepsRejectionDisabled(): void {
 		$envelope = $this->file();
 		$envelope->setNodeType('envelope');
 
@@ -126,25 +168,31 @@ final class SignatureRejectionPolicyServiceTest extends TestCase {
 		$this->assertFalse($this->getService()->isEnabled($envelope));
 	}
 
-	public function testAnEnvelopeValueGovernsTheDocumentsItContains(): void {
-		// The requester edited the envelope after it was created, so the value on the
-		// envelope is newer than the one frozen on each document at creation time.
-		$child = $this->file($this->snapshot(SignatureRejectionPolicyValue::defaults()));
+	public function testAnEnvelopeConfigurationGovernsTheDocumentsItContains(): void {
+		// The requester edited the envelope after it was created, so the values on
+		// the envelope are newer than the ones frozen on each document at creation.
+		$child = $this->file($this->snapshot(SignatureRejectionPolicyConfig::defaults()->toKeyedValues()));
 		$child->setId(2);
 		$child->setParentFileId(1);
 
-		$envelope = $this->file($this->snapshot(['enabled' => true, 'comment_mode' => 'required']));
+		$envelope = $this->file($this->snapshot([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+		]));
 
 		$this->fileMapper->expects($this->once())->method('getById')->with(1)->willReturn($envelope);
 
 		$this->assertSame(
-			SignatureRejectionPolicyValue::normalize(['enabled' => true, 'comment_mode' => 'required']),
-			$this->getService()->getPolicyValue($child),
+			SignatureRejectionCommentMode::REQUIRED,
+			$this->getService()->getCommentMode($child),
 		);
 	}
 
-	public function testDocumentKeepsItsOwnValueWhileTheEnvelopeHasNone(): void {
-		$child = $this->file($this->snapshot(['enabled' => true, 'comment_mode' => 'optional']));
+	public function testDocumentKeepsItsOwnConfigurationWhileTheEnvelopeHasNone(): void {
+		$child = $this->file($this->snapshot([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+		]));
 		$child->setId(2);
 		$child->setParentFileId(1);
 
@@ -153,12 +201,15 @@ final class SignatureRejectionPolicyServiceTest extends TestCase {
 		$this->assertTrue($this->getService()->isEnabled($child));
 	}
 
-	public function testDocumentInsideAnEnvelopeFallsBackToTheEnvelopeValue(): void {
+	public function testDocumentInsideAnEnvelopeFallsBackToTheEnvelopeConfiguration(): void {
 		$child = $this->file();
 		$child->setId(2);
 		$child->setParentFileId(1);
 
-		$envelope = $this->file($this->snapshot(['enabled' => true, 'cancel_workflow' => true]));
+		$envelope = $this->file($this->snapshot([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_BEHAVIOR => 'cancel',
+		]));
 
 		$this->fileMapper->expects($this->once())->method('getById')->with(1)->willReturn($envelope);
 
@@ -175,10 +226,10 @@ final class SignatureRejectionPolicyServiceTest extends TestCase {
 		$this->assertFalse($this->getService()->isEnabled($child));
 	}
 
-	public function testADocumentAddedLaterFollowsTheValueOfTheEnvelope(): void {
+	public function testADocumentAddedLaterFollowsTheConfigurationOfTheEnvelope(): void {
 		// A document added to an existing envelope is stamped disabled at creation;
-		// it must still follow the value the envelope was created with.
-		$addedLater = $this->file($this->snapshot(SignatureRejectionPolicyValue::defaults()));
+		// it must still follow the configuration the envelope was created with.
+		$addedLater = $this->file($this->snapshot(SignatureRejectionPolicyConfig::defaults()->toKeyedValues()));
 		$addedLater->setId(9);
 		$addedLater->setParentFileId(1);
 
@@ -187,7 +238,10 @@ final class SignatureRejectionPolicyServiceTest extends TestCase {
 
 		$oldest = new File();
 		$oldest->setId(2);
-		$oldest->setMetadata($this->snapshot(['enabled' => true, 'comment_mode' => 'required']));
+		$oldest->setMetadata($this->snapshot([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+		]));
 
 		$this->fileMapper->method('getById')->with(1)->willReturn($envelope);
 		$this->fileMapper->method('getChildrenFiles')->with(1)->willReturn([$addedLater, $oldest]);
@@ -201,11 +255,14 @@ final class SignatureRejectionPolicyServiceTest extends TestCase {
 
 		$oldest = new File();
 		$oldest->setId(2);
-		$oldest->setMetadata($this->snapshot(['enabled' => true, 'comment_mode' => 'required']));
+		$oldest->setMetadata($this->snapshot([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+		]));
 
 		$addedLater = new File();
 		$addedLater->setId(9);
-		$addedLater->setMetadata($this->snapshot(SignatureRejectionPolicyValue::defaults()));
+		$addedLater->setMetadata($this->snapshot(SignatureRejectionPolicyConfig::defaults()->toKeyedValues()));
 
 		// Returned out of order on purpose: the resolution must not depend on it.
 		$this->fileMapper->method('getChildrenFiles')->with(1)->willReturn([$addedLater, $oldest]);

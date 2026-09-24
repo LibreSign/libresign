@@ -22,6 +22,8 @@ use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolic
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValidator;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
@@ -29,11 +31,13 @@ use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
 use OCP\Group\ISubAdmin;
+use OCP\IDBConnection;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
@@ -46,6 +50,7 @@ final class PolicyServiceTest extends TestCase {
 	private IUserSession&MockObject $userSession;
 	private PolicySource&MockObject $source;
 	private IL10N&MockObject $l10n;
+	private IDBConnection&MockObject $db;
 	private PolicyRegistry $registry;
 	private PolicyContextFactory $contextFactory;
 
@@ -103,6 +108,7 @@ final class PolicyServiceTest extends TestCase {
 		$this->subAdmin = $this->createMock(ISubAdmin::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->source = $this->createMock(PolicySource::class);
+		$this->db = $this->createMock(IDBConnection::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n->method('t')->willReturnCallback(static function (string $text, array $parameters = []): string {
 			if ($parameters !== [] && array_is_list($parameters)) {
@@ -130,6 +136,7 @@ final class PolicyServiceTest extends TestCase {
 					SignatureTextPolicy::class => new SignatureTextPolicy($this->l10n),
 					DocMdpPolicy::class => new DocMdpPolicy(),
 					SigningModePolicy::class => new SigningModePolicy(),
+					SignatureRejectionPolicy::class => new SignatureRejectionPolicy(new SignatureRejectionPolicyValidator()),
 					WorkerConfigPolicy::class => new WorkerConfigPolicy(),
 					default => throw new \RuntimeException('Unexpected provider class: ' . $class),
 				};
@@ -145,6 +152,7 @@ final class PolicyServiceTest extends TestCase {
 			SignatureTextPolicy::class,
 			DocMdpPolicy::class,
 			SigningModePolicy::class,
+			SignatureRejectionPolicy::class,
 			WorkerConfigPolicy::class,
 		]);
 		$this->contextFactory = new PolicyContextFactory($this->userManager, $this->groupManager, $this->subAdmin, $this->userSession);
@@ -194,6 +202,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$resolved = $service->resolveForUserId(DocMdpPolicy::KEY, 'john');
@@ -247,6 +256,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$resolved = $service->resolveForUserId(SignatureFlowPolicy::KEY, 'john', [SignatureFlowPolicy::KEY => 'ordered_numeric']);
@@ -286,6 +296,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$resolved = $service->resolveForUserId(SignatureFlowPolicy::KEY, 'ghost');
@@ -340,6 +351,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$resolved = $service->resolve(SignatureFlowPolicy::KEY);
@@ -403,6 +415,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$policy = $service->saveUserPolicyForUserId(SignatureFlowPolicy::KEY, 'user1', 'ordered_numeric', true);
@@ -487,6 +500,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$policy = $service->saveUserPolicyForUserId(SignatureFlowPolicy::KEY, 'user1', 'ordered_numeric', false);
@@ -556,6 +570,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$policy = $service->saveUserPolicyForUserId(SignatureFlowPolicy::KEY, 'user1', 'ordered_numeric', false);
@@ -574,6 +589,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$this->expectException(\InvalidArgumentException::class);
@@ -592,6 +608,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$this->expectException(\InvalidArgumentException::class);
@@ -610,6 +627,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$this->expectException(\InvalidArgumentException::class);
@@ -628,6 +646,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$this->expectException(\InvalidArgumentException::class);
@@ -647,6 +666,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$this->expectException(\InvalidArgumentException::class);
@@ -666,6 +686,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$this->expectException(\InvalidArgumentException::class);
@@ -685,6 +706,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$this->expectException(\InvalidArgumentException::class);
@@ -704,6 +726,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$this->expectException(\InvalidArgumentException::class);
@@ -737,6 +760,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$resolved = $service->saveSystem(SignatureFlowPolicy::KEY, 'ordered_numeric', true);
@@ -805,6 +829,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$resolved = $service->saveSystem(SignatureFlowPolicy::KEY, 'ordered_numeric', true);
@@ -862,6 +887,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$states = $service->resolveKnownPolicyStatesForUserIdWithoutUserScope('admin');
@@ -895,6 +921,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$resolved = $service->clearSystem(SignatureFlowPolicy::KEY);
@@ -935,6 +962,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$this->expectException(\DomainException::class);
@@ -971,6 +999,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$this->expectException(\DomainException::class);
@@ -1011,6 +1040,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$this->expectException(\DomainException::class);
@@ -1100,6 +1130,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$policy = $service->saveGroupPolicy(RequestSignGroupsPolicy::KEY, 'company', ['board', 'company'], true);
@@ -1182,6 +1213,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$policy = $service->saveGroupPolicy(RequestSignGroupsPolicy::KEY, 'company', ['company'], true);
@@ -1266,6 +1298,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$policy = $service->saveGroupPolicy(RequestSignGroupsPolicy::KEY, 'company', ['board', 'company'], false);
@@ -1401,6 +1434,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$policy = $service->saveGroupPolicy(IdentifyMethodsPolicy::KEY, 'board', [
@@ -1486,6 +1520,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$this->expectException(\DomainException::class);
@@ -1592,6 +1627,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$policy = $service->saveGroupPolicy(RequestSignGroupsPolicy::KEY, 'board', [
@@ -1627,6 +1663,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		self::assertFalse($service->canViewGroupPolicy(
@@ -1678,6 +1715,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		self::assertFalse($service->canViewGroupPolicy(
@@ -1709,6 +1747,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		self::assertTrue($service->canViewGroupPolicy(
@@ -1743,6 +1782,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		self::assertFalse($service->canViewGroupPolicy(
@@ -1781,6 +1821,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		self::assertTrue($service->canViewGroupPolicy(
@@ -1823,6 +1864,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		self::assertSame(1, $service->countVisibleGroupPoliciesForTargets(
@@ -1859,6 +1901,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$this->expectException(\DomainException::class);
@@ -1899,6 +1942,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		self::assertNull($service->clearGroupPolicy(FooterPolicy::KEY, 'finance'));
@@ -1951,6 +1995,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$this->expectException(\InvalidArgumentException::class);
@@ -1975,6 +2020,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$result = $service->getAllRuleCounts();
@@ -2003,6 +2049,7 @@ final class PolicyServiceTest extends TestCase {
 				$this->source,
 				$this->registry,
 				$this->l10n,
+				$this->db,
 			])
 			->onlyMethods(['resolveKnownPolicies'])
 			->getMock();
@@ -2149,6 +2196,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->source,
 			$this->registry,
 			$this->l10n,
+			$this->db,
 		);
 
 		$result = $service->resolveKnownPolicyStatesForUserId('requester');
@@ -2179,6 +2227,7 @@ final class PolicyServiceTest extends TestCase {
 				$this->source,
 				$this->registry,
 				$this->l10n,
+				$this->db,
 			])
 			->onlyMethods(['resolveKnownPolicies'])
 			->getMock();
@@ -2215,6 +2264,7 @@ final class PolicyServiceTest extends TestCase {
 				$this->source,
 				$this->registry,
 				$this->l10n,
+				$this->db,
 			])
 			->onlyMethods(['resolveKnownPolicies'])
 			->getMock();
@@ -2249,4 +2299,250 @@ final class PolicyServiceTest extends TestCase {
 		], $result);
 	}
 
+	/**
+	 * The same multi-key change written in either order is the same
+	 * configuration, so both are accepted.
+	 *
+	 * @param array<string, mixed> $values
+	 */
+	#[DataProvider('provideCompoundWriteOrders')]
+	public function testACompoundWriteIsAcceptedInEitherOrder(array $values): void {
+		$this->givenSystemRejectionPolicy([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'requester',
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'requester',
+		]);
+
+		$savedKeys = [];
+		$this->source
+			->method('saveSystemPolicy')
+			->willReturnCallback(static function (string $policyKey, mixed $value) use (&$savedKeys): void {
+				$savedKeys[$policyKey] = $value;
+			});
+
+		$saved = $this->newService()->saveSystemCompound(SignatureRejectionPolicy::KEY_ENABLED, $values);
+
+		$this->assertEqualsCanonicalizing([
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'public',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public',
+		], $savedKeys);
+		$this->assertSame(array_keys($values), array_keys($saved));
+	}
+
+	/** @return iterable<string, array{0: array<string, mixed>}> */
+	public static function provideCompoundWriteOrders(): iterable {
+		yield 'the rejection audience first' => [[
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'public',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public',
+		]];
+		yield 'the comment audience first' => [[
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public',
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'public',
+		]];
+	}
+
+	/**
+	 * The keys left out of the payload keep the value they already resolve to,
+	 * so the policy sees the configuration the write would produce.
+	 */
+	public function testACompoundWriteWhoseResultingConfigurationIsInvalidIsRefused(): void {
+		$this->givenSystemRejectionPolicy([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'requester',
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'requester',
+		]);
+
+		$this->source->expects($this->never())->method('saveSystemPolicy');
+		$this->db->expects($this->never())->method('beginTransaction');
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('The rejection comment cannot be visible to a wider audience than the rejection itself.');
+
+		$this->newService()->saveSystemCompound(SignatureRejectionPolicy::KEY_ENABLED, [
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public',
+		]);
+	}
+
+	/**
+	 * A key written on its own is not a statement about the other settings, so
+	 * it is not refused because of a sibling that the next write may change.
+	 */
+	public function testASingleKeyWriteDoesNotDependOnTheOtherSettings(): void {
+		$this->givenSystemRejectionPolicy([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'requester',
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'requester',
+		]);
+
+		$this->source
+			->expects($this->once())
+			->method('saveSystemPolicy')
+			->with(SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY, 'public', false);
+
+		$this->newService()->saveSystem(SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY, 'public');
+	}
+
+	public function testACompoundWriteIsPersistedAsASingleTransaction(): void {
+		$this->givenSystemRejectionPolicy([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'requester',
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'requester',
+		]);
+
+		$this->db->expects($this->once())->method('beginTransaction');
+		$this->db->expects($this->once())->method('commit');
+		$this->db->expects($this->never())->method('rollBack');
+		$this->source->expects($this->exactly(2))->method('saveSystemPolicy');
+
+		$this->newService()->saveSystemCompound(SignatureRejectionPolicy::KEY_ENABLED, [
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'public',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public',
+		]);
+	}
+
+	public function testACompoundWriteThatFailsHalfwayIsRolledBack(): void {
+		$this->givenSystemRejectionPolicy([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'requester',
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'requester',
+		]);
+
+		$this->source
+			->method('saveSystemPolicy')
+			->willReturnCallback(static function (string $policyKey): void {
+				if ($policyKey === SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY) {
+					throw new \RuntimeException('the database went away');
+				}
+			});
+
+		$this->db->expects($this->once())->method('beginTransaction');
+		$this->db->expects($this->once())->method('rollBack');
+		$this->db->expects($this->never())->method('commit');
+
+		$this->expectException(\RuntimeException::class);
+
+		$this->newService()->saveSystemCompound(SignatureRejectionPolicy::KEY_ENABLED, [
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'public',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public',
+		]);
+	}
+
+	public function testACompoundWriteOnlyAcceptsKeysOfTheSameFamily(): void {
+		$this->givenSystemRejectionPolicy([]);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('signature_flow is not part of rejection_enabled');
+
+		$this->newService()->saveSystemCompound(SignatureRejectionPolicy::KEY_ENABLED, [
+			SignatureFlowPolicy::KEY => 'ordered_numeric',
+		]);
+	}
+
+	public function testACompoundWriteNeedsAPolicyThatGroupsOtherSettings(): void {
+		$this->givenSystemRejectionPolicy([]);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('signature_flow does not group other policy settings');
+
+		$this->newService()->saveSystemCompound(SignatureFlowPolicy::KEY, [
+			SignatureFlowPolicy::KEY => 'ordered_numeric',
+		]);
+	}
+
+	public function testACompoundWriteNeedsAtLeastOneValue(): void {
+		$this->givenSystemRejectionPolicy([]);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('No policy value was sent');
+
+		$this->newService()->saveSystemCompound(SignatureRejectionPolicy::KEY_ENABLED, []);
+	}
+
+	/**
+	 * The values a group already carries are part of the configuration a group
+	 * rule produces, so the same write is judged against that group's state:
+	 * the system keeps the rejection private to the requester, which would
+	 * refuse a public comment, but this group already made the rejection public.
+	 */
+	public function testAGroupCompoundWriteSeesTheValuesOfThatGroup(): void {
+		$admin = $this->createMock(IUser::class);
+		$admin->method('getUID')->willReturn('admin');
+		$this->userSession->method('getUser')->willReturn($admin);
+		$this->groupManager->method('isAdmin')->with('admin')->willReturn(true);
+
+		$this->givenSystemRejectionPolicy(
+			[
+				SignatureRejectionPolicy::KEY_ENABLED => true,
+				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+				SignatureRejectionPolicy::KEY_VISIBILITY => 'requester',
+			],
+			[SignatureRejectionPolicy::KEY_VISIBILITY => 'public'],
+		);
+
+		$this->source
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with(SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY, 'finance', 'public');
+
+		$saved = $this->newService()->saveGroupPolicyCompound(
+			SignatureRejectionPolicy::KEY_ENABLED,
+			'finance',
+			[SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public'],
+		);
+
+		$this->assertSame([SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY], array_keys($saved));
+	}
+
+	private function newService(): PolicyService {
+		return new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+			$this->db,
+		);
+	}
+
+	/**
+	 * @param array<string, mixed> $systemValues Explicit system values, keyed by policy key
+	 * @param array<string, mixed> $groupValues Explicit values of the groups in context, keyed by policy key
+	 */
+	private function givenSystemRejectionPolicy(array $systemValues, array $groupValues = []): void {
+		$this->source
+			->method('loadSystemPolicy')
+			->willReturnCallback(static function (string $policyKey) use ($systemValues): ?PolicyLayer {
+				if (!array_key_exists($policyKey, $systemValues)) {
+					return null;
+				}
+
+				return (new PolicyLayer())
+					->setScope('global')
+					->setValue($systemValues[$policyKey])
+					->setAllowChildOverride(true)
+					->setVisibleToChild(true);
+			});
+
+		$this->source
+			->method('loadGroupPolicies')
+			->willReturnCallback(static function (string $policyKey) use ($groupValues): array {
+				if (!array_key_exists($policyKey, $groupValues)) {
+					return [];
+				}
+
+				return [(new PolicyLayer())
+					->setScope('group')
+					->setValue($groupValues[$policyKey])
+					->setAllowChildOverride(true)
+					->setVisibleToChild(true)];
+			});
+		$this->source->method('loadCirclePolicies')->willReturn([]);
+		$this->source->method('loadUserPolicy')->willReturn(null);
+		$this->source->method('loadUserPreference')->willReturn(null);
+		$this->source->method('loadRequestOverride')->willReturn(null);
+	}
 }

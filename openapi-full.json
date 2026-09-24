@@ -986,6 +986,27 @@
             "DynamicMetadataValue": {
                 "type": "object"
             },
+            "EffectiveCompoundPolicyWriteResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/MessageResponse"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "policies"
+                        ],
+                        "properties": {
+                            "policies": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "$ref": "#/components/schemas/EffectivePolicyState"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
             "EffectivePoliciesResponse": {
                 "type": "object",
                 "required": [
@@ -1723,6 +1744,27 @@
                 "enum": [
                     "disabled",
                     "required"
+                ]
+            },
+            "GroupCompoundPolicyWriteResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/MessageResponse"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "policies"
+                        ],
+                        "properties": {
+                            "policies": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "$ref": "#/components/schemas/GroupPolicyState"
+                                }
+                            }
+                        }
+                    }
                 ]
             },
             "GroupPolicyResponse": {
@@ -2504,7 +2546,7 @@
                     }
                 ]
             },
-            "PolicySnapshotSignatureRejectionEntry": {
+            "PolicySnapshotSignatureRejectionBehaviorEntry": {
                 "type": "object",
                 "required": [
                     "effectiveValue",
@@ -2512,37 +2554,40 @@
                 ],
                 "properties": {
                     "effectiveValue": {
-                        "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionValue"
+                        "$ref": "#/components/schemas/SignatureRejectionBehavior"
                     },
                     "sourceScope": {
                         "type": "string"
                     }
                 }
             },
-            "PolicySnapshotSignatureRejectionValue": {
+            "PolicySnapshotSignatureRejectionCommentModeEntry": {
                 "type": "object",
                 "required": [
-                    "enabled",
-                    "comment_mode",
-                    "cancel_workflow",
-                    "public_status",
-                    "show_comment_on_validation"
+                    "effectiveValue",
+                    "sourceScope"
                 ],
                 "properties": {
-                    "enabled": {
-                        "type": "boolean"
-                    },
-                    "comment_mode": {
+                    "effectiveValue": {
                         "$ref": "#/components/schemas/SignatureRejectionCommentMode"
                     },
-                    "cancel_workflow": {
-                        "type": "boolean"
+                    "sourceScope": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PolicySnapshotSignatureRejectionVisibilityEntry": {
+                "type": "object",
+                "required": [
+                    "effectiveValue",
+                    "sourceScope"
+                ],
+                "properties": {
+                    "effectiveValue": {
+                        "$ref": "#/components/schemas/SignatureRejectionVisibility"
                     },
-                    "public_status": {
-                        "type": "boolean"
-                    },
-                    "show_comment_on_validation": {
-                        "type": "boolean"
+                    "sourceScope": {
+                        "type": "string"
                     }
                 }
             },
@@ -3008,6 +3053,13 @@
                     }
                 }
             },
+            "SignatureRejectionBehavior": {
+                "type": "string",
+                "enum": [
+                    "cancel",
+                    "continue"
+                ]
+            },
             "SignatureRejectionCommentMode": {
                 "type": "string",
                 "enum": [
@@ -3048,6 +3100,14 @@
                         "type": "boolean"
                     }
                 }
+            },
+            "SignatureRejectionVisibility": {
+                "type": "string",
+                "enum": [
+                    "requester",
+                    "participants",
+                    "public"
+                ]
             },
             "SignerCertificateInfo": {
                 "type": "object",
@@ -3414,6 +3474,27 @@
                     }
                 ]
             },
+            "UserCompoundPolicyWriteResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/MessageResponse"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "policies"
+                        ],
+                        "properties": {
+                            "policies": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "$ref": "#/components/schemas/UserPolicyState"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
             "UserElement": {
                 "type": "object",
                 "required": [
@@ -3618,8 +3699,20 @@
                     "enable_observer_profile": {
                         "$ref": "#/components/schemas/PolicySnapshotBooleanEntry"
                     },
-                    "signature_rejection": {
-                        "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionEntry"
+                    "rejection_enabled": {
+                        "$ref": "#/components/schemas/PolicySnapshotBooleanEntry"
+                    },
+                    "rejection_behavior": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionBehaviorEntry"
+                    },
+                    "rejection_comment_mode": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionCommentModeEntry"
+                    },
+                    "rejection_visibility": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionVisibilityEntry"
+                    },
+                    "rejection_comment_visibility": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionVisibilityEntry"
                     }
                 }
             },
@@ -9913,6 +10006,567 @@
                 }
             }
         },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/compound/group/{groupId}/{parentPolicyKey}": {
+            "put": {
+                "operationId": "policy-set-group-compound",
+                "summary": "Save several group-level values of the same composite policy at once",
+                "tags": [
+                    "policy"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "values": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Values to persist for the group, keyed by policy identifier.",
+                                        "additionalProperties": {
+                                            "nullable": true,
+                                            "anyOf": [
+                                                {
+                                                    "type": "boolean"
+                                                },
+                                                {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                {
+                                                    "type": "number",
+                                                    "format": "double"
+                                                },
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "allowChildOverride": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Whether users and requests below this group may override each saved value, keyed by policy identifier.",
+                                        "additionalProperties": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "description": "Group identifier that receives the policy bindings.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[^/]+$"
+                        }
+                    },
+                    {
+                        "name": "parentPolicyKey",
+                        "in": "path",
+                        "description": "Policy identifier the other settings are grouped under.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9_]+$"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/GroupCompoundPolicyWriteResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid policy value",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/compound/user/{parentPolicyKey}": {
+            "put": {
+                "operationId": "policy-set-user-preference-compound",
+                "summary": "Save several values of the same composite policy as user preferences",
+                "tags": [
+                    "policy"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "values": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Values to persist as the current user's defaults, keyed by policy identifier.",
+                                        "additionalProperties": {
+                                            "nullable": true,
+                                            "anyOf": [
+                                                {
+                                                    "type": "boolean"
+                                                },
+                                                {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                {
+                                                    "type": "number",
+                                                    "format": "double"
+                                                },
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "parentPolicyKey",
+                        "in": "path",
+                        "description": "Policy identifier the other settings are grouped under.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9_]+$"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/EffectiveCompoundPolicyWriteResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid policy value",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/compound/user/{userId}/{parentPolicyKey}": {
+            "put": {
+                "operationId": "policy-set-user-policy-for-user-compound",
+                "summary": "Save several values of the same composite policy for a target user (admin scope)",
+                "tags": [
+                    "policy"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "values": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Values to persist for the target user, keyed by policy identifier.",
+                                        "additionalProperties": {
+                                            "nullable": true,
+                                            "anyOf": [
+                                                {
+                                                    "type": "boolean"
+                                                },
+                                                {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                {
+                                                    "type": "number",
+                                                    "format": "double"
+                                                },
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "allowChildOverride": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Whether the target user may still override each assigned value, keyed by policy identifier.",
+                                        "additionalProperties": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "Target user identifier that receives the policy assignments.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[^/]+$"
+                        }
+                    },
+                    {
+                        "name": "parentPolicyKey",
+                        "in": "path",
+                        "description": "Policy identifier the other settings are grouped under.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9_]+$"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/UserCompoundPolicyWriteResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid policy value",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/user/{policyKey}": {
             "put": {
                 "operationId": "policy-set-user-preference",
@@ -14445,6 +15099,170 @@
                                                 },
                                                 "data": {
                                                     "$ref": "#/components/schemas/SystemPolicyWriteResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid policy value",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/compound/system/{parentPolicyKey}": {
+            "post": {
+                "operationId": "policy-set-system-compound",
+                "summary": "Save several system-level values of the same composite policy at once",
+                "description": "Settings that only make sense together are written as one operation: the policy they belong to validates the resulting configuration before any of them is stored, so the result does not depend on the order of the values.\nThis endpoint requires admin access",
+                "tags": [
+                    "policy"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "values": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Values to persist, keyed by policy identifier. Null resets that policy to its default system value.",
+                                        "additionalProperties": {
+                                            "nullable": true,
+                                            "anyOf": [
+                                                {
+                                                    "type": "boolean"
+                                                },
+                                                {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                {
+                                                    "type": "number",
+                                                    "format": "double"
+                                                },
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "allowChildOverride": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Whether lower layers may override each saved value, keyed by policy identifier.",
+                                        "additionalProperties": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "parentPolicyKey",
+                        "in": "path",
+                        "description": "Policy identifier the other settings are grouped under.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9_]+$"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/EffectiveCompoundPolicyWriteResponse"
                                                 }
                                             }
                                         }

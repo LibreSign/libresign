@@ -403,6 +403,27 @@
                     }
                 }
             },
+            "EffectiveCompoundPolicyWriteResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/MessageResponse"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "policies"
+                        ],
+                        "properties": {
+                            "policies": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "$ref": "#/components/schemas/EffectivePolicyState"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
             "EffectivePolicyMeta": {
                 "type": "object",
                 "properties": {
@@ -2686,6 +2707,170 @@
                                                 },
                                                 "data": {
                                                     "$ref": "#/components/schemas/SystemPolicyWriteResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid policy value",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/compound/system/{parentPolicyKey}": {
+            "post": {
+                "operationId": "policy-set-system-compound",
+                "summary": "Save several system-level values of the same composite policy at once",
+                "description": "Settings that only make sense together are written as one operation: the policy they belong to validates the resulting configuration before any of them is stored, so the result does not depend on the order of the values.\nThis endpoint requires admin access",
+                "tags": [
+                    "policy"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "values": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Values to persist, keyed by policy identifier. Null resets that policy to its default system value.",
+                                        "additionalProperties": {
+                                            "nullable": true,
+                                            "anyOf": [
+                                                {
+                                                    "type": "boolean"
+                                                },
+                                                {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                {
+                                                    "type": "number",
+                                                    "format": "double"
+                                                },
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "allowChildOverride": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Whether lower layers may override each saved value, keyed by policy identifier.",
+                                        "additionalProperties": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "parentPolicyKey",
+                        "in": "path",
+                        "description": "Policy identifier the other settings are grouped under.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9_]+$"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/EffectiveCompoundPolicyWriteResponse"
                                                 }
                                             }
                                         }

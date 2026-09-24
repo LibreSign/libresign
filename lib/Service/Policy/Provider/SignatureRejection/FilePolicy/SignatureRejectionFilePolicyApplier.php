@@ -17,7 +17,8 @@ use OCA\Libresign\Service\Policy\AbstractFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
-use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyConfig;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValidator;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
 use OCP\AppFramework\Http;
 use OCP\IL10N;
@@ -26,19 +27,22 @@ use OCP\IUser;
 /**
  * Owns the lifecycle of the rejection rules of a document.
  *
- * Signature rejection is opt-in per signature request. An enabled policy only
- * allows the requester to offer rejection on a document, it never turns it on by
- * itself, so a request that says nothing about rejection keeps it disabled.
+ * The five rejection settings are resolved for whoever requests the signature,
+ * with the choices sent along the request applied on top of what the layers
+ * above allow. What comes out is frozen on the document, one snapshot entry per
+ * setting, and is the effective configuration for the whole signing flow.
  *
- * The choice is stored with the request and is the effective value for the whole
- * signing flow. While the request is still a draft the requester may change it,
- * but only by sending a new value: an unrelated update never re-evaluates it.
- * Once the flow starts the stored value is frozen: it can no longer change, but
- * a client resending the value the request already has stays an idempotent
- * update rather than an error.
+ * While the request is still a draft the requester may change their choices,
+ * and the draft is revalidated against the current administrative policy on
+ * every update: a choice the administrator no longer allows is dropped in
+ * favor of what is now inherited, so a workflow never starts under a rule that
+ * has been revoked. Once the flow starts the stored configuration is frozen: it
+ * can no longer change, but a client resending the values the request already
+ * has stays an idempotent update rather than an error.
  */
 class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 	private readonly ?SignatureRejectionPolicyService $storedValueReader;
+	private readonly SignatureRejectionPolicyValidator $rejectionPolicyValidator;
 
 	public function __construct(
 		PolicyService $policyService,
@@ -50,40 +54,60 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 		$this->storedValueReader = $fileMapper === null
 			? null
 			: new SignatureRejectionPolicyService($fileMapper);
+		$this->rejectionPolicyValidator = new SignatureRejectionPolicyValidator($l10n);
 	}
 
 	#[\Override]
 	public function apply(FileEntity $file, array $data): void {
 		$user = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
-		$this->storeRequestedValue($file, $data, fn (array $requestOverrides, ?array $activeContext): ResolvedPolicy
-			=> $activeContext === null
-				? $this->policyService->resolveForUser(SignatureRejectionPolicy::KEY, $user, $requestOverrides)
-				: $this->policyService->resolveForUser(SignatureRejectionPolicy::KEY, $user, $requestOverrides, $activeContext));
+		$submittedValues = $this->readSubmittedValues($data);
+
+		$this->storeConfiguration(
+			$file,
+			$data,
+			fn (string $policyKey, array $overrides, ?array $activeContext): ResolvedPolicy
+				=> $activeContext === null
+					? $this->policyService->resolveForUser($policyKey, $user, $overrides)
+					: $this->policyService->resolveForUser($policyKey, $user, $overrides, $activeContext),
+			$submittedValues,
+			$submittedValues,
+		);
 	}
 
 	#[\Override]
 	public function sync(FileEntity $file, array $data): void {
-		$requestedChoice = $this->readRequestedChoice($data);
+		$submittedValues = $this->readSubmittedValues($data);
 
 		if ($this->hasSigningFlowStarted($file)) {
-			$this->assertFrozenValueIsKept($file, $requestedChoice);
+			$this->assertFrozenConfigurationIsKept($file, $submittedValues);
 
-			// The value is frozen: an identical resend or a value-less update
-			// changes nothing, and only a request that never recorded a value
-			// still gets the disabled default written for it.
-			if ($file->isEnvelope() || $this->readStoredValue($file) !== null) {
+			// The configuration is frozen: an identical resend or a value-less
+			// update changes nothing, and only a request that never recorded a
+			// configuration still gets the disabled default written for it.
+			if ($file->isEnvelope() || $this->readStoredValues($file) !== []) {
 				return;
 			}
-		} elseif ($file->isEnvelope()) {
-			$this->syncEnvelope($file, $requestedChoice, $data);
-			return;
-		} elseif ($requestedChoice === null && $this->readStoredValue($file) !== null) {
-			// The update says nothing about rejection: keep what the request stores.
+		} elseif ($file->isEnvelope() && $submittedValues === []) {
+			// An envelope is created before the file policy appliers run, so the
+			// configuration the request was created with lives on the documents it
+			// contains, and updating an envelope never re-synchronizes them.
+			// Writing a freshly resolved configuration here would therefore shadow
+			// the stored choice, so an envelope is only ever written when the
+			// requester explicitly sends new values.
 			return;
 		}
 
 		$metadataBeforeUpdate = $file->getMetadata() ?? [];
-		$this->storeRequestedValue($file, $data, $this->resolverForUserId($file));
+		$this->storeConfiguration(
+			$file,
+			$data,
+			$this->resolverForUserId($file),
+			// A draft keeps the choices the requester already made, but they are
+			// resolved again: one the administrator no longer allows falls back to
+			// what the document now inherits.
+			$submittedValues + $this->readRequesterChoices($file),
+			$submittedValues,
+		);
 
 		if (($file->getMetadata() ?? []) !== $metadataBeforeUpdate) {
 			$this->fileService->update($file);
@@ -96,101 +120,174 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 	}
 
 	/**
-	 * An envelope is created before the file policy appliers run, so the value the
-	 * request was created with lives on the documents it contains, and updating an
-	 * envelope never re-synchronizes them. Writing a freshly resolved value on the
-	 * envelope here would therefore shadow the stored choice, so an envelope is only
-	 * ever written when the requester explicitly sends a new value.
+	 * Resolve the five settings with the given choices applied, refuse anything
+	 * the layers above do not allow, and freeze the result on the document.
+	 *
+	 * @param callable(string, array<string, mixed>, ?array<string, mixed>): ResolvedPolicy $resolve
+	 * @param array<string, mixed> $overrides Choices to resolve with
+	 * @param array<string, mixed> $submittedValues Choices sent with this very request
 	 */
-	private function syncEnvelope(FileEntity $envelope, ?bool $requestedChoice, array $data): void {
-		if ($requestedChoice === null) {
-			return;
+	private function storeConfiguration(
+		FileEntity $file,
+		array $data,
+		callable $resolve,
+		array $overrides,
+		array $submittedValues,
+	): void {
+		$activeContext = $this->extractActiveContext($data);
+
+		/** @var array<string, ResolvedPolicy> $resolvedPolicies */
+		$resolvedPolicies = [];
+		$resolvedValues = [];
+		foreach (SignatureRejectionPolicy::ALL_KEYS as $policyKey) {
+			$resolvedPolicy = $resolve($policyKey, $overrides, $activeContext);
+			$resolvedPolicies[$policyKey] = $resolvedPolicy;
+			$resolvedValues[$policyKey] = $resolvedPolicy->getEffectiveValue();
 		}
 
-		$metadataBeforeUpdate = $envelope->getMetadata() ?? [];
-		$this->storeRequestedValue($envelope, $data, $this->resolverForUserId($envelope));
+		$this->assertSubmittedValuesWereApplied($submittedValues, $resolvedPolicies);
+		$configuration = $this->validateCombination($resolvedValues, array_keys($submittedValues));
+		$effectiveValues = $configuration->toKeyedValues();
 
-		if (($envelope->getMetadata() ?? []) !== $metadataBeforeUpdate) {
-			$this->fileService->update($envelope);
+		foreach ($resolvedPolicies as $policyKey => $resolvedPolicy) {
+			$this->storePolicySnapshot($file, $resolvedPolicy, $effectiveValues[$policyKey]);
 		}
 	}
 
 	/**
-	 * Resolve the administrative value, then store what the requester asked for on
-	 * top of it. Anything other than an explicit opt-in stores rejection disabled.
+	 * A setting the requester asked for is only accepted when it survives the
+	 * resolution: anything the administrative layers keep for themselves comes
+	 * back as the inherited value instead, and asking for it is an error rather
+	 * than a silently different document.
 	 *
-	 * @param callable(array<string, mixed>, ?array<string, mixed>): ResolvedPolicy $resolve
+	 * @param array<string, mixed> $submittedValues
+	 * @param array<string, ResolvedPolicy> $resolvedPolicies
 	 */
-	private function storeRequestedValue(FileEntity $file, array $data, callable $resolve): void {
-		$activeContext = $this->extractActiveContext($data);
-		$administrativePolicy = $resolve([], $activeContext);
+	private function assertSubmittedValuesWereApplied(array $submittedValues, array $resolvedPolicies): void {
+		foreach ($submittedValues as $policyKey => $submittedValue) {
+			$resolvedPolicy = $resolvedPolicies[$policyKey] ?? null;
+			if (!$resolvedPolicy instanceof ResolvedPolicy) {
+				continue;
+			}
 
-		if ($this->readRequestedChoice($data) !== true) {
-			$this->storePolicySnapshot($file, $administrativePolicy, SignatureRejectionPolicyValue::defaults());
-			return;
-		}
+			$requested = SignatureRejectionPolicyConfig::normalizeKeyedValue($policyKey, $submittedValue);
+			if ($requested === SignatureRejectionPolicyConfig::normalizeKeyedValue($policyKey, $resolvedPolicy->getEffectiveValue())) {
+				continue;
+			}
 
-		$administrativeValue = SignatureRejectionPolicyValue::normalize($administrativePolicy->getEffectiveValue());
-		$proposedValue = SignatureRejectionPolicyValue::withEnabled($administrativeValue, true);
+			if ($policyKey === SignatureRejectionPolicy::KEY_ENABLED && $requested === true) {
+				throw new LibresignException(
+					// TRANSLATORS Error shown when a signature request tries to offer signature rejection while a higher-level LibreSign policy keeps it disabled.
+					$this->translate('Signature rejection is disabled by policy and cannot be enabled for this document.'),
+					Http::STATUS_UNPROCESSABLE_ENTITY,
+				);
+			}
 
-		// Offering rejection on your own request is not an override of the
-		// administrative value, it is the choice the policy exists to grant, so it
-		// does not go through the request-override delegation gate. The only thing
-		// that has to be refused is asking for more than the policy allows.
-		if (!SignatureRejectionPolicyValue::isRequestOverrideAllowed($proposedValue, $administrativeValue)) {
 			throw new LibresignException(
-				// TRANSLATORS Error shown when a signature request tries to offer signature rejection while a higher-level LibreSign policy keeps it disabled.
-				$this->translate('Signature rejection is disabled by policy and cannot be enabled for this document.'),
+				$this->translateWithParameters(
+					// TRANSLATORS Error shown when a signature request asks for a rejection setting that a higher-level LibreSign policy does not allow. The first placeholder receives the setting name, the second the scope that blocked it.
+					'The rejection setting %1$s cannot be used on this document: it is defined by %2$s.',
+					[$policyKey, $resolvedPolicy->getBlockedBy() ?? $resolvedPolicy->getSourceScope()],
+				),
 				Http::STATUS_UNPROCESSABLE_ENTITY,
 			);
 		}
+	}
 
-		$this->storePolicySnapshot($file, $administrativePolicy, $proposedValue);
+	/**
+	 * @param array<string, mixed> $resolvedValues
+	 * @param list<string> $submittedKeys
+	 */
+	private function validateCombination(array $resolvedValues, array $submittedKeys): SignatureRejectionPolicyConfig {
+		try {
+			return $this->rejectionPolicyValidator->validateRequest($resolvedValues, $submittedKeys);
+		} catch (\InvalidArgumentException $exception) {
+			throw new LibresignException($exception->getMessage(), Http::STATUS_UNPROCESSABLE_ENTITY);
+		}
 	}
 
 	/**
 	 * Updating an existing request resolves from the stored owner, exactly like
 	 * every other file policy applier.
 	 *
-	 * @return callable(array<string, mixed>, ?array<string, mixed>): ResolvedPolicy
+	 * @return callable(string, array<string, mixed>, ?array<string, mixed>): ResolvedPolicy
 	 */
 	private function resolverForUserId(FileEntity $file): callable {
-		return fn (array $requestOverrides, ?array $activeContext): ResolvedPolicy
+		return fn (string $policyKey, array $overrides, ?array $activeContext): ResolvedPolicy
 			=> $activeContext === null
-				? $this->policyService->resolveForUserId(SignatureRejectionPolicy::KEY, $file->getUserId(), $requestOverrides)
-				: $this->policyService->resolveForUserId(SignatureRejectionPolicy::KEY, $file->getUserId(), $requestOverrides, $activeContext);
-	}
-
-	private function readRequestedChoice(array $data): ?bool {
-		if (!isset($data['policyOverrides']) || !is_array($data['policyOverrides'])) {
-			return null;
-		}
-
-		if (!array_key_exists(SignatureRejectionPolicy::KEY, $data['policyOverrides'])) {
-			return null;
-		}
-
-		return SignatureRejectionPolicyValue::readRequestedChoice(
-			$data['policyOverrides'][SignatureRejectionPolicy::KEY],
-		);
+				? $this->policyService->resolveForUserId($policyKey, $file->getUserId(), $overrides)
+				: $this->policyService->resolveForUserId($policyKey, $file->getUserId(), $overrides, $activeContext);
 	}
 
 	/**
-	 * @return array<string, mixed>|null
+	 * The rejection settings sent with this request, in the order the policy
+	 * defines them.
+	 *
+	 * @return array<string, mixed>
 	 */
-	private function readStoredValue(FileEntity $file): ?array {
+	private function readSubmittedValues(array $data): array {
+		if (!isset($data['policyOverrides']) || !is_array($data['policyOverrides'])) {
+			return [];
+		}
+
+		$submittedValues = [];
+		foreach (SignatureRejectionPolicy::ALL_KEYS as $policyKey) {
+			if (array_key_exists($policyKey, $data['policyOverrides'])) {
+				$submittedValues[$policyKey] = $data['policyOverrides'][$policyKey];
+			}
+		}
+
+		return $submittedValues;
+	}
+
+	/**
+	 * The settings the requester chose themselves, as opposed to the ones the
+	 * document inherited.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function readRequesterChoices(FileEntity $file): array {
+		$requesterChoices = [];
+		foreach ($this->readSnapshotEntries($file) as $policyKey => $entry) {
+			if (($entry['sourceScope'] ?? null) === 'request') {
+				$requesterChoices[$policyKey] = $entry['effectiveValue'];
+			}
+		}
+
+		return $requesterChoices;
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function readStoredValues(FileEntity $file): array {
+		$storedValues = [];
+		foreach ($this->readSnapshotEntries($file) as $policyKey => $entry) {
+			$storedValues[$policyKey] = $entry['effectiveValue'];
+		}
+
+		return $storedValues;
+	}
+
+	/**
+	 * @return array<string, array<string, mixed>>
+	 */
+	private function readSnapshotEntries(FileEntity $file): array {
 		$metadata = $file->getMetadata() ?? [];
 		$policySnapshot = $metadata['policy_snapshot'] ?? null;
 		if (!is_array($policySnapshot)) {
-			return null;
+			return [];
 		}
 
-		$entry = $policySnapshot[SignatureRejectionPolicy::KEY] ?? null;
-		if (!is_array($entry) || !array_key_exists('effectiveValue', $entry)) {
-			return null;
+		$entries = [];
+		foreach (SignatureRejectionPolicy::ALL_KEYS as $policyKey) {
+			$entry = $policySnapshot[$policyKey] ?? null;
+			if (is_array($entry) && array_key_exists('effectiveValue', $entry)) {
+				$entries[$policyKey] = $entry;
+			}
 		}
 
-		return SignatureRejectionPolicyValue::normalize($entry['effectiveValue']);
+		return $entries;
 	}
 
 	private function hasSigningFlowStarted(FileEntity $file): bool {
@@ -198,37 +295,52 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 	}
 
 	/**
-	 * Once the flow starts the stored value is frozen: it cannot change, but a
-	 * client resending the complete form state with the value the request already
-	 * has stays an idempotent update. The comparison uses the effective stored
-	 * value, which for an envelope lives on the documents it contains.
+	 * Once the flow starts the configuration is frozen: it cannot change, but a
+	 * client resending the complete form state with the values the request
+	 * already has stays an idempotent update. The comparison uses the effective
+	 * stored configuration, which for an envelope lives on the documents it
+	 * contains.
+	 *
+	 * @param array<string, mixed> $submittedValues
 	 */
-	private function assertFrozenValueIsKept(FileEntity $file, ?bool $requestedChoice): void {
-		if ($requestedChoice === null || $requestedChoice === $this->frozenChoice($file)) {
+	private function assertFrozenConfigurationIsKept(FileEntity $file, array $submittedValues): void {
+		if ($submittedValues === []) {
 			return;
 		}
 
-		throw new LibresignException(
-			// TRANSLATORS Error shown when someone tries to change whether signers may reject a document after the signing flow already started.
-			$this->translate('The signature rejection setting cannot be changed after the signing flow has started.'),
-			Http::STATUS_UNPROCESSABLE_ENTITY,
-		);
+		$frozenValues = $this->frozenConfiguration($file)->toKeyedValues();
+		foreach ($submittedValues as $policyKey => $submittedValue) {
+			if (SignatureRejectionPolicyConfig::normalizeKeyedValue($policyKey, $submittedValue) === $frozenValues[$policyKey]) {
+				continue;
+			}
+
+			throw new LibresignException(
+				// TRANSLATORS Error shown when someone tries to change how signers may reject a document after the signing flow already started.
+				$this->translate('The signature rejection settings cannot be changed after the signing flow has started.'),
+				Http::STATUS_UNPROCESSABLE_ENTITY,
+			);
+		}
 	}
 
 	/**
-	 * The effective stored value of the request, read the same way the signing
-	 * flow reads it, so an envelope answers with the value stored on the
-	 * documents it contains.
+	 * The effective stored configuration of the request, read the same way the
+	 * signing flow reads it, so an envelope answers with the configuration
+	 * stored on the documents it contains.
 	 */
-	private function frozenChoice(FileEntity $file): bool {
+	private function frozenConfiguration(FileEntity $file): SignatureRejectionPolicyConfig {
 		if ($this->storedValueReader !== null) {
-			return $this->storedValueReader->isEnabled($file);
+			return $this->storedValueReader->getConfig($file);
 		}
 
-		return ($this->readStoredValue($file) ?? [])['enabled'] ?? false;
+		return SignatureRejectionPolicyConfig::fromKeyedValues($this->readStoredValues($file));
 	}
 
 	private function translate(string $message): string {
 		return $this->l10n?->t($message) ?? $message;
+	}
+
+	/** @param list<mixed> $parameters */
+	private function translateWithParameters(string $message, array $parameters): string {
+		return $this->l10n?->t($message, $parameters) ?? vsprintf($message, $parameters);
 	}
 }

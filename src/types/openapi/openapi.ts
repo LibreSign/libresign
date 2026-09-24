@@ -671,6 +671,57 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/compound/group/{groupId}/{parentPolicyKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save several group-level values of the same composite policy at once */
+        put: operations["policy-set-group-compound"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/compound/user/{parentPolicyKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save several values of the same composite policy as user preferences */
+        put: operations["policy-set-user-preference-compound"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/compound/user/{userId}/{parentPolicyKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save several values of the same composite policy for a target user (admin scope) */
+        put: operations["policy-set-user-policy-for-user-compound"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/user/{policyKey}": {
         parameters: {
             query?: never;
@@ -1102,6 +1153,11 @@ export type components = {
             message: string;
         };
         DynamicMetadataValue: Record<string, never>;
+        EffectiveCompoundPolicyWriteResponse: components["schemas"]["MessageResponse"] & {
+            policies: {
+                [key: string]: components["schemas"]["EffectivePolicyState"];
+            };
+        };
         EffectivePoliciesResponse: {
             policies: {
                 [key: string]: components["schemas"]["EffectivePolicyState"];
@@ -1288,6 +1344,11 @@ export type components = {
         GeolocationCollectionStatus: "collected" | "denied" | "unavailable" | "skipped";
         /** @enum {string} */
         GeolocationRequirement: "disabled" | "required";
+        GroupCompoundPolicyWriteResponse: components["schemas"]["MessageResponse"] & {
+            policies: {
+                [key: string]: components["schemas"]["GroupPolicyState"];
+            };
+        };
         GroupPolicyResponse: {
             policy: components["schemas"]["GroupPolicyState"];
         };
@@ -1462,16 +1523,17 @@ export type components = {
             hashOfIdentifier?: string;
             hasSignatureFile?: boolean;
         };
-        PolicySnapshotSignatureRejectionEntry: {
-            effectiveValue: components["schemas"]["PolicySnapshotSignatureRejectionValue"];
+        PolicySnapshotSignatureRejectionBehaviorEntry: {
+            effectiveValue: components["schemas"]["SignatureRejectionBehavior"];
             sourceScope: string;
         };
-        PolicySnapshotSignatureRejectionValue: {
-            enabled: boolean;
-            comment_mode: components["schemas"]["SignatureRejectionCommentMode"];
-            cancel_workflow: boolean;
-            public_status: boolean;
-            show_comment_on_validation: boolean;
+        PolicySnapshotSignatureRejectionCommentModeEntry: {
+            effectiveValue: components["schemas"]["SignatureRejectionCommentMode"];
+            sourceScope: string;
+        };
+        PolicySnapshotSignatureRejectionVisibilityEntry: {
+            effectiveValue: components["schemas"]["SignatureRejectionVisibility"];
+            sourceScope: string;
         };
         PolicySnapshotSignerGeolocationEntry: {
             effectiveValue: components["schemas"]["PolicySnapshotSignerGeolocationValue"];
@@ -1588,6 +1650,8 @@ export type components = {
             password?: components["schemas"]["SignatureMethodPassword"];
         };
         /** @enum {string} */
+        SignatureRejectionBehavior: "cancel" | "continue";
+        /** @enum {string} */
         SignatureRejectionCommentMode: "disabled" | "optional" | "required";
         SignatureRejectionResponse: {
             message: string;
@@ -1599,6 +1663,8 @@ export type components = {
             rejectedAt: string;
             workflowCanceled: boolean;
         };
+        /** @enum {string} */
+        SignatureRejectionVisibility: "requester" | "participants" | "public";
         SignerCertificateInfo: {
             serialNumber?: string;
             serialNumberHex?: string;
@@ -1683,6 +1749,11 @@ export type components = {
             status: string;
         };
         SystemPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["EffectivePolicyResponse"];
+        UserCompoundPolicyWriteResponse: components["schemas"]["MessageResponse"] & {
+            policies: {
+                [key: string]: components["schemas"]["UserPolicyState"];
+            };
+        };
         UserElement: {
             /** Format: int64 */
             id: number;
@@ -1739,7 +1810,11 @@ export type components = {
             identify_methods?: components["schemas"]["PolicySnapshotIdentifyMethodsEntry"];
             signer_geolocation?: components["schemas"]["PolicySnapshotSignerGeolocationEntry"];
             enable_observer_profile?: components["schemas"]["PolicySnapshotBooleanEntry"];
-            signature_rejection?: components["schemas"]["PolicySnapshotSignatureRejectionEntry"];
+            rejection_enabled?: components["schemas"]["PolicySnapshotBooleanEntry"];
+            rejection_behavior?: components["schemas"]["PolicySnapshotSignatureRejectionBehaviorEntry"];
+            rejection_comment_mode?: components["schemas"]["PolicySnapshotSignatureRejectionCommentModeEntry"];
+            rejection_visibility?: components["schemas"]["PolicySnapshotSignatureRejectionVisibilityEntry"];
+            rejection_comment_visibility?: components["schemas"]["PolicySnapshotSignatureRejectionVisibilityEntry"];
         };
         ValidatedChildFile: {
             /** Format: int64 */
@@ -4303,6 +4378,232 @@ export interface operations {
                             data: {
                                 policies: components["schemas"]["UserPolicyState"][];
                             };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-set-group-compound": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Group identifier that receives the policy bindings. */
+                groupId: string;
+                /** @description Policy identifier the other settings are grouped under. */
+                parentPolicyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description Values to persist for the group, keyed by policy identifier.
+                     * @default {}
+                     */
+                    values?: {
+                        [key: string]: (boolean | number | string | {
+                            [key: string]: Record<string, never>;
+                        }) | null;
+                    };
+                    /**
+                     * @description Whether users and requests below this group may override each saved value, keyed by policy identifier.
+                     * @default {}
+                     */
+                    allowChildOverride?: {
+                        [key: string]: boolean;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["GroupCompoundPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid policy value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-set-user-preference-compound": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Policy identifier the other settings are grouped under. */
+                parentPolicyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description Values to persist as the current user's defaults, keyed by policy identifier.
+                     * @default {}
+                     */
+                    values?: {
+                        [key: string]: (boolean | number | string | {
+                            [key: string]: Record<string, never>;
+                        }) | null;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["EffectiveCompoundPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid policy value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-set-user-policy-for-user-compound": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Target user identifier that receives the policy assignments. */
+                userId: string;
+                /** @description Policy identifier the other settings are grouped under. */
+                parentPolicyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description Values to persist for the target user, keyed by policy identifier.
+                     * @default {}
+                     */
+                    values?: {
+                        [key: string]: (boolean | number | string | {
+                            [key: string]: Record<string, never>;
+                        }) | null;
+                    };
+                    /**
+                     * @description Whether the target user may still override each assigned value, keyed by policy identifier.
+                     * @default {}
+                     */
+                    allowChildOverride?: {
+                        [key: string]: boolean;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["UserCompoundPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid policy value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
