@@ -17,6 +17,10 @@ updates:
       - "/tests/integration"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 3
+      exclude:
+        - "libresign/*"
 
   # Maintain dependencies for npm
   - package-ecosystem: "npm"
