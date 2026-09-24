@@ -90,6 +90,10 @@ jobs:
       - name: Install system dependencies
         run: sudo apt update && sudo apt install poppler-utils
 
+      - name: Install PHP crash diagnostics
+        if: runner.debug == '1'
+        run: sudo apt install -y gdb systemd-coredump
+
       - name: Checkout server
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -181,6 +185,19 @@ jobs:
         if: always()
         run: |
           cat data/nextcloud.log
+
+      - name: List PHP core dumps
+        if: failure() && runner.debug == '1'
+        run: |
+          sudo coredumpctl --no-pager list || true
+
+      - name: Upload PHP server diagnostics
+        if: failure() && runner.debug == '1'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: behat-pgsql-server-diagnostics-php${{ matrix.php-versions }}-nc${{ matrix.server-versions }}
+          path: /tmp/behat-php-server-*
+          if-no-files-found: ignore
 
   summary:
     permissions:
