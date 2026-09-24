@@ -282,7 +282,10 @@ test.describe('Warn requesters when signers have no visible signature field (#83
 
 		const checkbox = confirmDialog.getByRole('checkbox')
 		await expect(checkbox).not.toBeChecked()
-		await checkbox.check()
+		await confirmDialog.getByText(
+			'Do not warn me again when signers have no visible signature field',
+			{ exact: true },
+		).click()
 		await expect(checkbox).toBeChecked()
 
 		// Cancel dialog
