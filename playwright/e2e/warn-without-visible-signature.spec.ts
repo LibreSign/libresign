@@ -300,7 +300,10 @@ test.describe('Warn requesters when signers have no visible signature field (#83
 		await expect(confirmDialog.getByRole('checkbox')).not.toBeChecked()
 
 		// 2. Test closing via close button / ESC
-		await confirmDialog.getByRole('checkbox').check()
+		await confirmDialog.getByText(
+			'Do not warn me again when signers have no visible signature field',
+			{ exact: true },
+		).click()
 		await confirmDialog.getByRole('button', { name: 'Close' }).or(confirmDialog.locator('.nc-dialog__close')).click()
 		await expect(confirmDialog).toBeHidden()
 
