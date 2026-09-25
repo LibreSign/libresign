@@ -900,6 +900,73 @@ Feature: sign-signature-rejection
       | key                          | value |
       | (jq).ocs.data.data[0].status | 6     |
 
+  Scenario: A rejection that does not cancel the workflow lets the others finish it
+    Given as user "admin"
+    And user "signer1" exists
+    And user "signer2" exists
+    And run the command "libresign:install --use-local-cert --java" with result code 0
+    And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
+    And run the command "libresign:install --use-local-cert --pdftk" with result code 0
+    And run the command "libresign:configure:openssl --cn test" with result code 0
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}]} |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_behavior"
+      | value | continue |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
+      | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]},{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
+      | name | document |
+      | policy | {"overrides":{"rejection_enabled":true}} |
+    And the response should have a status code 200
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
+    And as user "signer1"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(SIGNER1_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
+    And as user "signer2"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(SIGNER2_UUID)ocs.data.data.0.signers.1.sign_request_uuid" from previous JSON response
+    When as user "signer1"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/reject"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                            | value |
+      | (jq).ocs.data.workflowCanceled | false |
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And the response should be a JSON array with the following mandatory values
+      | key                           | value |
+      | (jq).ocs.data.data[0].canSign | false |
+    When as user "signer2"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    Then the response should be a JSON array with the following mandatory values
+      | key                           | value |
+      | (jq).ocs.data.data[0].canSign | true  |
+    When as user "signer1"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGNER1_UUID>"
+      | method | clickToSign |
+    Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key                             | value                                             |
+      | (jq).ocs.data.errors[0].message | You rejected this document, so you cannot sign it. |
+    When as user "signer2"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGNER2_UUID>"
+      | method | clickToSign |
+    Then the response should have a status code 200
+    When as user "admin"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    Then the response should be a JSON array with the following mandatory values
+      | key                                    | value |
+      | (jq).ocs.data.data[0].status           | 3     |
+      | (jq).ocs.data.data[0].signers[0].status | 3    |
+      | (jq).ocs.data.data[0].signers[1].status | 2    |
+
   Scenario: Rejecting one document of an envelope closes the whole envelope
     Given as user "admin"
     And user "signer1" exists

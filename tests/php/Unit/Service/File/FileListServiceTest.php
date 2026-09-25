@@ -13,6 +13,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignatureFlow;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
@@ -817,6 +818,82 @@ final class FileListServiceTest extends TestCase {
 			[$signer],
 			[
 				200 => [$signerMethod],
+			],
+			$this->user,
+		);
+
+		$this->assertTrue($result['canSign']);
+	}
+
+	public function testASignerWhoRejectedCannotSignInSummary(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+
+		$signer = $this->createSigner(200, 1);
+		$signer->setParticipantRole('signer');
+		$signer->setStatus(SignRequestStatus::REJECTED->value);
+
+		$signerMethod = $this->createIdentifyMethod(
+			IdentifyMethodService::IDENTIFY_ACCOUNT,
+			'signer-user'
+		);
+
+		$this->user->method('getUID')->willReturn('signer-user');
+		$this->fileMapper->method('getTextOfStatus')->willReturn('partially signed');
+
+		$service = $this->getService();
+		$method = new \ReflectionMethod(FileListService::class, 'formatSingleFileSummary');
+		$result = $method->invoke(
+			$service,
+			$file,
+			[$signer],
+			[
+				200 => [$signerMethod],
+			],
+			$this->user,
+		);
+
+		$this->assertFalse($result['canSign']);
+	}
+
+	/**
+	 * A rejected signer never signs, so a sequential flow must not keep waiting
+	 * for their turn: the signer who comes next is the one who may act.
+	 */
+	public function testARejectedSignerDoesNotHoldTheTurnInASequentialFlow(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+		$file->setSignatureFlow(SignatureFlow::ORDERED_NUMERIC->toNumeric());
+
+		$rejected = $this->createSigner(100, 1);
+		$rejected->setParticipantRole('signer');
+		$rejected->setStatus(SignRequestStatus::REJECTED->value);
+		$rejected->setSigningOrder(1);
+
+		$next = $this->createSigner(200, 1);
+		$next->setParticipantRole('signer');
+		$next->setStatus(SignRequestStatus::ABLE_TO_SIGN->value);
+		$next->setSigningOrder(2);
+
+		$rejectedMethod = $this->createIdentifyMethod(
+			IdentifyMethodService::IDENTIFY_ACCOUNT,
+			'rejected-user'
+		);
+		$nextMethod = $this->createIdentifyMethod(
+			IdentifyMethodService::IDENTIFY_ACCOUNT,
+			'signer-user'
+		);
+
+		$this->user->method('getUID')->willReturn('signer-user');
+		$this->fileMapper->method('getTextOfStatus')->willReturn('partially signed');
+
+		$service = $this->getService();
+		$method = new \ReflectionMethod(FileListService::class, 'formatSingleFileSummary');
+		$result = $method->invoke(
+			$service,
+			$file,
+			[$rejected, $next],
+			[
+				100 => [$rejectedMethod],
+				200 => [$nextMethod],
 			],
 			$this->user,
 		);

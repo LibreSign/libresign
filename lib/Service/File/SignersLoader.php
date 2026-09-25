@@ -10,7 +10,10 @@ namespace OCA\Libresign\Service\File;
 
 use DateTimeInterface;
 use OCA\Libresign\Db\File;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\SignatureFlow;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\Accounts\IAccountManager;
@@ -180,10 +183,7 @@ class SignersLoader {
 
 			if ($fileData->signers[$index]->me) {
 				$fileData->signers[$index]->sign_request_uuid = $signer->getUuid();
-				if (!$signer->getSigned()
-					&& $signer->getParticipantRoleEnum()->canSign()
-					&& isset($fileData->settings)
-				) {
+				if (isset($fileData->settings) && $this->isSignersTurn($file, $signer, $signers)) {
 					$fileData->settings['canSign'] = true;
 				}
 				$fileData->signers[$index]->signatureMethods = [];
@@ -234,6 +234,33 @@ class SignersLoader {
 		}
 		ksort($fileData->signers);
 		$this->signersLibreSignLoaded = true;
+	}
+
+	/**
+	 * Mirrors the checks made when signing, so the file response does not
+	 * offer a signature that the signing endpoint would refuse.
+	 *
+	 * @param SignRequest[] $signers
+	 */
+	private function isSignersTurn(File $file, SignRequest $signer, array $signers): bool {
+		if ($signer->getSigned()
+			|| !$signer->getParticipantRoleEnum()->canSign()
+			|| $signer->getStatusEnum() !== SignRequestStatus::ABLE_TO_SIGN
+		) {
+			return false;
+		}
+		if ($file->getSignatureFlowEnum() !== SignatureFlow::ORDERED_NUMERIC) {
+			return true;
+		}
+		foreach ($signers as $other) {
+			if ($other->getParticipantRoleEnum()->canSign()
+				&& $other->getSigningOrder() < $signer->getSigningOrder()
+				&& !in_array($other->getStatusEnum(), [SignRequestStatus::SIGNED, SignRequestStatus::REJECTED], true)
+			) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public function loadSignersFromCertData(\stdClass $fileData, array $certData, string $host): void {
