@@ -28,6 +28,8 @@ final class PolicySpec implements IPolicyDefinition {
 	private ?Closure $validator;
 	/** @var Closure(mixed, PolicyContext): void|null */
 	private ?Closure $persistenceValidator;
+	/** @var Closure(array<string, mixed>, list<string>, PolicyContext): void|null */
+	private ?Closure $compositeValidator;
 	/** @var array<string, mixed>|Closure(PolicyContext): array<string, mixed> */
 	private array|Closure $resolvedStateMetaResolver;
 	/** @var Closure(PolicyContext, ?PolicyLayer): bool|null */
@@ -44,6 +46,7 @@ final class PolicySpec implements IPolicyDefinition {
 	 * @param Closure(mixed): mixed|null $normalizer
 	 * @param Closure(mixed, PolicyContext): void|null $validator
 	 * @param Closure(mixed, PolicyContext): void|null $persistenceValidator Extra checks applied only when a value is saved
+	 * @param Closure(array<string, mixed>, list<string>, PolicyContext): void|null $compositeValidator Checks applied to the whole composite family before any key is saved
 	 * @param array<string, mixed>|Closure(PolicyContext): array<string, mixed> $resolvedStateMeta
 	 * @param Closure(mixed, mixed, PolicyContext): void|null $delegatedValueValidator
 	 * @param Closure(PolicyContext, ?PolicyLayer): bool|null $visibleGroupCountFilter
@@ -73,11 +76,13 @@ final class PolicySpec implements IPolicyDefinition {
 		private ?string $parentPolicyKey = null,
 		private array $compositeChildren = [],
 		?Closure $persistenceValidator = null,
+		?Closure $compositeValidator = null,
 	) {
 		$this->allowedValuesResolver = $allowedValues;
 		$this->normalizer = $normalizer;
 		$this->validator = $validator;
 		$this->persistenceValidator = $persistenceValidator;
+		$this->compositeValidator = $compositeValidator;
 		$this->resolvedStateMetaResolver = $resolvedStateMeta;
 		$this->visibleGroupCountFilterResolver = $visibleGroupCountFilter;
 		$this->groupPolicyManagerResolver = $groupPolicyManager;
@@ -168,6 +173,13 @@ final class PolicySpec implements IPolicyDefinition {
 		$this->validateValue($value, $context);
 		if ($this->persistenceValidator !== null) {
 			($this->persistenceValidator)($value, $context);
+		}
+	}
+
+	#[\Override]
+	public function validateCompositeValuesForPersistence(array $normalizedValues, array $submittedKeys, PolicyContext $context): void {
+		if ($this->compositeValidator !== null) {
+			($this->compositeValidator)($normalizedValues, $submittedKeys, $context);
 		}
 	}
 

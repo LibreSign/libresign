@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: First merged PR comment
+
+on:
+  pull_request_target:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: Pull request number to process or retry
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: >-
+    first-merged-pr-comment-${{
+      github.event.pull_request.number ||
+      inputs.pull_request_number ||
+      github.run_id
+    }}
+  cancel-in-progress: false
+
+jobs:
+  first-merged-pr-comment:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.pull_request.merged == true &&
+        github.event.pull_request.user.type != 'Bot'
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    permissions:
+      pull-requests: write
+
+    steps:
+      # pull_request_target is intentionally used without checkout. Nothing
+      # from the pull request head is downloaded or executed.
+      - name: Comment on first merged pull request
+        uses: LibreCodeCoop/.github/actions/first-merged-pr-comment@492e6c7c5a9bb7642f39238583003d2cb93f3ba6 # organization helpers
+        with:
+          github-token: ${{ github.token }}
+          pull-request-number: >-
+            ${{ github.event.pull_request.number || inputs.pull_request_number }}
+          message-template: ${{ vars.FIRST_MERGED_PR_MESSAGE }}

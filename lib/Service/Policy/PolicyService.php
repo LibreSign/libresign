@@ -17,6 +17,7 @@ use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
+use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IUser;
 
@@ -28,6 +29,7 @@ class PolicyService {
 		private PolicySource $source,
 		private PolicyRegistry $registry,
 		private IL10N $l10n,
+		private IDBConnection $db,
 	) {
 		$this->resolver = new DefaultPolicyResolver($this->source);
 	}
@@ -465,6 +467,193 @@ class PolicyService {
 		$this->source->clearUserPolicy($definition->key(), $context);
 
 		return $this->source->loadUserPolicy($definition->key(), $context);
+	}
+
+	/**
+	 * Save several values of the same composite policy family at the system layer.
+	 *
+	 * @param array<string, mixed> $values Values to persist, keyed by policy key
+	 * @param array<string, bool> $allowChildOverride Override flag of each key, defaulting to false
+	 * @return array<string, ResolvedPolicy>
+	 */
+	public function saveSystemCompound(string $parentPolicyKey, array $values, array $allowChildOverride = []): array {
+		$this->validateCompositeWrite($parentPolicyKey, $values, true, $this->contextFactory->forUserId(null));
+
+		$saved = [];
+		$this->inTransaction(function () use ($values, $allowChildOverride, &$saved): void {
+			foreach ($values as $policyKey => $value) {
+				$saved[$policyKey] = $this->saveSystem($policyKey, $value, $allowChildOverride[$policyKey] ?? false);
+			}
+		});
+
+		return $saved;
+	}
+
+	/**
+	 * Save several values of the same composite policy family for one group.
+	 *
+	 * @param array<string, mixed> $values Values to persist, keyed by policy key
+	 * @param array<string, bool> $allowChildOverride Override flag of each key, defaulting to false
+	 * @return array<string, PolicyLayer>
+	 */
+	public function saveGroupPolicyCompound(string $parentPolicyKey, string $groupId, array $values, array $allowChildOverride = []): array {
+		$this->validateCompositeWrite($parentPolicyKey, $values, false, $this->contextFactory->forUserId(null)->setGroups([$groupId]));
+
+		$saved = [];
+		$this->inTransaction(function () use ($groupId, $values, $allowChildOverride, &$saved): void {
+			foreach ($values as $policyKey => $value) {
+				$saved[$policyKey] = $this->saveGroupPolicy($policyKey, $groupId, $value, $allowChildOverride[$policyKey] ?? false);
+			}
+		});
+
+		return $saved;
+	}
+
+	/**
+	 * Save several values of the same composite policy family as the current
+	 * user's personal defaults.
+	 *
+	 * @param array<string, mixed> $values Values to persist, keyed by policy key
+	 * @return array<string, ResolvedPolicy>
+	 */
+	public function saveUserPreferenceCompound(string $parentPolicyKey, array $values): array {
+		$this->validateCompositeWrite($parentPolicyKey, $values, false, $this->contextFactory->forCurrentUser());
+
+		$saved = [];
+		$this->inTransaction(function () use ($values, &$saved): void {
+			foreach ($values as $policyKey => $value) {
+				$saved[$policyKey] = $this->saveUserPreference($policyKey, $value);
+			}
+		});
+
+		return $saved;
+	}
+
+	/**
+	 * Save several values of the same composite policy family for one user.
+	 *
+	 * @param array<string, mixed> $values Values to persist, keyed by policy key
+	 * @param array<string, bool> $allowChildOverride Override flag of each key, defaulting to false
+	 * @return array<string, ?PolicyLayer>
+	 */
+	public function saveUserPolicyForUserIdCompound(string $parentPolicyKey, string $userId, array $values, array $allowChildOverride = []): array {
+		$this->validateCompositeWrite($parentPolicyKey, $values, false, $this->contextFactory->forUserId($userId));
+
+		$saved = [];
+		$this->inTransaction(function () use ($userId, $values, $allowChildOverride, &$saved): void {
+			foreach ($values as $policyKey => $value) {
+				$saved[$policyKey] = $this->saveUserPolicyForUserId($policyKey, $userId, $value, $allowChildOverride[$policyKey] ?? false);
+			}
+		});
+
+		return $saved;
+	}
+
+	/**
+	 * Hand the complete intended configuration of a composite family to the
+	 * policy that owns it, before a single key is written.
+	 *
+	 * The framework knows which keys belong together and which ones the caller
+	 * is writing; the keys left out keep the value they already resolve to in
+	 * the same scope, so the policy always sees the configuration the write is
+	 * about to produce and the outcome does not depend on the order in which
+	 * the keys are persisted. Whether that configuration makes sense is a
+	 * question only the policy itself can answer.
+	 *
+	 * @param array<string, mixed> $values
+	 */
+	private function validateCompositeWrite(string $parentPolicyKey, array $values, bool $nullRestoresDefault, PolicyContext $context): void {
+		$parentDefinition = $this->registry->get($parentPolicyKey);
+		$definitions = $this->resolveCompositeFamily($parentDefinition, $values);
+		$normalizedValues = $this->normalizeCompositeValues($definitions, $values, $nullRestoresDefault);
+
+		$intendedValues = $normalizedValues;
+		foreach ($definitions as $policyKey => $definition) {
+			if (array_key_exists($policyKey, $intendedValues)) {
+				continue;
+			}
+
+			$intendedValues[$policyKey] = $this->resolver->resolve($definition, $context)->getEffectiveValue();
+		}
+
+		$parentDefinition->validateCompositeValuesForPersistence(
+			$intendedValues,
+			array_keys($normalizedValues),
+			$context,
+		);
+	}
+
+	/**
+	 * The definitions that make up a composite policy family, keyed by policy
+	 * key, once every submitted key is known to belong to it.
+	 *
+	 * @param array<string, mixed> $values
+	 * @return array<string, IPolicyDefinition>
+	 */
+	private function resolveCompositeFamily(IPolicyDefinition $parentDefinition, array $values): array {
+		if ($parentDefinition->compositeChildren() === []) {
+			// TRANSLATORS Error shown when several policy values are saved at once for a policy that has no other settings attached to it. {policyKey} is the policy identifier.
+			throw new \InvalidArgumentException($this->l10n->t('{policyKey} does not group other policy settings', [
+				'policyKey' => $parentDefinition->key(),
+			]));
+		}
+
+		if ($values === []) {
+			// TRANSLATORS Error shown when a request to save several policy values at once carries no value at all.
+			throw new \InvalidArgumentException($this->l10n->t('No policy value was sent'));
+		}
+
+		$definitions = [$parentDefinition->key() => $parentDefinition];
+		foreach ($parentDefinition->compositeChildren() as $childKey) {
+			$definitions[$childKey] = $this->registry->get($childKey);
+		}
+
+		foreach (array_keys($values) as $policyKey) {
+			if (isset($definitions[$policyKey])) {
+				continue;
+			}
+
+			// TRANSLATORS Error shown when a policy value is saved together with settings it does not belong to. {policyKey} is the policy identifier and {parentPolicyKey} is the setting the others are grouped under.
+			throw new \InvalidArgumentException($this->l10n->t('{policyKey} is not part of {parentPolicyKey}', [
+				'policyKey' => (string)$policyKey,
+				'parentPolicyKey' => $parentDefinition->key(),
+			]));
+		}
+
+		return $definitions;
+	}
+
+	/**
+	 * @param array<string, IPolicyDefinition> $definitions
+	 * @param array<string, mixed> $values
+	 * @return array<string, mixed>
+	 */
+	private function normalizeCompositeValues(array $definitions, array $values, bool $nullRestoresDefault): array {
+		$normalizedValues = [];
+		foreach ($values as $policyKey => $value) {
+			$definition = $definitions[$policyKey];
+			$normalizedValues[$policyKey] = $nullRestoresDefault && $value === null
+				? $definition->normalizeValue($definition->defaultSystemValue())
+				: $definition->normalizeValue($value);
+		}
+
+		return $normalizedValues;
+	}
+
+	/**
+	 * A composite write is one change made of several persisted values, so
+	 * either all of them are stored or none is.
+	 */
+	private function inTransaction(callable $operation): void {
+		$this->db->beginTransaction();
+		try {
+			$operation();
+			$this->db->commit();
+		} catch (\Throwable $exception) {
+			$this->db->rollBack();
+
+			throw $exception;
+		}
 	}
 
 	/**

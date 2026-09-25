@@ -211,6 +211,8 @@ const crlStatusMap = computed<Record<string, StatusChip>>(() => ({
 	missing: { text: t('libresign', 'No CRL Information'), variant: 'warning', icon: mdiShieldAlert },
 	// TRANSLATORS CRL check result meaning no CRL distribution point URLs were present in the certificate.
 	no_urls: { text: t('libresign', 'No CRL URLs Found'), variant: 'warning', icon: mdiShieldAlert },
+	// TRANSLATORS CRL check result meaning the certificate uses LibreSign's obsolete CRL distribution URL.
+	legacy_distribution_point: { text: t('libresign', 'Outdated CRL URL; regenerate certificate'), variant: 'warning', icon: mdiShieldAlert },
 	// TRANSLATORS CRL check result meaning CRL URLs exist but could not be reached.
 	urls_inaccessible: { text: t('libresign', 'CRL URLs Inaccessible'), variant: 'tertiary', icon: mdiHelpCircle },
 	// TRANSLATORS CRL check result meaning CRL validation process did not complete successfully.

@@ -11,7 +11,7 @@
 
 import type { APIRequestContext } from '@playwright/test'
 
-type OcsResponse<T = unknown> = {
+export type OcsResponse<T = unknown> = {
 	ocs: {
 		meta: { status: string; statuscode: number; message: string }
 		data: T
@@ -210,15 +210,30 @@ export async function ensureUserExists(
 }
 
 /**
- * Deletes a user. Silently succeeds if the user doesn't exist.
+ * Deletes a user via the Nextcloud Provisioning API (DELETE /cloud/users/{userId}).
+ *
+ * Contractual outcomes:
+ * - Success: HTTP 200, OCS statuscode 200
+ * - User does not exist: HTTP 404, OCS statuscode 998 (OCSController::RESPOND_NOT_FOUND) or 404
+ *
+ * Throws on any transport failure (non-2xx/404) or application failure (e.g. OCS 101, 996, 997).
  */
 export async function deleteUser(
 	request: APIRequestContext,
 	userId: string,
 	adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
 	adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
-): Promise<void> {
-	await ocsRequest(request, 'DELETE', `/cloud/users/${userId}`, adminUser, adminPassword)
+): Promise<OcsResponse<unknown>> {
+	const result = await ocsRequest(request, 'DELETE', `/cloud/users/${userId}`, adminUser, adminPassword)
+	const statusCode = result.ocs?.meta?.statuscode
+	const isSuccess = statusCode === 200
+	const isNotFound = statusCode === 404 || statusCode === 998
+	if (!isSuccess && !isNotFound) {
+		throw new Error(
+			`Failed to delete user "${userId}": OCS statuscode ${statusCode} - ${result.ocs?.meta?.message ?? ''}`,
+		)
+	}
+	return result
 }
 
 /**

@@ -1,0 +1,78 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+schema: 1
+repository: LibreSign/libresign
+
+app:
+  id: libresign
+  main_branch: main
+
+branches:
+  stable_pattern: '^stable(?<nextcloud>\d+)$'
+
+version:
+  source: appinfo/info.xml
+  mirrors:
+    - package.json
+    - package-lock.json
+  tag_prefix: v
+
+history:
+  previous_release: reachable-tag
+
+changelog:
+  strategy: per-major
+  path: 'docs/changelogs/changelog-{major}.md'
+  package_root: CHANGELOG.md
+
+milestones:
+  patch: 'Next Patch ({nextcloud})'
+  rc: 'Next RC ({nextcloud})'
+
+authorization:
+  prepare_min_permission: maintain
+  merge_min_permission: maintain
+
+package:
+  command:
+    - make
+    - appstore
+    - verify-appstore-package
+  required_paths:
+    - appinfo
+    - composer
+    - css
+    - img
+    - js
+    - l10n
+    - lib
+    - templates
+    - vendor
+    - 3rdparty
+    - openapi.json
+    - openapi-administration.json
+    - openapi-full.json
+    - tests/php/fixtures/pdfs/small_valid.pdf
+  forbidden_paths:
+    - .git
+    - .github
+    - .devcontainer
+    - .patches
+    - build
+    - docs
+    - node_modules
+    - playwright
+    - src
+    - vendor-bin
+    - img/screenshot
+    - 3rdparty/.git
+    - 3rdparty/.github
+    - 3rdparty/vendor
+    - 3rdparty/vendor-bin
+    - 3rdparty/scoper.inc.php
+
+publication:
+  publisher_workflow: appstore-build-publish.yml
+  asset_name: '{app}-{tag}.tar.gz'
+  appstore_api: https://apps.nextcloud.com/api/v1/platform/{nextcloud}.0.0/apps.json

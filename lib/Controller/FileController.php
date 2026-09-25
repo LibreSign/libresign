@@ -134,16 +134,17 @@ class FileController extends AEnvironmentAwareController {
 	 * @param bool $showVisibleElements Whether to include visible elements in the response
 	 * @param bool $showMessages Whether to include validation messages in the response
 	 * @param bool $showValidateFile Whether to include the file payload in the response
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFileResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFileResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array<empty>, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
+	 * 403: Forbidden
 	 * 404: Request failed
-	 * 422: Request failed
 	 */
 	#[PrivateValidation]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[RequireFileAccess('fileId')]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/validate/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
 	public function validateFileId(
 		int $fileId,

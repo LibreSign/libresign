@@ -263,6 +263,27 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/compound/system/{parentPolicyKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save several system-level values of the same composite policy at once
+         * @description Settings that only make sense together are written as one operation: the policy they belong to validates the resulting configuration before any of them is stored, so the result does not depend on the order of the values.
+         *     This endpoint requires admin access
+         */
+        post: operations["policy-set-system-compound"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
         parameters: {
             query?: never;
@@ -387,6 +408,11 @@ export type components = {
         CrlRevokeResponse: {
             success: boolean;
             message: string;
+        };
+        EffectiveCompoundPolicyWriteResponse: components["schemas"]["MessageResponse"] & {
+            policies: {
+                [key: string]: components["schemas"]["EffectivePolicyState"];
+            };
         };
         EffectivePolicyMeta: {
             defaultSystemValue?: components["schemas"]["EffectivePolicyValue"];
@@ -1241,6 +1267,73 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["SystemPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid policy value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-set-system-compound": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Policy identifier the other settings are grouped under. */
+                parentPolicyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description Values to persist, keyed by policy identifier. Null resets that policy to its default system value.
+                     * @default {}
+                     */
+                    values?: {
+                        [key: string]: (boolean | number | string | {
+                            [key: string]: Record<string, never>;
+                        }) | null;
+                    };
+                    /**
+                     * @description Whether lower layers may override each saved value, keyed by policy identifier.
+                     * @default {}
+                     */
+                    allowChildOverride?: {
+                        [key: string]: boolean;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["EffectiveCompoundPolicyWriteResponse"];
                         };
                     };
                 };

@@ -1,25 +1,22 @@
 # SPDX-FileCopyrightText: 2025 Nextcloud GmbH and Nextcloud contributors
 # SPDX-License-Identifier: MIT
-fe1239ed98a163abbdea3e0490c85458 appstore-build-publish.yml
-19ab9c47c8d96de93f37fab242c398cc block-unconventional-commits.yml
-e6351c608939c31ae1e32923aa82aa10 dependabot-approve-merge.yml
-985f3ac7d51405c1601c742832a14120 lint-eslint.yml
-43fd0c5fb704cabc5f11cdfaf513236d lint-info-xml.yml
-4b40dd0073e16f74dd04e6d49dcc043d lint-php-cs.yml
-cfb31e47b6e9ab65e76c89b028754a4e lint-php.yml
-ab3a506506b1d7c1cea9593ecfd84366 lint-stylelint.yml
-97773e8d73758d9f1af50f7c8b82aef3 lint-typescript.yml
-3b1f38e378f8e764b0b3c560a8cfe1cd node-test.yml
-03759c9dc0fa748cb927b9f9cadf2925 node.yml
-0dc931ec237a235370e224282608b20e npm-audit-fix.yml
-65678bf15deefb099dea5410459a7c17 openapi.yml
-076e72a19e7bdf35ac5b2abee0198c43 phpunit-mariadb.yml
-8fab08ac7da700ee304af0bf3c18b3a3 phpunit-mysql.yml
-256bf1dead4ef8479e9ce7433f871548 phpunit-pgsql.yml
-4ca2c2c4b1a73182667bab908e57c185 phpunit-sqlite.yml
-6dc046dfbca5dc65d938265c518fcac4 psalm.yml
-2dbec18233063b42f4d8e03bbb43671c reuse.yml
-b47a9fe981a7435caea92db33f5ad121 sync-workflow-templates.yml
-a3440826636c0fd7c2d20b1de50363da update-nextcloud-ocp-approve-merge.yml
-1919e2ff468e875aeeae5fd088d4ce1f update-nextcloud-ocp.yml
-22604c31b526de270a080eb19967a638 update-stable-titles.yml
+
+# workflow-lock-schema: 3
+
+{"workflow":"appstore-build-publish.yml","sha256":"fa21818eb2eae3d6c0e673dd9cf2c5c6d61b48bd8f2b492fc4e39c9d83c14387","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"block-unconventional-commits.yml","sha256":"682899d221aa96cd1ad93c3cf46970205a083e49e45d9405b86f4b732a350cea","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"first-merged-pr-comment.yml","sha256":"31225cc5fc20b0ec7d77aa35fb795a4bcbea078701b805f5e581d475951689a9","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"lint-eslint.yml","sha256":"4c4dd7a4aa128713a3c6765fc078fb7bb97ffbecec1e8ce1a86a146753be74e0","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"lint-info-xml.yml","sha256":"3a2ed92f25ae9a233d6d64d44bd122b39dee0f153e7a1a9dc81bfb19adcec09b","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"lint-php-cs.yml","sha256":"6846828b23e3b4f9e09c27cc363ba39a66868cb02c683f4c434c232a40cb8958","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"lint-php.yml","sha256":"f7049c6cce3f7dda9a4e99845029928631f61fa091ecc0595b1ae5b3b40e97cd","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"lint-stylelint.yml","sha256":"fefbc7b9e21c7a3d5e3ece53d8232c7e3d1f8aa7f76f1c32618b80fd456dd79c","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"lint-typescript.yml","sha256":"43b053d26ce5f5e3eb3486dd908c367da09a3495511ee523494ceae7f12908d9","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"nightly-release.yml","sha256":"b306fd9a5c4f17b67841a4f58acefc7dbad0eb2975ff0d4dca6fcc656cfa3c1b","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"node-test.yml","sha256":"f5361a5948f22dbd1bdf64fe112dfbbed0710af6e69239e09d0d6eb12c51b68d","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"npm-build.yml","sha256":"e697a4f28b0a433d1db46383158ce3c7e0dd128f6c64118a251cc43653c57afa","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"openapi.yml","sha256":"293316b8e7ebc4f705df2e75df5815a056308936584c3f9dcd0db0580779773a","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"prepare-release.yml","sha256":"0f6453fb3302fd00d644ff980597108265e5d05cbaf11096b890a3ddc3f12a6d","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"psalm.yml","sha256":"96e71e6140d9d8b8684d95c5cfbd9038005eb21e6ef9a6dad5d83dc755af3637","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"reuse.yml","sha256":"f563735e1a573cca3acb2975321ee760e5d52cb6ca64bfcc11a5da4ae0f9bf73","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}
+{"workflow":"sync-workflow-templates.yml","sha256":"1edcc6bc66c604d1be7bd6a6912ab38aa8828562f2692fe0537b7df9899233ec","catalog_commit":"b969f0cd0dd23ce41bc02133120d21bec58bf83e"}

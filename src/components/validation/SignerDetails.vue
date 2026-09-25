@@ -398,6 +398,8 @@ const crlStatusMap: Record<string, CrlStatusMeta> = {
 	missing: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No information'), class: 'validation-icon--warning' },
 	// TRANSLATORS CRL status text indicating no CRL distribution URLs were found in certificate metadata.
 	no_urls: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No URLs found'), class: 'validation-icon--warning' },
+	// TRANSLATORS CRL status indicating that the signer certificate uses LibreSign's obsolete CRL URL.
+	legacy_distribution_point: { icon: mdiAlertCircle, text: t('libresign', 'CRL: Outdated URL; regenerate certificate'), class: 'validation-icon--warning' },
 	// TRANSLATORS CRL status text indicating CRL URLs exist but were unreachable.
 	urls_inaccessible: { icon: mdiHelpCircle, text: t('libresign', 'CRL: URLs inaccessible'), class: 'validation-icon--warning' },
 	// TRANSLATORS CRL status text indicating CRL validation process failed.

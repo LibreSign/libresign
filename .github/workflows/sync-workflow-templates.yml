@@ -6,8 +6,11 @@
 # SPDX-FileCopyrightText: 2025 Nextcloud GmbH and Nextcloud contributors
 # SPDX-License-Identifier: MIT
 
-# This workflow will update all workflow templates
-# Additionally it will reapply `workflow.yml.patch` files after syncing and only then commit the result
+# This workflow will update all workflow templates.
+# Additionally it will reapply workflow.yml.patch files after syncing and only then commit the result.
+#
+# Authentication is selected explicitly with vars.WORKFLOW_SYNC_AUTH_MODE.
+# See docs/cross-repository-automation.md for modes, credentials and GITHUB_TOKEN limitations.
 name: Update workflows
 on:
   workflow_dispatch:
@@ -26,6 +29,9 @@ jobs:
       matrix:
         branches:
           - ${{ github.event.repository.default_branch }}
+          - stable35
+          - stable34
+          - stable33
 
     name: Update workflows in ${{ matrix.branches }}
 
@@ -39,9 +45,49 @@ jobs:
         with:
           require: admin
 
-      - name: Create GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
+      - name: Validate workflow sync authentication
+        shell: bash
+        env:
+          AUTH_MODE: ${{ vars.WORKFLOW_SYNC_AUTH_MODE || 'librecode-app' }}
+          LIBRECODE_APP_ID: ${{ vars.LIBRECODE_WORKFLOW_APP_ID }}
+          LIBRECODE_APP_PRIVATE_KEY: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
+          CONSUMER_APP_ID: ${{ vars.WORKFLOW_SYNC_APP_ID }}
+          CONSUMER_APP_PRIVATE_KEY: ${{ secrets.WORKFLOW_SYNC_APP_PRIVATE_KEY }}
+          CONSUMER_TOKEN: ${{ secrets.WORKFLOW_SYNC_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          case "${AUTH_MODE}" in
+            librecode-app)
+              [[ -n "${LIBRECODE_APP_ID}" && -n "${LIBRECODE_APP_PRIVATE_KEY}" ]] || {
+                echo "::error::librecode-app requires LIBRECODE_WORKFLOW_APP_ID and LIBRECODE_WORKFLOW_APP_PRIVATE_KEY"
+                exit 1
+              }
+              ;;
+            github-app)
+              [[ -n "${CONSUMER_APP_ID}" && -n "${CONSUMER_APP_PRIVATE_KEY}" ]] || {
+                echo "::error::github-app requires WORKFLOW_SYNC_APP_ID and WORKFLOW_SYNC_APP_PRIVATE_KEY"
+                exit 1
+              }
+              ;;
+            token)
+              [[ -n "${CONSUMER_TOKEN}" ]] || {
+                echo "::error::token mode requires WORKFLOW_SYNC_TOKEN"
+                exit 1
+              }
+              ;;
+            github-token)
+              ;;
+            *)
+              echo "::error::Unsupported WORKFLOW_SYNC_AUTH_MODE: ${AUTH_MODE}"
+              exit 1
+              ;;
+          esac
+
+      - name: Create LibreCode GitHub App token
+        if: ${{ vars.WORKFLOW_SYNC_AUTH_MODE == '' || vars.WORKFLOW_SYNC_AUTH_MODE == 'librecode-app' }}
+        id: librecode-app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           app-id: ${{ vars.LIBRECODE_WORKFLOW_APP_ID }}
           private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
@@ -51,12 +97,59 @@ jobs:
           permission-pull-requests: write
           permission-workflows: write
 
+      - name: Create consumer GitHub App token
+        if: ${{ vars.WORKFLOW_SYNC_AUTH_MODE == 'github-app' }}
+        id: consumer-app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.WORKFLOW_SYNC_APP_ID }}
+          private-key: ${{ secrets.WORKFLOW_SYNC_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
+
+      - name: Resolve workflow sync token
+        id: auth-token
+        shell: bash
+        env:
+          AUTH_MODE: ${{ vars.WORKFLOW_SYNC_AUTH_MODE || 'librecode-app' }}
+          LIBRECODE_APP_TOKEN: ${{ steps.librecode-app-token.outputs.token }}
+          CONSUMER_APP_TOKEN: ${{ steps.consumer-app-token.outputs.token }}
+          CONSUMER_TOKEN: ${{ secrets.WORKFLOW_SYNC_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          case "${AUTH_MODE}" in
+            librecode-app) token="${LIBRECODE_APP_TOKEN}" ;;
+            github-app) token="${CONSUMER_APP_TOKEN}" ;;
+            token) token="${CONSUMER_TOKEN}" ;;
+            github-token) token="${GITHUB_TOKEN}" ;;
+            *) exit 1 ;;
+          esac
+
+          [[ -n "${token}" ]] || {
+            echo "::error::Selected workflow sync authentication produced an empty token"
+            exit 1
+          }
+
+          echo "::add-mask::${token}"
+          echo "token=${token}" >> "${GITHUB_OUTPUT}"
+
       - name: Checkout workflow repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           path: source
           repository: LibreCodeCoop/.github
+
+      - name: Record workflow catalog revision
+        id: catalog-revision
+        working-directory: source
+        shell: bash
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Checkout app
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -67,19 +160,20 @@ jobs:
 
       - name: Synchronize workflow templates
         id: sync
-        uses: LibreCodeCoop/github-workflows/actions/sync-workflows@713dffc9b743babb3f3d73c730a689b0c3f96880
+        uses: ./source/actions/sync-workflows
         with:
           source: source/workflow-templates
           target: target
+          catalog-commit: ${{ steps.catalog-revision.outputs.sha }}
 
       - name: Create Pull Request
         if: ${{ steps.sync.outputs.changed == 'true' }}
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ steps.auth-token.outputs.token }}
           commit-message: 'ci(actions): Update workflow templates from organization template repository'
           committer: GitHub <noreply@github.com>
-          author: librecode-workflow-automation[bot] <331658022+librecode-workflow-automation[bot]@users.noreply.github.com>
+          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           path: target
           signoff: true
           branch: 'automated/noid/${{ matrix.branches }}-update-workflows'
@@ -87,7 +181,7 @@ jobs:
           draft: ${{ steps.sync.outputs.patch_failed == 'true' }}
           add-paths: .github/workflows/*.yml,.github/actions-lock.txt
           body: |
-            Automated update of all workflow templates from [LibreCodeCoop/.github](https://github.com/LibreCodeCoop/.github)
+            Automated update of workflow templates from [LibreCodeCoop/.github](https://github.com/LibreCodeCoop/.github)
             ${{ steps.sync.outputs.summary }}
           labels: |
             dependencies

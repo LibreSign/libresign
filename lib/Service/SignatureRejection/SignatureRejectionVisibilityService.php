@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service\SignatureRejection;
 use DateTimeInterface;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
+use OCA\Libresign\Enum\SignatureRejectionVisibility;
 use OCA\Libresign\Enum\SignRequestStatus;
 
 /**
@@ -23,6 +24,11 @@ use OCA\Libresign\Enum\SignRequestStatus;
  * A comment the signer marked as private is never disclosed to them, whatever
  * the policy says: the rejection changes the workflow so its status may need to
  * be shared, but the words the signer wrote are their own.
+ *
+ * Only the public audience is told apart here: this service does not yet know
+ * which reader it is answering, so a rejection kept among the participants is
+ * still treated as private for every reader but the privileged ones. The reader
+ * context arrives with the visibility work of #8388.
  */
 class SignatureRejectionVisibilityService {
 	public function __construct(
@@ -44,8 +50,8 @@ class SignatureRejectionVisibilityService {
 			return null;
 		}
 
-		$policy = $this->rejectionPolicyService->getPolicyValue($libreSignFile);
-		if (!$privileged && !$policy['public_status']) {
+		$config = $this->rejectionPolicyService->getConfig($libreSignFile);
+		if (!$privileged && !$config->isRejectionVisibleTo(SignatureRejectionVisibility::PUBLIC)) {
 			return null;
 		}
 
@@ -65,7 +71,7 @@ class SignatureRejectionVisibilityService {
 			return $rejection;
 		}
 
-		if ($commentIsPrivate || !$policy['show_comment_on_validation']) {
+		if ($commentIsPrivate || !$config->isCommentVisibleTo(SignatureRejectionVisibility::PUBLIC)) {
 			return $rejection;
 		}
 

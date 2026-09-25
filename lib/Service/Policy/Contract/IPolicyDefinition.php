@@ -50,6 +50,23 @@ interface IPolicyDefinition {
 	 */
 	public function validateValueForPersistence(mixed $value, PolicyContext $context): void;
 
+	/**
+	 * Validate the complete set of values of a composite policy family before
+	 * any of its keys is persisted.
+	 *
+	 * The framework knows which keys belong to the same family and collects the
+	 * final intended value of each one, including the keys the caller is not
+	 * writing. Only the policy that owns the family knows how its settings
+	 * relate to each other, so it is the one that decides whether the
+	 * combination is acceptable. Implementations that have no rule spanning
+	 * more than one key do nothing.
+	 *
+	 * @param array<string, mixed> $normalizedValues Final intended value of every key of the family
+	 * @param list<string> $submittedKeys The keys the caller is writing right now
+	 * @throws \InvalidArgumentException when the combination must not be saved
+	 */
+	public function validateCompositeValuesForPersistence(array $normalizedValues, array $submittedKeys, PolicyContext $context): void;
+
 	/** @return list<mixed> */
 	public function allowedValues(PolicyContext $context): array;
 

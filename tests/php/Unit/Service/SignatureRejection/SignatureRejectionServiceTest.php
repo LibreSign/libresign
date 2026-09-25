@@ -19,7 +19,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyConfig;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -96,11 +96,22 @@ final class SignatureRejectionServiceTest extends TestCase {
 		);
 	}
 
-	/** @param array<string, mixed> $policy */
-	private function withPolicy(array $policy): void {
+	private function withPolicy(SignatureRejectionPolicyConfig $config): void {
 		$this->rejectionPolicyService
-			->method('getPolicyValue')
-			->willReturn(SignatureRejectionPolicyValue::normalize($policy));
+			->method('getConfig')
+			->willReturn($config);
+	}
+
+	/**
+	 * The rejection rules frozen on the document. The workflow keeps running by
+	 * default here, so the tests about closing it say so explicitly.
+	 */
+	private static function policy(string $behavior = 'continue', string $commentMode = 'disabled'): SignatureRejectionPolicyConfig {
+		return SignatureRejectionPolicyConfig::fromValues(
+			enabled: true,
+			behavior: $behavior,
+			commentMode: $commentMode,
+		);
 	}
 
 	private function file(int $status = FileStatus::ABLE_TO_SIGN->value, ?int $parentFileId = null): File {
@@ -131,7 +142,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testRejectionIsBlockedWhenThePolicyIsDisabled(): void {
-		$this->withPolicy(SignatureRejectionPolicyValue::defaults());
+		$this->withPolicy(SignatureRejectionPolicyConfig::defaults());
 		$this->signRequestMapper->expects($this->never())->method('update');
 		$this->db->expects($this->never())->method('beginTransaction');
 
@@ -143,7 +154,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 
 	#[DataProvider('provideClosedWorkflowStatuses')]
 	public function testRejectionIsBlockedWhenTheWorkflowIsNotOpen(int $fileStatus, string $expectedMessage): void {
-		$this->withPolicy(['enabled' => true]);
+		$this->withPolicy(self::policy());
 		$this->signRequestMapper->expects($this->never())->method('update');
 
 		$this->expectException(LibresignException::class);
@@ -166,7 +177,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testASignerWhoAlreadySignedCannotReject(): void {
-		$this->withPolicy(['enabled' => true]);
+		$this->withPolicy(self::policy());
 		$signRequest = $this->signRequest(SignRequestStatus::SIGNED->value);
 		$signRequest->setSigned(new \DateTime('2026-09-05T10:00:00+00:00'));
 
@@ -177,7 +188,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testASignerCannotRejectTwice(): void {
-		$this->withPolicy(['enabled' => true]);
+		$this->withPolicy(self::policy());
 
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('You already rejected this signature request.');
@@ -186,7 +197,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testCommentIsRefusedWhenThePolicyDoesNotAcceptComments(): void {
-		$this->withPolicy(['enabled' => true, 'comment_mode' => 'disabled']);
+		$this->withPolicy(self::policy(commentMode: 'disabled'));
 
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('Rejection comments are not allowed for this document.');
@@ -196,7 +207,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 
 	#[DataProvider('provideMissingRequiredComments')]
 	public function testCommentIsRequiredWhenThePolicySaysSo(?string $comment): void {
-		$this->withPolicy(['enabled' => true, 'comment_mode' => 'required']);
+		$this->withPolicy(self::policy(commentMode: 'required'));
 
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('A comment is required to reject this signature request.');
@@ -214,7 +225,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testCommentLongerThanTheLimitIsRefused(): void {
-		$this->withPolicy(['enabled' => true, 'comment_mode' => 'optional']);
+		$this->withPolicy(self::policy(commentMode: 'optional'));
 
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('The rejection comment must have at most %s characters.');
@@ -227,7 +238,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testCommentAtTheLimitIsAccepted(): void {
-		$this->withPolicy(['enabled' => true, 'comment_mode' => 'optional']);
+		$this->withPolicy(self::policy(commentMode: 'optional'));
 		$comment = str_repeat('a', SignatureRejectionService::MAX_COMMENT_LENGTH);
 
 		$signRequest = $this->getService()->reject($this->file(), $this->signRequest(), $comment);
@@ -237,7 +248,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 
 	public function testTheSignerAlwaysDecidesWhetherTheirCommentIsPrivate(): void {
 		// No policy option can take this choice away from the signer.
-		$this->withPolicy(['enabled' => true, 'comment_mode' => 'optional']);
+		$this->withPolicy(self::policy(commentMode: 'optional'));
 
 		$signRequest = $this->getService()->reject($this->file(), $this->signRequest(), 'Not my document', true);
 
@@ -246,7 +257,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testPrivateFlagIsIgnoredWhenThereIsNoComment(): void {
-		$this->withPolicy(['enabled' => true, 'comment_mode' => 'optional']);
+		$this->withPolicy(self::policy(commentMode: 'optional'));
 
 		$signRequest = $this->getService()->reject($this->file(), $this->signRequest(), null, true);
 
@@ -255,7 +266,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testRejectionIsPersistedWithItsTimestampAndComment(): void {
-		$this->withPolicy(['enabled' => true, 'comment_mode' => 'optional']);
+		$this->withPolicy(self::policy(commentMode: 'optional'));
 		$signRequest = $this->signRequest();
 
 		$this->db->expects($this->once())->method('beginTransaction');
@@ -275,7 +286,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testWorkflowKeepsRunningWhenThePolicyDoesNotCancelIt(): void {
-		$this->withPolicy(['enabled' => true, 'cancel_workflow' => false]);
+		$this->withPolicy(self::policy(behavior: 'continue'));
 		$file = $this->file();
 
 		$this->fileStatusService->expects($this->never())->method('update');
@@ -286,7 +297,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testWorkflowIsClosedWhenThePolicyCancelsIt(): void {
-		$this->withPolicy(['enabled' => true, 'cancel_workflow' => true]);
+		$this->withPolicy(self::policy(behavior: 'cancel'));
 		$file = $this->file(FileStatus::PARTIAL_SIGNED->value);
 
 		$this->fileStatusService
@@ -302,7 +313,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testCancellingADocumentClosesTheWholeEnvelope(): void {
-		$this->withPolicy(['enabled' => true, 'cancel_workflow' => true]);
+		$this->withPolicy(self::policy(behavior: 'cancel'));
 		$child = $this->file(FileStatus::ABLE_TO_SIGN->value, parentFileId: 1);
 		$envelope = $this->envelope();
 
@@ -320,7 +331,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testCancellingAnEnvelopeClosesEveryDocumentItContains(): void {
-		$this->withPolicy(['enabled' => true, 'cancel_workflow' => true]);
+		$this->withPolicy(self::policy(behavior: 'cancel'));
 		$envelope = $this->envelope();
 
 		$this->fileMapper->expects($this->never())->method('getById');
@@ -335,7 +346,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testAFailedCancellationLeavesNoPartiallyUpdatedWorkflow(): void {
-		$this->withPolicy(['enabled' => true, 'comment_mode' => 'optional', 'cancel_workflow' => true]);
+		$this->withPolicy(self::policy(behavior: 'cancel', commentMode: 'optional'));
 		$file = $this->file();
 		$signRequest = $this->signRequest();
 
@@ -365,7 +376,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testAFailedSignerUpdateLeavesNoPartiallyUpdatedWorkflow(): void {
-		$this->withPolicy(['enabled' => true, 'cancel_workflow' => true]);
+		$this->withPolicy(self::policy(behavior: 'cancel'));
 		$file = $this->file();
 		$signRequest = $this->signRequest();
 
@@ -387,7 +398,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 
 	#[DataProvider('provideWorkflowCancellation')]
 	public function testRejectionDispatchesTheEvent(bool $cancelWorkflow): void {
-		$this->withPolicy(['enabled' => true, 'cancel_workflow' => $cancelWorkflow]);
+		$this->withPolicy(self::policy(behavior: $cancelWorkflow ? 'cancel' : 'continue'));
 		$file = $this->file();
 		$signRequest = $this->signRequest();
 
@@ -416,7 +427,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testAFailingListenerDoesNotDiscardARecordedRejection(): void {
-		$this->withPolicy(['enabled' => true]);
+		$this->withPolicy(self::policy());
 		$signRequest = $this->signRequest();
 
 		$this->db->expects($this->once())->method('commit');
@@ -433,7 +444,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	public function testRejectingAnEnvelopeClosesEverySignatureRequestOfTheSigner(): void {
 		// Signing an envelope closes the request of every document it contains plus
 		// the one on the envelope itself; a rejection has to close the same set.
-		$this->withPolicy(['enabled' => true, 'comment_mode' => 'optional']);
+		$this->withPolicy(self::policy(commentMode: 'optional'));
 		$envelope = $this->envelope();
 		$onDoc1 = $this->signRequest(id: 11);
 		$onDoc2 = $this->signRequest(id: 12);
@@ -462,7 +473,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testADocumentTheSignerAlreadySignedKeepsItsSignature(): void {
-		$this->withPolicy(['enabled' => true]);
+		$this->withPolicy(self::policy());
 		$envelope = $this->envelope();
 		$pending = $this->signRequest(id: 11);
 		$alreadySigned = $this->signRequest(SignRequestStatus::SIGNED->value, id: 12);
@@ -485,7 +496,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	public function testAPlainRequestNeverLooksForEnvelopeSiblings(): void {
-		$this->withPolicy(['enabled' => true]);
+		$this->withPolicy(self::policy());
 		$this->signRequestMapper->expects($this->never())->method('getByEnvelopeChildrenAndIdentifyMethod');
 		$this->signRequestMapper->expects($this->never())->method('getByIdentifyMethodAndFileId');
 
