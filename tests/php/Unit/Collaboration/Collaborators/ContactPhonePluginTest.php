@@ -727,8 +727,8 @@ class ContactPhonePluginTest extends TestCase {
 	public function testFilterGroups(): void {
 		$appConfig1 = $this->applyAppConfig([
 			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
-			'shareapi_restrict_user_enumeration_group_members' => 'yes',
-			'shareapi_restrict_user_enumeration_phone' => 'yes',
+			'shareapi_restrict_user_enumeration_to_group' => 'yes',
+			'shareapi_restrict_user_enumeration_to_phone' => 'yes',
 			'shareapi_only_share_with_group_members' => 'no',
 			'shareapi_only_share_with_group_members_exclude_group_list' => [],
 		]);
