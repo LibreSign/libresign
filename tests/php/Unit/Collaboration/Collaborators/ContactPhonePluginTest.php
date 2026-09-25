@@ -278,6 +278,77 @@ class ContactPhonePluginTest extends TestCase {
 		$this->assertFalse($hasMore);
 	}
 
+	public function testDuplicatePhoneSkipsOnlyThatEntryNotWholeContact(): void {
+		$appConfig = $this->applyAppConfig([
+			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+		]);
+
+		$currentUser = $this->createMock(IUser::class);
+		$currentUser->method('getUID')->willReturn('current');
+
+		$userSession = $this->createMock(IUserSession::class);
+		$userSession->method('getUser')->willReturn($currentUser);
+
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->method('get')->willReturn(null);
+
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->method('getUserGroupIds')->willReturn([]);
+
+		$knownUserService = $this->createMock(KnownUserService::class);
+		$knownUserService->method('isKnownToUser')->willReturn(true);
+
+		$contactsManager = $this->createMock(IManager::class);
+		$contactsManager->method('isEnabled')->willReturn(true);
+		$contactsManager->method('search')->willReturn([
+			[
+				'FN' => 'Contact One',
+				'isLocalSystemBook' => false,
+				'TEL' => [
+					['value' => '+1'],
+				],
+			],
+			[
+				'FN' => 'Contact Two',
+				'isLocalSystemBook' => false,
+				'TEL' => [
+					['value' => '+1'],
+					['value' => '+2'],
+				],
+			],
+		]);
+
+		$context = new SignerSearchContext();
+		$context->set('sms', 'x', 'x');
+
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->willReturnCallback(fn (string $input) => $input);
+
+		$plugin = new ContactPhonePlugin(
+			$appConfig,
+			$contactsManager,
+			$groupManager,
+			$userManager,
+			$userSession,
+			$knownUserService,
+			$context,
+			$searchNormalizer,
+		);
+
+		$searchResult = new SearchResult();
+		$plugin->search('x', 10, 0, $searchResult);
+
+		$results = $searchResult->asArray();
+		$items = array_merge($results['contact-phone'] ?? [], $results['exact']['contact-phone'] ?? []);
+
+		$this->assertCount(2, $items);
+
+		$shareWithValues = array_column($items, 'shareWithDisplayNameUnique');
+		$this->assertContains('+1', $shareWithValues);
+		$this->assertContains('+2', $shareWithValues);
+	}
+
 	public function testMaxLimitStopsProcessingImmediately(): void {
 		$appConfig = $this->applyAppConfig([
 			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
@@ -844,6 +915,8 @@ class ContactPhonePluginTest extends TestCase {
 
 		$appConfig2 = $this->applyAppConfig([
 			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+			'shareapi_restrict_user_enumeration_to_group' => 'no',
+			'shareapi_restrict_user_enumeration_to_phone' => 'no',
 			'shareapi_only_share_with_group_members' => 'yes',
 			'shareapi_only_share_with_group_members_exclude_group_list' => [],
 		]);
@@ -866,6 +939,7 @@ class ContactPhonePluginTest extends TestCase {
 		$items2 = array_merge($results2['contact-phone'] ?? [], $results2['exact']['contact-phone'] ?? []);
 
 		$this->assertCount(1, $items2);
+		$this->assertSame('Contact Two', $items2[0]['label']);
 	}
 
 	public static function providerSearchScenarios(): array {
