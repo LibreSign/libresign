@@ -9,14 +9,93 @@ export const DEFAULT_MAXIMUM_VALIDITY = 0
 export const DEFAULT_RENEWAL_INTERVAL = 0
 export const DEFAULT_EXPIRY_IN_DAYS = 365
 
+export type TimeUnit = 'seconds' | 'minutes' | 'hours' | 'days'
+
+export interface DurationWithUnit {
+	amount: number
+	unit: TimeUnit
+}
+
+export const TIME_UNITS: TimeUnit[] = ['seconds', 'minutes', 'hours', 'days']
+
+export const SECONDS_PER_MINUTE = 60
+export const SECONDS_PER_HOUR = 3600
+export const SECONDS_PER_DAY = 86400
+
 export interface RequestExpirationDraftValue {
 	maximumValidity: number
 	renewalInterval: number
 }
 
+export function secondsToDuration(value: EffectivePolicyValue | null | undefined): DurationWithUnit {
+	const parsed = parseIntValue(value ?? 0)
+	if (parsed === null || parsed <= 0 || !Number.isSafeInteger(parsed)) {
+		return { amount: 0, unit: 'seconds' }
+	}
+
+	if (parsed % SECONDS_PER_DAY === 0) {
+		return { amount: parsed / SECONDS_PER_DAY, unit: 'days' }
+	}
+	if (parsed % SECONDS_PER_HOUR === 0) {
+		return { amount: parsed / SECONDS_PER_HOUR, unit: 'hours' }
+	}
+	if (parsed % SECONDS_PER_MINUTE === 0) {
+		return { amount: parsed / SECONDS_PER_MINUTE, unit: 'minutes' }
+	}
+	return { amount: parsed, unit: 'seconds' }
+}
+
+export function durationToSeconds(amount: unknown, unit: TimeUnit): number | null {
+	if (amount === null || amount === undefined || amount === '') {
+		return null
+	}
+
+	let numAmount: number
+	if (typeof amount === 'number') {
+		numAmount = amount
+	} else if (typeof amount === 'string') {
+		const trimmed = amount.trim()
+		if (!/^\d+$/.test(trimmed)) {
+			return null
+		}
+		numAmount = Number(trimmed)
+	} else {
+		return null
+	}
+
+	if (!Number.isFinite(numAmount) || !Number.isInteger(numAmount) || !Number.isSafeInteger(numAmount) || numAmount <= 0) {
+		return null
+	}
+
+	let multiplier: number
+	switch (unit) {
+		case 'days':
+			multiplier = SECONDS_PER_DAY
+			break
+		case 'hours':
+			multiplier = SECONDS_PER_HOUR
+			break
+		case 'minutes':
+			multiplier = SECONDS_PER_MINUTE
+			break
+		case 'seconds':
+			multiplier = 1
+			break
+		default:
+			return null
+	}
+
+	const totalSeconds = numAmount * multiplier
+	if (!Number.isFinite(totalSeconds) || !Number.isInteger(totalSeconds) || !Number.isSafeInteger(totalSeconds) || totalSeconds <= 0) {
+		return null
+	}
+
+	return totalSeconds
+}
+
 export function normalizeNonNegativeInt(value: EffectivePolicyValue, fallback = 0): number {
 	const parsed = parseIntValue(value)
-	if (parsed === null) {
+	if (parsed === null || !Number.isSafeInteger(parsed)) {
 		return fallback
 	}
 
@@ -25,7 +104,7 @@ export function normalizeNonNegativeInt(value: EffectivePolicyValue, fallback = 
 
 export function normalizePositiveInt(value: EffectivePolicyValue, fallback: number): number {
 	const parsed = parseIntValue(value)
-	if (parsed === null || parsed <= 0) {
+	if (parsed === null || parsed <= 0 || !Number.isSafeInteger(parsed)) {
 		return fallback
 	}
 
