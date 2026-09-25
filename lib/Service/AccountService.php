@@ -47,10 +47,6 @@ use Sabre\DAV\UUIDUtil;
 use Throwable;
 
 class AccountService {
-	private ?SignRequest $signRequest = null;
-	private ?\OCA\Libresign\Db\File $fileData = null;
-	private ?\OCP\Files\File $fileToSign = null;
-
 	public function __construct(
 		private IL10N $l10n,
 		private SignRequestMapper $signRequestMapper,
@@ -127,8 +123,8 @@ class AccountService {
 			}
 		}
 		return [
-			'fileData' => $this->fileData,
-			'fileToSign' => $this->fileToSign
+			'fileData' => $fileData,
+			'fileToSign' => $fileToSign instanceof File ? $fileToSign : null,
 		];
 	}
 
@@ -148,10 +144,7 @@ class AccountService {
 	 * Get signRequest by Uuid
 	 */
 	public function getSignRequestByUuid(string $uuid): SignRequest {
-		if (!$this->signRequest instanceof SignRequest) {
-			$this->signRequest = $this->signRequestMapper->getByUuid($uuid);
-		}
-		return $this->signRequest;
+		return $this->signRequestMapper->getByUuid($uuid);
 	}
 
 	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword): void {
