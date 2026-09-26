@@ -5,7 +5,6 @@
 
 import type { APIRequestContext } from '@playwright/test'
 import { ensureLibresignAppEnabled } from './nc-provisioning'
-import { assertPhpServerRunning } from './php-server'
 
 /**
  * Login to Nextcloud via API (no browser form involved).
@@ -27,7 +26,6 @@ export async function login(
 	user: string,
 	password: string,
 ): Promise<void> {
-	assertPhpServerRunning()
 	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
 	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
 	await ensureLibresignAppEnabled(request, adminUser, adminPassword)
