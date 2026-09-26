@@ -16,16 +16,24 @@ import type {
 	EffectivePolicyValue,
 	EffectivePoliciesResponse,
 	EffectivePoliciesState,
+	GroupCompoundPolicyWritePayload,
+	GroupCompoundPolicyWriteResponse,
 	GroupPolicyListResponse,
 	GroupPolicyResponse,
 	GroupPolicyState,
 	GroupPolicyWriteResponse,
+	SystemCompoundPolicyWritePayload,
+	SystemCompoundPolicyWriteResponse,
 	SystemPolicyResponse,
 	SystemPolicyState,
 	SystemPolicyWriteResponse,
+	UserCompoundPolicyWritePayload,
+	UserCompoundPolicyWriteResponse,
 	UserPolicyListResponse,
 	UserPolicyResponse,
 	UserPolicyState,
+	UserPreferenceCompoundPolicyWritePayload,
+	UserPreferenceCompoundPolicyWriteResponse,
 } from '../types/index'
 
 function isEffectivePolicyState(value: unknown): value is EffectivePolicyState {
@@ -332,6 +340,74 @@ const _policiesStore = defineStore('policies', () => {
 		return getPolicy(policyKey)?.canUseAsRequestOverride ?? true
 	}
 
+
+	const saveSystemPolicyCompound = async (
+		parentPolicyKey: string,
+		values: NonNullable<SystemCompoundPolicyWritePayload['values']>,
+		allowChildOverride?: SystemCompoundPolicyWritePayload['allowChildOverride'],
+	): Promise<SystemCompoundPolicyWriteResponse['policies'] | null> => {
+		const payload: SystemCompoundPolicyWritePayload = { values }
+		if (allowChildOverride) {
+			payload.allowChildOverride = allowChildOverride
+		}
+		const response = await axios.post<{ ocs?: { data?: SystemCompoundPolicyWriteResponse } }>(
+			generateOcsUrl(`/apps/libresign/api/v1/policies/compound/system/${parentPolicyKey}`),
+			payload,
+		)
+
+		return response.data?.ocs?.data?.policies ?? null
+	}
+
+	const saveGroupPolicyCompound = async (
+		groupId: string,
+		parentPolicyKey: string,
+		values: NonNullable<GroupCompoundPolicyWritePayload['values']>,
+		allowChildOverride?: GroupCompoundPolicyWritePayload['allowChildOverride'],
+	): Promise<GroupCompoundPolicyWriteResponse['policies'] | null> => {
+		const payload: GroupCompoundPolicyWritePayload = { values }
+		if (allowChildOverride) {
+			payload.allowChildOverride = allowChildOverride
+		}
+		const response = await axios.put<{ ocs?: { data?: GroupCompoundPolicyWriteResponse } }>(
+			generateOcsUrl(`/apps/libresign/api/v1/policies/compound/group/${groupId}/${parentPolicyKey}`),
+			payload,
+		)
+
+		return response.data?.ocs?.data?.policies ?? null
+	}
+
+	const saveUserPreferenceCompound = async (
+		parentPolicyKey: string,
+		values: NonNullable<UserPreferenceCompoundPolicyWritePayload['values']>,
+	): Promise<UserPreferenceCompoundPolicyWriteResponse['policies'] | null> => {
+		const payload: UserPreferenceCompoundPolicyWritePayload = { values }
+		const response = await axios.put<{ ocs?: { data?: UserPreferenceCompoundPolicyWriteResponse } }>(
+			generateOcsUrl(`/apps/libresign/api/v1/policies/compound/user/${parentPolicyKey}`),
+			payload,
+		)
+
+		return response.data?.ocs?.data?.policies ?? null
+	}
+
+	const saveUserPolicyForUserCompound = async (
+		userId: string,
+		parentPolicyKey: string,
+		values: NonNullable<UserCompoundPolicyWritePayload['values']>,
+		allowChildOverride?: UserCompoundPolicyWritePayload['allowChildOverride'],
+	): Promise<UserCompoundPolicyWriteResponse['policies'] | null> => {
+		const payload: UserCompoundPolicyWritePayload = { values }
+		if (allowChildOverride) {
+			payload.allowChildOverride = allowChildOverride
+		}
+		const response = await axios.put<{ ocs?: { data?: UserCompoundPolicyWriteResponse } }>(
+			generateOcsUrl(`/apps/libresign/api/v1/policies/compound/user/${userId}/${parentPolicyKey}`),
+			payload,
+		)
+
+		return response.data?.ocs?.data?.policies ?? null
+	}
+
+
 	return {
 		policies: computed(() => policies.value),
 		setPolicies,
@@ -351,6 +427,10 @@ const _policiesStore = defineStore('policies', () => {
 		getPolicy,
 		getEffectiveValue,
 		canUseRequestOverride,
+		saveSystemPolicyCompound,
+		saveGroupPolicyCompound,
+		saveUserPreferenceCompound,
+		saveUserPolicyForUserCompound,
 	}
 })
 
