@@ -494,17 +494,12 @@ class AccountService {
 				throw new \Exception($this->l10n->t('Invalid URL file'));
 			}
 			$response = $this->clientService->newClient()->get($data['file']['url']);
-			$contentType = $response->getHeader('Content-Type');
-			if ($contentType !== 'image/png') {
-				// TRANSLATORS Error when uploading a visible signature or initials image that is not a PNG file.
-				throw new \Exception($this->l10n->t('Visible element file must be png.'));
-			}
 			$content = (string)$response->getBody();
 			if (empty($content)) {
 				// TRANSLATORS Error when uploading a visible signature element file that is empty.
 				throw new \Exception($this->l10n->t('Empty file'));
 			}
-			$this->fileInputValidator->validateBase64($content, FileInputValidator::TYPE_VISIBLE_ELEMENT_USER);
+			$this->fileInputValidator->validateContent($content, FileInputValidator::TYPE_VISIBLE_ELEMENT_USER);
 			return $content;
 		}
 		$this->fileInputValidator->validateBase64($data['file']['base64'], FileInputValidator::TYPE_VISIBLE_ELEMENT_USER);

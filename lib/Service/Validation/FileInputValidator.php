@@ -155,14 +155,19 @@ class FileInputValidator {
 		}
 
 		$string = base64_decode($base64);
-		if (in_array($type, [self::TYPE_VISIBLE_ELEMENT_USER, self::TYPE_VISIBLE_ELEMENT_PDF], true) && strlen($string) > 5000 * 1024) {
-			throw new InvalidArgumentException($this->l10n->t('File is too big'));
-		}
 		if (base64_encode($string) !== $base64) {
 			$this->throwInvalidBase64($type);
 		}
 
-		$mimeType = $this->mimeTypeDetector->detectString($string);
+		$this->validateContent($string, $type);
+	}
+
+	public function validateContent(string $content, int $type = self::TYPE_TO_SIGN): void {
+		if (in_array($type, [self::TYPE_VISIBLE_ELEMENT_USER, self::TYPE_VISIBLE_ELEMENT_PDF], true) && strlen($content) > 5000 * 1024) {
+			throw new InvalidArgumentException($this->l10n->t('File is too big'));
+		}
+
+		$mimeType = $this->mimeTypeDetector->detectString($content);
 		if ($type === self::TYPE_TO_SIGN && $mimeType !== 'application/pdf') {
 			$this->throwInvalidBase64($type);
 		}
