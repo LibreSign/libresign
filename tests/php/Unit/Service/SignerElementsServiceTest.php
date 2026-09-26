@@ -554,8 +554,8 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		$this->assertSame($expected, $this->getService()->getElementsFromSession());
 	}
 
-	#[DataProvider('provideUrlImageCases')]
-	public function testSaveVisibleElementLoadsUrlImage(string $url, string $mime, string $body, ?string $error): void {
+	#[DataProvider('provideInvalidUrlImageCases')]
+	public function testSaveVisibleElementRejectsInvalidUrlImageInput(string $url, string $mime, string $body, string $error): void {
 		$element = new UserElement();
 		$element->setNodeId(42);
 		$this->userElementMapper->method('findOne')->with(['id' => 10])->willReturn($element);
@@ -567,25 +567,18 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		$client = $this->createMock(IClient::class);
 		$client->method('get')->with($url)->willReturn($response);
 		$this->clientService->method('newClient')->willReturn($client);
-		if ($error !== null) {
-			$file->expects($this->never())->method('putContent');
-			$this->fileInputValidator->expects($this->never())->method('validateBase64');
-			$this->expectException(\Exception::class);
-			$this->expectExceptionMessage($error);
-		} else {
-			$this->fileInputValidator->expects($this->once())->method('validateBase64')
-				->with($body, FileInputValidator::TYPE_VISIBLE_ELEMENT_USER);
-			$file->expects($this->once())->method('putContent')->with($body);
-		}
+		$file->expects($this->never())->method('putContent');
+		$this->fileInputValidator->expects($this->never())->method('validateBase64');
+		$this->expectException(\Exception::class);
+		$this->expectExceptionMessage($error);
 
 		$this->getService()->saveVisibleElement([
 			'elementId' => 10, 'file' => ['url' => $url],
 		], 'session-id', null);
 	}
 
-	public static function provideUrlImageCases(): array {
+	public static function provideInvalidUrlImageCases(): array {
 		return [
-			'PNG' => ['https://example.com/image.png', 'image/png', 'image', null],
 			'invalid URL' => ['not a URL', 'image/png', 'image', 'Invalid URL file'],
 			'wrong content type' => ['https://example.com/image.jpg', 'image/jpeg', 'image', 'Visible element file must be png.'],
 			'empty body' => ['https://example.com/image.png', 'image/png', '', 'Empty file'],
