@@ -42,7 +42,6 @@ test('observer receives validation link and cannot enter signing flow', async ({
 		}),
 	)
 
-	let cleanupError: unknown
 	try {
 		const mailpit = createMailpitClient()
 		await mailpit.deleteMessages()
@@ -119,20 +118,12 @@ test('observer receives validation link and cannot enter signing flow', async ({
 		// Chromium may keep the popup on about:blank while rendering/downloading the PDF body.
 		await expect(popup).not.toHaveURL(/\/login/)
 	} finally {
-		try {
-			await login(
-				page.request,
-				process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
-				process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
-			)
-			await setSystemPolicy(page.request, 'enable_observer_profile', JSON.stringify(false))
-		} catch (error) {
-			// Rethrown below only when the test passed, so it cannot hide the test's own error.
-			cleanupError = error
-		}
-	}
-	if (cleanupError) {
-		throw cleanupError
+		await login(
+			page.request,
+			process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+			process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+		)
+		await setSystemPolicy(page.request, 'enable_observer_profile', JSON.stringify(false))
 	}
 })
 
@@ -165,7 +156,6 @@ test('email observer receives validation link when the signer uses account ident
 		}),
 	)
 
-	let cleanupError: unknown
 	try {
 		const mailpit = createMailpitClient()
 		await mailpit.deleteMessages()
@@ -213,20 +203,12 @@ test('email observer receives validation link when the signer uses account ident
 		await expect(page).not.toHaveURL(/\/login/)
 		await expect(page.getByRole('button', { name: 'Sign', exact: true })).toHaveCount(0)
 	} finally {
-		try {
-			await login(
-				page.request,
-				process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
-				process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
-			)
-			await setSystemPolicy(page.request, 'enable_observer_profile', JSON.stringify(false))
-		} catch (error) {
-			// Rethrown below only when the test passed, so it cannot hide the test's own error.
-			cleanupError = error
-		}
-	}
-	if (cleanupError) {
-		throw cleanupError
+		await login(
+			page.request,
+			process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+			process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+		)
+		await setSystemPolicy(page.request, 'enable_observer_profile', JSON.stringify(false))
 	}
 })
 
@@ -260,7 +242,6 @@ test('authenticated observer opens the request in read-only mode', async ({ page
 		}),
 	)
 
-	let cleanupError: unknown
 	try {
 		await page.goto('./apps/libresign')
 		await page.getByRole('button', { name: 'Upload from URL' }).click()
@@ -315,15 +296,7 @@ test('authenticated observer opens the request in read-only mode', async ({ page
 		await expect(positionsModal.locator('canvas, .pdfViewer, .page, [class*="pdf"]').first()).toBeVisible({ timeout: 20_000 })
 		await expect(page.getByText('UnknownErrorException')).toHaveCount(0)
 	} finally {
-		try {
-			await login(page.request, adminUser, adminPassword)
-			await setSystemPolicy(page.request, 'enable_observer_profile', JSON.stringify(false))
-		} catch (error) {
-			// Rethrown below only when the test passed, so it cannot hide the test's own error.
-			cleanupError = error
-		}
-	}
-	if (cleanupError) {
-		throw cleanupError
+		await login(page.request, adminUser, adminPassword)
+		await setSystemPolicy(page.request, 'enable_observer_profile', JSON.stringify(false))
 	}
 })
