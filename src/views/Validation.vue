@@ -3,101 +3,103 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div class="container">
-		<div class="logo">
-			<img :src="logo" :alt="t('libresign', 'LibreSign logo')" draggable="false">
-		</div>
-		<div id="validation-content">
-				<div v-if="isAsyncSigning" class="infor-container">
+	<NcAppContent>
+		<div class="container">
+			<div class="logo">
+				<img :src="logo" :alt="t('libresign', 'LibreSign logo')" draggable="false">
+			</div>
+			<div id="validation-content">
+					<div v-if="isAsyncSigning" class="infor-container">
+						<div class="section">
+							<SigningProgress
+								:sign-request-uuid="signRequestUuidForProgress"
+								@completed="handleSigningComplete"
+								@error="handleSigningError" />
+						</div>
+					</div>
+				<div v-else-if="!hasInfo" class="infor-container">
 					<div class="section">
-						<SigningProgress
-							:sign-request-uuid="signRequestUuidForProgress"
-							@completed="handleSigningComplete"
-							@error="handleSigningError" />
-					</div>
-				</div>
-			<div v-else-if="!hasInfo" class="infor-container">
-				<div class="section">
-					<!-- TRANSLATORS: "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. Choose a word in your language that conveys "to check" or "to verify", not "to approve" or "to authorize". -->
-					<h1>{{ t('libresign', 'Validate signature') }}</h1>
-					<NcNoteCard v-if="validationErrorMessage" type="error">
-						{{ validationErrorMessage }}
-					</NcNoteCard>
-					<!-- TRANSLATORS: Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
-					<div class="upload-dropzone"
-						:class="{ 'upload-dropzone--dragover': isDraggingOver }"
-						@dragover.prevent="handleDragOver"
-						@dragleave.prevent="handleDragLeave"
-						@drop.prevent="handleFileDrop">
-						<p class="upload-dropzone__hint">
-							<!-- TRANSLATORS Hint shown inside the drag-and-drop area on the signature validation page. It tells the user they can either drop a PDF file here or use the "From UUID"/"Upload" buttons below. -->
-							{{ t('libresign', 'Drag and drop a PDF here, or use the buttons below.') }}
-						</p>
-						<NcActions :menu-name="t('libresign', 'Validate signature')" :inline="3" :force-name="true">
-							<NcActionButton :wide="true" :disabled="loading" @click="openUuidDialog()">
-								<!-- TRANSLATORS "UUID" is a unique technical identifier for a document (a code like '550e8400-e29b-41d4-a716-446655440000'). Keep "UUID" untranslated. -->
-								{{ t('libresign', 'From UUID') }}
-								<template #icon>
-									<NcLoadingIcon v-if="loading" :size="20" />
-									<NcIconSvgWrapper v-else :path="mdiKey" />
-								</template>
-							</NcActionButton>
-							<NcActionButton :wide="true" :disabled="loading" @click="uploadFile">
-								<!-- TRANSLATORS Label of the button that lets the user pick a PDF file from their device to validate its signatures. -->
-								{{ t('libresign', 'Upload') }}
-								<template #icon>
-									<NcLoadingIcon v-if="loading" :size="20" />
-									<NcIconSvgWrapper v-else :path="mdiUpload" />
-								</template>
-							</NcActionButton>
-						</NcActions>
-					</div>
-					<!-- TRANSLATORS: Same meaning as the first string in this section: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
-					<NcDialog v-if="getUUID" :name="t('libresign', 'Validate signature')" is-form
-						@closing="getUUID = false">
-						<!-- TRANSLATORS: Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
+						<!-- TRANSLATORS: "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. Choose a word in your language that conveys "to check" or "to verify", not "to approve" or "to authorize". -->
 						<h1>{{ t('libresign', 'Validate signature') }}</h1>
-						<NcTextField v-model="uuidToValidate"
-							autofocus
-							:label="t('libresign', 'Enter the ID or UUID of the document to validate.')"
-							:helper-text="helperTextValidation" :error="!!uuidToValidate && !canValidate" />
-						<template #actions>
-							<NcButton variant="primary" :disabled="loading || !canValidate"
-								@click.prevent="validateAndProceed">
-								<template #icon>
-									<NcLoadingIcon v-if="loading" :size="20" />
-								</template>
-								<!-- TRANSLATORS: "Validation" here is the technical process of checking cryptographic integrity of signatures, NOT an approval or authorization. -->
-								{{ t('libresign', 'Validation') }}
-							</NcButton>
-						</template>
-					</NcDialog>
+						<NcNoteCard v-if="validationErrorMessage" type="error">
+							{{ validationErrorMessage }}
+						</NcNoteCard>
+						<!-- TRANSLATORS: Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
+						<div class="upload-dropzone"
+							:class="{ 'upload-dropzone--dragover': isDraggingOver }"
+							@dragover.prevent="handleDragOver"
+							@dragleave.prevent="handleDragLeave"
+							@drop.prevent="handleFileDrop">
+							<p class="upload-dropzone__hint">
+								<!-- TRANSLATORS Hint shown inside the drag-and-drop area on the signature validation page. It tells the user they can either drop a PDF file here or use the "From UUID"/"Upload" buttons below. -->
+								{{ t('libresign', 'Drag and drop a PDF here, or use the buttons below.') }}
+							</p>
+							<NcActions :menu-name="t('libresign', 'Validate signature')" :inline="3" :force-name="true">
+								<NcActionButton :wide="true" :disabled="loading" @click="openUuidDialog()">
+									<!-- TRANSLATORS "UUID" is a unique technical identifier for a document (a code like '550e8400-e29b-41d4-a716-446655440000'). Keep "UUID" untranslated. -->
+									{{ t('libresign', 'From UUID') }}
+									<template #icon>
+										<NcLoadingIcon v-if="loading" :size="20" />
+										<NcIconSvgWrapper v-else :path="mdiKey" />
+									</template>
+								</NcActionButton>
+								<NcActionButton :wide="true" :disabled="loading" @click="uploadFile">
+									<!-- TRANSLATORS Label of the button that lets the user pick a PDF file from their device to validate its signatures. -->
+									{{ t('libresign', 'Upload') }}
+									<template #icon>
+										<NcLoadingIcon v-if="loading" :size="20" />
+										<NcIconSvgWrapper v-else :path="mdiUpload" />
+									</template>
+								</NcActionButton>
+							</NcActions>
+						</div>
+						<!-- TRANSLATORS: Same meaning as the first string in this section: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
+						<NcDialog v-if="getUUID" :name="t('libresign', 'Validate signature')" is-form
+							@closing="getUUID = false">
+							<!-- TRANSLATORS: Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
+							<h1>{{ t('libresign', 'Validate signature') }}</h1>
+							<NcTextField v-model="uuidToValidate"
+								autofocus
+								:label="t('libresign', 'Enter the ID or UUID of the document to validate.')"
+								:helper-text="helperTextValidation" :error="!!uuidToValidate && !canValidate" />
+							<template #actions>
+								<NcButton variant="primary" :disabled="loading || !canValidate"
+									@click.prevent="validateAndProceed">
+									<template #icon>
+										<NcLoadingIcon v-if="loading" :size="20" />
+									</template>
+									<!-- TRANSLATORS: "Validation" here is the technical process of checking cryptographic integrity of signatures, NOT an approval or authorization. -->
+									{{ t('libresign', 'Validation') }}
+								</NcButton>
+							</template>
+						</NcDialog>
+					</div>
 				</div>
-			</div>
-			<div v-else-if="validationEnvelopeDocument || validationFileDocument" class="infor-container">
-				<EnvelopeValidation
-					v-if="validationEnvelopeDocument"
-					:document="validationEnvelopeDocument"
-					:legal-information="legalInformation"
-					:document-valid-message="documentValidMessage"
-					:document-valid-type="documentValidType"
-					:is-after-signed="isAfterSigned" />
-				<FileValidation
-					v-else-if="validationFileDocument"
-					:document="validationFileDocument"
-					:legal-information="legalInformation"
-					:document-valid-message="documentValidMessage"
-					:document-valid-type="documentValidType"
-					:is-after-signed="isAfterSigned" />
-				<NcButton v-if="clickedValidate" class="change" variant="primary" @click="goBack()">
-					<template #icon>
-						<NcIconSvgWrapper :path="mdiArrowLeft" />
-					</template>
-					{{ t('libresign', 'Return') }}
-				</NcButton>
+				<div v-else-if="validationEnvelopeDocument || validationFileDocument" class="infor-container">
+					<EnvelopeValidation
+						v-if="validationEnvelopeDocument"
+						:document="validationEnvelopeDocument"
+						:legal-information="legalInformation"
+						:document-valid-message="documentValidMessage"
+						:document-valid-type="documentValidType"
+						:is-after-signed="isAfterSigned" />
+					<FileValidation
+						v-else-if="validationFileDocument"
+						:document="validationFileDocument"
+						:legal-information="legalInformation"
+						:document-valid-message="documentValidMessage"
+						:document-valid-type="documentValidType"
+						:is-after-signed="isAfterSigned" />
+					<NcButton v-if="clickedValidate" class="change" variant="primary" @click="goBack()">
+						<template #icon>
+							<NcIconSvgWrapper :path="mdiArrowLeft" />
+						</template>
+						{{ t('libresign', 'Return') }}
+					</NcButton>
+				</div>
 			</div>
 		</div>
-	</div>
+	</NcAppContent>
 </template>
 
 <script setup lang="ts">
@@ -124,6 +126,7 @@ import { computed, getCurrentInstance, onBeforeUnmount, ref, watch } from 'vue'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
+import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'

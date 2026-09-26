@@ -20,6 +20,10 @@ const sidebarStoreMock = {
 	isVisible: false,
 }
 
+vi.mock('@nextcloud/vue/components/NcAppContent', () => ({
+	default: { name: 'NcAppContent', template: '<div><slot /></div>' },
+}))
+
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('../../store/files.js', () => ({

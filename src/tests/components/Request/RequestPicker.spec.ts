@@ -5,8 +5,9 @@
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import type { MockedFunction } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import { loadState } from '@nextcloud/initial-state'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { getFilePickerBuilder, showError } from '@nextcloud/dialogs'
@@ -588,6 +589,85 @@ describe('RequestPicker component rules', () => {
 			expect(wrapper.vm.uploadUrlErrors).toEqual([])
 			expect(wrapper.vm.pdfUrl).toBe('')
 			expect(wrapper.vm.loading).toBe(false)
+		})
+	})
+
+	describe('URL upload dialog submission (#8704)', () => {
+		const validUrl = 'https://example.com/contract.pdf'
+		let urlWrapper: RequestPickerWrapper
+
+		afterEach(() => {
+			urlWrapper.unmount()
+		})
+
+		const mountWithUrlDialog = async () => {
+			// Attached so that clicking the submit button submits the form.
+			urlWrapper = mount(RequestPicker, {
+				attachTo: document.body,
+				global: {
+					stubs: {
+						NcActions: true,
+						NcActionButton: true,
+						NcLoadingIcon: true,
+						NcNoteCard: true,
+						UploadProgress: true,
+						NcDialog: {
+							name: 'NcDialog',
+							emits: ['submit'],
+							template: '<form @submit.prevent="$emit(\'submit\', $event)"><slot /><slot name="actions" /></form>',
+						},
+						NcTextField: {
+							name: 'NcTextField',
+							props: ['modelValue'],
+							emits: ['update:modelValue'],
+							template: '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)">',
+						},
+						NcButton: {
+							name: 'NcButton',
+							props: ['disabled', 'type'],
+							emits: ['click'],
+							template: '<button :disabled="disabled" :type="type" @click="$emit(\'click\', $event)"><slot /></button>',
+						},
+					},
+					mocks: { t: tSimple },
+				},
+			}) as RequestPickerWrapper
+			urlWrapper.vm.showModalUploadFromUrl()
+			await nextTick()
+		}
+
+		it.each([
+			['an empty URL', ''],
+			['a value that is not a URL', 'contract.pdf'],
+		])('keeps Send disabled and does not upload for %s', async (_description, value) => {
+			await mountWithUrlDialog()
+			await urlWrapper.find('input').setValue(value)
+			const sendButton = urlWrapper.find('button[type="submit"]')
+			expect(sendButton.attributes()).toHaveProperty('disabled')
+			await sendButton.trigger('click')
+			expect(filesStore.upload).not.toHaveBeenCalled()
+		})
+
+		it('uploads once when Send is clicked with a valid URL', async () => {
+			filesStore.upload.mockResolvedValue(1)
+			await mountWithUrlDialog()
+			await urlWrapper.find('input').setValue(validUrl)
+			const sendButton = urlWrapper.find('button[type="submit"]')
+			expect(sendButton.attributes()).not.toHaveProperty('disabled')
+			await sendButton.trigger('click')
+			await flushPromises()
+			expect(filesStore.upload).toHaveBeenCalledTimes(1)
+			expect(filesStore.upload).toHaveBeenCalledWith({ file: { url: validUrl } })
+		})
+
+		it('uploads once when the URL form is submitted', async () => {
+			filesStore.upload.mockResolvedValue(1)
+			await mountWithUrlDialog()
+			await urlWrapper.find('input').setValue(validUrl)
+			await urlWrapper.find('form').trigger('submit')
+			await flushPromises()
+			expect(filesStore.upload).toHaveBeenCalledTimes(1)
+			expect(filesStore.upload).toHaveBeenCalledWith({ file: { url: validUrl } })
 		})
 	})
 

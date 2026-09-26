@@ -8,6 +8,10 @@ import { mount } from '@vue/test-utils'
 
 const getCurrentUserMock = vi.fn()
 
+vi.mock('@nextcloud/vue/components/NcAppContent', () => ({
+	default: { name: 'NcAppContent', template: '<div><slot /></div>' },
+}))
+
 vi.mock('@nextcloud/auth', () => ({
 	getCurrentUser: () => getCurrentUserMock(),
 }))

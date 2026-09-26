@@ -11,12 +11,6 @@ declare module '*.vue' {
 	export default component
 }
 
-declare module '@nextcloud/vue/components/*' {
-	import type { DefineComponent } from 'vue'
-	const component: DefineComponent
-	export default component
-}
-
 declare module '@vue/runtime-core' {
 	interface ComponentCustomProperties {
 		$t: typeof import('@nextcloud/l10n').translate

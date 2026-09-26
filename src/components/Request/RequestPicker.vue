@@ -86,8 +86,7 @@
 			<template #actions>
 				<NcButton :disabled="!canUploadFronUrl"
 					type="submit"
-					variant="primary"
-					@click="uploadUrl()">
+					variant="primary">
 					{{ t('libresign', 'Send') }}
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />

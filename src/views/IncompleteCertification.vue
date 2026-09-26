@@ -3,24 +3,26 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div class="container">
-		<div class="container-image">
-			<img :src="image" draggable="false">
+	<NcAppContent>
+		<div class="container">
+			<div class="container-image">
+				<img :src="image" draggable="false">
+			</div>
+			<h1 class="title">
+				{{ t('libresign', 'Welcome to LibreSign') }}
+			</h1>
+			<NcButton v-if="isAdmin"
+				@click="finishSetup">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiCogs" :size="20" />
+				</template>
+				{{ t('libresign', 'Finish the setup') }}
+			</NcButton>
+			<p v-else>
+				{{ t('libresign', 'The admin hasn\'t set up LibreSign yet, please wait.') }}
+			</p>
 		</div>
-		<h1 class="title">
-			{{ t('libresign', 'Welcome to LibreSign') }}
-		</h1>
-		<NcButton v-if="isAdmin"
-			@click="finishSetup">
-			<template #icon>
-				<NcIconSvgWrapper :path="mdiCogs" :size="20" />
-			</template>
-			{{ t('libresign', 'Finish the setup') }}
-		</NcButton>
-		<p v-else>
-			{{ t('libresign', 'The admin hasn\'t set up LibreSign yet, please wait.') }}
-		</p>
-	</div>
+	</NcAppContent>
 </template>
 
 <script setup lang="ts">
@@ -32,6 +34,7 @@ import { mdiCogs } from '@mdi/js'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 
+import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 

@@ -10,6 +10,10 @@ import IncompleteCertification from '../../views/IncompleteCertification.vue'
 const getCurrentUserMock = vi.fn()
 const generateUrlMock = vi.fn(() => 'settings/admin/libresign')
 
+vi.mock('@nextcloud/vue/components/NcAppContent', () => ({
+	default: { name: 'NcAppContent', template: '<div><slot /></div>' },
+}))
+
 vi.mock('@nextcloud/auth', () => ({
 	getCurrentUser: () => getCurrentUserMock(),
 }))

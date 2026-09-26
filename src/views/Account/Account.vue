@@ -3,34 +3,37 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div class="content-account">
-		<div class="user">
-			<UserImage v-bind="{ user }" />
-			<div class="details">
-				<div class="user-details">
-					<h3>{{ t('libresign', 'Details') }}</h3>
-					<div class="user-display-name icon-user">
-						<p>{{ user.displayName }}</p>
+	<NcAppContent>
+		<div class="content-account">
+			<div class="user">
+				<UserImage v-bind="{ user }" />
+				<div class="details">
+					<div class="user-details">
+						<h3>{{ t('libresign', 'Details') }}</h3>
+						<div class="user-display-name icon-user">
+							<p>{{ user.displayName }}</p>
+						</div>
+					</div>
+					<div class="user-password">
+						<h3>{{ t('libresign', 'Certificate') }}</h3>
+						<ManagePassword />
 					</div>
 				</div>
-				<div class="user-password">
-					<h3>{{ t('libresign', 'Certificate') }}</h3>
-					<ManagePassword />
-				</div>
+			</div>
+
+			<div class="user">
+				<Signatures />
+				<Documents />
 			</div>
 		</div>
-
-		<div class="user">
-			<Signatures />
-			<Documents />
-		</div>
-	</div>
+	</NcAppContent>
 </template>
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 
 import { getCurrentUser } from '@nextcloud/auth'
+import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 
 import Documents from './partials/Documents.vue'
 import ManagePassword from './partials/ManagePassword.vue'
@@ -61,9 +64,6 @@ defineExpose({
 <style lang="scss" scoped>
 
 .app-content{
-	display: flex;
-	flex-direction: row;
-
 	.content-account{
 		width: 100%;
 		margin-top: 50px;
