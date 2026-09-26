@@ -9,6 +9,8 @@ namespace OCA\Libresign\Tests\Unit\Service;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Service\FolderService;
@@ -21,6 +23,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\File;
 use OCP\Files\Folder;
+use OCP\Files\IMimeTypeDetector;
 use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -575,6 +578,57 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		$this->getService()->saveVisibleElement([
 			'elementId' => 10, 'file' => ['url' => $url],
 		], 'session-id', null);
+	}
+
+	#[DataProvider('provideVisibleElementUrlContent')]
+	public function testVisibleElementUrlValidatesDownloadedBytes(
+		string $content,
+		?string $detectedMime,
+		?string $expectedException,
+	): void {
+		$element = new UserElement();
+		$element->setNodeId(42);
+		$this->userElementMapper->method('findOne')->with(['id' => 10])->willReturn($element);
+		$file = $this->createMock(File::class);
+		$this->folderService->method('getFileByNodeId')->with(42)->willReturn($file);
+
+		$response = $this->createMock(IResponse::class);
+		$response->method('getHeader')->with('Content-Type')->willReturn('image/png');
+		$response->method('getBody')->willReturn($content);
+		$client = $this->createMock(IClient::class);
+		$client->method('get')->with('https://example.com/image.png')->willReturn($response);
+		$this->clientService->method('newClient')->willReturn($client);
+
+		$mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
+		$mimeTypeDetector->method('detectString')->with($content)->willReturn($detectedMime);
+		$this->fileInputValidator = new FileInputValidator(
+			$this->l10n,
+			$this->createMock(SignRequestMapper::class),
+			$this->createMock(FileMapper::class),
+			$mimeTypeDetector,
+			$this->folderService,
+		);
+
+		if ($expectedException !== null) {
+			$file->expects($this->never())->method('putContent');
+			$this->expectException($expectedException);
+		} else {
+			$file->expects($this->once())->method('putContent')->with($content);
+		}
+
+		$this->getService()->saveVisibleElement([
+			'elementId' => 10,
+			'file' => ['url' => 'https://example.com/image.png'],
+		], 'session-id', null);
+	}
+
+	public static function provideVisibleElementUrlContent(): array {
+		return [
+			'valid PNG' => ["\x89PNG\r\n\x1a\ncontent", 'image/png', null],
+			'non-PNG with PNG HTTP header' => ['<html>not an image</html>', 'text/html', \OCA\Libresign\Exception\LibresignException::class],
+			'empty response' => ['', null, \Exception::class],
+			'oversized PNG' => [str_repeat('x', 5000 * 1024 + 1), 'image/png', \InvalidArgumentException::class],
+		];
 	}
 
 	public static function provideInvalidUrlImageCases(): array {
