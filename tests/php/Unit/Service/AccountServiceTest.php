@@ -8,16 +8,12 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use OC\AppFramework\Utility\TimeFactory;
-use OC\Http\Client\ClientService;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Db\UserElement;
-use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
@@ -37,7 +33,6 @@ use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccount;
@@ -47,7 +42,6 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Config\IUserConfig;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\File;
-use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\NotFoundException;
 use OCP\Group\ISubAdmin;
@@ -82,7 +76,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
 	private IdentityDocumentValidator&MockObject $identityDocumentValidator;
-	private FileInputValidator&MockObject $fileInputValidator;
 	private IURLGenerator&MockObject $urlGenerator;
 	private IGroupManager&MockObject $groupManager;
 	private ISubAdmin&MockObject $subAdmin;
@@ -91,10 +84,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IdDocsPolicyService&MockObject $idDocsPolicyService;
 	private IdDocsService&MockObject $idDocsService;
 	private SignerElementsService&MockObject $signerElementsService;
-	private UserElementMapper&MockObject $userElementMapper;
 	private FolderService&MockObject $folderService;
-	private ClientService&MockObject $clientService;
-	private TimeFactory&MockObject $timeFactory;
 	private RequestSignatureService&MockObject $requestSignatureService;
 	private Pkcs12Handler&MockObject $pkcs12Handler;
 	private FileUploadHelper&MockObject $uploadHelper;
@@ -123,7 +113,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->identityDocumentValidator = $this->createMock(IdentityDocumentValidator::class);
-		$this->fileInputValidator = $this->createMock(FileInputValidator::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
@@ -134,10 +123,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->willReturn(false);
 		$this->idDocsService = $this->createMock(IdDocsService::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
-		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->folderService = $this->createMock(FolderService::class);
-		$this->clientService = $this->createMock(ClientService::class);
-		$this->timeFactory = $this->createMock(TimeFactory::class);
 		$this->uploadHelper = $this->createMock(FileUploadHelper::class);
 		$this->crlService = $this->createMock(CrlService::class);
 		$this->requestSignAuthorizationService = $this->createMock(RequestSignAuthorizationService::class);
@@ -162,7 +148,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->identifyMethodService,
 			$this->identifyMethodMapper,
 			$this->identityDocumentValidator,
-			$this->fileInputValidator,
 			$this->urlGenerator,
 			$this->pkcs12Handler,
 			$this->groupManager,
@@ -170,10 +155,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->idDocsPolicyService,
 			$this->idDocsService,
 			$this->signerElementsService,
-			$this->userElementMapper,
 			$this->folderService,
-			$this->clientService,
-			$this->timeFactory,
 			$this->uploadHelper,
 			$this->crlService,
 			$this->requestSignAuthorizationService,
@@ -338,6 +320,39 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->with('admin');
 
 		$this->getService()->deletePfx($user);
+	}
+
+	public function testSaveVisibleElementsDelegatesToSignerElementsService(): void {
+		$user = $this->createMock(IUser::class);
+		$elements = [['type' => 'signature'], ['type' => 'initial']];
+		$this->signerElementsService->expects($this->once())->method('saveVisibleElements')
+			->with($elements, 'session-id', $user);
+
+		$this->getService()->saveVisibleElements($elements, 'session-id', $user);
+	}
+
+	public function testSaveVisibleElementDelegatesToSignerElementsService(): void {
+		$element = ['type' => 'signature', 'nodeId' => 42];
+		$this->signerElementsService->expects($this->once())->method('saveVisibleElement')
+			->with($element, 'session-id', null);
+
+		$this->getService()->saveVisibleElement($element, 'session-id', null);
+	}
+
+	public function testDeleteSignatureElementDelegatesToSignerElementsService(): void {
+		$user = $this->createMock(IUser::class);
+		$this->signerElementsService->expects($this->once())->method('deleteSignatureElement')
+			->with($user, 'session-id', 42);
+
+		$this->getService()->deleteSignatureElement($user, 'session-id', 42);
+	}
+
+	public function testSaveVisibleElementsPropagatesStorageErrors(): void {
+		$error = new NotFoundException('Element not found');
+		$this->signerElementsService->method('saveVisibleElements')->willThrowException($error);
+		$this->expectExceptionObject($error);
+
+		$this->getService()->saveVisibleElements([['elementId' => 42]], 'session-id', null);
 	}
 
 	public function testGetConfigSetsCanManageGroupPoliciesForSubAdmin(): void {
@@ -863,297 +878,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'File not found'
 			],
 		];
-	}
-
-	public function testDeleteSignatureElementWithUserDeletesFromDB(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('testuser');
-
-		// Use real UserElement instead of mock since it uses magic methods
-		$element = new UserElement();
-		$element->setId(42);
-		$element->setNodeId(123);
-
-		$this->userElementMapper
-			->expects($this->once())
-			->method('findOne')
-			->with([
-				'node_id' => 123,
-				'user_id' => 'testuser',
-			])
-			->willReturn($element);
-
-		$this->userElementMapper
-			->expects($this->once())
-			->method('delete')
-			->with($element);
-
-		$file = $this->createMock(File::class);
-		$file->expects($this->once())
-			->method('delete');
-
-		$this->folderService
-			->expects($this->once())
-			->method('getFileByNodeId')
-			->with(123)
-			->willReturn($file);
-
-		$this->getService()->deleteSignatureElement($user, 'session123', 123);
-	}
-
-	public function testDeleteSignatureElementWithUserWhenFileNotFound(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('testuser');
-
-		// Use real UserElement
-		$element = new UserElement();
-		$element->setNodeId(123);
-
-		$this->userElementMapper
-			->expects($this->once())
-			->method('findOne')
-			->willReturn($element);
-
-		$this->userElementMapper
-			->expects($this->once())
-			->method('delete')
-			->with($element);
-
-		$this->folderService
-			->expects($this->once())
-			->method('getFileByNodeId')
-			->willThrowException(new NotFoundException());
-
-		// Should not throw, just skip file deletion
-		$this->getService()->deleteSignatureElement($user, 'session123', 123);
-	}
-
-	public function testDeleteSignatureElementWithUserWhenFileDeleteFails(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('testuser');
-
-		$element = new UserElement();
-		$element->setNodeId(123);
-
-		$this->userElementMapper
-			->expects($this->once())
-			->method('findOne')
-			->willReturn($element);
-
-		$this->userElementMapper
-			->expects($this->once())
-			->method('delete')
-			->with($element);
-
-		$file = $this->createMock(File::class);
-		$file->expects($this->once())
-			->method('delete')
-			->willThrowException(new \Exception('storage error'));
-
-		$this->folderService
-			->expects($this->once())
-			->method('getFileByNodeId')
-			->with(123)
-			->willReturn($file);
-
-		// Should not throw, element deletion in DB must be enough
-		$this->getService()->deleteSignatureElement($user, 'session123', 123);
-	}
-
-	public function testDeleteSignatureElementWithoutUserDeletesFromSession(): void {
-		$sessionFolder = $this->createMock(Folder::class);
-		$element = $this->createMock(File::class);
-
-		$element->expects($this->once())
-			->method('delete');
-
-		$sessionFolder
-			->expects($this->once())
-			->method('getFirstNodeById')
-			->with(456)
-			->willReturn($element);
-
-		// Session folder becomes empty after deletion
-		$sessionFolder
-			->expects($this->once())
-			->method('getDirectoryListing')
-			->willReturn([]);
-
-		// Empty folder should be deleted too
-		$sessionFolder
-			->expects($this->once())
-			->method('delete');
-
-		$rootFolder = $this->createMock(Folder::class);
-		$rootFolder
-			->expects($this->once())
-			->method('get')
-			->with('session789')
-			->willReturn($sessionFolder);
-
-		$this->folderService
-			->expects($this->once())
-			->method('getFolder')
-			->willReturn($rootFolder);
-
-		$this->getService()->deleteSignatureElement(null, 'session789', 456);
-	}
-
-	public function testDeleteSignatureElementWithoutUserThrowsWhenSessionFolderNotFound(): void {
-		$this->expectException(DoesNotExistException::class);
-		$this->expectExceptionMessage('Element not found');
-
-		$rootFolder = $this->createMock(Folder::class);
-		$rootFolder
-			->expects($this->once())
-			->method('get')
-			->with('nonexistent')
-			->willThrowException(new NotFoundException());
-
-		$this->folderService
-			->expects($this->once())
-			->method('getFolder')
-			->willReturn($rootFolder);
-
-		$this->getService()->deleteSignatureElement(null, 'nonexistent', 999);
-	}
-
-	public function testDeleteSignatureElementWithoutUserThrowsWhenNodeNotInSession(): void {
-		$this->expectException(DoesNotExistException::class);
-		$this->expectExceptionMessage('Element not found');
-
-		$sessionFolder = $this->createMock(Folder::class);
-		$sessionFolder
-			->expects($this->once())
-			->method('getFirstNodeById')
-			->with(999)
-			->willReturn(null);
-
-		$rootFolder = $this->createMock(Folder::class);
-		$rootFolder
-			->expects($this->once())
-			->method('get')
-			->with('session123')
-			->willReturn($sessionFolder);
-
-		$this->folderService
-			->expects($this->once())
-			->method('getFolder')
-			->willReturn($rootFolder);
-
-		$this->getService()->deleteSignatureElement(null, 'session123', 999);
-	}
-
-	public function testDeleteSignatureElementWithoutUserThrowsWhenNodeIsNotFile(): void {
-		$this->expectException(DoesNotExistException::class);
-		$this->expectExceptionMessage('Element not found');
-
-		$sessionFolder = $this->createMock(Folder::class);
-		$folderNode = $this->createMock(Folder::class); // Not a File!
-
-		$sessionFolder
-			->expects($this->once())
-			->method('getFirstNodeById')
-			->with(777)
-			->willReturn($folderNode);
-
-		$rootFolder = $this->createMock(Folder::class);
-		$rootFolder
-			->expects($this->once())
-			->method('get')
-			->with('session456')
-			->willReturn($sessionFolder);
-
-		$this->folderService
-			->expects($this->once())
-			->method('getFolder')
-			->willReturn($rootFolder);
-
-		$this->getService()->deleteSignatureElement(null, 'session456', 777);
-	}
-
-	public function testDeleteSignatureElementOnlyDeletesSpecificFileNotWholeFolder(): void {
-		// This test validates the critical security fix:
-		// Previously: deleted entire session folder immediately (losing all files)
-		// Now: deletes only specific file by nodeId, keeps other files intact
-
-		$sessionFolder = $this->createMock(Folder::class);
-		$targetFile = $this->createMock(File::class);
-		$otherFile = $this->createMock(File::class);
-
-		// Should call delete on the specific FILE, not on the FOLDER
-		$targetFile->expects($this->once())
-			->method('delete');
-
-		$sessionFolder
-			->expects($this->once())
-			->method('getFirstNodeById')
-			->with(100)
-			->willReturn($targetFile);
-
-		// After deleting target file, folder still has other files
-		$sessionFolder
-			->expects($this->once())
-			->method('getDirectoryListing')
-			->willReturn([$otherFile]);
-
-		// Folder should NOT be deleted because it still has files
-		$sessionFolder->expects($this->never())
-			->method('delete');
-
-		$rootFolder = $this->createMock(Folder::class);
-		$rootFolder
-			->expects($this->once())
-			->method('get')
-			->with('mysession')
-			->willReturn($sessionFolder);
-
-		$this->folderService
-			->expects($this->once())
-			->method('getFolder')
-			->willReturn($rootFolder);
-
-		$this->getService()->deleteSignatureElement(null, 'mysession', 100);
-	}
-
-	public function testDeleteSignatureElementDeletesEmptySessionFolder(): void {
-		// When the last element is deleted, the empty session folder should be cleaned up
-
-		$sessionFolder = $this->createMock(Folder::class);
-		$lastFile = $this->createMock(File::class);
-
-		$lastFile->expects($this->once())
-			->method('delete');
-
-		$sessionFolder
-			->expects($this->once())
-			->method('getFirstNodeById')
-			->with(200)
-			->willReturn($lastFile);
-
-		// After deleting last file, folder is empty
-		$sessionFolder
-			->expects($this->once())
-			->method('getDirectoryListing')
-			->willReturn([]);
-
-		// Empty folder SHOULD be deleted
-		$sessionFolder->expects($this->once())
-			->method('delete');
-
-		$rootFolder = $this->createMock(Folder::class);
-		$rootFolder
-			->expects($this->once())
-			->method('get')
-			->with('session999')
-			->willReturn($sessionFolder);
-
-		$this->folderService
-			->expects($this->once())
-			->method('getFolder')
-			->willReturn($rootFolder);
-
-		$this->getService()->deleteSignatureElement(null, 'session999', 200);
 	}
 
 	public function testGetConfigIncludesManageablePolicyGroupIds(): void {
