@@ -112,16 +112,10 @@ class AccountService {
 
 	public function getFileByUuid(string $uuid): array {
 		$signRequest = $this->getSignRequestByUuid($uuid);
-		if (!$this->fileData instanceof \OCA\Libresign\Db\File) {
-			$this->fileData = $this->fileMapper->getById($signRequest->getFileId());
+		$fileData = $this->fileMapper->getById($signRequest->getFileId());
+		$nodeId = $fileData->getNodeId();
+		$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($nodeId);
 
-			$nodeId = $this->fileData->getNodeId();
-
-			$fileToSign = $this->root->getUserFolder($this->fileData->getUserId())->getFirstNodeById($nodeId);
-			if ($fileToSign) {
-				$this->fileToSign = $fileToSign;
-			}
-		}
 		return [
 			'fileData' => $fileData,
 			'fileToSign' => $fileToSign instanceof File ? $fileToSign : null,

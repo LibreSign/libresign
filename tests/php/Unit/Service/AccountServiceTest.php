@@ -188,6 +188,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$requests = [];
 		$files = [];
 		$nodes = [];
+		$folders = [];
 		foreach (['uuid-a' => 10, 'uuid-b' => 20] as $uuid => $fileId) {
 			$requests[$uuid] = new SignRequest();
 			$requests[$uuid]->setUuid($uuid);
@@ -197,6 +198,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$files[$fileId]->setUserId('owner-' . $uuid);
 			$files[$fileId]->setNodeId($fileId + 1);
 			$nodes[$fileId + 1] = $this->createMock(File::class);
+			$folders['owner-' . $uuid] = $this->createMock(Folder::class);
+			$folders['owner-' . $uuid]->method('getFirstNodeById')
+				->with($fileId + 1)
+				->willReturn($nodes[$fileId + 1]);
 		}
 		$this->signRequestMapper->method('getByUuid')->willReturnCallback(
 			static fn (string $uuid): SignRequest => $requests[$uuid],
@@ -204,10 +209,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileMapper->method('getById')->willReturnCallback(
 			static fn (int $id): \OCA\Libresign\Db\File => $files[$id],
 		);
-		$this->folderService->method('getReadableNodeById')->willReturnMap([
-			['owner-uuid-a', 11, $nodes[11]],
-			['owner-uuid-b', 21, $nodes[21]],
-		]);
+		$this->root->method('getUserFolder')->willReturnCallback(
+			static fn (string $userId): Folder => $folders[$userId],
+		);
 
 		$service = $this->getService();
 		foreach ($uuids as $uuid) {
@@ -228,11 +232,14 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->setUserId('owner');
 		$file->setNodeId(11);
 		$firstNode = $this->createMock(File::class);
-		$secondNode = $isFolder ? $this->createMock(\OCP\Files\Folder::class) : null;
+		$secondNode = $isFolder ? $this->createMock(Folder::class) : null;
+		$userFolder = $this->createMock(Folder::class);
 		$this->signRequestMapper->method('getByUuid')->willReturn($request);
 		$this->fileMapper->method('getById')->with(10)->willReturn($file);
-		$this->folderService->method('getReadableNodeById')
-			->with('owner', 11)->willReturn($firstNode, $secondNode);
+		$this->root->method('getUserFolder')->with('owner')->willReturn($userFolder);
+		$userFolder->method('getFirstNodeById')
+			->with(11)
+			->willReturn($firstNode, $secondNode);
 
 		$service = $this->getService();
 		$this->assertSame($firstNode, $service->getFileByUuid('uuid-a')['fileToSign']);
@@ -275,11 +282,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->setUserId('owner');
 		$file->setNodeId(11);
 		$node = $this->createMock(File::class);
+		$userFolder = $this->createMock(Folder::class);
 		$error = new NotFoundException('Storage unavailable');
 		$this->signRequestMapper->method('getByUuid')->with('uuid-a')->willReturn($request);
 		$this->fileMapper->method('getById')->with(10)->willReturn($file);
+		$this->root->method('getUserFolder')->with('owner')->willReturn($userFolder);
 		$attempts = 0;
-		$this->folderService->method('getReadableNodeById')->with('owner', 11)
+		$userFolder->method('getFirstNodeById')->with(11)
 			->willReturnCallback(static function () use (&$attempts, $node, $error): File {
 				if ($attempts++ === 0) {
 					throw $error;
