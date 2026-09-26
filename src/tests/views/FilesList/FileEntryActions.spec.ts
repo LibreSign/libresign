@@ -479,4 +479,32 @@ describe('FileEntryActions.vue', () => {
 		expect(filesStoreMock.delete).toHaveBeenCalledWith(source, false)
 		expect(wrapper.vm.deleting).toBe(false)
 	})
+
+	it.each([
+		['closes', false],
+		['opens from its button', true],
+	])('resets the right-click menu position when the menu %s', (_action, open) => {
+		const appContent = document.createElement('main')
+		appContent.className = 'app-content'
+		appContent.style.setProperty('--mouse-pos-x', '100px')
+		appContent.style.setProperty('--mouse-pos-y', '200px')
+		document.body.appendChild(appContent)
+		actionsMenuStoreMock.opened = open ? 2 : 1
+		const wrapper = mount(FileEntryActions, {
+			props: {
+				opened: false,
+				source,
+				loading: false,
+			},
+			attachTo: appContent,
+		})
+
+		wrapper.findComponent({ name: 'NcActions' }).vm.$emit('update:open', open)
+
+		expect(actionsMenuStoreMock.opened).toBe(open ? 1 : null)
+		expect(appContent.style.getPropertyValue('--mouse-pos-x')).toBe('')
+		expect(appContent.style.getPropertyValue('--mouse-pos-y')).toBe('')
+		wrapper.unmount()
+		appContent.remove()
+	})
 })

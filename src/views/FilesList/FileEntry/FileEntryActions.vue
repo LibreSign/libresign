@@ -11,8 +11,7 @@
 			:container="boundariesElement"
 			:force-name="true"
 			variant="tertiary"
-			@close="openedMenu = false"
-			@closed="onMenuClosed">
+			@close="openedMenu = false">
 			<!-- Default actions list-->
 			<NcActionButton v-for="action in visibleMenu"
 				:key="action.id"
@@ -166,6 +165,8 @@ const openedMenu = computed({
 	get: () => actionsMenuStore.opened === props.source.id,
 	set: (opened) => {
 		actionsMenuStore.opened = opened ? props.source.id : null
+		// Only a right-click positions the menu; `closed` is not reliably emitted to reset it
+		resetMenuPosition()
 	},
 })
 
@@ -280,13 +281,11 @@ function doRename(newName: string) {
 	return filesStore.rename(props.source.uuid, newName)
 }
 
-function onMenuClosed() {
-	if (actionsMenuStore.opened === null) {
-		const root = rootElement.value?.closest('.app-content') as HTMLElement | null
-		if (root) {
-			root.style.removeProperty('--mouse-pos-x')
-			root.style.removeProperty('--mouse-pos-y')
-		}
+function resetMenuPosition() {
+	const root = rootElement.value?.closest('.app-content') as HTMLElement | null
+	if (root) {
+		root.style.removeProperty('--mouse-pos-x')
+		root.style.removeProperty('--mouse-pos-y')
 	}
 }
 
@@ -342,7 +341,6 @@ defineExpose({
 	doDelete,
 	openFile,
 	doRename,
-	onMenuClosed,
 })
 </script>
 
