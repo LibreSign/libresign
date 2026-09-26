@@ -361,3 +361,174 @@ describe('policies store', () => {
 		expect(policy?.allowChildOverride).toBe(true)
 	})
 })
+
+it('saves a compound system policy through the compound endpoint', async () => {
+	vi.mocked(axios.post).mockResolvedValueOnce({
+		data: {
+			ocs: {
+				data: {
+					message: 'Settings saved',
+					policies: {
+						rejection_enabled: {
+							policyKey: 'rejection_enabled',
+							effectiveValue: true,
+							allowedValues: [],
+							sourceScope: 'system',
+							visible: true,
+							editableByCurrentActor: true,
+							canSaveAsUserDefault: false,
+							canUseAsRequestOverride: false,
+							preferenceWasCleared: false,
+							blockedBy: null,
+						},
+					},
+				},
+			},
+		},
+	})
+
+	const { usePoliciesStore } = await import('../../store/policies')
+	const store = usePoliciesStore()
+	const policies = await store.saveSystemPolicyCompound('signature_rejection', { rejection_enabled: true })
+
+	expect(axios.post).toHaveBeenCalledWith(
+		'/ocs/v2.php/apps/libresign/api/v1/policies/compound/system/signature_rejection',
+		{ values: { rejection_enabled: true } },
+	)
+	expect(policies?.rejection_enabled?.effectiveValue).toBe(true)
+	expect(store.getPolicy('rejection_enabled')).toBeNull()
+})
+
+it('saves compound system allowChildOverride when provided', async () => {
+	vi.mocked(axios.post).mockResolvedValueOnce({
+		data: { ocs: { data: { message: 'Settings saved', policies: {} } } },
+	})
+
+	const { usePoliciesStore } = await import('../../store/policies')
+	const store = usePoliciesStore()
+	await store.saveSystemPolicyCompound(
+		'signature_rejection',
+		{ rejection_enabled: true, rejection_comment_mode: 'optional' },
+		{ rejection_enabled: false, rejection_comment_mode: true },
+	)
+
+	expect(axios.post).toHaveBeenCalledWith(
+		'/ocs/v2.php/apps/libresign/api/v1/policies/compound/system/signature_rejection',
+		{
+			values: { rejection_enabled: true, rejection_comment_mode: 'optional' },
+			allowChildOverride: { rejection_enabled: false, rejection_comment_mode: true },
+		},
+	)
+})
+
+it('saves a compound group policy through the compound endpoint', async () => {
+	vi.mocked(axios.put).mockResolvedValueOnce({
+		data: {
+			ocs: {
+				data: {
+					message: 'Settings saved',
+					policies: {
+						rejection_enabled: {
+							policyKey: 'rejection_enabled',
+							scope: 'group',
+							targetId: 'finance',
+							value: true,
+							allowChildOverride: false,
+							visibleToChild: true,
+							allowedValues: [],
+						},
+					},
+				},
+			},
+		},
+	})
+
+	const { usePoliciesStore } = await import('../../store/policies')
+	const store = usePoliciesStore()
+	const policies = await store.saveGroupPolicyCompound(
+		'finance',
+		'signature_rejection',
+		{ rejection_enabled: true },
+		{ rejection_enabled: false },
+	)
+
+	expect(axios.put).toHaveBeenCalledWith(
+		'/ocs/v2.php/apps/libresign/api/v1/policies/compound/group/finance/signature_rejection',
+		{ values: { rejection_enabled: true }, allowChildOverride: { rejection_enabled: false } },
+	)
+	expect(policies?.rejection_enabled?.scope).toBe('group')
+	expect(store.getPolicy('rejection_enabled')).toBeNull()
+})
+
+it('saves a compound user preference without allowChildOverride', async () => {
+	vi.mocked(axios.put).mockResolvedValueOnce({
+		data: {
+			ocs: {
+				data: {
+					message: 'Settings saved',
+					policies: {
+						rejection_comment_mode: {
+							policyKey: 'rejection_comment_mode',
+							effectiveValue: 'required',
+							allowedValues: ['disabled', 'optional', 'required'],
+							sourceScope: 'user',
+							visible: true,
+							editableByCurrentActor: true,
+							canSaveAsUserDefault: true,
+							canUseAsRequestOverride: false,
+							preferenceWasCleared: false,
+							blockedBy: null,
+						},
+					},
+				},
+			},
+		},
+	})
+
+	const { usePoliciesStore } = await import('../../store/policies')
+	const store = usePoliciesStore()
+	const policies = await store.saveUserPreferenceCompound('signature_rejection', { rejection_comment_mode: 'required' })
+
+	expect(axios.put).toHaveBeenCalledWith(
+		'/ocs/v2.php/apps/libresign/api/v1/policies/compound/user/signature_rejection',
+		{ values: { rejection_comment_mode: 'required' } },
+	)
+	expect(policies?.rejection_comment_mode?.effectiveValue).toBe('required')
+})
+
+it('saves a compound user policy for a target user through the admin endpoint', async () => {
+	vi.mocked(axios.put).mockResolvedValueOnce({
+		data: {
+			ocs: {
+				data: {
+					message: 'Settings saved',
+					policies: {
+						rejection_enabled: {
+							policyKey: 'rejection_enabled',
+							scope: 'user_policy',
+							targetId: 'user1',
+							value: false,
+							allowChildOverride: true,
+						},
+					},
+				},
+			},
+		},
+	})
+
+	const { usePoliciesStore } = await import('../../store/policies')
+	const store = usePoliciesStore()
+	const policies = await store.saveUserPolicyForUserCompound(
+		'user1',
+		'signature_rejection',
+		{ rejection_enabled: false },
+		{ rejection_enabled: true },
+	)
+
+	expect(axios.put).toHaveBeenCalledWith(
+		'/ocs/v2.php/apps/libresign/api/v1/policies/compound/user/user1/signature_rejection',
+		{ values: { rejection_enabled: false }, allowChildOverride: { rejection_enabled: true } },
+	)
+	expect(policies?.rejection_enabled?.scope).toBe('user_policy')
+	expect(store.getPolicy('rejection_enabled')).toBeNull()
+})
