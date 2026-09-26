@@ -42,7 +42,7 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 	private UserElementMapper&MockObject $userElementMapper;
 	private SignatureBackgroundService&MockObject $signatureBackgroundService;
 	private SignatureTextService&MockObject $signatureTextService;
-	private FileInputValidator&MockObject $fileInputValidator;
+	private FileInputValidator $fileInputValidator;
 	private IClientService&MockObject $clientService;
 	private ITimeFactory&MockObject $timeFactory;
 	private IL10N&MockObject $l10n;
