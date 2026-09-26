@@ -165,6 +165,30 @@ final class FileInputValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 	}
 
+	public function testValidatesRawVisibleElementContent(): void {
+		$content = "\x89PNG-test";
+		$this->mimeTypeDetector->expects($this->once())->method('detectString')->with($content)->willReturn('image/png');
+
+		$this->validator->validateContent($content, FileInputValidator::TYPE_VISIBLE_ELEMENT_USER);
+		$this->addToAssertionCount(1);
+	}
+
+	public function testRejectsNonPngRawVisibleElementContent(): void {
+		$content = '<html>not an image</html>';
+		$this->mimeTypeDetector->method('detectString')->with($content)->willReturn('text/html');
+		$this->expectException(LibresignException::class);
+
+		$this->validator->validateContent($content, FileInputValidator::TYPE_VISIBLE_ELEMENT_USER);
+	}
+
+	public function testRejectsOversizedRawVisibleElementBeforeMimeDetection(): void {
+		$this->mimeTypeDetector->expects($this->never())->method('detectString');
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('File is too big');
+
+		$this->validator->validateContent(str_repeat('x', 5000 * 1024 + 1), FileInputValidator::TYPE_VISIBLE_ELEMENT_USER);
+	}
+
 	public static function base64Cases(): array {
 		$pdf = base64_encode('%PDF-test');
 		$png = base64_encode("\x89PNG-test");
