@@ -493,7 +493,6 @@ class RequestSignatureService {
 
 			$this->sequentialSigningService->resetOrderCounter();
 			$fileStatus = $data['status'] ?? null;
-			$requester = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
 
 			foreach ($normalizedSigners as $signer) {
 				$participantRole = ParticipantRole::fromNullable($signer['participantRole'] ?? null);
@@ -508,9 +507,9 @@ class RequestSignatureService {
 				// Absent key means "leave frozen requirement unchanged" on updates.
 				// Only default to false when creating a sign request that has no freeze yet.
 				$requesterRequiresGeolocation = null;
-				if (array_key_exists('geolocationRequired', $signer)) {
+				if (array_key_exists('deviceGeolocationRequired', $signer)) {
 					$requesterRequiresGeolocation = filter_var(
-						$signer['geolocationRequired'],
+						$signer['deviceGeolocationRequired'],
 						FILTER_VALIDATE_BOOLEAN,
 						FILTER_NULL_ON_FAILURE,
 					) ?? false;
@@ -529,7 +528,7 @@ class RequestSignatureService {
 						fileStatus: $fileStatus,
 						signerStatus: $signerStatus,
 						participantRole: $participantRole,
-						afterPersist: function (SignRequestEntity $signRequest) use ($file, $requesterRequiresGeolocation, $requester): void {
+						afterPersist: function (SignRequestEntity $signRequest) use ($file, $requesterRequiresGeolocation): void {
 							$requiresGeolocation = $requesterRequiresGeolocation;
 							if ($requiresGeolocation === null) {
 								if ($this->signerGeolocationPolicyService->getFrozenRequirement($signRequest) !== null) {
@@ -541,7 +540,6 @@ class RequestSignatureService {
 								$signRequest,
 								$file,
 								$requiresGeolocation,
-								$requester,
 							);
 						},
 					);

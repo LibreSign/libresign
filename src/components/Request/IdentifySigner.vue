@@ -50,7 +50,7 @@
 		</div>
 
 		<div v-if="signerSelected && showGeolocationRequirementToggle && !disabled" class="geolocation-wrapper">
-			<NcCheckboxRadioSwitch v-model="geolocationRequired"
+			<NcCheckboxRadioSwitch v-model="deviceGeolocationRequired"
 				type="switch">
 				<!-- TRANSLATORS Switch label allowing the requester to require device-reported location for this signer. -->
 				{{ t('libresign', 'Require device-reported location to sign') }}
@@ -163,9 +163,9 @@ type SignerToEdit = {
 	description?: string
 	participantRole?: ParticipantRole
 	identifyMethods?: SignerMethodValue[]
-	geolocationRequired?: boolean
+	deviceGeolocationRequired?: boolean
 	metadata?: {
-		geolocationRequirement?: string
+		deviceGeolocationRequirement?: string
 	}
 }
 
@@ -204,17 +204,28 @@ const nameHaveError = ref(false)
 const displayName = ref('')
 const description = ref('')
 const enableCustomMessage = ref(false)
-const geolocationRequired = ref(false)
+const deviceGeolocationRequired = ref(false)
 const identify = ref('')
 const identifyMethod = ref<IdentifyAccountRecord['method'] | undefined>()
 const acceptsEmailNotifications = ref<boolean | undefined>()
 
 const signerGeolocationMode = computed(() => {
 	const file = filesStore.getFile()
-	const snapshotValue = file?.metadata?.policy_snapshot?.signer_geolocation?.effectiveValue
-	// Prefer the policy frozen with this file so later admin changes do not diverge from backend enforcement.
-	return resolveSignerGeolocationMode(snapshotValue)
-		?? resolveSignerGeolocationMode(policiesStore.getEffectiveValue('signer_geolocation'))
+	const policySnapshot = file?.metadata?.policy_snapshot
+	// Only the frozen device-geolocation entry is authoritative. An envelope may
+	// already carry a policy_snapshot that only has enable_observer_profile, while
+	// signer_device_geolocation still lives on child files (backend falls back) or
+	// the live effective policy during request creation.
+	if (
+		policySnapshot
+		&& typeof policySnapshot === 'object'
+		&& Object.hasOwn(policySnapshot, 'signer_device_geolocation')
+	) {
+		return resolveSignerGeolocationMode(policySnapshot.signer_device_geolocation?.effectiveValue)
+			?? 'disabled'
+	}
+	return resolveSignerGeolocationMode(policiesStore.getEffectiveValue('signer_device_geolocation'))
+		?? 'disabled'
 })
 const showGeolocationRequirementToggle = computed(() => signerGeolocationMode.value === 'optional')
 
@@ -247,7 +258,7 @@ function resetSelectedSignerState() {
 	displayName.value = ''
 	description.value = ''
 	enableCustomMessage.value = false
-	geolocationRequired.value = false
+	deviceGeolocationRequired.value = false
 	identify.value = ''
 	identifyMethod.value = undefined
 	acceptsEmailNotifications.value = undefined
@@ -364,7 +375,7 @@ async function saveSigner() {
 		participantRole,
 		...(identifyMethod.value === 'email' ? { email: identify.value } : {}),
 		...(showGeolocationRequirementToggle.value
-			? { geolocationRequired: geolocationRequired.value }
+			? { deviceGeolocationRequired: deviceGeolocationRequired.value }
 			: {}),
 		status: SIGN_REQUEST_STATUS.DRAFT,
 		statusText: getSignRequestStatusText(SIGN_REQUEST_STATUS.DRAFT),
@@ -422,8 +433,8 @@ onBeforeMount(() => {
 	displayName.value = props.signerToEdit.displayName ?? ''
 	description.value = props.signerToEdit.description ?? ''
 	enableCustomMessage.value = !!props.signerToEdit.description
-	geolocationRequired.value = props.signerToEdit.geolocationRequired === true
-		|| props.signerToEdit.metadata?.geolocationRequirement === 'required'
+	deviceGeolocationRequired.value = props.signerToEdit.deviceGeolocationRequired === true
+		|| props.signerToEdit.metadata?.deviceGeolocationRequirement === 'required'
 	identify.value = getSignerToEditIdentify(props.signerToEdit)
 	if (Object.keys(props.signerToEdit).length > 0 && props.signerToEdit.identifyMethods?.length) {
 		const method = props.signerToEdit.identifyMethods[0]
@@ -440,7 +451,7 @@ defineExpose({
 	displayName,
 	description,
 	enableCustomMessage,
-	geolocationRequired,
+	deviceGeolocationRequired,
 	showGeolocationRequirementToggle,
 	identify,
 	identifyMethod,

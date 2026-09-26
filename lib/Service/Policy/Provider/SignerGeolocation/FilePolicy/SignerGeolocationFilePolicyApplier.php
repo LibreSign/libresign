@@ -31,6 +31,14 @@ class SignerGeolocationFilePolicyApplier extends AbstractFilePolicyApplier {
 
 	#[\Override]
 	public function sync(FileEntity $file, array $data): void {
+		if ($this->hasSnapshot($file)) {
+			return;
+		}
+
+		if ($file->isEnvelope()) {
+			return;
+		}
+
 		$requestOverrides = $this->getOverrides($data);
 		$activeContext = $this->extractActiveContext($data);
 		$resolvedPolicy = $activeContext === null
@@ -71,5 +79,16 @@ class SignerGeolocationFilePolicyApplier extends AbstractFilePolicyApplier {
 			$resolvedPolicy,
 			SignerGeolocationPolicyValue::normalize($resolvedPolicy->getEffectiveValue()),
 		);
+	}
+
+	private function hasSnapshot(FileEntity $file): bool {
+		$metadata = $file->getMetadata() ?? [];
+		$policySnapshot = $metadata['policy_snapshot'] ?? null;
+		if (!is_array($policySnapshot)) {
+			return false;
+		}
+
+		$entry = $policySnapshot[SignerGeolocationPolicy::KEY] ?? null;
+		return is_array($entry) && array_key_exists('effectiveValue', $entry);
 	}
 }

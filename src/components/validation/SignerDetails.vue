@@ -249,8 +249,8 @@
 				{{ signer.user_agent }}
 			</template>
 		</NcListItem>
-		<DeviceReportedLocation v-if="isOpen && signer.metadata?.geolocation"
-			:geolocation="signer.metadata?.geolocation" />
+		<DeviceReportedLocation v-if="isOpen && signer.metadata?.geolocation?.device"
+			:geolocation="signer.metadata?.geolocation?.device" />
 
 		<!-- Certificate Chain Section -->
 		<CertificateChain v-if="isOpen && signer.chain && signer.chain.length > 0"
@@ -338,11 +338,13 @@ type SignerModel = {
 	user_agent?: string
 	metadata?: {
 		geolocation?: {
-			status?: string
-			latitude?: number
-			longitude?: number
-			accuracy?: number
-			timestamp?: number
+			device?: {
+				status?: string
+				latitude?: number
+				longitude?: number
+				accuracy?: number
+				timestamp?: number
+			}
 		}
 	}
 	valid_from?: string | number

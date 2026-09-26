@@ -1261,7 +1261,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public static function providerStoreUserMetadata(): array {
-		$geo = ['status' => 'collected', 'latitude' => 1.0, 'longitude' => 2.0];
+		$device = ['status' => 'collected', 'latitude' => 1.0, 'longitude' => 2.0];
+		$geo = ['device' => $device];
+		$ip = ['status' => 'resolved', 'sourceIp' => '81.2.69.160', 'countryCode' => 'GB'];
 
 		return [
 			// collect_metadata disabled: audit fields are ignored
@@ -1271,6 +1273,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			// geolocation is stored independently of collect_metadata
 			[false, null, ['geolocation' => $geo], ['geolocation' => $geo]],
 			[false, null, ['user-agent' => 'Mozilla/5.0', 'geolocation' => $geo], ['geolocation' => $geo]],
+			// device and ip coexist without overwriting each other
+			[false, ['geolocation' => $geo], ['geolocation' => ['ip' => $ip]], ['geolocation' => ['device' => $device, 'ip' => $ip]]],
 			// collect_metadata enabled: audit fields are stored
 			[true, null, [], null],
 			[true, null, ['user-agent' => 'Mozilla/5.0'], ['user-agent' => 'Mozilla/5.0']],

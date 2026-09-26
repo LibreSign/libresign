@@ -20,6 +20,8 @@ use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Enum\SignerGeolocationCollectionStatus;
 use OCA\Libresign\Enum\SignerGeolocationMode;
+use OCA\Libresign\Enum\SignerIpGeolocationStatus;
+use OCA\Libresign\Enum\SignerIpGeolocationUnavailableReason;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
@@ -45,6 +47,8 @@ use OCP\IUserManager;
  * @psalm-import-type LibresignSignerDetail from ResponseDefinitions
  * @psalm-import-type LibresignSignerSummary from ResponseDefinitions
  * @psalm-import-type LibresignGeolocationRequirement from ResponseDefinitions
+ * @psalm-import-type LibresignSignerDeviceGeolocation from ResponseDefinitions
+ * @psalm-import-type LibresignSignerIpGeolocation from ResponseDefinitions
  * @psalm-import-type LibresignSignerGeolocation from ResponseDefinitions
  */
 class FileListService {
@@ -482,16 +486,22 @@ class FileListService {
 			$data['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
 		}
 
-		$geolocationMetadata = $this->extractGeolocationMetadataFromSignRequest($signer);
+		$requesterUserId = $fileEntity?->getUserId() ?? '';
+		$canViewSensitiveSignerMetadata = $data['me']
+			|| ($requesterUserId !== '' && $user?->getUID() === $requesterUserId);
+
+		$geolocationMetadata = $this->extractGeolocationMetadataFromSignRequest(
+			$signer,
+			$canViewSensitiveSignerMetadata,
+		);
 		if ($geolocationMetadata !== []) {
 			$data['metadata'] = $geolocationMetadata;
 		}
 
-		$requesterUserId = $fileEntity?->getUserId() ?? '';
 		$rejection = $this->signatureRejectionVisibilityService->buildSignerRejection(
 			$signer,
 			$fileEntity,
-			$data['me'] || ($requesterUserId !== '' && $user?->getUID() === $requesterUserId),
+			$canViewSensitiveSignerMetadata,
 		);
 		if ($rejection !== null) {
 			$data['rejection'] = $rejection;
@@ -503,11 +513,14 @@ class FileListService {
 
 	/**
 	 * @psalm-return array{
-	 *     geolocationRequirement?: LibresignGeolocationRequirement,
+	 *     deviceGeolocationRequirement?: LibresignGeolocationRequirement,
 	 *     geolocation?: LibresignSignerGeolocation,
 	 * }
 	 */
-	private function extractGeolocationMetadataFromSignRequest(SignRequest $signer): array {
+	private function extractGeolocationMetadataFromSignRequest(
+		SignRequest $signer,
+		bool $includeSourceIp = false,
+	): array {
 		$signerMetadata = $signer->getMetadata();
 		if (!is_array($signerMetadata) || $signerMetadata === []) {
 			return [];
@@ -522,27 +535,74 @@ class FileListService {
 		}
 
 		$storedGeolocation = $signerMetadata[SignerGeolocationMetadataValidator::METADATA_GEOLOCATION_KEY] ?? null;
-		if (is_array($storedGeolocation)) {
-			$status = SignerGeolocationCollectionStatus::tryFrom((string)($storedGeolocation['status'] ?? ''));
+		if (!is_array($storedGeolocation)) {
+			return $geolocationMetadata;
+		}
+
+		$geolocation = [];
+
+		$storedDevice = $storedGeolocation[SignerGeolocationMetadataValidator::METADATA_DEVICE_KEY] ?? null;
+		if (is_array($storedDevice)) {
+			$status = SignerGeolocationCollectionStatus::tryFrom((string)($storedDevice['status'] ?? ''));
 			if ($status !== null) {
-				/** @var LibresignSignerGeolocation $geolocation */
-				$geolocation = [
+				/** @var LibresignSignerDeviceGeolocation $device */
+				$device = [
 					'status' => $status->value,
 				];
-				if (array_key_exists('latitude', $storedGeolocation) && is_numeric($storedGeolocation['latitude'])) {
-					$geolocation['latitude'] = (float)$storedGeolocation['latitude'];
+				if (array_key_exists('latitude', $storedDevice) && is_numeric($storedDevice['latitude'])) {
+					$device['latitude'] = (float)$storedDevice['latitude'];
 				}
-				if (array_key_exists('longitude', $storedGeolocation) && is_numeric($storedGeolocation['longitude'])) {
-					$geolocation['longitude'] = (float)$storedGeolocation['longitude'];
+				if (array_key_exists('longitude', $storedDevice) && is_numeric($storedDevice['longitude'])) {
+					$device['longitude'] = (float)$storedDevice['longitude'];
 				}
-				if (array_key_exists('accuracy', $storedGeolocation) && is_numeric($storedGeolocation['accuracy'])) {
-					$geolocation['accuracy'] = (float)$storedGeolocation['accuracy'];
+				if (array_key_exists('accuracy', $storedDevice) && is_numeric($storedDevice['accuracy'])) {
+					$device['accuracy'] = (float)$storedDevice['accuracy'];
 				}
-				if (array_key_exists('timestamp', $storedGeolocation) && is_numeric($storedGeolocation['timestamp'])) {
-					$geolocation['timestamp'] = (int)$storedGeolocation['timestamp'];
+				if (array_key_exists('timestamp', $storedDevice) && is_numeric($storedDevice['timestamp'])) {
+					$device['timestamp'] = (int)$storedDevice['timestamp'];
 				}
-				$geolocationMetadata[SignerGeolocationMetadataValidator::METADATA_GEOLOCATION_KEY] = $geolocation;
+				$geolocation[SignerGeolocationMetadataValidator::METADATA_DEVICE_KEY] = $device;
 			}
+		}
+
+		$storedIp = $storedGeolocation[SignerGeolocationMetadataValidator::METADATA_IP_KEY] ?? null;
+		if (is_array($storedIp)) {
+			$status = SignerIpGeolocationStatus::tryFrom((string)($storedIp['status'] ?? ''));
+			if ($status !== null) {
+				/** @var LibresignSignerIpGeolocation $ip */
+				$ip = [
+					'status' => $status->value,
+				];
+				$stringKeys = ['countryCode', 'country', 'regionCode', 'region', 'city'];
+				if ($includeSourceIp) {
+					array_unshift($stringKeys, 'sourceIp');
+				}
+				foreach ($stringKeys as $stringKey) {
+					if (array_key_exists($stringKey, $storedIp) && is_string($storedIp[$stringKey]) && $storedIp[$stringKey] !== '') {
+						$ip[$stringKey] = $storedIp[$stringKey];
+					}
+				}
+				if (array_key_exists('reason', $storedIp) && is_string($storedIp['reason'])) {
+					$reason = SignerIpGeolocationUnavailableReason::tryFrom($storedIp['reason']);
+					if ($reason !== null) {
+						$ip['reason'] = $reason->value;
+					}
+				}
+				if (array_key_exists('latitude', $storedIp) && is_numeric($storedIp['latitude'])) {
+					$ip['latitude'] = (float)$storedIp['latitude'];
+				}
+				if (array_key_exists('longitude', $storedIp) && is_numeric($storedIp['longitude'])) {
+					$ip['longitude'] = (float)$storedIp['longitude'];
+				}
+				if (array_key_exists('accuracyRadius', $storedIp) && is_numeric($storedIp['accuracyRadius'])) {
+					$ip['accuracyRadius'] = (int)$storedIp['accuracyRadius'];
+				}
+				$geolocation[SignerGeolocationMetadataValidator::METADATA_IP_KEY] = $ip;
+			}
+		}
+
+		if ($geolocation !== []) {
+			$geolocationMetadata[SignerGeolocationMetadataValidator::METADATA_GEOLOCATION_KEY] = $geolocation;
 		}
 
 		return $geolocationMetadata;

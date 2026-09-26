@@ -152,7 +152,7 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		$file = $this->createFile();
 		$this->stubResolution('resolveForUser', []);
 
-		$this->getApplier()->apply($file, ['policyOverrides' => ['signer_geolocation' => ['mode' => 'required']]]);
+		$this->getApplier()->apply($file, ['policyOverrides' => ['signer_device_geolocation' => ['mode' => 'required']]]);
 
 		$this->assertSame(
 			SignatureRejectionPolicyConfig::defaults()->toKeyedValues(),

@@ -16,6 +16,8 @@ use OCP\IL10N;
 
 class SignerGeolocationMetadataValidator {
 	public const METADATA_GEOLOCATION_KEY = 'geolocation';
+	public const METADATA_DEVICE_KEY = 'device';
+	public const METADATA_IP_KEY = 'ip';
 
 	public function __construct(
 		private SignerGeolocationPolicyService $signerGeolocationPolicyService,
@@ -86,6 +88,23 @@ class SignerGeolocationMetadataValidator {
 		}
 
 		return $normalized;
+	}
+
+	/**
+	 * Nest normalized device geolocation under geolocation.device.
+	 *
+	 * @param array<string, mixed> $metadata
+	 * @param array<string, mixed> $deviceGeolocation
+	 * @return array<string, mixed>
+	 */
+	public function mergeDeviceIntoMetadata(array $metadata, array $deviceGeolocation): array {
+		$geolocation = $metadata[self::METADATA_GEOLOCATION_KEY] ?? [];
+		if (!is_array($geolocation)) {
+			$geolocation = [];
+		}
+		$geolocation[self::METADATA_DEVICE_KEY] = $deviceGeolocation;
+		$metadata[self::METADATA_GEOLOCATION_KEY] = $geolocation;
+		return $metadata;
 	}
 
 	public function validateSubmission(SignRequest $signRequest, ?array $geolocation): void {

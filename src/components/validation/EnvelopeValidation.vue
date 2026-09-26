@@ -155,8 +155,8 @@
 									{{ signer.user_agent }}
 								</template>
 							</NcListItem>
-							<DeviceReportedLocation v-if="signer.metadata?.geolocation"
-								:geolocation="signer.metadata?.geolocation" />
+							<DeviceReportedLocation v-if="signer.metadata?.geolocation?.device"
+								:geolocation="signer.metadata?.geolocation?.device" />
 						</div>
 					</li>
 				</ul>

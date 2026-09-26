@@ -669,11 +669,13 @@ final class FileListServiceTest extends TestCase {
 		$signer->setMetadata([
 			'remote-address' => '127.0.0.1',
 			'user-agent' => 'Mozilla/5.0',
-			'geolocationRequirement' => 'required',
+			'deviceGeolocationRequirement' => 'required',
 			'geolocation' => [
-				'status' => 'collected',
-				'latitude' => -23.5505,
-				'longitude' => -46.6333,
+				'device' => [
+					'status' => 'collected',
+					'latitude' => -23.5505,
+					'longitude' => -46.6333,
+				],
 			],
 		]);
 
@@ -686,11 +688,13 @@ final class FileListServiceTest extends TestCase {
 		$result = $service->formatSingleFile($this->user, $file);
 
 		$this->assertSame([
-			'geolocationRequirement' => 'required',
+			'deviceGeolocationRequirement' => 'required',
 			'geolocation' => [
-				'status' => 'collected',
-				'latitude' => -23.5505,
-				'longitude' => -46.6333,
+				'device' => [
+					'status' => 'collected',
+					'latitude' => -23.5505,
+					'longitude' => -46.6333,
+				],
 			],
 		], $result['signers'][0]['metadata']);
 	}
@@ -699,11 +703,13 @@ final class FileListServiceTest extends TestCase {
 		$file = self::createFileEntity(1, 'file', 'doc.pdf');
 		$signer = $this->createSigner(100, 1);
 		$signer->setMetadata([
-			'geolocationRequirement' => 'optional',
+			'deviceGeolocationRequirement' => 'optional',
 			'geolocation' => [
-				'status' => 'collected',
-				'latitude' => -23.5505,
-				'longitude' => -46.6333,
+				'device' => [
+					'status' => 'collected',
+					'latitude' => -23.5505,
+					'longitude' => -46.6333,
+				],
 			],
 		]);
 
@@ -717,9 +723,78 @@ final class FileListServiceTest extends TestCase {
 
 		$this->assertSame([
 			'geolocation' => [
-				'status' => 'collected',
-				'latitude' => -23.5505,
-				'longitude' => -46.6333,
+				'device' => [
+					'status' => 'collected',
+					'latitude' => -23.5505,
+					'longitude' => -46.6333,
+				],
+			],
+		], $result['signers'][0]['metadata']);
+	}
+
+	public function testFormatSingleFileHidesSourceIpFromOtherViewers(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+		$signer = $this->createSigner(100, 1);
+		$signer->setMetadata([
+			'geolocation' => [
+				'ip' => [
+					'status' => 'resolved',
+					'sourceIp' => '200.100.50.25',
+					'countryCode' => 'BR',
+					'city' => 'São Paulo',
+				],
+			],
+		]);
+
+		$this->user->method('getUID')->willReturn('other-signer');
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([$signer]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('signed');
+
+		$service = $this->getService();
+		$result = $service->formatSingleFile($this->user, $file);
+
+		$this->assertSame([
+			'geolocation' => [
+				'ip' => [
+					'status' => 'resolved',
+					'countryCode' => 'BR',
+					'city' => 'São Paulo',
+				],
+			],
+		], $result['signers'][0]['metadata']);
+	}
+
+	public function testFormatSingleFileExposesSourceIpToRequester(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+		$signer = $this->createSigner(100, 1);
+		$signer->setMetadata([
+			'geolocation' => [
+				'ip' => [
+					'status' => 'resolved',
+					'sourceIp' => '200.100.50.25',
+					'countryCode' => 'BR',
+				],
+			],
+		]);
+
+		$this->user->method('getUID')->willReturn('creator123');
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([$signer]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('signed');
+
+		$service = $this->getService();
+		$result = $service->formatSingleFile($this->user, $file);
+
+		$this->assertSame([
+			'geolocation' => [
+				'ip' => [
+					'status' => 'resolved',
+					'sourceIp' => '200.100.50.25',
+					'countryCode' => 'BR',
+				],
 			],
 		], $result['signers'][0]['metadata']);
 	}

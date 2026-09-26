@@ -28,12 +28,12 @@ describe('signerGeolocation helper', () => {
 
 	it('resolves frozen requirement from top-level and nested signers', () => {
 		expect(resolveFrozenGeolocationRequirement({
-			signers: [{ me: true, metadata: { geolocationRequirement: 'required' } }],
+			signers: [{ me: true, metadata: { deviceGeolocationRequirement: 'required' } }],
 		})).toBe('required')
 		expect(resolveFrozenGeolocationRequirement({
-			signers: [{ me: false, metadata: { geolocationRequirement: 'required' } }],
+			signers: [{ me: false, metadata: { deviceGeolocationRequirement: 'required' } }],
 			files: [{
-				signers: [{ me: true, metadata: { geolocationRequirement: 'disabled' } }],
+				signers: [{ me: true, metadata: { deviceGeolocationRequirement: 'disabled' } }],
 			}],
 		})).toBe('disabled')
 		expect(resolveFrozenGeolocationRequirement({

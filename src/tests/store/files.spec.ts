@@ -1233,7 +1233,7 @@ describe('files store - critical business rules', () => {
 						description: 'Needs review',
 						notify: 0,
 						status: 1,
-						geolocationRequired: true,
+						deviceGeolocationRequired: true,
 						localKey: 'draft-signer:1',
 						statusText: 'Draft',
 						me: true,
@@ -1254,11 +1254,11 @@ describe('files store - critical business rules', () => {
 					description: 'Needs review',
 					notify: 0,
 					status: 1,
-					geolocationRequired: true,
+					deviceGeolocationRequired: true,
 				}])
 			})
 
-			it('rehydrates geolocationRequired from frozen signer metadata', async () => {
+			it('rehydrates deviceGeolocationRequired from frozen signer metadata', async () => {
 				const store = useFilesStore()
 				store.selectedFileId = 1
 				store.files[1] = {
@@ -1267,7 +1267,7 @@ describe('files store - critical business rules', () => {
 					signatureFlow: 'parallel',
 					signers: [{
 						identifyMethods: [{ method: 'email', value: 'signer@example.com', requirement: 'optional' }],
-						metadata: { geolocationRequirement: 'required' },
+						metadata: { deviceGeolocationRequirement: 'required' },
 						localKey: 'draft-signer:1',
 						statusText: 'Draft',
 					}],
@@ -1281,7 +1281,7 @@ describe('files store - critical business rules', () => {
 				const config = axiosMock.mock.calls[0][0]
 				expect(config.data.signers).toEqual([{
 					identifyMethods: [{ method: 'email', value: 'signer@example.com', requirement: 'optional' }],
-					geolocationRequired: true,
+					deviceGeolocationRequired: true,
 				}])
 			})
 

@@ -1730,6 +1730,43 @@
                     }
                 }
             },
+            "GeoIpConfig": {
+                "type": "object",
+                "required": [
+                    "path",
+                    "status"
+                ],
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/GeoIpDatabaseStatus"
+                    },
+                    "databaseType": {
+                        "type": "string"
+                    },
+                    "buildEpoch": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "modifiedAt": {
+                        "type": "string"
+                    }
+                }
+            },
+            "GeoIpDatabaseStatus": {
+                "type": "string",
+                "enum": [
+                    "not_configured",
+                    "not_found",
+                    "not_readable",
+                    "invalid_database",
+                    "unsupported_database",
+                    "ready"
+                ]
+            },
             "GeolocationCollectionStatus": {
                 "type": "string",
                 "enum": [
@@ -2240,7 +2277,7 @@
                     "participantRole": {
                         "$ref": "#/components/schemas/ParticipantRole"
                     },
-                    "geolocationRequired": {
+                    "deviceGeolocationRequired": {
                         "type": "boolean"
                     }
                 }
@@ -2614,6 +2651,32 @@
                 "properties": {
                     "mode": {
                         "$ref": "#/components/schemas/SignerGeolocationPolicyMode"
+                    }
+                }
+            },
+            "PolicySnapshotSignerIpGeolocationEntry": {
+                "type": "object",
+                "required": [
+                    "effectiveValue",
+                    "sourceScope"
+                ],
+                "properties": {
+                    "effectiveValue": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignerIpGeolocationValue"
+                    },
+                    "sourceScope": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PolicySnapshotSignerIpGeolocationValue": {
+                "type": "object",
+                "required": [
+                    "mode"
+                ],
+                "properties": {
+                    "mode": {
+                        "$ref": "#/components/schemas/SignerIpGeolocationPolicyMode"
                     }
                 }
             },
@@ -3228,7 +3291,7 @@
                     }
                 ]
             },
-            "SignerGeolocation": {
+            "SignerDeviceGeolocation": {
                 "type": "object",
                 "required": [
                     "status"
@@ -3255,12 +3318,90 @@
                     }
                 }
             },
+            "SignerGeolocation": {
+                "type": "object",
+                "properties": {
+                    "device": {
+                        "$ref": "#/components/schemas/SignerDeviceGeolocation"
+                    },
+                    "ip": {
+                        "$ref": "#/components/schemas/SignerIpGeolocation"
+                    }
+                }
+            },
             "SignerGeolocationPolicyMode": {
                 "type": "string",
                 "enum": [
                     "disabled",
                     "optional",
                     "required"
+                ]
+            },
+            "SignerIpGeolocation": {
+                "type": "object",
+                "required": [
+                    "status"
+                ],
+                "properties": {
+                    "status": {
+                        "$ref": "#/components/schemas/SignerIpGeolocationStatus"
+                    },
+                    "sourceIp": {
+                        "type": "string"
+                    },
+                    "countryCode": {
+                        "type": "string"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "regionCode": {
+                        "type": "string"
+                    },
+                    "region": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "longitude": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "accuracyRadius": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "reason": {
+                        "$ref": "#/components/schemas/SignerIpGeolocationUnavailableReason"
+                    }
+                }
+            },
+            "SignerIpGeolocationPolicyMode": {
+                "type": "string",
+                "enum": [
+                    "disabled",
+                    "enabled"
+                ]
+            },
+            "SignerIpGeolocationStatus": {
+                "type": "string",
+                "enum": [
+                    "resolved",
+                    "not_found",
+                    "unavailable"
+                ]
+            },
+            "SignerIpGeolocationUnavailableReason": {
+                "type": "string",
+                "enum": [
+                    "database_not_ready",
+                    "address_unavailable",
+                    "lookup_failed"
                 ]
             },
             "SignerMetadata": {
@@ -3272,7 +3413,7 @@
                     "user-agent": {
                         "type": "string"
                     },
-                    "geolocationRequirement": {
+                    "deviceGeolocationRequirement": {
                         "$ref": "#/components/schemas/GeolocationRequirement"
                     },
                     "geolocation": {
@@ -3693,8 +3834,11 @@
                     "identify_methods": {
                         "$ref": "#/components/schemas/PolicySnapshotIdentifyMethodsEntry"
                     },
-                    "signer_geolocation": {
+                    "signer_device_geolocation": {
                         "$ref": "#/components/schemas/PolicySnapshotSignerGeolocationEntry"
+                    },
+                    "signer_ip_geolocation": {
+                        "$ref": "#/components/schemas/PolicySnapshotSignerIpGeolocationEntry"
                     },
                     "enable_observer_profile": {
                         "$ref": "#/components/schemas/PolicySnapshotBooleanEntry"
@@ -10855,7 +10999,7 @@
                                     "signers": {
                                         "type": "array",
                                         "default": [],
-                                        "description": "Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, geolocationRequired",
+                                        "description": "Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired",
                                         "items": {
                                             "$ref": "#/components/schemas/NewSigner"
                                         }
@@ -11532,7 +11676,7 @@
                                         "default": false,
                                         "description": "Execute signing asynchronously when possible"
                                     },
-                                    "geolocation": {
+                                    "deviceGeolocation": {
                                         "type": "object",
                                         "default": {},
                                         "description": "Device-reported geolocation metadata submitted by the signing client",
@@ -11696,7 +11840,7 @@
                                         "default": false,
                                         "description": "Execute signing asynchronously when possible"
                                     },
-                                    "geolocation": {
+                                    "deviceGeolocation": {
                                         "type": "object",
                                         "default": {},
                                         "description": "Device-reported geolocation metadata submitted by the signing client",
@@ -14550,6 +14694,169 @@
                                                 },
                                                 "data": {
                                                     "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/geoip": {
+            "get": {
+                "operationId": "admin-get-geo-ip-config",
+                "summary": "Get GeoIP database configuration and status",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GeoIP configuration",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/GeoIpConfig"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "operationId": "admin-save-geo-ip-config",
+                "summary": "Save GeoIP database path",
+                "description": "An empty path clears the configuration. The path may be saved even when the database file is not available yet; the returned status describes the current filesystem state.\nThis endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "path": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Absolute path to a MaxMind City database, or empty to clear"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GeoIP configuration saved",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/GeoIpConfig"
                                                 }
                                             }
                                         }
