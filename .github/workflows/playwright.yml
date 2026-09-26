@@ -235,10 +235,20 @@ jobs:
           # This mirrors what Apache mod_rewrite does via .htaccess RewriteRule.
           # Detach the server from this step and redirect its output so closing the
           # runner step pipe cannot terminate a long-running Playwright server.
-          nohup env front_controller_active=true \
-            php -S 0.0.0.0:8080 -t . apps/${{ env.APP_NAME }}/playwright/router.php \
-            > /tmp/libresign-php-server.log 2>&1 &
-          echo $! > /tmp/libresign-php-server.pid
+          # The wrapper records the PHP PID and, once it stops, its exit status or signal.
+          nohup env front_controller_active=true bash -c '
+            php -S 0.0.0.0:8080 -t . "apps/$1/playwright/router.php" &
+            echo $! > /tmp/libresign-php-server.pid
+            wait $!
+            status=$?
+            if [ "$status" -gt 128 ]; then
+              reason="killed by SIG$(kill -l "$status"), exit status $status"
+            else
+              reason="exit status $status"
+            fi
+            echo "$reason" > /tmp/libresign-php-server.exit
+            echo "PHP server exited ($reason)"
+          ' php-server "${{ env.APP_NAME }}" > /tmp/libresign-php-server.log 2>&1 &
 
           timeout 30 bash -c 'until curl --fail --silent http://localhost:8080/status.php > /dev/null; do sleep 1; done'
           kill -0 "$(cat /tmp/libresign-php-server.pid)"
@@ -250,6 +260,8 @@ jobs:
           PLAYWRIGHT_BASE_URL: http://localhost:8080
           NEXTCLOUD_ADMIN_USER: admin
           NEXTCLOUD_ADMIN_PASSWORD: admin
+          LIBRESIGN_PHP_SERVER_PID_FILE: /tmp/libresign-php-server.pid
+          LIBRESIGN_PHP_SERVER_EXIT_FILE: /tmp/libresign-php-server.exit
         run: npx playwright test
 
       - name: Upload Playwright report
@@ -275,6 +287,14 @@ jobs:
       - name: Print Nextcloud logs
         if: always()
         run: cat data/nextcloud.log 2>/dev/null || echo "No Nextcloud logs found"
+
+      - name: Upload PHP server diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-server-diagnostics
+          path: /tmp/libresign-php-server.*
+          if-no-files-found: ignore
 
   summary:
     permissions:

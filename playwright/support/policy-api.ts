@@ -8,6 +8,8 @@
 
 import { expect, request, type APIRequestContext } from '@playwright/test'
 
+import { assertPhpServerRunning } from './php-server'
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -53,6 +55,7 @@ export async function createAuthenticatedRequestContext(
 	authUser: string,
 	authPassword: string,
 ): Promise<APIRequestContext> {
+	assertPhpServerRunning()
 	const auth = 'Basic ' + Buffer.from(`${authUser}:${authPassword}`).toString('base64')
 
 	return request.newContext({

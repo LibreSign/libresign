@@ -11,6 +11,8 @@
 
 import type { APIRequestContext } from '@playwright/test'
 
+import { assertPhpServerRunning } from './php-server'
+
 export type OcsResponse<T = unknown> = {
 	ocs: {
 		meta: { status: string; statuscode: number; message: string }
@@ -130,6 +132,7 @@ async function ocsRequest<T = unknown>(
 	body?: Record<string, string>,
 	jsonBody?: unknown,
 ): Promise<OcsResponse<T>> {
+	assertPhpServerRunning()
 	if (path.startsWith('/apps/libresign/')) {
 		await ensureLibresignAppEnabled(request, adminUser, adminPassword)
 	}

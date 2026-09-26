@@ -18,6 +18,7 @@ import {
 	getAppConfig,
 	setAppConfig,
 } from './nc-provisioning'
+import { assertPhpServerRunning } from './php-server'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -47,6 +48,7 @@ export const REQUEST_SIGN_ADMIN_BASELINE_VALUE = JSON.stringify({
  * `beforeEach`/`afterEach` hooks where no `page` fixture is available.
  */
 export async function makeAdminContext(): Promise<APIRequestContext> {
+	assertPhpServerRunning()
 	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
 	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
 
