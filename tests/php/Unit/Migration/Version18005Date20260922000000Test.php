@@ -172,6 +172,46 @@ final class Version18005Date20260922000000Test extends \OCA\Libresign\Tests\Unit
 		);
 	}
 
+	public function testMigratesEveryFileAndSignRequestMetadataRow(): void {
+		$files = [];
+		$signRequests = [];
+		for ($i = 0; $i < 3; $i++) {
+			$files[] = $this->insertFile([
+				'policy_snapshot' => [
+					'signer_geolocation' => ['effectiveValue' => ['mode' => 'required'], 'sourceScope' => 'system'],
+				],
+			]);
+			$signRequests[] = $this->insertSignRequest($files[$i], [
+				'geolocationRequirement' => 'required',
+				'geolocation' => ['status' => 'collected', 'latitude' => $i, 'longitude' => $i],
+			]);
+		}
+
+		$this->runMigration();
+
+		foreach ($files as $file) {
+			$metadata = $this->readMetadata('libresign_file', $file->getId());
+			$this->assertSame(
+				$this->sortedKeys([
+					'signer_device_geolocation' => ['effectiveValue' => ['mode' => 'required'], 'sourceScope' => 'system'],
+				]),
+				$this->sortedKeys($metadata['policy_snapshot']),
+			);
+		}
+
+		foreach ($signRequests as $index => $signRequest) {
+			$this->assertSame(
+				$this->sortedKeys([
+					'deviceGeolocationRequirement' => 'required',
+					'geolocation' => [
+						'device' => ['status' => 'collected', 'latitude' => $index, 'longitude' => $index],
+					],
+				]),
+				$this->sortedKeys($this->readMetadata('libresign_sign_request', $signRequest->getId())),
+			);
+		}
+	}
+
 	/** @return array<string, mixed> */
 	private function readMetadata(string $table, int $id): array {
 		$qb = $this->connection->getQueryBuilder();

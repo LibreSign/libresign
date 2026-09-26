@@ -30,6 +30,7 @@ class Version18005Date20260922000000 extends SimpleMigrationStep {
 	private const LEGACY_POLICY_KEY = 'signer_geolocation';
 	private const LEGACY_METADATA_REQUIREMENT_KEY = 'geolocationRequirement';
 	private const DELEGATED_OVERRIDE_SUFFIX = '__delegated_override';
+	private const METADATA_BATCH_SIZE = 1000;
 
 	public function __construct(
 		private readonly IAppConfig $appConfig,
@@ -175,36 +176,51 @@ class Version18005Date20260922000000 extends SimpleMigrationStep {
 	 * @param Closure(array<string, mixed>): array<string, mixed> $migrate
 	 */
 	private function migrateJsonMetadata(string $table, Closure $migrate): void {
-		$qb = $this->connection->getQueryBuilder();
-		$qb->select('id', 'metadata')
-			->from($table)
-			->where($qb->expr()->isNotNull('metadata'));
+		$lastId = 0;
 
-		$result = $qb->executeQuery();
-		$changes = [];
-		try {
-			while ($row = $result->fetchAssociative()) {
-				$metadata = json_decode((string)($row['metadata'] ?? ''), true);
-				if (!is_array($metadata)) {
-					continue;
-				}
+		do {
+			$qb = $this->connection->getQueryBuilder();
+			$qb->select('id', 'metadata')
+				->from($table)
+				->where($qb->expr()->isNotNull('metadata'))
+				->andWhere($qb->expr()->gt(
+					'id',
+					$qb->createNamedParameter($lastId, IQueryBuilder::PARAM_INT),
+				))
+				->orderBy('id', 'ASC')
+				->setMaxResults(self::METADATA_BATCH_SIZE);
 
-				$migrated = $migrate($metadata);
-				if ($migrated !== $metadata) {
-					$changes[(int)$row['id']] = $migrated;
+			$result = $qb->executeQuery();
+			$fetched = 0;
+			$changes = [];
+			try {
+				while ($row = $result->fetchAssociative()) {
+					$id = (int)$row['id'];
+					$lastId = $id;
+					$fetched++;
+
+					$metadata = json_decode((string)($row['metadata'] ?? ''), true);
+					if (!is_array($metadata)) {
+						continue;
+					}
+
+					$migrated = $migrate($metadata);
+					if ($migrated !== $metadata) {
+						$changes[$id] = $migrated;
+					}
 				}
+			} finally {
+				$result->closeCursor();
 			}
-		} finally {
-			$result->closeCursor();
-		}
 
-		foreach ($changes as $id => $metadata) {
-			$update = $this->connection->getQueryBuilder();
-			$update->update($table)
-				->set('metadata', $update->createNamedParameter($metadata, IQueryBuilder::PARAM_JSON))
-				->where($update->expr()->eq('id', $update->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
-				->executeStatement();
-		}
+			foreach ($changes as $id => $metadata) {
+				$update = $this->connection->getQueryBuilder();
+				$update->update($table)
+					->set('metadata', $update->createNamedParameter($metadata, IQueryBuilder::PARAM_JSON))
+					->where($update->expr()->eq('id', $update->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+					->executeStatement();
+			}
+		} while ($fetched === self::METADATA_BATCH_SIZE);
 	}
 
 	/**
