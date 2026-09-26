@@ -158,6 +158,154 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
+	#[DataProvider('provideUuidLookupSequences')]
+	public function testGetSignRequestByUuidResolvesEachRequestedUuid(array $uuids): void {
+		$requests = [];
+		foreach (['uuid-a', 'uuid-b'] as $uuid) {
+			$requests[$uuid] = new SignRequest();
+			$requests[$uuid]->setUuid($uuid);
+		}
+		$this->signRequestMapper->method('getByUuid')->willReturnCallback(
+			static fn (string $uuid): SignRequest => $requests[$uuid],
+		);
+
+		$service = $this->getService();
+		foreach ($uuids as $uuid) {
+			$this->assertSame($requests[$uuid], $service->getSignRequestByUuid($uuid));
+		}
+	}
+
+	public static function provideUuidLookupSequences(): array {
+		return [
+			'repeated UUID' => [['uuid-a', 'uuid-a']],
+			'different UUIDs' => [['uuid-a', 'uuid-b']],
+			'return to first UUID' => [['uuid-a', 'uuid-b', 'uuid-a']],
+		];
+	}
+
+	#[DataProvider('provideUuidLookupSequences')]
+	public function testGetFileByUuidResolvesEachRequestedUuid(array $uuids): void {
+		$requests = [];
+		$files = [];
+		$nodes = [];
+		$folders = [];
+		foreach (['uuid-a' => 10, 'uuid-b' => 20] as $uuid => $fileId) {
+			$requests[$uuid] = new SignRequest();
+			$requests[$uuid]->setUuid($uuid);
+			$requests[$uuid]->setFileId($fileId);
+			$files[$fileId] = new \OCA\Libresign\Db\File();
+			$files[$fileId]->setId($fileId);
+			$files[$fileId]->setUserId('owner-' . $uuid);
+			$files[$fileId]->setNodeId($fileId + 1);
+			$nodes[$fileId + 1] = $this->createMock(File::class);
+			$folders['owner-' . $uuid] = $this->createMock(Folder::class);
+			$folders['owner-' . $uuid]->method('getFirstNodeById')
+				->with($fileId + 1)
+				->willReturn($nodes[$fileId + 1]);
+		}
+		$this->signRequestMapper->method('getByUuid')->willReturnCallback(
+			static fn (string $uuid): SignRequest => $requests[$uuid],
+		);
+		$this->fileMapper->method('getById')->willReturnCallback(
+			static fn (int $id): \OCA\Libresign\Db\File => $files[$id],
+		);
+		$this->root->method('getUserFolder')->willReturnCallback(
+			static fn (string $userId): Folder => $folders[$userId],
+		);
+
+		$service = $this->getService();
+		foreach ($uuids as $uuid) {
+			$fileId = $requests[$uuid]->getFileId();
+			$this->assertSame([
+				'fileData' => $files[$fileId],
+				'fileToSign' => $nodes[$fileId + 1],
+			], $service->getFileByUuid($uuid));
+			$this->assertSame($requests[$uuid], $service->getSignRequestByUuid($uuid));
+		}
+	}
+
+	#[DataProvider('provideMissingFileNodes')]
+	public function testGetFileByUuidDoesNotReusePreviousNode(bool $isFolder): void {
+		$request = new SignRequest();
+		$request->setFileId(10);
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUserId('owner');
+		$file->setNodeId(11);
+		$firstNode = $this->createMock(File::class);
+		$secondNode = $isFolder ? $this->createMock(Folder::class) : null;
+		$userFolder = $this->createMock(Folder::class);
+		$this->signRequestMapper->method('getByUuid')->willReturn($request);
+		$this->fileMapper->method('getById')->with(10)->willReturn($file);
+		$this->root->method('getUserFolder')->with('owner')->willReturn($userFolder);
+		$userFolder->method('getFirstNodeById')
+			->with(11)
+			->willReturn($firstNode, $secondNode);
+
+		$service = $this->getService();
+		$this->assertSame($firstNode, $service->getFileByUuid('uuid-a')['fileToSign']);
+		$this->assertSame(['fileData' => $file, 'fileToSign' => null], $service->getFileByUuid('uuid-b'));
+	}
+
+	public static function provideMissingFileNodes(): array {
+		return [
+			'not found' => [false],
+			'folder instead of file' => [true],
+		];
+	}
+
+	#[DataProvider('provideUuidLookupMethods')]
+	public function testUuidLookupDoesNotReturnPreviousRequestWhenUuidIsMissing(string $method): void {
+		$request = new SignRequest();
+		$error = new DoesNotExistException('Unknown UUID');
+		$this->signRequestMapper->method('getByUuid')->willReturnCallback(
+			static fn (string $uuid): SignRequest => $uuid === 'uuid-a' ? $request : throw $error,
+		);
+		$this->fileMapper->expects($this->never())->method('getById');
+		$service = $this->getService();
+		$this->assertSame($request, $service->getSignRequestByUuid('uuid-a'));
+
+		$this->expectExceptionObject($error);
+		$service->$method('missing-uuid');
+	}
+
+	public static function provideUuidLookupMethods(): array {
+		return [
+			'sign request' => ['getSignRequestByUuid'],
+			'file' => ['getFileByUuid'],
+		];
+	}
+
+	public function testGetFileByUuidRetriesAfterNodeLookupFails(): void {
+		$request = new SignRequest();
+		$request->setFileId(10);
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUserId('owner');
+		$file->setNodeId(11);
+		$node = $this->createMock(File::class);
+		$userFolder = $this->createMock(Folder::class);
+		$error = new NotFoundException('Storage unavailable');
+		$this->signRequestMapper->method('getByUuid')->with('uuid-a')->willReturn($request);
+		$this->fileMapper->method('getById')->with(10)->willReturn($file);
+		$this->root->method('getUserFolder')->with('owner')->willReturn($userFolder);
+		$attempts = 0;
+		$userFolder->method('getFirstNodeById')->with(11)
+			->willReturnCallback(static function () use (&$attempts, $node, $error): File {
+				if ($attempts++ === 0) {
+					throw $error;
+				}
+				return $node;
+			});
+
+		$service = $this->getService();
+		try {
+			$service->getFileByUuid('uuid-a');
+			$this->fail('The storage error must propagate.');
+		} catch (NotFoundException $actual) {
+			$this->assertSame($error, $actual);
+		}
+		$this->assertSame(['fileData' => $file, 'fileToSign' => $node], $service->getFileByUuid('uuid-a'));
+	}
+
 	public function testDeletePfxRevokesCertificatesWithReasonAndDeletesPfx(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('admin');
