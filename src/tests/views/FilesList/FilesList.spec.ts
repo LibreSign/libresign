@@ -72,7 +72,7 @@ vi.mock('@nextcloud/moment', () => ({
 }))
 
 vi.mock('@nextcloud/vue/components/NcAppContent', () => ({
-	default: { name: 'NcAppContent', template: '<div><slot /></div>' },
+	default: { name: 'NcAppContent', template: '<div><slot /></div>', props: ['pageHeading', 'pageTitle'] },
 }))
 vi.mock('@nextcloud/vue/components/NcBreadcrumb', () => ({
 	default: {
@@ -170,6 +170,16 @@ describe('FilesList.vue rendering rules', () => {
 		expect(wrapper.vm.mdiChevronDown).toBeTruthy()
 		expect(wrapper.vm.mdiChevronUp).toBeTruthy()
 		expect(wrapper.vm.mdiReload).toBeTruthy()
+	})
+
+	it('sets an explicit page title', async () => {
+		const filesStore = useFilesStore()
+		vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+
+		const wrapper = mountComponent()
+		await flushPromises()
+
+		expect(wrapper.findComponent({ name: 'NcAppContent' }).props('pageTitle')).toBe('Files - LibreSign')
 	})
 
 	it('initialises isMenuOpen as false', async () => {

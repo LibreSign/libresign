@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcAppContent :page-heading="t('libresign', 'Files')">
+	<NcAppContent :page-heading="t('libresign', 'Files')"
+		:page-title="t('libresign', 'Files') + ' - ' + t('libresign', 'LibreSign')">
 		<div class="files-list__dropzone"
 			@dragenter="onDragEnter"
 			@dragover="onDragOver"
