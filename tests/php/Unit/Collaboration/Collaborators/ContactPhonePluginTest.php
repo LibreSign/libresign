@@ -31,6 +31,7 @@ class ContactPhonePluginTest extends TestCase {
 		array $contactGroups,
 		bool $isSystemBook,
 		int $expectedCount,
+		bool $expectedHasMore = false,
 	): void {
 		$appConfig = $this->applyAppConfig($config);
 
@@ -67,6 +68,15 @@ class ContactPhonePluginTest extends TestCase {
 		$contactsManager = $this->createMock(IManager::class);
 		$contactsManager->method('isEnabled')->willReturn(true);
 		$contactsManager->method('search')
+			->with(
+				'+12025551234',
+				['TEL', 'FN'],
+				$this->callback(function (array $options) {
+					return $options['limit'] === 11 // offset(0) + limit(10) + 1
+						&& $options['offset'] === 0
+						&& $options['types'] === true;
+				})
+			)
 			->willReturn([
 				array_filter([
 					'FN' => 'Contact Name',
@@ -97,11 +107,12 @@ class ContactPhonePluginTest extends TestCase {
 		);
 
 		$searchResult = new SearchResult();
-		$plugin->search('+12025551234', 10, 0, $searchResult);
+		$hasMore = $plugin->search('+12025551234', 10, 0, $searchResult);
 
 		$results = $searchResult->asArray();
 		$items = array_merge($results['contact-phone'] ?? [], $results['exact']['contact-phone'] ?? []);
 		$this->assertCount($expectedCount, $items);
+		$this->assertSame($expectedHasMore, $hasMore);
 	}
 
 	public function testSearchSkipsSystemContactWithoutUid(): void {
@@ -117,7 +128,7 @@ class ContactPhonePluginTest extends TestCase {
 		$userSession->method('getUser')->willReturn($currentUser);
 
 		$userManager = $this->createMock(IUserManager::class);
-		$userManager->method('get')->willReturn(null);
+		$userManager->method('get')->willReturn($currentUser);
 
 		$groupManager = $this->createMock(IGroupManager::class);
 		$groupManager->method('getUserGroupIds')->willReturn(['sales']);
@@ -128,13 +139,23 @@ class ContactPhonePluginTest extends TestCase {
 		$contactsManager = $this->createMock(IManager::class);
 		$contactsManager->method('isEnabled')->willReturn(true);
 		$contactsManager->method('search')
-			->willReturn([[
-				'FN' => 'Contact Name',
-				'isLocalSystemBook' => true,
-				'TEL' => [
-					['value' => '+12025551234'],
+			->willReturn([
+				[
+					'FN' => 'Filtered Contact Name',
+					'UID' => '',
+					'isLocalSystemBook' => true,
+					'TEL' => [
+						['value' => '+12025551234'],
+					],
 				],
-			]]);
+				[
+					'FN' => 'Contact Name',
+					'isLocalSystemBook' => false,
+					'TEL' => [
+						['value' => '+12025551235'],
+					],
+				],
+			]);
 
 		$context = new SignerSearchContext();
 		$context->set('sms', '+12025551234', '+12025551234');
@@ -155,11 +176,12 @@ class ContactPhonePluginTest extends TestCase {
 		);
 
 		$searchResult = new SearchResult();
-		$plugin->search('+12025551234', 10, 0, $searchResult);
+		$hasMore = $plugin->search('+12025551234', 10, 0, $searchResult);
 
 		$results = $searchResult->asArray();
 		$items = array_merge($results['contact-phone'] ?? [], $results['exact']['contact-phone'] ?? []);
-		$this->assertCount(0, $items);
+		$this->assertCount(1, $items);
+		$this->assertFalse($hasMore);
 	}
 
 	public function testSearchAppliesPagination(): void {
@@ -174,11 +196,26 @@ class ContactPhonePluginTest extends TestCase {
 		$userSession = $this->createMock(IUserSession::class);
 		$userSession->method('getUser')->willReturn($currentUser);
 
-		$contactUser = $this->createMock(IUser::class);
-		$contactUser->method('getUID')->willReturn('contactUser');
+		$contactUser1 = $this->createMock(IUser::class);
+		$contactUser1->method('getUID')->willReturn('contactUser1');
+
+		$contactUser2 = $this->createMock(IUser::class);
+		$contactUser2->method('getUID')->willReturn('contactUser2');
 
 		$userManager = $this->createMock(IUserManager::class);
-		$userManager->method('get')->willReturn($contactUser);
+		$userManager->method('get')
+			->willReturnCallback(function (string $uid) use ($currentUser, $contactUser1, $contactUser2) {
+				if ($uid === 'current') {
+					return $currentUser;
+				}
+				if ($uid === 'contactUser1') {
+					return $contactUser1;
+				}
+				if ($uid === 'contactUser2') {
+					return $contactUser2;
+				}
+				return null;
+			});
 
 		$groupManager = $this->createMock(IGroupManager::class);
 		$groupManager->method('getUserGroupIds')->willReturn(['sales']);
@@ -188,20 +225,28 @@ class ContactPhonePluginTest extends TestCase {
 
 		$contactsManager = $this->createMock(IManager::class);
 		$contactsManager->method('isEnabled')->willReturn(true);
-		$contactsManager->method('search')
-			->willReturn([[
-				'FN' => 'Contact Name',
-				'UID' => 'contactUser',
+		$contactsManager->method('search')->willReturn([
+			[
+				'UID' => 'contactUser1',
 				'isLocalSystemBook' => true,
 				'TEL' => [
 					['value' => '+12025550001'],
 					['value' => '+12025550002'],
+				],
+			],
+			[
+				'UID' => 'contactUser2',
+				'isLocalSystemBook' => true,
+				'TEL' => [
 					['value' => '+12025550003'],
 				],
-			]]);
+			],
+		]);
 
 		$context = new SignerSearchContext();
 		$context->set('sms', '+12025550001', '+12025550001');
+		$context->set('sms', '+12025550002', '+12025550002');
+		$context->set('sms', '+12025550003', '+12025550003');
 
 		$searchNormalizer = $this->createMock(SearchNormalizer::class);
 		$searchNormalizer->method('tryNormalizePhoneNumber')
@@ -219,12 +264,177 @@ class ContactPhonePluginTest extends TestCase {
 		);
 
 		$searchResult = new SearchResult();
-		$hasMore = $plugin->search('+12025550001', 1, 1, $searchResult);
+		$hasMore = $plugin->search('202555', 2, 0, $searchResult);
+		$results = $searchResult->asArray();
+		$items = array_merge($results['contact-phone'] ?? [], $results['exact']['contact-phone'] ?? []);
+		$this->assertCount(2, $items);
+		$this->assertTrue($hasMore);
+
+		$searchResult = new SearchResult();
+		$hasMore = $plugin->search('202555', 2, 1, $searchResult);
+		$results = $searchResult->asArray();
+		$items = array_merge($results['contact-phone'] ?? [], $results['exact']['contact-phone'] ?? []);
+		$this->assertCount(2, $items);
+		$this->assertFalse($hasMore);
+	}
+
+	public function testDuplicatePhoneSkipsOnlyThatEntryNotWholeContact(): void {
+		$appConfig = $this->applyAppConfig([
+			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+		]);
+
+		$currentUser = $this->createMock(IUser::class);
+		$currentUser->method('getUID')->willReturn('current');
+
+		$userSession = $this->createMock(IUserSession::class);
+		$userSession->method('getUser')->willReturn($currentUser);
+
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->method('get')->willReturn(null);
+
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->method('getUserGroupIds')->willReturn([]);
+
+		$knownUserService = $this->createMock(KnownUserService::class);
+		$knownUserService->method('isKnownToUser')->willReturn(true);
+
+		$contactsManager = $this->createMock(IManager::class);
+		$contactsManager->method('isEnabled')->willReturn(true);
+		$contactsManager->method('search')->willReturn([
+			[
+				'FN' => 'Contact One',
+				'isLocalSystemBook' => false,
+				'TEL' => [
+					['value' => '+1'],
+				],
+			],
+			[
+				'FN' => 'Contact Two',
+				'isLocalSystemBook' => false,
+				'TEL' => [
+					['value' => '+1'],
+					['value' => '+2'],
+				],
+			],
+		]);
+
+		$context = new SignerSearchContext();
+		$context->set('sms', 'x', 'x');
+
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->willReturnCallback(fn (string $input) => $input);
+
+		$plugin = new ContactPhonePlugin(
+			$appConfig,
+			$contactsManager,
+			$groupManager,
+			$userManager,
+			$userSession,
+			$knownUserService,
+			$context,
+			$searchNormalizer,
+		);
+
+		$searchResult = new SearchResult();
+		$plugin->search('x', 10, 0, $searchResult);
 
 		$results = $searchResult->asArray();
 		$items = array_merge($results['contact-phone'] ?? [], $results['exact']['contact-phone'] ?? []);
-		$this->assertCount(1, $items);
-		$this->assertTrue($hasMore);
+
+		$this->assertCount(2, $items);
+
+		$shareWithValues = array_column($items, 'shareWithDisplayNameUnique');
+		$this->assertContains('+1', $shareWithValues);
+		$this->assertContains('+2', $shareWithValues);
+	}
+
+	public function testSearchDistinguishesMatchesCaseInsensitively(): void {
+		$appConfig = $this->applyAppConfig([
+			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+		]);
+
+		$currentUser = $this->createMock(IUser::class);
+		$currentUser->method('getUID')->willReturn('current');
+
+		$userSession = $this->createMock(IUserSession::class);
+		$userSession->method('getUser')->willReturn($currentUser);
+
+		$contactUser1 = $this->createMock(IUser::class);
+		$contactUser1->method('getUID')->willReturn('contactUser1');
+
+		$contactUser2 = $this->createMock(IUser::class);
+		$contactUser2->method('getUID')->willReturn('contactUser2');
+
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->method('get')
+			->willReturnCallback(function (string $uid) use ($currentUser, $contactUser1, $contactUser2) {
+				if ($uid === 'current') {
+					return $currentUser;
+				}
+				if ($uid === 'contactUser1') {
+					return $contactUser1;
+				}
+				if ($uid === 'contactUser2') {
+					return $contactUser2;
+				}
+				return null;
+			});
+
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->method('getUserGroupIds')->willReturn(['sales']);
+
+		$knownUserService = $this->createMock(KnownUserService::class);
+		$knownUserService->method('isKnownToUser')->willReturn(true);
+
+		$contactsManager = $this->createMock(IManager::class);
+		$contactsManager->method('isEnabled')->willReturn(true);
+		$contactsManager->method('search')->willReturn([
+			[
+				'FN' => 'Contact User',
+				'UID' => 'contactUser1',
+				'isLocalSystemBook' => true,
+				'TEL' => [['value' => '+12025550001']],
+			],
+			[
+				'FN' => 'Contact User Extra',
+				'UID' => 'contactUser2',
+				'isLocalSystemBook' => true,
+				'TEL' => [['value' => '+12025550002']],
+			],
+		]);
+
+		$context = new SignerSearchContext();
+		$context->set('sms', '+12025550001', '+12025550001');
+		$context->set('sms', '+12025550002', '+12025550002');
+
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->willReturnCallback(fn (string $input) => $input);
+
+		$plugin = new ContactPhonePlugin(
+			$appConfig,
+			$contactsManager,
+			$groupManager,
+			$userManager,
+			$userSession,
+			$knownUserService,
+			$context,
+			$searchNormalizer,
+		);
+
+		$searchResult = new SearchResult();
+		$plugin->search('cOnTaCt uSeR', 10, 0, $searchResult);
+		$results = $searchResult->asArray();
+
+		$exactItems = $results['exact']['contact-phone'] ?? [];
+		$wideItems = $results['contact-phone'] ?? [];
+
+		$this->assertCount(1, $exactItems);
+		$this->assertSame('Contact User', $exactItems[0]['label']);
+
+		$this->assertCount(1, $wideItems);
+		$this->assertSame('Contact User Extra', $wideItems[0]['label']);
 	}
 
 	public function testSearchAddsContactPhoneShareType(): void {
@@ -288,11 +498,12 @@ class ContactPhonePluginTest extends TestCase {
 		);
 
 		$searchResult = new SearchResult();
-		$plugin->search('+12025551234', 10, 0, $searchResult);
+		$hasMore = $plugin->search('+12025551234', 10, 0, $searchResult);
 
 		$results = $searchResult->asArray();
 		$items = array_merge($results['contact-phone'] ?? [], $results['exact']['contact-phone'] ?? []);
 		$this->assertSame(ContactPhonePlugin::TYPE_SIGNER_CONTACT_PHONE, $items[0]['value']['shareType']);
+		$this->assertFalse($hasMore);
 	}
 
 	public function testSearchFiltersContactsWithInvalidPhoneNumbers(): void {
@@ -320,22 +531,48 @@ class ContactPhonePluginTest extends TestCase {
 
 		$contactsManager = $this->createMock(IManager::class);
 		$contactsManager->method('isEnabled')->willReturn(true);
-		// Contact with phone number that cannot be normalized (missing area code)
+
 		$contactsManager->method('search')
-			->willReturn([[
-				'FN' => 'Contact Name',
-				'UID' => 'contactUser',
-				'isLocalSystemBook' => true,
-				'TEL' => [['value' => '999999999']], // Missing DDD
-			]]);
+			->willReturn([
+				[
+					'FN' => 'Contact Name 1',
+					'UID' => 'contactUser1',
+					'isLocalSystemBook' => true,
+					'TEL' => [
+						'value' => '+12025551234',
+						// The code should not retrieve this field
+						'custom' => '+12025559999',
+					],
+				],
+				[
+					'FN' => 'Contact Name 2',
+					'UID' => 'contactUser2',
+					'isLocalSystemBook' => true,
+					'TEL' => [
+						['value' => ''],
+						['value' => 12025551235],
+						['value' => '+12025551235'],
+						['value' => '999999999'],
+					],
+				],
+			]);
 
 		$context = new SignerSearchContext();
-		$context->set('sms', '999999999', '999999999');
+		$context->set('sms', '+12025551234', '+12025551234');
+		$context->set('sms', '+12025551235', '+12025551235');
+		$context->set('sms', '+12025559999', '+12025559999');
+		$context->set('sms', '999999999', '');
+		$context->set('sms', '', '');
 
 		$searchNormalizer = $this->createMock(SearchNormalizer::class);
 		$searchNormalizer->method('tryNormalizePhoneNumber')
-			->with('999999999', 'sms')
-			->willReturn(null); // Cannot normalize
+			->willReturnCallback(function (string $input) {
+				if ($input === '+12025551234' || $input === '+12025551235' || $input === '+12025559999' || $input === '') {
+					return $input;
+				}
+
+				return null;
+			});
 
 		$plugin = new ContactPhonePlugin(
 			$appConfig,
@@ -349,11 +586,296 @@ class ContactPhonePluginTest extends TestCase {
 		);
 
 		$searchResult = new SearchResult();
-		$plugin->search('999999999', 10, 0, $searchResult);
+		$hasMore = $plugin->search('1202555123', 10, 0, $searchResult);
 
 		$results = $searchResult->asArray();
 		$items = array_merge($results['contact-phone'] ?? [], $results['exact']['contact-phone'] ?? []);
-		$this->assertCount(0, $items); // Contact should be filtered out
+
+		$this->assertCount(2, $items);
+		$this->assertFalse($hasMore);
+	}
+
+	public function testEarlyReturnWhenInvalidSearchQuery(): void {
+		$appConfig = $this->applyAppConfig([
+			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+		]);
+
+		$currentUser = $this->createMock(IUser::class);
+		$currentUser->method('getUID')->willReturn('current');
+
+		$userSession = $this->createMock(IUserSession::class);
+		$userSession->method('getUser')->willReturn($currentUser);
+
+		$contactUser = $this->createMock(IUser::class);
+		$contactUser->method('getUID')->willReturn('contactUser');
+
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->method('get')->willReturn($contactUser);
+
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->method('getUserGroupIds')->willReturn(['sales']);
+
+		$knownUserService = $this->createMock(KnownUserService::class);
+		$knownUserService->method('isKnownToUser')->willReturn(true);
+
+		$contactsManager = $this->createMock(IManager::class);
+		$contactsManager->method('isEnabled')->willReturn(true);
+		$contactsManager->method('search')
+			->willReturn([[
+				'FN' => 'Contact Name',
+				'UID' => 'contactUser',
+				'isLocalSystemBook' => true,
+				'TEL' => [
+					['value' => '+12025551234'],
+				],
+			]]);
+
+		$context = new SignerSearchContext();
+		$context->set('sms', '+12025551234', '+12025551234');
+
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->with('+12025551234', 'sms')
+			->willReturn('+12025551234');
+
+		$plugin = new ContactPhonePlugin(
+			$appConfig,
+			$contactsManager,
+			$groupManager,
+			$userManager,
+			$userSession,
+			$knownUserService,
+			$context,
+			$searchNormalizer,
+		);
+
+		$searchResult = new SearchResult();
+		// Should return early
+		$hasMore = $plugin->search('', 10, 0, $searchResult);
+
+		$results = $searchResult->asArray();
+		$items = array_merge($results['contact-phone'] ?? [], $results['exact']['contact-phone'] ?? []);
+		$this->assertCount(0, $items);
+		$this->assertFalse($hasMore);
+
+		// Search consisting only of whitespace should behave like empty search
+		$searchResult = new SearchResult();
+		$hasMore = $plugin->search('   ', 10, 0, $searchResult);
+		$results = $searchResult->asArray();
+		$items = array_merge($results['contact-phone'] ?? [], $results['exact']['contact-phone'] ?? []);
+		$this->assertCount(0, $items);
+		$this->assertFalse($hasMore);
+	}
+
+	public function testFallbackToPhoneWhenNoFN(): void {
+		$appConfig = $this->applyAppConfig([
+			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+		]);
+
+		$currentUser = $this->createMock(IUser::class);
+		$currentUser->method('getUID')->willReturn('current');
+
+		$userSession = $this->createMock(IUserSession::class);
+		$userSession->method('getUser')->willReturn($currentUser);
+
+		$contactUser = $this->createMock(IUser::class);
+		$contactUser->method('getUID')->willReturn('contactUser');
+
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->method('get')->willReturn($contactUser);
+
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->method('getUserGroupIds')->willReturn(['sales']);
+
+		$knownUserService = $this->createMock(KnownUserService::class);
+		$knownUserService->method('isKnownToUser')->willReturn(true);
+
+		$contactsManager = $this->createMock(IManager::class);
+		$contactsManager->method('isEnabled')->willReturn(true);
+		$contactsManager->method('search')
+			->willReturn([[
+				'FN' => '',
+				'UID' => 'contactUser',
+				'isLocalSystemBook' => true,
+				'TEL' => [
+					['value' => '+12025551234'],
+				],
+			]]);
+
+		$context = new SignerSearchContext();
+		$context->set('sms', '+12025551234', '+12025551234');
+
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->with('+12025551234', 'sms')
+			->willReturn('+12025551234');
+
+		$plugin = new ContactPhonePlugin(
+			$appConfig,
+			$contactsManager,
+			$groupManager,
+			$userManager,
+			$userSession,
+			$knownUserService,
+			$context,
+			$searchNormalizer,
+		);
+
+		$searchResult = new SearchResult();
+		$hasMore = $plugin->search('+12025551234', 10, 0, $searchResult);
+
+		$results = $searchResult->asArray();
+		$items = array_merge($results['contact-phone'] ?? [], $results['exact']['contact-phone'] ?? []);
+		$this->assertCount(1, $items);
+		$this->assertFalse($hasMore);
+		$this->assertSame('+12025551234', $items[0]['label']);
+	}
+
+	public function testFilterGroups(): void {
+		$appConfig1 = $this->applyAppConfig([
+			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+			'shareapi_restrict_user_enumeration_to_group' => 'yes',
+			'shareapi_restrict_user_enumeration_to_phone' => 'yes',
+			'shareapi_only_share_with_group_members' => 'no',
+			'shareapi_only_share_with_group_members_exclude_group_list' => [],
+		]);
+
+		$currentUser = $this->createMock(IUser::class);
+		$currentUser->method('getUID')->willReturn('current');
+
+		$userSession = $this->createMock(IUserSession::class);
+		$userSession->method('getUser')->willReturn($currentUser);
+
+		$contactUser1 = $this->createMock(IUser::class);
+		$contactUser1->method('getUID')->willReturn('contactUser1');
+
+		$contactUser2 = $this->createMock(IUser::class);
+		$contactUser2->method('getUID')->willReturn('contactUser2');
+
+		$contactUser3 = $this->createMock(IUser::class);
+		$contactUser3->method('getUID')->willReturn('contactUser3');
+
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->method('get')
+			->willReturnCallback(function (string $uid) use ($currentUser, $contactUser1, $contactUser2, $contactUser3) {
+				if ($uid === 'current') {
+					return $currentUser;
+				}
+				if ($uid === 'contactUser1') {
+					return $contactUser1;
+				}
+				if ($uid === 'contactUser2') {
+					return $contactUser2;
+				}
+				if ($uid === 'contactUser3') {
+					return $contactUser3;
+				}
+				return null;
+			});
+
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->method('getUserGroupIds')
+			->willReturnCallback(function ($user) use ($currentUser, $contactUser1, $contactUser2, $contactUser3): array {
+				$uid = $user instanceof IUser ? $user->getUID() : (string)$user;
+				if ($uid === 'current') {
+					return ['sales'];
+				}
+				if ($uid === 'contactUser1') {
+					return ['marketing'];
+				}
+				if ($uid === 'contactUser2') {
+					return ['sales'];
+				}
+				if ($uid === 'contactUser3') {
+					return ['sales'];
+				}
+				return [];
+			});
+
+		$knownUserService = $this->createMock(KnownUserService::class);
+		$knownUserService->method('isKnownToUser')
+			->willReturnCallback(function (string $currentUid, string $targetUid): bool {
+				return $targetUid !== 'contactUser2';
+			});
+
+		$contactsManager = $this->createMock(IManager::class);
+		$contactsManager->method('isEnabled')->willReturn(true);
+		$contactsManager->method('search')
+			->willReturn([
+				[
+					'FN' => 'Contact One',
+					'UID' => 'contactUser1',
+					'isLocalSystemBook' => true,
+					'TEL' => [['value' => '+12025551234']],
+				],
+				[
+					'FN' => 'Contact Two',
+					'UID' => 'contactUser2',
+					'isLocalSystemBook' => true,
+					'TEL' => [['value' => '+12025551234']],
+				],
+				[
+					'FN' => 'Contact Three',
+					'UID' => 'contactUser3',
+					'isLocalSystemBook' => true,
+					'TEL' => [['value' => '+12025551234']],
+				],
+			]);
+
+		$context = new SignerSearchContext();
+		$context->set('sms', '+12025551234', '+12025551234');
+
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->willReturnCallback(fn (string $number) => $number);
+
+		$plugin1 = new ContactPhonePlugin(
+			$appConfig1,
+			$contactsManager,
+			$groupManager,
+			$userManager,
+			$userSession,
+			$knownUserService,
+			$context,
+			$searchNormalizer,
+		);
+
+		$searchResult1 = new SearchResult();
+		$plugin1->search('+12025551234', 10, 0, $searchResult1);
+
+		$results1 = $searchResult1->asArray();
+		$items1 = array_merge($results1['contact-phone'] ?? [], $results1['exact']['contact-phone'] ?? []);
+
+		$this->assertCount(1, $items1);
+		$this->assertSame('Contact Three', $items1[0]['label']);
+
+		$appConfig2 = $this->applyAppConfig([
+			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+			'shareapi_restrict_user_enumeration_to_group' => 'no',
+			'shareapi_restrict_user_enumeration_to_phone' => 'no',
+			'shareapi_only_share_with_group_members' => 'yes',
+			'shareapi_only_share_with_group_members_exclude_group_list' => [],
+		]);
+
+		$plugin2 = new ContactPhonePlugin(
+			$appConfig2,
+			$contactsManager,
+			$groupManager,
+			$userManager,
+			$userSession,
+			$knownUserService,
+			$context,
+			$searchNormalizer,
+		);
+
+		$searchResult2 = new SearchResult();
+		$plugin2->search('+12025551234', 10, 0, $searchResult2);
+
+		$results2 = $searchResult2->asArray();
+		$items2 = array_merge($results2['contact-phone'] ?? [], $results2['exact']['contact-phone'] ?? []);
+
+		$this->assertCount(1, $items2);
+		$this->assertSame('Contact Two', $items2[0]['label']);
 	}
 
 	public static function providerSearchScenarios(): array {
@@ -378,11 +900,15 @@ class ContactPhonePluginTest extends TestCase {
 				'contactGroups' => ['sales'],
 				'isSystemBook' => true,
 				'expectedCount' => 0,
+				'expectedHasMore' => false,
 			],
 			'enumeration allowed without restrictions' => [
 				'method' => 'sms',
 				'config' => [
 					'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+					'shareapi_restrict_user_enumeration_to_group' => 'no',
+					'shareapi_restrict_user_enumeration_to_phone' => 'no',
+					'shareapi_only_share_with_group_members' => 'no'
 				],
 				'knownUser' => false,
 				'currentGroups' => ['sales'],
@@ -407,6 +933,7 @@ class ContactPhonePluginTest extends TestCase {
 				'config' => [
 					'shareapi_allow_share_dialog_user_enumeration' => 'yes',
 					'shareapi_restrict_user_enumeration_to_group' => 'yes',
+					'shareapi_restrict_user_enumeration_to_phone' => 'no',
 				],
 				'knownUser' => false,
 				'currentGroups' => ['sales'],
