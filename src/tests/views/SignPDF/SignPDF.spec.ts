@@ -7,6 +7,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { mount } from '@vue/test-utils'
 
+vi.mock('@nextcloud/vue/components/NcAppContent', () => ({
+	default: { name: 'NcAppContent', template: '<div><slot /></div>' },
+}))
+
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app, key, defaultValue) => defaultValue),
 }))

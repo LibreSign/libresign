@@ -4,12 +4,16 @@
 -->
 
 <template>
-	<div class="policies-view">
-		<RealPolicyWorkbench />
-	</div>
+	<NcAppContent>
+		<div class="policies-view">
+			<RealPolicyWorkbench />
+		</div>
+	</NcAppContent>
 </template>
 
 <script setup lang="ts">
+import NcAppContent from '@nextcloud/vue/components/NcAppContent'
+
 import RealPolicyWorkbench from '../Settings/PolicyWorkbench/Catalog/Catalog.vue'
 
 defineOptions({

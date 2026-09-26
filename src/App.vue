@@ -6,18 +6,19 @@
 <template>
 	<NcContent app-name="libresign" :class="{'sign-external-page': isSignExternalPage}">
 		<LeftSidebar v-if="showLeftSidebar" />
-		<NcAppContent :class="{'icon-loading': loading }">
+		<NcAppContent v-if="isDoNothingError || loading || isRoot" :class="{'icon-loading': loading }">
 			<DefaultPageError v-if="isDoNothingError" />
-			<router-view
-				v-else-if="!loading"
-				:key="$route.name"
-				v-model:loading="loading" />
 			<NcEmptyContent v-if="isRoot" :description="t('libresign', 'LibreSign, digital signature app for Nextcloud.')">
 				<template #icon>
 					<img :src="LogoLibreSign">
 				</template>
 			</NcEmptyContent>
 		</NcAppContent>
+		<!-- Routed views render their own NcAppContent -->
+		<router-view
+			v-else
+			:key="$route.name"
+			v-model:loading="loading" />
 		<RightSidebar />
 	</NcContent>
 </template>

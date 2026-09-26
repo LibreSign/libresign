@@ -3,33 +3,35 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div class="container"
-		@dragenter="onDragEnter"
-		@dragover="onDragOver"
-		@dragleave="onDragLeave"
-		@drop="onDrop">
-		<div v-if="isDraggingFiles" class="request-drop-overlay" aria-hidden="true">
-			<NcIconSvgWrapper :path="mdiUpload" :size="48" />
-			<!-- TRANSLATORS Instruction shown while dragging documents over the signature request page. -->
-			<p>{{ t('libresign', 'Drop files here to upload') }}</p>
-		</div>
-		<div id="container-request">
-			<header>
-				<h1>{{ requestSignaturesTitle }}</h1>
-				<p v-if="!sidebarStore.isVisible">
-					{{ chooseFileToRequestSignaturesHint }}
-				</p>
-			</header>
-			<div class="content-request">
-				<File v-show="!!filesStore.selectedFileId"
-					status="0"
-					status-text="none" />
-				<RequestPicker v-if="!sidebarStore.isVisible"
-					ref="requestPickerRef"
-					:inline="true" />
+	<NcAppContent>
+		<div class="container"
+			@dragenter="onDragEnter"
+			@dragover="onDragOver"
+			@dragleave="onDragLeave"
+			@drop="onDrop">
+			<div v-if="isDraggingFiles" class="request-drop-overlay" aria-hidden="true">
+				<NcIconSvgWrapper :path="mdiUpload" :size="48" />
+				<!-- TRANSLATORS Instruction shown while dragging documents over the signature request page. -->
+				<p>{{ t('libresign', 'Drop files here to upload') }}</p>
+			</div>
+			<div id="container-request">
+				<header>
+					<h1>{{ requestSignaturesTitle }}</h1>
+					<p v-if="!sidebarStore.isVisible">
+						{{ chooseFileToRequestSignaturesHint }}
+					</p>
+				</header>
+				<div class="content-request">
+					<File v-show="!!filesStore.selectedFileId"
+						status="0"
+						status-text="none" />
+					<RequestPicker v-if="!sidebarStore.isVisible"
+						ref="requestPickerRef"
+						:inline="true" />
+				</div>
 			</div>
 		</div>
-	</div>
+	</NcAppContent>
 </template>
 
 <script setup lang="ts">
@@ -38,6 +40,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import { mdiUpload } from '@mdi/js'
 
+import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import File from '../components/File/File.vue'

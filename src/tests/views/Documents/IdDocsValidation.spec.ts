@@ -29,6 +29,10 @@ const userConfigStore = {
 	update: vi.fn((...args: unknown[]) => userConfigUpdateMock(...args)),
 }
 
+vi.mock('@nextcloud/vue/components/NcAppContent', () => ({
+	default: { name: 'NcAppContent', template: '<div><slot /></div>' },
+}))
+
 vi.mock('@nextcloud/axios', () => ({
 	default: {
 		get: vi.fn((...args: unknown[]) => axiosGetMock(...args)),

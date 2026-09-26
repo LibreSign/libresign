@@ -48,6 +48,13 @@ html.libresign-external-page body#body-public.libresign-external-page #content {
 }
 
 /*
+ * Shared views render NcAppContent; keep the page background behind it.
+ */
+html.libresign-external-page .app-content {
+	background-color: transparent;
+}
+
+/*
  * On mobile, NcAppSidebar normally relies on NcContent for its overlay.
  * External pages do not use NcContent, so keep the sidebar viewport-sized.
  */

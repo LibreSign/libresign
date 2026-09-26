@@ -3,37 +3,39 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div class="main-view">
-		<TopBar
-			v-if="!isMobile"
-			:sidebar-toggle="true" />
-		<PdfEditor v-if="mounted && !hasPdfLoadError && pdfBlobs.length > 0"
-			ref="pdfEditor"
-			width="100%"
-			height="100%"
-			:aria-label="t('libresign', 'PDF document to sign')"
-			:files="pdfBlobs"
-			:file-names="fileNames.length > 0 ? fileNames : [pdfFileName]"
-			:read-only="true"
-			:emit-object-click="true"
-			@pdf-editor:object-click="dispatchPrimaryAction"
-			@pdf-editor:end-init="updateSigners" />
-		<div class="button-wrapper">
-			<NcButton
-			v-if="isMobile"
-			:wide="true"
-			variant="primary"
-			@click.prevent="toggleSidebar">
-			{{ t('libresign', 'Sign') }}
-			</NcButton>
+	<NcAppContent>
+		<div class="main-view">
+			<TopBar
+				v-if="!isMobile"
+				:sidebar-toggle="true" />
+			<PdfEditor v-if="mounted && !hasPdfLoadError && pdfBlobs.length > 0"
+				ref="pdfEditor"
+				width="100%"
+				height="100%"
+				:aria-label="t('libresign', 'PDF document to sign')"
+				:files="pdfBlobs"
+				:file-names="fileNames.length > 0 ? fileNames : [pdfFileName]"
+				:read-only="true"
+				:emit-object-click="true"
+				@pdf-editor:object-click="dispatchPrimaryAction"
+				@pdf-editor:end-init="updateSigners" />
+			<div class="button-wrapper">
+				<NcButton
+				v-if="isMobile"
+				:wide="true"
+				variant="primary"
+				@click.prevent="toggleSidebar">
+				{{ t('libresign', 'Sign') }}
+				</NcButton>
+			</div>
+			<NcNoteCard v-for="(error, index) in signStore.errors"
+				:key="index"
+				:heading="error.title || ''"
+				type="error">
+				{{ error.message }}
+			</NcNoteCard>
 		</div>
-		<NcNoteCard v-for="(error, index) in signStore.errors"
-			:key="index"
-			:heading="error.title || ''"
-			type="error">
-			{{ error.message }}
-		</NcNoteCard>
-	</div>
+	</NcAppContent>
 </template>
 
 <script setup lang="ts">
@@ -42,6 +44,7 @@ import { t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl, generateUrl } from '@nextcloud/router'
+import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import { computed, getCurrentInstance, nextTick, onBeforeMount, onBeforeUnmount, onMounted, ref } from 'vue'

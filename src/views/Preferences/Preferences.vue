@@ -4,114 +4,116 @@
 -->
 
 <template>
-	<div v-if="preferencesReady" class="preferences-view">
-		<NcSettingsSection
-			v-for="entry in preferenceEntries"
-			:key="entry.definition.key"
-			:name="entry.definition.title"
-			:description="entry.definition.description">
-			<NcNoteCard v-if="entry.policy?.preferenceWasCleared" type="info">
-				<!-- TRANSLATORS Informational message in the user preferences screen when a previously saved personal default was removed because a group or system policy now overrides it. -->
-				{{ t('libresign', 'A previously saved preference was cleared because it is no longer compatible with a higher-level policy.') }}
-			</NcNoteCard>
+	<NcAppContent>
+		<div v-if="preferencesReady" class="preferences-view">
+			<NcSettingsSection
+				v-for="entry in preferenceEntries"
+				:key="entry.definition.key"
+				:name="entry.definition.title"
+				:description="entry.definition.description">
+				<NcNoteCard v-if="entry.policy?.preferenceWasCleared" type="info">
+					<!-- TRANSLATORS Informational message in the user preferences screen when a previously saved personal default was removed because a group or system policy now overrides it. -->
+					{{ t('libresign', 'A previously saved preference was cleared because it is no longer compatible with a higher-level policy.') }}
+				</NcNoteCard>
 
-			<NcNoteCard v-if="errorMessageFor(entry.definition.key)" type="error">
-				{{ errorMessageFor(entry.definition.key) }}
-			</NcNoteCard>
+				<NcNoteCard v-if="errorMessageFor(entry.definition.key)" type="error">
+					{{ errorMessageFor(entry.definition.key) }}
+				</NcNoteCard>
 
-			<NcNoteCard v-if="!canSavePreferenceFor(entry.definition.key)" type="info">
-				<!-- TRANSLATORS Informational message in the user preferences screen when the current user is not allowed to save a personal default value for this setting. -->
-				{{ t('libresign', 'Your current context does not allow saving a personal default for this setting.') }}
-			</NcNoteCard>
+				<NcNoteCard v-if="!canSavePreferenceFor(entry.definition.key)" type="info">
+					<!-- TRANSLATORS Informational message in the user preferences screen when the current user is not allowed to save a personal default value for this setting. -->
+					{{ t('libresign', 'Your current context does not allow saving a personal default for this setting.') }}
+				</NcNoteCard>
 
-			<div v-else class="preferences-view__options">
-				<div
-					v-if="canUndoAutoSaveFor(entry.definition.key)"
-					class="preferences-view__undo-row">
-					<NcButton
-						variant="tertiary"
-						:disabled="saving"
-						@click="undoAutoSaveByKey(entry.definition.key)">
-						<template #icon>
-							<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
-						</template>
-						{{ undoLabelFor(entry.definition.key) }}
-					</NcButton>
-				</div>
-
-				<div class="preferences-view__editor-shell" :class="{ 'preferences-view__editor-shell--saved': isAutoSaveSavedFor(entry.definition.key) }">
+				<div v-else class="preferences-view__options">
 					<div
-						v-if="isAutoSaveSavingFor(entry.definition.key) || isAutoSaveSavedFor(entry.definition.key)"
-						class="preferences-view__autosave-status"
-						:class="{ 'preferences-view__autosave-status--saved': isAutoSaveSavedFor(entry.definition.key) }"
-						role="status"
-						aria-live="polite">
-						<NcLoadingIcon v-if="isAutoSaveSavingFor(entry.definition.key)" :size="16" />
-						<NcIconSvgWrapper v-else :path="mdiCheckCircleOutline" :size="16" />
-						<span v-if="isAutoSaveSavingFor(entry.definition.key)">
-							<!-- TRANSLATORS Status text shown while the preferences screen is automatically saving the user's personal default value. -->
-							{{ t('libresign', 'Saving your preference...') }}
-						</span>
-						<span v-else>
-							<!-- TRANSLATORS Status text shown after the preferences screen successfully saves the user's personal default value. -->
-							{{ t('libresign', 'Preference saved') }}
-						</span>
+						v-if="canUndoAutoSaveFor(entry.definition.key)"
+						class="preferences-view__undo-row">
+						<NcButton
+							variant="tertiary"
+							:disabled="saving"
+							@click="undoAutoSaveByKey(entry.definition.key)">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
+							</template>
+							{{ undoLabelFor(entry.definition.key) }}
+						</NcButton>
 					</div>
 
-					<component
-						:is="entry.definition.editor"
-						:model-value="selectedPreferenceValues[entry.definition.key]"
-						v-bind="editorPropsFor(entry.definition.key)"
-						@update:modelValue="onPreferenceModelUpdate(entry.definition.key, $event)" />
-				</div>
-			</div>
-		</NcSettingsSection>
+					<div class="preferences-view__editor-shell" :class="{ 'preferences-view__editor-shell--saved': isAutoSaveSavedFor(entry.definition.key) }">
+						<div
+							v-if="isAutoSaveSavingFor(entry.definition.key) || isAutoSaveSavedFor(entry.definition.key)"
+							class="preferences-view__autosave-status"
+							:class="{ 'preferences-view__autosave-status--saved': isAutoSaveSavedFor(entry.definition.key) }"
+							role="status"
+							aria-live="polite">
+							<NcLoadingIcon v-if="isAutoSaveSavingFor(entry.definition.key)" :size="16" />
+							<NcIconSvgWrapper v-else :path="mdiCheckCircleOutline" :size="16" />
+							<span v-if="isAutoSaveSavingFor(entry.definition.key)">
+								<!-- TRANSLATORS Status text shown while the preferences screen is automatically saving the user's personal default value. -->
+								{{ t('libresign', 'Saving your preference...') }}
+							</span>
+							<span v-else>
+								<!-- TRANSLATORS Status text shown after the preferences screen successfully saves the user's personal default value. -->
+								{{ t('libresign', 'Preference saved') }}
+							</span>
+						</div>
 
-		<!-- TRANSLATORS Title and description of the preferences section with personal options that apply when the user requests signatures. -->
-		<NcSettingsSection
-			:name="t('libresign', 'Signature requests')"
-			:description="t('libresign', 'Options that apply when you request signatures.')">
-			<NcNoteCard v-if="errorMessageFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)" type="error">
-				{{ errorMessageFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY) }}
-			</NcNoteCard>
-
-			<div class="preferences-view__options">
-				<div class="preferences-view__editor-shell" :class="{ 'preferences-view__editor-shell--saved': isAutoSaveSavedFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY) }">
-					<div
-						v-if="isAutoSaveSavingFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY) || isAutoSaveSavedFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)"
-						class="preferences-view__autosave-status"
-						:class="{ 'preferences-view__autosave-status--saved': isAutoSaveSavedFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY) }"
-						role="status"
-						aria-live="polite">
-						<NcLoadingIcon v-if="isAutoSaveSavingFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)" :size="16" />
-						<NcIconSvgWrapper v-else :path="mdiCheckCircleOutline" :size="16" />
-						<span v-if="isAutoSaveSavingFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)">
-							<!-- TRANSLATORS Status text shown while the preferences screen is automatically saving the user's personal default value. -->
-							{{ t('libresign', 'Saving your preference...') }}
-						</span>
-						<span v-else>
-							<!-- TRANSLATORS Status text shown after the preferences screen successfully saves the user's personal default value. -->
-							{{ t('libresign', 'Preference saved') }}
-						</span>
-					</div>
-
-					<NcCheckboxRadioSwitch
-						id="preferences-warn-without-visible-signature-fields"
-						type="switch"
-						:model-value="warnWithoutVisibleSignatureFields"
-						:disabled="isAutoSaveSavingFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)"
-						@update:model-value="onWarnWithoutVisibleSignatureFieldsChange">
-						<!-- TRANSLATORS Label of the user preference switch that controls the warning shown when a signature request has signers without a visible signature field. -->
-						{{ t('libresign', 'Warn me when requesting signatures without visible fields') }}
-					</NcCheckboxRadioSwitch>
-					<div class="preferences-view__option-copy">
-						<!-- TRANSLATORS Description of the user preference switch that controls the warning shown when a signature request has signers without a visible signature field. -->
-						<p>{{ t('libresign', 'Show a warning when one or more signers will sign without a visible signature on the PDF.') }}</p>
+						<component
+							:is="entry.definition.editor"
+							:model-value="selectedPreferenceValues[entry.definition.key]"
+							v-bind="editorPropsFor(entry.definition.key)"
+							@update:modelValue="onPreferenceModelUpdate(entry.definition.key, $event)" />
 					</div>
 				</div>
-			</div>
-		</NcSettingsSection>
-	</div>
+			</NcSettingsSection>
+
+			<!-- TRANSLATORS Title and description of the preferences section with personal options that apply when the user requests signatures. -->
+			<NcSettingsSection
+				:name="t('libresign', 'Signature requests')"
+				:description="t('libresign', 'Options that apply when you request signatures.')">
+				<NcNoteCard v-if="errorMessageFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)" type="error">
+					{{ errorMessageFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY) }}
+				</NcNoteCard>
+
+				<div class="preferences-view__options">
+					<div class="preferences-view__editor-shell" :class="{ 'preferences-view__editor-shell--saved': isAutoSaveSavedFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY) }">
+						<div
+							v-if="isAutoSaveSavingFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY) || isAutoSaveSavedFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)"
+							class="preferences-view__autosave-status"
+							:class="{ 'preferences-view__autosave-status--saved': isAutoSaveSavedFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY) }"
+							role="status"
+							aria-live="polite">
+							<NcLoadingIcon v-if="isAutoSaveSavingFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)" :size="16" />
+							<NcIconSvgWrapper v-else :path="mdiCheckCircleOutline" :size="16" />
+							<span v-if="isAutoSaveSavingFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)">
+								<!-- TRANSLATORS Status text shown while the preferences screen is automatically saving the user's personal default value. -->
+								{{ t('libresign', 'Saving your preference...') }}
+							</span>
+							<span v-else>
+								<!-- TRANSLATORS Status text shown after the preferences screen successfully saves the user's personal default value. -->
+								{{ t('libresign', 'Preference saved') }}
+							</span>
+						</div>
+
+						<NcCheckboxRadioSwitch
+							id="preferences-warn-without-visible-signature-fields"
+							type="switch"
+							:model-value="warnWithoutVisibleSignatureFields"
+							:disabled="isAutoSaveSavingFor(WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY)"
+							@update:model-value="onWarnWithoutVisibleSignatureFieldsChange">
+							<!-- TRANSLATORS Label of the user preference switch that controls the warning shown when a signature request has signers without a visible signature field. -->
+							{{ t('libresign', 'Warn me when requesting signatures without visible fields') }}
+						</NcCheckboxRadioSwitch>
+						<div class="preferences-view__option-copy">
+							<!-- TRANSLATORS Description of the user preference switch that controls the warning shown when a signature request has signers without a visible signature field. -->
+							<p>{{ t('libresign', 'Show a warning when one or more signers will sign without a visible signature on the PDF.') }}</p>
+						</div>
+					</div>
+				</div>
+			</NcSettingsSection>
+		</div>
+	</NcAppContent>
 </template>
 
 <script setup lang="ts">
@@ -120,6 +122,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { t } from '@nextcloud/l10n'
 import { mdiCheckCircleOutline, mdiUndoVariant } from '@mdi/js'
 
+import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'

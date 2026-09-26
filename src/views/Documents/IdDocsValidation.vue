@@ -3,171 +3,173 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div class="id-docs-validation">
-		<div class="id-docs-validation__toolbar">
-			<div class="filter-wrapper" :class="{ 'filter-wrapper--active': hasActiveFilters }">
-				<!-- TRANSLATORS {count} is the number of active filters currently applied to the document validation list. -->
-				<NcActions :aria-label="hasActiveFilters ? t('libresign', 'Filters ({count})', { count: activeFilterCount }) : t('libresign', 'Filters')">
-					<template #icon>
-						<NcIconSvgWrapper :path="mdiFilter" :size="20" />
-					</template>
-					<NcActionInput v-model="filters.owner"
-						:label="t('libresign', 'Owner')"
-						@update:modelValue="onFilterChange">
+	<NcAppContent>
+		<div class="id-docs-validation">
+			<div class="id-docs-validation__toolbar">
+				<div class="filter-wrapper" :class="{ 'filter-wrapper--active': hasActiveFilters }">
+					<!-- TRANSLATORS {count} is the number of active filters currently applied to the document validation list. -->
+					<NcActions :aria-label="hasActiveFilters ? t('libresign', 'Filters ({count})', { count: activeFilterCount }) : t('libresign', 'Filters')">
 						<template #icon>
-						<NcIconSvgWrapper :path="mdiAccount" :size="20" />
+							<NcIconSvgWrapper :path="mdiFilter" :size="20" />
 						</template>
-					</NcActionInput>
+						<NcActionInput v-model="filters.owner"
+							:label="t('libresign', 'Owner')"
+							@update:modelValue="onFilterChange">
+							<template #icon>
+							<NcIconSvgWrapper :path="mdiAccount" :size="20" />
+							</template>
+						</NcActionInput>
 
-					<NcActionButton type="radio"
-						:model-value="filters.status?.value === 'signed'"
-						@update:modelValue="setStatusFilter('signed', $event)">
-						<template #icon>
-						<NcIconSvgWrapper :path="mdiCheckCircle" :size="20" />
-						</template>
-						{{ t('libresign', 'Signed') }}
-					</NcActionButton>
+						<NcActionButton type="radio"
+							:model-value="filters.status?.value === 'signed'"
+							@update:modelValue="setStatusFilter('signed', $event)">
+							<template #icon>
+							<NcIconSvgWrapper :path="mdiCheckCircle" :size="20" />
+							</template>
+							{{ t('libresign', 'Signed') }}
+						</NcActionButton>
 
-					<NcActionButton type="radio"
-						:model-value="filters.status?.value === 'pending'"
-						@update:modelValue="setStatusFilter('pending', $event)">
-						<template #icon>
-						<NcIconSvgWrapper :path="mdiClockAlert" :size="20" />
-						</template>
-						{{ t('libresign', 'Pending') }}
-					</NcActionButton>
+						<NcActionButton type="radio"
+							:model-value="filters.status?.value === 'pending'"
+							@update:modelValue="setStatusFilter('pending', $event)">
+							<template #icon>
+							<NcIconSvgWrapper :path="mdiClockAlert" :size="20" />
+							</template>
+							{{ t('libresign', 'Pending') }}
+						</NcActionButton>
 
-					<NcActionSeparator v-if="hasActiveFilters" />
+						<NcActionSeparator v-if="hasActiveFilters" />
 
-					<NcActionButton v-if="hasActiveFilters"
-						@click="clearFilters">
-						<template #icon>
-						<NcIconSvgWrapper :path="mdiClose" :size="20" />
-						</template>
-						{{ t('libresign', 'Clear filters') }}
-					</NcActionButton>
-				</NcActions>
-				<span v-if="hasActiveFilters" class="filter-badge" aria-hidden="true">{{ activeFilterCount }}</span>
+						<NcActionButton v-if="hasActiveFilters"
+							@click="clearFilters">
+							<template #icon>
+							<NcIconSvgWrapper :path="mdiClose" :size="20" />
+							</template>
+							{{ t('libresign', 'Clear filters') }}
+						</NcActionButton>
+					</NcActions>
+					<span v-if="hasActiveFilters" class="filter-badge" aria-hidden="true">{{ activeFilterCount }}</span>
+				</div>
 			</div>
-		</div>
 
-		<NcLoadingIcon v-if="loading" :size="44" />
+			<NcLoadingIcon v-if="loading" :size="44" />
 
-		<NcEmptyContent v-else-if="filteredDocuments.length === 0"
-			:name="t('libresign', 'No documents to validate')">
-			<template #icon>
-				<NcIconSvgWrapper :path="mdiFileDocument" :size="64" />
-			</template>
-		</NcEmptyContent>
+			<NcEmptyContent v-else-if="filteredDocuments.length === 0"
+				:name="t('libresign', 'No documents to validate')">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiFileDocument" :size="64" />
+				</template>
+			</NcEmptyContent>
 
-		<div v-else
-			ref="scrollContainer"
-			class="container-account-docs-to-validate"
-			@scroll="onScroll">
-		<table class="id-docs-table">
-			<thead>
-				<tr>
-					<th class="id-docs-table__cell--spacer id-docs-table__cell--frozen-left id-docs-table__cell--frozen-spacer" />
-					<th class="sortable id-docs-table__cell--frozen-left id-docs-table__cell--frozen-owner" @click="sortColumn('owner')">
-						{{ t('libresign', 'Owner') }}
-						<span v-if="sortBy === 'owner'" class="sort-indicator">
-							{{ sortOrder === 'ASC' ? '▲' : '▼' }}
-						</span>
-					</th>
-					<th class="sortable" @click="sortColumn('file_type')">
-						{{ t('libresign', 'Type') }}
-						<span v-if="sortBy === 'file_type'" class="sort-indicator">
-							{{ sortOrder === 'ASC' ? '▲' : '▼' }}
-						</span>
-					</th>
-					<th class="sortable" @click="sortColumn('status')">
-						{{ t('libresign', 'Status') }}
-						<span v-if="sortBy === 'status'" class="sort-indicator">
-							{{ sortOrder === 'ASC' ? '▲' : '▼' }}
-						</span>
-					</th>
-					<th>{{ t('libresign', 'Approved by') }}</th>
-					<th class="id-docs-table__cell--frozen-right">{{ t('libresign', 'Actions') }}</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="(doc, index) in filteredDocuments" :key="`doc-${index}-${doc.file.file.nodeId}-${doc.file_type.type}`">
-					<td class="id-docs-table__cell--spacer id-docs-table__cell--frozen-left id-docs-table__cell--frozen-spacer">
-						<NcAvatar :user="doc.account?.userId ?? doc.account?.displayName"
-							:display-name="doc.account?.displayName || doc.account?.userId"
-							:size="32"
-							:disable-menu="true" />
-					</td>
-					<td class="id-docs-table__cell--frozen-left id-docs-table__cell--frozen-owner">
-						{{ doc.account?.displayName || doc.account?.userId || '-' }}
-					</td>
-					<td>
-						{{ doc.file_type.name }}
-					</td>
-					<td>
-						{{ doc.file.statusText }}
-					</td>
-					<td>
-						<template v-if="doc.file?.signers?.length > 0 && doc.file.signers[0].sign_date">
-							<NcAvatar v-if="doc.file.signers[0].uid"
-								:user="doc.file.signers[0].uid"
-								:display-name="doc.file.signers[0].displayName"
+			<div v-else
+				ref="scrollContainer"
+				class="container-account-docs-to-validate"
+				@scroll="onScroll">
+			<table class="id-docs-table">
+				<thead>
+					<tr>
+						<th class="id-docs-table__cell--spacer id-docs-table__cell--frozen-left id-docs-table__cell--frozen-spacer" />
+						<th class="sortable id-docs-table__cell--frozen-left id-docs-table__cell--frozen-owner" @click="sortColumn('owner')">
+							{{ t('libresign', 'Owner') }}
+							<span v-if="sortBy === 'owner'" class="sort-indicator">
+								{{ sortOrder === 'ASC' ? '▲' : '▼' }}
+							</span>
+						</th>
+						<th class="sortable" @click="sortColumn('file_type')">
+							{{ t('libresign', 'Type') }}
+							<span v-if="sortBy === 'file_type'" class="sort-indicator">
+								{{ sortOrder === 'ASC' ? '▲' : '▼' }}
+							</span>
+						</th>
+						<th class="sortable" @click="sortColumn('status')">
+							{{ t('libresign', 'Status') }}
+							<span v-if="sortBy === 'status'" class="sort-indicator">
+								{{ sortOrder === 'ASC' ? '▲' : '▼' }}
+							</span>
+						</th>
+						<th>{{ t('libresign', 'Approved by') }}</th>
+						<th class="id-docs-table__cell--frozen-right">{{ t('libresign', 'Actions') }}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="(doc, index) in filteredDocuments" :key="`doc-${index}-${doc.file.file.nodeId}-${doc.file_type.type}`">
+						<td class="id-docs-table__cell--spacer id-docs-table__cell--frozen-left id-docs-table__cell--frozen-spacer">
+							<NcAvatar :user="doc.account?.userId ?? doc.account?.displayName"
+								:display-name="doc.account?.displayName || doc.account?.userId"
 								:size="32"
 								:disable-menu="true" />
-							{{ doc.file.signers[0].displayName }}
-						</template>
-						<template v-else>
-							-
-						</template>
-					</td>
-					<td class="id-docs-table__cell--frozen-right">
-						<NcActions :force-name="true" :inline="4">
-							<template v-if="doc.file?.status === FILE_STATUS.SIGNED">
-								<NcActionButton @click="openValidationURL(doc)">
-									<template #icon>
-										<NcIconSvgWrapper :path="mdiEye" :size="20" />
-									</template>
-									<!-- TRANSLATORS: "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. -->
-									{{ t('libresign', 'Validate') }}
-								</NcActionButton>
+						</td>
+						<td class="id-docs-table__cell--frozen-left id-docs-table__cell--frozen-owner">
+							{{ doc.account?.displayName || doc.account?.userId || '-' }}
+						</td>
+						<td>
+							{{ doc.file_type.name }}
+						</td>
+						<td>
+							{{ doc.file.statusText }}
+						</td>
+						<td>
+							<template v-if="doc.file?.signers?.length > 0 && doc.file.signers[0].sign_date">
+								<NcAvatar v-if="doc.file.signers[0].uid"
+									:user="doc.file.signers[0].uid"
+									:display-name="doc.file.signers[0].displayName"
+									:size="32"
+									:disable-menu="true" />
+								{{ doc.file.signers[0].displayName }}
 							</template>
 							<template v-else>
-								<NcActionButton @click="openFile(doc)">
-									<template #icon>
-										<NcIconSvgWrapper :path="mdiFileDocumentOutline" :size="20" />
-									</template>
-									{{ t('libresign', 'Open file') }}
-								</NcActionButton>
+								-
 							</template>
-							<NcActionButton v-if="doc.file?.status === FILE_STATUS.ABLE_TO_SIGN"
-								:aria-label="t('libresign', 'Sign')"
-								@click="openApprove(doc)">
-								<template #icon>
-									<NcIconSvgWrapper :path="mdiPencil" :size="20" />
+						</td>
+						<td class="id-docs-table__cell--frozen-right">
+							<NcActions :force-name="true" :inline="4">
+								<template v-if="doc.file?.status === FILE_STATUS.SIGNED">
+									<NcActionButton @click="openValidationURL(doc)">
+										<template #icon>
+											<NcIconSvgWrapper :path="mdiEye" :size="20" />
+										</template>
+										<!-- TRANSLATORS: "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. -->
+										{{ t('libresign', 'Validate') }}
+									</NcActionButton>
 								</template>
-								{{ t('libresign', 'Sign') }}
-							</NcActionButton>
-							<NcActionButton @click="deleteDocument(doc)">
-								<template #icon>
-									<NcIconSvgWrapper :path="mdiDelete" :size="20" />
+								<template v-else>
+									<NcActionButton @click="openFile(doc)">
+										<template #icon>
+											<NcIconSvgWrapper :path="mdiFileDocumentOutline" :size="20" />
+										</template>
+										{{ t('libresign', 'Open file') }}
+									</NcActionButton>
 								</template>
-								{{ t('libresign', 'Delete') }}
-							</NcActionButton>
-						</NcActions>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+								<NcActionButton v-if="doc.file?.status === FILE_STATUS.ABLE_TO_SIGN"
+									:aria-label="t('libresign', 'Sign')"
+									@click="openApprove(doc)">
+									<template #icon>
+										<NcIconSvgWrapper :path="mdiPencil" :size="20" />
+									</template>
+									{{ t('libresign', 'Sign') }}
+								</NcActionButton>
+								<NcActionButton @click="deleteDocument(doc)">
+									<template #icon>
+										<NcIconSvgWrapper :path="mdiDelete" :size="20" />
+									</template>
+									{{ t('libresign', 'Delete') }}
+								</NcActionButton>
+							</NcActions>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 
-		<div v-if="loadingMore" class="id-docs-validation__loading-more">
-			<NcLoadingIcon :size="32" />
-		</div>
+			<div v-if="loadingMore" class="id-docs-validation__loading-more">
+				<NcLoadingIcon :size="32" />
+			</div>
 
-		<div v-if="!hasMore && documentList.length > 0" class="id-docs-validation__end">
-			{{ t('libresign', 'No more entries to load') }}
+			<div v-if="!hasMore && documentList.length > 0" class="id-docs-validation__end">
+				{{ t('libresign', 'No more entries to load') }}
+			</div>
+			</div>
 		</div>
-		</div>
-	</div>
+	</NcAppContent>
 </template>
 
 <script setup lang="ts">
@@ -201,6 +203,7 @@ import NcActions from '@nextcloud/vue/components/NcActions'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActionInput from '@nextcloud/vue/components/NcActionInput'
 import NcActionSeparator from '@nextcloud/vue/components/NcActionSeparator'
+import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'

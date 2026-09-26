@@ -276,4 +276,23 @@ describe('App', () => {
 
 		expect(wrapper.find('.nc-empty-content').exists()).toBe(false)
 	})
+
+	it('renders routed views without wrapping them in NcAppContent', () => {
+		const wrapper = mount(App, {
+			global: {
+				stubs: {
+					NcContent: { template: '<div><slot /></div>' },
+					NcAppContent: { template: '<main><slot /></main>' },
+					NcEmptyContent: true,
+					LeftSidebar: true,
+					RightSidebar: true,
+					DefaultPageError: true,
+					RouterView: { template: '<div class="router-view" />' },
+				},
+			},
+		})
+
+		expect(wrapper.find('.router-view').exists()).toBe(true)
+		expect(wrapper.find('main').exists()).toBe(false)
+	})
 })
