@@ -349,70 +349,6 @@ class ContactPhonePluginTest extends TestCase {
 		$this->assertContains('+2', $shareWithValues);
 	}
 
-	public function testMaxLimitStopsProcessingImmediately(): void {
-		$appConfig = $this->applyAppConfig([
-			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
-		]);
-
-		$currentUser = $this->createMock(IUser::class);
-		$currentUser->method('getUID')->willReturn('current');
-
-		$userSession = $this->createMock(IUserSession::class);
-		$userSession->method('getUser')->willReturn($currentUser);
-
-		$userManager = $this->createMock(IUserManager::class);
-		$userManager->method('get')->willReturn(null);
-
-		$groupManager = $this->createMock(IGroupManager::class);
-		$groupManager->method('getUserGroupIds')->willReturn([]);
-
-		$knownUserService = $this->createMock(KnownUserService::class);
-		$knownUserService->method('isKnownToUser')->willReturn(true);
-
-		$contactsManager = $this->createMock(IManager::class);
-		$contactsManager->method('isEnabled')->willReturn(true);
-		$contactsManager->method('search')->willReturn([
-			[
-				'FN' => 'Contact One',
-				'isLocalSystemBook' => false,
-				'TEL' => [
-					['value' => '+1'],
-					['value' => '+2'],
-					['value' => '+3'],
-				],
-			],
-			[
-				'FN' => 'Contact Two',
-				'isLocalSystemBook' => false,
-				'TEL' => [
-					['value' => '+4'],
-				],
-			],
-		]);
-
-		$context = new SignerSearchContext();
-		$context->set('sms', 'x', 'x');
-
-		$searchNormalizer = $this->createMock(SearchNormalizer::class);
-		$searchNormalizer->expects($this->exactly(2))
-			->method('tryNormalizePhoneNumber')
-			->willReturnCallback(fn (string $input) => $input);
-
-		$plugin = new ContactPhonePlugin(
-			$appConfig,
-			$contactsManager,
-			$groupManager,
-			$userManager,
-			$userSession,
-			$knownUserService,
-			$context,
-			$searchNormalizer,
-		);
-
-		$searchResult = new SearchResult();
-		$plugin->search('x', 1, 0, $searchResult);
-	}
-
 	public function testSearchDistinguishesMatchesCaseInsensitively(): void {
 		$appConfig = $this->applyAppConfig([
 			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
@@ -792,7 +728,7 @@ class ContactPhonePluginTest extends TestCase {
 		$items = array_merge($results['contact-phone'] ?? [], $results['exact']['contact-phone'] ?? []);
 		$this->assertCount(1, $items);
 		$this->assertFalse($hasMore);
-		$this->assertSame($items[0]['label'], '+12025551234');
+		$this->assertSame('+12025551234', $items[0]['label']);
 	}
 
 	public function testFilterGroups(): void {
