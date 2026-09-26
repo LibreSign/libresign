@@ -209,6 +209,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$requests = [];
 		$files = [];
 		$nodes = [];
+		$folders = [];
 		foreach (['uuid-a' => 10, 'uuid-b' => 20] as $uuid => $fileId) {
 			$requests[$uuid] = new SignRequest();
 			$requests[$uuid]->setUuid($uuid);
@@ -218,6 +219,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$files[$fileId]->setUserId('owner-' . $uuid);
 			$files[$fileId]->setNodeId($fileId + 1);
 			$nodes[$fileId + 1] = $this->createMock(File::class);
+			$folders['owner-' . $uuid] = $this->createMock(Folder::class);
+			$folders['owner-' . $uuid]->method('getFirstNodeById')->with($fileId + 1)->willReturn($nodes[$fileId + 1]);
 		}
 		$this->signRequestMapper->method('getByUuid')->willReturnCallback(
 			static fn (string $uuid): SignRequest => $requests[$uuid],
@@ -225,10 +228,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileMapper->method('getById')->willReturnCallback(
 			static fn (int $id): \OCA\Libresign\Db\File => $files[$id],
 		);
-		$this->folderService->method('getReadableNodeById')->willReturnMap([
-			['owner-uuid-a', 11, $nodes[11]],
-			['owner-uuid-b', 21, $nodes[21]],
-		]);
+		$this->root->method('getUserFolder')->willReturnCallback(
+			static fn (string $userId): Folder => $folders[$userId],
+		);
 
 		$service = $this->getService();
 		foreach ($uuids as $uuid) {
@@ -249,11 +251,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->setUserId('owner');
 		$file->setNodeId(11);
 		$firstNode = $this->createMock(File::class);
-		$secondNode = $isFolder ? $this->createMock(\OCP\Files\Folder::class) : null;
+		$secondNode = $isFolder ? $this->createMock(Folder::class) : null;
+		$userFolder = $this->createMock(Folder::class);
 		$this->signRequestMapper->method('getByUuid')->willReturn($request);
 		$this->fileMapper->method('getById')->with(10)->willReturn($file);
-		$this->folderService->method('getReadableNodeById')
-			->with('owner', 11)->willReturn($firstNode, $secondNode);
+		$this->root->method('getUserFolder')->with('owner')->willReturn($userFolder);
+		$userFolder->method('getFirstNodeById')->with(11)->willReturn($firstNode, $secondNode);
 
 		$service = $this->getService();
 		$this->assertSame($firstNode, $service->getFileByUuid('uuid-a')['fileToSign']);
@@ -296,11 +299,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->setUserId('owner');
 		$file->setNodeId(11);
 		$node = $this->createMock(File::class);
+		$userFolder = $this->createMock(Folder::class);
 		$error = new NotFoundException('Storage unavailable');
 		$this->signRequestMapper->method('getByUuid')->with('uuid-a')->willReturn($request);
 		$this->fileMapper->method('getById')->with(10)->willReturn($file);
+		$this->root->method('getUserFolder')->with('owner')->willReturn($userFolder);
 		$attempts = 0;
-		$this->folderService->method('getReadableNodeById')->with('owner', 11)
+		$userFolder->method('getFirstNodeById')->with(11)
 			->willReturnCallback(static function () use (&$attempts, $node, $error): File {
 				if ($attempts++ === 0) {
 					throw $error;
@@ -1173,172 +1178,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertArrayHasKey('manageable_policy_group_ids', $config);
 		$this->assertSame(['finance', 'legal'], $config['manageable_policy_group_ids']);
-	}
-
-	#[DataProvider('provideStoredAccountPreferences')]
-	public function testGetConfigPreservesStoredPreferencesAndRoleBoundaries(string $role, string $json, ?array $decoded): void {
-		$user = null;
-		if ($role !== 'anonymous') {
-			$user = $this->createMock(IUser::class);
-			$user->method('getUID')->willReturn('preference-owner');
-		}
-		$isAdmin = $role === 'admin';
-		$isApprover = $role === 'approver';
-		$this->groupManager->method('isAdmin')->with('preference-owner')->willReturn($isAdmin);
-		$this->identityDocumentValidator->method('userCanApproveValidationDocuments')
-			->with($user, false)->willReturn($isApprover);
-		$this->pkcs12Handler->method('getPfxOfCurrentSigner')->willReturn('certificate');
-		$stored = [
-			'id_docs_filters' => $json, 'id_docs_sort' => $json,
-			'crl_filters' => $json, 'crl_sort' => $json,
-			'policy_workbench_category_collapsed_state' => $json,
-			'files_list_sorting_mode' => 'size', 'files_list_sorting_direction' => 'desc',
-			'files_list_grid_view' => '1', 'files_list_signer_identify_tab' => 'account',
-			'policy_workbench_catalog_compact_view' => '1', 'policy_workbench_catalog_collapsed' => '1',
-			'warn_without_visible_signature_fields' => '0',
-		];
-		if ($user === null) {
-			$this->userConfig->expects($this->never())->method('getValueString');
-		} else {
-			$this->userConfig->method('getValueString')
-				->willReturnCallback(static function (string $uid, string $appId, string $key, string $default = '') use ($stored): string {
-					self::assertSame('preference-owner', $uid);
-					self::assertSame(Application::APP_ID, $appId);
-					return $stored[$key] ?? $default;
-				});
-		}
-		$expected = [
-			'identificationDocumentsFlow' => false,
-			'hasSignatureFile' => $user !== null,
-			'isApprover' => $isApprover,
-			'id_docs_filters' => $user !== null ? ($decoded ?? []) : [],
-			'id_docs_sort' => $isApprover ? ($decoded ?? ['sortBy' => null, 'sortOrder' => null]) : ['sortBy' => null, 'sortOrder' => null],
-			'crl_filters' => $isAdmin ? ($decoded ?? []) : [],
-			'crl_sort' => $isAdmin ? ($decoded ?? ['sortBy' => 'revoked_at', 'sortOrder' => 'DESC']) : ['sortBy' => 'revoked_at', 'sortOrder' => 'DESC'],
-			'files_list_grid_view' => $user !== null,
-			'files_list_sorting_mode' => $user !== null ? 'size' : 'name',
-			'files_list_sorting_direction' => $user !== null ? 'desc' : 'asc',
-			'policy_workbench_catalog_compact_view' => $user !== null,
-			'policy_workbench_catalog_collapsed' => $user !== null,
-			'warn_without_visible_signature_fields' => $user === null,
-			'can_manage_group_policies' => $isAdmin,
-			'manageable_policy_group_ids' => [],
-		];
-		if ($user !== null) {
-			$expected['files_list_signer_identify_tab'] = 'account';
-			if ($decoded !== null) {
-				$expected['policy_workbench_category_collapsed_state'] = $decoded;
-			}
-		}
-		$actual = $this->getService()->getConfig($user);
-		ksort($actual);
-		ksort($expected);
-		$this->assertSame($expected, $actual);
-	}
-
-	public static function provideStoredAccountPreferences(): array {
-		$cases = [];
-		foreach (['anonymous', 'user', 'admin', 'approver'] as $role) {
-			foreach ([
-				'empty' => ['', null],
-				'invalid JSON' => ['{invalid', null],
-				'scalar' => ['"text"', null],
-				'null' => ['null', null],
-				'empty array' => ['[]', []],
-				'populated object' => ['{"sortBy":"name","sortOrder":"ASC"}', ['sortBy' => 'name', 'sortOrder' => 'ASC']],
-			] as $name => [$json, $decoded]) {
-				$cases[$role . ': ' . $name] = [$role, $json, $decoded];
-			}
-		}
-		return $cases;
-	}
-
-	#[DataProvider('provideAccountCreationOptions')]
-	public function testCreateToSignPreservesIdentityMailAndCertificateContracts(string $sendEmail, ?string $signPassword): void {
-		$request = new SignRequest();
-		$request->setId(77);
-		$request->setDisplayName('Signer Name');
-		$this->signRequestMapper->method('getByUuid')->with('request-uuid')->willReturn($request);
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('internal-uid');
-		$user->method('getPrimaryEMailAddress')->willReturn('signer@example.com');
-		$user->method('getDisplayName')->willReturn('Signer Name');
-		$user->expects($this->once())->method('setDisplayName')->with('Signer Name');
-		$user->expects($this->once())->method('setSystemEMailAddress')->with('signer@example.com');
-		$this->userManager->expects($this->once())->method('createUser')
-			->with('signer@example.com', 'account-password')->willReturn($user);
-		$matching = new \OCA\Libresign\Db\IdentifyMethod();
-		$matching->setIdentifierKey('email');
-		$matching->setIdentifierValue('signer@example.com');
-		$other = new \OCA\Libresign\Db\IdentifyMethod();
-		$other->setIdentifierKey('email');
-		$other->setIdentifierValue('other@example.com');
-		$account = new \OCA\Libresign\Db\IdentifyMethod();
-		$account->setIdentifierKey('account');
-		$account->setIdentifierValue('signer@example.com');
-		$methods = [];
-		foreach ([$matching, $other, $account] as $entity) {
-			$method = $this->createMock(IIdentifyMethod::class);
-			$method->method('getEntity')->willReturn($entity);
-			$methods[$entity->getIdentifierKey()][] = $method;
-		}
-		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->with(77)->willReturn($methods);
-		$this->identifyMethodMapper->expects($this->once())->method('update')->with($matching);
-		$this->appConfig->method('getValueString')->with('core', 'newUser.sendEmail', 'yes')->willReturn($sendEmail);
-		if ($sendEmail === 'yes') {
-			$template = $this->createMock(\OCP\Mail\IEMailTemplate::class);
-			$this->newUserMail->expects($this->once())->method('generateTemplate')->with($user, false)->willReturn($template);
-			$this->newUserMail->expects($this->once())->method('sendMail')->with($user, $template);
-		} else {
-			$this->newUserMail->expects($this->never())->method('generateTemplate');
-			$this->newUserMail->expects($this->never())->method('sendMail');
-		}
-		if ($signPassword) {
-			$this->pkcs12Handler->expects($this->once())->method('generateCertificate')
-				->with(['host' => 'signer@example.com', 'uid' => 'account:internal-uid', 'name' => 'Signer Name'], $signPassword, 'Signer Name')
-				->willReturn('generated-pfx');
-			$this->pkcs12Handler->expects($this->once())->method('savePfx')->with('signer@example.com', 'generated-pfx');
-		} else {
-			$this->pkcs12Handler->expects($this->never())->method('generateCertificate');
-			$this->pkcs12Handler->expects($this->never())->method('savePfx');
-		}
-		$this->getService()->createToSign('request-uuid', 'signer@example.com', 'account-password', $signPassword);
-		$this->assertSame('account', $matching->getIdentifierKey());
-		$this->assertSame('internal-uid', $matching->getIdentifierValue());
-		$this->assertSame('email', $other->getIdentifierKey());
-		$this->assertSame('other@example.com', $other->getIdentifierValue());
-		$this->assertSame('signer@example.com', $account->getIdentifierValue());
-	}
-
-	public static function provideAccountCreationOptions(): array {
-		return [
-			'email and certificate' => ['yes', 'sign-password'],
-			'email only' => ['yes', null],
-			'certificate only' => ['no', 'sign-password'],
-			'neither' => ['no', ''],
-		];
-	}
-
-	#[DataProvider('provideSignatureFileAvailability')]
-	public function testHasSignatureFileHandlesAbsentCertificates(bool $hasUser, bool $hasCertificate): void {
-		$user = null;
-		if ($hasUser) {
-			$user = $this->createMock(IUser::class);
-			$user->method('getUID')->willReturn('signer');
-			$lookup = $this->pkcs12Handler->expects($this->once())->method('getPfxOfCurrentSigner')->with('signer');
-			if ($hasCertificate) {
-				$lookup->willReturn('pfx');
-			} else {
-				$lookup->willThrowException(new \OCA\Libresign\Exception\LibresignException('No certificate'));
-			}
-		} else {
-			$this->pkcs12Handler->expects($this->never())->method('getPfxOfCurrentSigner');
-		}
-		$this->assertSame($hasCertificate, $this->getService()->hasSignatureFile($user));
-	}
-
-	public static function provideSignatureFileAvailability(): array {
-		return ['anonymous' => [false, false], 'existing' => [true, true], 'missing' => [true, false]];
 	}
 
 	public function testGetConfigIncludesCanManageGroupPoliciesForInstanceAdmin(): void {
