@@ -295,6 +295,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	}) as VueWrapper<any>
 
 	beforeEach(async () => {
+		vi.clearAllMocks()
 		setActivePinia(createPinia())
 		capabilitiesState.signElementsAvailable = true
 		generateUrlMock.mockClear()
