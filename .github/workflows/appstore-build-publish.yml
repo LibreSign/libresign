@@ -1,6 +1,6 @@
 # This workflow is provided via the organization template repository
 #
-# https://github.com/nextcloud/.github
+# https://github.com/LibreCodeCoop/.github
 # https://docs.github.com/en/actions/learn-github-actions/sharing-workflows-with-your-organization
 #
 # SPDX-FileCopyrightText: 2021-2024 Nextcloud GmbH and Nextcloud contributors
@@ -14,14 +14,10 @@ on:
 
 permissions:
   contents: write
-  actions: write
 
 jobs:
   build_and_publish:
     runs-on: ubuntu-latest
-
-    # Only allowed to be run on nextcloud-releases repositories
-    # if: ${{ github.repository_owner == 'nextcloud-releases' }}
 
     steps:
       - name: Check actor permission
@@ -36,7 +32,7 @@ jobs:
           echo "APP_VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           submodules: true
@@ -67,15 +63,16 @@ jobs:
         continue-on-error: true
         with:
           path: ${{ env.APP_NAME }}
-          fallbackNode: '^20'
-          fallbackNpm: '^10'
+          fallbackNode: '^24'
+          fallbackNpm: '^11.3'
 
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
         # Skip if no package.json
         if: ${{ steps.versions.outputs.nodeVersion }}
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
+          package-manager-cache: false
 
       - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
         # Skip if no package.json
@@ -84,7 +81,7 @@ jobs:
 
       - name: Get php version
         id: php-versions
-        uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2.3.1.3.2
+        uses: nextcloud-libraries/nextcloud-version-matrix@cd0211ffcef1065e2020cd579e4843b8746e7a58 # v1.3.3
         with:
           filename: ${{ env.APP_NAME }}/appinfo/info.xml
 
@@ -138,32 +135,44 @@ jobs:
           cd ${{ env.APP_NAME }}
           krankerl package
 
-      - name: Checkout server ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
-        continue-on-error: true
-        id: server-checkout
+      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }} with makefile
+        if: steps.krankerl.outputs.files_exists != 'true'
+        run: |
+          cd ${{ env.APP_NAME }}
+          make appstore
+
+      - name: Verify app store package
+        if: steps.krankerl.outputs.files_exists != 'true'
+        working-directory: ${{ env.APP_NAME }}
+        run: |
+          if make -qp 2>/dev/null | grep -q '^verify-appstore-package:'; then
+            make verify-appstore-package
+          fi
+
+      - name: Check server download link for ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
         run: |
           NCVERSION='${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}'
-          wget --quiet https://download.nextcloud.com/server/releases/latest-$NCVERSION.zip
-          unzip latest-$NCVERSION.zip
+          DOWNLOAD_URL=$(curl -s "https://updates.nextcloud.com/updater_server/latest?channel=beta&version=$NCVERSION" | jq -r '.downloads.zip[0]')
+          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> $GITHUB_ENV
+
+      - name: Download server ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
+        continue-on-error: true
+        id: server-download
+        if: ${{ env.DOWNLOAD_URL != 'null' }}
+        run: |
+          echo "Downloading release tarball from $DOWNLOAD_URL"
+          wget $DOWNLOAD_URL -O nextcloud.zip
+          unzip nextcloud.zip
 
       - name: Checkout server master fallback
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        if: ${{ steps.server-checkout.outcome != 'success' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: ${{ steps.server-download.outcome != 'success' }}
         with:
           persist-credentials: false
           submodules: true
           repository: nextcloud/server
           path: nextcloud
 
-      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }} with makefile
-        if: steps.krankerl.outputs.files_exists != 'true'
-        run: |
-          cd ${{ env.APP_NAME }}
-          # Setting up keys
-          mkdir -p build/tools/certificates/
-          echo '${{ secrets.APP_PRIVATE_KEY }}' > build/tools/certificates/${{ env.APP_NAME }}.key
-          ls -la build/tools/certificates/
-          make appstore verify-appstore-package
 
       - name: Sign app
         run: |
@@ -173,18 +182,22 @@ jobs:
           cd ../../../
           # Setting up keys
           echo '${{ secrets.APP_PRIVATE_KEY }}' > ${{ env.APP_NAME }}.key
-          curl --fail --show-error --location \
-            --retry 5 --retry-all-errors --retry-delay 2 \
-            --output ${{ env.APP_NAME }}.crt \
-            "https://raw.githubusercontent.com/nextcloud/app-certificate-requests/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
+          wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
           # Signing
           php nextcloud/occ integrity:sign-app --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt --path=../${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}
           # Rebuilding archive
           cd ${{ env.APP_NAME }}/build/artifacts
           tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
 
+      - name: Validate release artifact
+        uses: LibreCodeCoop/release-tool/actions/artifact-validate@710c4c83fba47bf01713f46e9c4cb4cf63debfba
+        with:
+          artifact: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
+          app-name: ${{ env.APP_NAME }}
+          version: ${{ env.APP_VERSION }}
+
       - name: Attach tarball to github release
-        uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # v2.11.5
+        uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # 2.11.5
         id: attach_to_release
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -194,9 +207,16 @@ jobs:
           overwrite: true
 
       - name: Upload app to Nextcloud appstore
-        uses: nextcloud-releases/nextcloud-appstore-push-action@a011fe619bcf6e77ddebc96f9908e1af4071b9c1 # v1.0.3
+        uses: nextcloud-libraries/nextcloud-appstore-push-action@a011fe619bcf6e77ddebc96f9908e1af4071b9c1 # v1.0.3
         with:
           app_name: ${{ env.APP_NAME }}
           appstore_token: ${{ secrets.APPSTORE_TOKEN }}
           download_url: ${{ steps.attach_to_release.outputs.browser_download_url }}
           app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Verify App Store publication
+        uses: LibreCodeCoop/release-tool/actions/appstore-publication-wait@710c4c83fba47bf01713f46e9c4cb4cf63debfba
+        with:
+          app-name: ${{ env.APP_NAME }}
+          version: ${{ env.APP_VERSION }}
+          platform: ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}

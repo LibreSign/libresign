@@ -1,6 +1,6 @@
 # This workflow is provided via the organization template repository
 #
-# https://github.com/nextcloud/.github
+# https://github.com/LibreCodeCoop/.github
 # https://docs.github.com/en/actions/learn-github-actions/sharing-workflows-with-your-organization
 #
 # SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
@@ -27,10 +27,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: webiny/action-conventional-commits@faccb24fc2550dd15c0390d944379d2d8ed9690e # v1.3.1
+      - uses: webiny/action-conventional-commits@7f91b1595ca1951cdb671ddc9f07a49081ec5b69 # v1.4.2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
