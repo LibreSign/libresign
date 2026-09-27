@@ -50,13 +50,15 @@ class SetupCheckResultService {
 		/** @var array<string, ISetupCheck> $checks */
 		$checks = [
 			'java' => $this->javaSetupCheck,
+		];
+		if ($this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf') === 'JSignPdf') {
+			$checks['jsignpdf'] = $this->jSignPdfSetupCheck;
+		}
+		$checks += [
 			'pdftk' => $this->pdftkSetupCheck,
 			'poppler' => $this->popplerSetupCheck,
 			'imagick' => $this->imagickSetupCheck,
 		];
-		if ($this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf') === 'JSignPdf') {
-			$checks = ['java' => $this->javaSetupCheck, 'jsignpdf' => $this->jSignPdfSetupCheck] + array_slice($checks, 1, null, true);
-		}
 
 		$formatted = [];
 		foreach ($checks as $resource => $check) {
