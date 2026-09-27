@@ -172,7 +172,7 @@ class InstallService {
 	public function install(string $resource, bool $async = false): void {
 		match ($resource) {
 			'java' => $this->installJava($async),
-			'jsignpdf' => $this->installJSignPdf($async, true),
+			'jsignpdf' => $this->installJSignPdf($async),
 			'pdftk' => $this->installPdftk($async),
 			'cfssl' => $this->installCfssl($async),
 			default => throw new InvalidArgumentException(sprintf('Unsupported install resource "%s".', $resource)),
@@ -303,10 +303,10 @@ class InstallService {
 		$this->appConfig->deleteKey(Application::APP_ID, 'java_path');
 	}
 
-	public function installJSignPdf(?bool $async = false, bool $force = false): void {
+	public function installJSignPdf(?bool $async = false): void {
 		$this->setResource('jsignpdf');
 		$signatureEngine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf');
-		if (!$force && $signatureEngine !== 'JSignPdf') {
+		if ($signatureEngine !== 'JSignPdf') {
 			return;
 		}
 
