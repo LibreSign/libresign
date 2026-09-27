@@ -13,7 +13,6 @@ use OCA\Libresign\BackgroundJob\SignSingleFileJob;
 use OCA\Libresign\Migration\RemoveArgumentlessSigningJobs;
 use OCP\BackgroundJob\IJobList;
 use OCP\Migration\IOutput;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class RemoveArgumentlessSigningJobsTest extends TestCase {
