@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\SetupCheckResultService;
@@ -16,6 +17,7 @@ use OCA\Libresign\SetupCheck\JavaSetupCheck;
 use OCA\Libresign\SetupCheck\JSignPdfSetupCheck;
 use OCA\Libresign\SetupCheck\PDFtkSetupCheck;
 use OCA\Libresign\SetupCheck\PopplerSetupCheck;
+use OCP\IAppConfig;
 use OCP\SetupCheck\ISetupCheck;
 use OCP\SetupCheck\SetupResult;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -24,6 +26,7 @@ use PHPUnit\Framework\TestCase;
 
 class SetupCheckResultServiceTest extends TestCase {
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
+	private IAppConfig&MockObject $appConfig;
 	private JavaSetupCheck&MockObject $javaSetupCheck;
 	private JSignPdfSetupCheck&MockObject $jSignPdfSetupCheck;
 	private PDFtkSetupCheck&MockObject $pdftkSetupCheck;
@@ -33,6 +36,10 @@ class SetupCheckResultServiceTest extends TestCase {
 
 	public function setUp(): void {
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->appConfig->method('getValueString')
+			->with(Application::APP_ID, 'signature_engine', 'JSignPdf')
+			->willReturn('JSignPdf');
 		$engine = $this->createMock(IEngineHandler::class);
 		$engine->method('configureCheck')->willReturn([]);
 		$this->certificateEngineFactory->method('getEngine')->willReturn($engine);
@@ -55,6 +62,7 @@ class SetupCheckResultServiceTest extends TestCase {
 	private function buildService(): void {
 		$this->service = new SetupCheckResultService(
 			$this->certificateEngineFactory,
+			$this->appConfig,
 			$this->javaSetupCheck,
 			$this->jSignPdfSetupCheck,
 			$this->pdftkSetupCheck,
@@ -84,6 +92,20 @@ class SetupCheckResultServiceTest extends TestCase {
 		foreach ($result as $check) {
 			$this->assertNotSame('', $check->getCategory());
 		}
+	}
+
+	public function testGetFormattedChecksOmitsJSignPdfForPhpNative(): void {
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->appConfig->method('getValueString')
+			->with(Application::APP_ID, 'signature_engine', 'JSignPdf')
+			->willReturn('PhpNative');
+		$this->jSignPdfSetupCheck->expects($this->never())->method('run');
+		$this->buildService();
+
+		$result = $this->service->getFormattedChecks();
+
+		$resources = array_map(static fn ($check) => $check->getResource(), $result);
+		$this->assertSame(['java', 'pdftk', 'poppler', 'imagick'], $resources);
 	}
 
 	public function testJsonSerializeOmitsCategory(): void {
