@@ -92,8 +92,8 @@ test('GeoIP admin settings save, replace, and clear a path without exposing sign
 	await expect(geoIpSection).toBeVisible()
 	await pathInput.fill('/tmp/libresign-missing-geoip.mmdb')
 	await geoIpSection.getByRole('button', { name: 'Save', exact: true }).click()
-	await expect(geoIpSection.getByText('Database file not found').or(page.getByText('GeoIP database path saved'))).toBeVisible()
-	await expect(geoIpSection.getByText('does not prevent signatures').or(geoIpSection.getByText('This does not prevent signatures'))).toBeVisible()
+	await expect(geoIpSection.getByText('Database file not found')).toBeVisible()
+	await expect(geoIpSection.getByText('This does not prevent signatures')).toBeVisible()
 	await expect(geoIpSection).not.toContainText('sourceIp')
 
 	await geoIpSection.getByRole('button', { name: 'Clear path' }).click()
