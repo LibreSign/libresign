@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use InvalidArgumentException;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
@@ -23,19 +22,15 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Service\Crl\CrlService;
-use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
+use OCA\Libresign\Service\File\AccountSettingsProvider;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
-use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCA\Settings\Mailer\NewUserMailHelper;
-use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\Config\IUserConfig;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\File;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\NotFoundException;
 use OCP\IAppConfig;
-use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
@@ -46,9 +41,9 @@ use Throwable;
 class AccountService {
 	public function __construct(
 		private IL10N $l10n,
+		private AccountSettingsProvider $accountSettingsProvider,
 		private SignRequestMapper $signRequestMapper,
 		private IUserManager $userManager,
-		private IAccountManager $accountManager,
 		private IMimeTypeDetector $mimeTypeDetector,
 		private FileMapper $fileMapper,
 		private FileTypeMapper $fileTypeMapper,
@@ -56,17 +51,12 @@ class AccountService {
 		private RequestSignatureService $requestSignatureService,
 		private CertificateEngineFactory $certificateEngineFactory,
 		private IAppConfig $appConfig,
-		private IUserConfig $userConfig,
 		private IMountProviderCollection $mountProviderCollection,
 		private NewUserMailHelper $newUserMail,
 		private IdentifyMethodService $identifyMethodService,
 		private IdentifyMethodMapper $identifyMethodMapper,
-		private IdentityDocumentValidator $identityDocumentValidator,
 		private IURLGenerator $urlGenerator,
 		private Pkcs12Handler $pkcs12Handler,
-		private IGroupManager $groupManager,
-		private PolicyAuthorizationService $policyAuthorizationService,
-		private IdDocsPolicyService $idDocsPolicyService,
 		private IdDocsService $idDocsService,
 		private SignerElementsService $signerElementsService,
 		private FolderService $folderService,
@@ -188,40 +178,15 @@ class AccountService {
 	 * @return array<string, mixed>
 	 */
 	public function getConfig(?IUser $user = null): array {
-		$info['identificationDocumentsFlow'] = $this->idDocsPolicyService->isIdentificationDocumentsEnabled($user);
-		$info['hasSignatureFile'] = $this->hasSignatureFile($user);
-		$info['phoneNumber'] = $this->getPhoneNumber($user);
-		$info['isApprover'] = $this->identityDocumentValidator->userCanApproveValidationDocuments($user, false);
-		$info['id_docs_filters'] = $this->getUserConfigIdDocsFilters($user);
-		$info['id_docs_sort'] = $this->getUserConfigIdDocsSort($user);
-		$info['crl_filters'] = $this->getUserConfigCrlFilters($user);
-		$info['crl_sort'] = $this->getUserConfigCrlSort($user);
-		$info['files_list_grid_view'] = $this->getUserConfigByKey('files_list_grid_view', $user) === '1';
-		$info['files_list_signer_identify_tab'] = $this->getUserConfigByKey('files_list_signer_identify_tab', $user);
-		$info['files_list_sorting_mode'] = $this->getUserConfigByKey('files_list_sorting_mode', $user) ?: 'name';
-		$info['files_list_sorting_direction'] = $this->getUserConfigByKey('files_list_sorting_direction', $user) ?: 'asc';
-		$info['policy_workbench_catalog_compact_view'] = $this->getUserConfigByKey('policy_workbench_catalog_compact_view', $user) === '1';
-		$info['policy_workbench_catalog_collapsed'] = $this->getUserConfigByKey('policy_workbench_catalog_collapsed', $user) === '1';
-		$info['policy_workbench_category_collapsed_state'] = $this->getUserConfigJsonByKey('policy_workbench_category_collapsed_state', $user);
-		$info['warn_without_visible_signature_fields'] = $this->getUserConfigByKey('warn_without_visible_signature_fields', $user) !== '0';
-		$info['can_manage_group_policies'] = $this->policyAuthorizationService->canUserManageGroupPolicies($user);
-		$info['manageable_policy_group_ids'] = $this->policyAuthorizationService->getManageablePolicyGroupIds($user);
-
-		return array_filter($info, static fn (mixed $value): bool => $value !== null && $value !== '');
+		return $this->accountSettingsProvider->getConfig($user);
 	}
 
 	public function getConfigFilters(?IUser $user = null): array {
-		$info['files_list_filter_modified'] = $this->getUserConfigByKey('files_list_filter_modified', $user);
-		$info['files_list_filter_status'] = $this->getUserConfigByKey('files_list_filter_status', $user);
-
-		return $info;
+		return $this->accountSettingsProvider->getConfigFilters($user);
 	}
 
 	public function getConfigSorting(?IUser $user = null): array {
-		$info['files_list_sorting_mode'] = $this->getUserConfigByKey('files_list_sorting_mode', $user) ?: 'name';
-		$info['files_list_sorting_direction'] = $this->getUserConfigByKey('files_list_sorting_direction', $user) ?: 'asc';
-
-		return $info;
+		return $this->accountSettingsProvider->getConfigSorting($user);
 	}
 
 	private function updateIdentifyMethodToAccount(int $signRequestId, string $email, string $uid): void {
@@ -241,103 +206,11 @@ class AccountService {
 	}
 
 	private function getPhoneNumber(?IUser $user): string {
-		if (!$user) {
-			return '';
-		}
-		$userAccount = $this->accountManager->getAccount($user);
-		return $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
+		return $this->accountSettingsProvider->getPhoneNumber($user);
 	}
 
 	public function hasSignatureFile(?IUser $user = null): bool {
-		if (!$user) {
-			return false;
-		}
-		try {
-			$this->pkcs12Handler->getPfxOfCurrentSigner($user->getUID());
-			return true;
-		} catch (LibresignException) {
-			return false;
-		}
-	}
-
-	private function getUserConfigByKey(string $key, ?IUser $user = null): string {
-		if (!$user) {
-			return '';
-		}
-		return $this->userConfig->getValueString($user->getUID(), Application::APP_ID, $key);
-	}
-
-	/**
-	 * @return array<string, mixed>|null
-	 */
-	private function getUserConfigJsonByKey(string $key, ?IUser $user = null): ?array {
-		if (!$user) {
-			return null;
-		}
-
-		$value = $this->userConfig->getValueString($user->getUID(), Application::APP_ID, $key, '');
-		if (empty($value)) {
-			return null;
-		}
-
-		$decoded = json_decode($value, true);
-		return is_array($decoded) ? $decoded : null;
-	}
-
-	private function getUserConfigIdDocsFilters(?IUser $user = null): array {
-		if (!$user) {
-			return [];
-		}
-
-		$value = $this->userConfig->getValueString($user->getUID(), Application::APP_ID, 'id_docs_filters', '');
-		if (empty($value)) {
-			return [];
-		}
-
-		$decoded = json_decode($value, true);
-		return is_array($decoded) ? $decoded : [];
-	}
-
-	private function getUserConfigCrlFilters(?IUser $user = null): array {
-		if (!$user || !$this->groupManager->isAdmin($user->getUID())) {
-			return [];
-		}
-
-		$value = $this->userConfig->getValueString($user->getUID(), Application::APP_ID, 'crl_filters', '');
-		if (empty($value)) {
-			return [];
-		}
-
-		$decoded = json_decode($value, true);
-		return is_array($decoded) ? $decoded : [];
-	}
-
-	private function getUserConfigCrlSort(?IUser $user): array {
-		if (!$user || !$this->groupManager->isAdmin($user->getUID())) {
-			return ['sortBy' => 'revoked_at', 'sortOrder' => 'DESC'];
-		}
-
-		$value = $this->userConfig->getValueString($user->getUID(), Application::APP_ID, 'crl_sort', '');
-		if (empty($value)) {
-			return ['sortBy' => 'revoked_at', 'sortOrder' => 'DESC'];
-		}
-
-		$decoded = json_decode($value, true);
-		return is_array($decoded) ? $decoded : ['sortBy' => 'revoked_at', 'sortOrder' => 'DESC'];
-	}
-
-	private function getUserConfigIdDocsSort(?IUser $user): array {
-		if (!$user || !$this->identityDocumentValidator->userCanApproveValidationDocuments($user, false)) {
-			return ['sortBy' => null, 'sortOrder' => null];
-		}
-
-		$value = $this->userConfig->getValueString($user->getUID(), Application::APP_ID, 'id_docs_sort', '');
-		if (empty($value)) {
-			return ['sortBy' => null, 'sortOrder' => null];
-		}
-
-		$decoded = json_decode($value, true);
-		return is_array($decoded) ? $decoded : ['sortBy' => null, 'sortOrder' => null];
+		return $this->accountSettingsProvider->hasSignatureFile($user);
 	}
 
 	/**
