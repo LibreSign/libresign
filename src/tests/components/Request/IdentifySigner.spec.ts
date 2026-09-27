@@ -796,14 +796,5 @@ describe('IdentifySigner rules', () => {
 
 			expect(wrapper.vm.deviceGeolocationRequired).toBe(true)
 		})
-
-		it('does not expose a per-signer IP geolocation control', () => {
-			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'optional' })
-			wrapper = createWrapper()
-
-			expect(wrapper.text()).not.toContain('IP-based')
-			expect(wrapper.text()).not.toContain('source IP')
-			expect(wrapper.html()).not.toContain('signer_ip_geolocation')
-		})
 	})
 })

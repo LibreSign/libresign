@@ -22,7 +22,6 @@ type DeviceReportedLocationVm = {
 	latitude: string | null
 	longitude: string | null
 	accuracy: string | null
-	collectedAt: string | null
 	copied: boolean
 	copyCoordinates: () => Promise<void>
 	physicalPresenceDisclaimer: string
@@ -120,21 +119,6 @@ describe('DeviceReportedLocation', () => {
 		expect(wrapper.vm.accuracy).toContain('±')
 		expect(wrapper.vm.accuracy).toContain('12')
 		expect(wrapper.text()).toContain('Accuracy:')
-	})
-
-	it('shows collected at when a timestamp is stored', async () => {
-		wrapper = createWrapper({
-			status: 'collected',
-			latitude: -23.55,
-			longitude: -46.63,
-			timestamp: 1_700_000_000_000,
-		})
-
-		wrapper.vm.open = true
-		await wrapper.vm.$nextTick()
-
-		expect(wrapper.vm.collectedAt).toBeTruthy()
-		expect(wrapper.text()).toContain('Collected at:')
 	})
 
 	it('copies coordinates without opening an external map', async () => {

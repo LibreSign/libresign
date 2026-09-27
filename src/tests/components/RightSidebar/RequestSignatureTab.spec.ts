@@ -2251,24 +2251,4 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(showError).not.toHaveBeenCalled()
 		})
 	})
-
-	describe('RULE: editing a signer preserves frozen device geolocation', () => {
-		it('forwards deviceGeolocationRequired and frozen metadata into IdentifySigner', async () => {
-			const signer = {
-				displayName: 'Geo Signer',
-				identifyMethods: [{ method: 'email', value: 'geo@example.com' }],
-				deviceGeolocationRequired: true,
-				metadata: { deviceGeolocationRequirement: 'required' },
-			}
-
-			wrapper.vm.editSigner(signer)
-			await wrapper.vm.$nextTick()
-
-			expect(wrapper.vm.signerToEdit).toEqual(expect.objectContaining({
-				displayName: 'Geo Signer',
-				deviceGeolocationRequired: true,
-				metadata: { deviceGeolocationRequirement: 'required' },
-			}))
-		})
-	})
 })

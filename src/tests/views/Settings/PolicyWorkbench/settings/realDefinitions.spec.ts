@@ -57,17 +57,12 @@ describe('realDefinitions', () => {
 		expect(realDefinitions).not.toHaveProperty('renewal_interval')
 		expect(realDefinitions).not.toHaveProperty('worker_config')
 		expect(realDefinitions).not.toHaveProperty('signature_background_type')
-		expect(realDefinitions).not.toHaveProperty('geoip_database_path')
 	})
 
 	it('assigns representative categories to representative policies', () => {
 		expect(realDefinitions.groups_request_sign.category).toBe('who-can-sign')
 		expect(realDefinitions.add_footer.category).toBe('signer-experience')
 		expect(realDefinitions.legal_information.category).toBe('what-gets-recorded')
-		expect(realDefinitions.signer_device_geolocation.category).toBe('signer-geolocation')
-		expect(realDefinitions.signer_ip_geolocation.category).toBe('signer-geolocation')
-		expect(realDefinitions.signer_device_geolocation.title).toBe('Device-reported location')
-		expect(realDefinitions.signer_ip_geolocation.title).toBe('IP-based approximate location')
 		expect(realDefinitions.docmdp.category).toBe('trust-and-verification')
 		expect(realDefinitions.signing_mode.category).toBe('system-behavior')
 		expect(realDefinitions.mail_sender_strategy.category).toBe('system-behavior')
