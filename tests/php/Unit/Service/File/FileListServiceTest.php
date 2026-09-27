@@ -1089,6 +1089,28 @@ final class FileListServiceTest extends TestCase {
 		$this->assertTrue($detailed['signers'][array_search(72, array_column($detailed['signers'], 'signRequestId'), true)]['me']);
 	}
 
+	public function testARejectionSharedWithTheParticipantsReachesTheOtherSignerOnEveryPath(): void {
+		$this->rejectionPolicy = SignatureRejectionPolicyConfig::fromValues(enabled: true, commentMode: 'optional', visibility: 'participants', commentVisibility: 'requester');
+		[$file] = $this->fileWithRejectedPendingAndSignedSigners();
+		$this->user->method('getUID')->willReturn('pending');
+		$service = $this->getService();
+		$expected = [
+			71 => ['displayStatus' => 'rejected', 'status' => 3, 'statusText' => 'Rejected', 'rejection' => ['rejectedAt' => '2026-09-13T12:00:00+00:00']],
+			72 => ['displayStatus' => 'ready_to_sign', 'status' => 1, 'statusText' => 'Ready to sign', 'rejection' => null],
+			73 => self::SIGNED,
+		];
+
+		$detailed = $service->formatSingleFile($this->user, $file);
+		$this->assertSame($expected, self::presentedById($detailed['signers']));
+		$this->assertSame($expected, self::presentedById($detailed['files'][0]['signers']));
+
+		$withChildren = $service->formatFileWithChildren($file, [], $this->user);
+		$this->assertSame($expected, self::presentedById($withChildren['signers']));
+
+		$anonymous = $service->formatFileWithChildren($file, [], null);
+		$this->assertSame([71 => self::REDACTED, 72 => self::REDACTED, 73 => self::SIGNED], self::presentedById($anonymous['signers']));
+	}
+
 	public function testAPublicRejectionStatusIsPresentedAsRejectedToAnotherViewer(): void {
 		$this->rejectionPolicy = SignatureRejectionPolicyConfig::fromValues(enabled: true, commentMode: 'optional', visibility: 'public', commentVisibility: 'requester');
 		[$file] = $this->fileWithRejectedPendingAndSignedSigners();

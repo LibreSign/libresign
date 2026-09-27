@@ -12,10 +12,12 @@ namespace OCA\Libresign\Service\File;
 use DateTimeInterface;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignatureRejection\RejectionViewer;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
@@ -78,14 +80,14 @@ class EnvelopeAssembler {
 
 		// A child document follows the same rejection visibility rules as a
 		// single file: the viewer must be known for every signer first.
-		$isRequester = $options->getMe() !== null && $options->getMe()->getUID() === $childFile->getUserId();
-		$viewerSignRequestIds = [];
-		foreach ($signRequests as $signRequest) {
-			if ($isRequester || $options->isViewerOfSigner($identifyMethodsBatch[$signRequest->getId()] ?? [])) {
-				$viewerSignRequestIds[] = $signRequest->getId();
-			}
-		}
-		$hiddenRejection = $this->signatureRejectionVisibilityService->hasHiddenRejection($childFile, $signRequests, $viewerSignRequestIds);
+		$viewer = new RejectionViewer(
+			$options->getMe() !== null && $options->getMe()->getUID() === $childFile->getUserId(),
+			array_filter(
+				$signRequests,
+				fn (SignRequest $candidate): bool => $options->isViewerOfSigner($identifyMethodsBatch[$candidate->getId()] ?? []),
+			),
+		);
+		$hiddenRejection = $this->signatureRejectionVisibilityService->hasHiddenRejection($childFile, $signRequests, $viewer);
 
 		foreach ($signRequests as $signRequest) {
 			$identifyMethods = $identifyMethodsBatch[$signRequest->getId()] ?? [];
@@ -131,7 +133,7 @@ class EnvelopeAssembler {
 			$this->signatureRejectionVisibilityService->presentSigner(
 				$signRequest,
 				$childFile,
-				in_array($signRequest->getId(), $viewerSignRequestIds, true),
+				$viewer,
 				$hiddenRejection,
 			)->applyToObject($signer);
 			$signer->identifyMethods = $identifyMethodsArray;

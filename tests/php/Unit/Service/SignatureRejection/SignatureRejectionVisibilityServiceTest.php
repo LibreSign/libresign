@@ -12,6 +12,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\SignerDisplayStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyConfig;
+use OCA\Libresign\Service\SignatureRejection\RejectionViewer;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCP\IL10N;
@@ -47,6 +48,22 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 			));
 	}
 
+	/** Neither the requester nor a signer of the file: the public audience. */
+	private static function outsider(): RejectionViewer {
+		return new RejectionViewer(false, []);
+	}
+
+	private static function requester(): RejectionViewer {
+		return new RejectionViewer(true, []);
+	}
+
+	/** The signer behind the sign request with this id, a participant of the workflow. */
+	private static function signerOwning(int $signRequestId): RejectionViewer {
+		$signRequest = new SignRequest();
+		$signRequest->setId($signRequestId);
+		return new RejectionViewer(false, [$signRequest]);
+	}
+
 	private function rejectedSignRequest(?string $comment = null, bool $commentPrivate = false): SignRequest {
 		$signRequest = new SignRequest();
 		$signRequest->setId(1);
@@ -61,7 +78,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 	public function testNothingIsExposedForASignerThatDidNotReject(SignRequest $signRequest): void {
 		$this->rejectionPolicyService->expects($this->never())->method('getConfig');
 
-		$this->assertNull($this->getService()->buildSignerRejection($signRequest, null, true));
+		$this->assertNull($this->getService()->buildSignerRejection($signRequest, null, self::requester()));
 	}
 
 	/**
@@ -97,7 +114,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 		$hidden = $this->getService()->hasHiddenRejection(null, [
 			$this->signRequest(1, SignRequestStatus::ABLE_TO_SIGN),
 			$this->signRequest(2, SignRequestStatus::SIGNED),
-		], []);
+		], self::outsider());
 
 		$this->assertFalse($hidden);
 	}
@@ -108,7 +125,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 		$hidden = $this->getService()->hasHiddenRejection(null, [
 			$this->signRequest(1, SignRequestStatus::REJECTED),
 			$this->signRequest(2, SignRequestStatus::ABLE_TO_SIGN),
-		], [1]);
+		], self::signerOwning(1));
 
 		$this->assertFalse($hidden);
 	}
@@ -119,7 +136,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 		$hidden = $this->getService()->hasHiddenRejection(null, [
 			$this->signRequest(1, SignRequestStatus::REJECTED),
 			$this->signRequest(2, SignRequestStatus::REJECTED),
-		], [1]);
+		], self::signerOwning(1));
 
 		$this->assertTrue($hidden);
 	}
@@ -132,7 +149,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 		$hidden = $this->getService()->hasHiddenRejection(null, [
 			$this->signRequest(1, SignRequestStatus::REJECTED),
 			$this->signRequest(2, SignRequestStatus::REJECTED),
-		], []);
+		], self::outsider());
 
 		$this->assertFalse($hidden);
 	}
@@ -144,7 +161,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 		$hidden = $this->getService()->hasHiddenRejection(null, [
 			$this->signRequest(1, SignRequestStatus::ABLE_TO_SIGN),
 			$this->signRequest(2, SignRequestStatus::REJECTED),
-		], [1]);
+		], self::signerOwning(1));
 
 		$this->assertSame($expectedHidden, $hidden);
 	}
@@ -160,7 +177,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 	public function testPresentSignerMapsTheRealStateWhenNothingIsHidden(SignRequestStatus $status, SignerDisplayStatus $expected, string $label): void {
 		$this->withPolicy('public');
 
-		$presentation = $this->getService()->presentSigner($this->signRequest(1, $status), null, false, false);
+		$presentation = $this->getService()->presentSigner($this->signRequest(1, $status), null, self::outsider(), false);
 
 		$this->assertSame($expected, $presentation->displayStatus);
 		$this->assertSame($status->value, $presentation->status);
@@ -185,7 +202,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 	public function testPresentSignerRedactsEveryUnsignedSignerWhenARejectionIsHidden(SignRequestStatus $status): void {
 		$this->withPolicy('requester');
 
-		$presentation = $this->getService()->presentSigner($this->signRequest(1, $status), null, false, true);
+		$presentation = $this->getService()->presentSigner($this->signRequest(1, $status), null, self::outsider(), true);
 
 		$this->assertSame(SignerDisplayStatus::NOT_SIGNED, $presentation->displayStatus);
 		$this->assertNull($presentation->status);
@@ -207,7 +224,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 	 */
 	#[DataProvider('statesThatCannotHideARejection')]
 	public function testASignerWhoCouldNotHaveRejectedIsNeverRedacted(SignRequestStatus $status, SignerDisplayStatus $expected, string $label): void {
-		$presentation = $this->getService()->presentSigner($this->signRequest(1, $status), null, false, true);
+		$presentation = $this->getService()->presentSigner($this->signRequest(1, $status), null, self::outsider(), true);
 
 		$this->assertSame($expected, $presentation->displayStatus);
 		$this->assertSame($status->value, $presentation->status);
@@ -224,7 +241,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 	public function testTheViewerKeepsTheirOwnRejectionWhenAnotherRejectionIsHidden(): void {
 		$this->withPolicy('requester');
 
-		$presentation = $this->getService()->presentSigner($this->rejectedSignRequest('My reason', true), null, true, true);
+		$presentation = $this->getService()->presentSigner($this->rejectedSignRequest('My reason', true), null, self::signerOwning(1), true);
 
 		$this->assertSame(SignerDisplayStatus::REJECTED, $presentation->displayStatus);
 		$this->assertSame(SignRequestStatus::REJECTED->value, $presentation->status);
@@ -240,7 +257,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 	public function testTheViewersOwnPendingEntryIsRedactedLikeTheOthers(SignRequestStatus $status): void {
 		$this->withPolicy('requester');
 
-		$presentation = $this->getService()->presentSigner($this->signRequest(1, $status), null, true, true);
+		$presentation = $this->getService()->presentSigner($this->signRequest(1, $status), null, self::signerOwning(1), true);
 
 		$this->assertSame(SignerDisplayStatus::NOT_SIGNED, $presentation->displayStatus);
 		$this->assertNull($presentation->status);
@@ -258,7 +275,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 	public function testPresentSignerCarriesTheRejectionObjectOfAVisibleRejection(): void {
 		$this->withPolicy('public', 'public');
 
-		$presentation = $this->getService()->presentSigner($this->rejectedSignRequest('Public reason'), null, false, false);
+		$presentation = $this->getService()->presentSigner($this->rejectedSignRequest('Public reason'), null, self::outsider(), false);
 
 		$this->assertSame(SignerDisplayStatus::REJECTED, $presentation->displayStatus);
 		$this->assertSame(['rejectedAt' => self::REJECTED_AT, 'comment' => 'Public reason', 'commentPrivate' => false], $presentation->rejection);
@@ -268,7 +285,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 		$this->withPolicy(visibility: 'requester');
 
 		$this->assertNull(
-			$this->getService()->buildSignerRejection($this->rejectedSignRequest('Nope'), null, false),
+			$this->getService()->buildSignerRejection($this->rejectedSignRequest('Nope'), null, self::outsider()),
 		);
 	}
 
@@ -284,7 +301,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 			$this->getService()->buildSignerRejection(
 				$this->rejectedSignRequest('Nope', true),
 				null,
-				true,
+				self::signerOwning(1),
 			),
 		);
 	}
@@ -294,7 +311,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 
 		$this->assertSame(
 			['rejectedAt' => self::REJECTED_AT],
-			$this->getService()->buildSignerRejection($this->rejectedSignRequest(), null, false),
+			$this->getService()->buildSignerRejection($this->rejectedSignRequest(), null, self::outsider()),
 		);
 	}
 
@@ -313,7 +330,7 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 			$this->getService()->buildSignerRejection(
 				$this->rejectedSignRequest($comment, $commentPrivate),
 				null,
-				false,
+				self::outsider(),
 			),
 		);
 	}
@@ -353,5 +370,99 @@ final class SignatureRejectionVisibilityServiceTest extends TestCase {
 			false,
 			['rejectedAt' => self::REJECTED_AT],
 		];
+	}
+
+	/**
+	 * `rejection_visibility` is the widest audience that learns about a
+	 * rejection: a participant is reached from `participants` up, anybody
+	 * else only by `public`.
+	 */
+	#[DataProvider('provideAudienceCases')]
+	public function testTheRejectionReachesOnlyTheAudiencesItIsVisibleTo(string $visibility, bool $participant, bool $expectedVisible): void {
+		$this->withPolicy($visibility);
+		$viewer = $participant ? self::signerOwning(1) : self::outsider();
+		$rejected = $this->rejectedSignRequest();
+		$rejected->setId(2);
+
+		$hidden = $this->getService()->hasHiddenRejection(null, [
+			$this->signRequest(1, SignRequestStatus::ABLE_TO_SIGN),
+			$rejected,
+		], $viewer);
+
+		$this->assertSame(!$expectedVisible, $hidden);
+		$this->assertSame(
+			$expectedVisible ? ['rejectedAt' => self::REJECTED_AT] : null,
+			$this->getService()->buildSignerRejection($rejected, null, $viewer),
+		);
+	}
+
+	/**
+	 * @return iterable<string, array{0: string, 1: bool, 2: bool}>
+	 */
+	public static function provideAudienceCases(): iterable {
+		yield 'requester level, another signer' => ['requester', true, false];
+		yield 'requester level, the public' => ['requester', false, false];
+		yield 'participants level, another signer' => ['participants', true, true];
+		yield 'participants level, the public' => ['participants', false, false];
+		yield 'public level, another signer' => ['public', true, true];
+		yield 'public level, the public' => ['public', false, true];
+	}
+
+	#[DataProvider('provideCommentAudienceCases')]
+	public function testTheCommentReachesOnlyTheAudiencesItIsVisibleTo(
+		string $visibility,
+		string $commentVisibility,
+		bool $participant,
+		bool $commentPrivate,
+		?array $expected,
+	): void {
+		$this->withPolicy($visibility, $commentVisibility);
+		$rejected = $this->rejectedSignRequest('Nope', $commentPrivate);
+		$rejected->setId(2);
+
+		$this->assertSame(
+			$expected,
+			$this->getService()->buildSignerRejection($rejected, null, $participant ? self::signerOwning(1) : self::outsider()),
+		);
+	}
+
+	/**
+	 * @return iterable<string, array{0: string, 1: string, 2: bool, 3: bool, 4: array<string, mixed>|null}>
+	 */
+	public static function provideCommentAudienceCases(): iterable {
+		$withComment = ['rejectedAt' => self::REJECTED_AT, 'comment' => 'Nope', 'commentPrivate' => false];
+		$withoutComment = ['rejectedAt' => self::REJECTED_AT];
+
+		yield 'comment shared with the participants reaches another signer' => ['participants', 'participants', true, false, $withComment];
+		yield 'comment kept for the requester is not shown to another signer' => ['participants', 'requester', true, false, $withoutComment];
+		yield 'a rejection kept among the participants tells the public nothing' => ['participants', 'participants', false, false, null];
+		yield 'a public rejection keeps a participants comment from the public' => ['public', 'participants', false, false, $withoutComment];
+		yield 'a public rejection shows a participants comment to another signer' => ['public', 'participants', true, false, $withComment];
+		yield 'a comment the signer made private stays from another signer' => ['public', 'public', true, true, $withoutComment];
+	}
+
+	/**
+	 * With a rejection shared among the participants, the other signers see
+	 * the real states, while the public still sees every unsigned signer the
+	 * same way.
+	 */
+	public function testARejectionSharedWithTheParticipantsIsStillRedactedForThePublic(): void {
+		$this->withPolicy('participants');
+		$pending = $this->signRequest(1, SignRequestStatus::ABLE_TO_SIGN);
+		$rejected = $this->signRequest(2, SignRequestStatus::REJECTED);
+		$signers = [$pending, $rejected];
+		$service = $this->getService();
+
+		$participant = self::signerOwning(1);
+		$hiddenForParticipant = $service->hasHiddenRejection(null, $signers, $participant);
+		$this->assertFalse($hiddenForParticipant);
+		$this->assertSame(SignerDisplayStatus::REJECTED, $service->presentSigner($rejected, null, $participant, $hiddenForParticipant)->displayStatus);
+		$this->assertSame(SignerDisplayStatus::READY_TO_SIGN, $service->presentSigner($pending, null, $participant, $hiddenForParticipant)->displayStatus);
+
+		$public = self::outsider();
+		$hiddenForPublic = $service->hasHiddenRejection(null, $signers, $public);
+		$this->assertTrue($hiddenForPublic);
+		$this->assertSame(SignerDisplayStatus::NOT_SIGNED, $service->presentSigner($rejected, null, $public, $hiddenForPublic)->displayStatus);
+		$this->assertSame(SignerDisplayStatus::NOT_SIGNED, $service->presentSigner($pending, null, $public, $hiddenForPublic)->displayStatus);
 	}
 }

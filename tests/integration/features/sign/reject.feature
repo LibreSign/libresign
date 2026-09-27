@@ -1242,3 +1242,61 @@ Feature: sign-signature-rejection
       | (jq).ocs.data.status                                                           | 6     |
       | (jq).ocs.data.signers[] \| select(.displayStatus == "rejected") \| .status     | 3     |
       | (jq).ocs.data.signers[] \| select(.displayStatus == "ready_to_sign") \| .status | 1    |
+
+  Scenario: A rejection shared with the participants reaches the other signer but not the public
+    Given as user "admin"
+    And user "signer1" exists
+    And user "signer2" exists
+    And user "bystander" exists
+    And run the command "libresign:configure:openssl --cn test" with result code 0
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/make_validation_url_private"
+      | value | false |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/compound/system/rejection_enabled"
+      | values | {"rejection_enabled":true,"rejection_behavior":"continue","rejection_comment_mode":"optional","rejection_visibility":"participants","rejection_comment_visibility":"participants"} |
+      | allowChildOverride | {"rejection_enabled":true,"rejection_behavior":true,"rejection_comment_mode":true,"rejection_visibility":true,"rejection_comment_visibility":true} |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]},{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
+      | name | document |
+      | policy | {"overrides":{"rejection_enabled":true}} |
+    And the response should have a status code 200
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
+    And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
+    When as user "signer1"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/reject"
+      | comment | Shared with the signers |
+      | privateComment | false |
+    Then the response should have a status code 200
+    # The other signer takes part in the workflow: the real states and the comment reach them
+    When as user "signer2"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<FILE_UUID>"
+    Then the response should be a JSON array with the following mandatory values
+      | key                                                                                  | value                   |
+      | (jq).ocs.data.signers[] \| select(.me == false) \| .displayStatus                     | rejected                |
+      | (jq).ocs.data.signers[] \| select(.me == false) \| .status                            | 3                       |
+      | (jq).ocs.data.signers[] \| select(.me == false) \| .rejection.comment                 | Shared with the signers |
+      | (jq).ocs.data.signers[] \| select(.me == true) \| .displayStatus                      | ready_to_sign           |
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    Then the response should be a JSON array with the following mandatory values
+      | key                                                                                  | value                   |
+      | (jq).ocs.data.data[0].signers[] \| select(.me == false) \| .displayStatus             | rejected                |
+      | (jq).ocs.data.data[0].signers[] \| select(.me == false) \| .rejection.comment         | Shared with the signers |
+    # Outside the workflow the rejection stays hidden: every unsigned signer looks the same
+    When as user "bystander"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<FILE_UUID>"
+    Then the response should be a JSON array with the following mandatory values
+      | key                                                       | value          |
+      | (jq)[.ocs.data.signers[].displayStatus] \| unique          | ["not_signed"] |
+      | (jq)[.ocs.data.signers[] \| has("status")] \| unique       | [false]        |
+      | (jq)[.ocs.data.signers[] \| has("rejection")] \| unique    | [false]        |
+    When as user ""
+    And sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<FILE_UUID>"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                                       | value          |
+      | (jq)[.ocs.data.signers[].displayStatus] \| unique          | ["not_signed"] |
+      | (jq)[.ocs.data.signers[] \| has("status")] \| unique       | [false]        |
+      | (jq)[.ocs.data.signers[] \| has("rejection")] \| unique    | [false]        |

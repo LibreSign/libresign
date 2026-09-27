@@ -366,6 +366,26 @@ final class SignersLoaderTest extends TestCase {
 		$this->assertSame(['displayStatus' => 'ready_to_sign', 'status' => 1, 'statusText' => 'Ready to sign', 'rejection' => null], $byId[72]);
 	}
 
+	/**
+	 * A rejection shared with the participants reaches the other signers,
+	 * comment included when that is shared too, while anybody outside the
+	 * workflow still cannot tell who rejected.
+	 */
+	public function testARejectionSharedWithTheParticipantsReachesTheOtherSigners(): void {
+		$this->rejectionPolicy = SignatureRejectionPolicyConfig::fromValues(enabled: true, commentMode: 'optional', visibility: 'participants', commentVisibility: 'participants');
+
+		$byId = $this->presentedByIdAfterLoad($this->userNamed('pending'));
+
+		$this->assertSame(['displayStatus' => 'rejected', 'status' => 3, 'statusText' => 'Rejected', 'rejection' => ['rejectedAt' => '2026-09-13T12:00:00+00:00', 'comment' => 'Not for me', 'commentPrivate' => false]], $byId[71]);
+		$this->assertSame(['displayStatus' => 'ready_to_sign', 'status' => 1, 'statusText' => 'Ready to sign', 'rejection' => null], $byId[72]);
+
+		foreach ([null, $this->userNamed('someone')] as $outsider) {
+			$byId = $this->presentedByIdAfterLoad($outsider);
+			$this->assertSame(['displayStatus' => 'not_signed', 'status' => null, 'statusText' => 'Not signed', 'rejection' => null], $byId[71]);
+			$this->assertSame(['displayStatus' => 'not_signed', 'status' => null, 'statusText' => 'Not signed', 'rejection' => null], $byId[72]);
+		}
+	}
+
 	#[DataProvider('dataLoadSignersFromCertData')]
 	public function testLoadSignersFromCertData(array $certData, string $host, string $resolveUidReturn, array $expected): void {
 		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('status-text');

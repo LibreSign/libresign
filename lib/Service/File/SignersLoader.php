@@ -15,6 +15,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignatureRejection\RejectionViewer;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\Accounts\IAccountManager;
@@ -58,14 +59,14 @@ class SignersLoader {
 
 		// Who the viewer is has to be known for every signer before any of
 		// them is presented: a hidden rejection redacts all unsigned signers.
-		$isRequester = $options->getMe() !== null && $options->getMe()->getUID() === $file->getUserId();
-		$viewerSignRequestIds = [];
-		foreach ($signers as $signer) {
-			if ($isRequester || $options->isViewerOfSigner($identifyMethodsBatch[$signer->getId()] ?? [])) {
-				$viewerSignRequestIds[] = $signer->getId();
-			}
-		}
-		$hiddenRejection = $this->signatureRejectionVisibilityService->hasHiddenRejection($file, $signers, $viewerSignRequestIds);
+		$viewer = new RejectionViewer(
+			$options->getMe() !== null && $options->getMe()->getUID() === $file->getUserId(),
+			array_filter(
+				$signers,
+				fn (SignRequest $candidate): bool => $options->isViewerOfSigner($identifyMethodsBatch[$candidate->getId()] ?? []),
+			),
+		);
+		$hiddenRejection = $this->signatureRejectionVisibilityService->hasHiddenRejection($file, $signers, $viewer);
 
 		foreach ($signers as $signer) {
 			$identifyMethods = $identifyMethodsBatch[$signer->getId()] ?? [];
@@ -101,7 +102,7 @@ class SignersLoader {
 			$this->signatureRejectionVisibilityService->presentSigner(
 				$signer,
 				$file,
-				in_array($signer->getId(), $viewerSignRequestIds, true),
+				$viewer,
 				$hiddenRejection,
 			)->applyToObject($fileData->signers[$index]);
 			$fileData->signers[$index]->signingOrder = $signer->getSigningOrder();
