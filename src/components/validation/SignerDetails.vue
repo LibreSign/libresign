@@ -249,8 +249,9 @@
 				{{ signer.user_agent }}
 			</template>
 		</NcListItem>
-		<DeviceReportedLocation v-if="isOpen && signer.metadata?.geolocation?.device"
-			:geolocation="signer.metadata?.geolocation?.device" />
+		<SignerGeolocationEvidence v-if="isOpen"
+			:device="signer.metadata?.geolocation?.device"
+			:ip="signer.metadata?.geolocation?.ip" />
 
 		<!-- Certificate Chain Section -->
 		<CertificateChain v-if="isOpen && signer.chain && signer.chain.length > 0"
@@ -286,9 +287,11 @@ import {
 } from '@mdi/js'
 
 import CertificateChain from './CertificateChain.vue'
-import DeviceReportedLocation from './DeviceReportedLocation.vue'
+import SignerGeolocationEvidence from './SignerGeolocationEvidence.vue'
 import SignerTimestamp from './SignerTimestamp.vue'
 import { isObserverParticipant } from '../../utils/participantRole.ts'
+import type { DeviceReportedLocation as DeviceReportedLocationData } from '../../helpers/signerGeolocation'
+import type { SignerIpGeolocationEvidence } from '../../helpers/signerIpGeolocation'
 import type { DocumentModificationState } from '../../services/validationDocument'
 import type { VisibleElementRecord } from '../../types'
 
@@ -338,13 +341,8 @@ type SignerModel = {
 	user_agent?: string
 	metadata?: {
 		geolocation?: {
-			device?: {
-				status?: string
-				latitude?: number
-				longitude?: number
-				accuracy?: number
-				timestamp?: number
-			}
+			device?: DeviceReportedLocationData
+			ip?: SignerIpGeolocationEvidence
 		}
 	}
 	valid_from?: string | number

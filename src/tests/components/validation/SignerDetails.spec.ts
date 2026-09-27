@@ -802,8 +802,8 @@ describe('SignerDetails.vue - Business Logic', () => {
 		})
 	})
 
-	describe('device-reported location', () => {
-		it('renders the collapsible device-reported location section when metadata is present', () => {
+	describe('signer geolocation evidence', () => {
+		it('forwards stored device and IP sources without merging them', () => {
 			wrapper = createWrapper({
 				initiallyOpen: true,
 				signer: {
@@ -816,28 +816,39 @@ describe('SignerDetails.vue - Business Logic', () => {
 								accuracy: 12,
 								timestamp: 0,
 							},
+							ip: {
+								status: 'resolved',
+								country: 'Brazil',
+							},
 						},
 					},
 				},
 			})
 
-			expect(wrapper.findComponent({ name: 'DeviceReportedLocation' }).exists()).toBe(true)
-			expect(wrapper.findComponent({ name: 'DeviceReportedLocation' }).props('geolocation')).toEqual({
+			const evidence = wrapper.findComponent({ name: 'SignerGeolocationEvidence' })
+			expect(evidence.exists()).toBe(true)
+			expect(evidence.props('device')).toEqual({
 				status: 'collected',
 				latitude: -23.55,
 				longitude: -46.63,
 				accuracy: 12,
 				timestamp: 0,
 			})
+			expect(evidence.props('ip')).toEqual({
+				status: 'resolved',
+				country: 'Brazil',
+			})
 		})
 
-		it('does not render device-reported location when geolocation metadata is absent', () => {
+		it('does not render geolocation evidence when metadata is absent', () => {
 			wrapper = createWrapper({
 				initiallyOpen: true,
 				signer: { displayName: 'No Geo' },
 			})
 
-			expect(wrapper.findComponent({ name: 'DeviceReportedLocation' }).exists()).toBe(false)
+			expect(wrapper.findComponent({ name: 'SignerGeolocationEvidence' }).exists()).toBe(true)
+			expect(wrapper.findComponent({ name: 'SignerGeolocationEvidence' }).props('device')).toBeUndefined()
+			expect(wrapper.findComponent({ name: 'SignerGeolocationEvidence' }).props('ip')).toBeUndefined()
 		})
 	})
 })

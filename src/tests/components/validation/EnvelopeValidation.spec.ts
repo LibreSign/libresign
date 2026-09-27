@@ -38,6 +38,11 @@ type EnvelopeSigner = {
 				accuracy?: number
 				timestamp?: number
 			}
+			ip?: {
+				status?: string
+				sourceIp?: string
+				country?: string
+			}
 		}
 	}
 }
@@ -628,8 +633,8 @@ describe('EnvelopeValidation', () => {
 		})
 	})
 
-	describe('device-reported location', () => {
-		it('renders the collapsible device-reported location section when metadata is present', async () => {
+	describe('signer geolocation evidence', () => {
+		it('renders stored device and IP sources as separate children', async () => {
 			wrapper = createWrapper({
 				document: {
 					signers: [{
@@ -644,6 +649,10 @@ describe('EnvelopeValidation', () => {
 									accuracy: 12,
 									timestamp: 0,
 								},
+								ip: {
+									status: 'resolved',
+									country: 'Brazil',
+								},
 							},
 						},
 					}],
@@ -653,18 +662,24 @@ describe('EnvelopeValidation', () => {
 			await wrapper.vm.$nextTick()
 
 			expect(wrapper.vm.isSignerOpen(0)).toBe(true)
-			const location = wrapper.findComponent({ name: 'DeviceReportedLocation' })
-			expect(location.exists()).toBe(true)
-			expect(location.props('geolocation')).toEqual({
+			const evidence = wrapper.findComponent({ name: 'SignerGeolocationEvidence' })
+			expect(evidence.exists()).toBe(true)
+			expect(evidence.props('device')).toEqual({
 				status: 'collected',
 				latitude: -23.55,
 				longitude: -46.63,
 				accuracy: 12,
 				timestamp: 0,
 			})
+			expect(evidence.props('ip')).toEqual({
+				status: 'resolved',
+				country: 'Brazil',
+			})
+			expect(wrapper.findComponent({ name: 'DeviceReportedLocation' }).exists()).toBe(true)
+			expect(wrapper.findComponent({ name: 'IpBasedApproximateLocation' }).exists()).toBe(true)
 		})
 
-		it('does not render device-reported location when geolocation metadata is absent', async () => {
+		it('does not show geolocation evidence when metadata is absent', async () => {
 			wrapper = createWrapper({
 				document: {
 					signers: [{
@@ -676,7 +691,10 @@ describe('EnvelopeValidation', () => {
 			wrapper.vm.toggleDetail(0)
 			await wrapper.vm.$nextTick()
 
-			expect(wrapper.findComponent({ name: 'DeviceReportedLocation' }).exists()).toBe(false)
+			const evidence = wrapper.findComponent({ name: 'SignerGeolocationEvidence' })
+			expect(evidence.exists()).toBe(true)
+			expect(evidence.vm.hasEvidence).toBe(false)
+			expect(evidence.text()).not.toContain('Signer geolocation')
 		})
 	})
 })
