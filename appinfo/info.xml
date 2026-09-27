@@ -61,8 +61,6 @@ https://libresign.coop
 		<job>OCA\Libresign\BackgroundJob\RefreshGeneratedCrlCache</job>
 		<job>OCA\Libresign\BackgroundJob\UserDeleted</job>
 		<job>OCA\Libresign\BackgroundJob\CleanupStaleSigningStatus</job>
-		<job>OCA\Libresign\BackgroundJob\SignFileJob</job>
-		<job>OCA\Libresign\BackgroundJob\SignSingleFileJob</job>
 	</background-jobs>
 	<repair-steps>
 		<pre-migration>
