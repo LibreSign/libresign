@@ -14,9 +14,11 @@ use PHPUnit\Framework\TestCase;
 
 final class BackgroundJobsRegistrationTest extends TestCase {
 	public function testParameterizedSigningJobsAreNotRegisteredWithoutArguments(): void {
-		$appPath = dirname((new \ReflectionClass(SignFileJob::class))->getFileName(), 3);
-		$infoXml = simplexml_load_file($appPath . '/appinfo/info.xml');
-		$this->assertNotFalse($infoXml);
+		$infoXmlPath = realpath(__DIR__ . '/../../../../appinfo/info.xml');
+		$this->assertNotFalse($infoXmlPath, 'appinfo/info.xml must exist');
+
+		$infoXml = simplexml_load_file($infoXmlPath);
+		$this->assertNotFalse($infoXml, 'appinfo/info.xml must be valid XML');
 
 		$jobs = array_map(
 			static fn ($job): string => (string)$job,
