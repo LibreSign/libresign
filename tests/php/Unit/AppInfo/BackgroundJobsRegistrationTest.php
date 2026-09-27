@@ -10,6 +10,8 @@ namespace OCA\Libresign\Tests\Unit\AppInfo;
 
 use OCA\Libresign\BackgroundJob\SignFileJob;
 use OCA\Libresign\BackgroundJob\SignSingleFileJob;
+use OCP\App\IAppManager;
+use OCP\Server;
 use PHPUnit\Framework\TestCase;
 
 final class BackgroundJobsRegistrationTest extends TestCase {
@@ -17,13 +19,9 @@ final class BackgroundJobsRegistrationTest extends TestCase {
 		$infoXmlPath = realpath(__DIR__ . '/../../../../appinfo/info.xml');
 		$this->assertNotFalse($infoXmlPath, 'appinfo/info.xml must exist');
 
-		$infoXml = simplexml_load_file($infoXmlPath);
-		$this->assertNotFalse($infoXml, 'appinfo/info.xml must be valid XML');
-
-		$jobs = array_map(
-			static fn ($job): string => (string)$job,
-			iterator_to_array($infoXml->{'background-jobs'}->job),
-		);
+		$appInfo = Server::get(IAppManager::class)->getAppInfoByPath($infoXmlPath);
+		$this->assertIsArray($appInfo, 'appinfo/info.xml must be parseable by Nextcloud');
+		$jobs = $appInfo['background-jobs'];
 
 		$this->assertNotContains(SignFileJob::class, $jobs);
 		$this->assertNotContains(SignSingleFileJob::class, $jobs);
