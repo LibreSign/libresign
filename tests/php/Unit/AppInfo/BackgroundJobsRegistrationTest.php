@@ -10,13 +10,11 @@ namespace OCA\Libresign\Tests\Unit\AppInfo;
 
 use OCA\Libresign\BackgroundJob\SignFileJob;
 use OCA\Libresign\BackgroundJob\SignSingleFileJob;
-use OCP\App\IAppManager;
-use OCP\Server;
 use PHPUnit\Framework\TestCase;
 
 final class BackgroundJobsRegistrationTest extends TestCase {
 	public function testParameterizedSigningJobsAreNotRegisteredWithoutArguments(): void {
-		$appPath = Server::get(IAppManager::class)->getAppPath('libresign');
+		$appPath = dirname((new \ReflectionClass(SignFileJob::class))->getFileName(), 3);
 		$infoXml = simplexml_load_file($appPath . '/appinfo/info.xml');
 		$this->assertNotFalse($infoXml);
 
