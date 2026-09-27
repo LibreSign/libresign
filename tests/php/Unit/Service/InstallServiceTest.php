@@ -93,6 +93,23 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$installService->installJava(true);
 	}
 
+	public function testExplicitJSignPdfInstallRunsWhenPhpNativeIsSelected(): void {
+		$installService = $this->getInstallService();
+		$this->appConfig->method('getValueString')
+			->with(Application::APP_ID, 'signature_engine', 'JSignPdf')
+			->willReturn('PhpNative');
+
+		$this->installProcessManager->expects($this->once())
+			->method('start')
+			->with(
+				'jsignpdf',
+				$this->isInstanceOf(InstallTarget::class),
+			)
+			->willReturn(123);
+
+		$installService->install('jsignpdf', true);
+	}
+
 	public function testAsyncInstallStoresActionableErrorWhenProcessDoesNotStart(): void {
 		$installService = $this->getInstallService();
 		$this->progressStore->method('get')->willReturn([]);
