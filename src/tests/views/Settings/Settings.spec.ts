@@ -26,6 +26,7 @@ describe('Settings.vue', () => {
 					SettingsPolicyWorkbench: true,
 					DownloadBinaries: true,
 					ConfigureCheck: true,
+					GeoIpDatabase: true,
 					RootCertificateCfssl: true,
 					RootCertificateOpenSsl: true,
 				},
@@ -34,6 +35,7 @@ describe('Settings.vue', () => {
 
 		expect(wrapper.find('.support-project-stub').exists()).toBe(true)
 		expect(wrapper.findAllComponents({ name: 'SignatureEngine' })).toHaveLength(1)
+		expect(wrapper.findAllComponents({ name: 'GeoIpDatabase' })).toHaveLength(1)
 		expect(wrapper.findAllComponents({ name: 'SettingsPolicyWorkbench' })).toHaveLength(1)
 	})
 
@@ -47,6 +49,7 @@ describe('Settings.vue', () => {
 					SettingsPolicyWorkbench: true,
 					DownloadBinaries: true,
 					ConfigureCheck: true,
+					GeoIpDatabase: true,
 					RootCertificateCfssl: true,
 					RootCertificateOpenSsl: true,
 				},
