@@ -21,13 +21,13 @@ final class RemoveArgumentlessSigningJobsTest extends TestCase {
 		$jobList = $this->createMock(IJobList::class);
 		$output = $this->createMock(IOutput::class);
 
+		$removed = [];
 		$jobList->expects($this->exactly(2))
 			->method('remove')
 			->willReturnCallback(function (string $job, mixed $argument) use (&$removed): void {
 				$removed[] = [$job, $argument];
 			});
 
-		$removed = [];
 		(new RemoveArgumentlessSigningJobs($jobList))->run($output);
 
 		$this->assertSame([
