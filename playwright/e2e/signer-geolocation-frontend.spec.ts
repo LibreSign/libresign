@@ -87,7 +87,8 @@ test('GeoIP admin settings save, replace, and clear a path without exposing sign
 
 	const pathInput = page.getByLabel('Database path')
 	await expect(pathInput).toBeVisible()
-	const geoIpSection = page.getByRole('heading', { name: 'GeoIP database' }).locator('xpath=ancestor::section[1]')
+	const geoIpHeading = page.getByRole('heading', { name: 'GeoIP database' })
+	const geoIpSection = geoIpHeading.locator('xpath=ancestor::div[contains(@class, "settings-section")][1]')
 	await pathInput.fill('/tmp/libresign-missing-geoip.mmdb')
 	await geoIpSection.getByRole('button', { name: 'Save', exact: true }).click()
 	await expect(geoIpSection.getByText('Database file not found').or(page.getByText('GeoIP database path saved'))).toBeVisible()
