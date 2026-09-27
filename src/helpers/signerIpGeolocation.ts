@@ -20,7 +20,11 @@ const REASONS: SignerIpGeolocationUnavailableReason[] = [
 ]
 
 export function hasIpGeolocationEvidence(geolocation: unknown): geolocation is SignerIpGeolocationEvidence {
-	return !!geolocation && typeof geolocation === 'object' && !Array.isArray(geolocation)
+	if (!geolocation || typeof geolocation !== 'object' || Array.isArray(geolocation)) {
+		return false
+	}
+
+	return resolveIpGeolocationStatus((geolocation as { status?: unknown }).status) !== null
 }
 
 export function resolveIpGeolocationStatus(value: unknown): SignerIpGeolocationStatus | null {

@@ -24,6 +24,7 @@ describe('signerIpGeolocation', () => {
 	it('treats any IP evidence object as displayable historical data', () => {
 		expect(hasIpGeolocationEvidence({ status: 'not_found' })).toBe(true)
 		expect(hasIpGeolocationEvidence({ status: 'unavailable', reason: 'lookup_failed' })).toBe(true)
+		expect(hasIpGeolocationEvidence({})).toBe(false)
 		expect(hasIpGeolocationEvidence(null)).toBe(false)
 		expect(hasIpGeolocationEvidence('resolved')).toBe(false)
 	})
