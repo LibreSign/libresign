@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 
 final class BackgroundJobsRegistrationTest extends TestCase {
 	public function testParameterizedSigningJobsAreNotRegisteredWithoutArguments(): void {
-		$infoXml = simplexml_load_file(dirname(__DIR__, 3) . '/appinfo/info.xml');
+		$infoXml = simplexml_load_file(dirname(__DIR__, 4) . '/appinfo/info.xml');
 		$this->assertNotFalse($infoXml);
 
 		$jobs = array_map(
