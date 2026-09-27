@@ -27,27 +27,32 @@
 				<template #icon>
 					<NcLoadingIcon v-if="busy" :size="20" />
 				</template>
-				{{ saveLabel }}
+				<!-- TRANSLATORS Button label to save the GeoIP database path. -->
+				{{ t('libresign', 'Save') }}
 			</NcButton>
 			<NcButton
 				variant="tertiary"
 				:disabled="busy || !canClear"
 				@click="clearPath">
-				{{ clearLabel }}
+				<!-- TRANSLATORS Button label to clear the configured GeoIP database path. -->
+				{{ t('libresign', 'Clear path') }}
 			</NcButton>
 		</div>
 
 		<dl v-if="hasMetadata" class="geoip-database__meta">
 			<div v-if="config?.databaseType" class="geoip-database__field">
-				<dt>{{ databaseTypeLabel }}</dt>
+				<!-- TRANSLATORS Label for the detected GeoIP database product type. -->
+				<dt>{{ t('libresign', 'Database type:') }}</dt>
 				<dd>{{ config.databaseType }}</dd>
 			</div>
 			<div v-if="buildTime" class="geoip-database__field">
-				<dt>{{ buildTimeLabel }}</dt>
+				<!-- TRANSLATORS Label for the GeoIP database build time reported by the backend. -->
+				<dt>{{ t('libresign', 'Database build time:') }}</dt>
 				<dd>{{ buildTime }}</dd>
 			</div>
 			<div v-if="modifiedAt" class="geoip-database__field">
-				<dt>{{ modifiedAtLabel }}</dt>
+				<!-- TRANSLATORS Label for the GeoIP database file modification time. -->
+				<dt>{{ t('libresign', 'File modified:') }}</dt>
 				<dd>{{ modifiedAt }}</dd>
 			</div>
 		</dl>
@@ -89,17 +94,6 @@ const sectionDescription = t('libresign', 'Configure the local MaxMind City data
 const pathLabel = t('libresign', 'Database path')
 // TRANSLATORS Placeholder showing an example absolute GeoIP database path.
 const pathPlaceholder = t('libresign', '/var/lib/libresign/GeoLite2-City.mmdb')
-// TRANSLATORS Button label to save the GeoIP database path.
-const saveLabel = t('libresign', 'Save')
-// TRANSLATORS Button label to clear the configured GeoIP database path.
-const clearLabel = t('libresign', 'Clear path')
-// TRANSLATORS Label for the detected GeoIP database product type.
-const databaseTypeLabel = t('libresign', 'Database type:')
-// TRANSLATORS Label for the GeoIP database build time reported by the backend.
-const buildTimeLabel = t('libresign', 'Database build time:')
-// TRANSLATORS Label for the GeoIP database file modification time.
-const modifiedAtLabel = t('libresign', 'File modified:')
-
 const config = ref<GeoIpConfig | null>(null)
 const draftPath = ref('')
 const busy = ref(false)

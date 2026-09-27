@@ -11,7 +11,7 @@
 			@click="open = !open">
 			<template #name>
 				<!-- TRANSLATORS Collapsible section title for approximate location resolved from the signer IP. -->
-				<strong>{{ ipBasedLocationLabel }}</strong>
+				<strong>{{ t('libresign', 'IP-based approximate location') }}</strong>
 			</template>
 			<template #extra-actions>
 				<NcButton variant="tertiary"
@@ -68,7 +68,7 @@
 				</dl>
 				<p v-if="reasonText" class="serial-hex">{{ reasonText }}</p>
 				<!-- TRANSLATORS Disclaimer that IP-derived location is approximate and may be affected by VPNs or proxies. -->
-				<p class="serial-hex">{{ approximateLocationDisclaimer }}</p>
+				<p class="serial-hex">{{ t('libresign', 'Approximate location. VPNs, proxies and mobile networks can affect this result.') }}</p>
 			</div>
 		</div>
 	</template>
@@ -107,12 +107,8 @@ const props = defineProps<{
 
 const open = ref(false)
 
-// TRANSLATORS Collapsible section title for approximate location resolved from the signer IP.
-const ipBasedLocationLabel = t('libresign', 'IP-based approximate location')
 // TRANSLATORS ARIA label for the expandable region with IP-based location details.
 const ipBasedLocationDetailsAriaLabel = t('libresign', 'IP-based approximate location details')
-// TRANSLATORS Disclaimer that stored IP location is approximate and can be affected by network infrastructure.
-const approximateLocationDisclaimer = t('libresign', 'Approximate location. VPNs, proxies and mobile networks can affect this result.')
 
 const hasContent = computed(() => hasIpGeolocationEvidence(props.geolocation))
 const status = computed(() => resolveIpGeolocationStatus(props.geolocation?.status))
@@ -163,8 +159,6 @@ defineExpose({
 	city,
 	coordinates,
 	accuracyRadius,
-	ipBasedLocationLabel,
-	approximateLocationDisclaimer,
 	toggleAriaLabel,
 })
 </script>

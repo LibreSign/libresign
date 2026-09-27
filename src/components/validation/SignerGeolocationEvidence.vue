@@ -7,7 +7,7 @@
 		<NcListItem class="extra" compact>
 			<template #name>
 				<!-- TRANSLATORS Section title grouping stored device and IP geolocation evidence for one signer. -->
-				<strong>{{ signerGeolocationLabel }}</strong>
+				<strong>{{ t('libresign', 'Signer geolocation') }}</strong>
 			</template>
 		</NcListItem>
 		<DeviceReportedLocation :geolocation="device" />
@@ -34,9 +34,6 @@ const props = defineProps<{
 	ip?: SignerIpGeolocationEvidence | null
 }>()
 
-// TRANSLATORS Section title grouping stored device and IP geolocation evidence for one signer.
-const signerGeolocationLabel = t('libresign', 'Signer geolocation')
-
 const hasDevice = computed(() => formatDeviceReportedCoordinates(props.device) !== null)
 const hasIp = computed(() => hasIpGeolocationEvidence(props.ip))
 const hasEvidence = computed(() => hasDevice.value || hasIp.value)
@@ -45,6 +42,5 @@ defineExpose({
 	hasEvidence,
 	hasDevice,
 	hasIp,
-	signerGeolocationLabel,
 })
 </script>
