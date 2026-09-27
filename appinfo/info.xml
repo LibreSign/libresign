@@ -70,6 +70,7 @@ https://libresign.coop
 			<step>OCA\Libresign\Migration\DeleteOldBinaries</step>
 			<step>OCA\Libresign\Migration\ResynchronizeDatabaseSequences</step>
 			<step>OCA\Libresign\Migration\StopRunningWorkers</step>
+			<step>OCA\Libresign\Migration\RemoveArgumentlessSigningJobs</step>
 		</post-migration>
 	</repair-steps>
 	<commands>
