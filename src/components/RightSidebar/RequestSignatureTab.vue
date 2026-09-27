@@ -556,6 +556,10 @@ type IdentifySignerToEdit = {
 	description?: string
 	participantRole?: ParticipantRole
 	identifyMethods?: IdentifySignerMethod[]
+	deviceGeolocationRequired?: boolean
+	metadata?: {
+		deviceGeolocationRequirement?: string
+	}
 }
 type SigningOrderDiagramSigner = {
 	displayName?: string
@@ -836,6 +840,12 @@ function toIdentifySignerToEdit(signer: EditableRequestSigner): IdentifySignerTo
 		displayName: signer.displayName,
 		description: signer.description ?? undefined,
 		participantRole: signer.participantRole as ParticipantRole | undefined,
+		...(typeof signer.deviceGeolocationRequired === 'boolean'
+			? { deviceGeolocationRequired: signer.deviceGeolocationRequired }
+			: {}),
+		...(signer.metadata?.deviceGeolocationRequirement
+			? { metadata: { deviceGeolocationRequirement: signer.metadata.deviceGeolocationRequirement } }
+			: {}),
 		...(identifyMethods?.length ? { identifyMethods } : {}),
 	}
 }
