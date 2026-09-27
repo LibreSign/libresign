@@ -38,6 +38,8 @@ const categoryHowSigningWorksLabel = t('libresign', 'How signing works')
 const categorySignerExperienceLabel = t('libresign', 'What the signer sees')
 // TRANSLATORS Category heading grouping rules about metadata and evidence recorded during signing.
 const categoryWhatGetsRecordedLabel = t('libresign', 'What gets recorded')
+// TRANSLATORS Category heading grouping device-reported and IP-based signer location policies.
+const categorySignerGeolocationLabel = t('libresign', 'Signer geolocation')
 // TRANSLATORS Category heading grouping rules about durations, deadlines, and limits.
 const categoryTimeAndLimitsLabel = t('libresign', 'Time and limits')
 // TRANSLATORS Category heading grouping trust, certificate, and validation behavior.
@@ -52,6 +54,7 @@ const CATEGORY_ORDER: RealPolicySettingCategory[] = [
 	'how-signing-works',
 	'signer-experience',
 	'what-gets-recorded',
+	'signer-geolocation',
 	'time-and-limits',
 	'trust-and-verification',
 	'system-behavior',
@@ -67,6 +70,8 @@ function categoryLabel(category: RealPolicySettingCategory): string {
 		return categorySignerExperienceLabel
 	case 'what-gets-recorded':
 		return categoryWhatGetsRecordedLabel
+	case 'signer-geolocation':
+		return categorySignerGeolocationLabel
 	case 'time-and-limits':
 		return categoryTimeAndLimitsLabel
 	case 'trust-and-verification':

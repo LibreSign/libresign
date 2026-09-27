@@ -48,6 +48,7 @@ export type RealPolicySettingCategory =
 	| 'how-signing-works'
 	| 'signer-experience'
 	| 'what-gets-recorded'
+	| 'signer-geolocation'
 	| 'time-and-limits'
 	| 'trust-and-verification'
 	| 'system-behavior'

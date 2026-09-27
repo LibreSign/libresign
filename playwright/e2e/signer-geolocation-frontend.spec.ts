@@ -25,6 +25,7 @@ const IP_POLICY = 'signer_ip_geolocation'
 let adminContext: Awaited<ReturnType<typeof createAuthenticatedRequestContext>> | null = null
 let originalDevice: SystemPolicySnapshot | null = null
 let originalIp: SystemPolicySnapshot | null = null
+let originalGeoIpPath: string | null = null
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
@@ -39,10 +40,16 @@ test.afterEach(async () => {
 	if (originalIp) {
 		await restoreSystemPolicySnapshot(adminContext, IP_POLICY, originalIp)
 	}
+	if (originalGeoIpPath !== null) {
+		await policyRequest(adminContext, 'POST', '/apps/libresign/api/v1/admin/geoip', {
+			path: originalGeoIpPath,
+		})
+	}
 	await adminContext.dispose()
 	adminContext = null
 	originalDevice = null
 	originalIp = null
+	originalGeoIpPath = null
 })
 
 test('Policy Workbench groups device and IP geolocation as independent cards', async ({ page }) => {
@@ -61,10 +68,10 @@ test('Policy Workbench groups device and IP geolocation as independent cards', a
 	await login(page.request, adminUser, adminPassword)
 	await page.goto('./settings/admin/libresign')
 
-	const recordedSection = page.locator('[data-category-key="what-gets-recorded"]')
-	await expect(recordedSection).toBeVisible()
-	await expect(recordedSection.getByRole('heading', { name: 'Device-reported location' })).toBeVisible()
-	await expect(recordedSection.getByRole('heading', { name: 'IP-based approximate location' })).toBeVisible()
+	const geolocationSection = page.locator('[data-category-key="signer-geolocation"]')
+	await expect(geolocationSection.getByText('Signer geolocation', { exact: true })).toBeVisible()
+	await expect(geolocationSection.getByRole('heading', { name: 'Device-reported location' })).toBeVisible()
+	await expect(geolocationSection.getByRole('heading', { name: 'IP-based approximate location' })).toBeVisible()
 	await expect(page.getByRole('heading', { name: 'GeoIP database' })).toBeVisible()
 })
 
@@ -73,6 +80,7 @@ test('GeoIP admin settings save, replace, and clear a path without exposing sign
 
 	const original = await policyRequest(adminContext, 'GET', '/apps/libresign/api/v1/admin/geoip')
 	expect(original.httpStatus).toBe(200)
+	originalGeoIpPath = typeof original.data.path === 'string' ? original.data.path : ''
 
 	await login(page.request, adminUser, adminPassword)
 	await page.goto('./settings/admin/libresign')
@@ -88,10 +96,4 @@ test('GeoIP admin settings save, replace, and clear a path without exposing sign
 
 	await geoIpSection.getByRole('button', { name: 'Clear path' }).click()
 	await expect(pathInput).toHaveValue('')
-
-	if (typeof original.data.path === 'string') {
-		await policyRequest(adminContext, 'POST', '/apps/libresign/api/v1/admin/geoip', { path: original.data.path })
-	} else {
-		await policyRequest(adminContext, 'POST', '/apps/libresign/api/v1/admin/geoip', { path: '' })
-	}
 })

@@ -16,10 +16,24 @@ const CATEGORY_ORDER: RealPolicySettingCategory[] = [
 	'how-signing-works',
 	'signer-experience',
 	'what-gets-recorded',
+	'signer-geolocation',
 	'time-and-limits',
 	'trust-and-verification',
 	'system-behavior',
 ]
+
+function createCategoryCollapsedState(collapsed: boolean): Record<RealPolicySettingCategory, boolean> {
+	return {
+		'who-can-sign': collapsed,
+		'how-signing-works': collapsed,
+		'signer-experience': collapsed,
+		'what-gets-recorded': collapsed,
+		'signer-geolocation': collapsed,
+		'time-and-limits': collapsed,
+		'trust-and-verification': collapsed,
+		'system-behavior': collapsed,
+	}
+}
 
 export function useCatalogState() {
 	const userConfigStore = useUserConfigStore()
@@ -27,15 +41,7 @@ export function useCatalogState() {
 	const isSmallViewport = ref(false)
 	const catalogLayout = ref<'cards' | 'compact'>('cards')
 	const isCatalogCollapsed = ref(false)
-	const categoryCollapsedState = ref<Record<RealPolicySettingCategory, boolean>>({
-		'who-can-sign': false,
-		'how-signing-works': false,
-		'signer-experience': false,
-		'what-gets-recorded': false,
-		'time-and-limits': false,
-		'trust-and-verification': false,
-		'system-behavior': false,
-	})
+	const categoryCollapsedState = ref<Record<RealPolicySettingCategory, boolean>>(createCategoryCollapsedState(false))
 
 	const hasActiveFilter = computed(() => settingsFilter.value.trim().length > 0)
 	const effectiveCatalogLayout = computed(() => isSmallViewport.value ? 'cards' : catalogLayout.value)
@@ -98,26 +104,10 @@ export function useCatalogState() {
 
 	function normalizeCategoryCollapsedConfig(config?: Record<string, unknown>): Record<RealPolicySettingCategory, boolean> {
 		if (!config || typeof config !== 'object') {
-			return {
-				'who-can-sign': false,
-				'how-signing-works': false,
-				'signer-experience': false,
-				'what-gets-recorded': false,
-				'time-and-limits': false,
-				'trust-and-verification': false,
-				'system-behavior': false,
-			}
+			return createCategoryCollapsedState(false)
 		}
 
-		const result: Record<RealPolicySettingCategory, boolean> = {
-			'who-can-sign': false,
-			'how-signing-works': false,
-			'signer-experience': false,
-			'what-gets-recorded': false,
-			'time-and-limits': false,
-			'trust-and-verification': false,
-			'system-behavior': false,
-		}
+		const result = createCategoryCollapsedState(false)
 
 		for (const category of CATEGORY_ORDER) {
 			if (category in config) {
@@ -130,15 +120,7 @@ export function useCatalogState() {
 	}
 
 	function setAllCategoriesCollapsed(collapsed: boolean) {
-		categoryCollapsedState.value = {
-			'who-can-sign': collapsed,
-			'how-signing-works': collapsed,
-			'signer-experience': collapsed,
-			'what-gets-recorded': collapsed,
-			'time-and-limits': collapsed,
-			'trust-and-verification': collapsed,
-			'system-behavior': collapsed,
-		}
+		categoryCollapsedState.value = createCategoryCollapsedState(collapsed)
 	}
 
 	return {
