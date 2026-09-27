@@ -10,6 +10,7 @@
 		<SignatureEngine />
 		<DownloadBinaries />
 		<ConfigureCheck />
+		<GeoIpDatabase />
 		<RootCertificateCfssl />
 		<RootCertificateOpenSsl />
 		<SettingsPolicyWorkbench />
@@ -20,6 +21,7 @@
 import CertificateEngine from './CertificateEngine.vue'
 import ConfigureCheck from './ConfigureCheck.vue'
 import DownloadBinaries from './DownloadBinaries.vue'
+import GeoIpDatabase from './GeoIpDatabase.vue'
 import SettingsPolicyWorkbench from './PolicyWorkbench/Catalog/Catalog.vue'
 import RootCertificateCfssl from './RootCertificateCfssl.vue'
 import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
@@ -32,6 +34,7 @@ defineOptions({
 		CertificateEngine,
 		ConfigureCheck,
 		DownloadBinaries,
+		GeoIpDatabase,
 		RootCertificateCfssl,
 		RootCertificateOpenSsl,
 		SettingsPolicyWorkbench,
