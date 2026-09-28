@@ -715,7 +715,7 @@ describe('IdentifySigner rules', () => {
 			expect(wrapper.vm.showGeolocationRequirementToggle).toBe(true)
 		})
 
-		it('keeps a missing snapshot source disabled instead of using the live policy', () => {
+		it('uses the live policy when the snapshot omitted device geolocation', () => {
 			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'optional' })
 			filesStore.getFile.mockReturnValue({
 				signers: [],
@@ -730,7 +730,7 @@ describe('IdentifySigner rules', () => {
 			})
 			wrapper = createWrapper()
 
-			expect(wrapper.vm.showGeolocationRequirementToggle).toBe(false)
+			expect(wrapper.vm.showGeolocationRequirementToggle).toBe(true)
 		})
 
 		it('keeps the toggle hidden when the file snapshot is disabled after a later optional policy change', () => {

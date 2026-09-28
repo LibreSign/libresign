@@ -212,7 +212,11 @@ const acceptsEmailNotifications = ref<boolean | undefined>()
 const signerGeolocationMode = computed(() => {
 	const file = filesStore.getFile()
 	const policySnapshot = file?.metadata?.policy_snapshot
-	if (policySnapshot && typeof policySnapshot === 'object') {
+	if (
+		policySnapshot
+		&& typeof policySnapshot === 'object'
+		&& Object.hasOwn(policySnapshot, 'signer_device_geolocation')
+	) {
 		return resolveSignerGeolocationMode(policySnapshot.signer_device_geolocation?.effectiveValue)
 			?? 'disabled'
 	}
