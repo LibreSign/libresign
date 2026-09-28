@@ -10,8 +10,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\File;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
+use OCA\Libresign\Service\AccountCertificateService;
 use OCA\Libresign\Service\File\AccountSettingsProvider;
 use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
@@ -32,7 +31,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAccountManager|MockObject $accountManager;
 	private IdDocsPolicyService|MockObject $idDocsPolicyService;
-	private Pkcs12Handler|MockObject $pkcs12Handler;
+	private AccountCertificateService|MockObject $accountCertificateService;
 
 	private IUserConfig&MockObject $userConfig;
 	private IGroupManager&MockObject $groupManager;
@@ -51,14 +50,29 @@ final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->policyAuthorizationService = new PolicyAuthorizationService($this->groupManager, $this->subAdmin, $this->policyService);
 		$this->accountManager = $this->createMock(IAccountManager::class);
 		$this->idDocsPolicyService = $this->createMock(IdDocsPolicyService::class);
-		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
+		$this->accountCertificateService = $this->createMock(AccountCertificateService::class);
+	}
+
+	#[DataProvider('provideCertificateAvailability')]
+	public function testCertificateAvailabilityDelegatesToCertificateService(bool $hasUser, bool $hasCertificate): void {
+		$user = $hasUser ? $this->createMock(IUser::class) : null;
+		$this->accountCertificateService->expects($this->once())->method('hasSignatureFile')->with($user)->willReturn($hasCertificate);
+		$this->assertSame($hasCertificate, $this->getService()->hasSignatureFile($user));
+	}
+
+	public static function provideCertificateAvailability(): array {
+		return [
+			'anonymous' => [false, false],
+			'no certificate' => [true, false],
+			'certificate present' => [true, true],
+		];
 	}
 
 	private function getService(): AccountSettingsProvider {
 		return new AccountSettingsProvider(
 			$this->accountManager,
 			$this->idDocsPolicyService,
-			$this->pkcs12Handler,
+			$this->accountCertificateService,
 			$this->userConfig,
 			$this->groupManager,
 			$this->policyAuthorizationService,
@@ -203,32 +217,15 @@ final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCa
 		bool $expectedHasSignatureFile,
 		bool $expectedIsApprover,
 	): void {
-		$user = null;
-		if ($hasUser) {
-			$user = $this->createMock(IUser::class);
-			$user->method('getUID')->willReturn('testuser');
-
-			if ($hasPfx) {
-				$this->pkcs12Handler->method('getPfxOfCurrentSigner')
-					->with('testuser')
-					->willReturn('signature_content');
-			} else {
-				$this->pkcs12Handler->method('getPfxOfCurrentSigner')
-					->with('testuser')
-					->willThrowException(new LibresignException('No signature file'));
-			}
-		}
-
+		$user = $hasUser ? $this->createMock(IUser::class) : null;
+		$this->accountCertificateService->method('hasSignatureFile')->with($user)->willReturn($hasPfx);
 		$this->idDocsPolicyService->method('userCanApproveValidationDocuments')
-			->with($user, false)
-			->willReturn($expectedIsApprover);
-
-		$service = $this->getService();
-		$result = $service->getSettings($user);
-
-		$this->assertEquals($expectedCanRequestSign, $result['canRequestSign']);
-		$this->assertEquals($expectedHasSignatureFile, $result['hasSignatureFile']);
-		$this->assertEquals($expectedIsApprover, $result['isApprover']);
+			->with($user, false)->willReturn($expectedIsApprover);
+		$this->assertSame([
+			'canRequestSign' => $expectedCanRequestSign,
+			'hasSignatureFile' => $expectedHasSignatureFile,
+			'isApprover' => $expectedIsApprover,
+		], $this->getService()->getSettings($user));
 	}
 
 	public function testGetConfigSetsCanManageGroupPoliciesForSubAdmin(): void {
@@ -376,7 +373,7 @@ final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->groupManager->method('isAdmin')->with('preference-owner')->willReturn($isAdmin);
 		$this->identityDocumentValidator->method('userCanApproveValidationDocuments')
 			->with($user, false)->willReturn($isApprover);
-		$this->pkcs12Handler->method('getPfxOfCurrentSigner')->willReturn('certificate');
+		$this->accountCertificateService->method('hasSignatureFile')->with($user)->willReturn($user !== null);
 		$stored = [
 			'id_docs_filters' => $json, 'id_docs_sort' => $json,
 			'crl_filters' => $json, 'crl_sort' => $json,
@@ -446,28 +443,6 @@ final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCa
 			}
 		}
 		return $cases;
-	}
-
-	#[DataProvider('provideSignatureFileAvailability')]
-	public function testHasSignatureFileHandlesAbsentCertificates(bool $hasUser, bool $hasCertificate): void {
-		$user = null;
-		if ($hasUser) {
-			$user = $this->createMock(IUser::class);
-			$user->method('getUID')->willReturn('signer');
-			$lookup = $this->pkcs12Handler->expects($this->once())->method('getPfxOfCurrentSigner')->with('signer');
-			if ($hasCertificate) {
-				$lookup->willReturn('pfx');
-			} else {
-				$lookup->willThrowException(new \OCA\Libresign\Exception\LibresignException('No certificate'));
-			}
-		} else {
-			$this->pkcs12Handler->expects($this->never())->method('getPfxOfCurrentSigner');
-		}
-		$this->assertSame($hasCertificate, $this->getService()->hasSignatureFile($user));
-	}
-
-	public static function provideSignatureFileAvailability(): array {
-		return ['anonymous' => [false, false], 'existing' => [true, true], 'missing' => [true, false]];
 	}
 
 	public function testGetConfigIncludesCanManageGroupPoliciesForInstanceAdmin(): void {

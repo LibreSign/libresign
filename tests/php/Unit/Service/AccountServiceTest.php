@@ -13,13 +13,9 @@ use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Enum\FileStatus;
-use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
-use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
-use OCA\Libresign\Helper\FileUploadHelper;
+use OCA\Libresign\Service\AccountCertificateService;
 use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\File\AccountSettingsProvider;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdDocsService;
@@ -33,7 +29,6 @@ use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\File;
-use OCP\Files\IMimeTypeDetector;
 use OCP\Files\NotFoundException;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -49,14 +44,13 @@ use PHPUnit\Framework\MockObject\MockObject;
  */
 final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N&MockObject $l10n;
+	private AccountCertificateService&MockObject $accountCertificateService;
 	private AccountSettingsProvider&MockObject $accountSettingsProvider;
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private IUserManager&MockObject $userManager;
-	private IMimeTypeDetector&MockObject $mimeTypeDetector;
 	private FileMapper&MockObject $fileMapper;
 	private FileTypeMapper&MockObject $fileTypeMapper;
 	private SignFileService&MockObject $signFile;
-	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private IAppConfig&MockObject $appConfig;
 	private IMountProviderCollection&MockObject $mountProviderCollection;
 	private NewUserMailHelper&MockObject $newUserMail;
@@ -67,13 +61,11 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignerElementsService&MockObject $signerElementsService;
 	private FolderService&MockObject $folderService;
 	private RequestSignatureService&MockObject $requestSignatureService;
-	private Pkcs12Handler&MockObject $pkcs12Handler;
-	private FileUploadHelper&MockObject $uploadHelper;
-	private CrlService&MockObject $crlService;
 	private RequestSignAuthorizationService&MockObject $requestSignAuthorizationService;
 
 	public function setUp(): void {
 		parent::setUp();
+		$this->accountCertificateService = $this->createMock(AccountCertificateService::class);
 		$this->accountSettingsProvider = $this->createMock(AccountSettingsProvider::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
@@ -81,51 +73,42 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturnArgument(0);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->userManager = $this->createMock(IUserManager::class);
-		$this->mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->fileTypeMapper = $this->createMock(FileTypeMapper::class);
 		$this->signFile = $this->createMock(SignFileService::class);
 		$this->requestSignatureService = $this->createMock(RequestSignatureService::class);
-		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->mountProviderCollection = $this->createMock(IMountProviderCollection::class);
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
-		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->idDocsService = $this->createMock(IdDocsService::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->folderService = $this->createMock(FolderService::class);
-		$this->uploadHelper = $this->createMock(FileUploadHelper::class);
-		$this->crlService = $this->createMock(CrlService::class);
 		$this->requestSignAuthorizationService = $this->createMock(RequestSignAuthorizationService::class);
 	}
 
 	private function getService(): AccountService {
 		return new AccountService(
 			$this->l10n,
+			$this->accountCertificateService,
 			$this->accountSettingsProvider,
 			$this->signRequestMapper,
 			$this->userManager,
-			$this->mimeTypeDetector,
 			$this->fileMapper,
 			$this->fileTypeMapper,
 			$this->signFile,
 			$this->requestSignatureService,
-			$this->certificateEngineFactory,
 			$this->appConfig,
 			$this->mountProviderCollection,
 			$this->newUserMail,
 			$this->identifyMethodService,
 			$this->identifyMethodMapper,
 			$this->urlGenerator,
-			$this->pkcs12Handler,
 			$this->idDocsService,
 			$this->signerElementsService,
 			$this->folderService,
-			$this->uploadHelper,
-			$this->crlService,
 			$this->requestSignAuthorizationService,
 		);
 	}
@@ -269,27 +252,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame(['fileData' => $file, 'fileToSign' => $node], $service->getFileByUuid('uuid-a'));
 	}
 
-	public function testDeletePfxRevokesCertificatesWithReasonAndDeletesPfx(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('admin');
-
-		$this->crlService->expects($this->once())
-			->method('revokeUserCertificates')
-			->with(
-				'admin',
-				CRLReason::CESSATION_OF_OPERATION,
-				'Certificate deleted by account owner.',
-				'admin'
-			)
-			->willReturn(1);
-
-		$this->pkcs12Handler->expects($this->once())
-			->method('deletePfx')
-			->with('admin');
-
-		$this->getService()->deletePfx($user);
-	}
-
 	public function testSaveVisibleElementsDelegatesToSignerElementsService(): void {
 		$user = $this->createMock(IUser::class);
 		$elements = [['type' => 'signature'], ['type' => 'initial']];
@@ -321,59 +283,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionObject($error);
 
 		$this->getService()->saveVisibleElements([['elementId' => 42]], 'session-id', null);
-	}
-
-	#[DataProvider('provideValidateCertificateDataCases')]
-	public function testValidateCertificateDataUsingDataProvider($arguments, $expectedErrorMessage):void {
-		if (is_callable($arguments)) {
-			$arguments = $arguments($this);
-		}
-
-		$this->expectExceptionMessage($expectedErrorMessage);
-		$this->getService()->validateCertificateData($arguments);
-	}
-
-	public static function provideValidateCertificateDataCases():array {
-		return [
-			'emptyCertificateEmail' => [
-				[
-					'uuid' => '12345678-1234-1234-1234-123456789012',
-					'user' => [
-						'email' => '',
-					],
-				],
-				'You must have an email. You can define the email in your profile.'
-			],
-			'invalidCertificateEmail' => [
-				[
-					'uuid' => '12345678-1234-1234-1234-123456789012',
-					'user' => [
-						'email' => 'invalid',
-					],
-				],
-				'Invalid email'
-			]
-		];
-	}
-
-	public function testValidateCertificateDataWithSuccess():void {
-		$signRequest = $this->createMock(SignRequest::class);
-		$signRequest
-			->method('__call')
-			->with($this->equalTo('getEmail'), $this->anything())
-			->willReturn('valid@test.coop');
-		$this->signRequestMapper
-			->method('getByUuid')
-			->willReturn($signRequest);
-		$actual = $this->getService()->validateCertificateData([
-			'uuid' => '12345678-1234-1234-1234-123456789012',
-			'user' => [
-				'email' => 'valid@test.coop',
-			],
-			'password' => '123456789',
-			'signPassword' => '123456',
-		]);
-		$this->assertNull($actual);
 	}
 
 	public function testCreateToSignWithErrorInSendingEmail():void {
@@ -769,15 +678,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->newUserMail->expects($this->never())->method('generateTemplate');
 			$this->newUserMail->expects($this->never())->method('sendMail');
 		}
-		if ($signPassword) {
-			$this->pkcs12Handler->expects($this->once())->method('generateCertificate')
-				->with(['host' => 'signer@example.com', 'uid' => 'account:internal-uid', 'name' => 'Signer Name'], $signPassword, 'Signer Name')
-				->willReturn('generated-pfx');
-			$this->pkcs12Handler->expects($this->once())->method('savePfx')->with('signer@example.com', 'generated-pfx');
-		} else {
-			$this->pkcs12Handler->expects($this->never())->method('generateCertificate');
-			$this->pkcs12Handler->expects($this->never())->method('savePfx');
-		}
+		$this->accountCertificateService->expects($signPassword ? $this->once() : $this->never())
+			->method('createForUser')->with($user, $signPassword);
 		$this->getService()->createToSign('request-uuid', 'signer@example.com', 'account-password', $signPassword);
 		$this->assertSame('account', $matching->getIdentifierKey());
 		$this->assertSame('internal-uid', $matching->getIdentifierValue());
@@ -802,6 +704,32 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->accountSettingsProvider->expects($this->once())->method($method)
 			->with($user)->willReturn($expected);
 		$this->assertSame($expected, $this->getService()->$method($user));
+	}
+
+	#[DataProvider('provideCertificateDelegation')]
+	public function testCertificateMethodsDelegate(string $method, mixed $expected): void {
+		$user = $this->createMock(IUser::class);
+		$arguments = match ($method) {
+			'validateCertificateData' => [['user' => ['email' => 'signer@example.com']]],
+			'uploadPfx' => [['name' => 'certificate.pfx'], $user],
+			'deletePfx' => [$user],
+			'updatePfxPassword' => [$user, 'old', 'new'],
+			'readPfxData' => [$user, 'password'],
+			default => [],
+		};
+		$call = $this->accountCertificateService->expects($this->once())->method($method)->with(...$arguments);
+		if ($expected !== null) {
+			$call->willReturn($expected);
+		}
+		$this->assertSame($expected, $this->getService()->$method(...$arguments));
+	}
+
+	public static function provideCertificateDelegation(): array {
+		return [
+			['validateCertificateData', null], ['uploadPfx', null], ['deletePfx', null],
+			['updatePfxPassword', null], ['readPfxData', ['subject' => 'signer']],
+			['getCertificateEngineName', 'openssl'], ['isSetupOk', true], ['isSetupOk', false],
+		];
 	}
 
 	public static function provideAccountSettingsDelegation(): array {
