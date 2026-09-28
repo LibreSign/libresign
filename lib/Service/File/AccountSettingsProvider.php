@@ -10,8 +10,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\File;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
+use OCA\Libresign\Service\AccountCertificateService;
 use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
@@ -25,7 +24,7 @@ class AccountSettingsProvider {
 	public function __construct(
 		private IAccountManager $accountManager,
 		private IdDocsPolicyService $idDocsPolicyService,
-		private Pkcs12Handler $pkcs12Handler,
+		private AccountCertificateService $accountCertificateService,
 		private IUserConfig $userConfig,
 		private IGroupManager $groupManager,
 		private PolicyAuthorizationService $policyAuthorizationService,
@@ -53,15 +52,7 @@ class AccountSettingsProvider {
 	}
 
 	public function hasSignatureFile(?IUser $user = null): bool {
-		if (!$user) {
-			return false;
-		}
-		try {
-			$this->pkcs12Handler->getPfxOfCurrentSigner($user->getUID());
-			return true;
-		} catch (LibresignException) {
-			return false;
-		}
+		return $this->accountCertificateService->hasSignatureFile($user);
 	}
 
 	/**
