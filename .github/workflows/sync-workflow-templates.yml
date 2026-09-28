@@ -41,9 +41,17 @@ jobs:
 
     steps:
       - name: Check actor permission
-        uses: skjnldsv/check-actor-permission@69e92a3c4711150929bca9fcf34448c5bf5526e7 # v3.0
-        with:
-          require: admin
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          permission="$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${GITHUB_ACTOR}/permission" --jq '.permission')"
+          [[ "${permission}" == "admin" ]] || {
+            echo "::error::Manual workflow runs require repository admin permission; ${GITHUB_ACTOR} has ${permission}"
+            exit 1
+          }
 
       - name: Validate workflow sync authentication
         shell: bash
