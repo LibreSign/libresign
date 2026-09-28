@@ -35,7 +35,7 @@ jobs:
     steps:
       - id: stable
         name: Resolve stable release line
-        uses: LibreCodeCoop/release-tool/actions/stable-select@710c4c83fba47bf01713f46e9c4cb4cf63debfba
+        uses: LibreCodeCoop/release-tool/actions/stable-select@c51e947edf01674709d93eb53a73e988403a0574
         with:
           github-token: ${{ github.token }}
 
@@ -205,7 +205,7 @@ jobs:
           fi
 
       - name: Validate release artifact
-        uses: LibreCodeCoop/release-tool/actions/artifact-validate@710c4c83fba47bf01713f46e9c4cb4cf63debfba
+        uses: LibreCodeCoop/release-tool/actions/artifact-validate@c51e947edf01674709d93eb53a73e988403a0574
         with:
           artifact: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
           app-name: ${{ env.APP_NAME }}
@@ -231,7 +231,7 @@ jobs:
 
       - name: Build nightly change list
         id: release-note-changes
-        uses: LibreCodeCoop/release-tool/actions/release-notes@710c4c83fba47bf01713f46e9c4cb4cf63debfba
+        uses: LibreCodeCoop/release-tool/actions/release-notes@c51e947edf01674709d93eb53a73e988403a0574
         with:
           repository: ${{ github.repository }}
           branch: ${{ steps.nightly.outputs.branch }}
