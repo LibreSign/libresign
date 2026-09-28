@@ -37,6 +37,11 @@ export interface RealPolicyPersonalPreferenceBehavior {
 	clearPreference?: (context: RealPolicyPersonalPreferenceContext) => Promise<void>
 }
 
+export interface RealPolicyCompoundBehavior {
+	compose: (valuesByPolicyKey: Record<string, EffectivePolicyValue | undefined>) => EffectivePolicyValue
+	decompose: (editorValue: EffectivePolicyValue) => Record<string, EffectivePolicyValue>
+}
+
 export interface RealPolicyAllowOverrideContext {
 	scope: RealPolicyScope
 	editorMode: 'create' | 'edit' | null
@@ -61,6 +66,7 @@ export interface RealPolicySettingDefinition {
 	supportedScopes?: ReadonlyArray<RealPolicyScope>
 	groupAdminBehavior?: RealPolicyGroupAdminBehavior
 	personalPreferenceBehavior?: RealPolicyPersonalPreferenceBehavior
+	compound?: RealPolicyCompoundBehavior
 	editor: unknown
 	editorProps?: Record<string, unknown>
 	resolveEditorProps?: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => Record<string, unknown>
@@ -84,3 +90,4 @@ export interface RealPolicySettingDefinition {
 	summarizeValue: (value: EffectivePolicyValue) => string
 	formatAllowOverride: (allowChildOverride: boolean) => string
 }
+
