@@ -49,7 +49,7 @@ final class TwofactorGatewayService {
 
 		try {
 			$isComplete = $this->callIntegrationMethod('isGatewayComplete', [$gatewayName]);
-		} catch (\Throwable $exception) {
+		} catch (\Exception $exception) {
 			$this->logger->warning('Unable to determine twofactor gateway completeness.', [
 				'gateway' => $gatewayName,
 				'exception' => $exception,
