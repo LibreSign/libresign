@@ -19,6 +19,7 @@ use OCA\Libresign\Events\SignatureRejectedEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SequentialSigningService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IDBConnection;
@@ -41,6 +42,7 @@ class SignatureRejectionService {
 		private SignatureRejectionPolicyService $rejectionPolicyService,
 		private FileStatusService $fileStatusService,
 		private IdentifyMethodService $identifyMethodService,
+		private SequentialSigningService $sequentialSigningService,
 		private IEventDispatcher $eventDispatcher,
 		private IDBConnection $db,
 		private ITimeFactory $timeFactory,
@@ -120,6 +122,8 @@ class SignatureRejectionService {
 
 			if ($workflowCanceled) {
 				$this->cancelWorkflow($libreSignFile);
+			} else {
+				$this->releaseNextSigningOrders($libreSignFile, $signRequests);
 			}
 
 			$this->db->commit();
@@ -174,6 +178,28 @@ class SignatureRejectionService {
 			$collected,
 			static fn (SignRequestEntity $each): bool => $each->getSigned() === null,
 		));
+	}
+
+	/**
+	 * When the workflow continues, a rejection ends the signer's turn just like a
+	 * signature does, so in a sequential flow the next order must be released on
+	 * every document the signer rejected, or the signers after them would wait
+	 * forever.
+	 *
+	 * @param list<SignRequestEntity> $rejectedSignRequests
+	 */
+	private function releaseNextSigningOrders(FileEntity $libreSignFile, array $rejectedSignRequests): void {
+		foreach ($rejectedSignRequests as $rejected) {
+			$document = $rejected->getFileId() === $libreSignFile->getId()
+				? $libreSignFile
+				: $this->fileMapper->getById($rejected->getFileId());
+			$this->sequentialSigningService
+				->setFile($document)
+				->releaseNextOrder(
+					$rejected->getFileId(),
+					$rejected->getSigningOrder()
+				);
+		}
 	}
 
 	/**

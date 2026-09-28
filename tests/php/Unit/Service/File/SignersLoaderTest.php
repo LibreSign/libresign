@@ -15,6 +15,9 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\CrlValidationStatus;
+use OCA\Libresign\Enum\ParticipantRole;
+use OCA\Libresign\Enum\SignatureFlow;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\File\FileResponseOptions;
 use OCA\Libresign\Service\File\SignersLoader;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -108,6 +111,110 @@ final class SignersLoaderTest extends TestCase {
 		$this->assertObjectNotHasProperty('sign_uuid', $fileData->signers[0]);
 		$this->assertTrue($fileData->settings['canSign']);
 		$this->assertArrayNotHasKey('signerFileUuid', $fileData->settings);
+	}
+
+	#[DataProvider('dataCanSignFollowsTheSigningRules')]
+	public function testCanSignFollowsTheSigningRules(SignatureFlow $flow, array $me, ?array $other, bool $expected): void {
+		$file = new File();
+		$file->setId(10);
+		$file->setSignatureFlowEnum($flow);
+
+		$signRequests = [];
+		$identifyMethods = [];
+		foreach (array_filter([$me, $other]) as $index => $participant) {
+			$signRequest = new SignRequest();
+			$signRequest->setId(52 + $index);
+			$signRequest->setFileId(10);
+			$signRequest->setUuid('sign-request-uuid-' . $index);
+			$signRequest->setDisplayName('Participant ' . $index);
+			$signRequest->setCreatedAt(new DateTime('2026-01-01T00:00:00Z'));
+			$signRequest->setStatusEnum($participant['status']);
+			$signRequest->setSigningOrder($participant['order'] ?? 1);
+			$signRequest->setParticipantRole(($participant['role'] ?? ParticipantRole::SIGNER)->value);
+			if ($participant['status'] === SignRequestStatus::SIGNED) {
+				$signRequest->setSigned(new DateTime('2026-01-02T00:00:00Z'));
+			}
+			$signRequests[] = $signRequest;
+
+			$identifyEntity = new IdentifyMethod();
+			$identifyEntity->setId(72 + $index);
+			$identifyEntity->setIdentifierKey(IdentifyMethodService::IDENTIFY_EMAIL);
+			$identifyEntity->setIdentifierValue($index === 0 ? 'signer@example.com' : 'other@example.com');
+			$identifyEntity->setMandatory(1);
+			$identifyMethod = $this->createMock(IIdentifyMethod::class);
+			$identifyMethod->method('getEntity')->willReturn($identifyEntity);
+			$identifyMethods[52 + $index] = [IdentifyMethodService::IDENTIFY_EMAIL => [$identifyMethod]];
+		}
+
+		$currentIdentifyMethod = $this->createMock(IIdentifyMethod::class);
+		$currentIdentifyMethod->method('getSignatureMethods')->willReturn([]);
+
+		$currentUser = $this->createMock(IUser::class);
+		$currentUser->method('getUID')->willReturn('signer-user');
+		$currentUser->method('getEMailAddress')->willReturn('signer@example.com');
+
+		$options = new FileResponseOptions();
+		$options->setMe($currentUser);
+
+		$fileData = new \stdClass();
+		$fileData->settings = [
+			'canSign' => false,
+			'canRequestSign' => false,
+			'phoneNumber' => '',
+		];
+
+		$this->signRequestMapper->method('getByFileId')->with(10)->willReturn($signRequests);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('status-text');
+		$this->identifyMethodService->method('setIsRequest')->willReturnSelf();
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestIds')->willReturn($identifyMethods);
+		$this->identifyMethodService->method('setCurrentIdentifyMethod')->willReturnSelf();
+		$this->identifyMethodService->method('getInstanceOfIdentifyMethod')->willReturn($currentIdentifyMethod);
+
+		$this->getService()->loadLibreSignSigners($file, $fileData, $options);
+
+		$this->assertSame($expected, $fileData->settings['canSign']);
+	}
+
+	public static function dataCanSignFollowsTheSigningRules(): array {
+		$parallel = SignatureFlow::PARALLEL;
+		$ordered = SignatureFlow::ORDERED_NUMERIC;
+		return [
+			'able to sign in a parallel flow' => [$parallel, ['status' => SignRequestStatus::ABLE_TO_SIGN], null, true],
+			'rejected' => [$parallel, ['status' => SignRequestStatus::REJECTED], null, false],
+			'already signed' => [$parallel, ['status' => SignRequestStatus::SIGNED], null, false],
+			'observer' => [$parallel, ['status' => SignRequestStatus::OBSERVING, 'role' => ParticipantRole::OBSERVER], null, false],
+			'request still in draft' => [$parallel, ['status' => SignRequestStatus::DRAFT], null, false],
+			'waiting for the previous signer' => [
+				$ordered,
+				['status' => SignRequestStatus::DRAFT, 'order' => 2],
+				['status' => SignRequestStatus::ABLE_TO_SIGN, 'order' => 1],
+				false,
+			],
+			'able to sign while a previous signer is still pending' => [
+				$ordered,
+				['status' => SignRequestStatus::ABLE_TO_SIGN, 'order' => 2],
+				['status' => SignRequestStatus::ABLE_TO_SIGN, 'order' => 1],
+				false,
+			],
+			'previous signer signed' => [
+				$ordered,
+				['status' => SignRequestStatus::ABLE_TO_SIGN, 'order' => 2],
+				['status' => SignRequestStatus::SIGNED, 'order' => 1],
+				true,
+			],
+			'previous signer rejected and the workflow continues' => [
+				$ordered,
+				['status' => SignRequestStatus::ABLE_TO_SIGN, 'order' => 2],
+				['status' => SignRequestStatus::REJECTED, 'order' => 1],
+				true,
+			],
+			'an observer with a lower order does not block the signer' => [
+				$ordered,
+				['status' => SignRequestStatus::ABLE_TO_SIGN, 'order' => 2],
+				['status' => SignRequestStatus::OBSERVING, 'order' => 1, 'role' => ParticipantRole::OBSERVER],
+				true,
+			],
+		];
 	}
 
 	#[DataProvider('dataLoadSignersFromCertData')]
