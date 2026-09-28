@@ -78,7 +78,8 @@ jobs:
     steps:
       - name: Set app env
         run: |
-          echo "APP_NAME=libresign" >> $GITHUB_ENV
+          # Split and keep last
+          echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
 
       - name: Install system dependencies
         run: |
