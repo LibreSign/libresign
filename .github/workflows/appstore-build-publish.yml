@@ -42,41 +42,16 @@ jobs:
         with:
           persist-credentials: false
           submodules: true
+          fetch-tags: true
           path: ${{ env.APP_NAME }}
 
-      - name: Get app version number
-        id: app-version
-        uses: skjnldsv/xpath-action@f5b036e9d973f42c86324833fd00be90665fbf77 # v1.0.0
+      - name: Validate release identity
+        id: release-identity
+        uses: LibreCodeCoop/release-tool/actions/release-identity@6c1630e1127c049cad8d61643aca3d83d90e30e3
         with:
-          filename: ${{ env.APP_NAME }}/appinfo/info.xml
-          expression: "//info//version/text()"
-
-      - name: Validate release tag and app version
-        env:
-          RELEASE_TAG: ${{ env.APP_VERSION }}
-          APP_RELEASE_VERSION: ${{ fromJSON(steps.app-version.outputs.result).version }}
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          set -euo pipefail
-
-          if ! [[ "${RELEASE_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
-            echo "::error::Invalid release tag '${RELEASE_TAG}'. Expected a tag such as v13.4.3."
-            exit 2
-          fi
-
-          if [ "${RELEASE_TAG}" != "v${APP_RELEASE_VERSION}" ]; then
-            echo "::error::Release tag '${RELEASE_TAG}' does not match appinfo/info.xml version '${APP_RELEASE_VERSION}'. Expected 'v${APP_RELEASE_VERSION}'."
-            exit 2
-          fi
-
-          if [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
-            git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null || {
-              echo "::error::Release tag '${RELEASE_TAG}' does not exist in the repository."
-              exit 2
-            }
-          fi
-
-          echo "Release identity validated: tag=${RELEASE_TAG}, app-version=${APP_RELEASE_VERSION}"
+          tag: ${{ env.APP_VERSION }}
+          working-directory: ${{ env.APP_NAME }}
+          require-tag-exists: 'true'
 
       - name: Get appinfo data
         id: appinfo
@@ -227,11 +202,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Validate release artifact
-        uses: LibreCodeCoop/release-tool/actions/artifact-validate@69ca240f9a88c7fbba27a4c7913dd9be4404295a
+        uses: LibreCodeCoop/release-tool/actions/artifact-validate@6c1630e1127c049cad8d61643aca3d83d90e30e3
         with:
           artifact: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
           app-name: ${{ env.APP_NAME }}
-          version: ${{ fromJSON(steps.app-version.outputs.result).version }}
+          version: ${{ steps.release-identity.outputs.version }}
 
       - name: Attach tarball to github release
         uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # 2.11.5
@@ -252,8 +227,8 @@ jobs:
           app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Verify App Store publication
-        uses: LibreCodeCoop/release-tool/actions/appstore-publication-wait@69ca240f9a88c7fbba27a4c7913dd9be4404295a
+        uses: LibreCodeCoop/release-tool/actions/appstore-publication-wait@6c1630e1127c049cad8d61643aca3d83d90e30e3
         with:
           app-name: ${{ env.APP_NAME }}
-          version: ${{ fromJSON(steps.app-version.outputs.result).version }}
+          version: ${{ steps.release-identity.outputs.version }}
           platform: ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}

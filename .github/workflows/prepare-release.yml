@@ -81,7 +81,7 @@ jobs:
           git fetch --quiet --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
 
       - name: Prepare release
-        uses: LibreCodeCoop/release-tool/actions/prepare@69ca240f9a88c7fbba27a4c7913dd9be4404295a
+        uses: LibreCodeCoop/release-tool/actions/prepare@6c1630e1127c049cad8d61643aca3d83d90e30e3
         with:
           branch: ${{ inputs.branch }}
           ref: ${{ inputs.ref }}
@@ -125,7 +125,7 @@ jobs:
           git fetch --quiet --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
 
       - name: Finalize merged release
-        uses: LibreCodeCoop/release-tool/actions/post-merge@69ca240f9a88c7fbba27a4c7913dd9be4404295a
+        uses: LibreCodeCoop/release-tool/actions/post-merge@6c1630e1127c049cad8d61643aca3d83d90e30e3
         with:
           pull-request-number: ${{ github.event.pull_request.number }}
           merger: ${{ github.event.pull_request.merged_by.login }}
@@ -151,7 +151,7 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
 
       - name: Verify publication
-        uses: LibreCodeCoop/release-tool/actions/publication@69ca240f9a88c7fbba27a4c7913dd9be4404295a
+        uses: LibreCodeCoop/release-tool/actions/publication@6c1630e1127c049cad8d61643aca3d83d90e30e3
         with:
           github-release-id: ${{ github.event.release.id }}
           config-path: .nextcloud-release.yml
