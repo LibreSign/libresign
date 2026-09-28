@@ -41,7 +41,24 @@ Developing for LibreSign
 
 If you would prefer to write code, you may wish to start with our list of good first issues for [LibreSign](https://github.com/LibreSign/libresign/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22).
 For larger product initiatives and current development direction, see the [LibreSign Roadmap](https://github.com/orgs/LibreSign/projects/2).
-See the respective sections below for further instructions.
+
+### Working on an issue
+
+Before starting work on an existing issue, we recommend leaving a comment saying that you would like to work on it. This gives maintainers a chance to confirm that the issue is still current, clarify the scope if necessary, and assign it to you. This is a recommendation, not a requirement: if you already have a valid implementation, you are still welcome to open a pull request.
+
+For larger features or refactors, please align the proposed approach with a maintainer before investing significant work.
+
+LibreSign contributions are voluntary by default. Issues and pull requests do not imply financial compensation unless the project explicitly states otherwise. If you or your organization would like to fund the development of a feature, contact us at `contact@libresign.coop`.
+
+### Pull requests
+
+Draft pull requests are considered work in progress and normally do not receive a full code review. Mark the pull request as **Ready for review** when you want the review process to begin.
+
+For contributions from new contributors, maintainers may inspect the changes before authorizing CI workflows to run. Once CI has been authorized, please review failures caused by your changes before requesting another review.
+
+AI-assisted contributions are welcome. You may use AI for any part of the contribution process, but you remain responsible for everything you submit. The same quality and review standards apply regardless of how the contribution was produced.
+
+When updating your branch with changes from `main`, rebasing is preferred when practical because it avoids unnecessary merge commits and keeps the pull request history easier to review.
 
 ### Front and backend development environment
 
