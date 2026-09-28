@@ -91,7 +91,6 @@ final class TwofactorGatewayServiceTest extends TestCase {
 		self::assertFalse($this->createService()->isGatewayComplete('sms'));
 	}
 
-
 	#[DataProvider('providerGatewayRuntimeFailure')]
 	public function testIsGatewayCompleteReturnsFalseWhenIntegrationThrows(\Throwable $failure): void {
 		$this->appManager->method('isEnabledForAnyone')->with('twofactor_gateway')->willReturn(true);
@@ -105,7 +104,7 @@ final class TwofactorGatewayServiceTest extends TestCase {
 				)
 			);
 		$this->container->method('get')
-			->with('OCA\\\\TwoFactorGateway\\\\Service\\\\GatewayDirectIntegrationService')
+			->with('OCA\\TwoFactorGateway\\Service\\GatewayDirectIntegrationService')
 			->willReturn(new class($failure) {
 				public function __construct(
 					private \Throwable $failure,
@@ -141,7 +140,7 @@ final class TwofactorGatewayServiceTest extends TestCase {
 				)
 			);
 		$this->container->method('get')
-			->with('OCA\\\\TwoFactorGateway\\\\Service\\\\GatewayDirectIntegrationService')
+			->with('OCA\\TwoFactorGateway\\Service\\GatewayDirectIntegrationService')
 			->willThrowException($failure);
 
 		self::assertFalse($this->createService()->isGatewayComplete('telegram'));
