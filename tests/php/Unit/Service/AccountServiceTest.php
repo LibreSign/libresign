@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
@@ -21,33 +20,22 @@ use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\Crl\CrlService;
+use OCA\Libresign\Service\File\AccountSettingsProvider;
 use OCA\Libresign\Service\FolderService;
-use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
-use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
-use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCA\Settings\Mailer\NewUserMailHelper;
-use OCP\Accounts\IAccount;
-use OCP\Accounts\IAccountManager;
-use OCP\Accounts\IAccountProperty;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\Config\IUserConfig;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\File;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\NotFoundException;
-use OCP\Group\ISubAdmin;
 use OCP\IAppConfig;
-use OCP\IGroup;
-use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
@@ -61,27 +49,20 @@ use PHPUnit\Framework\MockObject\MockObject;
  */
 final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N&MockObject $l10n;
+	private AccountSettingsProvider&MockObject $accountSettingsProvider;
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private IUserManager&MockObject $userManager;
-	private IAccountManager&MockObject $accountManager;
 	private IMimeTypeDetector&MockObject $mimeTypeDetector;
 	private FileMapper&MockObject $fileMapper;
 	private FileTypeMapper&MockObject $fileTypeMapper;
 	private SignFileService&MockObject $signFile;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private IAppConfig&MockObject $appConfig;
-	private IUserConfig&MockObject $userConfig;
 	private IMountProviderCollection&MockObject $mountProviderCollection;
 	private NewUserMailHelper&MockObject $newUserMail;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
-	private IdentityDocumentValidator&MockObject $identityDocumentValidator;
 	private IURLGenerator&MockObject $urlGenerator;
-	private IGroupManager&MockObject $groupManager;
-	private ISubAdmin&MockObject $subAdmin;
-	private PolicyService&MockObject $policyService;
-	private PolicyAuthorizationService $policyAuthorizationService;
-	private IdDocsPolicyService&MockObject $idDocsPolicyService;
 	private IdDocsService&MockObject $idDocsService;
 	private SignerElementsService&MockObject $signerElementsService;
 	private FolderService&MockObject $folderService;
@@ -93,13 +74,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		parent::setUp();
+		$this->accountSettingsProvider = $this->createMock(AccountSettingsProvider::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
 			->willReturnArgument(0);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->userManager = $this->createMock(IUserManager::class);
-		$this->accountManager = $this->createMock(IAccountManager::class);
 		$this->mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->fileTypeMapper = $this->createMock(FileTypeMapper::class);
@@ -107,20 +88,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->requestSignatureService = $this->createMock(RequestSignatureService::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->userConfig = $this->createMock(IUserConfig::class);
 		$this->mountProviderCollection = $this->createMock(IMountProviderCollection::class);
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
-		$this->identityDocumentValidator = $this->createMock(IdentityDocumentValidator::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
-		$this->groupManager = $this->createMock(IGroupManager::class);
-		$this->subAdmin = $this->createMock(ISubAdmin::class);
-		$this->policyService = $this->createMock(PolicyService::class);
-		$this->policyAuthorizationService = new PolicyAuthorizationService($this->groupManager, $this->subAdmin, $this->policyService);
-		$this->idDocsPolicyService = $this->createMock(IdDocsPolicyService::class);
-		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->willReturn(false);
 		$this->idDocsService = $this->createMock(IdDocsService::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->folderService = $this->createMock(FolderService::class);
@@ -132,9 +105,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private function getService(): AccountService {
 		return new AccountService(
 			$this->l10n,
+			$this->accountSettingsProvider,
 			$this->signRequestMapper,
 			$this->userManager,
-			$this->accountManager,
 			$this->mimeTypeDetector,
 			$this->fileMapper,
 			$this->fileTypeMapper,
@@ -142,17 +115,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->requestSignatureService,
 			$this->certificateEngineFactory,
 			$this->appConfig,
-			$this->userConfig,
 			$this->mountProviderCollection,
 			$this->newUserMail,
 			$this->identifyMethodService,
 			$this->identifyMethodMapper,
-			$this->identityDocumentValidator,
 			$this->urlGenerator,
 			$this->pkcs12Handler,
-			$this->groupManager,
-			$this->policyAuthorizationService,
-			$this->idDocsPolicyService,
 			$this->idDocsService,
 			$this->signerElementsService,
 			$this->folderService,
@@ -355,115 +323,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getService()->saveVisibleElements([['elementId' => 42]], 'session-id', null);
 	}
 
-	public function testGetConfigSetsCanManageGroupPoliciesForSubAdmin(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('subadmin-user');
-
-		$this->groupManager->method('isAdmin')->with('subadmin-user')->willReturn(false);
-		$this->subAdmin->method('isSubAdmin')->with($user)->willReturn(true);
-
-		$config = $this->getService()->getConfig($user);
-
-		$this->assertArrayHasKey('can_manage_group_policies', $config);
-		$this->assertTrue($config['can_manage_group_policies']);
-	}
-
-	public function testGetConfigIncludesPolicyWorkbenchCatalogCompactViewPreference(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('preference-user');
-
-		$this->userConfig
-			->expects($this->atLeastOnce())
-			->method('getValueString')
-			->willReturnCallback(static function (string $uid, string $appId, string $key, string $default = ''): string {
-				if ($uid === 'preference-user'
-					&& $appId === Application::APP_ID
-					&& $key === 'policy_workbench_catalog_compact_view') {
-					return '1';
-				}
-
-				return $default;
-			});
-
-		$config = $this->getService()->getConfig($user);
-
-		$this->assertArrayHasKey('policy_workbench_catalog_compact_view', $config);
-		$this->assertTrue($config['policy_workbench_catalog_compact_view']);
-	}
-
-	public function testGetConfigIncludesPolicyWorkbenchCollapsedPreferences(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('preference-user');
-
-		$storedCollapsedState = [
-			'who-can-sign' => true,
-			'how-signing-works' => true,
-			'signer-experience' => false,
-			'what-gets-recorded' => false,
-			'time-and-limits' => true,
-			'trust-and-verification' => false,
-			'system-behavior' => true,
-		];
-
-		$this->userConfig
-			->expects($this->atLeastOnce())
-			->method('getValueString')
-			->willReturnCallback(static function (string $uid, string $appId, string $key, string $default = '') use ($storedCollapsedState): string {
-				if ($uid !== 'preference-user' || $appId !== Application::APP_ID) {
-					return $default;
-				}
-
-				if ($key === 'policy_workbench_catalog_collapsed') {
-					return '1';
-				}
-
-				if ($key === 'policy_workbench_category_collapsed_state') {
-					return json_encode($storedCollapsedState);
-				}
-
-				return $default;
-			});
-
-		$config = $this->getService()->getConfig($user);
-
-		$this->assertArrayHasKey('policy_workbench_catalog_collapsed', $config);
-		$this->assertTrue($config['policy_workbench_catalog_collapsed']);
-		$this->assertArrayHasKey('policy_workbench_category_collapsed_state', $config);
-		$this->assertSame($storedCollapsedState, $config['policy_workbench_category_collapsed_state']);
-	}
-
-	#[DataProvider('provideWarnWithoutVisibleSignatureFieldsCases')]
-	public function testGetConfigIncludesWarnWithoutVisibleSignatureFieldsPreference(string $storedValue, bool $expected): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('preference-user');
-
-		$this->userConfig
-			->expects($this->atLeastOnce())
-			->method('getValueString')
-			->willReturnCallback(static function (string $uid, string $appId, string $key, string $default = '') use ($storedValue): string {
-				if ($uid === 'preference-user'
-					&& $appId === Application::APP_ID
-					&& $key === 'warn_without_visible_signature_fields') {
-					return $storedValue;
-				}
-
-				return $default;
-			});
-
-		$config = $this->getService()->getConfig($user);
-
-		$this->assertArrayHasKey('warn_without_visible_signature_fields', $config);
-		$this->assertSame($expected, $config['warn_without_visible_signature_fields']);
-	}
-
-	public static function provideWarnWithoutVisibleSignatureFieldsCases(): array {
-		return [
-			'stored 1 shows the warning' => ['1', true],
-			'stored 0 hides the warning' => ['0', false],
-			'no stored value falls back to the default' => ['', true],
-		];
-	}
-
 	#[DataProvider('provideValidateCertificateDataCases')]
 	public function testValidateCertificateDataUsingDataProvider($arguments, $expectedErrorMessage):void {
 		if (is_callable($arguments)) {
@@ -663,37 +522,27 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertTrue($actual);
 	}
 
-	public function testGetSettingsIncludesPhoneNumber(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('testuser');
+	#[DataProvider('provideAccountSettings')]
+	public function testGetSettingsPreservesAccountAuthorizationAndPhoneNumber(bool $hasUser, bool $canRequestSign, bool $hasSignatureFile, string $phoneNumber): void {
+		$user = $hasUser ? $this->createMock(IUser::class) : null;
+		$this->requestSignAuthorizationService->expects($this->once())->method('canRequestSign')->with($user)->willReturn($canRequestSign);
+		$this->accountSettingsProvider->expects($this->once())->method('hasSignatureFile')->with($user)->willReturn($hasSignatureFile);
+		$this->accountSettingsProvider->expects($this->once())->method('getPhoneNumber')->with($user)->willReturn($phoneNumber);
+		$this->accountSettingsProvider->expects($this->never())->method('getSettings');
+		$this->assertSame([
+			'canRequestSign' => $canRequestSign,
+			'hasSignatureFile' => $hasSignatureFile,
+			'phoneNumber' => $phoneNumber,
+		], $this->getService()->getSettings($user));
+	}
 
-		$this->requestSignAuthorizationService
-			->method('canRequestSign')
-			->with($user)
-			->willReturn(true);
-		$this->pkcs12Handler
-			->method('getPfxOfCurrentSigner')
-			->with('testuser')
-			->willReturn('signature_content');
-
-		$accountProperty = $this->createMock(IAccountProperty::class);
-		$accountProperty->method('getValue')->willReturn('+5511999999999');
-
-		$account = $this->createMock(IAccount::class);
-		$account->method('getProperty')
-			->with(IAccountManager::PROPERTY_PHONE)
-			->willReturn($accountProperty);
-
-		$this->accountManager
-			->method('getAccount')
-			->with($user)
-			->willReturn($account);
-
-		$actual = $this->getService()->getSettings($user);
-
-		$this->assertSame(true, $actual['canRequestSign']);
-		$this->assertSame(true, $actual['hasSignatureFile']);
-		$this->assertSame('+5511999999999', $actual['phoneNumber']);
+	public static function provideAccountSettings(): array {
+		return [
+			'anonymous' => [false, false, false, ''],
+			'authorized with certificate and phone' => [true, true, true, '+5511999999999'],
+			'unauthorized with certificate and phone' => [true, false, true, '+5511999999999'],
+			'authorized without certificate or phone' => [true, true, false, ''],
+		];
 	}
 
 	#[DataProvider('provideValidateCreateToSignCases')]
@@ -880,108 +729,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	public function testGetConfigIncludesManageablePolicyGroupIds(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('manageable-user');
-
-		$this->groupManager->method('isAdmin')->with('manageable-user')->willReturn(false);
-		$this->subAdmin->method('isSubAdmin')->with($user)->willReturn(true);
-
-		$finance = $this->createMock(IGroup::class);
-		$finance->method('getGID')->willReturn('finance');
-		$legal = $this->createMock(IGroup::class);
-		$legal->method('getGID')->willReturn('legal');
-		$this->subAdmin->method('getSubAdminsGroups')->with($user)->willReturn([$finance, $legal]);
-
-		$this->policyService->method('resolveForUser')
-			->willReturn((new ResolvedPolicy())
-				->setEffectiveValue('{"allowGroups":["finance"],"denyGroups":[]}')
-				->setEditableByCurrentActor(true));
-
-		$config = $this->getService()->getConfig($user);
-
-		$this->assertArrayHasKey('manageable_policy_group_ids', $config);
-		$this->assertSame(['finance', 'legal'], $config['manageable_policy_group_ids']);
-	}
-
-	#[DataProvider('provideStoredAccountPreferences')]
-	public function testGetConfigPreservesStoredPreferencesAndRoleBoundaries(string $role, string $json, ?array $decoded): void {
-		$user = null;
-		if ($role !== 'anonymous') {
-			$user = $this->createMock(IUser::class);
-			$user->method('getUID')->willReturn('preference-owner');
-		}
-		$isAdmin = $role === 'admin';
-		$isApprover = $role === 'approver';
-		$this->groupManager->method('isAdmin')->with('preference-owner')->willReturn($isAdmin);
-		$this->identityDocumentValidator->method('userCanApproveValidationDocuments')
-			->with($user, false)->willReturn($isApprover);
-		$this->pkcs12Handler->method('getPfxOfCurrentSigner')->willReturn('certificate');
-		$stored = [
-			'id_docs_filters' => $json, 'id_docs_sort' => $json,
-			'crl_filters' => $json, 'crl_sort' => $json,
-			'policy_workbench_category_collapsed_state' => $json,
-			'files_list_sorting_mode' => 'size', 'files_list_sorting_direction' => 'desc',
-			'files_list_grid_view' => '1', 'files_list_signer_identify_tab' => 'account',
-			'policy_workbench_catalog_compact_view' => '1', 'policy_workbench_catalog_collapsed' => '1',
-			'warn_without_visible_signature_fields' => '0',
-		];
-		if ($user === null) {
-			$this->userConfig->expects($this->never())->method('getValueString');
-		} else {
-			$this->userConfig->method('getValueString')
-				->willReturnCallback(static function (string $uid, string $appId, string $key, string $default = '') use ($stored): string {
-					self::assertSame('preference-owner', $uid);
-					self::assertSame(Application::APP_ID, $appId);
-					return $stored[$key] ?? $default;
-				});
-		}
-		$expected = [
-			'identificationDocumentsFlow' => false,
-			'hasSignatureFile' => $user !== null,
-			'isApprover' => $isApprover,
-			'id_docs_filters' => $user !== null ? ($decoded ?? []) : [],
-			'id_docs_sort' => $isApprover ? ($decoded ?? ['sortBy' => null, 'sortOrder' => null]) : ['sortBy' => null, 'sortOrder' => null],
-			'crl_filters' => $isAdmin ? ($decoded ?? []) : [],
-			'crl_sort' => $isAdmin ? ($decoded ?? ['sortBy' => 'revoked_at', 'sortOrder' => 'DESC']) : ['sortBy' => 'revoked_at', 'sortOrder' => 'DESC'],
-			'files_list_grid_view' => $user !== null,
-			'files_list_sorting_mode' => $user !== null ? 'size' : 'name',
-			'files_list_sorting_direction' => $user !== null ? 'desc' : 'asc',
-			'policy_workbench_catalog_compact_view' => $user !== null,
-			'policy_workbench_catalog_collapsed' => $user !== null,
-			'warn_without_visible_signature_fields' => $user === null,
-			'can_manage_group_policies' => $isAdmin,
-			'manageable_policy_group_ids' => [],
-		];
-		if ($user !== null) {
-			$expected['files_list_signer_identify_tab'] = 'account';
-			if ($decoded !== null) {
-				$expected['policy_workbench_category_collapsed_state'] = $decoded;
-			}
-		}
-		$actual = $this->getService()->getConfig($user);
-		ksort($actual);
-		ksort($expected);
-		$this->assertSame($expected, $actual);
-	}
-
-	public static function provideStoredAccountPreferences(): array {
-		$cases = [];
-		foreach (['anonymous', 'user', 'admin', 'approver'] as $role) {
-			foreach ([
-				'empty' => ['', null],
-				'invalid JSON' => ['{invalid', null],
-				'scalar' => ['"text"', null],
-				'null' => ['null', null],
-				'empty array' => ['[]', []],
-				'populated object' => ['{"sortBy":"name","sortOrder":"ASC"}', ['sortBy' => 'name', 'sortOrder' => 'ASC']],
-			] as $name => [$json, $decoded]) {
-				$cases[$role . ': ' . $name] = [$role, $json, $decoded];
-			}
-		}
-		return $cases;
-	}
-
 	#[DataProvider('provideAccountCreationOptions')]
 	public function testCreateToSignPreservesIdentityMailAndCertificateContracts(string $sendEmail, ?string $signPassword): void {
 		$request = new SignRequest();
@@ -1048,37 +795,21 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	#[DataProvider('provideSignatureFileAvailability')]
-	public function testHasSignatureFileHandlesAbsentCertificates(bool $hasUser, bool $hasCertificate): void {
-		$user = null;
-		if ($hasUser) {
-			$user = $this->createMock(IUser::class);
-			$user->method('getUID')->willReturn('signer');
-			$lookup = $this->pkcs12Handler->expects($this->once())->method('getPfxOfCurrentSigner')->with('signer');
-			if ($hasCertificate) {
-				$lookup->willReturn('pfx');
-			} else {
-				$lookup->willThrowException(new \OCA\Libresign\Exception\LibresignException('No certificate'));
-			}
-		} else {
-			$this->pkcs12Handler->expects($this->never())->method('getPfxOfCurrentSigner');
+	#[DataProvider('provideAccountSettingsDelegation')]
+	public function testAccountSettingsDelegatesToProvider(string $method, bool $hasUser): void {
+		$user = $hasUser ? $this->createMock(IUser::class) : null;
+		$expected = $method === 'hasSignatureFile' ? true : ['setting' => 'value'];
+		$this->accountSettingsProvider->expects($this->once())->method($method)
+			->with($user)->willReturn($expected);
+		$this->assertSame($expected, $this->getService()->$method($user));
+	}
+
+	public static function provideAccountSettingsDelegation(): array {
+		$cases = [];
+		foreach (['getConfig', 'getConfigFilters', 'getConfigSorting', 'hasSignatureFile'] as $method) {
+			$cases[$method . ': authenticated'] = [$method, true];
+			$cases[$method . ': anonymous'] = [$method, false];
 		}
-		$this->assertSame($hasCertificate, $this->getService()->hasSignatureFile($user));
-	}
-
-	public static function provideSignatureFileAvailability(): array {
-		return ['anonymous' => [false, false], 'existing' => [true, true], 'missing' => [true, false]];
-	}
-
-	public function testGetConfigIncludesCanManageGroupPoliciesForInstanceAdmin(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('instance-admin');
-
-		$this->groupManager->method('isAdmin')->with('instance-admin')->willReturn(true);
-
-		$config = $this->getService()->getConfig($user);
-
-		$this->assertArrayHasKey('can_manage_group_policies', $config);
-		$this->assertTrue($config['can_manage_group_policies']);
+		return $cases;
 	}
 }
