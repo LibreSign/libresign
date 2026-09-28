@@ -250,8 +250,8 @@
 			</template>
 		</NcListItem>
 		<SignerGeolocationEvidence v-if="isOpen"
-			:device="signer.metadata?.geolocation?.device"
-			:ip="signer.metadata?.geolocation?.ip" />
+			:device="getStoredDeviceGeolocation(signer)"
+			:ip="getStoredIpGeolocation(signer)" />
 
 		<!-- Certificate Chain Section -->
 		<CertificateChain v-if="isOpen && signer.chain && signer.chain.length > 0"
@@ -288,6 +288,10 @@ import {
 
 import CertificateChain from './CertificateChain.vue'
 import SignerGeolocationEvidence from './SignerGeolocationEvidence.vue'
+import {
+	getStoredDeviceGeolocation,
+	getStoredIpGeolocation,
+} from '../../helpers/signerStoredGeolocation'
 import SignerTimestamp from './SignerTimestamp.vue'
 import { isObserverParticipant } from '../../utils/participantRole.ts'
 import type { DeviceReportedLocation as DeviceReportedLocationData } from '../../helpers/signerGeolocation'

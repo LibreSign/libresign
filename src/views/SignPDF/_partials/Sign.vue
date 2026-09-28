@@ -300,6 +300,7 @@ import {
 	normalizeDocumentForVisibleElements,
 } from '../../../services/signingDocumentAdapter'
 import { FILE_STATUS } from '../../../constants.js'
+import { withCollectedDeviceGeolocation } from '../../../helpers/signGeolocationPayload'
 import {
 	collectDeviceGeolocation,
 	isGeolocationRequired,
@@ -737,10 +738,10 @@ const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 	signStore.clearSigningErrors()
 
 	try {
-		const basePayload = {
-			...createBaseSubmitSignaturePayload(methodConfig),
-			...(collectedGeolocation.value ? { deviceGeolocation: collectedGeolocation.value } : {}),
-		}
+		const basePayload = withCollectedDeviceGeolocation(
+			createBaseSubmitSignaturePayload(methodConfig),
+			collectedGeolocation.value,
+		)
 		const envelopeRequests = getEnvelopeSubmitRequests({
 			document: signStore.document,
 			basePayload,

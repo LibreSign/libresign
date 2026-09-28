@@ -156,8 +156,8 @@
 								</template>
 							</NcListItem>
 							<SignerGeolocationEvidence
-								:device="signer.metadata?.geolocation?.device"
-								:ip="signer.metadata?.geolocation?.ip" />
+								:device="getStoredDeviceGeolocation(signer)"
+								:ip="getStoredIpGeolocation(signer)" />
 						</div>
 					</li>
 				</ul>
@@ -192,6 +192,10 @@ import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
 import SignerGeolocationEvidence from './SignerGeolocationEvidence.vue'
+import {
+	getStoredDeviceGeolocation,
+	getStoredIpGeolocation,
+} from '../../helpers/signerStoredGeolocation'
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
 import { isObserverParticipant, filterParticipantsByRole, PARTICIPANT_ROLE } from '../../utils/participantRole.ts'
 import type {
