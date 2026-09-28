@@ -29,65 +29,73 @@ export function resolveGeoIpDatabaseStatus(value: unknown): GeoIpDatabaseStatus 
 	return null
 }
 
-export function geoIpStatusLabel(status: GeoIpDatabaseStatus): string {
+function geoIpStatusPresentation(status: GeoIpDatabaseStatus): {
+	label: string
+	description: string
+	tone: GeoIpStatusTone
+} {
 	switch (status) {
 	case 'not_configured':
-		// TRANSLATORS GeoIP database status when no local database path is configured.
-		return t('libresign', 'Not configured')
+		return {
+			// TRANSLATORS GeoIP database status when no local database path is configured.
+			label: t('libresign', 'Not configured'),
+			// TRANSLATORS Explanation that IP-based location needs a local GeoIP City database path.
+			description: t('libresign', 'Set the absolute path to a local MaxMind City database. The path can be saved even if the file is not available yet.'),
+			tone: 'info',
+		}
 	case 'not_found':
-		// TRANSLATORS GeoIP database status when the configured path does not exist.
-		return t('libresign', 'Database file not found')
+		return {
+			// TRANSLATORS GeoIP database status when the configured path does not exist.
+			label: t('libresign', 'Database file not found'),
+			// TRANSLATORS Explanation that the configured GeoIP path does not currently point to a file.
+			description: t('libresign', 'The configured path does not currently point to a file. This does not prevent signatures.'),
+			tone: 'warning',
+		}
 	case 'not_readable':
-		// TRANSLATORS GeoIP database status when the configured file cannot be read.
-		return t('libresign', 'Database file is not readable')
+		return {
+			// TRANSLATORS GeoIP database status when the configured file cannot be read.
+			label: t('libresign', 'Database file is not readable'),
+			// TRANSLATORS Explanation that the GeoIP file exists but cannot be read by the server.
+			description: t('libresign', 'The configured file exists but cannot be read. This does not prevent signatures.'),
+			tone: 'warning',
+		}
 	case 'invalid_database':
-		// TRANSLATORS GeoIP database status when the file is not a valid MaxMind database.
-		return t('libresign', 'Invalid GeoIP database')
+		return {
+			// TRANSLATORS GeoIP database status when the file is not a valid MaxMind database.
+			label: t('libresign', 'Invalid GeoIP database'),
+			// TRANSLATORS Explanation that the configured file is not a usable GeoIP database.
+			description: t('libresign', 'The configured file is not a valid GeoIP database. This does not prevent signatures.'),
+			tone: 'error',
+		}
 	case 'unsupported_database':
-		// TRANSLATORS GeoIP database status when the file type is not a supported City database.
-		return t('libresign', 'Unsupported GeoIP database')
+		return {
+			// TRANSLATORS GeoIP database status when the file type is not a supported City database.
+			label: t('libresign', 'Unsupported GeoIP database'),
+			// TRANSLATORS Explanation that only GeoIP2-City or GeoLite2-City databases are supported.
+			description: t('libresign', 'Only GeoIP2-City or GeoLite2-City databases are supported. This does not prevent signatures.'),
+			tone: 'error',
+		}
 	case 'ready':
-		// TRANSLATORS GeoIP database status when the configured City database can be used.
-		return t('libresign', 'Ready')
+		return {
+			// TRANSLATORS GeoIP database status when the configured City database can be used.
+			label: t('libresign', 'Ready'),
+			// TRANSLATORS Explanation that the local GeoIP database is ready for approximate IP lookups.
+			description: t('libresign', 'The local GeoIP database is ready for approximate IP-based location.'),
+			tone: 'success',
+		}
 	}
+}
+
+export function geoIpStatusLabel(status: GeoIpDatabaseStatus): string {
+	return geoIpStatusPresentation(status).label
 }
 
 export function geoIpStatusDescription(status: GeoIpDatabaseStatus): string {
-	switch (status) {
-	case 'not_configured':
-		// TRANSLATORS Explanation that IP-based location needs a local GeoIP City database path.
-		return t('libresign', 'Set the absolute path to a local MaxMind City database. The path can be saved even if the file is not available yet.')
-	case 'not_found':
-		// TRANSLATORS Explanation that the configured GeoIP path does not currently point to a file.
-		return t('libresign', 'The configured path does not currently point to a file. This does not prevent signatures.')
-	case 'not_readable':
-		// TRANSLATORS Explanation that the GeoIP file exists but cannot be read by the server.
-		return t('libresign', 'The configured file exists but cannot be read. This does not prevent signatures.')
-	case 'invalid_database':
-		// TRANSLATORS Explanation that the configured file is not a usable GeoIP database.
-		return t('libresign', 'The configured file is not a valid GeoIP database. This does not prevent signatures.')
-	case 'unsupported_database':
-		// TRANSLATORS Explanation that only GeoIP2-City or GeoLite2-City databases are supported.
-		return t('libresign', 'Only GeoIP2-City or GeoLite2-City databases are supported. This does not prevent signatures.')
-	case 'ready':
-		// TRANSLATORS Explanation that the local GeoIP database is ready for approximate IP lookups.
-		return t('libresign', 'The local GeoIP database is ready for approximate IP-based location.')
-	}
+	return geoIpStatusPresentation(status).description
 }
 
 export function geoIpStatusTone(status: GeoIpDatabaseStatus): GeoIpStatusTone {
-	switch (status) {
-	case 'ready':
-		return 'success'
-	case 'not_configured':
-		return 'info'
-	case 'not_found':
-	case 'not_readable':
-		return 'warning'
-	case 'invalid_database':
-	case 'unsupported_database':
-		return 'error'
-	}
+	return geoIpStatusPresentation(status).tone
 }
 
 export function formatGeoIpBuildTime(buildEpoch?: number, locale?: string): string | null {

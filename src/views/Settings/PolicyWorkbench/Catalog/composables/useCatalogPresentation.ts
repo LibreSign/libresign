@@ -9,6 +9,7 @@ import { t } from '@nextcloud/l10n'
 
 import { realDefinitions } from '../../settings/realDefinitions'
 import type { RealPolicySettingCategory } from '../../settings/realTypes'
+import { CATEGORY_ORDER } from './categoryOrder'
 
 export type CatalogLayout = 'cards' | 'compact'
 
@@ -48,17 +49,6 @@ const categoryTrustAndVerificationLabel = t('libresign', 'Trust and verification
 const categorySystemBehaviorLabel = t('libresign', 'System behavior')
 // TRANSLATORS Fallback category heading for settings without a specific mapped category.
 const categoryOtherLabel = t('libresign', 'Other')
-
-const CATEGORY_ORDER: RealPolicySettingCategory[] = [
-	'who-can-sign',
-	'how-signing-works',
-	'signer-experience',
-	'what-gets-recorded',
-	'signer-geolocation',
-	'time-and-limits',
-	'trust-and-verification',
-	'system-behavior',
-]
 
 function categoryLabel(category: RealPolicySettingCategory): string {
 	switch (category) {
