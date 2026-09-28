@@ -16,10 +16,15 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
 use OCA\Libresign\Service\SessionService;
+use OCA\Libresign\Vendor\Wobeto\EmailBlur\Blur;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -305,6 +310,121 @@ final class EmailTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 
 		self::assertSame(['storage-user', 'previous-user'], $setUserIdCalls);
+	}
+
+	#[DataProvider('providerThrowIfMaximumValidityExpired')]
+	public function testThrowIfMaximumValidityExpired(int $maximumValidity, string $now, bool $expired): void {
+		$identifyMethod = $this->setupExpirationContext(
+			policies: [ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY => $maximumValidity],
+			createdAt: '2026-01-01 00:00:00 UTC',
+			now: $now,
+		);
+
+		if (!$expired) {
+			$this->expectNotToPerformAssertions();
+			self::invokePrivate($identifyMethod, 'throwIfMaximumValidityExpired');
+			return;
+		}
+
+		try {
+			self::invokePrivate($identifyMethod, 'throwIfMaximumValidityExpired');
+			self::fail('Expected LibresignException to be thrown');
+		} catch (LibresignException $exception) {
+			$payload = json_decode($exception->getMessage(), true, flags: JSON_THROW_ON_ERROR);
+
+			self::assertSame(['action', 'errors'], array_keys($payload));
+			self::assertSame(JSActions::ACTION_DO_NOTHING, $payload['action']);
+			self::assertSame(
+				[['message' => 'This signing request has expired and can no longer be used.']],
+				$payload['errors'],
+			);
+			self::assertStringNotContainsString(ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY, $exception->getMessage());
+			self::assertStringNotContainsString((string)$maximumValidity, $exception->getMessage());
+		}
+	}
+
+	public static function providerThrowIfMaximumValidityExpired(): array {
+		return [
+			'no maximum validity' => [0, '2030-01-01 00:00:00 UTC', false],
+			'within maximum validity' => [3600, '2026-01-01 00:30:00 UTC', false],
+			'maximum validity expired' => [3600, '2026-01-01 02:00:00 UTC', true],
+		];
+	}
+
+	public function testThrowIfRenewalIntervalExpiredOffersRenewalWhileSigningRequestIsValid(): void {
+		$identifyMethod = $this->setupExpirationContext(
+			policies: [
+				ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY => 86400,
+				ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL => 3600,
+			],
+			createdAt: '2026-01-01 00:00:00 UTC',
+			now: '2026-01-01 02:00:00 UTC',
+		);
+
+		self::invokePrivate($identifyMethod, 'throwIfMaximumValidityExpired');
+		try {
+			self::invokePrivate($identifyMethod, 'throwIfRenewalIntervalExpired');
+			self::fail('Expected LibresignException to be thrown');
+		} catch (LibresignException $exception) {
+			$payload = json_decode($exception->getMessage(), true, flags: JSON_THROW_ON_ERROR);
+
+			self::assertSame(['action', 'title', 'body', 'uuid', 'renewButton'], array_keys($payload));
+			self::assertSame(JSActions::ACTION_RENEW_EMAIL, $payload['action']);
+			self::assertSame('Link expired', $payload['title']);
+			self::assertStringContainsString('The link to sign the document has expired.', $payload['body']);
+			self::assertStringContainsString((new Blur('signer@example.com'))->make(), $payload['body']);
+			self::assertSame('sign-request-uuid', $payload['uuid']);
+			self::assertSame('Renew', $payload['renewButton']);
+			self::assertStringNotContainsString('signer@example.com', $exception->getMessage());
+			self::assertStringNotContainsString(ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL, $exception->getMessage());
+			self::assertStringNotContainsString(ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY, $exception->getMessage());
+		}
+	}
+
+	public function testValidateToRenewIsBlockedAfterMaximumValidityExpired(): void {
+		$identifyMethod = $this->setupExpirationContext(
+			policies: [
+				ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY => 3600,
+				ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL => 600,
+			],
+			createdAt: '2026-01-01 00:00:00 UTC',
+			now: '2026-01-01 02:00:00 UTC',
+		);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('This signing request has expired and can no longer be used.');
+		$identifyMethod->validateToRenew();
+	}
+
+	/**
+	 * @param array<string, int> $policies
+	 */
+	private function setupExpirationContext(array $policies, string $createdAt, string $now): Email {
+		$identifyMethod = $this->getClass();
+		$identifyMethod->getEntity()->setSignRequestId(500);
+		$identifyMethod->getEntity()->setIdentifierValue('signer@example.com');
+
+		$signRequest = new SignRequest();
+		$signRequest->setUuid('sign-request-uuid');
+		$signRequest->setCreatedAt(new \DateTime($createdAt));
+
+		$signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$signRequestMapper->method('getById')->with(500)->willReturn($signRequest);
+
+		$policyService = $this->createMock(PolicyService::class);
+		$policyService->method('resolve')->willReturnCallback(
+			static fn (string $key): ResolvedPolicy => (new ResolvedPolicy())->setEffectiveValue($policies[$key] ?? null)
+		);
+
+		$this->timeFactory->method('getDateTime')->willReturn(new \DateTime($now));
+		$this->sessionService->method('getSignStartTime')->willReturn(0);
+
+		$this->identifyService->method('getSignRequestMapper')->willReturn($signRequestMapper);
+		$this->identifyService->method('getPolicyService')->willReturn($policyService);
+		$this->identifyService->method('getTimeFactory')->willReturn($this->timeFactory);
+		$this->identifyService->method('getSessionService')->willReturn($this->sessionService);
+
+		return $identifyMethod;
 	}
 
 	/**

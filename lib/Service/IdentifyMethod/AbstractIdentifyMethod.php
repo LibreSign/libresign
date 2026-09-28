@@ -253,8 +253,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		if ($expirationDate < $now) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				// TRANSLATORS Error shown when the one-time signing link has expired and can no longer be used.
-				'errors' => [['message' => $this->identifyService->getL10n()->t('Link expired.')]],
+				// TRANSLATORS Error shown when the signing request has reached its maximum validity and can no longer be renewed.
+				'errors' => [['message' => $this->identifyService->getL10n()->t('This signing request has expired and can no longer be used.')]],
 			]));
 		}
 	}

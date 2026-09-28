@@ -183,7 +183,7 @@ Feature: request-signature
     And the response should be a JSON array with the following mandatory values
       | key    | value             |
       | action | 2000              |
-      | errors | [{"message":"Link expired."}] |
+      | errors | [{"message":"This signing request has expired and can no longer be used."}] |
 
   Scenario: Create signature request with success when is necessary to renew the link
     Given as user "admin"
