@@ -91,6 +91,60 @@ final class TwofactorGatewayServiceTest extends TestCase {
 		self::assertFalse($this->createService()->isGatewayComplete('sms'));
 	}
 
+	#[DataProvider('providerGatewayIntegrationException')]
+	public function testIsGatewayCompleteReturnsFalseWhenIntegrationThrowsException(\Exception $exception): void {
+		$this->appManager->method('isEnabledForAnyone')->with('twofactor_gateway')->willReturn(true);
+		$this->logger->expects($this->once())
+			->method('warning')
+			->with(
+				'Unable to determine twofactor gateway completeness.',
+				$this->callback(static fn (array $context): bool
+					=> ($context['gateway'] ?? null) === 'telegram'
+					&& ($context['exception'] ?? null) === $exception
+				)
+			);
+		$this->container->method('get')
+			->with('OCA\\TwoFactorGateway\\Service\\GatewayDirectIntegrationService')
+			->willReturn(new class($exception) {
+				public function __construct(
+					private \Exception $exception,
+				) {
+				}
+
+				public function isGatewayComplete(string $gatewayName): bool {
+					throw $this->exception;
+				}
+			});
+
+		self::assertFalse($this->createService()->isGatewayComplete('telegram'));
+	}
+
+	public static function providerGatewayIntegrationException(): array {
+		return [
+			'invalid gateway or provider' => [new \InvalidArgumentException('invalid gateway or provider')],
+			'integration runtime exception' => [new \RuntimeException('gateway runtime failure')],
+		];
+	}
+
+	public function testIsGatewayCompleteReturnsFalseWhenIntegrationServiceResolutionThrowsException(): void {
+		$this->appManager->method('isEnabledForAnyone')->with('twofactor_gateway')->willReturn(true);
+		$exception = new \RuntimeException('integration service resolution failed');
+		$this->logger->expects($this->once())
+			->method('warning')
+			->with(
+				'Unable to determine twofactor gateway completeness.',
+				$this->callback(static fn (array $context): bool
+					=> ($context['gateway'] ?? null) === 'telegram'
+					&& ($context['exception'] ?? null) === $exception
+				)
+			);
+		$this->container->method('get')
+			->with('OCA\\TwoFactorGateway\\Service\\GatewayDirectIntegrationService')
+			->willThrowException($exception);
+
+		self::assertFalse($this->createService()->isGatewayComplete('telegram'));
+	}
+
 	public function testSendForwardsIdentifierAndMessage(): void {
 		$this->appManager->method('isEnabledForAnyone')->with('twofactor_gateway')->willReturn(true);
 		$integrationService = new TwofactorGatewayIntegrationStub(true);
