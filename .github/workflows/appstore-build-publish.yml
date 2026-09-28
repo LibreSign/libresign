@@ -43,11 +43,12 @@ jobs:
           persist-credentials: false
           submodules: true
           fetch-tags: true
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.event.release.tag_name }}
           path: ${{ env.APP_NAME }}
 
       - name: Validate release identity
         id: release-identity
-        uses: LibreCodeCoop/release-tool/actions/release-identity@6c1630e1127c049cad8d61643aca3d83d90e30e3
+        uses: LibreCodeCoop/release-tool/actions/release-identity@2ef34d5424b39c1669af77d048bc4c90de3e928d
         with:
           tag: ${{ env.APP_VERSION }}
           working-directory: ${{ env.APP_NAME }}
@@ -202,7 +203,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Validate release artifact
-        uses: LibreCodeCoop/release-tool/actions/artifact-validate@6c1630e1127c049cad8d61643aca3d83d90e30e3
+        uses: LibreCodeCoop/release-tool/actions/artifact-validate@2ef34d5424b39c1669af77d048bc4c90de3e928d
         with:
           artifact: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
           app-name: ${{ env.APP_NAME }}
@@ -227,7 +228,7 @@ jobs:
           app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Verify App Store publication
-        uses: LibreCodeCoop/release-tool/actions/appstore-publication-wait@6c1630e1127c049cad8d61643aca3d83d90e30e3
+        uses: LibreCodeCoop/release-tool/actions/appstore-publication-wait@2ef34d5424b39c1669af77d048bc4c90de3e928d
         with:
           app-name: ${{ env.APP_NAME }}
           version: ${{ steps.release-identity.outputs.version }}
