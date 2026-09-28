@@ -250,7 +250,7 @@ class SignerElementsService {
 				// TRANSLATORS Error when uploading a visible signature element file that is empty.
 				throw new \Exception($this->l10n->t('Empty file'));
 			}
-			$this->fileInputValidator->validateBase64($content, FileInputValidator::TYPE_VISIBLE_ELEMENT_USER);
+			$this->fileInputValidator->validateContent($content, FileInputValidator::TYPE_VISIBLE_ELEMENT_USER);
 			return $content;
 		}
 		$this->fileInputValidator->validateBase64($data['file']['base64'], FileInputValidator::TYPE_VISIBLE_ELEMENT_USER);
