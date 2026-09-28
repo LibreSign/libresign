@@ -5,18 +5,21 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { getStoredSignerGeolocation } from '../../helpers/signerStoredGeolocation'
+import {
+	getStoredSignerGeolocation,
+	type SignerWithStoredGeolocation,
+} from '../../helpers/signerStoredGeolocation'
 
 describe('getStoredSignerGeolocation', () => {
 	it('keeps device and IP sources independent across signers', () => {
-		const deviceOnly = {
+		const deviceOnly: SignerWithStoredGeolocation = {
 			metadata: {
 				geolocation: {
 					device: { status: 'collected', latitude: -23.55, longitude: -46.63 },
 				},
 			},
 		}
-		const ipOnly = {
+		const ipOnly: SignerWithStoredGeolocation = {
 			metadata: {
 				geolocation: {
 					ip: { status: 'resolved', country: 'Brazil' },
@@ -35,7 +38,7 @@ describe('getStoredSignerGeolocation', () => {
 	})
 
 	it('returns stored evidence without reading the current policy', () => {
-		const historicalSigner = {
+		const historicalSigner: SignerWithStoredGeolocation = {
 			metadata: {
 				geolocation: {
 					device: { status: 'collected', latitude: 1, longitude: 2 },
