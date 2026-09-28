@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Service\SetupCheck\ConfigureCheckResult;
@@ -16,12 +17,14 @@ use OCA\Libresign\SetupCheck\JavaSetupCheck;
 use OCA\Libresign\SetupCheck\JSignPdfSetupCheck;
 use OCA\Libresign\SetupCheck\PDFtkSetupCheck;
 use OCA\Libresign\SetupCheck\PopplerSetupCheck;
+use OCP\IAppConfig;
 use OCP\SetupCheck\ISetupCheck;
 
 class SetupCheckResultService {
 
 	public function __construct(
 		private CertificateEngineFactory $certificateEngineFactory,
+		private IAppConfig $appConfig,
 		private JavaSetupCheck $javaSetupCheck,
 		private JSignPdfSetupCheck $jSignPdfSetupCheck,
 		private PDFtkSetupCheck $pdftkSetupCheck,
@@ -47,7 +50,11 @@ class SetupCheckResultService {
 		/** @var array<string, ISetupCheck> $checks */
 		$checks = [
 			'java' => $this->javaSetupCheck,
-			'jsignpdf' => $this->jSignPdfSetupCheck,
+		];
+		if ($this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf') === 'JSignPdf') {
+			$checks['jsignpdf'] = $this->jSignPdfSetupCheck;
+		}
+		$checks += [
 			'pdftk' => $this->pdftkSetupCheck,
 			'poppler' => $this->popplerSetupCheck,
 			'imagick' => $this->imagickSetupCheck,
