@@ -44,6 +44,8 @@ use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
+use OCP\Http\Client\IClient;
+use OCP\Http\Client\IResponse;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -764,6 +766,29 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'File not found'
 			],
 		];
+	}
+
+	public function testVisibleElementUrlUsesRawContentValidation(): void {
+		$content = "\x89PNG\r\n\x1a\ncontent";
+		$element = new UserElement();
+		$element->setNodeId(42);
+		$this->userElementMapper->method('findOne')->with(['id' => 10])->willReturn($element);
+		$file = $this->createMock(File::class);
+		$this->folderService->method('getFileByNodeId')->with(42)->willReturn($file);
+		$response = $this->createMock(IResponse::class);
+		$response->expects($this->never())->method('getHeader');
+		$response->method('getBody')->willReturn($content);
+		$client = $this->createMock(IClient::class);
+		$client->method('get')->with('https://example.com/image.png')->willReturn($response);
+		$this->clientService->method('newClient')->willReturn($client);
+		$this->validateHelper->expects($this->once())->method('validateContent')->with($content, ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
+		$this->validateHelper->expects($this->never())->method('validateBase64');
+		$file->expects($this->once())->method('putContent')->with($content);
+
+		$this->getService()->saveVisibleElement([
+			'elementId' => 10,
+			'file' => ['url' => 'https://example.com/image.png'],
+		], 'session-id', null);
 	}
 
 	public function testDeleteSignatureElementWithUserDeletesFromDB(): void {
