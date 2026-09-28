@@ -30,7 +30,8 @@ const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
 const DEVICE_POLICY = 'signer_device_geolocation'
 const IP_POLICY = 'signer_ip_geolocation'
 const IDENTIFY_POLICY = 'identify_methods'
-const GEOIP_TEST_DB = path.resolve(process.cwd(), 'tests/php/fixtures/geoip/GeoIP2-City-Test.mmdb')
+const GEOIP_TEST_DB = process.env.PLAYWRIGHT_GEOIP_PATH
+	?? path.resolve(process.cwd(), 'tests/php/fixtures/geoip/GeoIP2-City-Test.mmdb')
 
 let adminContext: Awaited<ReturnType<typeof createAuthenticatedRequestContext>> | null = null
 let originalDevice: SystemPolicySnapshot | null = null
@@ -75,6 +76,30 @@ test.afterEach(async () => {
 test('request, sign, and validate device plus IP geolocation from a frozen snapshot', async ({ page }) => {
 	test.slow()
 
+	await page.addInitScript(() => {
+		const coords = {
+			latitude: -23.5505,
+			longitude: -46.6333,
+			accuracy: 15,
+			altitude: null,
+			altitudeAccuracy: null,
+			heading: null,
+			speed: null,
+		}
+		Object.defineProperty(navigator, 'geolocation', {
+			configurable: true,
+			value: {
+				getCurrentPosition(success: PositionCallback) {
+					success({ coords, timestamp: Date.now() } as GeolocationPosition)
+				},
+				watchPosition() {
+					return 0
+				},
+				clearWatch() {},
+			},
+		})
+	})
+
 	adminContext = await createAuthenticatedRequestContext(adminUser, adminPassword)
 	originalDevice = await getSystemPolicySnapshot(adminContext, DEVICE_POLICY)
 	originalIp = await getSystemPolicySnapshot(adminContext, IP_POLICY)
@@ -118,13 +143,15 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
 	await page.getByRole('button', { name: 'Send' }).click()
 	await clickAddSigner(page)
-	await selectAccountSigner(page, 'a')
+	await selectAccountSigner(page, 'a', /admin/i)
 
 	const signerDialog = page.getByRole('dialog', { name: /Add new signer/i }).last()
-	const deviceToggle = signerDialog.getByRole('switch', { name: 'Require device-reported location to sign' })
+	const deviceToggle = signerDialog.locator('.checkbox-radio-switch').filter({
+		hasText: 'Require device-reported location to sign',
+	})
 	await expect(deviceToggle).toBeVisible()
 	await expect(signerDialog.getByText(/IP-based|source IP|approximate location/i)).toHaveCount(0)
-	await deviceToggle.click()
+	await deviceToggle.locator('.checkbox-radio-switch__content').click()
 	await signerDialog.getByRole('button', { name: 'Save' }).click()
 
 	await page.getByRole('button', { name: 'Request signatures' }).click()
@@ -132,29 +159,31 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 
 	await setSystemPolicyEntry(adminContext, DEVICE_POLICY, JSON.stringify({ mode: 'disabled' }), true)
 	await clickAddSigner(page)
-	await selectAccountSigner(page, 'a')
+	await selectAccountSigner(page, 'a', /admin/i)
 	await expect(page.getByRole('dialog', { name: /Add new signer/i }).last()
-		.getByRole('switch', { name: 'Require device-reported location to sign' })).toBeVisible()
+		.locator('.checkbox-radio-switch')
+		.filter({ hasText: 'Require device-reported location to sign' })).toBeVisible()
 	await page.getByRole('dialog', { name: /Add new signer/i }).last().getByRole('button', { name: 'Cancel' }).click()
 
 	await page.getByRole('button', { name: 'Sign document' }).first().click()
 	await page.waitForURL('**/f/sign/**/pdf')
 	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15_000 })
-	await clickSignDocumentButton(page)
-
-	const privacyDialog = page.getByRole('dialog', { name: 'Device-reported location required' })
-	if (await privacyDialog.isVisible().catch(() => false)) {
-		await privacyDialog.getByRole('button', { name: 'Continue' }).click()
-	}
 
 	const signResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'),
-	)
+	{ timeout: 30_000 })
+	await clickSignDocumentButton(page)
+
 	const confirmSign = page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' })
 	if (await confirmSign.isVisible().catch(() => false)) {
 		await confirmSign.click()
 	}
+
+	const privacyDialog = page.getByRole('dialog', { name: 'Device-reported location required' })
+	await expect(privacyDialog).toBeVisible({ timeout: 10_000 })
+	await privacyDialog.getByRole('button', { name: 'Continue' }).click()
+
 	const signResponse = await signResponsePromise
 	expect(signResponse.ok(), `Sign API failed with status ${signResponse.status()}`).toBeTruthy()
 
@@ -168,5 +197,6 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	await expect(page.getByText('Signer geolocation')).toBeVisible()
 	await expect(page.getByText('Device-reported location')).toBeVisible()
 	await expect(page.getByText('IP-based approximate location')).toBeVisible()
+	await page.getByRole('button', { name: 'Expand device-reported location details', exact: true }).click()
 	await expect(page.getByText('-23.5505')).toBeVisible()
 })
