@@ -19,6 +19,22 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 13.4.3 - 2026-09-28
+
+### Changed
+- Update translations
+- Internal maintenance
+
+### Fixed
+- repair legacy metadata and stale distribution points
+  [#8673](https://github.com/LibreSign/libresign/pull/8673)
+- prevent account lookups from reusing another UUID
+  [#8721](https://github.com/LibreSign/libresign/pull/8721)
+- avoid argumentless signing jobs
+  [#8743](https://github.com/LibreSign/libresign/pull/8743)
+- skip JSignPdf when native engine is selected
+  [#8746](https://github.com/LibreSign/libresign/pull/8746)
+
 ## 13.4.2 - 2026-09-22
 
 ### Security
