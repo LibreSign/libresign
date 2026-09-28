@@ -11,6 +11,12 @@ name: Build and publish app release
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing release tag to build and publish, e.g. v13.4.3
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -29,7 +35,7 @@ jobs:
         run: |
           # Split and keep last
           echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
-          echo "APP_VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "APP_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}" >> $GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -203,7 +209,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
           asset_name: ${{ env.APP_NAME }}-${{ env.APP_VERSION }}.tar.gz
-          tag: ${{ github.ref }}
+          tag: ${{ env.APP_VERSION }}
           overwrite: true
 
       - name: Upload app to Nextcloud appstore
