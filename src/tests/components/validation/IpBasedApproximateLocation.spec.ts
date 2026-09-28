@@ -16,7 +16,6 @@ type IpBasedApproximateLocationVm = {
 	open: boolean
 	hasContent: boolean
 	statusText: string
-	reasonText: string
 	sourceIp: string | null
 	country: string | null
 	city: string | null
@@ -37,6 +36,7 @@ describe('IpBasedApproximateLocation', () => {
 		global: {
 			stubs: {
 				NcButton: {
+					emits: ['click'],
 					template: '<button v-bind="$attrs"><slot /><slot name="icon" /></button>',
 				},
 				NcIconSvgWrapper: true,
@@ -112,7 +112,7 @@ describe('IpBasedApproximateLocation', () => {
 		expect(wrapper.text()).not.toContain('invalid')
 	})
 
-	it('shows unavailable with a user-facing reason', async () => {
+	it('shows unavailable without backend reason codes', async () => {
 		wrapper = createWrapper({
 			status: 'unavailable',
 			reason: 'database_not_ready',
@@ -121,7 +121,8 @@ describe('IpBasedApproximateLocation', () => {
 		await wrapper.vm.$nextTick()
 
 		expect(wrapper.vm.statusText).toBe('Approximate location unavailable')
-		expect(wrapper.vm.reasonText).toContain('GeoIP database was not ready')
 		expect(wrapper.text()).not.toContain('database_not_ready')
+		expect(wrapper.text()).not.toContain('The GeoIP database was not ready.')
+		expect(wrapper.text()).not.toContain('invalid')
 	})
 })

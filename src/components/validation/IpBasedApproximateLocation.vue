@@ -66,7 +66,6 @@
 						<dd>{{ accuracyRadius }}</dd>
 					</div>
 				</dl>
-				<p v-if="reasonText" class="serial-hex">{{ reasonText }}</p>
 				<!-- TRANSLATORS Disclaimer that IP-derived location is approximate and may be affected by VPNs or proxies. -->
 				<p class="serial-hex">{{ t('libresign', 'Approximate location. VPNs, proxies and mobile networks can affect this result.') }}</p>
 			</div>
@@ -90,9 +89,7 @@ import {
 	formatIpAccuracyRadius,
 	formatIpCoordinates,
 	hasIpGeolocationEvidence,
-	ipGeolocationReasonLabel,
 	ipGeolocationStatusLabel,
-	resolveIpGeolocationReason,
 	resolveIpGeolocationStatus,
 	type SignerIpGeolocationEvidence,
 } from '../../helpers/signerIpGeolocation'
@@ -113,8 +110,6 @@ const ipBasedLocationDetailsAriaLabel = t('libresign', 'IP-based approximate loc
 const hasContent = computed(() => hasIpGeolocationEvidence(props.geolocation))
 const status = computed(() => resolveIpGeolocationStatus(props.geolocation?.status))
 const statusText = computed(() => status.value ? ipGeolocationStatusLabel(status.value) : '')
-const reason = computed(() => resolveIpGeolocationReason(props.geolocation?.reason))
-const reasonText = computed(() => reason.value ? ipGeolocationReasonLabel(reason.value) : '')
 const sourceIp = computed(() => {
 	const value = props.geolocation?.sourceIp
 	return typeof value === 'string' && value !== '' ? value : null
@@ -152,7 +147,6 @@ defineExpose({
 	open,
 	hasContent,
 	statusText,
-	reasonText,
 	sourceIp,
 	country,
 	region,
