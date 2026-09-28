@@ -156,4 +156,5 @@ jobs:
           github-release-id: ${{ github.event.release.id }}
           config-path: .nextcloud-release.yml
           post-merge-workflow-path: .github/workflows/prepare-release.yml
+          post-merge-event: pull_request_target
           github-token: ${{ secrets.GITHUB_TOKEN }}
