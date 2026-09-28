@@ -204,6 +204,98 @@ describe('RequestExpirationRuleEditor.vue', () => {
 		expect(emissions?.[emissions.length - 1]?.[0]).toEqual({ maximumValidity: -1, renewalInterval: 3600 })
 	})
 
+	it('watcher preserves local typing and invalid state when emitted modelValue (-1) returns from parent', async () => {
+		const wrapper = mount(RequestExpirationRuleEditor, {
+			props: {
+				modelValue: {
+					maximumValidity: 86400,
+					renewalInterval: 3600,
+				},
+			},
+			global: {
+				stubs: {
+					NcCheckboxRadioSwitch: NcCheckboxRadioSwitchStub,
+					NcTextField: NcTextFieldStub,
+					NcSelect: NcSelectStub,
+				},
+			},
+		})
+
+		const inputs = wrapper.findAll('input.field-input')
+		await inputs[0].setValue('-5')
+
+		expect(wrapper.emitted('update:modelValue')?.[0]?.[0]).toEqual({ maximumValidity: -1, renewalInterval: 3600 })
+
+		await wrapper.setProps({
+			modelValue: {
+				maximumValidity: -1,
+				renewalInterval: 3600,
+			},
+		})
+
+		const currentInputs = wrapper.findAll('input.field-input')
+		expect(currentInputs.length).toBe(2)
+		expect((currentInputs[0].element as HTMLInputElement).value).toBe('-5')
+	})
+
+	it('watcher preserves local typing when renewalInterval becomes invalid (-1)', async () => {
+		const wrapper = mount(RequestExpirationRuleEditor, {
+			props: {
+				modelValue: {
+					maximumValidity: 86400,
+					renewalInterval: 3600,
+				},
+			},
+			global: {
+				stubs: {
+					NcCheckboxRadioSwitch: NcCheckboxRadioSwitchStub,
+					NcTextField: NcTextFieldStub,
+					NcSelect: NcSelectStub,
+				},
+			},
+		})
+
+		const inputs = wrapper.findAll('input.field-input')
+		await inputs[1].setValue('-10')
+
+		expect(wrapper.emitted('update:modelValue')?.[0]?.[0]).toEqual({ maximumValidity: 86400, renewalInterval: -1 })
+
+		await wrapper.setProps({
+			modelValue: {
+				maximumValidity: 86400,
+				renewalInterval: -1,
+			},
+		})
+
+		const currentInputs = wrapper.findAll('input.field-input')
+		expect((currentInputs[1].element as HTMLInputElement).value).toBe('-10')
+	})
+
+	it('updates expiration unit and renewal unit when selects are changed', async () => {
+		const wrapper = mount(RequestExpirationRuleEditor, {
+			props: {
+				modelValue: {
+					maximumValidity: 86400, // 1 day
+					renewalInterval: 3600, // 1 hour
+				},
+			},
+			global: {
+				stubs: {
+					NcCheckboxRadioSwitch: NcCheckboxRadioSwitchStub,
+					NcTextField: NcTextFieldStub,
+					NcSelect: NcSelectStub,
+				},
+			},
+		})
+
+		const selects = wrapper.findAll('select.select-stub')
+		await selects[0].setValue('hours') // 1 hour = 3600
+		expect(wrapper.emitted('update:modelValue')?.[0]?.[0]).toEqual({ maximumValidity: 3600, renewalInterval: 3600 })
+
+		await selects[1].setValue('minutes') // 1 minute = 60
+		expect(wrapper.emitted('update:modelValue')?.[1]?.[0]).toEqual({ maximumValidity: 3600, renewalInterval: 60 })
+	})
+
 	it('shows inline validation message when renewal requires expiration', async () => {
 		const wrapper = mount(RequestExpirationRuleEditor, {
 			props: {

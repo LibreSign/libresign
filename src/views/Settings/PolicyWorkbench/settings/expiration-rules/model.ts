@@ -99,7 +99,11 @@ export function normalizeNonNegativeInt(value: EffectivePolicyValue, fallback = 
 		return fallback
 	}
 
-	return Math.max(0, parsed)
+	if (parsed < 0) {
+		return -1
+	}
+
+	return parsed
 }
 
 export function normalizePositiveInt(value: EffectivePolicyValue, fallback: number): number {
@@ -136,11 +140,15 @@ export function isRequestExpirationDraftValue(value: unknown): value is RequestE
 
 export function hasValidRequestExpirationCombination(value: EffectivePolicyValue): boolean {
 	const normalized = normalizeRequestExpirationDraftValue(value)
-	if (normalized.renewalInterval <= 0) {
-		return true
+	if (normalized.maximumValidity < 0 || normalized.renewalInterval < 0) {
+		return false
 	}
 
-	return normalized.maximumValidity > 0
+	if (normalized.renewalInterval > 0) {
+		return normalized.maximumValidity > 0
+	}
+
+	return true
 }
 
 export function summarizeRequestExpirationDraftValue(value: EffectivePolicyValue, tFn: (app: string, text: string, vars?: Record<string, string>) => string): string {

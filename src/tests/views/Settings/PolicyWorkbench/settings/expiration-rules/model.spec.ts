@@ -80,6 +80,7 @@ describe('expiration-rules model', () => {
 			expect(durationToSeconds(1.5, 'days')).toBeNull()
 			expect(durationToSeconds('1.5', 'minutes')).toBeNull()
 			expect(durationToSeconds('abc', 'hours')).toBeNull()
+			expect(durationToSeconds(5, 'invalid_unit' as never)).toBeNull()
 			expect(durationToSeconds(null, 'seconds')).toBeNull()
 			expect(durationToSeconds(undefined, 'days')).toBeNull()
 		})
@@ -101,10 +102,10 @@ describe('expiration-rules model', () => {
 		})
 	})
 
-	it('normalizes non-negative integers from numbers and strings while clamping negatives', () => {
+	it('normalizes non-negative integers from numbers and strings while preserving negative invalid sentinels (-1)', () => {
 		expect(normalizeNonNegativeInt(42)).toBe(42)
 		expect(normalizeNonNegativeInt(' 8 ')).toBe(8)
-		expect(normalizeNonNegativeInt(-5)).toBe(0)
+		expect(normalizeNonNegativeInt(-5)).toBe(-1)
 		expect(normalizeNonNegativeInt('invalid', 7)).toBe(7)
 	})
 
@@ -128,12 +129,19 @@ describe('expiration-rules model', () => {
 			maximumValidity: 90,
 			renewalInterval: 0,
 		})
+		expect(normalizeRequestExpirationDraftValue({ maximumValidity: -1, renewalInterval: 0 })).toEqual({
+			maximumValidity: -1,
+			renewalInterval: 0,
+		})
 	})
 
 	it('validates renewal/expiration combinations according to the canonical business rule', () => {
 		expect(hasValidRequestExpirationCombination({ maximumValidity: 0, renewalInterval: 0 })).toBe(true)
 		expect(hasValidRequestExpirationCombination({ maximumValidity: 60, renewalInterval: 30 })).toBe(true)
 		expect(hasValidRequestExpirationCombination({ maximumValidity: 0, renewalInterval: 30 })).toBe(false)
+		expect(hasValidRequestExpirationCombination({ maximumValidity: -1, renewalInterval: 0 })).toBe(false)
+		expect(hasValidRequestExpirationCombination({ maximumValidity: 60, renewalInterval: -1 })).toBe(false)
+		expect(hasValidRequestExpirationCombination({ maximumValidity: -1, renewalInterval: -1 })).toBe(false)
 	})
 
 	it('summarizes normalized expiration and renewal values with disabled labels', () => {

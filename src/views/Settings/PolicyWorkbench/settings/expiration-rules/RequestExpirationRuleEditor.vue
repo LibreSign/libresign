@@ -132,22 +132,28 @@ const renewalAmount = ref<string>('')
 const renewalUnit = ref<TimeUnit>('hours')
 
 function syncFromProps(val: RequestExpirationDraftValue) {
-	expirationEnabled.value = val.maximumValidity > 0
 	if (val.maximumValidity > 0) {
+		expirationEnabled.value = true
 		const dur = secondsToDuration(val.maximumValidity)
 		expirationAmount.value = String(dur.amount)
 		expirationUnit.value = dur.unit
+	} else if (val.maximumValidity < 0) {
+		expirationEnabled.value = true
 	} else {
+		expirationEnabled.value = false
 		expirationAmount.value = '7'
 		expirationUnit.value = 'days'
 	}
 
-	renewalEnabled.value = val.renewalInterval > 0
 	if (val.renewalInterval > 0) {
+		renewalEnabled.value = true
 		const dur = secondsToDuration(val.renewalInterval)
 		renewalAmount.value = String(dur.amount)
 		renewalUnit.value = dur.unit
+	} else if (val.renewalInterval < 0) {
+		renewalEnabled.value = true
 	} else {
+		renewalEnabled.value = false
 		renewalAmount.value = '24'
 		renewalUnit.value = 'hours'
 	}
@@ -163,6 +169,15 @@ watch(
 		const currentValidity = currentExpirationSeconds()
 		const currentRenewal = currentRenewalSeconds()
 		if (norm.maximumValidity !== currentValidity || norm.renewalInterval !== currentRenewal) {
+			if (norm.maximumValidity < 0 && currentValidity < 0 && norm.renewalInterval === currentRenewal) {
+				return
+			}
+			if (norm.renewalInterval < 0 && currentRenewal < 0 && norm.maximumValidity === currentValidity) {
+				return
+			}
+			if (norm.maximumValidity < 0 && currentValidity < 0 && norm.renewalInterval < 0 && currentRenewal < 0) {
+				return
+			}
 			syncFromProps(norm)
 		}
 	},

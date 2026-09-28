@@ -85,12 +85,15 @@ const localAmount = ref<string>('')
 const localUnit = ref<TimeUnit>('hours')
 
 function syncFromProps(val: number) {
-	localEnabled.value = val > 0
 	if (val > 0) {
+		localEnabled.value = true
 		const dur = secondsToDuration(val)
 		localAmount.value = String(dur.amount)
 		localUnit.value = dur.unit
+	} else if (val < 0) {
+		localEnabled.value = true
 	} else {
+		localEnabled.value = false
 		localAmount.value = '24'
 		localUnit.value = 'hours'
 	}
@@ -105,6 +108,9 @@ watch(
 		const norm = normalizeNonNegativeInt(newVal, DEFAULT_RENEWAL_INTERVAL)
 		const currentSec = currentSeconds()
 		if (norm !== currentSec) {
+			if (norm < 0 && currentSec < 0) {
+				return
+			}
 			syncFromProps(norm)
 		}
 	},

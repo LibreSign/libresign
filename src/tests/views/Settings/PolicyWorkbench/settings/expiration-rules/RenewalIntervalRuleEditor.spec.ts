@@ -170,4 +170,46 @@ describe('RenewalIntervalRuleEditor.vue', () => {
 		const emissions = wrapper.emitted('update:modelValue')
 		expect(emissions?.[emissions.length - 1]?.[0]).toBe(-1)
 	})
+
+	it('watcher preserves invalid local typing (-1) when prop receives -1', async () => {
+		const wrapper = mount(RenewalIntervalRuleEditor, {
+			props: {
+				modelValue: 3600,
+			},
+			global: {
+				stubs: {
+					NcCheckboxRadioSwitch: NcCheckboxRadioSwitchStub,
+					NcTextField: NcTextFieldStub,
+					NcSelect: NcSelectStub,
+				},
+			},
+		})
+
+		await wrapper.find('input.field-input').setValue('-5')
+		expect(wrapper.emitted('update:modelValue')?.[0]?.[0]).toBe(-1)
+
+		await wrapper.setProps({ modelValue: -1 })
+
+		const input = wrapper.find('input.field-input')
+		expect(input.exists()).toBe(true)
+		expect((input.element as HTMLInputElement).value).toBe('-5')
+	})
+
+	it('updates renewal unit when select is changed', async () => {
+		const wrapper = mount(RenewalIntervalRuleEditor, {
+			props: {
+				modelValue: 3600, // 1 hour
+			},
+			global: {
+				stubs: {
+					NcCheckboxRadioSwitch: NcCheckboxRadioSwitchStub,
+					NcTextField: NcTextFieldStub,
+					NcSelect: NcSelectStub,
+				},
+			},
+		})
+
+		await wrapper.find('select.select-stub').setValue('minutes') // 1 minute = 60
+		expect(wrapper.emitted('update:modelValue')?.[0]?.[0]).toBe(60)
+	})
 })
