@@ -43,6 +43,7 @@ jobs:
           persist-credentials: false
           submodules: true
           fetch-tags: true
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.event.release.tag_name }}
           path: ${{ env.APP_NAME }}
 
       - name: Validate release identity
