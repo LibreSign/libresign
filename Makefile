@@ -180,7 +180,7 @@ appstore: verify-release-metadata
 			--certificate=$(cert_dir)/$(app_name).crt\
 			--path=$(appstore_sign_dir)/$(app_name); \
 	fi
-	tar -czf $(appstore_package_name).tar.gz \
+	tar --format=ustar -czf $(appstore_package_name).tar.gz \
 		-C $(appstore_sign_dir) $(app_name)
 
 	@if [ -f $(cert_dir)/$(app_name).key ]; then \
