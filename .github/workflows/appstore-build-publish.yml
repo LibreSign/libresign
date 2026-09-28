@@ -187,7 +187,7 @@ jobs:
           php nextcloud/occ integrity:sign-app --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt --path=../${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}
           # Rebuilding archive
           cd ${{ env.APP_NAME }}/build/artifacts
-          tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
+          tar --format=ustar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
 
       - name: Validate release artifact
         uses: LibreCodeCoop/release-tool/actions/artifact-validate@710c4c83fba47bf01713f46e9c4cb4cf63debfba
