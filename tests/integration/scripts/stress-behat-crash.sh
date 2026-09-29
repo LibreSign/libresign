@@ -4,54 +4,39 @@
 
 set -uo pipefail
 
-ITERATIONS="${STRESS_ITERATIONS:-1}"
+FLOW="${STRESS_FLOW:-request-signature}"
+REQUESTS="${STRESS_REQUESTS:-500}"
 DIAG_DIR="${GITHUB_WORKSPACE:-$(pwd)}/behat-crash-diagnostics"
 SUMMARY_FILE="${DIAG_DIR}/summary.log"
 WATCHDOG="$(pwd)/scripts/run-behat-with-watchdog.sh"
+FEATURE_FILE="$(pwd)/features/_generated_php_crash_stress.feature"
 
 mkdir -p "${DIAG_DIR}"
 : > "${SUMMARY_FILE}"
 
+cleanup() {
+  rm -f "${FEATURE_FILE}"
+}
+trap cleanup EXIT
+
 capture_environment() {
   {
     echo "timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-    echo "iteration_limit=${ITERATIONS}"
+    echo "flow=${FLOW}"
+    echo "requests=${REQUESTS}"
     echo "behat_workers=${BEHAT_WORKERS:-unset}"
-    echo "no_progress_timeout_seconds=${BEHAT_NO_PROGRESS_TIMEOUT:-120}"
-    echo "max_run_seconds=${BEHAT_MAX_RUN_SECONDS:-600}"
-    echo
-    echo "== uname =="
-    uname -a
-    echo
-    echo "== os-release =="
-    cat /etc/os-release || true
     echo
     echo "== php -v =="
     php -v
     echo
-    echo "== php --ini =="
-    php --ini
-    echo
     echo "== php -m =="
     php -m
     echo
-    echo "== php --ri imagick =="
-    php --ri imagick || true
-    echo
-    echo "== php --ri opcache =="
-    php --ri opcache || true
-    echo
-    echo "== php binary libraries =="
-    ldd "$(command -v php)" || true
+    echo "== imagick loaded =="
+    php -r 'echo extension_loaded("imagick") ? "yes\n" : "no\n";'
     echo
     echo "== limits =="
     ulimit -a
-    echo
-    echo "== core pattern =="
-    cat /proc/sys/kernel/core_pattern || true
-    echo
-    echo "== ptrace scope =="
-    cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null || true
     echo
     echo "== LibreSign commit =="
     git -C ../.. rev-parse HEAD || true
@@ -59,36 +44,99 @@ capture_environment() {
     echo "== Nextcloud commit =="
     git -C ../../../.. rev-parse HEAD || true
   } > "${DIAG_DIR}/environment.txt" 2>&1
-
-  php -i > "${DIAG_DIR}/php-info.txt" 2>&1 || true
 }
 
+generate_request_signature_feature() {
+  cat > "${FEATURE_FILE}" <<'EOF'
+Feature: PHP crash focused request-signature stress
+
+  Scenario: Repeated request-signature calls in one PHP server process
+    Given as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required"}]} |
+    And the response should have a status code 200
+EOF
+
+  for i in $(seq 1 "${REQUESTS}"); do
+    cat >> "${FEATURE_FILE}" <<EOF
+    # request ${i}
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
+      | signers | [{"identifyMethods":[{"method":"email","value":"signer${i}@domain.test"}]}] |
+      | name | stress-document-${i} |
+    And the response should have a status code 200
+EOF
+  done
+}
+
+generate_validate_feature() {
+  cat > "${FEATURE_FILE}" <<'EOF'
+Feature: PHP crash focused validate-uuid stress
+
+  Scenario: Repeated validate-uuid calls in one PHP server process
+    Given as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required"}]} |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
+      | signers | [{"identifyMethods":[{"method":"email","value":"validate-stress@domain.test"}]}] |
+      | name | validate-stress-document |
+    And the response should have a status code 200
+    And fetch field "(FILE_UUID)ocs.data.uuid" from previous JSON response
+EOF
+
+  for i in $(seq 1 "${REQUESTS}"); do
+    cat >> "${FEATURE_FILE}" <<EOF
+    # request ${i}
+    And sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<FILE_UUID>"
+    And the response should have a status code 200
+EOF
+  done
+}
+
+case "${FLOW}" in
+  request-signature)
+    generate_request_signature_feature
+    ;;
+  validate-uuid)
+    generate_validate_feature
+    ;;
+  *)
+    echo "Unknown STRESS_FLOW: ${FLOW}" >&2
+    exit 2
+    ;;
+esac
+
 capture_environment
+cp "${FEATURE_FILE}" "${DIAG_DIR}/generated.feature"
 
-echo "Controlled reproducer: ${ITERATIONS} full-suite iteration(s)"
+echo "Focused reproducer"
+echo "Flow: ${FLOW}"
+echo "Requests: ${REQUESTS}"
+echo "Imagick: $(php -r 'echo extension_loaded("imagick") ? "on" : "off";')"
 echo "PHP built-in workers: ${BEHAT_WORKERS:-unset}"
-echo "Watchdog: ${BEHAT_NO_PROGRESS_TIMEOUT:-120}s without Behat/server progress, ${BEHAT_MAX_RUN_SECONDS:-600}s maximum per suite"
 
-for iteration in $(seq 1 "${ITERATIONS}"); do
-  iteration_dir="${DIAG_DIR}/iteration-${iteration}"
-  printf '[%s] full-suite iteration %d/%d workers=%s\n'     "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"     "${iteration}"     "${ITERATIONS}"     "${BEHAT_WORKERS:-unset}" | tee -a "${SUMMARY_FILE}"
+run_dir="${DIAG_DIR}/run"
+printf '[%s] flow=%s requests=%s imagick=%s workers=%s\n' \
+  "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+  "${FLOW}" \
+  "${REQUESTS}" \
+  "$(php -r 'echo extension_loaded("imagick") ? "on" : "off";')" \
+  "${BEHAT_WORKERS:-unset}" | tee -a "${SUMMARY_FILE}"
 
-  bash "${WATCHDOG}" "${iteration_dir}" -- vendor/bin/behat -f pretty --colors --stop-on-failure
-  status=$?
+bash "${WATCHDOG}" "${run_dir}" -- vendor/bin/behat "${FEATURE_FILE}" -f pretty --colors --stop-on-failure
+status=$?
 
-  if [ "${status}" -ne 0 ]; then
-    printf 'FAILED full-suite iteration=%d status=%d workers=%s\n'       "${iteration}" "${status}" "${BEHAT_WORKERS:-unset}" | tee -a "${SUMMARY_FILE}"
-    echo "${iteration}" > "${DIAG_DIR}/failed-iteration.txt"
-    echo "${status}" > "${DIAG_DIR}/behat-exit-status.txt"
+echo "${status}" > "${DIAG_DIR}/behat-exit-status.txt"
 
-    if [ -f "../../../../data/nextcloud.log" ]; then
-      cp "../../../../data/nextcloud.log" "${DIAG_DIR}/nextcloud.log"
-    fi
+if [ -f "../../../../data/nextcloud.log" ]; then
+  cp "../../../../data/nextcloud.log" "${DIAG_DIR}/nextcloud.log"
+fi
 
-    exit "${status}"
-  fi
+if [ "${status}" -ne 0 ]; then
+  printf 'FAILED flow=%s status=%d\n' "${FLOW}" "${status}" | tee -a "${SUMMARY_FILE}"
+  exit "${status}"
+fi
 
-  printf 'PASS full-suite iteration=%d workers=%s\n'     "${iteration}" "${BEHAT_WORKERS:-unset}" | tee -a "${SUMMARY_FILE}"
-done
-
-echo "No failure reproduced after ${ITERATIONS} iteration(s), workers=${BEHAT_WORKERS:-unset}."
+printf 'PASS flow=%s requests=%s\n' "${FLOW}" "${REQUESTS}" | tee -a "${SUMMARY_FILE}"
