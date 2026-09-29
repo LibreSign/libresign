@@ -370,7 +370,9 @@ async function saveSigner() {
 		description: description.value.trim() || undefined,
 		participantRole,
 		...(identifyMethod.value === 'email' ? { email: identify.value } : {}),
-		...(showGeolocationRequirementToggle.value
+		// Persist the toggle whenever it is on, even if the checkbox was hidden
+		// after the user flipped it (for example when file metadata refreshes).
+		...(deviceGeolocationRequired.value || showGeolocationRequirementToggle.value
 			? { deviceGeolocationRequired: deviceGeolocationRequired.value }
 			: {}),
 		status: SIGN_REQUEST_STATUS.DRAFT,

@@ -768,7 +768,7 @@ describe('IdentifySigner rules', () => {
 			})
 		})
 
-		it('does not send deviceGeolocationRequired when mode is not optional', async () => {
+		it('still sends deviceGeolocationRequired when the toggle value is true even if mode is not optional', async () => {
 			policiesStore.getEffectiveValue.mockReturnValue({ mode: 'disabled' })
 			wrapper = createWrapper()
 			wrapper.vm.identifyMethod = 'email'
@@ -778,10 +778,11 @@ describe('IdentifySigner rules', () => {
 
 			await wrapper.vm.saveSigner()
 
-			const payload = filesStore.saveOrUpdateSignatureRequest.mock.calls[0]?.[0] as {
-				signers: Array<Record<string, unknown>>
-			}
-			expect(payload.signers[0]).not.toHaveProperty('deviceGeolocationRequired')
+			expect(filesStore.saveOrUpdateSignatureRequest).toHaveBeenCalledWith({
+				signers: [expect.objectContaining({
+					deviceGeolocationRequired: true,
+				})],
+			})
 		})
 
 		it('restores the toggle from frozen signer metadata when editing', () => {
