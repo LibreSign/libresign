@@ -733,6 +733,7 @@ const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 		// Close the active sign confirmation first; stacked NcDialogs hide the privacy prompt.
 		ensureServices()
 		actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
+		await nextTick()
 		showGeolocationPrivacyDialog.value = true
 		return
 	}
