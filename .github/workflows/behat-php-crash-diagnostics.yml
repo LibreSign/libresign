@@ -155,6 +155,10 @@ jobs:
           BEHAT_RUN_AS: runner
           BEHAT_VERBOSE: '1'
         run: |
+          # Resource limits are per shell. Set this in the shell that actually
+          # starts Behat/PHP so a native crash can produce a direct core file.
+          ulimit -c unlimited
+          echo "core_limit=$(ulimit -c)"
           bash scripts/stress-behat-crash.sh
 
       - name: Upload crash diagnostics
