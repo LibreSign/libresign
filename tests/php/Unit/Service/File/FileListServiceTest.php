@@ -1169,6 +1169,28 @@ final class FileListServiceTest extends TestCase {
 		return $element;
 	}
 
+	public function testEnrichValidatedFileSignersGeolocationMetadataAddsFrozenRequirement(): void {
+		$signRequest = $this->createSigner(100, 1);
+		$signRequest->setMetadata(['deviceGeolocationRequirement' => 'required']);
+
+		$this->signRequestMapper->method('getById')->with(100)->willReturn($signRequest);
+		$this->user->method('getUID')->willReturn('admin');
+
+		$file = [
+			'requested_by' => ['userId' => 'admin', 'displayName' => 'Admin'],
+			'signers' => [[
+				'signRequestId' => 100,
+				'me' => true,
+				'displayName' => 'Admin',
+			]],
+		];
+
+		$service = $this->getService();
+		$result = $service->enrichValidatedFileSignersGeolocationMetadata($file, $this->user);
+
+		$this->assertSame('required', $result['signers'][0]['metadata']['deviceGeolocationRequirement']);
+	}
+
 	private function createIdentifyMethod(string $key, string $value): \OCA\Libresign\Db\IdentifyMethod {
 		$method = new \OCA\Libresign\Db\IdentifyMethod();
 		$method->setIdentifierKey($key);

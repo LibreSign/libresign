@@ -689,12 +689,46 @@ class FileService {
 			if (isset($signerData['visibleElements'])) {
 				$summary['visibleElements'] = $signerData['visibleElements'];
 			}
+			if (!empty($signerData['me'])) {
+				$summary['me'] = true;
+			}
+			if (!empty($signerData['sign_request_uuid']) && is_string($signerData['sign_request_uuid'])) {
+				$summary['sign_request_uuid'] = $signerData['sign_request_uuid'];
+			}
+			$geolocationMetadata = $this->filterSignerGeolocationMetadata($signerData['metadata'] ?? null);
+			if ($geolocationMetadata !== []) {
+				$summary['metadata'] = $geolocationMetadata;
+			}
 
 			/** @var LibresignValidatedChildSigner $summary */
 			$summaries[] = $summary;
 		}
 
 		return $summaries;
+	}
+
+	/**
+	 * @return array{
+	 *     deviceGeolocationRequirement?: string,
+	 *     geolocation?: array<string, mixed>,
+	 * }
+	 */
+	private function filterSignerGeolocationMetadata(mixed $metadata): array {
+		if (!is_array($metadata)) {
+			return [];
+		}
+
+		$filtered = [];
+		$requirement = $metadata['deviceGeolocationRequirement'] ?? null;
+		if ($requirement === 'disabled' || $requirement === 'required') {
+			$filtered['deviceGeolocationRequirement'] = $requirement;
+		}
+		$geolocation = $metadata['geolocation'] ?? null;
+		if (is_array($geolocation) && $geolocation !== []) {
+			$filtered['geolocation'] = $geolocation;
+		}
+
+		return $filtered;
 	}
 
 	/**
