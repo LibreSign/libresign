@@ -21,14 +21,23 @@ concurrency:
 
 jobs:
   stress:
-    name: PHP 8.3 / workers=${{ matrix.workers }}
+    name: PHP 8.3 / workers=${{ matrix.workers }} / extensions=${{ matrix.extension_mode }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
 
     strategy:
       fail-fast: false
       matrix:
-        workers: [0, 2]
+        include:
+          - workers: 0
+            extension_mode: default
+            php_extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, imagick
+          - workers: 2
+            extension_mode: default
+            php_extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, imagick
+          - workers: 2
+            extension_mode: minimal
+            php_extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, imagick
 
     services:
       mysql:
@@ -88,7 +97,7 @@ jobs:
         with:
           php-version: ${{ env.PHP_VERSION }}
           tools: phpunit
-          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, imagick
+          extensions: ${{ matrix.php_extensions }}
           coverage: none
           ini-file: development
           ini-values: disable_functions=
@@ -167,13 +176,14 @@ jobs:
           ulimit -c unlimited
           echo "core_limit=$(ulimit -c)"
           echo "workers=${BEHAT_WORKERS}"
+          echo "extension_mode=${{ matrix.extension_mode }}"
           bash scripts/stress-behat-crash.sh
 
       - name: Upload crash diagnostics
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: behat-php-crash-diagnostics-workers-${{ matrix.workers }}-${{ github.run_id }}
+          name: behat-php-crash-diagnostics-workers-${{ matrix.workers }}-extensions-${{ matrix.extension_mode }}-${{ github.run_id }}
           path: |
             behat-crash-diagnostics/
             php-runtime-metadata/
