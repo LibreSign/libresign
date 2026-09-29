@@ -1,0 +1,174 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Behat PHP crash diagnostics
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/behat-php-crash-diagnostics.yml'
+      - 'tests/integration/scripts/stress-behat-crash.sh'
+  workflow_dispatch:
+    inputs:
+      iterations:
+        description: Number of repetitions
+        required: false
+        default: '100'
+      scenario:
+        description: Behat scenario name to repeat
+        required: false
+        default: 'Return a list with 3 pages'
+      workers:
+        description: PHP built-in server workers
+        required: false
+        default: '2'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: behat-php-crash-diagnostics-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  stress:
+    name: Stress known Behat crash path
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    services:
+      mysql:
+        image: ghcr.io/nextcloud/continuous-integration-mysql-8.1:latest
+        ports:
+          - 4444:3306/tcp
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+        options: --health-cmd="mysqladmin ping" --health-interval 5s --health-timeout 2s --health-retries 10
+      mailpit:
+        image: axllent/mailpit
+        ports:
+          - 8025:8025/tcp
+          - 1025:1025/tcp
+
+    env:
+      APP_NAME: libresign
+      PHP_VERSION: '8.4'
+      NEXTCLOUD_REF: 5d6fdcb28fb170c2725f23661366d74ac978ef41
+      NOTIFICATIONS_REF: addebde43e30da3d56418bb9c597997ed05a4b00
+      ACTIVITY_REF: 635b4b4ae103ca4111dea417486aac92214906bd
+      GUESTS_REF: c9427b60e751108922a2ee724ea472d9d64e3203
+      STRESS_ITERATIONS: ${{ inputs.iterations || '100' }}
+      STRESS_SCENARIO: ${{ inputs.scenario || 'Return a list with 3 pages' }}
+      BEHAT_WORKERS: ${{ inputs.workers || '2' }}
+
+    steps:
+      - name: Install system and crash diagnostics
+        run: |
+          sudo apt update
+          sudo apt install -y poppler-utils gdb systemd-coredump lsof procps
+          ulimit -c unlimited
+
+          # Prefer a direct core file so post-mortem GDB does not depend on
+          # systemd-coredump being active on the hosted runner. Keep
+          # coredumpctl installed as an additional source when available.
+          sudo sysctl -w kernel.core_pattern='/tmp/core.%e.%p.%t' || true
+
+          echo "core_pattern=$(cat /proc/sys/kernel/core_pattern)"
+          echo "core_uses_pid=$(cat /proc/sys/kernel/core_uses_pid)"
+
+      - name: Checkout pinned Nextcloud server
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: true
+          repository: nextcloud/server
+          ref: ${{ env.NEXTCLOUD_REF }}
+
+      - name: Checkout LibreSign under test
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: true
+          path: apps/${{ env.APP_NAME }}
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: phpunit
+          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, imagick
+          coverage: none
+          ini-file: development
+          ini-values: disable_functions=
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare LibreSign dependencies
+        working-directory: apps/${{ env.APP_NAME }}
+        run: |
+          composer remove nextcloud/ocp --dev --no-scripts
+          composer install --no-dev
+          composer --working-dir=tests/integration install
+
+      - name: Install pinned Nextcloud apps
+        run: |
+          git clone https://github.com/nextcloud/notifications apps/notifications
+          git -C apps/notifications checkout "${NOTIFICATIONS_REF}"
+          composer --working-dir=apps/notifications install --no-dev
+
+          git clone https://github.com/nextcloud/activity apps/activity
+          git -C apps/activity checkout "${ACTIVITY_REF}"
+          composer --working-dir=apps/activity install --no-dev
+
+          git clone https://github.com/nextcloud/guests apps/guests
+          git -C apps/guests checkout "${GUESTS_REF}"
+          composer --working-dir=apps/guests install --no-dev
+
+      - name: Set up Nextcloud
+        env:
+          DB_PORT: 4444
+        run: |
+          echo "127.0.0.1 mailpit" | sudo tee -a /etc/hosts
+          mkdir data
+          ./occ maintenance:install \
+            --verbose \
+            --database=mysql \
+            --database-name=nextcloud \
+            --database-host=127.0.0.1 \
+            --database-port=${DB_PORT} \
+            --database-user=root \
+            --database-pass=rootpassword \
+            --admin-user=admin \
+            --admin-pass=admin
+
+          ./occ --version
+          ./occ app:enable --force "${APP_NAME}"
+          ./occ app:enable --force notifications
+          ./occ app:enable --force activity
+          ./occ app:enable --force guests
+          ./occ config:system:set allow_local_remote_servers --value true --type boolean
+          ./occ config:system:set auth.bruteforce.protection.enabled --value false --type boolean
+          ./occ config:system:set mail_smtphost --value mailpit
+          ./occ config:system:set mail_smtpport --value 1025 --type integer
+          ./occ config:system:set ratelimit.protection.enabled --value false --type boolean
+          ./occ config:app:set dav enableDefaultContact --value false --type boolean
+
+      - name: Run stress reproducer
+        working-directory: apps/${{ env.APP_NAME }}/tests/integration
+        env:
+          BEHAT_ROOT_DIR: ../../../../
+          BEHAT_RUN_AS: runner
+          BEHAT_VERBOSE: '1'
+        run: |
+          bash scripts/stress-behat-crash.sh
+
+      - name: Upload crash diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: behat-php-crash-diagnostics-${{ github.run_id }}
+          path: |
+            behat-crash-diagnostics/
+            /tmp/behat-php-server-*
+            /tmp/core.*
+          if-no-files-found: warn
