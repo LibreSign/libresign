@@ -730,6 +730,9 @@ const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 
 	if (requiresDeviceGeolocation.value && !collectedGeolocation.value) {
 		pendingSignMethodConfig.value = methodConfig
+		// Close the active sign confirmation first; stacked NcDialogs hide the privacy prompt.
+		ensureServices()
+		actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
 		showGeolocationPrivacyDialog.value = true
 		return
 	}
