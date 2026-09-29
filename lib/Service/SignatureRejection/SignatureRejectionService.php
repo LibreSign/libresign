@@ -122,8 +122,9 @@ class SignatureRejectionService {
 
 			if ($workflowCanceled) {
 				$this->cancelWorkflow($libreSignFile);
+				$activatedSigners = [];
 			} else {
-				$this->releaseNextSigningOrders($libreSignFile, $signRequests);
+				$activatedSigners = $this->releaseNextSigningOrders($libreSignFile, $signRequests);
 			}
 
 			$this->db->commit();
@@ -137,6 +138,16 @@ class SignatureRejectionService {
 
 			// TRANSLATORS Error shown when the rejection could not be saved and nothing was changed.
 			throw new LibresignException($this->l10n->t('It was not possible to register the rejection. Nothing was changed.'));
+		}
+
+		// The activation is committed at this point, so the signers it released
+		// are only told about it now. Notifying inside the transaction would
+		// deliver a message for an activation that a later failure rolls back,
+		// and a failing listener must not undo a recorded rejection.
+		try {
+			$this->sequentialSigningService->notifyActivatedSigners($activatedSigners);
+		} catch (\Throwable $e) {
+			$this->logger->error('Error notifying the signers released by the rejection: ' . $e->getMessage(), ['exception' => $e]);
 		}
 	}
 
@@ -187,19 +198,26 @@ class SignatureRejectionService {
 	 * forever.
 	 *
 	 * @param list<SignRequestEntity> $rejectedSignRequests
+	 * @return list<SignRequestEntity> The signers activated on every document.
 	 */
-	private function releaseNextSigningOrders(FileEntity $libreSignFile, array $rejectedSignRequests): void {
+	private function releaseNextSigningOrders(FileEntity $libreSignFile, array $rejectedSignRequests): array {
+		$activatedSigners = [];
+
 		foreach ($rejectedSignRequests as $rejected) {
 			$document = $rejected->getFileId() === $libreSignFile->getId()
 				? $libreSignFile
 				: $this->fileMapper->getById($rejected->getFileId());
-			$this->sequentialSigningService
+			foreach ($this->sequentialSigningService
 				->setFile($document)
-				->releaseNextOrder(
+				->activateNextOrder(
 					$rejected->getFileId(),
 					$rejected->getSigningOrder()
-				);
+				) as $activated) {
+				$activatedSigners[] = $activated;
+			}
 		}
+
+		return $activatedSigners;
 	}
 
 	/**

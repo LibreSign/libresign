@@ -213,6 +213,62 @@ final class SequentialSigningServiceTest extends TestCase {
 		$this->service->releaseNextOrder(99, $completedOrder);
 	}
 
+	public function testActivateNextOrderReturnsTheActivatedSignersWithoutNotifyingThem(): void {
+		$file = $this->createMock(FileEntity::class);
+		$file->method('getSignatureFlowEnum')
+			->willReturn(SignatureFlow::ORDERED_NUMERIC);
+		$this->service->setFile($file);
+
+		$signRequests = $this->buildSignRequests([
+			[1, SignRequestStatus::SIGNED, 1],
+			[2, SignRequestStatus::DRAFT, 2],
+			[3, SignRequestStatus::DRAFT, 2],
+		]);
+		$this->signRequestMapper->expects($this->once())
+			->method('getByFileId')
+			->with(99)
+			->willReturn($signRequests);
+
+		$this->signRequestMapper->expects($this->exactly(2))
+			->method('update')
+			->with($this->callback(fn (SignRequest $request): bool => $request->getStatusEnum() === SignRequestStatus::ABLE_TO_SIGN));
+
+		$this->identifyMethodService->expects($this->never())->method('getIdentifyMethodsFromSignRequestId');
+
+		$activated = $this->service->activateNextOrder(99, 1);
+
+		$this->assertCount(2, $activated);
+		$this->assertSame([2, 3], array_map(fn (SignRequest $request): int => $request->getId(), $activated));
+	}
+
+	public function testNotifyActivatedSignersNotifiesEverySignerItReceives(): void {
+		$this->service->setFile($this->createMock(FileEntity::class));
+
+		$identifyMethod = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$identifyMethod->expects($this->exactly(2))
+			->method('willNotifyUser')
+			->with(true);
+		$identifyMethod->expects($this->exactly(2))
+			->method('notify');
+
+		$this->identifyMethodService->expects($this->exactly(2))
+			->method('getIdentifyMethodsFromSignRequestId')
+			->willReturn([[$identifyMethod]]);
+
+		$this->service->notifyActivatedSigners($this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
+			[3, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]));
+	}
+
+	public function testNotifyActivatedSignersIsANoOpWithoutActivatedSigners(): void {
+		$this->service->setFile($this->createMock(FileEntity::class));
+
+		$this->identifyMethodService->expects($this->never())->method('getIdentifyMethodsFromSignRequestId');
+
+		$this->service->notifyActivatedSigners([]);
+	}
+
 	public function testReorderAfterDeletionSkipsWhenNotOrdered(): void {
 		$file = $this->createMock(FileEntity::class);
 		$file->method('getSignatureFlowEnum')

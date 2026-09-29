@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Enum\SignRequestStatus;
@@ -69,22 +70,54 @@ class SequentialSigningService {
 	 * @param int $completedOrder The order that was just completed
 	 */
 	public function releaseNextOrder(int $fileId, int $completedOrder): void {
+		$this->notifyActivatedSigners($this->activateNextOrder($fileId, $completedOrder));
+	}
+
+	/**
+	 * Same as releaseNextOrder(), but it only persists the activation and returns
+	 * the signers it activated instead of notifying them.
+	 *
+	 * A caller running inside a transaction must collect the returned signers and
+	 * call notifyActivatedSigners() only after the commit: a notification sent
+	 * before the commit is already delivered when a rollback reverts the
+	 * activation it announced.
+	 *
+	 * @return list<SignRequestEntity> The signers moved to ABLE_TO_SIGN.
+	 */
+	public function activateNextOrder(int $fileId, int $completedOrder): array {
 		if (!$this->isOrderedNumericFlow()) {
-			return;
+			return [];
 		}
 
 		$allSignRequests = $this->signRequestMapper->getByFileId($fileId);
 
 		if (!$this->isOrderFullyCompleted($allSignRequests, $completedOrder)) {
-			return;
+			return [];
 		}
 
 		$nextOrder = $this->findNextOrder($allSignRequests, $completedOrder);
 		if ($nextOrder === null) {
-			return;
+			return [];
 		}
 
-		$this->activateSignersForOrder($allSignRequests, $nextOrder);
+		return $this->activateSignersForOrder($allSignRequests, $nextOrder);
+	}
+
+	/**
+	 * Notify the signers returned by activateNextOrder().
+	 *
+	 * @param list<SignRequestEntity> $signers
+	 */
+	public function notifyActivatedSigners(array $signers): void {
+		foreach ($signers as $signer) {
+			$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId());
+			foreach ($identifyMethods as $methodGroup) {
+				foreach ($methodGroup as $identifyMethod) {
+					$identifyMethod->willNotifyUser(true);
+					$identifyMethod->notify();
+				}
+			}
+		}
 	}
 
 	/**
@@ -111,7 +144,7 @@ class SequentialSigningService {
 			if ($previousOrder > 0 && $this->isOrderFullyCompleted($allSignRequests, $previousOrder)) {
 				$nextOrder = $this->findNextOrder($allSignRequests, $deletedOrder);
 				if ($nextOrder !== null) {
-					$this->activateSignersForOrder($allSignRequests, $nextOrder);
+					$this->notifyActivatedSigners($this->activateSignersForOrder($allSignRequests, $nextOrder));
 				}
 			}
 		}
@@ -151,7 +184,12 @@ class SequentialSigningService {
 		return null;
 	}
 
-	private function activateSignersForOrder(array $signRequests, int $order): void {
+	/**
+	 * @param list<SignRequestEntity> $signRequests
+	 * @return list<SignRequestEntity> The signers moved to ABLE_TO_SIGN.
+	 */
+	private function activateSignersForOrder(array $signRequests, int $order): array {
+		$activated = [];
 		$signersToActivate = array_filter(
 			$signRequests,
 			fn ($sr) => $this->isSigningParticipant($sr)
@@ -162,16 +200,11 @@ class SequentialSigningService {
 			if ($signer->getStatusEnum() === SignRequestStatus::DRAFT) {
 				$signer->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
 				$this->signRequestMapper->update($signer);
-
-				$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId());
-				foreach ($identifyMethods as $methodGroup) {
-					foreach ($methodGroup as $identifyMethod) {
-						$identifyMethod->willNotifyUser(true);
-						$identifyMethod->notify();
-					}
-				}
+				$activated[] = $signer;
 			}
 		}
+
+		return $activated;
 	}
 
 	private function getSignatureFlow(): SignatureFlow {
