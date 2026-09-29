@@ -87,7 +87,7 @@ jobs:
       - name: Install system and PHP crash diagnostics
         run: |
           sudo apt update
-          sudo apt install -y poppler-utils gdb systemd-coredump lsof procps
+          sudo apt install -y poppler-utils gdb systemd-coredump lsof procps psmisc strace iproute2
           sudo sysctl -w kernel.core_pattern='/tmp/core.%e.%p.%t' || true
           echo "core_pattern=$(cat /proc/sys/kernel/core_pattern)"
 
@@ -166,56 +166,30 @@ jobs:
           ./occ config:system:set ratelimit.protection.enabled --value false --type boolean
           ./occ config:app:set dav enableDefaultContact --value false --type boolean
 
-      - name: Run behat
+      - name: Run behat with watchdog
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
         env:
           BEHAT_ROOT_DIR: ../../../../
           BEHAT_RUN_AS: runner
           BEHAT_VERBOSE: '1'
+          BEHAT_NO_OUTPUT_TIMEOUT: '180'
+          BEHAT_MAX_RUN_SECONDS: '1200'
         run: |
           ulimit -c unlimited
           echo "core_limit=$(ulimit -c)"
-          vendor/bin/behat -f junit -f pretty --colors
+          bash scripts/run-behat-with-watchdog.sh behat-native-diagnostics -- \
+            vendor/bin/behat -f junit -f pretty --colors
 
       - name: Print logs
         if: always()
         run: |
           cat data/nextcloud.log
 
-      - name: Collect PHP crash diagnostics
+      - name: Collect final PHP diagnostics
         if: failure()
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
         run: |
-          mkdir -p behat-native-diagnostics
-          {
-            echo "== core limit =="
-            ulimit -c
-            echo "== core pattern =="
-            cat /proc/sys/kernel/core_pattern || true
-            echo "== PHP processes =="
-            ps -eo pid,ppid,pgid,sid,user,stat,etime,rss,vsz,pcpu,pmem,args | grep '[p]hp' || true
-            echo "== coredumpctl list =="
-            sudo coredumpctl --no-pager list || true
-            echo "== coredumpctl info for php =="
-            sudo coredumpctl --no-pager info php || true
-            echo "== kernel messages =="
-            sudo dmesg --ctime | tail -n 300 || true
-          } > behat-native-diagnostics/system-state.txt 2>&1
-
-          php_bin="$(command -v php)"
-          found=0
-          for core in /tmp/core.*; do
-            [ -f "$core" ] || continue
-            found=1
-            base="$(basename "$core")"
-            cp "$core" "behat-native-diagnostics/$base" || true
-            gdb --batch -ex 'set pagination off' -ex 'thread apply all bt full' -ex 'info registers' -ex 'info sharedlibrary' "$php_bin" "$core" > "behat-native-diagnostics/$base.gdb.txt" 2>&1 || true
-          done
-          if [ "$found" -eq 0 ]; then
-            echo "No direct core file found in /tmp." > behat-native-diagnostics/no-direct-core.txt
-          fi
-
-          sudo timeout 20s coredumpctl --no-pager --quiet debug php --debugger-arguments="-batch -ex 'set pagination off' -ex 'thread apply all bt full' -ex 'info registers' -ex 'info sharedlibrary'" > behat-native-diagnostics/coredumpctl-gdb.txt 2>&1 || true
+          bash scripts/collect-php-server-diagnostics.sh behat-native-diagnostics/final workflow-failure || true
 
       - name: Upload PHP server diagnostics
         if: failure()
