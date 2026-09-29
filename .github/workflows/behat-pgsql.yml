@@ -92,7 +92,9 @@ jobs:
           sudo apt update
           sudo apt install -y poppler-utils gdb systemd-coredump lsof procps psmisc strace iproute2
           sudo sysctl -w kernel.core_pattern='/tmp/core.%e.%p.%t' || true
+          sudo sysctl -w kernel.yama.ptrace_scope=0 || true
           echo "core_pattern=$(cat /proc/sys/kernel/core_pattern)"
+          echo "ptrace_scope=$(cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null || true)"
 
       - name: Checkout server
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
