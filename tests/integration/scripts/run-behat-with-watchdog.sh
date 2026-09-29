@@ -32,6 +32,29 @@ terminate_tree() {
   fi
 }
 
+process_alive() {
+  local pid="$1"
+  local state
+
+  state="$(ps -o stat= -p "${pid}" 2>/dev/null | tr -d ' ' || true)"
+  [ -n "${state}" ] && [ "${state#Z}" = "${state}" ]
+}
+
+live_child_count() {
+  local parent="$1"
+  local count=0
+  local child
+
+  while IFS= read -r child; do
+    [ -n "${child}" ] || continue
+    if process_alive "${child}"; then
+      count=$((count + 1))
+    fi
+  done < <(pgrep -P "${parent}" 2>/dev/null || true)
+
+  printf '%s\n' "${count}"
+}
+
 latest_server_pid() {
   local pid_file
   pid_file="$(ls -1t /tmp/behat-php-server-*.pid 2>/dev/null | head -n 1 || true)"
@@ -91,7 +114,7 @@ while kill -0 "${command_pid}" 2>/dev/null; do
 
   master_pid="$(latest_server_pid || true)"
   if [ -n "${master_pid}" ]; then
-    if ! kill -0 "${master_pid}" 2>/dev/null; then
+    if ! process_alive "${master_pid}"; then
       reason="php-server-master-exited-pid-${master_pid}"
       sleep 1
       capture_and_stop "post" "${reason}"
@@ -99,7 +122,7 @@ while kill -0 "${command_pid}" 2>/dev/null; do
     fi
 
     if [ "${EXPECTED_WORKERS}" -gt 0 ] && [ $((now - start_epoch)) -gt 10 ]; then
-      live_workers="$(pgrep -P "${master_pid}" 2>/dev/null | wc -l | tr -d ' ')"
+      live_workers="$(live_child_count "${master_pid}")"
       if [ "${live_workers}" -lt "${EXPECTED_WORKERS}" ]; then
         reason="php-worker-count-dropped-${live_workers}-of-${EXPECTED_WORKERS}"
         capture_and_stop "live" "${reason}"
