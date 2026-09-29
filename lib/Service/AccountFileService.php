@@ -15,7 +15,6 @@ use OCA\Libresign\Enum\FileStatus;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\File;
 use OCP\Files\NotFoundException;
-use Throwable;
 
 class AccountFileService {
 	public function __construct(
@@ -43,7 +42,7 @@ class AccountFileService {
 	/**
 	 * Resolve a document UUID to its signed or original PDF node.
 	 *
-	 * @throws Throwable
+	 * @throws DoesNotExistException When the document or its file node cannot be found.
 	 */
 	public function getPdfByUuid(string $uuid): File {
 		$fileData = $this->fileMapper->getByUuid($uuid);
@@ -66,6 +65,9 @@ class AccountFileService {
 		}
 	}
 
+	/**
+	 * @throws DoesNotExistException When the file node cannot be found.
+	 */
 	public function getFileByNodeId(int $nodeId): File {
 		try {
 			return $this->folderService->getFileByNodeId($nodeId);
