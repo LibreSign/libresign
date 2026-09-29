@@ -465,15 +465,11 @@ class AccountService {
 				throw new \Exception($this->l10n->t('Invalid URL file'));
 			}
 			$response = $this->clientService->newClient()->get($data['file']['url']);
-			$contentType = $response->getHeader('Content-Type');
-			if ($contentType !== 'image/png') {
-				throw new \Exception($this->l10n->t('Visible element file must be png.'));
-			}
 			$content = (string)$response->getBody();
 			if (empty($content)) {
 				throw new \Exception($this->l10n->t('Empty file'));
 			}
-			$this->validateHelper->validateBase64($content, ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
+			$this->validateHelper->validateContent($content, ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
 			return $content;
 		}
 		$this->validateHelper->validateBase64($data['file']['base64'], ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
