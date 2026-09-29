@@ -78,12 +78,14 @@ jobs:
           # Split and keep last
           echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
 
-      - name: Install system dependencies
-        run: sudo apt update && sudo apt install poppler-utils
-
-      - name: Install PHP crash diagnostics
-        if: runner.debug == '1'
-        run: sudo apt install -y gdb systemd-coredump
+      - name: Install system and PHP crash diagnostics
+        run: |
+          sudo apt update
+          sudo apt install -y poppler-utils gdb systemd-coredump lsof procps psmisc strace iproute2
+          sudo sysctl -w kernel.core_pattern='/tmp/core.%e.%p.%t' || true
+          sudo sysctl -w kernel.yama.ptrace_scope=0 || true
+          echo "core_pattern=$(cat /proc/sys/kernel/core_pattern)"
+          echo "ptrace_scope=$(cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null || true)"
 
       - name: Checkout server
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -163,32 +165,40 @@ jobs:
           ./occ config:system:set ratelimit.protection.enabled --value false --type boolean
           ./occ config:app:set dav enableDefaultContact --value false --type boolean
 
-      - name: Run behat
+      - name: Run behat with watchdog
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
         env:
           BEHAT_ROOT_DIR: ../../../../
+          BEHAT_RUN_AS: runner
+          BEHAT_VERBOSE: '1'
+          BEHAT_NO_OUTPUT_TIMEOUT: '180'
+          BEHAT_MAX_RUN_SECONDS: '1200'
         run: |
-          export BEHAT_RUN_AS=runner
-          export BEHAT_VERBOSE="$RUNNER_DEBUG"
-          vendor/bin/behat -f junit -f pretty --colors
+          ulimit -c unlimited
+          bash scripts/run-behat-with-watchdog.sh behat-native-diagnostics -- \
+            vendor/bin/behat -f junit -f pretty --colors
 
       - name: Print logs
         if: always()
         run: |
           cat data/nextcloud.log
 
-      - name: List PHP core dumps
-        if: failure() && runner.debug == '1'
+      - name: Collect final PHP diagnostics
+        if: failure()
+        working-directory: apps/${{ env.APP_NAME }}/tests/integration
         run: |
-          sudo coredumpctl --no-pager list || true
+          bash scripts/collect-php-server-diagnostics.sh behat-native-diagnostics/final workflow-failure || true
 
       - name: Upload PHP server diagnostics
-        if: failure() && runner.debug == '1'
+        if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: behat-sqlite-server-diagnostics-php${{ matrix.php-versions }}-nc${{ matrix.server-versions }}
-          path: /tmp/behat-php-server-*
-          if-no-files-found: ignore
+          path: |
+            /tmp/behat-php-server-*
+            /tmp/core.*
+            apps/${{ env.APP_NAME }}/tests/integration/behat-native-diagnostics/
+          if-no-files-found: warn
 
   summary:
     permissions:
