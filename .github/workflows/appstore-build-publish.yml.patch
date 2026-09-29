@@ -14,7 +14,7 @@ diff --git a/.github/workflows/appstore-build-publish.yml b/.github/workflows/ap
  
  permissions:
    contents: write
-@@ -29,25 +35,25 @@
+@@ -29,25 +35,26 @@
          run: |
            # Split and keep last
            echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
@@ -27,6 +27,7 @@ diff --git a/.github/workflows/appstore-build-publish.yml b/.github/workflows/ap
            persist-credentials: false
 +          submodules: true
 +          fetch-tags: true
++          fetch-depth: 0
 +          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.event.release.tag_name }}
            path: ${{ env.APP_NAME }}
  
@@ -50,7 +51,7 @@ diff --git a/.github/workflows/appstore-build-publish.yml b/.github/workflows/ap
        - name: Get appinfo data
          id: appinfo
          uses: skjnldsv/xpath-action@f5b036e9d973f42c86324833fd00be90665fbf77 # v1.0.0
-@@ -134,20 +140,6 @@
+@@ -134,20 +141,6 @@
            cd ${{ env.APP_NAME }}
            krankerl package
  
@@ -71,7 +72,7 @@ diff --git a/.github/workflows/appstore-build-publish.yml b/.github/workflows/ap
        - name: Check server download link for ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
          run: |
            NCVERSION='${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}'
-@@ -172,28 +164,50 @@
+@@ -172,28 +165,67 @@
            repository: nextcloud/server
            path: nextcloud
  
@@ -79,12 +80,29 @@ diff --git a/.github/workflows/appstore-build-publish.yml b/.github/workflows/ap
 +        if: github.event_name == 'workflow_dispatch' && steps.krankerl.outputs.files_exists != 'true'
 +        env:
 +          RECOVERY_WORKFLOW_SHA: ${{ github.sha }}
++          RELEASE_TAG: ${{ env.APP_VERSION }}
 +        run: |
 +          set -euo pipefail
-+          cd ${{ env.APP_NAME }}
-+          git fetch --quiet --depth=1 origin "${RECOVERY_WORKFLOW_SHA}"
-+          git show "${RECOVERY_WORKFLOW_SHA}:Makefile" > Makefile
  
++          case "${GITHUB_REF_NAME}" in
++            stable*) ;;
++            *)
++              echo "::error::Manual release recovery must be dispatched from a stable branch"
++              exit 1
++              ;;
++          esac
++
++          cd ${{ env.APP_NAME }}
++          git fetch --quiet origin "${RECOVERY_WORKFLOW_SHA}"
++
++          tag_sha="$(git rev-parse "refs/tags/${RELEASE_TAG}^{commit}")"
++          if ! git merge-base --is-ancestor "${tag_sha}" "${RECOVERY_WORKFLOW_SHA}"; then
++            echo "::error::${GITHUB_REF_NAME} does not contain ${RELEASE_TAG}; refusing to mix packaging logic across release lines"
++            exit 1
++          fi
++
++          git show "${RECOVERY_WORKFLOW_SHA}:Makefile" > Makefile
++
 +      - name: Package and sign with Makefile
 +        if: steps.krankerl.outputs.files_exists != 'true'
 +        env:
@@ -137,7 +155,7 @@ diff --git a/.github/workflows/appstore-build-publish.yml b/.github/workflows/ap
  
        - name: Attach tarball to github release
          uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # 2.11.5
-@@ -202,7 +216,7 @@
+@@ -202,7 +234,7 @@
            repo_token: ${{ secrets.GITHUB_TOKEN }}
            file: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
            asset_name: ${{ env.APP_NAME }}-${{ env.APP_VERSION }}.tar.gz
@@ -146,7 +164,7 @@ diff --git a/.github/workflows/appstore-build-publish.yml b/.github/workflows/ap
            overwrite: true
  
        - name: Upload app to Nextcloud appstore
-@@ -214,8 +228,8 @@
+@@ -214,8 +246,8 @@
            app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
  
        - name: Verify App Store publication
