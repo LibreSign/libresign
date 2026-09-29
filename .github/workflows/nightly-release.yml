@@ -198,6 +198,8 @@ jobs:
       - name: Verify app store package
         if: steps.krankerl.outputs.files_exists != 'true'
         working-directory: ${{ env.APP_NAME }}
+        env:
+          REQUIRE_SETUP_SIGNATURES: 'true'
         shell: bash
         run: |
           if make -qp 2>/dev/null | grep -q '^verify-appstore-package:'; then
