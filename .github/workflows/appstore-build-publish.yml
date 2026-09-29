@@ -134,26 +134,6 @@ jobs:
           wget https://github.com/ChristophWurst/krankerl/releases/download/v0.14.0/krankerl_0.14.0_amd64.deb
           sudo dpkg -i krankerl_0.14.0_amd64.deb
 
-      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }} with krankerl
-        if: steps.krankerl.outputs.files_exists == 'true'
-        run: |
-          cd ${{ env.APP_NAME }}
-          krankerl package
-
-      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }} with makefile
-        if: steps.krankerl.outputs.files_exists != 'true'
-        run: |
-          cd ${{ env.APP_NAME }}
-          make appstore
-
-      - name: Verify app store package
-        if: steps.krankerl.outputs.files_exists != 'true'
-        working-directory: ${{ env.APP_NAME }}
-        run: |
-          if make -qp 2>/dev/null | grep -q '^verify-appstore-package:'; then
-            make verify-appstore-package
-          fi
-
       - name: Check server download link for ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
         run: |
           NCVERSION='${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}'
@@ -177,6 +157,36 @@ jobs:
           submodules: true
           repository: nextcloud/server
           path: nextcloud
+
+      - name: Prepare setup-signing key
+        if: steps.krankerl.outputs.files_exists != 'true'
+        env:
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+        run: |
+          mkdir -p "${APP_NAME}/build/tools/certificates"
+          printf '%s\n' "$APP_PRIVATE_KEY" > "${APP_NAME}/build/tools/certificates/${APP_NAME}.key"
+
+      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }} with krankerl
+        if: steps.krankerl.outputs.files_exists == 'true'
+        run: |
+          cd ${{ env.APP_NAME }}
+          krankerl package
+
+      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }} with makefile
+        if: steps.krankerl.outputs.files_exists != 'true'
+        run: |
+          cd ${{ env.APP_NAME }}
+          make appstore
+
+      - name: Verify app store package
+        if: steps.krankerl.outputs.files_exists != 'true'
+        working-directory: ${{ env.APP_NAME }}
+        env:
+          REQUIRE_SETUP_SIGNATURES: 'true'
+        run: |
+          if make -qp 2>/dev/null | grep -q '^verify-appstore-package:'; then
+            make verify-appstore-package
+          fi
 
 
       - name: Sign app
