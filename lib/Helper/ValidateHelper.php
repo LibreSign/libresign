@@ -198,29 +198,25 @@ class ValidateHelper {
 			$base64 = $withMime[1];
 		}
 		$string = base64_decode($base64);
-		if (in_array($type, [self::TYPE_VISIBLE_ELEMENT_USER, self::TYPE_VISIBLE_ELEMENT_PDF])) {
-			if (strlen($string) > 5000 * 1024) { // 5Mb
-				// TRANSLATORS Error shown when a visible signature asset (for example a signature or initials image) exceeds the allowed upload size.
-				throw new InvalidArgumentException($this->l10n->t('File is too big'));
-			}
-		}
 		$newBase64 = base64_encode($string);
 		if ($newBase64 !== $base64) {
 			throw new LibresignException($this->l10n->t('File type: %s. Invalid Base64 file.', [$this->getTypeOfFile($type)]));
 		}
 
-		$mimeType = $this->mimeTypeDetector->detectString($string);
+		$this->validateContent($string, $type);
+	}
 
-		if ($type === self::TYPE_TO_SIGN) {
-			if ($mimeType !== 'application/pdf') {
-				// TRANSLATORS Validation error when a Base64-encoded file payload for a signature request is invalid. %s is the localized file-role label.
-				throw new LibresignException($this->l10n->t('File type: %s. Invalid Base64 file.', [$this->getTypeOfFile($type)]));
-			}
-		} elseif ($mimeType !== 'image/png') {
-			if (in_array($type, [self::TYPE_VISIBLE_ELEMENT_USER, self::TYPE_VISIBLE_ELEMENT_PDF])) {
-				// TRANSLATORS Validation error when a Base64-encoded file payload for a signature request is invalid. %s is the localized file-role label.
-				throw new LibresignException($this->l10n->t('File type: %s. Invalid Base64 file.', [$this->getTypeOfFile($type)]));
-			}
+	public function validateContent(string $content, int $type = self::TYPE_TO_SIGN): void {
+		if (in_array($type, [self::TYPE_VISIBLE_ELEMENT_USER, self::TYPE_VISIBLE_ELEMENT_PDF], true) && strlen($content) > 5000 * 1024) {
+			throw new InvalidArgumentException($this->l10n->t('File is too big'));
+		}
+
+		$mimeType = $this->mimeTypeDetector->detectString($content);
+		if ($type === self::TYPE_TO_SIGN && $mimeType !== 'application/pdf') {
+			throw new LibresignException($this->l10n->t('File type: %s. Invalid Base64 file.', [$this->getTypeOfFile($type)]));
+		}
+		if (in_array($type, [self::TYPE_VISIBLE_ELEMENT_USER, self::TYPE_VISIBLE_ELEMENT_PDF], true) && $mimeType !== 'image/png') {
+			throw new LibresignException($this->l10n->t('File type: %s. Invalid Base64 file.', [$this->getTypeOfFile($type)]));
 		}
 	}
 
