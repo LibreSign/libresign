@@ -1,0 +1,62 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Resume release finalization
+run-name: Resume release finalization · PR #${{ inputs.pull_request_number }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: Merged release preparation pull request number to resume.
+        required: true
+        type: number
+
+permissions: {}
+
+concurrency:
+  group: release-automation-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  resume:
+    name: Resume release finalization
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      - id: context
+        name: Resolve release resume context
+        uses: LibreCodeCoop/release-tool/actions/resume-context@eaf60ceaa9113cf32bc8e443520a3efabbb1675d
+        with:
+          pull-request-number: ${{ inputs.pull_request_number }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout merged release branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          ref: ${{ steps.context.outputs.base-ref }}
+
+      - name: Fetch merged release history
+        shell: bash
+        env:
+          RELEASE_BRANCH: ${{ steps.context.outputs.base-ref }}
+        run: |
+          set -euo pipefail
+          git fetch --quiet --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
+
+      - name: Resume merged release finalization
+        uses: LibreCodeCoop/release-tool/actions/post-merge@eaf60ceaa9113cf32bc8e443520a3efabbb1675d
+        with:
+          pull-request-number: ${{ inputs.pull_request_number }}
+          merger: ${{ steps.context.outputs.merger }}
+          config-path: .nextcloud-release.yml
+          prepare-workflow-path: .github/workflows/prepare-release.yml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          app-private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
