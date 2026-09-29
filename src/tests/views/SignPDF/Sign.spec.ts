@@ -191,6 +191,15 @@ vi.mock('@nextcloud/axios', () => {
 	}
 })
 
+vi.mock('vue-router', () => ({
+	useRoute: vi.fn(() => ({
+		params: { uuid: 'test-sign-request-uuid' },
+		query: {},
+		name: 'SignPDF',
+		path: '/f/sign/test-sign-request-uuid/pdf',
+	})),
+}))
+
 // Global mocks for other Nextcloud modules
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path) => `/ocs/v2.php/apps/libresign${path}`),
