@@ -43,6 +43,7 @@ jobs:
           persist-credentials: false
           submodules: true
           fetch-tags: true
+          fetch-depth: 0
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.event.release.tag_name }}
           path: ${{ env.APP_NAME }}
 
@@ -168,10 +169,27 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && steps.krankerl.outputs.files_exists != 'true'
         env:
           RECOVERY_WORKFLOW_SHA: ${{ github.sha }}
+          RELEASE_TAG: ${{ env.APP_VERSION }}
         run: |
           set -euo pipefail
+
+          case "${GITHUB_REF_NAME}" in
+            stable*) ;;
+            *)
+              echo "::error::Manual release recovery must be dispatched from a stable branch"
+              exit 1
+              ;;
+          esac
+
           cd ${{ env.APP_NAME }}
-          git fetch --quiet --depth=1 origin "${RECOVERY_WORKFLOW_SHA}"
+          git fetch --quiet origin "${RECOVERY_WORKFLOW_SHA}"
+
+          tag_sha="$(git rev-parse "refs/tags/${RELEASE_TAG}^{commit}")"
+          if ! git merge-base --is-ancestor "${tag_sha}" "${RECOVERY_WORKFLOW_SHA}"; then
+            echo "::error::${GITHUB_REF_NAME} does not contain ${RELEASE_TAG}; refusing to mix packaging logic across release lines"
+            exit 1
+          fi
+
           git show "${RECOVERY_WORKFLOW_SHA}:Makefile" > Makefile
 
       - name: Package and sign with Makefile
