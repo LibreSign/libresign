@@ -152,6 +152,7 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	await expect(deviceToggle).toBeVisible()
 	await expect(signerDialog.getByText(/IP-based|source IP|approximate location/i)).toHaveCount(0)
 	await deviceToggle.locator('.checkbox-radio-switch__content').click()
+	await expect(deviceToggle.getByRole('switch')).toBeChecked()
 	await signerDialog.getByRole('button', { name: 'Save' }).click()
 
 	await page.getByRole('button', { name: 'Request signatures' }).click()
@@ -168,6 +169,7 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	await page.getByRole('button', { name: 'Sign document' }).first().click()
 	await page.waitForURL('**/f/sign/**/pdf')
 	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15_000 })
+	await expect(page.getByText('Device-reported location is required to sign this document.')).toBeVisible({ timeout: 15_000 })
 
 	const signResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
@@ -176,9 +178,8 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	await clickSignDocumentButton(page)
 
 	const confirmSign = page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' })
-	if (await confirmSign.isVisible().catch(() => false)) {
-		await confirmSign.click()
-	}
+	await expect(confirmSign).toBeVisible({ timeout: 15_000 })
+	await confirmSign.click()
 
 	const privacyDialog = page.getByRole('dialog', { name: 'Device-reported location required' })
 	await expect(privacyDialog).toBeVisible({ timeout: 10_000 })
