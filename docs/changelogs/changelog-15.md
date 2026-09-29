@@ -19,6 +19,27 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 15.0.5 - 2026-09-29
+
+### Changed
+- Update translations
+- Internal maintenance
+- Update dependencies
+
+### Fixed
+- repair legacy metadata and stale distribution points
+  [#8675](https://github.com/LibreSign/libresign/pull/8675)
+- prevent account lookups from reusing another UUID
+  [#8723](https://github.com/LibreSign/libresign/pull/8723)
+- avoid argumentless signing jobs
+  [#8745](https://github.com/LibreSign/libresign/pull/8745)
+- skip JSignPdf when native engine is selected
+  [#8748](https://github.com/LibreSign/libresign/pull/8748)
+- validate downloaded visible element bytes (stable35)
+  [#8820](https://github.com/LibreSign/libresign/pull/8820)
+- include setup integrity metadata in release packages
+  [#8829](https://github.com/LibreSign/libresign/pull/8829)
+
 ## 15.0.4 - 2026-09-22
 
 ### Changed
