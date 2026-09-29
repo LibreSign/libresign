@@ -25,7 +25,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       actions: read
-      contents: write
+      contents: read
       issues: write
       pull-requests: read
     steps:
@@ -60,4 +60,3 @@ jobs:
           prepare-workflow-path: .github/workflows/prepare-release.yml
           github-token: ${{ secrets.GITHUB_TOKEN }}
           app-private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
-          use-caller-token-for-draft: 'true'
