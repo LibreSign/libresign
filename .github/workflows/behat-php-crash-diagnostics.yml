@@ -11,15 +11,6 @@ on:
       - 'tests/integration/scripts/collect-php-server-diagnostics.sh'
       - 'tests/integration/scripts/run-behat-with-watchdog.sh'
   workflow_dispatch:
-    inputs:
-      iterations:
-        description: Number of full-suite repetitions
-        required: false
-        default: '3'
-      workers:
-        description: PHP built-in server workers
-        required: false
-        default: '2'
 
 permissions:
   contents: read
@@ -30,9 +21,14 @@ concurrency:
 
 jobs:
   stress:
-    name: Stress known Behat crash path
+    name: PHP 8.3 / workers=${{ matrix.workers }}
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 25
+
+    strategy:
+      fail-fast: false
+      matrix:
+        workers: [0, 2]
 
     services:
       mysql:
@@ -55,26 +51,22 @@ jobs:
       NOTIFICATIONS_REF: addebde43e30da3d56418bb9c597997ed05a4b00
       ACTIVITY_REF: 635b4b4ae103ca4111dea417486aac92214906bd
       GUESTS_REF: c9427b60e751108922a2ee724ea472d9d64e3203
-      STRESS_ITERATIONS: ${{ inputs.iterations || '3' }}
-      BEHAT_WORKERS: ${{ inputs.workers || '2' }}
-      BEHAT_NO_OUTPUT_TIMEOUT: '180'
-      BEHAT_MAX_RUN_SECONDS: '1200'
+      STRESS_ITERATIONS: '1'
+      BEHAT_WORKERS: ${{ matrix.workers }}
+      BEHAT_NO_PROGRESS_TIMEOUT: '120'
+      BEHAT_MAX_RUN_SECONDS: '600'
 
     steps:
       - name: Install system and crash diagnostics
         run: |
           sudo apt update
-          sudo apt install -y poppler-utils gdb systemd-coredump lsof procps psmisc strace iproute2
-          ulimit -c unlimited
-
-          # Prefer a direct core file so post-mortem GDB does not depend on
-          # systemd-coredump being active on the hosted runner. Keep
-          # coredumpctl installed as an additional source when available.
+          sudo apt install -y poppler-utils gdb systemd-coredump lsof procps psmisc strace iproute2 binutils elfutils
           sudo sysctl -w kernel.core_pattern='/tmp/core.%e.%p.%t' || true
           sudo sysctl -w kernel.yama.ptrace_scope=0 || true
 
           echo "core_pattern=$(cat /proc/sys/kernel/core_pattern)"
           echo "core_uses_pid=$(cat /proc/sys/kernel/core_uses_pid)"
+          echo "ptrace_scope=$(cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null || true)"
 
       - name: Checkout pinned Nextcloud server
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -103,6 +95,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Record PHP binary metadata
+        run: |
+          mkdir -p php-runtime-metadata
+          php -v | tee php-runtime-metadata/php-version.txt
+          php --ini > php-runtime-metadata/php-ini.txt
+          php -m > php-runtime-metadata/php-modules.txt
+          file "$(command -v php)" > php-runtime-metadata/php-file.txt
+          readelf -n "$(command -v php)" > php-runtime-metadata/php-notes.txt 2>&1 || true
+          nm -D "$(command -v php)" | grep -E 'zend_objects_store_del|zend_objects_destroy_object' > php-runtime-metadata/php-zend-symbols.txt 2>&1 || true
+          objdump -d --disassemble=zend_objects_store_del "$(command -v php)" > php-runtime-metadata/zend_objects_store_del.disasm.txt 2>&1 || true
+          ldd "$(command -v php)" > php-runtime-metadata/php-ldd.txt 2>&1 || true
+
       - name: Prepare LibreSign dependencies
         working-directory: apps/${{ env.APP_NAME }}
         run: |
@@ -130,16 +134,7 @@ jobs:
         run: |
           echo "127.0.0.1 mailpit" | sudo tee -a /etc/hosts
           mkdir data
-          ./occ maintenance:install \
-            --verbose \
-            --database=mysql \
-            --database-name=nextcloud \
-            --database-host=127.0.0.1 \
-            --database-port=${DB_PORT} \
-            --database-user=root \
-            --database-pass=rootpassword \
-            --admin-user=admin \
-            --admin-pass=admin
+          ./occ maintenance:install             --verbose             --database=mysql             --database-name=nextcloud             --database-host=127.0.0.1             --database-port=${DB_PORT}             --database-user=root             --database-pass=rootpassword             --admin-user=admin             --admin-pass=admin
 
           ./occ --version
           ./occ app:enable --force "${APP_NAME}"
@@ -153,26 +148,26 @@ jobs:
           ./occ config:system:set ratelimit.protection.enabled --value false --type boolean
           ./occ config:app:set dav enableDefaultContact --value false --type boolean
 
-      - name: Run stress reproducer
+      - name: Run controlled Behat diagnostic
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
         env:
           BEHAT_ROOT_DIR: ../../../../
           BEHAT_RUN_AS: runner
           BEHAT_VERBOSE: '1'
         run: |
-          # Resource limits are per shell. Set this in the shell that actually
-          # starts Behat/PHP so a native crash can produce a direct core file.
           ulimit -c unlimited
           echo "core_limit=$(ulimit -c)"
+          echo "workers=${BEHAT_WORKERS}"
           bash scripts/stress-behat-crash.sh
 
       - name: Upload crash diagnostics
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: behat-php-crash-diagnostics-${{ github.run_id }}
+          name: behat-php-crash-diagnostics-workers-${{ matrix.workers }}-${{ github.run_id }}
           path: |
             behat-crash-diagnostics/
+            php-runtime-metadata/
             /tmp/behat-php-server-*
             /tmp/core.*
           if-no-files-found: warn
