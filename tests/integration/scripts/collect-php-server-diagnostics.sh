@@ -95,18 +95,36 @@ collect_process_snapshot() {
 
 collect_core_backtraces() {
   local php_bin
+  local found=0
   php_bin="$(command -v php)"
 
   for core in /tmp/core.*; do
     [ -f "${core}" ] || continue
     local base
     base="$(basename "${core}")"
+    found=1
 
     cp "${core}" "${OUTPUT_DIR}/cores/${base}" 2>/dev/null || true
-    timeout 20s gdb --batch --quiet       -ex 'set pagination off'       -ex 'set print pretty on'       -ex 'thread apply all bt full'       -ex 'info registers'       -ex 'info sharedlibrary'       -ex 'info proc mappings'       -ex 'info symbol $pc'       -ex 'x/24i $pc-48'       "${php_bin}" "${core}"       > "${OUTPUT_DIR}/cores/${base}.gdb.txt" 2>&1 || true
+    timeout 20s gdb --batch --quiet \
+      -ex 'set pagination off' \
+      -ex 'set print pretty on' \
+      -ex 'thread apply all bt full' \
+      -ex 'info registers' \
+      -ex 'info sharedlibrary' \
+      -ex 'info proc mappings' \
+      -ex 'info symbol $pc' \
+      -ex 'p/x $rdi' \
+      -ex 'x/16gx $rdi' \
+      -ex 'x/24i $pc-48' \
+      "${php_bin}" "${core}" \
+      > "${OUTPUT_DIR}/cores/${base}.gdb.txt" 2>&1 || true
   done
 
-  sudo timeout 20s coredumpctl --no-pager --quiet debug php     --debugger-arguments="-batch -ex 'set pagination off' -ex 'thread apply all bt full' -ex 'info registers' -ex 'info sharedlibrary' -ex 'info proc mappings' -ex 'info symbol \\$pc' -ex 'x/24i \\$pc-48'"     > "${OUTPUT_DIR}/cores/coredumpctl-gdb.txt" 2>&1 || true
+  if [ "${found}" -eq 0 ] && [ "${MODE}" != "live" ]; then
+    sudo timeout 20s coredumpctl --no-pager --quiet debug php \
+      --debugger-arguments="-batch -ex 'set pagination off' -ex 'thread apply all bt full' -ex 'info registers' -ex 'info sharedlibrary' -ex 'info proc mappings' -ex 'info symbol \\$pc' -ex 'p/x \\$rdi' -ex 'x/16gx \\$rdi' -ex 'x/24i \\$pc-48'" \
+      > "${OUTPUT_DIR}/cores/coredumpctl-gdb.txt" 2>&1 || true
+  fi
 }
 
 write_failure_summary() {
