@@ -7,7 +7,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/behat-php-crash-diagnostics.yml'
-      - 'tests/integration/scripts/stress-behat-crash.sh'\n      - 'tests/integration/scripts/collect-php-server-diagnostics.sh'
+      - 'tests/integration/scripts/stress-behat-crash.sh'\n      - 'tests/integration/scripts/collect-php-server-diagnostics.sh'\n      - 'tests/integration/scripts/run-behat-with-watchdog.sh'
   workflow_dispatch:
     inputs:
       iterations:
