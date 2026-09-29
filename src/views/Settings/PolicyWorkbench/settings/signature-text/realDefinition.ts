@@ -13,6 +13,7 @@ import {
 	getDefaultSignatureTextPolicyConfig,
 	normalizeSignatureStampDraftValue,
 	normalizeSignatureTextPolicyConfig,
+	resolveCollectMetadataValue,
 	serializeSignatureTextPolicyConfig,
 } from './model'
 import { signatureStampPersonalPreferenceBehavior } from './personalPreferenceBehavior'
@@ -66,6 +67,27 @@ export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 		allowGroupRuleCreationFromDescendantDelegation: true,
 	},
 	personalPreferenceBehavior: signatureStampPersonalPreferenceBehavior,
+	compound: {
+		compose: (valuesByPolicyKey) => normalizeSignatureStampDraftValue(
+			valuesByPolicyKey.signature_stamp,
+			resolveCollectMetadataValue(valuesByPolicyKey.collect_metadata, false),
+		),
+		decompose: (editorValue): Record<string, EffectivePolicyValue> => {
+			const normalizedValue = normalizeSignatureStampDraftValue(editorValue)
+			const hasCollectMetadataChoice = typeof editorValue === 'object'
+				&& editorValue !== null
+				&& 'collectMetadataEnabled' in editorValue
+
+			if (!hasCollectMetadataChoice) {
+				return { signature_stamp: normalizedValue.signatureStampValue }
+			}
+
+			return {
+				signature_stamp: normalizedValue.signatureStampValue,
+				collect_metadata: normalizedValue.collectMetadataEnabled,
+			}
+		},
+	},
 	editor: SignatureTextRuleEditor,
 	editorProps: {},
 	resolveEditorProps: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => {
