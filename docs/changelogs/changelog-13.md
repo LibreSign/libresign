@@ -19,6 +19,18 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 13.4.4 - 2026-09-29
+
+### Changed
+- Update translations
+- Internal maintenance
+
+### Fixed
+- validate downloaded visible element bytes (stable33)
+  [#8822](https://github.com/LibreSign/libresign/pull/8822)
+- include setup integrity metadata in release packages
+  [#8827](https://github.com/LibreSign/libresign/pull/8827)
+
 ## 13.4.3 - 2026-09-28
 
 ### Changed
