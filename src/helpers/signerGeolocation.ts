@@ -37,6 +37,11 @@ export type DeviceReportedLocation = {
 export type SignerWithGeolocationMetadata = {
 	me?: boolean
 	sign_request_uuid?: string | null
+	/**
+	 * Requester toggle mirrored on editable drafts. When frozen metadata is
+	 * not yet present on the client document, treat `true` as required.
+	 */
+	deviceGeolocationRequired?: boolean
 	metadata?: {
 		deviceGeolocationRequirement?: GeolocationRequirement | string
 		geolocation?: {
@@ -79,6 +84,26 @@ function isMatchingGeolocationSigner(
 	return typeof signer.sign_request_uuid === 'string' && signer.sign_request_uuid === signRequestUuid
 }
 
+function resolveRequirementFromSigner(
+	signer: SignerWithGeolocationMetadata,
+): GeolocationRequirement | undefined {
+	const requirement = signer.metadata?.deviceGeolocationRequirement
+	if (requirement === 'disabled' || requirement === 'required') {
+		return requirement
+	}
+
+	// Editable request drafts keep the requester toggle before validate
+	// responses hydrate frozen metadata onto the signing document.
+	if (signer.deviceGeolocationRequired === true) {
+		return 'required'
+	}
+	if (signer.deviceGeolocationRequired === false) {
+		return 'disabled'
+	}
+
+	return undefined
+}
+
 function resolveRequirementFromSigners(
 	signers: SignerWithGeolocationMetadata[] | undefined,
 	signRequestUuid: string,
@@ -91,8 +116,8 @@ function resolveRequirementFromSigners(
 		if (!isMatchingGeolocationSigner(signer, signRequestUuid)) {
 			continue
 		}
-		const requirement = signer.metadata?.deviceGeolocationRequirement
-		if (requirement === 'disabled' || requirement === 'required') {
+		const requirement = resolveRequirementFromSigner(signer)
+		if (requirement) {
 			return requirement
 		}
 	}

@@ -1657,7 +1657,7 @@ async function confirmRequestSigner() {
 }
 
 async function sign() {
-	await ensureCurrentFileDetail()
+	await ensureCurrentFileDetail(true)
 	const file = filesStore.getFile()
 	if (file?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
 		validationFile()
@@ -1675,7 +1675,14 @@ async function sign() {
 		modalSrc.value = route.href || absoluteUrl
 		return
 	}
-	signStore.setFileToSign(filesStore.getFile())
+	// Prefer a forced validate payload so frozen geolocation metadata is present
+	// before the sign route mounts; drafts may only keep the requester toggle.
+	const detailedFile = await filesStore.fetchFileDetail({
+		fileId: typeof file?.id === 'number' ? file.id : null,
+		uuid,
+		force: true,
+	})
+	signStore.setFileToSign(detailedFile || filesStore.getFile())
 	router.push({ name: 'SignPDF', params: { uuid } })
 }
 

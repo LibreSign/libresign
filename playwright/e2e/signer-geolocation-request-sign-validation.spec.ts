@@ -199,7 +199,25 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	{ timeout: 30_000 })
 	await page.getByRole('button', { name: 'Sign document' }).first().click()
 	await page.waitForURL('**/f/sign/**/pdf')
-	await signDetailResponsePromise
+	const signDetailResponse = await signDetailResponsePromise
+	const signDetailBody = await signDetailResponse.json() as {
+		ocs?: {
+			data?: {
+				signers?: Array<{
+					me?: boolean
+					sign_request_uuid?: string
+					deviceGeolocationRequired?: boolean
+					metadata?: { deviceGeolocationRequirement?: string }
+				}>
+			}
+		}
+	}
+	const currentSigner = signDetailBody.ocs?.data?.signers?.find((signer) => signer.me === true)
+		?? signDetailBody.ocs?.data?.signers?.[0]
+	expect(
+		currentSigner?.metadata?.deviceGeolocationRequirement
+		?? (currentSigner?.deviceGeolocationRequired === true ? 'required' : undefined),
+	).toBe('required')
 	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15_000 })
 	await expect(page.getByText('Device-reported location is required to sign this document.')).toBeVisible({ timeout: 15_000 })
 
