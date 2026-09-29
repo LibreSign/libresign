@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, shallowMount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -318,6 +318,11 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 		wrapper = mountComponent()
 		await flushPromises()
+	})
+
+	afterEach(() => {
+		wrapper.unmount()
+		vi.restoreAllMocks()
 	})
 
 	describe('RULE: showDocMdpWarning when DocMDP level prevents changes', () => {

@@ -1873,6 +1873,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	unsubscribe('libresign:edit-signer', handleEditSigner)
+	debouncedSave.clear()
+	debouncedTabChange.clear()
 	if (stopPollingFunction.value) {
 		stopSigningProgressPolling()
 	}
