@@ -11,6 +11,7 @@ on:
       - 'package-lock.json'
       - 'docs/changelogs/**'
       - 'Makefile'
+      - 'tests/ci/test-release-makefile.sh'
   push:
     branches:
       - main
@@ -22,6 +23,7 @@ on:
       - 'package-lock.json'
       - 'docs/changelogs/**'
       - 'Makefile'
+      - 'tests/ci/test-release-makefile.sh'
 
 permissions:
   contents: read
@@ -47,3 +49,6 @@ jobs:
         env:
           EXPECTED_CHANGELOG: ${{ steps.release.outputs.changelog-path }}
         run: test "$(make -s print-release-changelog)" = "${EXPECTED_CHANGELOG}"
+
+      - name: Verify release packaging recipe
+        run: bash tests/ci/test-release-makefile.sh
