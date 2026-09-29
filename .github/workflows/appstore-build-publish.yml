@@ -134,6 +134,12 @@ jobs:
           wget https://github.com/ChristophWurst/krankerl/releases/download/v0.14.0/krankerl_0.14.0_amd64.deb
           sudo dpkg -i krankerl_0.14.0_amd64.deb
 
+      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }} with krankerl
+        if: steps.krankerl.outputs.files_exists == 'true'
+        run: |
+          cd ${{ env.APP_NAME }}
+          krankerl package
+
       - name: Check server download link for ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
         run: |
           NCVERSION='${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}'
@@ -157,12 +163,6 @@ jobs:
           submodules: true
           repository: nextcloud/server
           path: nextcloud
-
-      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }} with krankerl
-        if: steps.krankerl.outputs.files_exists == 'true'
-        run: |
-          cd ${{ env.APP_NAME }}
-          krankerl package
 
       - name: Package and sign with Makefile
         if: steps.krankerl.outputs.files_exists != 'true'
