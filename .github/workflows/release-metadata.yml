@@ -37,7 +37,7 @@ jobs:
 
       - id: release
         name: Validate release consumer
-        uses: LibreCodeCoop/release-tool/actions/metadata-inspect@385ca7732db12e5c79590bb21be8da3608194595
+        uses: LibreCodeCoop/release-tool/actions/metadata-inspect@eaf60ceaa9113cf32bc8e443520a3efabbb1675d
         with:
           config-path: .nextcloud-release.yml
           root: .
