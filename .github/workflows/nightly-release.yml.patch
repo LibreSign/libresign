@@ -18,7 +18,13 @@ diff --git a/.github/workflows/nightly-release.yml b/.github/workflows/nightly-r
            make appstore
  
        - name: Verify app store package
-@@ -197,18 +201,4 @@
+         if: steps.krankerl.outputs.files_exists != 'true'
+         working-directory: ${{ env.APP_NAME }}
++        env:
++          REQUIRE_SETUP_SIGNATURES: 'true'
+         shell: bash
+         run: |
+@@ -197,18 +203,4 @@
              make verify-appstore-package
            fi
  
