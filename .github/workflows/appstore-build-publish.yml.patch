@@ -1,136 +1,89 @@
 diff --git a/.github/workflows/appstore-build-publish.yml b/.github/workflows/appstore-build-publish.yml
 --- a/.github/workflows/appstore-build-publish.yml
 +++ b/.github/workflows/appstore-build-publish.yml
-@@ -11,6 +11,12 @@
- on:
-   release:
-     types: [published]
-+  workflow_dispatch:
-+    inputs:
-+      release_tag:
-+        description: Existing release tag to build and publish, e.g. v13.4.3
-+        required: true
-+        type: string
- 
- permissions:
-   contents: write
-@@ -29,25 +35,26 @@
-         run: |
-           # Split and keep last
-           echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
-+          echo "APP_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}" >> $GITHUB_ENV
--          echo "APP_VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
- 
-       - name: Checkout
+@@ -28,6 +28,7 @@
          uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
          with:
            persist-credentials: false
 +          submodules: true
-+          fetch-tags: true
-+          fetch-depth: 0
-+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.event.release.tag_name }}
            path: ${{ env.APP_NAME }}
- 
-+      - name: Validate release identity
-+        id: release-identity
-+        uses: LibreCodeCoop/release-tool/actions/release-identity@385ca7732db12e5c79590bb21be8da3608194595
--      - name: Get app version number
--        id: app-version
--        uses: skjnldsv/xpath-action@f5b036e9d973f42c86324833fd00be90665fbf77 # v1.0.0
-         with:
-+          tag: ${{ env.APP_VERSION }}
-+          working-directory: ${{ env.APP_NAME }}
-+          require-tag-exists: 'true'
--          filename: ${{ env.APP_NAME }}/appinfo/info.xml
--          expression: "//info//version/text()"
- 
--      - name: Validate app version against tag
--        run: |
--          [ "${{ env.APP_VERSION }}" = "v${{ fromJSON(steps.app-version.outputs.result).version }}" ]
--
-       - name: Get appinfo data
-         id: appinfo
-         uses: skjnldsv/xpath-action@f5b036e9d973f42c86324833fd00be90665fbf77 # v1.0.0
-@@ -134,20 +141,6 @@
+@@ -132,12 +133,41 @@
            cd ${{ env.APP_NAME }}
            krankerl package
  
 -      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }} with makefile
--        if: steps.krankerl.outputs.files_exists != 'true'
--        run: |
--          cd ${{ env.APP_NAME }}
--          make appstore
--
--      - name: Verify app store package
--        if: steps.krankerl.outputs.files_exists != 'true'
--        working-directory: ${{ env.APP_NAME }}
--        run: |
--          if make -qp 2>/dev/null | grep -q '^verify-appstore-package:'; then
--            make verify-appstore-package
--          fi
--
-       - name: Check server download link for ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
-         run: |
-           NCVERSION='${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}'
-@@ -172,28 +165,67 @@
-           repository: nextcloud/server
-           path: nextcloud
- 
-+      - name: Restore current packaging Makefile for manual recovery
-+        if: github.event_name == 'workflow_dispatch' && steps.krankerl.outputs.files_exists != 'true'
-+        env:
-+          RECOVERY_WORKFLOW_SHA: ${{ github.sha }}
-+          RELEASE_TAG: ${{ env.APP_VERSION }}
++      - name: Check server download link for ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
 +        run: |
-+          set -euo pipefail
- 
-+          case "${GITHUB_REF_NAME}" in
-+            stable*) ;;
-+            *)
-+              echo "::error::Manual release recovery must be dispatched from a stable branch"
-+              exit 1
-+              ;;
-+          esac
++          NCVERSION='${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}'
++          DOWNLOAD_URL=$(curl -s "https://updates.nextcloud.com/updater_server/latest?channel=beta&version=$NCVERSION" | jq -r '.downloads.zip[0]')
++          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> $GITHUB_ENV
 +
-+          cd ${{ env.APP_NAME }}
-+          git fetch --quiet origin "${RECOVERY_WORKFLOW_SHA}"
++      - name: Download server ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
++        continue-on-error: true
++        id: server-download
++        if: ${{ env.DOWNLOAD_URL != 'null' }}
++        run: |
++          echo "Downloading release tarball from $DOWNLOAD_URL"
++          wget $DOWNLOAD_URL -O nextcloud.zip
++          unzip nextcloud.zip
 +
-+          tag_sha="$(git rev-parse "refs/tags/${RELEASE_TAG}^{commit}")"
-+          if ! git merge-base --is-ancestor "${tag_sha}" "${RECOVERY_WORKFLOW_SHA}"; then
-+            echo "::error::${GITHUB_REF_NAME} does not contain ${RELEASE_TAG}; refusing to mix packaging logic across release lines"
-+            exit 1
-+          fi
-+
-+          git show "${RECOVERY_WORKFLOW_SHA}:Makefile" > Makefile
++      - name: Checkout server master fallback
++        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
++        if: ${{ steps.server-download.outcome != 'success' }}
++        with:
++          persist-credentials: false
++          submodules: true
++          repository: nextcloud/server
++          path: nextcloud
 +
 +      - name: Package and sign with Makefile
-+        if: steps.krankerl.outputs.files_exists != 'true'
+         if: steps.krankerl.outputs.files_exists != 'true'
 +        env:
 +          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
-+        run: |
-+          cd ${{ env.APP_NAME }}
+         run: |
+           cd ${{ env.APP_NAME }}
 +          mkdir -p build/tools/certificates
 +          printf '%s' "$APP_PRIVATE_KEY" > "build/tools/certificates/${APP_NAME}.key"
-+          make appstore
-+
-+      - name: Verify app store package
-+        if: steps.krankerl.outputs.files_exists != 'true'
-+        working-directory: ${{ env.APP_NAME }}
+           make appstore
+ 
+       - name: Verify app store package
+         if: steps.krankerl.outputs.files_exists != 'true'
+         working-directory: ${{ env.APP_NAME }}
 +        env:
 +          REQUIRE_SETUP_SIGNATURES: 'true'
--      - name: Sign app
          run: |
-+          if make -qp 2>/dev/null | grep -q '^verify-appstore-package:'; then
-+            make verify-appstore-package
-+          fi
-+
-+      - name: Set up PHP 8.3 for release-tool
-+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
-+        with:
-+          php-version: '8.3'
-+          coverage: none
-+        env:
-+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+           if make -qp 2>/dev/null | grep -q '^verify-appstore-package:'; then
+             make verify-appstore-package
+@@ -145,40 +175,6 @@
+           fi
+ 
+-      - name: Check server download link for ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
+-        run: |
+-          NCVERSION='${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}'
+-          DOWNLOAD_URL=$(curl -s "https://updates.nextcloud.com/updater_server/latest?channel=beta&version=$NCVERSION" | jq -r '.downloads.zip[0]')
+-          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> $GITHUB_ENV
+-
+-      - name: Download server ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
+-        continue-on-error: true
+-        id: server-download
+-        if: ${{ env.DOWNLOAD_URL != 'null' }}
+-        run: |
+-          echo "Downloading release tarball from $DOWNLOAD_URL"
+-          wget $DOWNLOAD_URL -O nextcloud.zip
+-          unzip nextcloud.zip
+-
+-      - name: Checkout server master fallback
+-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+-        if: ${{ steps.server-download.outcome != 'success' }}
+-        with:
+-          persist-credentials: false
+-          submodules: true
+-          repository: nextcloud/server
+-          path: nextcloud
+-
+-
+-      - name: Sign app
+-        run: |
 -          # Extracting release
 -          cd ${{ env.APP_NAME }}/build/artifacts
 -          tar -xvf ${{ env.APP_NAME }}.tar.gz
@@ -143,35 +96,5 @@ diff --git a/.github/workflows/appstore-build-publish.yml b/.github/workflows/ap
 -          # Rebuilding archive
 -          cd ${{ env.APP_NAME }}/build/artifacts
 -          tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
- 
+-
        - name: Validate release artifact
-+        uses: LibreCodeCoop/release-tool/actions/artifact-validate@385ca7732db12e5c79590bb21be8da3608194595
--        uses: LibreCodeCoop/release-tool/actions/artifact-validate@710c4c83fba47bf01713f46e9c4cb4cf63debfba
-         with:
-           artifact: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
-           app-name: ${{ env.APP_NAME }}
-+          version: ${{ steps.release-identity.outputs.version }}
--          version: ${{ env.APP_VERSION }}
- 
-       - name: Attach tarball to github release
-         uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # 2.11.5
-@@ -202,7 +234,7 @@
-           repo_token: ${{ secrets.GITHUB_TOKEN }}
-           file: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
-           asset_name: ${{ env.APP_NAME }}-${{ env.APP_VERSION }}.tar.gz
-+          tag: ${{ env.APP_VERSION }}
--          tag: ${{ github.ref }}
-           overwrite: true
- 
-       - name: Upload app to Nextcloud appstore
-@@ -214,8 +246,8 @@
-           app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
- 
-       - name: Verify App Store publication
-+        uses: LibreCodeCoop/release-tool/actions/appstore-publication-wait@385ca7732db12e5c79590bb21be8da3608194595
--        uses: LibreCodeCoop/release-tool/actions/appstore-publication-wait@710c4c83fba47bf01713f46e9c4cb4cf63debfba
-         with:
-           app-name: ${{ env.APP_NAME }}
-+          version: ${{ steps.release-identity.outputs.version }}
--          version: ${{ env.APP_VERSION }}
-           platform: ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
