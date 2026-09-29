@@ -3,7 +3,7 @@
 # https://github.com/LibreCodeCoop/.github
 # https://docs.github.com/en/actions/learn-github-actions/sharing-workflows-with-your-organization
 #
-# SPDX-FileCopyrightText: 2021-2024 Nextcloud GmbH and Nextcloud contributors
+# SPDX-FileCopyrightText: 2021-2026 Nextcloud GmbH, LibreCode coop and contributors
 # SPDX-License-Identifier: MIT
 
 name: Build and publish app release
@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Existing release tag to build and publish, e.g. v13.4.3
+        description: Existing release tag to build and publish.
         required: true
         type: string
 
@@ -24,202 +24,16 @@ permissions:
 jobs:
   build_and_publish:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check actor permission
-        uses: skjnldsv/check-actor-permission@69e92a3c4711150929bca9fcf34448c5bf5526e7 # v3.0
+      - name: Build and publish release
+        uses: LibreCodeCoop/.github/actions/nextcloud-appstore-publish@748b0416ea5b734292671dd0feec33aaf8ec6b82
         with:
-          require: write
-
-      - name: Set app env
-        run: |
-          # Split and keep last
-          echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
-          echo "APP_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}" >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          submodules: true
-          fetch-tags: true
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.event.release.tag_name }}
-          path: ${{ env.APP_NAME }}
-
-      - name: Validate release identity
-        id: release-identity
-        uses: LibreCodeCoop/release-tool/actions/release-identity@385ca7732db12e5c79590bb21be8da3608194595
-        with:
-          tag: ${{ env.APP_VERSION }}
-          working-directory: ${{ env.APP_NAME }}
-          require-tag-exists: 'true'
-
-      - name: Get appinfo data
-        id: appinfo
-        uses: skjnldsv/xpath-action@f5b036e9d973f42c86324833fd00be90665fbf77 # v1.0.0
-        with:
-          filename: ${{ env.APP_NAME }}/appinfo/info.xml
-          expression: "//info//dependencies//nextcloud/@min-version"
-
-      - name: Read package.json node and npm engines version
-        uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
-        id: versions
-        # Continue if no package.json
-        continue-on-error: true
-        with:
-          path: ${{ env.APP_NAME }}
-          fallbackNode: '^24'
-          fallbackNpm: '^11.3'
-
-      - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
-        # Skip if no package.json
-        if: ${{ steps.versions.outputs.nodeVersion }}
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: ${{ steps.versions.outputs.nodeVersion }}
-          package-manager-cache: false
-
-      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
-        # Skip if no package.json
-        if: ${{ steps.versions.outputs.npmVersion }}
-        run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
-
-      - name: Get php version
-        id: php-versions
-        uses: nextcloud-libraries/nextcloud-version-matrix@cd0211ffcef1065e2020cd579e4843b8746e7a58 # v1.3.3
-        with:
-          filename: ${{ env.APP_NAME }}/appinfo/info.xml
-
-      - name: Set up php ${{ steps.php-versions.outputs.php-min }}
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
-        with:
-          php-version: ${{ steps.php-versions.outputs.php-min }}
-          coverage: none
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check composer.json
-        id: check_composer
-        uses: andstor/file-existence-action@558493d6c74bf472d87c84eab196434afc2fa029 # v3.1.0
-        with:
-          files: "${{ env.APP_NAME }}/composer.json"
-
-      - name: Install composer dependencies
-        if: steps.check_composer.outputs.files_exists == 'true'
-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
-        with:
-          composer-options: '--no-dev'
-          working-directory: ${{ env.APP_NAME }}
-          ignore-cache: 'yes'
-
-      - name: Build ${{ env.APP_NAME }}
-        # Skip if no package.json
-        if: ${{ steps.versions.outputs.nodeVersion }}
-        env:
-          CYPRESS_INSTALL_BINARY: 0
-        run: |
-          cd ${{ env.APP_NAME }}
-          npm ci
-          npm run build --if-present
-
-      - name: Check Krankerl config
-        id: krankerl
-        uses: andstor/file-existence-action@558493d6c74bf472d87c84eab196434afc2fa029 # v3.1.0
-        with:
-          files: ${{ env.APP_NAME }}/krankerl.toml
-
-      - name: Install Krankerl
-        if: steps.krankerl.outputs.files_exists == 'true'
-        run: |
-          wget https://github.com/ChristophWurst/krankerl/releases/download/v0.14.0/krankerl_0.14.0_amd64.deb
-          sudo dpkg -i krankerl_0.14.0_amd64.deb
-
-      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }} with krankerl
-        if: steps.krankerl.outputs.files_exists == 'true'
-        run: |
-          cd ${{ env.APP_NAME }}
-          krankerl package
-
-      - name: Check server download link for ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
-        run: |
-          NCVERSION='${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}'
-          DOWNLOAD_URL=$(curl -s "https://updates.nextcloud.com/updater_server/latest?channel=beta&version=$NCVERSION" | jq -r '.downloads.zip[0]')
-          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> $GITHUB_ENV
-
-      - name: Download server ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
-        continue-on-error: true
-        id: server-download
-        if: ${{ env.DOWNLOAD_URL != 'null' }}
-        run: |
-          echo "Downloading release tarball from $DOWNLOAD_URL"
-          wget $DOWNLOAD_URL -O nextcloud.zip
-          unzip nextcloud.zip
-
-      - name: Checkout server master fallback
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ steps.server-download.outcome != 'success' }}
-        with:
-          persist-credentials: false
-          submodules: true
-          repository: nextcloud/server
-          path: nextcloud
-
-      - name: Package and sign with Makefile
-        if: steps.krankerl.outputs.files_exists != 'true'
-        env:
-          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
-        run: |
-          cd ${{ env.APP_NAME }}
-          mkdir -p build/tools/certificates
-          printf '%s' "$APP_PRIVATE_KEY" > "build/tools/certificates/${APP_NAME}.key"
-          make appstore
-
-      - name: Verify app store package
-        if: steps.krankerl.outputs.files_exists != 'true'
-        working-directory: ${{ env.APP_NAME }}
-        env:
-          REQUIRE_SETUP_SIGNATURES: 'true'
-        run: |
-          if make -qp 2>/dev/null | grep -q '^verify-appstore-package:'; then
-            make verify-appstore-package
-          fi
-
-      - name: Set up PHP 8.3 for release-tool
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
-        with:
-          php-version: '8.3'
-          coverage: none
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Validate release artifact
-        uses: LibreCodeCoop/release-tool/actions/artifact-validate@385ca7732db12e5c79590bb21be8da3608194595
-        with:
-          artifact: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
-          app-name: ${{ env.APP_NAME }}
-          version: ${{ steps.release-identity.outputs.version }}
-
-      - name: Attach tarball to github release
-        uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # 2.11.5
-        id: attach_to_release
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
-          asset_name: ${{ env.APP_NAME }}-${{ env.APP_VERSION }}.tar.gz
-          tag: ${{ env.APP_VERSION }}
-          overwrite: true
-
-      - name: Upload app to Nextcloud appstore
-        uses: nextcloud-libraries/nextcloud-appstore-push-action@a011fe619bcf6e77ddebc96f9908e1af4071b9c1 # v1.0.3
-        with:
-          app_name: ${{ env.APP_NAME }}
-          appstore_token: ${{ secrets.APPSTORE_TOKEN }}
-          download_url: ${{ steps.attach_to_release.outputs.browser_download_url }}
-          app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
-
-      - name: Verify App Store publication
-        uses: LibreCodeCoop/release-tool/actions/appstore-publication-wait@385ca7732db12e5c79590bb21be8da3608194595
-        with:
-          app-name: ${{ env.APP_NAME }}
-          version: ${{ steps.release-identity.outputs.version }}
-          platform: ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
+          app-name: ${{ github.event.repository.name }}
+          release-tag: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.event.release.tag_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          app-private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          appstore-token: ${{ secrets.APPSTORE_TOKEN }}
+          manual-recovery: ${{ github.event_name == 'workflow_dispatch' }}
+          checkout-submodules: 'true'
+          make-signs-app: 'true'
+          require-setup-signatures: 'true'
