@@ -1,0 +1,165 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Playwright PoC (@nextcloud/e2e-test-server)
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: playwright-poc-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+
+    outputs:
+      src: ${{ steps.changes.outputs.src }}
+
+    steps:
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: changes
+        continue-on-error: true
+        with:
+          filters: |
+            src:
+              - '.github/workflows/playwright-poc.yml'
+              - 'playwright/start-nextcloud-server.mjs'
+              - 'playwright.config.e2e-poc.ts'
+              - 'package.json'
+              - 'package-lock.json'
+
+  playwright-poc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --ipc=host
+
+    needs: [changes]
+    if: needs.changes.outputs.src != 'false'
+
+    # Same matrix as the production workflow so the A/B comparison is fair.
+    strategy:
+      matrix:
+        server-versions: ["master"]
+
+    name: Playwright E2E (PoC)
+
+    services:
+      # Mailpit is reachable from inside the disposable Nextcloud container
+      # only via the GitHub Actions service network. The e2e-test-server
+      # attaches containers to this network through DOCKER_SOCKET.
+      # See docs/poc-comparison.md for the Mailpit-from-container limitation.
+      mailpit:
+        image: axllent/mailpit
+        ports:
+          - 8025:8025/tcp
+          - 1025:1025/tcp
+
+    steps:
+      - name: Set app env
+        run: |
+          echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
+
+      - name: Install system dependencies
+        # poppler-utils, libgd3, libc-client2007e are required by LibreSign
+        # runtime (JSignPdf, PDFtk) on the GitHub Actions runner, not inside the
+        # container. The disposable Nextcloud image is a shallow server that
+        # does not pre-install them.
+        # See docs/poc-comparison.md for the dependency-layer audit.
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            poppler-utils \
+            libgd3 \
+            libc-client2007e
+
+      - name: Checkout app
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: true
+          path: apps/${{ env.APP_NAME }}
+
+      - name: Read package.json node and npm engines version
+        uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
+        id: versions
+        with:
+          path: apps/${{ env.APP_NAME }}
+          fallbackNode: '^24'
+          fallbackNpm: '^11'
+
+      - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ steps.versions.outputs.nodeVersion }}
+          cache: npm
+          cache-dependency-path: apps/${{ env.APP_NAME }}/package-lock.json
+
+      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
+        run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
+
+      - name: Install node dependencies
+        working-directory: apps/${{ env.APP_NAME }}
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+        run: npm ci --prefer-offline
+
+      # NOTE: the existing playwright.yml caches LibreSign binary payloads at
+      # .cache/libresign-binaries and restores them into data/appdata_*/libresign
+      # inside Nextcloud. This PoC does not port the cache yet — it is
+      # documented in docs/poc-comparison.md as a follow-up.
+
+      - name: Expose Docker socket to the bootstrap
+        # startNextcloud() needs Docker access on the host. Mounting the socket
+        # is the only path the current e2e-test-server API supports.
+        run: |
+          mkdir -p /var/run
+          if ! mountpoint -q /var/run/docker.sock 2>/dev/null; then
+            echo "Docker socket is reachable from /var/run/docker.sock"
+          fi
+
+      - name: Run Playwright (PoC bootstrap)
+        working-directory: apps/${{ env.APP_NAME }}
+        env:
+          # The bootstrap exposes Nextcloud on this port and waits for the
+          # 'LibreSign Nextcloud container ready for Playwright' message.
+          PORT: 8080
+          PLAYWRIGHT_BASE_URL: http://localhost:8080
+          NEXTCLOUD_BRANCH: ${{ matrix.server-versions }}
+          NEXTCLOUD_ADMIN_USER: admin
+          NEXTCLOUD_ADMIN_PASSWORD: admin
+          # Save the Nextcloud server log on shutdown so post-mortem inspection
+          # is possible even when the disposable container is removed.
+          NEXTCLOUD_E2E_LOG_FILE: ${{ github.workspace }}/nextcloud.log
+        run: npx playwright test --config playwright.config.e2e-poc.ts
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: playwright-poc-report
+          path: apps/${{ env.APP_NAME }}/playwright-report/
+          retention-days: 30
+
+      - name: Upload test results
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: playwright-poc-test-results
+          path: apps/${{ env.APP_NAME }}/test-results/
+          retention-days: 30
+
+      - name: Upload Nextcloud server diagnostics
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: playwright-poc-nextcloud-log
+          path: nextcloud.log
+          if-no-files-found: ignore
