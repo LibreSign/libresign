@@ -134,6 +134,16 @@ class SignatureRejectionService {
 			// TRANSLATORS Error shown when the rejection could not be saved and nothing was changed.
 			throw new LibresignException($this->l10n->t('It was not possible to register the rejection. Nothing was changed.'));
 		}
+
+		// The activation is committed at this point, so the signers it released
+		// are only told about it now. Notifying inside the transaction would
+		// deliver a message for an activation that a later failure rolls back,
+		// and a failing listener must not undo a recorded rejection.
+		try {
+			$this->sequentialSigningService->notifyActivatedSigners($activatedSigners);
+		} catch (\Throwable $e) {
+			$this->logger->error('Error notifying the signers released by the rejection: ' . $e->getMessage(), ['exception' => $e]);
+		}
 	}
 
 	/**
