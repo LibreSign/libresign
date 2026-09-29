@@ -107,8 +107,8 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	const originalGeoIp = await policyRequest(adminContext, 'GET', '/apps/libresign/api/v1/admin/geoip')
 	originalGeoIpPath = typeof originalGeoIp.data.path === 'string' ? originalGeoIp.data.path : ''
 
-	await setSystemPolicyEntry(adminContext, DEVICE_POLICY, JSON.stringify({ mode: 'optional' }), true)
-	await setSystemPolicyEntry(adminContext, IP_POLICY, JSON.stringify({ mode: 'enabled' }), true)
+	await setSystemPolicyEntry(adminContext, DEVICE_POLICY, { mode: 'optional' }, true)
+	await setSystemPolicyEntry(adminContext, IP_POLICY, { mode: 'enabled' }, true)
 	await policyRequest(adminContext, 'POST', '/apps/libresign/api/v1/admin/geoip', {
 		path: GEOIP_TEST_DB,
 	})
@@ -138,10 +138,28 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 		}),
 	)
 
+	// Re-assert immediately before upload so the write-once file snapshot
+	// captures optional/enabled rather than a stale disabled baseline.
+	await setSystemPolicyEntry(adminContext, DEVICE_POLICY, { mode: 'optional' }, true)
+	await setSystemPolicyEntry(adminContext, IP_POLICY, { mode: 'enabled' }, true)
+	expect((await getEffectivePolicy(adminContext, DEVICE_POLICY))?.effectiveValue).toEqual({ mode: 'optional' })
+	expect((await getEffectivePolicy(adminContext, IP_POLICY))?.effectiveValue).toEqual({ mode: 'enabled' })
+
 	await page.goto('./apps/libresign')
 	await page.getByRole('button', { name: 'Upload from URL' }).click()
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
+	const uploadResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/file')
+		&& response.ok(),
+	)
 	await page.getByRole('button', { name: 'Send' }).click()
+	const uploadBody = await (await uploadResponsePromise).json() as {
+		ocs?: { data?: { metadata?: { policy_snapshot?: Record<string, { effectiveValue?: { mode?: string } }> } } }
+	}
+	expect(uploadBody.ocs?.data?.metadata?.policy_snapshot?.signer_device_geolocation?.effectiveValue).toEqual({ mode: 'optional' })
+	expect(uploadBody.ocs?.data?.metadata?.policy_snapshot?.signer_ip_geolocation?.effectiveValue).toEqual({ mode: 'enabled' })
+
 	await clickAddSigner(page)
 	await selectAccountSigner(page, 'a', /admin/i)
 
@@ -153,12 +171,20 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	await expect(signerDialog.getByText(/IP-based|source IP|approximate location/i)).toHaveCount(0)
 	await deviceToggle.locator('.checkbox-radio-switch__content').click()
 	await expect(deviceToggle.getByRole('switch')).toBeChecked()
+
+	const saveSignerResponsePromise = page.waitForResponse((response) =>
+		['POST', 'PATCH'].includes(response.request().method())
+		&& response.url().includes('/apps/libresign/api/v1/request-signature'),
+	)
 	await signerDialog.getByRole('button', { name: 'Save' }).click()
+	const saveSignerRequest = (await saveSignerResponsePromise).request()
+	const saveSignerPayload = saveSignerRequest.postDataJSON() as { signers?: Array<{ deviceGeolocationRequired?: boolean }> }
+	expect(saveSignerPayload.signers?.[0]?.deviceGeolocationRequired).toBe(true)
 
 	await page.getByRole('button', { name: 'Request signatures' }).click()
 	await page.getByRole('button', { name: 'Send' }).click()
 
-	await setSystemPolicyEntry(adminContext, DEVICE_POLICY, JSON.stringify({ mode: 'disabled' }), true)
+	await setSystemPolicyEntry(adminContext, DEVICE_POLICY, { mode: 'disabled' }, true)
 	await clickAddSigner(page)
 	await selectAccountSigner(page, 'a', /admin/i)
 	await expect(page.getByRole('dialog', { name: /Add new signer/i }).last()
