@@ -49,6 +49,7 @@ export function getCurrentSignerSignRequestUuid(
 export function getSigningRouteUuid(
 	document: DocumentLike | null | undefined,
 	fallbackUuid: string | null = null,
+	routeUuid: string | null = null,
 ): string | null {
 	const currentSigner = getCurrentSigner(document)
 	if (isObserverParticipant(currentSigner)) {
@@ -58,6 +59,10 @@ export function getSigningRouteUuid(
 	const signerUuid = getCurrentSignerSignRequestUuid(document, fallbackUuid)
 	if (isNonEmptyString(signerUuid)) {
 		return signerUuid
+	}
+
+	if (isNonEmptyString(routeUuid)) {
+		return routeUuid
 	}
 
 	if (document?.settings?.isApprover === true && isNonEmptyString(document?.uuid)) {

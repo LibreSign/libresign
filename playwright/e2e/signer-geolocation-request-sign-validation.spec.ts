@@ -192,8 +192,14 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 		.filter({ hasText: 'Require device-reported location to sign' })).toBeVisible()
 	await page.getByRole('dialog', { name: /Add new signer/i }).last().getByRole('button', { name: 'Cancel' }).click()
 
+	const signDetailResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'GET'
+		&& response.url().includes('/apps/libresign/api/v1/file/validate/uuid/')
+		&& response.ok(),
+	{ timeout: 30_000 })
 	await page.getByRole('button', { name: 'Sign document' }).first().click()
 	await page.waitForURL('**/f/sign/**/pdf')
+	await signDetailResponsePromise
 	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15_000 })
 	await expect(page.getByText('Device-reported location is required to sign this document.')).toBeVisible({ timeout: 15_000 })
 

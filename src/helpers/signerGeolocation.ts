@@ -36,12 +36,17 @@ export type DeviceReportedLocation = {
 
 export type SignerWithGeolocationMetadata = {
 	me?: boolean
+	sign_request_uuid?: string | null
 	metadata?: {
 		deviceGeolocationRequirement?: GeolocationRequirement | string
 		geolocation?: {
 			device?: DeviceReportedLocation
 		}
 	}
+}
+
+export type ResolveFrozenGeolocationRequirementOptions = {
+	signRequestUuid?: string | null
 }
 
 export type DocumentWithSignerGeolocation = {
@@ -61,20 +66,57 @@ export function isGeolocationRequired(requirement: GeolocationRequirement | stri
 	return requirement === 'required'
 }
 
+function isMatchingGeolocationSigner(
+	signer: SignerWithGeolocationMetadata,
+	signRequestUuid: string,
+): boolean {
+	if (signer.me === true) {
+		return true
+	}
+	if (signRequestUuid === '') {
+		return false
+	}
+	return typeof signer.sign_request_uuid === 'string' && signer.sign_request_uuid === signRequestUuid
+}
+
+function resolveRequirementFromSigners(
+	signers: SignerWithGeolocationMetadata[] | undefined,
+	signRequestUuid: string,
+): GeolocationRequirement | undefined {
+	if (!Array.isArray(signers)) {
+		return undefined
+	}
+
+	for (const signer of signers) {
+		if (!isMatchingGeolocationSigner(signer, signRequestUuid)) {
+			continue
+		}
+		const requirement = signer.metadata?.deviceGeolocationRequirement
+		if (requirement === 'disabled' || requirement === 'required') {
+			return requirement
+		}
+	}
+
+	return undefined
+}
+
 export function resolveFrozenGeolocationRequirement(
 	document: DocumentWithSignerGeolocation | null | undefined,
+	options?: ResolveFrozenGeolocationRequirementOptions,
 ): GeolocationRequirement | undefined {
-	const topLevel = document?.signers?.find((signer) => signer.me)
-	const topLevelRequirement = topLevel?.metadata?.deviceGeolocationRequirement
-	if (topLevelRequirement === 'disabled' || topLevelRequirement === 'required') {
-		return topLevelRequirement
+	const signRequestUuid = typeof options?.signRequestUuid === 'string'
+		? options.signRequestUuid.trim()
+		: ''
+
+	const topLevel = resolveRequirementFromSigners(document?.signers, signRequestUuid)
+	if (topLevel) {
+		return topLevel
 	}
 
 	for (const file of document?.files ?? []) {
-		const nested = file.signers?.find((signer) => signer.me)
-		const nestedRequirement = nested?.metadata?.deviceGeolocationRequirement
-		if (nestedRequirement === 'disabled' || nestedRequirement === 'required') {
-			return nestedRequirement
+		const nested = resolveRequirementFromSigners(file.signers, signRequestUuid)
+		if (nested) {
+			return nested
 		}
 	}
 
