@@ -84,12 +84,12 @@ jobs:
           # Split and keep last
           echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
 
-      - name: Install system dependencies
-        run: sudo apt update && sudo apt install poppler-utils
-
-      - name: Install PHP crash diagnostics
-        if: runner.debug == '1'
-        run: sudo apt install -y gdb systemd-coredump
+      - name: Install system and PHP crash diagnostics
+        run: |
+          sudo apt update
+          sudo apt install -y poppler-utils gdb systemd-coredump lsof procps
+          sudo sysctl -w kernel.core_pattern='/tmp/core.%e.%p.%t' || true
+          echo "core_pattern=$(cat /proc/sys/kernel/core_pattern)"
 
       - name: Checkout server
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -170,9 +170,11 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
         env:
           BEHAT_ROOT_DIR: ../../../../
+          BEHAT_RUN_AS: runner
+          BEHAT_VERBOSE: '1'
         run: |
-          export BEHAT_RUN_AS=runner
-          export BEHAT_VERBOSE="$RUNNER_DEBUG"
+          ulimit -c unlimited
+          echo "core_limit=$(ulimit -c)"
           vendor/bin/behat -f junit -f pretty --colors
 
       - name: Print logs
@@ -180,18 +182,51 @@ jobs:
         run: |
           cat data/nextcloud.log
 
-      - name: List PHP core dumps
-        if: failure() && runner.debug == '1'
+      - name: Collect PHP crash diagnostics
+        if: failure()
+        working-directory: apps/${{ env.APP_NAME }}/tests/integration
         run: |
-          sudo coredumpctl --no-pager list || true
+          mkdir -p behat-native-diagnostics
+          {
+            echo "== core limit =="
+            ulimit -c
+            echo "== core pattern =="
+            cat /proc/sys/kernel/core_pattern || true
+            echo "== PHP processes =="
+            ps -eo pid,ppid,pgid,sid,user,stat,etime,rss,vsz,pcpu,pmem,args | grep '[p]hp' || true
+            echo "== coredumpctl list =="
+            sudo coredumpctl --no-pager list || true
+            echo "== coredumpctl info for php =="
+            sudo coredumpctl --no-pager info php || true
+            echo "== kernel messages =="
+            sudo dmesg --ctime | tail -n 300 || true
+          } > behat-native-diagnostics/system-state.txt 2>&1
+
+          php_bin="$(command -v php)"
+          found=0
+          for core in /tmp/core.*; do
+            [ -f "$core" ] || continue
+            found=1
+            base="$(basename "$core")"
+            cp "$core" "behat-native-diagnostics/$base" || true
+            gdb --batch -ex 'set pagination off' -ex 'thread apply all bt full' -ex 'info registers' -ex 'info sharedlibrary' "$php_bin" "$core" > "behat-native-diagnostics/$base.gdb.txt" 2>&1 || true
+          done
+          if [ "$found" -eq 0 ]; then
+            echo "No direct core file found in /tmp." > behat-native-diagnostics/no-direct-core.txt
+          fi
+
+          sudo timeout 20s coredumpctl --no-pager --quiet debug php --debugger-arguments="-batch -ex 'set pagination off' -ex 'thread apply all bt full' -ex 'info registers' -ex 'info sharedlibrary'" > behat-native-diagnostics/coredumpctl-gdb.txt 2>&1 || true
 
       - name: Upload PHP server diagnostics
-        if: failure() && runner.debug == '1'
+        if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: behat-mariadb-server-diagnostics-${{ matrix.mariadb-versions }}-php${{ matrix.php-versions }}-nc${{ matrix.server-versions }}
-          path: /tmp/behat-php-server-*
-          if-no-files-found: ignore
+          path: |
+            /tmp/behat-php-server-*
+            /tmp/core.*
+            apps/${{ env.APP_NAME }}/tests/integration/behat-native-diagnostics/
+          if-no-files-found: warn
 
   summary:
     permissions:
