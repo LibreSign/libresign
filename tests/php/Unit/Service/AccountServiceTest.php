@@ -8,31 +8,24 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
-use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\AccountCertificateService;
+use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\AccountSettingsProvider;
-use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
-use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignerElementsService;
-use OCA\Libresign\Service\SignFileService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\File;
 use OCP\Files\NotFoundException;
 use OCP\IAppConfig;
 use OCP\IL10N;
-use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -44,212 +37,52 @@ use PHPUnit\Framework\MockObject\MockObject;
  */
 final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N&MockObject $l10n;
+	private AccountFileService&MockObject $accountFileService;
 	private AccountCertificateService&MockObject $accountCertificateService;
 	private AccountSettingsProvider&MockObject $accountSettingsProvider;
-	private SignRequestMapper&MockObject $signRequestMapper;
 	private IUserManager&MockObject $userManager;
-	private FileMapper&MockObject $fileMapper;
-	private FileTypeMapper&MockObject $fileTypeMapper;
-	private SignFileService&MockObject $signFile;
 	private IAppConfig&MockObject $appConfig;
-	private IMountProviderCollection&MockObject $mountProviderCollection;
 	private NewUserMailHelper&MockObject $newUserMail;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
-	private IURLGenerator&MockObject $urlGenerator;
 	private IdDocsService&MockObject $idDocsService;
 	private SignerElementsService&MockObject $signerElementsService;
-	private FolderService&MockObject $folderService;
-	private RequestSignatureService&MockObject $requestSignatureService;
 	private RequestSignAuthorizationService&MockObject $requestSignAuthorizationService;
 
 	public function setUp(): void {
 		parent::setUp();
+		$this->accountFileService = $this->createMock(AccountFileService::class);
 		$this->accountCertificateService = $this->createMock(AccountCertificateService::class);
 		$this->accountSettingsProvider = $this->createMock(AccountSettingsProvider::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
 			->willReturnArgument(0);
-		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->userManager = $this->createMock(IUserManager::class);
-		$this->fileMapper = $this->createMock(FileMapper::class);
-		$this->fileTypeMapper = $this->createMock(FileTypeMapper::class);
-		$this->signFile = $this->createMock(SignFileService::class);
-		$this->requestSignatureService = $this->createMock(RequestSignatureService::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->mountProviderCollection = $this->createMock(IMountProviderCollection::class);
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
-		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->idDocsService = $this->createMock(IdDocsService::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
-		$this->folderService = $this->createMock(FolderService::class);
 		$this->requestSignAuthorizationService = $this->createMock(RequestSignAuthorizationService::class);
 	}
 
 	private function getService(): AccountService {
 		return new AccountService(
 			$this->l10n,
+			$this->accountFileService,
 			$this->accountCertificateService,
 			$this->accountSettingsProvider,
-			$this->signRequestMapper,
 			$this->userManager,
-			$this->fileMapper,
-			$this->fileTypeMapper,
-			$this->signFile,
-			$this->requestSignatureService,
 			$this->appConfig,
-			$this->mountProviderCollection,
 			$this->newUserMail,
 			$this->identifyMethodService,
 			$this->identifyMethodMapper,
-			$this->urlGenerator,
 			$this->idDocsService,
 			$this->signerElementsService,
-			$this->folderService,
 			$this->requestSignAuthorizationService,
 		);
-	}
-
-	#[DataProvider('provideUuidLookupSequences')]
-	public function testGetSignRequestByUuidResolvesEachRequestedUuid(array $uuids): void {
-		$requests = [];
-		foreach (['uuid-a', 'uuid-b'] as $uuid) {
-			$requests[$uuid] = new SignRequest();
-			$requests[$uuid]->setUuid($uuid);
-		}
-		$this->signRequestMapper->method('getByUuid')->willReturnCallback(
-			static fn (string $uuid): SignRequest => $requests[$uuid],
-		);
-
-		$service = $this->getService();
-		foreach ($uuids as $uuid) {
-			$this->assertSame($requests[$uuid], $service->getSignRequestByUuid($uuid));
-		}
-	}
-
-	public static function provideUuidLookupSequences(): array {
-		return [
-			'repeated UUID' => [['uuid-a', 'uuid-a']],
-			'different UUIDs' => [['uuid-a', 'uuid-b']],
-			'return to first UUID' => [['uuid-a', 'uuid-b', 'uuid-a']],
-		];
-	}
-
-	#[DataProvider('provideUuidLookupSequences')]
-	public function testGetFileByUuidResolvesEachRequestedUuid(array $uuids): void {
-		$requests = [];
-		$files = [];
-		$nodes = [];
-		foreach (['uuid-a' => 10, 'uuid-b' => 20] as $uuid => $fileId) {
-			$requests[$uuid] = new SignRequest();
-			$requests[$uuid]->setUuid($uuid);
-			$requests[$uuid]->setFileId($fileId);
-			$files[$fileId] = new \OCA\Libresign\Db\File();
-			$files[$fileId]->setId($fileId);
-			$files[$fileId]->setUserId('owner-' . $uuid);
-			$files[$fileId]->setNodeId($fileId + 1);
-			$nodes[$fileId + 1] = $this->createMock(File::class);
-		}
-		$this->signRequestMapper->method('getByUuid')->willReturnCallback(
-			static fn (string $uuid): SignRequest => $requests[$uuid],
-		);
-		$this->fileMapper->method('getById')->willReturnCallback(
-			static fn (int $id): \OCA\Libresign\Db\File => $files[$id],
-		);
-		$this->folderService->method('getReadableNodeById')->willReturnMap([
-			['owner-uuid-a', 11, $nodes[11]],
-			['owner-uuid-b', 21, $nodes[21]],
-		]);
-
-		$service = $this->getService();
-		foreach ($uuids as $uuid) {
-			$fileId = $requests[$uuid]->getFileId();
-			$this->assertSame([
-				'fileData' => $files[$fileId],
-				'fileToSign' => $nodes[$fileId + 1],
-			], $service->getFileByUuid($uuid));
-			$this->assertSame($requests[$uuid], $service->getSignRequestByUuid($uuid));
-		}
-	}
-
-	#[DataProvider('provideMissingFileNodes')]
-	public function testGetFileByUuidDoesNotReusePreviousNode(bool $isFolder): void {
-		$request = new SignRequest();
-		$request->setFileId(10);
-		$file = new \OCA\Libresign\Db\File();
-		$file->setUserId('owner');
-		$file->setNodeId(11);
-		$firstNode = $this->createMock(File::class);
-		$secondNode = $isFolder ? $this->createMock(\OCP\Files\Folder::class) : null;
-		$this->signRequestMapper->method('getByUuid')->willReturn($request);
-		$this->fileMapper->method('getById')->with(10)->willReturn($file);
-		$this->folderService->method('getReadableNodeById')
-			->with('owner', 11)->willReturn($firstNode, $secondNode);
-
-		$service = $this->getService();
-		$this->assertSame($firstNode, $service->getFileByUuid('uuid-a')['fileToSign']);
-		$this->assertSame(['fileData' => $file, 'fileToSign' => null], $service->getFileByUuid('uuid-b'));
-	}
-
-	public static function provideMissingFileNodes(): array {
-		return [
-			'not found' => [false],
-			'folder instead of file' => [true],
-		];
-	}
-
-	#[DataProvider('provideUuidLookupMethods')]
-	public function testUuidLookupDoesNotReturnPreviousRequestWhenUuidIsMissing(string $method): void {
-		$request = new SignRequest();
-		$error = new DoesNotExistException('Unknown UUID');
-		$this->signRequestMapper->method('getByUuid')->willReturnCallback(
-			static fn (string $uuid): SignRequest => $uuid === 'uuid-a' ? $request : throw $error,
-		);
-		$this->fileMapper->expects($this->never())->method('getById');
-		$service = $this->getService();
-		$this->assertSame($request, $service->getSignRequestByUuid('uuid-a'));
-
-		$this->expectExceptionObject($error);
-		$service->$method('missing-uuid');
-	}
-
-	public static function provideUuidLookupMethods(): array {
-		return [
-			'sign request' => ['getSignRequestByUuid'],
-			'file' => ['getFileByUuid'],
-		];
-	}
-
-	public function testGetFileByUuidRetriesAfterNodeLookupFails(): void {
-		$request = new SignRequest();
-		$request->setFileId(10);
-		$file = new \OCA\Libresign\Db\File();
-		$file->setUserId('owner');
-		$file->setNodeId(11);
-		$node = $this->createMock(File::class);
-		$error = new NotFoundException('Storage unavailable');
-		$this->signRequestMapper->method('getByUuid')->with('uuid-a')->willReturn($request);
-		$this->fileMapper->method('getById')->with(10)->willReturn($file);
-		$attempts = 0;
-		$this->folderService->method('getReadableNodeById')->with('owner', 11)
-			->willReturnCallback(static function () use (&$attempts, $node, $error): File {
-				if ($attempts++ === 0) {
-					throw $error;
-				}
-				return $node;
-			});
-
-		$service = $this->getService();
-		try {
-			$service->getFileByUuid('uuid-a');
-			$this->fail('The storage error must propagate.');
-		} catch (NotFoundException $actual) {
-			$this->assertSame($error, $actual);
-		}
-		$this->assertSame(['fileData' => $file, 'fileToSign' => $node], $service->getFileByUuid('uuid-a'));
 	}
 
 	public function testSaveVisibleElementsDelegatesToSignerElementsService(): void {
@@ -295,7 +128,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'getId' => 1,
 				}
 			);
-		$this->signRequestMapper->method('getByUuid')->willReturn($signRequest);
+		$this->accountFileService->method('getSignRequestByUuid')->willReturn($signRequest);
 		$userToSign = $this->createMock(\OCP\IUser::class);
 		$userToSign->method('getUID')->willReturn('username');
 		$this->userManager->method('createUser')->willReturn($userToSign);
@@ -306,82 +139,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->newUserMail->method('sendMail')->willReturnCallback(function ():void {
 			throw new \Exception('Error Processing Request', 1);
 		});
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(1);
 		$this->expectExceptionMessage('Unable to send the invitation');
 		$this->getService()->createToSign('uuid', 'username', 'passwordOfUser', 'passwordToSign');
-	}
-
-	#[DataProvider('provideGetPdfByUuidNodeSelection')]
-	public function testGetPdfByUuidSelectsExpectedNode(
-		int $status,
-		?int $signedNodeId,
-		int $nodeId,
-		int $expectedNodeId,
-	): void {
-		$libresignFile = new \OCA\Libresign\Db\File();
-		$libresignFile->setSignedNodeId($signedNodeId);
-		$libresignFile->setNodeId($nodeId);
-		$libresignFile->setStatus($status);
-
-		$this->fileMapper->method('getByUuid')->with('uuid')->willReturn($libresignFile);
-		$this->fileMapper->method('getStorageUserIdByUuid')->with('uuid')->willReturn('storage-user');
-		$this->folderService->expects($this->once())->method('setUserId')->with('storage-user');
-
-		$node = $this->createMock(File::class);
-		$this->folderService
-			->expects($this->once())
-			->method('getFileByNodeId')
-			->with($expectedNodeId)
-			->willReturn($node);
-
-		$this->assertSame($node, $this->getService()->getPdfByUuid('uuid'));
-	}
-
-	public static function provideGetPdfByUuidNodeSelection(): array {
-		return [
-			'signed file uses signed node' => [FileStatus::SIGNED->value, 200, 100, 200],
-			'partially signed file uses signed node' => [FileStatus::PARTIAL_SIGNED->value, 201, 101, 201],
-			'draft file uses original node' => [FileStatus::DRAFT->value, null, 102, 102],
-		];
-	}
-
-	public function testGetPdfByUuidThrowsDoesNotExistWhenNodeNotFound(): void {
-		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
-		$libresignFile->method('__call')
-			->willReturnCallback(fn ($method)
-				=> match ($method) {
-					'getSignedNodeId' => null,
-					'getNodeId' => 123,
-					'getStatus' => \OCA\Libresign\Enum\FileStatus::DRAFT->value,
-				}
-			);
-
-		$this->fileMapper
-			->expects($this->once())
-			->method('getByUuid')
-			->with('uuid')
-			->willReturn($libresignFile);
-
-		$this->fileMapper
-			->expects($this->once())
-			->method('getStorageUserIdByUuid')
-			->with('uuid')
-			->willReturn('guest-user');
-
-		$this->folderService
-			->expects($this->once())
-			->method('setUserId')
-			->with('guest-user');
-
-		$this->folderService
-			->expects($this->once())
-			->method('getFileByNodeId')
-			->with(123)
-			->willThrowException(new NotFoundException('Invalid node'));
-
-		$this->expectException(DoesNotExistException::class);
-		$this->expectExceptionMessage('Not found');
-
-		$this->getService()->getPdfByUuid('uuid');
 	}
 
 	public function testCanRequestSignWithUnexistentUser():void {
@@ -454,196 +215,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	#[DataProvider('provideValidateCreateToSignCases')]
-	public function testValidateCreateToSignUsingDataProvider($arguments, $expectedErrorMessage):void {
-		if (is_callable($arguments)) {
-			$arguments = $arguments($this);
-		}
-
-		$this->expectExceptionMessage($expectedErrorMessage);
-		$this->getService()->validateCreateToSign($arguments);
-	}
-
-	public static function provideValidateCreateToSignCases():array {
-		return [
-			'invalidUuid' => [
-				[
-					'uuid' => 'invalid uuid'
-				],
-				'Invalid UUID'
-			],
-			'uuidNotFound' => [
-				function ($self):array {
-					$uuid = '12345678-1234-1234-1234-123456789012';
-					$self->signRequestMapper = $self->createMock(SignRequestMapper::class);
-					$self->signRequestMapper
-						->method('getByUuid')
-						->will($self->returnCallback(function ():void {
-							throw new \Exception('Beep, beep, not found!', 1);
-						}));
-					return [
-						'uuid' => $uuid
-					];
-				},
-				'UUID not found'
-			],
-			'emailMismatch' => [
-				function ($self):array {
-					$signRequest = $self->createMock(SignRequest::class);
-					$signRequest
-						->method('__call')
-						->willReturnCallback(fn (string $method)
-							=> match ($method) {
-								'getEmail' => 'valid@test.coop',
-								'getId' => 10,
-							}
-						);
-					$self->signRequestMapper
-						->method('getByUuid')
-						->will($self->returnValue($signRequest));
-					$identifyMethod = $self->createMock(IIdentifyMethod::class);
-					$identifyMethod
-						->method('validateToCreateAccount')
-						->willReturnCallback(function ():void {
-							throw new \OCA\Libresign\Exception\LibresignException('This is not your file');
-						});
-					$self->identifyMethodService
-						->method('getIdentifyMethodsFromSignRequestId')
-						->willReturn(['email' => [$identifyMethod]]);
-					return [
-						'uuid' => '12345678-1234-1234-1234-123456789012',
-						'user' => [
-							'email' => 'invalid@test.coop',
-							'identify' => [
-								'email' => 'invalid@test.coop',
-							],
-						],
-						'signPassword' => '132456789',
-						'password' => '123456789',
-					];
-				},
-				'This is not your file'
-			],
-			'userAlreadyExists' => [
-				function ($self):array {
-					$signRequest = $self->createMock(SignRequest::class);
-					$signRequest
-						->method('__call')
-						->willReturnCallback(fn (string $method)
-							=> match ($method) {
-								'getEmail' => 'valid@test.coop',
-								'getId' => 11,
-							}
-						);
-					$self->signRequestMapper
-						->method('getByUuid')
-						->will($self->returnValue($signRequest));
-					$identifyMethod = $self->createMock(IIdentifyMethod::class);
-					$identifyMethod
-						->method('validateToCreateAccount')
-						->willReturnCallback(function ():void {
-							throw new \OCA\Libresign\Exception\LibresignException('User already exists');
-						});
-					$self->identifyMethodService
-						->method('getIdentifyMethodsFromSignRequestId')
-						->willReturn(['email' => [$identifyMethod]]);
-					return [
-						'uuid' => '12345678-1234-1234-1234-123456789012',
-						'user' => [
-							'identify' => [
-								'email' => 'valid@test.coop',
-							],
-						],
-						'signPassword' => '123456789',
-						'signPassword' => '123456789',
-					];
-				},
-				'User already exists'
-			],
-			'emptyPassword' => [
-				function ($self):array {
-					$signRequest = $self->createMock(SignRequest::class);
-					$signRequest
-						->method('__call')
-						->willReturnCallback(fn (string $method)
-							=> match ($method) {
-								'getEmail' => 'valid@test.coop',
-								'getId' => 12,
-							}
-						);
-					$self->signRequestMapper
-						->method('getByUuid')
-						->will($self->returnValue($signRequest));
-					$identifyMethod = $self->createMock(IIdentifyMethod::class);
-					$self->identifyMethodService
-						->method('getIdentifyMethodsFromSignRequestId')
-						->willReturn(['email' => [$identifyMethod]]);
-					return [
-						'uuid' => '12345678-1234-1234-1234-123456789012',
-						'user' => [
-							'identify' => [
-								'email' => 'valid@test.coop',
-							],
-						],
-						'signPassword' => '132456789',
-						'password' => ''
-					];
-				},
-				'Password is mandatory'
-			],
-			'fileNotFound' => [
-				function ($self):array {
-					$signRequest = $self->createMock(SignRequest::class);
-					$signRequest
-						->method('__call')
-						->willReturnCallback(fn (string $method)
-							=> match ($method) {
-								'getEmail' => 'valid@test.coop',
-								'getFileId' => 171,
-								'getId' => 13,
-								'getUserId' => 'username',
-							}
-						);
-					$file = new \OCA\Libresign\Db\File();
-					$file->setNodeId(999);
-					$file->setUserId('username');
-					$self->fileMapper
-						->method('getById')
-						->will($self->returnValue($file));
-					$self->signRequestMapper
-						->method('getByUuid')
-						->will($self->returnValue($signRequest));
-					$identifyMethod = $self->createMock(IIdentifyMethod::class);
-					$self->identifyMethodService
-						->method('getIdentifyMethodsFromSignRequestId')
-						->willReturn(['email' => [$identifyMethod]]);
-
-					$self->folderService
-						->method('getReadableNodeById')
-						->with('username', 999)
-						->willReturn(null);
-					return [
-						'uuid' => '12345678-1234-1234-1234-123456789012',
-						'user' => [
-							'identify' => [
-								'email' => 'valid@test.coop',
-							],
-						],
-						'signPassword' => '132456789',
-						'password' => '123456789'
-					];
-				},
-				'File not found'
-			],
-		];
-	}
-
 	#[DataProvider('provideAccountCreationOptions')]
 	public function testCreateToSignPreservesIdentityMailAndCertificateContracts(string $sendEmail, ?string $signPassword): void {
 		$request = new SignRequest();
 		$request->setId(77);
 		$request->setDisplayName('Signer Name');
-		$this->signRequestMapper->method('getByUuid')->with('request-uuid')->willReturn($request);
+		$this->accountFileService->method('getSignRequestByUuid')->with('request-uuid')->willReturn($request);
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('internal-uid');
 		$user->method('getPrimaryEMailAddress')->willReturn('signer@example.com');
@@ -739,5 +316,135 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$cases[$method . ': anonymous'] = [$method, false];
 		}
 		return $cases;
+	}
+
+	public function testAccountCreationRejectsInvalidUuidBeforeLookup(): void {
+		$this->accountFileService->expects($this->never())->method('getSignRequestByUuid');
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(1);
+		$this->expectExceptionMessage('Invalid UUID');
+		$this->getService()->validateCreateToSign(['uuid' => 'invalid']);
+	}
+
+	public function testAccountCreationNormalizesUnknownUuid(): void {
+		$uuid = '12345678-1234-1234-1234-123456789012';
+		$this->accountFileService->method('getSignRequestByUuid')->with($uuid)
+			->willThrowException(new DoesNotExistException('Missing request'));
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(1);
+		$this->expectExceptionMessage('UUID not found');
+		$this->getService()->validateCreateToSign(['uuid' => $uuid]);
+	}
+
+	#[DataProvider('provideInvalidIdentificationMethods')]
+	public function testAccountCreationRejectsInvalidIdentificationMethods(array $user): void {
+		$uuid = '12345678-1234-1234-1234-123456789012';
+		$request = new SignRequest();
+		$request->setId(77);
+		$this->accountFileService->method('getSignRequestByUuid')->with($uuid)->willReturn($request);
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->with(77)->willReturn([]);
+		$this->accountFileService->expects($this->never())->method('getFileByUuid');
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(1);
+		$this->expectExceptionMessage('Invalid identification method');
+		$this->getService()->validateCreateToSign(['uuid' => $uuid, 'user' => $user]);
+	}
+
+	public static function provideInvalidIdentificationMethods(): array {
+		return [
+			'missing methods' => [[]],
+			'unknown method' => [['identify' => ['email' => 'signer@example.com']]],
+		];
+	}
+
+	#[DataProvider('provideIdentityValidationFailures')]
+	public function testAccountCreationPreservesIdentityValidationErrors(string $message): void {
+		$uuid = '12345678-1234-1234-1234-123456789012';
+		$request = new SignRequest();
+		$request->setId(77);
+		$this->accountFileService->method('getSignRequestByUuid')->with($uuid)->willReturn($request);
+		$error = new LibresignException($message);
+		$method = $this->createMock(IIdentifyMethod::class);
+		$method->expects($this->once())->method('validateToCreateAccount')->with('signer@example.com')->willThrowException($error);
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->with(77)->willReturn(['email' => [$method]]);
+		$this->accountFileService->expects($this->never())->method('getFileByUuid');
+		$this->expectExceptionObject($error);
+		$this->getService()->validateCreateToSign(['uuid' => $uuid, 'user' => ['identify' => ['email' => 'signer@example.com']]]);
+	}
+
+	public static function provideIdentityValidationFailures(): array {
+		return [['This is not your file'], ['User already exists']];
+	}
+
+	#[DataProvider('provideAccountValidationResults')]
+	public function testAccountCreationRequiresPasswordAndFile(string $password, bool $hasFile, ?string $error, int $code): void {
+		$uuid = '12345678-1234-1234-1234-123456789012';
+		$request = new SignRequest();
+		$request->setId(77);
+		$this->accountFileService->method('getSignRequestByUuid')->with($uuid)->willReturn($request);
+		$methods = [];
+		foreach (['email' => 'signer@example.com', 'account' => 'signer'] as $name => $value) {
+			$method = $this->createMock(IIdentifyMethod::class);
+			$method->expects($this->once())->method('validateToCreateAccount')->with($value);
+			$methods[$name] = [$method];
+		}
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->with(77)->willReturn($methods);
+		$node = $hasFile ? $this->createMock(File::class) : null;
+		$this->accountFileService->expects($password === '' ? $this->never() : $this->once())
+			->method('getFileByUuid')->with($uuid)->willReturn(['fileToSign' => $node]);
+		if ($error !== null) {
+			$this->expectException(LibresignException::class);
+			$this->expectExceptionCode($code);
+			$this->expectExceptionMessage($error);
+		}
+		$this->getService()->validateCreateToSign([
+			'uuid' => $uuid,
+			'user' => ['identify' => ['email' => 'signer@example.com', 'account' => 'signer']],
+			'password' => $password,
+		]);
+	}
+
+	public static function provideAccountValidationResults(): array {
+		return [
+			'missing password' => ['', true, 'Password is mandatory', 1],
+			'missing file' => ['password', false, 'File not found', 0],
+			'valid request' => ['password', true, null, 0],
+		];
+	}
+
+	#[DataProvider('provideFileLookupDelegation')]
+	public function testFileLookupDelegates(string $method, string|int $argument): void {
+		$expected = match ($method) {
+			'getSignRequestByUuid' => new SignRequest(),
+			'getFileByUuid' => ['fileData' => new \OCA\Libresign\Db\File(), 'fileToSign' => $this->createMock(File::class)],
+			default => $this->createMock(File::class),
+		};
+		$this->accountFileService->expects($this->once())->method($method)->with($argument)->willReturn($expected);
+		$this->assertSame($expected, $this->getService()->$method($argument));
+	}
+
+	public static function provideFileLookupDelegation(): array {
+		return [
+			['getSignRequestByUuid', 'request-uuid'], ['getFileByUuid', 'request-uuid'],
+			['getPdfByUuid', 'document-uuid'], ['getFileByNodeId', 42],
+		];
+	}
+
+	#[DataProvider('provideFileLookupDelegation')]
+	public function testFileLookupPreservesServiceErrors(string $method, string|int $argument): void {
+		$error = new DoesNotExistException('File lookup failed');
+		$this->accountFileService->expects($this->once())->method($method)->with($argument)->willThrowException($error);
+		$this->expectExceptionObject($error);
+		$this->getService()->$method($argument);
+	}
+
+	public function testIdentityDocumentsDelegateToTheirOwner(): void {
+		$user = $this->createMock(IUser::class);
+		$files = [['nodeId' => 42]];
+		$this->idDocsService->expects($this->once())->method('addIdDocs')->with($files, $user);
+		$this->idDocsService->expects($this->once())->method('deleteIdDoc')->with(42, $user);
+		$service = $this->getService();
+		$service->addFilesToAccount($files, $user);
+		$service->deleteFileFromAccount(42, $user);
 	}
 }
