@@ -122,6 +122,17 @@ function resolveRequirementFromSigners(
 		}
 	}
 
+	// On a sign route, if `me`/uuid matching failed but exactly one signer has a
+	// frozen requirement, use it. Avoids a blank banner when validate omitted me.
+	if (signRequestUuid !== '') {
+		const frozen = signers
+			.map((signer) => resolveRequirementFromSigner(signer))
+			.filter((requirement): requirement is GeolocationRequirement => requirement !== undefined)
+		if (frozen.length === 1) {
+			return frozen[0]
+		}
+	}
+
 	return undefined
 }
 

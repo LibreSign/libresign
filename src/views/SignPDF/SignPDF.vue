@@ -69,6 +69,7 @@ import {
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
+import { mergeSignDocumentForRoute } from '../../utils/signRequestUuid.ts'
 import type { operations } from '../../types/openapi/openapi'
 import type { SignerDetailRecord, SignerSummaryRecord, VisibleElementRecord } from '../../types/index'
 
@@ -291,14 +292,24 @@ async function initSignExternal() {
 }
 
 async function initSignInternal() {
+	const routeUuid = getRouteUuid()
+	// Prefer the document already prepared by RequestSignatureTab (merged draft +
+	// validate). A second force-validate alone can omit `me`/signatureMethods
+	// while still carrying frozen geolocation for the requester.
+	const previous = signStore.document?.signers?.length
+		? signStore.document
+		: filesStore.getFile()
 	const file = await filesStore.fetchFileDetail({
-		uuid: getRouteUuid(),
+		uuid: routeUuid,
 		force: true,
 	})
 	if (!file || typeof file.id !== 'number') {
+		if (previous) {
+			signStore.setFileToSign(mergeSignDocumentForRoute(previous, null, routeUuid) || previous)
+		}
 		return
 	}
-	signStore.setFileToSign(file)
+	signStore.setFileToSign(mergeSignDocumentForRoute(previous, file, routeUuid) || file)
 	filesStore.selectFile(file.id)
 }
 

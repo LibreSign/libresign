@@ -9,6 +9,10 @@ type SignerLike = {
 	me?: boolean
 	participantRole?: string | null
 	sign_request_uuid?: string | null
+	signRequestId?: number | string | null
+	signatureMethods?: Record<string, unknown> | null
+	metadata?: Record<string, unknown> | null
+	deviceGeolocationRequired?: boolean
 }
 
 type DocumentSettingsLike = {
@@ -32,6 +36,117 @@ export function getCurrentSigner(document: DocumentLike | null | undefined): Sig
 	}
 
 	return document.signers.find((signer) => signer?.me === true) ?? null
+}
+
+/**
+ * When opening /f/sign/:uuid, mark the matching signer as `me` so signing and
+ * frozen geolocation can resolve before/without relying solely on API `me`.
+ */
+export function markCurrentSignerFromRouteUuid<T extends DocumentLike>(
+	document: T | null | undefined,
+	routeUuid: string | null | undefined,
+): T | null | undefined {
+	if (!document || !Array.isArray(document.signers) || !isNonEmptyString(routeUuid)) {
+		return document
+	}
+
+	let matched = false
+	const signers = document.signers.map((signer) => {
+		const matchesRoute = signer?.sign_request_uuid === routeUuid
+		if (!matchesRoute) {
+			return signer
+		}
+		matched = true
+		if (signer.me === true) {
+			return signer
+		}
+		return {
+			...signer,
+			me: true,
+			sign_request_uuid: signer.sign_request_uuid ?? routeUuid,
+		}
+	})
+
+	if (!matched) {
+		return document
+	}
+
+	return {
+		...document,
+		signers,
+	}
+}
+
+function findMatchingSigner(
+	signers: SignerLike[],
+	candidate: SignerLike,
+): SignerLike | undefined {
+	return signers.find((signer) => {
+		if (
+			candidate.signRequestId !== undefined
+			&& candidate.signRequestId !== null
+			&& signer.signRequestId === candidate.signRequestId
+		) {
+			return true
+		}
+		if (
+			isNonEmptyString(candidate.sign_request_uuid)
+			&& signer.sign_request_uuid === candidate.sign_request_uuid
+		) {
+			return true
+		}
+		return candidate.me === true && signer.me === true
+	})
+}
+
+/**
+ * Merge a forced validate payload (frozen geolocation metadata) with the
+ * already-loaded request file so `me` / signatureMethods are not dropped when
+ * validate omits them.
+ */
+export function mergeSignDocumentForRoute<T extends DocumentLike>(
+	previous: DocumentLike | null | undefined,
+	detailed: T | null | undefined,
+	routeUuid: string | null | undefined,
+): T | null | undefined {
+	const base = detailed ?? previous as T | null | undefined
+	if (!base) {
+		return base
+	}
+
+	const previousSigners = Array.isArray(previous?.signers) ? previous.signers : []
+	const baseSigners = Array.isArray(base.signers) ? base.signers : []
+	const mergedSigners = baseSigners.map((signer) => {
+		const prior = findMatchingSigner(previousSigners, signer)
+		if (!prior) {
+			return signer
+		}
+		const priorMethods = prior.signatureMethods && typeof prior.signatureMethods === 'object'
+			? prior.signatureMethods
+			: null
+		const nextMethods = signer.signatureMethods && typeof signer.signatureMethods === 'object'
+			? signer.signatureMethods
+			: null
+		const hasNextMethods = nextMethods !== null && Object.keys(nextMethods).length > 0
+		return {
+			...prior,
+			...signer,
+			me: signer.me === true || prior.me === true,
+			sign_request_uuid: signer.sign_request_uuid || prior.sign_request_uuid || null,
+			signatureMethods: hasNextMethods ? nextMethods : priorMethods,
+			metadata: {
+				...(prior.metadata && typeof prior.metadata === 'object' ? prior.metadata : {}),
+				...(signer.metadata && typeof signer.metadata === 'object' ? signer.metadata : {}),
+			},
+			deviceGeolocationRequired: signer.deviceGeolocationRequired ?? prior.deviceGeolocationRequired,
+		}
+	})
+
+	return markCurrentSignerFromRouteUuid({
+		...previous,
+		...base,
+		signers: mergedSigners,
+	} as T, routeUuid)
 }
 
 export function getCurrentSignerSignRequestUuid(
@@ -65,11 +180,34 @@ export function getSigningRouteUuid(
 		return routeUuid
 	}
 
+	// Approver/id-doc flows use the file uuid, not a signer uuid.
 	if (document?.settings?.isApprover === true && isNonEmptyString(document?.uuid)) {
 		return document.uuid
 	}
 
+	// Validate payloads can omit `me` for the requester while still exposing
+	// sign_request_uuid. A sole signable signer is enough to open /f/sign/:uuid.
+	const soleSignerUuid = getSoleSignableSignRequestUuid(document)
+	if (isNonEmptyString(soleSignerUuid)) {
+		return soleSignerUuid
+	}
+
 	return null
+}
+
+function getSoleSignableSignRequestUuid(
+	document: DocumentLike | null | undefined,
+): string | null {
+	if (!Array.isArray(document?.signers)) {
+		return null
+	}
+	const candidates = document.signers.filter((signer) =>
+		isNonEmptyString(signer?.sign_request_uuid) && !isObserverParticipant(signer))
+	if (candidates.length !== 1) {
+		return null
+	}
+	const uuid = candidates[0]?.sign_request_uuid
+	return isNonEmptyString(uuid) ? uuid : null
 }
 
 /**

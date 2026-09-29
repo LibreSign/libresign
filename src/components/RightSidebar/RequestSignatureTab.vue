@@ -506,7 +506,7 @@ import {
 	PARTICIPANT_ROLE,
 	type ParticipantRole,
 } from '../../utils/participantRole.ts'
-import { getSigningRouteUuid, getValidationRouteUuid } from '../../utils/signRequestUuid.ts'
+import { getSigningRouteUuid, getValidationRouteUuid, mergeSignDocumentForRoute } from '../../utils/signRequestUuid.ts'
 import { openDocument } from '../../utils/viewer.js'
 import router from '../../router/router'
 import { useFilesStore } from '../../store/files.js'
@@ -1682,7 +1682,8 @@ async function sign() {
 		uuid,
 		force: true,
 	})
-	signStore.setFileToSign(detailedFile || filesStore.getFile())
+	const fileToSign = mergeSignDocumentForRoute(file, detailedFile, uuid) || detailedFile || file
+	signStore.setFileToSign(fileToSign)
 	router.push({ name: 'SignPDF', params: { uuid } })
 }
 
