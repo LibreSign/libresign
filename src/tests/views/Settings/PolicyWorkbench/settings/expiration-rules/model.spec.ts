@@ -12,6 +12,7 @@ import {
 	durationToSeconds,
 	hasValidRequestExpirationCombination,
 	isRequestExpirationDraftValue,
+	normalizeExpirationDraftInt,
 	normalizeNonNegativeInt,
 	normalizePositiveInt,
 	normalizeRequestExpirationDraftValue,
@@ -102,11 +103,18 @@ describe('expiration-rules model', () => {
 		})
 	})
 
-	it('normalizes non-negative integers from numbers and strings while preserving negative invalid sentinels (-1)', () => {
+	it('normalizes non-negative integers from numbers and strings while clamping negative values to 0', () => {
 		expect(normalizeNonNegativeInt(42)).toBe(42)
 		expect(normalizeNonNegativeInt(' 8 ')).toBe(8)
-		expect(normalizeNonNegativeInt(-5)).toBe(-1)
+		expect(normalizeNonNegativeInt(-5)).toBe(0)
 		expect(normalizeNonNegativeInt('invalid', 7)).toBe(7)
+	})
+
+	it('normalizes expiration draft integers while preserving negative invalid sentinels (-1)', () => {
+		expect(normalizeExpirationDraftInt(42)).toBe(42)
+		expect(normalizeExpirationDraftInt(' 8 ')).toBe(8)
+		expect(normalizeExpirationDraftInt(-5)).toBe(-1)
+		expect(normalizeExpirationDraftInt('invalid', 7)).toBe(7)
 	})
 
 	it('normalizes positive integers with fallback when values are disabled or invalid', () => {

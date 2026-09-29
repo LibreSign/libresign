@@ -99,6 +99,15 @@ export function normalizeNonNegativeInt(value: EffectivePolicyValue, fallback = 
 		return fallback
 	}
 
+	return Math.max(0, parsed)
+}
+
+export function normalizeExpirationDraftInt(value: EffectivePolicyValue, fallback = 0): number {
+	const parsed = parseIntValue(value)
+	if (parsed === null || !Number.isSafeInteger(parsed)) {
+		return fallback
+	}
+
 	if (parsed < 0) {
 		return -1
 	}
@@ -118,13 +127,13 @@ export function normalizePositiveInt(value: EffectivePolicyValue, fallback: numb
 export function normalizeRequestExpirationDraftValue(value: EffectivePolicyValue): RequestExpirationDraftValue {
 	if (isRequestExpirationDraftValue(value)) {
 		return {
-			maximumValidity: normalizeNonNegativeInt(value.maximumValidity, DEFAULT_MAXIMUM_VALIDITY),
-			renewalInterval: normalizeNonNegativeInt(value.renewalInterval, DEFAULT_RENEWAL_INTERVAL),
+			maximumValidity: normalizeExpirationDraftInt(value.maximumValidity, DEFAULT_MAXIMUM_VALIDITY),
+			renewalInterval: normalizeExpirationDraftInt(value.renewalInterval, DEFAULT_RENEWAL_INTERVAL),
 		}
 	}
 
 	return {
-		maximumValidity: normalizeNonNegativeInt(value, DEFAULT_MAXIMUM_VALIDITY),
+		maximumValidity: normalizeExpirationDraftInt(value, DEFAULT_MAXIMUM_VALIDITY),
 		renewalInterval: DEFAULT_RENEWAL_INTERVAL,
 	}
 }

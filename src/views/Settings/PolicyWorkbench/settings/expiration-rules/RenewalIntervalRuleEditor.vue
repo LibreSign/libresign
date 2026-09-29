@@ -42,7 +42,7 @@ import type { EffectivePolicyValue } from '../../../../../types/index'
 import {
 	DEFAULT_RENEWAL_INTERVAL,
 	durationToSeconds,
-	normalizeNonNegativeInt,
+	normalizeExpirationDraftInt,
 	secondsToDuration,
 	type TimeUnit,
 } from './model'
@@ -78,7 +78,7 @@ const unitOptions = computed<TimeUnitOption[]>(() => [
 	{ id: 'days', label: t('libresign', 'days') },
 ])
 
-const normalized = computed(() => normalizeNonNegativeInt(props.modelValue, DEFAULT_RENEWAL_INTERVAL))
+const normalized = computed(() => normalizeExpirationDraftInt(props.modelValue, DEFAULT_RENEWAL_INTERVAL))
 
 const localEnabled = ref(normalized.value > 0)
 const localAmount = ref<string>('')
@@ -105,7 +105,7 @@ syncFromProps(normalized.value)
 watch(
 	() => props.modelValue,
 	(newVal) => {
-		const norm = normalizeNonNegativeInt(newVal, DEFAULT_RENEWAL_INTERVAL)
+		const norm = normalizeExpirationDraftInt(newVal, DEFAULT_RENEWAL_INTERVAL)
 		const currentSec = currentSeconds()
 		if (norm !== currentSec) {
 			if (norm < 0 && currentSec < 0) {
