@@ -3,7 +3,7 @@
 
 # workflow-lock-schema: 3
 
-{"workflow":"appstore-build-publish.yml","sha256":"fa21818eb2eae3d6c0e673dd9cf2c5c6d61b48bd8f2b492fc4e39c9d83c14387","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
+{"workflow":"appstore-build-publish.yml","sha256":"0bb14ab9f7a6eeff42c971922b6bfb9966eb1d4ed7fe2a886ddb9d17384cb321","catalog_commit":"0fb76f8e57f96c4b3fe767faa486262bf49f1939"}
 {"workflow":"block-unconventional-commits.yml","sha256":"682899d221aa96cd1ad93c3cf46970205a083e49e45d9405b86f4b732a350cea","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
 {"workflow":"first-merged-pr-comment.yml","sha256":"31225cc5fc20b0ec7d77aa35fb795a4bcbea078701b805f5e581d475951689a9","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
 {"workflow":"lint-eslint.yml","sha256":"4c4dd7a4aa128713a3c6765fc078fb7bb97ffbecec1e8ce1a86a146753be74e0","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
