@@ -1151,16 +1151,11 @@ class FileListService {
 			unset($signer);
 		};
 
+		// Only enrich top-level signers (LibresignSignerDetail). Nested
+		// files[].signers use ValidatedChildSigner, which does not expose
+		// geolocation metadata in the OpenAPI contract.
 		if (isset($file['signers']) && is_array($file['signers'])) {
 			$enrichSigners($file['signers']);
-		}
-		if (isset($file['files']) && is_array($file['files'])) {
-			foreach ($file['files'] as &$childFile) {
-				if (is_array($childFile) && isset($childFile['signers']) && is_array($childFile['signers'])) {
-					$enrichSigners($childFile['signers']);
-				}
-			}
-			unset($childFile);
 		}
 
 		return $file;
