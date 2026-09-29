@@ -164,6 +164,16 @@ jobs:
           repository: nextcloud/server
           path: nextcloud
 
+      - name: Restore current packaging Makefile for manual recovery
+        if: github.event_name == 'workflow_dispatch' && steps.krankerl.outputs.files_exists != 'true'
+        env:
+          RECOVERY_WORKFLOW_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          cd ${{ env.APP_NAME }}
+          git fetch --quiet --depth=1 origin "${RECOVERY_WORKFLOW_SHA}"
+          git show "${RECOVERY_WORKFLOW_SHA}:Makefile" > Makefile
+
       - name: Package and sign with Makefile
         if: steps.krankerl.outputs.files_exists != 'true'
         env:
