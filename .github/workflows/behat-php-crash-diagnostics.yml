@@ -7,7 +7,9 @@ on:
   pull_request:
     paths:
       - '.github/workflows/behat-php-crash-diagnostics.yml'
-      - 'tests/integration/scripts/stress-behat-crash.sh'\n      - 'tests/integration/scripts/collect-php-server-diagnostics.sh'\n      - 'tests/integration/scripts/run-behat-with-watchdog.sh'
+      - 'tests/integration/scripts/stress-behat-crash.sh'
+      - 'tests/integration/scripts/collect-php-server-diagnostics.sh'
+      - 'tests/integration/scripts/run-behat-with-watchdog.sh'
   workflow_dispatch:
     inputs:
       iterations:
@@ -54,7 +56,9 @@ jobs:
       ACTIVITY_REF: 635b4b4ae103ca4111dea417486aac92214906bd
       GUESTS_REF: c9427b60e751108922a2ee724ea472d9d64e3203
       STRESS_ITERATIONS: ${{ inputs.iterations || '3' }}
-      BEHAT_WORKERS: ${{ inputs.workers || '2' }}\n      BEHAT_NO_OUTPUT_TIMEOUT: '180'\n      BEHAT_MAX_RUN_SECONDS: '1200'
+      BEHAT_WORKERS: ${{ inputs.workers || '2' }}
+      BEHAT_NO_OUTPUT_TIMEOUT: '180'
+      BEHAT_MAX_RUN_SECONDS: '1200'
 
     steps:
       - name: Install system and crash diagnostics
@@ -66,7 +70,8 @@ jobs:
           # Prefer a direct core file so post-mortem GDB does not depend on
           # systemd-coredump being active on the hosted runner. Keep
           # coredumpctl installed as an additional source when available.
-          sudo sysctl -w kernel.core_pattern='/tmp/core.%e.%p.%t' || true\n          sudo sysctl -w kernel.yama.ptrace_scope=0 || true
+          sudo sysctl -w kernel.core_pattern='/tmp/core.%e.%p.%t' || true
+          sudo sysctl -w kernel.yama.ptrace_scope=0 || true
 
           echo "core_pattern=$(cat /proc/sys/kernel/core_pattern)"
           echo "core_uses_pid=$(cat /proc/sys/kernel/core_uses_pid)"
