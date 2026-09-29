@@ -140,20 +140,6 @@ jobs:
           cd ${{ env.APP_NAME }}
           krankerl package
 
-      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }} with makefile
-        if: steps.krankerl.outputs.files_exists != 'true'
-        run: |
-          cd ${{ env.APP_NAME }}
-          make appstore
-
-      - name: Verify app store package
-        if: steps.krankerl.outputs.files_exists != 'true'
-        working-directory: ${{ env.APP_NAME }}
-        run: |
-          if make -qp 2>/dev/null | grep -q '^verify-appstore-package:'; then
-            make verify-appstore-package
-          fi
-
       - name: Check server download link for ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
         run: |
           NCVERSION='${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}'
@@ -178,21 +164,25 @@ jobs:
           repository: nextcloud/server
           path: nextcloud
 
-
-      - name: Sign app
+      - name: Package and sign with Makefile
+        if: steps.krankerl.outputs.files_exists != 'true'
+        env:
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
         run: |
-          # Extracting release
-          cd ${{ env.APP_NAME }}/build/artifacts
-          tar -xvf ${{ env.APP_NAME }}.tar.gz
-          cd ../../../
-          # Setting up keys
-          echo '${{ secrets.APP_PRIVATE_KEY }}' > ${{ env.APP_NAME }}.key
-          wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
-          # Signing
-          php nextcloud/occ integrity:sign-app --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt --path=../${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}
-          # Rebuilding archive
-          cd ${{ env.APP_NAME }}/build/artifacts
-          tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
+          cd ${{ env.APP_NAME }}
+          mkdir -p build/tools/certificates
+          printf '%s' "$APP_PRIVATE_KEY" > "build/tools/certificates/${APP_NAME}.key"
+          make appstore
+
+      - name: Verify app store package
+        if: steps.krankerl.outputs.files_exists != 'true'
+        working-directory: ${{ env.APP_NAME }}
+        env:
+          REQUIRE_SETUP_SIGNATURES: 'true'
+        run: |
+          if make -qp 2>/dev/null | grep -q '^verify-appstore-package:'; then
+            make verify-appstore-package
+          fi
 
       - name: Set up PHP 8.3 for release-tool
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2

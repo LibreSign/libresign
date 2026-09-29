@@ -201,3 +201,7 @@ verify-appstore-package: verify-release-metadata
 	if [ -d dist ]; then \
 		test -d $(appstore_sign_dir)/$(app_name)/dist; \
 	fi
+	if [ "$${REQUIRE_SETUP_SIGNATURES:-false}" = "true" ]; then \
+		setup_signature_count=$$(tar -tzf $(appstore_package_name).tar.gz | grep -E -c '^$(app_name)/appinfo/install-.*\.json$$' || true); \
+		test "$$setup_signature_count" -eq 10 || (echo "Expected 10 setup integrity metadata files in app store package, found $$setup_signature_count" >&2; exit 1); \
+	fi
