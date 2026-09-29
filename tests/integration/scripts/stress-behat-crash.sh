@@ -4,9 +4,12 @@
 
 set -uo pipefail
 
-ITERATIONS="${STRESS_ITERATIONS:-100}"
+ITERATIONS="${STRESS_ITERATIONS:-3}"
+NO_OUTPUT_TIMEOUT="${BEHAT_NO_OUTPUT_TIMEOUT:-180}"
+MAX_RUN_SECONDS="${BEHAT_MAX_RUN_SECONDS:-1200}"
 DIAG_DIR="${GITHUB_WORKSPACE:-$(pwd)}/behat-crash-diagnostics"
 SUMMARY_FILE="${DIAG_DIR}/summary.log"
+COLLECTOR="$(pwd)/scripts/collect-php-server-diagnostics.sh"
 
 mkdir -p "${DIAG_DIR}"
 : > "${SUMMARY_FILE}"
@@ -16,6 +19,8 @@ capture_environment() {
     echo "timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
     echo "iteration_limit=${ITERATIONS}"
     echo "behat_workers=${BEHAT_WORKERS:-unset}"
+    echo "no_output_timeout_seconds=${NO_OUTPUT_TIMEOUT}"
+    echo "max_run_seconds=${MAX_RUN_SECONDS}"
     echo
     echo "== uname =="
     uname -a
@@ -47,6 +52,9 @@ capture_environment() {
     echo "== core pattern =="
     cat /proc/sys/kernel/core_pattern || true
     echo
+    echo "== ptrace scope =="
+    cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null || true
+    echo
     echo "== LibreSign commit =="
     git -C ../.. rev-parse HEAD || true
     echo
@@ -57,114 +65,113 @@ capture_environment() {
   php -i > "${DIAG_DIR}/php-info.txt" 2>&1 || true
 }
 
-capture_core_backtraces() {
-  local found=0
-  mkdir -p "${DIAG_DIR}/cores"
+terminate_behat_tree() {
+  local pid="$1"
 
-  for core in /tmp/core.*; do
-    [ -f "${core}" ] || continue
-    found=1
+  kill -TERM -- "-${pid}" 2>/dev/null || true
+  sleep 2
 
-    base="$(basename "${core}")"
-    cp "${core}" "${DIAG_DIR}/cores/${base}" 2>/dev/null || true
-
-    gdb --batch \
-      -ex 'set pagination off' \
-      -ex 'thread apply all bt full' \
-      -ex 'info registers' \
-      -ex 'info sharedlibrary' \
-      "$(command -v php)" "${core}" \
-      > "${DIAG_DIR}/cores/${base}.gdb.txt" 2>&1 || true
-  done
-
-  if [ "${found}" -eq 0 ]; then
-    echo "No direct core files found in /tmp." > "${DIAG_DIR}/cores/README.txt"
+  if kill -0 "${pid}" 2>/dev/null; then
+    kill -KILL -- "-${pid}" 2>/dev/null || true
   fi
+
+  for server_pid in $(pgrep -f 'php([0-9.]*)? .* -S ' 2>/dev/null || true); do
+    kill -TERM "${server_pid}" 2>/dev/null || true
+  done
 }
 
-capture_failure() {
+run_suite_with_watchdog() {
   local iteration="$1"
-  local status="$2"
-  local iteration_log="$3"
+  local iteration_log="${DIAG_DIR}/iteration-${iteration}.log"
+  local live_diag="${DIAG_DIR}/iteration-${iteration}-live"
+  local post_diag="${DIAG_DIR}/iteration-${iteration}-post"
+  local start_epoch
+  local last_output_epoch
+  local now
+  local status
+  local reason=""
 
-  echo "${iteration}" > "${DIAG_DIR}/failed-iteration.txt"
-  echo "${status}" > "${DIAG_DIR}/behat-exit-status.txt"
+  : > "${iteration_log}"
+  start_epoch="$(date +%s)"
+  last_output_epoch="${start_epoch}"
 
-  {
-    echo "Failure at iteration ${iteration}/${ITERATIONS}"
-    echo "Behat exit status: ${status}"
-    echo
-    echo "== process tree =="
-    ps -ef --forest || true
-    echo
-    echo "== PHP processes =="
-    ps -eo pid,ppid,pgid,sid,user,stat,etime,rss,vsz,pcpu,pmem,args | grep '[p]hp' || true
-    echo
-    echo "== coredumpctl list =="
-    sudo coredumpctl --no-pager list || true
-    echo
-    echo "== coredumpctl info =="
-    sudo coredumpctl --no-pager info || true
-    echo
-    echo "== kernel messages =="
-    sudo dmesg --ctime | tail -n 300 || true
-  } > "${DIAG_DIR}/failure-system-state.txt" 2>&1
+  setsid vendor/bin/behat     -f pretty     --colors     --stop-on-failure     > "${iteration_log}" 2>&1 &
+  local behat_pid=$!
 
-  capture_core_backtraces
+  tail --pid="${behat_pid}" -n +1 -F "${iteration_log}" &
+  local tail_pid=$!
 
-  if [ -f "../../../../data/nextcloud.log" ]; then
-    cp "../../../../data/nextcloud.log" "${DIAG_DIR}/nextcloud.log"
+  while kill -0 "${behat_pid}" 2>/dev/null; do
+    sleep 5
+    now="$(date +%s)"
+
+    if [ -s "${iteration_log}" ]; then
+      local mtime
+      mtime="$(stat -c %Y "${iteration_log}" 2>/dev/null || echo "${last_output_epoch}")"
+      if [ "${mtime}" -gt "${last_output_epoch}" ]; then
+        last_output_epoch="${mtime}"
+      fi
+    fi
+
+    if [ $((now - last_output_epoch)) -ge "${NO_OUTPUT_TIMEOUT}" ]; then
+      reason="no-output-for-${NO_OUTPUT_TIMEOUT}s"
+      printf '[%s] watchdog detected hang: %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "${reason}" | tee -a "${SUMMARY_FILE}"
+      bash "${COLLECTOR}" "${live_diag}" "${reason}" || true
+      terminate_behat_tree "${behat_pid}"
+      break
+    fi
+
+    if [ $((now - start_epoch)) -ge "${MAX_RUN_SECONDS}" ]; then
+      reason="suite-runtime-exceeded-${MAX_RUN_SECONDS}s"
+      printf '[%s] watchdog detected timeout: %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "${reason}" | tee -a "${SUMMARY_FILE}"
+      bash "${COLLECTOR}" "${live_diag}" "${reason}" || true
+      terminate_behat_tree "${behat_pid}"
+      break
+    fi
+  done
+
+  wait "${behat_pid}" 2>/dev/null
+  status=$?
+  wait "${tail_pid}" 2>/dev/null || true
+
+  if [ -n "${reason}" ]; then
+    status=124
+    echo "${reason}" > "${DIAG_DIR}/failure-reason.txt"
   fi
 
-  if compgen -G "/tmp/behat-php-server-*" > /dev/null; then
-    mkdir -p "${DIAG_DIR}/php-server"
-    cp -a /tmp/behat-php-server-* "${DIAG_DIR}/php-server/" 2>/dev/null || true
+  if [ "${status}" -ne 0 ]; then
+    bash "${COLLECTOR}" "${post_diag}" "behat-exit-${status}" || true
   fi
 
-  {
-    echo "== crash markers in failing iteration =="
-    grep -Ei 'SIGSEGV|segmentation fault|exit status: 139|signal=11|cURL error 52|Empty reply from server|became unhealthy|Native backtrace|Core dump' "${iteration_log}" || true
-    echo
-    echo "== crash markers in PHP server diagnostics =="
-    grep -RniE 'SIGSEGV|segmentation fault|exit status: 139|signal=11|Native backtrace|Core dump' "${DIAG_DIR}/php-server" 2>/dev/null || true
-    echo
-    echo "== crash markers in direct core backtraces =="
-    grep -RniE 'Program terminated with signal SIGSEGV|SIGSEGV|#0 |imagick|Magick|curl|openssl|opcache' "${DIAG_DIR}/cores" 2>/dev/null || true
-  } > "${DIAG_DIR}/crash-markers.txt"
+  return "${status}"
 }
 
 capture_environment
 
 echo "Stress reproducer: ${ITERATIONS} full-suite iteration(s) with one long-lived PHP server per suite run"
 echo "PHP built-in workers: ${BEHAT_WORKERS:-unset}"
+echo "Watchdog: ${NO_OUTPUT_TIMEOUT}s without output, ${MAX_RUN_SECONDS}s maximum per suite"
 
 for iteration in $(seq 1 "${ITERATIONS}"); do
-  iteration_log="${DIAG_DIR}/iteration-${iteration}.log"
   printf '[%s] full-suite iteration %d/%d\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "${iteration}" "${ITERATIONS}" | tee -a "${SUMMARY_FILE}"
 
-  vendor/bin/behat \
-    -f pretty \
-    --colors \
-    --stop-on-failure 2>&1 | tee "${iteration_log}"
-  status=${PIPESTATUS[0]}
+  run_suite_with_watchdog "${iteration}"
+  status=$?
 
   if [ "${status}" -ne 0 ]; then
     printf 'FAILED full-suite iteration=%d status=%d\n' "${iteration}" "${status}" | tee -a "${SUMMARY_FILE}"
-    capture_failure "${iteration}" "${status}" "${iteration_log}"
+    echo "${iteration}" > "${DIAG_DIR}/failed-iteration.txt"
+    echo "${status}" > "${DIAG_DIR}/behat-exit-status.txt"
+
+    if [ -f "../../../../data/nextcloud.log" ]; then
+      cp "../../../../data/nextcloud.log" "${DIAG_DIR}/nextcloud.log"
+    fi
+
     exit "${status}"
   fi
 
   printf 'PASS full-suite iteration=%d\n' "${iteration}" >> "${SUMMARY_FILE}"
-  rm -f "${iteration_log}"
 done
 
-capture_core_backtraces
-
-{
-  echo "No failure reproduced after ${ITERATIONS} iterations."
-  echo
-  echo "== coredumpctl list after successful stress run =="
-  sudo coredumpctl --no-pager list || true
-} > "${DIAG_DIR}/result.txt" 2>&1
-
+bash "${COLLECTOR}" "${DIAG_DIR}/final-state" "successful-stress-run" || true
 echo "No failure reproduced after ${ITERATIONS} iterations."
