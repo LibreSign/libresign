@@ -142,7 +142,7 @@ appstore: verify-release-metadata
 	cp tests/php/fixtures/pdfs/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/php/fixtures
 
 	mkdir -p $(cert_dir)
-	if [ -f $(cert_dir)/$(app_name).key ] && [ "$${GITHUB_ACTIONS:-}" = "true" ]; then \
+	if [ -f $(cert_dir)/$(app_name).key ] && [ "$(GITHUB_ACTIONS)" = "true" ]; then \
 		set -e; \
 		echo "⌛️ Starting Nextcloud setup..."; \
 		mkdir $(CURDIR)/../nextcloud/data; \
