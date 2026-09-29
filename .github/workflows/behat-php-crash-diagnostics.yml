@@ -67,6 +67,12 @@ jobs:
           sudo apt update
           sudo apt install -y poppler-utils gdb systemd-coredump lsof procps
           ulimit -c unlimited
+
+          # Prefer a direct core file so post-mortem GDB does not depend on
+          # systemd-coredump being active on the hosted runner. Keep
+          # coredumpctl installed as an additional source when available.
+          sudo sysctl -w kernel.core_pattern='/tmp/core.%e.%p.%t' || true
+
           echo "core_pattern=$(cat /proc/sys/kernel/core_pattern)"
           echo "core_uses_pid=$(cat /proc/sys/kernel/core_uses_pid)"
 
@@ -116,6 +122,7 @@ jobs:
 
           git clone https://github.com/nextcloud/guests apps/guests
           git -C apps/guests checkout "${GUESTS_REF}"
+          composer --working-dir=apps/guests install --no-dev
 
       - name: Set up Nextcloud
         env:
@@ -163,4 +170,5 @@ jobs:
           path: |
             behat-crash-diagnostics/
             /tmp/behat-php-server-*
+            /tmp/core.*
           if-no-files-found: warn
