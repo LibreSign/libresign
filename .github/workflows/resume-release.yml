@@ -31,7 +31,7 @@ jobs:
     steps:
       - id: context
         name: Resolve release resume context
-        uses: LibreCodeCoop/release-tool/actions/resume-context@974461b55227bd6922c54ec020f3928659f31f30
+        uses: LibreCodeCoop/release-tool/actions/resume-context@d1095e6297c2bd0c101e2767794293990ec88610
         with:
           pull-request-number: ${{ inputs.pull_request_number }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -52,7 +52,7 @@ jobs:
           git fetch --quiet --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
 
       - name: Resume merged release finalization
-        uses: LibreCodeCoop/release-tool/actions/post-merge@974461b55227bd6922c54ec020f3928659f31f30
+        uses: LibreCodeCoop/release-tool/actions/post-merge@d1095e6297c2bd0c101e2767794293990ec88610
         with:
           pull-request-number: ${{ inputs.pull_request_number }}
           merger: ${{ steps.context.outputs.merger }}
