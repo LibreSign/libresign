@@ -11,13 +11,9 @@ on:
   workflow_dispatch:
     inputs:
       iterations:
-        description: Number of repetitions
+        description: Number of full-suite repetitions
         required: false
-        default: '100'
-      scenario:
-        description: Behat scenario name to repeat
-        required: false
-        default: 'Return a list with 3 pages'
+        default: '3'
       workers:
         description: PHP built-in server workers
         required: false
@@ -38,7 +34,7 @@ jobs:
 
     services:
       mysql:
-        image: ghcr.io/nextcloud/continuous-integration-mysql-8.1:latest
+        image: ghcr.io/nextcloud/continuous-integration-mariadb-10.6:latest
         ports:
           - 4444:3306/tcp
         env:
@@ -52,13 +48,12 @@ jobs:
 
     env:
       APP_NAME: libresign
-      PHP_VERSION: '8.4'
+      PHP_VERSION: '8.3'
       NEXTCLOUD_REF: 5d6fdcb28fb170c2725f23661366d74ac978ef41
       NOTIFICATIONS_REF: addebde43e30da3d56418bb9c597997ed05a4b00
       ACTIVITY_REF: 635b4b4ae103ca4111dea417486aac92214906bd
       GUESTS_REF: c9427b60e751108922a2ee724ea472d9d64e3203
-      STRESS_ITERATIONS: ${{ inputs.iterations || '100' }}
-      STRESS_SCENARIO: ${{ inputs.scenario || 'Return a list with 3 pages' }}
+      STRESS_ITERATIONS: ${{ inputs.iterations || '3' }}
       BEHAT_WORKERS: ${{ inputs.workers || '2' }}
 
     steps:

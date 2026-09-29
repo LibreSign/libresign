@@ -5,8 +5,6 @@
 set -uo pipefail
 
 ITERATIONS="${STRESS_ITERATIONS:-100}"
-SCENARIO="${STRESS_SCENARIO:-Return a list with 3 pages}"
-FEATURE="features/file/list.feature"
 DIAG_DIR="${GITHUB_WORKSPACE:-$(pwd)}/behat-crash-diagnostics"
 SUMMARY_FILE="${DIAG_DIR}/summary.log"
 
@@ -17,7 +15,6 @@ capture_environment() {
   {
     echo "timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
     echo "iteration_limit=${ITERATIONS}"
-    echo "scenario=${SCENARIO}"
     echo "behat_workers=${BEHAT_WORKERS:-unset}"
     echo
     echo "== uname =="
@@ -138,26 +135,26 @@ capture_failure() {
 
 capture_environment
 
-echo "Stress reproducer: ${ITERATIONS} iterations of '${SCENARIO}'"
+echo "Stress reproducer: ${ITERATIONS} full-suite iteration(s) with one long-lived PHP server per suite run"
 echo "PHP built-in workers: ${BEHAT_WORKERS:-unset}"
 
 for iteration in $(seq 1 "${ITERATIONS}"); do
   iteration_log="${DIAG_DIR}/iteration-${iteration}.log"
-  printf '[%s] iteration %d/%d\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "${iteration}" "${ITERATIONS}" | tee -a "${SUMMARY_FILE}"
+  printf '[%s] full-suite iteration %d/%d\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "${iteration}" "${ITERATIONS}" | tee -a "${SUMMARY_FILE}"
 
-  vendor/bin/behat "${FEATURE}" \
-    --name="${SCENARIO}" \
+  vendor/bin/behat \
     -f pretty \
-    --colors 2>&1 | tee "${iteration_log}"
+    --colors \
+    --stop-on-failure 2>&1 | tee "${iteration_log}"
   status=${PIPESTATUS[0]}
 
   if [ "${status}" -ne 0 ]; then
-    printf 'FAILED iteration=%d status=%d\n' "${iteration}" "${status}" | tee -a "${SUMMARY_FILE}"
+    printf 'FAILED full-suite iteration=%d status=%d\n' "${iteration}" "${status}" | tee -a "${SUMMARY_FILE}"
     capture_failure "${iteration}" "${status}" "${iteration_log}"
     exit "${status}"
   fi
 
-  printf 'PASS iteration=%d\n' "${iteration}" >> "${SUMMARY_FILE}"
+  printf 'PASS full-suite iteration=%d\n' "${iteration}" >> "${SUMMARY_FILE}"
   rm -f "${iteration_log}"
 done
 
