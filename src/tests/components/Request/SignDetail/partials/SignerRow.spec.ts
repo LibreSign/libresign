@@ -32,6 +32,7 @@ describe('SignerRow.vue', () => {
 					request_sign_date: '2026-01-01',
 					signed: null,
 					status: 1,
+					displayStatus: 'ready_to_sign',
 					statusText: 'Able to sign',
 					me: false,
 					visibleElements: [],

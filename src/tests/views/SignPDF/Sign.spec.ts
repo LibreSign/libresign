@@ -2285,6 +2285,7 @@ describe('Sign.vue - no visible signature notice', () => {
 			visibleElements: [
 				{ elementId: 201, fileId: 1, signRequestId, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
 			],
+			settings: { canSign: true },
 		})
 
 		const base = createSignMountOptions()

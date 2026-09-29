@@ -38,6 +38,7 @@ use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserSession;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -57,6 +58,11 @@ final class PageControllerTest extends TestCase {
 	private PolicyAuthorizationService $policyAuthorizationService;
 	private IURLGenerator&MockObject $urlGenerator;
 	private PageController $controller;
+
+	private array $fileSettings = [
+		'needIdentificationDocuments' => false,
+		'identificationDocumentsWaitingApproval' => false,
+	];
 
 	#[\Override]
 	public function setUp(): void {
@@ -90,17 +96,14 @@ final class PageControllerTest extends TestCase {
 		$this->fileService->method('showSettings')->willReturnSelf();
 		$this->fileService->method('showMessages')->willReturnSelf();
 		$this->fileService->method('showValidateFile')->willReturnSelf();
-		$this->fileService->method('toArray')->willReturn([
+		$this->fileService->method('toArray')->willReturnCallback(fn (): array => [
 			'id' => 5,
 			'nodeId' => 50,
 			'status' => 1,
 			'statusText' => 'Ready to sign',
 			'signers' => [],
 			'visibleElements' => [],
-			'settings' => [
-				'needIdentificationDocuments' => false,
-				'identificationDocumentsWaitingApproval' => false,
-			],
+			'settings' => $this->fileSettings,
 		]);
 
 		$this->signFileService = $this->createMock(SignFileService::class);
@@ -186,6 +189,45 @@ final class PageControllerTest extends TestCase {
 		$response = $this->controller->sign('sign-uuid');
 
 		self::assertStringContainsString("worker-src 'self'", $response->getContentSecurityPolicy()->buildPolicy());
+	}
+
+	/**
+	 * The sign page trusts the backend to say whether the signer may act now,
+	 * so its initial state carries `settings.canSign` of the file response.
+	 */
+	#[DataProvider('provideCanSign')]
+	public function testPublicSignProvidesWhetherTheSignerMayActNow(array $settings, bool $expected): void {
+		$this->fileSettings = $settings;
+		$provided = [];
+		$this->initialState->method('provideInitialState')
+			->willReturnCallback(static function (string $key, mixed $value) use (&$provided): void {
+				$provided[$key] = $value;
+			});
+
+		$fileEntity = new FileEntity();
+		$fileEntity->setId(5);
+		$fileEntity->setName('small_valid');
+		$fileEntity->setNodeId(50);
+		$fileEntity->setNodeType('file');
+		$signRequestEntity = new SignRequestEntity();
+		$signRequestEntity->setFileId(5);
+		$signRequestEntity->setUuid('sign-uuid');
+		$signRequestEntity->setDescription('');
+		$this->signFileService->method('getSignRequestByUuid')->willReturn($signRequestEntity);
+		$this->signFileService->method('getFile')->willReturn($fileEntity);
+		$this->controller->loadNextcloudFileFromUuid('sign-uuid');
+
+		$this->controller->sign('sign-uuid');
+
+		self::assertSame($expected, $provided['canSign']);
+	}
+
+	public static function provideCanSign(): array {
+		return [
+			'the signer may act now' => [['canSign' => true], true],
+			'not the signer\'s turn' => [['canSign' => false], false],
+			'no capability in the response' => [[], false],
+		];
 	}
 
 	public function testIndexFPathRedirectsRegularUserAwayFromPoliciesWorkbench(): void {

@@ -405,6 +405,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('signers', $file['signers']);
+		$this->initialState->provideInitialState('canSign', $file['settings']['canSign'] ?? false);
 		$this->initialState->provideInitialState('visibleElements', $file['visibleElements'] ?? []);
 		$this->initialState->provideInitialState('sign_request_uuid', $uuid);
 		$this->provideSignerSignatues();
