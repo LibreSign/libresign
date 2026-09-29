@@ -60,6 +60,31 @@ capture_environment() {
   php -i > "${DIAG_DIR}/php-info.txt" 2>&1 || true
 }
 
+capture_core_backtraces() {
+  local found=0
+  mkdir -p "${DIAG_DIR}/cores"
+
+  for core in /tmp/core.*; do
+    [ -f "${core}" ] || continue
+    found=1
+
+    base="$(basename "${core}")"
+    cp "${core}" "${DIAG_DIR}/cores/${base}" 2>/dev/null || true
+
+    gdb --batch \
+      -ex 'set pagination off' \
+      -ex 'thread apply all bt full' \
+      -ex 'info registers' \
+      -ex 'info sharedlibrary' \
+      "$(command -v php)" "${core}" \
+      > "${DIAG_DIR}/cores/${base}.gdb.txt" 2>&1 || true
+  done
+
+  if [ "${found}" -eq 0 ]; then
+    echo "No direct core files found in /tmp." > "${DIAG_DIR}/cores/README.txt"
+  fi
+}
+
 capture_failure() {
   local iteration="$1"
   local status="$2"
@@ -88,6 +113,8 @@ capture_failure() {
     sudo dmesg --ctime | tail -n 300 || true
   } > "${DIAG_DIR}/failure-system-state.txt" 2>&1
 
+  capture_core_backtraces
+
   if [ -f "../../../../data/nextcloud.log" ]; then
     cp "../../../../data/nextcloud.log" "${DIAG_DIR}/nextcloud.log"
   fi
@@ -103,6 +130,9 @@ capture_failure() {
     echo
     echo "== crash markers in PHP server diagnostics =="
     grep -RniE 'SIGSEGV|segmentation fault|exit status: 139|signal=11|Native backtrace|Core dump' "${DIAG_DIR}/php-server" 2>/dev/null || true
+    echo
+    echo "== crash markers in direct core backtraces =="
+    grep -RniE 'Program terminated with signal SIGSEGV|SIGSEGV|#0 |imagick|Magick|curl|openssl|opcache' "${DIAG_DIR}/cores" 2>/dev/null || true
   } > "${DIAG_DIR}/crash-markers.txt"
 }
 
@@ -130,6 +160,8 @@ for iteration in $(seq 1 "${ITERATIONS}"); do
   printf 'PASS iteration=%d\n' "${iteration}" >> "${SUMMARY_FILE}"
   rm -f "${iteration_log}"
 done
+
+capture_core_backtraces
 
 {
   echo "No failure reproduced after ${ITERATIONS} iterations."
