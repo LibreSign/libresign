@@ -3,9 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection
-		:name="sectionName"
-		:description="sectionDescription">
+	<div class="geoip-database">
+		<p class="geoip-database__intro">{{ formDescription }}</p>
+
 		<NcNoteCard v-if="status" :type="statusTone">
 			<p><strong>{{ statusLabel }}</strong></p>
 			<p>{{ statusDescription }}</p>
@@ -56,7 +56,7 @@
 				<dd>{{ modifiedAt }}</dd>
 			</div>
 		</dl>
-	</NcSettingsSection>
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -67,7 +67,6 @@ import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
-import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import {
@@ -86,10 +85,12 @@ defineOptions({
 	name: 'GeoIpDatabase',
 })
 
-// TRANSLATORS Admin settings section title for the local GeoIP City database path.
-const sectionName = t('libresign', 'GeoIP database')
-// TRANSLATORS Admin settings section description for configuring a local MaxMind City database.
-const sectionDescription = t('libresign', 'Configure the local MaxMind City database used for approximate IP-based signer location. This is instance configuration, not a group or user policy.')
+const emit = defineEmits<{
+	updated: [config: GeoIpConfig]
+}>()
+
+// TRANSLATORS Description for the instance-level GeoIP database configuration form.
+const formDescription = t('libresign', 'Configure the local MaxMind City database used for approximate IP-based signer location. This is instance configuration, not a group or user policy.')
 // TRANSLATORS Label for the absolute filesystem path of the GeoIP City database.
 const pathLabel = t('libresign', 'Database path')
 // TRANSLATORS Placeholder showing an example absolute GeoIP database path.
@@ -112,6 +113,7 @@ const hasMetadata = computed(() => Boolean(config.value?.databaseType || buildTi
 function applyConfig(next: GeoIpConfig) {
 	config.value = next
 	draftPath.value = next.path ?? ''
+	emit('updated', next)
 }
 
 async function loadConfig() {
@@ -173,6 +175,17 @@ defineExpose({
 </script>
 
 <style scoped lang="scss">
+.geoip-database {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+.geoip-database__intro {
+	margin: 0;
+	color: var(--color-text-maxcontrast);
+}
+
 .geoip-database__path {
 	max-width: 40rem;
 }
@@ -181,14 +194,13 @@ defineExpose({
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.5rem;
-	margin-block-start: 0.75rem;
 }
 
 .geoip-database__meta {
 	display: flex;
 	flex-direction: column;
 	gap: 0.25rem;
-	margin: 1rem 0 0;
+	margin: 0;
 }
 
 .geoip-database__field {

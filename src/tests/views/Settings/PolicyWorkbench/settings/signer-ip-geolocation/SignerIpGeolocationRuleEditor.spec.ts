@@ -4,25 +4,46 @@
  */
 
 import { mount } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createL10nMock } from '../../../../../testHelpers/l10n.js'
+import { getGeoIpConfig } from '../../../../../../services/geoip'
 import SignerIpGeolocationRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/signer-ip-geolocation/SignerIpGeolocationRuleEditor.vue'
 
 vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('../../../../../../services/geoip', () => ({
+	getGeoIpConfig: vi.fn(),
+	saveGeoIpConfig: vi.fn(),
+}))
 
 describe('SignerIpGeolocationRuleEditor.vue', () => {
+	beforeEach(() => {
+		vi.mocked(getGeoIpConfig).mockReset()
+		vi.mocked(getGeoIpConfig).mockResolvedValue({
+			path: null,
+			status: 'not_configured',
+		})
+	})
+
+	const sharedStubs = {
+		NcCheckboxRadioSwitch: {
+			template: '<div class="radio-stub"><slot /></div>',
+		},
+		NcButton: {
+			template: '<button type="button"><slot /></button>',
+		},
+		NcDialog: true,
+		NcNoteCard: { template: '<div class="note"><slot /></div>' },
+		GeoIpDatabase: true,
+	}
+
 	it('renders disabled and enabled options without a requester override', () => {
 		const wrapper = mount(SignerIpGeolocationRuleEditor, {
 			props: {
 				modelValue: { mode: 'disabled' },
 			},
 			global: {
-				stubs: {
-					NcCheckboxRadioSwitch: {
-						template: '<div class="radio-stub"><slot /></div>',
-					},
-				},
+				stubs: sharedStubs,
 			},
 		})
 
@@ -41,6 +62,7 @@ describe('SignerIpGeolocationRuleEditor.vue', () => {
 			},
 			global: {
 				stubs: {
+					...sharedStubs,
 					NcCheckboxRadioSwitch: {
 						props: ['modelValue'],
 						template: '<button class="radio-option" @click="$emit(\'update:modelValue\', true)"><slot /></button>',
@@ -49,7 +71,7 @@ describe('SignerIpGeolocationRuleEditor.vue', () => {
 			},
 		})
 
-		await wrapper.findAll('button')[1]?.trigger('click')
+		await wrapper.findAll('.radio-option')[1]?.trigger('click')
 
 		expect(wrapper.emitted('update:modelValue')?.[0]?.[0]).toEqual({ mode: 'enabled' })
 	})
@@ -61,6 +83,7 @@ describe('SignerIpGeolocationRuleEditor.vue', () => {
 			},
 			global: {
 				stubs: {
+					...sharedStubs,
 					NcCheckboxRadioSwitch: {
 						props: ['modelValue'],
 						template: '<button class="radio-ignore" @click="$emit(\'update:modelValue\', false)"><slot /></button>',

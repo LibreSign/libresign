@@ -32,7 +32,6 @@ describe('GeoIpDatabase', () => {
 		return mount(GeoIpDatabase, {
 			global: {
 				stubs: {
-					NcSettingsSection: { template: '<section><slot /></section>' },
 					NcNoteCard: { template: '<div class="note"><slot /></div>' },
 					NcTextField: {
 						props: ['modelValue', 'disabled'],

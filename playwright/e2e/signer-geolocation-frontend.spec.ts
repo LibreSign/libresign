@@ -72,8 +72,26 @@ test('Policy Workbench groups device and IP geolocation as independent cards', a
 	await expect(geolocationSection.getByText('Signer geolocation', { exact: true })).toBeVisible()
 	await expect(geolocationSection.getByRole('heading', { name: 'Device-reported location' })).toBeVisible()
 	await expect(geolocationSection.getByRole('heading', { name: 'IP-based approximate location' })).toBeVisible()
-	await expect(page.getByRole('heading', { name: 'GeoIP database' })).toBeVisible()
+	await expect(page.getByRole('heading', { name: 'GeoIP database' })).toHaveCount(0)
 })
+
+async function openIpGeolocationSystemEditor(page: import('@playwright/test').Page) {
+	const geolocationSection = page.locator('[data-category-key="signer-geolocation"]')
+	const ipCard = geolocationSection.locator('article').filter({
+		has: page.getByRole('heading', { name: 'IP-based approximate location' }),
+	})
+	await ipCard.getByRole('button', { name: 'Configure setting' }).click()
+
+	const settingDialog = page.getByRole('dialog', { name: 'IP-based approximate location' })
+	await expect(settingDialog).toBeVisible()
+	await settingDialog.getByRole('button', { name: 'Change', exact: true }).click()
+
+	const editorDialog = page.getByRole('dialog').filter({
+		has: page.locator('[data-cy="geoip-database-dependency"]'),
+	}).last()
+	await expect(editorDialog.locator('[data-cy="geoip-database-dependency"]')).toBeVisible()
+	return editorDialog
+}
 
 test('GeoIP admin settings save, replace, and clear a path without exposing signer data', async ({ page }) => {
 	adminContext = await createAuthenticatedRequestContext(adminUser, adminPassword)
@@ -85,17 +103,19 @@ test('GeoIP admin settings save, replace, and clear a path without exposing sign
 	await login(page.request, adminUser, adminPassword)
 	await page.goto('./settings/admin/libresign')
 
-	const pathInput = page.getByLabel('Database path')
-	await expect(pathInput).toBeVisible()
-	const geoIpHeading = page.getByRole('heading', { name: 'GeoIP database' })
-	const geoIpSection = geoIpHeading.locator('xpath=ancestor::div[contains(@class, "settings-section")][1]')
-	await expect(geoIpSection).toBeVisible()
-	await pathInput.fill('/tmp/libresign-missing-geoip.mmdb')
-	await geoIpSection.getByRole('button', { name: 'Save', exact: true }).click()
-	await expect(geoIpSection.getByText('Database file not found')).toBeVisible()
-	await expect(geoIpSection.getByText('This does not prevent signatures')).toBeVisible()
-	await expect(geoIpSection).not.toContainText('sourceIp')
+	const editorDialog = await openIpGeolocationSystemEditor(page)
+	await editorDialog.getByRole('button', { name: /Configure( database)?/ }).click()
 
-	await geoIpSection.getByRole('button', { name: 'Clear path' }).click()
+	const geoIpDialog = page.getByRole('dialog', { name: 'GeoIP database' })
+	await expect(geoIpDialog).toBeVisible()
+	const pathInput = geoIpDialog.getByLabel('Database path')
+	await expect(pathInput).toBeVisible()
+	await pathInput.fill('/tmp/libresign-missing-geoip.mmdb')
+	await geoIpDialog.getByRole('button', { name: 'Save', exact: true }).click()
+	await expect(geoIpDialog.getByText('Database file not found')).toBeVisible()
+	await expect(geoIpDialog.getByText('This does not prevent signatures')).toBeVisible()
+	await expect(geoIpDialog).not.toContainText('sourceIp')
+
+	await geoIpDialog.getByRole('button', { name: 'Clear path' }).click()
 	await expect(pathInput).toHaveValue('')
 })
