@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-name: Dispatch resume 8854 with existing draft
+name: Dispatch resume 8854 with release-tool 0.11.16
 
 on:
   push:
