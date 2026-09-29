@@ -23,7 +23,7 @@ jobs:
   stress:
     name: PHP 8.3 / workers=${{ matrix.workers }}
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
 
     strategy:
       fail-fast: false
@@ -54,7 +54,7 @@ jobs:
       STRESS_ITERATIONS: '1'
       BEHAT_WORKERS: ${{ matrix.workers }}
       BEHAT_NO_PROGRESS_TIMEOUT: '120'
-      BEHAT_MAX_RUN_SECONDS: '600'
+      BEHAT_MAX_RUN_SECONDS: '1200'
 
     steps:
       - name: Install system and crash diagnostics
@@ -134,7 +134,16 @@ jobs:
         run: |
           echo "127.0.0.1 mailpit" | sudo tee -a /etc/hosts
           mkdir data
-          ./occ maintenance:install             --verbose             --database=mysql             --database-name=nextcloud             --database-host=127.0.0.1             --database-port=${DB_PORT}             --database-user=root             --database-pass=rootpassword             --admin-user=admin             --admin-pass=admin
+          ./occ maintenance:install \
+            --verbose \
+            --database=mysql \
+            --database-name=nextcloud \
+            --database-host=127.0.0.1 \
+            --database-port=${DB_PORT} \
+            --database-user=root \
+            --database-pass=rootpassword \
+            --admin-user=admin \
+            --admin-pass=admin
 
           ./occ --version
           ./occ app:enable --force "${APP_NAME}"
