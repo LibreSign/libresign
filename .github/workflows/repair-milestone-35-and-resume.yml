@@ -1,0 +1,56 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Repair milestone 35 and resume release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/repair-milestone-35-and-resume.yml
+
+permissions:
+  actions: write
+  contents: read
+  issues: write
+
+jobs:
+  repair-and-resume:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure Next Patch (35) milestone exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/${REPOSITORY}"
+          milestones="$(curl --fail-with-body --silent --show-error \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "${api}/milestones?state=open&per_page=100")"
+          if ! jq -e '.[] | select(.title == "Next Patch (35)")' >/dev/null <<<"${milestones}"; then
+            curl --fail-with-body --silent --show-error \
+              --request POST \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer ${GH_TOKEN}" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "${api}/milestones" \
+              --data '{"title":"Next Patch (35)","state":"open"}' >/dev/null
+          fi
+
+      - name: Dispatch release resume
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${REPOSITORY}/actions/workflows/resume-release.yml/dispatches" \
+            --data '{"ref":"main","inputs":{"pull_request_number":"8854"}}'
