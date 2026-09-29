@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Makefile release packaging test
+
+on:
+  pull_request:
+    paths:
+      - 'Makefile'
+      - 'tests/ci/test-release-makefile.sh'
+      - '.github/workflows/test-release-makefile.yml'
+  push:
+    branches:
+      - main
+      - stable*
+    paths:
+      - 'Makefile'
+      - 'tests/ci/test-release-makefile.sh'
+      - '.github/workflows/test-release-makefile.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate release packaging recipe
+        run: bash tests/ci/test-release-makefile.sh
