@@ -109,6 +109,31 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return $validateHelper;
 	}
 
+	#[DataProvider('provideRawVisibleElementContent')]
+	public function testValidateContentForVisibleElement(string $content, ?string $detectedMime, ?string $expectedException): void {
+		$mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
+		$mimeTypeDetector->method('detectString')->with($content)->willReturn($detectedMime);
+		$this->mimeTypeDetector = $mimeTypeDetector;
+
+		if ($expectedException !== null) {
+			$this->expectException($expectedException);
+		}
+
+		$this->getValidateHelper()->validateContent($content, ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
+
+		if ($expectedException === null) {
+			$this->addToAssertionCount(1);
+		}
+	}
+
+	public static function provideRawVisibleElementContent(): array {
+		return [
+			'valid PNG' => ["\x89PNG\r\n\x1a\ncontent", 'image/png', null],
+			'non-PNG content' => ['<html>not an image</html>', 'text/html', LibresignException::class],
+			'oversized PNG' => [str_repeat('x', 5000 * 1024 + 1), 'image/png', \InvalidArgumentException::class],
+		];
+	}
+
 	public function testValidateIdentifySignersCallsDocMdpValidator(): void {
 		$signatureMethod = $this->createMock(ISignatureMethod::class);
 		$identifyMethod = $this->createMock(IIdentifyMethod::class);
