@@ -4,7 +4,7 @@
 
 set -uo pipefail
 
-ITERATIONS="${STRESS_ITERATIONS:-3}"
+ITERATIONS="${STRESS_ITERATIONS:-1}"
 DIAG_DIR="${GITHUB_WORKSPACE:-$(pwd)}/behat-crash-diagnostics"
 SUMMARY_FILE="${DIAG_DIR}/summary.log"
 WATCHDOG="$(pwd)/scripts/run-behat-with-watchdog.sh"
@@ -17,8 +17,8 @@ capture_environment() {
     echo "timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
     echo "iteration_limit=${ITERATIONS}"
     echo "behat_workers=${BEHAT_WORKERS:-unset}"
-    echo "no_output_timeout_seconds=${BEHAT_NO_OUTPUT_TIMEOUT:-180}"
-    echo "max_run_seconds=${BEHAT_MAX_RUN_SECONDS:-1200}"
+    echo "no_progress_timeout_seconds=${BEHAT_NO_PROGRESS_TIMEOUT:-120}"
+    echo "max_run_seconds=${BEHAT_MAX_RUN_SECONDS:-600}"
     echo
     echo "== uname =="
     uname -a
@@ -65,19 +65,19 @@ capture_environment() {
 
 capture_environment
 
-echo "Stress reproducer: ${ITERATIONS} full-suite iteration(s) with one long-lived PHP server per suite run"
+echo "Controlled reproducer: ${ITERATIONS} full-suite iteration(s)"
 echo "PHP built-in workers: ${BEHAT_WORKERS:-unset}"
-echo "Watchdog: ${BEHAT_NO_OUTPUT_TIMEOUT:-180}s without output, ${BEHAT_MAX_RUN_SECONDS:-1200}s maximum per suite"
+echo "Watchdog: ${BEHAT_NO_PROGRESS_TIMEOUT:-120}s without Behat/server progress, ${BEHAT_MAX_RUN_SECONDS:-600}s maximum per suite"
 
 for iteration in $(seq 1 "${ITERATIONS}"); do
   iteration_dir="${DIAG_DIR}/iteration-${iteration}"
-  printf '[%s] full-suite iteration %d/%d\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "${iteration}" "${ITERATIONS}" | tee -a "${SUMMARY_FILE}"
+  printf '[%s] full-suite iteration %d/%d workers=%s\n'     "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"     "${iteration}"     "${ITERATIONS}"     "${BEHAT_WORKERS:-unset}" | tee -a "${SUMMARY_FILE}"
 
-  bash "${WATCHDOG}" "${iteration_dir}" --     vendor/bin/behat -f pretty --colors --stop-on-failure
+  bash "${WATCHDOG}" "${iteration_dir}" -- vendor/bin/behat -f pretty --colors --stop-on-failure
   status=$?
 
   if [ "${status}" -ne 0 ]; then
-    printf 'FAILED full-suite iteration=%d status=%d\n' "${iteration}" "${status}" | tee -a "${SUMMARY_FILE}"
+    printf 'FAILED full-suite iteration=%d status=%d workers=%s\n'       "${iteration}" "${status}" "${BEHAT_WORKERS:-unset}" | tee -a "${SUMMARY_FILE}"
     echo "${iteration}" > "${DIAG_DIR}/failed-iteration.txt"
     echo "${status}" > "${DIAG_DIR}/behat-exit-status.txt"
 
@@ -88,7 +88,7 @@ for iteration in $(seq 1 "${ITERATIONS}"); do
     exit "${status}"
   fi
 
-  printf 'PASS full-suite iteration=%d\n' "${iteration}" >> "${SUMMARY_FILE}"
+  printf 'PASS full-suite iteration=%d workers=%s\n'     "${iteration}" "${BEHAT_WORKERS:-unset}" | tee -a "${SUMMARY_FILE}"
 done
 
-echo "No failure reproduced after ${ITERATIONS} iterations."
+echo "No failure reproduced after ${ITERATIONS} iteration(s), workers=${BEHAT_WORKERS:-unset}."
