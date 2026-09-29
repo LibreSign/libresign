@@ -21,23 +21,26 @@ concurrency:
 
 jobs:
   stress:
-    name: PHP 8.3 / workers=${{ matrix.workers }} / extensions=${{ matrix.extension_mode }}
+    name: ${{ matrix.flow }} / imagick=${{ matrix.imagick }}
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
       matrix:
         include:
-          - workers: 0
-            extension_mode: default
-            php_extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, imagick
-          - workers: 2
-            extension_mode: default
-            php_extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, imagick
-          - workers: 2
-            extension_mode: minimal
+          - flow: request-signature
+            imagick: 'on'
             php_extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, imagick
+          - flow: request-signature
+            imagick: 'off'
+            php_extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql
+          - flow: validate-uuid
+            imagick: 'on'
+            php_extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, imagick
+          - flow: validate-uuid
+            imagick: 'off'
+            php_extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql
 
     services:
       mysql:
@@ -60,8 +63,9 @@ jobs:
       NOTIFICATIONS_REF: addebde43e30da3d56418bb9c597997ed05a4b00
       ACTIVITY_REF: 635b4b4ae103ca4111dea417486aac92214906bd
       GUESTS_REF: c9427b60e751108922a2ee724ea472d9d64e3203
-      STRESS_ITERATIONS: '1'
-      BEHAT_WORKERS: ${{ matrix.workers }}
+      STRESS_FLOW: ${{ matrix.flow }}
+      STRESS_REQUESTS: '500'
+      BEHAT_WORKERS: '0'
       BEHAT_NO_PROGRESS_TIMEOUT: '120'
       BEHAT_MAX_RUN_SECONDS: '1200'
 
@@ -104,10 +108,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Verify controlled extension set
+        run: |
+          php -v
+          php -m
+          if [ "${{ matrix.imagick }}" = "on" ]; then
+            php -r 'exit(extension_loaded("imagick") ? 0 : 1);'
+          else
+            php -r 'exit(extension_loaded("imagick") ? 1 : 0);'
+          fi
+
       - name: Record PHP binary metadata
         run: |
           mkdir -p php-runtime-metadata
-          php -v | tee php-runtime-metadata/php-version.txt
+          php -v > php-runtime-metadata/php-version.txt
           php --ini > php-runtime-metadata/php-ini.txt
           php -m > php-runtime-metadata/php-modules.txt
           file "$(command -v php)" > php-runtime-metadata/php-file.txt
@@ -166,7 +180,7 @@ jobs:
           ./occ config:system:set ratelimit.protection.enabled --value false --type boolean
           ./occ config:app:set dav enableDefaultContact --value false --type boolean
 
-      - name: Run controlled Behat diagnostic
+      - name: Stress ${{ matrix.flow }} with Imagick ${{ matrix.imagick }}
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
         env:
           BEHAT_ROOT_DIR: ../../../../
@@ -174,16 +188,17 @@ jobs:
           BEHAT_VERBOSE: '1'
         run: |
           ulimit -c unlimited
-          echo "core_limit=$(ulimit -c)"
+          echo "flow=${STRESS_FLOW}"
+          echo "requests=${STRESS_REQUESTS}"
+          echo "imagick=${{ matrix.imagick }}"
           echo "workers=${BEHAT_WORKERS}"
-          echo "extension_mode=${{ matrix.extension_mode }}"
           bash scripts/stress-behat-crash.sh
 
       - name: Upload crash diagnostics
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: behat-php-crash-diagnostics-workers-${{ matrix.workers }}-extensions-${{ matrix.extension_mode }}-${{ github.run_id }}
+          name: behat-crash-${{ matrix.flow }}-imagick-${{ matrix.imagick }}-${{ github.run_id }}
           path: |
             behat-crash-diagnostics/
             php-runtime-metadata/
