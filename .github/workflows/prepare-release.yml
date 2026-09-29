@@ -80,50 +80,14 @@ jobs:
           set -euo pipefail
           git fetch --quiet --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
 
-      - name: Verify release pipeline pins match main
-        if: inputs.branch != 'main'
+      - name: Fetch trusted release pipeline reference
         shell: bash
-        env:
-          RELEASE_BRANCH: ${{ inputs.branch }}
         run: |
           set -euo pipefail
           git fetch --quiet origin "+refs/heads/main:refs/remotes/origin/main"
 
-          extract_refs() {
-            grep -Eo 'LibreCodeCoop/(release-tool/actions/[^@[:space:]]+|\.github/actions/nextcloud-appstore-publish)@[0-9a-f]{40}' "$1" | sort -u || true
-          }
-
-          files=(
-            .github/workflows/prepare-release.yml
-            .github/workflows/release-metadata.yml
-            .github/workflows/nightly-release.yml
-            .github/workflows/appstore-build-publish.yml
-          )
-
-          failed=false
-          for path in "${files[@]}"; do
-            if [[ ! -f "${path}" ]]; then
-              continue
-            fi
-            default_file="${RUNNER_TEMP}/main-$(basename "${path}")"
-            if ! git show "refs/remotes/origin/main:${path}" > "${default_file}" 2>/dev/null; then
-              continue
-            fi
-            selected_refs="$(extract_refs "${path}")"
-            main_refs="$(extract_refs "${default_file}")"
-            if [[ "${selected_refs}" != "${main_refs}" ]]; then
-              echo "::error file=${path}::Release pipeline pins on ${RELEASE_BRANCH} differ from main. Synchronize release-tool/shared publisher refs before preparing a release."
-              diff -u <(printf '%s\n' "${main_refs}") <(printf '%s\n' "${selected_refs}") || true
-              failed=true
-            fi
-          done
-
-          if [[ "${failed}" == "true" ]]; then
-            exit 1
-          fi
-
       - name: Prepare release
-        uses: LibreCodeCoop/release-tool/actions/prepare@d1095e6297c2bd0c101e2767794293990ec88610
+        uses: LibreCodeCoop/release-tool/actions/prepare@d83c79f61a5a46322e105e7d84cf8e8a151d2085
         with:
           branch: ${{ inputs.branch }}
           ref: ${{ inputs.ref }}
@@ -135,6 +99,7 @@ jobs:
           actor: ${{ github.actor }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           app-private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
+          pipeline-reference-ref: refs/remotes/origin/main
 
   post_merge:
     name: Finalize release and prepare draft
@@ -167,7 +132,7 @@ jobs:
           git fetch --quiet --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
 
       - name: Finalize merged release
-        uses: LibreCodeCoop/release-tool/actions/post-merge@d1095e6297c2bd0c101e2767794293990ec88610
+        uses: LibreCodeCoop/release-tool/actions/post-merge@d83c79f61a5a46322e105e7d84cf8e8a151d2085
         with:
           pull-request-number: ${{ github.event.pull_request.number }}
           merger: ${{ github.event.pull_request.merged_by.login }}
@@ -193,7 +158,7 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
 
       - name: Verify publication
-        uses: LibreCodeCoop/release-tool/actions/publication@d1095e6297c2bd0c101e2767794293990ec88610
+        uses: LibreCodeCoop/release-tool/actions/publication@d83c79f61a5a46322e105e7d84cf8e8a151d2085
         with:
           github-release-id: ${{ github.event.release.id }}
           config-path: .nextcloud-release.yml
