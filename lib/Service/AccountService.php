@@ -9,48 +9,32 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use InvalidArgumentException;
-use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
-use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\AccountSettingsProvider;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Settings\Mailer\NewUserMailHelper;
-use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\File;
-use OCP\Files\NotFoundException;
 use OCP\IAppConfig;
 use OCP\IL10N;
-use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 use Sabre\DAV\UUIDUtil;
-use Throwable;
 
 class AccountService {
 	public function __construct(
 		private IL10N $l10n,
+		private AccountFileService $accountFileService,
 		private AccountCertificateService $accountCertificateService,
 		private AccountSettingsProvider $accountSettingsProvider,
-		private SignRequestMapper $signRequestMapper,
 		private IUserManager $userManager,
-		private FileMapper $fileMapper,
-		private FileTypeMapper $fileTypeMapper,
-		private SignFileService $signFileService,
-		private RequestSignatureService $requestSignatureService,
 		private IAppConfig $appConfig,
-		private IMountProviderCollection $mountProviderCollection,
 		private NewUserMailHelper $newUserMail,
 		private IdentifyMethodService $identifyMethodService,
 		private IdentifyMethodMapper $identifyMethodMapper,
-		private IURLGenerator $urlGenerator,
 		private IdDocsService $idDocsService,
 		private SignerElementsService $signerElementsService,
-		private FolderService $folderService,
 		private RequestSignAuthorizationService $requestSignAuthorizationService,
 	) {
 	}
@@ -92,24 +76,15 @@ class AccountService {
 	}
 
 	public function getFileByUuid(string $uuid): array {
-		$signRequest = $this->getSignRequestByUuid($uuid);
-		$fileData = $this->fileMapper->getById($signRequest->getFileId());
-		$fileToSign = $this->folderService->getReadableNodeById($fileData->getUserId(), $fileData->getNodeId());
-		return [
-			'fileData' => $fileData,
-			'fileToSign' => $fileToSign instanceof File ? $fileToSign : null,
-		];
+		return $this->accountFileService->getFileByUuid($uuid);
 	}
 
 	public function validateCertificateData(array $data): void {
 		$this->accountCertificateService->validateCertificateData($data);
 	}
 
-	/**
-	 * Get signRequest by Uuid
-	 */
 	public function getSignRequestByUuid(string $uuid): SignRequest {
-		return $this->signRequestMapper->getByUuid($uuid);
+		return $this->accountFileService->getSignRequestByUuid($uuid);
 	}
 
 	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword): void {
@@ -182,37 +157,12 @@ class AccountService {
 		return $this->accountSettingsProvider->hasSignatureFile($user);
 	}
 
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 * @throws Throwable
-	 */
 	public function getPdfByUuid(string $uuid): File {
-		$fileData = $this->fileMapper->getByUuid($uuid);
-
-		if (in_array($fileData->getStatus(), [FileStatus::PARTIAL_SIGNED->value, FileStatus::SIGNED->value])) {
-			$nodeId = $fileData->getSignedNodeId();
-		} else {
-			$nodeId = $fileData->getNodeId();
-		}
-		if ($nodeId === null) {
-			throw new DoesNotExistException('Not found');
-		}
-
-		$userId = $this->fileMapper->getStorageUserIdByUuid($uuid);
-		$this->folderService->setUserId($userId);
-		try {
-			return $this->folderService->getFileByNodeId($nodeId);
-		} catch (NotFoundException) {
-			throw new DoesNotExistException('Not found');
-		}
+		return $this->accountFileService->getPdfByUuid($uuid);
 	}
 
 	public function getFileByNodeId(int $nodeId): File {
-		try {
-			return $this->folderService->getFileByNodeId($nodeId);
-		} catch (NotFoundException) {
-			throw new DoesNotExistException('Not found');
-		}
+		return $this->accountFileService->getFileByNodeId($nodeId);
 	}
 
 	public function canRequestSign(?IUser $user = null): bool {
