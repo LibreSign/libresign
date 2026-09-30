@@ -110,10 +110,12 @@ describe('expiration-rules model', () => {
 		expect(normalizeNonNegativeInt('invalid', 7)).toBe(7)
 	})
 
-	it('normalizes expiration draft integers while preserving negative invalid sentinels (-1)', () => {
+	it('normalizes expiration draft integers while preserving negative and decimal invalid sentinels (-1)', () => {
 		expect(normalizeExpirationDraftInt(42)).toBe(42)
 		expect(normalizeExpirationDraftInt(' 8 ')).toBe(8)
 		expect(normalizeExpirationDraftInt(-5)).toBe(-1)
+		expect(normalizeExpirationDraftInt(1.5)).toBe(-1)
+		expect(normalizeExpirationDraftInt('1.5')).toBe(-1)
 		expect(normalizeExpirationDraftInt('invalid', 7)).toBe(7)
 	})
 
@@ -141,6 +143,10 @@ describe('expiration-rules model', () => {
 			maximumValidity: -1,
 			renewalInterval: 0,
 		})
+		expect(normalizeRequestExpirationDraftValue({ maximumValidity: 1.5, renewalInterval: 0 })).toEqual({
+			maximumValidity: -1,
+			renewalInterval: 0,
+		})
 	})
 
 	it('validates renewal/expiration combinations according to the canonical business rule', () => {
@@ -150,6 +156,8 @@ describe('expiration-rules model', () => {
 		expect(hasValidRequestExpirationCombination({ maximumValidity: -1, renewalInterval: 0 })).toBe(false)
 		expect(hasValidRequestExpirationCombination({ maximumValidity: 60, renewalInterval: -1 })).toBe(false)
 		expect(hasValidRequestExpirationCombination({ maximumValidity: -1, renewalInterval: -1 })).toBe(false)
+		expect(hasValidRequestExpirationCombination({ maximumValidity: 1.5, renewalInterval: 0 })).toBe(false)
+		expect(hasValidRequestExpirationCombination({ maximumValidity: 60, renewalInterval: 1.5 })).toBe(false)
 	})
 
 	it('summarizes normalized expiration and renewal values with disabled labels', () => {
