@@ -12,7 +12,7 @@ import {
 	fetchGroupPolicy,
 	getPolicy,
 	resetWorkbenchHarness,
-	saveGroupPolicy,
+	saveGroupPolicyCompound
 } from '../workbenchTestUtils'
 import { createRealPolicyWorkbenchState } from '../../../../../../views/Settings/PolicyWorkbench/useRealPolicyWorkbench'
 
@@ -227,6 +227,14 @@ describe('signature stamp workbench', () => {
 			render_mode: 'default',
 		})
 
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_stamp') {
+				return { effectiveValue: signatureStampValue, sourceScope: 'system', meta: { compositeChildren: ['collect_metadata'] } }
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_stamp')
 		state.startEditor({ scope: 'group' })
@@ -238,8 +246,12 @@ describe('signature stamp workbench', () => {
 
 		await state.saveDraft()
 
-		expect(saveGroupPolicy).toHaveBeenCalledWith('finance', 'signature_stamp', signatureStampValue, true)
-		expect(saveGroupPolicy).toHaveBeenCalledWith('finance', 'collect_metadata', true, true)
+		expect(saveGroupPolicyCompound).toHaveBeenCalledWith(
+			'finance',
+			'signature_stamp',
+			{ signature_stamp: signatureStampValue, collect_metadata: true },
+			{ signature_stamp: true, collect_metadata: true },
+		)
 	})
 
 	it('saves signature stamp group rule with lower-level editing disabled for both companion policies', async () => {
@@ -251,6 +263,14 @@ describe('signature stamp workbench', () => {
 			signature_height: 90,
 			background_type: 'default',
 			render_mode: 'graphic',
+		})
+
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_stamp') {
+				return { effectiveValue: signatureStampValue, sourceScope: 'system', meta: { compositeChildren: ['collect_metadata'] } }
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
 		})
 
 		const state = createRealPolicyWorkbenchState()
@@ -265,8 +285,12 @@ describe('signature stamp workbench', () => {
 
 		await state.saveDraft()
 
-		expect(saveGroupPolicy).toHaveBeenCalledWith('board', 'signature_stamp', signatureStampValue, false)
-		expect(saveGroupPolicy).toHaveBeenCalledWith('board', 'collect_metadata', false, false)
+		expect(saveGroupPolicyCompound).toHaveBeenCalledWith(
+			'board',
+			'signature_stamp',
+			{ signature_stamp: signatureStampValue, collect_metadata: false },
+			{ signature_stamp: false, collect_metadata: false },
+		)
 	})
 
 	it('blocks signature stamp account rules when a persisted group rule disables lower-level editing', async () => {

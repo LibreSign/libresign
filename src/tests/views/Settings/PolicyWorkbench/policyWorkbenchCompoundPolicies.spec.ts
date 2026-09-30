@@ -19,6 +19,7 @@ import {
 	type PersistedSystemPolicyRecord,
 	type PolicyRuleRecord,
 } from '../../../../views/Settings/PolicyWorkbench/policyWorkbenchCompoundPolicies'
+import { maximumValidityRealDefinition } from '../../../../views/Settings/PolicyWorkbench/settings/expiration-rules/realDefinitions'
 
 const createPolicyRule = (overrides: Partial<PolicyRuleRecord> = {}): PolicyRuleRecord => ({
 	id: 'rule-1',
@@ -39,8 +40,8 @@ const createPersistedSystemPolicy = (overrides: Partial<PersistedSystemPolicyRec
 describe('policyWorkbenchCompoundPolicies', () => {
 	const signatureStampValue = '{"template":"Signed by {{SignerCommonName}}","template_font_size":9.8,"signature_font_size":9.8,"signature_width":350,"signature_height":100,"background_type":"default","render_mode":"default"}'
 
-	it('saves request expiration system rules across both persisted policy keys', async () => {
-		const saveSystemPolicy = vi.fn().mockResolvedValue(undefined)
+	it('saves request expiration system rules through the compound store method', async () => {
+		const saveSystemPolicyCompound = vi.fn().mockResolvedValue(null)
 
 		const result = await saveCompoundPolicyValue({
 			scope: 'system',
@@ -52,10 +53,12 @@ describe('policyWorkbenchCompoundPolicies', () => {
 			targetIds: [],
 			allowChildOverride: false,
 			policiesStore: {
-				saveSystemPolicy,
-				saveGroupPolicy: vi.fn(),
-				saveUserPolicyForUser: vi.fn(),
+				saveSystemPolicyCompound,
+				saveGroupPolicyCompound: vi.fn(),
+				saveUserPolicyForUserCompound: vi.fn(),
 			},
+			compound: maximumValidityRealDefinition.compound,
+			compositeChildren: [REQUEST_EXPIRATION_RENEWAL_KEY],
 		})
 
 		expect(result).toEqual({
@@ -65,9 +68,12 @@ describe('policyWorkbenchCompoundPolicies', () => {
 				renewalInterval: 4,
 			},
 		})
-		expect(saveSystemPolicy).toHaveBeenCalledTimes(2)
-		expect(saveSystemPolicy).toHaveBeenNthCalledWith(1, REQUEST_EXPIRATION_POLICY_KEY, 15, false)
-		expect(saveSystemPolicy).toHaveBeenNthCalledWith(2, REQUEST_EXPIRATION_RENEWAL_KEY, 4, false)
+		expect(saveSystemPolicyCompound).toHaveBeenCalledTimes(1)
+		expect(saveSystemPolicyCompound).toHaveBeenCalledWith(
+			REQUEST_EXPIRATION_POLICY_KEY,
+			{ [REQUEST_EXPIRATION_POLICY_KEY]: 15, [REQUEST_EXPIRATION_RENEWAL_KEY]: 4 },
+			{ [REQUEST_EXPIRATION_POLICY_KEY]: false, [REQUEST_EXPIRATION_RENEWAL_KEY]: false },
+		)
 	})
 
 	it('hydrates request expiration group rules even when only the renewal companion rule exists', () => {
