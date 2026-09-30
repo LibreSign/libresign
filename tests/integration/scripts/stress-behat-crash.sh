@@ -25,6 +25,7 @@ trap cleanup EXIT
 capture_environment() {
   {
     echo "timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+    echo "diagnostic_case_id=${DIAGNOSTIC_CASE_ID:-unknown}"
     echo "flow=${FLOW}"
     echo "requests=${REQUESTS}"
     echo "server_mode=${SERVER_MODE}"
