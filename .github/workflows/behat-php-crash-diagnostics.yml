@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/behat-php-crash-diagnostics.yml'
       - 'tests/integration/scripts/stress-behat-crash.sh'
+      - 'tests/integration/scripts/build-sanitized-php.sh'
       - 'tests/integration/scripts/configure-php-runtime.sh'
       - 'tests/integration/scripts/collect-php-server-diagnostics.sh'
       - 'tests/integration/scripts/run-behat-with-watchdog.sh'
@@ -242,6 +243,73 @@ jobs:
             no_progress: '120'
             max_seconds: '1200'
 
+          # Exact failing feature and prelude isolation. These cases keep one
+          # php -S process alive while changing only which Behat features run
+          # before file/list.feature.
+          - case_id: php83-exact-list-repeat
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: file-list-3-pages
+            requests: '40'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          - case_id: php83-sequence-list-only
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: feature-sequence
+            feature_paths: 'features/file/list.feature'
+            requests: '1'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '600'
+
+          - case_id: php83-sequence-envelope-list
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: feature-sequence
+            feature_paths: 'features/file/envelope.feature features/file/list.feature'
+            requests: '1'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '900'
+
+          - case_id: php83-sequence-build-envelope-list
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: feature-sequence
+            feature_paths: 'features/build/sign.feature features/file/envelope.feature features/file/list.feature'
+            requests: '1'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          - case_id: php83-sequence-prefix-list
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: feature-sequence
+            feature_paths: 'features/account features/admin features/build/sign.feature features/file/envelope.feature features/file/list.feature'
+            requests: '1'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1500'
+
           # Process-lifetime isolation: same request workload, but every request
           # gets a new Behat/PHP built-in server process.
           - case_id: php83-fresh-server-per-request
@@ -295,6 +363,7 @@ jobs:
       STRESS_FLOW: ${{ matrix.flow }}
       STRESS_REQUESTS: ${{ matrix.requests }}
       STRESS_SERVER_MODE: ${{ matrix.server_mode }}
+      STRESS_FEATURE_PATHS: ${{ matrix.feature_paths }}
       MEMCHECK_MODE: ${{ matrix.memcheck }}
       BEHAT_WORKERS: '0'
       BEHAT_NO_PROGRESS_TIMEOUT: ${{ matrix.no_progress }}
@@ -486,6 +555,169 @@ jobs:
             behat-crash-diagnostics/
             php-runtime-controls/
             php-runtime-metadata/
+            /tmp/behat-php-server-*
+            /tmp/core.*
+          if-no-files-found: warn
+
+  sanitizer:
+    name: php83-asan-ubsan-focused
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    services:
+      mysql:
+        image: ghcr.io/nextcloud/continuous-integration-mariadb-10.6:latest
+        ports:
+          - 4444:3306/tcp
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+        options: --health-cmd="mysqladmin ping" --health-interval 5s --health-timeout 2s --health-retries 10
+
+      mailpit:
+        image: axllent/mailpit
+        ports:
+          - 8025:8025/tcp
+          - 1025:1025/tcp
+
+    env:
+      APP_NAME: libresign
+      PHP_SANITIZER_TAG: php-8.3.35
+      NEXTCLOUD_REF: 5d6fdcb28fb170c2725f23661366d74ac978ef41
+      NOTIFICATIONS_REF: addebde43e30da3d56418bb9c597997ed05a4b00
+      ACTIVITY_REF: 635b4b4ae103ca4111dea417486aac92214906bd
+      GUESTS_REF: c9427b60e751108922a2ee724ea472d9d64e3203
+      STRESS_FLOW: request-signature-email-notify
+      STRESS_REQUESTS: '150'
+      STRESS_SERVER_MODE: long-lived
+      MEMCHECK_MODE: none
+      BEHAT_WORKERS: '0'
+      BEHAT_NO_PROGRESS_TIMEOUT: '180'
+      BEHAT_MAX_RUN_SECONDS: '1800'
+      DEBUGINFOD_URLS: https://debuginfod.ubuntu.com
+
+    steps:
+      - name: Install build and native diagnostic dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            build-essential autoconf bison re2c pkg-config clang llvm \
+            libxml2-dev libssl-dev libcurl4-openssl-dev libzip-dev libicu-dev \
+            libonig-dev libpng-dev libjpeg-dev libfreetype6-dev libbz2-dev \
+            libsodium-dev libsqlite3-dev \
+            poppler-utils gdb libc6-dbg lsof procps psmisc strace iproute2 \
+            binutils elfutils
+          sudo sysctl -w kernel.core_pattern='/tmp/core.%e.%p.%t' || true
+          sudo sysctl -w kernel.yama.ptrace_scope=0 || true
+
+      - name: Checkout pinned Nextcloud server
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: true
+          repository: nextcloud/server
+          ref: ${{ env.NEXTCLOUD_REF }}
+
+      - name: Checkout LibreSign under test
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: true
+          path: apps/${{ env.APP_NAME }}
+
+      - name: Set up bootstrap PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.3'
+          tools: phpunit
+          extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql
+          coverage: none
+          ini-file: development
+          ini-values: disable_functions=
+
+      - name: Prepare LibreSign dependencies
+        working-directory: apps/${{ env.APP_NAME }}
+        run: |
+          composer remove nextcloud/ocp --dev --no-scripts
+          composer install --no-dev
+          composer --working-dir=tests/integration install
+
+      - name: Install pinned Nextcloud apps
+        run: |
+          git clone https://github.com/nextcloud/notifications apps/notifications
+          git -C apps/notifications checkout "${NOTIFICATIONS_REF}"
+          composer --working-dir=apps/notifications install --no-dev
+
+          git clone https://github.com/nextcloud/activity apps/activity
+          git -C apps/activity checkout "${ACTIVITY_REF}"
+          composer --working-dir=apps/activity install --no-dev
+
+          git clone https://github.com/nextcloud/guests apps/guests
+          git -C apps/guests checkout "${GUESTS_REF}"
+          composer --working-dir=apps/guests install --no-dev
+
+      - name: Set up Nextcloud
+        env:
+          DB_PORT: 4444
+        run: |
+          echo "127.0.0.1 mailpit" | sudo tee -a /etc/hosts
+          mkdir data
+          ./occ maintenance:install \
+            --verbose \
+            --database=mysql \
+            --database-name=nextcloud \
+            --database-host=127.0.0.1 \
+            --database-port=${DB_PORT} \
+            --database-user=root \
+            --database-pass=rootpassword \
+            --admin-user=admin \
+            --admin-pass=admin
+
+          ./occ app:enable --force "${APP_NAME}"
+          ./occ app:enable --force notifications
+          ./occ app:enable --force activity
+          ./occ app:enable --force guests
+          ./occ config:system:set allow_local_remote_servers --value true --type boolean
+          ./occ config:system:set auth.bruteforce.protection.enabled --value false --type boolean
+          ./occ config:system:set mail_smtphost --value mailpit
+          ./occ config:system:set mail_smtpport --value 1025 --type integer
+          ./occ config:system:set ratelimit.protection.enabled --value false --type boolean
+          ./occ config:app:set dav enableDefaultContact --value false --type boolean
+
+      - name: Build PHP 8.3.35 with ASan UBSan and Zend debug
+        run: |
+          bash "apps/${APP_NAME}/tests/integration/scripts/build-sanitized-php.sh"
+
+      - name: Verify sanitized PHP against Nextcloud
+        run: |
+          hash -r
+          php -v
+          php --ini
+          php -m
+          php occ status
+
+      - name: Run focused request-signature workload under sanitizers
+        working-directory: apps/${{ env.APP_NAME }}/tests/integration
+        env:
+          BEHAT_ROOT_DIR: ../../../../
+          BEHAT_RUN_AS: runner
+          BEHAT_VERBOSE: '1'
+        run: |
+          set -euo pipefail
+          mkdir -p "${GITHUB_WORKSPACE}/behat-crash-diagnostics/sanitizers"
+          export USE_ZEND_ALLOC=0
+          export ASAN_SYMBOLIZER_PATH="$(command -v llvm-symbolizer || true)"
+          export ASAN_OPTIONS="abort_on_error=1:detect_leaks=0:fast_unwind_on_malloc=0:malloc_context_size=50:strict_string_checks=1:check_initialization_order=1:detect_stack_use_after_return=1:log_path=${GITHUB_WORKSPACE}/behat-crash-diagnostics/sanitizers/asan"
+          export UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=1:log_path=${GITHUB_WORKSPACE}/behat-crash-diagnostics/sanitizers/ubsan"
+          ulimit -c unlimited
+          bash scripts/stress-behat-crash.sh
+
+      - name: Upload sanitizer diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: behat-native-php83-asan-ubsan-${{ github.run_id }}
+          path: |
+            behat-crash-diagnostics/
             /tmp/behat-php-server-*
             /tmp/core.*
           if-no-files-found: warn
