@@ -8,6 +8,7 @@ FLOW="${STRESS_FLOW:-request-signature-email-notify}"
 REQUESTS="${STRESS_REQUESTS:-500}"
 SERVER_MODE="${STRESS_SERVER_MODE:-long-lived}"
 MEMCHECK_MODE="${MEMCHECK_MODE:-none}"
+FEATURE_PATHS="${STRESS_FEATURE_PATHS:-}"
 DIAG_DIR="${GITHUB_WORKSPACE:-$(pwd)}/behat-crash-diagnostics"
 SUMMARY_FILE="${DIAG_DIR}/summary.log"
 WATCHDOG="$(pwd)/scripts/run-behat-with-watchdog.sh"
@@ -28,6 +29,7 @@ capture_environment() {
     echo "requests=${REQUESTS}"
     echo "server_mode=${SERVER_MODE}"
     echo "memcheck_mode=${MEMCHECK_MODE}"
+    echo "feature_paths=${FEATURE_PATHS:-generated}"
     echo "behat_workers=${BEHAT_WORKERS:-unset}"
     echo "use_zend_alloc=${USE_ZEND_ALLOC:-default}"
     echo "malloc_check=${MALLOC_CHECK_:-unset}"
@@ -194,6 +196,33 @@ EOF
   done
 }
 
+generate_list_pages_feature() {
+  local count="$1"
+  local source="features/file/list.feature"
+  local scenario_name="Return a list with 3 pages"
+  local extracted
+
+  extracted="$(awk -v scenario="$scenario_name" '
+    $0 == "  Scenario: " scenario { capture=1 }
+    capture && $0 ~ /^  Scenario:/ && $0 != "  Scenario: " scenario { exit }
+    capture { print }
+  ' "$source")"
+
+  if [ -z "$extracted" ]; then
+    echo "Unable to extract scenario '$scenario_name' from $source" >&2
+    exit 2
+  fi
+
+  printf 'Feature: Repeated exact file-list crash scenario\n\n' > "${FEATURE_FILE}"
+  local i
+  for i in $(seq 1 "$count"); do
+    printf '%s\n' "$extracted" \
+      | sed "s/^  Scenario: ${scenario_name}$/  Scenario: ${scenario_name} stress ${i}/" \
+      >> "${FEATURE_FILE}"
+    printf '\n' >> "${FEATURE_FILE}"
+  done
+}
+
 generate_feature() {
   local count="$1"
   case "${FLOW}" in
@@ -202,6 +231,15 @@ generate_feature() {
       ;;
     validate-uuid)
       generate_validate_feature "${count}"
+      ;;
+    file-list-3-pages)
+      generate_list_pages_feature "${count}"
+      ;;
+    feature-sequence)
+      if [ -z "${FEATURE_PATHS}" ]; then
+        echo "STRESS_FEATURE_PATHS is required for feature-sequence" >&2
+        exit 2
+      fi
       ;;
     *)
       echo "Unknown STRESS_FLOW: ${FLOW}" >&2
@@ -213,14 +251,34 @@ generate_feature() {
 run_feature() {
   local run_dir="$1"
   shift || true
+  local -a targets
+
+  if [ "${FLOW}" = "feature-sequence" ]; then
+    read -r -a targets <<< "${FEATURE_PATHS}"
+  else
+    targets=("${FEATURE_FILE}")
+  fi
 
   if [ "${MEMCHECK_MODE}" = "valgrind" ]; then
     mkdir -p "${run_dir}"
-    bash "${WATCHDOG}" "${run_dir}" --       valgrind         --tool=memcheck         --trace-children=yes         --track-origins=yes         --leak-check=no         --errors-for-leak-kinds=none         --error-limit=no         --num-callers=40         --keep-debuginfo=yes         --error-exitcode=97         --log-file="${run_dir}/valgrind.%p.log"         php vendor/bin/behat "${FEATURE_FILE}" -f pretty --colors --stop-on-failure
+    bash "${WATCHDOG}" "${run_dir}" -- \
+      valgrind \
+        --tool=memcheck \
+        --trace-children=yes \
+        --track-origins=yes \
+        --leak-check=no \
+        --errors-for-leak-kinds=none \
+        --error-limit=no \
+        --num-callers=40 \
+        --keep-debuginfo=yes \
+        --error-exitcode=97 \
+        --log-file="${run_dir}/valgrind.%p.log" \
+      php vendor/bin/behat "${targets[@]}" -f pretty --colors --stop-on-failure
     return $?
   fi
 
-  bash "${WATCHDOG}" "${run_dir}" --     vendor/bin/behat "${FEATURE_FILE}" -f pretty --colors --stop-on-failure
+  bash "${WATCHDOG}" "${run_dir}" -- \
+    vendor/bin/behat "${targets[@]}" -f pretty --colors --stop-on-failure
 }
 
 capture_environment
@@ -230,6 +288,7 @@ echo "Flow: ${FLOW}"
 echo "Requests/runs: ${REQUESTS}"
 echo "Server mode: ${SERVER_MODE}"
 echo "Memcheck: ${MEMCHECK_MODE}"
+echo "Feature paths: ${FEATURE_PATHS:-generated}"
 echo "PHP built-in workers: ${BEHAT_WORKERS:-unset}"
 echo "Allocator: USE_ZEND_ALLOC=${USE_ZEND_ALLOC:-default} MALLOC_CHECK_=${MALLOC_CHECK_:-unset} MALLOC_PERTURB_=${MALLOC_PERTURB_:-unset} GLIBC_TUNABLES=${GLIBC_TUNABLES:-unset}"
 
@@ -238,13 +297,23 @@ status=0
 case "${SERVER_MODE}" in
   long-lived)
     generate_feature "${REQUESTS}"
-    cp "${FEATURE_FILE}" "${DIAG_DIR}/generated.feature"
-    printf '[%s] flow=%s requests=%s server_mode=%s memcheck=%s\n'       "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "${FLOW}" "${REQUESTS}" "${SERVER_MODE}" "${MEMCHECK_MODE}"       | tee -a "${SUMMARY_FILE}"
+    if [ "${FLOW}" = "feature-sequence" ]; then
+      printf '%s\n' "${FEATURE_PATHS}" > "${DIAG_DIR}/feature-paths.txt"
+    else
+      cp "${FEATURE_FILE}" "${DIAG_DIR}/generated.feature"
+    fi
+    printf '[%s] flow=%s requests=%s server_mode=%s memcheck=%s feature_paths=%s\n' \
+      "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "${FLOW}" "${REQUESTS}" "${SERVER_MODE}" "${MEMCHECK_MODE}" "${FEATURE_PATHS:-generated}" \
+      | tee -a "${SUMMARY_FILE}"
 
     run_feature "${DIAG_DIR}/run"
     status=$?
     ;;
   fresh)
+    if [ "${FLOW}" = "feature-sequence" ]; then
+      echo "feature-sequence does not support fresh server mode" >&2
+      exit 2
+    fi
     generate_feature 1
     cp "${FEATURE_FILE}" "${DIAG_DIR}/generated.feature"
 
