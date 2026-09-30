@@ -24,40 +24,46 @@ minimal_modules='bz2 ctype curl dom fileinfo gd iconv intl json libxml mbstring 
 extra_group_a='amqp apcu dba enchant ffi imap ldap memcache memcached mongodb'
 extra_group_b='odbc pdo_dblib pdo_firebird pdo_pgsql pgsql redis snmp soap tidy xsl yaml zmq'
 
+ini_modules() {
+  local ini="$1"
+  local base
+  base="$(basename "${ini}" .ini | tr '[:upper:]' '[:lower:]')"
+  base="$(printf '%s' "${base}" | sed -E 's/^[0-9]+-//')"
+  printf '%s\n' "${base}"
+
+  sed -nE 's/^[[:space:]]*(zend_)?extension[[:space:]]*=[[:space:]]*"?([^";[:space:]]+).*/\2/p' "${ini}" 2>/dev/null     | while IFS= read -r extension_path; do
+        basename "${extension_path}" .so | tr '[:upper:]' '[:lower:]'
+      done
+}
+
 ini_identity() {
   local ini="$1"
-  {
-    basename "${ini}"
-    sed -nE 's/^[[:space:]]*(zend_)?extension[[:space:]]*=[[:space:]]*"?([^";[:space:]]+).*/\2/p' "${ini}" 2>/dev/null || true
-  } | tr '[:upper:]' '[:lower:]' | tr '\n' ' '
+  ini_modules "${ini}" | tr '\n' ' '
 }
 
 contains_module() {
-  local identity="$1"
+  local ini="$1"
   local modules="$2"
-  local module
-  for module in ${modules}; do
-    case " ${identity} " in
-      *"${module}"*) return 0 ;;
-    esac
-  done
+  local candidate module
+
+  while IFS= read -r candidate; do
+    [ -n "${candidate}" ] || continue
+    for module in ${modules}; do
+      if [ "${candidate}" = "${module}" ]; then
+        return 0
+      fi
+    done
+  done < <(ini_modules "${ini}")
+
   return 1
 }
 
 is_opcache_ini() {
-  local identity="$1"
-  case "${identity}" in
-    *opcache*) return 0 ;;
-  esac
-  return 1
+  contains_module "$1" "opcache"
 }
 
 is_imagick_ini() {
-  local identity="$1"
-  case "${identity}" in
-    *imagick*) return 0 ;;
-  esac
-  return 1
+  contains_module "$1" "imagick"
 }
 
 select_ini() {
@@ -65,7 +71,7 @@ select_ini() {
   local identity
   identity="$(ini_identity "${ini}")"
 
-  if is_opcache_ini "${identity}"; then
+  if is_opcache_ini "${ini}"; then
     [ "${OPCACHE_MODE}" != "unloaded" ]
     return
   fi
@@ -74,22 +80,22 @@ select_ini() {
     default)
       # Default means preserve the runner extension layout, except Imagick is
       # excluded unless the case explicitly asks for it.
-      ! is_imagick_ini "${identity}"
+      ! is_imagick_ini "${ini}"
       ;;
     controlled)
-      contains_module "${identity}" "${minimal_modules}"
+      contains_module "${ini}" "${minimal_modules}"
       ;;
     controlled-imagick)
-      contains_module "${identity}" "${minimal_modules}" || is_imagick_ini "${identity}"
+      contains_module "${ini}" "${minimal_modules}" || is_imagick_ini "${ini}"
       ;;
     controlled-extra-a)
-      contains_module "${identity}" "${minimal_modules} ${extra_group_a}"
+      contains_module "${ini}" "${minimal_modules} ${extra_group_a}"
       ;;
     controlled-extra-b)
-      contains_module "${identity}" "${minimal_modules} ${extra_group_b}"
+      contains_module "${ini}" "${minimal_modules} ${extra_group_b}"
       ;;
     controlled-extra-all)
-      contains_module "${identity}" "${minimal_modules} ${extra_group_a} ${extra_group_b}"
+      contains_module "${ini}" "${minimal_modules} ${extra_group_a} ${extra_group_b}"
       ;;
     *)
       echo "Unknown PHP_RUNTIME_MODE: ${MODE}" >&2
