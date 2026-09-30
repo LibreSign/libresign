@@ -161,7 +161,7 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	expect(uploadBody.ocs?.data?.metadata?.policy_snapshot?.signer_ip_geolocation?.effectiveValue).toEqual({ mode: 'enabled' })
 
 	await clickAddSigner(page)
-	await selectAccountSigner(page, 'a', /admin/i)
+	await selectAccountSigner(page, 'a')
 
 	const signerDialog = page.getByRole('dialog', { name: /Add new signer/i }).last()
 	const deviceToggle = signerDialog.locator('.checkbox-radio-switch').filter({
@@ -178,15 +178,22 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	)
 	await signerDialog.getByRole('button', { name: 'Save' }).click()
 	const saveSignerRequest = (await saveSignerResponsePromise).request()
-	const saveSignerPayload = saveSignerRequest.postDataJSON() as { signers?: Array<{ deviceGeolocationRequired?: boolean }> }
+	const saveSignerPayload = saveSignerRequest.postDataJSON() as {
+		signers?: Array<{
+			deviceGeolocationRequired?: boolean
+			identifyMethods?: Array<{ method?: string; value?: string }>
+		}>
+	}
 	expect(saveSignerPayload.signers?.[0]?.deviceGeolocationRequired).toBe(true)
+	expect(saveSignerPayload.signers?.[0]?.identifyMethods?.[0]?.method).toBe('account')
+	expect(saveSignerPayload.signers?.[0]?.identifyMethods?.[0]?.value).toBe(adminUser)
 
 	await page.getByRole('button', { name: 'Request signatures' }).click()
 	await page.getByRole('button', { name: 'Send' }).click()
 
 	await setSystemPolicyEntry(adminContext, DEVICE_POLICY, { mode: 'disabled' }, true)
 	await clickAddSigner(page)
-	await selectAccountSigner(page, 'a', /admin/i)
+	await selectAccountSigner(page, 'a')
 	await expect(page.getByRole('dialog', { name: /Add new signer/i }).last()
 		.locator('.checkbox-radio-switch')
 		.filter({ hasText: 'Require device-reported location to sign' })).toBeVisible()
@@ -207,6 +214,7 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 					me?: boolean
 					sign_request_uuid?: string
 					deviceGeolocationRequired?: boolean
+					identifyMethods?: Array<{ method?: string; value?: string }>
 					metadata?: { deviceGeolocationRequirement?: string }
 				}>
 			}
@@ -217,6 +225,7 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	expect(
 		currentSigner?.metadata?.deviceGeolocationRequirement
 		?? (currentSigner?.deviceGeolocationRequired === true ? 'required' : undefined),
+		`Unexpected geolocation freeze; identifyMethods=${JSON.stringify(currentSigner?.identifyMethods ?? null)} me=${String(currentSigner?.me)}`,
 	).toBe('required')
 	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15_000 })
 	await expect(page.getByText('Device-reported location is required to sign this document.')).toBeVisible({ timeout: 15_000 })
