@@ -1548,7 +1548,8 @@ export function createRealPolicyWorkbenchState() {
 					targetIds,
 					allowChildOverride,
 					policiesStore,
-					collectMetadataEffectiveValue: policiesStore.getPolicy(COLLECT_METADATA_POLICY_KEY)?.effectiveValue,
+					compound: activeDefinition.value.compound,
+					compositeChildren: policiesStore.getPolicy(policyKey)?.meta?.compositeChildren,
 				})
 				const savedValue = compoundSaveResult.handled ? compoundSaveResult.savedValue : value
 
@@ -1618,7 +1619,8 @@ export function createRealPolicyWorkbenchState() {
 					targetIds,
 					allowChildOverride,
 					policiesStore,
-					collectMetadataEffectiveValue: policiesStore.getPolicy(COLLECT_METADATA_POLICY_KEY)?.effectiveValue,
+					compound: activeDefinition.value.compound,
+					compositeChildren: policiesStore.getPolicy(policyKey)?.meta?.compositeChildren,
 				})
 				const savedValue = compoundSaveResult.handled ? compoundSaveResult.savedValue : value
 
@@ -1651,7 +1653,8 @@ export function createRealPolicyWorkbenchState() {
 				targetIds,
 				allowChildOverride,
 				policiesStore,
-				collectMetadataEffectiveValue: policiesStore.getPolicy(COLLECT_METADATA_POLICY_KEY)?.effectiveValue,
+				compound: activeDefinition.value.compound,
+				compositeChildren: policiesStore.getPolicy(policyKey)?.meta?.compositeChildren,
 			})
 			const savedValue = compoundSaveResult.handled ? compoundSaveResult.savedValue : value
 

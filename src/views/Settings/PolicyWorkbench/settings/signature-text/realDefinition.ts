@@ -7,7 +7,7 @@ import { t } from '@nextcloud/l10n'
 
 import SignatureTextRuleEditor from './SignatureTextRuleEditor.vue'
 
-import type { EffectivePolicyMeta, EffectivePolicyState, EffectivePolicyValue } from '../../../../../types/index'
+import type { CompoundPolicyWriteValues, EffectivePolicyMeta, EffectivePolicyState, EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
 import {
 	getDefaultSignatureTextPolicyConfig,
@@ -72,7 +72,7 @@ export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 			valuesByPolicyKey.signature_stamp,
 			resolveCollectMetadataValue(valuesByPolicyKey.collect_metadata, false),
 		),
-		decompose: (editorValue): Record<string, EffectivePolicyValue> => {
+		decompose: (editorValue): CompoundPolicyWriteValues => {
 			const normalizedValue = normalizeSignatureStampDraftValue(editorValue)
 			const hasCollectMetadataChoice = typeof editorValue === 'object'
 				&& editorValue !== null

@@ -95,6 +95,9 @@ export const fetchGroupPolicy = vi.fn()
 export const fetchSystemPolicy = vi.fn()
 export const fetchUserPolicyForUser = vi.fn()
 export const saveUserPolicyForUser = vi.fn()
+export const saveSystemPolicyCompound = vi.fn()
+export const saveGroupPolicyCompound = vi.fn()
+export const saveUserPolicyForUserCompound = vi.fn()
 export const clearUserPreference = vi.fn()
 export const clearGroupPolicy = vi.fn()
 export const clearUserPolicyForUser = vi.fn()
@@ -120,6 +123,9 @@ vi.mock('../../../../../store/policies', () => ({
 		fetchSystemPolicy,
 		fetchUserPolicyForUser,
 		saveUserPolicyForUser,
+		saveSystemPolicyCompound,
+		saveGroupPolicyCompound,
+		saveUserPolicyForUserCompound,
 		clearUserPreference,
 		clearGroupPolicy,
 		clearUserPolicyForUser,
@@ -153,6 +159,9 @@ export function resetWorkbenchHarness(): void {
 	fetchSystemPolicy.mockReset()
 	fetchUserPolicyForUser.mockReset()
 	saveUserPolicyForUser.mockReset()
+	saveSystemPolicyCompound.mockReset()
+	saveGroupPolicyCompound.mockReset()
+	saveUserPolicyForUserCompound.mockReset()
 	clearUserPreference.mockReset()
 	clearGroupPolicy.mockReset()
 	clearUserPolicyForUser.mockReset()
@@ -165,6 +174,9 @@ export function resetWorkbenchHarness(): void {
 	saveSystemPolicy.mockResolvedValue(null)
 	saveGroupPolicy.mockResolvedValue(null)
 	saveUserPolicyForUser.mockResolvedValue(null)
+	saveSystemPolicyCompound.mockResolvedValue(null)
+	saveGroupPolicyCompound.mockResolvedValue(null)
+	saveUserPolicyForUserCompound.mockResolvedValue(null)
 	clearUserPreference.mockResolvedValue(null)
 	clearGroupPolicy.mockResolvedValue(null)
 	clearUserPolicyForUser.mockResolvedValue(null)

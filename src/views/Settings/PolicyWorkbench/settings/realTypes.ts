@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { EffectivePolicyState, EffectivePolicyValue } from '../../../../types/index'
+import type { CompoundPolicyWriteValues, EffectivePolicyState, EffectivePolicyValue } from '../../../../types/index'
 
 export type { EffectivePolicyState, EffectivePolicyValue }
 
@@ -39,7 +39,7 @@ export interface RealPolicyPersonalPreferenceBehavior {
 
 export interface RealPolicyCompoundBehavior {
 	compose: (valuesByPolicyKey: Record<string, EffectivePolicyValue | undefined>) => EffectivePolicyValue
-	decompose: (editorValue: EffectivePolicyValue) => Record<string, EffectivePolicyValue>
+	decompose: (editorValue: EffectivePolicyValue) => CompoundPolicyWriteValues
 }
 
 export interface RealPolicyAllowOverrideContext {

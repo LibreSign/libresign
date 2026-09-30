@@ -9,8 +9,9 @@ import {
 	fetchGroupPolicy,
 	getPolicy,
 	resetWorkbenchHarness,
-	saveGroupPolicy,
+	saveGroupPolicyCompound,
 	saveSystemPolicy,
+	saveSystemPolicyCompound,
 } from '../workbenchTestUtils'
 import { createRealPolicyWorkbenchState } from '../../../../../../views/Settings/PolicyWorkbench/useRealPolicyWorkbench'
 
@@ -47,7 +48,7 @@ describe('expiration rules workbench', () => {
 	it('saves unified request expiration system draft to both policy keys', async () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'maximum_validity') {
-				return { effectiveValue: 0, sourceScope: 'system' }
+				return { effectiveValue: 0, sourceScope: 'system', meta: { compositeChildren: ['renewal_interval'] } }
 			}
 
 			if (key === 'renewal_interval') {
@@ -67,8 +68,11 @@ describe('expiration rules workbench', () => {
 
 		await state.saveDraft()
 
-		expect(saveSystemPolicy).toHaveBeenCalledWith('maximum_validity', 86400, true)
-		expect(saveSystemPolicy).toHaveBeenCalledWith('renewal_interval', 3600, true)
+		expect(saveSystemPolicyCompound).toHaveBeenCalledWith(
+			'maximum_validity',
+			{ maximum_validity: 86400, renewal_interval: 3600 },
+			{ maximum_validity: true, renewal_interval: true },
+		)
 	})
 
 	it('rejects renewal interval without maximum validity in unified draft', async () => {
@@ -285,7 +289,11 @@ describe('expiration rules workbench', () => {
 
 	it('locks lower-level customization for group-admin request expiration group rules', async () => {
 		getPolicy.mockImplementation((key: string) => {
-			if (key === 'maximum_validity' || key === 'renewal_interval') {
+			if (key === 'maximum_validity') {
+				return { effectiveValue: 0, sourceScope: 'system', editableByCurrentActor: true, meta: { compositeChildren: ['renewal_interval'] } }
+			}
+
+			if (key === 'renewal_interval') {
 				return { effectiveValue: 0, sourceScope: 'system', editableByCurrentActor: true }
 			}
 
@@ -310,7 +318,11 @@ describe('expiration rules workbench', () => {
 
 		await state.saveDraft()
 
-		expect(saveGroupPolicy).toHaveBeenCalledWith('board', 'maximum_validity', 86400, false)
-		expect(saveGroupPolicy).toHaveBeenCalledWith('board', 'renewal_interval', 3600, false)
+		expect(saveGroupPolicyCompound).toHaveBeenCalledWith(
+			'board',
+			'maximum_validity',
+			{ maximum_validity: 86400, renewal_interval: 3600 },
+			{ maximum_validity: false, renewal_interval: false },
+		)
 	})
 })
