@@ -568,10 +568,11 @@ const _filesStore = defineStore('files', () => {
 			return targetFile
 		}
 
-		// Prefer the route/sign-request uuid for validate lookups. Falling back
-		// to the file uuid alone can miss signer-scoped validate enrichment.
-		const targetUuid = uuid || targetFile?.uuid
+		// Prefer an explicit uuid (usually a sign-request uuid). When only a
+		// file id is available, use file_id validate — validating by the
+		// LibreSign file uuid can omit signer-scoped `me` / signatureMethods.
 		const targetId = fileId || targetFile?.id
+		const targetUuid = uuid || (!targetId ? targetFile?.uuid : null)
 		if (!targetUuid && !targetId) {
 			return null
 		}
