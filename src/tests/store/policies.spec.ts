@@ -6,6 +6,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
+import logger from '../../logger.js'
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
@@ -22,6 +24,12 @@ vi.mock('@nextcloud/router', () => ({
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((_app, _key, defaultValue) => defaultValue),
+}))
+
+vi.mock('../../logger.js', () => ({
+	default: {
+		error: vi.fn(),
+	},
 }))
 
 describe('policies store', () => {
