@@ -6,6 +6,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
+import logger from '../../logger.js'
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
@@ -22,6 +24,12 @@ vi.mock('@nextcloud/router', () => ({
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((_app, _key, defaultValue) => defaultValue),
+}))
+
+vi.mock('../../logger.js', () => ({
+	default: {
+		error: vi.fn(),
+	},
 }))
 
 describe('policies store', () => {
@@ -531,4 +539,75 @@ it('saves a compound user policy for a target user through the admin endpoint', 
 	)
 	expect(policies?.rejection_enabled?.scope).toBe('user_policy')
 	expect(store.getPolicy('rejection_enabled')).toBeNull()
+})
+
+describe('canUseRequestOverride', () => {
+	const loadedPolicy = (canUseAsRequestOverride: unknown) => ({
+		policyKey: 'signature_flow',
+		effectiveValue: 'parallel',
+		allowedValues: ['none', 'parallel', 'ordered_numeric'],
+		sourceScope: 'system',
+		visible: true,
+		editableByCurrentActor: false,
+		canSaveAsUserDefault: false,
+		canUseAsRequestOverride,
+		preferenceWasCleared: false,
+		blockedBy: null,
+	})
+
+	beforeEach(() => {
+		setActivePinia(createPinia())
+		vi.clearAllMocks()
+	})
+
+	it('denies request overrides when no policy state was provided', async () => {
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+
+		expect(store.canUseRequestOverride('signature_flow')).toBe(false)
+		expect(store.canUseRequestOverride('add_footer')).toBe(false)
+	})
+
+	it('denies request overrides when loading effective policies fails', async () => {
+		vi.mocked(axios.get).mockRejectedValueOnce(new Error('Network Error'))
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+		await store.fetchEffectivePolicies()
+
+		expect(logger.error).toHaveBeenCalledWith('Failed to load effective policies', expect.anything())
+		expect(store.canUseRequestOverride('signature_flow')).toBe(false)
+	})
+
+	it.each([
+		['missing', undefined],
+		['non-boolean', 'true'],
+		['null', null],
+	])('denies request overrides when the loaded entry has a %s flag', async (_label, flag) => {
+		vi.mocked(loadState).mockReturnValueOnce({ policies: { signature_flow: loadedPolicy(flag) } })
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+
+		expect(store.canUseRequestOverride('signature_flow')).toBe(false)
+	})
+
+	it('denies request overrides when the backend explicitly disallows them', async () => {
+		vi.mocked(loadState).mockReturnValueOnce({ policies: { signature_flow: loadedPolicy(false) } })
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+
+		expect(store.canUseRequestOverride('signature_flow')).toBe(false)
+	})
+
+	it('allows request overrides only when the backend explicitly grants them', async () => {
+		vi.mocked(loadState).mockReturnValueOnce({ policies: { signature_flow: loadedPolicy(true) } })
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+
+		expect(store.canUseRequestOverride('signature_flow')).toBe(true)
+		expect(store.canUseRequestOverride('add_footer')).toBe(false)
+	})
 })

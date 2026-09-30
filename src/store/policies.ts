@@ -337,7 +337,7 @@ const _policiesStore = defineStore('policies', () => {
 	}
 
 	const canUseRequestOverride = (policyKey: string): boolean => {
-		return getPolicy(policyKey)?.canUseAsRequestOverride ?? true
+		return getPolicy(policyKey)?.canUseAsRequestOverride === true
 	}
 
 

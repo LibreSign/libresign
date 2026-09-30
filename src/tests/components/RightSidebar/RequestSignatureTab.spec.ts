@@ -1403,6 +1403,21 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(wrapper.vm.isAdminFlowForced).toBe(false)
 		})
 
+		it('hides request-level signing order controls when policy state is missing', async () => {
+			usePoliciesStore().setPolicies({})
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signers: [
+					{ email: 'test1@example.com', signed: [] },
+					{ email: 'test2@example.com', signed: [] },
+				],
+			})
+
+			expect(wrapper.vm.isAdminFlowForced).toBe(true)
+			expect(wrapper.vm.showSigningOrderOptions).toBe(false)
+			expect(wrapper.vm.showPreserveOrder).toBe(false)
+		})
+
 		it('hides preserve order switch when policy forces flow', async () => {
 			await updatePolicies({
 				canUseAsRequestOverride: false,
