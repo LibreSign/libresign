@@ -367,6 +367,7 @@ jobs:
 
     env:
       APP_NAME: libresign
+      DIAGNOSTIC_CASE_ID: ${{ matrix.case_id }}
       PHP_VERSION: ${{ matrix.php_version }}
       NEXTCLOUD_REF: 5d6fdcb28fb170c2725f23661366d74ac978ef41
       NOTIFICATIONS_REF: addebde43e30da3d56418bb9c597997ed05a4b00
@@ -616,6 +617,7 @@ INI
 
     env:
       APP_NAME: libresign
+      DIAGNOSTIC_CASE_ID: php83-asan-ubsan-focused
       PHP_SANITIZER_TAG: php-8.3.35
       NEXTCLOUD_REF: 5d6fdcb28fb170c2725f23661366d74ac978ef41
       NOTIFICATIONS_REF: addebde43e30da3d56418bb9c597997ed05a4b00
