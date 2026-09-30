@@ -39,6 +39,7 @@ final class CollectMetadataPolicy implements IPolicyDefinitionProvider {
 				],
 				normalizer: static fn (mixed $rawValue): bool => filter_var($rawValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
+				supportsRequestOverride: true,
 				supportedScopes: [
 					PolicySpec::SCOPE_SYSTEM,
 					PolicySpec::SCOPE_GROUP,

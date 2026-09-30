@@ -44,6 +44,7 @@ final class CrlValidationPolicy implements IPolicyDefinitionProvider {
 					PolicySpec::SCOPE_GROUP,
 				],
 				supportsUserPreference: false,
+				supportsRequestOverride: false,
 				groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
 					$actorRole = $context->getActorRole();
 

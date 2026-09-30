@@ -40,6 +40,7 @@ final class TsaPolicy implements IPolicyDefinitionProvider {
 				normalizer: fn (mixed $rawValue): string => $this->managedValue->normalizeForPersistence($rawValue),
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 				supportsUserPreference: false,
+				supportsRequestOverride: false,
 				supportedScopes: [PolicySpec::SCOPE_SYSTEM],
 				supportsGroupAdminDelegation: false,
 			),

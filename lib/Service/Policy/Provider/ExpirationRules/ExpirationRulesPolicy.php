@@ -70,6 +70,7 @@ final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
 			defaultValue: $defaultValue,
 			normalizer: static fn (mixed $rawValue): int => self::normalizeNonNegativeInt($rawValue, $defaultValue),
 			supportsUserPreference: false,
+			supportsRequestOverride: false,
 			compositeChildren: $compositeChildren,
 			helper: $helper,
 			parentPolicyKey: $parentPolicyKey,
@@ -88,6 +89,7 @@ final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
 			defaultValue: $defaultValue,
 			normalizer: static fn (mixed $rawValue): int => self::normalizePositiveInt($rawValue, $defaultValue),
 			supportsUserPreference: false,
+			supportsRequestOverride: false,
 			compositeChildren: $compositeChildren,
 			helper: $helper,
 			parentPolicyKey: $parentPolicyKey,
@@ -98,6 +100,7 @@ final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
 		string $key,
 		int $defaultValue,
 		\Closure $normalizer,
+		bool $supportsRequestOverride,
 		bool $supportsUserPreference = true,
 		array $compositeChildren = [],
 		bool $helper = false,
@@ -110,6 +113,7 @@ final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
 			normalizer: $normalizer,
 			appConfigKey: $key,
 			supportsUserPreference: $supportsUserPreference,
+			supportsRequestOverride: $supportsRequestOverride,
 			groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
 				$actorRole = $context->getActorRole();
 				if ($actorRole->canManageSystemPolicies) {

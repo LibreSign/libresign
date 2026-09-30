@@ -140,7 +140,11 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 
 		$requestOverride = $this->source->loadRequestOverride($policyKey, $context);
 		if ($requestOverride !== null) {
-			if ($this->canApplyLowerLayer($definition, $resolved, $requestOverride, $canOverrideBelow, $visible, $context)) {
+			// Checked here, not only by the file policy appliers, so a request value
+			// can never reach a policy that does not accept one.
+			if ($definition->supportsRequestOverride()
+				&& $this->canApplyLowerLayer($definition, $resolved, $requestOverride, $canOverrideBelow, $visible, $context)
+			) {
 				$currentValue = $definition->normalizeValue($requestOverride->getValue());
 				$definition->validateValue($currentValue, $context);
 				$currentSourceScope = $requestOverride->getScope();
@@ -166,10 +170,9 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 				)
 			);
 
-		$canPersistUserPreference = $definition->supportsScope(PolicySpec::SCOPE_USER)
+		$canActorOverrideBelowUserScope = $definition->supportsScope(PolicySpec::SCOPE_USER)
 			&& $visible
 			&& $canOverrideBelow
-			&& $definition->supportsUserPreference()
 			&& (
 				$currentActorCanManageSystemPolicies
 				|| $isSystemExplicitlyGrantedForDescendantRules
@@ -187,8 +190,8 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 				&& $definition->supportsScope(PolicySpec::SCOPE_GROUP)
 				&& $definition->canCurrentActorManageGroupPolicy($context, $systemLayer, $groupLayers)
 			)
-			->setCanSaveAsUserDefault($canPersistUserPreference)
-			->setCanUseAsRequestOverride($canPersistUserPreference)
+			->setCanSaveAsUserDefault($canActorOverrideBelowUserScope && $definition->supportsUserPreference())
+			->setCanUseAsRequestOverride($canActorOverrideBelowUserScope && $definition->supportsRequestOverride())
 			->setBlockedBy($currentBlockedBy);
 
 		return $resolved;

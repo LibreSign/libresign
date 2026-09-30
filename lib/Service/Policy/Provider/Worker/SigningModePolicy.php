@@ -37,6 +37,7 @@ final class SigningModePolicy implements IPolicyDefinitionProvider {
 					: 'sync',
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_SIGNING_MODE,
 				supportsUserPreference: false,
+				supportsRequestOverride: false,
 				supportedScopes: [PolicySpec::SCOPE_SYSTEM],
 				compositeChildren: [WorkerConfigPolicy::KEY],
 			),

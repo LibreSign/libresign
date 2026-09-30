@@ -53,6 +53,7 @@ final class DocMdpPolicy implements IPolicyDefinitionProvider {
 					return $rawValue;
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
+				supportsRequestOverride: true,
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . PolicyKeyNormalizer::normalize($policyKey)),
 		};

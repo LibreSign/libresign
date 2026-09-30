@@ -61,6 +61,7 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 					}
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
+				supportsRequestOverride: true,
 				groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
 					$actorRole = $context->getActorRole();
 					if ($actorRole->canManageSystemPolicies) {
