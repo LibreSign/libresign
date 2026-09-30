@@ -25,6 +25,9 @@ capture_environment() {
     echo "flow=${FLOW}"
     echo "requests=${REQUESTS}"
     echo "behat_workers=${BEHAT_WORKERS:-unset}"
+    echo "use_zend_alloc=${USE_ZEND_ALLOC:-1}"
+    echo "malloc_check=${MALLOC_CHECK_:-unset}"
+    echo "malloc_perturb=${MALLOC_PERTURB_:-unset}"
     echo
     echo "== php -v =="
     php -v
@@ -116,6 +119,7 @@ echo "Flow: ${FLOW}"
 echo "Requests: ${REQUESTS}"
 echo "Imagick: $(php -r 'echo extension_loaded("imagick") ? "on" : "off";')"
 echo "PHP built-in workers: ${BEHAT_WORKERS:-unset}"
+echo "Allocator: USE_ZEND_ALLOC=${USE_ZEND_ALLOC:-1} MALLOC_CHECK_=${MALLOC_CHECK_:-unset} MALLOC_PERTURB_=${MALLOC_PERTURB_:-unset}"
 
 run_dir="${DIAG_DIR}/run"
 printf '[%s] flow=%s requests=%s imagick=%s workers=%s\n' \
