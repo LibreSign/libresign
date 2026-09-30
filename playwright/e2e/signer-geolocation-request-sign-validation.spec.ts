@@ -236,7 +236,11 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	await privacyDialog.getByRole('button', { name: 'Continue' }).click()
 
 	const signResponse = await signResponsePromise
-	expect(signResponse.ok(), `Sign API failed with status ${signResponse.status()}`).toBeTruthy()
+	const signResponseText = await signResponse.text()
+	expect(
+		signResponse.ok(),
+		`Sign API failed with status ${signResponse.status()}: ${signResponseText}`,
+	).toBeTruthy()
 
 	const signBody = await signResponse.request().postDataJSON() as Record<string, unknown>
 	expect(signBody).toHaveProperty('deviceGeolocation')

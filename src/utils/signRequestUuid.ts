@@ -232,6 +232,16 @@ export function getSigningRouteUuid(
 		return routeUuid
 	}
 
+	const canSign = document?.settings?.canSign === true || document?.canSign === true
+	const soleSignerUuid = getSoleSignableSignRequestUuid(document)
+
+	// Admins are often isApprover. When they can also sign this file and there
+	// is a sole signable participant, prefer that sign_request_uuid over the
+	// id-doc file-uuid fallback (which would POST /sign with the wrong uuid).
+	if (canSign && isNonEmptyString(soleSignerUuid)) {
+		return soleSignerUuid
+	}
+
 	// Approver/id-doc flows use the file uuid, not a signer uuid.
 	if (document?.settings?.isApprover === true && isNonEmptyString(document?.uuid)) {
 		return document.uuid
@@ -239,7 +249,6 @@ export function getSigningRouteUuid(
 
 	// Validate payloads can omit `me` for the requester while still exposing
 	// sign_request_uuid. A sole signable signer is enough to open /f/sign/:uuid.
-	const soleSignerUuid = getSoleSignableSignRequestUuid(document)
 	if (isNonEmptyString(soleSignerUuid)) {
 		return soleSignerUuid
 	}
