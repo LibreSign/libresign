@@ -88,6 +88,9 @@ select_ini() {
     controlled-imagick)
       contains_module "${ini}" "${minimal_modules}" || is_imagick_ini "${ini}"
       ;;
+    controlled-xdebug)
+      contains_module "${ini}" "${minimal_modules} xdebug"
+      ;;
     controlled-extra-a)
       contains_module "${ini}" "${minimal_modules} ${extra_group_a}"
       ;;
