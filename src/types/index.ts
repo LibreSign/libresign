@@ -120,6 +120,7 @@ export type UserPreferenceCompoundPolicyWritePayload = ApiRequestJsonBody<ApiOpe
 export type UserPreferenceCompoundPolicyWriteResponse = ApiOcsResponseData<ApiOperations['policy-set-user-preference-compound'], 200>
 export type UserCompoundPolicyWritePayload = ApiRequestJsonBody<ApiOperations['policy-set-user-policy-for-user-compound']>
 export type UserCompoundPolicyWriteResponse = ApiOcsResponseData<ApiOperations['policy-set-user-policy-for-user-compound'], 200>
+export type CompoundPolicyWriteValues = NonNullable<SystemCompoundPolicyWritePayload['values']>
 export type NewFilePayload = ApiComponents['schemas']['NewFile']
 type OpenApiIdentifyMethodRecord = ApiComponents['schemas']['IdentifyMethod']
 export type IdentifyMethodRequirement = 'required' | 'optional'
