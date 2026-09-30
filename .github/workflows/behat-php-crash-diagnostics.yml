@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   stress:
-    name: ${{ matrix.flow }} / imagick=${{ matrix.imagick }}
+    name: request-signature / imagick=${{ matrix.imagick }} / allocator=${{ matrix.allocator }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -29,18 +29,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - flow: request-signature
-            imagick: 'on'
+          - imagick: 'on'
+            allocator: zend
             php_extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, imagick
-          - flow: request-signature
-            imagick: 'off'
-            php_extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql
-          - flow: validate-uuid
-            imagick: 'on'
+          - imagick: 'off'
+            allocator: zend
+            php_extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, :imagick
+          - imagick: 'on'
+            allocator: system
             php_extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, imagick
-          - flow: validate-uuid
-            imagick: 'off'
-            php_extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql
+          - imagick: 'off'
+            allocator: system
+            php_extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, :imagick
 
     services:
       mysql:
@@ -63,7 +63,7 @@ jobs:
       NOTIFICATIONS_REF: addebde43e30da3d56418bb9c597997ed05a4b00
       ACTIVITY_REF: 635b4b4ae103ca4111dea417486aac92214906bd
       GUESTS_REF: c9427b60e751108922a2ee724ea472d9d64e3203
-      STRESS_FLOW: ${{ matrix.flow }}
+      STRESS_FLOW: request-signature
       STRESS_REQUESTS: '500'
       BEHAT_WORKERS: '0'
       BEHAT_NO_PROGRESS_TIMEOUT: '120'
@@ -107,13 +107,40 @@ jobs:
           ini-values: disable_functions=
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          fail-fast: true
 
-      - name: Verify controlled extension set
+      - name: Enforce and verify controlled extension set
         run: |
+          set -euo pipefail
           php -v
-          php -m
+          php --ini
+
+          if [ "${{ matrix.imagick }}" = "off" ]; then
+            # setup-php may re-enable extensions needed by tools. Disable Imagick
+            # again at the final PHP configuration layer and verify the actual
+            # runtime, not only the action input.
+            sudo phpdismod imagick 2>/dev/null || true
+
+            scan_dir="$(php --ini | sed -n 's|^Scan for additional .ini files in: ||p')"
+            if [ -n "${scan_dir}" ] && [ -d "${scan_dir}" ]; then
+              while IFS= read -r ini; do
+                echo "Disabling Imagick ini: ${ini}"
+                sudo mv "${ini}" "${ini}.disabled"
+              done < <(find "${scan_dir}" -maxdepth 1 -type f -iname '*imagick*.ini' -print)
+            fi
+          fi
+
+          php -m | sort | tee php-modules-effective.txt
+
           if [ "${{ matrix.imagick }}" = "on" ]; then
             php -r 'exit(extension_loaded("imagick") ? 0 : 1);'
+            php --ri imagick | tee php-imagick.txt
+            extension_dir="$(php -r 'echo ini_get("extension_dir");')"
+            if [ -f "${extension_dir}/imagick.so" ]; then
+              ldd "${extension_dir}/imagick.so" | tee php-imagick-ldd.txt
+            fi
+            command -v magick >/dev/null 2>&1 && magick -version | tee imagemagick-version.txt || true
+            command -v identify >/dev/null 2>&1 && identify -version | tee imagemagick-identify-version.txt || true
           else
             php -r 'exit(extension_loaded("imagick") ? 1 : 0);'
           fi
@@ -180,28 +207,47 @@ jobs:
           ./occ config:system:set ratelimit.protection.enabled --value false --type boolean
           ./occ config:app:set dav enableDefaultContact --value false --type boolean
 
-      - name: Stress ${{ matrix.flow }} with Imagick ${{ matrix.imagick }}
+      - name: Stress request-signature with Imagick ${{ matrix.imagick }} and ${{ matrix.allocator }} allocator
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
         env:
           BEHAT_ROOT_DIR: ../../../../
           BEHAT_RUN_AS: runner
           BEHAT_VERBOSE: '1'
         run: |
+          set -euo pipefail
           ulimit -c unlimited
           echo "flow=${STRESS_FLOW}"
           echo "requests=${STRESS_REQUESTS}"
           echo "imagick=${{ matrix.imagick }}"
+          echo "allocator=${{ matrix.allocator }}"
           echo "workers=${BEHAT_WORKERS}"
+
+          if [ "${{ matrix.allocator }}" = "system" ]; then
+            export USE_ZEND_ALLOC=0
+            export MALLOC_CHECK_=3
+            export MALLOC_PERTURB_=165
+          else
+            unset USE_ZEND_ALLOC MALLOC_CHECK_ MALLOC_PERTURB_ || true
+          fi
+
+          echo "USE_ZEND_ALLOC=${USE_ZEND_ALLOC:-1}"
+          echo "MALLOC_CHECK_=${MALLOC_CHECK_:-unset}"
+          echo "MALLOC_PERTURB_=${MALLOC_PERTURB_:-unset}"
           bash scripts/stress-behat-crash.sh
 
       - name: Upload crash diagnostics
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: behat-crash-${{ matrix.flow }}-imagick-${{ matrix.imagick }}-${{ github.run_id }}
+          name: behat-crash-request-signature-imagick-${{ matrix.imagick }}-allocator-${{ matrix.allocator }}-${{ github.run_id }}
           path: |
             behat-crash-diagnostics/
             php-runtime-metadata/
+            php-modules-effective.txt
+            php-imagick.txt
+            php-imagick-ldd.txt
+            imagemagick-version.txt
+            imagemagick-identify-version.txt
             /tmp/behat-php-server-*
             /tmp/core.*
           if-no-files-found: warn
