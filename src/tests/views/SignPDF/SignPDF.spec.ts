@@ -30,6 +30,21 @@ vi.mock('@nextcloud/capabilities', () => ({
 	getCapabilities: vi.fn(() => ({})),
 }))
 
+const mockRoute = {
+	params: { uuid: 'uuid-123' } as Record<string, string>,
+	query: {} as Record<string, string>,
+	name: 'TestRoute' as string,
+	path: '/f/sign/uuid-123/pdf',
+}
+
+vi.mock('vue-router', () => ({
+	useRoute: vi.fn(() => mockRoute),
+	useRouter: vi.fn(() => ({
+		push: vi.fn(),
+		replace: vi.fn(),
+	})),
+}))
+
 vi.mock('../../../components/PdfEditor/PdfEditor.vue', () => ({
 	default: {
 		name: 'PdfEditor',
@@ -84,6 +99,10 @@ describe('SignPDF.vue', () => {
 	beforeEach(() => {
 		setActivePinia(createPinia())
 		vi.clearAllMocks()
+		mockRoute.params = { uuid: 'uuid-123' }
+		mockRoute.query = {}
+		mockRoute.name = 'TestRoute'
+		mockRoute.path = '/f/sign/uuid-123/pdf'
 		Object.defineProperty(window, 'innerWidth', {
 			configurable: true,
 			writable: true,
@@ -365,6 +384,10 @@ describe('SignPDF.vue', () => {
 			blob: vi.fn(async () => new Blob(['pdf'], { type: 'application/pdf' })),
 		}))
 
+		mockRoute.name = 'SignPDF'
+		mockRoute.params = { uuid: 'sign-uuid-123' }
+		mockRoute.path = '/f/sign/sign-uuid-123/pdf'
+
 		mount(SignPDF, {
 			global: {
 				stubs: {
@@ -421,6 +444,10 @@ describe('SignPDF.vue', () => {
 			},
 			blob: vi.fn(async () => new Blob(['pdf'], { type: 'application/pdf' })),
 		}))
+
+		mockRoute.name = 'SignPDF'
+		mockRoute.params = { uuid: 'sign-uuid-mobile' }
+		mockRoute.path = '/f/sign/sign-uuid-mobile/pdf'
 
 		mount(SignPDF, {
 			global: {
