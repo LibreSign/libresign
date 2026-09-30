@@ -149,7 +149,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 		return [
 			'name' => $this->name,
-			'friendly_name' => $this->friendlyName,
+			'friendly_name' => $this->getFriendlyName(),
 			'enabled' => true,
 			'requirement' => IdentifyMethodRequirement::REQUIRED->value,
 			'signatureMethods' => $this->signatureMethodsToArray(),
