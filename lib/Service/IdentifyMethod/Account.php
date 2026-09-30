@@ -124,7 +124,10 @@ class Account extends AbstractIdentifyMethod {
 	}
 
 	private function authenticatedUserIsTheSigner(IUser $signer): void {
-		if ($this->userSession->getUser() !== $signer) {
+		$user = $this->userSession->getUser();
+		// Compare UIDs: UserManager/session may return distinct IUser instances
+		// for the same account (e.g. getByEmail vs session cache).
+		if (!$user instanceof IUser || $user->getUID() !== $signer->getUID()) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				// TRANSLATORS Error shown when the Nextcloud account used to identify the signer is invalid.
