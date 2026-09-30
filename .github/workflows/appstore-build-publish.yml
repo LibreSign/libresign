@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build and publish release
-        uses: LibreCodeCoop/.github/actions/nextcloud-appstore-publish@d5282efa6991efbc4c035b20a25af41e56c18613
+        uses: LibreCodeCoop/.github/actions/nextcloud-appstore-publish@600b84354bdbb2da4fc32e9d4eecac1fcce60666
         with:
           app-name: ${{ github.event.repository.name }}
           release-tag: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.event.release.tag_name }}
