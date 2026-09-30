@@ -87,9 +87,10 @@ class AccountTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$entity = new IdentifyMethod();
 		$entity->setIdentifierValue('nonexistent_user');
 
-		// Mock userManager to return null for both get() and getByEmail()
+		// Mock userManager to return null for get()/getByEmail()/search()
 		$this->userManager->method('get')->with('nonexistent_user')->willReturn(null);
 		$this->userManager->method('getByEmail')->with('nonexistent_user')->willReturn([]);
+		$this->userManager->method('search')->with('nonexistent_user')->willReturn([]);
 
 		$account = $this->getClass();
 		$account->setEntity($entity);

@@ -108,32 +108,86 @@ class Account extends AbstractIdentifyMethod {
 
 	private function getSigner(): IUser {
 		$identifierValue = $this->entity->getIdentifierValue();
-		$signer = $this->userManager->get($identifierValue);
-		if (!$signer) {
-			$signer = $this->userManager->getByEmail($identifierValue);
-			if (empty($signer) || count($signer) > 1) {
-				throw new LibresignException(json_encode([
-					'action' => JSActions::ACTION_DO_NOTHING,
-					// TRANSLATORS Error shown when the Nextcloud account used to identify the signer is invalid.
-					'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid user')]],
-				]));
-			}
-			$signer = current($signer);
-		}
-		return $signer;
-	}
-
-	private function authenticatedUserIsTheSigner(IUser $signer): void {
-		$user = $this->userSession->getUser();
-		// Compare UIDs: UserManager/session may return distinct IUser instances
-		// for the same account (e.g. getByEmail vs session cache).
-		if (!$user instanceof IUser || $user->getUID() !== $signer->getUID()) {
+		$signer = $this->resolveSignerUser($identifierValue);
+		if (!$signer instanceof IUser) {
+			$this->logger->warning('Account identify could not resolve signer user', [
+				'identifier' => $identifierValue,
+				'signRequestId' => $this->entity->getSignRequestId(),
+			]);
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				// TRANSLATORS Error shown when the Nextcloud account used to identify the signer is invalid.
 				'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid user')]],
 			]));
 		}
+		return $signer;
+	}
+
+	private function resolveSignerUser(?string $identifierValue): ?IUser {
+		if ($identifierValue === null || $identifierValue === '') {
+			return null;
+		}
+
+		$signer = $this->userManager->get($identifierValue);
+		if ($signer instanceof IUser) {
+			return $signer;
+		}
+
+		$byEmail = $this->userManager->getByEmail($identifierValue);
+		if (is_array($byEmail) && count($byEmail) === 1 && $byEmail[0] instanceof IUser) {
+			return $byEmail[0];
+		}
+
+		// Collaborator search can persist shareWithDisplayNameUnique (email) while
+		// getByEmail is empty for some backends; also accept UID case variants.
+		foreach ($this->userManager->search($identifierValue) as $candidate) {
+			if (!$candidate instanceof IUser) {
+				continue;
+			}
+			if (strcasecmp($candidate->getUID(), $identifierValue) === 0) {
+				return $candidate;
+			}
+			$email = $candidate->getEMailAddress();
+			if (is_string($email) && strcasecmp($email, $identifierValue) === 0) {
+				return $candidate;
+			}
+		}
+
+		return null;
+	}
+
+	private function authenticatedUserIsTheSigner(IUser $signer): void {
+		$user = $this->userSession->getUser();
+		// Compare UIDs: UserManager/session may return distinct IUser instances
+		// for the same account (e.g. getByEmail vs session cache).
+		if ($user instanceof IUser && $user->getUID() === $signer->getUID()) {
+			return;
+		}
+
+		// Account identify values are sometimes the account email rather than UID.
+		if ($user instanceof IUser) {
+			$sessionEmail = $user->getEMailAddress();
+			$signerEmail = $signer->getEMailAddress();
+			if (
+				is_string($sessionEmail) && $sessionEmail !== ''
+				&& is_string($signerEmail) && $signerEmail !== ''
+				&& strcasecmp($sessionEmail, $signerEmail) === 0
+			) {
+				return;
+			}
+		}
+
+		$this->logger->warning('Account identify session does not match signer', [
+			'sessionUid' => $user instanceof IUser ? $user->getUID() : null,
+			'signerUid' => $signer->getUID(),
+			'identifier' => $this->entity->getIdentifierValue(),
+			'signRequestId' => $this->entity->getSignRequestId(),
+		]);
+		throw new LibresignException(json_encode([
+			'action' => JSActions::ACTION_DO_NOTHING,
+			// TRANSLATORS Error shown when the Nextcloud account used to identify the signer is invalid.
+			'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid user')]],
+		]));
 	}
 
 	private function throwIfNotAuthenticated(): void {
