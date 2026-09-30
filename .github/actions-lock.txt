@@ -3,19 +3,19 @@
 
 # workflow-lock-schema: 3
 
-{"workflow":"appstore-build-publish.yml","sha256":"0bb14ab9f7a6eeff42c971922b6bfb9966eb1d4ed7fe2a886ddb9d17384cb321","catalog_commit":"0fb76f8e57f96c4b3fe767faa486262bf49f1939"}
-{"workflow":"block-unconventional-commits.yml","sha256":"682899d221aa96cd1ad93c3cf46970205a083e49e45d9405b86f4b732a350cea","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
-{"workflow":"lint-eslint.yml","sha256":"4c4dd7a4aa128713a3c6765fc078fb7bb97ffbecec1e8ce1a86a146753be74e0","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
-{"workflow":"lint-info-xml.yml","sha256":"3a2ed92f25ae9a233d6d64d44bd122b39dee0f153e7a1a9dc81bfb19adcec09b","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
-{"workflow":"lint-php-cs.yml","sha256":"6846828b23e3b4f9e09c27cc363ba39a66868cb02c683f4c434c232a40cb8958","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
-{"workflow":"lint-php.yml","sha256":"f7049c6cce3f7dda9a4e99845029928631f61fa091ecc0595b1ae5b3b40e97cd","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
-{"workflow":"lint-stylelint.yml","sha256":"fefbc7b9e21c7a3d5e3ece53d8232c7e3d1f8aa7f76f1c32618b80fd456dd79c","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
-{"workflow":"lint-typescript.yml","sha256":"43b053d26ce5f5e3eb3486dd908c367da09a3495511ee523494ceae7f12908d9","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
-{"workflow":"nightly-release.yml","sha256":"b306fd9a5c4f17b67841a4f58acefc7dbad0eb2975ff0d4dca6fcc656cfa3c1b","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
-{"workflow":"node-test.yml","sha256":"f5361a5948f22dbd1bdf64fe112dfbbed0710af6e69239e09d0d6eb12c51b68d","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
-{"workflow":"npm-build.yml","sha256":"e697a4f28b0a433d1db46383158ce3c7e0dd128f6c64118a251cc43653c57afa","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
-{"workflow":"openapi.yml","sha256":"293316b8e7ebc4f705df2e75df5815a056308936584c3f9dcd0db0580779773a","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
-{"workflow":"prepare-release.yml","sha256":"0f6453fb3302fd00d644ff980597108265e5d05cbaf11096b890a3ddc3f12a6d","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
-{"workflow":"psalm.yml","sha256":"96e71e6140d9d8b8684d95c5cfbd9038005eb21e6ef9a6dad5d83dc755af3637","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
-{"workflow":"reuse.yml","sha256":"f563735e1a573cca3acb2975321ee760e5d52cb6ca64bfcc11a5da4ae0f9bf73","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
-{"workflow":"sync-workflow-templates.yml","sha256":"9425fa3ca6f8972967935330a753932fa0f174d84db3877eca91336d0b59c7b4","catalog_commit":"cb66a34872a9ef0ade6934d962b6109f8078a432"}
+{"workflow":"appstore-build-publish.yml","sha256":"fc1a21966373b98ab0fc9ab28770d88033001976785eb3fcf3f634c693bb62e6","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
+{"workflow":"block-unconventional-commits.yml","sha256":"682899d221aa96cd1ad93c3cf46970205a083e49e45d9405b86f4b732a350cea","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
+{"workflow":"lint-eslint.yml","sha256":"4c4dd7a4aa128713a3c6765fc078fb7bb97ffbecec1e8ce1a86a146753be74e0","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
+{"workflow":"lint-info-xml.yml","sha256":"3a2ed92f25ae9a233d6d64d44bd122b39dee0f153e7a1a9dc81bfb19adcec09b","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
+{"workflow":"lint-php-cs.yml","sha256":"6846828b23e3b4f9e09c27cc363ba39a66868cb02c683f4c434c232a40cb8958","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
+{"workflow":"lint-php.yml","sha256":"f7049c6cce3f7dda9a4e99845029928631f61fa091ecc0595b1ae5b3b40e97cd","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
+{"workflow":"lint-stylelint.yml","sha256":"fefbc7b9e21c7a3d5e3ece53d8232c7e3d1f8aa7f76f1c32618b80fd456dd79c","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
+{"workflow":"lint-typescript.yml","sha256":"43b053d26ce5f5e3eb3486dd908c367da09a3495511ee523494ceae7f12908d9","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
+{"workflow":"nightly-release.yml","sha256":"ce30955610274ec615f6bde27539a18e7f324bb5b43ec3ec311ae01d4ac91ef2","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
+{"workflow":"node-test.yml","sha256":"f5361a5948f22dbd1bdf64fe112dfbbed0710af6e69239e09d0d6eb12c51b68d","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
+{"workflow":"npm-build.yml","sha256":"e697a4f28b0a433d1db46383158ce3c7e0dd128f6c64118a251cc43653c57afa","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
+{"workflow":"openapi.yml","sha256":"293316b8e7ebc4f705df2e75df5815a056308936584c3f9dcd0db0580779773a","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
+{"workflow":"prepare-release.yml","sha256":"548e571fe174d43ef6eb80b484f50dd44624d0642311d99257c26dfb2343d7b5","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
+{"workflow":"psalm.yml","sha256":"96e71e6140d9d8b8684d95c5cfbd9038005eb21e6ef9a6dad5d83dc755af3637","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
+{"workflow":"reuse.yml","sha256":"f563735e1a573cca3acb2975321ee760e5d52cb6ca64bfcc11a5da4ae0f9bf73","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
+{"workflow":"sync-workflow-templates.yml","sha256":"9425fa3ca6f8972967935330a753932fa0f174d84db3877eca91336d0b59c7b4","catalog_commit":"f48804be5820e096df9592b0a2c99f1d3d91f0e5"}
