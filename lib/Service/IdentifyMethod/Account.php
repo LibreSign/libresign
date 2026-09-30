@@ -134,27 +134,26 @@ class Account extends AbstractIdentifyMethod {
 		}
 
 		$byEmail = $this->userManager->getByEmail($identifierValue);
-		if (is_array($byEmail) && count($byEmail) === 1 && $byEmail[0] instanceof IUser) {
-			return $byEmail[0];
+		if (is_array($byEmail)) {
+			if (count($byEmail) === 1 && $byEmail[0] instanceof IUser) {
+				return $byEmail[0];
+			}
+			if (count($byEmail) > 1) {
+				// Shared emails cannot identify a unique Nextcloud account signer.
+				return null;
+			}
 		}
 
-		// Collaborator search can persist shareWithDisplayNameUnique (email) while
-		// getByEmail is empty for some backends; also accept UID case variants.
+		// Collaborator search / backends can miss get(); accept UID case variants.
+		// Do not match search hits by email here: ambiguous shared emails must stay rejected.
 		foreach ($this->userManager->search($identifierValue) as $candidate) {
-			if (!$candidate instanceof IUser) {
-				continue;
-			}
-			if (strcasecmp($candidate->getUID(), $identifierValue) === 0) {
-				return $candidate;
-			}
-			$email = $candidate->getEMailAddress();
-			if (is_string($email) && strcasecmp($email, $identifierValue) === 0) {
+			if ($candidate instanceof IUser && strcasecmp($candidate->getUID(), $identifierValue) === 0) {
 				return $candidate;
 			}
 		}
 
-		// Last resort: the active session may already be the signer even when
-		// UserManager cannot resolve the stored identifier (backend gaps).
+		// Last resort when UserManager cannot resolve the identifier but the
+		// active session already is that account (UID or unique email value).
 		$sessionUser = $this->userSession->getUser();
 		if ($sessionUser instanceof IUser && $this->userMatchesIdentifier($sessionUser, $identifierValue)) {
 			return $sessionUser;
@@ -173,28 +172,12 @@ class Account extends AbstractIdentifyMethod {
 
 	private function authenticatedUserIsTheSigner(IUser $signer): void {
 		$user = $this->userSession->getUser();
-		// Compare UIDs: UserManager/session may return distinct IUser instances
-		// for the same account (e.g. getByEmail vs session cache). Case can also
-		// differ across backends that persist the collaborator search value.
+		// Compare UIDs only: UserManager/session may return distinct IUser
+		// instances for the same account. Never authorize by shared email —
+		// multiple accounts can use the same address while account identify
+		// still targets a single UID.
 		if ($user instanceof IUser && strcasecmp($user->getUID(), $signer->getUID()) === 0) {
 			return;
-		}
-
-		// Account identify values are sometimes the account email rather than UID.
-		if ($user instanceof IUser) {
-			$sessionEmail = $user->getEMailAddress();
-			$signerEmail = $signer->getEMailAddress();
-			if (
-				is_string($sessionEmail) && $sessionEmail !== ''
-				&& is_string($signerEmail) && $signerEmail !== ''
-				&& strcasecmp($sessionEmail, $signerEmail) === 0
-			) {
-				return;
-			}
-			// Identifier may be email while resolved signer UID matches session.
-			if ($this->userMatchesIdentifier($user, (string)$this->entity->getIdentifierValue())) {
-				return;
-			}
 		}
 
 		$this->logger->warning('Account identify session does not match signer', [
