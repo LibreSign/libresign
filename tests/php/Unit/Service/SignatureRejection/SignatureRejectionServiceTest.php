@@ -463,6 +463,24 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$this->assertSame(SignRequestStatus::REJECTED, $result->getStatusEnum());
 	}
 
+	public function testAProgrammingErrorWhileNotifyingIsNotConvertedIntoADeliveryFailure(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$signRequest = $this->signRequest();
+
+		$this->sequentialSigningService->method('activateNextOrder')
+			->willReturn([$this->signRequest(id: 78)]);
+		$this->sequentialSigningService->method('notifyActivatedSigners')
+			->willThrowException(new \TypeError('bug in the notification path'));
+
+		$this->db->expects($this->once())->method('commit');
+		$this->logger->expects($this->never())->method('error');
+
+		$this->expectException(\TypeError::class);
+		$this->expectExceptionMessage('bug in the notification path');
+
+		$this->getService()->reject($this->file(), $signRequest);
+	}
+
 	public function testWorkflowIsClosedWhenThePolicyCancelsIt(): void {
 		$this->withPolicy(self::policy(behavior: 'cancel'));
 		$file = $this->file(FileStatus::PARTIAL_SIGNED->value);
