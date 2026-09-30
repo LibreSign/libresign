@@ -114,15 +114,30 @@ collect_core_backtraces() {
       -ex 'info proc mappings' \
       -ex 'info symbol $pc' \
       -ex 'p/x $rdi' \
-      -ex 'x/16gx $rdi' \
-      -ex 'x/24i $pc-48' \
+      -ex 'x/24gx $rdi-32' \
+      -ex 'p/x *(unsigned int*)$rdi' \
+      -ex 'p/x *(unsigned int*)($rdi+4)' \
+      -ex 'p/x *(unsigned int*)($rdi+8)' \
+      -ex 'p/x *(void**)($rdi+16)' \
+      -ex 'p/x *(void**)($rdi+24)' \
+      -ex 'p/x *(void**)($rdi+32)' \
+      -ex 'x/32i $pc-64' \
       "${php_bin}" "${core}" \
       > "${OUTPUT_DIR}/cores/${base}.gdb.txt" 2>&1 || true
   done
 
+  for core in /tmp/core.*; do
+    [ -f "${core}" ] || continue
+    local base
+    base="$(basename "${core}")"
+    if command -v eu-stack >/dev/null 2>&1; then
+      timeout 20s eu-stack --core="${core}" --executable="${php_bin}" > "${OUTPUT_DIR}/cores/${base}.eu-stack.txt" 2>&1 || true
+    fi
+  done
+
   if [ "${found}" -eq 0 ] && [ "${MODE}" != "live" ]; then
     sudo timeout 20s coredumpctl --no-pager --quiet debug php \
-      --debugger-arguments="-batch -ex 'set pagination off' -ex 'thread apply all bt full' -ex 'info registers' -ex 'info sharedlibrary' -ex 'info proc mappings' -ex 'info symbol \\$pc' -ex 'p/x \\$rdi' -ex 'x/16gx \\$rdi' -ex 'x/24i \\$pc-48'" \
+      --debugger-arguments="-batch -ex 'set pagination off' -ex 'thread apply all bt full' -ex 'info registers' -ex 'info sharedlibrary' -ex 'info proc mappings' -ex 'info symbol \\$pc' -ex 'p/x \\$rdi' -ex 'x/24gx \\$rdi-32' -ex 'x/32i \\$pc-64'" \
       > "${OUTPUT_DIR}/cores/coredumpctl-gdb.txt" 2>&1 || true
   fi
 }
@@ -150,9 +165,13 @@ write_failure_summary() {
     runtime-exceeded-*) classification="timeout" ;;
     php-worker-count-dropped-*) classification="worker-exit" ;;
     php-server-master-exited-*) classification="master-exit" ;;
+    command-exit-97) classification="valgrind-error" ;;
   esac
 
-  if [ "${exit_status}" = "139" ]; then
+  if [ "${exit_status}" = "134" ]; then
+    classification="abort"
+    signal_name="SIGABRT"
+  elif [ "${exit_status}" = "139" ]; then
     classification="segfault"
     signal_name="SIGSEGV"
   elif [ -n "${exit_status}" ] && [ "${exit_status}" -ge 128 ] 2>/dev/null; then
@@ -218,6 +237,17 @@ write_failure_summary() {
   echo
   echo "== memory =="
   free -m || true
+  echo
+  echo "== PHP runtime =="
+  php -v || true
+  php --ini || true
+  php -m || true
+  echo
+  echo "== allocator environment =="
+  echo "USE_ZEND_ALLOC=${USE_ZEND_ALLOC:-default}"
+  echo "MALLOC_CHECK_=${MALLOC_CHECK_:-unset}"
+  echo "MALLOC_PERTURB_=${MALLOC_PERTURB_:-unset}"
+  echo "GLIBC_TUNABLES=${GLIBC_TUNABLES:-unset}"
   echo
   echo "== core limit =="
   ulimit -c || true
