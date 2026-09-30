@@ -33,7 +33,7 @@ describe('geoipConfig', () => {
 
 	it('uses user-facing labels instead of raw enum values', () => {
 		expect(geoIpStatusLabel('not_configured')).toBe('Not configured')
-		expect(geoIpStatusLabel('not_found')).toBe('Database file not found')
+		expect(geoIpStatusLabel('not_found')).toBe('Not found')
 		expect(geoIpStatusLabel('not_readable')).toBe('Database file is not readable')
 		expect(geoIpStatusLabel('invalid_database')).toBe('Invalid GeoIP database')
 		expect(geoIpStatusLabel('unsupported_database')).toBe('Unsupported GeoIP database')

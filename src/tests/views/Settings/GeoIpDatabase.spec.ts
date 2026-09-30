@@ -70,7 +70,7 @@ describe('GeoIpDatabase', () => {
 
 	it.each([
 		['not_configured', 'Not configured'],
-		['not_found', 'Database file not found'],
+		['not_found', 'Not found'],
 		['not_readable', 'Database file is not readable'],
 		['invalid_database', 'Invalid GeoIP database'],
 		['unsupported_database', 'Unsupported GeoIP database'],

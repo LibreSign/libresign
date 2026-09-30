@@ -104,7 +104,7 @@ test('GeoIP admin settings save, replace, and clear a path without exposing sign
 	await page.goto('./settings/admin/libresign')
 
 	const editorDialog = await openIpGeolocationSystemEditor(page)
-	await editorDialog.getByRole('button', { name: /Configure( database)?/ }).click()
+	await editorDialog.getByRole('button', { name: 'Configure' }).click()
 
 	const geoIpDialog = page.getByRole('dialog', { name: 'GeoIP database' })
 	await expect(geoIpDialog).toBeVisible()
@@ -112,7 +112,7 @@ test('GeoIP admin settings save, replace, and clear a path without exposing sign
 	await expect(pathInput).toBeVisible()
 	await pathInput.fill('/tmp/libresign-missing-geoip.mmdb')
 	await geoIpDialog.getByRole('button', { name: 'Save', exact: true }).click()
-	await expect(geoIpDialog.getByText('Database file not found')).toBeVisible()
+	await expect(geoIpDialog.getByText('Not found')).toBeVisible()
 	await expect(geoIpDialog.getByText('This does not prevent signatures')).toBeVisible()
 	await expect(geoIpDialog).not.toContainText('sourceIp')
 

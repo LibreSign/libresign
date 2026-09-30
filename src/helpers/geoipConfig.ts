@@ -45,8 +45,8 @@ function geoIpStatusPresentation(status: GeoIpDatabaseStatus): {
 		}
 	case 'not_found':
 		return {
-			// TRANSLATORS GeoIP database status when the configured path does not exist.
-			label: t('libresign', 'Database file not found'),
+			// TRANSLATORS Compact GeoIP database status when the configured path does not exist.
+			label: t('libresign', 'Not found'),
 			// TRANSLATORS Explanation that the configured GeoIP path does not currently point to a file.
 			description: t('libresign', 'The configured path does not currently point to a file. This does not prevent signatures.'),
 			tone: 'warning',

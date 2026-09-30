@@ -23,41 +23,25 @@
 			class="signer-ip-geolocation-editor__dependency"
 			data-cy="geoip-database-dependency"
 			:aria-label="dependencySectionLabel">
-			<template v-if="normalizedMode === 'disabled'">
-				<p class="signer-ip-geolocation-editor__dependency-note">
-					{{ disabledDependencyNote }}
+			<div class="signer-ip-geolocation-editor__dependency-row">
+				<p class="signer-ip-geolocation-editor__dependency-status">
+					<strong>{{ dependencyStatusPrefix }}</strong>
+					{{ statusLabel || dependencyStatusUnknown }}
 				</p>
-				<div class="signer-ip-geolocation-editor__dependency-row">
-					<NcButton
-						v-if="canConfigureGeoIp"
-						variant="tertiary"
-						@click="openGeoIpDialog">
-						{{ configureButtonLabel }}
-					</NcButton>
-				</div>
-			</template>
+				<NcButton
+					v-if="canConfigureGeoIp"
+					variant="tertiary"
+					@click="openGeoIpDialog">
+					{{ configureButtonLabel }}
+				</NcButton>
+			</div>
 
-			<template v-else>
-				<div class="signer-ip-geolocation-editor__dependency-row">
-					<p class="signer-ip-geolocation-editor__dependency-status">
-						<strong>{{ dependencyStatusPrefix }}</strong>
-						{{ statusLabel || dependencyStatusUnknown }}
-					</p>
-					<NcButton
-						v-if="canConfigureGeoIp"
-						variant="secondary"
-						@click="openGeoIpDialog">
-						{{ configureDatabaseButtonLabel }}
-					</NcButton>
-				</div>
-
-				<NcNoteCard
-					v-if="showUnavailableWarning"
-					type="warning"
-					class="signer-ip-geolocation-editor__dependency-warning">
-					<p>{{ unavailableWarning }}</p>
-				</NcNoteCard>
-			</template>
+			<NcNoteCard
+				v-if="showUnavailableWarning"
+				type="warning"
+				class="signer-ip-geolocation-editor__dependency-warning">
+				<p>{{ unavailableWarning }}</p>
+			</NcNoteCard>
 
 			<p
 				v-if="!canConfigureGeoIp"
@@ -135,12 +119,8 @@ const options: Array<{ value: SignerIpGeolocationMode, label: string, descriptio
 
 // TRANSLATORS Accessible name for the GeoIP database dependency block inside the IP geolocation policy editor.
 const dependencySectionLabel = t('libresign', 'GeoIP database')
-// TRANSLATORS Note shown when IP geolocation is disabled, explaining the GeoIP database is only needed when enabled.
-const disabledDependencyNote = t('libresign', 'Requires a local GeoIP database when enabled.')
 // TRANSLATORS Button that opens the instance GeoIP database configuration dialog.
 const configureButtonLabel = t('libresign', 'Configure')
-// TRANSLATORS Button that opens GeoIP database configuration when the policy is enabled.
-const configureDatabaseButtonLabel = t('libresign', 'Configure database')
 // TRANSLATORS Prefix before the current GeoIP database readiness status.
 const dependencyStatusPrefix = t('libresign', 'GeoIP database:')
 // TRANSLATORS Fallback when GeoIP status has not loaded yet.
@@ -214,7 +194,6 @@ onMounted(() => {
 		border-block-start: 1px solid var(--color-border);
 	}
 
-	&__dependency-note,
 	&__dependency-instance-note,
 	&__dependency-status {
 		margin: 0;
