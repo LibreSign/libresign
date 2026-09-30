@@ -186,7 +186,10 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	}
 	expect(saveSignerPayload.signers?.[0]?.deviceGeolocationRequired).toBe(true)
 	expect(saveSignerPayload.signers?.[0]?.identifyMethods?.[0]?.method).toBe('account')
-	expect(saveSignerPayload.signers?.[0]?.identifyMethods?.[0]?.value).toBe(adminUser)
+	// Collaborator search may persist UID or shareWithDisplayNameUnique (email).
+	expect([adminUser, 'admin@email.tld']).toContain(
+		saveSignerPayload.signers?.[0]?.identifyMethods?.[0]?.value,
+	)
 
 	await page.getByRole('button', { name: 'Request signatures' }).click()
 	await page.getByRole('button', { name: 'Send' }).click()
@@ -221,12 +224,23 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 		}
 	}
 	const currentSigner = signDetailBody.ocs?.data?.signers?.find((signer) => signer.me === true)
-		?? signDetailBody.ocs?.data?.signers?.[0]
+	expect(
+		currentSigner,
+		`Expected validate payload to mark the admin signer as me; signers=${JSON.stringify(signDetailBody.ocs?.data?.signers ?? null)}`,
+	).toBeTruthy()
 	expect(
 		currentSigner?.metadata?.deviceGeolocationRequirement
 		?? (currentSigner?.deviceGeolocationRequired === true ? 'required' : undefined),
 		`Unexpected geolocation freeze; identifyMethods=${JSON.stringify(currentSigner?.identifyMethods ?? null)} me=${String(currentSigner?.me)}`,
 	).toBe('required')
+	expect(
+		currentSigner?.identifyMethods?.[0]?.method,
+		`Unexpected identify method on current signer: ${JSON.stringify(currentSigner?.identifyMethods ?? null)}`,
+	).toBe('account')
+	expect(
+		[adminUser, 'admin@email.tld'],
+		`Unexpected account identify value: ${JSON.stringify(currentSigner?.identifyMethods ?? null)}`,
+	).toContain(currentSigner?.identifyMethods?.[0]?.value)
 	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15_000 })
 	await expect(page.getByText('Device-reported location is required to sign this document.')).toBeVisible({ timeout: 15_000 })
 
@@ -249,7 +263,7 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	const expectedSignRequestUuid = currentSigner?.sign_request_uuid
 	expect(
 		signResponse.ok(),
-		`Sign API failed with status ${signResponse.status()} url=${signResponse.url()} expectedUuid=${expectedSignRequestUuid ?? 'unknown'}: ${signResponseText}`,
+		`Sign API failed with status ${signResponse.status()} url=${signResponse.url()} expectedUuid=${expectedSignRequestUuid ?? 'unknown'} identifyMethods=${JSON.stringify(currentSigner?.identifyMethods ?? null)} me=${String(currentSigner?.me)}: ${signResponseText}`,
 	).toBeTruthy()
 	if (typeof expectedSignRequestUuid === 'string' && expectedSignRequestUuid.length > 0) {
 		expect(signResponse.url()).toContain(`/sign/uuid/${expectedSignRequestUuid}`)

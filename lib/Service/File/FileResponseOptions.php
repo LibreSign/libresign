@@ -95,11 +95,17 @@ class FileResponseOptions {
 			foreach ($methods as $identifyMethod) {
 				$entity = $identifyMethod->getEntity();
 				$identifierValue = $entity->getIdentifierValue();
+				$uidMatches = $uid !== null && $uid !== '' && strcasecmp($uid, $identifierValue) === 0;
+				$emailMatches = $email !== null && $email !== '' && $email === $identifierValue;
+				$emailMatchesInsensitive = $emailLower !== null && $emailLower !== ''
+					&& $emailLower === strtolower($identifierValue);
+				$uniqueMatches = $uid !== null && $uid !== ''
+					&& strcasecmp($entity->getUniqueIdentifier(), 'account:' . $uid) === 0;
 				if ($this->identifyMethodId === $entity->getId()
-					|| ($uid !== null && $uid !== '' && $uid === $identifierValue)
-					|| ($email !== null && $email !== '' && $email === $identifierValue)
-					|| ($emailLower !== null && $emailLower !== '' && $emailLower === strtolower($identifierValue))
-					|| ($uid !== null && $uid !== '' && $entity->getUniqueIdentifier() === 'account:' . $uid)
+					|| $uidMatches
+					|| $emailMatches
+					|| $emailMatchesInsensitive
+					|| $uniqueMatches
 				) {
 					return true;
 				}

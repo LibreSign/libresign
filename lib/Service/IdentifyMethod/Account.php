@@ -153,14 +153,30 @@ class Account extends AbstractIdentifyMethod {
 			}
 		}
 
+		// Last resort: the active session may already be the signer even when
+		// UserManager cannot resolve the stored identifier (backend gaps).
+		$sessionUser = $this->userSession->getUser();
+		if ($sessionUser instanceof IUser && $this->userMatchesIdentifier($sessionUser, $identifierValue)) {
+			return $sessionUser;
+		}
+
 		return null;
+	}
+
+	private function userMatchesIdentifier(IUser $user, string $identifierValue): bool {
+		if (strcasecmp($user->getUID(), $identifierValue) === 0) {
+			return true;
+		}
+		$email = $user->getEMailAddress();
+		return is_string($email) && $email !== '' && strcasecmp($email, $identifierValue) === 0;
 	}
 
 	private function authenticatedUserIsTheSigner(IUser $signer): void {
 		$user = $this->userSession->getUser();
 		// Compare UIDs: UserManager/session may return distinct IUser instances
-		// for the same account (e.g. getByEmail vs session cache).
-		if ($user instanceof IUser && $user->getUID() === $signer->getUID()) {
+		// for the same account (e.g. getByEmail vs session cache). Case can also
+		// differ across backends that persist the collaborator search value.
+		if ($user instanceof IUser && strcasecmp($user->getUID(), $signer->getUID()) === 0) {
 			return;
 		}
 
@@ -173,6 +189,10 @@ class Account extends AbstractIdentifyMethod {
 				&& is_string($signerEmail) && $signerEmail !== ''
 				&& strcasecmp($sessionEmail, $signerEmail) === 0
 			) {
+				return;
+			}
+			// Identifier may be email while resolved signer UID matches session.
+			if ($this->userMatchesIdentifier($user, (string)$this->entity->getIdentifierValue())) {
 				return;
 			}
 		}
