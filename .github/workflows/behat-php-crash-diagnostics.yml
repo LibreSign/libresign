@@ -324,6 +324,18 @@ jobs:
             no_progress: '90'
             max_seconds: '180'
 
+          - case_id: php83-xdebug-trace
+            php_version: '8.3'
+            runtime_mode: controlled-xdebug
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: request-signature-email-notify
+            requests: '120'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
           # Memory instrumentation. Valgrind follows exec() children so the
           # PHP built-in server is instrumented as well as the Behat process.
           - case_id: php83-valgrind
@@ -414,6 +426,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           fail-fast: true
           debug: ${{ env.PHP_DEBUG_BUILD }}
+
+      - name: Install Xdebug trace probe
+        if: ${{ matrix.runtime_mode == 'controlled-xdebug' }}
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: xdebug
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          fail-fast: true
 
       - name: Install native extension probe groups
         if: ${{ contains(matrix.runtime_mode, 'extra') }}
@@ -543,6 +565,19 @@ jobs:
           echo "MALLOC_CHECK_=${MALLOC_CHECK_:-unset}"
           echo "MALLOC_PERTURB_=${MALLOC_PERTURB_:-unset}"
           echo "GLIBC_TUNABLES=${GLIBC_TUNABLES:-unset}"
+
+          if [ "${PHP_RUNTIME_MODE}" = "controlled-xdebug" ]; then
+            mkdir -p "${GITHUB_WORKSPACE}/behat-crash-diagnostics/xdebug"
+            cat > "${PHP_INI_SCAN_DIR}/99-libresign-xdebug-trace.ini" <<INI
+xdebug.mode=trace
+xdebug.start_with_request=yes
+xdebug.output_dir=${GITHUB_WORKSPACE}/behat-crash-diagnostics/xdebug
+xdebug.trace_output_name=trace.%p.%r
+xdebug.trace_format=1
+xdebug.collect_return=1
+INI
+            php --ri xdebug
+          fi
 
           bash scripts/stress-behat-crash.sh
 
