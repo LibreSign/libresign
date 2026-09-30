@@ -67,6 +67,19 @@ jobs:
             no_progress: '120'
             max_seconds: '1200'
 
+          - case_id: php83-controlled-debug-symbols
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: system
+            debug_build: 'true'
+            flow: request-signature-email-notify
+            requests: '500'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
           - case_id: php83-controlled-opcache-cli-nojit
             php_version: '8.3'
             runtime_mode: controlled
@@ -289,6 +302,7 @@ jobs:
       PHP_RUNTIME_MODE: ${{ matrix.runtime_mode }}
       PHP_OPCACHE_MODE: ${{ matrix.opcache_mode }}
       ALLOCATOR_MODE: ${{ matrix.allocator_mode }}
+      PHP_DEBUG_BUILD: ${{ matrix.debug_build || 'false' }}
       DEBUGINFOD_URLS: https://debuginfod.ubuntu.com
 
     steps:
@@ -330,6 +344,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           fail-fast: true
+          debug: ${{ env.PHP_DEBUG_BUILD }}
 
       - name: Install native extension probe groups
         if: ${{ contains(matrix.runtime_mode, 'extra') }}
