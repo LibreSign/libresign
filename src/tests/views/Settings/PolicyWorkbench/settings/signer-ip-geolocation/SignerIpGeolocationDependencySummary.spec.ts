@@ -30,20 +30,20 @@ describe('SignerIpGeolocationDependencySummary.vue', () => {
 		})
 	})
 
+	const sharedStubs = {
+		NcButton: {
+			template: '<button type="button"><slot /></button>',
+		},
+		NcNoteCard: { template: '<div class="note"><slot /></div>' },
+	}
+
 	it('shows compact GeoIP status and Configure next to it', async () => {
 		const wrapper = mount(SignerIpGeolocationDependencySummary, {
 			props: {
 				canConfigure: true,
 			},
 			global: {
-				stubs: {
-					NcButton: {
-						template: '<button type="button"><slot /></button>',
-					},
-					NcDialog: true,
-					NcNoteCard: { template: '<div class="note"><slot /></div>' },
-					GeoIpDatabase: true,
-				},
+				stubs: sharedStubs,
 			},
 		})
 
@@ -55,20 +55,29 @@ describe('SignerIpGeolocationDependencySummary.vue', () => {
 		expect(wrapper.text()).toContain('Configure')
 	})
 
+	it('emits configure when Configure is clicked', async () => {
+		const wrapper = mount(SignerIpGeolocationDependencySummary, {
+			props: {
+				canConfigure: true,
+			},
+			global: {
+				stubs: sharedStubs,
+			},
+		})
+
+		await flushPromises()
+		await wrapper.get('button').trigger('click')
+
+		expect(wrapper.emitted('configure')).toHaveLength(1)
+	})
+
 	it('hides Configure when the actor cannot edit instance GeoIP settings', async () => {
 		const wrapper = mount(SignerIpGeolocationDependencySummary, {
 			props: {
 				canConfigure: false,
 			},
 			global: {
-				stubs: {
-					NcButton: {
-						template: '<button type="button"><slot /></button>',
-					},
-					NcDialog: true,
-					NcNoteCard: { template: '<div class="note"><slot /></div>' },
-					GeoIpDatabase: true,
-				},
+				stubs: sharedStubs,
 			},
 		})
 

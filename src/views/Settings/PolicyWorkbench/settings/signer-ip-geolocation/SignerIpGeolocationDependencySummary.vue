@@ -18,7 +18,7 @@
 				variant="tertiary"
 				size="small"
 				class="signer-ip-geolocation-dependency__configure"
-				@click="openGeoIpDialog">
+				@click="emit('configure')">
 				{{ configureButtonLabel }}
 			</NcButton>
 		</div>
@@ -35,15 +35,6 @@
 			class="signer-ip-geolocation-dependency__instance-note">
 			{{ instanceLevelNote }}
 		</p>
-
-		<NcDialog
-			v-if="canConfigure && showGeoIpDialog"
-			:name="geoIpDialogName"
-			size="normal"
-			:can-close="true"
-			@closing="closeGeoIpDialog">
-			<GeoIpDatabase @updated="onGeoIpUpdated" />
-		</NcDialog>
 	</section>
 </template>
 
@@ -52,7 +43,6 @@ import { computed, onMounted, ref } from 'vue'
 import { t } from '@nextcloud/l10n'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
 import {
@@ -63,7 +53,6 @@ import {
 } from '../../../../../helpers/geoipConfig'
 import { getGeoIpConfig } from '../../../../../services/geoip'
 import { usePoliciesStore } from '../../../../../store/policies'
-import GeoIpDatabase from '../../../GeoIpDatabase.vue'
 import { resolveSignerIpGeolocationMode } from './model'
 
 defineOptions({
@@ -75,6 +64,10 @@ const props = withDefaults(defineProps<{
 }>(), {
 	canConfigure: true,
 })
+
+const emit = defineEmits<{
+	configure: []
+}>()
 
 // TRANSLATORS Accessible name for the GeoIP database dependency block in the IP geolocation setting dialog.
 const dependencySectionLabel = t('libresign', 'GeoIP database')
@@ -88,12 +81,9 @@ const dependencyStatusUnknown = t('libresign', 'Loading …')
 const unavailableWarning = t('libresign', 'A GeoIP database is required to resolve approximate locations from signer IP addresses. Signing can continue without it, but approximate locations will not be stored until the database is ready.')
 // TRANSLATORS Clarifies that GeoIP configuration is instance-wide and cannot be changed from group or user rules.
 const instanceLevelNote = t('libresign', 'The GeoIP database is instance configuration and can only be changed by a system administrator.')
-// TRANSLATORS Dialog title for the instance GeoIP database configuration form.
-const geoIpDialogName = t('libresign', 'GeoIP database')
 
 const policiesStore = usePoliciesStore()
 const geoIpConfig = ref<GeoIpConfig | null>(null)
-const showGeoIpDialog = ref(false)
 
 const canConfigure = computed(() => props.canConfigure)
 const status = computed<GeoIpDatabaseStatus | null>(() => resolveGeoIpDatabaseStatus(geoIpConfig.value?.status))
@@ -101,15 +91,7 @@ const statusLabel = computed(() => status.value ? geoIpStatusLabel(status.value)
 const policyMode = computed(() => resolveSignerIpGeolocationMode(policiesStore.getPolicy('signer_ip_geolocation')?.effectiveValue))
 const showUnavailableWarning = computed(() => policyMode.value === 'enabled' && status.value !== null && status.value !== 'ready')
 
-function openGeoIpDialog() {
-	showGeoIpDialog.value = true
-}
-
-function closeGeoIpDialog() {
-	showGeoIpDialog.value = false
-}
-
-function onGeoIpUpdated(config: GeoIpConfig) {
+function applyGeoIpConfig(config: GeoIpConfig) {
 	geoIpConfig.value = config
 }
 
@@ -123,6 +105,10 @@ async function loadGeoIpStatus() {
 
 onMounted(() => {
 	void loadGeoIpStatus()
+})
+
+defineExpose({
+	applyGeoIpConfig,
 })
 </script>
 

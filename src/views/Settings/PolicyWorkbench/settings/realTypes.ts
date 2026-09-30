@@ -70,6 +70,12 @@ export interface RealPolicySettingDefinition {
 	 * Change default), outside the rule editor modal.
 	 */
 	settingDialogExtras?: unknown
+	/**
+	 * Optional sibling dialog opened from settingDialogExtras (e.g. Configure).
+	 * Kept at Catalog level so stacked NcDialogs render correctly.
+	 */
+	settingDialogExtrasModal?: unknown
+	settingDialogExtrasModalName?: string
 	editorDialogLayout?: RealPolicyEditorDialogLayout
 	createEmptyValue: () => EffectivePolicyValue
 	/**

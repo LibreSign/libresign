@@ -39,21 +39,26 @@
 			</NcButton>
 		</div>
 
-		<dl v-if="hasMetadata" class="geoip-database__meta">
-			<div v-if="config?.databaseType" class="geoip-database__field">
+		<dl class="geoip-database__meta">
+			<div class="geoip-database__field">
+				<!-- TRANSLATORS Label for the current GeoIP database readiness status. -->
+				<dt>{{ t('libresign', 'Status:') }}</dt>
+				<dd>{{ statusLabel || metadataUnavailable }}</dd>
+			</div>
+			<div class="geoip-database__field">
 				<!-- TRANSLATORS Label for the detected GeoIP database product type. -->
 				<dt>{{ t('libresign', 'Database type:') }}</dt>
-				<dd>{{ config.databaseType }}</dd>
+				<dd>{{ config?.databaseType || metadataUnavailable }}</dd>
 			</div>
-			<div v-if="buildTime" class="geoip-database__field">
+			<div class="geoip-database__field">
 				<!-- TRANSLATORS Label for the GeoIP database build time reported by the backend. -->
 				<dt>{{ t('libresign', 'Database build time:') }}</dt>
-				<dd>{{ buildTime }}</dd>
+				<dd>{{ buildTime || metadataUnavailable }}</dd>
 			</div>
-			<div v-if="modifiedAt" class="geoip-database__field">
+			<div class="geoip-database__field">
 				<!-- TRANSLATORS Label for the GeoIP database file modification time. -->
 				<dt>{{ t('libresign', 'File modified:') }}</dt>
-				<dd>{{ modifiedAt }}</dd>
+				<dd>{{ modifiedAt || metadataUnavailable }}</dd>
 			</div>
 		</dl>
 	</div>
@@ -95,6 +100,8 @@ const formDescription = t('libresign', 'Configure the local MaxMind City databas
 const pathLabel = t('libresign', 'Database path')
 // TRANSLATORS Placeholder showing an example absolute GeoIP database path.
 const pathPlaceholder = t('libresign', '/var/lib/libresign/GeoLite2-City.mmdb')
+// TRANSLATORS Placeholder shown when GeoIP metadata is not available from the backend yet.
+const metadataUnavailable = t('libresign', 'Unavailable')
 const config = ref<GeoIpConfig | null>(null)
 const draftPath = ref('')
 const busy = ref(false)
@@ -179,6 +186,7 @@ defineExpose({
 	display: flex;
 	flex-direction: column;
 	gap: 0.75rem;
+	padding-block-end: 12px;
 }
 
 .geoip-database__intro {
@@ -199,23 +207,34 @@ defineExpose({
 .geoip-database__meta {
 	display: flex;
 	flex-direction: column;
-	gap: 0.25rem;
+	gap: 0.75rem;
 	margin: 0;
+	padding: 0;
 }
 
 .geoip-database__field {
 	display: flex;
-	flex-wrap: wrap;
-	gap: 0.4rem;
-	line-height: 1.5;
+	flex-direction: row;
+	align-items: flex-start;
+	gap: 0.15rem;
+	margin: 0;
+	line-height: 1.45;
 
 	dt {
 		font-weight: bold;
 		margin: 0;
+		padding: 0;
+		width: min-content;
+		color: var(--color-main-text);
 	}
 
 	dd {
 		margin: 0;
+		margin-inline: 0;
+		padding: 0;
+		width: 100%;
+		color: var(--color-text-maxcontrast);
+		overflow-wrap: anywhere;
 		word-break: break-word;
 	}
 }

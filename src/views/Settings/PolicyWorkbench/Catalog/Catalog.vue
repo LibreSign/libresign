@@ -103,7 +103,9 @@
 				<template v-if="settingDialogExtras" #extras>
 					<component
 						:is="settingDialogExtras"
-						:can-configure="state.viewMode === 'system-admin'" />
+						ref="settingDialogExtrasRef"
+						:can-configure="state.viewMode === 'system-admin'"
+						@configure="openSettingDialogExtrasModal" />
 				</template>
 				<CatalogCrudRulesTable
 					:crud-search="crudSearch"
@@ -140,6 +142,19 @@
 					@request-create-rule="requestCreateRule()"
 					@table-scroll="handleCrudTableScroll" />
 			</CatalogSettingDialogFrame>
+			</NcDialog>
+
+			<NcDialog
+				v-if="showSettingDialogExtrasModal && settingDialogExtrasModal"
+				:name="settingDialogExtrasModalName"
+				size="normal"
+				:can-close="true"
+				@closing="closeSettingDialogExtrasModal">
+				<div data-cy="geoip-database-form">
+					<component
+						:is="settingDialogExtrasModal"
+						@updated="onSettingDialogExtrasUpdated" />
+				</div>
 			</NcDialog>
 
 			<NcDialog
@@ -228,6 +243,7 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
+import type { GeoIpConfig } from '../../../../helpers/geoipConfig'
 import { usePoliciesStore } from '../../../../store/policies'
 import { useUserConfigStore } from '../../../../store/userconfig.js'
 import CatalogCategoryNavigation from './components/CatalogCategoryNavigation.vue'
@@ -366,6 +382,31 @@ const navigation = useNavigation(visibleCategorySections)
 
 const activeEditor = computed(() => state.activeDefinition?.editor ?? null)
 const settingDialogExtras = computed(() => state.activeDefinition?.settingDialogExtras ?? null)
+const settingDialogExtrasModal = computed(() => state.activeDefinition?.settingDialogExtrasModal ?? null)
+const settingDialogExtrasModalName = computed(() => state.activeDefinition?.settingDialogExtrasModalName
+	// TRANSLATORS Fallback dialog title for optional setting-level configuration opened from Policy Workbench.
+	?? t('libresign', 'Configuration'))
+const settingDialogExtrasRef = ref<{ applyGeoIpConfig?: (config: GeoIpConfig) => void } | null>(null)
+const showSettingDialogExtrasModal = ref(false)
+
+function openSettingDialogExtrasModal() {
+	if (!settingDialogExtrasModal.value) {
+		return
+	}
+	showSettingDialogExtrasModal.value = true
+}
+
+function closeSettingDialogExtrasModal() {
+	showSettingDialogExtrasModal.value = false
+}
+
+function onSettingDialogExtrasUpdated(config: GeoIpConfig) {
+	settingDialogExtrasRef.value?.applyGeoIpConfig?.(config)
+}
+
+watch(() => state.activeDefinition?.key, () => {
+	showSettingDialogExtrasModal.value = false
+})
 const hideTargetSelector = computed(() => {
 	if (!state.editorDraft || state.editorDraft.scope === 'system') {
 		return false

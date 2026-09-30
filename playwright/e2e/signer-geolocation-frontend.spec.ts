@@ -105,8 +105,11 @@ test('GeoIP admin settings save, replace, and clear a path without exposing sign
 
 	const geoIpDialog = page.getByRole('dialog', { name: 'GeoIP database' })
 	await expect(geoIpDialog).toBeVisible()
+	const geoIpForm = geoIpDialog.locator('[data-cy="geoip-database-form"]')
+	await expect(geoIpForm).toBeVisible()
 	const pathInput = geoIpDialog.getByLabel('Database path')
 	await expect(pathInput).toBeVisible()
+	await expect(geoIpDialog.getByText('Status:')).toBeVisible()
 	await pathInput.fill('/tmp/libresign-missing-geoip.mmdb')
 	await geoIpDialog.getByRole('button', { name: 'Save', exact: true }).click()
 	await expect(geoIpDialog.getByText('Not found')).toBeVisible()

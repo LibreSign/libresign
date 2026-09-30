@@ -5,6 +5,7 @@
 
 import { t } from '@nextcloud/l10n'
 
+import GeoIpDatabase from '../../../GeoIpDatabase.vue'
 import SignerIpGeolocationDependencySummary from './SignerIpGeolocationDependencySummary.vue'
 import SignerIpGeolocationRuleEditor from './SignerIpGeolocationRuleEditor.vue'
 import { normalizeSignerIpGeolocationValue, resolveSignerIpGeolocationMode } from './model'
@@ -23,6 +24,9 @@ export const signerIpGeolocationRealDefinition: RealPolicySettingDefinition = {
 		allowGroupRuleCreationFromDescendantDelegation: true,
 	},
 	settingDialogExtras: SignerIpGeolocationDependencySummary,
+	settingDialogExtrasModal: GeoIpDatabase,
+	// TRANSLATORS Dialog title for the instance GeoIP database configuration form.
+	settingDialogExtrasModalName: t('libresign', 'GeoIP database'),
 	editor: SignerIpGeolocationRuleEditor,
 	createEmptyValue: () => normalizeSignerIpGeolocationValue(null),
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeSignerIpGeolocationValue(value),
