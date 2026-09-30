@@ -18,6 +18,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Enum\SignatureFlow;
+use OCA\Libresign\Enum\SignerDisplayStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -666,14 +667,21 @@ class FileService {
 			$signed = $signerData['signed'] ?? null;
 			$identifyMethods = $this->normalizeSignerIdentifyMethods($signerData['identifyMethods'] ?? null);
 
+			// The signer entries were already presented for the current viewer
+			// (see SignersLoader): the summary keeps that decision as it is,
+			// including the absence of the real status of a redacted signer.
 			$summary = [
 				'signRequestId' => $signRequestId,
 				'displayName' => isset($signerData['displayName']) ? (string)$signerData['displayName'] : '',
 				'email' => is_string($email) ? $email : null,
 				'signed' => is_string($signed) ? $signed : null,
-				'status' => $this->normalizeSignerSummaryStatus($signerData['status'] ?? null),
+				'displayStatus' => $this->normalizeSignerDisplayStatus($signerData['displayStatus'] ?? null, $signerData['status'] ?? null),
 				'statusText' => isset($signerData['statusText']) ? (string)$signerData['statusText'] : '',
 			];
+			$status = $this->normalizeSignerSummaryStatus($signerData['status'] ?? null);
+			if ($status !== null) {
+				$summary['status'] = $status;
+			}
 
 			if ($identifyMethods !== null) {
 				$summary['identifyMethods'] = $identifyMethods;
@@ -690,16 +698,27 @@ class FileService {
 	}
 
 	/**
-	 * @psalm-return 0|1|2|3|4
+	 * @psalm-return 0|1|2|3|4|null
 	 */
-	private function normalizeSignerSummaryStatus(mixed $status): int {
-		return match ((string)$status) {
-			'1' => SignRequestStatus::ABLE_TO_SIGN->value,
-			'2' => SignRequestStatus::SIGNED->value,
-			'3' => SignRequestStatus::REJECTED->value,
-			'4' => SignRequestStatus::OBSERVING->value,
-			default => SignRequestStatus::DRAFT->value,
-		};
+	private function normalizeSignerSummaryStatus(mixed $status): ?int {
+		if ($status === null || $status === '') {
+			return null;
+		}
+		return SignRequestStatus::tryFrom((int)$status)?->value;
+	}
+
+	/**
+	 * @psalm-return 'draft'|'ready_to_sign'|'signed'|'rejected'|'observing'|'not_signed'
+	 */
+	private function normalizeSignerDisplayStatus(mixed $displayStatus, mixed $status): string {
+		if (is_string($displayStatus) && ($known = SignerDisplayStatus::tryFrom($displayStatus)) !== null) {
+			return $known->value;
+		}
+		$normalizedStatus = $this->normalizeSignerSummaryStatus($status);
+		if ($normalizedStatus === null) {
+			return SignerDisplayStatus::NOT_SIGNED->value;
+		}
+		return SignerDisplayStatus::fromSignRequestStatus(SignRequestStatus::from($normalizedStatus))->value;
 	}
 
 	/**

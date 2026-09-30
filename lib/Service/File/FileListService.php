@@ -27,6 +27,7 @@ use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignatureRejection\RejectionViewer;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
@@ -272,17 +273,17 @@ class FileListService {
 			$file['files'] = [];
 		} else {
 			$file['filesCount'] = 1;
-			$file['files'] = $this->formatChildFilesResponse([$fileEntity], $signers, $identifyMethods);
+			$file['files'] = $this->formatChildFilesResponse([$fileEntity], $signers, $identifyMethods, $user, $meSignRequestId);
 		}
 
 		// Remove raw fields not needed in response
 		unset($file['userId'], $file['createdAt']);
 
 		$file['signers'] = [];
-		foreach ($signers as $signer) {
-			if ($signer->getFileId() !== $fileEntity->getId()) {
-				continue;
-			}
+		$signersOfFile = array_values(array_filter($signers, static fn (SignRequest $signer): bool => $signer->getFileId() === $fileEntity->getId()));
+		$rejectionViewer = $this->rejectionViewer($fileEntity, $signersOfFile, $identifyMethods, $user, $meSignRequestId);
+		$hiddenRejection = $this->signatureRejectionVisibilityService->hasHiddenRejection($fileEntity, $signersOfFile, $rejectionViewer);
+		foreach ($signersOfFile as $signer) {
 			$signerData = $this->formatSignerData(
 				$signer,
 				$identifyMethods,
@@ -291,6 +292,8 @@ class FileListService {
 				$user,
 				$meSignRequestId,
 				$fileEntity,
+				$rejectionViewer,
+				$hiddenRejection,
 			);
 			$file['signers'][] = $signerData;
 			if (!empty($signerData['me']) && isset($signerData['sign_request_uuid']) && !isset($file['url'])) {
@@ -408,23 +411,12 @@ class FileListService {
 		?IUser $user,
 		?int $meSignRequestId = null,
 		?File $fileEntity = null,
+		?RejectionViewer $rejectionViewer = null,
+		bool $hiddenRejection = false,
 	): array {
 		$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
 		$resolvedDisplayName = $this->resolveSignerDisplayName($signer, $identifyMethodsOfSigner);
-		$me = false;
-		if ($meSignRequestId !== null) {
-			$me = $signer->getId() === $meSignRequestId;
-		} elseif ($user) {
-			$me = array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
-				if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
-					return $user->getUID() === $identifyMethod->getIdentifierValue();
-				}
-				if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL && $user->getEMailAddress()) {
-					return $user->getEMailAddress() === $identifyMethod->getIdentifierValue();
-				}
-				return $carry;
-			}, false);
-		}
+		$me = $this->isSignerTheViewer($signer, $identifyMethodsOfSigner, $user, $meSignRequestId);
 		/** @var LibresignSignerDetail */
 		$data = [
 			'email' => array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
@@ -442,8 +434,6 @@ class FileListService {
 			'signed' => null,
 			'signRequestId' => $signer->getId(),
 			'signingOrder' => $signer->getSigningOrder(),
-			'status' => $signer->getStatus(),
-			'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus()),
 			'participantRole' => $signer->getParticipantRoleEnum()->value,
 			'me' => $me,
 			'visibleElements' => isset($visibleElements[$signer->getId()])
@@ -502,17 +492,58 @@ class FileListService {
 			$data['metadata'] = $geolocationMetadata;
 		}
 
-		$rejection = $this->signatureRejectionVisibilityService->buildSignerRejection(
+		/** @var LibresignSignerDetail $data */
+		$data = $this->signatureRejectionVisibilityService->presentSigner(
 			$signer,
 			$fileEntity,
-			$canViewSensitiveSignerMetadata,
-		);
-		if ($rejection !== null) {
-			$data['rejection'] = $rejection;
-		}
+			$rejectionViewer ?? new RejectionViewer($this->isRequester($fileEntity, $user), $data['me'] ? [$signer] : []),
+			$hiddenRejection,
+		)->applyTo($data);
 
 		ksort($data);
 		return $data;
+	}
+
+	private function isRequester(?File $fileEntity, ?IUser $user): bool {
+		$requesterUserId = $fileEntity?->getUserId() ?? '';
+		return $requesterUserId !== '' && $user?->getUID() === $requesterUserId;
+	}
+
+	/**
+	 * @param array<string, IdentifyMethod> $identifyMethodsOfSigner
+	 */
+	private function isSignerTheViewer(SignRequest $signer, array $identifyMethodsOfSigner, ?IUser $user, ?int $meSignRequestId): bool {
+		if ($meSignRequestId !== null) {
+			return $signer->getId() === $meSignRequestId;
+		}
+		if (!$user) {
+			return false;
+		}
+		return array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
+			if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
+				return $user->getUID() === $identifyMethod->getIdentifierValue();
+			}
+			if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL && $user->getEMailAddress()) {
+				return $user->getEMailAddress() === $identifyMethod->getIdentifierValue();
+			}
+			return $carry;
+		}, false);
+	}
+
+	/**
+	 * Who is reading the signers of this file, for rejection visibility.
+	 *
+	 * @param SignRequest[] $signersOfFile
+	 * @param array<int, array<string, IdentifyMethod>> $identifyMethods
+	 */
+	private function rejectionViewer(?File $fileEntity, array $signersOfFile, array $identifyMethods, ?IUser $user, ?int $meSignRequestId): RejectionViewer {
+		return new RejectionViewer(
+			$this->isRequester($fileEntity, $user),
+			array_filter(
+				$signersOfFile,
+				fn (SignRequest $signer): bool => $this->isSignerTheViewer($signer, $identifyMethods[$signer->getId()] ?? [], $user, $meSignRequestId),
+			),
+		);
 	}
 
 	/**
@@ -625,6 +656,8 @@ class FileListService {
 		array $identifyMethods,
 		array $visibleElements,
 		?File $fileEntity = null,
+		?RejectionViewer $rejectionViewer = null,
+		bool $hiddenRejection = false,
 	): array {
 		$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
 		$resolvedDisplayName = $this->resolveSignerDisplayName($signer, $identifyMethodsOfSigner);
@@ -645,8 +678,6 @@ class FileListService {
 			'signed' => null,
 			'signRequestId' => $signer->getId(),
 			'signingOrder' => $signer->getSigningOrder(),
-			'status' => $signer->getStatus(),
-			'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus()),
 			'participantRole' => $signer->getParticipantRoleEnum()->value,
 			'me' => false,
 			'visibleElements' => isset($visibleElements[$signer->getId()])
@@ -666,14 +697,8 @@ class FileListService {
 			$data['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
 		}
 
-		$rejection = $this->signatureRejectionVisibilityService->buildSignerRejection(
-			$signer,
-			$fileEntity,
-			false,
-		);
-		if ($rejection !== null) {
-			$data['rejection'] = $rejection;
-		}
+		/** @var LibresignSignerDetail $data */
+		$data = $this->signatureRejectionVisibilityService->presentSigner($signer, $fileEntity, $rejectionViewer ?? new RejectionViewer(false, []), $hiddenRejection)->applyTo($data);
 
 		ksort($data);
 		return $data;
@@ -769,16 +794,18 @@ class FileListService {
 
 		$signers = [];
 		$currentSignerRequestUuid = null;
+		$rejectionViewer = $this->rejectionViewer($mainEntity, $signRequestEntities, $identifyMethods, $user, null);
+		$hiddenRejection = $this->signatureRejectionVisibilityService->hasHiddenRejection($mainEntity, $signRequestEntities, $rejectionViewer);
 		foreach ($signRequestEntities as $signer) {
 			if ($user) {
-				$signerData = $this->formatSignerData($signer, $identifyMethods, $visibleElementsData, $metadata, $user, null, $mainEntity);
+				$signerData = $this->formatSignerData($signer, $identifyMethods, $visibleElementsData, $metadata, $user, null, $mainEntity, $rejectionViewer, $hiddenRejection);
 				$signers[] = $signerData;
 
 				if ($currentSignerRequestUuid === null && !empty($signerData['me']) && isset($signerData['sign_request_uuid'])) {
 					$currentSignerRequestUuid = $signerData['sign_request_uuid'];
 				}
 			} else {
-				$signers[] = $this->formatSignerDataBasic($signer, $identifyMethods, $visibleElementsData, $mainEntity);
+				$signers[] = $this->formatSignerDataBasic($signer, $identifyMethods, $visibleElementsData, $mainEntity, $rejectionViewer, $hiddenRejection);
 			}
 		}
 
@@ -832,6 +859,7 @@ class FileListService {
 				$childFiles,
 				$childContext['signers'] ?? null,
 				$childContext['identifyMethods'] ?? null,
+				$user,
 			);
 			$response['size'] = array_sum(array_map(
 				static fn (array $file): int => (int)$file['size'],
@@ -839,7 +867,7 @@ class FileListService {
 			));
 		} else {
 			$response['filesCount'] = 1;
-			$response['files'] = $this->formatChildFilesResponse([$mainEntity], $signRequestEntities, $identifyMethods);
+			$response['files'] = $this->formatChildFilesResponse([$mainEntity], $signRequestEntities, $identifyMethods, $user);
 			$response['size'] = (int)$response['files'][0]['size'];
 		}
 
@@ -998,6 +1026,8 @@ class FileListService {
 		array $files,
 		?array $allSigners = null,
 		?array $identifyMethods = null,
+		?IUser $user = null,
+		?int $meSignRequestId = null,
 	): array {
 		$fileIds = array_map(fn (File $file) => $file->getId(), $files);
 		$allSigners ??= $fileIds ? $this->signRequestMapper->getByMultipleFileId($fileIds) : [];
@@ -1008,11 +1038,13 @@ class FileListService {
 			$signersByFileId[$signer->getFileId()][] = $signer;
 		}
 
-		return array_values(array_map(function (File $file) use ($signersByFileId, $identifyMethods) {
+		return array_values(array_map(function (File $file) use ($signersByFileId, $identifyMethods, $user, $meSignRequestId) {
 			$signers = $signersByFileId[$file->getId()] ?? [];
 			$metadata = $file->getMetadata() ?? [];
 			$size = $this->getFileSize($file);
-			$signersFormatted = array_map(function (SignRequest $signer) use ($identifyMethods) {
+			$rejectionViewer = $this->rejectionViewer($file, $signers, $identifyMethods, $user, $meSignRequestId);
+			$hiddenRejection = $this->signatureRejectionVisibilityService->hasHiddenRejection($file, $signers, $rejectionViewer);
+			$signersFormatted = array_map(function (SignRequest $signer) use ($identifyMethods, $file, $rejectionViewer, $hiddenRejection) {
 				$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
 				$email = array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
 					if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
@@ -1031,7 +1063,7 @@ class FileListService {
 				}, $signer->getDisplayName());
 
 				/** @var LibresignSignerSummary */
-				return [
+				return $this->signatureRejectionVisibilityService->presentSigner($signer, $file, $rejectionViewer, $hiddenRejection)->applyTo([
 					'signRequestId' => $signer->getId(),
 					'displayName' => $displayName,
 					'email' => $email,
@@ -1041,10 +1073,7 @@ class FileListService {
 						'requirement' => $identifyMethod->getRequirement(),
 					], array_values($identifyMethodsOfSigner)),
 					'signed' => $signer->getSigned()?->format(\DateTimeInterface::ATOM),
-					'status' => $signer->getSigned() ? 1 : 0,
-					// TRANSLATORS Signer status labels on a document list: "Signed" when the person finished signing, "Pending" when their signature is still awaited.
-					'statusText' => $signer->getSigned() ? $this->l10n->t('Signed') : $this->l10n->t('Pending'),
-				];
+				]);
 			}, $signers);
 
 			return [

@@ -14,7 +14,7 @@ import { useFilesStore } from './files.js'
 import { useSidebarStore } from './sidebar.js'
 import { useSignMethodsStore } from './signMethods.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
-import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
+import { FILE_STATUS } from '../constants.js'
 import { isIdDocApprovalContext } from '../utils/signRequestUuid.ts'
 
 /** @typedef {import('../types/index').SignatureMethodsRecord} SignatureMethodsRecord */
@@ -26,7 +26,9 @@ import { isIdDocApprovalContext } from '../utils/signRequestUuid.ts'
  * 	email?: string
  * 	sign_request_uuid?: string | null
  * 	me?: boolean
+ * 	displayStatus?: string
  * 	status?: number
+ * 	statusText?: string
  * 	signed?: string | null | boolean | unknown[]
  * 	signatureMethods?: SignatureMethodsRecord
  * }} SignDocumentSigner
@@ -112,20 +114,17 @@ export const useSignStore = defineStore('sign', () => {
 	const mounted = ref(defaultState.mounted)
 	const pendingAction = ref(defaultState.pendingAction)
 
+	// Whether the viewer may sign now is decided by the backend
+	// (settings.canSign): it applies the signing order and knows the real state
+	// of the viewer's own entry, which the signers list may present redacted
+	// while a rejection is hidden (#8388).
 	const ableToSign = computed(() => {
 		const allowedStatuses = [FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED]
 		if (!allowedStatuses.includes(document.value?.status)) {
 			return false
 		}
 
-		const mySigner = document.value?.signers?.find(signer => signer.me)
-		const isIdDocApprover = document.value?.settings?.isApprover
-
-		if (!mySigner && !isIdDocApprover) {
-			return false
-		}
-
-		if (mySigner && mySigner.status !== SIGN_REQUEST_STATUS.ABLE_TO_SIGN) {
+		if (!document.value?.settings?.canSign) {
 			return false
 		}
 
@@ -156,6 +155,7 @@ export const useSignStore = defineStore('sign', () => {
 			uuid: loadState('libresign', 'uuid', null),
 			signers: loadState('libresign', 'signers', []),
 			visibleElements: loadState('libresign', 'visibleElements', []),
+			settings: { canSign: loadState('libresign', 'canSign', false) },
 		}
 
 		const filesStore = useFilesStore()

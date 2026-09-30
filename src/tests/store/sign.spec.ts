@@ -129,44 +129,61 @@ describe('useSignStore', () => {
 			store.document = createDocument({
 				status: FILE_STATUS.DRAFT,
 				signers: [{ me: true, status: 1 }],
+				settings: { canSign: true },
 			})
 			expect(store.ableToSign).toBe(false)
 		})
 
-		it('returns false when there is no signer with me: true', () => {
-			const store = useSignStore()
-			store.document = createDocument({
-				status: FILE_STATUS.ABLE_TO_SIGN,
-				signers: [{ me: false, status: 1 }],
-			})
-			expect(store.ableToSign).toBe(false)
-		})
-
-		it('returns false when signer status is not ABLE_TO_SIGN (status 1)', () => {
-			const store = useSignStore()
-			store.document = createDocument({
-				status: FILE_STATUS.ABLE_TO_SIGN,
-				signers: [{ me: true, status: 0 }],
-			})
-			expect(store.ableToSign).toBe(false)
-		})
-
-		it('returns true when document status is ABLE_TO_SIGN and signer can sign', () => {
+		it('returns true when document status is ABLE_TO_SIGN and the backend allows signing', () => {
 			const store = useSignStore()
 			store.document = createDocument({
 				status: FILE_STATUS.ABLE_TO_SIGN,
 				signers: [{ me: true, status: 1 }],
+				settings: { canSign: true },
 			})
 			expect(store.ableToSign).toBe(true)
 		})
 
-		it('returns true when document status is PARTIAL_SIGNED and signer can sign', () => {
+		it('returns true when document status is PARTIAL_SIGNED and the backend allows signing', () => {
 			const store = useSignStore()
 			store.document = createDocument({
 				status: FILE_STATUS.PARTIAL_SIGNED,
 				signers: [{ me: true, status: 1 }],
+				settings: { canSign: true },
 			})
 			expect(store.ableToSign).toBe(true)
+		})
+
+		it('does not infer signing from the signer status when the backend says it is not their turn', () => {
+			const store = useSignStore()
+			store.document = createDocument({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ me: true, status: 1, displayStatus: 'ready_to_sign' }],
+				settings: { canSign: false },
+			})
+			expect(store.ableToSign).toBe(false)
+		})
+
+		it('returns false when the backend does not send canSign', () => {
+			const store = useSignStore()
+			store.document = createDocument({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ me: true, status: 1 }],
+			})
+			expect(store.ableToSign).toBe(false)
+		})
+
+		it.each([
+			[true, true],
+			[false, false],
+		])('follows canSign=%s when the own entry is redacted while a rejection is hidden (#8388)', (canSign, expected) => {
+			const store = useSignStore()
+			store.document = createDocument({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ me: true, displayStatus: 'not_signed', statusText: 'Not signed' }],
+				settings: { canSign },
+			})
+			expect(store.ableToSign).toBe(expected)
 		})
 
 		it('returns false when document is undefined', () => {
@@ -175,21 +192,12 @@ describe('useSignStore', () => {
 			expect(store.ableToSign).toBe(false)
 		})
 
-		it('returns false when signers array is empty', () => {
+		it('returns true for an approver the backend allows to sign', () => {
 			const store = useSignStore()
 			store.document = createDocument({
 				status: FILE_STATUS.ABLE_TO_SIGN,
 				signers: [],
-			})
-			expect(store.ableToSign).toBe(false)
-		})
-
-		it('returns true for approver without signer', () => {
-			const store = useSignStore()
-			store.document = createDocument({
-				status: FILE_STATUS.ABLE_TO_SIGN,
-				signers: [],
-				settings: { isApprover: true },
+				settings: { isApprover: true, canSign: true },
 			})
 			expect(store.ableToSign).toBe(true)
 		})
@@ -205,7 +213,7 @@ describe('useSignStore', () => {
 			store.document = createDocument({
 				status: FILE_STATUS.ABLE_TO_SIGN,
 				signers: [],
-				settings: { isApprover: true },
+				settings: { isApprover: true, canSign: true },
 			})
 			expect(store.ableToSign).toBe(false)
 
@@ -217,7 +225,7 @@ describe('useSignStore', () => {
 			store.document = createDocument({
 				status: FILE_STATUS.DRAFT,
 				signers: [],
-				settings: { isApprover: true },
+				settings: { isApprover: true, canSign: true },
 			})
 			expect(store.ableToSign).toBe(false)
 		})
@@ -715,6 +723,7 @@ describe('useSignStore', () => {
 					filename: 'test.pdf',
 					status: FILE_STATUS.ABLE_TO_SIGN,
 					signers: [{ me: true }],
+					canSign: true,
 				}
 				if (Object.hasOwn(values, key)) {
 					return values[key] as T
@@ -732,6 +741,15 @@ describe('useSignStore', () => {
 			expect(store.errors).toHaveLength(0)
 			expect(store.document!.id).toBe(100)
 			expect(store.document!.name).toBe('test.pdf')
+		})
+
+		it('lets the external signer sign when the page says it is their turn', async () => {
+			const store = useSignStore()
+
+			await store.initFromState()
+
+			expect(store.document!.settings).toEqual({ canSign: true })
+			expect(store.ableToSign).toBe(true)
 		})
 
 		it('adds file to files store', async () => {

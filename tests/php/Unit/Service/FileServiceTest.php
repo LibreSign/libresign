@@ -686,7 +686,56 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$result = $reflectionMethod->invokeArgs($service, [$signers]);
 
+		// The summary carries the presentation of the entry (#8388): derived
+		// from the real status here, where the provider does not say otherwise.
+		foreach ($expectedSummaries as &$expected) {
+			$expected['displayStatus'] ??= match ($expected['status']) {
+				0 => 'draft',
+				1 => 'ready_to_sign',
+				2 => 'signed',
+				3 => 'rejected',
+				4 => 'observing',
+			};
+		}
+		unset($expected);
+
 		$this->assertEquals($expectedSummaries, $result);
+	}
+
+	/**
+	 * The summary keeps the viewer-specific presentation built by SignersLoader:
+	 * a visible rejection stays REJECTED (it used to be silently mapped to
+	 * DRAFT) and a redacted signer keeps no real status at all.
+	 */
+	#[DataProvider('mapSignerDetailsToSummaryPresentationProvider')]
+	public function testMapSignerDetailsToSummaryKeepsThePresentation(array $signer, array $expectedSummary): void {
+		$service = $this->createFileService();
+		$reflectionMethod = new \ReflectionMethod(FileService::class, 'mapSignerDetailsToSummary');
+
+		$result = $reflectionMethod->invokeArgs($service, [[$signer]]);
+
+		$this->assertSame([$expectedSummary], $result);
+	}
+
+	public static function mapSignerDetailsToSummaryPresentationProvider(): array {
+		return [
+			'visible rejection keeps REJECTED' => [
+				['signRequestId' => 7, 'displayName' => 'Bob', 'email' => 'bob@example.com', 'signed' => null, 'status' => 3, 'statusText' => 'Rejected', 'displayStatus' => 'rejected', 'rejection' => ['rejectedAt' => '2026-09-13T12:00:00+00:00']],
+				['signRequestId' => 7, 'displayName' => 'Bob', 'email' => 'bob@example.com', 'signed' => null, 'displayStatus' => 'rejected', 'statusText' => 'Rejected', 'status' => 3],
+			],
+			'redacted signer has no real status' => [
+				['signRequestId' => 8, 'displayName' => 'Carol', 'email' => null, 'signed' => null, 'statusText' => 'Not signed', 'displayStatus' => 'not_signed'],
+				['signRequestId' => 8, 'displayName' => 'Carol', 'email' => null, 'signed' => null, 'displayStatus' => 'not_signed', 'statusText' => 'Not signed'],
+			],
+			'entry without displayStatus falls back to the real status' => [
+				['signRequestId' => 9, 'displayName' => 'Dan', 'email' => null, 'signed' => '2026-09-13T12:00:00+00:00', 'status' => 2, 'statusText' => 'Signed'],
+				['signRequestId' => 9, 'displayName' => 'Dan', 'email' => null, 'signed' => '2026-09-13T12:00:00+00:00', 'displayStatus' => 'signed', 'statusText' => 'Signed', 'status' => 2],
+			],
+			'entry without status nor displayStatus is not signed' => [
+				['signRequestId' => 10, 'displayName' => 'Eve', 'email' => null, 'signed' => null, 'statusText' => ''],
+				['signRequestId' => 10, 'displayName' => 'Eve', 'email' => null, 'signed' => null, 'displayStatus' => 'not_signed', 'statusText' => ''],
+			],
+		];
 	}
 
 	public static function mapSignerDetailsToSummaryProvider(): array {
@@ -944,7 +993,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'displayName' => '123',
 						'email' => null,
 						'signed' => null,
-						'status' => 0,
+						'displayStatus' => 'not_signed',
 						'statusText' => '890',
 					],
 				],
