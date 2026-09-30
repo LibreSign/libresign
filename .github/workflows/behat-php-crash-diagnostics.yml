@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/behat-php-crash-diagnostics.yml'
       - 'tests/integration/scripts/stress-behat-crash.sh'
+      - 'tests/integration/scripts/configure-php-runtime.sh'
       - 'tests/integration/scripts/collect-php-server-diagnostics.sh'
       - 'tests/integration/scripts/run-behat-with-watchdog.sh'
   workflow_dispatch:
@@ -21,26 +22,240 @@ concurrency:
 
 jobs:
   stress:
-    name: request-signature / PHP ${{ matrix.php_version }} / opcache=${{ matrix.opcache }}
+    name: ${{ matrix.case_id }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     strategy:
       fail-fast: false
       matrix:
         include:
-          - php_version: '8.3'
-            opcache: loaded
-          - php_version: '8.3'
-            opcache: unloaded
-          - php_version: '8.4'
-            opcache: loaded
-          - php_version: '8.4'
-            opcache: unloaded
-          - php_version: '8.5'
-            opcache: loaded
-          - php_version: '8.5'
-            opcache: unloaded
+          # PHP / OPcache / extension-layout isolation.
+          - case_id: php83-default-opcache-off
+            php_version: '8.3'
+            runtime_mode: default
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: request-signature-email-notify
+            requests: '500'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          - case_id: php83-default-opcache-cli-nojit
+            php_version: '8.3'
+            runtime_mode: default
+            opcache_mode: loaded-cli-nojit
+            allocator_mode: system
+            flow: request-signature-email-notify
+            requests: '500'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          - case_id: php83-controlled-opcache-off
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: request-signature-email-notify
+            requests: '500'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          - case_id: php83-controlled-opcache-cli-nojit
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: loaded-cli-nojit
+            allocator_mode: system
+            flow: request-signature-email-notify
+            requests: '500'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          # This case is deliberately separate because tracing JIT has its own
+          # known zend_objects_store_del bugs upstream. A crash here is not
+          # sufficient to explain a crash in the JIT-off cases.
+          - case_id: php83-controlled-jit-tracing
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: jit-tracing
+            allocator_mode: system
+            flow: request-signature-email-notify
+            requests: '200'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          - case_id: php84-controlled-opcache-off
+            php_version: '8.4'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: request-signature-email-notify
+            requests: '500'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          - case_id: php85-controlled-opcache-off
+            php_version: '8.5'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: request-signature-email-notify
+            requests: '500'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          # Native extension isolation.
+          - case_id: php83-controlled-imagick
+            php_version: '8.3'
+            runtime_mode: controlled-imagick
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: request-signature-email-notify
+            requests: '400'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          - case_id: php83-controlled-extra-group-a
+            php_version: '8.3'
+            runtime_mode: controlled-extra-a
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: request-signature-email-notify
+            requests: '400'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          - case_id: php83-controlled-extra-group-b
+            php_version: '8.3'
+            runtime_mode: controlled-extra-b
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: request-signature-email-notify
+            requests: '400'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          # Allocator / heap-layout isolation.
+          - case_id: php83-controlled-zend-allocator
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: zend
+            flow: request-signature-email-notify
+            requests: '500'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          - case_id: php83-controlled-glibc-tcache-off
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: tcache-off
+            flow: request-signature-email-notify
+            requests: '500'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          # Application-path isolation.
+          - case_id: php83-email-no-notify
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: request-signature-email-no-notify
+            requests: '400'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          - case_id: php83-account-no-notify
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: request-signature-account-no-notify
+            requests: '400'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          - case_id: php83-draft-no-signers
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: request-signature-draft
+            requests: '400'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          - case_id: php83-validate-only
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: validate-uuid
+            requests: '500'
+            server_mode: long-lived
+            memcheck: none
+            no_progress: '120'
+            max_seconds: '1200'
+
+          # Process-lifetime isolation: same request workload, but every request
+          # gets a new Behat/PHP built-in server process.
+          - case_id: php83-fresh-server-per-request
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: request-signature-email-notify
+            requests: '60'
+            server_mode: fresh
+            memcheck: none
+            no_progress: '90'
+            max_seconds: '180'
+
+          # Memory instrumentation. Valgrind follows exec() children so the
+          # PHP built-in server is instrumented as well as the Behat process.
+          - case_id: php83-valgrind
+            php_version: '8.3'
+            runtime_mode: controlled
+            opcache_mode: unloaded
+            allocator_mode: system
+            flow: request-signature-email-notify
+            requests: '40'
+            server_mode: long-lived
+            memcheck: valgrind
+            no_progress: '300'
+            max_seconds: '1800'
 
     services:
       mysql:
@@ -50,6 +265,7 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: rootpassword
         options: --health-cmd="mysqladmin ping" --health-interval 5s --health-timeout 2s --health-retries 10
+
       mailpit:
         image: axllent/mailpit
         ports:
@@ -63,17 +279,23 @@ jobs:
       NOTIFICATIONS_REF: addebde43e30da3d56418bb9c597997ed05a4b00
       ACTIVITY_REF: 635b4b4ae103ca4111dea417486aac92214906bd
       GUESTS_REF: c9427b60e751108922a2ee724ea472d9d64e3203
-      STRESS_FLOW: request-signature
-      STRESS_REQUESTS: '1000'
+      STRESS_FLOW: ${{ matrix.flow }}
+      STRESS_REQUESTS: ${{ matrix.requests }}
+      STRESS_SERVER_MODE: ${{ matrix.server_mode }}
+      MEMCHECK_MODE: ${{ matrix.memcheck }}
       BEHAT_WORKERS: '0'
-      BEHAT_NO_PROGRESS_TIMEOUT: '120'
-      BEHAT_MAX_RUN_SECONDS: '1200'
+      BEHAT_NO_PROGRESS_TIMEOUT: ${{ matrix.no_progress }}
+      BEHAT_MAX_RUN_SECONDS: ${{ matrix.max_seconds }}
+      PHP_RUNTIME_MODE: ${{ matrix.runtime_mode }}
+      PHP_OPCACHE_MODE: ${{ matrix.opcache_mode }}
+      ALLOCATOR_MODE: ${{ matrix.allocator_mode }}
+      DEBUGINFOD_URLS: https://debuginfod.ubuntu.com
 
     steps:
-      - name: Install system and crash diagnostics
+      - name: Install system and native diagnostics
         run: |
           sudo apt update
-          sudo apt install -y poppler-utils gdb systemd-coredump lsof procps psmisc strace iproute2 binutils elfutils
+          sudo apt install -y             poppler-utils             gdb             systemd-coredump             libc6-dbg             valgrind             lsof             procps             psmisc             strace             iproute2             binutils             elfutils
           sudo sysctl -w kernel.core_pattern='/tmp/core.%e.%p.%t' || true
           sudo sysctl -w kernel.yama.ptrace_scope=0 || true
 
@@ -101,7 +323,7 @@ jobs:
         with:
           php-version: ${{ env.PHP_VERSION }}
           tools: phpunit
-          extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, :imagick
+          extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, imagick, opcache
           coverage: none
           ini-file: development
           ini-values: disable_functions=
@@ -109,52 +331,30 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           fail-fast: true
 
-      - name: Enforce and verify runtime controls
+      - name: Install native extension probe groups
+        if: ${{ contains(matrix.runtime_mode, 'extra') }}
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: amqp, apcu, dba, enchant, ffi, imap, ldap, memcache, memcached, mongodb, odbc, pdo_dblib, pdo_firebird, pdo_pgsql, pgsql, redis, snmp, soap, tidy, xsl, yaml, zmq
+          coverage: none
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          fail-fast: false
+
+      - name: Configure and verify PHP runtime
+        env:
+          PHP_RUNTIME_OUTPUT_DIR: ${{ github.workspace }}/php-runtime-controls
         run: |
           set -euo pipefail
-          php -v
+          bash "apps/${APP_NAME}/tests/integration/scripts/configure-php-runtime.sh"
+
+          echo "== effective modules =="
+          php -m
+          echo "== effective ini =="
           php --ini
-
-          # Imagick is already proven unnecessary for the crash. Keep it out of
-          # every case so this experiment changes only PHP version and OPcache.
-          sudo phpdismod imagick 2>/dev/null || true
-
-          scan_dir="$(php --ini | sed -n 's|^Scan for additional .ini files in: ||p')"
-          if [ -n "${scan_dir}" ] && [ -d "${scan_dir}" ]; then
-            while IFS= read -r ini; do
-              echo "Disabling Imagick ini: ${ini}"
-              sudo mv "${ini}" "${ini}.disabled"
-            done < <(find "${scan_dir}" -maxdepth 1 -type f -iname '*imagick*.ini' -print)
-          fi
-
-          if [ "${{ matrix.opcache }}" = "unloaded" ]; then
-            sudo phpdismod opcache 2>/dev/null || true
-            scan_dir="$(php --ini | sed -n 's|^Scan for additional .ini files in: ||p')"
-            if [ -n "${scan_dir}" ] && [ -d "${scan_dir}" ]; then
-              while IFS= read -r ini; do
-                echo "Disabling OPcache ini: ${ini}"
-                sudo mv "${ini}" "${ini}.disabled"
-              done < <(find "${scan_dir}" -maxdepth 1 -type f -iname '*opcache*.ini' -print)
-            fi
-          fi
-
-          php -m | sort | tee php-modules-effective.txt
-          php -r 'exit(extension_loaded("imagick") ? 1 : 0);'
-
-          if [ "${{ matrix.opcache }}" = "loaded" ]; then
-            php -r 'exit(extension_loaded("Zend OPcache") ? 0 : 1);'
-          else
-            php -r 'exit(extension_loaded("Zend OPcache") ? 1 : 0);'
-          fi
-
-          {
-            echo "php_version=$(php -r 'echo PHP_VERSION;')"
-            echo "opcache_loaded=$(php -r 'echo extension_loaded("Zend OPcache") ? "yes" : "no";')"
-            echo "opcache_enable=$(php -r 'echo ini_get("opcache.enable");')"
-            echo "opcache_enable_cli=$(php -r 'echo ini_get("opcache.enable_cli");')"
-            echo "opcache_jit=$(php -r 'echo ini_get("opcache.jit");')"
-            echo "opcache_jit_buffer_size=$(php -r 'echo ini_get("opcache.jit_buffer_size");')"
-          } | tee php-opcache-effective.txt
+          echo "== effective OPcache =="
+          php --ri opcache 2>/dev/null || true
 
       - name: Record PHP binary metadata
         run: |
@@ -162,11 +362,13 @@ jobs:
           php -v > php-runtime-metadata/php-version.txt
           php --ini > php-runtime-metadata/php-ini.txt
           php -m > php-runtime-metadata/php-modules.txt
+          php -i > php-runtime-metadata/php-info.txt
           file "$(command -v php)" > php-runtime-metadata/php-file.txt
           readelf -n "$(command -v php)" > php-runtime-metadata/php-notes.txt 2>&1 || true
           nm -D "$(command -v php)" | grep -E 'zend_objects_store_del|zend_objects_destroy_object' > php-runtime-metadata/php-zend-symbols.txt 2>&1 || true
           objdump -d --disassemble=zend_objects_store_del "$(command -v php)" > php-runtime-metadata/zend_objects_store_del.disasm.txt 2>&1 || true
           ldd "$(command -v php)" > php-runtime-metadata/php-ldd.txt 2>&1 || true
+          dpkg-query -W > php-runtime-metadata/dpkg-packages.txt 2>&1 || true
 
       - name: Prepare LibreSign dependencies
         working-directory: apps/${{ env.APP_NAME }}
@@ -195,16 +397,7 @@ jobs:
         run: |
           echo "127.0.0.1 mailpit" | sudo tee -a /etc/hosts
           mkdir data
-          ./occ maintenance:install \
-            --verbose \
-            --database=mysql \
-            --database-name=nextcloud \
-            --database-host=127.0.0.1 \
-            --database-port=${DB_PORT} \
-            --database-user=root \
-            --database-pass=rootpassword \
-            --admin-user=admin \
-            --admin-pass=admin
+          ./occ maintenance:install             --verbose             --database=mysql             --database-name=nextcloud             --database-host=127.0.0.1             --database-port=${DB_PORT}             --database-user=root             --database-pass=rootpassword             --admin-user=admin             --admin-pass=admin
 
           ./occ --version
           ./occ app:enable --force "${APP_NAME}"
@@ -218,7 +411,7 @@ jobs:
           ./occ config:system:set ratelimit.protection.enabled --value false --type boolean
           ./occ config:app:set dav enableDefaultContact --value false --type boolean
 
-      - name: Stress request-signature on PHP ${{ matrix.php_version }} with OPcache ${{ matrix.opcache }}
+      - name: Run diagnostic case
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
         env:
           BEHAT_ROOT_DIR: ../../../../
@@ -227,33 +420,57 @@ jobs:
         run: |
           set -euo pipefail
           ulimit -c unlimited
+
+          case "${ALLOCATOR_MODE}" in
+            system)
+              export USE_ZEND_ALLOC=0
+              export MALLOC_CHECK_=3
+              export MALLOC_PERTURB_=165
+              unset GLIBC_TUNABLES || true
+              ;;
+            zend)
+              unset USE_ZEND_ALLOC || true
+              unset MALLOC_CHECK_ || true
+              unset MALLOC_PERTURB_ || true
+              unset GLIBC_TUNABLES || true
+              ;;
+            tcache-off)
+              export USE_ZEND_ALLOC=0
+              export MALLOC_CHECK_=3
+              export MALLOC_PERTURB_=165
+              export GLIBC_TUNABLES=glibc.malloc.tcache_count=0
+              ;;
+            *)
+              echo "Unknown ALLOCATOR_MODE: ${ALLOCATOR_MODE}" >&2
+              exit 2
+              ;;
+          esac
+
+          echo "case=${{ matrix.case_id }}"
+          echo "php_version=${PHP_VERSION}"
+          echo "runtime_mode=${PHP_RUNTIME_MODE}"
+          echo "opcache_mode=${PHP_OPCACHE_MODE}"
+          echo "allocator_mode=${ALLOCATOR_MODE}"
           echo "flow=${STRESS_FLOW}"
           echo "requests=${STRESS_REQUESTS}"
-          echo "php_version=${{ matrix.php_version }}"
-          echo "opcache=${{ matrix.opcache }}"
-          echo "workers=${BEHAT_WORKERS}"
-
-          # The system allocator already reproduced the same native crash and
-          # removes Zend allocator layout as an explanation.
-          export USE_ZEND_ALLOC=0
-          export MALLOC_CHECK_=3
-          export MALLOC_PERTURB_=165
-
-          echo "USE_ZEND_ALLOC=${USE_ZEND_ALLOC}"
+          echo "server_mode=${STRESS_SERVER_MODE}"
+          echo "memcheck=${MEMCHECK_MODE}"
+          echo "USE_ZEND_ALLOC=${USE_ZEND_ALLOC:-default}"
           echo "MALLOC_CHECK_=${MALLOC_CHECK_:-unset}"
           echo "MALLOC_PERTURB_=${MALLOC_PERTURB_:-unset}"
+          echo "GLIBC_TUNABLES=${GLIBC_TUNABLES:-unset}"
+
           bash scripts/stress-behat-crash.sh
 
-      - name: Upload crash diagnostics
+      - name: Upload native crash diagnostics
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: behat-crash-request-signature-php${{ matrix.php_version }}-opcache-${{ matrix.opcache }}-${{ github.run_id }}
+          name: behat-native-${{ matrix.case_id }}-${{ github.run_id }}
           path: |
             behat-crash-diagnostics/
+            php-runtime-controls/
             php-runtime-metadata/
-            php-modules-effective.txt
-            php-opcache-effective.txt
             /tmp/behat-php-server-*
             /tmp/core.*
           if-no-files-found: warn
