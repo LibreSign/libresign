@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   stress:
-    name: request-signature / imagick=${{ matrix.imagick }} / allocator=${{ matrix.allocator }}
+    name: request-signature / PHP ${{ matrix.php_version }} / opcache=${{ matrix.opcache }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -29,18 +29,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - imagick: 'on'
-            allocator: zend
-            php_extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, imagick
-          - imagick: 'off'
-            allocator: zend
-            php_extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, :imagick
-          - imagick: 'on'
-            allocator: system
-            php_extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, imagick
-          - imagick: 'off'
-            allocator: system
-            php_extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, :imagick
+          - php_version: '8.3'
+            opcache: loaded
+          - php_version: '8.3'
+            opcache: unloaded
+          - php_version: '8.4'
+            opcache: loaded
+          - php_version: '8.4'
+            opcache: unloaded
+          - php_version: '8.5'
+            opcache: loaded
+          - php_version: '8.5'
+            opcache: unloaded
 
     services:
       mysql:
@@ -58,13 +58,13 @@ jobs:
 
     env:
       APP_NAME: libresign
-      PHP_VERSION: '8.3'
+      PHP_VERSION: ${{ matrix.php_version }}
       NEXTCLOUD_REF: 5d6fdcb28fb170c2725f23661366d74ac978ef41
       NOTIFICATIONS_REF: addebde43e30da3d56418bb9c597997ed05a4b00
       ACTIVITY_REF: 635b4b4ae103ca4111dea417486aac92214906bd
       GUESTS_REF: c9427b60e751108922a2ee724ea472d9d64e3203
       STRESS_FLOW: request-signature
-      STRESS_REQUESTS: '500'
+      STRESS_REQUESTS: '1000'
       BEHAT_WORKERS: '0'
       BEHAT_NO_PROGRESS_TIMEOUT: '120'
       BEHAT_MAX_RUN_SECONDS: '1200'
@@ -101,7 +101,7 @@ jobs:
         with:
           php-version: ${{ env.PHP_VERSION }}
           tools: phpunit
-          extensions: ${{ matrix.php_extensions }}
+          extensions: none, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql, :imagick
           coverage: none
           ini-file: development
           ini-values: disable_functions=
@@ -109,41 +109,52 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           fail-fast: true
 
-      - name: Enforce and verify controlled extension set
+      - name: Enforce and verify runtime controls
         run: |
           set -euo pipefail
           php -v
           php --ini
 
-          if [ "${{ matrix.imagick }}" = "off" ]; then
-            # setup-php may re-enable extensions needed by tools. Disable Imagick
-            # again at the final PHP configuration layer and verify the actual
-            # runtime, not only the action input.
-            sudo phpdismod imagick 2>/dev/null || true
+          # Imagick is already proven unnecessary for the crash. Keep it out of
+          # every case so this experiment changes only PHP version and OPcache.
+          sudo phpdismod imagick 2>/dev/null || true
 
+          scan_dir="$(php --ini | sed -n 's|^Scan for additional .ini files in: ||p')"
+          if [ -n "${scan_dir}" ] && [ -d "${scan_dir}" ]; then
+            while IFS= read -r ini; do
+              echo "Disabling Imagick ini: ${ini}"
+              sudo mv "${ini}" "${ini}.disabled"
+            done < <(find "${scan_dir}" -maxdepth 1 -type f -iname '*imagick*.ini' -print)
+          fi
+
+          if [ "${{ matrix.opcache }}" = "unloaded" ]; then
+            sudo phpdismod opcache 2>/dev/null || true
             scan_dir="$(php --ini | sed -n 's|^Scan for additional .ini files in: ||p')"
             if [ -n "${scan_dir}" ] && [ -d "${scan_dir}" ]; then
               while IFS= read -r ini; do
-                echo "Disabling Imagick ini: ${ini}"
+                echo "Disabling OPcache ini: ${ini}"
                 sudo mv "${ini}" "${ini}.disabled"
-              done < <(find "${scan_dir}" -maxdepth 1 -type f -iname '*imagick*.ini' -print)
+              done < <(find "${scan_dir}" -maxdepth 1 -type f -iname '*opcache*.ini' -print)
             fi
           fi
 
           php -m | sort | tee php-modules-effective.txt
+          php -r 'exit(extension_loaded("imagick") ? 1 : 0);'
 
-          if [ "${{ matrix.imagick }}" = "on" ]; then
-            php -r 'exit(extension_loaded("imagick") ? 0 : 1);'
-            php --ri imagick | tee php-imagick.txt
-            extension_dir="$(php -r 'echo ini_get("extension_dir");')"
-            if [ -f "${extension_dir}/imagick.so" ]; then
-              ldd "${extension_dir}/imagick.so" | tee php-imagick-ldd.txt
-            fi
-            command -v magick >/dev/null 2>&1 && magick -version | tee imagemagick-version.txt || true
-            command -v identify >/dev/null 2>&1 && identify -version | tee imagemagick-identify-version.txt || true
+          if [ "${{ matrix.opcache }}" = "loaded" ]; then
+            php -r 'exit(extension_loaded("Zend OPcache") ? 0 : 1);'
           else
-            php -r 'exit(extension_loaded("imagick") ? 1 : 0);'
+            php -r 'exit(extension_loaded("Zend OPcache") ? 1 : 0);'
           fi
+
+          {
+            echo "php_version=$(php -r 'echo PHP_VERSION;')"
+            echo "opcache_loaded=$(php -r 'echo extension_loaded("Zend OPcache") ? "yes" : "no";')"
+            echo "opcache_enable=$(php -r 'echo ini_get("opcache.enable");')"
+            echo "opcache_enable_cli=$(php -r 'echo ini_get("opcache.enable_cli");')"
+            echo "opcache_jit=$(php -r 'echo ini_get("opcache.jit");')"
+            echo "opcache_jit_buffer_size=$(php -r 'echo ini_get("opcache.jit_buffer_size");')"
+          } | tee php-opcache-effective.txt
 
       - name: Record PHP binary metadata
         run: |
@@ -207,7 +218,7 @@ jobs:
           ./occ config:system:set ratelimit.protection.enabled --value false --type boolean
           ./occ config:app:set dav enableDefaultContact --value false --type boolean
 
-      - name: Stress request-signature with Imagick ${{ matrix.imagick }} and ${{ matrix.allocator }} allocator
+      - name: Stress request-signature on PHP ${{ matrix.php_version }} with OPcache ${{ matrix.opcache }}
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
         env:
           BEHAT_ROOT_DIR: ../../../../
@@ -218,19 +229,17 @@ jobs:
           ulimit -c unlimited
           echo "flow=${STRESS_FLOW}"
           echo "requests=${STRESS_REQUESTS}"
-          echo "imagick=${{ matrix.imagick }}"
-          echo "allocator=${{ matrix.allocator }}"
+          echo "php_version=${{ matrix.php_version }}"
+          echo "opcache=${{ matrix.opcache }}"
           echo "workers=${BEHAT_WORKERS}"
 
-          if [ "${{ matrix.allocator }}" = "system" ]; then
-            export USE_ZEND_ALLOC=0
-            export MALLOC_CHECK_=3
-            export MALLOC_PERTURB_=165
-          else
-            unset USE_ZEND_ALLOC MALLOC_CHECK_ MALLOC_PERTURB_ || true
-          fi
+          # The system allocator already reproduced the same native crash and
+          # removes Zend allocator layout as an explanation.
+          export USE_ZEND_ALLOC=0
+          export MALLOC_CHECK_=3
+          export MALLOC_PERTURB_=165
 
-          echo "USE_ZEND_ALLOC=${USE_ZEND_ALLOC:-1}"
+          echo "USE_ZEND_ALLOC=${USE_ZEND_ALLOC}"
           echo "MALLOC_CHECK_=${MALLOC_CHECK_:-unset}"
           echo "MALLOC_PERTURB_=${MALLOC_PERTURB_:-unset}"
           bash scripts/stress-behat-crash.sh
@@ -239,15 +248,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: behat-crash-request-signature-imagick-${{ matrix.imagick }}-allocator-${{ matrix.allocator }}-${{ github.run_id }}
+          name: behat-crash-request-signature-php${{ matrix.php_version }}-opcache-${{ matrix.opcache }}-${{ github.run_id }}
           path: |
             behat-crash-diagnostics/
             php-runtime-metadata/
             php-modules-effective.txt
-            php-imagick.txt
-            php-imagick-ldd.txt
-            imagemagick-version.txt
-            imagemagick-identify-version.txt
+            php-opcache-effective.txt
             /tmp/behat-php-server-*
             /tmp/core.*
           if-no-files-found: warn
