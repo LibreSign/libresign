@@ -44,6 +44,21 @@ export function getCurrentSigner(document: DocumentLike | null | undefined): Sig
  * When opening /f/sign/:uuid, mark the matching signer as `me` so signing and
  * frozen geolocation can resolve before/without relying solely on API `me`.
  */
+function withCanSignEnabled<T extends DocumentLike>(document: T, signers: SignerLike[]): T {
+	const existingSettings = document.settings && typeof document.settings === 'object'
+		? document.settings
+		: {}
+
+	return {
+		...document,
+		signers,
+		settings: {
+			...existingSettings,
+			canSign: true,
+		},
+	}
+}
+
 export function markCurrentSignerFromRouteUuid<T extends DocumentLike>(
 	document: T | null | undefined,
 	routeUuid: string | null | undefined,
@@ -53,7 +68,7 @@ export function markCurrentSignerFromRouteUuid<T extends DocumentLike>(
 	}
 
 	let matched = false
-	const signers = document.signers.map((signer) => {
+	let signers = document.signers.map((signer) => {
 		const matchesRoute = signer?.sign_request_uuid === routeUuid
 		if (!matchesRoute) {
 			return signer
@@ -69,24 +84,33 @@ export function markCurrentSignerFromRouteUuid<T extends DocumentLike>(
 		}
 	})
 
+	// Validate/list payloads can omit sign_request_uuid while the SPA still
+	// opens /f/sign/:uuid for the sole signable participant.
+	if (!matched) {
+		const soleSignable = document.signers.filter((signer) => !isObserverParticipant(signer))
+		if (soleSignable.length === 1) {
+			matched = true
+			const sole = soleSignable[0]
+			signers = document.signers.map((signer) => {
+				if (signer !== sole && signer?.signRequestId !== sole?.signRequestId) {
+					return signer
+				}
+				return {
+					...signer,
+					me: true,
+					sign_request_uuid: signer.sign_request_uuid || routeUuid,
+				}
+			})
+		}
+	}
+
 	if (!matched) {
 		return document
 	}
 
-	// Route uuid matches a sign request: align settings.canSign so ableToSign
+	// Route uuid resolves a sign request: align settings.canSign so ableToSign
 	// works when validate omitted me (and thus never flipped canSign).
-	const existingSettings = document.settings && typeof document.settings === 'object'
-		? document.settings
-		: {}
-
-	return {
-		...document,
-		signers,
-		settings: {
-			...existingSettings,
-			canSign: true,
-		},
-	}
+	return withCanSignEnabled(document, signers)
 }
 
 function findMatchingSigner(

@@ -1682,7 +1682,18 @@ async function sign() {
 		uuid,
 		force: true,
 	})
-	const fileToSign = mergeSignDocumentForRoute(file, detailedFile, uuid) || detailedFile || file
+	const mergedFile = mergeSignDocumentForRoute(file, detailedFile, uuid) || detailedFile || file
+	// The request sidebar only offers Sign document when the viewer may sign.
+	// Force-validate can still omit settings.canSign; keep the affordance.
+	const fileToSign = mergedFile
+		? {
+			...mergedFile,
+			settings: {
+				...(mergedFile.settings && typeof mergedFile.settings === 'object' ? mergedFile.settings : {}),
+				canSign: true,
+			},
+		}
+		: mergedFile
 	signStore.setFileToSign(fileToSign)
 	router.push({ name: 'SignPDF', params: { uuid } })
 }

@@ -120,11 +120,12 @@ export const useSignStore = defineStore('sign', () => {
 	// while a rejection is hidden (#8388).
 	const ableToSign = computed(() => {
 		const allowedStatuses = [FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED]
-		if (!allowedStatuses.includes(document.value?.status)) {
+		if (!allowedStatuses.includes(Number(document.value?.status))) {
 			return false
 		}
 
-		if (!document.value?.settings?.canSign) {
+		// Prefer settings.canSign (validate), then top-level canSign (file list).
+		if (!document.value?.settings?.canSign && document.value?.canSign !== true) {
 			return false
 		}
 
