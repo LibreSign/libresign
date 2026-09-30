@@ -5,6 +5,7 @@
 
 import { t } from '@nextcloud/l10n'
 
+import SignerIpGeolocationDependencySummary from './SignerIpGeolocationDependencySummary.vue'
 import SignerIpGeolocationRuleEditor from './SignerIpGeolocationRuleEditor.vue'
 import { normalizeSignerIpGeolocationValue, resolveSignerIpGeolocationMode } from './model'
 import type { EffectivePolicyValue } from '../../../../../types/index'
@@ -21,6 +22,7 @@ export const signerIpGeolocationRealDefinition: RealPolicySettingDefinition = {
 	groupAdminBehavior: {
 		allowGroupRuleCreationFromDescendantDelegation: true,
 	},
+	settingDialogExtras: SignerIpGeolocationDependencySummary,
 	editor: SignerIpGeolocationRuleEditor,
 	createEmptyValue: () => normalizeSignerIpGeolocationValue(null),
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeSignerIpGeolocationValue(value),

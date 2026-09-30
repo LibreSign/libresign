@@ -75,7 +75,7 @@ test('Policy Workbench groups device and IP geolocation as independent cards', a
 	await expect(page.getByRole('heading', { name: 'GeoIP database' })).toHaveCount(0)
 })
 
-async function openIpGeolocationSystemEditor(page: import('@playwright/test').Page) {
+async function openIpGeolocationSettingDialog(page: import('@playwright/test').Page) {
 	const geolocationSection = page.locator('[data-category-key="signer-geolocation"]')
 	const ipCard = geolocationSection.locator('article').filter({
 		has: page.getByRole('heading', { name: 'IP-based approximate location' }),
@@ -84,13 +84,10 @@ async function openIpGeolocationSystemEditor(page: import('@playwright/test').Pa
 
 	const settingDialog = page.getByRole('dialog', { name: 'IP-based approximate location' })
 	await expect(settingDialog).toBeVisible()
-	await settingDialog.getByRole('button', { name: 'Change', exact: true }).click()
-
-	const editorDialog = page.getByRole('dialog').filter({
-		has: page.locator('[data-cy="geoip-database-dependency"]'),
-	}).last()
-	await expect(editorDialog.locator('[data-cy="geoip-database-dependency"]')).toBeVisible()
-	return editorDialog
+	await expect(settingDialog.locator('[data-cy="geoip-database-dependency"]')).toBeVisible()
+	await expect(settingDialog.getByText(/GeoIP database:/)).toBeVisible()
+	await expect(settingDialog.getByRole('button', { name: 'Configure' })).toBeVisible()
+	return settingDialog
 }
 
 test('GeoIP admin settings save, replace, and clear a path without exposing signer data', async ({ page }) => {
@@ -103,8 +100,8 @@ test('GeoIP admin settings save, replace, and clear a path without exposing sign
 	await login(page.request, adminUser, adminPassword)
 	await page.goto('./settings/admin/libresign')
 
-	const editorDialog = await openIpGeolocationSystemEditor(page)
-	await editorDialog.getByRole('button', { name: 'Configure' }).click()
+	const settingDialog = await openIpGeolocationSettingDialog(page)
+	await settingDialog.getByRole('button', { name: 'Configure' }).click()
 
 	const geoIpDialog = page.getByRole('dialog', { name: 'GeoIP database' })
 	await expect(geoIpDialog).toBeVisible()

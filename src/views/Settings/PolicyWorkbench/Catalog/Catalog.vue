@@ -100,6 +100,11 @@
 				:default-source-label="defaultSourceLabel"
 				:show-change-default-action="state.viewMode === 'system-admin'"
 				@change-default="openRuleEditor('system')">
+				<template v-if="settingDialogExtras" #extras>
+					<component
+						:is="settingDialogExtras"
+						:can-configure="state.viewMode === 'system-admin'" />
+				</template>
 				<CatalogCrudRulesTable
 					:crud-search="crudSearch"
 					:crud-scope-filter="crudScopeFilter"
@@ -360,6 +365,7 @@ const REMOVAL_FEEDBACK_DURATION_MS = 6000
 const navigation = useNavigation(visibleCategorySections)
 
 const activeEditor = computed(() => state.activeDefinition?.editor ?? null)
+const settingDialogExtras = computed(() => state.activeDefinition?.settingDialogExtras ?? null)
 const hideTargetSelector = computed(() => {
 	if (!state.editorDraft || state.editorDraft.scope === 'system') {
 		return false

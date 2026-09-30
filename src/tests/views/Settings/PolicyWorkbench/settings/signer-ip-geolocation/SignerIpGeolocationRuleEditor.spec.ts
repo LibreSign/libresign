@@ -4,37 +4,18 @@
  */
 
 import { mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { createL10nMock } from '../../../../../testHelpers/l10n.js'
-import { getGeoIpConfig } from '../../../../../../services/geoip'
 import SignerIpGeolocationRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/signer-ip-geolocation/SignerIpGeolocationRuleEditor.vue'
 
 vi.mock('@nextcloud/l10n', () => createL10nMock())
-vi.mock('../../../../../../services/geoip', () => ({
-	getGeoIpConfig: vi.fn(),
-	saveGeoIpConfig: vi.fn(),
-}))
 
 describe('SignerIpGeolocationRuleEditor.vue', () => {
-	beforeEach(() => {
-		vi.mocked(getGeoIpConfig).mockReset()
-		vi.mocked(getGeoIpConfig).mockResolvedValue({
-			path: null,
-			status: 'not_configured',
-		})
-	})
-
 	const sharedStubs = {
 		NcCheckboxRadioSwitch: {
 			template: '<div class="radio-stub"><slot /></div>',
 		},
-		NcButton: {
-			template: '<button type="button"><slot /></button>',
-		},
-		NcDialog: true,
-		NcNoteCard: { template: '<div class="note"><slot /></div>' },
-		GeoIpDatabase: true,
 	}
 
 	it('renders disabled and enabled options without a requester override', () => {

@@ -65,6 +65,11 @@ export interface RealPolicySettingDefinition {
 	editor: unknown
 	editorProps?: Record<string, unknown>
 	resolveEditorProps?: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => Record<string, unknown>
+	/**
+	 * Optional component rendered in the setting dialog (next to Create rule /
+	 * Change default), outside the rule editor modal.
+	 */
+	settingDialogExtras?: unknown
 	editorDialogLayout?: RealPolicyEditorDialogLayout
 	createEmptyValue: () => EffectivePolicyValue
 	/**
