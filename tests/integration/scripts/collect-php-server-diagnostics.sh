@@ -168,8 +168,15 @@ write_failure_summary() {
     command-exit-97) classification="valgrind-error" ;;
   esac
 
+  sanitizer_dir="${GITHUB_WORKSPACE:-}/behat-crash-diagnostics/sanitizers"
+  if [ -d "${sanitizer_dir}" ] && grep -RqsE 'AddressSanitizer|UndefinedBehaviorSanitizer|runtime error:' "${sanitizer_dir}" 2>/dev/null; then
+    classification="sanitizer-error"
+  fi
+
   if [ "${exit_status}" = "134" ]; then
-    classification="abort"
+    if [ "${classification}" != "sanitizer-error" ]; then
+      classification="abort"
+    fi
     signal_name="SIGABRT"
   elif [ "${exit_status}" = "139" ]; then
     classification="segfault"
