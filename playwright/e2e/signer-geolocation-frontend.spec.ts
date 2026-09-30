@@ -112,7 +112,8 @@ test('GeoIP admin settings save, replace, and clear a path without exposing sign
 	await expect(geoIpDialog.getByText('Status:')).toBeVisible()
 	await pathInput.fill('/tmp/libresign-missing-geoip.mmdb')
 	await geoIpDialog.getByRole('button', { name: 'Save', exact: true }).click()
-	await expect(geoIpDialog.getByText('Not found')).toBeVisible()
+	// Status appears both as the NoteCard heading and the Status: dd value.
+	await expect(geoIpDialog.getByRole('strong').filter({ hasText: 'Not found' })).toBeVisible()
 	await expect(geoIpDialog.getByText('This does not prevent signatures')).toBeVisible()
 	await expect(geoIpDialog).not.toContainText('sourceIp')
 

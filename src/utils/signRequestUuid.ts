@@ -17,11 +17,13 @@ type SignerLike = {
 
 type DocumentSettingsLike = {
 	isApprover?: boolean
+	canSign?: boolean
 }
 
 type DocumentLike = {
 	id?: number | string | null
 	uuid?: string | null
+	canSign?: boolean
 	signers?: SignerLike[] | null
 	settings?: DocumentSettingsLike | null
 }
@@ -71,9 +73,19 @@ export function markCurrentSignerFromRouteUuid<T extends DocumentLike>(
 		return document
 	}
 
+	// Route uuid matches a sign request: align settings.canSign so ableToSign
+	// works when validate omitted me (and thus never flipped canSign).
+	const existingSettings = document.settings && typeof document.settings === 'object'
+		? document.settings
+		: {}
+
 	return {
 		...document,
 		signers,
+		settings: {
+			...existingSettings,
+			canSign: true,
+		},
 	}
 }
 
@@ -142,10 +154,26 @@ export function mergeSignDocumentForRoute<T extends DocumentLike>(
 		}
 	})
 
+	const previousSettings = previous?.settings && typeof previous.settings === 'object'
+		? previous.settings
+		: {}
+	const baseSettings = base.settings && typeof base.settings === 'object'
+		? base.settings
+		: {}
+	const canSign = previousSettings.canSign === true
+		|| baseSettings.canSign === true
+		|| previous?.canSign === true
+		|| base.canSign === true
+
 	return markCurrentSignerFromRouteUuid({
 		...previous,
 		...base,
 		signers: mergedSigners,
+		settings: {
+			...previousSettings,
+			...baseSettings,
+			...(canSign ? { canSign: true } : {}),
+		},
 	} as T, routeUuid)
 }
 
