@@ -237,10 +237,14 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 
 	const signResponse = await signResponsePromise
 	const signResponseText = await signResponse.text()
+	const expectedSignRequestUuid = currentSigner?.sign_request_uuid
 	expect(
 		signResponse.ok(),
-		`Sign API failed with status ${signResponse.status()}: ${signResponseText}`,
+		`Sign API failed with status ${signResponse.status()} url=${signResponse.url()} expectedUuid=${expectedSignRequestUuid ?? 'unknown'}: ${signResponseText}`,
 	).toBeTruthy()
+	if (typeof expectedSignRequestUuid === 'string' && expectedSignRequestUuid.length > 0) {
+		expect(signResponse.url()).toContain(`/sign/uuid/${expectedSignRequestUuid}`)
+	}
 
 	const signBody = await signResponse.request().postDataJSON() as Record<string, unknown>
 	expect(signBody).toHaveProperty('deviceGeolocation')

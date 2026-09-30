@@ -1664,25 +1664,28 @@ async function sign() {
 		return
 	}
 
-	const uuid = getSignRouteUuid()
-	if (!uuid) {
+	const initialUuid = getSignRouteUuid()
+	if (!initialUuid) {
 		showError(t('libresign', 'Signer request not found'))
 		return
 	}
 	if (props.useModal) {
-		const absoluteUrl = generateUrl('/apps/libresign/p/sign/{uuid}/pdf', { uuid })
-		const route = router.resolve({ name: 'SignPDFExternal', params: { uuid } })
+		const absoluteUrl = generateUrl('/apps/libresign/p/sign/{uuid}/pdf', { uuid: initialUuid })
+		const route = router.resolve({ name: 'SignPDFExternal', params: { uuid: initialUuid } })
 		modalSrc.value = route.href || absoluteUrl
 		return
 	}
 	// Prefer a forced validate payload so frozen geolocation metadata is present
 	// before the sign route mounts; drafts may only keep the requester toggle.
+	// When initialUuid is the LibreSign file uuid (approver fallback), validate
+	// by file id so `me` / sign_request_uuid are enriched for the current user.
+	const fileId = typeof file?.id === 'number' ? file.id : null
 	const detailedFile = await filesStore.fetchFileDetail({
-		fileId: typeof file?.id === 'number' ? file.id : null,
-		uuid,
+		fileId,
+		uuid: initialUuid !== file?.uuid ? initialUuid : null,
 		force: true,
 	})
-	const mergedFile = mergeSignDocumentForRoute(file, detailedFile, uuid) || detailedFile || file
+	const mergedFile = mergeSignDocumentForRoute(file, detailedFile, initialUuid) || detailedFile || file
 	// The request sidebar only offers Sign document when the viewer may sign.
 	// Force-validate can still omit settings.canSign; keep the affordance.
 	const fileToSign = mergedFile
@@ -1694,6 +1697,9 @@ async function sign() {
 			},
 		}
 		: mergedFile
+	// After detail load, prefer a real sign_request_uuid over a file-uuid
+	// approver fallback so /f/sign/:uuid and POST /sign use the same signer.
+	const uuid = getSigningRouteUuid(fileToSign, null, initialUuid) || initialUuid
 	signStore.setFileToSign(fileToSign)
 	router.push({ name: 'SignPDF', params: { uuid } })
 }

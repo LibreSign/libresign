@@ -213,6 +213,16 @@ export function getCurrentSignerSignRequestUuid(
 	return isNonEmptyString(fallbackUuid) ? fallbackUuid : null
 }
 
+function routeMatchesSignRequest(
+	document: DocumentLike | null | undefined,
+	routeUuid: string,
+): boolean {
+	if (!Array.isArray(document?.signers)) {
+		return false
+	}
+	return document.signers.some((signer) => signer?.sign_request_uuid === routeUuid)
+}
+
 export function getSigningRouteUuid(
 	document: DocumentLike | null | undefined,
 	fallbackUuid: string | null = null,
@@ -223,12 +233,14 @@ export function getSigningRouteUuid(
 		return null
 	}
 
-	const signerUuid = getCurrentSignerSignRequestUuid(document, fallbackUuid)
+	// Do not apply loadState/fallback here: a stale sign_request_uuid from a
+	// previous page must not beat the route or the sole signable participant.
+	const signerUuid = getCurrentSignerSignRequestUuid(document, null)
 	if (isNonEmptyString(signerUuid)) {
 		return signerUuid
 	}
 
-	if (isNonEmptyString(routeUuid)) {
+	if (isNonEmptyString(routeUuid) && routeMatchesSignRequest(document, routeUuid)) {
 		return routeUuid
 	}
 
@@ -242,6 +254,10 @@ export function getSigningRouteUuid(
 		return soleSignerUuid
 	}
 
+	if (isNonEmptyString(routeUuid)) {
+		return routeUuid
+	}
+
 	// Approver/id-doc flows use the file uuid, not a signer uuid.
 	if (document?.settings?.isApprover === true && isNonEmptyString(document?.uuid)) {
 		return document.uuid
@@ -253,7 +269,7 @@ export function getSigningRouteUuid(
 		return soleSignerUuid
 	}
 
-	return null
+	return isNonEmptyString(fallbackUuid) ? fallbackUuid : null
 }
 
 function getSoleSignableSignRequestUuid(
