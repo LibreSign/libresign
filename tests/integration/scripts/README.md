@@ -287,6 +287,60 @@ so the current interpretation is:
 That is why the current diagnostic workflow includes both focused request
 generation and feature-history experiments.
 
+
+### Latest regular-CI reproduction: MariaDB 10.11
+
+On 2026-09-30, the normal `Behat MariaDB` workflow reproduced the failure in
+MariaDB 10.11 / PHP 8.3 / Nextcloud master.
+
+The failure happened in:
+
+```
+tests/integration/features/file/list.feature
+Scenario: Return a list with 3 pages
+```
+
+The first `POST /apps/libresign/api/v1/request-signature` in that scenario
+returned HTTP 200. The **second** request-signature call then failed with:
+
+```
+cURL error 52: Empty reply from server
+```
+
+Immediately afterwards the health checker reported:
+
+```
+PHP built-in server became unhealthy during after scenario
+process=gone
+port=unreachable
+workers=0/2
+```
+
+This happened only a few minutes after the job started. It strengthens two
+important conclusions:
+
+- the exact `Return a list with 3 pages` scenario is a high-value short
+  reproducer;
+- the crash can happen very early in that scenario, so running the entire
+  Behat suite is not necessary to obtain every reproduction.
+
+This normal CI job did **not** have native crash diagnostics enabled, so it
+provided no core/GDB artifact. Treat it as reproduction-frequency evidence,
+not new root-cause evidence.
+
+The sibling MariaDB 10.6 matrix job was cancelled by the matrix failure and is
+therefore inconclusive.
+
+At the same PR head, MySQL and SQLite Behat completed successfully. That does
+not prove those database/runtime combinations are safe because the crash is
+intermittent.
+
+The PostgreSQL job remained in progress for an unusually long time while
+GitHub still showed `Run behat` as pending after setup had completed. That is
+not evidence of this PHP crash. Waiting for such a normal-CI job has low
+diagnostic value because it is not running the crash collector and cannot
+produce the native evidence required by this investigation.
+
 ---
 
 ## Diagnostic experiment families
