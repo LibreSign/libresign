@@ -54,4 +54,28 @@ describe('personalPreferenceVisibility', () => {
 		expect(canRenderPersonalPreferencePolicy('renewal_interval', renewalIntervalPolicy)).toBe(false)
 		expect(canRenderPersonalPreferencePolicy('expiry_in_days', expiryInDaysPolicy)).toBe(false)
 	})
+
+	describe('when personal preference support is not explicitly declared', () => {
+		function createSavablePolicy(meta: EffectivePolicyState['meta']): EffectivePolicyState {
+			return {
+				...createAdminAssignedUserPolicy('signature_flow', 'parallel'),
+				sourceScope: 'system',
+				blockedBy: null,
+				canSaveAsUserDefault: true,
+				meta,
+			}
+		}
+
+		it.each([
+			['meta is missing', undefined],
+			['supportsUserPreference is missing', {}],
+			['supportsUserPreference is not a boolean', { supportsUserPreference: 'true' as unknown as boolean }],
+		])('does not render the preference when %s', (_label, meta) => {
+			expect(canRenderPersonalPreferencePolicy('signature_flow', createSavablePolicy(meta))).toBe(false)
+		})
+
+		it('renders the preference when the backend explicitly supports it', () => {
+			expect(canRenderPersonalPreferencePolicy('signature_flow', createSavablePolicy({ supportsUserPreference: true }))).toBe(true)
+		})
+	})
 })

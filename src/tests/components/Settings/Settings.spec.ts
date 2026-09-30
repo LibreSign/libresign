@@ -115,6 +115,7 @@ describe('Settings', () => {
 		effectivePolicies: Record<string, unknown> = {
 			signature_flow: {
 				canSaveAsUserDefault: true,
+				meta: { supportsUserPreference: true },
 			},
 		},
 	): SettingsWrapper => {
@@ -407,6 +408,7 @@ describe('Settings', () => {
 			wrapper = createWrapper(false, false, true, {
 				signature_flow: {
 					canSaveAsUserDefault: false,
+					meta: { supportsUserPreference: true },
 				},
 			})
 			const items = getItems()
@@ -418,9 +420,11 @@ describe('Settings', () => {
 			wrapper = createWrapper(false, false, true, {
 				signature_flow: {
 					canSaveAsUserDefault: false,
+					meta: { supportsUserPreference: true },
 				},
 				add_footer: {
 					canSaveAsUserDefault: true,
+					meta: { supportsUserPreference: true },
 				},
 			})
 			const items = getItems()
@@ -446,6 +450,7 @@ describe('Settings', () => {
 				signature_flow: {
 					canSaveAsUserDefault: false,
 					sourceScope: 'user',
+					meta: { supportsUserPreference: true },
 				},
 			})
 			const items = getItems()
@@ -510,6 +515,7 @@ describe('Settings', () => {
 			wrapper = createWrapper(false, false, true, {
 				signature_flow: {
 					canSaveAsUserDefault: false,
+					meta: { supportsUserPreference: true },
 				},
 			})
 			expect(findItemByName(getItems(), 'Preferences')).toBeUndefined()
@@ -517,6 +523,7 @@ describe('Settings', () => {
 			mockPolicies.value = {
 				signature_flow: {
 					canSaveAsUserDefault: true,
+					meta: { supportsUserPreference: true },
 				},
 			}
 			await nextTick()
@@ -529,6 +536,7 @@ describe('Settings', () => {
 			wrapper = createWrapper(false, false, false, {
 				signature_flow: {
 					canSaveAsUserDefault: true,
+					meta: { supportsUserPreference: true },
 				},
 			})
 			const items = getItems()
@@ -542,10 +550,12 @@ describe('Settings', () => {
 				signature_stamp: {
 					canSaveAsUserDefault: true,
 					sourceScope: 'group',
+					meta: { supportsUserPreference: true },
 				},
 				collect_metadata: {
 					canSaveAsUserDefault: false,
 					sourceScope: 'group',
+					meta: { supportsUserPreference: true },
 				},
 			})
 			const items = getItems()
@@ -574,6 +584,7 @@ describe('Settings', () => {
 			wrapper = createWrapper(false, true, true, {
 				signature_flow: {
 					editableByCurrentActor: false,
+					meta: { supportsUserPreference: true },
 				},
 			})
 			const items = getItems()
@@ -683,6 +694,7 @@ describe('Settings', () => {
 				signature_flow: {
 					editableByCurrentActor: false,
 					canSaveAsUserDefault: false,
+					meta: { supportsUserPreference: true },
 				},
 			})
 			expect(findItemByName(getItems(), 'Policies')).toBeUndefined()
@@ -872,6 +884,7 @@ describe('Settings', () => {
 				signature_flow: {
 					editableByCurrentActor: false,
 					canSaveAsUserDefault: false,
+					meta: { supportsUserPreference: true },
 				},
 			})
 			const items = getItems()
@@ -895,6 +908,7 @@ describe('Settings', () => {
 			wrapper = createWrapper(false, false, true, {
 				signature_flow: {
 					canSaveAsUserDefault: false,
+					meta: { supportsUserPreference: true },
 				},
 			})
 			const items = getItems()
@@ -911,15 +925,16 @@ describe('Settings', () => {
 		it('shows policies entry for group manager with editable policies', () => {
 			wrapper = createWrapper(false, true, true, {
 				groups_request_sign: {
-					canSaveAsUserDefault: true,
+					canSaveAsUserDefault: false,
 					editableByCurrentActor: true,
 					groupCount: 1,
 					userCount: 0,
+					meta: { supportsUserPreference: false },
 				},
 			})
 			const items = getItems()
 
-			expect(items).toHaveLength(4)
+			expect(items).toHaveLength(3)
 
 			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
 			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
@@ -954,6 +969,7 @@ describe('Settings', () => {
 				add_footer: {
 					editableByCurrentActor: false,
 					canSaveAsUserDefault: true,
+					meta: { supportsUserPreference: true },
 				},
 			})
 
