@@ -18,20 +18,24 @@ use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 final class SequentialSigningServiceTest extends TestCase {
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private IdentifyMethodService&MockObject $identifyMethodService;
+	private LoggerInterface&MockObject $logger;
 	private SequentialSigningService $service;
 
 	public function setUp(): void {
 		parent::setUp();
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 
 		$this->service = new SequentialSigningService(
 			$this->signRequestMapper,
-			$this->identifyMethodService
+			$this->identifyMethodService,
+			$this->logger
 		);
 	}
 
@@ -256,6 +260,56 @@ final class SequentialSigningServiceTest extends TestCase {
 		$this->identifyMethodService->expects($this->never())->method('getIdentifyMethodsFromSignRequestId');
 
 		$this->service->notifyActivatedSigners([]);
+	}
+
+	public function testNotifyActivatedSignersKeepsNotifyingTheRemainingSignersWhenADeliveryFails(): void {
+		$this->service->setFile($this->createMock(FileEntity::class));
+
+		$failing = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$failing->method('getName')->willReturn('email');
+		$failing->expects($this->once())->method('willNotifyUser')->with(true);
+		$failing->expects($this->once())->method('notify')
+			->willThrowException(new \RuntimeException('the mail server is unreachable'));
+
+		$delivered = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$delivered->expects($this->once())->method('willNotifyUser')->with(true);
+		$delivered->expects($this->once())->method('notify');
+
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willReturnCallback(fn (int $signRequestId): array => $signRequestId === 2
+				? [[$failing]]
+				: [[$delivered]]);
+
+		$this->logger->expects($this->once())->method('error')->with(
+			$this->stringContains('the mail server is unreachable'),
+			$this->callback(fn (array $context): bool => $context['signRequestId'] === 2
+				&& $context['identifyMethod'] === 'email'),
+		);
+
+		$this->service->notifyActivatedSigners($this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
+			[3, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]));
+	}
+
+	public function testNotifyActivatedSignersDoesNotSwallowProgrammingErrors(): void {
+		$this->service->setFile($this->createMock(FileEntity::class));
+
+		$broken = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$broken->expects($this->once())->method('notify')
+			->willThrowException(new \TypeError('a listener is calling the wrong method'));
+
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willReturn([[$broken]]);
+
+		$this->logger->expects($this->never())->method('error');
+
+		$this->expectException(\TypeError::class);
+		$this->expectExceptionMessage('a listener is calling the wrong method');
+
+		$this->service->notifyActivatedSigners($this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]));
 	}
 
 	public function testReorderAfterDeletionSkipsWhenNotOrdered(): void {

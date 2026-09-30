@@ -13,6 +13,7 @@ use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Enum\SignRequestStatus;
+use Psr\Log\LoggerInterface;
 
 class SequentialSigningService {
 	private int $currentOrder = 1;
@@ -21,6 +22,7 @@ class SequentialSigningService {
 	public function __construct(
 		private SignRequestMapper $signRequestMapper,
 		private IdentifyMethodService $identifyMethodService,
+		private LoggerInterface $logger,
 	) {
 	}
 
@@ -106,6 +108,16 @@ class SequentialSigningService {
 	/**
 	 * Notify the signers returned by activateNextOrder().
 	 *
+	 * A delivery is best effort: one failing notification must not stop the
+	 * remaining signers from being told that they can sign now, so every
+	 * identify method is isolated from the others.
+	 *
+	 * Only recoverable failures (\Exception) are isolated. The concrete
+	 * exception classes depend on the installed notification channels (mail,
+	 * notifications, gateways), so the recoverable family is caught here per
+	 * signer and identify method. A programming error (\Error) is not a
+	 * delivery failure and stays visible instead of being logged as one.
+	 *
 	 * @param list<SignRequestEntity> $signers
 	 */
 	public function notifyActivatedSigners(array $signers): void {
@@ -114,7 +126,15 @@ class SequentialSigningService {
 			foreach ($identifyMethods as $methodGroup) {
 				foreach ($methodGroup as $identifyMethod) {
 					$identifyMethod->willNotifyUser(true);
-					$identifyMethod->notify();
+					try {
+						$identifyMethod->notify();
+					} catch (\Exception $e) {
+						$this->logger->error('Error notifying an activated signer: ' . $e->getMessage(), [
+							'exception' => $e,
+							'signRequestId' => $signer->getId(),
+							'identifyMethod' => $identifyMethod->getName(),
+						]);
+					}
 				}
 			}
 		}
