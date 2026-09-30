@@ -663,10 +663,22 @@ function resetSignMethodsState() {
 	Object.keys(signMethodsStore.modal || {}).forEach((key) => {
 		signMethodsStore.closeModal(key)
 	})
-	signMethodsStore.settings = {}
+	// Keep signature method settings across Sign remounts. Clearing them here
+	// races with setFileToSign/navigation and leaves ableToSign with no modal.
 	signStore.clearSigningErrors()
 	showManagePassword.value = false
 	signPassword.value = ''
+}
+
+function syncSignatureMethodsFromDocument() {
+	const document = signStore.document
+	if (!document) {
+		return
+	}
+	const methods = signStore.getSignatureMethodsForFile(document)
+	if (methods && typeof methods === 'object' && Object.keys(methods).length > 0) {
+		signMethodsStore.settings = methods
+	}
 }
 
 function onSignatureFileCreated() {
@@ -876,6 +888,7 @@ function dismissGeolocationFailure() {
 function confirmSignDocument() {
 	ensureServices()
 	signStore.clearSigningErrors()
+	syncSignatureMethodsFromDocument()
 
 	const unmetRequirement = requirementValidator!.getFirstUnmetRequirement({
 		errors: signStore.errors,
@@ -892,12 +905,21 @@ function confirmSignDocument() {
 
 function proceedWithSigning() {
 	ensureServices()
+	syncSignatureMethodsFromDocument()
 	if (signMethodsStore.needClickToSign()) {
 		actionHandler!.showModal('clickToSign')
 	} else if (signMethodsStore.needSignWithPassword()) {
 		actionHandler!.showModal('password')
 	} else if (signMethodsStore.needTokenCode()) {
 		actionHandler!.showModal('token')
+	} else if (ableToSign.value) {
+		// Validate can authorize the signer while omitting signatureMethods.
+		// Prefer click-to-sign so the confirm dialog still opens.
+		signMethodsStore.settings = {
+			...signMethodsStore.settings,
+			clickToSign: signMethodsStore.settings.clickToSign ?? {},
+		}
+		actionHandler!.showModal('clickToSign')
 	}
 }
 
@@ -926,6 +948,7 @@ onMounted(async () => {
 		signatureElementsStore.loadSignatures()
 
 		initializeServices()
+		syncSignatureMethodsFromDocument()
 
 		unwatchPendingAction = watch(
 			() => signStore.pendingAction,

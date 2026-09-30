@@ -88,12 +88,18 @@ class FileResponseOptions {
 		if ($this->me === null && $this->identifyMethodId === null) {
 			return false;
 		}
+		$uid = $this->me?->getUID();
+		$email = $this->me?->getEMailAddress();
+		$emailLower = is_string($email) ? strtolower($email) : null;
 		foreach ($identifyMethodsOfSigner as $methods) {
 			foreach ($methods as $identifyMethod) {
 				$entity = $identifyMethod->getEntity();
+				$identifierValue = $entity->getIdentifierValue();
 				if ($this->identifyMethodId === $entity->getId()
-					|| $this->me?->getUID() === $entity->getIdentifierValue()
-					|| $this->me?->getEMailAddress() === $entity->getIdentifierValue()
+					|| ($uid !== null && $uid !== '' && $uid === $identifierValue)
+					|| ($email !== null && $email !== '' && $email === $identifierValue)
+					|| ($emailLower !== null && $emailLower !== '' && $emailLower === strtolower($identifierValue))
+					|| ($uid !== null && $uid !== '' && $entity->getUniqueIdentifier() === 'account:' . $uid)
 				) {
 					return true;
 				}

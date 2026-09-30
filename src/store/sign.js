@@ -138,8 +138,20 @@ export const useSignStore = defineStore('sign', () => {
 	})
 
 	const getSignatureMethodsForFile = (file) => {
-		const currentUserAsSigner = file.signers.find(row => row.me)
-		return currentUserAsSigner?.signatureMethods || file.signatureMethods || file.settings?.signatureMethods || {}
+		const pickMethods = (value) => {
+			if (!value || typeof value !== 'object' || Array.isArray(value)) {
+				return null
+			}
+			return Object.keys(value).length > 0 ? value : null
+		}
+
+		const currentUserAsSigner = Array.isArray(file?.signers)
+			? file.signers.find(row => row?.me === true)
+			: null
+		return pickMethods(currentUserAsSigner?.signatureMethods)
+			|| pickMethods(file?.signatureMethods)
+			|| pickMethods(file?.settings?.signatureMethods)
+			|| {}
 	}
 
 	const initFromState = async () => {
