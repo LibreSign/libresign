@@ -502,6 +502,7 @@ OC.L10N.register(
     "Last year ({year})" : "Минулого року ({year})",
     "Other" : "Інше",
     "default" : "типово",
+    "{value} seconds" : "{value} секунд",
     "Expiration in days" : "Термін дії в днях",
     "Identification factors" : "Фактори ідентифікації",
     "Ways to identify a person who will sign a document." : "Способи ідентифікації особи, яка підписуватиме документ.",
