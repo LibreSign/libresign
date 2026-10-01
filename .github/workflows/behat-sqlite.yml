@@ -109,8 +109,9 @@ jobs:
           extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite, imagick
           coverage: none
           ini-file: development
-          # Required: re-enable pcntl_* functions that may be disabled via disable_functions
-          ini-values: disable_functions=
+          # disable_functions: re-enable pcntl_* functions
+          # opcache.jit: PHP 8.3 function JIT corrupts OPcache SHM with first-class callables (fixed in 8.4+)
+          ini-values: disable_functions=, opcache.jit=${{ matrix.php-versions == '8.3' && 'disable' || '1235' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
