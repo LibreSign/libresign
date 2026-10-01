@@ -22,22 +22,13 @@ import {
 	serializeRequestSignGroups,
 } from './settings/request-sign-groups/model'
 import {
-	buildRequestExpirationValue,
 	buildSignatureStampDraftValue,
-	buildSigningExecutionValue,
 	clearCompoundPolicyTarget,
 	clearCompoundUserPreferences,
 	hydrateCompoundPolicyRules,
-	isRequestExpirationPolicyKey,
 	isSignatureStampPolicyKey,
-	isUnifiedSigningExecutionPolicyKey,
-	REQUEST_EXPIRATION_POLICY_KEY,
-	REQUEST_EXPIRATION_RENEWAL_KEY,
 	REQUEST_SIGN_GROUPS_POLICY_KEY,
 	saveCompoundPolicyValue,
-	SIGNATURE_STAMP_POLICY_KEY,
-	SIGNING_EXECUTION_POLICY_KEY,
-	SIGNING_EXECUTION_WORKER_KEY,
 	COLLECT_METADATA_POLICY_KEY,
 	type CompoundPolicyMemberRecords,
 	type PersistedSystemPolicyRecord,
@@ -280,47 +271,42 @@ export function createRealPolicyWorkbenchState() {
 		return Math.max(groupCount, cachedGroupCount ?? 0)
 	}
 
+	function resolveCompoundPolicyKeys(policyKey: string): string[] {
+		const compound = realDefinitions[policyKey as keyof typeof realDefinitions]?.compound
+		const compositeChildren = compound ? policiesStore.getPolicy(policyKey)?.meta?.compositeChildren ?? [] : []
+
+		return compositeChildren.length > 0 ? [policyKey, ...compositeChildren] : []
+	}
+
+	function composeEffectiveValue<T extends EffectivePolicyValue | undefined>(policyKey: string, parentValue: T): T | EffectivePolicyValue {
+		const compound = realDefinitions[policyKey as keyof typeof realDefinitions]?.compound
+		const [, ...childKeys] = resolveCompoundPolicyKeys(policyKey)
+		if (!compound || childKeys.length === 0) {
+			return parentValue
+		}
+
+		return compound.compose({
+			[policyKey]: parentValue,
+			...Object.fromEntries(childKeys.map((childKey) => [childKey, policiesStore.getPolicy(childKey)?.effectiveValue])),
+		})
+	}
+
 	const visibleSettingSummaries = computed<PolicySettingSummary[]>(() => {
 		const isGroupAdminMode = viewMode.value === 'group-admin'
 
 		return Object.values(realDefinitions)
 			.map((definition) => {
 				const policy = policiesStore.getPolicy(definition.key)
-				const isRequestExpiration = isRequestExpirationPolicyKey(definition.key)
-				const isUnifiedSigningExecution = isUnifiedSigningExecutionPolicyKey(definition.key)
-				const renewalPolicy = isRequestExpiration
-					? policiesStore.getPolicy(REQUEST_EXPIRATION_RENEWAL_KEY)
-					: null
-				const workerPolicy = isUnifiedSigningExecution
-					? policiesStore.getPolicy(SIGNING_EXECUTION_WORKER_KEY)
-					: null
-				const hasEffectiveValue = isRequestExpiration
-					? (
-						(policy?.effectiveValue !== null && policy?.effectiveValue !== undefined)
-						|| (renewalPolicy?.effectiveValue !== null && renewalPolicy?.effectiveValue !== undefined)
-					)
-					: isUnifiedSigningExecution
-						? (
-							(policy?.effectiveValue !== null && policy?.effectiveValue !== undefined)
-							|| (workerPolicy?.effectiveValue !== null && workerPolicy?.effectiveValue !== undefined)
-						)
-						: (policy?.effectiveValue !== null && policy?.effectiveValue !== undefined)
+				const includeChildOnlyRules = definition.compound?.includeChildOnlyRules ?? true
+				const countedPolicies = includeChildOnlyRules
+					? resolveCompoundPolicyKeys(definition.key).slice(1).map((childKey) => policiesStore.getPolicy(childKey))
+					: []
+				const memberPolicies = [policy, ...countedPolicies]
+				const hasEffectiveValue = memberPolicies.some((memberPolicy) => memberPolicy?.effectiveValue !== null && memberPolicy?.effectiveValue !== undefined)
 				const isActiveSetting = activeSettingKey.value === definition.key
-				const summaryValue = isRequestExpiration
-					? buildRequestExpirationValue(policy?.effectiveValue, renewalPolicy?.effectiveValue)
-					: isUnifiedSigningExecution
-						? buildSigningExecutionValue(policy?.effectiveValue, workerPolicy?.effectiveValue)
-						: policy?.effectiveValue
-				const groupCount = isRequestExpiration
-					? Math.max(policy?.groupCount ?? 0, renewalPolicy?.groupCount ?? 0)
-					: isUnifiedSigningExecution
-						? Math.max(policy?.groupCount ?? 0, workerPolicy?.groupCount ?? 0)
-						: (policy?.groupCount ?? 0)
-				const userCount = isRequestExpiration
-					? Math.max(policy?.userCount ?? 0, renewalPolicy?.userCount ?? 0)
-					: isUnifiedSigningExecution
-						? Math.max(policy?.userCount ?? 0, workerPolicy?.userCount ?? 0)
-						: (policy?.userCount ?? 0)
+				const summaryValue = composeEffectiveValue(definition.key, policy?.effectiveValue)
+				const groupCount = Math.max(...memberPolicies.map((memberPolicy) => memberPolicy?.groupCount ?? 0))
+				const userCount = Math.max(...memberPolicies.map((memberPolicy) => memberPolicy?.userCount ?? 0))
 				const cachedCounts = hydratedRuleCounts.value[definition.key]
 
 				return {
@@ -385,17 +371,7 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		if (sourceScope === 'system') {
-			const value = isRequestExpirationPolicyKey(activeDefinition.value.key)
-				? buildRequestExpirationValue(
-					policy.effectiveValue,
-					policiesStore.getPolicy(REQUEST_EXPIRATION_RENEWAL_KEY)?.effectiveValue,
-				)
-				: isUnifiedSigningExecutionPolicyKey(activeDefinition.value.key)
-					? buildSigningExecutionValue(
-						policy.effectiveValue,
-						policiesStore.getPolicy(SIGNING_EXECUTION_WORKER_KEY)?.effectiveValue,
-					)
-					: policy.effectiveValue
+			const value = composeEffectiveValue(activeDefinition.value.key, policy.effectiveValue)
 
 			return {
 				id: 'system-inherited-default',
@@ -410,17 +386,7 @@ export function createRealPolicyWorkbenchState() {
 			return explicitSystemRule.value
 		}
 
-		const explicitValue = isRequestExpirationPolicyKey(activeDefinition.value.key)
-			? buildRequestExpirationValue(
-				policy.effectiveValue,
-				policiesStore.getPolicy(REQUEST_EXPIRATION_RENEWAL_KEY)?.effectiveValue,
-			)
-			: isUnifiedSigningExecutionPolicyKey(activeDefinition.value.key)
-				? buildSigningExecutionValue(
-					policy.effectiveValue,
-					policiesStore.getPolicy(SIGNING_EXECUTION_WORKER_KEY)?.effectiveValue,
-				)
-				: policy.effectiveValue
+		const explicitValue = composeEffectiveValue(activeDefinition.value.key, policy.effectiveValue)
 
 		return {
 			id: 'system-default',
@@ -437,21 +403,10 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		const policy = activePolicyState.value
-		const fallbackValue = isRequestExpirationPolicyKey(activeDefinition.value.key)
-			? buildRequestExpirationValue(
-				activeDefinition.value.getFallbackSystemDefault(policy?.effectiveValue, policy?.sourceScope, policy),
-				policiesStore.getPolicy(REQUEST_EXPIRATION_RENEWAL_KEY)?.effectiveValue,
-			)
-			: isUnifiedSigningExecutionPolicyKey(activeDefinition.value.key)
-				? buildSigningExecutionValue(
-					activeDefinition.value.getFallbackSystemDefault(policy?.effectiveValue, policy?.sourceScope, policy),
-					policiesStore.getPolicy(SIGNING_EXECUTION_WORKER_KEY)?.effectiveValue,
-				)
-				: activeDefinition.value.getFallbackSystemDefault(
-					policy?.effectiveValue,
-					policy?.sourceScope,
-					policy,
-				)
+		const fallbackValue = composeEffectiveValue(
+			activeDefinition.value.key,
+			activeDefinition.value.getFallbackSystemDefault(policy?.effectiveValue, policy?.sourceScope, policy),
+		)
 
 		if (fallbackValue === null || fallbackValue === undefined) {
 			return null
@@ -1543,8 +1498,10 @@ export function createRealPolicyWorkbenchState() {
 					await policiesStore.saveSystemPolicy(policyKey, value, allowChildOverride)
 				}
 				if (viewMode.value === 'system-admin' && isScopeSupported('user')) {
-					const clearedCompoundPreferences = await clearCompoundUserPreferences(policyKey, policiesStore)
-					if (!clearedCompoundPreferences) {
+					const compoundPolicyKeys = resolveCompoundPolicyKeys(policyKey)
+					if (compoundPolicyKeys.length > 0) {
+						await clearCompoundUserPreferences(compoundPolicyKeys, policiesStore)
+					} else {
 						await policiesStore.clearUserPreference(policyKey)
 					}
 				}
@@ -1692,9 +1649,7 @@ export function createRealPolicyWorkbenchState() {
 		cancelPendingHydration()
 
 		const policyKey = activeDefinition.value.key
-		const isRequestExpiration = isRequestExpirationPolicyKey(policyKey)
-		const isUnifiedSigningExecution = isUnifiedSigningExecutionPolicyKey(policyKey)
-		const isSignatureStamp = isSignatureStampPolicyKey(policyKey)
+		const compoundPolicyKeys = resolveCompoundPolicyKeys(policyKey)
 		const inheritedSystemRuleId = inheritedSystemRule.value?.id
 		const shouldCloseSystemEditor = editorMode.value === 'edit' && editorDraft.value?.scope === 'system'
 		const shouldCloseGroupEditor = editorMode.value === 'edit' && editorDraft.value?.scope === 'group'
@@ -1702,63 +1657,77 @@ export function createRealPolicyWorkbenchState() {
 		let shouldRefreshPolicies = false
 		let shouldCloseEditor = false
 
-		for (const ruleId of uniqueRuleIds) {
-			if (ruleId === 'system-default' || (inheritedSystemRuleId !== null && ruleId === inheritedSystemRuleId)) {
-				const clearedCompoundRule = await clearCompoundPolicyTarget('system', policyKey, undefined, policiesStore)
-				if (!clearedCompoundRule) {
-					await policiesStore.saveSystemPolicy(policyKey, null, false)
+		try {
+			for (const ruleId of uniqueRuleIds) {
+				if (ruleId === 'system-default' || (inheritedSystemRuleId !== null && ruleId === inheritedSystemRuleId)) {
+					if (compoundPolicyKeys.length > 0) {
+						await clearCompoundPolicyTarget('system', compoundPolicyKeys, undefined, policiesStore)
+					} else {
+						await policiesStore.saveSystemPolicy(policyKey, null, false)
+					}
+					explicitSystemRule.value = null
+					highlightedRuleId.value = null
+					shouldRefreshPolicies = true
+					shouldCloseEditor = shouldCloseEditor || shouldCloseSystemEditor
+					continue
 				}
-				explicitSystemRule.value = null
-				highlightedRuleId.value = null
-				shouldRefreshPolicies = true
-				shouldCloseEditor = shouldCloseEditor || shouldCloseSystemEditor
-				continue
-			}
 
-			const groupIndex = groupRules.value.findIndex((rule) => rule.id === ruleId)
-			if (groupIndex >= 0) {
-				const currentGroupRule = groupRules.value[groupIndex]
-				const targetId = currentGroupRule?.targetId
-				if (targetId) {
-					if (!isInstanceAdmin && policyKey === REQUEST_SIGN_GROUPS_POLICY_KEY && currentGroupRule) {
-						const denyGroups = resolveDeniedRequestSignGroups(currentGroupRule.value)
+				const groupIndex = groupRules.value.findIndex((rule) => rule.id === ruleId)
+				if (groupIndex >= 0) {
+					const currentGroupRule = groupRules.value[groupIndex]
+					const targetId = currentGroupRule?.targetId
+					if (targetId) {
+						if (!isInstanceAdmin && policyKey === REQUEST_SIGN_GROUPS_POLICY_KEY && currentGroupRule) {
+							const denyGroups = resolveDeniedRequestSignGroups(currentGroupRule.value)
 
-						if (denyGroups.length > 0) {
+							if (denyGroups.length > 0) {
+								await policiesStore.clearGroupPolicy(targetId, policyKey)
+								groupRules.value.splice(groupIndex, 1)
+								highlightedRuleId.value = null
+								shouldRefreshPolicies = true
+								shouldCloseEditor = shouldCloseEditor || shouldCloseGroupEditor
+								continue
+							}
+						}
+
+						if (compoundPolicyKeys.length > 0) {
+							await clearCompoundPolicyTarget('group', compoundPolicyKeys, targetId, policiesStore)
+						} else {
 							await policiesStore.clearGroupPolicy(targetId, policyKey)
-							groupRules.value.splice(groupIndex, 1)
-							highlightedRuleId.value = null
-							shouldRefreshPolicies = true
-							shouldCloseEditor = shouldCloseEditor || shouldCloseGroupEditor
-							continue
 						}
 					}
-
-					const clearedCompoundRule = await clearCompoundPolicyTarget('group', policyKey, targetId, policiesStore)
-					if (!clearedCompoundRule) {
-						await policiesStore.clearGroupPolicy(targetId, policyKey)
-					}
+					groupRules.value.splice(groupIndex, 1)
+					highlightedRuleId.value = null
+					shouldRefreshPolicies = true
+					shouldCloseEditor = shouldCloseEditor || shouldCloseGroupEditor
+					continue
 				}
-				groupRules.value.splice(groupIndex, 1)
-				highlightedRuleId.value = null
-				shouldRefreshPolicies = true
-				shouldCloseEditor = shouldCloseEditor || shouldCloseGroupEditor
-				continue
-			}
 
-			const userIndex = userRules.value.findIndex((rule) => rule.id === ruleId)
-			if (userIndex >= 0) {
-				const targetId = userRules.value[userIndex]?.targetId
-				if (targetId) {
-					const clearedCompoundRule = await clearCompoundPolicyTarget('user', policyKey, targetId, policiesStore)
-					if (!clearedCompoundRule) {
-						await policiesStore.clearUserPolicyForUser(targetId, policyKey)
+				const userIndex = userRules.value.findIndex((rule) => rule.id === ruleId)
+				if (userIndex >= 0) {
+					const targetId = userRules.value[userIndex]?.targetId
+					if (targetId) {
+						if (compoundPolicyKeys.length > 0) {
+							await clearCompoundPolicyTarget('user', compoundPolicyKeys, targetId, policiesStore)
+						} else {
+							await policiesStore.clearUserPolicyForUser(targetId, policyKey)
+						}
 					}
+					userRules.value.splice(userIndex, 1)
+					highlightedRuleId.value = null
+					shouldRefreshPolicies = true
+					shouldCloseEditor = shouldCloseEditor || shouldCloseUserEditor
 				}
-				userRules.value.splice(userIndex, 1)
-				highlightedRuleId.value = null
-				shouldRefreshPolicies = true
-				shouldCloseEditor = shouldCloseEditor || shouldCloseUserEditor
 			}
+		} catch (error) {
+			duplicateMessage.value = resolvePolicySaveErrorMessage(error)
+			logger.debug('Could not remove policy workbench rules', {
+				error,
+				policyKey,
+			})
+			await policiesStore.fetchEffectivePolicies()
+			await hydratePersistedRules(policyKey)
+			throw error
 		}
 
 		if (shouldRefreshPolicies) {
