@@ -232,7 +232,7 @@ describe('expiration rules workbench', () => {
 	it('hydrates unified request expiration group rules from both persisted keys', async () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'maximum_validity') {
-				return { effectiveValue: 0, sourceScope: 'system' }
+				return { effectiveValue: 0, sourceScope: 'system', meta: { compositeChildren: ['renewal_interval'] } }
 			}
 
 			if (key === 'renewal_interval') {

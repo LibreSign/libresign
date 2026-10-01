@@ -16,10 +16,13 @@ import {
 	SIGNATURE_STAMP_POLICY_KEY,
 	SIGNING_EXECUTION_POLICY_KEY,
 	SIGNING_EXECUTION_WORKER_KEY,
+	type CompoundPolicyMemberRecords,
 	type PersistedSystemPolicyRecord,
 	type PolicyRuleRecord,
 } from '../../../../views/Settings/PolicyWorkbench/policyWorkbenchCompoundPolicies'
 import { maximumValidityRealDefinition } from '../../../../views/Settings/PolicyWorkbench/settings/expiration-rules/realDefinitions'
+import type { RealPolicyCompoundBehavior } from '../../../../views/Settings/PolicyWorkbench/settings/realTypes'
+import { signatureTextRealDefinition } from '../../../../views/Settings/PolicyWorkbench/settings/signature-text/realDefinition'
 
 const createPolicyRule = (overrides: Partial<PolicyRuleRecord> = {}): PolicyRuleRecord => ({
 	id: 'rule-1',
@@ -36,6 +39,22 @@ const createPersistedSystemPolicy = (overrides: Partial<PersistedSystemPolicyRec
 	allowChildOverride: true,
 	...overrides,
 })
+
+const createMemberRecords = (policyKey: string, overrides: Partial<CompoundPolicyMemberRecords> = {}): CompoundPolicyMemberRecords => ({
+	policyKey,
+	systemPolicy: null,
+	groupPolicies: [],
+	userPolicies: [],
+	...overrides,
+})
+
+const requireCompound = (compound: RealPolicyCompoundBehavior | undefined): RealPolicyCompoundBehavior => {
+	if (!compound) {
+		throw new Error('Expected the policy definition to declare a compound mapping')
+	}
+
+	return compound
+}
 
 describe('policyWorkbenchCompoundPolicies', () => {
 	const signatureStampValue = '{"template":"Signed by {{SignerCommonName}}","template_font_size":9.8,"signature_font_size":9.8,"signature_width":350,"signature_height":100,"background_type":"default","render_mode":"default"}'
@@ -78,19 +97,19 @@ describe('policyWorkbenchCompoundPolicies', () => {
 
 	it('hydrates request expiration group rules even when only the renewal companion rule exists', () => {
 		const result = hydrateCompoundPolicyRules({
-			policyKey: REQUEST_EXPIRATION_POLICY_KEY,
-			persistedSystemPolicy: null,
-			companionSystemPolicy: null,
-			persistedGroupPolicies: [],
-			companionGroupPolicies: [
-				createPolicyRule({
-					id: 'renewal-finance',
-					value: 7,
-					canRemove: false,
+			parent: createMemberRecords(REQUEST_EXPIRATION_POLICY_KEY),
+			children: [
+				createMemberRecords(REQUEST_EXPIRATION_RENEWAL_KEY, {
+					groupPolicies: [
+						createPolicyRule({
+							id: 'renewal-finance',
+							value: 7,
+							canRemove: false,
+						}),
+					],
 				}),
 			],
-			persistedUserPolicies: [],
-			companionUserPolicies: [],
+			compound: requireCompound(maximumValidityRealDefinition.compound),
 		})
 
 		expect(result).toEqual({
@@ -114,25 +133,29 @@ describe('policyWorkbenchCompoundPolicies', () => {
 
 	it('does not create signature stamp rules from collect_metadata-only overrides', () => {
 		const result = hydrateCompoundPolicyRules({
-			policyKey: SIGNATURE_STAMP_POLICY_KEY,
-			persistedSystemPolicy: createPersistedSystemPolicy({ value: null }),
-			companionSystemPolicy: createPersistedSystemPolicy({ value: true }),
-			persistedGroupPolicies: [],
-			companionGroupPolicies: [
-				createPolicyRule({
-					id: 'collect-finance',
-					value: true,
+			parent: createMemberRecords(SIGNATURE_STAMP_POLICY_KEY, {
+				systemPolicy: createPersistedSystemPolicy({ value: null }),
+			}),
+			children: [
+				createMemberRecords(COLLECT_METADATA_POLICY_KEY, {
+					systemPolicy: createPersistedSystemPolicy({ value: true }),
+					groupPolicies: [
+						createPolicyRule({
+							id: 'collect-finance',
+							value: true,
+						}),
+					],
+					userPolicies: [
+						createPolicyRule({
+							scope: 'user',
+							id: 'collect-user1',
+							targetId: 'user1',
+							value: true,
+						}),
+					],
 				}),
 			],
-			persistedUserPolicies: [],
-			companionUserPolicies: [
-				createPolicyRule({
-					scope: 'user',
-					id: 'collect-user1',
-					targetId: 'user1',
-					value: true,
-				}),
-			],
+			compound: requireCompound(signatureTextRealDefinition.compound),
 		})
 
 		expect(result).toEqual({
@@ -144,26 +167,28 @@ describe('policyWorkbenchCompoundPolicies', () => {
 
 	it('hydrates signature stamp group rules with collect metadata companion values', () => {
 		const result = hydrateCompoundPolicyRules({
-			policyKey: SIGNATURE_STAMP_POLICY_KEY,
-			persistedSystemPolicy: null,
-			companionSystemPolicy: null,
-			persistedGroupPolicies: [
-				createPolicyRule({
-					id: 'signature-finance',
-					value: signatureStampValue,
+			parent: createMemberRecords(SIGNATURE_STAMP_POLICY_KEY, {
+				groupPolicies: [
+					createPolicyRule({
+						id: 'signature-finance',
+						value: signatureStampValue,
+					}),
+				],
+			}),
+			children: [
+				createMemberRecords(COLLECT_METADATA_POLICY_KEY, {
+					groupPolicies: [
+						createPolicyRule({
+							id: 'collect-finance',
+							value: true,
+						}),
+					],
 				}),
 			],
-			companionGroupPolicies: [
-				createPolicyRule({
-					id: 'collect-finance',
-					value: true,
-				}),
-			],
-			persistedUserPolicies: [],
-			companionUserPolicies: [],
+			compound: requireCompound(signatureTextRealDefinition.compound),
 		})
 
-		expect(result?.groupRules[0]?.value).toEqual({
+		expect(result.groupRules[0]?.value).toEqual({
 			signatureStampValue,
 			collectMetadataEnabled: true,
 		})
