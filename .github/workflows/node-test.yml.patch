@@ -1,0 +1,15 @@
+diff --git a/.github/workflows/node-test.yml b/.github/workflows/node-test.yml
+--- a/.github/workflows/node-test.yml
++++ b/.github/workflows/node-test.yml
+@@ -81,11 +81,6 @@ jobs:
+       - name: Test and process coverage
+         run: npm run test:coverage --if-present
+ 
+-      - name: Collect coverage
+-        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+-        with:
+-          files: ./coverage/lcov.info
+-
+   summary:
+     permissions:
+       contents: none
