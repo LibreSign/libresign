@@ -19,6 +19,18 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 15.0.6 - 2026-10-01
+
+### Changed
+- Update translations
+- Internal maintenance
+
+### Fixed
+- isolate RequestSignatureTab debounced callbacks
+  [#8911](https://github.com/LibreSign/libresign/pull/8911)
+- use identify method friendly name getter in defaults
+  [#8921](https://github.com/LibreSign/libresign/pull/8921)
+
 ## 15.0.5 - 2026-09-29
 
 ### Changed
