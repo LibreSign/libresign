@@ -425,6 +425,14 @@ describe('signature stamp workbench', () => {
 			render_mode: 'default',
 		})
 
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_stamp') {
+				return { effectiveValue: 'parallel', sourceScope: 'system', meta: { compositeChildren: ['collect_metadata'] } }
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_stamp')
 		state.startEditor({ scope: 'group' })

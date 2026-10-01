@@ -6,6 +6,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+	clearGroupPolicy,
+	fetchEffectivePolicies,
 	fetchGroupPolicy,
 	getPolicy,
 	resetWorkbenchHarness,
@@ -23,7 +25,7 @@ describe('expiration rules workbench', () => {
 	it('presents unified request expiration summary and hides standalone renewal setting', () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'maximum_validity') {
-				return { effectiveValue: 86400, groupCount: 1, userCount: 0, sourceScope: 'system', editableByCurrentActor: true }
+				return { effectiveValue: 86400, groupCount: 1, userCount: 0, sourceScope: 'system', editableByCurrentActor: true, meta: { compositeChildren: ['renewal_interval'] } }
 			}
 
 			if (key === 'renewal_interval') {
@@ -285,6 +287,58 @@ describe('expiration rules workbench', () => {
 			maximumValidity: 7200,
 			renewalInterval: 600,
 		})
+	})
+
+	it('reloads persisted rules when clearing one request expiration member fails', async () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'maximum_validity') {
+				return { effectiveValue: 0, sourceScope: 'system', meta: { compositeChildren: ['renewal_interval'] } }
+			}
+
+			return { effectiveValue: 0, sourceScope: 'system' }
+		})
+
+		fetchGroupPolicy.mockImplementation(async (groupId: string, policyKey: string) => {
+			if (groupId !== 'finance' || (policyKey !== 'maximum_validity' && policyKey !== 'renewal_interval')) {
+				return null
+			}
+
+			return {
+				policyKey,
+				scope: 'group',
+				targetId: groupId,
+				value: policyKey === 'maximum_validity' ? 7200 : 600,
+				allowChildOverride: true,
+				visibleToChild: true,
+				allowedValues: [],
+			}
+		})
+
+		clearGroupPolicy.mockImplementation(async (_groupId: string, policyKey: string) => {
+			if (policyKey === 'renewal_interval') {
+				throw new Error('Could not clear renewal interval')
+			}
+
+			return null
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('maximum_validity')
+
+		await vi.waitFor(() => {
+			expect(state.visibleGroupRules).toHaveLength(1)
+		})
+
+		fetchGroupPolicy.mockClear()
+
+		await expect(state.removeRule(state.visibleGroupRules[0]?.id ?? '')).rejects.toThrow('Could not clear renewal interval')
+
+		expect(clearGroupPolicy).toHaveBeenCalledWith('finance', 'maximum_validity')
+		expect(clearGroupPolicy).toHaveBeenCalledWith('finance', 'renewal_interval')
+		expect(state.duplicateMessage).toBe('Could not clear renewal interval')
+		expect(fetchEffectivePolicies).toHaveBeenCalled()
+		expect(fetchGroupPolicy).toHaveBeenCalledWith('finance', 'renewal_interval')
+		expect(state.visibleGroupRules).toHaveLength(1)
 	})
 
 	it('locks lower-level customization for group-admin request expiration group rules', async () => {

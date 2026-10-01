@@ -6,19 +6,9 @@
 import type { CompoundPolicyWriteValues, EffectivePolicyValue } from '../../../types/index'
 import type { RealPolicyCompoundBehavior } from './settings/realTypes'
 import {
-	normalizeRequestExpirationDraftValue,
-	type RequestExpirationDraftValue,
-} from './settings/expiration-rules/model'
-import {
 	normalizeSignatureStampDraftValue,
 	resolveCollectMetadataValue,
 } from './settings/signature-text/model'
-import {
-	normalizeSigningExecutionSettings,
-	normalizeWorkerConfig,
-	resolveSigningMode,
-	type SigningExecutionSettingsValue,
-} from './settings/signing-mode/model'
 
 export type PolicyScope = 'system' | 'group' | 'user'
 
@@ -95,55 +85,6 @@ function hasPersistedValue(value: EffectivePolicyValue | null | undefined): valu
 	return value !== null && value !== undefined
 }
 
-function getCompoundPolicyCompanionKey(policyKey: string): string | null {
-	if (isRequestExpirationPolicyKey(policyKey)) {
-		return REQUEST_EXPIRATION_RENEWAL_KEY
-	}
-
-	if (isUnifiedSigningExecutionPolicyKey(policyKey)) {
-		return SIGNING_EXECUTION_WORKER_KEY
-	}
-
-	if (isSignatureStampPolicyKey(policyKey)) {
-		return COLLECT_METADATA_POLICY_KEY
-	}
-
-	return null
-}
-
-async function clearCompoundPolicyPair(
-	scope: PolicyScope,
-	policyKey: string,
-	companionKey: string,
-	policiesStore: CompoundPolicyClearStore,
-	targetId?: string,
-) {
-	if (scope === 'system') {
-		await Promise.all([
-			policiesStore.saveSystemPolicy(policyKey, null, false),
-			policiesStore.saveSystemPolicy(companionKey, null, false),
-		])
-		return
-	}
-
-	if (!targetId) {
-		return
-	}
-
-	if (scope === 'group') {
-		await Promise.all([
-			policiesStore.clearGroupPolicy(targetId, policyKey),
-			policiesStore.clearGroupPolicy(targetId, companionKey),
-		])
-		return
-	}
-
-	await Promise.all([
-		policiesStore.clearUserPolicyForUser(targetId, policyKey),
-		policiesStore.clearUserPolicyForUser(targetId, companionKey),
-	])
-}
-
 function mergeCompoundRulesByTarget(
 	members: Array<{ policyKey: string, rules: PolicyRuleRecord[] }>,
 	scope: 'group' | 'user',
@@ -204,46 +145,8 @@ function hydrateCompoundSystemRule(
 	}
 }
 
-export function isRequestExpirationPolicyKey(policyKey: string): boolean {
-	return policyKey === REQUEST_EXPIRATION_POLICY_KEY
-}
-
-export function isUnifiedSigningExecutionPolicyKey(policyKey: string): boolean {
-	return policyKey === SIGNING_EXECUTION_POLICY_KEY
-}
-
 export function isSignatureStampPolicyKey(policyKey: string): boolean {
 	return policyKey === SIGNATURE_STAMP_POLICY_KEY
-}
-
-export function buildRequestExpirationValue(
-	maximumValidity: EffectivePolicyValue | undefined,
-	renewalInterval: EffectivePolicyValue | undefined,
-): RequestExpirationDraftValue {
-	const normalizedMaximum = normalizeRequestExpirationDraftValue(maximumValidity ?? null)
-	const normalizedRenewal = normalizeRequestExpirationDraftValue({
-		maximumValidity: 0,
-		renewalInterval: renewalInterval ?? null,
-	})
-
-	return {
-		maximumValidity: normalizedMaximum.maximumValidity,
-		renewalInterval: normalizedRenewal.renewalInterval,
-	}
-}
-
-export function buildSigningExecutionValue(
-	signingMode: EffectivePolicyValue | undefined,
-	workerConfig: EffectivePolicyValue | undefined,
-): SigningExecutionSettingsValue {
-	const normalizedMode = normalizeSigningExecutionSettings(signingMode ?? null)
-	const normalizedWorker = normalizeWorkerConfig(workerConfig ?? null)
-
-	return {
-		signingMode: resolveSigningMode(normalizedMode.signingMode),
-		workerType: normalizedWorker.workerType,
-		parallelWorkers: normalizedWorker.parallelWorkers,
-	}
 }
 
 export function buildSignatureStampDraftValue(
@@ -286,34 +189,33 @@ export async function saveCompoundPolicyValue(context: SaveCompoundPolicyValueCo
 }
 
 export async function clearCompoundUserPreferences(
-	policyKey: string,
+	policyKeys: string[],
 	policiesStore: CompoundPolicyPreferenceClearStore,
-): Promise<boolean> {
-	const companionKey = getCompoundPolicyCompanionKey(policyKey)
-	if (!companionKey) {
-		return false
-	}
-
-	await Promise.all([
-		policiesStore.clearUserPreference(policyKey),
-		policiesStore.clearUserPreference(companionKey),
-	])
-	return true
+): Promise<void> {
+	await Promise.all(policyKeys.map((policyKey) => policiesStore.clearUserPreference(policyKey)))
 }
 
 export async function clearCompoundPolicyTarget(
 	scope: PolicyScope,
-	policyKey: string,
+	policyKeys: string[],
 	targetId: string | undefined,
 	policiesStore: CompoundPolicyClearStore,
-): Promise<boolean> {
-	const companionKey = getCompoundPolicyCompanionKey(policyKey)
-	if (!companionKey) {
-		return false
+): Promise<void> {
+	if (scope === 'system') {
+		await Promise.all(policyKeys.map((policyKey) => policiesStore.saveSystemPolicy(policyKey, null, false)))
+		return
 	}
 
-	await clearCompoundPolicyPair(scope, policyKey, companionKey, policiesStore, targetId)
-	return true
+	if (!targetId) {
+		return
+	}
+
+	if (scope === 'group') {
+		await Promise.all(policyKeys.map((policyKey) => policiesStore.clearGroupPolicy(targetId, policyKey)))
+		return
+	}
+
+	await Promise.all(policyKeys.map((policyKey) => policiesStore.clearUserPolicyForUser(targetId, policyKey)))
 }
 
 export function hydrateCompoundPolicyRules({ parent, children, compound }: CompoundPolicyHydrationContext): CompoundPolicyHydrationResult {
