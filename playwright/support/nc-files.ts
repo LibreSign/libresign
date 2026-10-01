@@ -126,7 +126,9 @@ export async function uploadFileToFilesApp(
 	userId = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
 ): Promise<void> {
 	await ensureFilesHomeInitialized(page.request, userId)
-	const uploadPickerInput = page.locator('[data-cy-upload-picker-input]').first()
-	await expect(uploadPickerInput).toBeAttached({ timeout: 15000 })
-	await uploadPickerInput.setInputFiles(file)
+	// Drive the file chooser: the Vue 3 NcUploadPicker input has no data-cy attribute.
+	const fileChooser = page.waitForEvent('filechooser')
+	await page.locator('[data-cy-upload-picker]').getByRole('button', { name: 'New' }).click()
+	await page.getByRole('menuitem', { name: 'Upload files' }).click()
+	await (await fileChooser).setFiles(file)
 }
