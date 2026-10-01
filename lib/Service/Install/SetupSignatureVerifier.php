@@ -14,6 +14,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\InvalidSignatureException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Vendor\phpseclib4\Crypt\RSA;
+use OCA\Libresign\Vendor\phpseclib4\Crypt\RSA\PublicKey as RSAPublicKey;
 use OCA\Libresign\Vendor\phpseclib4\File\X509;
 
 final class SetupSignatureVerifier {
@@ -77,7 +78,7 @@ final class SetupSignatureVerifier {
 	 */
 	private function validateFileSignature(X509 $x509, array $hashes, string $signature): void {
 		$publicKey = $x509->getPublicKey();
-		if (!$publicKey instanceof RSA) {
+		if (!$publicKey instanceof RSAPublicKey) {
 			throw new InvalidSignatureException('Certificate public key is not RSA.');
 		}
 
