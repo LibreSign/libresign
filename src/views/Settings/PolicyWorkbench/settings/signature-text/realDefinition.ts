@@ -68,6 +68,7 @@ export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 	},
 	personalPreferenceBehavior: signatureStampPersonalPreferenceBehavior,
 	compound: {
+		includeChildOnlyRules: false,
 		compose: (valuesByPolicyKey) => normalizeSignatureStampDraftValue(
 			valuesByPolicyKey.signature_stamp,
 			resolveCollectMetadataValue(valuesByPolicyKey.collect_metadata, false),

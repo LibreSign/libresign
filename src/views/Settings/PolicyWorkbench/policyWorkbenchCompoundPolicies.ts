@@ -37,14 +37,17 @@ export interface PersistedSystemPolicyRecord {
 	allowChildOverride?: boolean
 }
 
-export interface CompoundPolicyHydrationContext {
+export interface CompoundPolicyMemberRecords {
 	policyKey: string
-	persistedSystemPolicy: PersistedSystemPolicyRecord | null
-	companionSystemPolicy: PersistedSystemPolicyRecord | null
-	persistedGroupPolicies: PolicyRuleRecord[]
-	companionGroupPolicies: PolicyRuleRecord[]
-	persistedUserPolicies: PolicyRuleRecord[]
-	companionUserPolicies: PolicyRuleRecord[]
+	systemPolicy: PersistedSystemPolicyRecord | null
+	groupPolicies: PolicyRuleRecord[]
+	userPolicies: PolicyRuleRecord[]
+}
+
+export interface CompoundPolicyHydrationContext {
+	parent: CompoundPolicyMemberRecords
+	children: CompoundPolicyMemberRecords[]
+	compound: RealPolicyCompoundBehavior
 }
 
 export interface CompoundPolicyHydrationResult {
@@ -142,50 +145,63 @@ async function clearCompoundPolicyPair(
 }
 
 function mergeCompoundRulesByTarget(
-	primaryRules: PolicyRuleRecord[],
-	companionRules: PolicyRuleRecord[],
+	members: Array<{ policyKey: string, rules: PolicyRuleRecord[] }>,
 	scope: 'group' | 'user',
-	buildValue: (primaryValue: EffectivePolicyValue | undefined, companionValue: EffectivePolicyValue | undefined) => EffectivePolicyValue,
-	includeCompanionOnlyRules = true,
+	compose: RealPolicyCompoundBehavior['compose'],
+	includeChildOnlyRules: boolean,
 ): PolicyRuleRecord[] {
-	const mergedRules = new Map<string, PolicyRuleRecord>()
+	const mergedRules = new Map<string, { rule: PolicyRuleRecord, values: Record<string, EffectivePolicyValue | undefined> }>()
 
-	for (const rule of primaryRules) {
-		if (!rule.targetId) {
-			continue
+	for (const [index, member] of members.entries()) {
+		const isParent = index === 0
+		for (const rule of member.rules) {
+			if (!rule.targetId) {
+				continue
+			}
+
+			const existing = mergedRules.get(rule.targetId)
+			if (!existing && !isParent && !includeChildOnlyRules) {
+				continue
+			}
+
+			const entry = existing ?? { rule, values: {} }
+			entry.values[member.policyKey] = rule.value
+			mergedRules.set(rule.targetId, entry)
 		}
-
-		mergedRules.set(rule.targetId, {
-			id: rule.id,
-			scope,
-			targetId: rule.targetId,
-			allowChildOverride: rule.allowChildOverride,
-			value: buildValue(rule.value, undefined),
-			canRemove: rule.canRemove,
-		})
 	}
 
-	for (const rule of companionRules) {
-		if (!rule.targetId) {
-			continue
-		}
+	return Array.from(mergedRules.values()).map(({ rule, values }) => ({
+		id: rule.id,
+		scope,
+		targetId: rule.targetId,
+		allowChildOverride: rule.allowChildOverride,
+		value: compose(values),
+		canRemove: rule.canRemove,
+	}))
+}
 
-		const existingRule = mergedRules.get(rule.targetId)
-		if (!existingRule && !includeCompanionOnlyRules) {
-			continue
-		}
-
-		mergedRules.set(rule.targetId, {
-			id: existingRule?.id ?? rule.id,
-			scope,
-			targetId: rule.targetId,
-			allowChildOverride: existingRule?.allowChildOverride ?? rule.allowChildOverride,
-			value: buildValue(existingRule?.value, rule.value),
-			canRemove: existingRule?.canRemove ?? rule.canRemove,
-		})
+function hydrateCompoundSystemRule(
+	members: CompoundPolicyMemberRecords[],
+	compose: RealPolicyCompoundBehavior['compose'],
+	includeChildOnlyRules: boolean,
+): PolicyRuleRecord | null {
+	const membersWithRequiredValue = includeChildOnlyRules ? members : members.slice(0, 1)
+	const hasGlobalScope = members.some((member) => member.systemPolicy?.scope === 'global')
+	const hasValue = membersWithRequiredValue.some((member) => hasPersistedValue(member.systemPolicy?.value))
+	if (!hasGlobalScope || !hasValue) {
+		return null
 	}
 
-	return Array.from(mergedRules.values())
+	const values = Object.fromEntries(members.map((member) => [member.policyKey, member.systemPolicy?.value ?? undefined]))
+	const allowChildOverride = members.find((member) => member.systemPolicy?.allowChildOverride !== undefined)?.systemPolicy?.allowChildOverride
+
+	return {
+		id: 'system-default',
+		scope: 'system',
+		targetId: null,
+		allowChildOverride: allowChildOverride ?? true,
+		value: compose(values),
+	}
 }
 
 export function isRequestExpirationPolicyKey(policyKey: string): boolean {
@@ -300,112 +316,23 @@ export async function clearCompoundPolicyTarget(
 	return true
 }
 
-export function hydrateCompoundPolicyRules(context: CompoundPolicyHydrationContext): CompoundPolicyHydrationResult | null {
-	const {
-		policyKey,
-		persistedSystemPolicy,
-		companionSystemPolicy,
-		persistedGroupPolicies,
-		companionGroupPolicies,
-		persistedUserPolicies,
-		companionUserPolicies,
-	} = context
+export function hydrateCompoundPolicyRules({ parent, children, compound }: CompoundPolicyHydrationContext): CompoundPolicyHydrationResult {
+	const members = [parent, ...children]
+	const includeChildOnlyRules = compound.includeChildOnlyRules ?? true
 
-	if (isRequestExpirationPolicyKey(policyKey)) {
-		const primaryHasValue = hasPersistedValue(persistedSystemPolicy?.value)
-		const companionHasValue = hasPersistedValue(companionSystemPolicy?.value)
-		return {
-			explicitSystemRule: (persistedSystemPolicy?.scope === 'global' || companionSystemPolicy?.scope === 'global') && (primaryHasValue || companionHasValue)
-				? {
-					id: 'system-default',
-					scope: 'system',
-					targetId: null,
-					allowChildOverride: persistedSystemPolicy?.allowChildOverride ?? companionSystemPolicy?.allowChildOverride ?? true,
-					value: buildRequestExpirationValue(persistedSystemPolicy?.value ?? undefined, companionSystemPolicy?.value ?? undefined),
-				}
-				: null,
-			groupRules: mergeCompoundRulesByTarget(
-				persistedGroupPolicies,
-				companionGroupPolicies,
-				'group',
-				buildRequestExpirationValue,
-			),
-			userRules: mergeCompoundRulesByTarget(
-				persistedUserPolicies,
-				companionUserPolicies,
-				'user',
-				buildRequestExpirationValue,
-			),
-		}
+	return {
+		explicitSystemRule: hydrateCompoundSystemRule(members, compound.compose, includeChildOnlyRules),
+		groupRules: mergeCompoundRulesByTarget(
+			members.map((member) => ({ policyKey: member.policyKey, rules: member.groupPolicies })),
+			'group',
+			compound.compose,
+			includeChildOnlyRules,
+		),
+		userRules: mergeCompoundRulesByTarget(
+			members.map((member) => ({ policyKey: member.policyKey, rules: member.userPolicies })),
+			'user',
+			compound.compose,
+			includeChildOnlyRules,
+		),
 	}
-
-	if (isUnifiedSigningExecutionPolicyKey(policyKey)) {
-		const primaryHasValue = hasPersistedValue(persistedSystemPolicy?.value)
-		const companionHasValue = hasPersistedValue(companionSystemPolicy?.value)
-		return {
-			explicitSystemRule: (persistedSystemPolicy?.scope === 'global' || companionSystemPolicy?.scope === 'global') && (primaryHasValue || companionHasValue)
-				? {
-					id: 'system-default',
-					scope: 'system',
-					targetId: null,
-					allowChildOverride: persistedSystemPolicy?.allowChildOverride ?? companionSystemPolicy?.allowChildOverride ?? true,
-					value: buildSigningExecutionValue(persistedSystemPolicy?.value ?? undefined, companionSystemPolicy?.value ?? undefined),
-				}
-				: null,
-			groupRules: mergeCompoundRulesByTarget(
-				persistedGroupPolicies,
-				companionGroupPolicies,
-				'group',
-				buildSigningExecutionValue,
-			),
-			userRules: mergeCompoundRulesByTarget(
-				persistedUserPolicies,
-				companionUserPolicies,
-				'user',
-				buildSigningExecutionValue,
-			),
-		}
-	}
-
-	if (isSignatureStampPolicyKey(policyKey)) {
-		const primaryHasValue = hasPersistedValue(persistedSystemPolicy?.value)
-		return {
-			explicitSystemRule: (persistedSystemPolicy?.scope === 'global' || companionSystemPolicy?.scope === 'global') && primaryHasValue
-				? {
-					id: 'system-default',
-					scope: 'system',
-					targetId: null,
-					allowChildOverride: persistedSystemPolicy?.allowChildOverride ?? companionSystemPolicy?.allowChildOverride ?? true,
-					value: buildSignatureStampDraftValue(persistedSystemPolicy?.value ?? undefined, companionSystemPolicy?.value ?? undefined),
-				}
-				: null,
-			groupRules: persistedGroupPolicies
-				.filter((rule) => !!rule.targetId)
-				.map((rule) => {
-					const collectMetadataRule = companionGroupPolicies.find((metadataRule) => metadataRule.targetId === rule.targetId)
-					return {
-						id: rule.id,
-						scope: 'group' as const,
-						targetId: rule.targetId,
-						allowChildOverride: rule.allowChildOverride,
-						value: buildSignatureStampDraftValue(rule.value, collectMetadataRule?.value),
-						canRemove: rule.canRemove,
-					}
-				}),
-			userRules: persistedUserPolicies
-				.filter((rule) => !!rule.targetId)
-				.map((rule) => {
-					const collectMetadataRule = companionUserPolicies.find((metadataRule) => metadataRule.targetId === rule.targetId)
-					return {
-						id: rule.id,
-						scope: 'user' as const,
-						targetId: rule.targetId,
-						allowChildOverride: rule.allowChildOverride,
-						value: buildSignatureStampDraftValue(rule.value, collectMetadataRule?.value),
-					}
-				}),
-		}
-	}
-
-	return null
 }

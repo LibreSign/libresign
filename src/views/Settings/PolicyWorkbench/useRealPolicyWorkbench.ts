@@ -39,6 +39,7 @@ import {
 	SIGNING_EXECUTION_POLICY_KEY,
 	SIGNING_EXECUTION_WORKER_KEY,
 	COLLECT_METADATA_POLICY_KEY,
+	type CompoundPolicyMemberRecords,
 	type PersistedSystemPolicyRecord,
 	type PolicyRuleRecord,
 	type PolicyScope,
@@ -868,9 +869,6 @@ export function createRealPolicyWorkbenchState() {
 		const currentRequestId = hydratePersistedRulesRequestId.value + 1
 		hydratePersistedRulesRequestId.value = currentRequestId
 		rulesLoading.value = true
-		const shouldMergeRequestExpiration = isRequestExpirationPolicyKey(policyKey)
-		const shouldMergeSigningExecution = isUnifiedSigningExecutionPolicyKey(policyKey)
-		const shouldMergeSignatureStamp = isSignatureStampPolicyKey(policyKey)
 
 		const targetsPreloaded = await Promise.all([
 			loadTargets('group', ''),
@@ -1001,19 +999,24 @@ export function createRealPolicyWorkbenchState() {
 			return records.filter((record): record is NonNullable<typeof record> => record !== null)
 		}
 
+		const compound = realDefinitions[policyKey as keyof typeof realDefinitions]?.compound
+		const compositeChildren = compound ? policiesStore.getPolicy(policyKey)?.meta?.compositeChildren ?? [] : []
+
+		const fetchCompoundMemberRecords = async (key: string): Promise<CompoundPolicyMemberRecords> => {
+			const [systemPolicy, groupPolicies, userPolicies] = await Promise.all([
+				fetchSystemPolicySafe(key),
+				fetchPersistedGroupRulesForKey(key),
+				fetchPersistedUserRulesForKey(key),
+			])
+
+			return { policyKey: key, systemPolicy, groupPolicies, userPolicies }
+		}
+
 		const hydratedPayload = await Promise.all([
 			fetchSystemPolicySafe(policyKey),
 			fetchPersistedGroupRulesForKey(policyKey),
 			fetchPersistedUserRulesForKey(policyKey),
-			shouldMergeRequestExpiration ? fetchSystemPolicySafe(REQUEST_EXPIRATION_RENEWAL_KEY) : Promise.resolve(null),
-			shouldMergeRequestExpiration ? fetchPersistedGroupRulesForKey(REQUEST_EXPIRATION_RENEWAL_KEY) : Promise.resolve([]),
-			shouldMergeRequestExpiration ? fetchPersistedUserRulesForKey(REQUEST_EXPIRATION_RENEWAL_KEY) : Promise.resolve([]),
-			shouldMergeSigningExecution ? fetchSystemPolicySafe(SIGNING_EXECUTION_WORKER_KEY) : Promise.resolve(null),
-			shouldMergeSigningExecution ? fetchPersistedGroupRulesForKey(SIGNING_EXECUTION_WORKER_KEY) : Promise.resolve([]),
-			shouldMergeSigningExecution ? fetchPersistedUserRulesForKey(SIGNING_EXECUTION_WORKER_KEY) : Promise.resolve([]),
-			shouldMergeSignatureStamp ? fetchSystemPolicySafe(COLLECT_METADATA_POLICY_KEY) : Promise.resolve(null),
-			shouldMergeSignatureStamp ? fetchPersistedGroupRulesForKey(COLLECT_METADATA_POLICY_KEY) : Promise.resolve([]),
-			shouldMergeSignatureStamp ? fetchPersistedUserRulesForKey(COLLECT_METADATA_POLICY_KEY) : Promise.resolve([]),
+			Promise.all(compositeChildren.map(fetchCompoundMemberRecords)),
 		]).catch((error) => {
 			logger.debug('Could not hydrate persisted policy rules', {
 				error,
@@ -1032,37 +1035,20 @@ export function createRealPolicyWorkbenchState() {
 			return
 		}
 
-		const [persistedSystemPolicy, persistedGroupPolicies, persistedUserPolicies, renewalSystemPolicy, renewalGroupPolicies, renewalUserPolicies, workerSystemPolicy, workerGroupPolicies, workerUserPolicies, collectMetadataSystemPolicy, collectMetadataGroupPolicies, collectMetadataUserPolicies] = hydratedPayload
+		const [persistedSystemPolicy, persistedGroupPolicies, persistedUserPolicies, childRecords] = hydratedPayload
 
-		const compoundHydration = hydrateCompoundPolicyRules({
-			policyKey,
-			persistedSystemPolicy,
-			companionSystemPolicy: shouldMergeRequestExpiration
-				? renewalSystemPolicy
-				: shouldMergeSigningExecution
-					? workerSystemPolicy
-					: shouldMergeSignatureStamp
-						? collectMetadataSystemPolicy
-						: null,
-			persistedGroupPolicies,
-			companionGroupPolicies: shouldMergeRequestExpiration
-				? renewalGroupPolicies
-				: shouldMergeSigningExecution
-					? workerGroupPolicies
-					: shouldMergeSignatureStamp
-						? collectMetadataGroupPolicies
-						: [],
-			persistedUserPolicies,
-			companionUserPolicies: shouldMergeRequestExpiration
-				? renewalUserPolicies
-				: shouldMergeSigningExecution
-					? workerUserPolicies
-					: shouldMergeSignatureStamp
-						? collectMetadataUserPolicies
-						: [],
-		})
+		if (compound && compositeChildren.length > 0) {
+			const compoundHydration = hydrateCompoundPolicyRules({
+				parent: {
+					policyKey,
+					systemPolicy: persistedSystemPolicy,
+					groupPolicies: persistedGroupPolicies,
+					userPolicies: persistedUserPolicies,
+				},
+				children: childRecords,
+				compound,
+			})
 
-		if (compoundHydration) {
 			explicitSystemRule.value = compoundHydration.explicitSystemRule
 			commitHydratedRules(policyKey, compoundHydration.groupRules, compoundHydration.userRules)
 			finishHydration(currentRequestId, policyKey)
