@@ -193,6 +193,15 @@ abstract class AEngineHandler implements IEngineHandler {
 		$return['valid_from'] = $this->dateTimeFormatter->formatDateTime($parsed['validFrom_time_t']);
 		$return['valid_to'] = $this->dateTimeFormatter->formatDateTime($parsed['validTo_time_t']);
 
+		$pubKeyResource = openssl_pkey_get_public($x509);
+		if ($pubKeyResource !== false) {
+			$details = openssl_pkey_get_details($pubKeyResource);
+			if (is_array($details)) {
+				$return['pubkey_bits'] = $details['bits'] ?? null;
+				$return['pubkey_type'] = $details['type'] ?? null;
+			}
+		}
+
 		$this->addCrlValidationInfo($return, $x509);
 
 		return $return;
