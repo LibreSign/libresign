@@ -110,6 +110,7 @@ class SignatureRejectionService {
 		$previousFileStatus = $libreSignFile->getStatus();
 		$rejectedAt = $this->timeFactory->getDateTime();
 
+		$activatedSigners = [];
 		$this->db->beginTransaction();
 		try {
 			foreach ($signRequests as $each) {
@@ -123,7 +124,7 @@ class SignatureRejectionService {
 			if ($workflowCanceled) {
 				$this->cancelWorkflow($libreSignFile);
 			} else {
-				$this->releaseNextSigningOrders($libreSignFile, $signRequests);
+				$activatedSigners = $this->releaseNextSigningOrders($libreSignFile, $signRequests);
 			}
 
 			$this->db->commit();
@@ -138,6 +139,8 @@ class SignatureRejectionService {
 			// TRANSLATORS Error shown when the rejection could not be saved and nothing was changed.
 			throw new LibresignException($this->l10n->t('It was not possible to register the rejection. Nothing was changed.'));
 		}
+
+		$this->sequentialSigningService->notifyActivatedSigners($activatedSigners);
 	}
 
 	/**
@@ -184,22 +187,28 @@ class SignatureRejectionService {
 	 * When the workflow continues, a rejection ends the signer's turn just like a
 	 * signature does, so in a sequential flow the next order must be released on
 	 * every document the signer rejected, or the signers after them would wait
-	 * forever.
+	 * forever. The released signers are returned to be notified after the commit.
 	 *
 	 * @param list<SignRequestEntity> $rejectedSignRequests
+	 * @return list<SignRequestEntity> the signers that became able to sign
 	 */
-	private function releaseNextSigningOrders(FileEntity $libreSignFile, array $rejectedSignRequests): void {
+	private function releaseNextSigningOrders(FileEntity $libreSignFile, array $rejectedSignRequests): array {
+		$activatedSigners = [];
 		foreach ($rejectedSignRequests as $rejected) {
 			$document = $rejected->getFileId() === $libreSignFile->getId()
 				? $libreSignFile
 				: $this->fileMapper->getById($rejected->getFileId());
-			$this->sequentialSigningService
-				->setFile($document)
-				->releaseNextOrder(
-					$rejected->getFileId(),
-					$rejected->getSigningOrder()
-				);
+			$activatedSigners = [
+				...$activatedSigners,
+				...$this->sequentialSigningService
+					->setFile($document)
+					->activateNextOrder(
+						$rejected->getFileId(),
+						$rejected->getSigningOrder()
+					),
+			];
 		}
+		return $activatedSigners;
 	}
 
 	/**

@@ -323,8 +323,9 @@ final class SignatureRejectionServiceTest extends TestCase {
 			->with($file)
 			->willReturnSelf();
 		$this->sequentialSigningService->expects($this->once())
-			->method('releaseNextOrder')
-			->with(10, 2);
+			->method('activateNextOrder')
+			->with(10, 2)
+			->willReturn([]);
 
 		$this->getService()->reject($file, $signRequest);
 	}
@@ -332,7 +333,10 @@ final class SignatureRejectionServiceTest extends TestCase {
 	public function testACancellingRejectionReleasesNobody(): void {
 		$this->withPolicy(self::policy(behavior: 'cancel'));
 
-		$this->sequentialSigningService->expects($this->never())->method('releaseNextOrder');
+		$this->sequentialSigningService->expects($this->never())->method('activateNextOrder');
+		$this->sequentialSigningService->expects($this->once())
+			->method('notifyActivatedSigners')
+			->with([]);
 
 		$this->getService()->reject($this->file(), $this->signRequest());
 	}
@@ -351,9 +355,10 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$this->envelopeSignRequest = $onTheEnvelope;
 
 		$released = [];
-		$this->sequentialSigningService->method('releaseNextOrder')
-			->willReturnCallback(function (int $fileId) use (&$released): void {
+		$this->sequentialSigningService->method('activateNextOrder')
+			->willReturnCallback(function (int $fileId) use (&$released): array {
 				$released[] = $fileId;
+				return [];
 			});
 
 		$this->getService()->reject($envelope, $onDoc1);
@@ -365,7 +370,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$this->withPolicy(self::policy(behavior: 'continue'));
 		$signRequest = $this->signRequest();
 
-		$this->sequentialSigningService->method('releaseNextOrder')
+		$this->sequentialSigningService->method('activateNextOrder')
 			->willThrowException(new \RuntimeException('database is down'));
 		$this->db->expects($this->once())->method('rollBack');
 		$this->db->expects($this->never())->method('commit');
@@ -376,6 +381,73 @@ final class SignatureRejectionServiceTest extends TestCase {
 		} catch (LibresignException) {
 			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $signRequest->getStatusEnum());
 		}
+	}
+
+	public function testSignersReleasedByARejectionAreNotifiedOnlyAfterTheCommit(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$nextSigner = $this->signRequest(id: 2);
+
+		$calls = [];
+		$this->sequentialSigningService->method('activateNextOrder')
+			->willReturnCallback(function () use (&$calls, $nextSigner): array {
+				$calls[] = 'activate';
+				return [$nextSigner];
+			});
+		$this->db->method('commit')
+			->willReturnCallback(function () use (&$calls): void {
+				$calls[] = 'commit';
+			});
+		$this->sequentialSigningService->expects($this->once())
+			->method('notifyActivatedSigners')
+			->with([$nextSigner])
+			->willReturnCallback(function () use (&$calls): void {
+				$calls[] = 'notify';
+			});
+
+		$this->getService()->reject($this->file(), $this->signRequest());
+
+		$this->assertSame(['activate', 'commit', 'notify'], $calls);
+	}
+
+	public function testARolledBackRejectionNotifiesNobodyItHadReleased(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$envelope = $this->envelope();
+		$onDoc1 = $this->signRequest(id: 11);
+		$onDoc1->setFileId(21);
+		$onDoc2 = $this->signRequest(id: 12);
+		$onDoc2->setFileId(22);
+		$this->envelopeChildSignRequests = [$onDoc1, $onDoc2];
+
+		$nextSignerOnDoc1 = $this->signRequest(id: 31);
+		$this->sequentialSigningService->method('activateNextOrder')
+			->willReturnCallback(function (int $fileId) use ($nextSignerOnDoc1): array {
+				if ($fileId === 22) {
+					throw new \RuntimeException('database is down');
+				}
+				return [$nextSignerOnDoc1];
+			});
+		$this->db->expects($this->once())->method('rollBack');
+		$this->db->expects($this->never())->method('commit');
+		$this->sequentialSigningService->expects($this->never())->method('notifyActivatedSigners');
+		$this->eventDispatcher->expects($this->never())->method('dispatchTyped');
+
+		$this->expectException(LibresignException::class);
+		$this->getService()->reject($envelope, $onDoc1);
+	}
+
+	public function testAnErrorWhileNotifyingAfterTheCommitIsNotHidden(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+
+		$this->sequentialSigningService->method('activateNextOrder')
+			->willReturn([$this->signRequest(id: 2)]);
+		$this->sequentialSigningService->method('notifyActivatedSigners')
+			->willThrowException(new \TypeError('a bug, not a delivery failure'));
+		$this->db->expects($this->once())->method('commit');
+		$this->db->expects($this->never())->method('rollBack');
+		$this->logger->expects($this->never())->method('error');
+
+		$this->expectException(\TypeError::class);
+		$this->getService()->reject($this->file(), $this->signRequest());
 	}
 
 	public function testWorkflowIsClosedWhenThePolicyCancelsIt(): void {

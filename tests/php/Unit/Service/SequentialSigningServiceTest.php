@@ -19,20 +19,24 @@ use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 final class SequentialSigningServiceTest extends TestCase {
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private IdentifyMethodService&MockObject $identifyMethodService;
+	private LoggerInterface&MockObject $logger;
 	private SequentialSigningService $service;
 
 	public function setUp(): void {
 		parent::setUp();
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 
 		$this->service = new SequentialSigningService(
 			$this->signRequestMapper,
-			$this->identifyMethodService
+			$this->identifyMethodService,
+			$this->logger,
 		);
 	}
 
@@ -211,6 +215,108 @@ final class SequentialSigningServiceTest extends TestCase {
 		}
 
 		$this->service->releaseNextOrder(99, $completedOrder);
+	}
+
+	public function testActivateNextOrderReturnsTheActivatedSignersWithoutNotifyingThem(): void {
+		$file = $this->createMock(FileEntity::class);
+		$file->method('getSignatureFlowEnum')
+			->willReturn(SignatureFlow::ORDERED_NUMERIC);
+		$this->service->setFile($file);
+
+		$signRequests = $this->buildSignRequests([
+			[1, SignRequestStatus::SIGNED, 1],
+			[2, SignRequestStatus::DRAFT, 2],
+			[3, SignRequestStatus::DRAFT, 2],
+		]);
+		$this->signRequestMapper->method('getByFileId')->willReturn($signRequests);
+		$this->signRequestMapper->expects($this->exactly(2))->method('update');
+		$this->identifyMethodService->expects($this->never())
+			->method('getIdentifyMethodsFromSignRequestId');
+
+		$activated = $this->service->activateNextOrder(99, 1);
+
+		$this->assertSame([2, 3], array_map(fn (SignRequest $signer): int => $signer->getId(), $activated));
+		foreach ($activated as $signer) {
+			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $signer->getStatusEnum());
+		}
+	}
+
+	public function testActivateNextOrderReturnsNobodyWhenNotOrdered(): void {
+		$file = $this->createMock(FileEntity::class);
+		$file->method('getSignatureFlowEnum')
+			->willReturn(SignatureFlow::PARALLEL);
+		$this->service->setFile($file);
+
+		$this->assertSame([], $this->service->activateNextOrder(99, 1));
+	}
+
+	public function testNotifyActivatedSignersNotifiesEveryIdentifyMethodOfEverySigner(): void {
+		$signers = $this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
+			[3, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]);
+
+		$email = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$email->expects($this->exactly(2))->method('willNotifyUser')->with(true);
+		$email->expects($this->exactly(2))->method('notify');
+		$account = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$account->expects($this->exactly(2))->method('notify');
+
+		$requestedIds = [];
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willReturnCallback(function (int $signRequestId) use (&$requestedIds, $email, $account): array {
+				$requestedIds[] = $signRequestId;
+				return ['email' => [$email], 'account' => [$account]];
+			});
+		$this->signRequestMapper->expects($this->never())->method('update');
+
+		$this->service->notifyActivatedSigners($signers);
+
+		$this->assertSame([2, 3], $requestedIds);
+	}
+
+	public function testAFailedNotificationDoesNotStopTheOtherActivatedSigners(): void {
+		$signers = $this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
+			[3, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]);
+
+		$failing = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$failing->method('getName')->willReturn('email');
+		$failing->expects($this->once())->method('notify')
+			->willThrowException(new \RuntimeException('mail server is down'));
+		$next = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$next->expects($this->once())->method('notify');
+
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willReturnCallback(fn (int $signRequestId): array => $signRequestId === 2
+				? ['email' => [$failing]]
+				: ['account' => [$next]]);
+		$this->logger->expects($this->once())
+			->method('error')
+			->with(
+				$this->stringContains('mail server is down'),
+				$this->callback(fn (array $context): bool => $context['signRequestId'] === 2
+					&& $context['identifyMethod'] === 'email'
+					&& $context['exception'] instanceof \RuntimeException),
+			);
+
+		$this->service->notifyActivatedSigners($signers);
+	}
+
+	public function testAProgrammingErrorWhileNotifyingIsNotHidden(): void {
+		$signers = $this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]);
+
+		$broken = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$broken->method('notify')->willThrowException(new \TypeError('a bug, not a delivery failure'));
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willReturn(['email' => [$broken]]);
+		$this->logger->expects($this->never())->method('error');
+
+		$this->expectException(\TypeError::class);
+		$this->service->notifyActivatedSigners($signers);
 	}
 
 	public function testReorderAfterDeletionSkipsWhenNotOrdered(): void {
