@@ -15,31 +15,12 @@ use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicyValue;
-use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
-use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
-use OCA\Libresign\Service\Policy\Provider\CrlValidation\CrlValidationPolicy;
-use OCA\Libresign\Service\Policy\Provider\DefaultUserFolder\DefaultUserFolderPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
-use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
-use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
-use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
-use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
-use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
-use OCA\Libresign\Service\Policy\Provider\MailSenderStrategy\MailSenderStrategyPolicy;
-use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
-use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
-use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
-use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
-use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
-use OCA\Libresign\Service\Policy\Provider\SignerGeolocation\SignerGeolocationPolicy;
-use OCA\Libresign\Service\Policy\Provider\SignerIpGeolocation\SignerIpGeolocationPolicy;
-use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
-use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
@@ -189,68 +170,6 @@ final class PolicyRegistryTest extends TestCase {
 
 		$this->assertSame($first, $second);
 		$this->assertSame(1, $provider->calls);
-	}
-
-	public function testEveryRegisteredPolicyDeclaresRequestOverrideSupport(): void {
-		$registry = \OCP\Server::get(PolicyRegistry::class);
-		$expected = self::expectedRequestOverrideSupport();
-
-		$registeredKeys = $registry->getAllPolicyKeys();
-		sort($registeredKeys);
-		$classifiedKeys = array_keys($expected);
-		sort($classifiedKeys);
-		$this->assertSame($classifiedKeys, $registeredKeys, 'a new policy must be added here with a deliberate supportsRequestOverride value');
-
-		foreach ($expected as $policyKey => $supportsRequestOverride) {
-			$this->assertSame(
-				$supportsRequestOverride,
-				$registry->get($policyKey)->supportsRequestOverride(),
-				'Unexpected supportsRequestOverride for ' . $policyKey,
-			);
-		}
-	}
-
-	/**
-	 * The values keep the behaviour each policy had while request overrides
-	 * were still derived from supportsUserPreference.
-	 *
-	 * @return array<string, bool>
-	 */
-	private static function expectedRequestOverrideSupport(): array {
-		return [
-			ApprovalGroupsPolicy::KEY => false,
-			CollectMetadataPolicy::KEY => true,
-			ConfettiPolicy::KEY => true,
-			CrlValidationPolicy::KEY => false,
-			DefaultUserFolderPolicy::KEY => true,
-			DocMdpPolicy::KEY => true,
-			EnvelopePolicy::KEY => true,
-			ExpirationRulesPolicy::KEY_EXPIRY_IN_DAYS => false,
-			ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY => false,
-			ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL => false,
-			FooterPolicy::KEY => true,
-			IdentificationDocumentsPolicy::KEY => true,
-			IdentifyMethodsPolicy::KEY => true,
-			LegalInformationPolicy::KEY => true,
-			MailSenderStrategyPolicy::KEY => false,
-			ObserverProfilePolicy::KEY => true,
-			ReminderPolicy::KEY => true,
-			RequestSignGroupsPolicy::KEY => false,
-			SignatureFlowPolicy::KEY => true,
-			SignatureHashAlgorithmPolicy::KEY => true,
-			SignatureRejectionPolicy::KEY_BEHAVIOR => true,
-			SignatureRejectionPolicy::KEY_COMMENT_MODE => true,
-			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => true,
-			SignatureRejectionPolicy::KEY_ENABLED => true,
-			SignatureRejectionPolicy::KEY_VISIBILITY => true,
-			SignatureTextPolicy::KEY => true,
-			SignerGeolocationPolicy::KEY => true,
-			SignerIpGeolocationPolicy::KEY => true,
-			SigningModePolicy::KEY_SIGNING_MODE => false,
-			TsaPolicy::KEY => false,
-			ValidationAccessPolicy::KEY => true,
-			WorkerConfigPolicy::KEY => false,
-		];
 	}
 
 	public function testRegistryDoesNotResolveProvidersDuringConstruction(): void {

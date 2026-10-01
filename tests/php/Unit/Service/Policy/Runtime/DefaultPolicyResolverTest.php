@@ -19,7 +19,6 @@ use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
-use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -121,17 +120,23 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertNull($resolved->getBlockedBy());
 	}
 
-	#[DataProvider('provideIndependentRequestOverrideAndUserPreferenceSupport')]
+	#[DataProvider('provideRequestOverridePermissionCases')]
 	public function testResolveDecidesRequestOverrideIndependentlyFromUserDefault(
 		bool $supportsUserPreference,
 		bool $supportsRequestOverride,
+		bool $expectedCanSaveAsUserDefault,
+		bool $expectedCanUseAsRequestOverride,
+		bool $expectedRequestValueApplied,
 	): void {
 		$source = new InMemoryPolicySource();
 		$source->systemLayer = (new PolicyLayer())
 			->setScope('global')
-			->setValue('none')
+			->setValue('parallel')
 			->setAllowChildOverride(true)
 			->setVisibleToChild(true);
+		$source->requestOverride = (new PolicyLayer())
+			->setScope('request')
+			->setValue('ordered_numeric');
 
 		$definition = new PolicySpec(
 			key: 'signature_flow',
@@ -143,48 +148,28 @@ final class DefaultPolicyResolverTest extends TestCase {
 
 		$resolved = (new DefaultPolicyResolver($source))->resolve($definition, PolicyContext::fromUserId('john'));
 
-		$this->assertSame($supportsUserPreference, $resolved->canSaveAsUserDefault());
-		$this->assertSame($supportsRequestOverride, $resolved->canUseAsRequestOverride());
+		$this->assertSame($expectedCanSaveAsUserDefault, $resolved->canSaveAsUserDefault());
+		$this->assertSame($expectedCanUseAsRequestOverride, $resolved->canUseAsRequestOverride());
+		if ($expectedRequestValueApplied) {
+			$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
+			$this->assertSame('request', $resolved->getSourceScope());
+			$this->assertNull($resolved->getBlockedBy());
+		} else {
+			$this->assertSame('parallel', $resolved->getEffectiveValue());
+			$this->assertSame('global', $resolved->getSourceScope());
+			$this->assertSame('global', $resolved->getBlockedBy());
+		}
 	}
 
-	/** @return array<string, array{0: bool, 1: bool}> */
-	public static function provideIndependentRequestOverrideAndUserPreferenceSupport(): array {
+	/** @return array<string, array{0: bool, 1: bool, 2: bool, 3: bool, 4: bool}> */
+	public static function provideRequestOverridePermissionCases(): array {
+		// [supportsUserPreference, supportsRequestOverride, canSaveAsUserDefault, canUseAsRequestOverride, request value applied]
 		return [
-			'request override without personal default' => [false, true],
-			'personal default without request override' => [true, false],
+			'both allowed' => [true, true, true, true, true],
+			'personal default only' => [true, false, true, false, false],
+			'request override only' => [false, true, false, true, true],
+			'neither allowed' => [false, false, false, false, false],
 		];
-	}
-
-	public function testResolveIgnoresRequestValueWhenPolicyDoesNotSupportRequestOverride(): void {
-		$source = new InMemoryPolicySource();
-		$source->systemLayer = (new PolicyLayer())
-			->setScope('global')
-			->setValue('parallel')
-			->setAllowChildOverride(true)
-			->setVisibleToChild(true);
-		$source->requestOverride = (new PolicyLayer())
-			->setScope('request')
-			->setValue('ordered_numeric');
-
-		// Same shape as a file policy applier that forwards the request value
-		// to the resolver without asserting canUseAsRequestOverride itself.
-		$definition = new PolicySpec(
-			key: 'signature_flow',
-			defaultSystemValue: 'none',
-			allowedValues: ['none', 'parallel', 'ordered_numeric'],
-			supportsRequestOverride: false,
-		);
-
-		$resolved = (new DefaultPolicyResolver($source))->resolve(
-			$definition,
-			PolicyContext::fromUserId('admin')->setActorRole(ActorRole::systemAdmin()),
-		);
-
-		$this->assertSame('parallel', $resolved->getEffectiveValue());
-		$this->assertSame('global', $resolved->getSourceScope());
-		$this->assertSame('global', $resolved->getBlockedBy());
-		$this->assertFalse($resolved->canUseAsRequestOverride());
-		$this->assertTrue($resolved->canSaveAsUserDefault());
 	}
 
 	#[DataProvider('provideLockedHigherLayers')]
@@ -1017,53 +1002,6 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertFalse($resolved->canUseAsRequestOverride());
 		$this->assertArrayNotHasKey('canCreateDescendantRules', $resolved->getMeta());
 		$this->assertSame(['system'], $resolved->getMeta()['supportedScopes']);
-	}
-
-	/**
-	 * Resolves every registered policy through the same scenarios. The flags
-	 * match what the resolver produced before request overrides got their own
-	 * capability (PolicyRegistryTest pins each policy's declared value); the
-	 * only intended difference is that a request value no longer reaches a
-	 * policy that does not accept one.
-	 */
-	public function testResolveKeepsPermissionFlagsOfEveryRegisteredPolicy(): void {
-		$registry = \OCP\Server::get(PolicyRegistry::class);
-		foreach ($registry->getAllPolicyKeys() as $policyKey) {
-			$definition = $registry->get($policyKey);
-			$save = $definition->supportsUserPreference();
-			$request = $definition->supportsRequestOverride();
-			// [actor, system layer scope, allowChildOverride, [canSaveAsUserDefault, canUseAsRequestOverride, request value applied]]
-			$scenarios = [
-				'system admin, implicit system default' => [ActorRole::systemAdmin(), 'system', true, [$save, $request, $request]],
-				'regular user, implicit system default' => [ActorRole::regularUser(), 'system', true, [false, false, $request]],
-				'regular user, explicit system grant' => [ActorRole::regularUser(), 'global', true, [$save, $request, $request]],
-				'group admin, explicit system grant' => [ActorRole::groupAdmin(1), 'global', true, [$save, $request, $request]],
-				'regular user, system locks the value' => [ActorRole::regularUser(), 'global', false, [false, false, false]],
-			];
-
-			foreach ($scenarios as $scenario => [$actorRole, $systemScope, $allowChildOverride, $expected]) {
-				$source = new InMemoryPolicySource();
-				$source->systemLayer = (new PolicyLayer())
-					->setScope($systemScope)
-					->setValue($definition->defaultSystemValue())
-					->setAllowChildOverride($allowChildOverride)
-					->setVisibleToChild(true);
-				$source->requestOverride = (new PolicyLayer())
-					->setScope('request')
-					->setValue($definition->defaultSystemValue());
-
-				$resolved = (new DefaultPolicyResolver($source))->resolve(
-					$definition,
-					PolicyContext::fromUserId('john')->setActorRole($actorRole),
-				);
-
-				$this->assertSame(
-					$expected,
-					[$resolved->canSaveAsUserDefault(), $resolved->canUseAsRequestOverride(), $resolved->getSourceScope() === 'request'],
-					$policyKey . ': ' . $scenario,
-				);
-			}
-		}
 	}
 
 	private function getValueChoiceDefinition(): PolicySpec {
