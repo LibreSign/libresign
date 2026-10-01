@@ -118,8 +118,8 @@ jobs:
           extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, pgsql, pdo_pgsql, imagick
           coverage: none
           ini-file: development
-          # Temporary workaround for missing pcntl_* in PHP 8.3
-          ini-values: disable_functions=
+          # PHP 8.3 function JIT (setup-php default opcache.jit=1235) corrupts OPcache SHM with first-class callables; fixed in 8.4+
+          ini-values: ${{ matrix.php-versions == '8.3' && 'disable_functions=, opcache.jit=disable' || 'disable_functions=' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
