@@ -83,6 +83,7 @@ OC.L10N.register(
     "Observer" : "Observateur",
     "Rejected" : "Rejeté",
     "Observing" : "Observateur",
+    "Not signed" : "Non signé",
     "User not found." : "Utilisateur non trouvé.",
     "Multiple DocMDP signatures detected. The first certifying signature determines the document's permission level." : "Plusieurs signatures DocMDP détectées. La première signature de certification définit le niveau d’autorisation du document.",
     "Document has not been modified after signing" : "Le document n'a pas été modifié après la signature",

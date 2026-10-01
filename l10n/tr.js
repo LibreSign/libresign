@@ -83,6 +83,7 @@ OC.L10N.register(
     "Observer" : "Gözlemci",
     "Rejected" : "Reddedildi",
     "Observing" : "Gözlüyor",
+    "Not signed" : "İmzalanmamış",
     "User not found." : "Kullanıcı bulunamadı.",
     "Multiple DocMDP signatures detected. The first certifying signature determines the document's permission level." : "Birden fazla DocMDP imzası bulundu. İlk onay imzası belgenin izin düzeyini belirler.",
     "Document has not been modified after signing" : "Belge imzalandıktan sonra değiştirilmemiş",
