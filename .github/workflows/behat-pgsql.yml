@@ -119,7 +119,8 @@ jobs:
           coverage: none
           ini-file: development
           # Required: re-enable pcntl_* functions that may be disabled via disable_functions
-          ini-values: disable_functions=
+          # PHP 8.3 function JIT (setup-php default opcache.jit=1235) corrupts OPcache SHM with first-class callables; fixed in 8.4+
+          ini-values: ${{ matrix.php-versions == '8.3' && 'disable_functions=, opcache.jit=disable' || 'disable_functions=' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
