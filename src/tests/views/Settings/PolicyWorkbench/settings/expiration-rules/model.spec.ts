@@ -110,13 +110,17 @@ describe('expiration-rules model', () => {
 		expect(normalizeNonNegativeInt('invalid', 7)).toBe(7)
 	})
 
-	it('normalizes expiration draft integers while preserving negative and decimal invalid sentinels (-1)', () => {
+	it('normalizes expiration draft integers while preserving negative, decimal, malformed, and unsafe sentinels (-1)', () => {
 		expect(normalizeExpirationDraftInt(42)).toBe(42)
 		expect(normalizeExpirationDraftInt(' 8 ')).toBe(8)
 		expect(normalizeExpirationDraftInt(-5)).toBe(-1)
 		expect(normalizeExpirationDraftInt(1.5)).toBe(-1)
 		expect(normalizeExpirationDraftInt('1.5')).toBe(-1)
-		expect(normalizeExpirationDraftInt('invalid', 7)).toBe(7)
+		expect(normalizeExpirationDraftInt('invalid')).toBe(-1)
+		expect(normalizeExpirationDraftInt(Number.MAX_SAFE_INTEGER + 1)).toBe(-1)
+		expect(normalizeExpirationDraftInt(null)).toBe(0)
+		expect(normalizeExpirationDraftInt(undefined)).toBe(0)
+		expect(normalizeExpirationDraftInt('')).toBe(0)
 	})
 
 	it('normalizes positive integers with fallback when values are disabled or invalid', () => {
@@ -158,6 +162,26 @@ describe('expiration-rules model', () => {
 		expect(hasValidRequestExpirationCombination({ maximumValidity: -1, renewalInterval: -1 })).toBe(false)
 		expect(hasValidRequestExpirationCombination({ maximumValidity: 1.5, renewalInterval: 0 })).toBe(false)
 		expect(hasValidRequestExpirationCombination({ maximumValidity: 60, renewalInterval: 1.5 })).toBe(false)
+
+		expect(hasValidRequestExpirationCombination({
+			maximumValidity: 'invalid',
+			renewalInterval: 0,
+		} as never)).toBe(false)
+
+		expect(hasValidRequestExpirationCombination({
+			maximumValidity: Number.MAX_SAFE_INTEGER + 1,
+			renewalInterval: 0,
+		} as never)).toBe(false)
+
+		expect(hasValidRequestExpirationCombination({
+			maximumValidity: 60,
+			renewalInterval: 'invalid',
+		} as never)).toBe(false)
+
+		expect(hasValidRequestExpirationCombination({
+			maximumValidity: 60,
+			renewalInterval: Number.MAX_SAFE_INTEGER + 1,
+		} as never)).toBe(false)
 	})
 
 	it('summarizes normalized expiration and renewal values with disabled labels', () => {

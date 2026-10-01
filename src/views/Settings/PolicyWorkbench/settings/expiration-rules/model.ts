@@ -102,16 +102,13 @@ export function normalizeNonNegativeInt(value: EffectivePolicyValue, fallback = 
 	return Math.max(0, parsed)
 }
 
-export function normalizeExpirationDraftInt(value: EffectivePolicyValue, fallback = 0): number {
+export function normalizeExpirationDraftInt(value: unknown, fallback = 0): number {
 	if (value === null || value === undefined) {
 		return fallback
 	}
 
 	if (typeof value === 'number') {
-		if (!Number.isFinite(value) || !Number.isSafeInteger(Math.trunc(value))) {
-			return fallback
-		}
-		if (!Number.isInteger(value) || value < 0) {
+		if (!Number.isFinite(value) || !Number.isInteger(value) || !Number.isSafeInteger(value) || value < 0) {
 			return -1
 		}
 		return value
@@ -122,23 +119,17 @@ export function normalizeExpirationDraftInt(value: EffectivePolicyValue, fallbac
 		if (trimmed === '') {
 			return fallback
 		}
-		if (/^-?\d+\.\d+$/.test(trimmed)) {
-			return -1
-		}
-		if (/^-?\d+$/.test(trimmed)) {
+		if (/^\d+$/.test(trimmed)) {
 			const parsed = Number(trimmed)
 			if (!Number.isSafeInteger(parsed)) {
-				return fallback
-			}
-			if (parsed < 0) {
 				return -1
 			}
 			return parsed
 		}
-		return fallback
+		return -1
 	}
 
-	return fallback
+	return -1
 }
 
 export function normalizePositiveInt(value: EffectivePolicyValue, fallback: number): number {
