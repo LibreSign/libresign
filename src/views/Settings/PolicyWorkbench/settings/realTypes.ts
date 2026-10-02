@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { EffectivePolicyState, EffectivePolicyValue } from '../../../../types/index'
+import type { CompoundPolicyWriteValues, EffectivePolicyState, EffectivePolicyValue } from '../../../../types/index'
 
 export type { EffectivePolicyState, EffectivePolicyValue }
 
@@ -37,6 +37,17 @@ export interface RealPolicyPersonalPreferenceBehavior {
 	clearPreference?: (context: RealPolicyPersonalPreferenceContext) => Promise<void>
 }
 
+export interface RealPolicyCompoundBehavior {
+	compose: (valuesByPolicyKey: Record<string, EffectivePolicyValue | undefined>) => EffectivePolicyValue
+	decompose: (editorValue: EffectivePolicyValue) => CompoundPolicyWriteValues
+	/**
+	 * When false, group and user rules that only exist on a child policy are ignored,
+	 * and the system rule requires a value on the parent policy.
+	 * Use it when a child is also a standalone setting. Defaults to true.
+	 */
+	includeChildOnlyRules?: boolean
+}
+
 export interface RealPolicyAllowOverrideContext {
 	scope: RealPolicyScope
 	editorMode: 'create' | 'edit' | null
@@ -61,6 +72,7 @@ export interface RealPolicySettingDefinition {
 	supportedScopes?: ReadonlyArray<RealPolicyScope>
 	groupAdminBehavior?: RealPolicyGroupAdminBehavior
 	personalPreferenceBehavior?: RealPolicyPersonalPreferenceBehavior
+	compound?: RealPolicyCompoundBehavior
 	editor: unknown
 	editorProps?: Record<string, unknown>
 	resolveEditorProps?: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => Record<string, unknown>
@@ -84,3 +96,4 @@ export interface RealPolicySettingDefinition {
 	summarizeValue: (value: EffectivePolicyValue) => string
 	formatAllowOverride: (allowChildOverride: boolean) => string
 }
+
