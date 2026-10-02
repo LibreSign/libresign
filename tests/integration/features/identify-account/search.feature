@@ -128,7 +128,7 @@ Feature: search
     And user "notification-enabled" exists
     And set the email of user "notification-enabled" to "enabled@test.com"
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
-    And run the command "user:setting notification-enabled activity notify_email_libresign_file_to_sign 1" with result code 0
+    And activity preference "notify_email_libresign_file_to_sign" for user "notification-enabled" is set to "1"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string){"factors":[{"name":"account","enabled":true}]} |
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=notification-enabled"
@@ -145,7 +145,7 @@ Feature: search
     And user "notification-disabled" exists
     And set the email of user "notification-disabled" to "disabled@test.com"
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
-    And run the command "user:setting notification-disabled activity notify_email_libresign_file_to_sign 0" with result code 0
+    And activity preference "notify_email_libresign_file_to_sign" for user "notification-disabled" is set to "0"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string){"factors":[{"name":"account","enabled":true}]} |
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=notification-disabled"
@@ -162,7 +162,7 @@ Feature: search
     And user "notification-global-off" exists
     And set the email of user "notification-global-off" to "globaloff@test.com"
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=0" with result code 0
-    And run the command "user:setting notification-global-off activity notify_email_libresign_file_to_sign 1" with result code 0
+    And activity preference "notify_email_libresign_file_to_sign" for user "notification-global-off" is set to "1"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string){"factors":[{"name":"account","enabled":true}]} |
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=notification-global-off"
