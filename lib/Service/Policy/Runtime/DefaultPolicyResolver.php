@@ -138,9 +138,28 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			}
 		}
 
+		$canActorOverrideBelowUserScope = $definition->supportsScope(PolicySpec::SCOPE_USER)
+			&& $visible
+			&& $canOverrideBelow
+			&& (
+				$currentActorCanManageSystemPolicies
+				|| $isSystemExplicitlyGrantedForDescendantRules
+				|| $hasConfiguredGroupLayer
+			);
+		$canUseAsRequestOverride = $canActorOverrideBelowUserScope && $definition->supportsRequestOverride();
+
 		$requestOverride = $this->source->loadRequestOverride($policyKey, $context);
 		if ($requestOverride !== null) {
-			if ($this->canApplyLowerLayer($definition, $resolved, $requestOverride, $canOverrideBelow, $visible, $context)) {
+			// Checked here, not only by the file policy appliers. A value the current
+			// actor submits needs the actor's permission; a value the document stored
+			// earlier was authorized when it was submitted, so replaying it does not
+			// depend on who resolves it now.
+			$isRequestOverrideAuthorized = $context->isStoredRequestOverride($policyKey)
+				? $definition->supportsRequestOverride()
+				: $canUseAsRequestOverride;
+			if ($isRequestOverrideAuthorized
+				&& $this->canApplyLowerLayer($definition, $resolved, $requestOverride, $canOverrideBelow, $visible, $context)
+			) {
 				$currentValue = $definition->normalizeValue($requestOverride->getValue());
 				$definition->validateValue($currentValue, $context);
 				$currentSourceScope = $requestOverride->getScope();
@@ -166,16 +185,6 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 				)
 			);
 
-		$canPersistUserPreference = $definition->supportsScope(PolicySpec::SCOPE_USER)
-			&& $visible
-			&& $canOverrideBelow
-			&& $definition->supportsUserPreference()
-			&& (
-				$currentActorCanManageSystemPolicies
-				|| $isSystemExplicitlyGrantedForDescendantRules
-				|| $hasConfiguredGroupLayer
-			);
-
 		$resolved
 			->setMeta($this->buildResolvedStateMeta($definition, $context, $canCreateDescendantRules))
 			->setEffectiveValue($currentValue)
@@ -187,8 +196,8 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 				&& $definition->supportsScope(PolicySpec::SCOPE_GROUP)
 				&& $definition->canCurrentActorManageGroupPolicy($context, $systemLayer, $groupLayers)
 			)
-			->setCanSaveAsUserDefault($canPersistUserPreference)
-			->setCanUseAsRequestOverride($canPersistUserPreference)
+			->setCanSaveAsUserDefault($canActorOverrideBelowUserScope && $definition->supportsUserPreference())
+			->setCanUseAsRequestOverride($canUseAsRequestOverride)
 			->setBlockedBy($currentBlockedBy);
 
 		return $resolved;

@@ -43,6 +43,7 @@ final class PolicySpec implements IPolicyDefinition {
 
 	/**
 	 * @param list<mixed>|Closure(PolicyContext): list<mixed> $allowedValues
+	 * @param bool $supportsRequestOverride No default on purpose: every policy decides it, independently of $supportsUserPreference
 	 * @param Closure(mixed): mixed|null $normalizer
 	 * @param Closure(mixed, PolicyContext): void|null $validator
 	 * @param Closure(mixed, PolicyContext): void|null $persistenceValidator Extra checks applied only when a value is saved
@@ -59,6 +60,7 @@ final class PolicySpec implements IPolicyDefinition {
 		private string $key,
 		private mixed $defaultSystemValue,
 		array|Closure $allowedValues,
+		private bool $supportsRequestOverride,
 		?Closure $normalizer = null,
 		?Closure $validator = null,
 		private ?string $appConfigKey = null,
@@ -210,6 +212,11 @@ final class PolicySpec implements IPolicyDefinition {
 	#[\Override]
 	public function supportsUserPreference(): bool {
 		return $this->supportsUserPreference;
+	}
+
+	#[\Override]
+	public function supportsRequestOverride(): bool {
+		return $this->supportsRequestOverride;
 	}
 
 	#[\Override]

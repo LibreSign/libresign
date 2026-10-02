@@ -57,4 +57,16 @@ final class PolicyContextTest extends TestCase {
 		$this->assertSame('john', $context->getUserId());
 		$this->assertSame([], $context->getGroups());
 	}
+
+	public function testStoredRequestOverridesAreKeptApartFromSubmittedOnes(): void {
+		$context = (new PolicyContext())
+			->setStoredRequestOverrides(['add_footer' => '{"enabled":false}', 'signature_flow' => 'parallel'])
+			->setRequestOverrides(['signature_flow' => 'ordered_numeric']);
+
+		$this->assertSame(['add_footer' => '{"enabled":false}', 'signature_flow' => 'parallel'], $context->getStoredRequestOverrides());
+		$this->assertSame(['signature_flow' => 'ordered_numeric'], $context->getRequestOverrides());
+		$this->assertTrue($context->isStoredRequestOverride('add_footer'));
+		$this->assertFalse($context->isStoredRequestOverride('signature_flow'));
+		$this->assertFalse($context->isStoredRequestOverride('docmdp'));
+	}
 }

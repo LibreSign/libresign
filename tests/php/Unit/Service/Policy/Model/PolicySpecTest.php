@@ -19,6 +19,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'signature_flow',
 			defaultSystemValue: ['default' => 'none'],
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			supportsRequestOverride: true,
 		);
 
 		$this->assertSame('signature_flow', $spec->key());
@@ -30,11 +31,13 @@ final class PolicySpecTest extends TestCase {
 			key: 'signature_flow',
 			defaultSystemValue: 'none',
 			allowedValues: [],
+			supportsRequestOverride: true,
 		);
 		$contextAwareSpec = new PolicySpec(
 			key: 'signature_flow',
 			defaultSystemValue: 'none',
 			allowedValues: [],
+			supportsRequestOverride: true,
 			resolvedStateMeta: static fn (PolicyContext $context): array => [
 				'defaultSystemValue' => 'canonical-' . $context->getUserId(),
 			],
@@ -52,6 +55,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'signature_flow',
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			supportsRequestOverride: true,
 		);
 
 		$this->assertSame(PolicySpec::RESOLUTION_MODE_RESOLVED, $spec->resolutionMode());
@@ -65,6 +69,7 @@ final class PolicySpecTest extends TestCase {
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
 			appConfigKey: 'configured.signature_flow',
+			supportsRequestOverride: true,
 		);
 
 		$this->assertSame('configured.signature_flow', $spec->getAppConfigKey());
@@ -77,6 +82,7 @@ final class PolicySpecTest extends TestCase {
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
 			resolutionMode: PolicySpec::RESOLUTION_MODE_VALUE_CHOICE,
+			supportsRequestOverride: true,
 		);
 
 		$this->assertSame(PolicySpec::RESOLUTION_MODE_VALUE_CHOICE, $spec->resolutionMode());
@@ -87,6 +93,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'signature_flow',
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			supportsRequestOverride: true,
 		);
 
 		$this->assertSame(['system', 'group', 'user'], $spec->supportedScopes());
@@ -101,6 +108,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'signing_mode',
 			defaultSystemValue: 'sync',
 			allowedValues: ['sync', 'async'],
+			supportsRequestOverride: true,
 			supportedScopes: [PolicySpec::SCOPE_SYSTEM],
 		);
 
@@ -115,6 +123,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'signature_flow',
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			supportsRequestOverride: true,
 		);
 
 		$this->assertFalse($spec->isBackendOnly());
@@ -128,6 +137,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'worker_config',
 			defaultSystemValue: '{}',
 			allowedValues: [],
+			supportsRequestOverride: true,
 			helper: true,
 			parentPolicyKey: 'signing_mode',
 			compositeChildren: ['child_a', 'child_b'],
@@ -146,6 +156,7 @@ final class PolicySpecTest extends TestCase {
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
 			normalizer: static fn (mixed $value): mixed => $value === 2 ? 'ordered_numeric' : $value,
+			supportsRequestOverride: true,
 		);
 
 		$this->assertSame('ordered_numeric', $spec->normalizeValue(2));
@@ -161,6 +172,7 @@ final class PolicySpecTest extends TestCase {
 			allowedValues: static fn (PolicyContext $context): array => $context->getUserId() === 'john'
 				? ['parallel']
 				: ['none'],
+			supportsRequestOverride: true,
 		);
 
 		$this->assertSame(['parallel'], $spec->allowedValues(PolicyContext::fromUserId('john')));
@@ -173,6 +185,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'signature_flow',
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			supportsRequestOverride: true,
 		);
 
 		$this->assertSame($rawValue, $spec->normalizeValue($rawValue));
@@ -183,6 +196,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'signature_flow',
 			defaultSystemValue: 'none',
 			allowedValues: static fn (PolicyContext $context): array => $context->getUserId() === 'john' ? ['parallel'] : ['none'],
+			supportsRequestOverride: true,
 		);
 
 		$spec->validateValue('parallel', PolicyContext::fromUserId('john'));
@@ -197,6 +211,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'unconstrained_setting',
 			defaultSystemValue: '',
 			allowedValues: [],
+			supportsRequestOverride: true,
 		);
 
 		$spec->validateValue($value, new PolicyContext());
@@ -210,6 +225,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'enum_setting',
 			defaultSystemValue: 'default',
 			allowedValues: ['default', 'graphic', 'text'],
+			supportsRequestOverride: true,
 		);
 
 		if ($shouldThrow) {
@@ -234,6 +250,7 @@ final class PolicySpecTest extends TestCase {
 				self::assertSame('not-in-allowed-values', $value);
 				self::assertSame('john', $context->getUserId());
 			},
+			supportsRequestOverride: true,
 		);
 
 		$spec->validateValue('not-in-allowed-values', PolicyContext::fromUserId('john'));
@@ -249,6 +266,7 @@ final class PolicySpecTest extends TestCase {
 			validator: static function (mixed $value, PolicyContext $context): void {
 				throw new \DomainException('custom validation failed');
 			},
+			supportsRequestOverride: true,
 		);
 
 		$this->expectException(\DomainException::class);
@@ -262,6 +280,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'signature_flow',
 			defaultSystemValue: 'none',
 			allowedValues: [],
+			supportsRequestOverride: true,
 		);
 
 		$this->assertTrue($spec->$method());
@@ -283,30 +302,34 @@ final class PolicySpecTest extends TestCase {
 	public static function provideSupportFlagsDisabled(): array {
 		return [
 			'user preference' => [
-				new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: [], supportsUserPreference: false),
+				new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: [], supportsUserPreference: false, supportsRequestOverride: true),
 				'supportsUserPreference',
 			],
 			'group admin delegation' => [
-				new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: [], supportsGroupAdminDelegation: false),
+				new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: [], supportsRequestOverride: true, supportsGroupAdminDelegation: false),
 				'supportsGroupAdminDelegation',
+			],
+			'request override' => [
+				new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: [], supportsRequestOverride: false),
+				'supportsRequestOverride',
 			],
 		];
 	}
 
 	public function testSupportsGroupAdminDelegationDefaultsToFalse(): void {
-		$spec = new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: []);
+		$spec = new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: [], supportsRequestOverride: true);
 
 		$this->assertFalse($spec->supportsGroupAdminDelegation(), 'policies must opt-in to group-admin delegation');
 	}
 
 	public function testSupportsGroupAdminDelegationCanBeEnabled(): void {
-		$spec = new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: [], supportsGroupAdminDelegation: true);
+		$spec = new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: [], supportsRequestOverride: true, supportsGroupAdminDelegation: true);
 
 		$this->assertTrue($spec->supportsGroupAdminDelegation());
 	}
 
 	public function testValidateGroupAdminDelegatedValueIsNoOpByDefault(): void {
-		$spec = new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: []);
+		$spec = new PolicySpec(key: 'x', defaultSystemValue: 'none', allowedValues: [], supportsRequestOverride: true);
 
 		$spec->validateGroupAdminDelegatedValue('proposed', 'seed', new PolicyContext());
 
@@ -319,6 +342,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'x',
 			defaultSystemValue: 'none',
 			allowedValues: [],
+			supportsRequestOverride: true,
 			supportsGroupAdminDelegation: true,
 			delegatedValueValidator: static function (mixed $proposed, mixed $seed, PolicyContext $context) use (&$called): void {
 				$called = true;
@@ -337,6 +361,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'x',
 			defaultSystemValue: 'none',
 			allowedValues: [],
+			supportsRequestOverride: true,
 			supportsGroupAdminDelegation: true,
 			delegatedValueValidator: static function (): void {
 				throw new \DomainException('delegation rule violated');
@@ -390,6 +415,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'signature_flow',
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel'],
+			supportsRequestOverride: true,
 		);
 
 		$spec->validateValueForPersistence('parallel', new PolicyContext());
@@ -406,6 +432,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'mail_sender_strategy',
 			defaultSystemValue: 'system',
 			allowedValues: ['system', 'requester'],
+			supportsRequestOverride: true,
 			persistenceValidator: static function (mixed $value, PolicyContext $context) use (&$persistenceChecks): void {
 				$persistenceChecks[] = [$value, $context->getUserId()];
 				if ($value === 'requester') {
@@ -431,6 +458,7 @@ final class PolicySpecTest extends TestCase {
 			key: 'mail_sender_strategy',
 			defaultSystemValue: 'system',
 			allowedValues: ['system', 'requester'],
+			supportsRequestOverride: true,
 			persistenceValidator: static fn (mixed $value, PolicyContext $context): null => null,
 		);
 

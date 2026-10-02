@@ -120,6 +120,203 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertNull($resolved->getBlockedBy());
 	}
 
+	#[DataProvider('provideRequestOverridePermissionCases')]
+	public function testResolveDecidesRequestOverrideIndependentlyFromUserDefault(
+		bool $supportsUserPreference,
+		bool $supportsRequestOverride,
+		bool $expectedCanSaveAsUserDefault,
+		bool $expectedCanUseAsRequestOverride,
+		bool $expectedRequestValueApplied,
+	): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('global')
+			->setValue('parallel')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->requestOverride = (new PolicyLayer())
+			->setScope('request')
+			->setValue('ordered_numeric');
+
+		$definition = new PolicySpec(
+			key: 'signature_flow',
+			defaultSystemValue: 'none',
+			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			supportsUserPreference: $supportsUserPreference,
+			supportsRequestOverride: $supportsRequestOverride,
+		);
+
+		$resolved = (new DefaultPolicyResolver($source))->resolve($definition, PolicyContext::fromUserId('john'));
+
+		$this->assertSame($expectedCanSaveAsUserDefault, $resolved->canSaveAsUserDefault());
+		$this->assertSame($expectedCanUseAsRequestOverride, $resolved->canUseAsRequestOverride());
+		if ($expectedRequestValueApplied) {
+			$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
+			$this->assertSame('request', $resolved->getSourceScope());
+			$this->assertNull($resolved->getBlockedBy());
+		} else {
+			$this->assertSame('parallel', $resolved->getEffectiveValue());
+			$this->assertSame('global', $resolved->getSourceScope());
+			$this->assertSame('global', $resolved->getBlockedBy());
+		}
+	}
+
+	/** @return array<string, array{0: bool, 1: bool, 2: bool, 3: bool, 4: bool}> */
+	public static function provideRequestOverridePermissionCases(): array {
+		// [supportsUserPreference, supportsRequestOverride, canSaveAsUserDefault, canUseAsRequestOverride, request value applied]
+		return [
+			'both allowed' => [true, true, true, true, true],
+			'personal default only' => [true, false, true, false, false],
+			'request override only' => [false, true, false, true, true],
+			'neither allowed' => [false, false, false, false, false],
+		];
+	}
+
+	public function testResolveIgnoresRequestValueSubmittedByActorWithoutRequestOverridePermission(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue('none')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->requestOverride = (new PolicyLayer())
+			->setScope('request')
+			->setValue('ordered_numeric');
+
+		$resolved = (new DefaultPolicyResolver($source))->resolve(
+			$this->getRequestOverridableDefinition(),
+			PolicyContext::fromUserId('john')->setRequestOverrides(['signature_flow' => 'ordered_numeric']),
+		);
+
+		$this->assertFalse($resolved->canUseAsRequestOverride());
+		$this->assertSame('none', $resolved->getEffectiveValue());
+		$this->assertSame('system', $resolved->getSourceScope());
+		$this->assertSame('system', $resolved->getBlockedBy());
+	}
+
+	#[DataProvider('provideStoredRequestValueReplays')]
+	public function testResolveReplaysStoredRequestValueWithoutActorRequestOverridePermission(
+		PolicyLayer $systemLayer,
+		string $expectedValue,
+		string $expectedSourceScope,
+	): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = $systemLayer;
+		$source->requestOverride = (new PolicyLayer())
+			->setScope('request')
+			->setValue('ordered_numeric');
+
+		$resolved = (new DefaultPolicyResolver($source))->resolve(
+			$this->getRequestOverridableDefinition(),
+			PolicyContext::fromUserId('signer')->setStoredRequestOverrides(['signature_flow' => 'ordered_numeric']),
+		);
+
+		$this->assertFalse($resolved->canUseAsRequestOverride());
+		$this->assertSame($expectedValue, $resolved->getEffectiveValue());
+		$this->assertSame($expectedSourceScope, $resolved->getSourceScope());
+	}
+
+	/** @return array<string, array{0: PolicyLayer, 1: string, 2: string}> */
+	public static function provideStoredRequestValueReplays(): array {
+		return [
+			'implicit system default' => [
+				(new PolicyLayer())
+					->setScope('system')
+					->setValue('none')
+					->setAllowChildOverride(true)
+					->setVisibleToChild(true),
+				'ordered_numeric',
+				'request',
+			],
+			'system locks the value' => [
+				(new PolicyLayer())
+					->setScope('global')
+					->setValue('parallel')
+					->setAllowChildOverride(false)
+					->setVisibleToChild(true),
+				'parallel',
+				'global',
+			],
+		];
+	}
+
+	private function getRequestOverridableDefinition(): PolicySpec {
+		return new PolicySpec(
+			key: 'signature_flow',
+			defaultSystemValue: 'none',
+			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			supportsUserPreference: true,
+			supportsRequestOverride: true,
+		);
+	}
+
+	#[DataProvider('provideLockedHigherLayers')]
+	public function testResolveRequestValueCannotBypassLockedHigherLayer(
+		PolicyLayer $systemLayer,
+		array $groupLayers,
+		string $expectedValue,
+		string $expectedBlockedBy,
+	): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = $systemLayer;
+		$source->groupLayers = $groupLayers;
+		$source->requestOverride = (new PolicyLayer())
+			->setScope('request')
+			->setValue('ordered_numeric');
+
+		$resolved = (new DefaultPolicyResolver($source))->resolve(
+			$this->getDefinition(),
+			PolicyContext::fromUserId('admin')->setActorRole(ActorRole::systemAdmin()),
+		);
+
+		$this->assertSame($expectedValue, $resolved->getEffectiveValue());
+		$this->assertSame($expectedBlockedBy, $resolved->getBlockedBy());
+		$this->assertFalse($resolved->canUseAsRequestOverride());
+	}
+
+	/** @return array<string, array{0: PolicyLayer, 1: list<PolicyLayer>, 2: string, 3: string}> */
+	public static function provideLockedHigherLayers(): array {
+		return [
+			'system locks the value' => [
+				(new PolicyLayer())
+					->setScope('global')
+					->setValue('parallel')
+					->setAllowChildOverride(false)
+					->setVisibleToChild(true)
+					->setAllowedValues(['parallel']),
+				[],
+				'parallel',
+				'global',
+			],
+			'group locks the value below an open system' => [
+				(new PolicyLayer())
+					->setScope('global')
+					->setValue('none')
+					->setAllowChildOverride(true)
+					->setVisibleToChild(true),
+				[
+					(new PolicyLayer())
+						->setScope('group')
+						->setValue('parallel')
+						->setAllowChildOverride(false)
+						->setVisibleToChild(true),
+				],
+				'parallel',
+				'group',
+			],
+			'system hides the policy from lower layers' => [
+				(new PolicyLayer())
+					->setScope('global')
+					->setValue('parallel')
+					->setAllowChildOverride(true)
+					->setVisibleToChild(false),
+				[],
+				'parallel',
+				'global',
+			],
+		];
+	}
+
 	public function testResolveValueChoiceUnionsConflictingGroupValues(): void {
 		$source = new InMemoryPolicySource();
 		$source->systemLayer = (new PolicyLayer())
@@ -482,6 +679,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			key: 'signature_flow',
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			supportsRequestOverride: true,
 		);
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -611,8 +809,8 @@ final class DefaultPolicyResolverTest extends TestCase {
 
 		// Both definitions share the same allowed value set so the group layer applies to both
 		$definitions = [
-			new PolicySpec(key: 'signature_flow', defaultSystemValue: 'none', allowedValues: ['none', 'parallel', 'ordered_numeric']),
-			new PolicySpec(key: 'alt_policy', defaultSystemValue: 'none', allowedValues: ['none', 'parallel', 'ordered_numeric']),
+			new PolicySpec(key: 'signature_flow', defaultSystemValue: 'none', allowedValues: ['none', 'parallel', 'ordered_numeric'], supportsRequestOverride: true),
+			new PolicySpec(key: 'alt_policy', defaultSystemValue: 'none', allowedValues: ['none', 'parallel', 'ordered_numeric'], supportsRequestOverride: true),
 		];
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -631,6 +829,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			key: 'signature_flow',
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			supportsRequestOverride: true,
 		);
 	}
 
@@ -651,6 +850,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'strict'],
 			supportsUserPreference: false,
+			supportsRequestOverride: false,
 		);
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -677,6 +877,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'strict'],
 			supportsUserPreference: false,
+			supportsRequestOverride: false,
 		);
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -701,6 +902,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'strict'],
 			supportsUserPreference: false,
+			supportsRequestOverride: false,
 		);
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -733,6 +935,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
 			supportsUserPreference: $supportsUserPreference,
+			supportsRequestOverride: $supportsUserPreference,
 		);
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -817,6 +1020,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
 			supportsUserPreference: true,
+			supportsRequestOverride: true,
 		);
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -833,6 +1037,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			key: 'signature_stamp',
 			defaultSystemValue: 'none',
 			allowedValues: [],
+			supportsRequestOverride: true,
 			resolvedStateMeta: static fn (PolicyContext $context): array => [
 				'defaultSystemValue' => 'canonical-' . $context->getUserId(),
 			],
@@ -863,6 +1068,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			defaultSystemValue: 'sync',
 			allowedValues: ['sync', 'async'],
 			supportsUserPreference: false,
+			supportsRequestOverride: false,
 			supportedScopes: [PolicySpec::SCOPE_SYSTEM],
 		);
 
@@ -882,6 +1088,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
 			resolutionMode: PolicySpec::RESOLUTION_MODE_VALUE_CHOICE,
+			supportsRequestOverride: true,
 		);
 	}
 

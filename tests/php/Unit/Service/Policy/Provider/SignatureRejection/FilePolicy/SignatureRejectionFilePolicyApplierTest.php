@@ -55,37 +55,40 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 	/**
 	 * Answer like the policy resolver does: the administrative value of each
 	 * setting, replaced by the requested one when the layers above allow that
-	 * setting to be chosen per request.
+	 * setting to be chosen per request. Updating an existing request also
+	 * replays the choices it already stores, which resolve the same way.
 	 *
 	 * @param array<string, mixed> $administrative
 	 * @param list<string> $choosableKeys
 	 */
 	private function stubResolution(string $method, array $administrative, array $choosableKeys = SignatureRejectionPolicy::ALL_KEYS): void {
 		$defaults = SignatureRejectionPolicyConfig::defaults()->toKeyedValues();
+		$resolve = static function (
+			string $policyKey,
+			mixed $owner = null,
+			array $requestOverrides = [],
+			?array $activeContext = null,
+		) use ($administrative, $choosableKeys, $defaults): ResolvedPolicy {
+			$value = $administrative[$policyKey] ?? $defaults[$policyKey];
+			$sourceScope = $activeContext === null ? 'system' : 'group';
 
-		$this->policyService
-			->method($method)
-			->willReturnCallback(static function (
-				string $policyKey,
-				mixed $owner = null,
-				array $requestOverrides = [],
-				?array $activeContext = null,
-			) use ($administrative, $choosableKeys, $defaults): ResolvedPolicy {
-				$value = $administrative[$policyKey] ?? $defaults[$policyKey];
-				$sourceScope = $activeContext === null ? 'system' : 'group';
+			if (array_key_exists($policyKey, $requestOverrides) && in_array($policyKey, $choosableKeys, true)) {
+				$value = $requestOverrides[$policyKey];
+				$sourceScope = 'request';
+			}
 
-				if (array_key_exists($policyKey, $requestOverrides) && in_array($policyKey, $choosableKeys, true)) {
-					$value = $requestOverrides[$policyKey];
-					$sourceScope = 'request';
-				}
+			return (new ResolvedPolicy())
+				->setPolicyKey($policyKey)
+				->setEffectiveValue(SignatureRejectionPolicyConfig::normalizeKeyedValue($policyKey, $value))
+				->setSourceScope($sourceScope)
+				->setCanUseAsRequestOverride(in_array($policyKey, $choosableKeys, true))
+				->setBlockedBy(in_array($policyKey, $choosableKeys, true) ? null : 'system');
+		};
 
-				return (new ResolvedPolicy())
-					->setPolicyKey($policyKey)
-					->setEffectiveValue(SignatureRejectionPolicyConfig::normalizeKeyedValue($policyKey, $value))
-					->setSourceScope($sourceScope)
-					->setCanUseAsRequestOverride(in_array($policyKey, $choosableKeys, true))
-					->setBlockedBy(in_array($policyKey, $choosableKeys, true) ? null : 'system');
-			});
+		$this->policyService->method($method)->willReturnCallback($resolve);
+		if ($method === 'resolveForUserId') {
+			$this->policyService->method('resolveForUserIdWithStoredRequestOverrides')->willReturnCallback($resolve);
+		}
 	}
 
 	/** @param array<string, mixed> $storedValues */
@@ -293,6 +296,50 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		$this->assertSame('required', $storedValues[SignatureRejectionPolicy::KEY_COMMENT_MODE]);
 	}
 
+	public function testADraftReplaysStoredChoicesAndSubmitsOnlyTheOnesSentAgain(): void {
+		$file = $this->createFile(
+			FileStatus::DRAFT->value,
+			[
+				SignatureRejectionPolicy::KEY_ENABLED => true,
+				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+			],
+			'request',
+		);
+		$storedValues = $this->storedValuesOf($file);
+		$replayed = [];
+		$this->policyService
+			->expects($this->exactly(4))
+			->method('resolveForUserIdWithStoredRequestOverrides')
+			->willReturnCallback(function (string $policyKey, ?string $userId, array $storedChoice) use (&$replayed): ResolvedPolicy {
+				$replayed[$policyKey] = $storedChoice;
+				return (new ResolvedPolicy())
+					->setPolicyKey($policyKey)
+					->setEffectiveValue($storedChoice[$policyKey])
+					->setSourceScope('request');
+			});
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUserId')
+			->with(SignatureRejectionPolicy::KEY_COMMENT_MODE, 'requester', [SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional'])
+			->willReturn((new ResolvedPolicy())
+				->setPolicyKey(SignatureRejectionPolicy::KEY_COMMENT_MODE)
+				->setEffectiveValue('optional')
+				->setSourceScope('request'));
+
+		$this->getApplier()->sync($file, [
+			'policyOverrides' => [SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional'],
+		]);
+
+		$expectedReplays = [];
+		foreach (SignatureRejectionPolicy::ALL_KEYS as $policyKey) {
+			if ($policyKey !== SignatureRejectionPolicy::KEY_COMMENT_MODE) {
+				$expectedReplays[$policyKey] = [$policyKey => $storedValues[$policyKey]];
+			}
+		}
+		$this->assertSame($expectedReplays, $replayed);
+		$this->assertSame('optional', $this->storedValuesOf($file)[SignatureRejectionPolicy::KEY_COMMENT_MODE]);
+	}
+
 	public function testADraftIsRevalidatedAgainstTheCurrentAdministratorPolicy(): void {
 		// The requester asked for a required comment while the draft was created;
 		// the administrator has since taken that choice away.
@@ -381,6 +428,7 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		]);
 
 		$this->policyService->expects($this->never())->method('resolveForUserId');
+		$this->policyService->expects($this->never())->method('resolveForUserIdWithStoredRequestOverrides');
 		$this->fileService->expects($this->never())->method('update');
 
 		$this->getApplier()->sync($file, []);
@@ -450,6 +498,7 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 
 		$this->fileService->expects($this->never())->method('update');
 		$this->policyService->expects($this->never())->method('resolveForUserId');
+		$this->policyService->expects($this->never())->method('resolveForUserIdWithStoredRequestOverrides');
 
 		$this->getApplier()->sync($file, [
 			'policyOverrides' => [
@@ -481,6 +530,7 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		$envelope = $this->createEnvelope($envelopeStatus);
 
 		$this->policyService->expects($this->never())->method('resolveForUserId');
+		$this->policyService->expects($this->never())->method('resolveForUserIdWithStoredRequestOverrides');
 		$this->policyService->expects($this->never())->method('resolveForUser');
 		$this->fileService->expects($this->never())->method('update');
 

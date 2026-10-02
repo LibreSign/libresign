@@ -83,6 +83,13 @@ interface IPolicyDefinition {
 	public function supportsUserPreference(): bool;
 
 	/**
+	 * Whether a signature request may carry its own value for this policy.
+	 * Decided independently of supportsUserPreference(): a value accepted for
+	 * one request is not necessarily one the user may save as a personal default.
+	 */
+	public function supportsRequestOverride(): bool;
+
+	/**
 	 * Whether group-level rules for this policy should be filtered from counts and listings
 	 * for the current non-system actor when they were created by a system administrator.
 	 */

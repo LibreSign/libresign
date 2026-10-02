@@ -48,6 +48,7 @@ final class SignerIpGeolocationPolicy implements IPolicyDefinitionProvider {
 					}
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
+				supportsRequestOverride: true,
 				supportedScopes: [
 					PolicySpec::SCOPE_SYSTEM,
 					PolicySpec::SCOPE_GROUP,

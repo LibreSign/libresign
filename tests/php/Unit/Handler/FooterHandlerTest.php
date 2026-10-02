@@ -43,7 +43,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->policyService
-			->method('resolve')
+			->method('resolveWithStoredRequestOverrides')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				$value = match ($policyKey) {
 					FooterPolicy::KEY => $this->footerPolicyValue,
@@ -97,6 +97,26 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->setTemplateVar('uuid', 'test-uuid')
 			->getFooter($dimensions);
 		$this->assertEmpty($actual);
+	}
+
+	public function testStoredFooterPolicyIsReplayedInsteadOfSubmitted(): void {
+		$storedFooter = FooterPolicyValue::encode(['enabled' => false]);
+		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyService->expects($this->never())->method('resolve');
+		$this->policyService
+			->expects($this->once())
+			->method('resolveWithStoredRequestOverrides')
+			->with(FooterPolicy::KEY, [FooterPolicy::KEY => $storedFooter])
+			->willReturn((new ResolvedPolicy())
+				->setPolicyKey(FooterPolicy::KEY)
+				->setEffectiveValue($storedFooter));
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID);
+
+		$actual = $this->getClass()
+			->setStoredRequestPolicyOverrides([FooterPolicy::KEY => $storedFooter])
+			->getEffectiveFooterPolicyAsJson();
+
+		$this->assertSame($storedFooter, $actual);
 	}
 
 	#[DataProvider('dataGetFooterWithSuccess')]

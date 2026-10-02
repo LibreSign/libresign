@@ -1735,6 +1735,20 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame('ordered_numeric', $layer->getValue());
 	}
 
+	public function testLoadRequestOverridePrefersSubmittedValueOverStoredValue(): void {
+		$source = $this->getSource();
+		$context = PolicyContext::fromUserId('john')
+			->setStoredRequestOverrides(['signature_flow' => 'parallel']);
+
+		$this->assertSame('parallel', $source->loadRequestOverride('signature_flow', $context)?->getValue());
+		$this->assertTrue($context->isStoredRequestOverride('signature_flow'));
+
+		$context->setRequestOverrides(['signature_flow' => 'ordered_numeric']);
+
+		$this->assertSame('ordered_numeric', $source->loadRequestOverride('signature_flow', $context)?->getValue());
+		$this->assertFalse($context->isStoredRequestOverride('signature_flow'));
+	}
+
 	public function testLoadCirclePoliciesReturnsEmptyArray(): void {
 		$this->assertSame([], $this->getSource()->loadCirclePolicies('signature_flow', PolicyContext::fromUserId('john')));
 	}

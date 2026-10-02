@@ -15,6 +15,7 @@ use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -115,11 +116,13 @@ final class PolicyContextFactoryTest extends TestCase {
 		$this->assertSame([], $context->getGroups());
 	}
 
-	public function testForCurrentUserRejectsUnauthorizedActiveContext(): void {
+	#[DataProvider('provideContextBuilders')]
+	public function testRejectsUnauthorizedActiveContext(string $builder): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('john');
 
 		$this->userSession->expects($this->once())->method('getUser')->willReturn($user);
+		$this->userManager->method('get')->willReturn($user);
 		$this->groupManager->expects($this->once())->method('getUserGroupIds')->with($user)->willReturn(['finance']);
 		$this->groupManager->expects($this->never())->method('isAdmin');
 		$this->subAdmin->expects($this->never())->method('isSubAdmin');
@@ -127,7 +130,23 @@ final class PolicyContextFactoryTest extends TestCase {
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('You are not allowed to use this policy context.');
 
-		$this->getFactory()->forCurrentUser([], ['type' => 'group', 'id' => 'legal']);
+		$requestOverrides = ['signature_flow' => 'ordered_numeric'];
+		$activeContext = ['type' => 'group', 'id' => 'legal'];
+		$factory = $this->getFactory();
+		match ($builder) {
+			'forCurrentUser' => $factory->forCurrentUser($requestOverrides, $activeContext),
+			'forUser' => $factory->forUser($user, $requestOverrides, $activeContext),
+			'forUserId' => $factory->forUserId('john', $requestOverrides, $activeContext),
+		};
+	}
+
+	/** @return array<string, array{0: string}> */
+	public static function provideContextBuilders(): array {
+		return [
+			'current user' => ['forCurrentUser'],
+			'user object (file policy apply)' => ['forUser'],
+			'user id (file policy sync)' => ['forUserId'],
+		];
 	}
 
 	private function getFactory(): PolicyContextFactory {

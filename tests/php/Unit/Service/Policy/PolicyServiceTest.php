@@ -16,6 +16,7 @@ use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
@@ -264,6 +265,47 @@ final class PolicyServiceTest extends TestCase {
 		$this->assertInstanceOf(ResolvedPolicy::class, $resolved);
 		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
 		$this->assertSame('request', $resolved->getSourceScope());
+	}
+
+	public function testStoredFooterIsReplayedForSignerWhoCannotSubmitRequestOverrides(): void {
+		$signer = $this->createMock(IUser::class);
+		$signer->method('getUID')->willReturn('signer');
+		$this->userSession->method('getUser')->willReturn($signer);
+		$this->groupManager->method('getUserGroupIds')->willReturn([]);
+
+		$defaultFooter = FooterPolicyValue::encode(FooterPolicyValue::defaults());
+		$storedFooter = FooterPolicyValue::encode(['enabled' => false]);
+		$this->source
+			->method('loadSystemPolicy')
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue($defaultFooter)
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true));
+		$this->source->method('loadGroupPolicies')->willReturn([]);
+		$this->source->method('loadUserPreference')->willReturn(null);
+		$this->source
+			->method('loadRequestOverride')
+			->willReturn((new PolicyLayer())
+				->setScope('request')
+				->setValue($storedFooter));
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+			$this->db,
+		);
+
+		$submitted = $service->resolve(FooterPolicy::KEY, [FooterPolicy::KEY => $storedFooter]);
+		$this->assertFalse($submitted->canUseAsRequestOverride());
+		$this->assertSame($defaultFooter, $submitted->getEffectiveValue());
+
+		$replayed = $service->resolveWithStoredRequestOverrides(FooterPolicy::KEY, [FooterPolicy::KEY => $storedFooter]);
+		$this->assertFalse($replayed->canUseAsRequestOverride());
+		$this->assertSame($storedFooter, $replayed->getEffectiveValue());
+		$this->assertSame('request', $replayed->getSourceScope());
 	}
 
 	public function testResolveForUserIdWithoutUserFallsBackToSystem(): void {
