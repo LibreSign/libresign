@@ -1082,11 +1082,11 @@
     "Maximum validity" : "Validité maximale",
     "Maximum validity in seconds of a signature request." : "Durée de validité maximale (en secondes) d'une demande de signature.",
     "Renewal interval" : "Intervalle de renouvellement",
-    "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "Intervalle de renouvellement, en secondes, du lien d’accès à une demande de signature. Lors de l’accès au lien, son renouvellement vous sera demandé.",
-    "Maximum validity (seconds)" : "Durée de validité maximale (secondes)",
-    "Leave empty to disable expiration." : "Laisser vide pour désactiver l'expiration.",
-    "Renewal interval (seconds)" : "Intervalle de renouvellement (secondes)",
-    "Leave empty to disable renewal." : "Laisser vide pour désactiver le renouvellement.",
+    "Time unit" : "Unité de temps",
+    "seconds" : "secondes",
+    "minutes" : "minutes",
+    "hours" : "heures",
+    "days" : "jours",
     "Accounts may renew the signing request after expiration using the access link." : "Les comptes peuvent renouveler la demande de signature après expiration à l'aide du lien d'accès.",
     "Maximum validity is required when renewal interval is set." : "Une durée de validité maximale est requise lorsqu'un intervalle de renouvellement est défini.",
     "Enable identification documents flow" : "Activer la validation avec pièces d’identité",
@@ -1380,6 +1380,7 @@
     "Control which PDF changes remain allowed after signing and help readers detect disallowed modifications." : "Contrôle les modifications PDF autorisées après la signature et aide les lecteurs à détecter les modifications non autorisées.",
     "Request expiration" : "Expiration des demandes",
     "Configure expiration and renewal timing for signing requests." : "Configurer les délais d'expiration et de renouvellement des demandes de signature.",
+    "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "Intervalle de renouvellement, en secondes, du lien d’accès à une demande de signature. Lors de l’accès au lien, son renouvellement vous sera demandé.",
     "{value} seconds" : "{value} secondes",
     "Expiration in days" : "Expiration en jours",
     "{value} days" : "{value} jours",
@@ -1559,6 +1560,10 @@
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Paramètres de l’autorité d’horodatage (TSA) pour la signature numérique des documents.",
     "Make validation URL acessible only by authenticated users" : "Rendre l'URL de validation accessible uniquement aux utilisateurs authentifiés.",
     "{method} is not configured. Please contact your administrator." : "{method} n’est pas configuré. Contactez votre administrateur.",
-    "Sign the document." : "Signer le document."
+    "Sign the document." : "Signer le document.",
+    "Maximum validity (seconds)" : "Durée de validité maximale (secondes)",
+    "Leave empty to disable expiration." : "Laisser vide pour désactiver l'expiration.",
+    "Renewal interval (seconds)" : "Intervalle de renouvellement (secondes)",
+    "Leave empty to disable renewal." : "Laisser vide pour désactiver le renouvellement."
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

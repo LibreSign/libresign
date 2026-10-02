@@ -98,6 +98,7 @@ OC.L10N.register(
     "Enabled" : "მოქმედია",
     "Disabled" : "არაა მოქმედი",
     "Folder name" : "დირექტორიის სახელი",
+    "days" : "დღე",
     "Admin" : "ადმინისტრატორი",
     "Search groups" : "ჯგუფების ძიება",
     "Custom" : "ინდივიდუალური",
