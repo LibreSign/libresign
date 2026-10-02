@@ -123,8 +123,16 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 
 	#[Given('activity preference :key for user :user is set to :value')]
 	public static function setActivityPreference(string $key, string $user, string $value): void {
+		$php = <<<'PHP'
+			require $argv[1] . '/lib/base.php';
+
+			\OCP\Server::get(\OCP\Config\IUserConfig::class)
+				->setValueString($argv[2], 'activity', $argv[3], $argv[4]);
+			PHP;
+
 		$command = sprintf(
-			'php <appRootDir>/tests/integration/bin/set-user-config.php <nextcloudRootDir> %s activity %s %s',
+			'php -r %s -- <nextcloudRootDir> %s %s %s',
+			escapeshellarg($php),
 			escapeshellarg($user),
 			escapeshellarg($key),
 			escapeshellarg($value),
