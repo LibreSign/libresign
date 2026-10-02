@@ -58,6 +58,31 @@ class PolicyService {
 		);
 	}
 
+	/**
+	 * Replays request values a document stored earlier. They were authorized
+	 * when they were submitted, so they do not depend on who resolves them now.
+	 *
+	 * @param array<string, mixed> $storedRequestOverrides
+	 */
+	public function resolveWithStoredRequestOverrides(string|\BackedEnum $policyKey, array $storedRequestOverrides): ResolvedPolicy {
+		return $this->resolver->resolve(
+			$this->registry->get($policyKey),
+			$this->contextFactory->forCurrentUser()->setStoredRequestOverrides($storedRequestOverrides),
+		);
+	}
+
+	/**
+	 * Like resolveWithStoredRequestOverrides(), for the given user.
+	 *
+	 * @param array<string, mixed> $storedRequestOverrides
+	 */
+	public function resolveForUserIdWithStoredRequestOverrides(string|\BackedEnum $policyKey, ?string $userId, array $storedRequestOverrides, ?array $activeContext = null): ResolvedPolicy {
+		return $this->resolver->resolve(
+			$this->registry->get($policyKey),
+			$this->contextFactory->forUserId($userId, [], $activeContext)->setStoredRequestOverrides($storedRequestOverrides),
+		);
+	}
+
 	/** @return array<string, ResolvedPolicy> */
 	public function resolveKnownPolicies(array $requestOverrides = [], ?array $activeContext = null): array {
 		return $this->resolveKnownPoliciesForContext(

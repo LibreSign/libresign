@@ -388,7 +388,7 @@ class PolicySource implements IPolicySource {
 
 	#[\Override]
 	public function loadRequestOverride(string $policyKey, PolicyContext $context): ?PolicyLayer {
-		$requestOverrides = $context->getRequestOverrides();
+		$requestOverrides = $context->getRequestOverrides() + $context->getStoredRequestOverrides();
 		if (!array_key_exists($policyKey, $requestOverrides)) {
 			return null;
 		}

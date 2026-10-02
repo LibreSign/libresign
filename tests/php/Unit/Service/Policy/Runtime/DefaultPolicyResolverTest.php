@@ -172,6 +172,84 @@ final class DefaultPolicyResolverTest extends TestCase {
 		];
 	}
 
+	public function testResolveIgnoresRequestValueSubmittedByActorWithoutRequestOverridePermission(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue('none')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->requestOverride = (new PolicyLayer())
+			->setScope('request')
+			->setValue('ordered_numeric');
+
+		$resolved = (new DefaultPolicyResolver($source))->resolve(
+			$this->getRequestOverridableDefinition(),
+			PolicyContext::fromUserId('john')->setRequestOverrides(['signature_flow' => 'ordered_numeric']),
+		);
+
+		$this->assertFalse($resolved->canUseAsRequestOverride());
+		$this->assertSame('none', $resolved->getEffectiveValue());
+		$this->assertSame('system', $resolved->getSourceScope());
+		$this->assertSame('system', $resolved->getBlockedBy());
+	}
+
+	#[DataProvider('provideStoredRequestValueReplays')]
+	public function testResolveReplaysStoredRequestValueWithoutActorRequestOverridePermission(
+		PolicyLayer $systemLayer,
+		string $expectedValue,
+		string $expectedSourceScope,
+	): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = $systemLayer;
+		$source->requestOverride = (new PolicyLayer())
+			->setScope('request')
+			->setValue('ordered_numeric');
+
+		$resolved = (new DefaultPolicyResolver($source))->resolve(
+			$this->getRequestOverridableDefinition(),
+			PolicyContext::fromUserId('signer')->setStoredRequestOverrides(['signature_flow' => 'ordered_numeric']),
+		);
+
+		$this->assertFalse($resolved->canUseAsRequestOverride());
+		$this->assertSame($expectedValue, $resolved->getEffectiveValue());
+		$this->assertSame($expectedSourceScope, $resolved->getSourceScope());
+	}
+
+	/** @return array<string, array{0: PolicyLayer, 1: string, 2: string}> */
+	public static function provideStoredRequestValueReplays(): array {
+		return [
+			'implicit system default' => [
+				(new PolicyLayer())
+					->setScope('system')
+					->setValue('none')
+					->setAllowChildOverride(true)
+					->setVisibleToChild(true),
+				'ordered_numeric',
+				'request',
+			],
+			'system locks the value' => [
+				(new PolicyLayer())
+					->setScope('global')
+					->setValue('parallel')
+					->setAllowChildOverride(false)
+					->setVisibleToChild(true),
+				'parallel',
+				'global',
+			],
+		];
+	}
+
+	private function getRequestOverridableDefinition(): PolicySpec {
+		return new PolicySpec(
+			key: 'signature_flow',
+			defaultSystemValue: 'none',
+			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			supportsUserPreference: true,
+			supportsRequestOverride: true,
+		);
+	}
+
 	#[DataProvider('provideLockedHigherLayers')]
 	public function testResolveRequestValueCannotBypassLockedHigherLayer(
 		PolicyLayer $systemLayer,

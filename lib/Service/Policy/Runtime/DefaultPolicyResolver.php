@@ -138,11 +138,26 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			}
 		}
 
+		$canActorOverrideBelowUserScope = $definition->supportsScope(PolicySpec::SCOPE_USER)
+			&& $visible
+			&& $canOverrideBelow
+			&& (
+				$currentActorCanManageSystemPolicies
+				|| $isSystemExplicitlyGrantedForDescendantRules
+				|| $hasConfiguredGroupLayer
+			);
+		$canUseAsRequestOverride = $canActorOverrideBelowUserScope && $definition->supportsRequestOverride();
+
 		$requestOverride = $this->source->loadRequestOverride($policyKey, $context);
 		if ($requestOverride !== null) {
-			// Checked here, not only by the file policy appliers, so a request value
-			// can never reach a policy that does not accept one.
-			if ($definition->supportsRequestOverride()
+			// Checked here, not only by the file policy appliers. A value the current
+			// actor submits needs the actor's permission; a value the document stored
+			// earlier was authorized when it was submitted, so replaying it does not
+			// depend on who resolves it now.
+			$isRequestOverrideAuthorized = $context->isStoredRequestOverride($policyKey)
+				? $definition->supportsRequestOverride()
+				: $canUseAsRequestOverride;
+			if ($isRequestOverrideAuthorized
 				&& $this->canApplyLowerLayer($definition, $resolved, $requestOverride, $canOverrideBelow, $visible, $context)
 			) {
 				$currentValue = $definition->normalizeValue($requestOverride->getValue());
@@ -170,15 +185,6 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 				)
 			);
 
-		$canActorOverrideBelowUserScope = $definition->supportsScope(PolicySpec::SCOPE_USER)
-			&& $visible
-			&& $canOverrideBelow
-			&& (
-				$currentActorCanManageSystemPolicies
-				|| $isSystemExplicitlyGrantedForDescendantRules
-				|| $hasConfiguredGroupLayer
-			);
-
 		$resolved
 			->setMeta($this->buildResolvedStateMeta($definition, $context, $canCreateDescendantRules))
 			->setEffectiveValue($currentValue)
@@ -191,7 +197,7 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 				&& $definition->canCurrentActorManageGroupPolicy($context, $systemLayer, $groupLayers)
 			)
 			->setCanSaveAsUserDefault($canActorOverrideBelowUserScope && $definition->supportsUserPreference())
-			->setCanUseAsRequestOverride($canActorOverrideBelowUserScope && $definition->supportsRequestOverride())
+			->setCanUseAsRequestOverride($canUseAsRequestOverride)
 			->setBlockedBy($currentBlockedBy);
 
 		return $resolved;

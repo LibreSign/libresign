@@ -18,6 +18,8 @@ final class PolicyContext {
 	private ?ActiveGroupScope $activeGroupScope = null;
 	/** @var array<string, mixed> */
 	private array $requestOverrides = [];
+	/** @var array<string, mixed> */
+	private array $storedRequestOverrides = [];
 	public function __construct() {
 		$this->actorRole = ActorRole::regularUser();
 	}
@@ -77,6 +79,27 @@ final class PolicyContext {
 	/** @return array<string, mixed> */
 	public function getRequestOverrides(): array {
 		return $this->requestOverrides;
+	}
+
+	/**
+	 * Request values a document stored earlier and that are now replayed
+	 * internally, as opposed to the values the current actor submits.
+	 *
+	 * @param array<string, mixed> $storedRequestOverrides
+	 */
+	public function setStoredRequestOverrides(array $storedRequestOverrides): self {
+		$this->storedRequestOverrides = $storedRequestOverrides;
+		return $this;
+	}
+
+	/** @return array<string, mixed> */
+	public function getStoredRequestOverrides(): array {
+		return $this->storedRequestOverrides;
+	}
+
+	public function isStoredRequestOverride(string $policyKey): bool {
+		return !array_key_exists($policyKey, $this->requestOverrides)
+			&& array_key_exists($policyKey, $this->storedRequestOverrides);
 	}
 
 	public function setActorRole(ActorRole $role): self {
