@@ -1082,11 +1082,11 @@
     "Maximum validity" : "Validade máxima",
     "Maximum validity in seconds of a signature request." : "Validade máxima, em segundos, de uma solicitação de assinatura.",
     "Renewal interval" : "Intervalo de renovação",
-    "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "Intervalo de renovação em segundos de uma solicitação de assinatura. Ao acessar o link, você será solicitado a renovar o link.",
-    "Maximum validity (seconds)" : "Validade máxima (segundos)",
-    "Leave empty to disable expiration." : "Deixe em branco para desativar o vencimento.",
-    "Renewal interval (seconds)" : "Intervalo de renovação (segundos)",
-    "Leave empty to disable renewal." : "Deixe em branco para desativar a renovação.",
+    "Time unit" : "Unidade de tempo",
+    "seconds" : "segundos",
+    "minutes" : "minutos",
+    "hours" : "horas",
+    "days" : "dias",
     "Accounts may renew the signing request after expiration using the access link." : "As contas podem renovar a solicitação de assinatura após o vencimento usando o link de acesso.",
     "Maximum validity is required when renewal interval is set." : "É necessário definir a validade máxima ao definir o intervalo de renovação.",
     "Enable identification documents flow" : "Ativar fluxo de documentos de identificação",
@@ -1380,6 +1380,7 @@
     "Control which PDF changes remain allowed after signing and help readers detect disallowed modifications." : "Controle quais alterações no PDF continuam sendo permitidas após a assinatura e ajude os leitores a detectar modificações não permitidas.",
     "Request expiration" : "Vencimento da solicitação",
     "Configure expiration and renewal timing for signing requests." : "Configure os prazos de validade e renovação para solicitações de assinatura.",
+    "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "Intervalo de renovação em segundos de uma solicitação de assinatura. Ao acessar o link, você será solicitado a renovar o link.",
     "{value} seconds" : "{value} segundos",
     "Expiration in days" : "Expiração em dias",
     "{value} days" : "{value} dias",
@@ -1559,6 +1560,10 @@
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Configurações da Autoridade de Marca Temporal (TSA) para assinatura digital de documentos.",
     "Make validation URL acessible only by authenticated users" : "Tornar o URL de validação acessível apenas para usuários autenticados",
     "{method} is not configured. Please contact your administrator." : "{method} não está configurado. Por favor, entre em contato com a sua administração.",
-    "Sign the document." : "Assinar o documento."
+    "Sign the document." : "Assinar o documento.",
+    "Maximum validity (seconds)" : "Validade máxima (segundos)",
+    "Leave empty to disable expiration." : "Deixe em branco para desativar o vencimento.",
+    "Renewal interval (seconds)" : "Intervalo de renovação (segundos)",
+    "Leave empty to disable renewal." : "Deixe em branco para desativar a renovação."
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

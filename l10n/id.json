@@ -1034,11 +1034,11 @@
     "Maximum validity" : "Masa berlaku maksimum",
     "Maximum validity in seconds of a signature request." : "Masa berlaku maksimum dalam detik untuk permintaan tanda tangan.",
     "Renewal interval" : "Interval perpanjangan",
-    "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "Interval perpanjangan dalam detik untuk permintaan langganan. Saat mengakses tautan, Anda akan diminta untuk memperbarui tautan tersebut.",
-    "Maximum validity (seconds)" : "Masa berlaku maksimum (detik)",
-    "Leave empty to disable expiration." : "Biarkan kosong untuk menonaktifkan kedaluwarsa.",
-    "Renewal interval (seconds)" : "Interval perpanjangan (detik)",
-    "Leave empty to disable renewal." : "Biarkan kosong untuk menonaktifkan perpanjangan.",
+    "Time unit" : "Satuan waktu",
+    "seconds" : "detik",
+    "minutes" : "menit",
+    "hours" : "jam",
+    "days" : "hari",
     "Accounts may renew the signing request after expiration using the access link." : "Akun dapat memperpanjang permintaan tanda tangan setelah kedaluwarsa menggunakan tautan akses.",
     "Maximum validity is required when renewal interval is set." : "Masa berlaku maksimum diperlukan saat interval perpanjangan ditetapkan.",
     "Enable identification documents flow" : "Aktifkan alur dokumen identifikasi",
@@ -1327,6 +1327,7 @@
     "Control which PDF changes remain allowed after signing and help readers detect disallowed modifications." : "Atur perubahan PDF yang tetap diizinkan setelah penandatanganan serta bantu pembaca mendeteksi modifikasi yang tidak diizinkan.",
     "Request expiration" : "Kedaluwarsa permintaan",
     "Configure expiration and renewal timing for signing requests." : "Konfigurasikan waktu kedaluwarsa dan perpanjangan untuk permintaan tanda tangan.",
+    "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "Interval perpanjangan dalam detik untuk permintaan langganan. Saat mengakses tautan, Anda akan diminta untuk memperbarui tautan tersebut.",
     "{value} seconds" : "{value} detik",
     "Expiration in days" : "Kedaluwarsa dalam hari",
     "{value} days" : "{value} hari",
@@ -1503,6 +1504,10 @@
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Pengaturan Otoritas Timestamp (TSA) untuk menandatangani dokumen secara digital.",
     "Make validation URL acessible only by authenticated users" : "Buat URL validasi hanya dapat diakses oleh pengguna yang terautentikasi",
     "{method} is not configured. Please contact your administrator." : "{method} belum dikonfigurasi. Silakan hubungi administrator Anda.",
-    "Sign the document." : "Tandatangani dokumen."
+    "Sign the document." : "Tandatangani dokumen.",
+    "Maximum validity (seconds)" : "Masa berlaku maksimum (detik)",
+    "Leave empty to disable expiration." : "Biarkan kosong untuk menonaktifkan kedaluwarsa.",
+    "Renewal interval (seconds)" : "Interval perpanjangan (detik)",
+    "Leave empty to disable renewal." : "Biarkan kosong untuk menonaktifkan perpanjangan."
 },"pluralForm" :"nplurals=1; plural=0;"
 }

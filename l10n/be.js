@@ -174,6 +174,7 @@ OC.L10N.register(
     "Enabled" : "Уключаны",
     "Disabled" : "Адключаны",
     "Folder name" : "Назва папкі",
+    "seconds" : "с",
     "Admin" : "Адміністратар",
     "Zoom" : "Маштаб",
     "Custom" : "Карыстальніцкі",
