@@ -671,4 +671,25 @@ describe('DocumentValidationDetails', () => {
 			expect(wrapper.props('documentValidMessage')).toBe('')
 		})
 	})
+
+	describe('RULE: a canceled workflow reaches every signer', () => {
+		const signers = [
+			{ displayName: 'Signed', displayStatus: 'signed', signed: '2026-09-09T12:00:00+00:00' },
+			{ displayName: 'Pending', displayStatus: 'ready_to_sign', signed: null },
+			{ displayName: 'Hidden', displayStatus: 'not_signed', signed: null },
+		]
+
+		it.each([
+			[6, true],
+			[1, false],
+			[2, false],
+		])('document status %i tells the signers that the workflow canceled is %s', (status, canceled) => {
+			wrapper = createWrapper({ document: { status, signers } })
+
+			const workflowCanceled = wrapper.findAllComponents({ name: 'SignerDetails' })
+				.map(signer => signer.props('workflowCanceled'))
+
+			expect(workflowCanceled).toEqual([canceled, canceled, canceled])
+		})
+	})
 })

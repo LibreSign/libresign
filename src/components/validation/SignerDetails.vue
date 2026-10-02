@@ -16,13 +16,9 @@
 					:class="getSignerValidationClass(signer)" />
 			</template>
 			<template #subname>
-				<template v-if="isObserverParticipant(signer)">
+				<template v-if="statusLabel !== null">
 					<strong>{{ t('libresign', 'Status:') }}</strong>
-					<span>{{ t('libresign', 'Observing') }}</span>
-				</template>
-				<template v-else-if="!isSigned(signer)">
-					<strong>{{ t('libresign', 'Status:') }}</strong>
-					<span>{{ t('libresign', 'Not signed yet') }}</span>
+					<span data-test="signer-status">{{ statusLabel }}</span>
 				</template>
 				<template v-else>
 					<strong>{{ t('libresign', 'Expiration:') }}</strong>
@@ -47,6 +43,29 @@
 				</NcButton>
 			</template>
 		</NcListItem>
+
+		<template v-if="signer.displayStatus === 'rejected' && signer.rejection">
+			<NcListItem class="extra" compact data-test="signer-rejected-at">
+				<template #name>
+					<!-- TRANSLATORS Label before the date and time when the signer refused to sign the document. -->
+					<strong>{{ t('libresign', 'Rejected on:') }}</strong>
+					{{ dateFromSqlAnsi(signer.rejection.rejectedAt) }}
+				</template>
+			</NcListItem>
+			<NcListItem v-if="signer.rejection.comment"
+				class="extra"
+				compact
+				data-test="signer-rejection-comment">
+				<template #name>
+					<!-- TRANSLATORS Label before the reason the signer wrote when refusing to sign the document. -->
+					<strong>{{ t('libresign', 'Rejection comment:') }}</strong>
+					{{ signer.rejection.comment }}
+					<span v-if="signer.rejection.commentPrivate"
+						class="rejection-comment-private"
+						data-test="signer-rejection-comment-private">{{ privateCommentLabel }}</span>
+				</template>
+			</NcListItem>
+		</template>
 
 		<!-- Date Signed -->
 		<NcListItem v-if="isOpen && signer.signed"
@@ -289,8 +308,9 @@ import CertificateChain from './CertificateChain.vue'
 import DeviceReportedLocation from './DeviceReportedLocation.vue'
 import SignerTimestamp from './SignerTimestamp.vue'
 import { isObserverParticipant } from '../../utils/participantRole.ts'
+import { getSignerStatusLabel, isSignedSigner } from '../../utils/signerStatusPresentation.ts'
 import type { DocumentModificationState } from '../../services/validationDocument'
-import type { VisibleElementRecord } from '../../types'
+import type { SignerDetailRecord, VisibleElementRecord } from '../../types'
 
 type ValidationState = {
 	id?: number
@@ -334,6 +354,8 @@ type SignerModel = {
 	name?: string
 	participantRole?: string | null
 	status?: number | null
+	displayStatus?: SignerDetailRecord['displayStatus']
+	rejection?: SignerDetailRecord['rejection']
 	remote_address?: string
 	user_agent?: string
 	metadata?: {
@@ -380,9 +402,15 @@ defineOptions({
 const props = withDefaults(defineProps<{
 	signer: SignerModel
 	initiallyOpen?: boolean
+	workflowCanceled?: boolean
 }>(), {
 	initiallyOpen: false,
+	workflowCanceled: false,
 })
+
+const statusLabel = computed(() => getSignerStatusLabel(props.signer, props.workflowCanceled))
+// TRANSLATORS Marks a rejection comment that the signer chose to keep private; it is shown only to people allowed to read it.
+const privateCommentLabel = t('libresign', 'Private')
 
 const isOpen = ref(props.initiallyOpen)
 const validationStatusOpen = ref(false)
@@ -418,7 +446,7 @@ function toggleOpen() {
 }
 
 function isSigned(signer: SignerModel): boolean {
-	return !!signer.signed || signer.status === 2
+	return isSignedSigner(signer)
 }
 
 function getName(signer: SignerModel) {
@@ -723,6 +751,12 @@ defineExpose({
 .extra {
 	padding-inline-start: 44px;
 	background-color: var(--color-background-hover);
+}
+
+.rejection-comment-private {
+	margin-inline-start: calc(var(--default-grid-baseline) * 2);
+	color: var(--color-text-maxcontrast);
+	font-style: italic;
 }
 
 .extra-chain {

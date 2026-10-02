@@ -106,6 +106,7 @@ function isValidationStatus(value: unknown): value is ValidationStatus {
 		|| normalizedValue === FILE_STATUS.PARTIAL_SIGNED
 		|| normalizedValue === FILE_STATUS.SIGNED
 		|| normalizedValue === FILE_STATUS.DELETED
+		|| normalizedValue === FILE_STATUS.CANCELED
 }
 
 function isSignerStatus(value: unknown): value is SignerDetailRecord['status'] {
@@ -115,6 +116,25 @@ function isSignerStatus(value: unknown): value is SignerDetailRecord['status'] {
 		|| normalizedValue === SIGN_REQUEST_STATUS.SIGNED
 		|| normalizedValue === SIGN_REQUEST_STATUS.REJECTED
 		|| normalizedValue === SIGN_REQUEST_STATUS.OBSERVING
+}
+
+function isSignerDisplayStatus(value: unknown): value is SignerDetailRecord['displayStatus'] {
+	return value === 'draft'
+		|| value === 'ready_to_sign'
+		|| value === 'signed'
+		|| value === 'rejected'
+		|| value === 'observing'
+		|| value === 'not_signed'
+}
+
+function isSignerRejection(value: unknown): value is NonNullable<SignerDetailRecord['rejection']> {
+	if (!isRecord(value)) {
+		return false
+	}
+
+	return isString(value.rejectedAt)
+		&& isOptionalField(value, 'comment', isString)
+		&& isOptionalField(value, 'commentPrivate', fieldValue => typeof fieldValue === 'boolean')
 }
 
 function isValidationSignatureFlow(value: unknown): value is ValidationSignatureFlow {
@@ -213,7 +233,10 @@ function isSignerDetailRecord(value: unknown): value is ValidationSignerDetailRe
 		&& isString(value.displayName)
 		&& isOptionalField(value, 'email', isNullableString)
 		&& isNullableString(value.signed)
-		&& isSignerStatus(value.status)
+		// The status is left out when the viewer may not see it (#8388).
+		&& isOptionalField(value, 'status', isSignerStatus)
+		&& isSignerDisplayStatus(value.displayStatus)
+		&& isOptionalField(value, 'rejection', isSignerRejection)
 		&& isString(value.statusText)
 		&& isNullableString(value.description)
 		&& isString(value.request_sign_date)
