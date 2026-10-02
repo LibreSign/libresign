@@ -18,6 +18,11 @@ describe('fileStatus utils', () => {
 		expect(getStatusLabel(FILE_STATUS.SIGNED)).toBe('Signed')
 	})
 
+	it('labels a canceled document as Canceled', () => {
+		expect(getStatusLabel(FILE_STATUS.CANCELED)).toBe('Canceled')
+		expect(getStatusIcon(FILE_STATUS.CANCELED)).not.toBe(getStatusIcon(999))
+	})
+
 	it('returns Unknown for an unrecognized status', () => {
 		expect(getStatusLabel(999)).toBe('Unknown')
 	})

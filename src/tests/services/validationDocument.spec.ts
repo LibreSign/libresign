@@ -22,6 +22,7 @@ function createSigner(patch: Record<string, unknown> = {}): Record<string, unkno
 		email: 'signer@example.com',
 		signed: null,
 		status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+		displayStatus: 'ready_to_sign',
 		statusText: 'Pending',
 		description: null,
 		request_sign_date: '2026-01-01T00:00:00Z',
@@ -324,6 +325,92 @@ describe('validationDocument', () => {
 		}))
 
 		expect(normalized).toBeNull()
+	})
+
+	it.each(['draft', 'ready_to_sign', 'signed', 'rejected', 'observing', 'not_signed'])('accepts the %s display status', (displayStatus) => {
+		const normalized = toValidationDocument(createValidationPayload({
+			signers: [createSigner({ displayStatus })],
+		}))
+
+		expect(normalized?.signers?.[0].displayStatus).toBe(displayStatus)
+	})
+
+	it('rejects a display status outside the contract', () => {
+		expect(toValidationDocument(createValidationPayload({
+			signers: [createSigner({ displayStatus: 'pending' })],
+		}))).toBeNull()
+	})
+
+	it('rejects a signer without display status', () => {
+		expect(toValidationDocument(createValidationPayload({
+			signers: [createSigner({ displayStatus: undefined })],
+		}))).toBeNull()
+	})
+
+	it('accepts a canceled document', () => {
+		const normalized = toValidationDocument(createValidationPayload({
+			status: FILE_STATUS.CANCELED,
+			statusText: 'Canceled',
+		}))
+
+		expect(normalized?.status).toBe(FILE_STATUS.CANCELED)
+	})
+
+	it('accepts a canceled document inside an envelope', () => {
+		const payload = createValidationPayload()
+		const files = payload.files as Record<string, unknown>[]
+		files[0].status = FILE_STATUS.CANCELED
+
+		expect(toValidationDocument(payload)).not.toBeNull()
+	})
+
+	it('accepts a rejected signer with its rejection', () => {
+		const normalized = toValidationDocument(createValidationPayload({
+			signers: [createSigner({
+				status: SIGN_REQUEST_STATUS.REJECTED,
+				displayStatus: 'rejected',
+				statusText: 'Rejected',
+				rejection: { rejectedAt: '2026-09-09T12:00:00+00:00' },
+			})],
+		}))
+
+		expect(normalized?.signers?.[0].rejection).toEqual({ rejectedAt: '2026-09-09T12:00:00+00:00' })
+	})
+
+	it.each([
+		['a public comment', { comment: 'I do not agree', commentPrivate: false }],
+		['a private comment the viewer may see', { comment: 'Only for the requester', commentPrivate: true }],
+	])('accepts a rejection with %s', (_, comment) => {
+		const normalized = toValidationDocument(createValidationPayload({
+			signers: [createSigner({
+				status: SIGN_REQUEST_STATUS.REJECTED,
+				displayStatus: 'rejected',
+				rejection: { rejectedAt: '2026-09-09T12:00:00+00:00', ...comment },
+			})],
+		}))
+
+		expect(normalized?.signers?.[0].rejection).toEqual(expect.objectContaining(comment))
+	})
+
+	it.each([
+		['without a date', { comment: 'I do not agree' }],
+		['with a non-string comment', { rejectedAt: '2026-09-09T12:00:00+00:00', comment: 42 }],
+		['with a non-boolean private flag', { rejectedAt: '2026-09-09T12:00:00+00:00', commentPrivate: 'yes' }],
+		['that is not an object', 'rejected'],
+	])('rejects a rejection %s', (_, rejection) => {
+		expect(toValidationDocument(createValidationPayload({
+			signers: [createSigner({ displayStatus: 'rejected', rejection })],
+		}))).toBeNull()
+	})
+
+	it('accepts a signer whose status the viewer may not see', () => {
+		const signer = createSigner({ displayStatus: 'not_signed', statusText: 'Not signed' })
+		delete signer.status
+
+		const normalized = toValidationDocument(createValidationPayload({ signers: [signer] }))
+
+		expect(normalized?.signers?.[0].displayStatus).toBe('not_signed')
+		expect(normalized?.signers?.[0].status).toBeUndefined()
 	})
 
 	it('rejects payload with invalid signer status', () => {
