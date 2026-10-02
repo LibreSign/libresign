@@ -580,6 +580,43 @@ describe('canUseRequestOverride', () => {
 	})
 
 	it.each([
+		['the request is rejected', () => vi.mocked(axios.get).mockRejectedValueOnce(new Error('Network Error'))],
+		['the response has no OCS data', () => vi.mocked(axios.get).mockResolvedValueOnce({ data: {} })],
+		['the response has no policies', () => vi.mocked(axios.get).mockResolvedValueOnce({ data: { ocs: { data: {} } } })],
+	])('revokes a previously granted request override when %s', async (_label, failRefresh) => {
+		vi.mocked(loadState).mockReturnValueOnce({ policies: { signature_flow: loadedPolicy(true) } })
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+		expect(store.canUseRequestOverride('signature_flow')).toBe(true)
+
+		failRefresh()
+		await store.fetchEffectivePolicies()
+
+		expect(logger.error).toHaveBeenCalledWith('Failed to load effective policies', expect.anything())
+		expect(store.canUseRequestOverride('signature_flow')).toBe(false)
+		expect(store.getEffectiveValue('signature_flow')).toBe('parallel')
+	})
+
+	it('allows request overrides again after a later successful refresh', async () => {
+		vi.mocked(loadState).mockReturnValueOnce({ policies: { signature_flow: loadedPolicy(true) } })
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+
+		vi.mocked(axios.get).mockRejectedValueOnce(new Error('Network Error'))
+		await store.fetchEffectivePolicies()
+		expect(store.canUseRequestOverride('signature_flow')).toBe(false)
+
+		vi.mocked(axios.get).mockResolvedValueOnce({
+			data: { ocs: { data: { policies: { signature_flow: loadedPolicy(true) } } } },
+		})
+		await store.fetchEffectivePolicies()
+
+		expect(store.canUseRequestOverride('signature_flow')).toBe(true)
+	})
+
+	it.each([
 		['missing', undefined],
 		['non-boolean', 'true'],
 		['null', null],
