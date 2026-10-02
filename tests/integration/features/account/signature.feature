@@ -94,16 +94,14 @@ Feature: account/signature
       | (jq).ocs.data.issuer.OU\|length           | 2                                                                                        |
       | (jq).ocs.data.issuer.OU                   | (jq) .[0] \|test("^Organization Unit$")                                                  |
       | (jq).ocs.data.issuer.OU                   | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]+_g:[0-9]+_e:[oc]?$")                      |
-      | (jq).ocs.data.pubkey_bits                 | 2048                                                                                     |
-      | (jq).ocs.data.pubkey_type                 | 0                                                                                        |
       | (jq).ocs.data.extensions.basicConstraints | CA:FALSE                                                                                 |
       | (jq).ocs.data.extensions.subjectAltName   | email:signer@domain.test                                                                 |
       | (jq).ocs.data.extensions.keyUsage         | Digital Signature, Non Repudiation, Key Encipherment                                     |
       | (jq).ocs.data.extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection                                         |
-      | (jq).ocs.data.extensions                  | (jq).authorityKeyIdentifier |test("([0-9A-F]{2}:)+[0-9A-F]{2}")                         |
+      | (jq).ocs.data.extensions                  | (jq).authorityKeyIdentifier \|test("([0-9A-F]{2}:)+[0-9A-F]{2}")                         |
       | (jq).ocs.data.extensions                  | (jq).subjectKeyIdentifier != ""                                                          |
-      | (jq).ocs.data.crl_urls|length              | 1                                                                                        |
-      | (jq).ocs.data.extensions.crlDistributionPoints | (jq) |test("^URI:http")                                                                |
+      | (jq).ocs.data.crl_urls\|length              | 1                                                                                        |
+      | (jq).ocs.data.extensions.crlDistributionPoints | (jq) \|test("^URI:http")                                                                |
 
   Scenario: Create pfx with success using OpenSSL
     Given user "signer1" exists
@@ -134,42 +132,40 @@ Feature: account/signature
       | password | password |
     Then the response should be a JSON array with the following mandatory values
       | key                                       | value                                                                                    |
-      | (jq).ocs.data                             | (jq).name |test("/C=BR")                                                                |
-      | (jq).ocs.data                             | (jq).name |test("/ST=State of Company")                                                 |
-      | (jq).ocs.data                             | (jq).name |test("/L=City Name")                                                         |
-      | (jq).ocs.data                             | (jq).name |test("/O=Organization")                                                      |
-      | (jq).ocs.data                             | (jq).name |test("/OU=Organization Unit, libresign-ca-id:[a-z0-9]+_g:[0-9]+_e:[oc]?") |
-      | (jq).ocs.data                             | (jq).name |test("/UID=account:signer1")                                                 |
-      | (jq).ocs.data                             | (jq).name |test("/CN=signer1-displayname")                                              |
-      | (jq).ocs.data.issuer|length              | 6                                                                                        |
+      | (jq).ocs.data                             | (jq).name \|test("/C=BR")                                                                |
+      | (jq).ocs.data                             | (jq).name \|test("/ST=State of Company")                                                 |
+      | (jq).ocs.data                             | (jq).name \|test("/L=City Name")                                                         |
+      | (jq).ocs.data                             | (jq).name \|test("/O=Organization")                                                      |
+      | (jq).ocs.data                             | (jq).name \|test("/OU=Organization Unit, libresign-ca-id:[a-z0-9]+_g:[0-9]+_e:[oc]?") |
+      | (jq).ocs.data                             | (jq).name \|test("/UID=account:signer1")                                                 |
+      | (jq).ocs.data                             | (jq).name \|test("/CN=signer1-displayname")                                              |
+      | (jq).ocs.data.issuer\|length              | 6                                                                                        |
       | (jq).ocs.data.issuer.CN                   | Common Name                                                                              |
       | (jq).ocs.data.issuer.C                    | BR                                                                                       |
       | (jq).ocs.data.issuer.ST                   | State of Company                                                                         |
       | (jq).ocs.data.issuer.L                    | City Name                                                                                |
       | (jq).ocs.data.issuer.O                    | Organization                                                                             |
-      | (jq).ocs.data.issuer.OU|length           | 2                                                                                        |
-      | (jq).ocs.data.issuer.OU                   | (jq) .[0] |test("^Organization Unit$")                                                  |
-      | (jq).ocs.data.issuer.OU                   | (jq) .[1] |test("^libresign-ca-id:[a-z0-9]+_g:[0-9]+_e:[oc]?$")                      |
-      | (jq).ocs.data.subject|length             | 7                                                                                        |
+      | (jq).ocs.data.issuer.OU\|length           | 2                                                                                        |
+      | (jq).ocs.data.issuer.OU                   | (jq) .[0] \|test("^Organization Unit$")                                                  |
+      | (jq).ocs.data.issuer.OU                   | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]+_g:[0-9]+_e:[oc]?$")                      |
+      | (jq).ocs.data.subject\|length             | 7                                                                                        |
       | (jq).ocs.data.subject.CN                  | signer1-displayname                                                                      |
       | (jq).ocs.data.subject.C                   | BR                                                                                       |
       | (jq).ocs.data.subject.ST                  | State of Company                                                                         |
       | (jq).ocs.data.subject.L                   | City Name                                                                                |
       | (jq).ocs.data.subject.O                   | Organization                                                                             |
-      | (jq).ocs.data.subject.OU |length         | 2                                                                                        |
-      | (jq).ocs.data.subject.OU                  | (jq) .[0] |test("^Organization Unit$")                                                  |
-      | (jq).ocs.data.subject.OU                  | (jq) .[1] |test("^libresign-ca-id:[a-z0-9]+_g:[0-9]+_e:[oc]?$")                      |
+      | (jq).ocs.data.subject.OU \|length         | 2                                                                                        |
+      | (jq).ocs.data.subject.OU                  | (jq) .[0] \|test("^Organization Unit$")                                                  |
+      | (jq).ocs.data.subject.OU                  | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]+_g:[0-9]+_e:[oc]?$")                      |
       | (jq).ocs.data.subject.UID                 | account:signer1                                                                          |
-      | (jq).ocs.data.pubkey_bits                 | 2048                                                                                     |
-      | (jq).ocs.data.pubkey_type                 | 0                                                                                        |
       | (jq).ocs.data.extensions.basicConstraints | CA:FALSE                                                                                 |
       | (jq).ocs.data.extensions.subjectAltName   | email:signer@domain.test                                                                 |
       | (jq).ocs.data.extensions.keyUsage         | Digital Signature, Non Repudiation, Key Encipherment                                     |
       | (jq).ocs.data.extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection                                         |
-      | (jq).ocs.data.extensions                  | (jq).authorityKeyIdentifier |test("([0-9A-F]{2}:)+[0-9A-F]{2}")                         |
+      | (jq).ocs.data.extensions                  | (jq).authorityKeyIdentifier \|test("([0-9A-F]{2}:)+[0-9A-F]{2}")                         |
       | (jq).ocs.data.extensions                  | (jq).subjectKeyIdentifier != ""                                                          |
-      | (jq).ocs.data.crl_urls|length              | 1                                                                                        |
-      | (jq).ocs.data.extensions.crlDistributionPoints | (jq) |test("^URI:http")                                                                |
+      | (jq).ocs.data.crl_urls\|length              | 1                                                                                        |
+      | (jq).ocs.data.extensions.crlDistributionPoints | (jq) \|test("^URI:http")                                                                |
 
   Scenario: Upload PFX file with error
     Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name" with result code 0

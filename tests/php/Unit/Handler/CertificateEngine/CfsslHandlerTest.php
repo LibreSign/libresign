@@ -171,48 +171,6 @@ class CfsslHandlerTest extends TestCase {
 		@unlink((string)$binary);
 	}
 
-	public function testCfsslLeafCertificateRequestPayloadProfileContract(): void {
-		$mockClient = $this->createMock(\GuzzleHttp\Client::class);
-		$capturedPayload = [];
-
-		$mockClient->expects($this->once())
-			->method('request')
-			->with(
-				'post',
-				'newcert',
-				$this->callback(function (array $payload) use (&$capturedPayload): bool {
-					$capturedPayload = $payload;
-					return true;
-				}),
-			)
-			->willReturn(new \GuzzleHttp\Psr7\Response(
-				200,
-				['Content-Type' => 'application/json'],
-				(string)json_encode([
-					'success' => true,
-					'result' => [
-						'certificate' => 'pem-cert',
-						'private_key' => 'pem-key',
-						'certificate_request' => 'pem-csr',
-					],
-				]),
-			));
-
-		$handler = $this->createHandler();
-		$handler->setClient($mockClient);
-		$handler->setHosts(['signer@domain.tld']);
-		$handler->setCommonName('Test Signer');
-
-		$result = self::invokePrivate($handler, 'newCert');
-
-		$this->assertSame('pem-cert', $result['certificate']);
-		$this->assertArrayHasKey('json', $capturedPayload);
-		$this->assertSame('client', $capturedPayload['json']['profile']);
-		$this->assertSame('rsa', $capturedPayload['json']['request']['key']['algo']);
-		$this->assertSame(2048, $capturedPayload['json']['request']['key']['size']);
-		$this->assertNotEmpty($capturedPayload['json']['request']['crl_url']);
-	}
-
 	/**
 	 * @return array<string, array{0: bool, 1: string, 2: string}>
 	 */

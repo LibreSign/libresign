@@ -464,9 +464,15 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$certificate = $signerInstance->generateCertificate();
 		$parsed = $signerInstance->readCertificate($certificate, '123456');
 
-		// 1 & 2: Key - RSA public key & 2048-bit RSA key
-		$this->assertSame(OPENSSL_KEYTYPE_RSA, $parsed['pubkey_type']);
-		$this->assertSame(2048, $parsed['pubkey_bits']);
+		// 1 & 2: Key - RSA public key & 2048-bit RSA key inspected directly from certificate PEM
+		$pkcs12 = [];
+		$this->assertTrue(openssl_pkcs12_read($certificate, $pkcs12, '123456'));
+		$publicKey = openssl_pkey_get_public($pkcs12['cert']);
+		$this->assertNotFalse($publicKey);
+		$details = openssl_pkey_get_details($publicKey);
+		$this->assertIsArray($details);
+		$this->assertSame(OPENSSL_KEYTYPE_RSA, $details['type']);
+		$this->assertSame(2048, $details['bits']);
 
 		// 3: Basic Constraints - CA:FALSE
 		$this->assertArrayHasKey('basicConstraints', $parsed['extensions']);
