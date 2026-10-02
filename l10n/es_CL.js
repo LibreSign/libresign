@@ -110,6 +110,8 @@ OC.L10N.register(
     "Enabled" : "Habilitado",
     "Disabled" : "Deshabilitado",
     "Folder name" : "Nombre de la carpeta",
+    "hours" : "horas",
+    "days" : "días",
     "Admin" : "Admin",
     "Search groups" : "Buscar grupos",
     "Custom" : "Personalizado",

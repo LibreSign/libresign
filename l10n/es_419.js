@@ -116,6 +116,8 @@ OC.L10N.register(
     "Read only" : "Sólo lectura",
     "Change" : "Cambiar",
     "Folder name" : "Nombre de la carpeta",
+    "hours" : "horas",
+    "days" : "días",
     "Admin" : "Administración",
     "Search groups" : "Buscar grupos",
     "Custom" : "Personalizado",

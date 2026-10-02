@@ -82,6 +82,8 @@ OC.L10N.register(
     "Change" : "Cheñch",
     "Disabled" : "Disaotreañ",
     "Folder name" : "Anv teuliad",
+    "hours" : "eur",
+    "days" : "devezh",
     "Admin" : "Merour",
     "None" : "Hini ebet",
     "Username" : "anv implijer",
