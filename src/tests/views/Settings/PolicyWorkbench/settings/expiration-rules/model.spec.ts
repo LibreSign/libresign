@@ -9,11 +9,14 @@ import {
 	DEFAULT_EXPIRY_IN_DAYS,
 	DEFAULT_MAXIMUM_VALIDITY,
 	DEFAULT_RENEWAL_INTERVAL,
+	durationToSeconds,
 	hasValidRequestExpirationCombination,
 	isRequestExpirationDraftValue,
+	normalizeExpirationDraftInt,
 	normalizeNonNegativeInt,
 	normalizePositiveInt,
 	normalizeRequestExpirationDraftValue,
+	secondsToDuration,
 	summarizeRequestExpirationDraftValue,
 } from '../../../../../../views/Settings/PolicyWorkbench/settings/expiration-rules/model'
 
@@ -32,11 +35,92 @@ describe('expiration-rules model', () => {
 		expect(DEFAULT_EXPIRY_IN_DAYS).toBe(365)
 	})
 
-	it('normalizes non-negative integers from numbers and strings while clamping negatives', () => {
+	describe('secondsToDuration - largest exact unit selection', () => {
+		it('selects days for exact multiples of 86400 seconds', () => {
+			expect(secondsToDuration(86400)).toEqual({ amount: 1, unit: 'days' })
+			expect(secondsToDuration(604800)).toEqual({ amount: 7, unit: 'days' })
+		})
+
+		it('selects hours for exact multiples of 3600 seconds not divisible by days', () => {
+			expect(secondsToDuration(3600)).toEqual({ amount: 1, unit: 'hours' })
+			expect(secondsToDuration(86400 + 3600)).toEqual({ amount: 25, unit: 'hours' })
+		})
+
+		it('selects minutes for exact multiples of 60 seconds not divisible by hours', () => {
+			expect(secondsToDuration(300)).toEqual({ amount: 5, unit: 'minutes' })
+			expect(secondsToDuration(3600 + 120)).toEqual({ amount: 62, unit: 'minutes' })
+		})
+
+		it('selects seconds for non-divisible values', () => {
+			expect(secondsToDuration(61)).toEqual({ amount: 61, unit: 'seconds' })
+			expect(secondsToDuration(3661)).toEqual({ amount: 3661, unit: 'seconds' })
+		})
+
+		it('handles disabled, zero, negative, or invalid values', () => {
+			expect(secondsToDuration(0)).toEqual({ amount: 0, unit: 'seconds' })
+			expect(secondsToDuration(-500)).toEqual({ amount: 0, unit: 'seconds' })
+			expect(secondsToDuration('invalid' as never)).toEqual({ amount: 0, unit: 'seconds' })
+		})
+	})
+
+	describe('durationToSeconds - unit conversion and validation', () => {
+		it('converts every unit correctly when given positive safe integers', () => {
+			expect(durationToSeconds(61, 'seconds')).toBe(61)
+			expect(durationToSeconds('5', 'minutes')).toBe(300)
+			expect(durationToSeconds(1, 'hours')).toBe(3600)
+			expect(durationToSeconds(7, 'days')).toBe(604800)
+		})
+
+		it('rejects zero and negative inputs', () => {
+			expect(durationToSeconds(0, 'days')).toBeNull()
+			expect(durationToSeconds(-5, 'hours')).toBeNull()
+			expect(durationToSeconds('-10', 'seconds')).toBeNull()
+		})
+
+		it('rejects float, non-integer, and non-numeric inputs without silent rounding', () => {
+			expect(durationToSeconds(1.5, 'days')).toBeNull()
+			expect(durationToSeconds('1.5', 'minutes')).toBeNull()
+			expect(durationToSeconds('abc', 'hours')).toBeNull()
+			expect(durationToSeconds(5, 'invalid_unit' as never)).toBeNull()
+			expect(durationToSeconds(null, 'seconds')).toBeNull()
+			expect(durationToSeconds(undefined, 'days')).toBeNull()
+		})
+
+		it('rejects unsafe integer overflow', () => {
+			expect(durationToSeconds(Number.MAX_SAFE_INTEGER, 'days')).toBeNull()
+			expect(durationToSeconds(9007199254740991, 'hours')).toBeNull()
+		})
+	})
+
+	describe('exact round trips', () => {
+		it('preserves exact seconds through secondsToDuration and durationToSeconds', () => {
+			const testValues = [61, 300, 3600, 86400, 604800, 3661]
+			for (const seconds of testValues) {
+				const duration = secondsToDuration(seconds)
+				const roundTrip = durationToSeconds(duration.amount, duration.unit)
+				expect(roundTrip).toBe(seconds)
+			}
+		})
+	})
+
+	it('normalizes non-negative integers from numbers and strings while clamping negative values to 0', () => {
 		expect(normalizeNonNegativeInt(42)).toBe(42)
 		expect(normalizeNonNegativeInt(' 8 ')).toBe(8)
 		expect(normalizeNonNegativeInt(-5)).toBe(0)
 		expect(normalizeNonNegativeInt('invalid', 7)).toBe(7)
+	})
+
+	it('normalizes expiration draft integers while preserving negative, decimal, malformed, and unsafe sentinels (-1)', () => {
+		expect(normalizeExpirationDraftInt(42)).toBe(42)
+		expect(normalizeExpirationDraftInt(' 8 ')).toBe(8)
+		expect(normalizeExpirationDraftInt(-5)).toBe(-1)
+		expect(normalizeExpirationDraftInt(1.5)).toBe(-1)
+		expect(normalizeExpirationDraftInt('1.5')).toBe(-1)
+		expect(normalizeExpirationDraftInt('invalid')).toBe(-1)
+		expect(normalizeExpirationDraftInt(Number.MAX_SAFE_INTEGER + 1)).toBe(-1)
+		expect(normalizeExpirationDraftInt(null)).toBe(0)
+		expect(normalizeExpirationDraftInt(undefined)).toBe(0)
+		expect(normalizeExpirationDraftInt('')).toBe(0)
 	})
 
 	it('normalizes positive integers with fallback when values are disabled or invalid', () => {
@@ -59,12 +143,45 @@ describe('expiration-rules model', () => {
 			maximumValidity: 90,
 			renewalInterval: 0,
 		})
+		expect(normalizeRequestExpirationDraftValue({ maximumValidity: -1, renewalInterval: 0 })).toEqual({
+			maximumValidity: -1,
+			renewalInterval: 0,
+		})
+		expect(normalizeRequestExpirationDraftValue({ maximumValidity: 1.5, renewalInterval: 0 })).toEqual({
+			maximumValidity: -1,
+			renewalInterval: 0,
+		})
 	})
 
 	it('validates renewal/expiration combinations according to the canonical business rule', () => {
 		expect(hasValidRequestExpirationCombination({ maximumValidity: 0, renewalInterval: 0 })).toBe(true)
 		expect(hasValidRequestExpirationCombination({ maximumValidity: 60, renewalInterval: 30 })).toBe(true)
 		expect(hasValidRequestExpirationCombination({ maximumValidity: 0, renewalInterval: 30 })).toBe(false)
+		expect(hasValidRequestExpirationCombination({ maximumValidity: -1, renewalInterval: 0 })).toBe(false)
+		expect(hasValidRequestExpirationCombination({ maximumValidity: 60, renewalInterval: -1 })).toBe(false)
+		expect(hasValidRequestExpirationCombination({ maximumValidity: -1, renewalInterval: -1 })).toBe(false)
+		expect(hasValidRequestExpirationCombination({ maximumValidity: 1.5, renewalInterval: 0 })).toBe(false)
+		expect(hasValidRequestExpirationCombination({ maximumValidity: 60, renewalInterval: 1.5 })).toBe(false)
+
+		expect(hasValidRequestExpirationCombination({
+			maximumValidity: 'invalid',
+			renewalInterval: 0,
+		} as never)).toBe(false)
+
+		expect(hasValidRequestExpirationCombination({
+			maximumValidity: Number.MAX_SAFE_INTEGER + 1,
+			renewalInterval: 0,
+		} as never)).toBe(false)
+
+		expect(hasValidRequestExpirationCombination({
+			maximumValidity: 60,
+			renewalInterval: 'invalid',
+		} as never)).toBe(false)
+
+		expect(hasValidRequestExpirationCombination({
+			maximumValidity: 60,
+			renewalInterval: Number.MAX_SAFE_INTEGER + 1,
+		} as never)).toBe(false)
 	})
 
 	it('summarizes normalized expiration and renewal values with disabled labels', () => {

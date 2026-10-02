@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
 	expiryInDaysRealDefinition,
 	maximumValidityRealDefinition,
+	renewalIntervalRealDefinition,
 } from '../../../../../../views/Settings/PolicyWorkbench/settings/expiration-rules/realDefinitions'
 
 vi.mock('@nextcloud/l10n', () => ({
@@ -16,7 +17,7 @@ vi.mock('@nextcloud/l10n', () => ({
 	isRTL: () => false,
 }))
 
-describe('expiryInDaysRealDefinition', () => {
+describe('realDefinitions', () => {
 	it('locks child customization for group-admin unified request-expiration group rules', () => {
 		expect(maximumValidityRealDefinition.normalizeAllowChildOverride('group', true, {
 			scope: 'group',
@@ -30,7 +31,7 @@ describe('expiryInDaysRealDefinition', () => {
 		})).toBe(false)
 	})
 
-	it('supports instance, group, and account rule scopes', () => {
+	it('supports instance, group, and account rule scopes for expiry_in_days', () => {
 		expect(expiryInDaysRealDefinition.supportedScopes).toEqual(['system', 'group', 'user'])
 	})
 
@@ -49,5 +50,14 @@ describe('expiryInDaysRealDefinition', () => {
 			editorMode: 'create',
 			viewMode: 'group-admin',
 		})).toBe(false)
+	})
+
+	it('validates renewalIntervalRealDefinition draft selection for invalid sentinels (-1) and decimals', () => {
+		expect(renewalIntervalRealDefinition.normalizeDraftValue(3600)).toBe(3600)
+		expect(renewalIntervalRealDefinition.hasSelectableDraftValue(3600)).toBe(true)
+		expect(renewalIntervalRealDefinition.normalizeDraftValue(-1)).toBe(-1)
+		expect(renewalIntervalRealDefinition.hasSelectableDraftValue(-1)).toBe(false)
+		expect(renewalIntervalRealDefinition.normalizeDraftValue(1.5)).toBe(-1)
+		expect(renewalIntervalRealDefinition.hasSelectableDraftValue(1.5)).toBe(false)
 	})
 })

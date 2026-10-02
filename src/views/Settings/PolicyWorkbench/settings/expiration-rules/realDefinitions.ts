@@ -15,6 +15,7 @@ import {
 	DEFAULT_MAXIMUM_VALIDITY,
 	DEFAULT_RENEWAL_INTERVAL,
 	hasValidRequestExpirationCombination,
+	normalizeExpirationDraftInt,
 	normalizeNonNegativeInt,
 	normalizePositiveInt,
 	normalizeRequestExpirationDraftValue,
@@ -67,8 +68,8 @@ export const renewalIntervalRealDefinition: RealPolicySettingDefinition = {
 	description: t('libresign', 'Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link.'),
 	editor: RenewalIntervalRuleEditor,
 	createEmptyValue: () => DEFAULT_RENEWAL_INTERVAL,
-	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeNonNegativeInt(value, DEFAULT_RENEWAL_INTERVAL),
-	hasSelectableDraftValue: () => true,
+	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeExpirationDraftInt(value, DEFAULT_RENEWAL_INTERVAL),
+	hasSelectableDraftValue: (value: EffectivePolicyValue) => normalizeExpirationDraftInt(value, DEFAULT_RENEWAL_INTERVAL) >= 0,
 	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
 		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
