@@ -1082,11 +1082,11 @@
     "Maximum validity" : "Maximálna platnosť",
     "Maximum validity in seconds of a signature request." : "Maximálna platnosť žiadosti o podpis v sekundách.",
     "Renewal interval" : "Interval obnovenia",
-    "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "Interval obnovy v sekundách žiadosti o odber. Pri prístupe k odkazu sa zobrazí výzva na obnovenie odkazu.",
-    "Maximum validity (seconds)" : "Maximálna platnosť (sekundy)",
-    "Leave empty to disable expiration." : "Ak chcete deaktivovať vypršanie platnosti, nechajte prázdne.",
-    "Renewal interval (seconds)" : "Interval obnovy (sekundy)",
-    "Leave empty to disable renewal." : "Ak chcete obnovenie deaktivovať, nechajte prázdne.",
+    "Time unit" : "Časová jednotka",
+    "seconds" : "sekúnd",
+    "minutes" : "minúty",
+    "hours" : "hodiny",
+    "days" : "dni",
     "Accounts may renew the signing request after expiration using the access link." : "Účty môžu po uplynutí platnosti obnoviť žiadosť o podpis pomocou prístupového odkazu.",
     "Maximum validity is required when renewal interval is set." : "Pri nastavení intervalu obnovy sa vyžaduje maximálna platnosť.",
     "Enable identification documents flow" : "Povoliť tok identifikačných dokumentov",
@@ -1380,6 +1380,7 @@
     "Control which PDF changes remain allowed after signing and help readers detect disallowed modifications." : "Kontrolujte, ktoré zmeny PDF zostanú povolené po podpísaní a pomôžte čitateľom odhaliť nepovolené úpravy.",
     "Request expiration" : "Požiadať o vypršanie platnosti",
     "Configure expiration and renewal timing for signing requests." : "Nakonfigurujte čas vypršania platnosti a obnovy pre žiadosti o podpis.",
+    "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "Interval obnovy v sekundách žiadosti o odber. Pri prístupe k odkazu sa zobrazí výzva na obnovenie odkazu.",
     "{value} seconds" : "{value} sekúnd",
     "Expiration in days" : "Expirácia v dňoch",
     "{value} days" : "{value} dní",
@@ -1559,6 +1560,10 @@
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Nastavenia autority časovej pečiatky (TSA) pre digitálne podpisovanie dokumentov.",
     "Make validation URL acessible only by authenticated users" : "Sprístupnite overovaciu adresu URL iba prihláseným užívateľom",
     "{method} is not configured. Please contact your administrator." : "{method} nie je nakonfigurovaný. Kontaktujte svojho správcu.",
-    "Sign the document." : "Podpísať dokument."
+    "Sign the document." : "Podpísať dokument.",
+    "Maximum validity (seconds)" : "Maximálna platnosť (sekundy)",
+    "Leave empty to disable expiration." : "Ak chcete deaktivovať vypršanie platnosti, nechajte prázdne.",
+    "Renewal interval (seconds)" : "Interval obnovy (sekundy)",
+    "Leave empty to disable renewal." : "Ak chcete obnovenie deaktivovať, nechajte prázdne."
 },"pluralForm" :"nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);"
 }

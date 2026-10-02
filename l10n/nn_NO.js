@@ -91,6 +91,7 @@ OC.L10N.register(
     "Change" : "ENdre",
     "Disabled" : "Deaktivert",
     "Folder name" : "Mappenamn",
+    "days" : "dagar",
     "Admin" : "Administrer",
     "Custom" : "Sjølvvald",
     "None" : "Ingen",
