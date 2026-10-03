@@ -9,10 +9,15 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy;
 
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\Policy\Contract\IFilePolicyApplier;
+use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IL10N;
 
 abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
@@ -20,6 +25,7 @@ abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
 		protected readonly PolicyService $policyService,
 		protected readonly FileService $fileService,
 		protected readonly ?IL10N $l10n = null,
+		protected readonly ?FileMapper $fileMapper = null,
 	) {
 	}
 
@@ -74,6 +80,45 @@ abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
 			: vsprintf($message, [$blockedBy]);
 
 		throw new LibresignException($translatedMessage, 422);
+	}
+
+	/**
+	 * Whether the request no longer accepts new values for these policies.
+	 *
+	 * A request freezes the first time it enters the signing flow and stays
+	 * frozen if it later returns to DRAFT, and a document freezes with its
+	 * envelope. A request saved before the freeze was recorded has no marker, so
+	 * it is frozen while its status says it was sent.
+	 */
+	protected function isPolicySnapshotFrozen(FileEntity $file, string $policyKey, string ...$otherPolicyKeys): bool {
+		foreach ([$policyKey, ...$otherPolicyKeys] as $policyKey) {
+			if ($this->policyService->getRequestLifecycle($policyKey) !== PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT) {
+				throw new \LogicException(sprintf('The %s policy is not stored on the request, so it cannot be frozen.', $policyKey));
+			}
+		}
+
+		if ($this->hasFrozenMarker($file) || $this->hasFrozenMarker($this->findEnvelope($file))) {
+			return true;
+		}
+
+		return $file->getStatus() >= FileStatus::ABLE_TO_SIGN->value;
+	}
+
+	private function hasFrozenMarker(?FileEntity $file): bool {
+		return isset(($file?->getMetadata() ?? [])[FileStatusService::POLICY_SNAPSHOT_FROZEN_AT]);
+	}
+
+	private function findEnvelope(FileEntity $file): ?FileEntity {
+		$parentId = $file->getParentFileId();
+		if ($parentId === null || $this->fileMapper === null) {
+			return null;
+		}
+
+		try {
+			return $this->fileMapper->getById($parentId);
+		} catch (DoesNotExistException) {
+			return null;
+		}
 	}
 
 	protected function storePolicySnapshot(FileEntity $file, ResolvedPolicy $resolvedPolicy, mixed $effectiveValue = null): void {
