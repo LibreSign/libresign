@@ -16,6 +16,7 @@ use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
@@ -39,9 +40,11 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 	private LoggerInterface $logger;
 	private SubjectAlternativeNameService $subjectAlternativeNameService;
 	private CrlRevocationChecker&MockObject $crlRevocationChecker;
+	private PolicyService&MockObject $policyService;
 
 	#[\Override]
 	public function setUp(): void {
+		parent::setUp();
 		$this->config = \OCP\Server::get(IConfig::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
@@ -57,6 +60,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 		$this->subjectAlternativeNameService = \OCP\Server::get(SubjectAlternativeNameService::class);
 		$this->crlRevocationChecker = $this->createMock(CrlRevocationChecker::class);
 		$this->crlRevocationChecker->method('validate')->willReturn(['status' => CrlValidationStatus::VALID]);
+		$this->policyService = $this->createMock(PolicyService::class);
 	}
 
 	private function getInstance(): OpenSslHandler {
@@ -70,7 +74,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 			$this->urlGenerator,
 			\OCP\Server::get(\OCA\Libresign\Service\SerialNumberService::class),
 			$this->caIdentifierService,
-			\OCP\Server::get(PolicyService::class),
+			$this->policyService,
 			$this->logger,
 			\OCP\Server::get(\OCA\Libresign\Db\CrlMapper::class),
 			$this->subjectAlternativeNameService,
@@ -101,7 +105,6 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 	public function testSetEngineConfiguresIdentifyMethodsForNoneEngine(
 		string $fromEngine,
 		?array $initialIdentifyMethods,
-		int $expectedFactorCount,
 		string $description,
 	): void {
 		$instance = $this->getInstance();
@@ -113,18 +116,17 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 			$this->appConfig->setValueArray(Application::APP_ID, 'identify_methods', $initialIdentifyMethods);
 		}
 
+		$this->policyService->expects($this->once())
+			->method('saveSystem')
+			->with(IdentifyMethodsPolicy::KEY, [[
+				'name' => 'account',
+				'enabled' => true,
+				'mandatory' => true,
+			]]);
+
 		$instance->setEngine('none');
 
-		$savedIdentifyMethods = $this->appConfig->getValueArray(Application::APP_ID, 'identify_methods');
-		$this->assertArrayHasKey('factors', $savedIdentifyMethods);
-		$this->assertCount($expectedFactorCount, $savedIdentifyMethods['factors'], "identify_methods should be restricted for none engine: $description");
-
-		[$accountFactor] = $savedIdentifyMethods['factors'];
-		$this->assertSame('account', $accountFactor['name']);
-		$this->assertTrue($accountFactor['enabled']);
-		$this->assertSame('required', $accountFactor['requirement']);
-		$this->assertSame('Account', $accountFactor['friendly_name']);
-		$this->assertArrayNotHasKey('email', $savedIdentifyMethods['factors']);
+		$this->assertSame('none', $instance->getEngine(), "none engine should be applied: $description");
 	}
 
 	#[DataProvider('dataProviderIdentifyMethodsOtherEngines')]
@@ -144,6 +146,8 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 		} else {
 			$this->appConfig->deleteKey(Application::APP_ID, 'identify_methods');
 		}
+
+		$this->policyService->expects($this->never())->method('saveSystem');
 
 		$instance->setEngine($toEngine);
 
@@ -199,10 +203,10 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 		];
 
 		return [
-			'First time setting to none' => ['', null, 1, 'no previous config'],
-			'From openssl to none' => ['openssl', $fullConfig, 1, 'with full config'],
-			'From cfssl to none' => ['cfssl', $fullConfig, 1, 'with full config'],
-			'Keeping none' => ['none', $noneConfig, 1, 'already restricted'],
+			'First time setting to none' => ['', null, 'no previous config'],
+			'From openssl to none' => ['openssl', $fullConfig, 'with full config'],
+			'From cfssl to none' => ['cfssl', $fullConfig, 'with full config'],
+			'Keeping none' => ['none', $noneConfig, 'already restricted'],
 		];
 	}
 

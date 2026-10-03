@@ -13,9 +13,6 @@ use OCA\Libresign\Service\Install\InstallTarget;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 final class DependencyStorageTest extends \OCA\Libresign\Tests\Integration\TestCase {
-	/**
-	 * @runInSeparateProcess
-	 */
 	#[DataProvider('resourceFolderProvider')]
 	public function testResourceFolderUsesTarget(
 		string $architecture,
@@ -48,9 +45,6 @@ final class DependencyStorageTest extends \OCA\Libresign\Tests\Integration\TestC
 		];
 	}
 
-	/**
-	 * @runInSeparateProcess
-	 */
 	public function testEmptyResourceFolderReplacesStaleContents(): void {
 		$storage = \OCP\Server::get(DependencyStorage::class);
 		$target = InstallTarget::from('x86_64', 'linux');
@@ -66,9 +60,6 @@ final class DependencyStorageTest extends \OCA\Libresign\Tests\Integration\TestC
 		$this->assertSame([], $cleanFolder->getDirectoryListing());
 	}
 
-	/**
-	 * @runInSeparateProcess
-	 */
 	public function testEmptyJavaFolderKeepsArchitectureAndDistroParents(): void {
 		$storage = \OCP\Server::get(DependencyStorage::class);
 		$target = InstallTarget::from('aarch64', 'alpine-linux');
