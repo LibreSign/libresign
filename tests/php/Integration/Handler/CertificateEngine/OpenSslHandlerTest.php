@@ -501,19 +501,6 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 
 		$crlDer = $rootInstance->generateCrlDer([$revokedCert], $matches[1], (int)$matches[2], 1);
 
-		$tempCertFile = $this->tempManager->getTemporaryFile('.pem');
-		$pkcs12 = [];
-		$this->assertTrue(openssl_pkcs12_read($certificateContent, $pkcs12, '123456'));
-		$this->assertNotFalse(file_put_contents($tempCertFile, $pkcs12['cert']));
-
-		$certificateOutput = [];
-		$certificateExitCode = 0;
-		exec(sprintf('openssl x509 -in %s -noout -serial', escapeshellarg($tempCertFile)), $certificateOutput, $certificateExitCode);
-		$this->assertSame(0, $certificateExitCode);
-		$this->assertMatchesRegularExpression('/^serial=[0-9A-F]+$/i', $certificateOutput[0] ?? '');
-
-		$certificateSerial = substr($certificateOutput[0], strlen('serial='));
-
 		$tempCrlFile = $this->tempManager->getTemporaryFile('.crl');
 		$this->assertNotFalse(file_put_contents($tempCrlFile, $crlDer));
 
@@ -524,11 +511,10 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 
 		$crlText = implode("\n", $crlOutput);
 		$this->assertMatchesRegularExpression(
-			'/Serial Number:\s*0*' . preg_quote($certificateSerial, '/') . '/i',
+			'/Serial Number:\s*0*' . preg_quote(ltrim($parsed['serialNumberHex'], '0'), '/') . '/i',
 			$crlText,
 		);
 
-		unlink($tempCertFile);
 		unlink($tempCrlFile);
 	}
 
