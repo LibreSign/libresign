@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod;
+namespace OCA\Libresign\Tests\Integration\Service\IdentifyMethod;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\IdentifyMethod;
@@ -31,7 +31,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-class AccountTest extends \OCA\Libresign\Tests\Unit\TestCase {
+class AccountTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private IdentifyService&MockObject $identifyService;
 	private IUserManager&MockObject $userManager;
 	private IEventDispatcher&MockObject $eventDispatcher;

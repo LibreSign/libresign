@@ -7,7 +7,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service\Crl;
+namespace OCA\Libresign\Tests\Integration\Service\Crl;
 
 use OCA\Libresign\Service\Crl\CrlUrlParserService;
 use OCP\IURLGenerator;

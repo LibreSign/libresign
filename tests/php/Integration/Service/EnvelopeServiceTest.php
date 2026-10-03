@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Integration\Service;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
@@ -20,7 +20,7 @@ use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
 use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
-use OCA\Libresign\Tests\Unit\TestCase;
+use OCA\Libresign\Tests\Integration\TestCase;
 use OCP\Files\Folder;
 use OCP\IAppConfig;
 use OCP\IL10N;
