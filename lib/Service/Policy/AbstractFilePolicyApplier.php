@@ -97,11 +97,13 @@ abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
 			}
 		}
 
-		if ($this->hasFrozenMarker($file) || $this->hasFrozenMarker($this->findEnvelope($file))) {
+		$envelope = $this->findEnvelope($file);
+		if ($this->hasFrozenMarker($file) || $this->hasFrozenMarker($envelope)) {
 			return true;
 		}
 
-		return $file->getStatus() >= FileStatus::ABLE_TO_SIGN->value;
+		return $file->getStatus() >= FileStatus::ABLE_TO_SIGN->value
+			|| ($envelope !== null && $envelope->getStatus() >= FileStatus::ABLE_TO_SIGN->value);
 	}
 
 	private function hasFrozenMarker(?FileEntity $file): bool {

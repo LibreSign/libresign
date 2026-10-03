@@ -244,6 +244,28 @@ final class AbstractFilePolicyApplierTest extends TestCase {
 		];
 	}
 
+	public function testLegacyDraftDocumentIsFrozenWhenEnvelopeAlreadyEnteredSigningFlow(): void {
+		$this->policyService->method('getRequestLifecycle')->willReturn(PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT);
+
+		$file = new FileEntity();
+		$file->setStatus(FileStatus::DRAFT->value);
+		$file->setMetadata([]);
+		$file->setParentFileId(1);
+
+		$envelope = new FileEntity();
+		$envelope->setId(1);
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$envelope->setMetadata([]);
+
+		$this->fileMapper->method('getById')->with(1)->willReturn($envelope);
+		$this->fileMapper->expects($this->never())->method('update');
+		$this->fileService->expects($this->never())->method('update');
+
+		self::assertTrue($this->createApplier()->exposeIsPolicySnapshotFrozen($file, 'snapshot_policy'));
+		self::assertSame([], $file->getMetadata());
+	}
+
 	public function testOnlyAPolicyStoredOnTheRequestCanBeFrozen(): void {
 		$this->policyService->method('getRequestLifecycle')->with('runtime_policy')->willReturn(PolicySpec::LIFECYCLE_RUNTIME);
 
