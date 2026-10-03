@@ -17,6 +17,8 @@ use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCP\AppFramework\Db\DoesNotExistException;
 
 class FileStatusService {
+	public const POLICY_SNAPSHOT_FROZEN_AT = 'policy_snapshot_frozen_at';
+
 	public function __construct(
 		private FileMapper $fileMapper,
 		private StatusCacheService $statusCacheService,
@@ -26,6 +28,7 @@ class FileStatusService {
 	public function updateFileStatusIfUpgrade(FileEntity $file, int $newStatus): FileEntity {
 		$currentStatus = $file->getStatus();
 		if ($newStatus > $currentStatus) {
+			$this->markPolicySnapshotFrozen($file, $newStatus);
 			$file->setStatus($newStatus);
 			$this->touchStatusChangedAt($file);
 			$this->fileMapper->update($file);
@@ -84,6 +87,7 @@ class FileStatusService {
 		}
 
 		if ($parent->getStatus() !== $newStatus) {
+			$this->markPolicySnapshotFrozen($parent, $newStatus);
 			$parent->setStatus($newStatus);
 			$this->touchStatusChangedAt($parent);
 			$this->fileMapper->update($parent);
@@ -118,12 +122,27 @@ class FileStatusService {
 
 		foreach ($children as $child) {
 			if ($child->getStatus() !== $newStatus) {
+				$this->markPolicySnapshotFrozen($child, $newStatus);
 				$child->setStatus($newStatus);
 				$this->touchStatusChangedAt($child);
 				$this->fileMapper->update($child);
 				$this->statusCacheService->setStatus($child->getUuid(), $newStatus);
 			}
 		}
+	}
+
+	public function markPolicySnapshotFrozen(FileEntity $file, int $newStatus): void {
+		if (max($file->getStatus(), $newStatus) < FileStatus::ABLE_TO_SIGN->value) {
+			return;
+		}
+
+		$metadata = $file->getMetadata() ?? [];
+		if (isset($metadata[self::POLICY_SNAPSHOT_FROZEN_AT])) {
+			return;
+		}
+
+		$metadata[self::POLICY_SNAPSHOT_FROZEN_AT] = (new DateTime())->format(DateTimeInterface::ATOM);
+		$file->setMetadata($metadata);
 	}
 
 	private function touchStatusChangedAt(FileEntity $file): void {

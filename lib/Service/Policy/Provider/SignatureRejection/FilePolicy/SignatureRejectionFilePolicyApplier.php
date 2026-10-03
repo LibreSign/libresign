@@ -13,12 +13,14 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\Policy\AbstractFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValue;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\IL10N;
 use OCP\IUser;
@@ -44,7 +46,7 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 		PolicyService $policyService,
 		FileService $fileService,
 		?IL10N $l10n = null,
-		?FileMapper $fileMapper = null,
+		private readonly ?FileMapper $fileMapper = null,
 	) {
 		parent::__construct($policyService, $fileService, $l10n);
 		$this->storedValueReader = $fileMapper === null
@@ -194,7 +196,29 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 	}
 
 	private function hasSigningFlowStarted(FileEntity $file): bool {
-		return $file->getStatus() >= FileStatus::ABLE_TO_SIGN->value;
+		$envelope = $this->findEnvelope($file);
+
+		return $this->hasFrozenMarker($file)
+			|| $this->hasFrozenMarker($envelope)
+			|| $file->getStatus() >= FileStatus::ABLE_TO_SIGN->value
+			|| ($envelope !== null && $envelope->getStatus() >= FileStatus::ABLE_TO_SIGN->value);
+	}
+
+	private function hasFrozenMarker(?FileEntity $file): bool {
+		return isset(($file?->getMetadata() ?? [])[FileStatusService::POLICY_SNAPSHOT_FROZEN_AT]);
+	}
+
+	private function findEnvelope(FileEntity $file): ?FileEntity {
+		$parentId = $file->getParentFileId();
+		if ($parentId === null || $this->fileMapper === null) {
+			return null;
+		}
+
+		try {
+			return $this->fileMapper->getById($parentId);
+		} catch (DoesNotExistException) {
+			return null;
+		}
 	}
 
 	/**
