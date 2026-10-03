@@ -124,7 +124,8 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 				'name' => 'account',
 				'enabled' => true,
 				'mandatory' => true,
-			]]);
+			]])
+			->willReturn(new ResolvedPolicy());
 
 		$instance->setEngine('none');
 
