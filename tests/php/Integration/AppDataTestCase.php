@@ -13,6 +13,7 @@ use donatj\MockWebServer\Response as MockWebServerResponse;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Service\Install\InstallTarget;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCP\IConfig;
 
@@ -144,13 +145,18 @@ class AppDataTestCase extends TestCase {
 		$cachePath = self::$libresignAppDataCachePath !== ''
 			? self::$libresignAppDataCachePath
 			: self::buildLibresignAppDataCachePath($appPath);
-		if (!file_exists($cachePath)) {
+		if (!is_dir($cachePath)) {
 			return;
 		}
 		if (!is_dir($appPath)) {
 			mkdir($appPath, self::TEST_DIR_MODE, true);
 		}
-		self::recursiveCopy($cachePath, $appPath);
+		foreach (InstallTarget::SUPPORTED_ARCHITECTURES as $architecture) {
+			self::recursiveCopy(
+				$cachePath . DIRECTORY_SEPARATOR . $architecture,
+				$appPath . DIRECTORY_SEPARATOR . $architecture,
+			);
+		}
 	}
 
 	private static function buildLibresignAppFolderPath(): string {
@@ -191,16 +197,21 @@ class AppDataTestCase extends TestCase {
 
 	private function backupBinaries(): void {
 		$appPath = self::getFullLiresignAppFolder();
-		if (!is_readable($appPath) || count(scandir($appPath)) === 2) {
+		if (!is_readable($appPath)) {
 			return;
 		}
 		$cachePath = self::$libresignAppDataCachePath !== ''
 			? self::$libresignAppDataCachePath
 			: self::buildLibresignAppDataCachePath($appPath);
-		if (!file_exists($cachePath)) {
+		if (!is_dir($cachePath)) {
 			mkdir($cachePath, self::TEST_DIR_MODE, true);
 		}
-		self::recursiveCopy($appPath, $cachePath);
+		foreach (InstallTarget::SUPPORTED_ARCHITECTURES as $architecture) {
+			self::recursiveCopy(
+				$appPath . DIRECTORY_SEPARATOR . $architecture,
+				$cachePath . DIRECTORY_SEPARATOR . $architecture,
+			);
+		}
 	}
 
 	private static function normalizeCopiedFileMode(int $sourcePerms): int {
