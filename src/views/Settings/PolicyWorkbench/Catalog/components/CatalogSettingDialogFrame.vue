@@ -34,6 +34,8 @@
 				</NcButton>
 			</div>
 
+			<slot name="extras" />
+
 			<slot />
 		</div>
 	</div>

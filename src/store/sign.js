@@ -120,11 +120,12 @@ export const useSignStore = defineStore('sign', () => {
 	// while a rejection is hidden (#8388).
 	const ableToSign = computed(() => {
 		const allowedStatuses = [FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED]
-		if (!allowedStatuses.includes(document.value?.status)) {
+		if (!allowedStatuses.includes(Number(document.value?.status))) {
 			return false
 		}
 
-		if (!document.value?.settings?.canSign) {
+		// Prefer settings.canSign (validate), then top-level canSign (file list).
+		if (!document.value?.settings?.canSign && document.value?.canSign !== true) {
 			return false
 		}
 
@@ -137,8 +138,20 @@ export const useSignStore = defineStore('sign', () => {
 	})
 
 	const getSignatureMethodsForFile = (file) => {
-		const currentUserAsSigner = file.signers.find(row => row.me)
-		return currentUserAsSigner?.signatureMethods || file.signatureMethods || file.settings?.signatureMethods || {}
+		const pickMethods = (value) => {
+			if (!value || typeof value !== 'object' || Array.isArray(value)) {
+				return null
+			}
+			return Object.keys(value).length > 0 ? value : null
+		}
+
+		const currentUserAsSigner = Array.isArray(file?.signers)
+			? file.signers.find(row => row?.me === true)
+			: null
+		return pickMethods(currentUserAsSigner?.signatureMethods)
+			|| pickMethods(file?.signatureMethods)
+			|| pickMethods(file?.settings?.signatureMethods)
+			|| {}
 	}
 
 	const initFromState = async () => {

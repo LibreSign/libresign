@@ -11,12 +11,17 @@ import { expect, type Page } from '@playwright/test'
  * still fail there, so scroll first and fall back to a DOM click.
  */
 export async function clickSignDocumentButton(page: Page): Promise<void> {
-	const signButton = page.getByRole('button', { name: 'Sign document' }).first()
+	const sidebarSignButton = page.getByRole('complementary').getByRole('button', { name: 'Sign document' })
+	const signButton = (await sidebarSignButton.count()) > 0
+		? sidebarSignButton.first()
+		: page.getByRole('button', { name: 'Sign document' }).first()
 	await expect(signButton).toBeVisible({ timeout: 15_000 })
+	await expect(signButton).toBeEnabled({ timeout: 15_000 })
 	await signButton.scrollIntoViewIfNeeded().catch(() => {})
 
-	const clicked = await signButton.click({ timeout: 5_000 }).then(() => true).catch(() => false)
-	if (!clicked) {
+	const confirmDialog = page.getByRole('dialog', { name: 'Sign document' })
+	await signButton.click({ timeout: 5_000 }).catch(async () => {
 		await signButton.evaluate((element: HTMLElement) => element.click())
-	}
+	})
+	await expect(confirmDialog).toBeVisible({ timeout: 15_000 })
 }

@@ -56,6 +56,10 @@ describe('signRequestUuid utils', () => {
 		})).toBe('sign-request-uuid')
 	})
 
+	it('falls back to the route uuid for internal sign navigation before signer context loads', () => {
+		expect(getSigningRouteUuid({ uuid: 'file-uuid', signers: [] }, null, 'route-signer-uuid')).toBe('route-signer-uuid')
+	})
+
 	it('returns the file uuid for validation routes', () => {
 		expect(getValidationRouteUuid({
 			uuid: 'file-uuid',
