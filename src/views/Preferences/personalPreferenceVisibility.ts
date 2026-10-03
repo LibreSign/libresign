@@ -13,7 +13,7 @@ const getWorkbenchDefinition = (policyKey: string) => {
 const policySupportsPersonalPreference = (
 	policy: { meta?: { supportsUserPreference?: boolean } } | null | undefined,
 ): boolean => {
-	return policy?.meta?.supportsUserPreference !== false
+	return policy?.meta?.supportsUserPreference === true
 }
 
 const policySupportsDescendantRuleCreation = (
