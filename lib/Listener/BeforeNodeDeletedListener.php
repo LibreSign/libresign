@@ -10,6 +10,7 @@ namespace OCA\Libresign\Listener;
 
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\FileStatusService;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -105,7 +106,7 @@ class BeforeNodeDeletedListener implements IEventListener {
 
 	private function handleSignedFileDeleted(int $nodeId): bool {
 		$qb = $this->db->getQueryBuilder();
-		$qb->select('id', 'node_id', 'signed_node_id')
+		$qb->select('id', 'node_id', 'signed_node_id', 'metadata')
 			->from('libresign_file')
 			->where($qb->expr()->eq('signed_node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)));
 
@@ -114,7 +115,7 @@ class BeforeNodeDeletedListener implements IEventListener {
 		foreach ($files as $file) {
 			$fileId = (int)$file['id'];
 			$this->deleteSigningData($fileId);
-			$this->detachSignedFile($fileId);
+			$this->detachSignedFile($fileId, isset($file['metadata']) ? (string)$file['metadata'] : null);
 		}
 
 		return !empty($files);
@@ -144,11 +145,22 @@ class BeforeNodeDeletedListener implements IEventListener {
 			->executeStatement();
 	}
 
-	private function detachSignedFile(int $fileId): void {
+	private function detachSignedFile(int $fileId, ?string $metadataJson): void {
+		$metadata = [];
+		if ($metadataJson !== null && $metadataJson !== '') {
+			try {
+				$decoded = json_decode($metadataJson, true, 512, JSON_THROW_ON_ERROR);
+				$metadata = is_array($decoded) ? $decoded : [];
+			} catch (\Throwable) {
+			}
+		}
+		$metadata[FileStatusService::POLICY_SNAPSHOT_FROZEN_AT] ??= (new \DateTime('now', new \DateTimeZone('UTC')))->format(\DateTime::ATOM);
+
 		$qb = $this->db->getQueryBuilder();
 		$qb->update('libresign_file')
 			->set('signed_node_id', $qb->createNamedParameter(null, IQueryBuilder::PARAM_NULL))
 			->set('status', $qb->createNamedParameter(FileStatus::DRAFT->value, IQueryBuilder::PARAM_INT))
+			->set('metadata', $qb->createNamedParameter(json_encode($metadata), IQueryBuilder::PARAM_STR))
 			->set('signed_hash', $qb->createNamedParameter(null, IQueryBuilder::PARAM_NULL))
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
 			->executeStatement();

@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\File;
 
+use OCA\Libresign\Service\FileStatusService;
+
 /**
  * @psalm-import-type LibresignValidateMetadata from \OCA\Libresign\ResponseDefinitions
  */
@@ -25,6 +27,7 @@ final class ValidationMetadataNormalizer {
 	 */
 	public static function normalize(array $metadata, string $fileName, int $totalPages): array {
 		$normalized = $metadata;
+		unset($normalized[FileStatusService::POLICY_SNAPSHOT_FROZEN_AT]);
 		$normalized['p'] = self::normalizePageCount($totalPages);
 		$normalized['extension'] = self::normalizeExtension($normalized, $fileName);
 
