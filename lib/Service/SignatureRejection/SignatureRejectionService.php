@@ -76,8 +76,11 @@ class SignatureRejectionService {
 		$commentIsPrivate = $normalizedComment !== null && $privateComment;
 
 		$workflowCanceled = $config->cancelsWorkflow();
-		$this->persistRejection($libreSignFile, $signRequest, $normalizedComment, $commentIsPrivate, $workflowCanceled);
+		$activatedSigners = $this->persistRejection($libreSignFile, $signRequest, $normalizedComment, $commentIsPrivate, $workflowCanceled);
+		// The event goes first so that nothing raised while notifying the released
+		// signers can keep the listeners from hearing about a committed rejection.
 		$this->dispatchRejectedEvent($signRequest, $libreSignFile, $workflowCanceled);
+		$this->sequentialSigningService->notifyActivatedSigners($activatedSigners);
 
 		return $signRequest;
 	}
@@ -94,6 +97,8 @@ class SignatureRejectionService {
 	 * Marking the signer as rejected and closing the workflow describe a single
 	 * decision, so they are written together: a failure must never leave a signer
 	 * who already rejected on a document that stays open for everybody else.
+	 *
+	 * @return list<SignRequestEntity> the signers released by the rejection, to be notified after the commit
 	 */
 	private function persistRejection(
 		FileEntity $libreSignFile,
@@ -101,7 +106,7 @@ class SignatureRejectionService {
 		?string $comment,
 		bool $commentIsPrivate,
 		bool $workflowCanceled,
-	): void {
+	): array {
 		$signRequests = $this->collectSignRequestsToReject($libreSignFile, $signRequest);
 		$previousSignerStatuses = array_map(
 			static fn (SignRequestEntity $each): int => $each->getStatus(),
@@ -140,7 +145,7 @@ class SignatureRejectionService {
 			throw new LibresignException($this->l10n->t('It was not possible to register the rejection. Nothing was changed.'));
 		}
 
-		$this->sequentialSigningService->notifyActivatedSigners($activatedSigners);
+		return $activatedSigners;
 	}
 
 	/**

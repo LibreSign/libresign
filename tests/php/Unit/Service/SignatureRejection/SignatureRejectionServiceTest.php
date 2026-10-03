@@ -409,6 +409,32 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$this->assertSame(['activate', 'commit', 'notify'], $calls);
 	}
 
+	public function testTheRejectionEventIsDispatchedBeforeTheReleasedSignersAreNotified(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+
+		$calls = [];
+		$this->sequentialSigningService->method('activateNextOrder')
+			->willReturn([$this->signRequest(id: 2)]);
+		$this->db->method('commit')
+			->willReturnCallback(function () use (&$calls): void {
+				$calls[] = 'commit';
+			});
+		$this->eventDispatcher->expects($this->once())
+			->method('dispatchTyped')
+			->willReturnCallback(function () use (&$calls): void {
+				$calls[] = 'dispatch';
+			});
+		$this->sequentialSigningService->expects($this->once())
+			->method('notifyActivatedSigners')
+			->willReturnCallback(function () use (&$calls): void {
+				$calls[] = 'notify';
+			});
+
+		$this->getService()->reject($this->file(), $this->signRequest());
+
+		$this->assertSame(['commit', 'dispatch', 'notify'], $calls);
+	}
+
 	public function testARolledBackRejectionNotifiesNobodyItHadReleased(): void {
 		$this->withPolicy(self::policy(behavior: 'continue'));
 		$envelope = $this->envelope();
@@ -442,6 +468,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 			->willReturn([$this->signRequest(id: 2)]);
 		$this->sequentialSigningService->method('notifyActivatedSigners')
 			->willThrowException(new \TypeError('a bug, not a delivery failure'));
+		$this->eventDispatcher->expects($this->once())->method('dispatchTyped');
 		$this->db->expects($this->once())->method('commit');
 		$this->db->expects($this->never())->method('rollBack');
 		$this->logger->expects($this->never())->method('error');

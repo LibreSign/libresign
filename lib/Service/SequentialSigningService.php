@@ -119,7 +119,15 @@ class SequentialSigningService {
 	 * \Error is a programming error and must stay visible.
 	 */
 	private function notifySigner(SignRequest $signer): void {
-		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId());
+		try {
+			$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId());
+		} catch (\Exception $e) {
+			$this->logger->error('Failed to load the identify methods of an activated signer: ' . $e->getMessage(), [
+				'exception' => $e,
+				'signRequestId' => $signer->getId(),
+			]);
+			return;
+		}
 		foreach ($identifyMethods as $methodGroup) {
 			foreach ($methodGroup as $identifyMethod) {
 				$identifyMethod->willNotifyUser(true);

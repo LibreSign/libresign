@@ -304,6 +304,33 @@ final class SequentialSigningServiceTest extends TestCase {
 		$this->service->notifyActivatedSigners($signers);
 	}
 
+	public function testAFailedIdentifyMethodLookupDoesNotStopTheOtherActivatedSigners(): void {
+		$signers = $this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
+			[3, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]);
+
+		$next = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$next->expects($this->once())->method('notify');
+
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willReturnCallback(function (int $signRequestId) use ($next): array {
+				if ($signRequestId === 2) {
+					throw new \RuntimeException('lost connection to the database');
+				}
+				return ['account' => [$next]];
+			});
+		$this->logger->expects($this->once())
+			->method('error')
+			->with(
+				$this->stringContains('lost connection to the database'),
+				$this->callback(fn (array $context): bool => $context['signRequestId'] === 2
+					&& $context['exception'] instanceof \RuntimeException),
+			);
+
+		$this->service->notifyActivatedSigners($signers);
+	}
+
 	public function testAProgrammingErrorWhileNotifyingIsNotHidden(): void {
 		$signers = $this->buildSignRequests([
 			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
