@@ -6,9 +6,8 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Integration\Service;
+namespace OCA\Libresign\Tests\Unit\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
@@ -20,7 +19,7 @@ use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
 use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
-use OCA\Libresign\Tests\Integration\TestCase;
+use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\Files\Folder;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -37,9 +36,11 @@ final class EnvelopeServiceTest extends TestCase {
 	private mixed $observerPolicyEffectiveValue = false;
 
 	public function setUp(): void {
-		parent::setUp();
 		$this->fileMapper = $this->createMock(FileMapper::class);
-		$this->l10n = \OCP\Server::get(\OCP\L10N\IFactory::class)->get(Application::APP_ID);
+		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n->method('t')->willReturnCallback(static function (string $text, array $parameters = []): string {
+			return $parameters === [] ? $text : vsprintf($text, $parameters);
+		});
 		$this->policyService = $this->createMock(PolicyService::class);
 		$resolved = (new ResolvedPolicy())
 			->setPolicyKey(EnvelopePolicy::KEY)

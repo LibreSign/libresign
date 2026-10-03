@@ -6,10 +6,9 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Integration\Service;
+namespace OCA\Libresign\Tests\Unit\Service;
 
 use bovigo\vfs\vfsStream;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCP\Files\IAppData;
@@ -19,11 +18,10 @@ use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
-use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
-final class CertificatePolicyServiceTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class CertificatePolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	private IAppData&MockObject $appData;
 	private IURLGenerator&MockObject $urlGenerator;
@@ -35,7 +33,10 @@ final class CertificatePolicyServiceTest extends \OCA\Libresign\Tests\Integratio
 		$this->appData = $this->createMock(IAppData::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
-		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
+		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n->method('t')->willReturnCallback(static function (string $text, array $parameters = []): string {
+			return $parameters === [] ? $text : vsprintf($text, $parameters);
+		});
 	}
 
 	private function getService(): CertificatePolicyService {
