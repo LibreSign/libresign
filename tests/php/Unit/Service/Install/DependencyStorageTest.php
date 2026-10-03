@@ -19,7 +19,9 @@ use OCP\IConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 final class InMemoryDependencyPath {
-	public function __construct(private string $internalPath) {
+	public function __construct(
+		private string $internalPath,
+	) {
 	}
 
 	public function getInternalPath(): string {
