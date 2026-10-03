@@ -65,7 +65,7 @@ class SignatureStampAppearanceBuilder {
 				$nameY = $nameStartY;
 				$estimatedCharWidth = $nameFontSize * 0.52;
 				foreach ($nameLines as $nameLine) {
-					$lineWidth = strlen($nameLine) * $estimatedCharWidth;
+					$lineWidth = mb_strlen($nameLine) * $estimatedCharWidth;
 					$nameX = max($leftPadding, ($leftHalfW - $lineWidth) / 2.0);
 					$escaped = $this->escapePdfText($nameLine);
 					$stream .= "BT\n";
@@ -105,6 +105,7 @@ class SignatureStampAppearanceBuilder {
 						'Type' => '/Font',
 						'Subtype' => '/Type1',
 						'BaseFont' => '/Helvetica',
+						'Encoding' => '/WinAnsiEncoding',
 					],
 				],
 			],
@@ -122,7 +123,7 @@ class SignatureStampAppearanceBuilder {
 
 		$estimatedCharWidth = max(1.0, $fontSize * 0.52);
 		$maxChars = max(1, (int)floor($availableWidth / $estimatedCharWidth));
-		if (strlen($trimmed) <= $maxChars) {
+		if (mb_strlen($trimmed) <= $maxChars) {
 			return [$trimmed];
 		}
 
@@ -134,7 +135,7 @@ class SignatureStampAppearanceBuilder {
 			}
 
 			$candidate = $current === '' ? $word : $current . ' ' . $word;
-			if (strlen($candidate) <= $maxChars) {
+			if (mb_strlen($candidate) <= $maxChars) {
 				$current = $candidate;
 				continue;
 			}
@@ -144,9 +145,9 @@ class SignatureStampAppearanceBuilder {
 				$current = '';
 			}
 
-			while (strlen($word) > $maxChars) {
-				$result[] = substr($word, 0, $maxChars);
-				$word = substr($word, $maxChars);
+			while (mb_strlen($word) > $maxChars) {
+				$result[] = mb_substr($word, 0, $maxChars);
+				$word = mb_substr($word, $maxChars);
 			}
 
 			$current = $word;
@@ -160,10 +161,17 @@ class SignatureStampAppearanceBuilder {
 	}
 
 	public function escapePdfText(string $value): string {
-		$value = str_replace('\\', '\\\\', $value);
-		$value = str_replace('(', '\\(', $value);
-		$value = str_replace(')', '\\)', $value);
+		$encoded = mb_convert_encoding($value, 'Windows-1252', 'UTF-8');
+		if (mb_convert_encoding($encoded, 'UTF-8', 'Windows-1252') !== $value) {
+			throw new \InvalidArgumentException(
+				'signature stamp contains characters that cannot be represented by WinAnsiEncoding',
+			);
+		}
 
-		return $value;
+		$encoded = str_replace('\\', '\\\\', $encoded);
+		$encoded = str_replace('(', '\\(', $encoded);
+		$encoded = str_replace(')', '\\)', $encoded);
+
+		return $encoded;
 	}
 }
