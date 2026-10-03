@@ -21,6 +21,9 @@ use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Server;
 
+/**
+ * @group DB
+ */
 final class Version18005Date20260923000000Test extends TestCase {
 	private IDBConnection $connection;
 	private CrlMapper $crlMapper;

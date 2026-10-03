@@ -29,6 +29,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @group DB
+ */
 class CfsslHandlerTest extends AppDataTestCase {
 	private const string PROCESS_SOURCE = 'cfssl';
 

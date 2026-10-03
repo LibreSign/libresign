@@ -86,10 +86,14 @@ class TestCase extends \Test\TestCase {
 	}
 
 	public function tearDown(): void {
-		if ($this->haveDependents() || !$this->IsDatabaseAccessAllowed()) {
-			return;
+		try {
+			if (!$this->haveDependents() && $this->IsDatabaseAccessAllowed()) {
+				$this->cleanDatabase();
+			}
+		} finally {
+			$this->restoreAllServices();
+			$this->restoreAllSystemConfig();
 		}
-		$this->cleanDatabase();
 	}
 
 	private function suppressMailDelivery(): void {
