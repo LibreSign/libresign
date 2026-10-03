@@ -7,7 +7,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Integration\Service\Crl;
+namespace OCA\Libresign\Tests\Unit\Service\Crl;
 
 use OCA\Libresign\Service\Crl\CrlUrlParserService;
 use OCP\IURLGenerator;
@@ -19,7 +19,10 @@ class CrlUrlParserServiceTest extends TestCase {
 	private CrlUrlParserService $service;
 
 	protected function setUp(): void {
-		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
+		$this->urlGenerator = $this->createMock(IURLGenerator::class);
+		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
+			static fn (string $path): string => 'https://cloud.example.com' . $path,
+		);
 		$this->service = new CrlUrlParserService($this->urlGenerator);
 	}
 

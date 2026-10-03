@@ -6,23 +6,24 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Integration\Service\Certificate;
+namespace OCA\Libresign\Tests\Unit\Service\Certificate;
 
 use InvalidArgumentException;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Certificate\RulesService;
 use OCA\Libresign\Service\Certificate\ValidateService;
 use OCP\IL10N;
-use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-final class ValidateServiceTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class ValidateServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N $l10n;
 	private RulesService $rulesService;
 
 	#[\Override]
 	public function setUp(): void {
-		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
+		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n->method('t')->willReturnCallback(static function (string $text, array $parameters = []): string {
+			return $parameters === [] ? $text : vsprintf($text, $parameters);
+		});
 		$this->rulesService = new RulesService($this->l10n);
 	}
 
