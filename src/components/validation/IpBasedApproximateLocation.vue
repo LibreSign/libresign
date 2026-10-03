@@ -34,6 +34,7 @@
 			:aria-label="ipBasedLocationDetailsAriaLabel">
 			<div class="extra-chain ip-based-location-item">
 				<p class="ip-based-location-status">{{ statusText }}</p>
+				<p v-if="reasonText" class="ip-based-location-reason">{{ reasonText }}</p>
 				<dl class="ip-based-location-details">
 					<div v-if="sourceIp" class="ip-based-location-field">
 						<!-- TRANSLATORS Label for the signer source IP stored with IP geolocation evidence. -->
@@ -89,7 +90,9 @@ import {
 	formatIpAccuracyRadius,
 	formatIpCoordinates,
 	hasIpGeolocationEvidence,
+	ipGeolocationReasonLabel,
 	ipGeolocationStatusLabel,
+	resolveIpGeolocationReason,
 	resolveIpGeolocationStatus,
 	type SignerIpGeolocationEvidence,
 } from '../../helpers/signerIpGeolocation'
@@ -110,6 +113,8 @@ const ipBasedLocationDetailsAriaLabel = t('libresign', 'IP-based approximate loc
 const hasContent = computed(() => hasIpGeolocationEvidence(props.geolocation))
 const status = computed(() => resolveIpGeolocationStatus(props.geolocation?.status))
 const statusText = computed(() => status.value ? ipGeolocationStatusLabel(status.value) : '')
+const reason = computed(() => resolveIpGeolocationReason(props.geolocation?.reason))
+const reasonText = computed(() => reason.value ? ipGeolocationReasonLabel(reason.value) : '')
 const sourceIp = computed(() => {
 	const value = props.geolocation?.sourceIp
 	return typeof value === 'string' && value !== '' ? value : null
@@ -147,6 +152,7 @@ defineExpose({
 	open,
 	hasContent,
 	statusText,
+	reasonText,
 	sourceIp,
 	country,
 	region,
@@ -168,6 +174,11 @@ defineExpose({
 
 .ip-based-location-status {
 	margin: 4px 0;
+}
+
+.ip-based-location-reason {
+	margin: 0 0 4px;
+	opacity: 0.85;
 }
 
 .ip-based-location-details {

@@ -16,6 +16,7 @@ type IpBasedApproximateLocationVm = {
 	open: boolean
 	hasContent: boolean
 	statusText: string
+	reasonText: string
 	sourceIp: string | null
 	country: string | null
 	city: string | null
@@ -112,17 +113,47 @@ describe('IpBasedApproximateLocation', () => {
 		expect(wrapper.text()).not.toContain('invalid')
 	})
 
-	it('shows unavailable without backend reason codes', async () => {
+	it.each([
+		{
+			reason: 'database_not_ready' as const,
+			label: 'The GeoIP database was not ready.',
+		},
+		{
+			reason: 'address_unavailable' as const,
+			label: 'The signer IP address was not available.',
+		},
+		{
+			reason: 'lookup_failed' as const,
+			label: 'The approximate location lookup failed.',
+		},
+	])('shows translated unavailable reason for $reason', async ({ reason, label }) => {
 		wrapper = createWrapper({
 			status: 'unavailable',
-			reason: 'database_not_ready',
+			reason,
 		})
 		wrapper.vm.open = true
 		await wrapper.vm.$nextTick()
 
 		expect(wrapper.vm.statusText).toBe('Approximate location unavailable')
-		expect(wrapper.text()).not.toContain('database_not_ready')
-		expect(wrapper.text()).not.toContain('The GeoIP database was not ready.')
+		expect(wrapper.vm.reasonText).toBe(label)
+		expect(wrapper.text()).toContain('Approximate location unavailable')
+		expect(wrapper.text()).toContain(label)
+		expect(wrapper.text()).not.toContain(reason)
 		expect(wrapper.text()).not.toContain('invalid')
+	})
+
+	it('omits reason text when the backend does not provide one', async () => {
+		wrapper = createWrapper({
+			status: 'unavailable',
+		})
+		wrapper.vm.open = true
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.vm.statusText).toBe('Approximate location unavailable')
+		expect(wrapper.vm.reasonText).toBe('')
+		expect(wrapper.text()).toContain('Approximate location unavailable')
+		expect(wrapper.text()).not.toContain('The GeoIP database was not ready.')
+		expect(wrapper.text()).not.toContain('The signer IP address was not available.')
+		expect(wrapper.text()).not.toContain('The approximate location lookup failed.')
 	})
 })
