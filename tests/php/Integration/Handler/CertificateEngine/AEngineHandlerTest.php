@@ -15,6 +15,7 @@ use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
@@ -61,6 +62,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 		$this->crlRevocationChecker = $this->createMock(CrlRevocationChecker::class);
 		$this->crlRevocationChecker->method('validate')->willReturn(['status' => CrlValidationStatus::VALID]);
 		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyService->method('saveSystem')->willReturn(new ResolvedPolicy());
 	}
 
 	private function getInstance(): OpenSslHandler {
