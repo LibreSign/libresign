@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Libresign\Tests\Integration\Service;
+namespace OCA\Libresign\Tests\Unit\Service;
 
 /**
  * SPDX-FileCopyrightText: 2025 LibreCode coop and contributors
@@ -10,7 +10,6 @@ namespace OCA\Libresign\Tests\Integration\Service;
  */
 
 use Imagick;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
@@ -27,12 +26,11 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
-use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignatureTextService $service;
 	private IL10N $l10n;
 	private IDateTimeZone $dateTimeZone;
@@ -46,8 +44,12 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Integration\Te
 
 	#[\Override]
 	public function setUp(): void {
-		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
-		$this->dateTimeZone = \OCP\Server::get(IDateTimeZone::class);
+		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n->method('t')->willReturnCallback(static function (string $text, array $parameters = []): string {
+			return $parameters === [] ? $text : vsprintf($text, $parameters);
+		});
+		$this->dateTimeZone = $this->createMock(IDateTimeZone::class);
+		$this->dateTimeZone->method('getTimeZone')->willReturn(new \DateTimeZone('UTC'));
 		$this->request = $this->createMock(IRequest::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
