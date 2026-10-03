@@ -115,8 +115,8 @@
 								<NcAvatar disable-menu :is-no-user="!signer.userId" :size="44" :user="signer.userId ? signer.userId : getName(signer)" :display-name="getName(signer)" />
 							</template>
 							<template #subname>
-								<span class="signer-progress">
-									{{ getSignerProgressText(signer) }}
+								<span class="signer-progress" data-test="envelope-signer-summary">
+									{{ getSignerSummaryText(signer) }}
 								</span>
 							</template>
 							<template #extra-actions>
@@ -135,14 +135,33 @@
 									{{ dateFromSqlAnsi(signer.request_sign_date) }}
 								</template>
 							</NcListItem>
-							<NcListItem class="detail-item" compact>
-								<template #name>
+							<NcListItem class="detail-item" compact data-test="envelope-signer-state">
+								<template v-if="isObserverParticipant(signer) || !signer.signed" #name>
+									<strong>{{ t('libresign', 'Status:') }}</strong>
+									{{ getSignerStatusLabel(signer, envelopeCanceled) }}
+								</template>
+								<template v-else #name>
 									<strong>{{ t('libresign', 'Date signed:') }}</strong>
-									<span v-if="isObserverParticipant(signer)">{{ t('libresign', 'Observing') }}</span>
-									<span v-else-if="signer.signed">{{ dateFromSqlAnsi(signer.signed) }}</span>
-									<span v-else>{{ t('libresign', 'Not signed yet') }}</span>
+									{{ dateFromSqlAnsi(signer.signed) }}
 								</template>
 							</NcListItem>
+							<template v-if="signer.displayStatus === 'rejected' && signer.rejection">
+								<NcListItem class="detail-item" compact data-test="envelope-signer-rejected-at">
+									<template #name>
+										<!-- TRANSLATORS Label before the date and time when the signer refused to sign the document. -->
+										<strong>{{ t('libresign', 'Rejected on:') }}</strong>
+										{{ dateFromSqlAnsi(signer.rejection.rejectedAt) }}
+									</template>
+								</NcListItem>
+								<NcListItem v-if="signer.rejection.comment" class="detail-item" compact data-test="envelope-signer-rejection-comment">
+									<template #name>
+										<!-- TRANSLATORS Label before the reason the signer wrote when refusing to sign the document. -->
+										<strong>{{ t('libresign', 'Rejection comment:') }}</strong>
+										{{ signer.rejection.comment }}
+										<span v-if="signer.rejection.commentPrivate" class="rejection-comment-private">{{ privateCommentLabel }}</span>
+									</template>
+								</NcListItem>
+							</template>
 							<NcListItem v-if="signer.remote_address" class="detail-item" compact>
 								<template #name>
 									<strong>{{ t('libresign', 'Remote address:') }}</strong>
@@ -187,7 +206,9 @@ import {
 	mdiPackageVariantClosed,
 } from '@mdi/js'
 import Moment from '@nextcloud/moment'
+import { FILE_STATUS } from '../../constants.js'
 import { getStatusLabel } from '../../utils/fileStatus.js'
+import { getSignerStatusLabel } from '../../utils/signerStatusPresentation.ts'
 import { openDocument } from '../../utils/viewer.js'
 import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
 import DeviceReportedLocation from './DeviceReportedLocation.vue'
@@ -217,7 +238,7 @@ const props = withDefaults(defineProps<{
 
 type EnvelopeFile = NonNullable<LoadedValidationEnvelopeDocument['files']>[number]
 
-type EnvelopeSigner = Partial<Pick<SignerDetailRecord, 'displayName' | 'email' | 'userId' | 'request_sign_date' | 'remote_address' | 'user_agent' | 'participantRole' | 'status' | 'metadata'>> & {
+type EnvelopeSigner = Partial<Pick<SignerDetailRecord, 'displayName' | 'email' | 'userId' | 'request_sign_date' | 'remote_address' | 'user_agent' | 'participantRole' | 'status' | 'displayStatus' | 'rejection' | 'metadata'>> & {
 	signed?: string | null
 	documentsSignedCount?: number
 	totalDocuments?: number
@@ -269,6 +290,9 @@ const participantSections = computed<ParticipantSection[]>(() => {
 })
 
 const documentStatus = computed(() => getStatusLabel(props.document.status))
+const envelopeCanceled = computed(() => props.document.status === FILE_STATUS.CANCELED)
+// TRANSLATORS Marks a rejection comment that the signer chose to keep private; it is shown only to people allowed to read it.
+const privateCommentLabel = t('libresign', 'Private')
 const envelopeFilesCount = computed(() => {
 	if (typeof props.document.filesCount === 'number') {
 		return props.document.filesCount
@@ -337,6 +361,19 @@ function getSignerProgressText(signer: EnvelopeSigner) {
 	return n('libresign', '{progress} of {total} document signed', '{progress} of {total} documents signed', total, { progress, total })
 }
 
+/**
+ * The progress stays visible for signers still in the workflow. A visible
+ * rejection or a canceled envelope replaces it, and a hidden signer keeps the
+ * progress, which is the same for every signer who has not signed.
+ */
+function getSignerSummaryText(signer: EnvelopeSigner) {
+	const statusLabel = getSignerStatusLabel(signer, envelopeCanceled.value)
+	if (statusLabel !== null && (signer.displayStatus === 'rejected' || envelopeCanceled.value)) {
+		return statusLabel
+	}
+	return getSignerProgressText(signer)
+}
+
 function viewFile(file: EnvelopeFile) {
 	if (!file.uuid || !file.name || typeof file.nodeId !== 'number') {
 		return
@@ -370,11 +407,18 @@ defineExpose({
 	toggleFileDetail,
 	getName,
 	getSignerProgressText,
+	getSignerSummaryText,
 	viewFile,
 })
 </script>
 
 <style lang="scss" scoped>
+.rejection-comment-private {
+	margin-inline-start: calc(var(--default-grid-baseline) * 2);
+	color: var(--color-text-maxcontrast);
+	font-style: italic;
+}
+
 .section {
 	background-color: var(--color-main-background);
 	padding: 20px;
