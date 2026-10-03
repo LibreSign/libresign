@@ -100,6 +100,8 @@ Feature: account/signature
       | (jq).ocs.data.extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection                                         |
       | (jq).ocs.data.extensions                  | (jq).authorityKeyIdentifier \|test("([0-9A-F]{2}:)+[0-9A-F]{2}")                         |
       | (jq).ocs.data.extensions                  | (jq).subjectKeyIdentifier != ""                                                          |
+      | (jq).ocs.data.crl_urls\|length              | 1                                                                                        |
+      | (jq).ocs.data.extensions.crlDistributionPoints | (jq) \|test("^URI:http")                                                                |
 
   Scenario: Create pfx with success using OpenSSL
     Given user "signer1" exists
@@ -162,6 +164,8 @@ Feature: account/signature
       | (jq).ocs.data.extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection                                         |
       | (jq).ocs.data.extensions                  | (jq).authorityKeyIdentifier \|test("([0-9A-F]{2}:)+[0-9A-F]{2}")                         |
       | (jq).ocs.data.extensions                  | (jq).subjectKeyIdentifier != ""                                                          |
+      | (jq).ocs.data.crl_urls\|length              | 1                                                                                        |
+      | (jq).ocs.data.extensions.crlDistributionPoints | (jq) \|test("^URI:http")                                                                |
 
   Scenario: Upload PFX file with error
     Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name" with result code 0
