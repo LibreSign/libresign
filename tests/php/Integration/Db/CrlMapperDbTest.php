@@ -7,7 +7,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Db;
+namespace OCA\Libresign\Tests\Integration\Db;
 
 use OCA\Libresign\Db\Crl;
 use OCA\Libresign\Db\CrlMapper;
@@ -19,7 +19,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 /**
  * @group DB
  */
-final class CrlMapperDbTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class CrlMapperDbTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private CrlMapper $crlMapper;
 
 	public function setUp(): void {

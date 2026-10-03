@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Handler\CertificateEngine;
+namespace OCA\Libresign\Tests\Integration\Handler\CertificateEngine;
 
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
@@ -17,7 +17,7 @@ use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Process\ProcessManager;
-use OCA\Libresign\Tests\Unit\TestCase;
+use OCA\Libresign\Tests\Integration\AppDataTestCase;
 use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
@@ -29,7 +29,10 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-class CfsslHandlerTest extends TestCase {
+/**
+ * @group DB
+ */
+class CfsslHandlerTest extends AppDataTestCase {
 	private const string PROCESS_SOURCE = 'cfssl';
 
 	private ProcessManager&MockObject $processManager;

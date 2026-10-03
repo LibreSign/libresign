@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -32,7 +31,6 @@ use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
-use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
@@ -51,7 +49,10 @@ final class EmailTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	#[\Override]
 	public function setUp(): void {
 		$this->identifyService = $this->createMock(IdentifyService::class);
-		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
+		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n->method('t')->willReturnCallback(static function (string $text, array $parameters = []): string {
+			return $parameters === [] ? $text : vsprintf($text, $parameters);
+		});
 		$this->identifyService->method('getL10n')->willReturn($this->l10n);
 		$this->identifyService->method('getAppConfig')->willReturn($this->getMockAppConfig());
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);

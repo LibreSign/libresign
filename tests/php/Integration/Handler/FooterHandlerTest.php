@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Libresign\Tests\Unit\Handler;
+namespace OCA\Libresign\Tests\Integration\Handler;
 
 /**
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
@@ -25,7 +25,7 @@ use OCP\L10N\IFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
-final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class FooterHandlerTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private IAppConfig $appConfig;
 	private PdfMetadataExtractor&MockObject $pdfMetadataExtractor;
 	private IURLGenerator&MockObject $urlGenerator;
