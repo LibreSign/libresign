@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Libresign\Tests\Unit\Handler\CertificateEngine;
+namespace OCA\Libresign\Tests\Integration\Handler\CertificateEngine;
 
 /**
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
@@ -31,7 +31,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private IConfig $config;
 	private IAppConfig $appConfig;
 	private IAppDataFactory $appDataFactory;

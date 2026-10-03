@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Handler\CertificateEngine;
+namespace OCA\Libresign\Tests\Integration\Handler\CertificateEngine;
 
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
@@ -17,7 +17,7 @@ use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Process\ProcessManager;
-use OCA\Libresign\Tests\Unit\TestCase;
+use OCA\Libresign\Tests\Integration\TestCase;
 use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
