@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod\SignatureMethod;
+namespace OCA\Libresign\Tests\Integration\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest;

@@ -6,13 +6,13 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service\Install;
+namespace OCA\Libresign\Tests\Integration\Service\Install;
 
 use OCA\Libresign\Service\Install\DependencyStorage;
 use OCA\Libresign\Service\Install\InstallTarget;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-final class DependencyStorageTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class DependencyStorageTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
