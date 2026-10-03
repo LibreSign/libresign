@@ -229,6 +229,65 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertSame($existing, $result);
 	}
 
+	public function testANewRequestCreatedReadyToSignStartsWithItsPolicySnapshotFrozen(): void {
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getId')->willReturn(171);
+		$node->method('getExtension')->willReturn('');
+		$node->method('getName')->willReturn('contract');
+		$this->fileService->method('getNodeFromData')->willReturn($node);
+
+		$calls = [];
+		$this->fileStatusService->expects($this->once())
+			->method('markPolicySnapshotFrozen')
+			->willReturnCallback(function (\OCA\Libresign\Db\File $file, int $newStatus) use (&$calls): void {
+				$calls[] = 'freeze:' . $newStatus;
+			});
+		$this->fileMapper->method('insert')
+			->willReturnCallback(function (\OCA\Libresign\Db\File $file) use (&$calls): \OCA\Libresign\Db\File {
+				$calls[] = 'insert';
+				return $file;
+			});
+
+		$this->getService()->saveFile(['userManager' => $this->user, 'name' => 'contract']);
+
+		$this->assertSame(['freeze:' . \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value, 'insert'], $calls);
+	}
+
+	public function testRemovingTheLastSignerOfASentRequestKeepsItsPolicySnapshotFrozen(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(5);
+		$file->setStatus(\OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value);
+		$this->fileMapper->method('getById')->willReturn($file);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(9);
+		$signRequest->setSigningOrder(1);
+		$this->signRequestMapper->method('getByFileIdAndSignRequestId')->willReturn($signRequest);
+		$this->signRequestMapper->method('getByFileId')->willReturn([]);
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->willReturn([]);
+		$this->fileElementMapper->method('getByFileIdAndSignRequestId')->willReturn([]);
+		$this->sequentialSigningService->method('setFile')->willReturnSelf();
+
+		// unassociateToUser() swallows every error, so the calls are recorded and checked afterwards.
+		$calls = [];
+		$this->fileStatusService->method('markPolicySnapshotFrozen')
+			->willReturnCallback(function (\OCA\Libresign\Db\File $frozen, int $newStatus) use (&$calls): void {
+				$calls[] = ['freeze', $frozen->getStatus(), $newStatus];
+			});
+		$this->fileStatusService->method('update')
+			->willReturnCallback(function (\OCA\Libresign\Db\File $updated) use (&$calls): \OCA\Libresign\Db\File {
+				$calls[] = ['update', $updated->getStatus()];
+				return $updated;
+			});
+
+		$this->getService()->unassociateToUser(5, 9);
+
+		$this->assertSame([
+			['freeze', \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value, \OCA\Libresign\Enum\FileStatus::DRAFT->value],
+			['update', \OCA\Libresign\Enum\FileStatus::DRAFT->value],
+		], $calls);
+	}
+
 	public function testSaveFilesUsesSaveForSingleFile(): void {
 		$service = $this->getService(['save']);
 

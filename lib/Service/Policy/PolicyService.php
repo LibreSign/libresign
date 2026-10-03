@@ -137,6 +137,10 @@ class PolicyService {
 		);
 	}
 
+	public function getRequestLifecycle(string|\BackedEnum $policyKey): string {
+		return $this->registry->get($policyKey)->requestLifecycle();
+	}
+
 	public function getSystemPolicy(string|\BackedEnum $policyKey): ?PolicyLayer {
 		$definition = $this->registry->get($policyKey);
 		return $this->source->loadSystemPolicy($definition->key());

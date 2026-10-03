@@ -144,6 +144,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
 			supportsUserPreference: $supportsUserPreference,
 			supportsRequestOverride: $supportsRequestOverride,
+			requestLifecycle: PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT,
 		);
 
 		$resolved = (new DefaultPolicyResolver($source))->resolve($definition, PolicyContext::fromUserId('john'));
@@ -247,6 +248,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
 			supportsUserPreference: true,
 			supportsRequestOverride: true,
+			requestLifecycle: PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT,
 		);
 	}
 
@@ -680,6 +682,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
 			supportsRequestOverride: true,
+			requestLifecycle: PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT,
 		);
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -809,8 +812,8 @@ final class DefaultPolicyResolverTest extends TestCase {
 
 		// Both definitions share the same allowed value set so the group layer applies to both
 		$definitions = [
-			new PolicySpec(key: 'signature_flow', defaultSystemValue: 'none', allowedValues: ['none', 'parallel', 'ordered_numeric'], supportsRequestOverride: true),
-			new PolicySpec(key: 'alt_policy', defaultSystemValue: 'none', allowedValues: ['none', 'parallel', 'ordered_numeric'], supportsRequestOverride: true),
+			new PolicySpec(key: 'signature_flow', defaultSystemValue: 'none', allowedValues: ['none', 'parallel', 'ordered_numeric'], supportsRequestOverride: true, requestLifecycle: PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT),
+			new PolicySpec(key: 'alt_policy', defaultSystemValue: 'none', allowedValues: ['none', 'parallel', 'ordered_numeric'], supportsRequestOverride: true, requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME),
 		];
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -830,6 +833,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
 			supportsRequestOverride: true,
+			requestLifecycle: PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT,
 		);
 	}
 
@@ -851,6 +855,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			allowedValues: ['none', 'strict'],
 			supportsUserPreference: false,
 			supportsRequestOverride: false,
+			requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,
 		);
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -878,6 +883,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			allowedValues: ['none', 'strict'],
 			supportsUserPreference: false,
 			supportsRequestOverride: false,
+			requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,
 		);
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -903,6 +909,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			allowedValues: ['none', 'strict'],
 			supportsUserPreference: false,
 			supportsRequestOverride: false,
+			requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,
 		);
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -936,6 +943,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
 			supportsUserPreference: $supportsUserPreference,
 			supportsRequestOverride: $supportsUserPreference,
+			requestLifecycle: PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT,
 		);
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -1021,6 +1029,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
 			supportsUserPreference: true,
 			supportsRequestOverride: true,
+			requestLifecycle: PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT,
 		);
 
 		$resolver = new DefaultPolicyResolver($source);
@@ -1038,6 +1047,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			defaultSystemValue: 'none',
 			allowedValues: [],
 			supportsRequestOverride: true,
+			requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,
 			resolvedStateMeta: static fn (PolicyContext $context): array => [
 				'defaultSystemValue' => 'canonical-' . $context->getUserId(),
 			],
@@ -1069,6 +1079,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			allowedValues: ['sync', 'async'],
 			supportsUserPreference: false,
 			supportsRequestOverride: false,
+			requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,
 			supportedScopes: [PolicySpec::SCOPE_SYSTEM],
 		);
 
@@ -1089,6 +1100,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
 			resolutionMode: PolicySpec::RESOLUTION_MODE_VALUE_CHOICE,
 			supportsRequestOverride: true,
+			requestLifecycle: PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT,
 		);
 	}
 

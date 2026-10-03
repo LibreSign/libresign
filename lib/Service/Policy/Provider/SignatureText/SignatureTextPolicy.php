@@ -50,6 +50,7 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 				),
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 				supportsRequestOverride: true,
+				requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,
 				groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
 					$actorRole = $context->getActorRole();
 					if ($actorRole->canManageSystemPolicies) {
