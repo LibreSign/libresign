@@ -18,7 +18,10 @@ use OCA\Libresign\Service\Install\InstallProgressStore;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\InstallTarget;
 use OCA\Libresign\Service\Install\SignSetupService;
+use OCP\Files\File;
+use OCP\Files\Folder;
 use OCP\IAppConfig;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -114,5 +117,96 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			);
 
 		$installService->installJava(true);
+	}
+
+	#[DataProvider('provideSupportedArchitectures')]
+	public function testInstallCfsslResolvesArtifactAndChecksumManifestForSupportedArchitectures(
+		string $libresignArch,
+		string $cfsslArch,
+		string $expectedArtifact,
+	): void {
+		if (PHP_OS_FAMILY !== 'Linux') {
+			$this->markTestSkipped('CFSSL installation is supported on Linux only.');
+		}
+
+		$installService = $this->getInstallService();
+		$installService->setArchitecture($libresignArch);
+
+		$expectedChecksumUrl = 'https://github.com/cloudflare/cfssl/releases/download/v1.7.0/cfssl_1.7.0_checksums.txt';
+		$expectedDownloadUrl = 'https://github.com/cloudflare/cfssl/releases/download/v1.7.0/' . $expectedArtifact;
+		$dummyHash = 'a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0';
+
+		$this->signSetupService->method('verify')->willReturn(['missing']);
+
+		$folderMock = $this->createMock(Folder::class);
+		$fileMock = $this->createMock(File::class);
+
+		$this->dependencyStorage->method('resourceFolder')->willReturn($folderMock);
+		$folderMock->method('newFile')->with('cfssl')->willReturn($fileMock);
+
+		$tmpFile = tempnam(sys_get_temp_dir(), 'cfssl-test-');
+		$this->assertNotFalse($tmpFile);
+		chmod($tmpFile, 0700);
+
+		$this->dependencyStorage->method('pathOfFile')->with($fileMock)->willReturn($tmpFile);
+		$this->dependencyStorage->method('pathOfFolder')->with($folderMock)->willReturn(dirname($tmpFile));
+
+		$this->dependencyDownloader->expects($this->once())
+			->method('fetchChecksum')
+			->with($expectedArtifact, $expectedChecksumUrl)
+			->willReturn($dummyHash);
+
+		$this->dependencyDownloader->expects($this->once())
+			->method('download')
+			->with(
+				$expectedDownloadUrl,
+				'cfssl ' . $cfsslArch,
+				$tmpFile,
+				$dummyHash,
+				'sha256',
+				$this->callback('is_callable'),
+			);
+
+		$this->appConfig->expects($this->once())
+			->method('setValueString')
+			->with(Application::APP_ID, 'cfssl_bin', dirname($tmpFile) . '/cfssl');
+
+		try {
+			$installService->installCfssl();
+		} finally {
+			@unlink($tmpFile);
+		}
+	}
+
+	public function testInstallCfsslRejectsUnsupportedArchitecture(): void {
+		if (PHP_OS_FAMILY !== 'Linux') {
+			$this->markTestSkipped('CFSSL installation is supported on Linux only.');
+		}
+
+		$installService = $this->getInstallService();
+		$installService->setArchitecture('armv7l');
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('CFSSL is available only for x86_64/amd64 and aarch64/arm64 architectures.');
+
+		$installService->installCfssl();
+	}
+
+	/**
+	 * @return array<string, array{0: string, 1: string, 2: string}>
+	 */
+	public static function provideSupportedArchitectures(): array {
+		return [
+			'x86_64 / amd64' => [
+				'x86_64',
+				'amd64',
+				'cfssl_1.7.0_linux_amd64',
+			],
+			'aarch64 / arm64' => [
+				'aarch64',
+				'arm64',
+				'cfssl_1.7.0_linux_arm64',
+			],
+		];
 	}
 }

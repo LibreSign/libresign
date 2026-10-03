@@ -30,7 +30,7 @@ class InstallService {
 	public const string JAVA_URL_PATH_NAME = '21.0.8+9';
 	public const PDFTK_VERSION = '3.3.3'; /** @todo When update, verify the hash **/
 	private const string PDFTK_HASH = '59a28bed53b428595d165d52988bf4cf';
-	public const CFSSL_VERSION = '1.6.5';
+	public const CFSSL_VERSION = '1.7.0';
 
 	private ?OutputInterface $output = null;
 	private string $resource = '';
