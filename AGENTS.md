@@ -154,13 +154,22 @@ After adding or moving PHP classes, refresh Composer autoload with `composer dum
 
 ### PHPUnit
 
+PHPUnit is split into two test layers:
+
+- `tests/php/Unit/`: isolated tests. Dependencies must be mocked or kept in-memory. Do not use the real database, AppData, user lifecycle, installed signing binaries, global service overrides, or `OCP\\Server::get()` from this tree.
+- `tests/php/Integration/`: stateful PHPUnit tests that intentionally use the Nextcloud runtime, database, AppData, users, configuration, or installed binaries.
+- `tests/php/Api/`: API-level PHPUnit tests. These share the integration infrastructure and run with the integration script.
+- `tests/integration/`: Behat/API end-to-end tests. This directory is separate from PHPUnit integration tests and must not be renamed.
+
 Always run focused PHPUnit tests with `--filter`. Never run the entire PHPUnit suite during normal agent work unless the user explicitly asks.
 
 ```bash
 composer test:unit -- --filter ClassName
-composer test:unit -- --filter testMethodName
+composer test:integration -- --filter ClassName
 composer test:coverage -- --filter ClassName
 ```
+
+Mutation testing runs only the `unit` PHPUnit suite. If a test needs the real Nextcloud runtime, move it to `tests/php/Integration/` rather than weakening isolation for Infection workers.
 
 Why the filter rule matters:
 
@@ -240,18 +249,17 @@ This convention does not require every source file to have a test. It requires e
 
 ### PHPUnit Structure
 
-PHP unit tests mirror the source tree under `tests/php/Unit/`:
+PHP unit and integration tests both mirror the source tree under their respective roots:
 
 ```text
 lib/Service/CrlService.php
   -> tests/php/Unit/Service/CrlServiceTest.php
 
 lib/Controller/CrlApiController.php
-  -> tests/php/Unit/Controller/CrlApiControllerTest.php
-
-lib/Db/CrlMapper.php
-  -> tests/php/Unit/Db/CrlMapperTest.php
+  -> tests/php/Integration/Controller/CrlApiControllerTest.php
 ```
+
+Choose the root by test behavior, not by the production class type. A test belongs in `Unit` only when its dependencies are mocked or in-memory and it does not mutate shared Nextcloud runtime state. Tests that intentionally exercise the real service container, database, AppData, user lifecycle, global configuration, or signing binaries belong in `Integration`.
 
 Use PHPUnit mocks for dependencies and keep scenario-specific stubs explicit. If a default `method(...)->willReturn(...)` in `setUp()` needs to vary by test, prefer a callback backed by a mutable test property so later stubs do not get masked.
 
