@@ -9,10 +9,16 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit;
 
 use OCP\IAppConfig;
+use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
 class TestCase extends PHPUnitTestCase {
 	private static ?InMemoryAppConfig $appConfig = null;
+
+	#[Before]
+	protected function resetInMemoryAppConfigBeforeTest(): void {
+		self::$appConfig = new InMemoryAppConfig();
+	}
 
 	public static function getMockAppConfig(): IAppConfig {
 		return self::$appConfig ??= new InMemoryAppConfig();

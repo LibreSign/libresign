@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Integration\Service\Install;
+namespace OCA\Libresign\Tests\Unit\Service\Install;
 
 use bovigo\vfs\vfsStream;
 use OC\IntegrityCheck\Helpers\EnvironmentHelper;
@@ -27,16 +27,46 @@ final class SetupSignatureVerifierTest extends TestCase {
 	private FileAccessHelper $fileAccessHelper;
 	private SetupSignatureVerifier $verifier;
 	private CertificateChainFixture $certificateChainFixture;
+	/** @var list<string> */
+	private array $temporaryFiles = [];
 
 	#[\Override]
 	protected function setUp(): void {
 		$this->environmentHelper = $this->createMock(EnvironmentHelper::class);
 		$this->fileAccessHelper = new FileAccessHelper();
-		$this->certificateChainFixture = new CertificateChainFixture(\OCP\Server::get(ITempManager::class));
+		$tempManager = $this->createMock(ITempManager::class);
+		$tempManager->method('getTemporaryFile')->willReturnCallback(function (string $postfix = ''): string {
+			$file = tempnam(sys_get_temp_dir(), 'libresign-cert-fixture-');
+			if ($file === false) {
+				self::fail('Unable to create temporary certificate fixture file.');
+			}
+			if ($postfix !== '') {
+				$renamed = $file . $postfix;
+				if (!rename($file, $renamed)) {
+					@unlink($file);
+					self::fail('Unable to add suffix to temporary certificate fixture file.');
+				}
+				$file = $renamed;
+			}
+			$this->temporaryFiles[] = $file;
+			return $file;
+		});
+		$this->certificateChainFixture = new CertificateChainFixture($tempManager);
 		$this->verifier = new SetupSignatureVerifier(
 			$this->environmentHelper,
 			$this->fileAccessHelper,
 		);
+	}
+
+	#[\Override]
+	protected function tearDown(): void {
+		foreach ($this->temporaryFiles as $file) {
+			if (is_file($file)) {
+				@unlink($file);
+			}
+		}
+		$this->temporaryFiles = [];
+		parent::tearDown();
 	}
 
 	public function testVerifyCaSignedCertificateAndHashSignature(): void {
