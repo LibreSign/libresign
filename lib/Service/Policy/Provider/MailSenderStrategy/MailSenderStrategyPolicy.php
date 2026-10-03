@@ -58,6 +58,7 @@ final class MailSenderStrategyPolicy implements IPolicyDefinitionProvider {
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 				supportsUserPreference: false,
 				supportsRequestOverride: false,
+				requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,
 				resolvedStateMeta: fn (): array => [
 					'mailProviderAvailable' => $this->mailProviderManager->has(),
 				],
