@@ -46,7 +46,7 @@ use Psr\Log\LoggerInterface;
 /**
  * @internal
  */
-final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataTestCase {
 	private IAppConfig $appConfig;
 	private LoggerInterface&MockObject $loggerInterface;
 	private ITempManager $tempManager;

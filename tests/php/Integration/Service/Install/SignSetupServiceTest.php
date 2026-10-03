@@ -24,7 +24,7 @@ use OCP\ITempManager;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
-final class SignSetupServiceTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class SignSetupServiceTest extends \OCA\Libresign\Tests\Integration\AppDataTestCase {
 	private EnvironmentHelper&MockObject $environmentHelper;
 	private FileAccessHelper $fileAccessHelper;
 	private IConfig&MockObject $config;
