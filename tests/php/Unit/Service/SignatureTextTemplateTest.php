@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace OCA\Libresign\Tests\Integration\Service;
+namespace OCA\Libresign\Tests\Unit\Service;
 
 /**
  * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\SignatureTextTemplate;
-use OCP\L10N\IFactory as IL10NFactory;
+use OCP\IL10N;
 
-final class SignatureTextTemplateTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class SignatureTextTemplateTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testTranslatedTemplateIncludesMetadataPlaceholdersWhenEnabled(): void {
-		$l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnArgument(0);
 
 		$template = SignatureTextTemplate::translated($l10n, true);
 
@@ -27,7 +27,8 @@ final class SignatureTextTemplateTest extends \OCA\Libresign\Tests\Integration\T
 	}
 
 	public function testTranslatedTemplateOmitsMetadataPlaceholdersWhenDisabled(): void {
-		$l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnArgument(0);
 
 		$template = SignatureTextTemplate::translated($l10n, false);
 

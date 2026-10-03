@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Integration\Service\IdentifyMethod\SignatureMethod;
+namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest;
@@ -18,12 +18,12 @@ use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
 use OCP\IUser;
 use OCP\IUserManager;
-use OCP\L10N\IFactory as IL10NFactory;
+use OCP\IL10N;
 use OCP\Security\IHasher;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
-final class EmailTokenTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IdentifyService&MockObject $identifyService;
 	private TokenService&MockObject $tokenService;
 
@@ -33,9 +33,11 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Integration\TestCase {
 			->disableOriginalConstructor()
 			->onlyMethods(['getL10n', 'getSignRequestMapper', 'getHasher', 'getUserManager', 'save'])
 			->getMock();
-		$identifyService->method('getL10n')->willReturn(
-			\OCP\Server::get(IL10NFactory::class)->get(\OCA\Libresign\AppInfo\Application::APP_ID)
-		);
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnCallback(static function (string $text, array $parameters = []): string {
+			return $parameters === [] ? $text : vsprintf($text, $parameters);
+		});
+		$identifyService->method('getL10n')->willReturn($l10n);
 		$this->identifyService = $identifyService;
 		$this->tokenService = $this->createMock(TokenService::class);
 	}
