@@ -35,7 +35,7 @@
 		],
 		"mutation:test": "vendor/bin/infection --configuration=infection.json5",
 		"test:unit": "vendor/bin/phpunit -c tests/php/phpunit.xml --testsuite unit --no-coverage --colors=always --fail-on-warning --fail-on-risky --display-deprecations --display-phpunit-deprecations",
-		"test:coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit -c tests/php/phpunit.xml",
+		"test:coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit -c tests/php/phpunit.xml --testsuite unit",
 		"test:integration": "vendor/bin/phpunit -c tests/php/phpunit.xml --testsuite api,integration --no-coverage --colors=always --fail-on-warning --fail-on-risky --display-deprecations --display-phpunit-deprecations"
 	},
 	"extra": {
