@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Libresign\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Integration\Service;
 
 /**
  * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
@@ -13,7 +13,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\SignatureTextTemplate;
 use OCP\L10N\IFactory as IL10NFactory;
 
-final class SignatureTextTemplateTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class SignatureTextTemplateTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	public function testTranslatedTemplateIncludesMetadataPlaceholdersWhenEnabled(): void {
 		$l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 
