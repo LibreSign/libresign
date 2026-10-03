@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit;
 
+use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\IAppConfig;
 
 final class InMemoryAppConfig implements IAppConfig {
@@ -66,25 +67,28 @@ final class InMemoryAppConfig implements IAppConfig {
 	}
 
 	public function getValueString(string $app, string $key, string $default = '', bool $lazy = false): string {
-		$value = $this->values[$app][$key] ?? $default;
-		return is_string($value) ? $value : (string)$value;
+		$value = $this->getTypedValue($app, $key, $default, 'string');
+		return $value;
 	}
 
 	public function getValueInt(string $app, string $key, int $default = 0, bool $lazy = false): int {
-		return (int)($this->values[$app][$key] ?? $default);
+		$value = $this->getTypedValue($app, $key, $default, 'integer');
+		return $value;
 	}
 
 	public function getValueFloat(string $app, string $key, float $default = 0, bool $lazy = false): float {
-		return (float)($this->values[$app][$key] ?? $default);
+		$value = $this->getTypedValue($app, $key, $default, 'double');
+		return $value;
 	}
 
 	public function getValueBool(string $app, string $key, bool $default = false, bool $lazy = false): bool {
-		return (bool)($this->values[$app][$key] ?? $default);
+		$value = $this->getTypedValue($app, $key, $default, 'boolean');
+		return $value;
 	}
 
 	public function getValueArray(string $app, string $key, array $default = [], bool $lazy = false): array {
-		$value = $this->values[$app][$key] ?? $default;
-		return is_array($value) ? $value : $default;
+		$value = $this->getTypedValue($app, $key, $default, 'array');
+		return $value;
 	}
 
 	public function getValueType(string $app, string $key, ?bool $lazy = null): int {
@@ -203,6 +207,26 @@ final class InMemoryAppConfig implements IAppConfig {
 
 	public function getAppInstalledVersions(bool $onlyEnabled = false): array {
 		return [];
+	}
+
+	/**
+	 * @template T of string|int|float|bool|array
+	 * @param T $default
+	 * @return T
+	 */
+	private function getTypedValue(string $app, string $key, mixed $default, string $expectedType): mixed {
+		if (!array_key_exists($key, $this->values[$app] ?? [])) {
+			return $default;
+		}
+
+		$value = $this->values[$app][$key];
+		if (gettype($value) !== $expectedType) {
+			throw new AppConfigTypeConflictException(
+				sprintf('App config value %s/%s is not of type %s', $app, $key, $expectedType),
+			);
+		}
+
+		return $value;
 	}
 
 	private function setValue(string $app, string $key, string|int|float|bool|array $value): bool {
