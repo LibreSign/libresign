@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Libresign\Tests\Integration\Handler;
+namespace OCA\Libresign\Tests\Unit\Handler;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Helper\JavaHelper;
 use OCP\IAppConfig;
 use OCP\IL10N;
-use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use RuntimeException;
 
@@ -18,16 +17,16 @@ use RuntimeException;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-final class PdfTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class PdfTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private JavaHelper&MockObject $javaHelper;
 	private IAppConfig $appConfig;
 	private IL10N $l10n;
 
 	public function setUp(): void {
-		parent::setUp();
 		$this->javaHelper = $this->createMock(JavaHelper::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
-		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
+		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n->method('t')->willReturnArgument(0);
 	}
 
 	private function getInstance(array $methods = []): Pdf|MockObject {
