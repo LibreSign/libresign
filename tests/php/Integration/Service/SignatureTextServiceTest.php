@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Libresign\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Integration\Service;
 
 /**
  * SPDX-FileCopyrightText: 2025 LibreCode coop and contributors
@@ -32,7 +32,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private SignatureTextService $service;
 	private IL10N $l10n;
 	private IDateTimeZone $dateTimeZone;

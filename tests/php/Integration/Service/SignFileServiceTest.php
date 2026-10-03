@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Libresign\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Integration\Service;
 
 /**
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
@@ -89,7 +89,7 @@ use Psr\Log\LoggerInterface;
 /**
  * @group DB
  */
-final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class SignFileServiceTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private IL10N&MockObject $l10n;
 	private FooterHandler&MockObject $footerHandler;
 	private FileMapper&MockObject $fileMapper;
