@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service\Certificate;
+namespace OCA\Libresign\Tests\Integration\Service\Certificate;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Certificate\RulesService;
@@ -14,7 +14,7 @@ use OCP\IL10N;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-final class RulesServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class RulesServiceTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private IL10N $l10n;
 
 	#[\Override]

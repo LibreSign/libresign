@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
+namespace OCA\Libresign\Tests\Integration\Handler\SignEngine;
 
 /**
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
@@ -17,7 +17,7 @@ use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private IL10N $l10n;
 	private FolderService&MockObject $folderService;
 	private LoggerInterface&MockObject $logger;

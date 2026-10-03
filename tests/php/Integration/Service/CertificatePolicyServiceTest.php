@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Integration\Service;
 
 use bovigo\vfs\vfsStream;
 use OCA\Libresign\AppInfo\Application;
@@ -23,7 +23,7 @@ use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
-final class CertificatePolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class CertificatePolicyServiceTest extends \OCA\Libresign\Tests\Integration\TestCase {
 
 	private IAppData&MockObject $appData;
 	private IURLGenerator&MockObject $urlGenerator;
