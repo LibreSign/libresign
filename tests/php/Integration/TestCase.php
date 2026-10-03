@@ -94,7 +94,8 @@ class TestCase extends \Test\TestCase {
 
 	private function suppressMailDelivery(): void {
 		$mailService = $this->createMock(\OCA\Libresign\Service\MailService::class);
-		$mailService->method('notifyUnsignedUser')->willReturnCallback(static function (): void {});
+		$mailService->method('notifyUnsignedUser')->willReturnCallback(static function (): void {
+		});
 		$mailService->method('notifySignDataUpdated')->willReturnCallback(static function (): void {});
 		$mailService->method('notifySignedUser')->willReturnCallback(static function (): void {});
 		$mailService->method('notifyCanceledRequest')->willReturnCallback(static function (): void {});
