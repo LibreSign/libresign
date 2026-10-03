@@ -114,6 +114,7 @@ final class ExpirationRulesPolicy implements IPolicyDefinitionProvider {
 			appConfigKey: $key,
 			supportsUserPreference: $supportsUserPreference,
 			supportsRequestOverride: $supportsRequestOverride,
+			requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,
 			groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
 				$actorRole = $context->getActorRole();
 				if ($actorRole->canManageSystemPolicies) {
