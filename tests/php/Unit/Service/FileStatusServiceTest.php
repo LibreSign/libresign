@@ -536,6 +536,25 @@ class FileStatusServiceTest extends TestCase {
 		}
 	}
 
+	public function testPolicySnapshotFreezeMarkerIsMonotonic(): void {
+		$file = new FileEntity();
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$file->setMetadata([FileStatusService::POLICY_SNAPSHOT_FROZEN_AT => '2026-01-01T00:00:00+00:00']);
+
+		$this->service->markPolicySnapshotFrozen($file, FileStatus::DRAFT->value);
+
+		$this->assertSame('2026-01-01T00:00:00+00:00', $file->getMetadata()[FileStatusService::POLICY_SNAPSHOT_FROZEN_AT]);
+	}
+
+	public function testPolicySnapshotFreezesOnFirstSigningTransition(): void {
+		$file = new FileEntity();
+		$file->setStatus(FileStatus::DRAFT->value);
+
+		$this->service->markPolicySnapshotFrozen($file, FileStatus::ABLE_TO_SIGN->value);
+
+		$this->assertArrayHasKey(FileStatusService::POLICY_SNAPSHOT_FROZEN_AT, $file->getMetadata());
+	}
+
 	private function assertStatusChangedAtSet(FileEntity $file): void {
 		$metadata = $file->getMetadata();
 		$this->assertIsArray($metadata);

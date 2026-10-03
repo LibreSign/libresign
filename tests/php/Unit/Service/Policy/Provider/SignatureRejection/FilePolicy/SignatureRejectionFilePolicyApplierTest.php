@@ -13,6 +13,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\FilePolicy\SignatureRejectionFilePolicyApplier;
@@ -88,6 +89,14 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 				],
 			]);
 		}
+		return $file;
+	}
+
+	private function createFileReturnedToDraft(array $storedValue): File {
+		$file = $this->createFile(FileStatus::DRAFT->value, $storedValue);
+		$metadata = $file->getMetadata() ?? [];
+		$metadata[FileStatusService::POLICY_SNAPSHOT_FROZEN_AT] = '2026-01-01T00:00:00+00:00';
+		$file->setMetadata($metadata);
 		return $file;
 	}
 
@@ -331,6 +340,42 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		]);
 
 		$this->assertFalse($this->storedValueOf($file)['enabled']);
+	}
+
+	public function testRequestReturnedToDraftKeepsFrozenRejectionChoice(): void {
+		$file = $this->createFileReturnedToDraft(['enabled' => true, 'comment_mode' => 'required']);
+
+		$this->policyService->expects($this->never())->method('resolveForUserId');
+		$this->fileService->expects($this->never())->method('update');
+
+		$this->getApplier()->sync($file, []);
+
+		$this->assertTrue($this->storedValueOf($file)['enabled']);
+	}
+
+	public function testChangingRejectionChoiceAfterReturningToDraftIsRefused(): void {
+		$file = $this->createFileReturnedToDraft(['enabled' => true, 'comment_mode' => 'optional']);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(422);
+
+		$this->getApplier()->sync($file, [
+			'policyOverrides' => [SignatureRejectionPolicy::KEY => ['enabled' => false]],
+		]);
+	}
+
+	public function testLegacyDraftDocumentIsFrozenWhenEnvelopeAlreadyEnteredSigningFlow(): void {
+		$file = $this->createFile(FileStatus::DRAFT->value, ['enabled' => true, 'comment_mode' => 'optional']);
+		$file->setParentFileId(1);
+		$envelope = $this->createEnvelope(FileStatus::ABLE_TO_SIGN->value);
+		$envelope->setId(1);
+		$this->fileMapper->method('getById')->with(1)->willReturn($envelope);
+		$this->policyService->expects($this->never())->method('resolveForUserId');
+		$this->fileService->expects($this->never())->method('update');
+
+		$this->getApplier()->sync($file, []);
+
+		$this->assertTrue($this->storedValueOf($file)['enabled']);
 	}
 
 	public function testAStartedRequestWithoutASnapshotRecordsTheDisabledDefault(): void {
