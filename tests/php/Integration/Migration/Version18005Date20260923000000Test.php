@@ -7,14 +7,14 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Migration;
+namespace OCA\Libresign\Tests\Integration\Migration;
 
 use DateTime;
 use OCA\Libresign\Db\Crl;
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Enum\CRLStatus;
 use OCA\Libresign\Migration\Version18005Date20260923000000;
-use OCA\Libresign\Tests\Unit\TestCase;
+use OCA\Libresign\Tests\Integration\TestCase;
 use OCP\DB\ISchemaWrapper;
 use OCP\IAppConfig;
 use OCP\IDBConnection;

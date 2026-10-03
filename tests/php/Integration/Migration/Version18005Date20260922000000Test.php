@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Migration;
+namespace OCA\Libresign\Tests\Integration\Migration;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
@@ -26,7 +26,7 @@ use OCP\Server;
 /**
  * @group DB
  */
-final class Version18005Date20260922000000Test extends \OCA\Libresign\Tests\Unit\TestCase {
+final class Version18005Date20260922000000Test extends \OCA\Libresign\Tests\Integration\TestCase {
 	private const CONFIG_KEYS = [
 		'signer_geolocation',
 		'signer_geolocation.allow_child_override',
