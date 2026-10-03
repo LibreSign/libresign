@@ -8,9 +8,24 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit;
 
+use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
 class TestCase extends PHPUnitTestCase {
+	private static ?InMemoryAppConfig $appConfig = null;
+
+	public static function getMockAppConfig(): IAppConfig {
+		return self::$appConfig ??= new InMemoryAppConfig();
+	}
+
+	public static function getMockAppConfigWithReset(): IAppConfig {
+		$appConfig = self::getMockAppConfig();
+		if ($appConfig instanceof InMemoryAppConfig) {
+			$appConfig->reset();
+		}
+		return $appConfig;
+	}
+
 	/**
 	 * @param array<int, mixed> $args
 	 */
