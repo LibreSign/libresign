@@ -31,7 +31,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataTestCase {
 	private IConfig $config;
 	private IAppConfig $appConfig;
 	private IAppDataFactory $appDataFactory;

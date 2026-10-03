@@ -15,7 +15,7 @@ use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Tests\Integration\TestCase;
+use OCA\Libresign\Tests\Integration\AppDataTestCase;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
 use OCP\IConfig;
@@ -25,7 +25,7 @@ use OCP\IURLGenerator;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-final class NoneHandlerTest extends TestCase {
+final class NoneHandlerTest extends AppDataTestCase {
 	private IConfig $config;
 	private IAppConfig $appConfig;
 	private IAppDataFactory $appDataFactory;

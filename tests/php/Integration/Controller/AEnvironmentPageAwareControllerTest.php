@@ -13,7 +13,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Controller\AEnvironmentPageAwareController;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\Tests\Integration\TestCase;
+use OCA\Libresign\Tests\Integration\AppDataTestCase;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -27,7 +27,7 @@ class MockController extends AEnvironmentPageAwareController {
 /**
  * @group DB
  */
-final class AEnvironmentPageAwareControllerTest extends TestCase {
+final class AEnvironmentPageAwareControllerTest extends AppDataTestCase {
 	private IRequest&MockObject $request;
 	private SignFileService $signFileService;
 	private IL10N $l10n;

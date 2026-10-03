@@ -27,7 +27,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-final class AEngineHandlerTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class AEngineHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataTestCase {
 	private IConfig $config;
 	private IAppConfig $appConfig;
 	private IAppDataFactory $appDataFactory;

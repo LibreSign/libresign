@@ -17,7 +17,7 @@ use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Process\ProcessManager;
-use OCA\Libresign\Tests\Integration\TestCase;
+use OCA\Libresign\Tests\Integration\AppDataTestCase;
 use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
@@ -29,7 +29,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-class CfsslHandlerTest extends TestCase {
+class CfsslHandlerTest extends AppDataTestCase {
 	private const string PROCESS_SOURCE = 'cfssl';
 
 	private ProcessManager&MockObject $processManager;
