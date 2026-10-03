@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Libresign\Tests\Unit\Handler;
+namespace OCA\Libresign\Tests\Integration\Handler;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\PdfTk\Pdf;
@@ -18,7 +18,7 @@ use RuntimeException;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-final class PdfTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class PdfTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private JavaHelper&MockObject $javaHelper;
 	private IAppConfig $appConfig;
 	private IL10N $l10n;

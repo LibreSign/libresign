@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Libresign\Tests\Unit\Events;
+namespace OCA\Libresign\Tests\Integration\Events;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
@@ -21,7 +21,7 @@ use PHPUnit\Framework\MockObject\MockObject;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-final class SignedEventFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class SignedEventFactoryTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private IUserManager&MockObject $userManager;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private IL10N $l10n;
