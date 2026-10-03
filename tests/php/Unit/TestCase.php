@@ -27,11 +27,37 @@ class TestCase extends PHPUnitTestCase {
 	}
 
 	/**
+	 * @param object|class-string $object
 	 * @param array<int, mixed> $args
 	 */
-	public static function invokePrivate(object $object, string $methodName, array $args = []): mixed {
-		$method = new \ReflectionMethod($object, $methodName);
-		$method->setAccessible(true);
-		return $method->invokeArgs($object, $args);
+	public static function invokePrivate(object|string $object, string $memberName, array $args = []): mixed {
+		$className = is_string($object) ? $object : $object::class;
+		$reflection = new \ReflectionClass($className);
+
+		if ($reflection->hasMethod($memberName)) {
+			return $reflection->getMethod($memberName)->invokeArgs($object, $args);
+		}
+
+		if ($reflection->hasProperty($memberName)) {
+			$property = $reflection->getProperty($memberName);
+			if ($args !== []) {
+				$value = array_pop($args);
+				if ($property->isStatic()) {
+					$property->setValue(null, $value);
+				} else {
+					$property->setValue($object, $value);
+				}
+			}
+
+			return $property->isStatic()
+				? $property->getValue()
+				: $property->getValue($object);
+		}
+
+		if ($reflection->hasConstant($memberName)) {
+			return $reflection->getConstant($memberName);
+		}
+
+		return false;
 	}
 }
