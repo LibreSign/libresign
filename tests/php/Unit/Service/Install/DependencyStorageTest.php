@@ -18,8 +18,17 @@ use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 
+final class InMemoryDependencyPath {
+	public function __construct(private string $internalPath) {
+	}
+
+	public function getInternalPath(): string {
+		return $this->internalPath;
+	}
+}
+
 final class InMemoryDependencyFolder implements ISimpleFolder {
-	public object $folder;
+	public InMemoryDependencyPath $folder;
 
 	/** @var array<string, self> */
 	private array $folders = [];
@@ -28,14 +37,7 @@ final class InMemoryDependencyFolder implements ISimpleFolder {
 		private string $name,
 		string $internalPath,
 	) {
-		$this->folder = new class($internalPath) {
-			public function __construct(private string $internalPath) {
-			}
-
-			public function getInternalPath(): string {
-				return $this->internalPath;
-			}
-		};
+		$this->folder = new InMemoryDependencyPath($internalPath);
 	}
 
 	public function getDirectoryListing(): array {
