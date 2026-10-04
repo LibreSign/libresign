@@ -180,7 +180,8 @@ class SignersLoader {
 					$fileData->signers[$index]->uid = 'account:' . $uid;
 				}
 			}
-			$fileData->signers[$index]->me = $options->isViewerOfSigner($identifyMethods);
+			$isRouteSigner = $options->getSignRequest()?->getId() === $signer->getId();
+			$fileData->signers[$index]->me = $isRouteSigner || $options->isViewerOfSigner($identifyMethods);
 
 			if ($fileData->signers[$index]->me) {
 				$fileData->signers[$index]->sign_request_uuid = $signer->getUuid();

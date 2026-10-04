@@ -108,29 +108,90 @@ class Account extends AbstractIdentifyMethod {
 
 	private function getSigner(): IUser {
 		$identifierValue = $this->entity->getIdentifierValue();
-		$signer = $this->userManager->get($identifierValue);
-		if (!$signer) {
-			$signer = $this->userManager->getByEmail($identifierValue);
-			if (empty($signer) || count($signer) > 1) {
-				throw new LibresignException(json_encode([
-					'action' => JSActions::ACTION_DO_NOTHING,
-					// TRANSLATORS Error shown when the Nextcloud account used to identify the signer is invalid.
-					'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid user')]],
-				]));
-			}
-			$signer = current($signer);
-		}
-		return $signer;
-	}
-
-	private function authenticatedUserIsTheSigner(IUser $signer): void {
-		if ($this->userSession->getUser() !== $signer) {
+		$signer = $this->resolveSignerUser($identifierValue);
+		if (!$signer instanceof IUser) {
+			$this->logger->warning('Account identify could not resolve signer user', [
+				'identifier' => $identifierValue,
+				'signRequestId' => $this->entity->getSignRequestId(),
+			]);
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				// TRANSLATORS Error shown when the Nextcloud account used to identify the signer is invalid.
 				'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid user')]],
 			]));
 		}
+		return $signer;
+	}
+
+	private function resolveSignerUser(?string $identifierValue): ?IUser {
+		if ($identifierValue === null || $identifierValue === '') {
+			return null;
+		}
+
+		$signer = $this->userManager->get($identifierValue);
+		if ($signer instanceof IUser) {
+			return $signer;
+		}
+
+		$byEmail = $this->userManager->getByEmail($identifierValue);
+		if (is_array($byEmail)) {
+			if (count($byEmail) === 1 && $byEmail[0] instanceof IUser) {
+				return $byEmail[0];
+			}
+			if (count($byEmail) > 1) {
+				// Shared emails cannot identify a unique Nextcloud account signer.
+				return null;
+			}
+		}
+
+		// Some backends can miss a direct get() while still returning the exact
+		// UID through search. Never collapse case variants here: distinct
+		// case-sensitive backend accounts must remain distinct identities.
+		foreach ($this->userManager->search($identifierValue) as $candidate) {
+			if ($candidate instanceof IUser && $candidate->getUID() === $identifierValue) {
+				return $candidate;
+			}
+		}
+
+		// Last resort when UserManager cannot resolve the identifier but the
+		// active session already is that account (UID or unique email value).
+		$sessionUser = $this->userSession->getUser();
+		if ($sessionUser instanceof IUser && $this->userMatchesIdentifier($sessionUser, $identifierValue)) {
+			return $sessionUser;
+		}
+
+		return null;
+	}
+
+	private function userMatchesIdentifier(IUser $user, string $identifierValue): bool {
+		if ($user->getUID() === $identifierValue) {
+			return true;
+		}
+		$email = $user->getEMailAddress();
+		return is_string($email) && $email !== '' && strcasecmp($email, $identifierValue) === 0;
+	}
+
+	private function authenticatedUserIsTheSigner(IUser $signer): void {
+		$user = $this->userSession->getUser();
+		// Compare UIDs only: UserManager/session may return distinct IUser
+		// instances for the same account. Never authorize by shared email —
+		// multiple accounts can use the same address while account identify
+		// still targets a single UID.
+		if ($user instanceof IUser && $user->getUID() === $signer->getUID()) {
+			return;
+		}
+
+		$this->logger->warning('Account identify session does not match signer', [
+			'sessionUid' => $user instanceof IUser ? $user->getUID() : null,
+			'signerUid' => $signer->getUID(),
+			'identifier' => $this->entity->getIdentifierValue(),
+			'signRequestId' => $this->entity->getSignRequestId(),
+		]);
+		throw new LibresignException(json_encode([
+			'action' => JSActions::ACTION_DO_NOTHING,
+			// TRANSLATORS Error shown when the Nextcloud account used to identify the signer is invalid.
+			'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid user')]],
+		]));
 	}
 
 	private function throwIfNotAuthenticated(): void {

@@ -87,9 +87,10 @@ class AccountTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$entity = new IdentifyMethod();
 		$entity->setIdentifierValue('nonexistent_user');
 
-		// Mock userManager to return null for both get() and getByEmail()
+		// Mock userManager to return null for get()/getByEmail()/search()
 		$this->userManager->method('get')->with('nonexistent_user')->willReturn(null);
 		$this->userManager->method('getByEmail')->with('nonexistent_user')->willReturn([]);
+		$this->userManager->method('search')->with('nonexistent_user')->willReturn([]);
 
 		$account = $this->getClass();
 		$account->setEntity($entity);
@@ -98,6 +99,93 @@ class AccountTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessageMatches('/.*Invalid user.*/');
 
 		$account->validateToRequest();
+	}
+
+	public function testValidateToRequestThrowsWhenEmailMatchesMultipleAccounts(): void {
+		$entity = new IdentifyMethod();
+		$entity->setIdentifierValue('shared@example.com');
+
+		$first = $this->createMock(IUser::class);
+		$first->method('getUID')->willReturn('signer1');
+		$second = $this->createMock(IUser::class);
+		$second->method('getUID')->willReturn('signer2');
+
+		$this->userManager->method('get')->with('shared@example.com')->willReturn(null);
+		$this->userManager->method('getByEmail')->with('shared@example.com')->willReturn([$first, $second]);
+
+		$account = $this->getClass();
+		$account->setEntity($entity);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessageMatches('/.*Invalid user.*/');
+
+		$account->validateToRequest();
+	}
+
+	public function testAuthenticatedUserIsTheSignerRejectsUidThatDiffersOnlyByCase(): void {
+		$signer = $this->createMock(IUser::class);
+		$signer->method('getUID')->willReturn('Alice');
+
+		$session = $this->createMock(IUser::class);
+		$session->method('getUID')->willReturn('alice');
+		$this->userSession->method('getUser')->willReturn($session);
+
+		$entity = new IdentifyMethod();
+		$entity->setIdentifierValue('Alice');
+		$entity->setSignRequestId(1);
+
+		$account = $this->getClass();
+		$account->setEntity($entity);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessageMatches('/.*Invalid user.*/');
+
+		$method = new \ReflectionMethod(Account::class, 'authenticatedUserIsTheSigner');
+		$method->invoke($account, $signer);
+	}
+
+	public function testValidateToRequestDoesNotResolveCaseVariantUidFromSearch(): void {
+		$entity = new IdentifyMethod();
+		$entity->setIdentifierValue('Alice');
+
+		$caseVariant = $this->createMock(IUser::class);
+		$caseVariant->method('getUID')->willReturn('alice');
+
+		$this->userManager->method('get')->with('Alice')->willReturn(null);
+		$this->userManager->method('getByEmail')->with('Alice')->willReturn([]);
+		$this->userManager->method('search')->with('Alice')->willReturn([$caseVariant]);
+
+		$account = $this->getClass();
+		$account->setEntity($entity);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessageMatches('/.*Invalid user.*/');
+
+		$account->validateToRequest();
+	}
+
+	public function testAuthenticatedUserIsTheSignerRejectsSharedEmailDifferentUid(): void {
+		$signer = $this->createMock(IUser::class);
+		$signer->method('getUID')->willReturn('signer1');
+		$signer->method('getEMailAddress')->willReturn('shared@example.com');
+
+		$session = $this->createMock(IUser::class);
+		$session->method('getUID')->willReturn('signer2');
+		$session->method('getEMailAddress')->willReturn('shared@example.com');
+		$this->userSession->method('getUser')->willReturn($session);
+
+		$entity = new IdentifyMethod();
+		$entity->setIdentifierValue('signer1');
+		$entity->setSignRequestId(1);
+
+		$account = $this->getClass();
+		$account->setEntity($entity);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessageMatches('/.*Invalid user.*/');
+
+		$method = new \ReflectionMethod(Account::class, 'authenticatedUserIsTheSigner');
+		$method->invoke($account, $signer);
 	}
 
 	#[DataProvider('providerValidateToRequestEmailToken')]

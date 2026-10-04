@@ -212,10 +212,6 @@ const acceptsEmailNotifications = ref<boolean | undefined>()
 const signerGeolocationMode = computed(() => {
 	const file = filesStore.getFile()
 	const policySnapshot = file?.metadata?.policy_snapshot
-	// Only the frozen device-geolocation entry is authoritative. An envelope may
-	// already carry a policy_snapshot that only has enable_observer_profile, while
-	// signer_device_geolocation still lives on child files (backend falls back) or
-	// the live effective policy during request creation.
 	if (
 		policySnapshot
 		&& typeof policySnapshot === 'object'
@@ -374,7 +370,9 @@ async function saveSigner() {
 		description: description.value.trim() || undefined,
 		participantRole,
 		...(identifyMethod.value === 'email' ? { email: identify.value } : {}),
-		...(showGeolocationRequirementToggle.value
+		// Persist the toggle whenever it is on, even if the checkbox was hidden
+		// after the user flipped it (for example when file metadata refreshes).
+		...(deviceGeolocationRequired.value || showGeolocationRequirementToggle.value
 			? { deviceGeolocationRequired: deviceGeolocationRequired.value }
 			: {}),
 		status: SIGN_REQUEST_STATUS.DRAFT,

@@ -211,11 +211,12 @@ export async function waitForPolicyCanSaveAsUserDefault(
 /**
  * Sets a system-level policy entry and asserts HTTP 200.
  * Pass `value: null` to clear an explicit system value.
+ * Prefer a structured object for JSON policies; strings remain supported.
  */
 export async function setSystemPolicyEntry(
 	ctx: APIRequestContext,
 	policyKey: string,
-	value: string | null,
+	value: string | Record<string, unknown> | null,
 	allowChildOverride: boolean,
 ): Promise<void> {
 	const response = await policyRequest(
