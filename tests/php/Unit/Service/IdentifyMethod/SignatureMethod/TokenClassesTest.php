@@ -20,7 +20,7 @@ use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TelegramToken;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\WhatsappToken;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\XmppToken;
-use OCP\L10N\IFactory as IL10NFactory;
+use OCP\IL10N;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -34,9 +34,11 @@ final class TokenClassesTest extends TestCase {
 			->disableOriginalConstructor()
 			->onlyMethods(['getL10n', 'getSignRequestMapper', 'save'])
 			->getMock();
-		$identifyService->method('getL10n')->willReturn(
-			\OCP\Server::get(IL10NFactory::class)->get(\OCA\Libresign\AppInfo\Application::APP_ID)
-		);
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnCallback(static function (string $text, array $parameters = []): string {
+			return $parameters === [] ? $text : vsprintf($text, $parameters);
+		});
+		$identifyService->method('getL10n')->willReturn($l10n);
 		$this->identifyService = $identifyService;
 		$this->tokenService = $this->createMock(TokenService::class);
 	}

@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
@@ -26,7 +25,6 @@ use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtr
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IUserSession;
-use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
@@ -53,7 +51,10 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
-		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
+		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n->method('t')->willReturnCallback(static function (string $text, array $parameters = []): string {
+			return $parameters === [] ? $text : vsprintf($text, $parameters);
+		});
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
