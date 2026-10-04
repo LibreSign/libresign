@@ -18,8 +18,8 @@ use OCA\Libresign\Service\Install\InstallProgressStore;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\InstallTarget;
 use OCA\Libresign\Service\Install\SignSetupService;
-use OCP\Files\File;
-use OCP\Files\Folder;
+use OCP\Files\SimpleFS\ISimpleFile;
+use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -138,8 +138,8 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->signSetupService->method('verify')->willReturn(['missing']);
 
-		$folderMock = $this->createMock(Folder::class);
-		$fileMock = $this->createMock(File::class);
+		$folderMock = $this->createMock(ISimpleFolder::class);
+		$fileMock = $this->createMock(ISimpleFile::class);
 
 		$this->dependencyStorage->method('resourceFolder')->willReturn($folderMock);
 		$folderMock->method('newFile')->with('cfssl')->willReturn($fileMock);
@@ -178,18 +178,17 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 	}
 
-	public function testInstallCfsslRejectsUnsupportedArchitecture(): void {
+	public function testSetArchitectureRejectsUnsupportedArchitecture(): void {
 		if (PHP_OS_FAMILY !== 'Linux') {
 			$this->markTestSkipped('CFSSL installation is supported on Linux only.');
 		}
 
 		$installService = $this->getInstallService();
-		$installService->setArchitecture('armv7l');
 
 		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('CFSSL is available only for x86_64/amd64 and aarch64/arm64 architectures.');
+		$this->expectExceptionMessage('Unsupported architecture "armv7l". Supported architectures: x86_64, aarch64');
 
-		$installService->installCfssl();
+		$installService->setArchitecture('armv7l');
 	}
 
 	/**
