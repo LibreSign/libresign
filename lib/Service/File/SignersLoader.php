@@ -180,14 +180,11 @@ class SignersLoader {
 					$fileData->signers[$index]->uid = 'account:' . $uid;
 				}
 			}
-			$fileData->signers[$index]->me = $options->isViewerOfSigner($identifyMethods);
-
-			// Top-level validate payloads need sign_request_uuid on every signer so
-			// the SPA can mark the current signer from the route uuid even when
-			// `me` was not resolved yet. Nested child summaries omit this field.
-			$fileData->signers[$index]->sign_request_uuid = $signer->getUuid();
+			$isRouteSigner = $options->getSignRequest()?->getId() === $signer->getId();
+			$fileData->signers[$index]->me = $isRouteSigner || $options->isViewerOfSigner($identifyMethods);
 
 			if ($fileData->signers[$index]->me) {
+				$fileData->signers[$index]->sign_request_uuid = $signer->getUuid();
 				if (isset($fileData->settings) && $this->isSignersTurn($file, $signer, $signers)) {
 					$fileData->settings['canSign'] = true;
 				}
