@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Listener;
+namespace OCA\Libresign\Tests\Integration\Listener;
 
 use DateTimeInterface;
 use OCA\Libresign\Db\File;
@@ -22,7 +22,7 @@ use OCP\Server;
 /**
  * @group DB
  */
-final class BeforeNodeDeletedListenerTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class BeforeNodeDeletedListenerTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private const SIGNED_NODE_ID = 808080802;
 
 	private IDBConnection $db;
