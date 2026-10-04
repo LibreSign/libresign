@@ -452,7 +452,62 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertMatchesRegularExpression('/^[0-9A-Fa-f]+$/', $parsed['serialNumberHex'], 'Serial number hex should contain only hex characters');
 	}
 
-	public function testLeafCertificateContract(): void {
+	public function testLeafCertificateUsesRsa2048Key(): void {
+		['certificate' => $certificate] = $this->generateLeafCertificate();
+
+		$pkcs12 = [];
+		$this->assertTrue(openssl_pkcs12_read($certificate, $pkcs12, '123456'));
+		$publicKey = openssl_pkey_get_public($pkcs12['cert']);
+		$this->assertNotFalse($publicKey);
+		$details = openssl_pkey_get_details($publicKey);
+		$this->assertIsArray($details);
+		$this->assertSame(OPENSSL_KEYTYPE_RSA, $details['type']);
+		$this->assertSame(2048, $details['bits']);
+	}
+
+	public function testLeafCertificateHasRequiredKeyUsages(): void {
+		['parsed' => $parsed] = $this->generateLeafCertificate();
+
+		$this->assertArrayHasKey('basicConstraints', $parsed['extensions']);
+		$this->assertStringContainsString('CA:FALSE', $parsed['extensions']['basicConstraints']);
+
+		$this->assertArrayHasKey('keyUsage', $parsed['extensions']);
+		$keyUsage = $parsed['extensions']['keyUsage'];
+		$this->assertStringContainsString('Digital Signature', $keyUsage);
+		$this->assertMatchesRegularExpression('/Non Repudiation|Content Commitment/i', $keyUsage);
+		$this->assertStringContainsString('Key Encipherment', $keyUsage);
+
+		$this->assertArrayHasKey('extendedKeyUsage', $parsed['extensions']);
+		$extendedKeyUsage = $parsed['extensions']['extendedKeyUsage'];
+		$this->assertStringContainsString('TLS Web Client Authentication', $extendedKeyUsage);
+		$this->assertStringContainsString('E-mail Protection', $extendedKeyUsage);
+	}
+
+	public function testLeafCertificateContainsSignerIdentity(): void {
+		['parsed' => $parsed] = $this->generateLeafCertificate();
+
+		$this->assertArrayHasKey('subjectAltName', $parsed['extensions']);
+		$this->assertStringContainsString('email:signer@domain.tld', $parsed['extensions']['subjectAltName']);
+
+		$this->assertArrayHasKey('authorityKeyIdentifier', $parsed['extensions']);
+		$this->assertNotEmpty($parsed['extensions']['authorityKeyIdentifier']);
+		$this->assertArrayHasKey('subjectKeyIdentifier', $parsed['extensions']);
+		$this->assertNotEmpty($parsed['extensions']['subjectKeyIdentifier']);
+	}
+
+	public function testLeafCertificatePublishesCrlDistributionPoint(): void {
+		['parsed' => $parsed] = $this->generateLeafCertificate();
+
+		$this->assertArrayHasKey('crl_urls', $parsed);
+		$this->assertNotEmpty($parsed['crl_urls']);
+		$this->assertArrayHasKey('crlDistributionPoints', $parsed['extensions']);
+		$this->assertStringContainsString('URI:', $parsed['extensions']['crlDistributionPoints']);
+	}
+
+	/**
+	 * @return array{certificate: string, parsed: array<string, mixed>}
+	 */
+	private function generateLeafCertificate(): array {
 		$rootInstance = $this->getInstance();
 		$rootInstance->generateRootCert('Test Root CA', []);
 
@@ -462,50 +517,11 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signerInstance->setPassword('123456');
 
 		$certificate = $signerInstance->generateCertificate();
-		$parsed = $signerInstance->readCertificate($certificate, '123456');
 
-		// 1 & 2: Key - RSA public key & 2048-bit RSA key inspected directly from certificate PEM
-		$pkcs12 = [];
-		$this->assertTrue(openssl_pkcs12_read($certificate, $pkcs12, '123456'));
-		$publicKey = openssl_pkey_get_public($pkcs12['cert']);
-		$this->assertNotFalse($publicKey);
-		$details = openssl_pkey_get_details($publicKey);
-		$this->assertIsArray($details);
-		$this->assertSame(OPENSSL_KEYTYPE_RSA, $details['type']);
-		$this->assertSame(2048, $details['bits']);
-
-		// 3: Basic Constraints - CA:FALSE
-		$this->assertArrayHasKey('basicConstraints', $parsed['extensions']);
-		$this->assertStringContainsString('CA:FALSE', $parsed['extensions']['basicConstraints']);
-
-		// 4, 5 & 6: Key Usage - Digital Signature, Non Repudiation / Content Commitment, Key Encipherment
-		$this->assertArrayHasKey('keyUsage', $parsed['extensions']);
-		$keyUsage = $parsed['extensions']['keyUsage'];
-		$this->assertStringContainsString('Digital Signature', $keyUsage);
-		$this->assertMatchesRegularExpression('/Non Repudiation|Content Commitment/i', $keyUsage);
-		$this->assertStringContainsString('Key Encipherment', $keyUsage);
-
-		// 7 & 8: Extended Key Usage - TLS Web Client Authentication, E-mail Protection
-		$this->assertArrayHasKey('extendedKeyUsage', $parsed['extensions']);
-		$extendedKeyUsage = $parsed['extensions']['extendedKeyUsage'];
-		$this->assertStringContainsString('TLS Web Client Authentication', $extendedKeyUsage);
-		$this->assertStringContainsString('E-mail Protection', $extendedKeyUsage);
-
-		// 9: Subject Alternative Name
-		$this->assertArrayHasKey('subjectAltName', $parsed['extensions']);
-		$this->assertStringContainsString('email:signer@domain.tld', $parsed['extensions']['subjectAltName']);
-
-		// 10 & 11: AKI & SKI
-		$this->assertArrayHasKey('authorityKeyIdentifier', $parsed['extensions']);
-		$this->assertNotEmpty($parsed['extensions']['authorityKeyIdentifier']);
-		$this->assertArrayHasKey('subjectKeyIdentifier', $parsed['extensions']);
-		$this->assertNotEmpty($parsed['extensions']['subjectKeyIdentifier']);
-
-		// 12: CRL distribution information
-		$this->assertArrayHasKey('crl_urls', $parsed);
-		$this->assertNotEmpty($parsed['crl_urls']);
-		$this->assertArrayHasKey('crlDistributionPoints', $parsed['extensions']);
-		$this->assertStringContainsString('URI:', $parsed['extensions']['crlDistributionPoints']);
+		return [
+			'certificate' => $certificate,
+			'parsed' => $signerInstance->readCertificate($certificate, '123456'),
+		];
 	}
 
 	public function testUniqueSerialNumbers(): void {
