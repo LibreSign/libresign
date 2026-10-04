@@ -36,4 +36,5 @@ jobs:
         run: |
           ! grep -q '"nginx:80"' .devcontainer/devcontainer.json
           ! grep -q '"80":' .devcontainer/devcontainer.json
-          grep -q 'https://.*\.localhost' .devcontainer/setup.sh
+          grep -q 'NEXTCLOUD_HOST' .devcontainer/setup.sh
+          grep -Eq 'NEXTCLOUD_HOST: ncdev-.*\.localhost' .devcontainer/ncdd.generated.yml
