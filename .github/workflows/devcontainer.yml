@@ -32,3 +32,8 @@ jobs:
         run: |
           ! grep -Eq '^[[:space:]]+(database|mysql|mariadb|mailpit|redis):$' .devcontainer/docker-compose.yml
           ! grep -Eq '^[[:space:]]+image:' .devcontainer/docker-compose.yml
+      - name: Verify Nextcloud web access stays behind the NCDD proxy
+        run: |
+          ! grep -q '"nginx:80"' .devcontainer/devcontainer.json
+          ! grep -q '"80":' .devcontainer/devcontainer.json
+          grep -q 'https://.*\.localhost' .devcontainer/setup.sh
