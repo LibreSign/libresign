@@ -16,8 +16,10 @@ worktree. LibreSign only adds its source mount at
 A deterministic worker id is derived from the local worktree path, so separate
 worktrees resolve to separate NCDD mutable-state directories.
 
-The application URL is printed by `.devcontainer/setup.sh` after setup.
-NCDD also exposes its Mailpit endpoint through the shared development proxy.
+For local Docker use, NCDD exposes the environment through its shared HTTPS
+proxy at the worker hostname. The Dev Container also forwards `nginx:80` and
+`mailpit:8025`, so editor-managed local/remote environments can open
+Nextcloud and Mailpit without publishing fixed host ports in Compose.
 
 The adapter defaults to PHP 8.3, Nextcloud `master`, MariaDB 10.6. These may be
 changed on the host before reopening the container:

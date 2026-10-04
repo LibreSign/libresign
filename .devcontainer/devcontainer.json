@@ -6,6 +6,10 @@
 	"workspaceFolder": "/var/www/html/apps-extra/libresign",
 	"overrideCommand": false,
 	"shutdownAction": "stopCompose",
+	"forwardPorts": [
+		"nginx:80",
+		"mailpit:8025"
+	],
 	"containerEnv": {
 		"XDEBUG_MODE": "debug",
 		"XDEBUG_CONFIG": "client_host=host.docker.internal client_port=9003 start_with_request=yes"
@@ -40,6 +44,16 @@
 	},
 	"postCreateCommand": "bash /var/www/html/apps-extra/libresign/.devcontainer/setup.sh",
 	"portsAttributes": {
+		"80": {
+			"label": "Nextcloud",
+			"protocol": "http",
+			"onAutoForward": "openBrowser"
+		},
+		"8025": {
+			"label": "Mailpit",
+			"protocol": "http",
+			"onAutoForward": "notify"
+		},
 		"9000": {
 			"label": "php-fpm",
 			"onAutoForward": "ignore"
