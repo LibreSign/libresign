@@ -8,9 +8,13 @@ The dev container is a thin adapter over
 `LibreCodeCoop/nextcloud-docker-development` (NCDD).
 
 Open the LibreSign repository in VS Code and choose **Reopen in Container**.
-The initialization step fetches the pinned NCDD revision, starts its canonical
-Nextcloud environment, and mounts this checkout at
+The initialization step fetches the pinned NCDD revision and asks NCDD's
+`dev-worker config` command to resolve the canonical environment for this
+worktree. LibreSign only adds its source mount at
 `/var/www/html/apps-extra/libresign`.
+
+A deterministic worker id is derived from the local worktree path, so separate
+worktrees resolve to separate NCDD mutable-state directories.
 
 The application URL is printed by `.devcontainer/setup.sh` after setup.
 NCDD also exposes its Mailpit endpoint through the shared development proxy.

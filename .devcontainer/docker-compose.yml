@@ -2,9 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 include:
-  - path: ./.nextcloud-docker-development/docker-compose.yml
-    project_directory: ./.nextcloud-docker-development
-    env_file: ./.nextcloud-docker-development/.env
+  - path: ./ncdd.generated.yml
 
 services:
   nextcloud:

@@ -4,6 +4,8 @@
 .vscode
 .ai-local/
 .devcontainer/.nextcloud-docker-development/
+.devcontainer/ncdd.generated.yml
+.devcontainer/.worker-id
 .phpactor*
 .env
 .secrets
