@@ -5,12 +5,13 @@
 
 import path from 'node:path'
 
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 import { login } from '../support/nc-login'
 import { configureOpenSsl, resetUserSigningCertificate, setSystemPolicy } from '../support/nc-provisioning'
 import { clickAddSigner, selectAccountSigner } from '../support/request-signature'
 import { clickSignDocumentButton } from '../support/sign-flow'
+import { getSmallValidPdfBuffer } from '../support/pdf-fixtures'
 import {
 	createAuthenticatedRequestContext,
 	getEffectivePolicy,
@@ -32,6 +33,24 @@ const IP_POLICY = 'signer_ip_geolocation'
 const IDENTIFY_POLICY = 'identify_methods'
 const GEOIP_TEST_DB = process.env.PLAYWRIGHT_GEOIP_PATH
 	?? path.resolve(process.cwd(), 'tests/php/fixtures/geoip/GeoIP2-City-Test.mmdb')
+
+async function uploadLocalPdf(page: Page, fileName: string) {
+	const pdfBuffer = await getSmallValidPdfBuffer()
+	const uploadResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/file')
+		&& response.ok(),
+	)
+	const fileChooserPromise = page.waitForEvent('filechooser')
+	await page.getByRole('button', { name: 'Upload', exact: true }).click()
+	const fileChooser = await fileChooserPromise
+	await fileChooser.setFiles({
+		name: fileName,
+		mimeType: 'application/pdf',
+		buffer: pdfBuffer,
+	})
+	return uploadResponsePromise
+}
 
 let adminContext: Awaited<ReturnType<typeof createAuthenticatedRequestContext>> | null = null
 let originalDevice: SystemPolicySnapshot | null = null
@@ -146,15 +165,8 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	expect((await getEffectivePolicy(adminContext, IP_POLICY))?.effectiveValue).toEqual({ mode: 'enabled' })
 
 	await page.goto('./apps/libresign')
-	await page.getByRole('button', { name: 'Upload from URL' }).click()
-	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
-	const uploadResponsePromise = page.waitForResponse((response) =>
-		response.request().method() === 'POST'
-		&& response.url().includes('/apps/libresign/api/v1/file')
-		&& response.ok(),
-	)
-	await page.getByRole('button', { name: 'Send' }).click()
-	const uploadBody = await (await uploadResponsePromise).json() as {
+	const uploadResponse = await uploadLocalPdf(page, `geolocation-frozen-${Date.now()}.pdf`)
+	const uploadBody = await uploadResponse.json() as {
 		ocs?: { data?: { metadata?: { policy_snapshot?: Record<string, { effectiveValue?: { mode?: string } }> } } }
 	}
 	expect(uploadBody.ocs?.data?.metadata?.policy_snapshot?.signer_device_geolocation?.effectiveValue).toEqual({ mode: 'optional' })
@@ -195,6 +207,25 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	await page.getByRole('button', { name: 'Send' }).click()
 
 	await setSystemPolicyEntry(adminContext, DEVICE_POLICY, { mode: 'disabled' }, true)
+
+	// The existing request must keep its frozen optional policy, while a new
+	// request created after the policy change must snapshot the disabled state.
+	const secondPage = await page.context().newPage()
+	await secondPage.goto('./apps/libresign')
+	const secondUploadResponse = await uploadLocalPdf(secondPage, `geolocation-new-policy-${Date.now()}.pdf`)
+	const secondUploadBody = await secondUploadResponse.json() as {
+		ocs?: { data?: { metadata?: { policy_snapshot?: Record<string, { effectiveValue?: { mode?: string } }> } } }
+	}
+	expect(secondUploadBody.ocs?.data?.metadata?.policy_snapshot?.signer_device_geolocation?.effectiveValue).toEqual({ mode: 'disabled' })
+	await clickAddSigner(secondPage)
+	await selectAccountSigner(secondPage, 'a')
+	const secondSignerDialog = secondPage.getByRole('dialog', { name: /Add new signer/i }).last()
+	await expect(secondSignerDialog
+		.locator('.checkbox-radio-switch')
+		.filter({ hasText: 'Require device-reported location to sign' })).toHaveCount(0)
+	await secondSignerDialog.getByRole('button', { name: 'Cancel' }).click()
+	await secondPage.close()
+
 	await clickAddSigner(page)
 	await selectAccountSigner(page, 'a')
 	await expect(page.getByRole('dialog', { name: /Add new signer/i }).last()
