@@ -27,7 +27,7 @@ jobs:
       - name: Prepare pinned NCDD
         run: sh .devcontainer/prepare.sh
       - name: Validate local composed environment
-        run: docker compose --file .devcontainer/docker-compose.yml config --quiet
+        run: docker compose --file .devcontainer/ncdd.generated.yml --file .devcontainer/docker-compose.yml config --quiet
       - name: Verify local access uses the shared NCDD proxy
         run: |
           ! grep -q 'published: "8080"' .devcontainer/ncdd.generated.yml
@@ -39,7 +39,7 @@ jobs:
           GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN: app.github.dev
         run: |
           sh .devcontainer/prepare.sh
-          docker compose --file .devcontainer/docker-compose.yml config --quiet
+          docker compose --file .devcontainer/ncdd.generated.yml --file .devcontainer/docker-compose.yml config --quiet
           grep -q 'NEXTCLOUD_HOST: libresign-test-8080.app.github.dev' .devcontainer/ncdd.generated.yml
           grep -q 'NEXTCLOUD_PROTOCOL: https' .devcontainer/ncdd.generated.yml
           grep -q 'published: "8080"' .devcontainer/ncdd.generated.yml

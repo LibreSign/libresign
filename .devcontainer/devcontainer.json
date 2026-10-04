@@ -1,7 +1,10 @@
 {
 	"name": "LibreSign",
 	"initializeCommand": "sh .devcontainer/prepare.sh",
-	"dockerComposeFile": "docker-compose.yml",
+	"dockerComposeFile": [
+		"ncdd.generated.yml",
+		"docker-compose.yml"
+	],
 	"service": "nextcloud",
 	"workspaceFolder": "/var/www/html/apps-extra/libresign",
 	"overrideCommand": false,

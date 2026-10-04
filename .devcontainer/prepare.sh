@@ -8,7 +8,7 @@ repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 ncdd_dir="$repo_root/.devcontainer/.nextcloud-docker-development"
 generated_compose="$repo_root/.devcontainer/ncdd.generated.yml"
 worker_id_file="$repo_root/.devcontainer/.worker-id"
-ncdd_commit="ef366f2f7b5e3ce3bd34b90d6d5fe25f90dff35b"
+ncdd_commit="9389f0bbf5aa9dc0597d3c81b8f53d1abb946fbf"
 
 if [ ! -d "$ncdd_dir/.git" ]; then
 	rm -rf "$ncdd_dir"
