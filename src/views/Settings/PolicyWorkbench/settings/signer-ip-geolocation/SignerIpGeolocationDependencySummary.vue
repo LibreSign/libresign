@@ -8,7 +8,7 @@
 		class="signer-ip-geolocation-dependency"
 		data-cy="geoip-database-dependency"
 		:aria-label="dependencySectionLabel">
-		<div class="signer-ip-geolocation-dependency__row">
+		<div v-if="canConfigure" class="signer-ip-geolocation-dependency__row">
 			<p class="signer-ip-geolocation-dependency__status">
 				<strong>{{ dependencyStatusPrefix }}</strong>
 				{{ statusLabel || dependencyStatusUnknown }}
@@ -104,7 +104,9 @@ async function loadGeoIpStatus() {
 }
 
 onMounted(() => {
-	void loadGeoIpStatus()
+	if (canConfigure.value) {
+		void loadGeoIpStatus()
+	}
 })
 
 defineExpose({
