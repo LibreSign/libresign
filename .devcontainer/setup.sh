@@ -1,27 +1,40 @@
 #!/bin/bash
-#
-# SPDX-FileCopyrightText: 2024 LibreCode coop and contributors
+# SPDX-FileCopyrightText: 2024-2026 LibreCode coop and contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-#
 
-(
-    . /var/www/scripts/entrypoint.sh && php-fpm --daemonize
+set -Eeo pipefail
 
-)
+app_dir=/var/www/html/apps-extra/libresign
+
+for _ in {1..120}; do
+	if occ status 2>/dev/null | grep -q 'installed: true'; then
+		break
+	fi
+	sleep 1
+done
+
+if ! occ status 2>/dev/null | grep -q 'installed: true'; then
+	echo "Nextcloud did not become ready within 120 seconds." >&2
+	exit 1
+fi
 
 git config --global --add safe.directory /var/www/html
-git config --global --add safe.directory /var/www/html/apps-extra/libresign
-cd /var/www/html/apps-extra/libresign
+git config --global --add safe.directory "$app_dir"
+
+cd "$app_dir"
 git submodule update --init --recursive
-if [[ ! -d "vendor" ]]; then
+
+if [[ ! -d vendor ]]; then
 	composer install
 fi
+
 occ app:enable libresign
 occ libresign:install --use-local-cert --java
 occ libresign:install --use-local-cert --pdftk
 occ libresign:install --use-local-cert --jsignpdf
-occ libresign:configure:openssl --cn=CommonName --c=BR --ou=OrganizationUnit --st=RioDeJaneiro --o=LibreSign --l=RioDeJaneiro
-if [[ ! -d "node_modules" ]]; then
+occ libresign:configure:openssl 	--cn=CommonName 	--c=BR 	--ou=OrganizationUnit 	--st=RioDeJaneiro 	--o=LibreSign 	--l=RioDeJaneiro
+
+if [[ ! -d node_modules ]]; then
 	occ theming:config name "LibreSign"
 	occ theming:config url "https://libresign.coop"
 	occ theming:config primary_color "#144042"
@@ -31,5 +44,6 @@ if [[ ! -d "node_modules" ]]; then
 	npm ci
 	npm run dev
 fi
-echo "✍️ LibreSign is up!"
-echo "If you want to develop at frontend, run the command 'npm run watch'"
+
+echo "LibreSign is ready at https://${NEXTCLOUD_HOST}"
+echo "For frontend development, run: npm run watch"

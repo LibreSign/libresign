@@ -1,47 +1,33 @@
 <!--
- - SPDX-FileCopyrightText: 2024 LibreCode coop and contributors
+ - SPDX-FileCopyrightText: 2024-2026 LibreCode coop and contributors
  - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
-## Starting devcontainer
+# LibreSign dev container
 
-- Use vscode (codium don't will work)
-- Stup the extension devcontainer
-- Open libresign folder at vscode
-- After open you will see a message "Reopen in container", do this
+The dev container is a thin adapter over
+`LibreCodeCoop/nextcloud-docker-development` (NCDD).
 
-## Stopping devcontainer
+Open the LibreSign repository in VS Code and choose **Reopen in Container**.
+The initialization step fetches the pinned NCDD revision, starts its canonical
+Nextcloud environment, and mounts this checkout at
+`/var/www/html/apps-extra/libresign`.
 
-```bash
-docker stop $(docker ps -aq)
-docker rm $(docker ps -aq)
-```
-## Cleaning all volumes
+The application URL is printed by `.devcontainer/setup.sh` after setup.
+NCDD also exposes its Mailpit endpoint through the shared development proxy.
 
-This will be necessary when you want to have a new clean environment
-
-```bash
-docker volume rm $(docker volume ls -q )
-```
-## Looking logs
-
-### Nginx
+The adapter defaults to PHP 8.3, Nextcloud `master`, MariaDB 10.6. These may be
+changed on the host before reopening the container:
 
 ```bash
-docker logs libresign_devcontainer-nginx-1 -f --tail 100
+export LIBRESIGN_PHP_VERSION=83
+export LIBRESIGN_NEXTCLOUD_VERSION=master
+export LIBRESIGN_DB_TYPE=mariadb
+export LIBRESIGN_MARIADB_VERSION=10.6
 ```
 
-### Nextcloud
+Closing or rebuilding this dev container only affects its Compose project.
+Do not use global Docker cleanup commands to stop unrelated containers or
+delete unrelated volumes.
 
-- Open the console inside vscode
-- Run:
-  ```bash
-  tail -f data/nextcloud.log
-  ```
-
-### Database
-
-- Open the console inside vscode
-- Run:
-  ```bash
-  tail -f data/database.log
-  ```
+Canonical development documentation lives in the
+[LibreSign Developer Manual](https://docs.libresign.coop/developer_manual/).
