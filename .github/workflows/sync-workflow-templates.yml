@@ -57,9 +57,9 @@ jobs:
         shell: bash
         env:
           AUTH_MODE: ${{ vars.WORKFLOW_SYNC_AUTH_MODE || 'librecode-app' }}
-          LIBRECODE_APP_ID: ${{ vars.LIBRECODE_WORKFLOW_APP_ID }}
+          LIBRECODE_APP_CLIENT_ID: ${{ vars.LIBRECODE_WORKFLOW_APP_CLIENT_ID }}
           LIBRECODE_APP_PRIVATE_KEY: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
-          CONSUMER_APP_ID: ${{ vars.WORKFLOW_SYNC_APP_ID }}
+          CONSUMER_APP_CLIENT_ID: ${{ vars.WORKFLOW_SYNC_APP_CLIENT_ID }}
           CONSUMER_APP_PRIVATE_KEY: ${{ secrets.WORKFLOW_SYNC_APP_PRIVATE_KEY }}
           CONSUMER_TOKEN: ${{ secrets.WORKFLOW_SYNC_TOKEN }}
         run: |
@@ -67,14 +67,14 @@ jobs:
 
           case "${AUTH_MODE}" in
             librecode-app)
-              [[ -n "${LIBRECODE_APP_ID}" && -n "${LIBRECODE_APP_PRIVATE_KEY}" ]] || {
-                echo "::error::librecode-app requires LIBRECODE_WORKFLOW_APP_ID and LIBRECODE_WORKFLOW_APP_PRIVATE_KEY"
+              [[ -n "${LIBRECODE_APP_CLIENT_ID}" && -n "${LIBRECODE_APP_PRIVATE_KEY}" ]] || {
+                echo "::error::librecode-app requires LIBRECODE_WORKFLOW_APP_CLIENT_ID and LIBRECODE_WORKFLOW_APP_PRIVATE_KEY"
                 exit 1
               }
               ;;
             github-app)
-              [[ -n "${CONSUMER_APP_ID}" && -n "${CONSUMER_APP_PRIVATE_KEY}" ]] || {
-                echo "::error::github-app requires WORKFLOW_SYNC_APP_ID and WORKFLOW_SYNC_APP_PRIVATE_KEY"
+              [[ -n "${CONSUMER_APP_CLIENT_ID}" && -n "${CONSUMER_APP_PRIVATE_KEY}" ]] || {
+                echo "::error::github-app requires WORKFLOW_SYNC_APP_CLIENT_ID and WORKFLOW_SYNC_APP_PRIVATE_KEY"
                 exit 1
               }
               ;;
@@ -97,7 +97,7 @@ jobs:
         id: librecode-app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          app-id: ${{ vars.LIBRECODE_WORKFLOW_APP_ID }}
+          client-id: ${{ vars.LIBRECODE_WORKFLOW_APP_CLIENT_ID }}
           private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: ${{ github.event.repository.name }}
@@ -110,7 +110,7 @@ jobs:
         id: consumer-app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          app-id: ${{ vars.WORKFLOW_SYNC_APP_ID }}
+          client-id: ${{ vars.WORKFLOW_SYNC_APP_CLIENT_ID }}
           private-key: ${{ secrets.WORKFLOW_SYNC_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: ${{ github.event.repository.name }}
