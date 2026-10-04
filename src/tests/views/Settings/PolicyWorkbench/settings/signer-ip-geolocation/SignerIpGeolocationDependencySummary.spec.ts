@@ -83,7 +83,9 @@ describe('SignerIpGeolocationDependencySummary.vue', () => {
 
 		await flushPromises()
 
-		expect(wrapper.text()).toContain('GeoIP database:')
+		expect(getGeoIpConfig).not.toHaveBeenCalled()
+		expect(wrapper.text()).not.toContain('GeoIP database:')
+		expect(wrapper.text()).not.toContain('Loading …')
 		expect(wrapper.text()).not.toContain('Configure')
 		expect(wrapper.text()).toContain('instance configuration')
 	})
