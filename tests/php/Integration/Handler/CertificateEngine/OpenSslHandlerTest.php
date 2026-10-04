@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Libresign\Tests\Unit\Handler\CertificateEngine;
+namespace OCA\Libresign\Tests\Integration\Handler\CertificateEngine;
 
 /**
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
@@ -31,7 +31,10 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
+/**
+ * @group DB
+ */
+final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataTestCase {
 	private IConfig $config;
 	private IAppConfig $appConfig;
 	private IAppDataFactory $appDataFactory;
@@ -573,19 +576,6 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$crlDer = $rootInstance->generateCrlDer([$revokedCert], $matches[1], (int)$matches[2], 1);
 
-		$tempCertFile = $this->tempManager->getTemporaryFile('.pem');
-		$pkcs12 = [];
-		$this->assertTrue(openssl_pkcs12_read($certificateContent, $pkcs12, '123456'));
-		$this->assertNotFalse(file_put_contents($tempCertFile, $pkcs12['cert']));
-
-		$certificateOutput = [];
-		$certificateExitCode = 0;
-		exec(sprintf('openssl x509 -in %s -noout -serial', escapeshellarg($tempCertFile)), $certificateOutput, $certificateExitCode);
-		$this->assertSame(0, $certificateExitCode);
-		$this->assertMatchesRegularExpression('/^serial=[0-9A-F]+$/i', $certificateOutput[0] ?? '');
-
-		$certificateSerial = substr($certificateOutput[0], strlen('serial='));
-
 		$tempCrlFile = $this->tempManager->getTemporaryFile('.crl');
 		$this->assertNotFalse(file_put_contents($tempCrlFile, $crlDer));
 
@@ -596,11 +586,10 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$crlText = implode("\n", $crlOutput);
 		$this->assertMatchesRegularExpression(
-			'/Serial Number:\s*0*' . preg_quote($certificateSerial, '/') . '/i',
+			'/Serial Number:\s*0*' . preg_quote(ltrim($parsed['serialNumberHex'], '0'), '/') . '/i',
 			$crlText,
 		);
 
-		unlink($tempCertFile);
 		unlink($tempCrlFile);
 	}
 
@@ -651,8 +640,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$revokedCertificates = [];
 		$serialNumbers = [];
 
-		foreach ($certificates as $certData) {
-			$serialNumber = bin2hex(random_bytes(10));
+		foreach ($certificates as $index => $certData) {
+			$serialNumber = sprintf('A%019X', $index + 1);
 			$serialNumbers[] = $serialNumber;
 
 			$revokedCert = new \OCA\Libresign\Db\Crl();
