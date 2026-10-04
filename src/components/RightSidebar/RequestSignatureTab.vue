@@ -1685,18 +1685,7 @@ async function sign() {
 		uuid: initialUuid !== file?.uuid ? initialUuid : null,
 		force: true,
 	})
-	const mergedFile = mergeSignDocumentForRoute(file, detailedFile, initialUuid) || detailedFile || file
-	// The request sidebar only offers Sign document when the viewer may sign.
-	// Force-validate can still omit settings.canSign; keep the affordance.
-	const fileToSign = mergedFile
-		? {
-			...mergedFile,
-			settings: {
-				...(mergedFile.settings && typeof mergedFile.settings === 'object' ? mergedFile.settings : {}),
-				canSign: true,
-			},
-		}
-		: mergedFile
+	const fileToSign = mergeSignDocumentForRoute(file, detailedFile, initialUuid) || detailedFile || file
 	// After detail load, prefer a real sign_request_uuid over a file-uuid
 	// approver fallback so /f/sign/:uuid and POST /sign use the same signer.
 	const uuid = getSigningRouteUuid(fileToSign, null, initialUuid) || initialUuid

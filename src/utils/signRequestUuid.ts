@@ -41,24 +41,10 @@ export function getCurrentSigner(document: DocumentLike | null | undefined): Sig
 }
 
 /**
- * When opening /f/sign/:uuid, mark the matching signer as `me` so signing and
- * frozen geolocation can resolve before/without relying solely on API `me`.
+ * When opening /f/sign/:uuid, mark only the signer whose backend-provided
+ * sign-request UUID matches the route. Route context may identify a signer,
+ * but it must not grant signing permission.
  */
-function withCanSignEnabled<T extends DocumentLike>(document: T, signers: SignerLike[]): T {
-	const existingSettings = document.settings && typeof document.settings === 'object'
-		? document.settings
-		: {}
-
-	return {
-		...document,
-		signers,
-		settings: {
-			...existingSettings,
-			canSign: true,
-		},
-	}
-}
-
 export function markCurrentSignerFromRouteUuid<T extends DocumentLike>(
 	document: T | null | undefined,
 	routeUuid: string | null | undefined,
@@ -68,7 +54,7 @@ export function markCurrentSignerFromRouteUuid<T extends DocumentLike>(
 	}
 
 	let matched = false
-	let signers = document.signers.map((signer) => {
+	const signers = document.signers.map((signer) => {
 		const matchesRoute = signer?.sign_request_uuid === routeUuid
 		if (!matchesRoute) {
 			return signer
@@ -84,33 +70,14 @@ export function markCurrentSignerFromRouteUuid<T extends DocumentLike>(
 		}
 	})
 
-	// Validate/list payloads can omit sign_request_uuid while the SPA still
-	// opens /f/sign/:uuid for the sole signable participant.
-	if (!matched) {
-		const soleSignable = document.signers.filter((signer) => !isObserverParticipant(signer))
-		if (soleSignable.length === 1) {
-			matched = true
-			const sole = soleSignable[0]
-			signers = document.signers.map((signer) => {
-				if (signer !== sole && signer?.signRequestId !== sole?.signRequestId) {
-					return signer
-				}
-				return {
-					...signer,
-					me: true,
-					sign_request_uuid: signer.sign_request_uuid || routeUuid,
-				}
-			})
-		}
-	}
-
 	if (!matched) {
 		return document
 	}
 
-	// Route uuid resolves a sign request: align settings.canSign so ableToSign
-	// works when validate omitted me (and thus never flipped canSign).
-	return withCanSignEnabled(document, signers)
+	return {
+		...document,
+		signers,
+	}
 }
 
 function findMatchingSigner(
@@ -164,12 +131,13 @@ export function mergeSignDocumentForRoute<T extends DocumentLike>(
 			? signer.signatureMethods
 			: null
 		const hasNextMethods = nextMethods !== null && Object.keys(nextMethods).length > 0
+		const isCurrentSigner = signer.me === true
 		return {
 			...prior,
 			...signer,
-			me: signer.me === true || prior.me === true,
-			sign_request_uuid: signer.sign_request_uuid || prior.sign_request_uuid || null,
-			signatureMethods: hasNextMethods ? nextMethods : priorMethods,
+			me: isCurrentSigner,
+			sign_request_uuid: signer.sign_request_uuid ?? (isCurrentSigner ? prior.sign_request_uuid ?? null : null),
+			signatureMethods: hasNextMethods ? nextMethods : (isCurrentSigner ? priorMethods : null),
 			metadata: {
 				...(prior.metadata && typeof prior.metadata === 'object' ? prior.metadata : {}),
 				...(signer.metadata && typeof signer.metadata === 'object' ? signer.metadata : {}),
@@ -184,11 +152,6 @@ export function mergeSignDocumentForRoute<T extends DocumentLike>(
 	const baseSettings = base.settings && typeof base.settings === 'object'
 		? base.settings
 		: {}
-	const canSign = previousSettings.canSign === true
-		|| baseSettings.canSign === true
-		|| previous?.canSign === true
-		|| base.canSign === true
-
 	return markCurrentSignerFromRouteUuid({
 		...previous,
 		...base,
@@ -196,7 +159,6 @@ export function mergeSignDocumentForRoute<T extends DocumentLike>(
 		settings: {
 			...previousSettings,
 			...baseSettings,
-			...(canSign ? { canSign: true } : {}),
 		},
 	} as T, routeUuid)
 }

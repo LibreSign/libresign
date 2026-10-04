@@ -912,14 +912,6 @@ function proceedWithSigning() {
 		actionHandler!.showModal('password')
 	} else if (signMethodsStore.needTokenCode()) {
 		actionHandler!.showModal('token')
-	} else if (ableToSign.value) {
-		// Validate can authorize the signer while omitting signatureMethods.
-		// Prefer click-to-sign so the confirm dialog still opens.
-		signMethodsStore.settings = {
-			...signMethodsStore.settings,
-			clickToSign: signMethodsStore.settings.clickToSign ?? {},
-		}
-		actionHandler!.showModal('clickToSign')
 	}
 }
 

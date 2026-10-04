@@ -316,35 +316,16 @@ async function initSignInternal() {
 	})
 	if (!file || typeof file.id !== 'number') {
 		if (previous) {
-			signStore.setFileToSign(withSignRouteCanSign(
+			signStore.setFileToSign(
 				mergeSignDocumentForRoute(previous, null, routeUuid) || previous,
-				routeUuid,
-			))
+			)
 		}
 		return
 	}
-	signStore.setFileToSign(withSignRouteCanSign(
+	signStore.setFileToSign(
 		mergeSignDocumentForRoute(previous, file, routeUuid) || file,
-		routeUuid,
-	))
+	)
 	filesStore.selectFile(file.id)
-}
-
-function withSignRouteCanSign<T extends { settings?: Record<string, unknown> | null }>(
-	file: T,
-	routeUuid: string | string[] | null | undefined,
-): T {
-	const uuid = Array.isArray(routeUuid) ? routeUuid[0] : routeUuid
-	if (typeof uuid !== 'string' || uuid.length === 0) {
-		return file
-	}
-	return {
-		...file,
-		settings: {
-			...(file.settings && typeof file.settings === 'object' ? file.settings : {}),
-			canSign: true,
-		},
-	}
 }
 
 async function initIdDocsApprove() {
