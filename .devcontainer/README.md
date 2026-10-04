@@ -16,19 +16,29 @@ worktree. LibreSign only adds its source mount at
 A deterministic worker id is derived from the local worktree path, so separate
 worktrees resolve to separate NCDD mutable-state directories.
 
-Nextcloud is accessed through NCDD's shared HTTPS proxy using the canonical
-worker hostname printed by the setup script, for example:
+## Browser access
+
+For local Docker/VS Code development, use NCDD's shared HTTPS proxy. The setup
+script prints the canonical URL:
 
 ```text
-https://ncdev-libresign-123456.localhost
+https://ncdev-libresign-<id>.localhost
 ```
 
-Do not forward `nginx:80` as the Nextcloud web endpoint. NCDD configures
-Nextcloud's trusted domain, overwrite host and HTTPS protocol for the proxy
-hostname, so bypassing the proxy would use a different public URL.
+For GitHub Codespaces, the adapter asks NCDD to publish this worker's nginx on
+port `8080` and configures Nextcloud with the corresponding Codespaces public
+hostname. GitHub then forwards that port to a URL like:
 
-Mailpit is safe to forward directly through the Dev Container and remains
-available through NCDD's proxy as well.
+```text
+https://<codespace>-8080.app.github.dev
+```
+
+The actual forwarding domain comes from
+`GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN`; it is not hard-coded.
+
+The local path still uses the shared NCDD proxy. The per-worker port exists
+only in Codespaces, where a concrete forwarded port is needed for browser
+access.
 
 The adapter defaults to PHP 8.3, Nextcloud `master`, MariaDB 10.6. These may be
 changed on the host before reopening the container:
@@ -38,6 +48,12 @@ export LIBRESIGN_PHP_VERSION=83
 export LIBRESIGN_NEXTCLOUD_VERSION=master
 export LIBRESIGN_DB_TYPE=mariadb
 export LIBRESIGN_MARIADB_VERSION=10.6
+```
+
+Codespaces uses port `8080` by default. It can be changed before rebuilding:
+
+```bash
+export LIBRESIGN_CODESPACES_PORT=18080
 ```
 
 Closing or rebuilding this dev container only affects its Compose project.

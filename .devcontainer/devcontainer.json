@@ -7,7 +7,7 @@
 	"overrideCommand": false,
 	"shutdownAction": "stopCompose",
 	"forwardPorts": [
-		"mailpit:8025"
+		8080
 	],
 	"containerEnv": {
 		"XDEBUG_MODE": "debug",
@@ -43,10 +43,10 @@
 	},
 	"postCreateCommand": "bash /var/www/html/apps-extra/libresign/.devcontainer/setup.sh",
 	"portsAttributes": {
-		"8025": {
-			"label": "Mailpit",
+		"8080": {
+			"label": "Nextcloud (Codespaces)",
 			"protocol": "http",
-			"onAutoForward": "notify"
+			"onAutoForward": "openBrowser"
 		},
 		"9000": {
 			"label": "php-fpm",

@@ -26,15 +26,24 @@ jobs:
           bash -n .devcontainer/setup.sh
       - name: Prepare pinned NCDD
         run: sh .devcontainer/prepare.sh
-      - name: Validate composed environment
+      - name: Validate local composed environment
         run: docker compose --file .devcontainer/docker-compose.yml config --quiet
+      - name: Verify local access uses the shared NCDD proxy
+        run: |
+          ! grep -q 'published: "8080"' .devcontainer/ncdd.generated.yml
+          grep -Eq 'NEXTCLOUD_HOST: ncdev-.*\.localhost' .devcontainer/ncdd.generated.yml
+      - name: Validate Codespaces public URL contract
+        env:
+          CODESPACES: "true"
+          CODESPACE_NAME: libresign-test
+          GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN: app.github.dev
+        run: |
+          sh .devcontainer/prepare.sh
+          docker compose --file .devcontainer/docker-compose.yml config --quiet
+          grep -q 'NEXTCLOUD_HOST: libresign-test-8080.app.github.dev' .devcontainer/ncdd.generated.yml
+          grep -q 'NEXTCLOUD_PROTOCOL: https' .devcontainer/ncdd.generated.yml
+          grep -q 'published: "8080"' .devcontainer/ncdd.generated.yml
       - name: Verify LibreSign does not duplicate NCDD services
         run: |
           ! grep -Eq '^[[:space:]]+(database|mysql|mariadb|mailpit|redis):$' .devcontainer/docker-compose.yml
           ! grep -Eq '^[[:space:]]+image:' .devcontainer/docker-compose.yml
-      - name: Verify Nextcloud web access stays behind the NCDD proxy
-        run: |
-          ! grep -q '"nginx:80"' .devcontainer/devcontainer.json
-          ! grep -q '"80":' .devcontainer/devcontainer.json
-          grep -q 'NEXTCLOUD_HOST' .devcontainer/setup.sh
-          grep -Eq 'NEXTCLOUD_HOST: ncdev-.*\.localhost' .devcontainer/ncdd.generated.yml
