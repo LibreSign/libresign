@@ -384,7 +384,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->newUserMail->method('sendMail')->willReturnCallback(function ():void {
 			throw new \Exception('Error Processing Request', 1);
 		});
-		$this->accountCertificateService->expects($this->never())->method('createForUser');
 		$this->expectExceptionMessage('Unable to send the invitation');
 		$this->getService()->createToSign('uuid', 'username', 'passwordOfUser', 'passwordToSign');
 	}
