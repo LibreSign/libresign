@@ -363,6 +363,59 @@ describe('Validation.vue - Business Logic', () => {
 			})
 		})
 
+		it('shows info when nobody has signed yet', () => {
+			expect(wrapper.vm.getDocumentValidationSummary({
+				signers: [
+					{ signed: null },
+					{ signed: null },
+				],
+				files: [],
+			})).toEqual({
+				message: 'No digital signatures were found in this document',
+				type: 'info',
+			})
+		})
+
+		it('shows info for an envelope where nobody has signed', () => {
+			expect(wrapper.vm.getDocumentValidationSummary({
+				signers: [{ signed: null }],
+				files: [
+					{ signers: [{ signed: null }] },
+					{ signers: [{ signed: null }] },
+				],
+			})).toEqual({
+				message: 'No digital signatures were found in this document',
+				type: 'info',
+			})
+		})
+
+		it('evaluates only the signers who have signed', () => {
+			expect(wrapper.vm.getDocumentValidationSummary({
+				signers: [
+					{
+						signed: '2026-10-01T12:00:00+00:00',
+						signature_validation: { id: 1 },
+						document_modification_state: 'unchanged',
+					},
+					{ signed: null, modifications: { modified: true } },
+				],
+				files: [],
+			})).toEqual({
+				message: 'This document is valid',
+				type: 'success',
+			})
+		})
+
+		it('treats a signer with a signing date as signed even without cryptographic details', () => {
+			expect(wrapper.vm.getDocumentValidationSummary({
+				signers: [{ signed: '2026-10-01T12:00:00+00:00' }],
+				files: [],
+			})).toEqual({
+				message: 'This document is valid',
+				type: 'success',
+			})
+		})
+
 		it('shows warning when the document was modified after signing', () => {
 			expect(wrapper.vm.getDocumentValidationSummary({
 				signers: [{
