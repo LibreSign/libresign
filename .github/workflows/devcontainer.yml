@@ -1,0 +1,34 @@
+name: Devcontainer contract
+
+on:
+  pull_request:
+    paths:
+      - '.devcontainer/**'
+      - '.github/workflows/devcontainer.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - '.devcontainer/**'
+      - '.github/workflows/devcontainer.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Validate adapter scripts
+        run: |
+          sh -n .devcontainer/prepare.sh
+          bash -n .devcontainer/setup.sh
+      - name: Prepare pinned NCDD
+        run: sh .devcontainer/prepare.sh
+      - name: Validate composed environment
+        run: docker compose --file .devcontainer/docker-compose.yml config --quiet
+      - name: Verify LibreSign does not duplicate NCDD services
+        run: |
+          ! grep -Eq '^[[:space:]]+(database|mysql|mariadb|mailpit|redis):$' .devcontainer/docker-compose.yml
+          ! grep -Eq '^[[:space:]]+image:' .devcontainer/docker-compose.yml
