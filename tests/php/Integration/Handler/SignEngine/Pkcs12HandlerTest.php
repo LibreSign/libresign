@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
+namespace OCA\Libresign\Tests\Integration\Handler\SignEngine;
 
 /**
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
@@ -32,7 +32,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	protected Pkcs12Handler $pkcs12Handler;
 	protected FolderService&MockObject $folderService;
 	private IAppConfig $appConfig;

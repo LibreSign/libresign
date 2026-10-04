@@ -22,10 +22,10 @@ use ByJG\ApiTools\OpenApi\OpenApiSchema;
 use ByJG\Util\Psr7\MessageException;
 use ByJG\Util\Psr7\Response;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Tests\Unit\TestCase;
+use OCA\Libresign\Tests\Integration\AppDataTestCase;
 use Psr\Http\Message\ResponseInterface;
 
-class ApiTestCase extends TestCase {
+class ApiTestCase extends AppDataTestCase {
 	/**
 	 * @var Schema
 	 */

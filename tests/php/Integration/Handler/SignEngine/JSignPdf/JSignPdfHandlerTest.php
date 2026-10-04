@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Handler\SignEngine\JSignPdf;
+namespace OCA\Libresign\Tests\Integration\Handler\SignEngine\JSignPdf;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
@@ -46,7 +46,7 @@ use Psr\Log\LoggerInterface;
 /**
  * @internal
  */
-final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataTestCase {
 	private IAppConfig $appConfig;
 	private LoggerInterface&MockObject $loggerInterface;
 	private ITempManager $tempManager;
