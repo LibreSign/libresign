@@ -144,10 +144,11 @@ class Account extends AbstractIdentifyMethod {
 			}
 		}
 
-		// Collaborator search / backends can miss get(); accept UID case variants.
-		// Do not match search hits by email here: ambiguous shared emails must stay rejected.
+		// Some backends can miss a direct get() while still returning the exact
+		// UID through search. Never collapse case variants here: distinct
+		// case-sensitive backend accounts must remain distinct identities.
 		foreach ($this->userManager->search($identifierValue) as $candidate) {
-			if ($candidate instanceof IUser && strcasecmp($candidate->getUID(), $identifierValue) === 0) {
+			if ($candidate instanceof IUser && $candidate->getUID() === $identifierValue) {
 				return $candidate;
 			}
 		}
@@ -163,7 +164,7 @@ class Account extends AbstractIdentifyMethod {
 	}
 
 	private function userMatchesIdentifier(IUser $user, string $identifierValue): bool {
-		if (strcasecmp($user->getUID(), $identifierValue) === 0) {
+		if ($user->getUID() === $identifierValue) {
 			return true;
 		}
 		$email = $user->getEMailAddress();
@@ -176,7 +177,7 @@ class Account extends AbstractIdentifyMethod {
 		// instances for the same account. Never authorize by shared email —
 		// multiple accounts can use the same address while account identify
 		// still targets a single UID.
-		if ($user instanceof IUser && strcasecmp($user->getUID(), $signer->getUID()) === 0) {
+		if ($user instanceof IUser && $user->getUID() === $signer->getUID()) {
 			return;
 		}
 
