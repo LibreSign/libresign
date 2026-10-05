@@ -10,25 +10,36 @@ setup() {
 }
 
 compose_json() {
-	docker compose 		--file "$GENERATED" 		--file "$OVERRIDE" 		--profile playwright 		config --format json
+	docker compose \
+		--file "$GENERATED" \
+		--file "$OVERRIDE" \
+		--profile playwright \
+		config --format json
 }
 
 @test "prepare.sh renders a valid local NCDD configuration" {
 	run sh "$PREPARE"
 	[ "$status" -eq 0 ]
 
-	run docker compose 		--file "$GENERATED" 		--file "$OVERRIDE" 		--profile playwright 		config --quiet
+	run docker compose \
+		--file "$GENERATED" \
+		--file "$OVERRIDE" \
+		--profile playwright \
+		config --quiet
 	[ "$status" -eq 0 ]
 
 	config="$(compose_json)"
 
-	run jq -e --arg uid "$(id -u)" 		'.services.nextcloud.environment.HOST_UID == $uid' <<<"$config"
+	run jq -e --arg uid "$(id -u)" \
+		'.services.nextcloud.environment.HOST_UID == $uid' <<<"$config"
 	[ "$status" -eq 0 ]
 
-	run jq -e --arg gid "$(id -g)" 		'.services.nextcloud.environment.HOST_GID == $gid' <<<"$config"
+	run jq -e --arg gid "$(id -g)" \
+		'.services.nextcloud.environment.HOST_GID == $gid' <<<"$config"
 	[ "$status" -eq 0 ]
 
-	run jq -e 		'.services.nextcloud.environment.NEXTCLOUD_HOST
+	run jq -e \
+		'.services.nextcloud.environment.NEXTCLOUD_HOST
 		 | test("^ncdev-.*\\.localhost$")' <<<"$config"
 	[ "$status" -eq 0 ]
 }
@@ -46,18 +57,24 @@ compose_json() {
 }
 
 @test "prepare.sh forwards supported LibreSign overrides to NCDD" {
-	run env 		LIBRESIGN_DB_TYPE=sqlite 		LIBRESIGN_NEXTCLOUD_VERSION=stable35 		sh "$PREPARE"
+	run env \
+		LIBRESIGN_DB_TYPE=sqlite \
+		LIBRESIGN_NEXTCLOUD_VERSION=stable35 \
+		sh "$PREPARE"
 	[ "$status" -eq 0 ]
 
 	config="$(compose_json)"
 
-	run jq -e 		'.services.nextcloud.environment.DB_TYPE == "sqlite"' <<<"$config"
+	run jq -e \
+		'.services.nextcloud.environment.DB_TYPE == "sqlite"' <<<"$config"
 	[ "$status" -eq 0 ]
 
-	run jq -e 		'.services.nextcloud.environment.DB_DRIVER == "sqlite"' <<<"$config"
+	run jq -e \
+		'.services.nextcloud.environment.DB_DRIVER == "sqlite"' <<<"$config"
 	[ "$status" -eq 0 ]
 
-	run jq -e 		'.services.nextcloud.environment.VERSION_NEXTCLOUD == "stable35"' <<<"$config"
+	run jq -e \
+		'.services.nextcloud.environment.VERSION_NEXTCLOUD == "stable35"' <<<"$config"
 	[ "$status" -eq 0 ]
 }
 
@@ -81,15 +98,21 @@ compose_json() {
 }
 
 @test "prepare.sh renders the Codespaces public Nextcloud URL" {
-	run env 		CODESPACES=true 		CODESPACE_NAME=libresign-test 		GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN=app.github.dev 		sh "$PREPARE"
+	run env \
+		CODESPACES=true \
+		CODESPACE_NAME=libresign-test \
+		GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN=app.github.dev \
+		sh "$PREPARE"
 	[ "$status" -eq 0 ]
 
 	config="$(compose_json)"
 
-	run jq -e 		'.services.nextcloud.environment.NEXTCLOUD_HOST
+	run jq -e \
+		'.services.nextcloud.environment.NEXTCLOUD_HOST
 		 == "libresign-test-443.app.github.dev"' <<<"$config"
 	[ "$status" -eq 0 ]
 
-	run jq -e 		'.services.nextcloud.environment.NEXTCLOUD_PROTOCOL == "https"' <<<"$config"
+	run jq -e \
+		'.services.nextcloud.environment.NEXTCLOUD_PROTOCOL == "https"' <<<"$config"
 	[ "$status" -eq 0 ]
 }
