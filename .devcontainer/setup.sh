@@ -31,24 +31,26 @@ environment_summary() {
 	local nextcloud_host="${NEXTCLOUD_HOST:-localhost}"
 
 	printf '\n'
-	printf 'LibreSign development environment is ready.\n'
-	printf '\n'
-	printf '  Nextcloud / LibreSign: %s://%s\n' "$protocol" "$nextcloud_host"
-	printf '  Mailpit (environment): http://mailpit:8025\n'
+	printf '┌─ 💙 LibreSign environment ready ─────────────────────────\n'
+	printf '│\n'
+	printf '│ %-22s %s://%s\n' 'Nextcloud / LibreSign' "$protocol" "$nextcloud_host"
+	printf '│ %-22s %s\n' 'Mailpit (environment)' 'http://mailpit:8025'
 
 	if [[ "$nextcloud_host" == *.localhost ]] && [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
-		printf '  Mailpit (browser):     https://%s-mailpit.localhost\n' "$COMPOSE_PROJECT_NAME"
+		printf '│ %-22s https://%s-mailpit.localhost\n' 'Mailpit (browser)' "$COMPOSE_PROJECT_NAME"
 	fi
 
-	printf '  Admin user:            %s\n' "${NEXTCLOUD_ADMIN_USER:-admin}"
-	printf '  Nextcloud branch:      %s\n' "${VERSION_NEXTCLOUD:-master}"
-	printf '\n'
-	printf 'Useful commands:\n'
-	printf '  npm run watch          rebuild frontend assets while editing\n'
-	printf '  occ status             check Nextcloud status\n'
-	printf '  occ app:list           inspect enabled apps\n'
-	printf '\n'
-	printf 'The environment is ready for development.\n'
+	printf '│\n'
+	printf '│ %-22s %s\n' 'Admin user' "${NEXTCLOUD_ADMIN_USER:-admin}"
+	printf '│ %-22s %s\n' 'Nextcloud branch' "${VERSION_NEXTCLOUD:-master}"
+	printf '│\n'
+	printf '│ Useful commands\n'
+	printf '│   npm run watch        rebuild frontend assets while editing\n'
+	printf '│   occ status           check Nextcloud status\n'
+	printf '│   occ app:list         inspect enabled apps\n'
+	printf '│\n'
+	printf '│ ✅ LibreSign is installed and ready for development.\n'
+	printf '└──────────────────────────────────────────────────────────\n'
 }
 
 main() {
