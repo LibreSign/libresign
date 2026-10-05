@@ -21,6 +21,9 @@ trap cleanup EXIT
 
 sh .devcontainer/prepare.sh
 
+grep -q "HOST_UID: $(id -u)" .devcontainer/ncdd.generated.yml
+grep -q "HOST_GID: $(id -g)" .devcontainer/ncdd.generated.yml
+
 CODESPACES=true CODESPACE_NAME=libresign-test GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN=app.github.dev 	sh .devcontainer/prepare.sh
 
 grep -q 'NEXTCLOUD_HOST: libresign-test-443.app.github.dev' 	.devcontainer/ncdd.generated.yml
