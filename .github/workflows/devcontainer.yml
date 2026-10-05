@@ -14,14 +14,23 @@ on:
     paths:
       - '.devcontainer/**'
       - '.github/workflows/devcontainer.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: devcontainer-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DEVCONTAINER_CLI_VERSION: 0.89.0
+
 jobs:
-  devcontainer:
+  contract:
+    name: Devcontainer contract
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
@@ -31,7 +40,7 @@ jobs:
           sh -n .devcontainer/prepare.sh
           bash -n .devcontainer/setup.sh
 
-      - name: Verify prepare.sh local contract
+      - name: Verify local NCDD contract
         run: |
           sh .devcontainer/prepare.sh
           cp .devcontainer/ncdd.generated.yml /tmp/ncdd.generated.first.yml
@@ -49,7 +58,7 @@ jobs:
           sh .devcontainer/prepare.sh
           cmp /tmp/ncdd.generated.first.yml .devcontainer/ncdd.generated.yml
 
-      - name: Verify prepare.sh configuration overrides
+      - name: Verify configuration overrides
         env:
           LIBRESIGN_DB_TYPE: sqlite
           LIBRESIGN_NEXTCLOUD_VERSION: stable35
@@ -59,7 +68,7 @@ jobs:
           grep -q 'DB_DRIVER: sqlite' .devcontainer/ncdd.generated.yml
           grep -q 'VERSION_NEXTCLOUD: stable35' .devcontainer/ncdd.generated.yml
 
-      - name: Verify prepare.sh rejects incomplete Codespaces context
+      - name: Verify incomplete Codespaces context is rejected
         run: |
           if CODESPACES=true sh .devcontainer/prepare.sh >/tmp/prepare.out 2>/tmp/prepare.err; then
             echo "prepare.sh accepted Codespaces without the required environment" >&2
@@ -67,7 +76,7 @@ jobs:
           fi
           grep -q 'CODESPACE_NAME is required in Codespaces' /tmp/prepare.err
 
-      - name: Verify prepare.sh Codespaces contract
+      - name: Verify Codespaces NCDD contract
         env:
           CODESPACES: "true"
           CODESPACE_NAME: libresign-test
@@ -77,19 +86,27 @@ jobs:
           grep -q 'NEXTCLOUD_HOST: libresign-test-443.app.github.dev' .devcontainer/ncdd.generated.yml
           grep -q 'NEXTCLOUD_PROTOCOL: https' .devcontainer/ncdd.generated.yml
 
-      - name: Restore local configuration
-        run: sh .devcontainer/prepare.sh
+  integration:
+    name: Devcontainer integration
+    needs: contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install Dev Container CLI
+        run: npm install --global "@devcontainers/cli@${DEVCONTAINER_CLI_VERSION}"
 
       - name: Start the Dev Container
-        run: npx --yes @devcontainers/cli@0.89.0 up --workspace-folder .
+        run: devcontainer up --workspace-folder .
 
-      - name: Verify the created environment
+      - name: Verify Nextcloud, LibreSign and Mailpit
         run: |
-          npx --yes @devcontainers/cli@0.89.0 exec --workspace-folder . \
+          devcontainer exec --workspace-folder . \
             bash -lc "occ status | grep -q 'installed: true'"
-          npx --yes @devcontainers/cli@0.89.0 exec --workspace-folder . \
+          devcontainer exec --workspace-folder . \
             bash -lc "occ app:list --enabled | grep -q libresign"
-          npx --yes @devcontainers/cli@0.89.0 exec --workspace-folder . \
+          devcontainer exec --workspace-folder . \
             bash -lc "curl --fail --silent http://mailpit:8025/api/v1/info >/dev/null"
 
       - name: Verify Playwright reaches Nextcloud through the proxy
