@@ -477,6 +477,7 @@ OC.L10N.register(
     "User agent:" : "Agente de usuario:",
     "No files to display" : "No hay archivos para mostrar",
     "Document information" : "Información de documento",
+    "Country:" : "País:",
     "CRL: Not revoked" : "CRL: No revocado",
     "CRL: Certificate revoked" : "CRL: Certificado revocado",
     "CRL: No information" : "CRL: Sin información",

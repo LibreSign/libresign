@@ -53,6 +53,7 @@ OC.L10N.register(
     "Unknown" : "უცნობია",
     "Number of documents:" : "დოკუმენტების რაოდენობა:",
     "Hide details" : "დეტალების დამალვა",
+    "Country:" : "ქვეყანა:",
     "No date" : "თარიღი არაა",
     "Yes" : "კი",
     "No" : "არა",

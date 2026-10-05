@@ -470,6 +470,7 @@ OC.L10N.register(
     "User agent:" : "Uživatelský agent:",
     "No files to display" : "Žádné soubory k zobrazení",
     "Document information" : "Informace o dokumentu",
+    "Country:" : "Země:",
     "CRL: Not revoked" : "CRL: platnost neodvolána",
     "CRL: Certificate revoked" : "CRL: platnost certifikátu odvolána",
     "CRL: No information" : "CRL: žádné informace",
