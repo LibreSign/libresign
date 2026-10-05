@@ -32,13 +32,6 @@ class PfxProvider {
 		string $friendlyName,
 		string $password = '',
 	): array {
-		if ($certificate = $engine->getCertificate()) {
-			return [
-				'pfx' => $certificate,
-				'password' => $password,
-			];
-		}
-
 		$effectivePassword = $password;
 		if ($signWithoutPassword) {
 			$effectivePassword = $this->generateTemporaryPassword();
@@ -50,7 +43,7 @@ class PfxProvider {
 				$engine->setLeafExpiryOverrideInDays($expiryOverride);
 			}
 			try {
-				$engine->generateCertificate(
+				$generatedCertificate = $engine->generateCertificate(
 					[
 						'host' => $userUniqueIdentifier,
 						'uid' => $userUniqueIdentifier,
@@ -64,9 +57,15 @@ class PfxProvider {
 					$engine->setLeafExpiryOverrideInDays(null);
 				}
 			}
+			return [
+				'pfx' => $generatedCertificate,
+				'password' => $effectivePassword,
+			];
 		}
 
-		$uid = \preg_replace('/^account:/', '', $userUniqueIdentifier);
+		$uid = str_starts_with($userUniqueIdentifier, 'account:')
+			? substr($userUniqueIdentifier, strlen('account:'))
+			: $userUniqueIdentifier;
 
 		return [
 			'pfx' => $engine

@@ -365,6 +365,10 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Integration\TestCase 
 	}
 
 	public function testRealWorldUsagePattern(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder->method('get')->willThrowException(new NotFoundException());
+		$this->folderService->method('getFolder')->willReturn($folder);
+
 		$handler = $this->getHandler();
 
 		$this->assertInstanceOf(Pkcs12Handler::class, $handler);
@@ -420,6 +424,10 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Integration\TestCase 
 	}
 
 	public function testErrorHandlingThroughPublicInterface(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder->method('get')->willThrowException(new NotFoundException());
+		$this->folderService->method('getFolder')->willReturn($folder);
+
 		$handler = $this->getHandler();
 
 		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
@@ -695,6 +703,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Integration\TestCase 
 		);
 
 		$handler->setPolicyUserIdForValidation('requester');
+		$handler->setIsLibreSignFile();
 
 		$resource = fopen(
 			__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf',
@@ -718,6 +727,12 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Integration\TestCase 
 			'policyUserIdForValidation',
 		);
 		$this->assertNull($reflection->getValue($handler));
+
+		$trustReflection = new \ReflectionProperty(
+			Pkcs12Handler::class,
+			'isLibreSignFile',
+		);
+		$this->assertFalse($trustReflection->getValue($handler));
 	}
 
 }
