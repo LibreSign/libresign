@@ -48,6 +48,7 @@ jobs:
           shellcheck .devcontainer/prepare.sh .devcontainer/setup.sh
           sh -n .devcontainer/prepare.sh
           bash -n .devcontainer/setup.sh
+          node --check .devcontainer/tests/playwright-smoke.cjs
 
           ! jq -e '
             ((.forwardPorts // [])[]? | strings | contains(":")) or
