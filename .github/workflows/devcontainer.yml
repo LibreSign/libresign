@@ -83,15 +83,37 @@ jobs:
             --file .devcontainer/ncdd.generated.yml \
             --file .devcontainer/docker-compose.yml \
             --profile playwright \
-            exec -T playwright node -e '
-              const https = require("https");
-              const target = new URL(process.env.PLAYWRIGHT_BASE_URL + "/status.php");
-              const request = https.get(target, { rejectUnauthorized: false }, response => {
-                if (response.statusCode !== 200) process.exitCode = 1;
-                response.resume();
-              });
-              request.on("error", () => { process.exitCode = 1; });
-            '
+            exec -T playwright node <<'NODE'
+          const dns = require('dns').promises
+          const { chromium } = require('/var/www/html/apps-extra/libresign/node_modules/playwright')
+
+          ;(async () => {
+            const target = new URL(process.env.PLAYWRIGHT_BASE_URL + '/status.php')
+            const addresses = await dns.lookup(target.hostname, { all: true })
+            console.log('Resolved', target.hostname, addresses)
+
+            const browser = await chromium.launch()
+            try {
+              const context = await browser.newContext({ ignoreHTTPSErrors: true })
+              const page = await context.newPage()
+              const response = await page.goto(target.href, { waitUntil: 'domcontentloaded' })
+
+              if (!response) {
+                throw new Error('Playwright did not receive an HTTP response')
+              }
+
+              console.log('Playwright response', response.status(), response.url())
+              if (response.status() !== 200) {
+                throw new Error(`Expected HTTP 200, got ${response.status()}`)
+              }
+            } finally {
+              await browser.close()
+            }
+          })().catch(error => {
+            console.error(error)
+            process.exit(1)
+          })
+          NODE
 
       - name: Collect container diagnostics
         if: failure()
