@@ -37,14 +37,19 @@ jobs:
             config --quiet
       - name: Verify required NCDD services are reusable
         run: |
-          config="$(docker compose \
+          services="$(COMPOSE_PROFILES=playwright docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            config --services)"
+          printf '%s\n' "$services" | grep -qx nextcloud
+          printf '%s\n' "$services" | grep -qx nginx
+          printf '%s\n' "$services" | grep -qx mailpit
+          printf '%s\n' "$services" | grep -qx playwright
+
+          config="$(COMPOSE_PROFILES=playwright docker compose \
             --file .devcontainer/ncdd.generated.yml \
             --file .devcontainer/docker-compose.yml \
             config)"
-          printf '%s\n' "$config" | grep -q '^  nextcloud:'
-          printf '%s\n' "$config" | grep -q '^  nginx:'
-          printf '%s\n' "$config" | grep -q '^  mailpit:'
-          printf '%s\n' "$config" | grep -q '^  playwright:'
           printf '%s\n' "$config" | grep -q '/var/www/html/apps-extra/libresign'
       - name: Verify local access uses NCDD hostnames
         run: |
