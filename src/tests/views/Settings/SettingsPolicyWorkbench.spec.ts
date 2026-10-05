@@ -1068,9 +1068,9 @@ describe('RealPolicyWorkbench.vue', () => {
 		const wrapper = mountWorkbench()
 		const text = wrapper.text()
 
-		expect(text).toContain('Request expiration')
-		expect(text).toContain('Configure expiration and renewal timing for signing requests.')
-		expect(text).not.toContain('Renewal interval in seconds of a subscription request.')
+		expect(text).toContain('Signing request expiration')
+		expect(text).toContain('Define how long a signing request can remain available.')
+		expect(text).not.toContain('Define the interval in seconds for renewing signer access/session while the signing request is within its configured maximum validity.')
 	})
 
 	it('opens signature processing directly in the system-scope editor', async () => {

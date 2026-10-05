@@ -50,6 +50,8 @@ describe('RenewalIntervalRuleEditor.vue', () => {
 			},
 		})
 
+		expect(wrapper.findComponent({ name: 'NcTextField' }).props('label')).toBe('Renew signer access after')
+		expect(wrapper.find('.expiration-rule-editor__helper').text()).toBe('Signers can renew their access/session using the access link only while the signing request is within its configured maximum validity.')
 		expect(wrapper.emitted('update:modelValue')).toBeUndefined()
 	})
 
@@ -67,7 +69,7 @@ describe('RenewalIntervalRuleEditor.vue', () => {
 			},
 		})
 
-		expect(wrapper.text()).toContain('Renewal interval')
+		expect(wrapper.text()).toContain('Signer access renewal')
 		expect(wrapper.find('.field-input').exists()).toBe(false)
 	})
 
