@@ -346,6 +346,10 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testRealWorldUsagePattern(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder->method('get')->willThrowException(new NotFoundException());
+		$this->folderService->method('getFolder')->willReturn($folder);
+
 		$handler = $this->getHandler();
 
 		$this->assertInstanceOf(Pkcs12Handler::class, $handler);
@@ -401,6 +405,10 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testErrorHandlingThroughPublicInterface(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder->method('get')->willThrowException(new NotFoundException());
+		$this->folderService->method('getFolder')->willReturn($folder);
+
 		$handler = $this->getHandler();
 
 		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
