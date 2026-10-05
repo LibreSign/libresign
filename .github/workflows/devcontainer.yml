@@ -24,22 +24,51 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Validate shell scripts
+
+      - name: Check shell scripts
         run: |
+          shellcheck .devcontainer/prepare.sh .devcontainer/setup.sh
           sh -n .devcontainer/prepare.sh
           bash -n .devcontainer/setup.sh
-          bash -n .devcontainer/ci-smoke.sh
+
+      - name: Verify local NCDD contract
+        run: |
+          sh .devcontainer/prepare.sh
+          docker compose             --file .devcontainer/ncdd.generated.yml             --file .devcontainer/docker-compose.yml             --profile playwright             config --quiet
+          grep -q "HOST_UID: $(id -u)" .devcontainer/ncdd.generated.yml
+          grep -q "HOST_GID: $(id -g)" .devcontainer/ncdd.generated.yml
+          grep -Eq 'NEXTCLOUD_HOST: ncdev-.*\.localhost' .devcontainer/ncdd.generated.yml
+
+      - name: Verify Codespaces NCDD contract
+        env:
+          CODESPACES: "true"
+          CODESPACE_NAME: libresign-test
+          GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN: app.github.dev
+        run: |
+          sh .devcontainer/prepare.sh
+          grep -q 'NEXTCLOUD_HOST: libresign-test-443.app.github.dev' .devcontainer/ncdd.generated.yml
+          grep -q 'NEXTCLOUD_PROTOCOL: https' .devcontainer/ncdd.generated.yml
+
+      - name: Restore local configuration
+        run: sh .devcontainer/prepare.sh
+
       - name: Start the Dev Container
         run: npx --yes @devcontainers/cli@0.89.0 up --workspace-folder .
+
       - name: Verify the created environment
         run: |
-          npx --yes @devcontainers/cli@0.89.0 exec --workspace-folder . \
-            bash -lc "occ status | grep -q 'installed: true' && occ app:list --enabled | grep -q libresign && curl --fail --silent http://mailpit:8025/api/v1/info >/dev/null"
+          npx --yes @devcontainers/cli@0.89.0 exec --workspace-folder .             bash -lc "occ status | grep -q 'installed: true'"
+          npx --yes @devcontainers/cli@0.89.0 exec --workspace-folder .             bash -lc "occ app:list --enabled | grep -q libresign"
+          npx --yes @devcontainers/cli@0.89.0 exec --workspace-folder .             bash -lc "curl --fail --silent http://mailpit:8025/api/v1/info >/dev/null"
 
-  services:
-    name: NCDD service smoke
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - run: bash .devcontainer/ci-smoke.sh
+      - name: Verify Playwright reaches Nextcloud through the proxy
+        run: |
+          docker compose             --file .devcontainer/ncdd.generated.yml             --file .devcontainer/docker-compose.yml             --profile playwright             exec -T playwright node -e '
+              const https = require("https");
+              const target = new URL(process.env.PLAYWRIGHT_BASE_URL + "/status.php");
+              const request = https.get(target, { rejectUnauthorized: false }, response => {
+                if (response.statusCode !== 200) process.exitCode = 1;
+                response.resume();
+              });
+              request.on("error", () => { process.exitCode = 1; });
+            '
