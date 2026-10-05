@@ -29,14 +29,12 @@ jobs:
           sh -n .devcontainer/prepare.sh
           bash -n .devcontainer/setup.sh
           bash -n .devcontainer/ci-smoke.sh
-      - name: Exercise the Dev Container lifecycle
-        uses: devcontainers/ci@513af61f4de4f75d37e4438f184ba4358f0fc1ca # v0.3
-        with:
-          push: never
-          runCmd: |
-            occ status | grep -q 'installed: true'
-            occ app:list --enabled | grep -q libresign
-            curl --fail --silent http://mailpit:8025/api/v1/info >/dev/null
+      - name: Start the Dev Container
+        run: npx --yes @devcontainers/cli@0.89.0 up --workspace-folder .
+      - name: Verify the created environment
+        run: |
+          npx --yes @devcontainers/cli@0.89.0 exec --workspace-folder . \
+            bash -lc "occ status | grep -q 'installed: true' && occ app:list --enabled | grep -q libresign && curl --fail --silent http://mailpit:8025/api/v1/info >/dev/null"
 
   services:
     name: NCDD service smoke
