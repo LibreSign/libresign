@@ -123,6 +123,7 @@ interface GroupPolicyRequestPayload extends PolicyRequestPayload {
 const _policiesStore = defineStore('policies', () => {
 	const initialPolicies = loadState<EffectivePoliciesResponse>('libresign', 'effective_policies', { policies: {} })
 	const policies = ref<EffectivePoliciesState>(sanitizePolicies(initialPolicies.policies ?? {}))
+	const requestOverridesAreCurrent = ref(true)
 
 	const setPolicies = (nextPolicies: Record<string, unknown>): void => {
 		policies.value = sanitizePolicies(nextPolicies)
@@ -131,8 +132,15 @@ const _policiesStore = defineStore('policies', () => {
 	const fetchEffectivePolicies = async (): Promise<void> => {
 		try {
 			const response = await axios.get<{ ocs?: { data?: EffectivePoliciesResponse } }>(generateOcsUrl('/apps/libresign/api/v1/policies/effective'))
-			setPolicies(response.data?.ocs?.data?.policies ?? {})
+			const nextPolicies = response.data?.ocs?.data?.policies
+			if (!nextPolicies) {
+				throw new Error('Effective policies response has no policies')
+			}
+			setPolicies(nextPolicies)
+			requestOverridesAreCurrent.value = true
 		} catch (error: unknown) {
+			// Keep the loaded values for display, but a stale grant must not outlive a failed refresh.
+			requestOverridesAreCurrent.value = false
 			logger.error('Failed to load effective policies', { error })
 		}
 	}
@@ -329,7 +337,7 @@ const _policiesStore = defineStore('policies', () => {
 	}
 
 	const canUseRequestOverride = (policyKey: string): boolean => {
-		return getPolicy(policyKey)?.canUseAsRequestOverride ?? true
+		return requestOverridesAreCurrent.value && getPolicy(policyKey)?.canUseAsRequestOverride === true
 	}
 
 	return {

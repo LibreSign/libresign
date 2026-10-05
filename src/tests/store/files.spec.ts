@@ -1253,8 +1253,46 @@ describe('files store - critical business rules', () => {
 				}])
 			})
 
+		const allowRequestOverrides = (...policyKeys: string[]) => {
+			usePoliciesStore().setPolicies(Object.fromEntries(policyKeys.map(policyKey => [policyKey, {
+				policyKey,
+				effectiveValue: null,
+				sourceScope: 'system',
+				visible: true,
+				editableByCurrentActor: false,
+				allowedValues: [],
+				canSaveAsUserDefault: false,
+				canUseAsRequestOverride: true,
+				preferenceWasCleared: false,
+				blockedBy: null,
+			}])))
+		}
+
+		it('omits request overrides when policy state is missing', async () => {
+			const store = useFilesStore()
+			const footerPolicyValue = '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Footer C</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}'
+			usePoliciesStore().setPolicies({})
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				nodeId: 99,
+				name: 'contract.pdf',
+				signatureFlow: 'ordered_numeric',
+				signers: [],
+			}
+			axiosMock.mockResolvedValue({
+				data: { ocs: { data: { id: 1, nodeId: 99, signatureFlow: 'ordered_numeric', signers: [] } } },
+			})
+
+			await store.saveOrUpdateSignatureRequest({ status: 1, policy: { overrides: { add_footer: footerPolicyValue } } })
+
+			const config = axiosMock.mock.calls[0][0]
+			expect(config.data.policy).toBeUndefined()
+		})
+
 		it('sends canonical signature_flow override from selected file', async () => {
 			const store = useFilesStore()
+			allowRequestOverrides('signature_flow')
 			store.selectedFileId = 1
 			store.files[1] = {
 				id: 1,
@@ -1314,6 +1352,7 @@ describe('files store - critical business rules', () => {
 		it('sends footerPolicy when footer request override is allowed', async () => {
 			const store = useFilesStore()
 			const footerPolicyValue = '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Footer A</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}'
+			allowRequestOverrides('add_footer')
 			store.selectedFileId = 1
 			store.files[1] = {
 				id: 1,
@@ -1336,7 +1375,9 @@ describe('files store - critical business rules', () => {
 			const store = useFilesStore()
 			const policiesStore = usePoliciesStore()
 			const footerPolicyValue = '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Footer B</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}'
+			allowRequestOverrides('signature_flow')
 			policiesStore.setPolicies({
+				...policiesStore.policies,
 				add_footer: {
 					policyKey: 'add_footer',
 					effectiveValue: footerPolicyValue,
