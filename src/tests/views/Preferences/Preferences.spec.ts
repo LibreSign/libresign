@@ -146,6 +146,7 @@ function createPolicyState(overrides: Partial<EffectivePolicyState> & Pick<Effec
 		groupCount: 0,
 		userCount: 0,
 		everyoneCount: 0,
+		meta: { supportsUserPreference: true },
 		...rest,
 	}
 }
@@ -199,6 +200,7 @@ describe('Preferences view', () => {
 			groupCount: 0,
 			userCount: 0,
 			everyoneCount: 0,
+			meta: { supportsUserPreference: true },
 		})
 	})
 
@@ -279,6 +281,7 @@ describe('Preferences view', () => {
 			groupCount: 0,
 			userCount: 0,
 			everyoneCount: 0,
+			meta: { supportsUserPreference: true },
 		})
 		const wrapper = await createWrapper()
 
@@ -302,6 +305,7 @@ describe('Preferences view', () => {
 			groupCount: 0,
 			userCount: 0,
 			everyoneCount: 0,
+			meta: { supportsUserPreference: true },
 		}
 		let shouldApplyCanonicalAfterFetch = false
 
@@ -353,6 +357,7 @@ describe('Preferences view', () => {
 			groupCount: 0,
 			userCount: 0,
 			everyoneCount: 0,
+			meta: { supportsUserPreference: true },
 		})
 		const wrapper = await createWrapper()
 		await nextTick()
@@ -377,6 +382,7 @@ describe('Preferences view', () => {
 					groupCount: 0,
 					userCount: 0,
 					everyoneCount: 0,
+					meta: { supportsUserPreference: true },
 				}
 			}
 
@@ -394,6 +400,7 @@ describe('Preferences view', () => {
 				groupCount: 0,
 				userCount: 0,
 				everyoneCount: 0,
+				meta: { supportsUserPreference: true },
 			}
 		})
 
@@ -420,6 +427,7 @@ describe('Preferences view', () => {
 					groupCount: 0,
 					userCount: 0,
 					everyoneCount: 0,
+					meta: { supportsUserPreference: true },
 				}
 			}
 
@@ -441,6 +449,7 @@ describe('Preferences view', () => {
 				groupCount: 0,
 				userCount: 0,
 				everyoneCount: 0,
+				meta: { supportsUserPreference: true },
 			}
 		})
 
@@ -469,6 +478,7 @@ describe('Preferences view', () => {
 					groupCount: 0,
 					userCount: 0,
 					everyoneCount: 0,
+					meta: { supportsUserPreference: true },
 				}
 			}
 
@@ -555,6 +565,7 @@ describe('Preferences view', () => {
 					groupCount: 0,
 					userCount: 0,
 					everyoneCount: 0,
+					meta: { supportsUserPreference: true },
 				}
 			}
 
@@ -588,6 +599,7 @@ describe('Preferences view', () => {
 					groupCount: 0,
 					userCount: 0,
 					everyoneCount: 0,
+					meta: { supportsUserPreference: true },
 				}
 			}
 
@@ -633,6 +645,7 @@ describe('Preferences view', () => {
 					groupCount: 0,
 					userCount: 0,
 					everyoneCount: 0,
+					meta: { supportsUserPreference: true },
 				}
 			}
 
@@ -654,6 +667,7 @@ describe('Preferences view', () => {
 				groupCount: 0,
 				userCount: 0,
 				everyoneCount: 0,
+				meta: { supportsUserPreference: true },
 			}
 		})
 
@@ -792,6 +806,7 @@ describe('Preferences view', () => {
 					groupCount: 0,
 					userCount: 0,
 					everyoneCount: 0,
+					meta: { supportsUserPreference: true },
 				}
 			}
 			return null
@@ -835,6 +850,7 @@ describe('Preferences view', () => {
 					groupCount: 0,
 					userCount: 0,
 					everyoneCount: 0,
+					meta: { supportsUserPreference: true },
 				}
 			}
 			return null
