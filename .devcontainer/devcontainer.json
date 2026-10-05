@@ -10,7 +10,7 @@
 	"overrideCommand": false,
 	"shutdownAction": "stopCompose",
 	"forwardPorts": [
-		8080
+		443
 	],
 	"containerEnv": {
 		"XDEBUG_MODE": "debug",
@@ -46,9 +46,9 @@
 	},
 	"postCreateCommand": "bash /var/www/html/apps-extra/libresign/.devcontainer/setup.sh",
 	"portsAttributes": {
-		"8080": {
-			"label": "Nextcloud (Codespaces)",
-			"protocol": "http",
+		"443": {
+			"label": "Nextcloud via NCDD proxy",
+			"protocol": "https",
 			"onAutoForward": "openBrowser"
 		},
 		"9000": {

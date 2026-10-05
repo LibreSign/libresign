@@ -40,9 +40,9 @@ jobs:
         run: |
           sh .devcontainer/prepare.sh
           docker compose --file .devcontainer/ncdd.generated.yml --file .devcontainer/docker-compose.yml config --quiet
-          grep -q 'NEXTCLOUD_HOST: libresign-test-8080.app.github.dev' .devcontainer/ncdd.generated.yml
+          grep -q 'NEXTCLOUD_HOST: libresign-test-443.app.github.dev' .devcontainer/ncdd.generated.yml
           grep -q 'NEXTCLOUD_PROTOCOL: https' .devcontainer/ncdd.generated.yml
-          grep -q 'published: "8080"' .devcontainer/ncdd.generated.yml
+          ! grep -q 'published:' .devcontainer/ncdd.generated.yml
       - name: Verify LibreSign does not duplicate NCDD services
         run: |
           ! grep -Eq '^[[:space:]]+(database|mysql|mariadb|mailpit|redis):$' .devcontainer/docker-compose.yml

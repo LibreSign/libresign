@@ -25,20 +25,19 @@ script prints the canonical URL:
 https://ncdev-libresign-<id>.localhost
 ```
 
-For GitHub Codespaces, the adapter asks NCDD to publish this worker's nginx on
-port `8080` and configures Nextcloud with the corresponding Codespaces public
-hostname. GitHub then forwards that port to a URL like:
+For GitHub Codespaces, the same shared proxy remains the only HTTP entry point.
+The Dev Container forwards the proxy's HTTPS port `443`, and the adapter
+configures Nextcloud with the public hostname GitHub assigns to that forwarded
+port:
 
 ```text
-https://<codespace>-8080.app.github.dev
+https://<codespace>-443.<forwarding-domain>
 ```
 
-The actual forwarding domain comes from
+The forwarding domain comes from
 `GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN`; it is not hard-coded.
 
-The local path still uses the shared NCDD proxy. The per-worker port exists
-only in Codespaces, where a concrete forwarded port is needed for browser
-access.
+Individual workers do not publish separate nginx host ports.
 
 The adapter defaults to PHP 8.3, Nextcloud `master`, MariaDB 10.6. These may be
 changed on the host before reopening the container:
@@ -48,12 +47,6 @@ export LIBRESIGN_PHP_VERSION=83
 export LIBRESIGN_NEXTCLOUD_VERSION=master
 export LIBRESIGN_DB_TYPE=mariadb
 export LIBRESIGN_MARIADB_VERSION=10.6
-```
-
-Codespaces uses port `8080` by default. It can be changed before rebuilding:
-
-```bash
-export LIBRESIGN_CODESPACES_PORT=18080
 ```
 
 Closing or rebuilding this dev container only affects its Compose project.
