@@ -484,8 +484,8 @@ const crudEmptyStateDescription = computed(() => {
 	return hasActiveCrudFilters.value
 		// TRANSLATORS Empty-state suggestion shown when scope/search filters hide all policy rules.
 		? t('libresign', 'Try adjusting or clearing the current filters.')
-		// TRANSLATORS Empty-state guidance encouraging admins to delegate signature-request access with scoped rules.
-		: t('libresign', 'Create a rule to delegate signature request access for specific accounts or groups.')
+		// TRANSLATORS Empty-state guidance encouraging admins to define a different policy value with scoped rules.
+		: t('libresign', 'Create a rule to define a different value for specific groups or accounts.')
 })
 
 const crudEmptyStateIconPath = computed(() => {
