@@ -646,7 +646,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame('Digest mismatch.', $result[0]['chain'][0]['signature_validation']['label']);
 	}
 
-
 	public function testGetPfxOfCurrentSignerRestoresFolderContext(): void {
 		$folder = $this->createMock(\OCP\Files\Folder::class);
 		$file = $this->createMock(\OCP\Files\File::class);
