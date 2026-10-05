@@ -100,8 +100,8 @@ export const expiryInDaysRealDefinition: RealPolicySettingDefinition = {
 	key: 'expiry_in_days',
 	// TRANSLATORS Policy title for certificate validity duration measured in days.
 	title: t('libresign', 'Signer certificate validity'),
-	// TRANSLATORS Policy description for the validity of signer certificates created by LibreSign, distinct from signing request expiration.
-	description: t('libresign', 'When LibreSign creates a signer certificate, this value defines how many days it remains valid. It does not control how long a signing request remains available.'),
+	// TRANSLATORS Policy description for the default validity of signer certificates created by LibreSign, distinct from signing request expiration.
+	description: t('libresign', 'Define the default validity, in days, for signer certificates created by LibreSign. This setting does not control how long a signing request remains available.'),
 	groupAdminBehavior: {
 		allowGroupRuleCreationFromDescendantDelegation: true,
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && (policy?.canSaveAsUserDefault === true || policy?.meta?.canCreateDescendantRules === true),

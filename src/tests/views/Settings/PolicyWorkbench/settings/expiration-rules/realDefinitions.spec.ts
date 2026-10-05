@@ -20,7 +20,7 @@ vi.mock('@nextcloud/l10n', () => ({
 describe('realDefinitions', () => {
 	it('explains signer certificate validity separately from signing request expiration', () => {
 		expect(expiryInDaysRealDefinition.title).toBe('Signer certificate validity')
-		expect(expiryInDaysRealDefinition.description).toBe('When LibreSign creates a signer certificate, this value defines how many days it remains valid. It does not control how long a signing request remains available.')
+		expect(expiryInDaysRealDefinition.description).toBe('Define the default validity, in days, for signer certificates created by LibreSign. This setting does not control how long a signing request remains available.')
 	})
 
 	it('explains how long a signing request remains available', () => {
