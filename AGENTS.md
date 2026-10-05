@@ -104,7 +104,12 @@ the application/web-server user for intentional Nextcloud runtime writes.
 Some tests can alter Nextcloud state, generated certificates, app data or
 runtime files. Prefer focused commands while diagnosing a small change.
 
-## Testing map
+## Command discovery and testing map
+
+Use `make help` to discover the project's high-level development tasks. The
+Makefile is a stable entry point and delegates language-specific work to the
+Composer and npm scripts that CI also uses; do not duplicate their implementation
+inside Make targets.
 
 Use the canonical testing documentation for the complete workflow. The
 following rules are operational shortcuts, not a replacement for that manual.
