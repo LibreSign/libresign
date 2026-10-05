@@ -61,6 +61,18 @@ compose_json() {
 	[ "$status" -eq 0 ]
 }
 
+@test "prepare.sh keeps the last valid configuration when rendering fails" {
+	run sh "$PREPARE"
+	[ "$status" -eq 0 ]
+	before="$(sha256sum "$GENERATED" | awk '{print $1}')"
+
+	run env LIBRESIGN_DB_TYPE=unsupported sh "$PREPARE"
+	[ "$status" -ne 0 ]
+
+	after="$(sha256sum "$GENERATED" | awk '{print $1}')"
+	[ "$before" = "$after" ]
+}
+
 @test "prepare.sh rejects incomplete Codespaces context" {
 	run env CODESPACES=true sh "$PREPARE"
 
