@@ -251,11 +251,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			)
 			->willReturn('cert');
 
-		$engine->method('getPfxOfCurrentSigner')->willReturn('pfx');
+		$engine->expects($this->never())->method('getPfxOfCurrentSigner');
 
 		$result = self::invokePrivate($service, 'getOrGeneratePfxContent', [$engine]);
 
-		$this->assertSame('pfx', $result);
+		$this->assertSame('cert', $result);
 		$this->assertSame([1, null], $expiryCalls);
 	}
 
