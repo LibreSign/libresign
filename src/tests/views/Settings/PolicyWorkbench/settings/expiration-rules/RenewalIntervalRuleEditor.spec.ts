@@ -42,7 +42,7 @@ describe('RenewalIntervalRuleEditor.vue', () => {
 			},
 		})
 
-		expect(wrapper.text()).toContain('Renewal interval')
+		expect(wrapper.text()).toContain('Signer access renewal')
 		expect(wrapper.find('.field-input').exists()).toBe(false)
 	})
 
