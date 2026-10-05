@@ -31,19 +31,43 @@ jobs:
           sh -n .devcontainer/prepare.sh
           bash -n .devcontainer/setup.sh
 
-      - name: Verify local NCDD contract
+      - name: Verify prepare.sh local contract
         run: |
           sh .devcontainer/prepare.sh
+          cp .devcontainer/ncdd.generated.yml /tmp/ncdd.generated.first.yml
+
           docker compose \
             --file .devcontainer/ncdd.generated.yml \
             --file .devcontainer/docker-compose.yml \
             --profile playwright \
             config --quiet
+
           grep -q "HOST_UID: $(id -u)" .devcontainer/ncdd.generated.yml
           grep -q "HOST_GID: $(id -g)" .devcontainer/ncdd.generated.yml
-          grep -Eq 'NEXTCLOUD_HOST: ncdev-.*\\.localhost' .devcontainer/ncdd.generated.yml
+          grep -Eq 'NEXTCLOUD_HOST: ncdev-.*\.localhost' .devcontainer/ncdd.generated.yml
 
-      - name: Verify Codespaces NCDD contract
+          sh .devcontainer/prepare.sh
+          cmp /tmp/ncdd.generated.first.yml .devcontainer/ncdd.generated.yml
+
+      - name: Verify prepare.sh configuration overrides
+        env:
+          LIBRESIGN_DB_TYPE: sqlite
+          LIBRESIGN_NEXTCLOUD_VERSION: stable35
+        run: |
+          sh .devcontainer/prepare.sh
+          grep -q 'DB_TYPE: sqlite' .devcontainer/ncdd.generated.yml
+          grep -q 'DB_DRIVER: sqlite' .devcontainer/ncdd.generated.yml
+          grep -q 'VERSION_NEXTCLOUD: stable35' .devcontainer/ncdd.generated.yml
+
+      - name: Verify prepare.sh rejects incomplete Codespaces context
+        run: |
+          if CODESPACES=true sh .devcontainer/prepare.sh >/tmp/prepare.out 2>/tmp/prepare.err; then
+            echo "prepare.sh accepted Codespaces without the required environment" >&2
+            exit 1
+          fi
+          grep -q 'CODESPACE_NAME is required in Codespaces' /tmp/prepare.err
+
+      - name: Verify prepare.sh Codespaces contract
         env:
           CODESPACES: "true"
           CODESPACE_NAME: libresign-test
