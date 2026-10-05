@@ -2,17 +2,26 @@ Resolves: # <!-- related GitHub issue -->
 
 ## Summary
 
-Describe what this PR changes and why. Keep the scope focused on the linked issue.
+A concise description of what this PR does and why.
 
 ## How to test
 
 Describe the shortest reproducible path to validate the changed behavior.
 
-Include commands, fixtures, URLs, or setup details that a reviewer actually needs. Do not copy generic environment setup here; the development environment is documented in the Developer Manual and `.devcontainer/README.md`.
+Example:
+1. Access the affected LibreSign screen or API.
+2. Reproduce the behavior before the change when applicable.
+3. Apply the steps required by this PR.
+4. Verify the expected result.
+
+Include commands, fixtures, URLs, or setup details that a reviewer actually needs.
+Generic development-environment setup belongs in the Developer Manual and
+`.devcontainer/README.md`, not in each PR.
 
 ## Validation evidence
 
-List the checks that actually ran. Do not mark a check as completed when it was not executed.
+List the checks that actually ran. Do not mark a check as completed when it was
+not executed.
 
 - [ ] Focused regression/acceptance test
 - [ ] Relevant lint/type/static-analysis checks
@@ -21,23 +30,40 @@ List the checks that actually ran. Do not mark a check as completed when it was 
 
 ## UI / front-end changes
 
-<!-- Remove this section when not applicable. -->
+<!-- Remove this section when the PR does not change user-visible UI. -->
 
-- [ ] Screenshots or recordings added when they help review the change
+- [ ] Describe the visible change
+- [ ] Screenshots before/after added when the UI changed
+
+| Before | After |
+| --- | --- |
+| Screenshot before | Screenshot after |
+
+<!-- Test and document both light and dark themes when the changed UI supports them. -->
+
 - [ ] Light and dark themes checked when applicable
-- [ ] Accessibility impact checked when applicable
-- [ ] Vitest and/or Playwright coverage added or updated when appropriate
+- [ ] Tested in relevant browsers when applicable
+- [ ] Component/unit and/or Playwright tests added or updated as appropriate
+- [ ] Accessibility checked when applicable
+- [ ] Design review linked when applicable
 - [ ] Documentation updated when the user-facing contract changed
 
 ## API / back-end changes
 
-<!-- Remove this section when not applicable. -->
+<!-- Remove this section when the PR does not affect backend/API behavior. -->
 
+- [ ] Describe the API/service/architecture change
 - [ ] Unit and/or integration regression coverage added or updated
 - [ ] Authorization and negative paths checked when applicable
 - [ ] Capabilities updated when applicable
 - [ ] `composer openapi` run when the API contract changed
 - [ ] Documentation updated when the public or durable engineering contract changed
+
+## Tasks
+
+<!-- List real prerequisites or follow-up tasks required before merge. Remove when empty. -->
+
+- [ ] ...
 
 ## Checklist
 
@@ -50,4 +76,5 @@ List the checks that actually ran. Do not mark a check as completed when it was 
 
 - [ ] This PR was partially or fully produced with AI assistance.
 
-AI-assisted contributions follow the same review, testing, and responsibility requirements as any other contribution.
+AI-assisted contributions follow the same review, testing, and responsibility
+requirements as any other contribution.
