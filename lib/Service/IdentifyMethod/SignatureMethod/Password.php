@@ -30,17 +30,7 @@ class Password extends AbstractSignatureMethod {
 
 	#[\Override]
 	public function validateToSign(): void {
-		$this->validateToIdentify();
-		try {
-			$certificateData = $this->pkcs12Handler
-				->setCertificate($this->pkcs12Handler->getPfxOfCurrentSigner($this->userSession->getUser()?->getUID()))
-				->setPassword($this->codeSentByUser)
-				->readCertificate();
-		} catch (InvalidPasswordException) {
-			// TRANSLATORS Error shown when the password used to unlock the signing certificate is incorrect.
-			throw new LibresignException($this->identifyService->getL10n()->t('Invalid user or password'));
-		}
-
+		$certificateData = $this->readCurrentSignerCertificate();
 		$this->validateCertificateRevocation($certificateData);
 		$this->validateCertificateExpiration($certificateData);
 	}
@@ -107,11 +97,29 @@ class Password extends AbstractSignatureMethod {
 
 	#[\Override]
 	public function validateToIdentify(): void {
-		$this->pkcs12Handler->setPassword($this->codeSentByUser);
-		$pfx = $this->pkcs12Handler->getPfxOfCurrentSigner($this->userSession->getUser()?->getUID());
+		$this->readCurrentSignerCertificate();
+	}
+
+	private function readCurrentSignerCertificate(): array {
+		$uid = $this->userSession->getUser()?->getUID();
+		if ($uid === null || $uid === '') {
+			throw new LibresignException($this->identifyService->getL10n()->t('Invalid certificate'));
+		}
+
+		$pfx = $this->pkcs12Handler->getPfxOfCurrentSigner($uid);
 		if (empty($pfx)) {
 			// TRANSLATORS Error shown when the signing certificate file for the current user is missing or invalid.
 			throw new LibresignException($this->identifyService->getL10n()->t('Invalid certificate'));
+		}
+
+		try {
+			return $this->pkcs12Handler
+				->setCertificate($pfx)
+				->setPassword($this->codeSentByUser)
+				->readCertificate();
+		} catch (InvalidPasswordException) {
+			// TRANSLATORS Error shown when the password used to unlock the signing certificate is incorrect.
+			throw new LibresignException($this->identifyService->getL10n()->t('Invalid password'));
 		}
 	}
 
@@ -123,8 +131,12 @@ class Password extends AbstractSignatureMethod {
 	}
 
 	private function hasSignatureFile(): bool {
+		$uid = $this->userSession->getUser()?->getUID();
+		if ($uid === null || $uid === '') {
+			return false;
+		}
 		try {
-			$this->pkcs12Handler->getPfxOfCurrentSigner($this->userSession->getUser()?->getUID());
+			$this->pkcs12Handler->getPfxOfCurrentSigner($uid);
 			return true;
 		} catch (\Throwable) {
 		}

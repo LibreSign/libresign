@@ -48,9 +48,9 @@ class PfxProviderTest extends TestCase {
 			});
 	}
 
-	public function testReturnsExistingCertificateWithoutGenerating(): void {
+	public function testPasswordSigningLoadsPersistedCertificateInsteadOfReusingEngineState(): void {
 		$engine = $this->createEngine();
-		$engine->storedCertificate = 'existing-cert';
+		$engine->storedCertificate = 'stale-engine-certificate';
 
 		$result = $this->createProvider()->getOrGeneratePfx(
 			$engine,
@@ -61,10 +61,31 @@ class PfxProviderTest extends TestCase {
 			password: 'mypass',
 		);
 
-		$this->assertSame('existing-cert', $result['pfx']);
+		$this->assertSame('fake-pfx-content', $result['pfx']);
 		$this->assertSame('mypass', $result['password']);
+		$this->assertSame(['john'], $engine->getPfxCalls);
 		$this->assertEmpty($engine->generateCalls);
 		$this->assertEmpty($engine->leafExpiryCalls);
+	}
+
+	public function testPasswordlessSigningGeneratesTemporaryCertificateWhenEngineWasPreloaded(): void {
+		$this->configurePasswordEvent('temp-pass-preloaded');
+		$engine = $this->createEngine();
+		$engine->storedCertificate = 'persistent-user-certificate';
+
+		$result = $this->createProvider()->getOrGeneratePfx(
+			$engine,
+			signWithoutPassword: true,
+			signatureMethodName: ISignatureMethod::SIGNATURE_METHOD_CLICK_TO_SIGN,
+			userUniqueIdentifier: 'account:alice',
+			friendlyName: 'Alice Smith',
+		);
+
+		$this->assertCount(1, $engine->generateCalls);
+		$this->assertSame('temp-pass-preloaded', $engine->generateCalls[0]['signPassword']);
+		$this->assertSame([1, null], $engine->leafExpiryCalls);
+		$this->assertSame('temp-pass-preloaded', $result['password']);
+		$this->assertNotSame('persistent-user-certificate', $result['pfx']);
 	}
 
 	public function testClickToSignGeneratesShortLivedCertificate(): void {
@@ -228,11 +249,11 @@ class PfxProviderTest extends TestCase {
 		$this->assertNull($engine->currentLeafExpiry);
 	}
 
-	public function testGeneratedPasswordIsSetOnEngineBeforeGettingPfx(): void {
+	public function testPasswordlessSigningReturnsGeneratedCertificateWithoutStoredPfxLookup(): void {
 		$this->configurePasswordEvent('generated-pass');
 		$engine = $this->createEngine();
 
-		$this->createProvider()->getOrGeneratePfx(
+		$result = $this->createProvider()->getOrGeneratePfx(
 			$engine,
 			signWithoutPassword: true,
 			signatureMethodName: 'password',
@@ -240,8 +261,9 @@ class PfxProviderTest extends TestCase {
 			friendlyName: 'Signer Name',
 		);
 
-		$this->assertContains('generated-pass', $engine->setPasswordCalls);
-		$this->assertNotEmpty($engine->getPfxCalls);
+		$this->assertSame('generated-cert', $result['pfx']);
+		$this->assertSame('generated-pass', $result['password']);
+		$this->assertEmpty($engine->getPfxCalls);
 	}
 
 	#[DataProvider('providerSignatureMethodExpiryBehavior')]
