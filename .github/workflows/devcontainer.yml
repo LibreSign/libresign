@@ -90,6 +90,17 @@ jobs:
           devcontainer exec --workspace-folder . \
             bash /var/www/html/apps-extra/libresign/.devcontainer/setup.sh
 
+      - name: Verify Nextcloud through the NCDD proxy
+        run: |
+          nextcloud_host="$(docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            config --format json | jq -r '.services.nextcloud.environment.NEXTCLOUD_HOST')"
+
+          curl --fail --insecure --retry 20 --retry-all-errors \
+            --resolve "${nextcloud_host}:443:127.0.0.1" \
+            "https://${nextcloud_host}/status.php" >/dev/null
+
       - name: Start Playwright runner
         run: |
           docker compose \
@@ -98,7 +109,7 @@ jobs:
             --profile playwright \
             up --detach playwright
 
-      - name: Verify Playwright reaches Nextcloud through the proxy
+      - name: Verify Playwright browser against Nextcloud
         run: |
           docker compose \
             --file .devcontainer/ncdd.generated.yml \

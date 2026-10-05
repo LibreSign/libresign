@@ -26,6 +26,34 @@ add_safe_directory() {
 	fi
 }
 
+environment_summary() {
+	local protocol="${NEXTCLOUD_PROTOCOL:-https}"
+	local nextcloud_host="${NEXTCLOUD_HOST:-localhost}"
+	local project="${COMPOSE_PROJECT_NAME:-}"
+	local mailpit_url
+
+	if [[ -n "$project" ]]; then
+		mailpit_url="https://${project}-mailpit.localhost"
+	else
+		mailpit_url="http://mailpit:8025"
+	fi
+
+	printf '\n'
+	printf 'LibreSign development environment is ready.\n'
+	printf '\n'
+	printf '  Nextcloud / LibreSign: %s://%s\n' "$protocol" "$nextcloud_host"
+	printf '  Mailpit:               %s\n' "$mailpit_url"
+	printf '  Admin user:            %s\n' "${NEXTCLOUD_ADMIN_USER:-admin}"
+	printf '  Nextcloud branch:      %s\n' "${VERSION_NEXTCLOUD:-master}"
+	printf '\n'
+	printf 'Useful commands:\n'
+	printf '  npm run watch          rebuild frontend assets while editing\n'
+	printf '  occ status             check Nextcloud status\n'
+	printf '  occ app:list           inspect enabled apps\n'
+	printf '\n'
+	printf 'The environment can now be opened in the browser.\n'
+}
+
 wait_for_nextcloud
 add_safe_directory /var/www/html
 add_safe_directory "$app_dir"
@@ -57,5 +85,4 @@ occ maintenance:theme:update
 
 npm run dev
 
-echo "LibreSign is ready at ${NEXTCLOUD_PROTOCOL:-https}://${NEXTCLOUD_HOST}"
-echo "For frontend development, run: npm run watch"
+environment_summary
