@@ -56,8 +56,8 @@ class Pkcs12Handler extends SignEngineHandler {
 		parent::__construct($l10n, $folderService, $logger);
 	}
 
-	public function setIsLibreSignFile(): void {
-		$this->isLibreSignFile = true;
+	public function setIsLibreSignFile(bool $isLibreSignFile = true): void {
+		$this->isLibreSignFile = $isLibreSignFile;
 	}
 
 	/**
@@ -69,32 +69,36 @@ class Pkcs12Handler extends SignEngineHandler {
 	public function getCertificateChain($resource): array {
 		$certificates = [];
 
-		rewind($resource);
-		$validationResults = array_values(
-			$this->pdfSignatureValidationService->validateFromResource($resource)
-		);
-
-		if ($validationResults === []) {
-			throw new LibresignException($this->l10n->t('Unsigned file.'));
-		}
-
-		foreach ($validationResults as $validation) {
-			$signature = $validation['signature'] ?? null;
-			if (!$signature instanceof ExtractedSignature) {
-				continue;
-			}
-
-			$result = $this->processSignature(
-				$resource,
-				$signature,
-				$validation,
+		try {
+			rewind($resource);
+			$validationResults = array_values(
+				$this->pdfSignatureValidationService->validateFromResource($resource)
 			);
 
-			if (empty($result['chain'])) {
-				continue;
+			if ($validationResults === []) {
+				throw new LibresignException($this->l10n->t('Unsigned file.'));
 			}
 
-			$certificates[] = $result;
+			foreach ($validationResults as $validation) {
+				$signature = $validation['signature'] ?? null;
+				if (!$signature instanceof ExtractedSignature) {
+					continue;
+				}
+
+				$result = $this->processSignature(
+					$resource,
+					$signature,
+					$validation,
+				);
+
+				if (empty($result['chain'])) {
+					continue;
+				}
+
+				$certificates[] = $result;
+			}
+		} finally {
+			$this->isLibreSignFile = false;
 		}
 
 		return $certificates;
