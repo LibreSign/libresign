@@ -34,10 +34,13 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: Install Bats
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes bats
+      - name: Setup Bats-core
+        uses: bats-core/bats-action@77d6fb60505b4d0d1d73e48bd035b55074bbfb43 # 4.0.0
+        with:
+          support-install: false
+          assert-install: false
+          detik-install: false
+          file-install: false
 
       - name: Check Dev Container configuration
         run: |
