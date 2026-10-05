@@ -69,7 +69,7 @@ class PfxProviderTest extends TestCase {
 	}
 
 	public function testPasswordlessSigningGeneratesTemporaryCertificateWhenEngineWasPreloaded(): void {
-		$this->configurePasswordEvent('temp-pass-9008');
+		$this->configurePasswordEvent('temp-pass-preloaded');
 		$engine = $this->createEngine();
 		$engine->storedCertificate = 'persistent-user-certificate';
 
@@ -82,9 +82,9 @@ class PfxProviderTest extends TestCase {
 		);
 
 		$this->assertCount(1, $engine->generateCalls);
-		$this->assertSame('temp-pass-9008', $engine->generateCalls[0]['signPassword']);
+		$this->assertSame('temp-pass-preloaded', $engine->generateCalls[0]['signPassword']);
 		$this->assertSame([1, null], $engine->leafExpiryCalls);
-		$this->assertSame('temp-pass-9008', $result['password']);
+		$this->assertSame('temp-pass-preloaded', $result['password']);
 		$this->assertNotSame('persistent-user-certificate', $result['pfx']);
 	}
 
