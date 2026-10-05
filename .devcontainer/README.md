@@ -26,9 +26,10 @@ https://ncdev-libresign-<id>.localhost
 ```
 
 For GitHub Codespaces, the same shared proxy remains the only HTTP entry point.
-The Dev Container forwards `host.docker.internal:443`, which is the Docker
-host port owned by the shared NCDD proxy, and the adapter configures Nextcloud
-with the public hostname GitHub assigns to forwarded port `443`:
+NCDD already publishes the proxy on port `443` of the Codespaces VM. Codespaces
+detects that port and exposes it using its normal port-forwarding mechanism,
+while the adapter configures Nextcloud with the public hostname GitHub assigns
+to forwarded port `443`:
 
 ```text
 https://<codespace>-443.<forwarding-domain>
@@ -37,8 +38,13 @@ https://<codespace>-443.<forwarding-domain>
 The forwarding domain comes from
 `GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN`; it is not hard-coded.
 
-Individual workers do not publish separate nginx host ports. Mailpit is
-forwarded directly from its Compose service on port `8025`.
+Individual workers do not publish separate nginx host ports. The Dev Container
+configuration intentionally avoids service-qualified `forwardPorts` entries,
+because GitHub Codespaces does not support the `host:port` form.
+
+Mailpit remains available locally through NCDD's shared proxy. In Codespaces it
+is still reachable from the development environment and is covered by CI, but
+its browser UI is not exposed as a separate forwarded URL by this adapter.
 
 The Playwright service is optional and is not started as part of normal Dev
 Container use. When enabled, NCDD routes its canonical Nextcloud hostname back

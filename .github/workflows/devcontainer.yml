@@ -34,11 +34,18 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: Check shell scripts
+      - name: Check Dev Container configuration
         run: |
+          jq empty .devcontainer/devcontainer.json
           shellcheck .devcontainer/prepare.sh .devcontainer/setup.sh
           sh -n .devcontainer/prepare.sh
           bash -n .devcontainer/setup.sh
+
+          # Codespaces does not support host:port in forwardPorts/portsAttributes.
+          ! jq -e '
+            ((.forwardPorts // [])[]? | strings | contains(":")) or
+            ((.portsAttributes // {} | keys[]) | contains(":"))
+          ' .devcontainer/devcontainer.json
 
       - name: Verify local NCDD contract
         run: |
