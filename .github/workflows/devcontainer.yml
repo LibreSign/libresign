@@ -88,7 +88,13 @@ jobs:
       - name: Verify LibreSign setup is repeatable
         run: |
           devcontainer exec --workspace-folder . \
-            bash /var/www/html/apps-extra/libresign/.devcontainer/setup.sh
+            bash /var/www/html/apps-extra/libresign/.devcontainer/setup.sh \
+            | tee /tmp/libresign-setup.out
+
+          grep -q 'LibreSign development environment is ready.' /tmp/libresign-setup.out
+          grep -q 'Nextcloud / LibreSign:' /tmp/libresign-setup.out
+          grep -q 'Mailpit:' /tmp/libresign-setup.out
+          grep -q 'Useful commands:' /tmp/libresign-setup.out
 
       - name: Verify Nextcloud through the NCDD proxy
         run: |
