@@ -34,6 +34,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
+      - name: Install Bats
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bats
+
       - name: Check Dev Container configuration
         run: |
           jq empty .devcontainer/devcontainer.json
@@ -41,57 +46,13 @@ jobs:
           sh -n .devcontainer/prepare.sh
           bash -n .devcontainer/setup.sh
 
-          # Codespaces does not support host:port in forwardPorts/portsAttributes.
           ! jq -e '
             ((.forwardPorts // [])[]? | strings | contains(":")) or
             ((.portsAttributes // {} | keys[]) | contains(":"))
           ' .devcontainer/devcontainer.json
 
-      - name: Verify local NCDD contract
-        run: |
-          sh .devcontainer/prepare.sh
-          cp .devcontainer/ncdd.generated.yml /tmp/ncdd.generated.first.yml
-
-          docker compose \
-            --file .devcontainer/ncdd.generated.yml \
-            --file .devcontainer/docker-compose.yml \
-            --profile playwright \
-            config --quiet
-
-          grep -q "HOST_UID: $(id -u)" .devcontainer/ncdd.generated.yml
-          grep -q "HOST_GID: $(id -g)" .devcontainer/ncdd.generated.yml
-          grep -Eq 'NEXTCLOUD_HOST: ncdev-.*\.localhost' .devcontainer/ncdd.generated.yml
-
-          sh .devcontainer/prepare.sh
-          cmp /tmp/ncdd.generated.first.yml .devcontainer/ncdd.generated.yml
-
-      - name: Verify configuration overrides
-        env:
-          LIBRESIGN_DB_TYPE: sqlite
-          LIBRESIGN_NEXTCLOUD_VERSION: stable35
-        run: |
-          sh .devcontainer/prepare.sh
-          grep -q 'DB_TYPE: sqlite' .devcontainer/ncdd.generated.yml
-          grep -q 'DB_DRIVER: sqlite' .devcontainer/ncdd.generated.yml
-          grep -q 'VERSION_NEXTCLOUD: stable35' .devcontainer/ncdd.generated.yml
-
-      - name: Verify incomplete Codespaces context is rejected
-        run: |
-          if CODESPACES=true sh .devcontainer/prepare.sh >/tmp/prepare.out 2>/tmp/prepare.err; then
-            echo "prepare.sh accepted Codespaces without the required environment" >&2
-            exit 1
-          fi
-          grep -q 'CODESPACE_NAME is required in Codespaces' /tmp/prepare.err
-
-      - name: Verify Codespaces NCDD contract
-        env:
-          CODESPACES: "true"
-          CODESPACE_NAME: libresign-test
-          GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN: app.github.dev
-        run: |
-          sh .devcontainer/prepare.sh
-          grep -q 'NEXTCLOUD_HOST: libresign-test-443.app.github.dev' .devcontainer/ncdd.generated.yml
-          grep -q 'NEXTCLOUD_PROTOCOL: https' .devcontainer/ncdd.generated.yml
+      - name: Test devcontainer bootstrap contract
+        run: bats --print-output-on-failure .devcontainer/tests/prepare.bats
 
   integration:
     name: Devcontainer integration
