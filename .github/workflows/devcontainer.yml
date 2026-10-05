@@ -83,7 +83,7 @@ jobs:
             --file .devcontainer/ncdd.generated.yml \
             --file .devcontainer/docker-compose.yml \
             --profile playwright \
-            exec -T playwright node <<'NODE'
+            run --rm --no-deps -T playwright node <<'NODE'
           const dns = require('dns').promises
           const { chromium } = require('/var/www/html/apps-extra/libresign/node_modules/playwright')
 
