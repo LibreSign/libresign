@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\CrlValidationStatus;
+use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -46,6 +47,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private PdfSignatureValidationService&MockObject $pdfSignatureValidationService;
 	private PdfSignatureExtractor $pdfSignatureExtractor;
 
+	#[\Override]
 	public function setUp(): void {
 		$this->identifyService = $this->createMock(IdentifyService::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
@@ -54,7 +56,12 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->userSession = $this->createMock(IUserSession::class);
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn('signer');
+		$this->userSession->method('getUser')->willReturn($user);
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->identifyService->method('getL10n')->willReturn($this->l10n);
+		$this->identifyService->method('getLogger')->willReturn($this->logger);
 		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
 		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
 		$this->crlService = $this->createMock(CrlService::class);
@@ -93,10 +100,32 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->getMock();
 	}
 
+	public function testToArrayDoesNotMutateSigningCertificateState(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file->method('getContent')->willReturn('persistent-user-certificate');
+		$folder->method('get')->with('signature.pfx')->willReturn($file);
+		$this->folderService->method('getFolder')->willReturn($folder);
+
+		$password = $this->getClass();
+		$data = $password->toArray();
+
+		$this->assertTrue($data['hasSignatureFile']);
+		$this->assertSame('', $this->pkcs12Handler->getCertificate());
+	}
+
 	#[DataProvider('providerValidateToIdentify')]
 	public function testValidateToIdentify(string $pfx, bool $shouldThrow): void {
-		$this->pkcs12Handler = $this->getPkcs12Instance(['getPfxOfCurrentSigner']);
+		$this->pkcs12Handler = $this->getPkcs12Instance([
+			'getPfxOfCurrentSigner',
+			'setCertificate',
+			'setPassword',
+			'readCertificate',
+		]);
 		$this->pkcs12Handler->method('getPfxOfCurrentSigner')->willReturn($pfx);
+		$this->pkcs12Handler->method('setCertificate')->willReturnSelf();
+		$this->pkcs12Handler->method('setPassword')->willReturnSelf();
+		$this->pkcs12Handler->method('readCertificate')->willReturn([]);
 
 		$password = $this->getClass();
 		$password->setCodeSentByUser('senha');
@@ -110,6 +139,26 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 	}
 
+	public function testValidateToIdentifyRejectsInvalidCertificatePassword(): void {
+		$this->pkcs12Handler = $this->getPkcs12Instance([
+			'getPfxOfCurrentSigner',
+			'setCertificate',
+			'setPassword',
+			'readCertificate',
+		]);
+		$this->pkcs12Handler->method('getPfxOfCurrentSigner')->willReturn('mock-pfx');
+		$this->pkcs12Handler->method('setCertificate')->willReturnSelf();
+		$this->pkcs12Handler->method('setPassword')->willReturnSelf();
+		$this->pkcs12Handler->method('readCertificate')->willThrowException(new InvalidPasswordException());
+
+		$password = $this->getClass();
+		$password->setCodeSentByUser('wrong-password');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Invalid password');
+		$password->validateToIdentify();
+	}
+
 	public static function providerValidateToIdentify(): array {
 		return [
 			'valid pfx' => ['mock-pfx', false],
@@ -119,8 +168,13 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('providerValidateToSignWithError')]
 	public function testValidateToSignWithError(bool $throwsException, string $pfx): void {
-		$this->pkcs12Handler = $this->getPkcs12Instance(['getPfxOfCurrentSigner']);
+		$this->pkcs12Handler = $this->getPkcs12Instance(['getPfxOfCurrentSigner', 'setCertificate', 'setPassword', 'readCertificate']);
 		$this->pkcs12Handler->method('getPfxOfCurrentSigner')->willReturn($pfx);
+		$this->pkcs12Handler->method('setCertificate')->willReturnSelf();
+		$this->pkcs12Handler->method('setPassword')->willReturnSelf();
+		if ($pfx !== '') {
+			$this->pkcs12Handler->method('readCertificate')->willThrowException(new InvalidPasswordException());
+		}
 		if ($throwsException) {
 			$this->expectException(LibresignException::class);
 		} else {

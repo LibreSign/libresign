@@ -149,7 +149,9 @@ final class CertificateChainServiceTest extends TestCase {
 		$receivedContent = null;
 
 		$pkcs12 = $this->createMock(Pkcs12Handler::class);
-		$pkcs12->expects($this->never())->method('setIsLibreSignFile');
+		$pkcs12->expects($this->once())
+			->method('setIsLibreSignFile')
+			->with(false);
 		$pkcs12->method('getCertificateChain')
 			->willReturnCallback(function ($resource) use (&$receivedContent, $chain): array {
 				$receivedContent = stream_get_contents($resource);
