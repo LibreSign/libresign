@@ -646,4 +646,84 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame('Digest mismatch.', $result[0]['chain'][0]['signature_validation']['label']);
 	}
 
+
+	public function testGetPfxOfCurrentSignerRestoresFolderContext(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file->method('getContent')->willReturn('alice-pfx');
+		$folder->method('get')->with('signature.pfx')->willReturn($file);
+
+		$this->folderService->method('getUserId')->willReturn('original-user');
+		$this->folderService->method('getFolder')->willReturn($folder);
+		$this->folderService
+			->expects($this->exactly(2))
+			->method('setUserId')
+			->willReturnCallback(function (?string $uid): void {
+				static $call = 0;
+				$expected = ['alice', 'original-user'];
+				$this->assertSame($expected[$call++], $uid);
+			});
+
+		$this->assertSame('alice-pfx', $this->getHandler()->getPfxOfCurrentSigner('alice'));
+	}
+
+	public function testGetPfxOfCurrentSignerPropagatesUnexpectedStorageFailure(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file->method('getContent')->willThrowException(new \OCP\Files\GenericFileException());
+		$folder->method('get')->with('signature.pfx')->willReturn($file);
+
+		$this->folderService->method('getUserId')->willReturn('original-user');
+		$this->folderService->method('getFolder')->willReturn($folder);
+		$this->folderService
+			->expects($this->exactly(2))
+			->method('setUserId');
+
+		$this->expectException(\OCP\Files\GenericFileException::class);
+		$this->getHandler()->getPfxOfCurrentSigner('alice');
+	}
+
+	public function testGetPfxOfCurrentSignerDoesNotReuseCertificateFromDifferentUser(): void {
+		$aliceFolder = $this->createMock(\OCP\Files\Folder::class);
+		$aliceFile = $this->createMock(\OCP\Files\File::class);
+		$aliceFile->method('getContent')->willReturn('alice-pfx');
+		$aliceFolder->method('get')->with('signature.pfx')->willReturn($aliceFile);
+
+		$bobFolder = $this->createMock(\OCP\Files\Folder::class);
+		$bobFile = $this->createMock(\OCP\Files\File::class);
+		$bobFile->method('getContent')->willReturn('bob-pfx');
+		$bobFolder->method('get')->with('signature.pfx')->willReturn($bobFile);
+
+		$this->folderService
+			->method('getFolder')
+			->willReturnOnConsecutiveCalls($aliceFolder, $bobFolder);
+
+		$handler = $this->getHandler();
+
+		$this->assertSame('alice-pfx', $handler->getPfxOfCurrentSigner('alice'));
+		$this->assertSame('bob-pfx', $handler->getPfxOfCurrentSigner('bob'));
+	}
+
+	public function testGetCertificateChainResetsLibreSignTrustStateOnFailure(): void {
+		$handler = $this->getHandler();
+		$handler->setIsLibreSignFile();
+		$this->nativeValidationException = new \RuntimeException('validation failed');
+
+		$resource = fopen('php://memory', 'r+');
+		$this->assertIsResource($resource);
+		fwrite($resource, '%PDF-1.4');
+
+		try {
+			$handler->getCertificateChain($resource);
+			$this->fail('Expected certificate validation to fail');
+		} catch (\RuntimeException $e) {
+			$this->assertSame('validation failed', $e->getMessage());
+		} finally {
+			fclose($resource);
+		}
+
+		$reflection = new \ReflectionProperty(Pkcs12Handler::class, 'isLibreSignFile');
+		$this->assertFalse($reflection->getValue($handler));
+	}
+
 }
