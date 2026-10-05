@@ -74,6 +74,7 @@ OC.L10N.register(
     "Unknown" : "Nekonata",
     "Hide details" : "Kaŝi la detalojn",
     "Show details" : "Montri la detalojn",
+    "Country:" : "Lando:",
     "No date" : "No date",
     "Yes" : "Yes",
     "No" : "No",
