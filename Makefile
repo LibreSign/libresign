@@ -43,7 +43,10 @@ else
 endif
 
 # Dev env management
-dev-setup: clean clean-dev composer npm-install
+.PHONY: dev-setup dev-reset npm-install
+dev-setup: composer npm-install
+
+dev-reset: clean-dev composer npm-install
 
 npm-install:
 	npm ci
@@ -58,7 +61,8 @@ build-js-production:
 watch-js:
 	npm run watch
 
-# Linting
+# Linting and static analysis
+.PHONY: lint lint-fix stylelint lint-php cs-check typecheck static-analysis
 lint:
 	npm run lint
 
@@ -66,12 +70,23 @@ lint-fix:
 	npm run lint:fix
 	npm run stylelint:fix
 
-# Style linting
 stylelint:
 	npm run stylelint
 
+lint-php:
+	composer lint
+
+cs-check:
+	composer cs:check
+
+typecheck:
+	npm run ts:check
+
+static-analysis:
+	composer psalm
+
 # Cleaning
-.PHONY: clean
+.PHONY: clean clean-dev
 clean:
 	rm -rf js/
 	rm -rf $(appstore_build_directory)
@@ -81,9 +96,33 @@ clean-dev:
 	rm -rf vendor
 	rm -rf $(appstore_build_directory)
 
-.PHONY: test
-test: composer
-	$(CURDIR)/vendor/bin/phpunit -c phpunit.xml
+# Test command surface.
+# Optional arguments can be passed without having to know the underlying tool:
+#   make test-unit PHPUNIT_ARGS='--filter CrlServiceTest'
+#   make test-frontend VITEST_ARGS='src/tests/path/to/spec.ts'
+#   make test-behat BEHAT_ARGS='features/path.feature:42 -v'
+#   make test-e2e PLAYWRIGHT_ARGS='playwright/e2e/path.spec.ts'
+.PHONY: test test-unit test-integration test-frontend test-behat test-e2e check
+test: test-unit
+
+test-unit:
+	composer test:unit $(if $(PHPUNIT_ARGS),-- $(PHPUNIT_ARGS),)
+
+test-integration:
+	composer test:integration $(if $(PHPUNIT_ARGS),-- $(PHPUNIT_ARGS),)
+
+test-frontend:
+	npm test $(if $(VITEST_ARGS),-- $(VITEST_ARGS),)
+
+test-behat:
+	cd tests/integration && vendor/bin/behat $(BEHAT_ARGS)
+
+test-e2e:
+	npm run test:e2e $(if $(PLAYWRIGHT_ARGS),-- $(PLAYWRIGHT_ARGS),)
+
+# Pre-PR validation that does not require browser or mutable integration state.
+# Runtime suites remain explicit through test-integration, test-behat and test-e2e.
+check: lint stylelint lint-php cs-check typecheck static-analysis test-unit test-frontend
 
 .PHONY: update-workflows
 update-workflows:
