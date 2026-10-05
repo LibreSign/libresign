@@ -40,6 +40,7 @@ OC.L10N.register(
     "Cancel upload" : "Diddymu llwytho i fyny",
     "Issued by:" : "Rhoddwyd gan:",
     "Unknown" : "Anhysbys",
+    "Country:" : "Gwlad:",
     "No date" : "No date",
     "Yes" : "Iawn",
     "No" : "No",

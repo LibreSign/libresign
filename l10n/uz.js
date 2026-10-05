@@ -112,6 +112,7 @@ OC.L10N.register(
     "Username" : "Foydalanuvchi nomi",
     "Forgot password?" : "Parolni unutdingizmi?",
     "Continue" : "Davom etish",
+    "Not found" : "Topilmadi",
     "Hello {name}" : "Salom {name}",
     "_{count} file_::_{count} files_" : ["{count} fayllari"],
     "Today" : "Today",

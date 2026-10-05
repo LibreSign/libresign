@@ -55,6 +55,7 @@ OC.L10N.register(
     "Issued by:" : "Emitido por:",
     "Number of documents:" : "Número de documentos:",
     "Hide details" : "Ocultar detalles",
+    "Country:" : "País:",
     "No date" : "Sin fecha",
     "Yes" : "Sí",
     "No" : "No",

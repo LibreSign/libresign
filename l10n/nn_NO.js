@@ -100,6 +100,7 @@ OC.L10N.register(
     "Username" : "Brukarnamn",
     "Forgot password?" : "Gløymt passordet?",
     "Continue" : "Gå vidare",
+    "Not found" : "Ikkje funne",
     "Hello {name}" : "Hallo {name}",
     "_{count} file_::_{count} files_" : ["{count} fil","{count} filer"],
     "Today" : "I dag",
