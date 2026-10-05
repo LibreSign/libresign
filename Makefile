@@ -28,6 +28,30 @@ endif
 all: dev-setup build-js-production
 serve: dev-setup watch-js
 
+# Make is the discoverable project task interface. Composer and npm scripts
+# remain the implementation source of truth for PHP and frontend tooling.
+.PHONY: help
+help:
+	@printf '%s\n' \
+		'LibreSign development targets:' \
+		'  dev-setup          install development dependencies' \
+		'  dev-reset          remove development dependencies and reinstall them' \
+		'  build-js           build frontend assets for development' \
+		'  build-js-production build production frontend assets' \
+		'  watch-js           rebuild frontend assets while editing' \
+		'  test-unit          run PHPUnit unit tests (PHPUNIT_ARGS=...)' \
+		'  test-integration   run PHPUnit runtime tests (PHPUNIT_ARGS=...)' \
+		'  test-frontend      run Vitest (VITEST_ARGS=...)' \
+		'  test-behat         run Behat (BEHAT_ARGS=...)' \
+		'  test-e2e           run Playwright (PLAYWRIGHT_ARGS=...)' \
+		'  lint               run ESLint' \
+		'  stylelint          run Stylelint' \
+		'  lint-php           run PHP syntax checks' \
+		'  cs-check           run PHP-CS-Fixer in check mode' \
+		'  typecheck          run TypeScript checks' \
+		'  static-analysis    run Psalm' \
+		'  check              run non-runtime pre-PR checks'
+
 # Installs and updates the composer dependencies. If composer is not installed
 # a copy is fetched from the web
 .PHONY: composer
