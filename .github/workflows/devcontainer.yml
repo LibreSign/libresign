@@ -124,3 +124,17 @@ jobs:
               });
               request.on("error", () => { process.exitCode = 1; });
             '
+
+      - name: Collect container diagnostics
+        if: failure()
+        run: |
+          docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            --profile playwright \
+            ps
+          docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            --profile playwright \
+            logs --no-color --tail=200
