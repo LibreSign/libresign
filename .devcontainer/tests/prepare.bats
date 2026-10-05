@@ -7,6 +7,23 @@ setup() {
 	PREPARE="$REPO_ROOT/.devcontainer/prepare.sh"
 	GENERATED="$REPO_ROOT/.devcontainer/ncdd.generated.yml"
 	OVERRIDE="$REPO_ROOT/.devcontainer/docker-compose.yml"
+	TEMP_CHECKOUT_ROOT=""
+	TEMP_WORKER_A=""
+	TEMP_WORKER_B=""
+}
+
+teardown() {
+	if [ -n "$TEMP_CHECKOUT_ROOT" ]; then
+		rm -rf "$TEMP_CHECKOUT_ROOT"
+	fi
+
+	ncdd="$REPO_ROOT/.devcontainer/.nextcloud-docker-development"
+	if [ -n "$TEMP_WORKER_A" ]; then
+		rm -rf "$ncdd/.workers/$TEMP_WORKER_A"
+	fi
+	if [ -n "$TEMP_WORKER_B" ]; then
+		rm -rf "$ncdd/.workers/$TEMP_WORKER_B"
+	fi
 }
 
 compose_json() {
@@ -115,4 +132,49 @@ compose_json() {
 	run jq -e \
 		'.services.nextcloud.environment.NEXTCLOUD_PROTOCOL == "https"' <<<"$config"
 	[ "$status" -eq 0 ]
+}
+
+@test "separate checkout paths produce isolated NCDD projects" {
+	run sh "$PREPARE"
+	[ "$status" -eq 0 ]
+
+	TEMP_CHECKOUT_ROOT="$(mktemp -d)"
+	checkout_a="$TEMP_CHECKOUT_ROOT/checkout-a"
+	checkout_b="$TEMP_CHECKOUT_ROOT/checkout-b"
+	ncdd="$REPO_ROOT/.devcontainer/.nextcloud-docker-development"
+
+	for checkout in "$checkout_a" "$checkout_b"; do
+		mkdir -p "$checkout/.devcontainer"
+		cp "$PREPARE" "$checkout/.devcontainer/prepare.sh"
+		cp "$OVERRIDE" "$checkout/.devcontainer/docker-compose.yml"
+		ln -s "$ncdd" "$checkout/.devcontainer/.nextcloud-docker-development"
+	done
+
+	TEMP_WORKER_A="libresign-$(printf '%s' "$checkout_a" | cksum | awk '{print $1}')"
+	TEMP_WORKER_B="libresign-$(printf '%s' "$checkout_b" | cksum | awk '{print $1}')"
+
+	run sh "$checkout_a/.devcontainer/prepare.sh"
+	[ "$status" -eq 0 ]
+	run sh "$checkout_b/.devcontainer/prepare.sh"
+	[ "$status" -eq 0 ]
+
+	config_a="$(docker compose \
+		--file "$checkout_a/.devcontainer/ncdd.generated.yml" \
+		--file "$checkout_a/.devcontainer/docker-compose.yml" \
+		--profile playwright config --format json)"
+	config_b="$(docker compose \
+		--file "$checkout_b/.devcontainer/ncdd.generated.yml" \
+		--file "$checkout_b/.devcontainer/docker-compose.yml" \
+		--profile playwright config --format json)"
+
+	project_a="$(jq -r '.name' <<<"$config_a")"
+	project_b="$(jq -r '.name' <<<"$config_b")"
+	host_a="$(jq -r '.services.nextcloud.environment.NEXTCLOUD_HOST' <<<"$config_a")"
+	host_b="$(jq -r '.services.nextcloud.environment.NEXTCLOUD_HOST' <<<"$config_b")"
+
+	[ "$TEMP_WORKER_A" != "$TEMP_WORKER_B" ]
+	[ "$project_a" = "ncdev-$TEMP_WORKER_A" ]
+	[ "$project_b" = "ncdev-$TEMP_WORKER_B" ]
+	[ "$project_a" != "$project_b" ]
+	[ "$host_a" != "$host_b" ]
 }
