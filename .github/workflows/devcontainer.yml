@@ -57,8 +57,10 @@ jobs:
             ((.portsAttributes // {} | keys[]) | contains(":"))
           ' .devcontainer/devcontainer.json
 
-      - name: Test devcontainer bootstrap contract
-        run: bats --print-output-on-failure .devcontainer/tests/prepare.bats
+      - name: Test devcontainer shell contracts
+        run: |
+          bats --print-output-on-failure .devcontainer/tests/prepare.bats
+          bats --print-output-on-failure .devcontainer/tests/setup.bats
 
   integration:
     name: Devcontainer integration
@@ -93,7 +95,7 @@ jobs:
 
           grep -q 'LibreSign development environment is ready.' /tmp/libresign-setup.out
           grep -q 'Nextcloud / LibreSign:' /tmp/libresign-setup.out
-          grep -q 'Mailpit:' /tmp/libresign-setup.out
+          grep -q 'Mailpit (environment):' /tmp/libresign-setup.out
           grep -q 'Useful commands:' /tmp/libresign-setup.out
 
       - name: Verify Nextcloud through the NCDD proxy

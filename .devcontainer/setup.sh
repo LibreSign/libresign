@@ -29,20 +29,17 @@ add_safe_directory() {
 environment_summary() {
 	local protocol="${NEXTCLOUD_PROTOCOL:-https}"
 	local nextcloud_host="${NEXTCLOUD_HOST:-localhost}"
-	local project="${COMPOSE_PROJECT_NAME:-}"
-	local mailpit_url
-
-	if [[ -n "$project" ]]; then
-		mailpit_url="https://${project}-mailpit.localhost"
-	else
-		mailpit_url="http://mailpit:8025"
-	fi
 
 	printf '\n'
 	printf 'LibreSign development environment is ready.\n'
 	printf '\n'
 	printf '  Nextcloud / LibreSign: %s://%s\n' "$protocol" "$nextcloud_host"
-	printf '  Mailpit:               %s\n' "$mailpit_url"
+	printf '  Mailpit (environment): http://mailpit:8025\n'
+
+	if [[ "$nextcloud_host" == *.localhost ]] && [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
+		printf '  Mailpit (browser):     https://%s-mailpit.localhost\n' "$COMPOSE_PROJECT_NAME"
+	fi
+
 	printf '  Admin user:            %s\n' "${NEXTCLOUD_ADMIN_USER:-admin}"
 	printf '  Nextcloud branch:      %s\n' "${VERSION_NEXTCLOUD:-master}"
 	printf '\n'
@@ -51,38 +48,44 @@ environment_summary() {
 	printf '  occ status             check Nextcloud status\n'
 	printf '  occ app:list           inspect enabled apps\n'
 	printf '\n'
-	printf 'The environment can now be opened in the browser.\n'
+	printf 'The environment is ready for development.\n'
 }
 
-wait_for_nextcloud
-add_safe_directory /var/www/html
-add_safe_directory "$app_dir"
+main() {
+	wait_for_nextcloud
+	add_safe_directory /var/www/html
+	add_safe_directory "$app_dir"
 
-cd "$app_dir"
-git submodule update --init --recursive
+	cd "$app_dir"
+	git submodule update --init --recursive
 
-composer install --no-interaction
-npm ci
+	composer install --no-interaction
+	npm ci
 
-occ app:enable libresign
-occ libresign:install --use-local-cert --java
-occ libresign:install --use-local-cert --pdftk
-occ libresign:install --use-local-cert --jsignpdf
-occ libresign:configure:openssl \
-	--cn=CommonName \
-	--c=BR \
-	--ou=OrganizationUnit \
-	--st=RioDeJaneiro \
-	--o=LibreSign \
-	--l=RioDeJaneiro
+	occ app:enable libresign
+	occ libresign:install --use-local-cert --java
+	occ libresign:install --use-local-cert --pdftk
+	occ libresign:install --use-local-cert --jsignpdf
+	occ libresign:configure:openssl \
+		--cn=CommonName \
+		--c=BR \
+		--ou=OrganizationUnit \
+		--st=RioDeJaneiro \
+		--o=LibreSign \
+		--l=RioDeJaneiro
 
-occ theming:config name "LibreSign"
-occ theming:config url "https://libresign.coop"
-occ theming:config primary_color "#144042"
-occ config:app:set libresign extra_settings --value=1
-occ config:system:set defaultapp --value libresign
-occ maintenance:theme:update
+	occ theming:config name "LibreSign"
+	occ theming:config url "https://libresign.coop"
+	occ theming:config primary_color "#144042"
+	occ config:app:set libresign extra_settings --value=1
+	occ config:system:set defaultapp --value libresign
+	occ maintenance:theme:update
 
-npm run dev
+	npm run dev
 
-environment_summary
+	environment_summary
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+	main "$@"
+fi
