@@ -80,43 +80,22 @@ jobs:
           devcontainer exec --workspace-folder . \
             bash -lc "curl --fail --silent http://mailpit:8025/api/v1/info >/dev/null"
 
+      - name: Start Playwright runner
+        run: |
+          docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            --profile playwright \
+            up --detach playwright
+
       - name: Verify Playwright reaches Nextcloud through the proxy
         run: |
           docker compose \
             --file .devcontainer/ncdd.generated.yml \
             --file .devcontainer/docker-compose.yml \
             --profile playwright \
-            run --rm --no-deps -T playwright node <<'NODE'
-          const dns = require('dns').promises
-          const { chromium } = require('/var/www/html/apps-extra/libresign/node_modules/playwright')
-
-          ;(async () => {
-            const target = new URL(process.env.PLAYWRIGHT_BASE_URL + '/status.php')
-            const addresses = await dns.lookup(target.hostname, { all: true })
-            console.log('Resolved', target.hostname, addresses)
-
-            const browser = await chromium.launch()
-            try {
-              const context = await browser.newContext({ ignoreHTTPSErrors: true })
-              const page = await context.newPage()
-              const response = await page.goto(target.href, { waitUntil: 'domcontentloaded' })
-
-              if (!response) {
-                throw new Error('Playwright did not receive an HTTP response')
-              }
-
-              console.log('Playwright response', response.status(), response.url())
-              if (response.status() !== 200) {
-                throw new Error(`Expected HTTP 200, got ${response.status()}`)
-              }
-            } finally {
-              await browser.close()
-            }
-          })().catch(error => {
-            console.error(error)
-            process.exit(1)
-          })
-          NODE
+            exec -T playwright \
+            node /var/www/html/apps-extra/libresign/.devcontainer/tests/playwright-smoke.cjs
 
       - name: Collect container diagnostics
         if: failure()
