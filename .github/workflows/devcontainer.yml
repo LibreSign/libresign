@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 name: Devcontainer contract
 
 on:
@@ -26,24 +29,104 @@ jobs:
           bash -n .devcontainer/setup.sh
       - name: Prepare pinned NCDD
         run: sh .devcontainer/prepare.sh
-      - name: Validate local composed environment
-        run: docker compose --file .devcontainer/ncdd.generated.yml --file .devcontainer/docker-compose.yml config --quiet
-      - name: Verify local access uses the shared NCDD proxy
+      - name: Validate composed environment
         run: |
-          ! grep -q 'published: "8080"' .devcontainer/ncdd.generated.yml
+          docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            config --quiet
+      - name: Verify required NCDD services are reusable
+        run: |
+          config="$(docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            config)"
+          printf '%s\n' "$config" | grep -q '^  nextcloud:'
+          printf '%s\n' "$config" | grep -q '^  nginx:'
+          printf '%s\n' "$config" | grep -q '^  mailpit:'
+          printf '%s\n' "$config" | grep -q '^  playwright:'
+          printf '%s\n' "$config" | grep -q '/var/www/html/apps-extra/libresign'
+      - name: Verify local access uses NCDD hostnames
+        run: |
           grep -Eq 'NEXTCLOUD_HOST: ncdev-.*\.localhost' .devcontainer/ncdd.generated.yml
-      - name: Validate Codespaces public URL contract
+          grep -Eq 'VIRTUAL_HOST: ncdev-.*-mailpit\.localhost' .devcontainer/ncdd.generated.yml
+      - name: Validate Codespaces public Nextcloud URL contract
         env:
           CODESPACES: "true"
           CODESPACE_NAME: libresign-test
           GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN: app.github.dev
         run: |
           sh .devcontainer/prepare.sh
-          docker compose --file .devcontainer/ncdd.generated.yml --file .devcontainer/docker-compose.yml config --quiet
           grep -q 'NEXTCLOUD_HOST: libresign-test-443.app.github.dev' .devcontainer/ncdd.generated.yml
           grep -q 'NEXTCLOUD_PROTOCOL: https' .devcontainer/ncdd.generated.yml
-          ! grep -q 'published:' .devcontainer/ncdd.generated.yml
-      - name: Verify LibreSign does not duplicate NCDD services
+      - name: Verify LibreSign does not duplicate NCDD infrastructure
         run: |
           ! grep -Eq '^[[:space:]]+(database|mysql|mariadb|mailpit|redis):$' .devcontainer/docker-compose.yml
           ! grep -Eq '^[[:space:]]+image:' .devcontainer/docker-compose.yml
+
+  smoke:
+    name: NCDD devcontainer smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Prepare pinned NCDD
+        run: sh .devcontainer/prepare.sh
+      - name: Start LibreSign development environment
+        run: |
+          docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            --profile playwright up -d
+      - name: Wait for Nextcloud
+        run: |
+          for attempt in $(seq 1 120); do
+            if docker compose \
+              --file .devcontainer/ncdd.generated.yml \
+              --file .devcontainer/docker-compose.yml \
+              exec -T nextcloud occ status 2>/dev/null | grep -q 'installed: true'; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+      - name: Test Nextcloud
+        run: |
+          docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            exec -T nextcloud occ status | grep -q 'installed: true'
+          curl --fail --insecure --retry 20 --retry-all-errors \
+            --resolve "$(grep -m1 'NEXTCLOUD_HOST:' .devcontainer/ncdd.generated.yml | awk '{print $2}'):443:127.0.0.1" \
+            "https://$(grep -m1 'NEXTCLOUD_HOST:' .devcontainer/ncdd.generated.yml | awk '{print $2}')/status.php"
+      - name: Test Mailpit
+        run: |
+          mailpit_host="$(grep -m1 'VIRTUAL_HOST: .*mailpit' .devcontainer/ncdd.generated.yml | awk '{print $2}')"
+          curl --fail --insecure --retry 20 --retry-all-errors \
+            --resolve "$mailpit_host:443:127.0.0.1" \
+            "https://$mailpit_host/api/v1/info"
+      - name: Test Playwright runner
+        run: |
+          docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            --profile playwright exec -T playwright \
+            node -e "require('http'); console.log(process.env.PLAYWRIGHT_BASE_URL)"
+      - name: Collect logs
+        if: failure()
+        run: |
+          docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            --profile playwright ps
+          docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            --profile playwright logs --no-color
+      - name: Stop environment
+        if: always()
+        run: |
+          docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            --profile playwright down --remove-orphans || true
