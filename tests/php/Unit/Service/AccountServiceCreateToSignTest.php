@@ -26,10 +26,6 @@ use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Mail\IEMailTemplate;
 
-/**
- * @internal
- * @group DB
- */
 final class AccountServiceCreateToSignTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testEmailFailureDoesNotCreateCertificate(): void {
 		$l10n = $this->createStub(IL10N::class);

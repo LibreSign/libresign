@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service\Install;
+namespace OCA\Libresign\Tests\Integration\Service\Install;
 
 use bovigo\vfs\vfsStream;
 use OC\IntegrityCheck\Helpers\EnvironmentHelper;
@@ -24,7 +24,7 @@ use OCP\ITempManager;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
-final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class SignSetupServiceTest extends \OCA\Libresign\Tests\Integration\AppDataTestCase {
 	private EnvironmentHelper&MockObject $environmentHelper;
 	private FileAccessHelper $fileAccessHelper;
 	private IConfig&MockObject $config;

@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Integration\Service;
 
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
@@ -30,7 +30,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 /**
  * @internal
  */
-final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private IdentifyMethodService $service;
 	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
 	private IL10N&MockObject $l10n;

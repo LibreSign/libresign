@@ -10,12 +10,103 @@ namespace OCA\Libresign\Tests\Unit\Service\Install;
 
 use OCA\Libresign\Service\Install\DependencyStorage;
 use OCA\Libresign\Service\Install\InstallTarget;
+use OCP\Files\AppData\IAppDataFactory;
+use OCP\Files\IAppData;
+use OCP\Files\NotFoundException;
+use OCP\Files\SimpleFS\ISimpleFile;
+use OCP\Files\SimpleFS\ISimpleFolder;
+use OCP\IConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 
+final class InMemoryDependencyPath {
+	public function __construct(
+		private string $internalPath,
+	) {
+	}
+
+	public function getInternalPath(): string {
+		return $this->internalPath;
+	}
+}
+
+final class InMemoryDependencyFolder implements ISimpleFolder {
+	public InMemoryDependencyPath $folder;
+
+	/** @var array<string, self> */
+	private array $folders = [];
+
+	public function __construct(
+		private string $name,
+		string $internalPath,
+	) {
+		$this->folder = new InMemoryDependencyPath($internalPath);
+	}
+
+	public function getDirectoryListing(): array {
+		return array_values($this->folders);
+	}
+
+	public function fileExists(string $name): bool {
+		return false;
+	}
+
+	public function getFile(string $name): ISimpleFile {
+		throw new NotFoundException();
+	}
+
+	public function newFile(string $name, $content = null): ISimpleFile {
+		throw new \LogicException('Files are not required by this test double.');
+	}
+
+	public function delete(): void {
+		$this->folders = [];
+	}
+
+	public function getName(): string {
+		return $this->name;
+	}
+
+	public function getFolder(string $name): ISimpleFolder {
+		if (!isset($this->folders[$name])) {
+			throw new NotFoundException();
+		}
+		return $this->folders[$name];
+	}
+
+	public function newFolder(string $path): ISimpleFolder {
+		$name = basename($path);
+		$internalPath = trim($this->folder->getInternalPath() . '/' . $path, '/');
+		return $this->folders[$name] = new self($name, $internalPath);
+	}
+
+	public function getOrCreateFolder(string $path, int $maxRetries = 5): ISimpleFolder {
+		$folder = $this;
+		foreach (array_filter(explode('/', $path), 'strlen') as $part) {
+			try {
+				$folder = $folder->getFolder($part);
+			} catch (NotFoundException) {
+				$folder = $folder->newFolder($part);
+			}
+		}
+		return $folder;
+	}
+}
+
 final class DependencyStorageTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/**
-	 * @runInSeparateProcess
-	 */
+	private function getStorage(): DependencyStorage {
+		$root = new InMemoryDependencyFolder('libresign', 'libresign');
+		$appData = $this->createMock(IAppData::class);
+		$appData->method('getFolder')->with('/')->willReturn($root);
+
+		$appDataFactory = $this->createMock(IAppDataFactory::class);
+		$appDataFactory->method('get')->with('libresign')->willReturn($appData);
+
+		$config = $this->createMock(IConfig::class);
+		$config->method('getSystemValue')->willReturn('');
+
+		return new DependencyStorage($appDataFactory, $config);
+	}
+
 	#[DataProvider('resourceFolderProvider')]
 	public function testResourceFolderUsesTarget(
 		string $architecture,
@@ -24,7 +115,7 @@ final class DependencyStorageTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		string $expectedFolderName,
 		string $expectedPathSuffix,
 	): void {
-		$storage = \OCP\Server::get(DependencyStorage::class);
+		$storage = $this->getStorage();
 		$target = InstallTarget::from($architecture, $distro);
 
 		$folder = $storage->resourceFolder($target, $path);
@@ -48,14 +139,11 @@ final class DependencyStorageTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	/**
-	 * @runInSeparateProcess
-	 */
 	public function testEmptyResourceFolderReplacesStaleContents(): void {
-		$storage = \OCP\Server::get(DependencyStorage::class);
+		$storage = $this->getStorage();
 		$target = InstallTarget::from('x86_64', 'linux');
 		$folder = $storage->resourceFolder($target, 'installer-stale-test');
-		$folder->newFile('old-file', 'old');
+		$folder->newFolder('old-folder');
 
 		$cleanFolder = $storage->resourceFolder(
 			$target,
@@ -66,14 +154,11 @@ final class DependencyStorageTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame([], $cleanFolder->getDirectoryListing());
 	}
 
-	/**
-	 * @runInSeparateProcess
-	 */
 	public function testEmptyJavaFolderKeepsArchitectureAndDistroParents(): void {
-		$storage = \OCP\Server::get(DependencyStorage::class);
+		$storage = $this->getStorage();
 		$target = InstallTarget::from('aarch64', 'alpine-linux');
 		$folder = $storage->resourceFolder($target, 'java');
-		$folder->newFile('old-java', 'old');
+		$folder->newFolder('old-folder');
 
 		$cleanFolder = $storage->resourceFolder($target, 'java', empty: true);
 

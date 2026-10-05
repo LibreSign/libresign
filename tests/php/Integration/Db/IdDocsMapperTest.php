@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Db;
+namespace OCA\Libresign\Tests\Integration\Db;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
@@ -19,7 +19,7 @@ use OCP\Server;
 /**
  * @group DB
  */
-final class IdDocsMapperTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class IdDocsMapperTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private FileMapper $fileMapper;
 	private IdDocsMapper $idDocsMapper;
 	private SignRequestMapper $signRequestMapper;

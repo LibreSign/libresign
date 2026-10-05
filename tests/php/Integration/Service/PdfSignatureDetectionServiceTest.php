@@ -6,13 +6,13 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Integration\Service;
 
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use OCA\Libresign\Service\PdfSignatureDetectionService;
 use OCA\Libresign\Tests\Fixtures\PdfFixtureCatalog;
 use OCA\Libresign\Tests\Fixtures\PdfGenerator;
-use OCA\Libresign\Tests\Unit\TestCase;
+use OCA\Libresign\Tests\Integration\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 
