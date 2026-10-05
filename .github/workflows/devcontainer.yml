@@ -119,13 +119,7 @@ jobs:
       - name: Collect container diagnostics
         if: failure()
         run: |
-          docker compose \
-            --file .devcontainer/ncdd.generated.yml \
-            --file .devcontainer/docker-compose.yml \
-            --profile playwright \
-            ps
-          docker compose \
-            --file .devcontainer/ncdd.generated.yml \
-            --file .devcontainer/docker-compose.yml \
-            --profile playwright \
-            logs --no-color --tail=200
+          docker ps --all
+          docker logs --tail=200 "$(docker ps -aq --filter name=nextcloud | head -n1)" || true
+          docker logs --tail=200 "$(docker ps -aq --filter name=nginx | head -n1)" || true
+          docker logs --tail=200 librecode-dev-proxy || true
