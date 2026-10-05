@@ -242,7 +242,7 @@ describe('Catalog.vue CRUD permissions rendering', () => {
 					},
 					CatalogCrudRulesTable: {
 						name: 'CatalogCrudRulesTable',
-						props: ['displayedCrudRows'],
+						props: ['displayedCrudRows', 'crudEmptyStateDescription'],
 						template: '<div class="catalog-crud-rules-table-stub" :data-rows="JSON.stringify(displayedCrudRows)" />',
 					},
 				},
@@ -253,6 +253,7 @@ describe('Catalog.vue CRUD permissions rendering', () => {
 
 		const crudTable = wrapper.findComponent({ name: 'CatalogCrudRulesTable' })
 		expect(crudTable.exists()).toBe(true)
+		expect(crudTable.props('crudEmptyStateDescription')).toBe('Create a rule to define a different value for specific groups or accounts.')
 
 		const displayedCrudRows = crudTable.props('displayedCrudRows') as Array<{ ruleId: string, canRemove: boolean, targetLabel: string }>
 		expect(displayedCrudRows).toEqual([
