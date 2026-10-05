@@ -63,6 +63,7 @@ OC.L10N.register(
     "Unknown" : "I panjohur",
     "Number of documents:" : "Numri i dokumenteve:",
     "Hide details" : "Fsheh detajet",
+    "Country:" : "Vend:",
     "No date" : "No date",
     "Yes" : "Yes",
     "No" : "Jo",
