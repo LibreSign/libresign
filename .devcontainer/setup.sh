@@ -31,7 +31,7 @@ environment_summary() {
 	local nextcloud_host="${NEXTCLOUD_HOST:-localhost}"
 
 	printf '\n'
-	printf '┌─ 💙 LibreSign environment ready ─────────────────────────\n'
+	printf '┌─ 💚 LibreSign environment ready ─────────────────────────\n'
 	printf '│\n'
 	printf '│ %-22s %s://%s\n' 'Nextcloud / LibreSign' "$protocol" "$nextcloud_host"
 	printf '│ %-22s %s\n' 'Mailpit (environment)' 'http://mailpit:8025'
