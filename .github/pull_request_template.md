@@ -1,12 +1,17 @@
 Resolves: # <!-- related GitHub issue -->
 
-## Summary
+## 📝 Summary
 
+<!--
 A concise description of what this PR does and why.
+Keep the scope focused on the linked issue.
+-->
 
-## How to test
+## 🧪 How to test
 
-Describe the shortest reproducible path to validate the changed behavior.
+<!--
+Testing instructions should be specific to this PR and describe the shortest
+reproducible path to validate the proposed changes.
 
 Example:
 1. Access the affected LibreSign screen or API.
@@ -14,67 +19,94 @@ Example:
 3. Apply the steps required by this PR.
 4. Verify the expected result.
 
-Include commands, fixtures, URLs, or setup details that a reviewer actually needs.
+Feel free to paste terminal commands, fixtures or URLs that help reviewers
+follow along.
+
 Generic development-environment setup belongs in the Developer Manual and
-`.devcontainer/README.md`, not in each PR.
+.devcontainer/README.md rather than being copied into every PR.
+-->
 
 ## Validation evidence
 
-List the checks that actually ran. Do not mark a check as completed when it was
-not executed.
+<!--
+List only checks that actually ran. Do not mark a check as completed when it
+was not executed.
+-->
 
 - [ ] Focused regression/acceptance test
 - [ ] Relevant lint/type/static-analysis checks
 - [ ] Broader suite required by the changed surface
 - [ ] CI reviewed
 
-## UI / front-end changes
+## 🎨 UI / Front-end changes
 
-<!-- Remove this section when the PR does not change user-visible UI. -->
+<!--
+Feel free to remove this section when your PR only affects backend/API code.
 
-- [ ] Describe the visible change
-- [ ] Screenshots before/after added when the UI changed
+Describe the visible changes below. For user-visible changes, screenshots are
+review evidence: include before/after images or links whenever a meaningful
+visual comparison is possible.
+-->
 
-| Before | After |
+- [ ] ... <!-- Describe the UI tasks performed here, e.g. layout adjustment or new feature -->
+- [ ] Screenshots before/after added for user-visible changes
+
+| 🏚️ Before | 🏡 After |
 | --- | --- |
 | Screenshot before | Screenshot after |
 
-<!-- Test and document both light and dark themes when the changed UI supports them. -->
+<!-- ☀️ Light theme | 🌑 Dark theme: test and document both when applicable. -->
 
-- [ ] Light and dark themes checked when applicable
-- [ ] Tested in relevant browsers when applicable
-- [ ] Component/unit and/or Playwright tests added or updated as appropriate
-- [ ] Accessibility checked when applicable
-- [ ] Design review linked when applicable
-- [ ] Documentation updated when the user-facing contract changed
+- [ ] Tested in relevant browsers (Chrome, Firefox, Safari) when applicable
+- [ ] Component/unit (Vitest) and/or E2E (Playwright) tests added or updated as appropriate
+- [ ] Accessibility verified (contrast, keyboard navigation, screen reader) when applicable
+- [ ] Design review approved when applicable <!-- Link to feedback/review -->
+- [ ] Documentation updated when applicable <!-- https://github.com/LibreSign/documentation/ -->
 
-## API / back-end changes
+### 🚧 Tasks
 
-<!-- Remove this section when the PR does not affect backend/API behavior. -->
-
-- [ ] Describe the API/service/architecture change
-- [ ] Unit and/or integration regression coverage added or updated
-- [ ] Authorization and negative paths checked when applicable
-- [ ] Capabilities updated when applicable
-- [ ] `composer openapi` run when the API contract changed
-- [ ] Documentation updated when the public or durable engineering contract changed
-
-## Tasks
-
-<!-- List real prerequisites or follow-up tasks required before merge. Remove when empty. -->
+<!--
+Add prerequisites that must be completed before this PR can be merged, such as
+updating a dependency or merging another PR. Remove this block when there are
+no prerequisites.
+-->
 
 - [ ] ...
 
-## Checklist
+## ⚙️ API / Back-end changes
 
-- [ ] I have read and followed [CONTRIBUTING.md](../CONTRIBUTING.md).
+<!--
+Feel free to remove this section when your PR only affects frontend/UI code.
+-->
+
+- [ ] ... <!-- Describe the API/service/architecture changes here -->
+- [ ] Unit and/or integration tests added or updated for backend behavior
+- [ ] Authorization and negative paths checked when applicable
+- [ ] Capabilities updated when applicable <!-- When adding/modifying Nextcloud capabilities -->
+- [ ] Documentation updated when applicable <!-- https://github.com/LibreSign/documentation/ -->
+- [ ] API documentation regenerated with `composer openapi` when necessary <!-- Generates openapi*.json -->
+
+### 🚧 Tasks
+
+<!--
+Add prerequisites that must be completed before this PR can be merged. Remove
+this block when there are no prerequisites.
+-->
+
+- [ ] ...
+
+## ✅ Checklist
+
+- [ ] I have read and followed the [contribution guide](../CONTRIBUTING.md).
 - [ ] The diff does not contain unrelated refactors or generated changes.
 - [ ] Commits follow Conventional Commits where applicable.
 - [ ] All commits include the required DCO sign-off.
 
-## AI assistance
+## 🤖 AI (if applicable)
 
-- [ ] This PR was partially or fully produced with AI assistance.
-
-AI-assisted contributions follow the same review, testing, and responsibility
+<!--
+AI-assisted contributions have the same review, testing and responsibility
 requirements as any other contribution.
+-->
+
+- [ ] The content of this PR was partially or fully generated using AI
