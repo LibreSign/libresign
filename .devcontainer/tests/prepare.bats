@@ -9,20 +9,27 @@ setup() {
 	OVERRIDE="$REPO_ROOT/.devcontainer/docker-compose.yml"
 }
 
+compose_json() {
+	docker compose 		--file "$GENERATED" 		--file "$OVERRIDE" 		--profile playwright 		config --format json
+}
+
 @test "prepare.sh renders a valid local NCDD configuration" {
 	run sh "$PREPARE"
 	[ "$status" -eq 0 ]
 
-	run grep -q "HOST_UID: $(id -u)" "$GENERATED"
-	[ "$status" -eq 0 ]
-
-	run grep -q "HOST_GID: $(id -g)" "$GENERATED"
-	[ "$status" -eq 0 ]
-
-	run grep -Eq 'NEXTCLOUD_HOST: ncdev-.*\.localhost' "$GENERATED"
-	[ "$status" -eq 0 ]
-
 	run docker compose 		--file "$GENERATED" 		--file "$OVERRIDE" 		--profile playwright 		config --quiet
+	[ "$status" -eq 0 ]
+
+	config="$(compose_json)"
+
+	run jq -e --arg uid "$(id -u)" 		'.services.nextcloud.environment.HOST_UID == $uid' <<<"$config"
+	[ "$status" -eq 0 ]
+
+	run jq -e --arg gid "$(id -g)" 		'.services.nextcloud.environment.HOST_GID == $gid' <<<"$config"
+	[ "$status" -eq 0 ]
+
+	run jq -e 		'.services.nextcloud.environment.NEXTCLOUD_HOST
+		 | test("^ncdev-.*\\.localhost$")' <<<"$config"
 	[ "$status" -eq 0 ]
 }
 
@@ -42,13 +49,15 @@ setup() {
 	run env 		LIBRESIGN_DB_TYPE=sqlite 		LIBRESIGN_NEXTCLOUD_VERSION=stable35 		sh "$PREPARE"
 	[ "$status" -eq 0 ]
 
-	run grep -q 'DB_TYPE: sqlite' "$GENERATED"
+	config="$(compose_json)"
+
+	run jq -e 		'.services.nextcloud.environment.DB_TYPE == "sqlite"' <<<"$config"
 	[ "$status" -eq 0 ]
 
-	run grep -q 'DB_DRIVER: sqlite' "$GENERATED"
+	run jq -e 		'.services.nextcloud.environment.DB_DRIVER == "sqlite"' <<<"$config"
 	[ "$status" -eq 0 ]
 
-	run grep -q 'VERSION_NEXTCLOUD: stable35' "$GENERATED"
+	run jq -e 		'.services.nextcloud.environment.VERSION_NEXTCLOUD == "stable35"' <<<"$config"
 	[ "$status" -eq 0 ]
 }
 
@@ -63,9 +72,12 @@ setup() {
 	run env 		CODESPACES=true 		CODESPACE_NAME=libresign-test 		GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN=app.github.dev 		sh "$PREPARE"
 	[ "$status" -eq 0 ]
 
-	run grep -q 'NEXTCLOUD_HOST: libresign-test-443.app.github.dev' "$GENERATED"
+	config="$(compose_json)"
+
+	run jq -e 		'.services.nextcloud.environment.NEXTCLOUD_HOST
+		 == "libresign-test-443.app.github.dev"' <<<"$config"
 	[ "$status" -eq 0 ]
 
-	run grep -q 'NEXTCLOUD_PROTOCOL: https' "$GENERATED"
+	run jq -e 		'.services.nextcloud.environment.NEXTCLOUD_PROTOCOL == "https"' <<<"$config"
 	[ "$status" -eq 0 ]
 }
