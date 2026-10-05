@@ -30,16 +30,7 @@ class Password extends AbstractSignatureMethod {
 
 	#[\Override]
 	public function validateToSign(): void {
-		$this->validateToIdentify();
-		try {
-			$certificateData = $this->pkcs12Handler
-				->setCertificate($this->pkcs12Handler->getPfxOfCurrentSigner($this->userSession->getUser()?->getUID()))
-				->setPassword($this->codeSentByUser)
-				->readCertificate();
-		} catch (InvalidPasswordException) {
-			throw new LibresignException($this->identifyService->getL10n()->t('Invalid user or password'));
-		}
-
+		$certificateData = $this->readCurrentSignerCertificate();
 		$this->validateCertificateRevocation($certificateData);
 		$this->validateCertificateExpiration($certificateData);
 	}

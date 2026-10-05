@@ -154,9 +154,7 @@ class EnvelopeAssembler {
 						}
 						$sha256 = $this->getSha256FromResource($resource);
 						rewind($resource);
-						if ($sha256 === $childFile->getSignedHash()) {
-							$this->pkcs12Handler->setIsLibreSignFile();
-						}
+						$this->pkcs12Handler->setIsLibreSignFile($sha256 === $childFile->getSignedHash());
 						$certData = $this->pkcs12Handler->getCertificateChain($resource);
 						fclose($resource);
 					}
