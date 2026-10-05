@@ -19,6 +19,23 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 15.0.7 - 2026-10-05
+
+### Changed
+- Update translations
+- Internal maintenance
+- Update dependencies
+- Fix npm audit
+  [#9002](https://github.com/LibreSign/libresign/pull/9002)
+
+### Fixed
+- keep signature rejection frozen after signing starts
+  [#8993](https://github.com/LibreSign/libresign/pull/8993)
+- fail closed when request policy state is missing
+  [#9011](https://github.com/LibreSign/libresign/pull/9011)
+- isolate PFX and certificate validation state
+  [#9018](https://github.com/LibreSign/libresign/pull/9018)
+
 ## 15.0.6 - 2026-10-01
 
 ### Changed
