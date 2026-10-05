@@ -34,10 +34,14 @@ jobs:
       - name: Verify local NCDD contract
         run: |
           sh .devcontainer/prepare.sh
-          docker compose             --file .devcontainer/ncdd.generated.yml             --file .devcontainer/docker-compose.yml             --profile playwright             config --quiet
+          docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            --profile playwright \
+            config --quiet
           grep -q "HOST_UID: $(id -u)" .devcontainer/ncdd.generated.yml
           grep -q "HOST_GID: $(id -g)" .devcontainer/ncdd.generated.yml
-          grep -Eq 'NEXTCLOUD_HOST: ncdev-.*\.localhost' .devcontainer/ncdd.generated.yml
+          grep -Eq 'NEXTCLOUD_HOST: ncdev-.*\\.localhost' .devcontainer/ncdd.generated.yml
 
       - name: Verify Codespaces NCDD contract
         env:
@@ -57,13 +61,20 @@ jobs:
 
       - name: Verify the created environment
         run: |
-          npx --yes @devcontainers/cli@0.89.0 exec --workspace-folder .             bash -lc "occ status | grep -q 'installed: true'"
-          npx --yes @devcontainers/cli@0.89.0 exec --workspace-folder .             bash -lc "occ app:list --enabled | grep -q libresign"
-          npx --yes @devcontainers/cli@0.89.0 exec --workspace-folder .             bash -lc "curl --fail --silent http://mailpit:8025/api/v1/info >/dev/null"
+          npx --yes @devcontainers/cli@0.89.0 exec --workspace-folder . \
+            bash -lc "occ status | grep -q 'installed: true'"
+          npx --yes @devcontainers/cli@0.89.0 exec --workspace-folder . \
+            bash -lc "occ app:list --enabled | grep -q libresign"
+          npx --yes @devcontainers/cli@0.89.0 exec --workspace-folder . \
+            bash -lc "curl --fail --silent http://mailpit:8025/api/v1/info >/dev/null"
 
       - name: Verify Playwright reaches Nextcloud through the proxy
         run: |
-          docker compose             --file .devcontainer/ncdd.generated.yml             --file .devcontainer/docker-compose.yml             --profile playwright             exec -T playwright node -e '
+          docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            --profile playwright \
+            exec -T playwright node -e '
               const https = require("https");
               const target = new URL(process.env.PLAYWRIGHT_BASE_URL + "/status.php");
               const request = https.get(target, { rejectUnauthorized: false }, response => {

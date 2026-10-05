@@ -20,6 +20,7 @@ wait_for_nextcloud() {
 
 add_safe_directory() {
 	local path="$1"
+
 	if ! git config --global --get-all safe.directory | grep -Fxq "$path"; then
 		git config --global --add safe.directory "$path"
 	fi
@@ -39,7 +40,13 @@ occ app:enable libresign
 occ libresign:install --use-local-cert --java
 occ libresign:install --use-local-cert --pdftk
 occ libresign:install --use-local-cert --jsignpdf
-occ libresign:configure:openssl 	--cn=CommonName 	--c=BR 	--ou=OrganizationUnit 	--st=RioDeJaneiro 	--o=LibreSign 	--l=RioDeJaneiro
+occ libresign:configure:openssl \
+	--cn=CommonName \
+	--c=BR \
+	--ou=OrganizationUnit \
+	--st=RioDeJaneiro \
+	--o=LibreSign \
+	--l=RioDeJaneiro
 
 occ theming:config name "LibreSign"
 occ theming:config url "https://libresign.coop"

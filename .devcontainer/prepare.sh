@@ -7,12 +7,16 @@ set -eu
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 ncdd_dir="$repo_root/.devcontainer/.nextcloud-docker-development"
 generated_compose="$repo_root/.devcontainer/ncdd.generated.yml"
-ncdd_commit="44a5d63669391769ff24ffd208b86c79e04746e9"
+ncdd_commit="b33c4dee93a4d41ce856e7480c871cf1171b3cbb"
 
 prepare_ncdd() {
 	if [ ! -d "$ncdd_dir/.git" ]; then
 		rm -rf "$ncdd_dir"
-		git clone --filter=blob:none --no-checkout 			https://github.com/LibreCodeCoop/nextcloud-docker-development.git 			"$ncdd_dir"
+		git clone \
+			--filter=blob:none \
+			--no-checkout \
+			https://github.com/LibreCodeCoop/nextcloud-docker-development.git \
+			"$ncdd_dir"
 	fi
 
 	if ! git -C "$ncdd_dir" cat-file -e "$ncdd_commit^{commit}" 2>/dev/null; then
@@ -32,13 +36,22 @@ render_compose() {
 	tmp="$generated_compose.tmp.$$"
 	trap 'rm -f "$tmp"' EXIT HUP INT TERM
 
-	set -- env 		DB_TYPE="${LIBRESIGN_DB_TYPE:-mariadb}" 		MARIADB_VERSION="${LIBRESIGN_MARIADB_VERSION:-10.6}" 		PHP_VERSION="${LIBRESIGN_PHP_VERSION:-83}" 		VERSION_NEXTCLOUD="${LIBRESIGN_NEXTCLOUD_VERSION:-master}" 		COMPOSE_PROFILES=playwright
+	set -- env \
+		HOST_UID="$(id -u)" \
+		HOST_GID="$(id -g)" \
+		DB_TYPE="${LIBRESIGN_DB_TYPE:-mariadb}" \
+		MARIADB_VERSION="${LIBRESIGN_MARIADB_VERSION:-10.6}" \
+		PHP_VERSION="${LIBRESIGN_PHP_VERSION:-83}" \
+		VERSION_NEXTCLOUD="${LIBRESIGN_NEXTCLOUD_VERSION:-master}" \
+		COMPOSE_PROFILES=playwright
 
 	if [ "${CODESPACES:-}" = "true" ]; then
 		: "${CODESPACE_NAME:?CODESPACE_NAME is required in Codespaces}"
 		: "${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:?GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN is required in Codespaces}"
 
-		set -- "$@" 			NEXTCLOUD_HOST="${CODESPACE_NAME}-443.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}" 			NEXTCLOUD_PROTOCOL=https
+		set -- "$@" \
+			NEXTCLOUD_HOST="${CODESPACE_NAME}-443.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}" \
+			NEXTCLOUD_PROTOCOL=https
 	fi
 
 	"$@" sh "$ncdd_dir/dev-worker" "$id" config > "$tmp"
@@ -47,5 +60,4 @@ render_compose() {
 }
 
 prepare_ncdd
-id="$(worker_id)"
-render_compose "$id"
+render_compose "$(worker_id)"
