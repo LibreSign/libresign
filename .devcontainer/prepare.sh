@@ -4,7 +4,7 @@
 
 set -eu
 
-repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 ncdd_dir="$repo_root/.devcontainer/.nextcloud-docker-development"
 generated_compose="$repo_root/.devcontainer/ncdd.generated.yml"
 ncdd_commit="b33c4dee93a4d41ce856e7480c871cf1171b3cbb"
