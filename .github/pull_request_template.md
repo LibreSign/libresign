@@ -1,124 +1,53 @@
-Resolves: # <!-- related github issue -->
+Resolves: # <!-- related GitHub issue -->
 
-## 📝 Summary
+## Summary
 
-A concise description of what this PR does and why.
+Describe what this PR changes and why. Keep the scope focused on the linked issue.
 
-## 🧪 How to test
-<!--
-IMPORTANT: The "How to see this running using GitHub Codespaces" details block SHOULD NOT be included in the final template.
-Testing instructions should be written specifically for each PR,
-describing the steps needed to validate the proposed changes.
+## How to test
 
-Example:
-1. Access the signatures page
-2. Upload a test PDF
-3. Click "Sign" and verify the modal opens correctly
-4. Confirm the signature was applied
+Describe the shortest reproducible path to validate the changed behavior.
 
-Feel free to paste terminal commands or URLs that help reviewers follow along.
--->
+Include commands, fixtures, URLs, or setup details that a reviewer actually needs. Do not copy generic environment setup here; the development environment is documented in the Developer Manual and `.devcontainer/README.md`.
 
-<details>
-<summary>How to see this running using GitHub Codespaces</summary>
+## Validation evidence
 
-### 1. Open the Codespace
-- Authenticate to GitHub
-- Go to the branch: [chore/reduce-configure-check-time](https://github.com/LibreSign/libresign/tree/chore/reduce-configure-check-time)
-- Click the `Code` button and select the `Codespaces` tab.
-- Click **"Create codespace on feat/customize-signature-stamp"**
+List the checks that actually ran. Do not mark a check as completed when it was not executed.
 
-### 2. Wait for the environment to start
-- A progress bar will appear on the left.
-- After that, the terminal will show the build process.
-- Wait until you see the message:
-  ```bash
-  ✍️ LibreSign is up!
-  ```
-  This may take a few minutes.
+- [ ] Focused regression/acceptance test
+- [ ] Relevant lint/type/static-analysis checks
+- [ ] Broader suite required by the changed surface
+- [ ] CI reviewed
 
-### 3. Access LibreSign in the browser
-- Open the **Ports** tab (next to the **Terminal**).
-- Look for the service running on port **80**.
-- Hover over the URL and click the **globe icon** 🌐 to open it in your browser.
+## UI / front-end changes
 
-### 4. (Optional) Make the service public
-- If you want to share the app with people **not logged in to GitHub**, you must change the port visibility:
-  - Click the three dots `⋮` on the row for port 80.
-  - Select `Change visibility` → `Public`.
+<!-- Remove this section when not applicable. -->
 
-### 5. Login credentials
-- **Username**: `admin`
-- **Password**: `admin`
+- [ ] Screenshots or recordings added when they help review the change
+- [ ] Light and dark themes checked when applicable
+- [ ] Accessibility impact checked when applicable
+- [ ] Vitest and/or Playwright coverage added or updated when appropriate
+- [ ] Documentation updated when the user-facing contract changed
 
-Done! 🎉
-You're now ready to test this.
-</details>
+## API / back-end changes
 
-## 🎨 UI / Front‑end changes
+<!-- Remove this section when not applicable. -->
 
-<!--
- █████  █████ █████
-▒▒███  ▒▒███ ▒▒███
- ▒███   ▒███  ▒███
- ▒███   ▒███  ▒███
- ▒███   ▒███  ▒███
- ▒███   ▒███  ▒███
- ▒▒████████   █████
-  ▒▒▒▒▒▒▒▒   ▒▒▒▒▒
+- [ ] Unit and/or integration regression coverage added or updated
+- [ ] Authorization and negative paths checked when applicable
+- [ ] Capabilities updated when applicable
+- [ ] `composer openapi` run when the API contract changed
+- [ ] Documentation updated when the public or durable engineering contract changed
 
-Feel free to remove this section when your PR only affects the backend/API code.
--->
+## Checklist
 
-- [ ] ... <!-- Describe the tasks performed here (e.g., layout adjustment, new feature X) -->
-- [ ] Screenshots before/after (add images or links)
+- [ ] I have read and followed [CONTRIBUTING.md](../CONTRIBUTING.md).
+- [ ] The diff does not contain unrelated refactors or generated changes.
+- [ ] Commits follow Conventional Commits where applicable.
+- [ ] All commits include the required DCO sign-off.
 
-🏚️ Before | 🏡 After
---- | ---
-Screenshot before | Screenshot after
+## AI assistance
 
-<!-- ☀️ Light theme | 🌑 Dark theme → Please test and document both themes -->
+- [ ] This PR was partially or fully produced with AI assistance.
 
-- [ ] Tested in multiple browsers (Chrome, Firefox, Safari) – *optional but appreciated*
-- [ ] Components, Unit (with vitest) and/or e2e (with Playwright) tests added - *Required*
-- [ ] Accessibility verified (contrast, keyboard navigation, screen reader friendly) – *if applicable*
-- [ ] Design review approved – *optional, link to feedback if available*
-- [ ] Documentation updated (if applicable) – [docs repository](https://github.com/LibreSign/documentation/)
-
-### 🚧 Tasks
-<!-- Add here the list of tasks that is necessary to do before merge this PR. As example: update the package X, merge the PR y. If isn't necessary, fell free to remove this block -->
-- [ ] ...
-
-## ⚙️ API / Back‑end changes
-
-<!--
-   █████████   ███████████  █████
-  ███▒▒▒▒▒███ ▒▒███▒▒▒▒▒███▒▒███
- ▒███    ▒███  ▒███    ▒███ ▒███
- ▒███████████  ▒██████████  ▒███
- ▒███▒▒▒▒▒███  ▒███▒▒▒▒▒▒   ▒███
- ▒███    ▒███  ▒███         ▒███
- █████   █████ █████        █████
-▒▒▒▒▒   ▒▒▒▒▒ ▒▒▒▒▒        ▒▒▒▒▒
-
-Feel free to remove this section when your PR only affects the frontend/UI code.
--->
-
-- [ ] ... <!-- Describe the API/service/architecture changes here -->
-- [ ] Unit and/or integration tests added – *required for backend changes*
-- [ ] Capabilities updated (if applicable) – if adding/modifying Nextcloud capabilities
-- [ ] Documentation updated (if applicable) - [docs repository](https://github.com/LibreSign/documentation)
-- [ ] API documentation updated with the command `composer openapi` if necessary <!-- This generates the openapi.json file -->
-
-### 🚧 Tasks
-<!-- Add here the list of tasks that is necessary to do before merge this PR. As example: update the package X, merge the PR y. If isn't necessary, fell free to remove this block -->
-- [ ] ...
-
-## ✅ Checklist
-
-- [ ] I have read and followed the [contribution guide](CONTRIBUTING.md).
-- [ ] ... (list your own tasks here)
-
-## 🤖 AI (if applicable)
-
-- [ ] The content of this PR was partially or fully generated using AI
+AI-assisted contributions follow the same review, testing, and responsibility requirements as any other contribution.
