@@ -15,7 +15,9 @@ use OCA\Libresign\Db\PermissionSetBinding;
 use OCA\Libresign\Db\PermissionSetBindingMapper;
 use OCA\Libresign\Db\PermissionSetMapper;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\Contract\IPolicySource;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
@@ -43,6 +45,7 @@ use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyManagedValue;
 use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
+use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
 use OCA\Libresign\Tests\Unit\TestCase;
@@ -620,15 +623,15 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame('ordered_numeric', $result[0]['policy']->getValue());
 	}
 
-	public function testSaveSystemPolicyDeletesAppConfigWhenValueMatchesDefault(): void {
+	public function testSaveSystemPolicyPersistsAnEnforcedDefault(): void {
 		$this->setStoredAppConfigString('policy.signature_flow.system', 'ordered_numeric');
 		$this->setStoredAppConfigString('policy.signature_flow.system.allow_child_override', '1');
 
 		$source = $this->getSource();
 		$source->saveSystemPolicy('signature_flow', 'none');
 
-		$this->assertAppConfigMissing('policy.signature_flow.system');
-		$this->assertAppConfigMissing('policy.signature_flow.system.allow_child_override');
+		$this->assertStoredAppConfigString('policy.signature_flow.system', 'none');
+		$this->assertStoredAppConfigString('policy.signature_flow.system.allow_child_override', '0');
 	}
 
 	public function testClearSystemPolicyDeletesStoredSystemConfig(): void {
@@ -658,7 +661,7 @@ final class PolicySourceTest extends TestCase {
 		$this->assertStoredAppConfigString('policy.signature_flow.system.allow_child_override', '1');
 	}
 
-	public function testSaveSystemPolicyDeletesIdentifyMethodsWhenValueMatchesServiceDefault(): void {
+	public function testSaveSystemPolicyKeepsIdentifyMethodsEqualToTheServiceDefaultAsAnExplicitRule(): void {
 		$this->setStoredAppConfigArray(IdentifyMethodsPolicy::SYSTEM_APP_CONFIG_KEY, [
 			[
 				'name' => 'account',
@@ -685,8 +688,8 @@ final class PolicySourceTest extends TestCase {
 			false,
 		);
 
-		$this->assertAppConfigMissing(IdentifyMethodsPolicy::SYSTEM_APP_CONFIG_KEY);
-		$this->assertAppConfigMissing(IdentifyMethodsPolicy::SYSTEM_APP_CONFIG_KEY . '.allow_child_override');
+		$this->assertTrue($this->coreAppConfig->hasKey(Application::APP_ID, IdentifyMethodsPolicy::SYSTEM_APP_CONFIG_KEY));
+		$this->assertStoredAppConfigString(IdentifyMethodsPolicy::SYSTEM_APP_CONFIG_KEY . '.allow_child_override', '0');
 	}
 
 	#[DataProvider('providerSaveSystemPolicyBusinessRules')]
@@ -694,20 +697,11 @@ final class PolicySourceTest extends TestCase {
 		string $policyKey,
 		string $inputValue,
 		bool $allowChildOverride,
-		bool $expectDelete,
 		string $expectedValue,
 		string $expectedAppConfigKey,
 		string $expectedAllowOverrideValue,
 	): void {
 		$source = $this->getSource();
-
-		if ($expectDelete) {
-			$source->saveSystemPolicy($policyKey, $inputValue, $allowChildOverride);
-
-			$this->assertAppConfigMissing($expectedAppConfigKey);
-			$this->assertAppConfigMissing($expectedAppConfigKey . '.allow_child_override');
-			return;
-		}
 
 		$source->saveSystemPolicy($policyKey, $inputValue, $allowChildOverride);
 
@@ -715,14 +709,13 @@ final class PolicySourceTest extends TestCase {
 		$this->assertStoredAppConfigString($expectedAppConfigKey . '.allow_child_override', $expectedAllowOverrideValue);
 	}
 
-	/** @return array<string, array{0: string, 1: string, 2: bool, 3: bool, 4: string, 5: string, 6: string}> */
+	/** @return array<string, array{0: string, 1: string, 2: bool, 3: string, 4: string, 5: string}> */
 	public static function providerSaveSystemPolicyBusinessRules(): array {
 		return [
-			'deletes_when_value_matches_default_and_override_disabled' => [
+			'persists_explicit_default_when_override_disabled' => [
 				SignatureFlowPolicy::KEY,
 				'none',
 				false,
-				true,
 				'none',
 				'policy.signature_flow.system',
 				'0',
@@ -731,16 +724,14 @@ final class PolicySourceTest extends TestCase {
 				SignatureFlowPolicy::KEY,
 				'none',
 				true,
-				false,
 				'none',
 				'policy.signature_flow.system',
 				'1',
 			],
-			'deletes_when_json_is_semantically_equal_to_default' => [
+			'persists_json_semantically_equal_to_default' => [
 				ApprovalGroupsPolicy::KEY,
 				'[ "admin" ]',
 				false,
-				true,
 				'["admin"]',
 				ApprovalGroupsPolicy::SYSTEM_APP_CONFIG_KEY,
 				'0',
@@ -749,12 +740,83 @@ final class PolicySourceTest extends TestCase {
 				SignatureFlowPolicy::KEY,
 				'ordered_numeric',
 				false,
-				false,
 				'ordered_numeric',
 				'policy.signature_flow.system',
 				'0',
 			],
 		];
+	}
+
+	/**
+	 * The stored system rule decides whether a lower layer that disagrees
+	 * changes the effective value; checking the layer alone would not prove it.
+	 */
+	#[DataProvider('providerExplicitSystemRules')]
+	public function testTheSystemRuleDecidesWhetherALowerLayerChangesTheEffectiveValue(
+		?string $storedValue,
+		?string $storedAllowChildOverride,
+		string $conflictingScope,
+		string $expectedEffectiveValue,
+	): void {
+		if ($storedValue !== null) {
+			$this->setStoredAppConfigString('policy.signature_flow.system', $storedValue);
+		}
+		if ($storedAllowChildOverride !== null) {
+			$this->setStoredAppConfigString('policy.signature_flow.system.allow_child_override', $storedAllowChildOverride);
+		}
+		$conflictingLayer = (new PolicyLayer())
+			->setScope($conflictingScope === 'group' ? 'group' : 'user')
+			->setValue('ordered_numeric')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+
+		$source = $this->createMock(IPolicySource::class);
+		$source->method('loadSystemPolicy')->willReturn($this->getSource()->loadSystemPolicy(SignatureFlowPolicy::KEY));
+		$source->method('loadGroupPolicies')->willReturn($conflictingScope === 'group' ? [$conflictingLayer] : []);
+		$source->method('loadUserPolicy')->willReturn($conflictingScope === 'user_policy' ? $conflictingLayer : null);
+
+		$resolved = (new DefaultPolicyResolver($source))->resolve(
+			$this->registry->get(SignatureFlowPolicy::KEY),
+			PolicyContext::fromUserId('john'),
+		);
+
+		$this->assertSame($expectedEffectiveValue, $resolved->getEffectiveValue());
+	}
+
+	/** @return iterable<string, array{0: ?string, 1: ?string, 2: string, 3: string}> */
+	public static function providerExplicitSystemRules(): iterable {
+		foreach (['group', 'user_policy'] as $conflictingScope) {
+			yield "no explicit rule, $conflictingScope wins" => [null, null, $conflictingScope, 'ordered_numeric'];
+			yield "explicit default enforced, $conflictingScope ignored" => ['none', '0', $conflictingScope, 'none'];
+			yield "explicit default overridable, $conflictingScope wins" => ['none', '1', $conflictingScope, 'ordered_numeric'];
+			yield "explicit value enforced, $conflictingScope ignored" => ['parallel', '0', $conflictingScope, 'parallel'];
+			yield "explicit value overridable, $conflictingScope wins" => ['parallel', '1', $conflictingScope, 'ordered_numeric'];
+			yield "legacy default without override flag, $conflictingScope wins" => ['none', null, $conflictingScope, 'ordered_numeric'];
+		}
+	}
+
+	public function testAnEnforcedDefaultSavedThroughTheSourceIsReadBackEnforced(): void {
+		$source = $this->getSource();
+		$source->saveSystemPolicy(SignatureFlowPolicy::KEY, 'none', false);
+
+		$layer = $source->loadSystemPolicy(SignatureFlowPolicy::KEY);
+
+		$this->assertNotNull($layer);
+		$this->assertSame('global', $layer->getScope());
+		$this->assertSame('none', $layer->getValue());
+		$this->assertFalse($layer->isAllowChildOverride());
+		$this->assertSame(['none'], $layer->getAllowedValues());
+	}
+
+	public function testALegacyDefaultWithoutOverrideFlagStaysOverridable(): void {
+		$this->setStoredAppConfigString('policy.signature_flow.system', 'none');
+
+		$layer = $this->getSource()->loadSystemPolicy(SignatureFlowPolicy::KEY);
+
+		$this->assertNotNull($layer);
+		$this->assertSame('global', $layer->getScope());
+		$this->assertTrue($layer->isAllowChildOverride());
+		$this->assertSame([], $layer->getAllowedValues());
 	}
 
 	public function testLoadSystemPolicyRespectsPersistedAllowChildOverride(): void {
