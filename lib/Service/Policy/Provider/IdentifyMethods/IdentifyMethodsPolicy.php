@@ -45,6 +45,8 @@ final class IdentifyMethodsPolicy implements IPolicyDefinitionProvider {
 				allowedValues: static fn (): array => [],
 				normalizer: fn (mixed $rawValue): array => IdentifyMethodsPolicyValue::normalize($rawValue, $identifyMethodService),
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
+				supportsRequestOverride: true,
+				requestLifecycle: PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT,
 				groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
 					$actorRole = $context->getActorRole();
 					if ($actorRole->canManageSystemPolicies) {

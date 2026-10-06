@@ -37,7 +37,7 @@ class FooterHandler {
 
 	private QrCode $qrCode;
 	/** @var array<string, mixed> */
-	private array $requestPolicyOverrides = [];
+	private array $storedRequestPolicyOverrides = [];
 	private ?string $templateOverride = null;
 	private ?bool $writeQrcodeOnFooterOverride = null;
 	private const int MIN_QRCODE_SIZE = 100;
@@ -121,9 +121,9 @@ class FooterHandler {
 		return $this;
 	}
 
-	/** @param array<string, mixed> $requestPolicyOverrides */
-	public function setRequestPolicyOverrides(array $requestPolicyOverrides): self {
-		$this->requestPolicyOverrides = $requestPolicyOverrides;
+	/** @param array<string, mixed> $storedRequestPolicyOverrides */
+	public function setStoredRequestPolicyOverrides(array $storedRequestPolicyOverrides): self {
+		$this->storedRequestPolicyOverrides = $storedRequestPolicyOverrides;
 		return $this;
 	}
 
@@ -138,13 +138,13 @@ class FooterHandler {
 	}
 
 	public function getEffectiveFooterPolicyAsJson(): string {
-		return (string)$this->policyService->resolve(FooterPolicy::KEY, $this->requestPolicyOverrides)->getEffectiveValue();
+		return (string)$this->policyService->resolveWithStoredRequestOverrides(FooterPolicy::KEY, $this->storedRequestPolicyOverrides)->getEffectiveValue();
 	}
 
 	/** @return array{enabled: bool, writeQrcodeOnFooter: bool, validationSite: string, customizeFooterTemplate: bool, footerTemplate: string, previewWidth: int, previewHeight: int, previewZoom: int} */
 	private function resolveFooterPolicy(): array {
 		return FooterPolicyValue::normalize(
-			$this->policyService->resolve(FooterPolicy::KEY, $this->requestPolicyOverrides)->getEffectiveValue()
+			$this->policyService->resolveWithStoredRequestOverrides(FooterPolicy::KEY, $this->storedRequestPolicyOverrides)->getEffectiveValue()
 		);
 	}
 
@@ -256,7 +256,7 @@ class FooterHandler {
 
 	private function isFooterEnabled(): bool {
 		return FooterPolicyValue::isEnabled(
-			$this->policyService->resolve(FooterPolicy::KEY, $this->requestPolicyOverrides)->getEffectiveValue()
+			$this->policyService->resolveWithStoredRequestOverrides(FooterPolicy::KEY, $this->storedRequestPolicyOverrides)->getEffectiveValue()
 		);
 	}
 }

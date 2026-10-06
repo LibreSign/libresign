@@ -35,6 +35,8 @@ final class WorkerConfigPolicy implements IPolicyDefinitionProvider {
 			normalizer: fn (mixed $rawValue): string => $this->encodeNormalized($rawValue),
 			appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 			supportsUserPreference: false,
+			supportsRequestOverride: false,
+			requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,
 			supportedScopes: [PolicySpec::SCOPE_SYSTEM],
 			helper: true,
 			parentPolicyKey: SigningModePolicy::KEY_SIGNING_MODE,

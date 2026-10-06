@@ -93,6 +93,138 @@ describe('expiration rules workbench', () => {
 		expect(saveSystemPolicy).not.toHaveBeenCalledWith('renewal_interval', 300, true)
 	})
 
+	it('rejects invalid maximumValidity (-1) in unified draft and prevents saveSystemPolicy', async () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'maximum_validity' || key === 'renewal_interval') {
+				return { effectiveValue: 86400, sourceScope: 'system' }
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('maximum_validity')
+		state.startEditor({ scope: 'system' })
+		state.updateDraftValue({
+			maximumValidity: -1,
+			renewalInterval: 0,
+		} as never)
+
+		expect(state.canSaveDraft).toBe(false)
+		await state.saveDraft()
+		expect(saveSystemPolicy).not.toHaveBeenCalled()
+	})
+
+	it('rejects decimal maximumValidity (1.5) in unified draft and prevents saveSystemPolicy', async () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'maximum_validity' || key === 'renewal_interval') {
+				return { effectiveValue: 86400, sourceScope: 'system' }
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('maximum_validity')
+		state.startEditor({ scope: 'system' })
+		state.updateDraftValue({
+			maximumValidity: 1.5,
+			renewalInterval: 0,
+		} as never)
+
+		expect(state.canSaveDraft).toBe(false)
+		await state.saveDraft()
+		expect(saveSystemPolicy).not.toHaveBeenCalled()
+	})
+
+	it('rejects malformed maximumValidity ("invalid") in unified draft and prevents saveSystemPolicy', async () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'maximum_validity' || key === 'renewal_interval') {
+				return { effectiveValue: 86400, sourceScope: 'system' }
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('maximum_validity')
+		state.startEditor({ scope: 'system' })
+		state.updateDraftValue({
+			maximumValidity: 'invalid',
+			renewalInterval: 0,
+		} as never)
+
+		expect(state.canSaveDraft).toBe(false)
+		await state.saveDraft()
+		expect(saveSystemPolicy).not.toHaveBeenCalled()
+	})
+
+	it('rejects unsafe maximumValidity (MAX_SAFE_INTEGER + 1) in unified draft and prevents saveSystemPolicy', async () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'maximum_validity' || key === 'renewal_interval') {
+				return { effectiveValue: 86400, sourceScope: 'system' }
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('maximum_validity')
+		state.startEditor({ scope: 'system' })
+		state.updateDraftValue({
+			maximumValidity: Number.MAX_SAFE_INTEGER + 1,
+			renewalInterval: 0,
+		} as never)
+
+		expect(state.canSaveDraft).toBe(false)
+		await state.saveDraft()
+		expect(saveSystemPolicy).not.toHaveBeenCalled()
+	})
+
+	it('rejects invalid renewalInterval (-1) in unified draft and prevents saveSystemPolicy', async () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'maximum_validity' || key === 'renewal_interval') {
+				return { effectiveValue: 86400, sourceScope: 'system' }
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('maximum_validity')
+		state.startEditor({ scope: 'system' })
+		state.updateDraftValue({
+			maximumValidity: 86400,
+			renewalInterval: -1,
+		} as never)
+
+		expect(state.canSaveDraft).toBe(false)
+		await state.saveDraft()
+		expect(saveSystemPolicy).not.toHaveBeenCalled()
+	})
+
+	it('rejects decimal renewalInterval (1.5) in unified draft and prevents saveSystemPolicy', async () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'maximum_validity' || key === 'renewal_interval') {
+				return { effectiveValue: 86400, sourceScope: 'system' }
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('maximum_validity')
+		state.startEditor({ scope: 'system' })
+		state.updateDraftValue({
+			maximumValidity: 60,
+			renewalInterval: 1.5,
+		} as never)
+
+		expect(state.canSaveDraft).toBe(false)
+		await state.saveDraft()
+		expect(saveSystemPolicy).not.toHaveBeenCalled()
+	})
+
 	it('hydrates unified request expiration group rules from both persisted keys', async () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'maximum_validity') {

@@ -83,6 +83,21 @@ interface IPolicyDefinition {
 	public function supportsUserPreference(): bool;
 
 	/**
+	 * Whether a signature request may carry its own value for this policy.
+	 * Decided independently of supportsUserPreference(): a value accepted for
+	 * one request is not necessarily one the user may save as a personal default.
+	 */
+	public function supportsRequestOverride(): bool;
+
+	/**
+	 * PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT when the value belongs to the
+	 * signature request: it is stored on the request and kept once the request
+	 * enters the signing flow. PolicySpec::LIFECYCLE_RUNTIME when it is read from
+	 * the current policy whenever it is needed, so a change reaches sent requests.
+	 */
+	public function requestLifecycle(): string;
+
+	/**
 	 * Whether group-level rules for this policy should be filtered from counts and listings
 	 * for the current non-system actor when they were created by a system administrator.
 	 */

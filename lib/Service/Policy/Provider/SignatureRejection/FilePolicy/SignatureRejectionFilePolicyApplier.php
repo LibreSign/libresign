@@ -10,7 +10,6 @@ namespace OCA\Libresign\Service\Policy\Provider\SignatureRejection\FilePolicy;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\Policy\AbstractFilePolicyApplier;
@@ -32,13 +31,14 @@ use OCP\IUser;
  * above allow. What comes out is frozen on the document, one snapshot entry per
  * setting, and is the effective configuration for the whole signing flow.
  *
- * While the request is still a draft the requester may change their choices,
- * and the draft is revalidated against the current administrative policy on
- * every update: a choice the administrator no longer allows is dropped in
- * favor of what is now inherited, so a workflow never starts under a rule that
- * has been revoked. Once the flow starts the stored configuration is frozen: it
- * can no longer change, but a client resending the values the request already
- * has stays an idempotent update rather than an error.
+ * While the request is still a draft that was never sent the requester may
+ * change their choices, and the draft is revalidated against the current
+ * administrative policy on every update: a choice the administrator no longer
+ * allows is dropped in favor of what is now inherited, so a workflow never
+ * starts under a rule that has been revoked. Once the flow starts the stored
+ * configuration is frozen, even if the request later returns to draft: it can
+ * no longer change, but a client resending the values the request already has
+ * stays an idempotent update rather than an error.
  */
 class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 	private readonly ?SignatureRejectionPolicyService $storedValueReader;
@@ -50,7 +50,7 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 		?IL10N $l10n = null,
 		?FileMapper $fileMapper = null,
 	) {
-		parent::__construct($policyService, $fileService, $l10n);
+		parent::__construct($policyService, $fileService, $l10n, $fileMapper);
 		$this->storedValueReader = $fileMapper === null
 			? null
 			: new SignatureRejectionPolicyService($fileMapper);
@@ -70,7 +70,6 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 					? $this->policyService->resolveForUser($policyKey, $user, $overrides)
 					: $this->policyService->resolveForUser($policyKey, $user, $overrides, $activeContext),
 			$submittedValues,
-			$submittedValues,
 		);
 	}
 
@@ -78,7 +77,7 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 	public function sync(FileEntity $file, array $data): void {
 		$submittedValues = $this->readSubmittedValues($data);
 
-		if ($this->hasSigningFlowStarted($file)) {
+		if ($this->isPolicySnapshotFrozen($file, ...SignatureRejectionPolicy::ALL_KEYS)) {
 			$this->assertFrozenConfigurationIsKept($file, $submittedValues);
 
 			// The configuration is frozen: an identical resend or a value-less
@@ -101,11 +100,10 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 		$this->storeConfiguration(
 			$file,
 			$data,
-			$this->resolverForUserId($file),
 			// A draft keeps the choices the requester already made, but they are
 			// resolved again: one the administrator no longer allows falls back to
 			// what the document now inherits.
-			$submittedValues + $this->readRequesterChoices($file),
+			$this->resolverForUserId($file, $this->readRequesterChoices($file)),
 			$submittedValues,
 		);
 
@@ -124,14 +122,12 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 	 * the layers above do not allow, and freeze the result on the document.
 	 *
 	 * @param callable(string, array<string, mixed>, ?array<string, mixed>): ResolvedPolicy $resolve
-	 * @param array<string, mixed> $overrides Choices to resolve with
 	 * @param array<string, mixed> $submittedValues Choices sent with this very request
 	 */
 	private function storeConfiguration(
 		FileEntity $file,
 		array $data,
 		callable $resolve,
-		array $overrides,
 		array $submittedValues,
 	): void {
 		$activeContext = $this->extractActiveContext($data);
@@ -140,7 +136,7 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 		$resolvedPolicies = [];
 		$resolvedValues = [];
 		foreach (SignatureRejectionPolicy::ALL_KEYS as $policyKey) {
-			$resolvedPolicy = $resolve($policyKey, $overrides, $activeContext);
+			$resolvedPolicy = $resolve($policyKey, $submittedValues, $activeContext);
 			$resolvedPolicies[$policyKey] = $resolvedPolicy;
 			$resolvedValues[$policyKey] = $resolvedPolicy->getEffectiveValue();
 		}
@@ -208,15 +204,26 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 
 	/**
 	 * Updating an existing request resolves from the stored owner, exactly like
-	 * every other file policy applier.
+	 * every other file policy applier. A choice the document already stores and
+	 * that this request does not send again is replayed, not treated as a new
+	 * choice of whoever updates the request now.
 	 *
+	 * @param array<string, mixed> $requesterChoices
 	 * @return callable(string, array<string, mixed>, ?array<string, mixed>): ResolvedPolicy
 	 */
-	private function resolverForUserId(FileEntity $file): callable {
-		return fn (string $policyKey, array $overrides, ?array $activeContext): ResolvedPolicy
-			=> $activeContext === null
+	private function resolverForUserId(FileEntity $file, array $requesterChoices): callable {
+		return function (string $policyKey, array $overrides, ?array $activeContext) use ($file, $requesterChoices): ResolvedPolicy {
+			if (!array_key_exists($policyKey, $overrides) && array_key_exists($policyKey, $requesterChoices)) {
+				$storedChoice = [$policyKey => $requesterChoices[$policyKey]];
+				return $activeContext === null
+					? $this->policyService->resolveForUserIdWithStoredRequestOverrides($policyKey, $file->getUserId(), $storedChoice)
+					: $this->policyService->resolveForUserIdWithStoredRequestOverrides($policyKey, $file->getUserId(), $storedChoice, $activeContext);
+			}
+
+			return $activeContext === null
 				? $this->policyService->resolveForUserId($policyKey, $file->getUserId(), $overrides)
 				: $this->policyService->resolveForUserId($policyKey, $file->getUserId(), $overrides, $activeContext);
+		};
 	}
 
 	/**
@@ -288,10 +295,6 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 		}
 
 		return $entries;
-	}
-
-	private function hasSigningFlowStarted(FileEntity $file): bool {
-		return $file->getStatus() >= FileStatus::ABLE_TO_SIGN->value;
 	}
 
 	/**

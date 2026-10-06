@@ -31,7 +31,8 @@ describe('ExpiryInDaysRuleEditor.vue', () => {
 			},
 		})
 
-		expect(wrapper.text()).toContain('The length of time for which the generated certificate will be valid, in days.')
+		expect(wrapper.findComponent({ name: 'NcTextField' }).props('label')).toBe('Certificate validity (days)')
+		expect(wrapper.find('.expiration-rule-editor__helper').text()).toBe('Changing this value affects only signer certificates created afterwards. Certificates that already exist remain unchanged.')
 		expect((wrapper.find('.field-input').element as HTMLInputElement).value).toBe('365')
 	})
 

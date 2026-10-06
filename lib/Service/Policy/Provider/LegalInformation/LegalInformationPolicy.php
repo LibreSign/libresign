@@ -36,6 +36,8 @@ final class LegalInformationPolicy implements IPolicyDefinitionProvider {
 				allowedValues: [],
 				normalizer: static fn (mixed $rawValue): string => (string)$rawValue,
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
+				supportsRequestOverride: true,
+				requestLifecycle: PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT,
 				groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
 					$actorRole = $context->getActorRole();
 					if ($actorRole->canManageSystemPolicies) {

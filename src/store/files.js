@@ -455,8 +455,24 @@ const _filesStore = defineStore('files', () => {
 	}
 
 	function getFileIdByUuid(uuid) {
+		if (!uuid) {
+			return null
+		}
 		for (const [key, file] of Object.entries(files.value)) {
 			if (file.uuid === uuid) {
+				return file.id || key
+			}
+			const signers = Array.isArray(file.signers) ? file.signers : []
+			if (signers.some((signer) => signer?.sign_request_uuid === uuid)) {
+				return file.id || key
+			}
+		}
+		for (const [key, file] of Object.entries(apiFiles.value)) {
+			if (file.uuid === uuid) {
+				return file.id || key
+			}
+			const signers = Array.isArray(file.signers) ? file.signers : []
+			if (signers.some((signer) => signer?.sign_request_uuid === uuid)) {
 				return file.id || key
 			}
 		}
@@ -540,18 +556,23 @@ const _filesStore = defineStore('files', () => {
 		let targetFile = null
 
 		if (fileId) {
-			targetFile = files.value[fileId] || null
+			targetFile = apiFiles.value[fileId] || files.value[fileId] || null
 		} else if (uuid) {
 			const targetId = store.getFileIdByUuid(uuid)
-			targetFile = targetId ? files.value[targetId] || null : null
+			targetFile = targetId
+				? apiFiles.value[targetId] || files.value[targetId] || null
+				: null
 		}
 
 		if (!force && targetFile?.detailsLoaded) {
 			return targetFile
 		}
 
-		const targetUuid = uuid || targetFile?.uuid
+		// Prefer an explicit uuid (usually a sign-request uuid). When only a
+		// file id is available, use file_id validate — validating by the
+		// LibreSign file uuid can omit signer-scoped `me` / signatureMethods.
 		const targetId = fileId || targetFile?.id
+		const targetUuid = uuid || (!targetId ? targetFile?.uuid : null)
 		if (!targetUuid && !targetId) {
 			return null
 		}
@@ -570,6 +591,12 @@ const _filesStore = defineStore('files', () => {
 		const fileData = response.data?.ocs?.data
 		if (!fileData) {
 			return null
+		}
+
+		// Forced detail loads are authoritative for signing. Drop a stale
+		// request draft so files.value mirrors apiFiles (with frozen metadata).
+		if (force && fileData.id) {
+			clearRequestDraft(fileData.id)
 		}
 
 		await store.addFile(fileData, { detailsLoaded: true })

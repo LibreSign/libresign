@@ -19,6 +19,35 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 15.0.7 - 2026-10-05
+
+### Changed
+- Update translations
+- Internal maintenance
+- Update dependencies
+- Fix npm audit
+  [#9002](https://github.com/LibreSign/libresign/pull/9002)
+
+### Fixed
+- keep signature rejection frozen after signing starts
+  [#8993](https://github.com/LibreSign/libresign/pull/8993)
+- fail closed when request policy state is missing
+  [#9011](https://github.com/LibreSign/libresign/pull/9011)
+- isolate PFX and certificate validation state
+  [#9018](https://github.com/LibreSign/libresign/pull/9018)
+
+## 15.0.6 - 2026-10-01
+
+### Changed
+- Update translations
+- Internal maintenance
+
+### Fixed
+- isolate RequestSignatureTab debounced callbacks
+  [#8911](https://github.com/LibreSign/libresign/pull/8911)
+- use identify method friendly name getter in defaults
+  [#8921](https://github.com/LibreSign/libresign/pull/8921)
+
 ## 15.0.5 - 2026-09-29
 
 ### Changed

@@ -35,7 +35,7 @@ jobs:
     steps:
       - id: stable
         name: Resolve stable release line
-        uses: LibreCodeCoop/release-tool/actions/stable-select@40e17457fe28003e5893bf55e3c2102c965ddb8c
+        uses: LibreCodeCoop/release-tool/actions/stable-select@9b33a67a7b1e37a45b0a3c252370899effcdfdc2
         with:
           github-token: ${{ github.token }}
 
@@ -86,7 +86,7 @@ jobs:
 
       - name: Read package.json node and npm engines version
         id: versions
-        uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
+        uses: skjnldsv/read-package-engines-version-actions@06d6db44aa62f4609ba070f556ec24bc99fb85cb # v4
         continue-on-error: true
         with:
           path: ${{ env.APP_NAME }}
@@ -198,16 +198,28 @@ jobs:
       - name: Verify app store package
         if: steps.krankerl.outputs.files_exists != 'true'
         working-directory: ${{ env.APP_NAME }}
-        env:
-          REQUIRE_SETUP_SIGNATURES: 'true'
         shell: bash
         run: |
           if make -qp 2>/dev/null | grep -q '^verify-appstore-package:'; then
             make verify-appstore-package
           fi
 
+      - name: Sign app
+        shell: bash
+        env:
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+        run: |
+          cd "${APP_NAME}/build/artifacts"
+          tar -xzf "${APP_NAME}.tar.gz"
+          cd ../../../
+          printf '%s' "${APP_PRIVATE_KEY}" > "${APP_NAME}.key"
+          wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${APP_NAME}/${APP_NAME}.crt"
+          php nextcloud/occ integrity:sign-app             --privateKey="../${APP_NAME}.key"             --certificate="../${APP_NAME}.crt"             --path="../${APP_NAME}/build/artifacts/${APP_NAME}"
+          cd "${APP_NAME}/build/artifacts"
+          tar -zcf "${APP_NAME}.tar.gz" "${APP_NAME}"
+
       - name: Validate release artifact
-        uses: LibreCodeCoop/release-tool/actions/artifact-validate@40e17457fe28003e5893bf55e3c2102c965ddb8c
+        uses: LibreCodeCoop/release-tool/actions/artifact-validate@9b33a67a7b1e37a45b0a3c252370899effcdfdc2
         with:
           artifact: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
           app-name: ${{ env.APP_NAME }}
@@ -233,7 +245,7 @@ jobs:
 
       - name: Build nightly change list
         id: release-note-changes
-        uses: LibreCodeCoop/release-tool/actions/release-notes@40e17457fe28003e5893bf55e3c2102c965ddb8c
+        uses: LibreCodeCoop/release-tool/actions/release-notes@9b33a67a7b1e37a45b0a3c252370899effcdfdc2
         with:
           repository: ${{ github.repository }}
           branch: ${{ steps.nightly.outputs.branch }}

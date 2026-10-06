@@ -54,10 +54,10 @@ Feature: signed
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
     And run the command "config:app:set activity notify_notification_libresign_file_signed --value=1" with result code 0
     And run the command "config:app:set activity notify_email_libresign_file_signed --value=1" with result code 0
-    And run the command "user:setting signer1 activity notify_email_libresign_file_to_sign 1" with result code 0
-    And run the command "user:setting signer1 activity notify_notification_libresign_file_to_sign 1" with result code 0
-    And run the command "user:setting admin activity notify_notification_libresign_file_signed 1" with result code 0
-    And run the command "user:setting admin activity notify_email_libresign_file_signed 1" with result code 0
+    And activity preference "notify_email_libresign_file_to_sign" for user "signer1" is set to "1"
+    And activity preference "notify_notification_libresign_file_to_sign" for user "signer1" is set to "1"
+    And activity preference "notify_notification_libresign_file_signed" for user "admin" is set to "1"
+    And activity preference "notify_email_libresign_file_signed" for user "admin" is set to "1"
     And run the command "libresign:install --use-local-cert --java" with result code 0
     And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
@@ -119,10 +119,10 @@ Feature: signed
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=0" with result code 0
     And run the command "config:app:set activity notify_notification_libresign_file_signed --value=0" with result code 0
     And run the command "config:app:set activity notify_email_libresign_file_signed --value=0" with result code 0
-    And run the command "user:setting signer1 activity notify_email_libresign_file_to_sign 0" with result code 0
-    And run the command "user:setting signer1 activity notify_notification_libresign_file_to_sign 0" with result code 0
-    And run the command "user:setting admin activity notify_notification_libresign_file_signed 0" with result code 0
-    And run the command "user:setting admin activity notify_email_libresign_file_signed 0" with result code 0
+    And activity preference "notify_email_libresign_file_to_sign" for user "signer1" is set to "0"
+    And activity preference "notify_notification_libresign_file_to_sign" for user "signer1" is set to "0"
+    And activity preference "notify_notification_libresign_file_signed" for user "admin" is set to "0"
+    And activity preference "notify_email_libresign_file_signed" for user "admin" is set to "0"
     And run the command "libresign:install --use-local-cert --java" with result code 0
     And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
@@ -178,8 +178,8 @@ Feature: signed
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
     And run the command "config:app:set activity notify_notification_libresign_file_signed --value=1" with result code 0
     And run the command "config:app:set activity notify_email_libresign_file_signed --value=1" with result code 0
-    And run the command "user:setting admin activity notify_notification_libresign_file_signed 1" with result code 0
-    And run the command "user:setting admin activity notify_email_libresign_file_signed 1" with result code 0
+    And activity preference "notify_notification_libresign_file_signed" for user "admin" is set to "1"
+    And activity preference "notify_email_libresign_file_signed" for user "admin" is set to "1"
     And run the command "libresign:install --use-local-cert --java" with result code 0
     And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0

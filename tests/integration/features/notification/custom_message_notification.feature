@@ -11,7 +11,7 @@ Feature: Custom message for signers
     And reset notifications of user "signer1"
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
-    And run the command "user:setting signer1 activity notify_email_libresign_file_to_sign 1" with result code 0
+    And activity preference "notify_email_libresign_file_to_sign" for user "signer1" is set to "1"
 
   Scenario: Account method - default message without custom description
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"

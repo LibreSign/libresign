@@ -42,6 +42,15 @@ describe('signerGeolocation helper', () => {
 		expect(resolveFrozenGeolocationRequirement(undefined)).toBeUndefined()
 	})
 
+	it('resolves frozen requirement by sign request uuid when me is not set yet', () => {
+		expect(resolveFrozenGeolocationRequirement({
+			signers: [{
+				sign_request_uuid: 'signer-uuid',
+				metadata: { deviceGeolocationRequirement: 'required' },
+			}],
+		}, { signRequestUuid: 'signer-uuid' })).toBe('required')
+	})
+
 	it('maps browser position error codes', () => {
 		expect(mapGeolocationError({ code: 1 })).toBe('permission_denied')
 		expect(mapGeolocationError({ code: 2 })).toBe('position_unavailable')

@@ -28,7 +28,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * @internal
- * @group DB
  */
 final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N&MockObject $l10n;

@@ -251,6 +251,7 @@
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
@@ -300,6 +301,7 @@ import {
 	normalizeDocumentForVisibleElements,
 } from '../../../services/signingDocumentAdapter'
 import { FILE_STATUS } from '../../../constants.js'
+import { withCollectedDeviceGeolocation } from '../../../helpers/signGeolocationPayload'
 import {
 	collectDeviceGeolocation,
 	isGeolocationRequired,
@@ -511,6 +513,7 @@ const signDocumentDialogTitle = t('libresign', 'Sign document')
 // TRANSLATORS Field label for the password input used to unlock the signer certificate or signing credential.
 const signaturePasswordLabel = t('libresign', 'Signature password')
 
+const route = useRoute()
 const signStore = useSignStore() as SignStoreContract
 const signMethodsStore = useSignMethodsStore() as SignMethodsStoreContract
 const signatureElementsStore = useSignatureElementsStore() as SignatureElementsStoreContract
@@ -537,8 +540,21 @@ const currentDocument = computed<SignDocument>(() => signStore.document)
 const visibleElementsDocument = computed(() => normalizeDocumentForVisibleElements(currentDocument.value))
 const currentUserSignRequestIds = computed(() => new Set(getCurrentUserSignRequestIds(visibleElementsDocument.value)))
 
+const routeSignRequestUuid = computed(() => {
+	const uuid = route.params.uuid
+	if (typeof uuid === 'string') {
+		return uuid
+	}
+	return Array.isArray(uuid) ? uuid[0] ?? '' : ''
+})
+const signRequestUuid = computed(() => {
+	const fallbackUuid = loadState('libresign', 'sign_request_uuid', '')
+	return String(getSigningRouteUuid(signStore.document, fallbackUuid, routeSignRequestUuid.value) || '')
+})
 const currentSignerGeolocationRequirement = computed(() =>
-	resolveFrozenGeolocationRequirement(signStore.document),
+	resolveFrozenGeolocationRequirement(signStore.document, {
+		signRequestUuid: signRequestUuid.value || routeSignRequestUuid.value,
+	}),
 )
 const requiresDeviceGeolocation = computed(() => isGeolocationRequired(currentSignerGeolocationRequirement.value))
 // TRANSLATORS Early notice shown on the signing screen when device-reported location is mandatory.
@@ -603,10 +619,6 @@ const canCreateSignature = computed(() => {
 })
 const ableToSign = computed(() => signStore.ableToSign)
 const hasBlockingSignError = computed(() => signStore.errors.some((error) => Number(error?.code) === NON_RETRIABLE_SIGN_ERROR_CODE))
-const signRequestUuid = computed(() => {
-	const fallbackUuid = loadState('libresign', 'sign_request_uuid', '')
-	return String(getSigningRouteUuid(signStore.document, fallbackUuid) || '')
-})
 
 function openModal(modalCode: string) {
 	ensureServices()
@@ -651,10 +663,22 @@ function resetSignMethodsState() {
 	Object.keys(signMethodsStore.modal || {}).forEach((key) => {
 		signMethodsStore.closeModal(key)
 	})
-	signMethodsStore.settings = {}
+	// Keep signature method settings across Sign remounts. Clearing them here
+	// races with setFileToSign/navigation and leaves ableToSign with no modal.
 	signStore.clearSigningErrors()
 	showManagePassword.value = false
 	signPassword.value = ''
+}
+
+function syncSignatureMethodsFromDocument() {
+	const document = signStore.document
+	if (!document) {
+		return
+	}
+	const methods = signStore.getSignatureMethodsForFile(document)
+	if (methods && typeof methods === 'object' && Object.keys(methods).length > 0) {
+		signMethodsStore.settings = methods
+	}
 }
 
 function onSignatureFileCreated() {
@@ -729,6 +753,10 @@ const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 
 	if (requiresDeviceGeolocation.value && !collectedGeolocation.value) {
 		pendingSignMethodConfig.value = methodConfig
+		// Close the active sign confirmation first; stacked NcDialogs hide the privacy prompt.
+		ensureServices()
+		actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
+		await nextTick()
 		showGeolocationPrivacyDialog.value = true
 		return
 	}
@@ -737,10 +765,10 @@ const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 	signStore.clearSigningErrors()
 
 	try {
-		const basePayload = {
-			...createBaseSubmitSignaturePayload(methodConfig),
-			...(collectedGeolocation.value ? { deviceGeolocation: collectedGeolocation.value } : {}),
-		}
+		const basePayload = withCollectedDeviceGeolocation(
+			createBaseSubmitSignaturePayload(methodConfig),
+			collectedGeolocation.value,
+		)
 		const envelopeRequests = getEnvelopeSubmitRequests({
 			document: signStore.document,
 			basePayload,
@@ -860,6 +888,7 @@ function dismissGeolocationFailure() {
 function confirmSignDocument() {
 	ensureServices()
 	signStore.clearSigningErrors()
+	syncSignatureMethodsFromDocument()
 
 	const unmetRequirement = requirementValidator!.getFirstUnmetRequirement({
 		errors: signStore.errors,
@@ -876,6 +905,7 @@ function confirmSignDocument() {
 
 function proceedWithSigning() {
 	ensureServices()
+	syncSignatureMethodsFromDocument()
 	if (signMethodsStore.needClickToSign()) {
 		actionHandler!.showModal('clickToSign')
 	} else if (signMethodsStore.needSignWithPassword()) {
@@ -905,37 +935,41 @@ function executeSigningAction(action: string) {
 
 onMounted(async () => {
 	loading.value = true
-	signatureElementsStore.signRequestUuid = signRequestUuid.value
-	signatureElementsStore.loadSignatures()
+	try {
+		signatureElementsStore.signRequestUuid = signRequestUuid.value
+		signatureElementsStore.loadSignatures()
 
-	initializeServices()
+		initializeServices()
+		syncSignatureMethodsFromDocument()
 
-	unwatchPendingAction = watch(
-		() => signStore.pendingAction,
-		(newAction) => {
-			if (newAction) {
-				executeSigningAction(newAction)
-				signStore.clearPendingAction()
-			}
-		},
-	)
+		unwatchPendingAction = watch(
+			() => signStore.pendingAction,
+			(newAction) => {
+				if (newAction) {
+					executeSigningAction(newAction)
+					signStore.clearPendingAction()
+				}
+			},
+		)
 
-	if (signStore.pendingAction) {
-		await nextTick()
-		executeSigningAction(signStore.pendingAction)
-		signStore.clearPendingAction()
-	}
+		if (signStore.pendingAction) {
+			await nextTick()
+			executeSigningAction(signStore.pendingAction)
+			signStore.clearPendingAction()
+		}
 
-	await Promise.all([
-		loadUser(),
-	])
+		await Promise.all([
+			loadUser(),
+		])
 
-	loading.value = false
-	if (signStore.document?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
-		emit('signing-started', {
-			signRequestUuid: signRequestUuid.value,
-			async: true,
-		})
+		if (signStore.document?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
+			emit('signing-started', {
+				signRequestUuid: signRequestUuid.value,
+				async: true,
+			})
+		}
+	} finally {
+		loading.value = false
 	}
 })
 

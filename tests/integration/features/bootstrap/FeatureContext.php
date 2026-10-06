@@ -121,6 +121,25 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		self::runCommand('libresign:developer:reset --' . $type . '=' . $user);
 	}
 
+	#[Given('activity preference :key for user :user is set to :value')]
+	public static function setActivityPreference(string $key, string $user, string $value): void {
+		$php = <<<'PHP'
+			require $argv[1] . '/lib/base.php';
+
+			\OCP\Server::get(\OCP\Config\IUserConfig::class)
+				->setValueString($argv[2], 'activity', $argv[3], $argv[4]);
+			PHP;
+
+		$command = sprintf(
+			'php -r %s -- <nextcloudRootDir> %s %s %s',
+			escapeshellarg($php),
+			escapeshellarg($user),
+			escapeshellarg($key),
+			escapeshellarg($value),
+		);
+		self::runBashCommandWithResultCode($command, 0);
+	}
+
 	#[Given('user :user has the following notifications')]
 	public function userNotifications(string $user, ?TableNode $body = null): void {
 		$this->setCurrentUser($user);

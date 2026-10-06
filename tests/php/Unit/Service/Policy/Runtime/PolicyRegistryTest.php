@@ -194,6 +194,8 @@ final class CountingPolicyDefinitionProvider implements IPolicyDefinitionProvide
 			key: SignatureFlowPolicy::KEY,
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			supportsRequestOverride: true,
+			requestLifecycle: PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT,
 		);
 	}
 }

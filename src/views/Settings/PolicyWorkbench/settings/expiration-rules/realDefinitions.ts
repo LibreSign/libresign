@@ -15,6 +15,7 @@ import {
 	DEFAULT_MAXIMUM_VALIDITY,
 	DEFAULT_RENEWAL_INTERVAL,
 	hasValidRequestExpirationCombination,
+	normalizeExpirationDraftInt,
 	normalizeNonNegativeInt,
 	normalizePositiveInt,
 	normalizeRequestExpirationDraftValue,
@@ -24,9 +25,9 @@ import {
 export const maximumValidityRealDefinition: RealPolicySettingDefinition = {
 	key: 'maximum_validity',
 	// TRANSLATORS Policy title for signature request expiration configuration.
-	title: t('libresign', 'Request expiration'),
-	// TRANSLATORS Policy description explaining expiration and renewal timing of signing requests.
-	description: t('libresign', 'Configure expiration and renewal timing for signing requests.'),
+	title: t('libresign', 'Signing request expiration'),
+	// TRANSLATORS Policy description explaining how long signing requests remain available.
+	description: t('libresign', 'Define how long a signing request can remain available.'),
 	groupAdminBehavior: {
 		allowGroupRuleCreationFromDescendantDelegation: true,
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && (policy?.canSaveAsUserDefault === true || policy?.meta?.canCreateDescendantRules === true),
@@ -61,14 +62,14 @@ export const maximumValidityRealDefinition: RealPolicySettingDefinition = {
 
 export const renewalIntervalRealDefinition: RealPolicySettingDefinition = {
 	key: 'renewal_interval',
-	// TRANSLATORS Policy title for link/session renewal interval related to request subscriptions.
-	title: t('libresign', 'Renewal interval'),
-	// TRANSLATORS Policy description. Interval is in seconds and determines when signer must renew access link/session.
-	description: t('libresign', 'Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link.'),
+	// TRANSLATORS Policy title for signer access/session renewal.
+	title: t('libresign', 'Signer access renewal'),
+	// TRANSLATORS Policy description. Interval is in seconds and renews signer access/session only within the signing request maximum validity.
+	description: t('libresign', 'Define the interval in seconds for renewing signer access/session while the signing request is within its configured maximum validity.'),
 	editor: RenewalIntervalRuleEditor,
 	createEmptyValue: () => DEFAULT_RENEWAL_INTERVAL,
-	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeNonNegativeInt(value, DEFAULT_RENEWAL_INTERVAL),
-	hasSelectableDraftValue: () => true,
+	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeExpirationDraftInt(value, DEFAULT_RENEWAL_INTERVAL),
+	hasSelectableDraftValue: (value: EffectivePolicyValue) => normalizeExpirationDraftInt(value, DEFAULT_RENEWAL_INTERVAL) >= 0,
 	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
 		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
@@ -98,9 +99,9 @@ export const renewalIntervalRealDefinition: RealPolicySettingDefinition = {
 export const expiryInDaysRealDefinition: RealPolicySettingDefinition = {
 	key: 'expiry_in_days',
 	// TRANSLATORS Policy title for certificate validity duration measured in days.
-	title: t('libresign', 'Expiration in days'),
-	// TRANSLATORS Policy description for generated certificate lifetime in days.
-	description: t('libresign', 'The length of time for which the generated certificate will be valid, in days.'),
+	title: t('libresign', 'Signer certificate validity'),
+	// TRANSLATORS Policy description for the default validity of signer certificates created by LibreSign, distinct from signing request expiration.
+	description: t('libresign', 'Define the default validity, in days, for signer certificates created by LibreSign. This setting does not control how long a signing request remains available.'),
 	groupAdminBehavior: {
 		allowGroupRuleCreationFromDescendantDelegation: true,
 		hideNonRemovableGroupRules: (policy) => policy?.editableByCurrentActor === false && (policy?.canSaveAsUserDefault === true || policy?.meta?.canCreateDescendantRules === true),

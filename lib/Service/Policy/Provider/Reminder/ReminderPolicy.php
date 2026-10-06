@@ -36,6 +36,8 @@ final class ReminderPolicy implements IPolicyDefinitionProvider {
 				allowedValues: static fn (): array => [],
 				normalizer: static fn (mixed $rawValue): string => ReminderPolicyValue::encode(ReminderPolicyValue::normalize($rawValue)),
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
+				supportsRequestOverride: true,
+				requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,
 				groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
 					$actorRole = $context->getActorRole();
 					if ($actorRole->canManageSystemPolicies) {

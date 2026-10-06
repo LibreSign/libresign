@@ -36,12 +36,22 @@ export type DeviceReportedLocation = {
 
 export type SignerWithGeolocationMetadata = {
 	me?: boolean
+	sign_request_uuid?: string | null
+	/**
+	 * Requester toggle mirrored on editable drafts. When frozen metadata is
+	 * not yet present on the client document, treat `true` as required.
+	 */
+	deviceGeolocationRequired?: boolean
 	metadata?: {
 		deviceGeolocationRequirement?: GeolocationRequirement | string
 		geolocation?: {
 			device?: DeviceReportedLocation
 		}
 	}
+}
+
+export type ResolveFrozenGeolocationRequirementOptions = {
+	signRequestUuid?: string | null
 }
 
 export type DocumentWithSignerGeolocation = {
@@ -61,20 +71,88 @@ export function isGeolocationRequired(requirement: GeolocationRequirement | stri
 	return requirement === 'required'
 }
 
+function isMatchingGeolocationSigner(
+	signer: SignerWithGeolocationMetadata,
+	signRequestUuid: string,
+): boolean {
+	if (signer.me === true) {
+		return true
+	}
+	if (signRequestUuid === '') {
+		return false
+	}
+	return typeof signer.sign_request_uuid === 'string' && signer.sign_request_uuid === signRequestUuid
+}
+
+function resolveRequirementFromSigner(
+	signer: SignerWithGeolocationMetadata,
+): GeolocationRequirement | undefined {
+	const requirement = signer.metadata?.deviceGeolocationRequirement
+	if (requirement === 'disabled' || requirement === 'required') {
+		return requirement
+	}
+
+	// Editable request drafts keep the requester toggle before validate
+	// responses hydrate frozen metadata onto the signing document.
+	if (signer.deviceGeolocationRequired === true) {
+		return 'required'
+	}
+	if (signer.deviceGeolocationRequired === false) {
+		return 'disabled'
+	}
+
+	return undefined
+}
+
+function resolveRequirementFromSigners(
+	signers: SignerWithGeolocationMetadata[] | undefined,
+	signRequestUuid: string,
+): GeolocationRequirement | undefined {
+	if (!Array.isArray(signers)) {
+		return undefined
+	}
+
+	for (const signer of signers) {
+		if (!isMatchingGeolocationSigner(signer, signRequestUuid)) {
+			continue
+		}
+		const requirement = resolveRequirementFromSigner(signer)
+		if (requirement) {
+			return requirement
+		}
+	}
+
+	// On a sign route, if `me`/uuid matching failed but exactly one signer has a
+	// frozen requirement, use it. Avoids a blank banner when validate omitted me.
+	if (signRequestUuid !== '') {
+		const frozen = signers
+			.map((signer) => resolveRequirementFromSigner(signer))
+			.filter((requirement): requirement is GeolocationRequirement => requirement !== undefined)
+		if (frozen.length === 1) {
+			return frozen[0]
+		}
+	}
+
+	return undefined
+}
+
 export function resolveFrozenGeolocationRequirement(
 	document: DocumentWithSignerGeolocation | null | undefined,
+	options?: ResolveFrozenGeolocationRequirementOptions,
 ): GeolocationRequirement | undefined {
-	const topLevel = document?.signers?.find((signer) => signer.me)
-	const topLevelRequirement = topLevel?.metadata?.deviceGeolocationRequirement
-	if (topLevelRequirement === 'disabled' || topLevelRequirement === 'required') {
-		return topLevelRequirement
+	const signRequestUuid = typeof options?.signRequestUuid === 'string'
+		? options.signRequestUuid.trim()
+		: ''
+
+	const topLevel = resolveRequirementFromSigners(document?.signers, signRequestUuid)
+	if (topLevel) {
+		return topLevel
 	}
 
 	for (const file of document?.files ?? []) {
-		const nested = file.signers?.find((signer) => signer.me)
-		const nestedRequirement = nested?.metadata?.deviceGeolocationRequirement
-		if (nestedRequirement === 'disabled' || nestedRequirement === 'required') {
-			return nestedRequirement
+		const nested = resolveRequirementFromSigners(file.signers, signRequestUuid)
+		if (nested) {
+			return nested
 		}
 	}
 

@@ -323,8 +323,9 @@ final class SignatureRejectionServiceTest extends TestCase {
 			->with($file)
 			->willReturnSelf();
 		$this->sequentialSigningService->expects($this->once())
-			->method('releaseNextOrder')
-			->with(10, 2);
+			->method('activateNextOrder')
+			->with(10, 2)
+			->willReturn([]);
 
 		$this->getService()->reject($file, $signRequest);
 	}
@@ -332,7 +333,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	public function testACancellingRejectionReleasesNobody(): void {
 		$this->withPolicy(self::policy(behavior: 'cancel'));
 
-		$this->sequentialSigningService->expects($this->never())->method('releaseNextOrder');
+		$this->sequentialSigningService->expects($this->never())->method('activateNextOrder');
 
 		$this->getService()->reject($this->file(), $this->signRequest());
 	}
@@ -351,9 +352,10 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$this->envelopeSignRequest = $onTheEnvelope;
 
 		$released = [];
-		$this->sequentialSigningService->method('releaseNextOrder')
-			->willReturnCallback(function (int $fileId) use (&$released): void {
+		$this->sequentialSigningService->method('activateNextOrder')
+			->willReturnCallback(function (int $fileId) use (&$released): array {
 				$released[] = $fileId;
+				return [];
 			});
 
 		$this->getService()->reject($envelope, $onDoc1);
@@ -365,8 +367,9 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$this->withPolicy(self::policy(behavior: 'continue'));
 		$signRequest = $this->signRequest();
 
-		$this->sequentialSigningService->method('releaseNextOrder')
+		$this->sequentialSigningService->method('activateNextOrder')
 			->willThrowException(new \RuntimeException('database is down'));
+		$this->sequentialSigningService->expects($this->never())->method('notifyActivatedSigners');
 		$this->db->expects($this->once())->method('rollBack');
 		$this->db->expects($this->never())->method('commit');
 
@@ -376,6 +379,126 @@ final class SignatureRejectionServiceTest extends TestCase {
 		} catch (LibresignException) {
 			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $signRequest->getStatusEnum());
 		}
+	}
+
+	public function testTheReleasedOrderIsNotifiedOnlyAfterTheRejectionIsCommitted(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$activated = $this->signRequest(id: 77);
+		$activated->setFileId(10);
+
+		$this->sequentialSigningService->method('activateNextOrder')
+			->willReturn([$activated]);
+
+		$committed = false;
+		$eventDispatched = false;
+		$this->db->expects($this->once())
+			->method('commit')
+			->willReturnCallback(function () use (&$committed): void {
+				$committed = true;
+			});
+		$this->eventDispatcher->expects($this->once())
+			->method('dispatchTyped')
+			->with($this->isInstanceOf(SignatureRejectedEvent::class))
+			->willReturnCallback(function () use (&$committed, &$eventDispatched): void {
+				$this->assertTrue($committed, 'The rejection event must follow the commit.');
+				$eventDispatched = true;
+			});
+		$this->sequentialSigningService->expects($this->once())
+			->method('notifyActivatedSigners')
+			->with([$activated])
+			->willReturnCallback(function () use (&$committed, &$eventDispatched): void {
+				$this->assertTrue($eventDispatched, 'The rejection event must precede signer notifications.');
+				$this->assertTrue(
+					$committed,
+					'The released signers must only be notified once the rejection is committed.',
+				);
+			});
+
+		$this->getService()->reject($this->file(), $this->signRequest());
+	}
+
+	public function testARolledBackRejectionDoesNotNotifyAnOrderReleasedForAnEarlierDocument(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$envelope = $this->envelope();
+		$onDoc1 = $this->signRequest(id: 11);
+		$onDoc1->setFileId(21);
+		$onDoc2 = $this->signRequest(id: 12);
+		$onDoc2->setFileId(22);
+		$onTheEnvelope = $this->signRequest(id: 13);
+		$onTheEnvelope->setFileId(1);
+
+		$this->envelopeChildSignRequests = [$onDoc1, $onDoc2];
+		$this->envelopeSignRequest = $onTheEnvelope;
+
+		$releasedForDoc1 = $this->signRequest(id: 71);
+		$this->sequentialSigningService->method('activateNextOrder')
+			->willReturnCallback(function (int $fileId) use ($releasedForDoc1): array {
+				if ($fileId === 21) {
+					return [$releasedForDoc1];
+				}
+				if ($fileId === 22) {
+					throw new \RuntimeException('the second document could not be updated');
+				}
+
+				return [];
+			});
+
+		$this->db->expects($this->once())->method('rollBack');
+		$this->db->expects($this->never())->method('commit');
+		$this->sequentialSigningService->expects($this->never())->method('notifyActivatedSigners');
+
+		try {
+			$this->getService()->reject($envelope, $onDoc1);
+			$this->fail('The rejection must fail when a later document cannot be released.');
+		} catch (LibresignException) {
+			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $onDoc1->getStatusEnum());
+			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $onDoc2->getStatusEnum());
+			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $onTheEnvelope->getStatusEnum());
+		}
+	}
+
+	public function testAnUnexpectedNotificationExceptionDoesNotRollBackACommittedRejection(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$signRequest = $this->signRequest();
+
+		$this->sequentialSigningService->method('activateNextOrder')
+			->willReturn([$this->signRequest(id: 78)]);
+		$this->sequentialSigningService->method('notifyActivatedSigners')
+			->willThrowException(new \RuntimeException('unexpected notification exception'));
+		$this->eventDispatcher->expects($this->once())->method('dispatchTyped')
+			->with($this->isInstanceOf(SignatureRejectedEvent::class));
+		$this->db->expects($this->once())->method('commit');
+		$this->db->expects($this->never())->method('rollBack');
+		$this->logger->expects($this->never())->method('error');
+
+		try {
+			$this->getService()->reject($this->file(), $signRequest);
+			$this->fail('Unexpected notification exceptions must propagate.');
+		} catch (\RuntimeException $e) {
+			$this->assertSame('unexpected notification exception', $e->getMessage());
+			$this->assertSame(SignRequestStatus::REJECTED, $signRequest->getStatusEnum());
+		}
+	}
+
+	public function testAProgrammingErrorWhileNotifyingIsNotConvertedIntoADeliveryFailure(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$signRequest = $this->signRequest();
+
+		$this->sequentialSigningService->method('activateNextOrder')
+			->willReturn([$this->signRequest(id: 78)]);
+		$this->sequentialSigningService->method('notifyActivatedSigners')
+			->willThrowException(new \TypeError('bug in the notification path'));
+
+		$this->eventDispatcher->expects($this->once())->method('dispatchTyped')
+			->with($this->isInstanceOf(SignatureRejectedEvent::class));
+		$this->db->expects($this->once())->method('commit');
+		$this->db->expects($this->never())->method('rollBack');
+		$this->logger->expects($this->never())->method('error');
+
+		$this->expectException(\TypeError::class);
+		$this->expectExceptionMessage('bug in the notification path');
+
+		$this->getService()->reject($this->file(), $signRequest);
 	}
 
 	public function testWorkflowIsClosedWhenThePolicyCancelsIt(): void {

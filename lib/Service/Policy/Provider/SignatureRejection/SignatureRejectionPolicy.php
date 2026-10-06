@@ -139,6 +139,8 @@ final class SignatureRejectionPolicy implements IPolicyDefinitionProvider {
 			normalizer: $normalizer,
 			appConfigKey: $key,
 			resolutionMode: PolicySpec::RESOLUTION_MODE_VALUE_CHOICE,
+			supportsRequestOverride: true,
+			requestLifecycle: PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT,
 			// The user scope is what lets a requester decide, per signature request,
 			// how rejection behaves on their document. It is never read from the
 			// signer: the effective value always comes from the snapshot frozen on

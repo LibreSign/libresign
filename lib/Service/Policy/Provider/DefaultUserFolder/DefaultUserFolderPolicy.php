@@ -40,6 +40,8 @@ final class DefaultUserFolderPolicy implements IPolicyDefinitionProvider {
 					return $candidate !== '' ? $candidate : self::DEFAULT_FOLDER;
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
+				supportsRequestOverride: true,
+				requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,
 				groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
 					$actorRole = $context->getActorRole();
 					if ($actorRole->canManageSystemPolicies) {

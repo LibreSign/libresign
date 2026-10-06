@@ -506,7 +506,7 @@ import {
 	PARTICIPANT_ROLE,
 	type ParticipantRole,
 } from '../../utils/participantRole.ts'
-import { getSigningRouteUuid, getValidationRouteUuid } from '../../utils/signRequestUuid.ts'
+import { getSigningRouteUuid, getValidationRouteUuid, mergeSignDocumentForRoute } from '../../utils/signRequestUuid.ts'
 import { openDocument } from '../../utils/viewer.js'
 import router from '../../router/router'
 import { useFilesStore } from '../../store/files.js'
@@ -556,6 +556,10 @@ type IdentifySignerToEdit = {
 	description?: string
 	participantRole?: ParticipantRole
 	identifyMethods?: IdentifySignerMethod[]
+	deviceGeolocationRequired?: boolean
+	metadata?: {
+		deviceGeolocationRequirement?: string
+	}
 }
 type SigningOrderDiagramSigner = {
 	displayName?: string
@@ -836,6 +840,12 @@ function toIdentifySignerToEdit(signer: EditableRequestSigner): IdentifySignerTo
 		displayName: signer.displayName,
 		description: signer.description ?? undefined,
 		participantRole: signer.participantRole as ParticipantRole | undefined,
+		...(typeof signer.deviceGeolocationRequired === 'boolean'
+			? { deviceGeolocationRequired: signer.deviceGeolocationRequired }
+			: {}),
+		...(signer.metadata?.deviceGeolocationRequirement
+			? { metadata: { deviceGeolocationRequirement: signer.metadata.deviceGeolocationRequirement } }
+			: {}),
 		...(identifyMethods?.length ? { identifyMethods } : {}),
 	}
 }
@@ -1647,25 +1657,39 @@ async function confirmRequestSigner() {
 }
 
 async function sign() {
-	await ensureCurrentFileDetail()
+	await ensureCurrentFileDetail(true)
 	const file = filesStore.getFile()
 	if (file?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
 		validationFile()
 		return
 	}
 
-	const uuid = getSignRouteUuid()
-	if (!uuid) {
+	const initialUuid = getSignRouteUuid()
+	if (!initialUuid) {
 		showError(t('libresign', 'Signer request not found'))
 		return
 	}
 	if (props.useModal) {
-		const absoluteUrl = generateUrl('/apps/libresign/p/sign/{uuid}/pdf', { uuid })
-		const route = router.resolve({ name: 'SignPDFExternal', params: { uuid } })
+		const absoluteUrl = generateUrl('/apps/libresign/p/sign/{uuid}/pdf', { uuid: initialUuid })
+		const route = router.resolve({ name: 'SignPDFExternal', params: { uuid: initialUuid } })
 		modalSrc.value = route.href || absoluteUrl
 		return
 	}
-	signStore.setFileToSign(filesStore.getFile())
+	// Prefer a forced validate payload so frozen geolocation metadata is present
+	// before the sign route mounts; drafts may only keep the requester toggle.
+	// When initialUuid is the LibreSign file uuid (approver fallback), validate
+	// by file id so `me` / sign_request_uuid are enriched for the current user.
+	const fileId = typeof file?.id === 'number' ? file.id : null
+	const detailedFile = await filesStore.fetchFileDetail({
+		fileId,
+		uuid: initialUuid !== file?.uuid ? initialUuid : null,
+		force: true,
+	})
+	const fileToSign = mergeSignDocumentForRoute(file, detailedFile, initialUuid) || detailedFile || file
+	// After detail load, prefer a real sign_request_uuid over a file-uuid
+	// approver fallback so /f/sign/:uuid and POST /sign use the same signer.
+	const uuid = getSigningRouteUuid(fileToSign, null, initialUuid) || initialUuid
+	signStore.setFileToSign(fileToSign)
 	router.push({ name: 'SignPDF', params: { uuid } })
 }
 

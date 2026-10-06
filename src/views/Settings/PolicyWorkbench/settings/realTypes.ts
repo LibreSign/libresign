@@ -48,6 +48,7 @@ export type RealPolicySettingCategory =
 	| 'how-signing-works'
 	| 'signer-experience'
 	| 'what-gets-recorded'
+	| 'signer-geolocation'
 	| 'time-and-limits'
 	| 'trust-and-verification'
 	| 'system-behavior'
@@ -64,6 +65,17 @@ export interface RealPolicySettingDefinition {
 	editor: unknown
 	editorProps?: Record<string, unknown>
 	resolveEditorProps?: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => Record<string, unknown>
+	/**
+	 * Optional component rendered in the setting dialog (next to Create rule /
+	 * Change default), outside the rule editor modal.
+	 */
+	settingDialogExtras?: unknown
+	/**
+	 * Optional sibling dialog opened from settingDialogExtras (e.g. Configure).
+	 * Kept at Catalog level so stacked NcDialogs render correctly.
+	 */
+	settingDialogExtrasModal?: unknown
+	settingDialogExtrasModalName?: string
 	editorDialogLayout?: RealPolicyEditorDialogLayout
 	createEmptyValue: () => EffectivePolicyValue
 	/**

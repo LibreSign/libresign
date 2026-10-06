@@ -187,6 +187,8 @@ final class SiblingPolicyEffectiveBoolReaderTest extends TestCase {
 			defaultSystemValue: $defaultSystemValue,
 			allowedValues: [false, true],
 			normalizer: static fn (mixed $rawValue): bool => filter_var($rawValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
+			supportsRequestOverride: true,
+			requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,
 			resolvedStateMeta: $resolvedStateMeta,
 		);
 	}

@@ -1488,7 +1488,7 @@ class SignFileService {
 			return $this->createSignedFile($originalFile, $originalContent);
 		}
 		$metadata = $this->footerHandler->getMetadata($originalFile, $this->libreSignFile);
-		$this->footerHandler->setRequestPolicyOverrides($this->resolveFooterPolicyRequestOverridesFromFileMetadata());
+		$this->footerHandler->setStoredRequestPolicyOverrides($this->resolveFooterPolicyRequestOverridesFromFileMetadata());
 		$footer = $this->footerHandler
 			->setTemplateVar('uuid', $this->libreSignFile->getUuid())
 			->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [

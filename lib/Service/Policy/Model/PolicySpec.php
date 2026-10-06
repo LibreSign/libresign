@@ -19,6 +19,8 @@ final class PolicySpec implements IPolicyDefinition {
 	public const SCOPE_SYSTEM = 'system';
 	public const SCOPE_GROUP = 'group';
 	public const SCOPE_USER = 'user';
+	public const LIFECYCLE_RUNTIME = 'runtime';
+	public const LIFECYCLE_REQUEST_SNAPSHOT = 'request_snapshot';
 
 	/** @var list<mixed>|Closure(PolicyContext): list<mixed> */
 	private array|Closure $allowedValuesResolver;
@@ -43,6 +45,8 @@ final class PolicySpec implements IPolicyDefinition {
 
 	/**
 	 * @param list<mixed>|Closure(PolicyContext): list<mixed> $allowedValues
+	 * @param bool $supportsRequestOverride No default on purpose: every policy decides it, independently of $supportsUserPreference
+	 * @param self::LIFECYCLE_* $requestLifecycle No default on purpose: every policy decides whether a sent request keeps its value
 	 * @param Closure(mixed): mixed|null $normalizer
 	 * @param Closure(mixed, PolicyContext): void|null $validator
 	 * @param Closure(mixed, PolicyContext): void|null $persistenceValidator Extra checks applied only when a value is saved
@@ -59,6 +63,8 @@ final class PolicySpec implements IPolicyDefinition {
 		private string $key,
 		private mixed $defaultSystemValue,
 		array|Closure $allowedValues,
+		private bool $supportsRequestOverride,
+		private string $requestLifecycle,
 		?Closure $normalizer = null,
 		?Closure $validator = null,
 		private ?string $appConfigKey = null,
@@ -210,6 +216,16 @@ final class PolicySpec implements IPolicyDefinition {
 	#[\Override]
 	public function supportsUserPreference(): bool {
 		return $this->supportsUserPreference;
+	}
+
+	#[\Override]
+	public function supportsRequestOverride(): bool {
+		return $this->supportsRequestOverride;
+	}
+
+	#[\Override]
+	public function requestLifecycle(): string {
+		return $this->requestLifecycle;
 	}
 
 	#[\Override]

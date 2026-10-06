@@ -13,6 +13,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\FilePolicy\SignatureRejectionFilePolicyApplier;
@@ -32,6 +33,7 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyService->method('getRequestLifecycle')->willReturn(PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT);
 		$this->fileService = $this->createMock(FileService::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n->method('t')->willReturnCallback(
@@ -55,37 +57,40 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 	/**
 	 * Answer like the policy resolver does: the administrative value of each
 	 * setting, replaced by the requested one when the layers above allow that
-	 * setting to be chosen per request.
+	 * setting to be chosen per request. Updating an existing request also
+	 * replays the choices it already stores, which resolve the same way.
 	 *
 	 * @param array<string, mixed> $administrative
 	 * @param list<string> $choosableKeys
 	 */
 	private function stubResolution(string $method, array $administrative, array $choosableKeys = SignatureRejectionPolicy::ALL_KEYS): void {
 		$defaults = SignatureRejectionPolicyConfig::defaults()->toKeyedValues();
+		$resolve = static function (
+			string $policyKey,
+			mixed $owner = null,
+			array $requestOverrides = [],
+			?array $activeContext = null,
+		) use ($administrative, $choosableKeys, $defaults): ResolvedPolicy {
+			$value = $administrative[$policyKey] ?? $defaults[$policyKey];
+			$sourceScope = $activeContext === null ? 'system' : 'group';
 
-		$this->policyService
-			->method($method)
-			->willReturnCallback(static function (
-				string $policyKey,
-				mixed $owner = null,
-				array $requestOverrides = [],
-				?array $activeContext = null,
-			) use ($administrative, $choosableKeys, $defaults): ResolvedPolicy {
-				$value = $administrative[$policyKey] ?? $defaults[$policyKey];
-				$sourceScope = $activeContext === null ? 'system' : 'group';
+			if (array_key_exists($policyKey, $requestOverrides) && in_array($policyKey, $choosableKeys, true)) {
+				$value = $requestOverrides[$policyKey];
+				$sourceScope = 'request';
+			}
 
-				if (array_key_exists($policyKey, $requestOverrides) && in_array($policyKey, $choosableKeys, true)) {
-					$value = $requestOverrides[$policyKey];
-					$sourceScope = 'request';
-				}
+			return (new ResolvedPolicy())
+				->setPolicyKey($policyKey)
+				->setEffectiveValue(SignatureRejectionPolicyConfig::normalizeKeyedValue($policyKey, $value))
+				->setSourceScope($sourceScope)
+				->setCanUseAsRequestOverride(in_array($policyKey, $choosableKeys, true))
+				->setBlockedBy(in_array($policyKey, $choosableKeys, true) ? null : 'system');
+		};
 
-				return (new ResolvedPolicy())
-					->setPolicyKey($policyKey)
-					->setEffectiveValue(SignatureRejectionPolicyConfig::normalizeKeyedValue($policyKey, $value))
-					->setSourceScope($sourceScope)
-					->setCanUseAsRequestOverride(in_array($policyKey, $choosableKeys, true))
-					->setBlockedBy(in_array($policyKey, $choosableKeys, true) ? null : 'system');
-			});
+		$this->policyService->method($method)->willReturnCallback($resolve);
+		if ($method === 'resolveForUserId') {
+			$this->policyService->method('resolveForUserIdWithStoredRequestOverrides')->willReturnCallback($resolve);
+		}
 	}
 
 	/** @param array<string, mixed> $storedValues */
@@ -103,6 +108,20 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 			}
 			$file->setMetadata(['policy_snapshot' => $policySnapshot]);
 		}
+		return $file;
+	}
+
+	/**
+	 * A request that entered the signing flow and then went back to DRAFT, for
+	 * example because its last signer was removed.
+	 *
+	 * @param array<string, mixed> $storedValues
+	 */
+	private function createFileReturnedToDraft(array $storedValues): File {
+		$file = $this->createFile(FileStatus::DRAFT->value, $storedValues);
+		$file->setMetadata(array_merge($file->getMetadata() ?? [], [
+			'policy_snapshot_frozen_at' => '2026-01-01T00:00:00+00:00',
+		]));
 		return $file;
 	}
 
@@ -293,6 +312,50 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		$this->assertSame('required', $storedValues[SignatureRejectionPolicy::KEY_COMMENT_MODE]);
 	}
 
+	public function testADraftReplaysStoredChoicesAndSubmitsOnlyTheOnesSentAgain(): void {
+		$file = $this->createFile(
+			FileStatus::DRAFT->value,
+			[
+				SignatureRejectionPolicy::KEY_ENABLED => true,
+				SignatureRejectionPolicy::KEY_COMMENT_MODE => 'required',
+			],
+			'request',
+		);
+		$storedValues = $this->storedValuesOf($file);
+		$replayed = [];
+		$this->policyService
+			->expects($this->exactly(4))
+			->method('resolveForUserIdWithStoredRequestOverrides')
+			->willReturnCallback(function (string $policyKey, ?string $userId, array $storedChoice) use (&$replayed): ResolvedPolicy {
+				$replayed[$policyKey] = $storedChoice;
+				return (new ResolvedPolicy())
+					->setPolicyKey($policyKey)
+					->setEffectiveValue($storedChoice[$policyKey])
+					->setSourceScope('request');
+			});
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUserId')
+			->with(SignatureRejectionPolicy::KEY_COMMENT_MODE, 'requester', [SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional'])
+			->willReturn((new ResolvedPolicy())
+				->setPolicyKey(SignatureRejectionPolicy::KEY_COMMENT_MODE)
+				->setEffectiveValue('optional')
+				->setSourceScope('request'));
+
+		$this->getApplier()->sync($file, [
+			'policyOverrides' => [SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional'],
+		]);
+
+		$expectedReplays = [];
+		foreach (SignatureRejectionPolicy::ALL_KEYS as $policyKey) {
+			if ($policyKey !== SignatureRejectionPolicy::KEY_COMMENT_MODE) {
+				$expectedReplays[$policyKey] = [$policyKey => $storedValues[$policyKey]];
+			}
+		}
+		$this->assertSame($expectedReplays, $replayed);
+		$this->assertSame('optional', $this->storedValuesOf($file)[SignatureRejectionPolicy::KEY_COMMENT_MODE]);
+	}
+
 	public function testADraftIsRevalidatedAgainstTheCurrentAdministratorPolicy(): void {
 		// The requester asked for a required comment while the draft was created;
 		// the administrator has since taken that choice away.
@@ -381,6 +444,7 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		]);
 
 		$this->policyService->expects($this->never())->method('resolveForUserId');
+		$this->policyService->expects($this->never())->method('resolveForUserIdWithStoredRequestOverrides');
 		$this->fileService->expects($this->never())->method('update');
 
 		$this->getApplier()->sync($file, []);
@@ -450,6 +514,7 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 
 		$this->fileService->expects($this->never())->method('update');
 		$this->policyService->expects($this->never())->method('resolveForUserId');
+		$this->policyService->expects($this->never())->method('resolveForUserIdWithStoredRequestOverrides');
 
 		$this->getApplier()->sync($file, [
 			'policyOverrides' => [
@@ -460,6 +525,58 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		]);
 
 		$this->assertTrue($this->storedValuesOf($file)[SignatureRejectionPolicy::KEY_ENABLED]);
+	}
+
+	public function testAnUpdateOfARequestThatReturnedToDraftKeepsTheFrozenConfiguration(): void {
+		$file = $this->createFileReturnedToDraft([SignatureRejectionPolicy::KEY_ENABLED => false]);
+		$this->stubResolution('resolveForUserId', [SignatureRejectionPolicy::KEY_ENABLED => true]);
+
+		$this->fileService->expects($this->never())->method('update');
+
+		$this->getApplier()->sync($file, []);
+
+		$this->assertFalse($this->storedValuesOf($file)[SignatureRejectionPolicy::KEY_ENABLED]);
+	}
+
+	public function testChangingASettingAfterTheRequestReturnedToDraftIsRefused(): void {
+		$file = $this->createFileReturnedToDraft([SignatureRejectionPolicy::KEY_ENABLED => false]);
+		$this->stubResolution('resolveForUserId', [SignatureRejectionPolicy::KEY_ENABLED => true]);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(422);
+		$this->expectExceptionMessage('The signature rejection settings cannot be changed after the signing flow has started.');
+
+		$this->getApplier()->sync($file, ['policyOverrides' => [SignatureRejectionPolicy::KEY_ENABLED => true]]);
+	}
+
+	public function testResendingTheFrozenConfigurationAfterReturningToDraftStaysAnIdempotentUpdate(): void {
+		$file = $this->createFileReturnedToDraft([SignatureRejectionPolicy::KEY_ENABLED => false]);
+
+		$this->fileService->expects($this->never())->method('update');
+		$this->policyService->expects($this->never())->method('resolveForUserId');
+
+		$this->getApplier()->sync($file, ['policyOverrides' => [SignatureRejectionPolicy::KEY_ENABLED => false]]);
+
+		$this->assertFalse($this->storedValuesOf($file)[SignatureRejectionPolicy::KEY_ENABLED]);
+	}
+
+	public function testTheStoredConfigurationComesFromTheResolverAndNotFromTheRequest(): void {
+		$file = $this->createFile();
+		$this->stubResolution('resolveForUser', [SignatureRejectionPolicy::KEY_ENABLED => true]);
+
+		$this->getApplier()->apply($file, [
+			'policyOverrides' => [SignatureRejectionPolicy::KEY_BEHAVIOR => 'continue'],
+			'policy_snapshot' => [
+				SignatureRejectionPolicy::KEY_BEHAVIOR => ['effectiveValue' => 'cancel', 'sourceScope' => 'system'],
+			],
+			'metadata' => ['policy_snapshot_frozen_at' => '2026-01-01T00:00:00+00:00'],
+		]);
+
+		$this->assertSame(
+			['effectiveValue' => 'continue', 'sourceScope' => 'request'],
+			$file->getMetadata()['policy_snapshot'][SignatureRejectionPolicy::KEY_BEHAVIOR],
+		);
+		$this->assertArrayNotHasKey('policy_snapshot_frozen_at', $file->getMetadata());
 	}
 
 	public function testAStartedRequestWithoutASnapshotRecordsTheResolvedConfiguration(): void {
@@ -481,6 +598,7 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		$envelope = $this->createEnvelope($envelopeStatus);
 
 		$this->policyService->expects($this->never())->method('resolveForUserId');
+		$this->policyService->expects($this->never())->method('resolveForUserIdWithStoredRequestOverrides');
 		$this->policyService->expects($this->never())->method('resolveForUser');
 		$this->fileService->expects($this->never())->method('update');
 

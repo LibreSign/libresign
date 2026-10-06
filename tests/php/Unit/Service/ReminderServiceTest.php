@@ -20,7 +20,6 @@ use OCA\Libresign\Service\ReminderService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
 use OCP\IDateTimeZone;
-use OCP\Server;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
@@ -28,7 +27,7 @@ use Psr\Log\LoggerInterface;
 final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected IJobList|MockObject $jobList;
 	protected PolicyService|MockObject $policyService;
-	protected IDateTimeZone $dateTimeZone;
+	protected IDateTimeZone&MockObject $dateTimeZone;
 	protected ITimeFactory|MockObject $time;
 	protected SignRequestMapper|MockObject $signRequestMapper;
 	protected IdentifyMethodService|MockObject $identifyMethodService;
@@ -38,7 +37,8 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function setUp(): void {
 		$this->jobList = $this->createMock(IJobList::class);
 		$this->policyService = $this->createMock(PolicyService::class);
-		$this->dateTimeZone = Server::get(IDateTimeZone::class);
+		$this->dateTimeZone = $this->createMock(IDateTimeZone::class);
+		$this->dateTimeZone->method('getTimeZone')->willReturn(new \DateTimeZone('UTC'));
 		$this->time = $this->createMock(ITimeFactory::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
