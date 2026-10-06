@@ -245,6 +245,18 @@ final class SequentialSigningServiceTest extends TestCase {
 		$this->assertSame([2, 3], array_map(fn (SignRequest $request): int => $request->getId(), $activated));
 	}
 
+	public function testActivateNextOrderReturnsNobodyWhenNotOrdered(): void {
+		$file = $this->createMock(FileEntity::class);
+		$file->method('getSignatureFlowEnum')
+			->willReturn(SignatureFlow::PARALLEL);
+		$this->service->setFile($file);
+
+		$this->signRequestMapper->expects($this->never())->method('getByFileId');
+		$this->identifyMethodService->expects($this->never())->method('getIdentifyMethodsFromSignRequestId');
+
+		$this->assertSame([], $this->service->activateNextOrder(99, 1));
+	}
+
 	public function testNotifyActivatedSignersNotifiesEverySignerItReceives(): void {
 		$this->service->setFile($this->createMock(FileEntity::class));
 
