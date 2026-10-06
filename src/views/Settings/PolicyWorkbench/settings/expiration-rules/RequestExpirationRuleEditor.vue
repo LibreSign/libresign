@@ -73,8 +73,8 @@ const disableExpirationHelperText = t('libresign', 'Leave empty to disable expir
 const renewalIntervalLabel = t('libresign', 'Renewal interval (seconds)')
 // TRANSLATORS Helper text indicating that leaving the renewal field empty disables renewal.
 const disableRenewalHelperText = t('libresign', 'Leave empty to disable renewal.')
-// TRANSLATORS Secondary helper text explaining that accounts can renew access to a signing request after it expires.
-const renewalIntervalDescription = t('libresign', 'Accounts may renew the signing request after expiration using the access link.')
+// TRANSLATORS Helper explaining that signer access/session renewal is limited to the signing request maximum validity.
+const renewalIntervalDescription = t('libresign', 'Signers can renew their access/session using the access link only while the signing request is within its configured maximum validity.')
 // TRANSLATORS Validation error shown when a renewal interval is entered without configuring a maximum validity.
 const renewalRequiresExpirationMessage = t('libresign', 'Maximum validity is required when renewal interval is set.')
 

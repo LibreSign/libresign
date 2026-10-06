@@ -20,6 +20,9 @@
 			:step="1"
 			:label="renewalIntervalInputLabel"
 			@update:modelValue="onValueChange" />
+		<p class="expiration-rule-editor__helper">
+			{{ renewalIntervalDescription }}
+		</p>
 	</div>
 </template>
 
@@ -47,9 +50,11 @@ const emit = defineEmits<{
 }>()
 
 // TRANSLATORS Toggle label for enabling or disabling a renewal interval on signing requests.
-const renewalIntervalToggleLabel = t('libresign', 'Renewal interval')
+const renewalIntervalToggleLabel = t('libresign', 'Signer access renewal')
 // TRANSLATORS Label for the numeric field that sets renewal interval in seconds for a signing request access link.
-const renewalIntervalInputLabel = t('libresign', 'Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link.')
+const renewalIntervalInputLabel = t('libresign', 'Renew signer access after (seconds)')
+// TRANSLATORS Helper explaining that signer access/session renewal is limited to the signing request maximum validity.
+const renewalIntervalDescription = t('libresign', 'Signers can renew their access/session using the access link only while the signing request is within its configured maximum validity.')
 
 const normalized = computed(() => normalizeNonNegativeInt(props.modelValue, DEFAULT_RENEWAL_INTERVAL))
 const enabled = computed(() => normalized.value > 0)
@@ -75,5 +80,11 @@ function onValueChange(nextValue: string | number): void {
 	display: flex;
 	flex-direction: column;
 	gap: 0.75rem;
+
+	&__helper {
+		margin: 0;
+		font-size: 0.82rem;
+		color: var(--color-text-maxcontrast);
+	}
 }
 </style>

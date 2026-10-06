@@ -29,6 +29,23 @@ const NcTextFieldStub = {
 }
 
 describe('RenewalIntervalRuleEditor.vue', () => {
+	it('explains signer access renewal without changing the stored seconds value', () => {
+		const wrapper = mount(RenewalIntervalRuleEditor, {
+			props: { modelValue: 3600 },
+			global: {
+				stubs: {
+					NcCheckboxRadioSwitch: NcCheckboxRadioSwitchStub,
+					NcTextField: NcTextFieldStub,
+				},
+			},
+		})
+
+		expect(wrapper.findComponent({ name: 'NcTextField' }).props('label')).toBe('Renew signer access after (seconds)')
+		expect(wrapper.find('.expiration-rule-editor__helper').text()).toBe('Signers can renew their access/session using the access link only while the signing request is within its configured maximum validity.')
+		expect((wrapper.find('.field-input').element as HTMLInputElement).value).toBe('3600')
+		expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+	})
+
 	it('renders only the toggle when the rule is disabled', () => {
 		const wrapper = mount(RenewalIntervalRuleEditor, {
 			props: {
@@ -42,7 +59,7 @@ describe('RenewalIntervalRuleEditor.vue', () => {
 			},
 		})
 
-		expect(wrapper.text()).toContain('Renewal interval')
+		expect(wrapper.text()).toContain('Signer access renewal')
 		expect(wrapper.find('.field-input').exists()).toBe(false)
 	})
 
