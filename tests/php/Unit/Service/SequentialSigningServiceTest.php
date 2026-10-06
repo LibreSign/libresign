@@ -272,12 +272,12 @@ final class SequentialSigningServiceTest extends TestCase {
 			->willThrowException(new \RuntimeException('the mail server is unreachable'));
 
 		$delivered = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
-		$delivered->expects($this->once())->method('willNotifyUser')->with(true);
-		$delivered->expects($this->once())->method('notify');
+		$delivered->expects($this->exactly(2))->method('willNotifyUser')->with(true);
+		$delivered->expects($this->exactly(2))->method('notify');
 
 		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
 			->willReturnCallback(fn (int $signRequestId): array => $signRequestId === 2
-				? [[$failing]]
+				? [[$failing, $delivered]]
 				: [[$delivered]]);
 
 		$this->logger->expects($this->once())->method('error')->with(
@@ -289,6 +289,44 @@ final class SequentialSigningServiceTest extends TestCase {
 		$this->service->notifyActivatedSigners($this->buildSignRequests([
 			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
 			[3, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]));
+	}
+
+	public function testNotifyActivatedSignersContinuesAfterAnIdentificationLookupFails(): void {
+		$delivered = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$delivered->expects($this->once())->method('willNotifyUser')->with(true);
+		$delivered->expects($this->once())->method('notify');
+
+		$this->identifyMethodService->expects($this->exactly(2))
+			->method('getIdentifyMethodsFromSignRequestId')
+			->willReturnCallback(function (int $signRequestId) use ($delivered): array {
+				if ($signRequestId === 2) {
+					throw new \RuntimeException('identification lookup failed');
+				}
+				$this->assertSame(3, $signRequestId);
+				return [[$delivered]];
+			});
+		$this->logger->expects($this->once())->method('error')->with(
+			$this->stringContains('identification lookup failed'),
+			$this->callback(fn (array $context): bool => $context['signRequestId'] === 2
+				&& $context['exception'] instanceof \RuntimeException),
+		);
+
+		$this->service->notifyActivatedSigners($this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
+			[3, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]));
+	}
+
+	public function testNotifyActivatedSignersDoesNotSwallowIdentificationLookupProgrammingErrors(): void {
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willThrowException(new \TypeError('invalid identification lookup'));
+		$this->logger->expects($this->never())->method('error');
+		$this->expectException(\TypeError::class);
+		$this->expectExceptionMessage('invalid identification lookup');
+
+		$this->service->notifyActivatedSigners($this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
 		]));
 	}
 
