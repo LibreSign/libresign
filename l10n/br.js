@@ -48,6 +48,7 @@ OC.L10N.register(
     "Unknown" : "Dianv",
     "Hide details" : "Skoachañ ar munudoù",
     "Show details" : "Diskouel ar munudoù",
+    "Country:" : "Bro :",
     "No date" : "Deizat ebet",
     "Yes" : "Ya",
     "No" : "Nann",

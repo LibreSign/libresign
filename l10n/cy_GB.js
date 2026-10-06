@@ -81,6 +81,7 @@ OC.L10N.register(
     "Required" : "Angen",
     "Username" : "Enw defnyddiwr",
     "Forgot password?" : "Anghofio cyfrinair?",
+    "Not found" : "Heb ei ganfod",
     "Hello {name}" : "Helo {name}",
     "Today" : "Heddiw",
     "Other" : "Arall",
