@@ -277,6 +277,32 @@ final class SequentialSigningServiceTest extends TestCase {
 		]));
 	}
 
+	public function testNotifyActivatedSignersNotifiesEveryIdentifyMethodOfEverySigner(): void {
+		$signers = $this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
+			[3, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]);
+
+		$email = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$email->expects($this->exactly(2))->method('willNotifyUser')->with(true);
+		$email->expects($this->exactly(2))->method('notify');
+
+		$account = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$account->expects($this->exactly(2))->method('willNotifyUser')->with(true);
+		$account->expects($this->exactly(2))->method('notify');
+
+		$requestedIds = [];
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willReturnCallback(function (int $signRequestId) use (&$requestedIds, $email, $account): array {
+				$requestedIds[] = $signRequestId;
+				return ['email' => [$email], 'account' => [$account]];
+			});
+
+		$this->service->notifyActivatedSigners($signers);
+
+		$this->assertSame([2, 3], $requestedIds);
+	}
+
 	public function testNotifyActivatedSignersIsANoOpWithoutActivatedSigners(): void {
 		$this->service->setFile($this->createMock(FileEntity::class));
 
