@@ -54,6 +54,7 @@ OC.L10N.register(
     "Open sidebar" : "Open kantbalk",
     "Cancel upload" : "Kanselleer oplaai",
     "Paragraph" : "Paragraaf",
+    "Country:" : "Land:",
     "No date" : "Geen datum",
     "Yes" : "Ja",
     "No" : "Nee",
