@@ -29,6 +29,8 @@ const emitMock = vi.fn()
 
 vi.mock('@nextcloud/event-bus', () => ({
 	emit: (...args: unknown[]) => emitMock(...args),
+	subscribe: vi.fn(),
+	unsubscribe: vi.fn(),
 }))
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n({

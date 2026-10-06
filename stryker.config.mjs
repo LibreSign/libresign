@@ -6,6 +6,7 @@ export default {
   packageManager: 'npm',
   reporters: ['html', 'clear-text', 'progress'],
   testRunner: 'vitest',
+  ignorePatterns: ['/vendor', '/vendor-bin', '/3rdparty', '/lib', '/js', '/css', '/tests', '/playwright', '/build'],
   vitest: {
     configFile: 'vitest.config.js'
   },
@@ -15,6 +16,7 @@ export default {
     '!src/tests/**',
     '!src/**/*.spec.{js,ts}',
     '!src/**/*.test.{js,ts}',
-    '!src/**/*.d.ts'
+    '!src/**/*.d.ts',
+    '!src/**/*.vue'
   ]
 };

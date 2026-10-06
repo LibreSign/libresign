@@ -14,6 +14,8 @@ const { emitMock, putMock } = vi.hoisted(() => ({
 
 vi.mock('@nextcloud/event-bus', () => ({
 	emit: emitMock,
+	subscribe: vi.fn(),
+	unsubscribe: vi.fn(),
 }))
 
 vi.mock('@nextcloud/initial-state', () => ({

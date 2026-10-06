@@ -21,7 +21,7 @@ export default [
 			// TODO: upstream
 			'openapi-*.json',
 			// StrykerJS sandbox
-            '.stryker-tmp/*'
+			'.stryker-tmp/*'
 		],
 	},
 

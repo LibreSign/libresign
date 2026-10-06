@@ -11,6 +11,8 @@ import SignerRow from '../../../../../components/Request/SignDetail/partials/Sig
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('@nextcloud/event-bus', () => ({
+	subscribe: vi.fn(),
+	unsubscribe: vi.fn(),
 	emit: vi.fn(),
 }))
 
