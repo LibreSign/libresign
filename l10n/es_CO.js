@@ -123,6 +123,7 @@ OC.L10N.register(
     "Try again" : "Reintentar",
     "Complete" : "Terminar",
     "State" : "Estado",
+    "Not found" : "No encontrado",
     "Hello {name}" : "Hola {name}",
     "_{count} file_::_{count} files_" : ["{count} archivo","{count} archivos","{count} archivos"],
     "Today" : "Hoy",
