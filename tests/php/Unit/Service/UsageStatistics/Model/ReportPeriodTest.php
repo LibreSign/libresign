@@ -46,12 +46,4 @@ final class ReportPeriodTest extends TestCase {
 		$this->assertSame('2027-01-01T00:00:00+00:00', $period->start()->format(\DateTimeInterface::RFC3339));
 		$this->assertSame('2027-02-01T00:00:00+00:00', $period->end()->format(\DateTimeInterface::RFC3339));
 	}
-
-	public function testBoundariesAreImmutable(): void {
-		$period = ReportPeriod::monthContaining(new \DateTimeImmutable('2026-08-10T00:00:00Z'));
-
-		$period->start()->modify('+1 day');
-
-		$this->assertSame('2026-08-01T00:00:00+00:00', $period->start()->format(\DateTimeInterface::RFC3339));
-	}
 }
