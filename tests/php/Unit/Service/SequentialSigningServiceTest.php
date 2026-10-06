@@ -19,20 +19,24 @@ use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 final class SequentialSigningServiceTest extends TestCase {
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private IdentifyMethodService&MockObject $identifyMethodService;
+	private LoggerInterface&MockObject $logger;
 	private SequentialSigningService $service;
 
 	public function setUp(): void {
 		parent::setUp();
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 
 		$this->service = new SequentialSigningService(
 			$this->signRequestMapper,
-			$this->identifyMethodService
+			$this->identifyMethodService,
+			$this->logger
 		);
 	}
 
@@ -211,6 +215,150 @@ final class SequentialSigningServiceTest extends TestCase {
 		}
 
 		$this->service->releaseNextOrder(99, $completedOrder);
+	}
+
+	public function testActivateNextOrderReturnsTheActivatedSignersWithoutNotifyingThem(): void {
+		$file = $this->createMock(FileEntity::class);
+		$file->method('getSignatureFlowEnum')
+			->willReturn(SignatureFlow::ORDERED_NUMERIC);
+		$this->service->setFile($file);
+
+		$signRequests = $this->buildSignRequests([
+			[1, SignRequestStatus::SIGNED, 1],
+			[2, SignRequestStatus::DRAFT, 2],
+			[3, SignRequestStatus::DRAFT, 2],
+		]);
+		$this->signRequestMapper->expects($this->once())
+			->method('getByFileId')
+			->with(99)
+			->willReturn($signRequests);
+
+		$this->signRequestMapper->expects($this->exactly(2))
+			->method('update')
+			->with($this->callback(fn (SignRequest $request): bool => $request->getStatusEnum() === SignRequestStatus::ABLE_TO_SIGN));
+
+		$this->identifyMethodService->expects($this->never())->method('getIdentifyMethodsFromSignRequestId');
+
+		$activated = $this->service->activateNextOrder(99, 1);
+
+		$this->assertCount(2, $activated);
+		$this->assertSame([2, 3], array_map(fn (SignRequest $request): int => $request->getId(), $activated));
+	}
+
+	public function testNotifyActivatedSignersNotifiesEverySignerItReceives(): void {
+		$this->service->setFile($this->createMock(FileEntity::class));
+
+		$identifyMethod = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$identifyMethod->expects($this->exactly(2))
+			->method('willNotifyUser')
+			->with(true);
+		$identifyMethod->expects($this->exactly(2))
+			->method('notify');
+
+		$this->identifyMethodService->expects($this->exactly(2))
+			->method('getIdentifyMethodsFromSignRequestId')
+			->willReturn([[$identifyMethod]]);
+
+		$this->service->notifyActivatedSigners($this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
+			[3, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]));
+	}
+
+	public function testNotifyActivatedSignersIsANoOpWithoutActivatedSigners(): void {
+		$this->service->setFile($this->createMock(FileEntity::class));
+
+		$this->identifyMethodService->expects($this->never())->method('getIdentifyMethodsFromSignRequestId');
+
+		$this->service->notifyActivatedSigners([]);
+	}
+
+	public function testNotifyActivatedSignersKeepsNotifyingTheRemainingSignersWhenADeliveryFails(): void {
+		$this->service->setFile($this->createMock(FileEntity::class));
+
+		$failing = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$failing->method('getName')->willReturn('email');
+		$failing->expects($this->once())->method('willNotifyUser')->with(true);
+		$failing->expects($this->once())->method('notify')
+			->willThrowException(new \RuntimeException('the mail server is unreachable'));
+
+		$delivered = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$delivered->expects($this->exactly(2))->method('willNotifyUser')->with(true);
+		$delivered->expects($this->exactly(2))->method('notify');
+
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willReturnCallback(fn (int $signRequestId): array => $signRequestId === 2
+				? [[$failing, $delivered]]
+				: [[$delivered]]);
+
+		$this->logger->expects($this->once())->method('error')->with(
+			$this->stringContains('the mail server is unreachable'),
+			$this->callback(fn (array $context): bool => $context['signRequestId'] === 2
+				&& $context['identifyMethod'] === 'email'),
+		);
+
+		$this->service->notifyActivatedSigners($this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
+			[3, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]));
+	}
+
+	public function testNotifyActivatedSignersContinuesAfterAnIdentificationLookupFails(): void {
+		$delivered = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$delivered->expects($this->once())->method('willNotifyUser')->with(true);
+		$delivered->expects($this->once())->method('notify');
+
+		$this->identifyMethodService->expects($this->exactly(2))
+			->method('getIdentifyMethodsFromSignRequestId')
+			->willReturnCallback(function (int $signRequestId) use ($delivered): array {
+				if ($signRequestId === 2) {
+					throw new \RuntimeException('identification lookup failed');
+				}
+				$this->assertSame(3, $signRequestId);
+				return [[$delivered]];
+			});
+		$this->logger->expects($this->once())->method('error')->with(
+			$this->stringContains('identification lookup failed'),
+			$this->callback(fn (array $context): bool => $context['signRequestId'] === 2
+				&& $context['exception'] instanceof \RuntimeException),
+		);
+
+		$this->service->notifyActivatedSigners($this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
+			[3, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]));
+	}
+
+	public function testNotifyActivatedSignersDoesNotSwallowIdentificationLookupProgrammingErrors(): void {
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willThrowException(new \TypeError('invalid identification lookup'));
+		$this->logger->expects($this->never())->method('error');
+		$this->expectException(\TypeError::class);
+		$this->expectExceptionMessage('invalid identification lookup');
+
+		$this->service->notifyActivatedSigners($this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]));
+	}
+
+	public function testNotifyActivatedSignersDoesNotSwallowProgrammingErrors(): void {
+		$this->service->setFile($this->createMock(FileEntity::class));
+
+		$broken = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$broken->expects($this->once())->method('notify')
+			->willThrowException(new \TypeError('a listener is calling the wrong method'));
+
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willReturn([[$broken]]);
+
+		$this->logger->expects($this->never())->method('error');
+
+		$this->expectException(\TypeError::class);
+		$this->expectExceptionMessage('a listener is calling the wrong method');
+
+		$this->service->notifyActivatedSigners($this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]));
 	}
 
 	public function testReorderAfterDeletionSkipsWhenNotOrdered(): void {
