@@ -22,9 +22,7 @@ vi.mock('@nextcloud/initial-state', () => ({
 }))
 
 vi.mock('@nextcloud/auth', () => ({
-	getCurrentUser: vi.fn(() => ({ uid: 'test-user', isAdmin: true })),
-	getRequestToken: vi.fn(() => 'test-token'),
-	onRequestTokenUpdate: vi.fn(),
+	getCurrentUser: () => getCurrentUserMock(),
 }))
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())

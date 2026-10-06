@@ -19,8 +19,6 @@ vi.mock('@nextcloud/auth', () => ({
 		uid: 'ada',
 		displayName: 'Ada Lovelace',
 	})),
-	getRequestToken: vi.fn(() => 'test-token'),
-	onRequestTokenUpdate: vi.fn(),
 }))
 
 describe('Account.vue', () => {

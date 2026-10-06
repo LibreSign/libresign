@@ -39,8 +39,10 @@ export default defineConfig({
 		server: {
 			deps: {
 				inline: [
-					/@nextcloud\//,
-					/@libresign\//,
+					'@nextcloud/vue',
+					'@nextcloud/vue-select',
+					'@nextcloud/dialogs',
+					'@nextcloud/password-confirmation',
 					'splitpanes',
 					'vue-select',
 				],

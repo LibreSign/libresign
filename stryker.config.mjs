@@ -1,5 +1,7 @@
-// SPDX-FileCopyrightText: 2024 LibreSign contributors
-// SPDX-License-Identifier: AGPL-3.0-or-later
+/**
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 /** @type {import('@stryker-mutator/api/core').PartialStrykerOptions} */
 export default {
@@ -11,12 +13,11 @@ export default {
     configFile: 'vitest.config.js'
   },
   coverageAnalysis: 'perTest',
+  // .vue files are not mutated: Stryker's instrumentation breaks <script setup> macros
+  // (defineOptions/defineProps), which makes the initial test run crash.
   mutate: [
-    'src/**/*.{js,ts,vue}',
+    'src/**/*.{js,ts}',
     '!src/tests/**',
-    '!src/**/*.spec.{js,ts}',
-    '!src/**/*.test.{js,ts}',
     '!src/**/*.d.ts',
-    '!src/**/*.vue'
-  ]
+  ],
 };
