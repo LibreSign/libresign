@@ -390,15 +390,24 @@ final class SignatureRejectionServiceTest extends TestCase {
 			->willReturn([$activated]);
 
 		$committed = false;
+		$eventDispatched = false;
 		$this->db->expects($this->once())
 			->method('commit')
 			->willReturnCallback(function () use (&$committed): void {
 				$committed = true;
 			});
+		$this->eventDispatcher->expects($this->once())
+			->method('dispatchTyped')
+			->with($this->isInstanceOf(SignatureRejectedEvent::class))
+			->willReturnCallback(function () use (&$committed, &$eventDispatched): void {
+				$this->assertTrue($committed, 'The rejection event must follow the commit.');
+				$eventDispatched = true;
+			});
 		$this->sequentialSigningService->expects($this->once())
 			->method('notifyActivatedSigners')
 			->with([$activated])
-			->willReturnCallback(function () use (&$committed): void {
+			->willReturnCallback(function () use (&$committed, &$eventDispatched): void {
+				$this->assertTrue($eventDispatched, 'The rejection event must precede signer notifications.');
 				$this->assertTrue(
 					$committed,
 					'The released signers must only be notified once the rejection is committed.',
@@ -456,6 +465,8 @@ final class SignatureRejectionServiceTest extends TestCase {
 			->willReturn([$this->signRequest(id: 78)]);
 		$this->sequentialSigningService->method('notifyActivatedSigners')
 			->willThrowException(new \RuntimeException('unexpected notification exception'));
+		$this->eventDispatcher->expects($this->once())->method('dispatchTyped')
+			->with($this->isInstanceOf(SignatureRejectedEvent::class));
 		$this->db->expects($this->once())->method('commit');
 		$this->db->expects($this->never())->method('rollBack');
 		$this->logger->expects($this->never())->method('error');
@@ -478,7 +489,10 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$this->sequentialSigningService->method('notifyActivatedSigners')
 			->willThrowException(new \TypeError('bug in the notification path'));
 
+		$this->eventDispatcher->expects($this->once())->method('dispatchTyped')
+			->with($this->isInstanceOf(SignatureRejectedEvent::class));
 		$this->db->expects($this->once())->method('commit');
+		$this->db->expects($this->never())->method('rollBack');
 		$this->logger->expects($this->never())->method('error');
 
 		$this->expectException(\TypeError::class);
