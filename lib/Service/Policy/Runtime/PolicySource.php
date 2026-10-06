@@ -65,26 +65,14 @@ class PolicySource implements IPolicySource {
 			return $layer->setAllowChildOverride(true);
 		}
 
-		if ($value === $defaultValue) {
-			$allowChildOverride = $this->appConfig->getAppValueString(
-				$this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey()),
-				'0',
-			) === '1';
-
-			if ($allowChildOverride) {
-				// Explicitly persisted default value ("let users choose")
-				return $layer
-					->setAllowChildOverride(true)
-					->setAllowedValues([]);
-			}
-
+		// A default value stored without an override flag predates explicit
+		// defaults: the API could not enforce it then, so it stays overridable.
+		$allowOverrideConfigKey = $this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey());
+		if ($value === $defaultValue && !$this->appConfig->hasAppKey($allowOverrideConfigKey)) {
 			return $layer->setAllowChildOverride(true);
 		}
 
-		$allowChildOverride = $this->appConfig->getAppValueString(
-			$this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey()),
-			'0',
-		) === '1';
+		$allowChildOverride = $this->appConfig->getAppValueString($allowOverrideConfigKey, '0') === '1';
 
 		return $layer
 			->setAllowChildOverride($allowChildOverride)
@@ -672,31 +660,11 @@ class PolicySource implements IPolicySource {
 	#[\Override]
 	public function saveSystemPolicy(string $policyKey, mixed $value, bool $allowChildOverride = false): void {
 		$definition = $this->registry->get($policyKey);
-		$normalizedValue = $definition->normalizeValue($value);
-		$defaultValue = $definition->normalizeValue($definition->defaultSystemValue());
-		$allowOverrideConfigKey = $this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey());
-
-		$valuesAreEqual = $normalizedValue === $defaultValue;
-		if (!$valuesAreEqual && is_string($normalizedValue) && is_string($defaultValue)) {
-			$d1 = json_decode($normalizedValue, true);
-			$d2 = json_decode($defaultValue, true);
-			if (is_array($d1) && is_array($d2)) {
-				$valuesAreEqual = $d1 === $d2;
-			}
-		}
-		if ($valuesAreEqual) {
-			if ($allowChildOverride) {
-				$this->writeSystemValue($definition->getAppConfigKey(), $normalizedValue);
-				$this->appConfig->setAppValueString($allowOverrideConfigKey, '1');
-				return;
-			}
-
-			$this->clearSystemPolicy($policyKey);
-			return;
-		}
-
-		$this->writeSystemValue($definition->getAppConfigKey(), $normalizedValue);
-		$this->appConfig->setAppValueString($allowOverrideConfigKey, $allowChildOverride ? '1' : '0');
+		$this->writeSystemValue($definition->getAppConfigKey(), $definition->normalizeValue($value));
+		$this->appConfig->setAppValueString(
+			$this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey()),
+			$allowChildOverride ? '1' : '0',
+		);
 	}
 
 	#[\Override]
