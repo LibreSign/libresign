@@ -14,6 +14,7 @@ use OCA\Libresign\Service\UsageStatistics\Model\ReportMode;
 use OCA\Libresign\Service\UsageStatistics\Model\ReportPeriod;
 use OCA\Libresign\Service\UsageStatistics\Source\UsageActivityReader;
 use OCA\Libresign\Service\UsageStatistics\UsageReportBuilder;
+use OCA\Libresign\Service\UsageStatistics\UsageStatisticsCollectors;
 use OCA\Libresign\Service\UsageStatistics\UsageStatisticsException;
 use OCA\Libresign\Service\UsageStatistics\UsageStatisticsSchema;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -26,6 +27,26 @@ final class UsageReportBuilderTest extends TestCase {
 
 	public function setUp(): void {
 		$this->activityReader = $this->createMock(UsageActivityReader::class);
+	}
+
+	public function testEveryShippedSchemaMetricHasExactlyOneCollector(): void {
+		$owners = [];
+		foreach (UsageStatisticsCollectors::ALL as $collectorClass) {
+			$collector = (new \ReflectionClass($collectorClass))->newInstanceWithoutConstructor();
+			foreach ($collector->metricIds() as $metricId) {
+				$this->assertArrayNotHasKey($metricId, $owners, $metricId . ' has more than one collector');
+				$owners[$metricId] = $collectorClass;
+			}
+		}
+
+		$schemaIds = array_map(
+			static fn ($definition): string => $definition->id(),
+			UsageStatisticsSchema::load()->definitions(),
+		);
+		sort($schemaIds);
+		$collectedIds = array_keys($owners);
+		sort($collectedIds);
+		$this->assertSame($schemaIds, $collectedIds);
 	}
 
 	public function testBuildsTheMetricsInSchemaOrder(): void {
