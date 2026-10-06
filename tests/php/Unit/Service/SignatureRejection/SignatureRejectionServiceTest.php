@@ -443,24 +443,30 @@ final class SignatureRejectionServiceTest extends TestCase {
 			$this->fail('The rejection must fail when a later document cannot be released.');
 		} catch (LibresignException) {
 			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $onDoc1->getStatusEnum());
+			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $onDoc2->getStatusEnum());
+			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $onTheEnvelope->getStatusEnum());
 		}
 	}
 
-	public function testAFailingNotificationDoesNotUndoACommittedRejection(): void {
+	public function testAnUnexpectedNotificationExceptionDoesNotRollBackACommittedRejection(): void {
 		$this->withPolicy(self::policy(behavior: 'continue'));
 		$signRequest = $this->signRequest();
 
 		$this->sequentialSigningService->method('activateNextOrder')
 			->willReturn([$this->signRequest(id: 78)]);
 		$this->sequentialSigningService->method('notifyActivatedSigners')
-			->willThrowException(new \RuntimeException('the mail server is unreachable'));
+			->willThrowException(new \RuntimeException('unexpected notification exception'));
 		$this->db->expects($this->once())->method('commit');
 		$this->db->expects($this->never())->method('rollBack');
-		$this->logger->expects($this->atLeastOnce())->method('error');
+		$this->logger->expects($this->never())->method('error');
 
-		$result = $this->getService()->reject($this->file(), $signRequest);
-
-		$this->assertSame(SignRequestStatus::REJECTED, $result->getStatusEnum());
+		try {
+			$this->getService()->reject($this->file(), $signRequest);
+			$this->fail('Unexpected notification exceptions must propagate.');
+		} catch (\RuntimeException $e) {
+			$this->assertSame('unexpected notification exception', $e->getMessage());
+			$this->assertSame(SignRequestStatus::REJECTED, $signRequest->getStatusEnum());
+		}
 	}
 
 	public function testAProgrammingErrorWhileNotifyingIsNotConvertedIntoADeliveryFailure(): void {

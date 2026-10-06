@@ -140,25 +140,7 @@ class SignatureRejectionService {
 			throw new LibresignException($this->l10n->t('It was not possible to register the rejection. Nothing was changed.'));
 		}
 
-		// The activation is committed at this point, so the signers it released
-		// are only told about it now. Notifying inside the transaction would
-		// deliver a message for an activation that a later failure rolls back,
-		// and a failing listener must not undo a recorded rejection.
-		//
-		// Sending a notification is a post-commit side effect: a recoverable
-		// delivery failure (\Exception) is logged instead of making the
-		// recorded rejection look failed for the caller. Programming errors
-		// (\Error) are not delivery failures and deliberately stay visible;
-		// failing notifications are already isolated per signer by
-		// SequentialSigningService::notifyActivatedSigners().
-		try {
-			$this->sequentialSigningService->notifyActivatedSigners($activatedSigners);
-		} catch (\Exception $e) {
-			$this->logger->error('Error notifying the signers released by the rejection: ' . $e->getMessage(), [
-				'exception' => $e,
-				'signRequestId' => $signRequest->getId(),
-			]);
-		}
+		$this->sequentialSigningService->notifyActivatedSigners($activatedSigners);
 	}
 
 	/**

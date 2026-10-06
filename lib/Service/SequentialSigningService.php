@@ -106,35 +106,40 @@ class SequentialSigningService {
 	}
 
 	/**
-	 * Notify the signers returned by activateNextOrder().
-	 *
-	 * A delivery is best effort: one failing notification must not stop the
-	 * remaining signers from being told that they can sign now, so every
-	 * identify method is isolated from the others.
-	 *
-	 * Only recoverable failures (\Exception) are isolated. The concrete
-	 * exception classes depend on the installed notification channels (mail,
-	 * notifications, gateways), so the recoverable family is caught here per
-	 * signer and identify method. A programming error (\Error) is not a
-	 * delivery failure and stays visible instead of being logged as one.
-	 *
 	 * @param list<SignRequestEntity> $signers
 	 */
 	public function notifyActivatedSigners(array $signers): void {
 		foreach ($signers as $signer) {
+			$this->notifySigner($signer);
+		}
+	}
+
+	/**
+	 * Isolate recoverable lookup and delivery failures so other signers can proceed.
+	 * Channel exceptions vary; programming errors must still propagate.
+	 */
+	private function notifySigner(SignRequestEntity $signer): void {
+		try {
 			$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId());
-			foreach ($identifyMethods as $methodGroup) {
-				foreach ($methodGroup as $identifyMethod) {
+		} catch (\Exception $e) {
+			$this->logger->error('Error loading identification methods for an activated signer: ' . $e->getMessage(), [
+				'exception' => $e,
+				'signRequestId' => $signer->getId(),
+			]);
+			return;
+		}
+
+		foreach ($identifyMethods as $methodGroup) {
+			foreach ($methodGroup as $identifyMethod) {
+				try {
 					$identifyMethod->willNotifyUser(true);
-					try {
-						$identifyMethod->notify();
-					} catch (\Exception $e) {
-						$this->logger->error('Error notifying an activated signer: ' . $e->getMessage(), [
-							'exception' => $e,
-							'signRequestId' => $signer->getId(),
-							'identifyMethod' => $identifyMethod->getName(),
-						]);
-					}
+					$identifyMethod->notify();
+				} catch (\Exception $e) {
+					$this->logger->error('Error notifying an activated signer: ' . $e->getMessage(), [
+						'exception' => $e,
+						'signRequestId' => $signer->getId(),
+						'identifyMethod' => $identifyMethod->getName(),
+					]);
 				}
 			}
 		}
