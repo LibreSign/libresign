@@ -25,6 +25,7 @@ use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\ValidationEffectivePolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -65,6 +66,7 @@ class PageController extends AEnvironmentPageAwareController {
 		protected SignFileService $signFileService,
 		protected RequestSignatureService $requestSignatureService,
 		private PolicyService $policyService,
+		private ValidationEffectivePolicyService $validationEffectivePolicyService,
 		private PolicyAuthorizationService $policyAuthorizationService,
 		private SignerElementsService $signerElementsService,
 		protected IL10N $l10n,
@@ -687,19 +689,12 @@ class PageController extends AEnvironmentPageAwareController {
 			->showValidateFile()
 			->toArray();
 
-		$requesterUserId = null;
-		$requestedBy = $fileInfo['requested_by'] ?? null;
-		if (is_array($requestedBy) && is_string($requestedBy['userId'] ?? null)) {
-			$requestedByUserId = trim($requestedBy['userId']);
-			$requesterUserId = $requestedByUserId !== '' ? $requestedByUserId : null;
-		}
+		$fileInfo = $this->validationEffectivePolicyService->appendEffectivePolicies($fileInfo);
 
-		$this->initialState->provideInitialState('effective_policies', [
-			'policies' => $requesterUserId !== null
-				? $this->policyService->resolveKnownPolicyStatesForUserIdWithoutUserScope($requesterUserId)
-				: $this->policyService->resolveKnownPolicyStates(),
-		]);
-
+		$this->initialState->provideInitialState(
+			'effective_policies',
+			$fileInfo['effective_policies'],
+		);
 		$this->initialState->provideInitialState('file_info', $fileInfo);
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
