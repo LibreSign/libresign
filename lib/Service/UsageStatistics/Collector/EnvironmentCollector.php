@@ -25,7 +25,8 @@ use OCP\IUserManager;
  */
 class EnvironmentCollector implements IMetricCollector {
 	private const ACTIVE_USERS_DAYS = 30;
-	private const LAST_LOGIN_BATCH_SIZE = 500;
+	// Nextcloud returns at most 100 users per call, whatever the limit asked.
+	private const LAST_LOGIN_BATCH_SIZE = 100;
 	private const BACKGROUND_JOB_MODES = ['ajax', 'webcron', 'cron'];
 
 	public function __construct(
@@ -75,14 +76,15 @@ class EnvironmentCollector implements IMetricCollector {
 
 	/**
 	 * Users come sorted by their last login, most recent first, so counting
-	 * stops at the first one outside the window.
+	 * stops at the first one outside the window. Pages advance by what each
+	 * call returned and end on an empty one, so a server that caps the batch
+	 * below the requested size cannot end the count early.
 	 */
 	private function countRecentlyActiveUsers(): int {
 		$since = $this->timeFactory->getTime() - self::ACTIVE_USERS_DAYS * 86400;
 		$count = 0;
 		$offset = 0;
-		do {
-			$userIds = $this->userManager->getLastLoggedInUsers(self::LAST_LOGIN_BATCH_SIZE, $offset);
+		while (($userIds = $this->userManager->getLastLoggedInUsers(self::LAST_LOGIN_BATCH_SIZE, $offset)) !== []) {
 			foreach ($userIds as $userId) {
 				$user = $this->userManager->get($userId);
 				if ($user === null) {
@@ -93,8 +95,8 @@ class EnvironmentCollector implements IMetricCollector {
 				}
 				$count++;
 			}
-			$offset += self::LAST_LOGIN_BATCH_SIZE;
-		} while (count($userIds) === self::LAST_LOGIN_BATCH_SIZE);
+			$offset += count($userIds);
+		}
 		return $count;
 	}
 

@@ -138,6 +138,42 @@ final class EnvironmentCollectorTest extends TestCase {
 		$this->assertSame(2, $values['nextcloud.users_active_30d']->value());
 	}
 
+	#[DataProvider('activeUsersBeyondOneBatchProvider')]
+	public function testActiveUsersAreCountedBeyondTheServerBatchLimit(int $active, int $inactive): void {
+		$lastLogins = [];
+		for ($i = 0; $i < $active; $i++) {
+			$lastLogins['active' . $i] = self::NOW - $i;
+		}
+		for ($i = 0; $i < $inactive; $i++) {
+			$lastLogins['inactive' . $i] = self::NOW - 31 * 86400 - $i;
+		}
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->method('countUsersTotal')->willReturn($active + $inactive);
+		// Same contract as Nextcloud's user manager: most recent login first,
+		// and never more than 100 users per call, whatever the limit asked.
+		$userManager->method('getLastLoggedInUsers')->willReturnCallback(
+			static fn (?int $limit = null, int $offset = 0): array => array_slice(array_keys($lastLogins), $offset, min(100, $limit ?: 25)),
+		);
+		$userManager->method('get')->willReturnCallback(function (string $userId) use ($lastLogins): IUser {
+			$user = $this->createMock(IUser::class);
+			$user->method('getLastLogin')->willReturn($lastLogins[$userId]);
+			return $user;
+		});
+		$this->userManager = $userManager;
+
+		$values = $this->collector()->collect($this->period(), ReportMode::CURRENT);
+
+		$this->assertSame($active, $values['nextcloud.users_active_30d']->value());
+	}
+
+	public static function activeUsersBeyondOneBatchProvider(): array {
+		return [
+			'all active, ending on a partial batch' => [250, 0],
+			'all active, ending on a full batch' => [200, 0],
+			'window ends in the second batch' => [150, 30],
+		];
+	}
+
 	public function testAnUnknownArchitectureIsReportedAsOther(): void {
 		$runtime = $this->createMock(RuntimeEnvironment::class);
 		$runtime->method('nextcloudVersion')->willReturn('36.0.1');
