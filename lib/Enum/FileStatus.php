@@ -40,7 +40,7 @@ enum FileStatus: int {
 			self::ABLE_TO_SIGN => $l10n->t('Ready to sign'),
 			// TRANSLATORS File status shown when some required signers have signed, but not all.
 			self::PARTIAL_SIGNED => $l10n->t('Partially signed'),
-			// TRANSLATORS File status shown when all required signatures are complete.
+			// TRANSLATORS File status shown when the signing workflow is complete: at least one signature was applied and no signer is still pending. Signers who rejected count as done.
 			self::SIGNED => $l10n->t('Signed'),
 			// TRANSLATORS File status shown when the LibreSign file record was deleted.
 			self::DELETED => $l10n->t('Deleted'),
