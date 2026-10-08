@@ -14,13 +14,14 @@ appstore_build_directory=$(CURDIR)/build/artifacts
 appstore_package_name=$(appstore_build_directory)/$(app_name)
 appstore_sign_dir=$(appstore_build_directory)/sign
 cert_dir=$(build_tools_directory)/certificates
+nextcloud_directory=$(CURDIR)/../nextcloud
 release_version=$(shell sed -n 's:.*<version>\([^<]*\)</version>.*:\1:p' appinfo/info.xml)
 release_major=$(word 1,$(subst ., ,$(release_version)))
 release_changelog=$(CURDIR)/docs/changelogs/changelog-$(release_major).md
 npm=$(shell which npm 2> /dev/null)
 composer=$(shell which composer 2> /dev/null)
-ifneq (,$(wildcard $(CURDIR)/../nextcloud/occ))
-	occ=php $(CURDIR)/../nextcloud/occ
+ifneq (,$(wildcard $(nextcloud_directory)/occ))
+	occ=php $(nextcloud_directory)/occ
 else ifneq (,$(wildcard $(CURDIR)/../../occ))
 	occ=php $(CURDIR)/../../occ
 endif
@@ -205,24 +206,7 @@ appstore: verify-release-metadata
 	cp tests/php/fixtures/pdfs/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/php/fixtures
 
 	mkdir -p $(cert_dir)
-	if [ -f $(cert_dir)/$(app_name).key ] && [ "$(GITHUB_ACTIONS)" = "true" ]; then \
-		set -e; \
-		echo "⌛️ Starting Nextcloud setup..."; \
-		mkdir $(CURDIR)/../nextcloud/data; \
-		ln -s $(CURDIR) $(CURDIR)/../nextcloud/apps/libresign; \
-		$(occ) maintenance:install \
-			--verbose \
-			--database=sqlite \
-			--database-name=nextcloud \
-			--database-host=127.0.0.1 \
-			--database-user=root \
-			--database-pass=rootpassword \
-			--admin-user admin \
-			--admin-pass admin; \
-		$(occ) --version; \
-		$(occ) app:enable --force libresign; \
-		echo "🏁 Setup finished"; \
-	fi
+	$(MAKE) --no-print-directory _appstore-nextcloud-setup
 
 	if [ -f $(cert_dir)/$(app_name).key ]; then \
 		set -e; \
@@ -249,6 +233,30 @@ appstore: verify-release-metadata
 	@if [ -f $(cert_dir)/$(app_name).key ]; then \
 		echo "Signing package…"; \
 		openssl dgst -sha512 -sign $(cert_dir)/$(app_name).key $(appstore_package_name).tar.gz | openssl base64; \
+	fi
+
+# Internal step of appstore, kept as a target so it can be tested on its own
+# (tests/ci/). Prepares the Nextcloud instance that signs the release; it only
+# runs on GitHub Actions when the app private key is present.
+.PHONY: _appstore-nextcloud-setup
+_appstore-nextcloud-setup:
+	if [ -f $(cert_dir)/$(app_name).key ] && [ "$(GITHUB_ACTIONS)" = "true" ]; then \
+		set -e; \
+		echo "⌛️ Starting Nextcloud setup..."; \
+		mkdir $(nextcloud_directory)/data; \
+		ln -s $(CURDIR) $(nextcloud_directory)/apps/libresign; \
+		$(occ) maintenance:install \
+			--verbose \
+			--database=sqlite \
+			--database-name=nextcloud \
+			--database-host=127.0.0.1 \
+			--database-user=root \
+			--database-pass=rootpassword \
+			--admin-user admin \
+			--admin-pass admin; \
+		$(occ) --version; \
+		$(occ) app:enable --force libresign; \
+		echo "🏁 Setup finished"; \
 	fi
 
 .PHONY: verify-appstore-package
