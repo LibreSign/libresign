@@ -259,6 +259,11 @@ _appstore-nextcloud-setup:
 		echo "🏁 Setup finished"; \
 	fi
 
+# Package contract, mirroring package.required_paths and package.forbidden_paths
+# in .nextcloud-release.yml.
+appstore_required_paths=appinfo/info.xml composer css img js l10n lib templates vendor 3rdparty openapi.json openapi-administration.json openapi-full.json CHANGELOG.md
+appstore_forbidden_paths=.git .github .devcontainer .patches build docs node_modules playwright src vendor-bin img/screenshot 3rdparty/.git 3rdparty/.github 3rdparty/vendor 3rdparty/vendor-bin 3rdparty/scoper.inc.php
+
 .PHONY: verify-appstore-package
 verify-appstore-package: verify-release-metadata
 	test -f $(appstore_sign_dir)/$(app_name)/CHANGELOG.md
@@ -276,3 +281,13 @@ verify-appstore-package: verify-release-metadata
 		setup_signature_count=$$(tar -tzf $(appstore_package_name).tar.gz | grep -E -c '^$(app_name)/appinfo/install-.*\.json$$' || true); \
 		test "$$setup_signature_count" -eq 10 || (echo "Expected 10 setup integrity metadata files in app store package, found $$setup_signature_count" >&2; exit 1); \
 	fi
+	@package_paths=$$(tar -tzf $(appstore_package_name).tar.gz) || { echo "Unable to read $(appstore_package_name).tar.gz" >&2; exit 1; }; \
+	has_path() { printf '%s\n' "$$package_paths" | awk -v path="$(app_name)/$$1" '$$0 == path || index($$0, path "/") == 1 { found = 1 } END { exit !found }'; }; \
+	outside=$$(printf '%s\n' "$$package_paths" | grep -v '^$(app_name)/' || true); \
+	test -z "$$outside" || { echo "App store package has entries outside $(app_name)/: $$outside" >&2; exit 1; }; \
+	for path in $(appstore_required_paths); do \
+		has_path "$$path" || { echo "App store package is missing $$path" >&2; exit 1; }; \
+	done; \
+	for path in $(appstore_forbidden_paths); do \
+		! has_path "$$path" || { echo "App store package must not contain $$path" >&2; exit 1; }; \
+	done
