@@ -21,14 +21,65 @@ final class ValidationEffectivePolicyService {
 	 * @return array<string, mixed>
 	 */
 	public function appendEffectivePolicies(array $payload): array {
+		$effectivePolicies = $this->getPublicValidationEffectivePolicies($payload);
+		$payload = $this->removePolicySnapshots($payload);
+		$payload['effective_policies'] = $effectivePolicies;
+
+		return $payload;
+	}
+
+	/**
+	 * @param array<string, mixed> $payload
+	 * @return array{policies: array<string, array<string, mixed>>}
+	 */
+	public function getPublicValidationEffectivePolicies(array $payload): array {
 		$requesterUserId = $this->extractRequesterUserId($payload);
 		$resolvedPolicyStates = $requesterUserId !== null
-			? $this->policyService->resolveKnownPolicyStatesForUserId($requesterUserId)
+			? $this->policyService->resolveKnownPolicyStatesForUserIdWithoutUserScope($requesterUserId)
 			: $this->policyService->resolveKnownPolicyStates();
 
-		$payload['effective_policies'] = [
-			'policies' => $this->preferPolicySnapshotWhenAvailable($resolvedPolicyStates, $payload),
+		$resolvedPolicyStates = $this->preferPolicySnapshotWhenAvailable($resolvedPolicyStates, $payload);
+
+		return [
+			'policies' => $this->projectPublicValidationPolicies($resolvedPolicyStates),
 		];
+	}
+
+	/**
+	 * @param array<string, array<string, mixed>> $resolvedPolicyStates
+	 * @return array<string, array<string, mixed>>
+	 */
+	private function projectPublicValidationPolicies(array $resolvedPolicyStates): array {
+		$legalInformation = $resolvedPolicyStates[LegalInformationPolicy::KEY] ?? null;
+		if (!is_array($legalInformation)) {
+			return [];
+		}
+
+		$effectiveValue = $legalInformation['effectiveValue'] ?? null;
+		if (!is_string($effectiveValue)) {
+			return [];
+		}
+
+		return [
+			LegalInformationPolicy::KEY => [
+				'policyKey' => LegalInformationPolicy::KEY,
+				'effectiveValue' => $effectiveValue,
+			],
+		];
+	}
+
+	/**
+	 * @param array<array-key, mixed> $payload
+	 * @return array<array-key, mixed>
+	 */
+	private function removePolicySnapshots(array $payload): array {
+		unset($payload['policy_snapshot']);
+
+		foreach ($payload as $key => $value) {
+			if (is_array($value)) {
+				$payload[$key] = $this->removePolicySnapshots($value);
+			}
+		}
 
 		return $payload;
 	}

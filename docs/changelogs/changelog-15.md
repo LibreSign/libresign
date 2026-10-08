@@ -19,6 +19,16 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 15.0.8 - 2026-10-07
+
+### Changed
+- Update translations
+- Internal maintenance
+
+### Fixed
+- clarify request expiration and certificate validity fields
+  [#9035](https://github.com/LibreSign/libresign/pull/9035)
+
 ## 15.0.7 - 2026-10-05
 
 ### Changed
