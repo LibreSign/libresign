@@ -368,7 +368,6 @@ class RequestSignatureService {
 				$file = $this->fileMapper->getByNodeId($fileId);
 				$this->filePolicyApplier->syncAllPolicies($file, $data);
 				return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
-			} catch (\Throwable) {
 			}
 		}
 
