@@ -120,6 +120,7 @@ import { isCurrentUserObserver, isSigningParticipant } from '../utils/participan
  * 	settings?: RuntimeFileSettingsRecord
  * 	requested_by?: Partial<RequestedByRecord>
  * 	signatureFlow?: SignatureFlowValue | null
+ * 	policySnapshotFrozen?: boolean
  * 	signers?: EditableSignerDraft[] | null
  * 	visibleElements?: VisibleElementRecord[] | null
  * 	url?: string
@@ -154,6 +155,7 @@ import { isCurrentUserObserver, isSigningParticipant } from '../utils/participan
  * 	settings?: EditableFileSettingsDraft
  * 	requested_by?: Partial<RequestedByRecord>
  * 	signatureFlow?: SignatureFlowValue | null
+ * 	policySnapshotFrozen?: boolean
  * 	signers?: EditableSignerDraft[] | null
  * 	visibleElements?: (VisibleElementRecord | VisibleElementDraft)[] | null
  * 	signersCount?: number

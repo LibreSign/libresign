@@ -46,10 +46,16 @@ describe('signature-flow model', () => {
 		expect(resolveSignatureFlowPayloadForRequest(false, 'parallel')).toBeNull()
 	})
 
-	it('returns request payload when request-level override is allowed', () => {
+	it('returns request payload when request-level override is allowed on a request not yet frozen', () => {
 		expect(resolveSignatureFlowPayloadForRequest(true, 'ordered_numeric')).toBe('ordered_numeric')
 		expect(resolveSignatureFlowPayloadForRequest(true, 'parallel')).toBe('parallel')
 		expect(resolveSignatureFlowPayloadForRequest(true, 'none')).toBe('parallel')
 		expect(resolveSignatureFlowPayloadForRequest(true, null)).toBe('parallel')
+	})
+
+	it('returns the stored flow, none included, once the request is frozen', () => {
+		expect(resolveSignatureFlowPayloadForRequest(true, 'none', true)).toBe('none')
+		expect(resolveSignatureFlowPayloadForRequest(true, 'ordered_numeric', true)).toBe('ordered_numeric')
+		expect(resolveSignatureFlowPayloadForRequest(false, 'none', true)).toBeNull()
 	})
 })
