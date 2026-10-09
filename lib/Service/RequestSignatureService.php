@@ -31,6 +31,7 @@ use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
@@ -371,9 +372,12 @@ class RequestSignatureService {
 		if (!is_null($nodeId)) {
 			try {
 				$file = $this->fileMapper->getByNodeId($nodeId);
+			} catch (DoesNotExistException) {
+				$file = null;
+			}
+			if ($file !== null) {
 				$this->filePolicyApplier->syncAllPolicies($file, $data);
 				return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
-			} catch (\Throwable) {
 			}
 		}
 
