@@ -62,12 +62,30 @@ class FileSearchProvider implements IProvider {
 		$limit = $query->getLimit();
 		$offset = $query->getCursor();
 
+		$isOffsetAnInt = is_null($offset) || is_int($offset) || ctype_digit($offset);
+		if ($isOffsetAnInt) {
+			$offset = (int)$offset;
+		} else {
+			return SearchResult::complete($this->l10n->t('LibreSign documents'), []);
+		}
+
+		$isOffsetPositive = $offset >= 0;
+		$isOffsetNotOverflowing = $offset + $limit < PHP_INT_MAX;
+
+		$isLimitStrictlyPositive = $limit > 0;
+
+		if (!$isOffsetPositive || !$isOffsetNotOverflowing || !$isLimitStrictlyPositive) {
+			return SearchResult::complete($this->l10n->t('LibreSign documents'), []);
+		}
+
 		try {
-			$files = $this->fileMapper->getFilesToSearchProvider($user, $term, $limit, (int)$offset);
+			$files = $this->fileMapper->getFilesToSearchProvider($user, $term, $limit + 1, $offset);
 		} catch (\Exception) {
 			return SearchResult::complete($this->l10n->t('LibreSign documents'), []);
 		}
 
+		$hasNextPage = count($files) > $limit;
+		$files = array_slice($files, 0, $limit);
 		$results = array_map(fn (File $file) => $this->formatResult($file, $user), $files);
 
 		return SearchResult::paginated(
@@ -143,5 +161,4 @@ class FileSearchProvider implements IProvider {
 			return '';
 		}
 	}
-
 }
