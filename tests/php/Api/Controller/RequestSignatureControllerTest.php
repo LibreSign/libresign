@@ -154,4 +154,50 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 		$body = json_decode($response->getBody()->getContents(), true);
 		$body['ocs']['data']['data']['signers'][] = ['email' => 'user@test.coop'];
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testPatchRefusesAnotherSignatureFlowOnceTheRequestWasSent():void {
+		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
+
+		$appConfig = $this->getMockAppConfig();
+		$appConfig->setValueString(Application::APP_ID, 'groups_request_sign', '{"allowGroups":["admin","testGroup"],"denyGroups":[]}');
+		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', false);
+
+		$user->setEMailAddress('person@test.coop');
+		$signers = [
+			[
+				'identifyMethods' => [[
+					'method' => 'email',
+					'requirement' => 'optional',
+					'value' => 'person@test.coop',
+				]],
+			],
+		];
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+			'name' => 'test',
+			'signers' => $signers,
+			'userManager' => $user,
+		]);
+
+		$this->request
+			->withMethod('PATCH')
+			->withPath('/api/v1/request-signature')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'uuid' => $file->getUuid(),
+				'signers' => $signers,
+				'policy' => ['overrides' => ['signature_flow' => 'ordered_numeric']],
+			])
+			->expectStatus(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertSame('The signing order cannot be changed after the signing flow has started.', $body['ocs']['data']['message']);
+	}
 }
