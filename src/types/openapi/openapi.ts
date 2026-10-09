@@ -1143,6 +1143,7 @@ export type components = {
             docmdpLevel: number;
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
+            policySnapshotFrozen: boolean;
             visibleElements: components["schemas"]["VisibleElement"][];
             signers: components["schemas"]["SignerDetail"][];
             /** Format: int64 */
@@ -1300,6 +1301,7 @@ export type components = {
             docmdpLevel: number;
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
+            policySnapshotFrozen: boolean;
             /** Format: int64 */
             signersCount: number;
             signers: components["schemas"]["SignerSummary"][];

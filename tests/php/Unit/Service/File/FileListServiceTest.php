@@ -159,6 +159,54 @@ final class FileListServiceTest extends TestCase {
 		];
 	}
 
+	/** @param array<string, mixed> $metadata */
+	#[DataProvider('providePolicySnapshotFreezeStates')]
+	public function testEveryFilePayloadTellsWhetherThePolicySnapshotIsFrozen(int $status, array $metadata, bool $expected): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf', $metadata);
+		$file->setStatus($status);
+		$this->appConfig->method('getValueInt')->willReturn(100);
+		$this->signRequestMapper->method('getFilesAssociatedFilesWithMe')->willReturn([
+			'data' => [$file],
+			'pagination' => new class {
+				public function setRouteName(string $routeName): void {
+				}
+
+				public function getPagination(int $page, int $length, array $filter): array {
+					return [];
+				}
+			},
+		]);
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([]);
+		$this->signRequestMapper->method('getByFileId')->willReturn([]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$service = $this->getService();
+
+		$this->assertSame($expected, $service->formatSingleFile($this->user, $file)['policySnapshotFrozen']);
+		$this->assertSame($expected, $service->formatFileWithChildren($file, [], $this->user)['policySnapshotFrozen']);
+		$summaries = $service->listAssociatedFilesOfSignFlow($this->user, 1, 100, [], [], false);
+		$this->assertSame($expected, $summaries['data'][0]['policySnapshotFrozen']);
+	}
+
+	public function testTheSignPagePayloadDoesNotTellWhetherThePolicySnapshotIsFrozen(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$service = $this->getService();
+
+		$this->assertArrayNotHasKey('policySnapshotFrozen', $service->formatSingleFileForSignRequest($file));
+		$this->assertArrayNotHasKey('policySnapshotFrozen', $service->formatEnvelopeChildFilesForSignRequest([$file], [])[0]);
+	}
+
+	public static function providePolicySnapshotFreezeStates(): array {
+		return [
+			'draft never sent' => [0, [], false],
+			'sent request that returned to draft' => [0, ['policy_snapshot_frozen_at' => '2026-01-01T00:00:00+00:00'], true],
+			'sent before the freeze was recorded' => [1, [], true],
+		];
+	}
+
 	public function testFileWithoutSignersUsesStatusMapping(): void {
 		$file = self::createFileEntity(1, 'file', 'doc.pdf');
 		$file->setStatus(0); // DRAFT status

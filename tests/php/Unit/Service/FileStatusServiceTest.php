@@ -578,6 +578,26 @@ class FileStatusServiceTest extends TestCase {
 		];
 	}
 
+	/** @param array<string, mixed> $metadata */
+	#[DataProvider('dataIsPolicySnapshotFrozen')]
+	public function testIsPolicySnapshotFrozen(int $status, array $metadata, bool $expected): void {
+		$file = new FileEntity();
+		$file->setStatus($status);
+		$file->setMetadata($metadata);
+
+		$this->assertSame($expected, FileStatusService::isPolicySnapshotFrozen($file));
+	}
+
+	public static function dataIsPolicySnapshotFrozen(): array {
+		$frozen = ['policy_snapshot_frozen_at' => '2026-01-01T00:00:00+00:00'];
+		return [
+			'draft never sent' => [FileStatus::DRAFT->value, [], false],
+			'sent request' => [FileStatus::ABLE_TO_SIGN->value, $frozen, true],
+			'sent request that returned to draft' => [FileStatus::DRAFT->value, $frozen, true],
+			'sent before the freeze was recorded' => [FileStatus::ABLE_TO_SIGN->value, [], true],
+		];
+	}
+
 	public function testEveryDocumentFreezesWhenItsEnvelopeEntersTheSigningFlow(): void {
 		$envelope = new FileEntity();
 		$envelope->setId(1);

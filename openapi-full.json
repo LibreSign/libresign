@@ -808,6 +808,7 @@
                     "size",
                     "docmdpLevel",
                     "signatureFlow",
+                    "policySnapshotFrozen",
                     "visibleElements",
                     "signers",
                     "signersCount",
@@ -875,6 +876,9 @@
                             "parallel",
                             "ordered_numeric"
                         ]
+                    },
+                    "policySnapshotFrozen": {
+                        "type": "boolean"
                     },
                     "visibleElements": {
                         "type": "array",
@@ -1559,6 +1563,7 @@
                     "metadata",
                     "docmdpLevel",
                     "signatureFlow",
+                    "policySnapshotFrozen",
                     "signersCount",
                     "signers",
                     "requested_by",
@@ -1612,6 +1617,9 @@
                             "parallel",
                             "ordered_numeric"
                         ]
+                    },
+                    "policySnapshotFrozen": {
+                        "type": "boolean"
                     },
                     "signersCount": {
                         "type": "integer",
