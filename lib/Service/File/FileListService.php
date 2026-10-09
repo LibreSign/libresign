@@ -25,6 +25,7 @@ use OCA\Libresign\Enum\SignerIpGeolocationUnavailableReason;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileElementService;
+use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureRejection\RejectionViewer;
@@ -261,6 +262,10 @@ class FileListService {
 			'signatureFlow' => $fileEntity->getSignatureFlow(),
 			'nodeType' => $fileEntity->getNodeType(),
 		];
+		// The sign page formats files without a user and may be public.
+		if ($user !== null) {
+			$file['policySnapshotFrozen'] = FileStatusService::isPolicySnapshotFrozen($fileEntity);
+		}
 		$file['signatureFlow'] = SignatureFlow::fromNumeric($file['signatureFlow'])->value;
 		$file['statusText'] = $this->fileMapper->getTextOfStatus($file['status']);
 		$file['requested_by'] = [
@@ -384,6 +389,7 @@ class FileListService {
 			'metadata' => $metadata,
 			'docmdpLevel' => $fileEntity->getDocmdpLevel(),
 			'signatureFlow' => SignatureFlow::fromNumeric($fileEntity->getSignatureFlow())->value,
+			'policySnapshotFrozen' => FileStatusService::isPolicySnapshotFrozen($fileEntity),
 			'signersCount' => count($signers),
 			'signers' => [],
 			'requested_by' => [
@@ -830,6 +836,7 @@ class FileListService {
 			'metadata' => $metadata,
 			'docmdpLevel' => $mainEntity->getDocmdpLevel(),
 			'signatureFlow' => SignatureFlow::fromNumeric($mainEntity->getSignatureFlow())->value,
+			'policySnapshotFrozen' => FileStatusService::isPolicySnapshotFrozen($mainEntity),
 			'signers' => $signers,
 			'signersCount' => count($signers),
 			'requested_by' => [
