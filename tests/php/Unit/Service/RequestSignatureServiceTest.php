@@ -229,6 +229,47 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertSame($existing, $result);
 	}
 
+	public function testSaveFileDoesNotCreateAnotherFileWhenTheRegisteredOneRefusesTheUpdate(): void {
+		$existing = new \OCA\Libresign\Db\File();
+		$existing->setId(7);
+		$this->fileMapper->method('getByNodeId')->willReturn($existing);
+		$this->filePolicyApplier->method('syncAllPolicies')
+			->willThrowException(new LibresignException('The signing order cannot be changed after the signing flow has started.', 422));
+		$this->fileService->expects($this->never())->method('getNodeFromData');
+		$this->filePolicyApplier->expects($this->never())->method('applyAll');
+		$this->fileMapper->expects($this->never())->method('insert');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(422);
+
+		$this->getService()->saveFile([
+			'file' => ['nodeId' => 171],
+			'name' => 'contract',
+			'userManager' => $this->user,
+		]);
+	}
+
+	public function testSaveFileCreatesTheFileWhenTheNodeIsNotRegisteredYet(): void {
+		$this->fileMapper->method('getByNodeId')
+			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('not found'));
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getId')->willReturn(171);
+		$node->method('getExtension')->willReturn('');
+		$node->method('getName')->willReturn('contract');
+		$this->fileService->method('getNodeFromData')->willReturn($node);
+		$this->filePolicyApplier->expects($this->never())->method('syncAllPolicies');
+		$this->filePolicyApplier->expects($this->once())->method('applyAll');
+		$this->fileMapper->expects($this->once())->method('insert')->willReturnArgument(0);
+
+		$file = $this->getService()->saveFile([
+			'file' => ['nodeId' => 171],
+			'name' => 'contract',
+			'userManager' => $this->user,
+		]);
+
+		$this->assertSame(171, $file->getNodeId());
+	}
+
 	public function testANewRequestCreatedReadyToSignStartsWithItsPolicySnapshotFrozen(): void {
 		$node = $this->createMock(\OCP\Files\File::class);
 		$node->method('getId')->willReturn(171);
