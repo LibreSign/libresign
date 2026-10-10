@@ -1074,7 +1074,7 @@ describe('Validation.vue - Business Logic', () => {
 			expect(filesStore.addFile).not.toHaveBeenCalled()
 		})
 
-		it('updates the policies store when requester effective policies are returned', async () => {
+		it('shows the requester legal information returned with the validation', async () => {
 			const { usePoliciesStore } = await import('../../store/policies')
 			const policiesStore = usePoliciesStore()
 
@@ -1085,25 +1085,13 @@ describe('Validation.vue - Business Logic', () => {
 						legal_information: {
 							policyKey: 'legal_information',
 							effectiveValue: 'Requester legal copy',
-							sourceScope: 'user_policy',
-							visible: true,
-							editableByCurrentActor: false,
-							allowedValues: [],
-							canSaveAsUserDefault: false,
-							canUseAsRequestOverride: false,
-							preferenceWasCleared: false,
-							blockedBy: null,
 						},
 					},
 				},
 			})
 
-			expect(policiesStore.setPolicies).toHaveBeenCalledWith({
-				legal_information: expect.objectContaining({
-					effectiveValue: 'Requester legal copy',
-					sourceScope: 'user_policy',
-				}),
-			})
+			expect(wrapper.vm.legalInformation).toBe('Requester legal copy')
+			expect(policiesStore.setPolicies).not.toHaveBeenCalled()
 		})
 	})
 
