@@ -1585,7 +1585,7 @@
     "Follow up with automatic reminders. Signers will receive reminders until they sign or decline." : "Pokračujte automatickými pripomienkami. Signatári budú dostávať pripomienky, kým sa nepodpíšu alebo neodmietnu.",
     "Next job execution: {date}" : "Ďalšie vykonanie úlohy: {date}",
     "The first message is not considered a notification" : "Prvá správa sa nepovažuje za oznámenie",
-    "Zero or empty is no reminder." : "Nula alebo prázdna nie je žiadna pripomienka.",
+    "Zero or empty is no reminder." : "Nula alebo prázdna hodnota neznamená žiadnu pripomienku.",
     "Full name of the main company or main user of this instance" : "Celé meno hlavnej spoločnosti alebo hlavného užívateľa tejto inštancie",
     "Simultaneous (Parallel)" : "Simultánne (paralelné)",
     "Signers are organized by signing order number. Only those with the lowest pending order number can sign." : "Signatári sú organizovaní podľa čísla objednávky. Podpísať môžu len tí, ktorí majú najnižšie číslo čakajúcej objednávky.",
