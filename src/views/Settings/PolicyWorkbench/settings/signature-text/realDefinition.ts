@@ -7,12 +7,13 @@ import { t } from '@nextcloud/l10n'
 
 import SignatureTextRuleEditor from './SignatureTextRuleEditor.vue'
 
-import type { EffectivePolicyMeta, EffectivePolicyState, EffectivePolicyValue } from '../../../../../types/index'
+import type { CompoundPolicyWriteValues, EffectivePolicyMeta, EffectivePolicyState, EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
 import {
 	getDefaultSignatureTextPolicyConfig,
 	normalizeSignatureStampDraftValue,
 	normalizeSignatureTextPolicyConfig,
+	resolveCollectMetadataValue,
 	serializeSignatureTextPolicyConfig,
 } from './model'
 import { signatureStampPersonalPreferenceBehavior } from './personalPreferenceBehavior'
@@ -66,6 +67,28 @@ export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 		allowGroupRuleCreationFromDescendantDelegation: true,
 	},
 	personalPreferenceBehavior: signatureStampPersonalPreferenceBehavior,
+	compound: {
+		includeChildOnlyRules: false,
+		compose: (valuesByPolicyKey) => normalizeSignatureStampDraftValue(
+			valuesByPolicyKey.signature_stamp,
+			resolveCollectMetadataValue(valuesByPolicyKey.collect_metadata, false),
+		),
+		decompose: (editorValue): CompoundPolicyWriteValues => {
+			const normalizedValue = normalizeSignatureStampDraftValue(editorValue)
+			const hasCollectMetadataChoice = typeof editorValue === 'object'
+				&& editorValue !== null
+				&& 'collectMetadataEnabled' in editorValue
+
+			if (!hasCollectMetadataChoice) {
+				return { signature_stamp: normalizedValue.signatureStampValue }
+			}
+
+			return {
+				signature_stamp: normalizedValue.signatureStampValue,
+				collect_metadata: normalizedValue.collectMetadataEnabled,
+			}
+		},
+	},
 	editor: SignatureTextRuleEditor,
 	editorProps: {},
 	resolveEditorProps: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => {

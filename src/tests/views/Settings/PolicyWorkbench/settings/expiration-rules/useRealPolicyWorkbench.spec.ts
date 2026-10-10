@@ -6,11 +6,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+	clearGroupPolicy,
+	fetchEffectivePolicies,
 	fetchGroupPolicy,
 	getPolicy,
 	resetWorkbenchHarness,
-	saveGroupPolicy,
+	saveGroupPolicyCompound,
 	saveSystemPolicy,
+	saveSystemPolicyCompound,
 } from '../workbenchTestUtils'
 import { createRealPolicyWorkbenchState } from '../../../../../../views/Settings/PolicyWorkbench/useRealPolicyWorkbench'
 
@@ -22,7 +25,7 @@ describe('expiration rules workbench', () => {
 	it('presents unified request expiration summary and hides standalone renewal setting', () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'maximum_validity') {
-				return { effectiveValue: 86400, groupCount: 1, userCount: 0, sourceScope: 'system', editableByCurrentActor: true }
+				return { effectiveValue: 86400, groupCount: 1, userCount: 0, sourceScope: 'system', editableByCurrentActor: true, meta: { compositeChildren: ['renewal_interval'] } }
 			}
 
 			if (key === 'renewal_interval') {
@@ -47,7 +50,7 @@ describe('expiration rules workbench', () => {
 	it('saves unified request expiration system draft to both policy keys', async () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'maximum_validity') {
-				return { effectiveValue: 0, sourceScope: 'system' }
+				return { effectiveValue: 0, sourceScope: 'system', meta: { compositeChildren: ['renewal_interval'] } }
 			}
 
 			if (key === 'renewal_interval') {
@@ -67,8 +70,11 @@ describe('expiration rules workbench', () => {
 
 		await state.saveDraft()
 
-		expect(saveSystemPolicy).toHaveBeenCalledWith('maximum_validity', 86400, true)
-		expect(saveSystemPolicy).toHaveBeenCalledWith('renewal_interval', 3600, true)
+		expect(saveSystemPolicyCompound).toHaveBeenCalledWith(
+			'maximum_validity',
+			{ maximum_validity: 86400, renewal_interval: 3600 },
+			{ maximum_validity: true, renewal_interval: true },
+		)
 	})
 
 	it('rejects renewal interval without maximum validity in unified draft', async () => {
@@ -228,7 +234,7 @@ describe('expiration rules workbench', () => {
 	it('hydrates unified request expiration group rules from both persisted keys', async () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'maximum_validity') {
-				return { effectiveValue: 0, sourceScope: 'system' }
+				return { effectiveValue: 0, sourceScope: 'system', meta: { compositeChildren: ['renewal_interval'] } }
 			}
 
 			if (key === 'renewal_interval') {
@@ -283,9 +289,65 @@ describe('expiration rules workbench', () => {
 		})
 	})
 
+	it('reloads persisted rules when clearing one request expiration member fails', async () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'maximum_validity') {
+				return { effectiveValue: 0, sourceScope: 'system', meta: { compositeChildren: ['renewal_interval'] } }
+			}
+
+			return { effectiveValue: 0, sourceScope: 'system' }
+		})
+
+		fetchGroupPolicy.mockImplementation(async (groupId: string, policyKey: string) => {
+			if (groupId !== 'finance' || (policyKey !== 'maximum_validity' && policyKey !== 'renewal_interval')) {
+				return null
+			}
+
+			return {
+				policyKey,
+				scope: 'group',
+				targetId: groupId,
+				value: policyKey === 'maximum_validity' ? 7200 : 600,
+				allowChildOverride: true,
+				visibleToChild: true,
+				allowedValues: [],
+			}
+		})
+
+		clearGroupPolicy.mockImplementation(async (_groupId: string, policyKey: string) => {
+			if (policyKey === 'renewal_interval') {
+				throw new Error('Could not clear renewal interval')
+			}
+
+			return null
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('maximum_validity')
+
+		await vi.waitFor(() => {
+			expect(state.visibleGroupRules).toHaveLength(1)
+		})
+
+		fetchGroupPolicy.mockClear()
+
+		await expect(state.removeRule(state.visibleGroupRules[0]?.id ?? '')).rejects.toThrow('Could not clear renewal interval')
+
+		expect(clearGroupPolicy).toHaveBeenCalledWith('finance', 'maximum_validity')
+		expect(clearGroupPolicy).toHaveBeenCalledWith('finance', 'renewal_interval')
+		expect(state.duplicateMessage).toBe('Could not clear renewal interval')
+		expect(fetchEffectivePolicies).toHaveBeenCalled()
+		expect(fetchGroupPolicy).toHaveBeenCalledWith('finance', 'renewal_interval')
+		expect(state.visibleGroupRules).toHaveLength(1)
+	})
+
 	it('locks lower-level customization for group-admin request expiration group rules', async () => {
 		getPolicy.mockImplementation((key: string) => {
-			if (key === 'maximum_validity' || key === 'renewal_interval') {
+			if (key === 'maximum_validity') {
+				return { effectiveValue: 0, sourceScope: 'system', editableByCurrentActor: true, meta: { compositeChildren: ['renewal_interval'] } }
+			}
+
+			if (key === 'renewal_interval') {
 				return { effectiveValue: 0, sourceScope: 'system', editableByCurrentActor: true }
 			}
 
@@ -310,7 +372,11 @@ describe('expiration rules workbench', () => {
 
 		await state.saveDraft()
 
-		expect(saveGroupPolicy).toHaveBeenCalledWith('board', 'maximum_validity', 86400, false)
-		expect(saveGroupPolicy).toHaveBeenCalledWith('board', 'renewal_interval', 3600, false)
+		expect(saveGroupPolicyCompound).toHaveBeenCalledWith(
+			'board',
+			'maximum_validity',
+			{ maximum_validity: 86400, renewal_interval: 3600 },
+			{ maximum_validity: false, renewal_interval: false },
+		)
 	})
 })
