@@ -52,7 +52,10 @@
 					{{ section.title }}
 				</h3>
 				<ul class="signers">
-					<SignerDetails v-for="(signer, signerIndex) in section.participants" :key="`${section.role}-${signerIndex}`" :signer="signer" />
+					<SignerDetails v-for="(signer, signerIndex) in section.participants"
+						:key="`${section.role}-${signerIndex}`"
+						:signer="signer"
+						:workflow-canceled="workflowCanceled" />
 				</ul>
 			</template>
 		</div>
@@ -72,6 +75,7 @@ import {
 	mdiEye,
 } from '@mdi/js'
 
+import { FILE_STATUS } from '../../constants.js'
 import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import SignerDetails from './SignerDetails.vue'
@@ -135,6 +139,7 @@ const size = computed(() => {
 })
 
 const documentStatus = computed(() => getStatusLabel(document.value.status))
+const workflowCanceled = computed(() => document.value.status === FILE_STATUS.CANCELED)
 
 async function viewDocument() {
 	if (!document.value.uuid || !document.value.name || typeof document.value.nodeId !== 'number') {

@@ -841,3 +841,98 @@ describe('SignerDetails.vue - Business Logic', () => {
 		})
 	})
 })
+
+describe('SignerDetails.vue - rejection presentation', () => {
+	const mountSigner = (signer: Record<string, unknown>, workflowCanceled = false) => shallowMount(SignerDetails, {
+		props: {
+			signer: { displayName: 'Signer', signed: null, ...signer },
+			workflowCanceled,
+		},
+		global: {
+			stubs: {
+				NcAvatar: true,
+				NcButton: true,
+				NcIconSvgWrapper: true,
+				NcListItem: {
+					name: 'NcListItem',
+					props: ['name'],
+					template: '<li><slot name="name" /><slot name="subname" /><slot /></li>',
+				},
+				CertificateChain: true,
+			},
+		},
+	})
+
+	const statusOf = (wrapper: ReturnType<typeof mountSigner>) => wrapper.find('[data-test="signer-status"]').text()
+
+	it.each([
+		['draft', 'Not signed yet'],
+		['ready_to_sign', 'Not signed yet'],
+		['rejected', 'Rejected'],
+		['not_signed', 'Not signed'],
+	])('shows the %s display status as "%s"', (displayStatus, label) => {
+		expect(statusOf(mountSigner({ displayStatus }))).toBe(label)
+	})
+
+	it('shows when the signer rejected and the visible comment', () => {
+		const wrapper = mountSigner({
+			displayStatus: 'rejected',
+			rejection: { rejectedAt: '2026-09-09T12:00:00+00:00', comment: 'I do not agree', commentPrivate: false },
+		})
+
+		expect(wrapper.find('[data-test="signer-rejected-at"]').text()).toContain('Rejected on:')
+		expect(wrapper.find('[data-test="signer-rejection-comment"]').text()).toContain('I do not agree')
+		expect(wrapper.find('[data-test="signer-rejection-comment-private"]').exists()).toBe(false)
+	})
+
+	it('marks a private comment the viewer is allowed to see', () => {
+		const wrapper = mountSigner({
+			displayStatus: 'rejected',
+			rejection: { rejectedAt: '2026-09-09T12:00:00+00:00', comment: 'Only for the requester', commentPrivate: true },
+		})
+
+		expect(wrapper.find('[data-test="signer-rejection-comment-private"]').text()).toBe('Private')
+	})
+
+	it('shows no comment row when the rejection has no comment', () => {
+		const wrapper = mountSigner({
+			displayStatus: 'rejected',
+			rejection: { rejectedAt: '2026-09-09T12:00:00+00:00' },
+		})
+
+		expect(wrapper.find('[data-test="signer-rejected-at"]').exists()).toBe(true)
+		expect(wrapper.find('[data-test="signer-rejection-comment"]').exists()).toBe(false)
+	})
+
+	it('shows no signature or certificate information for a rejected signer', () => {
+		const wrapper = mountSigner({
+			displayStatus: 'rejected',
+			rejection: { rejectedAt: '2026-09-09T12:00:00+00:00' },
+		})
+
+		expect(wrapper.text()).not.toContain('Expiration:')
+		expect(wrapper.text()).not.toContain('Date signed:')
+		expect(wrapper.findComponent({ name: 'CertificateChain' }).exists()).toBe(false)
+	})
+
+	it('shows nothing about a rejection the viewer may not see', () => {
+		const wrapper = mountSigner({ displayStatus: 'not_signed' })
+
+		expect(wrapper.find('[data-test="signer-rejected-at"]').exists()).toBe(false)
+		expect(wrapper.text()).not.toContain('Rejected')
+	})
+
+	it.each(['draft', 'ready_to_sign', 'not_signed'])(
+		'shows a %s signer of a canceled workflow as no longer able to sign',
+		(displayStatus) => {
+			expect(statusOf(mountSigner({ displayStatus }, true))).toBe('No longer able to sign')
+		},
+	)
+
+	it('keeps the signed presentation in a canceled workflow', () => {
+		const wrapper = mountSigner({ displayStatus: 'signed', signed: '2026-09-09T12:00:00+00:00' }, true)
+
+		expect(wrapper.find('[data-test="signer-status"]').exists()).toBe(false)
+		expect(wrapper.text()).toContain('Expiration:')
+	})
+})
