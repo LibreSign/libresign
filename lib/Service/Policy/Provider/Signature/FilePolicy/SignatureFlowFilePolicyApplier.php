@@ -10,9 +10,11 @@ namespace OCA\Libresign\Service\Policy\Provider\Signature\FilePolicy;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Enum\SignatureFlow;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Policy\AbstractFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCP\AppFramework\Http;
 use OCP\IUser;
 
 class SignatureFlowFilePolicyApplier extends AbstractFilePolicyApplier {
@@ -33,6 +35,11 @@ class SignatureFlowFilePolicyApplier extends AbstractFilePolicyApplier {
 	#[\Override]
 	public function sync(FileEntity $file, array $data): void {
 		$requestOverrides = $this->getOverrides($data);
+		if ($this->isPolicySnapshotFrozen($file, SignatureFlowPolicy::KEY)) {
+			$this->assertFrozenFlowIsKept($file, $requestOverrides);
+			return;
+		}
+
 		$activeContext = $this->extractActiveContext($data);
 		$resolvedPolicy = $activeContext === null
 			? $this->policyService->resolveForUserId(SignatureFlowPolicy::KEY, $file->getUserId(), $requestOverrides)
@@ -62,5 +69,24 @@ class SignatureFlowFilePolicyApplier extends AbstractFilePolicyApplier {
 	/** @param array<string, string> $requestOverrides */
 	private function assertOverrideAllowed(array $requestOverrides, ResolvedPolicy $resolvedPolicy): void {
 		$this->assertRequestOverrideAllowed($requestOverrides, $resolvedPolicy, 'Signature flow override is blocked by %s.');
+	}
+
+	/**
+	 * A frozen request keeps the flow it was sent with. A client may still send
+	 * that same flow along an unrelated update, which changes nothing.
+	 *
+	 * @param array<string, string> $requestOverrides
+	 */
+	private function assertFrozenFlowIsKept(FileEntity $file, array $requestOverrides): void {
+		if ($requestOverrides === [] || $requestOverrides[SignatureFlowPolicy::KEY] === $file->getSignatureFlowEnum()->value) {
+			return;
+		}
+
+		throw new LibresignException(
+			// TRANSLATORS Error shown when someone tries to change whether signers sign in order after the signing flow already started.
+			$this->l10n?->t('The signing order cannot be changed after the signing flow has started.')
+				?? 'The signing order cannot be changed after the signing flow has started.',
+			Http::STATUS_UNPROCESSABLE_ENTITY,
+		);
 	}
 }

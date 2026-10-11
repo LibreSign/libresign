@@ -10,7 +10,6 @@ namespace OCA\Libresign\Service\Policy;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\FileStatusService;
@@ -98,16 +97,9 @@ abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
 		}
 
 		$envelope = $this->findEnvelope($file);
-		if ($this->hasFrozenMarker($file) || $this->hasFrozenMarker($envelope)) {
-			return true;
-		}
 
-		return $file->getStatus() >= FileStatus::ABLE_TO_SIGN->value
-			|| ($envelope !== null && $envelope->getStatus() >= FileStatus::ABLE_TO_SIGN->value);
-	}
-
-	private function hasFrozenMarker(?FileEntity $file): bool {
-		return isset(($file?->getMetadata() ?? [])[FileStatusService::POLICY_SNAPSHOT_FROZEN_AT]);
+		return FileStatusService::isPolicySnapshotFrozen($file)
+			|| ($envelope !== null && FileStatusService::isPolicySnapshotFrozen($envelope));
 	}
 
 	private function findEnvelope(FileEntity $file): ?FileEntity {

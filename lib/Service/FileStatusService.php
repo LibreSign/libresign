@@ -151,6 +151,15 @@ class FileStatusService {
 		$file->setMetadata($metadata);
 	}
 
+	/**
+	 * A request sent before the freeze was recorded has no marker, so it is
+	 * frozen while its status says it was sent.
+	 */
+	public static function isPolicySnapshotFrozen(FileEntity $file): bool {
+		return isset(($file->getMetadata() ?? [])[self::POLICY_SNAPSHOT_FROZEN_AT])
+			|| $file->getStatus() >= FileStatus::ABLE_TO_SIGN->value;
+	}
+
 	private function touchStatusChangedAt(FileEntity $file): void {
 		$metadata = $file->getMetadata() ?? [];
 		$metadata['status_changed_at'] = (new DateTime())->format(DateTimeInterface::ATOM);
