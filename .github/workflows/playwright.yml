@@ -51,6 +51,8 @@ jobs:
               - 'playwright.config.ts'
               - 'package.json'
               - 'package-lock.json'
+              - 'Makefile'
+              - '.nextcloud-release.yml'
 
   playwright:
     runs-on: ubuntu-latest
@@ -87,7 +89,8 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             poppler-utils \
             libgd3 \
-            libc-client2007e
+            libc-client2007e \
+            make
 
       - name: Checkout server
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -161,6 +164,10 @@ jobs:
         run: |
           npm ci --prefer-offline
           TESTING=true npm run build --if-present
+
+      - name: Package the app without signing
+        working-directory: apps/${{ env.APP_NAME }}
+        run: make appstore verify-appstore-package
 
       - name: Cache LibreSign binary payloads
         id: libresign-binaries-cache

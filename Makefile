@@ -14,13 +14,14 @@ appstore_build_directory=$(CURDIR)/build/artifacts
 appstore_package_name=$(appstore_build_directory)/$(app_name)
 appstore_sign_dir=$(appstore_build_directory)/sign
 cert_dir=$(build_tools_directory)/certificates
+nextcloud_directory=$(CURDIR)/../nextcloud
 release_version=$(shell sed -n 's:.*<version>\([^<]*\)</version>.*:\1:p' appinfo/info.xml)
 release_major=$(word 1,$(subst ., ,$(release_version)))
 release_changelog=$(CURDIR)/docs/changelogs/changelog-$(release_major).md
 npm=$(shell which npm 2> /dev/null)
 composer=$(shell which composer 2> /dev/null)
-ifneq (,$(wildcard $(CURDIR)/../nextcloud/occ))
-	occ=php $(CURDIR)/../nextcloud/occ
+ifneq (,$(wildcard $(nextcloud_directory)/occ))
+	occ=php $(nextcloud_directory)/occ
 else ifneq (,$(wildcard $(CURDIR)/../../occ))
 	occ=php $(CURDIR)/../../occ
 endif
@@ -205,24 +206,7 @@ appstore: verify-release-metadata
 	cp tests/php/fixtures/pdfs/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/php/fixtures
 
 	mkdir -p $(cert_dir)
-	if [ -f $(cert_dir)/$(app_name).key ] && [ "$(GITHUB_ACTIONS)" = "true" ]; then \
-		set -e; \
-		echo "⌛️ Starting Nextcloud setup..."; \
-		mkdir $(CURDIR)/../nextcloud/data; \
-		ln -s $(CURDIR) $(CURDIR)/../nextcloud/apps/libresign; \
-		$(occ) maintenance:install \
-			--verbose \
-			--database=sqlite \
-			--database-name=nextcloud \
-			--database-host=127.0.0.1 \
-			--database-user=root \
-			--database-pass=rootpassword \
-			--admin-user admin \
-			--admin-pass admin; \
-		$(occ) --version; \
-		$(occ) app:enable --force libresign; \
-		echo "🏁 Setup finished"; \
-	fi
+	$(MAKE) --no-print-directory _appstore-nextcloud-setup
 
 	if [ -f $(cert_dir)/$(app_name).key ]; then \
 		set -e; \
@@ -251,6 +235,35 @@ appstore: verify-release-metadata
 		openssl dgst -sha512 -sign $(cert_dir)/$(app_name).key $(appstore_package_name).tar.gz | openssl base64; \
 	fi
 
+# Internal step of appstore, kept as a target so it can be tested on its own
+# (tests/ci/). Prepares the Nextcloud instance that signs the release; it only
+# runs on GitHub Actions when the app private key is present.
+.PHONY: _appstore-nextcloud-setup
+_appstore-nextcloud-setup:
+	if [ -f $(cert_dir)/$(app_name).key ] && [ "$(GITHUB_ACTIONS)" = "true" ]; then \
+		set -e; \
+		echo "⌛️ Starting Nextcloud setup..."; \
+		mkdir $(nextcloud_directory)/data; \
+		ln -s $(CURDIR) $(nextcloud_directory)/apps/libresign; \
+		$(occ) maintenance:install \
+			--verbose \
+			--database=sqlite \
+			--database-name=nextcloud \
+			--database-host=127.0.0.1 \
+			--database-user=root \
+			--database-pass=rootpassword \
+			--admin-user admin \
+			--admin-pass admin; \
+		$(occ) --version; \
+		$(occ) app:enable --force libresign; \
+		echo "🏁 Setup finished"; \
+	fi
+
+# Package contract, mirroring package.required_paths and package.forbidden_paths
+# in .nextcloud-release.yml.
+appstore_required_paths=appinfo/info.xml composer css img js l10n lib templates vendor 3rdparty openapi.json openapi-administration.json openapi-full.json CHANGELOG.md
+appstore_forbidden_paths=.git .github .devcontainer .patches build docs node_modules playwright src vendor-bin img/screenshot 3rdparty/.git 3rdparty/.github 3rdparty/vendor 3rdparty/vendor-bin 3rdparty/scoper.inc.php
+
 .PHONY: verify-appstore-package
 verify-appstore-package: verify-release-metadata
 	test -f $(appstore_sign_dir)/$(app_name)/CHANGELOG.md
@@ -268,3 +281,13 @@ verify-appstore-package: verify-release-metadata
 		setup_signature_count=$$(tar -tzf $(appstore_package_name).tar.gz | grep -E -c '^$(app_name)/appinfo/install-.*\.json$$' || true); \
 		test "$$setup_signature_count" -eq 10 || (echo "Expected 10 setup integrity metadata files in app store package, found $$setup_signature_count" >&2; exit 1); \
 	fi
+	@package_paths=$$(tar -tzf $(appstore_package_name).tar.gz) || { echo "Unable to read $(appstore_package_name).tar.gz" >&2; exit 1; }; \
+	has_path() { printf '%s\n' "$$package_paths" | awk -v path="$(app_name)/$$1" '$$0 == path || index($$0, path "/") == 1 { found = 1 } END { exit !found }'; }; \
+	outside=$$(printf '%s\n' "$$package_paths" | grep -v '^$(app_name)/' || true); \
+	test -z "$$outside" || { echo "App store package has entries outside $(app_name)/: $$outside" >&2; exit 1; }; \
+	for path in $(appstore_required_paths); do \
+		has_path "$$path" || { echo "App store package is missing $$path" >&2; exit 1; }; \
+	done; \
+	for path in $(appstore_forbidden_paths); do \
+		! has_path "$$path" || { echo "App store package must not contain $$path" >&2; exit 1; }; \
+	done

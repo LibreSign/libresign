@@ -15,6 +15,7 @@ Use this file only as a repository map.
 - `tests/integration/`: Behat scenarios and support code.
 - `src/tests/`: frontend unit tests executed with Vitest.
 - `playwright/`: browser/end-to-end tests.
+- `tests/ci/`: [Bats](https://bats-core.readthedocs.io/) tests for the release packaging in the `Makefile`.
 
 Prefer the narrowest useful validation while implementing a change, then broaden before opening or updating a pull request.
 
@@ -36,5 +37,20 @@ cd tests/integration
 vendor/bin/behat -dl
 vendor/bin/behat features/path/to/feature.feature:LINE -v
 ```
+
+The release packaging tests run the real `make appstore` and
+`make verify-appstore-package` against a temporary minimal app, with `occ`,
+`curl` and `openssl` stubbed. They need only Bats, GNU Make and tar, use no
+network and leave the repository untouched:
+
+```bash
+bats tests/ci
+```
+
+They cover when `appstore` initializes the Nextcloud instance that signs a
+release (only on GitHub Actions with the app private key present), that a
+failing initialization stops the build, and that the package keeps its
+required paths and excludes development ones. Pull requests to `main` also
+build the real unsigned package in the Playwright workflow.
 
 See the Developer Manual for linting, static analysis, full validation, and environment requirements.
