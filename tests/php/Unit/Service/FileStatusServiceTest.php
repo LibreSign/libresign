@@ -578,23 +578,35 @@ class FileStatusServiceTest extends TestCase {
 		];
 	}
 
-	/** @param array<string, mixed> $metadata */
+	/**
+	 * @param array<string, mixed> $metadata
+	 * @param array{0: int, 1: array<string, mixed>}|null $envelopeState
+	 */
 	#[DataProvider('dataIsPolicySnapshotFrozen')]
-	public function testIsPolicySnapshotFrozen(int $status, array $metadata, bool $expected): void {
+	public function testIsPolicySnapshotFrozen(int $status, array $metadata, ?array $envelopeState, bool $expected): void {
 		$file = new FileEntity();
 		$file->setStatus($status);
 		$file->setMetadata($metadata);
+		$envelope = null;
+		if ($envelopeState !== null) {
+			$envelope = new FileEntity();
+			$envelope->setStatus($envelopeState[0]);
+			$envelope->setMetadata($envelopeState[1]);
+		}
 
-		$this->assertSame($expected, FileStatusService::isPolicySnapshotFrozen($file));
+		$this->assertSame($expected, FileStatusService::isPolicySnapshotFrozen($file, $envelope));
 	}
 
 	public static function dataIsPolicySnapshotFrozen(): array {
 		$frozen = ['policy_snapshot_frozen_at' => '2026-01-01T00:00:00+00:00'];
 		return [
-			'draft never sent' => [FileStatus::DRAFT->value, [], false],
-			'sent request' => [FileStatus::ABLE_TO_SIGN->value, $frozen, true],
-			'sent request that returned to draft' => [FileStatus::DRAFT->value, $frozen, true],
-			'sent before the freeze was recorded' => [FileStatus::ABLE_TO_SIGN->value, [], true],
+			'draft never sent' => [FileStatus::DRAFT->value, [], null, false],
+			'sent request' => [FileStatus::ABLE_TO_SIGN->value, $frozen, null, true],
+			'sent request that returned to draft' => [FileStatus::DRAFT->value, $frozen, null, true],
+			'sent before the freeze was recorded' => [FileStatus::ABLE_TO_SIGN->value, [], null, true],
+			'document of a draft envelope' => [FileStatus::DRAFT->value, [], [FileStatus::DRAFT->value, []], false],
+			'document of a sent envelope' => [FileStatus::DRAFT->value, [], [FileStatus::DRAFT->value, $frozen], true],
+			'document of an envelope sent before the freeze was recorded' => [FileStatus::DRAFT->value, [], [FileStatus::ABLE_TO_SIGN->value, []], true],
 		];
 	}
 

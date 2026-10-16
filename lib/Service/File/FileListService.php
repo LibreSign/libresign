@@ -95,11 +95,12 @@ class FileListService {
 
 		$signers = $this->signRequestMapper->getByMultipleFileId(array_map(fn (File $file) => $file->getId(), $return['data']));
 		$identifyMethods = $this->signRequestMapper->getIdentifyMethodsFromSigners($signers);
+		$envelopes = $this->getEnvelopesByFileId($return['data']);
 		if ($details) {
 			$visibleElements = $this->signRequestMapper->getVisibleElementsFromSigners($signers);
-			$return['data'] = $this->associateAllAndFormat($user, $return['data'], $signers, $identifyMethods, $visibleElements);
+			$return['data'] = $this->associateAllAndFormat($user, $return['data'], $signers, $identifyMethods, $visibleElements, $envelopes);
 		} else {
-			$return['data'] = $this->associateAllAndFormatSummary($user, $return['data'], $signers, $identifyMethods);
+			$return['data'] = $this->associateAllAndFormatSummary($user, $return['data'], $signers, $identifyMethods, $envelopes);
 		}
 
 		$return['pagination']->setRouteName('ocs.libresign.File.list');
@@ -113,6 +114,7 @@ class FileListService {
 	 * @param File[] $files
 	 * @param SignRequest[] $signers
 	 * @param array<int, array<string, Entity&IdentifyMethod>> $identifyMethods
+	 * @param array<int, File> $envelopes
 	 * @return list<LibresignFileSummary>
 	 */
 	private function associateAllAndFormatSummary(
@@ -120,11 +122,12 @@ class FileListService {
 		array $files,
 		array $signers,
 		array $identifyMethods,
+		array $envelopes,
 	): array {
 		$formattedFiles = [];
 		foreach ($files as $file) {
 			$fileSigners = array_filter($signers, fn ($signer) => $signer->getFileId() === $file->getId());
-			$formattedFiles[] = $this->formatSingleFileSummary($file, $fileSigners, $identifyMethods, $user);
+			$formattedFiles[] = $this->formatSingleFileSummary($file, $fileSigners, $identifyMethods, $user, $envelopes[$file->getId()] ?? null);
 		}
 		return $formattedFiles;
 	}
@@ -133,8 +136,9 @@ class FileListService {
 		$signers = $this->signRequestMapper->getByMultipleFileId([$file->getId()]);
 		$identifyMethods = $this->signRequestMapper->getIdentifyMethodsFromSigners($signers);
 		$visibleElements = $this->signRequestMapper->getVisibleElementsFromSigners($signers);
+		$envelope = $this->getEnvelopesByFileId([$file])[$file->getId()] ?? null;
 
-		return $this->formatSingleFileData($file, $signers, $identifyMethods, $visibleElements, $user);
+		return $this->formatSingleFileData($file, $signers, $identifyMethods, $visibleElements, $user, null, $envelope);
 	}
 
 	public function formatSingleFileForSignRequest(File $file, ?SignRequest $currentSignRequest = null): array {
@@ -213,6 +217,7 @@ class FileListService {
 	 * @param SignRequest[] $signers
 	 * @param array<int, array<string, Entity&IdentifyMethod>> $identifyMethods
 	 * @param array<int, FileElement[]> $visibleElements
+	 * @param array<int, File> $envelopes
 	 * @return list<LibresignDetailedFile>
 	 */
 	private function associateAllAndFormat(
@@ -221,11 +226,12 @@ class FileListService {
 		array $signers,
 		array $identifyMethods,
 		array $visibleElements,
+		array $envelopes,
 	): array {
 		$formattedFiles = [];
 		foreach ($files as $file) {
 			$fileSigners = array_filter($signers, fn ($signer) => $signer->getFileId() === $file->getId());
-			$formattedFiles[] = $this->formatSingleFileData($file, $fileSigners, $identifyMethods, $visibleElements, $user);
+			$formattedFiles[] = $this->formatSingleFileData($file, $fileSigners, $identifyMethods, $visibleElements, $user, null, $envelopes[$file->getId()] ?? null);
 		}
 		return $formattedFiles;
 	}
@@ -248,6 +254,7 @@ class FileListService {
 		array $visibleElements,
 		?IUser $user,
 		?int $meSignRequestId = null,
+		?File $envelope = null,
 	): array {
 		$file = [
 			'id' => $fileEntity->getId(),
@@ -264,7 +271,7 @@ class FileListService {
 		];
 		// The sign page formats files without a user and may be public.
 		if ($user !== null) {
-			$file['policySnapshotFrozen'] = FileStatusService::isPolicySnapshotFrozen($fileEntity);
+			$file['policySnapshotFrozen'] = FileStatusService::isPolicySnapshotFrozen($fileEntity, $envelope);
 		}
 		$file['signatureFlow'] = SignatureFlow::fromNumeric($file['signatureFlow'])->value;
 		$file['statusText'] = $this->fileMapper->getTextOfStatus($file['status']);
@@ -344,6 +351,7 @@ class FileListService {
 		array $signers,
 		array $identifyMethods,
 		IUser $user,
+		?File $envelope = null,
 	): array {
 		$metadata = $fileEntity->getMetadata() ?? [];
 		$nodeType = $fileEntity->getNodeType();
@@ -389,7 +397,7 @@ class FileListService {
 			'metadata' => $metadata,
 			'docmdpLevel' => $fileEntity->getDocmdpLevel(),
 			'signatureFlow' => SignatureFlow::fromNumeric($fileEntity->getSignatureFlow())->value,
-			'policySnapshotFrozen' => FileStatusService::isPolicySnapshotFrozen($fileEntity),
+			'policySnapshotFrozen' => FileStatusService::isPolicySnapshotFrozen($fileEntity, $envelope),
 			'signersCount' => count($signers),
 			'signers' => [],
 			'requested_by' => [
@@ -510,6 +518,40 @@ class FileListService {
 
 		ksort($data);
 		return $data;
+	}
+
+	/**
+	 * The envelope of each file that has one, by file id. Envelopes already
+	 * among the files are reused and every other one is loaded once.
+	 *
+	 * @param File[] $files
+	 * @return array<int, File>
+	 */
+	private function getEnvelopesByFileId(array $files): array {
+		$loaded = [];
+		foreach ($files as $file) {
+			$loaded[$file->getId()] = $file;
+		}
+
+		$envelopes = [];
+		foreach ($files as $file) {
+			$parentId = $file->getParentFileId();
+			if ($parentId === null) {
+				continue;
+			}
+			if (!array_key_exists($parentId, $loaded)) {
+				try {
+					$loaded[$parentId] = $this->fileMapper->getById($parentId);
+				} catch (DoesNotExistException) {
+					$loaded[$parentId] = null;
+				}
+			}
+			if ($loaded[$parentId] !== null) {
+				$envelopes[$file->getId()] = $loaded[$parentId];
+			}
+		}
+
+		return $envelopes;
 	}
 
 	private function isRequester(?File $fileEntity, ?IUser $user): bool {
@@ -836,7 +878,10 @@ class FileListService {
 			'metadata' => $metadata,
 			'docmdpLevel' => $mainEntity->getDocmdpLevel(),
 			'signatureFlow' => SignatureFlow::fromNumeric($mainEntity->getSignatureFlow())->value,
-			'policySnapshotFrozen' => FileStatusService::isPolicySnapshotFrozen($mainEntity),
+			'policySnapshotFrozen' => FileStatusService::isPolicySnapshotFrozen(
+				$mainEntity,
+				$this->getEnvelopesByFileId([$mainEntity])[$mainEntity->getId()] ?? null,
+			),
 			'signers' => $signers,
 			'signersCount' => count($signers),
 			'requested_by' => [
