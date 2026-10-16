@@ -612,13 +612,15 @@ class RequestSignatureService {
 		}
 	}
 
-	public function unassociateToUser(int $fileId, int $signRequestId): void {
+	public function unassociateToUser(int $fileId, int $signRequestId, bool $notify = true): void {
 		$file = $this->fileMapper->getById($fileId);
 		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 		$deletedOrder = $signRequest->getSigningOrder();
 		$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequestId);
 
-		$this->dispatchCancellationEventIfNeeded($signRequest, $file, $groupedIdentifyMethods);
+		if ($notify) {
+			$this->dispatchCancellationEventIfNeeded($signRequest, $file, $groupedIdentifyMethods);
+		}
 
 		try {
 			$this->signRequestMapper->delete($signRequest);
@@ -655,11 +657,11 @@ class RequestSignatureService {
 			return;
 		}
 
-		$children = $this->fileMapper->getChildrenFiles($envelope->getId());
-
 		if (empty($identifyMethods)) {
 			return;
 		}
+
+		$children = $this->fileMapper->getChildrenFiles($envelope->getId());
 
 		foreach ($children as $child) {
 			try {
@@ -670,7 +672,7 @@ class RequestSignatureService {
 				);
 
 				if ($childSignRequest->getId()) {
-					$this->unassociateToUser($child->getId(), $childSignRequest->getId());
+					$this->unassociateToUser($child->getId(), $childSignRequest->getId(), notify: false);
 				}
 			} catch (\Throwable) {
 				continue;
