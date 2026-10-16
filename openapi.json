@@ -3289,6 +3289,9 @@
                             "ordered_numeric"
                         ]
                     },
+                    "policySnapshotFrozen": {
+                        "type": "boolean"
+                    },
                     "docmdpLevel": {
                         "type": "integer",
                         "format": "int64"

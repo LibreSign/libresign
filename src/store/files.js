@@ -601,7 +601,9 @@ const _filesStore = defineStore('files', () => {
 			clearRequestDraft(fileData.id)
 		}
 
-		await store.addFile(fileData, { detailsLoaded: true })
+		// Only the requester gets policySnapshotFrozen: when the detail omits it,
+		// a value merged from the list must not outlive this reload.
+		await store.addFile({ ...fileData, policySnapshotFrozen: fileData.policySnapshotFrozen }, { detailsLoaded: true })
 		return apiFiles.value[fileData.id] || files.value[fileData.id] || null
 	}
 
