@@ -249,6 +249,26 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		]);
 	}
 
+	public function testSaveFileRefusesANodeRegisteredMoreThanOnceWithoutCreatingAnotherFile(): void {
+		$this->fileMapper->method('getByNodeId')
+			->willThrowException(new \OCP\AppFramework\Db\MultipleObjectsReturnedException('Did expect one result but found more in query: SELECT *'));
+		$this->filePolicyApplier->expects($this->never())->method('syncAllPolicies');
+		$this->fileService->expects($this->never())->method('getNodeFromData');
+		$this->fileMapper->expects($this->never())->method('insert');
+
+		try {
+			$this->getService()->saveFile([
+				'file' => ['nodeId' => 171],
+				'name' => 'contract',
+				'userManager' => $this->user,
+			]);
+			$this->fail('A node registered more than once must not be saved.');
+		} catch (LibresignException $e) {
+			$this->assertSame(422, $e->getCode());
+			$this->assertStringNotContainsString('SELECT', $e->getMessage());
+		}
+	}
+
 	public function testSaveFileCreatesTheFileWhenTheNodeIsNotRegisteredYet(): void {
 		$this->fileMapper->method('getByNodeId')
 			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('not found'));
