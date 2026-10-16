@@ -32,6 +32,7 @@ use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
@@ -374,6 +375,9 @@ class RequestSignatureService {
 				$file = $this->fileMapper->getByNodeId($nodeId);
 			} catch (DoesNotExistException) {
 				$file = null;
+			} catch (MultipleObjectsReturnedException) {
+				// TRANSLATORS Error shown when a document cannot be updated because LibreSign has more than one record for it.
+				throw new LibresignException($this->l10n->t('This document is registered more than once, so it cannot be updated. Please contact your administrator.'), 422);
 			}
 			if ($file !== null) {
 				$this->filePolicyApplier->syncAllPolicies($file, $data);
