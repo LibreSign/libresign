@@ -679,6 +679,68 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame('libresign.page.getPdf:file-uuid', $result['files'][0]['file']);
 	}
 
+	#[DataProvider('provideRequesterFiles')]
+	public function testToArrayTellsTheRequesterWhetherThePolicySnapshotIsFrozen(int $status, ?int $envelopeStatus, bool $expected): void {
+		$file = $this->createRequestedFile($status);
+		if ($envelopeStatus !== null) {
+			$envelope = $this->createRequestedFile($envelopeStatus);
+			$envelope->setId(10);
+			$envelope->setNodeType('envelope');
+			$file->setParentFileId(10);
+			$this->envelopeService->method('getEnvelopeByFileId')->with(1)->willReturn($envelope);
+		}
+
+		$result = $this->createFileService()->setFile($file)->setMe($this->createUser('creator-user'))->toArray();
+
+		$this->assertSame($expected, $result['policySnapshotFrozen']);
+	}
+
+	/** @return iterable<string, array{0: int, 1: ?int, 2: bool}> */
+	public static function provideRequesterFiles(): iterable {
+		yield 'draft' => [FileStatus::DRAFT->value, null, false];
+		yield 'sent' => [FileStatus::ABLE_TO_SIGN->value, null, true];
+		yield 'draft document of a sent envelope' => [FileStatus::DRAFT->value, FileStatus::ABLE_TO_SIGN->value, true];
+	}
+
+	#[DataProvider('provideViewersWhoAreNotTheRequester')]
+	public function testToArrayTellsNobodyElseWhetherThePolicySnapshotIsFrozen(?string $viewerUid): void {
+		$result = $this->createFileService()
+			->setFile($this->createRequestedFile(FileStatus::ABLE_TO_SIGN->value))
+			->setMe($viewerUid === null ? null : $this->createUser($viewerUid))
+			->toArray();
+
+		$this->assertArrayNotHasKey('policySnapshotFrozen', $result);
+	}
+
+	/** @return iterable<string, array{0: ?string}> */
+	public static function provideViewersWhoAreNotTheRequester(): iterable {
+		yield 'anonymous' => [null];
+		yield 'another account' => ['signer-user'];
+	}
+
+	private function createRequestedFile(int $status): \OCA\Libresign\Db\File {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(1);
+		$file->setUuid('file-uuid');
+		$file->setName('contract.pdf');
+		$file->setStatus($status);
+		$file->setCreatedAt(new \DateTime('2026-01-01T00:00:00Z'));
+		$file->setNodeId(100);
+		$file->setUserId('creator-user');
+
+		$creator = $this->createMock(\OCP\IUser::class);
+		$creator->method('getDisplayName')->willReturn('Creator User');
+		$this->userManager->method('get')->willReturn($creator);
+		$this->fileMapper->method('getChildrenFiles')->willReturn([]);
+		return $file;
+	}
+
+	private function createUser(string $uid): \OCP\IUser {
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn($uid);
+		return $user;
+	}
+
 	#[DataProvider('mapSignerDetailsToSummaryProvider')]
 	public function testMapSignerDetailsToSummaryFiltersInvalidSigners(array $signers, array $expectedSummaries): void {
 		$service = $this->createFileService();
