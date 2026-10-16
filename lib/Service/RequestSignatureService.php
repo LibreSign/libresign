@@ -632,7 +632,7 @@ class RequestSignatureService {
 				->setFile($file)
 				->reorderAfterDeletion($file->getId(), $deletedOrder);
 
-			$this->propagateSignerDeletionToChildren($file, $signRequest);
+			$this->propagateSignerDeletionToChildren($file, $groupedIdentifyMethods);
 			$this->revertStatusToDraftIfNoSignersRemain($file);
 		} catch (\Throwable) {
 		}
@@ -647,14 +647,16 @@ class RequestSignatureService {
 		}
 	}
 
-	private function propagateSignerDeletionToChildren(FileEntity $envelope, SignRequestEntity $deletedSignRequest): void {
+	/**
+	 * @param array<string, array<IIdentifyMethod>> $identifyMethods
+	 */
+	private function propagateSignerDeletionToChildren(FileEntity $envelope, array $identifyMethods): void {
 		if ($envelope->getNodeType() !== 'envelope') {
 			return;
 		}
 
 		$children = $this->fileMapper->getChildrenFiles($envelope->getId());
 
-		$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($deletedSignRequest->getId());
 		if (empty($identifyMethods)) {
 			return;
 		}
