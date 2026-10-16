@@ -612,13 +612,15 @@ class RequestSignatureService {
 		}
 	}
 
-	public function unassociateToUser(int $fileId, int $signRequestId): void {
+	public function unassociateToUser(int $fileId, int $signRequestId, bool $notify = true): void {
 		$file = $this->fileMapper->getById($fileId);
 		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 		$deletedOrder = $signRequest->getSigningOrder();
 		$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequestId);
 
-		$this->dispatchCancellationEventIfNeeded($signRequest, $file, $groupedIdentifyMethods);
+		if ($notify) {
+			$this->dispatchCancellationEventIfNeeded($signRequest, $file, $groupedIdentifyMethods);
+		}
 
 		try {
 			$this->signRequestMapper->delete($signRequest);
@@ -632,7 +634,7 @@ class RequestSignatureService {
 				->setFile($file)
 				->reorderAfterDeletion($file->getId(), $deletedOrder);
 
-			$this->propagateSignerDeletionToChildren($file, $signRequest);
+			$this->propagateSignerDeletionToChildren($file, $groupedIdentifyMethods);
 			$this->revertStatusToDraftIfNoSignersRemain($file);
 		} catch (\Throwable) {
 		}
@@ -647,17 +649,19 @@ class RequestSignatureService {
 		}
 	}
 
-	private function propagateSignerDeletionToChildren(FileEntity $envelope, SignRequestEntity $deletedSignRequest): void {
+	/**
+	 * @param array<string, array<IIdentifyMethod>> $identifyMethods
+	 */
+	private function propagateSignerDeletionToChildren(FileEntity $envelope, array $identifyMethods): void {
 		if ($envelope->getNodeType() !== 'envelope') {
 			return;
 		}
 
-		$children = $this->fileMapper->getChildrenFiles($envelope->getId());
-
-		$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($deletedSignRequest->getId());
 		if (empty($identifyMethods)) {
 			return;
 		}
+
+		$children = $this->fileMapper->getChildrenFiles($envelope->getId());
 
 		foreach ($children as $child) {
 			try {
@@ -668,7 +672,7 @@ class RequestSignatureService {
 				);
 
 				if ($childSignRequest->getId()) {
-					$this->unassociateToUser($child->getId(), $childSignRequest->getId());
+					$this->unassociateToUser($child->getId(), $childSignRequest->getId(), notify: false);
 				}
 			} catch (\Throwable) {
 				continue;
