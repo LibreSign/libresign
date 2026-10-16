@@ -96,10 +96,7 @@ abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
 			}
 		}
 
-		$envelope = $this->findEnvelope($file);
-
-		return FileStatusService::isPolicySnapshotFrozen($file)
-			|| ($envelope !== null && FileStatusService::isPolicySnapshotFrozen($envelope));
+		return FileStatusService::isPolicySnapshotFrozen($file, $this->findEnvelope($file));
 	}
 
 	private function findEnvelope(FileEntity $file): ?FileEntity {
