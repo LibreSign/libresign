@@ -129,7 +129,7 @@ final class SignatureFlowFilePolicyApplierTest extends \OCA\Libresign\Tests\Unit
 
 	/**
 	 * @param array<string, mixed> $metadata
-	 * @param array<string, string> $policyOverrides
+	 * @param array<string, ?string> $policyOverrides
 	 */
 	#[DataProvider('provideFrozenUpdates')]
 	public function testAFrozenRequestKeepsItsStoredFlow(int $status, array $metadata, array $policyOverrides): void {
@@ -145,10 +145,11 @@ final class SignatureFlowFilePolicyApplierTest extends \OCA\Libresign\Tests\Unit
 		$this->assertSame($storedMetadata, $file->getMetadata());
 	}
 
-	/** @return iterable<string, array{0: int, 1: array<string, mixed>, 2: array<string, string>}> */
+	/** @return iterable<string, array{0: int, 1: array<string, mixed>, 2: array<string, ?string>}> */
 	public static function provideFrozenUpdates(): iterable {
 		yield 'nothing submitted' => [FileStatus::ABLE_TO_SIGN->value, self::FROZEN, []];
 		yield 'stored flow sent again' => [FileStatus::ABLE_TO_SIGN->value, self::FROZEN, [SignatureFlowPolicy::KEY => 'none']];
+		yield 'null submitted' => [FileStatus::ABLE_TO_SIGN->value, self::FROZEN, [SignatureFlowPolicy::KEY => null]];
 		yield 'returned to draft' => [FileStatus::DRAFT->value, self::FROZEN, []];
 		yield 'sent before the freeze was recorded' => [FileStatus::ABLE_TO_SIGN->value, [], []];
 	}

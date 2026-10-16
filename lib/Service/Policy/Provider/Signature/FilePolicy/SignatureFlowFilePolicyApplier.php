@@ -75,10 +75,11 @@ class SignatureFlowFilePolicyApplier extends AbstractFilePolicyApplier {
 	 * A frozen request keeps the flow it was sent with. A client may still send
 	 * that same flow along an unrelated update, which changes nothing.
 	 *
-	 * @param array<string, string> $requestOverrides
+	 * @param array<string, ?string> $requestOverrides
 	 */
 	private function assertFrozenFlowIsKept(FileEntity $file, array $requestOverrides): void {
-		if ($requestOverrides === [] || $requestOverrides[SignatureFlowPolicy::KEY] === $file->getSignatureFlowEnum()->value) {
+		$submittedFlow = $requestOverrides[SignatureFlowPolicy::KEY] ?? null;
+		if ($submittedFlow === null || $submittedFlow === $file->getSignatureFlowEnum()->value) {
 			return;
 		}
 
