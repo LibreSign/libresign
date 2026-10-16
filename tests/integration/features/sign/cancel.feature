@@ -12,12 +12,14 @@ Feature: sign-request-cancel
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
     And fetch field "(SIGN_REQUEST_ID)ocs.data.data.0.signers.0.signRequestId" from previous JSON response
+    And reset notifications of user "signer1"
     When sending "delete" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/<SIGN_REQUEST_ID>"
     Then the response should have a status code 200
     When as user "signer1"
     And sending "get" to ocs "/apps/notifications/api/v2/notifications"
     Then the response should be a JSON array with the following mandatory values
       | key                      | value                                             |
+      | (jq).ocs.data \| length | 1 |
       | (jq).ocs.data[0].subject | admin canceled the signature request for document |
 
   Scenario: Delete draft request does not send cancellation notification
@@ -109,6 +111,11 @@ Feature: sign-request-cancel
     And fetch field '(SIGN_REQUEST_ID)(jq).ocs.data.signers[] | select(any(.identifyMethods[]; .method == "account" and .value == "signer1")) | .signRequestId' from previous JSON response
     And fetch field "(FIRST_UUID)ocs.data.files.0.uuid" from previous JSON response
     And fetch field "(SECOND_UUID)ocs.data.files.1.uuid" from previous JSON response
+    And reset notifications of user "signer1"
+    And reset activity of user "signer1"
+    And set the email of user "signer1" to "signer1@domain.test"
+    And activity preference "notify_email_libresign_sign_request_canceled" for user "signer1" is set to "1"
+    And my inbox is empty
     When sending "delete" to ocs "/apps/libresign/api/v1/sign/file_id/<ENVELOPE_ID>/<SIGN_REQUEST_ID>"
     Then the response should have a status code 200
     When sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<ENVELOPE_UUID>"
@@ -131,6 +138,18 @@ Feature: sign-request-cancel
       | key | value |
       | (jq).ocs.data.signers \| length | 1 |
       | (jq)[.ocs.data.signers[].identifyMethods[] \| select(.method == "account").value] | ["signer2"] |
+    When as user "signer1"
+    And sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    Then the response should be a JSON array with the following mandatory values
+      | key | value |
+      | (jq).ocs.data \| length | 1 |
+      | (jq).ocs.data[0].subject | admin canceled the signature request for Envelope cancellation |
+    And there should be 1 emails in my inbox
+    When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key | value |
+      | (jq).ocs.data \| length | 1 |
 
   Scenario: Delete last envelope signer reverts both documents to draft without orphan requests
     Given as user "admin"
@@ -160,6 +179,11 @@ Feature: sign-request-cancel
     And fetch field '(SIGN_REQUEST_ID)(jq).ocs.data.signers[] | select(any(.identifyMethods[]; .method == "account" and .value == "signer1")) | .signRequestId' from previous JSON response
     And fetch field "(FIRST_UUID)ocs.data.files.0.uuid" from previous JSON response
     And fetch field "(SECOND_UUID)ocs.data.files.1.uuid" from previous JSON response
+    And reset notifications of user "signer1"
+    And reset activity of user "signer1"
+    And set the email of user "signer1" to "signer1@domain.test"
+    And activity preference "notify_email_libresign_sign_request_canceled" for user "signer1" is set to "1"
+    And my inbox is empty
     When sending "delete" to ocs "/apps/libresign/api/v1/sign/file_id/<ENVELOPE_ID>/<SIGN_REQUEST_ID>"
     Then the response should have a status code 200
     When sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<ENVELOPE_UUID>"
@@ -181,3 +205,54 @@ Feature: sign-request-cancel
       | key | value |
       | (jq).ocs.data.signers | [] |
       | (jq).ocs.data.status | 0 |
+    When as user "signer1"
+    And sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    Then the response should be a JSON array with the following mandatory values
+      | key | value |
+      | (jq).ocs.data \| length | 1 |
+      | (jq).ocs.data[0].subject | admin canceled the signature request for Last envelope signer |
+    And there should be 1 emails in my inbox
+    When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key | value |
+      | (jq).ocs.data \| length | 1 |
+
+  Scenario: Directly deleting a child signer still sends its cancellation notification
+    Given as user "admin"
+    And user "signer1" exists
+    And run the command "libresign:configure:openssl --cn test" with result code 0
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"First.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Second.pdf"}] |
+      | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
+      | name | Direct child cancellation |
+      | status | 0 |
+    And the response should have a status code 200
+    And fetch field "(ENVELOPE_UUID)ocs.data.uuid" from previous JSON response
+    And sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
+      | uuid | <ENVELOPE_UUID> |
+      | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
+      | status | 1 |
+    And the response should have a status code 200
+    And sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<ENVELOPE_UUID>"
+    And the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key | value |
+      | (jq)[.ocs.data, .ocs.data.files[]] \| map(.status) | [1,1,1] |
+    And fetch field "(CHILD_ID)ocs.data.files.0.id" from previous JSON response
+    And fetch field '(SIGN_REQUEST_ID)(jq).ocs.data.files[0].signers[] | select(any(.identifyMethods[]; .method == "account" and .value == "signer1")) | .signRequestId' from previous JSON response
+    And reset notifications of user "signer1"
+    When sending "delete" to ocs "/apps/libresign/api/v1/sign/file_id/<CHILD_ID>/<SIGN_REQUEST_ID>"
+    Then the response should have a status code 200
+    When sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<ENVELOPE_UUID>"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key | value |
+      | (jq)[.ocs.data, .ocs.data.files[]] \| map(.signers \| length) | [1,0,1] |
+      | (jq)[.ocs.data, .ocs.data.files[]] \| map(.status) | [1,0,1] |
+    When as user "signer1"
+    And sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    Then the response should be a JSON array with the following mandatory values
+      | key | value |
+      | (jq).ocs.data \| length | 1 |
+      | (jq).ocs.data[0].subject | admin canceled the signature request for First |
