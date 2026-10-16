@@ -455,6 +455,13 @@ class FileService {
 		$this->fileData->signatureFlow = SignatureFlow::fromNumeric($this->file->getSignatureFlow())->value;
 		$this->fileData->docmdpLevel = $this->file->getDocmdpLevel();
 		$this->fileData->nodeType = $this->file->getNodeType();
+		// Validation is public: only the requester learns about the freeze.
+		if ($this->options->getMe() !== null && $this->options->getMe()->getUID() === $this->file->getUserId()) {
+			$this->fileData->policySnapshotFrozen = FileStatusService::isPolicySnapshotFrozen(
+				$this->file,
+				$this->file->hasParent() ? $this->envelopeService->getEnvelopeByFileId($this->file->getId()) : null,
+			);
+		}
 
 		if ($this->fileData->nodeType !== 'envelope' && !$this->file->getParentFileId()) {
 			$fileId = $this->file->getId();

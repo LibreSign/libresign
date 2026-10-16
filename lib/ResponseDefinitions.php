@@ -679,6 +679,7 @@ namespace OCA\Libresign;
  *     nodeId: non-negative-int,
  *     nodeType: 'file'|'envelope',
  *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
+ *     policySnapshotFrozen?: bool,
  *     docmdpLevel: int,
  *     filesCount: int<0, max>,
  *     files: list<LibresignValidatedChildFile>,

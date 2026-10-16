@@ -1894,6 +1894,7 @@ export type components = {
             nodeType: "file" | "envelope";
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
+            policySnapshotFrozen?: boolean;
             /** Format: int64 */
             docmdpLevel: number;
             /** Format: int64 */
