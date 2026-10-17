@@ -29,6 +29,8 @@ type EnvelopeSigner = {
 	totalDocuments?: number
 	participantRole?: string
 	status?: number
+	displayStatus?: string
+	rejection?: { rejectedAt: string, comment?: string, commentPrivate?: boolean }
 	metadata?: {
 		geolocation?: {
 			device?: {
@@ -47,7 +49,7 @@ type EnvelopeDocument = {
 	name: string
 	nodeId: number
 	nodeType: 'envelope'
-	status: 0 | 1 | 2 | 3 | 4 | string
+	status: 0 | 1 | 2 | 3 | 4 | 6 | string
 	filesCount: number
 	files: EnvelopeFile[]
 	signers: EnvelopeSigner[]
@@ -539,6 +541,113 @@ describe('EnvelopeValidation', () => {
 			await wrapper.vm.$nextTick()
 
 			expect(wrapper.vm.isSignerOpen(0)).toBe(false)
+		})
+	})
+
+	describe('RULE: the signer summary follows the backend display status', () => {
+		const summaries = (current: EnvelopeValidationWrapper) => current.findAll('[data-test="envelope-signer-summary"]').map(item => item.text())
+
+		it('keeps the signing progress for signers without a rejection', () => {
+			wrapper = createWrapper({
+				document: {
+					status: 1,
+					signers: [
+						{ displayName: 'A', displayStatus: 'signed', signed: '2026-09-09', documentsSignedCount: 2, totalDocuments: 2 },
+						{ displayName: 'B', displayStatus: 'ready_to_sign', documentsSignedCount: 0, totalDocuments: 2 },
+					],
+				},
+			})
+
+			expect(summaries(wrapper)).toEqual(['2 of 2 documents signed', '0 of 2 documents signed'])
+		})
+
+		it('shows a visible rejection instead of the progress', () => {
+			wrapper = createWrapper({
+				document: {
+					status: 2,
+					signers: [
+						{ displayName: 'A', displayStatus: 'signed', signed: '2026-09-09', documentsSignedCount: 2, totalDocuments: 2 },
+						{ displayName: 'B', displayStatus: 'rejected', documentsSignedCount: 0, totalDocuments: 2, rejection: { rejectedAt: '2026-09-10' } },
+					],
+				},
+			})
+
+			expect(summaries(wrapper)).toEqual(['2 of 2 documents signed', 'Rejected'])
+		})
+
+		it('gives every hidden signer the same summary', () => {
+			wrapper = createWrapper({
+				document: {
+					status: 1,
+					signers: [
+						{ displayName: 'A', displayStatus: 'not_signed', documentsSignedCount: 0, totalDocuments: 2 },
+						{ displayName: 'B', displayStatus: 'not_signed', documentsSignedCount: 0, totalDocuments: 2 },
+					],
+				},
+			})
+
+			expect(new Set(summaries(wrapper)).size).toBe(1)
+			expect(wrapper.text()).not.toContain('Rejected')
+		})
+
+		it('shows every signer who did not sign a canceled envelope the same way', () => {
+			wrapper = createWrapper({
+				document: {
+					status: 6,
+					signers: [
+						{ displayName: 'A', displayStatus: 'signed', signed: '2026-09-09', documentsSignedCount: 2, totalDocuments: 2 },
+						{ displayName: 'B', displayStatus: 'ready_to_sign', documentsSignedCount: 0, totalDocuments: 2 },
+						{ displayName: 'C', displayStatus: 'not_signed', documentsSignedCount: 0, totalDocuments: 2 },
+						{ displayName: 'D', displayStatus: 'draft', documentsSignedCount: 0, totalDocuments: 2 },
+					],
+				},
+			})
+
+			expect(summaries(wrapper)).toEqual([
+				'2 of 2 documents signed',
+				'No longer able to sign',
+				'No longer able to sign',
+				'No longer able to sign',
+			])
+		})
+
+		it('shows when a signer rejected and the visible comment in the details', async () => {
+			wrapper = createWrapper({
+				document: {
+					status: 2,
+					signers: [
+						{ displayName: 'B', displayStatus: 'rejected', rejection: { rejectedAt: '2026-09-10', comment: 'I do not agree', commentPrivate: true } },
+					],
+				},
+			})
+			wrapper.vm.toggleDetail(0)
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.find('[data-test="envelope-signer-state"]').text()).toBe('Status: Rejected')
+			expect(wrapper.find('[data-test="envelope-signer-rejected-at"]').text()).toContain('Rejected on:')
+			expect(wrapper.find('[data-test="envelope-signer-rejection-comment"]').text()).toContain('I do not agree')
+			expect(wrapper.find('[data-test="envelope-signer-rejection-comment"]').text()).toContain('Private')
+		})
+
+		it('shows the neutral state of a hidden signer in the details', async () => {
+			wrapper = createWrapper({
+				document: { status: 1, signers: [{ displayName: 'B', displayStatus: 'not_signed' }] },
+			})
+			wrapper.vm.toggleDetail(0)
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.find('[data-test="envelope-signer-state"]').text()).toContain('Not signed')
+			expect(wrapper.find('[data-test="envelope-signer-rejected-at"]').exists()).toBe(false)
+		})
+
+		it('labels the date of a signer who signed', async () => {
+			wrapper = createWrapper({
+				document: { status: 3, signers: [{ displayName: 'A', displayStatus: 'signed', signed: '2026-09-09' }] },
+			})
+			wrapper.vm.toggleDetail(0)
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.find('[data-test="envelope-signer-state"]').text()).toBe(`Date signed: Formatted: ${Date.parse('2026-09-09')}`)
 		})
 	})
 
