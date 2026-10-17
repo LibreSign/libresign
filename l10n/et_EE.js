@@ -893,6 +893,7 @@ OC.L10N.register(
     "Validation URL" : "Tervikluse kontrolli võrguaadress",
     "Add visible footer with signature details" : "Lisa nähtav jalus allkirja andmetega",
     "Background" : "Taust",
+    "Background source" : "Taustapildi allikas",
     "Remove background" : "Eemalda taust",
     "Zoom" : "Suumi",
     "Custom" : "Kohandatud",

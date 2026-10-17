@@ -199,7 +199,7 @@ OC.L10N.register(
     "Contact" : "Kapcsolat",
     "Order" : "Rendezés",
     "Open sidebar" : "Oldalsáv megnyitása",
-    "{seconds} seconds left" : "{seconds} másodperc van hátra",
+    "{seconds} seconds left" : "{seconds} másodperc van hátra",
     "Cancel upload" : "Feltöltés megszakítása",
     "Paragraph" : "Bekezdés",
     "Issued by:" : "Kibocsátó:",
