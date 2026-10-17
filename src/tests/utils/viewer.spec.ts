@@ -113,4 +113,24 @@ describe('openDocument', () => {
 		expect(openedUrl).toContain('/apps/libresign/p/pdf/file-uuid')
 		expect(openedUrl).toMatch(/_t=\d+$/)
 	})
+
+	it('opens URL directly for authenticated users when no nodeId is given', () => {
+		const viewerOpen = vi.fn()
+		;(global as GlobalWithOCA).OCA = {
+			Viewer: {
+				open: viewerOpen,
+			},
+		}
+
+		openDocument({
+			fileUrl: '/apps/libresign/p/pdf/file-uuid',
+			filename: 'signed.pdf',
+		})
+
+		expect(viewerOpen).not.toHaveBeenCalled()
+		expect(openSpy).toHaveBeenCalledTimes(1)
+		const openedUrl = openSpy.mock.calls[0]?.[0]
+		expect(openedUrl).toContain('/apps/libresign/p/pdf/file-uuid')
+		expect(openedUrl).toMatch(/_t=\d+$/)
+	})
 })
