@@ -44,10 +44,12 @@ class PolicySource implements IPolicySource {
 			? $this->readSystemValue($definition->getAppConfigKey(), $defaultValue)
 			: null;
 
-		// An empty string means the key was written directly (bypassing the
-		// policy API) or cleared via a migration path.  Treat it the same as
-		// having no explicit system value so the default applies cleanly.
-		if ($storedValue === '') {
+		// The policy API stores the override flag with every value, so an empty
+		// string without it was written directly or cleared via a migration
+		// path. Treat it as having no explicit system value.
+		$allowOverrideConfigKey = $this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey());
+		$hasAllowOverrideFlag = $this->appConfig->hasAppKey($allowOverrideConfigKey);
+		if ($storedValue === '' && !$hasAllowOverrideFlag) {
 			$hasExplicitSystemValue = false;
 			$storedValue = null;
 		}
@@ -67,8 +69,7 @@ class PolicySource implements IPolicySource {
 
 		// A default value stored without an override flag predates explicit
 		// defaults: the API could not enforce it then, so it stays overridable.
-		$allowOverrideConfigKey = $this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey());
-		if ($value === $defaultValue && !$this->appConfig->hasAppKey($allowOverrideConfigKey)) {
+		if ($value === $defaultValue && !$hasAllowOverrideFlag) {
 			return $layer->setAllowChildOverride(true);
 		}
 
