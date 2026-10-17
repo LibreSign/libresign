@@ -756,23 +756,11 @@ final class PolicySourceTest extends TestCase {
 		if ($storedAllowChildOverride !== null) {
 			$this->setStoredAppConfigString('policy.signature_flow.system.allow_child_override', $storedAllowChildOverride);
 		}
-		$conflictingLayer = (new PolicyLayer())
-			->setScope($conflictingScope === 'group' ? 'group' : 'user')
-			->setValue('ordered_numeric')
-			->setAllowChildOverride(true)
-			->setVisibleToChild(true);
 
-		$source = $this->createMock(IPolicySource::class);
-		$source->method('loadSystemPolicy')->willReturn($this->getSource()->loadSystemPolicy(SignatureFlowPolicy::KEY));
-		$source->method('loadGroupPolicies')->willReturn($conflictingScope === 'group' ? [$conflictingLayer] : []);
-		$source->method('loadUserPolicy')->willReturn($conflictingScope === 'user_policy' ? $conflictingLayer : null);
-
-		$resolved = (new DefaultPolicyResolver($source))->resolve(
-			$this->registry->get(SignatureFlowPolicy::KEY),
-			PolicyContext::fromUserId('john'),
+		$this->assertSame(
+			$expectedEffectiveValue,
+			$this->resolveAgainstConflictingLayer(SignatureFlowPolicy::KEY, $conflictingScope, 'ordered_numeric'),
 		);
-
-		$this->assertSame($expectedEffectiveValue, $resolved->getEffectiveValue());
 	}
 
 	/** @return iterable<string, array{0: ?string, 1: ?string, 2: string, 3: string}> */
@@ -785,6 +773,54 @@ final class PolicySourceTest extends TestCase {
 			yield "explicit value overridable, $conflictingScope wins" => ['parallel', '1', $conflictingScope, 'ordered_numeric'];
 			yield "legacy default without override flag, $conflictingScope wins" => ['none', null, $conflictingScope, 'ordered_numeric'];
 		}
+	}
+
+	/**
+	 * legal_information defaults to an empty string, which used to be read
+	 * as "no explicit rule" even when the policy API stored it enforced.
+	 */
+	#[DataProvider('providerExplicitEmptyDefaultRules')]
+	public function testAnEmptyDefaultIsEnforcedOnlyWhenStoredWithItsOverrideFlag(
+		?string $storedValue,
+		?string $storedAllowChildOverride,
+		string $conflictingScope,
+		string $expectedEffectiveValue,
+	): void {
+		if ($storedValue !== null) {
+			$this->setStoredAppConfigString(LegalInformationPolicy::SYSTEM_APP_CONFIG_KEY, $storedValue);
+		}
+		if ($storedAllowChildOverride !== null) {
+			$this->setStoredAppConfigString(LegalInformationPolicy::SYSTEM_APP_CONFIG_KEY . '.allow_child_override', $storedAllowChildOverride);
+		}
+
+		$this->assertSame(
+			$expectedEffectiveValue,
+			$this->resolveAgainstConflictingLayer(LegalInformationPolicy::KEY, $conflictingScope, 'Group text'),
+		);
+	}
+
+	/** @return iterable<string, array{0: ?string, 1: ?string, 2: string, 3: string}> */
+	public static function providerExplicitEmptyDefaultRules(): iterable {
+		foreach (['group', 'user_policy'] as $conflictingScope) {
+			yield "no explicit rule, $conflictingScope wins" => [null, null, $conflictingScope, 'Group text'];
+			yield "empty default enforced, $conflictingScope ignored" => ['', '0', $conflictingScope, ''];
+			yield "empty default overridable, $conflictingScope wins" => ['', '1', $conflictingScope, 'Group text'];
+			yield "empty value written without override flag, $conflictingScope wins" => ['', null, $conflictingScope, 'Group text'];
+			yield "explicit value enforced, $conflictingScope ignored" => ['Company text', '0', $conflictingScope, 'Company text'];
+		}
+	}
+
+	public function testAnEnforcedEmptyDefaultSavedThroughTheSourceIsReadBackEnforced(): void {
+		$source = $this->getSource();
+		$source->saveSystemPolicy(LegalInformationPolicy::KEY, '', false);
+
+		$layer = $source->loadSystemPolicy(LegalInformationPolicy::KEY);
+
+		$this->assertNotNull($layer);
+		$this->assertSame('global', $layer->getScope());
+		$this->assertSame('', $layer->getValue());
+		$this->assertFalse($layer->isAllowChildOverride());
+		$this->assertSame([''], $layer->getAllowedValues());
 	}
 
 	public function testAnEnforcedDefaultSavedThroughTheSourceIsReadBackEnforced(): void {
@@ -2297,6 +2333,24 @@ final class PolicySourceTest extends TestCase {
 		$result = $this->getSource()->loadAllRuleCounts();
 
 		$this->assertSame(1, $result['signature_flow']['everyoneCount']);
+	}
+
+	private function resolveAgainstConflictingLayer(string $policyKey, string $conflictingScope, string $conflictingValue): mixed {
+		$conflictingLayer = (new PolicyLayer())
+			->setScope($conflictingScope === 'group' ? 'group' : 'user')
+			->setValue($conflictingValue)
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+
+		$source = $this->createMock(IPolicySource::class);
+		$source->method('loadSystemPolicy')->willReturn($this->getSource()->loadSystemPolicy($policyKey));
+		$source->method('loadGroupPolicies')->willReturn($conflictingScope === 'group' ? [$conflictingLayer] : []);
+		$source->method('loadUserPolicy')->willReturn($conflictingScope === 'user_policy' ? $conflictingLayer : null);
+
+		return (new DefaultPolicyResolver($source))->resolve(
+			$this->registry->get($policyKey),
+			PolicyContext::fromUserId('john'),
+		)->getEffectiveValue();
 	}
 
 	private function setStoredAppConfigString(string $key, string $value): void {
