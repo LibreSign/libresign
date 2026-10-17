@@ -403,6 +403,16 @@ describe('Validation.vue - Business Logic', () => {
 			})
 		})
 
+		it('treats a signer with the signed status as signed even without a signing date', () => {
+			expect(wrapper.vm.getDocumentValidationSummary({
+				signers: [{ status: 2 }],
+				files: [],
+			})).toEqual({
+				message: 'This document is valid',
+				type: 'success',
+			})
+		})
+
 		it('shows warning when the document was modified after signing', () => {
 			expect(wrapper.vm.getDocumentValidationSummary({
 				signers: [{
