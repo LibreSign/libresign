@@ -784,11 +784,12 @@ function getValidationDocumentSigners(validationDocument: ValidationDocumentStat
 }
 
 function hasAppliedSignature(signer: ValidationDisplaySigner) {
-	return Boolean(signer.signed) || signer.signature_validation !== undefined
+	return Boolean(signer.signed)
+		|| Number(signer.status) === SIGN_REQUEST_STATUS.SIGNED
+		|| signer.signature_validation !== undefined
 }
 
 function getDocumentValidationSummary(validationDocument: ValidationDocumentState): DocumentValidationSummary {
-	// Pending signers carry no signature data, so they must not count towards a "valid" verdict
 	const signers = getValidationDocumentSigners(validationDocument).filter(hasAppliedSignature)
 
 	if (signers.length === 0) {
