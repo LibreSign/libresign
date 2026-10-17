@@ -29,18 +29,23 @@ export default defineConfig({
 			},
 		],
 	},
+	server: { fs: { strict: false } },
 	test: {
 		include: ['src/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
 		environment: 'happy-dom',
 		globals: true,
 		// Required for transforming CSS files
 		pool: 'vmForks',
-		deps: {
-			inline: ['@nextcloud/vue', 'splitpanes', 'vue-select'],
-		},
 		server: {
 			deps: {
-				inline: ['@nextcloud/vue', 'splitpanes', 'vue-select'],
+				inline: [
+					'@nextcloud/vue',
+					'@nextcloud/vue-select',
+					'@nextcloud/dialogs',
+					'@nextcloud/password-confirmation',
+					'splitpanes',
+					'vue-select',
+				],
 			},
 		},
 		coverage: {
