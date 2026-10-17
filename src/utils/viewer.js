@@ -24,10 +24,15 @@ const extractRelativePath = (url) => {
 /**
  * Opens a document using Nextcloud Viewer or in a new window
  *
+ * Without a node ID the Viewer is skipped as well: some Viewer handlers
+ * (e.g. Euro-Office/ONLYOFFICE) ignore `source` and resolve `fileid` in the
+ * current user's filesystem, so they must only receive a node the current
+ * user can access.
+ *
  * @param {object} options - Options for opening the document
  * @param {string} options.fileUrl - The URL of the file to open
  * @param {string} options.filename - The name of the file
- * @param {number} options.nodeId - The Nextcloud node ID
+ * @param {number} [options.nodeId] - The Nextcloud node ID, only when accessible by the current user
  * @param {string} [options.mime] - The MIME type (defaults to 'application/pdf')
  */
 export const openDocument = ({ fileUrl, filename, nodeId, mime = 'application/pdf' }) => {
