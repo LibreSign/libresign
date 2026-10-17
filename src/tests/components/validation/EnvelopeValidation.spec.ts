@@ -351,18 +351,31 @@ describe('EnvelopeValidation', () => {
 			})
 
 			expect(viewer.openDocument).toHaveBeenCalledWith({
-				fileUrl: expect.stringContaining('file-uuid-123'),
+				fileUrl: '/apps/libresign/p/pdf/file-uuid-123',
 				filename: 'Document.pdf',
-				nodeId: 456,
 			})
 		})
 
-		it('does not open viewer without nodeId', () => {
+		it('opens the file by UUID when it has no nodeId', () => {
 			wrapper = createWrapper()
 
 			wrapper.vm.viewFile({
 				uuid: 'file-uuid-123',
 				name: 'Document.pdf',
+			})
+
+			expect(viewer.openDocument).toHaveBeenCalledWith({
+				fileUrl: '/apps/libresign/p/pdf/file-uuid-123',
+				filename: 'Document.pdf',
+			})
+		})
+
+		it('does not open viewer without uuid', () => {
+			wrapper = createWrapper()
+
+			wrapper.vm.viewFile({
+				name: 'Document.pdf',
+				nodeId: 456,
 			})
 
 			expect(viewer.openDocument).not.toHaveBeenCalled()
@@ -502,8 +515,8 @@ describe('EnvelopeValidation', () => {
 			expect(typeof wrapper.vm.isTouchDevice).toBe('boolean')
 		})
 
-		it('renders actions slot when not touch device and file has nodeId', async () => {
-			const file: EnvelopeFile = { id: 1, nodeId: 123, status: '3', name: 'test.pdf' }
+		it('renders actions slot when not touch device and file has uuid', async () => {
+			const file: EnvelopeFile = { id: 1, uuid: 'test-uuid', nodeId: 123, status: '3', name: 'test.pdf' }
 			wrapper = createWrapper({
 				document: { files: [file] },
 			})
@@ -526,7 +539,6 @@ describe('EnvelopeValidation', () => {
 			expect(viewer.openDocument).toHaveBeenCalledWith({
 				fileUrl: '/apps/libresign/p/pdf/test-uuid',
 				filename: 'test.pdf',
-				nodeId: 123,
 			})
 		})
 
@@ -541,7 +553,6 @@ describe('EnvelopeValidation', () => {
 			expect(viewer.openDocument).toHaveBeenCalledWith({
 				fileUrl: '/apps/libresign/p/pdf/test-uuid',
 				filename: 'test.pdf',
-				nodeId: 123,
 			})
 		})
 	})
