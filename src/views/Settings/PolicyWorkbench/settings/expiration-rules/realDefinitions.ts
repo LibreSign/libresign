@@ -34,6 +34,25 @@ export const maximumValidityRealDefinition: RealPolicySettingDefinition = {
 	},
 	editor: RequestExpirationRuleEditor,
 	supportedScopes: ['system', 'group', 'user'],
+	compound: {
+		compose: (valuesByPolicyKey) => {
+			const maximumValidity = normalizeRequestExpirationDraftValue(valuesByPolicyKey.maximum_validity ?? null).maximumValidity
+			const renewalInterval = normalizeRequestExpirationDraftValue({
+				maximumValidity: 0,
+				renewalInterval: valuesByPolicyKey.renewal_interval ?? null,
+			}).renewalInterval
+
+			return { maximumValidity, renewalInterval }
+		},
+		decompose: (editorValue) => {
+			const normalizedValue = normalizeRequestExpirationDraftValue(editorValue)
+
+			return {
+				maximum_validity: normalizedValue.maximumValidity,
+				renewal_interval: normalizedValue.renewalInterval,
+			}
+		},
+	},
 	createEmptyValue: () => normalizeRequestExpirationDraftValue(DEFAULT_MAXIMUM_VALIDITY),
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeRequestExpirationDraftValue(value),
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => hasValidRequestExpirationCombination(value),
