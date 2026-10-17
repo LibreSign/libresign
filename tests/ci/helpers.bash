@@ -6,7 +6,7 @@
 # BATS_TEST_TMPDIR is written.
 
 setup_appstore_test() {
-	REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
+	REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd -P)"
 	APP_NAME="$(basename "$REPO_ROOT")"
 
 	NEXTCLOUD_DIR="$BATS_TEST_TMPDIR/nextcloud"
@@ -68,7 +68,8 @@ ran() {
 # Makefile into it, so packaging runs without touching the repository. Prints
 # the app directory.
 make_app_fixture() {
-	local app="$BATS_TEST_TMPDIR/work/$APP_NAME"
+	local app
+	app="$(cd "$BATS_TEST_TMPDIR" && pwd -P)/work/$APP_NAME"
 	mkdir -p "$app"/{appinfo,composer,css,img,js,l10n,lib,templates,vendor,3rdparty} \
 		"$app/docs/changelogs" "$app/tests/php/fixtures/pdfs"
 	printf '<info><id>libresign</id><version>1.0.0</version></info>\n' > "$app/appinfo/info.xml"
