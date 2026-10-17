@@ -8,8 +8,5 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Exception;
 
-/**
- * Thrown when another process holds the lock to generate or refresh the same CRL.
- */
 class CrlGenerationInProgressException extends LibresignException {
 }

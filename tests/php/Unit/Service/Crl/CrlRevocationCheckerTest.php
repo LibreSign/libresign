@@ -544,10 +544,11 @@ class CrlRevocationCheckerTest extends TestCase {
 	public function testGenerateLocalCrlLogsDebugWhenAlreadyInProgress(): void {
 		$this->mockCrlRouteUrlGenerator();
 
+		$exception = new CrlGenerationInProgressException('CRL generation is already in progress for abc123/4/o');
 		$crlService = $this->createMock(CrlService::class);
 		$crlService->expects($this->once())
 			->method('generateCrlDer')
-			->willThrowException(new CrlGenerationInProgressException('CRL generation is already in progress for abc123/4/o'));
+			->willThrowException($exception);
 
 		$this->checker->setCrlService($crlService);
 
@@ -556,7 +557,7 @@ class CrlRevocationCheckerTest extends TestCase {
 			->method('debug')
 			->with(
 				'Local CRL generation is already in progress',
-				$this->callback(fn (array $context): bool => isset($context['reason']))
+				['reason' => $exception->getMessage()]
 			);
 
 		$url = 'https://cloud.example.com/apps/libresign/crl/libresign_abc123_4_o.crl';
