@@ -44,10 +44,12 @@ class PolicySource implements IPolicySource {
 			? $this->readSystemValue($definition->getAppConfigKey(), $defaultValue)
 			: null;
 
-		// An empty string means the key was written directly (bypassing the
-		// policy API) or cleared via a migration path.  Treat it the same as
-		// having no explicit system value so the default applies cleanly.
-		if ($storedValue === '') {
+		// The policy API stores the override flag with every value, so an empty
+		// string without it was written directly or cleared via a migration
+		// path. Treat it as having no explicit system value.
+		$allowOverrideConfigKey = $this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey());
+		$hasAllowOverrideFlag = $this->appConfig->hasAppKey($allowOverrideConfigKey);
+		if ($storedValue === '' && !$hasAllowOverrideFlag) {
 			$hasExplicitSystemValue = false;
 			$storedValue = null;
 		}
@@ -65,26 +67,13 @@ class PolicySource implements IPolicySource {
 			return $layer->setAllowChildOverride(true);
 		}
 
-		if ($value === $defaultValue) {
-			$allowChildOverride = $this->appConfig->getAppValueString(
-				$this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey()),
-				'0',
-			) === '1';
-
-			if ($allowChildOverride) {
-				// Explicitly persisted default value ("let users choose")
-				return $layer
-					->setAllowChildOverride(true)
-					->setAllowedValues([]);
-			}
-
+		// A default value stored without an override flag predates explicit
+		// defaults: the API could not enforce it then, so it stays overridable.
+		if ($value === $defaultValue && !$hasAllowOverrideFlag) {
 			return $layer->setAllowChildOverride(true);
 		}
 
-		$allowChildOverride = $this->appConfig->getAppValueString(
-			$this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey()),
-			'0',
-		) === '1';
+		$allowChildOverride = $this->appConfig->getAppValueString($allowOverrideConfigKey, '0') === '1';
 
 		return $layer
 			->setAllowChildOverride($allowChildOverride)
@@ -672,31 +661,11 @@ class PolicySource implements IPolicySource {
 	#[\Override]
 	public function saveSystemPolicy(string $policyKey, mixed $value, bool $allowChildOverride = false): void {
 		$definition = $this->registry->get($policyKey);
-		$normalizedValue = $definition->normalizeValue($value);
-		$defaultValue = $definition->normalizeValue($definition->defaultSystemValue());
-		$allowOverrideConfigKey = $this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey());
-
-		$valuesAreEqual = $normalizedValue === $defaultValue;
-		if (!$valuesAreEqual && is_string($normalizedValue) && is_string($defaultValue)) {
-			$d1 = json_decode($normalizedValue, true);
-			$d2 = json_decode($defaultValue, true);
-			if (is_array($d1) && is_array($d2)) {
-				$valuesAreEqual = $d1 === $d2;
-			}
-		}
-		if ($valuesAreEqual) {
-			if ($allowChildOverride) {
-				$this->writeSystemValue($definition->getAppConfigKey(), $normalizedValue);
-				$this->appConfig->setAppValueString($allowOverrideConfigKey, '1');
-				return;
-			}
-
-			$this->clearSystemPolicy($policyKey);
-			return;
-		}
-
-		$this->writeSystemValue($definition->getAppConfigKey(), $normalizedValue);
-		$this->appConfig->setAppValueString($allowOverrideConfigKey, $allowChildOverride ? '1' : '0');
+		$this->writeSystemValue($definition->getAppConfigKey(), $definition->normalizeValue($value));
+		$this->appConfig->setAppValueString(
+			$this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey()),
+			$allowChildOverride ? '1' : '0',
+		);
 	}
 
 	#[\Override]
