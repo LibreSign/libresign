@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Crl;
 
 use OCA\Libresign\Enum\CrlValidationStatus;
+use OCA\Libresign\Exception\CrlGenerationInProgressException;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\Crl\Ldap\LdapCrlDownloader;
@@ -546,7 +547,7 @@ class CrlRevocationCheckerTest extends TestCase {
 		$crlService = $this->createMock(CrlService::class);
 		$crlService->expects($this->once())
 			->method('generateCrlDer')
-			->willThrowException(new \RuntimeException('CRL generation is already in progress for abc123/4/o'));
+			->willThrowException(new CrlGenerationInProgressException('CRL generation is already in progress for abc123/4/o'));
 
 		$this->checker->setCrlService($crlService);
 
@@ -555,9 +556,27 @@ class CrlRevocationCheckerTest extends TestCase {
 			->method('debug')
 			->with(
 				'Local CRL generation is already in progress',
-				$this->callback(fn (array $context): bool => isset($context['reason'])
-					&& str_contains($context['reason'], 'already in progress'))
+				$this->callback(fn (array $context): bool => isset($context['reason']))
 			);
+
+		$url = 'https://cloud.example.com/apps/libresign/crl/libresign_abc123_4_o.crl';
+		$result = $this->checker->publicGenerateLocalCrl($url);
+
+		$this->assertNull($result);
+	}
+
+	public function testGenerateLocalCrlLogsWarningForUntypedExceptionMentioningInProgress(): void {
+		$this->mockCrlRouteUrlGenerator();
+
+		$crlService = $this->createMock(CrlService::class);
+		$crlService->expects($this->once())
+			->method('generateCrlDer')
+			->willThrowException(new \RuntimeException('Upstream job is already in progress'));
+
+		$this->checker->setCrlService($crlService);
+
+		$this->logger->expects($this->never())->method('debug');
+		$this->logger->expects($this->once())->method('warning');
 
 		$url = 'https://cloud.example.com/apps/libresign/crl/libresign_abc123_4_o.crl';
 		$result = $this->checker->publicGenerateLocalCrl($url);
