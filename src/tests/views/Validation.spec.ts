@@ -184,17 +184,6 @@ vi.mock('../../store/files.js', () => {
 	}
 })
 
-vi.mock('../../store/policies', () => {
-	const policiesStore = {
-		setPolicies: vi.fn(),
-		getEffectiveValue: vi.fn(() => ''),
-	}
-
-	return {
-		usePoliciesStore: vi.fn(() => policiesStore),
-	}
-})
-
 // Mock utils
 vi.mock('../../utils/viewer.js', () => ({
 	openDocument: vi.fn(),
@@ -1074,10 +1063,7 @@ describe('Validation.vue - Business Logic', () => {
 			expect(filesStore.addFile).not.toHaveBeenCalled()
 		})
 
-		it('shows the requester legal information returned with the validation', async () => {
-			const { usePoliciesStore } = await import('../../store/policies')
-			const policiesStore = usePoliciesStore()
-
+		it('shows the requester legal information returned with the validation', () => {
 			wrapper.vm.handleValidationSuccess({
 				...createLoadedValidationDocument({ status: SIGNED_STATUS }),
 				effective_policies: {
@@ -1091,7 +1077,6 @@ describe('Validation.vue - Business Logic', () => {
 			})
 
 			expect(wrapper.vm.legalInformation).toBe('Requester legal copy')
-			expect(policiesStore.setPolicies).not.toHaveBeenCalled()
 		})
 	})
 
