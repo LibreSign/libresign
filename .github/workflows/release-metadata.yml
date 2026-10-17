@@ -11,6 +11,8 @@ on:
       - 'package-lock.json'
       - 'docs/changelogs/**'
       - 'Makefile'
+      - 'tests/ci/**'
+      - '.github/workflows/release-metadata.yml'
   push:
     branches:
       - main
@@ -22,6 +24,8 @@ on:
       - 'package-lock.json'
       - 'docs/changelogs/**'
       - 'Makefile'
+      - 'tests/ci/**'
+      - '.github/workflows/release-metadata.yml'
 
 permissions:
   contents: read
@@ -47,3 +51,14 @@ jobs:
         env:
           EXPECTED_CHANGELOG: ${{ steps.release.outputs.changelog-path }}
         run: test "$(make -s print-release-changelog)" = "${EXPECTED_CHANGELOG}"
+
+      - name: Setup Bats-core
+        uses: bats-core/bats-action@77d6fb60505b4d0d1d73e48bd035b55074bbfb43 # 4.0.0
+        with:
+          support-install: false
+          assert-install: false
+          detik-install: false
+          file-install: false
+
+      - name: Test release packaging behavior
+        run: bats --print-output-on-failure tests/ci
