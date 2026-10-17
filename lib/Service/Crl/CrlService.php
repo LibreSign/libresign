@@ -15,6 +15,7 @@ use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Enum\CertificateEngineType;
 use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Enum\CRLStatus;
+use OCA\Libresign\Exception\CrlGenerationInProgressException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\Certificate\FileService;
 use OCP\ICacheFactory;
@@ -414,7 +415,7 @@ class CrlService {
 
 			$lockAcquired = $this->lockCache->add($lockKey, $lockToken, self::GENERATED_CRL_LOCK_TTL);
 			if (!$lockAcquired) {
-				throw new \RuntimeException(sprintf(
+				throw new CrlGenerationInProgressException(sprintf(
 					'CRL %s is already in progress for %s/%d/%s',
 					$forceRefresh ? 'refresh' : 'generation',
 					$instanceId,

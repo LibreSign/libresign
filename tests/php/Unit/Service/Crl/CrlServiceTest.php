@@ -14,6 +14,7 @@ use OCA\Libresign\Db\Crl;
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Enum\CertificateEngineType;
 use OCA\Libresign\Enum\CRLReason;
+use OCA\Libresign\Exception\CrlGenerationInProgressException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\Certificate\FileService;
@@ -559,8 +560,7 @@ class CrlServiceTest extends TestCase {
 		$this->certificateEngineFactory->expects($this->never())->method('getEngine');
 		$this->generatedCrlStorage->expects($this->never())->method('write');
 
-		$this->expectException(\RuntimeException::class);
-		$this->expectExceptionMessage('CRL refresh is already in progress');
+		$this->expectException(CrlGenerationInProgressException::class);
 
 		$this->service->refreshGeneratedCrlDer('test-instance', 1, 'o');
 	}
@@ -594,8 +594,7 @@ class CrlServiceTest extends TestCase {
 		$this->generatedCrlStorage->expects($this->never())
 			->method('write');
 
-		$this->expectException(\RuntimeException::class);
-		$this->expectExceptionMessage('CRL generation is already in progress');
+		$this->expectException(CrlGenerationInProgressException::class);
 
 		$this->service->generateCrlDer('test-instance', 1, 'o');
 	}
