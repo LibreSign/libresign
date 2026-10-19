@@ -1,0 +1,127 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Devcontainer
+
+on:
+  pull_request:
+    paths:
+      - '.devcontainer/**'
+      - '.github/workflows/devcontainer.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - '.devcontainer/**'
+      - '.github/workflows/devcontainer.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devcontainer-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DEVCONTAINER_CLI_VERSION: 0.89.0
+
+jobs:
+  contract:
+    name: Devcontainer contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Bats-core
+        uses: bats-core/bats-action@77d6fb60505b4d0d1d73e48bd035b55074bbfb43 # 4.0.0
+        with:
+          support-install: false
+          assert-install: false
+          detik-install: false
+          file-install: false
+
+      - name: Check Dev Container configuration
+        run: |
+          jq empty .devcontainer/devcontainer.json
+          shellcheck .devcontainer/prepare.sh .devcontainer/setup.sh
+          sh -n .devcontainer/prepare.sh
+          bash -n .devcontainer/setup.sh
+          node --check .devcontainer/tests/playwright-smoke.cjs
+
+          ! jq -e '
+            ((.forwardPorts // [])[]? | strings | contains(":")) or
+            ((.portsAttributes // {} | keys[]) | contains(":"))
+          ' .devcontainer/devcontainer.json
+
+      - name: Test devcontainer shell contracts
+        run: |
+          bats --print-output-on-failure .devcontainer/tests/prepare.bats
+          bats --print-output-on-failure .devcontainer/tests/setup.bats
+
+  integration:
+    name: Devcontainer integration
+    needs: contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Install Dev Container CLI
+        run: npm install --global "@devcontainers/cli@${DEVCONTAINER_CLI_VERSION}"
+
+      - name: Start the Dev Container
+        run: devcontainer up --workspace-folder .
+
+      - name: Verify Nextcloud, LibreSign and Mailpit
+        run: |
+          devcontainer exec --workspace-folder . \
+            bash -lc "occ status | grep -q 'installed: true'"
+          devcontainer exec --workspace-folder . \
+            bash -lc "occ app:list --enabled | grep -q libresign"
+          devcontainer exec --workspace-folder . \
+            bash -lc "curl --fail --silent http://mailpit:8025/api/v1/info >/dev/null"
+
+      - name: Verify LibreSign setup is repeatable
+        run: |
+          devcontainer exec --workspace-folder . \
+            bash /var/www/html/apps-extra/libresign/.devcontainer/setup.sh \
+            | tee /tmp/libresign-setup.out
+
+          grep -q 'LibreSign environment ready' /tmp/libresign-setup.out
+          grep -q 'Nextcloud / LibreSign' /tmp/libresign-setup.out
+          grep -q 'Mailpit (environment)' /tmp/libresign-setup.out
+          grep -q 'Useful commands' /tmp/libresign-setup.out
+
+      - name: Verify Nextcloud through the NCDD proxy
+        run: |
+          nextcloud_host="$(docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            config --format json | jq -r '.services.nextcloud.environment.NEXTCLOUD_HOST')"
+
+          curl --fail --insecure --retry 20 --retry-all-errors \
+            --resolve "${nextcloud_host}:443:127.0.0.1" \
+            "https://${nextcloud_host}/status.php" >/dev/null
+
+      - name: Verify Playwright browser against Nextcloud
+        run: |
+          docker compose \
+            --file .devcontainer/ncdd.generated.yml \
+            --file .devcontainer/docker-compose.yml \
+            --profile playwright \
+            run --rm --no-deps playwright \
+            node /var/www/html/apps-extra/libresign/.devcontainer/tests/playwright-smoke.cjs
+
+      - name: Collect container diagnostics
+        if: failure()
+        run: |
+          docker ps --all
+          docker logs --tail=200 "$(docker ps -aq --filter name=nextcloud | head -n1)" || true
+          docker logs --tail=200 "$(docker ps -aq --filter name=nginx | head -n1)" || true
+          docker logs --tail=200 librecode-dev-proxy || true

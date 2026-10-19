@@ -102,14 +102,14 @@ interface TimeUnitOption {
 const expirationToggleLabel = t('libresign', 'Enable request expiration')
 // TRANSLATORS Label for numeric field setting request expiration duration.
 const expirationAmountLabel = t('libresign', 'Expires after')
-// TRANSLATORS Toggle label for requiring access renewal after expiration.
+// TRANSLATORS Toggle label for requiring signer access/session renewal while the signing request is still valid.
 const renewalToggleLabel = t('libresign', 'Require access renewal')
 // TRANSLATORS Label for numeric field setting access renewal interval.
 const renewalAmountLabel = t('libresign', 'Renew access after')
 // TRANSLATORS Accessible label for selecting time unit in expiration rules.
 const timeUnitSelectLabel = t('libresign', 'Time unit')
-// TRANSLATORS Secondary helper text explaining that accounts can renew access to a signing request after it expires.
-const renewalIntervalDescription = t('libresign', 'Accounts may renew the signing request after expiration using the access link.')
+// TRANSLATORS Helper explaining that signer access/session renewal is limited to the signing request maximum validity.
+const renewalIntervalDescription = t('libresign', 'Signers can renew their access/session using the access link only while the signing request is within its configured maximum validity.')
 // TRANSLATORS Validation error shown when a renewal interval is entered without configuring a maximum validity.
 const renewalRequiresExpirationMessage = t('libresign', 'Maximum validity is required when renewal interval is set.')
 

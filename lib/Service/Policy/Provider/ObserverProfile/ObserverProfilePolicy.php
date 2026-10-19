@@ -47,6 +47,7 @@ final class ObserverProfilePolicy implements IPolicyDefinitionProvider {
 				normalizer: ObserverProfilePolicyValue::normalize(...),
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 				supportsRequestOverride: true,
+				requestLifecycle: PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT,
 				resolvedStateMeta: fn (PolicyContext $context): array => [
 					'validationUrlIsPrivate' => $this->siblingPolicyEffectiveBoolReader->getEffectiveBool(
 						ValidationAccessPolicy::KEY,

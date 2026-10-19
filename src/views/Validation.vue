@@ -157,7 +157,7 @@ import { ACTION_CODES } from '../helpers/ActionMapping'
 import { normalizeRouteRecord } from '../services/routeNormalization.js'
 import logger from '../logger.js'
 import { useFilesStore } from '../store/files.js'
-import { usePoliciesStore } from '../store/policies'
+import { usePoliciesStore } from '../store/policies.js'
 import { useSignStore } from '../store/sign.js'
 import { useSidebarStore } from '../store/sidebar.js'
 import type {
@@ -294,6 +294,20 @@ function extractEffectivePolicies(data: unknown): Record<string, unknown> | null
 	return policies
 }
 
+function extractLegalInformation(policies: Record<string, unknown> | null): string {
+	if (!policies) {
+		return ''
+	}
+
+	const legalInformation = policies.legal_information
+	if (typeof legalInformation !== 'object' || legalInformation === null) {
+		return ''
+	}
+
+	const effectiveValue = (legalInformation as { effectiveValue?: unknown }).effectiveValue
+	return typeof effectiveValue === 'string' ? effectiveValue : ''
+}
+
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
 const filesStore = useFilesStore()
@@ -316,10 +330,10 @@ const uuidToValidate = ref(route.value.params.uuid ?? '')
 const hasInfo = ref(false)
 const loading = ref(false)
 const document = ref<ValidationDocumentState | null>(null)
-const legalInformation = computed(() => {
-	const value = policiesStore.getEffectiveValue('legal_information')
-	return typeof value === 'string' ? value : ''
-})
+const initialEffectivePolicies = loadState<{
+	policies?: Record<string, unknown>
+}>('libresign', 'effective_policies', { policies: {} })
+const legalInformation = ref(extractLegalInformation(initialEffectivePolicies.policies ?? null))
 const clickedValidate = ref(false)
 const getUUID = ref(false)
 const isDraggingOver = ref(false)
@@ -932,6 +946,7 @@ function handleValidationSuccess(data: unknown) {
 	const effectivePolicies = extractEffectivePolicies(data)
 	if (effectivePolicies) {
 		policiesStore.setPolicies(effectivePolicies)
+		legalInformation.value = extractLegalInformation(effectivePolicies)
 	}
 	const shouldUpdateRoute = isValidationRouteName(route.value.name)
 	if (shouldUpdateRoute && route.value.params.uuid !== normalizedDocument.uuid) {

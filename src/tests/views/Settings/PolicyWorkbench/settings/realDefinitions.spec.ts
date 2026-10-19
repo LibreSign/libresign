@@ -25,6 +25,7 @@ const expectedTopLevelKeys = [
 	'show_confetti_after_signing',
 	'collect_metadata',
 	'signer_device_geolocation',
+	'signer_ip_geolocation',
 	'legal_information',
 	'expiry_in_days',
 	'maximum_validity',

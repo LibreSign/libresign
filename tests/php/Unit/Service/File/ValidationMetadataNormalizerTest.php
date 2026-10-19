@@ -107,6 +107,18 @@ final class ValidationMetadataNormalizerTest extends \OCA\Libresign\Tests\Unit\T
 				],
 				'missingKeys' => ['d'],
 			],
+			'drops the policy snapshot freeze marker' => [
+				'metadata' => [
+					'status_changed_at' => '2026-01-01T00:00:00+00:00',
+					'policy_snapshot_frozen_at' => '2026-01-01T00:00:00+00:00',
+				],
+				'fileName' => 'contract.pdf',
+				'totalPages' => 1,
+				'expectedSubset' => [
+					'status_changed_at' => '2026-01-01T00:00:00+00:00',
+				],
+				'missingKeys' => ['policy_snapshot_frozen_at'],
+			],
 		];
 	}
 }

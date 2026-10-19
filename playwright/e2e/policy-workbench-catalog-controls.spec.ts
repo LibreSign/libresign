@@ -184,7 +184,7 @@ test('catalog controls keep behavior, layout, and JS health', async ({ page }) =
 
 	const categoryToggles = page.locator('.policy-workbench__category-toggle')
 	await expect(categoryToggles.first()).toBeVisible({ timeout: 20000 })
-	await expect(categoryToggles).toHaveCount(7)
+	await expect(categoryToggles).toHaveCount(8)
 
 	const workbenchSection = page.locator('.policy-workbench__section').first()
 	await expect(workbenchSection).toBeVisible({ timeout: 20000 })

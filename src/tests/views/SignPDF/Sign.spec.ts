@@ -191,6 +191,15 @@ vi.mock('@nextcloud/axios', () => {
 	}
 })
 
+vi.mock('vue-router', () => ({
+	useRoute: vi.fn(() => ({
+		params: { uuid: 'test-sign-request-uuid' },
+		query: {},
+		name: 'SignPDF',
+		path: '/f/sign/test-sign-request-uuid/pdf',
+	})),
+}))
+
 // Global mocks for other Nextcloud modules
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path) => `/ocs/v2.php/apps/libresign${path}`),
@@ -587,7 +596,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 			expect(signVm.signPassword).toBe('')
 		})
 
-		it('cleans modal and signing errors on unmount', async () => {
+		it('cleans modals and signing errors on unmount without wiping signature methods', async () => {
 			setActivePinia(createPinia())
 
 			const { useSignStore } = await import('../../../store/sign.js')
@@ -610,7 +619,9 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 			expect(signMethodsStore.modal.password).toBe(false)
 			expect(signMethodsStore.modal.createSignature).toBe(false)
-			expect(signMethodsStore.settings).toEqual({})
+			expect(signMethodsStore.settings).toEqual({
+				password: { hasSignatureFile: true },
+			})
 			expect(signStore.errors).toEqual([])
 		})
 	})

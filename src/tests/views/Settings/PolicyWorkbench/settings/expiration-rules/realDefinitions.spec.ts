@@ -18,6 +18,21 @@ vi.mock('@nextcloud/l10n', () => ({
 }))
 
 describe('realDefinitions', () => {
+	it('explains signer certificate validity separately from signing request expiration', () => {
+		expect(expiryInDaysRealDefinition.title).toBe('Signer certificate validity')
+		expect(expiryInDaysRealDefinition.description).toBe('Define the default validity, in days, for signer certificates created by LibreSign. This setting does not control how long a signing request remains available.')
+	})
+
+	it('explains how long a signing request remains available', () => {
+		expect(maximumValidityRealDefinition.title).toBe('Signing request expiration')
+		expect(maximumValidityRealDefinition.description).toBe('Define how long a signing request can remain available.')
+	})
+
+	it('limits signer access/session renewal to the signing request maximum validity', () => {
+		expect(renewalIntervalRealDefinition.title).toBe('Signer access renewal')
+		expect(renewalIntervalRealDefinition.description).toBe('Define the interval in seconds for renewing signer access/session while the signing request is within its configured maximum validity.')
+	})
+
 	it('locks child customization for group-admin unified request-expiration group rules', () => {
 		expect(maximumValidityRealDefinition.normalizeAllowChildOverride('group', true, {
 			scope: 'group',

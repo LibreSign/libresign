@@ -13,6 +13,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\FilePolicy\SignatureRejectionFilePolicyApplier;
@@ -32,6 +33,7 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyService->method('getRequestLifecycle')->willReturn(PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT);
 		$this->fileService = $this->createMock(FileService::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n->method('t')->willReturnCallback(
@@ -106,6 +108,20 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 			}
 			$file->setMetadata(['policy_snapshot' => $policySnapshot]);
 		}
+		return $file;
+	}
+
+	/**
+	 * A request that entered the signing flow and then went back to DRAFT, for
+	 * example because its last signer was removed.
+	 *
+	 * @param array<string, mixed> $storedValues
+	 */
+	private function createFileReturnedToDraft(array $storedValues): File {
+		$file = $this->createFile(FileStatus::DRAFT->value, $storedValues);
+		$file->setMetadata(array_merge($file->getMetadata() ?? [], [
+			'policy_snapshot_frozen_at' => '2026-01-01T00:00:00+00:00',
+		]));
 		return $file;
 	}
 
@@ -509,6 +525,58 @@ final class SignatureRejectionFilePolicyApplierTest extends TestCase {
 		]);
 
 		$this->assertTrue($this->storedValuesOf($file)[SignatureRejectionPolicy::KEY_ENABLED]);
+	}
+
+	public function testAnUpdateOfARequestThatReturnedToDraftKeepsTheFrozenConfiguration(): void {
+		$file = $this->createFileReturnedToDraft([SignatureRejectionPolicy::KEY_ENABLED => false]);
+		$this->stubResolution('resolveForUserId', [SignatureRejectionPolicy::KEY_ENABLED => true]);
+
+		$this->fileService->expects($this->never())->method('update');
+
+		$this->getApplier()->sync($file, []);
+
+		$this->assertFalse($this->storedValuesOf($file)[SignatureRejectionPolicy::KEY_ENABLED]);
+	}
+
+	public function testChangingASettingAfterTheRequestReturnedToDraftIsRefused(): void {
+		$file = $this->createFileReturnedToDraft([SignatureRejectionPolicy::KEY_ENABLED => false]);
+		$this->stubResolution('resolveForUserId', [SignatureRejectionPolicy::KEY_ENABLED => true]);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(422);
+		$this->expectExceptionMessage('The signature rejection settings cannot be changed after the signing flow has started.');
+
+		$this->getApplier()->sync($file, ['policyOverrides' => [SignatureRejectionPolicy::KEY_ENABLED => true]]);
+	}
+
+	public function testResendingTheFrozenConfigurationAfterReturningToDraftStaysAnIdempotentUpdate(): void {
+		$file = $this->createFileReturnedToDraft([SignatureRejectionPolicy::KEY_ENABLED => false]);
+
+		$this->fileService->expects($this->never())->method('update');
+		$this->policyService->expects($this->never())->method('resolveForUserId');
+
+		$this->getApplier()->sync($file, ['policyOverrides' => [SignatureRejectionPolicy::KEY_ENABLED => false]]);
+
+		$this->assertFalse($this->storedValuesOf($file)[SignatureRejectionPolicy::KEY_ENABLED]);
+	}
+
+	public function testTheStoredConfigurationComesFromTheResolverAndNotFromTheRequest(): void {
+		$file = $this->createFile();
+		$this->stubResolution('resolveForUser', [SignatureRejectionPolicy::KEY_ENABLED => true]);
+
+		$this->getApplier()->apply($file, [
+			'policyOverrides' => [SignatureRejectionPolicy::KEY_BEHAVIOR => 'continue'],
+			'policy_snapshot' => [
+				SignatureRejectionPolicy::KEY_BEHAVIOR => ['effectiveValue' => 'cancel', 'sourceScope' => 'system'],
+			],
+			'metadata' => ['policy_snapshot_frozen_at' => '2026-01-01T00:00:00+00:00'],
+		]);
+
+		$this->assertSame(
+			['effectiveValue' => 'continue', 'sourceScope' => 'request'],
+			$file->getMetadata()['policy_snapshot'][SignatureRejectionPolicy::KEY_BEHAVIOR],
+		);
+		$this->assertArrayNotHasKey('policy_snapshot_frozen_at', $file->getMetadata());
 	}
 
 	public function testAStartedRequestWithoutASnapshotRecordsTheResolvedConfiguration(): void {

@@ -11,13 +11,11 @@ namespace OCA\Libresign\Handler\SignEngine;
 use InvalidArgumentException;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Exception\EmptyCertificateException;
-use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
-use OCP\Files\GenericFileException;
 use OCP\Files\InvalidPathException;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -162,63 +160,63 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	}
 
 	public function savePfx(string $uid, string $content): string {
+		$previousUserId = $this->folderService->getUserId();
 		$this->folderService->setUserId($uid);
-		$folder = $this->folderService->getFolder();
 
 		try {
+			$folder = $this->folderService->getFolder();
 			$folder->newFile($this->pfxFilename, $content);
 		} catch (NotPermittedException) {
 			// TRANSLATORS Permission error when LibreSign tries to store the user's signing certificate (PFX) in their Nextcloud home folder.
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
+		} finally {
+			$this->folderService->setUserId($previousUserId);
 		}
 
 		return $content;
 	}
 
 	public function deletePfx(string $uid): void {
+		$previousUserId = $this->folderService->getUserId();
 		$this->folderService->setUserId($uid);
-		$folder = $this->folderService->getFolder();
 		try {
+			$folder = $this->folderService->getFolder();
 			$file = $folder->get($this->pfxFilename);
 			$file->delete();
 		} catch (NotPermittedException) {
 			// TRANSLATORS Permission error when LibreSign tries to delete the user's signing certificate (PFX) from their Nextcloud home folder.
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		} catch (NotFoundException|InvalidPathException) {
+		} finally {
+			$this->folderService->setUserId($previousUserId);
 		}
 	}
 
 	/**
 	 * Get content of pfx file
 	 */
-	public function getPfxOfCurrentSigner(?string $uid = null): string {
-		if (!empty($this->certificate) || empty($uid)) {
-			return $this->certificate;
-		}
+	public function getPfxOfCurrentSigner(string $uid): string {
+		$previousUserId = $this->folderService->getUserId();
 		$this->folderService->setUserId($uid);
-		$folder = $this->folderService->getFolder();
+		$certificate = '';
+
 		try {
+			$folder = $this->folderService->getFolder();
 			/** @var \OCP\Files\File */
 			$node = $folder->get($this->pfxFilename);
-			$this->certificate = $node->getContent();
-		} catch (GenericFileException|NotFoundException) {
+			$certificate = $node->getContent();
+		} catch (NotFoundException) {
 			// TRANSLATORS Error shown to the signer when LibreSign has no stored signing certificate/password yet; they must create a signing password before signing.
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
-		} catch (\Throwable) {
+		} finally {
+			$this->folderService->setUserId($previousUserId);
 		}
-		if (empty($this->certificate)) {
+
+		if (empty($certificate)) {
 			// TRANSLATORS Error shown to the signer when LibreSign has no stored signing certificate/password yet; they must create a signing password before signing.
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
-		if ($this->getPassword()) {
-			try {
-				$this->getCertificateEngine()->readCertificate($this->certificate, $this->getPassword());
-			} catch (InvalidPasswordException) {
-				// TRANSLATORS Error shown to the signer when the password entered to unlock their LibreSign signing certificate (PFX) is wrong.
-				throw new LibresignException($this->l10n->t('Invalid password'));
-			}
-		}
-		return $this->certificate;
+		return $certificate;
 	}
 
 	public function updatePassword(string $uid, string $currentPrivateKey, string $newPrivateKey): string {

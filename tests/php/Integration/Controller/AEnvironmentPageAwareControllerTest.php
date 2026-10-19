@@ -1,0 +1,107 @@
+<?php
+
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+namespace OCA\Libresign\Tests\Integration\Controller;
+
+use OCA\Files_Trashbin\Trash\ITrashManager;
+use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Controller\AEnvironmentPageAwareController;
+use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Tests\Integration\AppDataTestCase;
+use OCP\Files\IRootFolder;
+use OCP\IL10N;
+use OCP\IRequest;
+use OCP\IUserSession;
+use OCP\L10N\IFactory as IL10NFactory;
+use PHPUnit\Framework\MockObject\MockObject;
+
+class MockController extends AEnvironmentPageAwareController {
+}
+
+/**
+ * @group DB
+ */
+final class AEnvironmentPageAwareControllerTest extends AppDataTestCase {
+	private IRequest&MockObject $request;
+	private SignFileService $signFileService;
+	private IL10N $l10n;
+	private IUserSession $userSession;
+	private MockController $controller;
+
+	public function setUp(): void {
+		$this->request = $this->createMock(IRequest::class);
+		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'identify_methods', [
+			[
+				'name' => 'email',
+				'enabled' => 1,
+			],
+		]);
+		$this->signFileService = \OCP\Server::get(SignFileService::class);
+		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
+		$this->userSession = \OCP\Server::get(IUserSession::class);
+
+		$this->controller = new MockController(
+			$this->request,
+			$this->signFileService,
+			$this->l10n,
+			$this->userSession,
+		);
+		parent::setUp();
+	}
+
+	public function testLoadFileUuidWithEmptyUuid(): void {
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(404);
+		$this->expectExceptionMessage(json_encode([
+			'action' => 2000,
+			'errors' => [['message' => 'Invalid UUID']],
+		]));
+		$this->controller->loadNextcloudFileFromUuid('');
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testLoadFileUuidWhenFileNotFound(): void {
+		$user = $this->createAccount('username', 'password');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+			'name' => 'test',
+			'signers' => [
+				[
+					'identifyMethods' => [[
+						'method' => 'account',
+						'mandatory' => 0,
+						'value' => 'username',
+					]],
+				],
+			],
+			'userManager' => $user,
+		]);
+
+		$this->userSession->setUser($user);
+
+		$root = \OCP\Server::get(IRootFolder::class);
+		$nextcloudFile = $root->getFirstNodeById($file->getNodeId());
+		$trashManager = \OCP\Server::get(ITrashManager::class);
+		$trashManager->pauseTrash();
+		if ($nextcloudFile !== null) {
+			$nextcloudFile->delete();
+		}
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(404);
+		$this->expectExceptionMessage(json_encode([
+			'action' => 2000,
+			'errors' => [['message' => 'Invalid UUID']],
+		]));
+
+		$this->controller->validateSignRequestUuid($file->getUuid());
+	}
+}

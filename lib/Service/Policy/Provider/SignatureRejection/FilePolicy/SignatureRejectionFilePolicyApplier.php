@@ -10,7 +10,6 @@ namespace OCA\Libresign\Service\Policy\Provider\SignatureRejection\FilePolicy;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\Policy\AbstractFilePolicyApplier;
@@ -32,13 +31,14 @@ use OCP\IUser;
  * above allow. What comes out is frozen on the document, one snapshot entry per
  * setting, and is the effective configuration for the whole signing flow.
  *
- * While the request is still a draft the requester may change their choices,
- * and the draft is revalidated against the current administrative policy on
- * every update: a choice the administrator no longer allows is dropped in
- * favor of what is now inherited, so a workflow never starts under a rule that
- * has been revoked. Once the flow starts the stored configuration is frozen: it
- * can no longer change, but a client resending the values the request already
- * has stays an idempotent update rather than an error.
+ * While the request is still a draft that was never sent the requester may
+ * change their choices, and the draft is revalidated against the current
+ * administrative policy on every update: a choice the administrator no longer
+ * allows is dropped in favor of what is now inherited, so a workflow never
+ * starts under a rule that has been revoked. Once the flow starts the stored
+ * configuration is frozen, even if the request later returns to draft: it can
+ * no longer change, but a client resending the values the request already has
+ * stays an idempotent update rather than an error.
  */
 class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 	private readonly ?SignatureRejectionPolicyService $storedValueReader;
@@ -50,7 +50,7 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 		?IL10N $l10n = null,
 		?FileMapper $fileMapper = null,
 	) {
-		parent::__construct($policyService, $fileService, $l10n);
+		parent::__construct($policyService, $fileService, $l10n, $fileMapper);
 		$this->storedValueReader = $fileMapper === null
 			? null
 			: new SignatureRejectionPolicyService($fileMapper);
@@ -77,7 +77,7 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 	public function sync(FileEntity $file, array $data): void {
 		$submittedValues = $this->readSubmittedValues($data);
 
-		if ($this->hasSigningFlowStarted($file)) {
+		if ($this->isPolicySnapshotFrozen($file, ...SignatureRejectionPolicy::ALL_KEYS)) {
 			$this->assertFrozenConfigurationIsKept($file, $submittedValues);
 
 			// The configuration is frozen: an identical resend or a value-less
@@ -295,10 +295,6 @@ class SignatureRejectionFilePolicyApplier extends AbstractFilePolicyApplier {
 		}
 
 		return $entries;
-	}
-
-	private function hasSigningFlowStarted(FileEntity $file): bool {
-		return $file->getStatus() >= FileStatus::ABLE_TO_SIGN->value;
 	}
 
 	/**

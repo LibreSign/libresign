@@ -24,27 +24,42 @@ final class ValidationEffectivePolicyServiceTest extends TestCase {
 		$this->service = new ValidationEffectivePolicyService($this->policyService);
 	}
 
-	public function testAppendEffectivePoliciesPrefersLegalInformationSnapshot(): void {
+	public function testAppendEffectivePoliciesPrefersSnapshotAndProjectsPublicFields(): void {
 		$this->policyService
 			->expects($this->once())
-			->method('resolveKnownPolicyStatesForUserId')
+			->method('resolveKnownPolicyStatesForUserIdWithoutUserScope')
 			->with('admin')
 			->willReturn([
 				LegalInformationPolicy::KEY => [
 					'policyKey' => LegalInformationPolicy::KEY,
-					'effectiveValue' => 'Current requester copy',
+					'effectiveValue' => 'Current inherited copy',
 					'inheritedValue' => null,
-					'sourceScope' => 'user_policy',
+					'sourceScope' => 'group',
 					'visible' => true,
-					'editableByCurrentActor' => true,
+					'editableByCurrentActor' => false,
 					'allowedValues' => [],
-					'canSaveAsUserDefault' => true,
-					'canUseAsRequestOverride' => true,
+					'canSaveAsUserDefault' => false,
+					'canUseAsRequestOverride' => false,
 					'preferenceWasCleared' => false,
 					'blockedBy' => null,
-					'groupCount' => 0,
-					'userCount' => 0,
-					'everyoneCount' => 0,
+					'groupCount' => 1,
+					'userCount' => 2,
+					'everyoneCount' => 3,
+				],
+				'private_policy' => [
+					'policyKey' => 'private_policy',
+					'effectiveValue' => 'must not be exposed',
+					'sourceScope' => 'group',
+					'visible' => true,
+					'editableByCurrentActor' => false,
+					'allowedValues' => [],
+					'canSaveAsUserDefault' => false,
+					'canUseAsRequestOverride' => false,
+					'preferenceWasCleared' => false,
+					'blockedBy' => null,
+					'groupCount' => 1,
+					'userCount' => 2,
+					'everyoneCount' => 3,
 				],
 			]);
 
@@ -54,7 +69,23 @@ final class ValidationEffectivePolicyServiceTest extends TestCase {
 				'policy_snapshot' => [
 					LegalInformationPolicy::KEY => [
 						'effectiveValue' => 'Snapshot legal copy',
-						'sourceScope' => 'group',
+						'sourceScope' => 'user_policy',
+					],
+					'private_policy' => [
+						'effectiveValue' => 'private snapshot value',
+						'sourceScope' => 'system',
+					],
+				],
+			],
+			'files' => [
+				[
+					'metadata' => [
+						'policy_snapshot' => [
+							'private_policy' => [
+								'effectiveValue' => 'nested private snapshot value',
+								'sourceScope' => 'system',
+							],
+						],
 					],
 				],
 			],
@@ -62,26 +93,50 @@ final class ValidationEffectivePolicyServiceTest extends TestCase {
 
 		$result = $this->service->appendEffectivePolicies($payload);
 
-		$this->assertSame('Snapshot legal copy', $result['effective_policies']['policies'][LegalInformationPolicy::KEY]['effectiveValue']);
-		$this->assertSame('group', $result['effective_policies']['policies'][LegalInformationPolicy::KEY]['sourceScope']);
+		$this->assertSame([
+			LegalInformationPolicy::KEY => [
+				'policyKey' => LegalInformationPolicy::KEY,
+				'effectiveValue' => 'Snapshot legal copy',
+			],
+		], $result['effective_policies']['policies']);
+		$this->assertArrayNotHasKey('policy_snapshot', $result['metadata']);
+		$this->assertArrayNotHasKey('policy_snapshot', $result['files'][0]['metadata']);
 	}
 
-	public function testAppendEffectivePoliciesKeepsResolvedLegalInformationWhenSnapshotMissing(): void {
+	public function testAppendEffectivePoliciesUsesRequesterResolutionWithoutUserScopeWhenSnapshotMissing(): void {
 		$this->policyService
 			->expects($this->once())
-			->method('resolveKnownPolicyStatesForUserId')
+			->method('resolveKnownPolicyStatesForUserIdWithoutUserScope')
 			->with('admin')
 			->willReturn([
 				LegalInformationPolicy::KEY => [
 					'policyKey' => LegalInformationPolicy::KEY,
-					'effectiveValue' => 'Current requester copy',
+					'effectiveValue' => 'Inherited legal copy',
 					'inheritedValue' => null,
-					'sourceScope' => 'user_policy',
+					'sourceScope' => 'group',
 					'visible' => true,
-					'editableByCurrentActor' => true,
+					'editableByCurrentActor' => false,
 					'allowedValues' => [],
-					'canSaveAsUserDefault' => true,
-					'canUseAsRequestOverride' => true,
+					'canSaveAsUserDefault' => false,
+					'canUseAsRequestOverride' => false,
+					'preferenceWasCleared' => false,
+					'blockedBy' => null,
+					'groupCount' => 1,
+					'userCount' => 0,
+					'everyoneCount' => 0,
+				],
+				'tsa_settings' => [
+					'policyKey' => 'tsa_settings',
+					'effectiveValue' => [
+						'url' => 'https://tsa.internal.example',
+						'username' => 'internal-user',
+					],
+					'sourceScope' => 'system',
+					'visible' => true,
+					'editableByCurrentActor' => false,
+					'allowedValues' => [],
+					'canSaveAsUserDefault' => false,
+					'canUseAsRequestOverride' => false,
 					'preferenceWasCleared' => false,
 					'blockedBy' => null,
 					'groupCount' => 0,
@@ -90,18 +145,24 @@ final class ValidationEffectivePolicyServiceTest extends TestCase {
 				],
 			]);
 
-		$payload = [
+		$result = $this->service->appendEffectivePolicies([
 			'requested_by' => ['userId' => 'admin'],
 			'metadata' => [],
-		];
+		]);
 
-		$result = $this->service->appendEffectivePolicies($payload);
-
-		$this->assertSame('Current requester copy', $result['effective_policies']['policies'][LegalInformationPolicy::KEY]['effectiveValue']);
-		$this->assertSame('user_policy', $result['effective_policies']['policies'][LegalInformationPolicy::KEY]['sourceScope']);
+		$this->assertSame([
+			LegalInformationPolicy::KEY => [
+				'policyKey' => LegalInformationPolicy::KEY,
+				'effectiveValue' => 'Inherited legal copy',
+			],
+		], $result['effective_policies']['policies']);
+		$this->assertArrayNotHasKey(
+			'tsa_settings',
+			$result['effective_policies']['policies'],
+		);
 	}
 
-	public function testAppendEffectivePoliciesUsesCurrentUserResolutionWhenRequesterIsMissing(): void {
+	public function testAppendEffectivePoliciesUsesCurrentResolutionWhenRequesterIsMissing(): void {
 		$this->policyService
 			->expects($this->once())
 			->method('resolveKnownPolicyStates')
@@ -126,7 +187,11 @@ final class ValidationEffectivePolicyServiceTest extends TestCase {
 
 		$result = $this->service->appendEffectivePolicies(['metadata' => []]);
 
-		$this->assertSame('System legal copy', $result['effective_policies']['policies'][LegalInformationPolicy::KEY]['effectiveValue']);
-		$this->assertSame('system', $result['effective_policies']['policies'][LegalInformationPolicy::KEY]['sourceScope']);
+		$this->assertSame([
+			LegalInformationPolicy::KEY => [
+				'policyKey' => LegalInformationPolicy::KEY,
+				'effectiveValue' => 'System legal copy',
+			],
+		], $result['effective_policies']['policies']);
 	}
 }

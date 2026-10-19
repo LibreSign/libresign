@@ -49,6 +49,7 @@ describe('RequestExpirationRuleEditor.vue', () => {
 			},
 		})
 
+		expect(wrapper.find('.expiration-rule-editor__helper').text()).toBe('Signers can renew their access/session using the access link only while the signing request is within its configured maximum validity.')
 		expect(wrapper.emitted('update:modelValue')).toBeUndefined()
 	})
 

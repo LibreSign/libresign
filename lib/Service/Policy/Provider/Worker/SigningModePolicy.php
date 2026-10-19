@@ -38,6 +38,7 @@ final class SigningModePolicy implements IPolicyDefinitionProvider {
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_SIGNING_MODE,
 				supportsUserPreference: false,
 				supportsRequestOverride: false,
+				requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,
 				supportedScopes: [PolicySpec::SCOPE_SYSTEM],
 				compositeChildren: [WorkerConfigPolicy::KEY],
 			),

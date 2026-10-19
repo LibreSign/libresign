@@ -129,6 +129,71 @@ final class SignersLoaderTest extends TestCase {
 		$this->assertArrayNotHasKey('signerFileUuid', $fileData->settings);
 	}
 
+	public function testLoadLibreSignSignersKeepsSignRequestUuidScopedToCurrentRouteSigner(): void {
+		$file = new File();
+		$file->setId(10);
+
+		$routeSigner = new SignRequest();
+		$routeSigner->setId(52);
+		$routeSigner->setFileId(10);
+		$routeSigner->setUuid('route-signer-uuid');
+		$routeSigner->setDisplayName('Route signer');
+		$routeSigner->setCreatedAt(new DateTime('2026-01-01T00:00:00Z'));
+		$routeSigner->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
+
+		$otherSigner = new SignRequest();
+		$otherSigner->setId(53);
+		$otherSigner->setFileId(10);
+		$otherSigner->setUuid('other-signer-uuid');
+		$otherSigner->setDisplayName('Other signer');
+		$otherSigner->setCreatedAt(new DateTime('2026-01-01T00:00:00Z'));
+		$otherSigner->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
+
+		$routeIdentifyEntity = new IdentifyMethod();
+		$routeIdentifyEntity->setIdentifierKey(IdentifyMethodService::IDENTIFY_EMAIL);
+		$routeIdentifyEntity->setIdentifierValue('route@example.com');
+		$routeIdentifyEntity->setMandatory(1);
+		$routeIdentifyMethod = $this->createMock(IIdentifyMethod::class);
+		$routeIdentifyMethod->method('getEntity')->willReturn($routeIdentifyEntity);
+
+		$otherIdentifyEntity = new IdentifyMethod();
+		$otherIdentifyEntity->setIdentifierKey(IdentifyMethodService::IDENTIFY_EMAIL);
+		$otherIdentifyEntity->setIdentifierValue('other@example.com');
+		$otherIdentifyEntity->setMandatory(1);
+		$otherIdentifyMethod = $this->createMock(IIdentifyMethod::class);
+		$otherIdentifyMethod->method('getEntity')->willReturn($otherIdentifyEntity);
+
+		$currentIdentifyMethod = $this->createMock(IIdentifyMethod::class);
+		$currentIdentifyMethod->method('getSignatureMethods')->willReturn([]);
+
+		$options = new FileResponseOptions();
+		$options->setSignRequest($routeSigner);
+
+		$fileData = new \stdClass();
+		$fileData->settings = [
+			'canSign' => false,
+			'canRequestSign' => false,
+			'phoneNumber' => '',
+		];
+
+		$this->signRequestMapper->method('getByFileId')->with(10)->willReturn([$routeSigner, $otherSigner]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('pending');
+		$this->identifyMethodService->method('setIsRequest')->willReturnSelf();
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestIds')->willReturn([
+			52 => [IdentifyMethodService::IDENTIFY_EMAIL => [$routeIdentifyMethod]],
+			53 => [IdentifyMethodService::IDENTIFY_EMAIL => [$otherIdentifyMethod]],
+		]);
+		$this->identifyMethodService->method('setCurrentIdentifyMethod')->willReturnSelf();
+		$this->identifyMethodService->method('getInstanceOfIdentifyMethod')->willReturn($currentIdentifyMethod);
+
+		$this->getService()->loadLibreSignSigners($file, $fileData, $options);
+
+		$this->assertTrue($fileData->signers[0]->me);
+		$this->assertSame('route-signer-uuid', $fileData->signers[0]->sign_request_uuid);
+		$this->assertFalse($fileData->signers[1]->me);
+		$this->assertObjectNotHasProperty('sign_request_uuid', $fileData->signers[1]);
+	}
+
 	#[DataProvider('dataCanSignFollowsTheSigningRules')]
 	public function testCanSignFollowsTheSigningRules(SignatureFlow $flow, array $me, ?array $other, bool $expected): void {
 		$file = new File();

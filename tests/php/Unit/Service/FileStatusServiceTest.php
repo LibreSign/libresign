@@ -536,6 +536,107 @@ class FileStatusServiceTest extends TestCase {
 		}
 	}
 
+	public function testARequestFreezesItsPolicySnapshotTheFirstTimeItEntersTheSigningFlow(): void {
+		$file = new FileEntity();
+		$file->setStatus(FileStatus::DRAFT->value);
+
+		$this->fileMapper->expects($this->once())
+			->method('update')
+			->with($this->callback(function (FileEntity $updated): bool {
+				$this->assertPolicySnapshotFrozenAtSet($updated);
+				return true;
+			}));
+
+		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value);
+	}
+
+	public function testLaterTransitionsKeepTheMomentThePolicySnapshotFroze(): void {
+		$file = new FileEntity();
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$file->setMetadata(['policy_snapshot_frozen_at' => '2026-01-01T00:00:00+00:00']);
+
+		$this->service->updateFileStatusIfUpgrade($file, FileStatus::PARTIAL_SIGNED->value);
+
+		$this->assertSame('2026-01-01T00:00:00+00:00', $file->getMetadata()['policy_snapshot_frozen_at']);
+	}
+
+	#[DataProvider('dataMarkPolicySnapshotFrozen')]
+	public function testMarkPolicySnapshotFrozen(int $currentStatus, int $newStatus, bool $expectedFrozen): void {
+		$file = new FileEntity();
+		$file->setStatus($currentStatus);
+
+		$this->service->markPolicySnapshotFrozen($file, $newStatus);
+
+		$this->assertSame($expectedFrozen, isset(($file->getMetadata() ?? [])['policy_snapshot_frozen_at']));
+	}
+
+	public static function dataMarkPolicySnapshotFrozen(): array {
+		return [
+			'draft that stays a draft' => [FileStatus::DRAFT->value, FileStatus::DRAFT->value, false],
+			'draft sent for signing' => [FileStatus::DRAFT->value, FileStatus::ABLE_TO_SIGN->value, true],
+			'sent request returning to draft' => [FileStatus::ABLE_TO_SIGN->value, FileStatus::DRAFT->value, true],
+		];
+	}
+
+	public function testEveryDocumentFreezesWhenItsEnvelopeEntersTheSigningFlow(): void {
+		$envelope = new FileEntity();
+		$envelope->setId(1);
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus(FileStatus::ABLE_TO_SIGN->value);
+
+		$child = new FileEntity();
+		$child->setId(10);
+		$child->setStatus(FileStatus::DRAFT->value);
+
+		$this->fileMapper->method('getById')->willReturn($envelope);
+		$this->fileMapper->method('getChildrenFiles')->willReturn([$child]);
+
+		$this->service->propagateStatusToChildren(1, FileStatus::ABLE_TO_SIGN->value);
+
+		$this->assertPolicySnapshotFrozenAtSet($child);
+	}
+
+	public function testAnEnvelopeFreezesWhenItsDocumentsEnterTheSigningFlow(): void {
+		$envelope = new FileEntity();
+		$envelope->setId(1);
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus(FileStatus::DRAFT->value);
+
+		$child = new FileEntity();
+		$child->setStatus(FileStatus::ABLE_TO_SIGN->value);
+
+		$this->fileMapper->method('getById')->willReturn($envelope);
+		$this->fileMapper->method('getChildrenFiles')->willReturn([$child]);
+
+		$this->service->propagateStatusToParent(1);
+
+		$this->assertPolicySnapshotFrozenAtSet($envelope);
+	}
+
+	public function testASentEnvelopeReturningToDraftStaysFrozen(): void {
+		$envelope = new FileEntity();
+		$envelope->setId(1);
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus(FileStatus::ABLE_TO_SIGN->value);
+
+		$child = new FileEntity();
+		$child->setStatus(FileStatus::DRAFT->value);
+
+		$this->fileMapper->method('getById')->willReturn($envelope);
+		$this->fileMapper->method('getChildrenFiles')->willReturn([$child]);
+
+		$this->service->propagateStatusToParent(1);
+
+		$this->assertSame(FileStatus::DRAFT->value, $envelope->getStatus());
+		$this->assertPolicySnapshotFrozenAtSet($envelope);
+	}
+
+	private function assertPolicySnapshotFrozenAtSet(FileEntity $file): void {
+		$timestamp = ($file->getMetadata() ?? [])['policy_snapshot_frozen_at'] ?? null;
+		$this->assertIsString($timestamp);
+		$this->assertNotFalse(\DateTimeImmutable::createFromFormat(DateTimeInterface::ATOM, $timestamp));
+	}
+
 	private function assertStatusChangedAtSet(FileEntity $file): void {
 		$metadata = $file->getMetadata();
 		$this->assertIsArray($metadata);

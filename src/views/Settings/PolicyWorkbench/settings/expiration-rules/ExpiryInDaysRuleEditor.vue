@@ -12,6 +12,9 @@
 			:step="1"
 			:label="expiryInDaysLabel"
 			@update:modelValue="onValueChange" />
+		<p class="expiration-rule-editor__helper">
+			{{ expiryInDaysDescription }}
+		</p>
 	</div>
 </template>
 
@@ -38,7 +41,10 @@ const emit = defineEmits<{
 }>()
 
 // TRANSLATORS Label for the number field that defines how many days generated certificates remain valid.
-const expiryInDaysLabel = t('libresign', 'The length of time for which the generated certificate will be valid, in days.')
+const expiryInDaysLabel = t('libresign', 'Certificate validity (days)')
+
+// TRANSLATORS Helper explaining that certificate validity changes apply only to certificates created afterwards.
+const expiryInDaysDescription = t('libresign', 'Changing this value affects only signer certificates created afterwards. Certificates that already exist remain unchanged.')
 
 const expiryInDays = computed(() => normalizePositiveInt(props.modelValue, DEFAULT_EXPIRY_IN_DAYS))
 

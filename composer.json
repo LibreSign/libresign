@@ -34,8 +34,9 @@
 			"composer dump-autoload"
 		],
 		"mutation:test": "vendor/bin/infection --configuration=infection.json5",
-		"test:unit": "vendor/bin/phpunit -c tests/php/phpunit.xml --no-coverage --colors=always --fail-on-warning --fail-on-risky --display-deprecations --display-phpunit-deprecations",
-		"test:coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit -c tests/php/phpunit.xml"
+		"test:unit": "vendor/bin/phpunit -c tests/php/phpunit.xml --testsuite unit --no-coverage --colors=always --fail-on-warning --fail-on-risky --display-deprecations --display-phpunit-deprecations",
+		"test:coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit -c tests/php/phpunit.xml",
+		"test:integration": "vendor/bin/phpunit -c tests/php/phpunit.xml --testsuite api,integration --no-coverage --colors=always --fail-on-warning --fail-on-risky --display-deprecations --display-phpunit-deprecations"
 	},
 	"extra": {
 		"bamarni-bin": {
@@ -57,7 +58,8 @@
 		"psr-4": {
 			"OCP\\": "vendor/nextcloud/ocp/OCP",
 			"OCA\\Libresign\\Tests\\Unit\\": "tests/php/Unit/",
-			"OCA\\Libresign\\Tests\\Fixtures\\": "tests/php/fixtures/"
+			"OCA\\Libresign\\Tests\\Fixtures\\": "tests/php/fixtures/",
+			"OCA\\Libresign\\Tests\\Integration\\": "tests/php/Integration/"
 		}
 	},
 	"require": {

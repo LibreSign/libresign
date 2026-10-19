@@ -137,7 +137,7 @@ Feature: validate
       | /apps/libresign/api/v1/file/validate/file_id/171      | get    | 404        |
       | /apps/libresign/api/v1/file/validate/                 | post   | 404        |
 
-  Scenario: Validation endpoint returns requester user legal information policy
+  Scenario: Public validation endpoint exposes only request legal information
     Given as user "admin"
     And sending "put" to ocs "/apps/libresign/api/v1/policies/user/admin/legal_information"
       | value | Requester legal copy |
@@ -148,17 +148,18 @@ Feature: validate
       | signers | [{"identifyMethods":[{"method":"account","value":"admin"}]}] |
       | name | Requester legal information |
     Then the response should have a status code 200
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
-    And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
+    And fetch field "(FILE_UUID)ocs.data.uuid" from previous JSON response
 
     And as user ""
     When sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<FILE_UUID>"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                                                                       | value                    |
-      | (jq).ocs.data.requested_by.userId                                         | admin                    |
-      | (jq).ocs.data.effective_policies.policies.legal_information.effectiveValue | Requester legal copy     |
-      | (jq).ocs.data.effective_policies.policies.legal_information.sourceScope    | user_policy              |
+      | key                                                                           | value                          |
+      | (jq).ocs.data.requested_by.userId                                             | admin                          |
+      | (jq).ocs.data.effective_policies.policies.legal_information.effectiveValue    | Requester legal copy           |
+      | (jq)(.ocs.data.effective_policies.policies \| keys)                           | ["legal_information"]          |
+      | (jq)(.ocs.data.effective_policies.policies.legal_information \| keys)         | ["effectiveValue","policyKey"] |
+      | (jq)([.. \| objects \| select(has("policy_snapshot"))] \| length)            | 0                              |
 
   Scenario: Validation page bootstraps requester group legal information policy
     Given as user "admin"
@@ -172,16 +173,19 @@ Feature: validate
       | signers | [{"identifyMethods":[{"method":"account","value":"admin"}]}] |
       | name | Validation page requester legal information |
     Then the response should have a status code 200
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
-    And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
+    And fetch field "(FILE_UUID)ocs.data.uuid" from previous JSON response
 
     And as user ""
     When sending "get" to "/apps/libresign/p/validation/<FILE_UUID>"
     Then the response should have a status code 200
     And the response should contain the initial state "libresign-effective_policies" json that match with:
-      | key                                                      | value                     |
-      | (jq).policies.legal_information.effectiveValue           | Admin group legal copy    |
-      | (jq).policies.legal_information.sourceScope              | group                     |
+      | key                                                | value                          |
+      | (jq).policies.legal_information.effectiveValue     | Admin group legal copy         |
+      | (jq)(.policies \| keys)                            | ["legal_information"]          |
+      | (jq)(.policies.legal_information \| keys)          | ["effectiveValue","policyKey"] |
+    And the response should contain the initial state "libresign-file_info" json that match with:
+      | key                                                               | value |
+      | (jq)([.. \| objects \| select(has("policy_snapshot"))] \| length) | 0     |
 
   Scenario Outline: Unauthenticated user can not fetch the validation ednpoint
     Given as user "admin"

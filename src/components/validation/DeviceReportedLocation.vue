@@ -50,6 +50,12 @@
 						<dt>{{ t('libresign', 'Accuracy:') }}</dt>
 						<dd>{{ accuracy }}</dd>
 					</div>
+					<div v-if="collectedAt"
+						class="device-reported-location-field">
+						<!-- TRANSLATORS Label for the time when the signer device reported its location. -->
+						<dt>{{ t('libresign', 'Collected at:') }}</dt>
+						<dd>{{ collectedAt }}</dd>
+					</div>
 				</dl>
 				<div class="device-reported-location-actions">
 					<NcButton variant="tertiary"
@@ -130,6 +136,14 @@ const accuracy = computed(() => {
 	return formatDeviceReportedLocationAccuracy(value)
 })
 
+const collectedAt = computed(() => {
+	const value = props.geolocation?.timestamp
+	if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+		return null
+	}
+	return new Date(value).toLocaleString()
+})
+
 const coordinatesText = computed(() => formatDeviceReportedCoordinates(props.geolocation))
 
 const hasContent = computed(() => latitude.value !== null && longitude.value !== null)
@@ -173,6 +187,7 @@ defineExpose({
 	latitude,
 	longitude,
 	accuracy,
+	collectedAt,
 	copied,
 	copyCoordinates,
 	physicalPresenceDisclaimer,

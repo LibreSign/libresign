@@ -11,7 +11,6 @@ namespace OCA\Libresign\Tests\Unit\Service\Identify;
 use OCA\Libresign\Service\Identify\SearchNormalizer;
 use OCP\IConfig;
 use OCP\IPhoneNumberUtil;
-use OCP\Server;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -19,11 +18,24 @@ use PHPUnit\Framework\TestCase;
 class SearchNormalizerTest extends TestCase {
 	private SearchNormalizer $normalizer;
 	private IConfig&MockObject $config;
-	private IPhoneNumberUtil $phoneNumberUtil;
+	private IPhoneNumberUtil&MockObject $phoneNumberUtil;
 
 	protected function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
-		$this->phoneNumberUtil = Server::get(IPhoneNumberUtil::class);
+		$this->phoneNumberUtil = $this->createMock(IPhoneNumberUtil::class);
+		$this->phoneNumberUtil->method('convertToStandardFormat')
+			->willReturnCallback(static function (string $number, string $region): ?string {
+				return match ($region . ':' . $number) {
+					'BR:21969501266' => '+5521969501266',
+					'BR:11987654321' => '+5511987654321',
+					'US:2025551234' => '+12025551234',
+					'US:4155551234' => '+14155551234',
+					'DE:30123456' => '+4930123456',
+					'FR:123456789' => '+33123456789',
+					'BR:21987776666' => '+5521987776666',
+					default => null,
+				};
+			});
 		$this->normalizer = new SearchNormalizer($this->config, $this->phoneNumberUtil);
 	}
 

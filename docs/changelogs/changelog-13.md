@@ -19,6 +19,21 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 13.4.5 - 2026-10-05
+
+### Changed
+- Update translations
+- Internal maintenance
+- Update dependencies
+- Fix npm audit
+  [#9006](https://github.com/LibreSign/libresign/pull/9006)
+
+### Fixed
+- isolate RequestSignatureTab debounced callbacks
+  [#8909](https://github.com/LibreSign/libresign/pull/8909)
+- isolate PFX and certificate validation state
+  [#9016](https://github.com/LibreSign/libresign/pull/9016)
+
 ## 13.4.4 - 2026-09-29
 
 ### Changed

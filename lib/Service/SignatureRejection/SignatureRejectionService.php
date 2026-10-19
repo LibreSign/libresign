@@ -77,8 +77,7 @@ class SignatureRejectionService {
 
 		$workflowCanceled = $config->cancelsWorkflow();
 		$activatedSigners = $this->persistRejection($libreSignFile, $signRequest, $normalizedComment, $commentIsPrivate, $workflowCanceled);
-		// The event goes first so that nothing raised while notifying the released
-		// signers can keep the listeners from hearing about a committed rejection.
+		// Record the committed rejection before notification errors can interrupt this flow.
 		$this->dispatchRejectedEvent($signRequest, $libreSignFile, $workflowCanceled);
 		$this->sequentialSigningService->notifyActivatedSigners($activatedSigners);
 
@@ -98,7 +97,7 @@ class SignatureRejectionService {
 	 * decision, so they are written together: a failure must never leave a signer
 	 * who already rejected on a document that stays open for everybody else.
 	 *
-	 * @return list<SignRequestEntity> the signers released by the rejection, to be notified after the commit
+	 * @return list<SignRequestEntity> Signers activated by the committed rejection.
 	 */
 	private function persistRejection(
 		FileEntity $libreSignFile,
@@ -115,7 +114,6 @@ class SignatureRejectionService {
 		$previousFileStatus = $libreSignFile->getStatus();
 		$rejectedAt = $this->timeFactory->getDateTime();
 
-		$activatedSigners = [];
 		$this->db->beginTransaction();
 		try {
 			foreach ($signRequests as $each) {
@@ -128,6 +126,7 @@ class SignatureRejectionService {
 
 			if ($workflowCanceled) {
 				$this->cancelWorkflow($libreSignFile);
+				$activatedSigners = [];
 			} else {
 				$activatedSigners = $this->releaseNextSigningOrders($libreSignFile, $signRequests);
 			}
@@ -192,27 +191,28 @@ class SignatureRejectionService {
 	 * When the workflow continues, a rejection ends the signer's turn just like a
 	 * signature does, so in a sequential flow the next order must be released on
 	 * every document the signer rejected, or the signers after them would wait
-	 * forever. The released signers are returned to be notified after the commit.
+	 * forever.
 	 *
 	 * @param list<SignRequestEntity> $rejectedSignRequests
-	 * @return list<SignRequestEntity> the signers that became able to sign
+	 * @return list<SignRequestEntity> The signers activated on every document.
 	 */
 	private function releaseNextSigningOrders(FileEntity $libreSignFile, array $rejectedSignRequests): array {
 		$activatedSigners = [];
+
 		foreach ($rejectedSignRequests as $rejected) {
 			$document = $rejected->getFileId() === $libreSignFile->getId()
 				? $libreSignFile
 				: $this->fileMapper->getById($rejected->getFileId());
-			$activatedSigners = [
-				...$activatedSigners,
-				...$this->sequentialSigningService
-					->setFile($document)
-					->activateNextOrder(
-						$rejected->getFileId(),
-						$rejected->getSigningOrder()
-					),
-			];
+			foreach ($this->sequentialSigningService
+				->setFile($document)
+				->activateNextOrder(
+					$rejected->getFileId(),
+					$rejected->getSigningOrder()
+				) as $activated) {
+				$activatedSigners[] = $activated;
+			}
 		}
+
 		return $activatedSigners;
 	}
 

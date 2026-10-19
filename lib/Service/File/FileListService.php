@@ -31,6 +31,7 @@ use OCA\Libresign\Service\SignatureRejection\RejectionViewer;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\Entity;
 use OCP\Files\File as NodeFile;
 use OCP\IAppConfig;
@@ -52,6 +53,7 @@ use OCP\IUserManager;
  * @psalm-import-type LibresignSignerDeviceGeolocation from ResponseDefinitions
  * @psalm-import-type LibresignSignerIpGeolocation from ResponseDefinitions
  * @psalm-import-type LibresignSignerGeolocation from ResponseDefinitions
+ * @psalm-import-type LibresignValidatedFile from ResponseDefinitions
  */
 class FileListService {
 	public function __construct(
@@ -1109,5 +1111,54 @@ class FileListService {
 		}
 
 		return 0;
+	}
+
+	/**
+	 * @param LibresignValidatedFile $file
+	 * @return LibresignValidatedFile
+	 */
+	public function enrichValidatedFileSignersGeolocationMetadata(array $file, ?IUser $user): array {
+		$requesterUserId = is_string($file['requested_by']['userId'] ?? null) ? $file['requested_by']['userId'] : '';
+		$isRequester = $user !== null && $requesterUserId !== '' && $user->getUID() === $requesterUserId;
+
+		$enrichSigners = function (array &$signers) use ($isRequester): void {
+			foreach ($signers as &$signer) {
+				if (!is_array($signer)) {
+					continue;
+				}
+				$signRequestId = $signer['signRequestId'] ?? null;
+				if (!is_int($signRequestId) && !(is_string($signRequestId) && ctype_digit($signRequestId))) {
+					continue;
+				}
+				try {
+					$signRequest = $this->signRequestMapper->getById((int)$signRequestId);
+				} catch (DoesNotExistException) {
+					continue;
+				}
+				$canViewSensitive = !empty($signer['me']) || $isRequester;
+				if (!$canViewSensitive) {
+					continue;
+				}
+				$geolocationMetadata = $this->extractGeolocationMetadataFromSignRequest(
+					$signRequest,
+					!empty($signer['me']),
+				);
+				if ($geolocationMetadata === []) {
+					continue;
+				}
+				$existingMetadata = is_array($signer['metadata'] ?? null) ? $signer['metadata'] : [];
+				$signer['metadata'] = array_merge($existingMetadata, $geolocationMetadata);
+			}
+			unset($signer);
+		};
+
+		// Only enrich top-level signers (LibresignSignerDetail). Nested
+		// files[].signers use ValidatedChildSigner, which does not expose
+		// geolocation metadata in the OpenAPI contract.
+		if (isset($file['signers']) && is_array($file['signers'])) {
+			$enrichSigners($file['signers']);
+		}
+
+		return $file;
 	}
 }

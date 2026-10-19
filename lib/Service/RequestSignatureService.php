@@ -407,6 +407,7 @@ class RequestSignatureService {
 		} else {
 			$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
 		}
+		$this->fileStatusService->markPolicySnapshotFrozen($file, $file->getStatus());
 
 		if (isset($data['parentFileId'])) {
 			$file->setParentFileId($data['parentFileId']);
@@ -640,6 +641,7 @@ class RequestSignatureService {
 	private function revertStatusToDraftIfNoSignersRemain(FileEntity $file): void {
 		$remaining = $this->signRequestMapper->getByFileId($file->getId());
 		if (empty($remaining)) {
+			$this->fileStatusService->markPolicySnapshotFrozen($file, FileStatus::DRAFT->value);
 			$file->setStatus(FileStatus::DRAFT->value);
 			$this->fileStatusService->update($file);
 		}

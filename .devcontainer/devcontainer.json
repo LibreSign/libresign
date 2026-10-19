@@ -1,21 +1,20 @@
 {
 	"name": "LibreSign",
-	"dockerComposeFile": "docker-compose.yml",
-	"service": "nextcloud",
-	"forwardPorts": [
-		80,
-		8025
+	"initializeCommand": [
+		"sh",
+		".devcontainer/prepare.sh"
 	],
+	"dockerComposeFile": [
+		"ncdd.generated.yml",
+		"docker-compose.yml"
+	],
+	"service": "nextcloud",
+	"workspaceFolder": "/var/www/html/apps-extra/libresign",
 	"containerEnv": {
 		"XDEBUG_MODE": "debug",
-		"XDEBUG_CONFIG": "client_host=127.0.0.1 client_port=9003 start_with_request=yes"
+		"XDEBUG_CONFIG": "client_host=host.docker.internal client_port=9003 start_with_request=yes"
 	},
 	"customizations": {
-		"codespaces": {
-			"openFiles": [
-				".devcontainer/README.md"
-			]
-		},
 		"vscode": {
 			"extensions": [
 				"MehediDracula.php-namespace-resolver",
@@ -39,31 +38,19 @@
 				],
 				"gitlens.showWelcomeOnInstall": false,
 				"telemetry.telemetryLevel": "off",
-				"intelephense.telemetry.enabled": false,
-				"intelephense.environment.includePaths": [
-					"apps-extra"
-				],
-				"git.scanRepositories": [
-					"/apps-extra/libresign"
-				]
+				"intelephense.telemetry.enabled": false
 			}
 		}
 	},
-	"workspaceFolder": "/var/www/html",
-	"overrideCommand": true,
-	"postAttachCommand": "bash /var/www/html/apps-extra/libresign/.devcontainer/setup.sh",
+	"postCreateCommand": [
+		"bash",
+		"/var/www/html/apps-extra/libresign/.devcontainer/setup.sh"
+	],
 	"portsAttributes": {
-		"80": {
-			"label": "http",
-			"protocol": "http",
-			"onAutoForward": "openBrowser",
-			"elevateIfNeeded": true
-		},
-		"8025": {
-			"label": "mailpit",
-			"protocol": "http",
-			"onAutoForward": "notify",
-			"elevateIfNeeded": true
+		"443": {
+			"label": "Nextcloud via NCDD proxy",
+			"protocol": "https",
+			"onAutoForward": "openBrowser"
 		},
 		"9000": {
 			"label": "php-fpm",

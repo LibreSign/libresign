@@ -28,8 +28,8 @@ final class PolicyAwarePkcs12HandlerDouble extends Pkcs12Handler {
 		return $this;
 	}
 
-	public function setIsLibreSignFile(): void {
-		$this->libreSignFlagSet = true;
+	public function setIsLibreSignFile(bool $isLibreSignFile = true): void {
+		$this->libreSignFlagSet = $isLibreSignFile;
 	}
 
 	public function getCertificateChain($resource): array {

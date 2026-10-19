@@ -19,7 +19,10 @@ class CrlUrlParserServiceTest extends TestCase {
 	private CrlUrlParserService $service;
 
 	protected function setUp(): void {
-		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
+		$this->urlGenerator = $this->createMock(IURLGenerator::class);
+		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
+			static fn (string $path): string => 'https://cloud.example.com' . $path,
+		);
 		$this->service = new CrlUrlParserService($this->urlGenerator);
 	}
 

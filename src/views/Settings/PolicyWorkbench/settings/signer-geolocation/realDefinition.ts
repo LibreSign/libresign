@@ -15,7 +15,7 @@ export { normalizeSignerGeolocationValue, resolveSignerGeolocationMode } from '.
 export const signerGeolocationRealDefinition: RealPolicySettingDefinition = {
 	key: 'signer_device_geolocation',
 	// TRANSLATORS Policy title for device-reported location during signing.
-	title: t('libresign', 'Signer geolocation'),
+	title: t('libresign', 'Device-reported location'),
 	// TRANSLATORS Policy description: optional lets requesters require device location per signer; it is not automatic soft collection.
 	description: t('libresign', 'Control whether device-reported location is used when signing. Optional lets requesters require device location for selected signers.'),
 	groupAdminBehavior: {

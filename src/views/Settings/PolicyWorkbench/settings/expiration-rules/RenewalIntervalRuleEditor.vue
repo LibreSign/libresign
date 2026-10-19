@@ -27,6 +27,9 @@
 				:clearable="false"
 				@update:modelValue="onUnitChange" />
 		</div>
+		<p class="expiration-rule-editor__helper">
+			{{ renewalIntervalDescription }}
+		</p>
 	</div>
 </template>
 
@@ -65,9 +68,11 @@ interface TimeUnitOption {
 }
 
 // TRANSLATORS Toggle label for enabling or disabling a renewal interval on signing requests.
-const renewalIntervalToggleLabel = t('libresign', 'Renewal interval')
+const renewalIntervalToggleLabel = t('libresign', 'Signer access renewal')
 // TRANSLATORS Label for the numeric field that sets renewal interval for a signing request access link.
-const renewalIntervalInputLabel = t('libresign', 'Renewal interval of a subscription request. When accessing the link, you will be asked to renew the link.')
+const renewalIntervalInputLabel = t('libresign', 'Renew signer access after')
+// TRANSLATORS Helper explaining that signer access/session renewal is limited to the signing request maximum validity.
+const renewalIntervalDescription = t('libresign', 'Signers can renew their access/session using the access link only while the signing request is within its configured maximum validity.')
 // TRANSLATORS Accessible label for selecting time unit in expiration rules.
 const timeUnitSelectLabel = t('libresign', 'Time unit')
 
@@ -161,6 +166,12 @@ function onUnitChange(opt: TimeUnitOption | TimeUnit | string | null): void {
 	display: flex;
 	flex-direction: column;
 	gap: 0.75rem;
+
+	&__helper {
+		margin: 0;
+		font-size: 0.82rem;
+		color: var(--color-text-maxcontrast);
+	}
 
 	&__fields {
 		display: flex;

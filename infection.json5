@@ -15,6 +15,7 @@
 	"phpUnit": {
 		"configDir": "tests/php"
 	},
+	"testFrameworkExtraArgs": "--testsuite=unit",
 	"minMsi": 80,
 	"minCoveredMsi": 80,
 	"mutators": {

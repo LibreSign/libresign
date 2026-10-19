@@ -127,6 +127,17 @@ class FileResponseOptionsTest extends TestCase {
 		$this->assertFalse($this->options->isViewerOfSigner([]));
 	}
 
+	public function testAuthenticatedViewerDoesNotMatchAccountUidThatDiffersOnlyByCase(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('alice');
+		$user->method('getEMailAddress')->willReturn(null);
+		$this->options->setMe($user);
+
+		$this->assertFalse($this->options->isViewerOfSigner(
+			$this->identifyMethodsOf(5, 'account', 'Alice')
+		));
+	}
+
 	public function testTheIdentifiedSignerIsRecognizedByTheIdentifyMethodOfTheSession(): void {
 		$this->options->setIdentifyMethodId(6);
 

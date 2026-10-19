@@ -9,6 +9,7 @@ import { t } from '@nextcloud/l10n'
 
 import { realDefinitions } from '../../settings/realDefinitions'
 import type { RealPolicySettingCategory } from '../../settings/realTypes'
+import { CATEGORY_ORDER } from './categoryOrder'
 
 export type CatalogLayout = 'cards' | 'compact'
 
@@ -38,6 +39,8 @@ const categoryHowSigningWorksLabel = t('libresign', 'How signing works')
 const categorySignerExperienceLabel = t('libresign', 'What the signer sees')
 // TRANSLATORS Category heading grouping rules about metadata and evidence recorded during signing.
 const categoryWhatGetsRecordedLabel = t('libresign', 'What gets recorded')
+// TRANSLATORS Category heading grouping device-reported and IP-based signer location policies.
+const categorySignerGeolocationLabel = t('libresign', 'Signer geolocation')
 // TRANSLATORS Category heading grouping rules about durations, deadlines, and limits.
 const categoryTimeAndLimitsLabel = t('libresign', 'Time and limits')
 // TRANSLATORS Category heading grouping trust, certificate, and validation behavior.
@@ -46,16 +49,6 @@ const categoryTrustAndVerificationLabel = t('libresign', 'Trust and verification
 const categorySystemBehaviorLabel = t('libresign', 'System behavior')
 // TRANSLATORS Fallback category heading for settings without a specific mapped category.
 const categoryOtherLabel = t('libresign', 'Other')
-
-const CATEGORY_ORDER: RealPolicySettingCategory[] = [
-	'who-can-sign',
-	'how-signing-works',
-	'signer-experience',
-	'what-gets-recorded',
-	'time-and-limits',
-	'trust-and-verification',
-	'system-behavior',
-]
 
 function categoryLabel(category: RealPolicySettingCategory): string {
 	switch (category) {
@@ -67,6 +60,8 @@ function categoryLabel(category: RealPolicySettingCategory): string {
 		return categorySignerExperienceLabel
 	case 'what-gets-recorded':
 		return categoryWhatGetsRecordedLabel
+	case 'signer-geolocation':
+		return categorySignerGeolocationLabel
 	case 'time-and-limits':
 		return categoryTimeAndLimitsLabel
 	case 'trust-and-verification':

@@ -155,8 +155,9 @@
 									{{ signer.user_agent }}
 								</template>
 							</NcListItem>
-							<DeviceReportedLocation v-if="signer.metadata?.geolocation?.device"
-								:geolocation="signer.metadata?.geolocation?.device" />
+							<SignerGeolocationEvidence
+								:device="getStoredDeviceGeolocation(signer)"
+								:ip="getStoredIpGeolocation(signer)" />
 						</div>
 					</li>
 				</ul>
@@ -190,7 +191,11 @@ import Moment from '@nextcloud/moment'
 import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
-import DeviceReportedLocation from './DeviceReportedLocation.vue'
+import SignerGeolocationEvidence from './SignerGeolocationEvidence.vue'
+import {
+	getStoredDeviceGeolocation,
+	getStoredIpGeolocation,
+} from '../../helpers/signerStoredGeolocation'
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
 import { isObserverParticipant, filterParticipantsByRole, PARTICIPANT_ROLE } from '../../utils/participantRole.ts'
 import type {

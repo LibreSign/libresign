@@ -48,6 +48,7 @@ import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import { computed, getCurrentInstance, nextTick, onBeforeMount, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import PdfEditor from '../../components/PdfEditor/PdfEditor.vue'
 import TopBar from '../../components/TopBar/TopBar.vue'
@@ -69,6 +70,7 @@ import {
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
+import { mergeSignDocumentForRoute } from '../../utils/signRequestUuid.ts'
 import type { operations } from '../../types/openapi/openapi'
 import type { SignerDetailRecord, SignerSummaryRecord, VisibleElementRecord } from '../../types/index'
 
@@ -102,7 +104,7 @@ type SignDocumentFile = ReturnType<typeof normalizeFileForVisibleElements> & {
 	visibleElements?: ServiceVisibleElement[] | null
 }
 type SignDocument = {
-	id?: number | string
+	id?: number | string | null
 	name?: string
 	uuid?: string | null
 	nodeId?: number | string | null
@@ -110,6 +112,8 @@ type SignDocument = {
 	status?: SignDocumentStatus
 	url?: string
 	metadata?: SignDocumentMetadata
+	canSign?: boolean
+	settings?: (Record<string, unknown> & { canSign?: boolean }) | null
 	signers?: SignerDetailRecord[]
 	visibleElements?: ServiceVisibleElement[]
 	files?: RawSignDocumentFile[]
@@ -128,7 +132,7 @@ type SignStore = Pick<ReturnType<typeof useSignStore>, 'document' | 'errors' | '
 	errors: SignError[]
 	mounted: boolean
 	initFromState: () => Promise<void>
-	setFileToSign: (file: SignDocument) => void
+	setFileToSign: ReturnType<typeof useSignStore>['setFileToSign']
 	queueAction: (action: string) => void
 	setSigningErrors: (newErrors: SignError[]) => void
 }
@@ -218,6 +222,8 @@ const signStore = useSignStore() as unknown as SignStore
 const filesStore = useFilesStore() as FilesStore
 const sidebarStore = useSidebarStore() as SidebarStore
 const instance = getCurrentInstance()
+const vueRoute = useRoute()
+const vueRouter = useRouter()
 
 const pdfEditor = ref<PdfEditorRef | null>(null)
 const mounted = ref(false)
@@ -253,11 +259,17 @@ function getRouteUuid() {
 }
 
 function getRoute(): RouteLike {
+	if (isRouteLike(vueRoute)) {
+		return vueRoute
+	}
 	const route = instance?.proxy?.$route
 	return isRouteLike(route) ? route : { params: {}, query: {} }
 }
 
 function getRouter(): RouterLike | undefined {
+	if (isRouterLike(vueRouter)) {
+		return vueRouter
+	}
 	const router = instance?.proxy?.$router
 	return isRouterLike(router) ? router : undefined
 }
@@ -291,14 +303,28 @@ async function initSignExternal() {
 }
 
 async function initSignInternal() {
+	const routeUuid = getRouteUuid()
+	// Prefer the document already prepared by RequestSignatureTab (merged draft +
+	// validate). A second force-validate alone can omit `me`/signatureMethods
+	// while still carrying frozen geolocation for the requester.
+	const previous = signStore.document?.signers?.length
+		? signStore.document
+		: filesStore.getFile()
 	const file = await filesStore.fetchFileDetail({
-		uuid: getRouteUuid(),
+		uuid: routeUuid,
 		force: true,
 	})
 	if (!file || typeof file.id !== 'number') {
+		if (previous) {
+			signStore.setFileToSign(
+				mergeSignDocumentForRoute(previous, null, routeUuid) || previous,
+			)
+		}
 		return
 	}
-	signStore.setFileToSign(file)
+	signStore.setFileToSign(
+		mergeSignDocumentForRoute(previous, file, routeUuid) || file,
+	)
 	filesStore.selectFile(file.id)
 }
 

@@ -821,8 +821,8 @@ describe('SignerDetails.vue - Business Logic', () => {
 				},
 			})
 
-			expect(wrapper.findComponent({ name: 'DeviceReportedLocation' }).exists()).toBe(true)
-			expect(wrapper.findComponent({ name: 'DeviceReportedLocation' }).props('geolocation')).toEqual({
+			expect(wrapper.findComponent({ name: 'SignerGeolocationEvidence' }).exists()).toBe(true)
+			expect(wrapper.findComponent({ name: 'SignerGeolocationEvidence' }).props('device')).toEqual({
 				status: 'collected',
 				latitude: -23.55,
 				longitude: -46.63,

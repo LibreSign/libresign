@@ -62,8 +62,8 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $this->certificateEngineFactory;
 	}
 
-	public function setIsLibreSignFile(): void {
-		$this->isLibreSignFile = true;
+	public function setIsLibreSignFile(bool $isLibreSignFile = true): void {
+		$this->isLibreSignFile = $isLibreSignFile;
 	}
 
 	public function setPolicyUserIdForValidation(?string $userId): self {
@@ -116,6 +116,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		} finally {
 			$certificateEngine->setPolicyUserIdForValidation(null);
 			$this->policyUserIdForValidation = null;
+			$this->isLibreSignFile = false;
 		}
 
 		return $certificates;

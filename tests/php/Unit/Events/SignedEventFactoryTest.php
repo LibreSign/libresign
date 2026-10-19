@@ -13,7 +13,6 @@ use OCP\Files\File;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
-use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -27,10 +26,12 @@ final class SignedEventFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N $l10n;
 
 	public function setUp(): void {
-		parent::setUp();
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
-		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(\OCA\Libresign\AppInfo\Application::APP_ID);
+		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n->method('t')->willReturnCallback(static function (string $text, array $parameters = []): string {
+			return $parameters === [] ? $text : vsprintf($text, $parameters);
+		});
 	}
 
 	private function getInstance(array $methods = []): SignedEventFactory|MockObject {

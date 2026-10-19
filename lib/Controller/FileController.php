@@ -274,6 +274,11 @@ class FileController extends AEnvironmentAwareController {
 				->showValidateFile($showValidateFile)
 				->toArray();
 
+			$validatedFile = $this->fileListService->enrichValidatedFileSignersGeolocationMetadata(
+				$validatedFile,
+				$this->userSession->getUser(),
+			);
+
 			/** @var LibresignValidatedFileResponse $response */
 			$response = $this->validationEffectivePolicyService->appendEffectivePolicies($validatedFile);
 

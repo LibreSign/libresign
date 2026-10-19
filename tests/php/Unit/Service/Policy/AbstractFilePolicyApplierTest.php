@@ -9,8 +9,11 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Policy;
 
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCP\IL10N;
@@ -47,12 +50,17 @@ final class AbstractFilePolicyApplierTestDouble extends \OCA\Libresign\Service\P
 	public function exposeAssertRequestOverrideAllowed(array $requestOverrides, ResolvedPolicy $resolvedPolicy, string $message): void {
 		$this->assertRequestOverrideAllowed($requestOverrides, $resolvedPolicy, $message);
 	}
+
+	public function exposeIsPolicySnapshotFrozen(FileEntity $file, string $policyKey): bool {
+		return $this->isPolicySnapshotFrozen($file, $policyKey);
+	}
 }
 
 final class AbstractFilePolicyApplierTest extends TestCase {
 	private PolicyService&MockObject $policyService;
 	private FileService&MockObject $fileService;
 	private IL10N&MockObject $l10n;
+	private FileMapper&MockObject $fileMapper;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -62,6 +70,7 @@ final class AbstractFilePolicyApplierTest extends TestCase {
 		$this->l10n->method('t')->willReturnCallback(static fn (string $text, array $parameters = []): string => $parameters === []
 			? $text
 			: vsprintf($text, $parameters));
+		$this->fileMapper = $this->createMock(FileMapper::class);
 	}
 
 	#[DataProvider('activeContextProvider')]
@@ -199,6 +208,72 @@ final class AbstractFilePolicyApplierTest extends TestCase {
 		];
 	}
 
+	/** @param array<string, mixed>|null $envelopeMetadata */
+	#[DataProvider('frozenSnapshotProvider')]
+	public function testIsPolicySnapshotFrozen(int $status, array $metadata, ?array $envelopeMetadata, bool $expected): void {
+		$this->policyService->method('getRequestLifecycle')->willReturn(PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT);
+		$file = new FileEntity();
+		$file->setStatus($status);
+		$file->setMetadata($metadata);
+		if ($envelopeMetadata !== null) {
+			$envelope = new FileEntity();
+			$envelope->setId(1);
+			$envelope->setNodeType('envelope');
+			$envelope->setMetadata($envelopeMetadata);
+			$file->setParentFileId(1);
+			$this->fileMapper->method('getById')->with(1)->willReturn($envelope);
+		}
+		$this->fileMapper->expects($this->never())->method('update');
+		$this->fileService->expects($this->never())->method('update');
+
+		self::assertSame($expected, $this->createApplier()->exposeIsPolicySnapshotFrozen($file, 'snapshot_policy'));
+		self::assertSame($metadata, $file->getMetadata());
+	}
+
+	public static function frozenSnapshotProvider(): array {
+		$frozen = ['policy_snapshot_frozen_at' => '2026-01-01T00:00:00+00:00'];
+		return [
+			'draft never sent' => [FileStatus::DRAFT->value, [], null, false],
+			'sent request' => [FileStatus::ABLE_TO_SIGN->value, $frozen, null, true],
+			'sent request that returned to draft' => [FileStatus::DRAFT->value, $frozen, null, true],
+			'document of a sent envelope' => [FileStatus::DRAFT->value, [], $frozen, true],
+			'document of a draft envelope' => [FileStatus::DRAFT->value, [], [], false],
+			'sent before the freeze was recorded' => [FileStatus::ABLE_TO_SIGN->value, [], null, true],
+			'partially signed before the freeze was recorded' => [FileStatus::PARTIAL_SIGNED->value, [], null, true],
+			'canceled before the freeze was recorded' => [FileStatus::CANCELED->value, [], null, true],
+		];
+	}
+
+	public function testLegacyDraftDocumentIsFrozenWhenEnvelopeAlreadyEnteredSigningFlow(): void {
+		$this->policyService->method('getRequestLifecycle')->willReturn(PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT);
+
+		$file = new FileEntity();
+		$file->setStatus(FileStatus::DRAFT->value);
+		$file->setMetadata([]);
+		$file->setParentFileId(1);
+
+		$envelope = new FileEntity();
+		$envelope->setId(1);
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$envelope->setMetadata([]);
+
+		$this->fileMapper->method('getById')->with(1)->willReturn($envelope);
+		$this->fileMapper->expects($this->never())->method('update');
+		$this->fileService->expects($this->never())->method('update');
+
+		self::assertTrue($this->createApplier()->exposeIsPolicySnapshotFrozen($file, 'snapshot_policy'));
+		self::assertSame([], $file->getMetadata());
+	}
+
+	public function testOnlyAPolicyStoredOnTheRequestCanBeFrozen(): void {
+		$this->policyService->method('getRequestLifecycle')->with('runtime_policy')->willReturn(PolicySpec::LIFECYCLE_RUNTIME);
+
+		$this->expectException(\LogicException::class);
+
+		$this->createApplier()->exposeIsPolicySnapshotFrozen(new FileEntity(), 'runtime_policy');
+	}
+
 	private function createResolvedPolicy(
 		string $policyKey,
 		mixed $effectiveValue,
@@ -215,6 +290,6 @@ final class AbstractFilePolicyApplierTest extends TestCase {
 	}
 
 	private function createApplier(): AbstractFilePolicyApplierTestDouble {
-		return new AbstractFilePolicyApplierTestDouble($this->policyService, $this->fileService, $this->l10n);
+		return new AbstractFilePolicyApplierTestDouble($this->policyService, $this->fileService, $this->l10n, $this->fileMapper);
 	}
 }

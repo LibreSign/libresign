@@ -86,9 +86,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-/**
- * @group DB
- */
 final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N&MockObject $l10n;
 	private FooterHandler&MockObject $footerHandler;
@@ -104,11 +101,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignerValidator&MockObject $signerValidator;
 	private SignerElementsService&MockObject $signerElementsService;
 	private IUserSession&MockObject $userSession;
-	private IDateTimeZone $dateTimeZone;
+	private IDateTimeZone&MockObject $dateTimeZone;
 	private FileElementMapper&MockObject $fileElementMapper;
 	private UserElementMapper&MockObject $userElementMapper;
 	private IEventDispatcher&MockObject $eventDispatcher;
-	private ISecureRandom $secureRandom;
+	private ISecureRandom&MockObject $secureRandom;
 	private IURLGenerator&MockObject $urlGenerator;
 	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
 	private ITempManager|MockObject $tempManager;
@@ -139,7 +136,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignatureRejectionBehavior $rejectionBehavior = SignatureRejectionBehavior::CANCEL;
 
 	public function setUp(): void {
-		parent::setUp();
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
@@ -157,11 +153,13 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signerValidator = $this->createMock(SignerValidator::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->userSession = $this->createMock(IUserSession::class);
-		$this->dateTimeZone = \OCP\Server::get(IDateTimeZone::class);
+		$this->dateTimeZone = $this->createMock(IDateTimeZone::class);
+		$this->dateTimeZone->method('getTimeZone')->willReturn(new \DateTimeZone('UTC'));
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
-		$this->secureRandom = \OCP\Server::get(\OCP\Security\ISecureRandom::class);
+		$this->secureRandom = $this->createMock(ISecureRandom::class);
+		$this->secureRandom->method('generate')->willReturn('temporary-password');
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->urlGenerator
 			->method('linkToRouteAbsolute')
@@ -253,11 +251,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			)
 			->willReturn('cert');
 
-		$engine->method('getPfxOfCurrentSigner')->willReturn('pfx');
+		$engine->expects($this->never())->method('getPfxOfCurrentSigner');
 
 		$result = self::invokePrivate($service, 'getOrGeneratePfxContent', [$engine]);
 
-		$this->assertSame('pfx', $result);
+		$this->assertSame('cert', $result);
 		$this->assertSame([1, null], $expiryCalls);
 	}
 

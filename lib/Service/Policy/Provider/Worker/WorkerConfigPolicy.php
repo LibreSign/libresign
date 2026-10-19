@@ -36,6 +36,7 @@ final class WorkerConfigPolicy implements IPolicyDefinitionProvider {
 			appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 			supportsUserPreference: false,
 			supportsRequestOverride: false,
+			requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,
 			supportedScopes: [PolicySpec::SCOPE_SYSTEM],
 			helper: true,
 			parentPolicyKey: SigningModePolicy::KEY_SIGNING_MODE,

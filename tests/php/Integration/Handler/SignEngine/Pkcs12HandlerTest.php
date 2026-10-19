@@ -1,0 +1,738 @@
+<?php
+
+declare(strict_types=1);
+
+namespace OCA\Libresign\Tests\Integration\Handler\SignEngine;
+
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
+use OCA\Libresign\Handler\DocMdpHandler;
+use OCA\Libresign\Handler\FooterHandler;
+use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
+use OCA\Libresign\Service\CaIdentifierService;
+use OCA\Libresign\Service\Crl\CrlService;
+use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
+use OCA\Libresign\Tests\Fixtures\PdfFixtureCatalog;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\ExtractedSignature;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\SignatureMetadata;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Model\TimestampToken;
+use OCP\Files\NotFoundException;
+use OCP\Files\NotPermittedException;
+use OCP\IAppConfig;
+use OCP\IL10N;
+use OCP\L10N\IFactory as IL10NFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
+
+final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Integration\TestCase {
+	protected Pkcs12Handler $pkcs12Handler;
+	protected FolderService&MockObject $folderService;
+	private IAppConfig $appConfig;
+	private IL10N $l10n;
+	private FooterHandler&MockObject $footerHandler;
+	private LoggerInterface&MockObject $logger;
+	private CertificateEngineFactory&MockObject $certificateEngineFactory;
+	private IEngineHandler&MockObject $certificateEngine;
+	private CaIdentifierService&MockObject $caIdentifierService;
+	private DocMdpHandler&MockObject $docMdpHandler;
+	private CrlService&MockObject $crlService;
+	private PdfSignatureValidationService&MockObject $pdfSignatureValidationService;
+	private array $nativeValidation = [];
+	private ?\Throwable $nativeValidationException = null;
+	private int $nativeValidationCalls = 0;
+
+	#[\Override]
+	public function setUp(): void {
+		$this->folderService = $this->createMock(FolderService::class);
+		$this->appConfig = $this->getMockAppConfigWithReset();
+		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
+		$this->certificateEngine = $this->createMock(IEngineHandler::class);
+		$this->certificateEngine->method('setPolicyUserIdForValidation')->willReturnSelf();
+		$this->certificateEngine
+			->method('parseCertificate')
+			->willReturnCallback(static function (string $certificate): array {
+				$resource = openssl_x509_read($certificate);
+				if ($resource === false) {
+					return [];
+				}
+
+				$parsed = openssl_x509_parse($resource);
+				return is_array($parsed) ? $parsed : [];
+			});
+		$this->certificateEngine->method('isSetupOk')->willReturn(true);
+		$this->certificateEngine->method('validateRootCertificate')->willReturnCallback(static function (): void {
+		});
+		$this->certificateEngineFactory->method('getEngine')->willReturn($this->certificateEngine);
+		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
+		$this->footerHandler = $this->createMock(FooterHandler::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
+		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
+		$this->crlService = $this->createMock(CrlService::class);
+		$this->pdfSignatureValidationService = $this->createMock(PdfSignatureValidationService::class);
+		$this->pdfSignatureValidationService->method('validateFromResource')
+			->willReturnCallback(function ($resource): array {
+				$this->nativeValidationCalls++;
+
+				if ($this->nativeValidationException !== null) {
+					throw $this->nativeValidationException;
+				}
+
+				if ($this->nativeValidation !== []) {
+					return $this->nativeValidation;
+				}
+
+				$service = new PdfSignatureValidationService(
+					$this->appConfig,
+					$this->l10n,
+					$this->logger,
+				);
+
+				return $service->validateFromResource($resource);
+			});
+	}
+
+	private function getHandler(array $methods = []): Pkcs12Handler|MockObject {
+		if ($methods) {
+			return $this->getMockBuilder(Pkcs12Handler::class)
+				->setConstructorArgs([
+					$this->folderService,
+					$this->appConfig,
+					$this->certificateEngineFactory,
+					$this->l10n,
+					$this->footerHandler,
+					$this->logger,
+					$this->caIdentifierService,
+					$this->docMdpHandler,
+					$this->crlService,
+					$this->pdfSignatureValidationService,
+				])
+				->onlyMethods($methods)
+				->getMock();
+		}
+		return new Pkcs12Handler(
+			$this->folderService,
+			$this->appConfig,
+			$this->certificateEngineFactory,
+			$this->l10n,
+			$this->footerHandler,
+			$this->logger,
+			$this->caIdentifierService,
+			$this->docMdpHandler,
+			$this->crlService,
+			$this->pdfSignatureValidationService,
+		);
+	}
+
+	public function testSavePfxWhenNoPermission(): void {
+		$node = $this->createMock(\OCP\Files\Folder::class);
+		$node->method('newFile')->willThrowException(new NotPermittedException());
+		$this->folderService->method('getFolder')->willReturn($node);
+
+		$this->expectExceptionMessage('You do not have permission');
+		$this->getHandler()->savePfx('userId', 'content');
+	}
+
+	public function testSavePfxReturnsContent(): void {
+		$actual = $this->getHandler()->savePfx('userId', 'content');
+		$this->assertEquals('content', $actual);
+	}
+
+	public function testGetPfxOfCurrentSignerWithInvalidPfx(): void {
+		$node = $this->createMock(\OCP\Files\Folder::class);
+		$node->method('get')->willThrowException(new NotFoundException());
+		$this->folderService->method('getFolder')->willReturn($node);
+		$this->expectExceptionMessage('Password to sign not defined. Create a password to sign');
+		$this->expectExceptionCode(400);
+		$this->getHandler()->getPfxOfCurrentSigner('userId');
+	}
+
+	public function testGetPfxOfCurrentSignerOk():void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file->method('getContent')
+			->willReturn('valid pfx content');
+		$folder->method('get')->willReturn($file);
+		$this->folderService->method('getFolder')->willReturn($folder);
+		$actual = $this->getHandler()->getPfxOfCurrentSigner('userId');
+		$this->assertEquals('valid pfx content', $actual);
+	}
+
+	public function testGetLastSignedDateWithoutFile(): void {
+		$handler = $this->getHandler();
+
+		$this->expectException(\Error::class);
+		$handler->getLastSignedDate();
+	}
+
+	public function testGetCertificateChainWithUnsignedFile(): void {
+		$handler = $this->getHandler();
+
+		$resourceContent = 'Not a signed PDF - missing ByteRange';
+		$resource = fopen('php://memory', 'r+');
+		fwrite($resource, $resourceContent);
+		rewind($resource);
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionMessage('Unsigned file.');
+
+		$handler->getCertificateChain($resource);
+		fclose($resource);
+	}
+
+	public function testGetCertificateChainPreservesSignatureWithoutBinaryPayload(): void {
+		$this->nativeValidation = [
+			[
+				'signature' => new ExtractedSignature(
+					null,
+					new SignatureMetadata(
+						'Signature1',
+						[
+							'offset1' => 0,
+							'length1' => 10,
+							'offset2' => 20,
+							'length2' => 10,
+						],
+						'adbe.pkcs7.detached',
+						false,
+					),
+					null,
+				),
+				'certificates' => [],
+				'timestamp' => null,
+				'signatureValidation' => [
+					'id' => 5,
+					'label' => 'Signature has not yet been verified.',
+					'reason' => 'The digital signature data is missing',
+					'isValid' => false,
+				],
+				'certificateValidation' => [
+					'id' => 6,
+					'label' => 'Certificate has not yet been verified.',
+					'reason' => 'The digital signature data is missing',
+					'isValid' => false,
+				],
+			],
+		];
+
+		$resource = fopen('php://memory', 'r+');
+		$this->assertIsResource($resource);
+		fwrite($resource, '%PDF-1.7');
+		rewind($resource);
+
+		$result = $this->getHandler()->getCertificateChain($resource);
+		fclose($resource);
+
+		$this->assertCount(1, $result);
+		$this->assertCount(1, $result[0]['chain']);
+
+		$signature = $result[0]['chain'][0];
+		$this->assertSame(5, $signature['signature_validation']['id']);
+		$this->assertSame(
+			'The digital signature data is missing',
+			$signature['signature_validation']['reason'],
+		);
+		$this->assertSame(6, $signature['certificate_validation']['id']);
+		$this->assertSame('Signature1', $signature['field']);
+		$this->assertSame('adbe.pkcs7.detached', $signature['signature_type']);
+		$this->assertFalse($signature['covers_entire_document']);
+	}
+
+	public function testIsHandlerOkReturnsBoolean(): void {
+		$engineMock = $this->createMock(\OCA\Libresign\Handler\CertificateEngine\AEngineHandler::class);
+		$engineMock->method('isSetupOk')->willReturn(true);
+
+		$this->certificateEngineFactory->method('getEngine')->willReturn($engineMock);
+
+		$handler = $this->getHandler();
+		$result = $handler->isHandlerOk();
+
+		$this->assertIsBool($result);
+		$this->assertTrue($result);
+	}
+
+	public function testSavePfxCreatesFileSuccessfully(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$file = $this->createMock(\OCP\Files\File::class);
+
+		$folder->expects($this->once())
+			->method('newFile')
+			->with('signature.pfx', 'test pfx content')
+			->willReturn($file);
+
+		$this->folderService->method('getFolder')->willReturn($folder);
+
+		$handler = $this->getHandler();
+		$result = $handler->savePfx('testUser', 'test pfx content');
+
+		$this->assertEquals('test pfx content', $result);
+	}
+
+	public function testGetPfxWithValidUser(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$file = $this->createMock(\OCP\Files\File::class);
+
+		$file->method('getContent')->willReturn('test cert');
+		$folder->method('get')->with('signature.pfx')->willReturn($file);
+		$this->folderService->method('getFolder')->willReturn($folder);
+
+		$handler = $this->getHandler();
+		$handler->setCertificate('test cert');
+		$result = $handler->getPfxOfCurrentSigner('testUser');
+
+		$this->assertEquals('test cert', $result);
+	}
+
+	public function testSignWithoutRequiredInputFails(): void {
+		$handler = $this->getHandler();
+
+		$this->expectException(\Error::class);
+		$handler->sign();
+	}
+
+	public function testCertificateChainProcessingBehavior(): void {
+		$handler = $this->getHandler();
+
+		$emptyContent = 'some content without signatures';
+		$resource = fopen('php://memory', 'r+');
+		fwrite($resource, $emptyContent);
+		rewind($resource);
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$handler->getCertificateChain($resource);
+
+		fclose($resource);
+	}
+
+	public function testOrderCertificatesIntegration(): void {
+		$handler = $this->getHandler();
+
+		$mockCerts = [
+			[
+				'name' => '/CN=Root CA',
+				'subject' => ['CN' => 'Root CA'],
+				'issuer' => ['CN' => 'Root CA'],
+			],
+			[
+				'name' => '/CN=End Entity',
+				'subject' => ['CN' => 'End Entity'],
+				'issuer' => ['CN' => 'Root CA'],
+			],
+		];
+
+		$ordered = $handler->orderCertificates($mockCerts);
+
+		$this->assertIsArray($ordered);
+		$this->assertCount(2, $ordered);
+		$this->assertEquals('End Entity', $ordered[0]['subject']['CN']);
+		$this->assertEquals('Root CA', $ordered[1]['subject']['CN']);
+	}
+
+	public function testGetCertificateChainWithInvalidInput(): void {
+		$handler = $this->getHandler();
+		$invalidResource = fopen('php://memory', 'r');
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$handler->getCertificateChain($invalidResource);
+		fclose($invalidResource);
+	}
+
+	public function testGetCertificateChainWithCorruptedSignature(): void {
+		$handler = $this->getHandler();
+
+		$corruptedPdf = "%PDF-1.4\n"
+			. "1 0 obj<</Type/Sig/ByteRange [0 10 50 10]>>endobj\n"
+			. "ZZZZZZZZ\n" // Invalid hex data - will cause extraction to fail
+			. str_repeat('x', 100);
+
+		$resource = fopen('php://memory', 'r+');
+		fwrite($resource, $corruptedPdf);
+		rewind($resource);
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionMessage('Unsigned file');
+		$handler->getCertificateChain($resource);
+
+		fclose($resource);
+	}
+
+	public function testRealWorldUsagePattern(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder->method('get')->willThrowException(new NotFoundException());
+		$this->folderService->method('getFolder')->willReturn($folder);
+
+		$handler = $this->getHandler();
+
+		$this->assertInstanceOf(Pkcs12Handler::class, $handler);
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionMessage('Password to sign not defined');
+		$handler->getPfxOfCurrentSigner('test_user');
+	}
+
+	public function testBasicPublicInterfaceContract(): void {
+		$handler = $this->getHandler();
+
+		$this->assertTrue(method_exists($handler, 'savePfx'));
+		$this->assertTrue(method_exists($handler, 'getPfxOfCurrentSigner'));
+		$this->assertTrue(method_exists($handler, 'sign'));
+		$this->assertTrue(method_exists($handler, 'getCertificateChain'));
+		$this->assertTrue(method_exists($handler, 'getLastSignedDate'));
+		$this->assertTrue(method_exists($handler, 'isHandlerOk'));
+		$this->assertTrue(method_exists($handler, 'orderCertificates'));
+	}
+
+	public function testCertificateChainProcessingPublicBehavior(): void {
+		$handler = $this->getHandler();
+
+		$certs = [
+			[
+				'name' => '/CN=Intermediate',
+				'subject' => ['CN' => 'Intermediate'],
+				'issuer' => ['CN' => 'Root'],
+			],
+			[
+				'name' => '/CN=Root',
+				'subject' => ['CN' => 'Root'],
+				'issuer' => ['CN' => 'Root'],
+			],
+		];
+
+		$ordered = $handler->orderCertificates($certs);
+		$this->assertCount(2, $ordered);
+		$this->assertEquals('Intermediate', $ordered[0]['subject']['CN']);
+
+		$singleCert = [
+			[
+				'name' => '/CN=Single',
+				'subject' => ['CN' => 'Single'],
+				'issuer' => ['CN' => 'Single'],
+			]
+		];
+
+		$result = $handler->orderCertificates($singleCert);
+		$this->assertCount(1, $result);
+		$this->assertEquals('Single', $result[0]['subject']['CN']);
+	}
+
+	public function testErrorHandlingThroughPublicInterface(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder->method('get')->willThrowException(new NotFoundException());
+		$this->folderService->method('getFolder')->willReturn($folder);
+
+		$handler = $this->getHandler();
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionCode(400);
+		$handler->getPfxOfCurrentSigner('nonexistent_user');
+	}
+
+	public function testIntegrationWithFileSystem(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder->method('get')->willThrowException(new \OCP\Files\NotFoundException());
+		$this->folderService->method('getFolder')->willReturn($folder);
+
+		$handler = $this->getHandler();
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$handler->getPfxOfCurrentSigner('test_user');
+	}
+
+	public function testGetCertificateChainWithAllFixtures(): void {
+		$handler = $this->getHandler();
+		$catalog = new PdfFixtureCatalog();
+
+		foreach ($catalog->getAll() as $fixture) {
+			if (!$fixture->shouldExtract()) {
+				continue;
+			}
+
+			$resource = $fixture->openResource();
+			$result = $handler->getCertificateChain($resource);
+			fclose($resource);
+
+			$this->assertCount($fixture->getSignatureCount(), $result, $fixture->getFilename());
+
+			foreach ($result as $signatureData) {
+				$this->assertArrayHasKey('chain', $signatureData);
+				$this->assertIsArray($signatureData['chain']);
+			}
+		}
+	}
+
+	public static function provideExtractableFixture(): array {
+		foreach ((new PdfFixtureCatalog())->getAll() as $fixture) {
+			if ($fixture->shouldExtract()) {
+				return [[$fixture]];
+			}
+		}
+		return [];
+	}
+
+	#[DataProvider('provideExtractableFixture')]
+	public function testGetCertificateChainPreservesRealSignaturesWhenPdfAlsoHasHyperlinkAnnotation($fixture): void {
+		$this->docMdpHandler->method('extractDocMdpData')->willReturn([]);
+
+		$resource = fopen('php://memory', 'r+');
+		fwrite($resource, file_get_contents($fixture->getFilePath())
+			. "\n99 0 obj<</Type/Annot/Subtype/Link/Contents <" . bin2hex('https://example.com') . ">>>>\nendobj\n");
+		rewind($resource);
+
+		$this->assertCount($fixture->getSignatureCount(), $this->getHandler()->getCertificateChain($resource));
+		fclose($resource);
+	}
+
+	public function testDocMdpPdfsExtraction(): void {
+		$handler = $this->getHandler();
+		$catalog = new PdfFixtureCatalog();
+		$docmdpFixtures = $catalog->getWithDocMdp();
+
+		$this->assertGreaterThan(0, count($docmdpFixtures));
+
+		foreach ($docmdpFixtures as $fixture) {
+			if (!$fixture->shouldExtract()) {
+				continue;
+			}
+
+			$resource = $fixture->openResource();
+			$result = $handler->getCertificateChain($resource);
+			fclose($resource);
+
+			$this->assertCount($fixture->getSignatureCount(), $result, $fixture->getFilename());
+
+			foreach ($result as $signatureData) {
+				$this->assertArrayHasKey('chain', $signatureData);
+				$this->assertGreaterThan(0, count($signatureData['chain']));
+			}
+		}
+	}
+
+	public function testGetCertificateChainProvidesNativePackageShape(): void {
+		$fixtureResource = fopen(
+			__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf',
+			'r',
+		);
+		$this->assertIsResource($fixtureResource);
+
+		$service = new PdfSignatureValidationService(
+			$this->appConfig,
+			$this->l10n,
+			$this->logger,
+		);
+		$this->nativeValidation = $service->validateFromResource($fixtureResource);
+		fclose($fixtureResource);
+
+		$this->nativeValidation[0]['signatureValidation'] = [
+			'id' => 1,
+			'label' => 'Signature is valid.',
+		];
+		$this->nativeValidation[0]['certificateValidation'] = [
+			'id' => 3,
+			'label' => 'Certificate issuer is unknown.',
+		];
+
+		$handler = $this->getHandler();
+		$resource = fopen(__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf', 'r');
+		$this->assertIsResource($resource);
+
+		$result = $handler->getCertificateChain($resource);
+		fclose($resource);
+
+		$this->assertCount(1, $result);
+		$this->assertArrayHasKey('signingTime', $result[0]);
+		$this->assertInstanceOf(\DateTime::class, $result[0]['signingTime']);
+
+		$this->assertArrayHasKey('chain', $result[0]);
+		$this->assertNotEmpty($result[0]['chain']);
+
+		$leaf = $result[0]['chain'][0];
+		$this->assertArrayHasKey('field', $leaf);
+		$this->assertEquals('Signature1', $leaf['field']);
+		$this->assertArrayHasKey('range', $leaf);
+		$this->assertSame([
+			'offset1' => 0,
+			'length1' => 1311,
+			'offset2' => 31313,
+			'length2' => 32829,
+		], $leaf['range']);
+
+		$this->assertArrayHasKey('signature_validation', $leaf);
+		$this->assertEquals(1, $leaf['signature_validation']['id']);
+
+		$this->assertArrayHasKey('certificate_validation', $leaf);
+		$this->assertSame(3, $leaf['certificate_validation']['id']);
+		$this->assertArrayHasKey('signature_type', $leaf);
+		$this->assertNotEmpty($leaf['signature_type']);
+		$this->assertArrayHasKey('covers_entire_document', $leaf);
+		$this->assertIsBool($leaf['covers_entire_document']);
+	}
+
+	public function testGetCertificateChainMapsNativeTimestampData(): void {
+		$fixtureResource = fopen(
+			__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf',
+			'r',
+		);
+		$this->assertIsResource($fixtureResource);
+
+		$service = new PdfSignatureValidationService(
+			$this->appConfig,
+			$this->l10n,
+			$this->logger,
+		);
+		$this->nativeValidation = $service->validateFromResource($fixtureResource);
+		fclose($fixtureResource);
+
+		$this->assertNotEmpty($this->nativeValidation);
+
+		$generatedAt = new \DateTimeImmutable('2026-09-04T12:00:00+00:00');
+		$this->nativeValidation[0]['timestamp'] = new TimestampToken(
+			$generatedAt,
+			'1.2.3.4',
+			'123456',
+			[
+				'commonName' => 'LibreSign Local TSA',
+				'organizationName' => 'LibreCode',
+			],
+		);
+
+		$resource = fopen(
+			__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf',
+			'r',
+		);
+		$this->assertIsResource($resource);
+
+		$result = $this->getHandler()->getCertificateChain($resource);
+		fclose($resource);
+
+		$this->assertNotEmpty($result);
+		$this->assertArrayHasKey('timestamp', $result[0]);
+
+		$timestamp = $result[0]['timestamp'];
+		$this->assertSame($generatedAt, $timestamp['genTime']);
+		$this->assertSame('1.2.3.4', $timestamp['policy']);
+		$this->assertSame('123456', $timestamp['serialNumber']);
+		$this->assertSame('LibreSign Local TSA', $timestamp['tsaName']);
+		$this->assertSame([
+			'commonName' => 'LibreSign Local TSA',
+			'organizationName' => 'LibreCode',
+		], $timestamp['cnHints']);
+	}
+
+	public function testGetCertificateChainUsesNativeValidationServiceForEachSignature(): void {
+		$handler = $this->getHandler();
+		$resource = fopen(__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf', 'r');
+		$this->assertIsResource($resource);
+
+		$result = $handler->getCertificateChain($resource);
+		fclose($resource);
+
+		$this->assertSame(1, $this->nativeValidationCalls);
+		$this->assertNotEmpty($result);
+		$this->assertSame(1, $result[0]['chain'][0]['signature_validation']['id']);
+		$this->assertSame(2, $result[0]['chain'][0]['certificate_validation']['id']);
+	}
+
+	public function testGetCertificateChainUsesNativeDigestMismatchValidation(): void {
+		$fixtureResource = fopen(
+			__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf',
+			'r',
+		);
+		$this->assertIsResource($fixtureResource);
+
+		$service = new PdfSignatureValidationService(
+			$this->appConfig,
+			$this->l10n,
+			$this->logger,
+		);
+		$this->nativeValidation = $service->validateFromResource($fixtureResource);
+		fclose($fixtureResource);
+
+		$this->nativeValidation[0]['signatureValidation'] = [
+			'id' => 3,
+			'label' => 'Digest mismatch.',
+			'reason' => 'PDF content hash does not match signed digest',
+		];
+
+		$handler = $this->getHandler();
+		$resource = fopen(__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf', 'r');
+		$this->assertIsResource($resource);
+
+		$result = $handler->getCertificateChain($resource);
+		fclose($resource);
+
+		$this->assertNotEmpty($result);
+		$this->assertSame(3, $result[0]['chain'][0]['signature_validation']['id']);
+		$this->assertSame('Digest mismatch.', $result[0]['chain'][0]['signature_validation']['label']);
+	}
+
+	public function testGetCertificateChainPropagatesValidationFailureAndResetsPolicyValidationContext(): void {
+		$this->logger->expects($this->never())->method('warning');
+
+		$policyCalls = [];
+		$certificateEngine = $this->createMock(IEngineHandler::class);
+		$certificateEngine->method('setPolicyUserIdForValidation')
+			->willReturnCallback(function (?string $userId) use (&$policyCalls, $certificateEngine) {
+				$policyCalls[] = $userId;
+				return $certificateEngine;
+			});
+
+		$certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
+		$certificateEngineFactory->method('getEngine')->willReturn($certificateEngine);
+
+		$this->nativeValidationException = new \RuntimeException('validator boom');
+
+		$handler = new Pkcs12Handler(
+			$this->folderService,
+			$this->appConfig,
+			$certificateEngineFactory,
+			$this->l10n,
+			$this->footerHandler,
+			$this->logger,
+			$this->caIdentifierService,
+			$this->docMdpHandler,
+			$this->crlService,
+			$this->pdfSignatureValidationService,
+		);
+
+		$handler->setPolicyUserIdForValidation('requester');
+		$handler->setIsLibreSignFile();
+
+		$resource = fopen(
+			__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf',
+			'r',
+		);
+		$this->assertIsResource($resource);
+
+		try {
+			$handler->getCertificateChain($resource);
+			$this->fail('Expected RuntimeException to be propagated.');
+		} catch (\RuntimeException $exception) {
+			$this->assertSame('validator boom', $exception->getMessage());
+		} finally {
+			fclose($resource);
+		}
+
+		$this->assertSame(['requester', null], $policyCalls);
+
+		$reflection = new \ReflectionProperty(
+			Pkcs12Handler::class,
+			'policyUserIdForValidation',
+		);
+		$this->assertNull($reflection->getValue($handler));
+
+		$trustReflection = new \ReflectionProperty(
+			Pkcs12Handler::class,
+			'isLibreSignFile',
+		);
+		$this->assertFalse($trustReflection->getValue($handler));
+	}
+
+}

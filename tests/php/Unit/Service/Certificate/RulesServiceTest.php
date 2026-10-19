@@ -8,10 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Certificate;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Certificate\RulesService;
 use OCP\IL10N;
-use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 final class RulesServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -19,7 +17,8 @@ final class RulesServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[\Override]
 	public function setUp(): void {
-		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
+		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n->method('t')->willReturnArgument(0);
 	}
 
 	public function getService(): RulesService {

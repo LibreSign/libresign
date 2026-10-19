@@ -3,6 +3,8 @@
 .idea
 .vscode
 .ai-local/
+.devcontainer/.nextcloud-docker-development/
+.devcontainer/ncdd.generated.yml
 .phpactor*
 .env
 .secrets

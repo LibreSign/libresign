@@ -33,7 +33,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * @internal
- * @group DB
  */
 final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N&MockObject $l10n;
