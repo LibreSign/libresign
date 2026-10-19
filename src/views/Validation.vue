@@ -154,6 +154,7 @@ import { ACTION_CODES } from '../helpers/ActionMapping'
 import { normalizeRouteRecord } from '../services/routeNormalization.js'
 import logger from '../logger.js'
 import { useFilesStore } from '../store/files.js'
+import { usePoliciesStore } from '../store/policies.js'
 import { useSignStore } from '../store/sign.js'
 import { useSidebarStore } from '../store/sidebar.js'
 import type {
@@ -307,6 +308,7 @@ function extractLegalInformation(policies: Record<string, unknown> | null): stri
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
 const filesStore = useFilesStore()
+const policiesStore = usePoliciesStore()
 const instance = getCurrentInstance()
 const EXPIRATION_WARNING_DAYS = 30
 
@@ -940,6 +942,7 @@ function handleValidationSuccess(data: unknown) {
 	documentValidType.value = validationSummary.type
 	const effectivePolicies = extractEffectivePolicies(data)
 	if (effectivePolicies) {
+		policiesStore.setPolicies(effectivePolicies)
 		legalInformation.value = extractLegalInformation(effectivePolicies)
 	}
 	const shouldUpdateRoute = isValidationRouteName(route.value.name)
