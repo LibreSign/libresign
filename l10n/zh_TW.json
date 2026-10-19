@@ -811,6 +811,7 @@
     "To validate the signature of the documents. Only change this value if you want to replace the default validation URL with a different one." : "用來驗證文件的簽章。只有當您想要以不同的 URL 取代預設驗證 URL 時，才需要變更此值。",
     "Customize footer template" : "自訂頁腳範本",
     "Background" : "背景",
+    "Background source" : "背景來源",
     "Remove background" : "移除背景",
     "Zoom" : "縮放",
     "Custom" : "自訂",
