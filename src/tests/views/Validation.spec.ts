@@ -184,17 +184,6 @@ vi.mock('../../store/files.js', () => {
 	}
 })
 
-vi.mock('../../store/policies', () => {
-	const policiesStore = {
-		setPolicies: vi.fn(),
-		getEffectiveValue: vi.fn(() => ''),
-	}
-
-	return {
-		usePoliciesStore: vi.fn(() => policiesStore),
-	}
-})
-
 // Mock utils
 vi.mock('../../utils/viewer.js', () => ({
 	openDocument: vi.fn(),
@@ -1074,10 +1063,7 @@ describe('Validation.vue - Business Logic', () => {
 			expect(filesStore.addFile).not.toHaveBeenCalled()
 		})
 
-		it('updates the policies store when requester effective policies are returned', async () => {
-			const { usePoliciesStore } = await import('../../store/policies')
-			const policiesStore = usePoliciesStore()
-
+		it('shows the requester legal information returned with the validation', () => {
 			wrapper.vm.handleValidationSuccess({
 				...createLoadedValidationDocument({ status: SIGNED_STATUS }),
 				effective_policies: {
@@ -1085,25 +1071,12 @@ describe('Validation.vue - Business Logic', () => {
 						legal_information: {
 							policyKey: 'legal_information',
 							effectiveValue: 'Requester legal copy',
-							sourceScope: 'user_policy',
-							visible: true,
-							editableByCurrentActor: false,
-							allowedValues: [],
-							canSaveAsUserDefault: false,
-							canUseAsRequestOverride: false,
-							preferenceWasCleared: false,
-							blockedBy: null,
 						},
 					},
 				},
 			})
 
-			expect(policiesStore.setPolicies).toHaveBeenCalledWith({
-				legal_information: expect.objectContaining({
-					effectiveValue: 'Requester legal copy',
-					sourceScope: 'user_policy',
-				}),
-			})
+			expect(wrapper.vm.legalInformation).toBe('Requester legal copy')
 		})
 	})
 
