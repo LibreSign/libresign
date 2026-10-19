@@ -95,7 +95,7 @@ jobs:
 
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
         if: steps.versions.outputs.nodeVersion
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
           package-manager-cache: false
@@ -112,7 +112,7 @@ jobs:
           filename: ${{ env.APP_NAME }}/appinfo/info.xml
 
       - name: Set up PHP ${{ steps.php-versions.outputs.php-min }}
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: ${{ steps.php-versions.outputs.php-min }}
           coverage: none
