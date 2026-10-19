@@ -193,13 +193,17 @@ OC.L10N.register(
     "This year ({year})" : "În acest an ({year})",
     "Last year ({year})" : "Anul trecut ({year})",
     "Other" : "Altele",
+    "{value} seconds" : "{value} secunde",
     "{value} days" : "{value} de zile",
+    "Default background" : "Fundal implicit",
+    "Custom background" : "Fundal personalizat",
     "Public" : "Public",
     "Underline" : "Subliniat",
     "User" : "Utilizator",
     "Add new" : "Adaugă nou",
     "on" : "pe",
     "Reminders" : "Mementouri",
+    "Background image" : "Imagine de fundal",
     "Invalid URL" : "URL invalid"
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");
