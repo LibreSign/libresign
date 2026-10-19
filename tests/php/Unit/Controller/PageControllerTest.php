@@ -21,6 +21,7 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\ValidationEffectivePolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -144,6 +145,7 @@ final class PageControllerTest extends TestCase {
 			signFileService: $this->signFileService,
 			requestSignatureService: \OCP\Server::get(RequestSignatureService::class),
 			policyService: $this->policyService,
+			validationEffectivePolicyService: $this->createMock(ValidationEffectivePolicyService::class),
 			policyAuthorizationService: $this->policyAuthorizationService,
 			signerElementsService: $this->signerElementsService,
 			l10n: $this->createMock(IL10N::class),
@@ -298,6 +300,7 @@ final class PageControllerTest extends TestCase {
 			signFileService: $signFileService,
 			requestSignatureService: \OCP\Server::get(RequestSignatureService::class),
 			policyService: $policyService,
+			validationEffectivePolicyService: $this->createMock(ValidationEffectivePolicyService::class),
 			policyAuthorizationService: $this->policyAuthorizationService,
 			signerElementsService: $this->signerElementsService,
 			l10n: $this->createMock(IL10N::class),
