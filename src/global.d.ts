@@ -5,6 +5,12 @@
 
 /// <reference types="@nextcloud/typings" />
 
+// Compatibility with @nextcloud/password-confirmation 6.2.0: its published
+// declarations omit the confirmPassword export used by LibreSign.
+declare module '@nextcloud/password-confirmation' {
+	export function confirmPassword(): Promise<void>
+}
+
 declare global {
 	interface LibreSignAppConfigApi {
 		setValue: (app: string, key: string, value: string | number | boolean, options?: { success?: () => void; error?: () => void }) => void
