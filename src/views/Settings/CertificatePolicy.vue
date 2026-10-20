@@ -126,7 +126,7 @@ function emitValidity() {
 }
 
 function view() {
-	openDocument({
+	return openDocument({
 		fileUrl: CPS.value,
 		filename: 'Certificate Policy',
 		nodeId: 0,

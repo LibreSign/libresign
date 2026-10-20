@@ -57,7 +57,7 @@ export const openDocument = ({ fileUrl, filename, nodeId, mime = 'application/pd
 		}
 	}
 
-	// No compatible Viewer handler (or an error opening it): use the URL.
+	// Fallback is for unavailable handlers only. Viewer failures must surface.
 	url.searchParams.set('_t', String(Date.now()))
 	window.open(url.href)
 }
