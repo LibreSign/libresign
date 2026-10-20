@@ -240,7 +240,8 @@ test('unauthenticated signer can define a visible signature for an envelope with
 
 	await test.step('The signed PDF opens by UUID without using an Office handler', async () => {
 		const context = page.context()
-		const existingPages = new Set(context.pages())
+		const openedPopups: Page[] = []
+		page.on('popup', popup => { openedPopups.push(popup) })
 		const officeRequests: string[] = []
 		context.on('request', request => {
 			if (request.url().includes('/apps/eurooffice/')) {
@@ -263,10 +264,16 @@ test('unauthenticated signer can define a visible signature for an envelope with
 		expect(response.headers()['content-type']).toContain('application/pdf')
 		expect(new URL(response.url()).pathname).toMatch(/\/apps\/libresign\/p\/pdf\/[^/]+$/)
 
-		const newPages = context.pages().filter(openedPage => !existingPages.has(openedPage))
-		expect(newPages.length).toBeLessThanOrEqual(1)
-		if (newPages.length === 0) {
-			await expect(page.locator('[role="dialog"][data-handler="pdf"]')).toBeVisible({ timeout: 15_000 })
+		// In Chromium the PDF response can arrive before the popup is reported.
+		// Wait for the actual presentation, not an immediate context.pages() snapshot.
+		const nativeViewer = page.locator('[role="dialog"][data-handler="pdf"]')
+		await expect.poll(async () =>
+			await nativeViewer.isVisible() || openedPopups.length > 0,
+		{ timeout: 15_000 }).toBe(true)
+
+		if (await nativeViewer.isVisible()) {
+			expect(openedPopups).toHaveLength(0)
+			await expect(nativeViewer).toBeVisible()
 			await expect.poll(async () => {
 				const pdfFrame = page.frames().find(frame => frame.url().includes('/apps/files_pdfviewer/'))
 				return pdfFrame?.evaluate(() => {
@@ -277,13 +284,14 @@ test('unauthenticated signer can define a visible signature for an envelope with
 				}) ?? 0
 			}, { timeout: 15_000 }).toBeGreaterThan(0)
 		} else {
-			await expect(newPages[0]).toHaveURL(/\/apps\/libresign\/p\/pdf\/[^/]+/)
+			// Chromium headless can download inline PDFs rather than navigating
+			// the popup, so validate the response URL and signed bytes below.
+			expect(openedPopups).toHaveLength(1)
 		}
 
 		const signedPdf = await page.request.get(response.url())
 		expect(signedPdf.status()).toBe(200)
 		expect((await signedPdf.body()).toString('latin1')).toContain('/ByteRange')
 		expect(officeRequests).toHaveLength(0)
-		expect(context.pages()).toHaveLength(existingPages.size + newPages.length)
 	})
 })
