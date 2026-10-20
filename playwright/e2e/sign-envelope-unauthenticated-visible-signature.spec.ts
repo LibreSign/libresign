@@ -170,7 +170,7 @@ async function waitForSignerInvitationLink(signerEmail: string) {
 	const email = await waitForEmailTo(
 		createMailpitClient(),
 		signerEmail,
-		'LibreSign: A document is ready for your signature',
+		undefined, // Notification language can differ from the test browser locale.
 		{ interval: 250 },
 	)
 	const signLink = extractSignLink(email.Text)
@@ -290,5 +290,42 @@ test('unauthenticated signer can define a visible signature for an envelope with
 
 	await test.step('Then the success confirmation screen is shown with the envelope name', async () => {
 		await expectEnvelopeSigned(page, scenario.envelopeName)
+	})
+
+	await test.step('The signed PDF opens in the native Viewer, not Euro-Office', async () => {
+		const currentTabs = page.context().pages().length
+		const officeRequests: string[] = []
+		page.on('request', request => {
+			if (request.url().includes('/apps/eurooffice/')) {
+				officeRequests.push(request.url())
+			}
+		})
+
+		const pdfResponse = page.waitForResponse(response =>
+			response.request().method() === 'GET'
+			&& response.url().includes('/apps/libresign/p/pdf/'),
+		)
+		await page.getByRole('button', { name: 'Show details' }).first().click()
+		await page.getByRole('button', { name: 'View document' }).first().click()
+		await expect(page.locator('[role="dialog"][data-handler="pdf"]')).toBeVisible({ timeout: 15_000 })
+
+		const response = await pdfResponse
+		expect(response.status()).toBe(200)
+		expect(response.headers()['content-type']).toContain('application/pdf')
+		await expect.poll(async () => {
+			const pdfFrame = page.frames().find(frame => frame.url().includes('/apps/files_pdfviewer/'))
+			return pdfFrame?.evaluate(() => {
+				const pdf = (window as typeof window & {
+					PDFViewerApplication?: { pdfDocument?: { numPages?: number } }
+				}).PDFViewerApplication
+				return pdf?.pdfDocument?.numPages ?? 0
+			}) ?? 0
+		}, { timeout: 15_000 }).toBeGreaterThan(0)
+
+		const signedPdf = await page.request.get(response.url())
+		expect(signedPdf.status()).toBe(200)
+		expect((await signedPdf.body()).toString('latin1')).toContain('/ByteRange')
+		expect(officeRequests).toHaveLength(0)
+		expect(page.context().pages()).toHaveLength(currentTabs)
 	})
 })
