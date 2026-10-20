@@ -245,6 +245,18 @@ final class SequentialSigningServiceTest extends TestCase {
 		$this->assertSame([2, 3], array_map(fn (SignRequest $request): int => $request->getId(), $activated));
 	}
 
+	public function testActivateNextOrderReturnsNobodyWhenNotOrdered(): void {
+		$file = $this->createMock(FileEntity::class);
+		$file->method('getSignatureFlowEnum')
+			->willReturn(SignatureFlow::PARALLEL);
+		$this->service->setFile($file);
+
+		$this->signRequestMapper->expects($this->never())->method('getByFileId');
+		$this->identifyMethodService->expects($this->never())->method('getIdentifyMethodsFromSignRequestId');
+
+		$this->assertSame([], $this->service->activateNextOrder(99, 1));
+	}
+
 	public function testNotifyActivatedSignersNotifiesEverySignerItReceives(): void {
 		$this->service->setFile($this->createMock(FileEntity::class));
 
@@ -263,6 +275,32 @@ final class SequentialSigningServiceTest extends TestCase {
 			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
 			[3, SignRequestStatus::ABLE_TO_SIGN, 2],
 		]));
+	}
+
+	public function testNotifyActivatedSignersNotifiesEveryIdentifyMethodOfEverySigner(): void {
+		$signers = $this->buildSignRequests([
+			[2, SignRequestStatus::ABLE_TO_SIGN, 2],
+			[3, SignRequestStatus::ABLE_TO_SIGN, 2],
+		]);
+
+		$email = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$email->expects($this->exactly(2))->method('willNotifyUser')->with(true);
+		$email->expects($this->exactly(2))->method('notify');
+
+		$account = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$account->expects($this->exactly(2))->method('willNotifyUser')->with(true);
+		$account->expects($this->exactly(2))->method('notify');
+
+		$requestedIds = [];
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willReturnCallback(function (int $signRequestId) use (&$requestedIds, $email, $account): array {
+				$requestedIds[] = $signRequestId;
+				return ['email' => [$email], 'account' => [$account]];
+			});
+
+		$this->service->notifyActivatedSigners($signers);
+
+		$this->assertSame([2, 3], $requestedIds);
 	}
 
 	public function testNotifyActivatedSignersIsANoOpWithoutActivatedSigners(): void {
