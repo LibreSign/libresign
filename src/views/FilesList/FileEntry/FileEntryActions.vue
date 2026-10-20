@@ -253,7 +253,7 @@ async function onActionClick(action: Pick<MenuAction, 'id'>) {
 	} else if (action.id === 'rename') {
 		emit('start-rename')
 	} else if (action.id === 'open') {
-		openFile()
+		await openFile()
 	}
 }
 
@@ -267,7 +267,7 @@ function openFile() {
 	const fileUrl = props.source.file
 		|| generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: props.source.uuid })
 
-	openDocument({
+	return openDocument({
 		fileUrl,
 		filename: props.source.name,
 		nodeId: props.source.nodeId ?? 0,

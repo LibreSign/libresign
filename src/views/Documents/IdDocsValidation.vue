@@ -427,7 +427,7 @@ function openFile(doc: IdDocEntry) {
 		return
 	}
 
-	openDocument({
+	return openDocument({
 		fileUrl,
 		filename: doc.file.name,
 		nodeId: doc.file.file.nodeId,

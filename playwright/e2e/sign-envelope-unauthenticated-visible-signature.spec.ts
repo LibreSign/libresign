@@ -88,6 +88,9 @@ async function enableEnvelopeScenario(request: APIRequestContext) {
 
 	await setCertificateEngine(request, 'openssl')
 
+	// This flow opens signed PDFs as an anonymous signer; do not inherit a
+	// private validation policy left by another Playwright scenario.
+	await setSystemPolicy(request, 'make_validation_url_private', '0')
 	await setSystemPolicy(request, 'envelope_enabled', '1')
 	await setSystemPolicy(request, 'identification_documents', JSON.stringify({ enabled: false, approvers: ['admin'] }))
 	await setSystemPolicy(
@@ -170,7 +173,7 @@ async function waitForSignerInvitationLink(signerEmail: string) {
 	const email = await waitForEmailTo(
 		createMailpitClient(),
 		signerEmail,
-		'LibreSign: A document is ready for your signature',
+		undefined, // Notification language can differ from the test browser locale.
 		{ interval: 250 },
 	)
 	const signLink = extractSignLink(email.Text)
@@ -290,5 +293,62 @@ test('unauthenticated signer can define a visible signature for an envelope with
 
 	await test.step('Then the success confirmation screen is shown with the envelope name', async () => {
 		await expectEnvelopeSigned(page, scenario.envelopeName)
+	})
+
+	await test.step('The signed PDF opens by UUID without using an Office handler', async () => {
+		const context = page.context()
+		const openedPopups: Page[] = []
+		page.on('popup', popup => { openedPopups.push(popup) })
+		const officeRequests: string[] = []
+		context.on('request', request => {
+			if (request.url().includes('/apps/eurooffice/')) {
+				officeRequests.push(request.url())
+			}
+		})
+
+		// CI checks out Nextcloud's source without installing files_pdfviewer.
+		// The Viewer opens PDFs when its handler is registered; otherwise the
+		// supported fallback opens the same signed UUID URL in another tab.
+		const pdfResponse = context.waitForEvent('response', response =>
+			response.request().method() === 'GET'
+			&& response.url().includes('/apps/libresign/p/pdf/'),
+		)
+		await page.getByRole('button', { name: 'Show details' }).first().click()
+		await page.getByRole('button', { name: 'View document' }).first().click()
+
+		const response = await pdfResponse
+		expect(response.status()).toBe(200)
+		expect(response.headers()['content-type']).toContain('application/pdf')
+		expect(new URL(response.url()).pathname).toMatch(/\/apps\/libresign\/p\/pdf\/[^/]+$/)
+
+		// In Chromium the PDF response can arrive before the popup is reported.
+		// Wait for the actual presentation, not an immediate context.pages() snapshot.
+		const nativeViewer = page.locator('[role="dialog"][data-handler="pdf"]')
+		await expect.poll(async () =>
+			await nativeViewer.isVisible() || openedPopups.length > 0,
+		{ timeout: 15_000 }).toBe(true)
+
+		if (await nativeViewer.isVisible()) {
+			expect(openedPopups).toHaveLength(0)
+			await expect(nativeViewer).toBeVisible()
+			await expect.poll(async () => {
+				const pdfFrame = page.frames().find(frame => frame.url().includes('/apps/files_pdfviewer/'))
+				return pdfFrame?.evaluate(() => {
+					const pdf = (window as typeof window & {
+						PDFViewerApplication?: { pdfDocument?: { numPages?: number } }
+					}).PDFViewerApplication
+					return pdf?.pdfDocument?.numPages ?? 0
+				}) ?? 0
+			}, { timeout: 15_000 }).toBeGreaterThan(0)
+		} else {
+			// Chromium headless can download inline PDFs rather than navigating
+			// the popup, so validate the response URL and signed bytes below.
+			expect(openedPopups).toHaveLength(1)
+		}
+
+		const signedPdf = await page.request.get(response.url())
+		expect(signedPdf.status()).toBe(200)
+		expect((await signedPdf.body()).toString('latin1')).toContain('/ByteRange')
+		expect(officeRequests).toHaveLength(0)
 	})
 })
