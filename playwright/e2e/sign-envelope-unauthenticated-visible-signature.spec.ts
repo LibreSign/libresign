@@ -286,40 +286,52 @@ test('unauthenticated signer can define a visible signature for an envelope with
 		await expectEnvelopeSigned(page, scenario.envelopeName)
 	})
 
-	await test.step('The signed PDF opens in the native Viewer, not Euro-Office', async () => {
-		const currentTabs = page.context().pages().length
+	await test.step('The signed PDF opens by UUID without using an Office handler', async () => {
+		const context = page.context()
+		const existingPages = new Set(context.pages())
 		const officeRequests: string[] = []
-		page.on('request', request => {
+		context.on('request', request => {
 			if (request.url().includes('/apps/eurooffice/')) {
 				officeRequests.push(request.url())
 			}
 		})
 
-		const pdfResponse = page.waitForResponse(response =>
+		// CI checks out Nextcloud's source without installing files_pdfviewer.
+		// The Viewer opens PDFs when its handler is registered; otherwise the
+		// supported fallback opens the same signed UUID URL in another tab.
+		const pdfResponse = context.waitForEvent('response', response =>
 			response.request().method() === 'GET'
 			&& response.url().includes('/apps/libresign/p/pdf/'),
 		)
 		await page.getByRole('button', { name: 'Show details' }).first().click()
 		await page.getByRole('button', { name: 'View document' }).first().click()
-		await expect(page.locator('[role="dialog"][data-handler="pdf"]')).toBeVisible({ timeout: 15_000 })
 
 		const response = await pdfResponse
 		expect(response.status()).toBe(200)
 		expect(response.headers()['content-type']).toContain('application/pdf')
-		await expect.poll(async () => {
-			const pdfFrame = page.frames().find(frame => frame.url().includes('/apps/files_pdfviewer/'))
-			return pdfFrame?.evaluate(() => {
-				const pdf = (window as typeof window & {
-					PDFViewerApplication?: { pdfDocument?: { numPages?: number } }
-				}).PDFViewerApplication
-				return pdf?.pdfDocument?.numPages ?? 0
-			}) ?? 0
-		}, { timeout: 15_000 }).toBeGreaterThan(0)
+		expect(new URL(response.url()).pathname).toMatch(/\/apps\/libresign\/p\/pdf\/[^/]+$/)
+
+		const newPages = context.pages().filter(openedPage => !existingPages.has(openedPage))
+		expect(newPages.length).toBeLessThanOrEqual(1)
+		if (newPages.length === 0) {
+			await expect(page.locator('[role="dialog"][data-handler="pdf"]')).toBeVisible({ timeout: 15_000 })
+			await expect.poll(async () => {
+				const pdfFrame = page.frames().find(frame => frame.url().includes('/apps/files_pdfviewer/'))
+				return pdfFrame?.evaluate(() => {
+					const pdf = (window as typeof window & {
+						PDFViewerApplication?: { pdfDocument?: { numPages?: number } }
+					}).PDFViewerApplication
+					return pdf?.pdfDocument?.numPages ?? 0
+				}) ?? 0
+			}, { timeout: 15_000 }).toBeGreaterThan(0)
+		} else {
+			await expect(newPages[0]).toHaveURL(/\/apps\/libresign\/p\/pdf\/[^/]+/)
+		}
 
 		const signedPdf = await page.request.get(response.url())
 		expect(signedPdf.status()).toBe(200)
 		expect((await signedPdf.body()).toString('latin1')).toContain('/ByteRange')
 		expect(officeRequests).toHaveLength(0)
-		expect(page.context().pages()).toHaveLength(currentTabs)
+		expect(context.pages()).toHaveLength(existingPages.size + newPages.length)
 	})
 })
