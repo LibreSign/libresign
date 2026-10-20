@@ -389,7 +389,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->willReturnCallback(function (
 				array $identifyMethods,
 				string $displayName,
-				string $description,
+				?string $description,
 				bool $notify,
 				int $fileId,
 				int $signingOrder,
