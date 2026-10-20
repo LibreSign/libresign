@@ -4,21 +4,31 @@
  */
 
 /**
- * Extracts the relative path from a URL.
- * Handles absolute URLs (e.g., from localhost in dev/proxy environments)
- * and returns only the pathname + search + hash.
+ * Construct a read-only file for a URL supplied by LibreSign. In particular,
+ * the file ID of an unsigned original must not be attached to a signed PDF
+ * served by LibreSign's UUID endpoint.
  *
- * @param {string} url The URL to extract the path from
- * @return {string} The relative path
+ * @param {URL} url The absolute document URL
+ * @param {string} filename Display name
+ * @param {string} mime MIME type
+ * @param {number | undefined} nodeId The user's accessible DAV node ID, if any
+ * @return {File} A viewable file
  */
-const extractRelativePath = (url) => {
-	try {
-		const urlObj = new URL(url, window.location.origin)
-		return urlObj.pathname + urlObj.search + urlObj.hash
-	} catch (e) {
-		// If url is already a relative path, return as-is
-		return url
-	}
+const createViewerFile = (url, filename, mime, nodeId) => {
+	const currentUser = getCurrentUser()
+	const davUser = decodeURIComponent(url.pathname).match(/\/remote\.php\/dav\/files\/([^/]+)(?:\/|$)/)?.[1]
+	const isOwnDavFile = davUser !== undefined && davUser === currentUser?.uid
+	const hasAccessibleId = isOwnDavFile && Number.isSafeInteger(nodeId) && nodeId > 0
+
+	return new File({
+		source: url.href,
+		root: isOwnDavFile ? `/files/${davUser}` : '/',
+		owner: isOwnDavFile ? davUser : null,
+		displayname: filename,
+		mime,
+		permissions: Permission.READ,
+		...(hasAccessibleId ? { id: String(nodeId) } : {}),
+	})
 }
 
 /**
@@ -45,11 +55,9 @@ export const openDocument = ({ fileUrl, filename, nodeId, mime = 'application/pd
 			mime,
 			fileid: nodeId,
 		}
-		OCA.Viewer.open({
-			fileInfo,
-			list: [fileInfo],
-		})
-	} else {
-		window.open(`${source}?_t=${Date.now()}`)
 	}
+
+	// No compatible Viewer handler (or an error opening it): use the URL.
+	url.searchParams.set('_t', String(Date.now()))
+	window.open(url.href)
 }

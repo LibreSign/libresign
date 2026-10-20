@@ -6,18 +6,9 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { openDocument } from '../../utils/viewer.js'
 
-type GlobalWithOCA = typeof globalThis & {
-	OCA?: {
-		Viewer?: {
-			open?: (params: unknown) => void
-		}
-		[key: string]: unknown
-	}
-}
-
-describe('openDocument', () => {
-	let originalOCA: GlobalWithOCA['OCA']
-	let openSpy: ReturnType<typeof vi.spyOn>
+describe('openDocument on Nextcloud 36', () => {
+	let viewerOpen: ReturnType<typeof vi.fn>
+	let windowOpen: ReturnType<typeof vi.spyOn>
 
 	beforeEach(() => {
 		originalOCA = (global as GlobalWithOCA).OCA
@@ -25,8 +16,7 @@ describe('openDocument', () => {
 	})
 
 	afterEach(() => {
-		openSpy.mockRestore()
-		;(global as GlobalWithOCA).OCA = originalOCA
+		windowOpen.mockRestore()
 	})
 
 	it('uses Nextcloud Viewer when available', () => {
@@ -37,11 +27,7 @@ describe('openDocument', () => {
 			},
 		}
 
-		const file = {
-			filename: 'doc.pdf',
-			nodeId: 123,
-			url: 'https://example.test/index.php/apps/files/?file=/doc.pdf',
-		}
+		await openDocument({ fileUrl: url, filename: 'signed.pdf', nodeId: 42 })
 
 		openDocument({
 			fileUrl: file.url,
@@ -59,8 +45,12 @@ describe('openDocument', () => {
 		}
 	})
 
-	it('opens new window when Viewer is not available', () => {
-		;(global as GlobalWithOCA).OCA = undefined
+	it('selects PDF.js even when an Office handler has higher priority', async () => {
+		const officeEnabled = vi.fn(() => true)
+		mocks.getHandlers.mockReturnValue(new Map([
+			['eurooffice', { id: 'eurooffice', enabled: officeEnabled }],
+			['pdf', { id: 'pdf', enabled: () => true }],
+		]))
 
 		const file = {
 			filename: 'doc.pdf',
