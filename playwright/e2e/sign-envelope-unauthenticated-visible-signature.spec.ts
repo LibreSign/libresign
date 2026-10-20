@@ -87,6 +87,9 @@ async function enableEnvelopeScenario(request: APIRequestContext) {
 
 	await setCertificateEngine(request, 'openssl')
 
+	// This flow opens signed PDFs as an anonymous signer; do not inherit a
+	// private validation policy left by another Playwright scenario.
+	await setSystemPolicy(request, 'make_validation_url_private', '0')
 	await setSystemPolicy(request, 'envelope_enabled', '1')
 	await setSystemPolicy(request, 'identification_documents', JSON.stringify({ enabled: false, approvers: ['admin'] }))
 	await setSystemPolicy(
