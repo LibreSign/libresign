@@ -607,18 +607,49 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		], $timestamp['cnHints']);
 	}
 
-	public function testGetCertificateChainUsesNativeValidationServiceForEachSignature(): void {
+	/**
+	 * @return array<string, array{0: int, 1: string}>
+	 */
+	public static function provideCertificateValidationStatuses(): array {
+		return [
+			'untrusted issuer' => [2, "Certificate issuer isn't trusted."],
+			'expired certificate' => [5, 'Certificate has expired.'],
+		];
+	}
+
+	#[DataProvider('provideCertificateValidationStatuses')]
+	public function testGetCertificateChainUsesNativeValidationServiceForEachSignature(int $statusId, string $label): void {
+		$fixtureResource = fopen(__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf', 'r');
+		$this->assertIsResource($fixtureResource);
+		$service = new PdfSignatureValidationService(
+			$this->appConfig,
+			$this->l10n,
+			$this->logger,
+		);
+		$this->nativeValidation = $service->validateFromResource($fixtureResource);
+		fclose($fixtureResource);
+		$this->assertCount(1, $this->nativeValidation);
+
+		// The fixture certificate expires; each validation status is explicit.
+		$this->nativeValidation[0]['certificateValidation'] = [
+			'id' => $statusId,
+			'label' => $label,
+			'isValid' => false,
+		];
+
 		$handler = $this->getHandler();
 		$resource = fopen(__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf', 'r');
 		$this->assertIsResource($resource);
-
 		$result = $handler->getCertificateChain($resource);
 		fclose($resource);
 
 		$this->assertSame(1, $this->nativeValidationCalls);
 		$this->assertNotEmpty($result);
 		$this->assertSame(1, $result[0]['chain'][0]['signature_validation']['id']);
-		$this->assertSame(2, $result[0]['chain'][0]['certificate_validation']['id']);
+		$this->assertSame(
+			$this->nativeValidation[0]['certificateValidation'],
+			$result[0]['chain'][0]['certificate_validation'],
+		);
 	}
 
 	public function testGetCertificateChainUsesNativeDigestMismatchValidation(): void {
