@@ -108,6 +108,7 @@ OC.L10N.register(
     "Document" : "Skjal",
     "Delete file" : "Eyða skrá",
     "Delete certificate" : "Eyða skilríki",
+    "Delete {type}" : "Eyða '{type}'?",
     "Signature" : "Undirskrift",
     "Profile picture" : "Einkennismynd",
     "Create account" : "Stofna aðgang",
