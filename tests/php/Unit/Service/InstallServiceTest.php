@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use bovigo\vfs\vfsStream;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Install\InstallService;
@@ -20,6 +21,7 @@ use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\ICacheFactory;
 use OCP\IConfig;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -233,6 +235,45 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$actual = self::invokePrivate($installService, 'getInstallPid', [321]);
 
 		$this->assertSame(321, $actual);
+	}
+
+	/**
+	 * @return array<string, array{0: string}>
+	 */
+	public static function provideSignatureEngines(): array {
+		return [
+			'PhpNative' => ['PhpNative'],
+			'JSignPdf' => ['JSignPdf'],
+		];
+	}
+
+	#[DataProvider('provideSignatureEngines')]
+	public function testInstallJavaStartsAsyncForBothSignatureEngines(string $signatureEngine): void {
+		$process = $this->createMock(Process::class);
+		$process->expects($this->once())->method('start');
+		$process->expects($this->once())->method('getPid')->willReturn(321);
+
+		$installService = $this->getInstallServiceWithProcess($process);
+		$this->appConfig->method('getValueString')->willReturn($signatureEngine);
+		$this->processManager->expects($this->once())
+			->method('register')
+			->with('install', 321, ['resource' => 'java']);
+
+		$installService->installJava(true);
+	}
+
+	public function testInstallJSignPdfSkipsAsyncForPhpNative(): void {
+		$process = $this->createMock(Process::class);
+		$process->expects($this->never())->method('start');
+
+		$installService = $this->getInstallServiceWithProcess($process);
+		$this->appConfig->expects($this->once())
+			->method('getValueString')
+			->with(Application::APP_ID, 'signature_engine', 'JSignPdf')
+			->willReturn('PhpNative');
+		$this->processManager->expects($this->never())->method('register');
+
+		$installService->installJSignPdf(true);
 	}
 
 	public function testRunAsyncRegistersPidWhenProcessStarts(): void {
