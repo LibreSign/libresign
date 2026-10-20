@@ -76,11 +76,12 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertTrue($installService->isDownloadWip());
 	}
 
-	public function testAsyncJavaInstallDelegatesResourceAndNormalizedTarget(): void {
+	#[DataProvider('provideSignatureEngines')]
+	public function testAsyncJavaInstallDelegatesResourceAndNormalizedTarget(string $signatureEngine): void {
 		$installService = $this->getInstallService();
 		$this->appConfig->method('getValueString')
 			->with(Application::APP_ID, 'signature_engine', 'JSignPdf')
-			->willReturn('JSignPdf');
+			->willReturn($signatureEngine);
 
 		$this->installProcessManager->expects($this->once())
 			->method('start')
@@ -96,13 +97,29 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$installService->installJava(true);
 	}
 
+	/**
+	 * @return array<string, array{0: string}>
+	 */
+	public static function provideSignatureEngines(): array {
+		return [
+			'PhpNative' => ['PhpNative'],
+			'JSignPdf' => ['JSignPdf'],
+		];
+	}
+
+	public function testAsyncJSignPdfInstallIsSkippedForPhpNative(): void {
+		$installService = $this->getInstallService();
+		$this->appConfig->method('getValueString')
+			->with(Application::APP_ID, 'signature_engine', 'JSignPdf')
+			->willReturn('PhpNative');
+		$this->installProcessManager->expects($this->never())->method('start');
+
+		$installService->installJSignPdf(true);
+	}
+
 	public function testAsyncInstallStoresActionableErrorWhenProcessDoesNotStart(): void {
 		$installService = $this->getInstallService();
 		$this->progressStore->method('get')->willReturn([]);
-
-		$this->appConfig->method('getValueString')
-			->with(Application::APP_ID, 'signature_engine', 'JSignPdf')
-			->willReturn('JSignPdf');
 		$this->installProcessManager->method('start')->willReturn(null);
 
 		$this->progressStore->expects($this->once())
