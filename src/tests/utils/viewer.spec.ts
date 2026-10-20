@@ -191,9 +191,40 @@ describe('openDocument on Nextcloud 36', () => {
 		expect(url.searchParams.get('_t')).toMatch(/^\d+$/)
 	})
 
-	it('falls back if the Viewer fails instead of losing document access', async () => {
+	it('propagates native Viewer errors instead of silently opening another tab', async () => {
 		viewerOpen.mockRejectedValue(new Error('Viewer failed'))
-		await openDocument({ fileUrl: '/apps/libresign/p/pdf/signed-uuid', filename: 'signed.pdf' })
-		expect(windowOpen).toHaveBeenCalledOnce()
+
+		await expect(openDocument({
+			fileUrl: '/apps/libresign/p/pdf/signed-uuid',
+			filename: 'signed.pdf',
+		})).rejects.toThrow('Viewer failed')
+
+		expect(windowOpen).not.toHaveBeenCalled()
+	})
+
+	it('propagates native handler errors instead of treating them as unavailable', async () => {
+		mocks.getHandlers.mockReturnValue(new Map([
+			['pdf', { id: 'pdf', enabled: () => { throw new Error('Handler failed') } }],
+		]))
+
+		await expect(openDocument({
+			fileUrl: '/apps/libresign/p/pdf/signed-uuid',
+			filename: 'signed.pdf',
+		})).rejects.toThrow('Handler failed')
+
+		expect(windowOpen).not.toHaveBeenCalled()
+	})
+
+	it('propagates errors from the default handler for ordinary files', async () => {
+		mocks.canView.mockReturnValue(true)
+		viewerOpen.mockRejectedValue(new Error('Failed to open ordinary file'))
+
+		await expect(openDocument({
+			fileUrl: '/remote.php/dav/files/admin/contract.pdf',
+			filename: 'contract.pdf',
+			nodeId: 123,
+		})).rejects.toThrow('Failed to open ordinary file')
+
+		expect(windowOpen).not.toHaveBeenCalled()
 	})
 })

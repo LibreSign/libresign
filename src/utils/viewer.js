@@ -57,25 +57,21 @@ export const openDocument = async ({ fileUrl, filename, nodeId, mime = 'applicat
 	if (isSameOrigin) {
 		const file = createViewerFile(url, filename, mime, isLibreSignPdf ? undefined : nodeId)
 
-		try {
-			if (isLibreSignPdf) {
-				// Do not let another PDF handler (Euro-Office/ONLYOFFICE) look
-				// up the original owner's node ID in the visitor's Files.
-				const nativePdf = getHandlers().get('pdf')
-				if (nativePdf?.enabled([file]) === true) {
-					await getViewer().open([file], file, undefined, 'pdf')
-					return
-				}
-			} else if (canView(file)) {
-				await getViewer().open([file], file)
+		if (isLibreSignPdf) {
+			// Do not let Office handlers resolve the owner's original node ID
+			// through the visitor's Files. Only use the native PDF handler.
+			const nativePdf = getHandlers().get('pdf')
+			if (nativePdf?.enabled([file]) === true) {
+				await getViewer().open([file], file, undefined, 'pdf')
 				return
 			}
-		} catch {
-			// Keep the document accessible when the Viewer cannot open it.
+		} else if (canView(file)) {
+			await getViewer().open([file], file)
+			return
 		}
 	}
 
-	// No compatible Viewer handler (or an error opening it): use the URL.
+	// Fallback is for unavailable handlers only. Viewer failures must surface.
 	url.searchParams.set('_t', String(Date.now()))
 	window.open(url.href)
 }
