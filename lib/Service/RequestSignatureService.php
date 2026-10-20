@@ -522,7 +522,7 @@ class RequestSignatureService {
 							$identifyMethod['method'] => $identifyMethod['value'],
 						],
 						displayName: $signer['displayName'] ?? '',
-						description: $signer['description'] ?? '',
+						description: $signer['description'] ?? null,
 						notify: $shouldNotify,
 						fileId: $file->getId(),
 						signingOrder: $signingOrder,

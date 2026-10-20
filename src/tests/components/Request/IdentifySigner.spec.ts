@@ -438,7 +438,7 @@ describe('IdentifySigner rules', () => {
 					{ identifyMethods: [{ method: 'email', value: 'existing@example.com', requirement: 'optional' }] },
 					{
 						displayName: 'John Doe',
-						description: undefined,
+						description: '',
 						participantRole: 'signer',
 						email: 'john@example.com',
 						status: 0,
@@ -465,7 +465,7 @@ describe('IdentifySigner rules', () => {
 			expect(payload.signers[0].description).toBe('test message')
 		})
 
-		it('omits description when empty after trim', async () => {
+		it('sends empty description when empty after trim so the backend clears it', async () => {
 			wrapper.vm.identifyMethod = 'email'
 			wrapper.vm.identify = 'john@example.com'
 			wrapper.vm.displayName = 'John'
@@ -474,7 +474,21 @@ describe('IdentifySigner rules', () => {
 			await wrapper.vm.saveSigner()
 
 			const payload = filesStore.saveOrUpdateSignatureRequest.mock.calls[0][0]
-			expect(payload.signers[0].description).toBeUndefined()
+			expect(payload.signers[0].description).toBe('')
+		})
+
+		it('sends empty description after disabling custom message on an edited signer', async () => {
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = 'john@example.com'
+			wrapper.vm.displayName = 'John'
+			wrapper.vm.description = 'Old message'
+			wrapper.vm.enableCustomMessage = true
+
+			wrapper.vm.onToggleCustomMessage(false)
+			await wrapper.vm.saveSigner()
+
+			const payload = filesStore.saveOrUpdateSignatureRequest.mock.calls[0][0]
+			expect(payload.signers[0].description).toBe('')
 		})
 
 		it('saves signature request after updating signer', async () => {

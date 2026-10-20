@@ -20,7 +20,7 @@ use OCP\DB\Types;
  * @method ?int getFileId()
  * @method void setUuid(string $uuid)
  * @method string getUuid()
- * @method void setDescription(string $description)
+ * @method void setDescription(?string $description)
  * @method ?string getDescription()
  * @method void setCreatedAt(\DateTime $createdAt)
  * @method \DateTime getCreatedAt()
