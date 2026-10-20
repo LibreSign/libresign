@@ -278,7 +278,7 @@ function viewFile(file: EnvelopeFile) {
 		return
 	}
 	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
-	openDocument({
+	return openDocument({
 		fileUrl,
 		filename: file.name,
 	})
