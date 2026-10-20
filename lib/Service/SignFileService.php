@@ -1325,7 +1325,7 @@ class SignFileService {
 			$signRequest = $this->signRequestService->createOrUpdateSignRequest(
 				identifyMethods: [IdentifyMethodService::IDENTIFY_ACCOUNT => $user->getUID()],
 				displayName: $user->getDisplayName(),
-				description: '',
+				description: null,
 				notify: false,
 				fileId: $file->getId(),
 				signingOrder: 0,
