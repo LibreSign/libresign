@@ -434,7 +434,7 @@ function getPreviewUrl(file: Partial<EnvelopeFile> & { id?: number; nodeId?: num
 
 function openFile(file: EnvelopeFile) {
 	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
-	return openDocument({
+	openDocument({
 		fileUrl,
 		filename: file.name || '',
 		nodeId: file.id,
