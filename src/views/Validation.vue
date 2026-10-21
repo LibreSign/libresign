@@ -753,8 +753,14 @@ function getValidationDocumentSigners(validationDocument: ValidationDocumentStat
 	return signers
 }
 
+function hasAppliedSignature(signer: ValidationDisplaySigner) {
+	return Boolean(signer.signed)
+		|| Number(signer.status) === SIGN_REQUEST_STATUS.SIGNED
+		|| signer.signature_validation !== undefined
+}
+
 function getDocumentValidationSummary(validationDocument: ValidationDocumentState): DocumentValidationSummary {
-	const signers = getValidationDocumentSigners(validationDocument)
+	const signers = getValidationDocumentSigners(validationDocument).filter(hasAppliedSignature)
 
 	if (signers.length === 0) {
 		return {
