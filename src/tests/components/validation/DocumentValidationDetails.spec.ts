@@ -398,7 +398,7 @@ describe('DocumentValidationDetails', () => {
 			expect(wrapper.vm.document.uuid).toBeUndefined()
 		})
 
-		it('calls openDocument with correct parameters', async () => {
+		it('opens the signed PDF by UUID without passing the owner nodeId', async () => {
 			wrapper = createWrapper({
 				document: {
 					uuid: 'doc-uuid-123',
@@ -410,9 +410,24 @@ describe('DocumentValidationDetails', () => {
 			await wrapper.vm.viewDocument()
 
 			expect(viewer.openDocument).toHaveBeenCalledWith({
-				fileUrl: expect.stringContaining('doc-uuid-123'),
+				fileUrl: '/apps/libresign/p/pdf/doc-uuid-123',
 				filename: 'Test.pdf',
-				nodeId: 456,
+			})
+		})
+
+		it('opens the document when the response has no nodeId', async () => {
+			wrapper = createWrapper({
+				document: {
+					uuid: 'no-node-id',
+					name: 'No nodeId.pdf',
+				},
+			})
+
+			await wrapper.vm.viewDocument()
+
+			expect(viewer.openDocument).toHaveBeenCalledWith({
+				fileUrl: '/apps/libresign/p/pdf/no-node-id',
+				filename: 'No nodeId.pdf',
 			})
 		})
 
@@ -451,8 +466,8 @@ describe('DocumentValidationDetails', () => {
 		it('does not open viewer without required viewer data', async () => {
 			wrapper = createWrapper({
 				document: {
-					uuid: 'missing-node-id',
-					name: 'Missing nodeId.pdf',
+					name: 'Missing uuid.pdf',
+					nodeId: 456,
 				},
 			})
 
