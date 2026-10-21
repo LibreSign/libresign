@@ -65,7 +65,7 @@
 						<template #subname>
 							<strong>{{ t('libresign', 'Status:') }}</strong> {{ getFileStatusText(file) }}
 						</template>
-						<template v-if="!isTouchDevice && file.nodeId" #actions>
+						<template v-if="!isTouchDevice && file.uuid" #actions>
 							<NcActionButton @click.stop="viewFile(file)">
 								<template #icon>
 									<NcIconSvgWrapper :path="mdiEye" :size="20" />
@@ -74,7 +74,7 @@
 							</NcActionButton>
 						</template>
 						<template #extra-actions>
-							<NcButton v-if="isTouchDevice && file.nodeId" variant="tertiary" :aria-label="t('libresign', 'View PDF')" @click.stop="viewFile(file)">
+							<NcButton v-if="isTouchDevice && file.uuid" variant="tertiary" :aria-label="t('libresign', 'View PDF')" @click.stop="viewFile(file)">
 								<template #icon>
 									<NcIconSvgWrapper :path="mdiEye" :size="20" />
 								</template>
@@ -274,14 +274,13 @@ function getSignerProgressText(signer: EnvelopeSigner) {
 }
 
 function viewFile(file: EnvelopeFile) {
-	if (!file.uuid || !file.name || typeof file.nodeId !== 'number') {
+	if (!file.uuid || !file.name) {
 		return
 	}
 	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
-	openDocument({
+	return openDocument({
 		fileUrl,
 		filename: file.name,
-		nodeId: file.nodeId,
 	})
 }
 
