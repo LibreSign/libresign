@@ -20,7 +20,8 @@
     "test:watch": "vitest",
     "ts:check": "vue-tsc --noEmit",
     "typescript:generate": "npx openapi-typescript -t",
-    "watch": "CHOKIDAR_USEPOLLING=1 CHOKIDAR_INTERVAL=1000 vite build --mode development --watch"
+    "watch": "CHOKIDAR_USEPOLLING=1 CHOKIDAR_INTERVAL=1000 vite build --mode development --watch",
+    "test:mutation": "stryker run"
   },
   "browserslist": [
     "extends @nextcloud/browserslist-config"
@@ -86,6 +87,8 @@
     "@nextcloud/vite-config": "^3.0.0-beta.1",
     "@pinia/testing": "^2.0.2",
     "@playwright/test": "^1.64.1",
+    "@stryker-mutator/core": "^10.0.0",
+    "@stryker-mutator/vitest-runner": "^10.0.0",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/vue": "^8.1.0",
     "@types/blueimp-md5": "^2.18.2",

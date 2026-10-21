@@ -31,6 +31,7 @@ vi.mock('@nextcloud/logger', () => ({
 	getLoggerBuilder: vi.fn(() => ({
 		setApp: vi.fn().mockReturnThis(),
 		detectUser: vi.fn().mockReturnThis(),
+		detectLogLevel: vi.fn().mockReturnThis(),
 		build: vi.fn(() => ({
 			error: vi.fn(),
 			warn: vi.fn(),

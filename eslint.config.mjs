@@ -20,6 +20,8 @@ export default [
 			'node_modules/*',
 			// TODO: upstream
 			'openapi-*.json',
+			// StrykerJS sandbox
+			'.stryker-tmp/*'
 		],
 	},
 
