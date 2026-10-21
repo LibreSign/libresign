@@ -1145,7 +1145,7 @@ function openFile() {
 		return
 	}
 
-	return openDocument({
+	openDocument({
 		fileUrl,
 		filename: file.name,
 		nodeId: file.nodeId,
