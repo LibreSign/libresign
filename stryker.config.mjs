@@ -18,6 +18,7 @@ export default {
   mutate: [
     'src/**/*.{js,ts}',
     '!src/tests/**',
+    '!src/types/openapi/**',
     '!src/**/*.d.ts',
   ],
 };
