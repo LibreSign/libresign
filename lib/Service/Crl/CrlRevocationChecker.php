@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Crl;
 
 use OCA\Libresign\Enum\CrlValidationStatus;
+use OCA\Libresign\Exception\CrlGenerationInProgressException;
 use OCA\Libresign\Service\Crl\Ldap\LdapCrlDownloader;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\CrlValidation\CrlValidationPolicy;
@@ -228,7 +229,7 @@ class CrlRevocationChecker {
 				$this->logger->debug('Skipping local CRL generation because source PKI config path is missing', [
 					'reason' => $e->getMessage(),
 				]);
-			} elseif ($e instanceof \RuntimeException && str_contains($e->getMessage(), 'already in progress')) {
+			} elseif ($e instanceof CrlGenerationInProgressException) {
 				$this->logger->debug('Local CRL generation is already in progress', [
 					'reason' => $e->getMessage(),
 				]);
