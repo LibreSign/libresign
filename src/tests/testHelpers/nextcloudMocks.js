@@ -57,13 +57,3 @@ global.OCP = global.OCP ?? {
 }
 
 global.window._oc_webroot = '/'
-
-// The Viewer reads Nextcloud's preview MIME capabilities during module imports.
-// Provide a preview-enabled test server instead of intercepting its warnings.
-global.window._oc_capabilities = {
-	core: {
-		previews: {
-			enabled_providers: ['^image/'],
-		},
-	},
-}
