@@ -3,82 +3,108 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const mocks = vi.hoisted(() => ({ getCurrentUser: vi.fn() }))
+vi.mock('@nextcloud/auth', () => ({ getCurrentUser: mocks.getCurrentUser }))
+
 import { openDocument } from '../../utils/viewer.js'
 
-type GlobalWithOCA = typeof globalThis & {
-	OCA?: {
-		Viewer?: {
-			open?: (params: unknown) => void
-		}
-		[key: string]: unknown
-	}
+type LegacyViewer = {
+	availableHandlers?: Array<{ id: string; mimes?: string[] }>
+	open?: ReturnType<typeof vi.fn>
+	openWith?: ReturnType<typeof vi.fn>
 }
+type GlobalWithOCA = typeof globalThis & { OCA?: { Viewer?: LegacyViewer } }
 
-describe('openDocument', () => {
+describe('openDocument on Nextcloud 33-35', () => {
 	let originalOCA: GlobalWithOCA['OCA']
 	let openSpy: ReturnType<typeof vi.spyOn>
+	let viewer: Required<LegacyViewer>
 
 	beforeEach(() => {
-		originalOCA = (global as GlobalWithOCA).OCA
+		originalOCA = (globalThis as GlobalWithOCA).OCA
 		openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+		mocks.getCurrentUser.mockReturnValue({ uid: 'signer' })
+		viewer = {
+			availableHandlers: [
+				{ id: 'eurooffice', mimes: ['application/pdf'] },
+				{ id: 'pdf', mimes: ['application/pdf'] },
+			],
+			open: vi.fn(),
+			openWith: vi.fn(),
+		}
+		;(globalThis as GlobalWithOCA).OCA = { Viewer: viewer }
 	})
 
 	afterEach(() => {
 		openSpy.mockRestore()
-		;(global as GlobalWithOCA).OCA = originalOCA
+		;(globalThis as GlobalWithOCA).OCA = originalOCA
+		vi.clearAllMocks()
 	})
 
-	it('uses Nextcloud Viewer when available', () => {
-		const viewerOpen = vi.fn()
-		;(global as GlobalWithOCA).OCA = {
-			Viewer: {
-				open: viewerOpen,
-			},
-		}
-
-		const file = {
-			filename: 'doc.pdf',
+	it.each(['owner', 'signer without access to the original'])('uses native PDF handler without original fileid for %s', () => {
+		openDocument({
+			fileUrl: '/index.php/apps/libresign/p/pdf/signed-uuid',
+			filename: 'signed.pdf',
 			nodeId: 123,
-			url: 'https://example.test/index.php/apps/files/?file=/doc.pdf',
-		}
-
-		openDocument({
-			fileUrl: file.url,
-			filename: file.filename,
-			nodeId: file.nodeId,
 		})
-
-		expect(viewerOpen).toHaveBeenCalledTimes(1)
-		const payload = viewerOpen.mock.calls[0]?.[0]
-		if (payload) {
-			expect(payload.fileInfo.basename).toBe('doc.pdf')
-			expect(payload.fileInfo.fileid).toBe(123)
-			expect(payload.fileInfo.mime).toBe('application/pdf')
-			expect(payload.fileInfo.source).toContain('/index.php/apps/files/')
-		}
+		expect(viewer.openWith).toHaveBeenCalledOnce()
+		const [id, options] = viewer.openWith.mock.calls[0]
+		expect(id).toBe('pdf')
+		expect(options.fileInfo).toEqual({
+			source: '/index.php/apps/libresign/p/pdf/signed-uuid',
+			basename: 'signed.pdf',
+			mime: 'application/pdf',
+		})
+		expect(options.list).toEqual([options.fileInfo])
+		expect(viewer.open).not.toHaveBeenCalled()
+		expect(openSpy).not.toHaveBeenCalled()
 	})
 
-	it('opens new window when Viewer is not available', () => {
-		;(global as GlobalWithOCA).OCA = undefined
+	it('falls back on public pages even if the PDF handler is registered', () => {
+		mocks.getCurrentUser.mockReturnValue(null)
+		openDocument({ fileUrl: '/apps/libresign/p/pdf/signed-uuid', filename: 'signed.pdf', nodeId: 123 })
+		expect(viewer.openWith).not.toHaveBeenCalled()
+		expect(openSpy).toHaveBeenCalledOnce()
+		expect(new URL(openSpy.mock.calls[0][0] as string).pathname).toBe('/apps/libresign/p/pdf/signed-uuid')
+	})
 
-		const file = {
-			filename: 'doc.pdf',
-			nodeId: 456,
-			url: '/apps/files/?file=/doc.pdf',
-		}
+	it('does not let Office handlers handle signed UUID PDFs', () => {
+		viewer.availableHandlers = [{ id: 'eurooffice', mimes: ['application/pdf'] }]
+		openDocument({ fileUrl: '/apps/libresign/p/pdf/signed-uuid', filename: 'signed.pdf', nodeId: 456 })
+		expect(viewer.openWith).not.toHaveBeenCalled()
+		expect(viewer.open).not.toHaveBeenCalled()
+		expect(openSpy).toHaveBeenCalledOnce()
+	})
 
-		openDocument({
-			fileUrl: file.url,
-			filename: file.filename,
-			nodeId: file.nodeId,
+	it('falls back when the Viewer is not installed', () => {
+		;(globalThis as GlobalWithOCA).OCA = undefined
+		openDocument({ fileUrl: '/apps/libresign/p/pdf/signed-uuid?download=1', filename: 'signed.pdf' })
+		const url = new URL(openSpy.mock.calls[0][0] as string)
+		expect(url.searchParams.get('download')).toBe('1')
+		expect(url.searchParams.get('_t')).toMatch(/^\d+$/)
+	})
+
+	it('keeps the original file ID for ordinary Nextcloud documents', () => {
+		openDocument({ fileUrl: '/apps/files/?file=/contract.pdf', filename: 'contract.pdf', nodeId: 123 })
+		expect(viewer.open).toHaveBeenCalledWith({
+			fileInfo: { source: '/apps/files/?file=/contract.pdf', basename: 'contract.pdf', mime: 'application/pdf', fileid: 123 },
+			list: [{ source: '/apps/files/?file=/contract.pdf', basename: 'contract.pdf', mime: 'application/pdf', fileid: 123 }],
 		})
+		expect(viewer.openWith).not.toHaveBeenCalled()
+	})
 
-		expect(openSpy).toHaveBeenCalledTimes(1)
-		const openedUrl = openSpy.mock.calls[0]?.[0]
-		if (openedUrl) {
-			expect(openedUrl).toContain('/apps/files/?file=/doc.pdf')
-			expect(openedUrl).toMatch(/_t=\d+$/)
-		}
+	it('opens external URLs directly instead of giving them to local handlers', () => {
+		openDocument({ fileUrl: 'https://example.test/file.pdf?lang=pt', filename: 'external.pdf', nodeId: 123 })
+		expect(viewer.open).not.toHaveBeenCalled()
+		expect(viewer.openWith).not.toHaveBeenCalled()
+		expect(new URL(openSpy.mock.calls[0][0] as string).hostname).toBe('example.test')
+	})
+
+	it('propagates Viewer errors rather than silently opening another window', () => {
+		viewer.openWith.mockImplementation(() => { throw new Error('Viewer failed') })
+		expect(() => openDocument({ fileUrl: '/apps/libresign/p/pdf/signed-uuid', filename: 'signed.pdf' })).toThrow('Viewer failed')
+		expect(openSpy).not.toHaveBeenCalled()
 	})
 })

@@ -237,4 +237,36 @@ test('unauthenticated signer can define a visible signature for an envelope with
 	await test.step('Then the success confirmation screen is shown with the envelope name', async () => {
 		await expectEnvelopeSigned(page, scenario.envelopeName)
 	})
+
+	await test.step('The signed PDF opens by UUID without using an Office handler', async () => {
+		const context = page.context()
+		const officeRequests: string[] = []
+		context.on('request', request => {
+			if (request.url().includes('/apps/eurooffice/')) {
+				officeRequests.push(request.url())
+			}
+		})
+
+		// The legacy Viewer cannot load anonymous PDFs through authenticated
+		// Files APIs. Check the direct URL fallback in this public signing flow.
+		const popupPromise = page.waitForEvent('popup')
+		const pdfResponse = context.waitForEvent('response', response =>
+			response.request().method() === 'GET'
+			&& response.url().includes('/apps/libresign/p/pdf/'),
+		)
+		await page.getByRole('button', { name: 'Show details' }).first().click()
+		await page.getByRole('button', { name: 'View document' }).first().click()
+
+		const popup = await popupPromise
+		expect(await popup.opener()).toBe(page)
+		const response = await pdfResponse
+		expect(response.status()).toBe(200)
+		expect(response.headers()['content-type']).toContain('application/pdf')
+		expect(new URL(response.url()).pathname).toMatch(/\/apps\/libresign\/p\/pdf\/[^/]+$/)
+
+		const signedPdf = await page.request.get(response.url())
+		expect(signedPdf.status()).toBe(200)
+		expect((await signedPdf.body()).toString('latin1')).toContain('/ByteRange')
+		expect(officeRequests).toHaveLength(0)
+	})
 })
