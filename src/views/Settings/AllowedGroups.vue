@@ -12,7 +12,7 @@
 			label="displayname"
 			:no-wrap="false"
 			:aria-label-combobox="allowedGroupsAriaLabel"
-			:close-on-select="false"
+			keep-open
 			:disabled="loadingGroups"
 			:loading="isSearching"
 			:multiple="true"

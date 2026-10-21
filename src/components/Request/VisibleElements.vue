@@ -5,7 +5,6 @@
 <template>
 	<NcModal v-if="modal"
 		:name="signaturePositionsModalTitle"
-		:close-button-contained="false"
 		:close-button-outside="true"
 		size="full"
 		@close="closeModal">

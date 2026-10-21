@@ -73,7 +73,6 @@ export default [
 			'@nextcloud/l10n-non-breaking-space': 'off', // ~6 hits; changes translation strings
 
 			// Behavior/API risk — may rename Vue events, slots, attrs, or break DOM contracts
-			'@nextcloud/no-deprecated-library-props': 'off', // ~10 hits; needs careful Nc* prop migration
 			'vue/attribute-hyphenation': 'off', // ~404 hits; large + DOM attr naming
 			'vue/custom-event-name-casing': 'off', // ~65 hits; may rename Vue events
 			'vue/slot-name-casing': 'off', // ~3 hits; may rename slots

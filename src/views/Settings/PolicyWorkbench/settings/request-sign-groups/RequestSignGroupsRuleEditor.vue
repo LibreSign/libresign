@@ -23,7 +23,7 @@
 					label="displayname"
 					:no-wrap="false"
 					:aria-label-combobox="authorizedRequesterGroupsAriaLabel"
-					:close-on-select="false"
+					keep-open
 					:disabled="loadingGroups"
 					:loading="isSearching"
 					:multiple="true"
@@ -50,7 +50,7 @@
 					label="displayname"
 					:no-wrap="false"
 					:aria-label-combobox="deniedRequesterGroupsAriaLabel"
-					:close-on-select="false"
+					keep-open
 					:disabled="loadingGroups"
 					:loading="isSearching"
 					:multiple="true"
