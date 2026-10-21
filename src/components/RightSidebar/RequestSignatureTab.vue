@@ -106,7 +106,7 @@
 						<NcActionInput v-if="canEditSigningOrder(signer)"
 							:label="t('libresign', 'Signing order')"
 							type="number"
-							:value="signer.signingOrder || 1"
+							:model-value="signer.signingOrder || 1"
 							@update:modelValue="updateSigningOrder(signer, $event)"
 							@submit="confirmSigningOrder(signer); closeActions()"
 							@blur="confirmSigningOrder(signer)">
@@ -281,7 +281,6 @@
 		<NcModal v-if="modalSrc"
 			size="full"
 			:name="fileName"
-			:close-button-contained="false"
 			:close-button-outside="true"
 			@close="closeModal()">
 			<iframe :src="modalSrc" class="iframe" />

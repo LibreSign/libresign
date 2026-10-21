@@ -88,7 +88,6 @@
 			v-if="state.activeDefinition"
 			:name="state.activeDefinition.title"
 			size="full"
-			:can-close="true"
 			@closing="requestCloseSetting()">
 			<CatalogSettingDialogFrame
 				:dialog-description="dialogDescription"
@@ -148,7 +147,6 @@
 				v-if="showSettingDialogExtrasModal && settingDialogExtrasModal"
 				:name="settingDialogExtrasModalName"
 				size="normal"
-				:can-close="true"
 				@closing="closeSettingDialogExtrasModal">
 				<div data-cy="geoip-database-form">
 					<component
@@ -164,7 +162,6 @@
 				:size="ruleEditorDialogSize"
 				:class="ruleEditorDialogClass"
 				:buttons="ruleDialogButtons"
-				:can-close="true"
 				@closing="requestCloseRuleDialog()">
 				<div
 					v-if="state.editorDraft"
@@ -214,7 +211,6 @@
 			:message="discardUnsavedChangesDialogMessage"
 			:buttons="discardDialogButtons"
 			size="normal"
-			:can-close="true"
 			@closing="cancelDiscardDialog" />
 
 		<NcDialog
@@ -223,7 +219,7 @@
 			:message="pendingRemovalMessage"
 			:buttons="removalDialogButtons"
 			size="normal"
-			:can-close="!isRemovingRule"
+			:no-close="isRemovingRule"
 			@closing="cancelRuleRemoval" />
 	</NcSettingsSection>
 </template>
