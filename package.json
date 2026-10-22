@@ -17,11 +17,11 @@
     "test:e2e": "playwright test",
     "test:e2e:report": "playwright show-report",
     "test:e2e:ui": "playwright test --ui --ui-host=0.0.0.0 --ui-port=9323",
+    "test:mutation": "stryker run",
     "test:watch": "vitest",
     "ts:check": "vue-tsc --noEmit",
     "typescript:generate": "npx openapi-typescript -t",
-    "watch": "CHOKIDAR_USEPOLLING=1 CHOKIDAR_INTERVAL=1000 vite build --mode development --watch",
-    "test:mutation": "stryker run"
+    "watch": "CHOKIDAR_USEPOLLING=1 CHOKIDAR_INTERVAL=1000 vite build --mode development --watch"
   },
   "browserslist": [
     "extends @nextcloud/browserslist-config"
