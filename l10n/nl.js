@@ -205,6 +205,7 @@ OC.L10N.register(
     "Delete file" : "Bestand verwijderen",
     "Delete certificate" : "Verwijder certificaat",
     "Change password" : "Wachtwoord wijzigen",
+    "Edit {type}" : "{type} bewerken",
     "Your signatures" : "Jouw handtekeningen",
     "Signature" : "Handtekening",
     "Initials" : "Initialen",
