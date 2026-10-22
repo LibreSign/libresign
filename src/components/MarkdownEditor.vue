@@ -586,7 +586,6 @@ function applyLink() {
 	withEditor((view) => insertMarkdownLink(view))
 }
 
-
 function undoAction() {
 	withEditor((view) => {
 		undo(view)

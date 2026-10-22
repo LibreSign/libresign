@@ -51,7 +51,6 @@ vi.mock('../../../components/Draw/FileUpload.vue', () => ({
 	},
 }))
 
-
 vi.mock('@nextcloud/axios', () => ({
 	default: {
 		get: vi.fn(() => Promise.resolve({ data: { ocs: { data: [] } } })),
@@ -325,7 +324,6 @@ describe('Draw.vue', () => {
 		expect(document.body.classList.contains('libresign-modal-open')).toBe(true)
 		expect(document.documentElement.classList.contains('libresign-modal-open')).toBe(true)
 	})
-
 
 	it('accepts type property', () => {
 		const wrapper = mountDraw({

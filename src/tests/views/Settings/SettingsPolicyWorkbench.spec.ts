@@ -1095,4 +1095,3 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(wrapper.text()).toContain('Create rule')
 	})
 })
-

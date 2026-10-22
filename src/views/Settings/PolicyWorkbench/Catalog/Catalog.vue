@@ -443,7 +443,6 @@ const {
 	defaultInlineLabel,
 } = useCatalogRuleCreation({ state })
 
-
 const ruleDialogTitle = computed(() => {
 	if (!state.editorDraft) {
 		return t('libresign', 'What do you want to create?')

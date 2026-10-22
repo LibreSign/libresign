@@ -65,7 +65,6 @@ import {
 	mdiLockOpenCheck,
 } from '@mdi/js'
 
-
 import axios from '@nextcloud/axios'
 import { showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'

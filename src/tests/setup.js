@@ -75,7 +75,6 @@ vi.mock('@nextcloud/vue/components/NcSelectUsers', () => ({
 	},
 }))
 
-
 vi.mock('@nextcloud/vue/components/NcRichText', () => ({
 	default: {
 		name: 'NcRichText',
@@ -95,4 +94,3 @@ setActivePinia(createPinia())
 import './testHelpers/jsdomMocks.js'
 import './testHelpers/nextcloudMocks.js'
 import './testHelpers/vueMocks.js'
-

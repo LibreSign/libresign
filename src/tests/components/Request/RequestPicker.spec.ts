@@ -339,7 +339,6 @@ describe('RequestPicker component rules', () => {
 		})
 	})
 
-
 	describe('max file uploads configuration', () => {
 		it('returns configured max-file-uploads when finite and positive', () => {
 			getCapabilitiesMock.mockReturnValue({

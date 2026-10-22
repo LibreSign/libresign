@@ -34,7 +34,6 @@ type CertificateChainWrapper = VueWrapper<CertificateChainVm>
 
 let CertificateChain: CertificateChainComponent
 
-
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('@nextcloud/moment', () => ({

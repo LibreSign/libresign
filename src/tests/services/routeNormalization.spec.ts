@@ -106,4 +106,3 @@ describe('normalizeRouteRecord', () => {
 		expect(result).toEqual({})
 	})
 })
-

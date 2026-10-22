@@ -309,7 +309,6 @@ describe('PdfEditor Component - Business Rules', () => {
 
 	})
 
-
 	describe('RULE: pdf-elements event relay', () => {
 		it('relays pdf-elements:adding-ended event to pdf-editor:adding-ended', () => {
 			wrapper.vm.handleAddingEnded({ detail: { reason: 'placed' } } as CustomEvent)

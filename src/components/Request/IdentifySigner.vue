@@ -270,7 +270,6 @@ function getMethodIcon() {
 	return iconMap[iconKey]
 }
 
-
 function applySelectedSigner(nextSigner: IdentifyAccountRecord | null) {
 	if (!nextSigner) {
 		resetSelectedSignerState()

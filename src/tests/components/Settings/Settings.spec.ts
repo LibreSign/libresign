@@ -33,7 +33,6 @@ type SettingsVm = {
 type SettingsWrapper = VueWrapper<SettingsVm>
 type NavigationItemWrapper = VueWrapper<any>
 
-
 vi.mock('@nextcloud/auth', () => ({
 	getCurrentUser: vi.fn(() => ({
 		isAdmin: false,

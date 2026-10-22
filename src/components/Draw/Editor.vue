@@ -71,7 +71,6 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import SignaturePad from 'signature_pad'
 
-
 import { getCapabilities } from '@nextcloud/capabilities'
 
 import NcButton from '@nextcloud/vue/components/NcButton'

@@ -348,7 +348,6 @@ const _policiesStore = defineStore('policies', () => {
 		return requestOverridesAreCurrent.value && getPolicy(policyKey)?.canUseAsRequestOverride === true
 	}
 
-
 	const saveSystemPolicyCompound = async (
 		parentPolicyKey: string,
 		values: NonNullable<SystemCompoundPolicyWritePayload['values']>,
@@ -414,7 +413,6 @@ const _policiesStore = defineStore('policies', () => {
 
 		return response.data?.ocs?.data?.policies ?? null
 	}
-
 
 	return {
 		policies: computed(() => policies.value),
