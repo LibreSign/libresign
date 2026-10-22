@@ -698,7 +698,7 @@ OC.L10N.register(
     "Requested on:" : "Angefordert am:",
     "Date signed:" : "Signaturdatum:",
     "Not signed yet" : "Noch nicht signiert",
-    "Remote address:" : "Entfernte Adresse:",
+    "Remote address:" : "Externe Adresse:",
     "User agent:" : "Benutzeragent:",
     "No files to display" : "Keine Dateien zum Anzeigen",
     "Document information" : "Dokumentinformationen",
