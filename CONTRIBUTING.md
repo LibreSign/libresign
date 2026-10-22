@@ -44,7 +44,18 @@ For larger product initiatives and current development direction, see the [Libre
 
 ### Working on an issue
 
-Before starting work on an existing issue, we recommend leaving a comment saying that you would like to work on it. This gives maintainers a chance to confirm that the issue is still current, clarify the scope if necessary, and assign it to you. This is a recommendation, not a requirement: if you already have a valid implementation, you are still welcome to open a pull request.
+A `good first issue` is designed to be suitable for new contributors, but it may not be ready to start.
+
+Before starting work:
+
+- **Check dependencies:** Look for `Blocked by` relationships. Follow the blocking issues to understand what needs to be completed first.
+- **Check ongoing work:** Review assignees, recent comments, and related pull requests, including those on blocking issues. An issue without an assignee may still have someone working on it.
+- **Find a way forward:** If a blocker is not being worked on and matches your skills, consider helping with it first. If the task is already being handled or is outside your experience, look for another issue.
+- **Coordinate:** Leave a short comment explaining what you would like to work on. This helps maintainers confirm the current scope and avoid duplicated effort.
+
+Commenting before starting is recommended, not required. Contributors with a valid implementation are still welcome to open a pull request.
+
+For more guidance, see our [development workflow](https://docs.libresign.coop/developer_manual/development-workflow.html).
 
 For larger features or refactors, please align the proposed approach with a maintainer before investing significant work.
 
