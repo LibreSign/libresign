@@ -389,7 +389,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->willReturnCallback(function (
 				array $identifyMethods,
 				string $displayName,
-				string $description,
+				?string $description,
 				bool $notify,
 				int $fileId,
 				int $signingOrder,
@@ -415,6 +415,55 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 
 		$this->assertCount(2, $actual);
 		$this->assertSame([], $expectedCalls);
+	}
+
+	#[\PHPUnit\Framework\Attributes\DataProvider('providerAssociateToSignersForwardsSignerDescription')]
+	public function testAssociateToSignersForwardsSignerDescription(array $signer, ?string $expectedDescription): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(77);
+
+		$data = [
+			'signers' => [array_merge([
+				'displayName' => 'John Doe',
+				'identifyMethods' => [
+					['method' => 'email', 'value' => 'john@example.com'],
+				],
+			], $signer)],
+		];
+
+		$this->validateHelper
+			->method('normalizeRequestSigners')
+			->willReturnCallback(static fn (array $signers): array => $signers);
+
+		$this->signRequestMapper
+			->method('getByFileId')
+			->with(77)
+			->willReturn([]);
+
+		$this->sequentialSigningService
+			->method('determineSigningOrder')
+			->willReturn(1);
+
+		$this->signRequestService
+			->expects($this->once())
+			->method('createOrUpdateSignRequest')
+			->with(
+				$this->anything(),
+				$this->anything(),
+				$this->identicalTo($expectedDescription),
+			)
+			->willReturn(new SignRequest());
+
+		self::invokePrivate($this->getService(), 'associateToSigners', [$data, $file]);
+	}
+
+	public static function providerAssociateToSignersForwardsSignerDescription(): array {
+		return [
+			'omitted description keeps the current message' => [[], null],
+			'null description keeps the current message' => [['description' => null], null],
+			'empty description clears the current message' => [['description' => ''], ''],
+			'new description replaces the current message' => [['description' => 'New message'], 'New message'],
+		];
 	}
 
 	public function testDeleteIdentifyMethodIfNotExitsKeepsMatchingIdentifyMethods(): void {

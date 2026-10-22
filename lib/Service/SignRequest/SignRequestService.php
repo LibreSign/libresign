@@ -33,7 +33,7 @@ class SignRequestService {
 	 *
 	 * @param array $identifyMethods Identify methods array
 	 * @param string $displayName Signer display name
-	 * @param string $description Signer description
+	 * @param string|null $description Signer description; null keeps the current value, empty string clears it
 	 * @param bool $notify Whether to notify the signer
 	 * @param int $fileId File ID
 	 * @param int $signingOrder Signing order
@@ -44,7 +44,7 @@ class SignRequestService {
 	public function createOrUpdateSignRequest(
 		array $identifyMethods,
 		string $displayName,
-		string $description,
+		?string $description,
 		bool $notify,
 		int $fileId,
 		int $signingOrder = 0,
@@ -110,7 +110,7 @@ class SignRequestService {
 		SignRequestEntity $signRequest,
 		string $displayName,
 		int $signingOrder,
-		string $description,
+		?string $description,
 		int $fileId,
 	): void {
 		$signRequest->setFileId($fileId);
@@ -121,8 +121,8 @@ class SignRequestService {
 		if (!empty($displayName)) {
 			$signRequest->setDisplayName($displayName);
 		}
-		if (!empty($description)) {
-			$signRequest->setDescription($description);
+		if ($description !== null) {
+			$signRequest->setDescription(trim($description) === '' ? null : $description);
 		}
 		if (!$signRequest->getId()) {
 			$signRequest->setCreatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
