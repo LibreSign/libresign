@@ -53,11 +53,10 @@ jobs:
               - 'package-lock.json'
 
   playwright:
-    runs-on: ubuntu-latest
+    # PHP 8.3 is pre-installed on the Ubuntu runner; installing it inside
+    # the Playwright image can stall while fetching external PHP packages.
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
-    container:
-      image: mcr.microsoft.com/playwright:v1.64.0-noble
-      options: --ipc=host
 
     needs: [matrix, changes]
     if: needs.changes.outputs.src != 'false'
@@ -83,8 +82,8 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+          sudo apt-get update
+          sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             poppler-utils \
             libgd3 \
             libc-client2007e
@@ -162,6 +161,10 @@ jobs:
           npm ci --prefer-offline
           TESTING=true npm run build --if-present
 
+      - name: Install Chromium for locked Playwright version
+        working-directory: apps/${{ env.APP_NAME }}
+        run: npx playwright install --with-deps chromium
+
       - name: Cache LibreSign binary payloads
         id: libresign-binaries-cache
         uses: actions/cache@v6
@@ -204,7 +207,8 @@ jobs:
           ./occ config:system:set allow_local_remote_servers --value true --type boolean
           ./occ config:system:set auth.bruteforce.protection.enabled --value false --type boolean
           ./occ config:system:set ratelimit.protection.enabled --value false --type boolean
-          ./occ config:system:set mail_smtphost --value mailpit
+          # Services are accessed via mapped localhost ports on runner jobs.
+          ./occ config:system:set mail_smtphost --value 127.0.0.1
           ./occ config:system:set mail_smtpport --value 1025 --type integer
           ./occ config:system:set overwrite.cli.url --value 'http://localhost:8080'
           ./occ config:system:set overwritehost --value 'localhost:8080'
@@ -250,6 +254,7 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:8080
+          MAILPIT_URL: http://127.0.0.1:8025
           NEXTCLOUD_ADMIN_USER: admin
           NEXTCLOUD_ADMIN_PASSWORD: admin
         run: npx playwright test

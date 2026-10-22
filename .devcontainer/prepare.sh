@@ -7,7 +7,8 @@ set -eu
 repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 ncdd_dir="$repo_root/.devcontainer/.nextcloud-docker-development"
 generated_compose="$repo_root/.devcontainer/ncdd.generated.yml"
-ncdd_commit="b33c4dee93a4d41ce856e7480c871cf1171b3cbb"
+# Renovate updates this pinned upstream revision (see .github/renovate.json5).
+ncdd_commit="3d1fad2bb1bc9c880c43b68ea0845beda05c3400"
 
 prepare_ncdd() {
 	if [ ! -d "$ncdd_dir/.git" ]; then
