@@ -567,7 +567,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 		$parsed = $signerInstance->readCertificate($certificateContent, '123456');
 
 		$revokedCert = new \OCA\Libresign\Db\Crl();
-		$revokedCert->setSerialNumber($parsed['serialNumberHex']);
+		$revokedCert->setSerialNumber($parsed['serialNumber']);
+		$revokedCert->setEngine('openssl');
 		$revokedCert->setRevokedAt(new \DateTime('2025-01-01 12:00:00'));
 
 		$configPath = $rootInstance->getCurrentConfigPath();
@@ -591,44 +592,6 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 		);
 
 		unlink($tempCrlFile);
-	}
-
-	public static function crlSerialNumberProvider(): array {
-		return [
-			'hexadecimal serial containing only digits' => ['5850520544968278'],
-			'hexadecimal serial containing letters' => ['A123456789ABCDEF'],
-		];
-	}
-
-	#[DataProvider('crlSerialNumberProvider')]
-	public function testCrlPreservesHexadecimalSerialNumber(string $serialNumberHex): void {
-		$rootInstance = $this->getInstance();
-		$rootInstance->generateRootCert('Test Root CA', []);
-
-		$revokedCert = new \OCA\Libresign\Db\Crl();
-		$revokedCert->setSerialNumber($serialNumberHex);
-		$revokedCert->setRevokedAt(new \DateTime('2025-01-01 12:00:00'));
-
-		$configPath = $rootInstance->getCurrentConfigPath();
-		$pkiDirName = basename((string)$configPath);
-		$this->assertMatchesRegularExpression('/^[^_]+_\d+_.+$/', $pkiDirName);
-		preg_match('/^([^_]+)_(\d+)_(.+)$/', $pkiDirName, $matches);
-
-		$crlDer = $rootInstance->generateCrlDer([$revokedCert], $matches[1], (int)$matches[2], 1);
-		$tempCrlFile = $this->tempManager->getTemporaryFile('.crl');
-		try {
-			$this->assertNotFalse(file_put_contents($tempCrlFile, $crlDer));
-			$crlOutput = [];
-			$crlExitCode = 0;
-			exec(sprintf('openssl crl -in %s -inform DER -text -noout', escapeshellarg($tempCrlFile)), $crlOutput, $crlExitCode);
-			$this->assertSame(0, $crlExitCode);
-			$this->assertMatchesRegularExpression(
-				'/Serial Number:\s*0*' . preg_quote(ltrim($serialNumberHex, '0'), '/') . '/i',
-				implode("\n", $crlOutput),
-			);
-		} finally {
-			unlink($tempCrlFile);
-		}
 	}
 
 	public static function revokedCertificatesProvider(): array {
@@ -767,7 +730,18 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 		return [
 			'Decimal serial stays decimal semantically and is rendered as hex in CRL' => [
 				'serialNumber' => '1234',
-				'expectedInCrl' => '04D2'
+				'expectedInCrl' => '04D2',
+				'engine' => 'openssl',
+			],
+			'OpenSSL serial with only digits is decimal' => [
+				'serialNumber' => '5850520544968278',
+				'expectedInCrl' => '14C90476D57E56',
+				'engine' => 'openssl',
+			],
+			'CFSSL serial with only digits is hexadecimal' => [
+				'serialNumber' => '5850520544968278',
+				'expectedInCrl' => '5850520544968278',
+				'engine' => 'cfssl',
 			],
 			'Serial with leading zeros (20 chars)' => [
 				'serialNumber' => '00e7a0b277a1008f5fe3',
@@ -821,7 +795,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 	}
 
 	#[DataProvider('dataCrlSerialNumberNormalization')]
-	public function testCrlSerialNumberNormalization(string $serialNumber, string $expectedInCrl): void {
+	public function testCrlSerialNumberNormalization(string $serialNumber, string $expectedInCrl, string $engine = ''): void {
 		$this->caIdentifierService->generateCaId('openssl');
 
 		$rootInstance = $this->getInstance();
@@ -829,6 +803,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 
 		$revokedCert = new \OCA\Libresign\Db\Crl();
 		$revokedCert->setSerialNumber($serialNumber);
+		$revokedCert->setEngine($engine);
 		$revokedCert->setRevokedAt(new \DateTime('2025-01-01 12:00:00'));
 
 		$configPath = $rootInstance->getCurrentConfigPath();
