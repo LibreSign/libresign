@@ -596,7 +596,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			], $signer)],
 		];
 
-		$this->signerValidator
+		$this->validateHelper
 			->method('normalizeRequestSigners')
 			->willReturnCallback(static fn (array $signers): array => $signers);
 
