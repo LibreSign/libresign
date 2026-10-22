@@ -895,10 +895,6 @@ abstract class AEngineHandler implements IEngineHandler {
 	private function createRevokedCertificateSerial(string $serialNumber): \OCA\Libresign\Vendor\phpseclib4\Math\BigInteger {
 		$normalizedSerial = ltrim($serialNumber, '0') ?: '0';
 
-		if (ctype_digit($normalizedSerial)) {
-			return new \OCA\Libresign\Vendor\phpseclib4\Math\BigInteger($normalizedSerial);
-		}
-
 		return new \OCA\Libresign\Vendor\phpseclib4\Math\BigInteger($normalizedSerial, 16);
 	}
 
