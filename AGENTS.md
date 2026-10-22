@@ -128,6 +128,18 @@ lib/Controller/CrlApiController.php
   -> tests/php/Unit/Controller/CrlApiControllerTest.php
 ```
 
+Tests focused on a single production PHP class must mirror its
+relative source directory under `tests/php/Unit/` or
+`tests/php/Integration/`. Both the test file and test class must
+be named `<SourceClass>Test`.
+
+Use separate test methods or data providers for different behaviors.
+
+Unit and integration tests may share class names in different
+namespaces. Tests covering cross-component behavior or configuration
+artifacts may use descriptive names when no single production class
+applies. Shared test base classes are excluded.
+
 Run focused tests during implementation:
 
 ```bash
