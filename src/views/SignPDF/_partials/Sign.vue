@@ -38,8 +38,8 @@
 					:use-markdown="true" />
 			</NcNoteCard>
 			<NcNoteCard v-if="!hasVisibleSignatureField && !hasBlockingSignError"
-					:heading="t('libresign', 'No visible signature is required')"
-					type="info">
+				:heading="t('libresign', 'No visible signature is required')"
+				type="info">
 				<p>
 					<!-- TRANSLATORS Informational message shown when the current signer has no visible signature field in the document. -->
 					{{ t('libresign', 'Your digital signature will still be added to the PDF and can be validated after signing.') }}

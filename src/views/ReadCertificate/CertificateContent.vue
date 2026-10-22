@@ -123,7 +123,9 @@
 						<!-- TRANSLATORS Certificate purpose status meaning the selected certificate usage is forbidden or unsupported. -->
 						<span v-else>{{ t('libresign', 'Not allowed') }}</span>
 						<!-- TRANSLATORS Short acronym chip for "Certificate Authority", the organization that issues or signs certificates. -->
-						<NcChip v-if="purpose[1]" no-close>{{ t('libresign', 'CA') }}</NcChip>
+						<NcChip v-if="purpose[1]" no-close>
+							{{ t('libresign', 'CA') }}
+						</NcChip>
 					</div>
 				</NcNoteCard>
 			</div>

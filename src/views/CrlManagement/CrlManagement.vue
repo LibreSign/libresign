@@ -139,8 +139,10 @@
 									{{ sortOrder === 'ASC' ? '▲' : '▼' }}
 								</span>
 							</th>
-						<th>{{ t('libresign', 'Comment') }}</th>
-						<th class="crl-table__cell--frozen-right">{{ t('libresign', 'Actions') }}</th>
+							<th>{{ t('libresign', 'Comment') }}</th>
+							<th class="crl-table__cell--frozen-right">
+								{{ t('libresign', 'Actions') }}
+							</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -152,8 +154,12 @@
 									:display-name="entry.owner"
 									:disable-menu="true" />
 							</td>
-							<td class="crl-table__cell--frozen-left crl-table__cell--frozen-owner">{{ entry.owner }}</td>
-							<td class="crl-table__cell--monospace">{{ entry.serial_number }}</td>
+							<td class="crl-table__cell--frozen-left crl-table__cell--frozen-owner">
+								{{ entry.owner }}
+							</td>
+							<td class="crl-table__cell--monospace">
+								{{ entry.serial_number }}
+							</td>
 							<td>
 								<span v-if="entry.certificate_type === 'root'" class="certificate-type certificate-type--root">
 									<span class="certificate-type__icon">
@@ -257,7 +263,9 @@
 				<div class="revoke-dialog__info">
 					<p><strong>{{ t('libresign', 'Serial Number:') }}</strong> {{ revokeDialog.entry?.serial_number }}</p>
 					<p><strong>{{ t('libresign', 'Owner:') }}</strong> {{ revokeDialog.entry?.owner }}</p>
-					<p v-if="revokeDialog.entry?.certificate_type !== 'leaf'"><strong>{{ t('libresign', 'Type:') }}</strong> {{ getCertificateTypeLabel(revokeDialog.entry?.certificate_type) }}</p>
+					<p v-if="revokeDialog.entry?.certificate_type !== 'leaf'">
+						<strong>{{ t('libresign', 'Type:') }}</strong> {{ getCertificateTypeLabel(revokeDialog.entry?.certificate_type) }}
+					</p>
 				</div>
 
 				<div class="revoke-dialog__form">

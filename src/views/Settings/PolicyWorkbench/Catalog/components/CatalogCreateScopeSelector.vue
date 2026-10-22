@@ -5,7 +5,9 @@
 
 <template>
 	<div class="policy-workbench__create-scope-dialog">
-		<p class="policy-workbench__create-scope-hint">{{ chooseRuleTypeHint }}</p>
+		<p class="policy-workbench__create-scope-hint">
+			{{ chooseRuleTypeHint }}
+		</p>
 		<div class="policy-workbench__create-scope-grid" role="listbox" :aria-label="ruleTypeAriaLabel">
 			<button
 				v-for="option in options"
@@ -28,7 +30,9 @@
 			</button>
 		</div>
 		<ul v-if="notes.length > 0" class="policy-workbench__create-scope-notes">
-			<li v-for="note in notes" :key="note.scope">{{ note.label }}: {{ note.reason }}</li>
+			<li v-for="note in notes" :key="note.scope">
+				{{ note.label }}: {{ note.reason }}
+			</li>
 		</ul>
 	</div>
 </template>

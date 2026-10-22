@@ -17,18 +17,30 @@
 				<div class="summary">
 					<div class="metric">
 						<!-- TRANSLATORS Progress metric label: count of files already signed successfully. -->
-						<div class="metric-label">{{ t('libresign', 'Signed') }}</div>
-						<div class="metric-value text-success">{{ progress.signed }} / {{ progress.total }}</div>
+						<div class="metric-label">
+							{{ t('libresign', 'Signed') }}
+						</div>
+						<div class="metric-value text-success">
+							{{ progress.signed }} / {{ progress.total }}
+						</div>
 					</div>
 					<div class="metric">
 						<!-- TRANSLATORS Progress metric label: count of files currently being processed. -->
-						<div class="metric-label">{{ t('libresign', 'In progress') }}</div>
-						<div class="metric-value text-warning">{{ progress.inProgress ?? 0 }}</div>
+						<div class="metric-label">
+							{{ t('libresign', 'In progress') }}
+						</div>
+						<div class="metric-value text-warning">
+							{{ progress.inProgress ?? 0 }}
+						</div>
 					</div>
 					<div class="metric">
 						<!-- TRANSLATORS Progress metric label: count of files still waiting for processing. -->
-						<div class="metric-label">{{ t('libresign', 'Pending') }}</div>
-						<div class="metric-value text-muted">{{ progress.pending }}</div>
+						<div class="metric-label">
+							{{ t('libresign', 'Pending') }}
+						</div>
+						<div class="metric-value text-muted">
+							{{ progress.pending }}
+						</div>
 					</div>
 				</div>
 

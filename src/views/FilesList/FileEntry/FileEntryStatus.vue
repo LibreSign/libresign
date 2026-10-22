@@ -7,7 +7,9 @@
 		class="status-chip"
 		:class="'status-chip--' + statusToVariant(status)"
 		:title="statusText">
-		<div class="status-chip__text">{{ statusText }}</div>
+		<div class="status-chip__text">
+			{{ statusText }}
+		</div>
 	</div>
 </template>
 

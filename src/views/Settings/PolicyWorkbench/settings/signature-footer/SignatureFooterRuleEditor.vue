@@ -63,7 +63,9 @@
 
 				<div v-if="props.showPreview !== false" class="signature-footer-rule-editor__preview">
 					<!-- TRANSLATORS Heading for live PDF preview of footer template output. -->
-					<p class="signature-footer-rule-editor__preview-title">{{ t('libresign', 'Preview') }}</p>
+					<p class="signature-footer-rule-editor__preview-title">
+						{{ t('libresign', 'Preview') }}
+					</p>
 					<div class="signature-footer-rule-editor__preview-controls">
 						<NcButton
 							variant="tertiary"

@@ -45,7 +45,7 @@
 			</table>
 			<NcButton variant="primary" @click="showModal">
 				<!-- TRANSLATORS Button label for regenerating system root certificate used by LibreSign PKI. -->
-					{{ t('libresign', 'Regenerate root certificate') }}
+				{{ t('libresign', 'Regenerate root certificate') }}
 			</NcButton>
 			<NcDialog v-if="modal"
 				:name="t('libresign', 'Confirm')"

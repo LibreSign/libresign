@@ -107,10 +107,7 @@ export default [
 			'@stylistic/space-before-function-paren': 'off', // ~2 hits
 			'@stylistic/space-in-parens': 'off', // ~2 hits
 			'vue/first-attribute-linebreak': 'off', // ~435 hits; formatting churn
-			'vue/html-indent': 'off', // ~164 hits; formatting churn
 			'vue/max-attributes-per-line': 'off', // ~68 hits; formatting churn
-			'vue/multiline-html-element-content-newline': 'off', // ~2 hits
-			'vue/singleline-html-element-content-newline': 'off', // ~74 hits; formatting churn
 
 			// Import sorting / extensions — large churn; needs dedicated PR
 			'perfectionist/sort-imports': 'off', // ~1216 hits

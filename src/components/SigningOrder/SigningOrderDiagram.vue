@@ -5,24 +5,30 @@
 <template>
 	<div class="signing-order-diagram">
 		<div class="diagram-content">
-		<div class="stage">
-			<div class="stage-number-placeholder" />
-			<div class="stage-label">{{ senderStageLabel }}</div>
+			<div class="stage">
+				<div class="stage-number-placeholder" />
+				<div class="stage-label">
+					{{ senderStageLabel }}
+				</div>
 				<div class="stage-items">
 					<div class="signer-node sender">
 						<div class="signer-content">
 							<NcAvatar :user="senderName" :size="40" />
 							<div class="signer-info">
-								<div class="signer-name">{{ senderName }}</div>
+								<div class="signer-name">
+									{{ senderName }}
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 			<div v-for="order in uniqueOrders" :key="order" class="stage">
-			<div class="stage-number">{{ order }}</div>
-			<div class="stage-label-placeholder" />
-			<div class="stage-items">
+				<div class="stage-number">
+					{{ order }}
+				</div>
+				<div class="stage-label-placeholder" />
+				<div class="stage-items">
 					<div v-for="(signer, index) in getSignersByOrder(order)"
 						:key="`${order}-${index}`"
 						class="signer-node"
@@ -37,8 +43,12 @@
 										<div class="status-indicator" :class="getStatusClass(signer)" />
 									</div>
 									<div class="signer-info">
-										<div class="signer-name">{{ getSignerDisplayName(signer) }}</div>
-										<div class="signer-identify">{{ getSignerIdentify(signer) }}</div>
+										<div class="signer-name">
+											{{ getSignerDisplayName(signer) }}
+										</div>
+										<div class="signer-identify">
+											{{ getSignerIdentify(signer) }}
+										</div>
 									</div>
 								</button>
 							</template>
@@ -86,9 +96,11 @@
 					</div>
 				</div>
 			</div>
-		<div class="stage">
-			<div class="stage-number-placeholder" />
-			<div class="stage-label">{{ completedStageLabel }}</div>
+			<div class="stage">
+				<div class="stage-number-placeholder" />
+				<div class="stage-label">
+					{{ completedStageLabel }}
+				</div>
 				<div class="stage-items">
 					<div class="signer-node completed">
 						<div class="signer-icon">

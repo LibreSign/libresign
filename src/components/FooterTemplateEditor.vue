@@ -14,10 +14,10 @@
 				</template>
 				{{ availableVariablesLabel }}
 			</NcButton>
-				<NcButton v-if="!isDefaultTemplate"
+			<NcButton v-if="!isDefaultTemplate"
 				variant="tertiary"
-					:aria-label="resetTemplateToDefaultLabel"
-					@click="resetTemplateToDefault">
+				:aria-label="resetTemplateToDefaultLabel"
+				@click="resetTemplateToDefault">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 				</template>
@@ -116,12 +116,14 @@
 							</span>
 							{{ getVariableText(name) }}
 						</template>
-					<template #icon>
-						<NcIconSvgWrapper v-if="isCopied(name)" :path="mdiCheck" :size="20" />
-						<NcIconSvgWrapper v-else :path="mdiContentCopy" :size="20" />
-					</template>
+						<template #icon>
+							<NcIconSvgWrapper v-if="isCopied(name)" :path="mdiCheck" :size="20" />
+							<NcIconSvgWrapper v-else :path="mdiContentCopy" :size="20" />
+						</template>
 						<template #description>
-							<p class="variable-description">{{ meta.description }}</p>
+							<p class="variable-description">
+								{{ meta.description }}
+							</p>
 							<div class="variable-meta">
 								<span class="meta-badge">{{ meta.type }}</span>
 								<code v-if="meta.example" class="meta-example">{{ meta.example }}</code>

@@ -18,7 +18,9 @@
 						:variant="isDraft ? 'warning' : 'primary'"
 						:aria-label="documentStatusAriaLabel"
 						no-close />
-					<h2 class="name">{{ document.name }}</h2>
+					<h2 class="name">
+						{{ document.name }}
+					</h2>
 				</div>
 				<span role="status"
 					aria-live="polite"

@@ -21,11 +21,11 @@
 				@pdf-editor:end-init="updateSigners" />
 			<div class="button-wrapper">
 				<NcButton
-				v-if="isMobile"
-				:wide="true"
-				variant="primary"
-				@click.prevent="toggleSidebar">
-				{{ t('libresign', 'Sign') }}
+					v-if="isMobile"
+					:wide="true"
+					variant="primary"
+					@click.prevent="toggleSidebar">
+					{{ t('libresign', 'Sign') }}
 				</NcButton>
 			</div>
 			<NcNoteCard v-for="(error, index) in signStore.errors"

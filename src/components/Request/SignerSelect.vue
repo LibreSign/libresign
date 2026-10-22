@@ -27,7 +27,9 @@
 						:size="28"
 						:is-no-user="true" />
 					<div class="account-or-email__option__text">
-						<div class="account-or-email__option__title">{{ getOptionLabel(slotProps) }}</div>
+						<div class="account-or-email__option__title">
+							{{ getOptionLabel(slotProps) }}
+						</div>
 						<div v-if="getOptionSubname(slotProps)"
 							class="account-or-email__option__subtitle">
 							{{ getOptionSubname(slotProps) }}

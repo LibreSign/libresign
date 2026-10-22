@@ -4,7 +4,9 @@
 -->
 <template>
 	<div class="geoip-database">
-		<p class="geoip-database__intro">{{ formDescription }}</p>
+		<p class="geoip-database__intro">
+			{{ formDescription }}
+		</p>
 
 		<NcNoteCard v-if="status" :type="statusTone">
 			<p><strong>{{ statusLabel }}</strong></p>
