@@ -1,0 +1,26 @@
+// SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "enabledManagers": ["custom.regex"],
+  "timezone": "America/Sao_Paulo",
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.devcontainer\\/prepare\\.sh$/"],
+      "matchStrings": ["ncdd_commit=\"(?<currentDigest>[0-9a-f]{40})\""],
+      "datasourceTemplate": "github-digest",
+      "depNameTemplate": "LibreCodeCoop/nextcloud-docker-development",
+      "currentValueTemplate": "main",
+      "versioningTemplate": "exact"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchDatasources": ["github-digest"],
+      "matchPackageNames": ["LibreCodeCoop/nextcloud-docker-development"],
+      "schedule": ["* * * * 1"],
+      "automerge": false
+    }
+  ]
+}
