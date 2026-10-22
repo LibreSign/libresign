@@ -849,7 +849,7 @@ abstract class AEngineHandler implements IEngineHandler {
 
 		foreach ($revokedCertificates as $cert) {
 			$crl->revoke(
-				$this->createRevokedCertificateSerial((string)$cert->getSerialNumber()),
+				$this->createRevokedCertificateSerial((string)$cert->getSerialNumber(), $cert->getEngine()),
 				null,
 				$cert->getRevokedAt(),
 			);
@@ -865,14 +865,15 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $crl->toString(['binary' => true]);
 	}
 
-	private function createRevokedCertificateSerial(string $serialNumber): \OCA\Libresign\Vendor\phpseclib4\Math\BigInteger {
+	private function createRevokedCertificateSerial(string $serialNumber, string $engine): \OCA\Libresign\Vendor\phpseclib4\Math\BigInteger {
 		$normalizedSerial = ltrim($serialNumber, '0') ?: '0';
+		$base = match ($engine) {
+			'openssl' => 10,
+			'cfssl' => 16,
+			default => ctype_digit($normalizedSerial) ? 10 : 16,
+		};
 
-		if (ctype_digit($normalizedSerial)) {
-			return new \OCA\Libresign\Vendor\phpseclib4\Math\BigInteger($normalizedSerial);
-		}
-
-		return new \OCA\Libresign\Vendor\phpseclib4\Math\BigInteger($normalizedSerial, 16);
+		return new \OCA\Libresign\Vendor\phpseclib4\Math\BigInteger($normalizedSerial, $base);
 	}
 
 	#[\Override]
