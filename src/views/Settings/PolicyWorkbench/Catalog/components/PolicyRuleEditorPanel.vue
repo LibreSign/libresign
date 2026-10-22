@@ -7,7 +7,9 @@
 	<section class="policy-workbench__editor-panel">
 		<div class="policy-workbench__editor-panel-content" :class="{ 'policy-workbench__editor-panel-content--saving': saveStatus === 'saving' }">
 			<div class="policy-workbench__editor-header">
-				<p v-if="editorHelp">{{ editorHelp }}</p>
+				<p v-if="editorHelp">
+					{{ editorHelp }}
+				</p>
 				<PolicyPrecedenceHint :scopes="precedenceScopes" variant="editor" />
 			</div>
 

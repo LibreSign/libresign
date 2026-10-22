@@ -14,7 +14,7 @@
 			@click.stop="toggleMenu"
 			@keydown.escape.prevent="closeMenu">
 			<NcIconSvgWrapper :path="isOpen ? mdiChevronUp : mdiChevronDown" :size="18" />
-				<span>H</span>
+			<span>H</span>
 		</button>
 
 		<ul v-if="isOpen"

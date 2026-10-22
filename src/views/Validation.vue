@@ -9,14 +9,14 @@
 				<img :src="logo" :alt="t('libresign', 'LibreSign logo')" draggable="false">
 			</div>
 			<div id="validation-content">
-					<div v-if="isAsyncSigning" class="infor-container">
-						<div class="section">
-							<SigningProgress
-								:sign-request-uuid="signRequestUuidForProgress"
-								@completed="handleSigningComplete"
-								@error="handleSigningError" />
-						</div>
+				<div v-if="isAsyncSigning" class="infor-container">
+					<div class="section">
+						<SigningProgress
+							:sign-request-uuid="signRequestUuidForProgress"
+							@completed="handleSigningComplete"
+							@error="handleSigningError" />
 					</div>
+				</div>
 				<div v-else-if="!hasInfo" class="infor-container">
 					<div class="section">
 						<!-- TRANSLATORS: "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. Choose a word in your language that conveys "to check" or "to verify", not "to approve" or "to authorize". -->

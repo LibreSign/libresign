@@ -102,7 +102,7 @@
 			<!-- Step 2 actions (common) -->
 			<template v-else-if="!identityVerified">
 				<NcButton :disabled="loading"
-				type="submit"
+					type="submit"
 					@click="requestNewCode">
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />

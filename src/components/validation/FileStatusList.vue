@@ -14,8 +14,12 @@
 						<NcIconSvgWrapper :path="mdiFilePdfBox" />
 					</div>
 					<div class="file-details">
-						<div class="file-name">{{ file.name }}</div>
-						<div class="file-size">{{ formatFileSize(file.size) }}</div>
+						<div class="file-name">
+							{{ file.name }}
+						</div>
+						<div class="file-size">
+							{{ formatFileSize(file.size) }}
+						</div>
 					</div>
 				</div>
 				<div class="file-status">
