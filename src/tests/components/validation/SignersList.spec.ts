@@ -27,7 +27,6 @@ type SignersListWrapper = VueWrapper<any> & {
 
 let SignersList: unknown
 
-
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('@nextcloud/moment', () => ({

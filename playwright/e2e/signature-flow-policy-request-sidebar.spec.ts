@@ -49,8 +49,6 @@ const test = base.extend<{
 test.setTimeout(120_000)
 test.describe.configure({ mode: 'serial' })
 
-
-
 async function addEmailSigner(page: Page, email: string, name: string) {
 	await clickAddSigner(page)
 	await selectEmailSigner(page, email)

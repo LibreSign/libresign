@@ -50,7 +50,6 @@ vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn(),
 }))
 
-
 describe('Signers', () => {
 	let wrapper: SignersWrapper | null
 	let filesStore: FilesStoreMock

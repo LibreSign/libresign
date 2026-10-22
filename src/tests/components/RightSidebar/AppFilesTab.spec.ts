@@ -61,7 +61,6 @@ vi.mock('vue-select', () => ({
 	},
 }))
 
-
 import { emit } from '@nextcloud/event-bus'
 import { getClient } from '@nextcloud/files/dav'
 import { getNavigation } from '@nextcloud/files'

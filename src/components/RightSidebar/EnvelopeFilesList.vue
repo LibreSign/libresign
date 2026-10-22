@@ -162,7 +162,6 @@ import { openDocument } from '../../utils/viewer.js'
 import { useFilesStore } from '../../store/files.js'
 import type { LibresignCapabilities } from '../../types/index'
 
-
 type FilesStoreContract = ReturnType<typeof useFilesStore>
 type Envelope = ReturnType<FilesStoreContract['getFile']>
 

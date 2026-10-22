@@ -97,7 +97,6 @@ export default [
 			'@stylistic/member-delimiter-style': 'off', // ~180 hits
 			'@stylistic/no-extra-semi': 'off', // ~23 hits
 			'@stylistic/no-multi-spaces': 'off', // ~1 hit
-			'@stylistic/no-multiple-empty-lines': 'off', // ~42 hits
 			'@stylistic/no-tabs': 'off', // ~190 hits; tabs vs spaces migration
 			'@stylistic/no-trailing-spaces': 'off', // ~1 hit
 			'@stylistic/operator-linebreak': 'off', // ~6 hits

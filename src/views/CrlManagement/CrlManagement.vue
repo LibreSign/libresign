@@ -307,7 +307,6 @@ import {
 	mdiShieldLock,
 } from '@mdi/js'
 
-
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -1064,4 +1063,3 @@ defineExpose({
 	}
 }
 </style>
-

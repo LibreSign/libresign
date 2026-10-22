@@ -8,7 +8,6 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
-
 import WorkerConfigRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/signing-mode/WorkerConfigRuleEditor.vue'
 
 const NcCheckboxRadioSwitchStub = {

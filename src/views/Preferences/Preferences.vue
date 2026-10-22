@@ -453,7 +453,6 @@ async function clearPreferenceValue(policyKey: string, errorText: string): Promi
 	}
 }
 
-
 async function clearPersistedPreferenceValue(policyKey: string): Promise<void> {
 	const behavior = getPreferenceBehaviorFor(policyKey)
 	if (behavior?.clearPreference) {

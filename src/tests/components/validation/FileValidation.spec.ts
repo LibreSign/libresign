@@ -24,8 +24,6 @@ beforeAll(async () => {
 	;({ default: FileValidation } = await import('../../../components/validation/FileValidation.vue'))
 })
 
-
-
 describe('FileValidation', () => {
 	let wrapper!: FileValidationWrapper
 

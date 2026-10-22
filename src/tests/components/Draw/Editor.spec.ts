@@ -66,7 +66,6 @@ vi.mock('../../../components/PreviewSignature/PreviewSignature.vue', () => ({
 	},
 }))
 
-
 vi.mock('signature_pad', () => {
 	return {
 		__esModule: true,
