@@ -236,7 +236,8 @@ async function saveSigner() {
 	const signers: StoredSigner[] = Array.isArray(file?.signers) ? [...file.signers] : []
 	signers.push({
 		displayName: displayName.value,
-		description: description.value.trim() || undefined,
+		// Always send the description: an empty string tells the backend to clear it.
+		description: description.value.trim(),
 		...(identifyMethod.value === 'email' ? { email: identify.value } : {}),
 		status: SIGN_REQUEST_STATUS.DRAFT,
 		statusText: getSignRequestStatusText(SIGN_REQUEST_STATUS.DRAFT),
