@@ -36,8 +36,7 @@ class FooterHandler {
 	public const DEFAULT_TEMPLATE_PATH = __DIR__ . '/Templates/footer.twig';
 
 	private QrCode $qrCode;
-	/** @var array<string, mixed> */
-	private array $storedRequestPolicyOverrides = [];
+	private ?string $policyValue = null;
 	private ?string $templateOverride = null;
 	private ?bool $writeQrcodeOnFooterOverride = null;
 	private const int MIN_QRCODE_SIZE = 100;
@@ -122,9 +121,12 @@ class FooterHandler {
 		return $this;
 	}
 
-	/** @param array<string, mixed> $storedRequestPolicyOverrides */
-	public function setStoredRequestPolicyOverrides(array $storedRequestPolicyOverrides): self {
-		$this->storedRequestPolicyOverrides = $storedRequestPolicyOverrides;
+	/**
+	 * The footer policy to render with, used as is. Without one, the current
+	 * policy applies.
+	 */
+	public function setPolicyValue(?string $policyValue): self {
+		$this->policyValue = $policyValue;
 		return $this;
 	}
 
@@ -139,14 +141,12 @@ class FooterHandler {
 	}
 
 	public function getEffectiveFooterPolicyAsJson(): string {
-		return (string)$this->policyService->resolveWithStoredRequestOverrides(FooterPolicy::KEY, $this->storedRequestPolicyOverrides)->getEffectiveValue();
+		return (string)$this->getPolicyValue();
 	}
 
 	/** @return array{enabled: bool, writeQrcodeOnFooter: bool, validationSite: string, customizeFooterTemplate: bool, footerTemplate: string, previewWidth: int, previewHeight: int, previewZoom: int} */
 	private function resolveFooterPolicy(): array {
-		return FooterPolicyValue::normalize(
-			$this->policyService->resolveWithStoredRequestOverrides(FooterPolicy::KEY, $this->storedRequestPolicyOverrides)->getEffectiveValue()
-		);
+		return FooterPolicyValue::normalize($this->getPolicyValue());
 	}
 
 	private function prepareTemplateVars(bool $forceEnabled = false): array {
@@ -256,8 +256,10 @@ class FooterHandler {
 	}
 
 	private function isFooterEnabled(): bool {
-		return FooterPolicyValue::isEnabled(
-			$this->policyService->resolveWithStoredRequestOverrides(FooterPolicy::KEY, $this->storedRequestPolicyOverrides)->getEffectiveValue()
-		);
+		return FooterPolicyValue::isEnabled($this->getPolicyValue());
+	}
+
+	private function getPolicyValue(): mixed {
+		return $this->policyValue ?? $this->policyService->resolve(FooterPolicy::KEY)->getEffectiveValue();
 	}
 }
