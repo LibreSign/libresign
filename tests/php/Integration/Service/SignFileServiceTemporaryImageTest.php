@@ -31,6 +31,8 @@ use OCP\ITempManager;
 use OCP\IUser;
 use OCP\L10N\IFactory as IL10NFactory;
 use OCP\Server;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -40,6 +42,10 @@ final class SignFileServiceTemporaryImageTest extends AppDataTestCase {
 	private bool $cleanupTriggered = false;
 	private bool $imageReachedSigner = false;
 
+	// An earlier test may have cached SignFileService before the PfxProvider override.
+	// Isolate the DI container and temporary-file cleanup from other integration tests.
+	#[RunInSeparateProcess]
+	#[PreserveGlobalState(false)]
 	public function testSigningRestoresImageAfterTemporaryCleanup(): void {
 		$fixture = $this->createVisibleSignatureRequest();
 		$this->cleanTemporaryFilesDuringCertificatePreparation();
