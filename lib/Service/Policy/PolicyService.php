@@ -450,7 +450,6 @@ class PolicyService {
 		$definition = $this->registry->get($policyKey);
 		$this->assertScopeSupported($definition, PolicySpec::SCOPE_USER);
 		$normalizedValue = $definition->normalizeValue($value);
-		$definition->validateValueForPersistence($normalizedValue, $context);
 		$resolved = $this->resolver->resolve($definition, $context);
 		if (!$resolved->canSaveAsUserDefault()) {
 			// TRANSLATORS Error shown when saving a user preference for a policy that does not allow personal overrides. {policyKey} is the policy identifier.
@@ -459,6 +458,7 @@ class PolicyService {
 			]));
 		}
 
+		$definition->validateValueForPersistence($normalizedValue, $context);
 		$this->source->saveUserPreference($definition->key(), $context, $normalizedValue);
 
 		return $this->resolver->resolve($definition, $context);

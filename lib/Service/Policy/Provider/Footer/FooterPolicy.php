@@ -62,9 +62,10 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 					}
 				},
 				persistenceValidator: static function (mixed $value, PolicyContext $_context): void {
-					$footerTemplate = FooterPolicyValue::normalize($value)['footerTemplate'];
-					if ($footerTemplate !== '') {
-						SandboxedTemplateRenderer::validate($footerTemplate);
+					$footerPolicy = FooterPolicyValue::normalize($value);
+					// Allow a legacy template to be disabled or replaced without executing it.
+					if ($footerPolicy['enabled'] && $footerPolicy['customizeFooterTemplate'] && $footerPolicy['footerTemplate'] !== '') {
+						SandboxedTemplateRenderer::validate($footerPolicy['footerTemplate']);
 					}
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,

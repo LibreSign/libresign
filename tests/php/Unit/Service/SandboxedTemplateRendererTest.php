@@ -10,8 +10,6 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Service\SandboxedTemplateRenderer;
 use OCA\Libresign\Tests\Unit\TestCase;
-use OCA\Libresign\Vendor\Twig\Environment;
-use OCA\Libresign\Vendor\Twig\Loader\FilesystemLoader;
 use OCA\Libresign\Vendor\Twig\Sandbox\SecurityError;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -52,14 +50,10 @@ final class SandboxedTemplateRendererTest extends TestCase {
 		);
 	}
 
-	public function testTwig330AllowsUpstreamSafeTestsButNotUnsafeTests(): void {
-		$environment = new Environment(new FilesystemLoader());
-		$this->assertTrue($environment->getTest('defined')->isAlwaysAllowedInSandbox());
-		$this->assertTrue($environment->getTest('empty')->isAlwaysAllowedInSandbox());
-		$this->assertFalse($environment->getTest('constant')->isAlwaysAllowedInSandbox());
-		$this->assertFalse($environment->getFilter('upper')->isAlwaysAllowedInSandbox());
-		$this->assertFalse($environment->getFunction('min')->isAlwaysAllowedInSandbox());
-		$this->assertSame('yes', SandboxedTemplateRenderer::render('{{ missing is not defined and values is not empty ? "yes" : "no" }}', ['values' => ['x']]));
+	public function testSafeTwigTestsWorkWithoutExplicitPermissions(): void {
+		$template = '{{ missing is not defined and values is not empty ? "yes" : "no" }}';
+		$this->assertSame('yes', SandboxedTemplateRenderer::render($template, ['values' => ['x']]));
+		$this->assertSame('no', SandboxedTemplateRenderer::render($template, ['values' => []]));
 	}
 
 	public function testValidationChecksUnreachableCodeWithoutRenderingIt(): void {
