@@ -164,6 +164,15 @@ jobs:
           ./occ config:system:set ratelimit.protection.enabled --value false --type boolean
           ./occ config:app:set dav enableDefaultContact --value false --type boolean
 
+      - name: Verify issued CFSSL certificate profile with PHPUnit
+        working-directory: apps/${{ env.APP_NAME }}
+        run: |
+          composer --working-dir=vendor-bin/phpunit install --no-interaction --prefer-dist
+          ../../occ config:app:set libresign certificate_engine --value=cfssl
+          ../../occ libresign:install --use-local-cert --cfssl
+          ../../occ libresign:configure:cfssl --cn='CFSSL Profile Test CA'
+          vendor-bin/phpunit/vendor/bin/phpunit -c tests/php/phpunit.xml --no-coverage tests/php/CfsslReal/CfsslCertificateProfileTest.php
+
       - name: Run behat
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
         env:
