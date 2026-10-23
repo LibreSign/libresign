@@ -329,7 +329,17 @@ class SignFileService {
 
 	private function isTempFileValid(VisibleElementAssoc $elementAssoc): bool {
 		$tempFile = $elementAssoc->getTempFile();
-		return $tempFile !== '' && is_file($tempFile);
+		return $tempFile !== '' && is_file($tempFile) && is_readable($tempFile) && filesize($tempFile) > 0;
+	}
+
+	private function restoreMissingVisibleElementImages(): void {
+		foreach ($this->elements as $element) {
+			if ($element->getTempFile() !== '' && !$this->isTempFileValid($element)) {
+				// Rebuild from the stored signature, not from a temporary path that may have been cleaned.
+				$this->setVisibleElements($this->elementsInput);
+				return;
+			}
+		}
 	}
 
 	private function getNodeId(?array $element, FileElement $fileElement): int {
@@ -377,13 +387,21 @@ class SignFileService {
 		}
 
 		$tempFile = $this->tempManager->getTemporaryFile('_' . $nodeId . '.png');
+		if ($tempFile === false) {
+			// TRANSLATORS Error shown when LibreSign cannot prepare a temporary image for the visible signature.
+			throw new LibresignException($this->l10n->t('Temporary signature image is not available. Please try signing again.'));
+		}
+
 		$content = $node->getContent();
 		if (empty($content)) {
 			$this->logger->error('Failed to retrieve content for node.', ['nodeId' => $nodeId, 'fileElement' => $fileElement]);
 			// TRANSLATORS Error shown when signing requires a visible signature or initials image and the signer has not defined one yet.
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
-		file_put_contents($tempFile, $content);
+		if (@file_put_contents($tempFile, $content) !== strlen($content) || !is_file($tempFile) || !is_readable($tempFile)) {
+			// TRANSLATORS Error shown when LibreSign cannot prepare a temporary image for the visible signature.
+			throw new LibresignException($this->l10n->t('Temporary signature image is not available. Please try signing again.'));
+		}
 		return new VisibleElementAssoc($fileElement, $tempFile);
 	}
 
@@ -1307,6 +1325,7 @@ class SignFileService {
 		$engine->setPassword($this->password);
 
 		if ($this->engine::class === Pkcs12Handler::class) {
+			$this->restoreMissingVisibleElementImages();
 			$this->engine
 				->setVisibleElements($this->getVisibleElements())
 				->setSignatureParams($this->getSignatureParams());
