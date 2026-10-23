@@ -20,7 +20,7 @@ Before changing code:
 1. Read the issue or task and verify it still matches the current base branch.
 2. Inspect the affected code and nearby tests before editing.
 3. Check for existing pull requests or duplicate work.
-4. Consult the canonical documentation relevant to the task when available:
+4. Consult the canonical documentation relevant to the task:
    - architecture and code map:
      https://docs.libresign.coop/developer_manual/architecture.html
    - development workflow:
@@ -35,10 +35,6 @@ Before changing code:
      https://docs.libresign.coop/developer_manual/release-process.html
 5. Make the smallest coherent change that satisfies the verified task.
 6. Run focused validation first and record what actually ran.
-
-If the Developer Manual is unavailable, use the current code, tests and
-configuration to identify established patterns. Do not block implementation
-or invent undocumented requirements.
 
 The application repository is the source of truth for current implementation
 details. The Developer Manual is the source of truth for durable engineering
