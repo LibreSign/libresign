@@ -885,7 +885,6 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Preview footer template as PDF
 	 *
-	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 *
 	 * @param string $template Template to preview
