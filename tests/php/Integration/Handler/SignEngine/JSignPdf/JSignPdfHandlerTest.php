@@ -282,6 +282,44 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Integration\AppData
 		];
 	}
 
+	public function testMissingSignaturePngFailsBeforeJSignPdfRuns(): void {
+		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
+			$this->markTestSkipped('Certificate initialization failed');
+		}
+
+		$path = $this->tempManager->getTemporaryFile('_277524.png');
+		$this->assertIsString($path);
+		file_put_contents($path, 'synthetic signature image');
+		unlink($path);
+
+		$inputFile = $this->createMock(\OC\Files\Node\File::class);
+		$inputFile->method('getContent')->willReturn('%PDF-1.6');
+
+		$this->signatureBackgroundService->method('getSignatureBackgroundType')->willReturn('deleted');
+		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', sys_get_temp_dir());
+		$this->appConfig->setValueString('libresign', 'jsignpdf_path', __DIR__);
+
+		$jSignPdf = $this->createMock(JSignPDF::class);
+		$jSignPdf->expects($this->never())->method('sign');
+
+		$handler = $this->getInstance();
+		$handler->setVisibleElements([self::getElement([
+			'page' => 1,
+			'llx' => 10,
+			'lly' => 20,
+			'urx' => 150,
+			'ury' => 80,
+		], $path)]);
+		$handler->setJSignPdf($jSignPdf);
+		$handler->setInputFile($inputFile);
+		$handler->setCertificate(self::$certificateContent);
+		$handler->setPassword('password');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Temporary signature image is not available.');
+		$handler->getSignedContent();
+	}
+
 	#[DataProvider('providerSignAffectedParams')]
 	public function testSignAffectedParams(
 		array $visibleElements,
