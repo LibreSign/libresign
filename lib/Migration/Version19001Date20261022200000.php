@@ -54,7 +54,7 @@ class Version19001Date20261022200000 extends SimpleMigrationStep {
 			if ($row === false
 				|| (int)$row['type'] === $expectedType
 				|| !is_string($row['configvalue'])
-				|| !self::isKnownJsonPolicy($key, $row['configvalue'])
+				|| !is_array(json_decode($row['configvalue'], true))
 			) {
 				continue;
 			}
@@ -74,53 +74,4 @@ class Version19001Date20261022200000 extends SimpleMigrationStep {
 		}
 	}
 
-	private static function isKnownJsonPolicy(string $key, string $raw): bool {
-		$value = json_decode($raw, true);
-		if (!is_array($value)) {
-			return false;
-		}
-
-		if ($key === 'add_footer') {
-			return !array_is_list($value)
-				&& (
-					(isset($value['enabled']) && is_bool($value['enabled']))
-					|| (isset($value['writeQrcodeOnFooter']) && is_bool($value['writeQrcodeOnFooter']))
-					|| (isset($value['validationSite']) && is_string($value['validationSite']))
-					|| (isset($value['customizeFooterTemplate']) && is_bool($value['customizeFooterTemplate']))
-				);
-		}
-
-		if ($key === 'identification_documents') {
-			return !array_is_list($value)
-				&& isset($value['enabled'], $value['approvers'])
-				&& is_bool($value['enabled'])
-				&& is_array($value['approvers'])
-				&& array_is_list($value['approvers'])
-				&& self::allStrings($value['approvers']);
-		}
-
-		if ($key === 'groups_request_sign') {
-			if (array_is_list($value)) {
-				return self::allStrings($value);
-			}
-
-			$hasAllowGroups = array_key_exists('allowGroups', $value);
-			$hasDenyGroups = array_key_exists('denyGroups', $value);
-			return ($hasAllowGroups || $hasDenyGroups)
-				&& (!$hasAllowGroups || (is_array($value['allowGroups']) && array_is_list($value['allowGroups']) && self::allStrings($value['allowGroups'])))
-				&& (!$hasDenyGroups || (is_array($value['denyGroups']) && array_is_list($value['denyGroups']) && self::allStrings($value['denyGroups'])));
-		}
-
-		return false;
-	}
-
-	/** @param array<mixed> $values */
-	private static function allStrings(array $values): bool {
-		foreach ($values as $value) {
-			if (!is_string($value)) {
-				return false;
-			}
-		}
-		return true;
-	}
 }
