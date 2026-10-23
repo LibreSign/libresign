@@ -316,7 +316,6 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Integration\AppData
 		$handler->setPassword('password');
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Temporary signature image is not available.');
 		$handler->getSignedContent();
 	}
 

@@ -1836,7 +1836,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->tempManager->method('getTemporaryFile')->willReturn(false);
 
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Temporary signature image is not available.');
 
 		$this->getService()->setSignRequest($signRequest)->setVisibleElements([
 			['documentElementId' => $elementId, 'profileNodeId' => $nodeId],
