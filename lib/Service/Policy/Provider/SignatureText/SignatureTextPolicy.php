@@ -15,6 +15,7 @@ use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Provider\Helper\DelegationLayerHelper;
 use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
+use OCA\Libresign\Service\SandboxedTemplateRenderer;
 use OCA\Libresign\Service\SignatureTextTemplate;
 use OCP\IL10N;
 
@@ -48,6 +49,12 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 				normalizer: fn (mixed $rawValue): string => $this->encodeConsolidatedValue(
 					$this->normalizeConsolidatedValue($rawValue),
 				),
+				persistenceValidator: static function (mixed $value, PolicyContext $_context): void {
+					$template = SignatureTextPolicyValue::normalize($value)['template'];
+					if ($template !== '') {
+						SandboxedTemplateRenderer::validate($template);
+					}
+				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 				supportsRequestOverride: true,
 				requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,

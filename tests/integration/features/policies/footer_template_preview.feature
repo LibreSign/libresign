@@ -349,3 +349,12 @@ Feature: policies/footer_template_preview
     And the response should be a JSON array with the following mandatory values
       | key | value |
       | (jq).ocs.data.template | <div>Approved footer</div> |
+
+  Scenario: Policy writes reject unsafe Twig templates before persistence
+    Given as user "admin"
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/add_footer"
+      | value | (string){"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"{{ range(1, 3) }}","previewWidth":595,"previewHeight":100,"previewZoom":100} |
+    Then the response should have a status code 400
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_stamp"
+      | value | (string){"template":"{{ 8 is constant('PHP_INT_SIZE') }}"} |
+    Then the response should have a status code 400

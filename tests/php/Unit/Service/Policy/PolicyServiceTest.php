@@ -2046,6 +2046,24 @@ final class PolicyServiceTest extends TestCase {
 		$service->saveUserPreference(FooterPolicy::KEY, '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"https://forbidden.example","customizeFooterTemplate":false,"footerTemplate":""}');
 	}
 
+	public function testUnsafeFooterTemplateIsRejectedBeforeSystemPolicyWrite(): void {
+		$this->source->expects($this->never())->method('saveSystemPolicy');
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+			$this->db,
+		);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$service->saveSystem(FooterPolicy::KEY, FooterPolicyValue::encode([
+			...FooterPolicyValue::defaults(),
+			'customizeFooterTemplate' => true,
+			'footerTemplate' => '{% if false %}{{ range(1, 3) }}{% endif %}',
+		]));
+	}
+
 	public function testGetAllRuleCountsDelegatesToSource(): void {
 		$expected = [
 			'signature_flow' => ['groupCount' => 2, 'userCount' => 5],
