@@ -116,6 +116,31 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->sendRequest('get', '/apps/libresign/p/sign/' . $matches['uuid']);
 	}
 
+	#[Given('the stored PFX for user :user with password :password has an RSA-2048 public key')]
+	public static function storedPfxUsesRsa2048(string $user, string $password): void {
+		$php = <<<'PHP'
+			require $argv[1] . '/lib/base.php';
+			$pfx = \OCP\Server::get(\OCA\Libresign\Handler\SignEngine\Pkcs12Handler::class)
+				->getPfxOfCurrentSigner($argv[2]);
+			if (!openssl_pkcs12_read($pfx, $contents, $argv[3])) {
+				throw new \RuntimeException('Cannot read generated PKCS#12 certificate');
+			}
+			$key = openssl_pkey_get_public($contents['cert']);
+			$details = $key === false ? false : openssl_pkey_get_details($key);
+			if (!is_array($details) || $details['type'] !== OPENSSL_KEYTYPE_RSA || $details['bits'] !== 2048) {
+				throw new \RuntimeException('Generated certificate does not use an RSA-2048 public key');
+			}
+			PHP;
+
+		$command = sprintf(
+			'php -r %s -- <nextcloudRootDir> %s %s',
+			escapeshellarg($php),
+			escapeshellarg($user),
+			escapeshellarg($password),
+		);
+		self::runBashCommandWithResultCode($command, 0);
+	}
+
 	#[Given('reset :type of user :user')]
 	public function resetNotifications($type, $user): void {
 		self::runCommand('libresign:developer:reset --' . $type . '=' . $user);

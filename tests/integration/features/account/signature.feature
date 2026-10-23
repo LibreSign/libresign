@@ -102,6 +102,7 @@ Feature: account/signature
       | (jq).ocs.data.extensions                  | (jq).subjectKeyIdentifier != ""                                                          |
       | (jq).ocs.data.crl_urls\|length              | 1                                                                                        |
       | (jq).ocs.data.extensions.crlDistributionPoints \|test("URI:http") | true                                                                 |
+    And the stored PFX for user "signer1" with password "password" has an RSA-2048 public key
 
   Scenario: Create pfx with success using OpenSSL
     Given user "signer1" exists
