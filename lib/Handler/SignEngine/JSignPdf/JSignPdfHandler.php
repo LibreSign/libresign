@@ -19,6 +19,7 @@ use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
+use OCA\Libresign\Service\TemporarySignatureImageService;
 use OCA\Libresign\Vendor\Jeidison\JSignPDF\JSignPDF;
 use OCA\Libresign\Vendor\Jeidison\JSignPDF\Sign\JSignParam;
 use OCP\Files\File;
@@ -50,6 +51,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 		protected JavaHelper $javaHelper,
 		private DocMdpConfigService $docMdpConfigService,
 		private HashAlgorithmResolver $hashAlgorithmResolver,
+		private TemporarySignatureImageService $temporarySignatureImageService,
 	) {
 	}
 
@@ -296,9 +298,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 					: '';
 
 				$signatureImagePath = $element->getTempFile();
-				if ($signatureImagePath !== '' && (!is_file($signatureImagePath) || !is_readable($signatureImagePath) || filesize($signatureImagePath) === 0)) {
-					throw new LibresignException('Temporary signature image is not available. Please try signing again.');
-				}
+				$this->temporarySignatureImageService->requireAvailable($signatureImagePath);
 				if ($backgroundType === 'deleted') {
 					if ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
 						$params['--render-mode'] = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION;
