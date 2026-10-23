@@ -611,6 +611,40 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 	})
 
+	describe('RULE: a frozen request keeps the footer it was sent with', () => {
+		const twoTemplates = {
+			canSaveAsUserDefault: true,
+			canUseAsRequestOverride: true,
+			effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Personal template</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+			inheritedValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Group template</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+		}
+
+		it('does not offer the footer template choice and sends no footer', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				policySnapshotFrozen: true,
+				signers: [{ email: 'test1@example.com', signed: [] }],
+			})
+			await updateFooterPolicy(twoTemplates)
+
+			expect(wrapper.vm.showFooterTemplateSelector).toBe(false)
+			expect(wrapper.vm.showRememberFooterTemplate).toBe(false)
+			expect(wrapper.vm.getFooterPolicyPayloadForSave()).toBeNull()
+		})
+
+		it('keeps the footer template choice while the request is a draft', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				policySnapshotFrozen: false,
+				signers: [{ email: 'test1@example.com', signed: [] }],
+			})
+			await updateFooterPolicy(twoTemplates)
+
+			expect(wrapper.vm.showFooterTemplateSelector).toBe(true)
+			expect(wrapper.vm.getFooterPolicyPayloadForSave()).toContain('Personal template')
+		})
+	})
+
 	describe('RULE: showViewOrderButton for ordered signatures', () => {
 		it('shows when signature flow is ordered_numeric', async () => {
 			await updateFile({
