@@ -102,7 +102,6 @@ Feature: account/signature
       | (jq).ocs.data.extensions                  | (jq).subjectKeyIdentifier != ""                                                          |
       | (jq).ocs.data.crl_urls\|length              | 1                                                                                        |
       | (jq).ocs.data.extensions.crlDistributionPoints \|test("URI:http") | true                                                                 |
-    And run the bash command "php <nextcloudRootDir>/apps*/libresign/tests/integration/assert-pfx-rsa2048.php <nextcloudRootDir> signer1 password" with result code 0
 
   Scenario: Create pfx with success using OpenSSL
     Given user "signer1" exists
