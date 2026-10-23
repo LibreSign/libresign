@@ -2192,7 +2192,7 @@ final class PolicySourceTest extends TestCase {
 
 		$systemConfigResult = $this->createMock(IResult::class);
 		$systemConfigResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
-			['configkey' => 'policy.signature_flow.system'],
+			['configkey' => 'policy.signature_flow.system', 'configvalue' => 'parallel'],
 			false,
 		);
 		$systemConfigResult->expects($this->once())->method('closeCursor');
@@ -2320,7 +2320,7 @@ final class PolicySourceTest extends TestCase {
 
 		$systemConfigResult = $this->createMock(IResult::class);
 		$systemConfigResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
-			['configkey' => 'policy.signature_flow.system'],
+			['configkey' => 'policy.signature_flow.system', 'configvalue' => 'none'],
 			false,
 		);
 		$systemConfigResult->expects($this->once())->method('closeCursor');

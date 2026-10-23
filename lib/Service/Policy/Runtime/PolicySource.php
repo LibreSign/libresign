@@ -635,26 +635,44 @@ class PolicySource implements IPolicySource {
 		}
 
 		$policyKeyByConfigKey = array_flip($configKeyByPolicy);
+		$allowOverrideConfigKeys = array_map(
+			fn (string $configKey): string => $this->getSystemAllowOverrideConfigKey($configKey),
+			array_values($configKeyByPolicy),
+		);
 
 		$systemConfigQuery = $this->db->getQueryBuilder();
-		$systemConfigQuery->select('configkey')
+		$systemConfigQuery->select('configkey', 'configvalue')
 			->from('appconfig')
 			->where($systemConfigQuery->expr()->eq('appid', $systemConfigQuery->createNamedParameter(Application::APP_ID)))
-			->andWhere($systemConfigQuery->expr()->in('configkey', $systemConfigQuery->createNamedParameter(array_values($configKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
-			->andWhere($systemConfigQuery->expr()->neq('configvalue', $systemConfigQuery->createNamedParameter('')));
+			->andWhere($systemConfigQuery->expr()->in('configkey', $systemConfigQuery->createNamedParameter(
+				[...array_values($configKeyByPolicy), ...$allowOverrideConfigKeys],
+				IQueryBuilder::PARAM_STR_ARRAY,
+			)));
 
+		/** @var array<string, string> $storedValues */
+		$storedValues = [];
 		$systemConfigResult = $systemConfigQuery->executeQuery();
 		try {
 			while ($row = $systemConfigResult->fetchAssociative()) {
-				$policyKey = $policyKeyByConfigKey[$row['configkey'] ?? ''] ?? null;
-				if (!is_string($policyKey) || !isset($counts[$policyKey])) {
-					continue;
-				}
-
-				$counts[$policyKey]['everyoneCount'] = 1;
+				$storedValues[(string)$row['configkey']] = (string)($row['configvalue'] ?? '');
 			}
 		} finally {
 			$systemConfigResult->closeCursor();
+		}
+
+		foreach ($policyKeyByConfigKey as $configKey => $policyKey) {
+			if (!isset($counts[$policyKey]) || !array_key_exists($configKey, $storedValues)) {
+				continue;
+			}
+
+			// Same rule as loadSystemPolicy(): an empty value only counts when it
+			// was saved with its override flag; without it, it is a legacy value.
+			if ($storedValues[$configKey] === ''
+				&& !array_key_exists($this->getSystemAllowOverrideConfigKey($configKey), $storedValues)) {
+				continue;
+			}
+
+			$counts[$policyKey]['everyoneCount'] = 1;
 		}
 	}
 
