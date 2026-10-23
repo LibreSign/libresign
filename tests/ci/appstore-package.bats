@@ -52,3 +52,17 @@ repack() {
 	[ "$status" -ne 0 ]
 	[[ "$output" == *"missing templates"* ]]
 }
+
+@test "rejects a package where a required file is a directory" {
+	run_make true "$APP" appstore
+	[ "$status" -eq 0 ]
+	rm "$SIGN_DIR/$APP_NAME/openapi.json"
+	mkdir "$SIGN_DIR/$APP_NAME/openapi.json"
+	touch "$SIGN_DIR/$APP_NAME/openapi.json/fake"
+	repack
+
+	run_make true "$APP" verify-appstore-package
+
+	[ "$status" -ne 0 ]
+	[[ "$output" == *"missing openapi.json"* ]]
+}

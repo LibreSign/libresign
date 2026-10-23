@@ -260,8 +260,10 @@ _appstore-nextcloud-setup:
 	fi
 
 # Package contract, mirroring package.required_paths and package.forbidden_paths
-# in .nextcloud-release.yml.
-appstore_required_paths=appinfo/info.xml composer css img js l10n lib templates vendor 3rdparty openapi.json openapi-administration.json openapi-full.json CHANGELOG.md
+# in .nextcloud-release.yml. Required files must be archive entries of their
+# own; a directory with the same name does not satisfy them.
+appstore_required_files=appinfo/info.xml openapi.json openapi-administration.json openapi-full.json CHANGELOG.md
+appstore_required_dirs=composer css img js l10n lib templates vendor 3rdparty
 appstore_forbidden_paths=.git .github .devcontainer .patches build docs node_modules playwright src vendor-bin img/screenshot 3rdparty/.git 3rdparty/.github 3rdparty/vendor 3rdparty/vendor-bin 3rdparty/scoper.inc.php
 
 .PHONY: verify-appstore-package
@@ -283,10 +285,15 @@ verify-appstore-package: verify-release-metadata
 	fi
 	@package_paths=$$(tar -tzf $(appstore_package_name).tar.gz) || { echo "Unable to read $(appstore_package_name).tar.gz" >&2; exit 1; }; \
 	has_path() { printf '%s\n' "$$package_paths" | awk -v path="$(app_name)/$$1" '$$0 == path || index($$0, path "/") == 1 { found = 1 } END { exit !found }'; }; \
+	has_file() { printf '%s\n' "$$package_paths" | grep -Fqx "$(app_name)/$$1"; }; \
+	has_dir() { printf '%s\n' "$$package_paths" | awk -v path="$(app_name)/$$1/" 'index($$0, path) == 1 { found = 1 } END { exit !found }'; }; \
 	outside=$$(printf '%s\n' "$$package_paths" | grep -v '^$(app_name)/' || true); \
 	test -z "$$outside" || { echo "App store package has entries outside $(app_name)/: $$outside" >&2; exit 1; }; \
-	for path in $(appstore_required_paths); do \
-		has_path "$$path" || { echo "App store package is missing $$path" >&2; exit 1; }; \
+	for path in $(appstore_required_files); do \
+		has_file "$$path" || { echo "App store package is missing $$path" >&2; exit 1; }; \
+	done; \
+	for path in $(appstore_required_dirs); do \
+		has_dir "$$path" || { echo "App store package is missing $$path" >&2; exit 1; }; \
 	done; \
 	for path in $(appstore_forbidden_paths); do \
 		! has_path "$$path" || { echo "App store package must not contain $$path" >&2; exit 1; }; \
