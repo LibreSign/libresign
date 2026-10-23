@@ -26,3 +26,9 @@ Feature: policies/signature_stamp_preview
       | renderMode | default |
       | backgroundType | default |
     Then the response should have a status code 403
+
+  Scenario: Unsafe signature stamp template cannot be previewed
+    Given as user "admin"
+    When sending "post" to ocs "/apps/libresign/api/v1/signature-stamp/preview-pdf"
+      | template | {{ range(1, 3) }} |
+    Then the response should have a status code 422

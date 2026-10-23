@@ -124,6 +124,12 @@ class FooterService {
 
 	public function isPreviewAllowed(): bool {
 		$footerPolicy = $this->getEffectiveFooterPolicy();
-		return (bool)$footerPolicy['enabled'];
+		if (!$footerPolicy['enabled']) {
+			return false;
+		}
+
+		$policy = $this->policyService->resolve(FooterPolicy::KEY);
+		return $policy->isVisible()
+			&& ($policy->isEditableByCurrentActor() || $policy->canUseAsRequestOverride());
 	}
 }

@@ -26,9 +26,7 @@ use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
 use OCA\Libresign\Vendor\Endroid\QrCode\QrCode;
 use OCA\Libresign\Vendor\Endroid\QrCode\RoundBlockSizeMode;
 use OCA\Libresign\Vendor\Endroid\QrCode\Writer\PngWriter;
-use OCA\Libresign\Vendor\Twig\Environment;
 use OCA\Libresign\Vendor\Twig\Error\SyntaxError;
-use OCA\Libresign\Vendor\Twig\Loader\FilesystemLoader;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -174,12 +172,7 @@ class SignatureTextService {
 			$context['qrcode'] = $this->getQrCodeImageBase64($context['ValidationURL']);
 		}
 		try {
-			$twigEnvironment = new Environment(
-				new FilesystemLoader(),
-			);
-			$parsed = $twigEnvironment
-				->createTemplate($template)
-				->render($context);
+			$parsed = SandboxedTemplateRenderer::render($template, $context);
 			return [
 				'parsed' => $parsed,
 				'template' => $template,

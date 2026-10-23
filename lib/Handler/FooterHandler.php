@@ -13,6 +13,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\SandboxedTemplateRenderer;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Vendor\Endroid\QrCode\Color\Color;
@@ -22,9 +23,7 @@ use OCA\Libresign\Vendor\Endroid\QrCode\QrCode;
 use OCA\Libresign\Vendor\Endroid\QrCode\RoundBlockSizeMode;
 use OCA\Libresign\Vendor\Endroid\QrCode\Writer\PngWriter;
 use OCA\Libresign\Vendor\Mpdf\Mpdf;
-use OCA\Libresign\Vendor\Twig\Environment;
 use OCA\Libresign\Vendor\Twig\Error\SyntaxError;
-use OCA\Libresign\Vendor\Twig\Loader\FilesystemLoader;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -105,12 +104,10 @@ class FooterHandler {
 
 	private function getRenderedHtmlFooter(bool $forceEnabled = false): string {
 		try {
-			$twigEnvironment = new Environment(
-				new FilesystemLoader(),
+			return SandboxedTemplateRenderer::render(
+				$this->getTemplate(),
+				$this->prepareTemplateVars($forceEnabled),
 			);
-			return $twigEnvironment
-				->createTemplate($this->getTemplate())
-				->render($this->prepareTemplateVars($forceEnabled));
 		} catch (SyntaxError $e) {
 			throw new LibresignException($e->getMessage());
 		}

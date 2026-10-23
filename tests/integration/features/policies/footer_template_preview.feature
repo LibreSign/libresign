@@ -22,14 +22,12 @@ Feature: policies/footer_template_preview
     And as user "signer1"
     And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/add_footer"
     And the response should have a status code 200
+    # An ordinary signer can preview an allowed policy, but cannot write the global template.
     When sending "post" to ocs "/apps/libresign/api/v1/footer-template"
-      | template | <p>Signer allowed flow</p> |
+      | template | <p>Signer may not write global policy</p> |
       | width    | 595 |
       | height   | 100 |
-    Then the response should have a status code 200
-    And the response header "Content-Type" should contain "application/pdf"
-    And the response body should not be empty
-    And the response body should match the regular expression "^%PDF"
+    Then the response should have a status code 403
     When sending "get" to ocs "/apps/libresign/api/v1/footer-template"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
@@ -333,3 +331,21 @@ Feature: policies/footer_template_preview
     And the response should have a status code 200
     And run the command "group:delete policy-footer-board-overlay" with result code 0
     And run the command "group:delete policy-footer-company-overlay" with result code 0
+
+  Scenario: Unsafe footer template does not overwrite a previously saved template
+    Given as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/add_footer"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/footer-template"
+      | template | <div>Approved footer</div> |
+    Then the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/footer-template"
+      | template | {{ range(1, 3) }} |
+    Then the response should have a status code 400
+    When sending "get" to ocs "/apps/libresign/api/v1/footer-template"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key | value |
+      | (jq).ocs.data.template | <div>Approved footer</div> |

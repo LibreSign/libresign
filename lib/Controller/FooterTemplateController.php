@@ -75,7 +75,7 @@ final class FooterTemplateController extends AEnvironmentAwareController {
 	 * 400: Bad request
 	 * 403: Forbidden
 	 */
-	#[NoAdminRequired]
+	// This endpoint writes a system-wide policy, unlike user/group policy overrides.
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/footer-template', requirements: ['apiVersion' => '(v1)'])]
 	public function saveFooterTemplate(string $template = '', int $width = 595, int $height = 50) {
 		if (!$this->footerService->isPreviewAllowed()) {
@@ -85,8 +85,14 @@ final class FooterTemplateController extends AEnvironmentAwareController {
 		}
 
 		try {
+			// Validate and render before persisting: a rejected template must not
+			// replace the global footer used by other signing requests.
+			$pdf = $this->footerService->renderPreviewPdf(
+				$template !== '' ? $template : $this->footerService->getDefaultTemplate(),
+				$width,
+				$height,
+			);
 			$this->footerService->saveTemplate($template, $width, $height);
-			$pdf = $this->footerService->renderPreviewPdf('', $width, $height);
 
 			return new DataDownloadResponse($pdf, 'footer-preview.pdf', 'application/pdf');
 		} catch (\Exception $e) {
