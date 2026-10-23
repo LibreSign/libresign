@@ -41,24 +41,16 @@ final class SandboxedTemplateRenderer {
 
 	/** @return array{Sandbox, Environment} */
 	private static function createSandbox(): array {
-		// Twig 3.30's native safe tests are allowed by its sandbox compiler.
-		// All other features are explicitly reviewed before dependency upgrades.
+		// This profile is generated from pinned Twig 4.x sandbox metadata.
+		// Deny macros on Twig 3.30: recursive calls lack a resource limit.
 		$policy = new SecurityPolicy(
-			allowedTags: [
-				'apply', 'block', 'do', 'for', 'if', 'set', 'types', 'with',
-			],
-			// Keep 'raw' for the existing HTML footer and 'date' for signature stamps.
-			allowedFilters: [
-				'abs', 'batch', 'capitalize', 'convert_encoding', 'date',
-				'default', 'e', 'escape', 'first', 'format', 'join',
-				'keys', 'last', 'length', 'lower', 'merge', 'nl2br',
-				'number_format', 'raw', 'replace', 'reverse', 'round',
-				'slice', 'split', 'striptags', 'title', 'trim', 'upper',
-				'url_encode',
-			],
+			allowedTags: array_values(array_diff(TwigSandboxSafeFeatures::TAGS, ['macro'])),
+			// Legacy LibreSign formatting needs these two non-default filters.
+			allowedFilters: [...TwigSandboxSafeFeatures::FILTERS, 'date', 'raw'],
 			allowedMethods: [],
 			allowedProperties: [],
-			allowedFunctions: ['cycle', 'max', 'min'],
+			allowedFunctions: TwigSandboxSafeFeatures::FUNCTIONS,
+			// Twig 3.30 already recognizes its built-in safe tests natively.
 			allowedTests: [],
 		);
 		$policy->setStrict(true);

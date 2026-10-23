@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Service\SandboxedTemplateRenderer;
+use OCA\Libresign\Service\TwigSandboxSafeFeatures;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCA\Libresign\Vendor\Twig\Environment;
 use OCA\Libresign\Vendor\Twig\Loader\FilesystemLoader;
@@ -60,6 +61,29 @@ final class SandboxedTemplateRendererTest extends TestCase {
 		$this->assertFalse($environment->getFilter('upper')->isAlwaysAllowedInSandbox());
 		$this->assertFalse($environment->getFunction('min')->isAlwaysAllowedInSandbox());
 		$this->assertSame('yes', SandboxedTemplateRenderer::render('{{ missing is not defined and values is not empty ? "yes" : "no" }}', ['values' => ['x']]));
+	}
+
+	public function testGeneratedSandboxProfileContainsOnlyAvailableTwigFeatures(): void {
+		$environment = new Environment(new FilesystemLoader());
+		foreach ([
+			'tags' => [TwigSandboxSafeFeatures::TAGS, $environment->getTokenParsers()],
+			'filters' => [TwigSandboxSafeFeatures::FILTERS, $environment->getFilters()],
+			'functions' => [TwigSandboxSafeFeatures::FUNCTIONS, $environment->getFunctions()],
+			'tests' => [TwigSandboxSafeFeatures::TESTS, $environment->getTests()],
+		] as $category => [$safe, $available]) {
+			foreach ($safe as $name) {
+				$this->assertArrayHasKey($name, $available, $category . ': ' . $name);
+			}
+		}
+
+		$this->assertMatchesRegularExpression('/^[a-f0-9]{40}$/', TwigSandboxSafeFeatures::SOURCE_COMMIT);
+		$this->assertContains('macro', TwigSandboxSafeFeatures::TAGS);
+		$this->assertContains('upper', TwigSandboxSafeFeatures::FILTERS);
+		$this->assertContains('min', TwigSandboxSafeFeatures::FUNCTIONS);
+		$this->assertNotContains('raw', TwigSandboxSafeFeatures::FILTERS);
+		$this->assertNotContains('date', TwigSandboxSafeFeatures::FILTERS);
+		$this->assertNotContains('range', TwigSandboxSafeFeatures::FUNCTIONS);
+		$this->assertNotContains('constant', TwigSandboxSafeFeatures::TESTS);
 	}
 
 	public function testValidationChecksUnreachableCodeWithoutRenderingIt(): void {
