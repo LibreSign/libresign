@@ -39,4 +39,8 @@ final class ReportPeriod {
 	public function next(): self {
 		return new self($this->end, $this->end->modify('+1 month'));
 	}
+
+	public function previous(): self {
+		return new self($this->start->modify('-1 month'), $this->start);
+	}
 }

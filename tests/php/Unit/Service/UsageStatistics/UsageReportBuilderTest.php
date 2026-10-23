@@ -17,6 +17,7 @@ use OCA\Libresign\Service\UsageStatistics\UsageReportBuilder;
 use OCA\Libresign\Service\UsageStatistics\UsageStatisticsCollectors;
 use OCA\Libresign\Service\UsageStatistics\UsageStatisticsException;
 use OCA\Libresign\Service\UsageStatistics\UsageStatisticsSchema;
+use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -24,9 +25,13 @@ use Psr\Container\ContainerInterface;
 
 final class UsageReportBuilderTest extends TestCase {
 	private UsageActivityReader&MockObject $activityReader;
+	private ITimeFactory&MockObject $timeFactory;
 
 	public function setUp(): void {
 		$this->activityReader = $this->createMock(UsageActivityReader::class);
+		$this->timeFactory = $this->createMock(ITimeFactory::class);
+		// period() is the most recent closed month at this instant.
+		$this->timeFactory->method('now')->willReturn(new \DateTimeImmutable('2026-09-03T12:00:00Z'));
 	}
 
 	public function testEveryShippedSchemaMetricHasExactlyOneCollector(): void {
@@ -166,6 +171,43 @@ final class UsageReportBuilderTest extends TestCase {
 		$builder->build($this->period(), ReportMode::HISTORICAL);
 	}
 
+	public function testTheCurrentPeriodIsTheMostRecentClosedMonth(): void {
+		$current = $this->builder($this->schema(), [])->currentPeriod();
+
+		$this->assertEquals($this->period()->start(), $current->start());
+		$this->assertEquals($this->period()->end(), $current->end());
+	}
+
+	#[DataProvider('periodsThatAreNotTheMostRecentClosedMonth')]
+	public function testACurrentReportOnlyDescribesTheMostRecentClosedMonth(string $instant): void {
+		$builder = $this->builder($this->schema(), [
+			$this->collector(['documents.files_created' => MetricValue::of(3), 'php.version' => MetricValue::of('8.3')]),
+		]);
+
+		$this->expectException(UsageStatisticsException::class);
+		$this->expectExceptionMessage('most recent closed month');
+		$builder->build(ReportPeriod::monthContaining(new \DateTimeImmutable($instant)), ReportMode::CURRENT);
+	}
+
+	public static function periodsThatAreNotTheMostRecentClosedMonth(): array {
+		return [
+			'an older month' => ['2025-01-15T00:00:00Z'],
+			'the month before the most recent closed one' => ['2026-07-31T23:59:59Z'],
+			'the month still open' => ['2026-09-01T00:00:00Z'],
+			'a future month' => ['2026-10-01T00:00:00Z'],
+		];
+	}
+
+	public function testAHistoricalReportCanDescribeAnOlderMonth(): void {
+		$builder = $this->builder($this->schema(), [
+			$this->collector(['documents.files_created' => MetricValue::of(3), 'php.version' => MetricValue::unavailable()]),
+		]);
+
+		$report = $builder->build(ReportPeriod::monthContaining(new \DateTimeImmutable('2025-01-15T00:00:00Z')), ReportMode::HISTORICAL);
+
+		$this->assertSame('2025-01-01', $report->period->start()->format('Y-m-d'));
+	}
+
 	public function testTheFirstActivityPeriodIsTheMonthOfTheFirstLibreSignFile(): void {
 		$this->activityReader->method('firstActivityAt')->willReturn(new \DateTimeImmutable('2025-03-17T08:00:00Z'));
 
@@ -240,6 +282,6 @@ final class UsageReportBuilderTest extends TestCase {
 		$container = $this->createMock(ContainerInterface::class);
 		$container->method('get')->willReturnCallback(static fn (string $id) => $byClass[$id]);
 
-		return new UsageReportBuilder($container, $this->activityReader, $schema, array_keys($byClass));
+		return new UsageReportBuilder($container, $this->activityReader, $schema, $this->timeFactory, array_keys($byClass));
 	}
 }

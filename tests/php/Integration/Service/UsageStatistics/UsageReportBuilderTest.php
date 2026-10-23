@@ -19,7 +19,8 @@ use OCP\Server;
  */
 final class UsageReportBuilderTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	public function testTheCurrentReportHasEveryMetricOfTheSchemaThatTheServerCanTell(): void {
-		$report = Server::get(UsageReportBuilder::class)->build($this->period(), ReportMode::CURRENT);
+		$builder = Server::get(UsageReportBuilder::class);
+		$report = $builder->build($builder->currentPeriod(), ReportMode::CURRENT);
 
 		$reported = array_map(static fn ($metric): string => $metric->category . '.' . $metric->key, $report->metrics);
 		$this->assertContains('nextcloud.version', $reported);
@@ -46,7 +47,8 @@ final class UsageReportBuilderTest extends \OCA\Libresign\Tests\Integration\Test
 		$appConfig = self::getMockAppConfig();
 		$before = $appConfig->getAllValues('libresign');
 
-		Server::get(UsageReportBuilder::class)->build($this->period(), ReportMode::CURRENT);
+		$builder = Server::get(UsageReportBuilder::class);
+		$builder->build($builder->currentPeriod(), ReportMode::CURRENT);
 
 		$this->assertSame($before, $appConfig->getAllValues('libresign'));
 	}

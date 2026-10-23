@@ -16,6 +16,7 @@ use OCA\Libresign\Service\UsageStatistics\Model\ReportMode;
 use OCA\Libresign\Service\UsageStatistics\Model\ReportPeriod;
 use OCA\Libresign\Service\UsageStatistics\Model\UsageReport;
 use OCA\Libresign\Service\UsageStatistics\Source\UsageActivityReader;
+use OCP\AppFramework\Utility\ITimeFactory;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -26,6 +27,9 @@ use Psr\Container\ContainerInterface;
  * when its collector states that it cannot be known for the period. Anything
  * else fails the whole report: a missing answer, an invalid value, a required
  * metric without value, or a current snapshot claimed for a past period.
+ *
+ * A current report carries today's environment snapshots, so it can only
+ * describe the most recent closed month.
  */
 class UsageReportBuilder {
 	private const MAX_STRING_BYTES = 1024;
@@ -37,11 +41,23 @@ class UsageReportBuilder {
 		private ContainerInterface $container,
 		private UsageActivityReader $activityReader,
 		private UsageStatisticsSchema $schema,
+		private ITimeFactory $timeFactory,
 		private array $collectorClasses = UsageStatisticsCollectors::ALL,
 	) {
 	}
 
 	public function build(ReportPeriod $period, ReportMode $mode): UsageReport {
+		if ($mode === ReportMode::CURRENT) {
+			$currentPeriod = $this->currentPeriod();
+			if ($period->start() != $currentPeriod->start()) {
+				throw new UsageStatisticsException(sprintf(
+					'A current report can only describe the most recent closed month (%s), not %s',
+					$currentPeriod->start()->format('Y-m'),
+					$period->start()->format('Y-m'),
+				));
+			}
+		}
+
 		$values = [];
 		foreach ($this->collectorsByMetric() as $collector) {
 			$answers = $collector->collect($period, $mode);
@@ -76,6 +92,11 @@ class UsageReportBuilder {
 		}
 
 		return new UsageReport($this->schema->application(), $this->schema->version(), $period, $metrics);
+	}
+
+	/** The most recent closed UTC month, the only period a current report can describe. */
+	public function currentPeriod(): ReportPeriod {
+		return ReportPeriod::monthContaining($this->timeFactory->now())->previous();
 	}
 
 	/** The month of the first LibreSign activity, where the historical series starts. */
