@@ -20,19 +20,19 @@ use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\Files\File;
 use OCP\IAppConfig;
-use SignerPHP\Application\DTO\CertificateCredentialsDto;
-use SignerPHP\Application\DTO\CertificationLevel;
-use SignerPHP\Application\DTO\PdfContentDto;
-use SignerPHP\Application\DTO\SignatureActorDto;
-use SignerPHP\Application\DTO\SignatureAppearanceDto;
-use SignerPHP\Application\DTO\SignatureAppearanceXObjectDto;
-use SignerPHP\Application\DTO\SignatureMetadataDto;
-use SignerPHP\Application\DTO\SigningOptionsDto;
-use SignerPHP\Application\DTO\SignPdfRequestDto;
-use SignerPHP\Application\DTO\TimestampOptionsDto;
-use SignerPHP\Application\Service\PdfSigningService;
-use SignerPHP\Infrastructure\Legacy\OpenSslCertificateValidator;
-use SignerPHP\Infrastructure\Native\NativePdfSigningEngine;
+use SignerPHP\PdfSigner\Application\DTO\CertificateCredentialsDto;
+use SignerPHP\PdfSigner\Application\DTO\CertificationLevel;
+use SignerPHP\PdfSigner\Application\DTO\PdfContentDto;
+use SignerPHP\PdfSigner\Application\DTO\SignatureActorDto;
+use SignerPHP\PdfSigner\Application\DTO\SignatureAppearanceDto;
+use SignerPHP\PdfSigner\Application\DTO\SignatureAppearanceXObjectDto;
+use SignerPHP\PdfSigner\Application\DTO\SignatureMetadataDto;
+use SignerPHP\PdfSigner\Application\DTO\SigningOptionsDto;
+use SignerPHP\PdfSigner\Application\DTO\SignPdfRequestDto;
+use SignerPHP\PdfSigner\Application\DTO\TimestampOptionsDto;
+use SignerPHP\PdfSigner\Application\Service\PdfSigningService;
+use SignerPHP\PdfSigner\Infrastructure\Legacy\OpenSslCertificateValidator;
+use SignerPHP\PdfSigner\Infrastructure\Native\NativePdfSigningEngine;
 
 class PhpNativeHandler extends Pkcs12Handler {
 	public function __construct(

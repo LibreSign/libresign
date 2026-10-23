@@ -10,7 +10,7 @@ namespace OCA\Libresign\Service\SignatureStampPreview;
 
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
-use SignerPHP\Application\DTO\SignatureAppearanceXObjectDto;
+use SignerPHP\PdfSigner\Application\DTO\SignatureAppearanceXObjectDto;
 
 class SignatureStampAppearanceBuilder {
 	public function __construct(
