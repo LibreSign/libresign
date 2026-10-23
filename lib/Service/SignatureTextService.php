@@ -27,6 +27,7 @@ use OCA\Libresign\Vendor\Endroid\QrCode\QrCode;
 use OCA\Libresign\Vendor\Endroid\QrCode\RoundBlockSizeMode;
 use OCA\Libresign\Vendor\Endroid\QrCode\Writer\PngWriter;
 use OCA\Libresign\Vendor\Twig\Error\SyntaxError;
+use OCA\Libresign\Vendor\Twig\Sandbox\SecurityError;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -182,8 +183,11 @@ class SignatureTextService {
 				'signatureHeight' => $signatureHeight,
 				'renderMode' => $renderMode,
 			];
+		} catch (SecurityError $e) {
+			// TRANSLATORS A previously saved signature stamp template uses unsupported Twig operations and must be corrected in the policy settings.
+			throw new LibresignException($this->l10n->t('The configured signature stamp template is not supported. Ask an administrator to review the signature stamp policy.'), 0, $e);
 		} catch (SyntaxError $e) {
-			throw new LibresignException((string)preg_replace('/in "[^"]+" at line \d+/', '', $e->getMessage()));
+			throw new LibresignException((string)preg_replace('/in "[^"]+" at line \d+/', '', $e->getMessage()), 0, $e);
 		}
 	}
 

@@ -24,6 +24,7 @@ use OCA\Libresign\Vendor\Endroid\QrCode\RoundBlockSizeMode;
 use OCA\Libresign\Vendor\Endroid\QrCode\Writer\PngWriter;
 use OCA\Libresign\Vendor\Mpdf\Mpdf;
 use OCA\Libresign\Vendor\Twig\Error\SyntaxError;
+use OCA\Libresign\Vendor\Twig\Sandbox\SecurityError;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -108,8 +109,11 @@ class FooterHandler {
 				$this->getTemplate(),
 				$this->prepareTemplateVars($forceEnabled),
 			);
+		} catch (SecurityError $e) {
+			// TRANSLATORS A previously saved PDF footer template contains Twig operations that are no longer allowed; an administrator must edit its policy before signing can continue.
+			throw new LibresignException($this->l10n->t('The configured footer template is not supported. Ask an administrator to review the footer policy.'), 0, $e);
 		} catch (SyntaxError $e) {
-			throw new LibresignException($e->getMessage());
+			throw new LibresignException($e->getMessage(), 0, $e);
 		}
 	}
 
