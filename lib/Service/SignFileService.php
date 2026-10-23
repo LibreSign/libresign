@@ -295,7 +295,7 @@ class SignFileService {
 			$nodeId = $this->getNodeId($element, $fileElement);
 
 			$existing = $this->elements[$fileElementId] ?? null;
-			if ($existing instanceof VisibleElementAssoc && $this->isTempFileValid($existing)) {
+			if ($existing instanceof VisibleElementAssoc && $this->temporarySignatureImageService->isAvailable($existing->getTempFile())) {
 				$newElements[$fileElementId] = $existing;
 				continue;
 			}
@@ -308,14 +308,9 @@ class SignFileService {
 		return $this;
 	}
 
-	private function isTempFileValid(VisibleElementAssoc $elementAssoc): bool {
-		$tempFile = $elementAssoc->getTempFile();
-		return $tempFile !== '' && is_file($tempFile) && is_readable($tempFile) && filesize($tempFile) > 0;
-	}
-
 	private function restoreMissingVisibleElementImages(): void {
 		foreach ($this->elements as $element) {
-			if ($element->getTempFile() !== '' && !$this->isTempFileValid($element)) {
+			if ($element->getTempFile() !== '' && !$this->temporarySignatureImageService->isAvailable($element->getTempFile())) {
 				// Rebuild from the stored signature, not from a temporary path that may have been cleaned.
 				$this->setVisibleElements($this->elementsInput);
 				return;
@@ -364,21 +359,12 @@ class SignFileService {
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
 
-		$tempFile = $this->tempManager->getTemporaryFile('_' . $nodeId . '.png');
-		if ($tempFile === false) {
-			// TRANSLATORS Error shown when LibreSign cannot prepare a temporary image for the visible signature.
-			throw new LibresignException($this->l10n->t('Temporary signature image is not available. Please try signing again.'));
-		}
-
 		$content = $node->getContent();
 		if (empty($content)) {
 			$this->logger->error('Failed to retrieve content for node.', ['nodeId' => $nodeId, 'fileElement' => $fileElement]);
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
-		if (@file_put_contents($tempFile, $content) !== strlen($content) || !is_file($tempFile) || !is_readable($tempFile)) {
-			// TRANSLATORS Error shown when LibreSign cannot prepare a temporary image for the visible signature.
-			throw new LibresignException($this->l10n->t('Temporary signature image is not available. Please try signing again.'));
-		}
+		$tempFile = $this->temporarySignatureImageService->create($nodeId, $content);
 		return new VisibleElementAssoc($fileElement, $tempFile);
 	}
 

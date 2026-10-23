@@ -21,6 +21,7 @@ use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
+use OCA\Libresign\Service\TemporarySignatureImageService;
 use OCA\Libresign\Vendor\Jeidison\JSignPDF\JSignPDF;
 use OCA\Libresign\Vendor\Jeidison\JSignPDF\Sign\JSignParam;
 use OCP\IAppConfig;
@@ -107,6 +108,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->javaHelper,
 				$this->createMock(DocMdpConfigService::class),
 				$hashAlgorithmResolver,
+				$temporarySignatureImageService,
 			);
 		}
 		return $this->getMockBuilder(JSignPdfHandler::class)
@@ -120,6 +122,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->javaHelper,
 				$this->createMock(DocMdpConfigService::class),
 				$hashAlgorithmResolver,
+				$temporarySignatureImageService,
 			])
 			->onlyMethods($methods)
 			->getMock();
