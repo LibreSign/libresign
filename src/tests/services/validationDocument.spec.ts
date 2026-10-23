@@ -68,6 +68,42 @@ function createValidationPayload(patch: Record<string, unknown> = {}): Record<st
 	}
 }
 
+function createChildSigner(patch: Record<string, unknown> = {}): Record<string, unknown> {
+	return {
+		signRequestId: 2,
+		displayName: 'Child signer',
+		email: 'child@example.com',
+		signed: null,
+		status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+		displayStatus: 'ready_to_sign',
+		statusText: 'Pending',
+		visibleElements: [],
+		...patch,
+	}
+}
+
+function createEnvelopePayload(childPatch: Record<string, unknown> = {}): Record<string, unknown> {
+	return createValidationPayload({
+		name: 'envelope',
+		nodeType: 'envelope',
+		files: [{
+			id: 101,
+			uuid: '550e8400-e29b-41d4-a716-446655440001',
+			name: 'contract.pdf',
+			status: FILE_STATUS.ABLE_TO_SIGN,
+			statusText: 'Pending',
+			nodeId: 101,
+			totalPages: 1,
+			size: 10,
+			pdfVersion: '1.7',
+			signers: [createChildSigner()],
+			file: '/apps/libresign/p/pdf/550e8400-e29b-41d4-a716-446655440001',
+			metadata: { extension: 'pdf', p: 1 },
+			...childPatch,
+		}],
+	})
+}
+
 describe('validationDocument', () => {
 	it('normalizes a valid payload to internal document state', () => {
 		const normalized = toValidationDocument(createValidationPayload())
@@ -357,11 +393,80 @@ describe('validationDocument', () => {
 	})
 
 	it('accepts a canceled document inside an envelope', () => {
-		const payload = createValidationPayload()
-		const files = payload.files as Record<string, unknown>[]
-		files[0].status = FILE_STATUS.CANCELED
+		const childSigner = createChildSigner({ displayStatus: 'not_signed', statusText: 'Not signed' })
+		delete childSigner.status
 
-		expect(toValidationDocument(payload)).not.toBeNull()
+		const normalized = toValidationDocument(createEnvelopePayload({
+			status: FILE_STATUS.CANCELED,
+			statusText: 'Canceled',
+			signers: [childSigner],
+		}))
+
+		expect(normalized?.nodeType).toBe('envelope')
+		expect(normalized?.files[0]?.status).toBe(FILE_STATUS.CANCELED)
+		expect(normalized?.files[0]?.signers[0]).toEqual(expect.objectContaining({ displayStatus: 'not_signed' }))
+		expect(normalized?.files[0]?.signers[0]).not.toHaveProperty('status')
+	})
+
+	it('accepts a rejected signer with its rejection inside an envelope', () => {
+		const rejection = { rejectedAt: '2026-09-09T12:00:00+00:00', comment: 'I do not agree' }
+
+		const normalized = toValidationDocument(createEnvelopePayload({
+			signers: [createChildSigner({
+				status: SIGN_REQUEST_STATUS.REJECTED,
+				displayStatus: 'rejected',
+				statusText: 'Rejected',
+				rejection,
+			})],
+		}))
+
+		expect(normalized?.files[0]?.signers[0]).toEqual(expect.objectContaining({ rejection }))
+	})
+
+	it.each([
+		['a display status outside the contract', { displayStatus: 'pending' }],
+		['no display status', { displayStatus: undefined }],
+		['an invalid rejection', { displayStatus: 'rejected', rejection: { comment: 'I do not agree' } }],
+		['an invalid status', { status: 99 }],
+	])('rejects an envelope child signer with %s', (_, patch) => {
+		expect(toValidationDocument(createEnvelopePayload({
+			signers: [createChildSigner(patch)],
+		}))).toBeNull()
+	})
+
+	it('rejects a LibreSign signer with certificate data and a display status outside the contract', () => {
+		expect(toValidationDocument(createValidationPayload({
+			signers: [createSigner({
+				status: SIGN_REQUEST_STATUS.SIGNED,
+				displayStatus: 'pending',
+				statusText: 'Signed',
+				chain: [{ subject: { CN: 'Signer' } }],
+			})],
+		}))).toBeNull()
+	})
+
+	it('rejects a LibreSign signer with certificate data and an invalid rejection', () => {
+		expect(toValidationDocument(createValidationPayload({
+			signers: [createSigner({
+				status: SIGN_REQUEST_STATUS.SIGNED,
+				displayStatus: 'rejected',
+				statusText: 'Signed',
+				rejection: { comment: 'I do not agree' },
+				chain: [{ subject: { CN: 'Signer' } }],
+			})],
+		}))).toBeNull()
+	})
+
+	it('rejects a certificate signer with an invalid rejection', () => {
+		expect(toValidationDocument(createValidationPayload({
+			signers: [{
+				displayName: 'External signer',
+				status: SIGN_REQUEST_STATUS.SIGNED,
+				statusText: 'Signed',
+				rejection: 'rejected',
+				chain: [{ subject: { CN: 'External signer' } }],
+			}],
+		}))).toBeNull()
 	})
 
 	it('accepts a rejected signer with its rejection', () => {

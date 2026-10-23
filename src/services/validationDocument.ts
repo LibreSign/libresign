@@ -260,6 +260,7 @@ function isCertificateSignerRecord(value: unknown): value is UnknownRecord {
 		&& isString(value.statusText)
 		&& isOptionalField(value, 'signed', isNullableString)
 		&& Array.isArray(value.chain)
+		&& isOptionalField(value, 'rejection', isSignerRejection)
 		&& isOptionalField(value, 'signature_validation', isValidationStatusInfo)
 		&& isOptionalField(value, 'certificate_validation', isValidationStatusInfo)
 		&& isOptionalField(value, 'modification_validation', isValidationModificationInfo)
@@ -289,11 +290,29 @@ function normalizeSignerDetail(value: unknown): ValidationSignerDetailRecord | n
 		return value
 	}
 
-	if (isCertificateSignerRecord(value)) {
+	// Only signers read from the PDF certificates lack a sign request; a
+	// LibreSign signer must satisfy its own contract even with certificate data.
+	if (isRecord(value) && !hasOwn(value, 'signRequestId') && isCertificateSignerRecord(value)) {
 		return normalizeCertificateSigner(value)
 	}
 
 	return null
+}
+
+function isChildSignerRecord(value: unknown): boolean {
+	if (!isRecord(value)) {
+		return false
+	}
+
+	return toInteger(value.signRequestId) !== null
+		&& isString(value.displayName)
+		&& isOptionalField(value, 'email', isNullableString)
+		&& isNullableString(value.signed)
+		&& isOptionalField(value, 'status', isSignerStatus)
+		&& isSignerDisplayStatus(value.displayStatus)
+		&& isOptionalField(value, 'rejection', isSignerRejection)
+		&& isString(value.statusText)
+		&& isOptionalField(value, 'visibleElements', fieldValue => Array.isArray(fieldValue))
 }
 
 function isValidatedChildFileRecord(value: unknown): value is ValidatedChildFileRecord {
@@ -309,6 +328,7 @@ function isValidatedChildFileRecord(value: unknown): value is ValidatedChildFile
 		&& toInteger(value.nodeId) !== null
 		&& toInteger(value.size) !== null
 		&& Array.isArray(value.signers)
+		&& value.signers.every(isChildSignerRecord)
 		&& isOptionalField(value, 'file', isString)
 		&& (isValidationMetadata(value.metadata)
 			|| (toInteger(value.status) === FILE_STATUS.NOT_LIBRESIGN_FILE && Array.isArray(value.metadata) && value.metadata.length === 0))
