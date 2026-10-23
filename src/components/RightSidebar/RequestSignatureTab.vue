@@ -513,6 +513,7 @@ const showFooterTemplateSelector = computed(() => {
 		&& isCurrentFileDetailed.value
 		&& filesStore.canSave()
 		&& canChooseFooterTemplateAtRequestLevel.value
+		&& !isPolicySnapshotFrozen.value
 		&& footerTemplateSourceOptions.value.length > 1
 })
 const showRememberFooterTemplate = computed(() => showFooterTemplateSelector.value && canSaveFooterPreference.value)
@@ -552,6 +553,7 @@ function getFooterPolicyPayloadForSave(): string | null {
 		canChooseFooterTemplateAtRequestLevel.value,
 		footerTemplateSourceOptions.value,
 		selectedFooterTemplateSource.value,
+		isPolicySnapshotFrozen.value,
 	)
 }
 
