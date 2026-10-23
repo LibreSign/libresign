@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Api\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
