@@ -84,6 +84,20 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return $this->footerHandler;
 	}
 
+	public function testPreviouslyStoredUnsafeFooterFailsClosed(): void {
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID);
+		$this->setFooterPolicy([
+			...FooterPolicyValue::defaults(),
+			'writeQrcodeOnFooter' => false,
+			'customizeFooterTemplate' => true,
+			'footerTemplate' => '{{ range(1, 3) }}',
+		]);
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionMessage('footer policy');
+		$this->getClass()->getFooter([['w' => 595, 'h' => 100]]);
+	}
+
 	public function testGetFooterWithoutValidationSite(): void {
 		$this->setFooterPolicy([
 			'enabled' => false,
