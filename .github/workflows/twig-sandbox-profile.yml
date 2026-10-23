@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Verify Twig sandbox compatibility profile
+
+on:
+  pull_request:
+    paths:
+      - '3rdparty'
+      - 'lib/Service/SandboxedTemplateRenderer.php'
+      - 'lib/Service/TwigSandboxSafeFeatures.php'
+      - 'tools/generate-twig-sandbox-profile.php'
+      - '.github/workflows/twig-sandbox-profile.yml'
+  push:
+    paths:
+      - '3rdparty'
+      - 'lib/Service/SandboxedTemplateRenderer.php'
+      - 'lib/Service/TwigSandboxSafeFeatures.php'
+      - 'tools/generate-twig-sandbox-profile.php'
+      - '.github/workflows/twig-sandbox-profile.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-profile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout LibreSign with scoped dependencies
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          persist-credentials: false
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+      - name: Install pinned Twig 4.x metadata source
+        run: |
+          git clone --quiet https://github.com/twigphp/Twig.git /tmp/libresign-twig4-reference
+          git -C /tmp/libresign-twig4-reference checkout --detach 92fc7b14903529462615b23166c02862d2dcff52
+          composer install --working-dir=/tmp/libresign-twig4-reference --no-dev --no-scripts --no-plugins --no-interaction --no-progress --prefer-dist
+      - name: Verify committed compatibility profile
+        run: php tools/generate-twig-sandbox-profile.php /tmp/libresign-twig4-reference --check
