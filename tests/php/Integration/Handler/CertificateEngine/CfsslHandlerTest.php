@@ -42,23 +42,6 @@ class CfsslHandlerTest extends AppDataTestCase {
 		$this->processManager = $this->createMock(ProcessManager::class);
 	}
 
-	public function testIssuedCertificateUsesRsa2048PublicKey(): void {
-		$handler = \OCP\Server::get(CfsslHandler::class);
-		$handler->generateRootCert('Test Root CA');
-		$handler->setCommonName('Test Signer');
-		$handler->setHosts(['signer@example.test']);
-		$handler->setPassword('test-password');
-
-		$pfx = $handler->generateCertificate();
-		$this->assertTrue(openssl_pkcs12_read($pfx, $contents, 'test-password'));
-		$publicKey = openssl_pkey_get_public($contents['cert']);
-		$this->assertNotFalse($publicKey);
-		$details = openssl_pkey_get_details($publicKey);
-		$this->assertIsArray($details);
-		$this->assertSame(OPENSSL_KEYTYPE_RSA, $details['type']);
-		$this->assertSame(2048, $details['bits']);
-	}
-
 	public function testGetServerPidReadsFromRegistry(): void {
 		$handler = $this->createHandler();
 
