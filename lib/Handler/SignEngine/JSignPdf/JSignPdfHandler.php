@@ -301,6 +301,9 @@ class JSignPdfHandler extends Pkcs12Handler {
 					: '';
 
 				$signatureImagePath = $element->getTempFile();
+				if ($signatureImagePath !== '' && (!is_file($signatureImagePath) || !is_readable($signatureImagePath) || filesize($signatureImagePath) === 0)) {
+					throw new LibresignException('Temporary signature image is not available. Please try signing again.');
+				}
 				if ($backgroundType === 'deleted') {
 					if ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
 						$params['--render-mode'] = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION;
