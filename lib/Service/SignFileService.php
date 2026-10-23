@@ -36,6 +36,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
+use OCA\Libresign\Handler\SignEngine\IPkcs12SignEngineHandler;
 use OCA\Libresign\Handler\SignEngine\ISignEngineHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
@@ -881,7 +882,7 @@ class SignFileService {
 		$this->signRequest->setSignedHash($hash);
 		$this->signRequest->setStatusEnum(\OCA\Libresign\Enum\SignRequestStatus::SIGNED);
 
-		$certificateInfo = $this->getEngine()->readCertificate();
+		$certificateInfo = $this->getPkcs12Engine()->readCertificate();
 		$this->storeCertificateInfoInMetadata($certificateInfo);
 
 		$this->signRequestMapper->update($this->signRequest);
@@ -933,7 +934,7 @@ class SignFileService {
 		$certificateSerialNumber = null;
 		if ($this->signWithoutPassword) {
 			try {
-				$certificateInfo = $this->getEngine()->readCertificate();
+				$certificateInfo = $this->getPkcs12Engine()->readCertificate();
 				if (isset($certificateInfo['serialNumber']) && is_string($certificateInfo['serialNumber'])) {
 					$certificateSerialNumber = $certificateInfo['serialNumber'];
 				} else {
@@ -1221,8 +1222,25 @@ class SignFileService {
 		return $result['pfx'];
 	}
 
+	/**
+	 * Return the engine that holds the PKCS#12/PFX credential material.
+	 *
+	 * The current signing workflow receives the PKCS#12/PFX credential inside
+	 * LibreSign, so the engine must implement the PKCS#12 credential contract.
+	 * The common sign engine contract does not require it.
+	 *
+	 * @throws LibresignException When the resolved engine has no PKCS#12 credential contract
+	 */
+	protected function getPkcs12Engine(): IPkcs12SignEngineHandler {
+		$engine = $this->getEngine();
+		if (!$engine instanceof IPkcs12SignEngineHandler) {
+			throw new LibresignException('The sign engine does not support PKCS#12 credentials.');
+		}
+		return $engine;
+	}
+
 	protected function readCertificate(): array {
-		return $this->getEngine()
+		return $this->getPkcs12Engine()
 			->readCertificate();
 	}
 
@@ -1283,10 +1301,10 @@ class SignFileService {
 	}
 
 	private function configureEngine(): void {
-		$this->engine
-			->setInputFile($this->getFileToSign())
-			->setCertificate($this->getOrGeneratePfxContent($this->engine))
-			->setPassword($this->password);
+		$engine = $this->getPkcs12Engine();
+		$engine->setInputFile($this->getFileToSign());
+		$engine->setCertificate($this->getOrGeneratePfxContent($this->engine));
+		$engine->setPassword($this->password);
 
 		if ($this->engine::class === Pkcs12Handler::class) {
 			$this->engine
