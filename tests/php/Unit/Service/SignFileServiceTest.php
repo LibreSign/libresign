@@ -1649,6 +1649,80 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	public function testMissingTemporarySignatureImageIsRestoredBeforeEngineConfiguration(): void {
+		\bovigo\vfs\vfsStream::setup('home');
+		$signatureContent = 'synthetic signature image';
+		$nodeId = 277524;
+		$elementId = 171;
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(100);
+		$signRequest->setFileId(200);
+
+		$fileElement = new FileElement();
+		$fileElement->setId($elementId);
+		$this->fileElementMapper->method('getByFileIdAndSignRequestId')->willReturn([$fileElement]);
+		$this->signerElementsService->method('canCreateSignature')->willReturn(true);
+
+		$signatureNode = $this->createMock(\OCP\Files\File::class);
+		$signatureNode->method('getContent')->willReturn($signatureContent);
+		$this->folderService->method('getFileByNodeId')->with($nodeId)->willReturn($signatureNode);
+
+		$this->tempManager->method('getTemporaryFile')->willReturnOnConsecutiveCalls(
+			'vfs://home/first.png',
+			'vfs://home/restored.png',
+		);
+
+		$pkcs12 = (new \ReflectionClass(Pkcs12Handler::class))->newInstanceWithoutConstructor();
+		$inputFile = $this->createMock(\OCP\Files\File::class);
+		$this->pfxProvider = $this->createMock(PfxProvider::class);
+		$this->pfxProvider->method('getOrGeneratePfx')->willReturn(['pfx' => 'synthetic pfx', 'password' => null]);
+
+		$service = $this->getService(['getFileToSign', 'identifyEngine', 'getSignatureParams']);
+		$service->method('getFileToSign')->willReturn($inputFile);
+		$service->method('identifyEngine')->willReturn($pkcs12);
+		$service->method('getSignatureParams')->willReturn([]);
+
+		$service->setSignRequest($signRequest)->setVisibleElements([
+			['documentElementId' => $elementId, 'profileNodeId' => $nodeId],
+		]);
+
+		$initialPath = $service->getVisibleElements()[$elementId]->getTempFile();
+		$this->assertSame($signatureContent, file_get_contents($initialPath));
+		unlink($initialPath);
+
+		$engine = self::invokePrivate($service, 'getEngine');
+		$restoredPath = $engine->getVisibleElements()[$elementId]->getTempFile();
+		$this->assertSame('vfs://home/restored.png', $restoredPath);
+		$this->assertSame($signatureContent, file_get_contents($restoredPath));
+	}
+
+	public function testTemporarySignatureImageAllocationFailureIsReported(): void {
+		$elementId = 171;
+		$nodeId = 277524;
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(100);
+		$signRequest->setFileId(200);
+
+		$fileElement = new FileElement();
+		$fileElement->setId($elementId);
+		$this->fileElementMapper->method('getByFileIdAndSignRequestId')->willReturn([$fileElement]);
+		$this->signerElementsService->method('canCreateSignature')->willReturn(true);
+
+		$signatureNode = $this->createMock(\OCP\Files\File::class);
+		$signatureNode->method('getContent')->willReturn('synthetic signature image');
+		$this->folderService->method('getFileByNodeId')->with($nodeId)->willReturn($signatureNode);
+		$this->tempManager->method('getTemporaryFile')->willReturn(false);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Temporary signature image is not available.');
+
+		$this->getService()->setSignRequest($signRequest)->setVisibleElements([
+			['documentElementId' => $elementId, 'profileNodeId' => $nodeId],
+		]);
+	}
+
 	#[DataProvider('providerSetVisibleElements')]
 	public function testSetVisibleElements(
 		array $signerList,
