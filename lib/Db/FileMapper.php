@@ -311,6 +311,23 @@ class FileMapper extends CachedQBMapper {
 		return $this->getById($file->getParentFileId());
 	}
 
+	/**
+	 * The envelope of a document, or null when it has none or the envelope no
+	 * longer exists.
+	 */
+	public function findEnvelope(File $file): ?File {
+		$envelopeId = $file->getParentFileId();
+		if ($envelopeId === null) {
+			return null;
+		}
+
+		try {
+			return $this->getById($envelopeId);
+		} catch (DoesNotExistException) {
+			return null;
+		}
+	}
+
 	public function countChildrenFiles(int $envelopeId): int {
 		$qb = $this->db->getQueryBuilder();
 

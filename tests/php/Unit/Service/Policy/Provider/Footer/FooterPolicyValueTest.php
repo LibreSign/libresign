@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\Footer;
 
+use OCA\Libresign\Db\File;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -231,6 +232,29 @@ final class FooterPolicyValueTest extends TestCase {
 				'{"enabled":false,"writeQrcodeOnFooter":true}',
 				false,
 			],
+		];
+	}
+
+	/** @param array<string, mixed>|null $metadata */
+	#[DataProvider('snapshotCases')]
+	public function testGetSnapshotEffectiveValue(?array $metadata, ?string $expected): void {
+		$file = new File();
+		if ($metadata !== null) {
+			$file->setMetadata($metadata);
+		}
+
+		$this->assertSame($expected, FooterPolicyValue::getSnapshotEffectiveValue($file));
+	}
+
+	/** @return array<string, array{0: array<string, mixed>|null, 1: ?string}> */
+	public static function snapshotCases(): array {
+		$footer = FooterPolicyValue::encode(['enabled' => false]);
+		return [
+			'no metadata' => [null, null],
+			'no snapshot' => [[], null],
+			'no footer in the snapshot' => [['policy_snapshot' => ['signature_flow' => ['effectiveValue' => 'parallel']]], null],
+			'empty footer' => [['policy_snapshot' => ['add_footer' => ['effectiveValue' => ' ']]], null],
+			'stored footer' => [['policy_snapshot' => ['add_footer' => ['effectiveValue' => $footer]]], $footer],
 		];
 	}
 }
