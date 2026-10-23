@@ -43,6 +43,8 @@ final class SandboxedTemplateRenderer {
 	private static function createSandbox(): array {
 		// Twig 3.30 requires explicit permission for safe built-in tags,
 		// filters and functions. Keep macros disabled to prevent recursion.
+		// TODO: Revisit explicit sandbox permissions when upgrading to Twig 4.
+		// See https://github.com/LibreSign/3rdparty/issues/109.
 		$policy = new SecurityPolicy(
 			allowedTags: ['apply', 'block', 'do', 'for', 'if', 'set', 'types', 'with'],
 			allowedFilters: [
