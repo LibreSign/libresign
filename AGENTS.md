@@ -128,6 +128,10 @@ lib/Controller/CrlApiController.php
   -> tests/php/Unit/Controller/CrlApiControllerTest.php
 ```
 
+Before creating, renaming, or modifying PHPUnit tests, read and follow
+the naming conventions and exceptions in the
+[Developer Manual](https://docs.libresign.coop/developer_manual/getting-started/tests.html).
+
 Run focused tests during implementation:
 
 ```bash
