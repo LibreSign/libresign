@@ -75,7 +75,6 @@ final class FooterTemplateController extends AEnvironmentAwareController {
 	 * 400: Bad request
 	 * 403: Forbidden
 	 */
-	// This endpoint writes a system-wide policy, unlike user/group policy overrides.
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/footer-template', requirements: ['apiVersion' => '(v1)'])]
 	public function saveFooterTemplate(string $template = '', int $width = 595, int $height = 50) {
 		if (!$this->footerService->isPreviewAllowed()) {
