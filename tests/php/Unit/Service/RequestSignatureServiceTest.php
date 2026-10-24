@@ -185,6 +185,78 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		);
 	}
 
+	public function testSaveFileReusesAnExistingNodeWithoutInsertingAnotherRecord(): void {
+		$existing = new \OCA\Libresign\Db\File();
+		$existing->setId(7);
+		$this->fileMapper->expects($this->once())->method('getByNodeId')->with(171)->willReturn($existing);
+		$this->filePolicyApplier->expects($this->once())->method('syncAllPolicies')->with($existing, $this->anything());
+		$this->fileStatusService->expects($this->once())->method('updateFileStatusIfUpgrade')->willReturn($existing);
+		$this->fileMapper->expects($this->never())->method('insert');
+		$this->fileService->expects($this->never())->method('getNodeFromData');
+
+		$result = $this->getService()->saveFile([
+			'file' => ['nodeId' => 171],
+			'userManager' => $this->user,
+		]);
+
+		$this->assertSame($existing, $result);
+	}
+
+	public function testSaveFilePropagatesPolicyFailuresWithoutInsertingAnotherRecord(): void {
+		$existing = new \OCA\Libresign\Db\File();
+		$existing->setId(7);
+		$this->fileMapper->method('getByNodeId')->willReturn($existing);
+		$this->filePolicyApplier->method('syncAllPolicies')
+			->willThrowException(new LibresignException('Policy denied', 422));
+		$this->fileStatusService->expects($this->never())->method('updateFileStatusIfUpgrade');
+		$this->fileMapper->expects($this->never())->method('insert');
+		$this->fileService->expects($this->never())->method('getNodeFromData');
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(422);
+
+		$this->getService()->saveFile([
+			'file' => ['nodeId' => 171],
+			'userManager' => $this->user,
+		]);
+	}
+
+	public function testSaveFileRefusesDuplicateNodeRecordsWithoutExposingSql(): void {
+		$this->fileMapper->method('getByNodeId')
+			->willThrowException(new \OCP\AppFramework\Db\MultipleObjectsReturnedException('query: SELECT *'));
+		$this->filePolicyApplier->expects($this->never())->method('syncAllPolicies');
+		$this->fileService->expects($this->never())->method('getNodeFromData');
+		$this->fileMapper->expects($this->never())->method('insert');
+
+		try {
+			$this->getService()->saveFile(['file' => ['nodeId' => 171], 'userManager' => $this->user]);
+			$this->fail('Duplicate file records must be rejected.');
+		} catch (LibresignException $e) {
+			$this->assertSame(422, $e->getCode());
+			$this->assertStringNotContainsString('SELECT', $e->getMessage());
+		}
+	}
+
+	public function testSaveFileCreatesNewRecordOnlyForMissingNode(): void {
+		$this->fileMapper->method('getByNodeId')
+			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('not found'));
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getId')->willReturn(171);
+		$node->method('getExtension')->willReturn('');
+		$node->method('getName')->willReturn('contract');
+		$this->fileService->method('getNodeFromData')->willReturn($node);
+		$this->filePolicyApplier->expects($this->never())->method('syncAllPolicies');
+		$this->filePolicyApplier->expects($this->once())->method('applyAll');
+		$this->fileMapper->expects($this->once())->method('insert')->willReturnArgument(0);
+
+		$file = $this->getService()->saveFile([
+			'file' => ['nodeId' => 171],
+			'name' => 'contract',
+			'userManager' => $this->user,
+		]);
+
+		$this->assertSame(171, $file->getNodeId());
+	}
+
 	public function testSaveFilesUsesSaveForSingleFile(): void {
 		$service = $this->getService(['save']);
 
