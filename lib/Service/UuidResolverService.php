@@ -12,7 +12,9 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Exception\IdDocAccessDeniedException;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Exception\NotAnIdDocException;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IUser;
 
@@ -53,7 +55,7 @@ class UuidResolverService {
 			try {
 				$this->idDocsMapper->getByFileId($file->getId());
 				if (!$user || !$this->idDocsPolicyService->canApproverSignIdDoc($user, $file->getId(), $file->getStatus())) {
-					throw new LibresignException('User is not authorized to access this identification document');
+					throw new IdDocAccessDeniedException('User is not authorized to access this identification document');
 				}
 
 				return [
@@ -62,13 +64,11 @@ class UuidResolverService {
 					'type' => 'id_doc',
 				];
 			} catch (DoesNotExistException) {
-				throw new LibresignException('File is not an identification document');
+				throw new NotAnIdDocException('File is not an identification document');
 			}
-		} catch (DoesNotExistException|LibresignException $e) {
-			if ($e->getMessage() === 'File is not an identification document'
-				|| $e->getMessage() === 'User is not authorized to access this identification document') {
-				throw $e;
-			}
+		} catch (IdDocAccessDeniedException|NotAnIdDocException $e) {
+			throw $e;
+		} catch (DoesNotExistException|LibresignException) {
 		}
 
 		throw new LibresignException('Invalid UUID');
