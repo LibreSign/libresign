@@ -1,0 +1,28 @@
+{
+	"application": "libresign",
+	"schemaVersion": 1,
+	"metrics": [
+		{"category": "nextcloud", "key": "version", "type": "string", "kind": "snapshot", "aggregation": "distribution", "description": "Nextcloud server version (major.minor.patch)", "required": false},
+		{"category": "nextcloud", "key": "users_total", "type": "integer", "kind": "snapshot", "aggregation": "numerical", "description": "Number of user accounts", "required": false},
+		{"category": "nextcloud", "key": "users_active_30d", "type": "integer", "kind": "snapshot", "aggregation": "numerical", "description": "Number of users who logged in during the last 30 days", "required": false},
+		{"category": "nextcloud", "key": "background_job_mode", "type": "string", "kind": "snapshot", "aggregation": "distribution", "description": "Background job mode: ajax, webcron, cron or other", "required": false},
+		{"category": "php", "key": "version", "type": "string", "kind": "snapshot", "aggregation": "distribution", "description": "PHP version (major.minor)", "required": false},
+		{"category": "database", "key": "type", "type": "string", "kind": "snapshot", "aggregation": "distribution", "description": "Database platform: mysql, mariadb, postgres, sqlite or oracle", "required": false},
+		{"category": "database", "key": "version", "type": "string", "kind": "snapshot", "aggregation": "distribution", "description": "Database server version (major.minor)", "required": false},
+		{"category": "system", "key": "os_family", "type": "string", "kind": "snapshot", "aggregation": "distribution", "description": "Operating system family reported by PHP", "required": false},
+		{"category": "system", "key": "architecture", "type": "string", "kind": "snapshot", "aggregation": "distribution", "description": "CPU architecture: x86_64, aarch64 or other", "required": false},
+		{"category": "libresign", "key": "version", "type": "string", "kind": "snapshot", "aggregation": "distribution", "description": "LibreSign version", "required": false},
+		{"category": "libresign", "key": "signature_engine", "type": "string", "kind": "snapshot", "aggregation": "distribution", "description": "PDF signature engine: JSignPdf or PhpNative", "required": false},
+		{"category": "libresign", "key": "signing_mode", "type": "string", "kind": "snapshot", "aggregation": "distribution", "description": "Signing mode: sync or async", "required": false},
+		{"category": "certificate", "key": "engine", "type": "string", "kind": "snapshot", "aggregation": "distribution", "description": "Certificate engine: openssl, cfssl, none or other", "required": false},
+		{"category": "certificate", "key": "root_ca_configured", "type": "boolean", "kind": "snapshot", "aggregation": "distribution", "description": "Whether a root certificate authority is configured", "required": false},
+		{"category": "certificate", "key": "certificates_issued", "type": "integer", "kind": "period", "aggregation": "numerical", "description": "Signing certificates issued during the period", "required": false},
+		{"category": "certificate", "key": "certificates_revoked", "type": "integer", "kind": "period", "aggregation": "numerical", "description": "Signing certificates revoked during the period", "required": false},
+		{"category": "documents", "key": "files_created", "type": "integer", "kind": "period", "aggregation": "numerical", "description": "Standalone files created during the period", "required": true},
+		{"category": "documents", "key": "envelopes_created", "type": "integer", "kind": "period", "aggregation": "numerical", "description": "Envelopes created during the period", "required": true},
+		{"category": "signatures", "key": "requests_created", "type": "integer", "kind": "period", "aggregation": "numerical", "description": "Signing requests created during the period", "required": true},
+		{"category": "signatures", "key": "completed", "type": "integer", "kind": "period", "aggregation": "numerical", "description": "Signing requests completed during the period", "required": true},
+		{"category": "signatures", "key": "rejected", "type": "integer", "kind": "period", "aggregation": "numerical", "description": "Signing requests rejected during the period", "required": true},
+		{"category": "participants", "key": "observers_added", "type": "integer", "kind": "period", "aggregation": "numerical", "description": "Observers added during the period", "required": true}
+	]
+}
