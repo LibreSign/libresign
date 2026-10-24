@@ -51,6 +51,15 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return $this->footerHandler;
 	}
 
+	public function testPreviouslyStoredUnsafeFooterFailsClosed(): void {
+		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
+		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', '{{ range(1, 3) }}');
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID);
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionMessage('footer template');
+		$this->getClass()->getFooter([['w' => 595, 'h' => 100]]);
+	}
+
 	public function testGetFooterWithoutValidationSite(): void {
 		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', false);
 		$dimensions = [['w' => 595, 'h' => 842]];
