@@ -96,6 +96,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		// Create mock factory if initialization failed in setUpBeforeClass
 		$certificateEngineFactory = self::$certificateEngineFactory ?? $this->createMock(CertificateEngineFactory::class);
 		$hashAlgorithmResolver = new HashAlgorithmResolver($this->appConfig);
+		$temporarySignatureImageService = \OCP\Server::get(TemporarySignatureImageService::class);
 
 		if (empty($methods)) {
 			return new JSignPdfHandler(

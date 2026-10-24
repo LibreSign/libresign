@@ -519,6 +519,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->pfxProvider,
 					$this->subjectAlternativeNameService,
 					$this->signRequestService,
+					new TemporarySignatureImageService($this->tempManager, $this->l10n),
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -563,6 +564,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->pfxProvider,
 			$this->subjectAlternativeNameService,
 			$this->signRequestService,
+			new TemporarySignatureImageService($this->tempManager, $this->l10n),
 		);
 	}
 
@@ -1658,38 +1660,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				true,
 			],
 		];
-	}
-
-	public function testSetVisibleElementsRestoresMissingTemporaryImage(): void {
-		\bovigo\vfs\vfsStream::setup('home');
-		$request = new SignRequest();
-		$request->setId(100);
-		$request->setFileId(200);
-		$fileElement = new FileElement();
-		$fileElement->setId(171);
-
-		$this->fileElementMapper->method('getByFileIdAndSignRequestId')->willReturn([$fileElement]);
-		$this->signerElementsService->method('canCreateSignature')->willReturn(true);
-		$image = $this->createMock(\OCP\Files\File::class);
-		$image->method('getContent')->willReturn('stored signature');
-		$this->folderService->method('getFileByNodeId')->willReturn($image);
-
-		$counter = 0;
-		$this->tempManager->method('getTemporaryFile')->willReturnCallback(
-			static function () use (&$counter): string {
-				return 'vfs://home/image-' . ++$counter . '.png';
-			},
-		);
-		$service = $this->getService()->setSignRequest($request);
-		$elements = [['documentElementId' => 171, 'profileNodeId' => 277524]];
-
-		$service->setVisibleElements($elements);
-		unlink($service->getVisibleElements()[171]->getTempFile());
-		$service->setVisibleElements($elements);
-
-		$restored = $service->getVisibleElements()[171]->getTempFile();
-		$this->assertFileExists($restored);
-		$this->assertSame('stored signature', file_get_contents($restored));
 	}
 
 	#[DataProvider('providerSetVisibleElements')]

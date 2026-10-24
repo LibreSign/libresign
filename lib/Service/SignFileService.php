@@ -121,6 +121,7 @@ class SignFileService {
 		private PfxProvider $pfxProvider,
 		private SubjectAlternativeNameService $subjectAlternativeNameService,
 		private SignRequestService $signRequestService,
+		private TemporarySignatureImageService $temporarySignatureImageService,
 	) {
 	}
 

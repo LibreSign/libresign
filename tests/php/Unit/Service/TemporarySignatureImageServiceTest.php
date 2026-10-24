@@ -18,7 +18,7 @@ final class TemporarySignatureImageServiceTest extends \OCA\Libresign\Tests\Unit
 	private ITempManager $tempManager;
 	private TemporarySignatureImageService $images;
 
-	protected function setUp(): void {
+	public function setUp(): void {
 		parent::setUp();
 		vfsStream::setup('home');
 		$this->tempManager = $this->createMock(ITempManager::class);
