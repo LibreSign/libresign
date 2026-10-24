@@ -40,7 +40,7 @@ vi.mock('@nextcloud/initial-state', () => ({
 		if (key === 'config') {
 			return {
 				'sign-elements': { 'is-available': true },
-				'identification_documents': { enabled: false },
+				identification_documents: { enabled: false },
 				warn_without_visible_signature_fields: true,
 			}
 		}
@@ -908,7 +908,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 				if (key === 'config') {
 					return {
 						'sign-elements': { 'is-available': true },
-						'identification_documents': { enabled: false },
+						identification_documents: { enabled: false },
 						warn_without_visible_signature_fields: true,
 					}
 				}

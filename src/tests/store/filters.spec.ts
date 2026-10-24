@@ -294,7 +294,7 @@ describe('filters store - filter business rules', () => {
 
 			expect(axiosMock.put).toHaveBeenCalledWith(
 				'/ocs/v2.php/apps/libresign/api/v1/account/config/files_list_filter_modified',
-				{ value: 'today' }
+				{ value: 'today' },
 			)
 		})
 
@@ -314,7 +314,7 @@ describe('filters store - filter business rules', () => {
 
 			expect(axiosMock.put).toHaveBeenCalledWith(
 				'/ocs/v2.php/apps/libresign/api/v1/account/config/files_list_filter_modified',
-				{ value: 'today' }
+				{ value: 'today' },
 			)
 		})
 
@@ -331,7 +331,7 @@ describe('filters store - filter business rules', () => {
 
 			expect(axiosMock.put).toHaveBeenCalledWith(
 				'/ocs/v2.php/apps/libresign/api/v1/account/config/files_list_filter_modified',
-				{ value: '' }
+				{ value: '' },
 			)
 		})
 
@@ -382,7 +382,7 @@ describe('filters store - filter business rules', () => {
 
 			expect(axiosMock.put).toHaveBeenCalledWith(
 				'/ocs/v2.php/apps/libresign/api/v1/account/config/files_list_filter_status',
-				{ value: '["signed","pending"]' }
+				{ value: '["signed","pending"]' },
 			)
 		})
 
@@ -399,7 +399,7 @@ describe('filters store - filter business rules', () => {
 
 			expect(axiosMock.put).toHaveBeenCalledWith(
 				'/ocs/v2.php/apps/libresign/api/v1/account/config/files_list_filter_status',
-				{ value: '' }
+				{ value: '' },
 			)
 		})
 

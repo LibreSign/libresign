@@ -86,11 +86,11 @@ describe('filesSorting store', () => {
 		expect(putMock).toHaveBeenCalledTimes(2)
 		expect(putMock).toHaveBeenCalledWith(
 			'/apps/libresign/api/v1/account/config/files_list_sorting_mode',
-			{ value: 'created_at' }
+			{ value: 'created_at' },
 		)
 		expect(putMock).toHaveBeenCalledWith(
 			'/apps/libresign/api/v1/account/config/files_list_sorting_direction',
-			{ value: 'desc' }
+			{ value: 'desc' },
 		)
 	})
 

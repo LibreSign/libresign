@@ -32,9 +32,9 @@ vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 vi.mock('../../../utils/fileStatus.js', () => ({
 	getStatusLabel: vi.fn((status: string | number) => {
 		const labels: Record<string, string> = {
-			'0': 'Draft',
-			'1': 'Pending',
-			'3': 'Signed',
+			0: 'Draft',
+			1: 'Pending',
+			3: 'Signed',
 		}
 		const label = labels[String(status)]
 		return label ? label : 'Unknown'
@@ -459,7 +459,7 @@ describe('DocumentValidationDetails', () => {
 			expect(viewer.openDocument).toHaveBeenCalledWith(
 				expect.objectContaining({
 					filename: 'Important Document.pdf',
-				})
+				}),
 			)
 		})
 
@@ -559,7 +559,7 @@ describe('DocumentValidationDetails', () => {
 				expect.objectContaining({
 					displayName: 'John Doe',
 					visibleElements,
-				})
+				}),
 			)
 		})
 	})
