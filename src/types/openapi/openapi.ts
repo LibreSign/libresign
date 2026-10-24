@@ -431,11 +431,7 @@ export type paths = {
          */
         get: operations["footer_template-get-footer-template"];
         put?: never;
-        /**
-         * Save footer template and render preview
-         * @description Saves the footer template and returns the rendered PDF preview.
-         */
-        post: operations["footer_template-save-footer-template"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1143,6 +1139,7 @@ export type components = {
             docmdpLevel: number;
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
+            policySnapshotFrozen: boolean;
             visibleElements: components["schemas"]["VisibleElement"][];
             signers: components["schemas"]["SignerDetail"][];
             /** Format: int64 */
@@ -1300,6 +1297,7 @@ export type components = {
             docmdpLevel: number;
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
+            policySnapshotFrozen: boolean;
             /** Format: int64 */
             signersCount: number;
             signers: components["schemas"]["SignerSummary"][];
@@ -1892,6 +1890,7 @@ export type components = {
             nodeType: "file" | "envelope";
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
+            policySnapshotFrozen?: boolean;
             /** Format: int64 */
             docmdpLevel: number;
             /** Format: int64 */
@@ -3374,81 +3373,6 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["FooterTemplateResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "footer_template-save-footer-template": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /**
-                     * @description The Twig template to save (empty to reset to default)
-                     * @default
-                     */
-                    template?: string;
-                    /**
-                     * Format: int64
-                     * @description Width of preview in points (default: 595 - A4 width)
-                     * @default 595
-                     */
-                    width?: number;
-                    /**
-                     * Format: int64
-                     * @description Height of preview in points (default: 50)
-                     * @default 50
-                     */
-                    height?: number;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/pdf": string;
-                };
-            };
-            /** @description Bad request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };

@@ -425,15 +425,12 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get footer template
-         * @description Returns the current footer template if set, otherwise returns the default template.
-         */
-        get: operations["footer_template-get-footer-template"];
+        get?: never;
         put?: never;
         /**
          * Save footer template and render preview
          * @description Saves the footer template and returns the rendered PDF preview.
+         *     This endpoint requires admin access
          */
         post: operations["footer_template-save-footer-template"];
         delete?: never;
@@ -1545,6 +1542,7 @@ export type components = {
             docmdpLevel: number;
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
+            policySnapshotFrozen: boolean;
             visibleElements: components["schemas"]["VisibleElement"][];
             signers: components["schemas"]["SignerDetail"][];
             /** Format: int64 */
@@ -1737,6 +1735,7 @@ export type components = {
             docmdpLevel: number;
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
+            policySnapshotFrozen: boolean;
             /** Format: int64 */
             signersCount: number;
             signers: components["schemas"]["SignerSummary"][];
@@ -2409,6 +2408,7 @@ export type components = {
             nodeType: "file" | "envelope";
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
+            policySnapshotFrozen?: boolean;
             /** Format: int64 */
             docmdpLevel: number;
             /** Format: int64 */
@@ -3861,50 +3861,6 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["StatusMessageResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "footer_template-get-footer-template": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["FooterTemplateResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };

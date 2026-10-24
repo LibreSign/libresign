@@ -509,6 +509,7 @@
                     "size",
                     "docmdpLevel",
                     "signatureFlow",
+                    "policySnapshotFrozen",
                     "visibleElements",
                     "signers",
                     "signersCount",
@@ -576,6 +577,9 @@
                             "parallel",
                             "ordered_numeric"
                         ]
+                    },
+                    "policySnapshotFrozen": {
+                        "type": "boolean"
                     },
                     "visibleElements": {
                         "type": "array",
@@ -1120,6 +1124,7 @@
                     "metadata",
                     "docmdpLevel",
                     "signatureFlow",
+                    "policySnapshotFrozen",
                     "signersCount",
                     "signers",
                     "requested_by",
@@ -1173,6 +1178,9 @@
                             "parallel",
                             "ordered_numeric"
                         ]
+                    },
+                    "policySnapshotFrozen": {
+                        "type": "boolean"
                     },
                     "signersCount": {
                         "type": "integer",
@@ -3280,6 +3288,9 @@
                             "parallel",
                             "ordered_numeric"
                         ]
+                    },
+                    "policySnapshotFrozen": {
+                        "type": "boolean"
                     },
                     "docmdpLevel": {
                         "type": "integer",
@@ -6860,148 +6871,6 @@
                                                 },
                                                 "data": {
                                                     "$ref": "#/components/schemas/FooterTemplateResponse"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/ErrorResponse"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "operationId": "footer_template-save-footer-template",
-                "summary": "Save footer template and render preview",
-                "description": "Saves the footer template and returns the rendered PDF preview.",
-                "tags": [
-                    "footer_template"
-                ],
-                "security": [
-                    {
-                        "bearer_auth": []
-                    },
-                    {
-                        "basic_auth": []
-                    }
-                ],
-                "requestBody": {
-                    "required": false,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "template": {
-                                        "type": "string",
-                                        "default": "",
-                                        "description": "The Twig template to save (empty to reset to default)"
-                                    },
-                                    "width": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "default": 595,
-                                        "description": "Width of preview in points (default: 595 - A4 width)"
-                                    },
-                                    "height": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "default": 50,
-                                        "description": "Height of preview in points (default: 50)"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "apiVersion",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "v1"
-                            ],
-                            "default": "v1"
-                        }
-                    },
-                    {
-                        "name": "OCS-APIRequest",
-                        "in": "header",
-                        "description": "Required to be true for the API request to pass",
-                        "required": true,
-                        "schema": {
-                            "type": "boolean",
-                            "default": true
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "application/pdf": {
-                                "schema": {
-                                    "type": "string",
-                                    "format": "binary"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/ErrorResponse"
                                                 }
                                             }
                                         }

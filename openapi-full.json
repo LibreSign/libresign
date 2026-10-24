@@ -808,6 +808,7 @@
                     "size",
                     "docmdpLevel",
                     "signatureFlow",
+                    "policySnapshotFrozen",
                     "visibleElements",
                     "signers",
                     "signersCount",
@@ -875,6 +876,9 @@
                             "parallel",
                             "ordered_numeric"
                         ]
+                    },
+                    "policySnapshotFrozen": {
+                        "type": "boolean"
                     },
                     "visibleElements": {
                         "type": "array",
@@ -1559,6 +1563,7 @@
                     "metadata",
                     "docmdpLevel",
                     "signatureFlow",
+                    "policySnapshotFrozen",
                     "signersCount",
                     "signers",
                     "requested_by",
@@ -1612,6 +1617,9 @@
                             "parallel",
                             "ordered_numeric"
                         ]
+                    },
+                    "policySnapshotFrozen": {
+                        "type": "boolean"
                     },
                     "signersCount": {
                         "type": "integer",
@@ -4019,6 +4027,9 @@
                             "parallel",
                             "ordered_numeric"
                         ]
+                    },
+                    "policySnapshotFrozen": {
+                        "type": "boolean"
                     },
                     "docmdpLevel": {
                         "type": "integer",
@@ -7537,112 +7548,10 @@
             }
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/footer-template": {
-            "get": {
-                "operationId": "footer_template-get-footer-template",
-                "summary": "Get footer template",
-                "description": "Returns the current footer template if set, otherwise returns the default template.",
-                "tags": [
-                    "footer_template"
-                ],
-                "security": [
-                    {
-                        "bearer_auth": []
-                    },
-                    {
-                        "basic_auth": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "apiVersion",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "v1"
-                            ],
-                            "default": "v1"
-                        }
-                    },
-                    {
-                        "name": "OCS-APIRequest",
-                        "in": "header",
-                        "description": "Required to be true for the API request to pass",
-                        "required": true,
-                        "schema": {
-                            "type": "boolean",
-                            "default": true
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/FooterTemplateResponse"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/ErrorResponse"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
             "post": {
                 "operationId": "footer_template-save-footer-template",
                 "summary": "Save footer template and render preview",
-                "description": "Saves the footer template and returns the rendered PDF preview.",
+                "description": "Saves the footer template and returns the rendered PDF preview.\nThis endpoint requires admin access",
                 "tags": [
                     "footer_template"
                 ],
