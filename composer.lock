@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6490989eff8f38ee302b8e1df1a59103",
+    "content-hash": "c81b12a994e5dd5b2694f64df0aac1c1",
     "packages": [
         {
             "name": "cweagans/composer-configurable-plugin",
@@ -191,16 +191,16 @@
         },
         {
             "name": "signerphp/pdf-signer",
-            "version": "v0.2.0",
+            "version": "v0.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SignerPHP/pdf-signer.git",
-                "reference": "4229c83ea51170303f6f8e005767b358ed9e756a"
+                "reference": "f27e4064be107b8a662f370a9acdcecd786da9f7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SignerPHP/pdf-signer/zipball/4229c83ea51170303f6f8e005767b358ed9e756a",
-                "reference": "4229c83ea51170303f6f8e005767b358ed9e756a",
+                "url": "https://api.github.com/repos/SignerPHP/pdf-signer/zipball/f27e4064be107b8a662f370a9acdcecd786da9f7",
+                "reference": "f27e4064be107b8a662f370a9acdcecd786da9f7",
                 "shasum": ""
             },
             "require": {
@@ -256,9 +256,9 @@
             ],
             "support": {
                 "issues": "https://github.com/SignerPHP/pdf-signer/issues",
-                "source": "https://github.com/SignerPHP/pdf-signer/tree/v0.2.0"
+                "source": "https://github.com/SignerPHP/pdf-signer/tree/v0.3.0"
             },
-            "time": "2026-09-14T18:04:16+00:00"
+            "time": "2026-10-05T02:25:26+00:00"
         }
     ],
     "packages-dev": [
