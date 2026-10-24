@@ -483,8 +483,6 @@ class SignRequestMapper extends CachedQBMapper {
 
 	public function getFilesToSearchProvider(IUser $user, string $fileName, int $limit, int $offset): array {
 		$filter = [
-			'page' => ($offset / $limit) + 1,
-			'length' => $limit,
 			'fileName' => $fileName,
 		];
 
@@ -494,6 +492,9 @@ class SignRequestMapper extends CachedQBMapper {
 		];
 
 		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($user->getUID(), $filter, false, $sort);
+		$qb->setFirstResult($offset);
+		$qb->setMaxResults($limit);
+		$qb->addOrderBy('f.id', 'DESC');
 
 		$result = $qb->executeQuery();
 		$files = [];
