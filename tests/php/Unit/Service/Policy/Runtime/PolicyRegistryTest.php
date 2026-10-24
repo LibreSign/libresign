@@ -21,9 +21,13 @@ use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
+use OCP\IL10N;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 
@@ -78,6 +82,41 @@ final class PolicyRegistryTest extends TestCase {
 			]),
 			$definition->normalizeValue('0'),
 		);
+	}
+
+	#[DataProvider('templatePolicyValues')]
+	public function testTemplatePoliciesRejectDisallowedOperationsBeforePersistence(string $key, string $value): void {
+		$definition = $key === FooterPolicy::KEY
+			? (new FooterPolicy())->get($key)
+			: (new SignatureTextPolicy($this->createMock(IL10N::class)))->get($key);
+		$this->expectException(\InvalidArgumentException::class);
+		$definition->validateValueForPersistence($definition->normalizeValue($value), new PolicyContext());
+	}
+
+	/** @return array<string, array{string, string}> */
+	public static function templatePolicyValues(): array {
+		return [
+			'footer' => [FooterPolicy::KEY, FooterPolicyValue::encode([
+				...FooterPolicyValue::defaults(),
+				'customizeFooterTemplate' => true,
+				'footerTemplate' => '{% if false %}{{ range(1, 3) }}{% endif %}',
+			])],
+			'signature stamp' => [SignatureTextPolicy::KEY, SignatureTextPolicyValue::encode([
+				...SignatureTextPolicyValue::DEFAULTS,
+				'template' => '{{ 8 is constant("PHP_INT_SIZE") }}',
+			])],
+		];
+	}
+
+	public function testFooterPolicyAcceptsSafeTemplateBeforePersistence(): void {
+		$definition = (new FooterPolicy())->get(FooterPolicy::KEY);
+		$value = FooterPolicyValue::encode([
+			...FooterPolicyValue::defaults(),
+			'customizeFooterTemplate' => true,
+			'footerTemplate' => '{% apply upper %}signed{% endapply %}',
+		]);
+		$definition->validateValueForPersistence($definition->normalizeValue($value), new PolicyContext());
+		$this->addToAssertionCount(1);
 	}
 
 	public function testRegistryReturnsRequestSignGroupsDefinition(): void {

@@ -16,6 +16,7 @@ use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
@@ -1931,7 +1932,7 @@ final class PolicyServiceTest extends TestCase {
 			->method('loadSystemPolicy')
 			->with(FooterPolicy::KEY)
 			->willReturn((new PolicyLayer())
-				->setScope('system')
+				->setScope('global')
 				->setValue('{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":false,"footerTemplate":""}')
 				->setAllowChildOverride(true)
 				->setVisibleToChild(true)
@@ -1957,6 +1958,48 @@ final class PolicyServiceTest extends TestCase {
 		$this->expectExceptionMessage('Validation URL override is not allowed for this actor');
 
 		$service->saveUserPreference(FooterPolicy::KEY, '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"https://forbidden.example","customizeFooterTemplate":false,"footerTemplate":""}');
+	}
+
+	public function testUnauthorizedUserPreferenceIsDeniedBeforeCompilingTemplate(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('john');
+		$this->userSession->method('getUser')->willReturn($user);
+		$this->groupManager->method('isAdmin')->willReturn(false);
+		$this->groupManager->method('getUserGroupIds')->willReturn([]);
+		$this->source->method('loadSystemPolicy')->with(FooterPolicy::KEY)->willReturn(
+			(new PolicyLayer())
+				->setScope('system')
+				->setValue(FooterPolicyValue::encode(FooterPolicyValue::defaults()))
+				->setAllowChildOverride(false)
+				->setVisibleToChild(true),
+		);
+		$this->source->expects($this->never())->method('saveUserPreference');
+		$service = new PolicyService($this->contextFactory, $this->source, $this->registry, $this->l10n);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Saving a user preference is not allowed for add_footer');
+		$service->saveUserPreference(FooterPolicy::KEY, FooterPolicyValue::encode([
+			...FooterPolicyValue::defaults(),
+			'customizeFooterTemplate' => true,
+			'footerTemplate' => '{{ range(1, 3) }}',
+		]));
+	}
+
+	public function testUnsafeFooterTemplateIsRejectedBeforeSystemPolicyWrite(): void {
+		$this->source->expects($this->never())->method('saveSystemPolicy');
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$service->saveSystem(FooterPolicy::KEY, FooterPolicyValue::encode([
+			...FooterPolicyValue::defaults(),
+			'customizeFooterTemplate' => true,
+			'footerTemplate' => '{% if false %}{{ range(1, 3) }}{% endif %}',
+		]));
 	}
 
 	public function testGetAllRuleCountsDelegatesToSource(): void {
