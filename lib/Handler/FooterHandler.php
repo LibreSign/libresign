@@ -12,6 +12,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
+use OCA\Libresign\Service\SandboxedTemplateRenderer;
 use OCA\Libresign\Vendor\Endroid\QrCode\Color\Color;
 use OCA\Libresign\Vendor\Endroid\QrCode\Encoding\Encoding;
 use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
@@ -19,9 +20,8 @@ use OCA\Libresign\Vendor\Endroid\QrCode\QrCode;
 use OCA\Libresign\Vendor\Endroid\QrCode\RoundBlockSizeMode;
 use OCA\Libresign\Vendor\Endroid\QrCode\Writer\PngWriter;
 use OCA\Libresign\Vendor\Mpdf\Mpdf;
-use OCA\Libresign\Vendor\Twig\Environment;
 use OCA\Libresign\Vendor\Twig\Error\SyntaxError;
-use OCA\Libresign\Vendor\Twig\Loader\FilesystemLoader;
+use OCA\Libresign\Vendor\Twig\Sandbox\SecurityError;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -45,13 +45,13 @@ class FooterHandler {
 	) {
 	}
 
-	public function getFooter(array $dimensions): string {
+	public function getFooter(array $dimensions, ?string $previewTemplate = null): string {
 		$add_footer = (bool)$this->appConfig->getValueBool(Application::APP_ID, 'add_footer', true);
 		if (!$add_footer) {
 			return '';
 		}
 
-		$htmlFooter = $this->getRenderedHtmlFooter();
+		$htmlFooter = $this->getRenderedHtmlFooter($previewTemplate);
 		foreach ($dimensions as $dimension) {
 			if (!isset($pdf)) {
 				$pdf = new Mpdf([
@@ -94,16 +94,17 @@ class FooterHandler {
 		return $metadata;
 	}
 
-	private function getRenderedHtmlFooter(): string {
+	private function getRenderedHtmlFooter(?string $previewTemplate = null): string {
 		try {
-			$twigEnvironment = new Environment(
-				new FilesystemLoader(),
+			return SandboxedTemplateRenderer::render(
+				$previewTemplate ?? $this->getTemplate(),
+				$this->prepareTemplateVars(),
 			);
-			return $twigEnvironment
-				->createTemplate($this->getTemplate())
-				->render($this->prepareTemplateVars());
+		} catch (SecurityError $e) {
+			// TRANSLATORS An existing PDF footer template uses Twig operations that are no longer allowed; an administrator must update the template.
+			throw new LibresignException($this->l10n->t('The configured footer template is not supported. Ask an administrator to review the footer template.'), 0, $e);
 		} catch (SyntaxError $e) {
-			throw new LibresignException($e->getMessage());
+			throw new LibresignException($e->getMessage(), 0, $e);
 		}
 	}
 
