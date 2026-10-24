@@ -167,13 +167,21 @@ class PolicyService {
 		return $this->source->listUserPoliciesByKey($definition->key());
 	}
 
+	/**
+	 * A null value removes the explicit system rule, so the built-in default
+	 * applies and lower layers may override it. Any other value, including one
+	 * equal to the default, is stored as an explicit rule with its own
+	 * override flag.
+	 */
 	public function saveSystem(string|\BackedEnum $policyKey, mixed $value, bool $allowChildOverride = false): ResolvedPolicy {
+		if ($value === null) {
+			return $this->clearSystem($policyKey);
+		}
+
 		$context = $this->contextFactory->forCurrentUser();
 		$definition = $this->registry->get($policyKey);
 		$this->assertScopeSupported($definition, PolicySpec::SCOPE_SYSTEM);
-		$normalizedValue = $value === null
-			? $definition->normalizeValue($definition->defaultSystemValue())
-			: $definition->normalizeValue($value);
+		$normalizedValue = $definition->normalizeValue($value);
 
 		$definition->validateValueForPersistence($normalizedValue, $context);
 		$this->source->saveSystemPolicy($definition->key(), $normalizedValue, $allowChildOverride);
