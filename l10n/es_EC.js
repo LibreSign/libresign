@@ -191,6 +191,7 @@ OC.L10N.register(
     "Longitude:" : "Longitud:",
     "Name:" : "Nombre:",
     "Status:" : "Estado:",
+    "Private" : "Privado",
     "Unknown" : "Desconocido",
     "Congratulations you have digitally signed a document using LibreSign" : "Felicidades, has firmado digitalmente un documento utilizando LibreSign",
     "Number of documents:" : "Número de documentos:",

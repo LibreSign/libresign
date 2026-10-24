@@ -106,6 +106,7 @@ OC.L10N.register(
     "Cancel upload" : "Anullar lo mandadís",
     "Paragraph" : "Paragraf",
     "Issued by:" : "Desliurat per :",
+    "Private" : "Privat",
     "Unknown" : "Desconegut",
     "Hide details" : "Amagar detalhs",
     "Show details" : "Mostrar detalhs",

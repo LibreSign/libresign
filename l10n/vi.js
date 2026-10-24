@@ -78,6 +78,7 @@ OC.L10N.register(
     "Paragraph" : "Đoạn văn",
     "Issued by:" : "Nơi cấp:",
     "Name:" : "Tên:",
+    "Private" : "Riêng tư",
     "Unknown" : "Không xác định",
     "Hide details" : "Ẩn chi tiết",
     "Show details" : "Hiển thị chi tiết",

@@ -80,6 +80,7 @@ OC.L10N.register(
     "Paragraph" : "פסקה",
     "Issued by:" : "הונפק על ידי:",
     "Name:" : "שם:",
+    "Private" : "פרטי",
     "Unknown" : "לא ידוע",
     "Number of documents:" : "מספר המסמכים:",
     "Hide details" : "הסתרת פרטים",

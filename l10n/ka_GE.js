@@ -50,6 +50,7 @@ OC.L10N.register(
     "{seconds} seconds left" : "დარჩა {seconds} წამი",
     "Cancel upload" : "ატვირთვის შეჩერება",
     "Issued by:" : "გაცემულია მიერ:",
+    "Private" : "პირადი",
     "Unknown" : "უცნობია",
     "Number of documents:" : "დოკუმენტების რაოდენობა:",
     "Hide details" : "დეტალების დამალვა",

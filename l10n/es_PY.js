@@ -53,6 +53,7 @@ OC.L10N.register(
     "{seconds} seconds left" : "faltan {seconds} segundos",
     "Cancel upload" : "Cancelar carga",
     "Issued by:" : "Emitido por:",
+    "Private" : "Privado",
     "Number of documents:" : "Número de documentos:",
     "Hide details" : "Ocultar detalles",
     "Country:" : "País:",

@@ -59,6 +59,7 @@ OC.L10N.register(
     "Open sidebar" : "เปิดแถบด้านข้าง",
     "Cancel upload" : "ยกเลิกการอัพโหลด",
     "Issued by:" : "ออกโดย:",
+    "Private" : "ส่วนตัว",
     "Unknown" : "ไม่ทราบ",
     "Hide details" : "ซ่อนข้อมูล",
     "Show details" : "แสดงข้อมูล",

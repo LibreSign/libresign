@@ -75,6 +75,7 @@ OC.L10N.register(
     "Cancel upload" : "Atcelt augšupielādi",
     "Issued by:" : "Izsniedza:",
     "Status:" : "Statuss:",
+    "Private" : "Privāts",
     "Unknown" : "Nezināms",
     "Hide details" : "Paslēpt informāciju",
     "Show details" : "Rādīt informāciju",
