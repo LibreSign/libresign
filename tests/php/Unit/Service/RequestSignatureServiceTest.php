@@ -175,6 +175,70 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		);
 	}
 
+	public function testSaveFileReusesAnExistingNodeWithoutInsertingAnotherRecord(): void {
+		$existing = new \OCA\Libresign\Db\File();
+		$existing->setId(7);
+		$this->fileMapper->expects($this->once())->method('getByNodeId')->with(171)->willReturn($existing);
+		$this->fileStatusService->expects($this->once())->method('updateFileStatusIfUpgrade')->willReturn($existing);
+		$this->fileMapper->expects($this->never())->method('insert');
+		$this->fileService->expects($this->never())->method('getNodeFromData');
+
+		$this->assertSame($existing, $this->getService()->saveFile([
+			'file' => ['nodeId' => 171],
+			'userManager' => $this->user,
+		]));
+	}
+
+	public function testSaveFilePropagatesUpdateFailuresWithoutInsertingAnotherRecord(): void {
+		$existing = new \OCA\Libresign\Db\File();
+		$existing->setId(7);
+		$this->fileMapper->method('getByNodeId')->willReturn($existing);
+		$this->fileStatusService->method('updateFileStatusIfUpgrade')
+			->willThrowException(new LibresignException('Cannot change status', 422));
+		$this->fileMapper->expects($this->never())->method('insert');
+		$this->fileService->expects($this->never())->method('getNodeFromData');
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(422);
+
+		$this->getService()->saveFile([
+			'file' => ['nodeId' => 171],
+			'userManager' => $this->user,
+		]);
+	}
+
+	public function testSaveFileRefusesDuplicateNodeRecordsWithoutExposingSql(): void {
+		$this->fileMapper->method('getByNodeId')
+			->willThrowException(new \OCP\AppFramework\Db\MultipleObjectsReturnedException('query: SELECT *'));
+		$this->fileService->expects($this->never())->method('getNodeFromData');
+		$this->fileMapper->expects($this->never())->method('insert');
+
+		try {
+			$this->getService()->saveFile(['file' => ['nodeId' => 171], 'userManager' => $this->user]);
+			$this->fail('Duplicate file records must be rejected.');
+		} catch (LibresignException $e) {
+			$this->assertSame(422, $e->getCode());
+			$this->assertStringNotContainsString('SELECT', $e->getMessage());
+		}
+	}
+
+	public function testSaveFileCreatesNewRecordOnlyForMissingNode(): void {
+		$this->fileMapper->method('getByNodeId')
+			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('not found'));
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getId')->willReturn(171);
+		$node->method('getExtension')->willReturn('');
+		$node->method('getName')->willReturn('contract');
+		$this->fileService->method('getNodeFromData')->willReturn($node);
+		$this->fileMapper->expects($this->once())->method('insert')->willReturnArgument(0);
+
+		$file = $this->getService()->saveFile([
+			'file' => ['nodeId' => 171],
+			'name' => 'contract',
+			'userManager' => $this->user,
+		]);
+		$this->assertSame(171, $file->getNodeId());
+	}
+
 	public function testSaveFilesUsesSaveForSingleFile(): void {
 		$service = $this->getService(['save']);
 
