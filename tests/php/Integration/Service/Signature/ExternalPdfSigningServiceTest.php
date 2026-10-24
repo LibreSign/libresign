@@ -148,6 +148,12 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 			declare(strict_types=1);
 			[, $vendorAutoload, $appRoot, $stateFile, $signatureFile, $originalFile, $certificateFile, $outputFile] = $argv;
 			require $vendorAutoload;
+			if (! interface_exists('OCP\\IAppConfig')) {
+				// Packaged app: the distributable vendor carries no dev
+				// dependencies; OCP interfaces come from the Nextcloud
+				// server harness that loads the package.
+				require_once dirname($appRoot, 2) . '/lib/composer/autoload.php';
+			}
 			require_once $appRoot . '/tests/php/Integration/Service/Signature/SubprocessInfrastructure.php';
 			use OCA\LibreSign\Tests\Integration\Service\Signature\SubprocessAppConfig;
 			use OCA\LibreSign\Tests\Integration\Service\Signature\SubprocessL10n;
