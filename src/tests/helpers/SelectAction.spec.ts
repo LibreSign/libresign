@@ -237,7 +237,7 @@ describe('selectAction helper', () => {
 
 	it('returns null when route is redirect', async () => {
 		const mockMapping = {
-			'sign': { route: 'redirect' },
+			sign: { route: 'redirect' },
 		}
 
 		vi.doMock('./ActionMapping.js', () => ({
