@@ -13,6 +13,7 @@ use OCA\Libresign\Service\Signature\Exception\ExternalSigningException;
 use OCA\Libresign\Service\Signature\ExternalPdfSigningService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Service\Signature\PreparedExternalOperation;
+use OCA\Libresign\Vendor\phpseclib4\File\X509;
 use OCA\Libresign\Tests\Integration\TestCase;
 use OCP\ITempManager;
 use Psr\Log\LoggerInterface;
@@ -41,12 +42,16 @@ use SignerPHP\PdfSigner\Presentation\Signer;
  * reconstructs the prepared operation explicitly and invokes LibreSign's
  * service — not only the upstream library.
  *
- * Note: the vendored validation layer rejects valid signatures when the
- * signer certificate carries no keyUsage extension (scoped phpseclib4
- * signer resolution enforces keyUsage bits). The local harness carries a
- * focused fix in libresign/pdf-signature-validator; see the handoff. On a
- * pristine submodule the positive scenarios below fail — deliberately, so
- * the blocker stays visible.
+ * Certificate fixtures are generated with EXPLICIT extensions: the CA
+ * carries CA:TRUE + keyCertSign/cRLSign, the default signing leaf carries
+ * CA:FALSE + digitalSignature/nonRepudiation — no reliance on
+ * machine-specific OpenSSL configuration defaults. With these realistic
+ * signing certificates every positive scenario passes against the
+ * PRISTINE vendored validation submodule; no local patch is involved.
+ *
+ * Separate tests document the observed behavior for certificates WITHOUT
+ * a keyUsage extension and with explicitly INCOMPATIBLE key usage, and
+ * the global keyUsage-toggle restoration contract of the service.
  */
 final class ExternalPdfSigningServiceTest extends TestCase {
 	private ExternalPdfSigningService $service;
@@ -650,18 +655,190 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 	}
 
 	/**
-	 * @return array{certificate: string, privateKey: string, ca: string}
+	 * Global keyUsage state must survive service calls unchanged, in BOTH
+	 * initial states. The scoped toggle inside signer resolution is an
+	 * implementation detail, not a process-global policy change.
 	 */
-	private function generateIdentity(string $keyType): array {
+	public function testSignerResolutionPreservesGlobalKeyUsageStateInBothInitialStates(): void {
+		$identity = $this->generateIdentity('rsa');
+		$pdf = $this->makePdf('keyUsage state restoration');
+
+		// Initially ENABLED (the engine default).
+		X509::checkKeyUsage();
+		$prepared = $this->service->prepare(
+			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']]),
+		);
+		$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
+		$this->service->complete($prepared, $signature, $pdf, $identity['certificate']);
+		$this->assertTrue(X509::isCheckKeyUsageEnabled(), 'keyUsage checking must stay enabled after completion.');
+
+		// Initially DISABLED by a foreign caller: must be restored, not flipped.
+		X509::ignoreKeyUsage();
+		$prepared2 = $this->service->prepare(
+			$this->buildContext($this->makePdf('keyUsage state restoration 2'), $identity['certificate'], [$identity['ca']]),
+		);
+		$signature2 = $this->externalSign($prepared2->upstream->payload->input(), $identity['privateKey'], 'rsa');
+		$this->service->complete($prepared2, $signature2, $this->makePdf('keyUsage state restoration 2'), $identity['certificate']);
+		$this->assertFalse(X509::isCheckKeyUsageEnabled(), 'A caller-disabled keyUsage state must be restored after completion.');
+		X509::checkKeyUsage();
+	}
+
+	/**
+	 * The service represents ONE cryptographic operation: a CMS structure
+	 * with more than one SignerInfo is rejected outright instead of being
+	 * resolved from the first entry. Fixture built with the supported
+	 * OpenSSL cms tooling (two signers over the same content); resolution
+	 * is identity-only here, so cryptographic validity is irrelevant.
+	 */
+	public function testMultipleSignerInfoEntriesAreRejected(): void {
+		$identity = $this->generateIdentity('rsa');
+		$other = $this->generateIdentity('rsa');
+
+		$contentFile = $this->tempManager->getTemporaryFile();
+		file_put_contents($contentFile, 'two-signer fixture');
+		$certA = $this->tempManager->getTemporaryFile();
+		file_put_contents($certA, $identity['certificate']);
+		$keyA = $this->tempManager->getTemporaryFile();
+		file_put_contents($keyA, $identity['privateKey']);
+		chmod($keyA, 0600);
+		$certB = $this->tempManager->getTemporaryFile();
+		file_put_contents($certB, $other['certificate']);
+		$keyB = $this->tempManager->getTemporaryFile();
+		file_put_contents($keyB, $other['privateKey']);
+		chmod($keyB, 0600);
+		$cmsFile = $this->tempManager->getTemporaryFile();
+
+		$openssl = getenv('OPENSSL_BINARY') ?: (
+			is_executable('/opt/homebrew/opt/openssl@3/bin/openssl')
+				? '/opt/homebrew/opt/openssl@3/bin/openssl'
+				: 'openssl'
+		);
+		exec(
+			sprintf(
+				'%s cms -sign -in %s -outform DER -out %s -nodetach'
+				. ' -signer %s -inkey %s -signer %s -inkey %s 2>&1',
+				escapeshellarg($openssl),
+				escapeshellarg($contentFile),
+				escapeshellarg($cmsFile),
+				escapeshellarg($certA),
+				escapeshellarg($keyA),
+				escapeshellarg($certB),
+				escapeshellarg($keyB),
+			),
+			$outputLines,
+			$exitCode,
+		);
+		$this->assertSame(0, $exitCode, "Two-signer CMS fixture failed:\n" . implode("\n", $outputLines));
+
+		$cms = (string)file_get_contents($cmsFile);
+		$this->assertNotSame('', $cms);
+
+		$entry = ['signature' => $this->fakeSignatureWithBinary($cms)];
+		$method = new \ReflectionMethod($this->service, 'resolveSignerCertificatePem');
+
+		try {
+			$method->invoke($this->service, $entry);
+			$this->fail('Multiple SignerInfo entries must be rejected.');
+		} catch (ExternalSigningException $exception) {
+			$this->assertStringContainsString('SignerInfo', $exception->getMessage());
+		}
+	}
+
+	/**
+	 * The expected certificate appearing somewhere in the CMS certificate
+	 * set (here: as chain material) does not make it the signer. The
+	 * signer bound in the SignerInfo must win, in any certificate order.
+	 */
+	public function testExpectedCertificatePresentInChainButNotTheSignerIsRejected(): void {
+		$identity = $this->generateIdentity('rsa');
+		$other = $this->generateIdentity('rsa');
+		$pdf = $this->makePdf('Chain membership is not signer identity');
+
+		foreach ([[$identity['ca'], $other['certificate']], [$other['certificate'], $identity['ca']]] as $chain) {
+			$prepared = $this->service->prepare(
+				$this->buildContext($pdf, $identity['certificate'], $chain),
+			);
+			$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
+
+			try {
+				$this->service->complete($prepared, $signature, $pdf, $other['certificate']);
+				$this->fail('A chain member that is not the signer must not be accepted as the expected certificate.');
+			} catch (ExternalSigningException $exception) {
+				$this->assertStringContainsString('unexpected certificate', $exception->getMessage());
+			}
+
+			// The actual signer still completes fine in the same CMS.
+			$this->service->complete($prepared, $signature, $pdf, $identity['certificate']);
+		}
+	}
+
+	private function fakeSignatureWithBinary(string $binary): object {
+		$fake = new \stdClass();
+		$fake->binarySignature = $binary;
+
+		return $fake;
+	}
+
+	/**
+	 * Synthetic identity with EXPLICIT certificate extensions (no reliance
+	 * on machine-specific OpenSSL configuration defaults).
+	 *
+	 * Profiles:
+	 * - 'signing': leaf with keyUsage digitalSignature+nonRepudiation and
+	 *   CA:FALSE — a realistic document-signing certificate.
+	 * - 'no-keyusage': leaf with NO keyUsage extension (legacy fixtures).
+	 * - 'encipherment': leaf whose keyUsage allows ONLY keyEncipherment —
+	 *   explicitly incompatible with document signing.
+	 *
+	 * @return array{certificate: string, privateKey: string, ca: string, leafExtensions: array}
+	 */
+	private function generateIdentity(string $keyType, string $leafProfile = 'signing'): array {
 		$keyOptions = $keyType === 'ec'
 			? ['curve_name' => 'prime256v1', 'private_key_type' => OPENSSL_KEYTYPE_EC]
 			: ['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA];
+
+		$configFile = $this->tempManager->getTemporaryFile();
+		$config = <<<'TXT'
+			[req]
+			distinguished_name = dn
+			[dn]
+			[v3_ca]
+			basicConstraints = critical,CA:TRUE
+			keyUsage = critical,keyCertSign,cRLSign
+			subjectKeyIdentifier = hash
+			authorityKeyIdentifier = keyid:always
+			[v3_leaf_signing]
+			basicConstraints = critical,CA:FALSE
+			keyUsage = critical,digitalSignature,nonRepudiation
+			subjectKeyIdentifier = hash
+			authorityKeyIdentifier = keyid:always
+			[v3_leaf_no_keyusage]
+			basicConstraints = critical,CA:FALSE
+			subjectKeyIdentifier = hash
+			authorityKeyIdentifier = keyid:always
+			[v3_leaf_encipherment]
+			basicConstraints = critical,CA:FALSE
+			keyUsage = critical,keyEncipherment
+			subjectKeyIdentifier = hash
+			authorityKeyIdentifier = keyid:always
+			TXT;
+		file_put_contents($configFile, $config);
+		$section = match ($leafProfile) {
+			'signing' => 'v3_leaf_signing',
+			'no-keyusage' => 'v3_leaf_no_keyusage',
+			'encipherment' => 'v3_leaf_encipherment',
+			default => throw new \InvalidArgumentException("Unknown leaf profile $leafProfile"),
+		};
 
 		$caKey = openssl_pkey_new($keyOptions);
 		$this->assertNotFalse($caKey);
 		$caCsr = openssl_csr_new(['commonName' => 'Integration Test Root'], $caKey, ['digest_alg' => 'sha256']);
 		$this->assertNotFalse($caCsr);
-		$caCert = openssl_csr_sign($caCsr, null, $caKey, 2, ['digest_alg' => 'sha256'], random_int(1, 0x7fffffff));
+		$caCert = openssl_csr_sign($caCsr, null, $caKey, 2, [
+			'digest_alg' => 'sha256',
+			'config' => $configFile,
+			'x509_extensions' => 'v3_ca',
+		], random_int(1, 0x7fffffff));
 		$this->assertNotFalse($caCert);
 		openssl_x509_export($caCert, $caPem);
 
@@ -669,12 +846,30 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 		$this->assertNotFalse($leafKey);
 		$leafCsr = openssl_csr_new(['commonName' => 'Integration Test Signer'], $leafKey, ['digest_alg' => 'sha256']);
 		$this->assertNotFalse($leafCsr);
-		$leafCert = openssl_csr_sign($leafCsr, $caCert, $caKey, 2, ['digest_alg' => 'sha256'], random_int(1, 0x7fffffff));
+		$leafCert = openssl_csr_sign($leafCsr, $caCert, $caKey, 2, [
+			'digest_alg' => 'sha256',
+			'config' => $configFile,
+			'x509_extensions' => $section,
+		], random_int(1, 0x7fffffff));
 		$this->assertNotFalse($leafCert);
 		openssl_x509_export($leafCert, $leafPem);
 		$this->assertTrue(openssl_pkey_export($leafKey, $leafKeyPem));
 
-		return ['certificate' => $leafPem, 'privateKey' => $leafKeyPem, 'ca' => $caPem];
+		// Assert the intended extensions are actually present.
+		$parsed = openssl_x509_parse($leafCert);
+		$this->assertNotFalse($parsed);
+		$extensions = $parsed['extensions'] ?? [];
+		if ($leafProfile === 'signing') {
+			$this->assertStringContainsString('Digital Signature', (string)($extensions['keyUsage'] ?? ''));
+			$this->assertStringContainsString('CA:FALSE', (string)($extensions['basicConstraints'] ?? ''));
+		} elseif ($leafProfile === 'no-keyusage') {
+			$this->assertArrayNotHasKey('keyUsage', $extensions);
+		} else {
+			$this->assertStringContainsString('Key Encipherment', (string)($extensions['keyUsage'] ?? ''));
+			$this->assertStringNotContainsString('Digital Signature', (string)($extensions['keyUsage'] ?? ''));
+		}
+
+		return ['certificate' => $leafPem, 'privateKey' => $leafKeyPem, 'ca' => $caPem, 'leafExtensions' => $extensions];
 	}
 
 	/**
