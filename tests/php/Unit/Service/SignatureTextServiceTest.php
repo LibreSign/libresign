@@ -106,6 +106,12 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		return $this->service;
 	}
 
+	public function testExistingUnsupportedSignatureStampReportsHowToRecover(): void {
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('signature stamp policy');
+		$this->getClass()->parse('{{ range(1, 3) }}', ['SignerCommonName' => 'Ada']);
+	}
+
 	public function testParseBuildsValidationUrlFromFooterPolicy(): void {
 		$this->policyValues[FooterPolicy::KEY] = FooterPolicyValue::encode([
 			...FooterPolicyValue::defaults(),

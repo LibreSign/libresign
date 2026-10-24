@@ -16,6 +16,7 @@ use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Provider\Helper\DelegationLayerHelper;
 use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
+use OCA\Libresign\Service\SandboxedTemplateRenderer;
 
 final class FooterPolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'add_footer';
@@ -58,6 +59,13 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 						if ($normalized['validationSite'] !== '') {
 							throw new \InvalidArgumentException('Validation URL override is not allowed for this actor');
 						}
+					}
+				},
+				persistenceValidator: static function (mixed $value, PolicyContext $_context): void {
+					$footerPolicy = FooterPolicyValue::normalize($value);
+					// Allow a legacy template to be disabled or replaced without executing it.
+					if ($footerPolicy['enabled'] && $footerPolicy['customizeFooterTemplate'] && $footerPolicy['footerTemplate'] !== '') {
+						SandboxedTemplateRenderer::validate($footerPolicy['footerTemplate']);
 					}
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
