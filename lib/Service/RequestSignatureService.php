@@ -28,6 +28,8 @@ use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
@@ -332,6 +334,13 @@ class RequestSignatureService {
 		if (!is_null($fileId)) {
 			try {
 				$file = $this->fileMapper->getByNodeId($fileId);
+			} catch (DoesNotExistException) {
+				$file = null;
+			} catch (MultipleObjectsReturnedException) {
+				// TRANSLATORS Error shown when a document has multiple LibreSign records.
+				throw new LibresignException($this->l10n->t('This document is registered more than once, so it cannot be updated. Please contact your administrator.'), 422);
+			}
+			if ($file !== null) {
 				$this->updateSignatureFlowIfAllowed($file, $data);
 				return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 			}
