@@ -7,26 +7,13 @@ import { resolve } from 'node:path'
 import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
 
-// Workaround for @stryker-mutator/vitest-runner@10.0.0 + Vitest 5:
-// Stryker builds testNamePattern joining suite/test names with ' ', whereas
-// Vitest 5 joins full test names with ' > ', causing 0 tests to match per mutant.
-if (process.env.STRYKER_MUTATOR_WORKER !== undefined) {
-	const sym = Symbol('testNamePattern')
-	Object.defineProperty(Object.prototype, 'testNamePattern', {
-		configurable: true,
-		get() {
-			return this[sym]
-		},
-		set(val) {
-			this[sym] = val instanceof RegExp
-				? new RegExp(val.source.replace(/ /g, '(?: > | )'), val.flags)
-				: val
-		},
-	})
-}
-
 export default defineConfig({
 	plugins: [vue()],
+	server: {
+		fs: {
+			strict: process.env.STRYKER_MUTATOR_WORKER === undefined,
+		},
+	},
 	resolve: {
 		alias: [
 			{
@@ -47,23 +34,18 @@ export default defineConfig({
 			},
 		],
 	},
-	server: { fs: { strict: false } },
 	test: {
 		include: ['src/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
 		environment: 'happy-dom',
 		globals: true,
 		// Required for transforming CSS files
 		pool: 'vmForks',
+		deps: {
+			inline: ['@nextcloud/vue', 'splitpanes', 'vue-select'],
+		},
 		server: {
 			deps: {
-				inline: [
-					'@nextcloud/vue',
-					'@nextcloud/vue-select',
-					'@nextcloud/dialogs',
-					'@nextcloud/password-confirmation',
-					'splitpanes',
-					'vue-select',
-				],
+				inline: ['@nextcloud/vue', 'splitpanes', 'vue-select'],
 			},
 		},
 		coverage: {
