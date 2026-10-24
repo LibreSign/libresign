@@ -6,15 +6,17 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\LibreSign\Tests\Integration\Service\Signature;
+namespace OCA\Libresign\Tests\Integration\Service\Signature;
 
+use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Service\Signature\Exception\ExternalSigningException;
 use OCA\Libresign\Service\Signature\ExternalPdfSigningService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
-use OCA\LibreSign\Tests\Integration\TestCase;
-use OCA\LibreSign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureValidator;
+use OCA\Libresign\Service\Signature\PreparedExternalOperation;
+use OCA\Libresign\Tests\Integration\TestCase;
 use OCP\ITempManager;
 use Psr\Log\LoggerInterface;
+use SignerPHP\PdfSigner\Application\DTO\CertificationLevel;
 use SignerPHP\PdfSigner\Application\DTO\PdfContentDto;
 use SignerPHP\PdfSigner\Application\DTO\SignatureActorDto;
 use SignerPHP\PdfSigner\Application\DTO\SignatureMetadataDto;
@@ -29,39 +31,30 @@ use SignerPHP\PdfSigner\Presentation\Signer;
  * Integration tests for the internal resumable external PDF-signing
  * service, against the real signerphp/pdf-signer prepare/complete API.
  *
- * The private-key operation is performed outside the service under test
+ * Every positive scenario succeeds through LibreSign's
+ * ExternalPdfSigningService — including its real validation dependency —
+ * and is cross-checked with the independent OpenSSL CLI. The private-key
+ * operation is performed outside the service under test
  * (openssl_private_encrypt DigestInfo for RSA, OpenSSL CLI pkeyutl for EC)
  * exactly like a real external signer: the private key never enters the
- * service. One scenario runs completion in a separate PHP process to prove
- * the prepared state survives process termination.
+ * service. One scenario runs completion in a separate PHP process that
+ * reconstructs the prepared operation explicitly and invokes LibreSign's
+ * service — not only the upstream library.
  *
- * KNOWN UPSTREAM BLOCKER (not fixable on this branch): LibreSign's
- * validation layer (libresign/pdf-signature-validator via the scoped
- * phpseclib4 CMS engine) reports SIGNATURE_INVALID for cryptographically
- * valid pdf-signer signatures, because the scoped phpseclib4 classes are
- * declared under OCA\Libresign\Vendor\... while the validator imports
- * OCA\LibreSign\Vendor\..., and composer's optimized classmap resolves
- * keys case-sensitively. Independent `openssl cms -verify` proves the same
- * documents valid. Positive scenarios therefore assert validity through
- * the independent OpenSSL check and document the service's fail-closed
- * behavior; they flip to the strict service path automatically once
- * upstream corrects the scoped namespace case.
+ * Note: the vendored validation layer rejects valid signatures when the
+ * signer certificate carries no keyUsage extension (scoped phpseclib4
+ * signer resolution enforces keyUsage bits). The local harness carries a
+ * focused fix in libresign/pdf-signature-validator; see the handoff. On a
+ * pristine submodule the positive scenarios below fail — deliberately, so
+ * the blocker stays visible.
  */
 final class ExternalPdfSigningServiceTest extends TestCase {
 	private ExternalPdfSigningService $service;
 	private PdfSignatureValidationService $validation;
-	private PdfSignatureValidator $validator;
 	private ITempManager $tempManager;
 
 	#[\Override]
 	public function setUp(): void {
-		// The upstream validation service files declare their namespace with a
-		// different letter case than the app convention, so composer's
-		// exact-match optimized classmap cannot resolve them from the
-		// OCA\LibreSign\ alias. Load the file explicitly.
-		if (! class_exists(PdfSignatureValidationService::class)) {
-			require_once dirname(__DIR__, 5) . '/lib/Service/Signature/PdfSignatureValidationService.php';
-		}
 		$appConfig = $this->getMockAppConfigWithReset();
 		$l10n = \OCP\Server::get(\OCP\L10N\IFactory::class)->get(\OCA\LibreSign\AppInfo\Application::APP_ID);
 		$this->validation = new PdfSignatureValidationService(
@@ -69,8 +62,10 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 			$l10n,
 			\OCP\Server::get(LoggerInterface::class),
 		);
-		$this->validator = new PdfSignatureValidator();
-		$this->service = new ExternalPdfSigningService($this->validation);
+		$this->service = new ExternalPdfSigningService(
+			$this->validation,
+			new DocMdpHandler($l10n),
+		);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
 	}
 
@@ -82,12 +77,13 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']]),
 		);
 
-		$this->assertSame('digest', $prepared->payload->inputType->value);
-		$this->assertSame('sha256', $prepared->payload->digestAlgorithm->value);
-		$this->assertSame('rsa-pkcs1-v1_5', $prepared->payload->signatureAlgorithm->value);
-		$this->assertSame(32, strlen($prepared->payload->input()));
+		$this->assertSame('digest', $prepared->upstream->payload->inputType->value);
+		$this->assertSame('sha256', $prepared->upstream->payload->digestAlgorithm->value);
+		$this->assertSame('rsa-pkcs1-v1_5', $prepared->upstream->payload->signatureAlgorithm->value);
+		$this->assertSame(32, strlen($prepared->upstream->payload->input()));
+		$this->assertSame(hash('sha256', $pdf), $prepared->preparationInputSha256);
 
-		$signature = $this->externalSign($prepared->payload->input(), $identity['privateKey'], 'rsa');
+		$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
 		$this->assertCompletedOutputValid(
 			$prepared,
 			$signature,
@@ -104,10 +100,10 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 		$prepared = $this->service->prepare(
 			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']]),
 		);
-		$this->assertSame('ecdsa', $prepared->payload->signatureAlgorithm->value);
-		$this->assertSame('ecdsa-der', $prepared->payload->signatureEncoding->value);
+		$this->assertSame('ecdsa', $prepared->upstream->payload->signatureAlgorithm->value);
+		$this->assertSame('ecdsa-der', $prepared->upstream->payload->signatureEncoding->value);
 
-		$signature = $this->externalSign($prepared->payload->input(), $identity['privateKey'], 'ec');
+		$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'ec');
 		$this->assertCompletedOutputValid(
 			$prepared,
 			$signature,
@@ -117,6 +113,12 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 		);
 	}
 
+	/**
+	 * Completion runs in a fresh PHP process that reconstructs the prepared
+	 * operation explicitly and invokes LibreSign's service — its real
+	 * validation dependency included — proving the prepared state survives
+	 * process termination through the full service path.
+	 */
 	public function testCompletionAcrossSeparatePhpProcess(): void {
 		$identity = $this->generateIdentity('rsa');
 		$pdf = $this->makePdf('Resumable state across processes');
@@ -126,31 +128,58 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 		);
 
 		$stateFile = $this->tempManager->getTemporaryFile();
-		file_put_contents($stateFile, $prepared->state);
-		$signature = $this->externalSign($prepared->payload->input(), $identity['privateKey'], 'rsa');
+		file_put_contents($stateFile, serialize($prepared));
+		$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
 		$signatureFile = $this->tempManager->getTemporaryFile();
 		file_put_contents($signatureFile, $signature);
+		$originalFile = $this->tempManager->getTemporaryFile();
+		file_put_contents($originalFile, $pdf);
+		$certificateFile = $this->tempManager->getTemporaryFile();
+		file_put_contents($certificateFile, $identity['certificate']);
 		$outputFile = $this->tempManager->getTemporaryFile();
 		$completerScript = $this->tempManager->getTemporaryFile('.php');
 		file_put_contents($completerScript, <<<'PHP'
 			<?php
 			declare(strict_types=1);
-			[, $vendorAutoload, $stateFile, $signatureFile, $outputFile] = $argv;
+			[, $vendorAutoload, $appRoot, $stateFile, $signatureFile, $originalFile, $certificateFile, $outputFile] = $argv;
 			require $vendorAutoload;
-			$state = file_get_contents($stateFile);
-			$signature = file_get_contents($signatureFile);
-			$pdf = SignerPHP\PdfSigner\Presentation\Signer::externalSigner()->complete($state, $signature);
-			file_put_contents($outputFile, $pdf);
+			require_once $appRoot . '/tests/php/Integration/Service/Signature/SubprocessInfrastructure.php';
+			use OCA\LibreSign\Tests\Integration\Service\Signature\SubprocessAppConfig;
+			use OCA\LibreSign\Tests\Integration\Service\Signature\SubprocessL10n;
+			use OCA\LibreSign\Tests\Integration\Service\Signature\SubprocessLogger;
+			$l10n = new SubprocessL10n();
+			$service = new OCA\Libresign\Service\Signature\ExternalPdfSigningService(
+				new OCA\Libresign\Service\Signature\PdfSignatureValidationService(
+					new SubprocessAppConfig(),
+					$l10n,
+					new SubprocessLogger(),
+				),
+				new OCA\Libresign\Handler\DocMdpHandler($l10n),
+			);
+			$prepared = unserialize(file_get_contents($stateFile));
+			if (! $prepared instanceof OCA\Libresign\Service\Signature\PreparedExternalOperation) {
+				throw new RuntimeException('Could not reconstruct the prepared operation.');
+			}
+			$completed = $service->complete(
+				$prepared,
+				file_get_contents($signatureFile),
+				file_get_contents($originalFile),
+				file_get_contents($certificateFile),
+			);
+			file_put_contents($outputFile, $completed);
 			PHP);
 
 		exec(
 			sprintf(
-				'%s %s %s %s %s %s 2>&1',
+				'%s %s %s %s %s %s %s %s %s 2>&1',
 				escapeshellarg(PHP_BINARY),
 				escapeshellarg($completerScript),
 				escapeshellarg(dirname(__DIR__, 5) . '/vendor/autoload.php'),
+				escapeshellarg(dirname(__DIR__, 5)),
 				escapeshellarg($stateFile),
 				escapeshellarg($signatureFile),
+				escapeshellarg($originalFile),
+				escapeshellarg($certificateFile),
 				escapeshellarg($outputFile),
 			),
 			$outputLines,
@@ -161,22 +190,13 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 		$completed = (string)file_get_contents($outputFile);
 		$this->assertStringStartsWith('%PDF', $completed);
 
-		// Independent verification of bytes produced in the other process:
-		// exactly one signature, and OpenSSL accepts it.
+		// The subprocess ran the full service path; independently confirm
+		// the bytes carry exactly one valid signature.
 		$signatures = $this->extractSignatures($completed);
 		$this->assertCount(1, $signatures);
 		$this->assertTrue(
 			$this->independentOpensslVerify($signatures[0]['cms'], $signatures[0]['content']),
 			'the subprocess-completed document must carry a valid signature',
-		);
-
-		// The service-level path currently fail-closes on the same bytes
-		// because of the known upstream validation-layer blocker.
-		$this->assertServiceCompletionBlockedByKnownUpstreamIssue(
-			$prepared,
-			$signature,
-			$pdf,
-			$identity['certificate'],
 		);
 	}
 
@@ -187,18 +207,24 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 		$firstPrepared = $this->service->prepare(
 			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']]),
 		);
-		$firstSignature = $this->externalSign($firstPrepared->payload->input(), $identity['privateKey'], 'rsa');
-		$signedOnce = $this->completeIndependently($firstPrepared->state, $firstSignature);
+		$firstSignature = $this->externalSign($firstPrepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
+		$signedOnce = $this->service->complete($firstPrepared, $firstSignature, $pdf, $identity['certificate']);
 
 		$secondPrepared = $this->service->prepare(
 			$this->buildContext($signedOnce, $identity['certificate'], [$identity['ca']]),
 		);
-		$secondSignature = $this->externalSign($secondPrepared->payload->input(), $identity['privateKey'], 'rsa');
-		$signedTwice = $this->completeIndependently($secondPrepared->state, $secondSignature);
+		$secondSignature = $this->externalSign($secondPrepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
+		$signedTwice = $this->service->complete($secondPrepared, $secondSignature, $signedOnce, $identity['certificate']);
 
-		$signatures = $this->extractSignatures($signedTwice);
-		$this->assertCount(2, $signatures, 'both signatures must be present');
-		foreach ($signatures as $index => $signature) {
+		$first = $this->extractSignatures($signedOnce);
+		$both = $this->extractSignatures($signedTwice);
+		$this->assertCount(2, $both, 'both signatures must be present');
+		$this->assertSame(
+			$first[0]['cms'],
+			$both[0]['cms'],
+			'the first signature contents must be byte-identical after the second operation',
+		);
+		foreach ($both as $index => $signature) {
 			$this->assertTrue(
 				$this->independentOpensslVerify($signature['cms'], $signature['content']),
 				"signature #$index must remain valid after the second signing operation",
@@ -219,16 +245,16 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 		);
 
 		$this->assertNotSame(
-			$preparedA->payload->inputBase64,
-			$preparedB->payload->inputBase64,
+			$preparedA->upstream->payload->inputBase64,
+			$preparedB->upstream->payload->inputBase64,
 			'Deliberately different documents must produce different prepared payloads.',
 		);
 
-		$signatureForA = $this->externalSign($preparedA->payload->input(), $identity['privateKey'], 'rsa');
+		$signatureForA = $this->externalSign($preparedA->upstream->payload->input(), $identity['privateKey'], 'rsa');
 
 		// Independent ground truth: A's signature cannot satisfy B's prepared
 		// operation.
-		$completedB = $this->completeIndependently($preparedB->state, $signatureForA);
+		$completedB = $this->completeIndependently($preparedB, $signatureForA);
 		$signatures = $this->extractSignatures($completedB);
 		$this->assertCount(1, $signatures);
 		$this->assertFalse(
@@ -238,6 +264,36 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 
 		$this->expectException(ExternalSigningException::class);
 		$this->service->complete($preparedB, $signatureForA, $documentB, $identity['certificate']);
+	}
+
+	/**
+	 * A valid, cryptographically correct signature for document B must not
+	 * be completed against an unrelated original document A. The binding
+	 * lives in the prepared operation, so the substitution is rejected
+	 * before completion regardless of the signature's validity.
+	 */
+	public function testDocumentSubstitutionRejectedDespiteValidSignature(): void {
+		$identity = $this->generateIdentity('rsa');
+		$documentA = $this->makePdf('Substitution target document A');
+		$documentB = $this->makePdf('Substitution source document B');
+
+		$preparedB = $this->service->prepare(
+			$this->buildContext($documentB, $identity['certificate'], [$identity['ca']]),
+		);
+		$signatureForB = $this->externalSign($preparedB->upstream->payload->input(), $identity['privateKey'], 'rsa');
+
+		// Ground truth: B's signature really is cryptographically valid for B.
+		$completedB = $this->completeIndependently($preparedB, $signatureForB);
+		$signatures = $this->extractSignatures($completedB);
+		$this->assertCount(1, $signatures);
+		$this->assertTrue(
+			$this->independentOpensslVerify($signatures[0]['cms'], $signatures[0]['content']),
+			'precondition: the prepared signature must be valid for its own document',
+		);
+
+		$this->expectException(ExternalSigningException::class);
+		$this->expectExceptionMessage('does not match the document the prepared operation was created for');
+		$this->service->complete($preparedB, $signatureForB, $documentA, $identity['certificate']);
 	}
 
 	public function testWrongKeySignatureRejectedAtValidation(): void {
@@ -253,11 +309,11 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 		$prepared = $this->service->prepare(
 			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']]),
 		);
-		$signature = $this->externalSign($prepared->payload->input(), $otherKeyPem, 'rsa');
+		$signature = $this->externalSign($prepared->upstream->payload->input(), $otherKeyPem, 'rsa');
 
 		// Independent ground truth: with the wrong key the signature really
 		// is invalid.
-		$completed = $this->completeIndependently($prepared->state, $signature);
+		$completed = $this->completeIndependently($prepared, $signature);
 		$signatures = $this->extractSignatures($completed);
 		$this->assertCount(1, $signatures);
 		$this->assertFalse(
@@ -302,19 +358,29 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']]),
 		);
 
-		$state = $prepared->state;
+		$state = $prepared->upstream->state;
 		$marker = strpos($state, 'unsignedPdf":"') + strlen('unsignedPdf":"');
 		$char = $state[$marker];
 		$state[$marker] = $char === 'A' ? 'B' : 'A';
-		$corrupted = new \SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature(
-			$prepared->payload,
-			$state,
+		$corrupted = new PreparedExternalOperation(
+			new \SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature(
+				$prepared->upstream->payload,
+				$state,
+			),
+			$prepared->preparationInputSha256,
 		);
 
 		$this->expectException(\SignerPHP\PdfSigner\Domain\Exception\SignerException::class);
 		$this->service->complete($corrupted, random_bytes(256), $pdf, $identity['certificate']);
 	}
 
+	/**
+	 * The signer certificate is resolved from the CMS SignerInfo, not from
+	 * certificate-set ordering: a valid signature by the expected signer is
+	 * accepted even though the certificate set's first entry is the CA, and
+	 * a valid signature presented against an unrelated expected certificate
+	 * is rejected.
+	 */
 	public function testMismatchedExpectedCertificateRejected(): void {
 		$identity = $this->generateIdentity('rsa');
 		$other = $this->generateIdentity('rsa');
@@ -323,10 +389,50 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 		$prepared = $this->service->prepare(
 			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']]),
 		);
-		$signature = $this->externalSign($prepared->payload->input(), $identity['privateKey'], 'rsa');
+		$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
 
 		$this->expectException(ExternalSigningException::class);
+		$this->expectExceptionMessage('unexpected certificate');
 		$this->service->complete($prepared, $signature, $pdf, $other['certificate']);
+	}
+
+	/**
+	 * A document certified with DocMDP "no changes allowed" must be
+	 * refused at preparation time.
+	 */
+	public function testCertifiedDocumentForbiddingAdditionalSignaturesRejected(): void {
+		$identity = $this->generateIdentity('rsa');
+		$certified = $this->makeCertifiedPdf($identity, CertificationLevel::NoChangesAllowed);
+
+		$this->assertFalse(
+			(new DocMdpHandler($this->l10n()))->allowsAdditionalSignatures($this->toResource($certified)),
+			'precondition: the fixture must carry a no-changes-allowed certification signature',
+		);
+
+		$this->expectException(ExternalSigningException::class);
+		$this->expectExceptionMessage('forbids additional signatures');
+		$this->service->prepare(
+			$this->buildContext($certified, $identity['certificate'], [$identity['ca']]),
+		);
+	}
+
+	/**
+	 * A document certified with a level that permits additional signatures
+	 * passes the DocMDP gate and prepares normally.
+	 */
+	public function testCertifiedDocumentPermittingAdditionalSignaturesPrepares(): void {
+		$identity = $this->generateIdentity('rsa');
+		$certified = $this->makeCertifiedPdf($identity, CertificationLevel::FormFillAndSignatures);
+
+		$this->assertTrue(
+			(new DocMdpHandler($this->l10n()))->allowsAdditionalSignatures($this->toResource($certified)),
+			'precondition: the fixture must permit additional signatures',
+		);
+
+		$prepared = $this->service->prepare(
+			$this->buildContext($certified, $identity['certificate'], [$identity['ca']]),
+		);
+		$this->assertSame(hash('sha256', $certified), $prepared->preparationInputSha256);
 	}
 
 	public function testUnsupportedTimestampOptionRejected(): void {
@@ -351,25 +457,90 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 	}
 
 	/**
-	 * Complete through the upstream API directly (no service validation) and
-	 * prove, with the independent OpenSSL check, that the bytes are a validly
-	 * signed document. Then run the service path: because of the known
-	 * upstream validation-layer blocker the service fail-closes even though
-	 * the bytes are valid; the test names the blocker and skips. When the
-	 * upstream scoped-namespace case is fixed, the service path returns the
-	 * bytes and the strict assertions run instead.
+	 * Prior-signature retention compares signature CONTENTS, not just field
+	 * name, range geometry and validity verdicts.
+	 */
+	public function testPriorSignatureContentChangeRejected(): void {
+		$identity = $this->generateIdentity('rsa');
+		$pdf = $this->makePdf('Retention content test');
+
+		$firstPrepared = $this->service->prepare(
+			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']]),
+		);
+		$firstSignature = $this->externalSign($firstPrepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
+		$signedOnce = $this->service->complete($firstPrepared, $firstSignature, $pdf, $identity['certificate']);
+
+		$secondPrepared = $this->service->prepare(
+			$this->buildContext($signedOnce, $identity['certificate'], [$identity['ca']]),
+		);
+		$secondSignature = $this->externalSign($secondPrepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
+		$signedTwice = $this->service->complete($secondPrepared, $secondSignature, $signedOnce, $identity['certificate']);
+
+		$baselineEntries = $this->validation->validateFromString($signedOnce);
+		$completedEntries = $this->validation->validateFromString($signedTwice);
+		$this->assertCount(1, $baselineEntries);
+		$this->assertCount(2, $completedEntries);
+
+		// Simulate altered prior contents: the prior entry keeps its
+		// identity key but carries another signature's extracted CMS
+		// (the real objects, a deliberately mismatched pairing).
+		$baselineEntry = $baselineEntries[0];
+		$otherSignature = $completedEntries[1]['signature'];
+		$alteredEntry = array_merge($baselineEntry, ['signature' => $otherSignature]);
+
+		$baselineByKey = [$this->entryKey($baselineEntry) => $baselineEntry];
+		$completedByKey = [$this->entryKey($baselineEntry) => $alteredEntry];
+
+		$this->expectException(ExternalSigningException::class);
+		$this->expectExceptionMessage("signature's contents changed");
+		$method = new \ReflectionMethod(ExternalPdfSigningService::class, 'assertPriorSignaturesRetained');
+		$method->invoke($this->service, $baselineByKey, $completedByKey);
+	}
+
+	/**
+	 * Duplicate signature identities are ambiguous and rejected instead of
+	 * being silently overwritten in the associative identity map.
+	 */
+	public function testDuplicateSignatureIdentityRejected(): void {
+		$identity = $this->generateIdentity('rsa');
+		$pdf = $this->makePdf('Duplicate identity test');
+		$prepared = $this->service->prepare(
+			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']]),
+		);
+		$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
+		$completed = $this->service->complete($prepared, $signature, $pdf, $identity['certificate']);
+
+		$entries = $this->validation->validateFromString($completed);
+		$this->assertNotEmpty($entries);
+		$duplicated = [$entries[0], $entries[0]];
+
+		$this->expectException(ExternalSigningException::class);
+		$this->expectExceptionMessage('Ambiguous signature identity');
+		$method = new \ReflectionMethod(ExternalPdfSigningService::class, 'mapByIdentity');
+		$method->invoke($this->service, $duplicated, 'completed');
+	}
+
+	/**
+	 * Complete through the service and prove, with the independent OpenSSL
+	 * check on the same bytes, that the returned document is validly
+	 * signed. No skip paths: a service rejection fails the test.
 	 */
 	private function assertCompletedOutputValid(
-		\SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature $prepared,
+		PreparedExternalOperation $prepared,
 		string $signature,
 		string $originalPdf,
 		string $expectedCertificate,
 		int $expectedSignatureCount,
 	): void {
-		$completed = $this->completeIndependently($prepared->state, $signature);
-		$this->assertStringStartsWith('%PDF', $completed);
+		$serviceBytes = $this->service->complete($prepared, $signature, $originalPdf, $expectedCertificate);
+		$this->assertStringStartsWith('%PDF', $serviceBytes);
+		$this->assertSame(
+			$this->completeIndependently($prepared, $signature),
+			$serviceBytes,
+			'the service must return exactly the upstream completion bytes',
+		);
 
-		$signatures = $this->extractSignatures($completed);
+		$signatures = $this->extractSignatures($serviceBytes);
 		$this->assertCount($expectedSignatureCount, $signatures);
 		foreach ($signatures as $signatureEntry) {
 			$this->assertTrue(
@@ -377,62 +548,41 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 				'independent OpenSSL verification must accept the completed document',
 			);
 		}
+	}
 
-		try {
-			$serviceBytes = $this->service->complete($prepared, $signature, $originalPdf, $expectedCertificate);
-			$this->assertSame($completed, $serviceBytes);
-		} catch (ExternalSigningException $exception) {
-			if ($this->libresignValidationSaysInvalid($completed)) {
-				$this->markTestSkipped(
-					'Known upstream blocker: the scoped phpseclib4 CMS autoload case mismatch makes'
-					. ' libresign/pdf-signature-validator reject valid pdf-signer signatures'
-					. ' (independent openssl cms -verify accepts them). Upstream fix: correct the'
-					. ' OCA\Libresign\Vendor\phpseclib4 namespace case in the 3rdparty scoped tree.',
-				);
-			}
-			throw $exception;
-		}
+	private function completeIndependently(PreparedExternalOperation $prepared, string $signature): string {
+		return Signer::externalSigner()->complete($prepared->upstream->state, $signature);
 	}
 
 	/**
-	 * The service currently fail-closes on valid bytes because of the known
-	 * upstream validation-layer blocker; assert that fail-closed behavior
-	 * explicitly.
+	 * Build a certification-signature fixture through the upstream API.
 	 */
-	private function assertServiceCompletionBlockedByKnownUpstreamIssue(
-		\SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature $prepared,
-		string $signature,
-		string $originalPdf,
-		string $expectedCertificate,
-	): void {
-		$blocked = false;
-		try {
-			$this->service->complete($prepared, $signature, $originalPdf, $expectedCertificate);
-		} catch (ExternalSigningException) {
-			$blocked = true;
-		}
-		$this->assertTrue(
-			$blocked,
-			'expected the known upstream validation blocker to fail the service path',
+	private function makeCertifiedPdf(array $identity, CertificationLevel $level): string {
+		$pdf = $this->makePdf('Certified document fixture (' . $level->name . ')');
+		$prepared = $this->service->prepare(
+			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']], $level),
 		);
+		$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
+
+		return $this->completeIndependently($prepared, $signature);
 	}
 
-	private function libresignValidationSaysInvalid(string $completed): bool {
-		$entries = $this->validation->validateFromString($completed);
-		if ($entries === []) {
-			return true;
-		}
-		foreach ($entries as $entry) {
-			if (($entry['signatureValidation']['isValid'] ?? false) !== true) {
-				return true;
-			}
-		}
+	private function toResource(string $bytes) {
+		$resource = fopen('php://temp', 'r+');
+		$this->assertNotFalse($resource);
+		fwrite($resource, $bytes);
+		rewind($resource);
 
-		return false;
+		return $resource;
 	}
 
-	private function completeIndependently(string $state, string $signature): string {
-		return Signer::externalSigner()->complete($state, $signature);
+	private function l10n(): \OCP\IL10N {
+		return \OCP\Server::get(\OCP\L10N\IFactory::class)->get(\OCA\LibreSign\AppInfo\Application::APP_ID);
+	}
+
+	private function entryKey(array $entry): string {
+		$method = new \ReflectionMethod(ExternalPdfSigningService::class, 'signatureEntryKey');
+		return $method->invoke($this->service, $entry);
 	}
 
 	/**
@@ -587,7 +737,12 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 		return $signature;
 	}
 
-	private function buildContext(string $pdf, string $certificatePem, array $chainPem): SigningContextDto {
+	private function buildContext(
+		string $pdf,
+		string $certificatePem,
+		array $chainPem,
+		?CertificationLevel $certificationLevel = null,
+	): SigningContextDto {
 		return new SigningContextDto(
 			new PdfContentDto($pdf),
 			new SigningOptionsDto(
@@ -595,6 +750,7 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 					reason: 'issue 8354 integration test',
 					actor: new SignatureActorDto(name: 'Integration Test Signer'),
 				),
+				certificationLevel: $certificationLevel,
 				useDefaultAppearance: false,
 			),
 			new SigningCertificateDto($certificatePem, $chainPem),
