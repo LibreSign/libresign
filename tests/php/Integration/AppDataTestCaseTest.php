@@ -8,7 +8,12 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Integration;
 
-final class AppDataTestCaseTest extends TestCase {
+use PHPUnit\Framework\TestCase as PHPUnitTestCase;
+
+/**
+ * Only exercises the filesystem helpers, so it uses no Nextcloud test state.
+ */
+final class AppDataTestCaseTest extends PHPUnitTestCase {
 	private string $root = '';
 
 	public function setUp(): void {
