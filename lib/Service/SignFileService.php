@@ -128,6 +128,7 @@ class SignFileService {
 		private SubjectAlternativeNameService $subjectAlternativeNameService,
 		private SignRequestService $signRequestService,
 		private PolicyService $policyService,
+		private TemporarySignatureImageService $temporarySignatureImageService,
 	) {
 	}
 
