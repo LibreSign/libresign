@@ -11,7 +11,6 @@ namespace OCA\Libresign\Service\Signature;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Service\Signature\Exception\ExternalSigningException;
 use OCA\Libresign\Vendor\phpseclib4\File\CMS\SignedData;
-use OCA\Libresign\Vendor\phpseclib4\File\X509;
 use SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
 use SignerPHP\PdfSigner\Application\DTO\SigningContextDto;
 use SignerPHP\PdfSigner\Infrastructure\Native\Service\ExternalPdfSigningService as UpstreamExternalPdfSigningService;
@@ -323,12 +322,12 @@ final class ExternalPdfSigningService {
 	/**
 	 * Resolve the certificate actually bound to the signature: the single
 	 * CMS SignerInfo's identity (issuer and serial number) is matched
-	 * against the certificate set. This is identity resolution, not
-	 * certificate-policy enforcement: it must not depend on keyUsage
-	 * bits, so the CMS engine's global keyUsage checking is disabled for
-	 * the duration and its previous state is restored afterwards — even
-	 * on exceptions. Whether a certificate is ALLOWED to sign documents
-	 * is a separate policy decision that lives outside this resolution.
+	 * against the certificate set. No global engine state is changed:
+	 * resolution relies on the same keyUsage enforcement the validation
+	 * layer applies, and every supported input — a signing-capable
+	 * signer certificate — resolves with that enforcement in place.
+	 * Whether a certificate is ALLOWED to sign documents is certificate
+	 * policy, not an identity question.
 	 *
 	 * One call represents one cryptographic operation, so an unexpected
 	 * SignerInfo count is rejected instead of silently resolved from the
@@ -343,39 +342,31 @@ final class ExternalPdfSigningService {
 			throw new ExternalSigningException('The new signature carries no CMS structure to resolve.');
 		}
 
-		$keyUsageWasEnabled = X509::isCheckKeyUsageEnabled();
-		X509::ignoreKeyUsage();
-		try {
-			$signedData = SignedData::load($binarySignature);
-			$signerInfos = $signedData['content']['signerInfos'];
-			$signerInfoCount = count($signerInfos);
-			if ($signerInfoCount !== 1) {
-				throw new ExternalSigningException(sprintf(
-					'Expected exactly one SignerInfo in the new signature, found %d.',
-					$signerInfoCount,
-				));
-			}
-			$signerInfo = $signerInfos[0];
-			$certificate = $signerInfo->getCertificate();
-			if ($certificate === null) {
-				throw new ExternalSigningException(
-					'Could not resolve the signer certificate from the new signature.'
-					. ' No certificate in the signature matches the SignerInfo identity.',
-				);
-			}
-			$der = $certificate->getEncoded();
-			if ($der === '' || $der === false) {
-				throw new ExternalSigningException('Could not encode the resolved signer certificate.');
-			}
-
-			return "-----BEGIN CERTIFICATE-----\n"
-				. chunk_split(base64_encode($der), 64, "\n")
-				. "-----END CERTIFICATE-----\n";
-		} finally {
-			if ($keyUsageWasEnabled) {
-				X509::checkKeyUsage();
-			}
+		$signedData = SignedData::load($binarySignature);
+		$signerInfos = $signedData['content']['signerInfos'];
+		$signerInfoCount = count($signerInfos);
+		if ($signerInfoCount !== 1) {
+			throw new ExternalSigningException(sprintf(
+				'Expected exactly one SignerInfo in the new signature, found %d.',
+				$signerInfoCount,
+			));
 		}
+		$signerInfo = $signerInfos[0];
+		$certificate = $signerInfo->getCertificate();
+		if ($certificate === null) {
+			throw new ExternalSigningException(
+				'Could not resolve the signer certificate from the new signature.'
+				. ' No certificate in the signature matches the SignerInfo identity.',
+			);
+		}
+		$der = $certificate->getEncoded();
+		if ($der === '' || $der === false) {
+			throw new ExternalSigningException('Could not encode the resolved signer certificate.');
+		}
+
+		return "-----BEGIN CERTIFICATE-----\n"
+			. chunk_split(base64_encode($der), 64, "\n")
+			. "-----END CERTIFICATE-----\n";
 	}
 
 	/**

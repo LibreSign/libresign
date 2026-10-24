@@ -51,7 +51,8 @@ use SignerPHP\PdfSigner\Presentation\Signer;
  *
  * Separate tests document the observed behavior for certificates WITHOUT
  * a keyUsage extension and with explicitly INCOMPATIBLE key usage, and
- * the global keyUsage-toggle restoration contract of the service.
+ * prove that service calls never mutate the engine's global keyUsage
+ * state.
  */
 final class ExternalPdfSigningServiceTest extends TestCase {
 	private ExternalPdfSigningService $service;
@@ -663,32 +664,32 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 	}
 
 	/**
-	 * Global keyUsage state must survive service calls unchanged, in BOTH
-	 * initial states. The scoped toggle inside signer resolution is an
-	 * implementation detail, not a process-global policy change.
+	 * Service calls must not mutate the global keyUsage state at all: the
+	 * production code contains no engine toggle. Proven in both initial
+	 * states, with the caller's original state restored in finally even
+	 * when an assertion or service call throws.
 	 */
-	public function testSignerResolutionPreservesGlobalKeyUsageStateInBothInitialStates(): void {
+	public function testServiceCallsDoNotMutateGlobalKeyUsageState(): void {
 		$identity = $this->generateIdentity('rsa');
-		$pdf = $this->makePdf('keyUsage state restoration');
-
-		// Initially ENABLED (the engine default).
-		X509::checkKeyUsage();
-		$prepared = $this->service->prepare(
-			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']]),
-		);
-		$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
-		$this->service->complete($prepared, $signature, $pdf, $identity['certificate']);
-		$this->assertTrue(X509::isCheckKeyUsageEnabled(), 'keyUsage checking must stay enabled after completion.');
-
-		// Initially DISABLED by a foreign caller: must be restored, not flipped.
-		X509::ignoreKeyUsage();
-		$prepared2 = $this->service->prepare(
-			$this->buildContext($this->makePdf('keyUsage state restoration 2'), $identity['certificate'], [$identity['ca']]),
-		);
-		$signature2 = $this->externalSign($prepared2->upstream->payload->input(), $identity['privateKey'], 'rsa');
-		$this->service->complete($prepared2, $signature2, $this->makePdf('keyUsage state restoration 2'), $identity['certificate']);
-		$this->assertFalse(X509::isCheckKeyUsageEnabled(), 'A caller-disabled keyUsage state must be restored after completion.');
-		X509::checkKeyUsage();
+		$initiallyEnabled = X509::isCheckKeyUsageEnabled();
+		try {
+			foreach ([true, false] as $enabled) {
+				$enabled ? X509::checkKeyUsage() : X509::ignoreKeyUsage();
+				$pdf = $this->makePdf($enabled ? 'state mutation probe enabled' : 'state mutation probe disabled');
+				$prepared = $this->service->prepare(
+					$this->buildContext($pdf, $identity['certificate'], [$identity['ca']]),
+				);
+				$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
+				$this->service->complete($prepared, $signature, $pdf, $identity['certificate']);
+				$this->assertSame(
+					$enabled,
+					X509::isCheckKeyUsageEnabled(),
+					'Service calls must leave the global keyUsage state unchanged.',
+				);
+			}
+		} finally {
+			$initiallyEnabled ? X509::checkKeyUsage() : X509::ignoreKeyUsage();
+		}
 	}
 
 	/**
