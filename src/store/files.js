@@ -120,6 +120,7 @@ import { isCurrentUserObserver, isSigningParticipant } from '../utils/participan
  * 	settings?: RuntimeFileSettingsRecord
  * 	requested_by?: Partial<RequestedByRecord>
  * 	signatureFlow?: SignatureFlowValue | null
+ * 	policySnapshotFrozen?: boolean
  * 	signers?: EditableSignerDraft[] | null
  * 	visibleElements?: VisibleElementRecord[] | null
  * 	url?: string
@@ -154,6 +155,7 @@ import { isCurrentUserObserver, isSigningParticipant } from '../utils/participan
  * 	settings?: EditableFileSettingsDraft
  * 	requested_by?: Partial<RequestedByRecord>
  * 	signatureFlow?: SignatureFlowValue | null
+ * 	policySnapshotFrozen?: boolean
  * 	signers?: EditableSignerDraft[] | null
  * 	visibleElements?: (VisibleElementRecord | VisibleElementDraft)[] | null
  * 	signersCount?: number
@@ -599,7 +601,9 @@ const _filesStore = defineStore('files', () => {
 			clearRequestDraft(fileData.id)
 		}
 
-		await store.addFile(fileData, { detailsLoaded: true })
+		// Only the requester gets policySnapshotFrozen: when the detail omits it,
+		// a value merged from the list must not outlive this reload.
+		await store.addFile({ ...fileData, policySnapshotFrozen: fileData.policySnapshotFrozen }, { detailsLoaded: true })
 		return apiFiles.value[fileData.id] || files.value[fileData.id] || null
 	}
 

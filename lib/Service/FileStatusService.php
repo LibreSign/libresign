@@ -151,6 +151,24 @@ class FileStatusService {
 		$file->setMetadata($metadata);
 	}
 
+	/**
+	 * A document freezes with its envelope, so pass the envelope of a document
+	 * that has one.
+	 */
+	public static function isPolicySnapshotFrozen(FileEntity $file, ?FileEntity $envelope = null): bool {
+		return self::hasFrozenPolicySnapshot($file)
+			|| ($envelope !== null && self::hasFrozenPolicySnapshot($envelope));
+	}
+
+	/**
+	 * A request sent before the freeze was recorded has no marker, so it is
+	 * frozen while its status says it was sent.
+	 */
+	private static function hasFrozenPolicySnapshot(FileEntity $file): bool {
+		return isset(($file->getMetadata() ?? [])[self::POLICY_SNAPSHOT_FROZEN_AT])
+			|| $file->getStatus() >= FileStatus::ABLE_TO_SIGN->value;
+	}
+
 	private function touchStatusChangedAt(FileEntity $file): void {
 		$metadata = $file->getMetadata() ?? [];
 		$metadata['status_changed_at'] = (new DateTime())->format(DateTimeInterface::ATOM);
