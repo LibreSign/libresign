@@ -92,6 +92,7 @@ OC.L10N.register(
     "Paragraph" : "Málsgrein",
     "Issued by:" : "Gefið út af",
     "Name:" : "Nafn:",
+    "Private" : "Einka",
     "Unknown" : "Óþekkt",
     "Number of documents:" : "Fjöldi skjala:",
     "Hide details" : "Fela nánari upplýsingar",

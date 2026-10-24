@@ -254,6 +254,7 @@ OC.L10N.register(
     "Total pages:" : "Sivuja yhteensä:",
     "File size:" : "Tiedostokoko:",
     "PDF version:" : "PDF-versio:",
+    "Private" : "Yksityinen",
     "Unknown" : "Tuntematon",
     "Congratulations you have digitally signed a document using LibreSign" : "Onnittelut, olet allekirjoittanut asiakirjan digitaalisesti LibreSignia käyttäen",
     "Number of documents:" : "Dokumenttien lukumäärä:",

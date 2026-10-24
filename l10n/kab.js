@@ -104,6 +104,7 @@ OC.L10N.register(
     "Name:" : "Isem:",
     "Status:" : "aẓayeṛ",
     "File size:" : "Tiddi n ufaylu :",
+    "Private" : "Uslig",
     "Unknown" : "Arussin",
     "View PDF" : "Wali a PDF",
     "Hide details" : "Ffer tilɣa",

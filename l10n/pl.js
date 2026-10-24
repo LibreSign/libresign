@@ -187,6 +187,7 @@ OC.L10N.register(
     "Longitude:" : "Długość geograficzna:",
     "Name:" : "Nazwa:",
     "Status:" : "Status:",
+    "Private" : "Prywatne",
     "Unknown" : "Nieznana",
     "Congratulations you have digitally signed a document using LibreSign" : "Gratulacje, podpisałeś cyfrowo dokument za pomocą LibreSign",
     "Number of documents:" : "Liczba dokumentów:",

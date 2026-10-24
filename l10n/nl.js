@@ -184,6 +184,7 @@ OC.L10N.register(
     "Issued by:" : "Uitgegeven door:",
     "Name:" : "Naam:",
     "Status:" : "Status:",
+    "Private" : "Privé",
     "Unknown" : "Onbekend",
     "Congratulations you have digitally signed a document using LibreSign" : "Gefeliciteerd, jebt een document digitaal ondertekend met LibreSign",
     "Number of documents:" : "Aantal documenten:",

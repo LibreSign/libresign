@@ -167,6 +167,7 @@ OC.L10N.register(
     "Paragraph" : "Odjeljak",
     "Issued by:" : "Izdavatelj:",
     "Name:" : "Naziv:",
+    "Private" : "Privatna",
     "Unknown" : "Nepoznata pogreška",
     "Congratulations you have digitally signed a document using LibreSign" : "Čestitamo na digitalnom potpisivanju dokumenta s pomoću LibreSigna",
     "Number of documents:" : "Broj dokumenata:",
