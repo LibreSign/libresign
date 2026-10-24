@@ -16,6 +16,7 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
@@ -176,6 +177,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	}
 
 	public function testSaveFileReusesAnExistingNodeWithoutInsertingAnotherRecord(): void {
+		$this->appConfig->method('getValueString')->willReturn(SignatureFlow::NONE->value);
 		$existing = new \OCA\Libresign\Db\File();
 		$existing->setId(7);
 		$this->fileMapper->expects($this->once())->method('getByNodeId')->with(171)->willReturn($existing);
@@ -190,6 +192,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	}
 
 	public function testSaveFilePropagatesUpdateFailuresWithoutInsertingAnotherRecord(): void {
+		$this->appConfig->method('getValueString')->willReturn(SignatureFlow::NONE->value);
 		$existing = new \OCA\Libresign\Db\File();
 		$existing->setId(7);
 		$this->fileMapper->method('getByNodeId')->willReturn($existing);
@@ -222,6 +225,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	}
 
 	public function testSaveFileCreatesNewRecordOnlyForMissingNode(): void {
+		$this->appConfig->method('getValueString')->willReturn(SignatureFlow::NONE->value);
 		$this->fileMapper->method('getByNodeId')
 			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('not found'));
 		$node = $this->createMock(\OCP\Files\File::class);
