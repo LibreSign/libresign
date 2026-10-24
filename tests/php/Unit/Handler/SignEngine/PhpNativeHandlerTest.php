@@ -26,10 +26,10 @@ use OCP\Files\File;
 use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
-use SignerPHP\Application\DTO\CertificationLevel;
-use SignerPHP\Application\DTO\HashAlgorithm;
-use SignerPHP\Application\DTO\SignatureAppearanceDto;
-use SignerPHP\Application\DTO\TimestampOptionsDto;
+use SignerPHP\PdfSigner\Application\DTO\CertificationLevel;
+use SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
+use SignerPHP\PdfSigner\Application\DTO\SignatureAppearanceDto;
+use SignerPHP\PdfSigner\Application\DTO\TimestampOptionsDto;
 
 final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;

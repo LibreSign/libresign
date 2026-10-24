@@ -64,6 +64,6 @@
 	},
 	"require": {
 		"cweagans/composer-patches": "^2.0",
-		"jeidison/signer-php": "dev-main"
+		"signerphp/pdf-signer": "^0.3.0"
 	}
 }
