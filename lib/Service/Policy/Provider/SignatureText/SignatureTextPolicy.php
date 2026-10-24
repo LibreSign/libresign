@@ -13,6 +13,7 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\Helper\DelegationLayerHelper;
 use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
 use OCA\Libresign\Service\SignatureTextTemplate;
@@ -51,6 +52,7 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 				supportsRequestOverride: true,
 				requestLifecycle: PolicySpec::LIFECYCLE_RUNTIME,
+				compositeChildren: [CollectMetadataPolicy::KEY],
 				groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
 					$actorRole = $context->getActorRole();
 					if ($actorRole->canManageSystemPolicies) {
