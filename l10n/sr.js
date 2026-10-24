@@ -283,6 +283,7 @@ OC.L10N.register(
     "Total pages:" : "Укупно страница:",
     "File size:" : "Величина фајла:",
     "PDF version:" : "PDF верзија:",
+    "Private" : "Приватно",
     "Unknown" : "Непознато",
     "Congratulations you have digitally signed a document using LibreSign" : "Честитамо, дигитално сте потписали документ помоћу LibreSign",
     "Number of documents:" : "Број докумената:",
