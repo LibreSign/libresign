@@ -61,6 +61,7 @@ use OCA\Libresign\Service\SigningCoordinatorService;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
+use OCA\Libresign\Service\TemporarySignatureImageService;
 use OCA\Libresign\Service\TsaValidationService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -530,6 +531,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->subjectAlternativeNameService,
 					$this->signRequestService,
 					$this->policyService,
+					new TemporarySignatureImageService($this->tempManager, $this->l10n),
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -575,6 +577,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->subjectAlternativeNameService,
 			$this->signRequestService,
 			$this->policyService,
+			new TemporarySignatureImageService($this->tempManager, $this->l10n),
 		);
 	}
 

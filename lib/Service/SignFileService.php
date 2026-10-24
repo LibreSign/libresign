@@ -128,6 +128,7 @@ class SignFileService {
 		private SubjectAlternativeNameService $subjectAlternativeNameService,
 		private SignRequestService $signRequestService,
 		private PolicyService $policyService,
+		private TemporarySignatureImageService $temporarySignatureImageService,
 	) {
 	}
 
@@ -306,7 +307,7 @@ class SignFileService {
 			$nodeId = $this->getNodeId($element, $fileElement);
 
 			$existing = $this->elements[$fileElementId] ?? null;
-			if ($existing instanceof VisibleElementAssoc && $this->isTempFileValid($existing)) {
+			if ($existing instanceof VisibleElementAssoc && $this->temporarySignatureImageService->isAvailable($existing->getTempFile())) {
 				$newElements[$fileElementId] = $existing;
 				continue;
 			}
@@ -319,9 +320,14 @@ class SignFileService {
 		return $this;
 	}
 
-	private function isTempFileValid(VisibleElementAssoc $elementAssoc): bool {
-		$tempFile = $elementAssoc->getTempFile();
-		return $tempFile !== '' && is_file($tempFile);
+	private function restoreMissingVisibleElementImages(): void {
+		foreach ($this->elements as $element) {
+			if ($element->getTempFile() !== '' && !$this->temporarySignatureImageService->isAvailable($element->getTempFile())) {
+				// Rebuild from the stored signature, not from a temporary path that may have been cleaned.
+				$this->setVisibleElements($this->elementsInput);
+				return;
+			}
+		}
 	}
 
 	private function getNodeId(?array $element, FileElement $fileElement): int {
@@ -368,14 +374,13 @@ class SignFileService {
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
 
-		$tempFile = $this->tempManager->getTemporaryFile('_' . $nodeId . '.png');
 		$content = $node->getContent();
 		if (empty($content)) {
 			$this->logger->error('Failed to retrieve content for node.', ['nodeId' => $nodeId, 'fileElement' => $fileElement]);
 			// TRANSLATORS Error shown when signing requires a visible signature or initials image and the signer has not defined one yet.
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
-		file_put_contents($tempFile, $content);
+		$tempFile = $this->temporarySignatureImageService->create($nodeId, $content);
 		return new VisibleElementAssoc($fileElement, $tempFile);
 	}
 
@@ -1242,6 +1247,7 @@ class SignFileService {
 			->setPassword($this->password);
 
 		if ($this->engine::class === Pkcs12Handler::class) {
+			$this->restoreMissingVisibleElementImages();
 			$this->engine
 				->setVisibleElements($this->getVisibleElements())
 				->setSignatureParams($this->getSignatureParams());

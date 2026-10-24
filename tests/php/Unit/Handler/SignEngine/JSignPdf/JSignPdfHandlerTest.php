@@ -30,6 +30,7 @@ use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
+use OCA\Libresign\Service\TemporarySignatureImageService;
 use OCA\Libresign\Vendor\Jeidison\JSignPDF\JSignPDF;
 use OCA\Libresign\Vendor\Jeidison\JSignPDF\Sign\JSignParam;
 use OCP\IAppConfig;
@@ -134,6 +135,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		// Create mock factory if initialization failed in setUpBeforeClass
 		$certificateEngineFactory = self::$certificateEngineFactory ?? $this->createMock(CertificateEngineFactory::class);
 		$hashAlgorithmResolver = new HashAlgorithmResolver($policyService);
+		$temporarySignatureImageService = \OCP\Server::get(TemporarySignatureImageService::class);
 
 		if (empty($methods)) {
 			return new JSignPdfHandler(
@@ -147,6 +149,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->javaHelper,
 				$this->createMock(DocMdpConfigService::class),
 				$hashAlgorithmResolver,
+				$temporarySignatureImageService,
 			);
 		}
 		return $this->getMockBuilder(JSignPdfHandler::class)
@@ -161,6 +164,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->javaHelper,
 				$this->createMock(DocMdpConfigService::class),
 				$hashAlgorithmResolver,
+				$temporarySignatureImageService,
 			])
 			->onlyMethods($methods)
 			->getMock();
@@ -280,6 +284,43 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'Above minimum (10.0)' => [10.0, 10.0],
 			'Large scale' => [100.0, 100.0],
 		];
+	}
+
+	public function testMissingSignaturePngFailsBeforeJSignPdfRuns(): void {
+		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
+			$this->markTestSkipped('Certificate initialization failed');
+		}
+
+		$path = $this->tempManager->getTemporaryFile('_277524.png');
+		$this->assertIsString($path);
+		file_put_contents($path, 'synthetic signature image');
+		unlink($path);
+
+		$inputFile = $this->createMock(\OC\Files\Node\File::class);
+		$inputFile->method('getContent')->willReturn('%PDF-1.6');
+
+		$this->signatureBackgroundService->method('getSignatureBackgroundType')->willReturn('deleted');
+		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', sys_get_temp_dir());
+		$this->appConfig->setValueString('libresign', 'jsignpdf_path', __DIR__);
+
+		$jSignPdf = $this->createMock(JSignPDF::class);
+		$jSignPdf->expects($this->never())->method('sign');
+
+		$handler = $this->getInstance();
+		$handler->setVisibleElements([self::getElement([
+			'page' => 1,
+			'llx' => 10,
+			'lly' => 20,
+			'urx' => 150,
+			'ury' => 80,
+		], $path)]);
+		$handler->setJSignPdf($jSignPdf);
+		$handler->setInputFile($inputFile);
+		$handler->setCertificate(self::$certificateContent);
+		$handler->setPassword('password');
+
+		$this->expectException(LibresignException::class);
+		$handler->getSignedContent();
 	}
 
 	#[DataProvider('providerSignAffectedParams')]
