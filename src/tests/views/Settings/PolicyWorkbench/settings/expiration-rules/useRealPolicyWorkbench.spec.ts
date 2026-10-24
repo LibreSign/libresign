@@ -289,7 +289,7 @@ describe('expiration rules workbench', () => {
 		})
 	})
 
-	it.each([
+	it.each<{ name: string, failedPolicy: string | null, expectedRemaining: string[], expectError: boolean }>([
 		{
 			name: 'success',
 			failedPolicy: null,

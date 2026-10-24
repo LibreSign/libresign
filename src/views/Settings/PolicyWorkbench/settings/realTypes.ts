@@ -108,4 +108,3 @@ export interface RealPolicySettingDefinition {
 	summarizeValue: (value: EffectivePolicyValue) => string
 	formatAllowOverride: (allowChildOverride: boolean) => string
 }
-
