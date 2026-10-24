@@ -772,6 +772,98 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 		}
 	}
 
+	/**
+	 * keyUsage matrix, row 1 — certificate WITHOUT a keyUsage extension.
+	 *
+	 * Mathematical question: OpenSSL verifies the detached CMS signature
+	 * (cryptographic validity is INDEPENDENT of key usage).
+	 * Policy question: LibreSign's pristine validation layer REJECTS it,
+	 * because the scoped CMS engine's signer resolution enforces keyUsage
+	 * bits and a certificate without the extension fails that check.
+	 *
+	 * This documents CURRENT behavior on the committed dependencies; it is
+	 * not an endorsement. Whether absent usage should be treated as "no
+	 * signing permission" or "unspecified" is an open policy question for
+	 * the maintainer (see handoff); the service deliberately does not
+	 * decide it here.
+	 */
+	public function testCertificateWithoutKeyUsageIsCryptographicallyValidButRejectedByPolicy(): void {
+		$identity = $this->generateIdentity('rsa', 'no-keyusage');
+		$pdf = $this->makePdf('Absent keyUsage matrix row');
+		$prepared = $this->service->prepare(
+			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']]),
+		);
+		$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
+
+		// Mathematical verification is independent of key usage.
+		$this->assertTrue(
+			$this->independentOpensslCmsVerifies($prepared, $signature, $pdf),
+			'A signature by a certificate without keyUsage must still verify mathematically.',
+		);
+
+		// The application layer rejects it on the pristine validator.
+		try {
+			$this->service->complete($prepared, $signature, $pdf, $identity['certificate']);
+			$this->fail('Expected the validator to reject a signer certificate without keyUsage.');
+		} catch (ExternalSigningException $exception) {
+			$this->assertStringContainsString('not cryptographically valid', $exception->getMessage());
+		}
+	}
+
+	/**
+	 * keyUsage matrix, row 2 — certificate whose keyUsage explicitly
+	 * ALLOWS only keyEncipherment (incompatible with document signing).
+	 *
+	 * Documents the observed behavior of the committed stack: whether
+	 * mathematical verification succeeds and whether certificate policy
+	 * rejects the use. Finalized to the observed outcome below.
+	 */
+	public function testCertificateWithExplicitlyIncompatibleKeyUsage(): void {
+		$identity = $this->generateIdentity('rsa', 'encipherment');
+		$pdf = $this->makePdf('Incompatible keyUsage matrix row');
+		$prepared = $this->service->prepare(
+			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']]),
+		);
+		$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
+
+		$this->assertTrue(
+			$this->independentOpensslCmsVerifies($prepared, $signature, $pdf),
+			'OpenSSL verifies the signature mathematically regardless of key usage.',
+		);
+
+		try {
+			$this->service->complete($prepared, $signature, $pdf, $identity['certificate']);
+			$this->fail('Expected the validator to reject a certificate whose key usage forbids signing.');
+		} catch (ExternalSigningException $exception) {
+			$this->assertStringContainsString('not cryptographically valid', $exception->getMessage());
+		}
+	}
+
+	/**
+	 * Mathematical (not policy) verification: complete through the
+	 * upstream API alone, extract the CMS structure and verify the
+	 * detached signature with the independent OpenSSL CLI.
+	 */
+	private function independentOpensslCmsVerifies(
+		PreparedExternalOperation $prepared,
+		string $signature,
+		string $originalPdf,
+	): bool {
+		$completed = $this->completeIndependently($prepared, $signature);
+		$this->assertNotFalse(strpos($completed, '%PDF'));
+		$signatures = $this->extractSignatures($completed);
+		if ($signatures === []) {
+			return false;
+		}
+		foreach ($signatures as $entry) {
+			if (! $this->independentOpensslVerify($entry['cms'], $entry['content'])) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	private function fakeSignatureWithBinary(string $binary): object {
 		$fake = new \stdClass();
 		$fake->binarySignature = $binary;
