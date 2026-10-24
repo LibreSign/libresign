@@ -39,7 +39,6 @@ const END_USER = 'policy-e2e-end-user'
 const INSTANCE_RESET_USER = 'policy-e2e-instance-reset-user'
 const POLICY_KEY = 'signature_flow'
 
-
 test.afterEach(async ({ adminRequestContext }) => {
 	await policyRequest(
 		adminRequestContext,

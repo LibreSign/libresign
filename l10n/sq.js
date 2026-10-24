@@ -60,6 +60,7 @@ OC.L10N.register(
     "Cancel upload" : "Anullo ngarkimin",
     "Issued by:" : "Lëshuar nga:",
     "Name:" : "Emri",
+    "Private" : "Private",
     "Unknown" : "I panjohur",
     "Number of documents:" : "Numri i dokumenteve:",
     "Hide details" : "Fsheh detajet",

@@ -6,7 +6,9 @@
 	<div class="file-status-list">
 		<div class="list-header">
 			<h2>{{ t('libresign', 'Files to sign') }}</h2>
-			<p class="list-meta">{{ files.length }} {{ n('libresign', 'file', 'files', files.length) }}</p>
+			<p class="list-meta">
+				{{ files.length }} {{ n('libresign', 'file', 'files', files.length) }}
+			</p>
 		</div>
 
 		<div v-if="files.length === 0" class="empty-state">
@@ -20,8 +22,12 @@
 						<NcIconSvgWrapper :path="mdiFilePdfBox" />
 					</div>
 					<div class="file-details">
-						<p class="file-name">{{ file.name }}</p>
-						<p class="file-size">{{ formatFileSize(file.size) }}</p>
+						<p class="file-name">
+							{{ file.name }}
+						</p>
+						<p class="file-size">
+							{{ formatFileSize(file.size) }}
+						</p>
 					</div>
 				</div>
 

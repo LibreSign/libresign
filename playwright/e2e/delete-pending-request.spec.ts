@@ -95,4 +95,3 @@ test('delete pending signature request', async ({ page }) => {
 	await page.reload()
 	await expect(targetRow).toBeHidden({ timeout: 20000 })
 })
-

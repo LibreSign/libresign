@@ -31,6 +31,8 @@ use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
@@ -371,9 +373,15 @@ class RequestSignatureService {
 		if (!is_null($nodeId)) {
 			try {
 				$file = $this->fileMapper->getByNodeId($nodeId);
+			} catch (DoesNotExistException) {
+				$file = null;
+			} catch (MultipleObjectsReturnedException) {
+				// TRANSLATORS Error shown when a document cannot be updated because LibreSign has more than one record for it.
+				throw new LibresignException($this->l10n->t('This document is registered more than once, so it cannot be updated. Please contact your administrator.'), 422);
+			}
+			if ($file !== null) {
 				$this->filePolicyApplier->syncAllPolicies($file, $data);
 				return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
-			} catch (\Throwable) {
 			}
 		}
 
@@ -522,7 +530,7 @@ class RequestSignatureService {
 							$identifyMethod['method'] => $identifyMethod['value'],
 						],
 						displayName: $signer['displayName'] ?? '',
-						description: $signer['description'] ?? '',
+						description: $signer['description'] ?? null,
 						notify: $shouldNotify,
 						fileId: $file->getId(),
 						signingOrder: $signingOrder,

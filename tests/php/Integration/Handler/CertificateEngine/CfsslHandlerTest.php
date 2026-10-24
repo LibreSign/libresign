@@ -42,6 +42,22 @@ class CfsslHandlerTest extends AppDataTestCase {
 		$this->processManager = $this->createMock(ProcessManager::class);
 	}
 
+	public function testCfsslResponseFixtureContainsRsa2048Certificate(): void {
+		$response = json_decode(
+			file_get_contents(__DIR__ . '/../../../fixtures/cfssl/newcert-with-success.json'),
+			true,
+			flags: JSON_THROW_ON_ERROR,
+		);
+		$certificate = openssl_x509_read($response['result']['certificate']);
+		$this->assertNotFalse($certificate);
+		$key = openssl_pkey_get_public($certificate);
+		$this->assertNotFalse($key);
+		$details = openssl_pkey_get_details($key);
+		$this->assertIsArray($details);
+		$this->assertSame(OPENSSL_KEYTYPE_RSA, $details['type']);
+		$this->assertSame(2048, $details['bits']);
+	}
+
 	public function testGetServerPidReadsFromRegistry(): void {
 		$handler = $this->createHandler();
 

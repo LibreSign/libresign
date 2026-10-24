@@ -47,6 +47,7 @@ OC.L10N.register(
     "Contact" : "Kontakt",
     "Open sidebar" : "Opne sidestolpe",
     "Cancel upload" : "Avbryt opplasting",
+    "Private" : "Privat",
     "Unknown" : "Ukjend",
     "Hide details" : "Gøym detaljar",
     "Show details" : "Vis detaljar",

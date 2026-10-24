@@ -85,7 +85,9 @@
 						<NcIconSvgWrapper v-else :path="mdiContentCopy" :size="20" />
 					</template>
 					<template #description>
-						<p class="ste__variable-description">{{ variable.description }}</p>
+						<p class="ste__variable-description">
+							{{ variable.description }}
+						</p>
 					</template>
 				</NcFormBoxButton>
 			</div>

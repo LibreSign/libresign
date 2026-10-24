@@ -60,7 +60,6 @@ import {
 	mdiDraw,
 } from '@mdi/js'
 
-
 import { showError, showSuccess } from '@nextcloud/dialogs'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
@@ -117,7 +116,6 @@ const imgSrc = computed(() => {
 	}
 	return `${currentSign.value.file.url}&_t=${Date.now()}`
 })
-
 
 function signatureLoaded(status: boolean | Event) {
 	const success = typeof status === 'boolean'

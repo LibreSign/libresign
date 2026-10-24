@@ -358,4 +358,3 @@ describe('showStatusInlineAction', () => {
 		})
 	})
 })
-

@@ -6,7 +6,6 @@
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 
-
 type LayoutMetrics = {
 	viewportHeight: number
 	htmlHasExternalClass: boolean
@@ -102,7 +101,6 @@ test('external validation page fills a small viewport', async ({ page }) => {
 
 	expectFullViewportLayout(await getExternalLayoutMetrics(page))
 })
-
 
 test('external page styles do not affect authenticated LibreSign pages', async ({ page }) => {
 	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'

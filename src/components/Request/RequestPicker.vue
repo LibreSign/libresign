@@ -159,7 +159,6 @@ import { useSidebarStore } from '../../store/sidebar.js'
 import type { LibresignCapabilities } from '../../types/index'
 import { ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../constants.js'
 
-
 type UploadFile = {
 	name: string
 	size: number

@@ -7,7 +7,9 @@
 	<div class="policy-workbench__dialog">
 		<div class="policy-workbench__main">
 			<header class="policy-workbench__dialog-header">
-				<p class="policy-workbench__dialog-description">{{ dialogDescription }}</p>
+				<p class="policy-workbench__dialog-description">
+					{{ dialogDescription }}
+				</p>
 				<PolicyPrecedenceHint :scopes="priorityNoteScopes" variant="dialog" />
 			</header>
 

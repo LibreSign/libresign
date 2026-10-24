@@ -73,7 +73,6 @@ describe('signRequestUuid utils', () => {
 		expect(getValidationRouteUuid({ id: 42 })).toBe(42)
 	})
 
-
 	describe('route signer resolution', () => {
 		it('marks only the signer whose sign-request UUID matches the route', () => {
 			const result = markCurrentSignerFromRouteUuid({

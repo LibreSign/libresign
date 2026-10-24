@@ -30,7 +30,6 @@
 import { t } from '@nextcloud/l10n'
 import { mdiCogs } from '@mdi/js'
 
-
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 

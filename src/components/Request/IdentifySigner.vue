@@ -270,7 +270,6 @@ function getMethodIcon() {
 	return iconMap[iconKey]
 }
 
-
 function applySelectedSigner(nextSigner: IdentifyAccountRecord | null) {
 	if (!nextSigner) {
 		resetSelectedSignerState()
@@ -367,7 +366,8 @@ async function saveSigner() {
 	const participantRole = isObserver.value ? PARTICIPANT_ROLE.OBSERVER : PARTICIPANT_ROLE.SIGNER
 	signers.push({
 		displayName: displayName.value,
-		description: description.value.trim() || undefined,
+		// Always send the description: an empty string tells the backend to clear it.
+		description: description.value.trim(),
 		participantRole,
 		...(identifyMethod.value === 'email' ? { email: identify.value } : {}),
 		// Persist the toggle whenever it is on, even if the checkbox was hidden

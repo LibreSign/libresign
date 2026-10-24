@@ -97,7 +97,6 @@
 					</div>
 				</NcCheckboxRadioSwitch>
 			</fieldset>
-
 		</section>
 	</div>
 </template>

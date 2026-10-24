@@ -567,7 +567,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 		$parsed = $signerInstance->readCertificate($certificateContent, '123456');
 
 		$revokedCert = new \OCA\Libresign\Db\Crl();
-		$revokedCert->setSerialNumber($parsed['serialNumberHex']);
+		$revokedCert->setSerialNumber($parsed['serialNumber']);
+		$revokedCert->setEngine('openssl');
 		$revokedCert->setRevokedAt(new \DateTime('2025-01-01 12:00:00'));
 
 		$configPath = $rootInstance->getCurrentConfigPath();
@@ -729,7 +730,18 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 		return [
 			'Decimal serial stays decimal semantically and is rendered as hex in CRL' => [
 				'serialNumber' => '1234',
-				'expectedInCrl' => '04D2'
+				'expectedInCrl' => '04D2',
+				'engine' => 'openssl',
+			],
+			'OpenSSL serial with only digits is decimal' => [
+				'serialNumber' => '5850520544968278',
+				'expectedInCrl' => '14C90476D57E56',
+				'engine' => 'openssl',
+			],
+			'CFSSL serial with only digits is hexadecimal' => [
+				'serialNumber' => '5850520544968278',
+				'expectedInCrl' => '5850520544968278',
+				'engine' => 'cfssl',
 			],
 			'Serial with leading zeros (20 chars)' => [
 				'serialNumber' => '00e7a0b277a1008f5fe3',
@@ -783,7 +795,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 	}
 
 	#[DataProvider('dataCrlSerialNumberNormalization')]
-	public function testCrlSerialNumberNormalization(string $serialNumber, string $expectedInCrl): void {
+	public function testCrlSerialNumberNormalization(string $serialNumber, string $expectedInCrl, string $engine = ''): void {
 		$this->caIdentifierService->generateCaId('openssl');
 
 		$rootInstance = $this->getInstance();
@@ -791,6 +803,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 
 		$revokedCert = new \OCA\Libresign\Db\Crl();
 		$revokedCert->setSerialNumber($serialNumber);
+		$revokedCert->setEngine($engine);
 		$revokedCert->setRevokedAt(new \DateTime('2025-01-01 12:00:00'));
 
 		$configPath = $rootInstance->getCurrentConfigPath();

@@ -168,7 +168,6 @@ describe('SignerSelect.vue', () => {
 				resolveSecond = resolve
 			}))
 
-
 		const firstCall = wrapper.vm._asyncFind('a')
 		const secondCall = wrapper.vm._asyncFind('ab')
 

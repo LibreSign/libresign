@@ -19,7 +19,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 /**
  * @group DB
  */
-final class CrlMapperDbTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class CrlMapperTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private CrlMapper $crlMapper;
 
 	public function setUp(): void {

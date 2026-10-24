@@ -301,6 +301,50 @@ final class SignRequestServiceTest extends TestCase {
 		$this->assertSame(77, $signRequest->getId());
 	}
 
+	public function testCreateOrUpdateSignRequestClearsDescriptionWhenEmptyString(): void {
+		$signRequest = $this->updateExistingWithDescription('Old message', '');
+
+		$this->assertNull($signRequest->getDescription());
+	}
+
+	public function testCreateOrUpdateSignRequestKeepsDescriptionWhenNull(): void {
+		$signRequest = $this->updateExistingWithDescription('Old message', null);
+
+		$this->assertSame('Old message', $signRequest->getDescription());
+	}
+
+	public function testCreateOrUpdateSignRequestReplacesDescription(): void {
+		$signRequest = $this->updateExistingWithDescription('Old message', 'New message');
+
+		$this->assertSame('New message', $signRequest->getDescription());
+	}
+
+	private function updateExistingWithDescription(string $currentDescription, ?string $newDescription): SignRequestEntity {
+		$identifyMethod = $this->createIdentifyMethod('email', 'signer@example.com');
+		$this->identifyMethodService->method('getByUserData')
+			->willReturn([$identifyMethod]);
+
+		$existing = new SignRequestEntity();
+		$existing->setId(77);
+		$existing->setStatusEnum(SignRequestStatus::DRAFT);
+		$existing->setDescription($currentDescription);
+
+		$this->signRequestMapper->method('getByIdentifyMethodAndFileId')
+			->willReturn($existing);
+
+		$this->statusService->method('determineInitialStatus')
+			->willReturn(SignRequestStatus::DRAFT);
+		$this->statusService->method('shouldNotifySignRequest')->willReturn(false);
+
+		return $this->service->createOrUpdateSignRequest(
+			[['email' => 'signer@example.com']],
+			'Existing',
+			$newDescription,
+			false,
+			101,
+		);
+	}
+
 	private function createIdentifyMethod(string $name, string $identifier): IIdentifyMethod&MockObject {
 		$entity = new IdentifyMethodEntity();
 		$entity->setIdentifierValue($identifier);

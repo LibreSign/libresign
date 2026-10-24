@@ -219,6 +219,7 @@ OC.L10N.register(
     "Longitude:" : "Zemljepisna dolžina:",
     "Name:" : "Ime:",
     "Status:" : "Stanje:",
+    "Private" : "Zasebno",
     "Unknown" : "Neznano",
     "Congratulations you have digitally signed a document using LibreSign" : "Podpis dokumenta je uspešno zaključen z uporabo LibreSign.",
     "Number of documents:" : "Število dokumentov:",

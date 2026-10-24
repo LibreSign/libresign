@@ -69,7 +69,6 @@ import { computed, getCurrentInstance, onBeforeMount, reactive, ref, toRefs } fr
 
 import md5 from 'blueimp-md5'
 
-
 import axios from '@nextcloud/axios'
 import { showWarning } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'

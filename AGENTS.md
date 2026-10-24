@@ -20,7 +20,7 @@ Before changing code:
 1. Read the issue or task and verify it still matches the current base branch.
 2. Inspect the affected code and nearby tests before editing.
 3. Check for existing pull requests or duplicate work.
-4. Read the canonical documentation relevant to the task:
+4. Consult the canonical documentation relevant to the task:
    - architecture and code map:
      https://docs.libresign.coop/developer_manual/architecture.html
    - development workflow:
@@ -128,6 +128,10 @@ lib/Controller/CrlApiController.php
   -> tests/php/Unit/Controller/CrlApiControllerTest.php
 ```
 
+Before creating, renaming, or modifying PHPUnit tests, read and follow
+the naming conventions and exceptions in the
+[Developer Manual](https://docs.libresign.coop/developer_manual/getting-started/tests.html).
+
 Run focused tests during implementation:
 
 ```bash
@@ -232,9 +236,11 @@ failure before adding retries, sleeps, suppressions or dependency pins.
 
 ## When documentation changes
 
-Update https://github.com/LibreSign/documentation when the knowledge is durable
-and useful beyond a single implementation detail.
+Document durable contributor workflows and supported behavior in the
+appropriate manual at https://github.com/LibreSign/documentation.
+Explain how LibreSign currently works and how to develop for it, not the
+steps an agent took to implement a change. Keep change history in issues
+and pull requests, and code-local contracts beside the relevant source.
 
-Keep `AGENTS.md` limited to operational invariants and navigation. If a new
-section starts becoming a tutorial, architecture chapter or long command
-reference, move that knowledge to the Developer Manual and link to it here.
+Keep `AGENTS.md` limited to essential operational constraints and
+navigation; link to canonical pages instead of duplicating their details.

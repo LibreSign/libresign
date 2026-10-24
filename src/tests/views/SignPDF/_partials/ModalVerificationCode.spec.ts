@@ -128,7 +128,6 @@ describe('ModalVerificationCode (email mode)', () => {
 		}
 	})
 
-
 	it('does not send the entered email as a verification-code destination', async () => {
 		vi.mocked(axios.post).mockClear()
 

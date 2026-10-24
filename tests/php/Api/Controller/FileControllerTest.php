@@ -13,6 +13,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
+use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
@@ -97,6 +98,38 @@ final class FileControllerTest extends ApiTestCase {
 		// When there's no user and signer is not identified, settings is returned with default values
 		$this->assertFalse($body['ocs']['data']['settings']['canRequestSign'], 'Can permission to request sign');
 		$this->assertFalse($body['ocs']['data']['settings']['canSign'], 'Can permission to sign');
+		$this->assertArrayNotHasKey('policySnapshotFrozen', $body['ocs']['data']);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testValidateTellsTheRequesterWhetherThePolicySnapshotIsFrozen():void {
+		$user = $this->createAccount('username', 'password');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+			'name' => 'test',
+			'signers' => [
+				[
+					'identifyMethods' => [[
+						'method' => 'email',
+						'mandatory' => 0,
+						'value' => 'person@test.coop',
+					]],
+				],
+			],
+			'userManager' => $user,
+		]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			])
+			->withPath('/api/v1/file/validate/file_id/' . $file->getId());
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertSame(FileStatusService::isPolicySnapshotFrozen($file), $body['ocs']['data']['policySnapshotFrozen']);
 	}
 
 	/**

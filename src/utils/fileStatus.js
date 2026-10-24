@@ -4,6 +4,7 @@
  */
 
 import {
+	mdiCancel,
 	mdiFileDocument,
 	mdiClockOutline,
 	mdiAlert,
@@ -56,6 +57,11 @@ const STATUS_CONFIG = {
 		// TRANSLATORS File status shown while asynchronous signing work is still running in the background.
 		label: () => t('libresign', 'Signing'),
 		icon: mdiSync,
+	},
+	[FILE_STATUS.CANCELED]: {
+		// TRANSLATORS File status shown when the signing workflow was closed before everybody signed, so nobody can sign it any more.
+		label: () => t('libresign', 'Canceled'),
+		icon: mdiCancel,
 	},
 }
 
@@ -112,6 +118,7 @@ export function buildStatusMap() {
 		[FILE_STATUS.SIGNED]: 'signed',
 		[FILE_STATUS.DELETED]: 'deleted',
 		[FILE_STATUS.SIGNING_IN_PROGRESS]: 'signing',
+		[FILE_STATUS.CANCELED]: 'canceled',
 	}
 
 	const map = {}

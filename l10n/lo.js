@@ -276,6 +276,7 @@ OC.L10N.register(
     "Total pages:" : "ຈຳນວນໜ້າທັງໝົດ:",
     "File size:" : "ຂະໜາດໄຟລ໌:",
     "PDF version:" : "ເວີຊັນ PDF:",
+    "Private" : "Private",
     "Unknown" : "ບໍ່ຮູ້ຈັກ",
     "Congratulations you have digitally signed a document using LibreSign" : "ຂໍສະແດງຄວາມຍິນດີ, ທ່ານໄດ້ເຊັນເອກະສານດິຈິຕອນໂດຍໃຊ້ LibreSign",
     "Hide details" : "ເຊື່ອງລາຍລະອຽດ",

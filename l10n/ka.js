@@ -70,6 +70,7 @@ OC.L10N.register(
     "Issued by:" : "Issued by:",
     "Name:" : "Name:",
     "Status:" : "Status:",
+    "Private" : "Private",
     "Unknown" : "Unknown",
     "Hide details" : "Hide details",
     "Show details" : "Show details",

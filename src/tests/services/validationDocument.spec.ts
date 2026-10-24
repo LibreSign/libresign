@@ -22,6 +22,7 @@ function createSigner(patch: Record<string, unknown> = {}): Record<string, unkno
 		email: 'signer@example.com',
 		signed: null,
 		status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+		displayStatus: 'ready_to_sign',
 		statusText: 'Pending',
 		description: null,
 		request_sign_date: '2026-01-01T00:00:00Z',
@@ -65,6 +66,42 @@ function createValidationPayload(patch: Record<string, unknown> = {}): Record<st
 		signers: [],
 		...patch,
 	}
+}
+
+function createChildSigner(patch: Record<string, unknown> = {}): Record<string, unknown> {
+	return {
+		signRequestId: 2,
+		displayName: 'Child signer',
+		email: 'child@example.com',
+		signed: null,
+		status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+		displayStatus: 'ready_to_sign',
+		statusText: 'Pending',
+		visibleElements: [],
+		...patch,
+	}
+}
+
+function createEnvelopePayload(childPatch: Record<string, unknown> = {}): Record<string, unknown> {
+	return createValidationPayload({
+		name: 'envelope',
+		nodeType: 'envelope',
+		files: [{
+			id: 101,
+			uuid: '550e8400-e29b-41d4-a716-446655440001',
+			name: 'contract.pdf',
+			status: FILE_STATUS.ABLE_TO_SIGN,
+			statusText: 'Pending',
+			nodeId: 101,
+			totalPages: 1,
+			size: 10,
+			pdfVersion: '1.7',
+			signers: [createChildSigner()],
+			file: '/apps/libresign/p/pdf/550e8400-e29b-41d4-a716-446655440001',
+			metadata: { extension: 'pdf', p: 1 },
+			...childPatch,
+		}],
+	})
 }
 
 describe('validationDocument', () => {
@@ -324,6 +361,161 @@ describe('validationDocument', () => {
 		}))
 
 		expect(normalized).toBeNull()
+	})
+
+	it.each(['draft', 'ready_to_sign', 'signed', 'rejected', 'observing', 'not_signed'])('accepts the %s display status', (displayStatus) => {
+		const normalized = toValidationDocument(createValidationPayload({
+			signers: [createSigner({ displayStatus })],
+		}))
+
+		expect(normalized?.signers?.[0].displayStatus).toBe(displayStatus)
+	})
+
+	it('rejects a display status outside the contract', () => {
+		expect(toValidationDocument(createValidationPayload({
+			signers: [createSigner({ displayStatus: 'pending' })],
+		}))).toBeNull()
+	})
+
+	it('rejects a signer without display status', () => {
+		expect(toValidationDocument(createValidationPayload({
+			signers: [createSigner({ displayStatus: undefined })],
+		}))).toBeNull()
+	})
+
+	it('accepts a canceled document', () => {
+		const normalized = toValidationDocument(createValidationPayload({
+			status: FILE_STATUS.CANCELED,
+			statusText: 'Canceled',
+		}))
+
+		expect(normalized?.status).toBe(FILE_STATUS.CANCELED)
+	})
+
+	it('accepts a canceled document inside an envelope', () => {
+		const childSigner = createChildSigner({ displayStatus: 'not_signed', statusText: 'Not signed' })
+		delete childSigner.status
+
+		const normalized = toValidationDocument(createEnvelopePayload({
+			status: FILE_STATUS.CANCELED,
+			statusText: 'Canceled',
+			signers: [childSigner],
+		}))
+
+		expect(normalized?.nodeType).toBe('envelope')
+		expect(normalized?.files[0]?.status).toBe(FILE_STATUS.CANCELED)
+		expect(normalized?.files[0]?.signers[0]).toEqual(expect.objectContaining({ displayStatus: 'not_signed' }))
+		expect(normalized?.files[0]?.signers[0]).not.toHaveProperty('status')
+	})
+
+	it('accepts a rejected signer with its rejection inside an envelope', () => {
+		const rejection = { rejectedAt: '2026-09-09T12:00:00+00:00', comment: 'I do not agree' }
+
+		const normalized = toValidationDocument(createEnvelopePayload({
+			signers: [createChildSigner({
+				status: SIGN_REQUEST_STATUS.REJECTED,
+				displayStatus: 'rejected',
+				statusText: 'Rejected',
+				rejection,
+			})],
+		}))
+
+		expect(normalized?.files[0]?.signers[0]).toEqual(expect.objectContaining({ rejection }))
+	})
+
+	it.each([
+		['a display status outside the contract', { displayStatus: 'pending' }],
+		['no display status', { displayStatus: undefined }],
+		['an invalid rejection', { displayStatus: 'rejected', rejection: { comment: 'I do not agree' } }],
+		['an invalid status', { status: 99 }],
+	])('rejects an envelope child signer with %s', (_, patch) => {
+		expect(toValidationDocument(createEnvelopePayload({
+			signers: [createChildSigner(patch)],
+		}))).toBeNull()
+	})
+
+	it('rejects a LibreSign signer with certificate data and a display status outside the contract', () => {
+		expect(toValidationDocument(createValidationPayload({
+			signers: [createSigner({
+				status: SIGN_REQUEST_STATUS.SIGNED,
+				displayStatus: 'pending',
+				statusText: 'Signed',
+				chain: [{ subject: { CN: 'Signer' } }],
+			})],
+		}))).toBeNull()
+	})
+
+	it('rejects a LibreSign signer with certificate data and an invalid rejection', () => {
+		expect(toValidationDocument(createValidationPayload({
+			signers: [createSigner({
+				status: SIGN_REQUEST_STATUS.SIGNED,
+				displayStatus: 'rejected',
+				statusText: 'Signed',
+				rejection: { comment: 'I do not agree' },
+				chain: [{ subject: { CN: 'Signer' } }],
+			})],
+		}))).toBeNull()
+	})
+
+	it('rejects a certificate signer with an invalid rejection', () => {
+		expect(toValidationDocument(createValidationPayload({
+			signers: [{
+				displayName: 'External signer',
+				status: SIGN_REQUEST_STATUS.SIGNED,
+				statusText: 'Signed',
+				rejection: 'rejected',
+				chain: [{ subject: { CN: 'External signer' } }],
+			}],
+		}))).toBeNull()
+	})
+
+	it('accepts a rejected signer with its rejection', () => {
+		const normalized = toValidationDocument(createValidationPayload({
+			signers: [createSigner({
+				status: SIGN_REQUEST_STATUS.REJECTED,
+				displayStatus: 'rejected',
+				statusText: 'Rejected',
+				rejection: { rejectedAt: '2026-09-09T12:00:00+00:00' },
+			})],
+		}))
+
+		expect(normalized?.signers?.[0].rejection).toEqual({ rejectedAt: '2026-09-09T12:00:00+00:00' })
+	})
+
+	it.each([
+		['a public comment', { comment: 'I do not agree', commentPrivate: false }],
+		['a private comment the viewer may see', { comment: 'Only for the requester', commentPrivate: true }],
+	])('accepts a rejection with %s', (_, comment) => {
+		const normalized = toValidationDocument(createValidationPayload({
+			signers: [createSigner({
+				status: SIGN_REQUEST_STATUS.REJECTED,
+				displayStatus: 'rejected',
+				rejection: { rejectedAt: '2026-09-09T12:00:00+00:00', ...comment },
+			})],
+		}))
+
+		expect(normalized?.signers?.[0].rejection).toEqual(expect.objectContaining(comment))
+	})
+
+	it.each([
+		['without a date', { comment: 'I do not agree' }],
+		['with a non-string comment', { rejectedAt: '2026-09-09T12:00:00+00:00', comment: 42 }],
+		['with a non-boolean private flag', { rejectedAt: '2026-09-09T12:00:00+00:00', commentPrivate: 'yes' }],
+		['that is not an object', 'rejected'],
+	])('rejects a rejection %s', (_, rejection) => {
+		expect(toValidationDocument(createValidationPayload({
+			signers: [createSigner({ displayStatus: 'rejected', rejection })],
+		}))).toBeNull()
+	})
+
+	it('accepts a signer whose status the viewer may not see', () => {
+		const signer = createSigner({ displayStatus: 'not_signed', statusText: 'Not signed' })
+		delete signer.status
+
+		const normalized = toValidationDocument(createValidationPayload({ signers: [signer] }))
+
+		expect(normalized?.signers?.[0].displayStatus).toBe('not_signed')
+		expect(normalized?.signers?.[0].status).toBeUndefined()
 	})
 
 	it('rejects payload with invalid signer status', () => {

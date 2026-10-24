@@ -22,7 +22,9 @@
 					<div class="document-header">
 						<div class="document-info">
 							<h3>{{ doc.file_type?.name ?? t('libresign', 'Document') }}</h3>
-							<p class="document-status">{{ doc.statusText }}</p>
+							<p class="document-status">
+								{{ doc.statusText }}
+							</p>
 						</div>
 					</div>
 					<div class="document-actions">

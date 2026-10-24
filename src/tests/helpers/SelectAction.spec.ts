@@ -83,7 +83,6 @@ describe('selectAction helper', () => {
 		expect(result).toBe('RequestSign')
 	})
 
-
 	it('returns mapped route with External suffix for public routes', async () => {
 		loadStateMock.mockImplementation((app, key, defaultValue) => defaultValue)
 		const { selectAction } = await import('../../helpers/SelectAction.js')

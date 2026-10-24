@@ -13,9 +13,9 @@ use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
+use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\IL10N;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Test\TestCase;
 
 class SignatureTextPolicyTest extends TestCase {
 	private SignatureTextPolicy $policy;

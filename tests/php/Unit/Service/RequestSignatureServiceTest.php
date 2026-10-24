@@ -229,6 +229,67 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertSame($existing, $result);
 	}
 
+	public function testSaveFileDoesNotCreateAnotherFileWhenTheRegisteredOneRefusesTheUpdate(): void {
+		$existing = new \OCA\Libresign\Db\File();
+		$existing->setId(7);
+		$this->fileMapper->method('getByNodeId')->willReturn($existing);
+		$this->filePolicyApplier->method('syncAllPolicies')
+			->willThrowException(new LibresignException('The signing order cannot be changed after the signing flow has started.', 422));
+		$this->fileService->expects($this->never())->method('getNodeFromData');
+		$this->filePolicyApplier->expects($this->never())->method('applyAll');
+		$this->fileMapper->expects($this->never())->method('insert');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(422);
+
+		$this->getService()->saveFile([
+			'file' => ['nodeId' => 171],
+			'name' => 'contract',
+			'userManager' => $this->user,
+		]);
+	}
+
+	public function testSaveFileRefusesANodeRegisteredMoreThanOnceWithoutCreatingAnotherFile(): void {
+		$this->fileMapper->method('getByNodeId')
+			->willThrowException(new \OCP\AppFramework\Db\MultipleObjectsReturnedException('Did expect one result but found more in query: SELECT *'));
+		$this->filePolicyApplier->expects($this->never())->method('syncAllPolicies');
+		$this->fileService->expects($this->never())->method('getNodeFromData');
+		$this->fileMapper->expects($this->never())->method('insert');
+
+		try {
+			$this->getService()->saveFile([
+				'file' => ['nodeId' => 171],
+				'name' => 'contract',
+				'userManager' => $this->user,
+			]);
+			$this->fail('A node registered more than once must not be saved.');
+		} catch (LibresignException $e) {
+			$this->assertSame(422, $e->getCode());
+			$this->assertStringNotContainsString('SELECT', $e->getMessage());
+		}
+	}
+
+	public function testSaveFileCreatesTheFileWhenTheNodeIsNotRegisteredYet(): void {
+		$this->fileMapper->method('getByNodeId')
+			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('not found'));
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getId')->willReturn(171);
+		$node->method('getExtension')->willReturn('');
+		$node->method('getName')->willReturn('contract');
+		$this->fileService->method('getNodeFromData')->willReturn($node);
+		$this->filePolicyApplier->expects($this->never())->method('syncAllPolicies');
+		$this->filePolicyApplier->expects($this->once())->method('applyAll');
+		$this->fileMapper->expects($this->once())->method('insert')->willReturnArgument(0);
+
+		$file = $this->getService()->saveFile([
+			'file' => ['nodeId' => 171],
+			'name' => 'contract',
+			'userManager' => $this->user,
+		]);
+
+		$this->assertSame(171, $file->getNodeId());
+	}
+
 	public function testANewRequestCreatedReadyToSignStartsWithItsPolicySnapshotFrozen(): void {
 		$node = $this->createMock(\OCP\Files\File::class);
 		$node->method('getId')->willReturn(171);
@@ -511,7 +572,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->willReturnCallback(function (
 				array $identifyMethods,
 				string $displayName,
-				string $description,
+				?string $description,
 				bool $notify,
 				int $fileId,
 				int $signingOrder,
@@ -582,7 +643,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->willReturnCallback(function (
 				array $identifyMethods,
 				string $displayName,
-				string $description,
+				?string $description,
 				bool $notify,
 				int $fileId,
 				int $signingOrder = 0,
@@ -653,7 +714,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->willReturnCallback(function (
 				array $identifyMethods,
 				string $displayName,
-				string $description,
+				?string $description,
 				bool $notify,
 				int $fileId,
 				int $signingOrder = 0,
@@ -685,6 +746,55 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$actual = self::invokePrivate($this->getService(), 'associateToSigners', [$data, $file]);
 
 		$this->assertCount(1, $actual);
+	}
+
+	#[\PHPUnit\Framework\Attributes\DataProvider('providerAssociateToSignersForwardsSignerDescription')]
+	public function testAssociateToSignersForwardsSignerDescription(array $signer, ?string $expectedDescription): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(77);
+
+		$data = [
+			'signers' => [array_merge([
+				'displayName' => 'John Doe',
+				'identifyMethods' => [
+					['method' => 'email', 'value' => 'john@example.com'],
+				],
+			], $signer)],
+		];
+
+		$this->signerValidator
+			->method('normalizeRequestSigners')
+			->willReturnCallback(static fn (array $signers): array => $signers);
+
+		$this->signRequestMapper
+			->method('getByFileId')
+			->with(77)
+			->willReturn([]);
+
+		$this->sequentialSigningService
+			->method('determineSigningOrder')
+			->willReturn(1);
+
+		$this->signRequestService
+			->expects($this->once())
+			->method('createOrUpdateSignRequest')
+			->with(
+				$this->anything(),
+				$this->anything(),
+				$this->identicalTo($expectedDescription),
+			)
+			->willReturn(new SignRequest());
+
+		self::invokePrivate($this->getService(), 'associateToSigners', [$data, $file]);
+	}
+
+	public static function providerAssociateToSignersForwardsSignerDescription(): array {
+		return [
+			'omitted description keeps the current message' => [[], null],
+			'null description keeps the current message' => [['description' => null], null],
+			'empty description clears the current message' => [['description' => ''], ''],
+			'new description replaces the current message' => [['description' => 'New message'], 'New message'],
+		];
 	}
 
 	public function testDeleteIdentifyMethodIfNotExitsKeepsMatchingIdentifyMethods(): void {

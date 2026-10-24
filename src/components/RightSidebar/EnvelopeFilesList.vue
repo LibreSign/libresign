@@ -42,7 +42,7 @@
 				:name="t('libresign', 'No files in envelope')"
 				:description="t('libresign', 'Add files to get started')">
 				<template #icon>
-				<NcIconSvgWrapper :path="mdiFilePdfBox" :size="64" />
+					<NcIconSvgWrapper :path="mdiFilePdfBox" :size="64" />
 				</template>
 			</NcEmptyContent>
 			<div v-else class="files-list" @scroll="onScroll">
@@ -67,8 +67,8 @@
 					:details="file.statusText">
 					<template #icon>
 						<NcCheckboxRadioSwitch v-if="canDelete"
-						:modelValue="isSelected(file.id)"
-						@update:modelValue="toggleSelect(file.id)" />
+							:modelValue="isSelected(file.id)"
+							@update:modelValue="toggleSelect(file.id)" />
 						<img v-if="getPreviewUrl(file)"
 							:src="getPreviewUrl(file)"
 							alt=""
@@ -161,7 +161,6 @@ import { FILE_STATUS, ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from 
 import { openDocument } from '../../utils/viewer.js'
 import { useFilesStore } from '../../store/files.js'
 import type { LibresignCapabilities } from '../../types/index'
-
 
 type FilesStoreContract = ReturnType<typeof useFilesStore>
 type Envelope = ReturnType<FilesStoreContract['getFile']>

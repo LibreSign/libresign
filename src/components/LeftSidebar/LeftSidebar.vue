@@ -70,7 +70,6 @@ import {
 	mdiShieldLock,
 } from '@mdi/js'
 
-
 import { getCurrentUser } from '@nextcloud/auth'
 import { loadState } from '@nextcloud/initial-state'
 

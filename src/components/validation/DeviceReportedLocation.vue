@@ -68,7 +68,9 @@
 					</NcButton>
 				</div>
 				<!-- TRANSLATORS Disclaimer that stored coordinates are not verified proof of physical presence. -->
-				<p class="serial-hex">{{ physicalPresenceDisclaimer }}</p>
+				<p class="serial-hex">
+					{{ physicalPresenceDisclaimer }}
+				</p>
 			</div>
 		</div>
 	</template>

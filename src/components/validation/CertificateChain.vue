@@ -16,7 +16,7 @@
 			</template>
 			<template #extra-actions>
 				<NcButton variant="tertiary"
-				:aria-label="getToggleAriaLabel()"
+					:aria-label="getToggleAriaLabel()"
 					@click.stop="chainOpen = !chainOpen">
 					<template #icon>
 						<NcIconSvgWrapper v-if="chainOpen"

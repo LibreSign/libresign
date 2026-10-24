@@ -33,8 +33,12 @@
 			role="region"
 			:aria-label="ipBasedLocationDetailsAriaLabel">
 			<div class="extra-chain ip-based-location-item">
-				<p class="ip-based-location-status">{{ statusText }}</p>
-				<p v-if="reasonText" class="ip-based-location-reason">{{ reasonText }}</p>
+				<p class="ip-based-location-status">
+					{{ statusText }}
+				</p>
+				<p v-if="reasonText" class="ip-based-location-reason">
+					{{ reasonText }}
+				</p>
 				<dl class="ip-based-location-details">
 					<div v-if="sourceIp" class="ip-based-location-field">
 						<!-- TRANSLATORS Label for the signer source IP stored with IP geolocation evidence. -->
@@ -68,7 +72,9 @@
 					</div>
 				</dl>
 				<!-- TRANSLATORS Disclaimer that IP-derived location is approximate and may be affected by VPNs or proxies. -->
-				<p class="serial-hex">{{ t('libresign', 'Approximate location. VPNs, proxies and mobile networks can affect this result.') }}</p>
+				<p class="serial-hex">
+					{{ t('libresign', 'Approximate location. VPNs, proxies and mobile networks can affect this result.') }}
+				</p>
 			</div>
 		</div>
 	</template>

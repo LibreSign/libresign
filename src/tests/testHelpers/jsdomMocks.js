@@ -115,4 +115,3 @@ if (typeof window !== 'undefined') {
 	window.MutationObserver = MutationObserverMock
 	globalThis.MutationObserver = MutationObserverMock
 }
-

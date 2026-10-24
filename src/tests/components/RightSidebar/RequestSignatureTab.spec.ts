@@ -1392,6 +1392,67 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 	})
 
+	describe('RULE: a frozen request keeps the signature flow it was sent with', () => {
+		const twoSigners = [
+			{ email: 'test1@example.com', signed: [] },
+			{ email: 'test2@example.com', signed: [] },
+		]
+
+		it('sends the stored flow, none included, instead of the current policy', async () => {
+			await updatePolicies({ effectiveValue: 'ordered_numeric' })
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				policySnapshotFrozen: true,
+				signatureFlow: 'none',
+				signers: twoSigners,
+			})
+
+			expect(wrapper.vm.signatureFlow).toBe('none')
+			expect(wrapper.vm.getSignatureFlowPayloadForSave()).toBe('none')
+		})
+
+		it('does not offer the signing order switch', async () => {
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				policySnapshotFrozen: true,
+				signatureFlow: 'parallel',
+				signers: twoSigners,
+			})
+
+			expect(wrapper.vm.showPreserveOrder).toBe(false)
+			expect(wrapper.vm.showRememberSignatureFlow).toBe(false)
+		})
+
+		it('is not rewritten by a flow the policy now forces', async () => {
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				policySnapshotFrozen: true,
+				signatureFlow: 'parallel',
+				signers: twoSigners,
+			})
+			await updatePolicies({
+				canUseAsRequestOverride: false,
+				effectiveValue: 'ordered_numeric',
+			})
+
+			expect(wrapper.vm.signatureFlow).toBe('parallel')
+			expect(filesStore.files[1].signatureFlow).toBe('parallel')
+		})
+
+		it('keeps the switch and the computed flow while the request is a draft', async () => {
+			await updatePolicies({ effectiveValue: 'ordered_numeric' })
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				policySnapshotFrozen: false,
+				signatureFlow: 'none',
+				signers: twoSigners,
+			})
+
+			expect(wrapper.vm.showPreserveOrder).toBe(true)
+			expect(wrapper.vm.getSignatureFlowPayloadForSave()).toBe('ordered_numeric')
+		})
+	})
+
 	describe('RULE: isAdminFlowForced detection', () => {
 		it('returns true when policy blocks request overrides', async () => {
 			await updatePolicies({ canUseAsRequestOverride: false })

@@ -36,6 +36,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
+use OCA\Libresign\Handler\SignEngine\IPkcs12SignEngineHandler;
 use OCA\Libresign\Handler\SignEngine\ISignEngineHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
@@ -135,6 +136,7 @@ class SignFileService {
 		private SignRequestService $signRequestService,
 		private PolicyService $policyService,
 		private SignatureRejectionPolicyService $signatureRejectionPolicyService,
+		private TemporarySignatureImageService $temporarySignatureImageService,
 	) {
 	}
 
@@ -313,7 +315,7 @@ class SignFileService {
 			$nodeId = $this->getNodeId($element, $fileElement);
 
 			$existing = $this->elements[$fileElementId] ?? null;
-			if ($existing instanceof VisibleElementAssoc && $this->isTempFileValid($existing)) {
+			if ($existing instanceof VisibleElementAssoc && $this->temporarySignatureImageService->isAvailable($existing->getTempFile())) {
 				$newElements[$fileElementId] = $existing;
 				continue;
 			}
@@ -326,9 +328,14 @@ class SignFileService {
 		return $this;
 	}
 
-	private function isTempFileValid(VisibleElementAssoc $elementAssoc): bool {
-		$tempFile = $elementAssoc->getTempFile();
-		return $tempFile !== '' && is_file($tempFile);
+	private function restoreMissingVisibleElementImages(): void {
+		foreach ($this->elements as $element) {
+			if ($element->getTempFile() !== '' && !$this->temporarySignatureImageService->isAvailable($element->getTempFile())) {
+				// Rebuild from the stored signature, not from a temporary path that may have been cleaned.
+				$this->setVisibleElements($this->elementsInput);
+				return;
+			}
+		}
 	}
 
 	private function getNodeId(?array $element, FileElement $fileElement): int {
@@ -375,14 +382,13 @@ class SignFileService {
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
 
-		$tempFile = $this->tempManager->getTemporaryFile('_' . $nodeId . '.png');
 		$content = $node->getContent();
 		if (empty($content)) {
 			$this->logger->error('Failed to retrieve content for node.', ['nodeId' => $nodeId, 'fileElement' => $fileElement]);
 			// TRANSLATORS Error shown when signing requires a visible signature or initials image and the signer has not defined one yet.
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
-		file_put_contents($tempFile, $content);
+		$tempFile = $this->temporarySignatureImageService->create($nodeId, $content);
 		return new VisibleElementAssoc($fileElement, $tempFile);
 	}
 
@@ -881,7 +887,7 @@ class SignFileService {
 		$this->signRequest->setSignedHash($hash);
 		$this->signRequest->setStatusEnum(\OCA\Libresign\Enum\SignRequestStatus::SIGNED);
 
-		$certificateInfo = $this->getEngine()->readCertificate();
+		$certificateInfo = $this->getPkcs12Engine()->readCertificate();
 		$this->storeCertificateInfoInMetadata($certificateInfo);
 
 		$this->signRequestMapper->update($this->signRequest);
@@ -933,7 +939,7 @@ class SignFileService {
 		$certificateSerialNumber = null;
 		if ($this->signWithoutPassword) {
 			try {
-				$certificateInfo = $this->getEngine()->readCertificate();
+				$certificateInfo = $this->getPkcs12Engine()->readCertificate();
 				if (isset($certificateInfo['serialNumber']) && is_string($certificateInfo['serialNumber'])) {
 					$certificateSerialNumber = $certificateInfo['serialNumber'];
 				} else {
@@ -1221,8 +1227,25 @@ class SignFileService {
 		return $result['pfx'];
 	}
 
+	/**
+	 * Return the engine that holds the PKCS#12/PFX credential material.
+	 *
+	 * The current signing workflow receives the PKCS#12/PFX credential inside
+	 * LibreSign, so the engine must implement the PKCS#12 credential contract.
+	 * The common sign engine contract does not require it.
+	 *
+	 * @throws LibresignException When the resolved engine has no PKCS#12 credential contract
+	 */
+	protected function getPkcs12Engine(): IPkcs12SignEngineHandler {
+		$engine = $this->getEngine();
+		if (!$engine instanceof IPkcs12SignEngineHandler) {
+			throw new LibresignException('The sign engine does not support PKCS#12 credentials.');
+		}
+		return $engine;
+	}
+
 	protected function readCertificate(): array {
-		return $this->getEngine()
+		return $this->getPkcs12Engine()
 			->readCertificate();
 	}
 
@@ -1283,12 +1306,13 @@ class SignFileService {
 	}
 
 	private function configureEngine(): void {
-		$this->engine
-			->setInputFile($this->getFileToSign())
-			->setCertificate($this->getOrGeneratePfxContent($this->engine))
-			->setPassword($this->password);
+		$engine = $this->getPkcs12Engine();
+		$engine->setInputFile($this->getFileToSign());
+		$engine->setCertificate($this->getOrGeneratePfxContent($this->engine));
+		$engine->setPassword($this->password);
 
 		if ($this->engine::class === Pkcs12Handler::class) {
+			$this->restoreMissingVisibleElementImages();
 			$this->engine
 				->setVisibleElements($this->getVisibleElements())
 				->setSignatureParams($this->getSignatureParams());
@@ -1372,7 +1396,7 @@ class SignFileService {
 			$signRequest = $this->signRequestService->createOrUpdateSignRequest(
 				identifyMethods: [IdentifyMethodService::IDENTIFY_ACCOUNT => $user->getUID()],
 				displayName: $user->getDisplayName(),
-				description: '',
+				description: null,
 				notify: false,
 				fileId: $file->getId(),
 				signingOrder: 0,

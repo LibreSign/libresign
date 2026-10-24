@@ -13,7 +13,9 @@
 		@click="handleCardClick">
 		<div class="policy-rule-card__header">
 			<div>
-				<p class="policy-rule-card__eyebrow">{{ eyebrow }}</p>
+				<p class="policy-rule-card__eyebrow">
+					{{ eyebrow }}
+				</p>
 				<h4>{{ title }}</h4>
 			</div>
 			<span class="policy-rule-card__summary" :title="summary">{{ summary }}</span>

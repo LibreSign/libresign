@@ -268,6 +268,32 @@ describe('files store - critical business rules', () => {
 		})
 	})
 
+	describe('RULE: the detail reload is the source of the policy snapshot freeze', () => {
+		it('replaces the flag loaded with the list', async () => {
+			const store = useFilesStore()
+			store.files[123] = { id: 123, status: 0, policySnapshotFrozen: false }
+			axiosMock.get.mockResolvedValue(generateOCSResponse({
+				payload: { id: 123, status: 1, policySnapshotFrozen: true },
+			}))
+
+			const detailedFile = await store.fetchFileDetail({ fileId: 123, force: true })
+
+			expect(detailedFile?.policySnapshotFrozen).toBe(true)
+		})
+
+		it('does not keep the flag loaded with the list when the detail omits it', async () => {
+			const store = useFilesStore()
+			store.files[123] = { id: 123, status: 1, policySnapshotFrozen: true }
+			axiosMock.get.mockResolvedValue(generateOCSResponse({
+				payload: { id: 123, status: 1 },
+			}))
+
+			const detailedFile = await store.fetchFileDetail({ fileId: 123, force: true })
+
+			expect(detailedFile?.policySnapshotFrozen).toBeUndefined()
+		})
+	})
+
 	describe('RULE: envelope filesCount reflects file operations', () => {
 		it('adding files increments envelope filesCount', async () => {
 			const store = useFilesStore()

@@ -39,12 +39,18 @@ Developing for LibreSign
 
 **NOTE**: If the project does not have an issue for what you want to do, create an issue first.
 
-If you would prefer to write code, you may wish to start with our list of good first issues for [LibreSign](https://github.com/LibreSign/libresign/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22).
+If you would prefer to write code, explore the
+[Good First Issues](https://github.com/search?q=org%3ALibreSign+is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22&type=issues)
+across the LibreSign organization.
 For larger product initiatives and current development direction, see the [LibreSign Roadmap](https://github.com/orgs/LibreSign/projects/2).
 
 ### Working on an issue
 
-Before starting work on an existing issue, we recommend leaving a comment saying that you would like to work on it. This gives maintainers a chance to confirm that the issue is still current, clarify the scope if necessary, and assign it to you. This is a recommendation, not a requirement: if you already have a valid implementation, you are still welcome to open a pull request.
+A `good first issue` may still be blocked or have ongoing work. Check its
+dependencies, comments and related pull requests before starting. We recommend
+leaving a comment to coordinate with maintainers, but this is not required.
+See the [development workflow](https://docs.libresign.coop/developer_manual/development-workflow.html)
+for details on readiness, blockers and alternative tasks.
 
 For larger features or refactors, please align the proposed approach with a maintainer before investing significant work.
 

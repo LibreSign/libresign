@@ -14,7 +14,7 @@
 			@click.stop="toggleMenu"
 			@keydown.escape.prevent="closeMenu">
 			<NcIconSvgWrapper :path="isOpen ? mdiChevronUp : mdiChevronDown" :size="18" />
-				<span>H</span>
+			<span>H</span>
 		</button>
 
 		<ul v-if="isOpen"
@@ -70,7 +70,6 @@ const toggle = ref(null)
 const menu = ref(null)
 const isOpen = ref(false)
 const menuStyle = ref({})
-
 
 const headingClass = (level) => {
 	return ['markdown-heading-menu__option', `markdown-heading-menu__option--${level}`]
