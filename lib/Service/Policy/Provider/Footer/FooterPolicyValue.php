@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy\Provider\Footer;
 
+use OCA\Libresign\Db\File as FileEntity;
+
 final class FooterPolicyValue {
 	/** @return array{enabled: bool, writeQrcodeOnFooter: bool, validationSite: string, customizeFooterTemplate: bool, footerTemplate: string, previewWidth: int, previewHeight: int, previewZoom: int} */
 	public static function defaults(string $defaultTemplate = ''): array {
@@ -76,6 +78,21 @@ final class FooterPolicyValue {
 	public static function isQrCodeEnabled(mixed $rawValue): bool {
 		$normalized = self::normalize($rawValue);
 		return $normalized['enabled'] && $normalized['writeQrcodeOnFooter'];
+	}
+
+	public static function getSnapshotEffectiveValue(FileEntity $file): ?string {
+		$metadata = $file->getMetadata() ?? [];
+		$policySnapshot = $metadata['policy_snapshot'] ?? null;
+		if (!is_array($policySnapshot)) {
+			return null;
+		}
+
+		$effectiveValue = $policySnapshot[FooterPolicy::KEY]['effectiveValue'] ?? null;
+		if (!is_string($effectiveValue) || trim($effectiveValue) === '') {
+			return null;
+		}
+
+		return $effectiveValue;
 	}
 
 	private static function toBool(mixed $rawValue): bool {

@@ -134,6 +134,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignatureRejectionPolicyService&MockObject $signatureRejectionPolicyService;
 	/** @var array<string, mixed> */
 	private array $policyValues = [];
+	/** @var list<string> */
+	private array $resolvedPolicyKeys = [];
 	private SignatureRejectionBehavior $rejectionBehavior = SignatureRejectionBehavior::CANCEL;
 
 	public function setUp(): void {
@@ -204,6 +206,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('resolve')
 			->willReturnCallback(function (string|\BackedEnum $policyKey): ResolvedPolicy {
 				$key = $policyKey instanceof \BackedEnum ? (string)$policyKey->value : $policyKey;
+				$this->resolvedPolicyKeys[] = $key;
 				return (new ResolvedPolicy())
 					->setPolicyKey($key)
 					->setEffectiveValue($this->policyValues[$key] ?? null);
@@ -1456,6 +1459,127 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$actual = $this->invokePrivate($service, 'getSignatureParams');
 		$this->assertEquals('https://validator.example/path/uuid', $actual['ValidationURL']);
 		$this->assertArrayNotHasKey('qrcode', $actual);
+	}
+
+	/** @param array<string, mixed> $metadata */
+	#[DataProvider('provideFrozenFooterRequests')]
+	public function testAFrozenRequestValidatesAtTheSiteItStores(int $status, array $metadata, ?File $envelope): void {
+		// A regular signer could not submit this site, and a later admin change must not replace it.
+		$this->policyValues[FooterPolicy::KEY] = FooterPolicyValue::encode(['validationSite' => 'https://current.example/']);
+		$libreSignFile = $this->createRequestWithStoredFooter($status, $metadata, FooterPolicyValue::encode(['validationSite' => 'https://frozen.example/']));
+		if ($envelope !== null) {
+			$libreSignFile->setParentFileId(5);
+			$this->fileMapper->method('findEnvelope')->with($libreSignFile)->willReturn($envelope);
+		}
+
+		$actual = $this->getSignatureParamsFor($libreSignFile);
+
+		$this->assertSame('https://frozen.example/uuid', $actual['ValidationURL']);
+		$this->assertNotContains(FooterPolicy::KEY, $this->resolvedPolicyKeys);
+	}
+
+	/** @return iterable<string, array{0: int, 1: array<string, mixed>, 2: ?File}> */
+	public static function provideFrozenFooterRequests(): iterable {
+		$frozenEnvelope = new File();
+		$frozenEnvelope->setMetadata(['policy_snapshot_frozen_at' => '2026-01-01T00:00:00+00:00']);
+
+		yield 'sent' => [FileStatus::ABLE_TO_SIGN->value, ['policy_snapshot_frozen_at' => '2026-01-01T00:00:00+00:00'], null];
+		yield 'returned to draft' => [FileStatus::DRAFT->value, ['policy_snapshot_frozen_at' => '2026-01-01T00:00:00+00:00'], null];
+		yield 'sent before the freeze was recorded' => [FileStatus::ABLE_TO_SIGN->value, [], null];
+		yield 'document of a sent envelope' => [FileStatus::DRAFT->value, [], $frozenEnvelope];
+	}
+
+	/** @param array<string, mixed> $metadata */
+	#[DataProvider('provideRequestsWithoutAFrozenFooter')]
+	public function testARequestWithoutAFrozenFooterValidatesAtTheCurrentSite(int $status, array $metadata, ?string $storedFooter): void {
+		$this->policyValues[FooterPolicy::KEY] = FooterPolicyValue::encode(['validationSite' => 'https://current.example/']);
+		$libreSignFile = $this->createRequestWithStoredFooter($status, $metadata, $storedFooter);
+
+		$actual = $this->getSignatureParamsFor($libreSignFile);
+
+		$this->assertSame('https://current.example/uuid', $actual['ValidationURL']);
+	}
+
+	/** @return iterable<string, array{0: int, 1: array<string, mixed>, 2: ?string}> */
+	public static function provideRequestsWithoutAFrozenFooter(): iterable {
+		yield 'sent before footers were stored' => [FileStatus::ABLE_TO_SIGN->value, [], null];
+		yield 'draft never sent' => [FileStatus::DRAFT->value, [], FooterPolicyValue::encode(['validationSite' => 'https://draft.example/'])];
+	}
+
+	public function testAFrozenEnvelopeDocumentStampsAndValidatesWithTheFooterItStores(): void {
+		$storedFooter = FooterPolicyValue::encode(['validationSite' => 'https://frozen.example/', 'customizeFooterTemplate' => true, 'footerTemplate' => '<p>Stored</p>']);
+		$this->policyValues[FooterPolicy::KEY] = FooterPolicyValue::encode(['enabled' => false]);
+		$libreSignFile = $this->createRequestWithStoredFooter(FileStatus::DRAFT->value, [], $storedFooter);
+		$libreSignFile->setId(10);
+		$libreSignFile->setParentFileId(5);
+		$frozenEnvelope = new File();
+		$frozenEnvelope->setMetadata(['policy_snapshot_frozen_at' => '2026-01-01T00:00:00+00:00']);
+		// The stamp and the validation URL share one lookup.
+		$this->fileMapper->expects($this->once())->method('findEnvelope')->with($libreSignFile)->willReturn($frozenEnvelope);
+
+		$owner = $this->createMock(\OCP\IUser::class);
+		$owner->method('getUID')->willReturn('signer1');
+		$signedFile = $this->createMock(\OCP\Files\File::class);
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder->method('newFile')->willReturn($signedFile);
+		$originalFile = $this->createMock(\OCP\Files\File::class);
+		$originalFile->method('getContent')->willReturn('%PDF-original-content%');
+		$originalFile->method('getExtension')->willReturn('pdf');
+		$originalFile->method('getPath')->willReturn('/Documents/source.pdf');
+		$originalFile->method('getOwner')->willReturn($owner);
+		$originalFile->method('getParent')->willReturn($folder);
+
+		$this->footerHandler->method('getMetadata')->willReturn(['d' => [['w' => 595.0, 'h' => 842.0]]]);
+		$this->footerHandler->method('setTemplateVar')->willReturnSelf();
+		$this->footerHandler
+			->expects($this->once())
+			->method('setPolicyValue')
+			->with($storedFooter)
+			->willReturnSelf();
+		$this->footerHandler->method('getFooter')->willReturn('');
+
+		$service = $this->getService(['getSignedFile', 'getSigners', 'readCertificate']);
+		$service->method('getSignedFile')->willReturn(null);
+		$service->method('getSigners')->willReturn([]);
+		$service->method('readCertificate')->willReturn(['issuer' => ['CN' => 'LibreCode'], 'subject' => ['CN' => 'Jane Doe']]);
+		$service->setSignRequest($this->createSignRequestMock(['getId' => 171, 'getMetadata' => []]));
+
+		$actual = self::invokePrivate($service->setLibreSignFile($libreSignFile), 'getPdfToSign', [$originalFile]);
+		$signatureParams = self::invokePrivate($service, 'getSignatureParams');
+
+		$this->assertSame($signedFile, $actual);
+		$this->assertSame('https://frozen.example/uuid', $signatureParams['ValidationURL']);
+		$this->assertNotContains(FooterPolicy::KEY, $this->resolvedPolicyKeys);
+	}
+
+	/** @param array<string, mixed> $metadata */
+	private function createRequestWithStoredFooter(int $status, array $metadata, ?string $storedFooter): File {
+		$libreSignFile = new File();
+		$libreSignFile->setUuid('uuid');
+		$libreSignFile->setStatus($status);
+		if ($storedFooter !== null) {
+			$metadata['policy_snapshot'] = [
+				FooterPolicy::KEY => ['effectiveValue' => $storedFooter, 'sourceScope' => 'request'],
+			];
+		}
+		$libreSignFile->setMetadata($metadata);
+		return $libreSignFile;
+	}
+
+	/** @return array<string, mixed> */
+	private function getSignatureParamsFor(File $libreSignFile): array {
+		$service = $this->getService(['readCertificate']);
+		$service->setLibreSignFile($libreSignFile);
+		$service->method('readCertificate')->willReturn([
+			'issuer' => ['CN' => 'LibreCode'],
+			'subject' => ['CN' => 'Jane Doe'],
+		]);
+		$service->setSignRequest($this->createSignRequestMock([
+			'getId' => 171,
+			'getMetadata' => [],
+		]));
+
+		return $this->invokePrivate($service, 'getSignatureParams');
 	}
 
 	public static function providerGetSignatureParamsCommonName(): array {
