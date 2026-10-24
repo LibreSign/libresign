@@ -105,6 +105,26 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		];
 	}
 
+	public function testUnsafeStampTemplateDoesNotOverwriteSavedSettings(): void {
+		$existing = 'Signed by {{ SignerCommonName }}';
+		$this->appConfig->setValueString(Application::APP_ID, 'signature_text_template', $existing);
+		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_width', 350);
+		try {
+			$this->getClass()->save('{{ range(1, 3) }}', signatureWidth: 100);
+			$this->fail('Unsafe signature stamp must not be persisted');
+		} catch (LibresignException $e) {
+			$this->assertStringContainsString('range', $e->getMessage());
+		}
+		$this->assertSame($existing, $this->appConfig->getValueString(Application::APP_ID, 'signature_text_template'));
+		$this->assertSame(350.0, $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width'));
+	}
+
+	public function testPreviouslySavedUnsafeStampFailsClosed(): void {
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('signature stamp template');
+		$this->getClass()->parse('{{ range(1, 3) }}', ['SignerCommonName' => 'Ada']);
+	}
+
 	#[DataProvider('providerSave')]
 	public function testSave($template, $context, $parsed): void {
 		$fromSave = $this->getClass()->save($template);

@@ -37,15 +37,13 @@ class FooterService {
 		if ($template === $this->footerHandler->getDefaultTemplate()) {
 			$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
 		} else {
+			SandboxedTemplateRenderer::validate($template);
 			$this->appConfig->setValueString(Application::APP_ID, 'footer_template', $template);
 		}
 	}
 
 	public function renderPreviewPdf(string $template = '', int $width = 595, int $height = 50): string {
-		if (!empty($template)) {
-			$this->saveTemplate($template);
-		}
-
+		// A preview must never persist user-provided Twig into global settings.
 		// Generate a realistic UUID format for preview (36 chars with hyphens, same as real UUIDs)
 		// This ensures QR code size matches the final document
 		$previewUuid = sprintf(
@@ -64,7 +62,7 @@ class FooterService {
 					'signed' => date('c'),
 				],
 			])
-			->getFooter([['w' => $width, 'h' => $height]]);
+			->getFooter([['w' => $width, 'h' => $height]], $template !== '' ? $template : null);
 	}
 
 	public function getTemplateVariablesMetadata(): array {

@@ -21,9 +21,8 @@ use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
 use OCA\Libresign\Vendor\Endroid\QrCode\QrCode;
 use OCA\Libresign\Vendor\Endroid\QrCode\RoundBlockSizeMode;
 use OCA\Libresign\Vendor\Endroid\QrCode\Writer\PngWriter;
-use OCA\Libresign\Vendor\Twig\Environment;
 use OCA\Libresign\Vendor\Twig\Error\SyntaxError;
-use OCA\Libresign\Vendor\Twig\Loader\FilesystemLoader;
+use OCA\Libresign\Vendor\Twig\Sandbox\SecurityError;
 use OCP\IAppConfig;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
@@ -111,6 +110,11 @@ class SignatureTextService {
 		$template = strip_tags((string)$template);
 		$template = trim($template);
 		$template = html_entity_decode($template);
+		try {
+			SandboxedTemplateRenderer::validate($template);
+		} catch (\InvalidArgumentException $e) {
+			throw new LibresignException($e->getMessage(), 0, $e);
+		}
 		$this->appConfig->setValueString(Application::APP_ID, 'signature_text_template', $template);
 		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_width', $signatureWidth);
 		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_height', $signatureHeight);
@@ -171,12 +175,7 @@ class SignatureTextService {
 			$context['qrcode'] = $this->getQrCodeImageBase64($context['ValidationURL']);
 		}
 		try {
-			$twigEnvironment = new Environment(
-				new FilesystemLoader(),
-			);
-			$parsed = $twigEnvironment
-				->createTemplate($template)
-				->render($context);
+			$parsed = SandboxedTemplateRenderer::render($template, $context);
 			return [
 				'parsed' => $parsed,
 				'template' => $template,
@@ -186,8 +185,11 @@ class SignatureTextService {
 				'signatureHeight' => $signatureHeight,
 				'renderMode' => $renderMode,
 			];
+		} catch (SecurityError $e) {
+			// TRANSLATORS A previously saved signature stamp template contains Twig operations that are not permitted anymore.
+			throw new LibresignException($this->l10n->t('The configured signature stamp template is not supported. Ask an administrator to review the signature template.'), 0, $e);
 		} catch (SyntaxError $e) {
-			throw new LibresignException((string)preg_replace('/in "[^"]+" at line \d+/', '', $e->getMessage()));
+			throw new LibresignException((string)preg_replace('/in "[^"]+" at line \d+/', '', $e->getMessage()), 0, $e);
 		}
 	}
 

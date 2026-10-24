@@ -70,6 +70,24 @@ class FooterServiceTest extends TestCase {
 		);
 	}
 
+	public function testUnsafeFooterTemplateDoesNotOverwriteExistingSettings(): void {
+		$existing = '<div>Approved</div>';
+		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', $existing);
+		try {
+			$this->service->saveTemplate('{{ range(1, 3) }}');
+			$this->fail('Unsafe Twig template must not be persisted');
+		} catch (\InvalidArgumentException $e) {
+			$this->assertStringContainsString('range', $e->getMessage());
+		}
+		$this->assertSame($existing, $this->appConfig->getValueString(Application::APP_ID, 'footer_template'));
+	}
+
+	public function testResetCanRemoveAnExistingUnsafeFooterTemplate(): void {
+		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', '{{ range(1, 3) }}');
+		$this->service->saveTemplate('');
+		$this->assertSame('', $this->appConfig->getValueString(Application::APP_ID, 'footer_template', ''));
+	}
+
 	public function testGetTemplate(): void {
 		$template = '<div>Custom template</div>';
 		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', $template);
@@ -95,7 +113,9 @@ class FooterServiceTest extends TestCase {
 	}
 
 	#[DataProvider('provideRenderPreviewPdfScenarios')]
-	public function testRenderPreviewPdf(?string $template, int $width, int $height, bool $shouldSaveTemplate): void {
+	public function testRenderPreviewPdf(?string $template, int $width, int $height): void {
+		$persistedTemplate = '<div>Persisted</div>';
+		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', $persistedTemplate);
 		$this->footerHandler
 			->expects($this->exactly(2))
 			->method('setTemplateVar')
@@ -114,31 +134,29 @@ class FooterServiceTest extends TestCase {
 		$this->footerHandler
 			->expects($this->once())
 			->method('getFooter')
-			->with([['w' => $width, 'h' => $height]])
+			->with([['w' => $width, 'h' => $height]], $template ?: null)
 			->willReturn('PDF binary content');
 
 		$result = $this->service->renderPreviewPdf($template, $width, $height);
 
 		$this->assertSame('PDF binary content', $result);
 
-		if ($shouldSaveTemplate) {
-			$this->assertSame(
-				$template,
-				$this->appConfig->getValueString(Application::APP_ID, 'footer_template')
-			);
-		}
+		$this->assertSame(
+			$persistedTemplate,
+			$this->appConfig->getValueString(Application::APP_ID, 'footer_template'),
+		);
 	}
 
 	public static function provideRenderPreviewPdfScenarios(): array {
 		return [
-			'with custom template and default dimensions' => ['<div>Custom</div>', 595, 50, true],
-			'without template uses default' => ['', 595, 50, false],
-			'with custom dimensions' => ['<div>Test</div>', 800, 100, true],
-			'A4 width with custom height' => ['', 595, 75, false],
-			'empty string template' => ['', 595, 50, false],
-			'template with unicode characters' => ['<div>签名 подпись توقيع</div>', 595, 50, true],
-			'minimum dimensions' => ['<div>Min</div>', 1, 1, true],
-			'large dimensions' => ['', 2000, 500, false],
+			'with custom template and default dimensions' => ['<div>Custom</div>', 595, 50],
+			'without template uses default' => ['', 595, 50],
+			'with custom dimensions' => ['<div>Test</div>', 800, 100],
+			'A4 width with custom height' => ['', 595, 75],
+			'empty string template' => ['', 595, 50],
+			'template with unicode characters' => ['<div>签名 подпись توقيع</div>', 595, 50],
+			'minimum dimensions' => ['<div>Min</div>', 1, 1],
+			'large dimensions' => ['', 2000, 500],
 		];
 	}
 
