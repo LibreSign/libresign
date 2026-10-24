@@ -327,6 +327,7 @@ OC.L10N.register(
     "Serial Number:" : "Serial Number:",
     "Name:" : "Jina:",
     "Status:" : "Status:",
+    "Private" : "Binafsi",
     "Unknown" : "Haijulikani",
     "Congratulations you have digitally signed a document using LibreSign" : "Congratulations you have digitally signed a document using LibreSign",
     "Hide details" : "Ficha maelezo",

@@ -350,6 +350,7 @@ OC.L10N.register(
     "Total pages:" : "جەمئىي بەتلەر:",
     "File size:" : "ھۆججەت چوڭلۇقى:",
     "PDF version:" : "PDF نۇسخىسى:",
+    "Private" : "شەخسىي",
     "Unknown" : "نامەلۇم",
     "Congratulations you have digitally signed a document using LibreSign" : "LibreSign ئارقىلىق ھۆججەتكە رەقەملىك ئىمزا قويغانلىقىڭىزنى تەبرىكلەيمەن",
     "Hide details" : "تەپسىلاتلارنى يوشۇرۇش",

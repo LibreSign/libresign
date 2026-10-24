@@ -183,6 +183,7 @@ OC.L10N.register(
     "Issued by:" : "授权自：",
     "Name:" : "姓名：",
     "Status:" : "状态：",
+    "Private" : "私密",
     "Unknown" : "未知",
     "Congratulations you have digitally signed a document using LibreSign" : "祝贺您使用LibreSign对文档进行了数字签名 ",
     "Number of documents:" : "文件数：",

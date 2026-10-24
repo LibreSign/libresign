@@ -89,6 +89,7 @@ OC.L10N.register(
     "Issued by:" : "Издаден од:",
     "Name:" : "Име:",
     "Status:" : "Статус:",
+    "Private" : "Приватност",
     "Unknown" : "Непознат",
     "Hide details" : "Сокриј детали",
     "Show details" : "Прикажи детали",

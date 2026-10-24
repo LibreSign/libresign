@@ -202,6 +202,7 @@ OC.L10N.register(
     "Longitude:" : "Longitudea:",
     "Name:" : "Izena:",
     "Status:" : "Egoera:",
+    "Private" : "Pribatua",
     "Unknown" : "Ezezaguna",
     "Congratulations you have digitally signed a document using LibreSign" : "Zorionak, LibreSign erabiliz dokumentu bat digitalki sinatu duzu",
     "Number of documents:" : "Dokumentu kopurua:",

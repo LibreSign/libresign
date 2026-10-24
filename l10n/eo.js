@@ -71,6 +71,7 @@ OC.L10N.register(
     "Cancel upload" : "Nuligi alŝuton",
     "Paragraph" : "Alineo",
     "Issued by:" : "Eldonita de:",
+    "Private" : "Privata",
     "Unknown" : "Nekonata",
     "Hide details" : "Kaŝi la detalojn",
     "Show details" : "Montri la detalojn",

@@ -83,6 +83,7 @@ OC.L10N.register(
     "Contact" : "Холбоо барих",
     "Open sidebar" : "Хажуу самбар нээх",
     "Status:" : "Төлөв:",
+    "Private" : "Далд",
     "Unknown" : "“Æ–ª —Ç–∞–Ω–∏–≥–¥–∞—Ö –∑“Ø–π–ª",
     "Number of documents:" : "–±–∞—Ä–∏–º—Ç –±–∏—á–≥–∏–π–Ω —Ç–æ–æ",
     "Hide details" : "Дэлгэрэнгүйг нуух",
