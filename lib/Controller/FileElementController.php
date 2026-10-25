@@ -20,6 +20,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -61,6 +62,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file-element/{uuid}', requirements: ['apiVersion' => '(v1)'])]
 	public function createVisibleElement(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
 		$visibleElement = [
@@ -117,6 +119,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/file-element/{uuid}/{elementId}', requirements: ['apiVersion' => '(v1)'])]
 	public function updateVisibleElement(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
 		return $this->createVisibleElement($uuid, $signRequestId, $elementId, $fileId, $type, $metadata, $coordinates);
@@ -136,6 +139,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/file-element/{uuid}/{elementId}', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteVisibleElement(string $uuid, int $elementId): DataResponse {
 		try {

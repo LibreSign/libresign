@@ -28,6 +28,7 @@ use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\RequestHeader;
 use OCP\AppFramework\Http\DataResponse;
@@ -83,6 +84,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[PublicPage]
 	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/signature/elements', requirements: ['apiVersion' => '(v1)'])]
 	public function createSignatureElement(array $elements): DataResponse {
 		try {
@@ -134,6 +136,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[PublicPage]
 	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements', requirements: ['apiVersion' => '(v1)'])]
 	public function getSignatureElements(): DataResponse {
 		$userId = $this->userSession->getUser()?->getUID();
@@ -236,6 +239,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[PublicPage]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements/preview/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function previewSignatureElement(int $nodeId) {
 		try {
@@ -283,6 +287,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function getSignatureElement(int $nodeId): DataResponse {
 		$userId = $this->userSession->getUser()->getUID();
@@ -317,6 +322,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[PublicPage]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/signature/elements/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function patchSignatureElement(int $nodeId, string $type = '', array $file = []): DataResponse {
 		try {
@@ -374,6 +380,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/signature/elements/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteSignatureElement(int $nodeId): DataResponse {
 		try {

@@ -26,6 +26,7 @@ use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyV
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\Collaboration\Collaborators\ISearch;
 use OCP\IRequest;
@@ -65,6 +66,7 @@ class IdentifyController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[RequireManager]
+	#[OpenAPI(tags: ['identity'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/identify-account/search', requirements: ['apiVersion' => '(v1)'])]
 	public function search(string $search = '', string $method = '', int $page = 1, int $limit = 25): DataResponse {
 		$rawSearch = $search;

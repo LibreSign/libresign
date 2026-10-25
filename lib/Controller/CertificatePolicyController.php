@@ -15,6 +15,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
@@ -40,6 +41,7 @@ class CertificatePolicyController extends Controller {
 	#[PublicPage]
 	#[NoCSRFRequired]
 	#[AnonRateLimit(limit: 10, period: 60)]
+	#[OpenAPI(tags: ['certificates'])]
 	#[FrontpageRoute(verb: 'GET', url: '/certificate-policy.pdf')]
 	public function getCertificatePolicy(): FileDisplayResponse|DataResponse {
 		try {

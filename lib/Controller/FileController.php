@@ -33,6 +33,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
@@ -112,6 +113,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[OpenAPI(tags: ['verification'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/validate/uuid/{uuid}', requirements: ['apiVersion' => '(v1)'])]
 	public function validateUuid(
 		string $uuid,
@@ -145,6 +147,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[RequireFileAccess('fileId')]
+	#[OpenAPI(tags: ['verification'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/validate/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
 	public function validateFileId(
 		int $fileId,
@@ -174,6 +177,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[OpenAPI(tags: ['verification'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file/validate/', requirements: ['apiVersion' => '(v1)'])]
 	public function validateBinary(): DataResponse {
 		try {
@@ -327,6 +331,7 @@ class FileController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['documents'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/list', requirements: ['apiVersion' => '(v1)'])]
 	public function list(
 		?int $page = null,
@@ -387,6 +392,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireFileAccess('nodeId')]
+	#[OpenAPI(tags: ['documents'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/thumbnail/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function getThumbnail(
 		int $nodeId = -1,
@@ -443,6 +449,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireFileAccess('fileId')]
+	#[OpenAPI(tags: ['documents'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/thumbnail/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
 	public function getThumbnailByFileId(
 		int $fileId = -1,
@@ -584,6 +591,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[OpenAPI(tags: ['documents'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file', requirements: ['apiVersion' => '(v1)'])]
 	public function save(
 		array $file = [],
@@ -624,6 +632,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[OpenAPI(tags: ['documents'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file/{uuid}/add-file', requirements: ['apiVersion' => '(v1)'])]
 	public function addFileToEnvelope(string $uuid): DataResponse {
 		try {
@@ -854,6 +863,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[OpenAPI(tags: ['documents'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/file/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteFile(int $fileId, bool $deleteFile = true): DataResponse {
 		try {

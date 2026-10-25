@@ -75,7 +75,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	#[OpenAPI(tags: ['signing'])]
+	#[OpenAPI(tags: ['requests'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/request-signature', requirements: ['apiVersion' => '(v1)'])]
 	public function requestSignature(
 		array $signers = [],
@@ -148,7 +148,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	#[OpenAPI(tags: ['signing'])]
+	#[OpenAPI(tags: ['requests'])]
 	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/request-signature', requirements: ['apiVersion' => '(v1)'])]
 	public function updateSignatureRequest(
 		?array $signers = [],
@@ -224,7 +224,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	#[OpenAPI(tags: ['signing'])]
+	#[OpenAPI(tags: ['requests'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/sign/file_id/{fileId}/{signRequestId}', requirements: ['apiVersion' => '(v1)'])]
 	public function removeSigner(int $fileId, int $signRequestId): DataResponse {
 		try {
@@ -270,7 +270,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	#[OpenAPI(tags: ['signing'])]
+	#[OpenAPI(tags: ['requests'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/sign/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteSignatureRequest(int $fileId): DataResponse {
 		try {
