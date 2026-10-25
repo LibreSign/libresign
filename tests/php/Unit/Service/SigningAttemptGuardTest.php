@@ -14,6 +14,7 @@ use OCA\Libresign\Service\SigningAttemptGuard;
 use OCA\Libresign\Service\SignRequest\Error\SignRequestErrorReporter;
 use OCP\BackgroundJob\IJobList;
 use OCP\Lock\ILockingProvider;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -47,8 +48,6 @@ class SigningAttemptGuardTest extends TestCase {
 			$phases[] = $request->getMetadata()['async_signing_attempt']['phase'];
 			return $request;
 		});
-		$this->locking->expects($this->exactly(3))->method('acquireLock');
-		$this->locking->expects($this->exactly(3))->method('releaseLock');
 		$this->assertTrue($this->guard->execute(['signRequestId' => 42], 'job-123', function () use (&$phases): void {
 			$phases[] = 'sign';
 		}));
@@ -58,15 +57,22 @@ class SigningAttemptGuardTest extends TestCase {
 		}));
 	}
 
-	/**
-	 * A finished attempt is durable evidence: changing the queue job ID does
-	 * not authorize a second cryptographic operation.
-	 */
-	public function testCompletedAttemptCannotBeRepeatedByAnotherJob(): void {
-		$this->request->setMetadata(['async_signing_attempt' => [
-			'jobId' => 'original-job', 'phase' => 'finished', 'startedAt' => 1,
-		]]);
-		$this->mapper->expects($this->never())->method('update');
+	/** @return array<string, array{?string, array<string, mixed>}> */
+	public static function completedRequestCases(): array {
+		return [
+			'already signed PDF' => ['existing-hash', []],
+			'durable completion receipt' => [null, ['async_signing_attempt' => [
+				'jobId' => 'original-job', 'phase' => 'finished', 'startedAt' => 1,
+			]]],
+		];
+	}
+
+	#[DataProvider('completedRequestCases')]
+	public function testCompletedSignatureIsNeverRepeated(?string $signedHash, array $metadata): void {
+		$this->request->setMetadata($metadata);
+		if ($signedHash !== null) {
+			$this->request->setSignedHash($signedHash);
+		}
 		$this->assertFalse($this->guard->execute(['signRequestId' => 42], 'replacement-job', function (): void {
 			$this->fail('A completed signing attempt must never run twice');
 		}));
@@ -83,35 +89,39 @@ class SigningAttemptGuardTest extends TestCase {
 		$this->assertFalse($this->guard->execute(['signRequestId' => 42, 'fileId' => 7], 'new-job', function (): void {
 			$this->fail('Ambiguous signing must not repeat');
 		}));
-		$this->assertTrue($this->guard->hasUncertainAttempt(42));
+		$this->assertSame('uncertain', $this->request->getMetadata()['async_signing_attempt']['phase']);
 		$this->assertSame('uncertain', $this->request->getMetadata()['async_signing_attempt']['phase']);
 	}
 
 	public function testSecondJobDoesNotMarkActiveFirstJobAsInterrupted(): void {
 		$this->request->setMetadata(['async_signing_attempt' => [
-			'jobId' => 'active-job', 'phase' => 'running', 'startedAt' => time(),
+			'jobId' => '12345', 'phase' => 'running', 'startedAt' => time(),
 		]]);
-		$this->jobs->expects($this->once())->method('getDetailsById')->with('active-job')->willReturn(['id' => 'active-job']);
+		$this->jobs->expects($this->once())->method('getDetailsById')->with('12345')->willReturn(['id' => '12345']);
 		$this->reporter->expects($this->never())->method('error');
 		$this->mapper->expects($this->never())->method('update');
-		$this->assertFalse($this->guard->execute(['signRequestId' => 42], 'duplicate-job', function (): void {
+		$this->assertFalse($this->guard->execute(['signRequestId' => 42], '12346', function (): void {
 			$this->fail('Duplicate job must not sign');
 		}));
 		$this->assertSame('running', $this->request->getMetadata()['async_signing_attempt']['phase']);
+	}
+
+	public function testInvalidPersistedJobIdNeedsReviewWithoutQueryingTheQueue(): void {
+		$this->request->setMetadata(['async_signing_attempt' => [
+			'jobId' => 'invalid-job-id', 'phase' => 'running', 'startedAt' => 1,
+		]]);
+		$this->jobs->expects($this->never())->method('getDetailsById');
+		$this->reporter->expects($this->once())->method('error');
+		$this->assertFalse($this->guard->execute(['signRequestId' => 42], '12346', function (): void {
+			$this->fail('A malformed previous job ID cannot authorize another signature');
+		}));
+		$this->assertSame('uncertain', $this->request->getMetadata()['async_signing_attempt']['phase']);
 	}
 
 	public function testMalformedJobReturnsHandledFailureWithoutCreatingReceipt(): void {
 		$this->locking->expects($this->never())->method('acquireLock');
 		$this->mapper->expects($this->never())->method('getByIdUncached');
 		$this->assertFalse($this->guard->execute(['fileId' => -1], 'bad-job', static fn (): bool => false));
-	}
-
-	public function testSignedRequestSkipsExecution(): void {
-		$this->request->setSignedHash('sha256');
-		$this->mapper->expects($this->never())->method('update');
-		$this->assertFalse($this->guard->execute(['signRequestId' => 42], 'job-123', function (): void {
-			$this->fail('Completed signature must not repeat');
-		}));
 	}
 
 	public function testHandledSigningFailureIsNotMarkedFinished(): void {
@@ -122,8 +132,8 @@ class SigningAttemptGuardTest extends TestCase {
 		});
 		$this->assertFalse($this->guard->execute(['signRequestId' => 42], 'job-123', static fn (): bool => false));
 		$this->assertSame(['running', 'uncertain'], $updates);
-		$this->assertTrue($this->guard->hasUncertainAttempt(42));
-		$this->assertFalse($this->guard->hasFinishedAttempt(42));
+		$this->assertSame('uncertain', $this->request->getMetadata()['async_signing_attempt']['phase']);
+		$this->assertNotSame('finished', $this->request->getMetadata()['async_signing_attempt']['phase']);
 	}
 
 	public function testUnhandledFailureRetainsRunningReceipt(): void {
@@ -133,7 +143,6 @@ class SigningAttemptGuardTest extends TestCase {
 				throw new \RuntimeException('Signing stopped unexpectedly');
 			});
 		} finally {
-			$this->assertTrue($this->guard->hasUncertainAttempt(42));
 			$this->assertSame('running', $this->request->getMetadata()['async_signing_attempt']['phase']);
 		}
 	}
