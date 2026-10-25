@@ -350,18 +350,20 @@ class FileMapper extends CachedQBMapper {
 
 		$stale = [];
 		foreach ($files as $file) {
-			$isStale = false;
 			$meta = $file->getMetadata();
-
-			if (is_array($meta) && isset($meta['status_changed_at'])) {
-				try {
-					$changedAt = new \DateTime($meta['status_changed_at']);
-					$isStale = $changedAt < $staleThreshold;
-				} catch (\Exception) {
+			$changedAt = is_array($meta) ? ($meta['status_changed_at'] ?? null) : null;
+			if ($changedAt !== null) {
+				// Creation time must not override a recent processing timestamp.
+				// Invalid timestamps require review, not an automatic retry.
+				if (!is_string($changedAt) || $changedAt === '') {
+					continue;
 				}
-			}
-
-			if (!$isStale) {
+				try {
+					$isStale = new \DateTime($changedAt) < $staleThreshold;
+				} catch (\Exception) {
+					continue;
+				}
+			} else {
 				$created = $file->getCreatedAt();
 				$isStale = $created instanceof \DateTime && $created < $staleThreshold;
 			}
