@@ -340,12 +340,17 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			$this->validateHelper->validateExistingFile($data);
 			$this->validateHelper->validateIsSignerOfFile($signRequestId, $fileId);
 			$this->requestSignatureService->unassociateToUser($fileId, $signRequestId);
-		} catch (\Throwable $th) {
+		} catch (LibresignException $e) {
 			return new DataResponse(
-				[
-					'message' => $th->getMessage(),
-				],
-				Http::STATUS_UNAUTHORIZED
+				['message' => $e->getMessage()],
+				$e->getCode() === Http::STATUS_UNPROCESSABLE_ENTITY
+					? Http::STATUS_UNPROCESSABLE_ENTITY
+					: Http::STATUS_UNAUTHORIZED,
+			);
+		} catch (\Throwable) {
+			return new DataResponse(
+				['message' => $this->l10n->t('Unable to remove signer.')],
+				Http::STATUS_INTERNAL_SERVER_ERROR,
 			);
 		}
 		return new DataResponse(
