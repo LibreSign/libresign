@@ -66,6 +66,12 @@ class SignRequest extends Entity {
 		$this->addType('status', Types::SMALLINT);
 	}
 
+	public function hasCompletedSigning(): bool {
+		return $this->getStatusEnum() === SignRequestStatus::SIGNED
+			|| $this->signed !== null
+			|| $this->signedHash !== null;
+	}
+
 	public function getStatusEnum(): SignRequestStatus {
 		return SignRequestStatus::from($this->status);
 	}
