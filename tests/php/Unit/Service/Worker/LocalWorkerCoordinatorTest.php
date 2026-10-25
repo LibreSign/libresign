@@ -130,6 +130,26 @@ class LocalWorkerCoordinatorTest extends TestCase {
 		}
 	}
 
+	public function testRestrictedProcfsLeavesSigningWorkToNextcloudCron(): void {
+		$procRoot = sys_get_temp_dir() . '/libresign-restricted-proc-' . bin2hex(random_bytes(12));
+		mkdir($procRoot, 0700);
+		try {
+			$starter = $this->createMock(WorkerStarter::class);
+			$starter->expects($this->never())->method('startWorker');
+			$counter = $this->createMock(WorkerJobCounter::class);
+			$counter->expects($this->never())->method('countEligibleJobs');
+			$logger = $this->createMock(LoggerInterface::class);
+			$logger->expects($this->once())->method('warning')->with($this->stringContains('procfs'));
+			$service = new LocalWorkerCoordinator(
+				$starter, $counter, new LocalWorkerProcess($procRoot),
+				new LocalWorkerStateStore($this->directory), $logger,
+			);
+			$this->assertFalse($service->ensureCapacity(2));
+		} finally {
+			@rmdir($procRoot);
+		}
+	}
+
 	public function testWorkerStartupFailureIsVisible(): void {
 		$starter = $this->createMock(WorkerStarter::class);
 		$starter->method('startWorker')->willThrowException(new \RuntimeException('PHP is unavailable'));

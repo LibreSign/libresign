@@ -17,7 +17,12 @@ class LocalWorkerProcess {
 	}
 
 	public function isSupported(): bool {
-		return PHP_OS_FAMILY === 'Linux' && function_exists('flock') && is_dir($this->procRoot);
+		// Avoid spawning workers we cannot identify in later requests when
+		// procfs is restricted (for example through PHP open_basedir).
+		return PHP_OS_FAMILY === 'Linux' && function_exists('flock')
+			&& is_dir($this->procRoot)
+			&& @is_readable($this->procRoot . '/self/stat')
+			&& @is_readable($this->procRoot . '/self/cmdline');
 	}
 
 	public function startTime(int $pid): ?string {
@@ -50,7 +55,9 @@ class LocalWorkerProcess {
 		// A PID is not a worker identity: ensure it is the OCC command for this
 		// Nextcloud instance, not another process named occ on the same host.
 		$expectedOcc = $this->expectedOccPath ?? \OC::$SERVERROOT . '/occ';
-		return in_array('background-job:worker', $argv, true)
-			&& in_array($expectedOcc, $argv, true);
+		// WorkerStarter always passes [php, this Nextcloud's occ, command].
+		// Arbitrary process arguments must not look like a running worker.
+		return ($argv[1] ?? null) === $expectedOcc
+			&& ($argv[2] ?? null) === 'background-job:worker';
 	}
 }
