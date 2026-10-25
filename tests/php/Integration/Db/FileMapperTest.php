@@ -12,6 +12,8 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Service\FileStatusService;
+use OCP\IDBConnection;
 use OCP\Server;
 
 /**
@@ -94,6 +96,58 @@ final class FileMapperTest extends \OCA\Libresign\Tests\Integration\TestCase {
 			$this->assertNotContains($inserted->getId(), $ids);
 		} finally {
 			$this->fileMapper->delete($inserted);
+		}
+	}
+
+	public function testRolledBackQueuedStatusIsNotVisibleInTheDistributedCache(): void {
+		$file = $this->createFileEntity('rollback-' . bin2hex(random_bytes(10)), random_int(1000000, 1999999), 'test-owner');
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$file = $this->fileMapper->insert($file);
+		$status = Server::get(FileStatusService::class);
+		$db = Server::get(IDBConnection::class);
+		try {
+			$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $this->fileMapper->getById($file->getId())->getStatus());
+			$db->beginTransaction();
+			try {
+				$file->setStatusEnum(FileStatus::SIGNING_IN_PROGRESS);
+				$status->updateForQueuedJob($file);
+			} finally {
+				$db->rollBack();
+				$status->discardQueuedJobStatus($file, FileStatus::ABLE_TO_SIGN->value, []);
+			}
+			$query = $db->getQueryBuilder();
+			$persistedStatus = $query->select('status')->from('libresign_file')
+				->where($query->expr()->eq('id', $query->createNamedParameter($file->getId())))
+				->executeQuery()->fetchOne();
+			$this->assertSame(FileStatus::ABLE_TO_SIGN->value, (int)$persistedStatus);
+			$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $this->fileMapper->getById($file->getId())->getStatus());
+		} finally {
+			$this->fileMapper->delete($file);
+		}
+	}
+
+	public function testCommittedQueuedStatusBecomesVisibleToReaders(): void {
+		$file = $this->createFileEntity('commit-' . bin2hex(random_bytes(10)), random_int(1000000, 1999999), 'test-owner');
+		$file = $this->fileMapper->insert($file);
+		$status = Server::get(FileStatusService::class);
+		$db = Server::get(IDBConnection::class);
+		try {
+			$db->beginTransaction();
+			$committed = false;
+			try {
+				$file->setStatusEnum(FileStatus::SIGNING_IN_PROGRESS);
+				$status->updateForQueuedJob($file);
+				$db->commit();
+				$committed = true;
+			} finally {
+				if (!$committed) {
+					$db->rollBack();
+				}
+			}
+			$status->publishQueuedJobStatus($file);
+			$this->assertSame(FileStatus::SIGNING_IN_PROGRESS->value, $this->fileMapper->getById($file->getId())->getStatus());
+		} finally {
+			$this->fileMapper->delete($file);
 		}
 	}
 

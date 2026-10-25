@@ -98,12 +98,20 @@ class FileStatusService {
 	/** Persist enqueue status inside the caller's database transaction. */
 	public function updateForQueuedJob(FileEntity $file): FileEntity {
 		$this->touchStatusChangedAt($file);
-		$this->fileMapper->update($file);
+		$this->fileMapper->updateWithoutCache($file);
 		return $file;
+	}
+
+	/** Restore the local entity after rollback; do not write to the database again. */
+	public function discardQueuedJobStatus(FileEntity $file, int $previousStatus, ?array $previousMetadata): void {
+		$file->setStatus($previousStatus);
+		$file->setMetadata($previousMetadata ?? []);
+		$this->fileMapper->discardUncommittedEntity($file);
 	}
 
 	/** Publish progress only after the database transaction has committed. */
 	public function publishQueuedJobStatus(FileEntity $file): void {
+		$this->fileMapper->cacheCommittedEntity($file);
 		$this->statusCacheService->setStatus($file->getUuid(), $file->getStatus());
 		if ($file->hasParent()) {
 			$this->propagateStatusToParent($file->getParentFileId());

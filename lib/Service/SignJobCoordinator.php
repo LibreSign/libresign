@@ -50,7 +50,7 @@ class SignJobCoordinator {
 
 			$this->signFileService->sign();
 			return true;
-		} catch (\Throwable $e) {
+		} catch (\Exception $e) {
 			$this->signRequestErrorReporter->error('SignFileJob failed', [
 				'exception' => $e,
 				'fileId' => $file?->getId() ?? ($argument['fileId'] ?? null),
@@ -83,7 +83,7 @@ class SignJobCoordinator {
 
 			$this->signFileService->signSingleFile($file, $signRequest);
 			return true;
-		} catch (\Throwable $e) {
+		} catch (\Exception $e) {
 			$this->signRequestErrorReporter->error('SignSingleFileJob failed for file {fileId}', [
 				'exception' => $e,
 				'fileId' => $file?->getId() ?? ($argument['fileId'] ?? null),
@@ -197,7 +197,7 @@ class SignJobCoordinator {
 		try {
 			// Anonymous signers store their temporary credentials under userId ''.
 			$this->credentialsManager->delete($userId, $credentialsId);
-		} catch (\Throwable $e) {
+		} catch (\Exception $e) {
 			// Cleanup must not turn a completed signature into an uncertain attempt.
 			$this->logger->warning('Unable to delete temporary signing credentials', ['exception' => $e]);
 		}

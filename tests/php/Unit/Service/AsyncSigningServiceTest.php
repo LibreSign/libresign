@@ -253,6 +253,11 @@ class AsyncSigningServiceTest extends TestCase {
 			->willReturnCallback(function (LibreSignFile $current): LibreSignFile {
 				return $current;
 			});
+		$this->fileStatusService->method('discardQueuedJobStatus')
+			->willReturnCallback(static function (LibreSignFile $file, int $status, ?array $metadata): void {
+				$file->setStatus($status);
+				$file->setMetadata($metadata ?? []);
+			});
 		$this->jobList->expects($this->once())->method('add')
 			->willThrowException(new \RuntimeException('Queue unavailable'));
 
@@ -263,6 +268,7 @@ class AsyncSigningServiceTest extends TestCase {
 			$this->assertSame('Queue unavailable', $e->getMessage());
 		}
 		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $file->getStatus());
+		$this->assertSame([], $file->getMetadata());
 	}
 
 	public function testEnqueueCommitsOnlyAfterAddingJob(): void {
@@ -296,4 +302,26 @@ class AsyncSigningServiceTest extends TestCase {
 		$this->service->enqueueSigningJob($file, $signRequest, null, 'account:test', true, null, null, [], []);
 		$this->assertSame(['begin', 'status', 'job', 'commit', 'publish'], $events);
 	}
+	public function testUnknownTransactionOutcomeKeepsCredentialsAndOriginalFailure(): void {
+		$file = new LibreSignFile();
+		$file->setId(1);
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$request = new SignRequest();
+		$request->setId(1);
+		$request->setDisplayName('Test Signer');
+		$this->secureRandom->method('generate')->willReturn('random');
+		$this->credentialsManager->expects($this->never())->method('delete');
+		$this->fileStatusService->expects($this->never())->method('discardQueuedJobStatus');
+		$this->jobList->method('add')->willThrowException(new \RuntimeException('Queue failure'));
+		$this->db->method('rollBack')->willThrowException(new \RuntimeException('Rollback not confirmed'));
+
+		try {
+			$this->service->enqueueSigningJob($file, $request, null, 'account:test', true, null, null, [], []);
+			$this->fail('The enqueue error must not be hidden');
+		} catch (\RuntimeException $e) {
+			$this->assertSame('Queue failure', $e->getMessage());
+		}
+		$this->assertSame(FileStatus::SIGNING_IN_PROGRESS->value, $file->getStatus());
+	}
+
 }

@@ -33,7 +33,7 @@ class FileStatusServiceTest extends TestCase {
 		$file = new FileEntity();
 		$file->setUuid('file-uuid');
 		$file->setStatus(FileStatus::SIGNING_IN_PROGRESS->value);
-		$this->fileMapper->expects($this->once())->method('update')->with($file)->willReturn($file);
+		$this->fileMapper->expects($this->once())->method('updateWithoutCache')->with($file)->willReturn($file);
 		$this->statusCacheService->expects($this->never())->method('setStatus');
 		$this->service->updateForQueuedJob($file);
 	}
@@ -43,6 +43,7 @@ class FileStatusServiceTest extends TestCase {
 		$file->setUuid('file-uuid');
 		$file->setStatus(FileStatus::SIGNING_IN_PROGRESS->value);
 		$this->fileMapper->expects($this->never())->method('update');
+		$this->fileMapper->expects($this->once())->method('cacheCommittedEntity')->with($file);
 		$this->statusCacheService->expects($this->once())->method('setStatus')
 			->with('file-uuid', FileStatus::SIGNING_IN_PROGRESS->value);
 		$this->service->publishQueuedJobStatus($file);
