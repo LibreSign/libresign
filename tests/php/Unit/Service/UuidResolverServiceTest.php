@@ -199,6 +199,7 @@ final class UuidResolverServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		} catch (LibresignException $e) {
 			$this->assertNotInstanceOf(IdDocAccessDeniedException::class, $e);
 			$this->assertNotInstanceOf(NotAnIdDocException::class, $e);
+			$this->assertSame('Invalid UUID', $e->getMessage());
 		}
 	}
 
@@ -220,6 +221,7 @@ final class UuidResolverServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fail('Expected LibresignException was not thrown');
 		} catch (LibresignException $e) {
 			$this->assertNotSame($original, $e);
+			$this->assertSame('Invalid UUID', $e->getMessage());
 		}
 	}
 
