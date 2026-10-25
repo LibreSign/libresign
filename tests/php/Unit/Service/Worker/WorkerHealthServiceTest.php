@@ -22,6 +22,16 @@ class WorkerHealthServiceTest extends TestCase {
 		$service = new WorkerHealthService($config, $registry, $this->createMock(LoggerInterface::class));
 		$this->assertFalse($service->ensureWorkerRunning());
 	}
+	public function testProgrammingErrorsAreNotHiddenByTheHealthCheck(): void {
+		$config = $this->createMock(WorkerConfiguration::class);
+		$config->method('isAsyncLocalEnabled')->willReturn(true);
+		$registry = $this->createMock(LocalWorkerRegistry::class);
+		$registry->method('ensureCapacity')->willThrowException(new \TypeError('Unexpected worker contract'));
+		$service = new WorkerHealthService($config, $registry, $this->createMock(LoggerInterface::class));
+		$this->expectException(\TypeError::class);
+		$service->ensureWorkerRunning();
+	}
+
 	public function testStartsOnlyWhenThereAreJobs(): void {
 		$config = $this->createMock(WorkerConfiguration::class);
 		$config->method('isAsyncLocalEnabled')->willReturn(true);

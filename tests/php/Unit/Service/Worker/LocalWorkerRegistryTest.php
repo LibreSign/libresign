@@ -1,15 +1,19 @@
 <?php
 
 declare(strict_types=1);
-/** SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+/**
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Tests\Unit\Service\Worker;
 
+use OCA\Libresign\Service\Worker\LocalWorkerProcess;
 use OCA\Libresign\Service\Worker\LocalWorkerRegistry;
+use OCA\Libresign\Service\Worker\LocalWorkerStateStore;
 use OCA\Libresign\Service\Worker\WorkerJobCounter;
 use OCA\Libresign\Service\Worker\WorkerStarter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -18,98 +22,127 @@ class LocalWorkerRegistryTest extends TestCase {
 
 	protected function setUp(): void {
 		if (PHP_OS_FAMILY !== 'Linux') {
-			$this->markTestSkipped('Linux process lock test');
+			$this->markTestSkipped('Local process coordination requires Linux');
 		}
-		$this->directory = sys_get_temp_dir() . '/libresign-worker-unit-' . bin2hex(random_bytes(12));
+		$this->directory = sys_get_temp_dir() . '/libresign-worker-test-' . bin2hex(random_bytes(12));
 	}
 
 	protected function tearDown(): void {
-		foreach (['workers.json', 'lock'] as $name) {
-			@unlink($this->directory . '/' . $name);
+		foreach (glob($this->directory . '/*') ?: [] as $path) {
+			@unlink($path);
 		}
+		@chmod($this->directory, 0700);
 		@rmdir($this->directory);
 	}
 
-	private function registry(WorkerStarter $starter, WorkerJobCounter $counter): LocalWorkerRegistry {
-		$dir = $this->directory;
-		return new class($starter, $counter, $this->createMock(LoggerInterface::class), $dir) extends LocalWorkerRegistry {
-			public function __construct(
-				WorkerStarter $starter,
-				WorkerJobCounter $counter,
-				LoggerInterface $logger,
-				private string $directory,
-			) {
-				parent::__construct($starter, $counter, $logger);
-			}
-			protected function registryDirectory(): string {
-				return $this->directory;
-			}
-			protected function pidStartTime(int $pid): ?string {
-				return $pid > 0 ? '12345' : null;
-			}
-			protected function ownsRunningWorker(int $pid, string $started): bool {
-				return $pid === 6789 && $started === '12345';
-			}
-		};
+	private function registry(WorkerStarter $starter, WorkerJobCounter $counter, ?LocalWorkerProcess $processes = null): LocalWorkerRegistry {
+		$processes ??= $this->createMock(LocalWorkerProcess::class);
+		$processes->method('isSupported')->willReturn(true);
+		$processes->method('startTime')->willReturn('process-birth-time');
+		return new LocalWorkerRegistry($starter, $counter, $processes, new LocalWorkerStateStore($this->directory), $this->createMock(LoggerInterface::class));
 	}
 
-	public function testRejectsWorldWritableRegistry(): void {
-		mkdir($this->directory, 0700);
-		chmod($this->directory, 0777);
-		$this->expectException(\RuntimeException::class);
-		$this->registry($this->createMock(WorkerStarter::class), $this->createMock(WorkerJobCounter::class))->ensureCapacity(1);
+	/** @return array<string, array{int, int, int}> */
+	public static function capacityCases(): array {
+		return [
+			'no capacity' => [0, 5, 0],
+			'no jobs' => [3, 0, 0],
+			'only one job' => [4, 1, 1],
+			'capacity limits starts' => [2, 9, 2],
+			'negative capacity' => [-1, 8, 0],
+		];
 	}
 
-	public function testRejectsSymlinkLockBeforeOpeningIt(): void {
-		mkdir($this->directory, 0700);
-		$target = $this->directory . '/safe-target';
-		file_put_contents($target, 'unchanged');
-		symlink($target, $this->directory . '/lock');
+	#[DataProvider('capacityCases')]
+	public function testStartsOnlyNeededWorkers(int $capacity, int $queued, int $expectedStarts): void {
+		$starts = 0;
+		$starter = $this->createMock(WorkerStarter::class);
+		$starter->method('startWorker')->willReturnCallback(static function () use (&$starts): int {
+			return 6000 + ++$starts;
+		});
+		$counter = $this->createMock(WorkerJobCounter::class);
+		$counter->method('countEligibleJobs')->willReturn(min($capacity, $queued));
+		$this->assertTrue($this->registry($starter, $counter)->ensureCapacity($capacity));
+		$this->assertSame($expectedStarts, $starts);
+	}
+
+	public function testSecondRequestDoesNotExceedCapacity(): void {
+		$starts = 0;
+		$starter = $this->createMock(WorkerStarter::class);
+		$starter->method('startWorker')->willReturnCallback(static function () use (&$starts): int {
+			return 6100 + ++$starts;
+		});
+		$processes = $this->createMock(LocalWorkerProcess::class);
+		$processes->method('isRunning')->willReturn(true);
+		$counter = $this->createMock(WorkerJobCounter::class);
+		$counter->method('countEligibleJobs')->willReturn(20);
+		$registry = $this->registry($starter, $counter, $processes);
+		$this->assertTrue($registry->ensureCapacity(1));
+		$this->assertTrue($registry->ensureCapacity(1));
+		$this->assertSame(1, $starts);
+	}
+
+	public function testConcurrentRequestsLaunchOneWorker(): void {
+		if (!function_exists('pcntl_fork')) {
+			$this->markTestSkipped('Requires POSIX process isolation');
+		}
+		$marker = $this->directory . '-started';
+		$release = $this->directory . '-release';
+		$starter = $this->createMock(WorkerStarter::class);
+		$starter->method('startWorker')->willReturnCallback(static function () use ($marker, $release): int {
+			file_put_contents($marker, "started\n", FILE_APPEND);
+			$deadline = microtime(true) + 4;
+			while (!is_file($release) && microtime(true) < $deadline) {
+				usleep(10000);
+			}
+			if (!is_file($release)) {
+				throw new \RuntimeException('Concurrent request did not finish');
+			}
+			return 6551;
+		});
+		$counter = $this->createMock(WorkerJobCounter::class);
+		$counter->method('countEligibleJobs')->willReturn(1);
+		$child = pcntl_fork();
+		$this->assertNotSame(-1, $child, 'Could not start parallel request');
+		if ($child === 0) {
+			try {
+				$this->registry($starter, $counter)->ensureCapacity(1);
+				exit(0);
+			} catch (\Exception) {
+				exit(1);
+			}
+		}
 		try {
-			$this->expectException(\RuntimeException::class);
-			$this->registry($this->createMock(WorkerStarter::class), $this->createMock(WorkerJobCounter::class))->ensureCapacity(1);
+			$deadline = microtime(true) + 3;
+			while (!is_file($marker) && microtime(true) < $deadline) {
+				usleep(10000);
+			}
+			$this->assertFileExists($marker);
+			$this->assertTrue($this->registry($starter, $counter)->ensureCapacity(1));
+			file_put_contents($release, 'ok');
+			pcntl_waitpid($child, $status);
+			$this->assertTrue(pcntl_wifexited($status) && pcntl_wexitstatus($status) === 0);
+			$this->assertCount(1, file($marker));
 		} finally {
-			$this->assertSame('unchanged', file_get_contents($target));
-			unlink($target);
+			file_put_contents($release, 'ok');
+			@unlink($marker);
+			@unlink($release);
 		}
 	}
 
-	public function testAtomicLocalLockPreventsConcurrentLaunch(): void {
-		mkdir($this->directory, 0700);
-		$handle = fopen($this->directory . '/lock', 'c+');
-		flock($handle, LOCK_EX | LOCK_NB);
+	public function testWorkerStartupFailureIsVisible(): void {
 		$starter = $this->createMock(WorkerStarter::class);
-		$starter->expects($this->never())->method('startWorker');
-		$counter = $this->createMock(WorkerJobCounter::class);
-		$counter->expects($this->never())->method('countEligibleJobs');
-		$this->assertTrue($this->registry($starter, $counter)->ensureCapacity(4));
-		flock($handle, LOCK_UN);
-		fclose($handle);
-	}
-
-	public function testRespectsCapacityAndDoesNotCountQueueWhenFull(): void {
-		$starter = $this->createMock(WorkerStarter::class);
-		$starter->expects($this->once())->method('startWorker')->willReturn(6789);
-		$counter = $this->createMock(WorkerJobCounter::class);
-		$counter->expects($this->once())->method('countEligibleJobs')->willReturn(1000);
-		$registry = $this->registry($starter, $counter);
-		$this->assertTrue($registry->ensureCapacity(1));
-		$this->assertTrue($registry->ensureCapacity(1));
-		$this->assertCount(1, json_decode(file_get_contents($this->directory . '/workers.json'), true)['workers']);
-	}
-
-	public function testReusedPidWithDifferentStartTimeIsNotCounted(): void {
-		mkdir($this->directory, 0700);
-		file_put_contents($this->directory . '/workers.json', json_encode([
-			'workers' => [['pid' => 6789, 'start' => 'old-process']],
-			'lastAttempt' => 0,
-		]));
-		$starter = $this->createMock(WorkerStarter::class);
-		$starter->expects($this->once())->method('startWorker')->willReturn(6789);
+		$starter->method('startWorker')->willThrowException(new \RuntimeException('PHP is unavailable'));
 		$counter = $this->createMock(WorkerJobCounter::class);
 		$counter->method('countEligibleJobs')->willReturn(1);
-		$this->assertTrue($this->registry($starter, $counter)->ensureCapacity(1));
-		$workers = json_decode(file_get_contents($this->directory . '/workers.json'), true)['workers'];
-		$this->assertSame('12345', $workers[0]['start']);
+		$this->assertFalse($this->registry($starter, $counter)->ensureCapacity(1));
 	}
+
+	public function testQueryErrorDoesNotLookLikeEmptyQueue(): void {
+		$counter = $this->createMock(WorkerJobCounter::class);
+		$counter->method('countEligibleJobs')->willThrowException(new \RuntimeException('Queue unavailable'));
+		$this->expectException(\RuntimeException::class);
+		$this->registry($this->createMock(WorkerStarter::class), $counter)->ensureCapacity(1);
+	}
+
 }
