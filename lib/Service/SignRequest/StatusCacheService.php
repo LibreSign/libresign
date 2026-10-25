@@ -31,7 +31,8 @@ class StatusCacheService {
 		$this->cache->set(self::STATUS_KEY_PREFIX . $fileUuid, $status, self::DEFAULT_TTL);
 	}
 
-	public function clearStatus(string $fileUuid): void {
+	/** Discard stale status hints without overwriting a worker's result. */
+	public function invalidateStatus(string $fileUuid): void {
 		if ($fileUuid !== '') {
 			$this->cache->remove(self::STATUS_KEY_PREFIX . $fileUuid);
 		}
