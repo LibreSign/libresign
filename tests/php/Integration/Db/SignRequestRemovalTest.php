@@ -22,6 +22,7 @@ use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use OCP\Server;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Sabre\DAV\UUIDUtil;
 
 /**
  * @group DB
@@ -40,7 +41,7 @@ final class SignRequestRemovalTest extends \OCA\Libresign\Tests\Integration\Test
 
 	private function createUnsignedSigner(): SignRequest {
 		$file = new File();
-		$file->setUuid('removal-test-' . uniqid('', true));
+		$file->setUuid(UUIDUtil::getUUID());
 		$file->setName('signer-removal.pdf');
 		$file->setUserId('admin');
 		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
@@ -48,7 +49,7 @@ final class SignRequestRemovalTest extends \OCA\Libresign\Tests\Integration\Test
 		$this->files->insert($file);
 
 		$signer = new SignRequest();
-		$signer->setUuid('signer-removal-' . uniqid('', true));
+		$signer->setUuid(UUIDUtil::getUUID());
 		$signer->setFileId($file->getId());
 		$signer->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
 		$signer->setCreatedAt(new \DateTime('2026-01-01T00:00:00Z'));
