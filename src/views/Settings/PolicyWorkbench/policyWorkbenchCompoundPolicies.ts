@@ -450,7 +450,7 @@ export function hydrateCompoundPolicyRules(context: CompoundPolicyHydrationConte
 	if (isSignatureStampPolicyKey(policyKey)) {
 		const primaryHasValue = hasPersistedValue(persistedSystemPolicy?.value)
 		return {
-			explicitSystemRule: (persistedSystemPolicy?.scope === 'global' || companionSystemPolicy?.scope === 'global') && primaryHasValue
+			explicitSystemRule: persistedSystemPolicy?.scope === 'global' && primaryHasValue
 				? {
 					id: 'system-default',
 					scope: 'system',
