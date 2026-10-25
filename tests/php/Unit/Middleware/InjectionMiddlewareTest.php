@@ -26,15 +26,18 @@ use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\AppFramework\OCSController;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -296,6 +299,78 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 
 		$this->assertInstanceOf(TemplateResponse::class, $response);
+	}
+
+	#[DataProvider('provideLibresignExceptionStatuses')]
+	public function testAfterExceptionUsesTheHttpStatusOfJsonResponses(LibresignException $exception, int $expectedStatus): void {
+		$response = $this->getInjectionMiddleware()->afterException(
+			$this->createMock(Controller::class),
+			'fake',
+			$exception,
+		);
+
+		$this->assertInstanceOf(JSONResponse::class, $response);
+		$this->assertSame($expectedStatus, $response->getStatus());
+		$this->assertSame(['message' => 'a text here'], $response->getData());
+	}
+
+	#[DataProvider('provideLibresignExceptionStatuses')]
+	public function testAfterExceptionUsesTheHttpStatusOfOcsResponses(LibresignException $exception, int $expectedStatus): void {
+		$controller = $this->createMock(OCSController::class);
+		$controller->method('getResponderByHTTPHeader')->willReturn('json');
+		$built = new JSONResponse();
+		$controller
+			->expects($this->once())
+			->method('buildResponse')
+			->with(
+				$this->callback(function (DataResponse $response) use ($expectedStatus): bool {
+					$this->assertSame($expectedStatus, $response->getStatus());
+					$this->assertSame(['message' => 'a text here'], $response->getData());
+					return true;
+				}),
+				'json',
+			)
+			->willReturn($built);
+
+		$response = $this->getInjectionMiddleware()->afterException($controller, 'fake', $exception);
+
+		$this->assertSame($built, $response);
+	}
+
+	#[DataProvider('provideLibresignExceptionStatuses')]
+	public function testAfterExceptionUsesTheHttpStatusOfHtmlResponses(LibresignException $exception, int $expectedStatus): void {
+		$this->request
+			->method('getHeader')
+			->with('Accept')
+			->willReturn('text/html');
+
+		$response = $this->getInjectionMiddleware()->afterException(
+			$this->createMock(Controller::class),
+			'fake',
+			$exception,
+		);
+
+		$this->assertInstanceOf(TemplateResponse::class, $response);
+		$this->assertSame($expectedStatus, $response->getStatus());
+		$this->assertJsonStringEqualsJsonString(
+			json_encode(['message' => 'a text here']),
+			$this->initialStateService->getInitialStates()['libresign-error'],
+		);
+	}
+
+	public static function provideLibresignExceptionStatuses(): array {
+		return [
+			'legacy, no code' => [new LibresignException('a text here'), Http::STATUS_UNPROCESSABLE_ENTITY],
+			'legacy, status as code' => [new LibresignException('a text here', Http::STATUS_NOT_FOUND), Http::STATUS_NOT_FOUND],
+			'explicit status without code' => [
+				new LibresignException('a text here', httpStatus: Http::STATUS_FORBIDDEN),
+				Http::STATUS_FORBIDDEN,
+			],
+			'explicit status with a semantic code' => [
+				new LibresignException('a text here', 4220, httpStatus: Http::STATUS_BAD_REQUEST),
+				Http::STATUS_BAD_REQUEST,
+			],
+		];
 	}
 
 	public function testBeforeControllerAllowsUnauthenticatedAccessWithValidUuidWhenAttributeEnablesBypass(): void {
