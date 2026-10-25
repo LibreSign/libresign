@@ -30,11 +30,13 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
+use OCP\AppFramework\Http;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
+use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -591,28 +593,72 @@ class RequestSignatureService {
 	public function unassociateToUser(int $fileId, int $signRequestId, bool $notify = true): void {
 		$file = $this->fileMapper->getById($fileId);
 		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
-		$deletedOrder = $signRequest->getSigningOrder();
 		$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequestId);
+		$removals = [[$file, $signRequest]];
+
+		if ($file->getNodeType() === 'envelope' && $groupedIdentifyMethods !== []) {
+			$firstGroup = reset($groupedIdentifyMethods);
+			$identifyMethod = $firstGroup === false ? false : reset($firstGroup);
+			if ($identifyMethod instanceof IIdentifyMethod) {
+				foreach ($this->fileMapper->getChildrenFiles($fileId) as $child) {
+					$this->identifyMethod->clearCache();
+					$childSignRequest = $this->signRequestService->getSignRequestByIdentifyMethod(
+						$identifyMethod,
+						$child->getId(),
+					);
+					if ($childSignRequest->getId()) {
+						$removals[] = [$child, $childSignRequest];
+					}
+				}
+			}
+		}
+
+		foreach ($removals as [$affectedFile, $affectedSignRequest]) {
+			$this->assertSignerCanBeRemoved($affectedFile, $affectedSignRequest);
+		}
+
+		$this->db->beginTransaction();
+		try {
+			foreach ($removals as [$affectedFile, $affectedSignRequest]) {
+				$this->signRequestMapper->delete($affectedSignRequest);
+				$this->identifyMethod->deleteBySignRequestId($affectedSignRequest->getId());
+				$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId(
+					$affectedFile->getId(),
+					$affectedSignRequest->getId(),
+				);
+				foreach ($visibleElements as $visibleElement) {
+					$this->fileElementMapper->delete($visibleElement);
+				}
+
+				$this->sequentialSigningService
+					->setFile($affectedFile)
+					->reorderAfterDeletion($affectedFile->getId(), $affectedSignRequest->getSigningOrder());
+				$this->revertStatusToDraftIfNoSignersRemain($affectedFile);
+			}
+			$this->db->commit();
+		} catch (\Throwable $e) {
+			$this->db->rollBack();
+			$this->logger->error('Failed to remove a signer', [
+				'exception' => $e,
+				'fileId' => $fileId,
+				'signRequestId' => $signRequestId,
+			]);
+			throw $e;
+		}
 
 		if ($notify) {
 			$this->dispatchCancellationEventIfNeeded($signRequest, $file, $groupedIdentifyMethods);
 		}
+	}
 
-		try {
-			$this->signRequestMapper->delete($signRequest);
-			$this->identifyMethod->deleteBySignRequestId($signRequestId);
-			$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
-			foreach ($visibleElements as $visibleElement) {
-				$this->fileElementMapper->delete($visibleElement);
-			}
-
-			$this->sequentialSigningService
-				->setFile($file)
-				->reorderAfterDeletion($file->getId(), $deletedOrder);
-
-			$this->propagateSignerDeletionToChildren($file, $groupedIdentifyMethods);
-			$this->revertStatusToDraftIfNoSignersRemain($file);
-		} catch (\Throwable) {
+	private function assertSignerCanBeRemoved(FileEntity $file, SignRequestEntity $signRequest): void {
+		if (in_array($file->getStatus(), [FileStatus::SIGNED->value, FileStatus::SIGNING_IN_PROGRESS->value], true)
+			|| $signRequest->getStatus() === SignRequestStatus::SIGNED->value
+			|| $signRequest->getSigned() !== null
+			|| $signRequest->getSignedHash() !== null
+		) {
+			// TRANSLATORS Error shown when removing a participant would discard a completed signature.
+			throw new LibresignException($this->l10n->t('A completed signer cannot be removed.'), Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
 	}
 
@@ -621,37 +667,6 @@ class RequestSignatureService {
 		if (empty($remaining)) {
 			$file->setStatus(FileStatus::DRAFT->value);
 			$this->fileStatusService->update($file);
-		}
-	}
-
-	/**
-	 * @param array<string, array<IIdentifyMethod>> $identifyMethods
-	 */
-	private function propagateSignerDeletionToChildren(FileEntity $envelope, array $identifyMethods): void {
-		if ($envelope->getNodeType() !== 'envelope') {
-			return;
-		}
-
-		if (empty($identifyMethods)) {
-			return;
-		}
-
-		$children = $this->fileMapper->getChildrenFiles($envelope->getId());
-
-		foreach ($children as $child) {
-			try {
-				$this->identifyMethod->clearCache();
-				$childSignRequest = $this->signRequestService->getSignRequestByIdentifyMethod(
-					current(reset($identifyMethods)),
-					$child->getId()
-				);
-
-				if ($childSignRequest->getId()) {
-					$this->unassociateToUser($child->getId(), $childSignRequest->getId(), notify: false);
-				}
-			} catch (\Throwable) {
-				continue;
-			}
 		}
 	}
 
