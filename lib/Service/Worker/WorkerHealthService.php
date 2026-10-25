@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Worker;
 
+use OCP\DB\Exception as DatabaseException;
 use Psr\Log\LoggerInterface;
 
 class WorkerHealthService {
@@ -29,7 +30,7 @@ class WorkerHealthService {
 				return false;
 			}
 			return $this->registry->ensureCapacity($this->workerConfiguration->getDesiredWorkerCount());
-		} catch (\Throwable $e) {
+		} catch (\RuntimeException|DatabaseException $e) {
 			// A count failure is not an empty queue and must not fail signing.
 			$this->logger->warning('Unable to check or start signing workers; Nextcloud cron can process pending jobs', ['exception' => $e]);
 			return false;
