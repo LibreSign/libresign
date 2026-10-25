@@ -28,7 +28,7 @@ class LocalWorkerCoordinator {
 			return true;
 		}
 		if (!$this->processes->isSupported()) {
-			$this->logger->warning('Local workers require Linux; use Nextcloud cron or dedicated workers');
+			$this->logger->warning('Local workers require readable Linux procfs; use Nextcloud cron or dedicated workers');
 			return false;
 		}
 

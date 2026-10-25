@@ -28,6 +28,29 @@ class LocalWorkerProcessTest extends TestCase {
 		$this->assertFalse($processes->isRunning($pid, '123'));
 	}
 
+	public function testUnreadableProcessInformationDisablesLocalWorkerMode(): void {
+		if (PHP_OS_FAMILY !== 'Linux') {
+			$this->markTestSkipped('Linux process inspection');
+		}
+		$root = sys_get_temp_dir() . '/libresign-proc-support-' . bin2hex(random_bytes(12));
+		mkdir($root, 0700);
+		try {
+			// Existing procfs mount is not sufficient when the PHP runtime is
+			// denied access to its contents (e.g. open_basedir restrictions).
+			$this->assertFalse((new LocalWorkerProcess($root))->isSupported());
+			mkdir($root . '/self', 0700);
+			file_put_contents($root . '/self/stat', 'readable');
+			$this->assertFalse((new LocalWorkerProcess($root))->isSupported());
+			file_put_contents($root . '/self/cmdline', 'readable');
+			$this->assertTrue((new LocalWorkerProcess($root))->isSupported());
+		} finally {
+			@unlink($root . '/self/cmdline');
+			@unlink($root . '/self/stat');
+			@rmdir($root . '/self');
+			@rmdir($root);
+		}
+	}
+
 	public function testPidReuseAndUnrelatedProcessesCannotCountAsWorkers(): void {
 		if (PHP_OS_FAMILY !== 'Linux') {
 			$this->markTestSkipped('Linux process identity');
@@ -43,9 +66,12 @@ class LocalWorkerProcessTest extends TestCase {
 	public static function workerCommandCases(): array {
 		return [
 			'exact Nextcloud worker' => ["php\0/srv/nextcloud/occ\0background-job:worker\0", true],
+			'worker with CLI options' => ["php\0/srv/nextcloud/occ\0background-job:worker\0--interval=0\0", true],
 			'another Nextcloud instance' => ["php\0/srv/unrelated/occ\0background-job:worker\0", false],
 			'unrelated occ command' => ["php\0/srv/nextcloud/occ\0background-job:list\0", false],
 			'unrelated executable' => ["php\0/srv/nextcloud/notocc\0background-job:worker\0", false],
+			'OCC path only appears as an unrelated argument' => ["php\0-r\0echo\0/srv/nextcloud/occ\0background-job:worker\0", false],
+			'worker subcommand appears after another OCC command' => ["php\0/srv/nextcloud/occ\0background-job:list\0background-job:worker\0", false],
 		];
 	}
 
