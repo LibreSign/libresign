@@ -15,8 +15,8 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
-use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Enum\ParticipantRole;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -686,7 +686,7 @@ class RequestSignatureService {
 	}
 
 	private function assertSignerCanBeRemoved(FileEntity $file, SignRequestEntity $signRequest): void {
-		if (in_array($file->getStatus(), [FileStatus::SIGNED->value, FileStatus::SIGNING_IN_PROGRESS->value], true)
+		if (!in_array($file->getStatus(), [FileStatus::DRAFT->value, FileStatus::ABLE_TO_SIGN->value], true)
 			|| $signRequest->getStatus() === SignRequestStatus::SIGNED->value
 			|| $signRequest->getSigned() !== null
 			|| $signRequest->getSignedHash() !== null
