@@ -12,7 +12,7 @@ use OCA\Libresign\BackgroundJob\SignFileJob;
 use OCA\Libresign\Db\File as LibreSignFile;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
-use OCA\Libresign\Service\Worker\WorkerHealthService;
+use OCA\Libresign\Service\Worker\WorkerActivationService;
 use OCP\BackgroundJob\IJobList;
 use OCP\IDBConnection;
 use OCP\IUser;
@@ -27,7 +27,7 @@ class AsyncSigningService {
 		private ISecureRandom $secureRandom,
 		private FileStatusService $fileStatusService,
 		private IDBConnection $db,
-		private WorkerHealthService $workerHealthService,
+		private WorkerActivationService $workerActivationService,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -116,7 +116,7 @@ class AsyncSigningService {
 
 		// Worker launch is best effort. The job is already committed and can be
 		// processed by the normal Nextcloud cron if local launch fails.
-		$this->workerHealthService->ensureWorkerRunning();
+		$this->workerActivationService->ensureWorkerRunning();
 
 		return [
 			'credentialsId' => $credentialsId,
