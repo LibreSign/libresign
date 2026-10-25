@@ -713,6 +713,48 @@ final class PolicyServiceTest extends TestCase {
 		$service->saveUserPolicyForUserId($policyKey, 'user1', 'async', false);
 	}
 
+	/**
+	 * Removing a system rule restores the built-in default rather than
+	 * persisting the default as a new explicit rule.
+	 */
+	public function testSaveSystemWithNullRemovesTheExplicitRule(): void {
+		$this->source
+			->expects($this->once())
+			->method('clearSystemPolicy')
+			->with(SignatureFlowPolicy::KEY);
+		$this->source->expects($this->never())->method('saveSystemPolicy');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->assertSame('none', $service->saveSystem(SignatureFlowPolicy::KEY, null)->getEffectiveValue());
+	}
+
+	/**
+	 * Saving the built-in default is still an explicit system rule,
+	 * and may prevent policies at lower scopes from overriding it.
+	 */
+	public function testSaveSystemWithDefaultPersistsAnExplicitRule(): void {
+		$this->source
+			->expects($this->once())
+			->method('saveSystemPolicy')
+			->with(SignatureFlowPolicy::KEY, 'none', false);
+		$this->source->expects($this->never())->method('clearSystemPolicy');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->assertSame('none', $service->saveSystem(SignatureFlowPolicy::KEY, 'none', false)->getEffectiveValue());
+	}
+
 	public function testSaveSystemPersistsAllowChildOverrideWhenEnabled(): void {
 		$this->source
 			->expects($this->once())
