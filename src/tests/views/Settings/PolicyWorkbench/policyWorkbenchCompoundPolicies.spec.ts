@@ -136,11 +136,13 @@ describe('policyWorkbenchCompoundPolicies', () => {
 	it('does not create signature stamp rules from collect_metadata-only overrides', () => {
 		const result = hydrateCompoundPolicyRules({
 			parent: createMemberRecords(SIGNATURE_STAMP_POLICY_KEY, {
-				systemPolicy: createPersistedSystemPolicy({ value: null }),
+				// GET /policies/system returns a non-null built-in default without a persisted rule.
+				systemPolicy: createPersistedSystemPolicy({ scope: 'system', value: signatureStampValue }),
 			}),
 			children: [
 				createMemberRecords(COLLECT_METADATA_POLICY_KEY, {
-					systemPolicy: createPersistedSystemPolicy({ value: true }),
+					// An explicit false can be persisted even when it equals the built-in default.
+					systemPolicy: createPersistedSystemPolicy({ value: false, allowChildOverride: false }),
 					groupPolicies: [
 						createPolicyRule({
 							id: 'collect-finance',
@@ -164,6 +166,50 @@ describe('policyWorkbenchCompoundPolicies', () => {
 			explicitSystemRule: null,
 			groupRules: [],
 			userRules: [],
+		})
+	})
+
+	it('keeps an explicit signature stamp system rule when the child uses its built-in default', () => {
+		const result = hydrateCompoundPolicyRules({
+			parent: createMemberRecords(SIGNATURE_STAMP_POLICY_KEY, {
+				systemPolicy: createPersistedSystemPolicy({ value: signatureStampValue, allowChildOverride: false }),
+			}),
+			children: [
+				createMemberRecords(COLLECT_METADATA_POLICY_KEY, {
+					systemPolicy: createPersistedSystemPolicy({ scope: 'system', value: false }),
+				}),
+			],
+			compound: requireCompound(signatureTextRealDefinition.compound),
+		})
+
+		expect(result.explicitSystemRule).toEqual({
+			id: 'system-default',
+			scope: 'system',
+			targetId: null,
+			allowChildOverride: false,
+			value: {
+				signatureStampValue,
+				collectMetadataEnabled: false,
+			},
+		})
+	})
+
+	it('keeps child-only global rules for compounds that include child-only rules', () => {
+		const result = hydrateCompoundPolicyRules({
+			parent: createMemberRecords(REQUEST_EXPIRATION_POLICY_KEY, {
+				systemPolicy: createPersistedSystemPolicy({ scope: 'system', value: 0 }),
+			}),
+			children: [
+				createMemberRecords(REQUEST_EXPIRATION_RENEWAL_KEY, {
+					systemPolicy: createPersistedSystemPolicy({ value: 7 }),
+				}),
+			],
+			compound: requireCompound(maximumValidityRealDefinition.compound),
+		})
+
+		expect(result.explicitSystemRule?.value).toEqual({
+			maximumValidity: 0,
+			renewalInterval: 7,
 		})
 	})
 

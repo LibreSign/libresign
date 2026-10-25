@@ -126,10 +126,11 @@ function hydrateCompoundSystemRule(
 	compose: RealPolicyCompoundBehavior['compose'],
 	includeChildOnlyRules: boolean,
 ): PolicyRuleRecord | null {
-	const membersWithRequiredValue = includeChildOnlyRules ? members : members.slice(0, 1)
-	const hasGlobalScope = members.some((member) => member.systemPolicy?.scope === 'global')
-	const hasValue = membersWithRequiredValue.some((member) => hasPersistedValue(member.systemPolicy?.value))
-	if (!hasGlobalScope || !hasValue) {
+	// Built-in defaults have values too, but only persisted global rules count.
+	const eligibleMembers = includeChildOnlyRules ? members : members.slice(0, 1)
+	const hasExplicitRule = eligibleMembers.some((member) => member.systemPolicy?.scope === 'global'
+		&& hasPersistedValue(member.systemPolicy.value))
+	if (!hasExplicitRule) {
 		return null
 	}
 

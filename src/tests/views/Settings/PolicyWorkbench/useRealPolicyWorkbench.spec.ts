@@ -434,6 +434,52 @@ describe('useRealPolicyWorkbench', () => {
 		})
 	})
 
+	it('does not present a signature stamp system rule when only collect_metadata is explicit', async () => {
+		const stampDefault = JSON.stringify({
+			template: 'Signed by {{SignerCommonName}}',
+			template_font_size: 9.8,
+			signature_font_size: 20,
+			signature_width: 350,
+			signature_height: 100,
+			background_type: 'default',
+			render_mode: 'default',
+		})
+
+		getPolicy.mockImplementation((policyKey: string) => {
+			if (policyKey === 'signature_stamp') {
+				return createMockEffectivePolicyState({
+					effectiveValue: stampDefault,
+					meta: { compositeChildren: ['collect_metadata'] },
+				})
+			}
+			if (policyKey === 'collect_metadata') {
+				return createMockEffectivePolicyState({ effectiveValue: false, sourceScope: 'global' })
+			}
+			return null
+		})
+
+		fetchSystemPolicy.mockImplementation(async (policyKey: string) => ({
+			policyKey,
+			// The backend returns the built-in default value even when no rule was saved.
+			scope: policyKey === 'signature_stamp' ? 'system' : 'global',
+			value: policyKey === 'signature_stamp' ? stampDefault : false,
+			allowChildOverride: policyKey === 'signature_stamp',
+			visibleToChild: true,
+			allowedValues: [],
+		}))
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_stamp')
+
+		await vi.waitFor(() => {
+			expect(fetchSystemPolicy).toHaveBeenCalledWith('collect_metadata')
+			expect(state.rulesLoading).toBe(false)
+		})
+
+		expect(state.hasGlobalDefault).toBe(false)
+		expect(state.visibleSettingSummaries.find((summary) => summary.key === 'signature_stamp')?.everyoneCount).toBe(0)
+	})
+
 	it('does not scan beyond the first users page during hydration', async () => {
 		axiosGet.mockImplementation((url: string, config?: { params?: { offset?: number } }) => {
 			if (url === 'cloud/groups/details') {
