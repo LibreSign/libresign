@@ -1,6 +1,6 @@
 # This workflow is provided via the organization template repository
 #
-# https://github.com/nextcloud/.github
+# https://github.com/LibreCodeCoop/.github
 # https://docs.github.com/en/actions/learn-github-actions/sharing-workflows-with-your-organization
 #
 # SPDX-FileCopyrightText: 2023-2024 Nextcloud GmbH and Nextcloud contributors
@@ -42,6 +42,7 @@ jobs:
         continue-on-error: true
 
       - name: Read package.json node and npm engines version
+        if: steps.checkout.outcome == 'success'
         uses: skjnldsv/read-package-engines-version-actions@06d6db44aa62f4609ba070f556ec24bc99fb85cb # v4
         id: versions
         with:
@@ -49,15 +50,18 @@ jobs:
           fallbackNpm: '^11.3'
 
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
+        if: steps.checkout.outcome == 'success'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
 
       - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
+        if: steps.checkout.outcome == 'success'
         run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
 
       - name: Fix npm audit
         id: npm-audit
+        if: steps.checkout.outcome == 'success'
         uses: nextcloud-libraries/npm-audit-action@1b1728b2b4a7a78d69de65608efcf4db0e3e42d0 # v0.2.0
 
       - name: Run npm ci and npm run build
@@ -68,14 +72,26 @@ jobs:
           npm ci
           npm run build --if-present
 
+      - name: Create GitHub App token for dependency PR
+        id: app-token
+        if: steps.checkout.outcome == 'success'
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.LIBRECODE_WORKFLOW_APP_CLIENT_ID }}
+          private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Create Pull Request
         if: steps.checkout.outcome == 'success'
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
-          token: ${{ secrets.COMMAND_BOT_PAT }}
-          commit-message: 'fix(deps): Fix npm audit'
+          token: ${{ steps.app-token.outputs.token }}
+          commit-message: 'fix(deps): resolve npm audit vulnerabilities'
           committer: GitHub <noreply@github.com>
-          author: nextcloud-command <nextcloud-command@users.noreply.github.com>
+          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           signoff: true
           branch: automated/noid/${{ matrix.branches }}-fix-npm-audit
           title: "${{ matrix.branches != github.event.repository.default_branch && format('[{0}] ', matrix.branches) || '' }}fix(deps): resolve npm audit vulnerabilities"
