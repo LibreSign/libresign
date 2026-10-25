@@ -62,7 +62,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		private IdentifyMethodService $identifyMethodService,
 		private FileService $fileService,
 		private SettingsLoader $settingsLoader,
-		private WorkerHealthService $workerHealthService,
+		private WorkerConfiguration $workerConfiguration,
 		private AsyncSigningService $asyncSigningService,
 		private RequestMetadataService $requestMetadataService,
 		private SignerGeolocationMetadataValidator $signerGeolocationMetadataValidator,
@@ -181,7 +181,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				$method,
 			);
 
-			if ($async && $this->workerHealthService->isAsyncLocalEnabled()) {
+			if ($async && $this->workerConfiguration->isAsyncSigningEnabled()) {
 				return $this->signAsync($libreSignFile, $signRequest, $user, $userIdentifier, $method, $token, $elements, $metadata);
 			}
 

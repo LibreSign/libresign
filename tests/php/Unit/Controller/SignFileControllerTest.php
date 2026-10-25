@@ -64,7 +64,7 @@ final class SignFileControllerTest extends TestCase {
 			$this->createMock(IdentifyMethodService::class),
 			$this->createMock(FileService::class),
 			$this->createMock(SettingsLoader::class),
-			$this->createMock(WorkerHealthService::class),
+			$this->createMock(WorkerConfiguration::class),
 			$this->createMock(AsyncSigningService::class),
 			$this->createMock(RequestMetadataService::class),
 			$this->createMock(SignerGeolocationMetadataValidator::class),

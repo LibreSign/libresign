@@ -95,6 +95,21 @@ class FileStatusService {
 		}
 	}
 
+	/** Persist enqueue status inside the caller's database transaction. */
+	public function updateForQueuedJob(FileEntity $file): FileEntity {
+		$this->touchStatusChangedAt($file);
+		$this->fileMapper->update($file);
+		return $file;
+	}
+
+	/** Publish progress only after the database transaction has committed. */
+	public function publishQueuedJobStatus(FileEntity $file): void {
+		$this->statusCacheService->setStatus($file->getUuid(), $file->getStatus());
+		if ($file->hasParent()) {
+			$this->propagateStatusToParent($file->getParentFileId());
+		}
+	}
+
 	public function update(FileEntity $file): FileEntity {
 		$this->touchStatusChangedAt($file);
 		$this->fileMapper->update($file);

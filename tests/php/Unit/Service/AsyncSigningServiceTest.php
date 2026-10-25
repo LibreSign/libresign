@@ -17,12 +17,14 @@ use OCA\Libresign\Service\AsyncSigningService;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\Worker\WorkerHealthService;
 use OCP\BackgroundJob\IJobList;
+use OCP\IDBConnection;
 use OCP\IUser;
 use OCP\Security\ICredentialsManager;
 use OCP\Security\ISecureRandom;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 class AsyncSigningServiceTest extends TestCase {
 	private AsyncSigningService $service;
@@ -30,6 +32,7 @@ class AsyncSigningServiceTest extends TestCase {
 	private ICredentialsManager&MockObject $credentialsManager;
 	private ISecureRandom&MockObject $secureRandom;
 	private FileStatusService&MockObject $fileStatusService;
+	private IDBConnection&MockObject $db;
 	private WorkerHealthService&MockObject $workerHealthService;
 
 	protected function setUp(): void {
@@ -37,6 +40,7 @@ class AsyncSigningServiceTest extends TestCase {
 		$this->credentialsManager = $this->createMock(ICredentialsManager::class);
 		$this->secureRandom = $this->createMock(ISecureRandom::class);
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
+		$this->db = $this->createMock(IDBConnection::class);
 		$this->workerHealthService = $this->createMock(WorkerHealthService::class);
 
 		$this->service = new AsyncSigningService(
@@ -44,7 +48,9 @@ class AsyncSigningServiceTest extends TestCase {
 			$this->credentialsManager,
 			$this->secureRandom,
 			$this->fileStatusService,
-			$this->workerHealthService
+			$this->db,
+			$this->workerHealthService,
+			$this->createMock(LoggerInterface::class),
 		);
 	}
 
@@ -126,7 +132,7 @@ class AsyncSigningServiceTest extends TestCase {
 			);
 
 		$this->fileStatusService->expects($this->once())
-			->method('update')
+			->method('updateForQueuedJob')
 			->with($this->callback(fn ($updatedFile) => $updatedFile->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value))
 			->willReturnArgument(0);
 
@@ -146,9 +152,6 @@ class AsyncSigningServiceTest extends TestCase {
 						&& isset($args['metadata'])
 						&& $args['isExternalSigner'] === ($userId === null))
 			);
-
-		$this->workerHealthService->expects($this->once())
-			->method('ensureWorkerRunning');
 
 		$result = $this->service->enqueueSigningJob(
 			$file,
@@ -175,7 +178,7 @@ class AsyncSigningServiceTest extends TestCase {
 		$file->setMetadata([]);
 
 		$this->fileStatusService->expects($this->once())
-			->method('update')
+			->method('updateForQueuedJob')
 			->with($this->callback(fn ($updatedFile) => $updatedFile->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value))
 			->willReturnArgument(0);
 
@@ -186,7 +189,6 @@ class AsyncSigningServiceTest extends TestCase {
 		$this->secureRandom->method('generate')->willReturn('random');
 		$this->credentialsManager->method('store');
 		$this->jobList->method('add');
-		$this->workerHealthService->method('ensureWorkerRunning');
 
 		$this->service->enqueueSigningJob(
 			$file,
@@ -207,7 +209,7 @@ class AsyncSigningServiceTest extends TestCase {
 		$file->setMetadata(['old' => 'data']);
 
 		$this->fileStatusService->expects($this->once())
-			->method('update')
+			->method('updateForQueuedJob')
 			->with($this->callback(fn ($updatedFile) => $updatedFile->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value))
 			->willReturnArgument(0);
 
@@ -218,7 +220,6 @@ class AsyncSigningServiceTest extends TestCase {
 		$this->secureRandom->method('generate')->willReturn('random');
 		$this->credentialsManager->method('store');
 		$this->jobList->method('add');
-		$this->workerHealthService->method('ensureWorkerRunning');
 
 		$this->service->enqueueSigningJob(
 			$file,
@@ -233,43 +234,66 @@ class AsyncSigningServiceTest extends TestCase {
 		);
 	}
 
-	public function testWorkerEnsuredAfterEnqueue(): void {
+	public function testEnqueueRollsBackStatusAndDeletesCredentialsWhenAddingJobFails(): void {
 		$file = new LibreSignFile();
 		$file->setId(1);
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
 		$file->setMetadata([]);
-
 		$signRequest = new SignRequest();
 		$signRequest->setId(1);
 		$signRequest->setDisplayName('User');
-
 		$this->secureRandom->method('generate')->willReturn('random');
-		$this->fileStatusService->method('update');
+		$this->credentialsManager->expects($this->once())->method('store');
+		$this->credentialsManager->expects($this->once())->method('delete')
+			->with('', 'libresign_sign_1_random');
+		$this->db->expects($this->once())->method('beginTransaction');
+		$this->db->expects($this->never())->method('commit');
+		$this->db->expects($this->once())->method('rollBack');
+		$this->fileStatusService->expects($this->once())->method('updateForQueuedJob')
+			->willReturnCallback(function (LibreSignFile $current): LibreSignFile {
+				return $current;
+			});
+		$this->jobList->expects($this->once())->method('add')
+			->willThrowException(new \RuntimeException('Queue unavailable'));
+
+		try {
+			$this->service->enqueueSigningJob($file, $signRequest, null, 'account:test', true, null, null, [], []);
+			$this->fail('Expected enqueue error');
+		} catch (\RuntimeException $e) {
+			$this->assertSame('Queue unavailable', $e->getMessage());
+		}
+		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $file->getStatus());
+	}
+
+	public function testEnqueueCommitsOnlyAfterAddingJob(): void {
+		$file = new LibreSignFile();
+		$file->setId(1);
+		$file->setMetadata([]);
+		$signRequest = new SignRequest();
+		$signRequest->setId(1);
+		$signRequest->setDisplayName('User');
+		$this->secureRandom->method('generate')->willReturn('random');
 		$this->credentialsManager->method('store');
-
-		$jobAdded = false;
-		$this->jobList->expects($this->once())
-			->method('add')
-			->willReturnCallback(function () use (&$jobAdded): void {
-				$jobAdded = true;
+		$events = [];
+		$this->db->expects($this->once())->method('beginTransaction')->willReturnCallback(static function () use (&$events): void {
+			$events[] = 'begin';
+		});
+		$this->fileStatusService->method('updateForQueuedJob')->willReturnCallback(static function ($file) use (&$events) {
+			$events[] = 'status';
+			return $file;
+		});
+		$this->jobList->expects($this->once())->method('add')->willReturnCallback(static function () use (&$events): void {
+			$events[] = 'job';
+		});
+		$this->fileStatusService->expects($this->once())->method('publishQueuedJobStatus')
+			->willReturnCallback(static function () use (&$events): void {
+				$events[] = 'publish';
 			});
+		$this->db->expects($this->once())->method('commit')->willReturnCallback(static function () use (&$events): void {
+			$events[] = 'commit';
+		});
 
-		$this->workerHealthService->expects($this->once())
-			->method('ensureWorkerRunning')
-			->willReturnCallback(function () use (&$jobAdded) {
-				$this->assertTrue($jobAdded, 'Worker should be ensured AFTER job is added');
-				return true;
-			});
-
-		$this->service->enqueueSigningJob(
-			$file,
-			$signRequest,
-			null,
-			'account:test',
-			true,
-			null,
-			null,
-			[],
-			[]
-		);
+		$this->service->enqueueSigningJob($file, $signRequest, null, 'account:test', true, null, null, [], []);
+		$this->assertSame(['begin', 'status', 'job', 'commit', 'publish'], $events);
 	}
 }
