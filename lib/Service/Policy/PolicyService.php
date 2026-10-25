@@ -238,23 +238,42 @@ class PolicyService {
 			return 0;
 		}
 
-		$visibleCount = 0;
+		/** @var array<string, true> $visibleGroupIds */
+		$visibleGroupIds = [];
 
-		foreach ($this->source->listGroupPoliciesByKeyForTargets($definition->key(), $groupIds) as $record) {
-			$groupId = (string)($record['targetId'] ?? '');
-			$policy = $record['policy'] ?? null;
-			if ($groupId === '' || !$policy instanceof PolicyLayer) {
-				continue;
+		foreach ($this->getCountedPolicyKeys($definition) as $policyKey) {
+			foreach ($this->source->listGroupPoliciesByKeyForTargets($policyKey, $groupIds) as $record) {
+				$groupId = (string)($record['targetId'] ?? '');
+				$policy = $record['policy'] ?? null;
+				if ($groupId === '' || !$policy instanceof PolicyLayer) {
+					continue;
+				}
+
+				if (!$this->canViewGroupPolicy($policyKey, $groupId, $policy)) {
+					continue;
+				}
+
+				$visibleGroupIds[$groupId] = true;
 			}
-
-			if (!$this->canViewGroupPolicy($definition->key(), $groupId, $policy)) {
-				continue;
-			}
-
-			$visibleCount++;
 		}
 
-		return $visibleCount;
+		return count($visibleGroupIds);
+	}
+
+	/**
+	 * A group with a rule on a composite child edited through this policy also counts for it.
+	 *
+	 * @return list<string>
+	 */
+	private function getCountedPolicyKeys(IPolicyDefinition $definition): array {
+		$policyKeys = [$definition->key()];
+		foreach ($definition->compositeChildren() as $childKey) {
+			if ($this->registry->get($childKey)->parentPolicyKey() === $definition->key()) {
+				$policyKeys[] = $childKey;
+			}
+		}
+
+		return $policyKeys;
 	}
 
 	public function saveGroupPolicy(string|\BackedEnum $policyKey, string $groupId, mixed $value, bool $allowChildOverride): PolicyLayer {
