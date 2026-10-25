@@ -18,14 +18,17 @@ class LocalWorkerStateStore {
 	/** @param callable(): bool $operation */
 	public function withExclusiveLock(callable $operation): bool {
 		$handle = $this->openLock();
-		if (!flock($handle, LOCK_EX | LOCK_NB)) {
-			fclose($handle);
-			return true; // A concurrent request owns the launch decision.
-		}
 		try {
+			$wouldBlock = 0;
+			if (!flock($handle, LOCK_EX | LOCK_NB, $wouldBlock)) {
+				if ($wouldBlock !== 0) {
+					return true; // Another request is deciding whether to launch.
+				}
+				throw new \RuntimeException('Cannot acquire local worker launch lock');
+			}
 			return $operation();
 		} finally {
-			flock($handle, LOCK_UN);
+			// Closing the descriptor releases the flock even on exceptions.
 			fclose($handle);
 		}
 	}

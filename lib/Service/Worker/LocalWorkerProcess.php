@@ -10,15 +10,21 @@ namespace OCA\Libresign\Service\Worker;
 
 /** Linux process identity is local to a PID namespace, never a cluster lock. */
 class LocalWorkerProcess {
+	public function __construct(
+		private string $procRoot = '/proc',
+		private ?string $expectedOccPath = null,
+	) {
+	}
+
 	public function isSupported(): bool {
-		return PHP_OS_FAMILY === 'Linux' && function_exists('flock') && is_dir('/proc');
+		return PHP_OS_FAMILY === 'Linux' && function_exists('flock') && is_dir($this->procRoot);
 	}
 
 	public function startTime(int $pid): ?string {
 		if ($pid <= 0) {
 			return null;
 		}
-		$stat = @file_get_contents('/proc/' . $pid . '/stat');
+		$stat = @file_get_contents($this->procRoot . '/' . $pid . '/stat');
 		if (!is_string($stat)) {
 			return null;
 		}
@@ -33,15 +39,18 @@ class LocalWorkerProcess {
 
 	public function isRunning(int $pid, string $startTime): bool {
 		if ($startTime === '' || $this->startTime($pid) !== $startTime
-			|| (function_exists('posix_geteuid') && @fileowner('/proc/' . $pid) !== posix_geteuid())) {
+			|| (function_exists('posix_geteuid') && @fileowner($this->procRoot . '/' . $pid) !== posix_geteuid())) {
 			return false;
 		}
-		$cmd = @file_get_contents('/proc/' . $pid . '/cmdline');
+		$cmd = @file_get_contents($this->procRoot . '/' . $pid . '/cmdline');
 		if (!is_string($cmd) || $cmd === '') {
 			return false;
 		}
 		$argv = explode("\0", trim($cmd, "\0"));
+		// A PID is not a worker identity: ensure it is the OCC command for this
+		// Nextcloud instance, not another process named occ on the same host.
+		$expectedOcc = $this->expectedOccPath ?? \OC::$SERVERROOT . '/occ';
 		return in_array('background-job:worker', $argv, true)
-			&& count(array_filter($argv, static fn (string $arg): bool => $arg === 'occ' || str_ends_with($arg, '/occ'))) > 0;
+			&& in_array($expectedOcc, $argv, true);
 	}
 }

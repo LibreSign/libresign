@@ -35,6 +35,10 @@ class WorkerStarter {
 		$process = $this->createProcess($command);
 		// Request that Symfony detach the child from the HTTP request lifetime.
 		$process->setOptions(['create_new_console' => true]);
+		// The HTTP request cannot keep reading child stdout/stderr. Detached
+		// pipes would close when Symfony destroys the Process object, and a
+		// worker writing progress to stdout could then terminate on SIGPIPE.
+		$process->disableOutput();
 		$process->setTimeout(null);
 		$process->start();
 		$pid = (int)$process->getPid();
