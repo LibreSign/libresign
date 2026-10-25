@@ -70,6 +70,27 @@ When updating your branch with changes from `main`, rebasing is preferred when p
 
 More information [here](https://docs.libresign.coop/developer_manual/getting-started/development-environment/setup), at the [official documentation](https://docs.libresign.coop/developer_manual/getting-started/development-environment/setup)
 
+### Classifying OpenAPI endpoints
+
+Documented HTTP operations use a functional OpenAPI tag, not a controller-name tag. Add or update a method-level `#[OpenAPI(tags: ['...'])]` attribute on the controller action. If the method already has an explicit `scope` (for example `SCOPE_ADMINISTRATION` or `SCOPE_IGNORE`), keep that scope and add the tag on the same attribute.
+
+Approved tags: `appearance`, `certificates`, `documents`, `identity`, `notifications`, `policies`, `requests`, `signing`, `system`, `verification`.
+
+Classify by what the operation does:
+
+- `requests`: create, update, cancel, or inspect signature requests
+- `signing`: sign, reject, renew, or request a signing code
+- `documents`: store, list, attach, delete, or thumbnail files
+- `verification`: validate a document or certificate status
+- `identity`: account, signer identity, or identification documents
+- `appearance`: visible elements, stamps, footer, or signature backgrounds
+- `certificates`: certificate engines, policies, CRL publication, or revocation
+- `policies`: policy reads and writes
+- `notifications`: signer or in-app notification delivery
+- `system`: instance setup or infrastructure configuration
+
+Do not invent a new tag from the controller class name. After changing attributes, regenerate with `composer run openapi` and `npm run typescript:generate`, then run `composer openapi:check-tags`. Do not hand-edit generated OpenAPI JSON or TypeScript.
+
 After your first contribution
 -----------------------------
 
