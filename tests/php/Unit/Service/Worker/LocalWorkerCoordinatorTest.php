@@ -82,52 +82,20 @@ class LocalWorkerCoordinatorTest extends TestCase {
 		$this->assertSame(1, $starts);
 	}
 
-	public function testConcurrentRequestsLaunchOneWorker(): void {
-		if (!function_exists('pcntl_fork')) {
-			$this->markTestSkipped('Requires POSIX process isolation');
-		}
-		$marker = $this->directory . '-started';
-		$release = $this->directory . '-release';
+	public function testContendingRequestDoesNotLaunchWhileCoordinatorLockIsHeld(): void {
 		$starter = $this->createMock(WorkerStarter::class);
-		$starter->method('startWorker')->willReturnCallback(static function () use ($marker, $release): int {
-			file_put_contents($marker, "started\n", FILE_APPEND);
-			$deadline = microtime(true) + 4;
-			while (!is_file($release) && microtime(true) < $deadline) {
-				usleep(10000);
-			}
-			if (!is_file($release)) {
-				throw new \RuntimeException('Concurrent request did not finish');
-			}
-			return 6551;
-		});
+		$starter->expects($this->never())->method('startWorker');
 		$counter = $this->createMock(WorkerJobCounter::class);
-		$counter->method('countEligibleJobs')->willReturn(1);
-		$child = pcntl_fork();
-		$this->assertNotSame(-1, $child, 'Could not start parallel request');
-		if ($child === 0) {
-			try {
-				$this->coordinator($starter, $counter)->ensureCapacity(1);
-				exit(0);
-			} catch (\Exception) {
-				exit(1);
-			}
-		}
-		try {
-			$deadline = microtime(true) + 3;
-			while (!is_file($marker) && microtime(true) < $deadline) {
-				usleep(10000);
-			}
-			$this->assertFileExists($marker);
-			$this->assertTrue($this->coordinator($starter, $counter)->ensureCapacity(1));
-			file_put_contents($release, 'ok');
-			pcntl_waitpid($child, $status);
-			$this->assertTrue(pcntl_wifexited($status) && pcntl_wexitstatus($status) === 0);
-			$this->assertCount(1, file($marker));
-		} finally {
-			file_put_contents($release, 'ok');
-			@unlink($marker);
-			@unlink($release);
-		}
+		$counter->expects($this->never())->method('countEligibleJobs');
+		$coordinator = $this->coordinator($starter, $counter);
+		$store = new LocalWorkerStateStore($this->directory);
+
+		// Separate file descriptors contend for the same OS-level flock.
+		// Avoid pcntl_fork within PHPUnit: forking shares coverage/Xdebug state
+		// and an unbounded waitpid can deadlock all GitHub Actions matrices.
+		$this->assertTrue($store->withExclusiveLock(
+			fn (): bool => $coordinator->ensureCapacity(1),
+		));
 	}
 
 	public function testRestrictedProcfsLeavesSigningWorkToNextcloudCron(): void {
