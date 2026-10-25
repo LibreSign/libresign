@@ -37,38 +37,64 @@ class LocalWorkerCoordinator {
 
 	private function launchUnderLock(int $desired): bool {
 		$state = $this->store->readState();
-		$running = [];
-		foreach ($state['workers'] ?? [] as $entry) {
-			if (is_array($entry) && $this->processes->isRunning((int)($entry['pid'] ?? 0), (string)($entry['start'] ?? ''))) {
-				$running[] = $entry;
-			}
+		$running = $this->runningWorkers($state['workers'] ?? []);
+		$availableSlots = max(0, $desired - count($running));
+		$toStart = $this->workersToStart($availableSlots, $state);
+
+		if ($toStart > 0) {
+			$state['lastAttempt'] = microtime(true);
+			$running = $this->startWorkers($toStart, $running);
 		}
 
-		$capacity = max(0, $desired - count($running));
-		$wanted = 0;
-		if ($capacity > 0 && microtime(true) - (float)($state['lastAttempt'] ?? 0) >= self::COOLDOWN_SECONDS) {
-			$wanted = min($capacity, $this->jobCounter->countEligibleJobs($capacity));
-			if ($wanted > 0) {
-				$state['lastAttempt'] = microtime(true);
-			}
-			for ($i = 0; $i < $wanted; $i++) {
-				try {
-					$pid = $this->starter->startWorker();
-					$startTime = $this->processes->startTime($pid);
-					if ($startTime !== null) {
-						$running[] = ['pid' => $pid, 'start' => $startTime];
-					} else {
-						$this->logger->warning('Worker process identity is unavailable', ['pid' => $pid]);
-					}
-				} catch (\RuntimeException $e) {
-					$this->logger->warning('Cannot start local signing worker', ['exception' => $e]);
-					break;
-				}
-			}
-		}
 		$state['workers'] = $running;
 		$this->store->writeState($state);
-		return $running !== [] || $wanted === 0;
+		return $running !== [] || $toStart === 0;
 	}
 
+	/** @param array<mixed> $entries
+	 * @return list<array{pid: int, start: string}>
+	 */
+	private function runningWorkers(array $entries): array {
+		$running = [];
+		foreach ($entries as $entry) {
+			if (!is_array($entry)) {
+				continue;
+			}
+			$pid = (int)($entry['pid'] ?? 0);
+			$startTime = (string)($entry['start'] ?? '');
+			if ($this->processes->isRunning($pid, $startTime)) {
+				$running[] = ['pid' => $pid, 'start' => $startTime];
+			}
+		}
+		return $running;
+	}
+
+	/** @param array<string, mixed> $state */
+	private function workersToStart(int $availableSlots, array $state): int {
+		if ($availableSlots === 0 || microtime(true) - (float)($state['lastAttempt'] ?? 0) < self::COOLDOWN_SECONDS) {
+			return 0;
+		}
+		return min($availableSlots, $this->jobCounter->countEligibleJobs($availableSlots));
+	}
+
+	/** @param list<array{pid: int, start: string}> $running
+	 * @return list<array{pid: int, start: string}>
+	 */
+	private function startWorkers(int $count, array $running): array {
+		for ($i = 0; $i < $count; $i++) {
+			try {
+				$pid = $this->starter->startWorker();
+				$startTime = $this->processes->startTime($pid);
+				if ($startTime === null) {
+					$this->logger->warning('Worker process identity is unavailable', ['pid' => $pid]);
+					continue;
+				}
+				$running[] = ['pid' => $pid, 'start' => $startTime];
+			} catch (\RuntimeException $e) {
+				$this->logger->warning('Cannot start local signing worker', ['exception' => $e]);
+				break;
+			}
+		}
+		return $running;
+	}
 }

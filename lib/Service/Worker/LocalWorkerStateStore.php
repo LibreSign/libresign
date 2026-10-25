@@ -32,15 +32,8 @@ class LocalWorkerStateStore {
 
 	/** @return resource */
 	private function openLock() {
-		$directory = $this->directory();
-		if (!is_dir($directory) && !@mkdir($directory, 0700) && !is_dir($directory)) {
-			throw new \RuntimeException('Cannot create local worker registry');
-		}
-		if (is_link($directory) || ((int)fileperms($directory) & 0077) !== 0
-			|| (function_exists('posix_geteuid') && fileowner($directory) !== posix_geteuid())) {
-			throw new \RuntimeException('Unsafe local worker registry permissions');
-		}
-		$path = $directory . '/lock';
+		$this->ensurePrivateDirectory();
+		$path = $this->directory() . '/lock';
 		if (is_link($path)) {
 			throw new \RuntimeException('Unsafe local worker lock');
 		}
@@ -57,6 +50,17 @@ class LocalWorkerStateStore {
 		return $handle;
 	}
 
+	private function ensurePrivateDirectory(): void {
+		$directory = $this->directory();
+		if (!is_dir($directory) && !@mkdir($directory, 0700) && !is_dir($directory)) {
+			throw new \RuntimeException('Cannot create local worker registry');
+		}
+		if (is_link($directory) || ((int)fileperms($directory) & 0077) !== 0
+			|| (function_exists('posix_geteuid') && fileowner($directory) !== posix_geteuid())) {
+			throw new \RuntimeException('Unsafe local worker registry permissions');
+		}
+	}
+
 	/** @return array<string, mixed> */
 	public function readState(): array {
 		$path = $this->directory() . '/workers.json';
@@ -68,8 +72,16 @@ class LocalWorkerStateStore {
 		} catch (\JsonException $e) {
 			throw new \RuntimeException('Invalid local worker state', previous: $e);
 		}
-		if (!is_array($state) || !is_array($state['workers'] ?? null)) {
+		if (!is_array($state) || !is_array($state['workers'] ?? null) || !array_is_list($state['workers'])) {
 			throw new \RuntimeException('Invalid local worker state');
+		}
+		foreach ($state['workers'] as $worker) {
+			if (!is_array($worker) || !is_int($worker['pid'] ?? null) || $worker['pid'] <= 0
+				|| !is_string($worker['start'] ?? null) || $worker['start'] === '') {
+				// Treat corruption as a launch failure, not as an empty pool that
+				// might exceed the configured concurrency limit.
+				throw new \RuntimeException('Invalid local worker process record');
+			}
 		}
 		return $state;
 	}
