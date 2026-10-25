@@ -46,82 +46,85 @@ class AsyncSigningService {
 		array $visibleElements,
 		array $metadata,
 	): array {
-		// Both the job and the status belong to the same database transaction.
-		// Without it the status may survive a failed enqueue, or a worker may
-		// claim the job before its signing status has been persisted.
-		$previousStatus = $libreSignFile->getStatus();
-		$previousMetadata = $libreSignFile->getMetadata();
 		$credentialsId = $this->storeCredentials($signRequest, $user, $signWithoutPassword, $password);
-		$jobUserId = $user?->getUID() ?? $libreSignFile->getUserId();
-		$transactionOpen = false;
+		$jobArguments = [
+			'fileId' => $libreSignFile->getId(),
+			'signRequestId' => $signRequest->getId(),
+			'signRequestUuid' => $signRequest->getUuid(),
+			'userId' => $user?->getUID() ?? $libreSignFile->getUserId(),
+			'credentialsId' => $credentialsId,
+			'isExternalSigner' => $user === null,
+			'userUniqueIdentifier' => $userUniqueIdentifier,
+			'friendlyName' => $signRequest->getDisplayName(),
+			'signatureMethod' => $signatureMethod,
+			'visibleElements' => $visibleElements,
+			'metadata' => $metadata,
+		];
+		$this->persistQueuedJob($libreSignFile, $jobArguments, $user?->getUID() ?? '', $credentialsId);
+		$this->invalidateQueuedStatus($libreSignFile);
 
+		// The queued job is durable even if this best-effort launch fails.
+		$this->workerActivationService->ensureWorkerRunning();
+		return ['credentialsId' => $credentialsId, 'jobAdded' => true];
+	}
+
+	/** @param array<string, mixed> $jobArguments */
+	private function persistQueuedJob(LibreSignFile $file, array $jobArguments, string $credentialOwner, string $credentialsId): void {
+		$previousStatus = $file->getStatus();
+		$previousMetadata = $file->getMetadata();
+		$transactionOpen = false;
 		try {
+			// The job and its signing status must become visible together.
 			$this->db->beginTransaction();
 			$transactionOpen = true;
-
-			$libreSignFile->setStatus(FileStatus::SIGNING_IN_PROGRESS->value);
-			$this->fileStatusService->updateForQueuedJob($libreSignFile);
-
-			$this->jobList->add(SignFileJob::class, [
-				'fileId' => $libreSignFile->getId(),
-				'signRequestId' => $signRequest->getId(),
-				'signRequestUuid' => $signRequest->getUuid(),
-				'userId' => $jobUserId,
-				'credentialsId' => $credentialsId,
-				'isExternalSigner' => $user === null,
-				'userUniqueIdentifier' => $userUniqueIdentifier,
-				'friendlyName' => $signRequest->getDisplayName(),
-				'signatureMethod' => $signatureMethod,
-				'visibleElements' => $visibleElements,
-				'metadata' => $metadata,
-			]);
-
+			$file->setStatus(FileStatus::SIGNING_IN_PROGRESS->value);
+			$this->fileStatusService->updateForQueuedJob($file);
+			$this->jobList->add(SignFileJob::class, $jobArguments);
 			$this->db->commit();
-			$transactionOpen = false;
 		} catch (\Throwable $error) {
-			// Roll back and rethrow even PHP Errors. Never turn a programming
-			// failure into an empty queue or a successful signing response.
-			$rolledBack = !$transactionOpen;
-			if ($transactionOpen) {
-				try {
-					$this->db->rollBack();
-					$rolledBack = true;
-				} catch (\Exception $rollbackError) {
-					// A commit failure may be ambiguous. Do not delete credentials
-					// when a job may have been committed.
-					$this->logger->error('Cannot roll back the signing enqueue', ['exception' => $rollbackError]);
-				}
-			}
-			if ($rolledBack) {
-				try {
-					$this->fileStatusService->discardQueuedJobStatus($libreSignFile, $previousStatus, $previousMetadata);
-				} catch (\Exception $cacheError) {
-					$this->logger->warning('Cannot discard uncommitted signing status', ['exception' => $cacheError]);
-				}
-				try {
-					$this->credentialsManager->delete($user?->getUID() ?? '', $credentialsId);
-				} catch (\Exception $cleanupError) {
-					$this->logger->warning('Cannot remove unused signing credentials', ['exception' => $cleanupError]);
-				}
-			}
+			// Compensate and rethrow even programming errors; never report that a
+			// failed enqueue succeeded or discard a possibly committed job.
+			$this->compensateFailedEnqueue($file, $previousStatus, $previousMetadata, $credentialOwner, $credentialsId, $transactionOpen);
 			throw $error;
 		}
+	}
 
-		try {
-			$this->fileStatusService->onQueuedJobCommitted($libreSignFile);
-		} catch (\Exception $e) {
-			// Cache errors after commit must not cause a second signing request.
-			$this->logger->warning('Unable to publish queued signing status', ['exception' => $e]);
+	private function compensateFailedEnqueue(
+		LibreSignFile $file,
+		int $previousStatus,
+		?array $previousMetadata,
+		string $credentialOwner,
+		string $credentialsId,
+		bool $transactionOpen,
+	): void {
+		if ($transactionOpen) {
+			try {
+				$this->db->rollBack();
+			} catch (\Exception $e) {
+				// After an ambiguous commit, these credentials may still be needed.
+				$this->logger->error('Cannot roll back the signing enqueue', ['exception' => $e]);
+				return;
+			}
 		}
+		try {
+			$this->fileStatusService->discardQueuedJobStatus($file, $previousStatus, $previousMetadata);
+		} catch (\Exception $e) {
+			$this->logger->warning('Cannot discard uncommitted signing status', ['exception' => $e]);
+		}
+		try {
+			$this->credentialsManager->delete($credentialOwner, $credentialsId);
+		} catch (\Exception $e) {
+			$this->logger->warning('Cannot remove unused signing credentials', ['exception' => $e]);
+		}
+	}
 
-		// Worker launch is best effort. The job is already committed and can be
-		// processed by the normal Nextcloud cron if local launch fails.
-		$this->workerActivationService->ensureWorkerRunning();
-
-		return [
-			'credentialsId' => $credentialsId,
-			'jobAdded' => true,
-		];
+	private function invalidateQueuedStatus(LibreSignFile $file): void {
+		try {
+			$this->fileStatusService->onQueuedJobCommitted($file);
+		} catch (\Exception $e) {
+			// A cache failure after commit must not initiate a second signing.
+			$this->logger->warning('Unable to invalidate queued signing status', ['exception' => $e]);
+		}
 	}
 
 	private function storeCredentials(
