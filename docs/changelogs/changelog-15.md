@@ -19,6 +19,35 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 15.0.9 - 2026-10-24
+
+### Changed
+- Update translations
+- Update dependencies
+- Fix npm audit
+  [#9079](https://github.com/LibreSign/libresign/pull/9079)
+- Internal maintenance
+
+### Fixed
+- apply signer removal to every document in an envelope
+  [#9114](https://github.com/LibreSign/libresign/pull/9114)
+- install Java when using the native signature engine
+  [#9131](https://github.com/LibreSign/libresign/pull/9131)
+- open signed PDF by UUID instead of owner node ID
+  [#9134](https://github.com/LibreSign/libresign/pull/9134)
+- base the validation summary on applied signatures only
+  [#9140](https://github.com/LibreSign/libresign/pull/9140)
+- allow clearing a signer custom message Fixed #9124
+  [#9152](https://github.com/LibreSign/libresign/pull/9152)
+- preserve hexadecimal certificate serial numbers
+  [#9157](https://github.com/LibreSign/libresign/pull/9157)
+- repair LibreSign appconfig type conflicts
+  [#9171](https://github.com/LibreSign/libresign/pull/9171)
+- restore and validate temporary visible signature PNGs
+  [#9193](https://github.com/LibreSign/libresign/pull/9193)
+- prevent duplicate files after failed updates
+  [#9196](https://github.com/LibreSign/libresign/pull/9196)
+
 ## 15.0.8 - 2026-10-07
 
 ### Changed
