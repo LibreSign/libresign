@@ -51,6 +51,7 @@ help:
 		'  cs-check           run PHP-CS-Fixer in check mode' \
 		'  typecheck          run TypeScript checks' \
 		'  static-analysis    run Psalm' \
+		'  openapi-check-tags verify approved OpenAPI functional tags' \
 		'  check              run non-runtime pre-PR checks'
 
 # Installs and updates the composer dependencies. If composer is not installed
@@ -87,7 +88,7 @@ watch-js:
 	npm run watch
 
 # Linting and static analysis
-.PHONY: lint lint-fix stylelint lint-php cs-check typecheck static-analysis
+.PHONY: lint lint-fix stylelint lint-php cs-check typecheck static-analysis openapi-check-tags
 lint:
 	npm run lint
 
@@ -109,6 +110,9 @@ typecheck:
 
 static-analysis:
 	composer psalm
+
+openapi-check-tags:
+	composer openapi:check-tags
 
 # Cleaning
 .PHONY: clean clean-dev
@@ -147,7 +151,7 @@ test-e2e:
 
 # Pre-PR validation that does not require browser or mutable integration state.
 # Runtime suites remain explicit through test-integration, test-behat and test-e2e.
-check: lint stylelint lint-php cs-check typecheck static-analysis test-unit test-frontend
+check: lint stylelint lint-php cs-check typecheck static-analysis openapi-check-tags test-unit test-frontend
 
 .PHONY: update-workflows
 update-workflows:
