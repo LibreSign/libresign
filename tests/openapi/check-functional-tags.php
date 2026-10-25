@@ -74,6 +74,106 @@ const KNOWN_FULL_SPEC_OMISSIONS = [
 	'footer_template-get-footer-template',
 ];
 
+/**
+ * Golden operationId → functional tag map for every documented operation.
+ *
+ * Sourced from the union of openapi.json and openapi-administration.json on
+ * this branch after the #9088 taxonomy was applied. Aggregate counts cannot
+ * catch a swap between two operations, so each operationId is asserted here.
+ *
+ * @var array<string, string>
+ */
+const EXPECTED_OPERATION_TAGS = [
+	'account-create-to-sign' => 'identity',
+	'account-delete-pfx' => 'identity',
+	'account-me' => 'identity',
+	'account-read-pfx-data' => 'identity',
+	'account-set-config' => 'identity',
+	'account-signature-generate' => 'identity',
+	'account-update-pfx-password' => 'identity',
+	'account-update-settings' => 'identity',
+	'account-upload-pfx' => 'identity',
+	'admin-configure-check' => 'system',
+	'admin-delete-certificate-policy' => 'certificates',
+	'admin-generate-certificate-cfssl' => 'certificates',
+	'admin-generate-certificate-open-ssl' => 'certificates',
+	'admin-get-active-signings' => 'requests',
+	'admin-get-geo-ip-config' => 'system',
+	'admin-load-certificate' => 'certificates',
+	'admin-save-certificate-policy' => 'certificates',
+	'admin-save-geo-ip-config' => 'system',
+	'admin-set-certificate-engine' => 'certificates',
+	'admin-signature-background-delete' => 'appearance',
+	'admin-signature-background-get' => 'appearance',
+	'admin-signature-background-save' => 'appearance',
+	'admin-update-oid' => 'certificates',
+	'certificate_policy-get-certificate-policy' => 'certificates',
+	'crl-check-certificate-status' => 'verification',
+	'crl-get-revocation-list' => 'certificates',
+	'crl_api-list' => 'certificates',
+	'crl_api-revoke' => 'certificates',
+	'file-add-file-to-envelope' => 'documents',
+	'file-delete-file' => 'documents',
+	'file-get-thumbnail' => 'documents',
+	'file-get-thumbnail-by-file-id' => 'documents',
+	'file-list' => 'documents',
+	'file-save' => 'documents',
+	'file-validate-binary' => 'verification',
+	'file-validate-file-id' => 'verification',
+	'file-validate-uuid' => 'verification',
+	'file_element-create-visible-element' => 'appearance',
+	'file_element-delete-visible-element' => 'appearance',
+	'file_element-update-visible-element' => 'appearance',
+	'file_progress-check-progress-by-uuid' => 'signing',
+	'footer_template-get-footer-template' => 'appearance',
+	'footer_template-preview-pdf' => 'appearance',
+	'footer_template-save-footer-template' => 'appearance',
+	'id_docs-add-files' => 'identity',
+	'id_docs-delete' => 'identity',
+	'id_docs-list-to-approval' => 'identity',
+	'id_docs-list-unauthenticated-signer-documents' => 'identity',
+	'identify-search' => 'identity',
+	'notify-notification-dismiss' => 'notifications',
+	'notify-signer' => 'notifications',
+	'notify-signers' => 'notifications',
+	'policy-clear-group' => 'policies',
+	'policy-clear-user-policy-for-user' => 'policies',
+	'policy-clear-user-preference' => 'policies',
+	'policy-effective' => 'policies',
+	'policy-get-group' => 'policies',
+	'policy-get-system' => 'policies',
+	'policy-get-user-policy-for-user' => 'policies',
+	'policy-list-group-policies' => 'policies',
+	'policy-list-user-policies' => 'policies',
+	'policy-set-group' => 'policies',
+	'policy-set-group-compound' => 'policies',
+	'policy-set-system' => 'policies',
+	'policy-set-system-compound' => 'policies',
+	'policy-set-user-policy-for-user' => 'policies',
+	'policy-set-user-policy-for-user-compound' => 'policies',
+	'policy-set-user-preference' => 'policies',
+	'policy-set-user-preference-compound' => 'policies',
+	'request_signature-delete-signature-request' => 'requests',
+	'request_signature-remove-signer' => 'requests',
+	'request_signature-request-signature' => 'requests',
+	'request_signature-update-signature-request' => 'requests',
+	'setting-has-root-cert' => 'certificates',
+	'sign_file-reject-by-file-id' => 'signing',
+	'sign_file-reject-by-signer-uuid' => 'signing',
+	'sign_file-request-code-by-file-id' => 'signing',
+	'sign_file-request-code-by-signer-uuid' => 'signing',
+	'sign_file-sign-by-file-id' => 'signing',
+	'sign_file-sign-by-signer-uuid' => 'signing',
+	'sign_file-sign-renew' => 'signing',
+	'signature_elements-create-signature-element' => 'appearance',
+	'signature_elements-delete-signature-element' => 'appearance',
+	'signature_elements-get-signature-element' => 'appearance',
+	'signature_elements-get-signature-elements' => 'appearance',
+	'signature_elements-patch-signature-element' => 'appearance',
+	'signature_elements-preview-signature-element' => 'appearance',
+	'signature_stamp_preview-preview-pdf' => 'appearance',
+];
+
 const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'];
 
 /**
@@ -189,6 +289,58 @@ function indexById(array $operations): array {
 	return $indexed;
 }
 
+/**
+ * @param array<string, array{operationId: string, method: string, path: string, tags: list<string>}> $union
+ * @return list<string>
+ */
+function collectGoldenMapErrors(array $union): array {
+	$errors = [];
+	$expected = EXPECTED_OPERATION_TAGS;
+	ksort($expected);
+
+	$mapCounts = array_fill_keys(APPROVED_TAGS, 0);
+	foreach ($expected as $tag) {
+		if (!isset($mapCounts[$tag])) {
+			$mapCounts[$tag] = 0;
+		}
+		$mapCounts[$tag]++;
+	}
+	ksort($mapCounts);
+	$expectedCounts = EXPECTED_UNION_COUNTS;
+	ksort($expectedCounts);
+	if ($mapCounts !== $expectedCounts) {
+		$errors[] = 'EXPECTED_OPERATION_TAGS counts do not match EXPECTED_UNION_COUNTS: map '
+			. json_encode($mapCounts) . ', counts ' . json_encode($expectedCounts);
+	}
+
+	$expectedTotal = array_sum($expectedCounts);
+	if (count($expected) !== $expectedTotal) {
+		$errors[] = 'EXPECTED_OPERATION_TAGS must list ' . $expectedTotal
+			. ' operations, got ' . count($expected);
+	}
+
+	$missing = array_values(array_diff(array_keys($expected), array_keys($union)));
+	$extra = array_values(array_diff(array_keys($union), array_keys($expected)));
+	if ($missing !== []) {
+		$errors[] = 'Union is missing operationIds from the golden map: ' . implode(', ', $missing);
+	}
+	if ($extra !== []) {
+		$errors[] = 'Union has operationIds that are not in the golden map: ' . implode(', ', $extra);
+	}
+
+	foreach ($union as $id => $operation) {
+		if (!isset($expected[$id])) {
+			continue;
+		}
+		$actualTag = $operation['tags'][0] ?? '';
+		if ($actualTag !== $expected[$id]) {
+			$errors[] = "{$operation['method']} {$operation['path']} ({$id}) expected tag '{$expected[$id]}', got '{$actualTag}'";
+		}
+	}
+
+	return $errors;
+}
+
 $root = dirname(__DIR__, 2);
 $full = loadOperations($root . '/openapi-full.json');
 $default = loadOperations($root . '/openapi.json');
@@ -210,6 +362,7 @@ if ($overlap !== []) {
 
 $union = $defaultIds + $adminIds;
 ksort($union);
+$errors = [...$errors, ...collectGoldenMapErrors($union)];
 $unionOperations = array_values($union);
 $unionCounts = countTags($unionOperations);
 ksort($unionCounts);
