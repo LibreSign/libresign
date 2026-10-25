@@ -15,7 +15,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\AsyncSigningService;
 use OCA\Libresign\Service\FileStatusService;
-use OCA\Libresign\Service\Worker\WorkerHealthService;
+use OCA\Libresign\Service\Worker\WorkerActivationService;
 use OCP\BackgroundJob\IJobList;
 use OCP\IDBConnection;
 use OCP\IUser;
@@ -33,7 +33,7 @@ class AsyncSigningServiceTest extends TestCase {
 	private ISecureRandom&MockObject $secureRandom;
 	private FileStatusService&MockObject $fileStatusService;
 	private IDBConnection&MockObject $db;
-	private WorkerHealthService&MockObject $workerHealthService;
+	private WorkerActivationService&MockObject $workerActivationService;
 
 	protected function setUp(): void {
 		$this->jobList = $this->createMock(IJobList::class);
@@ -41,7 +41,7 @@ class AsyncSigningServiceTest extends TestCase {
 		$this->secureRandom = $this->createMock(ISecureRandom::class);
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
 		$this->db = $this->createMock(IDBConnection::class);
-		$this->workerHealthService = $this->createMock(WorkerHealthService::class);
+		$this->workerActivationService = $this->createMock(WorkerActivationService::class);
 
 		$this->service = new AsyncSigningService(
 			$this->jobList,
@@ -49,7 +49,7 @@ class AsyncSigningServiceTest extends TestCase {
 			$this->secureRandom,
 			$this->fileStatusService,
 			$this->db,
-			$this->workerHealthService,
+			$this->workerActivationService,
 			$this->createMock(LoggerInterface::class),
 		);
 	}

@@ -11,7 +11,7 @@ namespace OCA\Libresign\Service\Worker;
 use Psr\Log\LoggerInterface;
 
 /** Best-effort local launch coordination; not process supervision. */
-class LocalWorkerRegistry {
+class LocalWorkerCoordinator {
 	private const int COOLDOWN_SECONDS = 2;
 
 	public function __construct(

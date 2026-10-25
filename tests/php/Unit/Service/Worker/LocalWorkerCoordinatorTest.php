@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Worker;
 
+use OCA\Libresign\Service\Worker\LocalWorkerCoordinator;
 use OCA\Libresign\Service\Worker\LocalWorkerProcess;
-use OCA\Libresign\Service\Worker\LocalWorkerRegistry;
 use OCA\Libresign\Service\Worker\LocalWorkerStateStore;
 use OCA\Libresign\Service\Worker\WorkerJobCounter;
 use OCA\Libresign\Service\Worker\WorkerStarter;
@@ -17,7 +17,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
-class LocalWorkerRegistryTest extends TestCase {
+class LocalWorkerCoordinatorTest extends TestCase {
 	private string $directory;
 
 	protected function setUp(): void {
@@ -35,11 +35,11 @@ class LocalWorkerRegistryTest extends TestCase {
 		@rmdir($this->directory);
 	}
 
-	private function registry(WorkerStarter $starter, WorkerJobCounter $counter, ?LocalWorkerProcess $processes = null): LocalWorkerRegistry {
+	private function coordinator(WorkerStarter $starter, WorkerJobCounter $counter, ?LocalWorkerProcess $processes = null): LocalWorkerCoordinator {
 		$processes ??= $this->createMock(LocalWorkerProcess::class);
 		$processes->method('isSupported')->willReturn(true);
 		$processes->method('startTime')->willReturn('process-birth-time');
-		return new LocalWorkerRegistry($starter, $counter, $processes, new LocalWorkerStateStore($this->directory), $this->createMock(LoggerInterface::class));
+		return new LocalWorkerCoordinator($starter, $counter, $processes, new LocalWorkerStateStore($this->directory), $this->createMock(LoggerInterface::class));
 	}
 
 	/** @return array<string, array{int, int, int}> */
@@ -62,7 +62,7 @@ class LocalWorkerRegistryTest extends TestCase {
 		});
 		$counter = $this->createMock(WorkerJobCounter::class);
 		$counter->method('countEligibleJobs')->willReturn(min($capacity, $queued));
-		$this->assertTrue($this->registry($starter, $counter)->ensureCapacity($capacity));
+		$this->assertTrue($this->coordinator($starter, $counter)->ensureCapacity($capacity));
 		$this->assertSame($expectedStarts, $starts);
 	}
 
@@ -76,7 +76,7 @@ class LocalWorkerRegistryTest extends TestCase {
 		$processes->method('isRunning')->willReturn(true);
 		$counter = $this->createMock(WorkerJobCounter::class);
 		$counter->method('countEligibleJobs')->willReturn(20);
-		$registry = $this->registry($starter, $counter, $processes);
+		$registry = $this->coordinator($starter, $counter, $processes);
 		$this->assertTrue($registry->ensureCapacity(1));
 		$this->assertTrue($registry->ensureCapacity(1));
 		$this->assertSame(1, $starts);
@@ -106,7 +106,7 @@ class LocalWorkerRegistryTest extends TestCase {
 		$this->assertNotSame(-1, $child, 'Could not start parallel request');
 		if ($child === 0) {
 			try {
-				$this->registry($starter, $counter)->ensureCapacity(1);
+				$this->coordinator($starter, $counter)->ensureCapacity(1);
 				exit(0);
 			} catch (\Exception) {
 				exit(1);
@@ -118,7 +118,7 @@ class LocalWorkerRegistryTest extends TestCase {
 				usleep(10000);
 			}
 			$this->assertFileExists($marker);
-			$this->assertTrue($this->registry($starter, $counter)->ensureCapacity(1));
+			$this->assertTrue($this->coordinator($starter, $counter)->ensureCapacity(1));
 			file_put_contents($release, 'ok');
 			pcntl_waitpid($child, $status);
 			$this->assertTrue(pcntl_wifexited($status) && pcntl_wexitstatus($status) === 0);
@@ -135,14 +135,14 @@ class LocalWorkerRegistryTest extends TestCase {
 		$starter->method('startWorker')->willThrowException(new \RuntimeException('PHP is unavailable'));
 		$counter = $this->createMock(WorkerJobCounter::class);
 		$counter->method('countEligibleJobs')->willReturn(1);
-		$this->assertFalse($this->registry($starter, $counter)->ensureCapacity(1));
+		$this->assertFalse($this->coordinator($starter, $counter)->ensureCapacity(1));
 	}
 
 	public function testQueryErrorDoesNotLookLikeEmptyQueue(): void {
 		$counter = $this->createMock(WorkerJobCounter::class);
 		$counter->method('countEligibleJobs')->willThrowException(new \RuntimeException('Queue unavailable'));
 		$this->expectException(\RuntimeException::class);
-		$this->registry($this->createMock(WorkerStarter::class), $counter)->ensureCapacity(1);
+		$this->coordinator($this->createMock(WorkerStarter::class), $counter)->ensureCapacity(1);
 	}
 
 }
