@@ -755,6 +755,27 @@ final class PolicyServiceTest extends TestCase {
 		$this->assertSame('none', $service->saveSystem(SignatureFlowPolicy::KEY, 'none', false)->getEffectiveValue());
 	}
 
+	/**
+	 * An explicitly enforced empty default must not be mistaken for clearing
+	 * the system rule. This also exercises the legacy-empty-value boundary.
+	 */
+	public function testSaveSystemWithEmptyDefaultPersistsAnEnforcedRule(): void {
+		$this->source
+			->expects($this->once())
+			->method('saveSystemPolicy')
+			->with(LegalInformationPolicy::KEY, '', false);
+		$this->source->expects($this->never())->method('clearSystemPolicy');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->assertSame('', $service->saveSystem(LegalInformationPolicy::KEY, '', false)->getEffectiveValue());
+	}
+
 	public function testSaveSystemPersistsAllowChildOverrideWhenEnabled(): void {
 		$this->source
 			->expects($this->once())
