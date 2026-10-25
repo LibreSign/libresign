@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Worker;
 
 use OCA\Libresign\Service\Worker\LocalWorkerStateStore;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class LocalWorkerStateStoreTest extends TestCase {
@@ -40,6 +41,39 @@ class LocalWorkerStateStoreTest extends TestCase {
 			$this->assertCount(1, $second->readState()['workers']);
 			return true;
 		}));
+	}
+
+	public function testLockIsReleasedAfterAnOperationFails(): void {
+		$state = new LocalWorkerStateStore($this->directory);
+		try {
+			$state->withExclusiveLock(static function (): bool {
+				throw new \RuntimeException('Temporary worker failure');
+			});
+			$this->fail('The error must be propagated');
+		} catch (\RuntimeException $e) {
+			$this->assertSame('Temporary worker failure', $e->getMessage());
+		}
+		$this->assertTrue($state->withExclusiveLock(static fn (): bool => true));
+	}
+
+	/** @return array<string, array{array<string, mixed>}> */
+	public static function invalidWorkerStates(): array {
+		return [
+			'invalid PID' => [['workers' => [['pid' => 'invalid', 'start' => 'old-process']]]],
+			'missing process identity' => [['workers' => [['pid' => 22]]]],
+			'not a worker list' => [['workers' => ['worker' => ['pid' => 22, 'start' => '123']]]],
+		];
+	}
+
+	#[DataProvider('invalidWorkerStates')]
+	public function testCorruptWorkerRecordsDoNotPermitExtraStarts(array $invalidState): void {
+		$state = new LocalWorkerStateStore($this->directory);
+		$state->withExclusiveLock(static function () use ($state, $invalidState): bool {
+			$state->writeState($invalidState);
+			return true;
+		});
+		$this->expectException(\RuntimeException::class);
+		$state->readState();
 	}
 
 	public function testRejectsUnsafeRegistryDirectory(): void {
