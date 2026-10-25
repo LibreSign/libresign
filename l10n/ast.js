@@ -85,6 +85,7 @@ OC.L10N.register(
     "Latitude:" : "Llatitú:",
     "Name:" : "Nome:",
     "Status:" : "Estáu:",
+    "Private" : "Priváu",
     "Unknown" : "Desconocí­u",
     "Number of documents:" : "Númberu de documentos:",
     "Hide details" : "Esconder los detalles",

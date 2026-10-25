@@ -41,6 +41,7 @@ OC.L10N.register(
     "Cancel upload" : "Yüklənməni dayandır",
     "Issued by:" : "Tərəfindən verilib:",
     "Name:" : "Ad:",
+    "Private" : "Gizli",
     "Country:" : "Ölkə:",
     "No date" : "No date",
     "Yes" : "Yes",

@@ -451,6 +451,7 @@ OC.L10N.register(
     "PDF version:" : "Verze PDF formátu:",
     "View document" : "Zobrazit dokument",
     "Signers summary" : "Souhrn podepisujících",
+    "Private" : "Soukromá",
     "Unknown" : "Neznámé",
     "_{progress} of {total} document signed_::_{progress} of {total} documents signed_" : ["{progress} z {total} dokumentu podepsán","{progress} z {total} dokumentů podepsány","{progress} z {total} dokumentů podepsáno","{progress} z {total} dokumentů podepsány"],
     "Envelope information" : "Informace o obálce",
