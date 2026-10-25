@@ -385,6 +385,123 @@ describe('expiration rules workbench', () => {
 		}
 	})
 
+	it.each<{ name: string, failedPolicy: string | null, delayedPolicy: string, expectedRemaining: string[] }>([
+		{
+			name: 'parent fails while child is still clearing',
+			failedPolicy: 'maximum_validity',
+			delayedPolicy: 'renewal_interval',
+			expectedRemaining: ['maximum_validity'],
+		},
+		{
+			name: 'child fails while parent is still clearing',
+			failedPolicy: 'renewal_interval',
+			delayedPolicy: 'maximum_validity',
+			expectedRemaining: ['renewal_interval'],
+		},
+		{
+			name: 'both succeed',
+			failedPolicy: null,
+			delayedPolicy: 'renewal_interval',
+			expectedRemaining: [],
+		},
+	])('reloads request expiration rules only after every clear request settles: $name', async ({ failedPolicy, delayedPolicy, expectedRemaining }) => {
+		const persistedValues: Record<string, number> = {
+			maximum_validity: 7200,
+			renewal_interval: 600,
+		}
+		let releaseDelayedClear = () => {}
+		const delayedClear = new Promise<void>((resolve) => {
+			releaseDelayedClear = resolve
+		})
+
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'maximum_validity') {
+				return { effectiveValue: 0, sourceScope: 'system', meta: { compositeChildren: ['renewal_interval'] } }
+			}
+
+			return { effectiveValue: 0, sourceScope: 'system' }
+		})
+
+		fetchGroupPolicy.mockImplementation(async (groupId: string, policyKey: string) => {
+			if (groupId !== 'finance' || persistedValues[policyKey] === undefined) {
+				return null
+			}
+
+			return {
+				policyKey,
+				scope: 'group',
+				targetId: groupId,
+				value: persistedValues[policyKey],
+				allowChildOverride: true,
+				visibleToChild: true,
+				allowedValues: [],
+			}
+		})
+
+		clearGroupPolicy.mockImplementation(async (_groupId: string, policyKey: string) => {
+			if (policyKey === failedPolicy) {
+				throw new Error(`Could not clear ${policyKey}`)
+			}
+
+			if (policyKey === delayedPolicy) {
+				await delayedClear
+			}
+
+			delete persistedValues[policyKey]
+			return null
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('maximum_validity')
+
+		await vi.waitFor(() => {
+			expect(state.visibleGroupRules).toHaveLength(1)
+		})
+
+		fetchGroupPolicy.mockClear()
+		fetchEffectivePolicies.mockClear()
+
+		const removal = state.removeRule(state.visibleGroupRules[0]?.id ?? '')
+		const settled = removal.then(() => null, (error: Error) => error)
+
+		await vi.waitFor(() => {
+			expect(clearGroupPolicy).toHaveBeenCalledTimes(2)
+		})
+		for (let tick = 0; tick < 10; tick++) {
+			await Promise.resolve()
+		}
+
+		expect(fetchEffectivePolicies).not.toHaveBeenCalled()
+		expect(fetchGroupPolicy).not.toHaveBeenCalled()
+
+		releaseDelayedClear()
+		const error = await settled
+
+		if (failedPolicy) {
+			expect(error?.message).toBe(`Could not clear ${failedPolicy}`)
+			expect(state.duplicateMessage).toBe(`Could not clear ${failedPolicy}`)
+			expect(fetchGroupPolicy).toHaveBeenCalledWith('finance', 'maximum_validity')
+			expect(fetchGroupPolicy).toHaveBeenCalledWith('finance', 'renewal_interval')
+		} else {
+			expect(error).toBeNull()
+			expect(state.duplicateMessage).toBeFalsy()
+		}
+
+		expect(fetchEffectivePolicies).toHaveBeenCalled()
+		expect(Object.keys(persistedValues).sort()).toEqual(expectedRemaining)
+
+		await vi.waitFor(() => {
+			expect(state.visibleGroupRules).toHaveLength(expectedRemaining.length)
+		})
+
+		if (expectedRemaining.length > 0) {
+			expect(state.visibleGroupRules[0]?.value).toEqual({
+				maximumValidity: expectedRemaining.includes('maximum_validity') ? 7200 : 0,
+				renewalInterval: expectedRemaining.includes('renewal_interval') ? 600 : 0,
+			})
+		}
+	})
+
 	it('locks lower-level customization for group-admin request expiration group rules', async () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'maximum_validity') {

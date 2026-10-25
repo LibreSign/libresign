@@ -202,7 +202,7 @@ export async function clearCompoundPolicyTarget(
 	policiesStore: CompoundPolicyClearStore,
 ): Promise<void> {
 	if (scope === 'system') {
-		await Promise.all(policyKeys.map((policyKey) => policiesStore.saveSystemPolicy(policyKey, null, false)))
+		await settleAll(policyKeys.map((policyKey) => policiesStore.saveSystemPolicy(policyKey, null, false)))
 		return
 	}
 
@@ -211,11 +211,20 @@ export async function clearCompoundPolicyTarget(
 	}
 
 	if (scope === 'group') {
-		await Promise.all(policyKeys.map((policyKey) => policiesStore.clearGroupPolicy(targetId, policyKey)))
+		await settleAll(policyKeys.map((policyKey) => policiesStore.clearGroupPolicy(targetId, policyKey)))
 		return
 	}
 
-	await Promise.all(policyKeys.map((policyKey) => policiesStore.clearUserPolicyForUser(targetId, policyKey)))
+	await settleAll(policyKeys.map((policyKey) => policiesStore.clearUserPolicyForUser(targetId, policyKey)))
+}
+
+// Waits for every member request before failing, so callers never reload while one is still in flight.
+async function settleAll(requests: Promise<unknown>[]): Promise<void> {
+	const results = await Promise.allSettled(requests)
+	const failure = results.find((result): result is PromiseRejectedResult => result.status === 'rejected')
+	if (failure) {
+		throw failure.reason
+	}
 }
 
 export function hydrateCompoundPolicyRules({ parent, children, compound }: CompoundPolicyHydrationContext): CompoundPolicyHydrationResult {
