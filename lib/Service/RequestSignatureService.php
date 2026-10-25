@@ -652,7 +652,7 @@ class RequestSignatureService {
 	}
 
 	private function assertSignerCanBeRemoved(FileEntity $file, SignRequestEntity $signRequest): void {
-		if (in_array($file->getStatus(), [FileStatus::SIGNED->value, FileStatus::SIGNING_IN_PROGRESS->value], true)
+		if (!in_array($file->getStatus(), [FileStatus::DRAFT->value, FileStatus::ABLE_TO_SIGN->value], true)
 			|| $signRequest->getStatus() === SignRequestStatus::SIGNED->value
 			|| $signRequest->getSigned() !== null
 			|| $signRequest->getSignedHash() !== null
