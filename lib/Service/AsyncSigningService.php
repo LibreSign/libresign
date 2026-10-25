@@ -50,17 +50,16 @@ class AsyncSigningService {
 		// Without it the status may survive a failed enqueue, or a worker may
 		// claim the job before its signing status has been persisted.
 		$previousStatus = $libreSignFile->getStatus();
+		$previousMetadata = $libreSignFile->getMetadata();
 		$credentialsId = $this->storeCredentials($signRequest, $user, $signWithoutPassword, $password);
 		$jobUserId = $user?->getUID() ?? $libreSignFile->getUserId();
 		$transactionOpen = false;
-		$statusUpdated = false;
 
 		try {
 			$this->db->beginTransaction();
 			$transactionOpen = true;
 
 			$libreSignFile->setStatus(FileStatus::SIGNING_IN_PROGRESS->value);
-			$statusUpdated = true;
 			$this->fileStatusService->updateForQueuedJob($libreSignFile);
 
 			$this->jobList->add(SignFileJob::class, [
@@ -79,43 +78,39 @@ class AsyncSigningService {
 
 			$this->db->commit();
 			$transactionOpen = false;
-		} catch (\Throwable $e) {
+		} catch (\Throwable $error) {
+			// Roll back and rethrow even PHP Errors. Never turn a programming
+			// failure into an empty queue or a successful signing response.
 			$rolledBack = !$transactionOpen;
 			if ($transactionOpen) {
 				try {
 					$this->db->rollBack();
 					$rolledBack = true;
-				} catch (\Throwable) {
-					// The commit may have succeeded. Do not overwrite its status or
-					// delete the credentials of a potentially committed job.
+				} catch (\Exception $rollbackError) {
+					// A commit failure may be ambiguous. Do not delete credentials
+					// when a job may have been committed.
+					$this->logger->error('Cannot roll back the signing enqueue', ['exception' => $rollbackError]);
 				}
 			}
-
 			if ($rolledBack) {
-				$libreSignFile->setStatus($previousStatus);
-			}
-			if ($statusUpdated && $rolledBack) {
 				try {
-					// Refresh status caches written before the transaction committed.
-					$this->fileStatusService->update($libreSignFile);
-				} catch (\Throwable) {
-					// Do not hide the enqueue failure with a cache refresh failure.
+					$this->fileStatusService->discardQueuedJobStatus($libreSignFile, $previousStatus, $previousMetadata);
+				} catch (\Exception $cacheError) {
+					$this->logger->warning('Cannot discard uncommitted signing status', ['exception' => $cacheError]);
 				}
-			}
-			if ($rolledBack) {
 				try {
 					$this->credentialsManager->delete($user?->getUID() ?? '', $credentialsId);
-				} catch (\Throwable) {
-					// Credentials are never logged or exposed in the exception.
+				} catch (\Exception $cleanupError) {
+					$this->logger->warning('Cannot remove unused signing credentials', ['exception' => $cleanupError]);
 				}
 			}
-			throw $e;
+			throw $error;
 		}
 
 		try {
 			$this->fileStatusService->publishQueuedJobStatus($libreSignFile);
-		} catch (\Throwable $e) {
-			// A cache failure after commit must not make the user enqueue the job again.
+		} catch (\Exception $e) {
+			// Cache errors after commit must not cause a second signing request.
 			$this->logger->warning('Unable to publish queued signing status', ['exception' => $e]);
 		}
 

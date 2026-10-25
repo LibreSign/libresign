@@ -12,6 +12,8 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Service\FileStatusService;
+use OCP\IDBConnection;
 use OCP\Server;
 
 /**

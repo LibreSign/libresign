@@ -49,6 +49,25 @@ abstract class CachedQBMapper extends QBMapper {
 		return $updated;
 	}
 
+	/**
+	 * Keep uncommitted entity state out of the distributed cache.
+	 * @param T $entity
+	 * @return T
+	 */
+	public function updateWithoutCache(Entity $entity): Entity {
+		return parent::update($entity);
+	}
+
+	/** @param T $entity Drop a cached entity after a rollback. */
+	public function discardUncommittedEntity(Entity $entity): void {
+		$this->evictEntity($entity);
+	}
+
+	/** @param T $entity Publish an entity only after the transaction commits. */
+	public function cacheCommittedEntity(Entity $entity): void {
+		$this->cacheEntity($entity);
+	}
+
 	#[\Override]
 	public function delete(Entity $entity): Entity {
 		$deleted = parent::delete($entity);
