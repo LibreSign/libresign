@@ -10,15 +10,24 @@ namespace OCA\Libresign\Tests\Integration\Handler\SignEngine;
  */
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File as LibreSignFile;
+use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Handler\SignEngine\PhpNativeHandler;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
+use OCA\Libresign\Service\SigningAttemptGuard;
+use OCA\Libresign\Service\SignRequest\Error\SignRequestErrorReporter;
 use OCA\Libresign\Tests\Integration\TestCase;
+use OCP\BackgroundJob\IJobList;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\L10N\IFactory as IL10NFactory;
+use OCP\Lock\ILockingProvider;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -171,6 +180,64 @@ final class PhpNativeSigningRegressionTest extends TestCase {
 		$this->assertStringStartsWith('%PDF', $signed);
 
 		$this->assertCryptographicallyValid($signed, 1);
+	}
+
+	/**
+	 * A crash in the gap between a real PDF write and the attempt receipt must
+	 * not cause a second cryptographic signature on the same document.
+	 */
+	public function testInterruptedPersistedPdfSignatureRequiresReviewBeforeRetry(): void {
+		$identity = $this->generatePkcs12('rsa');
+		$this->handler
+			->setInputFile($this->fileNode($this->simplePdf()))
+			->setCertificate($identity['pfx'])
+			->setPassword($identity['password']);
+		$fileMapper = \OCP\Server::get(FileMapper::class);
+		$requestMapper = \OCP\Server::get(SignRequestMapper::class);
+		$file = new LibreSignFile();
+		$file->setNodeId(random_int(300000, 999999));
+		$file->setUserId('test-owner');
+		$file->setUuid('crash-fixture-' . bin2hex(random_bytes(8)));
+		$file->setCreatedAt(new \DateTime());
+		$file->setName('synthetic-crash.pdf');
+		$file->setStatus(FileStatus::SIGNING_IN_PROGRESS->value);
+		$file = $fileMapper->insert($file);
+		$request = new SignRequest();
+		$request->setUuid('crash-request-' . bin2hex(random_bytes(8)));
+		$request->setFileId($file->getId());
+		$request->setCreatedAt(new \DateTime());
+		$request = $requestMapper->insert($request);
+		$path = $this->tempPath('');
+		$guard = new SigningAttemptGuard(
+			$requestMapper,
+			\OCP\Server::get(ILockingProvider::class),
+			\OCP\Server::get(IJobList::class),
+			$this->createMock(SignRequestErrorReporter::class),
+			$this->logger,
+		);
+		try {
+			try {
+				$guard->execute(['signRequestId' => $request->getId(), 'fileId' => $file->getId()], 'interrupted-job', function () use ($path): void {
+					file_put_contents($path, $this->handler->getSignedContent());
+					throw new \RuntimeException('Simulated abrupt shutdown after PDF output');
+				});
+				$this->fail('The simulated worker should have stopped after creating the signed PDF');
+			} catch (\RuntimeException $e) {
+				$this->assertSame('Simulated abrupt shutdown after PDF output', $e->getMessage());
+			}
+			$this->assertSame('running', $requestMapper->getByIdUncached($request->getId())->getMetadata()['async_signing_attempt']['phase']);
+			$signedContent = file_get_contents($path);
+			$this->assertNotFalse($signedContent);
+			$this->assertCryptographicallyValid($signedContent, 1);
+			$this->assertFalse($guard->execute(['signRequestId' => $request->getId(), 'fileId' => $file->getId()], 'interrupted-job', function (): void {
+				$this->fail('Interrupted PDF signature must not be applied a second time');
+			}));
+			$this->assertSame('uncertain', $requestMapper->getByIdUncached($request->getId())->getMetadata()['async_signing_attempt']['phase']);
+			$this->assertSame($signedContent, file_get_contents($path));
+		} finally {
+			$requestMapper->delete($request);
+			$fileMapper->delete($file);
+		}
 	}
 
 	private function assertCryptographicallyValid(string $pdf, int $expectedSignatureCount): void {

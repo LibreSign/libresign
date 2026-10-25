@@ -195,6 +195,16 @@ class SignRequestMapper extends CachedQBMapper {
 	/**
 	 * @throws DoesNotExistException
 	 */
+	/** Read the persisted receipt, bypassing the per-request/distributed entity cache. */
+	public function getByIdUncached(int $signRequestId): SignRequest {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT)));
+		/** @var SignRequest */
+		return $this->findEntity($qb);
+	}
+
 	public function getById(int $signRequestId): SignRequest {
 		$cached = $this->cacheGet('id:' . $signRequestId);
 		if ($cached instanceof SignRequest) {

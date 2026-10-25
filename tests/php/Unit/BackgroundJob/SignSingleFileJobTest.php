@@ -9,9 +9,11 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\BackgroundJob;
 
 use OCA\Libresign\BackgroundJob\SignSingleFileJob;
+use OCA\Libresign\Service\SigningAttemptGuard;
 use OCA\Libresign\Service\SignJobCoordinator;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\BackgroundJob\IJobList;
 use PHPUnit\Framework\MockObject\MockObject;
 
 class SignSingleFileJobTest extends TestCase {
@@ -25,7 +27,15 @@ class SignSingleFileJobTest extends TestCase {
 	}
 
 	public function testRunDelegatesToCoordinator(): void {
-		$job = new SignSingleFileJob($this->timeFactory, $this->coordinator);
+		$jobList = $this->createMock(IJobList::class);
+		$attemptGuard = $this->createMock(SigningAttemptGuard::class);
+		$job = new SignSingleFileJob($this->timeFactory, $this->coordinator, $jobList, $attemptGuard);
+		$job->setId('42');
+		$jobList->expects($this->once())->method('removeById')->with('42');
+		$attemptGuard->method('execute')->willReturnCallback(static function (array $argument, string $id, callable $run): bool {
+			$run();
+			return true;
+		});
 
 		$arguments = [
 			'fileId' => 1,

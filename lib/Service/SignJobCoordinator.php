@@ -35,7 +35,7 @@ class SignJobCoordinator {
 	) {
 	}
 
-	public function runSignFile(array $argument): void {
+	public function runSignFile(array $argument): bool {
 		$file = null;
 		$signRequest = null;
 		try {
@@ -49,6 +49,7 @@ class SignJobCoordinator {
 			$this->hydrateSignService($argument, $file, $signRequest);
 
 			$this->signFileService->sign();
+			return true;
 		} catch (\Throwable $e) {
 			$this->signRequestErrorReporter->error('SignFileJob failed', [
 				'exception' => $e,
@@ -56,12 +57,13 @@ class SignJobCoordinator {
 				'signRequestId' => $signRequest?->getId() ?? ($argument['signRequestId'] ?? null),
 				'signRequestUuid' => $signRequest?->getUuid() ?? ($argument['signRequestUuid'] ?? null),
 			]);
+			return false;
 		} finally {
 			$this->deleteCredentials($argument['userId'] ?? null, $argument['credentialsId'] ?? null);
 		}
 	}
 
-	public function runSignSingleFile(array $argument): void {
+	public function runSignSingleFile(array $argument): bool {
 		$fileId = $argument['fileId'] ?? null;
 		$signRequestId = $argument['signRequestId'] ?? null;
 		$file = null;
@@ -80,6 +82,7 @@ class SignJobCoordinator {
 			$this->markInProgress($file);
 
 			$this->signFileService->signSingleFile($file, $signRequest);
+			return true;
 		} catch (\Throwable $e) {
 			$this->signRequestErrorReporter->error('SignSingleFileJob failed for file {fileId}', [
 				'exception' => $e,
@@ -87,6 +90,7 @@ class SignJobCoordinator {
 				'signRequestId' => $signRequest?->getId() ?? ($argument['signRequestId'] ?? null),
 				'signRequestUuid' => $signRequest?->getUuid() ?? ($argument['signRequestUuid'] ?? null),
 			]);
+			return false;
 		} finally {
 			$this->deleteCredentials($argument['userId'] ?? null, $argument['credentialsId'] ?? null);
 		}
@@ -181,10 +185,21 @@ class SignJobCoordinator {
 		$this->fileService->update($file);
 	}
 
+	/** Also clean credentials for jobs safely skipped by the recovery guard. */
+	public function discardJobCredentials(array $argument): void {
+		$this->deleteCredentials($argument['userId'] ?? null, $argument['credentialsId'] ?? null);
+	}
+
 	private function deleteCredentials(?string $userId, ?string $credentialsId): void {
-		if (empty($credentialsId) || empty($userId)) {
+		if (empty($credentialsId) || $userId === null) {
 			return;
 		}
-		$this->credentialsManager->delete($userId, $credentialsId);
+		try {
+			// Anonymous signers store their temporary credentials under userId ''.
+			$this->credentialsManager->delete($userId, $credentialsId);
+		} catch (\Throwable $e) {
+			// Cleanup must not turn a completed signature into an uncertain attempt.
+			$this->logger->warning('Unable to delete temporary signing credentials', ['exception' => $e]);
+		}
 	}
 }

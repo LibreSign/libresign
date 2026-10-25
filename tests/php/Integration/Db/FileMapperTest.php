@@ -59,6 +59,44 @@ final class FileMapperTest extends \OCA\Libresign\Tests\Integration\TestCase {
 		$this->assertSame('owner-user', $storageUserId);
 	}
 
+	public function testRecentSigningStatusDoesNotBecomeStaleBecauseFileIsOld(): void {
+		$file = $this->createFileEntity(
+			uuid: 'synthetic-' . bin2hex(random_bytes(12)),
+			nodeId: random_int(200000, 999999),
+			userId: 'test-owner',
+		);
+		$file->setCreatedAt(new \DateTime('-30 days'));
+		$file->setStatus(FileStatus::SIGNING_IN_PROGRESS->value);
+		$file->setMetadata(['status_changed_at' => (new \DateTime('-1 minute'))->format(\DateTime::ATOM)]);
+		$inserted = $this->fileMapper->insert($file);
+		try {
+			$ids = array_map(static fn (File $item): int => $item->getId(),
+				$this->fileMapper->findStaleSigningInProgress(new \DateTime('-10 minutes')));
+			$this->assertNotContains($inserted->getId(), $ids);
+		} finally {
+			$this->fileMapper->delete($inserted);
+		}
+	}
+
+	public function testInvalidStatusTimestampIsNotReplacedByOldCreationDate(): void {
+		$file = $this->createFileEntity(
+			uuid: 'synthetic-' . bin2hex(random_bytes(12)),
+			nodeId: random_int(200000, 999999),
+			userId: 'test-owner',
+		);
+		$file->setCreatedAt(new \DateTime('-30 days'));
+		$file->setStatus(FileStatus::SIGNING_IN_PROGRESS->value);
+		$file->setMetadata(['status_changed_at' => 'not-a-date']);
+		$inserted = $this->fileMapper->insert($file);
+		try {
+			$ids = array_map(static fn (File $item): int => $item->getId(),
+				$this->fileMapper->findStaleSigningInProgress(new \DateTime('-10 minutes')));
+			$this->assertNotContains($inserted->getId(), $ids);
+		} finally {
+			$this->fileMapper->delete($inserted);
+		}
+	}
+
 	private function createFileEntity(string $uuid, int $nodeId, ?string $userId): File {
 		$file = new File();
 		$file->setNodeId($nodeId);
