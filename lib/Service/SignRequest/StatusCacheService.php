@@ -31,6 +31,12 @@ class StatusCacheService {
 		$this->cache->set(self::STATUS_KEY_PREFIX . $fileUuid, $status, self::DEFAULT_TTL);
 	}
 
+	public function clearStatus(string $fileUuid): void {
+		if ($fileUuid !== '') {
+			$this->cache->remove(self::STATUS_KEY_PREFIX . $fileUuid);
+		}
+	}
+
 	public function getStatus(string $fileUuid): mixed {
 		if ($fileUuid === '') {
 			return false;

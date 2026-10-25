@@ -100,6 +100,36 @@ class SignRequestMapper extends CachedQBMapper {
 	}
 
 	/**
+	 * Delete only while the signing evidence is still absent in the database.
+	 *
+	 * An earlier read is not sufficient: a concurrent signer may have completed
+	 * the request after the service checked its status.
+	 */
+	public function deleteIfUnsigned(SignRequest $signRequest): bool {
+		$id = $signRequest->getId();
+		if ($id === null) {
+			throw new \InvalidArgumentException('Sign request must be persisted before removal');
+		}
+
+		$qb = $this->db->getQueryBuilder();
+		$deleted = $qb->delete($this->getTableName())
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->neq('status', $qb->createNamedParameter(SignRequestStatus::SIGNED->value, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->isNull('signed'))
+			->andWhere($qb->expr()->isNull('signed_hash'))
+			->executeStatement();
+
+		if ($deleted === 1) {
+			$this->invalidateCachedEntity($signRequest);
+			if ($signRequest->getUuid() !== '') {
+				$this->cacheRemove('uuid:' . $signRequest->getUuid());
+			}
+		}
+
+		return $deleted === 1;
+	}
+
+	/**
 	 * Get sign request by UUID
 	 *
 	 * @throws DoesNotExistException

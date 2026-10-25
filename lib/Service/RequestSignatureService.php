@@ -16,8 +16,6 @@ use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\ParticipantRole;
-use OCA\Libresign\Enum\SignRequestStatus;
-use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
@@ -34,13 +32,10 @@ use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
-use OCP\AppFramework\Http;
-use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
-use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -70,7 +65,6 @@ class RequestSignatureService {
 		protected LoggerInterface $logger,
 		protected SequentialSigningService $sequentialSigningService,
 		protected IAppConfig $appConfig,
-		protected IEventDispatcher $eventDispatcher,
 		protected FileStatusService $fileStatusService,
 		protected DocMdpConfigService $docMdpConfigService,
 		protected EnvelopeService $envelopeService,
@@ -79,7 +73,7 @@ class RequestSignatureService {
 		protected SignRequestService $signRequestService,
 		protected FilePolicyApplier $filePolicyApplier,
 		protected SignerGeolocationPolicyService $signerGeolocationPolicyService,
-		protected IDBConnection $db,
+		protected SignerRemovalService $signerRemovalService,
 	) {
 	}
 
@@ -625,109 +619,7 @@ class RequestSignatureService {
 	}
 
 	public function unassociateToUser(int $fileId, int $signRequestId, bool $notify = true): void {
-		$file = $this->fileMapper->getById($fileId);
-		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
-		$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequestId);
-		$removals = [[$file, $signRequest]];
-
-		if ($file->getNodeType() === 'envelope' && $groupedIdentifyMethods !== []) {
-			$firstGroup = reset($groupedIdentifyMethods);
-			$identifyMethod = $firstGroup === false ? false : reset($firstGroup);
-			if ($identifyMethod instanceof IIdentifyMethod) {
-				foreach ($this->fileMapper->getChildrenFiles($fileId) as $child) {
-					$this->identifyMethod->clearCache();
-					$childSignRequest = $this->signRequestService->getSignRequestByIdentifyMethod(
-						$identifyMethod,
-						$child->getId(),
-					);
-					if ($childSignRequest->getId()) {
-						$removals[] = [$child, $childSignRequest];
-					}
-				}
-			}
-		}
-
-		foreach ($removals as [$affectedFile, $affectedSignRequest]) {
-			$this->assertSignerCanBeRemoved($affectedFile, $affectedSignRequest);
-		}
-
-		$this->db->beginTransaction();
-		try {
-			foreach ($removals as [$affectedFile, $affectedSignRequest]) {
-				$this->signRequestMapper->delete($affectedSignRequest);
-				$this->identifyMethod->deleteBySignRequestId($affectedSignRequest->getId());
-				$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId(
-					$affectedFile->getId(),
-					$affectedSignRequest->getId(),
-				);
-				foreach ($visibleElements as $visibleElement) {
-					$this->fileElementMapper->delete($visibleElement);
-				}
-
-				$this->sequentialSigningService
-					->setFile($affectedFile)
-					->reorderAfterDeletion($affectedFile->getId(), $affectedSignRequest->getSigningOrder());
-				$this->revertStatusToDraftIfNoSignersRemain($affectedFile);
-			}
-			$this->db->commit();
-		} catch (\Throwable $e) {
-			$this->db->rollBack();
-			$this->logger->error('Failed to remove a signer', [
-				'exception' => $e,
-				'fileId' => $fileId,
-				'signRequestId' => $signRequestId,
-			]);
-			throw $e;
-		}
-
-		if ($notify) {
-			$this->dispatchCancellationEventIfNeeded($signRequest, $file, $groupedIdentifyMethods);
-		}
-	}
-
-	private function assertSignerCanBeRemoved(FileEntity $file, SignRequestEntity $signRequest): void {
-		if (!in_array($file->getStatus(), [FileStatus::DRAFT->value, FileStatus::ABLE_TO_SIGN->value], true)
-			|| $signRequest->getStatus() === SignRequestStatus::SIGNED->value
-			|| $signRequest->getSigned() !== null
-			|| $signRequest->getSignedHash() !== null
-		) {
-			// TRANSLATORS Error shown when removing a participant would discard a completed signature.
-			throw new LibresignException($this->l10n->t('A completed signer cannot be removed.'), Http::STATUS_UNPROCESSABLE_ENTITY);
-		}
-	}
-
-	private function revertStatusToDraftIfNoSignersRemain(FileEntity $file): void {
-		$remaining = $this->signRequestMapper->getByFileId($file->getId());
-		if (empty($remaining)) {
-			$this->fileStatusService->markPolicySnapshotFrozen($file, FileStatus::DRAFT->value);
-			$file->setStatus(FileStatus::DRAFT->value);
-			$this->fileStatusService->update($file);
-		}
-	}
-
-	private function dispatchCancellationEventIfNeeded(
-		SignRequestEntity $signRequest,
-		FileEntity $file,
-		array $groupedIdentifyMethods,
-	): void {
-		if ($signRequest->getStatus() !== \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN->value) {
-			return;
-		}
-
-		try {
-			foreach ($groupedIdentifyMethods as $identifyMethods) {
-				foreach ($identifyMethods as $identifyMethod) {
-					$event = new SignRequestCanceledEvent(
-						$signRequest,
-						$file,
-						$identifyMethod,
-					);
-					$this->eventDispatcher->dispatchTyped($event);
-				}
-			}
-		} catch (\Throwable $e) {
-			$this->logger->error('Error dispatching SignRequestCanceledEvent: ' . $e->getMessage(), ['exception' => $e]);
-		}
+		$this->signerRemovalService->remove($fileId, $signRequestId, $notify);
 	}
 
 	public function deleteRequestSignature(array $data): void {

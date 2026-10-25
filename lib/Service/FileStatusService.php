@@ -42,6 +42,14 @@ class FileStatusService {
 		return $file;
 	}
 
+	public function invalidateCachedStatus(FileEntity $file): void {
+		$this->statusCacheService->clearStatus($file->getUuid());
+	}
+
+	public function cacheCurrentStatus(FileEntity $file): void {
+		$this->statusCacheService->setStatus($file->getUuid(), $file->getStatus());
+	}
+
 	public function canNotifySigners(?int $fileStatus): bool {
 		return $fileStatus === FileStatus::ABLE_TO_SIGN->value;
 	}

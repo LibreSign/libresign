@@ -103,6 +103,14 @@ abstract class CachedQBMapper extends QBMapper {
 		}
 	}
 
+	/**
+	 * Drop speculative cache writes after a transaction commits or rolls back.
+	 * A subsequent lookup reloads the authoritative database state.
+	 */
+	public function invalidateCachedEntity(Entity $entity): void {
+		$this->evictEntity($entity);
+	}
+
 	private function evictEntity(Entity $entity): void {
 		foreach ($this->getEntityCacheKeys($entity) as $key) {
 			$this->cacheRemove($key);
