@@ -40,7 +40,7 @@ class FileStatusService {
 	}
 
 	public function invalidateCachedStatus(FileEntity $file): void {
-		$this->statusCacheService->clearStatus($file->getUuid());
+		$this->statusCacheService->invalidateStatus($file->getUuid());
 	}
 
 	public function cacheCurrentStatus(FileEntity $file): void {
