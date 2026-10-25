@@ -106,13 +106,16 @@ class FileStatusService {
 	public function discardQueuedJobStatus(FileEntity $file, int $previousStatus, ?array $previousMetadata): void {
 		$file->setStatus($previousStatus);
 		$file->setMetadata($previousMetadata ?? []);
-		$this->fileMapper->discardUncommittedEntity($file);
+		$this->fileMapper->invalidateEntityCache($file);
 	}
 
-	/** Publish progress only after the database transaction has committed. */
-	public function publishQueuedJobStatus(FileEntity $file): void {
-		$this->fileMapper->cacheCommittedEntity($file);
-		$this->statusCacheService->setStatus($file->getUuid(), $file->getStatus());
+	/**
+	 * Invalidate enqueue-era hints after commit, rather than publishing an
+	 * in-progress snapshot that might already have been superseded by a worker.
+	 */
+	public function onQueuedJobCommitted(FileEntity $file): void {
+		$this->fileMapper->invalidateEntityCache($file);
+		$this->statusCacheService->invalidateStatus($file->getUuid());
 		if ($file->hasParent()) {
 			$this->propagateStatusToParent($file->getParentFileId());
 		}

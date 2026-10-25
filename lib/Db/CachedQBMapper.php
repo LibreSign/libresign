@@ -58,14 +58,9 @@ abstract class CachedQBMapper extends QBMapper {
 		return parent::update($entity);
 	}
 
-	/** @param T $entity Drop a cached entity after a rollback. */
-	public function discardUncommittedEntity(Entity $entity): void {
+	/** @param T $entity Invalidate cached state after a transaction boundary. */
+	public function invalidateEntityCache(Entity $entity): void {
 		$this->evictEntity($entity);
-	}
-
-	/** @param T $entity Publish an entity only after the transaction commits. */
-	public function cacheCommittedEntity(Entity $entity): void {
-		$this->cacheEntity($entity);
 	}
 
 	#[\Override]

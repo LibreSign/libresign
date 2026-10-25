@@ -52,6 +52,11 @@ class SigningAttemptGuard {
 			$previous = $metadata[self::METADATA_KEY] ?? null;
 			if (is_array($previous)) {
 				$phase = $previous['phase'] ?? null;
+				if ($phase === 'finished') {
+					// Completion belongs to the signing request, not to a queue ID.
+					// A differently scheduled job must not sign the same PDF again.
+					return false;
+				}
 				if ($phase === 'running' || $phase === 'uncertain') {
 					$previousJobId = $previous['jobId'] ?? null;
 					if ($phase === 'running' && is_string($previousJobId)
@@ -71,9 +76,6 @@ class SigningAttemptGuard {
 						'fileId' => $argument['fileId'] ?? null,
 						'exception' => new \RuntimeException('The previous signing attempt may have finished. The document needs review before another signature.'),
 					]);
-					return false;
-				}
-				if ($phase === 'finished' && ($previous['jobId'] ?? null) === $jobId) {
 					return false;
 				}
 			}

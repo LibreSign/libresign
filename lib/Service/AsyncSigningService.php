@@ -108,7 +108,7 @@ class AsyncSigningService {
 		}
 
 		try {
-			$this->fileStatusService->publishQueuedJobStatus($libreSignFile);
+			$this->fileStatusService->onQueuedJobCommitted($libreSignFile);
 		} catch (\Exception $e) {
 			// Cache errors after commit must not cause a second signing request.
 			$this->logger->warning('Unable to publish queued signing status', ['exception' => $e]);

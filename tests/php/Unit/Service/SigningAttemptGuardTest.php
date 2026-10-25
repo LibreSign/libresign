@@ -58,6 +58,20 @@ class SigningAttemptGuardTest extends TestCase {
 		}));
 	}
 
+	/**
+	 * A finished attempt is durable evidence: changing the queue job ID does
+	 * not authorize a second cryptographic operation.
+	 */
+	public function testCompletedAttemptCannotBeRepeatedByAnotherJob(): void {
+		$this->request->setMetadata(['async_signing_attempt' => [
+			'jobId' => 'original-job', 'phase' => 'finished', 'startedAt' => 1,
+		]]);
+		$this->mapper->expects($this->never())->method('update');
+		$this->assertFalse($this->guard->execute(['signRequestId' => 42], 'replacement-job', function (): void {
+			$this->fail('A completed signing attempt must never run twice');
+		}));
+	}
+
 	public function testRecoveryOfUncertainAttemptReportsErrorInsteadOfSigningAgain(): void {
 		$this->request->setMetadata(['async_signing_attempt' => [
 			'jobId' => 'old-job', 'phase' => 'running', 'startedAt' => 1,
