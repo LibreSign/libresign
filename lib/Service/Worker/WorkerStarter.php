@@ -8,59 +8,40 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Worker;
 
-use OCA\Libresign\BackgroundJob\SignFileJob;
-use OCA\Libresign\BackgroundJob\SignSingleFileJob;
-use OCA\Libresign\Service\Process\ProcessManager;
 use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\IBinaryFinder;
 
+/** Starts a detached worker. The caller MUST hold the local registry lock. */
 class WorkerStarter {
-	private const int MAX_WORKERS = 32;
-	private const string PROCESS_SOURCE = 'worker';
-
 	public function __construct(
 		private IBinaryFinder $binaryFinder,
-		private ProcessManager $processManager,
+		private WorkerConfiguration $workerConfiguration,
 	) {
 	}
 
-	public function startWorkers(int $count): void {
-		$phpPath = $this->findPhpBinary();
-		$occPath = \OC::$SERVERROOT . '/occ';
-		$numWorkers = $this->clampWorkerCount($count);
-		$jobClasses = [SignFileJob::class, SignSingleFileJob::class];
-
-		for ($i = 0; $i < $numWorkers; $i++) {
-			$this->executeCommand($phpPath, $occPath, $jobClasses);
+	public function startWorker(): int {
+		$php = $this->binaryFinder->findBinaryPath('php');
+		if ($php === false) {
+			throw new \RuntimeException('PHP CLI is unavailable');
 		}
-	}
-
-	private function findPhpBinary(): string {
-		$phpPath = $this->binaryFinder->findBinaryPath('php');
-		return $phpPath !== false ? $phpPath : 'php';
-	}
-
-	private function clampWorkerCount(int $count): int {
-		return max(1, min($count, self::MAX_WORKERS));
-	}
-
-	private function executeCommand(string $phpPath, string $occPath, array $jobClasses): void {
 		$command = [
-			$phpPath,
-			$occPath,
+			$php,
+			\OC::$SERVERROOT . '/occ',
 			'background-job:worker',
-			...$jobClasses,
+			...$this->workerConfiguration->getSigningJobClasses(),
 			'--stop_after=30m',
+			'--interval=0',
 		];
 		$process = $this->createProcess($command);
+		// Request that Symfony detach the child from the HTTP request lifetime.
 		$process->setOptions(['create_new_console' => true]);
 		$process->setTimeout(null);
 		$process->start();
-
-		$pid = $process->getPid() ?? 0;
-		if ($pid > 0) {
-			$this->processManager->register(self::PROCESS_SOURCE, $pid);
+		$pid = (int)$process->getPid();
+		if ($pid <= 0) {
+			throw new \RuntimeException('Worker was started without a valid process identifier');
 		}
+		return $pid;
 	}
 
 	protected function createProcess(array $command): Process {
