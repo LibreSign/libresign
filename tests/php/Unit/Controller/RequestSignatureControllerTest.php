@@ -180,6 +180,30 @@ final class RequestSignatureControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
+	public function testRemovingCompletedSignerReturnsUnprocessableEntity(): void {
+		$this->requestSignatureService->expects($this->once())
+			->method('unassociateToUser')
+			->with(5, 9)
+			->willThrowException(new LibresignException('A completed signer cannot be removed.', 422));
+
+		$response = $this->controller->removeSigner(5, 9);
+
+		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
+		$this->assertSame(['message' => 'A completed signer cannot be removed.'], $response->getData());
+	}
+
+	public function testRemovalFailureDoesNotReturnSuccessOrExposeInternalDetails(): void {
+		$this->requestSignatureService->expects($this->once())
+			->method('unassociateToUser')
+			->with(5, 9)
+			->willThrowException(new \RuntimeException('Database connection details'));
+
+		$response = $this->controller->removeSigner(5, 9);
+
+		$this->assertSame(Http::STATUS_INTERNAL_SERVER_ERROR, $response->getStatus());
+		$this->assertSame(['message' => 'Unable to remove signer.'], $response->getData());
+	}
+
 	public function testRequestRejectsUnknownPolicyOverrideKey(): void {
 		$this->requestSignatureService
 			->expects($this->once())

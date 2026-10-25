@@ -44,6 +44,7 @@ use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IAppConfig;
+use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -73,6 +74,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private IAppConfig&MockObject $appConfig;
 	private IEventDispatcher&MockObject $eventDispatcher;
 	private FileStatusService&MockObject $fileStatusService;
+	private IDBConnection&MockObject $db;
 	private DocMdpConfigService&MockObject $docMdpConfigService;
 	private EnvelopeService&MockObject $envelopeService;
 	private EnvelopeFileRelocator&MockObject $envelopeFileRelocator;
@@ -109,6 +111,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
+		$this->db = $this->createMock(IDBConnection::class);
 		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
 		$this->envelopeService = $this->createMock(EnvelopeService::class);
 		$this->envelopeFileRelocator = $this->createMock(EnvelopeFileRelocator::class);
@@ -149,6 +152,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->signRequestService,
 					$this->filePolicyApplier,
 					$this->signerGeolocationPolicyService,
+					$this->db,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -182,6 +186,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->signRequestService,
 			$this->filePolicyApplier,
 			$this->signerGeolocationPolicyService,
+			$this->db,
 		);
 	}
 
@@ -764,6 +769,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->signRequestService,
 				$this->filePolicyApplier,
 				$this->signerGeolocationPolicyService,
+				$this->db,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
@@ -838,6 +844,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->signRequestService,
 				$this->filePolicyApplier,
 				$this->signerGeolocationPolicyService,
+				$this->db,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
