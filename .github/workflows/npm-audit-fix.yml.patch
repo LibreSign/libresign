@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+--- a/.github/workflows/npm-audit-fix.yml
++++ b/.github/workflows/npm-audit-fix.yml
+@@ -11,8 +11,8 @@
+ on:
+   workflow_dispatch:
+   schedule:
+-    # At 22:30 on Saturdays
+-    - cron: '30 22 * * 6'
++    # At 2:30 on Sundays
++    - cron: '30 2 * * 0'
+ 
+ permissions:
+   contents: read
+@@ -26,6 +26,9 @@
+       matrix:
+         branches:
+           - ${{ github.event.repository.default_branch }}
++          - 'stable35'
++          - 'stable34'
++          - 'stable33'
+ 
+     name: npm-audit-fix-${{ matrix.branches }}
+ 
+@@ -95,3 +98,4 @@
+           body: ${{ steps.npm-audit.outputs.markdown }}
+           labels: |
+             dependencies
++            3. to review
