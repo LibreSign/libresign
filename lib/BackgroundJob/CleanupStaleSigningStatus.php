@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\BackgroundJob;
 
 use DateTime;
+use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
@@ -47,83 +48,77 @@ class CleanupStaleSigningStatus extends TimedJob {
 		$this->setTimeSensitivity(IJob::TIME_INSENSITIVE);
 	}
 
-	/**
-	 * @inheritDoc
-	 */
 	#[\Override]
 	public function run($argument): void {
-		$staleThreshold = new DateTime('-' . self::STALE_TIMEOUT_MINUTES . ' minutes');
-
-		try {
-			$staleFiles = $this->fileMapper->findStaleSigningInProgress($staleThreshold);
-			if ($staleFiles === []) {
-				return;
-			}
-			$pending = $this->getPendingSigningFileIds();
-			if ($pending === null) {
-				// Could not inspect the whole queue safely. Never guess it is empty.
-				return;
-			}
-
-			foreach ($staleFiles as $file) {
-				$fileIds = [$file->getId()];
-				if ($file->hasParent()) {
-					// Sequential signing can run in a parent job while this child
-					// has no queued job of its own.
-					$fileIds[] = $file->getParentFileId();
-				}
-				if ($file->isEnvelope()) {
-					foreach ($this->fileMapper->getChildrenFiles($file->getId()) as $child) {
-						$fileIds[] = $child->getId();
-					}
-				}
-				$pendingForFile = false;
-				$uncertain = false;
-				$finished = false;
-				$signedOutput = $file->getSignedHash() !== null || $file->getSignedNodeId() !== null;
-				foreach ($fileIds as $fileId) {
-					if (isset($pending[$fileId])) {
-						$pendingForFile = true;
-						break;
-					}
-					foreach ($this->signRequestMapper->getByFileId($fileId) as $signRequest) {
-						$signedOutput = $signedOutput || $signRequest->getSignedHash() !== null || $signRequest->getSigned() !== null;
-						if ($this->attemptGuard->hasUncertainAttempt($signRequest->getId())) {
-							$uncertain = true;
-							break;
-						}
-						$finished = $finished || $this->attemptGuard->hasFinishedAttempt($signRequest->getId());
-					}
-					if ($uncertain) {
-						break;
-					}
-				}
-				if ($pendingForFile || $uncertain) {
-					if ($uncertain) {
-						$this->logger->warning('Signing needs review before retry', ['fileId' => $file->getId()]);
-					}
-					continue;
-				}
-				if (!$finished) {
-					// Legacy QueuedJob removed its row before signing. Age alone
-					// cannot prove the process ended or its PDF side effects are safe.
-					$this->logger->warning('Stale signing status has no completion receipt; manual review required', ['fileId' => $file->getId()]);
-					continue;
-				}
-				if ($signedOutput) {
-					$this->logger->warning('Signed file or request has a stale processing status', ['fileId' => $file->getId()]);
-					continue;
-				}
-				if ($file->isEnvelope()) {
-					$this->fileStatusService->propagateStatusToParent($file->getId());
-				} else {
-					$file->setStatusEnum(FileStatus::ABLE_TO_SIGN);
-					$this->fileStatusService->update($file);
-				}
-			}
-		} catch (\Throwable $e) {
-			$this->logger->error('Failed to clean up stale signing statuses', ['exception' => $e]);
+		$staleFiles = $this->fileMapper->findStaleSigningInProgress(
+			new DateTime('-' . self::STALE_TIMEOUT_MINUTES . ' minutes'),
+		);
+		if ($staleFiles === []) {
+			return;
 		}
+
+		$pending = $this->getPendingSigningFileIds();
+		if ($pending === null) {
+			return;
+		}
+
+		foreach ($staleFiles as $file) {
+			if (!$this->canResetStatus($file, $pending)) {
+				continue;
+			}
+			if ($file->isEnvelope()) {
+				$this->fileStatusService->propagateStatusToParent($file->getId());
+			} else {
+				$file->setStatusEnum(FileStatus::ABLE_TO_SIGN);
+				$this->fileStatusService->update($file);
+			}
+		}
+	}
+
+	/** @param array<int, true> $pending */
+	private function canResetStatus(File $file, array $pending): bool {
+		if ($file->getSignedHash() !== null || $file->getSignedNodeId() !== null) {
+			return false;
+		}
+
+		$finished = false;
+		foreach ($this->relatedFileIds($file) as $fileId) {
+			if (isset($pending[$fileId])) {
+				return false;
+			}
+			foreach ($this->signRequestMapper->getByFileId($fileId) as $request) {
+				if ($request->getSignedHash() !== null || $request->getSigned() !== null
+					|| $this->attemptGuard->hasUncertainAttempt($request->getId())) {
+					return false;
+				}
+				$finished = $this->attemptGuard->hasFinishedAttempt($request->getId()) || $finished;
+			}
+		}
+
+		if (!$finished) {
+			// Old QueuedJob jobs removed their queue entry before signing. A
+			// timeout does not prove that the PDF operation is safe to retry.
+			$this->logger->warning('Stale signing status requires manual review', ['fileId' => $file->getId()]);
+		}
+		return $finished;
+	}
+
+	/** @return list<int> */
+	private function relatedFileIds(File $file): array {
+		$ids = [$file->getId()];
+		$parentId = $file->getParentFileId();
+		if ($file->hasParent() && $parentId !== null) {
+			$ids[] = $parentId;
+		}
+		if ($file->isEnvelope()) {
+			foreach ($this->fileMapper->getChildrenFiles($file->getId()) as $child) {
+				$childId = $child->getId();
+				if ($childId !== null) {
+					$ids[] = $childId;
+				}
+			}
+		}
+		return $ids;
 	}
 
 	/** @return array<int, true>|null Null means the queue could not be inspected completely. */
@@ -138,10 +133,12 @@ class CleanupStaleSigningStatus extends TimedJob {
 					return null;
 				}
 				$args = $job->getArgument();
-				if (!is_array($args) || !isset($args['fileId']) || !is_numeric($args['fileId'])) {
+				$id = is_array($args) ? filter_var($args['fileId'] ?? null, FILTER_VALIDATE_INT) : false;
+				if ($id === false || $id <= 0) {
+					$this->logger->warning('Cannot inspect invalid signing job arguments safely');
 					return null;
 				}
-				$fileIds[(int)$args['fileId']] = true;
+				$fileIds[$id] = true;
 			}
 		}
 		return $fileIds;

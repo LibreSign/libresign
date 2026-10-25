@@ -22,6 +22,7 @@ use OCA\Libresign\Service\SigningAttemptGuard;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\IJobList;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -33,6 +34,9 @@ class CleanupStaleSigningStatusTest extends TestCase {
 	private IJobList $jobs;
 	private CleanupStaleSigningStatus $cleanup;
 	private File $file;
+	/** @var array<string, iterable<IJob>> */
+	private array $queuedJobs = [];
+	private ?\RuntimeException $queueFailure = null;
 
 	protected function setUp(): void {
 		$this->files = $this->createMock(FileMapper::class);
@@ -45,7 +49,12 @@ class CleanupStaleSigningStatusTest extends TestCase {
 		$this->file->setStatus(FileStatus::SIGNING_IN_PROGRESS->value);
 		$this->file->setMetadata(['status_changed_at' => (new DateTime('-20 minutes'))->format(DateTime::ATOM)]);
 		$this->files->method('findStaleSigningInProgress')->willReturn([$this->file]);
-		$this->jobs->method('getJobsIterator')->willReturnCallback(static fn (): array => []);
+		$this->jobs->method('getJobsIterator')->willReturnCallback(function (string $class): iterable {
+			if ($this->queueFailure !== null) {
+				throw $this->queueFailure;
+			}
+			return $this->queuedJobs[$class] ?? [];
+		});
 		$this->cleanup = new CleanupStaleSigningStatus(
 			$this->createMock(ITimeFactory::class),
 			$this->files, $this->requests, $this->statuses, $this->attempts, $this->jobs,
@@ -53,55 +62,80 @@ class CleanupStaleSigningStatusTest extends TestCase {
 		);
 	}
 
-	public function testDoesNotResetStatusWhileFileHasPendingJob(): void {
-		$pending = $this->createMock(IJob::class);
-		$pending->method('getArgument')->willReturn(['fileId' => 4]);
-		$this->jobs->method('getJobsIterator')->willReturnCallback(static fn (string $class): array => $class === SignFileJob::class ? [$pending] : []);
-		$this->statuses->expects($this->never())->method('update');
-		$this->cleanup->run(null);
-		$this->assertSame(FileStatus::SIGNING_IN_PROGRESS->value, $this->file->getStatus());
+	/** @return array<string, array{bool, bool, bool, bool, bool}> */
+	public static function recoveryCases(): array {
+		return [
+			'finished without signed output' => [true, false, false, false, true],
+			'finished with signed output' => [true, false, true, false, false],
+			'uncertain attempt' => [false, true, false, false, false],
+			'legacy attempt without receipt' => [false, false, false, false, false],
+			'queued job still active' => [true, false, false, true, false],
+		];
 	}
 
-	public function testDoesNotResetAnUncertainSignature(): void {
+	#[DataProvider('recoveryCases')]
+	public function testOnlySafeCompletedAttemptsCanBeReset(
+		bool $finished,
+		bool $uncertain,
+		bool $hasSignedOutput,
+		bool $hasPendingJob,
+		bool $canRetry,
+	): void {
 		$request = new SignRequest();
 		$request->setId(42);
-		$this->requests->method('getByFileId')->with(4)->willReturn([$request]);
-		$this->attempts->method('hasUncertainAttempt')->with(42)->willReturn(true);
-		$this->statuses->expects($this->never())->method('update');
+		if ($hasSignedOutput) {
+			$request->setSignedHash('signed-pdf-hash');
+		}
+		$this->requests->method('getByFileId')->willReturn([$request]);
+		$this->attempts->method('hasFinishedAttempt')->willReturn($finished);
+		$this->attempts->method('hasUncertainAttempt')->willReturn($uncertain);
+		if ($hasPendingJob) {
+			$job = $this->createMock(IJob::class);
+			$job->method('getArgument')->willReturn(['fileId' => 4]);
+			$this->queuedJobs[SignFileJob::class] = [$job];
+		}
 		$this->cleanup->run(null);
-		$this->assertSame(FileStatus::SIGNING_IN_PROGRESS->value, $this->file->getStatus());
+		$this->assertSame($canRetry ? FileStatus::ABLE_TO_SIGN->value : FileStatus::SIGNING_IN_PROGRESS->value, $this->file->getStatus());
 	}
 
-	public function testResetsFinishedFailedAttemptAfterTenMinutes(): void {
+	public function testQueueFailureIsReportedToNextcloud(): void {
+		$this->queueFailure = new \RuntimeException('Unable to read the queue');
+		$this->expectException(\RuntimeException::class);
+		$this->cleanup->run(null);
+	}
+
+	public function testDatabaseFailureIsNotReportedAsSuccessfulCleanup(): void {
+		$this->files->method('findStaleSigningInProgress')->willThrowException(new \RuntimeException('Storage unavailable'));
+		$this->expectException(\RuntimeException::class);
+		$this->cleanup->run(null);
+	}
+
+	public function testRecoveryWriteFailureIsReportedToNextcloud(): void {
 		$request = new SignRequest();
 		$request->setId(42);
-		$this->requests->method('getByFileId')->with(4)->willReturn([$request]);
-		$this->attempts->method('hasFinishedAttempt')->with(42)->willReturn(true);
-		$this->statuses->expects($this->once())->method('update')->with($this->file);
+		$this->requests->method('getByFileId')->willReturn([$request]);
+		$this->attempts->method('hasFinishedAttempt')->willReturn(true);
+		$this->statuses->method('update')->willThrowException(new \RuntimeException('Unable to persist status'));
+		$this->expectException(\RuntimeException::class);
 		$this->cleanup->run(null);
-		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $this->file->getStatus());
 	}
 
-	public function testDoesNotResetFileWhenSignRequestHasSignedOutput(): void {
-		$request = new SignRequest();
-		$request->setId(42);
-		$request->setSignedHash('signed-request-hash');
-		$this->requests->method('getByFileId')->with(4)->willReturn([$request]);
-		$this->attempts->method('hasFinishedAttempt')->with(42)->willReturn(true);
-		$this->statuses->expects($this->never())->method('update');
+	public function testCleanupDoesNotResetWhenQueueHasInvalidArguments(): void {
+		$job = $this->createMock(IJob::class);
+		$job->method('getArgument')->willReturn(['fileId' => 'not-an-id']);
+		$this->queuedJobs[SignFileJob::class] = [$job];
 		$this->cleanup->run(null);
 		$this->assertSame(FileStatus::SIGNING_IN_PROGRESS->value, $this->file->getStatus());
 	}
 
-	public function testLegacyFileWithoutCompletionReceiptRequiresReview(): void {
-		$this->statuses->expects($this->never())->method('update');
-		$this->cleanup->run(null);
-		$this->assertSame(FileStatus::SIGNING_IN_PROGRESS->value, $this->file->getStatus());
-	}
-
-	public function testOldLegacyFileCannotBeResetJustBecauseItIsOlderThanTwelveHours(): void {
-		$this->file->setMetadata(['status_changed_at' => (new DateTime('-14 hours'))->format(DateTime::ATOM)]);
-		$this->statuses->expects($this->never())->method('update');
+	public function testLargeQueueDoesNotTriggerUnsafeReset(): void {
+		$job = $this->createMock(IJob::class);
+		$job->method('getArgument')->willReturn(['fileId' => 900]);
+		$this->queuedJobs[SignFileJob::class] = (static function () use ($job): iterable {
+			for ($i = 0; $i <= 5000; $i++) {
+				yield $job;
+			}
+		})();
 		$this->cleanup->run(null);
 		$this->assertSame(FileStatus::SIGNING_IN_PROGRESS->value, $this->file->getStatus());
 	}
@@ -110,7 +144,7 @@ class CleanupStaleSigningStatusTest extends TestCase {
 		$this->file->setParentFileId(99);
 		$pending = $this->createMock(IJob::class);
 		$pending->method('getArgument')->willReturn(['fileId' => 99]);
-		$this->jobs->method('getJobsIterator')->willReturnCallback(static fn (string $class): array => $class === SignFileJob::class ? [$pending] : []);
+		$this->queuedJobs[SignFileJob::class] = [$pending];
 		$this->statuses->expects($this->never())->method('update');
 		$this->cleanup->run(null);
 		$this->assertSame(FileStatus::SIGNING_IN_PROGRESS->value, $this->file->getStatus());
@@ -123,7 +157,7 @@ class CleanupStaleSigningStatusTest extends TestCase {
 		$this->files->method('getChildrenFiles')->with(4)->willReturn([$child]);
 		$pending = $this->createMock(IJob::class);
 		$pending->method('getArgument')->willReturn(['fileId' => 9]);
-		$this->jobs->method('getJobsIterator')->willReturnCallback(static fn (string $class): array => $class === SignSingleFileJob::class ? [$pending] : []);
+		$this->queuedJobs[SignSingleFileJob::class] = [$pending];
 		$this->statuses->expects($this->never())->method('update');
 		$this->statuses->expects($this->never())->method('propagateStatusToParent');
 		$this->cleanup->run(null);
