@@ -109,8 +109,8 @@ describe('policyWorkbenchCompoundPolicies', () => {
 	it('does not create signature stamp rules from collect_metadata-only overrides', () => {
 		const result = hydrateCompoundPolicyRules({
 			policyKey: SIGNATURE_STAMP_POLICY_KEY,
-			persistedSystemPolicy: createPersistedSystemPolicy({ value: null }),
-			companionSystemPolicy: createPersistedSystemPolicy({ value: true }),
+			persistedSystemPolicy: createPersistedSystemPolicy({ scope: 'system', value: signatureStampValue }),
+			companionSystemPolicy: createPersistedSystemPolicy({ value: false, allowChildOverride: false }),
 			persistedGroupPolicies: [],
 			companionGroupPolicies: [
 				createPolicyRule({
@@ -136,48 +136,36 @@ describe('policyWorkbenchCompoundPolicies', () => {
 		})
 	})
 
-	it('keeps an explicit signature stamp system rule when the child uses its built-in default', () => {
+	it('keeps a genuinely persisted signature stamp rule when metadata uses its built-in default', () => {
 		const result = hydrateCompoundPolicyRules({
-			parent: createMemberRecords(SIGNATURE_STAMP_POLICY_KEY, {
-				systemPolicy: createPersistedSystemPolicy({ value: signatureStampValue, allowChildOverride: false }),
-			}),
-			children: [
-				createMemberRecords(COLLECT_METADATA_POLICY_KEY, {
-					systemPolicy: createPersistedSystemPolicy({ scope: 'system', value: false }),
-				}),
-			],
-			compound: requireCompound(signatureTextRealDefinition.compound),
+			policyKey: SIGNATURE_STAMP_POLICY_KEY,
+			persistedSystemPolicy: createPersistedSystemPolicy({ value: signatureStampValue, allowChildOverride: false }),
+			companionSystemPolicy: createPersistedSystemPolicy({ scope: 'system', value: false }),
+			persistedGroupPolicies: [],
+			companionGroupPolicies: [],
+			persistedUserPolicies: [],
+			companionUserPolicies: [],
 		})
-
-		expect(result.explicitSystemRule).toEqual({
+		expect(result?.explicitSystemRule).toEqual({
 			id: 'system-default',
 			scope: 'system',
 			targetId: null,
 			allowChildOverride: false,
-			value: {
-				signatureStampValue,
-				collectMetadataEnabled: false,
-			},
+			value: { signatureStampValue, collectMetadataEnabled: false },
 		})
 	})
 
-	it('keeps child-only global rules for compounds that include child-only rules', () => {
+	it('keeps a renewal-only system rule for compounds supporting companion-only values', () => {
 		const result = hydrateCompoundPolicyRules({
-			parent: createMemberRecords(REQUEST_EXPIRATION_POLICY_KEY, {
-				systemPolicy: createPersistedSystemPolicy({ scope: 'system', value: 0 }),
-			}),
-			children: [
-				createMemberRecords(REQUEST_EXPIRATION_RENEWAL_KEY, {
-					systemPolicy: createPersistedSystemPolicy({ value: 7 }),
-				}),
-			],
-			compound: requireCompound(maximumValidityRealDefinition.compound),
+			policyKey: REQUEST_EXPIRATION_POLICY_KEY,
+			persistedSystemPolicy: createPersistedSystemPolicy({ scope: 'system', value: 0 }),
+			companionSystemPolicy: createPersistedSystemPolicy({ value: 7 }),
+			persistedGroupPolicies: [],
+			companionGroupPolicies: [],
+			persistedUserPolicies: [],
+			companionUserPolicies: [],
 		})
-
-		expect(result.explicitSystemRule?.value).toEqual({
-			maximumValidity: 0,
-			renewalInterval: 7,
-		})
+		expect(result?.explicitSystemRule?.value).toEqual({ maximumValidity: 0, renewalInterval: 7 })
 	})
 
 	it('hydrates signature stamp group rules with collect metadata companion values', () => {
