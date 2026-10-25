@@ -1964,13 +1964,11 @@ final class PolicySourceTest extends TestCase {
 
 		$userCountsQuery = $this->createMock(IQueryBuilder::class);
 		$userCountsQuery->method('select')->willReturnSelf();
-		$userCountsQuery->method('selectAlias')->willReturnSelf();
+		$userCountsQuery->method('selectDistinct')->willReturnSelf();
 		$userCountsQuery->method('from')->willReturnSelf();
 		$userCountsQuery->method('where')->willReturnSelf();
 		$userCountsQuery->method('andWhere')->willReturnSelf();
-		$userCountsQuery->method('groupBy')->willReturnSelf();
 		$userCountsQuery->method('expr')->willReturn($expr);
-		$userCountsQuery->method('func')->willReturn($this->createMock(\OCP\DB\QueryBuilder\IFunctionBuilder::class));
 		$userCountsQuery->method('createNamedParameter')->willReturn(':p');
 
 		$userCountsResult = $this->createMock(IResult::class);
@@ -2044,18 +2042,17 @@ final class PolicySourceTest extends TestCase {
 
 		$qb = $this->createMock(IQueryBuilder::class);
 		$qb->method('select')->willReturnSelf();
-		$qb->method('selectAlias')->willReturnSelf();
+		$qb->method('selectDistinct')->willReturnSelf();
 		$qb->method('from')->willReturnSelf();
 		$qb->method('where')->willReturnSelf();
 		$qb->method('andWhere')->willReturnSelf();
-		$qb->method('groupBy')->willReturnSelf();
 		$qb->method('expr')->willReturn($expr);
 		$qb->method('createNamedParameter')->willReturn(':p');
-		$qb->method('createFunction')->willReturn('COUNT(DISTINCT userid)');
 
 		$dbResult = $this->createMock(IResult::class);
 		$dbResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
-			['configkey' => 'policy.signature_flow.assigned', 'user_count' => '2'],
+			['configkey' => 'policy.signature_flow.assigned', 'userid' => 'john'],
+			['configkey' => 'policy.signature_flow.assigned', 'userid' => 'jane'],
 			false,
 		);
 		$dbResult->expects($this->once())->method('closeCursor');
@@ -2164,18 +2161,18 @@ final class PolicySourceTest extends TestCase {
 
 		$userCountsQuery = $this->createMock(IQueryBuilder::class);
 		$userCountsQuery->method('select')->willReturnSelf();
-		$userCountsQuery->method('selectAlias')->willReturnSelf();
+		$userCountsQuery->method('selectDistinct')->willReturnSelf();
 		$userCountsQuery->method('from')->willReturnSelf();
 		$userCountsQuery->method('where')->willReturnSelf();
 		$userCountsQuery->method('andWhere')->willReturnSelf();
-		$userCountsQuery->method('groupBy')->willReturnSelf();
 		$userCountsQuery->method('expr')->willReturn($expr);
-		$userCountsQuery->method('func')->willReturn($this->createMock(\OCP\DB\QueryBuilder\IFunctionBuilder::class));
 		$userCountsQuery->method('createNamedParameter')->willReturn(':p');
 
 		$userCountsResult = $this->createMock(IResult::class);
 		$userCountsResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
-			['configkey' => 'policy.signature_flow.assigned', 'user_count' => '3'],
+			['configkey' => 'policy.signature_flow.assigned', 'userid' => 'john'],
+			['configkey' => 'policy.signature_flow.assigned', 'userid' => 'jane'],
+			['configkey' => 'policy.signature_flow.assigned', 'userid' => 'mary'],
 			false,
 		);
 		$userCountsResult->expects($this->once())->method('closeCursor');
@@ -2220,13 +2217,11 @@ final class PolicySourceTest extends TestCase {
 
 		$userCountsQuery = $this->createMock(IQueryBuilder::class);
 		$userCountsQuery->method('select')->willReturnSelf();
-		$userCountsQuery->method('selectAlias')->willReturnSelf();
+		$userCountsQuery->method('selectDistinct')->willReturnSelf();
 		$userCountsQuery->method('from')->willReturnSelf();
 		$userCountsQuery->method('where')->willReturnSelf();
 		$userCountsQuery->method('andWhere')->willReturnSelf();
-		$userCountsQuery->method('groupBy')->willReturnSelf();
 		$userCountsQuery->method('expr')->willReturn($expr);
-		$userCountsQuery->method('func')->willReturn($this->createMock(\OCP\DB\QueryBuilder\IFunctionBuilder::class));
 		$userCountsQuery->method('createNamedParameter')->willReturn(':p');
 
 		$userCountsResult = $this->createMock(IResult::class);
@@ -2281,6 +2276,127 @@ final class PolicySourceTest extends TestCase {
 
 	private function assertAppConfigMissing(string $key): void {
 		$this->assertFalse($this->coreAppConfig->hasKey(Application::APP_ID, $key));
+	}
+
+	/**
+	 * @param array<string, list<string>> $groupRules group id => policy keys with an explicit rule
+	 * @param array<string, list<string>> $userRules user id => policy keys with an assigned rule
+	 * @param array<string, int> $expectedGroupCounts
+	 * @param array<string, int> $expectedUserCounts
+	 */
+	#[DataProvider('providerCompositeRuleCounts')]
+	public function testLoadAllRuleCountsCountsCompositeChildRulesOncePerTargetForParent(
+		array $groupRules,
+		array $userRules,
+		array $expectedGroupCounts,
+		array $expectedUserCounts,
+	): void {
+		$bindings = [];
+		$permissionSets = [];
+		$permissionSetId = 1;
+		foreach ($groupRules as $groupId => $policyKeys) {
+			$binding = new PermissionSetBinding();
+			$binding->setPermissionSetId($permissionSetId);
+			$binding->setTargetType('group');
+			$binding->setTargetId($groupId);
+			$bindings[] = $binding;
+
+			$permissionSet = new PermissionSet();
+			$permissionSet->setId($permissionSetId);
+			$permissionSet->setPolicyJson(array_fill_keys($policyKeys, [
+				'defaultValue' => 1,
+				'allowChildOverride' => false,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+			]));
+			$permissionSets[] = $permissionSet;
+			$permissionSetId++;
+		}
+
+		$this->bindingMapper->method('findByTargetType')->with('group')->willReturn($bindings);
+		$this->permissionSetMapper->method('findByIds')->willReturn($permissionSets);
+
+		$userRows = [];
+		foreach ($userRules as $userId => $policyKeys) {
+			foreach ($policyKeys as $policyKey) {
+				$userRows[] = ['configkey' => 'policy.' . $policyKey . '.assigned', 'userid' => $userId];
+			}
+		}
+		$this->mockRuleCountQueries($userRows);
+
+		$result = $this->getSource()->loadAllRuleCounts();
+
+		foreach ($expectedGroupCounts as $policyKey => $expectedCount) {
+			$this->assertSame($expectedCount, $result[$policyKey]['groupCount'], $policyKey . ' groupCount');
+		}
+		foreach ($expectedUserCounts as $policyKey => $expectedCount) {
+			$this->assertSame($expectedCount, $result[$policyKey]['userCount'], $policyKey . ' userCount');
+		}
+	}
+
+	public static function providerCompositeRuleCounts(): array {
+		return [
+			'parent and child in different targets' => [
+				'groupRules' => ['finance' => ['maximum_validity'], 'legal' => ['renewal_interval']],
+				'userRules' => ['john' => ['maximum_validity'], 'jane' => ['renewal_interval']],
+				'expectedGroupCounts' => ['maximum_validity' => 2, 'renewal_interval' => 1],
+				'expectedUserCounts' => ['maximum_validity' => 2, 'renewal_interval' => 1],
+			],
+			'parent and child in the same target' => [
+				'groupRules' => ['finance' => ['maximum_validity', 'renewal_interval']],
+				'userRules' => ['john' => ['maximum_validity', 'renewal_interval']],
+				'expectedGroupCounts' => ['maximum_validity' => 1, 'renewal_interval' => 1],
+				'expectedUserCounts' => ['maximum_validity' => 1, 'renewal_interval' => 1],
+			],
+			'child only' => [
+				'groupRules' => ['legal' => ['renewal_interval']],
+				'userRules' => ['jane' => ['renewal_interval']],
+				'expectedGroupCounts' => ['maximum_validity' => 1, 'renewal_interval' => 1],
+				'expectedUserCounts' => ['maximum_validity' => 1, 'renewal_interval' => 1],
+			],
+			'collect metadata alone does not create a signature stamp rule' => [
+				'groupRules' => ['finance' => ['collect_metadata']],
+				'userRules' => ['john' => ['collect_metadata']],
+				'expectedGroupCounts' => ['signature_stamp' => 0, 'collect_metadata' => 1],
+				'expectedUserCounts' => ['signature_stamp' => 0, 'collect_metadata' => 1],
+			],
+		];
+	}
+
+	/**
+	 * @param list<array{configkey: string, userid: string}> $userRows
+	 */
+	private function mockRuleCountQueries(array $userRows): void {
+		$expr = $this->createMock(IExpressionBuilder::class);
+		$expr->method('eq')->willReturn('1=1');
+		$expr->method('in')->willReturn('1=1');
+		$expr->method('neq')->willReturn('1=1');
+
+		$userCountsQuery = $this->createMock(IQueryBuilder::class);
+		$userCountsQuery->method('selectDistinct')->willReturnSelf();
+		$userCountsQuery->method('from')->willReturnSelf();
+		$userCountsQuery->method('where')->willReturnSelf();
+		$userCountsQuery->method('andWhere')->willReturnSelf();
+		$userCountsQuery->method('expr')->willReturn($expr);
+		$userCountsQuery->method('createNamedParameter')->willReturn(':p');
+
+		$userCountsResult = $this->createMock(IResult::class);
+		$userCountsResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(...[...$userRows, false]);
+		$userCountsQuery->method('executeQuery')->willReturn($userCountsResult);
+
+		$systemConfigQuery = $this->createMock(IQueryBuilder::class);
+		$systemConfigQuery->method('select')->willReturnSelf();
+		$systemConfigQuery->method('from')->willReturnSelf();
+		$systemConfigQuery->method('where')->willReturnSelf();
+		$systemConfigQuery->method('andWhere')->willReturnSelf();
+		$systemConfigQuery->method('expr')->willReturn($expr);
+		$systemConfigQuery->method('createNamedParameter')->willReturn(':p');
+
+		$systemConfigResult = $this->createMock(IResult::class);
+		$systemConfigResult->method('fetchAssociative')->willReturn(false);
+		$systemConfigQuery->method('executeQuery')->willReturn($systemConfigResult);
+
+		$this->db->method('getQueryBuilder')->willReturnOnConsecutiveCalls($userCountsQuery, $systemConfigQuery);
 	}
 
 	private function getSource(): PolicySource {
