@@ -8,18 +8,12 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Worker;
 
-use OCA\Libresign\Service\Process\ProcessManager;
 use Psr\Log\LoggerInterface;
 
 class WorkerHealthService {
-	private const string PROCESS_SOURCE = 'worker';
-
 	public function __construct(
 		private WorkerConfiguration $workerConfiguration,
-		private ProcessManager $processManager,
-		private WorkerJobCounter $workerJobCounter,
-		private StartThrottlePolicy $startThrottlePolicy,
-		private WorkerStarter $workerStarter,
+		private LocalWorkerRegistry $registry,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -28,52 +22,17 @@ class WorkerHealthService {
 		return $this->workerConfiguration->isAsyncLocalEnabled();
 	}
 
+	/** Best effort. A failed local launch does not invalidate a persisted job. */
 	public function ensureWorkerRunning(): bool {
 		try {
-			if (!$this->workerConfiguration->isAsyncLocalEnabled()) {
+			if (!$this->isAsyncLocalEnabled()) {
 				return false;
 			}
-
-			$workersNeeded = $this->calculateWorkersNeeded();
-			if ($workersNeeded === 0) {
-				return true;
-			}
-
-			if ($this->startThrottlePolicy->isThrottled()) {
-				return true;
-			}
-
-			$this->startThrottlePolicy->recordAttempt();
-			$this->workerStarter->startWorkers($workersNeeded);
-			return true;
+			return $this->registry->ensureCapacity($this->workerConfiguration->getDesiredWorkerCount());
 		} catch (\Throwable $e) {
-			$this->logger->error('Failed to ensure worker is running: {error}', [
-				'error' => $e->getMessage(),
-				'exception' => $e,
-			]);
+			// A count failure is not an empty queue and must not fail signing.
+			$this->logger->warning('Unable to check or start signing workers; Nextcloud cron can process pending jobs', ['exception' => $e]);
 			return false;
 		}
-	}
-
-	private function calculateWorkersNeeded(): int {
-		$desired = $this->workerConfiguration->getDesiredWorkerCount();
-		$running = $this->processManager->countRunning(self::PROCESS_SOURCE);
-		$pendingJobs = $this->workerJobCounter->countPendingJobs();
-
-		if ($this->hasNoPendingWork($pendingJobs)) {
-			return 0;
-		}
-
-		return $this->limitWorkersByAvailableWork($pendingJobs, $desired, $running);
-	}
-
-	private function hasNoPendingWork(int $pendingJobs): bool {
-		return $pendingJobs === 0;
-	}
-
-	private function limitWorkersByAvailableWork(int $pendingJobs, int $desired, int $running): int {
-		$workersNeeded = $desired - $running;
-		$workersLimitedByJobs = min($pendingJobs, $workersNeeded);
-		return max(0, $workersLimitedByJobs);
 	}
 }
