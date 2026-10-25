@@ -352,11 +352,6 @@ class RequestSignatureController extends AEnvironmentAwareController {
 					? Http::STATUS_UNPROCESSABLE_ENTITY
 					: Http::STATUS_UNAUTHORIZED,
 			);
-		} catch (\Throwable) {
-			return new DataResponse(
-				['message' => $this->l10n->t('Unable to remove signer.')],
-				Http::STATUS_INTERNAL_SERVER_ERROR,
-			);
 		}
 		return new DataResponse(
 			[

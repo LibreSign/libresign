@@ -30,13 +30,10 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
-use OCP\AppFramework\Http;
-use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
-use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -64,7 +61,6 @@ class RequestSignatureService {
 		protected LoggerInterface $logger,
 		protected SequentialSigningService $sequentialSigningService,
 		protected IAppConfig $appConfig,
-		protected IEventDispatcher $eventDispatcher,
 		protected FileStatusService $fileStatusService,
 		protected DocMdpConfigService $docMdpConfigService,
 		protected EnvelopeService $envelopeService,

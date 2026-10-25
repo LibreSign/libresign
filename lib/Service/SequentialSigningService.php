@@ -95,13 +95,22 @@ class SequentialSigningService {
 	 * @param int $deletedOrder The order that was deleted
 	 */
 	public function reorderAfterDeletion(int $fileId, int $deletedOrder): void {
+		$this->notifyActivatedSigners($this->activateAfterDeletion($fileId, $deletedOrder));
+	}
+
+	/**
+	 * Persist the next activation without external notifications while a
+	 * transaction is open. The caller sends notifications after commit.
+	 *
+	 * @return list<SignRequestEntity>
+	 */
+	public function activateAfterDeletion(int $fileId, int $deletedOrder): array {
 		if (!$this->isOrderedNumericFlow()) {
-			return;
+			return [];
 		}
 
 		$allSignRequests = $this->signRequestMapper->getByFileId($fileId);
-
-		$hasSignersAtDeletedOrder = !empty(array_filter(
+		$hasSignersAtDeletedOrder = array_filter(
 			$allSignRequests,
 			fn ($sr) => $sr->getSigningOrder() === $deletedOrder
 		));
@@ -115,6 +124,14 @@ class SequentialSigningService {
 				}
 			}
 		}
+
+		$previousOrder = $deletedOrder - 1;
+		if ($previousOrder <= 0 || !$this->isOrderFullyCompleted($allSignRequests, $previousOrder)) {
+			return [];
+		}
+
+		$nextOrder = $this->findNextOrder($allSignRequests, $deletedOrder);
+		return $nextOrder !== null ? $this->activateSignersForOrder($allSignRequests, $nextOrder) : [];
 	}
 
 	private function isOrderFullyCompleted(array $signRequests, int $order): bool {
