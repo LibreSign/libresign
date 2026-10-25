@@ -16,9 +16,7 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\ParticipantRole;
-use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
@@ -35,6 +33,7 @@ use OCA\Libresign\Service\Policy\FilePolicyApplier;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
+use OCA\Libresign\Service\SignerRemovalService;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCA\Libresign\Service\SignRequest\StatusService;
@@ -42,14 +41,12 @@ use OCA\Libresign\Service\SignRequest\StatusUpdatePolicy;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
-use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IAppConfig;
-use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -79,9 +76,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private LoggerInterface&MockObject $loggerInterface;
 	private SequentialSigningService&MockObject $sequentialSigningService;
 	private IAppConfig&MockObject $appConfig;
-	private IEventDispatcher&MockObject $eventDispatcher;
 	private FileStatusService&MockObject $fileStatusService;
-	private IDBConnection&MockObject $db;
+	private SignerRemovalService&MockObject $signerRemovalService;
 	private DocMdpConfigService&MockObject $docMdpConfigService;
 	private EnvelopeService&MockObject $envelopeService;
 	private EnvelopeFileRelocator&MockObject $envelopeFileRelocator;
@@ -118,9 +114,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
 		$this->sequentialSigningService = $this->createMock(SequentialSigningService::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
-		$this->db = $this->createMock(IDBConnection::class);
+		$this->signerRemovalService = $this->createMock(SignerRemovalService::class);
 		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
 		$this->envelopeService = $this->createMock(EnvelopeService::class);
 		$this->envelopeFileRelocator = $this->createMock(EnvelopeFileRelocator::class);
@@ -154,7 +149,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->loggerInterface,
 					$this->sequentialSigningService,
 					$this->appConfig,
-					$this->eventDispatcher,
 					$this->fileStatusService,
 					$this->docMdpConfigService,
 					$this->envelopeService,
@@ -163,7 +157,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->signRequestService,
 					$this->filePolicyApplier,
 					$this->signerGeolocationPolicyService,
-					$this->db,
+					$this->signerRemovalService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -190,7 +184,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->loggerInterface,
 			$this->sequentialSigningService,
 			$this->appConfig,
-			$this->eventDispatcher,
 			$this->fileStatusService,
 			$this->docMdpConfigService,
 			$this->envelopeService,
@@ -199,7 +192,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->signRequestService,
 			$this->filePolicyApplier,
 			$this->signerGeolocationPolicyService,
-			$this->db,
+			$this->signerRemovalService,
 		);
 	}
 
@@ -319,175 +312,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->getService()->saveFile(['userManager' => $this->user, 'name' => 'contract']);
 
 		$this->assertSame(['freeze:' . \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value, 'insert'], $calls);
-	}
-
-	public function testRemovingTheLastSignerOfASentRequestKeepsItsPolicySnapshotFrozen(): void {
-		$file = new \OCA\Libresign\Db\File();
-		$file->setId(5);
-		$file->setStatus(\OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value);
-		$this->fileMapper->method('getById')->willReturn($file);
-
-		$signRequest = new SignRequest();
-		$signRequest->setId(9);
-		$signRequest->setSigningOrder(1);
-		$this->signRequestMapper->method('getByFileIdAndSignRequestId')->willReturn($signRequest);
-		$this->signRequestMapper->method('getByFileId')->willReturn([]);
-		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->willReturn([]);
-		$this->fileElementMapper->method('getByFileIdAndSignRequestId')->willReturn([]);
-		$this->sequentialSigningService->method('setFile')->willReturnSelf();
-
-		// Both state changes must be made atomically.
-		$calls = [];
-		$this->fileStatusService->method('markPolicySnapshotFrozen')
-			->willReturnCallback(function (\OCA\Libresign\Db\File $frozen, int $newStatus) use (&$calls): void {
-				$calls[] = ['freeze', $frozen->getStatus(), $newStatus];
-			});
-		$this->fileStatusService->method('update')
-			->willReturnCallback(function (\OCA\Libresign\Db\File $updated) use (&$calls): \OCA\Libresign\Db\File {
-				$calls[] = ['update', $updated->getStatus()];
-				return $updated;
-			});
-
-		$this->db->expects($this->once())->method('beginTransaction');
-		$this->db->expects($this->once())->method('commit');
-		$this->getService()->unassociateToUser(5, 9);
-
-		$this->assertSame([
-			['freeze', \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value, \OCA\Libresign\Enum\FileStatus::DRAFT->value],
-			['update', \OCA\Libresign\Enum\FileStatus::DRAFT->value],
-		], $calls);
-	}
-
-	#[\PHPUnit\Framework\Attributes\DataProvider('completedSignerStates')]
-	public function testRemovingACompletedSignerDoesNotChangeEvidence(
-		int $fileStatus,
-		int $signRequestStatus,
-		bool $hasSignedDate,
-		bool $hasSignedHash,
-	): void {
-		$file = new \OCA\Libresign\Db\File();
-		$file->setId(5);
-		$file->setStatus($fileStatus);
-		$this->fileMapper->method('getById')->willReturn($file);
-		$signRequest = new SignRequest();
-		$signRequest->setId(9);
-		$signRequest->setStatus($signRequestStatus);
-		if ($hasSignedDate) {
-			$signRequest->setSigned(new \DateTime('2026-01-01T00:00:00Z'));
-		}
-		if ($hasSignedHash) {
-			$signRequest->setSignedHash('existing-signature');
-		}
-		$this->signRequestMapper->method('getByFileIdAndSignRequestId')->willReturn($signRequest);
-		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->willReturn([]);
-		$this->signRequestMapper->expects($this->never())->method('delete');
-		$this->identifyMethodService->expects($this->never())->method('deleteBySignRequestId');
-		$this->db->expects($this->never())->method('beginTransaction');
-		$this->eventDispatcher->expects($this->never())->method('dispatchTyped');
-		$this->fileStatusService->expects($this->never())->method('update');
-
-		try {
-			$this->getService()->unassociateToUser(5, 9);
-			$this->fail('Removal must not discard a completed signing record.');
-		} catch (LibresignException $e) {
-			$this->assertSame(422, $e->getCode());
-		}
-
-		$this->assertSame($fileStatus, $file->getStatus());
-		$this->assertSame($signRequestStatus, $signRequest->getStatus());
-		$this->assertSame($hasSignedDate, $signRequest->getSigned() !== null);
-		$this->assertSame($hasSignedHash, $signRequest->getSignedHash() !== null);
-	}
-
-	public static function completedSignerStates(): array {
-		return [
-			'completed request status in partial document' => [FileStatus::PARTIAL_SIGNED->value, SignRequestStatus::SIGNED->value, false, false],
-			'completed date in pending-status record' => [FileStatus::ABLE_TO_SIGN->value, SignRequestStatus::ABLE_TO_SIGN->value, true, false],
-			'completed hash in pending-status record' => [FileStatus::ABLE_TO_SIGN->value, SignRequestStatus::ABLE_TO_SIGN->value, false, true],
-			'fully signed document' => [FileStatus::SIGNED->value, SignRequestStatus::ABLE_TO_SIGN->value, false, false],
-			'partially signed document cannot be edited' => [FileStatus::PARTIAL_SIGNED->value, SignRequestStatus::ABLE_TO_SIGN->value, false, false],
-			'signing in progress' => [FileStatus::SIGNING_IN_PROGRESS->value, SignRequestStatus::ABLE_TO_SIGN->value, false, false],
-		];
-	}
-
-	public function testRemovingPendingSignerDoesNotAlterRemainingSigner(): void {
-		$file = new \OCA\Libresign\Db\File();
-		$file->setId(5);
-		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
-		$this->fileMapper->method('getById')->willReturn($file);
-		$pending = new SignRequest();
-		$pending->setId(9);
-		$pending->setStatus(SignRequestStatus::ABLE_TO_SIGN->value);
-		$other = new SignRequest();
-		$other->setId(10);
-		$other->setStatus(SignRequestStatus::ABLE_TO_SIGN->value);
-		$this->signRequestMapper->method('getByFileIdAndSignRequestId')->willReturn($pending);
-		$this->signRequestMapper->method('getByFileId')->willReturn([$other]);
-		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->willReturn([]);
-		$this->fileElementMapper->method('getByFileIdAndSignRequestId')->willReturn([]);
-		$this->sequentialSigningService->method('setFile')->willReturnSelf();
-		$this->signRequestMapper->expects($this->once())->method('delete')->with($pending);
-		$this->fileStatusService->expects($this->never())->method('update');
-		$this->db->expects($this->once())->method('beginTransaction');
-		$this->db->expects($this->once())->method('commit');
-		$this->db->expects($this->never())->method('rollBack');
-
-		$this->getService()->unassociateToUser(5, 9, notify: false);
-
-		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $file->getStatus());
-		$this->assertSame(SignRequestStatus::ABLE_TO_SIGN->value, $other->getStatus());
-	}
-
-	public function testEnvelopeRemovalCannotDeleteAnAlreadySignedChild(): void {
-		$envelope = new \OCA\Libresign\Db\File();
-		$envelope->setId(5);
-		$envelope->setStatus(FileStatus::ABLE_TO_SIGN->value);
-		$envelope->setNodeType('envelope');
-		$child = new \OCA\Libresign\Db\File();
-		$child->setId(6);
-		$child->setStatus(FileStatus::PARTIAL_SIGNED->value);
-		$this->fileMapper->method('getById')->willReturn($envelope);
-		$this->fileMapper->method('getChildrenFiles')->willReturn([$child]);
-		$parentSigner = new SignRequest();
-		$parentSigner->setId(9);
-		$parentSigner->setStatus(SignRequestStatus::ABLE_TO_SIGN->value);
-		$childSigner = new SignRequest();
-		$childSigner->setId(10);
-		$childSigner->setStatus(SignRequestStatus::SIGNED->value);
-		$childSigner->setSigned(new \DateTime('2026-01-01T00:00:00Z'));
-		$this->signRequestMapper->method('getByFileIdAndSignRequestId')->willReturn($parentSigner);
-		$method = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
-		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
-			->willReturn(['account' => [$method]]);
-		$this->signRequestService->method('getSignRequestByIdentifyMethod')->willReturn($childSigner);
-		$this->signRequestMapper->expects($this->never())->method('delete');
-		$this->db->expects($this->never())->method('beginTransaction');
-		$this->eventDispatcher->expects($this->never())->method('dispatchTyped');
-
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionCode(422);
-		$this->getService()->unassociateToUser(5, 9);
-	}
-
-	public function testFailedRemovalRollsBackAndDoesNotDispatchCancellation(): void {
-		$file = new \OCA\Libresign\Db\File();
-		$file->setId(5);
-		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
-		$this->fileMapper->method('getById')->willReturn($file);
-		$signer = new SignRequest();
-		$signer->setId(9);
-		$signer->setStatus(SignRequestStatus::ABLE_TO_SIGN->value);
-		$this->signRequestMapper->method('getByFileIdAndSignRequestId')->willReturn($signer);
-		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->willReturn([]);
-		$this->signRequestMapper->method('delete')->willThrowException(new \RuntimeException('Simulated persistence failure'));
-		$this->db->expects($this->once())->method('beginTransaction');
-		$this->db->expects($this->never())->method('commit');
-		$this->db->expects($this->once())->method('rollBack');
-		$this->loggerInterface->expects($this->once())->method('error');
-		$this->eventDispatcher->expects($this->never())->method('dispatchTyped');
-
-		$this->expectException(\RuntimeException::class);
-		$this->getService()->unassociateToUser(5, 9);
 	}
 
 	public function testSaveFilesUsesSaveForSingleFile(): void {
@@ -992,7 +816,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->loggerInterface,
 				$this->sequentialSigningService,
 				$this->appConfig,
-				$this->eventDispatcher,
 				$this->fileStatusService,
 				$this->docMdpConfigService,
 				$this->envelopeService,
@@ -1001,7 +824,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->signRequestService,
 				$this->filePolicyApplier,
 				$this->signerGeolocationPolicyService,
-				$this->db,
+				$this->signerRemovalService,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
@@ -1069,7 +892,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->loggerInterface,
 				$this->sequentialSigningService,
 				$this->appConfig,
-				$this->eventDispatcher,
 				$this->fileStatusService,
 				$this->docMdpConfigService,
 				$this->envelopeService,
@@ -1078,7 +900,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->signRequestService,
 				$this->filePolicyApplier,
 				$this->signerGeolocationPolicyService,
-				$this->db,
+				$this->signerRemovalService,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
