@@ -29,6 +29,26 @@ class FileStatusServiceTest extends TestCase {
 		$this->service = new FileStatusService($this->fileMapper, $this->statusCacheService);
 	}
 
+	public function testQueuedSigningStatusIsNotPublishedBeforeCommit(): void {
+		$file = new FileEntity();
+		$file->setUuid('file-uuid');
+		$file->setStatus(FileStatus::SIGNING_IN_PROGRESS->value);
+		$this->fileMapper->expects($this->once())->method('updateWithoutCache')->with($file)->willReturn($file);
+		$this->statusCacheService->expects($this->never())->method('setStatus');
+		$this->service->updateForQueuedJob($file);
+	}
+
+	public function testCommittedEnqueueDoesNotOverwriteNewerSigningProgress(): void {
+		$file = new FileEntity();
+		$file->setUuid('file-uuid');
+		$file->setStatus(FileStatus::SIGNING_IN_PROGRESS->value);
+		$this->fileMapper->expects($this->never())->method('update');
+		$this->fileMapper->expects($this->once())->method('invalidateEntityCache')->with($file);
+		$this->statusCacheService->expects($this->once())->method('invalidateStatus')->with('file-uuid');
+		$this->statusCacheService->expects($this->never())->method('setStatus');
+		$this->service->onQueuedJobCommitted($file);
+	}
+
 	#[DataProvider('dataFileStatusUpgrade')]
 	public function testUpdateFileStatusIfUpgrade(int $currentStatus, int $newStatus, bool $shouldUpdate): void {
 		$file = new FileEntity();

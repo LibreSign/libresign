@@ -27,7 +27,7 @@ use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Service\Validation\VisibleElementValidator;
-use OCA\Libresign\Service\Worker\WorkerHealthService;
+use OCA\Libresign\Service\Worker\WorkerConfiguration;
 use OCP\AppFramework\Http;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -71,7 +71,7 @@ final class SignFileControllerTest extends TestCase {
 			$this->createMock(IdentifyMethodService::class),
 			$this->createMock(FileService::class),
 			$this->createMock(SettingsLoader::class),
-			$this->createMock(WorkerHealthService::class),
+			$this->createMock(WorkerConfiguration::class),
 			$this->createMock(AsyncSigningService::class),
 			$this->createMock(RequestMetadataService::class),
 			$this->createMock(SignerGeolocationMetadataValidator::class),

@@ -68,6 +68,26 @@ class SignJobCoordinatorTest extends TestCase {
 		);
 	}
 
+	public function testAnonymousCredentialsAreDeletedAfterJobCompletion(): void {
+		$this->credentialsManager->expects($this->once())->method('delete')->with('', 'anonymous-cred');
+		$this->coordinator->discardJobCredentials(['userId' => '', 'credentialsId' => 'anonymous-cred']);
+	}
+
+	public function testExternalSignerCredentialsAreRemovedFromGuestStore(): void {
+		$this->credentialsManager->expects($this->once())->method('delete')->with('', 'external-credentials');
+		$this->coordinator->discardJobCredentials([
+			'userId' => 'document-owner',
+			'isExternalSigner' => true,
+			'credentialsId' => 'external-credentials',
+		]);
+	}
+
+	public function testCredentialDeleteFailureDoesNotFailSigning(): void {
+		$this->credentialsManager->method('delete')->willThrowException(new \RuntimeException('Temporary store unavailable'));
+		$this->logger->expects($this->once())->method('warning');
+		$this->coordinator->discardJobCredentials(['userId' => 'user-1', 'credentialsId' => 'cred']);
+	}
+
 	public function testRunSignSingleFileMarksInProgressAndDeletesCredentialsOnSuccess(): void {
 		$file = new File();
 		$file->setId(10);
@@ -138,7 +158,7 @@ class SignJobCoordinatorTest extends TestCase {
 			->method('delete')
 			->with('user1', 'cred-1');
 
-		$this->coordinator->runSignSingleFile([
+		$this->assertTrue($this->coordinator->runSignSingleFile([
 			'fileId' => $file->getId(),
 			'signRequestId' => $signRequest->getId(),
 			'userId' => 'user1',
@@ -149,7 +169,7 @@ class SignJobCoordinatorTest extends TestCase {
 			'credentialsId' => 'cred-1',
 			'metadata' => [],
 			'visibleElements' => [],
-		]);
+		]));
 	}
 
 	public function testRunSignSingleFileDeletesCredentialsWhenSigningFails(): void {
@@ -236,7 +256,7 @@ class SignJobCoordinatorTest extends TestCase {
 			->method('sign')
 			->willThrowException($exception);
 
-		$this->coordinator->runSignFile([
+		$this->assertFalse($this->coordinator->runSignFile([
 			'fileId' => $file->getId(),
 			'signRequestId' => $signRequest->getId(),
 			'userId' => '',
@@ -247,7 +267,7 @@ class SignJobCoordinatorTest extends TestCase {
 			'credentialsId' => null,
 			'metadata' => [],
 			'visibleElements' => [],
-		]);
+		]));
 	}
 
 	public function testRunSignSingleFileStoresErrorWhenValidationFails(): void {
