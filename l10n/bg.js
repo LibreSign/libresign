@@ -192,6 +192,7 @@ OC.L10N.register(
     "Longitude:" : "Географска дължина:",
     "Name:" : "Име:",
     "Status:" : "Състояние:",
+    "Private" : "Лично",
     "Unknown" : "Неизвестен",
     "Congratulations you have digitally signed a document using LibreSign" : "Поздравления, вие подписахте цифрово документ с LibreSign",
     "Number of documents:" : "Брой документи:",
