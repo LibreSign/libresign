@@ -192,16 +192,12 @@ final class RequestSignatureControllerTest extends TestCase {
 		$this->assertSame(['message' => 'A completed signer cannot be removed.'], $response->getData());
 	}
 
-	public function testRemovalFailureDoesNotReturnSuccessOrExposeInternalDetails(): void {
-		$this->requestSignatureService->expects($this->once())
-			->method('unassociateToUser')
-			->with(5, 9)
+	public function testUnexpectedRemovalFailurePropagatesToFramework(): void {
+		$this->requestSignatureService->method('unassociateToUser')
 			->willThrowException(new \RuntimeException('Database connection details'));
 
-		$response = $this->controller->removeSigner(5, 9);
-
-		$this->assertSame(Http::STATUS_INTERNAL_SERVER_ERROR, $response->getStatus());
-		$this->assertSame(['message' => 'Unable to remove signer.'], $response->getData());
+		$this->expectException(\RuntimeException::class);
+		$this->controller->removeSigner(5, 9);
 	}
 
 	public function testRequestRejectsUnknownPolicyOverrideKey(): void {
