@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Integration\Handler;
  */
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\TemplateVariables;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
@@ -82,6 +83,31 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Integration\TestCase 
 			$templateVars,
 		);
 		return $this->footerHandler;
+	}
+
+	public function testDisabledLegacyFooterDoesNotRenderUnsupportedTemplate(): void {
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID);
+		$this->setFooterPolicy([
+			...FooterPolicyValue::defaults(),
+			'enabled' => false,
+			'customizeFooterTemplate' => true,
+			'footerTemplate' => '{{ range(1, 3) }}',
+		]);
+		$this->assertSame('', $this->getClass()->getFooter([['w' => 595, 'h' => 100]]));
+	}
+
+	public function testExistingUnsupportedFooterReportsHowToRecover(): void {
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID);
+		$this->setFooterPolicy([
+			...FooterPolicyValue::defaults(),
+			'writeQrcodeOnFooter' => false,
+			'customizeFooterTemplate' => true,
+			'footerTemplate' => '{{ range(1, 3) }}',
+		]);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('footer policy');
+		$this->getClass()->getFooter([['w' => 595, 'h' => 100]]);
 	}
 
 	public function testGetFooterWithoutValidationSite(): void {

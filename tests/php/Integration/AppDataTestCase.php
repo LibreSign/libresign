@@ -258,7 +258,8 @@ class AppDataTestCase extends TestCase {
 			}
 			$sourcePerms = @fileperms($sourcePath);
 			$destPerms = @fileperms($newDest);
-			$expectedMode = $item->isDir()
+			// Decide from the destination: the source entry may have been removed meanwhile.
+			$expectedMode = is_dir($newDest)
 				? self::TEST_DIR_MODE
 				: (is_int($sourcePerms) ? self::normalizeCopiedFileMode($sourcePerms) : self::TEST_FILE_MODE);
 			if (!is_int($destPerms) || (($destPerms & 0777) !== $expectedMode)) {

@@ -224,6 +224,7 @@ OC.L10N.register(
     "Longitude:" : "Lengdegrad:",
     "Name:" : "Navn:",
     "Status:" : "Status:",
+    "Private" : "Privat",
     "Unknown" : "Ukjent",
     "Congratulations you have digitally signed a document using LibreSign" : "Gratulerer med at du har signert et dokument digitalt med LibreSign",
     "Number of documents:" : "Antall dokumenter:",

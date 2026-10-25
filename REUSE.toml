@@ -20,6 +20,7 @@ path = [
     ".github/copilot-instructions.md",
     ".patches/**",
     "appinfo/info.xml",
+    "appinfo/usage-statistics/schema-v1.json",
     "composer.json",
     "composer.lock",
     ".github/ISSUE_TEMPLATE/2_feature_request.md",

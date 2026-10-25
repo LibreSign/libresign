@@ -91,6 +91,7 @@ OC.L10N.register(
     "Serial Number:" : "Серыйны нумар:",
     "File size:" : "Памер файла:",
     "View document" : "Праглядзець дакумент",
+    "Private" : "Прыватна",
     "Unknown" : "Невядомы",
     "View PDF" : "Праглядзець PDF",
     "Hide details" : "Схаваць падрабязнасці",

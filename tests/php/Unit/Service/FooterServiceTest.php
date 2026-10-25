@@ -60,6 +60,36 @@ class FooterServiceTest extends TestCase {
 		];
 	}
 
+	#[DataProvider('previewPermissionCases')]
+	public function testPreviewRequiresEnabledAndEditablePolicy(
+		bool $enabled,
+		bool $visible,
+		bool $editable,
+		bool $requestOverride,
+		bool $expected,
+	): void {
+		$this->footerHandler->method('getEffectiveFooterPolicyAsJson')->willReturn(
+			FooterPolicyValue::encode(['enabled' => $enabled]),
+		);
+		$policy = (new ResolvedPolicy())
+			->setVisible($visible)
+			->setEditableByCurrentActor($editable)
+			->setCanUseAsRequestOverride($requestOverride);
+		$this->policyService->method('resolve')->with(FooterPolicy::KEY)->willReturn($policy);
+
+		$this->assertSame($expected, $this->service->isPreviewAllowed());
+	}
+
+	public static function previewPermissionCases(): array {
+		return [
+			'disabled for policy manager' => [false, true, true, false, false],
+			'hidden for user' => [true, false, true, true, false],
+			'no editing or override rights' => [true, true, false, false, false],
+			'allowed for policy editor' => [true, true, true, false, true],
+			'allowed for request override' => [true, true, false, true, true],
+		];
+	}
+
 	public function testSaveTemplate(): void {
 		$template = '<div>My custom template</div>';
 		$defaultPolicyValue = FooterPolicyValue::encode(FooterPolicyValue::defaults());

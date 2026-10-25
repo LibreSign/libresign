@@ -43,6 +43,41 @@ final class FooterPolicyTest extends TestCase {
 		$this->assertTrue($definition->supportsGroupAdminDelegation());
 	}
 
+	#[DataProvider('inactiveTemplateCases')]
+	public function testInactiveUnsupportedTemplateCanBeSavedForRecovery(bool $enabled, bool $customize): void {
+		$definition = (new FooterPolicy())->get(FooterPolicy::KEY);
+		$value = $definition->normalizeValue([
+			...FooterPolicyValue::defaults(),
+			'enabled' => $enabled,
+			'customizeFooterTemplate' => $customize,
+			'footerTemplate' => '{{ range(1, 3) }}',
+		]);
+
+		$definition->validateValueForPersistence($value, new PolicyContext());
+		$this->addToAssertionCount(1);
+	}
+
+	/** @return array<string, array{bool, bool}> */
+	public static function inactiveTemplateCases(): array {
+		return [
+			'disabled footer retaining a customized template' => [false, true],
+			'enabled footer using its default template' => [true, false],
+		];
+	}
+
+	public function testReactivatingUnsupportedCustomFooterIsRejected(): void {
+		$definition = (new FooterPolicy())->get(FooterPolicy::KEY);
+		$value = $definition->normalizeValue([
+			...FooterPolicyValue::defaults(),
+			'enabled' => true,
+			'customizeFooterTemplate' => true,
+			'footerTemplate' => '{{ range(1, 3) }}',
+		]);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$definition->validateValueForPersistence($value, new PolicyContext());
+	}
+
 	#[DataProvider('normalizationCases')]
 	public function testProviderNormalizesValues(mixed $input, array $expected): void {
 		$provider = new FooterPolicy();

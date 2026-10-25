@@ -207,6 +207,7 @@ OC.L10N.register(
     "Longitude:" : "Hosszúság:",
     "Name:" : "Név:",
     "Status:" : "Állapot:",
+    "Private" : "Privát",
     "Unknown" : "Ismeretlen",
     "Congratulations you have digitally signed a document using LibreSign" : "Gratulálunk, aláírt digitálisan egy dokumentumot a LibreSignnal",
     "Number of documents:" : "Dokumentumok száma:",

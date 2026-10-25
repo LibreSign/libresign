@@ -45,6 +45,7 @@ OC.L10N.register(
     "Pending" : "O c'hortoz",
     "Open sidebar" : "Digori ar varenn gostez",
     "Issued by:" : "Roet gant :",
+    "Private" : "Prevez",
     "Unknown" : "Dianv",
     "Hide details" : "Skoachañ ar munudoù",
     "Show details" : "Diskouel ar munudoù",

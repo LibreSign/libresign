@@ -242,6 +242,7 @@ OC.L10N.register(
     "Total pages:" : "إجمالي الصحفات:",
     "File size:" : "حجم الملف:",
     "PDF version:" : "إصدار PDF: ",
+    "Private" : "خاصٌّ",
     "Unknown" : "غير معروف",
     "Congratulations you have digitally signed a document using LibreSign" : "تهانينا، لقد قمت بالتوقيع على مستند رقميًا باستخدام تطبيق LibreSign",
     "Hide details" : "إخفاء التفاصيل",

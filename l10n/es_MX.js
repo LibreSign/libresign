@@ -85,6 +85,7 @@ OC.L10N.register(
     "Issued by:" : "Emitido por:",
     "Name:" : "Nombre:",
     "Status:" : "Estado:",
+    "Private" : "Privado",
     "Unknown" : "Desconocido",
     "Number of documents:" : "Número de documentos:",
     "Hide details" : "Ocultar detalles",

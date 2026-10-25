@@ -11,11 +11,12 @@ namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\SignatureText;
 use OCA\Libresign\Service\Policy\Model\ActorRole;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
+use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\IL10N;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Test\TestCase;
 
 class SignatureTextPolicyTest extends TestCase {
 	private SignatureTextPolicy $policy;
@@ -40,7 +41,7 @@ class SignatureTextPolicyTest extends TestCase {
 		$this->assertSame($spec->defaultSystemValue(), $resolvedStateMeta['defaultSystemValue']);
 		$this->assertSame(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY, $spec->getAppConfigKey());
 		$this->assertSame(['system', 'group', 'user'], $spec->supportedScopes());
-		$this->assertSame([], $spec->compositeChildren());
+		$this->assertSame([CollectMetadataPolicy::KEY], $spec->compositeChildren());
 	}
 
 	public function testConsolidatedPolicyPreservesDescriptionOnlyRenderMode(): void {

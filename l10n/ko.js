@@ -174,6 +174,7 @@ OC.L10N.register(
     "Cancel upload" : "업로드 취소",
     "Issued by:" : "발급자:",
     "Name:" : "이름:",
+    "Private" : "개인",
     "Unknown" : "알 수 없음",
     "Congratulations you have digitally signed a document using LibreSign" : "축하합니다. LibreSign을 사용하여 문서에 디지털 서명했습니다.",
     "Number of documents:" : "문서 개수:",

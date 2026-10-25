@@ -53,6 +53,7 @@ OC.L10N.register(
     "{seconds} seconds left" : "{seconds} Sekonnen iwwereg",
     "Cancel upload" : "Eroplueden ofbriechen",
     "Issued by:" : "Ausgestallt vun:",
+    "Private" : "Privat",
     "Unknown" : "Onbekannt",
     "Country:" : "Land:",
     "No date" : "No date",

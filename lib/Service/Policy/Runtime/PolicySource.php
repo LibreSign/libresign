@@ -522,43 +522,16 @@ class PolicySource implements IPolicySource {
 				$permissionSetsById[$permissionSet->getId()] = $permissionSet;
 			}
 
+			$parentPolicyKeys = $this->getParentPolicyKeys($policyKeys);
 			foreach ($groupBindings as $binding) {
 				$policyJson = $permissionSetsById[$binding->getPermissionSetId()]?->getDecodedPolicyJson() ?? [];
-				$this->incrementGroupRuleCounts($counts, $policyJson);
+				$this->incrementGroupRuleCounts($counts, $policyJson, $parentPolicyKeys);
 			}
 		}
 
 		$userIds = array_values(array_unique(array_filter($userIds, static fn (string $userId): bool => $userId !== '')));
 		if ($userIds !== []) {
-			$userPolicyKeyByPolicy = [];
-			foreach ($policyKeys as $policyKey) {
-				$userPolicyKeyByPolicy[$policyKey] = $this->getAssignedUserPolicyKey($this->registry->get($policyKey)->getUserPreferenceKey());
-			}
-			$policyKeyByUserPreference = array_flip($userPolicyKeyByPolicy);
-
-			$query = $this->db->getQueryBuilder();
-			$query->select('configkey')
-				->selectAlias($query->createFunction('COUNT(DISTINCT userid)'), 'user_count')
-				->from('preferences')
-				->where($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
-				->andWhere($query->expr()->in('userid', $query->createNamedParameter($userIds, IQueryBuilder::PARAM_STR_ARRAY)))
-				->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPolicyKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
-				->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')))
-				->groupBy('configkey');
-
-			$result = $query->executeQuery();
-			try {
-				while ($row = $result->fetchAssociative()) {
-					$policyKey = $policyKeyByUserPreference[$row['configkey']] ?? null;
-					if (!is_string($policyKey) || !isset($counts[$policyKey])) {
-						continue;
-					}
-
-					$counts[$policyKey]['userCount'] = (int)($row['user_count'] ?? 0);
-				}
-			} finally {
-				$result->closeCursor();
-			}
+			$this->hydrateUserRuleCounts($policyKeys, $counts, $userIds);
 		}
 
 		$this->hydrateExplicitSystemRuleCounts($policyKeys, $counts);
@@ -591,12 +564,29 @@ class PolicySource implements IPolicySource {
 				$permissionSetsById[$permissionSet->getId()] = $permissionSet;
 			}
 
+			$parentPolicyKeys = $this->getParentPolicyKeys($policyKeys);
 			foreach ($groupBindings as $binding) {
 				$policyJson = $permissionSetsById[$binding->getPermissionSetId()]?->getDecodedPolicyJson() ?? [];
-				$this->incrementGroupRuleCounts($counts, $policyJson);
+				$this->incrementGroupRuleCounts($counts, $policyJson, $parentPolicyKeys);
 			}
 		}
 
+		$this->hydrateUserRuleCounts($policyKeys, $counts);
+
+		$this->hydrateExplicitSystemRuleCounts($policyKeys, $counts);
+
+		return $counts;
+	}
+
+	/**
+	 * Counts each user once per policy. A user with a rule on a composite child
+	 * also counts for its parent, so the parent summary reflects distinct targets.
+	 *
+	 * @param list<string> $policyKeys
+	 * @param array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $counts
+	 * @param list<string>|null $userIds null counts all users
+	 */
+	private function hydrateUserRuleCounts(array $policyKeys, array &$counts, ?array $userIds = null): void {
 		$userPolicyKeyByPolicy = [];
 		foreach ($policyKeys as $policyKey) {
 			$userPolicyKeyByPolicy[$policyKey] = $this->getAssignedUserPolicyKey($this->registry->get($policyKey)->getUserPreferenceKey());
@@ -604,14 +594,17 @@ class PolicySource implements IPolicySource {
 		$policyKeyByUserPreference = array_flip($userPolicyKeyByPolicy);
 
 		$query = $this->db->getQueryBuilder();
-		$query->select('configkey')
-			->selectAlias($query->createFunction('COUNT(DISTINCT userid)'), 'user_count')
+		$query->selectDistinct(['configkey', 'userid'])
 			->from('preferences')
-			->where($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
-			->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPolicyKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
-			->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')))
-			->groupBy('configkey');
+			->where($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)));
+		if ($userIds !== null) {
+			$query->andWhere($query->expr()->in('userid', $query->createNamedParameter($userIds, IQueryBuilder::PARAM_STR_ARRAY)));
+		}
+		$query->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPolicyKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')));
 
+		/** @var array<string, array<string, true>> $userIdsByPolicy */
+		$userIdsByPolicy = [];
 		$result = $query->executeQuery();
 		try {
 			while ($row = $result->fetchAssociative()) {
@@ -620,15 +613,37 @@ class PolicySource implements IPolicySource {
 					continue;
 				}
 
-				$counts[$policyKey]['userCount'] = (int)($row['user_count'] ?? 0);
+				$userIdsByPolicy[$policyKey][(string)$row['userid']] = true;
 			}
 		} finally {
 			$result->closeCursor();
 		}
 
-		$this->hydrateExplicitSystemRuleCounts($policyKeys, $counts);
+		foreach ($this->getParentPolicyKeys($policyKeys) as $childKey => $parentKey) {
+			$userIdsByPolicy[$parentKey] = ($userIdsByPolicy[$parentKey] ?? []) + ($userIdsByPolicy[$childKey] ?? []);
+		}
 
-		return $counts;
+		foreach ($userIdsByPolicy as $policyKey => $policyUserIds) {
+			$counts[$policyKey]['userCount'] = count($policyUserIds);
+		}
+	}
+
+	/**
+	 * Maps composite children that are edited through their parent to that parent.
+	 *
+	 * @param list<string> $policyKeys
+	 * @return array<string, string>
+	 */
+	private function getParentPolicyKeys(array $policyKeys): array {
+		$parentPolicyKeys = [];
+		foreach ($policyKeys as $policyKey) {
+			$parentKey = $this->registry->get($policyKey)->parentPolicyKey();
+			if ($parentKey !== null && in_array($parentKey, $policyKeys, true)) {
+				$parentPolicyKeys[$policyKey] = $parentKey;
+			}
+		}
+
+		return $parentPolicyKeys;
 	}
 
 	/**
@@ -928,8 +943,11 @@ class PolicySource implements IPolicySource {
 	/**
 	 * @param array<string, mixed> $policyJson
 	 * @param array<string, array{groupCount: int, userCount: int, everyoneCount: int}> $counts
+	 * @param array<string, string> $parentPolicyKeys
 	 */
-	private function incrementGroupRuleCounts(array &$counts, array $policyJson): void {
+	private function incrementGroupRuleCounts(array &$counts, array $policyJson, array $parentPolicyKeys): void {
+		/** @var array<string, true> $ruleKeys */
+		$ruleKeys = [];
 		foreach ($policyJson as $policyKey => $policyConfig) {
 			$baseKey = $this->tryResolveDelegatedOverrideBaseKey($policyKey);
 			if ($baseKey !== null) {
@@ -938,7 +956,7 @@ class PolicySource implements IPolicySource {
 					&& !$this->hasExplicitGroupPolicyConfig($policyJson[$baseKey] ?? null)
 					&& $this->hasExplicitGroupPolicyConfig($policyConfig)
 				) {
-					$counts[$baseKey]['groupCount']++;
+					$ruleKeys[$baseKey] = true;
 				}
 				continue;
 			}
@@ -947,6 +965,17 @@ class PolicySource implements IPolicySource {
 				continue;
 			}
 
+			$ruleKeys[$policyKey] = true;
+		}
+
+		foreach (array_keys($ruleKeys) as $policyKey) {
+			$parentKey = $parentPolicyKeys[$policyKey] ?? null;
+			if ($parentKey !== null) {
+				$ruleKeys[$parentKey] = true;
+			}
+		}
+
+		foreach (array_keys($ruleKeys) as $policyKey) {
 			$counts[$policyKey]['groupCount']++;
 		}
 	}

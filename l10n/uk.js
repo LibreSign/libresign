@@ -279,6 +279,7 @@ OC.L10N.register(
     "Total pages:" : "Всього сторінок:",
     "File size:" : "Розмір файлу:",
     "PDF version:" : "PDF-версія:",
+    "Private" : "Приватно",
     "Unknown" : "Невідомо",
     "Congratulations you have digitally signed a document using LibreSign" : "Вітаємо, ви наклали цифровий підпис на документ за допомогою LibreSign",
     "Hide details" : "Приховати деталі",

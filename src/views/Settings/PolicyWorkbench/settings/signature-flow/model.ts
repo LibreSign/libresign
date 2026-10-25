@@ -48,9 +48,15 @@ export function toRequestSignatureFlowOverride(flow: SignatureFlowMode | null): 
 export function resolveSignatureFlowPayloadForRequest(
 	canChooseSigningOrderAtRequestLevel: boolean,
 	flow: SignatureFlowMode | null,
-): RequestSignatureFlowOverride | null {
+	isFrozen = false,
+): SignatureFlowMode | null {
 	if (!canChooseSigningOrderAtRequestLevel) {
 		return null
+	}
+
+	// A frozen request only accepts the flow it already stores, `none` included.
+	if (isFrozen) {
+		return flow
 	}
 
 	return toRequestSignatureFlowOverride(flow)
