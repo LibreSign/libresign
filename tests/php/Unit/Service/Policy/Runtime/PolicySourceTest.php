@@ -15,7 +15,9 @@ use OCA\Libresign\Db\PermissionSetBinding;
 use OCA\Libresign\Db\PermissionSetBindingMapper;
 use OCA\Libresign\Db\PermissionSetMapper;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\Contract\IPolicySource;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
@@ -43,6 +45,7 @@ use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyManagedValue;
 use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
+use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
 use OCA\Libresign\Tests\Unit\TestCase;
@@ -620,15 +623,15 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame('ordered_numeric', $result[0]['policy']->getValue());
 	}
 
-	public function testSaveSystemPolicyDeletesAppConfigWhenValueMatchesDefault(): void {
+	public function testSaveSystemPolicyPersistsAnEnforcedDefault(): void {
 		$this->setStoredAppConfigString('policy.signature_flow.system', 'ordered_numeric');
 		$this->setStoredAppConfigString('policy.signature_flow.system.allow_child_override', '1');
 
 		$source = $this->getSource();
 		$source->saveSystemPolicy('signature_flow', 'none');
 
-		$this->assertAppConfigMissing('policy.signature_flow.system');
-		$this->assertAppConfigMissing('policy.signature_flow.system.allow_child_override');
+		$this->assertStoredAppConfigString('policy.signature_flow.system', 'none');
+		$this->assertStoredAppConfigString('policy.signature_flow.system.allow_child_override', '0');
 	}
 
 	public function testClearSystemPolicyDeletesStoredSystemConfig(): void {
@@ -658,7 +661,7 @@ final class PolicySourceTest extends TestCase {
 		$this->assertStoredAppConfigString('policy.signature_flow.system.allow_child_override', '1');
 	}
 
-	public function testSaveSystemPolicyDeletesIdentifyMethodsWhenValueMatchesServiceDefault(): void {
+	public function testSaveSystemPolicyKeepsIdentifyMethodsEqualToTheServiceDefaultAsAnExplicitRule(): void {
 		$this->setStoredAppConfigArray(IdentifyMethodsPolicy::SYSTEM_APP_CONFIG_KEY, [
 			[
 				'name' => 'account',
@@ -685,8 +688,8 @@ final class PolicySourceTest extends TestCase {
 			false,
 		);
 
-		$this->assertAppConfigMissing(IdentifyMethodsPolicy::SYSTEM_APP_CONFIG_KEY);
-		$this->assertAppConfigMissing(IdentifyMethodsPolicy::SYSTEM_APP_CONFIG_KEY . '.allow_child_override');
+		$this->assertTrue($this->coreAppConfig->hasKey(Application::APP_ID, IdentifyMethodsPolicy::SYSTEM_APP_CONFIG_KEY));
+		$this->assertStoredAppConfigString(IdentifyMethodsPolicy::SYSTEM_APP_CONFIG_KEY . '.allow_child_override', '0');
 	}
 
 	#[DataProvider('providerSaveSystemPolicyBusinessRules')]
@@ -694,20 +697,11 @@ final class PolicySourceTest extends TestCase {
 		string $policyKey,
 		string $inputValue,
 		bool $allowChildOverride,
-		bool $expectDelete,
 		string $expectedValue,
 		string $expectedAppConfigKey,
 		string $expectedAllowOverrideValue,
 	): void {
 		$source = $this->getSource();
-
-		if ($expectDelete) {
-			$source->saveSystemPolicy($policyKey, $inputValue, $allowChildOverride);
-
-			$this->assertAppConfigMissing($expectedAppConfigKey);
-			$this->assertAppConfigMissing($expectedAppConfigKey . '.allow_child_override');
-			return;
-		}
 
 		$source->saveSystemPolicy($policyKey, $inputValue, $allowChildOverride);
 
@@ -715,14 +709,13 @@ final class PolicySourceTest extends TestCase {
 		$this->assertStoredAppConfigString($expectedAppConfigKey . '.allow_child_override', $expectedAllowOverrideValue);
 	}
 
-	/** @return array<string, array{0: string, 1: string, 2: bool, 3: bool, 4: string, 5: string, 6: string}> */
+	/** @return array<string, array{0: string, 1: string, 2: bool, 3: string, 4: string, 5: string}> */
 	public static function providerSaveSystemPolicyBusinessRules(): array {
 		return [
-			'deletes_when_value_matches_default_and_override_disabled' => [
+			'persists_explicit_default_when_override_disabled' => [
 				SignatureFlowPolicy::KEY,
 				'none',
 				false,
-				true,
 				'none',
 				'policy.signature_flow.system',
 				'0',
@@ -731,16 +724,14 @@ final class PolicySourceTest extends TestCase {
 				SignatureFlowPolicy::KEY,
 				'none',
 				true,
-				false,
 				'none',
 				'policy.signature_flow.system',
 				'1',
 			],
-			'deletes_when_json_is_semantically_equal_to_default' => [
+			'persists_json_semantically_equal_to_default' => [
 				ApprovalGroupsPolicy::KEY,
 				'[ "admin" ]',
 				false,
-				true,
 				'["admin"]',
 				ApprovalGroupsPolicy::SYSTEM_APP_CONFIG_KEY,
 				'0',
@@ -749,12 +740,119 @@ final class PolicySourceTest extends TestCase {
 				SignatureFlowPolicy::KEY,
 				'ordered_numeric',
 				false,
-				false,
 				'ordered_numeric',
 				'policy.signature_flow.system',
 				'0',
 			],
 		];
+	}
+
+	/**
+	 * The stored system rule decides whether a lower layer that disagrees
+	 * changes the effective value; checking the layer alone would not prove it.
+	 */
+	#[DataProvider('providerExplicitSystemRules')]
+	public function testTheSystemRuleDecidesWhetherALowerLayerChangesTheEffectiveValue(
+		?string $storedValue,
+		?string $storedAllowChildOverride,
+		string $conflictingScope,
+		string $expectedEffectiveValue,
+	): void {
+		if ($storedValue !== null) {
+			$this->setStoredAppConfigString('policy.signature_flow.system', $storedValue);
+		}
+		if ($storedAllowChildOverride !== null) {
+			$this->setStoredAppConfigString('policy.signature_flow.system.allow_child_override', $storedAllowChildOverride);
+		}
+
+		$this->assertSame(
+			$expectedEffectiveValue,
+			$this->resolveAgainstConflictingLayer(SignatureFlowPolicy::KEY, $conflictingScope, 'ordered_numeric'),
+		);
+	}
+
+	/** @return iterable<string, array{0: ?string, 1: ?string, 2: string, 3: string}> */
+	public static function providerExplicitSystemRules(): iterable {
+		foreach (['group', 'user_policy'] as $conflictingScope) {
+			yield "no explicit rule, $conflictingScope wins" => [null, null, $conflictingScope, 'ordered_numeric'];
+			yield "explicit default enforced, $conflictingScope ignored" => ['none', '0', $conflictingScope, 'none'];
+			yield "explicit default overridable, $conflictingScope wins" => ['none', '1', $conflictingScope, 'ordered_numeric'];
+			yield "explicit value enforced, $conflictingScope ignored" => ['parallel', '0', $conflictingScope, 'parallel'];
+			yield "explicit value overridable, $conflictingScope wins" => ['parallel', '1', $conflictingScope, 'ordered_numeric'];
+			yield "legacy default without override flag, $conflictingScope wins" => ['none', null, $conflictingScope, 'ordered_numeric'];
+		}
+	}
+
+	/**
+	 * legal_information defaults to an empty string, which used to be read
+	 * as "no explicit rule" even when the policy API stored it enforced.
+	 */
+	#[DataProvider('providerExplicitEmptyDefaultRules')]
+	public function testAnEmptyDefaultIsEnforcedOnlyWhenStoredWithItsOverrideFlag(
+		?string $storedValue,
+		?string $storedAllowChildOverride,
+		string $conflictingScope,
+		string $expectedEffectiveValue,
+	): void {
+		if ($storedValue !== null) {
+			$this->setStoredAppConfigString(LegalInformationPolicy::SYSTEM_APP_CONFIG_KEY, $storedValue);
+		}
+		if ($storedAllowChildOverride !== null) {
+			$this->setStoredAppConfigString(LegalInformationPolicy::SYSTEM_APP_CONFIG_KEY . '.allow_child_override', $storedAllowChildOverride);
+		}
+
+		$this->assertSame(
+			$expectedEffectiveValue,
+			$this->resolveAgainstConflictingLayer(LegalInformationPolicy::KEY, $conflictingScope, 'Group text'),
+		);
+	}
+
+	/** @return iterable<string, array{0: ?string, 1: ?string, 2: string, 3: string}> */
+	public static function providerExplicitEmptyDefaultRules(): iterable {
+		foreach (['group', 'user_policy'] as $conflictingScope) {
+			yield "no explicit rule, $conflictingScope wins" => [null, null, $conflictingScope, 'Group text'];
+			yield "empty default enforced, $conflictingScope ignored" => ['', '0', $conflictingScope, ''];
+			yield "empty default overridable, $conflictingScope wins" => ['', '1', $conflictingScope, 'Group text'];
+			yield "empty value written without override flag, $conflictingScope wins" => ['', null, $conflictingScope, 'Group text'];
+			yield "explicit value enforced, $conflictingScope ignored" => ['Company text', '0', $conflictingScope, 'Company text'];
+		}
+	}
+
+	public function testAnEnforcedEmptyDefaultSavedThroughTheSourceIsReadBackEnforced(): void {
+		$source = $this->getSource();
+		$source->saveSystemPolicy(LegalInformationPolicy::KEY, '', false);
+
+		$layer = $source->loadSystemPolicy(LegalInformationPolicy::KEY);
+
+		$this->assertNotNull($layer);
+		$this->assertSame('global', $layer->getScope());
+		$this->assertSame('', $layer->getValue());
+		$this->assertFalse($layer->isAllowChildOverride());
+		$this->assertSame([''], $layer->getAllowedValues());
+	}
+
+	public function testAnEnforcedDefaultSavedThroughTheSourceIsReadBackEnforced(): void {
+		$source = $this->getSource();
+		$source->saveSystemPolicy(SignatureFlowPolicy::KEY, 'none', false);
+
+		$layer = $source->loadSystemPolicy(SignatureFlowPolicy::KEY);
+
+		$this->assertNotNull($layer);
+		$this->assertSame('global', $layer->getScope());
+		$this->assertSame('none', $layer->getValue());
+		$this->assertFalse($layer->isAllowChildOverride());
+		$this->assertSame(['none'], $layer->getAllowedValues());
+	}
+
+	public function testALegacyDefaultWithoutOverrideFlagStaysOverridable(): void {
+		$this->setStoredAppConfigString('policy.signature_flow.system', 'none');
+
+		$layer = $this->getSource()->loadSystemPolicy(SignatureFlowPolicy::KEY);
+
+		$this->assertNotNull($layer);
+		$this->assertSame('global', $layer->getScope());
+		$this->assertTrue($layer->isAllowChildOverride());
+		$this->assertSame([], $layer->getAllowedValues());
 	}
 
 	public function testLoadSystemPolicyRespectsPersistedAllowChildOverride(): void {
@@ -1964,13 +2062,11 @@ final class PolicySourceTest extends TestCase {
 
 		$userCountsQuery = $this->createMock(IQueryBuilder::class);
 		$userCountsQuery->method('select')->willReturnSelf();
-		$userCountsQuery->method('selectAlias')->willReturnSelf();
+		$userCountsQuery->method('selectDistinct')->willReturnSelf();
 		$userCountsQuery->method('from')->willReturnSelf();
 		$userCountsQuery->method('where')->willReturnSelf();
 		$userCountsQuery->method('andWhere')->willReturnSelf();
-		$userCountsQuery->method('groupBy')->willReturnSelf();
 		$userCountsQuery->method('expr')->willReturn($expr);
-		$userCountsQuery->method('func')->willReturn($this->createMock(\OCP\DB\QueryBuilder\IFunctionBuilder::class));
 		$userCountsQuery->method('createNamedParameter')->willReturn(':p');
 
 		$userCountsResult = $this->createMock(IResult::class);
@@ -2044,18 +2140,17 @@ final class PolicySourceTest extends TestCase {
 
 		$qb = $this->createMock(IQueryBuilder::class);
 		$qb->method('select')->willReturnSelf();
-		$qb->method('selectAlias')->willReturnSelf();
+		$qb->method('selectDistinct')->willReturnSelf();
 		$qb->method('from')->willReturnSelf();
 		$qb->method('where')->willReturnSelf();
 		$qb->method('andWhere')->willReturnSelf();
-		$qb->method('groupBy')->willReturnSelf();
 		$qb->method('expr')->willReturn($expr);
 		$qb->method('createNamedParameter')->willReturn(':p');
-		$qb->method('createFunction')->willReturn('COUNT(DISTINCT userid)');
 
 		$dbResult = $this->createMock(IResult::class);
 		$dbResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
-			['configkey' => 'policy.signature_flow.assigned', 'user_count' => '2'],
+			['configkey' => 'policy.signature_flow.assigned', 'userid' => 'john'],
+			['configkey' => 'policy.signature_flow.assigned', 'userid' => 'jane'],
 			false,
 		);
 		$dbResult->expects($this->once())->method('closeCursor');
@@ -2116,7 +2211,7 @@ final class PolicySourceTest extends TestCase {
 
 		$systemConfigResult = $this->createMock(IResult::class);
 		$systemConfigResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
-			['configkey' => 'policy.signature_flow.system'],
+			['configkey' => 'policy.signature_flow.system', 'configvalue' => 'parallel'],
 			false,
 		);
 		$systemConfigResult->expects($this->once())->method('closeCursor');
@@ -2164,18 +2259,18 @@ final class PolicySourceTest extends TestCase {
 
 		$userCountsQuery = $this->createMock(IQueryBuilder::class);
 		$userCountsQuery->method('select')->willReturnSelf();
-		$userCountsQuery->method('selectAlias')->willReturnSelf();
+		$userCountsQuery->method('selectDistinct')->willReturnSelf();
 		$userCountsQuery->method('from')->willReturnSelf();
 		$userCountsQuery->method('where')->willReturnSelf();
 		$userCountsQuery->method('andWhere')->willReturnSelf();
-		$userCountsQuery->method('groupBy')->willReturnSelf();
 		$userCountsQuery->method('expr')->willReturn($expr);
-		$userCountsQuery->method('func')->willReturn($this->createMock(\OCP\DB\QueryBuilder\IFunctionBuilder::class));
 		$userCountsQuery->method('createNamedParameter')->willReturn(':p');
 
 		$userCountsResult = $this->createMock(IResult::class);
 		$userCountsResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
-			['configkey' => 'policy.signature_flow.assigned', 'user_count' => '3'],
+			['configkey' => 'policy.signature_flow.assigned', 'userid' => 'john'],
+			['configkey' => 'policy.signature_flow.assigned', 'userid' => 'jane'],
+			['configkey' => 'policy.signature_flow.assigned', 'userid' => 'mary'],
 			false,
 		);
 		$userCountsResult->expects($this->once())->method('closeCursor');
@@ -2220,13 +2315,11 @@ final class PolicySourceTest extends TestCase {
 
 		$userCountsQuery = $this->createMock(IQueryBuilder::class);
 		$userCountsQuery->method('select')->willReturnSelf();
-		$userCountsQuery->method('selectAlias')->willReturnSelf();
+		$userCountsQuery->method('selectDistinct')->willReturnSelf();
 		$userCountsQuery->method('from')->willReturnSelf();
 		$userCountsQuery->method('where')->willReturnSelf();
 		$userCountsQuery->method('andWhere')->willReturnSelf();
-		$userCountsQuery->method('groupBy')->willReturnSelf();
 		$userCountsQuery->method('expr')->willReturn($expr);
-		$userCountsQuery->method('func')->willReturn($this->createMock(\OCP\DB\QueryBuilder\IFunctionBuilder::class));
 		$userCountsQuery->method('createNamedParameter')->willReturn(':p');
 
 		$userCountsResult = $this->createMock(IResult::class);
@@ -2244,7 +2337,7 @@ final class PolicySourceTest extends TestCase {
 
 		$systemConfigResult = $this->createMock(IResult::class);
 		$systemConfigResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
-			['configkey' => 'policy.signature_flow.system'],
+			['configkey' => 'policy.signature_flow.system', 'configvalue' => 'none'],
 			false,
 		);
 		$systemConfigResult->expects($this->once())->method('closeCursor');
@@ -2257,6 +2350,24 @@ final class PolicySourceTest extends TestCase {
 		$result = $this->getSource()->loadAllRuleCounts();
 
 		$this->assertSame(1, $result['signature_flow']['everyoneCount']);
+	}
+
+	private function resolveAgainstConflictingLayer(string $policyKey, string $conflictingScope, string $conflictingValue): mixed {
+		$conflictingLayer = (new PolicyLayer())
+			->setScope($conflictingScope === 'group' ? 'group' : 'user')
+			->setValue($conflictingValue)
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+
+		$source = $this->createMock(IPolicySource::class);
+		$source->method('loadSystemPolicy')->willReturn($this->getSource()->loadSystemPolicy($policyKey));
+		$source->method('loadGroupPolicies')->willReturn($conflictingScope === 'group' ? [$conflictingLayer] : []);
+		$source->method('loadUserPolicy')->willReturn($conflictingScope === 'user_policy' ? $conflictingLayer : null);
+
+		return (new DefaultPolicyResolver($source))->resolve(
+			$this->registry->get($policyKey),
+			PolicyContext::fromUserId('john'),
+		)->getEffectiveValue();
 	}
 
 	private function setStoredAppConfigString(string $key, string $value): void {
@@ -2281,6 +2392,127 @@ final class PolicySourceTest extends TestCase {
 
 	private function assertAppConfigMissing(string $key): void {
 		$this->assertFalse($this->coreAppConfig->hasKey(Application::APP_ID, $key));
+	}
+
+	/**
+	 * @param array<string, list<string>> $groupRules group id => policy keys with an explicit rule
+	 * @param array<string, list<string>> $userRules user id => policy keys with an assigned rule
+	 * @param array<string, int> $expectedGroupCounts
+	 * @param array<string, int> $expectedUserCounts
+	 */
+	#[DataProvider('providerCompositeRuleCounts')]
+	public function testLoadAllRuleCountsCountsCompositeChildRulesOncePerTargetForParent(
+		array $groupRules,
+		array $userRules,
+		array $expectedGroupCounts,
+		array $expectedUserCounts,
+	): void {
+		$bindings = [];
+		$permissionSets = [];
+		$permissionSetId = 1;
+		foreach ($groupRules as $groupId => $policyKeys) {
+			$binding = new PermissionSetBinding();
+			$binding->setPermissionSetId($permissionSetId);
+			$binding->setTargetType('group');
+			$binding->setTargetId($groupId);
+			$bindings[] = $binding;
+
+			$permissionSet = new PermissionSet();
+			$permissionSet->setId($permissionSetId);
+			$permissionSet->setPolicyJson(array_fill_keys($policyKeys, [
+				'defaultValue' => 1,
+				'allowChildOverride' => false,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+			]));
+			$permissionSets[] = $permissionSet;
+			$permissionSetId++;
+		}
+
+		$this->bindingMapper->method('findByTargetType')->with('group')->willReturn($bindings);
+		$this->permissionSetMapper->method('findByIds')->willReturn($permissionSets);
+
+		$userRows = [];
+		foreach ($userRules as $userId => $policyKeys) {
+			foreach ($policyKeys as $policyKey) {
+				$userRows[] = ['configkey' => 'policy.' . $policyKey . '.assigned', 'userid' => $userId];
+			}
+		}
+		$this->mockRuleCountQueries($userRows);
+
+		$result = $this->getSource()->loadAllRuleCounts();
+
+		foreach ($expectedGroupCounts as $policyKey => $expectedCount) {
+			$this->assertSame($expectedCount, $result[$policyKey]['groupCount'], $policyKey . ' groupCount');
+		}
+		foreach ($expectedUserCounts as $policyKey => $expectedCount) {
+			$this->assertSame($expectedCount, $result[$policyKey]['userCount'], $policyKey . ' userCount');
+		}
+	}
+
+	public static function providerCompositeRuleCounts(): array {
+		return [
+			'parent and child in different targets' => [
+				'groupRules' => ['finance' => ['maximum_validity'], 'legal' => ['renewal_interval']],
+				'userRules' => ['john' => ['maximum_validity'], 'jane' => ['renewal_interval']],
+				'expectedGroupCounts' => ['maximum_validity' => 2, 'renewal_interval' => 1],
+				'expectedUserCounts' => ['maximum_validity' => 2, 'renewal_interval' => 1],
+			],
+			'parent and child in the same target' => [
+				'groupRules' => ['finance' => ['maximum_validity', 'renewal_interval']],
+				'userRules' => ['john' => ['maximum_validity', 'renewal_interval']],
+				'expectedGroupCounts' => ['maximum_validity' => 1, 'renewal_interval' => 1],
+				'expectedUserCounts' => ['maximum_validity' => 1, 'renewal_interval' => 1],
+			],
+			'child only' => [
+				'groupRules' => ['legal' => ['renewal_interval']],
+				'userRules' => ['jane' => ['renewal_interval']],
+				'expectedGroupCounts' => ['maximum_validity' => 1, 'renewal_interval' => 1],
+				'expectedUserCounts' => ['maximum_validity' => 1, 'renewal_interval' => 1],
+			],
+			'collect metadata alone does not create a signature stamp rule' => [
+				'groupRules' => ['finance' => ['collect_metadata']],
+				'userRules' => ['john' => ['collect_metadata']],
+				'expectedGroupCounts' => ['signature_stamp' => 0, 'collect_metadata' => 1],
+				'expectedUserCounts' => ['signature_stamp' => 0, 'collect_metadata' => 1],
+			],
+		];
+	}
+
+	/**
+	 * @param list<array{configkey: string, userid: string}> $userRows
+	 */
+	private function mockRuleCountQueries(array $userRows): void {
+		$expr = $this->createMock(IExpressionBuilder::class);
+		$expr->method('eq')->willReturn('1=1');
+		$expr->method('in')->willReturn('1=1');
+		$expr->method('neq')->willReturn('1=1');
+
+		$userCountsQuery = $this->createMock(IQueryBuilder::class);
+		$userCountsQuery->method('selectDistinct')->willReturnSelf();
+		$userCountsQuery->method('from')->willReturnSelf();
+		$userCountsQuery->method('where')->willReturnSelf();
+		$userCountsQuery->method('andWhere')->willReturnSelf();
+		$userCountsQuery->method('expr')->willReturn($expr);
+		$userCountsQuery->method('createNamedParameter')->willReturn(':p');
+
+		$userCountsResult = $this->createMock(IResult::class);
+		$userCountsResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(...[...$userRows, false]);
+		$userCountsQuery->method('executeQuery')->willReturn($userCountsResult);
+
+		$systemConfigQuery = $this->createMock(IQueryBuilder::class);
+		$systemConfigQuery->method('select')->willReturnSelf();
+		$systemConfigQuery->method('from')->willReturnSelf();
+		$systemConfigQuery->method('where')->willReturnSelf();
+		$systemConfigQuery->method('andWhere')->willReturnSelf();
+		$systemConfigQuery->method('expr')->willReturn($expr);
+		$systemConfigQuery->method('createNamedParameter')->willReturn(':p');
+
+		$systemConfigResult = $this->createMock(IResult::class);
+		$systemConfigResult->method('fetchAssociative')->willReturn(false);
+		$systemConfigQuery->method('executeQuery')->willReturn($systemConfigResult);
+
+		$this->db->method('getQueryBuilder')->willReturnOnConsecutiveCalls($userCountsQuery, $systemConfigQuery);
 	}
 
 	private function getSource(): PolicySource {

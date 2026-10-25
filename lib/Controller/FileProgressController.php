@@ -18,7 +18,7 @@ use OCA\Libresign\Middleware\Attribute\RequireSignerUuid;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignRequest\ProgressService;
-use OCA\Libresign\Service\Worker\WorkerHealthService;
+use OCA\Libresign\Service\Worker\WorkerActivationService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -45,7 +45,7 @@ class FileProgressController extends AEnvironmentAwareController {
 		private FileService $fileService,
 		private SessionService $sessionService,
 		private IUserSession $userSession,
-		private WorkerHealthService $workerHealthService,
+		private WorkerActivationService $workerActivationService,
 		private ProgressService $progressService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -78,7 +78,7 @@ class FileProgressController extends AEnvironmentAwareController {
 
 			if ($timeout > 0) {
 				if ($file->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value) {
-					$this->workerHealthService->ensureWorkerRunning();
+					$this->workerActivationService->ensureWorkerRunning();
 				}
 				$currentStatus = $this->progressService->pollForStatusOrErrorChange($file, $signRequest, $currentStatus, $timeout);
 			}

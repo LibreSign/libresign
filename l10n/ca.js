@@ -197,6 +197,7 @@ OC.L10N.register(
     "Issued by:" : "Enviat per:",
     "Name:" : "Nom:",
     "Status:" : "Estat:",
+    "Private" : "Privat",
     "Unknown" : "Desconegut",
     "Congratulations you have digitally signed a document using LibreSign" : "Enhorabona, heu signat digitalment un document amb LibreSign",
     "Number of documents:" : "Nombre de documents : ",

@@ -8,27 +8,30 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\BackgroundJob;
 
+use OCA\Libresign\Service\SigningAttemptGuard;
 use OCA\Libresign\Service\SignJobCoordinator;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\BackgroundJob\QueuedJob;
+use OCP\BackgroundJob\IJobList;
 
-/**
- * Queued job to process file signing asynchronously.
- */
-class SignFileJob extends QueuedJob {
+/** Background job to process file signing asynchronously. */
+class SignFileJob extends RecoverableSigningJob {
 	public function __construct(
 		ITimeFactory $time,
 		private SignJobCoordinator $coordinator,
+		IJobList $jobList,
+		SigningAttemptGuard $attemptGuard,
 	) {
-		parent::__construct($time);
+		parent::__construct($time, $jobList, $attemptGuard);
 	}
 
-	/**
-	 * @param array|null $argument
-	 */
+	/** @param array|null $argument */
 	#[\Override]
 	public function run($argument): void {
 		$argument = is_array($argument) ? $argument : [];
-		$this->coordinator->runSignFile($argument);
+		$this->executeSigning(
+			$argument,
+			fn () => $this->coordinator->runSignFile($argument),
+			fn () => $this->coordinator->discardJobCredentials($argument),
+		);
 	}
 }

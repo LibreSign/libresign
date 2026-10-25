@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Worker;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\BackgroundJob\SignFileJob;
+use OCA\Libresign\BackgroundJob\SignSingleFileJob;
 use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
 use OCP\IAppConfig;
 
@@ -22,14 +24,23 @@ class WorkerConfiguration {
 	) {
 	}
 
+	/**
+	 * Queue signing jobs regardless of whether cron or a dedicated process consumes them.
+	 */
 	public function isAsyncLocalEnabled(): bool {
-		$signingMode = $this->appConfig->getValueString(Application::APP_ID, 'signing_mode', 'sync');
-		if ($signingMode !== 'async') {
+		if (!$this->isAsyncSigningEnabled()) {
 			return false;
 		}
+		return $this->getWorkerConfig()['worker_type'] === 'local';
+	}
 
-		$workerConfig = $this->getWorkerConfig();
-		return $workerConfig['worker_type'] === 'local';
+	public function isAsyncSigningEnabled(): bool {
+		return $this->appConfig->getValueString(Application::APP_ID, 'signing_mode', 'sync') === 'async';
+	}
+
+	/** @return list<class-string> */
+	public function getSigningJobClasses(): array {
+		return [SignFileJob::class, SignSingleFileJob::class];
 	}
 
 	public function getDesiredWorkerCount(): int {

@@ -32,51 +32,30 @@ class WorkerConfigurationTest extends \PHPUnit\Framework\TestCase {
 		return json_encode(['worker_type' => $workerType, 'parallel_workers' => $parallelWorkers]);
 	}
 
-	public function testIsAsyncLocalEnabledWhenAsyncAndLocalWorker(): void {
-		$this->appConfig->expects($this->exactly(2))
-			->method('getValueString')
-			->willReturnMap([
-				[Application::APP_ID, 'signing_mode', 'sync', 'async'],
-				[Application::APP_ID, WorkerConfigPolicy::SYSTEM_APP_CONFIG_KEY, '', $this->encodeConfig('local', 4)],
-			]);
-
-		$service = $this->makeService();
-		$this->assertTrue($service->isAsyncLocalEnabled());
-	}
-
-	public function testIsAsyncLocalEnabledFalseWhenSigningModeNotAsync(): void {
+	#[DataProvider('asyncSigningModes')]
+	public function testAsyncSigningModeDoesNotDependOnWorkerType(string $mode, bool $expected): void {
 		$this->appConfig->expects($this->once())
 			->method('getValueString')
 			->with(Application::APP_ID, 'signing_mode', 'sync')
-			->willReturn('sync');
+			->willReturn($mode);
 
-		$service = $this->makeService();
-		$this->assertFalse($service->isAsyncLocalEnabled());
+		$this->assertSame($expected, $this->makeService()->isAsyncSigningEnabled());
 	}
 
-	public function testIsAsyncLocalEnabledFalseWhenWorkerTypeIsExternal(): void {
-		$this->appConfig->expects($this->exactly(2))
-			->method('getValueString')
-			->willReturnMap([
-				[Application::APP_ID, 'signing_mode', 'sync', 'async'],
-				[Application::APP_ID, WorkerConfigPolicy::SYSTEM_APP_CONFIG_KEY, '', $this->encodeConfig('external', 4)],
-			]);
-
-		$service = $this->makeService();
-		$this->assertFalse($service->isAsyncLocalEnabled());
+	public static function asyncSigningModes(): array {
+		return ['async' => ['async', true], 'sync' => ['sync', false]];
 	}
 
-	public function testIsAsyncLocalEnabledUsesDefaultLocalWhenConfigEmpty(): void {
-		$this->appConfig->expects($this->exactly(2))
-			->method('getValueString')
-			->willReturnMap([
-				[Application::APP_ID, 'signing_mode', 'sync', 'async'],
-				[Application::APP_ID, WorkerConfigPolicy::SYSTEM_APP_CONFIG_KEY, '', ''],
-			]);
+	public function testAsyncLocalIsDisabledForDedicatedWorker(): void {
+		$this->appConfig->method('getValueString')->willReturnCallback(static fn (string $app, string $key): string => $key === 'signing_mode' ? 'async' : '{"worker_type":"external","parallel_workers":4}');
+		$this->assertFalse($this->makeService()->isAsyncLocalEnabled());
+	}
 
-		$service = $this->makeService();
-		// Default worker_type is 'local', so async + local = enabled
-		$this->assertTrue($service->isAsyncLocalEnabled());
+	public function testSigningJobClassesAreExplicit(): void {
+		$this->assertSame([
+			\OCA\Libresign\BackgroundJob\SignFileJob::class,
+			\OCA\Libresign\BackgroundJob\SignSingleFileJob::class,
+		], $this->makeService()->getSigningJobClasses());
 	}
 
 	#[DataProvider('desiredWorkerCountProvider')]

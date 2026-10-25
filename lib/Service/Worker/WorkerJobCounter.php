@@ -8,75 +8,45 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Worker;
 
-use OCA\Libresign\BackgroundJob\SignFileJob;
-use OCA\Libresign\BackgroundJob\SignSingleFileJob;
-use OCA\Libresign\Db\FileMapper;
-use OCP\BackgroundJob\IJob;
-use OCP\BackgroundJob\IJobList;
-use Psr\Log\LoggerInterface;
+use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\IDBConnection;
 
+/**
+ * Lightweight readiness hint for the signing pool on supported Nextcloud 36.
+ * IJobList::countByClass() includes both future and reserved jobs; the public
+ * interface does not provide a read-only due-job count. Do not reserve here.
+ */
 class WorkerJobCounter {
 	public function __construct(
-		private IJobList $jobList,
-		private FileMapper $fileMapper,
-		private LoggerInterface $logger,
+		private IDBConnection $db,
+		private WorkerConfiguration $configuration,
 	) {
 	}
 
-	public function countPendingJobs(): int {
-		try {
-			$total = 0;
-
-			$total += $this->countPendingSignFileJobs();
-			$total += $this->countPendingSignSingleFileJobs();
-
-			return $total;
-		} catch (\Throwable $e) {
-			$this->logger->debug('Failed to count pending jobs', [
-				'error' => $e->getMessage(),
-			]);
+	public function countEligibleJobs(int $max): int {
+		if ($max <= 0) {
 			return 0;
 		}
-	}
 
-	private function countPendingSignFileJobs(): int {
-		$total = 0;
-		foreach ($this->jobList->getJobsIterator(SignFileJob::class, null, 0) as $job) {
-			$total += $this->resolveWorkUnitsFromSignFileJob($job);
-		}
-		return $total;
-	}
+		$now = time();
+		$query = $this->db->getQueryBuilder();
+		$query->select('id')->from('jobs')
+			->where($query->expr()->in('class', $query->createNamedParameter(
+				$this->configuration->getSigningJobClasses(), IQueryBuilder::PARAM_STR_ARRAY,
+			)))
+			->andWhere($query->expr()->lte('reserved_at', $query->createNamedParameter($now - 12 * 3600, IQueryBuilder::PARAM_INT)))
+			->andWhere($query->expr()->lte('last_checked', $query->createNamedParameter($now, IQueryBuilder::PARAM_INT)))
+			->setMaxResults(min($max, 32));
 
-	private function countPendingSignSingleFileJobs(): int {
-		$total = 0;
-		foreach ($this->jobList->getJobsIterator(SignSingleFileJob::class, null, 0) as $job) {
-			$total++;
-		}
-		return $total;
-	}
-
-	private function resolveWorkUnitsFromSignFileJob(IJob $job): int {
-		$argument = $job->getArgument();
-		if (!is_array($argument)) {
-			return 1;
-		}
-
-		$fileId = $argument['fileId'] ?? null;
-		if ($fileId === null) {
-			return 1;
-		}
-
+		$result = $query->executeQuery();
 		try {
-			$file = $this->fileMapper->getById((int)$fileId);
-		} catch (\Throwable) {
-			return 1;
+			$count = 0;
+			while ($result->fetchOne() !== false) {
+				$count++;
+			}
+			return $count;
+		} finally {
+			$result->closeCursor();
 		}
-
-		if (!$file->isEnvelope()) {
-			return 1;
-		}
-
-		$count = $this->fileMapper->countChildrenFiles($file->getId());
-		return max(1, $count);
 	}
 }

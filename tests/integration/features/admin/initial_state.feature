@@ -6,7 +6,7 @@ Feature: admin/initial_state
     And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/admin/identify_methods"
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string){"factors":[]} |
+      | value | null |
     And the response should have a status code 200
     When sending "get" to "/settings/admin/libresign"
     Then the response should contain the initial state "libresign-effective_policies" json that match with:
@@ -31,7 +31,7 @@ Feature: admin/initial_state
   Scenario Outline: Invalid identify methods updates preserve the default contract
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string){"factors":[]} |
+      | value | null |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string)<payload> |
@@ -51,7 +51,7 @@ Feature: admin/initial_state
   Scenario: Updated identify methods are exposed in admin initial state
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string){"factors":[]} |
+      | value | null |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}},{"name":"email","enabled":false,"requirement":"optional"}]} |
@@ -64,13 +64,13 @@ Feature: admin/initial_state
       | (jq)(.policies.identify_methods.effectiveValue.factors \| map(select(.name == "email")) \| .[0].enabled) | false |
       | (jq)(.policies.identify_methods.effectiveValue.factors \| map(select(.name == "email")) \| .[0].requirement) | optional |
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string){"factors":[]} |
+      | value | null |
     And the response should have a status code 200
 
   Scenario: Deleting custom identify methods clears the custom rule badge data
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string){"factors":[]} |
+      | value | null |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}},{"name":"email","enabled":false,"requirement":"optional"}]} |
@@ -82,7 +82,7 @@ Feature: admin/initial_state
       | (jq).policies.identify_methods.sourceScope | global |
       | (jq).policies.identify_methods.everyoneCount | 1 |
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
-      | value | (string){"factors":[]} |
+      | value | null |
     And the response should have a status code 200
     When sending "get" to "/settings/admin/libresign"
     Then the response should contain the initial state "libresign-effective_policies" json that match with:
@@ -106,37 +106,37 @@ Feature: admin/initial_state
     And run the command "config:app:delete libresign config_path" with result code 0
     And run the command "config:app:delete libresign tsa_settings.password" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/tsa_settings"
-      | value | (string){"url":"","policy_oid":"","auth_type":"none","username":""} |
+      | value | null |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/collect_metadata"
-      | value | false |
+      | value | null |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/legal_information"
-      | value | |
+      | value | null |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/docmdp"
       | value | 2 |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_flow"
-      | value | none |
+      | value | null |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identification_documents"
-      | value | {"enabled":false,"approvers":["admin"]} |
+      | value | null |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/approval_group"
-      | value | (string)["admin"] |
+      | value | null |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/envelope_enabled"
-      | value | true |
+      | value | null |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/show_confetti_after_signing"
-      | value | true |
+      | value | null |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/crl_external_validation_enabled"
-      | value | true |
+      | value | null |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_stamp"
-      | value | (string){"template":"Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}","template_font_size":9.8,"signature_font_size":20,"signature_width":350,"signature_height":100,"background_type":"default","render_mode":"default"} |
+      | value | null |
     And the response should have a status code 200
     And the following libresign app config is set
       | certificate_engine                | openssl                  |

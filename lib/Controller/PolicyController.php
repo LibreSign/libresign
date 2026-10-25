@@ -244,7 +244,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * Save a system-level policy value
 	 *
 	 * @param string $policyKey Policy identifier to persist at the system layer.
-	 * @param null|bool|int|float|string|array<string, mixed> $value Policy value to persist. Null resets the policy to its default system value.
+	 * @param null|bool|int|float|string|array<string, mixed> $value Policy value to persist as an explicit system rule, even when it equals the default. Null removes the explicit system rule: the built-in default applies and lower layers may override it.
 	 * @param bool $allowChildOverride Whether lower layers may override this system default.
 	 * @return DataResponse<Http::STATUS_OK, LibresignSystemPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
@@ -336,7 +336,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * them is stored, so the result does not depend on the order of the values.
 	 *
 	 * @param string $parentPolicyKey Policy identifier the other settings are grouped under.
-	 * @param array<string, null|bool|int|float|string|array<string, mixed>> $values Values to persist, keyed by policy identifier. Null resets that policy to its default system value.
+	 * @param array<string, null|bool|int|float|string|array<string, mixed>> $values Values to persist, keyed by policy identifier, each as an explicit system rule even when it equals the default. Null removes the explicit system rule of that policy: the built-in default applies and lower layers may override it.
 	 * @param array<string, bool> $allowChildOverride Whether lower layers may override each saved value, keyed by policy identifier.
 	 * @return DataResponse<Http::STATUS_OK, LibresignEffectiveCompoundPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *

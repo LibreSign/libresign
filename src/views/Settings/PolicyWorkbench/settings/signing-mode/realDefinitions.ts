@@ -28,6 +28,29 @@ export const signingModeRealDefinition: RealPolicySettingDefinition = {
 		canRenderPolicy: () => false,
 	},
 	supportedScopes: ['system'],
+	compound: {
+		compose: (valuesByPolicyKey) => {
+			const normalizedMode = normalizeSigningExecutionSettings(valuesByPolicyKey.signing_mode ?? null)
+			const normalizedWorker = normalizeWorkerConfig(valuesByPolicyKey.worker_config ?? null)
+
+			return {
+				signingMode: resolveSigningMode(normalizedMode.signingMode),
+				workerType: normalizedWorker.workerType,
+				parallelWorkers: normalizedWorker.parallelWorkers,
+			}
+		},
+		decompose: (editorValue) => {
+			const normalizedValue = normalizeSigningExecutionSettings(editorValue)
+
+			return {
+				signing_mode: normalizedValue.signingMode,
+				worker_config: serializeWorkerConfig({
+					workerType: normalizedValue.workerType,
+					parallelWorkers: normalizedValue.parallelWorkers,
+				}),
+			}
+		},
+	},
 	editor: SigningModeRuleEditor,
 	createEmptyValue: () => normalizeSigningExecutionSettings('sync'),
 	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeSigningExecutionSettings(value),

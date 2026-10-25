@@ -1,179 +1,98 @@
 <?php
 
 declare(strict_types=1);
-/**
- * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+/** SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Tests\Unit\Service\Worker;
 
-use OCA\Libresign\Service\Process\ProcessManager;
+use OCA\Libresign\BackgroundJob\SignFileJob;
+use OCA\Libresign\Service\Worker\WorkerConfiguration;
 use OCA\Libresign\Service\Worker\WorkerStarter;
-use OCA\Libresign\Tests\Unit\TestCase;
 use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\IBinaryFinder;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 class WorkerStarterTest extends TestCase {
-	private IBinaryFinder&MockObject $binaryFinder;
-	private ProcessManager&MockObject $processManager;
-
-	public function setUp(): void {
-		parent::setUp();
-		$this->binaryFinder = $this->createMock(IBinaryFinder::class);
-		$this->processManager = $this->createMock(ProcessManager::class);
+	public function testCannotStartWithoutCliPhp(): void {
+		$finder = $this->createMock(IBinaryFinder::class);
+		$finder->method('findBinaryPath')->with('php')->willReturn(false);
+		$starter = new WorkerStarter($finder, $this->createMock(WorkerConfiguration::class));
+		$this->expectException(\RuntimeException::class);
+		$starter->startWorker();
 	}
-
-	private function makeProcessMock(?int $pid): Process&MockObject {
+	public function testUsesArgumentArrayAndExitsWhenQueueDrains(): void {
+		$finder = $this->createMock(IBinaryFinder::class);
+		$finder->method('findBinaryPath')->with('php')->willReturn('/usr/bin/php');
+		$config = $this->createMock(WorkerConfiguration::class);
+		$config->method('getSigningJobClasses')->willReturn([SignFileJob::class]);
 		$process = $this->createMock(Process::class);
 		$process->expects($this->once())->method('setOptions')->with(['create_new_console' => true]);
-		$process->expects($this->once())->method('setTimeout')->with(null);
+		$process->expects($this->once())->method('disableOutput')->willReturnSelf();
 		$process->expects($this->once())->method('start');
-		$process->expects($this->once())->method('getPid')->willReturn($pid);
-		return $process;
+		$process->method('getPid')->willReturn(10001);
+		$starter = new class($finder, $config, $process) extends WorkerStarter {
+			public array $command = [];
+			public function __construct(
+				IBinaryFinder $finder,
+				WorkerConfiguration $config,
+				private Process $process,
+			) {
+				parent::__construct($finder, $config);
+			}
+			protected function createProcess(array $command): Process {
+				$this->command = $command;
+				return $this->process;
+			}
+		};
+		$this->assertSame(10001, $starter->startWorker());
+		$this->assertSame([
+			'/usr/bin/php',
+			\OC::$SERVERROOT . '/occ',
+			'background-job:worker',
+			SignFileJob::class,
+			'--stop_after=30m',
+			'--interval=0',
+		], $starter->command);
 	}
 
-	/** @return array<int, Process&MockObject> */
-	private function makeProcessMocks(int $count, ?int $pid): array {
-		$processes = [];
-		for ($i = 0; $i < $count; $i++) {
-			$processes[] = $this->makeProcessMock($pid);
+	public function testDetachedWorkerSurvivesOutputAfterRequestReleasesProcess(): void {
+		if (PHP_OS_FAMILY !== 'Linux') {
+			$this->markTestSkipped('Detached Linux worker lifetime');
 		}
-		return $processes;
-	}
-
-	public function testStartWorkersFallbacksToPhpAndRegistersPid(): void {
-		$this->binaryFinder->expects($this->once())
-			->method('findBinaryPath')
-			->with('php')
-			->willReturn(false);
-
-		$callIndex = 0;
-		$this->processManager->expects($this->exactly(2))
-			->method('register')
-			->willReturnCallback(function (string $source, int $pid) use (&$callIndex): void {
-				$callIndex++;
-				$this->assertSame('worker', $source);
-				$this->assertSame($callIndex === 1 ? 101 : 202, $pid);
-			});
-
-		$workerStarter = new class($this->binaryFinder, $this->processManager, [$this->makeProcessMock(101), $this->makeProcessMock(202)]) extends WorkerStarter {
-			/** @var array<int, array<int, string>> */
-			public array $commands = [];
-
+		$marker = tempnam(sys_get_temp_dir(), 'worker-detach-');
+		$this->assertNotFalse($marker);
+		unlink($marker);
+		// The worker writes to stdout/stderr only after WorkerStarter returns,
+		// when Symfony has destroyed the parent-owned Process object.
+		$script = 'usleep(350000); fwrite(STDOUT, "job output\\n"); fwrite(STDERR, "job warning\\n"); file_put_contents('
+			. var_export($marker, true) . ', "completed");';
+		$finder = $this->createMock(IBinaryFinder::class);
+		$finder->method('findBinaryPath')->willReturn(PHP_BINARY);
+		$starter = new class($finder, $this->createMock(WorkerConfiguration::class), $script) extends WorkerStarter {
 			public function __construct(
-				IBinaryFinder $binaryFinder,
-				ProcessManager $processManager,
-				/** @var Process[] */
-				private array $processes,
+				IBinaryFinder $finder,
+				WorkerConfiguration $config,
+				private string $script,
 			) {
-				parent::__construct($binaryFinder, $processManager);
+				parent::__construct($finder, $config);
 			}
-
 			protected function createProcess(array $command): Process {
-				$this->commands[] = $command;
-				return array_shift($this->processes);
+				return new Process([PHP_BINARY, '-r', $this->script]);
 			}
 		};
-
-		$workerStarter->startWorkers(2);
-
-		$this->assertCount(2, $workerStarter->commands);
-		$this->assertSame('php', $workerStarter->commands[0][0]);
-		$this->assertSame('background-job:worker', $workerStarter->commands[0][2]);
+		try {
+			$this->assertGreaterThan(0, $starter->startWorker());
+			$deadline = microtime(true) + 4;
+			while (!is_file($marker) && microtime(true) < $deadline) {
+				usleep(25000);
+			}
+			$this->assertSame('completed', is_file($marker) ? file_get_contents($marker) : null,
+				'Detached child must be able to write output after the request ends');
+		} finally {
+			@unlink($marker);
+		}
 	}
 
-	public function testStartWorkersClampsMinimumToOne(): void {
-		$this->binaryFinder->expects($this->once())
-			->method('findBinaryPath')
-			->with('php')
-			->willReturn('/usr/bin/php');
-
-		$this->processManager->expects($this->never())
-			->method('register');
-
-		$workerStarter = new class($this->binaryFinder, $this->processManager, [$this->makeProcessMock(0)]) extends WorkerStarter {
-			/** @var array<int, array<int, string>> */
-			public array $commands = [];
-
-			public function __construct(
-				IBinaryFinder $binaryFinder,
-				ProcessManager $processManager,
-				/** @var Process[] */
-				private array $processes,
-			) {
-				parent::__construct($binaryFinder, $processManager);
-			}
-
-			protected function createProcess(array $command): Process {
-				$this->commands[] = $command;
-				return array_shift($this->processes);
-			}
-		};
-
-		$workerStarter->startWorkers(0);
-
-		$this->assertCount(1, $workerStarter->commands);
-	}
-
-	public function testStartWorkersClampsMaximumToThirtyTwo(): void {
-		$this->binaryFinder->expects($this->once())
-			->method('findBinaryPath')
-			->with('php')
-			->willReturn('/usr/bin/php');
-
-		$this->processManager->expects($this->never())
-			->method('register');
-
-		$workerStarter = new class($this->binaryFinder, $this->processManager, $this->makeProcessMocks(32, null)) extends WorkerStarter {
-			/** @var array<int, array<int, string>> */
-			public array $commands = [];
-
-			public function __construct(
-				IBinaryFinder $binaryFinder,
-				ProcessManager $processManager,
-				/** @var Process[] */
-				private array $processes,
-			) {
-				parent::__construct($binaryFinder, $processManager);
-			}
-
-			protected function createProcess(array $command): Process {
-				$this->commands[] = $command;
-				return array_shift($this->processes);
-			}
-		};
-
-		$workerStarter->startWorkers(999);
-
-		$this->assertCount(32, $workerStarter->commands);
-	}
-
-	public function testStartWorkersDoesNotRegisterWhenPidIsInvalid(): void {
-		$this->binaryFinder->expects($this->once())
-			->method('findBinaryPath')
-			->with('php')
-			->willReturn('/usr/bin/php');
-
-		$this->processManager->expects($this->never())
-			->method('register');
-
-		$workerStarter = new class($this->binaryFinder, $this->processManager, [$this->makeProcessMock(0), $this->makeProcessMock(-1), $this->makeProcessMock(null)]) extends WorkerStarter {
-			public function __construct(
-				IBinaryFinder $binaryFinder,
-				ProcessManager $processManager,
-				/** @var Process[] */
-				private array $processes,
-			) {
-				parent::__construct($binaryFinder, $processManager);
-			}
-
-			protected function createProcess(array $command): Process {
-				return array_shift($this->processes);
-			}
-		};
-
-		$workerStarter->startWorkers(3);
-	}
 }
