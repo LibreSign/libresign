@@ -13,6 +13,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\FileStatusService;
+use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCP\IDBConnection;
 use OCP\Server;
 
@@ -144,8 +145,38 @@ final class FileMapperTest extends \OCA\Libresign\Tests\Integration\TestCase {
 					$db->rollBack();
 				}
 			}
-			$status->publishQueuedJobStatus($file);
+			$status->onQueuedJobCommitted($file);
 			$this->assertSame(FileStatus::SIGNING_IN_PROGRESS->value, $this->fileMapper->getById($file->getId())->getStatus());
+		} finally {
+			$this->fileMapper->delete($file);
+		}
+	}
+
+	/**
+	 * The worker can finish before the HTTP request publishes its enqueue
+	 * status. That late publication must not hide the signed result.
+	 */
+	public function testLateQueuePublicationCannotRevertCompletedSignature(): void {
+		$file = $this->createFileEntity('late-publish-' . bin2hex(random_bytes(10)), random_int(1000000, 1999999), 'test-owner');
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$file = $this->fileMapper->insert($file);
+		$status = Server::get(FileStatusService::class);
+		$cache = Server::get(StatusCacheService::class);
+		$db = Server::get(IDBConnection::class);
+		try {
+			$db->beginTransaction();
+			$file->setStatusEnum(FileStatus::SIGNING_IN_PROGRESS);
+			$status->updateForQueuedJob($file);
+			$db->commit();
+
+			$completed = clone $file;
+			$completed->setStatusEnum(FileStatus::SIGNED);
+			$status->update($completed);
+
+			// The original HTTP request now resumes after the worker finished.
+			$status->onQueuedJobCommitted($file);
+			$this->assertSame(FileStatus::SIGNED->value, $this->fileMapper->getById($file->getId())->getStatus());
+			$this->assertNotSame(FileStatus::SIGNING_IN_PROGRESS->value, $cache->getStatus($file->getUuid()));
 		} finally {
 			$this->fileMapper->delete($file);
 		}

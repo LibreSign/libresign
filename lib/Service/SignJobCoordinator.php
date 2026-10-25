@@ -59,7 +59,7 @@ class SignJobCoordinator {
 			]);
 			return false;
 		} finally {
-			$this->deleteCredentials($argument['userId'] ?? null, $argument['credentialsId'] ?? null);
+			$this->deleteCredentials($argument);
 		}
 	}
 
@@ -92,7 +92,7 @@ class SignJobCoordinator {
 			]);
 			return false;
 		} finally {
-			$this->deleteCredentials($argument['userId'] ?? null, $argument['credentialsId'] ?? null);
+			$this->deleteCredentials($argument);
 		}
 	}
 
@@ -187,10 +187,14 @@ class SignJobCoordinator {
 
 	/** Also clean credentials for jobs safely skipped by the recovery guard. */
 	public function discardJobCredentials(array $argument): void {
-		$this->deleteCredentials($argument['userId'] ?? null, $argument['credentialsId'] ?? null);
+		$this->deleteCredentials($argument);
 	}
 
-	private function deleteCredentials(?string $userId, ?string $credentialsId): void {
+	private function deleteCredentials(array $argument): void {
+		$credentialsId = $argument['credentialsId'] ?? null;
+		// External signers store their credentials in the anonymous vault, not
+		// under the file owner's user ID used for file resolution in the job.
+		$userId = ($argument['isExternalSigner'] ?? false) ? '' : ($argument['userId'] ?? null);
 		if (empty($credentialsId) || $userId === null) {
 			return;
 		}

@@ -291,16 +291,16 @@ class AsyncSigningServiceTest extends TestCase {
 		$this->jobList->expects($this->once())->method('add')->willReturnCallback(static function () use (&$events): void {
 			$events[] = 'job';
 		});
-		$this->fileStatusService->expects($this->once())->method('publishQueuedJobStatus')
+		$this->fileStatusService->expects($this->once())->method('onQueuedJobCommitted')
 			->willReturnCallback(static function () use (&$events): void {
-				$events[] = 'publish';
+				$events[] = 'invalidate';
 			});
 		$this->db->expects($this->once())->method('commit')->willReturnCallback(static function () use (&$events): void {
 			$events[] = 'commit';
 		});
 
 		$this->service->enqueueSigningJob($file, $signRequest, null, 'account:test', true, null, null, [], []);
-		$this->assertSame(['begin', 'status', 'job', 'commit', 'publish'], $events);
+		$this->assertSame(['begin', 'status', 'job', 'commit', 'invalidate'], $events);
 	}
 	public function testUnknownTransactionOutcomeKeepsCredentialsAndOriginalFailure(): void {
 		$file = new LibreSignFile();

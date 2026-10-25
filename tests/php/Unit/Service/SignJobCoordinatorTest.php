@@ -73,6 +73,15 @@ class SignJobCoordinatorTest extends TestCase {
 		$this->coordinator->discardJobCredentials(['userId' => '', 'credentialsId' => 'anonymous-cred']);
 	}
 
+	public function testExternalSignerCredentialsAreRemovedFromGuestStore(): void {
+		$this->credentialsManager->expects($this->once())->method('delete')->with('', 'external-credentials');
+		$this->coordinator->discardJobCredentials([
+			'userId' => 'document-owner',
+			'isExternalSigner' => true,
+			'credentialsId' => 'external-credentials',
+		]);
+	}
+
 	public function testCredentialDeleteFailureDoesNotFailSigning(): void {
 		$this->credentialsManager->method('delete')->willThrowException(new \RuntimeException('Temporary store unavailable'));
 		$this->logger->expects($this->once())->method('warning');
