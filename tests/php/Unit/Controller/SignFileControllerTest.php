@@ -23,7 +23,7 @@ use OCA\Libresign\Service\RequestMetadataService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionService;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\Service\Worker\WorkerHealthService;
+use OCA\Libresign\Service\Worker\WorkerConfiguration;
 use OCP\AppFramework\Http;
 use OCP\IL10N;
 use OCP\IRequest;
