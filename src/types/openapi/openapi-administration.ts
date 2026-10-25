@@ -1445,7 +1445,7 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": {
-                    /** @description Policy value to persist. Null resets the policy to its default system value. */
+                    /** @description Policy value to persist as an explicit system rule, even when it equals the default. Null removes the explicit system rule: the built-in default applies and lower layers may override it. */
                     value?: (boolean | number | string | {
                         [key: string]: Record<string, never>;
                     }) | null;
@@ -1506,7 +1506,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Values to persist, keyed by policy identifier. Null resets that policy to its default system value.
+                     * @description Values to persist, keyed by policy identifier, each as an explicit system rule even when it equals the default. Null removes the explicit system rule of that policy: the built-in default applies and lower layers may override it.
                      * @default {}
                      */
                     values?: {
