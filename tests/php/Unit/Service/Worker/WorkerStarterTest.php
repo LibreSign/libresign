@@ -29,6 +29,7 @@ class WorkerStarterTest extends TestCase {
 		$config->method('getSigningJobClasses')->willReturn([SignFileJob::class]);
 		$process = $this->createMock(Process::class);
 		$process->expects($this->once())->method('setOptions')->with(['create_new_console' => true]);
+		$process->expects($this->once())->method('disableOutput')->willReturnSelf();
 		$process->expects($this->once())->method('start');
 		$process->method('getPid')->willReturn(10001);
 		$starter = new class($finder, $config, $process) extends WorkerStarter {
@@ -54,6 +55,44 @@ class WorkerStarterTest extends TestCase {
 			'--stop_after=30m',
 			'--interval=0',
 		], $starter->command);
+	}
+
+	public function testDetachedWorkerSurvivesOutputAfterRequestReleasesProcess(): void {
+		if (PHP_OS_FAMILY !== 'Linux') {
+			$this->markTestSkipped('Detached Linux worker lifetime');
+		}
+		$marker = tempnam(sys_get_temp_dir(), 'worker-detach-');
+		$this->assertNotFalse($marker);
+		unlink($marker);
+		// The worker writes to stdout/stderr only after WorkerStarter returns,
+		// when Symfony has destroyed the parent-owned Process object.
+		$script = 'usleep(350000); fwrite(STDOUT, "job output\\n"); fwrite(STDERR, "job warning\\n"); file_put_contents('
+			. var_export($marker, true) . ', "completed");';
+		$finder = $this->createMock(IBinaryFinder::class);
+		$finder->method('findBinaryPath')->willReturn(PHP_BINARY);
+		$starter = new class($finder, $this->createMock(WorkerConfiguration::class), $script) extends WorkerStarter {
+			public function __construct(
+				IBinaryFinder $finder,
+				WorkerConfiguration $config,
+				private string $script,
+			) {
+				parent::__construct($finder, $config);
+			}
+			protected function createProcess(array $command): Process {
+				return new Process([PHP_BINARY, '-r', $this->script]);
+			}
+		};
+		try {
+			$this->assertGreaterThan(0, $starter->startWorker());
+			$deadline = microtime(true) + 4;
+			while (!is_file($marker) && microtime(true) < $deadline) {
+				usleep(25000);
+			}
+			$this->assertSame('completed', is_file($marker) ? file_get_contents($marker) : null,
+				'Detached child must be able to write output after the request ends');
+		} finally {
+			@unlink($marker);
+		}
 	}
 
 }

@@ -43,6 +43,20 @@ class LocalWorkerStateStoreTest extends TestCase {
 		}));
 	}
 
+	public function testContendedLockDoesNotRunTheSecondOperation(): void {
+		$first = new LocalWorkerStateStore($this->directory);
+		$second = new LocalWorkerStateStore($this->directory);
+		$secondWasCalled = false;
+		$this->assertTrue($first->withExclusiveLock(function () use ($second, &$secondWasCalled): bool {
+			$this->assertTrue($second->withExclusiveLock(static function () use (&$secondWasCalled): bool {
+				$secondWasCalled = true;
+				return false;
+			}));
+			return true;
+		}));
+		$this->assertFalse($secondWasCalled, 'Contention must not launch a duplicate worker');
+	}
+
 	public function testLockIsReleasedAfterAnOperationFails(): void {
 		$state = new LocalWorkerStateStore($this->directory);
 		try {
