@@ -74,6 +74,21 @@ final class PolicySourceRuleCountTest extends \Test\TestCase {
 		self::assertSame($expected, $this->policySource->loadRuleCounts([], [])[$policyKey]['everyoneCount'], 'loadRuleCounts()');
 	}
 
+	/**
+	 * Check the actual policy API separately from raw appconfig rule-count
+	 * fixtures: an explicitly saved default must remain an explicit rule.
+	 */
+	public function testSavingExplicitDefaultPersistsAndCountsSystemRule(): void {
+		$this->policySource->saveSystemPolicy(SigningModePolicy::KEY_SIGNING_MODE, 'sync', false);
+
+		self::assertTrue($this->appConfig->hasKey(Application::APP_ID, self::SIGNING_MODE));
+		self::assertSame('sync', $this->appConfig->getValueString(Application::APP_ID, self::SIGNING_MODE));
+		self::assertTrue($this->appConfig->hasKey(Application::APP_ID, self::SIGNING_MODE_OVERRIDE));
+		self::assertSame('0', $this->appConfig->getValueString(Application::APP_ID, self::SIGNING_MODE_OVERRIDE));
+		self::assertSame(1, $this->policySource->loadAllRuleCounts()[SigningModePolicy::KEY_SIGNING_MODE]['everyoneCount']);
+		self::assertSame(1, $this->policySource->loadRuleCounts([], [])[SigningModePolicy::KEY_SIGNING_MODE]['everyoneCount']);
+	}
+
 	public static function provideSystemRules(): array {
 		$store = static fn (array $rows): \Closure => static function (PolicySource $policySource, IAppConfig $appConfig) use ($rows): void {
 			foreach ($rows as $key => $value) {
@@ -91,16 +106,7 @@ final class PolicySourceRuleCountTest extends \Test\TestCase {
 			'non-empty legacy value' => [LegalInformationPolicy::KEY, $store([self::LEGAL_INFORMATION => 'Legal text']), 1],
 			'explicit non-empty default' => [
 				SigningModePolicy::KEY_SIGNING_MODE,
-				static function (PolicySource $policySource, IAppConfig $appConfig): void {
-					$policySource->saveSystemPolicy(SigningModePolicy::KEY_SIGNING_MODE, 'sync', false);
-					$sourceConfigProperty = new \ReflectionProperty(PolicySource::class, 'appConfig');
-					$sourceConfig = $sourceConfigProperty->getValue($policySource);
-					$scopeProperty = new \ReflectionProperty(\OC\AppFramework\Services\AppConfig::class, 'appName');
-					$scope = $scopeProperty->getValue($sourceConfig);
-					self::assertSame(Application::APP_ID, $scope, 'Unexpected app-scoped config context');
-					self::assertTrue($appConfig->hasKey(Application::APP_ID, self::SIGNING_MODE), 'saveSystemPolicy did not persist the explicit signing mode in appconfig');
-					self::assertTrue($appConfig->hasKey(Application::APP_ID, self::SIGNING_MODE_OVERRIDE), 'saveSystemPolicy did not persist the explicit override flag');
-				},
+				$store([self::SIGNING_MODE => 'sync', self::SIGNING_MODE_OVERRIDE => '0']),
 				1,
 			],
 			'rule removed' => [
