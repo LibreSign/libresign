@@ -153,7 +153,10 @@ class SequentialSigningService {
 	 * @param int $deletedOrder The order that was deleted
 	 */
 	public function reorderAfterDeletion(int $fileId, int $deletedOrder): void {
-		$this->notifyActivatedSigners($this->activateAfterDeletion($fileId, $deletedOrder));
+		if ($this->file === null || $this->file->getId() !== $fileId) {
+			throw new \LogicException('File must be set before reordering signers');
+		}
+		$this->notifyActivatedSigners($this->activateAfterDeletion($this->file, $deletedOrder));
 	}
 
 	/**
@@ -162,12 +165,12 @@ class SequentialSigningService {
 	 *
 	 * @return list<SignRequestEntity>
 	 */
-	public function activateAfterDeletion(int $fileId, int $deletedOrder): array {
-		if (!$this->isOrderedNumericFlow()) {
+	public function activateAfterDeletion(FileEntity $file, int $deletedOrder): array {
+		if ($file->getSignatureFlowEnum() !== SignatureFlow::ORDERED_NUMERIC) {
 			return [];
 		}
 
-		$allSignRequests = $this->signRequestMapper->getByFileId($fileId);
+		$allSignRequests = $this->signRequestMapper->getByFileId($file->getId());
 		$hasSignersAtDeletedOrder = array_filter(
 			$allSignRequests,
 			static fn (SignRequestEntity $sr): bool => $sr->getSigningOrder() === $deletedOrder,
