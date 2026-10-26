@@ -346,10 +346,11 @@ class SignRequestMapper extends CachedQBMapper {
 		}
 
 		return array_values(array_filter($candidates,
-			static fn (SignRequest $child): bool => array_diff_key(
-				$parentIdentity,
-				$identities[$child->getId()] ?? [],
-			) === [],
+			static function (SignRequest $child) use ($parentIdentity, $identities): bool {
+				$childIdentity = $identities[$child->getId()] ?? [];
+				return count($parentIdentity) === count($childIdentity)
+					&& array_diff_key($parentIdentity, $childIdentity) === [];
+			},
 		));
 	}
 

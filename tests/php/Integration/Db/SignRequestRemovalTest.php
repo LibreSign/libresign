@@ -158,6 +158,35 @@ final class SignRequestRemovalTest extends \Test\TestCase {
 		$this->assertSame($otherSigner->getId(), $remaining[0]->getId());
 	}
 
+	public function testEnvelopeRemovalPreservesChildWithAdditionalIdentityFactor(): void {
+		[$parentSigner, $childSigner] = $this->createEnvelopeWithChild(false);
+
+		// Parent is identified by email only; the child also belongs to a
+		// different account. Sharing an email is not full identity equivalence.
+		$this->identifications->deleteBySignRequestId($parentSigner->getId());
+		$email = new IdentifyMethod();
+		$email->setSignRequestId($parentSigner->getId());
+		$email->setIdentifierKey('email');
+		$email->setIdentifierValue('signer@example.test');
+		$email->setMandatory(1);
+		$this->identifications->insert($email);
+
+		foreach ($this->identifications->getIdentifyMethodsFromSignRequestId($childSigner->getId()) as $method) {
+			if ($method->getIdentifierKey() === 'account') {
+				$method->setIdentifierValue('different-account');
+				$this->identifications->update($method);
+			}
+		}
+
+		Server::get(SignerRemovalService::class)->remove($parentSigner->getFileId(), $parentSigner->getId(), notify: false);
+
+		$this->assertSame([], $this->requests->getByFileId($parentSigner->getFileId()));
+		$remaining = $this->requests->getByFileId($childSigner->getFileId());
+		$this->assertCount(1, $remaining);
+		$this->assertSame($childSigner->getId(), $remaining[0]->getId());
+		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $this->files->getById($childSigner->getFileId())->getStatus());
+	}
+
 	public function testEnvelopeRemovalLeavesBothRequestsUnchangedWhenChildSigned(): void {
 		[$parentSigner, $childSigner] = $this->createEnvelopeWithChild(true);
 
