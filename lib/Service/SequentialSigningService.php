@@ -166,7 +166,7 @@ class SequentialSigningService {
 	 * @return list<SignRequestEntity>
 	 */
 	public function activateAfterDeletion(FileEntity $file, int $deletedOrder): array {
-		if ($file->getSignatureFlowEnum() !== SignatureFlow::ORDERED_NUMERIC) {
+		if ($deletedOrder < 1 || $file->getSignatureFlowEnum() !== SignatureFlow::ORDERED_NUMERIC) {
 			return [];
 		}
 
@@ -180,7 +180,7 @@ class SequentialSigningService {
 		}
 
 		$previousOrder = $deletedOrder - 1;
-		if ($previousOrder <= 0 || !$this->isOrderFullyCompleted($allSignRequests, $previousOrder)) {
+		if ($previousOrder > 0 && !$this->isOrderFullyCompleted($allSignRequests, $previousOrder)) {
 			return [];
 		}
 
