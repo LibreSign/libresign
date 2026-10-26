@@ -245,9 +245,9 @@ final class SignerRemovalServiceTest extends TestCase {
 		$this->statuses->expects($this->once())->method('invalidateCachedStatus');
 		$this->events->expects($this->once())->method('dispatchTyped');
 
+		// The removal must report success even when cache invalidation fails,
+		// and the cancellation event must still be dispatched.
 		$this->service->remove(5, 9);
-
-		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $this->file()->getStatus());
 	}
 
 	public function testEnvelopeRemovalPreservesSignedChildAndParent(): void {

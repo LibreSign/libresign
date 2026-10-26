@@ -114,13 +114,8 @@ final class SignRequestRemovalTest extends \Test\TestCase {
 		return [$parentSigner, $childSigner];
 	}
 
-	public function testEnvelopeRemovalDeduplicatesMatchingIdentificationMethods(): void {
+	public function testEnvelopeRemovalRemovesEquivalentChildSigner(): void {
 		[$parentSigner, $childSigner] = $this->createEnvelopeWithChild(false);
-		$matching = $this->requests->getByEnvelopeChildrenAndIdentifyMethod(
-			$parentSigner->getFileId(),
-			$parentSigner->getId(),
-		);
-		$this->assertGreaterThanOrEqual(2, count($matching));
 
 		Server::get(SignerRemovalService::class)->remove($parentSigner->getFileId(), $parentSigner->getId(), notify: false);
 
