@@ -15,6 +15,7 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\SignerRemovalService;
@@ -118,6 +119,34 @@ final class SignRequestRemovalTest extends \OCA\Libresign\Tests\Integration\Test
 		$this->assertSame(FileStatus::DRAFT->value, $this->files->getById($childSigner->getFileId())->getStatus());
 	}
 
+	public function testEnvelopeRemovalDoesNotRemoveAnotherAccountSharingEmail(): void {
+		[$parentSigner, $childSigner] = $this->createEnvelopeWithChild(false);
+
+		$otherSigner = new SignRequest();
+		$otherSigner->setUuid(UUIDUtil::getUUID());
+		$otherSigner->setFileId($childSigner->getFileId());
+		$otherSigner->setDisplayName('Different account');
+		$otherSigner->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
+		$otherSigner->setCreatedAt(new \DateTime('2026-01-01T00:00:00Z'));
+		$this->requests->insert($otherSigner);
+
+		foreach (['account' => 'other-user', 'email' => 'signer@example.test'] as $key => $value) {
+			$method = new IdentifyMethod();
+			$method->setSignRequestId($otherSigner->getId());
+			$method->setIdentifierKey($key);
+			$method->setIdentifierValue($value);
+			$method->setMandatory(1);
+			$this->identifications->insert($method);
+		}
+
+		Server::get(SignerRemovalService::class)->remove($parentSigner->getFileId(), $parentSigner->getId(), notify: false);
+
+		$this->assertSame([], $this->requests->getByFileId($parentSigner->getFileId()));
+		$remaining = $this->requests->getByFileId($childSigner->getFileId());
+		$this->assertCount(1, $remaining);
+		$this->assertSame($otherSigner->getId(), $remaining[0]->getId());
+	}
+
 	public function testEnvelopeRemovalLeavesBothRequestsUnchangedWhenChildSigned(): void {
 		[$parentSigner, $childSigner] = $this->createEnvelopeWithChild(true);
 
@@ -131,6 +160,30 @@ final class SignRequestRemovalTest extends \OCA\Libresign\Tests\Integration\Test
 		$this->assertCount(1, $this->requests->getByFileId($parentSigner->getFileId()));
 		$this->assertCount(1, $this->requests->getByFileId($childSigner->getFileId()));
 		$this->assertSame('preserved-child-signature', $this->requests->getById($childSigner->getId())->getSignedHash());
+	}
+
+	public function testRemovingFirstSequentialSignerReleasesNextSigner(): void {
+		$first = $this->createUnsignedSigner();
+		$file = $this->files->getById($first->getFileId());
+		$file->setSignatureFlowEnum(SignatureFlow::ORDERED_NUMERIC);
+		$this->files->update($file);
+		$first->setSigningOrder(1);
+		$this->requests->update($first);
+
+		$second = new SignRequest();
+		$second->setUuid(UUIDUtil::getUUID());
+		$second->setFileId($first->getFileId());
+		$second->setDisplayName('Next signer');
+		$second->setStatusEnum(SignRequestStatus::DRAFT);
+		$second->setSigningOrder(2);
+		$second->setCreatedAt(new \DateTime('2026-01-01T00:00:00Z'));
+		$this->requests->insert($second);
+
+		Server::get(SignerRemovalService::class)->remove($first->getFileId(), $first->getId(), notify: false);
+
+		$this->assertCount(1, $this->requests->getByFileId($first->getFileId()));
+		$this->requests->invalidateCachedEntity($second);
+		$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $this->requests->getById($second->getId())->getStatusEnum());
 	}
 
 	public function testRemovingLastUnsignedSignerUpdatesPersistedFileState(): void {

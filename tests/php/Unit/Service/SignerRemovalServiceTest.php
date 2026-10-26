@@ -182,6 +182,33 @@ final class SignerRemovalServiceTest extends TestCase {
 		$this->service->remove(5, 9);
 	}
 
+	public function testRollbackInvalidatesSiblingCachesWhenActivationFailsHalfway(): void {
+		$first = $this->signer();
+		$next = $this->signer(SignRequestStatus::DRAFT);
+		$next->setId(10);
+		$this->givenSigner($this->file(), $first, siblings: [$first, $next]);
+		$this->requests->method('deleteIfUnsigned')->willReturn(true);
+		$this->elements->method('getByFileIdAndSignRequestId')->willReturn([]);
+		$this->sequential->method('activateAfterDeletion')
+			->willThrowException(new \RuntimeException('Activation interrupted'));
+		$this->db->expects($this->once())->method('rollBack');
+
+		$invalidated = [];
+		$this->requests->method('invalidateCachedEntity')
+			->willReturnCallback(static function (SignRequest $signer) use (&$invalidated): void {
+				$invalidated[] = $signer->getId();
+			});
+
+		try {
+			$this->service->remove(5, 9, notify: false);
+			$this->fail('The interrupted transaction must fail');
+		} catch (\RuntimeException $e) {
+			$this->assertSame('Activation interrupted', $e->getMessage());
+		}
+
+		$this->assertEqualsCanonicalizing([9, 10], $invalidated);
+	}
+
 	public function testNotificationFollowsSuccessfulCommit(): void {
 		$file = $this->file();
 		$method = $this->createMock(IIdentifyMethod::class);
@@ -240,7 +267,7 @@ final class SignerRemovalServiceTest extends TestCase {
 			->willReturnCallback(static fn (int $id): FileEntity => $id === 5 ? $envelope : $child);
 		$this->requests->method('getByFileIdForUpdate')
 			->willReturnCallback(static fn (int $id): array => $id === 5 ? [$parentRequest] : [$childRequest]);
-		$this->requests->method('getByEnvelopeChildrenAndIdentifyMethod')->willReturn([$childRequest]);
+		$this->requests->method('getEnvelopeChildrenForRemoval')->willReturn([$childRequest]);
 		$this->requests->expects($this->never())->method('deleteIfUnsigned');
 		$this->events->expects($this->never())->method('dispatchTyped');
 

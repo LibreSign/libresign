@@ -236,6 +236,21 @@ final class SequentialSigningServiceTest extends TestCase {
 
 	public static function reorderAfterDeletionProvider(): array {
 		return [
+			'removing order-zero participant does not activate signers' => [
+				[[1, SignRequestStatus::DRAFT, 1]],
+				0,
+				0,
+			],
+			'first signer deleted activates next order' => [
+				[[2, SignRequestStatus::DRAFT, 2]],
+				1,
+				1,
+			],
+			'first signer deleted with others remaining at same order' => [
+				[[2, SignRequestStatus::DRAFT, 1], [3, SignRequestStatus::DRAFT, 2]],
+				1,
+				0,
+			],
 			'deleted order still exists' => [
 				[[1, SignRequestStatus::SIGNED, 1], [2, SignRequestStatus::DRAFT, 2]],
 				2,
@@ -267,10 +282,7 @@ final class SequentialSigningServiceTest extends TestCase {
 		$this->service->setFile($file);
 
 		$signRequests = $this->buildSignRequests($requests);
-		$this->signRequestMapper->expects($this->once())
-			->method('getByFileId')
-			->with(55)
-			->willReturn($signRequests);
+		$this->signRequestMapper->method('getByFileId')->with(55)->willReturn($signRequests);
 
 		if ($expectedActivations > 0) {
 			$this->signRequestMapper->expects($this->exactly($expectedActivations))
