@@ -91,7 +91,7 @@ final class PolicySourceRuleCountTest extends \Test\TestCase {
 			'non-empty legacy value' => [LegalInformationPolicy::KEY, $store([self::LEGAL_INFORMATION => 'Legal text']), 1],
 			'explicit non-empty default' => [
 				SigningModePolicy::KEY_SIGNING_MODE,
-				static fn (PolicySource $policySource) => $policySource->saveSystemPolicy(SigningModePolicy::KEY_SIGNING_MODE, 'sync', false),
+				$store([self::SIGNING_MODE => 'sync', self::SIGNING_MODE_OVERRIDE => '0']),
 				1,
 			],
 			'rule removed' => [
