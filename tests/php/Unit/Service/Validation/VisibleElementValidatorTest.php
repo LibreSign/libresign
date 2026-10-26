@@ -8,23 +8,29 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Validation;
 
+use OCA\Libresign\Db\File;
+use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\VisibleElementValidator;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IL10N;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private VisibleElementValidator $validator;
 	private SignRequestMapper $signRequestMapper;
+	private FileMapper $fileMapper;
+	private FileElementMapper $fileElementMapper;
 	private SignerElementsService $signerElementsService;
 	private FileInputValidator $fileInputValidator;
 
@@ -34,13 +40,15 @@ final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$l10n = $this->createMock(IL10N::class);
 		$l10n->method('t')->willReturnArgument(0);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$this->fileMapper = $this->createMock(FileMapper::class);
+		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->fileInputValidator = $this->createMock(FileInputValidator::class);
 		$this->validator = new VisibleElementValidator(
 			$l10n,
 			$this->signRequestMapper,
-			$this->createMock(FileMapper::class),
-			$this->createMock(FileElementMapper::class),
+			$this->fileMapper,
+			$this->fileElementMapper,
 			$this->createMock(UserElementMapper::class),
 			$this->signerElementsService,
 			$this->fileInputValidator,
@@ -141,5 +149,49 @@ final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 		);
 
 		$this->assertNull($actual);
+	}
+
+	#[DataProvider('guestProfileNodeCases')]
+	public function testValidateVisibleElementsRelationScopesGuestProfileNodeToSession(mixed $profileNodeId, bool $inSession, bool $valid): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(47);
+		$signRequest->setFileId(22);
+		$file = new File();
+		$file->setNodeTypeEnum(NodeType::FILE);
+		$this->fileMapper->method('getById')->with(22)->willReturn($file);
+		$fileElement = new FileElement();
+		$fileElement->setId(5);
+		$fileElement->setSignRequestId(47);
+		$fileElement->setType('signature');
+		$this->fileElementMapper->method('getById')->with(5)->willReturn($fileElement);
+		$this->fileElementMapper->method('getByFileIdAndSignRequestId')->with(22, 47)->willReturn([$fileElement]);
+		$this->signerElementsService->method('canCreateSignature')->willReturn(true);
+		$lookup = $this->signerElementsService->method('getElementFromSessionByNodeId');
+		if ($inSession) {
+			$lookup->with($profileNodeId)->willReturn($this->createMock(\OCP\Files\File::class));
+		} else {
+			$lookup->willThrowException(new DoesNotExistException('Element not found'));
+		}
+
+		if (!$valid) {
+			$this->expectException(LibresignException::class);
+			$this->expectExceptionMessage('Field %s does not belong to user');
+		}
+
+		$actual = $this->validator->validateVisibleElementsRelation(
+			[['documentElementId' => 5, 'profileNodeId' => $profileNodeId]],
+			$signRequest,
+			null,
+		);
+
+		$this->assertNull($actual);
+	}
+
+	public static function guestProfileNodeCases(): array {
+		return [
+			'node in own session' => [101, true, true],
+			'node outside own session' => [102, false, false],
+			'non integer node' => ['101', true, false],
+		];
 	}
 }

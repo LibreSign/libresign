@@ -132,6 +132,15 @@ class VisibleElementValidator {
 				} catch (\Throwable) {
 					throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileNodeId']));
 				}
+			} elseif ($canCreateSignature) {
+				try {
+					if (!is_int($elements['profileNodeId'])) {
+						throw new \InvalidArgumentException();
+					}
+					$this->signerElementsService->getElementFromSessionByNodeId($elements['profileNodeId']);
+				} catch (\Throwable) {
+					throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileNodeId']));
+				}
 			}
 		}
 		$this->validateUserHasNecessaryElements($signRequest, $user, $list, $childSignRequests);
