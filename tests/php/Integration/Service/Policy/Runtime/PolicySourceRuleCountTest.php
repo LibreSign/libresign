@@ -91,7 +91,16 @@ final class PolicySourceRuleCountTest extends \Test\TestCase {
 			'non-empty legacy value' => [LegalInformationPolicy::KEY, $store([self::LEGAL_INFORMATION => 'Legal text']), 1],
 			'explicit non-empty default' => [
 				SigningModePolicy::KEY_SIGNING_MODE,
-				$store([self::SIGNING_MODE => 'sync', self::SIGNING_MODE_OVERRIDE => '0']),
+				static function (PolicySource $policySource, IAppConfig $appConfig): void {
+					$policySource->saveSystemPolicy(SigningModePolicy::KEY_SIGNING_MODE, 'sync', false);
+					$sourceConfigProperty = new \ReflectionProperty(PolicySource::class, 'appConfig');
+					$sourceConfig = $sourceConfigProperty->getValue($policySource);
+					$scopeProperty = new \ReflectionProperty(\OC\AppFramework\Services\AppConfig::class, 'appName');
+					$scope = $scopeProperty->getValue($sourceConfig);
+					self::assertSame(Application::APP_ID, $scope, 'Unexpected app-scoped config context');
+					self::assertTrue($appConfig->hasKey(Application::APP_ID, self::SIGNING_MODE), 'saveSystemPolicy did not persist the explicit signing mode in appconfig');
+					self::assertTrue($appConfig->hasKey(Application::APP_ID, self::SIGNING_MODE_OVERRIDE), 'saveSystemPolicy did not persist the explicit override flag');
+				},
 				1,
 			],
 			'rule removed' => [
