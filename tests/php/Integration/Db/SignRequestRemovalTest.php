@@ -30,7 +30,7 @@ use Sabre\DAV\UUIDUtil;
 /**
  * @group DB
  */
-final class SignRequestRemovalTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class SignRequestRemovalTest extends \Test\TestCase {
 	private SignRequestMapper $requests;
 	private FileMapper $files;
 	private IdentifyMethodMapper $identifications;
@@ -38,10 +38,21 @@ final class SignRequestRemovalTest extends \OCA\Libresign\Tests\Integration\Test
 
 	public function setUp(): void {
 		parent::setUp();
+		$this->db = Server::get(IDBConnection::class);
+		$this->db->beginTransaction();
 		$this->requests = Server::get(SignRequestMapper::class);
 		$this->files = Server::get(FileMapper::class);
 		$this->identifications = Server::get(IdentifyMethodMapper::class);
-		$this->db = Server::get(IDBConnection::class);
+	}
+
+	public function tearDown(): void {
+		try {
+			if (isset($this->db) && $this->db->inTransaction()) {
+				$this->db->rollBack();
+			}
+		} finally {
+			parent::tearDown();
+		}
 	}
 
 	private function createUnsignedSigner(): SignRequest {
