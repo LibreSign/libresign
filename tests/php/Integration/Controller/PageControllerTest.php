@@ -15,6 +15,7 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\EmailSignerElementsService;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -62,6 +63,8 @@ final class PageControllerTest extends TestCase {
 	private PolicyAuthorizationService $policyAuthorizationService;
 	private IURLGenerator&MockObject $urlGenerator;
 	private PageController $controller;
+	private ?IUser $signedInUser;
+	private EmailSignerElementsService&MockObject $emailSignerElementsService;
 
 	private array $fileSettings = [
 		'needIdentificationDocuments' => false,
@@ -76,7 +79,9 @@ final class PageControllerTest extends TestCase {
 		$this->userSession = $this->createMock(IUserSession::class);
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('requester');
-		$this->userSession->method('getUser')->willReturn($user);
+		$this->signedInUser = $user;
+		$this->userSession->method('getUser')->willReturnCallback(fn (): ?IUser => $this->signedInUser);
+		$this->emailSignerElementsService = $this->createMock(EmailSignerElementsService::class);
 
 		$this->accountService = $this->createMock(AccountService::class);
 		$this->accountService->method('getConfig')->willReturn([]);
@@ -167,6 +172,7 @@ final class PageControllerTest extends TestCase {
 			signingRequestValidator: $this->createMock(SigningRequestValidator::class),
 			eventDispatcher: $this->createMock(IEventDispatcher::class),
 			urlGenerator: $this->urlGenerator,
+			emailSignerElementsService: $this->emailSignerElementsService,
 		);
 	}
 
@@ -233,6 +239,43 @@ final class PageControllerTest extends TestCase {
 			'not the signer\'s turn' => [['canSign' => false], false],
 			'no capability in the response' => [[], false],
 		];
+	}
+
+	#[DataProvider('provideSignerAuthentication')]
+	public function testSavedEmailSignatureStateIsOnlyProvidedForAnonymousSigners(bool $authenticated): void {
+		if (!$authenticated) {
+			$this->signedInUser = null;
+		}
+		$request = new SignRequestEntity();
+		$request->setFileId(5);
+		$request->setUuid('sign-uuid');
+		$file = new FileEntity();
+		$file->setId(5);
+		$file->setName('small_valid');
+		$file->setNodeId(50);
+		$file->setNodeType('file');
+		$this->signFileService->method('getSignRequestByUuid')->willReturn($request);
+		$this->signFileService->method('getFile')->willReturn($file);
+		$this->controller->loadNextcloudFileFromUuid('sign-uuid');
+		$this->emailSignerElementsService->expects($authenticated ? $this->never() : $this->once())
+			->method('getSignerState')->with($request)->willReturn(['confirmMethod' => 'emailToken']);
+		$provided = [];
+		$this->initialState->method('provideInitialState')
+			->willReturnCallback(static function (string $key, mixed $value) use (&$provided): void {
+				$provided[$key] = $value;
+			});
+
+		$this->controller->sign('sign-uuid');
+
+		if ($authenticated) {
+			$this->assertArrayNotHasKey('email_signer_signature', $provided);
+		} else {
+			$this->assertSame(['confirmMethod' => 'emailToken'], $provided['email_signer_signature']);
+		}
+	}
+
+	public static function provideSignerAuthentication(): array {
+		return ['account signer' => [true], 'email signer' => [false]];
 	}
 
 	public function testIndexFPathRedirectsRegularUserAwayFromPoliciesWorkbench(): void {
@@ -361,6 +404,7 @@ final class PageControllerTest extends TestCase {
 			signingRequestValidator: $this->createMock(SigningRequestValidator::class),
 			eventDispatcher: $this->createMock(IEventDispatcher::class),
 			urlGenerator: $this->urlGenerator,
+			emailSignerElementsService: $this->createMock(EmailSignerElementsService::class),
 		);
 
 		$response = $controller->validationFilePublic('validation-file-uuid');

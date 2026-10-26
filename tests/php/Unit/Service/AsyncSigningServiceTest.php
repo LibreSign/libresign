@@ -15,6 +15,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\AsyncSigningService;
 use OCA\Libresign\Service\FileStatusService;
+use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\Worker\WorkerActivationService;
 use OCP\BackgroundJob\IJobList;
 use OCP\IDBConnection;
@@ -51,6 +52,7 @@ class AsyncSigningServiceTest extends TestCase {
 			$this->db,
 			$this->workerActivationService,
 			$this->createMock(LoggerInterface::class),
+			$this->createConfiguredMock(SessionService::class, ['getSessionId' => 'server-derived-session']),
 		);
 	}
 
@@ -150,7 +152,8 @@ class AsyncSigningServiceTest extends TestCase {
 						&& isset($args['friendlyName'])
 						&& isset($args['visibleElements'])
 						&& isset($args['metadata'])
-						&& $args['isExternalSigner'] === ($userId === null))
+						&& $args['isExternalSigner'] === ($userId === null)
+						&& $args['signatureSessionId'] === ($userId === null ? 'server-derived-session' : null))
 			);
 
 		$result = $this->service->enqueueSigningJob(

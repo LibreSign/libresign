@@ -939,6 +939,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements/saved": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Use the saved signature elements of a signer identified by email
+         * @description The saved elements are copied into the current signing session only after the signer satisfies the confirm method configured for the Email identification factor.
+         */
+        post: operations["signature_elements-use-saved-signature-elements"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements/preview/{nodeId}": {
         parameters: {
             query?: never;
@@ -5761,6 +5781,11 @@ export interface operations {
                     deviceGeolocation?: {
                         [key: string]: Record<string, never>;
                     };
+                    /**
+                     * @description Explicitly save the external email signer's visible signature for future documents
+                     * @default false
+                     */
+                    saveSignature?: boolean;
                 };
             };
         };
@@ -6148,6 +6173,60 @@ export interface operations {
                 };
             };
             /** @description Invalid data */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "signature_elements-use-saved-signature-elements": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description Verification code, required when the confirm method is the email token
+                     * @default
+                     */
+                    token?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["UserElementsResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description The saved elements cannot be used */
             422: {
                 headers: {
                     [name: string]: unknown;

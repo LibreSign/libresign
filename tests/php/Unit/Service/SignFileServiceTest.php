@@ -2935,6 +2935,19 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	public function testWorkerResolvesGuestImagesFromCapturedBrowserStorage(): void {
+		$this->folderService->method('getFileByNodeId')->willThrowException(new \OCP\Files\NotFoundException());
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file->method('getId')->willReturn(42);
+		$this->signerElementsService->expects($this->once())->method('getElementsFromSession')
+			->with('browser-request-storage')->willReturn([$file]);
+		$service = $this->getService();
+		$service->setSignatureSessionId('browser-request-storage');
+
+		$this->assertSame($file, self::invokePrivate($service, 'getNode', [42]));
+		$this->assertSame('browser-request-storage', $service->getJobArgumentsWithoutCredentials()['signatureSessionId']);
+	}
+
 	public function testCreateSignedFileRunsAsOwnerAndRestoresSession(): void {
 		$service = $this->getService();
 

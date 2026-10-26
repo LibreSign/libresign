@@ -33,6 +33,7 @@ export type SubmitSignaturePayload = {
 		profileNodeId?: number
 	}>
 	deviceGeolocation?: CollectedGeolocation
+	saveSignature?: boolean
 }
 
 export type SignatureMethodConfig = {

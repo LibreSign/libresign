@@ -20,6 +20,7 @@ use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AsyncSigningService;
+use OCA\Libresign\Service\EmailSignerElementsService;
 use OCA\Libresign\Service\File\SettingsLoader;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -76,6 +77,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		private SignerIpGeolocationPolicyService $signerIpGeolocationPolicyService,
 		private SigningErrorHandler $errorHandler,
 		private SignatureRejectionService $signatureRejectionService,
+		private EmailSignerElementsService $emailSignerElementsService,
 		private LoggerInterface $logger,
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -118,6 +120,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param string $token Token, commonly send by email
 	 * @param bool $async Execute signing asynchronously when possible
 	 * @param LibresignSignerDeviceGeolocation $deviceGeolocation Device-reported geolocation metadata submitted by the signing client
+	 * @param bool $saveSignature Explicitly save the external email signer's visible signature for future documents
 	 * @psalm-param array<string, mixed> $deviceGeolocation
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
@@ -131,8 +134,8 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}', requirements: ['apiVersion' => '(v1)'])]
-	public function signBySignerUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false, array $deviceGeolocation = []): DataResponse {
-		return $this->sign($method, $elements, $identifyValue, $token, null, $uuid, $async, $deviceGeolocation);
+	public function signBySignerUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false, array $deviceGeolocation = [], bool $saveSignature = false): DataResponse {
+		return $this->sign($method, $elements, $identifyValue, $token, null, $uuid, $async, $deviceGeolocation, $saveSignature);
 	}
 
 	/**
@@ -147,6 +150,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		?string $signRequestUuid = null,
 		bool $async = false,
 		array $deviceGeolocation = [],
+		bool $saveSignature = false,
 	): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
@@ -194,6 +198,15 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				);
 			}
 
+			$signature = null;
+			if ($saveSignature && !$user instanceof IUser) {
+				try {
+					$signature = $this->emailSignerElementsService->prepareSignature($signRequest, $token, $elements, true);
+				} catch (\Throwable $e) {
+					$this->logger->warning('Unable to prepare signature elements of email signer', ['exception' => $e]);
+				}
+			}
+
 			$this->signFileService->prepareForSigning(
 				$libreSignFile,
 				$signRequest,
@@ -206,13 +219,27 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			);
 
 			if ($async && $this->workerConfiguration->isAsyncSigningEnabled()) {
-				return $this->signAsync($libreSignFile, $signRequest, $user, $userIdentifier, $method, $token, $elements, $metadata);
+				$response = $this->signAsync($libreSignFile, $signRequest, $user, $userIdentifier, $method, $token, $elements, $metadata);
+			} else {
+				$response = $this->signSync($libreSignFile, $elements, $metadata);
 			}
-
-			return $this->signSync($libreSignFile, $elements, $metadata);
+			if ($signature !== null && $response->getStatus() === Http::STATUS_OK) {
+				$this->saveEmailSignerElements($signature);
+			}
+			return $response;
 		} catch (\Throwable $e) {
 			$data = $this->errorHandler->handleException($e);
 			return new DataResponse($data, Http::STATUS_UNPROCESSABLE_ENTITY);
+		}
+	}
+
+	/** @param array{key: string, elements: array<string, string>} $signature */
+	private function saveEmailSignerElements(array $signature): void {
+		try {
+			$this->emailSignerElementsService->saveSignature($signature);
+		} catch (\Throwable $e) {
+			// Keeping the signature for later documents must never block signing this one.
+			$this->logger->warning('Unable to save signature elements of email signer', ['exception' => $e]);
 		}
 	}
 

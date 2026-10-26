@@ -31,6 +31,8 @@ const _signatureElementsStore = defineStore('signatureElements', () => {
 	const success = ref('')
 	const error = ref('')
 	const initialized = ref(false)
+	// Saved signature of a signer identified by email
+	const emailSigner = ref(/** @type {{ confirmMethod: string } | null} */ (loadState('libresign', 'email_signer_signature', null)))
 
 	const loadSignatures = async () => {
 		if (initialized.value) {
@@ -152,15 +154,43 @@ const _signatureElementsStore = defineStore('signatureElements', () => {
 			})
 	}
 
+	const useSavedSignature = async (token = '') => {
+		const config = {
+			url: generateOcsUrl('/apps/libresign/api/v1/signature/elements/saved'),
+			method: 'post',
+			data: { token },
+		}
+
+		if (signRequestUuid.value !== '') {
+			config.headers = {
+				'libresign-sign-request-uuid': signRequestUuid.value,
+			}
+		}
+
+		return axios(config)
+			.then(({ data }) => {
+				data.ocs.data.elements.forEach(element => {
+					signs.value[element.type] = element
+				})
+				return true
+			})
+			.catch(({ response }) => {
+				error.value = { message: response?.data?.ocs?.data?.message || '' }
+				return false
+			})
+	}
+
 	return {
 		signs,
 		currentType,
 		signRequestUuid,
 		success,
 		error,
+		emailSigner,
 		loadSignatures,
 		hasSignatureOfType,
 		save,
+		useSavedSignature,
 		delete: deleteSignature,
 	}
 })

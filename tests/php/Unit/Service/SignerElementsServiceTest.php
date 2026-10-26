@@ -206,7 +206,7 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 
 		$this->folderService
 			->expects($this->once())
-			->method('getFolder')
+			->method('getUnauthenticatedFolder')
 			->willReturn($rootFolder);
 
 		$this->getService()->deleteSignatureElement(null, 'session789', 456);
@@ -225,7 +225,7 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 
 		$this->folderService
 			->expects($this->once())
-			->method('getFolder')
+			->method('getUnauthenticatedFolder')
 			->willReturn($rootFolder);
 
 		$this->getService()->deleteSignatureElement(null, 'nonexistent', 999);
@@ -251,7 +251,7 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 
 		$this->folderService
 			->expects($this->once())
-			->method('getFolder')
+			->method('getUnauthenticatedFolder')
 			->willReturn($rootFolder);
 
 		$this->getService()->deleteSignatureElement(null, 'session123', 999);
@@ -279,7 +279,7 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 
 		$this->folderService
 			->expects($this->once())
-			->method('getFolder')
+			->method('getUnauthenticatedFolder')
 			->willReturn($rootFolder);
 
 		$this->getService()->deleteSignatureElement(null, 'session456', 777);
@@ -323,7 +323,7 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 
 		$this->folderService
 			->expects($this->once())
-			->method('getFolder')
+			->method('getUnauthenticatedFolder')
 			->willReturn($rootFolder);
 
 		$this->getService()->deleteSignatureElement(null, 'mysession', 100);
@@ -363,7 +363,7 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 
 		$this->folderService
 			->expects($this->once())
-			->method('getFolder')
+			->method('getUnauthenticatedFolder')
 			->willReturn($rootFolder);
 
 		$this->getService()->deleteSignatureElement(null, 'session999', 200);
@@ -400,14 +400,14 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 	public function testSaveVisibleElementsWithNoElementsDoesNotWrite(): void {
 		$this->userElementMapper->expects($this->never())->method('insert');
 		$this->userElementMapper->expects($this->never())->method('update');
-		$this->folderService->expects($this->never())->method('getFolder');
+		$this->folderService->expects($this->never())->method('getUnauthenticatedFolder');
 		$this->getService()->saveVisibleElements([], 'session-id', null);
 	}
 
 	public function testSaveVisibleElementWithoutChangesDoesNotWrite(): void {
 		$this->userElementMapper->expects($this->never())->method('findOne');
 		$this->userElementMapper->expects($this->never())->method('update');
-		$this->folderService->expects($this->never())->method('getFolder');
+		$this->folderService->expects($this->never())->method('getUnauthenticatedFolder');
 		$this->getService()->saveVisibleElement(['elementId' => 10], 'session-id', null);
 	}
 
@@ -498,8 +498,8 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		$root = $this->createMock(Folder::class);
 		$folder = $this->createMock(Folder::class);
 		$file = $this->createMock(File::class);
-		$this->folderService->method('getFolder')->willReturn($root);
-		$root->method('newFolder')->with('session-id')->willReturn($folder);
+		$this->folderService->method('getUnauthenticatedFolder')->willReturn($root);
+		$root->method('getOrCreateFolder')->with('session-id')->willReturn($folder);
 		$folder->expects($this->once())->method('newFile')
 			->with('initial_' . $createdAt->getTimestamp() . '.png', 'image')->willReturn($file);
 		$this->userElementMapper->expects($this->never())->method('insert');
@@ -518,7 +518,7 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		$other = $this->createMock(File::class);
 		$other->method('getId')->willReturn(43);
 		$other->expects($this->never())->method('putContent');
-		$this->folderService->method('getFolder')->willReturn($root);
+		$this->folderService->method('getUnauthenticatedFolder')->willReturn($root);
 		$this->sessionService->method('getSessionId')->willReturn('session-id');
 		$root->method('get')->with('session-id')->willReturn($folder);
 		$root->expects($this->never())->method('newFolder');
@@ -543,7 +543,7 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 	#[DataProvider('provideSessionUpdateCases')]
 	public function testGetElementsFromSession(bool $exists): void {
 		$root = $this->createMock(Folder::class);
-		$this->folderService->method('getFolder')->willReturn($root);
+		$this->folderService->method('getUnauthenticatedFolder')->willReturn($root);
 		$this->sessionService->method('getSessionId')->willReturn('session-id');
 		$expected = [];
 		if ($exists) {
@@ -565,7 +565,7 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		$target->method('getId')->willReturn(42);
 		$other = $this->createMock(File::class);
 		$other->method('getId')->willReturn(43);
-		$this->folderService->method('getFolder')->willReturn($root);
+		$this->folderService->method('getUnauthenticatedFolder')->willReturn($root);
 		$this->folderService->expects($this->never())->method('getFileByNodeId');
 		$this->sessionService->method('getSessionId')->willReturn('session-id');
 		$root->method('get')->with('session-id')->willReturn($folder);
@@ -579,12 +579,61 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 
 	public function testGetElementFromSessionByNodeIdWithoutSessionFolder(): void {
 		$root = $this->createMock(Folder::class);
-		$this->folderService->method('getFolder')->willReturn($root);
+		$this->folderService->method('getUnauthenticatedFolder')->willReturn($root);
 		$this->sessionService->method('getSessionId')->willReturn('session-id');
 		$root->method('get')->with('session-id')->willThrowException(new NotFoundException());
 
 		$this->expectException(DoesNotExistException::class);
 		$this->getService()->getElementFromSessionByNodeId(42);
+	}
+
+	public function testWorkerCanResolveTheStorageContextCapturedByTheServer(): void {
+		$root = $this->createMock(Folder::class);
+		$folder = $this->createMock(Folder::class);
+		$file = $this->createMock(File::class);
+		$this->folderService->method('getUnauthenticatedFolder')->willReturn($root);
+		$this->sessionService->expects($this->never())->method('getSessionId');
+		$root->expects($this->once())->method('get')->with('browser-request-storage')->willReturn($folder);
+		$folder->method('getDirectoryListing')->willReturn([$file]);
+
+		$this->assertSame([$file], $this->getService()->getElementsFromSession('browser-request-storage'));
+	}
+
+	public function testWorkerStorageContextCannotTraverseFolders(): void {
+		$this->folderService->expects($this->never())->method('getUnauthenticatedFolder');
+		$this->expectException(\InvalidArgumentException::class);
+
+		$this->getService()->getElementsFromSession('../another-session');
+	}
+
+	public function testReplaceSessionElementKeepsOnlyOneElementOfType(): void {
+		$root = $this->createMock(Folder::class);
+		$folder = $this->createMock(Folder::class);
+		$sameType = $this->createMock(File::class);
+		$sameType->method('getName')->willReturn('signature_1700000000.png');
+		$sameType->expects($this->once())->method('delete');
+		$otherType = $this->createMock(File::class);
+		$otherType->method('getName')->willReturn('initial_1700000000.png');
+		$otherType->expects($this->never())->method('delete');
+		$this->folderService->method('getUnauthenticatedFolder')->willReturn($root);
+		$this->sessionService->method('getSessionId')->willReturn('session-id');
+		$root->method('get')->with('session-id')->willReturn($folder);
+		$root->method('getOrCreateFolder')->with('session-id')->willReturn($folder);
+		$folder->method('getDirectoryListing')->willReturn([$sameType, $otherType]);
+		$now = new \DateTime('@1800000000');
+		$this->timeFactory->method('getDateTime')->willReturn($now);
+		$folder->expects($this->once())->method('newFile')
+			->with('signature_1800000000.png', 'saved-image')
+			->willReturn($this->createMock(File::class));
+
+		$this->getService()->replaceSessionElement('signature', 'saved-image');
+	}
+
+	public function testGetSessionElementType(): void {
+		$file = $this->createMock(File::class);
+		$file->method('getName')->willReturn('initial_1700000000.png');
+
+		$this->assertSame('initial', $this->getService()->getSessionElementType($file));
 	}
 
 	#[DataProvider('provideInvalidUrlImageCases')]

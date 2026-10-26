@@ -31,7 +31,7 @@ type ModalVerificationCodeVm = {
 			}
 		}
 	}
-	sendCode: () => void
+	sendCode: () => void | Promise<void>
 	requestNewCode: () => void
 	signDocument: () => void
 	requestCode: () => Promise<void>
@@ -87,6 +87,15 @@ vi.mock('@nextcloud/dialogs', () => ({
 
 vi.mock('@nextcloud/password-confirmation', () => ({
 	confirmPassword: vi.fn().mockResolvedValue(true),
+}))
+
+const savedSignatureStore = vi.hoisted(() => ({
+	useSavedSignature: vi.fn(),
+	error: '' as string | { message?: string },
+}))
+
+vi.mock('@/store/signatureElements.js', () => ({
+	useSignatureElementsStore: () => savedSignatureStore,
 }))
 
 describe('ModalVerificationCode (email mode)', () => {
@@ -612,5 +621,84 @@ describe('ModalVerificationCode requestCode route (#8365)', () => {
 
 		const [url] = vi.mocked(axios.post).mock.calls[0]
 		expect(url).toBe('/ocs/v2.php/apps/libresign/api/v1/sign/uuid/my-signer-uuid/code')
+	})
+})
+
+describe('ModalVerificationCode reusing the saved signature of an email signer', () => {
+	const stubs = {
+		NcDialog: { template: '<div><slot /></div>' },
+		NcTextField: { template: '<input />' },
+		NcButton: { template: '<button><slot /></button>' },
+		NcLoadingIcon: { template: '<div />' },
+		NcIconSvgWrapper: { template: '<div />' },
+	}
+
+	const mountSavedSignature = () => mount(ModalVerificationCode, {
+		props: { mode: 'email', purpose: 'savedSignature' },
+		global: { stubs },
+	}) as ModalVerificationCodeWrapper
+
+	beforeEach(() => {
+		setActivePinia(createPinia())
+		savedSignatureStore.useSavedSignature.mockReset()
+		savedSignatureStore.error = ''
+		const signMethodsStore = useSignMethodsStore() as SignMethodsStoreWithSettings
+		signMethodsStore.settings.emailToken = {
+			hasConfirmCode: true,
+			hashOfEmail: '5d41402abc4b2a76b9719d911017c592',
+			blurredEmail: 'u***@email.com',
+		}
+	})
+
+	it('shows a two step progress', () => {
+		const wrapper = mountSavedSignature()
+
+		expect(wrapper.vm.progressText).toBe('Step 2 of 2 - Code validation')
+	})
+
+	it('sends the typed code to unlock the saved signature instead of continuing to sign', async () => {
+		savedSignatureStore.useSavedSignature.mockResolvedValue(true)
+		const wrapper = mountSavedSignature()
+		wrapper.vm.token = '123456'
+		await wrapper.vm.$nextTick()
+
+		await wrapper.vm.sendCode()
+
+		expect(savedSignatureStore.useSavedSignature).toHaveBeenCalledWith('123456')
+		expect(wrapper.emitted('unlocked')).toHaveLength(1)
+		expect(wrapper.emitted('change')).toBeUndefined()
+		expect(wrapper.vm.identityVerified).toBe(false)
+	})
+
+	it('keeps the dialog open and shows the server error when the code is rejected', async () => {
+		const { showError } = await import('@nextcloud/dialogs')
+		vi.mocked(showError).mockClear()
+		savedSignatureStore.useSavedSignature.mockResolvedValue(false)
+		savedSignatureStore.error = { message: 'Invalid code.' }
+		const wrapper = mountSavedSignature()
+		wrapper.vm.token = '000000'
+		await wrapper.vm.$nextTick()
+
+		await wrapper.vm.sendCode()
+
+		expect(wrapper.emitted('unlocked')).toBeUndefined()
+		expect(showError).toHaveBeenCalledWith('Invalid code.')
+	})
+
+	it('prefills the signing modal after unlocking with the typed code', async () => {
+		savedSignatureStore.useSavedSignature.mockResolvedValue(true)
+		const unlockDialog = mountSavedSignature()
+		unlockDialog.vm.token = '123456'
+		await unlockDialog.vm.$nextTick()
+		await unlockDialog.vm.sendCode()
+		expect(unlockDialog.emitted('unlocked')).toHaveLength(1)
+		unlockDialog.unmount()
+
+		const wrapper = mount(ModalVerificationCode, {
+			props: { mode: 'email' },
+			global: { stubs },
+		}) as ModalVerificationCodeWrapper
+
+		expect(wrapper.vm.token).toBe('123456')
 	})
 })

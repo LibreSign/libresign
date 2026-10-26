@@ -361,4 +361,30 @@ class SignJobCoordinatorTest extends TestCase {
 		$this->coordinator->runSignSingleFile([]);
 		$this->addToAssertionCount(1);
 	}
+
+	public function testExternalJobUsesItsCapturedStorageContextAndNextJobClearsIt(): void {
+		$file = new File();
+		$file->setId(10);
+		$signRequest = new SignRequest();
+		$signRequest->setId(20);
+		$signRequest->setUuid('request-uuid');
+		$this->fileMapper->method('getById')->willReturn($file);
+		$this->signRequestMapper->method('getById')->willReturn($signRequest);
+		$this->signFileService->method('setLibreSignFile')->willReturnSelf();
+		$this->signFileService->method('setSignRequest')->willReturnSelf();
+		$this->signFileService->method('setCurrentUser')->willReturnSelf();
+		$this->signFileService->method('storeUserMetadata')->willReturnSelf();
+		$contexts = [];
+		$this->signFileService->expects($this->exactly(2))->method('setSignatureSessionId')
+			->willReturnCallback(function (?string $sessionId) use (&$contexts): SignFileService {
+				$contexts[] = $sessionId;
+				return $this->signFileService;
+			});
+		$argument = ['fileId' => 10, 'signRequestId' => 20, 'userId' => '', 'isExternalSigner' => true, 'signatureSessionId' => 'browser-request-storage'];
+
+		$this->assertTrue($this->coordinator->runSignFile($argument));
+		$argument['isExternalSigner'] = false;
+		$this->assertTrue($this->coordinator->runSignFile($argument));
+		$this->assertSame(['browser-request-storage', null], $contexts);
+	}
 }
