@@ -26,6 +26,10 @@ enum FileStatus: int {
 	case SIGNING_IN_PROGRESS = 5;
 	case CANCELED = 6;
 
+	public function allowsSignerRemoval(): bool {
+		return $this === self::DRAFT || $this === self::ABLE_TO_SIGN;
+	}
+
 	public function getLabel(IL10N $l10n): string {
 		return match($this) {
 			// TRANSLATORS File status shown when the file is not part of any LibreSign signing flow.

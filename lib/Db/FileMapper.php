@@ -69,6 +69,22 @@ class FileMapper extends CachedQBMapper {
 	}
 
 	/**
+	 * Lock and reload the current file state, independently of the entity cache.
+	 */
+	public function getByIdForUpdate(int $id): File {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
+		if ($this->db->getDatabaseProvider() !== IDBConnection::PLATFORM_SQLITE) {
+			$qb->forUpdate();
+		}
+
+		/** @var File */
+		return $this->findEntity($qb);
+	}
+
+	/**
 	 * Return LibreSign file by ID
 	 *
 	 * @throws DoesNotExistException
