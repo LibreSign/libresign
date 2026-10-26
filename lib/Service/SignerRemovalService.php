@@ -75,7 +75,7 @@ class SignerRemovalService {
 		// Validate the full envelope before deleting anything.
 		foreach ($targets as [$file, $signRequest, $siblings]) {
 			$this->assertCanRemove($file, $signRequest, $siblings);
-			$changes->track($file, $signRequest);
+			$changes->track($file, $siblings);
 			if ($file->hasParent()) {
 				$parent = $this->fileMapper->getById($file->getParentFileId());
 				$changes->files[$parent->getId()] = $parent;
@@ -111,10 +111,11 @@ class SignerRemovalService {
 			return $targets;
 		}
 
-		// The same database query is used by the envelope rejection workflow.
-		// De-duplicate factor matches before acquiring locks for child files.
+		// Match all identifying factors to avoid removing another participant
+		// who only shares an email address or other single factor.
+		// De-duplicate before acquiring locks for child files.
 		$childIds = [];
-		foreach ($this->signRequestMapper->getByEnvelopeChildrenAndIdentifyMethod($fileId, $signRequestId) as $childSigner) {
+		foreach ($this->signRequestMapper->getEnvelopeChildrenForRemoval($fileId, $signRequestId) as $childSigner) {
 			$childIds[$childSigner->getFileId()][$childSigner->getId()] = true;
 		}
 		ksort($childIds);
